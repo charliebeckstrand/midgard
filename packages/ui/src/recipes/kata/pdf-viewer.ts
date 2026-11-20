@@ -98,14 +98,18 @@ export const k = defineKata({
 				// on the rail fades at each edge.
 				frame: ['border-b', border.color.default, 'shrink-0'],
 				section: [flex.row, 'shrink-0', dan.gap.scale.xs],
-				total: [size.sm, text.muted, 'tabular-nums select-none whitespace-nowrap'],
 				/**
-				 * The skeleton of the page count while the document opens. It holds one digit as text
-				 * that does not show, so it has the size and the baseline of a count of one digit. Most
-				 * documents have fewer than ten pages. Forced colors replace a transparent text color,
-				 * so the skeleton keeps its own colors.
+				 * The page picker and the page count. While the document opens, the group keeps the
+				 * box of a count of one digit, because most documents have fewer than ten pages. Its
+				 * content does not show, and one skeleton fills the box.
 				 */
-				pending: ['inline h-auto text-transparent select-none forced-color-adjust-none'],
+				navigation: {
+					base: 'relative',
+					opening: { true: 'invisible', false: '' },
+				},
+				/** The skeleton of the whole group while the document opens. It shows in the hidden group. */
+				skeleton: ['visible absolute inset-0 h-auto'],
+				total: [size.sm, text.muted, 'tabular-nums select-none whitespace-nowrap'],
 				// The glyph of the thumbnail control while the rail is open: the rail
 				// glyph where the rail is pinned, and the Sheet glyph elsewhere.
 				glyph: {

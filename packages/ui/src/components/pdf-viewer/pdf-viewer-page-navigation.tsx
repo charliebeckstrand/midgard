@@ -19,8 +19,9 @@ type PdfViewerPageNavigationProps = {
  *
  * @remarks The group is there while the document opens, with the page that the viewer asks for.
  * A narrow bar scrolls, so a group that arrived with the document pushed the controls after it
- * along the bar. Until the count arrives, the picker is disabled, and a skeleton of one digit
- * holds the place of the count.
+ * along the bar. Until the count arrives, the group keeps the box of a count of one digit, its
+ * content does not show, and one skeleton fills the box. The picker is disabled, so it is not
+ * in the arrow order of the toolbar.
  * @internal
  */
 export function PdfViewerPageNavigation({ pages, page, goToPage }: PdfViewerPageNavigationProps) {
@@ -28,8 +29,13 @@ export function PdfViewerPageNavigation({ pages, page, goToPage }: PdfViewerPage
 
 	const total = pages.length
 
+	const opening = total === 0
+
 	return (
-		<ToolbarGroup aria-label={intl.formatMessage(pdfViewerMessages.pageNavigation)}>
+		<ToolbarGroup
+			aria-label={intl.formatMessage(pdfViewerMessages.pageNavigation)}
+			className={k({ opening }).toolbar.navigation}
+		>
 			<Listbox<number>
 				aria-label={intl.formatMessage(pdfViewerMessages.currentPage)}
 				value={page}
@@ -37,7 +43,7 @@ export function PdfViewerPageNavigation({ pages, page, goToPage }: PdfViewerPage
 					if (next !== null) goToPage(next)
 				}}
 				displayValue={(pageNumber) => intl.formatNumber(pageNumber)}
-				disabled={total === 0}
+				disabled={opening}
 				className="tabular-nums"
 			>
 				{pages.map((entry, index) => {
@@ -57,10 +63,9 @@ export function PdfViewerPageNavigation({ pages, page, goToPage }: PdfViewerPage
 			</span>
 			{/* `-total`, not `-status`: the viewport's live region owns that anchor. */}
 			<span data-slot="pdf-viewer-page-total" className={k().toolbar.total}>
-				{total === 0 ? (
-					<Placeholder as="span" className={k().toolbar.pending}>
-						{intl.formatNumber(0)}
-					</Placeholder>
+				{opening ? (
+					// One digit that does not show, so the group has the box of a count of one digit.
+					<span aria-hidden="true">{intl.formatNumber(0)}</span>
 				) : (
 					<>
 						<span aria-hidden="true">{intl.formatNumber(total)}</span>
@@ -70,6 +75,7 @@ export function PdfViewerPageNavigation({ pages, page, goToPage }: PdfViewerPage
 					</>
 				)}
 			</span>
+			{opening && <Placeholder className={k().toolbar.skeleton} />}
 		</ToolbarGroup>
 	)
 }
