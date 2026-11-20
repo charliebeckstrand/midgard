@@ -246,6 +246,28 @@ describe('usePdfViewerSearch', () => {
 		)
 	})
 
+	it('counts the matches of each page, and names the page of the current match', () => {
+		const { result } = renderSearch({ safePage: 2 })
+
+		act(() => result.current.setQuery('t'))
+
+		expect(result.current.pageMatches).toEqual(
+			new Map([
+				[1, 2],
+				[2, 2],
+				[3, 2],
+			]),
+		)
+
+		expect(result.current.currentPage).toBe(2)
+
+		act(() => result.current.next())
+
+		act(() => result.current.next())
+
+		expect(result.current.currentPage).toBe(3)
+	})
+
 	it('clears the matches with the query', () => {
 		const { result } = renderSearch()
 
@@ -258,5 +280,9 @@ describe('usePdfViewerSearch', () => {
 		expect(result.current.current).toBeNull()
 
 		expect(result.current.hits).toEqual([])
+
+		expect(result.current.pageMatches.size).toBe(0)
+
+		expect(result.current.currentPage).toBeUndefined()
 	})
 })

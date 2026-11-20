@@ -144,7 +144,11 @@ export type PdfViewerSearchHighlightOptions = {
 export type PdfViewerSearchOptions = {
 	/**
 	 * Marks each match on the page. `true` takes the defaults, and an object sets the color.
-	 * `false` keeps the count and the steps, and paints nothing.
+	 * `false` keeps the count, the steps, and the marks of the thumbnail rail, and paints nothing
+	 * on the page.
+	 *
+	 * @remarks The color also tints the mark of the thumbnail rail. That mark gives the number of
+	 * matches on each page that has one.
 	 * @defaultValue true
 	 */
 	highlight?: boolean | PdfViewerSearchHighlightOptions

@@ -1,6 +1,6 @@
 'use client'
 
-import { type Ref, type RefObject, useEffect, useRef, useState } from 'react'
+import { type ReactNode, type Ref, type RefObject, useEffect, useId, useRef, useState } from 'react'
 import { ariaAttr } from '../../core/aria-attr'
 import { dataAttr } from '../../core/data-attr'
 import { useIntl } from '../../primitives/intl/use-intl'
@@ -43,6 +43,16 @@ type PdfViewerThumbnailListProps = {
 	 * @defaultValue 'list'
 	 */
 	layout?: PdfViewerVariants['layout']
+	/**
+	 * Renders the mark of a tile after its page number, such as the number of search matches.
+	 * The button of the tile names `descriptionId` in `aria-describedby`, so the mark gives the
+	 * element with that id.
+	 *
+	 * @remarks A render function rather than a read of the search here. The mark reads the
+	 * search in a leaf of its own, so a key that the reader types renders the marks and not the
+	 * rail.
+	 */
+	marker?: (pageNumber: number, descriptionId: string) => ReactNode
 }
 
 /**
@@ -133,8 +143,12 @@ export function PdfViewerThumbnailList({
 	onSelect,
 	onVisibleChange,
 	layout = 'list',
+	marker,
 }: PdfViewerThumbnailListProps) {
 	const listRef = useRef<HTMLUListElement>(null)
+
+	// Scopes the ids of the descriptions. The sidebar and the Sheet can each hold a rail.
+	const scope = useId()
 
 	const intl = useIntl()
 
@@ -173,6 +187,8 @@ export function PdfViewerThumbnailList({
 			{items.map((item) => {
 				const isCurrent = item.pageNumber === safePage
 
+				const descriptionId = `${scope}-${item.pageNumber}`
+
 				return (
 					<li key={item.key} data-index={item.pageNumber - 1}>
 						<button
@@ -182,6 +198,7 @@ export function PdfViewerThumbnailList({
 							data-current={dataAttr(isCurrent)}
 							aria-label={intl.formatMessage(pdfViewerMessages.goTo, { page: item.label })}
 							aria-current={isCurrent ? 'page' : undefined}
+							aria-describedby={marker ? descriptionId : undefined}
 							className={k().thumbnail.base}
 							onClick={() => {
 								goToPage(item.pageNumber)
@@ -213,7 +230,10 @@ export function PdfViewerThumbnailList({
 									/>
 								)}
 							</span>
-							<span className={k().thumbnail.label}>{intl.formatNumber(item.pageNumber)}</span>
+							<span className={k().thumbnail.caption}>
+								<span className={k().thumbnail.label}>{intl.formatNumber(item.pageNumber)}</span>
+								{marker?.(item.pageNumber, descriptionId)}
+							</span>
 						</button>
 					</li>
 				)

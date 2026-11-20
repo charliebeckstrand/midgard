@@ -173,6 +173,10 @@ export type PdfViewerSearchResult = {
 	previous: () => void
 	/** The boxes of the matches on the page on screen. Empty when `highlight` is `false`. */
 	hits: PdfViewerSearchHit[]
+	/** The number of matches on each page that has one, for the marks of the thumbnail rail. */
+	pageMatches: ReadonlyMap<number, number>
+	/** The page of the current match, or `undefined` when there is no match. */
+	currentPage: number | undefined
 	color: Color
 }
 
@@ -229,6 +233,15 @@ export function usePdfViewerSearch({
 	const matches = useMemo(() => matchText(pages, query), [pages, query])
 
 	const total = matches.length
+
+	// One map for each query, not one scan for each tile: the rail has a tile for each page.
+	const pageMatches = useMemo(() => {
+		const counts = new Map<number, number>()
+
+		for (const match of matches) counts.set(match.page, (counts.get(match.page) ?? 0) + 1)
+
+		return counts
+	}, [matches])
 
 	const current =
 		total === 0
@@ -306,6 +319,8 @@ export function usePdfViewerSearch({
 		next,
 		previous,
 		hits,
+		pageMatches,
+		currentPage: targetPage,
 		color,
 	}
 }

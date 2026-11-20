@@ -6,7 +6,7 @@ import {
 	type PdfViewerTextItem,
 } from '../../components/pdf-viewer'
 import { BREAKPOINT_WIDTHS } from '../../utilities/responsive'
-import { bySlot, renderUI, screen, setupUser, stubMatchMedia, waitFor } from '../helpers'
+import { allBySlot, bySlot, renderUI, screen, setupUser, stubMatchMedia, waitFor } from '../helpers'
 
 beforeEach(() => {
 	stubMatchMedia((query) => query === `(min-width: ${BREAKPOINT_WIDTHS.lg})`)
@@ -173,6 +173,41 @@ describe('PdfViewer search', () => {
 		expect(screen.getByText('1 of 2')).toBeInTheDocument()
 
 		expect(bySlot(container, 'pdf-viewer-search-hits')).not.toBeInTheDocument()
+	})
+
+	it('marks each thumbnail with the number of matches on its page', async () => {
+		const { container } = renderSearch()
+
+		// No query, no marks.
+		expect(allBySlot(container, 'pdf-viewer-thumbnail-matches')).toHaveLength(0)
+
+		const { user, field } = await openSearch()
+
+		await user.type(field, 't')
+
+		// "Invoice" has no "t", "Total due" has two, and the last "Total" has two.
+		const marks = allBySlot(container, 'pdf-viewer-thumbnail-matches')
+
+		expect(marks.map((mark) => mark.textContent)).toEqual(['2', '2'])
+
+		expect(marks.every((mark) => mark.getAttribute('aria-hidden') === 'true')).toBe(true)
+
+		const tiles = screen.getAllByRole('button', { name: /^Go to Page/ })
+
+		expect(tiles[0]).not.toHaveAccessibleDescription()
+
+		expect(tiles[1]).toHaveAccessibleDescription('2 matches')
+
+		expect(tiles[2]).toHaveAccessibleDescription('2 matches')
+
+		// The tile of the page with the current match takes the heavier wash.
+		expect(marks[0]?.className).toContain('/60')
+
+		expect(marks[1]?.className).toContain('/30')
+
+		await user.clear(field)
+
+		expect(allBySlot(container, 'pdf-viewer-thumbnail-matches')).toHaveLength(0)
 	})
 
 	it('clears the query on the first Escape, and closes the panel on the next', async () => {
