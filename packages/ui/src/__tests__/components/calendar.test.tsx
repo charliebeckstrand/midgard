@@ -13,8 +13,8 @@ import {
 	act,
 	bySlot,
 	expectAnnouncement,
+	FIRST_WRITE_MS,
 	fireEvent,
-	flushAnnouncer,
 	liveRegion,
 	renderUI,
 	screen,
@@ -137,19 +137,17 @@ describe('Calendar', () => {
 		expect(screen.getByRole('listbox', { name: 'July 2025' })).toBeInTheDocument()
 	})
 
-	it('announces the new month through the polite live region on navigation', async () => {
-		const user = setupUser()
-
+	it('announces the new month through the polite live region on navigation', async ({ clock }) => {
 		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} />)
 
-		// The announcer writes the first text of a region after a delay. Wait for it, so
-		// that an announcement on mount shows here.
-		await flushAnnouncer()
+		// The announcer writes the first text of a region after `FIRST_WRITE_MS`. Wait
+		// for it, so that an announcement on mount shows here.
+		await clock.advance(FIRST_WRITE_MS)
 
 		// Lazily created on first announce; absent means nothing was announced on mount.
 		expect(liveRegion()?.textContent ?? '').toBe('')
 
-		await user.click(screen.getByLabelText('Next month'))
+		await clock.user.click(screen.getByLabelText('Next month'))
 
 		await expectAnnouncement('July 2025')
 	})

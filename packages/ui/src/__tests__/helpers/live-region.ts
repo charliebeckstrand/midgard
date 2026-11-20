@@ -12,6 +12,14 @@ export function liveRegion(politeness: 'polite' | 'assertive' = 'polite'): HTMLE
 }
 
 /**
+ * The time from an announcement to the first text of a new region on the
+ * `clock` fixture (`fake-clock.ts`). The text waits for the next paint, which
+ * the fake clock runs at 16 ms or less, and then `FIRST_WRITE_DELAY_MS`. A case
+ * on the fake clock moves the clock this far before it reads the region.
+ */
+export const FIRST_WRITE_MS = 16 + FIRST_WRITE_DELAY_MS
+
+/**
  * Waits for the announcer's live region to contain `text`.
  *
  * @remarks

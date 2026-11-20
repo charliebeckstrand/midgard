@@ -1,8 +1,7 @@
 import { describe, expect, onTestFinished, vi } from 'vitest'
-import { FIRST_WRITE_DELAY_MS } from '../../core/announcer'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { GRID_RANGE_ANNOUNCE_MS } from '../../modules/grid/engine/grid-constants'
-import { act, fireEvent, gridCells, liveRegion, renderUI, screen } from '../helpers'
+import { act, FIRST_WRITE_MS, fireEvent, gridCells, liveRegion, renderUI, screen } from '../helpers'
 import { type FakeClock, it } from '../helpers/fake-clock'
 
 type Row = { id: number; name: string; role: string; note: string }
@@ -49,13 +48,12 @@ function copy(): string | undefined {
 
 /**
  * Moves the clock past the settle window of the range, and then past the first
- * write of the announcer. That write lands after the next frame (16 ms or less
- * on the fake clock) and then `FIRST_WRITE_DELAY_MS`.
+ * write of the announcer (`FIRST_WRITE_MS`).
  */
 async function settleAnnouncement(clock: FakeClock): Promise<void> {
 	await clock.advance(GRID_RANGE_ANNOUNCE_MS)
 
-	await clock.advance(16 + FIRST_WRITE_DELAY_MS)
+	await clock.advance(FIRST_WRITE_MS)
 }
 
 function renderRangeGrid(props: { range?: boolean; rows?: Row[] } = {}) {

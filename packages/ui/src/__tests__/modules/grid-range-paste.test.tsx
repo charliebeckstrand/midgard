@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { describe, expect, vi } from 'vitest'
-import { FIRST_WRITE_DELAY_MS } from '../../core/announcer'
 import { Grid, type GridColumn, type GridEditableConfig } from '../../modules/grid'
 import {
 	act,
 	applyChanges,
+	FIRST_WRITE_MS,
 	fireEvent,
 	getSlot,
 	gridCells,
@@ -13,11 +13,6 @@ import {
 	screen,
 } from '../helpers'
 import { it } from '../helpers/fake-clock'
-
-// The first text of a new live region lands after the next frame (16 ms or less
-// on the fake clock) and then `FIRST_WRITE_DELAY_MS`. Each case that reads the
-// region moves the clock this far.
-const FIRST_WRITE_MS = 16 + FIRST_WRITE_DELAY_MS
 
 type Row = { id: number; name: string; count: number; active: boolean; code: string }
 

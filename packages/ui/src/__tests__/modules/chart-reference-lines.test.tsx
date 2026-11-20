@@ -94,8 +94,11 @@ function riseWrapper(container: HTMLElement): SVGGElement | null {
  * corner of the plot.
  */
 function pointAt(container: HTMLElement, x: number, y: number, init: PointerEventInit = {}) {
-	const hit = getSlot(container, 'chart-hit')
+	pointHit(getSlot(container, 'chart-hit'), x, y, init)
+}
 
+/** Moves the pointer over the hit area `hit` to a point of the plot, as `pointAt` does. */
+function pointHit(hit: HTMLElement, x: number, y: number, init: PointerEventInit = {}) {
 	fireEvent.pointerMove(hit, {
 		clientX: x - Number(hit.getAttribute('x')),
 		clientY: y - Number(hit.getAttribute('y')),
@@ -712,12 +715,14 @@ describe('reference line pointer', () => {
 
 		const x = Number(hit.getAttribute('x')) + Number(hit.getAttribute('width')) / 2
 
+		// The sweep reads the hit area and the series groups once, not at each
+		// move. The check after the sweeps proves that they stay the live nodes.
+		const groups = allBySlot(container, 'chart-line-series')
+
 		// What the pointer lights: no line, one line alone, or both together. The
 		// profit line, far off, recedes whenever a line is lit.
 		const state = () => {
-			const lit = allBySlot(container, 'chart-line-series').map(
-				(group) => !(group.getAttribute('class') ?? '').includes('opacity-25'),
-			)
+			const lit = groups.map((group) => !(group.getAttribute('class') ?? '').includes('opacity-25'))
 
 			if (lit.every(Boolean)) return 'off'
 
@@ -738,7 +743,7 @@ describe('reference line pointer', () => {
 
 				// A shake of half a px at each step, as a hand makes.
 				for (const shake of [0, 0.5, -0.5, 0]) {
-					pointAt(container, x, y + shake)
+					pointHit(hit, x, y + shake)
 
 					const now = state()
 
@@ -756,6 +761,13 @@ describe('reference line pointer', () => {
 		expect(down).toEqual(['off', 'revenue', 'both', 'costs', 'off'])
 
 		expect(sweep(costsY + 30, revenueY - 30)).toEqual([...down].reverse())
+
+		// No move remounted a node that the sweep reads.
+		expect(getSlot(container, 'chart-hit')).toBe(hit)
+
+		expect(
+			allBySlot(container, 'chart-line-series').map((group, index) => group === groups[index]),
+		).toEqual([true, true, true])
 
 		// Where both are in reach, both rows of the readout are lit, and the row of
 		// the profit line recedes.

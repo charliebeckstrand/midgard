@@ -1,5 +1,4 @@
 import { describe, expect } from 'vitest'
-import { FIRST_WRITE_DELAY_MS } from '../../core/announcer'
 import { Grid, type GridColumn } from '../../modules/grid'
 import {
 	describeColumnVisibility,
@@ -13,6 +12,7 @@ import { GRID_STATUS_DEBOUNCE_MS } from '../../modules/grid/engine/grid-constant
 import { intlEn } from '../../primitives/intl/intl-catalog'
 import {
 	expectAnnouncement,
+	FIRST_WRITE_MS,
 	fireEvent,
 	flushAnnouncer,
 	liveRegion,
@@ -179,9 +179,7 @@ describe('Grid announcements', () => {
 		// once the settle window elapses.
 		await clock.advance(GRID_STATUS_DEBOUNCE_MS)
 
-		// The first text of a new region lands after the next paint (a frame, 16ms on the
-		// fake clock) and then `FIRST_WRITE_DELAY_MS`.
-		await clock.advance(16 + FIRST_WRITE_DELAY_MS)
+		await clock.advance(FIRST_WRITE_MS)
 
 		expect(liveRegion()?.textContent ?? '').toMatch(/Name column \d+ pixels/)
 	})
