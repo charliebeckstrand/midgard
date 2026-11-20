@@ -1,0 +1,126 @@
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { Button } from '../../../components/button'
+import { Popover, PopoverContent, PopoverTrigger } from '../../../components/popover'
+import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
+import { frames, renderUI, screen, waitFor } from '../../helpers'
+import { PIXEL } from '../../helpers/geometry/tolerance'
+
+/**
+ * A floating panel anchors to its reference with CSS anchor positioning. The
+ * browser then moves the panel with the reference when a scroll container
+ * scrolls, in the same frame. A panel that only floating-ui moves follows the
+ * reference one frame late, after the `scroll` event, and it shakes during a
+ * scroll that runs off the main thread.
+ *
+ * The test stops each `scroll` event before it gets to floating-ui, and it
+ * gives floating-ui an `IntersectionObserver` that reports nothing, so no
+ * position pass runs (`autoUpdate` reads both). The panel stays on the
+ * reference only if the browser moves it. The jsdom suite mocks
+ * `@floating-ui/react`, so the case runs here.
+ */
+describe('a floating panel in a scroll container (real floating engine)', () => {
+	/** Stops each `scroll` event in the capture phase, before any listener of floating-ui. */
+	const blockScroll = (event: Event) => event.stopImmediatePropagation()
+
+	/** An observer that reports nothing, so a move of the reference starts no position pass. */
+	class SilentIntersectionObserver {
+		observe() {}
+
+		unobserve() {}
+
+		disconnect() {}
+
+		takeRecords() {
+			return []
+		}
+	}
+
+	afterEach(() => window.removeEventListener('scroll', blockScroll, { capture: true }))
+
+	/** The anchor names in the inline `anchor-name` list of `element`. */
+	function anchorNames(element: HTMLElement) {
+		return element.style
+			.getPropertyValue('anchor-name')
+			.split(',')
+			.map((name) => name.trim())
+			.filter(Boolean)
+	}
+
+	it('moves with its trigger when no position pass runs', async () => {
+		vi.stubGlobal('IntersectionObserver', SilentIntersectionObserver)
+
+		renderUI(
+			<div data-testid="scroller" style={{ height: 300, marginTop: 200, overflow: 'auto' }}>
+				<div style={{ height: 150 }} />
+
+				<Tooltip open placement="top">
+					<TooltipTrigger>
+						<Button>Details</Button>
+					</TooltipTrigger>
+
+					<TooltipContent>More about this</TooltipContent>
+				</Tooltip>
+
+				<div style={{ height: 2000 }} />
+			</div>,
+		)
+
+		const trigger = screen.getByRole('button', { name: 'Details' })
+
+		const panel = await screen.findByRole('tooltip')
+
+		await frames(2)
+
+		const offset = () => panel.getBoundingClientRect().top - trigger.getBoundingClientRect().top
+
+		const before = offset()
+
+		window.addEventListener('scroll', blockScroll, { capture: true })
+
+		screen.getByTestId('scroller').scrollTop = 40
+
+		await frames(2)
+
+		expect(offset()).toBeNear(before, PIXEL)
+	})
+
+	it('keeps the anchor name of each panel on a shared trigger', async () => {
+		function Harness({ popover }: { popover: boolean }) {
+			return (
+				<Popover open={popover}>
+					<Tooltip open>
+						<TooltipTrigger>
+							<PopoverTrigger>
+								<Button>Filters</Button>
+							</PopoverTrigger>
+						</TooltipTrigger>
+
+						<TooltipContent>Show the filters</TooltipContent>
+					</Tooltip>
+
+					<PopoverContent aria-label="Filters">Body</PopoverContent>
+				</Popover>
+			)
+		}
+
+		const { rerender } = renderUI(<Harness popover />)
+
+		const trigger = screen.getByRole('button', { name: 'Filters' })
+
+		const tooltip = await screen.findByRole('tooltip')
+
+		await screen.findByRole('dialog')
+
+		await waitFor(() => expect(anchorNames(trigger)).toHaveLength(2))
+
+		const tooltipAnchor = tooltip.style.getPropertyValue('position-anchor')
+
+		expect(anchorNames(trigger)).toContain(tooltipAnchor)
+
+		rerender(<Harness popover={false} />)
+
+		await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+
+		expect(anchorNames(trigger)).toEqual([tooltipAnchor])
+	})
+})

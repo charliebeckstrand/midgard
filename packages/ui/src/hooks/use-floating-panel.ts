@@ -20,6 +20,8 @@ import {
 	type CSSProperties,
 	type RefObject,
 	useEffect,
+	useId,
+	useLayoutEffect,
 	useMemo,
 	useRef,
 	useSyncExternalStore,
@@ -116,6 +118,106 @@ const autoAlignMiddleware: Middleware = {
  * @internal
  */
 const hideMiddleware = hide({ strategy: 'referenceHidden' })
+
+/**
+ * The position of the panel as an offset from its reference. Both boxes are in
+ * the coordinates of the containing block of the panel.
+ *
+ * @internal
+ */
+type AnchorOffset = {
+	/** The offset of the panel from the left edge of the reference. */
+	x: number
+	/** The offset of the panel from the top edge of the reference. */
+	y: number
+	/** The left edge of the reference. */
+	left: number
+	/** The top edge of the reference. */
+	top: number
+}
+
+/**
+ * Records the final position of the panel as an offset from its reference,
+ * for the anchored styles of {@link useFloatingPanel}. It goes after each
+ * other middleware, so it reads the final position.
+ *
+ * @internal
+ */
+const anchorOffsetMiddleware: Middleware = {
+	name: 'anchorOffset',
+	fn({ x, y, rects }) {
+		const { x: left, y: top } = rects.reference
+
+		return { data: { x: x - left, y: y - top, left, top } satisfies AnchorOffset }
+	},
+}
+
+/**
+ * Whether the browser supports CSS anchor positioning. The server and jsdom
+ * have no `CSS.supports`, so they read `false`.
+ *
+ * @internal
+ */
+const anchorPositioning =
+	typeof CSS !== 'undefined' &&
+	typeof CSS.supports === 'function' &&
+	CSS.supports('anchor-name: --a')
+
+/**
+ * Adds `name` to the inline `anchor-name` list of `element`, and returns the
+ * function that removes it. A list keeps the name of each panel on a shared
+ * reference, such as a menu trigger that also has a tooltip.
+ *
+ * @internal
+ */
+function addAnchorName(element: HTMLElement, name: string) {
+	const read = () =>
+		element.style
+			.getPropertyValue('anchor-name')
+			.split(',')
+			.map((entry) => entry.trim())
+			.filter(Boolean)
+
+	const write = (names: string[]) => {
+		if (names.length > 0) element.style.setProperty('anchor-name', names.join(', '))
+		else element.style.removeProperty('anchor-name')
+	}
+
+	write([...read().filter((entry) => entry !== name), name])
+
+	return () => write(read().filter((entry) => entry !== name))
+}
+
+/**
+ * The styles that place the panel against the CSS anchor of its reference.
+ * When a scroll container between them scrolls, the browser moves the panel
+ * with the reference in the same frame. This is also true when the scroll runs
+ * off the main thread. A position that floating-ui writes as a `transform`
+ * follows the scroll one frame late, after the `scroll` event, and the panel
+ * shakes.
+ *
+ * The fallback of `anchor()` is the edge of the reference that floating-ui
+ * measured. A browser can refuse the anchor, for example in a containing block
+ * that the panel cannot see. It then puts the panel at the position of
+ * floating-ui. The fallback changes at each position pass, so each pass also
+ * resolves the anchor again. The browser does not compensate each scroll, for
+ * example a scroll of the page under a reference in a fixed header. Such a
+ * scroll still moves the panel one frame later, as before.
+ *
+ * @internal
+ */
+function anchoredStyles(
+	strategy: CSSProperties['position'],
+	name: string,
+	offset: AnchorOffset,
+): CSSProperties {
+	return {
+		position: strategy,
+		positionAnchor: name,
+		left: `calc(anchor(left, ${offset.left}px) + ${offset.x}px)`,
+		top: `calc(anchor(top, ${offset.top}px) + ${offset.y}px)`,
+	} as CSSProperties
+}
 
 /**
  * Keeps a panel on its reference while both are mounted: `autoUpdate` of
@@ -372,6 +474,15 @@ export type FloatingPanelOptions = {
  * Sheet, is hidden until the overlay is gone. A panel whose reference is in
  * the overlay, or in a surface opened from it, stays on top of it.
  *
+ * In a browser with CSS anchor positioning, a panel on an element reference
+ * is placed against a CSS anchor on that element. The side and the shift
+ * still come from floating-ui. The browser keeps the panel on the reference while
+ * a scroll container between them scrolls. Thus the panel does not lag
+ * the reference by a frame during a scroll. The panel writes the name of its
+ * anchor into the inline `anchor-name` list of the reference while it is
+ * mounted. A virtual reference, and a browser without anchor positioning, take
+ * the `transform` position of floating-ui.
+ *
  * Use this when you need to compose your own interaction hooks (hover, click,
  * clientPoint, etc.) against the returned `context`. For the common
  * dismiss+role pattern, prefer `useFloatingUI`.
@@ -401,13 +512,19 @@ export function useFloatingPanel({
 
 	// An `auto` placement starts at the start alignment. The alignment middleware
 	// goes first, so `flip` and `shift` act on the alignment that it selects. The
-	// hide middleware goes last, after a caller chain too, so every panel hides
-	// while its reference is out of view.
+	// hide middleware goes after a caller chain too, so every panel hides while
+	// its reference is out of view. The anchor offset goes last, so it reads the
+	// final position.
 	const resolvedMiddleware = useMemo(() => {
 		const chain =
 			middleware ?? buildMiddleware(offsetPx, matchReferenceWidth, fitHeight, horizontal)
 
-		return [...(side ? [autoAlignMiddleware] : []), ...chain, hideMiddleware]
+		return [
+			...(side ? [autoAlignMiddleware] : []),
+			...chain,
+			hideMiddleware,
+			...(anchorPositioning ? [anchorOffsetMiddleware] : []),
+		]
 	}, [middleware, offsetPx, matchReferenceWidth, fitHeight, horizontal, side])
 
 	// Reason of the pending close request; the focus-return effect reads it.
@@ -446,10 +563,11 @@ export function useFloatingPanel({
 
 	const {
 		refs,
-		floatingStyles: positionStyles,
+		floatingStyles: transformStyles,
 		context,
 		middlewareData,
 		placement: resolvedPlacement,
+		strategy: resolvedStrategy,
 		isPositioned,
 		update,
 	} = useFloating({
@@ -468,6 +586,33 @@ export function useFloatingPanel({
 	})
 
 	const referenceHidden = middlewareData.hide?.referenceHidden ?? false
+
+	// The CSS anchor of an element reference. A virtual reference, such as a
+	// point, has no box to anchor to, and keeps the `transform` of floating-ui.
+	const anchorName = `--floating-${useId().replace(/[^\w-]/g, '')}`
+
+	const { reference: anchorReference, floating: floatingElement } = context.elements
+
+	const anchorElement =
+		anchorPositioning && anchorReference instanceof HTMLElement ? anchorReference : null
+
+	// The reference carries the name while the panel is mounted, so the anchor
+	// is in place before the first position pass gives the anchored styles.
+	useLayoutEffect(() => {
+		if (!anchorElement || !floatingElement) return
+
+		return addAnchorName(anchorElement, anchorName)
+	}, [anchorElement, floatingElement, anchorName])
+
+	const anchorOffset: AnchorOffset | undefined = middlewareData.anchorOffset
+
+	const positionStyles = useMemo(
+		() =>
+			anchorElement && floatingElement && anchorOffset
+				? anchoredStyles(resolvedStrategy, anchorName, anchorOffset)
+				: transformStyles,
+		[anchorElement, floatingElement, anchorOffset, resolvedStrategy, anchorName, transformStyles],
+	)
 
 	// The panel paints on the `float` rung, above each overlay. An open overlay
 	// above the reference, such as a Sheet opened over the page that holds it,
