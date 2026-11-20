@@ -94,44 +94,82 @@ function isMacSafari(): boolean {
 	)
 }
 
-/** Whether the last input on a Mac Safari page was a key press, not a pointer press. */
-let keyboardModality = true
+/**
+ * The last input on the page: `'key'` for a key press, or the `pointerType` of
+ * a pointer press. `null` before the first input. The value stays while no
+ * trigger records, because a trigger records again before a focus can come.
+ */
+let lastInput: string | null = null
 
-let modalityTracked = false
+/** The number of triggers that record the last input. */
+let modalityHolds = 0
 
-function trackModality(): void {
-	if (modalityTracked || !isMacSafari()) return
+const onModalityKey = () => {
+	lastInput = 'key'
+}
 
-	modalityTracked = true
+const onModalityPointer = (event: PointerEvent) => {
+	lastInput = event.pointerType
+}
 
-	window.addEventListener(
-		'keydown',
-		() => {
-			keyboardModality = true
-		},
-		true,
-	)
+/**
+ * Records the last input on the page while a trigger holds it. The first hold
+ * adds the window listeners, and the release of the last hold removes them.
+ * A trigger holds it from the time that it gets its node, before a focus can
+ * come.
+ *
+ * @returns A function that releases the hold.
+ * @internal
+ */
+export function trackModality(): () => void {
+	if (modalityHolds++ === 0) {
+		window.addEventListener('keydown', onModalityKey, true)
 
-	window.addEventListener(
-		'pointerdown',
-		() => {
-			keyboardModality = false
-		},
-		true,
-	)
+		window.addEventListener('pointerdown', onModalityPointer, true)
+	}
+
+	let held = true
+
+	return () => {
+		if (!held) return
+
+		held = false
+
+		if (--modalityHolds > 0) return
+
+		window.removeEventListener('keydown', onModalityKey, true)
+
+		window.removeEventListener('pointerdown', onModalityPointer, true)
+	}
+}
+
+/**
+ * Whether the last input on the page was a touch press. A focus then does not
+ * open a tooltip, because a touch screen shows no tooltip for a tap. The
+ * `:focus-visible` gate does not stop it: WebKit on iOS gives a tapped button
+ * no focus, so it matches `:focus-visible` on a focus that a script gives, such
+ * as the return of focus to the trigger of a dialog that closes.
+ * @internal
+ */
+export function lastInputWasTouch(): boolean {
+	return lastInput === 'touch'
 }
 
 /**
  * Whether a focus opens the tooltip. The gate is the `visibleOnly` gate of
  * `useFocus`: a keyboard focus opens it, and the focus that a tap or a click
- * gives a button does not.
+ * gives a button does not. A focus after a touch press does not open it either
+ * ({@link lastInputWasTouch}).
  */
 function focusOpens(event: FocusEvent): boolean {
+	if (lastInputWasTouch()) return false
+
 	const target = event.target
 
 	if (!(target instanceof Element)) return true
 
-	if (isMacSafari() && !event.relatedTarget) return keyboardModality || target.matches(TYPEABLE)
+	if (isMacSafari() && !event.relatedTarget)
+		return lastInput === null || lastInput === 'key' || target.matches(TYPEABLE)
 
 	try {
 		return target.matches(':focus-visible')
@@ -264,7 +302,7 @@ function listenForIntent(
 		disabled = next
 	})
 
-	trackModality()
+	const releaseModality = trackModality()
 
 	const listening = new AbortController()
 
@@ -281,6 +319,8 @@ function listenForIntent(
 
 	return () => {
 		stopObserver()
+
+		releaseModality()
 
 		listening.abort()
 	}

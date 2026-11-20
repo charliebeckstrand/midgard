@@ -10,6 +10,7 @@ import {
 	useInteractions,
 } from '@floating-ui/react'
 import {
+	type FocusEvent as ReactFocusEvent,
 	useCallback,
 	useEffect,
 	useId,
@@ -27,7 +28,13 @@ import { noop } from '../../utilities/noop'
 import type { TooltipContextValue } from './context'
 import type { TooltipProps } from './tooltip'
 import { isReferenceDisabled, observeReferenceDisabled } from './tooltip-reference-disabled'
-import { isTooltipOpen, reopensOnEnable, type TooltipIntent } from './use-tooltip-intent'
+import {
+	isTooltipOpen,
+	lastInputWasTouch,
+	reopensOnEnable,
+	type TooltipIntent,
+	trackModality,
+} from './use-tooltip-intent'
 
 /** Options for {@link useTooltipState}. @internal */
 export type TooltipStateOptions = {
@@ -216,6 +223,8 @@ export function useTooltipState({
 	useEffect(() => {
 		if (!domReference) return
 
+		const releaseModality = trackModality()
+
 		// The reference can be an SVG node, and `Element` types its pointer
 		// events as `Event`.
 		const record = (event: Event) => {
@@ -228,6 +237,8 @@ export function useTooltipState({
 		return () => {
 			domReference.removeEventListener('pointerenter', record)
 			domReference.removeEventListener('pointerdown', record)
+
+			releaseModality()
 		}
 	}, [domReference])
 
@@ -268,7 +279,7 @@ export function useTooltipState({
 	// `mouseOnly` reads the `pointerType` of the event, not a media query. A touch
 	// press gives no hover, so a tap does not open a hover tooltip. The
 	// `:focus-visible` gate of `useFocus` stops the focus that a tap gives a
-	// button from opening it.
+	// button from opening it. The touch gate below stops the rest.
 	const hover = useHover(context, {
 		enabled: enabled && trigger === 'hover',
 		mouseOnly: true,
@@ -284,7 +295,27 @@ export function useTooltipState({
 
 	const click = useClick(context, { enabled: enabled && trigger === 'click' })
 
-	const focus = useFocus(context, { enabled })
+	const focusInteraction = useFocus(context, { enabled })
+
+	// A focus after a touch press does not open the tooltip, as in the intent
+	// gate. `:focus-visible` alone lets it through in WebKit on iOS, where a tap
+	// gives a button no focus: the focus that a closing dialog gives back to its
+	// trigger then matches.
+	const focus = useMemo<ElementProps>(() => {
+		const onFocus = focusInteraction.reference?.onFocus
+
+		if (!onFocus) return focusInteraction
+
+		return {
+			...focusInteraction,
+			reference: {
+				...focusInteraction.reference,
+				onFocus: (event: ReactFocusEvent<Element>) => {
+					if (!lastInputWasTouch()) onFocus(event)
+				},
+			},
+		}
+	}, [focusInteraction])
 
 	// The trigger names the dialog. `<TooltipTrigger>` stamps this id on the
 	// trigger when the trigger has no id of its own, so the label reads the id

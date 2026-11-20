@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
 import { renderUI, screen, waitFor } from '../../helpers'
+import { pause } from '../helpers/wall-clock'
 
 /**
  * Focus order of an interactive Tooltip against the real floating engine. The
@@ -278,5 +279,58 @@ describe('Tooltip role (real browser)', () => {
 		expect(trigger).toHaveAttribute('aria-describedby', panel.id)
 
 		expect(trigger).not.toHaveAttribute('aria-haspopup')
+	})
+})
+
+/**
+ * WebKit on iOS gives a tapped button no focus. A focus that a script gives,
+ * such as the return of focus to the trigger of a closed Sheet, then matches
+ * `:focus-visible`. Chromium shows the same match with `focusVisible: true`.
+ */
+describe('Tooltip focus after a touch press (real browser)', () => {
+	const press = (pointerType: string) =>
+		document.body.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, pointerType }))
+
+	const focusVisibly = (node: HTMLElement) => {
+		node.blur()
+
+		node.focus({ focusVisible: true } as FocusOptions)
+	}
+
+	it('does not open on a visible focus after a touch press, before or after the state loads', async () => {
+		renderUI(<Harness interactive={false}>Hint</Harness>)
+
+		const trigger = screen.getByRole('button', { name: 'Details' })
+
+		// Before the state loads: the intent gate.
+		press('touch')
+
+		focusVisibly(trigger)
+
+		await expect.poll(() => trigger.matches(':focus-visible')).toBe(true)
+
+		await pause(100)
+
+		expect(screen.queryByRole('tooltip')).toBeNull()
+
+		// A key press opens it, which also loads the state.
+		await userEvent.keyboard('{Shift}')
+
+		focusVisibly(trigger)
+
+		await screen.findByRole('tooltip')
+
+		// After the state loads: the `useFocus` gate.
+		trigger.blur()
+
+		await waitFor(() => expect(screen.queryByRole('tooltip')).toBeNull())
+
+		press('touch')
+
+		focusVisibly(trigger)
+
+		await pause(100)
+
+		expect(screen.queryByRole('tooltip')).toBeNull()
 	})
 })
