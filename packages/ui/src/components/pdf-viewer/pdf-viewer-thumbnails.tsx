@@ -72,6 +72,7 @@ export function PdfViewerThumbnails() {
 		root,
 		showThumbnails,
 		searchOffered,
+		reservedRatio,
 	} = usePdfViewerContext()
 
 	// The sidebar is always mounted; the hold only decides whether its contents
@@ -145,6 +146,7 @@ export function PdfViewerThumbnails() {
 						<PdfViewerThumbnailList
 							items={thumbnails}
 							loading={opening}
+							defaultRatio={reservedRatio}
 							safePage={safePage}
 							goToPage={goToPage}
 							scrollCurrentIntoView={scrollWithin}
@@ -172,6 +174,7 @@ export function PdfViewerThumbnails() {
 						<PdfViewerThumbnailList
 							items={thumbnails}
 							loading={opening}
+							defaultRatio={reservedRatio}
 							safePage={safePage}
 							goToPage={goToPage}
 							scrollCurrentIntoView={scrollWithin}

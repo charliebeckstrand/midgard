@@ -132,6 +132,7 @@ type PdfViewerOptions = Pick<
 	| 'defaultZoom'
 	| 'zoomLevels'
 	| 'fit'
+	| 'pageSize'
 	| 'thumbnails'
 	| 'magnifier'
 	| 'onHighlightsVisibleChange'
@@ -212,6 +213,11 @@ export type PdfViewerResult = {
 	setThumbsOpen: (open: boolean) => void
 	/** How the page is scaled into the viewport before `zoom` applies. */
 	fit: PdfViewerFit
+	/**
+	 * The width over the height of the reserved page size. A thumbnail takes it while the
+	 * document loads, and where its page gives no size.
+	 */
+	reservedRatio: number
 	/** True when the consumer supplied any highlight regions. A boolean, never the array: the toolbar reads this, and an array identity changes every render. */
 	hasHighlights: boolean
 	/**
@@ -264,6 +270,9 @@ export type PdfViewerResult = {
 
 const DEFAULT_ZOOM_LEVELS = [0.5, 0.75, 1, 1.25, 1.5, 2, 3]
 
+/** US Letter in points: 8.5 by 11 in at 72 points to the inch. */
+const LETTER = { width: 612, height: 792 }
+
 /** The default `thumbnails` of a `PdfViewer`: a sheet on a compact or a medium viewport, and a rail when expanded. */
 export const PDF_VIEWER_THUMBNAILS = adaptive({
 	compact: 'sheet',
@@ -298,6 +307,7 @@ export function usePdfViewer({
 	defaultZoom = 1,
 	zoomLevels = DEFAULT_ZOOM_LEVELS,
 	fit = 'page',
+	pageSize: pageSizeProp,
 	thumbnails = PDF_VIEWER_THUMBNAILS,
 	hasHighlights = false,
 	searchOffered = false,
@@ -581,10 +591,25 @@ export function usePdfViewer({
 		[pointWidth, pointHeight],
 	)
 
+	// Primitive dependencies, so an inline `pageSize` literal keeps one identity. A size with no
+	// area reserves nothing useful, so it takes Letter.
+	const reservedWidth = pageSizeProp?.width ?? 0
+
+	const reservedHeight = pageSizeProp?.height ?? 0
+
+	const reservedSize = useMemo(
+		() =>
+			reservedWidth > 0 && reservedHeight > 0
+				? { width: reservedWidth, height: reservedHeight }
+				: LETTER,
+		[reservedWidth, reservedHeight],
+	)
+
 	const scale = usePdfViewerPageScale({
 		viewportSize,
 		pageSize,
 		pointSize,
+		reservedSize,
 		rotation,
 		zoom: zoomValue,
 		hasContent,
@@ -620,6 +645,7 @@ export function usePdfViewer({
 			rotate,
 			scale,
 			fit,
+			reservedRatio: reservedSize.width / reservedSize.height,
 			documentSrc,
 			showThumbnails,
 			filename: downloadName,
@@ -663,6 +689,7 @@ export function usePdfViewer({
 			rotate,
 			scale,
 			fit,
+			reservedSize,
 			documentSrc,
 			showThumbnails,
 			downloadName,

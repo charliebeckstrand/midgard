@@ -265,6 +265,26 @@ describe('PdfViewer', () => {
 	})
 
 	/*
+	 * The server cannot read the page size from the file. A `pageSize` gives it, so the first
+	 * paint reserves the box of the opened document, and the thumbnails that load take its ratio.
+	 */
+	it('reserves the box and the loading tiles of pageSize before a src load starts', () => {
+		const markup = serverMarkup(
+			<PdfViewer src="/cold.pdf" pageSize={{ width: 842, height: 595 }} />,
+		)
+
+		const viewport = getSlot(markup, 'pdf-viewer-viewport')
+
+		expect(viewport.style.aspectRatio).toBe('842 / 595')
+
+		const tile = markup.querySelector<HTMLElement>(
+			'[data-slot="pdf-viewer-thumbnail-placeholder"] > span',
+		)
+
+		expect(tile?.getAttribute('style')).toBe(`aspect-ratio:${842 / 595}`)
+	})
+
+	/*
 	 * A narrow bar scrolls. A page navigation that arrived with the document pushed the zoom
 	 * and the actions after it along the bar. The server paint has the navigation, with the page
 	 * that the viewer asks for and a skeleton of one digit in place of the count.
@@ -736,7 +756,7 @@ describe('PdfViewer', () => {
 
 		// Without the per-page reset, the viewport would keep the previous page's
 		// 800/600 ratio until the new image fires its own load event.
-		expect(viewport.style.aspectRatio).toBe('8.5 / 11')
+		expect(viewport.style.aspectRatio).toBe('612 / 792')
 	})
 
 	it('keeps the rotation when the parent renders the same pages as a new array', async () => {
@@ -793,7 +813,7 @@ describe('PdfViewer', () => {
 		// The pages carry no `id`, so only the document identity tells the two apart.
 		rerender(<PdfViewer pages={[{ src: 'second.png' }]} />)
 
-		expect(viewport.style.aspectRatio).toBe('8.5 / 11')
+		expect(viewport.style.aspectRatio).toBe('612 / 792')
 	})
 })
 
@@ -811,6 +831,7 @@ describe('PdfViewerThumbnailList', () => {
 				safePage={1}
 				goToPage={noop}
 				scrollCurrentIntoView={null}
+				defaultRatio={612 / 792}
 			/>,
 		)
 
