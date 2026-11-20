@@ -143,8 +143,6 @@ function PdfViewerHighlightLayer() {
 		activeSelector: '[aria-current="true"]',
 	})
 
-	const { imageWidth, imageHeight, transform } = scale
-
 	/*
 	 * Whether anything is selected at all. While something is, every other region drops its
 	 * color: one wash among many reads as a field of color rather than as a selection.
@@ -417,7 +415,7 @@ function PdfViewerHighlightLayer() {
 			// Hidden, not unmounted: a reader who reads the page under the boxes comes back
 			// to the same selection.
 			hidden={!highlightsVisible}
-			style={{ width: imageWidth, height: imageHeight, transform }}
+			style={scale.page}
 			{...(interactive
 				? {
 						role: 'group',

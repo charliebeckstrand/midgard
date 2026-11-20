@@ -1,7 +1,7 @@
 'use client'
 
 import type { PDFDocumentProxy, PDFPageProxy } from 'pdfjs-dist'
-import { useCallback, useEffect, useState, useSyncExternalStore } from 'react'
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react'
 import { preload } from 'react-dom'
 import { clamp } from '../../utilities/clamp'
 import { noop } from '../../utilities/noop'
@@ -402,40 +402,52 @@ export function usePdfViewerDocument(src: string | undefined): PdfDocumentResult
 	return { ...current, pending }
 }
 
+/** What {@link usePdfViewerDocumentFocus} returns, or `null` with no `src`. @internal */
+export type PdfViewerDocumentFocus = {
+	/** Names the thumbnails that the rail shows, as 0-based indices. */
+	showThumbnails: (indices: number[]) => void
+	/**
+	 * Gives the width of the page on screen, in CSS pixels. When the page shows wider than its
+	 * raster, the queue renders it again at a larger scale, so its text stays sharp.
+	 *
+	 * @returns The function that withdraws the width.
+	 */
+	sizeRaster: (width: number) => () => void
+}
+
 /**
  * Asks the cache to render the page at the 1-based `page` of `src`, for as long as this viewer
  * shows it.
  *
- * @param width - The width of the page on screen, in CSS pixels. When the page shows wider than
- * its raster, the queue renders it again at a larger scale, so its text stays sharp.
- * @returns The function that names the thumbnails the rail shows, as 0-based indices, or
- * `null` with no `src`.
+ * @returns The functions that name the thumbnails the rail shows and give the width of the
+ * page on screen, or `null` with no `src`.
  * @remarks The queue renders this page first, then a sharp copy if the width asks for one.
  * Its neighbors come next, and then the thumbnails that the rail shows. A page past the last page counts as
  * the last page, so a viewer can ask before the document opens.
  *
- * The width has an effect of its own. A zoom then changes the width and keeps the focus, so
- * the render in flight continues.
+ * The width is not state. The frame of the page gives it from a `ResizeObserver`, so a resize
+ * does not render the viewer again. A zoom changes the width and keeps the focus, so the
+ * render in flight continues.
  * @internal
  */
 export function usePdfViewerDocumentFocus(
 	src: string | undefined,
 	page: number,
-	width = 0,
-): ((indices: number[]) => void) | null {
+): PdfViewerDocumentFocus | null {
 	// One token for each mounted viewer, so two viewers on one document each keep a page.
 	const [token] = useState(() => ({}))
 
 	useEffect(() => focusPage(src, token, Math.max(page - 1, 0)), [src, token, page])
 
-	useEffect(() => {
-		// The same density as a render.
-		const density = pixelDensity(1)
-
-		return sizePage(src, token, width * density)
-	}, [src, token, width])
-
-	const show = useCallback((indices: number[]) => showThumbnails(src, token, indices), [src, token])
-
-	return src ? show : null
+	return useMemo(
+		() =>
+			src
+				? {
+						showThumbnails: (indices: number[]) => showThumbnails(src, token, indices),
+						// The same density as a render.
+						sizeRaster: (width: number) => sizePage(src, token, width * pixelDensity(1)),
+					}
+				: null,
+		[src, token],
+	)
 }

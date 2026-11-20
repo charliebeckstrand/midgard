@@ -373,7 +373,7 @@ describe('segment archetype contrast', () => {
  * the ink come off the recipe, so a change to either is measured here.
  */
 describe('PdfViewer viewport message', () => {
-	const ground = classNames([pdfViewer().viewport.base]).filter((className) =>
+	const ground = classNames([pdfViewer().viewport.pane]).filter((className) =>
 		/^(?:dark:)?bg-zinc-\d+$/.test(className),
 	)
 

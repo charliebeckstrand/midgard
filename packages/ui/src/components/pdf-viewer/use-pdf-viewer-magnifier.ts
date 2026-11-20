@@ -181,10 +181,35 @@ export function lensOffset(point: MagnifierPoint, zoom: number): MagnifierPoint 
 	return { x: -zoom * point.x, y: -zoom * point.y }
 }
 
+/**
+ * The pointer, in the space of the frame and of the client, and the size of the frame that the
+ * frame-local point reads. See `track` in {@link usePdfViewerMagnifier}.
+ * @internal
+ */
+type Tracking = {
+	local: MagnifierPoint
+	client: MagnifierPoint
+	frame: { width: number; height: number }
+}
+
+/** The tracking of `client` against the rect of the frame. @internal */
+function toTracking(client: MagnifierPoint, rect: DOMRect): Tracking {
+	return {
+		local: { x: client.x - rect.left, y: client.y - rect.top },
+		client,
+		frame: { width: rect.width, height: rect.height },
+	}
+}
+
 /** @internal */
 export type PdfViewerMagnifierResult = {
 	open: boolean
 	point: MagnifierPoint | null
+	/**
+	 * The size of the page frame, in CSS pixels, from the read that gave {@link point}. The copy
+	 * of the page in the lens takes it. `null` while nothing is tracked.
+	 */
+	frame: { width: number; height: number } | null
 	/** Spread onto the page frame: the surface the loupe reads and the hover reference. */
 	referenceProps: Record<string, unknown>
 	/** Spread onto the lens. */
@@ -239,9 +264,6 @@ export function usePdfViewerMagnifier(
 	 */
 	const [touch, setTouch] = useState(false)
 
-	/** The pointer, in both spaces. See {@link track}. */
-	type Tracking = { local: MagnifierPoint; client: MagnifierPoint }
-
 	/*
 	 * The pointer, in both spaces, in one piece of state.
 	 *
@@ -290,9 +312,7 @@ export function usePdfViewerMagnifier(
 
 		if (!client || !frame) return null
 
-		const rect = frame.getBoundingClientRect()
-
-		return { local: { x: client.x - rect.left, y: client.y - rect.top }, client }
+		return toTracking(client, frame.getBoundingClientRect())
 	})
 
 	/*
@@ -369,9 +389,7 @@ export function usePdfViewerMagnifier(
 		// Only the open lens needs frame-local coordinates, and only it pays the layout read.
 		if (!open) return
 
-		const rect = event.currentTarget.getBoundingClientRect()
-
-		setTracking({ local: { x: client.x - rect.left, y: client.y - rect.top }, client })
+		setTracking(toTracking(client, event.currentTarget.getBoundingClientRect()))
 	})
 
 	/**
@@ -474,9 +492,7 @@ export function usePdfViewerMagnifier(
 
 		trackingRef.current = client
 
-		const rect = event.currentTarget.getBoundingClientRect()
-
-		setTracking({ local: { x: client.x - rect.left, y: client.y - rect.top }, client })
+		setTracking(toTracking(client, event.currentTarget.getBoundingClientRect()))
 	})
 
 	/** One move handler for both pointers: the mouse is tracked, and a finger drags. */
@@ -525,10 +541,17 @@ export function usePdfViewerMagnifier(
 	 * browser decides at the touch start whether a listener can cancel the scroll, and one added
 	 * later cannot. The callback lists `enabled`, so a toggle of the loupe detaches the frame and
 	 * attaches it again, and a page with no loupe has no non-passive listener.
+	 *
+	 * The callback lists the `setReference` of floating-ui, which is stable, and not `refs`. The
+	 * `refs` object is new on each render, and a callback that listed it detached the frame and
+	 * attached it again on each render. The frame also gives the cache the width of the page,
+	 * and each detach withdrew that width.
 	 */
+	const { setReference: setFloatingReference } = refs
+
 	const setReference = useCallback(
 		(node: HTMLElement | null) => {
-			refs.setReference(node)
+			setFloatingReference(node)
 
 			if (!node || !enabled) return
 
@@ -557,10 +580,10 @@ export function usePdfViewerMagnifier(
 
 				node.removeEventListener('touchend', handleTouchEnd)
 
-				refs.setReference(null)
+				setFloatingReference(null)
 			}
 		},
-		[refs, enabled],
+		[setFloatingReference, enabled],
 	)
 
 	/*
@@ -715,6 +738,7 @@ export function usePdfViewerMagnifier(
 		() => ({
 			open: enabled && open,
 			point: tracking?.local ?? null,
+			frame: tracking?.frame ?? null,
 			referenceProps,
 			floatingProps,
 			setReference,

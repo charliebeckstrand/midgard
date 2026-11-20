@@ -13,7 +13,9 @@ import { lensOffset } from './use-pdf-viewer-magnifier'
  *
  * @remarks It magnifies by rendering the page a second time rather than by re-rasterizing at
  * a higher scale. The lens holds a copy of the page frame inside a wrapper scaled about the
- * pointer. The copy is the same image, at the same size, wearing the same transform. So
+ * pointer. The wrapper takes the size of the frame from the read that locates the pointer, and
+ * it is a size container. The copy is the same image, at the same size, wearing the same
+ * styles. So
  * rotation, zoom and the centering all compose exactly as they do on the page itself. There
  * is no second copy of that arithmetic to keep in agreement. There is little work beyond
  * a paint either. The image is decoded already, and a bitmap draws onto the lens in one call.
@@ -30,17 +32,16 @@ import { lensOffset } from './use-pdf-viewer-magnifier'
 export function PdfViewerMagnifier() {
 	const { magnifierSettings, activePage, scale, visible } = usePdfViewerContext()
 
-	const { open, point, setFloating, floatingProps, floatingStyles } = usePdfViewerMagnifierContext()
+	const { open, point, frame, setFloating, floatingProps, floatingStyles } =
+		usePdfViewerMagnifierContext()
 
 	const root = usePortalContainer()
-
-	const { imageWidth, imageHeight, frameWidth, frameHeight, transform } = scale
 
 	if (!magnifierSettings || !open || !point || !activePage || !hasRaster(activePage) || !visible) {
 		return null
 	}
 
-	if (!frameWidth || !frameHeight) return null
+	if (!frame) return null
 
 	const { zoom, size } = magnifierSettings
 
@@ -59,8 +60,8 @@ export function PdfViewerMagnifier() {
 				<div
 					className={k().viewport.page.magnifier.stage}
 					style={{
-						width: frameWidth,
-						height: frameHeight,
+						width: frame.width,
+						height: frame.height,
 						transform: `translate(${offset.x}px, ${offset.y}px) scale(${zoom})`,
 					}}
 				>
@@ -68,7 +69,7 @@ export function PdfViewerMagnifier() {
 						page={activePage}
 						alt=""
 						className={k().viewport.page.base}
-						style={{ width: imageWidth, height: imageHeight, transform }}
+						style={scale.page}
 					/>
 				</div>
 			</div>

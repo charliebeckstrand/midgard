@@ -52,8 +52,6 @@ function PdfViewerSearchHitLayer() {
 
 	const { hits, color, reveal } = usePdfViewerSearchContext()
 
-	const { imageWidth, imageHeight, transform } = scale
-
 	const layerRef = useRef<HTMLDivElement>(null)
 
 	// After each render of the layer, with no list of dependencies: a step, a new query, and a
@@ -66,7 +64,7 @@ function PdfViewerSearchHitLayer() {
 			data-slot="pdf-viewer-search-hits"
 			aria-hidden
 			className={k().viewport.page.search.base}
-			style={{ width: imageWidth, height: imageHeight, transform }}
+			style={scale.page}
 		>
 			{hits.map((hit) => (
 				<span

@@ -30,7 +30,7 @@ import { usePdfViewerPageRotation } from './use-pdf-viewer-page-rotation'
 import { type PageScaleResult, usePdfViewerPageScale } from './use-pdf-viewer-page-scale'
 import { usePdfViewerPageSize } from './use-pdf-viewer-page-size'
 import { usePdfViewerPagination } from './use-pdf-viewer-pagination'
-import { usePdfViewerViewportSize } from './use-pdf-viewer-viewport-size'
+import { usePdfViewerRasterWidth } from './use-pdf-viewer-raster-width'
 
 /** What a load that opened a document with no page reports. @internal */
 const EMPTY_DOCUMENT = new Error('The document has no pages.')
@@ -172,6 +172,12 @@ export type PdfViewerResult = {
 	 */
 	showThumbnails: ((indices: number[]) => void) | null
 	/**
+	 * The ref callback of the page frame. It gives the cache the width of the page on screen,
+	 * so a page that shows wider than its raster renders again sharp. See
+	 * {@link usePdfViewerRasterWidth}.
+	 */
+	frameRef: (frame: HTMLElement | null) => (() => void) | undefined
+	/**
 	 * The download name: the `filename` of the consumer, else a name from `src` when the
 	 * download goes through the blob URL, which has no name of its own.
 	 */
@@ -229,7 +235,10 @@ export type PdfViewerResult = {
 	/** Whether the highlight overlay is shown; toggled from the toolbar. Defaults to shown. */
 	highlightsVisible: boolean
 	setHighlightsVisible: (visible: boolean) => void
-	/** True once the viewport and page are measured; gates the image from painting unsized. */
+	/**
+	 * True once the size of the page is known. It gates the image and the layers over it, so a
+	 * page does not paint in the box of the reserved size.
+	 */
 	visible: boolean
 	onImageLoad: (event: SyntheticEvent<HTMLImageElement>) => void
 	/** The viewer's root element, once mounted. State, not a ref: the thumbnail Sheet portals into it, so a render reads it. */
@@ -285,7 +294,7 @@ const toOffcanvas = (layout: PdfViewerThumbnailLayout): OffcanvasLayout =>
 
 /**
  * Composes the PDF viewer's state (document loading, pagination, per-page
- * rotation, zoom, and the measured viewport/page scale) into one memoized
+ * rotation, zoom, and the CSS page scale) into one memoized
  * value for {@link PdfViewerContext}.
  *
  * @returns The {@link PdfViewerResult} consumed by every viewer sub-component.
@@ -572,12 +581,8 @@ export function usePdfViewer({
 
 	const { pageSize, onImageLoad } = usePdfViewerPageSize(activePage, safePage, documentKey)
 
-	// `transposed` is the invalidation key; the viewport re-measures
-	// synchronously on rotation flip, before paint.
-	const viewportSize = usePdfViewerViewportSize(viewportRef, transposed)
-
-	// Aspect ratio drives the viewport height. US Letter (8.5 × 11) is the
-	// pre-load fallback. Unset when there is no content to display.
+	// The aspect ratio sets the viewport height. The reserved size gives it before the page
+	// size is known. Unset when there is no content to display.
 	const hasContent = !!src || total > 0
 
 	// Primitive dependencies: the cache republishes the slot of a page as it renders, so the
@@ -606,7 +611,6 @@ export function usePdfViewer({
 	)
 
 	const scale = usePdfViewerPageScale({
-		viewportSize,
 		pageSize,
 		pointSize,
 		reservedSize,
@@ -618,18 +622,16 @@ export function usePdfViewer({
 
 	// Before the document opens, the target page is the one the viewer asks for. The cache
 	// clamps it to the page count.
-	const showThumbnails = usePdfViewerDocumentFocus(
-		shouldLoadFromSrc ? src : undefined,
-		targetPage,
-		scale.imageWidth,
-	)
+	const focus = usePdfViewerDocumentFocus(shouldLoadFromSrc ? src : undefined, targetPage)
+
+	const frameRef = usePdfViewerRasterWidth(focus?.sizeRaster ?? null, transposed)
 
 	const zoom = useMemo<PdfViewerZoom>(
 		() => ({ value: zoomValue, setValue: setZoomValue, levels: zoomLevels }),
 		[zoomValue, zoomLevels],
 	)
 
-	const visible = !!(viewportSize && pageSize)
+	const visible = !!pageSize
 
 	// Memoized; PdfViewerContext value identity stays stable across renders
 	// that don't touch its fields.
@@ -647,7 +649,8 @@ export function usePdfViewer({
 			fit,
 			reservedRatio: reservedSize.width / reservedSize.height,
 			documentSrc,
-			showThumbnails,
+			showThumbnails: focus?.showThumbnails ?? null,
+			frameRef,
 			filename: downloadName,
 			loading,
 			pending,
@@ -691,7 +694,8 @@ export function usePdfViewer({
 			fit,
 			reservedSize,
 			documentSrc,
-			showThumbnails,
+			focus,
+			frameRef,
 			downloadName,
 			loading,
 			pending,
