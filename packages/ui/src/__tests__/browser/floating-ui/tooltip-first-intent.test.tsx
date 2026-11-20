@@ -220,6 +220,35 @@ describe('Tooltip first intent before the state loads (real browser)', () => {
 		await expectClosed()
 	})
 
+	it('does not open a hover tooltip for a tap that starts the state', async () => {
+		const { container } = renderTip({ delay: 0 })
+
+		const trigger = getSlot(container, 'tooltip-trigger')
+
+		const touch = { bubbles: true, cancelable: true, pointerType: 'touch', isPrimary: true }
+
+		const mouse = { bubbles: true, cancelable: true }
+
+		// The pointer events of the tap start the load.
+		trigger.dispatchEvent(new PointerEvent('pointerover', touch))
+		trigger.dispatchEvent(new PointerEvent('pointerenter', { ...touch, bubbles: false }))
+		trigger.dispatchEvent(new PointerEvent('pointerdown', touch))
+		trigger.dispatchEvent(new PointerEvent('pointerup', touch))
+
+		tooltipLoad.release()
+
+		await waitFor(() => expect(tooltipBody.read()).not.toBeNull())
+
+		await pause(50)
+
+		// The compatibility mouse events of the tap come after the state mounts.
+		trigger.dispatchEvent(new MouseEvent('mouseover', mouse))
+		trigger.dispatchEvent(new MouseEvent('mouseenter', { ...mouse, bubbles: false }))
+		trigger.dispatchEvent(new MouseEvent('mousemove', mouse))
+
+		await expectClosed()
+	})
+
 	it('does not open a hover tooltip for a mouse click focus before the load', async () => {
 		const { container } = renderTip({ delay: 0 }, { outside: true })
 

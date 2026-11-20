@@ -29,6 +29,7 @@ import type { TooltipContextValue } from './context'
 import type { TooltipProps } from './tooltip'
 import { isReferenceDisabled, observeReferenceDisabled } from './tooltip-reference-disabled'
 import {
+	hoverOpens,
 	isTooltipOpen,
 	lastInputWasTouch,
 	reopensOnEnable,
@@ -166,14 +167,26 @@ export function useTooltipState({
 	// after it, and a render-time adjustment carries its value back here.
 	const [heldDisabled, setHeldDisabled] = useState(false)
 
+	// The `pointerType` of the last pointer event on the trigger. The intent
+	// gives the type from before the state loaded.
+	const pointerRef = useRef<string | null>(null)
+
 	const { open, setOpen, refs, floatingStyles, context, dismiss, role } = useFloatingDisclosure({
 		role: dialog ? 'dialog' : 'tooltip',
 		placement,
 		offset: 8,
 		open: isTooltipOpen(enabled, held, requested, heldDisabled),
 		onOpenChange: setRequested,
-		gate: (next, gateRefs) =>
-			!next || (enabled && !isReferenceDisabled(gateRefs.reference.current)),
+		// A hover opens the tooltip only for the pointer that the trigger recorded
+		// (`hoverOpens`). The `mouseOnly` gate of `useHover` reads only the
+		// pointer events after the state mounts. A tap that starts the state of a
+		// tooltip that mounted before the load gives its pointer events first,
+		// and then the compatibility mouse events, which that gate lets through.
+		gate: (next, gateRefs, reason) =>
+			!next ||
+			(enabled &&
+				!isReferenceDisabled(gateRefs.reference.current) &&
+				(reason !== 'hover' || hoverOpens(pointerRef.current))),
 	})
 
 	// Adjusted during render: a tooltip that turns off drops the request, so it
@@ -214,10 +227,6 @@ export function useTooltipState({
 	useEffect(() => {
 		if (disabled && open) setOpen(false)
 	}, [disabled, open, setOpen])
-
-	// The `pointerType` of the last pointer event on the trigger. The intent
-	// gives the type from before the state loaded.
-	const pointerRef = useRef<string | null>(null)
 
 	useEffect(() => {
 		if (!domReference) return
