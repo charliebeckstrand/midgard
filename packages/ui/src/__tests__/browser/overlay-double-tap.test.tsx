@@ -4,7 +4,7 @@ import { commands } from 'vitest/browser'
 import { Drawer, DrawerPanel } from '../../components/drawer'
 import { MULTI_TAP_DISTANCE, MULTI_TAP_WINDOW } from '../../hooks/use-touch-tap'
 import { __resetFingerLift } from '../../primitives/overlay/use-overlay-absorb'
-import { frames, renderUI, screen } from '../helpers'
+import { frames, renderUI, screen, waitFor } from '../helpers'
 
 /**
  * A double tap on a control that opens an overlay on one tap. The first tap
@@ -205,15 +205,24 @@ describe('overlay: the second tap of a double tap (real browser)', () => {
 	it('keeps the focus where the open put it on the second tap', async () => {
 		setup({ field: true })
 
+		// The run of a double tap reads the time of each event (`timeStamp`). Two
+		// real taps come one round trip to the driver apart, and the case waits for
+		// the focus between them, so on a loaded runner the second tap came after
+		// the window. Each event thus takes the time of the first press, and the two
+		// taps fall in one run on each machine.
+		const at = performance.now()
+
+		vi.spyOn(Event.prototype, 'timeStamp', 'get').mockReturnValue(at)
+
 		// A real tap, because the default action of its `mousedown` moves the focus.
 		await commands.tapPointer('[data-testid="opener"]')
 
-		await frames(2)
-
 		// A touch opens the drawer, so the panel has the focus and not the field.
-		const panel = screen.getByRole('dialog')
+		// The open moves the focus after the mount, and a frame count is not a
+		// signal of that move.
+		const panel = await screen.findByRole('dialog')
 
-		expect(document.activeElement).toBe(panel)
+		await waitFor(() => expect(document.activeElement).toBe(panel))
 
 		await commands.tapPointer('[data-testid="opener"]')
 
