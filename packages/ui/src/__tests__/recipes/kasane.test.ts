@@ -41,6 +41,17 @@ describe('kasane.softLayers', () => {
 		)
 	})
 
+	// Forced colors replace the wash with the page color. The outline keeps the
+	// edge of the field there, at the place of the inset ring of the framed stack.
+	it('keeps an edge under forced colors', () => {
+		expect(softLayers).toEqual(
+			expect.arrayContaining([
+				'forced-colors:outline-solid forced-colors:outline-1',
+				'forced-colors:-outline-offset-1',
+			]),
+		)
+	})
+
 	it('keeps the focus, validation, and disabled states of the framed stack', () => {
 		for (const state of [
 			'focus-within:after:ring-2',
