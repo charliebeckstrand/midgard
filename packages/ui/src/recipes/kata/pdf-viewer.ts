@@ -63,6 +63,27 @@ const activeFill = {
 	blue: 'bg-blue-500/30',
 }
 
+/**
+ * The wash of a search match: twice the rung of a region fill. A match has no edge, so the
+ * wash alone has to show it on the ink.
+ */
+const matchFill = {
+	zinc: 'bg-zinc-500/30',
+	red: 'bg-red-500/30',
+	amber: 'bg-amber-500/30',
+	green: 'bg-green-500/30',
+	blue: 'bg-blue-500/30',
+}
+
+/** The wash of the current search match: the doubled rung of a match. */
+const currentMatchFill = {
+	zinc: 'bg-zinc-500/60',
+	red: 'bg-red-500/60',
+	amber: 'bg-amber-500/60',
+	green: 'bg-green-500/60',
+	blue: 'bg-blue-500/60',
+}
+
 export const k = defineKata({
 	base: ['relative', flex.col, 'overflow-hidden', bg.surface, border.default],
 	/**
@@ -412,20 +433,23 @@ export const k = defineKata({
 						search: {
 							base: [centered, 'pointer-events-none'],
 							slots: {
+								/**
+								 * A match is a wash with no edge. A highlighted region always has an edge, so the
+								 * reader can tell a match from a region, also in the same color.
+								 */
 								hit: {
 									base: ['absolute block'],
-									color: edge,
-									/**
-									 * The current match takes the stroke and the wash of a selected region: outset,
-									 * doubled, and lifted above its neighbors. Each other match keeps the resting edge.
-									 */
-									current: {
-										true: [...ring.line[2].outset, 'z-10'],
-										false: [...ring.line[1].inset],
-									},
+									/** The color of the wash (see the compound rules). */
+									color: { zinc: '', red: '', amber: '', green: '', blue: '' },
+									/** The current match takes the heavier wash, and sits above its neighbors. */
+									current: { true: 'z-10', false: '' },
 									compound: [
-										...colors.map((color) => ({ color, current: false, class: fill[color] })),
-										...colors.map((color) => ({ color, current: true, class: activeFill[color] })),
+										...colors.map((color) => ({ color, current: false, class: matchFill[color] })),
+										...colors.map((color) => ({
+											color,
+											current: true,
+											class: currentMatchFill[color],
+										})),
 									],
 								},
 							},

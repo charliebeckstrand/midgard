@@ -124,8 +124,11 @@ export type PdfViewerTextItem = {
  */
 export type PdfViewerSearchHighlightOptions = {
 	/**
-	 * The paint of each match, from the shared five-color palette. The current match takes a
-	 * heavier wash and a heavier stroke of the same color.
+	 * The wash of each match, from the shared five-color palette. The current match takes a
+	 * heavier wash of the same color.
+	 *
+	 * @remarks A match has no edge, and a highlighted region always has one. A match and a
+	 * region of the same color therefore stay apart.
 	 * @defaultValue 'amber'
 	 */
 	color?: Color

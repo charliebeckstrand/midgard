@@ -63,7 +63,8 @@ export function PdfViewerSearch({ disabled }: PdfViewerSearchProps) {
 
 	return (
 		<Popover
-			placement="bottom-end"
+			// Centered under the control. The panel shifts to stay in the viewport at an edge.
+			placement="bottom"
 			open={open && !disabled}
 			onOpenChange={(next) => setOpen(next && !disabled)}
 		>
