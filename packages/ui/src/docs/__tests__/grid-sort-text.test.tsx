@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
 import { fireEvent, waitFor } from '@testing-library/react'
 import type { GridColumn } from 'ui/grid'
-import { describe, expect, it } from 'vitest'
+import { describe, expect } from 'vitest'
+import { it } from '../../__tests__/helpers/fake-clock'
 import { columnAccessor } from '../../modules/grid/engine/grid-column/accessor.ts'
 import { COPY_TIMEOUT, loadCopy, renderInLocale } from './copy.tsx'
 
@@ -99,6 +100,11 @@ describe.each(['en', 'es'])('the grid demo columns in %s', { timeout: COPY_TIMEO
 describe('the sort of a grid demo on the Spanish page', { timeout: COPY_TIMEOUT }, () => {
 	const locale = 'es'
 
+	// The server demo gives the sorted rows after 600 ms, as a request does. The
+	// server cases move the fake clock to that time, so the result does not
+	// depend on the speed of the machine.
+	const REQUEST = 600
+
 	it('sorts the in-cell sparklines by the shown metric', async () => {
 		const { container } = await renderDemo('sparkline/in-a-cell.tsx', locale)
 
@@ -111,30 +117,27 @@ describe('the sort of a grid demo on the Spanish page', { timeout: COPY_TIMEOUT 
 		expect(collated(before, locale)).not.toEqual(before)
 	})
 
-	it('sorts the server rows by the shown role', async () => {
+	it('sorts the server rows by the shown role', async ({ clock }) => {
 		const { container } = await renderDemo('sorting/server-side-sorting.tsx', locale)
 
 		const role = 2
 
 		pressHeader(container, role)
 
-		await waitFor(
-			() => {
-				const roles = columnText(container, role)
+		await clock.advance(REQUEST)
 
-				expect(roles).toEqual(collated(roles, locale))
+		const roles = columnText(container, role)
 
-				expect(new Set(roles).size).toBeGreaterThan(2)
-			},
-			{ timeout: 5000 },
-		)
+		expect(roles).toEqual(collated(roles, locale))
+
+		expect(new Set(roles).size).toBeGreaterThan(2)
 
 		const names = columnText(container, 0)
 
 		expect(names).not.toEqual(collated(names, locale))
 	})
 
-	it('sorts the server rows by the shown status', async () => {
+	it('sorts the server rows by the shown status', async ({ clock }) => {
 		const { container } = await renderDemo('sorting/server-side-sorting.tsx', locale)
 
 		const status = 3
@@ -145,13 +148,10 @@ describe('the sort of a grid demo on the Spanish page', { timeout: COPY_TIMEOUT 
 
 		pressHeader(container, status)
 
-		await waitFor(
-			() => {
-				const statuses = columnText(container, status)
+		await clock.advance(REQUEST)
 
-				expect(statuses).toEqual(collated(statuses, locale))
-			},
-			{ timeout: 5000 },
-		)
+		const statuses = columnText(container, status)
+
+		expect(statuses).toEqual(collated(statuses, locale))
 	})
 })

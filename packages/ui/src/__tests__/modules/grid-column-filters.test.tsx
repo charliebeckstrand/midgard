@@ -16,6 +16,11 @@ import { act, fireEvent, getAllSlots, readDensityStep, renderUI, screen, waitFor
 // The filter sheet loads its code on the first open, so that open waits for the
 // code. One open before the tests loads the code. Each test then opens the sheet
 // synchronously. The browser suite covers the first open.
+//
+// The hook waits for the code in `act`. In an `act` scope, React shows the sheet
+// when its code arrives. Outside one, React holds the reveal of a suspended
+// boundary until 300 ms after its fallback showed. If the code arrives after
+// the `act`, the `findByRole` waits for the sheet.
 beforeAll(async () => {
 	const columns: GridColumn<{ id: number; name: string }>[] = [
 		{
@@ -32,6 +37,10 @@ beforeAll(async () => {
 	)
 
 	fireEvent.click(screen.getByRole('button', { name: 'Filter Name' }))
+
+	await act(async () => {
+		await import('../../modules/grid/grid-column-filter-sheet')
+	})
 
 	await screen.findByRole('button', { name: 'Add' })
 

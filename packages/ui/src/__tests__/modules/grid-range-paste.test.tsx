@@ -1,16 +1,23 @@
 import { useState } from 'react'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, vi } from 'vitest'
+import { FIRST_WRITE_DELAY_MS } from '../../core/announcer'
 import { Grid, type GridColumn, type GridEditableConfig } from '../../modules/grid'
 import {
 	act,
 	applyChanges,
-	expectAnnouncement,
 	fireEvent,
 	getSlot,
 	gridCells,
+	liveRegion,
 	renderUI,
 	screen,
 } from '../helpers'
+import { it } from '../helpers/fake-clock'
+
+// The first text of a new live region lands after the next frame (16 ms or less
+// on the fake clock) and then `FIRST_WRITE_DELAY_MS`. Each case that reads the
+// region moves the clock this far.
+const FIRST_WRITE_MS = 16 + FIRST_WRITE_DELAY_MS
 
 type Row = { id: number; name: string; count: number; active: boolean; code: string }
 
@@ -88,7 +95,7 @@ function renderPasteGrid(
 }
 
 describe('Grid range paste', () => {
-	it('pastes a block from the active cell, one commit batch for each row', async () => {
+	it('pastes a block from the active cell, one commit batch for each row', async ({ clock }) => {
 		const view = renderPasteGrid()
 
 		fireEvent.mouseDown(view.cell(0, 0))
@@ -104,7 +111,9 @@ describe('Grid range paste', () => {
 
 		expect(view.texts()[1]).toEqual(['Ben', '20', 'No', 'B'])
 
-		await expectAnnouncement('4 cells pasted')
+		await clock.advance(FIRST_WRITE_MS)
+
+		expect(liveRegion()).toHaveTextContent('4 cells pasted')
 	})
 
 	it('pastes into the cell that the focus seats, at once after the focus', () => {
@@ -173,7 +182,7 @@ describe('Grid range paste', () => {
 		])
 	})
 
-	it('refuses a text that does not fit its cell, and counts it as skipped', async () => {
+	it('refuses a text that does not fit its cell, and counts it as skipped', async ({ clock }) => {
 		const view = renderPasteGrid()
 
 		fireEvent.mouseDown(view.cell(0, 0))
@@ -188,7 +197,9 @@ describe('Grid range paste', () => {
 			{ rowKey: 1, columnId: 'count', value: 'many' },
 		])
 
-		await expectAnnouncement('Name pasted for Alice, 1 skipped')
+		await clock.advance(FIRST_WRITE_MS)
+
+		expect(liveRegion()).toHaveTextContent('Name pasted for Alice, 1 skipped')
 	})
 
 	it('sends a value that validate refuses to onReject, not to onCommit', () => {
@@ -213,7 +224,7 @@ describe('Grid range paste', () => {
 		])
 	})
 
-	it('skips a read-only column and a column with no field', async () => {
+	it('skips a read-only column and a column with no field', async ({ clock }) => {
 		const view = renderPasteGrid({
 			columns: [
 				...columns.slice(0, 1),
@@ -232,7 +243,9 @@ describe('Grid range paste', () => {
 
 		expect(view.onReject).not.toHaveBeenCalled()
 
-		await expectAnnouncement('Name pasted for Alice, 2 skipped')
+		await clock.advance(FIRST_WRITE_MS)
+
+		expect(liveRegion()).toHaveTextContent('Name pasted for Alice, 2 skipped')
 	})
 
 	it('gives the text to the column parse', () => {
@@ -265,7 +278,7 @@ describe('Grid range paste', () => {
 		])
 	})
 
-	it('undoes the whole paste with one Ctrl+Z', async () => {
+	it('undoes the whole paste with one Ctrl+Z', async ({ clock }) => {
 		const view = renderPasteGrid()
 
 		fireEvent.mouseDown(view.cell(0, 0))
@@ -276,17 +289,21 @@ describe('Grid range paste', () => {
 
 		expect(view.texts().map((row) => row[0])).toEqual(['Alice', 'Bob', 'Carol'])
 
-		await expectAnnouncement('2 cells undone')
+		await clock.advance(FIRST_WRITE_MS)
+
+		expect(liveRegion()).toHaveTextContent('2 cells undone')
 	})
 
-	it('speaks an async paste as it settles, and undoes it with one Ctrl+Z', async () => {
+	it('speaks an async paste as it settles, and undoes it with one Ctrl+Z', async ({ clock }) => {
 		const view = renderPasteGrid({ async: true })
 
 		fireEvent.mouseDown(view.cell(0, 1))
 
 		view.paste('5\t0')
 
-		await expectAnnouncement('2 cells pasted for Alice')
+		await clock.advance(FIRST_WRITE_MS)
+
+		expect(liveRegion()).toHaveTextContent('2 cells pasted for Alice')
 
 		// The undo commits through the async `onCommit` too, and its promise
 		// settles after the key event. An async `act` holds the test until then.
