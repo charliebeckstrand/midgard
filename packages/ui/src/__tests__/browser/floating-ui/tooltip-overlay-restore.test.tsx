@@ -3,7 +3,8 @@ import { userEvent } from 'vitest/browser'
 import { Button } from '../../../components/button'
 import { Popover, PopoverContent, PopoverTrigger } from '../../../components/popover'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
-import { frames, renderUI, screen, waitFor } from '../../helpers'
+import { notifyOverlaySignal } from '../../../primitives/overlay'
+import { act, frames, renderUI, screen, waitFor } from '../../helpers'
 import { pause } from '../helpers/wall-clock'
 
 /**
@@ -12,7 +13,8 @@ import { pause } from '../helpers/wall-clock'
  * at once, as a hover shows it. The mouse does not move, so no hover event
  * comes. A tooltip that a tap left on a touch screen does not open again. A
  * click in the open delay of the tooltip opens the surface first, and the
- * tooltip does not open over the surface when the delay ends.
+ * tooltip does not open over the surface when the delay ends. A tooltip that
+ * the reader dismissed with Escape stays closed.
  *
  * It runs in a real browser, because the test reads `:hover` and the hover of
  * the real floating engine, which the jsdom suites mock.
@@ -75,6 +77,19 @@ describe('a tooltip that a surface hid (real browser)', () => {
 		await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
 
 		await screen.findByRole('tooltip')
+
+		// A second open and close under the same hover hides and restores it again.
+		trigger.click()
+
+		await screen.findByRole('dialog')
+
+		await waitFor(() => expect(screen.queryByRole('tooltip')).not.toBeInTheDocument())
+
+		trigger.click()
+
+		await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+
+		await screen.findByRole('tooltip')
 	})
 
 	it('stays closed when the mouse left the trigger', async () => {
@@ -131,5 +146,34 @@ describe('a tooltip that a surface hid (real browser)', () => {
 		await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
 
 		await screen.findByRole('tooltip')
+	})
+
+	it('keeps a tooltip that Escape dismissed closed when a surface closes', async () => {
+		renderUI(
+			<Tooltip delay={0}>
+				<TooltipTrigger>
+					<Button>Search</Button>
+				</TooltipTrigger>
+				<TooltipContent>Search the document</TooltipContent>
+			</Tooltip>,
+		)
+
+		await userEvent.hover(screen.getByRole('button', { name: 'Search' }))
+
+		await screen.findByRole('tooltip')
+
+		await userEvent.keyboard('{Escape}')
+
+		await waitFor(() => expect(screen.queryByRole('tooltip')).not.toBeInTheDocument())
+
+		// A surface that opens and closes while the mouse stays on the trigger, such
+		// as a dialog that a keyboard shortcut opens.
+		const close = notifyOverlaySignal()
+
+		act(() => close())
+
+		await frames(2)
+
+		expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
 	})
 })

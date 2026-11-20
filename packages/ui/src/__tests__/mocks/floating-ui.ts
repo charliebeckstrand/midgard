@@ -1,4 +1,4 @@
-import { type ReactNode, type RefObject, useEffect, useRef } from 'react'
+import { type ReactNode, type RefObject, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { vi } from 'vitest'
 import { noop } from '../helpers/noop'
@@ -13,7 +13,7 @@ const identity = <T>(x: T) => x
 
 type MockContext = {
 	open?: boolean
-	onOpenChange?: (open: boolean) => void
+	onOpenChange?: (open: boolean, ...rest: unknown[]) => void
 	// The real context tracks the mounted reference/floating elements as state.
 	// Both stay null here (nothing mounts a real floating element) which is
 	// what consumers reading `context.elements.floating` expect off the browser.
@@ -21,6 +21,54 @@ type MockContext = {
 	// The real context keeps the event of the last open in `dataRef`. The mock
 	// passes no event to `onOpenChange`, so the record stays empty.
 	dataRef?: RefObject<{ openEvent?: Event }>
+	// The event emitter of the real context. The mock emits only `openchange`,
+	// from `onOpenChange`, as the real context does.
+	events?: MockEvents
+}
+
+type MockOpenChange = { open: boolean }
+
+type MockEvents = {
+	emit: (name: string, data: MockOpenChange) => void
+	on: (name: string, listener: (data: MockOpenChange) => void) => void
+	off: (name: string, listener: (data: MockOpenChange) => void) => void
+}
+
+function createMockEvents(): MockEvents {
+	const listeners = new Map<string, Set<(data: MockOpenChange) => void>>()
+
+	return {
+		emit: (name, data) => {
+			for (const listener of [...(listeners.get(name) ?? [])]) listener(data)
+		},
+		on: (name, listener) => {
+			listeners.set(name, (listeners.get(name) ?? new Set()).add(listener))
+		},
+		off: (name, listener) => {
+			listeners.get(name)?.delete(listener)
+		},
+	}
+}
+
+/**
+ * The context that `useFloating` and `useFloatingRootContext` give: one emitter
+ * for the mount, and an `onOpenChange` that emits `openchange` before it calls
+ * the option, as the real context does.
+ */
+function useMockContext(options: MockContext): MockContext {
+	const [events] = useState(createMockEvents)
+
+	return {
+		open: options?.open,
+		onOpenChange: (open: boolean, ...rest: unknown[]) => {
+			events.emit('openchange', { open })
+
+			options?.onOpenChange?.(open, ...rest)
+		},
+		elements: { reference: null, floating: null },
+		dataRef: useRef({}),
+		events,
+	}
 }
 
 type MockProps = Record<string, unknown>
@@ -169,12 +217,7 @@ const floatingUIMock = {
 			: { reference: { onFocus: () => context?.onOpenChange?.(true) } },
 	useHover: (): MockInteraction => ({}),
 	useMergeRefs,
-	useFloatingRootContext: (options: MockContext): MockContext => ({
-		open: options?.open,
-		onOpenChange: options?.onOpenChange,
-		elements: { reference: null, floating: null },
-		dataRef: useRef({}),
-	}),
+	useFloatingRootContext: useMockContext,
 	useFloating: (options: MockContext) => ({
 		refs: {
 			setReference: noop,
@@ -185,12 +228,7 @@ const floatingUIMock = {
 			domReference: { current: null },
 		},
 		floatingStyles: {},
-		context: {
-			open: options?.open,
-			onOpenChange: options?.onOpenChange,
-			elements: { reference: null, floating: null },
-			dataRef: useRef({}),
-		} as MockContext,
+		context: useMockContext(options),
 		x: 0,
 		y: 0,
 		strategy: 'absolute',
