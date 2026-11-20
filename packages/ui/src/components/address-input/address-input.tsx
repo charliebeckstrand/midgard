@@ -80,6 +80,8 @@ export type AddressInputProps = Omit<
 	clearable?: boolean
 	/**
 	 * Delay in milliseconds before the typed query triggers a provider fetch.
+	 * A negative value counts as 0.
+	 * @minimum 0
 	 * @defaultValue 500
 	 */
 	debounce?: number
