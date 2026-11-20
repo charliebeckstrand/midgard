@@ -5,7 +5,6 @@ import {
 	type ExtendedRefs,
 	type FloatingRootContext,
 	flip,
-	getOverflowAncestors,
 	hide,
 	type Middleware,
 	type OpenChangeReason,
@@ -26,7 +25,7 @@ import {
 	useSyncExternalStore,
 } from 'react'
 import { isCoveredByOverlay, subscribeOverlayLayers } from '../utilities/overlay-layers'
-import { readStickyCover } from '../utilities/sticky-cover'
+import { isUnderStickyBar } from '../utilities/sticky-cover'
 
 /**
  * Explicit return shape for {@link useFloatingPanel}.
@@ -113,36 +112,8 @@ const autoAlignMiddleware: Middleware = {
 const clipHide = hide({ strategy: 'referenceHidden' })
 
 /**
- * Whether the sticky bars of a scroll container of `anchor` cover all of
- * `rect`. A scroller names the height that its bars cover with
- * `writeStickyCover`, as `SidebarLayout` does. A reference under a sticky
- * header is thus out of view, as a reference that scrolled out of the scroller
- * is. The root element names the height for the viewport.
- */
-function underStickyBar(anchor: Element, rect: Omit<DOMRect, 'toJSON'>): boolean {
-	const root = anchor.ownerDocument.documentElement
-
-	const scrollers = getOverflowAncestors(anchor).filter(
-		(ancestor): ancestor is Element => 'getBoundingClientRect' in ancestor && ancestor !== root,
-	)
-
-	for (const scroller of [...scrollers, root]) {
-		const cover = readStickyCover(scroller)
-
-		if (cover === 0) continue
-
-		const top = scroller === root ? 0 : scroller.getBoundingClientRect().top + scroller.clientTop
-
-		if (rect.bottom <= top + cover) return true
-	}
-
-	return false
-}
-
-/**
  * Marks the panel when its reference is out of view: scrolled out of a scroll
- * container, clipped by one, or under the sticky bars of one (see
- * {@link underStickyBar}). It goes last, so it reads the final position.
+ * container, clipped by one, or under a sticky bar (see `isUnderStickyBar`). It goes last, so it reads the final position.
  * {@link useFloatingPanel} reads `referenceHidden` and hides the panel, which
  * comes back when the reference does. The panel stays open and keeps its state.
  *
@@ -165,7 +136,7 @@ const hideMiddleware: Middleware = {
 			...result,
 			data: {
 				...result.data,
-				referenceHidden: underStickyBar(anchor, reference.getBoundingClientRect()),
+				referenceHidden: isUnderStickyBar(anchor, reference.getBoundingClientRect()),
 			},
 		}
 	},

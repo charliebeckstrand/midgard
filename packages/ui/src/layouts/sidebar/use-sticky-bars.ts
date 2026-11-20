@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { getScroller } from '../../utilities/get-scroller'
-import { writeStickyCover } from '../../utilities/sticky-cover'
+import { markStickyBar } from '../../utilities/sticky-cover'
 
 /** The ref callbacks that {@link useStickyBars} gives. @internal */
 export type StickyBars = {
@@ -38,11 +38,17 @@ function createBars(): StickyBars {
 	const measure = () => {
 		if (!scroller) return
 
-		const cover = Math.max(0, ...[...bars].map(measureCover))
+		let cover = 0
+
+		for (const bar of bars) {
+			const covers = measureCover(bar)
+
+			markStickyBar(bar, covers > 0)
+
+			cover = Math.max(cover, covers)
+		}
 
 		scroller.style.scrollPaddingTop = cover > 0 ? `${cover}px` : ''
-
-		writeStickyCover(scroller, cover)
 	}
 
 	return {
@@ -70,8 +76,6 @@ function createBars(): StickyBars {
 
 				own.style.scrollPaddingTop = ''
 
-				writeStickyCover(own, 0)
-
 				scroller = null
 			}
 		},
@@ -87,6 +91,8 @@ function createBars(): StickyBars {
 			return () => {
 				bars.delete(node)
 
+				markStickyBar(node, false)
+
 				observer?.unobserve(node)
 
 				measure()
@@ -100,8 +106,8 @@ function createBars(): StickyBars {
  * Names the edge that the sticky bars of a layout cover, as the top
  * `scroll-padding` of the scroller of the layout. A scroll into view, a jump to
  * an anchor, and the flight of a `Lightbox` photo then keep clear of the bars.
- * It also writes the height with `writeStickyCover`, so a floating panel whose
- * reference is under the bars hides.
+ * It also marks each bar that sticks with `markStickyBar`, so a floating panel
+ * whose reference is under a bar hides.
  * The padding follows the bar that sticks at the current width, and it clears
  * when the layout unmounts.
  *
