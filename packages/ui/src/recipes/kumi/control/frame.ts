@@ -7,6 +7,7 @@
  * Layer: kumi · Group: control · Concern: frame
  */
 
+import { mode } from '../../../core/recipe'
 import { dan, kasane, narabi } from '../../kiso'
 import { radius } from './density'
 
@@ -33,3 +34,13 @@ export const chrome = [...layers, ...frameRadius]
 
 /** The chrome of a `soft` frame: the soft stack and the radius. */
 export const softChrome = [...softLayers, ...frameRadius]
+
+/**
+ * The placeholder of a `soft` field. The hover wash of a soft frame is 10%
+ * zinc on light and 20% white on dark. There the placeholder of `reset`
+ * (`zinc-500`, `zinc-400`) misses the 4.5:1 text floor at 3.88:1 and 3.57:1.
+ * `zinc-600` and `zinc-300` clear it at 6.22:1 and 6.35:1, and they are the
+ * least emphatic rungs that do. `__tests__/recipes/contrast.test.ts` measures
+ * them.
+ */
+export const softPlaceholder = mode('placeholder:text-zinc-600', 'dark:placeholder:text-zinc-300')

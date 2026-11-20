@@ -19,7 +19,7 @@ import { defineGroup } from '../../../core/recipe'
 import { dan, hannou, iro, narabi, omote, sou, ugoki } from '../../kiso'
 import { affix } from './affix'
 import { density, inset } from './density'
-import { chrome, frame, softChrome } from './frame'
+import { chrome, frame, softChrome, softPlaceholder } from './frame'
 import { reset } from './reset'
 import { surface } from './surface'
 
@@ -62,7 +62,10 @@ export const control = defineGroup({
 		bare: dan.gap.control,
 	},
 	slots: {
-		field: { base: [...reset, ...density], variant: framed(inset) },
+		field: {
+			base: [...reset, ...density],
+			variant: { ...framed(inset), soft: [...inset, ...softPlaceholder] },
+		},
 		prefix: { base: affix.base, variant: framed(affix.prefix) },
 		suffix: { base: affix.base, variant: framed(affix.suffix) },
 	},
