@@ -8,7 +8,7 @@ export default function Search() {
 			src={quarterlyReport}
 			filename="quarterly-report.pdf"
 			data={text}
-			aria-label="Searchable sales report"
+			aria-label="Sales report for the first quarter"
 		/>
 	)
 }

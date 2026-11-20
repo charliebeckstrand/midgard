@@ -53,9 +53,9 @@ type PdfViewerThumbnailListProps = {
 	 */
 	layout?: PdfViewerVariants['layout']
 	/**
-	 * Renders the mark of a tile after its page number, such as the number of search matches.
-	 * The button of the tile names `descriptionId` in `aria-describedby`, so the mark gives the
-	 * element with that id.
+	 * Renders the mark of a tile after its page number, such as the search glyph of a page with
+	 * a match. The button of the tile names `descriptionId` in `aria-describedby`, so the mark
+	 * gives the element with that id.
 	 *
 	 * @remarks A render function rather than a read of the search here. The mark reads the
 	 * search in a leaf of its own, so a key that the reader types renders the marks and not the

@@ -49,7 +49,7 @@ export function PdfViewerThumbnailMatches({ pageNumber, id }: PdfViewerThumbnail
 					data-slot="pdf-viewer-thumbnail-matches"
 					className={cn(k().thumbnail.label, k().thumbnail.matches)}
 				>
-					<Icon icon={<Search />} size={12} />
+					<Icon icon={<Search />} size="xs" />
 				</span>
 			)}
 		</>

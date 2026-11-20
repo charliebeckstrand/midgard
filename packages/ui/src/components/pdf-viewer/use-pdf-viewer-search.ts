@@ -121,6 +121,20 @@ export function matchText(pages: readonly PdfViewerPageText[], query: string) {
 	return matches
 }
 
+/**
+ * Whether the viewer offers the search: there is `data` with a run, and `search` is not `false`.
+ *
+ * @remarks One rule for the two places that ask: the search, and the thumbnail rail, which
+ * reads no search state.
+ * @internal
+ */
+export function isSearchOffered(
+	data: readonly PdfViewerTextItem[] | undefined,
+	search: boolean | PdfViewerSearchOptions | undefined,
+) {
+	return search !== false && !!data?.length
+}
+
 /** The match where a new query starts: the first on or after `page`, else the first. @internal */
 function firstFrom(matches: readonly PdfViewerTextMatch[], page: number) {
 	const index = matches.findIndex((match) => match.page >= page)
@@ -149,11 +163,11 @@ export type PdfViewerSearchInput = {
 	goToPage: (page: number) => void
 }
 
-/** One box of a match on the page on screen, in page fractions. @internal */
+/** One box of a run that a match touches on the page on screen, in page fractions. @internal */
 type PdfViewerSearchHit = {
 	key: string
 	rect: PdfViewerHighlightRect
-	/** True for each box of the current match. */
+	/** True when the current match touches the run. */
 	current: boolean
 }
 
@@ -171,7 +185,10 @@ export type PdfViewerSearchResult = {
 	currentKey: string | null
 	next: () => void
 	previous: () => void
-	/** The boxes of the matches on the page on screen. Empty when `highlight` is `false`. */
+	/**
+	 * The boxes of the runs that the matches touch on the page on screen, one for each run.
+	 * Empty when `highlight` is `false`.
+	 */
 	hits: PdfViewerSearchHit[]
 	/** The number of matches on each page that has one, for the marks of the thumbnail rail. */
 	pageMatches: ReadonlyMap<number, number>
@@ -181,13 +198,18 @@ export type PdfViewerSearchResult = {
 /** The query of the reader, the page where they typed it, and the match they stepped to. @internal */
 type SearchState = {
 	query: string
+	/**
+	 * Counts the changes of the query and the steps. Each one is a new request of the reader to
+	 * see the current match, also when the current match is the same match again.
+	 */
+	seq: number
 	/** The page on screen when the query changed. The first match on or after it is current. */
 	anchor: number
 	/** The match that a step chose, or `null` until a step. */
 	index: number | null
 }
 
-const IDLE: SearchState = { query: '', anchor: 1, index: null }
+const IDLE: SearchState = { query: '', seq: 0, anchor: 1, index: null }
 
 /**
  * Resolves the search of the viewer: the matches of the query in the OCR data, the current
@@ -218,7 +240,7 @@ export function usePdfViewerSearch({
 	const color =
 		(typeof highlight === 'object' ? highlight.color : undefined) ?? DEFAULT_SEARCH_COLOR
 
-	const offered = search !== false && !!data?.length
+	const offered = isSearchOffered(data, search)
 
 	const [state, setState] = useState<SearchState>(IDLE)
 
@@ -248,19 +270,28 @@ export function usePdfViewerSearch({
 				? firstFrom(matches, state.anchor)
 				: state.index % total
 
-	const currentKey = current === null ? null : `${query}\u0000${current}`
+	const target = current === null ? undefined : matches[current]
 
-	const targetPage = current === null ? undefined : matches[current]?.page
+	const targetPage = target?.page
+
+	/*
+	 * The request of the reader and the place of the current match. A step or a query is a new
+	 * request, so a step to the only match turns to it again. A change of `data` that moves the
+	 * current match is a new place, so the viewer follows it. A new `data` array with the same
+	 * text is neither, and does nothing.
+	 */
+	const currentKey =
+		target === undefined ? null : `${state.seq}:${target.page}:${target.items.join(',')}`
 
 	// A stable event, so the field reads the page of the newest render and keeps one handler.
 	const setQuery = useStableEvent((next: string) => {
-		setState({ query: next, anchor: safePage, index: null })
+		setState((prev) => ({ query: next, seq: prev.seq + 1, anchor: safePage, index: null }))
 	})
 
 	const step = useStableEvent((by: number) => {
 		if (current === null) return
 
-		setState((prev) => ({ ...prev, index: (current + by + total) % total }))
+		setState((prev) => ({ ...prev, seq: prev.seq + 1, index: (current + by + total) % total }))
 	})
 
 	const next = useStableEvent(() => step(1))
@@ -270,9 +301,10 @@ export function usePdfViewerSearch({
 	/*
 	 * Turns to the page of the current match, once for each match.
 	 *
-	 * Latched on the key of the match, for the reason that the highlight overlay latches on
-	 * its id: the reader can turn away from the page of a match, and a render must not turn
-	 * them back. A document with no pages yet shows no page, so the latch waits for the pages.
+	 * Latched on the key of the current match, for the reason that the highlight overlay latches
+	 * on its id: the reader can turn away from the page of a match, and a render must not turn
+	 * them back. A step or a new query changes the key, so it turns again. A document with no
+	 * pages yet shows no page, so the latch waits for the pages.
 	 */
 	const navigatedRef = useRef<string | null>(null)
 
@@ -288,23 +320,30 @@ export function usePdfViewerSearch({
 		if (targetPage !== safePage) goToPage(targetPage)
 	}, [navigate, loaded, currentKey, targetPage, safePage, goToPage])
 
-	const hits: PdfViewerSearchHit[] = []
+	/*
+	 * One box for each run on the page, not one for each match. A run can hold several matches,
+	 * such as "t" in "Total", and a wash for each would stack, so the density of the matches
+	 * would set how dark a run is. A run is current when a match of the current match touches it.
+	 */
+	const runs = new Map<number, boolean>()
 
-	if (highlight !== false && data) {
+	if (highlight !== false) {
 		matches.forEach((match, index) => {
 			if (match.page !== safePage) return
 
-			for (const item of match.items) {
-				const run = data[item]
-
-				const rect = run && toFractionRect(run.rect, highlightUnit, activePage)
-
-				// A physical unit with no page extent to divide by draws nothing, as a highlight does.
-				if (!rect) continue
-
-				hits.push({ key: `${index}:${item}`, rect, current: index === current })
-			}
+			for (const item of match.items) runs.set(item, runs.get(item) === true || index === current)
 		})
+	}
+
+	const hits: PdfViewerSearchHit[] = []
+
+	for (const [item, isCurrent] of runs) {
+		const run = data?.[item]
+
+		const rect = run && toFractionRect(run.rect, highlightUnit, activePage)
+
+		// A physical unit with no page extent to divide by draws nothing, as a highlight does.
+		if (rect) hits.push({ key: String(item), rect, current: isCurrent })
 	}
 
 	return {

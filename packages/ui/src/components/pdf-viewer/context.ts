@@ -57,8 +57,9 @@ export const [PdfViewerMagnifierContext, usePdfViewerMagnifierContext] =
  *
  * Separate from {@link PdfViewerContext}, for the reason {@link PdfViewerHighlightsContext}
  * is. The query changes at the rate that the reader types. In the main context, each key
- * would render the thumbnail rail and each region on the page again. Only the toolbar control
- * and the layer of matches read this one.
+ * would render the thumbnail rail and each region on the page again. Only small leaves read
+ * this one: the toolbar control, the layer of matches, and the mark and the tooltip of each
+ * thumbnail tile.
  *
  * @internal
  */

@@ -217,6 +217,14 @@ describe('PdfViewer search', () => {
 		expect(allBySlot(container, 'pdf-viewer-thumbnail-matches')).toHaveLength(0)
 	})
 
+	it('adds no search mark and no description to the tiles of a viewer with no search', () => {
+		renderSearch({ search: false })
+
+		for (const tile of screen.getAllByRole('button', { name: /^Go to Page/ })) {
+			expect(tile).not.toHaveAttribute('aria-describedby')
+		}
+	})
+
 	it('gives the number of matches in the tooltip of the tile, and none on a tile with no match', async () => {
 		renderSearch()
 

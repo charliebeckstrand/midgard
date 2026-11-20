@@ -169,6 +169,50 @@ describe('usePdfViewerSearch', () => {
 		expect(goToPage).toHaveBeenCalledTimes(1)
 	})
 
+	it('turns to the only match again on a step, after the reader turns away', () => {
+		const goToPage = vi.fn()
+
+		const { result, rerender } = renderSearch({ goToPage })
+
+		act(() => result.current.setQuery('due'))
+
+		expect(goToPage).toHaveBeenLastCalledWith(2)
+
+		rerender({ safePage: 3 })
+
+		act(() => result.current.next())
+
+		expect(result.current.current).toBe(0)
+
+		expect(goToPage).toHaveBeenCalledTimes(2)
+
+		expect(goToPage).toHaveBeenLastCalledWith(2)
+	})
+
+	it('follows the current match when new data moves it, and not for the same data again', () => {
+		const goToPage = vi.fn()
+
+		const { result, rerender } = renderSearch({ goToPage })
+
+		act(() => result.current.setQuery('due'))
+
+		expect(goToPage).toHaveBeenCalledTimes(1)
+
+		rerender({ safePage: 2 })
+
+		// A new array with the same text: nothing to follow.
+		rerender({ safePage: 2, data: data.map((item) => ({ ...item })) })
+
+		expect(goToPage).toHaveBeenCalledTimes(1)
+
+		// New data that moves "due" to page 3.
+		rerender({ safePage: 2, data: [{ page: 3, text: 'Due', rect: box }] })
+
+		expect(goToPage).toHaveBeenCalledTimes(2)
+
+		expect(goToPage).toHaveBeenLastCalledWith(3)
+	})
+
 	it('does not turn the page with navigate false', () => {
 		const goToPage = vi.fn()
 
@@ -200,13 +244,33 @@ describe('usePdfViewerSearch', () => {
 	it('gives the boxes of the matches on the page on screen, and marks the current match', () => {
 		const { result } = renderSearch({ safePage: 2 })
 
+		act(() => result.current.setQuery('total due'))
+
+		expect(result.current.hits).toEqual([
+			{ key: '0', rect: box, current: true },
+			{ key: '1', rect: { ...box, x: 0.3 }, current: true },
+		])
+	})
+
+	it('gives one box for a run that holds several matches, so the washes do not stack', () => {
+		const { result } = renderSearch({ safePage: 2 })
+
 		act(() => result.current.setQuery('t'))
 
-		// "Total" and "due" on page 2: "t" is in "Total" twice, and in "due" never.
-		expect(result.current.hits).toEqual([
-			{ key: expect.any(String), rect: box, current: true },
-			{ key: expect.any(String), rect: box, current: false },
-		])
+		// "t" is in "Total" twice, and in "due" never: two matches, one run.
+		expect(result.current.total).toBe(6)
+
+		expect(result.current.hits).toEqual([{ key: '0', rect: box, current: true }])
+
+		// The second match in "Total" is current, and the run stays current.
+		act(() => result.current.next())
+
+		expect(result.current.hits).toEqual([{ key: '0', rect: box, current: true }])
+
+		// The next match is on page 3, so the run on this page is not current.
+		act(() => result.current.next())
+
+		expect(result.current.hits).toEqual([{ key: '0', rect: box, current: false }])
 	})
 
 	it('converts an inch box against the page on screen', () => {

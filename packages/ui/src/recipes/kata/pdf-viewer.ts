@@ -64,18 +64,10 @@ const activeFill = {
 }
 
 /**
- * The wash of a search match: twice the rung of a region fill. A match has no edge, so the
- * wash alone has to show it on the ink.
+ * The wash of the current search match: the doubled rung of a match. A match takes
+ * {@link activeFill}, twice the rung of a region, because it has no edge and the wash alone has
+ * to show it on the ink.
  */
-const matchFill = {
-	zinc: 'bg-zinc-500/30',
-	red: 'bg-red-500/30',
-	amber: 'bg-amber-500/30',
-	green: 'bg-green-500/30',
-	blue: 'bg-blue-500/30',
-}
-
-/** The wash of the current search match: the doubled rung of a match. */
 const currentMatchFill = {
 	zinc: 'bg-zinc-500/60',
 	red: 'bg-red-500/60',
@@ -445,13 +437,17 @@ export const k = defineKata({
 								 * reader can tell a match from a region, also in the same color.
 								 */
 								hit: {
-									base: ['absolute block'],
+									/**
+									 * Forced colors remove the wash, so an outline keeps each match, and the current
+									 * match takes a heavier one.
+									 */
+									base: ['absolute block', forced.outline],
 									/** The color of the wash (see the compound rules). */
 									color: { zinc: '', red: '', amber: '', green: '', blue: '' },
 									/** The current match takes the heavier wash, and sits above its neighbors. */
-									current: { true: 'z-10', false: '' },
+									current: { true: ['z-10', 'forced-colors:outline-2'], false: '' },
 									compound: [
-										...colors.map((color) => ({ color, current: false, class: matchFill[color] })),
+										...colors.map((color) => ({ color, current: false, class: activeFill[color] })),
 										...colors.map((color) => ({
 											color,
 											current: true,

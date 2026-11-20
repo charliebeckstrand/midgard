@@ -71,6 +71,7 @@ export function PdfViewerThumbnails() {
 		setThumbsOpen,
 		root,
 		showThumbnails,
+		searchOffered,
 	} = usePdfViewerContext()
 
 	// The sidebar is always mounted; the hold only decides whether its contents
@@ -148,8 +149,8 @@ export function PdfViewerThumbnails() {
 							goToPage={goToPage}
 							scrollCurrentIntoView={scrollWithin}
 							onVisibleChange={showThumbnails}
-							marker={matchMarker}
-							wrapTile={matchTooltip}
+							marker={searchOffered ? matchMarker : undefined}
+							wrapTile={searchOffered ? matchTooltip : undefined}
 						/>
 					</MountHold>
 				</nav>
@@ -176,8 +177,8 @@ export function PdfViewerThumbnails() {
 							scrollCurrentIntoView={scrollWithin}
 							onSelect={() => setThumbsOpen(false)}
 							onVisibleChange={showThumbnails}
-							marker={matchMarker}
-							wrapTile={matchTooltip}
+							marker={searchOffered ? matchMarker : undefined}
+							wrapTile={searchOffered ? matchTooltip : undefined}
 							layout="grid"
 						/>
 					</SheetBody>

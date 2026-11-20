@@ -27,6 +27,7 @@ import type {
 	PdfViewerThumbnailLayout,
 } from './types'
 import { PDF_VIEWER_THUMBNAILS, usePdfViewer } from './use-pdf-viewer'
+import { isSearchOffered } from './use-pdf-viewer-search'
 
 /**
  * Props for {@link PdfViewer}: the document source (`pages` or `src`), controlled page state, and zoom defaults.
@@ -293,6 +294,7 @@ export function PdfViewer({
 		fit,
 		thumbnails,
 		hasHighlights: !!highlights?.length,
+		searchOffered: isSearchOffered(data, search),
 		magnifier,
 		onHighlightsVisibleChange,
 		onMagnifierChange,

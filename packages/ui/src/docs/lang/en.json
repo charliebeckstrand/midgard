@@ -1295,10 +1295,6 @@
 		"defaultMessage": "1 reviewer",
 		"description": "Text of a demo in the docs as summarize, in components/combobox/custom-summary.tsx."
 	},
-	"docs.demo.14b92ec0b8f2": {
-		"defaultMessage": "Searchable sales report",
-		"description": "Text of a demo in the docs as aria-label, in components/pdf-viewer/search.tsx."
-	},
 	"docs.demo.14f34284b054": {
 		"defaultMessage": "Slider",
 		"description": "Text of a demo in the docs as label, in primitives/skeleton/skeleton-variants.tsx."
@@ -4046,6 +4042,10 @@
 	"docs.demo.ac8a73189fe3": {
 		"defaultMessage": "Profile photo",
 		"description": "Text of a demo in the docs, in components/file-upload/rejected-files.tsx."
+	},
+	"docs.demo.acde6fd42e33": {
+		"defaultMessage": "Sales report for the first quarter",
+		"description": "Text of a demo in the docs as aria-label, in components/pdf-viewer/search.tsx."
 	},
 	"docs.demo.ad1916bc2536": {
 		"defaultMessage": "Team plan, renews on July 1",
