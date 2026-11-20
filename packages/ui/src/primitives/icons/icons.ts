@@ -1,10 +1,11 @@
 'use client'
 
-// The only file of ui that imports lucide-react. Each export is the glyph of
-// ui for one Lucide icon, under the own name of that icon. It draws the icon
-// that the app registers for that name, or the Lucide default. Each glyph is a
-// pure export of its own, so a bundler keeps only the glyphs that a page draws.
-// To draw a new icon in ui, add its glyph here (CONVENTIONS §5.13).
+// The glyphs of ui. Only the files of this folder import lucide-react, and
+// only this file draws a Lucide icon. Each export is the glyph of ui for one
+// Lucide icon, under the own name of that icon. It draws the icon that the app
+// registers for that name, or the Lucide default. Each glyph is a pure export
+// of its own, so a bundler keeps only the glyphs that a page draws. To draw a
+// new icon in ui, add its glyph here (CONVENTIONS §5.13).
 
 import {
 	Activity as LucideActivity,
