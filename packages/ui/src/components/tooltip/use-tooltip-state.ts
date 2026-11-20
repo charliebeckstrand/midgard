@@ -228,6 +228,11 @@ export function useTooltipState({
 		if (disabled && open) setOpen(false)
 	}, [disabled, open, setOpen])
 
+	// Whether a mouse or pen hover is on the trigger, and no close ended it after
+	// it started. The hover then has the tooltip open, or its open is pending. A
+	// close such as Escape ends the hover, though the pointer stays.
+	const hoverRef = useRef(false)
+
 	useEffect(() => {
 		if (!domReference) return
 
@@ -237,14 +242,36 @@ export function useTooltipState({
 			pointerRef.current = (event as PointerEvent).pointerType
 		}
 
-		domReference.addEventListener('pointerenter', record)
+		const enter = (event: Event) => {
+			record(event)
+
+			hoverRef.current = hoverOpens(pointerRef.current)
+		}
+
+		const leave = () => {
+			hoverRef.current = false
+		}
+
+		domReference.addEventListener('pointerenter', enter)
 		domReference.addEventListener('pointerdown', record)
+		domReference.addEventListener('pointerleave', leave)
 
 		return () => {
-			domReference.removeEventListener('pointerenter', record)
+			domReference.removeEventListener('pointerenter', enter)
 			domReference.removeEventListener('pointerdown', record)
+			domReference.removeEventListener('pointerleave', leave)
 		}
 	}, [domReference])
+
+	useEffect(() => {
+		const end = ({ open: next }: { open: boolean }) => {
+			if (!next) hoverRef.current = false
+		}
+
+		context.events.on('openchange', end)
+
+		return () => context.events.off('openchange', end)
+	}, [context.events])
 
 	// A trigger that turns enabled again under a mouse or pen opens a hover
 	// tooltip once more, as a hover would have.
@@ -265,9 +292,10 @@ export function useTooltipState({
 	}, [disabled, domReference, enabled, trigger, setOpen])
 
 	// A surface that opens hides the tooltip. When that surface closes, a hover
-	// tooltip opens again under a mouse or pen, as the hover shows it. The pointer
-	// did not move, so no hover event comes to open it. A touch browser keeps
-	// `:hover` on a tapped node, so the last pointer type decides, as above.
+	// tooltip that the hover had open or pending opens again under a mouse or pen,
+	// as the hover shows it. The pointer did not move, so no hover event comes to
+	// open it. A touch browser keeps `:hover` on a tapped node, so the last
+	// pointer type decides, as above.
 	const reopenUnderHover = useStableEvent(() => {
 		if (
 			reopensOnEnable({ enabled, trigger }, pointerRef.current) &&
@@ -276,15 +304,25 @@ export function useTooltipState({
 			setOpen(true)
 	})
 
-	useEffect(() => {
-		if (!open) return
+	// The close goes through the floating context, also for a closed tooltip.
+	// The `openchange` event then stops a pending hover open of `useHover` and of
+	// the intent replay, so a click in the open delay does not show the tooltip
+	// over the surface. `useHover` also ignores a pointer move on the trigger
+	// until the pointer enters it again. The surface hides the hover, and does
+	// not end it, so a second surface hides and restores the tooltip again. Only
+	// a tooltip that a hover had open or pending opens again, so a tooltip that
+	// the reader dismissed stays closed.
+	const hideForSurface = useStableEvent(() => {
+		const hovered = hoverRef.current
 
-		return subscribeOverlaySignal(() => {
-			setOpen(false)
+		context.onOpenChange(false)
 
-			return reopenUnderHover
-		})
-	}, [open, setOpen, reopenUnderHover])
+		hoverRef.current = hovered
+
+		return hovered ? reopenUnderHover : undefined
+	})
+
+	useEffect(() => subscribeOverlaySignal(hideForSurface), [hideForSurface])
 
 	/*
 	 * Watched rather than wrapped around the disclosure's setter. The open state on
@@ -372,6 +410,8 @@ export function useTooltipState({
 		const intent = takeIntent()
 
 		pointerRef.current = intent.pointer
+
+		hoverRef.current = intent.hover !== null
 
 		// The options can change between the record and the replay.
 		const reenabled = intent.reenabled && reopensOnEnable({ enabled, trigger }, intent.pointer)
