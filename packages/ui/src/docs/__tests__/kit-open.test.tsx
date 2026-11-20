@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { ComponentType, ReactNode } from 'react'
 import { createMemoryRouter, MemoryRouter, RouterProvider } from 'react-router'
-import { beforeAll, describe, expect, onTestFinished, vi } from 'vitest'
+import { describe, expect, onTestFinished, vi } from 'vitest'
 import { deferred } from '../../__tests__/helpers/deferred.ts'
 import { FailBoundary } from '../../__tests__/helpers/fail-boundary.tsx'
 import { it } from '../../__tests__/helpers/fake-clock.ts'
@@ -11,6 +11,11 @@ import { ApiTable } from '../kit/api-table.tsx'
 import { ExampleFrame } from '../kit/example.tsx'
 import type { BarrelApi } from '../plugin/api.ts'
 import type { ExampleCode, ExampleMeta } from '../plugin/examples.ts'
+
+// An entry of the API reference loads the entry chunk. Its first load compiles
+// `marked` and the Markdown of `ui`. This import loads it at collection, so a
+// case times only its own work (CONVENTIONS.md §10.14).
+import '../kit/api-entry.tsx'
 
 // A panel that suspends opens empty, and React holds its content back for at
 // least 300 ms. So "Show code" and an entry of the API reference open only
@@ -157,10 +162,6 @@ const THING: BarrelApi = {
 }
 
 describe('ApiTable', () => {
-	// The first load of the entry chunk compiles `marked` and the Markdown of `ui`.
-	// It loads once here, so each case waits on its own work only.
-	beforeAll(() => import('../kit/api-entry.tsx'))
-
 	// On a right-to-left page with no `dir`, the name shows as `</ Thing>`.
 	it('keeps the name in the trigger left to right', () => {
 		renderTable(THING)

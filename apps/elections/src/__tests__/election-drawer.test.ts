@@ -20,6 +20,11 @@ import gaSenate from './fixtures/ga-senate.json'
 import house from './fixtures/house.json'
 import senate from './fixtures/senate.json'
 
+// A press on Search races loads the search panel (`race-search.tsx`), which
+// carries the command palette of ui. This import loads it at collection, so a
+// case times only its own work (CONVENTIONS.md §10.14).
+import '../components/race-search/race-search-panel'
+
 vi.mock('next/navigation', () => ({
 	usePathname: () => window.location.pathname,
 	useSearchParams: () => new URLSearchParams(window.location.search),
@@ -32,15 +37,6 @@ vi.mock('../api/county-api', () => ({ fetchCountyShapes: vi.fn(() => new Promise
 vi.mock('../components/race-detail/load-county-map', () => ({
 	loadCountyMap: () => new Promise(() => {}),
 }))
-
-// A press on Search races loads the module of the search panel
-// (`race-search.tsx`), which carries the command palette of ui. The first load
-// transforms and evaluates that code. On a busy machine with a cold cache, that
-// took longer than the budget of the case. So the file loads the module at
-// collection, which runs under no budget, and each case times only its own
-// work. The press still waits on the import, which then comes from the module
-// registry.
-await import('../components/race-search/race-search-panel')
 
 afterEach(cleanup)
 

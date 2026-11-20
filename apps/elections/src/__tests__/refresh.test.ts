@@ -1,7 +1,14 @@
 // @vitest-environment jsdom
 import { act, cleanup, render, screen } from '@testing-library/react'
 import { createElement } from 'react'
-import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+
+// Each case loads the footer and its imports again (`load`). The first load
+// transforms them. These imports do that at collection, so a case times only
+// its own work, and each later load runs the transformed modules again
+// (CONVENTIONS.md §10.14).
+import 'shared/refresh'
+import '../components/elections-footer'
 
 const refresh = vi.fn()
 
@@ -50,13 +57,6 @@ async function openFooter() {
 }
 
 const minute = () => act(() => vi.advanceTimersByTimeAsync(60_000))
-
-// The first load transforms the footer and its imports, which
-// can take more than the time of one test while the other suites run. Each
-// later load only runs the transformed modules again.
-beforeAll(async () => {
-	await load()
-}, 60_000)
 
 beforeEach(() => {
 	vi.useFakeTimers()
