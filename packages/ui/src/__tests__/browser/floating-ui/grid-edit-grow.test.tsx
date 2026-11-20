@@ -43,8 +43,16 @@ const columns = (extra: Partial<Record<keyof Row, Partial<GridColumn<Row>>>> = {
 const getSlot = (cell: HTMLElement) =>
 	present<HTMLElement>(cell.querySelector('[data-slot="grid-edit-slot"]'), 'the editor slot')
 
-/** Opens the editor of `cell` under a cell-scoped session, and types `text` at its end. */
-const openAndType = vi.defineHelper(async (cell: HTMLElement, text: string) => {
+/**
+ * Opens the editor of `cell` under a cell-scoped session, and adds `text` to the
+ * end of its value in one input.
+ *
+ * Each case that calls it reads the value of the editor, not the keys that give
+ * the value. A typed key is a round trip to the browser, and a long text took
+ * more than a second. The first case types its text, so the file still proves
+ * the growth as the user types.
+ */
+const openAndFill = vi.defineHelper(async (cell: HTMLElement, text: string) => {
 	await userEvent.dblClick(cell)
 
 	const input = await waitFor(() =>
@@ -53,7 +61,7 @@ const openAndType = vi.defineHelper(async (cell: HTMLElement, text: string) => {
 
 	await waitFor(() => expect(document.activeElement).toBe(input))
 
-	await userEvent.keyboard(`{End}${text}`)
+	await userEvent.fill(input, `${input.value}${text}`)
 
 	const slot = getSlot(cell)
 
@@ -189,7 +197,7 @@ describe('grid editor grow (real floating engine)', () => {
 
 		// The grid sets tabular figures. A `1` is then wider than its proportional
 		// form, so a measure of proportional figures leaves the field too narrow.
-		const { input } = await openAndType(gridCell(container, 'email'), '1'.repeat(30))
+		const { input } = await openAndFill(gridCell(container, 'email'), '1'.repeat(30))
 
 		await waitFor(() => expect(input.scrollWidth).toBeLessThanOrEqual(input.clientWidth))
 	})
@@ -197,7 +205,7 @@ describe('grid editor grow (real floating engine)', () => {
 	it('caps the width at 28rem', async () => {
 		const { container } = renderGrid()
 
-		const { slot } = await openAndType(gridCell(container, 'email'), LONG.repeat(4))
+		const { slot } = await openAndFill(gridCell(container, 'email'), LONG.repeat(4))
 
 		await waitFor(() => expect(slot.getBoundingClientRect().width).toBeNear(28 * 16, PIXEL))
 	})
@@ -255,7 +263,7 @@ describe('grid editor grow (real floating engine)', () => {
 
 		const cell = gridCell(container, 'role')
 
-		const { slot } = await openAndType(cell, LONG)
+		const { slot } = await openAndFill(cell, LONG)
 
 		const scroller = present(cell.closest('table')?.parentElement, 'the scroll area')
 
@@ -273,7 +281,7 @@ describe('grid editor grow (real floating engine)', () => {
 
 		const cell = gridCell(container, 'email')
 
-		const { slot } = await openAndType(cell, LONG)
+		const { slot } = await openAndFill(cell, LONG)
 
 		await waitFor(() =>
 			expect(slot.getBoundingClientRect().right).toBeNear(
@@ -290,7 +298,7 @@ describe('grid editor grow (real floating engine)', () => {
 
 		const cell = gridCell(container, 'email')
 
-		const { slot } = await openAndType(cell, LONG.repeat(2))
+		const { slot } = await openAndFill(cell, LONG.repeat(2))
 
 		const pinned = gridCell(container, 'role')
 
@@ -310,7 +318,7 @@ describe('grid editor grow (real floating engine)', () => {
 
 		const cell = gridCell(container, 'email', 2)
 
-		const { slot } = await openAndType(cell, LONG)
+		const { slot } = await openAndFill(cell, LONG)
 
 		const scroller = present(cell.closest('table')?.parentElement, 'the scroll area')
 
@@ -335,7 +343,7 @@ describe('grid editor grow (real floating engine)', () => {
 
 		const cell = gridCell(container, 'email', 3)
 
-		const { slot } = await openAndType(cell, LONG)
+		const { slot } = await openAndFill(cell, LONG)
 
 		const scroller = present(cell.closest('table')?.parentElement, 'the scroll area')
 
@@ -377,7 +385,7 @@ describe('grid editor grow (real floating engine)', () => {
 
 		const cell = gridCell(container, 'email')
 
-		const { slot } = await openAndType(cell, LONG)
+		const { slot } = await openAndFill(cell, LONG)
 
 		await waitFor(() =>
 			expect(slot.getBoundingClientRect().width).toBeGreaterThan(
