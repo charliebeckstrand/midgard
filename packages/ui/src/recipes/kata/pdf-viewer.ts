@@ -308,7 +308,8 @@ export const k = defineKata({
 					slots: {
 						// A size container, so the page and the layers over it fill it in its container units.
 						frame: ['relative shrink-0 @container-size'],
-						placeholder: ['w-full h-full', bg.skeleton.base, css.pulse],
+						// An `<output>` is inline, so `block` gives it the box of the frame.
+						placeholder: ['block w-full h-full', bg.skeleton.base, css.pulse],
 						// The message of a failed load or of a document with no pages sits on the gray
 						// of the viewport, not on the page surface. The muted text of the page is 4.39:1
 						// there, so the message takes the muted rung of the neutral wash, the same gray.

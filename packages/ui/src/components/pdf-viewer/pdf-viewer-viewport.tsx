@@ -18,7 +18,7 @@ import { PdfViewerSearchHits } from './pdf-viewer-search-hits'
  * page image, an error message, a loading placeholder, or an empty state. A
  * page shows as soon as its raster lands: an image, or a bitmap on a canvas
  * ({@link PdfViewerPageImage}). A page that has not rendered yet shows the
- * loading placeholder. The
+ * loading placeholder in the frame of the page. The
  * highlight overlay sits over the image, sharing its frame and its transform.
  *
  * @remarks CSS sizes the page, so the server paints it at its final size. The pane is a
@@ -70,6 +70,16 @@ export function PdfViewerViewport() {
 
 	const { viewport } = k({ fit })
 
+	/*
+	 * The frame is there from the first paint of a page that is on the way: while the document
+	 * loads, and while the page renders. It holds the loading placeholder until the raster
+	 * lands. Thus the frame gives the cache the width of the page before the first raster lands,
+	 * and the sharp raster comes before the neighbors. `pending` covers the render before the
+	 * load starts, on the server and on a cold `src`. Without it, that render shows the empty
+	 * state for one frame. A failed load shows its message, unless a page has its raster.
+	 */
+	const framed = hasRaster(activePage) || (!error && (loading || pending || !!activePage))
+
 	return (
 		<div
 			data-slot="pdf-viewer-pane"
@@ -86,7 +96,7 @@ export function PdfViewerViewport() {
 						{intl.formatMessage(pdfViewerMessages.pageOfTotal, { page: safePage, total })}
 					</div>
 				)}
-				{hasRaster(activePage) && activePage ? (
+				{framed ? (
 					<div
 						// The frame, not the image: it is the box the loupe's own copy is sized from,
 						// and it does not move under rotation the way the image inside it does.
@@ -96,30 +106,31 @@ export function PdfViewerViewport() {
 						className={k().viewport.page.frame}
 						style={frame}
 					>
-						<PdfViewerPageImage
-							key={activePage.id ?? safePage}
-							page={activePage}
-							alt={pageLabel(intl, activePage, safePage)}
-							className={k().viewport.page.base}
-							style={{ ...page, visibility: visible ? 'visible' : 'hidden' }}
-							onLoad={onImageLoad}
-						/>
-						<PdfViewerHighlights />
-						<PdfViewerSearchHits />
-						<PdfViewerMagnifier />
+						{hasRaster(activePage) && activePage ? (
+							<>
+								<PdfViewerPageImage
+									key={activePage.id ?? safePage}
+									page={activePage}
+									alt={pageLabel(intl, activePage, safePage)}
+									className={k().viewport.page.base}
+									style={{ ...page, visibility: visible ? 'visible' : 'hidden' }}
+									onLoad={onImageLoad}
+								/>
+								<PdfViewerHighlights />
+								<PdfViewerSearchHits />
+								<PdfViewerMagnifier />
+							</>
+						) : (
+							<output
+								aria-label={intl.formatMessage(pdfViewerMessages.loading)}
+								className={k().viewport.page.placeholder}
+							/>
+						)}
 					</div>
 				) : error ? (
 					<div role="alert" className={k().viewport.page.empty}>
 						{intl.formatMessage(pdfViewerMessages.loadFailed, { message: error.message })}
 					</div>
-				) : loading || pending || activePage ? (
-					// `pending` covers the render before the load starts, on the server and on a cold
-					// `src`. Without it, that render shows the empty state for one frame.
-					<output
-						data-slot="pdf-viewer-page-frame"
-						aria-label={intl.formatMessage(pdfViewerMessages.loading)}
-						className={k().viewport.page.placeholder}
-					/>
 				) : (
 					<div className={k().viewport.page.empty}>
 						{intl.formatMessage(pdfViewerMessages.noPages)}

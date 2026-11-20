@@ -579,6 +579,73 @@ describe('PdfViewer', () => {
 			)
 		})
 
+		// The frame is there while the document loads, so the cache has the width before the first
+		// raster lands. The sharp raster of the page then comes before its neighbor.
+		it('renders the sharp raster of the shown page before its neighbor', async () => {
+			const observers = stubResizeObserver()
+
+			const render = vi.fn((_index: number, _raster: string, factor = 1) => ({
+				promise: Promise.resolve({
+					width: 918 * factor,
+					height: 1188 * factor,
+					close: vi.fn(),
+				} as unknown as ImageBitmap),
+				cancel: () => {},
+			}))
+
+			let open = noop
+
+			const opened = new Promise<void>((resolve) => {
+				open = resolve
+			})
+
+			ensureDocumentLoad('/order.pdf', async (report) => {
+				await opened
+
+				report.open(
+					[1, 2].map((id) => ({ id, src: '', label: `Page ${id}`, width: 918, height: 1188 })),
+				)
+
+				report.serve(render)
+			})
+
+			const { container } = renderUI(<PdfViewer src="/order.pdf" defaultZoom={2} />)
+
+			const frame = present(
+				container.querySelector('div[data-slot="pdf-viewer-page-frame"]'),
+				'page frame',
+			)
+
+			expect(screen.getByLabelText('Loading PDF')).toBeInTheDocument()
+
+			const observer = observers.find(
+				(held) => held.targets.length === 1 && held.targets[0] === frame,
+			)
+
+			if (!observer) throw new Error('expected an observer of the page frame')
+
+			act(() => {
+				observer.callback(
+					[{ target: frame, contentRect: { width: 918 * 2, height: 1188 * 2 } } as never],
+					observer as never,
+				)
+			})
+
+			await act(async () => open())
+
+			await waitFor(() =>
+				expect(
+					render.mock.calls
+						.filter((call) => call[1] === 'full')
+						.map(([index, , factor = 1]) => [index, factor]),
+				).toEqual([
+					[0, 1],
+					[0, 2],
+					[1, 1],
+				]),
+			)
+		})
+
 		// The rail names the tiles it shows, and the queue renders their thumbnails. The jsdom
 		// observer reports every tile in view.
 		it('asks the queue for the thumbnails that the rail shows', async () => {

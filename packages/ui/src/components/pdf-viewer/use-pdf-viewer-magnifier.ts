@@ -541,10 +541,17 @@ export function usePdfViewerMagnifier(
 	 * browser decides at the touch start whether a listener can cancel the scroll, and one added
 	 * later cannot. The callback lists `enabled`, so a toggle of the loupe detaches the frame and
 	 * attaches it again, and a page with no loupe has no non-passive listener.
+	 *
+	 * The callback lists the `setReference` of floating-ui, which is stable, and not `refs`. The
+	 * `refs` object is new on each render, and a callback that listed it detached the frame and
+	 * attached it again on each render. The frame also gives the cache the width of the page,
+	 * and each detach withdrew that width.
 	 */
+	const { setReference: setFloatingReference } = refs
+
 	const setReference = useCallback(
 		(node: HTMLElement | null) => {
-			refs.setReference(node)
+			setFloatingReference(node)
 
 			if (!node || !enabled) return
 
@@ -573,10 +580,10 @@ export function usePdfViewerMagnifier(
 
 				node.removeEventListener('touchend', handleTouchEnd)
 
-				refs.setReference(null)
+				setFloatingReference(null)
 			}
 		},
-		[refs, enabled],
+		[setFloatingReference, enabled],
 	)
 
 	/*
