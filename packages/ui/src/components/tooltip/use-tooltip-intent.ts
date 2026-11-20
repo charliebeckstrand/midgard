@@ -33,17 +33,24 @@ type IntentOptions = { enabled: boolean; trigger: 'hover' | 'click' }
 const MOUSE_LIKE = new Set(['mouse', 'pen', ''])
 
 /**
+ * Whether a hover opens the tooltip, from the `pointerType` of the last pointer
+ * event on the trigger. A mouse or a pen opens it, and a touch does not. When
+ * no pointer event came, a mouse rests on a node that mounted under it.
+ * @internal
+ */
+export function hoverOpens(pointer: string | null): boolean {
+	return pointer === null || MOUSE_LIKE.has(pointer)
+}
+
+/**
  * Whether a trigger that turns enabled under the pointer opens its tooltip
  * again. Only a hover tooltip opens, and only for a mouse or pen. A touch
  * browser keeps `:hover` on the node that a tap hits, so the type of the last
- * pointer event decides, not `:hover`. When no pointer event came, a mouse
- * rests on a node that mounted under it.
+ * pointer event decides, not `:hover` ({@link hoverOpens}).
  * @internal
  */
 export function reopensOnEnable(options: IntentOptions, pointer: string | null): boolean {
-	return (
-		options.enabled && options.trigger === 'hover' && (pointer === null || MOUSE_LIKE.has(pointer))
-	)
+	return options.enabled && options.trigger === 'hover' && hoverOpens(pointer)
 }
 
 /**
