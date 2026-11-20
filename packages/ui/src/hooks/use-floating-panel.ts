@@ -25,6 +25,7 @@ import {
 	useSyncExternalStore,
 } from 'react'
 import { isCoveredByOverlay, subscribeOverlayLayers } from '../utilities/overlay-layers'
+import { isUnderStickyBar } from '../utilities/sticky-cover'
 
 /**
  * Explicit return shape for {@link useFloatingPanel}.
@@ -107,15 +108,39 @@ const autoAlignMiddleware: Middleware = {
 	},
 }
 
+/** The `hide` middleware of floating-ui, which reads the clip of each scroll container. */
+const clipHide = hide({ strategy: 'referenceHidden' })
+
 /**
  * Marks the panel when its reference is out of view: scrolled out of a scroll
- * container, or clipped by one. It goes last, so it reads the final position.
+ * container, clipped by one, or under a sticky bar (see `isUnderStickyBar`). It goes last, so it reads the final position.
  * {@link useFloatingPanel} reads `referenceHidden` and hides the panel, which
  * comes back when the reference does. The panel stays open and keeps its state.
  *
  * @internal
  */
-const hideMiddleware = hide({ strategy: 'referenceHidden' })
+const hideMiddleware: Middleware = {
+	name: clipHide.name,
+	async fn(state) {
+		const result = await clipHide.fn(state)
+
+		if (result.data?.referenceHidden) return result
+
+		const { reference } = state.elements
+
+		const anchor = reference instanceof Element ? reference : reference.contextElement
+
+		if (!anchor) return result
+
+		return {
+			...result,
+			data: {
+				...result.data,
+				referenceHidden: isUnderStickyBar(anchor, reference.getBoundingClientRect()),
+			},
+		}
+	},
+}
 
 /**
  * Keeps a panel on its reference while both are mounted: `autoUpdate` of
