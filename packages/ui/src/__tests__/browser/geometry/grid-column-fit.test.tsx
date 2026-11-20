@@ -717,18 +717,40 @@ describe('grid column fit when rows land in the frame of a resize tick (real bro
  * 1.5, and 2.
  */
 describe('grid column auto-sizing at device pixel ratio 2 (real browser)', () => {
-	beforeAll(() =>
+	// The page is shared with the files that run after this one, so the metrics
+	// must go back to the values that Playwright set. A clear of the override
+	// does not do this: it also removes the size of Playwright, and the page
+	// goes to the size of the headless window. Vitest does not set a size again
+	// when it is equal to the last size that it set, so each later file then
+	// runs at the wrong size. Thus the block reads the metrics of the page
+	// first, and it sets them again when it ends. A width and a height of 0 keep
+	// the size of the page. Each override also sets the screen, because an
+	// override with no screen size gives the screen of the headless window.
+	const top = window.top ?? window
+
+	const metrics = (deviceScaleFactor: number, screen: { width: number; height: number }) =>
 		cdp().send('Emulation.setDeviceMetricsOverride', {
 			width: 0,
 			height: 0,
-			deviceScaleFactor: 2,
+			deviceScaleFactor,
 			mobile: false,
-		}),
-	)
+			screenWidth: screen.width,
+			screenHeight: screen.height,
+		})
 
-	// The page is shared with the files that run after this one, so the ratio
-	// must go back to the value that Playwright set.
-	afterAll(() => cdp().send('Emulation.clearDeviceMetricsOverride'))
+	let restore: (() => Promise<unknown>) | undefined
+
+	beforeAll(async () => {
+		const ratio = top.devicePixelRatio
+
+		const screen = { width: top.screen.width, height: top.screen.height }
+
+		restore = () => metrics(ratio, screen)
+
+		await metrics(2, screen)
+	})
+
+	afterAll(() => restore?.())
 
 	type Row = { id: number; text: string[] }
 
