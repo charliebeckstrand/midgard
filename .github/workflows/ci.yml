@@ -161,9 +161,9 @@ jobs:
       - uses: actions/cache@v6
         with:
           path: node_modules/.vitest-cache
-          key: ${{ runner.os }}-vitest-cache-${{ matrix.shard }}-${{ steps.ui-deps.outputs.hash }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/vitest.base.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'vitest.shared.mts') }}-${{ github.sha }}
+          key: ${{ runner.os }}-vitest-cache-${{ matrix.shard }}-${{ steps.ui-deps.outputs.hash }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/vitest.base.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/src/__tests__/setup/split-sequencer.ts', 'vitest.shared.mts') }}-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-vitest-cache-${{ matrix.shard }}-${{ steps.ui-deps.outputs.hash }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/vitest.base.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'vitest.shared.mts') }}-
+            ${{ runner.os }}-vitest-cache-${{ matrix.shard }}-${{ steps.ui-deps.outputs.hash }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/vitest.base.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/src/__tests__/setup/split-sequencer.ts', 'vitest.shared.mts') }}-
       - run: pnpm turbo run test --filter=ui --summarize -- --shard=${{ matrix.shard }}/2 --coverage
       # The coverage of this shard, for the `coverage` job. A Turbo cache hit
       # restores the report too (`outputs` in packages/ui/turbo.json).
@@ -173,17 +173,48 @@ jobs:
           path: packages/ui/coverage/jsdom/coverage-final.json
           if-no-files-found: error
           retention-days: 1
-      # The other packages have few test files, and a shard of them can be
-      # empty. The first shard runs them whole, with `test:workspace` below,
-      # because its half of the ui suite is the shorter half. Vitest gives each
-      # file to a shard by the hash of its path, and most of the page smoke files
-      # of the docs (`page-smoke.tsx`) go to the second shard.
-      - if: matrix.shard == 1
-        run: pnpm turbo run test --filter='!ui' --summarize
       # The ui suites that read files outside ui, apart from `test` so that an
       # edit outside ui keeps the cache of the ui suite (packages/ui/turbo.json).
+      # One shard runs them whole.
       - if: matrix.shard == 1
         run: pnpm turbo run test:workspace --filter=ui --summarize
+      - name: Prune the Turbo cache to this run's tasks
+        run: .github/actions/turbo-cache/prune.sh
+
+  # The tests of the packages other than ui: the apps, `auth`, and `shared`. A
+  # job of its own, not a step in a shard of `test`. The sequencer of ui deals
+  # the long page smoke files to the two shards (`smokeFiles` in
+  # packages/ui/vitest.config.ts), so the shards take about the same time. A
+  # step after one half made that shard the longest job of the run.
+  test-outside-ui:
+    name: test (outside ui)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+      - uses: ./.github/actions/turbo-cache
+        with:
+          name: test-outside-ui
+      # The disk module cache of Vitest, as in `test`, for the configs of these
+      # packages. The first hash joins the hashes of the packages that each
+      # task resolves, for the reasons that `test` gives. The second hash
+      # holds the configs and the one file that they import.
+      - id: deps
+        run: |
+          hash=$(pnpm turbo run test --filter='!ui' --dry=json \
+            | jq -er '[.tasks[] | select(.taskId | endswith("#test")) | .hashOfExternalDependencies] | if length > 0 then sort | join("") else error("no test task") end' \
+            | sha256sum | cut -c1-16)
+          echo "hash=$hash" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v6
+        with:
+          path: node_modules/.vitest-cache
+          key: ${{ runner.os }}-vitest-apps-cache-${{ steps.deps.outputs.hash }}-${{ hashFiles('apps/*/vitest.config.ts', 'packages/auth/vitest.config.ts', 'packages/shared/vitest.config.ts', 'vitest.shared.mts') }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-vitest-apps-cache-${{ steps.deps.outputs.hash }}-${{ hashFiles('apps/*/vitest.config.ts', 'packages/auth/vitest.config.ts', 'packages/shared/vitest.config.ts', 'vitest.shared.mts') }}-
+      - run: pnpm turbo run test --filter='!ui' --summarize
       - name: Prune the Turbo cache to this run's tasks
         run: .github/actions/turbo-cache/prune.sh
 
@@ -487,7 +518,7 @@ jobs:
   # Add each new job to `needs`. The job runs when a needed job fails, and then
   # it fails. A needed job that fails, is cancelled, or is skipped makes it fail.
   ci-ok:
-    needs: [gate, build, test, browser, coverage, coverage-upload, bench, playwright-version, density, docs, compiler]
+    needs: [gate, build, test, test-outside-ui, browser, coverage, coverage-upload, bench, playwright-version, density, docs, compiler]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
