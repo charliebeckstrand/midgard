@@ -4,6 +4,7 @@ import { Button } from '../../../components/button'
 import { Popover, PopoverContent, PopoverTrigger } from '../../../components/popover'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
 import { frames, renderUI, screen, waitFor } from '../../helpers'
+import { pause } from '../helpers/wall-clock'
 
 /**
  * A surface that opens hides an open tooltip with the overlay signal. When that
@@ -120,8 +121,8 @@ describe('a tooltip that a surface hid (real browser)', () => {
 
 		await screen.findByRole('dialog')
 
-		// A timer that starts after the hover timer and runs longer fires after it.
-		await new Promise((resolve) => setTimeout(resolve, 100))
+		// The hold starts after the hover timer, so it ends after that timer.
+		await pause(50)
 
 		expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
 
