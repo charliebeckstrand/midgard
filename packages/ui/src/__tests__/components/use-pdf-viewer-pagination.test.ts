@@ -14,6 +14,16 @@ describe('usePdfViewerPagination', () => {
 		expect(result.current.safePage).toBe(expected)
 	})
 
+	it.each<[string, Parameters<typeof usePdfViewerPagination>[0], number]>([
+		['is the asked page while total is 0', { total: 0, defaultPage: 3 }, 3],
+		['is the controlled page while total is 0', { total: 0, page: 7, defaultPage: 1 }, 7],
+		['is safePage once there are pages', { total: 4, page: 7, defaultPage: 1 }, 4],
+	])('targetPage %s', (_name, options, expected) => {
+		const { result } = renderHook(() => usePdfViewerPagination(options))
+
+		expect(result.current.targetPage).toBe(expected)
+	})
+
 	it.each([
 		['rounds and clamps the incoming value', 3.7, 4],
 		['clamps past the upper bound', 50, 10],

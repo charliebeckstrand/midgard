@@ -265,6 +265,28 @@ describe('PdfViewer', () => {
 	})
 
 	/*
+	 * A narrow bar scrolls. A page navigation that arrived with the document pushed the zoom
+	 * and the actions after it along the bar. The server paint has the navigation, with the page
+	 * that the viewer asks for and a skeleton of one digit in place of the count.
+	 */
+	it('paints the page navigation with the asked page before a src load starts', () => {
+		const markup = serverMarkup(<PdfViewer src="/cold.pdf" defaultPage={3} />)
+
+		const navigation = markup.querySelector('[aria-label="Page navigation"]')
+
+		expect(navigation).not.toBeNull()
+
+		expect(navigation?.querySelector('[aria-label="Current page"]')).toHaveTextContent('3')
+
+		const total = getSlot(markup, 'pdf-viewer-page-total')
+
+		expect(total.querySelector('[data-slot="placeholder"]')).not.toBeNull()
+
+		// The skeleton holds a digit that does not show, and no count.
+		expect(total.querySelector('[aria-hidden="true"]:not([data-slot="placeholder"])')).toBeNull()
+	})
+
+	/*
 	 * The server reads `thumbnails` at the widest breakpoint, so it renders the rail at each
 	 * width. The classes of the default layout show the rail and its glyph from `lg` only, and
 	 * the Sheet glyph below it, so a phone paints no rail before the hydration.

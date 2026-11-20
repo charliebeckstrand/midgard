@@ -154,6 +154,11 @@ export type PdfViewerResult = {
 	activePage: PdfViewerSlot | undefined
 	/** Current page clamped to `[1, total]`, or `0` when empty. */
 	safePage: number
+	/**
+	 * The page that the viewer shows. Before the document opens, the page count is unknown, and
+	 * this is the page that the viewer asks for. The toolbar shows it from the first paint.
+	 */
+	targetPage: number
 	goToPage: (page: number) => void
 	zoom: PdfViewerZoom
 	rotate: () => void
@@ -479,7 +484,7 @@ export function usePdfViewer({
 
 	const total = pages.length
 
-	const { safePage, goToPage } = usePdfViewerPagination({
+	const { safePage, targetPage, goToPage } = usePdfViewerPagination({
 		total,
 		page,
 		defaultPage,
@@ -586,11 +591,11 @@ export function usePdfViewer({
 		fit,
 	})
 
-	// Before the document opens, `safePage` is 0, so the page that the viewer will show is the
-	// one it asks for. The cache clamps it to the page count.
+	// Before the document opens, the target page is the one the viewer asks for. The cache
+	// clamps it to the page count.
 	const showThumbnails = usePdfViewerDocumentFocus(
 		shouldLoadFromSrc ? src : undefined,
-		safePage || (page ?? defaultPage),
+		targetPage,
 		scale.imageWidth,
 	)
 
@@ -609,6 +614,7 @@ export function usePdfViewer({
 			total,
 			activePage,
 			safePage,
+			targetPage,
 			goToPage,
 			zoom,
 			rotate,
@@ -651,6 +657,7 @@ export function usePdfViewer({
 			total,
 			activePage,
 			safePage,
+			targetPage,
 			goToPage,
 			zoom,
 			rotate,
