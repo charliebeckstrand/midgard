@@ -232,7 +232,7 @@ describe('PdfViewer', () => {
 	it('renders an empty state when there are no pages', () => {
 		const { container } = renderUI(<PdfViewer pages={[]} />)
 
-		expect(bySlot(container, 'pdf-viewer-viewport')).toHaveTextContent('No pages to display')
+		expect(bySlot(container, 'pdf-viewer-pane')).toHaveTextContent('No pages to display')
 	})
 
 	/*

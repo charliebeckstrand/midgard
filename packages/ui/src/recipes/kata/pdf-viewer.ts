@@ -293,16 +293,20 @@ export const k = defineKata({
 			fit: { page: '', width: 'scrollbar-gutter-stable' },
 			slots: {
 				/**
-				 * The box of the viewport. A size container that does not scroll, so the container
-				 * units that fit the page ignore the scrollbars of the scroll box inside it.
+				 * The box of the viewport. With a page frame, it is a size container that does not
+				 * scroll, so the container units that fit the page ignore the scrollbars of the scroll
+				 * box inside it. With a message and no frame, it grows to the height of the message.
 				 */
-				pane: [
-					'relative @container-size',
-					'flex-1 min-w-0',
-					'max-h-[1280px]',
-					'box-content p-4',
-					...mode('bg-zinc-100', 'dark:bg-zinc-900'),
-				],
+				pane: {
+					base: [
+						'relative',
+						'flex-1 min-w-0',
+						'max-h-[1280px]',
+						'box-content p-4',
+						...mode('bg-zinc-100', 'dark:bg-zinc-900'),
+					],
+					framed: { true: '@container-size', false: '' },
+				},
 				page: {
 					base: [centered, 'shadow-lg', 'bg-white'],
 					slots: {
