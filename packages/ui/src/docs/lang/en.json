@@ -2565,7 +2565,7 @@
 	},
 	"docs.demo.5f2c8067cc3f": {
 		"defaultMessage": "New version available",
-		"description": "Text of a demo in the docs as title, in components/banner/closable.tsx, components/banner/index.tsx, components/banner/with-actions.tsx."
+		"description": "Text of a demo in the docs as title, in components/banner/closable.tsx, components/banner/playground.tsx, components/banner/with-actions.tsx."
 	},
 	"docs.demo.606124ade426": {
 		"defaultMessage": "Not called",
@@ -7145,7 +7145,7 @@
 	},
 	"docs.prop.title": {
 		"defaultMessage": "Title",
-		"description": "The label of a field of a playground in the docs. The field sets the prop title of Alert, Banner."
+		"description": "The label of a field of a playground in the docs. The field sets the prop title of Alert."
 	},
 	"docs.prop.tone": {
 		"defaultMessage": "Tone",
