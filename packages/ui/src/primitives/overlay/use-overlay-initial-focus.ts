@@ -3,43 +3,7 @@
 import { getTabbableOptions } from '@floating-ui/react/utils'
 import { type RefObject, useLayoutEffect } from 'react'
 import { tabbable } from 'tabbable'
-
-/** The last input on the page: the pointer type of a press, or `keyboard`. */
-let lastInput: string | null = null
-
-function recordPress(event: PointerEvent) {
-	lastInput = event.pointerType
-}
-
-function recordKey() {
-	lastInput = 'keyboard'
-}
-
-/**
- * Records the last input on the page. The press that opens an overlay comes
- * before the overlay mounts, so the listeners attach once, when the module
- * loads, and stay for the life of the page. They listen in the capture phase,
- * so a handler that stops the event does not hide it.
- */
-function watchInput() {
-	if (typeof window === 'undefined') return
-
-	window.addEventListener('pointerdown', recordPress, { capture: true, passive: true })
-
-	window.addEventListener('keydown', recordKey, { capture: true, passive: true })
-}
-
-watchInput()
-
-/**
- * Test-only: forgets the last input, so the next case starts as a page with no
- * input since the module loaded.
- *
- * @internal
- */
-export function __resetLastInput(): void {
-	lastInput = null
-}
+import { lastInput } from '../../utilities/last-input'
 
 /** The dialog of the overlay: its first element with the role of a dialog. */
 function findDialog(floating: HTMLElement): HTMLElement | null {
@@ -93,7 +57,7 @@ export function useOverlayInitialFocus(
 
 		// Whether a touch opened the overlay. Read at the open, so a later input
 		// does not change the target.
-		const touch = lastInput === 'touch'
+		const touch = lastInput() === 'touch'
 
 		let cancelled = false
 

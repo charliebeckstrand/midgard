@@ -20,7 +20,9 @@ export type TooltipProps = {
 	 */
 	placement?: FloatingPlacement
 	/**
-	 * What opens the tooltip. Keyboard focus opens it with each value.
+	 * What opens the tooltip. Keyboard focus opens it with each value. A focus
+	 * after a touch press does not, such as the focus that a closed dialog gives
+	 * back to its trigger.
 	 *
 	 * - `'hover'`: a mouse or pen hover. A tap does not open it, so a touch
 	 *   screen shows no tooltip.
@@ -98,8 +100,9 @@ const serverModule = () => null
  * `delay` with its `<TooltipTrigger>` and `<TooltipContent>` via context.
  *
  * @remarks Opens on hover or on click, as `trigger` selects, and on keyboard
- * focus. A tap does not open a hover tooltip; a tooltip that must show on a
- * touch screen takes `trigger="click"`. Stays
+ * focus. A tap does not open a hover tooltip, and a focus after a touch press
+ * opens no tooltip; a tooltip that must show on a touch screen takes
+ * `trigger="click"`. Stays
  * suppressed while the trigger is `:disabled` (own attribute, ancestor
  * `<fieldset disabled>`, or a disabled descendant) and dismisses on the shared
  * overlay-close signal. The panel takes `role="tooltip"`, and `<TooltipTrigger>`

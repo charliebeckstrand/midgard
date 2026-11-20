@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { isComposing } from '../../utilities/is-composing'
+import { lastInput } from '../../utilities/last-input'
 import { tooltipBody } from './tooltip-body-loader'
 import { isReferenceDisabled, observeReferenceDisabled } from './tooltip-reference-disabled'
 
@@ -94,44 +95,33 @@ function isMacSafari(): boolean {
 	)
 }
 
-/** Whether the last input on a Mac Safari page was a key press, not a pointer press. */
-let keyboardModality = true
-
-let modalityTracked = false
-
-function trackModality(): void {
-	if (modalityTracked || !isMacSafari()) return
-
-	modalityTracked = true
-
-	window.addEventListener(
-		'keydown',
-		() => {
-			keyboardModality = true
-		},
-		true,
-	)
-
-	window.addEventListener(
-		'pointerdown',
-		() => {
-			keyboardModality = false
-		},
-		true,
-	)
+/**
+ * Whether the last input on the page was a touch press. A focus then does not
+ * open a tooltip, because a touch screen shows no tooltip for a tap. The
+ * `:focus-visible` gate does not stop it: WebKit on iOS gives a tapped button
+ * no focus, so it matches `:focus-visible` on a focus that a script gives, such
+ * as the return of focus to the trigger of a dialog that closes.
+ * @internal
+ */
+export function lastInputWasTouch(): boolean {
+	return lastInput() === 'touch'
 }
 
 /**
  * Whether a focus opens the tooltip. The gate is the `visibleOnly` gate of
  * `useFocus`: a keyboard focus opens it, and the focus that a tap or a click
- * gives a button does not.
+ * gives a button does not. A focus after a touch press does not open it either
+ * ({@link lastInputWasTouch}).
  */
 function focusOpens(event: FocusEvent): boolean {
+	if (lastInputWasTouch()) return false
+
 	const target = event.target
 
 	if (!(target instanceof Element)) return true
 
-	if (isMacSafari() && !event.relatedTarget) return keyboardModality || target.matches(TYPEABLE)
+	if (isMacSafari() && !event.relatedTarget)
+		return lastInput() === null || lastInput() === 'keyboard' || target.matches(TYPEABLE)
 
 	try {
 		return target.matches(':focus-visible')
@@ -263,8 +253,6 @@ function listenForIntent(
 
 		disabled = next
 	})
-
-	trackModality()
 
 	const listening = new AbortController()
 

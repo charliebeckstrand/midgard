@@ -268,9 +268,9 @@ describe('a name that stands over another region (real browser)', () => {
 
 		const { x, y } = coveredPoint(panel.getBoundingClientRect(), above.getBoundingClientRect())
 
-		fireEvent.mouseOver(above, { clientX: x, clientY: y })
+		fireEvent.pointerOver(above, { clientX: x, clientY: y })
 
-		fireEvent.mouseMove(above, { clientX: x, clientY: y })
+		fireEvent.pointerMove(above, { clientX: x, clientY: y })
 
 		await waitFor(() => expect(getComputedStyle(panel).opacity).toBe('0.25'))
 
@@ -299,9 +299,9 @@ describe('a name that stands over another region (real browser)', () => {
 
 		await waitFor(() => expect(getComputedStyle(panel).opacity).toBe('1'))
 
-		fireEvent.mouseOver(above, { clientX: covered.x, clientY: covered.y })
+		fireEvent.pointerOver(above, { clientX: covered.x, clientY: covered.y })
 
-		fireEvent.mouseMove(above, { clientX: covered.x, clientY: covered.y })
+		fireEvent.pointerMove(above, { clientX: covered.x, clientY: covered.y })
 
 		await waitFor(() => expect(getComputedStyle(panel).opacity).toBe('0.25'))
 
@@ -309,7 +309,7 @@ describe('a name that stands over another region (real browser)', () => {
 		// there, so it is solid again.
 		const box = above.getBoundingClientRect()
 
-		fireEvent.mouseMove(above, { clientX: box.left + 2, clientY: box.top + 2 })
+		fireEvent.pointerMove(above, { clientX: box.left + 2, clientY: box.top + 2 })
 
 		await waitFor(() => expect(getComputedStyle(panel).opacity).toBe('1'))
 	})
@@ -388,11 +388,11 @@ describe('the name of a hovered region (real browser)', () => {
 	it('names the region again after the page turns away and back', async () => {
 		const { container } = renderUI(<Viewer invoice="Invoice number" />)
 
-		fireEvent.mouseOver(await screen.findByLabelText('Invoice number'))
+		fireEvent.pointerOver(await screen.findByLabelText('Invoice number'))
 
 		await waitFor(() => expect(label()).toHaveTextContent('Invoice number'))
 
-		fireEvent.mouseLeave(present(bySlot(container, 'pdf-viewer-highlights'), 'the layer'))
+		fireEvent.pointerLeave(present(bySlot(container, 'pdf-viewer-highlights'), 'the layer'))
 
 		await turnTo('Page 2')
 
@@ -402,7 +402,7 @@ describe('the name of a hovered region (real browser)', () => {
 
 		const region = await screen.findByLabelText('Invoice number')
 
-		fireEvent.mouseOver(region)
+		fireEvent.pointerOver(region)
 
 		await waitFor(() => expect(label()).toHaveTextContent('Invoice number'))
 
@@ -422,7 +422,7 @@ describe('the name of a hovered region (real browser)', () => {
 	it('shows the new name when the consumer renames the region while its preview is open', async () => {
 		const { rerender } = renderUI(<Viewer invoice="Invoice number" />)
 
-		fireEvent.mouseOver(await screen.findByLabelText('Invoice number'))
+		fireEvent.pointerOver(await screen.findByLabelText('Invoice number'))
 
 		await waitFor(() => expect(label()).toHaveTextContent('Invoice number'))
 

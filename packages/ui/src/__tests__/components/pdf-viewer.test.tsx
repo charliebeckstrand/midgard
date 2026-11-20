@@ -1253,12 +1253,26 @@ describe('PdfViewer highlights', () => {
 
 		renderHighlights({ onActiveHighlightIdChange })
 
-		fireEvent.mouseOver(screen.getByLabelText('Total charges'))
+		fireEvent.pointerOver(screen.getByLabelText('Total charges'))
 
 		expect(highlightLabel()).toHaveTextContent('Total charges')
 
 		// Named, not chosen: nothing about the selection moved.
 		expect(onActiveHighlightIdChange).not.toHaveBeenCalled()
+	})
+
+	/*
+	 * A tap sends `mouseover` after it ends, and nothing takes the name down until the next
+	 * tap lands elsewhere. A touch screen shows no hover name, as it shows no hover tooltip.
+	 */
+	it('names no region for a touch', () => {
+		renderHighlights()
+
+		fireEvent.pointerOver(screen.getByLabelText('Total charges'), { pointerType: 'touch' })
+
+		fireEvent.mouseOver(screen.getByLabelText('Total charges'))
+
+		expect(highlightLabels()).toEqual([])
 	})
 
 	/** Every name on the page right now, in the order they were drawn. */
@@ -1276,11 +1290,11 @@ describe('PdfViewer highlights', () => {
 
 		fireEvent.mouseDown(screen.getByLabelText('Total charges'))
 
-		fireEvent.mouseOver(screen.getByLabelText('Invoice number'))
+		fireEvent.pointerOver(screen.getByLabelText('Invoice number'))
 
 		expect(highlightLabels()).toEqual(['Total charges', 'Invoice number'])
 
-		fireEvent.mouseLeave(getSlot(container, 'pdf-viewer-highlights'))
+		fireEvent.pointerLeave(getSlot(container, 'pdf-viewer-highlights'))
 
 		// The preview withdraws; the one the reader came here for does not.
 		expect(highlightLabels()).toEqual(['Total charges'])
@@ -1295,7 +1309,7 @@ describe('PdfViewer highlights', () => {
 
 		fireEvent.mouseDown(screen.getByLabelText('Total charges'))
 
-		fireEvent.mouseOver(screen.getByLabelText('Total charges'))
+		fireEvent.pointerOver(screen.getByLabelText('Total charges'))
 
 		expect(highlightLabels()).toEqual(['Total charges'])
 	})
@@ -1321,7 +1335,7 @@ describe('PdfViewer highlights', () => {
 
 		fireEvent.mouseDown(screen.getByLabelText('Total charges'))
 
-		fireEvent.mouseOver(screen.getByLabelText('Invoice number'))
+		fireEvent.pointerOver(screen.getByLabelText('Invoice number'))
 
 		// Both names up, which is what makes the pair below a pair.
 		expect(highlightLabels()).toEqual(['Total charges', 'Invoice number'])
@@ -1338,7 +1352,7 @@ describe('PdfViewer highlights', () => {
 
 		expect(panel(preview)?.style.pointerEvents).toBe('none')
 
-		fireEvent.mouseOver(persisted)
+		fireEvent.pointerOver(persisted)
 
 		expect(highlightLabels()).toEqual(['Total charges'])
 	})

@@ -122,3 +122,66 @@ describe('useTooltipIntent', () => {
 		expect(result.current.started).toBe(true)
 	})
 })
+
+function press(pointerType: string): void {
+	document.body.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, pointerType }))
+}
+
+/** A trigger that records its intent, focused once. @returns The recorded focus. */
+function focusAfter(node: HTMLElement, input: () => void) {
+	const { result } = renderHook(() => useTooltipIntent({ enabled: true, trigger: 'hover' }))
+
+	result.current.setReference(node)
+
+	input()
+
+	focus(node)
+
+	return result.current.takeIntent().focus
+}
+
+/** A focus after a touch press does not open the tooltip, though it matches `:focus-visible`. */
+describe('useTooltipIntent after a touch press', () => {
+	it('records no focus after a touch press', () => {
+		expect(focusAfter(keyboardTrigger(), () => press('touch'))).toBeNull()
+	})
+
+	it('records the focus after a key press that follows the touch', () => {
+		const focused = focusAfter(keyboardTrigger(), () => {
+			press('touch')
+
+			document.body.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'Tab' }))
+		})
+
+		expect(focused).not.toBeNull()
+	})
+})
+
+/** Safari on a Mac does not match `:focus-visible` for a focus from outside the document, so the gate reads the last input. */
+describe('useTooltipIntent in Safari on a Mac', () => {
+	function macSafari(): void {
+		vi.spyOn(navigator, 'platform', 'get').mockReturnValue('MacIntel')
+
+		vi.spyOn(navigator, 'vendor', 'get').mockReturnValue('Apple Computer, Inc.')
+	}
+
+	it('records a focus before any input, and after a key press', () => {
+		macSafari()
+
+		expect(focusAfter(attach(document.createElement('button')), () => {})).not.toBeNull()
+
+		expect(
+			focusAfter(attach(document.createElement('button')), () =>
+				document.body.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'Tab' })),
+			),
+		).not.toBeNull()
+	})
+
+	it('records no focus on a button after a mouse press, and a focus on a field', () => {
+		macSafari()
+
+		expect(focusAfter(attach(document.createElement('button')), () => press('mouse'))).toBeNull()
+
+		expect(focusAfter(attach(document.createElement('input')), () => press('mouse'))).not.toBeNull()
+	})
+})
