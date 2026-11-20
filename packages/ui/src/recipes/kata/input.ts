@@ -14,6 +14,6 @@ export const k = defineKata({ extends: input })
  * The frame sets `affixed` from its affixes, so it is not a prop.
  */
 export type InputVariants = Omit<VariantProps<typeof k>, 'variant' | 'affixed'> & {
-	/** The surface of the control: `default` fills it, `outline` draws a border with no fill, and `bare` draws neither. @defaultValue 'default' */
+	/** The surface of the control: `default` fills it, `outline` draws a border with no fill, `soft` fills it with a translucent wash and no border, and `bare` draws neither. @defaultValue 'default' */
 	variant?: VariantProps<typeof k>['variant']
 }

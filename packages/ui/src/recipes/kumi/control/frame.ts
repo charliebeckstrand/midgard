@@ -10,7 +10,7 @@
 import { dan, kasane, narabi } from '../../kiso'
 import { radius } from './density'
 
-const { layers } = kasane
+const { layers, softLayers } = kasane
 const { flex } = narabi
 
 /**
@@ -30,3 +30,6 @@ export const frame = ['relative', 'group/control', flex.row, 'w-full']
  * `bare` draws it (`./index.ts`).
  */
 export const chrome = [...layers, ...frameRadius]
+
+/** The chrome of a `soft` frame: the soft stack and the radius. */
+export const softChrome = [...softLayers, ...frameRadius]

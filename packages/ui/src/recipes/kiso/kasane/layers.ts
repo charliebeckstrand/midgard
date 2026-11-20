@@ -100,6 +100,14 @@ const disabled = [
 	'has-[>:disabled]:**:cursor-not-allowed',
 ]
 
+/**
+ * The fill of a soft control: a translucent wash in place of the base ring, as
+ * a soft Button has. The wash reads on any surface, a glass panel included,
+ * because it tints what is behind it. Hover deepens it, and it skips a
+ * disabled control, like `hover`.
+ */
+const wash = ['bg-zinc-500/15', 'not-has-[>:disabled]:hover:bg-zinc-500/30']
+
 /** The whole stack: each part in the correct spread order for a `className`. */
 export const layers = [
 	...base,
@@ -110,3 +118,9 @@ export const layers = [
 	...validation,
 	...disabled,
 ]
+
+/**
+ * The stack of a soft control: the wash in place of the base ring, the inset
+ * fill, and the hover ring. The focus, validation, and disabled states stay.
+ */
+export const softLayers = [...overlay, ...wash, ...focus, ...validation, ...disabled]

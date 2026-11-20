@@ -28,7 +28,8 @@ export type InputProps = Omit<InputVariants, 'size' | 'variant'> & {
 	size?: ScaleStep<typeof scale>
 	/**
 	 * The surface of the control: `default` fills it, `outline` draws a border
-	 * with no fill, and `bare` draws neither ({@link ControlVariant}). When the
+	 * with no fill, `soft` fills it with a translucent wash and no border, and
+	 * `bare` draws neither ({@link ControlVariant}). When the
 	 * prop is unset, the input takes the variant of the enclosing Control.
 	 * Without one, it takes the glass surface in a GlassProvider.
 	 * @defaultValue 'default'

@@ -5,18 +5,21 @@
  *
  * `layers` is the stack of a framed control, as one list: the base ring, the
  * inset fill, the overlay, and the hover, focus, validation, and disabled
- * states. `rounded` holds the classes of the named radius scale of Tailwind,
- * from `none` to `full`, so `rounded.lg` is `rounded-lg`.
+ * states. `softLayers` is the stack of a soft control, with a wash in place of
+ * the base ring and the inset fill. `rounded` holds the classes of the named
+ * radius scale of Tailwind, from `none` to `full`, so `rounded.lg` is
+ * `rounded-lg`.
  *
  * A radius that follows density is a stepped `density-rounded-*` class, and
  * its inset fill is a stepped `density-rounded-ring-*` class after `before:`,
  * as `dan.radius` writes them.
  */
 
-import { layers } from './layers'
+import { layers, softLayers } from './layers'
 import { rounded } from './rounded'
 
 export const kasane = {
 	layers,
+	softLayers,
 	rounded,
 } as const
