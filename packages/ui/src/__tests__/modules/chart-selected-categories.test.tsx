@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { AreaChart, BarChart, ComboChart, LineChart } from '../../modules/chart'
 import { renderUI } from '../helpers'
 
@@ -64,13 +64,7 @@ const CHARTS: [string, ReactElement][] = [
 
 describe('selectedCategories', () => {
 	it.each(CHARTS)('stays off the DOM in %s', (_, element) => {
-		const error = vi.spyOn(console, 'error').mockImplementation(() => {})
-
 		const { container } = renderUI(element)
-
-		const leaks = error.mock.calls.filter((call) => call.join(' ').includes('selectedCategories'))
-
-		expect(leaks).toEqual([])
 
 		expect(container.querySelector('[selectedcategories]')).toBeNull()
 	})

@@ -201,8 +201,8 @@ describe('CheckboxField aria-describedby', () => {
 
 describe('Checkbox defaultChecked under a binding', () => {
 	it('drops defaultChecked from a bound checkbox', () => {
-		const error = vi.spyOn(console, 'error').mockImplementation(() => {})
-
+		// React warns of a checkbox with both checked and defaultChecked, and the
+		// console guard fails the test on that warning.
 		const { container } = renderUI(
 			<Form defaultValues={{ terms: false }}>
 				<Checkbox name="terms" defaultChecked />
@@ -214,12 +214,6 @@ describe('Checkbox defaultChecked under a binding', () => {
 		expect(input.checked).toBe(false)
 
 		expect(input.defaultChecked).toBe(false)
-
-		const warned = error.mock.calls.some(([message]) =>
-			String(message).includes('both checked and defaultChecked'),
-		)
-
-		expect(warned).toBe(false)
 	})
 
 	it('keeps defaultChecked on an unbound checkbox', () => {
