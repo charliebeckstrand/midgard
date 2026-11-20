@@ -1,6 +1,8 @@
-import { describe, expect, it, onTestFinished, vi } from 'vitest'
+import { describe, expect, onTestFinished, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { act, expectAnnouncement, fireEvent, gridCells, renderUI, screen } from '../helpers'
+import { GRID_RANGE_ANNOUNCE_MS } from '../../modules/grid/engine/grid-constants'
+import { act, FIRST_WRITE_MS, fireEvent, gridCells, liveRegion, renderUI, screen } from '../helpers'
+import { type FakeClock, it } from '../helpers/fake-clock'
 
 type Row = { id: number; name: string; role: string; note: string }
 
@@ -42,6 +44,16 @@ function copy(): string | undefined {
 	fireEvent.copy(document.body, { clipboardData: { setData } })
 
 	return setData.mock.calls[0]?.[1]
+}
+
+/**
+ * Moves the clock past the settle window of the range, and then past the first
+ * write of the announcer (`FIRST_WRITE_MS`).
+ */
+async function settleAnnouncement(clock: FakeClock): Promise<void> {
+	await clock.advance(GRID_RANGE_ANNOUNCE_MS)
+
+	await clock.advance(FIRST_WRITE_MS)
 }
 
 function renderRangeGrid(props: { range?: boolean; rows?: Row[] } = {}) {
@@ -252,7 +264,7 @@ describe('Grid range', () => {
 		expect(copy()).toBeUndefined()
 	})
 
-	it('speaks the size and the corners of the range once it stops changing', async () => {
+	it('speaks the size and the corners of the range once it stops changing', async ({ clock }) => {
 		const { grid } = renderRangeGrid()
 
 		fireEvent.mouseDown(cell(0, 0))
@@ -264,10 +276,14 @@ describe('Grid range', () => {
 		fireEvent.keyDown(grid, { key: 'ArrowRight', shiftKey: true })
 
 		// The header is row 1, so the rows count as a screen reader counts them.
-		await expectAnnouncement('Range of 3 rows and 2 columns, Name row 2 to Role row 4')
+		await settleAnnouncement(clock)
+
+		expect(liveRegion()).toHaveTextContent(
+			'Range of 3 rows and 2 columns, Name row 2 to Role row 4',
+		)
 	})
 
-	it('speaks the row numbers of the page in the full set', async () => {
+	it('speaks the row numbers of the page in the full set', async ({ clock }) => {
 		renderUI(
 			<Grid
 				columns={columns}
@@ -287,7 +303,9 @@ describe('Grid range', () => {
 
 		expect(cell(0, 0).closest('tr')).toHaveAttribute('aria-rowindex', '4')
 
-		await expectAnnouncement('Range of 1 row and 2 columns, Name row 4 to Role row 4')
+		await settleAnnouncement(clock)
+
+		expect(liveRegion()).toHaveTextContent('Range of 1 row and 2 columns, Name row 4 to Role row 4')
 	})
 })
 
@@ -334,7 +352,7 @@ describe('Grid range over grouped rows', () => {
 		expect(copy()).toBe('10\n30\n20')
 	})
 
-	it('speaks the row numbers with the group headers counted', async () => {
+	it('speaks the row numbers with the group headers counted', async ({ clock }) => {
 		renderUI(
 			<Grid
 				columns={saleColumns}
@@ -358,7 +376,11 @@ describe('Grid range over grouped rows', () => {
 
 		expect([rowIndex('10 units'), rowIndex('20 units')]).toEqual(['3', '6'])
 
-		await expectAnnouncement('Range of 3 rows and 1 column, Units row 3 to Units row 6')
+		await settleAnnouncement(clock)
+
+		expect(liveRegion()).toHaveTextContent(
+			'Range of 3 rows and 1 column, Units row 3 to Units row 6',
+		)
 	})
 })
 

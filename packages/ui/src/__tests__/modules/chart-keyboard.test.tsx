@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, vi } from 'vitest'
 import { AreaChart } from '../../modules/chart/area-chart'
 import { BarChart } from '../../modules/chart/bar-chart'
 import { DonutChart } from '../../modules/chart/donut-chart'
@@ -20,13 +20,14 @@ import {
 	allBySlot,
 	bySlot,
 	expectAnnouncement,
+	FIRST_WRITE_MS,
 	fireEvent,
-	flushAnnouncer,
 	getSlot,
 	liveRegion,
 	renderUI,
 	waitFor,
 } from '../helpers'
+import { it, onFakeClock } from '../helpers/fake-clock'
 import { KEY } from '../helpers/press'
 import { sizeHitLayer } from '../helpers/size-hit-layer'
 
@@ -833,6 +834,9 @@ const WEEKS = [
 ]
 
 describe('LineChart keyboard announcements', () => {
+	// The first text of a new region waits for a frame and a delay.
+	onFakeClock()
+
 	it('speaks the readout of each point that an arrow key moves the cursor onto', async () => {
 		const { container } = renderUI(line())
 
@@ -855,7 +859,7 @@ describe('LineChart keyboard announcements', () => {
 		expect(liveRegion()).toHaveAttribute('aria-atomic', 'true')
 	})
 
-	it('speaks nothing for a pointer hover', async () => {
+	it('speaks nothing for a pointer hover', async ({ clock }) => {
 		const { container } = renderUI(line({ crosshair: { x: false, y: true, snap: true } }))
 
 		const hit = getSlot(container, 'chart-hit')
@@ -866,16 +870,19 @@ describe('LineChart keyboard announcements', () => {
 
 		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('W3')
 
-		// Wait past the announcer's first write before the check.
+		// The check waits past the first write of the announcer (`FIRST_WRITE_MS`).
 		await act(async () => {})
 
-		await flushAnnouncer()
+		await clock.advance(FIRST_WRITE_MS)
 
 		expect(liveRegion()?.textContent ?? '').toBe('')
 	})
 })
 
 describe('LineChart keyboard announcements on a reference line', () => {
+	// The first text of a new region waits for a frame and a delay.
+	onFakeClock()
+
 	it('speaks the label and the value of a rule that a key moves the cursor onto', async () => {
 		const { container } = renderUI(line({ reference: [{ value: 50, label: 'Target' }] }))
 
@@ -1162,7 +1169,7 @@ describe('chart keyboard activation', () => {
 		expect(onCellClick).toHaveBeenCalledWith({ x: '10', y: 'Mon' }, [0, 1], KEY)
 	})
 
-	it('keeps the tab stop and fires the click with the tooltip off', async () => {
+	it('keeps the tab stop and fires the click with the tooltip off', async ({ clock }) => {
 		const onCategoryClick = vi.fn()
 
 		const onCellClick = vi.fn()
@@ -1205,7 +1212,10 @@ describe('chart keyboard activation', () => {
 		fireEvent.keyDown(piePlot, { key: 'ArrowRight' })
 
 		// The tooltip is off, so the live region alone names the slice under the cursor.
-		await expectAnnouncement(/South/)
+		// Its first text lands after `FIRST_WRITE_MS`.
+		await clock.advance(FIRST_WRITE_MS)
+
+		expect(liveRegion()).toHaveTextContent(/South/)
 
 		fireEvent.keyDown(piePlot, { key: 'Enter' })
 
