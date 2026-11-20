@@ -183,9 +183,9 @@ jobs:
 
   # The tests of the packages other than ui: the apps, `auth`, and `shared`. A
   # job of its own, not a step in a shard of `test`. The sequencer of ui deals
-  # the long page smoke files to the two shards (`smokeFiles` in
-  # packages/ui/vitest.config.ts), so the shards take about the same time. A
-  # step after one half made that shard the longest job of the run.
+  # the files to the two shards in turn (packages/ui/src/__tests__/setup/
+  # split-sequencer.ts), so the shards take about the same time. A step after
+  # one half made that shard the longest job of the run.
   test-outside-ui:
     name: test (outside ui)
     runs-on: ubuntu-latest

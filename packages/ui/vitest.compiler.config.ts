@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url'
 import { mergeConfig } from 'vitest/config'
 import { splitSequencer } from './src/__tests__/setup/split-sequencer.ts'
 import { compileUiSource } from './vitest.compiler.preset.ts'
-import base, { docsProject, nodeFiles, smokeFiles } from './vitest.config.ts'
+import base, { docsProject, nodeFiles } from './vitest.config.ts'
 
 const { version } = createRequire(import.meta.url)('babel-plugin-react-compiler/package.json') as {
 	version: string
@@ -75,8 +75,9 @@ export default mergeConfig(plain, {
 		// The skip gate compiles each module of the source, and it held a large
 		// part of the shard that ran it. So each shard runs the gate, and the gate
 		// compiles the part of the modules for that shard. This sequencer replaces
-		// the sequencer of the base config, so it also deals the page smoke files.
-		sequence: { sequencer: splitSequencer(['react-compiler-skips.test.ts'], smokeFiles) },
+		// the sequencer of the base config, and it deals the other files as that
+		// one does.
+		sequence: { sequencer: splitSequencer(['react-compiler-skips.test.ts']) },
 		// Added to the projects of the base config.
 		projects: [
 			'./vitest.docs-compiler.config.ts',

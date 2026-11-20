@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync } from 'node:fs'
+import { readFileSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import type { Plugin } from 'vite'
 import { configDefaults, defineConfig } from 'vitest/config'
@@ -141,17 +141,6 @@ const exportsCache: Plugin = {
 		defineCacheKeyGenerator(keyOnExports)
 	},
 }
-
-/**
- * The page smoke files of the docs, which `src/docs/__tests__/page-smoke.tsx`
- * runs in parts. They hold a large part of the time of the jsdom suite. Vitest
- * gives a file to a shard by the hash of its path, and it gave most of these
- * files to one shard. So the sequencer deals them to the shards in turn, and
- * the shards of CI take about the same time. A new part joins the list.
- */
-export const smokeFiles: readonly string[] = readdirSync(docsTestDir)
-	.filter((name) => /^page-smoke(?:-[\w-]+)?\.test\.tsx$/.test(name))
-	.toSorted()
 
 /** The plugins of each project: the two cache key generators above. */
 export const cachePlugins = [globCache, exportsCache]
@@ -392,9 +381,10 @@ export default defineConfig({
 		// `test` block, so it replaces the resolved sequence object and drops
 		// `groupOrder` with it, which reorders the very queue the failure came
 		// from.
-		// The sequencer deals the page smoke files to the shards (`smokeFiles`).
-		// It shuffles as `RandomSequencer` does, so `seed` still replays a run.
-		sequence: { ...sequence, sequencer: splitSequencer([], smokeFiles) },
+		// The sequencer deals the files to the shards in turn, in the order of
+		// their paths (`split-sequencer.ts`). It shuffles as `RandomSequencer`
+		// does, so `seed` still replays a run.
+		sequence: { ...sequence, sequencer: splitSequencer([]) },
 		// The source that a run with `--coverage` measures (`coverage` in
 		// `vitest.base.ts`). Each shard writes a JSON report, and
 		// `scripts/coverage/merge.ts` merges the reports with the reports of the
