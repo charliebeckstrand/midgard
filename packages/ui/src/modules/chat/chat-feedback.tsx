@@ -1,10 +1,10 @@
 'use client'
 
-import { ThumbsDown, ThumbsUp } from 'lucide-react'
 import type { ComponentProps } from 'react'
 import { ToggleIconButton } from '../../components/toggle-icon-button'
 import { cn } from '../../core/cn'
 import { useControllable } from '../../hooks/use-controllable'
+import { ThumbsDown, ThumbsUp } from '../../primitives/icons/icons'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/chat-message'

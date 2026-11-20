@@ -1,7 +1,7 @@
 'use client'
 
-import { Pipette } from 'lucide-react'
 import { useHydrated } from '../../hooks/use-hydrated'
+import { Pipette } from '../../primitives/icons/icons'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { Button } from '../button'
 import { Icon } from '../icon'

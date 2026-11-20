@@ -1,6 +1,5 @@
 'use client'
 
-import { Upload } from 'lucide-react'
 import {
 	type ChangeEvent,
 	type DragEvent,
@@ -17,6 +16,7 @@ import { dataAttr } from '../../core/data-attr'
 import { invalidAttrs } from '../../core/invalid-attrs'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useTruncation } from '../../hooks/use-truncation'
+import { Upload } from '../../primitives/icons/icons'
 import { IntlMessage } from '../../primitives/intl'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/file-upload'

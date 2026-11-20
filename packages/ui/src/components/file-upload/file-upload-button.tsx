@@ -1,8 +1,8 @@
 'use client'
 
-import { Upload } from 'lucide-react'
 import { useRef } from 'react'
 import { cn } from '../../core/cn'
+import { Upload } from '../../primitives/icons/icons'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/file-upload'
 import { Button } from '../button'

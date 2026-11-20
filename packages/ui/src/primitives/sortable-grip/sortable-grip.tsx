@@ -1,12 +1,12 @@
 'use client'
 
 import type { DraggableAttributes, DraggableSyntheticListeners } from '@dnd-kit/core'
-import { GripVertical } from 'lucide-react'
 import type { ComponentProps } from 'react'
 import { cn } from '../../core/cn'
 import { dataAttr } from '../../core/data-attr'
 import type { ScaleStep } from '../../core/density/scale'
 import { k, type scale } from '../../recipes/kata/icon'
+import { GripVertical } from '../icons/icons'
 
 /**
  * The drag bindings that a {@link SortableGrip} carries. A dnd-kit sortable

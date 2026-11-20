@@ -1,11 +1,11 @@
 'use client'
 
-import { SlidersHorizontal } from 'lucide-react'
 import type { ComponentProps, ReactNode } from 'react'
 import { Button } from '../components/button'
 import { Drawer, DrawerBody, DrawerPanel, DrawerTitle, DrawerTrigger } from '../components/drawer'
 import { Icon } from '../components/icon'
 import { OFFCANVAS_LAYOUT, type OffcanvasLayout, useOffcanvas } from '../hooks/use-offcanvas'
+import { SlidersHorizontal } from '../primitives/icons/icons'
 import { intlMessages } from '../primitives/intl/intl-messages'
 import { useIntl } from '../primitives/intl/use-intl'
 import { Landmark } from '../primitives/landmark'

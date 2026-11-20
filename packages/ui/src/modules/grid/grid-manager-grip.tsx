@@ -1,7 +1,7 @@
 'use client'
 
-import { GripVertical } from 'lucide-react'
 import { Icon } from '../../components/icon'
+import { GripVertical } from '../../primitives/icons/icons'
 import {
 	SortableGrip,
 	type SortableGripBindings,

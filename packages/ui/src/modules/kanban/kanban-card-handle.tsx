@@ -1,11 +1,11 @@
 'use client'
 
-import { GripVertical } from 'lucide-react'
 import { type HTMLAttributes, type ReactNode, useEffect, useId } from 'react'
 import { Icon } from '../../components/icon'
 import { cn } from '../../core/cn'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { dataAttr } from '../../core/data-attr'
+import { GripVertical } from '../../primitives/icons/icons'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { SortableGrip } from '../../primitives/sortable-grip/sortable-grip'

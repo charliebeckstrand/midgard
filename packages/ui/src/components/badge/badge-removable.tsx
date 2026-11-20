@@ -1,6 +1,5 @@
 'use client'
 
-import { X } from 'lucide-react'
 import {
 	type AriaRole,
 	type KeyboardEvent,
@@ -10,6 +9,7 @@ import {
 	type Ref,
 } from 'react'
 import { cn } from '../../core/cn'
+import { X } from '../../primitives/icons/icons'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { type BadgeVariants, k } from '../../recipes/kata/badge'

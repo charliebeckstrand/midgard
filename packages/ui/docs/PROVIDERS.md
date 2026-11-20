@@ -14,8 +14,10 @@ The integration point that an app mounts once in its client providers. The serve
 
 | Export | Summary |
 |---|---|
-| `UIProvider` | App-root integration point: the framework link, the default portal container, and the current `pathname`. It mounts the hosts of `useConfirm` and `useToast`. Put `LocaleProvider` above it. |
+| `UIProvider` | App-root integration point: the framework link, the default portal container, the current `pathname`, and the `icons` that replace the Lucide defaults of ui. It mounts the hosts of `useConfirm` and `useToast`. Put `LocaleProvider` above it. |
 | `UIProviderProps` *(type)* | Props for `UIProvider`. |
+| `Icons` *(type)* | The icons that an app gives in place of the Lucide defaults, by the Lucide name of each glyph, such as `{ X: <FontAwesomeIcon icon={faXmark} /> }`. Each value is an element that forwards `className` and `style` to its `<svg>`. A nested provider merges its icons over the outer icons. |
+| `IconName` *(type)* | The Lucide name of a glyph that ui draws, a key of `Icons`. |
 | `PathMatch` *(type)* | How an item `href` matches the `pathname`: `exact`, or `prefix` to also match each path under the `href`. |
 | `useLink` | Reads the app-registered framework link component from `<UIProvider>`. |
 | `usePortalContainer` | Resolves a portal's container: explicit per-call value, then ambient `<UIProvider>` value, then `null`. |

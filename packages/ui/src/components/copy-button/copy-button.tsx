@@ -1,9 +1,9 @@
 'use client'
 
-import { Check, Clipboard } from 'lucide-react'
 import type { ComponentProps, ReactElement } from 'react'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { dataAttr } from '../../core/data-attr'
+import { Check, Clipboard } from '../../primitives/icons/icons'
 import { useIntl } from '../../primitives/intl/use-intl'
 import type { ButtonVariants } from '../../recipes/kata/button'
 import { Button } from '../button'

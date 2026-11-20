@@ -1,6 +1,6 @@
-import { X } from 'lucide-react'
 import type { ComponentType, MouseEventHandler } from 'react'
 import { cn } from '../../core/cn'
+import { X } from '../../primitives/icons/icons'
 import { IntlMessage } from '../../primitives/intl'
 import { intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'

@@ -1,6 +1,5 @@
 'use client'
 
-import { Check } from 'lucide-react'
 import { type ComponentProps, memo, use, useCallback, useId } from 'react'
 import { ariaAttr } from '../../core/aria-attr'
 import { cn } from '../../core/cn'
@@ -12,6 +11,7 @@ import { k } from '../../recipes/kata/option'
 import { capitalizeFirst } from '../../utilities/capitalize-first'
 import { isActivationKey } from '../../utilities/keyboard-navigation'
 import type { KeyedStore } from '../../utilities/keyed-store'
+import { Check } from '../icons/icons'
 
 /**
  * Props for {@link Option}: selection state (`selected`, `disabled`), the

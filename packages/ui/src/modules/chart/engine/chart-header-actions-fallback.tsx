@@ -1,11 +1,11 @@
 'use client'
 
-import { EllipsisVertical, Table2 } from 'lucide-react'
 import type { ComponentProps, ReactElement, ReactNode } from 'react'
 import { Button } from '../../../components/button'
 import { Icon } from '../../../components/icon'
 import { cn } from '../../../core/cn'
 import { dataAttr } from '../../../core/data-attr'
+import { EllipsisVertical, Table2 } from '../../../primitives/icons/icons'
 import { useIntl } from '../../../primitives/intl/use-intl'
 import { noop } from '../../../utilities/noop'
 import type { ChartContextMenuConfig } from './chart-context-menu'

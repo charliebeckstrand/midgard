@@ -1,6 +1,5 @@
 'use client'
 
-import { Clipboard, Download, Image as ImageIcon, Maximize2, Table2 } from 'lucide-react'
 import {
 	cloneElement,
 	isValidElement,
@@ -18,6 +17,13 @@ import type { ContextMenuConfig, ContextMenuItem } from '../../../components/con
 import { Dialog, DialogClose, DialogFooter, DialogPanel } from '../../../components/dialog'
 import { downloadBlob } from '../../../core/download-blob'
 import { useStableEvent } from '../../../hooks/use-stable-event'
+import {
+	Clipboard,
+	Download,
+	Image as ImageIcon,
+	Maximize2,
+	Table2,
+} from '../../../primitives/icons/icons'
 import { intlMessages } from '../../../primitives/intl/intl-messages'
 import { useIntl } from '../../../primitives/intl/use-intl'
 import { copyText, downloadCsv } from '../../../utilities/export-output'

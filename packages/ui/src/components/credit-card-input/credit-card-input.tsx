@@ -1,7 +1,7 @@
 'use client'
 
-import { CreditCard } from 'lucide-react'
 import { useMemo } from 'react'
+import { CreditCard } from '../../primitives/icons/icons'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { digitsOnly } from '../../utilities/digits-only'
 import { Icon } from '../icon'

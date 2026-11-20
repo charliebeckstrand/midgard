@@ -1,8 +1,8 @@
 'use client'
 
-import { Copy } from 'lucide-react'
 import type { ChangeEvent, FocusEvent } from 'react'
 import { useIdScope } from '../../hooks/use-id-scope'
+import { Copy } from '../../primitives/icons/icons'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { ControlContext, useControl } from '../control/context'
 import { CopyButton } from '../copy-button'

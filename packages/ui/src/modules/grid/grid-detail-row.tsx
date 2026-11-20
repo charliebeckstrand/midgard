@@ -1,12 +1,12 @@
 'use client'
 
-import { ChevronRight } from 'lucide-react'
 import { memo, type ReactNode } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { ariaAttr } from '../../core/aria-attr'
 import { cn } from '../../core/cn'
 import { dataAttr } from '../../core/data-attr'
+import { ChevronRight } from '../../primitives/icons/icons'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { MountHold } from '../../primitives/mount'
 import { k } from '../../recipes/kata/grid'

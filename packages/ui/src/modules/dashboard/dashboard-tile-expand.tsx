@@ -1,6 +1,5 @@
 'use client'
 
-import { Maximize2 } from 'lucide-react'
 import { type ReactNode, type RefObject, useEffect, useEffectEvent, useState } from 'react'
 import { Button } from '../../components/button'
 import {
@@ -16,6 +15,7 @@ import {
 } from '../../components/dialog'
 import { Icon } from '../../components/icon'
 import { HeaderActions } from '../../primitives/header-actions'
+import { Maximize2 } from '../../primitives/icons/icons'
 import { IntlMessage } from '../../primitives/intl'
 import { intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'

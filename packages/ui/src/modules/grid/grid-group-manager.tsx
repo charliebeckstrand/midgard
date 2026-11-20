@@ -17,7 +17,6 @@ import {
 	sortableKeyboardCoordinates,
 	verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
-import { EllipsisVertical, Plus, Trash } from 'lucide-react'
 import {
 	memo,
 	type ReactNode,
@@ -41,6 +40,7 @@ import { useSortableItem } from '../../hooks/use-sortable-item'
 import { useSortableSensors } from '../../hooks/use-sortable-sensors'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useStableValue } from '../../hooks/use-stable-value'
+import { EllipsisVertical, Plus, Trash } from '../../primitives/icons/icons'
 import { IntlMessage } from '../../primitives/intl'
 import { intlMessages } from '../../primitives/intl/intl-messages'
 import { pickedUpText, reorderMessages } from '../../primitives/intl/intl-reorder'

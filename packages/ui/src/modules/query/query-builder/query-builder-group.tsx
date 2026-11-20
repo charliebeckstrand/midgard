@@ -1,6 +1,5 @@
 'use client'
 
-import { ChevronDown, CopyPlus, Plus } from 'lucide-react'
 import { memo } from 'react'
 import { Alert } from '../../../components/alert'
 import { Button } from '../../../components/button'
@@ -11,6 +10,7 @@ import { Segment, SegmentControl, SegmentItem } from '../../../components/segmen
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
 import { cn } from '../../../core/cn'
 import { dataAttr } from '../../../core/data-attr'
+import { ChevronDown, CopyPlus, Plus } from '../../../primitives/icons/icons'
 import { useIntl } from '../../../primitives/intl/use-intl'
 import { k } from '../../../recipes/kata/query-builder'
 import { Flex } from '../../../structure/flex'

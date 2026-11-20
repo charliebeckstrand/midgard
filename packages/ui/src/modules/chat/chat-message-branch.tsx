@@ -1,9 +1,9 @@
 'use client'
 
-import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '../../components/button'
 import { lockedProps } from '../../components/button/button-constants'
 import { Icon } from '../../components/icon'
+import { ChevronLeft, ChevronRight } from '../../primitives/icons/icons'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/chat-message'

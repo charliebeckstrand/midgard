@@ -1,7 +1,6 @@
 'use client'
 
 import { useInteractions } from '@floating-ui/react'
-import { Check, X } from 'lucide-react'
 import { useComposedRefs } from 'motion/react'
 import {
 	type MouseEvent,
@@ -24,6 +23,7 @@ import { createContext } from '../../core/create-context'
 import { dataAttr } from '../../core/data-attr'
 import { useFloatingPanel } from '../../hooks/use-floating-panel'
 import { FloatingSurface } from '../../primitives/floating-surface'
+import { Check, X } from '../../primitives/icons/icons'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/grid'
 import type { GridEditingSession, GridSettleControls as SettleControls } from './context'

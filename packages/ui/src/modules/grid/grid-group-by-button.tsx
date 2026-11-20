@@ -1,11 +1,11 @@
 'use client'
 
-import { Group, Ungroup } from 'lucide-react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { cn } from '../../core/cn'
 import { dataAttr } from '../../core/data-attr'
+import { Group, Ungroup } from '../../primitives/icons/icons'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/grid'
 import { useGridGroupByButton } from './context'

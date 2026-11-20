@@ -1,6 +1,5 @@
 'use client'
 
-import { ChevronLeft, ChevronRight } from 'lucide-react'
 import {
 	type ComponentProps,
 	memo,
@@ -22,6 +21,7 @@ import { isRtl } from '../../../../hooks/a11y/logical-arrow'
 import { useA11yRoving } from '../../../../hooks/a11y/use-a11y-roving'
 import { useReportedChange } from '../../../../hooks/use-reported-change'
 import { useStableEvent } from '../../../../hooks/use-stable-event'
+import { ChevronLeft, ChevronRight } from '../../../../primitives/icons/icons'
 import { useIntl } from '../../../../primitives/intl/use-intl'
 import type { ChartColorSlot } from '../../../../recipes/kata/chart'
 import type { Orientation } from '../../../../types/orientation'

@@ -1737,7 +1737,7 @@
 	},
 	"docs.demo.2bd873d6c734": {
 		"defaultMessage": "Breadcrumb",
-		"description": "Text of a demo in the docs as label, in components/breadcrumb/playground.tsx, primitives/skeleton/skeleton-variants.tsx."
+		"description": "Text of a demo in the docs as label, in components/breadcrumb/playground.tsx, primitives/skeleton/skeleton-variants.tsx, providers/ui/replaced-icons.tsx."
 	},
 	"docs.demo.2bf63d817630": {
 		"defaultMessage": "Margin",
@@ -1985,7 +1985,7 @@
 	},
 	"docs.demo.3a78695388b3": {
 		"defaultMessage": "Home",
-		"description": "Text of a demo in the docs as label, in components/breadcrumb/playground.tsx, components/nav/nav-bar.tsx, components/nav/playground.tsx and 4 more."
+		"description": "Text of a demo in the docs as label, in components/breadcrumb/playground.tsx, components/nav/nav-bar.tsx, components/nav/playground.tsx and 5 more."
 	},
 	"docs.demo.3a78c1d2bda7": {
 		"defaultMessage": "Your changes save when the connection returns.",
@@ -3841,7 +3841,7 @@
 	},
 	"docs.demo.a150ce221602": {
 		"defaultMessage": "Components",
-		"description": "Text of a demo in the docs, in components/breadcrumb/playground.tsx."
+		"description": "Text of a demo in the docs, in components/breadcrumb/playground.tsx, providers/ui/replaced-icons.tsx."
 	},
 	"docs.demo.a192df697ecd": {
 		"defaultMessage": "Each sale, with its region and product",
@@ -8486,6 +8486,10 @@
 	"docs.title.reorder": {
 		"defaultMessage": "Reorder",
 		"description": "The title of an example on a page of the docs. It comes from the file name reorder.tsx."
+	},
+	"docs.title.replaced-icons": {
+		"defaultMessage": "Replaced icons",
+		"description": "The title of an example on a page of the docs. It comes from the file name replaced-icons.tsx."
 	},
 	"docs.title.report-a-bug": {
 		"defaultMessage": "Report a bug",

@@ -1,11 +1,11 @@
 'use client'
 
-import { Calendar as CalendarIcon } from 'lucide-react'
 import { useComposedRefs } from 'motion/react'
 import { type ReactNode, useState } from 'react'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { useFormattedInput } from '../../hooks/use-formatted-input'
 import { useFormValue } from '../../primitives/form/use-form-value'
+import { Calendar as CalendarIcon } from '../../primitives/icons/icons'
 import { formatDatePattern } from '../../primitives/intl/intl-date-pattern'
 import type { IntlShape } from '../../primitives/intl/types'
 import { useIntl } from '../../primitives/intl/use-intl'

@@ -1,9 +1,9 @@
 'use client'
 
-import { ChevronDown, ChevronUp, Search } from 'lucide-react'
 import { type KeyboardEvent, useState } from 'react'
 import { useA11yAutoFocus } from '../../hooks/a11y/use-a11y-auto-focus'
 import { useA11yLiveRegion } from '../../hooks/a11y/use-a11y-live-region'
+import { ChevronDown, ChevronUp, Search } from '../../primitives/icons/icons'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/pdf-viewer'
 import { isComposing } from '../../utilities/is-composing'

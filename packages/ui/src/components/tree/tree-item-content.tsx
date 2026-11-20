@@ -1,10 +1,10 @@
 'use client'
 
-import { Check, ChevronRight, Minus } from 'lucide-react'
 import { type KeyboardEvent, type MouseEvent, useId } from 'react'
 import { ariaAttr } from '../../core/aria-attr'
 import { cn } from '../../core/cn'
 import { dataAttr } from '../../core/data-attr'
+import { Check, ChevronRight, Minus } from '../../primitives/icons/icons'
 import { k } from '../../recipes/kata/tree'
 import { isActivationKey } from '../../utilities/keyboard-navigation'
 import { Icon } from '../icon'

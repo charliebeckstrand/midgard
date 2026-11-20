@@ -1,7 +1,6 @@
 'use client'
 
 import type { OpenChangeReason } from '@floating-ui/react'
-import { ChevronsUpDown } from 'lucide-react'
 import {
 	type FocusEvent,
 	type KeyboardEvent,
@@ -19,6 +18,7 @@ import { useFloatingUI } from '../../hooks/use-floating-ui'
 import { useSelectableValueChange } from '../../hooks/use-selectable-value-change'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useFormValue } from '../../primitives/form/use-form-value'
+import { ChevronsUpDown } from '../../primitives/icons/icons'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { hasSelection, useOptionSelection } from '../../primitives/option/use-option-selection'

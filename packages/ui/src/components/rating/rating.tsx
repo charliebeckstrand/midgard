@@ -1,12 +1,12 @@
 'use client'
 
-import { Star } from 'lucide-react'
 import { type MouseEvent, type PointerEvent, type ReactNode, useRef, useState } from 'react'
 import { ariaAttr } from '../../core/aria-attr'
 import { cn } from '../../core/cn'
 import { dataAttr } from '../../core/data-attr'
 import type { ScaleStep } from '../../core/density/scale'
 import { useFormValue } from '../../primitives/form/use-form-value'
+import { Star } from '../../primitives/icons/icons'
 import { defineMessage, defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import type { scale } from '../../recipes/kata/rating'

@@ -2,7 +2,6 @@
 
 import { autoPlacement, type Middleware, offset, shift } from '@floating-ui/react'
 import { isVirtualClick } from '@floating-ui/react/utils'
-import { ChevronDown, ChevronRight } from 'lucide-react'
 import {
 	type FocusEvent,
 	type KeyboardEvent,
@@ -25,6 +24,7 @@ import { useFloatingUI } from '../../hooks/use-floating-ui'
 import { useReportedChange } from '../../hooks/use-reported-change'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { FloatingSurface } from '../../primitives/floating-surface'
+import { ChevronDown, ChevronRight } from '../../primitives/icons/icons'
 import { PopoverPanel } from '../../primitives/popover'
 import { useGlass } from '../../providers/glass/context'
 import { k } from '../../recipes/kata/menu'

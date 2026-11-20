@@ -1,12 +1,12 @@
 'use client'
 
-import { Copy, ListX, Trash } from 'lucide-react'
 import { Button } from '../../components/button'
 import { CopyButton } from '../../components/copy-button'
 import { Icon } from '../../components/icon'
 import { List, ListItem } from '../../components/list'
 import { Text } from '../../components/text'
 import { cn } from '../../core/cn'
+import { Copy, ListX, Trash } from '../../primitives/icons/icons'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/events'
 import { Flex } from '../../structure/flex'

@@ -1,8 +1,7 @@
 'use client'
 
-import { ArrowLeft, ChevronRight } from 'lucide-react'
-
 import { cn } from '../../core/cn'
+import { ArrowLeft, ChevronRight } from '../../primitives/icons/icons'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/date-picker'
 import { Badge } from '../badge'

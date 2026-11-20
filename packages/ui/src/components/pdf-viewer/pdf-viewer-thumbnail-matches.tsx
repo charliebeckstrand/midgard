@@ -1,8 +1,8 @@
 'use client'
 
-import { Search } from 'lucide-react'
 import type { ReactElement } from 'react'
 import { cn } from '../../core/cn'
+import { Search } from '../../primitives/icons/icons'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/pdf-viewer'
 import { Icon } from '../icon'

@@ -1,10 +1,10 @@
 'use client'
 
-import { ChevronDown, ChevronRight } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { cn } from '../../core/cn'
+import { ChevronDown, ChevronRight } from '../../primitives/icons/icons'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/grid'
 import { groupValueLabel } from './engine/grid-column/label'

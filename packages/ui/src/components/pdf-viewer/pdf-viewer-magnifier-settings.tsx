@@ -1,7 +1,7 @@
 'use client'
 
-import { ScanSearch } from 'lucide-react'
 import { useId } from 'react'
+import { ScanSearch } from '../../primitives/icons/icons'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/pdf-viewer'
 import { Stack } from '../../structure/stack'
