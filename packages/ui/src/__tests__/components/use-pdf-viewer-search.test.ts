@@ -7,7 +7,30 @@ import {
 	type PdfViewerSearchInput,
 	usePdfViewerSearch,
 } from '../../components/pdf-viewer/use-pdf-viewer-search'
+import { scrollWithin } from '../../utilities/scroll-within'
 import { noop } from '../helpers'
+
+vi.mock('../../utilities/scroll-within', () => ({ scrollWithin: vi.fn() }))
+
+/**
+ * A layer of matches as the layer renders it. With `current`, it holds a box of the current
+ * match that has a layout box, which jsdom does not give, so the stub gives one.
+ */
+function layer(current: boolean) {
+	const node = document.createElement('div')
+
+	if (current) {
+		const hit = document.createElement('span')
+
+		hit.setAttribute('data-current', '')
+
+		hit.getClientRects = () => [new DOMRect(0, 0, 10, 10)] as unknown as DOMRectList
+
+		node.append(hit)
+	}
+
+	return node
+}
 
 // The hook takes the document as arguments, so a case needs no `<PdfViewer>`. The toolbar
 // control and the layer that render from it are covered in `pdf-viewer-search.test.tsx`.
@@ -322,6 +345,35 @@ describe('usePdfViewerSearch', () => {
 				[3, 2],
 			]),
 		)
+	})
+
+	it('scrolls to each match once, also when the layer mounts again, and again after a step', () => {
+		vi.mocked(scrollWithin).mockClear()
+
+		const { result } = renderSearch({ safePage: 2 })
+
+		act(() => result.current.setQuery('total'))
+
+		act(() => result.current.reveal(layer(true)))
+
+		expect(scrollWithin).toHaveBeenCalledTimes(1)
+
+		// A render of the same layer, and a new layer after a page with no match: the reader
+		// already saw this match.
+		act(() => result.current.reveal(layer(true)))
+
+		expect(scrollWithin).toHaveBeenCalledTimes(1)
+
+		// A step to the match on page 3. The layer of page 2 has no box of it, so the latch waits.
+		act(() => result.current.next())
+
+		act(() => result.current.reveal(layer(false)))
+
+		expect(scrollWithin).toHaveBeenCalledTimes(1)
+
+		act(() => result.current.reveal(layer(true)))
+
+		expect(scrollWithin).toHaveBeenCalledTimes(2)
 	})
 
 	it('clears the matches with the query', () => {

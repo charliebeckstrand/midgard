@@ -1,8 +1,10 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { Color } from '../../core/recipe/colors'
+import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { scrollWithin } from '../../utilities/scroll-within'
 import { toFractionRect } from './pdf-viewer-highlight-geometry'
 import type {
 	PdfViewerHighlightRect,
@@ -181,8 +183,11 @@ export type PdfViewerSearchResult = {
 	total: number
 	/** The 0-based index of the current match, or `null` when there is no match. */
 	current: number | null
-	/** Identifies the current match across renders, for the reveal; `null` with no match. */
-	currentKey: string | null
+	/**
+	 * Scrolls the current match in `layer` into view, once for each match. The layer of matches
+	 * calls it after each of its renders.
+	 */
+	reveal: (layer: HTMLElement | null) => void
 	next: () => void
 	previous: () => void
 	/**
@@ -335,6 +340,39 @@ export function usePdfViewerSearch({
 		})
 	}
 
+	/*
+	 * The reveal latch: the key of the last match that scrolled into view.
+	 *
+	 * It is here, not in the layer, for the reason that the highlight overlay keeps its latch in
+	 * its hook. The layer unmounts on a page with no match. A latch in the layer would go with
+	 * it, and a return to the page of the current match would scroll to the match again.
+	 */
+	const revealedRef = useRef<string | null>(null)
+
+	const reduceMotion = usePrefersReducedMotion()
+
+	const reveal = useCallback(
+		(layer: HTMLElement | null) => {
+			if (currentKey === null || revealedRef.current === currentKey) return
+
+			const node = layer?.querySelector<HTMLElement>('[data-current]')
+
+			// No box of the current match on this page yet: keep the latch for the page that has it.
+			if (!node || node.getClientRects().length === 0) return
+
+			revealedRef.current = currentKey
+
+			// scrollWithin, not scrollIntoView, for the reason the highlight reveal gives: the
+			// viewer can sit inside a drawer.
+			scrollWithin(node, {
+				block: 'nearest',
+				inline: 'nearest',
+				behavior: reduceMotion ? 'auto' : 'smooth',
+			})
+		},
+		[currentKey, reduceMotion],
+	)
+
 	const hits: PdfViewerSearchHit[] = []
 
 	for (const [item, isCurrent] of runs) {
@@ -352,7 +390,7 @@ export function usePdfViewerSearch({
 		setQuery,
 		total,
 		current,
-		currentKey,
+		reveal,
 		next,
 		previous,
 		hits,

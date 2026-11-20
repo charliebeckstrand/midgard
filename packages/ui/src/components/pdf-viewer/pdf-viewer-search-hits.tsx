@@ -2,9 +2,7 @@
 
 import { useLayoutEffect, useRef } from 'react'
 import { dataAttr } from '../../core/data-attr'
-import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { k } from '../../recipes/kata/pdf-viewer'
-import { scrollWithin } from '../../utilities/scroll-within'
 import { usePdfViewerContext, usePdfViewerSearchContext } from './context'
 import type { PdfViewerHighlightRect } from './types'
 
@@ -44,44 +42,23 @@ export function PdfViewerSearchHits() {
  * the toolbar speaks the position of the current match, and a press goes through to the page
  * and to the highlighted regions under the layer.
  *
- * The current match scrolls into view once for each match. The latch keys on the match, and
- * it waits while the current match is on another page, because the match can arrive with the
- * next page.
+ * The current match scrolls into view once for each match, through
+ * {@link PdfViewerSearchResult.reveal}. The latch waits while the current match is on another
+ * page, because the match can arrive with the next page.
  * @internal
  */
 function PdfViewerSearchHitLayer() {
 	const { scale } = usePdfViewerContext()
 
-	const { hits, color, currentKey } = usePdfViewerSearchContext()
+	const { hits, color, reveal } = usePdfViewerSearchContext()
 
 	const { imageWidth, imageHeight, transform } = scale
 
 	const layerRef = useRef<HTMLDivElement>(null)
 
-	const revealedRef = useRef<string | null>(null)
-
-	const reduceMotion = usePrefersReducedMotion()
-
 	// After each render of the layer, with no list of dependencies: a step, a new query, and a
-	// page turn each render the layer, and the latch keeps the work to one scroll for each match.
-	useLayoutEffect(() => {
-		if (currentKey === null || revealedRef.current === currentKey) return
-
-		const node = layerRef.current?.querySelector<HTMLElement>('[data-current]')
-
-		// No box of the current match on this page yet: keep the latch for the page that has it.
-		if (!node || node.getClientRects().length === 0) return
-
-		revealedRef.current = currentKey
-
-		// scrollWithin, not scrollIntoView, for the reason the highlight reveal gives: the
-		// viewer can sit inside a drawer.
-		scrollWithin(node, {
-			block: 'nearest',
-			inline: 'nearest',
-			behavior: reduceMotion ? 'auto' : 'smooth',
-		})
-	})
+	// page turn each render the layer. The latch is in the search, so it outlives the layer.
+	useLayoutEffect(() => reveal(layerRef.current))
 
 	return (
 		<div
