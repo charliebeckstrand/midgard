@@ -8,7 +8,7 @@
  * `coverage/browser/coverage-final.json` (`coverage` in
  * `vitest.browser.config.ts`). Both suites measure the same source with the
  * same provider (`coverage` in `vitest.base.ts`). On CI, each shard of each
- * suite measures only its half of the test files. Each shard gives its report
+ * suite measures only its part of the test files. Each shard gives its report
  * to the `coverage` job, which puts each report in a folder of its own under
  * `coverage/`. The script merges each report that it finds in a folder under
  * `coverage/`, and writes the merged report to `coverage/`.

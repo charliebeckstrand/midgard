@@ -25,21 +25,37 @@ function byPath(a: TestSpecification, b: TestSpecification): number {
  * module cache of its own on CI. The shards import most of the same modules,
  * so a moved file misses only its own entries.
  *
+ * A file whose path ends in one of `heavy` holds much more time than the other
+ * files. The sequencer deals these files first, in the order of `heavy`, so
+ * that two of them go to the same shard only when each shard has one. Then it
+ * deals the other files in the order of their paths.
+ *
  * A custom sequencer replaces the `RandomSequencer` that `sequence.shuffle`
  * selects. So with `shuffle`, this sequencer shuffles the files as that one
  * does, with the seed of the run.
  */
-export function splitSequencer(split: readonly string[]): typeof BaseSequencer {
+export function splitSequencer(
+	split: readonly string[],
+	heavy: readonly string[] = [],
+): typeof BaseSequencer {
 	const isSplit = (file: TestSpecification) => split.some((end) => file.moduleId.endsWith(end))
+
+	/** The place of a file in `heavy`, or -1 for a file that is not in it. */
+	const weight = (file: TestSpecification) => heavy.findIndex((end) => file.moduleId.endsWith(end))
 
 	return class SplitSequencer extends BaseSequencer {
 		override async shard(files: TestSpecification[]): Promise<TestSpecification[]> {
 			const { index, count } = this.ctx.config.shard ?? { index: 1, count: 1 }
 
-			const mine = files
-				.filter((file) => !isSplit(file))
-				.toSorted(byPath)
-				.filter((_, at) => at % count === index - 1)
+			const dealt = files.filter((file) => !isSplit(file))
+
+			const first = dealt
+				.filter((file) => weight(file) >= 0)
+				.toSorted((a, b) => weight(a) - weight(b) || byPath(a, b))
+
+			const mine = [...first, ...dealt.filter((file) => weight(file) < 0).toSorted(byPath)].filter(
+				(_, at) => at % count === index - 1,
+			)
 
 			return [...files.filter(isSplit), ...mine]
 		}
