@@ -89,10 +89,19 @@ describe('Tooltip first intent before the state loads (real browser)', () => {
 		// that sees the text, so the render and the poll do not add to it.
 		let opened = Number.NaN
 
+		// Whether the timer that the release starts ran before the open.
+		let lapsed = false
+
+		let openedBeforeLapse = false
+
 		const { container } = renderTip({
 			delay,
 			onOpenChange: (open) => {
-				if (open) opened = performance.now()
+				if (!open) return
+
+				opened = performance.now()
+
+				openedBeforeLapse = !lapsed
 			},
 		})
 
@@ -117,7 +126,16 @@ describe('Tooltip first intent before the state loads (real browser)', () => {
 
 		await pause(200)
 
-		const released = performance.now()
+		// The load does not restart the delay, which would open one full delay
+		// after the release. A timer of the full delay starts at the release. A
+		// restarted delay starts after it, so it runs after it. The delay from
+		// the hover ends first, so the open comes before this timer runs. A
+		// browser runs the timers that are due in the order of their end, so a
+		// busy runner that runs both late keeps the order. A bound on the time
+		// from the release did not, because a timer that ran late failed it.
+		setTimeout(() => {
+			lapsed = true
+		}, delay)
 
 		tooltipLoad.release()
 
@@ -129,11 +147,7 @@ describe('Tooltip first intent before the state loads (real browser)', () => {
 		// clock is coarse, so this bound keeps a margin.
 		expect(opened - start).toBeGreaterThanOrEqual(delay - 50)
 
-		// The load does not restart the delay, which would open one full delay
-		// after the release. This bound counts from the release, not from the
-		// hover. On a busy runner, the hover call can return late and move the
-		// release past the end of the delay.
-		expect(opened - released).toBeLessThan(delay)
+		expect(openedBeforeLapse).toBe(true)
 	})
 
 	it('opens a hover at once when the load ends after the delay', async () => {

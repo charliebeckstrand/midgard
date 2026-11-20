@@ -11,8 +11,8 @@ import {
 import { MapPlat } from '../../../modules/map'
 import { GlassSurfacesContext } from '../../../providers/glass/context'
 import { Container } from '../../../structure/container'
-import { frames, getSlot, renderUI } from '../../helpers'
-import { pause } from '../helpers/wall-clock'
+import { getSlot, renderUI } from '../../helpers'
+import { budget, pause } from '../helpers/wall-clock'
 
 /**
  * PROBE: a `fit` drawer must grow to hold a box whose height comes from its
@@ -110,6 +110,13 @@ function read(): string {
 	return `panel=${panel.getBoundingClientRect().height.toFixed(1)} pin=${panel.style.height || '-'} body=${body.clientHeight}/${body.scrollHeight} vh=${window.innerHeight}`
 }
 
+/** How far the content of the drawer body passes its box, in pixels. */
+function overflow(): number {
+	const body = getSlot(document.body, 'drawer-body')
+
+	return body.scrollHeight - body.clientHeight
+}
+
 const CASES: [string, boolean, number[]][] = [
 	['at once', false, [0, 0, 0]],
 	['mid travel', false, [60, 120, 200]],
@@ -141,19 +148,16 @@ describe('fit drawer switched to a map (PROBE)', () => {
 				log.push(`stage ${index + 1} ${read()}`)
 			}
 
-			await pause(1500)
+			// The drawer settles after the last stage, when its fit and the map are
+			// done. Wait for the body to hold its content, with a deadline, and not
+			// for a fixed time: under load the settle can take longer than a hold.
+			await expect
+				.poll(overflow, { timeout: budget(3_000), message: log.join('\n') })
+				.toBeLessThanOrEqual(1)
 
-			await frames()
-
-			const reading = read()
-
-			log.push(`end ${reading}`)
+			log.push(`end ${read()}`)
 
 			console.log(`[probe] ${name}\n${log.join('\n')}`)
-
-			const [, client, scroll] = /body=(\d+)\/(\d+)/.exec(reading) ?? []
-
-			expect(Number(scroll) - Number(client), log.join('\n')).toBeLessThanOrEqual(1)
 		})
 	}
 })

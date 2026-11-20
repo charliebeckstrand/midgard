@@ -14,6 +14,11 @@ const Jan1 = new Date(2025, 0, 1)
 
 const Jan31 = new Date(2025, 0, 31)
 
+// The time of the cases that resolve a preset. The hook reads the clock when it
+// mounts, and the case resolves the preset again to check the value. On the
+// real clock, a midnight between the two reads gives two different days.
+const NOW = new Date(2025, 0, 15, 12)
+
 // A list surface with two preset rows and the custom row, on the body so that
 // `focus()` moves `document.activeElement`.
 function listSurface() {
@@ -61,7 +66,9 @@ describe('useDatePickerRelativeState', () => {
 	})
 
 	describe('multiple presets', () => {
-		it('removes a selected preset on a second toggle and keeps the others', () => {
+		it('removes a selected preset on a second toggle and keeps the others', ({ clock }) => {
+			clock.set(NOW)
+
 			const onChange = vi.fn()
 
 			const { result } = renderHook(() =>
@@ -78,10 +85,12 @@ describe('useDatePickerRelativeState', () => {
 
 			expect(result.current.selectedIds).toEqual(new Set(['yesterday']))
 
-			expect(onChange).toHaveBeenLastCalledWith([yesterday.resolve(new Date())])
+			expect(onChange).toHaveBeenLastCalledWith([yesterday.resolve(NOW)])
 		})
 
-		it('replaces a committed custom range with the toggled preset', () => {
+		it('replaces a committed custom range with the toggled preset', ({ clock }) => {
+			clock.set(NOW)
+
 			const { result } = renderHook(() =>
 				useDatePickerRelativeState({ relative: { multiple: true } }),
 			)
@@ -100,7 +109,7 @@ describe('useDatePickerRelativeState', () => {
 
 			expect(result.current.selectedIds).toEqual(new Set(['today']))
 
-			expect(result.current.value).toEqual([today.resolve(new Date())])
+			expect(result.current.value).toEqual([today.resolve(NOW)])
 		})
 	})
 

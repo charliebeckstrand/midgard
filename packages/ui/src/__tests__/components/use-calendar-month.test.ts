@@ -1,8 +1,9 @@
 import { act, renderHook } from '@testing-library/react'
 import { createElement } from 'react'
 import { renderToString } from 'react-dom/server'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, vi } from 'vitest'
 import { useCalendarMonth } from '../../components/calendar/use-calendar-month'
+import { it } from '../helpers/fake-clock'
 
 type MonthSeed = { value?: Date | null }
 
@@ -30,16 +31,18 @@ describe('useCalendarMonth: initial viewDate', () => {
 		expect(result.current.month).toBe(4)
 	})
 
-	it('seeds from today when no value is supplied', () => {
-		const today = new Date()
+	// The hook reads the clock when it renders. On the real clock, the end of a
+	// month between that read and a read in the case gives two different months.
+	it('seeds from today when no value is supplied', ({ clock }) => {
+		clock.set(new Date(2025, 5, 15, 12))
 
 		const { result } = renderHook(() =>
 			useCalendarMonth({ value: undefined, activeGridDate: null }),
 		)
 
-		expect(result.current.year).toBe(today.getFullYear())
+		expect(result.current.year).toBe(2025)
 
-		expect(result.current.month).toBe(today.getMonth())
+		expect(result.current.month).toBe(5)
 	})
 })
 
