@@ -98,7 +98,7 @@ export const sequence = { shuffle: true, ...(SEED ? { seed: Number(SEED) } : {})
  * The transformed modules stay on disk between runs, as in ui. Most of the time
  * of these suites is the transform and the import of ui and shared, not the
  * tests, and a warm cache removes most of the transform. Vitest 5 turns the
- * cache on by default. The option stays here because the second shard of the
+ * cache on by default. The option stays here because the first shard of the
  * `test` job in CI saves these entries with the cache of ui (ci.yml).
  */
 export const sharedTest = {
