@@ -4,7 +4,10 @@
  * `surface` axis gives it the opaque popover fill or the glass chrome. The
  * `trigger` keeps the anchor inline with the text or the icons around it. The
  * `portal` rides the `float` rung of the stacking order, which clears every
- * overlay rung, because a popover opens from inside a modal panel too.
+ * overlay rung, because a popover opens from inside a modal panel too. It is
+ * the floating element, and the focus manager makes it focusable. A press on
+ * the padding of a panel gives it the focus, so it draws no focus ring: it is
+ * a container, not a control.
  * `content` and `body` are the outer element of `<PopoverContent>` and the box
  * inside it.
  */
@@ -40,7 +43,7 @@ export const k = defineKata(
 		},
 		slots: {
 			trigger: 'inline-flex',
-			portal: sou.float,
+			portal: [sou.float, 'outline-hidden'],
 			/** The body text inside the panel. The glass content draws no fill of its own. */
 			content: {
 				base: ['text-pretty', iro.text.default],
