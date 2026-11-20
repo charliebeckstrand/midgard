@@ -188,7 +188,7 @@ describe('PdfViewer search', () => {
 		// "Invoice" has no "t", "Total due" has two, and the last "Total" has two.
 		const marks = allBySlot(container, 'pdf-viewer-thumbnail-matches')
 
-		expect(marks.map((mark) => mark.textContent)).toEqual(['2', '2'])
+		expect(marks.map((mark) => mark.textContent)).toEqual(['(2)', '(2)'])
 
 		expect(marks.every((mark) => mark.getAttribute('aria-hidden') === 'true')).toBe(true)
 
@@ -199,11 +199,6 @@ describe('PdfViewer search', () => {
 		expect(tiles[1]).toHaveAccessibleDescription('2 matches')
 
 		expect(tiles[2]).toHaveAccessibleDescription('2 matches')
-
-		// The tile of the page with the current match takes the heavier wash.
-		expect(marks[0]?.className).toContain('/60')
-
-		expect(marks[1]?.className).toContain('/30')
 
 		await user.clear(field)
 

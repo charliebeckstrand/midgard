@@ -175,8 +175,6 @@ export type PdfViewerSearchResult = {
 	hits: PdfViewerSearchHit[]
 	/** The number of matches on each page that has one, for the marks of the thumbnail rail. */
 	pageMatches: ReadonlyMap<number, number>
-	/** The page of the current match, or `undefined` when there is no match. */
-	currentPage: number | undefined
 	color: Color
 }
 
@@ -320,7 +318,6 @@ export function usePdfViewerSearch({
 		previous,
 		hits,
 		pageMatches,
-		currentPage: targetPage,
 		color,
 	}
 }

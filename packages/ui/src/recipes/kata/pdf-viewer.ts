@@ -250,27 +250,8 @@ export const k = defineKata({
 					base: ['block w-full h-full', bg.skeleton.base],
 					pulse: { true: css.pulse, false: '' },
 				},
-				/** The row under the frame: the page number, and the mark of the search after it. */
+				/** The row under the frame: the page number, and the number of search matches after it. */
 				caption: [flex.row, 'items-center', dan.gap.scale.xs],
-				/**
-				 * The number of search matches on the page, as a pill in the wash of a match. The page
-				 * of the current match takes the wash of the current match. The pill shows only on a
-				 * page that has a match, and only while there is a query.
-				 */
-				matches: {
-					base: [
-						'rounded-full px-1.5 min-w-5 text-center',
-						size.xs,
-						text.default,
-						'tabular-nums font-medium select-none',
-					],
-					color: { zinc: '', red: '', amber: '', green: '', blue: '' },
-					current: { true: '', false: '' },
-					compound: [
-						...colors.map((color) => ({ color, current: false, class: matchFill[color] })),
-						...colors.map((color) => ({ color, current: true, class: currentMatchFill[color] })),
-					],
-				},
 				label: [
 					size.sm,
 					text.muted,

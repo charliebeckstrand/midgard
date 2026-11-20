@@ -14,8 +14,8 @@ type PdfViewerThumbnailMatchesProps = {
 }
 
 /**
- * The mark of a thumbnail tile: the number of search matches on its page, in the color of the
- * search. The tile of the page with the current match takes the heavier wash.
+ * The mark of a thumbnail tile: the number of search matches on its page, in parentheses after
+ * the page number, in the type of the page number.
  *
  * @remarks A leaf of its own, and the only part of the rail that reads the search. A key that
  * the reader types renders each mark again, and not the tiles, their images, or the rail.
@@ -27,7 +27,7 @@ type PdfViewerThumbnailMatchesProps = {
  * @internal
  */
 export function PdfViewerThumbnailMatches({ pageNumber, id }: PdfViewerThumbnailMatchesProps) {
-	const { pageMatches, currentPage, color } = usePdfViewerSearchContext()
+	const { pageMatches } = usePdfViewerSearchContext()
 
 	const intl = useIntl()
 
@@ -42,9 +42,9 @@ export function PdfViewerThumbnailMatches({ pageNumber, id }: PdfViewerThumbnail
 				<span
 					aria-hidden="true"
 					data-slot="pdf-viewer-thumbnail-matches"
-					className={k({ color, current: currentPage === pageNumber }).thumbnail.matches}
+					className={k().thumbnail.label}
 				>
-					{intl.formatNumber(count)}
+					{intl.formatMessage(pdfViewerMessages.pageMatchCount, { count })}
 				</span>
 			)}
 		</>

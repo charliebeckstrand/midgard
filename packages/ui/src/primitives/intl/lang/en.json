@@ -1615,6 +1615,10 @@
 		"defaultMessage": "Page {page}",
 		"description": "The name of a page of a PDF. The page is its number, or the label that the PDF prints, such as \"iv\"."
 	},
+	"ui.pdfViewer.pageMatchCount": {
+		"defaultMessage": "({count, number})",
+		"description": "Shown after the page number of a thumbnail of a PDF, such as \"(2)\": the number of places on that page where the search text is."
+	},
 	"ui.pdfViewer.pageMatches": {
 		"defaultMessage": "{count, plural, one {# match} other {# matches}}",
 		"description": "Read after the name of a page in the thumbnails of a PDF: the number of places on that page where the search text is."
