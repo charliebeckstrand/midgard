@@ -59,6 +59,7 @@ describe('edges and state marks under forced colors', () => {
 		['the solid alert', alert({ variant: 'solid', color: 'red' }).base],
 		['the outline alert', alert({ variant: 'outline', color: 'red' }).base],
 		['the PDF region', region(false)],
+		['a PDF search match', pdfViewer({ current: false }).viewport.page.search.hit],
 		['the landing placeholder of a dashboard drag', dashboard().placeholder],
 		['the range legend track', chart.track],
 		['the report dot of the events button', events().dot],
@@ -108,6 +109,14 @@ describe('edges and state marks under forced colors', () => {
 	// selection does not depend on the wash, which forced colors remove.
 	it('draws the selected PDF region heavier than a resting one', () => {
 		expect(classNames([region(true)])).toContain('forced-colors:outline-2')
+	})
+
+	// The current search match draws a heavier outline than another match, so the
+	// current match does not depend on its wash, which forced colors remove.
+	it('draws the current PDF search match heavier than another match', () => {
+		expect(classNames([pdfViewer({ current: true }).viewport.page.search.hit])).toContain(
+			'forced-colors:outline-2',
+		)
 	})
 
 	// The fill and the outline color of the drop target go, so only its outline

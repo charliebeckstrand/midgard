@@ -48,6 +48,13 @@ type PdfViewerValues = {
 	delay: Record<never, never>
 	noDelay: Record<never, never>
 	defaultDelay: Record<never, never>
+	search: Record<never, never>
+	searchQuery: Record<never, never>
+	previousMatch: Record<never, never>
+	nextMatch: Record<never, never>
+	matchOfTotal: { current: number; total: number }
+	noMatches: Record<never, never>
+	pageMatches: { count: number }
 }
 
 /**
@@ -287,6 +294,44 @@ export const pdfViewerMessages: MessageSet<PdfViewerValues> = defineMessages<Pdf
 		id: 'ui.pdfViewer.defaultDelay',
 		defaultMessage: 'Default',
 		description: 'The choice of the usual short wait before the lens opens on a PDF.',
+	},
+	search: {
+		id: 'ui.pdfViewer.search',
+		defaultMessage: 'Search',
+		description:
+			'The button that opens the search of the text of a PDF, and the name of the search panel.',
+	},
+	searchQuery: {
+		id: 'ui.pdfViewer.searchQuery',
+		defaultMessage: 'Search the document',
+		description: 'The name of the field where the reader types the text to find in a PDF.',
+	},
+	previousMatch: {
+		id: 'ui.pdfViewer.previousMatch',
+		defaultMessage: 'Previous match',
+		description: 'The button that goes to the previous place where the search text is in a PDF.',
+	},
+	nextMatch: {
+		id: 'ui.pdfViewer.nextMatch',
+		defaultMessage: 'Next match',
+		description: 'The button that goes to the next place where the search text is in a PDF.',
+	},
+	matchOfTotal: {
+		id: 'ui.pdfViewer.matchOfTotal',
+		defaultMessage: '{current, number} of {total, number}',
+		description:
+			'The position of the current match of a search in a PDF, such as "3 of 12". The total is the number of matches.',
+	},
+	noMatches: {
+		id: 'ui.pdfViewer.noMatches',
+		defaultMessage: 'No matches',
+		description: 'Shown when the search text is not in the PDF.',
+	},
+	pageMatches: {
+		id: 'ui.pdfViewer.pageMatches',
+		defaultMessage: '{count, plural, one {# match} other {# matches}}',
+		description:
+			'Read after the name of a page in the thumbnails of a PDF: the number of places on that page where the search text is.',
 	},
 })
 

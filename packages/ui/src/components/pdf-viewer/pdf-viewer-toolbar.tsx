@@ -12,6 +12,7 @@ import { usePdfViewerContext } from './context'
 import { PdfViewerDocumentActions } from './pdf-viewer-document-actions'
 import { PdfViewerMagnifierSettings } from './pdf-viewer-magnifier-settings'
 import { pageLabel, pdfViewerMessages } from './pdf-viewer-messages'
+import { PdfViewerSearch } from './pdf-viewer-search'
 import { PdfViewerToolbarButton } from './pdf-viewer-toolbar-button'
 import { PdfViewerZoomControls } from './pdf-viewer-zoom-controls'
 
@@ -21,8 +22,8 @@ import { PdfViewerZoomControls } from './pdf-viewer-zoom-controls'
  * keeps one row. When it is narrow, it scrolls on the inline axis. On desktop,
  * the thumbnail control toggles the sidebar. Below the desktop breakpoint, it
  * opens the thumbnails in a Sheet. The highlight visibility toggle appears when
- * there are regions, and the magnifier control when the consumer asked for a
- * loupe.
+ * there are regions, the magnifier control when the consumer asked for a
+ * loupe, and the search control when the consumer gave OCR `data`.
  *
  * Reads everything from {@link PdfViewerContext}. The controls disable only when the document
  * has no page. They work while the pages render, because the open gives every page slot. The
@@ -151,6 +152,8 @@ export function PdfViewerToolbar() {
 				</div>
 
 				<div className={k().toolbar.section}>
+					{/* Renders nothing where the search is not offered. */}
+					<PdfViewerSearch disabled={controlsDisabled} />
 					<PdfViewerZoomControls zoom={zoom} disabled={controlsDisabled} />
 					<ToolbarGroup aria-label={intl.formatMessage(pdfViewerMessages.view)}>
 						<PdfViewerToolbarButton

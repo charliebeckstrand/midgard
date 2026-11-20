@@ -113,6 +113,8 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > `PdfViewer` gives pdf.js a URL for each file that pdf.js loads at run time: the wasm decoders, the standard fonts, and the CMaps. A new version of `pdfjs-dist` can add, remove, or rename such a file. [`pdf-viewer-binary-data-boundary.test.ts`](../src/__tests__/boundary/pdf-viewer-binary-data-boundary.test.ts) holds the map equal to the package.
 
+> `PdfViewer` searches the OCR text that `data` gives, as `PdfViewerTextItem` runs. The toolbar then has a Search control. `search` turns it off, or sets the color of the matches and the page turn, through `PdfViewerSearchOptions`.
+
 ## Loading skeletons
 
 A unit that can load late exports a `<Name>Skeleton` from its own entry point. The skeleton is a static leaf, so a Suspense fallback or a `loading.tsx` can render it on the server. It has the box of the real component and takes the same `size`, `level`, or `orientation`. `ColorPanelSkeleton` also takes the `alpha` and the `swatches` of its panel.

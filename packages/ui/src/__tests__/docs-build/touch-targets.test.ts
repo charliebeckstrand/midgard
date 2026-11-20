@@ -263,6 +263,11 @@ const KNOWN: readonly { finding: string; paths: readonly string[]; reason: strin
 		reason: 'The magnifier button of PdfViewer is 41 × 42 px, in a toolbar group.',
 	},
 	{
+		finding: 'crowded popover/pdf-viewer-search-trigger',
+		paths: ['/pdf-viewer'],
+		reason: 'The search button of PdfViewer is 42 × 42 px, beside the zoom buttons.',
+	},
+	{
 		finding: 'crowded menu/button',
 		paths: ['/modules/grid/toolbar', '/sidebar'],
 		reason: 'A menu button is 42 × 42 px, beside a toolbar button or a sidebar row.',

@@ -5,8 +5,9 @@
  * - The `toolbar`.
  * - The magnifier's `settings` dialog.
  * - The collapsible `sidebar`, the `thumbnails` rail, and each `thumbnail`.
- * - The `viewport`, with its `page` frame, the magnifier `lens`, and the
- *   `highlights` layer with each `region`.
+ * - The search panel of the toolbar.
+ * - The `viewport`, with its `page` frame, the magnifier `lens`, the
+ *   `highlights` layer with each `region`, and the `search` layer with each `hit`.
  */
 import { colors, defineKata, mode, type VariantProps } from '../../core/recipe'
 import { dan, hannou, iro, ji, narabi, omote, sen, sou, ugoki } from '../kiso'
@@ -60,6 +61,19 @@ const activeFill = {
 	amber: 'bg-amber-500/30',
 	green: 'bg-green-500/30',
 	blue: 'bg-blue-500/30',
+}
+
+/**
+ * The wash of the current search match: the doubled rung of a match. A match takes
+ * {@link activeFill}, twice the rung of a region, because it has no edge and the wash alone has
+ * to show it on the ink.
+ */
+const currentMatchFill = {
+	zinc: 'bg-zinc-500/60',
+	red: 'bg-red-500/60',
+	amber: 'bg-amber-500/60',
+	green: 'bg-green-500/60',
+	blue: 'bg-blue-500/60',
 }
 
 export const k = defineKata({
@@ -127,6 +141,17 @@ export const k = defineKata({
 					dan.gap.y.sm,
 					'[&>[data-slot=field]+[data-slot=field]]:mt-0',
 				],
+			},
+		},
+		/**
+		 * The search panel: the field, the position of the current match, and the two steps, in
+		 * one row. The field takes the free width, and the position keeps its own.
+		 */
+		search: {
+			slots: {
+				bar: [flex.row, 'items-center', dan.gap.scale.xs, 'w-80 max-w-full'],
+				field: ['min-w-0 flex-1'],
+				count: [size.sm, text.muted, 'tabular-nums select-none whitespace-nowrap'],
 			},
 		},
 		sidebar: {
@@ -217,6 +242,13 @@ export const k = defineKata({
 					base: ['block w-full h-full', bg.skeleton.base],
 					pulse: { true: css.pulse, false: '' },
 				},
+				/** The row under the frame: the page number, and the search glyph after it. */
+				caption: [flex.row, 'items-center', dan.gap.scale.xs],
+				/**
+				 * The search glyph of a page with a match, in the color of the page number. The tooltip
+				 * of the tile gives the number of matches.
+				 */
+				matches: ['inline-flex items-center'],
 				label: [
 					size.sm,
 					text.muted,
@@ -386,6 +418,41 @@ export const k = defineKata({
 										 * half of the old color standing. The rule comes after the fills, so it wins.
 										 */
 										{ dimmed: true, class: [fill.zinc, ...edge.zinc] },
+									],
+								},
+							},
+						},
+						/**
+						 * The matches of the search. The layer is the twin of the page image, as the
+						 * highlight layer is, so a match in percentages of it lands on its ink.
+						 *
+						 * The layer takes no pointer events. A match is a mark, not a control, and a press
+						 * must reach the highlighted region under it.
+						 */
+						search: {
+							base: [centered, 'pointer-events-none'],
+							slots: {
+								/**
+								 * A match is a wash with no edge. A highlighted region always has an edge, so the
+								 * reader can tell a match from a region, also in the same color.
+								 */
+								hit: {
+									/**
+									 * Forced colors remove the wash, so an outline keeps each match, and the current
+									 * match takes a heavier one.
+									 */
+									base: ['absolute block', forced.outline],
+									/** The color of the wash (see the compound rules). */
+									color: { zinc: '', red: '', amber: '', green: '', blue: '' },
+									/** The current match takes the heavier wash, and sits above its neighbors. */
+									current: { true: ['z-10', 'forced-colors:outline-2'], false: '' },
+									compound: [
+										...colors.map((color) => ({ color, current: false, class: activeFill[color] })),
+										...colors.map((color) => ({
+											color,
+											current: true,
+											class: currentMatchFill[color],
+										})),
 									],
 								},
 							},
