@@ -21,7 +21,7 @@ function byPath(a: TestSpecification, b: TestSpecification): number {
  * the files of a family are next to each other, so they go to the shards in
  * turn. Thus the shards take about the same time.
  *
- * A new file moves the files after it to the other shard. Each shard keeps a
+ * A new file moves each file after it to the next shard. Each shard keeps a
  * module cache of its own on CI. The shards import most of the same modules,
  * so a moved file misses only its own entries.
  *
