@@ -33,7 +33,8 @@ export type HeldDrag = {
 const PRIMARY: PointerEventInit = { isPrimary: true, button: 0 }
 
 /**
- * Presses `node` at `from` and moves through `path`, one frame after each step.
+ * Presses `node` at `from` and moves through `path`. After each step, it waits
+ * two frames (`frames()`), so a `ResizeObserver` of the page can deliver.
  *
  * The gesture stays down until the case calls {@link HeldDrag.release}, so a
  * case can assert on the drag mid-flight. The release is the half that is easy
