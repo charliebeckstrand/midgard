@@ -53,6 +53,34 @@ describe('a Menu whose trigger scrolls out of view (real floating engine)', () =
 		await waitFor(() => expect(visibility(panel)).toBe('visible'))
 	})
 
+	it('does not make the document scroll while the trigger is far down a scroller', async () => {
+		renderUI(
+			<div style={{ height: 200, overflow: 'auto' }}>
+				<div style={{ height: 3000 }} />
+
+				<Menu placement="bottom-start" defaultOpen>
+					<MenuTrigger>
+						<Button>Open</Button>
+					</MenuTrigger>
+
+					<MenuContent>
+						<MenuItem>One</MenuItem>
+					</MenuContent>
+				</Menu>
+			</div>,
+		)
+
+		await frames()
+
+		const panel = screen.getByRole('menu', { hidden: true })
+
+		await waitFor(() => expect(visibility(panel)).toBe('hidden'))
+
+		const root = document.documentElement
+
+		expect(root.scrollHeight).toBe(root.clientHeight)
+	})
+
 	it('hides the panel while the trigger is under a sticky bar of the scroller', async () => {
 		renderUI(
 			<div data-testid="scroller" style={{ height: 300, marginTop: 300, overflow: 'auto' }}>

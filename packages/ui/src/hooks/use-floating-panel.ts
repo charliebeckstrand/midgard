@@ -618,8 +618,9 @@ export type FloatingPanelOptions = {
  * the top side. A panel that is wider than the viewport caps its width 8px
  * inside each edge. A panel whose reference is out of view, for example
  * scrolled out of a scroll container, is hidden until the reference comes back.
- * A panel whose reference is under an open overlay, for example a page under a
- * Sheet, is hidden until the overlay is gone. A panel whose reference is in
+ * A hidden panel sits at the start of its containing block, so it does not make
+ * the document scroll. A panel whose reference is under an open overlay, for
+ * example a page under a Sheet, is hidden until the overlay is gone. A panel whose reference is in
  * the overlay, or in a surface opened from it, stays on top of it.
  *
  * In a browser with CSS anchor positioning, a panel on an element reference
@@ -832,8 +833,17 @@ export function useFloatingPanel({
 
 	// A new object only when the hidden state is on, so the styles keep the
 	// identity of floating-ui while the reference is in view.
+	//
+	// A hidden panel goes to the start of its containing block, and not to its
+	// reference. A hidden box still has its layout. A reference that is out of
+	// view can be far below the viewport, in a scroll box, and a panel there
+	// made the document scroll. The panel comes back to the reference when the
+	// reference does.
 	const floatingStyles = useMemo<CSSProperties>(
-		() => (hidden ? { ...positionStyles, visibility: 'hidden' } : positionStyles),
+		() =>
+			hidden
+				? { position: positionStyles.position, left: 0, top: 0, visibility: 'hidden' }
+				: positionStyles,
 		[positionStyles, hidden],
 	)
 
