@@ -831,14 +831,9 @@ export function useFloatingPanel({
 
 	const hidden = referenceHidden || covered
 
-	// A new object only when the hidden state is on, so the styles keep the
-	// identity of floating-ui while the reference is in view.
-	//
-	// A hidden panel goes to the start of its containing block, and not to its
-	// reference. A hidden box still has its layout. A reference that is out of
-	// view can be far below the viewport, in a scroll box, and a panel there
-	// made the document scroll. The panel comes back to the reference when the
-	// reference does.
+	// A hidden box keeps its layout, so a hidden panel goes to the start of its
+	// containing block: a reference far down a scroll box then cannot make the
+	// document scroll. A shown panel keeps the styles object of floating-ui.
 	const floatingStyles = useMemo<CSSProperties>(
 		() =>
 			hidden
