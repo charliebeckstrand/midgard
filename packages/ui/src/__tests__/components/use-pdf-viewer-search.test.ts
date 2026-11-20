@@ -7,33 +7,59 @@ import {
 	type PdfViewerSearchInput,
 	usePdfViewerSearch,
 } from '../../components/pdf-viewer/use-pdf-viewer-search'
-import { scrollWithin } from '../../utilities/scroll-within'
-import { noop } from '../helpers'
-
-vi.mock('../../utilities/scroll-within', () => ({ scrollWithin: vi.fn() }))
+import { attach, mockDomGeometry, noop } from '../helpers'
 
 /**
- * A layer of matches as the layer renders it. With `current`, it holds a box of the current
- * match that has a layout box, which jsdom does not give, so the stub gives one.
+ * A zoomed viewport that holds layers of matches, and the spy on its scroll. It overflows on
+ * both axes, and a box of the current match is below the fold, so a reveal scrolls.
  */
-function layer(current: boolean) {
-	const node = document.createElement('div')
+function zoomedViewport() {
+	const scroller = attach(
+		mockDomGeometry(document.createElement('div'), {
+			clientHeight: 100,
+			clientWidth: 100,
+			scrollHeight: 2000,
+			scrollWidth: 2000,
+			scrollTop: 300,
+			scrollLeft: 300,
+		}),
+	)
 
-	if (current) {
-		const hit = document.createElement('span')
+	scroller.style.overflowX = 'auto'
 
-		hit.setAttribute('data-current', '')
+	scroller.style.overflowY = 'auto'
 
-		hit.getClientRects = () => [new DOMRect(0, 0, 10, 10)] as unknown as DOMRectList
+	scroller.getBoundingClientRect = () => new DOMRect(100, 100, 100, 100)
 
-		node.append(hit)
+	const scrollTo = vi.fn()
+
+	scroller.scrollTo = scrollTo
+
+	/** A new layer in the viewport. With `current`, it holds a box of the current match. */
+	function layer(current: boolean) {
+		const node = document.createElement('div')
+
+		if (current) {
+			const hit = document.createElement('span')
+
+			hit.setAttribute('data-current', '')
+
+			const box = new DOMRect(140, 700, 40, 20)
+
+			hit.getBoundingClientRect = () => box
+
+			hit.getClientRects = () => [box] as unknown as DOMRectList
+
+			node.append(hit)
+		}
+
+		scroller.replaceChildren(node)
+
+		return node
 	}
 
-	return node
+	return { scrollTo, layer }
 }
-
-// The hook takes the document as arguments, so a case needs no `<PdfViewer>`. The toolbar
-// control and the layer that render from it are covered in `pdf-viewer-search.test.tsx`.
 
 /** US Letter: 612 × 792 points, so 8.5 × 11 inches. */
 const letter: PdfViewerPage = {
@@ -348,7 +374,7 @@ describe('usePdfViewerSearch', () => {
 	})
 
 	it('scrolls to each match once, also when the layer mounts again, and again after a step', () => {
-		vi.mocked(scrollWithin).mockClear()
+		const { scrollTo, layer } = zoomedViewport()
 
 		const { result } = renderSearch({ safePage: 2 })
 
@@ -356,24 +382,24 @@ describe('usePdfViewerSearch', () => {
 
 		act(() => result.current.reveal(layer(true)))
 
-		expect(scrollWithin).toHaveBeenCalledTimes(1)
+		expect(scrollTo).toHaveBeenCalledTimes(1)
 
 		// A render of the same layer, and a new layer after a page with no match: the reader
 		// already saw this match.
 		act(() => result.current.reveal(layer(true)))
 
-		expect(scrollWithin).toHaveBeenCalledTimes(1)
+		expect(scrollTo).toHaveBeenCalledTimes(1)
 
 		// A step to the match on page 3. The layer of page 2 has no box of it, so the latch waits.
 		act(() => result.current.next())
 
 		act(() => result.current.reveal(layer(false)))
 
-		expect(scrollWithin).toHaveBeenCalledTimes(1)
+		expect(scrollTo).toHaveBeenCalledTimes(1)
 
 		act(() => result.current.reveal(layer(true)))
 
-		expect(scrollWithin).toHaveBeenCalledTimes(2)
+		expect(scrollTo).toHaveBeenCalledTimes(2)
 	})
 
 	it('clears the matches with the query', () => {
