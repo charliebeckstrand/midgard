@@ -268,31 +268,46 @@ export const k = defineKata({
 				],
 			},
 		},
+		/**
+		 * The scroll box of the page. It fills the pane, and its padding is the padding of the
+		 * pane, so its content box is the content box of the pane.
+		 */
 		viewport: {
 			base: [
+				'absolute inset-0',
 				'overflow-auto',
 				'flex items-center-safe justify-center-safe',
-				'flex-1 min-w-0',
-				'max-h-[1280px]',
-				'box-content p-4',
-				...mode('bg-zinc-100', 'dark:bg-zinc-900'),
+				'p-4',
 				// A tab stop while the page overflows. The scroll clips, so the ring is inset.
 				focus.inset,
 			],
 			/**
 			 * Reserved gutter, only where a vertical scrollbar can come and go. Under
-			 * `fit: 'width'` the page's height is a function of the measured width. A scrollbar
-			 * appearing would therefore narrow the box, shorten the page, and remove itself.
-			 * Under `'page'` the page at 100% fits, and reserving a gutter would waste it. A
-			 * zoomed page overflows and gives the box scrollbars, but the measurement ignores
-			 * a scrollbar that is not reserved, so the page keeps its size.
+			 * `fit: 'width'` the page's height is a function of the width of the scroll box. A
+			 * scrollbar appearing would therefore narrow the box, shorten the page, and remove
+			 * itself. Under `'page'` the page at 100% fits, and reserving a gutter would waste it.
+			 * A zoomed page overflows and gives the box scrollbars, but the page reads the
+			 * container units of the pane, which a scrollbar does not change, so the page keeps
+			 * its size.
 			 */
 			fit: { page: '', width: 'scrollbar-gutter-stable' },
 			slots: {
+				/**
+				 * The box of the viewport. A size container that does not scroll, so the container
+				 * units that fit the page ignore the scrollbars of the scroll box inside it.
+				 */
+				pane: [
+					'relative @container-size',
+					'flex-1 min-w-0',
+					'max-h-[1280px]',
+					'box-content p-4',
+					...mode('bg-zinc-100', 'dark:bg-zinc-900'),
+				],
 				page: {
 					base: [centered, 'shadow-lg', 'bg-white'],
 					slots: {
-						frame: ['relative shrink-0'],
+						// A size container, so the page and the layers over it fill it in its container units.
+						frame: ['relative shrink-0 @container-size'],
 						placeholder: ['w-full h-full', bg.skeleton.base, css.pulse],
 						// The message of a failed load or of a document with no pages sits on the gray
 						// of the viewport, not on the page surface. The muted text of the page is 4.39:1
@@ -331,7 +346,7 @@ export const k = defineKata({
 								 * rendered size of the lens sets the center, and the offset math needs no diameter.
 								 */
 								// biome-ignore lint/plugin/no-physical-side: the offset math moves the copy from its top left corner
-								stage: ['absolute top-1/2 left-1/2 origin-top-left'],
+								stage: ['absolute top-1/2 left-1/2 origin-top-left @container-size'],
 							},
 						},
 						// Region overlay. The layer is the page image's twin (same box, same

@@ -8,13 +8,14 @@ import { pageImage, servePdfFor } from '../helpers/pdf-viewer'
 const ZOOM = 1.25
 
 /**
- * The page under `fit="page"` takes its size from the measured viewport. The viewer measured
- * the client box, and the client box does not include a scrollbar that shows. A zoomed page
+ * The page under `fit="page"` takes its size from the viewport. A viewer that measured the
+ * client box got a box less a scrollbar that shows. A zoomed page
  * overflows the viewport, and the overflow gives the viewport scrollbars. The scrollbars made
  * the fitted page smaller. In a band of widths, the smaller page stopped the overflow on one
  * axis, and that scrollbar went. The page then grew again. Thus the page changed between two
  * sizes on each frame, and the browser reported a `ResizeObserver` loop. At 125%, in a host
- * 1272 px to 1284 px wide, the page changed between 1236 px and 1222 px wide.
+ * 1272 px to 1284 px wide, the page changed between 1236 px and 1222 px wide. The page now
+ * reads the container units of the pane around the scroll box, which a scrollbar does not change.
  *
  * The case runs with real scrollbars (the `scrollbars` instance of `vitest.browser.config.ts`).
  * With hidden scrollbars, a scrollbar has no width, so the loop cannot start.

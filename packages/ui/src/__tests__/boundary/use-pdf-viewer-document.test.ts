@@ -1,5 +1,5 @@
 import { renderHook, waitFor } from '@testing-library/react'
-import { createElement } from 'react'
+import { createElement, useEffect } from 'react'
 import { renderToString } from 'react-dom/server'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -402,7 +402,10 @@ describe('usePdfViewerDocument · base raster', () => {
 		renderHook(() => {
 			usePdfViewerDocument('/a0.pdf')
 
-			usePdfViewerDocumentFocus('/a0.pdf', 1, 600)
+			const focus = usePdfViewerDocumentFocus('/a0.pdf', 1)
+
+			// The frame of the page gives its width from a `ResizeObserver`, which jsdom does not run.
+			useEffect(() => focus?.sizeRaster(600), [focus])
 		})
 
 		await waitFor(() => expect(canvases.length).toBeGreaterThan(0))

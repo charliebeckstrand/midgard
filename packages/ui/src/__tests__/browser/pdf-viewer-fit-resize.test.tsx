@@ -16,11 +16,11 @@ function contentWidth(viewport: HTMLElement) {
 }
 
 /**
- * The page under `fit="width"` takes its width from the measured viewport. A plain `setState`
- * from the observer committed that width a frame after the paint. Thus each frame that
- * narrowed the viewport painted the page at the width of the frame before, past the edge of
- * the viewport. A thumbnail rail that slides open beside the page did that on each frame of
- * the slide.
+ * The page under `fit="width"` takes its width from the viewport. A width that a `setState`
+ * from an observer committed came a frame after the paint. Thus each frame that narrowed the
+ * viewport painted the page at the width of the frame before, past the edge of the viewport.
+ * A thumbnail rail that slides open beside the page did that on each frame of the slide. CSS
+ * now sizes the page, and this test keeps it in the frame that narrows the viewport.
  *
  * A second observer, made after the viewer's own, runs after it in each delivery. It thus
  * reads the layout that the frame paints.

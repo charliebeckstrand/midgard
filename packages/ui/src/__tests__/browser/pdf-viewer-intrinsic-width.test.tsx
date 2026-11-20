@@ -32,8 +32,8 @@ function fitGap(container: HTMLElement, frame: HTMLElement) {
 }
 
 /**
- * The fitted page takes its width from the measured viewport. In a box that sizes to its
- * content, the page thus cannot give the viewport a width. Before the fix, the viewer kept the
+ * The fitted page takes its width from the viewport, which is a size container. In a box that
+ * sizes to its content, the page thus cannot give the viewport a width. Before the fix, the viewer kept the
  * width of its toolbar from before the load, and the page showed small. The viewport now takes
  * the width of the page at 100%, and a box with a width of its own still sets the width.
  */

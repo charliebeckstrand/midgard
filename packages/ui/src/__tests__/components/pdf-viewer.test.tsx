@@ -43,6 +43,7 @@ import {
 } from '../helpers'
 import { captureAppended } from '../helpers/capture-appended'
 import { serverMarkup } from '../helpers/hydrate'
+import { stubResizeObserver } from '../helpers/stub-resize-observer'
 
 beforeEach(() => {
 	// Defaults to an expanded viewport so the thumbnail rail renders, and drives
@@ -273,15 +274,35 @@ describe('PdfViewer', () => {
 			<PdfViewer src="/cold.pdf" pageSize={{ width: 842, height: 595 }} />,
 		)
 
-		const viewport = getSlot(markup, 'pdf-viewer-viewport')
+		const pane = getSlot(markup, 'pdf-viewer-pane')
 
-		expect(viewport.style.aspectRatio).toBe('842 / 595')
+		expect(pane.style.aspectRatio).toBe('842 / 595')
 
 		const tile = markup.querySelector<HTMLElement>(
 			'[data-slot="pdf-viewer-thumbnail-placeholder"] > span',
 		)
 
 		expect(tile?.getAttribute('style')).toBe(`aspect-ratio:${842 / 595}`)
+	})
+
+	/*
+	 * CSS sizes the page, so the server paints it at its final size. A size that the server
+	 * measured would be in px, and the page would wait for the measurement of the client.
+	 */
+	it('paints a page of known size on the server, in container units', () => {
+		const markup = serverMarkup(
+			<PdfViewer pages={[{ src: 'page-1.png', label: 'Page 1', width: 816, height: 1056 }]} />,
+		)
+
+		const frame = present(markup.querySelector('div[data-slot="pdf-viewer-page-frame"]'), 'frame')
+
+		expect(frame.style.width).toMatch(/^calc\(min\(100cqw, ?100cqh/)
+
+		const img = present<HTMLImageElement>(frame.querySelector('img'), 'img')
+
+		expect(img.style.width).toBe('100cqw')
+
+		expect(img.style.visibility).toBe('visible')
 	})
 
 	/*
@@ -508,12 +529,10 @@ describe('PdfViewer', () => {
 			expect(viewport?.querySelector('img')).toBeNull()
 		})
 
-		// A page that shows wider than its slot renders again at a larger scale. The viewport here
-		// fits the page at its slot size, and the zoom of 2 doubles it.
+		// A page that shows wider than its slot renders again at a larger scale. The frame here
+		// shows the page at twice its slot size, as a zoom of 2 does.
 		it('asks the queue for a sharp raster of a zoomed page', async () => {
-			vi.spyOn(HTMLElement.prototype, 'offsetWidth', 'get').mockReturnValue(918)
-
-			vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(1188)
+			const observers = stubResizeObserver()
 
 			const render = vi.fn((_index: number, _raster: string, factor = 1) => ({
 				promise: Promise.resolve({
@@ -532,7 +551,25 @@ describe('PdfViewer', () => {
 				return Promise.resolve()
 			})
 
-			renderUI(<PdfViewer src="/zoom.pdf" defaultZoom={2} />)
+			const { container } = renderUI(<PdfViewer src="/zoom.pdf" defaultZoom={2} />)
+
+			const frame = await waitFor(() =>
+				present(container.querySelector('div[data-slot="pdf-viewer-page-frame"]'), 'page frame'),
+			)
+
+			// The scroll region observes the frame too, among the children of the viewport.
+			const observer = observers.find(
+				(held) => held.targets.length === 1 && held.targets[0] === frame,
+			)
+
+			if (!observer) throw new Error('expected an observer of the page frame')
+
+			act(() => {
+				observer.callback(
+					[{ target: frame, contentRect: { width: 918 * 2, height: 1188 * 2 } } as never],
+					observer as never,
+				)
+			})
 
 			// The rail asks for the thumbnail too, so only the full rasters count here.
 			await waitFor(() =>
@@ -738,7 +775,7 @@ describe('PdfViewer', () => {
 	it("does not size the next page using the previous page's natural dimensions", () => {
 		const { container, rerender } = renderUI(<PdfViewer pages={pages} page={1} />)
 
-		const viewport = getSlot(container, 'pdf-viewer-viewport')
+		const viewport = getSlot(container, 'pdf-viewer-pane')
 
 		const img = present<HTMLImageElement>(viewport.querySelector('img'), 'img')
 
@@ -796,7 +833,7 @@ describe('PdfViewer', () => {
 	it("does not size a new document's page with the previous document's natural dimensions", () => {
 		const { container, rerender } = renderUI(<PdfViewer pages={[{ src: 'first.png' }]} />)
 
-		const viewport = getSlot(container, 'pdf-viewer-viewport')
+		const viewport = getSlot(container, 'pdf-viewer-pane')
 
 		const img = present<HTMLImageElement>(viewport.querySelector('img'), 'img')
 
