@@ -308,7 +308,7 @@ describe('PdfViewer', () => {
 	/*
 	 * A narrow bar scrolls. A page navigation that arrived with the document pushed the zoom
 	 * and the actions after it along the bar. The server paint has the navigation, with the page
-	 * that the viewer asks for and a skeleton of one digit in place of the count.
+	 * that the viewer asks for and a count of one digit, under one skeleton for the group.
 	 */
 	it('paints the page navigation with the asked page before a src load starts', () => {
 		const markup = serverMarkup(<PdfViewer src="/cold.pdf" defaultPage={3} />)
@@ -319,12 +319,10 @@ describe('PdfViewer', () => {
 
 		expect(navigation?.querySelector('[aria-label="Current page"]')).toHaveTextContent('3')
 
-		const total = getSlot(markup, 'pdf-viewer-page-total')
+		// One skeleton covers the whole group, and the group holds one digit in place of the count.
+		expect(navigation?.querySelectorAll('[data-slot="placeholder"]')).toHaveLength(1)
 
-		expect(total.querySelector('[data-slot="placeholder"]')).not.toBeNull()
-
-		// The skeleton holds a digit that does not show, and no count.
-		expect(total.querySelector('[aria-hidden="true"]:not([data-slot="placeholder"])')).toBeNull()
+		expect(getSlot(markup, 'pdf-viewer-page-total')).toHaveTextContent(/^\d$/)
 	})
 
 	/*
