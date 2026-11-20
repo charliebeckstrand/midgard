@@ -34,7 +34,7 @@ type SeatChartMarksProps = {
  * @internal
  */
 export function SeatChartMarks({ seats, owners, groups, dot, fit }: SeatChartMarksProps) {
-	const { mark, lit } = useChartMarkEmphasis()
+	const { marks: emphasized, lit } = useChartMarkEmphasis()
 
 	const paths = useMemo(
 		() =>
@@ -58,7 +58,7 @@ export function SeatChartMarks({ seats, owners, groups, dot, fit }: SeatChartMar
 				const paint = k.series[group.color]
 
 				return (
-					<g key={group.label} className={seriesGroupClass(mark !== null && !lit(index))}>
+					<g key={group.label} className={seriesGroupClass(emphasized !== null && !lit(index))}>
 						<path
 							data-slot="chart-seat-group"
 							d={paths[index]}

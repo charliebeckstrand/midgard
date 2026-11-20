@@ -4,7 +4,7 @@ import { useMemo } from 'react'
 import { ChartCartesianFrame } from '../engine/chart-frame/cartesian'
 import { valueLabelHeadroom } from '../engine/chart-geometry/label'
 import { buildLineSeries, type LineInterpolation } from '../engine/chart-geometry/line'
-import { nearestSeriesArea, nearestSeriesLine } from '../engine/chart-hit-test'
+import { nearestSeriesArea } from '../engine/chart-hit-test'
 import { AnimatedChartLineMarks, ChartLineMarks } from '../engine/chart-marks/line'
 import { LINE_UNDRAW } from '../engine/chart-motion'
 import type { ChartValueLabelConfig } from '../engine/chart-value-labels'
@@ -99,7 +99,8 @@ export function LineChart<T>(props: LineChartProps<T>) {
 		[chart.drawn, chart.bandPositions, floor, interpolation, points],
 	)
 
-	const seriesRuns = list.map((series) => series.geometry.runs)
+	// The drawn shape of each line, which the wash under it follows.
+	const traces = list.map((series) => series.geometry.trace)
 
 	const fills = useMemo(
 		() => chart.drawn.map(({ meta }) => chart.tex.fillFor(meta.slot)),
@@ -125,16 +126,12 @@ export function LineChart<T>(props: LineChartProps<T>) {
 			chart={chart}
 			fullscreen={<LineChart {...props} />}
 			marks={marks}
-			markAt={(x, y, held) => {
-				// A pointer on a line keeps that line (held sticky where two catches
-				// overlap) and a filled chart reads the wash under it the same way.
-				const heldAt = held ? list.findIndex((entry) => entry.index === held.series) : -1
+			markAt={(x, y) => {
+				// The frame catches the lines themselves (`lineHits`). Off every line, a
+				// filled chart reads the wash under the pointer.
+				const within = fill ? nearestSeriesArea(traces, floor, x, y) : null
 
-				const near =
-					nearestSeriesLine(seriesRuns, x, y, undefined, heldAt < 0 ? null : heldAt) ??
-					(fill ? nearestSeriesArea(seriesRuns, floor, x, y) : null)
-
-				return near === null ? null : { series: list[near]?.index ?? near, datum: null }
+				return within === null ? null : { series: list[within]?.index ?? within, datum: null }
 			}}
 			valueLabels={{ list }}
 			lineHits

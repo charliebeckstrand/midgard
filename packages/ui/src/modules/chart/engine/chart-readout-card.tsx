@@ -2,6 +2,7 @@ import type { ComponentProps, ReactNode } from 'react'
 import { Swatch, type SwatchProps } from '../../../components/swatch'
 import { cn } from '../../../core/cn'
 import { k } from '../../../recipes/kata/chart'
+import type { Orientation } from '../../../types/orientation'
 
 /** The shape of a mark, as a readout names it. @internal */
 export type ReadoutSwatchShape = 'rect' | 'line' | 'dot'
@@ -35,14 +36,26 @@ type ReadoutSwatchProps = {
 	 * @defaultValue false
 	 */
 	dashed?: boolean
+	/**
+	 * The direction of a line swatch, to key a rule that runs in it.
+	 * @defaultValue 'horizontal'
+	 */
+	orientation?: Orientation
 }
 
 /** The small swatch that keys a readout row to its mark. @internal */
-export function ReadoutSwatch({ shape, className, color, dashed = false }: ReadoutSwatchProps) {
+export function ReadoutSwatch({
+	shape,
+	className,
+	color,
+	dashed = false,
+	orientation,
+}: ReadoutSwatchProps) {
 	return (
 		<Swatch
 			shape={readoutSwatchShapes[shape]}
 			variant={dashed ? 'dashed' : undefined}
+			orientation={orientation}
 			size="sm"
 			color={className}
 			style={color ? { color } : undefined}

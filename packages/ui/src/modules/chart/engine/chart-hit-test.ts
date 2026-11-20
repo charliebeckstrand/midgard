@@ -2,7 +2,7 @@
  * Pure pointer hit tests for the cartesian marks:
  *
  * - Which bar the pointer covers.
- * - Which series' line it is nearest.
+ * - Which thin marks (the lines and the reference rules) are in its reach.
  * - Which series' fill it sits inside.
  *
  * Each resolves to the mark or series, or `null` for a miss. The hit layer
@@ -16,22 +16,33 @@ import type { LinePoint } from './chart-geometry/line'
 import type { ChartOrientation } from './chart-orientation'
 
 /**
- * How near the pointer must come to a line to count as on it, in px. A generous
- * catch, so the tooltip is easy to summon and the line easy to isolate by aim
- * alone. It asks none of the pixel precision a 2px stroke would otherwise
- * demand. A snapping crosshair bypasses this: it reads the nearest point
- * anywhere in the plot.
+ * How near the pointer must come to a thin mark (a line or a reference rule) to
+ * catch it, in px. A generous catch, so the readout is easy to summon and the
+ * mark easy to isolate by aim alone. It asks none of the pixel precision that a
+ * 2px stroke would otherwise demand. A snapping crosshair bypasses this: it
+ * reads the nearest point anywhere in the plot.
  *
  * @internal
  */
-const LINE_HIT_TOLERANCE = 16
+export const THIN_MARK_CATCH = 16
+
+/**
+ * How much farther a thin mark in reach stays in reach, in px
+ * ({@link thinMarksAt}). The edge of a catch is the only boundary that the
+ * pointer crosses among the thin marks. Without the hold, a pointer that shakes
+ * on that edge flips the readout. The hold is a distance on the screen because
+ * the shake is one.
+ *
+ * @internal
+ */
+const THIN_MARK_HOLD = 2
 
 /** Slack above an area's top edge, so its own stroke counts as inside. @internal */
 const AREA_EDGE_SLACK = 4
 
 /**
- * How decisively a challenger must out-close the held mark to take the
- * emphasis within overlapping catches: to under half its distance. Nearest-mark
+ * How decisively a challenger must out-close the held disc of a scatter to take
+ * the emphasis within overlapping catches: to under half its distance. Nearest-mark
  * resolution alone flips at the exact midline between two close marks: a knife
  * edge. The mark already emphasized therefore holds until the pointer commits
  * to another, which turns the flip point into a deadband.
@@ -137,214 +148,76 @@ function runDistanceSquared(run: LinePoint[], x: number, y: number): number {
 }
 
 /**
- * The series whose line runs nearest the pointer, within `tolerance`, or `null`
- * off every line. The nearest wins where two overlap, so the isolation lifts
- * the line the pointer truly follows rather than whichever drew first. A `held`
- * series (the one already emphasized) keeps the win while it stays within the
- * catch, unless a challenger {@link beatsHeldMark | decisively} closes. The
- * resolution is sticky across the midline between two close strokes, rather
- * than flipping on the knife edge. Each series brings its gap-split runs, so
- * the test never bridges a gap. A smooth curve is tested against its chords,
- * which the tolerance comfortably covers.
+ * A thin mark: a line, by its place in the list of lines, or a reference rule,
+ * by its place in the `reference` prop.
  *
  * @internal
  */
-export function nearestSeriesLine(
-	seriesRuns: LinePoint[][][],
-	x: number,
-	y: number,
-	tolerance: number = LINE_HIT_TOLERANCE,
-	held: number | null = null,
-): number | null {
-	let best: { series: number; distanceSquared: number } | null = null
+export type ThinMark = { line: number; rule?: never } | { rule: number; line?: never }
 
-	let bestDistance = tolerance * tolerance
+/**
+ * Where a reference rule stands on the plot, for the hit test: its position
+ * along one axis, across the whole plot. A value rule stands at a value
+ * position (`band: false`), and a category rule at a band position
+ * (`band: true`).
+ *
+ * @internal
+ */
+export type RuleStop = { at: number; band: boolean }
 
-	let heldDistance = Number.POSITIVE_INFINITY
+/** Whether two thin marks are the same mark. @internal */
+function sameThinMark(a: ThinMark, b: ThinMark): boolean {
+	return a.line === b.line && a.rule === b.rule
+}
 
-	for (let series = 0; series < seriesRuns.length; series++) {
-		for (const run of seriesRuns[series] as LinePoint[][]) {
-			const distance = runDistanceSquared(run, x, y)
+/**
+ * The thin marks in reach of the pointer: each line, then each reference rule,
+ * that sits within {@link THIN_MARK_CATCH} of it. The pointer sits at `band`
+ * along the band axis and at `value` along the value axis. A mark in `held`,
+ * the marks in reach at the last resolve, stays in reach
+ * {@link THIN_MARK_HOLD} farther out. So a pointer that shakes on the edge of
+ * a catch does not flip the readout.
+ *
+ * The distance is the straight distance, so a steep line reaches as wide as a
+ * flat one. Each line is its drawn shape: its trace, a polyline for each run
+ * ({@link traceRun}), in band and value coordinates, so a gap between two runs
+ * reaches nothing. A rule stands across the whole plot ({@link RuleStop}), so
+ * its distance is the distance along its own axis. A rule that takes no pointer
+ * is `null`.
+ *
+ * The caller decides what the marks in reach mean: none, one, or more.
+ *
+ * @internal
+ */
+export function thinMarksAt(
+	lines: readonly LinePoint[][][],
+	rules: readonly (RuleStop | null)[],
+	band: number,
+	value: number,
+	held: readonly ThinMark[] = [],
+): ThinMark[] {
+	const reach = (mark: ThinMark) =>
+		THIN_MARK_CATCH + (held.some((other) => sameThinMark(other, mark)) ? THIN_MARK_HOLD : 0)
 
-			if (series === held) heldDistance = Math.min(heldDistance, distance)
+	const marks: ThinMark[] = []
 
-			if (distance <= bestDistance) {
-				bestDistance = distance
+	lines.forEach((runs, line) => {
+		const limit = reach({ line })
 
-				best = { series, distanceSquared: distance }
-			}
+		if (
+			runs.some((run) => run.length > 0 && runDistanceSquared(run, band, value) <= limit * limit)
+		) {
+			marks.push({ line })
 		}
-	}
-
-	// The held series keeps the emphasis while it remains within the catch and
-	// no challenger decisively out-closes it.
-	if (
-		best !== null &&
-		held !== null &&
-		best.series !== held &&
-		heldDistance <= tolerance * tolerance &&
-		!beatsHeldMark(best.distanceSquared, heldDistance)
-	) {
-		return held
-	}
-
-	return best?.series ?? null
-}
-
-/**
- * The distance between two samples of the catch of a rule, along the rule, in
- * px. The edge of the catch bends where a line comes near the rule, and a
- * sample at each two px follows that bend closely.
- *
- * @internal
- */
-const RULE_CATCH_STEP = 2
-
-/**
- * The halvings that find the edge of the catch at one sample. Eight halvings
- * put the edge within 1/256 of the reach.
- *
- * @internal
- */
-const RULE_CATCH_HALVINGS = 8
-
-/** A number of px, rounded to two decimals for a path. @internal */
-function px(value: number): number {
-	return Math.round(value * 100) / 100
-}
-
-/**
- * The edge of the catch on one side of a rule at one sample, as its distance
- * from the rule. A point at distance `d` from the rule belongs to the rule
- * where each line is farther from it than `d`. The distance to a line changes
- * by no more than `d` does, so the points of the rule form one span from the
- * rule out. Halvings find the end of that span.
- *
- * @internal
- */
-function catchEdge(reach: number, lineDistance: (d: number) => number): number {
-	if (reach < lineDistance(reach)) return reach
-
-	let low = 0
-
-	let high = reach
-
-	for (let i = 0; i < RULE_CATCH_HALVINGS; i++) {
-		const mid = (low + high) / 2
-
-		if (mid < lineDistance(mid)) low = mid
-		else high = mid
-	}
-
-	return low
-}
-
-/**
- * The points of a list of samples that bend the edge of a catch: each sample
- * whose distance from the rule differs from a neighbor. A straight stretch of
- * the edge thus keeps only its two ends.
- *
- * @internal
- */
-function edgeBends<T extends { d: number }>(samples: readonly T[]): T[] {
-	return samples.filter(
-		(sample, i) => sample.d !== samples[i - 1]?.d || sample.d !== samples[i + 1]?.d,
-	)
-}
-
-/**
- * The catch of a reference rule from `from` to `to`, as the `d` of a closed
- * SVG path. The catch holds each point within `reach` of the rule that sits
- * nearer to the rule than to each line in `runs`. The nearer mark thus takes
- * the pointer: a line that runs near the rule keeps its own catch
- * ({@link nearestSeriesLine}), and the rule keeps the points nearer to it. A
- * line takes a point at the same distance, so a line that lies on the rule stays
- * easy to point. Far from each line, the catch is a band of `reach` on each
- * side of the rule. A line that crosses the rule pinches the band to nothing at
- * the crossing.
- *
- * Measure each distance as {@link nearestSeriesLine} does, against the chords
- * of each run. Keep `reach` at or below {@link LINE_HIT_TOLERANCE}, so that the
- * line catches each point that the rule gives up. A rule is straight along one
- * axis.
- *
- * @internal
- */
-export function ruleCatchPath(
-	from: LinePoint,
-	to: LinePoint,
-	runs: readonly LinePoint[][],
-	reach: number,
-): string {
-	// A vertical rule runs along y, and a horizontal rule along x.
-	const vertical = from.x === to.x
-
-	const at = vertical ? from.x : from.y
-
-	const [start, end] = vertical
-		? [Math.min(from.y, to.y), Math.max(from.y, to.y)]
-		: [Math.min(from.x, to.x), Math.max(from.x, to.x)]
-
-	const point = (along: number, across: number): LinePoint =>
-		vertical ? { x: across, y: along } : { x: along, y: across }
-
-	// Only a run that comes within twice the reach of the rule can come nearer to a
-	// point of the catch than the rule does.
-	const near = runs.filter((run) => {
-		const alongs = run.map((p) => (vertical ? p.y : p.x))
-
-		const acrosses = run.map((p) => (vertical ? p.x : p.y))
-
-		return (
-			Math.min(...alongs) <= end + reach &&
-			Math.max(...alongs) >= start - reach &&
-			Math.min(...acrosses) <= at + 2 * reach &&
-			Math.max(...acrosses) >= at - 2 * reach
-		)
 	})
 
-	const distance = (along: number, across: number): number => {
-		const { x, y } = point(along, across)
+	rules.forEach((stop, rule) => {
+		if (stop === null) return
 
-		let best = Number.POSITIVE_INFINITY
+		if (Math.abs((stop.band ? band : value) - stop.at) <= reach({ rule })) marks.push({ rule })
+	})
 
-		for (const run of near) best = Math.min(best, runDistanceSquared(run, x, y))
-
-		return Math.sqrt(best)
-	}
-
-	const count = Math.max(1, Math.ceil((end - start) / RULE_CATCH_STEP))
-
-	const low: { along: number; d: number }[] = []
-
-	const high: { along: number; d: number }[] = []
-
-	for (let i = 0; i <= count; i++) {
-		const along = start + ((end - start) * i) / count
-
-		// A line twice the reach away from the rule leaves the full band on each side.
-		const clear = distance(along, at) >= 2 * reach
-
-		low.push({
-			along,
-			d: clear ? reach : catchEdge(reach, (d) => distance(along, at - d)),
-		})
-
-		high.push({
-			along,
-			d: clear ? reach : catchEdge(reach, (d) => distance(along, at + d)),
-		})
-	}
-
-	// Out along the low side, and back along the high side.
-	const outline = [
-		...edgeBends(low).map(({ along, d }) => point(along, at - d)),
-		...edgeBends(high)
-			.reverse()
-			.map(({ along, d }) => point(along, at + d)),
-	]
-
-	return `${outline.map(({ x, y }, i) => `${i === 0 ? 'M' : 'L'}${px(x)} ${px(y)}`).join(' ')} Z`
+	return marks
 }
 
 /** The run's top-edge y at `x` by chord interpolation, or `null` where the run doesn't cover `x`. @internal */

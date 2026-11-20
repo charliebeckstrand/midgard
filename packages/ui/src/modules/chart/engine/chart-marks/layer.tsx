@@ -110,22 +110,22 @@ export type ChartMarksLayerProps = Pick<ChartGenerationProps, 'animate' | 'dataK
 
 /**
  * Wraps a chart's marks in the `chart-marks` group, one
- * {@link ChartGeneration}. Pointing a reference rule recedes the whole group to
- * a quarter opacity, the same focus the legend applies to a series. A rule's
- * hover therefore reads as a deliberate emphasis, not a hit-target conflict with
- * the marks under it.
+ * {@link ChartGeneration}. An emphasis on rules alone recedes the whole group to
+ * a quarter opacity ({@link ChartEmphasis.marksRecede}), the same focus the
+ * legend applies to a series. A rule's hover therefore reads as a deliberate
+ * emphasis, not a hit-target conflict with the marks under it.
  *
  * @internal
  */
 export function ChartMarksLayer({ animate, dataKey, children }: ChartMarksLayerProps) {
-	const { emphasizedReference } = useChartEmphasis()
+	const { marksRecede } = useChartEmphasis()
 
 	return (
 		<ChartGeneration
 			animate={animate}
 			dataKey={dataKey}
 			slot="chart-marks"
-			className={seriesGroupClass(emphasizedReference !== null)}
+			className={seriesGroupClass(marksRecede)}
 		>
 			{children}
 		</ChartGeneration>

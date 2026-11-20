@@ -14,7 +14,7 @@ import {
 	type ChartLineSeries,
 	type LineInterpolation,
 } from '../engine/chart-geometry/line'
-import { barMarkAt, nearestSeriesArea, nearestSeriesLine } from '../engine/chart-hit-test'
+import { barMarkAt, nearestSeriesArea } from '../engine/chart-hit-test'
 import { AnimatedChartBarMarks, ChartBarMarks } from '../engine/chart-marks/bar'
 import { AnimatedChartLineMarks, ChartLineMarks } from '../engine/chart-marks/line'
 import { BAR_SHRINK, LINE_UNDRAW } from '../engine/chart-motion'
@@ -64,8 +64,6 @@ export type ComboChartProps<T = never> = AccessibleName &
 
 /** The drawn geometry {@link comboMarkAt} resolves the pointer against. @internal */
 type ComboMarks = {
-	/** The line series, then the area series behind them in stroke order. */
-	lines: ChartLineSeries[]
 	areas: ChartLineSeries[]
 	/** The zero line that each area wash closes on, by its position in `areas`. */
 	areaBase: (order: number) => number
@@ -75,53 +73,22 @@ type ComboMarks = {
 }
 
 /**
- * The held mark's position among the strokes: the drawn slot the sticky
- * resolution keys on. It is `null` when the held mark is a bar or absent.
+ * The combo's pointer-to-mark resolution off the thin marks. The frame catches
+ * the lines and the top edges of the areas first (`lineHits`), with the
+ * reference rules, so this reads the fills alone. They resolve by containment,
+ * with the wash winning the bar it covers, as the wash draws over the bars.
  *
  * @internal
  */
-function heldStrokeAt(strokes: ChartLineSeries[], held: ChartMarkRef | null): number | null {
-	if (!held || held.datum !== null) return null
+function comboMarkAt(marks: ComboMarks, x: number, y: number): ChartMarkRef | null {
+	const { areas, areaBase, bars, barIndices } = marks
 
-	const at = strokes.findIndex((entry) => entry.index === held.series)
-
-	return at < 0 ? null : at
-}
-
-/** Each stroke series' gap-split runs, in the order `strokes` lists them. @internal */
-function comboStrokeRuns(strokes: ChartLineSeries[]) {
-	return strokes.map((entry) => entry.geometry.runs)
-}
-
-/**
- * The combo's pointer-to-mark resolution. Strokes compete by proximity, never
- * draw order. The lines and the areas' top edges are all thin marks, so the
- * nearest one is the one being pointed at. A pointer on an area's dot resolves
- * that area, even with a line inside the catch tolerance, and vice versa. The
- * held stroke stays sticky across their midline. Kinds that can't be compared
- * by distance rank by the visual stack instead. Any stroke outranks a fill,
- * because strokes draw on top. The fills resolve by containment, with the wash
- * winning the bar it covers.
- *
- * @internal
- */
-function comboMarkAt(
-	marks: ComboMarks,
-	x: number,
-	y: number,
-	held: ChartMarkRef | null,
-): ChartMarkRef | null {
-	const { lines, areas, areaBase, bars, barIndices } = marks
-
-	const strokes = [...lines, ...areas]
-
-	const strokeRuns = comboStrokeRuns(strokes)
-
-	const stroke = nearestSeriesLine(strokeRuns, x, y, undefined, heldStrokeAt(strokes, held))
-
-	if (stroke !== null) return { series: strokes[stroke]?.index ?? stroke, datum: null }
-
-	const area = nearestSeriesArea(comboStrokeRuns(areas), areaBase, x, y)
+	const area = nearestSeriesArea(
+		areas.map((entry) => entry.geometry.trace),
+		areaBase,
+		x,
+		y,
+	)
 
 	if (area !== null) return { series: areas[area]?.index ?? area, datum: null }
 
@@ -322,7 +289,7 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 			chart={chart}
 			fullscreen={<ComboChart {...props} />}
 			marks={marks}
-			markAt={(x, y, held) => comboMarkAt({ lines, areas, areaBase, bars, barIndices }, x, y, held)}
+			markAt={(x, y) => comboMarkAt({ areas, areaBase, bars, barIndices }, x, y)}
 			bars={(index) => types[index] === 'bar'}
 			// Value labels ride the line and area series only: bars read against the axis.
 			valueLabels={{ list: [...areas, ...lines] }}

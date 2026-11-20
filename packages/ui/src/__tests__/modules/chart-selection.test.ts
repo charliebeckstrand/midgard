@@ -33,26 +33,40 @@ describe('chartMarkEmphasis with a held selection', () => {
 	})
 
 	it('ignores the pointer while a selection is held, and keeps the pointed mark', () => {
-		const { lit, mark } = chartMarkEmphasis({ series: 0, datum: 2 }, null, selected)
+		const { lit, marks } = chartMarkEmphasis([{ series: 0, datum: 2 }], null, selected)
 
 		expect([lit(0, 1), lit(0, 2)]).toEqual([true, false])
 
 		// The tooltip still reads the pointed mark.
-		expect(mark).toEqual({ series: 0, datum: 2 })
+		expect(marks).toEqual([{ series: 0, datum: 2 }])
 	})
 
 	it('lets the pointer isolate a mark when nothing is selected', () => {
-		const { lit } = chartMarkEmphasis({ series: 0, datum: 2 }, null, null)
+		const { lit } = chartMarkEmphasis([{ series: 0, datum: 2 }], null, null)
 
 		expect([lit(0, 1), lit(0, 2)]).toEqual([false, true])
 	})
 
+	it('lights each series that the pointer emphasizes, and dims the rest', () => {
+		const { lit } = chartMarkEmphasis(
+			[
+				{ series: 0, datum: null },
+				{ series: 2, datum: null },
+			],
+			1,
+			null,
+		)
+
+		// The pointed series win over the legend series.
+		expect([lit(0), lit(1), lit(2), lit(2, 3)]).toEqual([true, false, true, true])
+	})
+
 	it('applies a legend series and the selection together', () => {
-		const { lit, mark } = chartMarkEmphasis(null, 1, selected)
+		const { lit, marks } = chartMarkEmphasis(null, 1, selected)
 
 		expect([lit(0, 1), lit(1, 0), lit(1, 1)]).toEqual([false, false, true])
 
-		expect(mark).toEqual({ series: 1, datum: null })
+		expect(marks).toEqual([{ series: 1, datum: null }])
 	})
 
 	it('lights each mark with no selection', () => {

@@ -12,6 +12,7 @@
  */
 
 import type { AccessibleName } from '../../../types/accessible-name'
+import type { Orientation } from '../../../types/orientation'
 import type { CartesianAxes, ChartValueAxisId } from './chart-axes/schema'
 import type { ChartSeriesColor } from './chart-color/palette'
 import type { ChartContextMenuConfig } from './chart-context-menu'
@@ -539,6 +540,8 @@ type ChartReadoutRow = {
 export type ChartReadoutNote = {
 	/** The key of the rule ({@link ruleKeys}), unique in the chart. */
 	key: string
+	/** The index of the rule in the `reference` prop, which its emphasis keys on. */
+	index: number
 	/** The label of the rule, or its description where it has no label. */
 	text: string
 	/** The description of the rule, after its label. */
@@ -549,6 +552,8 @@ export type ChartReadoutNote = {
 	swatchColor?: string
 	/** Whether the rule is dashed, which its swatch mirrors. */
 	dashed: boolean
+	/** The direction of the rule on the plot, which its swatch mirrors. */
+	orientation: Orientation
 }
 
 /**

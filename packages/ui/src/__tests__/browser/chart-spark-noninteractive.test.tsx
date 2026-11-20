@@ -303,22 +303,22 @@ describe('spark tier is non-interactive (real browser)', () => {
 		expect(marks.classList.contains('opacity-25')).toBe(false)
 	})
 
-	it('a framed reference rule keeps its hover target and emphasis', async () => {
+	it('a framed reference rule keeps its hover and emphasis', async () => {
 		const { container } = renderUI(referenced(520, 320))
 
 		const rule = getSlot(container, 'chart-reference-line')
 
-		// The hover rendering: the drawn stroke under its wide transparent hit target.
+		// The hover rendering: the drawn stroke alone. The rule takes no pointer of
+		// its own, so the hit area of the chart resolves it with the lines.
 		expect(rule.querySelectorAll('line')).toHaveLength(1)
 
-		expect(rule.querySelector('[data-slot="chart-reference-hit"]')).not.toBeNull()
+		expect(getComputedStyle(rule).pointerEvents).toBe('none')
 
 		// Park the pointer on the rule's row. The hover targets the plot region (an
-		// SVG <g> has no client rects, so Playwright would wait on it forever) and
-		// the rule's hit target wins the point as its descendant, over the hit rect the
-		// default tooltip keeps mounted beneath it. The receded marks prove the rule's
-		// pointer-enter fired; the readout it also opens rides the floating engine
-		// this suite mocks, so the live-tooltip contract stays with the floating-ui
+		// SVG <g> has no client rects, so Playwright would wait on it forever). The
+		// hit area under it resolves the rule. The receded marks prove the hit area
+		// pointed the rule; the readout it also opens rides the floating engine this
+		// suite mocks, so the live-tooltip contract stays with the floating-ui
 		// suite's Tooltip cases.
 		const region = getSlot(container, 'chart-plot')
 

@@ -103,8 +103,9 @@ export type ChartReferenceValue = ChartReferenceShared & {
  * leading edge of the slot of its category on a chart that draws bars, and the
  * center of the band otherwise. It takes no keyboard stop: its label and its
  * description join the readout of its category, which the pointer and the
- * keyboard cursor both open. It takes a legend chip only where the legend
- * names it (`legend`). A category that the chart does not draw draws no rule.
+ * keyboard cursor both open. A pointer in reach of the rule lights it with the
+ * other lines in reach. It takes a legend chip only where the legend names it
+ * (`legend`). A category that the chart does not draw draws no rule.
  */
 export type ChartReferenceCategory = ChartReferenceShared & {
 	/**
@@ -292,11 +293,16 @@ export function referenceLegendItems(
 
 /**
  * The direction that a rule runs on the plot. A value rule runs across the
- * value axis, and a category rule runs along it.
+ * value axis, and a category rule runs along it. Each key of a rule (its legend
+ * chip, its note in a category readout, and the swatch in its own tooltip) runs
+ * in this direction.
  *
  * @internal
  */
-function ruleOrientation(line: ChartReferenceLine, orientation: ChartOrientation): Orientation {
+export function ruleOrientation(
+	line: ChartReferenceLine,
+	orientation: ChartOrientation,
+): Orientation {
 	const along = isCategoryReference(line)
 
 	return (orientation === 'vertical') === along ? 'vertical' : 'horizontal'
@@ -326,8 +332,10 @@ export function categoryRows(rawCategories: readonly unknown[]): Map<string, num
  * for each category reference at its row ({@link categoryRows}), in the order
  * of the prop. A rule with no label and no description has nothing to say, so
  * it adds no note. A rule toggled off through its legend chip (`hidden`) adds
- * none either. `undefined` when no rule
- * adds one, so a chart with no category reference carries no notes.
+ * none either. Each note runs its key in the direction of its rule on a chart
+ * whose value axis runs in `orientation` ({@link ruleOrientation}). `undefined`
+ * when no rule adds one, so a chart with no category reference carries no
+ * notes.
  *
  * @internal
  */
@@ -335,14 +343,15 @@ export function referenceNotes(
 	reference: ChartReferenceLine[] | undefined,
 	rawCategories: readonly unknown[],
 	hidden: ReadonlySet<number>,
+	orientation: ChartOrientation,
 ): ChartReadoutNote[][] | undefined {
 	const lines = reference ?? []
 
 	const keys = ruleKeys(lines)
 
-	const marked = lines.flatMap((line, index): [ChartReferenceCategory, string][] =>
+	const marked = lines.flatMap((line, index): [ChartReferenceCategory, string, number][] =>
 		isCategoryReference(line) && (line.label || line.description) && !hidden.has(index)
-			? [[line, keys[index] ?? '']]
+			? [[line, keys[index] ?? '', index]]
 			: [],
 	)
 
@@ -352,22 +361,77 @@ export function referenceNotes(
 
 	const rows = categoryRows(rawCategories)
 
-	for (const [line, key] of marked) {
+	for (const [line, key, index] of marked) {
 		const row = rows.get(line.category)
 
 		if (row === undefined) continue
 
-		const paint = resolvePaint(line.color ?? DEFAULT_REFERENCE_COLOR)
-
-		notes[row]?.push({
-			key,
-			text: line.label || (line.description ?? ''),
-			description: line.label ? line.description : undefined,
-			swatchClass: textClass(paint) ?? '',
-			swatchColor: rawColor(paint),
-			dashed: line.dashed !== false,
-		})
+		// A category rule reads no value, so no formatter applies.
+		notes[row]?.push(ruleNote(line, index, key, String, orientation))
 	}
 
 	return notes
+}
+
+/**
+ * The readout row of one rule, keyed in its color and its dash, and running in
+ * its direction ({@link ruleOrientation}). A value rule reads as its tooltip
+ * does: its value, then its label and its description. A category rule reads
+ * as its note does: its label, then its description, or its description alone.
+ *
+ * @internal
+ */
+function ruleNote(
+	line: ChartReferenceLine,
+	index: number,
+	key: string,
+	format: ReferenceFormat,
+	orientation: ChartOrientation,
+): ChartReadoutNote {
+	const paint = resolvePaint(line.color ?? DEFAULT_REFERENCE_COLOR)
+
+	const reading = isCategoryReference(line)
+		? {
+				text: line.label || (line.description ?? ''),
+				description: line.label ? line.description : undefined,
+			}
+		: {
+				text: format(line.value, line.axis ?? 'y'),
+				description: [line.label, line.description].filter(Boolean).join(' ') || undefined,
+			}
+
+	return {
+		key,
+		index,
+		...reading,
+		swatchClass: textClass(paint) ?? '',
+		swatchColor: rawColor(paint),
+		dashed: line.dashed !== false,
+		orientation: ruleOrientation(line, orientation),
+	}
+}
+
+/**
+ * The readout row of each rule, aligned with the `reference` prop
+ * ({@link ruleNote}). A category rule with no label and no description has
+ * nothing to say, so it takes no row. A readout adds the row of each rule that
+ * the pointer emphasizes with the data, where its category does not hold it as
+ * a note.
+ *
+ * @internal
+ */
+export function ruleNotes(
+	reference: ChartReferenceLine[] | undefined,
+	format: ReferenceFormat,
+	orientation: ChartOrientation,
+): (ChartReadoutNote | null)[] {
+	const lines = reference ?? []
+
+	const keys = ruleKeys(lines)
+
+	return lines.map((line, index) =>
+		isCategoryReference(line) && !line.label && !line.description
+			? null
+			: ruleNote(line, index, keys[index] ?? String(index), format, orientation),
+	)
 }

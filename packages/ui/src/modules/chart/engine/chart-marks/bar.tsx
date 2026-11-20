@@ -74,11 +74,11 @@ export function ChartBarMarks({
 	fills,
 	textureActive = false,
 }: ChartBarMarksProps) {
-	const { mark, lit } = useChartMarkEmphasis()
+	const { marks: emphasized, lit } = useChartMarkEmphasis()
 
 	// A pointed bar isolates one datum, so its series lifts even when that bar is
 	// the only one: the path dims and the bar re-draws over it.
-	const isolating = mark !== null && mark.datum !== null
+	const isolating = emphasized?.some((mark) => mark.datum !== null) ?? false
 
 	// Stable across emphasis changes: the chart body holds `marks` steady while
 	// the pointer moves, so a crossing never rebuilds these strings.

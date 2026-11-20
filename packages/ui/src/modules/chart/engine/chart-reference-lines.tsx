@@ -1,7 +1,7 @@
 'use client'
 
 import { AnimatePresence } from 'motion/react'
-import { type ReactNode, useEffect, useMemo, useRef } from 'react'
+import type { ReactNode } from 'react'
 import { Swatch } from '../../../components/swatch'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
 import { cn } from '../../../core/cn'
@@ -18,21 +18,14 @@ import {
 	strokeClass,
 	textClass,
 } from './chart-color/paint'
-import {
-	LABEL_GAP,
-	MARKER_REACH,
-	REFERENCE_HIT_WIDTH,
-	REFERENCE_STROKE_WIDTH,
-} from './chart-constants'
+import { LABEL_GAP, MARKER_REACH, REFERENCE_STROKE_WIDTH } from './chart-constants'
 import {
 	type LabelLine,
 	markerBox,
 	type PlacedReferenceLabel,
 	referenceLabels,
 } from './chart-geometry/label'
-import type { LinePoint } from './chart-geometry/line'
 import { type RuleBreak, ruleDashArray } from './chart-geometry/rule'
-import { ruleCatchPath } from './chart-hit-test'
 import { REFERENCE_FALL, REFERENCE_RISE, referenceRise } from './chart-motion'
 import {
 	type ChartOrientation,
@@ -50,10 +43,11 @@ import {
 	type ReferenceFormat,
 	referenceText,
 	ruleKeys,
+	ruleOrientation,
 } from './chart-reference'
 import type { ValueScale } from './chart-scale'
 import { seriesGroupClass } from './chart-series'
-import { useChartActions, useChartEmphasis, useChartTier } from './context'
+import { useChartEmphasis, useChartTier } from './context'
 import {
 	LABEL_PART_SPACE,
 	type ReferenceLabelCut,
@@ -119,8 +113,8 @@ export type ChartReferenceLinesProps = {
 	 * The placed standing labels from {@link placeReferenceLabels}, aligned with
 	 * `reference`: the `labels.references` mode. Each rule draws its label on
 	 * it in place of the hover tooltip. The label shows the parts that the
-	 * placement chose ({@link StandingReferenceLabel}). The rules then shed their pointer target
-	 * and float no surface. The caller also drops their keyboard stop
+	 * placement chose ({@link StandingReferenceLabel}). The rules then float no
+	 * surface. The caller also drops their keyboard stop and their pointer
 	 * ({@link referenceStops}), since the label reads the value where pointing
 	 * once did. A rule with no label, or with the whole prop omitted, floats the
 	 * hover tooltip.
@@ -132,13 +126,6 @@ export type ChartReferenceLinesProps = {
 	 * ({@link pointsOnRule}).
 	 */
 	points?: readonly Vec[]
-	/**
-	 * The runs of the lines that the mark hit test catches by their distance
-	 * ({@link nearestSeriesLine}). A rule gives up each point of its catch that
-	 * sits nearer to one of these lines, so the nearer mark takes the pointer
-	 * ({@link ruleCatchPath}). Omitted, each rule keeps a full band.
-	 */
-	lines?: readonly LinePoint[][]
 }
 
 /**
@@ -353,8 +340,8 @@ type ReferenceRuleProps = {
 	/**
 	 * The placed standing label of the rule ({@link placeReferenceLabels}),
 	 * which {@link ReferenceLabel} draws in place of the hover tooltip. The rule
-	 * then sheds its wide hit target and floats no surface, and the caller drops
-	 * its keyboard stop, unless its value reads on hover (`label.hover`). `null`
+	 * then floats no surface, and the caller drops its keyboard stop and its
+	 * pointer, unless its value reads on hover (`label.hover`). `null`
 	 * when the mode is off, or when the label found no free spot.
 	 */
 	label: StandingReferenceLabel | null
@@ -363,15 +350,10 @@ type ReferenceRuleProps = {
 	 * ({@link ruleBreaks}), or `undefined` for a solid rule with no break.
 	 */
 	dashes: number[] | undefined
-	/** The lines that the rule gives up its catch to ({@link ChartReferenceLinesProps.lines}). */
-	lines: readonly LinePoint[][]
 }
 
 /** The two endpoints of a rule's drawn line, in `viewBox` user units. @internal */
 type RulePoints = { x1: number; y1: number; x2: number; y2: number }
-
-/** No line for a rule to give up its catch to. @internal */
-const NO_LINES: readonly LinePoint[][] = []
 
 /** The radius of the hole that a point marker cuts in a rule: its reach and the gap. @internal */
 const POINT_BREAK = MARKER_REACH + LABEL_GAP
@@ -550,21 +532,21 @@ function RuleRise({ rise, children }: { rise: ReferenceRuleProps['rise']; childr
 }
 
 /**
- * The labeled rendering: the rule alone, with no hover target and no tooltip.
- * Its standing label draws in the label layer over every rule
- * ({@link ReferenceLabel}). The label reads what pointing would, so the rule
- * drops the hover path (and the caller drops its keyboard stop).
+ * The labeled rendering: the rule alone, with no tooltip. Its standing label
+ * draws in the label layer over every rule ({@link ReferenceLabel}). The label
+ * reads what pointing would, so the rule drops the hover path (and the caller
+ * drops its keyboard stop). A category rule still takes the pointer through the
+ * hit area, and the readout of its category reads it.
  *
  * @internal
  */
 function LabeledReferenceRule(props: ReferenceRuleProps) {
 	const { index, rise } = props
 
-	const { emphasizedReference } = useChartEmphasis()
+	const { emphasizedReferences } = useChartEmphasis()
 
-	// A standing rule has no hover target of its own, but a legend chip's emphasis
-	// still recedes the siblings of the rule it names. Their labels recede with them.
-	const receded = emphasizedReference !== null && emphasizedReference !== index
+	// A rule outside the emphasis recedes, and its label recedes with it.
+	const receded = ruleRecedes(emphasizedReferences, index)
 
 	return (
 		<g data-slot="chart-reference-line" pointerEvents="none" className={seriesGroupClass(receded)}>
@@ -594,14 +576,15 @@ function ReferenceLabel({
 	label,
 	line,
 	format,
-}: Pick<ReferenceRuleProps, 'index' | 'paint' | 'rise' | 'line' | 'format'> & {
+	orientation,
+}: Pick<ReferenceRuleProps, 'index' | 'paint' | 'rise' | 'line' | 'format' | 'orientation'> & {
 	label: StandingReferenceLabel
 }) {
-	const { emphasizedReference } = useChartEmphasis()
+	const { emphasizedReferences } = useChartEmphasis()
 
 	const color = rawColor(paint)
 
-	const receded = emphasizedReference !== null && emphasizedReference !== index
+	const receded = ruleRecedes(emphasizedReferences, index)
 
 	const text = (
 		<text
@@ -644,7 +627,12 @@ function ReferenceLabel({
 						</TooltipTrigger>
 
 						<TooltipContent size="sm">
-							<ReferenceReadout line={line} paint={paint} format={format} />
+							<ReferenceReadout
+								line={line}
+								paint={paint}
+								format={format}
+								orientation={orientation}
+							/>
 						</TooltipContent>
 					</Tooltip>
 				) : (
@@ -656,11 +644,28 @@ function ReferenceLabel({
 }
 
 /**
+ * Whether a rule recedes: a rule emphasis holds ({@link ChartEmphasis}), and
+ * the rule is outside it.
+ *
+ * @internal
+ */
+function ruleRecedes(emphasized: readonly number[] | null, index: number): boolean {
+	return emphasized !== null && !emphasized.includes(index)
+}
+
+/** What {@link ReferenceReadout} reads of a rule. @internal */
+type RuleReadout = Pick<ReferenceRuleProps, 'line' | 'paint' | 'format' | 'orientation'>
+
+/** The readout of each drawn rule, by its index in the `reference` prop. @internal */
+type RuleReadouts = ReadonlyMap<number, RuleReadout>
+
+/**
  * The readout of a rule in its tooltip, in the {@link ChartReadoutRow} that the
  * category readout gives a rule too: the key of the rule, then the value of a
  * value rule and its label, or the label of a category rule. The description
- * follows. The text wraps inside the width cap of the tooltip. It is
- * `aria-hidden`, since {@link ChartReferenceList} carries the parity.
+ * follows. The text wraps inside the width cap of the tooltip. The key runs in
+ * the direction of the rule ({@link ruleOrientation}). It is `aria-hidden`,
+ * since {@link ChartReferenceList} carries the parity.
  *
  * @internal
  */
@@ -668,7 +673,8 @@ function ReferenceReadout({
 	line,
 	paint,
 	format,
-}: Pick<ReferenceRuleProps, 'line' | 'paint' | 'format'>) {
+	orientation,
+}: Pick<ReferenceRuleProps, 'line' | 'paint' | 'format' | 'orientation'>) {
 	const color = rawColor(paint)
 
 	const category = isCategoryReference(line)
@@ -690,6 +696,7 @@ function ReferenceReadout({
 					shape="line"
 					size="sm"
 					variant={line.dashed === false ? 'solid' : 'dashed'}
+					orientation={ruleOrientation(line, orientation)}
 					color={textClass(paint) || undefined}
 					style={color ? { color } : undefined}
 				/>
@@ -701,18 +708,19 @@ function ReferenceReadout({
 }
 
 /**
- * The hover rendering: the dashed rule under a transparent
- * {@link REFERENCE_HIT_WIDTH} hit target, wrapped in the design-system
- * {@link Tooltip} so pointing it floats a label-and-value readout. The target
- * gives up each point that sits nearer to a line of the chart
- * ({@link ruleCatchPath}), so a line that runs near the rule stays easy to
- * point. The trigger
- * sits inside the `aria-hidden` plot, so the readout is a pointer enhancement;
- * {@link ChartReferenceList} carries the parity.
+ * The hover rendering: the dashed rule, wrapped in the design-system
+ * {@link Tooltip} so pointing it floats a label-and-value readout. The rule
+ * takes no pointer of its own. The hit area of the chart resolves it with the
+ * lines in one hit test ({@link thinMarksAt}), so the pointer never jumps
+ * between two layers that each hold their own state. In reach with the data,
+ * the rule reads as a row of the category readout. In reach with value rules
+ * alone, the tooltip of the first of them opens and reads each of them. The
+ * trigger sits inside the `aria-hidden` plot, so the readout is a pointer
+ * enhancement; {@link ChartReferenceList} carries the parity.
  *
- * The keyboard reaches the rule the pointer can't hover. Parking the roving
- * cursor here forces the same tooltip open, so focusing a rule reads exactly
- * like hovering it. The marks recede, and the readout floats.
+ * The keyboard reaches the rule the same way. Parking the roving cursor here
+ * opens the same tooltip, so focusing a rule reads exactly like hovering it.
+ * The marks recede, and the readout floats.
  *
  * A touch reads nothing from the rule, as it reads nothing from the marks
  * ({@link useChartPointer}). A tap or a hold recedes no mark and floats no
@@ -720,88 +728,63 @@ function ReferenceReadout({
  *
  * @internal
  */
-function HoverReferenceRule(props: ReferenceRuleProps & { line: ChartReferenceValue }) {
-	const { line, index, paint, points, orientation, format, rise, lines } = props
+function HoverReferenceRule(
+	props: ReferenceRuleProps & { line: ChartReferenceValue; readouts: RuleReadouts },
+) {
+	const { line, index, paint, orientation, format, rise, readouts } = props
 
-	const { x1, y1, x2, y2 } = points
-
-	// The catch gives each point to the nearer mark: the rule or a line.
-	const target = useMemo(
-		() => ruleCatchPath({ x: x1, y: y1 }, { x: x2, y: y2 }, lines, REFERENCE_HIT_WIDTH / 2),
-		[x1, y1, x2, y2, lines],
-	)
-
-	const { activeReference, emphasizedReference } = useChartEmphasis()
-
-	const { pointReference: setReferenceActive } = useChartActions()
-
-	// Whether the pointer rests on this rule. A rule that unmounts under the
-	// pointer (a live `reference` update, a spark resize) gets no `pointerleave`,
-	// so its unmount clears the emphasis it holds. Only the handlers and the
-	// cleanup read it.
-	const pointed = useRef(false)
-
-	useEffect(
-		() => () => {
-			if (pointed.current) setReferenceActive(null)
-		},
-		[setReferenceActive],
-	)
+	const { activeReference, pointed, emphasizedReferences } = useChartEmphasis()
 
 	const focused = activeReference === index
 
-	// Another rule holds the emphasis: this one recedes to it, the way the data
-	// marks do, so pointing one rule reads it clear of the rest.
-	const receded = emphasizedReference !== null && emphasizedReference !== index
+	// A pointer on value rules alone opens the tooltip of its first rule, which
+	// reads each of its rules. A pointer on the data reads them in the readout of
+	// the category.
+	const leads = pointed !== null && !pointed.data && pointed.rules[0] === index
+
+	// An emphasis elsewhere recedes this rule, the way the data marks recede, so
+	// the rules that the emphasis holds read clear of the rest.
+	const receded = ruleRecedes(emphasizedReferences, index)
 
 	return (
-		<Tooltip placement={orientation === 'vertical' ? 'top' : 'right'} delay={0} open={focused}>
+		<Tooltip
+			placement={orientation === 'vertical' ? 'top' : 'right'}
+			delay={0}
+			open={focused || leads}
+		>
 			<TooltipTrigger>
-				{/* Pointing the rule recedes the marks and the sibling rules to it
-				    (composes with the tooltip's own hover handlers through the trigger).
-				    A touch is not a point, as on a legend switch. */}
 				<g
 					data-slot="chart-reference-line"
 					data-focused={dataAttr(focused)}
 					className={seriesGroupClass(receded)}
-					onPointerEnter={(event) => {
-						if (event.pointerType === 'touch') return
-
-						pointed.current = true
-
-						setReferenceActive(index)
-					}}
-					onPointerLeave={() => {
-						pointed.current = false
-
-						setReferenceActive(null)
-					}}
+					pointerEvents="none"
 				>
-					{/* The drawn rule over its wide transparent hover target; the pair
-					    reveals as one, so the target rises with the rule it stands in for. */}
 					<RuleRise rise={rise}>
 						<ReferenceRuleStroke {...props} />
-
-						<path
-							data-slot="chart-reference-hit"
-							d={target}
-							fill="transparent"
-							pointerEvents="fill"
-						/>
 					</RuleRise>
 				</g>
 			</TooltipTrigger>
 
 			<TooltipContent size="sm">
-				<ReferenceReadout line={line} paint={paint} format={format} />
+				{leads ? (
+					<div className="space-y-0.5">
+						{pointed.rules.map((rule) => {
+							const readout = readouts.get(rule)
+
+							return readout ? <ReferenceReadout key={rule} {...readout} /> : null
+						})}
+					</div>
+				) : (
+					<ReferenceReadout line={line} paint={paint} format={format} orientation={orientation} />
+				)}
 			</TooltipContent>
 		</Tooltip>
 	)
 }
 
 /**
- * The spark rendering: the dashed rule alone, pointer-inert (no hit target,
- * no tooltip, no standing label, no emphasis). A sparkline is read-only bare
+ * The spark rendering: the dashed rule alone, pointer-inert (no tooltip, no
+ * standing label, no emphasis). A sparkline is read-only bare
  * marks, so a rule keeps only its ink. It still rides the mount rise, since
  * spark strips interactivity, not the drawing.
  *
@@ -833,19 +816,19 @@ function SparkReferenceRule(props: ReferenceRuleProps) {
  *
  * @internal
  */
-function ReferenceRule(props: ReferenceRuleProps) {
+function ReferenceRule({ readouts, ...props }: ReferenceRuleProps & { readouts: RuleReadouts }) {
 	const spark = useChartTier() === 'spark'
 
 	if (spark) return <SparkReferenceRule {...props} />
 
 	const { line } = props
 
-	// A category rule takes no pointer: the readout of its category reads it. A
-	// labeled rule whose value reads on hover keeps its pointer and its tooltip.
+	// A category rule floats no tooltip: the readout of its category reads it. A
+	// labeled rule whose value reads on hover keeps its tooltip.
 	return (props.label && !props.label.hover) || isCategoryReference(line) ? (
 		<LabeledReferenceRule {...props} />
 	) : (
-		<HoverReferenceRule {...props} line={line} />
+		<HoverReferenceRule {...props} line={line} readouts={readouts} />
 	)
 }
 
@@ -874,15 +857,15 @@ function RulePresence({ animate, children }: { animate: boolean; children: React
  *
  * @remarks Self-gating. A chart mounts it unconditionally, and it draws nothing
  * until both a scale and reference lines exist. The gate therefore lives here
- * instead of at every call site. Render it last, over the hit area, so the rules
- * win the pointer where they sit. Under `animate` each rule rises along the
+ * instead of at every call site. The rules take no pointer of their own: the
+ * hit area of the chart resolves them with the lines ({@link thinMarksAt}). Under `animate` each rule rises along the
  * value axis from the baseline to its value ({@link referenceRise}). A
  * {@link ReducedMotion} around it settles it at rest for a reduced-motion
  * preference. Under `labels` each rule carries a standing label on it
  * and drops the hover tooltip: the `labels.references` mode. The chart
  * places the labels ({@link placeReferenceLabels}), so no two overlap, and a rule
  * whose label finds no free spot keeps the hover tooltip. At the spark
- * tier each rule sheds its hit target, tooltip, and label to the bare dashed
+ * tier each rule sheds its tooltip and label to the bare dashed
  * stroke. That tier is read through {@link ChartTierContext}, over either mode.
  * A sparkline is read-only, so the rules keep their ink and give up the pointer.
  * @internal
@@ -893,7 +876,6 @@ export function ChartReferenceLines({
 	animate = false,
 	labels,
 	points = [],
-	lines = NO_LINES,
 }: ChartReferenceLinesProps) {
 	if (!reference || reference.length === 0) return null
 
@@ -947,7 +929,6 @@ export function ChartReferenceLines({
 					format,
 					rise,
 					label: labels?.[index] ?? null,
-					lines,
 				},
 			]
 		},
@@ -955,6 +936,15 @@ export function ChartReferenceLines({
 
 	// Every standing label, so each rule breaks for each label that it crosses.
 	const placed = rules.flatMap(({ label }) => (label ? [label] : []))
+
+	// The readout of each drawn rule, so the tooltip of a rule reads each rule that
+	// the pointer emphasizes with it.
+	const readouts: RuleReadouts = new Map(
+		rules.map(({ index, line, paint, format, orientation: facing }) => [
+			index,
+			{ line, paint, format, orientation: facing },
+		]),
+	)
 
 	// The labels draw after every rule, so no rule paints over a label's halo. A
 	// rule toggled off leaves its presence as it last drew, and plays its exit there.
@@ -965,6 +955,7 @@ export function ChartReferenceLines({
 					<ReferenceRule
 						key={key}
 						{...rule}
+						readouts={readouts}
 						dashes={ruleDashArray(
 							Math.hypot(to.x - from.x, to.y - from.y),
 							ruleBreaks(from, to, placed, points),

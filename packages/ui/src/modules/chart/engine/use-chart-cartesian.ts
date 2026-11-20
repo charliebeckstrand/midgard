@@ -63,12 +63,19 @@ import {
 	referenceLegendItems,
 	referenceNotes,
 	ruleKeys,
+	ruleNotes,
 } from './chart-reference'
 import type { BandScale, ValueHeadroom, ValueScale } from './chart-scale'
 import { chartReadout, type SeriesMeta, selectedIndices } from './chart-series'
 import { type ChartChrome, type ChartTier, headerLineCount } from './chart-tier'
 import { parseInstant } from './chart-time'
-import type { CartesianChartProps, ChartPress, ChartReadoutSource, ChartSeries } from './types'
+import type {
+	CartesianChartProps,
+	ChartPress,
+	ChartReadoutNote,
+	ChartReadoutSource,
+	ChartSeries,
+} from './types'
 import { useChartFrameSizing } from './use-chart-frame-sizing'
 import { useLaidOutHidden } from './use-chart-laid-out-hidden'
 import {
@@ -309,6 +316,12 @@ export type CartesianChart = {
 	 * frame shows them only when `legendItems` is not null.
 	 */
 	referenceItems: ChartLegendReference[]
+	/**
+	 * The readout row of each rule, aligned with the `reference` prop, or `null`
+	 * for a category rule with nothing to say ({@link ruleNotes}). The tooltip
+	 * adds the row of each rule that the pointer emphasizes with the data.
+	 */
+	ruleNotes: (ChartReadoutNote | null)[]
 	/**
 	 * The indexes of the rules that the legend names in place of their labels
 	 * ({@link legendRules}). Empty where the legend does not show.
@@ -789,9 +802,9 @@ export function useChartCartesian<T>(
 			cells &&
 			once(() => ({
 				...cells(),
-				notes: referenceNotes(reference, rawCategories, referenceHidden),
+				notes: referenceNotes(reference, rawCategories, referenceHidden, orientation),
 			})),
-		[cells, reference, rawCategories, referenceHidden],
+		[cells, reference, rawCategories, referenceHidden, orientation],
 	)
 
 	// The tooltip lists its rows in the marks' visible order (a vertical stack
@@ -852,6 +865,11 @@ export function useChartCartesian<T>(
 			referencePositions,
 			categoryReferencePositions,
 		],
+	)
+
+	const ruleRows = useMemo(
+		() => ruleNotes(reference, formatAxisValue, orientation),
+		[reference, formatAxisValue, orientation],
 	)
 
 	// Each visible series draws through its own axis's scale. A series whose
@@ -922,6 +940,7 @@ export function useChartCartesian<T>(
 		readoutOrder,
 		legendItems,
 		referenceItems,
+		ruleNotes: ruleRows,
 		listedReferences,
 		referenceLabelWidth: referenceLabels.width,
 		referenceLabelCut: referenceLabels.cut,

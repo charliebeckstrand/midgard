@@ -11,10 +11,11 @@ import {
 import type { LabelLine } from '../chart-geometry/label'
 import type { ChartLineSeries } from '../chart-geometry/line'
 import { ChartHitArea, cartesianHitActive } from '../chart-hit-area'
+import { type RuleStop, type ThinMark, thinMarksAt } from '../chart-hit-test'
 import { ChartLegend, ChartLegendNotes, ChartLegendReferences } from '../chart-legend/legend'
 import { legendAside } from '../chart-legend/schema'
 import { ChartMarksLayer } from '../chart-marks/layer'
-import type { Vec } from '../chart-orientation'
+import type { ChartOrientation, Vec } from '../chart-orientation'
 import { referenceText } from '../chart-reference'
 import {
 	ChartReferenceLines,
@@ -29,10 +30,11 @@ import {
 	ChartValueLabels,
 	cartesianValueLabels,
 } from '../chart-value-labels'
+import { type ChartTarget, markTarget, targetMark } from '../context'
 import type { CartesianChartProps } from '../types'
 import type { CartesianChart } from '../use-chart-cartesian'
 import { cartesianFocus } from '../use-chart-keyboard'
-import type { ChartMarkAt } from '../use-chart-pointer'
+import type { ChartMarkAt, ChartTargetAt } from '../use-chart-pointer'
 import { ChartFrame, type ChartFrameProps, plotName } from './frame'
 
 /**
@@ -93,8 +95,10 @@ export type ChartCartesianFrameProps = AccessibleName &
 		/** The chart's own marks, which the marks layer wraps. */
 		marks: ReactNode
 		/**
-		 * The mark under the pointer: a bar, a line, or a wash. The frame adds the
-		 * snapped fallback off the marks, so this reads only the drawn marks.
+		 * The mark under the pointer: a bar or a wash. The frame resolves the thin
+		 * marks first (the lines under `lineHits`, and the reference rules), and
+		 * adds the snapped fallback off the marks, so this reads only the other
+		 * drawn marks.
 		 */
 		markAt: ChartMarkAt
 		/**
@@ -140,15 +144,188 @@ export type ChartCartesianFrameProps = AccessibleName &
 		 */
 		valueLabels?: CartesianValueLabelSeries
 		/**
-		 * Whether `markAt` catches each line of `valueLabels` by its distance
-		 * ({@link nearestSeriesLine}). A reference rule then gives the pointer to a
-		 * line that sits nearer to the pointer than the rule. Off, as on an area
-		 * chart that catches a series by its wash, each rule keeps a full band.
+		 * Whether the frame catches each line of `valueLabels` as a thin mark,
+		 * with the reference rules, in one hit test ({@link thinMarksAt}). Off, as
+		 * on an area chart that catches a series by its wash, only the rules are
+		 * thin marks.
 		 * @defaultValue false
 		 */
 		lineHits?: boolean
 		className?: string
 	}
+
+/**
+ * The thin marks that a held target holds among `strokes`: each of its rules,
+ * and the line of each whole series among its marks. A bar or a disc holds
+ * none.
+ *
+ * @internal
+ */
+function heldThinMarks(held: ChartTarget | null, strokes: readonly ChartLineSeries[]): ThinMark[] {
+	if (held === null) return []
+
+	const lines = held.marks.flatMap((mark): ThinMark[] => {
+		if (mark.datum !== null) return []
+
+		const line = strokes.findIndex((entry) => entry.index === mark.series)
+
+		return line < 0 ? [] : [{ line }]
+	})
+
+	return [...lines, ...held.rules.map((rule) => ({ rule }))]
+}
+
+/** What {@link cartesianTargetAt} resolves the pointer against. @internal */
+type CartesianHit = {
+	orientation: ChartOrientation
+	/** The lines that the frame catches as thin marks, in paint order. */
+	strokes: readonly ChartLineSeries[]
+	/** Where each rule that takes the pointer stands, or `null` ({@link pointerRules}). */
+	rules: readonly (RuleStop | null)[]
+	/** The hit test of the other marks of the chart, or `null` where it reads no mark. */
+	markAt: ChartMarkAt | null
+	/** The stops of the snapped readout, or `null` where the readout does not snap. */
+	snap: CartesianStops | null
+	/** Which series draw bars. */
+	bars: boolean | ((series: number) => boolean)
+	/** The count of categories that the pointer resolves, or 0 where it resolves none. */
+	count: number
+}
+
+/** What {@link cartesianHit} reads from the frame. @internal */
+type CartesianHitInput = Pick<CartesianHit, 'orientation' | 'rules' | 'bars' | 'count'> & {
+	/** Whether a readout, a crosshair, or a band click wants the pointer. */
+	readsMarks: boolean
+	/** The hit test of the other marks of the chart. */
+	markAt: ChartMarkAt
+	/** Whether the frame catches the lines of `lines` as thin marks. */
+	lineHits: boolean
+	/** The visible line and area series, in paint order. */
+	lines: readonly ChartLineSeries[] | undefined
+	/** Whether the readout snaps, and the stops it snaps to. */
+	snapping: boolean
+	snap: CartesianStops
+}
+
+/**
+ * What the hit area of a cartesian chart reads, or `null` where it reads
+ * nothing. Where no readout, crosshair, or band click wants the pointer
+ * (`readsMarks` off), it reads the rules alone, and only where a rule takes the
+ * pointer. It then reads no mark and resolves no category.
+ *
+ * @internal
+ */
+function cartesianHit(input: CartesianHitInput): CartesianHit | null {
+	const { readsMarks, lineHits, lines, snapping, snap, ...hit } = input
+
+	if (readsMarks) {
+		return { ...hit, strokes: lineHits ? (lines ?? []) : [], snap: snapping ? snap : null }
+	}
+
+	return hit.rules.some((stop) => stop !== null)
+		? { ...hit, strokes: [], markAt: null, snap: null, count: 0 }
+		: null
+}
+
+/**
+ * The target of the thin marks in reach: the whole series of each line, and
+ * each rule. It reads the data where it holds a line or a category rule, as
+ * the readout of a category reads both. `null` where none is in reach.
+ *
+ * @internal
+ */
+function thinTarget(
+	marks: readonly ThinMark[],
+	strokes: readonly ChartLineSeries[],
+	stops: readonly (RuleStop | null)[],
+): ChartTarget | null {
+	const series = marks.flatMap((mark) => {
+		const stroke = mark.line === undefined ? undefined : strokes[mark.line]
+
+		return stroke ? [{ series: stroke.index, datum: null }] : []
+	})
+
+	const rules = marks.flatMap((mark) => (mark.rule === undefined ? [] : [mark.rule]))
+
+	if (series.length + rules.length === 0) return null
+
+	return {
+		marks: series,
+		rules,
+		data: series.length > 0 || rules.some((rule) => stops[rule]?.band === true),
+	}
+}
+
+/**
+ * Where each rule that takes the pointer stands, aligned with the `reference`
+ * prop: a value rule with a keyboard stop at its value position, and a drawn
+ * category rule at its band position. `null` for a rule that takes no pointer:
+ * a value rule with a standing label, or a rule that draws nothing.
+ *
+ * @internal
+ */
+function pointerRules(
+	valueStops: readonly (number | null)[],
+	categoryStops: readonly (number | null)[],
+): (RuleStop | null)[] {
+	return Array.from({ length: Math.max(valueStops.length, categoryStops.length) }, (_, rule) => {
+		const at = valueStops[rule] ?? null
+
+		if (at !== null) return { at, band: false }
+
+		const across = categoryStops[rule] ?? null
+
+		return across === null ? null : { at: across, band: true }
+	})
+}
+
+/**
+ * The stop that a snapping readout anchors in the column of `index`, nearest
+ * `value` along the value axis, or `null` where the readout does not snap. A
+ * bar's stop isolates that one bar, and a line's or an area's stop its whole
+ * series.
+ *
+ * @internal
+ */
+function snappedTarget(hit: CartesianHit, index: number | null, value: number): ChartTarget | null {
+	if (hit.snap === null || index === null) return null
+
+	const series = snappedSeriesAt(hit.snap.points, hit.snap.series, index, value)
+
+	if (series === null) return null
+
+	const bar = typeof hit.bars === 'function' ? hit.bars(series) : hit.bars
+
+	return markTarget({ series, datum: bar ? index : null })
+}
+
+/**
+ * The hit test of a cartesian chart. The thin marks resolve first: the lines
+ * and the rules in reach, in one hit test ({@link thinMarksAt}), and each of
+ * them joins the target ({@link thinTarget}). Off every thin mark, the other
+ * marks of the chart resolve: its fills and its bars. Off every mark, a
+ * snapping readout emphasizes the stop that the tooltip anchors in the column
+ * ({@link snappedTarget}).
+ *
+ * @internal
+ */
+function cartesianTargetAt(hit: CartesianHit): ChartTargetAt {
+	const traces = hit.strokes.map(({ geometry }) => geometry.trace)
+
+	const vertical = hit.orientation === 'vertical'
+
+	return (x, y, held, index) => {
+		const [band, value] = vertical ? [x, y] : [y, x]
+
+		const thin = thinMarksAt(traces, hit.rules, band, value, heldThinMarks(held, hit.strokes))
+
+		if (thin.length > 0) return thinTarget(thin, hit.strokes, hit.rules)
+
+		const direct = hit.markAt?.(x, y, targetMark(held), index) ?? null
+
+		return direct === null ? snappedTarget(hit, index, value) : markTarget(direct)
+	}
+}
 
 /** A series with no values, which labels nothing. Only a stale index reads it. @internal */
 const NO_VALUES: { values: (number | null)[]; axis: ChartValueAxisId } = { values: [], axis: 'y' }
@@ -289,6 +466,26 @@ export function ChartCartesianFrame({
 		labelled && drawnLines(labelled),
 	)
 
+	// The value rules that take the keyboard stops: each value rule that carries
+	// no standing label.
+	const ruleStops = referenceStops(referenceLabels, chart.referencePositions)
+
+	// The hit area reads the marks where a readout, a crosshair, or a band click
+	// wants the pointer. It reads the rules wherever a rule takes the pointer, so
+	// a rule floats its tooltip with the chart tooltip off.
+	const hit = cartesianHit({
+		readsMarks: cartesianHitActive(showTooltip, rails, chart.onBandClick, count),
+		orientation,
+		rules: pointerRules(ruleStops, chart.categoryReferencePositions),
+		markAt,
+		bars,
+		count,
+		lineHits,
+		lines: labelled,
+		snapping,
+		snap,
+	})
+
 	const marksLayer = (
 		<ChartMarksLayer animate={animate} dataKey={chart.dataKey}>
 			{marks}
@@ -317,6 +514,7 @@ export function ChartCartesianFrame({
 			legendPlacement={resolvedLegend.placement}
 			readout={chart.readout}
 			readoutOrder={chart.readoutOrder}
+			ruleNotes={chart.ruleNotes}
 			hidden={chart.hidden}
 			seriesCount={chart.metas.length}
 			emphasizeMarks
@@ -326,7 +524,7 @@ export function ChartCartesianFrame({
 				chart.bandPositions,
 				focus.points,
 				orientation,
-				referenceStops(referenceLabels, chart.referencePositions),
+				ruleStops,
 				focus.series,
 			)}
 			describeReference={(index) => {
@@ -366,32 +564,12 @@ export function ChartCartesianFrame({
 
 			{!crosshairOver && marksLayer}
 
-			{cartesianHitActive(showTooltip, rails, chart.onBandClick, count) && (
+			{hit && (
 				<ChartHitArea
 					plot={chart.plot}
 					band={chart.band}
-					count={count}
-					markAt={(x, y, held, index) => {
-						const direct = markAt(x, y, held, index)
-
-						if (direct || !snapping || index === null) return direct
-
-						// Isolation mirrors the snapped readout: off the marks the emphasis goes
-						// to the stop the tooltip anchors in the snapped column. A bar's stop
-						// isolates that one bar, a line's or an area's its whole series.
-						const series = snappedSeriesAt(
-							snap.points,
-							snap.series,
-							index,
-							orientation === 'vertical' ? y : x,
-						)
-
-						if (series === null) return null
-
-						const bar = typeof bars === 'function' ? bars(series) : bars
-
-						return { series, datum: bar ? index : null }
-					}}
+					count={hit.count}
+					markAt={cartesianTargetAt(hit)}
 					orientation={orientation}
 					trigger={trigger}
 					snaps={snapping}
@@ -399,14 +577,13 @@ export function ChartCartesianFrame({
 				/>
 			)}
 
-			{/* Over the hit area, so the rules win the pointer where they sit. */}
+			{/* The rules take no pointer: the hit area resolves them with the lines. */}
 			<ChartReferenceLines
 				chart={chart}
 				reference={reference}
 				animate={animate}
 				labels={referenceLabels}
 				points={points}
-				lines={lineHits ? labelled?.flatMap(({ geometry }) => geometry.runs) : undefined}
 			/>
 
 			{/* Last, over the rules, so no rule paints over a label's halo. The labels

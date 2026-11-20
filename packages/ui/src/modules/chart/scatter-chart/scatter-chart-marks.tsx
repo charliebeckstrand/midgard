@@ -84,7 +84,7 @@ function markProps(paint: ChartPaint, sized: boolean) {
  * @internal
  */
 export function ScatterChartMarks({ list }: ScatterChartMarksProps) {
-	const { mark, lit } = useChartMarkEmphasis()
+	const { marks: emphasized, lit } = useChartMarkEmphasis()
 
 	// Stable across emphasis changes: the chart body holds `list` steady while
 	// the pointer moves, so a plain series' disc layers survive a crossing
@@ -119,21 +119,21 @@ export function ScatterChartMarks({ list }: ScatterChartMarksProps) {
 		}
 
 		// A whole-series emphasis (a legend hover, `datum: null`) lights its series
-		// and dims the rest; a single pointed disc (`datum` set) dims every series,
-		// its own included, and the lit disc re-draws over the dim below.
-		const seriesLit = mark !== null && mark.series === index && mark.datum === null
+		// and dims the rest; a pointed disc (`datum` set) dims every series, its own
+		// included, and the lit disc re-draws over the dim below.
+		const seriesLit =
+			emphasized?.some((mark) => mark.series === index && mark.datum === null) ?? false
 
-		const spot =
-			mark !== null && mark.series === index && mark.datum !== null
-				? (marks[mark.datum] ?? null)
-				: null
+		const pointed = emphasized?.find((mark) => mark.series === index && mark.datum !== null)
+
+		const spot = pointed?.datum != null ? (marks[pointed.datum] ?? null) : null
 
 		return (
 			<ScatterDiscSeries
 				key={index}
 				layers={layers[seriesIndex] ?? []}
 				spot={spot}
-				dimmed={mark !== null && !seriesLit}
+				dimmed={emphasized !== null && !seriesLit}
 				paint={paint}
 			/>
 		)

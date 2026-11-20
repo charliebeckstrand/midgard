@@ -43,13 +43,13 @@ import {
 	type ChartHoverState,
 	ChartMarkEmphasisContext,
 	ChartMarkEmphasisStoreContext,
-	type ChartMarkRef,
 	ChartSeriesEmphasisContext,
+	type ChartTarget,
 	ChartTierContext,
 	chartMarkEmphasis,
-	sameMark,
+	sameTarget,
 } from '../context'
-import type { ChartPress, ChartReadoutSource } from '../types'
+import type { ChartPress, ChartReadoutNote, ChartReadoutSource } from '../types'
 import { type ChartFocusTargets, useChartKeyboard } from '../use-chart-keyboard'
 
 /** The stable no-op the keyboard takes when its stops name no single series. @internal */
@@ -57,6 +57,9 @@ function ignoreActiveSeries(_series: number | null): void {}
 
 /** The default for a chart that hides no series. @internal */
 const NONE_HIDDEN: ReadonlySet<number> = new Set()
+
+/** The default for a chart with no value rule. @internal */
+const NO_RULE_NOTES: readonly (ChartReadoutNote | null)[] = []
 
 /**
  * The header, spark veil, and legend a framed chart draws at its resolved tier.
@@ -318,6 +321,12 @@ export type ChartFrameProps = AccessibleName & {
 	 */
 	readoutOrder?: number[]
 	/**
+	 * The readout row of each rule, aligned with the `reference` prop, or `null`
+	 * for a rule with nothing to say. Where the pointer emphasizes the data, the
+	 * tooltip adds the row of each rule that it emphasizes with it.
+	 */
+	ruleNotes?: readonly (ChartReadoutNote | null)[]
+	/**
 	 * The series that cannot hold the series emphasis: the series the legend
 	 * toggled off, and for a pie the rows that draw no slice. An emphasis on one of
 	 * them resolves to `null`, because to dim each mark against an invisible series
@@ -477,6 +486,7 @@ export function ChartFrame({
 	rail = false,
 	readout,
 	readoutOrder,
+	ruleNotes = NO_RULE_NOTES,
 	hidden = NONE_HIDDEN,
 	seriesCount,
 	emphasizeMarks = false,
@@ -527,24 +537,26 @@ export function ChartFrame({
 	// data table again.
 	const [seriesEmphasis, setSeriesFocus] = useSeriesEmphasis(hidden, seriesCount)
 
+	// The rule that a legend chip points at.
 	const [pointerReference, setPointerReference] = useState<number | null>(null)
 
-	// The mark the pointer sits on (a bar, a line, a disc), resolved by the hit
-	// layer. It recedes every other mark behind it, and merges below with the
-	// series the legend or keyboard emphasizes: the pointed mark wins while it's
-	// held, the coarse series emphasis stands in the rest of the time.
-	const [pointedMark, setPointedMark] = useState<ChartMarkRef | null>(null)
+	// What the pointer emphasizes in the plot (a bar, a disc, or the lines and the
+	// rules in reach), resolved by the hit layer. It recedes every mark and every
+	// rule outside it, and its marks merge below with the series the legend or
+	// keyboard emphasizes: the pointed marks win while they're held, the coarse
+	// series emphasis stands in the rest of the time.
+	const [pointed, setPointed] = useState<ChartTarget | null>(null)
 
-	const pointMark = useCallback((mark: ChartMarkRef | null) => {
-		// Bail on a no-op so sweeping within one mark (or off the marks entirely
+	const point = useCallback((target: ChartTarget | null) => {
+		// Bail on a no-op so sweeping within one target (or off the marks entirely
 		// once already clear) costs no mark re-render, the same guard the hover store keeps.
-		setPointedMark((prev) => (sameMark(prev, mark) ? prev : mark))
+		setPointed((prev) => (sameTarget(prev, target) ? prev : target))
 	}, [])
 
 	// The setters keep their identity, so the value does too.
 	const actions = useMemo<ChartActions>(
-		() => ({ pointMark, pointReference: setPointerReference, focusSeries: setSeriesFocus }),
-		[pointMark, setSeriesFocus],
+		() => ({ point, pointReference: setPointerReference, focusSeries: setSeriesFocus }),
+		[point, setSeriesFocus],
 	)
 
 	// The frame owns the spark posture end to end: it stands the tooltip and
@@ -596,23 +608,43 @@ export function ChartFrame({
 		onActivate,
 	)
 
-	// The marks recede when either input emphasizes a reference: the pointer over a
-	// rule (or its legend chip), or the keyboard cursor parked on one. The pointed
-	// index wins over a still-held keyboard focus, and the sibling rules recede to
-	// whichever it resolves to.
-	const emphasis = useMemo<ChartEmphasis>(
-		() => ({ activeReference, emphasizedReference: pointerReference ?? activeReference }),
-		[pointerReference, activeReference],
-	)
+	// The rules recede to an emphasis: the rules that the pointer emphasizes (none
+	// for a pointer on the data alone), else the rule of a pointed legend chip,
+	// else the rule under the keyboard cursor. The pointer wins over a still-held
+	// keyboard focus. Where the emphasis holds rules and no mark, the marks recede
+	// as a whole. Where the pointer emphasizes marks, each mark outside them
+	// recedes through the mark emphasis instead.
+	const emphasis = useMemo<ChartEmphasis>(() => {
+		const held = pointerReference ?? activeReference
 
-	// The mark emphasis the marks and tooltip both read: the pointed mark, else the
-	// series the legend or keyboard emphasizes, lifted to a whole-series reference.
-	// The held category selection lights only its own data under either.
+		const rules = pointed ? pointed.rules : held === null ? null : [held]
+
+		return {
+			activeReference,
+			pointed,
+			emphasizedReferences: rules,
+			marksRecede: rules !== null && rules.length > 0 && !pointed?.marks.length,
+		}
+	}, [pointed, pointerReference, activeReference])
+
+	// The mark emphasis the marks and tooltip both read: the pointed marks, else
+	// the series the legend or keyboard emphasizes, lifted to a whole-series
+	// reference. The held category selection lights only its own data under either.
 	const markSeries = emphasizeMarks ? seriesEmphasis : null
 
+	// A pointer on rules alone emphasizes no mark: the marks recede as a whole.
+	const pointedMarks = pointed?.marks.length ? pointed.marks : null
+
+	// The rows of the rules that the pointer emphasizes with the data. On rules
+	// alone the readout does not show, and the tooltip of a rule reads them.
+	const pointedRuleNotes = useMemo(
+		() => (pointed?.rules ?? []).flatMap((rule) => ruleNotes[rule] ?? []),
+		[pointed, ruleNotes],
+	)
+
 	const markEmphasis = useMemo(
-		() => chartMarkEmphasis(pointedMark, markSeries, selected),
-		[pointedMark, markSeries, selected],
+		() => chartMarkEmphasis(pointedMarks, markSeries, selected),
+		[pointedMarks, markSeries, selected],
 	)
 
 	// The same emphasis as a store, for the readers of one mark. It publishes after
@@ -709,9 +741,12 @@ export function ChartFrame({
 						order={readoutOrder}
 						snap={snap}
 						orientation={orientation}
-						// The pointed mark's series dims the other rows too, so a hovered bar or
-						// line foregrounds its row exactly as the coarse legend emphasis does.
-						emphasis={markEmphasis.mark?.series ?? null}
+						// The pointed marks dim the other rows too, so a hovered bar or the lines
+						// in reach foreground their rows exactly as the coarse legend emphasis
+						// does. The notes of the rules recede as the rules do.
+						emphasis={markEmphasis.marks}
+						ruleEmphasis={emphasis.emphasizedReferences}
+						rules={pointedRuleNotes}
 					/>
 				))}
 		</div>

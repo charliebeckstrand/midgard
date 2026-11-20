@@ -224,7 +224,7 @@ describe('a category reference', () => {
 		expect(labelY(crossed.container)).not.toBe(at)
 	})
 
-	it('takes no pointer and no legend chip, while a value rule keeps both', () => {
+	it('takes the pointer through the hit area, and no legend chip, while a value rule keeps both', () => {
 		const { container } = bar({
 			legend: true,
 			reference: [RELEASE, { value: 60, label: 'Goal' }],
@@ -232,13 +232,77 @@ describe('a category reference', () => {
 
 		const [category, value] = allBySlot(container, 'chart-reference-line')
 
+		// No rule takes the pointer of its own. The hit area resolves both rules.
 		expect(category?.getAttribute('pointer-events')).toBe('none')
 
-		expect(value?.getAttribute('pointer-events')).toBeNull()
+		expect(value?.getAttribute('pointer-events')).toBe('none')
+
+		const hit = getSlot(container, 'chart-hit')
+
+		// The hit area of jsdom has no size, so the client point is the offset from
+		// the corner of the plot.
+		const point = (rule: Element | undefined, at: 'x1' | 'y1') => {
+			const ruleLine = rule?.querySelector('line')
+
+			fireEvent.pointerMove(hit, {
+				clientX:
+					at === 'x1' ? Number(ruleLine?.getAttribute('x1')) - Number(hit.getAttribute('x')) : 4,
+				clientY:
+					at === 'y1' ? Number(ruleLine?.getAttribute('y1')) - Number(hit.getAttribute('y')) : 2,
+			})
+		}
+
+		const receded = (element: Element | null | undefined) =>
+			(element?.getAttribute('class') ?? '').includes('opacity-25')
+
+		// On the category rule, near the top of the plot and far from the value rule:
+		// the marks and the value rule recede, and the category rule stays lit.
+		point(category, 'x1')
+
+		expect(receded(getSlot(container, 'chart-marks'))).toBe(true)
+
+		expect([receded(category), receded(value)]).toEqual([false, true])
+
+		// On the value rule, at the left edge of the plot, far from the category rule.
+		point(value, 'y1')
+
+		expect([receded(category), receded(value)]).toEqual([true, false])
 
 		expect(allBySlot(container, 'chart-legend-reference').map((chip) => chip.textContent)).toEqual([
 			'Goal60',
 		])
+	})
+
+	it('keys its note in the readout in the direction of the rule, as its legend chip does', () => {
+		for (const orientation of ['vertical', 'horizontal'] as const) {
+			const { container, unmount } = bar({
+				orientation,
+				legend: true,
+				reference: [{ ...RELEASE, legend: true }],
+			})
+
+			const plot = getSlot(container, 'chart-plot')
+
+			// The band-axis arrows step onto the category of the rule.
+			const step = orientation === 'vertical' ? 'ArrowRight' : 'ArrowDown'
+
+			fireEvent.keyDown(plot, { key: step })
+
+			fireEvent.keyDown(plot, { key: step })
+
+			const direction = (slot: string) =>
+				getSlot(container, slot)
+					.querySelector('[data-orientation]')
+					?.getAttribute('data-orientation')
+
+			// A category rule runs along the value axis: across the plot from the
+			// band axis, so vertical on a vertical chart.
+			expect(direction('chart-tooltip-note')).toBe(orientation)
+
+			expect(direction('chart-legend-reference')).toBe(orientation)
+
+			unmount()
+		}
 	})
 
 	it('joins the readout of its category, which the keyboard cursor speaks', async () => {

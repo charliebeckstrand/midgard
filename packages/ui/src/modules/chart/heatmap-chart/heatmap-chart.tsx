@@ -12,6 +12,7 @@ import { readoutCell } from '../engine/chart-series'
 import { resolveTooltip } from '../engine/chart-tooltip'
 import type { ChartMarkRef } from '../engine/context'
 import type { ChartPress } from '../engine/types'
+import { markTargetAt } from '../engine/use-chart-pointer'
 import { HeatmapFocusProvider } from './context'
 import { HeatmapCellRings, HeatmapChartCells, HeatmapProbedRings } from './heatmap-chart-cells'
 import { HeatmapChartLegend } from './heatmap-chart-legend'
@@ -264,7 +265,7 @@ export function HeatmapChart<T>(props: HeatmapChartProps<T>) {
 					<ChartHitArea
 						plot={plot}
 						resolve={resolveCell}
-						markAt={gridMarkAt}
+						markAt={markTargetAt(gridMarkAt)}
 						trigger={show ? trigger : undefined}
 						snaps
 						onIndexClick={onCellClick ? reportCell : undefined}

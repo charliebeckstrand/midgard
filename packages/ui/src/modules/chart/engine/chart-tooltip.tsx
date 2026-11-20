@@ -12,8 +12,8 @@ import {
 import { ChartReadoutCard, ChartReadoutRow, ReadoutSwatch } from './chart-readout-card'
 import { seriesGroupClass } from './chart-series'
 import { type ChartSnap, nearestValue } from './chart-snap'
-import { useChartHover } from './context'
-import type { ChartReadout, ChartReadoutSource } from './types'
+import { type ChartMarkRef, useChartHover } from './context'
+import type { ChartReadout, ChartReadoutNote, ChartReadoutSource } from './types'
 
 /**
  * How the tooltip is summoned: `'hover'` tracks the pointer, the default.
@@ -102,12 +102,63 @@ export type ChartTooltipProps = {
 	 */
 	order?: number[]
 	/**
-	 * The emphasized series' index, when one is: the keyboard cursor reading a
-	 * dataset, or a legend entry. Its row stays at full strength while every other
-	 * series row dims, mirroring the marks; `null` (the default) reads every row
+	 * The emphasized marks, when an emphasis holds: the marks that the pointer
+	 * emphasizes, or the series of the keyboard cursor or of a legend entry. The
+	 * row of each of their series stays at full strength while every other series
+	 * row dims, mirroring the marks; `null` (the default) reads every row
 	 * equally. A row with no `index` is not a series, so it never dims.
 	 */
-	emphasis?: number | null
+	emphasis?: readonly ChartMarkRef[] | null
+	/**
+	 * The emphasized rules, when a rule emphasis holds. The note of each other
+	 * rule dims, as its rule recedes; `null` (the default) dims no note.
+	 */
+	ruleEmphasis?: readonly number[] | null
+	/**
+	 * The rows of the rules that the pointer emphasizes with the data. Each reads
+	 * after the series rows, at full strength, unless the category holds it as a
+	 * note.
+	 * @defaultValue none
+	 */
+	rules?: readonly ChartReadoutNote[]
+}
+
+/** No rule rows. @internal */
+const NO_RULES: readonly ChartReadoutNote[] = []
+
+/**
+ * One row of a rule in a readout: the note of a category rule, or the row of a
+ * value rule that the pointer emphasizes. Its key mirrors the rule: its paint,
+ * its dash, and its direction.
+ *
+ * @internal
+ */
+function ChartTooltipNote({
+	note,
+	slot,
+	receded,
+}: {
+	note: ChartReadoutNote
+	slot: 'chart-tooltip-note' | 'chart-tooltip-rule'
+	receded: boolean
+}) {
+	return (
+		<ChartReadoutRow
+			data-slot={slot}
+			className={seriesGroupClass(receded)}
+			swatch={
+				<ReadoutSwatch
+					shape="line"
+					dashed={note.dashed}
+					orientation={note.orientation}
+					className={note.swatchClass}
+					color={note.swatchColor}
+				/>
+			}
+			value={note.text}
+			label={note.description}
+		/>
+	)
 }
 
 /** The readout's rows in the caller's display order, or as they are without one. @internal */
@@ -215,6 +266,8 @@ export function ChartTooltip({
 	orientation = 'vertical',
 	order,
 	emphasis = null,
+	ruleEmphasis = null,
+	rules = NO_RULES,
 }: ChartTooltipProps) {
 	const { index: hovered, point, onData } = useChartHover()
 
@@ -234,6 +287,9 @@ export function ChartTooltip({
 	// readout is cached, so the rows hold across the moves of one hover.
 	const rows = useMemo(() => readoutRows(readout, order), [readout, order])
 
+	// The notes of the rules at the category under the pointer.
+	const notes = (index !== null && readout?.notes?.[index]) || NO_RULES
+
 	// The card holds across the moves inside one category, so a move repositions
 	// the panel and renders no row.
 	const card = useMemo(
@@ -247,10 +303,12 @@ export function ChartTooltip({
 								// Two series can share a name, so a row keys on its series.
 								key={row.index ?? position}
 								data-slot="chart-tooltip-row"
-								// A cursor on one dataset dims the rest, the same recede the marks take. A
-								// row with no series index names no series, so an emphasis never dims it.
+								// An emphasis dims each series outside it, the same recede the marks take.
+								// A row with no series index names no series, so an emphasis never dims it.
 								className={seriesGroupClass(
-									emphasis !== null && row.index !== undefined && row.index !== emphasis,
+									emphasis !== null &&
+										row.index !== undefined &&
+										!emphasis.some((mark) => mark.series === row.index),
 								)}
 								swatch={
 									<ReadoutSwatch
@@ -264,26 +322,29 @@ export function ChartTooltip({
 							/>
 						))}
 
-						{readout.notes?.[index]?.map((note) => (
-							<ChartReadoutRow
+						{rules
+							.filter((rule) => !notes.some((note) => note.index === rule.index))
+							.map((note) => (
+								<ChartTooltipNote
+									key={note.key}
+									note={note}
+									slot="chart-tooltip-rule"
+									receded={false}
+								/>
+							))}
+
+						{notes.map((note) => (
+							<ChartTooltipNote
 								key={note.key}
-								data-slot="chart-tooltip-note"
-								swatch={
-									<ReadoutSwatch
-										shape="line"
-										dashed={note.dashed}
-										className={note.swatchClass}
-										color={note.swatchColor}
-									/>
-								}
-								value={note.text}
-								label={note.description}
+								note={note}
+								slot="chart-tooltip-note"
+								receded={ruleEmphasis !== null && !ruleEmphasis.includes(note.index)}
 							/>
 						))}
 					</div>
 				</ChartReadoutCard>
 			),
-		[index, readout, rows, emphasis],
+		[index, readout, rows, notes, emphasis, ruleEmphasis, rules],
 	)
 
 	// Snapped, the anchor is the intersection: the band center crossed with the

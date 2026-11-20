@@ -83,6 +83,58 @@ export function useChartHover(): ChartHoverState {
 export type ChartMarkRef = { series: number; datum: number | null }
 
 /**
+ * What the pointer emphasizes in the plot: a set of marks and reference rules,
+ * by the index of each rule in the `reference` prop. One bar, disc, or wash is
+ * a set of one mark. Each line and each rule in reach joins the set, and a line
+ * joins as its whole series. Every mark and every rule outside the set
+ * recedes. `null`, never an empty set, stands for no emphasis.
+ *
+ * @internal
+ */
+export type ChartTarget = {
+	marks: readonly ChartMarkRef[]
+	rules: readonly number[]
+	/**
+	 * Whether the set reads the data: it holds a mark or a category rule, so
+	 * the readout of the category shows. A set of value rules alone shows their
+	 * own tooltip instead.
+	 */
+	data: boolean
+}
+
+/** The target of one mark, or `null` for no mark. @internal */
+export function markTarget(mark: ChartMarkRef | null): ChartTarget | null {
+	return mark === null ? null : { marks: [mark], rules: [], data: true }
+}
+
+/**
+ * The one mark that a target holds alone, or `null` for any other target. The
+ * hit test of a chart keeps a held disc sticky with it, and a click reports it.
+ *
+ * @internal
+ */
+export function targetMark(target: ChartTarget | null): ChartMarkRef | null {
+	return target !== null && target.marks.length === 1 && target.rules.length === 0
+		? (target.marks[0] as ChartMarkRef)
+		: null
+}
+
+/** Whether two targets hold the same marks and rules, in the same order. @internal */
+export function sameTarget(a: ChartTarget | null, b: ChartTarget | null): boolean {
+	if (a === b) return true
+
+	if (a === null || b === null) return false
+
+	return (
+		a.data === b.data &&
+		a.marks.length === b.marks.length &&
+		a.rules.length === b.rules.length &&
+		a.marks.every((mark, i) => sameMark(mark, b.marks[i] ?? null)) &&
+		a.rules.every((rule, i) => rule === b.rules[i])
+	)
+}
+
+/**
  * Whether `mark` lights the given series, and datum, when one is checked. A
  * whole-series emphasis (`datum: null`) lights every datum in its series, while
  * a datum emphasis lights only its own. A group-level query passes no `datum`
@@ -95,24 +147,27 @@ function markLights(mark: ChartMarkRef, series: number, datum: number | null | u
 }
 
 /**
- * The one mark emphasis every cartesian and point chart shares: the mark the
- * pointer sits on (a bar, a line, a disc). Else it is the series the legend or
- * keyboard picks, receding all the others behind it. Its own context, so the
- * marks re-render only when the emphasized mark changes: a discrete crossing.
- * They never re-render on the per-pixel pointer movement the hover context
- * carries. The frame holds the marks as children, so its own hover state never
- * reaches them.
+ * The one mark emphasis every cartesian and point chart shares: the marks the
+ * pointer emphasizes (a bar, a disc, or each line in reach). Else it is the
+ * series the legend or keyboard picks, receding all the others behind it. Its
+ * own context, so the marks re-render only when the emphasized marks change: a
+ * discrete crossing. They never re-render on the per-pixel pointer movement the
+ * hover context carries. The frame holds the marks as children, so its own
+ * hover state never reaches them.
  *
- * The pointed mark wins over a still-held legend / keyboard one, the way the
+ * The pointed marks win over a still-held legend / keyboard one, the way the
  * reference emphasis resolves the pointer over the keyboard. A datum reference
- * (`datum` set) isolates one mark; a series reference (`datum: null`, such as a
- * line or the coarse legend emphasis) isolates the whole series.
+ * (`datum` set) lights one mark; a series reference (`datum: null`, such as a
+ * line or the coarse legend emphasis) lights the whole series.
  *
  * @internal
  */
 export type ChartMarkEmphasis = {
-	/** The emphasized mark (the pointer's, else the legend / keyboard series), or `null` when nothing is. */
-	mark: ChartMarkRef | null
+	/**
+	 * The emphasized marks (the pointer's, else the legend / keyboard series),
+	 * or `null` when no mark is emphasized.
+	 */
+	marks: readonly ChartMarkRef[] | null
 	/**
 	 * Whether a mark reads at full strength: nothing emphasized, or this is the
 	 * emphasized series (and datum, when one is checked). A renderer dims a mark
@@ -173,37 +228,43 @@ function selectionLights(
 }
 
 /**
- * Resolves the shared {@link ChartMarkEmphasis}. The pointed mark takes the
+ * Resolves the shared {@link ChartMarkEmphasis}. The pointed marks take the
  * emphasis, unless a category selection is held. The legend or keyboard series
  * lifts to a whole-series reference, and the held selection lights only its own
- * data. Else nothing is emphasized, and every mark reads lit. The frame builds it from its own pointer
- * state and the emphasis and selection that its chart passes down.
+ * data. Else nothing is emphasized, and every mark reads lit. The frame builds
+ * it from its own pointer state and the emphasis and selection that its chart
+ * passes down.
  *
+ * @param pointed - The marks that the pointer emphasizes, or `null` where it
+ * emphasizes no mark.
  * @param selected - The data indices of the held category selection, or `null`.
  * @internal
  */
 export function chartMarkEmphasis(
-	pointed: ChartMarkRef | null,
+	pointed: readonly ChartMarkRef[] | null,
 	legendSeries: number | null,
 	selected: ReadonlySet<number> | null = null,
 ): ChartMarkEmphasis {
-	const held = legendSeries !== null ? { series: legendSeries, datum: null } : null
+	const held = legendSeries !== null ? [{ series: legendSeries, datum: null }] : null
 
-	const mark = pointed ?? held
+	const marks = pointed ?? held
 
 	// A held selection is the stable picture, so the pointer never re-lights marks
-	// while one is held. The tooltip still reads the pointed mark.
+	// while one is held. The tooltip still reads the pointed marks.
 	const holding = selected !== null && selected.size > 0
 
-	const lit = (series: number, datum?: number | null) => {
-		if (pointed !== null && !holding) return markLights(pointed, series, datum)
+	const lights = (list: readonly ChartMarkRef[], series: number, datum?: number | null) =>
+		list.some((mark) => markLights(mark, series, datum))
 
-		if (held !== null && !markLights(held, series, datum)) return false
+	const lit = (series: number, datum?: number | null) => {
+		if (pointed !== null && !holding) return lights(pointed, series, datum)
+
+		if (held !== null && !lights(held, series, datum)) return false
 
 		return selectionLights(selected, datum)
 	}
 
-	return { mark, lit }
+	return { marks, lit }
 }
 
 /** Whether two mark references coincide, so a redundant pointed write can bail. @internal */
@@ -212,28 +273,41 @@ export function sameMark(a: ChartMarkRef | null, b: ChartMarkRef | null): boolea
 }
 
 /**
- * Marks emphasis shared between a chart's reference layer and its marks. A
- * pointed reference rule (or the keyboard cursor roved onto it) recedes the
- * data marks to it, and its sibling rules with them. It is the same focus the
- * legend applies to a series. Its own context, so a rule's hover reaches only
- * the marks and the rules that read it.
+ * The reference emphasis shared between a chart's reference layer and its
+ * marks. The rules that the pointer emphasizes, a rule that its legend chip
+ * points at, or the rule that the keyboard cursor roves onto: each recedes the
+ * rules outside it. Its own context, so a rule's hover reaches only the marks
+ * and the rules that read it.
  *
  * @internal
  */
 export type ChartEmphasis = {
 	/**
 	 * The keyboard-focused reference line's index, or `null`: the rule the arrow
-	 * cursor parks on, so it reads as chosen while the marks recede. Pointer hover
-	 * leaves it `null`; the rule floats its own tooltip instead.
+	 * cursor parks on, so it reads as chosen while the marks recede. Its tooltip
+	 * opens.
 	 */
 	activeReference: number | null
 	/**
-	 * The reference the emphasis rests on (pointed or keyboard-focused), so its
-	 * sibling rules recede to it, the way the data marks do. Pointer wins over a
-	 * still-held keyboard focus; `null` when nothing is emphasized. While it is
-	 * set, the data marks recede behind the rule.
+	 * What the pointer emphasizes in the plot, or `null`. The hit layer resolves
+	 * it ({@link ChartActions.point}). Where it holds value rules alone, the
+	 * tooltip of its first rule opens and reads each of its rules.
 	 */
-	emphasizedReference: number | null
+	pointed: ChartTarget | null
+	/**
+	 * The rules that the emphasis rests on: the rules that the pointer
+	 * emphasizes, else the rule of a pointed legend chip, else the rule under
+	 * the keyboard cursor. Each rule outside them recedes. `null` when no rule
+	 * emphasis holds. The pointer wins over a still-held keyboard focus, and an
+	 * empty list, as for a pointer on a line alone, recedes every rule.
+	 */
+	emphasizedReferences: readonly number[] | null
+	/**
+	 * Whether the data marks recede as a whole behind the rules: the emphasis
+	 * holds rules and no mark. Where the pointer emphasizes marks, each mark
+	 * outside them recedes through {@link ChartMarkEmphasis} instead.
+	 */
+	marksRecede: boolean
 }
 
 export const [ChartEmphasisContext, useChartEmphasis] =
@@ -248,14 +322,15 @@ export const [ChartEmphasisContext, useChartEmphasis] =
  */
 export type ChartActions = {
 	/**
-	 * Sets the pointed mark (`null` clears it). The hit layer writes it while
-	 * the pointer sits on a mark, so a crossing from mark to mark renders the
-	 * readers of {@link ChartMarkEmphasis}, not the hit layer.
+	 * Sets what the pointer emphasizes in the plot (`null` clears it). The hit
+	 * layer writes it from one hit test, so a crossing from target to target
+	 * renders the readers of {@link ChartMarkEmphasis} and
+	 * {@link ChartEmphasis}, not the hit layer.
 	 */
-	pointMark: (mark: ChartMarkRef | null) => void
+	point: (target: ChartTarget | null) => void
 	/**
-	 * Sets the pointed reference: the index of the rule that the pointer, or
-	 * the legend chip of the rule, points at (`null` clears it).
+	 * Sets the pointed reference: the index of the rule that the legend chip of
+	 * the rule points at (`null` clears it).
 	 */
 	pointReference: (index: number | null) => void
 	/**

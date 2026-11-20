@@ -14,7 +14,14 @@ import { useTouchTap } from '../../../hooks/use-touch-tap'
 import type { PlotRect } from './chart-orientation'
 import { clickPress, tapPress } from './chart-press'
 import type { ChartTooltipTrigger } from './chart-tooltip'
-import { type ChartMarkRef, useChartActions, useChartHoverStore } from './context'
+import {
+	type ChartMarkRef,
+	type ChartTarget,
+	markTarget,
+	targetMark,
+	useChartActions,
+	useChartHoverStore,
+} from './context'
 import type { ChartPress } from './types'
 
 /** The handlers {@link useChartPointer} spreads onto the hit layer's rect. @internal */
@@ -57,6 +64,26 @@ export type ChartMarkAt = (
 	index: number | null,
 ) => ChartMarkRef | null
 
+/**
+ * The target under a frame point: the marks and the rules that the pointer
+ * emphasizes ({@link ChartTarget}). It is fed the held target and the resolved
+ * category. A chart with no rule passes a {@link ChartMarkAt} through
+ * {@link markTargetAt}.
+ *
+ * @internal
+ */
+export type ChartTargetAt = (
+	x: number,
+	y: number,
+	held: ChartTarget | null,
+	index: number | null,
+) => ChartTarget | null
+
+/** A {@link ChartMarkAt} as a {@link ChartTargetAt}: the held target reaches it as a mark. @internal */
+export function markTargetAt(markAt: ChartMarkAt): ChartTargetAt {
+	return (x, y, held, index) => markTarget(markAt(x, y, targetMark(held), index))
+}
+
 /** Options for {@link useChartPointer}. @internal */
 export type ChartPointerOptions = {
 	plot: PlotRect
@@ -66,13 +93,15 @@ export type ChartPointerOptions = {
 	 */
 	resolveIndex: (x: number, y: number) => number | null
 	/**
-	 * The mark under a frame point. It gates the readout (on a mark, or off it)
-	 * and feeds the isolation. `held` carries the mark the pointer holds, so a
-	 * bounded catch can stay sticky. The resolved category `index` rides along, so
-	 * a snapping chart can hand the emphasis to the stop the tooltip anchors in
-	 * that column.
+	 * The target under a frame point: the marks and the rules that the pointer
+	 * emphasizes. It gates the readout and feeds the emphasis. A target that reads
+	 * the data (a mark or a category rule) shows the readout. A target of value
+	 * rules alone closes the readout and opens the tooltip of its rules. `held` carries
+	 * the target the pointer holds, so a bounded catch can stay sticky. The
+	 * resolved category `index` rides along, so a snapping chart can hand the
+	 * emphasis to the stop the tooltip anchors in that column.
 	 */
-	markAt: ChartMarkAt
+	markAt: ChartTargetAt
 	/** @defaultValue 'hover' */
 	trigger?: ChartTooltipTrigger
 	/** Whether the readout snaps, so it reads off the marks too. @defaultValue false */
@@ -147,36 +176,41 @@ export function useChartPointer({
 
 	// The setter alone, which keeps its identity: a crossing from mark to mark
 	// renders the marks, not this hit layer.
-	const { pointMark: setPointed } = useChartActions()
+	const { point: setPointed } = useChartActions()
 
 	const ref = useRef<SVGRectElement>(null)
 
-	// The mark the pointer currently holds, fed back into the resolver so a
-	// bounded catch can stay sticky: the held mark keeps the emphasis across the
-	// midline between two overlapping catches until the pointer commits to
-	// another. A ref, not state: it shadows what setPointed last published.
-	const heldMark = useRef<ChartMarkRef | null>(null)
+	// The target the pointer currently holds, fed back into the resolver so a
+	// bounded catch can stay sticky: a held mark keeps the emphasis across the edge
+	// of its catch until the pointer commits elsewhere. A ref, not state: it
+	// shadows what `point` last published.
+	const held = useRef<ChartTarget | null>(null)
 
-	// The mark under a frame point, which also says whether a readout shows there:
-	// on a mark, or off it. One probe, so the hit test and the isolation never
-	// disagree. The resolved category index rides along, so a snapping chart can
-	// hand the emphasis to the stop the tooltip anchors in that category's column.
+	// The target under a frame point, which also says whether a readout shows
+	// there. A target that reads the data (a mark or a category rule) shows the
+	// readout. On value rules alone (`onRules`), their tooltip shows, and the
+	// readout shows nothing. Off every target, it shows nothing either. One probe, so the
+	// hit test and the emphasis never disagree. The resolved category index rides
+	// along, so a snapping chart can hand the emphasis to the stop the tooltip
+	// anchors in that category's column.
 	const probe = useCallback(
 		(x: number, y: number, index: number | null) => {
-			const mark = markAt(x, y, heldMark.current, index)
+			const target = markAt(x, y, held.current, index)
 
-			return { mark, onData: mark !== null }
+			const onData = target?.data === true
+
+			return { target, mark: targetMark(target), onRules: target !== null && !onData, onData }
 		},
 		[markAt],
 	)
 
-	// Every write to the pointed mark goes through here, so the held ref never
+	// Every write to the pointed target goes through here, so the held ref never
 	// drifts from what the emphasis shows.
 	const point = useCallback(
-		(mark: ChartMarkRef | null) => {
-			heldMark.current = mark
+		(target: ChartTarget | null) => {
+			held.current = target
 
-			setPointed(mark)
+			setPointed(target)
 		},
 		[setPointed],
 	)
@@ -232,11 +266,13 @@ export function useChartPointer({
 
 			const index = resolveIndex(x, y)
 
-			const { mark, onData: onDataHit } = probe(x, y, index)
+			const { target, onRules, onData: onDataHit } = probe(x, y, index)
 
-			set(index, { x, y }, onDataHit)
+			// On value rules alone, the category readout and the crosshair stand down.
+			if (onRules) set(null, null)
+			else set(index, { x, y }, onDataHit)
 
-			point(mark)
+			point(target)
 		},
 		[plot, resolveIndex, probe, set, point],
 	)
@@ -264,7 +300,11 @@ export function useChartPointer({
 
 			const index = resolveIndex(x, y)
 
-			const { mark, onData: onDataHit } = probe(x, y, index)
+			const { mark, onRules, onData: onDataHit } = probe(x, y, index)
+
+			// A click on value rules alone reads no data, so it pins nothing and reports
+			// nothing.
+			if (onRules) return
 
 			// Toggle the shown category off; and a click that would read nothing (off
 			// the marks on a chart that doesn't snap) dismisses rather than pinning a
@@ -293,15 +333,14 @@ export function useChartPointer({
 
 			const index = resolveIndex(x, y)
 
+			const { mark, onRules } = probe(x, y, index)
+
+			// A press on value rules alone reads no data, so it activates nothing.
+			if (onRules) return
+
 			if (index !== null) onIndexClick?.(index, press)
 
-			// Only where a consumer reads marks. `probe` scans the series, and a
-			// chart that takes category clicks alone has no use for the result.
-			if (onMarkClick === undefined) return
-
-			const { mark } = probe(x, y, index)
-
-			if (mark !== null) onMarkClick(mark, press)
+			if (mark !== null) onMarkClick?.(mark, press)
 		},
 		[plot, resolveIndex, probe, onIndexClick, onMarkClick],
 	)
@@ -323,9 +362,9 @@ export function useChartPointer({
 
 			const { x, y } = toFrame(plot, box, clientX, clientY)
 
-			const { mark, onData: onDataHit } = probe(x, y, resolveIndex(x, y))
+			const { target, onData: onDataHit } = probe(x, y, resolveIndex(x, y))
 
-			point(mark)
+			point(target)
 
 			// A band click reads anywhere, as a snap does, so the class keeps the cursor.
 			if (!snaps && !onIndexClick) node.toggleAttribute('data-hit', onDataHit)
