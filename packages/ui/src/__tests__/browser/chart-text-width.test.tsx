@@ -53,7 +53,10 @@ describe('useChartTextWidth (real browser)', () => {
 		const [monospace] = widths(container)
 
 		// A font change alone does not measure again, because the texts did not change.
-		rerender(<Probe font="serif" />)
+		// The new font is the font of ui, which the setup loads before each file. A
+		// second generic family, such as `serif`, can map to a face of the same
+		// width as `monospace` on a host with few fonts, and the case then fails.
+		rerender(<Probe font='"Google Sans Flex"' />)
 
 		expect(widths(container)[0]).toBe(monospace)
 

@@ -112,17 +112,24 @@ function segments(lines: Point[][]): [Point, Point][] {
 	return lines.flatMap((line) => line.slice(1).map((b, i): [Point, Point] => [line[i] ?? b, b]))
 }
 
-/** The distance from `p` to the nearest segment of `lines`. */
-function lineDistance(p: Point, lines: Point[][]): number {
-	return Math.min(
-		Number.POSITIVE_INFINITY,
-		...segments(lines).map(([a, b]) => segmentDistance(p, a, b)),
-	)
+/**
+ * The distance from `p` to the nearest of `edges`.
+ *
+ * A caller makes the segments once and reads each point against them. The
+ * loop gives the minimum with no spread of the distances as arguments, so the
+ * cost stays in proportion to the points times the segments.
+ */
+function lineDistance(p: Point, edges: [Point, Point][]): number {
+	let nearest = Number.POSITIVE_INFINITY
+
+	for (const [a, b] of edges) nearest = Math.min(nearest, segmentDistance(p, a, b))
+
+	return nearest
 }
 
-/** Whether the frame's rings hold `p` under the even-odd rule that clips the graticule. */
-function insideFrame(p: Point, rings: Point[][]): boolean {
-	return segments(rings).reduce(
+/** Whether the frame's `edges` hold `p` under the even-odd rule that clips the graticule. */
+function insideFrame(p: Point, edges: [Point, Point][]): boolean {
+	return edges.reduce(
 		(inside, [a, b]) =>
 			a[1] > p[1] !== b[1] > p[1] && p[0] < ((b[0] - a[0]) * (p[1] - a[1])) / (b[1] - a[1]) + a[0]
 				? !inside
@@ -136,7 +143,7 @@ function insideFrame(p: Point, rings: Point[][]): boolean {
  * frame's clip, and clear of the clip's edges.
  */
 function shownPoints(graticule: string | null, frame: string | null, view: MapViewFrame): Point[] {
-	const rings = polylines(frame)
+	const edges = segments(polylines(frame))
 
 	return polylines(graticule)
 		.flat()
@@ -146,8 +153,8 @@ function shownPoints(graticule: string | null, frame: string | null, view: MapVi
 				p[1] >= 0 &&
 				p[0] <= view.width &&
 				p[1] <= view.height &&
-				insideFrame(p, rings) &&
-				lineDistance(p, rings) > CLIP_EDGE,
+				insideFrame(p, edges) &&
+				lineDistance(p, edges) > CLIP_EDGE,
 		)
 }
 
@@ -156,9 +163,9 @@ function shownPoints(graticule: string | null, frame: string | null, view: MapVi
  * lines of `b`. Zero where `b` draws each point of `a` that the view shows.
  */
 function shownGap(a: string | null, b: string | null, frame: string | null, view: MapViewFrame) {
-	const lines = polylines(b)
+	const edges = segments(polylines(b))
 
-	return Math.max(0, ...shownPoints(a, frame, view).map((p) => lineDistance(p, lines)))
+	return shownPoints(a, frame, view).reduce((gap, p) => Math.max(gap, lineDistance(p, edges)), 0)
 }
 
 /** The graticule over the whole globe: the path the chrome drew before it read the view. */

@@ -22,6 +22,13 @@ const inset = dan.space.panel
  * run in other pages at the same time. A restyle in one of those pages also
  * gives an `UpdateLayoutTree` event. Thus the count includes only the events of
  * the frame of the test. A `TimeStamp` marker gives the identifier of that frame.
+ *
+ * The trace also runs while the case waits for the end of the trace, and the
+ * frame of the test can restyle for another cause in that time, such as a frame
+ * callback. On a loaded runner the wait is longer, and such a restyle came into
+ * the count. Thus a second marker ends the change and the forced style, and the
+ * count includes only the events between the two markers. The two markers and
+ * the work between them run in one task, so no other work comes between them.
  */
 
 /** The plain descendants of the element whose state changes. */
@@ -30,8 +37,13 @@ const DESCENDANTS = 500
 /** The message of the marker that identifies the frame of the test in the trace. */
 const MARKER = 'panel-inset-restyle'
 
+/** The message of the marker that ends the change and the forced style. */
+const END_MARKER = 'panel-inset-restyle-end'
+
 type TraceEvent = {
 	name: string
+	/** The start of the event, in microseconds. */
+	ts: number
 	args?: {
 		elementCount?: number
 		beginData?: { frame?: string }
@@ -75,19 +87,34 @@ async function restyled(change: () => void, probe: Element): Promise<number> {
 
 	getComputedStyle(probe).marginTop
 
+	console.timeStamp(END_MARKER)
+
 	await session.send('Tracing.end')
 	await complete
 
 	session.off('Tracing.dataCollected', collect)
 
-	const frame = events.find(
-		(event) => event.name === 'TimeStamp' && event.args?.data?.message === MARKER,
-	)?.args?.data?.frame
+	const marker = (message: string) =>
+		events.find((event) => event.name === 'TimeStamp' && event.args?.data?.message === message)
 
-	if (!frame) throw new Error('The trace has no marker that identifies the frame of the test.')
+	const start = marker(MARKER)
+
+	const end = marker(END_MARKER)
+
+	const frame = start?.args?.data?.frame
+
+	if (!start || !end || !frame) {
+		throw new Error('The trace has no markers that identify the frame and the span of the test.')
+	}
 
 	return events
-		.filter((event) => event.name === 'UpdateLayoutTree' && event.args?.beginData?.frame === frame)
+		.filter(
+			(event) =>
+				event.name === 'UpdateLayoutTree' &&
+				event.args?.beginData?.frame === frame &&
+				event.ts >= start.ts &&
+				event.ts <= end.ts,
+		)
 		.reduce((sum, event) => sum + (event.args?.elementCount ?? 0), 0)
 }
 

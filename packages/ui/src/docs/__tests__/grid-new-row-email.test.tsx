@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
-import { fireEvent, screen, waitFor } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { fireEvent, screen } from '@testing-library/react'
+import { describe, expect } from 'vitest'
+import { it } from '../../__tests__/helpers/fake-clock'
 import NewRow from '../pages/modules/grid/editing/new-row.tsx'
 import { renderInLocale } from './copy.tsx'
 
@@ -8,6 +9,11 @@ import { renderInLocale } from './copy.tsx'
 // trims the new email before the check, so it must store each email trimmed.
 // Else an email with a space at the end goes in, and the same email without
 // the space goes in after it.
+//
+// The add of the demo takes 800 ms, as a save to a server does. The case moves
+// the fake clock past it, so the result does not depend on the speed of the
+// machine.
+const SAVE = 800
 
 /** The editor of the column `id` in the new row. */
 function slotEditor(container: HTMLElement, id: string): HTMLInputElement {
@@ -28,20 +34,20 @@ function addPerson(container: HTMLElement, name: string, email: string) {
 }
 
 describe('the New row demo', () => {
-	it('refuses an email that differs from a stored one only by a space', async () => {
+	it('refuses an email that differs from a stored one only by a space', async ({ clock }) => {
 		const { container } = renderInLocale(<NewRow />, 'en')
 
 		addPerson(container, 'Ann', 'ann@example.com ')
 
-		await waitFor(() => expect(screen.queryByText('Ann')).not.toBeNull(), { timeout: 3000 })
+		await clock.advance(SAVE)
+
+		expect(screen.queryByText('Ann')).not.toBeNull()
 
 		addPerson(container, 'Ann Two', 'ann@example.com')
 
-		await waitFor(
-			() =>
-				expect(screen.queryByText('Enter a different email. This one is taken.')).not.toBeNull(),
-			{ timeout: 3000 },
-		)
+		await clock.advance(SAVE)
+
+		expect(screen.queryByText('Enter a different email. This one is taken.')).not.toBeNull()
 
 		expect(screen.queryByText('Ann Two')).toBeNull()
 	})
