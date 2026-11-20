@@ -6451,10 +6451,6 @@
 		"defaultMessage": "Indeterminate",
 		"description": "The label of a field of a playground in the docs. The field sets the prop indeterminate of Checkbox."
 	},
-	"docs.prop.initials": {
-		"defaultMessage": "Initials",
-		"description": "The label of a field of a playground in the docs. The field sets the prop initials of Avatar."
-	},
 	"docs.prop.input": {
 		"defaultMessage": "Input",
 		"description": "The label of a field of a playground in the docs. The field sets the prop input of DatePicker."

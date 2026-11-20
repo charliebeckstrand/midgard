@@ -7,7 +7,7 @@ import AvatarPlayground from './playground.tsx'
 export default function AvatarPage() {
 	return (
 		<>
-			<Playground of={AvatarPlayground} api={api} free={{ initials: 'WC' }} />
+			<Playground of={AvatarPlayground} api={api} />
 			<Example of={Colors} />
 			<Example of={AvatarGroupExample} />
 			<ApiTable api={api} />
