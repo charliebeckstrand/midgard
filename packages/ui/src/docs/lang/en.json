@@ -7293,7 +7293,7 @@
 	},
 	"docs.prop.variant.soft": {
 		"defaultMessage": "Soft",
-		"description": "An option of the Variant field of a playground in the docs. It sets the prop variant to 'soft' on Alert, Avatar, Badge, Banner, Button, HoldButton, Swatch."
+		"description": "An option of the Variant field of a playground in the docs. It sets the prop variant to 'soft' on Alert, Avatar, Badge, Banner, Button, Control, CreditCardInput, CurrencyInput, DateInput, HoldButton, Input, MaskInput, NumberInput, PasswordInput, SearchInput, Swatch, TagInput, Textarea."
 	},
 	"docs.prop.variant.solid": {
 		"defaultMessage": "Solid",
