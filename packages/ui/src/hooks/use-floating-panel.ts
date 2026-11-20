@@ -50,7 +50,8 @@ export type FloatingPanelResult = {
 	/**
 	 * Whether floating-ui placed the open panel. Until then the panel is at the
 	 * origin of its containing block. It goes back to `false` when the panel
-	 * closes.
+	 * closes. A panel that opens again during its exit is placed again, so it
+	 * turns `true` again.
 	 */
 	isPositioned: boolean
 	/**
@@ -769,6 +770,15 @@ export function useFloatingPanel({
 
 		return addAnchorName(anchorElement, anchorName)
 	}, [anchorElement, floatingElement, anchorName])
+
+	// floating-ui sets `isPositioned` to `false` when the panel closes, and sets
+	// it again only in a position pass. A panel that opens again while its
+	// element is still mounted, as in its exit animation, starts no pass of its
+	// own. Thus an open panel that is not placed starts one. The call goes past
+	// the tracker, which places nothing when the view does not change.
+	useLayoutEffect(() => {
+		if (open && !isPositioned && floatingElement) update()
+	}, [open, isPositioned, floatingElement, update])
 
 	// Empty when the middleware gave no offset.
 	const anchorOffset: Partial<AnchorOffset> | undefined = middlewareData.anchorOffset
