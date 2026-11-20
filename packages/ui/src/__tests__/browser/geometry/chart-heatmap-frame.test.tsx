@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, it, vi } from 'vitest'
+import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { HeatmapChart, type HeatmapChartSeries } from '../../../modules/chart/heatmap-chart'
 import { frames, getSlot, renderUI, waitFor } from '../../helpers'
@@ -32,8 +32,6 @@ describe('heatmap frame (real browser)', () => {
 	beforeAll(() => page.viewport(960, 700))
 
 	it('settles a wide grid whose rail would push the plot under the spark floor', async () => {
-		const errors = vi.spyOn(console, 'error').mockImplementation(() => {})
-
 		// The loop sits where the grid is just tall enough without the rail, and
 		// too short beside it: a narrow band of widths above the side-rail floor.
 		for (let width = 384; width <= 420; width += 4) {
@@ -47,17 +45,13 @@ describe('heatmap frame (real browser)', () => {
 				expect(getSlot(container, 'chart-plot').querySelector('svg')).not.toBeNull(),
 			)
 
-			// Two frames give a layout effect loop the time to run.
+			// Two frames give a layout effect loop the time to run. React stops such
+			// a loop with the error "Maximum update depth exceeded", and the error
+			// fails the test.
 			await frames()
 
 			unmount()
 		}
-
-		const loops = errors.mock.calls.filter((call) =>
-			String(call[0]).includes('Maximum update depth'),
-		)
-
-		expect(loops).toHaveLength(0)
 	})
 
 	it('takes the height of its box with the aspect ratio off', async () => {

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { Control } from '../../components/control'
 import { Input } from '../../components/input'
 import { Form } from '../../modules/form'
@@ -93,8 +93,8 @@ describe('Input spread order (§3.9)', () => {
 
 describe('Input defaultValue under a binding (§7.2)', () => {
 	it('drops defaultValue from a bound input', () => {
-		const error = vi.spyOn(console, 'error').mockImplementation(() => {})
-
+		// React warns of an input with both a value and a defaultValue, and the
+		// console guard fails the test on that warning.
 		const { container } = renderUI(
 			<Form defaultValues={{ email: '' }}>
 				<Input name="email" defaultValue="me@example.com" />
@@ -106,12 +106,6 @@ describe('Input defaultValue under a binding (§7.2)', () => {
 		expect(input.value).toBe('')
 
 		expect(input.defaultValue).not.toBe('me@example.com')
-
-		const warned = error.mock.calls.some(([message]) =>
-			String(message).includes('both value and defaultValue'),
-		)
-
-		expect(warned).toBe(false)
 	})
 
 	it('keeps defaultValue on an unbound input', () => {

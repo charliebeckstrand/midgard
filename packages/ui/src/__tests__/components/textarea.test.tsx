@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { Button } from '../../components/button'
 import { Control } from '../../components/control'
 import { Textarea, TextareaSkeleton } from '../../components/textarea'
@@ -140,8 +140,8 @@ describe('Textarea', () => {
 	})
 
 	it('drops defaultValue from a bound textarea (§7.2)', () => {
-		const error = vi.spyOn(console, 'error').mockImplementation(() => {})
-
+		// React warns of a textarea with both a value and a defaultValue, and the
+		// console guard fails the test on that warning.
 		const { container } = renderUI(
 			<Form defaultValues={{ bio: '' }}>
 				<Textarea name="bio" defaultValue="seed" />
@@ -153,12 +153,6 @@ describe('Textarea', () => {
 		expect(el.value).toBe('')
 
 		expect(el.defaultValue).not.toBe('seed')
-
-		const warned = error.mock.calls.some(([message]) =>
-			String(message).includes('both value and defaultValue'),
-		)
-
-		expect(warned).toBe(false)
 	})
 })
 
