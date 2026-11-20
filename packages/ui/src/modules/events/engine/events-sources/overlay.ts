@@ -4,6 +4,6 @@ import type { EventSource } from '../types'
 
 /** Each overlay that opens, with the reading of the viewport. @internal */
 export const overlay: EventSource = (note) =>
-	subscribeOverlaySignal(() =>
-		note({ kind: 'overlay', text: 'overlay opens', detail: readViewport() }),
-	)
+	subscribeOverlaySignal(() => {
+		note({ kind: 'overlay', text: 'overlay opens', detail: readViewport() })
+	})

@@ -105,7 +105,8 @@ const serverModule = () => null
  * `trigger="click"`. Stays
  * suppressed while the trigger is `:disabled` (own attribute, ancestor
  * `<fieldset disabled>`, or a disabled descendant) and dismisses on the shared
- * overlay-close signal. The panel takes `role="tooltip"`, and `<TooltipTrigger>`
+ * overlay-close signal. When the surface that sent the signal closes, a hover
+ * tooltip opens again if a mouse or pen is still on the trigger. The panel takes `role="tooltip"`, and `<TooltipTrigger>`
  * puts `aria-describedby` on the trigger. An `interactive` panel that holds a
  * tabbable control is a non-modal `role="dialog"` that the trigger names. The
  * trigger then carries `aria-haspopup="dialog"`, `aria-expanded`, and

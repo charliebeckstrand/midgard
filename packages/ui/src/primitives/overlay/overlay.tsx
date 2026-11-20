@@ -260,7 +260,8 @@ export function Overlay({
 		// A press of an earlier open does not count for this one.
 		pressedRef.current = false
 
-		notifyOverlaySignal()
+		// The cleanup tells the listeners that the overlay closed.
+		return notifyOverlaySignal()
 	}, [open])
 
 	// An overlay that dims or seals its box covers the floats anchored in that
