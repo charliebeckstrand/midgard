@@ -11,12 +11,11 @@
  * base of `content`.
  */
 import { defineKata } from '../../core/recipe'
-import { dan, iro, kokkaku, narabi, sen } from '../kiso'
+import { dan, iro, kokkaku, narabi } from '../kiso'
 import { picker } from '../kumi/control'
 
 export { scale } from '../kumi/control'
 
-const { focus } = sen
 const { text } = iro
 const { field, fit, flex } = narabi
 const { content, portal } = picker.extras
@@ -36,8 +35,8 @@ const extras = {
 	icon: [flex.row, 'pointer-events-none', text.muted],
 	placeholder: text.muted,
 	skeleton: kokkaku.datePicker,
-	/** The positioned wrapper of the popover. It holds focus, so it shows the ring. */
-	portal: [focus.ring, ...portal],
+	/** The positioned wrapper of the popover. The floating surface gives it the focus ring. */
+	portal,
 	content: {
 		...content,
 		body,
