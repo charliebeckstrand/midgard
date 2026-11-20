@@ -528,6 +528,25 @@ describe('usePdfViewerDocument · first worker', () => {
 		expect(started[0]?.terminated).toBe(false)
 	})
 
+	/*
+	 * A worker URL on another origin makes `new Worker` throw. A caller with such assets sets
+	 * `workerSrc`, so the throw of the early start must not fail the open.
+	 */
+	it('opens where the early start throws and the caller set workerSrc', async () => {
+		vi.stubGlobal(
+			'Worker',
+			class {
+				constructor() {
+					throw new DOMException('Cross-origin worker', 'SecurityError')
+				}
+			},
+		)
+
+		const [worker] = await openFresh('/first.pdf', () => {})
+
+		expect(worker).toBeUndefined()
+	})
+
 	it('ends the started worker where the caller set workerSrc', async () => {
 		const started = stubWorker()
 

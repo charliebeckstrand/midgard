@@ -105,7 +105,16 @@ async function resolveWorker(): Promise<import('pdfjs-dist').PDFWorker | null> {
 	// main-thread rasterization.
 	const canStart = typeof Worker !== 'undefined'
 
-	if (!pdfjsLoaded && !pendingPort && canStart) pendingPort = startWorker()
+	if (!pdfjsLoaded && !pendingPort && canStart) {
+		// The early start can throw where the options of the caller would have stopped it, such
+		// as a worker URL on another origin. The start is then left to the code below, which
+		// reads the options first, as it did before the early start.
+		try {
+			pendingPort = startWorker()
+		} catch {
+			pendingPort = null
+		}
+	}
 
 	const pdfjs = await loadPdfjs()
 
