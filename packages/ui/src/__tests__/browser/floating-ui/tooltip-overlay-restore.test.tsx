@@ -9,16 +9,18 @@ import { frames, renderUI, screen, waitFor } from '../../helpers'
  * A surface that opens hides an open tooltip with the overlay signal. When that
  * surface closes and the mouse is still on the trigger, the tooltip opens again
  * at once, as a hover shows it. The mouse does not move, so no hover event
- * comes. A tooltip that a tap left on a touch screen does not open again.
+ * comes. A tooltip that a tap left on a touch screen does not open again. A
+ * click in the open delay of the tooltip opens the surface first, and the
+ * tooltip does not open over the surface when the delay ends.
  *
  * It runs in a real browser, because the test reads `:hover` and the hover of
  * the real floating engine, which the jsdom suites mock.
  */
 
-function Harness() {
+function Harness({ delay = 0 }: { delay?: number }) {
 	return (
 		<Popover placement="bottom">
-			<Tooltip delay={0}>
+			<Tooltip delay={delay}>
 				<TooltipTrigger>
 					<PopoverTrigger>
 						<Button>Search</Button>
@@ -104,5 +106,29 @@ describe('a tooltip that a surface hid (real browser)', () => {
 		await frames(4)
 
 		expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
+	})
+
+	it('does not open over the surface when a click comes in the open delay', async () => {
+		renderUI(<Harness delay={50} />)
+
+		const trigger = screen.getByRole('button', { name: 'Search' })
+
+		await userEvent.hover(trigger)
+
+		// A click with no move of the mouse, before the open delay ends.
+		trigger.click()
+
+		await screen.findByRole('dialog')
+
+		// A timer that starts after the hover timer and runs longer fires after it.
+		await new Promise((resolve) => setTimeout(resolve, 100))
+
+		expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
+
+		await userEvent.keyboard('{Escape}')
+
+		await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+
+		await screen.findByRole('tooltip')
 	})
 })

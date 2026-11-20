@@ -276,15 +276,18 @@ export function useTooltipState({
 			setOpen(true)
 	})
 
-	useEffect(() => {
-		if (!open) return
+	// The close goes through the floating context, also for a closed tooltip.
+	// The `openchange` event then stops a pending hover open of `useHover` and of
+	// the intent replay, so a click in the open delay does not show the tooltip
+	// over the surface. `useHover` also ignores a pointer move on the trigger
+	// until the pointer enters it again.
+	const hideForSurface = useStableEvent(() => {
+		context.onOpenChange(false)
 
-		return subscribeOverlaySignal(() => {
-			setOpen(false)
+		return reopenUnderHover
+	})
 
-			return reopenUnderHover
-		})
-	}, [open, setOpen, reopenUnderHover])
+	useEffect(() => subscribeOverlaySignal(hideForSurface), [hideForSurface])
 
 	/*
 	 * Watched rather than wrapped around the disclosure's setter. The open state on
