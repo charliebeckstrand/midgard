@@ -111,6 +111,15 @@ function read(): string {
 	return `panel=${panel.getBoundingClientRect().height.toFixed(1)} pin=${panel.style.height || '-'} body=${body.clientHeight}/${body.scrollHeight} vh=${window.innerHeight}`
 }
 
+/**
+ * The reading of {@link read}, and the top edge of the panel. An engine with no
+ * Motion mock slides the panel in, and the slide moves the edge but not the
+ * height.
+ */
+function rest(): string {
+	return `${read()} top=${getSlot(document.body, 'drawer').getBoundingClientRect().top.toFixed(1)}`
+}
+
 /** Whether the last stage has landed: the map in the drawer draws its shapes. */
 function landed(): boolean {
 	return getSlot(document.body, 'drawer-body').querySelector('[data-region-index]') !== null
@@ -135,7 +144,9 @@ describe('fit drawer switched to a map (PROBE)', () => {
 		it(name, async () => {
 			renderUI(<Probe app={app} />)
 
-			await pause(800)
+			// The first stage starts from a drawer at rest. Wait until its boxes, its pin,
+			// and its place stay the same for five frames, and not for a fixed time.
+			await settledValue(rest, { frames: 5, deadline: budget(3_000) })
 
 			const log: string[] = [`start ${read()}`]
 

@@ -15,7 +15,7 @@ import {
 import { createPortal } from 'react-dom'
 import { hydrateRoot, type Root } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
-import { describe, expect, it, type MockInstance, onTestFinished, vi } from 'vitest'
+import { afterEach, describe, expect, type MockInstance, onTestFinished, vi } from 'vitest'
 import { Dialog, DialogPanel } from '../../components/dialog'
 import {
 	Dashboard,
@@ -52,6 +52,7 @@ import {
 	useControlledLayout,
 } from '../helpers/dashboard-board'
 import { keyboardSensorAttached, pointerSensorDetached } from '../helpers/dnd-kit'
+import { it, onFakeClock } from '../helpers/fake-clock'
 import { serverMarkup } from '../helpers/hydrate'
 
 const LAYOUT: DashboardLayoutItem[] = [
@@ -575,143 +576,144 @@ describe('Dashboard', () => {
 		expect(cursor()).toBeNull()
 	})
 
-	it('drags a card with the pointer into free cells, and ends the drop once', async () => {
-		const { container, onLayout, onDragStart, onDragEnd } = renderGrid()
+	// dnd-kit removes the document listeners of a pointer sensor 50 ms after a
+	// release. The setups drop the timers of the fake clock after each case, so
+	// this hook runs the wait first, also after a case that fails.
+	describe('pointer gestures', () => {
+		onFakeClock()
 
-		const card = screen.getByRole('group', { name: 'Revenue' })
+		afterEach(pointerSensorDetached)
 
-		fireEvent.pointerDown(screen.getByRole('button', { name: 'Move Revenue' }), {
-			...PRIMARY,
-			clientX: 0,
-			clientY: 0,
+		it('drags a card with the pointer into free cells, and ends the drop once', () => {
+			const { container, onLayout, onDragStart, onDragEnd } = renderGrid()
+
+			const card = screen.getByRole('group', { name: 'Revenue' })
+
+			fireEvent.pointerDown(screen.getByRole('button', { name: 'Move Revenue' }), {
+				...PRIMARY,
+				clientX: 0,
+				clientY: 0,
+			})
+
+			// The pointer sensor lifts the tile after 3 px of travel.
+			fireEvent.pointerMove(document, { ...PRIMARY, clientX: 10, clientY: 0 })
+
+			expect(onDragStart).toHaveBeenCalledExactlyOnceWith({ id: 'a', layout: GRID })
+
+			expect(card).toHaveAttribute('data-dragging')
+
+			// At a 50 px pitch, 800 px is 16 columns: the free cells at the end of the first row.
+			fireEvent.pointerMove(document, { ...PRIMARY, clientX: 800, clientY: 0 })
+
+			expect(bySlot(container, 'dashboard-placeholder')?.style.gridArea).toBe(
+				'1 / 17 / span 10 / span 8',
+			)
+
+			fireEvent.pointerUp(document, { ...PRIMARY, clientX: 800, clientY: 0 })
+
+			expect(onLayout).toHaveBeenCalledTimes(1)
+
+			expect(onLayout.mock.lastCall?.[0]).toContainEqual({ id: 'a', x: 16, y: 0, w: 8, h: 10 })
+
+			expect(onDragEnd).toHaveBeenCalledExactlyOnceWith(
+				expect.objectContaining({ id: 'a', canceled: false }),
+			)
 		})
 
-		// The pointer sensor lifts the tile after 3 px of travel.
-		fireEvent.pointerMove(document, { ...PRIMARY, clientX: 10, clientY: 0 })
+		it('starts no drag from a press on the card outside the grip', () => {
+			const onDragStart = vi.fn()
 
-		expect(onDragStart).toHaveBeenCalledExactlyOnceWith({ id: 'a', layout: GRID })
+			renderUI(<Grid onDragStart={onDragStart} />)
 
-		expect(card).toHaveAttribute('data-dragging')
+			const card = screen.getByRole('group', { name: 'Revenue' })
 
-		// At a 50 px pitch, 800 px is 16 columns: the free cells at the end of the first row.
-		fireEvent.pointerMove(document, { ...PRIMARY, clientX: 800, clientY: 0 })
+			fireEvent.pointerDown(card, { ...PRIMARY, clientX: 0, clientY: 0 })
 
-		expect(bySlot(container, 'dashboard-placeholder')?.style.gridArea).toBe(
-			'1 / 17 / span 10 / span 8',
-		)
+			fireEvent.pointerMove(document, { ...PRIMARY, clientX: 10, clientY: 0 })
 
-		fireEvent.pointerUp(document, { ...PRIMARY, clientX: 800, clientY: 0 })
+			expect(onDragStart).not.toHaveBeenCalled()
 
-		expect(onLayout).toHaveBeenCalledTimes(1)
+			expect(card).not.toHaveAttribute('data-dragging')
 
-		expect(onLayout.mock.lastCall?.[0]).toContainEqual({ id: 'a', x: 16, y: 0, w: 8, h: 10 })
+			fireEvent.pointerUp(document, { ...PRIMARY, clientX: 10, clientY: 0 })
+		})
 
-		expect(onDragEnd).toHaveBeenCalledExactlyOnceWith(
-			expect.objectContaining({ id: 'a', canceled: false }),
-		)
+		it('starts no drag from a press on a tile control that moves', () => {
+			const onDragStart = vi.fn()
 
-		await pointerSensorDetached()
-	})
+			renderUI(<Grid onDragStart={onDragStart} onRemove={vi.fn()} />)
 
-	it('starts no drag from a press on the card outside the grip', async () => {
-		const onDragStart = vi.fn()
+			const remove = screen.getByRole('button', { name: 'Remove Revenue' })
 
-		renderUI(<Grid onDragStart={onDragStart} />)
+			fireEvent.pointerDown(remove, { ...PRIMARY, clientX: 0, clientY: 0 })
 
-		const card = screen.getByRole('group', { name: 'Revenue' })
+			fireEvent.pointerMove(document, { ...PRIMARY, clientX: 10, clientY: 0 })
 
-		fireEvent.pointerDown(card, { ...PRIMARY, clientX: 0, clientY: 0 })
+			expect(onDragStart).not.toHaveBeenCalled()
 
-		fireEvent.pointerMove(document, { ...PRIMARY, clientX: 10, clientY: 0 })
+			expect(screen.getByRole('group', { name: 'Revenue' })).not.toHaveAttribute('data-dragging')
 
-		expect(onDragStart).not.toHaveBeenCalled()
+			fireEvent.pointerUp(document, { ...PRIMARY, clientX: 10, clientY: 0 })
+		})
 
-		expect(card).not.toHaveAttribute('data-dragging')
+		it.each([
+			['an app action', 'Menu'],
+			['the portal of an app action', 'Item'],
+			['Clear', 'Clear the selection in Revenue'],
+		])('starts no drag from a press on %s that moves, and runs its click', (_, name) => {
+			const onDragStart = vi.fn()
 
-		fireEvent.pointerUp(document, { ...PRIMARY, clientX: 10, clientY: 0 })
+			const onPress = vi.fn()
 
-		await pointerSensorDetached()
-	})
-
-	it('starts no drag from a press on a tile control that moves', async () => {
-		const onDragStart = vi.fn()
-
-		renderUI(<Grid onDragStart={onDragStart} onRemove={vi.fn()} />)
-
-		const remove = screen.getByRole('button', { name: 'Remove Revenue' })
-
-		fireEvent.pointerDown(remove, { ...PRIMARY, clientX: 0, clientY: 0 })
-
-		fireEvent.pointerMove(document, { ...PRIMARY, clientX: 10, clientY: 0 })
-
-		expect(onDragStart).not.toHaveBeenCalled()
-
-		expect(screen.getByRole('group', { name: 'Revenue' })).not.toHaveAttribute('data-dragging')
-
-		fireEvent.pointerUp(document, { ...PRIMARY, clientX: 10, clientY: 0 })
-
-		await pointerSensorDetached()
-	})
-
-	it.each([
-		['an app action', 'Menu'],
-		['the portal of an app action', 'Item'],
-		['Clear', 'Clear the selection in Revenue'],
-	])('starts no drag from a press on %s that moves, and runs its click', async (_, name) => {
-		const onDragStart = vi.fn()
-
-		const onPress = vi.fn()
-
-		// A menu of the app renders its items in a portal, and React bubbles their events to the card.
-		const actions = (
-			<>
-				<button type="button" onClick={onPress}>
-					Menu
-				</button>
-
-				{createPortal(
+			// A menu of the app renders its items in a portal, and React bubbles their events to the card.
+			const actions = (
+				<>
 					<button type="button" onClick={onPress}>
-						Item
-					</button>,
-					document.body,
-				)}
-			</>
-		)
+						Menu
+					</button>
 
-		renderUI(
-			<ControlledDashboard
-				aria-label="Sales"
-				editing
-				initial={GRID}
-				selection={{
-					defaultValue: [{ source: 'a', field: 'region', values: ['West'] }],
-					onValueChange: onPress,
-				}}
-				onDragStart={onDragStart}
-			>
-				<DashboardTile id="a" title="Revenue" actions={actions} />
+					{createPortal(
+						<button type="button" onClick={onPress}>
+							Item
+						</button>,
+						document.body,
+					)}
+				</>
+			)
 
-				<DashboardTile id="b" title="Traffic" />
-			</ControlledDashboard>,
-		)
+			renderUI(
+				<ControlledDashboard
+					aria-label="Sales"
+					editing
+					initial={GRID}
+					selection={{
+						defaultValue: [{ source: 'a', field: 'region', values: ['West'] }],
+						onValueChange: onPress,
+					}}
+					onDragStart={onDragStart}
+				>
+					<DashboardTile id="a" title="Revenue" actions={actions} />
 
-		const control = screen.getByRole('button', { name })
+					<DashboardTile id="b" title="Traffic" />
+				</ControlledDashboard>,
+			)
 
-		// A travel of 4 px passes the 3 px at which the pointer sensor lifts a tile.
-		fireEvent.pointerDown(control, { ...PRIMARY, clientX: 0, clientY: 0 })
+			const control = screen.getByRole('button', { name })
 
-		fireEvent.pointerMove(document, { ...PRIMARY, clientX: 4, clientY: 0 })
+			// A travel of 4 px passes the 3 px at which the pointer sensor lifts a tile.
+			fireEvent.pointerDown(control, { ...PRIMARY, clientX: 0, clientY: 0 })
 
-		fireEvent.pointerUp(document, { ...PRIMARY, clientX: 4, clientY: 0 })
+			fireEvent.pointerMove(document, { ...PRIMARY, clientX: 4, clientY: 0 })
 
-		// A lift stops the next click on the document, so the control runs only when no drag starts.
-		fireEvent.click(control)
+			fireEvent.pointerUp(document, { ...PRIMARY, clientX: 4, clientY: 0 })
 
-		expect(onDragStart).not.toHaveBeenCalled()
+			// A lift stops the next click on the document, so the control runs only when no drag starts.
+			fireEvent.click(control)
 
-		expect(onPress).toHaveBeenCalledTimes(1)
+			expect(onDragStart).not.toHaveBeenCalled()
 
-		await pointerSensorDetached()
+			expect(onPress).toHaveBeenCalledTimes(1)
+		})
 	})
 
 	it('reports each change of the projection to the app', () => {
@@ -1880,78 +1882,83 @@ describe('Dashboard gesture owner', () => {
 		)
 	})
 
-	it('ends a keyboard lift that an edit exit cancels in the same task, and holds no key', async () => {
-		const onDragEnd = vi.fn()
+	// See `pointer gestures` above.
+	describe('an edit exit during a lift', () => {
+		onFakeClock()
 
-		// Enter lifts the grip, and the same keydown ends edit mode in a handler on an ancestor.
-		function ExitOnEnter() {
-			const [editing, setEditing] = useState(true)
+		afterEach(pointerSensorDetached)
 
-			return (
-				<fieldset onKeyDown={(event) => event.key === 'Enter' && setEditing(false)}>
-					<Controlled editing={editing} onLayout={vi.fn()} onDragEnd={onDragEnd} />
-				</fieldset>
-			)
-		}
+		it('ends a keyboard lift that an edit exit cancels in the same task, and holds no key', async () => {
+			const onDragEnd = vi.fn()
 
-		renderUI(<ExitOnEnter />)
+			// Enter lifts the grip, and the same keydown ends edit mode in a handler on an ancestor.
+			function ExitOnEnter() {
+				const [editing, setEditing] = useState(true)
 
-		const grip = screen.getByRole('button', { name: 'Move Revenue' })
+				return (
+					<fieldset onKeyDown={(event) => event.key === 'Enter' && setEditing(false)}>
+						<Controlled editing={editing} onLayout={vi.fn()} onDragEnd={onDragEnd} />
+					</fieldset>
+				)
+			}
 
-		grip.focus()
+			renderUI(<ExitOnEnter />)
 
-		fireEvent.keyDown(grip, { code: 'Enter', key: 'Enter' })
+			const grip = screen.getByRole('button', { name: 'Move Revenue' })
 
-		await pointerSensorDetached()
+			grip.focus()
 
-		expect(onDragEnd).toHaveBeenCalledExactlyOnceWith({ id: 'a', canceled: true, layout: LAYOUT })
+			fireEvent.keyDown(grip, { code: 'Enter', key: 'Enter' })
 
-		// No keyboard sensor holds the document, so a page key goes through.
-		const passed = fireEvent.keyDown(screen.getByRole('button', { name: 'Inside a' }), {
-			code: 'Space',
-			key: ' ',
-		})
+			await pointerSensorDetached()
 
-		expect(passed).toBe(true)
-	})
+			expect(onDragEnd).toHaveBeenCalledExactlyOnceWith({ id: 'a', canceled: true, layout: LAYOUT })
 
-	it('ends a pointer drag with the board when edit mode ends, so the next drag starts', async () => {
-		const onLayout = vi.fn()
-
-		const onDragEnd = vi.fn()
-
-		const { rerender } = renderUI(<Controlled onLayout={onLayout} onDragEnd={onDragEnd} />)
-
-		/** Presses the grip of Revenue, and moves past the 3 px that lift it. */
-		const press = () => {
-			fireEvent.pointerDown(screen.getByRole('button', { name: 'Move Revenue' }), {
-				...PRIMARY,
-				clientX: 0,
-				clientY: 0,
+			// No keyboard sensor holds the document, so a page key goes through.
+			const passed = fireEvent.keyDown(screen.getByRole('button', { name: 'Inside a' }), {
+				code: 'Space',
+				key: ' ',
 			})
 
-			fireEvent.pointerMove(document, { ...PRIMARY, clientX: 10, clientY: 0 })
-		}
+			expect(passed).toBe(true)
+		})
 
-		press()
+		it('ends a pointer drag with the board when edit mode ends, so the next drag starts', async () => {
+			const onLayout = vi.fn()
 
-		rerender(<Controlled editing={false} onLayout={onLayout} onDragEnd={onDragEnd} />)
+			const onDragEnd = vi.fn()
 
-		expect(onDragEnd).toHaveBeenCalledExactlyOnceWith({ id: 'a', canceled: true, layout: LAYOUT })
+			const { rerender } = renderUI(<Controlled onLayout={onLayout} onDragEnd={onDragEnd} />)
 
-		await pointerSensorDetached()
+			/** Presses the grip of Revenue, and moves past the 3 px that lift it. */
+			const press = () => {
+				fireEvent.pointerDown(screen.getByRole('button', { name: 'Move Revenue' }), {
+					...PRIMARY,
+					clientX: 0,
+					clientY: 0,
+				})
 
-		rerender(<Controlled onLayout={onLayout} onDragEnd={onDragEnd} />)
+				fireEvent.pointerMove(document, { ...PRIMARY, clientX: 10, clientY: 0 })
+			}
 
-		press()
+			press()
 
-		expect(screen.getByRole('group', { name: 'Revenue' })).toHaveAttribute('data-dragging')
+			rerender(<Controlled editing={false} onLayout={onLayout} onDragEnd={onDragEnd} />)
 
-		fireEvent.pointerUp(document, { ...PRIMARY, clientX: 10, clientY: 0 })
+			expect(onDragEnd).toHaveBeenCalledExactlyOnceWith({ id: 'a', canceled: true, layout: LAYOUT })
 
-		expect(onDragEnd).toHaveBeenCalledTimes(2)
+			await pointerSensorDetached()
 
-		await pointerSensorDetached()
+			rerender(<Controlled onLayout={onLayout} onDragEnd={onDragEnd} />)
+
+			press()
+
+			expect(screen.getByRole('group', { name: 'Revenue' })).toHaveAttribute('data-dragging')
+
+			fireEvent.pointerUp(document, { ...PRIMARY, clientX: 10, clientY: 0 })
+
+			expect(onDragEnd).toHaveBeenCalledTimes(2)
+		})
 	})
 
 	it('narrates a drop that changes nothing, and ends it once as canceled', async () => {

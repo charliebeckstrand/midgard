@@ -4,6 +4,7 @@ import { userEvent } from 'vitest/browser'
 import { List, ListItem, type ListProps } from '../../../components/list'
 import { allBySlot, fireEvent, frames, getSlot, renderUI } from '../../helpers'
 import { drag } from '../helpers/drag'
+import { budget } from '../helpers/wall-clock'
 
 /**
  * The pointer drag of a reorderable List over Motion's `Reorder`. Rides the real
@@ -21,7 +22,7 @@ describe('List pointer reorder (real browser)', () => {
 
 	/**
 	 * Presses the grip of `row` and moves the pointer down by `distance`, in
-	 * twelve steps. A negative distance moves it up.
+	 * six steps. A negative distance moves it up.
 	 */
 	const dragBy = (row: HTMLElement, distance: number, init?: PointerEventInit) => {
 		const handle = getSlot(row, 'list-handle')
@@ -30,9 +31,9 @@ describe('List pointer reorder (real browser)', () => {
 
 		const from = { x: box.left + box.width / 2, y: box.top + box.height / 2 }
 
-		const path = Array.from({ length: 12 }, (_, index) => ({
+		const path = Array.from({ length: 6 }, (_, index) => ({
 			x: from.x,
-			y: from.y + ((index + 1) * distance) / 12,
+			y: from.y + ((index + 1) * distance) / 6,
 		}))
 
 		return drag(handle, from, path, init)
@@ -359,21 +360,41 @@ describe('List pointer reorder (real browser)', () => {
 
 		const end = getSlot(container, 'list-rail').getBoundingClientRect().right - 10
 
-		// The pointer travels to the end of the rail, then holds there with a small
-		// motion toward the edge while the rail scrolls.
-		const path = [
-			...Array.from({ length: 20 }, (_, index) => ({
-				x: from.x + ((end - from.x) * (index + 1)) / 20,
-				y: from.y,
-			})),
-			...Array.from({ length: 80 }, (_, index) => ({ x: end + (index % 2), y: from.y })),
-		]
+		// The pointer travels to the end of the rail.
+		const path = Array.from({ length: 20 }, (_, index) => ({
+			x: from.x + ((end - from.x) * (index + 1)) / 20,
+			y: from.y,
+		}))
 
 		const held = await drag(handle, from, path)
 
+		const order = () =>
+			allBySlot(list, 'list-item')
+				.map((row) => row.dataset.itemId)
+				.join()
+
+		// The order once the row gets to the end of the rail.
+		const moved = ['In progress', 'Review', 'Done', 'Blocked', 'Archived', 'Todo']
+
+		// Then it holds there with a small motion toward the edge while the rail
+		// scrolls. Each move scrolls the rail, so the hold ends when the row gets to
+		// the end, or at the deadline.
+		const deadline = performance.now() + budget(5_000)
+
+		for (let step = 0; order() !== moved.join() && performance.now() < deadline; step++) {
+			fireEvent.pointerMove(handle, {
+				isPrimary: true,
+				button: 0,
+				clientX: end + (step % 2),
+				clientY: from.y,
+			})
+
+			await frames()
+		}
+
 		await expect
 			.poll(() => allBySlot(list, 'list-item').map((row) => row.dataset.itemId))
-			.toEqual(['In progress', 'Review', 'Done', 'Blocked', 'Archived', 'Todo'])
+			.toEqual(moved)
 
 		await held.release()
 

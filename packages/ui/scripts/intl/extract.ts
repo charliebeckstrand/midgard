@@ -20,7 +20,7 @@ import { fileURLToPath } from 'node:url'
 import { parseAst } from 'vite'
 import { createApiExtractor } from '../../src/docs/plugin/api.ts'
 import { demoEntries } from '../../src/docs/plugin/demo-text.ts'
-import { fieldEntries } from '../../src/docs/plugin/fields.ts'
+import { type Extract, fieldEntries } from '../../src/docs/plugin/fields.ts'
 import { pageEntries, tabEntries, titleEntries } from '../../src/docs/plugin/titles.ts'
 import {
 	type CatalogEntry,
@@ -68,32 +68,40 @@ export const DOCS_CATALOG_SOURCE: CatalogSource = { srcDir: DOCS_DIR, skipped: [
  * a playground, which come from the API data of its component, and each text
  * of a demo, which comes from a literal in `pages/` or in `data/`. A page
  * name, a title, a tab name, a field, and a demo text have no descriptor.
+ *
+ * @param extract - Reads the API data of a barrel. A test gives the extractor
+ * that it already has. When you give none, the function starts an API
+ * extractor of its own and closes it at the end.
  */
-export async function extractDocsCatalog(): Promise<Record<string, CatalogEntry>> {
-	const extractor = createApiExtractor(join(SRC_DIR, '..'))
+export async function extractDocsCatalog(extract?: Extract): Promise<Record<string, CatalogEntry>> {
+	if (!extract) {
+		const extractor = createApiExtractor(join(SRC_DIR, '..'))
 
-	try {
-		const [messages, titles, tabs, fields, demos] = await Promise.all([
-			extractCatalog(DOCS_CATALOG_SOURCE),
-			titleEntries(DOCS_DIR, parseAst),
-			tabEntries(DOCS_DIR, parseAst),
-			fieldEntries(DOCS_DIR, parseAst, (barrel) => extractor.extract(barrel)),
-			demoEntries(DOCS_DIR, parseAst),
-		])
-
-		return Object.fromEntries(
-			Object.entries({
-				...messages,
-				...pageEntries(DOCS_DIR),
-				...titles,
-				...tabs,
-				...fields,
-				...demos,
-			}).toSorted(([a], [b]) => (a < b ? -1 : 1)),
-		)
-	} finally {
-		extractor.close()
+		try {
+			return await extractDocsCatalog((barrel) => extractor.extract(barrel))
+		} finally {
+			extractor.close()
+		}
 	}
+
+	const [messages, titles, tabs, fields, demos] = await Promise.all([
+		extractCatalog(DOCS_CATALOG_SOURCE),
+		titleEntries(DOCS_DIR, parseAst),
+		tabEntries(DOCS_DIR, parseAst),
+		fieldEntries(DOCS_DIR, parseAst, extract),
+		demoEntries(DOCS_DIR, parseAst),
+	])
+
+	return Object.fromEntries(
+		Object.entries({
+			...messages,
+			...pageEntries(DOCS_DIR),
+			...titles,
+			...tabs,
+			...fields,
+			...demos,
+		}).toSorted(([a], [b]) => (a < b ? -1 : 1)),
+	)
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

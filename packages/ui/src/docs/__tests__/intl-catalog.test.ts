@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { CATALOG_LOCALES } from 'ui/providers/locale'
-import { describe, expect, it } from 'vitest'
+import { describe, expect } from 'vitest'
 import {
 	argumentErrors,
 	catalogText,
@@ -18,6 +18,7 @@ import {
 	extractDocsCatalog,
 } from '../../../scripts/intl/extract.ts'
 import { catalogs } from '../app/catalogs.ts'
+import { it } from './extractor.ts'
 
 // The source catalog holds the English default of each message of the docs,
 // and each translation maps the same ids to the text of its language. The
@@ -41,10 +42,12 @@ const source = readCatalog(DOCS_SOURCE_CATALOG)
 const translations = readTranslations(DOCS_LANG_DIR)
 
 describe('intl catalog of the docs', () => {
-	// The extraction reads the API data of each playground, so it starts a
-	// TypeScript server.
-	it('matches the message descriptors of the source', { timeout: 60_000 }, async () => {
-		const text = catalogText(await extractDocsCatalog())
+	// The extraction reads the API data of each playground, so it takes the
+	// TypeScript server of the extractor fixture.
+	it('matches the message descriptors of the source', { timeout: 60_000 }, async ({
+		extractor,
+	}) => {
+		const text = catalogText(await extractDocsCatalog((barrel) => extractor.extract(barrel)))
 
 		expect(readFileSync(DOCS_SOURCE_CATALOG, 'utf8'), 'run `pnpm intl` to write the catalog').toBe(
 			text,

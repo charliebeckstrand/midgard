@@ -83,15 +83,23 @@ describe('QueryBuilder pointer reorder (real browser)', () => {
 	const sortable = (container: HTMLElement, id: string) =>
 		container.querySelector<HTMLElement>(`[data-slot="query-sortable"][data-node-id="${id}"]`)
 
-	/** Presses `grip` and moves the pointer down by `distance`, in twelve steps. */
-	const dragDown = (grip: HTMLElement, distance: number, init?: PointerEventInit) => {
+	/**
+	 * Presses `grip` and moves the pointer down by `distance`, in `steps` steps.
+	 * Each step waits for two frames.
+	 */
+	const dragDown = (
+		grip: HTMLElement,
+		distance: number,
+		steps: number,
+		init?: PointerEventInit,
+	) => {
 		const box = grip.getBoundingClientRect()
 
 		const from = { x: box.left + box.width / 2, y: box.top + box.height / 2 }
 
-		const path = Array.from({ length: 12 }, (_, index) => ({
+		const path = Array.from({ length: steps }, (_, index) => ({
 			x: from.x,
-			y: from.y + ((index + 1) * distance) / 12,
+			y: from.y + ((index + 1) * distance) / steps,
 		}))
 
 		return drag(grip, from, path, init)
@@ -101,7 +109,8 @@ describe('QueryBuilder pointer reorder (real browser)', () => {
 
 	/**
 	 * Presses the grip of `gripName` and moves the pointer down past the node
-	 * `nextId`, by one and a half of its height. The pointer stays down.
+	 * `nextId`, by one and a half of its height, in six steps. The pointer stays
+	 * down.
 	 */
 	const dragPast = (
 		container: HTMLElement,
@@ -113,7 +122,7 @@ describe('QueryBuilder pointer reorder (real browser)', () => {
 
 		if (!next) throw new Error('expected nodes')
 
-		return dragDown(grip(gripName), next.getBoundingClientRect().height * 1.5, init)
+		return dragDown(grip(gripName), next.getBoundingClientRect().height * 1.5, 6, init)
 	}
 
 	it('moves the nodes during the drag and commits the move once, on the drop', async () => {
@@ -308,11 +317,15 @@ describe('QueryBuilder pointer reorder (real browser)', () => {
 		expect(ids((value.children[0] as QueryGroup).children)).toEqual(['y', 'x'])
 	})
 
-	/** Presses `grip` and moves the pointer straight to the height `y`, in twelve steps. */
+	/**
+	 * Presses `grip` and moves the pointer straight to the height `y`, in twelve
+	 * steps. The path can cross a nested group, and the cases read what the drag
+	 * does over that group, so the path keeps its twelve steps.
+	 */
 	const dragTo = (grip: HTMLElement, y: number) => {
 		const box = grip.getBoundingClientRect()
 
-		return dragDown(grip, y - (box.top + box.height / 2))
+		return dragDown(grip, y - (box.top + box.height / 2), 12)
 	}
 
 	const box = (container: HTMLElement, id: string) => {
