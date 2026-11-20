@@ -5,9 +5,8 @@
  * `trigger` keeps the anchor inline with the text or the icons around it. The
  * `portal` rides the `float` rung of the stacking order, which clears every
  * overlay rung, because a popover opens from inside a modal panel too. It is
- * the floating element, and the focus manager makes it focusable. A press on
- * the padding of a panel gives it the focus, so it draws no focus ring: it is
- * a container, not a control.
+ * the floating element, and the focus manager makes it focusable, so it shows
+ * the focus ring of the package, not the ring of the user agent.
  * `content` and `body` are the outer element of `<PopoverContent>` and the box
  * inside it.
  */
@@ -17,7 +16,7 @@ import { dan, hannou, iro, kasane, omote, sen, sou, ugoki } from '../kiso'
 
 const { cursor } = hannou
 const { rounded } = kasane
-const { ring } = sen
+const { focus, ring } = sen
 
 export const k = defineKata(
 	{
@@ -43,7 +42,7 @@ export const k = defineKata(
 		},
 		slots: {
 			trigger: 'inline-flex',
-			portal: [sou.float, 'outline-hidden'],
+			portal: [sou.float, focus.ring],
 			/** The body text inside the panel. The glass content draws no fill of its own. */
 			content: {
 				base: ['text-pretty', iro.text.default],

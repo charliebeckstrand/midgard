@@ -6,12 +6,12 @@ import { frames, renderUI, screen, waitFor } from '../../helpers'
 
 /**
  * The floating element of a panel takes the focus on a press on the padding
- * of the panel, because the focus manager makes it focusable. It is a
- * container, not a control, so it draws no focus ring. WebKit draws the ring
- * of the user agent on such a focus.
+ * of the panel, because the focus manager makes it focusable. On a visible
+ * focus it draws the focus ring of the package, not the ring of the user
+ * agent, which WebKit draws on such a focus.
  */
 describe('the floating surface of a Popover (real floating engine)', () => {
-	it('draws no focus ring when it has the focus', async () => {
+	it('draws the focus ring of the package on a visible focus', async () => {
 		renderUI(
 			<Popover>
 				<PopoverTrigger>
@@ -40,6 +40,12 @@ describe('the floating surface of a Popover (real floating engine)', () => {
 
 		expect(surface.matches(':focus-visible')).toBe(true)
 
-		expect(getComputedStyle(surface).outlineStyle).toBe('none')
+		const style = getComputedStyle(surface)
+
+		expect([style.outlineStyle, style.outlineWidth, style.outlineOffset]).toEqual([
+			'solid',
+			'2px',
+			'2px',
+		])
 	})
 })
