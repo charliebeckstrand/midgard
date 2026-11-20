@@ -9,6 +9,10 @@
  * quadtree splits each box that holds too many entries, so a dense pile gets
  * small boxes, and a search reads only the boxes that it cannot rule out.
  *
+ * That bound needs positions that differ. Dots at one position stay in one box
+ * at {@link QUAD_DEPTH}, and no distance rules out any of them. A pile of them
+ * thus costs the square of its count, as it did in the grid.
+ *
  * The tree holds the indices of the live nodes. The caller owns the position
  * and the key of each index, and reads them through the accessors. Each box
  * keeps the count of its entries and the largest key among them, so a search

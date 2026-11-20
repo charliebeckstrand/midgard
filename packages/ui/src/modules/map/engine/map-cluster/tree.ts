@@ -618,8 +618,10 @@ function findBounds(projected: readonly (MapPoint2D | null)[]): {
  *
  * A search reads only the nodes within the reach of the limit, as the cells of
  * one reach give them. A quadtree holds the nodes, so a search also rules out
- * each box whose nodes cannot come first. Dots that stand close together then
- * cost no more than dots that spread out (`quad.ts`).
+ * each box whose nodes cannot come first. Dots that stand close together, at
+ * distinct positions, then cost about as much as dots that spread out
+ * (`quad.ts`). Dots at one position cannot part: a pile of them still costs
+ * the square of its count, as each search reads the whole pile.
  *
  * @param getGap - The gap that each dot asks for, in device pixels.
  * @param widestGap - The largest of the gaps.
