@@ -377,7 +377,14 @@ function CartesianLegendFooter({ chart }: { chart: CartesianChart }) {
 	const { resolvedLegend, referenceItems } = chart
 
 	if (resolvedLegend.referenceVariant === 'notes') {
-		return <ChartLegendNotes references={referenceItems} inert={resolvedLegend.inert} />
+		return (
+			<ChartLegendNotes
+				references={referenceItems}
+				hidden={chart.referenceHidden}
+				onToggle={chart.toggleReference}
+				inert={resolvedLegend.inert}
+			/>
+		)
 	}
 
 	return (

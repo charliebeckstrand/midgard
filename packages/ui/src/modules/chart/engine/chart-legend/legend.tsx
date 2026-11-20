@@ -171,9 +171,6 @@ function useLegendFit(
 const ROW_CONTROLS =
 	'button[data-slot="chart-legend-item"], button[data-slot="chart-legend-reference"]'
 
-/** The stable empty list of chips of a legend that shows its rules as notes. @internal */
-const NO_REFERENCES: ChartLegendReference[] = []
-
 /** The stable empty set a legend without a reference toggle reads for its off chips. @internal */
 const EMPTY_HIDDEN: ReadonlySet<number> = new Set()
 
@@ -544,8 +541,9 @@ export type ChartLegendProps = {
 	 */
 	references?: ChartLegendReference[]
 	/**
-	 * How the References section shows the entries: a switch for each rule
-	 * (`'chips'`), or a note for each rule that does not toggle (`'notes'`).
+	 * How the References section shows the entries: a chip for each rule
+	 * (`'chips'`), or a note with the description of each rule (`'notes'`). Each
+	 * entry is a switch that toggles its rule.
 	 * @defaultValue 'chips'
 	 */
 	referenceVariant?: 'chips' | 'notes'
@@ -765,83 +763,187 @@ function LegendHeading({ children }: { children: ReactNode }) {
 	)
 }
 
-/** Props for {@link ChartLegendNotes}. @internal */
-type ChartLegendNotesProps = {
+/** Props for {@link ChartLegendNote}. @internal */
+type ChartLegendNoteProps = ChartLegendReference & {
+	/** The rule is toggled off: the label strikes through and the swatch dims. */
+	off: boolean
+	/** Toggles the rule on or off by its index. */
+	onToggle: (index: number) => void
+	/** The shared pointer and focus emphasis of the rules. */
+	emphasis: LegendEmphasis<number>
+}
+
+/**
+ * One note of a reference rule (`legend.references.variant: 'notes'`): a switch
+ * with the swatch, the label, and the value of the rule on one line, and the
+ * description of the rule under them, one text step smaller. It is a switch,
+ * as a chip is. A click toggles the rule, and a pointer or a keyboard focus on
+ * a note that is on recedes the marks to its rule. The whole text of the note
+ * names the switch, so its name holds the text that shows (WCAG 2.5.3).
+ *
+ * @internal
+ */
+const ChartLegendNote = memo(function ChartLegendNote({
+	off,
+	onToggle,
+	emphasis,
+	...reference
+}: ChartLegendNoteProps) {
+	return (
+		<li data-slot="chart-legend-note" className="min-w-0">
+			<Button
+				type="button"
+				size="sm"
+				variant="plain"
+				data-slot="chart-legend-reference"
+				className="grid w-full grid-cols-[auto_minmax(0,1fr)] items-start justify-items-start gap-x-2 gap-y-0 text-start text-sm leading-5 font-normal"
+				aria-pressed={!off}
+				onClick={() => onToggle(reference.index)}
+				// A touch is a tap that toggles the rule, not a point, as on `LegendSwitch`.
+				onPointerEnter={(event) => {
+					if (event.pointerType !== 'touch') emphasis.point(reference.index)
+				}}
+				onPointerLeave={() => emphasis.point(null)}
+				onFocus={emphasis.sync}
+				onBlur={emphasis.sync}
+			>
+				<span className="flex h-5 items-center">
+					<ChartLegendReferenceSwatch reference={reference} off={off} />
+				</span>
+
+				<span className="flex min-w-0 flex-wrap items-baseline gap-x-1.5">
+					<Text
+						as="span"
+						tone="muted"
+						className={cn('font-medium', off && 'line-through opacity-60')}
+					>
+						{reference.label}
+					</Text>
+
+					<ChartLegendReferenceValue value={reference.value} off={off} />
+				</span>
+
+				{reference.description && (
+					<Text
+						as="span"
+						tone="muted"
+						size="xs"
+						className={cn('col-start-2 min-w-0', off && 'opacity-60')}
+					>
+						{reference.description}
+					</Text>
+				)}
+			</Button>
+		</li>
+	)
+})
+
+/** Props for {@link ChartLegendNoteList}. @internal */
+type ChartLegendNoteListProps = {
 	references: ChartLegendReference[]
-	/**
-	 * The legend is a static key, so pointing a note recedes nothing, as in the
-	 * inert legend. Notes under the figure sit outside the legend, so they take
-	 * the flag themselves.
-	 * @defaultValue false
-	 */
-	inert?: boolean
+	/** The indexes of the rules toggled off. */
+	hidden: ReadonlySet<number>
+	/** Toggles a rule on or off by its index. */
+	onToggle: (index: number) => void
+	/** The shared pointer and focus emphasis of the rules. */
+	emphasis: LegendEmphasis<number>
 	/** Panel layout: the notes fill the rail. Off, the block centers under the figure. */
 	panel?: boolean
 }
 
+/** The list of the notes of the reference rules ({@link ChartLegendNote}). @internal */
+function ChartLegendNoteList({
+	references,
+	hidden,
+	onToggle,
+	emphasis,
+	panel = false,
+}: ChartLegendNoteListProps) {
+	return (
+		<ul
+			data-slot="chart-legend-notes"
+			className={cn(
+				'grid [--touch-target-gap-y:0px]',
+				LEGEND_TOUCH_ROWS,
+				panel ? 'w-full min-w-0' : 'mx-auto w-fit max-w-full min-w-0',
+			)}
+		>
+			{references.map((reference) => (
+				<ChartLegendNote
+					key={reference.index}
+					{...reference}
+					off={hidden.has(reference.index)}
+					onToggle={onToggle}
+					emphasis={emphasis}
+				/>
+			))}
+		</ul>
+	)
+}
+
+/** Props for {@link ChartLegendNotes}. @internal */
+type ChartLegendNotesProps = {
+	references: ChartLegendReference[]
+	/** The indexes of the rules toggled off. */
+	hidden: ReadonlySet<number>
+	/** Toggles a rule on or off by its index. */
+	onToggle: (index: number) => void
+	/**
+	 * The legend is a static key, so the notes take no toggle, emphasis, or tab
+	 * stop, as in the inert legend. Notes under the figure sit outside the
+	 * legend, so they take the flag themselves.
+	 * @defaultValue false
+	 */
+	inert?: boolean
+}
+
 /**
- * The notes of the reference rules (`legend.references.variant: 'notes'`): a
- * line for each rule with its swatch, its label, and its value, and its
- * description under them, one text step smaller. A note is not a switch, so
- * it takes no tab stop and toggles nothing. Pointing a note recedes the marks
- * to its rule, as pointing a chip does, unless the rule draws nothing. A stacked legend puts the notes
- * under the figure, out of the aspect box, and a side panel puts them in its
- * References section.
+ * The notes of the reference rules of a stacked legend
+ * (`legend.references.variant: 'notes'`), in a column under the figure, out of
+ * the aspect box. Each note is a switch that toggles its rule
+ * ({@link ChartLegendNote}). The column is a toolbar of its own, one Tab stop
+ * with the arrow keys roving between its notes. A side panel puts the notes in
+ * its References section.
  *
  * @internal
  */
 export function ChartLegendNotes({
 	references,
-	panel = false,
+	hidden,
+	onToggle,
 	inert = false,
 }: ChartLegendNotesProps) {
-	const { pointReference } = useChartActions()
+	const ref = useRef<HTMLDivElement>(null)
+
+	const intl = useIntl()
+
+	const { emphasis, toggle } = useReferenceChips([ref], references, hidden, onToggle)
+
+	const onKeyDown = useA11yRoving(ref, {
+		itemSelector: 'button[data-slot="chart-legend-reference"]',
+		orientation: 'vertical',
+		manageTabIndex: true,
+		escapeBlurs: true,
+	})
+
+	const toolbarProps = inert
+		? {}
+		: ({
+				role: 'toolbar',
+				'aria-label': intl.formatMessage(chartMessages.references),
+				'aria-orientation': 'vertical',
+				onKeyDown,
+			} as const)
 
 	return (
-		<ul
-			data-slot="chart-legend-notes"
-			inert={inert}
-			className={cn(
-				'grid gap-1',
-				panel ? 'w-full min-w-0 px-2' : 'mx-auto w-fit max-w-full min-w-0',
-			)}
-		>
-			{references.map((reference) => (
-				<li
-					key={reference.index}
-					data-slot="chart-legend-note"
-					className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-2 text-start text-sm leading-5"
-					// A tap is not a point, as on `LegendSwitch`. A note of an inert legend
-					// takes no pointer, as a switch of one takes none.
-					onPointerEnter={(event) => {
-						if (!inert && event.pointerType !== 'touch' && reference.drawn !== false) {
-							pointReference(reference.index)
-						}
-					}}
-					onPointerLeave={() => {
-						if (!inert) pointReference(null)
-					}}
-				>
-					<span className="flex h-5 items-center">
-						<ChartLegendReferenceSwatch reference={reference} off={false} />
-					</span>
-
-					<span className="flex min-w-0 flex-wrap items-baseline gap-x-1.5">
-						<Text as="span" tone="muted" className="font-medium">
-							{reference.label}
-						</Text>
-
-						<ChartLegendReferenceValue value={reference.value} off={false} />
-					</span>
-
-					{reference.description && (
-						<Text as="span" tone="muted" size="xs" className="col-start-2 min-w-0">
-							{reference.description}
-						</Text>
-					)}
-				</li>
-			))}
-		</ul>
+		<div ref={ref} inert={inert} {...toolbarProps} className="w-full min-w-0">
+			<ChartLegendNoteList
+				references={references}
+				hidden={hidden}
+				onToggle={toggle}
+				emphasis={emphasis}
+			/>
+		</div>
 	)
 }
 
@@ -982,9 +1084,8 @@ export function ChartLegendReferences({
  * explain it. So does the focus a backgrounded tab re-fires on return.
  *
  * A side panel puts the reference lines in a References section under the
- * series, with a heading on each section. As chips, the entries are switches
- * ({@link useReferenceChips}). As notes, the entries do not toggle
- * ({@link ChartLegendNotes}). A stacked legend holds the series alone, and the
+ * series, with a heading on each section. As chips or as notes
+ * ({@link ChartLegendNote}), the entries are switches ({@link useReferenceChips}). A stacked legend holds the series alone, and the
  * frame puts the rules under the figure ({@link ChartLegendReferences}).
  * {@link ChartReferenceList} still carries the value parity. A panel past five
  * series switches pages instead of clipping. The visible page still renders in
@@ -1028,10 +1129,7 @@ export function ChartLegend({
 
 	const series = useLegendGroup(pageItems, cap, ref, emphasis.sync)
 
-	// A note is not a control, so the notes take no chip.
-	const chipList = notes ? NO_REFERENCES : references
-
-	const chips = useReferenceChips([ref], chipList, referenceHidden, onToggleReference)
+	const chips = useReferenceChips([ref], references, referenceHidden, onToggleReference)
 
 	const closeOverflow = () => {
 		emphasis.point(null)
@@ -1039,12 +1137,7 @@ export function ChartLegend({
 		setSeriesFocus(null)
 	}
 
-	const toolbarProps = useLegendToolbar(
-		ref,
-		panel,
-		// A note is not a control, so a legend of notes alone takes no toolbar.
-		!inert && items.length + chipList.length > 0,
-	)
+	const toolbarProps = useLegendToolbar(ref, panel, !inert && items.length + references.length > 0)
 
 	const renderEntry = (item: ChartLegendItem, ghost: boolean) => (
 		<ChartLegendEntry
@@ -1093,9 +1186,15 @@ export function ChartLegend({
 				referenceControls={
 					references.length > 0 &&
 					(notes ? (
-						<ChartLegendNotes references={references} panel />
+						<ChartLegendNoteList
+							references={references}
+							hidden={referenceHidden}
+							onToggle={chips.toggle}
+							emphasis={chips.emphasis}
+							panel
+						/>
 					) : (
-						chipList.map((reference) => (
+						references.map((reference) => (
 							<ChartLegendReferenceSwitch
 								key={`reference:${reference.index}`}
 								{...reference}

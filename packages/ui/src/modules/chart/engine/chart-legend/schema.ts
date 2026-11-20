@@ -65,8 +65,9 @@ export type ChartLegendReferenceConfig = {
 	/**
 	 * How the legend shows each rule. `'chips'` gives each rule a switch, with a
 	 * swatch that shows the dash and the direction of the rule. A switch toggles
-	 * its rule. `'notes'` gives each rule a line that does not toggle: the
-	 * swatch, the label, the value, and the `description` of the rule under them.
+	 * its rule. `'notes'` gives each rule a note: the swatch, the label, the
+	 * value, and the `description` of the rule under them. A note is a switch
+	 * that toggles its rule, as a chip is.
 	 * @defaultValue 'chips'
 	 */
 	variant?: 'chips' | 'notes'

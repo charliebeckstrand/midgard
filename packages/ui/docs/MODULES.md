@@ -28,7 +28,11 @@ import { MapPlat } from 'ui/modules/map' // or the 'ui/map' shorthand
 
 > A busy chart can name its reference lines in the legend in place of their labels. Set `legend: { references: true }` on the chart, or `legend: true` on one line. Each line that the legend names takes a dashed chip there, and no label on the plot. A line at a category takes a chip too, and its category readout still shows its label. A chip toggles its line. The legend shows when it names a line, as for two or more series. A line with `legend: false` keeps its label on the plot.
 
-> A legend above or below the plot puts the reference lines under the chart, out of its aspect box. They take no height from the plot. Their row of chips wraps to as many lines as it needs, with no `+N` chip, and it is a toolbar of its own. A side panel shows the lines in a section with a heading. A chip shows the label and then the value or the category of its line. Its swatch runs in the direction of the line. `ChartLegendReferenceConfig` is the object form of `legend.references`. With `variant: 'notes'`, each line is a note that does not toggle, with its value and its `description`. With `value: false`, a chip shows the label alone, for a label that already holds the value.
+> A legend above or below the plot puts the reference lines under the chart, out of its aspect box. They take no height from the plot. Their row of chips wraps to as many lines as it needs, with no `+N` chip, and it is a toolbar of its own. A side panel shows the lines in a section with a heading.
+
+> `ChartLegendReferenceConfig` is the object form of `legend.references`. A chip shows the label and then the value or the category of its line. Its swatch runs in the direction of the line. With `value: false`, a chip shows the label alone, for a label that already holds the value.
+
+> With `variant: 'notes'`, each line is a note with its value and its `description`. A note toggles its line, as a chip does. Under the chart, the notes are a toolbar of their own, and the arrow keys move between them. In a side panel, the arrow keys move from the series to the notes.
 
 > A function-form `contextMenu.items` gets the mark under the pointer as a `ChartContextMenuTarget`. Its `index` points into the data. Its `label` is the text that the band axis and the tooltip title write for the mark. An item can then name the mark, such as a date category, with no second formatter.
 

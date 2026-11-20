@@ -1759,8 +1759,6 @@ describe('reference lines that the legend names', () => {
 			],
 		})
 
-		expect(allBySlot(container, 'chart-legend-reference')).toHaveLength(0)
-
 		expect(allBySlot(container, 'chart-legend-note').map((note) => note.textContent)).toEqual([
 			'Target55Set in January',
 			'ReleaseFeb',
@@ -1771,10 +1769,23 @@ describe('reference lines that the legend names', () => {
 			getSlot(container, 'chart-legend').querySelector('[data-slot="chart-legend-note"]'),
 		).toBeNull()
 
-		// A note is not a switch, but pointing it recedes the marks to its rule.
-		const marks = () => getSlot(container, 'chart-marks').getAttribute('class') ?? ''
+		// Each note is a switch. Its whole text names it, so the name holds the
+		// text that shows (WCAG 2.5.3).
+		const note = getSlot(container, 'chart-legend-reference')
 
-		const note = getSlot(container, 'chart-legend-note')
+		expect(note.closest('[data-slot="chart-legend-note"]')).not.toBeNull()
+
+		expect(note.getAttribute('aria-pressed')).toBe('true')
+
+		expect(note.hasAttribute('aria-labelledby')).toBe(false)
+
+		expect(note.textContent).toBe('Target55Set in January')
+
+		// The notes are a toolbar of their own.
+		expect(note.closest('[role="toolbar"]')?.getAttribute('aria-orientation')).toBe('vertical')
+
+		// Pointing a note recedes the marks to its rule.
+		const marks = () => getSlot(container, 'chart-marks').getAttribute('class') ?? ''
 
 		// A touch on a note is a tap, not a point.
 		fireEvent.pointerEnter(note, { pointerType: 'touch' })
@@ -1788,6 +1799,33 @@ describe('reference lines that the legend names', () => {
 		fireEvent.pointerLeave(note)
 
 		expect(marks()).not.toContain('opacity-25')
+	})
+
+	it('toggles its rule off when the note is clicked, and back on again', async () => {
+		const user = setupUser()
+
+		const { container } = bar({
+			legend: { references: { variant: 'notes' } },
+			reference: [{ value: 55, label: 'Target', description: 'Set in January' }],
+		})
+
+		const note = () => getSlot(container, 'chart-legend-reference')
+
+		expect(allBySlot(container, 'chart-reference-line')).toHaveLength(1)
+
+		await user.click(note())
+
+		expect(allBySlot(container, 'chart-reference-line')).toHaveLength(0)
+
+		expect(note().getAttribute('aria-pressed')).toBe('false')
+
+		expect(note().querySelector('.line-through')?.textContent).toBe('Target')
+
+		await user.click(note())
+
+		expect(allBySlot(container, 'chart-reference-line')).toHaveLength(1)
+
+		expect(note().getAttribute('aria-pressed')).toBe('true')
 	})
 
 	it('shows the notes of a side panel in its References section', () => {
@@ -1806,35 +1844,91 @@ describe('reference lines that the legend names', () => {
 		expect(allBySlot(container, 'chart-legend-notes')).toHaveLength(1)
 	})
 
-	it('recedes nothing from a note of an inert legend', () => {
+	it('roves between the notes under the figure with the arrow keys', () => {
+		const { container } = bar({
+			legend: { references: { variant: 'notes' } },
+			reference: [
+				{ value: 55, label: 'Target', description: 'Set in January' },
+				{ value: 70, label: 'Ceiling' },
+			],
+		})
+
+		const [target, ceiling] = allBySlot(container, 'chart-legend-reference') as HTMLButtonElement[]
+
+		// The notes are one Tab stop.
+		expect([target?.tabIndex, ceiling?.tabIndex]).toEqual([0, -1])
+
+		act(() => target?.focus())
+
+		fireEvent.keyDown(target as HTMLElement, { key: 'ArrowDown' })
+
+		expect(document.activeElement).toBe(ceiling)
+	})
+
+	it('toggles a rule from a note of a side panel, and roves to it from the series', async () => {
+		const user = setupUser()
+
+		const { container } = bar({
+			legend: { placement: 'right', references: { variant: 'notes' } },
+			reference: [{ value: 55, label: 'Target', description: 'Set in January' }],
+		})
+
+		const legend = getSlot(container, 'chart-legend')
+
+		const series = allBySlot(legend, 'chart-legend-item') as HTMLButtonElement[]
+
+		const note = () => getSlot(legend, 'chart-legend-reference') as HTMLButtonElement
+
+		// The note sits in the References section of the panel, in the legend toolbar.
+		expect(note().closest('[data-slot="chart-legend-note"]')).not.toBeNull()
+
+		expect(note().closest('[role="toolbar"]')).toBe(legend)
+
+		// The arrow keys rove from the last series switch to the note.
+		const last = series.at(-1) as HTMLButtonElement
+
+		act(() => last.focus())
+
+		fireEvent.keyDown(last, { key: 'ArrowDown' })
+
+		expect(document.activeElement).toBe(note())
+
+		// Pointing the note recedes the marks to its rule.
+		const marks = () => getSlot(container, 'chart-marks').getAttribute('class') ?? ''
+
+		fireEvent.pointerEnter(note(), { pointerType: 'mouse' })
+
+		expect(marks()).toContain('opacity-25')
+
+		fireEvent.pointerLeave(note())
+
+		// A click toggles the rule off, and a second click brings it back.
+		await user.click(note())
+
+		expect(allBySlot(container, 'chart-reference-line')).toHaveLength(0)
+
+		expect(note().getAttribute('aria-pressed')).toBe('false')
+
+		await user.click(note())
+
+		expect(allBySlot(container, 'chart-reference-line')).toHaveLength(1)
+
+		expect(note().getAttribute('aria-pressed')).toBe('true')
+	})
+
+	it('takes no toolbar and no pointer on the notes of an inert legend', () => {
 		const { container } = bar({
 			legend: { inert: true, references: { variant: 'notes' } },
 			reference: [{ value: 55, label: 'Target' }],
 		})
 
-		const notes = getSlot(container, 'chart-legend-notes')
-
 		// The notes sit under the figure, outside the inert legend, so they take
 		// the flag themselves.
-		expect(notes.hasAttribute('inert')).toBe(true)
+		const box = getSlot(container, 'chart-legend-notes').parentElement
 
-		const marks = () => getSlot(container, 'chart-marks').getAttribute('class') ?? ''
+		expect(box?.hasAttribute('inert')).toBe(true)
 
-		const note = getSlot(container, 'chart-legend-note')
-
-		fireEvent.pointerEnter(note)
-
-		expect(marks()).not.toContain('opacity-25')
-
-		// A rule pointed on the plot recedes the marks. Leaving an inert note keeps
-		// that emphasis, since the note takes no pointer.
-		pointRule(container, 0)
-
-		expect(marks()).toContain('opacity-25')
-
-		fireEvent.pointerLeave(note)
-
-		expect(marks()).toContain('opacity-25')
+		expect(box?.getAttribute('role')).toBeNull()
 	})
 
 	it('heads the series and the rules of a side panel', () => {
