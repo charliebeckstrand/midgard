@@ -5,6 +5,7 @@ import {
 	type ExtendedRefs,
 	type FloatingRootContext,
 	flip,
+	getOverflowAncestors,
 	hide,
 	type Middleware,
 	type OpenChangeReason,
@@ -107,15 +108,93 @@ const autoAlignMiddleware: Middleware = {
 	},
 }
 
+/** The `hide` middleware of floating-ui, which reads the clip of each scroll container. */
+const clipHide = hide({ strategy: 'referenceHidden' })
+
+/** The scroll padding of `style` in px, in the order top, right, bottom, left. */
+function scrollPadding(style: CSSStyleDeclaration): [number, number, number, number] {
+	return [
+		Number.parseFloat(style.scrollPaddingTop) || 0,
+		Number.parseFloat(style.scrollPaddingRight) || 0,
+		Number.parseFloat(style.scrollPaddingBottom) || 0,
+		Number.parseFloat(style.scrollPaddingLeft) || 0,
+	]
+}
+
+/**
+ * Whether the scroll padding of a scroll container of `anchor` covers all of
+ * `rect`. A page names the edges that its sticky bars cover with
+ * `scroll-padding` on its scroller, as `SidebarLayout` does. A reference under
+ * a sticky header is thus out of view, as a reference that scrolled out of the
+ * scroller is. The scroll padding of the root element is the padding of the
+ * viewport.
+ */
+function underStickyBar(anchor: Element, rect: Omit<DOMRect, 'toJSON'>): boolean {
+	const root = anchor.ownerDocument.documentElement
+
+	const scrollers = getOverflowAncestors(anchor).filter(
+		(ancestor): ancestor is Element =>
+			'getBoundingClientRect' in ancestor &&
+			ancestor !== root &&
+			ancestor !== root.ownerDocument.body,
+	)
+
+	for (const scroller of [...scrollers, root]) {
+		const [top, right, bottom, left] = scrollPadding(getComputedStyle(scroller))
+
+		if (top === 0 && right === 0 && bottom === 0 && left === 0) continue
+
+		const box =
+			scroller === root
+				? { top: 0, left: 0 }
+				: {
+						top: scroller.getBoundingClientRect().top + scroller.clientTop,
+						left: scroller.getBoundingClientRect().left + scroller.clientLeft,
+					}
+
+		if (
+			rect.bottom <= box.top + top ||
+			rect.top >= box.top + scroller.clientHeight - bottom ||
+			rect.right <= box.left + left ||
+			rect.left >= box.left + scroller.clientWidth - right
+		)
+			return true
+	}
+
+	return false
+}
+
 /**
  * Marks the panel when its reference is out of view: scrolled out of a scroll
- * container, or clipped by one. It goes last, so it reads the final position.
+ * container, clipped by one, or under the sticky bars of one (see
+ * {@link underStickyBar}). It goes last, so it reads the final position.
  * {@link useFloatingPanel} reads `referenceHidden` and hides the panel, which
  * comes back when the reference does. The panel stays open and keeps its state.
  *
  * @internal
  */
-const hideMiddleware = hide({ strategy: 'referenceHidden' })
+const hideMiddleware: Middleware = {
+	name: clipHide.name,
+	async fn(state) {
+		const result = await clipHide.fn(state)
+
+		if (result.data?.referenceHidden) return result
+
+		const { reference } = state.elements
+
+		const anchor = reference instanceof Element ? reference : reference.contextElement
+
+		if (!anchor) return result
+
+		return {
+			...result,
+			data: {
+				...result.data,
+				referenceHidden: underStickyBar(anchor, reference.getBoundingClientRect()),
+			},
+		}
+	},
+}
 
 /**
  * Keeps a panel on its reference while both are mounted: `autoUpdate` of

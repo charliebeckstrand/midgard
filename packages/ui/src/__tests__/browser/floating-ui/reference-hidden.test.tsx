@@ -51,4 +51,51 @@ describe('a Menu whose trigger scrolls out of view (real floating engine)', () =
 
 		await waitFor(() => expect(visibility(panel)).toBe('visible'))
 	})
+
+	it('hides the panel while the trigger is under a sticky bar of the scroller', async () => {
+		renderUI(
+			<div
+				data-testid="scroller"
+				style={{ height: 300, marginTop: 300, overflow: 'auto', scrollPaddingTop: 60 }}
+			>
+				<div style={{ position: 'sticky', top: 0, height: 60, zIndex: 1, background: 'gray' }} />
+
+				<div style={{ height: 50 }} />
+
+				<Menu placement="bottom-start" defaultOpen>
+					<MenuTrigger>
+						<Button>Open</Button>
+					</MenuTrigger>
+
+					<MenuContent>
+						<MenuItem>One</MenuItem>
+
+						<MenuItem>Two</MenuItem>
+					</MenuContent>
+				</Menu>
+
+				<div style={{ height: 2000 }} />
+			</div>,
+		)
+
+		await frames()
+
+		const panel = screen.getByRole('menu')
+
+		await waitFor(() => expect(visibility(panel)).toBe('visible'))
+
+		// The trigger is under the bar, but it is in the scroller and in the viewport.
+		const scroller = screen.getByTestId('scroller')
+
+		const trigger = screen.getByRole('button', { name: 'Open' })
+
+		scroller.scrollTop =
+			trigger.getBoundingClientRect().bottom - scroller.getBoundingClientRect().top - 30
+
+		await waitFor(() => expect(visibility(panel)).toBe('hidden'))
+
+		scroller.scrollTop = 0
+
+		await waitFor(() => expect(visibility(panel)).toBe('visible'))
+	})
 })
