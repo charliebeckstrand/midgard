@@ -4043,6 +4043,10 @@
 		"defaultMessage": "Profile photo",
 		"description": "Text of a demo in the docs, in components/file-upload/rejected-files.tsx."
 	},
+	"docs.demo.acde6fd42e33": {
+		"defaultMessage": "Sales report for the first quarter",
+		"description": "Text of a demo in the docs as aria-label, in components/pdf-viewer/search.tsx."
+	},
 	"docs.demo.ad1916bc2536": {
 		"defaultMessage": "Team plan, renews on July 1",
 		"description": "Text of a demo in the docs, in components/nav/with-content.tsx."

@@ -31,7 +31,9 @@ export function spyMotion(
 ): Motion {
 	// One wrapper for each tag, so each element keeps its component identity.
 	return Object.fromEntries(
-		Object.entries(actual).map(([name, real]) => [
+		// The entries are cast: inferred from the module type, they make the
+		// type-check of ui instantiate each Motion element type.
+		(Object.entries(actual) as [string, unknown][]).map(([name, real]) => [
 			name,
 			name === 'create' || !/^[a-z]/.test(name)
 				? real

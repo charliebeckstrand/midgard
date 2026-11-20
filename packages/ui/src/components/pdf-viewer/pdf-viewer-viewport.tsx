@@ -11,6 +11,7 @@ import { PdfViewerHighlights } from './pdf-viewer-highlights'
 import { PdfViewerMagnifier } from './pdf-viewer-magnifier'
 import { pageLabel, pdfViewerMessages } from './pdf-viewer-messages'
 import { PdfViewerPageImage } from './pdf-viewer-page-image'
+import { PdfViewerSearchHits } from './pdf-viewer-search-hits'
 
 /**
  * Renders the page surface inside the measured viewport. That is the active
@@ -100,6 +101,7 @@ export function PdfViewerViewport() {
 						onLoad={onImageLoad}
 					/>
 					<PdfViewerHighlights />
+					<PdfViewerSearchHits />
 					<PdfViewerMagnifier />
 				</div>
 			) : error ? (

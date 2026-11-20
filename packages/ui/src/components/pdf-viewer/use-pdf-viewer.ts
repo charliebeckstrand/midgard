@@ -139,6 +139,8 @@ type PdfViewerOptions = Pick<
 > & {
 	/** Whether the consumer supplied any highlight regions; gates the toolbar's visibility toggle. */
 	hasHighlights?: boolean
+	/** Whether the viewer offers the search; gates the search marks of the thumbnail rail. */
+	searchOffered?: boolean
 }
 
 /** The viewer's full derived state, provided through {@link PdfViewerContext} to every sub-component. @internal */
@@ -207,6 +209,12 @@ export type PdfViewerResult = {
 	fit: PdfViewerFit
 	/** True when the consumer supplied any highlight regions. A boolean, never the array: the toolbar reads this, and an array identity changes every render. */
 	hasHighlights: boolean
+	/**
+	 * True when the viewer offers the search. The thumbnail rail reads it to mount the search
+	 * marks of its tiles only then. A boolean, as {@link PdfViewerResult.hasHighlights} is, so a
+	 * key that the reader types does not change it.
+	 */
+	searchOffered: boolean
 	/** Whether the highlight overlay is shown; toggled from the toolbar. Defaults to shown. */
 	highlightsVisible: boolean
 	setHighlightsVisible: (visible: boolean) => void
@@ -287,6 +295,7 @@ export function usePdfViewer({
 	fit = 'page',
 	thumbnails = PDF_VIEWER_THUMBNAILS,
 	hasHighlights = false,
+	searchOffered = false,
 	magnifier: magnifierProp,
 	onHighlightsVisibleChange,
 	onMagnifierChange,
@@ -619,6 +628,7 @@ export function usePdfViewer({
 			thumbsOpen,
 			setThumbsOpen,
 			hasHighlights,
+			searchOffered,
 			highlightsVisible,
 			setHighlightsVisible,
 			visible,
@@ -659,6 +669,7 @@ export function usePdfViewer({
 			thumbsOpen,
 			setThumbsOpen,
 			hasHighlights,
+			searchOffered,
 			highlightsVisible,
 			setHighlightsVisible,
 			setMagnifierOn,
