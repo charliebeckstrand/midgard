@@ -11,8 +11,9 @@ import {
 import { MapPlat } from '../../../modules/map'
 import { GlassSurfacesContext } from '../../../providers/glass/context'
 import { Container } from '../../../structure/container'
-import { frames, getSlot, renderUI } from '../../helpers'
-import { pause } from '../helpers/wall-clock'
+import { getSlot, renderUI } from '../../helpers'
+import { sampleUntil, settledValue } from '../helpers/sample'
+import { budget, pause } from '../helpers/wall-clock'
 
 /**
  * PROBE: a `fit` drawer must grow to hold a box whose height comes from its
@@ -110,6 +111,11 @@ function read(): string {
 	return `panel=${panel.getBoundingClientRect().height.toFixed(1)} pin=${panel.style.height || '-'} body=${body.clientHeight}/${body.scrollHeight} vh=${window.innerHeight}`
 }
 
+/** Whether the last stage has landed: the map in the drawer draws its shapes. */
+function landed(): boolean {
+	return getSlot(document.body, 'drawer-body').querySelector('[data-region-index]') !== null
+}
+
 const CASES: [string, boolean, number[]][] = [
 	['at once', false, [0, 0, 0]],
 	['mid travel', false, [60, 120, 200]],
@@ -141,11 +147,16 @@ describe('fit drawer switched to a map (PROBE)', () => {
 				log.push(`stage ${index + 1} ${read()}`)
 			}
 
-			await pause(1500)
+			// Wait for the end state, with a deadline, and not for a fixed time: under
+			// load the settle can take longer than a hold. The body of an earlier
+			// stage can fit too, so a fit alone is not the signal. First the last
+			// stage lands. Then the drawer settles: its boxes and its pin stay the
+			// same for five frames, which spans the frame in which a resize starts
+			// the travel of the height. A drawer that stays pinned too short
+			// settles with an overflow, or the wait fails at its deadline.
+			await sampleUntil(landed, Boolean, { deadline: budget(3_000) })
 
-			await frames()
-
-			const reading = read()
+			const reading = await settledValue(read, { frames: 5, deadline: budget(3_000) })
 
 			log.push(`end ${reading}`)
 

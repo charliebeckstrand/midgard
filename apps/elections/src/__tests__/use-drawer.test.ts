@@ -1,9 +1,8 @@
 // @vitest-environment jsdom
 import { act, cleanup, renderHook } from '@testing-library/react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
-import { findElection } from '../elections/registry'
-import { stateOfKey } from '../elections/us-states'
-import { useDrawerGo, useDrawerStep } from '../hooks/use-drawer'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import type { Election } from '../elections/registry'
+import type { UsState } from '../elections/us-states'
 
 /**
  * The search of the router. `null` follows the address of the browser. A
@@ -23,13 +22,45 @@ afterEach(() => {
 	router.search = null
 })
 
-const midterms = findElection('2026', 'us', 'midterms')
+let useDrawerGo: typeof import('../hooks/use-drawer').useDrawerGo
 
-if (midterms === undefined) throw new Error('The registry has no 2026 midterms.')
+let useDrawerStep: typeof import('../hooks/use-drawer').useDrawerStep
 
-const georgia = stateOfKey('ga')
+let midterms: Election
 
-if (georgia === undefined) throw new Error('No state has the key ga.')
+let georgia: UsState
+
+// The Drawer keeps the record of its history entries, and the address keeps
+// the path that leads the router, in module scope. A case that opens the
+// Drawer leaves them for the next case, so the result of a case changed with
+// the order of the cases. Each case loads the modules again, so it starts with
+// no record. The registry and the states load with them, so a step that the
+// hook reads holds the same state object as the case.
+beforeEach(async () => {
+	vi.resetModules()
+
+	const [drawer, registry, states] = await Promise.all([
+		import('../hooks/use-drawer'),
+		import('../elections/registry'),
+		import('../elections/us-states'),
+	])
+
+	useDrawerGo = drawer.useDrawerGo
+
+	useDrawerStep = drawer.useDrawerStep
+
+	const election = registry.findElection('2026', 'us', 'midterms')
+
+	if (election === undefined) throw new Error('The registry has no 2026 midterms.')
+
+	const state = states.stateOfKey('ga')
+
+	if (state === undefined) throw new Error('No state has the key ga.')
+
+	midterms = election
+
+	georgia = state
+})
 
 describe('useDrawerStep', () => {
 	it('writes no history entry for a move to the current step', () => {

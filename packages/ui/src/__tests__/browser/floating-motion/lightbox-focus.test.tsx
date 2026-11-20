@@ -1,6 +1,7 @@
 import { describe, expect, it, onTestFinished } from 'vitest'
 import { commands, userEvent } from 'vitest/browser'
 import { present, renderUI, screen, waitFor } from '../../helpers'
+import { press } from '../helpers/drag'
 import { fieldPhotos, Gallery, liveCount, viewerTweens } from '../helpers/lightbox'
 import { waitForNoTween } from '../helpers/motion-frame'
 import { pause } from '../helpers/wall-clock'
@@ -123,7 +124,7 @@ describe('Lightbox focus (real engine, real Motion)', () => {
 		const at = (dx: number) => ({ position: { x: box.width / 2 + dx, y: box.height / 2 } })
 
 		// The mouse drags the photo a short way to the side, holds still, and lets go.
-		await commands.pressPointer('[data-offset="0"] img')
+		await press('[data-offset="0"] img')
 
 		await userEvent.hover(stage, at(-20))
 

@@ -1,6 +1,8 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { renderUI, screen, setupUser, waitFor } from '../helpers'
+import { GRID_SEARCH_DEBOUNCE_MS } from '../../modules/grid/engine/grid-constants'
+import { renderUI, screen } from '../helpers'
+import { it } from '../helpers/fake-clock'
 
 type Row = { id: number; name: string }
 
@@ -17,8 +19,10 @@ const getKey = (row: Row) => row.id
  * starts again at the first page. A controlled page is the consumer's to move.
  */
 describe('Grid page reset on a search', () => {
-	it('returns an uncontrolled page to the first page when the search changes', async () => {
-		const user = setupUser()
+	it('returns an uncontrolled page to the first page when the search changes', async ({
+		clock,
+	}) => {
+		const { user } = clock
 
 		renderUI(
 			<Grid
@@ -40,13 +44,13 @@ describe('Grid page reset on a search', () => {
 		await user.type(screen.getByRole('searchbox'), 'Row 1')
 
 		// The search commits after its debounce.
-		await waitFor(() =>
-			expect(screen.getByRole('button', { current: 'page' })).toHaveTextContent('1'),
-		)
+		await clock.advance(GRID_SEARCH_DEBOUNCE_MS)
+
+		expect(screen.getByRole('button', { current: 'page' })).toHaveTextContent('1')
 	})
 
-	it('leaves a controlled page to the consumer', async () => {
-		const user = setupUser()
+	it('leaves a controlled page to the consumer', async ({ clock }) => {
+		const { user } = clock
 
 		const onValueChange = vi.fn()
 
@@ -63,9 +67,12 @@ describe('Grid page reset on a search', () => {
 		await user.type(screen.getByRole('searchbox'), 'Row 1')
 
 		// Page 2 shows Row 6 to Row 10 before the search commits, and the fifth to
-		// the ninth match after it: Row 14 to Row 18. Wait for the commit, so the
-		// check below runs after the reset would have come.
-		await waitFor(() => expect(screen.getByText('Row 14')).toBeInTheDocument())
+		// the ninth match after it: Row 14 to Row 18. The clock moves past the
+		// debounce in `act`, so the effects of the commit are done, and the check
+		// below runs after the reset would have come.
+		await clock.advance(GRID_SEARCH_DEBOUNCE_MS)
+
+		expect(screen.getByText('Row 14')).toBeInTheDocument()
 
 		expect(screen.queryByText('Row 6')).not.toBeInTheDocument()
 

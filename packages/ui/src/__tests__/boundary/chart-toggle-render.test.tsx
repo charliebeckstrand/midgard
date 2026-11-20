@@ -36,11 +36,16 @@ const SERIES: { xKey: 'week'; yKey: 'a' | 'b'; yName: string }[] = [
 
 const REFERENCE = [{ value: 20, label: 'Goal' }]
 
-/** Lets the deferred table and the effects of a toggle settle. */
+/**
+ * Lets the deferred table and the effects of a toggle settle.
+ *
+ * An awaited `act` drains the queue of React before it returns: the deferred
+ * render of the table and each effect. The charts are static, so no timer or
+ * frame waits behind them. Thus the count after a settle does not depend on the
+ * speed of the machine.
+ */
 async function settle() {
-	await act(async () => {
-		await new Promise((resolve) => setTimeout(resolve, 50))
-	})
+	await act(async () => {})
 }
 
 describe('chart toggle render', () => {
