@@ -100,17 +100,18 @@ jobs:
 
   # A separate job, not a step in `gate`. In `gate` the ui suite shared four
   # cores with the type-check and the Next builds, and it took more than twice
-  # as long as alone. Each shard runs half of the ui test files, so each pull
-  # request still runs each test.
+  # as long as alone. Each shard runs a third of the ui test files, so each
+  # pull request still runs each test. Each shard pays the setup again. With
+  # two shards, `test` and `compiler` were the longest jobs of the run.
   test:
-    name: test (${{ matrix.shard }}/2)
+    name: test (${{ matrix.shard }}/3)
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:
       # Let the other shard finish, so that one run shows each failure.
       fail-fast: false
       matrix:
-        shard: [1, 2]
+        shard: [1, 2, 3]
     steps:
       - uses: actions/checkout@v7
         with:
@@ -151,7 +152,7 @@ jobs:
       # `vitest.docs.config.ts` imports them. An edit to them makes only the
       # entries of the `docs` project miss, and the other entries stay good.
       # The SHA makes each run save what it wrote for the next run to restore.
-      # Each shard transforms a different half of the suite, so each shard
+      # Each shard transforms a different part of the suite, so each shard
       # keeps its own cache.
       - id: ui-deps
         run: |
@@ -164,7 +165,7 @@ jobs:
           key: ${{ runner.os }}-vitest-cache-${{ matrix.shard }}-${{ steps.ui-deps.outputs.hash }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/vitest.base.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/src/__tests__/setup/split-sequencer.ts', 'vitest.shared.mts') }}-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-vitest-cache-${{ matrix.shard }}-${{ steps.ui-deps.outputs.hash }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/vitest.base.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/src/__tests__/setup/split-sequencer.ts', 'vitest.shared.mts') }}-
-      - run: pnpm turbo run test --filter=ui --summarize -- --shard=${{ matrix.shard }}/2 --coverage
+      - run: pnpm turbo run test --filter=ui --summarize -- --shard=${{ matrix.shard }}/3 --coverage
       # The coverage of this shard, for the `coverage` job. A Turbo cache hit
       # restores the report too (`outputs` in packages/ui/turbo.json).
       - uses: actions/upload-artifact@v7
@@ -183,9 +184,9 @@ jobs:
 
   # The tests of the packages other than ui: the apps, `auth`, and `shared`. A
   # job of its own, not a step in a shard of `test`. The sequencer of ui deals
-  # the files to the two shards in turn (packages/ui/src/__tests__/setup/
+  # the files to the shards in turn (packages/ui/src/__tests__/setup/
   # split-sequencer.ts), so the shards take about the same time. A step after
-  # one half made that shard the longest job of the run.
+  # the ui part of one shard made that shard the longest job of the run.
   test-outside-ui:
     name: test (outside ui)
     runs-on: ubuntu-latest
@@ -222,7 +223,7 @@ jobs:
   # download that would otherwise serialize into every gate run. What it covers
   # is CONVENTIONS.md §10.5.
   #
-  # Two shards, each with half of the test files, as in `compiler`. Before, one
+  # Two shards, each with half of the test files. Before, one
   # job ran the whole suite beside `docs:build` (the `docs` job now). Each half
   # pays the start of the browser and of its six Chromium instances again, and
   # that start is a large part of a half. So a third shard gives less back than
@@ -261,8 +262,8 @@ jobs:
       - name: Prune the Turbo cache to this run's tasks
         run: .github/actions/turbo-cache/prune.sh
 
-  # Merges the coverage of the two `test` shards and of the two `browser`
-  # shards into one Cobertura report (packages/ui/scripts/coverage/merge.ts).
+  # Merges the coverage of the `test` shards and of the `browser` shards into
+  # one Cobertura report (packages/ui/scripts/coverage/merge.ts).
   # Each shard measures only the source that its own tests execute. Thus
   # Codecov gets one merged report, not one report for each shard, and a line
   # is covered when a test of either suite runs it.
@@ -466,19 +467,19 @@ jobs:
   # the React Compiler on; see packages/ui/vitest.compiler.config.ts and
   # CONVENTIONS.md §10.7.
   #
-  # Two shards, each with half of the test files. Each shard runs the skip
-  # gate, which compiles the part of the source for that shard
+  # Three shards, each with a third of the test files, as in `test`. Each shard
+  # runs the skip gate, which compiles the part of the source for that shard
   # (vitest.compiler.config.ts). In one shard, the gate held a large part of
   # that shard.
   compiler:
-    name: compiler (${{ matrix.shard }}/2)
+    name: compiler (${{ matrix.shard }}/3)
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:
       # Let the other shard finish, so that one run shows each failure.
       fail-fast: false
       matrix:
-        shard: [1, 2]
+        shard: [1, 2, 3]
     steps:
       - uses: actions/checkout@v7
         with:
@@ -490,9 +491,8 @@ jobs:
       # The compiled run's own module cache (vitest.compiler.config.ts), apart
       # from the plain run's cache in `test`. The keys follow the cache of
       # `test`, for the reasons given there, and add the compiler config and
-      # the files that it imports. Each
-      # shard transforms a different half of the suite, so each shard keeps its
-      # own cache.
+      # the files that it imports. Each shard transforms a different part of the
+      # suite, so each shard keeps its own cache.
       - id: ui-deps
         run: |
           hash=$(pnpm turbo run test:compiler --filter=ui --dry=json \
@@ -506,7 +506,7 @@ jobs:
             ${{ runner.os }}-vitest-compiler-cache-${{ matrix.shard }}-${{ steps.ui-deps.outputs.hash }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/vitest.base.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/vitest.compiler.config.ts', 'packages/ui/vitest.compiler.preset.ts', 'packages/ui/src/__tests__/setup/split-sequencer.ts', 'vitest.shared.mts') }}-
       # Filtered to `ui`, the one package with the task. Unfiltered, turbo runs
       # the `^build` of each package without it, and builds for nothing.
-      - run: pnpm turbo run test:compiler --filter=ui --summarize -- --shard=${{ matrix.shard }}/2
+      - run: pnpm turbo run test:compiler --filter=ui --summarize -- --shard=${{ matrix.shard }}/3
       - name: Prune the Turbo cache to this run's tasks
         run: .github/actions/turbo-cache/prune.sh
 
