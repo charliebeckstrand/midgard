@@ -112,6 +112,12 @@ function mergeProps(list: (MockProps | undefined)[]): MockProps {
  */
 const floatingUIMock = {
 	autoUpdate: noop,
+	// The tracker of `useFloatingPanel` runs a pass before it calls `update`. The
+	// mock `useFloating` starts no tracker, so nothing calls this. A browser
+	// suite still needs the export, because a missing named export fails the
+	// import there.
+	computePosition: () =>
+		Promise.resolve({ x: 0, y: 0, placement: 'bottom', strategy: 'absolute', middlewareData: {} }),
 	FloatingFocusManager: MockFloatingFocusManager,
 	// Honor `root` like the real portal (teleport into the given node, resolving a
 	// ref); without one, render inline so content stays in the query tree. Overlays

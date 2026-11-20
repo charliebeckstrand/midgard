@@ -5,6 +5,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '../../../components/pop
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
 import { frames, renderUI, screen, waitFor } from '../../helpers'
 import { PIXEL } from '../../helpers/geometry/tolerance'
+import { hydrateServerRender } from '../../helpers/hydrate'
 
 /**
  * A floating panel anchors to its reference with CSS anchor positioning. The
@@ -166,6 +167,75 @@ describe('a floating panel in a scroll container (real floating engine)', () => 
 		window.scrollTo(0, 200)
 
 		await waitFor(() => expect(offset()).toBeNear(before, PIXEL))
+	})
+
+	it('places the panel at the trigger under a transformed ancestor', async () => {
+		renderUI(
+			<div style={{ transform: 'translate(200px, 100px) scale(1.5)', transformOrigin: '0 0' }}>
+				<Tooltip open placement="bottom">
+					<TooltipTrigger>
+						<Button>Details</Button>
+					</TooltipTrigger>
+
+					<TooltipContent>More about this</TooltipContent>
+				</Tooltip>
+			</div>,
+		)
+
+		const trigger = screen.getByRole('button', { name: 'Details' })
+
+		const panel = await screen.findByRole('tooltip')
+
+		await frames(2)
+
+		const box = trigger.getBoundingClientRect()
+
+		const placed = panel.getBoundingClientRect()
+
+		// The panel is centered below the trigger, at the gap of the tooltip.
+		expect(placed.left + placed.width / 2).toBeNear(box.left + box.width / 2, PIXEL)
+
+		expect(placed.top - box.bottom).toBeNear(8, PIXEL)
+	})
+
+	it('gives the panels of two hydrated roots their own anchors', async () => {
+		function Island({ label }: { label: string }) {
+			return (
+				<Popover defaultOpen>
+					<PopoverTrigger>
+						<Button>{label}</Button>
+					</PopoverTrigger>
+
+					<PopoverContent aria-label={`${label} panel`}>Body</PopoverContent>
+				</Popover>
+			)
+		}
+
+		// A hydrated root takes its ids from the place in its own tree, so the two
+		// islands give the same ids.
+		hydrateServerRender(<Island label="First" />)
+
+		hydrateServerRender(<Island label="Second" />)
+
+		const names = await Promise.all(
+			['First', 'Second'].map(async (label) => {
+				const trigger = screen.getByRole('button', { name: label })
+
+				const dialog = await screen.findByRole('dialog', { name: `${label} panel` })
+
+				// The role is on the body of the panel, inside the positioned wrapper.
+				const anchor = () =>
+					dialog
+						.closest<HTMLElement>('[style*="position-anchor"]')
+						?.style.getPropertyValue('position-anchor')
+
+				await waitFor(() => expect(anchorNames(trigger)).toEqual([anchor()]))
+
+				return anchorNames(trigger)
+			}),
+		)
+
+		expect(names[0]).not.toEqual(names[1])
 	})
 
 	it('keeps the anchor name of each panel on a shared trigger', async () => {

@@ -24,10 +24,10 @@ import {
 	type RefObject,
 	useCallback,
 	useEffect,
-	useId,
 	useLayoutEffect,
 	useMemo,
 	useRef,
+	useState,
 	useSyncExternalStore,
 } from 'react'
 import { isCoveredByOverlay, subscribeOverlayLayers } from '../utilities/overlay-layers'
@@ -229,6 +229,31 @@ const anchorPositioning =
 	typeof CSS !== 'undefined' &&
 	typeof CSS.supports === 'function' &&
 	CSS.supports('anchor-name: --a')
+
+/**
+ * A random part of each anchor name, one for each copy of this module. Two
+ * copies of the package on one page then make no common names.
+ *
+ * @internal
+ */
+const ANCHOR_SCOPE = Math.random().toString(36).slice(2, 8)
+
+/** The count of the anchor names that this module gave. @internal */
+let anchorCount = 0
+
+/**
+ * Gives an anchor name that is unique in the document. An anchor name is
+ * global to the document, but `useId` is unique only in one React root. Two
+ * roots can therefore give the same id, and a panel of one root then anchors
+ * to the reference of the other.
+ *
+ * @internal
+ */
+function nextAnchorName() {
+	anchorCount += 1
+
+	return `--floating-${ANCHOR_SCOPE}-${anchorCount}`
+}
 
 /**
  * Adds `name` to the inline `anchor-name` list of `element`, and returns the
@@ -697,7 +722,7 @@ export function useFloatingPanel({
 
 	// The CSS anchor of an element reference. A virtual reference, such as a
 	// point, has no box to anchor to, and keeps the `transform` of floating-ui.
-	const anchorName = `--floating-${useId().replace(/[^\w-]/g, '')}`
+	const [anchorName] = useState(nextAnchorName)
 
 	const { reference: anchorReference, floating: floatingElement } = context.elements
 
