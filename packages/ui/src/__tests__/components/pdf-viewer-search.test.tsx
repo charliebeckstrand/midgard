@@ -6,7 +6,16 @@ import {
 	type PdfViewerTextItem,
 } from '../../components/pdf-viewer'
 import { BREAKPOINT_WIDTHS } from '../../utilities/responsive'
-import { allBySlot, bySlot, renderUI, screen, setupUser, stubMatchMedia, waitFor } from '../helpers'
+import {
+	act,
+	allBySlot,
+	bySlot,
+	renderUI,
+	screen,
+	setupUser,
+	stubMatchMedia,
+	waitFor,
+} from '../helpers'
 
 beforeEach(() => {
 	stubMatchMedia((query) => query === `(min-width: ${BREAKPOINT_WIDTHS.lg})`)
@@ -175,7 +184,7 @@ describe('PdfViewer search', () => {
 		expect(bySlot(container, 'pdf-viewer-search-hits')).not.toBeInTheDocument()
 	})
 
-	it('marks each thumbnail with the number of matches on its page', async () => {
+	it('marks each thumbnail of a page with a match with a search glyph', async () => {
 		const { container } = renderSearch()
 
 		// No query, no marks.
@@ -188,12 +197,12 @@ describe('PdfViewer search', () => {
 		// "Invoice" has no "t", "Total due" has two, and the last "Total" has two.
 		const marks = allBySlot(container, 'pdf-viewer-thumbnail-matches')
 
-		expect(marks.map((mark) => mark.textContent)).toEqual(['(2)', '(2)'])
+		expect(marks).toHaveLength(2)
 
-		// The glyph tells the count from the page number.
+		// A glyph and no number: the tooltip gives the number.
 		expect(marks.every((mark) => mark.querySelector('svg.lucide-search'))).toBe(true)
 
-		expect(marks.every((mark) => mark.getAttribute('aria-hidden') === 'true')).toBe(true)
+		expect(marks.every((mark) => mark.textContent === '')).toBe(true)
 
 		const tiles = screen.getAllByRole('button', { name: /^Go to Page/ })
 
@@ -206,6 +215,38 @@ describe('PdfViewer search', () => {
 		await user.clear(field)
 
 		expect(allBySlot(container, 'pdf-viewer-thumbnail-matches')).toHaveLength(0)
+	})
+
+	it('gives the number of matches in the tooltip of the tile, and none on a tile with no match', async () => {
+		renderSearch()
+
+		const { user, field } = await openSearch()
+
+		await user.type(field, 't')
+
+		// Close the panel. The focus goes back to the Search control, and its own tooltip can
+		// open, so the checks read the tooltips of the tiles alone.
+		await user.click(screen.getByRole('button', { name: 'Search' }))
+
+		const matchTooltips = () =>
+			screen.queryAllByRole('tooltip').filter((tooltip) => tooltip.textContent?.includes('match'))
+
+		const tiles = screen.getAllByRole('button', { name: /^Go to Page/ })
+
+		// A tile with no match opens no tooltip of its own.
+		act(() => tiles[0]?.focus())
+
+		expect(tiles[0]).toHaveFocus()
+
+		await new Promise((resolve) => setTimeout(resolve, 300))
+
+		expect(matchTooltips()).toHaveLength(0)
+
+		act(() => tiles[1]?.focus())
+
+		await waitFor(() => expect(matchTooltips()).toHaveLength(1))
+
+		expect(matchTooltips()[0]).toHaveTextContent('2 matches')
 	})
 
 	it('clears the query on the first Escape, and closes the panel on the next', async () => {

@@ -250,19 +250,13 @@ export const k = defineKata({
 					base: ['block w-full h-full', bg.skeleton.base],
 					pulse: { true: css.pulse, false: '' },
 				},
-				/** The row under the frame: the page number, and the number of search matches after it. */
+				/** The row under the frame: the page number, and the search glyph after it. */
 				caption: [flex.row, 'items-center', dan.gap.scale.xs],
 				/**
-				 * The number of matches on the page and a search glyph after it, in parentheses, with the
-				 * type of the page number. The glyph tells the two numbers apart.
+				 * The search glyph of a page with a match, in the color of the page number. The tooltip
+				 * of the tile gives the number of matches.
 				 */
-				matches: {
-					base: [flex.row, 'items-center'],
-					slots: {
-						// Space between the count and the glyph, and none inside the parentheses.
-						glyph: 'ms-0.5',
-					},
-				},
+				matches: ['inline-flex items-center'],
 				label: [
 					size.sm,
 					text.muted,
