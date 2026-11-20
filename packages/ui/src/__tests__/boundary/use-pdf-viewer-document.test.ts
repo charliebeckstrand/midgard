@@ -445,3 +445,117 @@ describe('usePdfViewerDocument · worker port', () => {
 		expect(workers[1]).toBe(workers[0])
 	})
 })
+
+/*
+ * The worker script is the largest file of an open. The first open starts the worker before
+ * pdf.js loads, so the two files download at the same time. A caller that set the worker of
+ * pdf.js keeps it, and the worker that the open started ends.
+ *
+ * Each case imports the hook again, because the worker of the viewer is module state.
+ */
+describe('usePdfViewerDocument · first worker', () => {
+	/** A `Worker` stand-in, with the workers that each case constructs. */
+	function stubWorker() {
+		const started: { terminate: () => void; terminated: boolean }[] = []
+
+		vi.stubGlobal(
+			'Worker',
+			class {
+				terminated = false
+
+				constructor() {
+					started.push(this)
+				}
+
+				terminate() {
+					this.terminated = true
+				}
+			},
+		)
+
+		return started
+	}
+
+	/** Opens `src` on a fresh copy of the hook, and gives the worker of each `getDocument`. */
+	async function openFresh(src: string, onFetch: () => void) {
+		vi.resetModules()
+
+		const { usePdfViewerDocument: useFresh } = await import(
+			'../../components/pdf-viewer/use-pdf-viewer-document'
+		)
+
+		const { resetDocumentCache: resetFresh } = await import(
+			'../../components/pdf-viewer/pdf-viewer-document-cache'
+		)
+
+		vi.stubGlobal(
+			'fetch',
+			vi.fn(async () => {
+				onFetch()
+
+				return new Response(new Uint8Array([37, 80, 68, 70]))
+			}),
+		)
+
+		getDocumentMock.mockImplementation(() => makeDocument(1, null))
+
+		const { result, unmount } = renderHook(() => useFresh(src))
+
+		await waitFor(() => expect(result.current.pages).toHaveLength(1))
+
+		unmount()
+
+		resetFresh()
+
+		return getDocumentMock.mock.calls.map(([options]) => options.worker)
+	}
+
+	it('starts the worker before the fetch of the first open, and hands it to pdf.js', async () => {
+		globalWorkerOptions.workerSrc = ''
+
+		const started = stubWorker()
+
+		let startedAtFetch = -1
+
+		const [worker] = await openFresh('/first.pdf', () => {
+			startedAtFetch = started.length
+		})
+
+		expect(startedAtFetch).toBe(1)
+
+		expect(worker).toEqual({ port: started[0] })
+
+		expect(started[0]?.terminated).toBe(false)
+	})
+
+	/*
+	 * A worker URL on another origin makes `new Worker` throw. A caller with such assets sets
+	 * `workerSrc`, so the throw of the early start must not fail the open.
+	 */
+	it('opens where the early start throws and the caller set workerSrc', async () => {
+		vi.stubGlobal(
+			'Worker',
+			class {
+				constructor() {
+					throw new DOMException('Cross-origin worker', 'SecurityError')
+				}
+			},
+		)
+
+		const [worker] = await openFresh('/first.pdf', () => {})
+
+		expect(worker).toBeUndefined()
+	})
+
+	it('ends the started worker where the caller set workerSrc', async () => {
+		const started = stubWorker()
+
+		const [worker] = await openFresh('/first.pdf', () => {})
+
+		expect(worker).toBeUndefined()
+
+		expect(started).toHaveLength(1)
+
+		expect(started[0]?.terminated).toBe(true)
+	})
+})

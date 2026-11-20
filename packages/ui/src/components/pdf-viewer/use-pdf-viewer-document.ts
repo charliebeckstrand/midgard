@@ -53,50 +53,94 @@ function loadPdfjs() {
 let sharedWorker: import('pdfjs-dist').PDFWorker | null = null
 
 /**
+ * The worker that the first open starts before pdf.js loads, until a load takes it.
+ *
+ * @remarks The worker script is the largest file that an open loads. It started only after
+ * pdf.js had loaded and run, so the two downloads came one after the other. On a phone with a
+ * slow CPU, that wait was about half a second of each first open.
+ * @internal
+ */
+let pendingPort: Worker | null = null
+
+/** True once pdf.js has loaded, after which the options of the caller are known at once. @internal */
+let pdfjsLoaded = false
+
+/**
+ * Starts the worker of pdf.js.
+ *
+ * @remarks `new Worker(new URL(…, import.meta.url))` rather than a bundler-specific import.
+ * Both Vite and webpack recognize that exact form and emit the worker as an asset, which a
+ * `?url` query does not. Webpack resolves an `import()` specifier statically whether or not
+ * the call is reachable. A Vite-only query therefore breaks the build of any app that merely
+ * renders this component.
+ * @internal
+ */
+function startWorker(): Worker {
+	return new Worker(new URL('pdfjs-dist/legacy/build/pdf.worker.min.mjs', import.meta.url), {
+		type: 'module',
+	})
+}
+
+/**
  * Resolves the worker to hand `getDocument`, creating it on first use.
  *
  * @returns The shared worker, or `null` when this environment cannot run one.
  * In that case, `getDocument` is left to pdf.js's own resolution. In practice
  * that is Node and jsdom, where pdf.js pre-sets `workerSrc` itself; a browser
  * always has `Worker`.
- * @remarks `new Worker(new URL(…, import.meta.url))` rather than a bundler-specific import.
- * Both Vite and webpack recognize that exact form and emit the worker as an asset, which a
- * `?url` query does not. Webpack resolves an `import()` specifier statically whether or not
- * the call is reachable. A Vite-only query therefore breaks the build of any app that merely
- * renders this component.
+ * @remarks The first open starts the worker before pdf.js loads ({@link pendingPort}), so the
+ * two files download at the same time.
  *
- * A caller that has set `workerPort` or `workerSrc` itself keeps that choice, and this creates
- * no worker. A `workerPort` goes to `getDocument` as the worker of that port, for the reason
- * at {@link sharedWorker}. `PDFWorker.create` gives the worker that pdf.js keeps for the port.
- * A `workerSrc` gives each load a worker of its own, which shares nothing, so this returns
- * `null`.
+ * A caller that has set `workerPort` or `workerSrc` itself keeps that choice. Only the options
+ * of pdf.js tell, so the first open of such a caller ends the worker that it started, and no
+ * later open starts one. A `workerPort` goes to `getDocument` as the worker of that port, for
+ * the reason at {@link sharedWorker}. `PDFWorker.create` gives the worker that pdf.js keeps for
+ * the port. A `workerSrc` gives each load a worker of its own, which shares nothing, so this
+ * returns `null`.
  * @internal
  */
 async function resolveWorker(): Promise<import('pdfjs-dist').PDFWorker | null> {
-	const pdfjs = await loadPdfjs()
-
-	const { workerPort, workerSrc } = pdfjs.GlobalWorkerOptions
-
-	if (workerPort) return pdfjs.PDFWorker.create({ port: workerPort })
-
-	if (workerSrc) return null
-
-	if (sharedWorker) return sharedWorker
-
 	// The repo's spelling for an absent global, and narrower than a try/catch, which would
 	// also swallow a CSP `worker-src` refusal and silently downgrade every consumer to
 	// main-thread rasterization.
-	if (typeof Worker === 'undefined') return null
+	const canStart = typeof Worker !== 'undefined'
 
-	const port = new Worker(new URL('pdfjs-dist/legacy/build/pdf.worker.min.mjs', import.meta.url), {
-		type: 'module',
-	})
+	if (!pdfjsLoaded && !pendingPort && canStart) {
+		// The early start can throw where the options of the caller would have stopped it, such
+		// as a worker URL on another origin. The start is then left to the code below, which
+		// reads the options first, as it did before the early start.
+		try {
+			pendingPort = startWorker()
+		} catch {
+			pendingPort = null
+		}
+	}
+
+	const pdfjs = await loadPdfjs()
+
+	pdfjsLoaded = true
+
+	const { workerPort, workerSrc } = pdfjs.GlobalWorkerOptions
+
+	if (workerPort || workerSrc) {
+		pendingPort?.terminate()
+
+		pendingPort = null
+
+		return workerPort ? pdfjs.PDFWorker.create({ port: workerPort }) : null
+	}
+
+	if (sharedWorker) return sharedWorker
+
+	if (!canStart) return null
 
 	// `PDFWorker.create`, not `new PDFWorker`: the generated types declare the constructor's
 	// `port` as `null | undefined` while the static's `PDFWorkerParameters.port` is correctly
 	// `Worker | undefined`. Same object either way: `create` returns the instance cached
 	// against this port.
-	sharedWorker = pdfjs.PDFWorker.create({ port })
+	sharedWorker = pdfjs.PDFWorker.create({ port: pendingPort ?? startWorker() })
+
+	pendingPort = null
 
 	return sharedWorker
 }
