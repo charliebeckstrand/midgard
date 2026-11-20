@@ -2,10 +2,15 @@
  * The uniform grid that the map passes bucket into. At one cell per reach, an
  * entry within reach of a point can only sit in the cell of that point, or in
  * one of the eight around it. Each mark therefore reads nine buckets, rather
- * than every mark. That is a linear pass where the naive scan is quadratic.
+ * than every mark. That is a linear pass where the naive scan is quadratic, as
+ * long as the marks spread over the cells. The entries of these passes do: the
+ * merge tree has merged each pair of dots that draws too close, and the
+ * regions tile the map. The merge tree itself
+ * reads dots that can stand in one cell, so it searches a quadtree (`quad.ts`)
+ * and keeps the cells only as the range of a search.
  *
  * Generic over what a cell holds, because each pass files its own entries: the
- * merge tree, the dot targets, the grounds, and the locator of the regions.
+ * dot targets, the grounds, and the locator of the regions.
  */
 
 import { getOrCompute } from '../../../../utilities/get-or-compute'
