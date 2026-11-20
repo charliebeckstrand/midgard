@@ -30,6 +30,7 @@ import {
 	useState,
 	useSyncExternalStore,
 } from 'react'
+import { anchorFollowsTransforms, inTransformedSubtree } from '../utilities/anchor-transforms'
 import { isCoveredByOverlay, subscribeOverlayLayers } from '../utilities/overlay-layers'
 import { isUnderStickyBar } from '../utilities/sticky-cover'
 
@@ -205,7 +206,9 @@ function inFixedSubtree(reference: HTMLElement) {
  * It records no offset for a reference that is not an element. It also
  * records none for an `absolute` panel on a reference in a fixed subtree. The
  * browser does not move such a panel when the page scrolls, and resolves the
- * anchor at the position before the scroll. A panel with no offset keeps the
+ * anchor at the position before the scroll. It records none for a reference
+ * under a transform in an engine that resolves the anchor without the
+ * transform (see `anchorFollowsTransforms`). A panel with no offset keeps the
  * `transform` position of floating-ui.
  *
  * @internal
@@ -218,6 +221,8 @@ const anchorOffsetMiddleware: Middleware = {
 		if (!(reference instanceof HTMLElement)) return {}
 
 		if (strategy === 'absolute' && inFixedSubtree(reference)) return {}
+
+		if (!anchorFollowsTransforms() && inTransformedSubtree(reference)) return {}
 
 		const { x: left, y: top } = rects.reference
 
@@ -626,7 +631,8 @@ export type FloatingPanelOptions = {
  * inline `anchor-name` list of the reference while it is mounted. A virtual
  * reference keeps the `transform` position of floating-ui. So does an
  * `absolute` panel on a reference in a fixed subtree, and a browser without
- * anchor positioning.
+ * anchor positioning. A reference under a transform keeps it too, in an
+ * engine that resolves the anchor without the transform.
  *
  * Use this when you need to compose your own interaction hooks (hover, click,
  * clientPoint, etc.) against the returned `context`. For the common

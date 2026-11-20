@@ -196,6 +196,9 @@ describe('a floating panel in a scroll container (real floating engine)', () => 
 		expect(placed.left + placed.width / 2).toBeNear(box.left + box.width / 2, PIXEL)
 
 		expect(placed.top - box.bottom).toBeNear(8, PIXEL)
+
+		// Chromium includes the transform in the anchor, so the panel anchors.
+		expect(panel.style.getPropertyValue('position-anchor')).not.toBe('')
 	})
 
 	it('gives the panels of two hydrated roots their own anchors', async () => {
