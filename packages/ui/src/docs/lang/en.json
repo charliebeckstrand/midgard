@@ -1481,7 +1481,7 @@
 	},
 	"docs.demo.1e0d6eb355cf": {
 		"defaultMessage": "Your trial ends in 3 days",
-		"description": "Text of a demo in the docs as title, in components/alert/index.tsx."
+		"description": "Text of a demo in the docs as title, in components/alert/playground.tsx."
 	},
 	"docs.demo.1e199cc42976": {
 		"defaultMessage": "Stat label",
@@ -7142,10 +7142,6 @@
 	"docs.prop.timeout": {
 		"defaultMessage": "Timeout",
 		"description": "The label of a field of a playground in the docs. The field sets the prop timeout of CopyButton."
-	},
-	"docs.prop.title": {
-		"defaultMessage": "Title",
-		"description": "The label of a field of a playground in the docs. The field sets the prop title of Alert."
 	},
 	"docs.prop.tone": {
 		"defaultMessage": "Tone",
