@@ -105,6 +105,19 @@ export type PdfViewerProps = Omit<ComponentProps<'section'>, 'children' | 'onLoa
 	 */
 	fit?: PdfViewerFit
 	/**
+	 * The size of a page in points (1/72 in), which the viewer reserves until it knows the size of
+	 * the page: a `src` until the document opens, and a page of `pages` with no `width` and
+	 * `height` until its image loads.
+	 *
+	 * @remarks The server cannot read the size of a page from the file, so without this the first
+	 * paint reserves a US Letter page. A document of another size then changes the height of the
+	 * viewer when it opens. Give the size of the first page where the consumer knows it, for
+	 * example `{ width: 595, height: 842 }` for A4. In a host that sizes to its content, it also
+	 * sets the width of the viewer.
+	 * @defaultValue `{ width: 612, height: 792 }` (US Letter)
+	 */
+	pageSize?: { width: number; height: number }
+	/**
 	 * Regions to draw over the pages: extracted-field boxes on a scan, search hits, any
 	 * "look here" mark the consumer owns. Only the active page's are rendered.
 	 *
@@ -259,6 +272,7 @@ export function PdfViewer({
 	defaultZoom,
 	zoomLevels,
 	fit,
+	pageSize,
 	thumbnails,
 	highlights,
 	highlightUnit,
@@ -292,6 +306,7 @@ export function PdfViewer({
 		defaultZoom,
 		zoomLevels,
 		fit,
+		pageSize,
 		thumbnails,
 		hasHighlights: !!highlights?.length,
 		searchOffered: isSearchOffered(data, search),

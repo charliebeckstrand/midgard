@@ -36,6 +36,8 @@ const PLACEHOLDER_KEYS = rangeKeys(6, 'placeholder')
 type PdfViewerThumbnailListProps = {
 	items: PdfViewerThumbnailItem[]
 	loading: boolean
+	/** The width over the height of a loading tile, and of a tile whose page gives no size. */
+	defaultRatio: number
 	safePage: number
 	goToPage: (page: number) => void
 	/** Ref attached to the current page's button so the rail keeps it in view. */
@@ -152,6 +154,7 @@ function useVisibleTiles(
 export function PdfViewerThumbnailList({
 	items,
 	loading,
+	defaultRatio,
 	safePage,
 	goToPage,
 	scrollCurrentIntoView,
@@ -191,7 +194,7 @@ export function PdfViewerThumbnailList({
 								data-slot="pdf-viewer-thumbnail-placeholder"
 								className={k().thumbnail.placeholder}
 							>
-								<span className={k().thumbnail.frame}>
+								<span className={k().thumbnail.frame} style={{ aspectRatio: defaultRatio }}>
 									<span className={k({ pulse: true }).thumbnail.skeleton} />
 								</span>
 								<span className={k().thumbnail.label}>{'\u00a0'}</span>
@@ -223,7 +226,7 @@ export function PdfViewerThumbnailList({
 					>
 						<span
 							className={k().thumbnail.frame}
-							style={item.ratio ? { aspectRatio: item.ratio } : undefined}
+							style={{ aspectRatio: item.ratio ?? defaultRatio }}
 						>
 							{item.thumbnail ? (
 								<img

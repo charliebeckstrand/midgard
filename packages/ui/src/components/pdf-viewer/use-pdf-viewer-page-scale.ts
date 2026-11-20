@@ -13,6 +13,11 @@ type PageScaleOptions = {
 	pageSize: Size | null
 	/** The page size in points (1/72 in), when the page carries it. Sets {@link PageScaleResult.naturalWidth}. */
 	pointSize?: Size | null
+	/**
+	 * The page size in points that the viewer reserves while it does not know the size of the
+	 * page: the `pageSize` of the viewer, else US Letter.
+	 */
+	reservedSize: Size
 	/** Raw rotation in degrees for the active page; can be ≥ 360. Transposition is derived from it. */
 	rotation: number
 	zoom: number
@@ -29,7 +34,7 @@ export type PageScaleResult = {
 	frameWidth: number | undefined
 	frameHeight: number | undefined
 	/**
-	 * CSS `aspect-ratio` for the viewport. `8.5 / 11` (US Letter) is the pre-load fallback.
+	 * CSS `aspect-ratio` for the viewport. The reserved size gives it before the page size is known.
 	 *
 	 * @remarks Undefined under `fit: 'width'`. The ratio is what makes the viewport derive its
 	 * height from its width. That is exactly what has to stop for the page to
@@ -45,9 +50,8 @@ export type PageScaleResult = {
 	 * viewport keeps the width that it had before the page loaded. This width stops that loop.
 	 * A flexible viewport in a box with a width of its own ignores it.
 	 *
-	 * The width comes from the page points at 96 px per inch, then from the page pixels.
-	 * `816` (8.5 in, US Letter) is the pre-load fallback. Undefined when the viewer
-	 * reserves no space.
+	 * The width comes from the page points at 96 px per inch, then from the page pixels, then
+	 * from the reserved size. Undefined when the viewer reserves no space.
 	 */
 	naturalWidth: number | undefined
 	/**
@@ -66,7 +70,7 @@ export type PageScaleResult = {
  * CSS `aspect-ratio` for the viewport:
  *
  * - the page's intrinsic ratio, swapped when rotated;
- * - `8.5 / 11` (US Letter) before load;
+ * - the ratio of the reserved size before the page size is known;
  * - undefined when the viewer reserves no space, or its height is the
  *   consumer's to set.
  *
@@ -75,23 +79,19 @@ export type PageScaleResult = {
 function resolveAspectRatio(
 	hasContent: boolean,
 	pageSize: Size | null,
+	reservedSize: Size,
 	transposed: boolean,
 	fit: PdfViewerFit,
 ): string | undefined {
 	if (!hasContent || fit === 'width') return undefined
 
-	if (!pageSize) return '8.5 / 11'
+	const { width, height } = pageSize ?? reservedSize
 
-	return transposed
-		? `${pageSize.height} / ${pageSize.width}`
-		: `${pageSize.width} / ${pageSize.height}`
+	return transposed ? `${height} / ${width}` : `${width} / ${height}`
 }
 
 /** CSS pixels for each PDF point: 96 px and 72 pt to the inch. */
 const PX_PER_POINT = 96 / 72
-
-/** The pre-load fallback width: US Letter, 8.5 in at 96 px per inch. */
-const LETTER_WIDTH = 816
 
 /**
  * CSS width of the visible page at 100%. See {@link PageScaleResult.naturalWidth}.
@@ -102,6 +102,7 @@ function resolveNaturalWidth(
 	hasContent: boolean,
 	pageSize: Size | null,
 	pointSize: Size | null,
+	reservedSize: Size,
 	transposed: boolean,
 ): number | undefined {
 	if (!hasContent) return undefined
@@ -114,7 +115,7 @@ function resolveNaturalWidth(
 		return transposed ? pageSize.height : pageSize.width
 	}
 
-	return LETTER_WIDTH
+	return (transposed ? reservedSize.height : reservedSize.width) * PX_PER_POINT
 }
 
 /**
@@ -156,7 +157,16 @@ function resolveFitScale(
  * @internal
  */
 export function usePdfViewerPageScale(input: PageScaleOptions): PageScaleResult {
-	const { viewportSize, pageSize, pointSize = null, rotation, zoom, hasContent, fit } = input
+	const {
+		viewportSize,
+		pageSize,
+		pointSize = null,
+		reservedSize,
+		rotation,
+		zoom,
+		hasContent,
+		fit,
+	} = input
 
 	return useMemo(() => {
 		const transposed = isRotationTransposed(rotation)
@@ -169,9 +179,15 @@ export function usePdfViewerPageScale(input: PageScaleOptions): PageScaleResult 
 		const frameWidth = transposed ? imageHeight : imageWidth
 		const frameHeight = transposed ? imageWidth : imageHeight
 
-		const aspectRatio = resolveAspectRatio(hasContent, pageSize, transposed, fit)
+		const aspectRatio = resolveAspectRatio(hasContent, pageSize, reservedSize, transposed, fit)
 
-		const naturalWidth = resolveNaturalWidth(hasContent, pageSize, pointSize, transposed)
+		const naturalWidth = resolveNaturalWidth(
+			hasContent,
+			pageSize,
+			pointSize,
+			reservedSize,
+			transposed,
+		)
 
 		const transform = `translate(-50%, -50%) rotate(${rotation}deg)`
 
@@ -184,5 +200,5 @@ export function usePdfViewerPageScale(input: PageScaleOptions): PageScaleResult 
 			naturalWidth,
 			transform,
 		}
-	}, [viewportSize, pageSize, pointSize, rotation, zoom, hasContent, fit])
+	}, [viewportSize, pageSize, pointSize, reservedSize, rotation, zoom, hasContent, fit])
 }

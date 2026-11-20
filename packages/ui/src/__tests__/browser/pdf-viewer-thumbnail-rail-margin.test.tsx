@@ -30,6 +30,7 @@ describe('pdf viewer thumbnail rail (real browser)', () => {
 					safePage={1}
 					goToPage={() => {}}
 					scrollCurrentIntoView={null}
+					defaultRatio={612 / 792}
 					onVisibleChange={onVisibleChange}
 				/>
 			</div>,

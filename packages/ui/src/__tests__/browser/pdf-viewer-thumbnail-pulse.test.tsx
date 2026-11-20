@@ -20,6 +20,7 @@ function rail() {
 				safePage={1}
 				goToPage={() => {}}
 				scrollCurrentIntoView={null}
+				defaultRatio={612 / 792}
 			/>
 		</div>,
 	)

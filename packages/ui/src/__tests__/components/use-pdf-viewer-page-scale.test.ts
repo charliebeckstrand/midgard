@@ -23,6 +23,7 @@ function renderScale(overrides: ScaleOverrides = {}) {
 			zoom: 1,
 			fit: 'page',
 			hasContent: true,
+			reservedSize: { width: 612, height: 792 },
 			...overrides,
 		}),
 	).result
@@ -37,10 +38,18 @@ describe('usePdfViewerPageScale', () => {
 		expect(result.current.imageHeight).toBeUndefined()
 	})
 
-	it('falls back to 8.5 / 11 aspect when content is present but page is unknown', () => {
+	it('falls back to the reserved size when content is present but page is unknown', () => {
 		const result = renderScale({ pageSize: null })
 
-		expect(result.current.aspectRatio).toBe('8.5 / 11')
+		expect(result.current.aspectRatio).toBe('612 / 792')
+	})
+
+	it('reserves the given size before the page size is known', () => {
+		const result = renderScale({ pageSize: null, reservedSize: { width: 842, height: 595 } })
+
+		expect(result.current.aspectRatio).toBe('842 / 595')
+
+		expect(result.current.naturalWidth).toBeCloseTo((842 * 96) / 72)
 	})
 
 	it('omits aspectRatio when there is no content', () => {

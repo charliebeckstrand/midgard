@@ -113,6 +113,8 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > `PdfViewer` gives pdf.js a URL for each file that pdf.js loads at run time: the wasm decoders, the standard fonts, and the CMaps. A new version of `pdfjs-dist` can add, remove, or rename such a file. [`pdf-viewer-binary-data-boundary.test.ts`](../src/__tests__/boundary/pdf-viewer-binary-data-boundary.test.ts) holds the map equal to the package.
 
+> `PdfViewer` reserves a page of `pageSize`, in points, until it knows the size of the page. The default is US Letter. The server cannot read the size from the file. A consumer that knows the size of its documents gives it. The first paint then has the box of the opened document.
+
 > `PdfViewer` searches the OCR text that `data` gives, as `PdfViewerTextItem` runs. The toolbar then has a Search control. `search` turns it off, or sets the color of the matches and the page turn, through `PdfViewerSearchOptions`.
 
 ## Loading skeletons

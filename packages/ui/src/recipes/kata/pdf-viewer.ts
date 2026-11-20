@@ -212,7 +212,8 @@ export const k = defineKata({
 				/**
 				 * The box of the page. A white page on the white rail of light mode has no edge, so the
 				 * shadow draws one. The tile sets the ratio of the page on the frame where the page
-				 * gives its size, so the shadow follows the page. A page with no size takes `3/4`.
+				 * gives its size, so the shadow follows the page. A page with no size, and a tile that loads,
+				 * take the reserved page size of the viewer.
 				 *
 				 * The shadow is a box shadow, not a `drop-shadow` filter on the image. WebKit gives each
 				 * element with a filter a compositing layer of its own, and a dimmed frame with such a
@@ -221,7 +222,7 @@ export const k = defineKata({
 				 * keeps the edge there.
 				 */
 				frame: [
-					'relative block w-full aspect-3/4',
+					'relative block w-full',
 					'overflow-hidden',
 					'shadow-sm',
 					forced.outline,

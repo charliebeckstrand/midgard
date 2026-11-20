@@ -35,6 +35,7 @@ describe.each(['list', 'grid'] as const)(
 						safePage={1}
 						goToPage={() => {}}
 						scrollCurrentIntoView={null}
+						defaultRatio={612 / 792}
 						layout={layout}
 					/>
 				</div>,
