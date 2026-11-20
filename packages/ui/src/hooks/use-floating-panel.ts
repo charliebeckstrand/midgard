@@ -2,6 +2,9 @@
 
 import {
 	autoUpdate,
+	type ComputePositionConfig,
+	type ComputePositionReturn,
+	computePosition,
 	type ExtendedRefs,
 	type FloatingRootContext,
 	flip,
@@ -19,11 +22,15 @@ import {
 import {
 	type CSSProperties,
 	type RefObject,
+	useCallback,
 	useEffect,
+	useLayoutEffect,
 	useMemo,
 	useRef,
+	useState,
 	useSyncExternalStore,
 } from 'react'
+import { anchorFollowsTransforms, inTransformedSubtree } from '../utilities/anchor-transforms'
 import { isCoveredByOverlay, subscribeOverlayLayers } from '../utilities/overlay-layers'
 import { isUnderStickyBar } from '../utilities/sticky-cover'
 
@@ -113,7 +120,9 @@ const clipHide = hide({ strategy: 'referenceHidden' })
 
 /**
  * Marks the panel when its reference is out of view: scrolled out of a scroll
- * container, clipped by one, or under a sticky bar (see `isUnderStickyBar`). It goes last, so it reads the final position.
+ * container, clipped by one, or under a sticky bar (see `isUnderStickyBar`). It
+ * goes after each middleware that moves the panel, so it reads the final
+ * position.
  * {@link useFloatingPanel} reads `referenceHidden` and hides the panel, which
  * comes back when the reference does. The panel stays open and keeps its state.
  *
@@ -140,6 +149,196 @@ const hideMiddleware: Middleware = {
 			},
 		}
 	},
+}
+
+/**
+ * The position of the panel as an offset from its reference, in the
+ * coordinates of the containing block of the panel. The offset is snapped to
+ * 1/64 px, the layout unit of the browser, so a scroll does not change it.
+ *
+ * @internal
+ */
+type AnchorOffset = {
+	/** The offset of the panel from the left edge of the reference. */
+	x: number
+	/** The offset of the panel from the top edge of the reference. */
+	y: number
+}
+
+/** Snaps a length to 1/64 px. @internal */
+const snap = (length: number) => Math.round(length * 64) / 64
+
+/**
+ * The custom properties on the panel that hold the edges of the reference that
+ * floating-ui measured. They are the fallback of `anchor()` (see
+ * {@link anchoredStyles}).
+ *
+ * @internal
+ */
+const FALLBACK_LEFT = '--floating-anchor-left'
+
+const FALLBACK_TOP = '--floating-anchor-top'
+
+/**
+ * Whether `reference` is in a subtree that `position: fixed` takes out of the
+ * scroll of the page. A fixed ancestor is a positioned ancestor, so the
+ * `offsetParent` chain holds it.
+ *
+ * @internal
+ */
+function inFixedSubtree(reference: HTMLElement) {
+	for (let node: Element | null = reference; node; ) {
+		if (getComputedStyle(node).position === 'fixed') return true
+
+		node = node instanceof HTMLElement ? node.offsetParent : null
+	}
+
+	return false
+}
+
+/**
+ * Records the final position of the panel as an offset from its reference,
+ * for the anchored styles of {@link useFloatingPanel}. It goes after each
+ * other middleware, so it reads the final position. It also writes the edges
+ * of the reference to the fallback properties of the panel, as `size` writes
+ * its limits. Thus a position pass that renders nothing still writes them.
+ *
+ * It records no offset for a reference that is not an element. It also
+ * records none for an `absolute` panel on a reference in a fixed subtree. The
+ * browser does not move such a panel when the page scrolls, and resolves the
+ * anchor at the position before the scroll. It records none for a reference
+ * under a transform in an engine that resolves the anchor without the
+ * transform (see `anchorFollowsTransforms`). A panel with no offset keeps the
+ * `transform` position of floating-ui.
+ *
+ * @internal
+ */
+const anchorOffsetMiddleware: Middleware = {
+	name: 'anchorOffset',
+	fn({ x, y, rects, elements, strategy }) {
+		const { reference, floating } = elements
+
+		if (!(reference instanceof HTMLElement)) return {}
+
+		if (strategy === 'absolute' && inFixedSubtree(reference)) return {}
+
+		if (!anchorFollowsTransforms() && inTransformedSubtree(reference)) return {}
+
+		const { x: left, y: top } = rects.reference
+
+		floating.style.setProperty(FALLBACK_LEFT, `${left}px`)
+
+		floating.style.setProperty(FALLBACK_TOP, `${top}px`)
+
+		return { data: { x: snap(x - left), y: snap(y - top) } satisfies AnchorOffset }
+	},
+}
+
+/**
+ * What a position pass of an anchored panel shows: the placement, the offset,
+ * and whether the reference is hidden. A scroll that the browser compensates
+ * changes none of them. A pass that records no anchor offset gives
+ * `undefined`, because the `transform` position changes at each pass.
+ * The record of a middleware that gives no data is an empty object.
+ *
+ * @internal
+ */
+function anchoredView({ placement, middlewareData }: ComputePositionReturn) {
+	const offset: Partial<AnchorOffset> | undefined = middlewareData.anchorOffset
+
+	if (offset?.x === undefined || offset.y === undefined) return undefined
+
+	return `${placement} ${offset.x} ${offset.y} ${middlewareData.hide?.referenceHidden ?? false}`
+}
+
+/**
+ * Whether the browser supports CSS anchor positioning. The server and jsdom
+ * have no `CSS.supports`, so they read `false`.
+ *
+ * @internal
+ */
+const anchorPositioning =
+	typeof CSS !== 'undefined' &&
+	typeof CSS.supports === 'function' &&
+	CSS.supports('anchor-name: --a')
+
+/**
+ * A random part of each anchor name, one for each copy of this module. Two
+ * copies of the package on one page then make no common names.
+ *
+ * @internal
+ */
+const ANCHOR_SCOPE = Math.random().toString(36).slice(2, 8)
+
+/** The count of the anchor names that this module gave. @internal */
+let anchorCount = 0
+
+/**
+ * Gives an anchor name that is unique in the document. An anchor name is
+ * global to the document, but `useId` is unique only in one React root. Two
+ * roots can therefore give the same id, and a panel of one root then anchors
+ * to the reference of the other.
+ *
+ * @internal
+ */
+function nextAnchorName() {
+	anchorCount += 1
+
+	return `--floating-${ANCHOR_SCOPE}-${anchorCount}`
+}
+
+/**
+ * Adds `name` to the inline `anchor-name` list of `element`, and returns the
+ * function that removes it. A list keeps the name of each panel on a shared
+ * reference, such as a menu trigger that also has a tooltip.
+ *
+ * @internal
+ */
+function addAnchorName(element: HTMLElement, name: string) {
+	const read = () =>
+		element.style
+			.getPropertyValue('anchor-name')
+			.split(',')
+			.map((entry) => entry.trim())
+			.filter(Boolean)
+
+	const write = (names: string[]) => {
+		if (names.length > 0) element.style.setProperty('anchor-name', names.join(', '))
+		else element.style.removeProperty('anchor-name')
+	}
+
+	write([...read().filter((entry) => entry !== name), name])
+
+	return () => write(read().filter((entry) => entry !== name))
+}
+
+/**
+ * The styles that place the panel against the CSS anchor of its reference.
+ * When a scroll container between them scrolls, the browser moves the panel
+ * with the reference in the same frame. This is also true when the scroll runs
+ * off the main thread. A position that floating-ui writes as a `transform`
+ * follows the scroll one frame late, after the `scroll` event, and the panel
+ * shakes.
+ *
+ * The styles hold only the offset, so a scroll does not change them. The
+ * fallback of `anchor()` is the edge of the reference that floating-ui
+ * measured, which the middleware writes to the panel. A browser can refuse the
+ * anchor, for example in a containing block that the panel cannot see. It then
+ * puts the panel at the position of floating-ui.
+ *
+ * @internal
+ */
+function anchoredStyles(
+	strategy: CSSProperties['position'],
+	name: string,
+	offset: AnchorOffset,
+): CSSProperties {
+	return {
+		position: strategy,
+		positionAnchor: name,
+		left: `calc(anchor(left, var(${FALLBACK_LEFT})) + ${offset.x}px)`,
+		top: `calc(anchor(top, var(${FALLBACK_TOP})) + ${offset.y}px)`,
+	} as CSSProperties
 }
 
 /**
@@ -170,8 +369,33 @@ const hideMiddleware: Middleware = {
  *
  * @internal
  */
-function trackPanel(reference: ReferenceType, floating: HTMLElement, update: () => void) {
-	const stop = autoUpdate(reference, floating, update, { elementResize: false })
+function trackPanel(
+	reference: ReferenceType,
+	floating: HTMLElement,
+	update: () => void,
+	config: ComputePositionConfig,
+) {
+	// What the last pass that floating-ui placed shows.
+	let shown: string | undefined
+
+	// A pass of an anchored panel that shows the same as the last one places
+	// nothing. The middleware still writes the fallback of the anchor.
+	const place =
+		anchorPositioning && reference instanceof HTMLElement
+			? () => {
+					void computePosition(reference, floating, config).then((next) => {
+						const view = anchoredView(next)
+
+						if (view !== undefined && view === shown) return
+
+						shown = view
+
+						update()
+					})
+				}
+			: update
+
+	const stop = autoUpdate(reference, floating, place, { elementResize: false })
 
 	const anchor = reference instanceof Element ? reference : reference.contextElement
 
@@ -201,7 +425,7 @@ function trackPanel(reference: ReferenceType, floating: HTMLElement, update: () 
 
 		observer.disconnect()
 
-		update()
+		place()
 
 		frame = requestAnimationFrame(observe)
 	})
@@ -397,6 +621,19 @@ export type FloatingPanelOptions = {
  * Sheet, is hidden until the overlay is gone. A panel whose reference is in
  * the overlay, or in a surface opened from it, stays on top of it.
  *
+ * In a browser with CSS anchor positioning, a panel on an element reference
+ * is placed against a CSS anchor on that element. The side and the shift
+ * still come from floating-ui. The browser keeps the panel on the reference
+ * while a scroll container between them scrolls. Thus the panel does not lag
+ * the reference by a frame during a scroll. A position pass that shows the
+ * same placement, offset, and hidden state renders nothing, so a scroll does
+ * not render the panel. The panel writes the name of its anchor into the
+ * inline `anchor-name` list of the reference while it is mounted. A virtual
+ * reference keeps the `transform` position of floating-ui. So does an
+ * `absolute` panel on a reference in a fixed subtree, and a browser without
+ * anchor positioning. A reference under a transform keeps it too, in an
+ * engine that resolves the anchor without the transform.
+ *
  * Use this when you need to compose your own interaction hooks (hover, click,
  * clientPoint, etc.) against the returned `context`. For the common
  * dismiss+role pattern, prefer `useFloatingUI`.
@@ -426,13 +663,19 @@ export function useFloatingPanel({
 
 	// An `auto` placement starts at the start alignment. The alignment middleware
 	// goes first, so `flip` and `shift` act on the alignment that it selects. The
-	// hide middleware goes last, after a caller chain too, so every panel hides
-	// while its reference is out of view.
+	// hide middleware goes after a caller chain too, so every panel hides while
+	// its reference is out of view. The anchor offset goes last, so it reads the
+	// final position.
 	const resolvedMiddleware = useMemo(() => {
 		const chain =
 			middleware ?? buildMiddleware(offsetPx, matchReferenceWidth, fitHeight, horizontal)
 
-		return [...(side ? [autoAlignMiddleware] : []), ...chain, hideMiddleware]
+		return [
+			...(side ? [autoAlignMiddleware] : []),
+			...chain,
+			hideMiddleware,
+			...(anchorPositioning ? [anchorOffsetMiddleware] : []),
+		]
 	}, [middleware, offsetPx, matchReferenceWidth, fitHeight, horizontal, side])
 
 	// Reason of the pending close request; the focus-return effect reads it.
@@ -469,16 +712,32 @@ export function useFloatingPanel({
 		})
 	}
 
+	const initialPlacement: Placement = side ? `${side}-start` : (placement as Placement)
+
+	// The tracker runs the position passes of floating-ui with the same options.
+	// A change of an option gives floating-ui a new `update`, which starts a new
+	// tracker with the new options.
+	const whileElementsMounted = useCallback(
+		(trackedReference: ReferenceType, floating: HTMLElement, update: () => void) =>
+			trackPanel(trackedReference, floating, update, {
+				placement: initialPlacement,
+				strategy: strategy ?? 'absolute',
+				middleware: resolvedMiddleware,
+			}),
+		[initialPlacement, strategy, resolvedMiddleware],
+	)
+
 	const {
 		refs,
-		floatingStyles: positionStyles,
+		floatingStyles: transformStyles,
 		context,
 		middlewareData,
 		placement: resolvedPlacement,
+		strategy: resolvedStrategy,
 		isPositioned,
 		update,
 	} = useFloating({
-		placement: side ? `${side}-start` : (placement as Placement),
+		placement: initialPlacement,
 		open,
 		onOpenChange: handleOpenChange,
 		...(strategy ? { strategy } : {}),
@@ -488,11 +747,57 @@ export function useFloatingPanel({
 		...(reference !== undefined ? { elements: { reference } } : {}),
 		// A point-anchored surface (`track: 'point'`) repositions itself on every
 		// coordinate change, so it skips the observer-based `autoUpdate` wiring.
-		whileElementsMounted: track === 'point' ? undefined : trackPanel,
+		whileElementsMounted: track === 'point' ? undefined : whileElementsMounted,
 		middleware: resolvedMiddleware,
 	})
 
 	const referenceHidden = middlewareData.hide?.referenceHidden ?? false
+
+	// The CSS anchor of an element reference. A virtual reference, such as a
+	// point, has no box to anchor to, and keeps the `transform` of floating-ui.
+	const [anchorName] = useState(nextAnchorName)
+
+	const { reference: anchorReference, floating: floatingElement } = context.elements
+
+	const anchorElement =
+		anchorPositioning && anchorReference instanceof HTMLElement ? anchorReference : null
+
+	// The reference carries the name while the panel is mounted, so the anchor
+	// is in place before the first position pass gives the anchored styles.
+	useLayoutEffect(() => {
+		if (!anchorElement || !floatingElement) return
+
+		return addAnchorName(anchorElement, anchorName)
+	}, [anchorElement, floatingElement, anchorName])
+
+	// Empty when the middleware gave no offset.
+	const anchorOffset: Partial<AnchorOffset> | undefined = middlewareData.anchorOffset
+
+	const anchoredOffsetX = anchorOffset?.x
+
+	const anchoredOffsetY = anchorOffset?.y
+
+	// Keyed on the numbers of the offset, so a pass that places the panel at the
+	// same offset keeps the identity of the styles.
+	const anchored = useMemo(
+		() =>
+			anchorElement &&
+			floatingElement &&
+			anchoredOffsetX !== undefined &&
+			anchoredOffsetY !== undefined
+				? anchoredStyles(resolvedStrategy, anchorName, { x: anchoredOffsetX, y: anchoredOffsetY })
+				: null,
+		[
+			anchorElement,
+			floatingElement,
+			anchoredOffsetX,
+			anchoredOffsetY,
+			resolvedStrategy,
+			anchorName,
+		],
+	)
+
+	const positionStyles = anchored ?? transformStyles
 
 	// The panel paints on the `float` rung, above each overlay. An open overlay
 	// above the reference, such as a Sheet opened over the page that holds it,
