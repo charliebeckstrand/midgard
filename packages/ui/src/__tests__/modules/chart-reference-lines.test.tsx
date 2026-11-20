@@ -1769,21 +1769,17 @@ describe('reference lines that the legend names', () => {
 			getSlot(container, 'chart-legend').querySelector('[data-slot="chart-legend-note"]'),
 		).toBeNull()
 
-		// Each note is a switch. Its label and its value name it, and its
-		// description describes it.
+		// Each note is a switch. Its whole text names it, so the name holds the
+		// text that shows (WCAG 2.5.3).
 		const note = getSlot(container, 'chart-legend-reference')
 
 		expect(note.closest('[data-slot="chart-legend-note"]')).not.toBeNull()
 
 		expect(note.getAttribute('aria-pressed')).toBe('true')
 
-		expect(document.getElementById(note.getAttribute('aria-labelledby') ?? '')?.textContent).toBe(
-			'Target55',
-		)
+		expect(note.hasAttribute('aria-labelledby')).toBe(false)
 
-		expect(document.getElementById(note.getAttribute('aria-describedby') ?? '')?.textContent).toBe(
-			'Set in January',
-		)
+		expect(note.textContent).toBe('Target55Set in January')
 
 		// The notes are a toolbar of their own.
 		expect(note.closest('[role="toolbar"]')?.getAttribute('aria-orientation')).toBe('vertical')

@@ -6,7 +6,6 @@ import {
 	memo,
 	type ReactNode,
 	type RefObject,
-	useId,
 	useLayoutEffect,
 	useRef,
 	useState,
@@ -779,8 +778,8 @@ type ChartLegendNoteProps = ChartLegendReference & {
  * with the swatch, the label, and the value of the rule on one line, and the
  * description of the rule under them, one text step smaller. It is a switch,
  * as a chip is. A click toggles the rule, and a pointer or a keyboard focus on
- * a note that is on recedes the marks to its rule. The label and the value name
- * the switch, and the description describes it.
+ * a note that is on recedes the marks to its rule. The whole text of the note
+ * names the switch, so its name holds the text that shows (WCAG 2.5.3).
  *
  * @internal
  */
@@ -790,12 +789,6 @@ const ChartLegendNote = memo(function ChartLegendNote({
 	emphasis,
 	...reference
 }: ChartLegendNoteProps) {
-	const id = useId()
-
-	const nameId = `${id}-name`
-
-	const descriptionId = `${id}-description`
-
 	return (
 		<li data-slot="chart-legend-note" className="min-w-0">
 			<Button
@@ -805,8 +798,6 @@ const ChartLegendNote = memo(function ChartLegendNote({
 				data-slot="chart-legend-reference"
 				className="grid w-full grid-cols-[auto_minmax(0,1fr)] items-start justify-items-start gap-x-2 gap-y-0 text-start text-sm leading-5 font-normal"
 				aria-pressed={!off}
-				aria-labelledby={nameId}
-				aria-describedby={reference.description ? descriptionId : undefined}
 				onClick={() => onToggle(reference.index)}
 				// A touch is a tap that toggles the rule, not a point, as on `LegendSwitch`.
 				onPointerEnter={(event) => {
@@ -820,7 +811,7 @@ const ChartLegendNote = memo(function ChartLegendNote({
 					<ChartLegendReferenceSwatch reference={reference} off={off} />
 				</span>
 
-				<span id={nameId} className="flex min-w-0 flex-wrap items-baseline gap-x-1.5">
+				<span className="flex min-w-0 flex-wrap items-baseline gap-x-1.5">
 					<Text
 						as="span"
 						tone="muted"
@@ -835,7 +826,6 @@ const ChartLegendNote = memo(function ChartLegendNote({
 				{reference.description && (
 					<Text
 						as="span"
-						id={descriptionId}
 						tone="muted"
 						size="xs"
 						className={cn('col-start-2 min-w-0', off && 'opacity-60')}
