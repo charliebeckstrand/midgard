@@ -297,13 +297,16 @@ describe('Tooltip focus after a touch press (real browser)', () => {
 		node.focus({ focusVisible: true } as FocusOptions)
 	}
 
-	it('does not open on a visible focus after a touch press, before or after the state loads', async () => {
+	it('does not open on a visible focus after a touch press, before or after the trigger mounts and the state loads', async () => {
+		// The press comes before the trigger mounts, as the tap that opens a Sheet
+		// with an `initialFocus` on a tooltip trigger does.
+		press('touch')
+
 		renderUI(<Harness interactive={false}>Hint</Harness>)
 
 		const trigger = screen.getByRole('button', { name: 'Details' })
 
 		// Before the state loads: the intent gate.
-		press('touch')
 
 		focusVisibly(trigger)
 

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { isComposing } from '../../utilities/is-composing'
+import { lastInput } from '../../utilities/last-input'
 import { tooltipBody } from './tooltip-body-loader'
 import { isReferenceDisabled, observeReferenceDisabled } from './tooltip-reference-disabled'
 
@@ -95,55 +96,6 @@ function isMacSafari(): boolean {
 }
 
 /**
- * The last input on the page: `'key'` for a key press, or the `pointerType` of
- * a pointer press. `null` before the first input. The value stays while no
- * trigger records, because a trigger records again before a focus can come.
- */
-let lastInput: string | null = null
-
-/** The number of triggers that record the last input. */
-let modalityHolds = 0
-
-const onModalityKey = () => {
-	lastInput = 'key'
-}
-
-const onModalityPointer = (event: PointerEvent) => {
-	lastInput = event.pointerType
-}
-
-/**
- * Records the last input on the page while a trigger holds it. The first hold
- * adds the window listeners, and the release of the last hold removes them.
- * A trigger holds it from the time that it gets its node, before a focus can
- * come.
- *
- * @returns A function that releases the hold.
- * @internal
- */
-export function trackModality(): () => void {
-	if (modalityHolds++ === 0) {
-		window.addEventListener('keydown', onModalityKey, true)
-
-		window.addEventListener('pointerdown', onModalityPointer, true)
-	}
-
-	let held = true
-
-	return () => {
-		if (!held) return
-
-		held = false
-
-		if (--modalityHolds > 0) return
-
-		window.removeEventListener('keydown', onModalityKey, true)
-
-		window.removeEventListener('pointerdown', onModalityPointer, true)
-	}
-}
-
-/**
  * Whether the last input on the page was a touch press. A focus then does not
  * open a tooltip, because a touch screen shows no tooltip for a tap. The
  * `:focus-visible` gate does not stop it: WebKit on iOS gives a tapped button
@@ -152,7 +104,7 @@ export function trackModality(): () => void {
  * @internal
  */
 export function lastInputWasTouch(): boolean {
-	return lastInput === 'touch'
+	return lastInput() === 'touch'
 }
 
 /**
@@ -169,7 +121,7 @@ function focusOpens(event: FocusEvent): boolean {
 	if (!(target instanceof Element)) return true
 
 	if (isMacSafari() && !event.relatedTarget)
-		return lastInput === null || lastInput === 'key' || target.matches(TYPEABLE)
+		return lastInput() === null || lastInput() === 'keyboard' || target.matches(TYPEABLE)
 
 	try {
 		return target.matches(':focus-visible')
@@ -302,8 +254,6 @@ function listenForIntent(
 		disabled = next
 	})
 
-	const releaseModality = trackModality()
-
 	const listening = new AbortController()
 
 	const { signal } = listening
@@ -319,8 +269,6 @@ function listenForIntent(
 
 	return () => {
 		stopObserver()
-
-		releaseModality()
 
 		listening.abort()
 	}

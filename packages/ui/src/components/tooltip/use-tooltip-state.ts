@@ -33,7 +33,6 @@ import {
 	lastInputWasTouch,
 	reopensOnEnable,
 	type TooltipIntent,
-	trackModality,
 } from './use-tooltip-intent'
 
 /** Options for {@link useTooltipState}. @internal */
@@ -223,8 +222,6 @@ export function useTooltipState({
 	useEffect(() => {
 		if (!domReference) return
 
-		const releaseModality = trackModality()
-
 		// The reference can be an SVG node, and `Element` types its pointer
 		// events as `Event`.
 		const record = (event: Event) => {
@@ -237,8 +234,6 @@ export function useTooltipState({
 		return () => {
 			domReference.removeEventListener('pointerenter', record)
 			domReference.removeEventListener('pointerdown', record)
-
-			releaseModality()
 		}
 	}, [domReference])
 

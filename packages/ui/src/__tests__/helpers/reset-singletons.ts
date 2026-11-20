@@ -1,8 +1,8 @@
 import { afterEach } from 'vitest'
 import { __resetAnnouncer } from '../../core/announcer'
 import { __resetFingerLift } from '../../primitives/overlay/use-overlay-absorb'
-import { __resetLastInput } from '../../primitives/overlay/use-overlay-initial-focus'
 import { __resetTextSelectionHold } from '../../utilities/hold-text-selection'
+import { __resetLastInput } from '../../utilities/last-input'
 
 /**
  * Returns the package's module-scope state to its unused shape between tests.
@@ -44,9 +44,9 @@ export function installSingletonResets(): void {
 	// double-tap window can read it as the tap that opened it.
 	afterEach(__resetFingerLift)
 
-	// The overlay records the last input on the page. A case that taps leaves a
-	// touch, and an overlay that the next case opens then focuses its root and
-	// not its first field.
+	// The page records its last input. A case that taps leaves a touch. An
+	// overlay that the next case opens then focuses its root and not its first
+	// field, and a tooltip of the next case does not open on focus.
 	afterEach(__resetLastInput)
 
 	// The PDF document cache holds each document that a case loads. A reset in
