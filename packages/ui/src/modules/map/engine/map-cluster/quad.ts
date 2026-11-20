@@ -60,9 +60,9 @@ export type MapQuad = {
 export type MapQuadTree = {
 	root: MapQuad
 	/** The box that holds each index, `null` for an index that the tree does not hold. */
-	leafOf: (MapQuad | null)[]
+	leafByIndex: (MapQuad | null)[]
 	/** The place of each index in the entries of its box. */
-	slotOf: number[]
+	slotByIndex: number[]
 	at: (index: number) => MapPoint2D
 	key: (index: number) => number
 }
@@ -104,8 +104,8 @@ export function quadTree(
 ): MapQuadTree {
 	return {
 		root: emptyQuad(bounds.x0, bounds.y0, bounds.x1, bounds.y1, null),
-		leafOf: [],
-		slotOf: [],
+		leafByIndex: [],
+		slotByIndex: [],
 		at,
 		key,
 	}
@@ -131,9 +131,9 @@ function childFor(quad: MapQuad, point: MapPoint2D): MapQuad {
 
 /** Puts `index` in the entries of the box `leaf`. @internal */
 function fileItem(tree: MapQuadTree, leaf: MapQuad, index: number): void {
-	tree.leafOf[index] = leaf
+	tree.leafByIndex[index] = leaf
 
-	tree.slotOf[index] = leaf.items.push(index) - 1
+	tree.slotByIndex[index] = leaf.items.push(index) - 1
 }
 
 /** Gives the entries of a full box to four new boxes. @internal */
@@ -220,21 +220,21 @@ export function insertQuad(tree: MapQuadTree, index: number): void {
 
 /** Removes `index`, if the tree holds it. @internal */
 export function removeQuad(tree: MapQuadTree, index: number): void {
-	const leaf = tree.leafOf[index]
+	const leaf = tree.leafByIndex[index]
 
 	if (leaf === null || leaf === undefined) return
 
-	const slot = tree.slotOf[index] as number
+	const slot = tree.slotByIndex[index] as number
 
 	const last = leaf.items.pop() as number
 
 	if (last !== index) {
 		leaf.items[slot] = last
 
-		tree.slotOf[last] = slot
+		tree.slotByIndex[last] = slot
 	}
 
-	tree.leafOf[index] = null
+	tree.leafByIndex[index] = null
 
 	for (let at: MapQuad | null = leaf; at !== null; at = at.parent) at.count--
 
@@ -243,7 +243,7 @@ export function removeQuad(tree: MapQuadTree, index: number): void {
 
 /** Reads the key of `index` again, after the caller changed it. @internal */
 export function rekeyQuad(tree: MapQuadTree, index: number): void {
-	refreshUp(tree, tree.leafOf[index] ?? null)
+	refreshUp(tree, tree.leafByIndex[index] ?? null)
 }
 
 /** The squared distance from `point` to the nearest point of the box `quad`. @internal */
