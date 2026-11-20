@@ -36,6 +36,25 @@ function towns(count: number, seed: number): LngLat[] {
 	})
 }
 
+/**
+ * `count` dots in piles that stand closer than a pixel: some at one position,
+ * the rest a hair apart. The merge tree reads them through boxes that split
+ * deep, and a pile of one position does not split.
+ */
+function piles(count: number, seed: number): LngLat[] {
+	const random = seeded(seed)
+
+	const centers = Array.from({ length: 4 }, (): LngLat => [random() * FRAME, random() * 600])
+
+	return Array.from({ length: count }, (_, index): LngLat => {
+		const [x, y] = centers[index % centers.length] as LngLat
+
+		if (index % 3 === 0) return [x, y]
+
+		return [x + (random() - 0.5) * 0.01, y + (random() - 0.5) * 0.01]
+	})
+}
+
 /** The members of each group, in order. */
 function members(groups: readonly { members: number[] }[]): number[][] {
 	return groups.map((group) => group.members)
@@ -85,6 +104,29 @@ describe('clusterTree', () => {
 		}
 	})
 
+	it('gives each width the groups of the measured frame for dots in piles', () => {
+		const random = seeded(11)
+
+		for (const seed of [1, 2]) {
+			const positions = [...piles(600, seed), ...towns(120, seed)]
+
+			const tree = clusterTree(
+				positions,
+				flatProjector,
+				() => POINT_CLUSTER_GAP,
+				POINT_CLUSTER_GAP,
+				englishRadius,
+				FRAME / 100,
+			)
+
+			for (let probe = 0; probe < 40; probe++) {
+				const width = 100 + random() * 3000
+
+				expect(members(cutTree(tree, FRAME / width))).toEqual(measured(positions, width))
+			}
+		}
+	})
+
 	it('only splits groups as the frame widens', () => {
 		const positions = towns(120, 9)
 
@@ -115,6 +157,20 @@ describe('clusterTree', () => {
 })
 
 describe('clusterPoints', () => {
+	it('groups dots in piles alike wherever the frame puts its origin', () => {
+		const positions = piles(400, 5)
+
+		const base = members(clusterPoints(positions, flatProjector, POINT_CLUSTER_GAP, englishRadius))
+
+		for (const shift of [3.3, 41.2]) {
+			const moved = (at: LngLat) => ({ x: at[0] + shift, y: at[1] + shift * 0.7 })
+
+			expect(members(clusterPoints(positions, moved, POINT_CLUSTER_GAP, englishRadius))).toEqual(
+				base,
+			)
+		}
+	})
+
 	it('groups alike wherever the frame puts its origin', () => {
 		// Dense enough that a group often overlaps two hosts at once. The host was
 		// the first that the walk of the grid met, and the cells move with the

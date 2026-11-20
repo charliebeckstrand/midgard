@@ -17,7 +17,17 @@
  */
 
 import type { LngLat, MapPoint2D, MapProjector } from '../types'
-import { bucket, cellKey, squared, toCellKey } from './grid'
+import { bucket, squared } from './grid'
+import {
+	insertQuad,
+	type MapQuad,
+	type MapQuadTree,
+	quadDistance,
+	quadTree,
+	rekeyQuad,
+	removeQuad,
+	walkQuads,
+} from './quad'
 import type { MapClusterRadius } from './radius'
 
 /**
@@ -92,8 +102,6 @@ type MapBuildNode = {
 	partner: number
 	scale: number
 	live: boolean
-	/** The cell of the grid that holds the node. */
-	cell: number
 	/** Counts the changes of the partner, so the queue can drop an entry that is out of date. */
 	stamp: number
 	/**
@@ -120,11 +128,8 @@ type MapTreeBuild = {
 	 * merge skips it.
 	 */
 	watchers: Map<number, number[]>
-	/**
-	 * The live nodes by cell. A node that merges or moves leaves its old entry
-	 * behind, and a walk drops an entry that no longer matches its node.
-	 */
-	cells: Map<number, number[]>
+	/** The live nodes, by position. The key of each node is its {@link MapBuildNode.scale}. */
+	quads: MapQuadTree
 	/**
 	 * Each node with its first overlap, the smallest scale first. An entry that a
 	 * later change of the node outdates stays in the queue, and the build drops it.
@@ -230,72 +235,36 @@ function buildNode(at: MapPoint2D, gap: number, radius: number): MapBuildNode {
 		partner: -1,
 		scale: Number.POSITIVE_INFINITY,
 		live: true,
-		cell: Number.NaN,
 		stamp: 0,
 		stale: false,
 	}
 }
 
-/** Files a node in the cell where it stands, unless it already stands in it. @internal */
+/** Files a node at the position where it stands now. @internal */
 function fileNode(state: MapTreeBuild, index: number): void {
-	const node = state.build[index] as MapBuildNode
+	removeQuad(state.quads, index)
 
-	const cell = state.reach > 0 ? toCellKey(node.at, state.reach) : 0
-
-	if (cell === node.cell) return
-
-	node.cell = cell
-
-	bucket(state.cells, cell).push(index)
-}
-
-/** Visits the live nodes of one cell, and drops the entries that no longer match. @internal */
-function walkCell(
-	state: MapTreeBuild,
-	key: number,
-	visit: (index: number, node: MapBuildNode) => void,
-): void {
-	const held = state.cells.get(key)
-
-	if (held === undefined) return
-
-	for (let at = 0; at < held.length; ) {
-		const index = held[at] as number
-
-		const node = state.build[index] as MapBuildNode
-
-		if (node.live && node.cell === key) {
-			visit(index, node)
-
-			at++
-
-			continue
-		}
-
-		held[at] = held[held.length - 1] as number
-
-		held.pop()
-	}
+	insertQuad(state.quads, index)
 }
 
 /**
- * Visits each live node that can overlap `from` below the limit: every node in
- * the cells within the reach of `from` and of the widest node.
+ * The cells that a search from `from` reads, as a range of cell indices on
+ * each axis: every cell within the reach of `from` and of the widest node at
+ * the limit. `null` with no grid, where a search reads each node.
+ *
+ * A node outside the range overlaps `from` above the limit only. The range
+ * keeps each search to the nodes that a walk of these cells reads, so the
+ * quadtree gives the same tree as the walk of the cells did.
  *
  * @internal
  */
-function walkNodes(
-	state: MapTreeBuild,
-	from: MapBuildNode,
-	visit: (index: number, node: MapBuildNode) => void,
-): void {
+type MapSearchWindow = { x0: number; x1: number; y0: number; y1: number } | null
+
+/** The {@link MapSearchWindow} of a search from `from`. @internal */
+function searchWindow(state: MapTreeBuild, from: MapBuildNode): MapSearchWindow {
 	const { reach } = state
 
-	if (reach === 0) {
-		walkCell(state, 0, visit)
-
-		return
-	}
+	if (reach === 0) return null
 
 	const span = Math.ceil(((from.radius + state.widest + state.widestGap) * state.limit) / reach)
 
@@ -303,9 +272,102 @@ function walkNodes(
 
 	const cy = Math.floor(from.at.y / reach)
 
-	for (let x = cx - span; x <= cx + span; x++) {
-		for (let y = cy - span; y <= cy + span; y++) walkCell(state, cellKey(x, y), visit)
-	}
+	return { x0: cx - span, x1: cx + span, y0: cy - span, y1: cy + span }
+}
+
+/** Whether the cell of `at` is in `window`. @internal */
+function inWindow(state: MapTreeBuild, window: MapSearchWindow, at: MapPoint2D): boolean {
+	if (window === null) return true
+
+	const cx = Math.floor(at.x / state.reach)
+
+	const cy = Math.floor(at.y / state.reach)
+
+	return cx >= window.x0 && cx <= window.x1 && cy >= window.y0 && cy <= window.y1
+}
+
+/** Whether a box can hold a node of `window`. @internal */
+function quadInWindow(state: MapTreeBuild, window: MapSearchWindow, quad: MapQuad): boolean {
+	if (window === null) return true
+
+	const { reach } = state
+
+	return (
+		Math.floor(quad.x1 / reach) >= window.x0 &&
+		Math.floor(quad.x0 / reach) <= window.x1 &&
+		Math.floor(quad.y1 / reach) >= window.y0 &&
+		Math.floor(quad.y0 / reach) <= window.y1
+	)
+}
+
+/**
+ * The largest reach of a pair of `from`, in device pixels: its radius, the
+ * widest radius, and the larger of its gap and the widest gap. No pair of
+ * `from` reaches further.
+ *
+ * @internal
+ */
+function widestReach(state: MapTreeBuild, from: MapBuildNode): number {
+	return from.radius + state.widest + Math.max(from.gap, state.widestGap)
+}
+
+/**
+ * The smallest {@link pairScale} that `from` can have with a node in `quad`:
+ * the distance to the box over the {@link widestReach} of `from`. No node of the
+ * box overlaps `from` below it. Rounding keeps the bound, because each step of
+ * the sum and of the quotient rounds in one direction alike for the bound and
+ * for the scale.
+ *
+ * @internal
+ */
+function quadScale(quad: MapQuad, from: MapBuildNode, reach: number): number {
+	return Math.sqrt(quadDistance(quad, from.at)) / reach
+}
+
+/**
+ * The node that `from` overlaps first among the live nodes of its window, and
+ * the scale of that overlap: the smallest scale, then the lower index. `-1`
+ * and `Infinity` for none. The search rules out each box whose nodes overlap
+ * `from` later than the best node so far, so it reads the nodes near `from`
+ * alone, however dense the dots stand.
+ *
+ * @internal
+ */
+function firstOverlap(
+	state: MapTreeBuild,
+	index: number,
+	from: MapBuildNode,
+): { partner: number; scale: number } {
+	const window = searchWindow(state, from)
+
+	const reach = widestReach(state, from)
+
+	let partner = -1
+
+	let scale = Number.POSITIVE_INFINITY
+
+	walkQuads(
+		state.quads,
+		from.at,
+		(quad) => quadInWindow(state, window, quad) && quadScale(quad, from, reach) <= scale,
+		(other) => {
+			if (other === index) return
+
+			const node = state.build[other] as MapBuildNode
+
+			if (!inWindow(state, window, node.at)) return
+
+			const pair = pairScale(node, from)
+
+			if (earlier(pair, other, scale, partner)) {
+				scale = pair
+
+				partner = other
+			}
+		},
+	)
+
+	return { partner, scale }
 }
 
 /** Gives a node its first overlap, and queues it below the limit. @internal */
@@ -320,6 +382,8 @@ function setPartner(state: MapTreeBuild, index: number, partner: number, scale: 
 
 	node.stale = false
 
+	rekeyQuad(state.quads, index)
+
 	if (partner === -1) return
 
 	bucket(state.watchers, partner).push(index)
@@ -329,23 +393,7 @@ function setPartner(state: MapTreeBuild, index: number, partner: number, scale: 
 
 /** Finds the node that `index` overlaps first, among the live nodes near it. @internal */
 function findPartner(state: MapTreeBuild, index: number): void {
-	const node = state.build[index] as MapBuildNode
-
-	let partner = -1
-
-	let scale = Number.POSITIVE_INFINITY
-
-	walkNodes(state, node, (other, held) => {
-		if (other === index) return
-
-		const pair = pairScale(node, held)
-
-		if (earlier(pair, other, scale, partner)) {
-			scale = pair
-
-			partner = other
-		}
-	})
+	const { partner, scale } = firstOverlap(state, index, state.build[index] as MapBuildNode)
 
 	setPartner(state, index, partner, scale)
 }
@@ -378,74 +426,70 @@ function takeNode(state: MapTreeBuild, into: number, index: number): void {
 
 	node.live = false
 
+	removeQuad(state.quads, index)
+
 	state.taken.push(index)
 
 	fileNode(state, into)
 }
 
 /**
- * Settles a merged node. One walk of its neighbors finds what it changes. A
- * neighbor that overlaps it by the scale of the merge joins it now, the nearest
- * first, and the walk runs again. Else the walk gives the first overlap of the
- * merged node, and tells each neighbor that it overlaps before the first
- * overlap of the neighbor.
+ * Settles a merged node. A neighbor that overlaps it by the scale of the merge
+ * joins it now. The first overlap of the merged node decides: while that
+ * overlap comes by the scale of the merge, it is the nearest such neighbor, and
+ * it joins. Else it is the first overlap of the merged node. Then each neighbor
+ * that overlaps the merged node before its own first overlap takes the merged
+ * node as its first overlap.
  *
  * @internal
  */
 function settleNode(state: MapTreeBuild, merged: number): void {
 	const made = state.build[merged] as MapBuildNode
 
-	const pairs: number[] = []
-
 	for (;;) {
-		let next = -1
+		const { partner, scale } = firstOverlap(state, merged, made)
 
-		let soonest = Number.POSITIVE_INFINITY
-
-		let partner = -1
-
-		let earliest = Number.POSITIVE_INFINITY
-
-		pairs.length = 0
-
-		walkNodes(state, made, (other, node) => {
-			if (other === merged) return
-
-			const pair = pairScale(node, made)
-
-			pairs.push(other, pair)
-
-			if (pair <= state.now && earlier(pair, other, soonest, next)) {
-				soonest = pair
-
-				next = other
-			}
-
-			if (earlier(pair, other, earliest, partner)) {
-				earliest = pair
-
-				partner = other
-			}
-		})
-
-		if (next === -1) {
-			setPartner(state, merged, partner, earliest)
+		if (partner === -1 || scale > state.now) {
+			setPartner(state, merged, partner, scale)
 
 			break
 		}
 
-		takeNode(state, merged, next)
+		takeNode(state, merged, partner)
 	}
 
-	for (let at = 0; at < pairs.length; at += 2) {
-		const other = pairs[at] as number
+	tellNeighbors(state, merged, made)
+}
 
-		const pair = pairs[at + 1] as number
+/**
+ * Gives each live node of the window of `made` that overlaps it before its own
+ * first overlap the merged node as its first overlap. The walk rules out each
+ * box whose nodes all overlap their own first overlap before they can overlap
+ * `made`: the bound of the box is above the largest scale in it.
+ *
+ * @internal
+ */
+function tellNeighbors(state: MapTreeBuild, merged: number, made: MapBuildNode): void {
+	const window = searchWindow(state, made)
 
-		const node = state.build[other] as MapBuildNode
+	const reach = widestReach(state, made)
 
-		if (earlier(pair, merged, node.scale, node.partner)) setPartner(state, other, merged, pair)
-	}
+	walkQuads(
+		state.quads,
+		made.at,
+		(quad) => quadInWindow(state, window, quad) && quadScale(quad, made, reach) <= quad.max,
+		(other) => {
+			if (other === merged) return
+
+			const node = state.build[other] as MapBuildNode
+
+			if (!inWindow(state, window, node.at)) return
+
+			const pair = pairScale(node, made)
+
+			if (earlier(pair, merged, node.scale, node.partner)) setPartner(state, other, merged, pair)
+		},
+	)
 }
 
 /**
@@ -522,6 +566,40 @@ function runQueue(state: MapTreeBuild): void {
 	}
 }
 
+/** The box that holds each position that the projection gives. @internal */
+function findBounds(projected: readonly (MapPoint2D | null)[]): {
+	x0: number
+	y0: number
+	x1: number
+	y1: number
+} {
+	const bounds = { x0: 0, y0: 0, x1: 0, y1: 0 }
+
+	let first = true
+
+	for (const at of projected) {
+		if (at === null) continue
+
+		if (first) {
+			bounds.x0 = at.x
+			bounds.x1 = at.x
+			bounds.y0 = at.y
+			bounds.y1 = at.y
+
+			first = false
+
+			continue
+		}
+
+		bounds.x0 = Math.min(bounds.x0, at.x)
+		bounds.x1 = Math.max(bounds.x1, at.x)
+		bounds.y0 = Math.min(bounds.y0, at.y)
+		bounds.y1 = Math.max(bounds.y1, at.y)
+	}
+
+	return bounds
+}
+
 /**
  * Builds the tree of the merges of the dots, for every scale up to `limit`.
  *
@@ -538,7 +616,10 @@ function runQueue(state: MapTreeBuild): void {
  * A dot that the projection drops merges with nothing. It holds its own group
  * at every scale.
  *
- * Only the pairs within the reach of the limit are tested, through the grid.
+ * A search reads only the nodes within the reach of the limit, as the cells of
+ * one reach give them. A quadtree holds the nodes, so a search also rules out
+ * each box whose nodes cannot come first. Dots that stand close together then
+ * cost no more than dots that spread out (`quad.ts`).
  *
  * @param getGap - The gap that each dot asks for, in device pixels.
  * @param widestGap - The largest of the gaps.
@@ -557,11 +638,17 @@ export function clusterTree(
 
 	const reach = (dot * 2 + widestGap) * limit
 
+	const projected = positions.map((position) => project(position))
+
 	const state: MapTreeBuild = {
 		nodes: [],
 		build: [],
 		watchers: new Map(),
-		cells: new Map(),
+		quads: quadTree(
+			findBounds(projected),
+			(index) => (state.build[index] as MapBuildNode).at,
+			(index) => (state.build[index] as MapBuildNode).scale,
+		),
 		queue: [],
 		reach: Number.isFinite(reach) && reach > 0 ? reach : 0,
 		widest: dot,
@@ -572,9 +659,7 @@ export function clusterTree(
 		taken: [],
 	}
 
-	for (const [index, position] of positions.entries()) {
-		const at = project(position)
-
+	for (const [index, at] of projected.entries()) {
 		state.nodes.push({ members: [index], at, from: 0, to: Number.POSITIVE_INFINITY })
 
 		state.build.push(at === null ? null : buildNode(at, getGap(index), dot))
