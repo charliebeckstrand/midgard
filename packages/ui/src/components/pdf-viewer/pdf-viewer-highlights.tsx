@@ -274,9 +274,6 @@ function PdfViewerHighlightLayer() {
 	 * runs only where the pointer is over a region.
 	 */
 	function handleRegionMove(event: PointerEvent<HTMLDivElement>) {
-		// A touch reads no box, as in `handleRegionOver`.
-		if (event.pointerType === 'touch') return
-
 		const name = nameRef.current
 
 		if (!name) return
