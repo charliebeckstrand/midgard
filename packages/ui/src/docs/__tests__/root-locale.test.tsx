@@ -4,6 +4,11 @@ import { useLocale } from 'ui/providers/locale'
 import { describe, expect, it, onTestFinished } from 'vitest'
 import { renderShell } from './render-shell.tsx'
 
+// A press on Settings loads the settings dialog of ui
+// (`appearance-settings.tsx`). This import loads it at collection, so a case
+// times only its own work (CONVENTIONS.md §10.14).
+import '../../providers/appearance/appearance-settings-dialog.tsx'
+
 // The build renders each page in Node, and the browser hydrates it. A page with
 // no locale reads the runtime default of each side, and the two can differ. So
 // the shell gives each page a fixed locale until hydration, and then the locale
