@@ -14,18 +14,20 @@ import { PdfViewerPageImage } from './pdf-viewer-page-image'
 import { PdfViewerSearchHits } from './pdf-viewer-search-hits'
 
 /**
- * Renders the page surface inside the viewport. That is the active
- * page image, an error message, a loading placeholder, or an empty state. A
- * page shows as soon as its raster lands: an image, or a bitmap on a canvas
- * ({@link PdfViewerPageImage}). A page that has not rendered yet shows the
- * loading placeholder in the frame of the page. The
- * highlight overlay sits over the image, sharing its frame and its transform.
+ * Renders the pane of the viewer. With a page frame, the pane holds the scroll
+ * box, and the scroll box holds the active page image. Without a frame, the
+ * pane holds an error message or an empty state. A page shows as soon as its
+ * raster lands: an image, or a bitmap on a canvas ({@link PdfViewerPageImage}).
+ * A page that has not rendered yet shows the loading placeholder in the frame
+ * of the page. The highlight overlay sits over the image, sharing its frame and
+ * its transform.
  *
- * @remarks CSS sizes the page, so the server paints it at its final size. The pane is a
- * size container that takes its aspect ratio from the page, and it does not scroll. The
- * scroll box fills it. The frame of the page reads the container units of the pane, so a
+ * @remarks CSS sizes the page, so the server paints it at its final size. With a frame, the
+ * pane is a size container that takes its aspect ratio from the page, and it does not scroll.
+ * The scroll box fills it. The frame of the page reads the container units of the pane, so a
  * scrollbar of the scroll box does not change the fit. The page image and the layers over it
- * read the container units of the frame.
+ * read the container units of the frame. Without a frame, the pane is not a size container,
+ * and it grows to the height of its message.
  *
  * A visually hidden live region announces "Page X of Y" on
  * navigation. While the page overflows the viewport, the viewport is a tab
