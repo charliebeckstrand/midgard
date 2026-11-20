@@ -56,7 +56,8 @@ describe('a Menu whose trigger scrolls out of view (real floating engine)', () =
 		renderUI(
 			<div
 				data-testid="scroller"
-				style={{ height: 300, marginTop: 300, overflow: 'auto', scrollPaddingTop: 60 }}
+				data-sticky-cover-top="60"
+				style={{ height: 300, marginTop: 300, overflow: 'auto' }}
 			>
 				<div style={{ position: 'sticky', top: 0, height: 60, zIndex: 1, background: 'gray' }} />
 

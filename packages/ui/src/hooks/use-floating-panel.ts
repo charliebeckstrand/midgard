@@ -26,6 +26,7 @@ import {
 	useSyncExternalStore,
 } from 'react'
 import { isCoveredByOverlay, subscribeOverlayLayers } from '../utilities/overlay-layers'
+import { readStickyCover } from '../utilities/sticky-cover'
 
 /**
  * Explicit return shape for {@link useFloatingPanel}.
@@ -111,54 +112,28 @@ const autoAlignMiddleware: Middleware = {
 /** The `hide` middleware of floating-ui, which reads the clip of each scroll container. */
 const clipHide = hide({ strategy: 'referenceHidden' })
 
-/** The scroll padding of `style` in px, in the order top, right, bottom, left. */
-function scrollPadding(style: CSSStyleDeclaration): [number, number, number, number] {
-	return [
-		Number.parseFloat(style.scrollPaddingTop) || 0,
-		Number.parseFloat(style.scrollPaddingRight) || 0,
-		Number.parseFloat(style.scrollPaddingBottom) || 0,
-		Number.parseFloat(style.scrollPaddingLeft) || 0,
-	]
-}
-
 /**
- * Whether the scroll padding of a scroll container of `anchor` covers all of
- * `rect`. A page names the edges that its sticky bars cover with
- * `scroll-padding` on its scroller, as `SidebarLayout` does. A reference under
- * a sticky header is thus out of view, as a reference that scrolled out of the
- * scroller is. The scroll padding of the root element is the padding of the
- * viewport.
+ * Whether the sticky bars of a scroll container of `anchor` cover all of
+ * `rect`. A scroller names the height that its bars cover with
+ * `writeStickyCover`, as `SidebarLayout` does. A reference under a sticky
+ * header is thus out of view, as a reference that scrolled out of the scroller
+ * is. The root element names the height for the viewport.
  */
 function underStickyBar(anchor: Element, rect: Omit<DOMRect, 'toJSON'>): boolean {
 	const root = anchor.ownerDocument.documentElement
 
 	const scrollers = getOverflowAncestors(anchor).filter(
-		(ancestor): ancestor is Element =>
-			'getBoundingClientRect' in ancestor &&
-			ancestor !== root &&
-			ancestor !== root.ownerDocument.body,
+		(ancestor): ancestor is Element => 'getBoundingClientRect' in ancestor && ancestor !== root,
 	)
 
 	for (const scroller of [...scrollers, root]) {
-		const [top, right, bottom, left] = scrollPadding(getComputedStyle(scroller))
+		const cover = readStickyCover(scroller)
 
-		if (top === 0 && right === 0 && bottom === 0 && left === 0) continue
+		if (cover === 0) continue
 
-		const box =
-			scroller === root
-				? { top: 0, left: 0 }
-				: {
-						top: scroller.getBoundingClientRect().top + scroller.clientTop,
-						left: scroller.getBoundingClientRect().left + scroller.clientLeft,
-					}
+		const top = scroller === root ? 0 : scroller.getBoundingClientRect().top + scroller.clientTop
 
-		if (
-			rect.bottom <= box.top + top ||
-			rect.top >= box.top + scroller.clientHeight - bottom ||
-			rect.right <= box.left + left ||
-			rect.left >= box.left + scroller.clientWidth - right
-		)
-			return true
+		if (rect.bottom <= top + cover) return true
 	}
 
 	return false
