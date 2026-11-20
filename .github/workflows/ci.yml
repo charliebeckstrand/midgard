@@ -176,9 +176,8 @@ jobs:
       # The other packages have few test files, and a shard of them can be
       # empty. The first shard runs them whole, with `test:workspace` below,
       # because its half of the ui suite is the shorter half. Vitest gives each
-      # file to a shard by the hash of its path. Five of the six page smoke files
-      # of the docs (`page-smoke.tsx`) go to the second shard, so its half takes
-      # about 1.5 times as long on CI.
+      # file to a shard by the hash of its path, and most of the page smoke files
+      # of the docs (`page-smoke.tsx`) go to the second shard.
       - if: matrix.shard == 1
         run: pnpm turbo run test --filter='!ui' --summarize
       # The ui suites that read files outside ui, apart from `test` so that an
