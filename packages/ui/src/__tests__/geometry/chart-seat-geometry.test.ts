@@ -7,6 +7,7 @@ import {
 	majorityMark,
 	nearestSeat,
 	SEAT_INNER_RATIO,
+	type Seat,
 	seatExtent,
 	seatFit,
 	seatGroups,
@@ -20,6 +21,30 @@ const UNIT_TOLERANCE = 1e-9
 
 /** A coordinate in px in the frame carries the rounding of the unit space, scaled by a few hundred px. */
 const PX_TOLERANCE = 1e-6
+
+/**
+ * Each pair of seats whose centers stand closer than two radii, as a pair of
+ * indices. An empty list means that no two seats overlap. The case asserts on
+ * the list once, so a failure names each pair.
+ */
+function overlaps(seats: readonly Seat[], dot: number): [number, number][] {
+	const found: [number, number][] = []
+
+	for (let a = 0; a < seats.length; a++) {
+		for (let b = a + 1; b < seats.length; b++) {
+			const one = seats[a]
+
+			const two = seats[b]
+
+			if (!one || !two) continue
+
+			// The negation also holds a NaN distance as an overlap.
+			if (!(Math.hypot(one.x - two.x, one.y - two.y) >= 2 * dot - 1e-9)) found.push([a, b])
+		}
+	}
+
+	return found
+}
 
 describe('seatRows', () => {
 	it('takes 4 rows for 50 seats, 5 for 100, and 10 for 435', () => {
@@ -83,17 +108,7 @@ describe('seatLayout', () => {
 		] as const) {
 			const { seats, dot } = seatLayout(total, rows)
 
-			for (let a = 0; a < seats.length; a++) {
-				for (let b = a + 1; b < seats.length; b++) {
-					const one = seats[a]
-
-					const two = seats[b]
-
-					if (!one || !two) continue
-
-					expect(Math.hypot(one.x - two.x, one.y - two.y)).toBeGreaterThanOrEqual(2 * dot - 1e-9)
-				}
-			}
+			expect(overlaps(seats, dot), `${total} seats in ${rows} rows`).toEqual([])
 		}
 	})
 
@@ -116,6 +131,14 @@ describe('seatLayout with a majority', () => {
 		const turn = seat.angle - aisle
 
 		return Math.cos(turn) > 0 ? Math.abs(seat.radius * Math.sin(turn)) : seat.radius
+	}
+
+	/**
+	 * The index of each seat that is not clear of the line down the aisle. An
+	 * empty list means that each seat is clear.
+	 */
+	function onAisle(seats: readonly Seat[], dot: number, aisle: number): number[] {
+		return seats.flatMap((seat, index) => (fromAisle(seat, aisle) > dot ? [] : [index]))
 	}
 
 	it('opens the aisle before the seat that makes the majority', () => {
@@ -157,19 +180,11 @@ describe('seatLayout with a majority', () => {
 
 			if (aisle === null) throw new Error('expected an aisle')
 
-			for (const seat of seats) expect(fromAisle(seat, aisle)).toBeGreaterThan(dot)
+			const chamber = `${total} seats, a majority of ${majority}`
 
-			for (let a = 0; a < seats.length; a++) {
-				for (let b = a + 1; b < seats.length; b++) {
-					const one = seats[a]
+			expect(onAisle(seats, dot, aisle), chamber).toEqual([])
 
-					const two = seats[b]
-
-					if (!one || !two) continue
-
-					expect(Math.hypot(one.x - two.x, one.y - two.y)).toBeGreaterThanOrEqual(2 * dot - 1e-9)
-				}
-			}
+			expect(overlaps(seats, dot), chamber).toEqual([])
 		}
 	})
 
@@ -181,19 +196,11 @@ describe('seatLayout with a majority', () => {
 
 				if (aisle === null) continue
 
-				for (const seat of seats) expect(fromAisle(seat, aisle)).toBeGreaterThan(dot)
+				const chamber = `${total} seats, a majority of ${majority}`
 
-				for (let a = 0; a < seats.length; a++) {
-					for (let b = a + 1; b < seats.length; b++) {
-						const one = seats[a]
+				expect(onAisle(seats, dot, aisle), chamber).toEqual([])
 
-						const two = seats[b]
-
-						if (!one || !two) continue
-
-						expect(Math.hypot(one.x - two.x, one.y - two.y)).toBeGreaterThanOrEqual(2 * dot - 1e-9)
-					}
-				}
+				expect(overlaps(seats, dot), chamber).toEqual([])
 			}
 		}
 	})

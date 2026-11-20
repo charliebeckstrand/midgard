@@ -161,11 +161,42 @@ function shownPoints(graticule: string | null, frame: string | null, view: MapVi
 /**
  * The widest gap, in frame units, between what the reader sees of `a` and the
  * lines of `b`. Zero where `b` draws each point of `a` that the view shows.
+ *
+ * A point within the widest gap so far of one segment of `b` cannot widen the
+ * gap. Thus the scan of that point stops at that segment, and the result is the
+ * same as a full scan. The points come in path order, so the scan of a point
+ * starts at the segment that stopped the scan of the point before.
  */
 function shownGap(a: string | null, b: string | null, frame: string | null, view: MapViewFrame) {
 	const edges = segments(polylines(b))
 
-	return shownPoints(a, frame, view).reduce((gap, p) => Math.max(gap, lineDistance(p, edges)), 0)
+	let gap = 0
+
+	let start = 0
+
+	for (const p of shownPoints(a, frame, view)) {
+		let nearest = Number.POSITIVE_INFINITY
+
+		for (let offset = 0; offset < edges.length; offset++) {
+			const index = (start + offset) % edges.length
+
+			const [from, to] = edges[index] ?? []
+
+			if (!from || !to) continue
+
+			nearest = Math.min(nearest, segmentDistance(p, from, to))
+
+			if (nearest <= gap) {
+				start = index
+
+				break
+			}
+		}
+
+		gap = Math.max(gap, nearest)
+	}
+
+	return gap
 }
 
 /** The graticule over the whole globe: the path the chrome drew before it read the view. */
