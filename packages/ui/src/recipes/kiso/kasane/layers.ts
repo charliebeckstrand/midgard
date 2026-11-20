@@ -10,6 +10,7 @@
  */
 
 import { mode } from '../../../core/recipe'
+import { bg } from '../omote/bg'
 import { forced } from '../sen/forced'
 import { ring } from '../sen/ring'
 
@@ -101,12 +102,20 @@ const disabled = [
 ]
 
 /**
- * The fill of a soft control: a translucent wash in place of the base ring, as
- * a soft Button has. The wash reads on any surface, a glass panel included,
- * because it tints what is behind it. Hover deepens it, and it skips a
- * disabled control, like `hover`.
+ * The fill of a soft control: a translucent wash in place of the base ring.
+ * The wash reads on any surface, a glass panel included, because it tints what
+ * is behind it. At rest it is `omote.bg.tint`: 5% zinc on light, 10% white on
+ * dark. Hover doubles it, as `hannou.tint.filled` does: 10% zinc on light, 20%
+ * white on dark. Each mode darkens or lightens its own ground, so the two modes
+ * have the same weight. Hover skips a disabled control, like `hover`.
  */
-const wash = ['bg-zinc-500/15', 'not-has-[>:disabled]:hover:bg-zinc-500/30']
+const wash = [
+	...bg.tint,
+	...mode(
+		'not-has-[>:disabled]:hover:bg-zinc-950/10',
+		'not-has-[>:disabled]:dark:hover:bg-white/20',
+	),
+]
 
 /** The whole stack: each part in the correct spread order for a `className`. */
 export const layers = [

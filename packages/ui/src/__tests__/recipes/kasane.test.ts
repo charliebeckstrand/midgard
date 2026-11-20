@@ -31,8 +31,14 @@ describe('kasane.softLayers', () => {
 	})
 
 	it('fills with a wash that deepens on hover, except when disabled', () => {
-		expect(softLayers).toContain('bg-zinc-500/15')
-		expect(softLayers).toContain('not-has-[>:disabled]:hover:bg-zinc-500/30')
+		expect(softLayers).toEqual(
+			expect.arrayContaining([
+				'bg-zinc-950/5',
+				'dark:bg-white/10',
+				'not-has-[>:disabled]:hover:bg-zinc-950/10',
+				'not-has-[>:disabled]:dark:hover:bg-white/20',
+			]),
+		)
 	})
 
 	it('keeps the focus, validation, and disabled states of the framed stack', () => {
