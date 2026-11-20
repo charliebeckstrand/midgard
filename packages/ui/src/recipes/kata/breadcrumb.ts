@@ -41,18 +41,17 @@ export const k = defineKata(
 			// In a collapsing trail, a crumb takes no height, so a wrapped line takes
 			// none. The current page gives the first line its height and pushes each
 			// wrapped line out of the clip. It is the one crumb that can be narrower than
-			// its text, and only after each crumb before it has wrapped. After a crumb, it
-			// leaves one gap on the line, so the separator before it stays on the line. A
-			// trail of one crumb has no separator, so its crumb takes the whole line. A crumb after a
-			// separator keeps the room of the separator at its start.
+			// its text, and only after each crumb before it has wrapped. It is not wider
+			// than the line, so the separator before it stays on the line. A crumb after a
+			// separator keeps the room of the separator and one gap at its start.
 			item: [
 				flex.inline,
 				dan.gap.scale.sm,
 				'in-data-collapse:flex-none in-data-collapse:-mb-[1lh]',
 				'in-data-collapse:last:min-w-0 in-data-collapse:last:flex-initial',
-				'in-data-collapse:not-first:last:max-w-[calc(100%-var(--ui-breadcrumb-gap))]',
+				'in-data-collapse:last:max-w-full',
 				'in-data-collapse:last:mb-[calc(2*var(--ui-breadcrumb-ring))]',
-				'in-data-collapse:[[data-slot=breadcrumb-separator]+&]:ps-(--ui-breadcrumb-separator)',
+				'in-data-collapse:[[data-slot=breadcrumb-separator]+&]:ps-[calc(var(--ui-breadcrumb-separator)+var(--ui-breadcrumb-gap))]',
 				'in-data-collapse:first:not-last:min-w-(--ui-breadcrumb-mark)',
 				'in-data-collapse:first:not-last:-ms-[calc(var(--ui-breadcrumb-mark)+var(--ui-breadcrumb-gap))]',
 			],
@@ -94,12 +93,14 @@ export const k = defineKata(
 				'in-data-collapse:[li:not(:first-child)_:not(:focus-visible)>&:not(:hover)]:text-transparent',
 			],
 			// In a collapsing trail, a separator takes no room on the line. It draws in
-			// the room at the start of the crumb after it, so the two wrap together.
+			// the room at the start of the crumb after it. Its margin also gives back the
+			// gap before it, so it does not need more room than its crumb, and the two
+			// wrap together.
 			separator: [
 				...text.muted,
 				dan.size.separator.svg,
 				'in-data-collapse:flex in-data-collapse:flex-none in-data-collapse:items-center',
-				'in-data-collapse:h-lh in-data-collapse:-me-(--ui-breadcrumb-separator) in-data-collapse:-mb-[1lh]',
+				'in-data-collapse:h-lh in-data-collapse:-me-[calc(var(--ui-breadcrumb-separator)+var(--ui-breadcrumb-gap))] in-data-collapse:-mb-[1lh]',
 			],
 		},
 		defaults: { current: false, interactive: false },

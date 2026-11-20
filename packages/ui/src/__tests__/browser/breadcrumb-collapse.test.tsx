@@ -160,6 +160,37 @@ describe('a collapsing breadcrumb (real browser)', () => {
 		expect(at(800)).toEqual(CRUMBS)
 	})
 
+	it('keeps the separator before each crumb on the line at each width', () => {
+		const container = attach(document.createElement('div'))
+
+		const root = createRoot(container)
+
+		act(() => root.render(trail(800)))
+
+		onTestFinished(() => act(() => root.unmount()))
+
+		const box = present(container.querySelector<HTMLElement>('[data-testid=box]'), 'box')
+
+		const separators = Array.from(
+			container.querySelectorAll<HTMLElement>('[data-slot=breadcrumb-separator]'),
+		)
+
+		for (let width = 800; width >= 80; width -= 1) {
+			box.style.width = `${width}px`
+
+			for (const separator of separators) {
+				const crumb = present(separator.nextElementSibling, 'crumb')
+
+				const glyph = present(separator.querySelector('svg'), 'glyph')
+
+				expect({ width, separator: onLine(container, glyph) }).toEqual({
+					width,
+					separator: onLine(container, crumb),
+				})
+			}
+		}
+	})
+
 	it('clips the current page only after every crumb above it has gone', () => {
 		const container = attach(serverMarkup(trail(90)))
 
