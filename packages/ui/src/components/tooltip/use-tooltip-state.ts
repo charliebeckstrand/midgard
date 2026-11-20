@@ -264,11 +264,27 @@ export function useTooltipState({
 			setOpen(true)
 	}, [disabled, domReference, enabled, trigger, setOpen])
 
+	// A surface that opens hides the tooltip. When that surface closes, a hover
+	// tooltip opens again under a mouse or pen, as the hover shows it. The pointer
+	// did not move, so no hover event comes to open it. A touch browser keeps
+	// `:hover` on a tapped node, so the last pointer type decides, as above.
+	const reopenUnderHover = useStableEvent(() => {
+		if (
+			reopensOnEnable({ enabled, trigger }, pointerRef.current) &&
+			domReference?.matches(':hover')
+		)
+			setOpen(true)
+	})
+
 	useEffect(() => {
 		if (!open) return
 
-		return subscribeOverlaySignal(() => setOpen(false))
-	}, [open, setOpen])
+		return subscribeOverlaySignal(() => {
+			setOpen(false)
+
+			return reopenUnderHover
+		})
+	}, [open, setOpen, reopenUnderHover])
 
 	/*
 	 * Watched rather than wrapped around the disclosure's setter. The open state on

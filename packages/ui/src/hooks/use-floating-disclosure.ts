@@ -62,7 +62,8 @@ export type FloatingDisclosureOptions = Omit<
 	dismissable?: boolean
 	/**
 	 * Sends the overlay signal each time the surface opens, as an `Overlay` does.
-	 * An open tooltip closes on the signal. Set it for a surface that a reader
+	 * An open tooltip closes on the signal, and opens again when the surface
+	 * closes under a mouse or pen hover of its trigger. Set it for a surface that a reader
 	 * opens on purpose, such as a popover or a menu. A tooltip does not set it.
 	 *
 	 * @defaultValue false
@@ -155,8 +156,11 @@ export function useFloatingDisclosure({
 		refsRef.current = refs
 	})
 
+	// The cleanup tells the listeners that the surface closed.
 	useEffect(() => {
-		if (signal && open) notifyOverlaySignal()
+		if (!signal || !open) return
+
+		return notifyOverlaySignal()
 	}, [signal, open])
 
 	const { dismiss, role } = useFloatingDismissal(context, refs, {
