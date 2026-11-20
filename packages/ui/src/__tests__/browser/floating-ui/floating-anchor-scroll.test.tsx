@@ -1,3 +1,4 @@
+import { Profiler } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Button } from '../../../components/button'
 import { Popover, PopoverContent, PopoverTrigger } from '../../../components/popover'
@@ -35,7 +36,11 @@ describe('a floating panel in a scroll container (real floating engine)', () => 
 		}
 	}
 
-	afterEach(() => window.removeEventListener('scroll', blockScroll, { capture: true }))
+	afterEach(() => {
+		window.removeEventListener('scroll', blockScroll, { capture: true })
+
+		window.scrollTo(0, 0)
+	})
 
 	/** The anchor names in the inline `anchor-name` list of `element`. */
 	function anchorNames(element: HTMLElement) {
@@ -82,6 +87,85 @@ describe('a floating panel in a scroll container (real floating engine)', () => 
 		await frames(2)
 
 		expect(offset()).toBeNear(before, PIXEL)
+	})
+
+	it('renders nothing while a scroll moves the trigger', async () => {
+		let commits = 0
+
+		renderUI(
+			<div data-testid="scroller" style={{ height: 300, marginTop: 200, overflow: 'auto' }}>
+				<div style={{ height: 150 }} />
+
+				<Profiler id="tooltip" onRender={() => commits++}>
+					<Tooltip open placement="top">
+						<TooltipTrigger>
+							<Button>Details</Button>
+						</TooltipTrigger>
+
+						<TooltipContent>More about this</TooltipContent>
+					</Tooltip>
+				</Profiler>
+
+				<div style={{ height: 2000 }} />
+			</div>,
+		)
+
+		const trigger = screen.getByRole('button', { name: 'Details' })
+
+		const panel = await screen.findByRole('tooltip')
+
+		await frames(2)
+
+		const offset = () => panel.getBoundingClientRect().top - trigger.getBoundingClientRect().top
+
+		const before = offset()
+
+		const settled = commits
+
+		const scroller = screen.getByTestId('scroller')
+
+		// Each step stays clear of the top edge, so the panel does not flip.
+		for (const scrollTop of [10, 20, 30, 40]) {
+			scroller.scrollTop = scrollTop
+
+			await frames()
+		}
+
+		expect(commits).toBe(settled)
+
+		expect(offset()).toBeNear(before, PIXEL)
+	})
+
+	it('follows a trigger in a fixed header when the page scrolls', async () => {
+		renderUI(
+			<>
+				<div style={{ position: 'fixed', top: 100, left: 100 }}>
+					<Tooltip open placement="bottom">
+						<TooltipTrigger>
+							<Button>Details</Button>
+						</TooltipTrigger>
+
+						<TooltipContent>More about this</TooltipContent>
+					</Tooltip>
+				</div>
+
+				<div style={{ height: 3000 }} />
+			</>,
+		)
+
+		const trigger = screen.getByRole('button', { name: 'Details' })
+
+		const panel = await screen.findByRole('tooltip')
+
+		await frames(2)
+
+		const offset = () => panel.getBoundingClientRect().top - trigger.getBoundingClientRect().top
+
+		const before = offset()
+
+		window.scrollTo(0, 200)
+
+		await waitFor(() => expect(offset()).toBeNear(before, PIXEL))
 	})
 
 	it('keeps the anchor name of each panel on a shared trigger', async () => {
