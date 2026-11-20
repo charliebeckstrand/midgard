@@ -7,6 +7,7 @@ import Highlights from './highlights.tsx'
 import Magnifier from './magnifier.tsx'
 import MagnifierSettings from './magnifier-settings.tsx'
 import PdfViewerPlayground from './playground.tsx'
+import Search from './search.tsx'
 
 export default function PdfViewerPage() {
 	return (
@@ -17,6 +18,7 @@ export default function PdfViewerPage() {
 			<Example of={FitToWidth} surface />
 			<Example of={Magnifier} ratio />
 			<Example of={MagnifierSettings} ratio />
+			<Example of={Search} ratio />
 			<Example of={Empty} surface />
 			<ApiTable api={api} />
 		</>

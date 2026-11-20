@@ -1583,13 +1583,25 @@
 		"defaultMessage": "Magnifier settings",
 		"description": "The button that opens the settings of the lens that magnifies the page of a PDF."
 	},
+	"ui.pdfViewer.matchOfTotal": {
+		"defaultMessage": "{current, number} of {total, number}",
+		"description": "The position of the current match of a search in a PDF, such as \"3 of 12\". The total is the number of matches."
+	},
 	"ui.pdfViewer.medium": {
 		"defaultMessage": "Medium",
 		"description": "The middle size of the lens that magnifies the page of a PDF."
 	},
+	"ui.pdfViewer.nextMatch": {
+		"defaultMessage": "Next match",
+		"description": "The button that goes to the next place where the search text is in a PDF."
+	},
 	"ui.pdfViewer.noDelay": {
 		"defaultMessage": "None",
 		"description": "The choice of no wait before the lens opens on a PDF."
+	},
+	"ui.pdfViewer.noMatches": {
+		"defaultMessage": "No matches",
+		"description": "Shown when the search text is not in the PDF."
 	},
 	"ui.pdfViewer.noPages": {
 		"defaultMessage": "No pages to display",
@@ -1619,6 +1631,10 @@
 		"defaultMessage": "Pages",
 		"description": "The title of the panel with the small images of the pages of a PDF."
 	},
+	"ui.pdfViewer.previousMatch": {
+		"defaultMessage": "Previous match",
+		"description": "The button that goes to the previous place where the search text is in a PDF."
+	},
 	"ui.pdfViewer.print": {
 		"defaultMessage": "Print",
 		"description": "The button that prints a PDF."
@@ -1630,6 +1646,14 @@
 	"ui.pdfViewer.rotate": {
 		"defaultMessage": "Rotate",
 		"description": "The button that turns the page of a PDF by a quarter turn."
+	},
+	"ui.pdfViewer.search": {
+		"defaultMessage": "Search",
+		"description": "The button that opens the search of the text of a PDF, and the name of the search panel."
+	},
+	"ui.pdfViewer.searchQuery": {
+		"defaultMessage": "Search the document",
+		"description": "The name of the field where the reader types the text to find in a PDF."
 	},
 	"ui.pdfViewer.showHighlights": {
 		"defaultMessage": "Show highlights",

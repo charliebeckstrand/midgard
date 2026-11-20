@@ -101,6 +101,60 @@ export type PdfViewerHighlight = {
 	color?: Color
 }
 
+/**
+ * One run of text that OCR read off a page, and the box that it sits in. The search of a
+ * {@link PdfViewer} reads these.
+ *
+ * @remarks The run is the unit of the OCR engine: a word, a line, or a paragraph. A match
+ * marks the whole box of each run that it touches, so word-level data gives word-level marks.
+ * A match can cross from one run to the next run on the same page, because the search joins
+ * the runs of a page with a space, in the order of `data`.
+ */
+export type PdfViewerTextItem = {
+	/** 1-based page that the text sits on. */
+	page: number
+	/** The text of the run. */
+	text: string
+	/** Axis-aligned bounding box, origin top-left, in the unit named by `highlightUnit`. */
+	rect: PdfViewerHighlightRect
+}
+
+/**
+ * How the search marks its matches on the page, for {@link PdfViewerSearchOptions.highlight}.
+ */
+export type PdfViewerSearchHighlightOptions = {
+	/**
+	 * The paint of each match, from the shared five-color palette. The current match takes a
+	 * heavier wash and a heavier stroke of the same color.
+	 * @defaultValue 'amber'
+	 */
+	color?: Color
+}
+
+/**
+ * Search settings for {@link PdfViewerProps.search}.
+ *
+ * @remarks Boolean-or-object, as {@link PdfViewerMagnifierOptions} is. The bare `search` is
+ * the common case. An object is there for the page that needs a different paint, no paint, or
+ * no page turn.
+ */
+export type PdfViewerSearchOptions = {
+	/**
+	 * Marks each match on the page. `true` takes the defaults, and an object sets the color.
+	 * `false` keeps the count and the steps, and paints nothing.
+	 * @defaultValue true
+	 */
+	highlight?: boolean | PdfViewerSearchHighlightOptions
+	/**
+	 * Turns to the page of the current match when the query or the step changes.
+	 *
+	 * @remarks With `false`, the reader turns the pages. The steps still move the current
+	 * match, and the page on screen marks the current match when it is there.
+	 * @defaultValue true
+	 */
+	navigate?: boolean
+}
+
 /** One region's box: fractions of the page, inches, or whatever `highlightUnit` names. Origin top-left. */
 export type PdfViewerHighlightRect = { x: number; y: number; width: number; height: number }
 

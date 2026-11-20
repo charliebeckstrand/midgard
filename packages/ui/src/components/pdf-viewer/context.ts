@@ -4,6 +4,7 @@ import { createContext } from '../../core/create-context'
 import type { PdfViewerResult } from './use-pdf-viewer'
 import type { PdfViewerHighlightsResult } from './use-pdf-viewer-highlights'
 import type { PdfViewerMagnifierResult } from './use-pdf-viewer-magnifier'
+import type { PdfViewerSearchResult } from './use-pdf-viewer-search'
 
 type PdfViewerContextValue = PdfViewerResult
 
@@ -50,3 +51,16 @@ export const [PdfViewerHighlightsContext, usePdfViewerHighlightsContext] =
  */
 export const [PdfViewerMagnifierContext, usePdfViewerMagnifierContext] =
 	createContext<PdfViewerMagnifierResult>('PdfViewerMagnifier')
+
+/**
+ * Context tuple for the search: `[PdfViewerSearchContext, usePdfViewerSearchContext]`.
+ *
+ * Separate from {@link PdfViewerContext}, for the reason {@link PdfViewerHighlightsContext}
+ * is. The query changes at the rate that the reader types. In the main context, each key
+ * would render the thumbnail rail and each region on the page again. Only the toolbar control
+ * and the layer of matches read this one.
+ *
+ * @internal
+ */
+export const [PdfViewerSearchContext, usePdfViewerSearchContext] =
+	createContext<PdfViewerSearchResult>('PdfViewerSearch')

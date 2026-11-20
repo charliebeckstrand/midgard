@@ -11,6 +11,7 @@ import { PdfViewerContext } from './context'
 import { PdfViewerHighlightsProvider } from './pdf-viewer-highlights-provider'
 import { PdfViewerMagnifierProvider } from './pdf-viewer-magnifier-provider'
 import { pdfViewerMessages } from './pdf-viewer-messages'
+import { PdfViewerSearchProvider } from './pdf-viewer-search-provider'
 import { PdfViewerThumbnails } from './pdf-viewer-thumbnails'
 import { PdfViewerToolbar } from './pdf-viewer-toolbar'
 import { PdfViewerViewport } from './pdf-viewer-viewport'
@@ -21,6 +22,8 @@ import type {
 	PdfViewerMagnifierOptions,
 	PdfViewerMagnifierState,
 	PdfViewerPage,
+	PdfViewerSearchOptions,
+	PdfViewerTextItem,
 	PdfViewerThumbnailLayout,
 } from './types'
 import { PDF_VIEWER_THUMBNAILS, usePdfViewer } from './use-pdf-viewer'
@@ -110,7 +113,7 @@ export type PdfViewerProps = Omit<ComponentProps<'section'>, 'children' | 'onLoa
 	 */
 	highlights?: readonly PdfViewerHighlight[]
 	/**
-	 * Unit for every highlight's `rect`.
+	 * Unit for every `rect`: the `rect` of each highlight, and the `rect` of each run of `data`.
 	 * @defaultValue 'fraction'
 	 */
 	highlightUnit?: PdfViewerHighlightUnit
@@ -167,6 +170,36 @@ export type PdfViewerProps = Omit<ComponentProps<'section'>, 'children' | 'onLoa
 	 */
 	magnifier?: boolean | PdfViewerMagnifierOptions
 	/**
+	 * The text of the document, as OCR read it: one {@link PdfViewerTextItem} for each run of
+	 * text, with its page and its box. The search reads it.
+	 *
+	 * @remarks The viewer reads no text of its own, from a `src` or from `pages`. Give the runs
+	 * in reading order, because the search joins the runs of a page in the order of `data`.
+	 * Each `rect` is in the unit named by `highlightUnit`, as a highlight is.
+	 *
+	 * Identity need not be stable, but a stable array is cheaper. The search folds the text
+	 * again when `data` changes identity while a query is there.
+	 */
+	data?: readonly PdfViewerTextItem[]
+	/**
+	 * Adds a Search control to the toolbar, which finds a text in `data` and marks each match
+	 * on the page.
+	 *
+	 * @remarks On whenever `data` holds a run, so `false` is the way to turn it off. `true`
+	 * takes the defaults. Pass {@link PdfViewerSearchOptions} to set the color of the matches,
+	 * paint no matches, or keep the page where it is.
+	 *
+	 * The search folds case and diacritics, so `cafe` finds `Café`. A new query makes the first
+	 * match on or after the page on screen current, and the viewer turns to its page. `Enter`
+	 * and the steps of the panel move through the matches of the whole document, and wrap at
+	 * each end. The matches stay on the page while the query is there, also when the panel is
+	 * closed.
+	 *
+	 * Without `data` there is nothing to search, and the toolbar has no Search control.
+	 * @defaultValue `true`, where `data` holds a run.
+	 */
+	search?: boolean | PdfViewerSearchOptions
+	/**
 	 * Fires when the reader shows or hides the highlight overlay from the toolbar. Starts
 	 * **shown**, so a consumer mirroring this seeds its own state `true`.
 	 *
@@ -202,16 +235,16 @@ export type PdfViewerProps = Omit<ComponentProps<'section'>, 'children' | 'onLoa
 /**
  * PDF document viewer: renders pages from `pages` or via pdf.js from `src`. Toolbar
  * controls cover zoom, rotation, download, and print, and an optional overlay draws
- * highlighted regions over the page.
+ * highlighted regions over the page. With OCR `data`, the toolbar also searches the text.
  *
  * @remarks The viewer fills the width of its host. In a host that sizes to its content (for
  * example `w-max`), the page area takes the width of the page at 100%: 96 px for each inch of
  * the page, or US Letter before the page size is known.
  *
- * `highlights` is a controlled projection, and the viewer never changes it. The viewer has
- * no annotation authoring, no text search, no form fields, and no continuous scroll, and it
- * finds no regions of its own. A text layer needs the page surface in a component of its own
- * first.
+ * `highlights` is a controlled projection, and the viewer never changes it. The search reads
+ * the OCR `data` that the consumer gives, not a text layer of the document. The viewer has no
+ * annotation authoring, no form fields, and no continuous scroll, and it finds no regions of
+ * its own. A text layer needs the page surface in a component of its own first.
  */
 export function PdfViewer({
 	pages,
@@ -231,6 +264,8 @@ export function PdfViewer({
 	activeHighlightId,
 	onHighlightClick,
 	magnifier,
+	data,
+	search,
 	onHighlightsVisibleChange,
 	onMagnifierChange,
 	defaultActiveHighlightId,
@@ -289,29 +324,38 @@ export function PdfViewer({
 					aria-label={ariaLabel}
 					className={cn(k({ fit: fitMode }).base, className)}
 				>
-					<PdfViewerToolbar />
-					<div className={k().body}>
-						<PdfViewerThumbnails />
-						<PdfViewerMagnifierProvider settings={magnifierSettings}>
-							<PdfViewerHighlightsProvider
-								highlights={highlights}
-								highlightUnit={highlightUnit}
-								activeHighlightId={activeHighlightId}
-								onHighlightClick={onHighlightClick}
-								defaultActiveHighlightId={defaultActiveHighlightId}
-								onActiveHighlightIdChange={onActiveHighlightIdChange}
-								// What the overlay needs from the document beneath it, handed
-								// down rather than read back out of `PdfViewerContext`, the
-								// same way the loupe takes its settings. The overlay's own
-								// state stays inside the provider.
-								activePage={activePage}
-								safePage={safePage}
-								goToPage={goToPage}
-							>
-								<PdfViewerViewport />
-							</PdfViewerHighlightsProvider>
-						</PdfViewerMagnifierProvider>
-					</div>
+					<PdfViewerSearchProvider
+						data={data}
+						search={search}
+						highlightUnit={highlightUnit}
+						activePage={activePage}
+						safePage={safePage}
+						goToPage={goToPage}
+					>
+						<PdfViewerToolbar />
+						<div className={k().body}>
+							<PdfViewerThumbnails />
+							<PdfViewerMagnifierProvider settings={magnifierSettings}>
+								<PdfViewerHighlightsProvider
+									highlights={highlights}
+									highlightUnit={highlightUnit}
+									activeHighlightId={activeHighlightId}
+									onHighlightClick={onHighlightClick}
+									defaultActiveHighlightId={defaultActiveHighlightId}
+									onActiveHighlightIdChange={onActiveHighlightIdChange}
+									// What the overlay needs from the document beneath it, handed
+									// down rather than read back out of `PdfViewerContext`, the
+									// same way the loupe takes its settings. The overlay's own
+									// state stays inside the provider.
+									activePage={activePage}
+									safePage={safePage}
+									goToPage={goToPage}
+								>
+									<PdfViewerViewport />
+								</PdfViewerHighlightsProvider>
+							</PdfViewerMagnifierProvider>
+						</div>
+					</PdfViewerSearchProvider>
 				</section>
 			</Sheet>
 		</PdfViewerContext>
