@@ -278,7 +278,7 @@ From `packages/ui`, import per-component entries (`ui/button`, `ui/dialog`) plus
 
 10.3 **Don't drive third-party async lifecycles** (fetch, virtualization, floating-ui, pdfjs) in tests. They flake on CI. Test the synchronous seam (a reducer, a callback, a typed harness), or skip with a stated reason.
 
-10.4 While you edit, run a scoped subset (`test:changed` or `test:related`), as [CLAUDE.md](CLAUDE.md) §3.3 requires.
+10.4 While you edit, run a scoped subset (`test:changed` or `test:related`), as [CLAUDE.md](CLAUDE.md) §3.3 requires. Give `test:related` each path relative to its package, because pnpm runs the script there. A run that finds no test file fails, so a wrong path or a file with no test does not pass as a check.
 
 10.5 A guarantee that holds for every component of a kind goes in the shared corpus (`a11y/cases`), and a sweep gate asserts it. One new corpus entry then buys every gate. Behavior specific to one component goes in its own test file.
 

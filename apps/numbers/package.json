@@ -10,7 +10,7 @@
 		"check-types": "tsc --noEmit",
 		"test": "LANG=en-US vitest run",
 		"test:watch": "LANG=en-US vitest",
-		"test:related": "LANG=en-US vitest related --run",
+		"test:related": "LANG=en-US vitest related --run --passWithNoTests=false",
 		"test:changed": "export LANG=en-US && base=$(git merge-base HEAD origin/main) && vitest run --passWithNoTests --changed=\"$base\""
 	},
 	"dependencies": {

@@ -32,7 +32,7 @@
 		"openapi": "openapi-typescript https://raw.githubusercontent.com/charliebeckstrand/asgard/main/services/bifrost/openapi.json -o src/openapi.d.ts && biome format --write src/openapi.d.ts",
 		"test": "LANG=en-US vitest run",
 		"test:changed": "LANG=en-US vitest run",
-		"test:related": "LANG=en-US vitest related --run"
+		"test:related": "LANG=en-US vitest related --run --passWithNoTests=false"
 	},
 	"peerDependencies": {
 		"next": "^16.3.3",
