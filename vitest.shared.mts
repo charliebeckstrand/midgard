@@ -70,6 +70,27 @@ export const budgets = {
  */
 export const env = { TZ: 'UTC' }
 
+const SEED = process.env.VITEST_SEED
+
+if (SEED !== undefined && !Number.isFinite(Number(SEED))) {
+	throw new Error(
+		`VITEST_SEED must be a number; received ${SEED}. A NaN seed corrupts the shuffle.`,
+	)
+}
+
+/**
+ * A shuffled order of the files and of the cases in each file, so that an
+ * order dependency fails early. Each run takes a new seed, and the run prints
+ * it. Replay a red run with `VITEST_SEED=<seed>`, never with
+ * `--sequence.seed`: in ui, a flag on the command line replaces the sequence of
+ * each project (`packages/ui/vitest.config.ts`).
+ *
+ * An app once kept the history record of a Drawer in module scope, and a case
+ * read the record of the case before it. The order of the file hid the
+ * dependency until a shuffle found it.
+ */
+export const sequence = { shuffle: true, ...(SEED ? { seed: Number(SEED) } : {}) }
+
 /**
  * The test options of a package without a harness of its own: an app, `auth`,
  * or `shared`.
@@ -86,5 +107,6 @@ export const sharedTest = {
 	...cleanup,
 	expect: assertions,
 	fsModuleCache: true,
+	sequence,
 	...budgets,
 }

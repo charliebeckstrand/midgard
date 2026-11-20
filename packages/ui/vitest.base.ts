@@ -4,13 +4,13 @@
  *
  * The settings that each suite of the repository shares come from
  * `vitest.shared.mts` at the root: the CI flag, the cleanup, the assertion
- * rule, the budgets, and the time zone. In ui, the setup files also restore
- * after each test (`helpers/restore-test-state.ts`), because the shuffle gives
- * a leak to whichever file runs next on a shared worker.
+ * rule, the budgets, the time zone, and the shuffle. In ui, the setup files
+ * also restore after each test (`helpers/restore-test-state.ts`), because the
+ * shuffle gives a leak to whichever file runs next on a shared worker.
  */
 import type { CoverageOptions } from 'vitest/node'
 
-export { assertions, budgets, CI, cleanup, env } from '../../vitest.shared.mts'
+export { assertions, budgets, CI, cleanup, env, sequence } from '../../vitest.shared.mts'
 
 /**
  * The source that a run with coverage measures, in the jsdom suite and in the
@@ -25,18 +25,3 @@ export const coverage: CoverageOptions = {
 	exclude: ['src/__tests__/**', 'src/__benchmarks__/**', 'src/docs/**'],
 	reporter: ['json'],
 }
-
-const SEED = process.env.VITEST_SEED
-
-if (SEED !== undefined && !Number.isFinite(Number(SEED))) {
-	throw new Error(
-		`VITEST_SEED must be a number; received ${SEED}. A NaN seed corrupts the shuffle.`,
-	)
-}
-
-/**
- * A shuffled file order, so that an order dependency fails early. Replay a red
- * run with `VITEST_SEED=<seed>`, never with `--sequence.seed` (see
- * `vitest.config.ts`).
- */
-export const sequence = { shuffle: true, ...(SEED ? { seed: Number(SEED) } : {}) }
