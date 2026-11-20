@@ -1,6 +1,5 @@
 'use client'
 
-import { Ban } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Badge } from '../../components/badge'
 import { Button } from '../../components/button'
@@ -14,6 +13,7 @@ import {
 	MenuTrigger,
 } from '../../components/menu'
 import { colors, extendedColors, type PaletteColor } from '../../core/recipe/colors'
+import { Ban } from '../../primitives/icons/icons'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { gridMessages } from './engine/grid-messages'
 

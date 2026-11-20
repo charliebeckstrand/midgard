@@ -1,4 +1,5 @@
 export type { PathMatch } from '../../primitives/current/context'
+export type { IconName, Icons } from '../../primitives/icons/types'
 export { useLink } from '../../primitives/link'
 export { type PortalContainer, usePortalContainer } from '../../primitives/portal'
 export { UIProvider, type UIProviderProps } from './ui'

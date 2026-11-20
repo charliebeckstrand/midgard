@@ -1,11 +1,11 @@
 'use client'
 
-import { ArrowDown, ArrowUp, Pin } from 'lucide-react'
 import { type ReactElement, type ReactNode, useRef } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { cn } from '../../core/cn'
+import { ArrowDown, ArrowUp, Pin } from '../../primitives/icons/icons'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/grid'

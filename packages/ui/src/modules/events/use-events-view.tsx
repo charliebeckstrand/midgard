@@ -1,6 +1,5 @@
 'use client'
 
-import { Play, Square } from 'lucide-react'
 import { type MouseEvent, type ReactNode, useState } from 'react'
 import {
 	Breadcrumb,
@@ -14,6 +13,7 @@ import { Icon } from '../../components/icon'
 import { Markdown } from '../../components/markdown'
 import { Segment, SegmentControl, SegmentItem } from '../../components/segment'
 import { Text } from '../../components/text'
+import { Play, Square } from '../../primitives/icons/icons'
 import { intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { formatMarkdown } from './engine/events-report'

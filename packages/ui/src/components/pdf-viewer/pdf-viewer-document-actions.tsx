@@ -1,4 +1,4 @@
-import { Download, Printer } from 'lucide-react'
+import { Download, Printer } from '../../primitives/icons/icons'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { ToolbarGroup } from '../toolbar'
 import { pdfViewerMessages } from './pdf-viewer-messages'

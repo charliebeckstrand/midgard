@@ -1,6 +1,5 @@
 'use client'
 
-import { ListFilter, ListFilterPlus } from 'lucide-react'
 import {
 	lazy,
 	Suspense,
@@ -16,6 +15,7 @@ import { Icon } from '../../components/icon'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from '../../components/menu'
 import { cn } from '../../core/cn'
 import { dataAttr } from '../../core/data-attr'
+import { ListFilter, ListFilterPlus } from '../../primitives/icons/icons'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/grid'
 import { isQueryActive } from '../query/engine/query-active'

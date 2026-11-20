@@ -1,10 +1,10 @@
 'use client'
 
-import { ChevronDown } from 'lucide-react'
 import type { ComponentProps } from 'react'
 import { cn } from '../../core/cn'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { dataAttr } from '../../core/data-attr'
+import { ChevronDown } from '../../primitives/icons/icons'
 import { k } from '../../recipes/kata/accordion'
 import type { HeadingLevel } from '../../recipes/kata/heading'
 import { Icon } from '../icon'

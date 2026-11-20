@@ -1,6 +1,5 @@
 'use client'
 
-import { Menu } from 'lucide-react'
 import { useComposedRefs } from 'motion/react'
 import {
 	type ComponentProps,
@@ -23,6 +22,7 @@ import { createSlot } from '../../core/create-slot'
 import { useIsRtl } from '../../hooks/use-is-rtl'
 import { useKeybindings } from '../../hooks/use-keybindings'
 import { OFFCANVAS_LAYOUT, type OffcanvasLayout, useOffcanvas } from '../../hooks/use-offcanvas'
+import { Menu } from '../../primitives/icons/icons'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { Landmark } from '../../primitives/landmark'

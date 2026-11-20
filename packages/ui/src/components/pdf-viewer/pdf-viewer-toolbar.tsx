@@ -1,8 +1,13 @@
 'use client'
 
-import { Highlighter, PanelLeft, PanelLeftDashed, RotateCw, ScanSearch } from 'lucide-react'
-
 import { cn } from '../../core/cn'
+import {
+	Highlighter,
+	PanelLeft,
+	PanelLeftDashed,
+	RotateCw,
+	ScanSearch,
+} from '../../primitives/icons/icons'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/pdf-viewer'
 import { SheetTrigger } from '../sheet'

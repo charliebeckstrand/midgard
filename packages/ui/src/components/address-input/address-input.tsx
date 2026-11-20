@@ -1,9 +1,9 @@
 'use client'
 
-import { MapPin } from 'lucide-react'
 import { useState } from 'react'
 import { cn } from '../../core/cn'
 import { useFormField } from '../../primitives/form/context'
+import { MapPin } from '../../primitives/icons/icons'
 import { defineMessages, intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { keyByOccurrence } from '../../utilities/key-by-occurrence'

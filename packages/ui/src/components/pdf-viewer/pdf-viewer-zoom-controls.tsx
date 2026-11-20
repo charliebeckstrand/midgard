@@ -1,5 +1,5 @@
-import { Maximize2, ZoomIn, ZoomOut } from 'lucide-react'
 import { useMemo } from 'react'
+import { Maximize2, ZoomIn, ZoomOut } from '../../primitives/icons/icons'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { ToolbarGroup } from '../toolbar'
 import { pdfViewerMessages } from './pdf-viewer-messages'

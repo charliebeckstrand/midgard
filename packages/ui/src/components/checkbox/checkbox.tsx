@@ -1,12 +1,12 @@
 'use client'
 
-import { Check, Minus } from 'lucide-react'
 import { useComposedRefs } from 'motion/react'
 import { type ChangeEventHandler, type ComponentProps, useLayoutEffect, useRef } from 'react'
 import { ariaAttr } from '../../core/aria-attr'
 import { cn } from '../../core/cn'
 import { dataAttr } from '../../core/data-attr'
 import { useFormToggle } from '../../primitives/form/use-form-toggle'
+import { Check, Minus } from '../../primitives/icons/icons'
 import { TouchTarget } from '../../primitives/touch-target'
 import { type CheckboxVariants, k } from '../../recipes/kata/checkbox'
 import { useControlProps } from '../control/use-control-props'

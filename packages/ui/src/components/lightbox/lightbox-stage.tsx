@@ -1,6 +1,5 @@
 'use client'
 
-import { ChevronLeft, ChevronRight, ExternalLink, X } from 'lucide-react'
 import { PresenceContext, useComposedRefs, usePresence } from 'motion/react'
 import {
 	type CSSProperties,
@@ -16,6 +15,7 @@ import {
 import { ariaAttr } from '../../core/aria-attr'
 import { dataAttr } from '../../core/data-attr'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
+import { ChevronLeft, ChevronRight, ExternalLink, X } from '../../primitives/icons/icons'
 import { defineMessage } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'

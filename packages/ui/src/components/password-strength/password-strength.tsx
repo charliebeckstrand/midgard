@@ -1,10 +1,10 @@
 'use client'
 
-import { Check, Dot } from 'lucide-react'
 import type { ComponentProps } from 'react'
 import { cn } from '../../core/cn'
 import { dataAttr } from '../../core/data-attr'
 import { useA11yLiveRegion } from '../../hooks/a11y/use-a11y-live-region'
+import { Check, Dot } from '../../primitives/icons/icons'
 import { IntlMessage } from '../../primitives/intl'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import type { MessageDescriptor } from '../../primitives/intl/types'

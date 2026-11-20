@@ -5,12 +5,15 @@ import { ConfirmHost } from '../../components/confirm/confirm-host'
 import type { ToastProps, ToastProviderProps } from '../../components/toast'
 import { ToastHost } from '../../components/toast/toast-host'
 import { createContext } from '../../core/create-context'
-// LinkContext / PortalContext / PathnameContext live in the primitives layer:
-// the `polymorphic` primitive consumes `useLink`; the `overlay` /
-// `floating-surface` primitives consume `usePortalContainer`; the nav items
-// consume `useCurrentPathMatch`. This provider fans out to all three.
+// LinkContext / PortalContext / PathnameContext / IconsContext live in the
+// primitives layer: the `polymorphic` primitive consumes `useLink`; the
+// `overlay` / `floating-surface` primitives consume `usePortalContainer`; the
+// nav items consume `useCurrentPathMatch`; the glyphs of `primitives/icons`
+// read the icons. This provider fans out to all four.
 import { PathnameContext } from '../../primitives/current/context'
 import { useCurrentPathStore } from '../../primitives/current/use-current-path-store'
+import { IconsContext } from '../../primitives/icons/context'
+import type { Icons } from '../../primitives/icons/types'
 import {
 	type LinkComponent,
 	LinkContext,
@@ -24,7 +27,7 @@ import {
 } from '../../primitives/portal/context'
 import { prefetchMotionFeatures } from '../../primitives/reduced-motion/reduced-motion-features'
 
-/** Props for {@link UIProvider}: the optional framework `link` component, default `portalContainer`, current `pathname`, and `toast` setup, plus `children`. */
+/** Props for {@link UIProvider}: the optional framework `link` component, default `portalContainer`, current `pathname`, `toast` setup, and replacement `icons`, plus `children`. */
 export type UIProviderProps = {
 	/**
 	 * Framework-specific link component (e.g. `next/link`'s default export);
@@ -68,6 +71,22 @@ export type UIProviderProps = {
 	 * @defaultValue `{ position: 'bottom-right', duration: 5000, maxToasts: 5 }`
 	 */
 	toast?: Pick<ToastProviderProps, 'duration' | 'maxToasts'> & Pick<ToastProps, 'position'>
+	/**
+	 * The icons to draw in place of the Lucide defaults of ui, by the Lucide
+	 * name of each glyph, such as `{ X: <FontAwesomeIcon icon={faXmark} /> }`.
+	 * Each value replaces its glyph in each component of ui. A glyph with no
+	 * value keeps its Lucide default. A nested provider merges its icons over
+	 * the icons of the outer provider. A per-instance icon prop, such as the
+	 * `icon` of `Alert`, still wins.
+	 *
+	 * @remarks
+	 * Give an element, not a component, so that a server layout can give the
+	 * map. The element gets the `className`, the `style`, and the ARIA and
+	 * `data-*` attributes of the glyph, and its component must forward them to
+	 * its `<svg>`. Keep the map stable, such as in a module constant: a new map
+	 * renders each glyph again.
+	 */
+	icons?: Icons
 	children: ReactNode
 }
 
@@ -77,8 +96,8 @@ const [UIProviderContext] = createContext<boolean>('UIProvider', { default: fals
 
 /**
  * Single app-root integration point for the library's framework bindings.
- * Registers the link component, the default portal container, and the current
- * path. It also mounts the dialog that `useConfirm` from `ui/confirm` asks in,
+ * Registers the link component, the default portal container, the current
+ * path, and the icons that replace the Lucide defaults. It also mounts the dialog that `useConfirm` from `ui/confirm` asks in,
  * and the toast queue and viewport that `useToast` from `ui/toast` uses. The
  * dialog and the viewport load in idle time after the hydration, or on the
  * first question or toast when that comes first. Put `LocaleProvider` above
@@ -97,8 +116,17 @@ const [UIProviderContext] = createContext<boolean>('UIProvider', { default: fals
  * and its `toast` prop has no effect. A `ToastProvider` in the subtree still
  * makes a queue of its own for its descendants.
  */
-export function UIProvider({ link, portalContainer, pathname, toast, children }: UIProviderProps) {
+export function UIProvider({
+	link,
+	portalContainer,
+	pathname,
+	toast,
+	icons,
+	children,
+}: UIProviderProps) {
 	const outerLink = useLink()
+
+	const outerIcons = use(IconsContext)
 
 	const outerPortal = usePortalContext()
 
@@ -115,6 +143,11 @@ export function UIProvider({ link, portalContainer, pathname, toast, children }:
 		[link, outerLink],
 	)
 
+	const iconsValue = useMemo<Icons>(
+		() => (icons === undefined ? outerIcons : { ...outerIcons, ...icons }),
+		[icons, outerIcons],
+	)
+
 	// The Motion features load at idle after hydration, so the first surface
 	// that opens finds them ready. A load that is in progress or done is not
 	// started again, so a nested provider adds no second load.
@@ -127,16 +160,18 @@ export function UIProvider({ link, portalContainer, pathname, toast, children }:
 		<PortalContext value={portalContainer ?? outerPortal}>
 			<LinkContext value={linkValue}>
 				<PathnameContext value={pathname === undefined ? outerPathname : pathnameStore}>
-					<UIProviderContext value>
-						{/* A provider does not move into or out of another provider, so this branch does not change while the provider is mounted. */}
-						{nested ? (
-							<ConfirmHost>{children}</ConfirmHost>
-						) : (
-							<ToastHost options={toast}>
+					<IconsContext value={iconsValue}>
+						<UIProviderContext value>
+							{/* A provider does not move into or out of another provider, so this branch does not change while the provider is mounted. */}
+							{nested ? (
 								<ConfirmHost>{children}</ConfirmHost>
-							</ToastHost>
-						)}
-					</UIProviderContext>
+							) : (
+								<ToastHost options={toast}>
+									<ConfirmHost>{children}</ConfirmHost>
+								</ToastHost>
+							)}
+						</UIProviderContext>
+					</IconsContext>
 				</PathnameContext>
 			</LinkContext>
 		</PortalContext>

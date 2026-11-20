@@ -1,12 +1,12 @@
 'use client'
 
-import { CornerLeftDown } from 'lucide-react'
 import { useComposedRefs } from 'motion/react'
 import { type FocusEvent, type MouseEvent, useCallback, useEffect, useRef, useState } from 'react'
 import { ariaAttr } from '../../core/aria-attr'
 import { cn } from '../../core/cn'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { CornerLeftDown } from '../../primitives/icons/icons'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import type { Color } from '../../recipes'

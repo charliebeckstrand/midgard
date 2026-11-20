@@ -1,12 +1,12 @@
 'use client'
 
-import { Settings2 } from 'lucide-react'
 import { type ReactNode, useState } from 'react'
 import { Button, type ButtonProps } from '../../components/button'
 import { Icon } from '../../components/icon'
 import type { TabContentsProps } from '../../components/tabs'
 import { useFail } from '../../hooks/use-fail'
 import { useIntentLoad } from '../../hooks/use-intent-load'
+import { Settings2 } from '../../primitives/icons/icons'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { appearanceMessages } from './appearance-messages'
 

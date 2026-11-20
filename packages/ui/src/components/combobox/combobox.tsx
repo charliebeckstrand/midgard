@@ -1,6 +1,5 @@
 'use client'
 
-import { ChevronsUpDown } from 'lucide-react'
 import { useComposedRefs } from 'motion/react'
 import {
 	type ClipboardEventHandler,
@@ -36,6 +35,7 @@ import { useKeyboardSettled } from '../../hooks/use-keyboard-settled'
 import { useSelectableValueChange } from '../../hooks/use-selectable-value-change'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useFormValue } from '../../primitives/form/use-form-value'
+import { ChevronsUpDown } from '../../primitives/icons/icons'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { hasSelection, useOptionSelection } from '../../primitives/option/use-option-selection'

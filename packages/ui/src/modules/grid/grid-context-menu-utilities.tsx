@@ -1,5 +1,8 @@
 'use client'
 
+import type { ReactElement, ReactNode } from 'react'
+import { mergeContextMenuItems } from '../../components/context-menu/context-menu-merge'
+import type { PaletteColor } from '../../core/recipe/colors'
 import {
 	ArrowDown,
 	ArrowDownToLine,
@@ -23,10 +26,7 @@ import {
 	RotateCcw,
 	StretchHorizontal,
 	Ungroup,
-} from 'lucide-react'
-import type { ReactElement, ReactNode } from 'react'
-import { mergeContextMenuItems } from '../../components/context-menu/context-menu-merge'
-import type { PaletteColor } from '../../core/recipe/colors'
+} from '../../primitives/icons/icons'
 import type { IntlShape } from '../../primitives/intl/types'
 import { isDataColumn } from '../../utilities/is-data-column'
 import type { GridSortState } from './context'

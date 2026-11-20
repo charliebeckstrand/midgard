@@ -1,11 +1,11 @@
 'use client'
 
-import { Search } from 'lucide-react'
 import { useComposedRefs } from 'motion/react'
 import { type ChangeEvent, type KeyboardEvent, type ReactNode, useMemo } from 'react'
 import { cn } from '../../core/cn'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { useFormValue } from '../../primitives/form/use-form-value'
+import { Search } from '../../primitives/icons/icons'
 import { defineMessages, intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { clearNativeInput } from '../../utilities/clear-native-input'

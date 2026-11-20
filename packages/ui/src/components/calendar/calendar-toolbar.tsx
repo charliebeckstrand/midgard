@@ -1,5 +1,5 @@
-import { ChevronLeft, ChevronRight } from 'lucide-react'
 import type { KeyboardEventHandler, ReactNode, RefObject } from 'react'
+import { ChevronLeft, ChevronRight } from '../../primitives/icons/icons'
 import { k } from '../../recipes/kata/calendar'
 import { Button } from '../button'
 import { Icon } from '../icon'

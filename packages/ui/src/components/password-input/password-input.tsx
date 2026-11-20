@@ -1,8 +1,8 @@
 'use client'
 
-import { Eye, EyeOff } from 'lucide-react'
 import { useState } from 'react'
 import { useReportedChange } from '../../hooks/use-reported-change'
+import { Eye, EyeOff } from '../../primitives/icons/icons'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { Button } from '../button'

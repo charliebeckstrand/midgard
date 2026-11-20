@@ -1,8 +1,8 @@
 'use client'
 
-import { Plus } from 'lucide-react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
+import { Plus } from '../../primitives/icons/icons'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { gridMessages } from './engine/grid-messages'
 import { keepFocus } from './grid-cell-editor'

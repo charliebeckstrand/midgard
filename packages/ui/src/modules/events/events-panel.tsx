@@ -1,9 +1,9 @@
 'use client'
 
-import { PinOff } from 'lucide-react'
 import { Button } from '../../components/button'
 import { Heading } from '../../components/heading'
 import { Icon } from '../../components/icon'
+import { PinOff } from '../../primitives/icons/icons'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/events'
 import { Flex } from '../../structure/flex'
