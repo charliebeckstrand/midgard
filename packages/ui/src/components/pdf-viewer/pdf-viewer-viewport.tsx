@@ -14,18 +14,20 @@ import { PdfViewerPageImage } from './pdf-viewer-page-image'
 import { PdfViewerSearchHits } from './pdf-viewer-search-hits'
 
 /**
- * Renders the page surface inside the viewport. That is the active
- * page image, an error message, a loading placeholder, or an empty state. A
- * page shows as soon as its raster lands: an image, or a bitmap on a canvas
- * ({@link PdfViewerPageImage}). A page that has not rendered yet shows the
- * loading placeholder in the frame of the page. The
- * highlight overlay sits over the image, sharing its frame and its transform.
+ * Renders the pane of the viewer. With a page frame, the pane holds the scroll
+ * box, and the scroll box holds the active page image. Without a frame, the
+ * pane holds an error message or an empty state. A page shows as soon as its
+ * raster lands: an image, or a bitmap on a canvas ({@link PdfViewerPageImage}).
+ * A page that has not rendered yet shows the loading placeholder in the frame
+ * of the page. The highlight overlay sits over the image, sharing its frame and
+ * its transform.
  *
- * @remarks CSS sizes the page, so the server paints it at its final size. The pane is a
- * size container that takes its aspect ratio from the page, and it does not scroll. The
- * scroll box fills it. The frame of the page reads the container units of the pane, so a
+ * @remarks CSS sizes the page, so the server paints it at its final size. With a frame, the
+ * pane is a size container that takes its aspect ratio from the page, and it does not scroll.
+ * The scroll box fills it. The frame of the page reads the container units of the pane, so a
  * scrollbar of the scroll box does not change the fit. The page image and the layers over it
- * read the container units of the frame.
+ * read the container units of the frame. Without a frame, the pane is not a size container,
+ * and it grows to the height of its message.
  *
  * A visually hidden live region announces "Page X of Y" on
  * navigation. While the page overflows the viewport, the viewport is a tab
@@ -77,26 +79,29 @@ export function PdfViewerViewport() {
 	 * and the sharp raster comes before the neighbors. `pending` covers the render before the
 	 * load starts, on the server and on a cold `src`. Without it, that render shows the empty
 	 * state for one frame. A failed load shows its message, unless a page has its raster.
+	 *
+	 * Only a frame needs the pane to be a size container that the scroll box fills. A message
+	 * sits in the pane, and the pane grows to its height. A size container cannot.
 	 */
 	const framed = hasRaster(activePage) || (!error && (loading || pending || !!activePage))
 
 	return (
 		<div
 			data-slot="pdf-viewer-pane"
-			className={viewport.pane}
+			className={k({ framed }).viewport.pane}
 			// The flex basis sets the width in a box with a width of its own. `naturalWidth` is the
-			// width in a box that sizes to its content. The pane is a size container, so its content
-			// cannot give it one.
+			// width in a box that sizes to its content. A pane with a frame is a size container, so
+			// its content cannot give it one.
 			style={{ aspectRatio, width: naturalWidth }}
 		>
-			<div ref={composedViewportRef} data-slot="pdf-viewer-viewport" className={viewport.base}>
-				{/* Live region announces "Page X of Y" on page navigation. */}
-				{total > 0 && (
-					<div data-slot="pdf-viewer-page-status" {...pageStatus}>
-						{intl.formatMessage(pdfViewerMessages.pageOfTotal, { page: safePage, total })}
-					</div>
-				)}
-				{framed ? (
+			{/* Live region announces "Page X of Y" on page navigation. */}
+			{total > 0 && (
+				<div data-slot="pdf-viewer-page-status" {...pageStatus}>
+					{intl.formatMessage(pdfViewerMessages.pageOfTotal, { page: safePage, total })}
+				</div>
+			)}
+			{framed ? (
+				<div ref={composedViewportRef} data-slot="pdf-viewer-viewport" className={viewport.base}>
 					<div
 						// The frame, not the image: it is the box the loupe's own copy is sized from,
 						// and it does not move under rotation the way the image inside it does.
@@ -127,16 +132,16 @@ export function PdfViewerViewport() {
 							/>
 						)}
 					</div>
-				) : error ? (
-					<div role="alert" className={k().viewport.page.empty}>
-						{intl.formatMessage(pdfViewerMessages.loadFailed, { message: error.message })}
-					</div>
-				) : (
-					<div className={k().viewport.page.empty}>
-						{intl.formatMessage(pdfViewerMessages.noPages)}
-					</div>
-				)}
-			</div>
+				</div>
+			) : error ? (
+				<div role="alert" className={k().viewport.page.empty}>
+					{intl.formatMessage(pdfViewerMessages.loadFailed, { message: error.message })}
+				</div>
+			) : (
+				<div className={k().viewport.page.empty}>
+					{intl.formatMessage(pdfViewerMessages.noPages)}
+				</div>
+			)}
 		</div>
 	)
 }
