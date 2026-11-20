@@ -82,10 +82,35 @@ describe('createAppServer', () => {
 
 	// A load balancer keeps its connections open and sends on them without a
 	// pause. The stop must not wait for a pause that does not come.
+	//
+	// The agent has one socket, so the second request comes on the connection of
+	// the first. The handler holds that request open until the stop starts. Thus
+	// the stop always meets an open response on a keep-alive connection, on a
+	// fast machine and on a slow one.
 	it('stops while a keep-alive connection keeps sending requests', async () => {
+		let handled = 0
+
+		let reused!: () => void
+
+		const second = new Promise<void>((resolve) => {
+			reused = resolve
+		})
+
+		let release!: () => void
+
+		const held = new Promise<void>((resolve) => {
+			release = resolve
+		})
+
 		const { stop, options, port, agent } = await start({
 			handle: async (_request, response) => {
-				await new Promise((resolve) => setTimeout(resolve, 5))
+				handled++
+
+				if (handled === 2) {
+					reused()
+
+					await held
+				}
 
 				response.end('ok')
 			},
@@ -97,9 +122,11 @@ describe('createAppServer', () => {
 			while (sending) await request(port, agent).catch(() => undefined)
 		})()
 
-		await new Promise((resolve) => setTimeout(resolve, 30))
+		await second
 
 		stop(143)
+
+		release()
 
 		await vi.waitFor(() => expect(options.exit).toHaveBeenCalledWith(143), { timeout: 2000 })
 
