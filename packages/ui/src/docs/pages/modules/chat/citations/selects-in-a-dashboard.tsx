@@ -82,9 +82,10 @@ const targets = {
 	'late-by-day': { label: 'Late stops by day' },
 }
 
+// The two tiles take half of the board each and one ratio, so they are the same height.
 const layout: DashboardLayoutItem[] = [
-	{ id: 'map', x: 0, y: 0, w: 14 },
-	{ id: 'days', x: 14, y: 0, w: 10 },
+	{ id: 'map', x: 0, y: 0, w: 12 },
+	{ id: 'days', x: 12, y: 0, w: 12 },
 ]
 
 // The active citation belongs to the app. The tiles read it from a context of
@@ -165,7 +166,7 @@ const tiles = (
 		<DashboardTile id="map" title="Late stops" ratio={16 / 10}>
 			<LateStops />
 		</DashboardTile>
-		<DashboardTile id="days" title="Late stops by day" ratio={4 / 3}>
+		<DashboardTile id="days" title="Late stops by day" ratio={16 / 10}>
 			<LateByDay />
 		</DashboardTile>
 	</>
