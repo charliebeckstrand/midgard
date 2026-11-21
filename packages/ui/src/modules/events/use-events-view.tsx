@@ -53,7 +53,7 @@ export type EventsViewParts = {
  * event, newest first, with "Preserve" and "Batch", then Copy, Capture, and
  * Clear. The Bugs tab shows the events with a report: the bugs and the
  * captures. A report shows in place of the list, with its crumbs, and Copy
- * and Delete of that report, with Send when the app gives `sendReport`. Capture is a switch: "Stop capture" ends the
+ * and Delete of that report, then Send when the app gives `sendReport`. Capture is a switch: "Stop capture" ends the
  * capture and shows its report.
  *
  * @param live - Whether the view renders for each new event, such as the open state of a sheet.
@@ -190,8 +190,6 @@ export function useEventsView(live: boolean): EventsViewParts {
 			footer: (
 				<>
 					<EventsCopyButton key="copy" text={() => markdown} />
-					{/* The key names the report, so the button of one report does not go to another. */}
-					{hasSendPort() && <EventsSendButton key={`send-${report.id}`} entry={report} />}
 					<Button
 						key="delete"
 						size="sm"
@@ -204,6 +202,8 @@ export function useEventsView(live: boolean): EventsViewParts {
 					>
 						{intl.formatMessage(eventsMessages.delete)}
 					</Button>
+					{/* The key names the report, so the button of one report does not go to another. */}
+					{hasSendPort() && <EventsSendButton key={`send-${report.id}`} entry={report} />}
 				</>
 			),
 		}
