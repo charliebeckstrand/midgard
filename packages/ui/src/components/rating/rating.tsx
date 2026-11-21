@@ -1,10 +1,19 @@
 'use client'
 
-import { type MouseEvent, type PointerEvent, type ReactNode, useRef, useState } from 'react'
+import {
+	type ComponentProps,
+	type MouseEvent,
+	type PointerEvent,
+	type ReactNode,
+	useRef,
+	useState,
+} from 'react'
 import { ariaAttr } from '../../core/aria-attr'
 import { cn } from '../../core/cn'
+import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { dataAttr } from '../../core/data-attr'
 import type { ScaleStep } from '../../core/density/scale'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import { useFormValue } from '../../primitives/form/use-form-value'
 import { Star } from '../../primitives/icons/icons'
 import { defineMessage, defineMessages } from '../../primitives/intl/intl-messages'
@@ -140,7 +149,6 @@ export type RatingProps = RatingVariants & {
 	getValueText?: (value: number, count: number) => string
 	/** Id for the row; resolves through the explicit prop, then an enclosing `<Control>` / `<Field>`. */
 	id?: string
-	className?: string
 	/**
 	 * Names the row when no `<Field>` / `<Label>` wraps it. A
 	 * `role="radiogroup"` is not named by an enclosing `<fieldset>` legend, so a
@@ -149,7 +157,6 @@ export type RatingProps = RatingVariants & {
 	 * @defaultValue `'Rating'`, in the language of the reader.
 	 */
 	'aria-label'?: string
-	'aria-labelledby'?: string
 	/**
 	 * Consumer-supplied `aria-describedby`, merged ahead of the field's
 	 * registered description / error ids. Both forms keep it: the radiogroup
@@ -161,7 +168,10 @@ export type RatingProps = RatingVariants & {
 	 * @defaultValue 'rating'
 	 */
 	'data-slot'?: string
-}
+} & Omit<ComponentProps<'span'>, 'defaultValue' | 'color' | 'children' | 'role'>
+
+/** The compose options of the row handlers: the bookkeeping runs whatever the consumer does. */
+const ungated = { checkForDefaultPrevented: false }
 
 /**
  * Star rating: a row of stars standing for a score out of {@link RatingProps.count}.
@@ -192,6 +202,10 @@ export type RatingProps = RatingVariants & {
  * whole number) by clipping a filled star over an empty one. It draws a whole
  * or an empty star as one glyph, so only the part star stacks two. The
  * interactive form sets a whole star, or a half star at a `step` of `0.5`.
+ *
+ * The native props and the `ref` go to the row `<span>` in the two forms. In
+ * the interactive form, a pointer, key, or blur handler that you give runs
+ * before the handler of the row.
  */
 export function Rating({
 	value,
@@ -212,6 +226,12 @@ export function Rating({
 	'aria-labelledby': ariaLabelledBy,
 	'aria-describedby': ariaDescribedBy,
 	'data-slot': slot = 'rating',
+	onPointerDown,
+	onPointerCancel,
+	onPointerLeave,
+	onKeyDown,
+	onBlur,
+	...props
 }: RatingProps) {
 	const intl = useIntl()
 
@@ -350,6 +370,16 @@ export function Rating({
 	// attributes. The display form sets both only to join the readout.
 	const labelledBy = ariaLabelledBy ?? control?.labelledBy
 
+	// The press flag is a ref, so its writers are stable events. The compiler then
+	// keeps the row compiled, though the row composes them in the render.
+	const startPress = useStableEvent(() => {
+		pressed.current = true
+	})
+
+	const endPress = useStableEvent(() => {
+		pressed.current = false
+	})
+
 	if (!radios) {
 		const valueText = getValueText(current, count)
 
@@ -361,6 +391,12 @@ export function Rating({
 
 		return (
 			<span
+				{...props}
+				onPointerDown={onPointerDown}
+				onPointerCancel={onPointerCancel}
+				onPointerLeave={onPointerLeave}
+				onKeyDown={onKeyDown}
+				onBlur={onBlur}
 				id={scope.id}
 				data-slot={slot}
 				data-density={size}
@@ -474,6 +510,7 @@ export function Rating({
 	// treatment `RadioGroup` takes, and for the same reason.
 	return (
 		<span
+			{...props}
 			id={scope.id}
 			data-slot={slot}
 			data-density={size}
@@ -484,21 +521,17 @@ export function Rating({
 			aria-readonly={ariaAttr(!live)}
 			{...validation}
 			className={rowClass}
-			onPointerDown={() => {
-				pressed.current = true
-			}}
+			// The consumer's handler runs first. The press flag and the preview are
+			// bookkeeping of the row, so they run also after a handler that cancels.
+			onPointerDown={composeEventHandlers(onPointerDown, startPress, ungated)}
 			// A press can end with no click: the platform cancels it, or the pointer
 			// goes up off the row. Such a press commits nothing, so it ends here. A key
 			// always goes down before the commit that it causes, so a key commit never
 			// takes a press that did not end.
-			onPointerCancel={() => {
-				pressed.current = false
-			}}
-			onKeyDown={() => {
-				pressed.current = false
-			}}
-			onPointerLeave={() => setPreviewed(null)}
-			onBlur={() => setTouched()}
+			onPointerCancel={composeEventHandlers(onPointerCancel, endPress, ungated)}
+			onKeyDown={composeEventHandlers(onKeyDown, endPress, ungated)}
+			onPointerLeave={composeEventHandlers(onPointerLeave, () => setPreviewed(null), ungated)}
+			onBlur={composeEventHandlers(onBlur, () => setTouched(), ungated)}
 		>
 			{stars.map((key, index) => {
 				const star = index + 1

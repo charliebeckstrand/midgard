@@ -148,6 +148,10 @@ const NO_BASE_EXEMPT = new Map<string, string>([
 		'its root is a `display: contents` wrapper with no box, and `className` and the name go to its trigger',
 	],
 	[
+		'components/listbox/listbox.tsx → ListboxProps',
+		'its root is a `display: contents` wrapper with no box, and `className` and the name go to its trigger',
+	],
+	[
 		'components/menu/menu-content.tsx → MenuContentProps',
 		'the `menu` element is in a popover panel, a sheet, or a static panel, so no one element is its root',
 	],
@@ -162,6 +166,26 @@ const NO_BASE_EXEMPT = new Map<string, string>([
 	[
 		'modules/chat/chat-prompt.tsx → ChatPromptProps',
 		'its root is a `Control`, and its `ref` and its name already go to the textarea',
+	],
+	[
+		'modules/map/map-geofence.tsx → MapGeofenceProps',
+		'it renders a fragment of SVG marks, with a selection halo that comes and goes, so no one element is its root',
+	],
+	[
+		'modules/map/map-marker.tsx → MapMarkerProps',
+		'it renders a fragment of SVG marks, with a selection halo that comes and goes, so no one element is its root',
+	],
+	[
+		'modules/map/map-point.tsx → MapPointProps',
+		'it renders a fragment of SVG marks, with a selection halo that comes and goes, so no one element is its root',
+	],
+	[
+		'modules/map/map-points.tsx → MapPointsProps',
+		'it renders a fragment of SVG marks, with a selection halo that comes and goes, so no one element is its root',
+	],
+	[
+		'modules/map/map-route.tsx → MapRouteProps',
+		'it renders a fragment of SVG marks, with a selection halo that comes and goes, so no one element is its root',
 	],
 	[
 		'primitives/polymorphic/polymorphic-static.tsx → PolymorphicStaticProps',
@@ -254,8 +278,8 @@ function rendersElement(fn: Node): boolean {
 }
 
 /**
- * Each barreled props type whose component writes an element and that takes no
- * `id`, as `<file> → <Name>Props`. A skeleton is out: it mirrors the explicit
+ * Each barreled props type whose component writes an element and that has no
+ * key from the DOM types of React, as `<file> → <Name>Props`. A skeleton is out: it mirrors the explicit
  * props of its real component (CONVENTIONS §3.7).
  */
 function propsWithNoBase(project: Project): string[] {
@@ -284,7 +308,18 @@ function propsWithNoBase(project: Project): string[] {
 
 			const props = resolvedSymbol(checker, symbol)
 
-			if (checker.getPropertyOfType(checker.getDeclaredTypeOfSymbol(props), 'id')) continue
+			// A native base gives keys that the DOM types of React declare. A unit can
+			// declare a key of the same name, such as the `id` that names the layout
+			// entry of a dashboard tile, so the name of a key does not show a base.
+			const native = checker
+				.getPropertiesOfType(checker.getDeclaredTypeOfSymbol(props))
+				.some((key) =>
+					key.declarations?.some((node) =>
+						node.resolve(project)?.getSourceFile().fileName.includes('/@types/react/'),
+					),
+				)
+
+			if (native) continue
 
 			const declaration = props.declarations?.[0]?.resolve(project)
 
