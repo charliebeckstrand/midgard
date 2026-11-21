@@ -107,7 +107,9 @@ export function GridReorderRegion<T>({
 	// the drag description each time the mode changes.
 	const dndId = useId()
 
-	const mode = rowReorderActive ? 'row' : canReorder ? 'column' : null
+	const columnMode = canReorder ? 'column' : null
+
+	const mode = rowReorderActive ? 'row' : columnMode
 
 	const contextProps = mode === 'row' ? rows.dndContextProps : columns.dndContextProps
 

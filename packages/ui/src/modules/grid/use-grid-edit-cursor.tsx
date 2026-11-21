@@ -140,7 +140,9 @@ function fillKey(press: GridKeyPress & { shiftKey: boolean }): GridRangeFillDire
 
 	const key = shortcutLetter(press)
 
-	return key === 'd' ? 'down' : key === 'r' ? 'right' : null
+	if (key === 'd') return 'down'
+
+	return key === 'r' ? 'right' : null
 }
 
 /**
@@ -360,12 +362,16 @@ export function useGridEditCursor<T>({
 			// nothing there. Enter opens its cell, as F2 does.
 			const slot = active.row === NEW_ROW_INDEX
 
-			const seed =
-				event.key === 'F2' || (slot && event.key === 'Enter')
-					? undefined
-					: slot
-						? slotSeed(press, column, editing.newRow.editorKind)
-						: typedSeed(press, column, rowsRef.current[active.row])
+			// F2, and Enter in the slot, open the cell with no seed.
+			const opensBare = event.key === 'F2' || (slot && event.key === 'Enter')
+
+			let seed: ReturnType<typeof typedSeed> | undefined
+
+			if (!opensBare) {
+				seed = slot
+					? slotSeed(press, column, editing.newRow.editorKind)
+					: typedSeed(press, column, rowsRef.current[active.row])
+			}
 
 			return seed === undefined && !isPlainKey(press) ? null : seed
 		},

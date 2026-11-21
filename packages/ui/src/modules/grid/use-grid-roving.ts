@@ -100,13 +100,10 @@ export function useGridRoving({
 
 	const hasCellClick = onCellClick || onCellDoubleClick
 
-	const mode: GridRovingMode = cursor
-		? 'none'
-		: hasCellClick
-			? 'cell'
-			: hasRowClick
-				? 'row'
-				: 'none'
+	let mode: GridRovingMode = 'none'
+
+	if (!cursor && hasCellClick) mode = 'cell'
+	else if (!cursor && hasRowClick) mode = 'row'
 
 	const cellMode = mode === 'cell'
 

@@ -332,7 +332,9 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 						</MenuContent>
 					</GridOverlayDensity>
 				</Menu>
-			) : showRestingFunnel ? (
+			) : null}
+
+			{!active && showRestingFunnel ? (
 				<Button
 					ref={triggerRef}
 					type="button"

@@ -248,11 +248,9 @@ export function imposesConstraint(operator: string, value: unknown): boolean {
 
 	if (VALUELESS_OPERATORS.has(operator)) return true
 
-	const hasShape = RANGE_OPERATORS.has(operator)
-		? isRange
-		: SET_OPERATORS.has(operator)
-			? isSet
-			: isScalar
+	const listShape = SET_OPERATORS.has(operator) ? isSet : isScalar
+
+	const hasShape = RANGE_OPERATORS.has(operator) ? isRange : listShape
 
 	if (isEmptyValue(value) || !hasShape(value)) return false
 
