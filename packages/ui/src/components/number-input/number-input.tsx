@@ -12,7 +12,7 @@ import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/number-input'
 import { clamp } from '../../utilities/clamp'
 import { Button } from '../button'
-import { useControl } from '../control/context'
+import { useControlProps } from '../control/use-control-props'
 import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
 
@@ -104,11 +104,11 @@ export function NumberInput({
 	onBlur,
 	...props
 }: NumberInputProps) {
-	const control = useControl()
+	// The steppers follow the field: a disabled or read-only field, set here, on
+	// an enclosing Control or Field, or by a locked scope, takes no step.
+	const lock = useControlProps({ disabled, readOnly })
 
-	// The steppers follow the field: a disabled or read-only field, set here or
-	// on an enclosing Control or Field, takes no step.
-	const locked = Boolean((disabled ?? control?.disabled) || (readOnly ?? control?.readOnly))
+	const locked = Boolean(lock.disabled || lock.readOnly)
 
 	const {
 		value: current,

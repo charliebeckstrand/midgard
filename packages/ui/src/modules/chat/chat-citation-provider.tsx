@@ -16,8 +16,8 @@ export type ChatCitationProviderProps = {
 	/** The active citation, or `null`. The app holds it, because the selection belongs to the view. */
 	cited: ChatCitation | null
 	/**
-	 * Called with the citation that a reader pressed, or with `null` when the
-	 * reader pressed the active citation again.
+	 * Fires when a reader presses a citation, with that citation, or with `null`
+	 * when the reader pressed the active citation again.
 	 */
 	onCite: (citation: ChatCitation | null) => void
 	/**

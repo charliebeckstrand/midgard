@@ -59,9 +59,9 @@ function buildHaystacks<T>(
  * searched cells contains the query, with the case ignored.
  *
  * @remarks
- * It gives the same rows as the global filter of the engine, which the grid
- * registers as `includesString`. That filter searches each column that
- * declares a `value`, and reads the cell through that `value`. A cell that is
+ * It gives the same rows as the `includesString` global filter of a stock
+ * engine table. That filter searches each column that declares a `value`, and
+ * reads the cell through that `value`. A cell that is
  * `null` or `undefined` matches nothing. A grid with no searched column keeps
  * every row. `grid-search.test.ts` holds the parity with the engine.
  *

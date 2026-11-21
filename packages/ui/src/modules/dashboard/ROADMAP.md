@@ -42,9 +42,7 @@ The store is plain JavaScript, and the shell reads it through `useSyncExternalSt
 
 ## Pattern cleanup
 
-1. **The tile takes no native base (*P2*).** `DashboardTileProps` in `dashboard-tile.tsx` renders a `<div>` but takes no `ComponentProps<'div'>`, against CONVENTIONS.md §4.3. A consumer thus cannot put a `data-*` attribute, an `aria-*` attribute, or a `ref` on a tile. `props-base-boundary.test.ts` does not see it, because `propsWithNoBase` skips each props type that has an `id` key, and the tile `id` names its layout entry. Give the tile `Omit<ComponentProps<'div'>, 'id' | 'title' | 'children'>`, and merge `style` under the cell paint as §3.9 says. Then make the gate look for a native base node, not for an `id` key, so a module `id` cannot hide a gap again.
-
-2. **Function names that misread (*P3*).** In `dashboard.tsx`, `inReadingOrder` returns elements, but §8.5 keeps the `in` prefix for a boolean. In `use-dashboard-scope.ts`, `appliedTo` makes a selector that keeps a cache, which §8.5 names with `create`. Rename them to `orderTiles` and `createAppliedSelector`. The other modules have the same drift in other noun names. A sweep of those names belongs to a pass over the repository.
+1. **Function names that misread (*P3*).** In `dashboard.tsx`, `inReadingOrder` returns elements, but §8.5 keeps the `in` prefix for a boolean. In `use-dashboard-scope.ts`, `appliedTo` makes a selector that keeps a cache, which §8.5 names with `create`. Rename them to `orderTiles` and `createAppliedSelector`. The other modules have the same drift in other noun names. A sweep of those names belongs to a pass over the repository.
 
 ## Performance
 

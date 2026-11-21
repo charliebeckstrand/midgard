@@ -239,7 +239,11 @@ describe('listen', () => {
 			'input input=*** synthetic',
 		])
 
-		expect(JSON.stringify(store.entries)).not.toContain(secret)
+		// Only the text and the key detail of an event can hold the value. An
+		// entry also holds its time, which can contain the digits of a code.
+		const written = store.entries.map(({ text, detail }) => [text, detail])
+
+		expect(JSON.stringify(written)).not.toContain(secret)
 	})
 
 	it('masks each input and textarea inside an element with the mask attribute', () => {
@@ -283,6 +287,101 @@ describe('listen', () => {
 		])
 
 		expect(store.entries[2]?.detail).toEqual({ key: '***', code: '***', repeat: false })
+	})
+
+	it('masks each select and editable element inside an element with the mask attribute', () => {
+		const store = listenTo()
+
+		const form = attach(document.createElement('form'))
+
+		form.setAttribute(MASK_ATTRIBUTE, '')
+
+		const select = form.appendChild(document.createElement('select'))
+
+		const editor = form.appendChild(document.createElement('div'))
+
+		editor.setAttribute('contenteditable', '')
+
+		const plain = form.appendChild(document.createElement('div'))
+
+		plain.setAttribute('contenteditable', 'plaintext-only')
+
+		// An element that the user cannot edit is not a field, so its keys stay.
+		const locked = form.appendChild(document.createElement('div'))
+
+		locked.setAttribute('contenteditable', 'false')
+
+		const button = form.appendChild(document.createElement('button'))
+
+		// A key that a select gets picks the option that starts with its character.
+		select.dispatchEvent(new KeyboardEvent('keydown', { key: 'v', code: 'KeyV', bubbles: true }))
+
+		select.dispatchEvent(
+			new KeyboardEvent('keydown', { key: 'ArrowDown', code: 'ArrowDown', bubbles: true }),
+		)
+
+		editor.dispatchEvent(new KeyboardEvent('keydown', { key: 's', code: 'KeyS', bubbles: true }))
+
+		plain.dispatchEvent(new KeyboardEvent('keydown', { key: 'p', code: 'KeyP', bubbles: true }))
+
+		locked.dispatchEvent(new KeyboardEvent('keydown', { key: 'l', code: 'KeyL', bubbles: true }))
+
+		button.dispatchEvent(new KeyboardEvent('keydown', { key: 'b', code: 'KeyB', bubbles: true }))
+
+		expect(texts(store)).toEqual([
+			'keydown *** select synthetic',
+			'keydown ArrowDown select synthetic',
+			'keydown *** div synthetic',
+			'keydown *** div synthetic',
+			'keydown l div synthetic',
+			'keydown b button synthetic',
+		])
+
+		expect(store.entries[0]?.detail).toEqual({ key: '***', code: '***', repeat: false })
+	})
+
+	it('masks a field in a popup that a masked element controls, as a portal renders it', () => {
+		const store = listenTo()
+
+		const form = attach(document.createElement('form'))
+
+		form.setAttribute(MASK_ATTRIBUTE, '')
+
+		const trigger = form.appendChild(document.createElement('button'))
+
+		trigger.setAttribute('role', 'combobox')
+
+		// The popup is outside the form, as a portal puts it in the body.
+		const popup = attach(document.createElement('div'))
+
+		popup.id = 'events-mask-popup'
+
+		popup.setAttribute('role', 'listbox')
+
+		const option = popup.appendChild(document.createElement('div'))
+
+		option.setAttribute('role', 'option')
+
+		const press = (el: Element) =>
+			el.dispatchEvent(new KeyboardEvent('keydown', { key: 'v', code: 'KeyV', bubbles: true }))
+
+		// While the trigger does not name the popup, the popup is not in the mask.
+		press(option)
+
+		trigger.setAttribute('aria-controls', 'other events-mask-popup')
+
+		press(trigger)
+
+		press(popup)
+
+		press(option)
+
+		expect(texts(store)).toEqual([
+			'keydown v div synthetic',
+			'keydown *** button synthetic',
+			'keydown *** div synthetic',
+			'keydown *** div synthetic',
+		])
 	})
 
 	it('records the start and the end of a scroll as one batch', async ({ clock }) => {

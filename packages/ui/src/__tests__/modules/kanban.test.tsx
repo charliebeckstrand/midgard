@@ -35,12 +35,12 @@ const columns: Column[] = [
 	{ id: 'done', title: 'Done', items: [{ id: '2', title: 'Two' }] },
 ]
 
-function Board({ onValueChange }: { onValueChange?: (next: Column[]) => void } = {}) {
+function Board({ onReorder }: { onReorder?: (next: Column[]) => void } = {}) {
 	return (
 		<Kanban
 			columns={columns}
 			getKey={(item: Item) => item.id}
-			onReorder={onValueChange}
+			onReorder={onReorder}
 			aria-label="Board"
 		>
 			{columns.map((column) => (
@@ -77,7 +77,7 @@ const keyboardColumns: Column[] = [
 	{ id: 'done', title: 'Done', items: [{ id: 'd', title: 'D' }] },
 ]
 
-function KeyboardBoard({ onValueChange }: { onValueChange?: (next: Column[]) => void } = {}) {
+function KeyboardBoard({ onReorder }: { onReorder?: (next: Column[]) => void } = {}) {
 	const [cols, setCols] = useState(keyboardColumns)
 
 	return (
@@ -88,7 +88,7 @@ function KeyboardBoard({ onValueChange }: { onValueChange?: (next: Column[]) => 
 			onReorder={(next) => {
 				setCols(next)
 
-				onValueChange?.(next)
+				onReorder?.(next)
 			}}
 		>
 			{cols.map((column) => (
@@ -236,7 +236,7 @@ describe('KanbanCard', () => {
 		expect(allBySlot(container, 'kanban-card')).toHaveLength(2)
 	})
 
-	it('marks cards read-only (not disabled) and omits the aria-label when onValueChange is absent', () => {
+	it('marks cards read-only (not disabled) and omits the aria-label when onReorder is absent', () => {
 		const { container } = renderUI(<OneCard interactive={false}>One</OneCard>)
 
 		const card = bySlot(container, 'kanban-card')
@@ -285,7 +285,7 @@ describe('KanbanCard', () => {
 	})
 
 	it('marks cards interactive, and puts the drag role on the handle, not on the card', () => {
-		const { container } = renderUI(<Board onValueChange={() => {}} />)
+		const { container } = renderUI(<Board onReorder={() => {}} />)
 
 		const card = getSlot(container, 'kanban-card')
 
@@ -532,7 +532,7 @@ describe('KanbanCard', () => {
 	})
 
 	it('marks an interactive card as lifted on Space, and clears it when the handle blurs', () => {
-		const { container } = renderUI(<Board onValueChange={() => {}} />)
+		const { container } = renderUI(<Board onReorder={() => {}} />)
 
 		const card = getSlot(container, 'kanban-card')
 
@@ -624,7 +624,7 @@ describe('KanbanColumnBody', () => {
 
 // Keyboard drag-and-drop: Space lifts a card, then arrows reorder it within
 // and across columns, while un-lifted arrows move focus only.
-// Reorders surface through onValueChange.
+// Reorders surface through onReorder.
 describe('Kanban keyboard reorder', () => {
 	const itemIds = (next: Column[], columnId: string) =>
 		next.find((column) => column.id === columnId)?.items.map((item) => item.id)
@@ -644,9 +644,9 @@ describe('Kanban keyboard reorder', () => {
 	})
 
 	it('reorders within the column when a lifted card is moved down', () => {
-		const onValueChange = vi.fn()
+		const onReorder = vi.fn()
 
-		const { container } = renderUI(<KeyboardBoard onValueChange={onValueChange} />)
+		const { container } = renderUI(<KeyboardBoard onReorder={onReorder} />)
 
 		const handle = liftedCard(container)
 
@@ -654,21 +654,21 @@ describe('Kanban keyboard reorder', () => {
 
 		fireEvent.keyDown(handle, { key: 'ArrowDown' })
 
-		expect(onValueChange).toHaveBeenCalledTimes(1)
+		expect(onReorder).toHaveBeenCalledTimes(1)
 
-		expect(itemIds(onValueChange.mock.calls[0]?.[0], 'todo')).toEqual(['b', 'a', 'c'])
+		expect(itemIds(onReorder.mock.calls[0]?.[0], 'todo')).toEqual(['b', 'a', 'c'])
 	})
 
 	it('moves a lifted card into the next column with ArrowRight', () => {
-		const onValueChange = vi.fn()
+		const onReorder = vi.fn()
 
-		const { container } = renderUI(<KeyboardBoard onValueChange={onValueChange} />)
+		const { container } = renderUI(<KeyboardBoard onReorder={onReorder} />)
 
 		const handle = liftedCard(container)
 
 		fireEvent.keyDown(handle, { key: 'ArrowRight' })
 
-		const next = onValueChange.mock.calls[0]?.[0]
+		const next = onReorder.mock.calls[0]?.[0]
 
 		expect(itemIds(next, 'todo')).toEqual(['b', 'c'])
 
@@ -676,9 +676,9 @@ describe('Kanban keyboard reorder', () => {
 	})
 
 	it('drops a lifted card on Escape without reordering', () => {
-		const onValueChange = vi.fn()
+		const onReorder = vi.fn()
 
-		const { container } = renderUI(<KeyboardBoard onValueChange={onValueChange} />)
+		const { container } = renderUI(<KeyboardBoard onReorder={onReorder} />)
 
 		const handle = liftedCard(container)
 
@@ -688,13 +688,13 @@ describe('Kanban keyboard reorder', () => {
 
 		expect(getCard(container, 'a')).not.toHaveAttribute('data-lifted')
 
-		expect(onValueChange).not.toHaveBeenCalled()
+		expect(onReorder).not.toHaveBeenCalled()
 	})
 
 	it('ignores arrow keys held with a modifier', () => {
-		const onValueChange = vi.fn()
+		const onReorder = vi.fn()
 
-		const { container } = renderUI(<KeyboardBoard onValueChange={onValueChange} />)
+		const { container } = renderUI(<KeyboardBoard onReorder={onReorder} />)
 
 		const handle = getHandle(container, 'a')
 
@@ -704,7 +704,7 @@ describe('Kanban keyboard reorder', () => {
 
 		expect(document.activeElement).toBe(handle)
 
-		expect(onValueChange).not.toHaveBeenCalled()
+		expect(onReorder).not.toHaveBeenCalled()
 	})
 
 	it('leaves Space and arrow keys to a control inside a card', () => {
@@ -973,7 +973,7 @@ describe('KanbanCardSkeleton', () => {
 
 describe('Kanban in a locale', () => {
 	it('gives the card handle its role description in the language of the locale', () => {
-		const { rerender } = renderUI(<Board onValueChange={() => {}} />)
+		const { rerender } = renderUI(<Board onReorder={() => {}} />)
 
 		// dnd-kit gives the role description in English. The handle gives its own.
 		expect(screen.getByRole('button', { name: 'Drag One' })).toHaveAttribute(
@@ -983,7 +983,7 @@ describe('Kanban in a locale', () => {
 
 		rerender(
 			<LocaleProvider locale="es-ES">
-				<Board onValueChange={() => {}} />
+				<Board onReorder={() => {}} />
 			</LocaleProvider>,
 		)
 

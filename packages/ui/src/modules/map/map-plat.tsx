@@ -140,9 +140,12 @@ type MapPlatBaseProps = AccessibleName &
 		 * measured, as on the server, the map draws its canonical fit scaled to
 		 * meet the box. It draws in the place where the measured fit draws it.
 		 *
-		 * With `false`, the container must have a definite height, such as a fixed
-		 * height or a grid area. A flex item that grows in a column of auto height
-		 * is not one, so put the map in a box with `grid` there.
+		 * With `false`, the map fills a container of definite height, such as a
+		 * fixed height or a grid area. In a container of auto height, the plot
+		 * takes the ratio of `'auto'`. Thus one map fills a dashboard tile of fixed
+		 * height and sets the height of a tile with `fitContent`. A flex item that
+		 * grows in a column of auto height has no definite height, so put the map
+		 * in a box with `grid` there.
 		 * @defaultValue 'auto'
 		 */
 		aspectRatio?: MapAspectRatio

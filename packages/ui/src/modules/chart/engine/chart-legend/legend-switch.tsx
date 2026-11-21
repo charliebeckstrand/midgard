@@ -21,9 +21,24 @@ import { k } from '../../../../recipes/kata/chart'
  * entry goes half of the gap past each edge. Thus the hit areas are 44 px high
  * and touch, with no space between them. A fine pointer keeps the rows that
  * touch.
+ *
+ * The hit areas of the first row and the last row also go 6 px past the box.
+ * In a box that scrolls, such as a dashboard tile, the 6 px below the last row
+ * made a scroll region. Thus the box takes a padding of 6 px at the top and
+ * the bottom on a coarse pointer, and each hit area stays in the box.
  * @internal
  */
-export const LEGEND_TOUCH_ROWS = 'pointer-coarse:touch-gap-y-3'
+export const LEGEND_TOUCH_ROWS = 'pointer-coarse:touch-gap-y-3 pointer-coarse:py-1.5'
+
+/**
+ * The row gap of {@link LEGEND_TOUCH_ROWS} with no padding, for a column of
+ * entries inside a box that has `LEGEND_TOUCH_ROWS`. The outer box holds the
+ * hit areas at its edges. In the box, a hit area that goes past the column
+ * goes into the gap next to the column. Padding on the column too would add
+ * space and keep in nothing.
+ * @internal
+ */
+export const LEGEND_TOUCH_GAP = 'pointer-coarse:touch-gap-y-3'
 
 /** Props for {@link LegendSwitch}. @internal */
 export type LegendSwitchProps = {

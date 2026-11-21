@@ -11,6 +11,7 @@ import {
 	act,
 	allBySlot,
 	bySlot,
+	deferred,
 	fireEvent,
 	getSlot,
 	noop,
@@ -187,6 +188,32 @@ describe('DateInput', () => {
 		expect(screen.getByRole('button', { name: 'Open' })).toBeInTheDocument()
 
 		expect(bySlot(container, 'suffix')?.children).toHaveLength(2)
+	})
+
+	it('keeps the calendar icon in a Form while a submit runs', async () => {
+		const pending = deferred()
+
+		const { container } = renderUI(
+			<Form defaultValues={{ due: new Date(2026, 5, 15) }} onSubmit={() => pending.promise}>
+				<DateInput name="due" />
+			</Form>,
+		)
+
+		await act(async () => {
+			fireEvent.submit(getSlot<HTMLFormElement>(container, 'form'))
+		})
+
+		// The control: the lock makes the field read-only.
+		expect(getSlot(container, 'date-input')).toHaveAttribute('readonly')
+
+		// The lock hides the clear button, so the calendar icon takes its slot.
+		expect(screen.queryByRole('button', { name: 'Clear date' })).toBeNull()
+
+		expect(container.querySelector('[data-slot=suffix] [data-slot=icon]')).toBeInTheDocument()
+
+		await act(async () => {
+			pending.resolve()
+		})
 	})
 
 	it('renders a calendar icon suffix by default and removes it with suffix={false}', () => {

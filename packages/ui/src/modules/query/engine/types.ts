@@ -90,7 +90,8 @@ export type QueryField = {
 	 * The key of a custom value editor. `QueryValueEditorProvider` maps each key
 	 * to a component, and the builder renders that component in place of the
 	 * input of `type`. A key that no provider holds falls back to the input of
-	 * `type`. The key is a string, so a field stays data that JSON can hold.
+	 * `type`. The key is a string and not a component, so the engine imports no
+	 * React.
 	 */
 	editor?: string
 	/**

@@ -6,7 +6,7 @@ import { Eye, EyeOff } from '../../primitives/icons/icons'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { Button } from '../button'
-import { useControl } from '../control/context'
+import { useControlProps } from '../control/use-control-props'
 import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
@@ -93,13 +93,11 @@ export function PasswordInput({
 
 	const [visible, setVisible] = useState(false)
 
-	const control = useControl()
-
-	// Input resolves its own disabled internally; mirror that resolution
-	// (useControlProps) so the toggle can't diverge from the field. A disabled
-	// field disables the toggle and re-masks: its value is out of play.
-	// readOnly does neither; the value stays viewable but not editable.
-	const disabled = props.disabled ?? control?.disabled
+	// The toggle reads the resolution of the Input, so the two cannot diverge. A
+	// disabled field disables the toggle and masks the value again, because the
+	// value is out of play. A read-only field does neither: the value stays
+	// visible but the user cannot edit it.
+	const { disabled } = useControlProps({ disabled: props.disabled })
 
 	const revealed = visible && !disabled
 

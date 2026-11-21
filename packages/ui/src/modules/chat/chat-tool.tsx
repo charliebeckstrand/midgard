@@ -8,17 +8,8 @@ import { defineMessages } from '../../primitives/intl/intl-messages'
 import type { MessageDescriptor } from '../../primitives/intl/types'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/chat-message'
+import { MESSAGE_HEADING_OFFSET } from './chat-constants'
 import type { ChatToolPart, ChatToolStatus } from './engine/chat-content/types'
-
-/**
- * The number of levels that the Markdown of a message adds to each heading. The
- * app does not write the content of a message, so a `#` heading in it must not
- * add an `<h1>` to the page. With `1`, it renders as an `<h2>`. The look of the
- * heading does not change.
- *
- * @internal
- */
-export const MESSAGE_HEADING_OFFSET = 1
 
 /** How one status draws and what it is called. @internal */
 type StatusLook = { status: StatusDotProps['status']; label: MessageDescriptor; pulse: boolean }

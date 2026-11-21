@@ -18,14 +18,12 @@ export type KanbanContextValue = {
 	/** Whether a reorderable board (one with `onReorder`) is disabled. A read-only board is never disabled. */
 	disabled: boolean
 	/**
-	 * Whether each card id is lifted via keyboard. A card reads its own id with
+	 * Whether the keyboard lifted each card id. A card reads its own id with
 	 * `useKeyedValue`.
 	 *
 	 * @remarks
-	 * It replaces `liftedCardId`. A lifted id in the context gave the context a
-	 * new value for each lift, and each card on the board rendered. The store
-	 * keeps its identity, and a card that subscribes to its own id renders only
-	 * when its own lift changes.
+	 * The store keeps its identity, so a lift gives the context no new value. A
+	 * card that reads its own id renders only when its own lift changes.
 	 */
 	liftedStore: KeyedStore<string, boolean>
 	/**
@@ -40,8 +38,9 @@ export type KanbanContextValue = {
 }
 
 /**
- * Card-facing board cascade. Provided by `<Kanban>`; read by descendant cards
- * (and columns, for the shared interactivity flag).
+ * The board context of the cards. `<Kanban>` gives it, and each card below the
+ * board reads it. Each column also reads it, for the shared flag of
+ * interactivity.
  *
  * @returns The enclosing {@link KanbanContextValue}.
  * @throws When no `<Kanban>` is mounted above the caller.
@@ -61,8 +60,8 @@ export type KanbanDragStateValue = {
 
 /**
  * Column-facing pointer-drag cascade, split from {@link KanbanContext} so its
- * per-move churn is confined to columns and never reaches cards. Provided by
- * `<Kanban>`; read by descendant columns.
+ * per-move churn is confined to columns and never reaches cards. `<Kanban>`
+ * gives it, and each column below the board reads it.
  *
  * @returns The enclosing {@link KanbanDragStateValue}.
  * @throws When no `<Kanban>` is mounted above the caller.
@@ -94,7 +93,8 @@ export type KanbanColumnContextValue = {
 }
 
 /**
- * Per-column cascade. Provided by `<KanbanColumn>`; read by its cards and title.
+ * The context of one column. `<KanbanColumn>` gives it, and its cards and its
+ * title read it.
  *
  * @returns The enclosing {@link KanbanColumnContextValue}.
  * @throws When no `<KanbanColumn>` is mounted above the caller.
@@ -128,9 +128,9 @@ export type KanbanCardContextValue = {
 }
 
 /**
- * Per-card cascade. Provided by `<KanbanCard>`; read by its handle. The drag
- * overlay copies the card content outside of a card, so the value there is
- * `null`, and the handle renders as a picture only.
+ * The context of one card. `<KanbanCard>` gives it, and its handle reads it.
+ * The drag overlay copies the card content outside of a card, so the value
+ * there is `null`, and the handle renders as a picture only.
  *
  * @internal
  */

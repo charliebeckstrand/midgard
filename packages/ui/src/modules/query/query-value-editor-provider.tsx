@@ -73,11 +73,10 @@ export type QueryValueEditorProviderProps = {
  * The registry of the custom value editors of each `QueryBuilder` below it, by
  * the `editor` key of a field.
  *
- * @remarks A field holds a key and not a component, so a field stays data that
- * JSON can hold, and the engine imports no React. The registry is a context,
- * so it reaches a builder that another module renders, such as the builder of
- * a dashboard. A key that no editor claims falls back to the input of the field
- * type.
+ * @remarks A field holds a key and not a component, so the engine imports no
+ * React. The registry is a context, so it reaches a builder that another
+ * module renders, such as the builder of a dashboard. A key that no editor
+ * claims falls back to the input of the field type.
  *
  * Nesting merges the registries. An inner provider adds its editors to those
  * of an outer provider, and wins on a key that they share.
