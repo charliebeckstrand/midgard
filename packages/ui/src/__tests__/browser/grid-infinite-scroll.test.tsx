@@ -559,6 +559,39 @@ describe('grid infinite scroll — stable column widths (real browser)', () => {
 		expect(labelWidth(container)).toBe(initial)
 	})
 
+	it('widens the columns when new rows replace the loaded rows under the default hold', async () => {
+		// The wide rows have keys that the short rows do not, so the swap is a
+		// replacement (a new search or a server sort), not an append.
+		const replaced = wideRows.slice(50, 100)
+
+		function ReplacedGrid({ rows }: { rows: WideRow[] }) {
+			return (
+				<div style={{ width: '360px' }}>
+					<Grid
+						columns={wideColumns}
+						rows={rows}
+						getKey={getKey}
+						virtualize={{ estimateSize: 36 }}
+						maxHeight="180px"
+						infiniteScroll={{ onLoadMore: () => {}, hasMore: true }}
+					/>
+				</div>
+			)
+		}
+
+		const { container, rerender } = renderUI(<ReplacedGrid rows={wideRows.slice(0, 50)} />)
+
+		await waitFor(() => expect(screen.queryByText('Row 1')).not.toBeNull())
+
+		await document.fonts.ready
+
+		const initial = labelWidth(container)
+
+		rerender(<ReplacedGrid rows={replaced} />)
+
+		await waitFor(() => expect(labelWidth(container)).toBeGreaterThan(initial))
+	})
+
 	it('widens the columns for wider batches without the freeze', async () => {
 		const { container } = renderUI(<WideInfiniteGrid stable={false} />)
 

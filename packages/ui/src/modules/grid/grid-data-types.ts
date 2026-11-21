@@ -137,8 +137,11 @@ export type GridInfiniteScroll = {
 	/**
 	 * Holds the auto-fit column widths at their first measurement of rendered
 	 * rows, so an appended batch measures nothing and never reflows the columns.
+	 * An append keeps each loaded row in its place and adds rows after them.
 	 * Later content wider than a column truncates instead of widening it. A
-	 * structural change (columns, density, or a container resize) still re-fits.
+	 * replacement of the rows (a new search, a server sort) measures again and
+	 * can widen a column. A structural change (columns, density, or a container
+	 * resize) still re-fits.
 	 * Rows that arrive after mount are the first measurement, not an append. A
 	 * grid that mounts on a loading skeleton fits to its data when the data
 	 * renders, then holds there. Set `false` to read each appended batch, so a

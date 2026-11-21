@@ -115,6 +115,27 @@ export function hashKeys(rowKeys: readonly (string | number)[]): string {
 }
 
 /**
+ * Whether `next` is an append to `prev`: it holds each key of `prev` at the
+ * same position, and more keys after them. A frozen grid holds its column
+ * widths against an append, and measures a replacement again (see
+ * `GridInfiniteScroll.stableColumnWidths`).
+ *
+ * @internal
+ */
+export function appendsKeys(
+	prev: readonly (string | number)[],
+	next: readonly (string | number)[],
+): boolean {
+	if (next.length <= prev.length) return false
+
+	for (let index = 0; index < prev.length; index++) {
+		if (next[index] !== prev[index]) return false
+	}
+
+	return true
+}
+
+/**
  * Which client row transforms the grid runs itself (see `useGridClientView`): the
  * client filters and the client page.
  *

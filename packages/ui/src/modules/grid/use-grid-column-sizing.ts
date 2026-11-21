@@ -24,6 +24,7 @@ import {
 } from './engine/grid-sizing/sizer'
 import { sameNumberMap } from './engine/grid-table/equality'
 import type { EngineTable } from './engine/grid-table/features'
+import { appendsKeys } from './engine/grid-table/state'
 import type { GridColumn } from './types'
 
 /** Options for {@link useGridColumnSizing}. @internal */
@@ -50,6 +51,11 @@ type GridColumnSizingOptions<T> = {
 	 * fingerprint a measurement.
 	 */
 	rowsSignature: string
+	/**
+	 * The keys of the rendered rows, in view order. A frozen grid (see
+	 * `freezeOnRowChange`) reads them to tell an append from a replacement.
+	 */
+	rowKeys: readonly (string | number)[]
 	/** Density of the rendered table; a change re-measures (padding and icons scale with it). */
 	density: DensityStep | undefined
 	/**
@@ -70,9 +76,10 @@ type GridColumnSizingOptions<T> = {
 	 */
 	columnFloors: Map<string, number>
 	/**
-	 * Freeze the widths against row-data changes (infinite scroll's stable widths).
-	 * An appended batch (a rows-only change) no longer measures, so the columns
-	 * keep their least widths. A structural change (columns, density) still
+	 * Freeze the widths against appended rows (infinite scroll's stable widths).
+	 * An append keeps each loaded row in its place and adds rows after them. It
+	 * no longer measures, so the columns keep their least widths. A replacement of
+	 * the rows (a new search, a server sort) still measures, and only widens. A structural change (columns, density) still
 	 * measures again, and the browser still follows a container resize. The first
 	 * pass is unaffected.
 	 * @defaultValue false
@@ -258,6 +265,7 @@ export function useGridColumnSizing<T>({
 	columns,
 	containerRef,
 	rowsSignature,
+	rowKeys,
 	density,
 	fitContent,
 	resizing,
@@ -523,6 +531,7 @@ export function useGridColumnSizing<T>({
 		columns: readonly GridColumn<T>[]
 		struct: string
 		rows: string
+		keys: readonly (string | number)[]
 		fitContent: boolean
 	} | null>(null)
 
@@ -531,7 +540,13 @@ export function useGridColumnSizing<T>({
 
 		const fitted = fittedRef.current
 
-		fittedRef.current = { columns, struct: structSignature, rows: rowsSignature, fitContent }
+		fittedRef.current = {
+			columns,
+			struct: structSignature,
+			rows: rowsSignature,
+			keys: rowKeys,
+			fitContent,
+		}
 
 		if (fitted === null) {
 			if (!auto) refitLatest(true, false)
@@ -551,12 +566,20 @@ export function useGridColumnSizing<T>({
 		if (!structChanged && !rowsChanged) return
 
 		// Frozen widths (infinite scroll's stable columns) hold against an appended
-		// batch: a change of the rows alone measures nothing, and the columns keep
-		// their first widths. A change of the structure still reads them again. The
+		// batch: an append measures nothing, and the columns keep their first widths.
+		// A replacement of the rows and a change of the structure still read them
+		// again. The
 		// freeze arms on the pass that first measured rendered rows, not on a
 		// provisional one: a grid whose rows arrive after mount would otherwise freeze
 		// the widths of the loading skeleton for good.
-		if (freezeOnRowChange && !structChanged && sizer.measured()) return
+		if (
+			freezeOnRowChange &&
+			!structChanged &&
+			sizer.measured() &&
+			appendsKeys(fitted.keys, rowKeys)
+		) {
+			return
+		}
 
 		refitLatest(true, structChanged)
 	}, [
@@ -565,6 +588,7 @@ export function useGridColumnSizing<T>({
 		refitLatest,
 		columns,
 		rowsSignature,
+		rowKeys,
 		structSignature,
 		fitContent,
 		freezeOnRowChange,

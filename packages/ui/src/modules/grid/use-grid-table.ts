@@ -876,6 +876,8 @@ export function useGridTable<T>({
 		// Fingerprint from the keys the grid already derived, so the autosizer
 		// never walks the rows just to notice a row change.
 		rowsSignature,
+		// The keys tell an append from a replacement when the widths are frozen.
+		rowKeys,
 		density,
 		fitContent,
 		resizing,
