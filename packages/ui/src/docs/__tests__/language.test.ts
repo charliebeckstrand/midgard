@@ -10,10 +10,8 @@ import { localeFile, requestLocale } from '../app/language.ts'
 // HTML of the locale of the request at the same path.
 
 describe('requestLocale', () => {
-	it('takes the locale of the cookie, else the match of Accept-Language, else English', () => {
-		expect(requestLocale({ cookie: 'theme=dark; locale=es', acceptLanguage: 'en-US' })).toBe('es')
-
-		expect(requestLocale({ cookie: 'locale=system', acceptLanguage: 'es-MX,es;q=0.9' })).toBe('es')
+	it('gives English for a locale that the docs do not have', () => {
+		expect(requestLocale({ cookie: 'theme=dark; locale=fr', acceptLanguage: 'en-US' })).toBe('en')
 
 		expect(requestLocale({ acceptLanguage: 'fr-FR,fr;q=0.9' })).toBe('en')
 

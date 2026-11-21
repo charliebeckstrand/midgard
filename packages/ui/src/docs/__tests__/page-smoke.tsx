@@ -38,7 +38,8 @@ import { findSameText, readTexts, recordIntl } from './same-text.ts'
 // whether the page works.
 //
 // The test renders each page in each language that the docs translate, with
-// the catalogs of the docs. It renders the copy of each page module and each
+// the catalogs of the docs. With no translation, it renders each page in
+// English for this walk. It renders the copy of each page module and each
 // tab module in the language, with each demo text in the language
 // (`plugin/copies.ts`). A name from the code that shows as text, such as the
 // title of an example or the label of a field of a playground, writes an error
@@ -76,6 +77,15 @@ export const pageModules: readonly string[] = Object.keys(englishModules).toSort
 
 /** The locale of each language that the docs translate: each locale but English. */
 const TRANSLATED = LOCALES.slice(1)
+
+/** The locale of the render that each translated text is compared with. */
+const ENGLISH = 'en-US'
+
+/**
+ * The locales of the walk that runs the rules: each translated locale, else
+ * English when the docs have no translation. Thus the rules run on each page.
+ */
+const CHECKED: readonly string[] = TRANSLATED.length > 0 ? TRANSLATED : [ENGLISH]
 
 /**
  * The copy of each page module and each tab module in `locale`, keyed by
@@ -270,9 +280,6 @@ type Walk = {
 	same: readonly string[]
 }
 
-/** The locale of the render that each translated text is compared with. */
-const ENGLISH = 'en-US'
-
 /** The modules of a language, keyed by module path. */
 type Modules = Readonly<Record<string, () => Promise<ComponentType>>>
 
@@ -339,8 +346,8 @@ function renderPage(
 	).container
 }
 
-/** What the walk of a page in one translated locale found. */
-type TranslatedWalk = Pick<Walk, 'violations' | 'duplicates' | 'bare'> & {
+/** What the walk of a page in one checked locale ({@link CHECKED}) found. */
+type CheckedWalk = Pick<Walk, 'violations' | 'duplicates' | 'bare'> & {
 	/** Each text of the page in the locale. */
 	texts: ReadonlySet<string>
 	/** The output of the formatters in the render. */
@@ -348,15 +355,13 @@ type TranslatedWalk = Pick<Walk, 'violations' | 'duplicates' | 'bare'> & {
 }
 
 /**
- * Renders a page in the translated `locale` and opens each tab. In each state,
- * it reads the ids, finds the examples, runs axe, and reads the text.
+ * Renders a page in the checked `locale` and opens each tab. In each state, it
+ * reads the ids, finds the examples, runs axe, and reads the text.
  */
-async function walkTranslated(
-	page: Page,
-	locale: string,
-	visited: Set<string>,
-): Promise<TranslatedWalk> {
-	const loaded = await loadPage(page, translatedModules(locale))
+async function walkChecked(page: Page, locale: string, visited: Set<string>): Promise<CheckedWalk> {
+	const modules = locale === ENGLISH ? englishModules : translatedModules(locale)
+
+	const loaded = await loadPage(page, modules)
 
 	const texts = new Set<string>()
 
@@ -399,8 +404,8 @@ async function walkTranslated(
 }
 
 /**
- * Renders a page in each translated locale and opens each tab
- * ({@link walkTranslated}). It then renders the page in English, opens each
+ * Renders a page in each checked locale and opens each tab
+ * ({@link walkChecked}). It then renders the page in English, opens each
  * tab, and reads the text, so it finds the text that is the same in a
  * translation and in English.
  */
@@ -411,10 +416,10 @@ async function walk(page: Page): Promise<Walk> {
 
 	const visited = new Set<string>()
 
-	const translated: (readonly [string, TranslatedWalk])[] = []
+	const checked: (readonly [string, CheckedWalk])[] = []
 
-	for (const locale of TRANSLATED) {
-		translated.push([locale, await walkTranslated(page, locale, visited)])
+	for (const locale of CHECKED) {
+		checked.push([locale, await walkChecked(page, locale, visited)])
 	}
 
 	const english = new Set<string>()
@@ -429,7 +434,7 @@ async function walk(page: Page): Promise<Walk> {
 
 	let last = ''
 
-	// As in the translated walk, the read goes inside `act`, so the updates of
+	// As in the checked walk, the read goes inside `act`, so the updates of
 	// the live page land in it.
 	await visitTabs(
 		renderPage(page, ENGLISH, await loadPage(page, englishModules), new Set(), at),
@@ -454,7 +459,7 @@ async function walk(page: Page): Promise<Walk> {
 	// unmount comes first, so the timer updates no page outside of `act`.
 	cleanup()
 
-	const walks = translated.map(([, each]) => each)
+	const walks = checked.map(([, each]) => each)
 
 	return {
 		logged: [...logged],
@@ -463,9 +468,11 @@ async function walk(page: Page): Promise<Walk> {
 		bare: walks.reduce((sum, { bare }) => sum + bare, 0),
 		visited,
 		hidden,
-		same: translated.flatMap(([locale, { texts, formatted }]) =>
-			findSameText(locale, texts, english, formatted).map((text) => `${locale}: ${text}`),
-		),
+		same: checked
+			.filter(([locale]) => locale !== ENGLISH)
+			.flatMap(([locale, { texts, formatted }]) =>
+				findSameText(locale, texts, english, formatted).map((text) => `${locale}: ${text}`),
+			),
 	}
 }
 

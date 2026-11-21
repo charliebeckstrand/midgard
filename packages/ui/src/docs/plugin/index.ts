@@ -91,7 +91,7 @@ function data(value: unknown): string {
  * `ui` updates the API data of the open pages with no reload.
  *
  * The server build reads the manifest of the client build in `clientDir`, so
- * the Spanish HTML of a page preloads the chunks of the Spanish copy.
+ * the HTML of a page in a translated language preloads the chunks of its copy.
  *
  * In dev, a page or a tab that is added, removed or renamed in `pages/`
  * changes the routes. React Router reads the routes only when the server

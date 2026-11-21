@@ -1,7 +1,7 @@
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useLocale } from 'ui/providers/locale'
-import { describe, expect, it, onTestFinished } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { renderShell } from './render-shell.tsx'
 
 // A press on Settings loads the settings dialog of ui
@@ -31,20 +31,7 @@ describe('docs app shell', () => {
 		expect(screen.getByTestId('locale').textContent).toBe('en')
 	})
 
-	it('gives each page the locale that the reader chose', () => {
-		localStorage.setItem('locale', 'es')
-
-		onTestFinished(() => localStorage.removeItem('locale'))
-
-		renderProbe()
-
-		expect(screen.getByTestId('locale').textContent).toBe('es')
-
-		// The shell shows its own text in the language of the reader too.
-		expect(screen.getByText('Buscar')).toBeDefined()
-	})
-
-	it('puts the language picker in the settings of the header', async () => {
+	it('has no language picker in the settings while the docs have one locale', async () => {
 		renderProbe()
 
 		// The navbar and the header both hold the actions. The first button opens the dialog.
@@ -52,6 +39,6 @@ describe('docs app shell', () => {
 
 		await screen.findByRole('dialog', { name: 'Settings' })
 
-		expect(screen.getByRole('combobox', { name: 'Language' }).textContent).toBe('System')
+		expect(screen.queryByRole('combobox', { name: 'Language' })).toBeNull()
 	})
 })
