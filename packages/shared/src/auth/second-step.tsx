@@ -148,7 +148,14 @@ export function SecondStep({
 									)}
 								</Label>
 								{usingRecovery ? (
-									<Input name="code" autoComplete="off" autoCapitalize="none" spellCheck={false} />
+									// No `autocomplete` token names a recovery code, so the attribute masks it in the events trail.
+									<Input
+										name="code"
+										autoComplete="off"
+										autoCapitalize="none"
+										spellCheck={false}
+										data-events-mask
+									/>
 								) : (
 									<Input name="code" inputMode="numeric" autoComplete="one-time-code" />
 								)}

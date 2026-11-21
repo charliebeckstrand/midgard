@@ -4,6 +4,7 @@ import { ForgotPasswordPage } from '../auth/forgot-password-page'
 import { LoginPage } from '../auth/login-page'
 import { RegisterPage } from '../auth/register-page'
 import { ResetPasswordPage } from '../auth/reset-password-page'
+import { SecondStep } from '../auth/second-step'
 import { VerifyEmailPage } from '../auth/verify-email-page'
 import { renderInLocale } from './helpers/intl'
 
@@ -93,5 +94,24 @@ describe('RegisterPage', () => {
 			password: 'new-password',
 			confirmPassword: 'new-password',
 		})
+	})
+})
+
+describe('SecondStep', () => {
+	// No `autocomplete` token names a recovery code, so only the attribute masks it in the events trail.
+	it('masks the recovery code field in the events trail', () => {
+		const props = {
+			methods: ['recovery_code' as const],
+			onVerified: vi.fn(),
+			onExpired: vi.fn(),
+			onCancel: vi.fn(),
+			cancelLabel: 'Cancel',
+		}
+
+		const html = renderInLocale('en', createElement(SecondStep, props))
+
+		const code = html.match(/<input[^>]* name="code"[^>]*>/)?.[0]
+
+		expect(code).toMatch(/ data-events-mask=/)
 	})
 })
