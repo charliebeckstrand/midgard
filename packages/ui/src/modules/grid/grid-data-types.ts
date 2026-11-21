@@ -135,16 +135,16 @@ export type GridInfiniteScroll = {
 	 */
 	error?: ReactNode
 	/**
-	 * Freezes the auto-fit column widths at their first measurement of rendered
-	 * rows, so an appended batch never reflows the columns. Later content wider
-	 * than a column truncates instead of widening it. A structural change
-	 * (columns, density, or a container resize) still re-fits. Rows that arrive
-	 * after mount are the first measurement, not an append. A grid that mounts on
-	 * a loading skeleton fits to its data when the data renders, then freezes
-	 * there. Builds on
-	 * the default column auto-fit, so it has no effect when `resizable` is off or
-	 * `columnSizing` is controlled.
-	 * @defaultValue false
+	 * Holds the auto-fit column widths at their first measurement of rendered
+	 * rows, so an appended batch measures nothing and never reflows the columns.
+	 * Later content wider than a column truncates instead of widening it. A
+	 * structural change (columns, density, or a container resize) still re-fits.
+	 * Rows that arrive after mount are the first measurement, not an append. A
+	 * grid that mounts on a loading skeleton fits to its data when the data
+	 * renders, then holds there. Set `false` to read each appended batch, so a
+	 * wider row widens its column. Builds on the default column auto-fit, so it
+	 * has no effect when `resizable` is off or `columnSizing` is controlled.
+	 * @defaultValue true
 	 */
 	stableColumnWidths?: boolean
 }
@@ -1494,7 +1494,8 @@ export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'>
 	 *
 	 * Opt into a trailing skeleton row while `loadingMore` with `loadingIndicator`.
 	 * Close the list with `endMessage`, and surface a failed load with `error`.
-	 * Hold the columns steady against appends with `stableColumnWidths`.
+	 * The columns hold their widths against appends. Set
+	 * `stableColumnWidths: false` to widen them for wider appended rows.
 	 *
 	 * Implies `virtualize`, where an explicit `virtualize` object still tunes the
 	 * window and `virtualize={false}` throws. It still needs `maxHeight`, which sizes the

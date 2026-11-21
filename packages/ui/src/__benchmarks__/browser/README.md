@@ -137,6 +137,8 @@ Each scenario drives the deterministic shipment rows (`shipments` in [`../fixtur
 
 - [`grid-edit.bench.tsx`](grid-edit.bench.tsx): a row edit that opens and closes, at 1k rows without a window and 10k rows with a window, and a move of the open cell under `scope: 'cell'`, at 1k rows without a window. Each sample commits through `flushSync`, reads the rect of the host, and counts the editors.
 
+- [`grid-append.bench.tsx`](grid-append.bench.tsx): an infinite-scroll append of 50 rows at the end of 10k loaded rows, on a grid that the autosizer sizes. The `hold` grid keeps the default `stableColumnWidths`, and the `widen` grid sets it to `false`, so the difference of the two rows is the cost of the width pass.
+
 - [`grid-fit.bench.tsx`](grid-fit.bench.tsx): the column fit of a grid that the autosizer sizes, at 1k rows with no window and no declared width, as the admin users grid mounts. Two scenarios run: a mount, and an asc/desc sort flip on `id`. Each sample ends one rendered frame after the paint probe, so the style and layout work that the commit leaves to the browser is in the sample. The `navigable` rows mount the cell cursor.
 
 - [`grid-cursor.bench.tsx`](grid-cursor.bench.tsx): one arrow move of the cell cursor, down one row and back up, at 1k rows without a window. Each sample ends one rendered frame after the key press. The `fill handle` row is an editable grid with a range, which shows the fill handle on the active cell. The `navigable` row shows no handle, and is the floor.
