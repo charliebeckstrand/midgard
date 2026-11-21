@@ -31,8 +31,9 @@ export type ChatEmbedRegistry = {
 	 * `lazy` (the default) holds a renderer back until its block is near the
 	 * viewport, then keeps it. A transcript's embeds are mostly scrolled away
 	 * above the newest reply, and a view is the most expensive thing a reply can
-	 * carry. A bar chart on every reply of a 500-message transcript costs about
-	 * seven times as much to mount as the same transcript carrying none.
+	 * carry. A view that mounts at once thus costs much more than one that
+	 * waits for the reader. The Chat section of the browser benchmarks README
+	 * records the measured cost (`chat-render.bench.tsx`).
 	 *
 	 * The module's own stated fallback is one line of text, so each policy
 	 * draws it at once. A `fallback` of the registry is a renderer, and the

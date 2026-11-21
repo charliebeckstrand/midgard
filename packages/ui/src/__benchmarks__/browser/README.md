@@ -1,6 +1,6 @@
 # Browser benchmarks
 
-> **The chart, grid, and map modules of `ui`, and its menu, popover, icon, tooltip, and PDF-viewer components, its query builder, and its events module, measured in real Chromium.** `pnpm bench:browser` runs the suite. The suite runs no other library, so a change reads against the earlier builds of each module. The jsdom benches one directory up localize a regression, and this suite sizes it.
+> **The chart, grid, and map modules of `ui`, and its menu, popover, icon, tooltip, and PDF-viewer components, its query builder, and its events module, measured in real Chromium. The Chat section records a jsdom bench.** `pnpm bench:browser` runs the suite. The suite runs no other library, so a change reads against the earlier builds of each module. The jsdom benches one directory up localize a regression, and this suite sizes it.
 
 ## Why a browser suite
 
@@ -822,6 +822,23 @@ Mean ms in Chromium, the median of three interleaved pairs. The "Prototype" colu
 **Each resize lays out the page two more times.** The viewport source reads the viewport units from a probe element ([`events-probes.ts`](../../modules/events/engine/events-probes.ts)), and each reading adds the probe to the page and removes it. Each change lays out the page again. A probe that stays in the page while the recorder runs, with strict containment, makes a resize cost what it costs with the events off. On a phone, the visual viewport resizes while the address bar shows or hides, so a scroll pays this too. An overlay that opens reads the same probe.
 
 **The rest does not move a frame.** A tap costs 0.2 ms with the events on, and 0.7 ms during a capture, against 0.02 ms off. Most of the step is the store: each `add` copies the list and counts its reports, so it grows with the store (0.014 ms at 500 and 0.054 ms at 2,000 in jsdom). The kept copy (`save`, 0.22 and 1.28 ms) runs after a burst, and the Copy text (0.64 and 3.32 ms) runs on a press of Copy. The rows of the list and the width of the kind column (0.05 and 0.20 ms in jsdom) build again in each live render, a small part of the frame. With the React Compiler and the scroll region, the frame of the panel is about 3.5 ms, the rows in view rendering again.
+
+## Chat
+
+### Methodology
+
+[`chat-render.bench.tsx`](../chat-render.bench.tsx) is a jsdom bench, one directory up. Its embed scenario mounts a `ChatTranscript` with a `BarChart` on each assistant reply, under the two mount policies of `ChatEmbedProvider`. No `IntersectionObserver` reports an entry, so `lazy` measures the floor: a reader at the newest reply, with each view scrolled away. `always` mounts each view in the window of the transcript at once. The window renders only the rows in the modeled viewport, so `always` mounts about a dozen charts at each size, not one for each reply.
+
+### Findings (2026-11-21, this container)
+
+`pnpm bench src/__benchmarks__/chat-render.bench.tsx --reporter=verbose`, the mean of one run:
+
+| Transcript | `lazy`, none in view | `always` | Ratio |
+|---|---|---|---|
+| 50 messages | 7.9 ms | 53.0 ms | 6.7× |
+| 500 messages | 7.1 ms | 43.0 ms | 6.1× |
+
+The `always` rows have a wide spread (±11% and ±19%), so read the ratio as about six to seven. The TSDoc of `ChatEmbedRegistry.mount` gives the reason and not the number, because a later change can move the number.
 
 ## PDF viewer
 
