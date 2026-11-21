@@ -21,9 +21,9 @@ import { settle } from './helpers/settle'
 //   the coarse floor.
 //
 // A target in another target, or in the same label, is part of that target,
-// not a neighbor. An inline link in text is exempt, as in WCAG 2.5.8. axe
-// reads the target size of a desktop (`accessibility.test.ts`), and this file
-// reads the pitch of a phone.
+// not a neighbor. A target in a sentence, such as an inline link, is exempt,
+// as in WCAG 2.5.8. axe reads the target size of a desktop
+// (`accessibility.test.ts`), and this file reads the pitch of a phone.
 
 /** The coarse floor of `TouchTarget` and of the touch pitch, in px. */
 const FLOOR = 44
@@ -465,8 +465,10 @@ function readTargets({ floor, sharedBorder }: { floor: number; sharedBorder: num
 
 		if (style.visibility === 'hidden' || style.pointerEvents === 'none') return false
 
-		// An inline link in text is exempt (WCAG 2.5.8).
-		if (element.matches('a') && style.display === 'inline') return false
+		// A target in a sentence is exempt (WCAG 2.5.8): an inline link, or an
+		// inline element with a role, such as a chat citation. A `<button>` is an
+		// atomic inline box even when its display reads `inline`, so it is not exempt.
+		if (style.display === 'inline' && !element.matches('button')) return false
 
 		const { width, height } = element.getBoundingClientRect()
 
