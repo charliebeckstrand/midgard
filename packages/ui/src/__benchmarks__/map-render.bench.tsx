@@ -1,8 +1,8 @@
 /**
  * MapPlat's jsdom render cost, and the geometry cache underneath it. The
  * browser suite one directory down times the module in a real browser; this
- * one localizes: the mount rungs separate a pre-decoded GeoJSON from a
- * topology that must decode first, the cold/warm pair isolates what the
+ * one localizes: the mount rungs time a mount on a warm geometry cache at the
+ * states and the counties size, the cold/warm pair isolates what the
  * static-geometry cache saves on a remount, and the cascade scenarios drive a
  * mounted plat so a hover or a legend emphasis reads as re-render cost alone.
  */
@@ -68,21 +68,17 @@ compareBenches('MapPlat · mount', (bench) => {
 	mountBench(bench, 'states-10m topology (52 regions, 4 categories)', statesPlat)
 
 	mountBench(bench, 'counties-10m pre-decoded GeoJSON (3143 regions)', countiesPlat)
-
-	mountBench(bench, 'counties-10m topology (3143 regions, incl. decode)', () => (
-		<MapPlat aria-label="Counties" geography={countiesTopology} width={800} />
-	))
 })
 
 compareBenches('static geometry · cold vs warm (states-10m)', (bench) => {
 	// Warm the shared cache once, so the warm case measures a pure cache hit.
 	staticMapGeometry(statesTopology, undefined, 'albers-usa')
 
-	bench('cold: decode + canonical fit + paths (every mount, uncached)', () => {
+	bench('cold: canonical fit + paths (a first atlas or projection, uncached)', () => {
 		// The paths are a call of their own, so the bar has to make it or it
-		// measures two thirds of what it names: the decode and the fit. Uncached
-		// by construction: the geometry is a fresh object each iteration, so it
-		// misses the paths memo.
+		// measures only the fit. Uncached by construction: the geometry is a
+		// fresh object each iteration, so it misses the paths memo. The decode is
+		// held by `cachedGeographyFeatures`, so no bar here pays it.
 		const paths = cachedCanonicalPaths(
 			computeStaticMapGeometry(statesTopology, undefined, 'albers-usa'),
 		)

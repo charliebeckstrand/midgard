@@ -25,9 +25,9 @@ compareBenches('QueryBuilder · initial render', (bench) => {
 	mountBenches(
 		bench,
 		[
-			{ label: 'shallow-wide (10 rules)', tree: shallowWide },
-			{ label: 'balanced (~16 rules)', tree: balanced },
-			{ label: 'deep-wide (~64 rules)', tree: deepWide },
+			{ label: 'shallow-wide (100 rules)', tree: shallowWide },
+			{ label: 'balanced (64 rules)', tree: balanced },
+			{ label: 'deep-wide (256 rules)', tree: deepWide },
 		],
 		({ label }) => label,
 		({ tree }) => <QueryBuilder fields={QUERY_FIELDS} value={tree} />,
@@ -38,8 +38,8 @@ compareBenches(`QueryBuilder · rerender after single-rule edit (${EDITS} edits/
 	const built = (tree: QueryGroup) => <QueryBuilder fields={QUERY_FIELDS} value={tree} />
 
 	for (const { label, root } of [
-		{ label: 'balanced (~16 rules)', root: balanced },
-		{ label: 'deep-wide (~64 rules)', root: deepWide },
+		{ label: 'balanced (64 rules)', root: balanced },
+		{ label: 'deep-wide (256 rules)', root: deepWide },
 	]) {
 		const ids = collectRuleIds(root).slice(0, EDITS)
 

@@ -7,12 +7,14 @@
  * truncation overhead for the cells the pointer never visited.
  *
  * The grid is deliberately un-windowed (no `virtualize`/`maxHeight`), so all N
- * rows mount and the resized column re-renders every one of its cells. No cell
- * is hovered, matching the case that matters: thousands of cells the user has
- * not touched, re-flowing under a drag. Each iteration toggles the `origin`
- * column between a width that truncates its city names and one that fits them,
- * then yields frames so the truncation hook's deferred re-measure backstop lands
- * inside the timed region.
+ * rows mount and each cell of the resized column lays out again. The width
+ * moves through the `<colgroup>` alone, so no row renders again (see
+ * `GridSettleStore`). No cell is hovered, which is the case that matters:
+ * thousands of cells that the user has not touched reflow under a resize. Only
+ * a visited cell subscribes to the settle re-measure, so no cell here measures
+ * again. Each iteration toggles the `origin` column between a width that
+ * truncates its city names and a width that fits them. It then yields frames,
+ * so the commit and the reflow land inside the timed region.
  *
  * A third subject freezes `origin` and the column after it. The toggle then
  * moves the sticky offset of the second frozen column in each row, so the
@@ -27,9 +29,8 @@ import { SHIPMENT_FIELDS, type Shipment, shipmentKey, shipments } from '../fixtu
 import { painted } from './grids'
 import { benches, host, type Prepared, settle, WINDOW } from './harness'
 
-// Explicit `cell` renderers so content paints synchronously (a bare column's
-// default content resolver defers to a layout pass that a headless mount races);
-// the truncating span still wraps this output, so the resize truncation is real.
+// Explicit `cell` renderers, because a ui column renders nothing without a
+// `cell`. The truncating span wraps this output, so the resize truncation is real.
 const COLUMNS: GridColumn<Shipment>[] = SHIPMENT_FIELDS.map(([id, title]) => ({
 	id,
 	title,
@@ -96,8 +97,8 @@ async function prepare(rows: Shipment[]): Promise<Prepared[]> {
 
 				draw()
 
-				// Three frames: React commits, the browser reflows, then the
-				// truncation hook's deferred re-measure backstop lands.
+				// Three frames, so the commit of `root.render` and the reflow land
+				// in the sample. No cell is visited, so no settle re-measure runs.
 				await settle(3)
 			},
 		})

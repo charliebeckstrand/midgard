@@ -1,8 +1,15 @@
 /**
  * List's per-item mount cost, split by whether the list is reorderable. An
- * `onReorder` arms the dnd-kit sortable context and wires every item as a
- * draggable, so the read-only rung at the same item count is the floor those
- * sensors sit above.
+ * `onReorder` renders the list through the reorder parts of the package, and
+ * each item as a `ListItemReorder` with its keyboard lift. The read-only rung
+ * at the same item count (plain `ListItemStatic` rows) is the floor that those
+ * parts sit above. The reorder parts load from a chunk of their own, which
+ * `setup.ts` loads before the file.
+ *
+ * `setup.ts` mocks `motion/react`, so `Reorder.Group` and `Reorder.Item` render
+ * plain elements, and `useDragControls` returns a constant. The gap therefore
+ * prices the component tree of the package, not the `Reorder` machinery of
+ * Motion. Only a real browser prices that machinery.
  */
 
 import { List, ListItem } from '../components/list'

@@ -17,9 +17,8 @@ import { compareBenches } from './compare'
  * session, where each new event drops the oldest.
  *
  * The other rungs are the work that a full store does less often: the write
- * of the kept copy (`save`, after each burst while "Preserve" is on), the
- * filing of a bug with its trail, and the rows and the Copy text of the list
- * (each frame of a live view, and each Copy).
+ * of the kept copy (`save`, after each burst while "Preserve" is on), and the
+ * rows and the Copy text of the list (each frame of a live view, and each Copy).
  *
  * The storage is a `Map`, so the rungs read the store and not the storage of
  * jsdom. The findings are in the Events section of
