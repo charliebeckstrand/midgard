@@ -10,6 +10,7 @@ import {
 	useRef,
 } from 'react'
 import { cn } from '../../core/cn'
+import { composeEventHandlers } from '../../core/compose-event-handlers'
 import type { ScaleStep } from '../../core/density/scale'
 import { useA11yRoving } from '../../hooks/a11y/use-a11y-roving'
 import type { Mount } from '../../primitives/mount'
@@ -23,7 +24,7 @@ import { treeMoveForKey, treeMoveTarget } from './tree-keyboard'
 
 /** Props for {@link Tree}. Requires `aria-label` or `aria-labelledby`. */
 export type TreeProps = AccessibleName &
-	Omit<ComponentProps<'div'>, 'onKeyDown' | 'onFocus' | 'aria-label' | 'aria-labelledby'> & {
+	Omit<ComponentProps<'div'>, 'aria-label' | 'aria-labelledby'> & {
 		/**
 		 * The density step of the icons, the text, and the indent of all items.
 		 * Omit it to take the step of the nearest density scope. A step makes the
@@ -51,7 +52,7 @@ export type TreeProps = AccessibleName &
 		children: ReactNode
 	}
 
-/** Root of a `role="tree"` with roving-tabindex keyboard navigation and the APG arrow moves to a first child and to a parent. Type-ahead moves to the next visible, enabled row whose label starts with the typed text. It keeps the first item tabbable across open/close and filtering, and shares depth and `indent` to nested items via context. Requires `aria-label`/`aria-labelledby`. A consumer `ref` reaches the tree element. */
+/** Root of a `role="tree"` with roving-tabindex keyboard navigation and the APG arrow moves to a first child and to a parent. Type-ahead moves to the next visible, enabled row whose label starts with the typed text. It keeps the first item tabbable across open/close and filtering, and shares depth and `indent` to nested items via context. Requires `aria-label`/`aria-labelledby`. A consumer `ref` reaches the tree element. A consumer `onKeyDown` runs before the arrow moves and the roving, so a consumer can add a key, such as Delete. */
 export function Tree({
 	size,
 	indent = true,
@@ -59,6 +60,7 @@ export function Tree({
 	children,
 	className,
 	ref: consumerRef,
+	onKeyDown,
 	...labelProps
 }: TreeProps) {
 	const ref = useRef<HTMLDivElement>(null)
@@ -118,7 +120,10 @@ export function Tree({
 				data-slot="tree"
 				density={size}
 				className={cn(k().base, className)}
-				onKeyDown={handleKeyDown}
+				// Roving takes no gate: the consumer's handler runs first, then roving.
+				onKeyDown={composeEventHandlers(onKeyDown, handleKeyDown, {
+					checkForDefaultPrevented: false,
+				})}
 			>
 				{stampTreePositions(children)}
 			</Box>

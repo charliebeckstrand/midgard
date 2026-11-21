@@ -154,6 +154,32 @@ describe('Stepper', () => {
 		expect(document.activeElement).toBe(second)
 	})
 
+	it('runs the onKeyDown of the consumer, and roving still moves the focus', () => {
+		const onKeyDown = vi.fn()
+
+		renderUI(
+			<Stepper defaultValue={0} orientation="horizontal" onKeyDown={onKeyDown}>
+				<StepperStep value={0}>
+					<StepperTitle>Account</StepperTitle>
+				</StepperStep>
+				<StepperSeparator />
+				<StepperStep value={1}>
+					<StepperTitle>Profile</StepperTitle>
+				</StepperStep>
+			</Stepper>,
+		)
+
+		const [first, second] = screen.getAllByRole('button')
+
+		first?.focus()
+
+		fireEvent.keyDown(present(first, 'first step'), { key: 'ArrowRight' })
+
+		expect(onKeyDown).toHaveBeenCalledOnce()
+
+		expect(document.activeElement).toBe(second)
+	})
+
 	it('takes an aria-label, so two steppers on one page have distinct names', () => {
 		renderUI(
 			<>
