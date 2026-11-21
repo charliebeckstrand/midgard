@@ -21,3 +21,13 @@ import { markRoot, rootMarks } from 'ui/server'
 |---|---|
 | `formatDateText` | Writes the text of a date, or of a span of dates, on the server in a set time zone. The browser shows that text, so the first paint shows the date and hydration does not write it again. |
 | `DateText` *(type)* | An instant and the text that the server wrote for it. `DateTime` takes it as its `value`. |
+
+## Events reports
+
+| Export | Summary |
+|---|---|
+| `readReportExport` | Reads the report that `postReport` of `ui/events` posts, in a route handler. It keeps only the known fields of a report, so the tracker gets no field that a client added. |
+| `ReportExportError` | The error of a body that `readReportExport` does not take. Its `status` is 400 for a body that is not a report, and 413 for a body that is too large. |
+| `ReadReportOptions` *(type)* | The options of `readReportExport`: `maxBytes`, the largest body that it takes (1 MiB by default). |
+
+The route files the report in the tracker of the app with a token that stays on the server. [`MODULES.md`](MODULES.md) gives the two ends of a send.

@@ -25,7 +25,7 @@ While the send runs, Send shows the loading state and keeps the focus. Then it s
 
 The view is one header button and one sheet with the Events and Bugs tabs. While the sidebar layout is inline, Pin docks the view on the end edge of the page, in the `aside` slot of `SidebarLayout`. The pinned panel shows each event as it comes in.
 
-Each adapter lives in its consumer, so `ui` has no dependency on a framework. The adapter of React Router lives in the docs app ([`../../docs/debug/router.ts`](../../docs/debug/router.ts)). Each app on Next.js starts the events in its own `instrumentation-client.ts`. The route source (`onRouterTransitionStart`) and the error page that calls `reportBug` are in `packages/shared`. The adapter of an issue tracker lives in the app too. The docs app gives a demo port that writes the report to the console, and fails while the browser is offline ([`../../docs/debug/report.ts`](../../docs/debug/report.ts)).
+Each adapter lives in its consumer, so `ui` has no dependency on a framework. The adapter of React Router lives in the docs app ([`../../docs/debug/router.ts`](../../docs/debug/router.ts)). Each app on Next.js starts the events in its own `instrumentation-client.ts`. The route source (`onRouterTransitionStart`) and the error page that calls `reportBug` are in `packages/shared`. The adapter of an issue tracker lives in the app too. `postReport` posts a report to an endpoint of the app, and `readReportExport` of `ui/server` reads it there, so the token of the tracker stays on the server. The docs app gives a demo port that writes the report to the console, and fails while the browser is offline ([`../../docs/debug/report.ts`](../../docs/debug/report.ts)).
 
 ## Engine
 
