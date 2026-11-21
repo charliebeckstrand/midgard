@@ -7,6 +7,9 @@
  * grid does. On a coarse pointer, it also gives each cell the floor
  * (`core/touch/pitch.ts`), so a finger does not hit the next cell.
  *
+ * A scroll box with no padding keeps each hit area at its bottom edge in the
+ * box (`core/touch/scroll.ts`).
+ *
  * Layer: kiso · Concern: touch gap of touching hosts
  */
 
@@ -20,4 +23,9 @@ export const touch = {
 	},
 	/** The cells of a grid touch, and each cell has the coarse floor on a coarse pointer. */
 	pitch: 'touch-pitch',
+	/**
+	 * A scroll box with no padding of its own keeps each hit area at its bottom
+	 * edge in the box on a coarse pointer (`core/touch/scroll.ts`).
+	 */
+	scroll: 'touch-scroll',
 } as const

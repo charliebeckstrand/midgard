@@ -135,8 +135,13 @@ const actions = [flex.row, 'shrink-0 gap-2', dan.size.button.row]
  *
  * The content box is the inline-size container of the widget. A container query
  * or a `cqi` unit in the widget therefore reads the tile, and not the board.
+ *
+ * The box has no padding, so a widget can put a control on its bottom edge,
+ * such as the legend of a chart or the page bar of a grid. On a coarse pointer,
+ * the hit area of such a control goes past the edge, and the box then scrolls
+ * by that part. The box therefore keeps the hit areas in it (`touch.scroll`).
  */
-const content = '@container relative min-h-0 flex-auto overflow-auto'
+const content = ['@container relative min-h-0 flex-auto overflow-auto', touch.scroll]
 
 /**
  * The content box of an expanded tile, in its dialog. The tile sets the ratio
