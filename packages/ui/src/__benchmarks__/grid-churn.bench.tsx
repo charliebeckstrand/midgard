@@ -112,15 +112,19 @@ type Gesture = 'rerender' | 'sortFlip' | 'refresh' | 'sortedRefresh' | 'pageTurn
  * The windowed grid reads its rows from arrays of every loaded row. A sort
  * flip copies the rows and the keys in view order, which is two arrays. A
  * refresh builds the keys again, which is one array. An append builds the keys
- * again, and the virtualizer copies its measurements. Each windowed gesture
- * that changes the rows also walks every loaded row with `for...of` loops,
- * such as the loop of `hashKeys`. Until V8 optimizes a loop, each step
- * allocates an iterator result of 40 bytes. In each layout, the sort of new
- * rows decodes a sort key for each row.
+ * again, and the virtualizer copies its measurements. In each layout, the sort
+ * of new rows decodes a sort key for each row.
+ *
+ * Each windowed gesture that changes the rows also hashes every loaded key in
+ * `hashKeys`. That loop allocates nothing for each row. Without the optimizing
+ * tiers, a `for...of` loop allocates an iterator result of 40 bytes for each
+ * step, and an integer that is larger than 30 bits can allocate a heap number.
+ * Thus a loop over the loaded rows on these paths must be an indexed loop that
+ * keeps its integers small.
  */
 const BUDGETS: Record<Layout, Partial<Record<Gesture, number>>> = {
 	paged: { rerender: 0, sortFlip: 0, refresh: 0, sortedRefresh: 127.4, pageTurn: 0, append: 0 },
-	windowed: { rerender: 0, sortFlip: 93.1, refresh: 86, sortedRefresh: 221.3, append: 94 },
+	windowed: { rerender: 0, sortFlip: 15.2, refresh: 8, sortedRefresh: 143.5, append: 16 },
 }
 
 /** The state that a case renders. */
