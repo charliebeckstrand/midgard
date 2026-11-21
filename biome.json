@@ -96,6 +96,47 @@
 			}
 		},
 		{
+			"includes": [
+				"packages/ui/src/core/**",
+				"packages/ui/src/utilities/**",
+				"packages/ui/src/types/**"
+			],
+			"linter": {
+				"rules": {
+					"style": {
+						"noRestrictedImports": {
+							"level": "error",
+							"options": {
+								"patterns": [
+									{
+										"group": [
+											"**/hooks",
+											"**/hooks/**",
+											"**/primitives",
+											"**/primitives/**",
+											"**/components",
+											"**/components/**",
+											"**/structure",
+											"**/structure/**",
+											"**/layouts",
+											"**/layouts/**",
+											"**/providers",
+											"**/providers/**",
+											"**/modules",
+											"**/modules/**",
+											"**/recipes",
+											"**/recipes/**"
+										],
+										"message": "core, utilities, and types are the bottom of the layers of ui (REFERENCE.md §1). They read each other and nothing above them: no hook, primitive, component, structure, layout, provider, module, or recipe."
+									}
+								]
+							}
+						}
+					}
+				}
+			}
+		},
+		{
 			"includes": ["packages/ui/src/hooks/**"],
 			"linter": {
 				"rules": {
@@ -114,12 +155,14 @@
 											"**/layouts/**",
 											"**/providers",
 											"**/providers/**",
+											"**/modules",
+											"**/modules/**",
 											"**/recipes/kata",
 											"**/recipes/kata/**",
 											"**/recipes/kumi",
 											"**/recipes/kumi/**"
 										],
-										"message": "Top-level hooks are reusable building blocks consumed by components, primitives, and other hooks. They must not import from components, structure, layouts, providers, or recipe-layer internals (kata / kumi). Importing from primitives is allowed; hooks may read context from primitive providers."
+										"message": "Top-level hooks are reusable building blocks consumed by components, primitives, and other hooks. They must not import from components, structure, layouts, providers, modules, or recipe-layer internals (kata / kumi). Importing from primitives is allowed; hooks may read context from primitive providers."
 									}
 								]
 							}
@@ -153,9 +196,11 @@
 											"**/structure",
 											"**/structure/**",
 											"**/layouts",
-											"**/layouts/**"
+											"**/layouts/**",
+											"**/modules",
+											"**/modules/**"
 										],
-										"message": "Primitives are foundational React/HTML abstractions consumed by components. They must not import from components, structure, or layouts. Imports from recipes/kata/ (the recipe funnel) are permitted; kata is the curated recipe surface for both components and primitives."
+										"message": "Primitives are foundational React/HTML abstractions consumed by components. They must not import from components, structure, layouts, or modules. Imports from recipes/kata/ (the recipe funnel) are permitted; kata is the curated recipe surface for both components and primitives."
 									}
 								]
 							}
