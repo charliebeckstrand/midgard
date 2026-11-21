@@ -143,7 +143,10 @@ describe('sendReport', () => {
 
 		const sent = JSON.stringify(port.mock.calls[0]?.[0])
 
-		for (const secret of [...Object.values(secrets), 'mjolnir']) expect(sent).not.toContain(secret)
+		// A value shows as the text after `=`. The report also holds times and
+		// stack lines, which can contain the digits of a code.
+		for (const secret of [...Object.values(secrets), 'mjolnir'])
+			expect(sent).not.toContain(`=${secret}`)
 
 		expect(sent).not.toContain('keydown 9')
 

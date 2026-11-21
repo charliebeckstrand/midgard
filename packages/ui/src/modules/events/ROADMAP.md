@@ -21,7 +21,7 @@ The trail masks each secret field, by one rule (`isSecret` in [`events-target.ts
 
 - An `input[type="password"]` or a `PasswordInput`.
 - An input with the `autocomplete` token `cc-number`, `cc-exp`, `cc-csc`, or `one-time-code`. These are the three parts of `CreditCardInput` and the code field of a two-step form.
-- An `input`, a `textarea`, a `select`, or a `contenteditable` element in an element with the `data-events-mask` attribute, or with the attribute itself.
+- An `input`, a `textarea`, a `select`, a `contenteditable` element, or an ARIA combobox or listbox in an element with the `data-events-mask` attribute, or with the attribute itself. A popup in a portal, such as the panel of a `Select`, is in the mask while a masked trigger names it in `aria-controls`.
 
 The value of a secret field shows as `***`, which has a fixed length, and so does each key that types a character into it. A named key, such as `Enter` or `Tab`, stays, so the trail still shows a submit (#3492). The rule does not find a secret by its content. Thus the trail shows the value and the keys of a secret field with no listed token and no `data-events-mask`. The app must put the attribute on that field or on its form.
 

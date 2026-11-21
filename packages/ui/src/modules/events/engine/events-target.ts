@@ -28,9 +28,8 @@ export const MASK = '***'
 
 /**
  * The attribute that masks each field in its element, and the element
- * itself. A field is an `input`, a `textarea`, a `select`, or an element that
- * the user can edit (`contenteditable`). An app puts the attribute on a form
- * or a field that holds a secret which no `autocomplete` token names.
+ * itself. An app puts it on a form or a field that holds a secret which no
+ * `autocomplete` token names. {@link MASKED_FIELD} gives the kinds of field.
  *
  * @internal
  */
@@ -44,21 +43,57 @@ export const MASK_ATTRIBUTE = 'data-events-mask'
 const SECRET_TOKENS = ['cc-number', 'cc-exp', 'cc-csc', 'one-time-code']
 
 /**
- * The secret fields. Each input of type `password` is one, and so is each
- * `PasswordInput`, which keeps its slot while it shows the password as text.
- * So is each input with a token of {@link SECRET_TOKENS}, and each field in
- * an element with {@link MASK_ATTRIBUTE}.
+ * The fields that are secret in each place. Each input of type `password` is
+ * one, and so is each `PasswordInput`, which keeps its slot while it shows
+ * the password as text. So is each input with a token of {@link SECRET_TOKENS}.
  */
 const SECRET = [
 	'input[type="password"]',
 	'input[data-slot="password-input"]',
 	...SECRET_TOKENS.map((token) => `input[autocomplete~="${token}" i]`),
-	`:is(input, textarea, select, [contenteditable]:not([contenteditable="false" i])):is([${MASK_ATTRIBUTE}], [${MASK_ATTRIBUTE}] *)`,
 ].join(', ')
+
+/**
+ * The fields that {@link MASK_ATTRIBUTE} masks. They are each `input`,
+ * `textarea`, and `select`, and each element that the user can edit
+ * (`contenteditable`). The ARIA combobox and listbox are fields too, so the
+ * mask covers the trigger of a `Select`, its panel, and each option.
+ */
+const MASKED_FIELD = [
+	'input',
+	'textarea',
+	'select',
+	'[contenteditable]:not([contenteditable="false" i])',
+	'[role="combobox"]',
+	'[role="listbox"]',
+	'[role="listbox"] [role="option"]',
+].join(', ')
+
+/**
+ * Whether an element is in an element with {@link MASK_ATTRIBUTE}. A popup
+ * in a portal is outside the masked element, but its trigger names it in
+ * `aria-controls` while it is open. So an element in a popup that a masked
+ * element controls is in the mask too.
+ */
+function inMask(el: Element): boolean {
+	if (el.closest(`[${MASK_ATTRIBUTE}]`)) return true
+
+	const controllers = document.querySelectorAll(
+		`[${MASK_ATTRIBUTE}][aria-controls], [${MASK_ATTRIBUTE}] [aria-controls]`,
+	)
+
+	for (const controller of controllers)
+		for (const id of controller.getAttribute('aria-controls')?.split(/\s+/) ?? [])
+			if (id && document.getElementById(id)?.contains(el)) return true
+
+	return false
+}
 
 /** Whether an event target is a secret field, whose value and typed characters the events do not write. @internal */
 export function isSecret(target: unknown): boolean {
-	return target instanceof Element && target.matches(SECRET)
+	if (!(target instanceof Element)) return false
+
+	return target.matches(SECRET) || (target.matches(MASKED_FIELD) && inMask(target))
 }
 
 /**

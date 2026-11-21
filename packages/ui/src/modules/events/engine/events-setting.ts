@@ -86,8 +86,9 @@ export function isEventsOn(): boolean {
  * character that a key types into it. A password field is a secret field. So
  * is an input with the `autocomplete` token `cc-number`, `cc-exp`, `cc-csc`,
  * or `one-time-code`. So is each field in an element with the
- * `data-events-mask` attribute: an `input`, a `textarea`, a `select`, or a
- * `contenteditable` element. Put `data-events-mask` on each other field
+ * `data-events-mask` attribute: an `input`, a `textarea`, a `select`, a
+ * `contenteditable` element, or a `Select`. The mask reaches the panel of a
+ * `Select` in its portal, through the `aria-controls` of the trigger. Put `data-events-mask` on each other field
  * that holds a secret, or on its form.
  */
 export function startEvents(next: StartEventsOptions = {}): Promise<void> {
