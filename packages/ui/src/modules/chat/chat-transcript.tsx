@@ -485,6 +485,9 @@ export function ChatTranscript({
 	// A hover toolbar rises above its message, and the scroll clips it above the first row.
 	const roomy = actions !== undefined && trigger !== 'static'
 
+	// The first row makes room for that toolbar.
+	const firstRow = roomy ? slots.first : undefined
+
 	useA11yAnnouncements(describeTranscript(intl, messages, streaming))
 
 	const measured = virtualItems.length > 0
@@ -534,7 +537,7 @@ export function ChatTranscript({
 							ref={measureRef}
 							data-index={index}
 							data-slot="chat-transcript-row"
-							className={index > 0 ? slots.row : roomy ? slots.first : undefined}
+							className={index > 0 ? slots.row : firstRow}
 						>
 							<ChatRowContext value={key}>
 								<ChatTranscriptRow

@@ -153,16 +153,12 @@ export function affineBasis(
  * that draws no area.
  */
 function firstPosition({ geometry }: MapFeature): LngLat | undefined {
-	if (geometry === null) return undefined
+	if (geometry?.type === 'Polygon') return geometry.coordinates[0]?.[0] as LngLat | undefined
 
-	const rings =
-		geometry.type === 'Polygon'
-			? geometry.coordinates
-			: geometry.type === 'MultiPolygon'
-				? geometry.coordinates[0]
-				: undefined
+	if (geometry?.type === 'MultiPolygon')
+		return geometry.coordinates[0]?.[0]?.[0] as LngLat | undefined
 
-	return rings?.[0]?.[0] as LngLat | undefined
+	return undefined
 }
 
 /**

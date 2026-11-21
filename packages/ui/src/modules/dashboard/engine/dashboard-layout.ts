@@ -482,9 +482,13 @@ function clampMoves({ item, cell }: ClampedEntry): boolean {
 
 /** Compares two saved entries by row, then by column, then by id. */
 function bySavedPlace(a: ClampedEntry, b: ClampedEntry): number {
-	const id = a.item.id < b.item.id ? -1 : a.item.id > b.item.id ? 1 : 0
+	if (a.item.y !== b.item.y) return a.item.y - b.item.y
 
-	return a.item.y - b.item.y || a.item.x - b.item.x || id
+	if (a.item.x !== b.item.x) return a.item.x - b.item.x
+
+	if (a.item.id < b.item.id) return -1
+
+	return a.item.id > b.item.id ? 1 : 0
 }
 
 /**

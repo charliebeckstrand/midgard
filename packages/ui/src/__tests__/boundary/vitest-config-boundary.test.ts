@@ -77,11 +77,10 @@ function configGraph(config: string): Graph {
 			// `vitest.shared.mts` of the repository root, resolves as it is named.
 			const named = resolve(dirname(file), specifier)
 
-			const target = /\.tsx?$/.test(specifier)
-				? resolveSource(file, specifier.replace(/\.tsx?$/, ''))
-				: existsSync(named)
-					? named
-					: undefined
+			let target: string | undefined
+
+			if (/\.tsx?$/.test(specifier)) target = resolveSource(file, specifier.replace(/\.tsx?$/, ''))
+			else if (existsSync(named)) target = named
 
 			if (!target) throw new Error(`${relative(workspaceRoot, file)}: no file for ${specifier}`)
 

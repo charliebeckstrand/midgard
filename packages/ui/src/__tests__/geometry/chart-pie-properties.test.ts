@@ -232,12 +232,13 @@ describe('pieCallouts · properties', () => {
 					// The part of the segment inside the band, as a span of its parameter.
 					const enter = (y: number) => (y1 === y0 ? Number.NaN : (y - y0) / (y1 - y0))
 
-					const [from, to] =
-						y1 === y0
-							? Math.abs(y0 - label.y) <= half
-								? [0, 1]
-								: [1, 0]
-							: [enter(label.y - half), enter(label.y + half)].sort((a, b) => a - b)
+					// A flat segment lies in the band as a whole, or not at all.
+					let span: number[]
+
+					if (y1 === y0) span = Math.abs(y0 - label.y) <= half ? [0, 1] : [1, 0]
+					else span = [enter(label.y - half), enter(label.y + half)].sort((a, b) => a - b)
+
+					const [from, to] = span
 
 					const lo = Math.max(0, from as number)
 

@@ -77,11 +77,9 @@ export function useScrollRegion(options: ScrollRegionOptions = {}): RefCallback<
 			if (!node || node.hasAttribute('tabindex')) return
 
 			// `labelledBy` wins over `label`, as `aria-labelledby` wins in the browser.
-			const name: [string, string] | null = labelledBy
-				? ['aria-labelledby', labelledBy]
-				: label
-					? ['aria-label', label]
-					: null
+			const labelName: [string, string] | null = label ? ['aria-label', label] : null
+
+			const name: [string, string] | null = labelledBy ? ['aria-labelledby', labelledBy] : labelName
 
 			let scrolls = false
 

@@ -301,13 +301,11 @@ describe('grid virtualized grouped body (real browser)', () => {
 	/** The kinds of item row in `rows`: a group header, a leaf, or a group total. */
 	function rowKinds(rows: HTMLElement[]) {
 		return new Set(
-			rows.map((row) =>
-				row.hasAttribute('data-group-row')
-					? 'group'
-					: row.dataset.totalRow === 'group'
-						? 'total'
-						: 'leaf',
-			),
+			rows.map((row) => {
+				if (row.hasAttribute('data-group-row')) return 'group'
+
+				return row.dataset.totalRow === 'group' ? 'total' : 'leaf'
+			}),
 		)
 	}
 

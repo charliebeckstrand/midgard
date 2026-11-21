@@ -863,6 +863,50 @@ function lessCost(a: readonly number[], b: readonly number[]): boolean {
 	return false
 }
 
+/** The x where the text of `box` anchors: its start, its end, or its center. @internal */
+function anchoredX(anchor: PlacedValueLabel['anchor'], box: LabelBox): number {
+	if (anchor === 'start') return box.x0
+
+	if (anchor === 'end') return box.x1
+
+	return (box.x0 + box.x1) / 2
+}
+
+/**
+ * The room of the text of `box`, short of {@link LABEL_ROOM} before the nearest
+ * rule past the anchor: `right` after it, and `left` before it. The room keeps
+ * the padding. @internal
+ */
+function cutRoom(
+	anchor: PlacedValueLabel['anchor'],
+	box: LabelBox,
+	left: number,
+	right: number,
+): number {
+	if (anchor === 'start') return right - LABEL_ROOM - box.x0
+
+	if (anchor === 'end') return box.x1 - left - LABEL_ROOM
+
+	const at = anchoredX(anchor, box)
+
+	return 2 * (Math.min(at - left, right - at) - LABEL_ROOM)
+}
+
+/** The span across the axis of the cut box, `padded` wide, that keeps the anchor of `box`. @internal */
+function cutSpan(
+	anchor: PlacedValueLabel['anchor'],
+	box: LabelBox,
+	padded: number,
+): [number, number] {
+	if (anchor === 'start') return [box.x0, box.x0 + padded]
+
+	if (anchor === 'end') return [box.x1 - padded, box.x1]
+
+	const at = anchoredX(anchor, box)
+
+	return [at - padded / 2, at + padded / 2]
+}
+
 /**
  * The spot cut short of the other rules across its line that it crosses, or
  * `null` where it crosses none, or no cut of the label fits. A rule that a
@@ -888,32 +932,19 @@ function cutSpot(
 
 	if (!across.some((line) => crosses(line, box))) return null
 
-	const at = anchor === 'start' ? box.x0 : anchor === 'end' ? box.x1 : (box.x0 + box.x1) / 2
+	const at = anchoredX(anchor, box)
 
 	const right = Math.min(...across.filter((line) => line.x0 > at).map((line) => line.x0))
 
 	const left = Math.max(...across.filter((line) => line.x0 < at).map((line) => line.x0))
 
-	// The room of the text: its box, less the padding, short of the room of each rule.
-	const room =
-		anchor === 'start'
-			? right - LABEL_ROOM - box.x0
-			: anchor === 'end'
-				? box.x1 - left - LABEL_ROOM
-				: 2 * (Math.min(at - left, right - at) - LABEL_ROOM)
-
-	const width = cut(room - 2 * LABEL_PAD)
+	const width = cut(cutRoom(anchor, box, left, right) - 2 * LABEL_PAD)
 
 	if (width === null || width >= spot.width) return null
 
 	const padded = width + 2 * LABEL_PAD
 
-	const [x0, x1] =
-		anchor === 'start'
-			? [box.x0, box.x0 + padded]
-			: anchor === 'end'
-				? [box.x1 - padded, box.x1]
-				: [at - padded / 2, at + padded / 2]
+	const [x0, x1] = cutSpan(anchor, box, padded)
 
 	return { ...spot, width, box: { ...box, x0, x1 }, cut: true }
 }
