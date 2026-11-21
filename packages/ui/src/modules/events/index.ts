@@ -1,3 +1,4 @@
+export { postReport } from './engine/events-post'
 export {
 	isEventsOn,
 	type StartEventsOptions,
