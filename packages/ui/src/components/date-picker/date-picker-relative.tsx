@@ -10,8 +10,6 @@ import { DateInputResetContext, useDateInputResets } from '../date-input/context
 import { DateTimePending } from '../date-time/date-time-pending'
 import { Field, Label } from '../fieldset'
 import { Icon } from '../icon'
-// Sibling variant reused for the custom range's Start/End fields; safe despite the
-// import cycle since both are hoisted function declarations used only at render.
 import type { DatePickerBaseProps, DatePickerRelativeProps } from './date-picker'
 import { DatePickerContent } from './date-picker-content'
 import { DatePickerFooter } from './date-picker-footer'
