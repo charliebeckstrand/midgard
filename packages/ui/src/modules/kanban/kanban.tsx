@@ -54,12 +54,13 @@ const cancelEveryDrop = () => true
  * column body take `data-disabled`, each body dims, and each handle shows a
  * muted grip. The board gives the state of the drag and of the keyboard to
  * each {@link KanbanColumn} and {@link KanbanCard} below it through context.
- * Compose the column header/body slots within. A pointer drags a card, and the
- * keyboard lifts a card, only from its {@link KanbanCardHandle}.
+ * Compose the header slot and the body slot of each column within. A pointer
+ * drags a card, and the keyboard lifts a card, only from its
+ * {@link KanbanCardHandle}.
  *
  * @remarks
  * Client component. The board is a named `role="region"` (`<section>`), so the
- * type requires one of `aria-label` / `aria-labelledby`. While the columns
+ * type requires `aria-label` or `aria-labelledby`. While the columns
  * overflow the board, the board is also a tab stop. A consumer `ref` reaches
  * the `<section>` element.
  *
@@ -138,7 +139,7 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 	const boardRef = useComposedRefs(containerRef, scrollRegionRef, ref)
 
 	// Card-facing value: stays referentially stable through a pointer drag (which
-	// moves only activeId/columnItemIds), so cards don't re-render per drag move.
+	// moves only activeId and columnItemIds), so cards don't re-render per drag move.
 	const contextValue = useMemo(
 		() => ({
 			interactive,
