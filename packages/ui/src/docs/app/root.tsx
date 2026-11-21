@@ -10,7 +10,13 @@ import { Heading } from 'ui/heading'
 import { Icon } from 'ui/icon'
 import { SidebarLayout, SidebarLayoutBody, SidebarLayoutHeader } from 'ui/layouts'
 import { defineMessage, defineMessages, useIntl } from 'ui/primitives/intl'
-import { AppearanceProvider, AppearanceSettings, useAppearance } from 'ui/providers/appearance'
+import {
+	AppearanceLanguageField,
+	AppearanceProvider,
+	AppearanceSettings,
+	AppearanceSidebarField,
+	useAppearance,
+} from 'ui/providers/appearance'
 import { LocaleProvider } from 'ui/providers/locale'
 import { UIProvider } from 'ui/providers/ui'
 import { Stack } from 'ui/stack'
@@ -83,6 +89,8 @@ const ACTIONS = (
 		<EventsButton />
 		<AppearanceSettings>
 			<DirectionListbox />
+			<AppearanceLanguageField />
+			<AppearanceSidebarField />
 			<EventsSwitch />
 		</AppearanceSettings>
 	</>
