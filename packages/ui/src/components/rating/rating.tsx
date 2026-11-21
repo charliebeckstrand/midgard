@@ -13,6 +13,7 @@ import { cn } from '../../core/cn'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { dataAttr } from '../../core/data-attr'
 import type { ScaleStep } from '../../core/density/scale'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import { useFormValue } from '../../primitives/form/use-form-value'
 import { Star } from '../../primitives/icons/icons'
 import { defineMessage, defineMessages } from '../../primitives/intl/intl-messages'
@@ -168,6 +169,9 @@ export type RatingProps = RatingVariants & {
 	 */
 	'data-slot'?: string
 } & Omit<ComponentProps<'span'>, 'defaultValue' | 'color' | 'children' | 'role'>
+
+/** The compose options of the row handlers: the bookkeeping runs whatever the consumer does. */
+const ungated = { checkForDefaultPrevented: false }
 
 /**
  * Star rating: a row of stars standing for a score out of {@link RatingProps.count}.
@@ -365,6 +369,16 @@ export function Rating({
 	// attributes. The display form sets both only to join the readout.
 	const labelledBy = ariaLabelledBy ?? control?.labelledBy
 
+	// The press flag is a ref, so its writers are stable events. The compiler then
+	// keeps the row compiled, though the row composes them in the render.
+	const startPress = useStableEvent(() => {
+		pressed.current = true
+	})
+
+	const endPress = useStableEvent(() => {
+		pressed.current = false
+	})
+
 	if (!radios) {
 		const valueText = getValueText(current, count)
 
@@ -506,37 +520,17 @@ export function Rating({
 			aria-readonly={ariaAttr(!live)}
 			{...validation}
 			className={rowClass}
-			// The press flag and the preview are bookkeeping of the row, so they run
-			// after each consumer handler, also one that cancels the event.
-			onPointerDown={composeEventHandlers(
-				onPointerDown,
-				() => {
-					pressed.current = true
-				},
-				{ checkForDefaultPrevented: false },
-			)}
+			// The consumer's handler runs first. The press flag and the preview are
+			// bookkeeping of the row, so they run also after a handler that cancels.
+			onPointerDown={composeEventHandlers(onPointerDown, startPress, ungated)}
 			// A press can end with no click: the platform cancels it, or the pointer
 			// goes up off the row. Such a press commits nothing, so it ends here. A key
 			// always goes down before the commit that it causes, so a key commit never
 			// takes a press that did not end.
-			onPointerCancel={composeEventHandlers(
-				onPointerCancel,
-				() => {
-					pressed.current = false
-				},
-				{ checkForDefaultPrevented: false },
-			)}
-			onKeyDown={composeEventHandlers(
-				onKeyDown,
-				() => {
-					pressed.current = false
-				},
-				{ checkForDefaultPrevented: false },
-			)}
-			onPointerLeave={composeEventHandlers(onPointerLeave, () => setPreviewed(null), {
-				checkForDefaultPrevented: false,
-			})}
-			onBlur={composeEventHandlers(onBlur, () => setTouched(), { checkForDefaultPrevented: false })}
+			onPointerCancel={composeEventHandlers(onPointerCancel, endPress, ungated)}
+			onKeyDown={composeEventHandlers(onKeyDown, endPress, ungated)}
+			onPointerLeave={composeEventHandlers(onPointerLeave, () => setPreviewed(null), ungated)}
+			onBlur={composeEventHandlers(onBlur, () => setTouched(), ungated)}
 		>
 			{stars.map((key, index) => {
 				const star = index + 1
