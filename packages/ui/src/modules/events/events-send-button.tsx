@@ -28,8 +28,8 @@ const colorByState = {
  * A button with the text label "Send" that sends the report of `entry`
  * through the `sendReport` of the app. While the send runs, it shows the
  * loading state and keeps the focus. Then it shows "Sent" in green, or "Send
- * failed" in red, and the live region speaks the result, because a screen
- * reader does not speak a change of the label of a focused control. A press
+ * failed" in a red outline, and the live region speaks the result, because a
+ * screen reader does not speak a change of the label of a focused control. A press
  * on "Send failed" sends again. A press on "Sent" does nothing, so the tracker
  * gets one copy of the report.
  *
@@ -58,6 +58,8 @@ export function EventsSendButton({ entry }: { entry: ReportEntry }) {
 	return (
 		<Button
 			size="sm"
+			// The outline sets a failed send apart from the solid red of Delete.
+			variant={state === 'failed' ? 'outline' : undefined}
 			color={colorByState[state]}
 			loading={state === 'sending'}
 			onClick={() => void send()}
