@@ -2054,6 +2054,38 @@ describe('Dashboard gesture owner', () => {
 	})
 })
 
+describe('Dashboard tile native props', () => {
+	it('puts the native props and the ref of the consumer on the tile', () => {
+		const ref = createRef<HTMLDivElement>()
+
+		const { container } = renderUI(
+			<Dashboard aria-label="Sales" layout={{ defaultValue: [{ id: 'a', x: 0, y: 0, w: 12 }] }}>
+				<DashboardTile
+					id="a"
+					title="Revenue"
+					ref={ref}
+					data-testid="revenue"
+					aria-describedby="note"
+					style={{ gridArea: '9 / 9', outline: '1px solid red' }}
+				/>
+			</Dashboard>,
+		)
+
+		const tile = bySlot(container, 'dashboard-tile')
+
+		expect(ref.current).toBe(tile)
+
+		expect(tile).toHaveAttribute('data-testid', 'revenue')
+
+		expect(tile).toHaveAttribute('aria-describedby', 'note')
+
+		// The consumer style stays, and the paint of the cell goes over it.
+		expect(tile?.style.outline).toBe('1px solid red')
+
+		expect(tile?.style.gridArea).toBe('1 / 1 / span 18 / span 12')
+	})
+})
+
 describe('Dashboard tile ids', () => {
 	/** The development error for a repeated id `a`. */
 	const repeated = expect.stringContaining('Dashboard: two tiles share the id "a"')

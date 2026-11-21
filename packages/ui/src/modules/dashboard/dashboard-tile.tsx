@@ -1,6 +1,7 @@
 'use client'
 
-import { type ReactNode, useCallback, useId, useMemo, useState } from 'react'
+import { useComposedRefs } from 'motion/react'
+import { type ComponentProps, type ReactNode, useCallback, useId, useMemo, useState } from 'react'
 import { Placeholder } from '../../components/placeholder'
 import { cn } from '../../core/cn'
 import type { ContentHeightHost } from '../../primitives/content-height/context'
@@ -192,7 +193,6 @@ export type DashboardTileProps = {
 	 * @defaultValue false
 	 */
 	expandable?: boolean
-	className?: string
 	/**
 	 * The widget. Keep the element stable, because a move never renders it again.
 	 *
@@ -204,7 +204,7 @@ export type DashboardTileProps = {
 	 * inert, so the retry button works only at rest.
 	 */
 	children?: ReactNode
-}
+} & Omit<ComponentProps<'div'>, 'id' | 'title' | 'children'>
 
 /**
  * One tile of a dashboard: a card with a header row and a content box.
@@ -247,6 +247,9 @@ export type DashboardTileProps = {
  * tile, such as a sparkline or a KPI, always shows its title.
  *
  * At rest, a truncated title shows its full text in a tooltip on hover.
+ *
+ * The native props and the `ref` go to the root `<div>` of the tile. The paint
+ * of the cell goes over a consumer `style`, because it places the tile.
  * @example
  * ```tsx
  * <DashboardTile id="revenue" title="Revenue" ratio={16 / 9} actions={<Badge>Live</Badge>}>
@@ -272,7 +275,10 @@ export function DashboardTile(props: DashboardTileProps) {
 		onDuplicate,
 		expandable = false,
 		className,
+		style,
+		ref,
 		children,
+		...rest
 	} = props
 
 	const label = title ?? id
@@ -328,6 +334,8 @@ export function DashboardTile(props: DashboardTileProps) {
 
 	const { node, setNodeRef } = drag
 
+	const setRef = useComposedRefs(setNodeRef, ref)
+
 	useDashboardFlip(node, { cell, carried: drag.carried, snap: projected, stacked })
 
 	const { reportError } = useDashboardActions()
@@ -350,10 +358,13 @@ export function DashboardTile(props: DashboardTileProps) {
 
 	return (
 		<div
-			ref={setNodeRef}
+			{...rest}
+			ref={setRef}
 			data-slot="dashboard-tile"
 			data-tile-id={id}
+			// The paint of the cell places the tile, so it goes over a consumer style.
 			style={{
+				...style,
 				...paint,
 				// The canvas publishes the gutter, and the tile insets half of it on each side.
 				padding: 'calc(var(--dashboard-gap) / 2)',
