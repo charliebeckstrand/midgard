@@ -18,8 +18,8 @@ export function isOwn(target: unknown): boolean {
 }
 
 /**
- * The text that the events write in place of a secret: the value of a
- * secret field, and each character that a key types into it. It has a
+ * The text that the events write in place of a secret. It replaces the value
+ * of a secret field, and each character that a key types into it. It has a
  * fixed length, so it does not tell the length of the secret.
  *
  * @internal
@@ -27,9 +27,10 @@ export function isOwn(target: unknown): boolean {
 export const MASK = '***'
 
 /**
- * The attribute that masks each `input` and `textarea` in its element, and
- * the element itself. An app puts it on a form or a field that holds a
- * secret which no `autocomplete` token names.
+ * The attribute that masks each field in its element, and the element
+ * itself. A field is an `input`, a `textarea`, a `select`, or an element that
+ * the user can edit (`contenteditable`). An app puts the attribute on a form
+ * or a field that holds a secret which no `autocomplete` token names.
  *
  * @internal
  */
@@ -43,24 +44,21 @@ export const MASK_ATTRIBUTE = 'data-events-mask'
 const SECRET_TOKENS = ['cc-number', 'cc-exp', 'cc-csc', 'one-time-code']
 
 /**
- * The secret fields: each input of type `password`, each `PasswordInput`,
- * which keeps its slot while it shows the password as text, each input with
- * a token of {@link SECRET_TOKENS}, and each field in an element with
- * {@link MASK_ATTRIBUTE}.
+ * The secret fields. Each input of type `password` is one, and so is each
+ * `PasswordInput`, which keeps its slot while it shows the password as text.
+ * So is each input with a token of {@link SECRET_TOKENS}, and each field in
+ * an element with {@link MASK_ATTRIBUTE}.
  */
 const SECRET = [
 	'input[type="password"]',
 	'input[data-slot="password-input"]',
 	...SECRET_TOKENS.map((token) => `input[autocomplete~="${token}" i]`),
-	`:is(input, textarea):is([${MASK_ATTRIBUTE}], [${MASK_ATTRIBUTE}] *)`,
+	`:is(input, textarea, select, [contenteditable]:not([contenteditable="false" i])):is([${MASK_ATTRIBUTE}], [${MASK_ATTRIBUTE}] *)`,
 ].join(', ')
 
 /** Whether an event target is a secret field, whose value and typed characters the events do not write. @internal */
 export function isSecret(target: unknown): boolean {
-	return (
-		(target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) &&
-		target.matches(SECRET)
-	)
+	return target instanceof Element && target.matches(SECRET)
 }
 
 /**

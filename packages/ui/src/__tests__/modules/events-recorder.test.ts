@@ -285,6 +285,57 @@ describe('listen', () => {
 		expect(store.entries[2]?.detail).toEqual({ key: '***', code: '***', repeat: false })
 	})
 
+	it('masks each select and editable element inside an element with the mask attribute', () => {
+		const store = listenTo()
+
+		const form = attach(document.createElement('form'))
+
+		form.setAttribute(MASK_ATTRIBUTE, '')
+
+		const select = form.appendChild(document.createElement('select'))
+
+		const editor = form.appendChild(document.createElement('div'))
+
+		editor.setAttribute('contenteditable', '')
+
+		const plain = form.appendChild(document.createElement('div'))
+
+		plain.setAttribute('contenteditable', 'plaintext-only')
+
+		// An element that the user cannot edit is not a field, so its keys stay.
+		const locked = form.appendChild(document.createElement('div'))
+
+		locked.setAttribute('contenteditable', 'false')
+
+		const button = form.appendChild(document.createElement('button'))
+
+		// A key that a select gets picks the option that starts with its character.
+		select.dispatchEvent(new KeyboardEvent('keydown', { key: 'v', code: 'KeyV', bubbles: true }))
+
+		select.dispatchEvent(
+			new KeyboardEvent('keydown', { key: 'ArrowDown', code: 'ArrowDown', bubbles: true }),
+		)
+
+		editor.dispatchEvent(new KeyboardEvent('keydown', { key: 's', code: 'KeyS', bubbles: true }))
+
+		plain.dispatchEvent(new KeyboardEvent('keydown', { key: 'p', code: 'KeyP', bubbles: true }))
+
+		locked.dispatchEvent(new KeyboardEvent('keydown', { key: 'l', code: 'KeyL', bubbles: true }))
+
+		button.dispatchEvent(new KeyboardEvent('keydown', { key: 'b', code: 'KeyB', bubbles: true }))
+
+		expect(texts(store)).toEqual([
+			'keydown *** select synthetic',
+			'keydown ArrowDown select synthetic',
+			'keydown *** div synthetic',
+			'keydown *** div synthetic',
+			'keydown l div synthetic',
+			'keydown b button synthetic',
+		])
+
+		expect(store.entries[0]?.detail).toEqual({ key: '***', code: '***', repeat: false })
+	})
+
 	it('records the start and the end of a scroll as one batch', async ({ clock }) => {
 		const store = listenTo()
 
