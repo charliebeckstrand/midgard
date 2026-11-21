@@ -361,6 +361,29 @@ describe('TreeItem', () => {
 	})
 
 	// The other two arrow cases move focus, as in the APG tree model.
+	it('runs the onKeyDown of the consumer, and roving still moves the focus', () => {
+		const onKeyDown = vi.fn()
+
+		renderUI(
+			<Tree aria-label="Files" onKeyDown={onKeyDown}>
+				<TreeItem label="a.ts" />
+				<TreeItem label="b.ts" />
+			</Tree>,
+		)
+
+		const first = screen.getByRole('treeitem', { name: 'a.ts' })
+
+		first.focus()
+
+		fireEvent.keyDown(first, { key: 'Delete' })
+
+		fireEvent.keyDown(first, { key: 'ArrowDown' })
+
+		expect(onKeyDown.mock.calls.map(([event]) => event.key)).toEqual(['Delete', 'ArrowDown'])
+
+		expect(screen.getByRole('treeitem', { name: 'b.ts' })).toHaveFocus()
+	})
+
 	it('moves to the first child of an open branch, and to the parent', () => {
 		renderUI(
 			<Tree aria-label="Files">

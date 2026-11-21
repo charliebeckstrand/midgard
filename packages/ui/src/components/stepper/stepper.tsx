@@ -3,6 +3,7 @@
 import { useComposedRefs } from 'motion/react'
 import { type HTMLAttributes, type ReactNode, type Ref, useId, useMemo, useRef } from 'react'
 import { cn } from '../../core/cn'
+import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { useA11yRoving } from '../../hooks/a11y/use-a11y-roving'
 import { useControllable } from '../../hooks/use-controllable'
 import { useResponsiveValue } from '../../hooks/use-responsive-value'
@@ -20,7 +21,7 @@ import { StepperPanels } from './stepper-panels'
 /** Props for {@link Stepper}: the controlled `value`, its `onValueChange` handler, `linear`/`orientation` modifiers, and step children. */
 export type StepperProps = Omit<
 	HTMLAttributes<HTMLElement>,
-	'className' | 'children' | 'onKeyDown' | 'aria-label' | 'aria-orientation' | 'defaultValue'
+	'className' | 'children' | 'aria-label' | 'aria-orientation' | 'defaultValue'
 > & {
 	/**
 	 * The ref of the step row.
@@ -120,7 +121,8 @@ function partitionChildren(children: ReactNode): {
  * no `defaultValue`) has no controls, so its row is an `<ol>` and each step is
  * an `<li>`. A screen reader then reads it as a list of N steps.
  * `aria-label` names the row in the two forms, and only the toolbar has
- * `aria-orientation`. Compose `<StepperSkeleton>` in loading trees.
+ * `aria-orientation`. A consumer `onKeyDown` runs before the roving. Compose
+ * `<StepperSkeleton>` in loading trees.
  */
 export function Stepper({
 	value,
@@ -133,6 +135,7 @@ export function Stepper({
 	className,
 	children,
 	ref,
+	onKeyDown,
 	...props
 }: StepperProps) {
 	const intl = useIntl()
@@ -205,7 +208,10 @@ export function Stepper({
 			role="toolbar"
 			aria-label={ariaLabel}
 			aria-orientation={resolvedOrientation}
-			onKeyDown={handleKeyDown}
+			// Roving takes no gate: the consumer's handler runs first, then roving.
+			onKeyDown={composeEventHandlers(onKeyDown, handleKeyDown, {
+				checkForDefaultPrevented: false,
+			})}
 			className="w-full"
 		>
 			<ol data-slot="stepper-list" className={rowClassName}>
@@ -219,6 +225,7 @@ export function Stepper({
 			data-slot="stepper"
 			data-orientation={resolvedOrientation}
 			aria-label={ariaLabel}
+			onKeyDown={onKeyDown}
 			className={rowClassName}
 		>
 			{rowChildren}

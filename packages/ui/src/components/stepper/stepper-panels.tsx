@@ -1,5 +1,5 @@
 import type { ComponentProps } from 'react'
-import { cn } from '../../core/cn'
+import { createSlot } from '../../core/create-slot'
 import { k } from '../../recipes/kata/stepper'
 
 /** Props for {@link StepperPanels}: `className` plus `<div>` attributes. */
@@ -12,10 +12,4 @@ export type StepperPanelsProps = ComponentProps<'div'>
  * row-plus-panels layout. The panels add nothing to the intrinsic width of the
  * stepper, so a host that fits its content keeps one width from step to step.
  */
-export function StepperPanels({ className, children, ...props }: StepperPanelsProps) {
-	return (
-		<div data-slot="stepper-panels" className={cn(k().panels, className)} {...props}>
-			{children}
-		</div>
-	)
-}
+export const StepperPanels = createSlot('div', 'stepper-panels', k().panels)

@@ -23,7 +23,7 @@ import { treeMoveForKey, treeMoveTarget } from './tree-keyboard'
 
 /** Props for {@link Tree}. Requires `aria-label` or `aria-labelledby`. */
 export type TreeProps = AccessibleName &
-	Omit<ComponentProps<'div'>, 'onKeyDown' | 'onFocus' | 'aria-label' | 'aria-labelledby'> & {
+	Omit<ComponentProps<'div'>, 'aria-label' | 'aria-labelledby'> & {
 		/**
 		 * The density step of the icons, the text, and the indent of all items.
 		 * Omit it to take the step of the nearest density scope. A step makes the
@@ -51,7 +51,7 @@ export type TreeProps = AccessibleName &
 		children: ReactNode
 	}
 
-/** Root of a `role="tree"` with roving-tabindex keyboard navigation and the APG arrow moves to a first child and to a parent. Type-ahead moves to the next visible, enabled row whose label starts with the typed text. It keeps the first item tabbable across open/close and filtering, and shares depth and `indent` to nested items via context. Requires `aria-label`/`aria-labelledby`. A consumer `ref` reaches the tree element. */
+/** Root of a `role="tree"` with roving-tabindex keyboard navigation and the APG arrow moves to a first child and to a parent. Type-ahead moves to the next visible, enabled row whose label starts with the typed text. It keeps the first item tabbable across open/close and filtering, and shares depth and `indent` to nested items via context. Requires `aria-label`/`aria-labelledby`. A consumer `ref` reaches the tree element. A consumer `onKeyDown` runs before the arrow moves and the roving, so a consumer can add a key, such as Delete. */
 export function Tree({
 	size,
 	indent = true,
@@ -59,6 +59,7 @@ export function Tree({
 	children,
 	className,
 	ref: consumerRef,
+	onKeyDown,
 	...labelProps
 }: TreeProps) {
 	const ref = useRef<HTMLDivElement>(null)
@@ -83,8 +84,11 @@ export function Tree({
 	// The horizontal arrows of the tree model: to the first child of an open
 	// branch, or to the parent of a closed branch or a leaf. A branch row opens
 	// and closes itself first and cancels the event. Every other key goes to roving.
+	// The consumer's handler runs first, and roving takes no gate on it.
 	const handleKeyDown = useCallback(
 		(event: KeyboardEvent<HTMLDivElement>) => {
+			onKeyDown?.(event)
+
 			const container = ref.current
 
 			const item = event.target
@@ -104,7 +108,7 @@ export function Tree({
 
 			rovingKeyDown(event)
 		},
-		[rovingKeyDown],
+		[onKeyDown, rovingKeyDown],
 	)
 
 	const rootContextValue = useMemo(() => ({ depth: 0, indent, mount }), [indent, mount])
