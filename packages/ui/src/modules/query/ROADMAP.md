@@ -55,7 +55,7 @@ The [`module-filename-boundary.test.ts`](../../__tests__/boundary/module-filenam
 ## Backlog
 
 - **A custom editor in a grid column filter.** `GridColumn.filterType` takes only a primitive type, and `toQueryField` in the column filter button builds the field from the name, the label, the type, the options, and the span. So a column cannot name a custom editor. The column sheet already renders `QueryBuilder`, so a provider above the grid reaches it. The column needs a way to give `editor`, `formatValue`, and `operators` to its field, because a set editor needs `in` or `notIn`, which no field type offers by default.
-- **A read-only builder.** `QueryBuilder` has `disabled` and no `readOnly`, and it sets no lock scope. A read-only view is `QueryChips` with `readOnly` or `QuerySummary` today. A `readOnly` prop can provide the lock scope. The value editor, the buttons, and the field and operator selects read the lock. The `Segment` of the AND/OR combinator does not read it, so it must read the lock first. Until then, a builder in a `Form` keeps a live combinator while a submit runs.
+- **A read-only builder.** `QueryBuilder` has `disabled` and no `readOnly`, and it sets no lock scope. A read-only view is `QueryChips` with `readOnly` or `QuerySummary` today. A `readOnly` prop can provide the lock scope. The value editor, the buttons, the field and operator selects, and the AND/OR segment read the lock. The segment items take `lockable`, because a `Tab` stays live in a locked scope by default.
 
 ---
 
