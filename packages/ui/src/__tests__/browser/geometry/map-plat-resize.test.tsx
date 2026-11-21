@@ -147,3 +147,73 @@ describe('MapPlat free-form fill sizing in a grid cell (real browser)', () => {
 		expect(plotViewBox(container, 'map-plot').height).toBeNear(300, HALF_PIXEL)
 	})
 })
+
+describe('MapPlat free-form fill sizing in a box of auto height (real browser)', () => {
+	it('takes the ratio of the geography and not a height of 0', async () => {
+		// A dashboard tile with `fitContent` gives its content an auto height on a
+		// narrow board. A plot of `flex-1` then had no basis and drew 0 px high.
+		const { container } = renderUI(
+			<div style={{ width: 480 }}>
+				<MapPlat aria-label="Fill" geography={FIXTURE_GEOJSON} aspectRatio={false} />
+			</div>,
+		)
+
+		const plot = getSlot(container, 'map-plot')
+
+		await waitFor(() => expect(plotViewBox(container, 'map-plot').height).toBeGreaterThan(0))
+
+		const ratio = Number.parseFloat(plot.style.aspectRatio)
+
+		expect(ratio).toBeGreaterThan(0)
+
+		expect(plot.getBoundingClientRect().height).toBeNear(480 / ratio, HALF_PIXEL)
+
+		expect(plotViewBox(container, 'map-plot').height).toBeNear(plot.clientHeight, HALF_PIXEL)
+	})
+
+	it('keeps a legend of two rows in a box that is shorter than the ratio of the plot', async () => {
+		// The plot shrinks to fit the box. The legend row does not shrink with it,
+		// so the legend stays inside the frame. Long names wrap the legend to two
+		// rows, so the legend is taller than the `min-h-8` of its row.
+		const rows = [
+			{ state: 'A', zone: 'The eastern zone of the fixture' },
+			{ state: 'B', zone: 'The western zone of the fixture' },
+		]
+
+		const { container } = renderUI(
+			<div style={{ width: 240, height: 120 }}>
+				<MapPlat
+					aria-label="Fill"
+					geography={FIXTURE_GEOJSON}
+					data={rows}
+					regionKey="state"
+					categoryKey="zone"
+					aspectRatio={false}
+				/>
+			</div>,
+		)
+
+		const frame = present(container.firstElementChild as HTMLElement | null, 'the sizing frame')
+
+		const items = () => getSlot(container, 'map-legend').querySelectorAll('button')
+
+		await waitFor(() => expect(items().length).toBe(2))
+
+		const [first, second] = [...items()]
+
+		// The two entries are on two rows.
+		expect(present(second, 'the second entry').offsetTop).toBeGreaterThan(
+			present(first, 'the first entry').offsetTop,
+		)
+
+		const plot = getSlot(container, 'map-plot')
+
+		expect(plot.getBoundingClientRect().height).toBeLessThan(
+			240 / Number.parseFloat(plot.style.aspectRatio),
+		)
+
+		expect(getSlot(container, 'map-legend').getBoundingClientRect().bottom).toBeLessThanOrEqual(
+			frame.getBoundingClientRect().bottom + HALF_PIXEL,
+		)
+	})
+})
