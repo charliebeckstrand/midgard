@@ -31,7 +31,7 @@ Each adapter lives in its consumer, so `ui` has no dependency on a framework. Th
 
 The store, the sources, the sink, and the recorder are in [`engine/`](engine). The engine has no `'use client'`, no runtime import of `react`, and no `index` barrel. [`engine-purity-boundary.test.ts`](../../__tests__/boundary/engine-purity-boundary.test.ts) holds this rule for the events engine and the other engines.
 
-The barrel exports only the light modules: the setting, the sink, and the shells of the views. The recorder, the sources, and the store load only while the events run. Thus an app that does not turn on the events loads no part of the recorder.
+The barrel exports only the light modules: the setting, the sink, the shells of the views, and `postReport`, which imports only types. The recorder, the sources, and the store load only while the events run. Thus an app that does not turn on the events loads no part of the recorder.
 
 ## Backlog
 

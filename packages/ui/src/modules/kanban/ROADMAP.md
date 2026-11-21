@@ -6,7 +6,7 @@
 
 The board takes its data and its structure apart, and the keys join them. `columns` holds the order that the board changes, and the children hold what each column and each card render. A `KanbanColumn` key or a `KanbanCard` key that names no data renders, does nothing, and warns in development.
 
-The board composes the parts of the library. A column is a `Card` with the `tint` fill and a named `role="group"`, so the board stays the one region. A card is a `Card` with the `surface` fill inside an `<li>`. The column title renders through `Heading` on the title scale, as a `CardTitle` does. The handle is a `SortableGrip` with an `Icon`. The drag overlay is a `PortalDragOverlay`, and the keyboard lift is `useKeyboardLifted`.
+The board composes the parts of the library. A column is a `Card` with the `tint` fill and a named `role="group"`, so the board stays the one region. A card is a `Card` with the `surface` fill inside an `<li>`. The column title is a `CardTitle`. The handle is a `SortableGrip` with an `Icon`. The drag overlay is a `PortalDragOverlay`, and the keyboard lift is `useKeyboardLifted`.
 
 `KanbanCardSurface` is the box of a card. It holds a handle child at the start edge, and puts the other children in one column beside it. The card and the drag overlay both render it, so the overlay has the box of the card.
 
