@@ -100,24 +100,31 @@ describe('ChatCitationProvider', () => {
 		expect(piece).toHaveAttribute('data-pressed')
 	})
 
-	it('renders a citation whose target is not registered as prose', () => {
+	it('marks a citation whose target is not registered, with no control', () => {
 		const { container } = renderUI(
 			<Cited citations={[cite('c1', 'Twelve stops are late', 'unknown')]} />,
 		)
 
 		expect(screen.queryByRole('button')).toBeNull()
 
+		expect(bySlot(container, 'chat-citation-mark')?.textContent).toBe('Twelve stops are late')
+
 		expect(bySlot(container, 'markdown')?.textContent).toBe(
 			'Twelve stops are late, most of them on Tuesday.',
 		)
 	})
 
-	it('renders a citation as prose with no provider', () => {
-		renderUI(
-			<ChatMessage sender="assistant">{reply([cite('c1', 'Twelve stops are late')])}</ChatMessage>,
+	it('marks each piece of a citation with no provider, with no control', () => {
+		const { container } = renderUI(
+			<ChatMessage sender="user">{reply([cite('c1', 'most of them on **Tuesday**')])}</ChatMessage>,
 		)
 
 		expect(screen.queryByRole('button')).toBeNull()
+
+		expect(allBySlot(container, 'chat-citation-mark').map((piece) => piece.textContent)).toEqual([
+			'most of them on ',
+			'Tuesday',
+		])
 	})
 
 	it('keeps the description out of the name of the anchor and out of sight', () => {

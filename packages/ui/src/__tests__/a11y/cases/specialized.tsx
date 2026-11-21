@@ -1,6 +1,7 @@
 import { Input } from '../../../components/input'
 import { PdfViewer, type PdfViewerPage } from '../../../components/pdf-viewer'
 import {
+	type ChatCitation,
 	ChatCitationProvider,
 	ChatMessage,
 	type ChatMessageData,
@@ -102,6 +103,40 @@ const citedReply: ChatMessageData[] = [
 
 const citationTargets = { 'late-by-day': { label: 'Late stops by day' } }
 
+const SCOPE = '@Late stops'
+
+/**
+ * A question that a dataset scopes, and its reply. The scope is a citation of
+ * the user text whose target no provider registers, so it is marked text on
+ * the fill of the user bubble: a contrast pair that no other case covers.
+ */
+const scopeCitation: ChatCitation = {
+	id: 's1',
+	start: 14,
+	end: 14 + SCOPE.length,
+	quote: SCOPE,
+	target: 'dataset',
+	selector: { datasets: ['late'] },
+}
+
+const scopeTargets = { dataset: { label: 'Late stops' } }
+
+const scopedQuestion: ChatMessageData[] = [
+	{
+		id: 'u1',
+		sender: 'user',
+		content: [
+			{
+				kind: 'text',
+				id: 'text',
+				text: `Which days of ${SCOPE} are worst?`,
+				citations: [scopeCitation],
+			},
+		],
+	},
+	{ id: 'a1', sender: 'assistant', content: 'Tuesday, by a wide margin.' },
+]
+
 /** Domain & specialized surfaces, plus the headless escape hatch. */
 export const specializedCases: readonly Case[] = [
 	{
@@ -145,6 +180,21 @@ export const specializedCases: readonly Case[] = [
 		element: (
 			<ChatCitationProvider key="ctc" targets={citationTargets} cited={null} onCite={noop}>
 				<ChatTranscript messages={citedReply} />
+			</ChatCitationProvider>
+		),
+	},
+	{
+		// A citation with no registered view is marked text with no control.
+		name: 'chat transcript with a scoped question',
+		element: <ChatTranscript key="ctq" messages={scopedQuestion} />,
+	},
+	{
+		// The scope selects in a view, and it is pressed: the fill of a pressed
+		// citation on the fill of the user bubble.
+		name: 'chat transcript with a pressed scope',
+		element: (
+			<ChatCitationProvider key="ctp" targets={scopeTargets} cited={scopeCitation} onCite={noop}>
+				<ChatTranscript messages={scopedQuestion} />
 			</ChatCitationProvider>
 		),
 	},

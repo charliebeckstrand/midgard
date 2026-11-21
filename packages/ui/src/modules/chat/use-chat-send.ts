@@ -22,9 +22,10 @@ import {
 	withPath,
 } from './engine/chat-branch/tree'
 import type { ChatBranch } from './engine/chat-branch/types'
+import { toChatParts } from './engine/chat-content/normalize'
 import { chatContentText } from './engine/chat-content/text'
-import type { ChatPart } from './engine/chat-content/types'
-import { draftContent } from './engine/chat-draft'
+import type { ChatCitation, ChatPart } from './engine/chat-content/types'
+import { draftCitations, draftContent, userContent } from './engine/chat-draft/content'
 import {
 	appendUserMessage,
 	applyReplyChunk,
@@ -102,14 +103,33 @@ function useDuplicateSeedIdWarning(seed: ChatMessageData[] | undefined): void {
  * producing, not just the hook consuming. A transport that ignores it still
  * has its chunks dropped, but keeps running underneath.
  *
- * @param content - The trimmed user message being sent.
+ * `message` holds the user message as parts. A transport that reads only
+ * `content` gets the same text, because `content` is the plain-text
+ * projection of those parts. A transport that reads `message` also gets the
+ * citations of the text, such as a dataset that the reader chose to scope the
+ * question. A citation is constructed and not parsed, so the text of a reader
+ * cannot hold one. The client builds the message, so the server must still
+ * authorize each `selector` that it gets.
+ *
+ * @param content - The trimmed user message being sent, as plain text.
  * @param signal - Aborts when the send is stopped.
+ * @param message - The user message being sent, as parts. See {@link ChatTransportMessage}.
  * @returns An async iterable of reply chunks.
  */
 export type ChatTransport = (
 	content: string,
 	signal: AbortSignal,
+	message: ChatTransportMessage,
 ) => AsyncIterable<string | ChatPart[]> | Promise<AsyncIterable<string | ChatPart[]>>
+
+/** The user message that a {@link ChatTransport} streams a reply to. */
+export type ChatTransportMessage = {
+	/**
+	 * The parts of the message. A send of text alone gives one text part. A
+	 * send with citations gives one text part with those citations on it.
+	 */
+	parts: ChatPart[]
+}
 
 /** Options for {@link useChatSend}. */
 export type ChatSendOptions = {
@@ -165,8 +185,17 @@ export type ChatSend = {
 	branches: Readonly<Record<string, ChatBranch>>
 	/** True while a reply is in flight. */
 	streaming: boolean
-	/** Optimistically appends the user message and streams the reply via the transport. No-ops on empty input. */
-	send: (content: string) => Promise<void>
+	/**
+	 * Optimistically appends the user message and streams the reply via the
+	 * transport. No-ops on empty input.
+	 *
+	 * @remarks
+	 * `citations` address `content` as the composer holds it, before the trim.
+	 * `useChatDraft` gives them to its `onSubmit` in that form. The send moves
+	 * each one onto the trimmed text, and the message holds them on its text
+	 * part. A citation whose quote is not at its address goes.
+	 */
+	send: (content: string, citations?: readonly ChatCitation[]) => Promise<void>
 	/**
 	 * Regenerates the reply to the last user message, as a new branch beside the
 	 * old reply. The old reply, also a failed one, and each turn after it stay
@@ -185,9 +214,10 @@ export type ChatSend = {
 	 * message, its reply, and each later turn stay in {@link ChatSend.branches}.
 	 * No-ops if `id` doesn't match a shown user message, `content` trims empty,
 	 * or a send is already in flight. It keeps one identity for the mount. Do
-	 * not call it during render.
+	 * not call it during render. `citations` address `content`, as they do for
+	 * {@link ChatSend.send}.
 	 */
-	edit: (id: string, content: string) => Promise<void>
+	edit: (id: string, content: string, citations?: readonly ChatCitation[]) => Promise<void>
 	/**
 	 * Shows the branch that `id` names: a sibling of a message on the shown
 	 * path. Each turn below the branch shows as the reader left it. No-ops for
@@ -273,13 +303,14 @@ function untilStopped<T>(
 async function streamReply(
 	transport: ChatTransport,
 	text: string,
+	message: ChatTransportMessage,
 	signal: AbortSignal,
 	steps: ReplySteps,
 ): Promise<void> {
 	const stopped = whenStopped(signal)
 
 	try {
-		const stream = await untilStopped(Promise.resolve(transport(text, signal)), stopped)
+		const stream = await untilStopped(Promise.resolve(transport(text, signal, message)), stopped)
 
 		if (stream === STOPPED) return
 
@@ -369,10 +400,12 @@ export function useChatSend({
 	// The in-flight send's controller, so `stop` can reach it; null between sends.
 	const controllerRef = useRef<AbortController | null>(null)
 
-	// Streams a reply for `text` onto whatever history send/retry/edit already
-	// committed via setTree: the one path all three share.
+	// Streams a reply for `content` onto whatever history send/retry/edit
+	// already committed via setTree: the one path all three share.
 	const runTransport = useCallback(
-		async (text: string) => {
+		async (content: string | ChatPart[]) => {
+			const text = chatContentText(content)
+
 			setStreaming(true)
 
 			const controller = new AbortController()
@@ -382,7 +415,7 @@ export function useChatSend({
 			// Minted before the stream, so a failure can name this send's own bubble.
 			const replyId = randomId()
 
-			await streamReply(transport, text, controller.signal, {
+			await streamReply(transport, text, { parts: toChatParts(content) }, controller.signal, {
 				open: () => setPath((prev) => openReply(prev, replyId)),
 				fold: (chunk) => setPath((prev) => applyReplyChunk(prev, replyId, chunk)),
 				sent: () => onSent?.(text),
@@ -421,7 +454,7 @@ export function useChatSend({
 	useEffect(() => () => controllerRef.current?.abort(), [])
 
 	const send = useCallback(
-		async (content: string) => {
+		async (content: string, citations: readonly ChatCitation[] = []) => {
 			// The controller and not the `streaming` state: two calls in one tick
 			// both read the state of the last render.
 			if (controllerRef.current) return
@@ -430,12 +463,14 @@ export function useChatSend({
 
 			if (!text) return
 
+			const message = userContent(text, draftCitations(content, citations))
+
 			// Minted outside the updater, which React can run more than once.
 			const userId = randomId()
 
-			setPath((prev) => appendUserMessage(prev, userId, text))
+			setPath((prev) => appendUserMessage(prev, userId, message))
 
-			await runTransport(text)
+			await runTransport(message)
 		},
 		[runTransport, setPath],
 	)
@@ -451,25 +486,30 @@ export function useChatSend({
 
 		setTree(branchLastReply)
 
-		await runTransport(chatContentText(lastUser.content))
+		// The content and not its text, so the citations of the question go again.
+		await runTransport(lastUser.content)
 	})
 
-	const edit = useStableEvent(async (id: string, content: string) => {
-		if (controllerRef.current) return
+	const edit = useStableEvent(
+		async (id: string, content: string, citations: readonly ChatCitation[] = []) => {
+			if (controllerRef.current) return
 
-		const text = draftContent(content)
+			const text = draftContent(content)
 
-		if (!text) return
+			if (!text) return
 
-		if (!findUserMessage(messages, id)) return
+			if (!findUserMessage(messages, id)) return
 
-		// Minted outside the updater, which React can run more than once.
-		const branchId = randomId()
+			const message = userContent(text, draftCitations(content, citations))
 
-		setTree((prev) => branchEditedMessage(prev, id, branchId, text))
+			// Minted outside the updater, which React can run more than once.
+			const branchId = randomId()
 
-		await runTransport(text)
-	})
+			setTree((prev) => branchEditedMessage(prev, id, branchId, message))
+
+			await runTransport(message)
+		},
+	)
 
 	// A switch while a reply streams would take that reply off the shown path.
 	const showBranch = useCallback((id: string) => {

@@ -32,5 +32,6 @@ export {
 	type ChatSend,
 	type ChatSendOptions,
 	type ChatTransport,
+	type ChatTransportMessage,
 	useChatSend,
 } from './use-chat-send'

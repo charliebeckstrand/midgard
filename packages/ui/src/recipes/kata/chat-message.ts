@@ -5,7 +5,7 @@ const { palette, text } = iro
 const { rounded } = kasane
 const { size } = ji
 const { flex } = narabi
-const { focus, forced } = sen
+const { focus, forced, ring } = sen
 
 // A row of controls: the actions of a message, and the rating pair of
 // `ChatFeedback` in them, which sits as close as the other actions do.
@@ -119,16 +119,25 @@ export const k = defineKata({
 		// A citation: a phrase of the prose that selects in a view beside the chat.
 		// Piece 0 is a button, and the pieces after it are spans with the same
 		// look. It keeps the font and the foreground of the prose, so it reads on
-		// each bubble. A dotted underline marks it at rest, and a fill of
-		// `currentColor` marks it while it is pressed, as the `tool` box rides
-		// `currentColor`.
+		// each bubble. A dotted underline marks it at rest. An inset ring of
+		// `currentColor` and a solid underline mark it while it is pressed, as the
+		// `tool` box rides `currentColor`. A fill would change the background of
+		// the text, and on the user bubble that lowers the contrast below 4.5:1.
 		citation: [
-			'cursor-pointer rounded-sm text-inherit',
+			'cursor-pointer rounded-sm text-inherit box-decoration-clone',
 			'underline decoration-dotted decoration-current/60 underline-offset-2',
 			'hover:decoration-solid',
-			'data-pressed:bg-current/15 data-pressed:decoration-solid',
+			'data-pressed:ring-1 data-pressed:ring-current data-pressed:ring-inset data-pressed:decoration-solid',
+			// Forced colors remove the ring, which is a box-shadow. An outline keeps the mark.
+			'forced-colors:data-pressed:outline-solid forced-colors:data-pressed:outline-1',
 			focus.ring,
 		],
+		// A citation that selects in no view, such as a dataset that scopes a
+		// question. It is marked text and not a control, so it takes no
+		// underline, which marks a control. An inset ring of `currentColor` marks
+		// it on each bubble. A fill would change the background of the text, and
+		// on the user bubble that lowers the contrast below 4.5:1.
+		citationMark: ['rounded-sm box-decoration-clone', ...ring.line[1].inset, 'ring-current/50'],
 		// The rating pair of `ChatFeedback`: one control of the actions.
 		feedback: controls,
 		// The line of a failed reply. It inherits the foreground of the bubble, as

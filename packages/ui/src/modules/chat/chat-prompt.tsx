@@ -15,7 +15,9 @@ import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { isComposing } from '../../utilities/is-composing'
 import { keyByOccurrence } from '../../utilities/key-by-occurrence'
-import { canSubmitDraft } from './engine/chat-draft'
+import type { ChatCitation } from './engine/chat-content/types'
+import { canSubmitDraft } from './engine/chat-draft/content'
+import { rebaseCitations } from './engine/chat-draft/rebase'
 
 const messages = defineMessages({
 	placeholder: {
@@ -57,8 +59,24 @@ export type ChatPromptProps = {
 	 * a second source of truth. Pair the two.
 	 */
 	value: string
-	/** Fires when the user types, with the next value. */
-	onValueChange: (value: string) => void
+	/**
+	 * The citations of `value`: phrases that the app or a picker constructed,
+	 * such as a dataset that scopes the question. {@link useChatDraft} holds
+	 * them beside the value.
+	 *
+	 * @remarks
+	 * The composer moves each citation across a change of the text, and reads
+	 * the caret to find where the change is. A change that touches a citation
+	 * dissolves it, and its text stays as prose. No change of the text makes a
+	 * citation, so a pasted or typed `@name` is prose.
+	 * @defaultValue []
+	 */
+	citations?: readonly ChatCitation[]
+	/**
+	 * Fires when the user types, with the next value and the citations of that
+	 * value.
+	 */
+	onValueChange: (value: string, citations: readonly ChatCitation[]) => void
 	/** Fires when the user submits (Enter without Shift, or the send button). */
 	onSubmit: () => void
 	/** Fires when the user stops a streaming response: the stop button, or Enter while `streaming`. */
@@ -139,6 +157,7 @@ export type ChatPromptProps = {
  */
 export function ChatPrompt({
 	value,
+	citations = [],
 	onValueChange,
 	onSubmit,
 	onStop,
@@ -194,7 +213,11 @@ export function ChatPrompt({
 				ref={setTextareaRefs}
 				data-slot="chat-prompt"
 				value={value}
-				onChange={(event) => onValueChange(event.target.value)}
+				onChange={(event) => {
+					const next = event.target.value
+
+					onValueChange(next, rebaseCitations(value, next, citations, event.target.selectionEnd))
+				}}
 				onKeyDown={handleKeyDown}
 				autoResize
 				rows={rows}

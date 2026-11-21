@@ -1,6 +1,6 @@
 import { createRef, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { ChatPrompt } from '../../modules/chat'
+import { type ChatCitation, ChatPrompt, useChatDraft } from '../../modules/chat'
 import { LocaleProvider } from '../../providers/locale'
 import {
 	bySlot,
@@ -95,6 +95,100 @@ describe('ChatPrompt', () => {
 		await user.type(el, 'a')
 
 		expect(onValueChange).toHaveBeenCalled()
+	})
+
+	describe('citations', () => {
+		const QUOTE = '@Late stops'
+
+		const scope: ChatCitation = {
+			id: 'c1',
+			start: 0,
+			end: QUOTE.length,
+			quote: QUOTE,
+			target: 'dataset',
+			selector: { datasets: ['late'] },
+		}
+
+		/** A composer over a draft that starts as `@Late stops by day`, scoped to one dataset. */
+		function Scoped({ onCitations }: { onCitations: (c: readonly ChatCitation[]) => void }) {
+			const draft = useChatDraft()
+
+			const [seeded, setSeeded] = useState(false)
+
+			if (!seeded) {
+				setSeeded(true)
+
+				draft.setValue(`${QUOTE} by day`, [scope])
+			}
+
+			onCitations(draft.citations)
+
+			return (
+				<ChatPrompt
+					value={draft.value}
+					citations={draft.citations}
+					onValueChange={draft.setValue}
+					onSubmit={noop}
+				/>
+			)
+		}
+
+		it('keeps a citation when the user types after it', async () => {
+			const onCitations = vi.fn()
+
+			const { container } = renderUI(<Scoped onCitations={onCitations} />)
+
+			const el = getSlot<HTMLTextAreaElement>(container, 'chat-prompt')
+
+			await setupUser().type(el, '!')
+
+			expect(el.value).toBe(`${QUOTE} by day!`)
+
+			expect(onCitations).toHaveBeenLastCalledWith([scope])
+		})
+
+		it('moves a citation when the user types before it', async () => {
+			const onCitations = vi.fn()
+
+			const { container } = renderUI(<Scoped onCitations={onCitations} />)
+
+			const el = getSlot<HTMLTextAreaElement>(container, 'chat-prompt')
+
+			await setupUser().type(el, 'Show ', { initialSelectionStart: 0, initialSelectionEnd: 0 })
+
+			expect(el.value).toBe(`Show ${QUOTE} by day`)
+
+			expect(onCitations).toHaveBeenLastCalledWith([{ ...scope, start: 5, end: 5 + QUOTE.length }])
+		})
+
+		it('dissolves a citation when the user deletes into it', async () => {
+			const onCitations = vi.fn()
+
+			const { container } = renderUI(<Scoped onCitations={onCitations} />)
+
+			const el = getSlot<HTMLTextAreaElement>(container, 'chat-prompt')
+
+			await setupUser().type(el, '{Backspace}', {
+				initialSelectionStart: QUOTE.length,
+				initialSelectionEnd: QUOTE.length,
+			})
+
+			expect(el.value).toBe('@Late stop by day')
+
+			expect(onCitations).toHaveBeenLastCalledWith([])
+		})
+
+		it('makes no citation from a typed quote', async () => {
+			const onValueChange = vi.fn()
+
+			const { container } = renderUI(
+				<ChatPrompt value="" onValueChange={onValueChange} onSubmit={noop} />,
+			)
+
+			await setupUser().type(getSlot<HTMLTextAreaElement>(container, 'chat-prompt'), '@')
+
+			expect(onValueChange).toHaveBeenLastCalledWith('@', [])
+		})
 	})
 
 	it('submits on Enter when value is non-empty', async () => {
