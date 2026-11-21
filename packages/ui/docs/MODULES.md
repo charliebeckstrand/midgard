@@ -40,7 +40,7 @@ import { MapPlat } from 'ui/modules/map' // or the 'ui/map' shorthand
 
 > `events` records the events of a page, and files a bug with the trail of the events before it. `startEvents` takes an optional `sendReport` port, which sends a report to the issue tracker of the app. The port gets an `EventReportExport`: the title, the Markdown text that Copy writes, and a copy of the report. With the port, the view of a report shows Send after Copy and Delete, with the loading, "Sent", and "Send failed" states. A report that the tracker holds does not go again in the same page load. The adapter of the tracker lives in the app, so `ui` has no dependency on a tracker.
 
-> `postReport(url)` is a ready `sendReport`. It posts the report as JSON to an endpoint of the app, and rejects on a response that is not 2xx. The endpoint reads the report with `readReportExport` from `ui/server` ([`SERVER.md`](SERVER.md)), and files it with a token that stays on the server. Thus no token of the tracker goes to the browser. The body is the claim of a client. Put the endpoint behind the auth or the rate limit of the app:
+> `postReport(url)` is a ready `sendReport`. It posts the report as JSON to an endpoint of the app, and rejects on a response that is not 2xx. The endpoint reads the report with `readReportExport` from `ui/server` ([`SERVER.md`](SERVER.md)), and files it with a token that stays on the server. Thus no token of the tracker goes to the browser. The body is the claim of a client. Put the endpoint behind the auth or the rate limit of the app. A tracker limits the size of an issue, and GitHub takes a body of 65,536 characters at most. Thus the route cuts a long text, such as the text of a long capture:
 
 ```ts
 // instrumentation-client.ts
@@ -52,15 +52,26 @@ void startEvents({ sendReport: postReport('/api/report') })
 ```ts
 // app/api/report/route.ts
 import { ReportExportError, readReportExport } from 'ui/server'
+// The env module of the app reads `GITHUB_TOKEN` (CONVENTIONS §11.1).
+import { githubToken } from '@/server/env'
+
+/** The longest issue body that GitHub takes, in characters. */
+const BODY_LIMIT = 65_536
+
+const CUT_NOTE = '\n… (cut to the GitHub limit)'
 
 export async function POST(request: Request) {
 	try {
 		const { title, text } = await readReportExport(request)
 
+		// The trail is at the end of the text, so a cut keeps the table and the stacks.
+		const body =
+			text.length > BODY_LIMIT ? text.slice(0, BODY_LIMIT - CUT_NOTE.length) + CUT_NOTE : text
+
 		const response = await fetch('https://api.github.com/repos/OWNER/REPO/issues', {
 			method: 'POST',
-			headers: { authorization: `Bearer ${process.env.GITHUB_TOKEN}` },
-			body: JSON.stringify({ title, body: text, labels: ['bug'] }),
+			headers: { authorization: `Bearer ${githubToken}` },
+			body: JSON.stringify({ title, body, labels: ['bug'] }),
 		})
 
 		return new Response(null, { status: response.ok ? 204 : 502 })
