@@ -52,8 +52,8 @@ const cancelEveryDrop = () => true
  * read-only: each card takes `data-readonly`, and the handles render nothing.
  * With `onReorder` and `disabled`, the board is disabled: each card and each
  * column body take `data-disabled`, each body dims, and each handle shows a
- * muted grip. Shares drag/keyboard state
- * with descendant {@link KanbanColumn} and {@link KanbanCard} via context.
+ * muted grip. The board gives the state of the drag and of the keyboard to
+ * each {@link KanbanColumn} and {@link KanbanCard} below it through context.
  * Compose the column header/body slots within. A pointer drags a card, and the
  * keyboard lifts a card, only from its {@link KanbanCardHandle}.
  *
@@ -83,7 +83,7 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 	children,
 	className,
 	ref,
-	...labelProps
+	...props
 }: KanbanProps<T, C>) {
 	const interactive = !disabled && !!onReorder
 
@@ -176,12 +176,7 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 					onDragEnd={handleDragEnd}
 					onDragCancel={handleDragCancel}
 				>
-					<section
-						data-slot="kanban"
-						{...labelProps}
-						ref={boardRef}
-						className={cn(k().base, className)}
-					>
+					<section data-slot="kanban" {...props} ref={boardRef} className={cn(k().base, className)}>
 						{children}
 					</section>
 					{interactive ? <KanbanDragOverlay activeId={activeId} entry={overlayEntry} /> : null}
