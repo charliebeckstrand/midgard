@@ -35,6 +35,32 @@ const expectFills = vi.defineHelper(
 )
 
 describe('Rating', () => {
+	it('puts the native props and the ref on the row, in both forms', () => {
+		const ref = { current: null as HTMLSpanElement | null }
+
+		const onKeyDown = vi.fn()
+
+		const { container, rerender } = renderUI(
+			<Rating aria-label="Score" ref={ref} data-testid="score" onKeyDown={onKeyDown} />,
+		)
+
+		const row = bySlot(container, 'rating')
+
+		expect(ref.current).toBe(row)
+
+		expect(row).toHaveAttribute('data-testid', 'score')
+
+		fireEvent.keyDown(screen.getAllByRole('radio')[0] as HTMLElement, { key: 'ArrowRight' })
+
+		expect(onKeyDown).toHaveBeenCalledOnce()
+
+		rerender(<Rating aria-label="Score" readOnly value={3} ref={ref} data-testid="score" />)
+
+		expect(bySlot(container, 'rating')).toHaveAttribute('role', 'img')
+
+		expect(bySlot(container, 'rating')).toHaveAttribute('data-testid', 'score')
+	})
+
 	it('renders one radio per star in a named radiogroup', () => {
 		const { container } = renderUI(<Rating aria-label="Score" />)
 

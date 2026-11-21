@@ -1,8 +1,9 @@
 'use client'
 
-import { type CSSProperties, type FocusEvent, type Ref, useMemo, useRef } from 'react'
+import { type ComponentProps, type FocusEvent, useMemo, useRef } from 'react'
 import { ariaAttr } from '../../../core/aria-attr'
 import { cn } from '../../../core/cn'
+import { composeEventHandlers } from '../../../core/compose-event-handlers'
 import { dataAttr } from '../../../core/data-attr'
 import { invalidAttrs } from '../../../core/invalid-attrs'
 import { useFormValue } from '../../../primitives/form/use-form-value'
@@ -105,10 +106,13 @@ export type RangeSliderProps = {
 	 * press grabbed, so a start and an end always match.
 	 */
 	onDragEnd?: (thumb: ThumbIndex) => void
-	className?: string
-	style?: CSSProperties
-	ref?: Ref<HTMLDivElement>
-}
+} & Omit<
+	ComponentProps<'div'>,
+	'id' | 'defaultValue' | 'color' | 'children' | 'onDragStart' | 'onDragEnd'
+>
+
+/** The compose options of the root pointer handlers: the drag runs whatever the consumer does. */
+const ungated = { checkForDefaultPrevented: false }
 
 /**
  * Dual-thumb range input over `[start, end]`; controlled or uncontrolled.
@@ -138,6 +142,9 @@ export type RangeSliderProps = {
  * A click on a label for the slider focuses the start thumb and keeps both values. The Field
  * Label is such a label. A disabled slider takes no focus from the click.
  *
+ * The native props and the `ref` go to the root `<div>`. Its pointer handlers run before
+ * the drag.
+ *
  * A value out of `[min, max]` shows at the nearest bound, and a pair out of order shows in
  * order. The thumbs and the ARIA values take that range, and a key or a drag moves a value
  * of it. The slider does not report the bounded range through `onValueChange`.
@@ -163,6 +170,12 @@ export function RangeSlider({
 	className,
 	style,
 	ref,
+	onPointerDown,
+	onPointerMove,
+	onPointerUp,
+	onPointerCancel,
+	onLostPointerCapture,
+	...props
 }: RangeSliderProps) {
 	const intl = useIntl()
 
@@ -240,21 +253,20 @@ export function RangeSlider({
 
 	const overlap = allowCross ? 'swap' : 'clamp'
 
-	const { onPointerDown, onPointerMove, onPointerUp, onPointerCancel, onLostPointerCapture } =
-		useRangePointer({
-			min,
-			max,
-			step,
-			disabled: resolvedDisabled,
-			readOnly: resolvedReadOnly,
-			current,
-			trackRef,
-			setRange,
-			overlap,
-			thumbRefs,
-			onDragStart,
-			onDragEnd,
-		})
+	const pointer = useRangePointer({
+		min,
+		max,
+		step,
+		disabled: resolvedDisabled,
+		readOnly: resolvedReadOnly,
+		current,
+		trackRef,
+		setRange,
+		overlap,
+		thumbRefs,
+		onDragStart,
+		onDragEnd,
+	})
 
 	const handleKeyDown = useRangeKeyboard({
 		min,
@@ -301,17 +313,24 @@ export function RangeSlider({
 
 	return (
 		<div
+			{...props}
 			ref={ref}
 			data-slot="slider-range"
 			data-density={size}
 			data-disabled={dataAttr(resolvedDisabled)}
 			className={cn(slots.base, className)}
 			style={style}
-			onPointerDown={onPointerDown}
-			onPointerMove={onPointerMove}
-			onPointerUp={onPointerUp}
-			onPointerCancel={onPointerCancel}
-			onLostPointerCapture={onLostPointerCapture}
+			// The drag runs after each consumer handler, also one that cancels the
+			// event, so each drag start keeps exactly one end.
+			onPointerDown={composeEventHandlers(onPointerDown, pointer.onPointerDown, ungated)}
+			onPointerMove={composeEventHandlers(onPointerMove, pointer.onPointerMove, ungated)}
+			onPointerUp={composeEventHandlers(onPointerUp, pointer.onPointerUp, ungated)}
+			onPointerCancel={composeEventHandlers(onPointerCancel, pointer.onPointerCancel, ungated)}
+			onLostPointerCapture={composeEventHandlers(
+				onLostPointerCapture,
+				pointer.onLostPointerCapture,
+				ungated,
+			)}
 		>
 			{/* Track */}
 			<div ref={trackRef} data-slot="slider-range-track" className={slots.track}>

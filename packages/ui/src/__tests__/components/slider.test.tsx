@@ -169,6 +169,31 @@ describe('Slider', () => {
 })
 
 describe('RangeSlider', () => {
+	it('puts the native props and the ref on the root, and runs a consumer pointer handler', () => {
+		const ref = { current: null as HTMLDivElement | null }
+
+		const onPointerDown = vi.fn()
+
+		const { container } = renderUI(
+			<RangeSlider
+				defaultValue={[20, 80]}
+				ref={ref}
+				data-testid="price"
+				onPointerDown={onPointerDown}
+			/>,
+		)
+
+		const root = container.querySelector('[data-slot="slider-range"]')
+
+		expect(ref.current).toBe(root)
+
+		expect(root).toHaveAttribute('data-testid', 'price')
+
+		fireEvent.pointerDown(root as HTMLElement, { pointerId: 1, button: 0 })
+
+		expect(onPointerDown).toHaveBeenCalledOnce()
+	})
+
 	it('renders two thumbs with slider roles', () => {
 		const { container } = renderUI(<RangeSlider />)
 
