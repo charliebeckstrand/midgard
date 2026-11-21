@@ -138,15 +138,12 @@ export function DatePickerTrigger({
 	// change, so the clear button does not show.
 	const showClear = clearable && hasValue && !disabled && !readOnly
 
+	// A label that waits for hydration shows as pending.
+	const label = pending ? <DateTimePending>{displayValue}</DateTimePending> : displayValue
+
 	const valueNode = (
 		<span ref={valueRef} className={k({ truncate }).value}>
-			{displayValue === '' ? (
-				<span className={cn(k.placeholder)}>{placeholder}</span>
-			) : pending ? (
-				<DateTimePending>{displayValue}</DateTimePending>
-			) : (
-				displayValue
-			)}
+			{displayValue === '' ? <span className={cn(k.placeholder)}>{placeholder}</span> : label}
 		</span>
 	)
 

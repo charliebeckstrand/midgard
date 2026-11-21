@@ -118,7 +118,9 @@ export function localeDateInputFormat(locale?: string): DateInputFormat {
 			(part) => part.type === 'year' || part.type === 'month' || part.type === 'day',
 		)?.type
 
-		return first === 'year' ? 'YYYY-MM-DD' : first === 'day' ? 'DD/MM/YYYY' : 'MM/DD/YYYY'
+		if (first === 'year') return 'YYYY-MM-DD'
+
+		return first === 'day' ? 'DD/MM/YYYY' : 'MM/DD/YYYY'
 	})
 }
 

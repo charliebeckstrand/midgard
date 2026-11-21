@@ -269,12 +269,11 @@ export function usePdfViewerSearch({
 		return counts
 	}, [matches])
 
-	const current =
-		total === 0
-			? null
-			: state.index === null
-				? firstFrom(matches, state.anchor)
-				: state.index % total
+	let current: number | null = null
+
+	// With no index held, the search starts at the first match from its anchor.
+	if (total > 0)
+		current = state.index === null ? firstFrom(matches, state.anchor) : state.index % total
 
 	const target = current === null ? undefined : matches[current]
 

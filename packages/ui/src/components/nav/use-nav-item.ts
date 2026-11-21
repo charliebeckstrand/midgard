@@ -152,7 +152,9 @@ export function useNavItem({
 
 	// A link marks the current page, and a button marks the current view in the
 	// page.
-	const ariaCurrent: 'page' | 'true' | undefined = isCurrent ? (href ? 'page' : 'true') : undefined
+	const currentKind = href ? 'page' : 'true'
+
+	const ariaCurrent: 'page' | 'true' | undefined = isCurrent ? currentKind : undefined
 
 	return { ref, current: isCurrent, ariaCurrent, indicator, handleClick }
 }

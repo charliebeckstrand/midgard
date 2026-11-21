@@ -454,8 +454,10 @@ export function placeBeside(
 ): number {
 	const center = photos[index]?.index
 
-	const other =
-		link && center === link.from ? link.to : link && center === link.to ? link.from : null
+	let other: number | null = null
+
+	if (link && center === link.from) other = link.to
+	else if (link && center === link.to) other = link.from
 
 	const place = other === null ? -1 : photos.findIndex((photo) => photo.index === other)
 

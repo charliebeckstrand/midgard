@@ -115,12 +115,21 @@ export function sparklineGeometry(
 
 	// A flat domain has no span to divide by. A value on it goes to the middle,
 	// and a value past it clamps to the edge on its side.
-	const norm = (value: number) =>
-		span === 0 ? (value < low ? 0 : value > high ? 1 : 0.5) : clamp((value - low) / span, 0, 1)
+	const norm = (value: number) => {
+		if (span !== 0) return clamp((value - low) / span, 0, 1)
+
+		if (value < low) return 0
+
+		return value > high ? 1 : 0.5
+	}
 
 	// Zero, clamped into the domain. The edge tests come first, so a flat
 	// domain takes the edge on the side of zero and not its middle.
-	const origin = low >= 0 ? 0 : high <= 0 ? 1 : norm(0)
+	let origin: number
+
+	if (low >= 0) origin = 0
+	else if (high <= 0) origin = 1
+	else origin = norm(0)
 
 	const baseline = padding + (1 - origin) * innerHeight
 
