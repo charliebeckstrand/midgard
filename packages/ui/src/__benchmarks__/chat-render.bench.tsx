@@ -1,5 +1,11 @@
 import { BarChart } from '../modules/chart'
-import { ChatEmbedProvider, ChatTranscript } from '../modules/chat'
+import {
+	type ChatCitation,
+	ChatCitationProvider,
+	ChatEmbedProvider,
+	ChatTranscript,
+} from '../modules/chat'
+import type { ChatPart } from '../modules/chat/engine/chat-content/types'
 import type { ChatMessageData } from '../modules/chat/engine/types'
 import type { ChatEmbedRenderer } from '../modules/chat/types'
 import { compareBenches } from './compare'
@@ -105,6 +111,71 @@ compareBenches(`ChatTranscript · streaming reply (${CHUNKS.length} chunks/iter)
 		)
 	}
 })
+
+/**
+ * The same stream, with a citation on the reply, against the same stream with
+ * none. A cited block renders through a client leaf, and its `Markdown` walks
+ * the source to find the phrase of the citation. The pair says what the walk
+ * and the leaf cost on each chunk. The quote is in the source from the fourth
+ * chunk, so the first three chunks measure a citation that cannot draw yet.
+ */
+const CITED_QUOTE = 'from **4** to **14**'
+
+const CITATION: ChatCitation = {
+	id: 'c1',
+	start: 'Late stops rose '.length,
+	end: 'Late stops rose '.length + CITED_QUOTE.length,
+	quote: CITED_QUOTE,
+	target: 'late-by-day',
+	selector: { categories: ['Tue'] },
+}
+
+const citationTargets = { 'late-by-day': { label: 'Late stops by day' } }
+
+const noCite = () => {}
+
+compareBenches(
+	`ChatTranscript · streaming reply with a citation (${CHUNKS.length} chunks/iter)`,
+	(bench) => {
+		const messages = TRANSCRIPTS.find(({ label }) => label === '500 messages')?.messages
+
+		if (!messages) throw new Error('The bench has no transcript of 500 messages.')
+
+		const withReply = (content: string | ChatPart[]): ChatMessageData[] => [
+			...messages,
+			{ id: 'reply', sender: 'assistant', content },
+		]
+
+		const cited = (text: string): ChatPart[] => [
+			{ kind: 'text', id: 'text', text, citations: [CITATION] },
+		]
+
+		const parts = (text: string): ChatPart[] => [{ kind: 'text', id: 'text', text }]
+
+		// `parts` is the floor of `cited`: the same part list with no citation. The
+		// gap between the two is the cost of the citation alone.
+		for (const [label, content] of [
+			['500 messages · prose', (text: string) => text],
+			['500 messages · parts', parts],
+			['500 messages · cited', cited],
+		] as const) {
+			const view = (text: string) => (
+				<ChatCitationProvider targets={citationTargets} cited={null} onCite={noCite}>
+					<ChatTranscript messages={withReply(content(text))} streaming />
+				</ChatCitationProvider>
+			)
+
+			rerenderBench(
+				bench,
+				label,
+				() => view(''),
+				(rerender) => {
+					for (const chunk of CHUNKS) rerender(view(chunk))
+				},
+			)
+		}
+	},
+)
 
 /**
  * A transcript where every reply carries a view, against the same transcript

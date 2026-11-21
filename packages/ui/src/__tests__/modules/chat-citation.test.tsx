@@ -1,0 +1,172 @@
+import { useState } from 'react'
+import { describe, expect, it, vi } from 'vitest'
+import {
+	type ChatCitation,
+	ChatCitationProvider,
+	ChatMessage,
+	type ChatPart,
+	toCategorySelection,
+} from '../../modules/chat'
+import { allBySlot, bySlot, renderUI, screen, userEvent } from '../helpers'
+
+const SOURCE = 'Twelve stops are late, most of them on **Tuesday**.'
+
+/** A citation over the first occurrence of `quote` in {@link SOURCE}. */
+function cite(id: string, quote: string, target = 'late-by-day'): ChatCitation {
+	const start = SOURCE.indexOf(quote)
+
+	return { id, start, end: start + quote.length, quote, target, selector: { categories: ['Tue'] } }
+}
+
+function reply(citations: ChatCitation[]): ChatPart[] {
+	return [{ kind: 'text', id: 't1', text: SOURCE, citations }]
+}
+
+const targets = { 'late-by-day': { label: 'Late stops by day' } }
+
+/** A provider that holds the active citation, as an app does. */
+function Cited({
+	citations,
+	onCite,
+}: {
+	citations: ChatCitation[]
+	onCite?: (c: ChatCitation | null) => void
+}) {
+	const [cited, setCited] = useState<ChatCitation | null>(null)
+
+	return (
+		<ChatCitationProvider
+			targets={targets}
+			cited={cited}
+			onCite={(citation) => {
+				onCite?.(citation)
+
+				setCited(citation)
+			}}
+		>
+			<ChatMessage sender="assistant">{reply(citations)}</ChatMessage>
+		</ChatCitationProvider>
+	)
+}
+
+describe('ChatCitationProvider', () => {
+	it('draws a citation as a toggle button named by its phrase and described by its view', () => {
+		renderUI(<Cited citations={[cite('c1', 'Twelve stops are late')]} />)
+
+		const anchor = screen.getByRole('button', { name: 'Twelve stops are late' })
+
+		expect(anchor).toHaveAttribute('aria-pressed', 'false')
+
+		expect(anchor).toHaveAccessibleDescription('Selects in Late stops by day')
+	})
+
+	it('sends the citation on a press, and null on a second press', async () => {
+		const onCite = vi.fn()
+
+		const user = userEvent.setup()
+
+		renderUI(<Cited citations={[cite('c1', 'Twelve stops are late')]} onCite={onCite} />)
+
+		const anchor = screen.getByRole('button', { name: 'Twelve stops are late' })
+
+		await user.click(anchor)
+
+		expect(onCite).toHaveBeenLastCalledWith(expect.objectContaining({ id: 'c1' }))
+
+		expect(anchor).toHaveAttribute('aria-pressed', 'true')
+
+		await user.click(anchor)
+
+		expect(onCite).toHaveBeenLastCalledWith(null)
+
+		expect(anchor).toHaveAttribute('aria-pressed', 'false')
+	})
+
+	it('draws one control for a citation that crosses bold, and marks each piece pressed', async () => {
+		const user = userEvent.setup()
+
+		const { container } = renderUI(
+			<Cited citations={[cite('c1', 'most of them on **Tuesday**')]} />,
+		)
+
+		expect(screen.getAllByRole('button')).toHaveLength(1)
+
+		const [piece] = allBySlot(container, 'chat-citation-piece')
+
+		expect(piece?.parentElement?.tagName).toBe('STRONG')
+
+		await user.click(screen.getByRole('button'))
+
+		expect(piece).toHaveAttribute('data-pressed')
+	})
+
+	it('renders a citation whose target is not registered as prose', () => {
+		const { container } = renderUI(
+			<Cited citations={[cite('c1', 'Twelve stops are late', 'unknown')]} />,
+		)
+
+		expect(screen.queryByRole('button')).toBeNull()
+
+		expect(bySlot(container, 'markdown')?.textContent).toBe(
+			'Twelve stops are late, most of them on Tuesday.',
+		)
+	})
+
+	it('renders a citation as prose with no provider', () => {
+		renderUI(
+			<ChatMessage sender="assistant">{reply([cite('c1', 'Twelve stops are late')])}</ChatMessage>,
+		)
+
+		expect(screen.queryByRole('button')).toBeNull()
+	})
+
+	it('keeps the description out of the name of the anchor and out of sight', () => {
+		renderUI(<Cited citations={[cite('c1', 'Twelve stops are late')]} />)
+
+		const anchor = screen.getByRole('button', { name: 'Twelve stops are late' })
+
+		const description = document.getElementById(anchor.getAttribute('aria-describedby') ?? '')
+
+		expect(description).toHaveAttribute('hidden')
+
+		expect(anchor.contains(description)).toBe(false)
+	})
+
+	it('merges the targets of a nested provider with those of the outer one', () => {
+		renderUI(
+			<ChatCitationProvider targets={targets} cited={null} onCite={() => {}}>
+				<ChatCitationProvider
+					targets={{ other: { label: 'Other' } }}
+					cited={null}
+					onCite={() => {}}
+				>
+					<ChatMessage sender="assistant">
+						{reply([cite('c1', 'Twelve stops are late'), cite('c2', 'Tuesday', 'other')])}
+					</ChatMessage>
+				</ChatCitationProvider>
+			</ChatCitationProvider>,
+		)
+
+		expect(screen.getAllByRole('button')).toHaveLength(2)
+	})
+})
+
+describe('toCategorySelection', () => {
+	it('reads the categories of a selector', () => {
+		expect(toCategorySelection({ categories: ['Mon', 'Tue'] })).toEqual(['Mon', 'Tue'])
+	})
+
+	it('reads an empty list as a selection of nothing', () => {
+		expect(toCategorySelection({ categories: [] })).toEqual([])
+	})
+
+	it.each([
+		['null', null],
+		['a string', 'Tue'],
+		['no categories', { regions: ['north'] }],
+		['a list with a number', { categories: ['Tue', 2] }],
+		['categories that are not a list', { categories: 'Tue' }],
+	])('gives undefined for %s', (_, selector) => {
+		expect(toCategorySelection(selector)).toBeUndefined()
+	})
+})

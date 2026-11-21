@@ -1,4 +1,8 @@
 export type { ChatMessageVariants } from '../../recipes/kata/chat-message'
+export {
+	ChatCitationProvider,
+	type ChatCitationProviderProps,
+} from './chat-citation-provider'
 export { ChatEmbedProvider, type ChatEmbedProviderProps } from './chat-embed-provider'
 export { ChatFeedback, type ChatFeedbackProps, type ChatVerdict } from './chat-feedback'
 export { ChatList, type ChatListProps } from './chat-list'
@@ -11,8 +15,10 @@ export {
 	type ChatTranscriptSkeletonProps,
 } from './chat-transcript-skeleton'
 export type { ChatBranch } from './engine/chat-branch/types'
+export { toCategorySelection } from './engine/chat-citation'
 export { chatContentText } from './engine/chat-content/text'
 export type {
+	ChatCitation,
 	ChatEmbedPart,
 	ChatPart,
 	ChatTextPart,
@@ -20,7 +26,7 @@ export type {
 	ChatToolStatus,
 } from './engine/chat-content/types'
 export type { ChatMessageData } from './engine/types'
-export type { ChatEmbedRegistry, ChatEmbedRenderer } from './types'
+export type { ChatCitationTargets, ChatEmbedRegistry, ChatEmbedRenderer } from './types'
 export { type ChatDraft, type ChatDraftOptions, useChatDraft } from './use-chat-draft'
 export {
 	type ChatSend,

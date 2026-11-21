@@ -6,6 +6,7 @@ import { cn } from '../../core/cn'
 import { IntlMessage } from '../../primitives/intl'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { type ChatMessageVariants, k } from '../../recipes/kata/chat-message'
+import { ChatCitedText } from './chat-cited-text'
 import { ChatEmbed } from './chat-embed'
 import { ChatMessageBranch } from './chat-message-branch'
 import { ChatMessageMenu } from './chat-message-menu'
@@ -56,8 +57,12 @@ const AUTHOR = defineMessages({
  */
 function ChatMessageBlock({ part, className }: { part: ChatPart; className?: string }) {
 	switch (part.kind) {
+		// A block with citations draws through a client leaf, which reads the
+		// provider. A block with none stays a static Markdown.
 		case 'text':
-			return (
+			return part.citations?.length ? (
+				<ChatCitedText part={part} className={className} />
+			) : (
 				<Markdown className={className} headingOffset={MESSAGE_HEADING_OFFSET}>
 					{part.text}
 				</Markdown>

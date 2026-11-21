@@ -1,6 +1,7 @@
 import { Input } from '../../../components/input'
 import { PdfViewer, type PdfViewerPage } from '../../../components/pdf-viewer'
 import {
+	ChatCitationProvider,
 	ChatMessage,
 	type ChatMessageData,
 	ChatPrompt,
@@ -65,6 +66,42 @@ const unclaimedEmbed: ChatMessageData[] = [
 	},
 ]
 
+const CITED = 'Twelve stops are late, most of them on **Tuesday**.'
+
+const citedReply: ChatMessageData[] = [
+	{
+		id: 'a1',
+		sender: 'assistant',
+		content: [
+			{
+				kind: 'text',
+				id: 't1',
+				text: CITED,
+				citations: [
+					{
+						id: 'c1',
+						start: 0,
+						end: 21,
+						quote: 'Twelve stops are late',
+						target: 'late-by-day',
+						selector: { categories: ['Tue'] },
+					},
+					{
+						id: 'c2',
+						start: CITED.indexOf('most'),
+						end: CITED.indexOf('.'),
+						quote: 'most of them on **Tuesday**',
+						target: 'late-by-day',
+						selector: { categories: ['Tue'] },
+					},
+				],
+			},
+		],
+	},
+]
+
+const citationTargets = { 'late-by-day': { label: 'Late stops by day' } }
+
 /** Domain & specialized surfaces, plus the headless escape hatch. */
 export const specializedCases: readonly Case[] = [
 	{
@@ -99,6 +136,17 @@ export const specializedCases: readonly Case[] = [
 	{
 		name: 'chat transcript with an unclaimed embed',
 		element: <ChatTranscript key="cte" messages={unclaimedEmbed} />,
+	},
+	{
+		// A citation is a toggle button inside the prose, named by its phrase and
+		// described by its view. The second crosses bold, so its later piece is
+		// plain text and the citation stays one control.
+		name: 'chat transcript with citations',
+		element: (
+			<ChatCitationProvider key="ctc" targets={citationTargets} cited={null} onCite={noop}>
+				<ChatTranscript messages={citedReply} />
+			</ChatCitationProvider>
+		),
 	},
 	{
 		// A step is a disclosure inside the bubble: its trigger has to clear

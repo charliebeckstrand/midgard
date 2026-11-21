@@ -1,3 +1,5 @@
+import type { MarkdownRange } from '../../../../components/markdown/markdown-ranges'
+
 /**
  * What a chat message holds: a `string` of prose, or a part list. A part list
  * holds prose beside embedded views and tool steps.
@@ -21,6 +23,41 @@ export type ChatTextPart = {
 	 */
 	id: string
 	text: string
+	/**
+	 * The phrases of `text` that select something in a view beside the chat,
+	 * such as the stops that a sentence says are late. A citation is not a
+	 * block, so it is a field of the block that holds its phrase, and not a
+	 * kind of its own.
+	 */
+	citations?: ChatCitation[]
+}
+
+/**
+ * A phrase of a text part that selects something in a view beside the chat.
+ *
+ * @remarks
+ * The range addresses the Markdown source of the part by offset, and `quote`
+ * guards the address. A citation draws only while `quote` is the source
+ * between `start` and `end`. Thus a citation that arrives before its text
+ * draws when the text arrives, and a citation whose text changes does not
+ * draw.
+ *
+ * `id` is unique in the conversation, as the id of a message is. The active
+ * citation is found by its id alone.
+ *
+ * `target` and `selector` are the open axis, as `name` and `data` are for an
+ * embed. `target` names a view that the app registers with
+ * `ChatCitationProvider`, and `selector` is what that view selects. The
+ * chat reads neither.
+ *
+ * A citation is constructed and not parsed. `send` and `edit` take a string,
+ * so the text of a reader cannot hold one.
+ */
+export type ChatCitation = MarkdownRange & {
+	/** Names the view that the citation selects in. */
+	target: string
+	/** What the view selects. The adapter of the view reads it. */
+	selector: unknown
 }
 
 /**

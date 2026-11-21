@@ -35,12 +35,23 @@ function startingParts(content: string | ChatPart[]): ChatPart[] {
  * chart nor opens a second running text. The replacement holds its position,
  * because a block's place in the reply is not the transport's to change.
  *
+ * The replacement keeps the citations of the text it replaces. A string chunk
+ * carries prose and nothing else, so it cannot clear a citation that a part
+ * chunk sent. The quote of each citation guards it, so a citation whose
+ * phrase the new text changed does not draw.
+ *
  * @internal
  */
 function setRunningText(parts: ChatPart[], text: string): ChatPart[] {
-	const running: ChatTextPart = { kind: 'text', id: TEXT_PART_ID, text }
-
 	const at = parts.findIndex((part) => part.id === TEXT_PART_ID)
+
+	const held = parts[at]
+
+	const citations = held?.kind === 'text' ? held.citations : undefined
+
+	const running: ChatTextPart = citations
+		? { kind: 'text', id: TEXT_PART_ID, text, citations }
+		: { kind: 'text', id: TEXT_PART_ID, text }
 
 	return at === -1 ? [...parts, running] : parts.with(at, running)
 }

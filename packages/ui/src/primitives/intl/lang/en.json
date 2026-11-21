@@ -147,6 +147,10 @@
 		"defaultMessage": "Bad reply",
 		"description": "The name of the button that rates a reply of the assistant as bad."
 	},
+	"ui.chat.citationSelects": {
+		"defaultMessage": "Selects in {label}",
+		"description": "The description of a phrase of a chat reply that selects items in a view beside the chat. The label is the name of the view, such as \"Late stops by day\"."
+	},
 	"ui.chat.done": {
 		"defaultMessage": "Done",
 		"description": "The status of a step of the assistant that ended well."

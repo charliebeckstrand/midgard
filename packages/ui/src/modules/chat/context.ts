@@ -1,7 +1,8 @@
 'use client'
 
 import { createContext } from '../../core/create-context'
-import type { ChatEmbedRegistry } from './types'
+import type { ChatCitation } from './engine/chat-content/types'
+import type { ChatCitationTargets, ChatEmbedRegistry } from './types'
 
 /**
  * True when a {@link ChatListItem} renders inside a {@link ChatList}. The list
@@ -65,4 +66,32 @@ export const [ChatEmbedContext, useChatEmbeds] = createContext<ChatEmbedScope>(
 export const [ChatRowContext, useChatRowKey] = createContext<string | number | undefined>(
 	'ChatTranscriptRow',
 	{ default: undefined },
+)
+
+/**
+ * The citations in scope, as {@link ChatCitationProvider} supplied them: the
+ * views that a citation can select in, the active citation, and the call that
+ * changes it.
+ *
+ * @internal
+ */
+export type ChatCitationScope = {
+	targets: ChatCitationTargets
+	cited: ChatCitation | null
+	onCite?: (citation: ChatCitation | null) => void
+}
+
+/** The scope with no target: each citation renders as prose. @internal */
+const NO_CITATIONS: ChatCitationScope = { targets: {}, cited: null }
+
+/**
+ * The citations in scope. Optional context with an empty default, as the embed
+ * registry is: a transcript with no provider renders each citation as the
+ * prose that holds it.
+ *
+ * @internal
+ */
+export const [ChatCitationContext, useChatCitations] = createContext<ChatCitationScope>(
+	'ChatCitationProvider',
+	{ default: NO_CITATIONS },
 )
