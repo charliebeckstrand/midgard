@@ -71,7 +71,14 @@ export function resolveTransformModes(args: {
 	}
 }
 
-/** The 32-bit FNV-1a hash of a row key's string form. @internal */
+/**
+ * The mask that keeps a hash in 30 bits. V8 keeps an integer of 30 bits as a
+ * small integer on each platform. A larger integer can become a heap number,
+ * and the interpreter can allocate one for each step of a loop.
+ */
+const HASH_MASK = 0x3fffffff
+
+/** The FNV-1a hash of a row key's string form, in 30 bits ({@link HASH_MASK}). @internal */
 function hashKey(key: string | number): number {
 	const text = String(key)
 
@@ -83,7 +90,7 @@ function hashKey(key: string | number): number {
 		hash = Math.imul(hash, 0x01000193)
 	}
 
-	return hash >>> 0
+	return hash & HASH_MASK
 }
 
 /**
@@ -96,6 +103,11 @@ function hashKey(key: string | number): number {
  * measures nothing. A page turn, a filter, or new data changes the set of keys, and
  * so the fingerprint.
  *
+ * The function runs on each change of the rows, over each loaded row. Its loop
+ * is an indexed loop, and its sums stay in 30 bits, so it allocates nothing for
+ * each row. Until V8 optimizes a `for...of` loop, each step of that loop
+ * allocates an iterator result.
+ *
  * @internal
  */
 export function hashKeys(rowKeys: readonly (string | number)[]): string {
@@ -103,12 +115,12 @@ export function hashKeys(rowKeys: readonly (string | number)[]): string {
 
 	let mix = 0
 
-	for (const key of rowKeys) {
-		const hash = hashKey(key)
+	for (let i = 0; i < rowKeys.length; i++) {
+		const hash = hashKey(rowKeys[i] as string | number)
 
-		sum = (sum + hash) >>> 0
+		sum = (sum + hash) & HASH_MASK
 
-		mix = (mix ^ hash) >>> 0
+		mix ^= hash
 	}
 
 	return `${rowKeys.length}:${sum}:${mix}`
