@@ -133,6 +133,8 @@ export const geometry = {
 	'space.button.base': padIcon,
 	'space.button.label': padY,
 	'space.button.bare': padBare,
+	// The line of the label and this padding make the box of a bare icon button.
+	'space.button.row': (step) => (bareBox(step) - lineHeight(step)) / 2,
 	'space.control.y': padY,
 	'space.progress.label': (step) => 8 + toLeading(smallTextSize(step)),
 	'space.query.grip': (step) => 1 + 10 + boxHeight(step) / 2 - 12,

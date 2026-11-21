@@ -278,6 +278,12 @@ export const space = {
 		label: 'data-has-label:density-py-ring-[1,1.5,2,2.5,3]',
 		/** The padding of a bare icon button. */
 		bare: 'not-data-has-label:density-p-[0.75,1,1.25,1.5,1.75]',
+		/**
+		 * The block padding of a button with a label in a row that has the height of
+		 * a bare icon button. The button then has that height too, so the row does
+		 * not grow when the button shows.
+		 */
+		row: 'data-has-label:density-py-ring-[0.5,0.75,1,1.25,1.5]',
 	},
 	sidebar: {
 		item: {
