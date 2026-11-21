@@ -314,8 +314,8 @@ export type GridGroupBy<T = unknown> = {
 	groupRow?: (row: T) => GridGroupHeaderRow | null
 	/**
 	 * Controlled set of expanded group keys under {@link GridGroupBy.manual};
-	 * pair with {@link GridGroupBy.onExpandedChange}. Client mode keeps its own
-	 * engine expansion and ignores this.
+	 * pair with {@link GridGroupBy.onExpandedChange}. Client grouping keeps its
+	 * own expansion state and ignores this.
 	 */
 	expanded?: Set<string | number>
 	/**
@@ -919,7 +919,7 @@ export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'>
 	columnGroups?: GridColumnGroups
 
 	/**
-	 * Pagination binding backed by the grid's TanStack Table engine. In server
+	 * Pagination binding. The grid holds the page state itself. In server
 	 * mode (the default once `rowCount`/`pageCount` is supplied) the consumer
 	 * feeds each page as `rows`; in client mode the grid slices `rows` itself.
 	 * Renders a footer with a row-range status, page navigation, and an optional
@@ -1007,10 +1007,10 @@ export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'>
 	columnSizing?: GridColumnSizing
 
 	/**
-	 * Quick-search binding backed by the engine's global filter; renders a search
-	 * field above the table that searches columns declaring a
-	 * {@link GridColumn.value} accessor. Client-side by default; set `manual` for
-	 * server-side.
+	 * Quick-search binding; renders a search field above the table that searches
+	 * columns declaring a {@link GridColumn.value} accessor. Client-side by
+	 * default, where the client view of the grid filters the rows; set `manual`
+	 * for server-side.
 	 *
 	 * @see {@link GridSearch}
 	 */

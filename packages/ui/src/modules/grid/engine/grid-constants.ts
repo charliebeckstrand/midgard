@@ -113,7 +113,7 @@ export const GRID_STATUS_DEBOUNCE_MS = 150
 
 /**
  * Debounce (ms) the quick-search field waits after the last keystroke before
- * driving the engine's global filter. A fast typist thus settles into one
+ * the client view of the grid filters the rows. A fast typist thus settles into one
  * O(rows × columns) filter pass.
  *
  * @internal
