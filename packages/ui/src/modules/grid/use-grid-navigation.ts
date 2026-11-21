@@ -5,6 +5,7 @@ import {
 	type KeyboardEvent,
 	type MouseEvent,
 	type RefObject,
+	type SetStateAction,
 	useCallback,
 	useLayoutEffect,
 	useMemo,
@@ -541,6 +542,38 @@ function sameCoord(a: Coord | null, b: Coord): boolean {
 }
 
 /**
+ * A state that holds a value or `null`, and a check that tells whether its
+ * updates can end on a value. React drops an update that keeps the state only
+ * when no copy of the fiber has pending work. Otherwise, React renders again
+ * before it finds the same state. A caller that only clears the state can skip
+ * the update while `held()` is `false`.
+ *
+ * `held()` is `false` after a write of `null`, and `true` after any other
+ * write. React applies the updates in the order of the writes, so when the last
+ * write is `null`, the state ends on `null`. An updater can keep `null`, so
+ * `true` only means that a value is possible.
+ */
+function useNullableState<T>(): [
+	state: T | null,
+	set: (update: SetStateAction<T | null>) => void,
+	held: () => boolean,
+] {
+	const [state, setState] = useState<T | null>(null)
+
+	const heldRef = useRef(false)
+
+	const set = useCallback((update: SetStateAction<T | null>) => {
+		heldRef.current = update !== null
+
+		setState(update)
+	}, [])
+
+	const held = useCallback(() => heldRef.current, [])
+
+	return [state, set, held]
+}
+
+/**
  * The active cell of the cursor as an external store. The cells subscribe to
  * it, each to its own flag, and the event handlers read it. The hook writes it
  * in a layout effect, so every reader after a commit sees the value of that
@@ -709,11 +742,11 @@ export function useGridNavigation({
 	showRange: (from: Coord, to: Coord) => void
 	navTableProps: GridNavTableProps | undefined
 } {
-	const [active, setActive] = useState<Coord | null>(null)
+	const [active, setActive, activeHeld] = useNullableState<Coord>()
 
 	// The anchor of the cell range, a place in the cursor's order, or `null` for
 	// no range. The cursor is the other corner.
-	const [anchor, setAnchor] = useState<Coord | null>(null)
+	const [anchor, setAnchor, anchorHeld] = useNullableState<Coord>()
 
 	// Read the row- and cell-click as stable events, so the key handler's deps
 	// stay stable when the consumer passes inline callbacks. Whether each one is
@@ -838,7 +871,7 @@ export function useGridNavigation({
 		const seed = from && !chromeRow(from.row) && toDataRow(from.row) !== -1 ? from : null
 
 		setAnchor((held) => held ?? seed)
-	}, [readActive, toDataRow])
+	}, [readActive, toDataRow, setAnchor])
 
 	// The two corners of the range at call time, or `null` for no range.
 	const readCorners = useCallback(() => {
@@ -887,7 +920,7 @@ export function useGridNavigation({
 			// so it commits no render.
 			setActive((prev) => (prev && prev.row === row && prev.col === col ? prev : { row, col }))
 		},
-		[colCountRef, count, scrollRowIntoViewRef, newRowRef, holdAnchor, range],
+		[colCountRef, count, scrollRowIntoViewRef, newRowRef, holdAnchor, range, setActive, setAnchor],
 	)
 
 	// The public move takes a data row index, as every caller outside this hook
@@ -907,7 +940,7 @@ export function useGridNavigation({
 		setActive(null)
 
 		setAnchor(null)
-	}, [])
+	}, [setActive, setAnchor])
 
 	// Extends the range to a data cell, as Shift with a click or a drag does. The
 	// pointer is on the cell, so the cell is in the window.
@@ -968,7 +1001,7 @@ export function useGridNavigation({
 
 			setActive((prev) => (prev?.row === row && prev.col === to.col ? prev : { row, col: to.col }))
 		},
-		[toCursorRow, range],
+		[toCursorRow, range, setActive, setAnchor],
 	)
 
 	// Whether the cell at a data row and a column is inside the range.
@@ -1119,7 +1152,9 @@ export function useGridNavigation({
 	// `publish`. When the row or the column is gone, the cursor keeps its index,
 	// and the clamp gives the nearest cell. The cursor never dangles past the
 	// rendered grid, and it clears when the grid empties. A layout with the same
-	// cells costs one pass over the keys, and it commits no render.
+	// cells costs one pass over the keys, and it commits no render. With no
+	// cursor and no range, the call writes no state, so React does not render
+	// again to find the same `null`.
 	const reconcile = useCallback(
 		(rowKeys: readonly unknown[], columnIds: readonly unknown[], slot: GridNewRowPosition) => {
 			const seen = layoutRef.current
@@ -1132,7 +1167,7 @@ export function useGridNavigation({
 				seen !== null && !(sameElements(seen.rows, rowKeys) && sameElements(seen.cols, columnIds))
 
 			// The cells under the range moved, so its rectangle names other cells now.
-			if (moved) setAnchor(null)
+			if (moved && anchorHeld()) setAnchor(null)
 
 			const from = readActive()
 
@@ -1143,6 +1178,8 @@ export function useGridNavigation({
 			if (followed && from && followed.row !== from.row && followed.row !== NEW_ROW_INDEX) {
 				scrollRowIntoViewRef.current?.(followed.row)
 			}
+
+			if (!activeHeld()) return
 
 			setActive((prev) => {
 				if (prev === null) return null
@@ -1157,7 +1194,7 @@ export function useGridNavigation({
 				return clampCoord(base, prev, { rows, cols: columnIds.length, slot })
 			})
 		},
-		[readActive, scrollRowIntoViewRef],
+		[readActive, scrollRowIntoViewRef, activeHeld, anchorHeld, setActive, setAnchor],
 	)
 
 	// Activates the cell then the row under the cursor through the grid's
@@ -1278,7 +1315,7 @@ export function useGridNavigation({
 				else setActive(null)
 			}
 		},
-		[onEntryKey, activateOrSelectRow, toDataRow, readActive, activeCursor],
+		[onEntryKey, activateOrSelectRow, toDataRow, readActive, activeCursor, setActive, setAnchor],
 	)
 
 	const onKeyDown = useCallback(
@@ -1438,29 +1475,32 @@ export function useGridNavigation({
 		[count, colCountRef, newRowRef, readActive, moveToCursor, followFocus],
 	)
 
-	const onBlur = useCallback((event: FocusEvent<HTMLTableElement>) => {
-		pressedRef.current = false
+	const onBlur = useCallback(
+		(event: FocusEvent<HTMLTableElement>) => {
+			pressedRef.current = false
 
-		const next = event.relatedTarget
+			const next = event.relatedTarget
 
-		// Keep the cursor while focus moves to focusable cell content inside the grid;
-		// drop it only when focus leaves the table entirely.
-		if (next instanceof Node && event.currentTarget.contains(next)) return
+			// Keep the cursor while focus moves to focusable cell content inside the grid;
+			// drop it only when focus leaves the table entirely.
+			if (next instanceof Node && event.currentTarget.contains(next)) return
 
-		// Keep it seated, too, while focus is in a floating overlay opened from the
-		// grid (e.g. its context menu), so the active cell is restored on close.
-		// This mirrors the `onFocus` portal guard that declines to re-seed on
-		// return.
-		if (closestFloatingPortal(next)) return
+			// Keep it seated, too, while focus is in a floating overlay opened from the
+			// grid (e.g. its context menu), so the active cell is restored on close.
+			// This mirrors the `onFocus` portal guard that declines to re-seed on
+			// return.
+			if (closestFloatingPortal(next)) return
 
-		// Keep it seated, too, while the whole window loses focus (a switch of the
-		// window or the tab), so the reader comes back to the same cell.
-		if (next === null && !document.hasFocus()) return
+			// Keep it seated, too, while the whole window loses focus (a switch of the
+			// window or the tab), so the reader comes back to the same cell.
+			if (next === null && !document.hasFocus()) return
 
-		setActive(null)
+			setActive(null)
 
-		setAnchor(null)
-	}, [])
+			setAnchor(null)
+		},
+		[setActive, setAnchor],
+	)
 
 	// The grid writes the row map during its render, after this hook. Under a
 	// published order, a new map reaches the view here, and the render that
