@@ -7,6 +7,7 @@ import { Code, CodeBlock } from '../code'
 import { decodeEntities } from './markdown-entities'
 import {
 	atomRange,
+	find,
 	locate,
 	type MarkdownRange,
 	type MarkdownRangePiece,
@@ -194,7 +195,9 @@ function renderToken(
 
 /**
  * Runs `render` with the cursor of the walk at the start of `raw` in the
- * source, then moves the cursor past the end of `raw`.
+ * source, then moves the cursor past the end of `raw`. While `render` runs,
+ * the limit of the walk is the end of `raw`, so a child token is found only in
+ * the source of its parent.
  *
  * @internal
  */
@@ -209,9 +212,15 @@ function within(
 
 	if (!span) return render(undefined)
 
+	const limit = draw.limit
+
 	draw.cursor = span[0]
 
+	draw.limit = span[1]
+
 	const node = render(draw)
+
+	draw.limit = limit
 
 	draw.cursor = Math.max(draw.cursor, span[1])
 
@@ -251,7 +260,7 @@ function markText(draw: Draw, raw: string, key: number): ReactNode {
 	raw.split('\n').forEach((line, row) => {
 		if (row > 0) nodes.push('\n')
 
-		const at = found && line !== '' ? draw.source.indexOf(line, draw.cursor) : -1
+		const at = found && line !== '' ? find(draw, line, draw.cursor) : -1
 
 		if (at === -1) {
 			if (line !== '') found = false

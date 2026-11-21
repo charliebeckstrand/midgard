@@ -89,6 +89,30 @@ describe('Markdown ranges', () => {
 		expect(pieces(container)[1]?.closest('td')).not.toBeNull()
 	})
 
+	it('does not find the text of a table cell past the end of the table', () => {
+		// marked gives the cell the text `a | b`, which its source does not hold.
+		const md = '| a \\| b | x |\n|---|---|\n| c | d |\n\nSee a | b here.'
+
+		const start = md.lastIndexOf('a | b')
+
+		const { container } = renderUI(
+			<Markdown
+				ranges={[{ id: 'p', start, end: start + 5, quote: 'a | b' }, findRange(md, 'd', 'd')]}
+			>
+				{md}
+			</Markdown>,
+		)
+
+		expect(
+			pieces(container).map((piece) => [piece.dataset.range, piece.closest('td, p')?.tagName]),
+		).toEqual([
+			['d', 'TD'],
+			['p', 'P'],
+		])
+
+		expect(container.querySelector('th [data-slot="markdown-range"]')).toBeNull()
+	})
+
 	it('puts no piece in a link, and draws the rest of the range', () => {
 		const md = 'See [the late stops](https://example.com/late) on the map.'
 

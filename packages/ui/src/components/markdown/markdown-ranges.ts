@@ -47,6 +47,13 @@ export type MarkdownRangePiece<R extends MarkdownRange = MarkdownRange> = {
 export type RangeWalk<R extends MarkdownRange = MarkdownRange> = {
 	source: string
 	cursor: number
+	/**
+	 * The end of the token that holds the cursor. A search does not accept a
+	 * match past it, because marked rewrites the text of some tokens, such as
+	 * `\|` to `|` in a table cell. A match past the token is then text of a
+	 * later token.
+	 */
+	limit: number
 	/** The ranges that draw, sorted by `start`, with no overlap. */
 	ranges: R[]
 	/** The number of pieces that each range in `ranges` drew so far. */
@@ -95,7 +102,25 @@ export function rangeWalk<R extends MarkdownRange>(
 
 	if (accepted.length === 0) return undefined
 
-	return { source, cursor: 0, ranges: accepted, pieces: accepted.map(() => 0) }
+	return {
+		source,
+		cursor: 0,
+		limit: source.length,
+		ranges: accepted,
+		pieces: accepted.map(() => 0),
+	}
+}
+
+/**
+ * The offset of `text` in the source from `from`, or `-1` when the source
+ * holds it only past the limit of the walk, or not at all.
+ *
+ * @internal
+ */
+export function find(walk: RangeWalk, text: string, from: number): number {
+	const at = walk.source.indexOf(text, from)
+
+	return at === -1 || at + text.length > walk.limit ? -1 : at
 }
 
 /**
@@ -115,7 +140,7 @@ export function locate(walk: RangeWalk, raw: string): [number, number] | undefin
 	const lineEnd = text.indexOf('\n')
 
 	if (lineEnd === -1) {
-		const at = walk.source.indexOf(text, walk.cursor)
+		const at = find(walk, text, walk.cursor)
 
 		return at === -1 ? undefined : [at, at + text.length]
 	}
@@ -124,11 +149,11 @@ export function locate(walk: RangeWalk, raw: string): [number, number] | undefin
 
 	const last = text.slice(text.lastIndexOf('\n') + 1)
 
-	const at = walk.source.indexOf(first, walk.cursor)
+	const at = find(walk, first, walk.cursor)
 
 	if (at === -1) return undefined
 
-	const lastAt = walk.source.indexOf(last, at + first.length)
+	const lastAt = find(walk, last, at + first.length)
 
 	return [at, lastAt === -1 ? at + first.length : lastAt + last.length]
 }
