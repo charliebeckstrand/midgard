@@ -180,6 +180,25 @@ describe('Stepper', () => {
 		expect(document.activeElement).toBe(second)
 	})
 
+	it('runs the onKeyDown of the consumer on a display-only stepper', () => {
+		const onKeyDown = vi.fn()
+
+		renderUI(
+			<Stepper value={0} onKeyDown={onKeyDown}>
+				<StepperStep value={0}>
+					<StepperTitle>Account</StepperTitle>
+					<StepperDescription>
+						<a href="/terms">Terms</a>
+					</StepperDescription>
+				</StepperStep>
+			</Stepper>,
+		)
+
+		fireEvent.keyDown(screen.getByRole('link', { name: 'Terms' }), { key: 'Enter' })
+
+		expect(onKeyDown).toHaveBeenCalledOnce()
+	})
+
 	it('takes an aria-label, so two steppers on one page have distinct names', () => {
 		renderUI(
 			<>

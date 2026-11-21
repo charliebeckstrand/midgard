@@ -225,6 +225,7 @@ export function Stepper({
 			data-slot="stepper"
 			data-orientation={resolvedOrientation}
 			aria-label={ariaLabel}
+			onKeyDown={onKeyDown}
 			className={rowClassName}
 		>
 			{rowChildren}

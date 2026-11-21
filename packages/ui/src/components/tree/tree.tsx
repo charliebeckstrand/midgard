@@ -10,7 +10,6 @@ import {
 	useRef,
 } from 'react'
 import { cn } from '../../core/cn'
-import { composeEventHandlers } from '../../core/compose-event-handlers'
 import type { ScaleStep } from '../../core/density/scale'
 import { useA11yRoving } from '../../hooks/a11y/use-a11y-roving'
 import type { Mount } from '../../primitives/mount'
@@ -85,8 +84,11 @@ export function Tree({
 	// The horizontal arrows of the tree model: to the first child of an open
 	// branch, or to the parent of a closed branch or a leaf. A branch row opens
 	// and closes itself first and cancels the event. Every other key goes to roving.
+	// The consumer's handler runs first, and roving takes no gate on it.
 	const handleKeyDown = useCallback(
 		(event: KeyboardEvent<HTMLDivElement>) => {
+			onKeyDown?.(event)
+
 			const container = ref.current
 
 			const item = event.target
@@ -106,7 +108,7 @@ export function Tree({
 
 			rovingKeyDown(event)
 		},
-		[rovingKeyDown],
+		[onKeyDown, rovingKeyDown],
 	)
 
 	const rootContextValue = useMemo(() => ({ depth: 0, indent, mount }), [indent, mount])
@@ -120,10 +122,7 @@ export function Tree({
 				data-slot="tree"
 				density={size}
 				className={cn(k().base, className)}
-				// Roving takes no gate: the consumer's handler runs first, then roving.
-				onKeyDown={composeEventHandlers(onKeyDown, handleKeyDown, {
-					checkForDefaultPrevented: false,
-				})}
+				onKeyDown={handleKeyDown}
 			>
 				{stampTreePositions(children)}
 			</Box>
