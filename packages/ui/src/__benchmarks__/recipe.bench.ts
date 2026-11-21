@@ -2,6 +2,7 @@
 
 import clsx from 'clsx'
 import { cn } from '../core/cn'
+import { defineKata } from '../core/recipe/engine/kata'
 import { defineRecipe } from '../core/recipe/engine/recipe'
 import { twMerge } from '../core/tw-merge'
 import { k as button } from '../recipes/kata/button'
@@ -15,9 +16,9 @@ import { compareBenches } from './compare'
  * and none of those can isolate it.
  *
  * Three costs are separated because they behave differently. A **memo hit** is
- * what a render normally pays: join the resolved values of every relevant key
- * into a string, then read a Map, so it scales with the recipe's *axis count*,
- * not with its class payload. A **memo miss** composes the class list and runs
+ * what a render normally pays: a kata joins the value of each prop name into a
+ * string, then reads a Map, so it scales with the *axis count* of the kata, not
+ * with its class payload. A **memo miss** composes the class list and runs
  * it through `clsx` + `tailwind-merge`, which is one to two orders of magnitude
  * dearer and scales with the payload. **`cn`** is the merge a call site adds on
  * top of the recipe's output, once per element, every render: memoized on its
@@ -39,9 +40,9 @@ const OVERRIDE = 'px-6 text-sm'
 
 compareBenches('recipe · call (memo hit — the render path)', (bench) => {
 	// What a mounted component actually runs per element. No props is the
-	// commonest call and resolves to a precomputed key, so it skips the join
-	// entirely; the explicit calls pay it.
-	bench('button · defaults (precomputed key)', () => {
+	// commonest call. A kata joins the value of each prop name, from the props or
+	// the defaults, on every call, so no call skips the join.
+	bench('button · defaults (no props)', () => {
 		button()
 	})
 
@@ -140,34 +141,35 @@ compareBenches('recipe · cn (once per element per render)', (bench) => {
 })
 
 compareBenches('recipe · key join (scales with axis count, not payload)', (bench) => {
-	// A memo hit costs one `resolveValue` and one string append per relevant key,
-	// so a recipe's axis count (plus every key its compound rules condition on)
-	// sets the floor for every render that touches it. These three hold the class
-	// payload fixed and vary only that count.
+	// A kata hit joins one key part for each prop name of the kata, so its axis
+	// count (plus every key its compound rules condition on) sets the floor for
+	// every render that touches it. These three hold the class payload fixed and
+	// vary only that count.
 	const axis = { a: 'p-1', b: 'p-2', c: 'p-3' }
 
-	const recipeWith = (count: number) =>
-		defineRecipe({
+	// The axes are built from `Object.fromEntries`, so the call signature is
+	// spelled out, as for the wide recipe above.
+	const kataWith = (count: number) =>
+		defineKata({
 			base: 'inline-flex',
 			...Object.fromEntries(Array.from({ length: count }, (_, index) => [`x${index}`, axis])),
 			defaults: Object.fromEntries(Array.from({ length: count }, (_, index) => [`x${index}`, 'a'])),
-		})
+		} as never) as unknown as (props?: Record<string, string>) => { base: string }
 
 	for (const axes of [1, 4, 16]) {
-		const recipe = recipeWith(axes)
+		const kata = kataWith(axes)
 
-		// One axis set explicitly, so the call cannot take the precomputed
-		// no-props key and must join for real.
 		bench(`${axes} axes · memo hit`, () => {
-			recipe({ x0: 'b' })
+			kata({ x0: 'b' })
 		})
 	}
 })
 
 compareBenches('recipe · defineRecipe (creation, once per module load)', (bench) => {
-	// Every kata builds its recipe at import time: expand the config, splice the
-	// palette into the `variant` × `color` axes, compile the plan, then merge each
-	// slot's classes eagerly. A page that imports a hundred components pays this a
+	// Every kata builds its recipes at import time: `defineKata` runs
+	// `defineRecipe` one time for each slot, which expands the config, splices the
+	// palette into the `variant` × `color` axes, and compiles the plan. The memo
+	// of each recipe then fills lazily, on the first call of each key. A page that imports a hundred components pays this a
 	// hundred times before it renders anything, so it is startup cost, not render
 	// cost: measured against a bare recipe to separate the palette's share.
 	const config = button.config.slots.base

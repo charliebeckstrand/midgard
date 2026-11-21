@@ -8,23 +8,11 @@
  */
 
 import { Grid } from '../modules/grid'
-import type { GridColumn } from '../modules/grid/types'
 import { compareBenches } from './compare'
-import { makeInlineColumns, type Shipment, shipmentKey, shipments } from './fixtures'
+import { makeInlineColumns, shipmentKey, shipments } from './fixtures'
 import { mountBench, mountBenches, rerenderBench } from './harness'
 
 const COLUMNS = makeInlineColumns()
-
-// Six plain columns for the resizable sweep: the autosizer measures every body
-// cell of every auto-sized column pre-paint, so the cost scales with rows.
-const COLUMNS_6: GridColumn<Shipment>[] = [
-	{ id: 'reference', title: 'Reference' },
-	{ id: 'origin', title: 'Origin' },
-	{ id: 'destination', title: 'Destination' },
-	{ id: 'status', title: 'Status' },
-	{ id: 'carrier', title: 'Carrier' },
-	{ id: 'loads', title: 'Loads' },
-]
 
 /** Rows a streamed Markdown table grows to, one row per iteration. */
 const STREAM_ROWS = 50
@@ -40,7 +28,7 @@ const streamed = shipments(STREAM_ROWS)
 
 compareBenches('Grid · inline mount (small)', (bench) => {
 	// Fixed per-mount overhead (context providers, the TanStack engine, per-cell
-	// truncation + tooltip fan-out) dominates at chat sizes and is invisible in
+	// truncation) dominates at chat sizes and is invisible in
 	// the 100→10k sweep. This is the headline inline number.
 	mountBenches(
 		bench,
@@ -51,31 +39,15 @@ compareBenches('Grid · inline mount (small)', (bench) => {
 })
 
 compareBenches('Grid · inline mount — truncate on/off', (bench) => {
-	// `truncate` defaults true, so each data cell mounts a floating-ui Tooltip
-	// stack (closed, but the hooks/effects allocate). Toggling it off isolates
-	// that per-cell cost.
+	// `truncate` defaults true, so each data cell mounts a `GridCellContent`: a
+	// truncating span with an overflow observer. The tooltip mounts only on the
+	// first contact with a clipped cell. Toggling it off isolates that per-cell
+	// cost.
 	mountBenches(
 		bench,
 		[true, false],
 		(truncate) => `20 × 4 · ${truncate ? 'truncate (default)' : 'truncate=false'}`,
 		(truncate) => <Grid columns={COLUMNS} rows={rows20} getKey={shipmentKey} truncate={truncate} />,
-	)
-})
-
-compareBenches('Grid · inline mount — resizable on/off', (bench) => {
-	// `resizable` defaults true, arming the auto-size pass that measures every
-	// body cell synchronously before paint (O(rows × cols)). `resizable={false}`
-	// stands the autosizer down; the gap is its pre-paint cost.
-	mountBenches(
-		bench,
-		[50, 200].flatMap((count) =>
-			[true, false].map((resizable) => ({ resizable, rows: shipments(count) })),
-		),
-		({ rows, resizable }) =>
-			`${rows.length} × 6 · ${resizable ? 'resizable (default)' : 'resizable=false'}`,
-		({ rows, resizable }) => (
-			<Grid columns={COLUMNS_6} rows={rows} getKey={shipmentKey} resizable={resizable} />
-		),
 	)
 })
 

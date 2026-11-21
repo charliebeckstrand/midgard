@@ -5,12 +5,11 @@ import { makeTrend } from './browser/fixtures'
 import { compareBenches } from './compare'
 
 // `linearScale` resolves a series' value domain on every mount and every update
-// frame: filter the pool to finite, take its min and max, nice-step the unpinned
-// bounds, then walk the ticks. The reduction runs over every value the chart
-// draws, so it scales with N. This suite benches it directly in a node env (no
-// React, no jsdom) so a core change (single-pass finite min/max in place of
-// `filter` + `Math.min(...spread)`) reads as a delta the end-to-end browser
-// suite is too coarse to isolate. Data is the shared LCG fixture the browser
+// frame: take the min and max of the finite values in one pass (no copy, no
+// spread), nice-step the unpinned bounds, then walk the ticks. The reduction
+// runs over every value the chart draws, so it scales with N. This suite benches
+// it directly in a node env (no React, no jsdom), so a core change reads as a
+// delta that the end-to-end browser suite is too coarse to isolate. Data is the shared LCG fixture the browser
 // suite draws, so the pool matches the scenarios one rung up.
 
 /** A flat value pool of `seriesCount` random walks over `count` categories. */

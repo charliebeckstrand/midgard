@@ -13,8 +13,11 @@ import { compareBenches } from './compare'
 import { type Shipment, shipmentColumns, shipmentKey, shipments } from './fixtures'
 import { mountBench, mountBenches, rerenderBench } from './harness'
 
+// A ui column renders nothing without a `cell`, so each column renders its
+// field as text, as an app does.
 const COLUMNS = shipmentColumns((id) => ({
 	sortable: id === 'origin' || id === 'destination' || id === 'loads',
+	cell: (row) => String(row[id]),
 }))
 
 /** The same set fronted by a selection checkbox column. */
@@ -112,10 +115,11 @@ compareBenches('Grid · virtualized initial render', (bench) => {
 })
 
 compareBenches('Grid · rerender after sort toggle (1,000 rows · truncating)', (bench) => {
-	// A resizable grid is fixed-layout and truncating, so every visible cell
+	// Every data cell truncates by default (`truncate`), so each visible cell
 	// mounts a `GridCellContent`. This exercises the path the performance audit
-	// flagged: a sort change must not re-render every truncating cell (each reads
-	// only the narrow resizing context, not the table-wide value the sort lives in).
+	// flagged: a sort change must not re-render every truncating cell. Each cell
+	// reads the drag state from the settle store, not the table-wide value that
+	// the sort lives in.
 	const rows = shipments(1_000)
 
 	const sorted = (direction: GridSortState['direction']) => (

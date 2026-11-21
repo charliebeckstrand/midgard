@@ -69,7 +69,7 @@ compareBenches('chat-transcript · applyReplyChunk (per streamed chunk)', (bench
 
 	// The shell reads the branches of the tree again after each chunk. The rule
 	// finds the place of each fork on the path, and a retry puts its fork near
-	// the end, the far end of that search.
+	// the end, where that search starts, so this row stays flat across the axis.
 	for (const { label, messages } of STREAMING) {
 		const forked = addBranch(toChatTree(messages), messages.length - 1, {
 			id: 'b',

@@ -136,7 +136,7 @@ type Json = string | number | boolean | null | Json[] | { [k: string]: Json }
 
 /**
  * Build a balanced JSON tree with `depth` levels and `branching` children
- * per branch node. Total branch nodes ≈ branching^depth.
+ * per branch node. It has branching^depth leaves.
  */
 export function makeJsonTree(depth: number, branching: number, seed = 1): Json {
 	const rand = rng(seed)
@@ -216,7 +216,7 @@ export function makeQueryTree(depth: number, branching: number): QueryGroup {
 /**
  * The JSON trees both json-tree benches run: `json-tree` measures the pure
  * utilities over them, `json-tree-render` the component that walks them, and
- * the two only compare while the sizes match. Branch count grows
+ * the two only compare while the sizes match. The leaf count grows
  * exponentially: `branching^depth`.
  */
 export const JSON_TREES = {
@@ -235,10 +235,10 @@ export const JSON_MISS = '__absent__'
  * `query-evaluate` reads them, and the two only read against each other while
  * the sizes match, so they are declared once here.
  *
- * Total rules ≈ `branching^(depth+1)`.
+ * Total rules = `branching^(depth+1)`.
  */
 export const QUERY_TREES = [
-	{ label: 'shallow-wide (20 rules)', tree: makeQueryTree(1, 20) },
+	{ label: 'shallow-wide (400 rules)', tree: makeQueryTree(1, 20) },
 	{ label: 'balanced (256 rules)', tree: makeQueryTree(3, 4) },
 	{ label: 'deep-wide (1,024 rules)', tree: makeQueryTree(4, 4) },
 ] as const
@@ -327,17 +327,17 @@ export function comboboxOptions(count: number): Option[] {
 
 /**
  * A compact, chat-realistic column set over {@link Shipment}: four plain columns
- * (two sortable) with no cell renderer, so each cell falls back to the row field
- * named by the column id and truncates by default, the shape an inline chat
- * grid actually mounts. Held to a stable identity so the inline render benches
+ * (two sortable), each with a `cell` that renders its field as text, so each
+ * cell truncates by default, the shape an inline chat grid actually mounts. A
+ * ui column with no `cell` renders nothing. Held to a stable identity so the inline render benches
  * can measure a no-op re-render.
  */
 export function makeInlineColumns(): GridColumn<Shipment>[] {
 	return [
-		{ id: 'reference', title: 'Reference' },
-		{ id: 'origin', title: 'Origin', sortable: true },
-		{ id: 'loads', title: 'Loads', sortable: true },
-		{ id: 'createdAt', title: 'Created' },
+		{ id: 'reference', title: 'Reference', cell: (row) => row.reference },
+		{ id: 'origin', title: 'Origin', sortable: true, cell: (row) => row.origin },
+		{ id: 'loads', title: 'Loads', sortable: true, cell: (row) => String(row.loads) },
+		{ id: 'createdAt', title: 'Created', cell: (row) => row.createdAt },
 	]
 }
 

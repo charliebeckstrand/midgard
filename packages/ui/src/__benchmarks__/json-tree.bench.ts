@@ -10,11 +10,11 @@ import type { JsonValue } from '../components/json-tree/types'
 import { compareBenches } from './compare'
 import { JSON_HIT, JSON_MISS, JSON_TREES, makeJsonTree } from './fixtures'
 
-// Tree sizes (branch count grows exponentially):
-// small   (d=3, b=5)   = ~125 branches
-// medium  (d=4, b=5)   = ~625 branches
-// large   (d=5, b=5)   = ~3,125 branches
-// huge    (d=6, b=4)   = ~4,096 branches
+// Tree sizes (the leaf count is branching^depth):
+// small   (d=3, b=5)   = 125 leaves, 31 branches
+// medium  (d=4, b=5)   = 625 leaves, 156 branches
+// large   (d=5, b=5)   = 3,125 leaves, 781 branches
+// huge    (d=6, b=4)   = 4,096 leaves, 1,365 branches
 
 const { small, medium, large } = JSON_TREES
 

@@ -1,8 +1,10 @@
 /**
  * List's per-item mount cost, split by whether the list is reorderable. An
- * `onReorder` arms the dnd-kit sortable context and wires every item as a
- * draggable, so the read-only rung at the same item count is the floor those
- * sensors sit above.
+ * `onReorder` renders the list as a Motion `Reorder.Group`, and each item as a
+ * `Reorder.Item` with its own drag controls and keyboard lift. The read-only
+ * rung at the same item count (plain `ListItemStatic` rows) is the floor that
+ * the reorder machinery sits above. The reorder parts load from a chunk of
+ * their own, which `setup.ts` loads before the file.
  */
 
 import { List, ListItem } from '../components/list'

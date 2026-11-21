@@ -2,9 +2,13 @@
  * Combobox mounts its options behind an `open` gate, so the closed rungs
  * measure the trigger and the query plumbing alone (what a page pays for a
  * combobox nobody has touched) and the open rungs add the rendered options.
- * The virtualized pair at the same counts is what windowing buys once the
- * panel is open. The selection rung times a value change on an open panel
- * alone, which is the path that re-renders each option row.
+ * The virtualized pair mounts the same open panel through `VirtualOptions`.
+ * jsdom lays nothing out, so its window is empty, and the rung prices the
+ * virtualizer with no rows. The browser is where the rows of a real window
+ * show. The selection rung times a value change on an open panel alone. Each
+ * option reads its selection from a keyed store, so only the two options whose
+ * state changes render again, and a regression that reaches every row shows
+ * here.
  */
 
 import { Combobox, ComboboxLabel, ComboboxOption } from '../components/combobox'
