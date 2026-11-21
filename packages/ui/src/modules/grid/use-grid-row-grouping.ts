@@ -38,7 +38,7 @@ type GridRowGroupingResult<T> = {
  *
  * - the grouped column id, controllable: the group-by button writes it back
  *   through `setGrouping`
- * - the client-mode engine expansion state, seeded from a boolean
+ * - the client-mode expansion state of the grid, seeded from a boolean
  *   `defaultExpanded`, then toggled per group header
  * - the manual-mode expanded key set, controllable and seeded from a `Set`
  *   `defaultExpanded`, with its lazy-load-aware toggle
@@ -72,8 +72,8 @@ export function useGridRowGrouping<T>(
 		config?.defaultExpanded === false ? ALL_GROUPS_CLOSED : ALL_GROUPS_OPEN,
 	)
 
-	// Manual expansion is a key set, not engine state: the groups live on the
-	// server, so a boolean default can't enumerate them (a `Set` default seeds
+	// Manual expansion is a key set, not a `GroupExpansion`: the groups live on
+	// the server, so a boolean default can't enumerate them (a `Set` default seeds
 	// the open groups, and anything else starts fully collapsed).
 	const [manualExpanded = EMPTY_EXPANDED, setManualExpanded] = useControllable<
 		ReadonlySet<string | number>
