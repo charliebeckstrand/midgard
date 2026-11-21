@@ -64,12 +64,18 @@ function isFrameworkSpecifier(specifier: string): boolean {
 }
 
 /**
- * Every framework reach in one file: a client-boundary directive, and each
- * runtime import of a framework package. Empty for a pure file. The rule and
+ * Every framework reach in one file: a client-boundary directive, each runtime
+ * import of a framework package, and JSX. Empty for a pure file. The rule and
  * its self-check both read this, so neither can drift from the other.
+ *
+ * @remarks A `.tsx` file counts as JSX. The `react-jsx` transform adds a
+ * runtime import of `react/jsx-runtime` at compile time, so the source text of
+ * a component can show no import of React.
  */
-function frameworkReaches(content: string): string[] {
+function frameworkReaches(file: string, content: string): string[] {
 	const found: string[] = []
+
+	if (file.endsWith('.tsx')) found.push('JSX, which imports react/jsx-runtime at runtime')
 
 	if (/^\s*['"]use client['"]/m.test(content)) found.push("'use client'")
 
@@ -157,7 +163,7 @@ describe('engine purity boundary', () => {
 
 		it(`${module}/engine imports no framework at runtime and declares no client boundary`, () => {
 			const violations = files.flatMap(({ rel, content }) =>
-				frameworkReaches(content).map((reach) => `${rel} → ${reach}`),
+				frameworkReaches(rel, content).map((reach) => `${rel} → ${reach}`),
 			)
 
 			expect(
@@ -211,9 +217,13 @@ describe('engine purity boundary · self-check', () => {
 
 	for (const { label, content } of cases) {
 		it(`detects ${label}`, () => {
-			expect(frameworkReaches(content)).not.toEqual([])
+			expect(frameworkReaches('core.ts', content)).not.toEqual([])
 		})
 	}
+
+	it('detects JSX with no import of React', () => {
+		expect(frameworkReaches('grid-lines.tsx', 'export const a = 1\n')).not.toEqual([])
+	})
 
 	it('allows a type-only framework import', () => {
 		const refs = parseImports("import type { CSSProperties } from 'react'\n")
@@ -229,7 +239,7 @@ describe('engine purity boundary · self-check', () => {
 
 		expect(isFrameworkSpecifier('@dnd-kit/core')).toBe(true)
 
-		expect(frameworkReaches(content)).toEqual([])
+		expect(frameworkReaches('core.ts', content)).toEqual([])
 	})
 
 	it('allows a clause whose every binding is type-qualified', () => {
