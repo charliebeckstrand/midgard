@@ -10,19 +10,19 @@
  * cancels out. A gesture that costs O(page) has a slope near zero. One array
  * of the loaded rows costs 8 bytes for each row.
  *
- * Three parts of the method keep the noise of a slope well below {@link NOISE}:
+ * Three parts of the method make each slope the same on each run:
  *
- * - The measure reads only the heap spaces that hold data. V8 compiles a hot
- *   function again at a faster tier while the process runs, and the code
- *   spaces hold that code. A compile in one pass is not a cost of the gesture.
- * - The small size runs before and after the large size, and the slope reads
- *   the mean of the two. The process allocates less as it warms up, so a
- *   small pass that only came first read too many bytes. The mean cancels
- *   that drift.
+ * - The `churn` project of `vitest.bench.config.ts` runs this file without
+ *   the optimizing tiers of V8. Those tiers remove some allocations after a
+ *   function becomes hot, and the time of that compile changes from run to
+ *   run. Without them, a gesture allocates the bytes that its code asks for.
+ * - The measure reads only the heap spaces that hold data. V8 still compiles
+ *   a function to baseline code while the process runs, and the code spaces
+ *   hold that code. A compile in one pass is not a cost of the gesture.
  * - Each sample is the mean of two runs of the gesture in sequence. The bytes
  *   of a render that changes the rows go high and low in turn, by about
- *   160 KB. A median of single runs took the side of the first run. A change
- *   of side between two passes moved a slope by 1.8 bytes for each row.
+ *   190 KB. A median of single runs took the side of the first run. A change
+ *   of side between two passes moved a slope by 2 bytes for each row.
  *
  * Each budget is the slope that the gesture has now, as {@link BUDGETS}
  * records it. A slope must stay within {@link NOISE} of its budget. A change
@@ -55,13 +55,14 @@ const PAGE_SIZE = 10
 const BATCH = 50
 
 /** The samples of each gesture at each size. The median is the measure. */
-const SAMPLES = 5
+const SAMPLES = 3
 
 /**
- * The noise of a slope, in bytes for each loaded row. It is less than one
- * array of the loaded rows, so a new array of the rows fails a budget.
+ * The tolerance of a slope, in bytes for each loaded row. A slope repeats to
+ * within 0.01 from run to run. One array of the loaded rows costs 8, so a
+ * new array of the rows fails a budget.
  */
-const NOISE = 1.5
+const NOISE = 0.5
 
 /** The modeled viewport of the windowed grid, in pixels. */
 const VIEWPORT = 600
@@ -107,12 +108,15 @@ type Gesture = 'rerender' | 'sortFlip' | 'refresh' | 'sortedRefresh' | 'pageTurn
  * The windowed grid reads its rows from arrays of every loaded row. A sort
  * flip copies the rows and the keys in view order, which is two arrays. A
  * refresh builds the keys again, which is one array. An append builds the keys
- * again, and the virtualizer copies its measurements. In each layout, the sort
- * of new rows decodes a sort key for each row.
+ * again, and the virtualizer copies its measurements. Each windowed gesture
+ * that changes the rows also walks every loaded row with `for...of` loops,
+ * such as the loop of `hashKeys`. Until V8 optimizes a loop, each step
+ * allocates an iterator result of 40 bytes. In each layout, the sort of new
+ * rows decodes a sort key for each row.
  */
 const BUDGETS: Record<Layout, Partial<Record<Gesture, number>>> = {
-	paged: { rerender: 0, sortFlip: 0, refresh: 0, sortedRefresh: 112, pageTurn: 0, append: 0 },
-	windowed: { rerender: 0, sortFlip: 16, refresh: 8, sortedRefresh: 128, append: 16 },
+	paged: { rerender: 0, sortFlip: 0, refresh: 0, sortedRefresh: 126.9, pageTurn: 0, append: 0 },
+	windowed: { rerender: 0, sortFlip: 93.1, refresh: 86, sortedRefresh: 220.5, append: 94 },
 }
 
 /** The state that a case renders. */
@@ -286,23 +290,17 @@ function measureGestures(layout: Layout, count: number): Partial<Record<Gesture,
 
 for (const layout of ['paged', 'windowed'] as const) {
 	test(`grid churn · ${layout} · bytes for each loaded row`, { timeout: 0 }, () => {
-		// A first pass compiles the code of each gesture and fills the caches. A
-		// later compile at a faster tier can still occur, so the measure leaves
-		// out the code spaces.
+		// A first pass compiles the code of each gesture and fills the caches.
 		measureGestures(layout, SMALL)
 
-		const before = measureGestures(layout, SMALL)
+		const small = measureGestures(layout, SMALL)
 
 		const large = measureGestures(layout, LARGE)
-
-		const after = measureGestures(layout, SMALL)
 
 		const budgets = Object.entries(BUDGETS[layout]) as [Gesture, number][]
 
 		for (const [gesture, budget] of budgets) {
-			const small = ((before[gesture] ?? 0) + (after[gesture] ?? 0)) / 2
-
-			const slope = ((large[gesture] ?? 0) - small) / (LARGE - SMALL)
+			const slope = ((large[gesture] ?? 0) - (small[gesture] ?? 0)) / (LARGE - SMALL)
 
 			expect(
 				Math.abs(slope - budget),
