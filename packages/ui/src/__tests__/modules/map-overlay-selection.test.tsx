@@ -262,4 +262,23 @@ describe('MapPlat selected overlays', () => {
 
 		expect(tableRows(container)).toEqual(['Stops, selected', 'Yard, selected'])
 	})
+
+	it('haloes the dots of the picked set alone, where two sets draw apart', () => {
+		const { container } = renderUI(
+			overlayPlat(
+				<>
+					<MapPoints id="fleet" label="Stops" points={[{ at: DEPOT, label: 'Depot' }]} />
+
+					<MapPoints id="yards" label="Yards" points={[{ at: YARD, label: 'Yard' }]} />
+				</>,
+				{ selectedOverlays: [{ id: 'yards', index: 0 }] },
+			),
+		)
+
+		const halos = allBySlot(container, 'map-points-selected')
+
+		expect(halos).toHaveLength(1)
+
+		expect(tableRows(container)).toEqual(['Depot', 'Yard, selected'])
+	})
 })

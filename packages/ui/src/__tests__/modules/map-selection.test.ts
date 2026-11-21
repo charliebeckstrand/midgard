@@ -111,6 +111,12 @@ describe('selectedMarkRows', () => {
 })
 
 describe('samePicks', () => {
+	it('matches a list to itself', () => {
+		const picks = [{ id: 'leg' }]
+
+		expect(samePicks(picks, picks)).toBe(true)
+	})
+
 	it('matches two lists of the same pairs in the same order', () => {
 		expect(
 			samePicks(
