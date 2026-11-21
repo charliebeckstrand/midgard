@@ -1,6 +1,11 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { KNOWN_OPERATORS } from '../../modules/query/engine/query-evaluate'
+import {
+	KNOWN_OPERATORS,
+	RANGE_OPERATORS,
+	SET_OPERATORS,
+	VALUELESS_OPERATORS,
+} from '../../modules/query/engine/query-evaluate'
 import {
 	findBuiltInOperator,
 	getOperators,
@@ -85,12 +90,14 @@ describe('the built-in operator sets and the evaluator', () => {
 		boolean: true,
 	} satisfies Record<QueryFieldType, true>
 
-	const builtIn = new Set([
+	const operators = [
 		...(Object.keys(types) as QueryFieldType[]).flatMap((type) =>
-			getOperators({ name: type, label: type, type }).map((operator) => operator.value),
+			getOperators({ name: type, label: type, type }),
 		),
-		...setOperators.map((operator) => operator.value),
-	])
+		...setOperators,
+	]
+
+	const builtIn = new Set(operators.map((operator) => operator.value))
 
 	it('define each operator that the evaluator knows', () => {
 		expect([...KNOWN_OPERATORS].filter((value) => !builtIn.has(value))).toEqual([])
@@ -98,5 +105,19 @@ describe('the built-in operator sets and the evaluator', () => {
 
 	it('hold only operators that the evaluator knows', () => {
 		expect([...builtIn].filter((value) => !KNOWN_OPERATORS.has(value))).toEqual([])
+	})
+
+	// The builder reads the flag, and the evaluator reads the set. A built-in with
+	// a wrong flag gets an editor of one shape and a judgment of another.
+	it.each([
+		['noValue', VALUELESS_OPERATORS],
+		['range', RANGE_OPERATORS],
+		['set', SET_OPERATORS],
+	] as const)('carry the %s flag exactly when the evaluator set holds the name', (flag, names) => {
+		const mismatched = operators
+			.filter((operator) => Boolean(operator[flag]) !== names.has(operator.value))
+			.map((operator) => operator.value)
+
+		expect(mismatched).toEqual([])
 	})
 })

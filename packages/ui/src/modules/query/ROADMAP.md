@@ -52,7 +52,7 @@ The Query domain lives in [`engine/`](engine), a pure functional core. It has no
 
 ## Pattern cleanup
 
-1. **Operator flags that only a comment ties to the evaluator (*P2*).** The builder reads the `noValue`, `range`, and `set` flags in [`engine/query-operators.ts`](engine/query-operators.ts). The evaluator reads `VALUELESS_OPERATORS`, `RANGE_OPERATORS`, and `SET_OPERATORS` by name in [`engine/query-evaluate.ts`](engine/query-evaluate.ts). Each set says that it mirrors a flag, but the parity test holds only the names. A built-in with a wrong flag gets an editor of one shape and a judgment of another, so its rule reads as inactive. Extend the parity test in `query-operators.test.ts`: a built-in has each flag exactly when its name is in the related set.
+No open items.
 
 ## Performance
 

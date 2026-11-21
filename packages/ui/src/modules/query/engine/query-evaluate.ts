@@ -20,7 +20,7 @@ function isEmptyValue(value: unknown): boolean {
  * argument. Every other operator imposes no constraint when its value is empty.
  * A half-built or cleared rule therefore never hides rows, such as a date rule
  * whose value was cleared back to blank. Mirrors the `noValue` operator flag in
- * `getOperators`.
+ * `getOperators`, and `query-operators.test.ts` holds the two equal.
  *
  * @internal
  */
@@ -29,7 +29,8 @@ export const VALUELESS_OPERATORS = new Set(['isEmpty', 'isNotEmpty', 'isTrue', '
 /**
  * Operators that read a `[min, max]` range ({@link isRange}) as their value.
  * Each other operator that reads a value reads a scalar ({@link isScalar}).
- * Mirrors the `range` operator flag in `getOperators`.
+ * Mirrors the `range` operator flag in `getOperators`, and
+ * `query-operators.test.ts` holds the two equal.
  *
  * @internal
  */
@@ -37,7 +38,8 @@ export const RANGE_OPERATORS = new Set(['between'])
 
 /**
  * Operators that read a set ({@link isSet}) as their value. Mirrors the `set`
- * operator flag in `setOperators`.
+ * operator flag in `setOperators`, and `query-operators.test.ts` holds the two
+ * equal.
  *
  * @internal
  */
