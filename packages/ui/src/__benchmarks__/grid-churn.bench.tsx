@@ -23,6 +23,10 @@
  *   of a render that changes the rows go high and low in turn, by about
  *   190 KB. A median of single runs took the side of the first run. A change
  *   of side between two passes moved a slope by 2 bytes for each row.
+ *   The side of a run follows the count of earlier renders that change the
+ *   rows. One more such render changes the side, and one more collection
+ *   does not. A mean of two runs holds one run of each side, so the side of
+ *   the first run does not change the mean.
  *
  * Each budget is the slope that the gesture has now, as {@link BUDGETS}
  * records it. A slope must stay within {@link NOISE} of its budget. A change
@@ -63,7 +67,7 @@ const SAMPLES = 3
 
 /**
  * The tolerance of a slope, in bytes for each loaded row. A slope repeats to
- * within 0.01 from run to run. One array of the loaded rows costs 8, so a
+ * within 0.05 from run to run. One array of the loaded rows costs 8, so a
  * new array of the rows fails a budget.
  */
 const NOISE = 0.5
