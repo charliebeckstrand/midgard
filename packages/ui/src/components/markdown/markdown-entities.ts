@@ -48,7 +48,7 @@ const NAMED: Record<string, string> = {
 }
 
 /** A reference that a semicolon ends: decimal, hexadecimal, or named. */
-const REFERENCE = /&(?:#(\d{1,7})|#[xX]([0-9a-fA-F]{1,6})|([a-zA-Z][a-zA-Z0-9]{1,31}));/g
+export const REFERENCE = /&(?:#(\d{1,7})|#[xX]([0-9a-fA-F]{1,6})|([a-zA-Z][a-zA-Z0-9]{1,31}));/g
 
 /**
  * The character of a numeric reference. Zero, a surrogate, and a code point

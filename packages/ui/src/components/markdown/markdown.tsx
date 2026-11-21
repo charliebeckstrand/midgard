@@ -2,13 +2,21 @@ import { type ComponentProps, memo } from 'react'
 import { cn } from '../../core/cn'
 import { k } from '../../recipes/kata/markdown'
 import { lex } from './markdown-lex'
-import { type MarkdownHeadingOffset, MarkdownRenderer } from './markdown-renderer'
+import type { MarkdownRange } from './markdown-ranges'
+import {
+	type MarkdownHeadingOffset,
+	type MarkdownRangeRenderer,
+	MarkdownRenderer,
+} from './markdown-renderer'
 
 /**
  * Props for {@link Markdown}: the Markdown source string to render as prose, and the heading offset.
  * The `<div>` of the prose takes the rest. `children` is the source string.
  */
-export type MarkdownProps = Omit<ComponentProps<'div'>, 'children'> & {
+export type MarkdownProps<R extends MarkdownRange = MarkdownRange> = Omit<
+	ComponentProps<'div'>,
+	'children'
+> & {
 	/** Markdown source to render. */
 	children: string
 	/**
@@ -28,6 +36,54 @@ export type MarkdownProps = Omit<ComponentProps<'div'>, 'children'> & {
 	 * @defaultValue false
 	 */
 	breaks?: boolean
+	/**
+	 * Ranges of the source to draw through `renderRange`, such as the phrases
+	 * that a citation points to. A range draws only while its `quote` is the
+	 * source between its offsets. A range that overlaps a range before it does
+	 * not draw. Give the same array while the ranges stay the same, because the
+	 * block is memoized on its props.
+	 */
+	ranges?: readonly R[]
+	/**
+	 * Draws one piece of a range. A range that crosses inline formatting or a
+	 * block boundary draws as more than one piece. Draw a control only on piece
+	 * 0, so that one range is one tab stop. Without it, each piece is a `<span>`
+	 * with `data-slot="markdown-range"` and `data-range` set to the id of its
+	 * range. Give a stable function, because the block is memoized on its props.
+	 */
+	renderRange?: MarkdownRangeRenderer<R>
+}
+
+/**
+ * The unmemoized body of {@link Markdown}, generic over the type of its ranges.
+ *
+ * @internal
+ */
+function MarkdownImpl<R extends MarkdownRange = MarkdownRange>({
+	children,
+	headingOffset,
+	breaks,
+	ranges,
+	renderRange,
+	className,
+	...props
+}: MarkdownProps<R>) {
+	return (
+		<div
+			{...props}
+			// The chat message recipe reads this anchor, so it comes after the spread (CONVENTIONS.md §3.9).
+			data-slot="markdown"
+			className={cn(k().base, className)}
+		>
+			<MarkdownRenderer
+				tokens={lex(children, breaks)}
+				headingOffset={headingOffset}
+				source={ranges ? children : undefined}
+				ranges={ranges}
+				renderRange={renderRange as MarkdownRangeRenderer | undefined}
+			/>
+		</div>
+	)
 }
 
 /**
@@ -70,22 +126,20 @@ export type MarkdownProps = Omit<ComponentProps<'div'>, 'children'> & {
  *
  * A source that a block lexed before, or that {@link primeMarkdown} stored,
  * renders from a process-wide token cache and does not lex again.
+ *
+ * `ranges` and `renderRange` draw a slot over a range of the source, such as
+ * an anchor on a phrase. A range addresses the source by offset, and its
+ * `quote` guards the address. A piece of a range holds only text, inside the
+ * bold, emphasis, or code span that holds the text. A piece does not go into a
+ * link, a fenced code block, or an image `alt`. A block with no `ranges` does
+ * not walk the source, so it costs what it cost before.
+ *
+ * @example
+ *   <Markdown
+ *     ranges={[{ id: 'late', start: 0, end: 21, quote: 'Twelve stops are late' }]}
+ *     renderRange={({ index }, children) => (index === 0 ? <button type="button">{children}</button> : children)}
+ *   >
+ *     {'Twelve stops are late.'}
+ *   </Markdown>
  */
-export const Markdown = memo(function Markdown({
-	children,
-	headingOffset,
-	breaks,
-	className,
-	...props
-}: MarkdownProps) {
-	return (
-		<div
-			{...props}
-			// The chat message recipe reads this anchor, so it comes after the spread (CONVENTIONS.md §3.9).
-			data-slot="markdown"
-			className={cn(k().base, className)}
-		>
-			<MarkdownRenderer tokens={lex(children, breaks)} headingOffset={headingOffset} />
-		</div>
-	)
-})
+export const Markdown = memo(MarkdownImpl) as typeof MarkdownImpl
