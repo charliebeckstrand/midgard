@@ -167,7 +167,7 @@ function dataBytes(): number {
  * collection runs first, so a collection inside `run` frees only what `run`
  * allocated. The bytes that each such collection frees count as allocated.
  */
-function allocatedBytes(run: () => void): number {
+function allocatedBytes(run: () => void): Run {
 	if (typeof gc !== 'function') throw new Error('The bench worker has no `gc`.')
 
 	gc()
@@ -184,27 +184,41 @@ function allocatedBytes(run: () => void): number {
 
 	let freed = 0
 
-	for (const { beforeGC, afterGC } of profiler.stop()?.statistics ?? []) {
+	const collections = profiler.stop()?.statistics ?? []
+
+	for (const { beforeGC, afterGC } of collections) {
 		freed += profiledDataBytes(beforeGC) - profiledDataBytes(afterGC)
 	}
 
-	return after - before + freed
+	return { bytes: after - before + freed, collections: collections.length }
 }
+
+/** The bytes of one run of a gesture, and the collections inside the run. */
+type Run = { bytes: number; collections: number }
+
+/** The measure of one gesture at one size: the median bytes, and each run. */
+type Measure = { median: number; runs: readonly Run[] }
+
+/** The runs of a measure as text, such as `3271944 3274576+1gc 3275216`. */
+const runsText = (measure: Measure | undefined) =>
+	measure?.runs
+		.map((run) => (run.collections ? `${run.bytes}+${run.collections}gc` : `${run.bytes}`))
+		.join(' ') ?? 'none'
 
 /**
  * The median bytes of one gesture over {@link SAMPLES} runs. `prepare` runs
  * outside the measure, and gives the gesture to measure.
  */
-function medianBytes(prepare: () => () => void): number {
-	const samples = Array.from({ length: SAMPLES }, () => allocatedBytes(prepare()))
+function medianBytes(prepare: () => () => void): Measure {
+	const runs = Array.from({ length: SAMPLES }, () => allocatedBytes(prepare()))
 
-	samples.sort((a, b) => a - b)
+	const sorted = runs.map((run) => run.bytes).sort((a, b) => a - b)
 
-	return samples[Math.floor(SAMPLES / 2)] as number
+	return { median: sorted[Math.floor(SAMPLES / 2)] as number, runs }
 }
 
 /** Mounts a grid on `count` rows, measures each gesture of `layout`, and unmounts it. */
-function measureGestures(layout: Layout, count: number): Partial<Record<Gesture, number>> {
+function measureGestures(layout: Layout, count: number): Partial<Record<Gesture, Measure>> {
 	const rows = shipments(count)
 
 	// An append keeps the loaded row objects and adds a batch after them, as an
@@ -248,7 +262,7 @@ function measureGestures(layout: Layout, count: number): Partial<Record<Gesture,
 
 	draw({ sort: ASC })
 
-	const bytes: Partial<Record<Gesture, number>> = {}
+	const bytes: Partial<Record<Gesture, Measure>> = {}
 
 	bytes.rerender = medianBytes(() => () => draw())
 
@@ -314,11 +328,14 @@ for (const layout of ['paged', 'windowed'] as const) {
 		const budgets = Object.entries(BUDGETS[layout]) as [Gesture, number][]
 
 		for (const [gesture, budget] of budgets) {
-			const slope = ((large[gesture] ?? 0) - (small[gesture] ?? 0)) / (LARGE - SMALL)
+			const slope =
+				((large[gesture]?.median ?? 0) - (small[gesture]?.median ?? 0)) / (LARGE - SMALL)
 
+			// The runs go in the message, so that a failure in CI shows its evidence.
 			expect(
 				Math.abs(slope - budget),
-				`${layout} ${gesture}: ${slope.toFixed(1)} bytes for each loaded row, budget ${budget}`,
+				`${layout} ${gesture}: ${slope.toFixed(1)} bytes for each loaded row, budget ${budget}; ` +
+					`runs at ${SMALL}: ${runsText(small[gesture])}; at ${LARGE}: ${runsText(large[gesture])}`,
 			).toBeLessThanOrEqual(NOISE)
 		}
 	})
