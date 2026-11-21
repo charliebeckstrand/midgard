@@ -3,9 +3,9 @@ import { renderToString } from 'react-dom/server'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { Listbox, ListboxOption } from '../../components/listbox'
 import { defineMessages, type IntlShape, useIntl } from '../../primitives/intl'
-import { writeChoice } from '../../providers/appearance/appearance-storage'
 import { LocaleProvider, resolveRequestLocale, useLocale } from '../../providers/locale'
 import { localeChoice, matchLocale } from '../../providers/locale/locale-choice'
+import { writeChoice } from '../../utilities/stored-choice'
 import { act, attach, clearCookies, deferred, renderUI, screen } from '../helpers'
 
 // The English locales, with the default first.
