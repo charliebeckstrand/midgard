@@ -84,7 +84,7 @@ function comboMarkAt(marks: ComboMarks, x: number, y: number): ChartMarkRef | nu
 	const { areas, areaBase, bars, barIndices } = marks
 
 	const area = nearestSeriesArea(
-		areas.map((entry) => entry.geometry.trace),
+		areas.map((entry) => entry.geometry.trace()),
 		areaBase,
 		x,
 		y,

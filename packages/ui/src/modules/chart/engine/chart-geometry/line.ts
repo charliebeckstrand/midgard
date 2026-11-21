@@ -6,6 +6,7 @@
  * isolation.
  */
 
+import { once } from '../../../../utilities/once'
 import type { DrawnSeries } from '../chart-cartesian/series'
 import type { ChartPaint } from '../chart-color/paint'
 import { coord } from '../chart-coords'
@@ -146,8 +147,13 @@ export type LineSeriesGeometry = {
 	 * The drawn shape of each run, for the pointer hit tests. A straight run is
 	 * its own points. A curved run is its curve, cut into chords of at most
 	 * {@link TRACE_STEP} ({@link traceRun}).
+	 *
+	 * @remarks Only a hit test reads the trace, at the first pointer move or
+	 * later. The first call builds it and each later call returns the same
+	 * arrays, so a mount or an update that no pointer reads pays nothing for it.
+	 * Call it in the hit test, not during a render.
 	 */
-	trace: LinePoint[][]
+	trace: () => LinePoint[][]
 	/** Points with a gap on both sides: invisible without a marker, so they always get one. */
 	isolated: LinePoint[]
 	/** The segments follow a monotone curve, not straight lines between the points. */
@@ -391,7 +397,7 @@ export function lineGeometry(
 		areas,
 		points: pointRuns.flat(),
 		runs: pointRuns,
-		trace: pointRuns.map((run) => traceRun(run, interpolation)),
+		trace: once(() => pointRuns.map((run) => traceRun(run, interpolation))),
 		isolated: pointRuns.filter((run) => run.length === 1).flat(),
 		smooth: interpolation === 'smooth',
 	}

@@ -236,8 +236,8 @@ compareBenches('chart-hit-test · thinMarksAt (every pointer move)', (bench) => 
 
 		const xs = Array.from({ length: count }, (_, index) => band.center(index))
 
-		const seriesRuns = values.map(
-			(series) => lineGeometry(series, xs, scale.map, HEIGHT, 'linear').trace,
+		const seriesRuns = values.map((series) =>
+			lineGeometry(series, xs, scale.map, HEIGHT, 'linear').trace(),
 		)
 
 		const label = `${count.toLocaleString()} pts × ${seriesCount} series`

@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
+import { once } from '../../../utilities/once'
 import { ChartCartesianFrame } from '../engine/chart-frame/cartesian'
 import { valueLabelHeadroom } from '../engine/chart-geometry/label'
 import { buildLineSeries, type LineInterpolation } from '../engine/chart-geometry/line'
@@ -99,8 +100,9 @@ export function LineChart<T>(props: LineChartProps<T>) {
 		[chart.drawn, chart.bandPositions, floor, interpolation, points],
 	)
 
-	// The drawn shape of each line, which the wash under it follows.
-	const traces = list.map((series) => series.geometry.trace)
+	// The drawn shape of each line, which the wash under it follows. The first
+	// pointer read builds it, so a render builds none.
+	const traces = useMemo(() => once(() => list.map((series) => series.geometry.trace())), [list])
 
 	const fills = useMemo(
 		() => chart.drawn.map(({ meta }) => chart.tex.fillFor(meta.slot)),
@@ -129,7 +131,7 @@ export function LineChart<T>(props: LineChartProps<T>) {
 			markAt={(x, y) => {
 				// The frame catches the lines themselves (`lineHits`). Off every line, a
 				// filled chart reads the wash under the pointer.
-				const within = fill ? nearestSeriesArea(traces, floor, x, y) : null
+				const within = fill ? nearestSeriesArea(traces(), floor, x, y) : null
 
 				return within === null ? null : { series: list[within]?.index ?? within, datum: null }
 			}}
