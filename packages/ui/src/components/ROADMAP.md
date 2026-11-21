@@ -82,8 +82,6 @@ The apps copy parts of the kit by hand in several places: a focus outline, a fol
 
    Give `CollapsePanel` the rule of `AccordionPanel`: the animated element takes the other props, and an inner body takes `className`. Proof: a `collapse.test.tsx` case that finds the class on the body, and a padding case in `browser/collapse-nested.test.tsx`.
 
-4. **StepperPanels: an inert slot by hand (*P3*).** `StepperPanels` (`stepper-panels.tsx`) renders an element with its recipe class and the spread, and nothing more. CONVENTIONS §3.6 gives such a slot to `createSlot`, as `StepperDescription` in the same unit uses it. Rewrite it with `createSlot`. A search for this shape finds no other hand-written inert slot in `components/`. Thus a Biome plugin for the shape can hold the rule with no debt.
-
 ## Performance
 
 1. **DatePicker, ColorPicker, Combobox: the cost of a closed picker (*P2*).** A form can hold a closed picker in each row. The stops field of Places (`apps/places/src/components/place-form-drawer/trip-stops-field.tsx`) renders a `DatePicker` and an `AddressInput` for each stop. The browser suite measures the closed shell of a menu (`menu-mount.bench.tsx`) and of a popover (`popover-mount.bench.tsx`), but not of a picker. `combobox.bench.tsx` measures a closed `Combobox` only under jsdom. Add a browser bench for a closed picker on the shape of `popover-mount.bench.tsx`, with a rung for each picker. Record its findings in a dated section of `__benchmarks__/browser/README.md`, and gate the costly parts of a closed picker, as the menu work did.
