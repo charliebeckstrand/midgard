@@ -1,8 +1,8 @@
 import type { ComponentProps } from 'react'
-import { cn } from '../core/cn'
-import { createSlot } from '../core/create-slot'
-import { Landmark } from '../primitives/landmark'
-import { Stack } from '../structure/stack'
+import { cn } from '../../core/cn'
+import { createSlot } from '../../core/create-slot'
+import { Landmark } from '../../primitives/landmark'
+import { Stack } from '../../structure/stack'
 
 /** Props for {@link StackedLayout}: the header, body, and footer slots to stack. The `<div>` takes the rest. */
 export type StackedLayoutProps = ComponentProps<'div'>
