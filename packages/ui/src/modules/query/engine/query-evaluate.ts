@@ -36,6 +36,14 @@ export const VALUELESS_OPERATORS = new Set(['isEmpty', 'isNotEmpty', 'isTrue', '
 export const RANGE_OPERATORS = new Set(['between'])
 
 /**
+ * Operators that read a set ({@link isSet}) as their value. Mirrors the `set`
+ * operator flag in `setOperators`.
+ *
+ * @internal
+ */
+export const SET_OPERATORS = new Set(['in', 'notIn'])
+
+/**
  * Operators that compare a field value and the rule value as numbers. The
  * rule value, or each set bound of a range, must convert to a finite number
  * ({@link isNumeric}).
@@ -93,6 +101,20 @@ function holdsValue(fieldValue: unknown, ruleValue: unknown): boolean {
 }
 
 /**
+ * Whether a cell holds one member of a set, for `in` and `notIn`. Each member
+ * reads through {@link holdsValue}, as `equals` reads it. A cell that is an
+ * array, such as the tags of a row, holds the set when one of its items holds
+ * a member.
+ *
+ * @internal
+ */
+function holdsMember(fieldValue: unknown, set: unknown): boolean {
+	const cells = Array.isArray(fieldValue) ? fieldValue : [fieldValue]
+
+	return (set as unknown[]).some((member) => cells.some((cell) => holdsValue(cell, member)))
+}
+
+/**
  * Predicate per operator value, over a field value and the rule's value. Mirrors
  * the default operator sets in {@link getOperators}; text matches are
  * case-insensitive, date comparisons rely on ISO (`YYYY-MM-DD`) string order.
@@ -130,6 +152,8 @@ const matchers: Record<string, (fieldValue: unknown, ruleValue: unknown) => bool
 	after: (a, b) => !isBlank(a) && asText(a) > asText(b),
 	isTrue: (a) => a === true,
 	isFalse: (a) => a === false,
+	in: (a, b) => holdsMember(a, b),
+	notIn: (a, b) => !holdsMember(a, b),
 }
 
 /**
@@ -166,6 +190,24 @@ function isRange(value: unknown): boolean {
 }
 
 /**
+ * Whether a value is a set: a list of one or more members, each a string or a
+ * number that is not blank ({@link isBlank}). A set holds no `boolean`, no
+ * blank member, and no nested list, so each member is a value that a row can
+ * hold.
+ *
+ * @internal
+ */
+function isSet(value: unknown): boolean {
+	return (
+		Array.isArray(value) &&
+		value.length > 0 &&
+		value.every(
+			(member) => (typeof member === 'string' || typeof member === 'number') && !isBlank(member),
+		)
+	)
+}
+
+/**
  * Whether a value converts to a finite number, as a numeric operator reads it.
  * For a range, each bound must convert, or be blank. So `18` and `'18'` are
  * numeric, and `'abc'` and `NaN` are not.
@@ -183,7 +225,8 @@ function isNumeric(value: unknown): boolean {
  * It does when the evaluator has a matcher for the operator, and the operator
  * reads no value or its value is filled ({@link isEmptyValue}). A filled value
  * must also have the shape that the operator reads: a range for an operator in
- * {@link RANGE_OPERATORS}, else a scalar. For an operator in
+ * {@link RANGE_OPERATORS}, a set ({@link isSet}) for an operator in
+ * {@link SET_OPERATORS}, else a scalar. For an operator in
  * {@link NUMERIC_OPERATORS}, the value must also be numeric. The field set has
  * no part in the judgment, because the evaluator reads no field set.
  *
@@ -193,7 +236,8 @@ function isNumeric(value: unknown): boolean {
  * reading as a matcher. A `between` value that is not a range
  * ({@link isRange}), such as `5`, `[10]`, or `[[1], 5]`, reads as no
  * constraint. So does a `gt` value that is not a scalar, such as `[1, 2]`, or
- * a `gt` value that is not numeric, such as `'abc'`.
+ * a `gt` value that is not numeric, such as `'abc'`. An `in` value that is not
+ * a set, such as `'a'`, `[]`, or `['a', '']`, reads as no constraint too.
  *
  * @internal
  */
@@ -202,7 +246,11 @@ export function imposesConstraint(operator: string, value: unknown): boolean {
 
 	if (VALUELESS_OPERATORS.has(operator)) return true
 
-	const hasShape = RANGE_OPERATORS.has(operator) ? isRange : isScalar
+	const hasShape = RANGE_OPERATORS.has(operator)
+		? isRange
+		: SET_OPERATORS.has(operator)
+			? isSet
+			: isScalar
 
 	if (isEmptyValue(value) || !hasShape(value)) return false
 

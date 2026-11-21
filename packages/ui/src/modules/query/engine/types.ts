@@ -62,6 +62,13 @@ export type QueryOperator = {
 	 * range.
 	 */
 	range?: boolean
+	/**
+	 * When true, the rule edits a set of values, a list of strings or numbers,
+	 * instead of a single value (e.g. "is any of"). A row matches when its value
+	 * is one member of the set. A custom value editor
+	 * ({@link QueryField.editor}) writes the set.
+	 */
+	set?: boolean
 }
 
 /** A queryable field definition: its `name`, display `label`, type, and optional operator/option overrides. */
@@ -79,4 +86,23 @@ export type QueryField = {
 	 * filter fills it from the column's own values.
 	 */
 	span?: readonly [min: number, max: number]
+	/**
+	 * The key of a custom value editor. `QueryValueEditorProvider` maps each key
+	 * to a component, and the builder renders that component in place of the
+	 * input of `type`. A key that no provider holds falls back to the input of
+	 * `type`. The key is a string, so a field stays data that JSON can hold.
+	 */
+	editor?: string
+	/**
+	 * The display text of one value of the field, such as the name of the record
+	 * that a key refers to. The summary, the chips, and the names of the rules
+	 * read it. For a set, it formats each member. Give `undefined` for a value
+	 * that has no label yet, and the reader shows the option label of a `select`
+	 * field, or else the value as it is.
+	 *
+	 * @remarks The function is synchronous, because the summary is a pure fold.
+	 * For a value that loads its label, keep the labels that the app loaded,
+	 * and give a new field when more labels arrive.
+	 */
+	formatValue?: (value: string | number) => string | undefined
 }

@@ -2,32 +2,36 @@
 
 import { parseDate } from '@internationalized/date'
 import { fromCalendarDate, toCalendarDate } from '../../../components/calendar/calendar-utilities'
+import { useControlLock } from '../../../components/control/context'
 import { DatePicker } from '../../../components/date-picker'
 import { Input } from '../../../components/input'
 import type { JsonValue } from '../../../components/json-tree/types'
 import { ListboxOption } from '../../../components/listbox'
 import { NumberInput } from '../../../components/number-input'
 import { Select } from '../../../components/select'
+import { TagInput } from '../../../components/tag-input'
 import { cn } from '../../../core/cn'
 import { useIntl } from '../../../primitives/intl/use-intl'
 import { Flex } from '../../../structure/flex'
-import { finiteOrUndefined } from '../../../utilities/parse-numeric'
-import type { QueryField } from '../engine/types'
+import { finiteOrUndefined, parseNumeric } from '../../../utilities/parse-numeric'
+import type { QueryField, QueryOperator } from '../engine/types'
+import { useQueryValueEditor } from './context'
 import { queryBuilderMessages } from './query-builder-messages'
 
-/** Props for {@link QueryBuilderRuleValue}: the rule's `field` and its current value plus a change callback. @internal */
+/** Props for {@link QueryBuilderRuleValue}: the rule's `field`, its operator, and its current value plus a change callback. @internal */
 export type QueryBuilderRuleValueProps = {
-	/** The field of the rule. Its type selects the value input. */
+	/** The field of the rule. Its custom editor, else its type, selects the value input. */
 	field: QueryField
+	/**
+	 * The operator of the rule. A `range` operator edits a two-bound
+	 * `[min, max]` tuple, and a `set` operator edits a list of values. With no
+	 * operator, the input edits a single value.
+	 */
+	operator?: QueryOperator
 	/** The current value of the rule. */
 	value: JsonValue | undefined
 	/** Receives the next value of the rule. */
 	onValueChange: (value: JsonValue) => void
-	/**
-	 * When true, edit a two-bound `[min, max]` tuple (the operator is a range).
-	 * @defaultValue false
-	 */
-	range?: boolean
 	/** Disables each input of the value. @defaultValue false */
 	disabled?: boolean
 	className?: string
@@ -38,6 +42,33 @@ function toTuple(value: unknown): [number | '', number | ''] {
 	const [lo, hi] = Array.isArray(value) ? value : []
 
 	return [lo ?? '', hi ?? '']
+}
+
+/** A set value as a list of strings; a value that is not a list reads as an empty set. @internal */
+function toMembers(value: unknown): string[] {
+	return Array.isArray(value) ? value.map((member) => String(member ?? '')) : []
+}
+
+/**
+ * Whether a tag can be a member of the set of `field`. A member of a `number`
+ * field must read as a number ({@link parseNumeric}), and each other member can
+ * be any text.
+ *
+ * @internal
+ */
+function isMember(field: QueryField, tag: string): boolean {
+	return field.type !== 'number' || parseNumeric(tag) !== null
+}
+
+/**
+ * The tags of a set input as the members of the set. A member of a `number`
+ * field is a number, as the `NumberInput` of a single value writes it. So the
+ * set compares each cell as a number, and `1234.50` holds the cell `$1,234.50`.
+ *
+ * @internal
+ */
+function toSet(field: QueryField, tags: string[]): JsonValue {
+	return field.type === 'number' ? tags.map((tag) => parseNumeric(tag) ?? tag) : tags
 }
 
 /** A set bound as a number, or `undefined` for a blank bound or one that is not a number. @internal */
@@ -145,11 +176,17 @@ function RangeValue({
 }
 
 /**
- * Value input for a query rule, chosen by the field's type:
+ * Value input for a query rule. The custom editor of the field comes first,
+ * when a `QueryValueEditorProvider` holds its `editor` key. The editor gets the
+ * lock of the nearest lock scope as `readOnly`. Then the operator and the type
+ * of the field choose:
  *
+ * - a `set` operator: a {@link TagInput} that writes a list of strings, or of
+ *   numbers for a `number` field
+ * - a `range` operator: a `[min, max]` pair of {@link NumberInput}s. The pair
+ *   clamps to the field's `span` and to each other
  * - `select`: a {@link Select}
- * - `number`: a {@link NumberInput}, or a `[min, max]` pair of them when the
- *   operator is a range. The pair clamps to the field's `span` and to each other
+ * - `number`: a {@link NumberInput}
  * - `date`: a {@link DatePicker}, round-tripped as a local-wall-clock ISO date
  * - anything else: a text {@link Input}
  *
@@ -157,19 +194,52 @@ function RangeValue({
  */
 export function QueryBuilderRuleValue({
 	field,
+	operator,
 	value,
 	onValueChange,
-	range,
-	disabled,
+	disabled = false,
 	className,
 }: QueryBuilderRuleValueProps) {
 	const intl = useIntl()
+
+	const Editor = useQueryValueEditor(field)
+
+	const readOnly = useControlLock()
 
 	const label = intl.formatMessage(queryBuilderMessages.fieldValue, { field: field.label })
 
 	const placeholder = intl.formatMessage(queryBuilderMessages.value)
 
-	if (range) {
+	if (Editor && operator) {
+		return (
+			<Editor
+				field={field}
+				operator={operator}
+				value={value}
+				onValueChange={onValueChange}
+				aria-label={label}
+				disabled={disabled}
+				readOnly={readOnly}
+				className={className}
+			/>
+		)
+	}
+
+	if (operator?.set) {
+		return (
+			<TagInput
+				value={toMembers(value)}
+				placeholder={placeholder}
+				aria-label={label}
+				disabled={disabled}
+				className={className}
+				validate={(tag) => isMember(field, tag)}
+				onValueChange={(tags) => onValueChange(toSet(field, tags))}
+			/>
+		)
+	}
+
+	if (operator?.range) {
 		return (
 			<RangeValue
 				field={field}

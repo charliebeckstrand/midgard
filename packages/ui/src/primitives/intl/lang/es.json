@@ -451,6 +451,8 @@
 	"ui.query.endsWith": "termina en",
 	"ui.query.fieldRule": "Regla de {field}",
 	"ui.query.isFalse": "es falso",
+	"ui.query.isAnyOf": "es alguno de",
+	"ui.query.isNoneOf": "no es ninguno de",
 	"ui.query.isTrue": "es verdadero",
 	"ui.query.on": "el",
 	"ui.query.or": "O",

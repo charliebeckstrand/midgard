@@ -6,6 +6,7 @@ import {
 	isQueryGroup,
 	isQueryNode,
 } from '../../modules/query/engine/query-node'
+import { setOperators } from '../../modules/query/engine/query-operators'
 import { parseQuery } from '../../modules/query/engine/query-serialize'
 import type { QueryField, QueryGroup } from '../../modules/query/engine/types'
 
@@ -26,6 +27,26 @@ const selectField: QueryField = {
 const booleanField: QueryField = { name: 'active', label: 'Active', type: 'boolean' }
 
 describe('createRule', () => {
+	it('starts a rule whose first operator reads a set or a range with the blank value of that shape', () => {
+		const tags: QueryField = {
+			name: 'tags',
+			label: 'Tags',
+			type: 'text',
+			operators: [...setOperators],
+		}
+
+		expect(createRule(tags)).toMatchObject({ operator: 'in', value: [] })
+
+		const span: QueryField = {
+			name: 'age',
+			label: 'Age',
+			type: 'number',
+			operators: [{ value: 'between', label: 'between', range: true }],
+		}
+
+		expect(createRule(span)).toMatchObject({ operator: 'between', value: ['', ''] })
+	})
+
 	it('returns a rule with combinator defaulting to "and"', () => {
 		const rule = createRule(textField)
 

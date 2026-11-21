@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import { createGroup, createRule } from '../../modules/query/engine/query-node'
+import { setOperators } from '../../modules/query/engine/query-operators'
 import {
 	formatQuerySummary,
 	type QuerySummaryToken,
@@ -385,6 +386,63 @@ describe('summarizeQuery', () => {
 			'rule',
 			'group-close',
 		])
+	})
+})
+
+describe('a field with a custom value editor', () => {
+	const names: Record<string, string> = { c1: 'Acme', c2: 'Globex', c3: 'Initech' }
+
+	const customerField: QueryField = {
+		name: 'customer',
+		label: 'Customer',
+		type: 'select',
+		editor: 'customer',
+		operators: [...setOperators],
+		formatValue: (value) => names[value],
+	}
+
+	const summary = (value: unknown, operator = 'in') =>
+		formatQuerySummary(
+			createGroup('and', [{ ...createRule(customerField), operator, value } as QueryRule]),
+			[customerField],
+		)
+
+	it('names each member of a set by formatValue, as one list', () => {
+		expect(summary(['c1', 'c2', 'c3'])).toBe('Customer is any of Acme, Globex, or Initech')
+
+		expect(summary(['c2'], 'notIn')).toBe('Customer is none of Globex')
+	})
+
+	it('shows the value as it is for a member that has no label yet', () => {
+		expect(summary(['c1', 'c9'])).toBe('Customer is any of Acme or c9')
+	})
+
+	it('names a scalar value by formatValue before the options', () => {
+		const field: QueryField = {
+			...customerField,
+			operators: undefined,
+			options: [{ value: 'c1', label: 'Option label' }],
+		}
+
+		const group = createGroup('and', [{ ...createRule(field), value: 'c1' }])
+
+		expect(formatQuerySummary(group, [field])).toBe('Customer is Acme')
+	})
+
+	it('drops a set rule whose value is not a set', () => {
+		expect(summary([])).toBe('')
+
+		expect(summary('c1')).toBe('')
+	})
+
+	it('gives the set operator and the list in the language of the intl', () => {
+		const group = createGroup('and', [
+			{ ...createRule(customerField), operator: 'in', value: ['c1', 'c2'] } as QueryRule,
+		])
+
+		expect(formatQuerySummary(group, [customerField], intlEs)).toBe(
+			'Customer es alguno de Acme o Globex',
+		)
 	})
 })
 

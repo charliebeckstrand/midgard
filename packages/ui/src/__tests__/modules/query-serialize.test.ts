@@ -8,6 +8,7 @@ import {
 	isQueryGroup,
 	isQueryNode,
 } from '../../modules/query/engine/query-node'
+import { setOperators } from '../../modules/query/engine/query-operators'
 import { parseQuery, serializeQuery } from '../../modules/query/engine/query-serialize'
 import type {
 	QueryCombinator,
@@ -134,6 +135,27 @@ describe('parseQuery', () => {
 		expect(value && content(value)).toEqual(content(query))
 
 		expect(isQueryGroup(value)).toBe(true)
+	})
+
+	it('reads back the value of a custom editor: a key, and a set of keys', () => {
+		const customer: QueryField = {
+			name: 'customer',
+			label: 'Customer',
+			type: 'select',
+			editor: 'customer',
+			operators: [...setOperators, { value: 'equals', label: 'is' }],
+		}
+
+		const query = createGroup('and', [
+			rule('customer', 'in', ['c1', 2]),
+			rule('customer', 'equals', 'c1', 'or'),
+		])
+
+		const { value, issues } = parseQuery(serializeQuery(query), { fields: [customer] })
+
+		expect(issues).toEqual([])
+
+		expect(value && content(value)).toEqual(content(query))
 	})
 
 	it('gives each node a new id', () => {

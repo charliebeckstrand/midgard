@@ -5,6 +5,7 @@ import { createContext } from '../../../core/create-context'
 import type { Orientation } from '../../../types/orientation'
 import type { Responsive } from '../../../utilities/responsive'
 import type { QueryField } from '../engine/types'
+import type { QueryValueEditor } from '../query-value-editor-provider'
 import type { QueryTreeActions } from '../use-query-tree'
 import type { QueryMove } from './query-builder-move'
 
@@ -50,6 +51,26 @@ const [QueryBuilderFocusContext, useQueryBuilderFocus] =
 const [QueryBuilderMoveContext, useQueryBuilderMove] = createContext<QueryMove>('QueryBuilderMove')
 
 export { useQueryBuilderActions, useQueryBuilderMove, useQueryBuilderState }
+
+/** The custom value editors of the builders below a `QueryValueEditorProvider`, by key. @internal */
+export type QueryValueEditors = Readonly<Record<string, QueryValueEditor>>
+
+export const [QueryValueEditorsContext, useQueryValueEditors] = createContext<QueryValueEditors>(
+	'QueryValueEditors',
+	{ default: {} },
+)
+
+/**
+ * The custom value editor of `field`, or `undefined` when the field names no
+ * key or no provider holds its key.
+ *
+ * @internal
+ */
+export function useQueryValueEditor(field: QueryField): QueryValueEditor | undefined {
+	const editors = useQueryValueEditors()
+
+	return field.editor && Object.hasOwn(editors, field.editor) ? editors[field.editor] : undefined
+}
 
 /**
  * The index that a pointer drag from another group drops a node at in the

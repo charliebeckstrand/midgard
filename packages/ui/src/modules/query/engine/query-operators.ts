@@ -70,6 +70,18 @@ const messages = defineMessages({
 		defaultMessage: 'is not',
 		description: 'The operator of a choice condition of a filter: the choice is not the value.',
 	},
+	isAnyOf: {
+		id: 'ui.query.isAnyOf',
+		defaultMessage: 'is any of',
+		description:
+			'The operator of a set condition of a filter: the value is one of the listed values.',
+	},
+	isNoneOf: {
+		id: 'ui.query.isNoneOf',
+		defaultMessage: 'is none of',
+		description:
+			'The operator of a set condition of a filter: the value is not one of the listed values.',
+	},
 	isTrue: {
 		id: 'ui.query.isTrue',
 		defaultMessage: 'is true',
@@ -145,8 +157,37 @@ const defaultOperators = {
 	],
 } satisfies Record<QueryFieldType, QueryOperator[]>
 
-/** Each built-in operator, in the order of the default sets: text, number, date, select, and boolean. */
-const builtInOperators: QueryOperator[] = Object.values(defaultOperators).flat()
+/**
+ * The built-in set operators: `in` ("is any of") and `notIn` ("is none of").
+ * Each one reads a set of values ({@link QueryOperator.set}). No field type
+ * offers them by default, because no built-in value input writes a set. A
+ * field with a custom value editor that writes a set adds them to its
+ * `operators`.
+ *
+ * @example
+ * ```ts
+ * const customer: QueryField = {
+ * 	name: 'customer',
+ * 	label: 'Customer',
+ * 	type: 'select',
+ * 	editor: 'customer',
+ * 	operators: [...setOperators],
+ * }
+ * ```
+ */
+export const setOperators: readonly QueryOperator[] = [
+	worded('in', messages.isAnyOf, { set: true }),
+	worded('notIn', messages.isNoneOf, { set: true }),
+]
+
+/**
+ * Each built-in operator, in the order of the default sets: text, number,
+ * date, select, and boolean. The set operators come last.
+ */
+const builtInOperators: QueryOperator[] = [
+	...Object.values(defaultOperators).flat(),
+	...setOperators,
+]
 
 /** Resolves the operators available for a field: its explicit `operators`, else the defaults for its type. @internal */
 export function getOperators(field: QueryField): QueryOperator[] {

@@ -1,6 +1,13 @@
 import type { JsonValue } from '../../../components/json-tree/types'
 import { getOperators } from './query-operators'
-import type { QueryCombinator, QueryField, QueryGroup, QueryNode, QueryRule } from './types'
+import type {
+	QueryCombinator,
+	QueryField,
+	QueryGroup,
+	QueryNode,
+	QueryOperator,
+	QueryRule,
+} from './types'
 
 let counter = 0
 
@@ -15,22 +22,40 @@ function nextId(): string {
  * operator of the field. Its value is `null` for a `boolean` field, the first
  * option for a `select` field, and a blank string for each other field or for
  * no field. So a new `select` or `boolean` rule puts a constraint on the rows
- * at once, and a new rule of each other type is blank.
+ * at once, and a new rule of each other type is blank. When the first operator
+ * reads a range or a set, the value is the blank value of that shape
+ * ({@link blankValue}).
  *
  * @param field - Seeds the rule's field, operator, and value; omit for an empty rule.
  * @param combinator - How the rule joins its preceding sibling. @defaultValue 'and'
  */
 export function createRule(field?: QueryField, combinator: QueryCombinator = 'and'): QueryRule {
-	const operators = field ? getOperators(field) : []
+	const operator = field ? getOperators(field)[0] : undefined
 
 	return {
 		id: nextId(),
 		type: 'rule',
 		combinator,
 		field: field?.name ?? '',
-		operator: operators[0]?.value ?? '',
-		value: defaultValueFor(field),
+		operator: operator?.value ?? '',
+		value: operator?.range || operator?.set ? blankValue(operator) : defaultValueFor(field),
 	}
+}
+
+/**
+ * The blank value of the shape that `operator` reads: `['', '']` for a range,
+ * `[]` for a set, and `''` for each other operator. The builder writes it when
+ * a change of operator changes the shape, so a value of one shape never
+ * reaches an input of another.
+ *
+ * @internal
+ */
+export function blankValue(operator: QueryOperator | undefined): JsonValue {
+	if (operator?.range) return ['', '']
+
+	if (operator?.set) return []
+
+	return ''
 }
 
 /**

@@ -6,6 +6,7 @@ import { isQueryActive } from '../../modules/query/engine/query-active'
 import {
 	compileQuery,
 	evaluateQuery,
+	imposesConstraint,
 	matchQueryRule,
 } from '../../modules/query/engine/query-evaluate'
 import { createGroup, createRule } from '../../modules/query/engine/query-node'
@@ -15,6 +16,36 @@ import { parseNumeric } from '../../utilities/parse-numeric'
 import { queryGroup, queryValue } from '../helpers/query-arbitrary'
 
 describe('matchQueryRule', () => {
+	it('matches a set operator when the cell holds one member', () => {
+		expect(matchQueryRule('in', 'Acme', ['globex', 'acme'])).toBe(true)
+
+		expect(matchQueryRule('in', 'Initech', ['globex', 'acme'])).toBe(false)
+
+		expect(matchQueryRule('notIn', 'Initech', ['globex', 'acme'])).toBe(true)
+
+		expect(matchQueryRule('notIn', 'Acme', ['acme'])).toBe(false)
+
+		expect(matchQueryRule('in', '$1,234.50', [1234.5])).toBe(true)
+	})
+
+	it('matches a set operator against a cell that is a list', () => {
+		expect(matchQueryRule('in', ['urgent', 'cold'], ['cold'])).toBe(true)
+
+		expect(matchQueryRule('in', ['urgent'], ['cold'])).toBe(false)
+
+		expect(matchQueryRule('notIn', ['urgent', 'cold'], ['cold'])).toBe(false)
+	})
+
+	it('puts no constraint for a set operator whose value is not a set', () => {
+		for (const value of ['acme', 1, [], ['acme', ''], ['acme', null], [true], [['a']], {}]) {
+			expect(imposesConstraint('in', value)).toBe(false)
+
+			expect(matchQueryRule('notIn', 'x', value as JsonValue)).toBe(true)
+		}
+
+		expect(imposesConstraint('in', ['acme', 2])).toBe(true)
+	})
+
 	it('matches text operators case-insensitively', () => {
 		expect(matchQueryRule('contains', 'Alice', 'ali')).toBe(true)
 

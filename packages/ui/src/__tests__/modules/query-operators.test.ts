@@ -1,7 +1,11 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import { KNOWN_OPERATORS } from '../../modules/query/engine/query-evaluate'
-import { findBuiltInOperator, getOperators } from '../../modules/query/engine/query-operators'
+import {
+	findBuiltInOperator,
+	getOperators,
+	setOperators,
+} from '../../modules/query/engine/query-operators'
 import type { QueryField, QueryFieldType } from '../../modules/query/engine/types'
 
 const numberField: QueryField = { name: 'age', label: 'Age', type: 'number' }
@@ -53,6 +57,17 @@ describe('findBuiltInOperator', () => {
 		})
 	})
 
+	it('finds a set operator, which no field type offers by default', () => {
+		expect(findBuiltInOperator('in', 'select')).toMatchObject({ label: 'is any of', set: true })
+
+		expect(findBuiltInOperator('notIn')).toMatchObject({ label: 'is none of', set: true })
+
+		expect(getOperators({ name: 's', label: 'S', type: 'select' }).map((op) => op.value)).toEqual([
+			'equals',
+			'notEquals',
+		])
+	})
+
 	it('finds no operator that no default set holds', () => {
 		expect(findBuiltInOperator('custom')).toBeUndefined()
 	})
@@ -70,11 +85,12 @@ describe('the built-in operator sets and the evaluator', () => {
 		boolean: true,
 	} satisfies Record<QueryFieldType, true>
 
-	const builtIn = new Set(
-		(Object.keys(types) as QueryFieldType[]).flatMap((type) =>
+	const builtIn = new Set([
+		...(Object.keys(types) as QueryFieldType[]).flatMap((type) =>
 			getOperators({ name: type, label: type, type }).map((operator) => operator.value),
 		),
-	)
+		...setOperators.map((operator) => operator.value),
+	])
 
 	it('define each operator that the evaluator knows', () => {
 		expect([...KNOWN_OPERATORS].filter((value) => !builtIn.has(value))).toEqual([])

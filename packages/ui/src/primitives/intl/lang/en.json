@@ -1803,9 +1803,17 @@
 		"defaultMessage": "{field} rule",
 		"description": "The name of a filter condition with no value yet. The field is the name of its field."
 	},
+	"ui.query.isAnyOf": {
+		"defaultMessage": "is any of",
+		"description": "The operator of a set condition of a filter: the value is one of the listed values."
+	},
 	"ui.query.isFalse": {
 		"defaultMessage": "is false",
 		"description": "The operator of a yes-or-no condition of a filter: the value is no."
+	},
+	"ui.query.isNoneOf": {
+		"defaultMessage": "is none of",
+		"description": "The operator of a set condition of a filter: the value is not one of the listed values."
 	},
 	"ui.query.isTrue": {
 		"defaultMessage": "is true",

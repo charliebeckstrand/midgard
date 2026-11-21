@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { describeNode } from '../../modules/query/engine/query-announcements'
+import { findBuiltInOperator } from '../../modules/query/engine/query-operators'
 import type { QueryField, QueryRule } from '../../modules/query/engine/types'
 import {
 	type QueryBuilderActions,
@@ -12,6 +13,9 @@ import { QueryBuilderRule } from '../../modules/query/query-builder/query-builde
 import { QueryBuilderRuleValue } from '../../modules/query/query-builder/query-builder-rule-value'
 import { intlEn } from '../../primitives/intl/intl-catalog'
 import { bySlot, fireEvent, renderUI, screen, setupUser, within } from '../helpers'
+
+// The built-in range operator, which the rule passes to the value input.
+const BETWEEN = findBuiltInOperator('between')
 
 const fields: QueryField[] = [
 	{ name: 'name', label: 'Name', type: 'text' },
@@ -374,7 +378,14 @@ describe('QueryBuilderRuleValue range', () => {
 	it('reads a value that is not a pair as two blank bounds', () => {
 		const onValueChange = vi.fn()
 
-		renderUI(<QueryBuilderRuleValue field={age} value="30" range onValueChange={onValueChange} />)
+		renderUI(
+			<QueryBuilderRuleValue
+				field={age}
+				value="30"
+				operator={BETWEEN}
+				onValueChange={onValueChange}
+			/>,
+		)
 
 		const min = screen.getByRole('spinbutton', { name: 'Age minimum' }) as HTMLInputElement
 
@@ -393,7 +404,12 @@ describe('QueryBuilderRuleValue range', () => {
 		const onValueChange = vi.fn()
 
 		renderUI(
-			<QueryBuilderRuleValue field={age} value={[20, 40]} range onValueChange={onValueChange} />,
+			<QueryBuilderRuleValue
+				field={age}
+				value={[20, 40]}
+				operator={BETWEEN}
+				onValueChange={onValueChange}
+			/>,
 		)
 
 		fireEvent.change(screen.getByRole('spinbutton', { name: 'Age maximum' }), {
@@ -407,7 +423,12 @@ describe('QueryBuilderRuleValue range', () => {
 		const amount: QueryField = { name: 'amount', label: 'Amount', type: 'number', span: [0, 25000] }
 
 		renderUI(
-			<QueryBuilderRuleValue field={amount} value={['', '']} range onValueChange={vi.fn()} />,
+			<QueryBuilderRuleValue
+				field={amount}
+				value={['', '']}
+				operator={BETWEEN}
+				onValueChange={vi.fn()}
+			/>,
 		)
 
 		expect(screen.getByRole('spinbutton', { name: 'Amount maximum' })).toHaveAttribute(
@@ -418,7 +439,12 @@ describe('QueryBuilderRuleValue range', () => {
 
 	it('clamps the maximum to the span alone when the minimum is not a number', () => {
 		renderUI(
-			<QueryBuilderRuleValue field={age} value={['abc', 40]} range onValueChange={vi.fn()} />,
+			<QueryBuilderRuleValue
+				field={age}
+				value={['abc', 40]}
+				operator={BETWEEN}
+				onValueChange={vi.fn()}
+			/>,
 		)
 
 		expect(screen.getByRole('spinbutton', { name: 'Age maximum' })).toHaveAttribute('min', '18')

@@ -95,6 +95,11 @@ export type QueryBuilderProps = Omit<ComponentProps<'fieldset'>, 'children' | 'd
  * groups over typed field rules, controlled or uncontrolled through
  * `value`/`onValueChange`. It supplies field config and tree-edit actions to
  * its descendants via context.
+ *
+ * @remarks A field whose value is not a primitive, such as a related record or
+ * a set of tokens, names a custom editor with its `editor` key, and a
+ * `QueryValueEditorProvider` above the builder holds the editor. A `set`
+ * operator with no custom editor edits its value with a `TagInput`.
  */
 export function QueryBuilder({
 	fields,
