@@ -104,7 +104,7 @@ export type ResolvedInfiniteScroll = {
  * off. `threshold` falls back to the virtualization `overscan`, so the fetch
  * leads the viewport by about the windowed overscan. The loading indicator
  * is presence-implied (`loadingIndicator`, off by default), and `stableColumnWidths`
- * defaults off. Returns `null` for no binding: the body then wires no
+ * defaults on. Returns `null` for no binding: the body then wires no
  * end-detection and renders no trailing row.
  *
  * @internal
@@ -134,7 +134,7 @@ export function resolveInfiniteScroll(
 		loadingIndicator: typeof indicator === 'boolean' ? undefined : indicator,
 		endMessage: infiniteScroll.endMessage,
 		error: infiniteScroll.error,
-		stableColumnWidths: infiniteScroll.stableColumnWidths ?? false,
+		stableColumnWidths: infiniteScroll.stableColumnWidths ?? true,
 	}
 }
 

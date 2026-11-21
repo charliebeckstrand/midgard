@@ -249,8 +249,8 @@ export function useGridDataRender<T>(
 		// `fit` sizes the columns to their content instead of to the container, for a
 		// container built around the grid (see `GridDataProps.width`).
 		fitContent: width === 'fit',
-		// Infinite scroll can hold the auto-fit column widths steady so an appended
-		// batch never reflows the columns (see `GridInfiniteScroll.stableColumnWidths`).
+		// Infinite scroll holds the auto-fit column widths steady by default, so an
+		// appended batch never reflows the columns (see `GridInfiniteScroll.stableColumnWidths`).
 		// `resolveInfiniteScroll` already defaulted the flag; `useGridTable` treats an
 		// absent binding (undefined) as off.
 		stableColumnWidths: infiniteScroll?.stableColumnWidths,

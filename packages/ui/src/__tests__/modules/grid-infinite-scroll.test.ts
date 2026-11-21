@@ -150,7 +150,7 @@ describe('resolveInfiniteScroll', () => {
 		expect(resolveInfiniteScroll(undefined, 10, 50)).toBeNull()
 	})
 
-	it('defaults hasMore on; loadingMore, the indicator, and stable widths off; threshold to the overscan', () => {
+	it('defaults hasMore and stable widths on; loadingMore and the indicator off; threshold to the overscan', () => {
 		const onLoadMore = vi.fn()
 
 		const resolved = resolveInfiniteScroll({ onLoadMore }, 12, 50)
@@ -165,7 +165,7 @@ describe('resolveInfiniteScroll', () => {
 			loadingIndicator: undefined,
 			endMessage: undefined,
 			error: undefined,
-			stableColumnWidths: false,
+			stableColumnWidths: true,
 		})
 	})
 
@@ -181,7 +181,7 @@ describe('resolveInfiniteScroll', () => {
 				loadingIndicator: 'more',
 				endMessage: 'No more results',
 				error: 'Failed to load',
-				stableColumnWidths: true,
+				stableColumnWidths: false,
 			},
 			10,
 			50,
@@ -197,7 +197,7 @@ describe('resolveInfiniteScroll', () => {
 			loadingIndicator: 'more',
 			endMessage: 'No more results',
 			error: 'Failed to load',
-			stableColumnWidths: true,
+			stableColumnWidths: false,
 		})
 	})
 

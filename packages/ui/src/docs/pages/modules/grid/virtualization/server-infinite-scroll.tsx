@@ -46,7 +46,6 @@ export default function ServerInfiniteScroll() {
 				totalRows: TOTAL,
 				loadingMore,
 				loadingIndicator: true,
-				stableColumnWidths: true,
 				endMessage: <>No more results</>,
 			}}
 		/>
