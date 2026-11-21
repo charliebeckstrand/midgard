@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { defineKata } from '../../core/recipe'
+import { HeadlessShell } from '../../primitives/headless/headless-shell'
+import { useHeadlessSlots } from '../../primitives/headless/use-headless-slots'
 import { HeadlessProvider, useHeadless } from '../../providers/headless'
-import { Shell } from '../../providers/headless/shell'
-import { useSlots } from '../../providers/headless/use-slots'
 import { renderUI, screen } from '../helpers'
 
 function Probe() {
@@ -42,7 +42,7 @@ describe('HeadlessProvider', () => {
 		const unit = defineKata({ base: 'frame', slots: { field: 'reset' } })
 
 		function Slots() {
-			const slots = useSlots(unit)
+			const slots = useHeadlessSlots(unit)
 
 			return <span data-slot="slots">{`${slots.base}|${slots.field}`}</span>
 		}
@@ -62,11 +62,11 @@ describe('HeadlessProvider', () => {
 		expect(screen.getByText('|')).toBeInTheDocument()
 	})
 
-	it('drops the element of a Shell under the provider and keeps its content', () => {
+	it('drops the element of a HeadlessShell under the provider and keeps its content', () => {
 		const { container, unmount } = renderUI(
-			<Shell data-slot="shell">
+			<HeadlessShell data-slot="shell">
 				<b>content</b>
-			</Shell>,
+			</HeadlessShell>,
 		)
 
 		expect(container.querySelector('[data-slot="shell"] > b')).not.toBeNull()
@@ -75,9 +75,9 @@ describe('HeadlessProvider', () => {
 
 		const headless = renderUI(
 			<HeadlessProvider>
-				<Shell data-slot="shell">
+				<HeadlessShell data-slot="shell">
 					<b>content</b>
-				</Shell>
+				</HeadlessShell>
 			</HeadlessProvider>,
 		)
 

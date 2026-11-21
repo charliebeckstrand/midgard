@@ -8,8 +8,8 @@ import {
 	type DialogPanelProps,
 	DialogTitle,
 } from '../../components/dialog'
+import { GlassSurfacesContext } from '../../primitives/glass/context'
 import { DensityProvider } from '../../providers/density'
-import { GlassSurfacesContext } from '../../providers/glass/context'
 import { k as heading } from '../../recipes/kata/heading'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 

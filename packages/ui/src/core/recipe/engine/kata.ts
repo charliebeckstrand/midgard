@@ -198,7 +198,7 @@ export type Kata<C> = {
 	readonly config: KataResolvedConfig<C>
 	/**
 	 * The output of the unit with no classes: each class string is empty. A
-	 * headless component renders it in place of `k(props)` (`useSlots`).
+	 * headless component renders it in place of `k(props)` (`useHeadlessSlots`).
 	 */
 	readonly bare: KataOutput<C>
 }

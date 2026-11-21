@@ -4,10 +4,10 @@ import { type ComponentProps, useId, useRef } from 'react'
 import { cn } from '../../core/cn'
 import type { ScaleStep } from '../../core/density/scale'
 import { invalidAttrs } from '../../core/invalid-attrs'
+import { useGlass } from '../../primitives/glass/context'
+import { useHeadlessSlots } from '../../primitives/headless/use-headless-slots'
 import { Upload } from '../../primitives/icons/icons'
 import { useIntl } from '../../primitives/intl/use-intl'
-import { useGlass } from '../../providers/glass/context'
-import { useSlots } from '../../providers/headless/use-slots'
 import type { scale as controlScale } from '../../recipes/kata/control'
 import { k } from '../../recipes/kata/file-upload'
 import { Button } from '../button'
@@ -118,7 +118,7 @@ export function FileUploadInput(allProps: FileUploadInputProps) {
 	const variant = control?.variant ?? (glass ? 'glass' : undefined)
 
 	// The suffix always holds the clear or the browse button, so the frame is affixed.
-	const slots = useSlots(k.input, { variant, affixed: true })
+	const slots = useHeadlessSlots(k.input, { variant, affixed: true })
 
 	// The display button is not the control, so it takes no Field id, `required`,
 	// or `aria-describedby`. It shows the state of the Field through its own props.

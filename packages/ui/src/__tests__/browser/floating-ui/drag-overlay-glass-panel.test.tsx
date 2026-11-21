@@ -8,7 +8,7 @@ import {
 	KanbanColumn,
 	KanbanColumnBody,
 } from '../../../modules/kanban'
-import { GlassSurfacesContext } from '../../../providers/glass/context'
+import { GlassSurfacesContext } from '../../../primitives/glass/context'
 import { renderUI, waitFor } from '../../helpers'
 import { drag } from '../helpers/drag'
 

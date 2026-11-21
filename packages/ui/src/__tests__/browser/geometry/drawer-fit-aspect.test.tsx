@@ -9,7 +9,7 @@ import {
 	DrawerTitle,
 } from '../../../components/drawer'
 import { MapPlat } from '../../../modules/map'
-import { GlassSurfacesContext } from '../../../providers/glass/context'
+import { GlassSurfacesContext } from '../../../primitives/glass/context'
 import { Container } from '../../../structure/container'
 import { getSlot, renderUI } from '../../helpers'
 import { sampleUntil, settledValue } from '../helpers/sample'

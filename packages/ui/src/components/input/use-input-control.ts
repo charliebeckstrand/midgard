@@ -2,7 +2,7 @@
 
 import type { ChangeEventHandler, ComponentProps, FocusEventHandler } from 'react'
 import { invalidAttrs } from '../../core/invalid-attrs'
-import { useGlass } from '../../providers/glass/context'
+import { useGlass } from '../../primitives/glass/context'
 import { type ControlVariant, useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
 import { useControlScope } from '../control/use-control-scope'
