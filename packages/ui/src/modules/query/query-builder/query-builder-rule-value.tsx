@@ -71,7 +71,7 @@ function toSet(field: QueryField, tags: string[]): JsonValue {
 	return field.type === 'number' ? tags.map((tag) => parseNumeric(tag) ?? tag) : tags
 }
 
-/** A set bound as a number, or `undefined` for a blank bound or one that is not a number. @internal */
+/** A bound as a number, or `undefined` for a blank bound or one that is not a number. @internal */
 function toBound(value: number | ''): number | undefined {
 	if (value === '') return undefined
 

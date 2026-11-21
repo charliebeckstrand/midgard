@@ -47,7 +47,7 @@ export const SET_OPERATORS = new Set(['in', 'notIn'])
 
 /**
  * Operators that compare a field value and the rule value as numbers. The
- * rule value, or each set bound of a range, must convert to a finite number
+ * rule value, or each bound of a range, must convert to a finite number
  * ({@link isNumeric}).
  *
  * @internal

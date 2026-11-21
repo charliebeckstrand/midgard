@@ -116,6 +116,7 @@ function LateStops() {
 			aria-label="Late stops"
 			geography={states}
 			projection="albers-usa"
+			aspectRatio={false}
 			selectedOverlays={
 				cited?.target === 'late-stops'
 					? toStopSelection(cited.selector, 'stops', getIndex)
@@ -161,9 +162,9 @@ function LateByDay() {
 }
 
 // The tiles take no state of the example, so each render gives the same elements.
-// On a narrow board, the map tile takes the height of its content. The map keeps
-// its own ratio at the full width of the tile, so a fixed ratio would put the map
-// in a scroll region.
+// The map fills its tile (`aspectRatio={false}`), so the map and its legend fit
+// the fixed height of a tile on a wide board. On a narrow board, the map tile
+// takes the height of its content (`fitContent`), and the map takes its own ratio.
 const tiles = (
 	<>
 		<DashboardTile id="map" title="Late stops" ratio={16 / 10} fitContent>

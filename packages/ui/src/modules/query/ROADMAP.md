@@ -52,9 +52,7 @@ The Query domain lives in [`engine/`](engine), a pure functional core. It has no
 
 ## Pattern cleanup
 
-1. **TSDoc that the set operators made stale (*P1*).** The TSDoc of `isQueryActive` in [`engine/query-active.ts`](engine/query-active.ts) gives the shapes of a value, but not the set shape. One line of it also overruns the others. `NUMERIC_OPERATORS` and `isQueryActive` write "each set bound", and `toBound` in `query-builder-rule-value.tsx` writes "A set bound". Now "set" names an operator shape, so write "each bound".
-
-   The TSDoc of `QueryField.editor` and of `QueryValueEditorProvider` says that a field stays data that JSON can hold. But `formatValue` is a function. Give the true reason: the engine imports no React. Review holds this, because no gate reads the meaning of a doccomment.
+No open items.
 
 ## Performance
 

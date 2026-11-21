@@ -2,6 +2,7 @@
 
 import { type RefObject, useMemo } from 'react'
 import { type FrameReserve, usePlotFrame } from '../../hooks/use-plot-frame'
+import { DEFAULT_MAP_ASPECT } from './engine/map-constants'
 import {
 	cachedCanonicalPaths,
 	cachedChromePaths,
@@ -38,6 +39,11 @@ export type MapFrameShape = {
 	reserve: FrameReserve | null
 	/** Free-form (`aspectRatio={false}`) sizing: the plot fills the height its region already holds. */
 	fill: boolean
+	/**
+	 * The `width / height` ratio of the geography: the ratio of `aspectRatio="auto"`.
+	 * A `fill` plot in a region of auto height takes this ratio.
+	 */
+	aspect: number
 	/** The active viewBox width: measured px once the container is measured, the canonical frame until then. */
 	viewWidth: number
 	/** The active viewBox height, paired with {@link viewWidth}. */
@@ -209,6 +215,7 @@ export function useMapShape({
 		boxHeight: frameHeight,
 		reserve,
 		fill: sizing.mode === 'fill',
+		aspect: reserveAspect ?? DEFAULT_MAP_ASPECT,
 		viewWidth,
 		viewHeight,
 		measured: frame !== null,
