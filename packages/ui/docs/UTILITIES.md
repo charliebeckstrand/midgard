@@ -166,6 +166,12 @@ Import these from `utilities/overlay-layers`. They tell whether an open overlay 
 | `readCookie` | The value of a cookie by name, or `undefined` with no such cookie. With no `cookies`, it reads the cookies of this page. A server gives the `Cookie` header of the request. Import it from `utilities/cookie`. An app imports it from `ui/core` ([`CORE.md`](CORE.md)). |
 | `writeCookie` | Writes a cookie for each path of the site, for a number of seconds, so a server can read it. The default life is one year, for a setting of the reader. It is `secure` on HTTPS. Import it from `utilities/cookie`. An app imports it from `ui/core`. |
 
+## Text
+
+| Export | Summary |
+|---|---|
+| `foldText` | The text with no accents and in lower case, the form that a search compares. The lower case does not read the locale. JsonTree, PdfViewer, and the docs search fold through it, and a Biome plugin finds a fold outside it. Import it from `utilities/fold-text`. An app imports it from `ui/core` ([`CORE.md`](CORE.md)). |
+
 ## Measurement
 
 | Export | Summary |

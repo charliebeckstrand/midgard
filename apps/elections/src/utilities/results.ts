@@ -1,3 +1,4 @@
+import { foldText } from 'ui/core'
 import type { MapCategory } from 'ui/map'
 import type { Contest } from '../elections/registry'
 import { stateOfKey, type UsState } from '../elections/us-states'
@@ -80,14 +81,9 @@ export function entryName(entry: Pick<RaceEntry, 'state' | 'district'>): string 
 		: `${entry.state.name} ${districtName(entry.district)}`
 }
 
-/** A text for a search: lower case and with no accents, so that `gonzalez` finds `González`. */
-export function searchText(text: string): string {
-	return text.normalize('NFD').replace(/\p{M}/gu, '').toLocaleLowerCase()
-}
-
-/** The words of a query, each as a text for a search (`searchText`). */
+/** The words of a query, each folded for a search (`foldText`). */
 export function searchWords(query: string): string[] {
-	return searchText(query).split(/\s+/).filter(Boolean)
+	return foldText(query).split(/\s+/).filter(Boolean)
 }
 
 /**
@@ -99,7 +95,7 @@ export function matchesWords(texts: readonly string[], query: string): boolean {
 
 	if (words.length === 0) return true
 
-	const text = searchText(texts.join(' '))
+	const text = foldText(texts.join(' '))
 
 	return words.every((word) => text.includes(word))
 }

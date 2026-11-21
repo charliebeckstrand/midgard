@@ -1,0 +1,18 @@
+language js
+
+// A search fold of a text goes through `foldText` from `ui/core`. A copy of the
+// fold drifts: one copy lowers the case and keeps the accents, so "cafe" does
+// not find "Café" there. The plugin matches the NFD split that each copy of the
+// fold starts with.
+//
+// Reach is the `includes` beside this plugin in `biome.json`: the `ui` source
+// and the apps, minus tests, benchmarks, and `foldText` itself.
+or {
+	`$_.normalize('NFD')`,
+	`$_.normalize("NFD")`
+} as $call where {
+	register_diagnostic(
+		span = $call,
+		message = "fold a text for a search with `foldText` from `ui/core` (`utilities/fold-text` in `ui`), so each search folds the same way"
+	)
+}

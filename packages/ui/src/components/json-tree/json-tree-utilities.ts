@@ -1,4 +1,5 @@
 import type { JsonValueType } from '../../recipes/kata/json-tree'
+import { foldText } from '../../utilities/fold-text'
 import type { JsonValue } from './types'
 
 /**
@@ -75,15 +76,15 @@ export function joinPath(parentPath: string, childKey: string | number): string 
 	return `${parentPath}.${encodePathSegment(childKey)}`
 }
 
-/** True when a node's key or scalar value contains `term` (case-insensitive); branch values never match directly. @internal */
+/** True when a node's key or scalar value contains `term`, with case and accents ignored (`foldText`); branch values never match directly. @internal */
 export function matchesSearch(key: string | number | undefined, value: JsonValue, term: string) {
 	if (!term) return false
 
-	const lower = term.toLowerCase()
+	const folded = foldText(term)
 
 	return (
-		(key != null && String(key).toLowerCase().includes(lower)) ||
-		(!isBranch(value) && String(value).toLowerCase().includes(lower))
+		(key != null && foldText(String(key)).includes(folded)) ||
+		(!isBranch(value) && foldText(String(value)).includes(folded))
 	)
 }
 
