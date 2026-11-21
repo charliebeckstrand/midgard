@@ -5,8 +5,8 @@ import { type ComponentProps, type ReactNode, useRef } from 'react'
 import { cn } from '../../core/cn'
 import type { ScaleStep } from '../../core/density/scale'
 import { ControlFrame } from '../../primitives/control'
-import { Shell } from '../../providers/headless/shell'
-import { useSlots } from '../../providers/headless/use-slots'
+import { HeadlessShell } from '../../primitives/headless/headless-shell'
+import { useHeadlessSlots } from '../../primitives/headless/use-headless-slots'
 import type { scale } from '../../recipes/kata/textarea'
 import { k, type TextareaVariants } from '../../recipes/kata/textarea'
 import type { ControlVariant } from '../control/context'
@@ -122,7 +122,7 @@ export function Textarea({
 
 	const axis = hasActions ? 'none' : (resize ?? 'none')
 
-	const slots = useSlots(k, {
+	const slots = useHeadlessSlots(k, {
 		variant: field.variant,
 		resize: axis,
 		actions: hasActions,
@@ -147,9 +147,13 @@ export function Textarea({
 			{axis !== 'none' && <TextareaGrip field={fieldRef} axis={axis} className={cn(slots.grip)} />}
 			{/* The ControlFrame is a `<span>`, so the actions row is a `<span>` too. */}
 			{hasActions && (
-				<Shell data-slot="textarea-actions" data-density="slot" className={cn(slots.actions)}>
+				<HeadlessShell
+					data-slot="textarea-actions"
+					data-density="slot"
+					className={cn(slots.actions)}
+				>
 					{actions}
-				</Shell>
+				</HeadlessShell>
 			)}
 		</ControlFrame>
 	)

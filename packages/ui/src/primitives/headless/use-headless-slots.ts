@@ -14,8 +14,8 @@ type Unit<P, O> = ((props?: P) => O) & { readonly bare: O }
  * @param unit - The unit of the component (`k` of its kata).
  * @param props - The props of the unit.
  * @returns The class string of each slot, or the empty output when headless.
- * @see {@link Shell}: the wrapper element that a headless component drops.
+ * @see {@link HeadlessShell}: the wrapper element that a headless component drops.
  */
-export function useSlots<P, O>(unit: Unit<P, O>, props?: P): O {
+export function useHeadlessSlots<P, O>(unit: Unit<P, O>, props?: P): O {
 	return useHeadless() ? unit.bare : unit(props)
 }

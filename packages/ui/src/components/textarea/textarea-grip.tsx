@@ -2,7 +2,7 @@
 
 import { type PointerEvent, type RefObject, useEffect, useRef, useState } from 'react'
 import { holdDragCursor } from '../../hooks/use-drag-cursor'
-import { Shell } from '../../providers/headless/shell'
+import { HeadlessShell } from '../../primitives/headless/headless-shell'
 import type { Orientation } from '../../types/orientation'
 import { holdTextSelection } from '../../utilities/hold-text-selection'
 import { createPressOwner } from '../../utilities/primary-press'
@@ -110,7 +110,7 @@ export function TextareaGrip({ field, axis, className }: TextareaGripProps) {
 	}
 
 	return (
-		<Shell
+		<HeadlessShell
 			data-slot="textarea-grip"
 			aria-hidden="true"
 			className={className}

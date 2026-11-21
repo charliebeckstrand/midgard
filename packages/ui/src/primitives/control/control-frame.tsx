@@ -1,7 +1,7 @@
 import type { ComponentProps } from 'react'
 import { cn } from '../../core/cn'
 import type { DensityStep } from '../../core/density/steps'
-import { useHeadless } from '../../providers/headless/context'
+import { useHeadless } from '../../primitives/headless/context'
 import { PolymorphicStatic } from '../polymorphic'
 
 /** Props for {@link ControlFrame}: the density step and the standard `span` attributes. */

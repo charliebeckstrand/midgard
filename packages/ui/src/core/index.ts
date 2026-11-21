@@ -1,4 +1,5 @@
 export { readCookie, writeCookie } from '../utilities/cookie'
+export { foldText } from '../utilities/fold-text'
 export { accessibleName } from './accessible-name'
 export { type AnnounceOptions, announce } from './announcer'
 export { ariaAttr } from './aria-attr'

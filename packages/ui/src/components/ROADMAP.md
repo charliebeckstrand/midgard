@@ -10,7 +10,7 @@ Gates hold the shared contracts. [`static-component-boundary.test.ts`](../__test
 
 The shared corpus in [`__tests__/a11y/cases`](../__tests__/a11y/cases) gives each subject to the axe baseline and to the focus sweeps. A component with no subject gets no axe scan, and no gate requires a subject today.
 
-The apps copy parts of the kit by hand in several places: a focus outline, a fold of search text, and the last content of an overlay through its exit. The items below move each copy into the kit. This file covers the units of `components/`, and [`../../ROADMAP.md`](../../ROADMAP.md) covers the layers below them.
+The apps copy parts of the kit by hand in several places: a focus outline and the last content of an overlay through its exit. The items below move each copy into the kit. This file covers the units of `components/`, and [`../../ROADMAP.md`](../../ROADMAP.md) covers the layers below them.
 
 ## Features
 
@@ -73,10 +73,6 @@ The apps copy parts of the kit by hand in several places: a focus outline, a fol
 ## Pattern cleanup
 
 1. **Nested ternaries: a gate for §8.4 (*P1*).** CONVENTIONS.md §8.4 tells the author to split a nested ternary into named steps, but no gate holds the rule. Biome's `style/noNestedTernary` finds the sites. In this area, they are in `date-picker/use-date-picker-state.ts`, `date-picker/use-date-picker-range-state.ts`, `date-picker/date-picker-trigger.tsx`, `date-input/date-input-utilities.ts`, `credit-card-input/credit-card-input-utilities.ts`, `calendar/calendar-day-cell.tsx`, `address-input/address-input.tsx`, and `switch/switch-choice.tsx`. The rule also finds sites in the other components, the modules, and the hooks. Split each site, then set the rule to `error` in the `ui` source beside `noExcessiveCognitiveComplexity` in `biome.json` (§4.8).
-
-2. **JsonTree, PdfViewer: one home for the fold of search text (*P2*).** `use-pdf-viewer-search.ts` folds a query and the text to lower case with no accents. `matchesSearch` in `json-tree-utilities.ts` only lowers the case, so "cafe" does not find "café" in a JSON tree. The same fold is written again in `apps/places/src/utilities/places-palette.ts`, `apps/elections/src/utilities/results.ts`, and `src/docs/app/search-match.ts`. A behavior that many components share has one home (CONVENTIONS §3.10).
-
-   Put one `foldText` in `utilities/`, use it in the two components, and export it to the apps through `ui/core`. A Biome plugin that finds `.normalize('NFD')` outside the home can hold the rule. The change crosses packages, so surface the approach first (CLAUDE.md §3.1).
 
 ## Performance
 

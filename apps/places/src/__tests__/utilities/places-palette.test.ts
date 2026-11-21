@@ -2,7 +2,6 @@ import { createElement } from 'react'
 import { describe, expect, it } from 'vitest'
 import {
 	commandScore,
-	foldText,
 	matchCommands,
 	type PaletteCommand,
 	type PaletteSource,
@@ -15,14 +14,6 @@ function command(label: string, fields: Partial<PaletteCommand> = {}): PaletteCo
 function labels(source: PaletteSource, query: string): string[] {
 	return matchCommands(source, query).map((match) => match.label)
 }
-
-describe('foldText', () => {
-	it('drops accents and case', () => {
-		expect(foldText('Pão de Açúcar')).toBe('pao de acucar')
-
-		expect(foldText('São Paulo')).toBe('sao paulo')
-	})
-})
 
 describe('commandScore', () => {
 	it('ranks the full label, then its start, then a word start, then a keyword, then any text', () => {
