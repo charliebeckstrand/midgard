@@ -31,7 +31,7 @@ import { chartMessages } from '../chart-messages'
 import { ChartSwatch } from '../chart-pattern-defs'
 import { useChartActions } from '../context'
 import { OVERFLOW_CHIP_RESERVE, visibleLegendCount } from './fit'
-import { LEGEND_TOUCH_ROWS, LegendSwitch } from './legend-switch'
+import { LEGEND_TOUCH_GAP, LEGEND_TOUCH_ROWS, LegendSwitch } from './legend-switch'
 import { type LegendEmphasis, useLegendEmphasis } from './use-legend-emphasis'
 
 /** Entries per page once a side panel's switches would clip vertically. @internal */
@@ -864,7 +864,8 @@ function ChartLegendNoteList({
 			data-slot="chart-legend-notes"
 			className={cn(
 				'grid [--touch-target-gap-y:0px]',
-				LEGEND_TOUCH_ROWS,
+				// In a side panel, the box of the panel holds the hit areas at its edges.
+				panel ? LEGEND_TOUCH_GAP : LEGEND_TOUCH_ROWS,
 				panel ? 'w-full min-w-0' : 'mx-auto w-fit max-w-full min-w-0',
 			)}
 		>
@@ -1430,7 +1431,7 @@ function LegendSection({ heading, slot, children }: LegendSectionProps) {
 
 			<div
 				data-slot={slot}
-				className={cn('flex w-full min-w-0 flex-col items-start', LEGEND_TOUCH_ROWS)}
+				className={cn('flex w-full min-w-0 flex-col items-start', LEGEND_TOUCH_GAP)}
 			>
 				{children}
 			</div>
