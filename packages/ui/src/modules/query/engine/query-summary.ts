@@ -1,6 +1,12 @@
 import { intlEn } from '../../../primitives/intl/intl-catalog'
 import type { IntlShape } from '../../../primitives/intl/types'
-import { imposesConstraint, isBlank, RANGE_OPERATORS, VALUELESS_OPERATORS } from './query-evaluate'
+import {
+	imposesConstraint,
+	isBlank,
+	RANGE_OPERATORS,
+	SET_OPERATORS,
+	VALUELESS_OPERATORS,
+} from './query-evaluate'
 import { combinatorLabel, queryMessages } from './query-messages'
 import {
 	findBuiltInOperator,
@@ -97,8 +103,19 @@ function describeRange(
 		: { kind: 'rule', id, field, operator: '≥', value: valueText(intl, lo) }
 }
 
-/** Resolves a rule's display value: a `select` maps to its option label, and each other value reads through {@link valueText}. @internal */
+/**
+ * Resolves the display text of one value. The `formatValue` of the field comes
+ * first. Then a `select` value maps to its option label. Each other value reads
+ * through {@link valueText}.
+ *
+ * @internal
+ */
 function describeValue(intl: IntlShape, field: QueryField | undefined, value: unknown): string {
+	const formatted =
+		(typeof value === 'string' || typeof value === 'number') && field?.formatValue?.(value)
+
+	if (formatted) return formatted
+
 	const text = valueText(intl, value)
 
 	if (field?.type === 'select') {
@@ -106,6 +123,19 @@ function describeValue(intl: IntlShape, field: QueryField | undefined, value: un
 	}
 
 	return text
+}
+
+/**
+ * Formats a set as one list of the display text of each member, joined with
+ * "or" in the language of `intl`, such as `Acme, Globex, or Initech`. Reached
+ * only for an active set rule, so the value is a list of one or more members.
+ *
+ * @internal
+ */
+function describeSet(intl: IntlShape, field: QueryField | undefined, value: unknown): string {
+	const members = (value as unknown[]).map((member) => describeValue(intl, field, member))
+
+	return intl.formatList(members, { type: 'disjunction' })
 }
 
 /**
@@ -138,7 +168,7 @@ function resolveRule(
  *
  * @remarks The field set gives only the labels and the options, and the
  * built-in operator sets give only labels. The operator name selects the form
- * of the token, value-less, range, or scalar, as it does in the evaluator. A
+ * of the token, value-less, range, set, or scalar, as it does in the evaluator. A
  * rule whose field or operator the field set does not offer still constrains
  * the rows when the evaluator applies it. Such a rule renders an unknown field
  * by its name, and the operator by the built-in label that
@@ -184,7 +214,9 @@ export function describeRule(
 		id: rule.id,
 		field: label,
 		operator: relation,
-		value: describeValue(intl, field, rule.value),
+		value: SET_OPERATORS.has(rule.operator)
+			? describeSet(intl, field, rule.value)
+			: describeValue(intl, field, rule.value),
 	}
 }
 

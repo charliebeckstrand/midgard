@@ -5,8 +5,8 @@ import type { QueryGroup, QueryNode, QueryRule } from '../../modules/query/engin
 
 /**
  * A cell value or a rule value of each shape that the evaluator reads: text,
- * a number, a numeric string, a boolean, a blank, and a value of no scalar
- * shape.
+ * a number, a numeric string, a boolean, a blank, a set, and a value of no
+ * scalar shape.
  */
 export const queryValue = (): fc.Arbitrary<JsonValue | undefined> =>
 	fc.oneof(
@@ -19,7 +19,7 @@ export const queryValue = (): fc.Arbitrary<JsonValue | undefined> =>
 			fc.oneof(fc.integer({ min: -20, max: 20 }), fc.constantFrom<JsonValue>('', null, 'x')),
 			fc.oneof(fc.integer({ min: -20, max: 20 }), fc.constantFrom<JsonValue>('', null, 'x')),
 		),
-		fc.constantFrom<JsonValue>([], [1], {}, [[1], 5]),
+		fc.constantFrom<JsonValue>([], [1], {}, [[1], 5], ['Ab', 2], ['x', ''], [true]),
 	)
 
 const combinator = () => fc.option(fc.constantFrom<'and' | 'or'>('and', 'or'), { nil: undefined })
