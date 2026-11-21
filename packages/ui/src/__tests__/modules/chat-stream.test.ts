@@ -151,3 +151,29 @@ describe('applyChunk — a part chunk', () => {
 		expect(held).toEqual([running('Hello')])
 	})
 })
+
+describe('applyChunk — citations', () => {
+	const late = { id: 'c1', start: 0, end: 6, quote: 'Twelve', target: 'late', selector: null }
+
+	it('keeps the citations of the running text when a string chunk replaces its prose', () => {
+		// A part chunk sent the citation with the text. A string chunk carries
+		// prose alone, so it must not clear what it cannot carry.
+		const cited: ChatPart = { kind: 'text', id: TEXT_PART_ID, text: 'Twelve', citations: [late] }
+
+		expect(applyChunk([cited], 'Twelve stops are late.')).toEqual([
+			{ kind: 'text', id: TEXT_PART_ID, text: 'Twelve stops are late.', citations: [late] },
+		])
+	})
+
+	it('writes no citations field on running text that held none', () => {
+		expect(applyChunk([running('Hel')], 'Hello')).toStrictEqual([running('Hello')])
+	})
+
+	it('clears the citations of a block that a part chunk sends again without them', () => {
+		// A whole block replaces a whole block. The transport that drops a
+		// citation sends the block as it now is.
+		const cited: ChatPart = { kind: 'text', id: 't1', text: 'Twelve', citations: [late] }
+
+		expect(applyChunk([cited], [text('t1', 'Twelve')])).toEqual([text('t1', 'Twelve')])
+	})
+})

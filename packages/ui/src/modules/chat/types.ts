@@ -59,3 +59,11 @@ export type ChatEmbedRegistry = {
 	 */
 	mount?: Mount
 }
+
+/**
+ * The views that a citation can select in, by `target`. `label` names the
+ * view for a reader, such as `Late stops by day`. A screen reader reads it as
+ * the description of the anchor. The `target` itself is an address and is
+ * never read.
+ */
+export type ChatCitationTargets = Readonly<Record<string, { label: string }>>

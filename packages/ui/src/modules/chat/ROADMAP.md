@@ -16,6 +16,8 @@ An `embed` part names a renderer that the app registers with `ChatEmbedProvider`
 
 A `tool` part is a step that the assistant took: a label, a status, a summary, and a detail behind a disclosure. A step describes itself in text, so it needs no registry. The send settles each step that is still `running` when the stream ends, stops, or fails.
 
+A `text` part can hold `citations`: phrases that select in a view beside the chat. A citation addresses the Markdown source by offset, and its `quote` guards the address, so a citation draws only while its phrase is in the text. A string chunk keeps the citations of the running text, and a part-list chunk replaces them with the block. `ChatCitationProvider` registers the views by `target` and holds the active citation as a controlled value. The app derives the selection prop of each view from it. `toCategorySelection` reads a selector for `selectedCategories` of a chart. A citation is one toggle button, named by its phrase and described by its view. The projection does not change.
+
 The transcript is a `log` with `aria-live="off"`. The shared announcer speaks one status string: that a reply started, and then the reply after it settles. The announcement counts each embed and does not name it, because a chart ships its own data table. The a11y corpus holds a short transcript and a windowed one, in jsdom and in Chromium.
 
 The transcript renders only the rows near the viewport, through [`useVirtualWindow`](../../hooks/use-virtual-window.ts). Each row measures its real height, and the window keys each row by its message id. The pin to the end follows the intent of the reader, not the scroll position. [`chat-compute.bench.ts`](../../__benchmarks__/chat-compute.bench.ts) measures the transforms, and [`chat-render.bench.tsx`](../../__benchmarks__/chat-render.bench.tsx) measures the render. [`chat-transcript-window.test.tsx`](../../__tests__/browser/chat-transcript-window.test.tsx) holds the window and the pin in Chromium.
@@ -42,6 +44,9 @@ Each of these shapes was proposed for the content model and refuted. Do not prop
 - **An open discriminant.** `{ kind: string }` and `{ kind: 'embed'; name: string }` differ only in the name of the key. The open form loses the exhaustive `switch` and gives nothing in return. The `name` field of an `embed` is the open axis.
 - **A projection for each purpose.** `retry` sends the projection to the transport, so the transport is one more reader of it. One projection serves the clipboard, the transport, and the announcer.
 - **A flag of completeness that nothing settles.** A stopped reply would keep a part that never ends. The `tool` status is safe, because the send settles each running step on every exit.
+- **A citation as a kind of part.** A citation is a phrase of a block and not a block. As a kind, it would add an arm that draws nothing, projects nothing, and is never empty to each rule over the parts, and it would point to its text part by id. It is a field of the `text` part.
+- **A citation encoded in the Markdown.** This is the first decision again: a reader could type a live anchor. A citation is constructed, and it addresses the source by offset.
+- **A selection that the chat holds.** The selection belongs to the view. `ChatCitationProvider` is controlled, so the dashboard does not read its own state out of a chat context.
 
 This shape was proposed for the branches and refuted:
 
@@ -51,11 +56,7 @@ This shape was proposed for the branches and refuted:
 
 In priority order. Each entry names the gap, the shape of the fix, and where it lands.
 
-- **One selection across the chat and the dashboard.** An agent says that twelve stops are late, and a point on that sentence must mark those stops on the map beside it. The shape is a `citation` that carries an embed name and a selector. An adapter for each module maps the selector onto the selection prop of that module. The chat drives the dashboard first. The reverse direction waits for a second consumer to ask for it.
-
-  One blocker sits under it. The receiving half is incomplete: a cartesian chart takes `selectedCategories`, but a map takes one `selectedRegion` and one `selectedOverlay`. Fix the map first, then write the citation.
-
-  The anchor can render. `Markdown` takes `ranges` and `renderRange` ([`markdown-ranges.ts`](../../components/markdown/markdown-ranges.ts)). A range gives two offsets into the source of a text part and the `quote` between them, and it draws only while the quote matches. Thus a range that a part-list chunk sends stays correct while string chunks replace the prose. The citation is then a field on the `text` part and not a new kind, because it is not a block. `setRunningText` in `chat-stream.ts` must keep that field when a string chunk replaces the text. The anchor is a control on piece 0 of its range only, so that one citation is one tab stop. The projection does not change.
+- **One selection across the chat and the dashboard: the map.** A citation selects in a chart (see Status). A map takes one `selectedRegion` and one `selectedOverlay`, so a citation cannot mark twelve stops on it yet. Fix the map first, then add a `toRegionSelection` adapter beside `toCategorySelection`. The reverse direction, a selection in the dashboard that marks a phrase, waits for a second consumer to ask for it.
 
 - **Composer commands and mentions.** A dashboard agent needs a scope, and prose is the worst way to give one. The shape is a token model in `engine/chat-command/`: a trigger character, a token span, and a resolved value. The picker sits over `CommandPalette`, which already holds the keyboard model. `ChatPrompt` has an `actions` slot but no model behind it. `@dataset` scopes a question, and `/command` runs one.
 

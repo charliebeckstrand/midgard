@@ -116,6 +116,19 @@ export const k = defineKata({
 				{ trigger: 'hover', sender: 'system', class: 'inset-x-0 mx-auto' },
 			],
 		},
+		// A citation: a phrase of the prose that selects in a view beside the chat.
+		// Piece 0 is a button, and the pieces after it are spans with the same
+		// look. It keeps the font and the foreground of the prose, so it reads on
+		// each bubble. A dotted underline marks it at rest, and a fill of
+		// `currentColor` marks it while it is pressed, as the `tool` box rides
+		// `currentColor`.
+		citation: [
+			'cursor-pointer rounded-sm text-inherit',
+			'underline decoration-dotted decoration-current/60 underline-offset-2',
+			'hover:decoration-solid',
+			'data-pressed:bg-current/15 data-pressed:decoration-solid',
+			focus.ring,
+		],
 		// The rating pair of `ChatFeedback`: one control of the actions.
 		feedback: controls,
 		// The line of a failed reply. It inherits the foreground of the bubble, as
