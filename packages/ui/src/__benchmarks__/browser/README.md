@@ -127,13 +127,15 @@ Each scenario drives the deterministic shipment rows (`shipments` in [`../fixtur
 
 - [`grid-paginate.bench.tsx`](grid-paginate.bench.tsx): client pagination with 100 rows on each page, at 10k / 100k. Three scenarios run: a mount, a flip to the second page and back, and an asc/desc sort flip on `id`. The ui grid pages through its `pagination` binding. Only this scenario mounts the grid paginated.
 
-- [`grid-total.bench.tsx`](grid-total.bench.tsx): a grand total that sums the loads and the weight, at 10k / 100k. Three scenarios run: a mount, an asc/desc sort flip on `id`, and a quick filter applied and cleared.
+- [`grid-total.bench.tsx`](grid-total.bench.tsx): a grand total that sums the loads and the weight. Three scenarios run: a mount at 10k / 100k, and at 100k an asc/desc sort flip on `id` and a quick filter applied and cleared.
 
 - [`grid-facets.bench.tsx`](grid-facets.bench.tsx): a mount, then the first open of a `select` filter on the carrier column, which lists the carriers of the rows, at 10k / 100k. A reopen on the same data reads a cached list, so the scenario times the first open.
 
-- [`grid-group.bench.tsx`](grid-group.bench.tsx): client grouping by carrier, with every group open, at 10k / 100k. Three scenarios run: a mount, an asc/desc sort flip on `id`, and a quick filter applied and cleared. The clear settles on the first row of the first group, which the filter removes.
+- [`grid-group.bench.tsx`](grid-group.bench.tsx): client grouping by carrier, with every group open. Three scenarios run: a mount at 10k / 100k, and at 100k an asc/desc sort flip on `id` and a quick filter applied and cleared. The clear settles on the first row of the first group, which the filter removes.
 
 - [`grid-resize-drag.bench.tsx`](grid-resize-drag.bench.tsx): a drag on the resize handle of the origin column: a press, ten moves of 8px, and a release, at 10k rows with a window. Each move gets one frame from a fake frame clock (`withFrameClock` in [`harness.ts`](harness.ts)), and a read of the header rect after each frame forces layout. Three rows run: `truncate`, `truncate={false}`, and `truncate` with no layout read.
+
+- [`grid-resize-truncation.bench.tsx`](grid-resize-truncation.bench.tsx): a toggle of the origin column between a width that truncates its city names and a width that fits them, through the controlled `columnSizing` binding, at 1k and 3k rows without a window. No cell is visited, and each sample waits three frames. Three rows run: `truncate`, `truncate={false}`, and `truncate` with `origin` and `destination` frozen to the left edge.
 
 - [`grid-edit.bench.tsx`](grid-edit.bench.tsx): a row edit that opens and closes, at 1k rows without a window and 10k rows with a window, and a move of the open cell under `scope: 'cell'`, at 1k rows without a window. Each sample commits through `flushSync`, reads the rect of the host, and counts the editors.
 

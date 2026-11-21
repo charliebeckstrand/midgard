@@ -29,8 +29,9 @@ import { SHIPMENT_FIELDS, type Shipment, shipmentKey, shipments } from '../fixtu
 import { GRID_HEIGHT, GRID_WIDTH, painted } from './grids'
 import { benches, host, type Prepared, WINDOW } from './harness'
 
-// A `field` makes each column editable. The explicit `cell` renderer paints the
-// content synchronously, as in `grid-resize-truncation.bench.tsx`.
+// A `field` makes each column editable. The explicit `cell` renderer gives the
+// content, because a ui column renders nothing without a `cell`, as in
+// `grid-resize-truncation.bench.tsx`.
 const COLUMNS: GridColumn<Shipment>[] = SHIPMENT_FIELDS.map(([id, title]) => ({
 	id,
 	title,
