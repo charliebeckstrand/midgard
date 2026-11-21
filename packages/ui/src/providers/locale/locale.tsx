@@ -25,8 +25,8 @@ import { useStoredLocale } from './use-stored-locale'
 export type LocaleProviderProps = LocaleConfig & {
 	/**
 	 * The locales that the reader can choose from, as BCP 47 tags. With it, the
-	 * provider stores the choice of the reader, and `AppearanceSettings` shows a
-	 * Language picker. The stored locale replaces `locale` after hydration.
+	 * provider stores the choice of the reader, and `AppearanceLanguageField`
+	 * shows a Language picker. The stored locale replaces `locale` after hydration.
 	 *
 	 * The first choice is System. It takes the locale that matches the languages
 	 * of the browser, else the locale of the server render. The server render and

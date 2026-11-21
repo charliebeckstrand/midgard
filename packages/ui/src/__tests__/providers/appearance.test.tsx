@@ -7,7 +7,13 @@ import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { SidebarLayout } from '../../layouts/sidebar/sidebar'
 import { useDensityStep } from '../../primitives/density'
 import { ReducedMotion } from '../../primitives/reduced-motion'
-import { AppearanceProvider, AppearanceSettings, useAppearance } from '../../providers/appearance'
+import {
+	AppearanceLanguageField,
+	AppearanceProvider,
+	AppearanceSettings,
+	AppearanceSidebarField,
+	useAppearance,
+} from '../../providers/appearance'
 import { type AppearanceChoice, parseChoice } from '../../providers/appearance/appearance-storage'
 import { useAppearanceChoice } from '../../providers/appearance/use-appearance-choice'
 import { useGlass, useResolvedSurface } from '../../providers/glass'
@@ -435,13 +441,56 @@ describe('AppearanceSettings', () => {
 	})
 
 	it('shows no sidebar picker outside a sidebar layout', async () => {
-		expect(await openSettings()).not.toHaveTextContent('Sidebar')
+		const dialog = await openSettings(
+			<AppearanceProvider>
+				<AppearanceSettings>
+					<AppearanceSidebarField />
+				</AppearanceSettings>
+			</AppearanceProvider>,
+		)
+
+		expect(dialog).not.toHaveTextContent('Sidebar')
+	})
+
+	it('shows no sidebar picker of its own inside a sidebar layout', async () => {
+		renderUI(
+			<AppearanceProvider>
+				<SidebarLayout sidebar={<div>side</div>} actions={<AppearanceSettings />}>
+					body
+				</SidebarLayout>
+			</AppearanceProvider>,
+		)
+
+		await userEvent.click(screen.getAllByRole('button', { name: 'Settings' })[0] as HTMLElement)
+
+		expect(await screen.findByRole('dialog', { name: 'Settings' })).not.toHaveTextContent('Sidebar')
+	})
+
+	it('puts the pickers in order, with the fields of children after them', async () => {
+		const dialog = await openSettings(
+			<AppearanceProvider>
+				<AppearanceSettings>
+					<p>More fields</p>
+				</AppearanceSettings>
+			</AppearanceProvider>,
+		)
+
+		const labels = Array.from(dialog.querySelectorAll('label, p'), (node) => node.textContent)
+
+		expect(labels).toEqual(['Appearance', 'Surfaces', 'Density', 'Motion', 'More fields'])
 	})
 
 	it('picks the sidebar mode inside a sidebar layout, and shows its key', async () => {
 		renderUI(
 			<AppearanceProvider>
-				<SidebarLayout sidebar={<div>side</div>} actions={<AppearanceSettings />}>
+				<SidebarLayout
+					sidebar={<div>side</div>}
+					actions={
+						<AppearanceSettings>
+							<AppearanceSidebarField />
+						</AppearanceSettings>
+					}
+				>
 					body
 				</SidebarLayout>
 			</AppearanceProvider>,
@@ -474,11 +523,29 @@ describe('AppearanceSettings', () => {
 		expect(document.documentElement).toHaveClass('sidebar-offcanvas')
 	})
 
+	it('renders the fields of children only while the dialog is open', async () => {
+		const dialog = await openSettings(
+			<AppearanceProvider>
+				<AppearanceSettings>
+					<p>Field</p>
+				</AppearanceSettings>
+			</AppearanceProvider>,
+		)
+
+		expect(dialog).toHaveTextContent('Field')
+
+		await userEvent.keyboard('{Escape}')
+
+		await waitFor(() => expect(screen.queryByText('Field')).toBeNull())
+	})
+
 	it('shows no language picker under a locale provider with no locales', async () => {
 		const dialog = await openSettings(
 			<AppearanceProvider>
 				<LocaleProvider locale="en-US">
-					<AppearanceSettings />
+					<AppearanceSettings>
+						<AppearanceLanguageField />
+					</AppearanceSettings>
 				</LocaleProvider>
 			</AppearanceProvider>,
 		)
@@ -491,7 +558,9 @@ describe('AppearanceSettings', () => {
 			<AppearanceProvider>
 				<LocaleProvider locale="en-US" locales={['en-US', 'en-GB']}>
 					<LocaleOutput />
-					<AppearanceSettings />
+					<AppearanceSettings>
+						<AppearanceLanguageField />
+					</AppearanceSettings>
 				</LocaleProvider>
 			</AppearanceProvider>,
 		)
