@@ -30,10 +30,12 @@ export {
 	QUERY_BUILDER_ORIENTATION,
 	QueryBuilder,
 	type QueryBuilderProps,
+} from './query-builder'
+export { QueryChips, type QueryChipsProps } from './query-chips'
+export { QuerySummary, type QuerySummaryProps } from './query-summary'
+export {
 	type QueryValueEditor,
 	type QueryValueEditorProps,
 	QueryValueEditorProvider,
 	type QueryValueEditorProviderProps,
-} from './query-builder'
-export { QueryChips, type QueryChipsProps } from './query-chips'
-export { QuerySummary, type QuerySummaryProps } from './query-summary'
+} from './query-value-editor-provider'

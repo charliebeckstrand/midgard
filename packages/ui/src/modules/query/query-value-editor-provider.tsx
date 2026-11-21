@@ -1,9 +1,10 @@
 'use client'
 
-import { type ComponentType, type ReactNode, useMemo } from 'react'
-import type { JsonValue } from '../../../components/json-tree/types'
-import { createContext } from '../../../core/create-context'
-import type { QueryField, QueryOperator } from '../engine/types'
+import type { ComponentType, ReactNode } from 'react'
+import { useMemo } from 'react'
+import type { JsonValue } from '../../components/json-tree/types'
+import type { QueryField, QueryOperator } from './engine/types'
+import { QueryValueEditorsContext, useQueryValueEditors } from './query-builder/context'
 
 /**
  * Props for a {@link QueryValueEditor}: the field and the operator of the rule,
@@ -57,14 +58,6 @@ export type QueryValueEditorProps = {
  */
 export type QueryValueEditor = ComponentType<QueryValueEditorProps>
 
-/** The custom value editors of the builders below a {@link QueryValueEditorProvider}, by key. @internal */
-type QueryValueEditors = Readonly<Record<string, QueryValueEditor>>
-
-const [QueryValueEditorsContext, useQueryValueEditors] = createContext<QueryValueEditors>(
-	'QueryValueEditors',
-	{ default: {} },
-)
-
 /** Props for {@link QueryValueEditorProvider}. */
 export type QueryValueEditorProviderProps = {
 	/**
@@ -104,16 +97,4 @@ export function QueryValueEditorProvider({ editors, children }: QueryValueEditor
 	const value = useMemo(() => ({ ...outer, ...editors }), [outer, editors])
 
 	return <QueryValueEditorsContext value={value}>{children}</QueryValueEditorsContext>
-}
-
-/**
- * The custom value editor of `field`, or `undefined` when the field names no
- * key or no provider holds its key.
- *
- * @internal
- */
-export function useQueryValueEditor(field: QueryField): QueryValueEditor | undefined {
-	const editors = useQueryValueEditors()
-
-	return field.editor && Object.hasOwn(editors, field.editor) ? editors[field.editor] : undefined
 }

@@ -15,8 +15,8 @@ import { useIntl } from '../../../primitives/intl/use-intl'
 import { Flex } from '../../../structure/flex'
 import { finiteOrUndefined } from '../../../utilities/parse-numeric'
 import type { QueryField, QueryOperator } from '../engine/types'
+import { useQueryValueEditor } from './context'
 import { queryBuilderMessages } from './query-builder-messages'
-import { useQueryValueEditor } from './query-builder-value-editors'
 
 /** Props for {@link QueryBuilderRuleValue}: the rule's `field`, its operator, and its current value plus a change callback. @internal */
 export type QueryBuilderRuleValueProps = {
