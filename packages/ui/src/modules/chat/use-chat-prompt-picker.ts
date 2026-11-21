@@ -43,12 +43,17 @@ export type PickerStatus = 'loading' | 'ready' | 'failed'
 
 /** The result of the last search, and the source that it is for. @internal */
 type PickerResults = {
-	source: number
+	/**
+	 * The trigger that the results are for: its source and its offset. The
+	 * items of one trigger stay while its next query loads, and the items of
+	 * another trigger never show, so an early Enter cannot choose one.
+	 */
+	trigger: string
 	status: PickerStatus
 	items: readonly ChatPromptItem[]
 }
 
-const NO_RESULTS: PickerResults = { source: -1, status: 'ready', items: [] }
+const NO_RESULTS: PickerResults = { trigger: '', status: 'ready', items: [] }
 
 /** Options for {@link useChatPromptPicker}. @internal */
 export type ChatPromptPickerOptions = {
@@ -107,6 +112,8 @@ export function useChatPromptPicker({
 
 	const matchSource = open ? match.index : -1
 
+	const matchTrigger = open ? `${match.index}:${match.start}` : ''
+
 	const matchQuery = open ? match.query : ''
 
 	const [results, setResults] = useState<PickerResults>(NO_RESULTS)
@@ -127,38 +134,39 @@ export function useChatPromptPicker({
 		try {
 			result = search(matchSource, matchQuery, controller.signal)
 		} catch {
-			setResults({ source: matchSource, status: 'failed', items: [] })
+			setResults({ trigger: matchTrigger, status: 'failed', items: [] })
 
 			return
 		}
 
 		if (result === undefined || Array.isArray(result)) {
-			setResults({ source: matchSource, status: 'ready', items: result ?? [] })
+			setResults({ trigger: matchTrigger, status: 'ready', items: result ?? [] })
 
 			return
 		}
 
 		// The items of the last query stay while the next one loads, so the list does not blink.
 		setResults((prev) => ({
-			source: matchSource,
+			trigger: matchTrigger,
 			status: 'loading',
-			items: prev.source === matchSource ? prev.items : [],
+			items: prev.trigger === matchTrigger ? prev.items : [],
 		}))
 
 		Promise.resolve(result).then(
 			(items) => {
-				if (!controller.signal.aborted) setResults({ source: matchSource, status: 'ready', items })
+				if (!controller.signal.aborted)
+					setResults({ trigger: matchTrigger, status: 'ready', items })
 			},
 			() => {
 				if (!controller.signal.aborted) {
-					setResults({ source: matchSource, status: 'failed', items: [] })
+					setResults({ trigger: matchTrigger, status: 'failed', items: [] })
 				}
 			},
 		)
 
 		// The next query aborts this search, so its result has no reader.
 		return () => controller.abort()
-	}, [matchSource, matchQuery, search])
+	}, [matchSource, matchTrigger, matchQuery, search])
 
 	const listRef = useRef<HTMLDivElement>(null)
 
@@ -192,7 +200,7 @@ export function useChatPromptPicker({
 		setReference(textarea?.closest<HTMLElement>('[data-slot="control-frame"]') ?? textarea)
 	}, [setReference, textareaRef])
 
-	const items = results.source === matchSource ? results.items : []
+	const items = results.trigger === matchTrigger ? results.items : []
 
 	// The top match takes the highlight each time the items change, so Enter
 	// chooses what the reader sees first.
@@ -265,28 +273,17 @@ export function useChatPromptPicker({
 	 */
 	const onKeyDown = useCallback(
 		(event: KeyboardEvent<HTMLTextAreaElement>): boolean => {
-			if (!open || isComposing(event)) return false
-
-			if (hasBrowserModifier(event) || event.shiftKey) return false
+			if (!open || isComposing(event) || hasBrowserModifier(event) || event.shiftKey) return false
 
 			if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-				event.preventDefault()
-
-				rove(event)
-
-				return true
+				// With no option to move to, the arrow moves the caret between lines.
+				return takeKey(event, Boolean(listRef.current?.querySelector(PICKER_OPTION)), rove)
 			}
 
 			if (event.key === 'Enter' || event.key === 'Tab') {
 				const item = activeItem()
 
-				if (!item) return false
-
-				event.preventDefault()
-
-				choose(item)
-
-				return true
+				return takeKey(event, item !== undefined, () => item && choose(item))
 			}
 
 			return false
@@ -319,7 +316,7 @@ export function useChatPromptPicker({
 		listRef,
 		source,
 		items,
-		status: results.source === matchSource ? results.status : ('loading' as const),
+		status: results.trigger === matchTrigger ? results.status : ('loading' as const),
 		floating,
 		choose,
 		onKeyDown,
@@ -342,4 +339,25 @@ function insertText(text: string): void {
 	} catch {
 		// The draft takes the change from `onValueChange`.
 	}
+}
+
+/**
+ * Takes a key for the picker when `taken`: cancels its default and runs `run`.
+ * A key that the picker does not take stays with the textarea.
+ *
+ * @internal
+ * @returns Whether the picker took the key.
+ */
+function takeKey<E extends KeyboardEvent<HTMLTextAreaElement>>(
+	event: E,
+	taken: boolean,
+	run: (event: E) => void,
+): boolean {
+	if (!taken) return false
+
+	event.preventDefault()
+
+	run(event)
+
+	return true
 }

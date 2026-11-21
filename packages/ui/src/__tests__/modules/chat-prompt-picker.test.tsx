@@ -6,7 +6,16 @@ import {
 	type ChatPromptItem,
 	type ChatPromptSource,
 } from '../../modules/chat'
-import { deferred, getSlot, noop, renderUI, screen, setupUser, waitFor } from '../helpers'
+import {
+	deferred,
+	fireEvent,
+	getSlot,
+	noop,
+	renderUI,
+	screen,
+	setupUser,
+	waitFor,
+} from '../helpers'
 import { axe } from '../helpers/axe'
 
 const ITEMS: ChatPromptItem[] = [
@@ -321,6 +330,62 @@ describe('ChatPrompt picker', () => {
 		await Promise.resolve()
 
 		expect(options()).toEqual(['Routes'])
+	})
+
+	it('shows no item of another trigger while the next one loads', async () => {
+		const searches: ReturnType<typeof deferred<readonly ChatPromptItem[]>>[] = []
+
+		const source: ChatPromptSource = {
+			...datasets,
+			search: () => {
+				const done = deferred<readonly ChatPromptItem[]>()
+
+				searches.push(done)
+
+				return done.promise
+			},
+		}
+
+		const onSubmit = vi.fn()
+
+		const { container } = renderUI(<Composer sources={[source]} onSubmit={onSubmit} />)
+
+		const user = await typeInto(container, '@')
+
+		searches.at(-1)?.resolve(ITEMS.slice(2))
+
+		await waitFor(() => expect(options()).toEqual(['Depots']))
+
+		await user.keyboard('{Enter}')
+
+		// A new trigger of the same source: its search has not answered yet.
+		await user.keyboard('@')
+
+		expect(screen.getByRole('listbox')).toHaveAttribute('aria-busy', 'true')
+
+		expect(options()).toEqual([])
+
+		// No stale option has the highlight, so Enter sends.
+		await user.keyboard('{Enter}')
+
+		expect(onSubmit).toHaveBeenCalledOnce()
+	})
+
+	it('leaves the arrows to the textarea while the list holds no option', async () => {
+		const { container } = renderUI(<Composer sources={[datasets]} />)
+
+		await typeInto(container, 'one{Shift>}{Enter}{/Shift}see @zzz')
+
+		expect(screen.getByRole('listbox')).toBeInTheDocument()
+
+		expect(options()).toEqual([])
+
+		const textarea = getSlot<HTMLTextAreaElement>(container, 'chat-prompt')
+
+		// `fireEvent` gives `false` when a handler cancels the key.
+		expect(fireEvent.keyDown(textarea, { key: 'ArrowUp' })).toBe(true)
+
+		expect(fireEvent.keyDown(textarea, { key: 'ArrowDown' })).toBe(true)
 	})
 
 	it('has no axe violation while open', async () => {
