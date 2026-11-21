@@ -56,8 +56,6 @@ The Query domain lives in [`engine/`](engine), a pure functional core. It has no
 
    The TSDoc of `QueryField.editor` and of `QueryValueEditorProvider` says that a field stays data that JSON can hold. But `formatValue` is a function. Give the true reason: the engine imports no React. Review holds this, because no gate reads the meaning of a doccomment.
 
-2. **Operator flags that only a comment ties to the evaluator (*P2*).** The builder reads the `noValue`, `range`, and `set` flags in [`engine/query-operators.ts`](engine/query-operators.ts). The evaluator reads `VALUELESS_OPERATORS`, `RANGE_OPERATORS`, and `SET_OPERATORS` by name in [`engine/query-evaluate.ts`](engine/query-evaluate.ts). Each set says that it mirrors a flag, but the parity test holds only the names. A built-in with a wrong flag gets an editor of one shape and a judgment of another, so its rule reads as inactive. Extend the parity test in `query-operators.test.ts`: a built-in has each flag exactly when its name is in the related set.
-
 ## Performance
 
 1. **Compile the rule value once (*P2*).** `compileNode` in [`engine/query-evaluate.ts`](engine/query-evaluate.ts) makes the active judgment once, but each matcher reads the rule value again for each row. A text matcher lowers the rule value for each row. An `in` matcher walks the whole set for each row, and lowers each member each time.
