@@ -176,12 +176,9 @@ export function AddressInput({
 
 	// The same order as the cascade of the Combobox (`useFormValue`): an explicit
 	// `value` wins over the field, and the field wins over the mirror.
-	const selected =
-		value !== undefined
-			? (value ?? undefined)
-			: bound !== undefined
-				? (bound.value as AddressSuggestion | undefined)
-				: picked
+	const fromField = bound === undefined ? picked : (bound.value as AddressSuggestion | undefined)
+
+	const selected = value === undefined ? fromField : (value ?? undefined)
 
 	const fallbackLabel = useControlFallbackLabel(placeholder)
 

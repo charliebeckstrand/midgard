@@ -85,6 +85,16 @@ export function PdfViewerViewport() {
 	 */
 	const framed = hasRaster(activePage) || (!error && (loading || pending || !!activePage))
 
+	// With no page to frame, the viewport says why: the load failed, or the
+	// document has no page.
+	const empty = error ? (
+		<div role="alert" className={k().viewport.page.empty}>
+			{intl.formatMessage(pdfViewerMessages.loadFailed, { message: error.message })}
+		</div>
+	) : (
+		<div className={k().viewport.page.empty}>{intl.formatMessage(pdfViewerMessages.noPages)}</div>
+	)
+
 	return (
 		<div
 			data-slot="pdf-viewer-pane"
@@ -133,14 +143,8 @@ export function PdfViewerViewport() {
 						)}
 					</div>
 				</div>
-			) : error ? (
-				<div role="alert" className={k().viewport.page.empty}>
-					{intl.formatMessage(pdfViewerMessages.loadFailed, { message: error.message })}
-				</div>
 			) : (
-				<div className={k().viewport.page.empty}>
-					{intl.formatMessage(pdfViewerMessages.noPages)}
-				</div>
+				empty
 			)}
 		</div>
 	)

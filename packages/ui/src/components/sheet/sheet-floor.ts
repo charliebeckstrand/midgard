@@ -70,12 +70,13 @@ export function sheetCeiling(panel: HTMLElement, viewport: number, axis: PanelAx
 	// wrong.
 	const dock = panel.offsetParent
 
-	const origin =
-		dock instanceof HTMLElement
-			? axis === 'width'
-				? dock.getBoundingClientRect().left + dock.clientLeft
-				: dock.getBoundingClientRect().top + dock.clientTop
-			: 0
+	let origin = 0
+
+	if (dock instanceof HTMLElement) {
+		const box = dock.getBoundingClientRect()
+
+		origin = axis === 'width' ? box.left + dock.clientLeft : box.top + dock.clientTop
+	}
 
 	// The two edges across the axis the panel is docked on. Whichever sits nearer
 	// the edge of the box is the inset the reader can see.

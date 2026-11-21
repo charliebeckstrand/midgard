@@ -116,11 +116,14 @@ export function Table({
 	// A name in `tableProps` wins over the caption. Use the caption only when `tableProps` has no name.
 	const ownName = ownLabel !== undefined || ownLabelledBy !== undefined
 
+	// A caption with an id names the table through `labelledBy`, so it gives no label.
+	const captionLabel = caption?.id ? undefined : captionText
+
 	return (
 		<TableScroll
 			{...props}
 			density={size}
-			label={ownName ? ownLabel : caption?.id ? undefined : captionText}
+			label={ownName ? ownLabel : captionLabel}
 			labelledBy={ownName ? ownLabelledBy : caption?.id}
 			className={k({ bleed }).scroll}
 		>
