@@ -260,7 +260,13 @@ export const k = {
 	legend: {
 		/** The gap of the swatch and the label of a legend entry. */
 		entry: dan.gap.scale.sm,
-		row: 'min-h-8',
+		/**
+		 * The row does not shrink. Its `min-h-8` replaces the minimum height of
+		 * its content, and a `fill` plot shrinks when the frame is too short for
+		 * the ratio of the plot. Without `shrink-0`, the row then took a part of
+		 * the loss, and the legend went past the bottom of the frame.
+		 */
+		row: 'min-h-8 shrink-0',
 		/**
 		 * The band of the plot and a side legend. Below the map's `@lg`, it is a
 		 * flex column, with the legend under the plot. From there it is a grid of
