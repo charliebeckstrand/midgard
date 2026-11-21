@@ -34,6 +34,14 @@ A `between` rule now reads the span of its data. `QueryField.span` holds the `[m
 
 The summary now names an operator that the field does not offer. Before, [`describeRule`](engine/query-summary.ts) read the label only from the operator set of the field. A blank dashboard selection makes an `isEmpty` rule on a field of each type, so a `number` field showed the raw `isEmpty`. Now the label comes from the set of the field, then from the default set of the field type, then from the other built-in sets. So `isEmpty` on a `number` field reads `is Empty`, and `equals` on a `date` field whose custom operators leave out `equals` reads `on`. A parity test holds the evaluator operators and the built-in sets equal, so no active rule shows a raw operator name.
 
+Per-field value editors have landed. A field whose value is not a primitive, such as a related record or a set of tokens, names a custom editor with `QueryField.editor`. The key is a string, so a field stays data that JSON can hold, and the engine imports no React. [`QueryValueEditorProvider`](query-builder/query-builder-value-editors.tsx) maps each key to a `QueryValueEditor` component. It is a context and not a prop of the builder, so it reaches a builder that another module renders, such as the builder of a dashboard. A key that no provider holds falls back to the input of the field type. The editor gets the field, the operator, the value, a name, `disabled`, and the lock of the nearest lock scope as `readOnly`. A `Form` sets that lock while a submit runs, and the built-in inputs read the same lock.
+
+An editor writes a key or a set of keys, and not an object. A set is a list of one or more strings or numbers, each not blank. [`setOperators`](engine/query-operators.ts) holds `in` and `notIn`, which read a set. A row matches `in` when its value is one member of the set, and a cell that is a list matches when one of its items is a member. `imposesConstraint` reads the shape, so a value of the wrong shape, such as a set from a URL that holds a blank, reads as inactive. No field type offers the set operators by default. A built-in `select` input writes one value, so a grid column would show operators that its input cannot fill. A field adds them to its `operators`. A set operator with no custom editor edits its set with a `TagInput`. A change of operator to another shape of value resets the value to the blank value of that shape (`blankValue` in [`engine/query-node.ts`](engine/query-node.ts)).
+
+`QueryField.formatValue` gives the display text of a value, such as the name of a record. The summary, the chips, and the names of the rules read it before the option labels, and a set reads as one list with "or". The function is synchronous, because the summary is a pure fold. An app that loads its labels keeps the labels that it loaded, and gives a new field when more labels arrive. Until then, the summary shows the key. The serialization did not change, because the parse already keeps each value as it is.
+
+The composer of the chat has a picker and a token model too, and the query module does not use them. A mention of the chat is a citation: offsets in the text of a `<textarea>`, with a quote that guards them. A rule value has no text that an offset can address. The custom editor composes the parts that the picker of the chat also composes, such as `Combobox`, `Option`, and `useA11yRoving`. The async search of the demo has the signature of the `search` of a chat source. A shared hook for that search waits for a second consumer in the library.
+
 ## Engine: the substrate
 
 Every domain concept lands in [`engine/`](engine), the module's pure functional core: no `'use client'`, no runtime `react` / `motion` / `@dnd-kit` / `@floating-ui` imports, no `index` barrel (the engine is imported file-by-file), no runtime imports from the module root.
@@ -44,7 +52,8 @@ The [`module-filename-boundary.test.ts`](../../__tests__/boundary/module-filenam
 
 ## Backlog
 
-- **Per-field value editors.** A custom value-input slot on the rule, for a field whose value isn't a text/number/date/select/boolean primitive (a relation picker, a token input).
+- **A custom editor in a grid column filter.** `GridColumn.filterType` takes only a primitive type, so a column cannot name a custom editor. The column sheet already renders `QueryBuilder`, so a provider above the grid reaches it. The column needs a way to give `editor` and `formatValue` to its field.
+- **A read-only builder.** `QueryBuilder` has `disabled` and no `readOnly`. A read-only view is `QueryChips` with `readOnly` or `QuerySummary` today.
 
 ---
 

@@ -2,6 +2,7 @@ import api from 'virtual:docs/api/modules/query'
 import { ApiTable, Example, Playground } from '../../../kit/index.ts'
 import Builder from './builder.tsx'
 import Chips from './chips.tsx'
+import CustomEditor from './custom-editor.tsx'
 import QueryPlayground from './playground.tsx'
 import ReadOnlyAndDisabled from './read-only-and-disabled.tsx'
 import Reorder from './reorder.tsx'
@@ -14,6 +15,7 @@ export default function QueryPage() {
 			<Example of={Chips} />
 			<Example of={ReadOnlyAndDisabled} />
 			<Example of={Reorder} />
+			<Example of={CustomEditor} />
 			<ApiTable api={api} />
 		</>
 	)
