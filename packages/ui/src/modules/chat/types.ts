@@ -67,3 +67,65 @@ export type ChatEmbedRegistry = {
  * never read.
  */
 export type ChatCitationTargets = Readonly<Record<string, { label: string }>>
+
+/**
+ * One choice of a {@link ChatPromptSource}: a dataset, a command, or anything
+ * else that a question can name.
+ */
+export type ChatPromptItem = {
+	/** Names the item in its source. It is the React key of its option. */
+	key: string
+	/** The words of the choice. The citation quotes the trigger and this label. */
+	label: string
+	/**
+	 * What the citation carries. The view that the citation selects in reads it,
+	 * and so does the transport. It must survive `JSON.stringify` if the app
+	 * stores the conversation.
+	 */
+	selector: unknown
+	/** A second line of the option, such as the arguments of a command. */
+	description?: string
+}
+
+/**
+ * A source of choices that a trigger character opens in `ChatPrompt`, such as
+ * `@` for the datasets of a dashboard or `/` for its commands. A choice puts a
+ * citation in the draft, with `target` from the source and `selector` from the
+ * item.
+ *
+ * @remarks
+ * The chat imports nothing from a domain. A source closes over the data of the
+ * app, and the chat reads only the strings and the opaque `selector` that
+ * `search` gives.
+ *
+ * A command is a source with `at: 'start'`. The chat runs no command: the
+ * submit of the app reads a citation at offset 0 and decides what it runs.
+ */
+export type ChatPromptSource = {
+	/** The character that opens the picker, such as `@` or `/`. */
+	trigger: string
+	/** Becomes the `target` of each citation that the source makes. */
+	target: string
+	/** Names the list of choices for a screen reader, such as `Datasets`. */
+	label: string
+	/**
+	 * Where the trigger counts. `anywhere` is the start of the draft or after
+	 * whitespace. `start` is the start of the draft only, as for a command.
+	 * @defaultValue 'anywhere'
+	 */
+	at?: 'anywhere' | 'start'
+	/**
+	 * The items for a query: the text between the trigger and the caret. Give a
+	 * list, or a promise of one.
+	 *
+	 * @remarks
+	 * The picker calls `search` for each change of the query. The next query
+	 * aborts `signal`, and the picker drops the result of an aborted search, so
+	 * a slow answer cannot replace a later one. Pass `signal` to a `fetch`. A
+	 * rejected promise shows a stated error in the picker.
+	 */
+	search: (
+		query: string,
+		signal: AbortSignal,
+	) => readonly ChatPromptItem[] | Promise<readonly ChatPromptItem[]>
+}

@@ -1,6 +1,7 @@
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import {
+	type ChatCitation,
 	type ChatPart,
 	type ChatToolPart,
 	type ChatTransport,
@@ -161,7 +162,7 @@ describe('useChatSend', () => {
 			await result.current.edit('server-1', 'edited')
 		})
 
-		expect(transport).toHaveBeenCalledWith('edited', expect.anything())
+		expect(transport).toHaveBeenCalledWith('edited', expect.anything(), expect.anything())
 
 		// The edit is a new message beside the persisted one, which stays as a branch.
 		const edited = result.current.messages[0]?.id as string
@@ -280,8 +281,8 @@ describe('useChatSend', () => {
 
 		let call = 0
 
-		const transport: ChatTransport = (content, signal) =>
-			transports[call++]?.(content, signal) ?? makeStream()(content, signal)
+		const transport: ChatTransport = (content, signal, message) =>
+			transports[call++]?.(content, signal, message) ?? makeStream()(content, signal, message)
 
 		const { result } = renderHook(() => useChatSend({ transport }))
 
@@ -361,13 +362,13 @@ describe('useChatSend', () => {
 	it('retry replaces the failed reply of a failed send', async () => {
 		let call = 0
 
-		const transport: ChatTransport = (content, signal) => {
+		const transport: ChatTransport = (content, signal, message) => {
 			call += 1
 
 			// The first send fails before its first chunk.
 			if (call === 1) return failingStream('boom')
 
-			return makeStream('recovered')(content, signal)
+			return makeStream('recovered')(content, signal, message)
 		}
 
 		const { result } = renderHook(() => useChatSend({ transport }))
@@ -408,8 +409,8 @@ describe('useChatSend', () => {
 
 		let call = 0
 
-		const transport: ChatTransport = (content, signal) =>
-			transports[call++]?.(content, signal) ?? makeStream()(content, signal)
+		const transport: ChatTransport = (content, signal, message) =>
+			transports[call++]?.(content, signal, message) ?? makeStream()(content, signal, message)
 
 		const { result } = renderHook(() => useChatSend({ transport }))
 
@@ -519,8 +520,8 @@ describe('useChatSend', () => {
 
 		let call = 0
 
-		const transport: ChatTransport = (content, signal) =>
-			transports[call++]?.(content, signal) ?? makeStream()(content, signal)
+		const transport: ChatTransport = (content, signal, message) =>
+			transports[call++]?.(content, signal, message) ?? makeStream()(content, signal, message)
 
 		const { result } = renderHook(() => useChatSend({ transport }))
 
@@ -608,7 +609,9 @@ describe('useChatSend', () => {
 
 		// Only the original send reached the transport; retry/edit/the second
 		// send all no-opped while it was still in flight.
-		expect(transport).toHaveBeenCalledExactlyOnceWith('hi', expect.any(AbortSignal))
+		expect(transport).toHaveBeenCalledExactlyOnceWith('hi', expect.any(AbortSignal), {
+			parts: [{ kind: 'text', id: 'text', text: 'hi' }],
+		})
 
 		expect(result.current.messages[0]).toMatchObject({ content: 'hi' })
 
@@ -684,7 +687,9 @@ describe('useChatSend', () => {
 			await first
 		})
 
-		expect(transport).toHaveBeenCalledExactlyOnceWith('a', expect.any(AbortSignal))
+		expect(transport).toHaveBeenCalledExactlyOnceWith('a', expect.any(AbortSignal), {
+			parts: [{ kind: 'text', id: 'text', text: 'a' }],
+		})
 	})
 
 	it('aborts the in-flight reply on unmount', async () => {
@@ -788,7 +793,7 @@ describe('useChatSend', () => {
 		const transport: ChatTransport = async () => {
 			await gate.promise
 
-			return makeStream('late')('', new AbortController().signal)
+			return makeStream('late')('', new AbortController().signal, { parts: [] })
 		}
 
 		const { result } = renderHook(() => useChatSend({ transport }))
@@ -827,7 +832,7 @@ describe('useChatSend', () => {
 
 		let call = 0
 
-		const transport: ChatTransport = (content, signal) => {
+		const transport: ChatTransport = (content, signal, message) => {
 			call += 1
 
 			if (call === 1) {
@@ -838,7 +843,7 @@ describe('useChatSend', () => {
 				})()
 			}
 
-			return makeStream('second reply')(content, signal)
+			return makeStream('second reply')(content, signal, message)
 		}
 
 		const { result } = renderHook(() => useChatSend({ transport }))
@@ -968,7 +973,11 @@ describe('useChatSend over a stream of parts', () => {
 			await result.current.retry()
 		})
 
-		expect(transport).toHaveBeenLastCalledWith('how are stops trending?', expect.anything())
+		expect(transport).toHaveBeenLastCalledWith(
+			'how are stops trending?',
+			expect.anything(),
+			expect.anything(),
+		)
 
 		expect(result.current.messages.at(-1)).toMatchObject({ content: [chart] })
 	})
@@ -1054,5 +1063,100 @@ describe('useChatSend settling a running step', () => {
 		})
 
 		expect(lastContent(result)).toEqual([finished])
+	})
+})
+
+describe('useChatSend with citations', () => {
+	const QUOTE = '@Late stops'
+
+	const scope: ChatCitation = {
+		id: 'c1',
+		start: 2,
+		end: 2 + QUOTE.length,
+		quote: QUOTE,
+		target: 'dataset',
+		selector: { datasets: ['late'] },
+	}
+
+	// The draft as the composer holds it: two spaces before the text.
+	const draft = `  ${QUOTE} by day `
+
+	const sent = { ...scope, start: 0, end: QUOTE.length }
+
+	const part = { kind: 'text', id: 'text', text: `${QUOTE} by day`, citations: [sent] }
+
+	it('holds the citations on the text part, moved onto the trimmed text', async () => {
+		const transport = vi.fn(makeStream('ok'))
+
+		const { result } = renderHook(() => useChatSend({ transport }))
+
+		await act(async () => {
+			await result.current.send(draft, [scope])
+		})
+
+		expect(result.current.messages[0]).toMatchObject({ sender: 'user', content: [part] })
+
+		expect(transport).toHaveBeenCalledExactlyOnceWith(`${QUOTE} by day`, expect.any(AbortSignal), {
+			parts: [part],
+		})
+	})
+
+	it('keeps a send with no citations as a string', async () => {
+		const { result } = renderHook(() => useChatSend({ transport: makeStream('ok') }))
+
+		await act(async () => {
+			await result.current.send('  plain  ', [])
+		})
+
+		expect(result.current.messages[0]?.content).toBe('plain')
+	})
+
+	it('drops a citation whose quote is not at its address', async () => {
+		const { result } = renderHook(() => useChatSend({ transport: makeStream('ok') }))
+
+		await act(async () => {
+			await result.current.send(draft, [{ ...scope, start: 3 }])
+		})
+
+		expect(result.current.messages[0]?.content).toBe(`${QUOTE} by day`)
+	})
+
+	it('sends the citations of the question again on retry', async () => {
+		const transport = vi.fn(makeStream('ok'))
+
+		const { result } = renderHook(() => useChatSend({ transport }))
+
+		await act(async () => {
+			await result.current.send(draft, [scope])
+		})
+
+		await act(async () => {
+			await result.current.retry()
+		})
+
+		expect(transport).toHaveBeenLastCalledWith(`${QUOTE} by day`, expect.any(AbortSignal), {
+			parts: [part],
+		})
+	})
+
+	it('holds the citations of an edit on the new branch', async () => {
+		const transport = vi.fn(makeStream('ok'))
+
+		const { result } = renderHook(() =>
+			useChatSend({
+				transport,
+				initialMessages: [{ id: 'u1', sender: 'user', content: 'Late stops by day' }],
+			}),
+		)
+
+		await act(async () => {
+			await result.current.edit('u1', draft, [scope])
+		})
+
+		expect(result.current.messages[0]).toMatchObject({ sender: 'user', content: [part] })
+
+		expect(transport).toHaveBeenLastCalledWith(`${QUOTE} by day`, expect.any(AbortSignal), {
+			parts: [part],
+		})
 	})
 })

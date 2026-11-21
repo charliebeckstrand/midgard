@@ -15,7 +15,13 @@ import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { isComposing } from '../../utilities/is-composing'
 import { keyByOccurrence } from '../../utilities/key-by-occurrence'
-import { canSubmitDraft } from './engine/chat-draft'
+import { hasBrowserModifier } from '../../utilities/modifier-keys'
+import { ChatPromptPicker } from './chat-prompt-picker'
+import type { ChatCitation } from './engine/chat-content/types'
+import { canSubmitDraft } from './engine/chat-draft/content'
+import { rebaseCitations } from './engine/chat-draft/rebase'
+import type { ChatPromptSource } from './types'
+import { useChatPromptPicker } from './use-chat-prompt-picker'
 
 const messages = defineMessages({
 	placeholder: {
@@ -57,8 +63,39 @@ export type ChatPromptProps = {
 	 * a second source of truth. Pair the two.
 	 */
 	value: string
-	/** Fires when the user types, with the next value. */
-	onValueChange: (value: string) => void
+	/**
+	 * The citations of `value`: phrases that the app or a picker constructed,
+	 * such as a dataset that scopes the question. {@link useChatDraft} holds
+	 * them beside the value.
+	 *
+	 * @remarks
+	 * The composer moves each citation across a change of the text, and reads
+	 * the caret to find where the change is. A change that touches a citation
+	 * dissolves it, and its text stays as prose. No change of the text makes a
+	 * citation, so a pasted or typed `@name` is prose.
+	 * @defaultValue []
+	 */
+	citations?: readonly ChatCitation[]
+	/**
+	 * Fires when the user types, with the next value and the citations of that
+	 * value.
+	 */
+	onValueChange: (value: string, citations: readonly ChatCitation[]) => void
+	/**
+	 * The sources that a trigger character opens a picker over, such as `@` for
+	 * datasets and `/` for commands. A choice puts a citation in the draft, and
+	 * `onValueChange` gives it.
+	 *
+	 * @remarks
+	 * A trigger counts at the start of the draft or after whitespace, and the
+	 * text from the trigger to the caret is the query. The picker sits over the
+	 * composer. ArrowUp and ArrowDown move the highlight, Enter or Tab chooses,
+	 * and Escape closes the picker for that trigger. The textarea keeps the
+	 * focus, and the options are its active descendant.
+	 *
+	 * Hoist the list out of the render, as a module constant or a `useMemo`.
+	 */
+	sources?: readonly ChatPromptSource[]
 	/** Fires when the user submits (Enter without Shift, or the send button). */
 	onSubmit: () => void
 	/** Fires when the user stops a streaming response: the stop button, or Enter while `streaming`. */
@@ -139,7 +176,9 @@ export type ChatPromptProps = {
  */
 export function ChatPrompt({
 	value,
+	citations = [],
 	onValueChange,
+	sources,
 	onSubmit,
 	onStop,
 	streaming = false,
@@ -172,8 +211,17 @@ export function ChatPrompt({
 		? { 'aria-labelledby': ariaLabelledBy }
 		: { 'aria-label': ariaLabel ?? intl.formatMessage(messages.prompt) }
 
+	const picker = useChatPromptPicker({ sources, value, citations, textareaRef, onValueChange })
+
+	const { onKeyDown: pickerKeyDown } = picker
+
 	const handleKeyDown = useCallback(
 		(event: KeyboardEvent<HTMLTextAreaElement>) => {
+			// The open picker takes its keys first: Enter chooses and does not send.
+			if (pickerKeyDown(event)) return
+
+			deleteWholeCitation(event, citations)
+
 			if (event.key !== 'Enter' || event.shiftKey || isComposing(event)) return
 
 			event.preventDefault()
@@ -184,8 +232,17 @@ export function ChatPrompt({
 				onSubmit()
 			}
 		},
-		[streaming, canSubmit, onSubmit, onStop],
+		[streaming, canSubmit, onSubmit, onStop, pickerKeyDown, citations],
 	)
+
+	// A textbox cannot take the `combobox` role, so it names its popup with the attributes that a textbox takes.
+	const pickerProps = sources
+		? {
+				'aria-autocomplete': 'list' as const,
+				'aria-haspopup': 'listbox' as const,
+				'aria-controls': picker.open ? picker.listId : undefined,
+			}
+		: undefined
 
 	return (
 		// Control supplies the stable id the textarea resolves through useControlProps.
@@ -194,8 +251,18 @@ export function ChatPrompt({
 				ref={setTextareaRefs}
 				data-slot="chat-prompt"
 				value={value}
-				onChange={(event) => onValueChange(event.target.value)}
+				onChange={(event) => {
+					const next = event.target.value
+
+					onValueChange(next, rebaseCitations(value, next, citations, event.target.selectionEnd))
+
+					picker.trackCaret(event.target)
+				}}
+				onSelect={(event) => picker.trackCaret(event.currentTarget)}
+				onFocus={(event) => picker.trackCaret(event.currentTarget)}
+				onBlur={picker.forgetCaret}
 				onKeyDown={handleKeyDown}
+				{...pickerProps}
 				autoResize
 				rows={rows}
 				placeholder={placeholder ?? intl.formatMessage(messages.placeholder)}
@@ -296,6 +363,47 @@ export function ChatPrompt({
 					})}
 				</ul>
 			)}
+			{sources && (
+				<ChatPromptPicker
+					open={picker.open}
+					listId={picker.listId}
+					listRef={picker.listRef}
+					source={picker.source}
+					items={picker.items}
+					status={picker.status}
+					floatingStyles={picker.floating.floatingStyles}
+					setFloating={picker.floating.refs.setFloating}
+					getFloatingProps={picker.floating.getFloatingProps}
+					onChoose={picker.choose}
+				/>
+			)}
 		</Control>
 	)
+}
+
+/**
+ * Deletes a whole citation on a Backspace at its end, or on a Delete at its
+ * start. The handler selects the citation, and the native delete then removes
+ * the selection. Thus the delete is on the undo stack of the browser, and the
+ * citation goes as one unit, as it came in as one choice.
+ *
+ * @internal
+ */
+function deleteWholeCitation(
+	event: KeyboardEvent<HTMLTextAreaElement>,
+	citations: readonly ChatCitation[],
+): void {
+	if (event.key !== 'Backspace' && event.key !== 'Delete') return
+
+	if (hasBrowserModifier(event) || event.shiftKey || isComposing(event)) return
+
+	const textarea = event.currentTarget
+
+	const at = textarea.selectionStart
+
+	if (at !== textarea.selectionEnd) return
+
+	const citation = citations.find((c) => (event.key === 'Backspace' ? c.end : c.start) === at)
+
+	if (citation) textarea.setSelectionRange(citation.start, citation.end)
 }

@@ -11,6 +11,7 @@ const TABS = [
 	'Conversation',
 	'Embeds',
 	'Citations',
+	'Scope',
 	'Steps',
 	'List',
 	'Prompt',

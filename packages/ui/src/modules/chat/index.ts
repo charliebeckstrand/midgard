@@ -31,11 +31,18 @@ export type {
 	ChatToolStatus,
 } from './engine/chat-content/types'
 export type { ChatMessageData } from './engine/types'
-export type { ChatCitationTargets, ChatEmbedRegistry, ChatEmbedRenderer } from './types'
+export type {
+	ChatCitationTargets,
+	ChatEmbedRegistry,
+	ChatEmbedRenderer,
+	ChatPromptItem,
+	ChatPromptSource,
+} from './types'
 export { type ChatDraft, type ChatDraftOptions, useChatDraft } from './use-chat-draft'
 export {
 	type ChatSend,
 	type ChatSendOptions,
 	type ChatTransport,
+	type ChatTransportMessage,
 	useChatSend,
 } from './use-chat-send'

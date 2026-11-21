@@ -119,18 +119,36 @@ export const k = defineKata({
 		// A citation: a phrase of the prose that selects in a view beside the chat.
 		// Piece 0 is a button, and the pieces after it are spans with the same
 		// look. It keeps the font and the foreground of the prose, so it reads on
-		// each bubble. A dotted underline marks it at rest, and a fill of
-		// `currentColor` marks it while it is pressed, as the `tool` box rides
-		// `currentColor`. A solid underline of full ink and double weight marks
-		// it while the selection of its view matches it. That look is apart from
-		// the fill, because a press then changes what the board shows.
+		// each bubble. A dotted underline marks it at rest. An inset ring of
+		// `currentColor` and a solid underline mark it while it is pressed, as the
+		// `tool` box rides `currentColor`. A fill would change the background of
+		// the text, and on the user bubble that lowers the contrast below 4.5:1. A
+		// solid underline of full ink and double weight marks it while the
+		// selection of its view matches it. That look is apart from the ring,
+		// because a press then changes what the board shows.
 		citation: [
-			'cursor-pointer rounded-sm text-inherit',
+			'cursor-pointer rounded-sm text-inherit box-decoration-clone',
 			'underline decoration-dotted decoration-current/60 underline-offset-2',
 			'hover:decoration-solid',
-			'data-pressed:bg-current/15 data-pressed:decoration-solid',
+			'data-pressed:ring-1 data-pressed:ring-current data-pressed:ring-inset data-pressed:decoration-solid',
+			// Forced colors remove the ring, which is a box-shadow. An outline keeps the mark.
+			'forced-colors:data-pressed:outline-solid forced-colors:data-pressed:outline-1',
 			'data-marked:decoration-current data-marked:decoration-solid data-marked:decoration-2',
 			focus.ring,
+		],
+		// A citation that selects in no view, such as a dataset that scopes a
+		// question. It is not a control, so it takes no underline, which marks a
+		// control. In a reply, it is a soft pill. Markdown cannot make a pill, so
+		// the text of an agent cannot look like a citation. In the user bubble, it
+		// is bold, as Markdown draws bold. The words are the words of the reader,
+		// and a fill on the blue bubble is too heavy.
+		citationStatic: [
+			'box-decoration-clone',
+			'in-data-[sender=user]:font-bold',
+			'in-data-[sender=assistant]:rounded-md in-data-[sender=assistant]:px-1 in-data-[sender=assistant]:font-medium',
+			'in-data-[sender=assistant]:bg-blue-500/15 in-data-[sender=assistant]:text-blue-700',
+			'dark:in-data-[sender=assistant]:bg-blue-400/20 dark:in-data-[sender=assistant]:text-blue-300',
+			forced.outline,
 		],
 		// The rating pair of `ChatFeedback`: one control of the actions.
 		feedback: controls,

@@ -35,7 +35,7 @@ function findLastUserIndex(messages: ChatMessageData[]): number {
 export function appendUserMessage(
 	messages: ChatMessageData[],
 	id: string,
-	content: string,
+	content: string | ChatPart[],
 ): ChatMessageData[] {
 	return [...messages, { id, sender: 'user', content }]
 }
@@ -260,7 +260,7 @@ export function branchEditedMessage(
 	tree: ChatTree,
 	id: string,
 	branchId: string,
-	content: string,
+	content: string | ChatPart[],
 ): ChatTree {
 	const index = tree.path.findIndex((message) => message.id === id)
 

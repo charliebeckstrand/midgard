@@ -44,6 +44,10 @@ export type ChatCitationPieceProps = {
  * matches takes the marked look on each piece. The description of piece 0
  * then says so.
  *
+ * A citation whose `target` no provider registers selects in no view. Each of
+ * its pieces is static text with no control, such as a dataset that a reader
+ * chose to scope a question.
+ *
  * @internal
  */
 export function ChatCitationPiece({ piece: { range, index }, children }: ChatCitationPieceProps) {
@@ -58,6 +62,14 @@ export function ChatCitationPiece({ piece: { range, index }, children }: ChatCit
 	const name = useMarkdownRangeText(range)
 
 	const pressed = cited?.id === range.id
+
+	if (!Object.hasOwn(targets, range.target)) {
+		return (
+			<span data-slot="chat-citation-static" className={k().citationStatic}>
+				{children}
+			</span>
+		)
+	}
 
 	const marked = isMarked?.(range) ?? false
 
@@ -74,9 +86,8 @@ export function ChatCitationPiece({ piece: { range, index }, children }: ChatCit
 		)
 	}
 
-	// `ChatCitedText` passes only the citations of a registered target, so a
-	// label is there. The target is an address and is never read, so a piece
-	// with no label gets no description.
+	// The target is registered, so a label is there. The target is an address
+	// and is never read, so a piece with no label gets no description.
 	const label = targets[range.target]?.label
 
 	return (
