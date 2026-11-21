@@ -2,7 +2,7 @@ import { readCookie, writeCookie } from '../../../utilities/cookie'
 import { createEmitter } from '../../../utilities/emitter'
 import { noop } from '../../../utilities/noop'
 import { getStorage, readStorage, writeStorage } from './events-storage'
-import type { EventSource } from './types'
+import type { EventReportExport, EventSource } from './types'
 
 // The settings of the events: whether they run, and whether the panel is
 // pinned. They are in `localStorage`, so they stay for the next visit, with a
@@ -46,6 +46,13 @@ export type StartEventsOptions = {
 	 * @defaultValue false
 	 */
 	calls?: boolean
+	/**
+	 * Sends a report to the issue tracker of the app. With it, the view of a
+	 * report shows Send next to Copy. The promise resolves when the tracker
+	 * holds the report, and rejects when the send fails. The adapter of the
+	 * tracker lives in the app, so `ui` has no dependency on a tracker.
+	 */
+	sendReport?: (report: EventReportExport) => Promise<unknown>
 }
 
 /** The options of the last `startEvents`, which the switch and the sheet start with. */

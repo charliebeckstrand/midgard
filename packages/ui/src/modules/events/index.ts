@@ -18,6 +18,7 @@ export type {
 	EventNote,
 	EventOrigin,
 	EventReport,
+	EventReportExport,
 	EventSource,
 	EventViewport,
 } from './engine/types'
