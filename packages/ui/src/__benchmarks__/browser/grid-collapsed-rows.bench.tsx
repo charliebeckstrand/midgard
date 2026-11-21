@@ -3,8 +3,8 @@
  * saves on the visible commit, and where the boundary has to sit for the saving
  * to be real.
  *
- * A grouped body stands virtualization down, so every leaf of every group is
- * mounted whatever its group's expansion, and a body-wide update re-renders the
+ * A grouped body with no window mounts every leaf of every group, whatever its
+ * group's expansion, and a body-wide update re-renders the
  * collapsed ones alongside the visible few. A hidden Activity does not delete
  * that work (its children still render, at a lower priority, and their DOM
  * still catches up) but it moves the work off the synchronous commit, so what

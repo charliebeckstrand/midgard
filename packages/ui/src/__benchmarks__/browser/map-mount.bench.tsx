@@ -3,7 +3,8 @@
  * plus teardown per iteration, the shape the chart mount bench times. The
  * mounts are steady-state: the static-geometry cache of the ui module warms
  * during the uncounted warmup iterations, so the timed region is the remount a
- * dashboard actually pays (projection fit, path building, and the painted DOM).
+ * dashboard actually pays: the render and the painted DOM of the regions, over
+ * a fit and paths that come from the cache.
  */
 
 import { compareBenches } from '../compare'

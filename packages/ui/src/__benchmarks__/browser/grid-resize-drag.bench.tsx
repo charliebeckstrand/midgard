@@ -25,8 +25,8 @@ import { SHIPMENT_FIELDS, type Shipment, shipmentKey, shipments } from '../fixtu
 import { GRID_HEIGHT, GRID_WIDTH, painted } from './grids'
 import { benches, host, mouse, type Prepared, WINDOW, withFrameClock } from './harness'
 
-// Explicit `cell` renderers, as in `grid-resize-truncation.bench.tsx`, so the
-// content paints synchronously and the truncating span still wraps it.
+// Explicit `cell` renderers, as in `grid-resize-truncation.bench.tsx`, because
+// a ui column renders nothing without a `cell`. The truncating span wraps them.
 const COLUMNS: GridColumn<Shipment>[] = SHIPMENT_FIELDS.map(([id, title]) => ({
 	id,
 	title,

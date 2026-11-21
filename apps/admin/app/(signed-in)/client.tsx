@@ -18,7 +18,7 @@ import { Link } from 'ui/link'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator, MenuTrigger } from 'ui/menu'
 import { NavBar } from 'ui/nav'
 import { OffcanvasContext } from 'ui/primitives/offcanvas'
-import { AppearanceSettings } from 'ui/providers/appearance'
+import { AppearanceSettings, AppearanceSidebarField } from 'ui/providers/appearance'
 import { UIProvider } from 'ui/providers/ui'
 import {
 	Sidebar,
@@ -133,7 +133,9 @@ function SidebarShell({ user, children }: { user: User; children: ReactNode }) {
 											</SidebarItem>
 										</UserMenu>
 									</div>
-									<AppearanceSettings />
+									<AppearanceSettings>
+										<AppearanceSidebarField />
+									</AppearanceSettings>
 								</Flex>
 							</SidebarFooter>
 						</Sidebar>

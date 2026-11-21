@@ -83,6 +83,21 @@ export type EventReport = {
 	trail: string[]
 }
 
+/**
+ * What `sendReport` of `startEvents` gets: the title of a report, its text in
+ * Markdown, and the report. The text is the text that Copy writes, and the
+ * report holds the same fields, so a send gives no data that Copy does not
+ * give. The trail masks each password value.
+ */
+export type EventReportExport = {
+	/** The text of the event, with the count of a bug that occurs more than one time, such as `caught boom ×2`. */
+	title: string
+	/** The report in Markdown, as Copy writes it. */
+	text: string
+	/** A copy of the report, for a tracker that takes fields, such as the hash for a search for duplicates. */
+	report: EventReport
+}
+
 /** One event of the store. */
 export type EventEntry = {
 	/** The place of the event in the order that the store got it. */

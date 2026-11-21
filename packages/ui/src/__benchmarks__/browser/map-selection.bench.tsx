@@ -3,8 +3,9 @@
  * a held set, a dashboard cross-filter, or a chat citation that marks a set.
  * Each scenario mounts the map once, and each iteration swaps in the other of
  * two selections. The rows and the geometry never change, so the region layer
- * holds its render, and the timed work is the ring, the table rows, and the
- * resolve of the ids.
+ * holds its render. The timed work is the ring, the resolve of the ids, and
+ * the commit that the held selection adds. The table rows that a pick renames
+ * render in the deferred pass, outside the sample.
  */
 
 import { compareBenches } from '../compare'

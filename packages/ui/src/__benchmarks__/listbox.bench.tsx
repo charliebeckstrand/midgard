@@ -1,10 +1,12 @@
 /**
- * Listbox opens on user click and exposes no direct `open` prop (Combobox
- * does), so these benches measure the closed Listbox at several option counts
- * (everything below the trigger still mounts) plus two stand-ins that reach
- * the panel the real component gates: bare `role="option"` divs, the floor a
- * rendered option cannot beat, and the virtualized wrapper, which should hold
- * flat as the option count grows.
+ * The closed rungs measure the Listbox shell at several option counts, with
+ * everything below the trigger mounted. The open rungs mount the real panel
+ * through the `open` prop, so they add the rendered options. Bare
+ * `role="option"` divs in a matching container are the floor that a rendered
+ * `ListboxOption` cannot beat. The virtualized rung mounts the open panel
+ * through `VirtualOptions`. jsdom lays nothing out, so its window is empty, and
+ * the rung prices the virtualizer with no rows. The browser is where the rows
+ * of a real window show.
  */
 
 import type { ReactNode } from 'react'
@@ -54,9 +56,18 @@ compareBenches('Listbox · closed (options provided as children)', (bench) => {
 	)
 })
 
+compareBenches('Listbox · open (options rendered)', (bench) => {
+	mountBenches(
+		bench,
+		[500, 2_000],
+		(count) => `${count.toLocaleString()} options · open`,
+		(count) => <Listbox<string> open>{at(count).listbox}</Listbox>,
+	)
+})
+
 compareBenches('Listbox · options inside a stand-in listbox panel', (bench) => {
-	// Bypass the real Listbox open/close state by rendering options inside a
-	// matching role="listbox" container; isolates per-option rendering cost.
+	// Bare role="option" divs in a matching role="listbox" container: the floor
+	// that a rendered `ListboxOption` cannot beat.
 	mountBenches(
 		bench,
 		[500, 2_000],
@@ -77,7 +88,7 @@ compareBenches('Listbox · virtualized', (bench) => {
 		[500, 2_000],
 		(count) => `${count.toLocaleString()} options · virtualized`,
 		(count) => (
-			<div role="listbox" style={PANEL}>
+			<Listbox<string> open>
 				<VirtualOptions items={comboboxOptions(count)} estimateSize={36}>
 					{(option) => (
 						<ListboxOption key={option.value} value={option.value}>
@@ -85,7 +96,7 @@ compareBenches('Listbox · virtualized', (bench) => {
 						</ListboxOption>
 					)}
 				</VirtualOptions>
-			</div>
+			</Listbox>
 		),
 	)
 })

@@ -18,7 +18,7 @@ const CARRIER_BY_DESTINATION = { row: 'carrier', column: 'destination', value: '
 // Built at collection time: only the render belongs inside the timed region.
 const SIZES = [1_000, 10_000, 50_000].map((count) => shipments(count))
 
-compareBenches('PivotTable · lane × period (10 × 12 cells)', (bench) => {
+compareBenches('PivotTable · lane × period (100 × 12 cells)', (bench) => {
 	mountBenches(
 		bench,
 		SIZES,

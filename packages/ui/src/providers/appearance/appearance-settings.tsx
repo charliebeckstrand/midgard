@@ -61,19 +61,18 @@ export type AppearanceSettingsProps = {
 }
 
 /**
- * Settings icon button that opens a dialog with the appearance, density,
- * motion, and surfaces pickers of the nearest {@link AppearanceProvider}. A
+ * Settings icon button that opens a dialog with the appearance, surfaces,
+ * density, and motion pickers of the nearest {@link AppearanceProvider}. A
  * selection applies immediately and persists. Put it in the header or the
  * navbar of the app. The Surfaces picker (Glass or Solid) sets the surface of
  * each Dialog, Drawer, and Sheet panel, the dialog itself included.
  *
- * Inside a `SidebarLayout`, the dialog also has the Sidebar picker (Locked or
- * Offcanvas), with the key that toggles it: ⌘B on Apple platforms, and ⌃B
- * (Control) on others. The picker shows only while the layout is inline.
+ * The dialog has no Sidebar picker of its own. Inside a `SidebarLayout`, give
+ * {@link AppearanceSidebarField} as a child, so that the app sets its position
+ * among the other fields.
  *
- * Under a `LocaleProvider` that has `locales`, the dialog also has the Language
- * picker. It offers System and each of the `locales`, with the name of each
- * locale in its own language.
+ * The dialog has no Language picker of its own. Under a `LocaleProvider` that
+ * has `locales`, give {@link AppearanceLanguageField} as a child.
  *
  * The button is `bare` by default. `variant` sets another fill style.
  *

@@ -1,3 +1,4 @@
+export { postReport } from './engine/events-post'
 export {
 	isEventsOn,
 	type StartEventsOptions,
@@ -18,6 +19,7 @@ export type {
 	EventNote,
 	EventOrigin,
 	EventReport,
+	EventReportExport,
 	EventSource,
 	EventViewport,
 } from './engine/types'

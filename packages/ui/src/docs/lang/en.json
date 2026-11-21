@@ -1173,7 +1173,7 @@
 	},
 	"docs.demo.0c9428622b47": {
 		"defaultMessage": "Late stops by day",
-		"description": "Text of a demo in the docs as aria-label, label, in modules/chat/citations/selects-in-a-chart.tsx, modules/chat/scope/ask-about-a-chart.tsx."
+		"description": "Text of a demo in the docs as aria-label, label, title, in modules/chat/citations/selects-in-a-chart.tsx, modules/chat/citations/selects-in-a-dashboard.tsx, modules/chat/scope/ask-about-a-chart.tsx."
 	},
 	"docs.demo.0d269385dc9a": {
 		"defaultMessage": "Description list",
@@ -1783,6 +1783,10 @@
 		"defaultMessage": "Sales overview",
 		"description": "Text of a demo in the docs as label, in modules/dashboard/build-and-save.tsx."
 	},
+	"docs.demo.2f52b9992dac": {
+		"defaultMessage": "Late stops this week",
+		"description": "Text of a demo in the docs as aria-label, in modules/chat/citations/selects-in-a-dashboard.tsx."
+	},
 	"docs.demo.2f58be0dd909": {
 		"defaultMessage": "Changes to these terms",
 		"description": "Text of a demo in the docs as title, in components/dialog/long-content.tsx."
@@ -2117,7 +2121,7 @@
 	},
 	"docs.demo.44db14fc3f1c": {
 		"defaultMessage": "most of them on Tuesday",
-		"description": "Text of a demo in the docs as label, in modules/chat/citations/selects-in-a-chart.tsx."
+		"description": "Text of a demo in the docs as detail, label, in modules/chat/citations/selects-in-a-chart.tsx, modules/chat/citations/selects-in-a-dashboard.tsx."
 	},
 	"docs.demo.44dedd0f97fe": {
 		"defaultMessage": "New file",
@@ -3959,6 +3963,10 @@
 		"defaultMessage": "Account settings",
 		"description": "Text of a demo in the docs, in components/heading/playground.tsx."
 	},
+	"docs.demo.a59321e137ed": {
+		"defaultMessage": "Twelve stops are late",
+		"description": "Text of a demo in the docs as label, in modules/chat/citations/selects-in-a-dashboard.tsx."
+	},
 	"docs.demo.a59f77c288d4": {
 		"defaultMessage": "Late stops rose from **4** to **14** across the week.",
 		"description": "Text of a demo in the docs as text, in modules/chat/embeds/registered-renderer.tsx."
@@ -4867,6 +4875,10 @@
 		"defaultMessage": "Order ID",
 		"description": "Text of a demo in the docs as aria-label, in providers/density/playground.tsx."
 	},
+	"docs.demo.d8d31e52a5ab": {
+		"defaultMessage": "Which stops were late this week?",
+		"description": "Text of a demo in the docs as content, in modules/chat/citations/selects-in-a-dashboard.tsx."
+	},
 	"docs.demo.d8da2c49df39": {
 		"defaultMessage": "Note",
 		"description": "Text of a demo in the docs as aria-label, in components/tabs/keep-panel-state.tsx."
@@ -5333,7 +5345,7 @@
 	},
 	"docs.demo.f17bfadbaab1": {
 		"defaultMessage": "Late stops",
-		"description": "Text of a demo in the docs as label, yName, in modules/chat/citations/selects-in-a-chart.tsx, modules/chat/scope/ask-about-a-chart.tsx, modules/chat/scope/mentions-and-commands.tsx."
+		"description": "Text of a demo in the docs as aria-label, label, title, yName, in modules/chat/citations/selects-in-a-chart.tsx, modules/chat/citations/selects-in-a-dashboard.tsx, modules/chat/scope/ask-about-a-chart.tsx and 1 more."
 	},
 	"docs.demo.f18906d65f6d": {
 		"defaultMessage": "You have used 90% of your storage.",
@@ -5358,6 +5370,10 @@
 	"docs.demo.f212d75da6c0": {
 		"defaultMessage": "Send your questions about these terms to legal@example.com. You get an answer within five business days.",
 		"description": "Text of a demo in the docs as text, in components/dialog/long-content.tsx."
+	},
+	"docs.demo.f274593e9608": {
+		"defaultMessage": "{label} this week, and {detail}.",
+		"description": "Text of a demo in the docs as text, in modules/chat/citations/selects-in-a-dashboard.tsx. The arguments {label} and {detail} are values from the code."
 	},
 	"docs.demo.f3380f7b44bd": {
 		"defaultMessage": "Paste",
@@ -8714,6 +8730,10 @@
 	"docs.title.selects-in-a-chart": {
 		"defaultMessage": "Selects in a chart",
 		"description": "The title of an example on a page of the docs. It comes from the file name selects-in-a-chart.tsx."
+	},
+	"docs.title.selects-in-a-dashboard": {
+		"defaultMessage": "Selects in a dashboard",
+		"description": "The title of an example on a page of the docs. It comes from the file name selects-in-a-dashboard.tsx."
 	},
 	"docs.title.server-errors": {
 		"defaultMessage": "Server errors",

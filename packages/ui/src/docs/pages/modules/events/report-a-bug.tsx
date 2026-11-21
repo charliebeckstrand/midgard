@@ -39,6 +39,7 @@ export default function ReportABug() {
 
 	// Turn on Debug in the settings. Each button makes a bug that React or the
 	// browser reports, and the bug shows in the Bugs tab of the Events sheet.
+	// The view of a report shows Send, because the docs give a demo `sendReport`.
 	return (
 		<Stack gap="md">
 			{/* The reset removes the component that throws. The new key then mounts a new boundary with no error. */}

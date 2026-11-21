@@ -169,7 +169,7 @@ compareBenches('map-geometry · region paths (the mount’s largest pass)', (ben
 
 		if (!buffer) throw new Error('fixture yielded no projected atlas')
 
-		bench(`${label} · regionPaths (the direct walk, per fit)`, () => {
+		bench(`${label} · regionPaths (the direct walk, the fallback)`, () => {
 			regionPaths(features, canonical.projection)
 		})
 
@@ -177,7 +177,7 @@ compareBenches('map-geometry · region paths (the mount’s largest pass)', (ben
 			projectAtlas(features, canonical.projection)
 		})
 
-		bench(`${label} · emitRegionPaths (per fit, from the buffer)`, () => {
+		bench(`${label} · emitRegionPaths (once per atlas, from the buffer)`, () => {
 			emitRegionPaths(buffer, canonical.projection)
 		})
 	}

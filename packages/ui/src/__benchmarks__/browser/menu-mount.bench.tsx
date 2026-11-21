@@ -7,9 +7,11 @@
  *
  * The rungs ladder that shell apart, each one a layer further from a bare
  * button. `useMenuRoot only` is the hook tree: floating-ui's own, the
- * disclosure over it, and the roving handler. `trigger only` adds `MenuTrigger`
- * (its component body, the merged reference ref, and the reference-props
- * pass) with no `MenuContent` to build a panel tree. `closed menus` adds that
+ * disclosure over it, and the roving handler. `trigger only` adds the `Menu`
+ * root (its three contexts, the pointer level, the touch-hold hook, and the
+ * `contents` wrapper) and `MenuTrigger` (its component body, the merged
+ * reference ref, and the reference-props pass), with no `MenuContent` to build
+ * a panel tree. `closed menus` adds that
  * tree back, which the portal then discards.
  *
  * Read the gaps, not the rows. Each rung contains the one above it, so the step

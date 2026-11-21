@@ -33,8 +33,11 @@
  * Every rung here pays that alike, so the steps stay symmetric.
  *
  * The second scenario prices what it costs to hold a panel open. A reposition
- * re-renders `Menu`, `MenuTrigger`, `MenuContent`, `FloatingSurface`, and
- * `PopoverPanel`; the rows keep their element identity and stand. `no rows` is
+ * that changes the placement, the offset, or the hidden state re-renders
+ * `Menu`, `MenuTrigger`, `MenuContent`, `FloatingSurface`, and `PopoverPanel`;
+ * the rows keep their element identity and stand. Where the browser has CSS
+ * anchor positioning, a pass that keeps the same view renders nothing (see
+ * `useFloatingPanel`). `no rows` is
  * therefore the reposition, and the step to `24 rows` is what the rows would
  * add if a change reached them.
  */
