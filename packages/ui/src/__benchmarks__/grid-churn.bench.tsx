@@ -278,8 +278,9 @@ function measureGestures(layout: Layout, count: number): Partial<Record<Gesture,
 
 for (const layout of ['paged', 'windowed'] as const) {
 	test(`grid churn · ${layout} · bytes for each loaded row`, { timeout: 0 }, () => {
-		// A first pass compiles the code of each gesture, so that the compiler
-		// allocates nothing in the measured passes.
+		// A first pass compiles the code of each gesture and fills the caches. A
+		// later compile at a faster tier can still occur, so the measure leaves
+		// out the code spaces.
 		measureGestures(layout, SMALL)
 
 		const before = measureGestures(layout, SMALL)
