@@ -55,6 +55,8 @@ export type DashboardTileCardProps = {
 	shape: number
 	/** The box that the widget can claim the height of its content from. */
 	host: ContentHeightHost
+	/** Clears a selection that the app holds and the tile shows. */
+	onClear?: () => void
 	/** The widget. */
 	children?: ReactNode
 } & Pick<DashboardTileControlsProps, 'onRemove' | 'onDuplicate' | 'shell'>
@@ -87,6 +89,7 @@ export const DashboardTileCard = memo(function DashboardTileCard({
 	onRemove,
 	onDuplicate,
 	expandable,
+	onClear,
 	shape,
 	shell,
 	host,
@@ -160,7 +163,7 @@ export const DashboardTileCard = memo(function DashboardTileCard({
 						title={title}
 						description={description}
 						actions={actions}
-						clear={<DashboardTileClear id={id} label={label} />}
+						clear={<DashboardTileClear id={id} label={label} onClear={onClear} />}
 						widget={slotted ? <HeaderActionsSlot /> : null}
 						handle={handle}
 						editing={editable}
