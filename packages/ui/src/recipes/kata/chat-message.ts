@@ -5,7 +5,7 @@ const { palette, text } = iro
 const { rounded } = kasane
 const { size } = ji
 const { flex } = narabi
-const { focus, forced, ring } = sen
+const { focus, forced } = sen
 
 // A row of controls: the actions of a message, and the rating pair of
 // `ChatFeedback` in them, which sits as close as the other actions do.
@@ -133,11 +133,18 @@ export const k = defineKata({
 			focus.ring,
 		],
 		// A citation that selects in no view, such as a dataset that scopes a
-		// question. It is marked text and not a control, so it takes no
-		// underline, which marks a control. An inset ring of `currentColor` marks
-		// it on each bubble. A fill would change the background of the text, and
-		// on the user bubble that lowers the contrast below 4.5:1.
-		citationMark: ['rounded-sm box-decoration-clone', ...ring.line[1].inset, 'ring-current/50'],
+		// question. It is a soft pill and not a control, so it takes no underline,
+		// which marks a control. Markdown cannot make a pill, so typed text cannot
+		// look like a citation. Each bubble takes its own fill. The gray bubble
+		// takes the soft blue of a Badge. The user bubble takes a darker blue,
+		// because a lighter fill lowers the contrast of its white text below 4.5:1.
+		citationMark: [
+			'rounded-md px-1 font-medium box-decoration-clone',
+			'in-data-[sender=assistant]:bg-blue-500/15 in-data-[sender=assistant]:text-blue-700',
+			'dark:in-data-[sender=assistant]:bg-blue-400/20 dark:in-data-[sender=assistant]:text-blue-300',
+			'in-data-[sender=user]:bg-blue-950/35',
+			forced.outline,
+		],
 		// The rating pair of `ChatFeedback`: one control of the actions.
 		feedback: controls,
 		// The line of a failed reply. It inherits the foreground of the bubble, as

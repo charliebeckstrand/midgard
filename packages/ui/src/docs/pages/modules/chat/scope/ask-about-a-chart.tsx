@@ -40,9 +40,27 @@ const transport: ChatTransport = async function* (_content, _signal, message) {
 
 	await wait(400)
 
-	yield scope.length === 0
-		? 'Which data do you mean? Ask about the chart to scope the question.'
-		: `Scoped to ${scope.map((citation) => citation.quote).join(' and ')}: Tuesday is the worst, with seven late stops.`
+	const [first] = scope
+
+	if (first === undefined) {
+		yield 'Which data do you mean? Ask about the chart to scope the question.'
+
+		return
+	}
+
+	// The reply cites the scope that it read, so the reader sees which data it used.
+	const lead = 'Scoped to '
+
+	const text = `${lead}${first.quote}: Tuesday is the worst, with seven late stops.`
+
+	const cited: ChatCitation = {
+		...first,
+		id: `${first.id}-reply`,
+		start: lead.length,
+		end: lead.length + first.quote.length,
+	}
+
+	yield [{ kind: 'text', id: 'text', text, citations: [cited] }]
 }
 
 export default function AskAboutAChart() {
