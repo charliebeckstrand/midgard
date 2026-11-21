@@ -30,6 +30,10 @@
  * removes churn also fails until it lowers the budget in the same commit, so
  * the budgets stay a true record.
  *
+ * The budgets hold for the Node version of `.node-version`, which CI uses. A
+ * new V8 can change the bytes of the same code, so a change of that version
+ * can need new budgets.
+ *
  * The file runs tests, not benches, so `pnpm bench:smoke` asserts the budgets
  * on each pull request. `--expose-gc` in `vitest.bench.config.ts` gives `gc`.
  */
@@ -115,8 +119,8 @@ type Gesture = 'rerender' | 'sortFlip' | 'refresh' | 'sortedRefresh' | 'pageTurn
  * rows decodes a sort key for each row.
  */
 const BUDGETS: Record<Layout, Partial<Record<Gesture, number>>> = {
-	paged: { rerender: 0, sortFlip: 0, refresh: 0, sortedRefresh: 126.9, pageTurn: 0, append: 0 },
-	windowed: { rerender: 0, sortFlip: 93.1, refresh: 86, sortedRefresh: 220.5, append: 94 },
+	paged: { rerender: 0, sortFlip: 0, refresh: 0, sortedRefresh: 127.4, pageTurn: 0, append: 0 },
+	windowed: { rerender: 0, sortFlip: 93.1, refresh: 86, sortedRefresh: 221.3, append: 94 },
 }
 
 /** The state that a case renders. */
