@@ -1,6 +1,6 @@
 # Chart roadmap
 
-> **Goal: gate the pure chart cores, test the charts that the apps use, and add the cartesian features of peer libraries.** Every chart type composes one engine, so a change to a core reaches each chart. Each optimization lands only on a measured delta.
+> **Goal: test the charts that the apps use, and add the cartesian features of peer libraries.** Every chart type composes one engine, so a change to a core reaches each chart. Each optimization lands only on a measured delta.
 
 ## Status
 
@@ -24,7 +24,7 @@ A pure chart core is framework-free. It has no `'use client'`, no runtime import
 
 The pure files are each file in `chart-geometry/` and `chart-cartesian/`, and `chart-scale.ts`, `chart-coords.ts`, `chart-hit-test.ts`, `chart-layout.ts`, and `chart-time.ts`. The files `fit.ts`, `band.ts`, and `range.ts` in `chart-legend/` are pure too. The node-environment tests under `__tests__/geometry` and the Node benches import them with no DOM.
 
-[`engine-purity-boundary.test.ts`](../../__tests__/boundary/engine-purity-boundary.test.ts) is the gate of the pure-core invariant. Its `PURE_ENGINES` list leaves out `modules/chart/engine`, because that folder also holds the shell. Thus only review holds the chart cores today, and the first cleanup item adds them to the gate.
+[`engine-purity-boundary.test.ts`](../../__tests__/boundary/engine-purity-boundary.test.ts) is the gate of the pure-core invariant. The folder also holds the shell, so the gate does not read all of `modules/chart/engine`. Its `CHART_PURE_CORES` list names the pure files and folders above. The gate applies the rules to each of them, and to each engine file that a runtime import from them reaches, such as `chart-constants.ts` and `chart-color/paint.ts`. Thus a pure core that imports a shell file at runtime fails the gate. A new pure core joins the list.
 
 `module-filename-boundary.test.ts` holds the names of the engine. A file directly under `engine/` takes a `chart-` or `use-chart-` prefix. A concept folder, such as `chart-geometry/`, takes short kind names, does not nest, and has no barrel.
 
@@ -40,9 +40,7 @@ The pure files are each file in `chart-geometry/` and `chart-cartesian/`, and `c
 
 ## Pattern cleanup
 
-1. **Gate the pure chart cores (*P1*).** The [§Engine](#engine) section states the pure-core invariant, but `engine-purity-boundary.test.ts` leaves `modules/chart/engine` out. A grep today finds no runtime framework import in the pure files, so a gate can hold them now. Add a chart entry that names the pure files and folders, and apply the same rules to them. Change the comment of the test that says the chart engine is absent.
-
-2. **Verb-first names in the engine (*P3*).** CONVENTIONS.md §8.5 requires a verb at the start of a function name. Most engine exports take the d3 noun form, such as `linearScale`, `barMarks`, `lineGeometry`, and `seatLayout`. One file can mix the two forms, as `lineGeometry` and `buildLineSeries` do in `chart-geometry/line.ts`. The open question is a rename in one pull request for each concept folder, or a recorded d3 exemption in §8.5. Decide the rule first, because a rename touches each test and bench of the core.
+1. **Verb-first names in the engine (*P3*).** CONVENTIONS.md §8.5 requires a verb at the start of a function name. Most engine exports take the d3 noun form, such as `linearScale`, `barMarks`, `lineGeometry`, and `seatLayout`. One file can mix the two forms, as `lineGeometry` and `buildLineSeries` do in `chart-geometry/line.ts`. The open question is a rename in one pull request for each concept folder, or a recorded d3 exemption in §8.5. Decide the rule first, because a rename touches each test and bench of the core.
 
 ## Performance
 
@@ -76,7 +74,7 @@ On 2026-11-21, `chart-geometry.bench.ts` measured the smooth `lineGeometry` buil
 
 - A canvas renderer. The marks take their paint from recipe classes (`engine/chart-color/paint.ts`), and forced colors and the image export read the SVG. The decimation already removed the large cost of a dense SVG line.
 
-- A move of the React shell out of `engine/`. The gate in the first cleanup item gives the guarantee of purity with no change of path for each import.
+- A move of the React shell out of `engine/`. The engine purity gate gives the guarantee of purity with no change of path for each import.
 
 - New chart families, such as treemap, sankey, radar, or candlestick. No app needs one, and each needs its own geometry, readout, and keyboard model.
 

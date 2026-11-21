@@ -1,11 +1,12 @@
+import { readFileSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { parseImports } from '../helpers/source-imports'
+import { parseImports, resolveSource } from '../helpers/source-imports'
 import { isSourceFile, srcDir, srcRelative, walkSource } from '../helpers/walk-source'
 
-// The pure-core invariant the grid, query, map, chat, dashboard, events, and kanban ROADMAPs each
-// assert in prose, enforced once here instead of six times in six documents whose
-// greps only run when somebody reads them.
+// The ROADMAP of each module with an engine states the pure-core invariant in
+// prose. This gate holds it once for each engine, so the rule does not depend on
+// a grep that runs only when a person reads a ROADMAP.
 //
 // A pure engine is a d3-style functional core: framework-free, callable and
 // benchable outside React, and importable without dragging the module's React
@@ -20,10 +21,11 @@ import { isSourceFile, srcDir, srcRelative, walkSource } from '../helpers/walk-s
 //   - no `index` barrel: the engine is imported file-by-file, so a consumer
 //     pays for the leaf it names and nothing else
 //
-// `modules/chart/engine` is deliberately absent. It is a shared substrate
-// rather than a pure core (it holds `.tsx` components and hooks by design) so
-// the list is explicit rather than a `modules/*/engine` glob, and a new pure
-// engine opts in by joining it.
+// `modules/chart/engine` is not on the list. It also holds the React shell of
+// the charts, so only a part of it is pure. `CHART_PURE_CORES` names that part,
+// and the gate applies the same rules to each engine file that the part reaches.
+// The list is explicit and not a `modules/*/engine` glob, so a new pure engine
+// opts in when it joins the list.
 const PURE_ENGINES = [
 	'chat',
 	'dashboard',
@@ -36,6 +38,21 @@ const PURE_ENGINES = [
 ] as const
 
 const enginePath = (module: string) => join(srcDir, 'modules', module, 'engine')
+
+// The pure cores of the chart engine, relative to `modules/chart/engine`: the
+// chart ROADMAP §Engine names them. A folder stands for each source file in it.
+const CHART_PURE_CORES = [
+	'chart-geometry',
+	'chart-cartesian',
+	'chart-scale.ts',
+	'chart-coords.ts',
+	'chart-hit-test.ts',
+	'chart-layout.ts',
+	'chart-time.ts',
+	'chart-legend/fit.ts',
+	'chart-legend/band.ts',
+	'chart-legend/range.ts',
+] as const
 
 /** Whether a runtime import of `specifier` costs an engine its independence. */
 function isFrameworkSpecifier(specifier: string): boolean {
@@ -63,32 +80,77 @@ function frameworkReaches(content: string): string[] {
 	return found
 }
 
-/** Every source file under an engine, with its path relative to `srcDir`. */
-function engineFiles(dir: string): { rel: string; depth: number; content: string }[] {
-	const out: { rel: string; depth: number; content: string }[] = []
+/** A source file of an engine, with its path relative to `srcDir`. */
+type EngineFile = { rel: string; depth: number; content: string }
+
+function toEngineFile(dir: string, file: string, content: string): EngineFile {
+	// Depth 1 is a file directly under `engine/`, 2 one in a concept directory.
+	// Split on both separators: `relative` yields backslashes on Windows, and a
+	// '/'-only split reads every file as depth 1 there.
+	return { rel: srcRelative(file), depth: relative(dir, file).split(/[\\/]/).length, content }
+}
+
+/** Every source file under an engine. */
+function engineFiles(dir: string): EngineFile[] {
+	const out: EngineFile[] = []
 
 	walkSource(dir, (file, content) => {
-		if (!isSourceFile(file)) return
-
-		// Depth 1 is a file directly under `engine/`, 2 one in a concept directory.
-		// Split on both separators: `relative` yields backslashes on Windows, and a
-		// '/'-only split reads every file as depth 1 there.
-		out.push({
-			rel: srcRelative(file),
-			depth: relative(dir, file).split(/[\\/]/).length,
-			content,
-		})
+		if (isSourceFile(file)) out.push(toEngineFile(dir, file, content))
 	})
 
 	return out
 }
 
+/**
+ * Each file of the chart pure cores, and each engine file that a runtime import
+ * from them reaches. A pure core that imports a shell file at runtime thus
+ * brings that file under the rules, and the rules then fail on it. The walk
+ * stays in the engine, as the rules for the other engines do.
+ */
+function chartPureFiles(): EngineFile[] {
+	const dir = enginePath('chart')
+
+	const queue: string[] = []
+
+	for (const core of CHART_PURE_CORES) {
+		const path = join(dir, core)
+
+		if (core.endsWith('.ts')) queue.push(path)
+		else
+			walkSource(path, (file) => {
+				if (isSourceFile(file)) queue.push(file)
+			})
+	}
+
+	const seen = new Map<string, EngineFile>()
+
+	for (let file = queue.shift(); file !== undefined; file = queue.shift()) {
+		if (seen.has(file)) continue
+
+		const content = readFileSync(file, 'utf8')
+
+		seen.set(file, toEngineFile(dir, file, content))
+
+		for (const { specifier, runtime } of parseImports(content)) {
+			if (!runtime || !specifier.startsWith('.')) continue
+
+			const target = resolveSource(file, specifier)
+
+			if (target && !relative(dir, target).startsWith('..')) queue.push(target)
+		}
+	}
+
+	return [...seen.values()]
+}
+
+/** The files that the rules hold for each engine. */
+const ENGINES: { module: string; files: EngineFile[] }[] = [
+	...PURE_ENGINES.map((module) => ({ module, files: engineFiles(enginePath(module)) })),
+	{ module: 'chart', files: chartPureFiles() },
+]
+
 describe('engine purity boundary', () => {
-	for (const module of PURE_ENGINES) {
-		const dir = enginePath(module)
-
-		const files = engineFiles(dir)
-
+	for (const { module, files } of ENGINES) {
 		it(`${module}/engine has files to check`, () => {
 			expect(files.length).toBeGreaterThan(0)
 		})
