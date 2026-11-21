@@ -706,6 +706,26 @@ function useRegionPreload(
 }
 
 /**
+ * Whether a reader beyond the rows needs the name of every region. The
+ * `nameRegions` readout names each region. Each region handler makes each region
+ * a cursor stop that speaks its name. A selected region has a row in the data
+ * table, and the name of that row is the one place where a screen reader learns
+ * which region is selected. A map that shows a selection from elsewhere, with
+ * no rows and no handler, thus names its regions too.
+ *
+ * @internal
+ */
+function needsRegionNames<T>(props: MapPlatProps<T>): boolean {
+	return (
+		props.nameRegions === true ||
+		props.onRegionClick !== undefined ||
+		props.onRegionPreload !== undefined ||
+		props.onRegionContextMenu !== undefined ||
+		(props.selectedRegions?.length ?? 0) > 0
+	)
+}
+
+/**
  * Holds a list of picks for the map to draw. A caller builds a new list on each
  * render, so the held list keeps its reference while its items stay the same.
  * The region layer, the marks, and the table then hold their render.
@@ -984,16 +1004,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		regionNumbers,
 		domain: valueExtent,
 		thresholds: valueThresholds,
-	} = useMapRegionReadout(
-		shape.features,
-		props,
-		regionIds,
-		regionLabel,
-		nameRegions ||
-			onRegionClick !== undefined ||
-			onRegionPreload !== undefined ||
-			onRegionContextMenu !== undefined,
-	)
+	} = useMapRegionReadout(shape.features, props, regionIds, regionLabel, needsRegionNames(props))
 
 	const {
 		hidden: switched,

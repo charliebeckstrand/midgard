@@ -1546,6 +1546,22 @@ describe('MapPlat selected region', () => {
 
 		expect(tableRows(container)).toEqual(['Alpha', 'Beta, selected', 'Gamma'])
 	})
+
+	it('names a selected region on a map with no rows and no handler', () => {
+		// A map that shows a selection from elsewhere, such as a dashboard
+		// cross-filter or a chat citation, has no reader that asks for names. The
+		// row of the pick must still name the region.
+		const { container } = renderUI(
+			<MapPlat
+				aria-label="Cited regions"
+				geography={FIXTURE_GEOJSON}
+				width={400}
+				selectedRegions={['B']}
+			/>,
+		)
+
+		expect(tableRows(container)).toEqual(['Alpha', 'Beta, selected', 'Gamma'])
+	})
 })
 
 describe('MapPlat controlled emphasis', () => {
