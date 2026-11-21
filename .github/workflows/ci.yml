@@ -399,11 +399,19 @@ jobs:
   # the `playwright` package, or the browsers in the image do not launch, so
   # `playwright-version` supplies it. `resolute` is the Ubuntu of
   # `ubuntu-latest`.
+  #
+  # `--ipc=host` gives the container the shared memory of the runner.
+  # Docker gives a container a /dev/shm of 64 MB, and the processes of
+  # Firefox exchange their data through it. With 64 MB, the Firefox page
+  # crashed in the first seconds of some runs, before a case reported.
+  # Playwright recommends this option for its image.
   density:
     needs: playwright-version
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    container: mcr.microsoft.com/playwright:v${{ needs.playwright-version.outputs.version }}-resolute
+    container:
+      image: mcr.microsoft.com/playwright:v${{ needs.playwright-version.outputs.version }}-resolute
+      options: --ipc=host
     steps:
       - uses: actions/checkout@v7
         with:
