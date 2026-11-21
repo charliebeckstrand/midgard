@@ -188,9 +188,23 @@ export default function SelectsInADashboard() {
 		if (citation !== null) setSelection([])
 	}, [])
 
+	// The days that a reader picked in the chart.
+	const pickedDays = useMemo(
+		() => selection.filter((item) => item.field === 'day').flatMap((item) => item.values),
+		[selection],
+	)
+
+	// A pick in the chart marks each citation that selects one of the picked days.
+	const isMarked = useCallback(
+		(citation: ChatCitation) =>
+			citation.target === 'late-by-day' &&
+			(toCategorySelection(citation.selector) ?? []).some((name) => pickedDays.includes(name)),
+		[pickedDays],
+	)
+
 	return (
 		<Stack gap="lg">
-			<ChatCitationProvider targets={targets} cited={cited} onCite={cite}>
+			<ChatCitationProvider targets={targets} cited={cited} onCite={cite} isMarked={isMarked}>
 				<ChatTranscript messages={messages} />
 			</ChatCitationProvider>
 			<Cited value={value}>

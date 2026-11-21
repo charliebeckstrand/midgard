@@ -147,6 +147,10 @@
 		"defaultMessage": "Bad reply",
 		"description": "The name of the button that rates a reply of the assistant as bad."
 	},
+	"ui.chat.citationMarked": {
+		"defaultMessage": "Selects in {label}. The selection in that view matches it.",
+		"description": "The description of a phrase of a chat reply that selects items in a view beside the chat, while the items that a reader selected in the view match the phrase. The label is the name of the view, such as \"Late stops by day\"."
+	},
 	"ui.chat.citationSelects": {
 		"defaultMessage": "Selects in {label}",
 		"description": "The description of a phrase of a chat reply that selects items in a view beside the chat. The label is the name of the view, such as \"Late stops by day\"."

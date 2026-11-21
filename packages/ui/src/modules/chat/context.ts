@@ -70,8 +70,8 @@ export const [ChatRowContext, useChatRowKey] = createContext<string | number | u
 
 /**
  * The citations in scope, as {@link ChatCitationProvider} supplied them: the
- * views that a citation can select in, the active citation, and the call that
- * changes it.
+ * views that a citation can select in, the active citation, the call that
+ * changes it, and the test for a citation that the selection of a view matches.
  *
  * @internal
  */
@@ -79,6 +79,7 @@ export type ChatCitationScope = {
 	targets: ChatCitationTargets
 	cited: ChatCitation | null
 	onCite?: (citation: ChatCitation | null) => void
+	isMarked?: (citation: ChatCitation) => boolean
 }
 
 /** The scope with no target: each citation renders as prose. @internal */
