@@ -149,9 +149,9 @@ function medianBytes(prepare: () => () => void): number {
 function measureGestures(layout: Layout, count: number): Partial<Record<Gesture, number>> {
 	const rows = shipments(count)
 
-	// `shipments` gives the first rows of the same fixture for each count, so an
-	// append shows the same batch at each size.
-	const appended = shipments(count + BATCH).slice()
+	// An append keeps the loaded row objects and adds a batch after them, as an
+	// app does. The batch is the same at each size.
+	const appended = [...rows, ...shipments(count + BATCH).slice(count)]
 
 	const container = document.createElement('div')
 
