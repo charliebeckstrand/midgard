@@ -16,10 +16,11 @@ export type ChatCitationProviderProps = {
 	/** The active citation, or `null`. The app holds it, because the selection belongs to the view. */
 	cited: ChatCitation | null
 	/**
-	 * Fires when a reader presses a citation, with that citation, or with `null`
-	 * when the reader pressed the active citation again.
+	 * Fires when a press changes the active citation, with the next value of
+	 * `cited`: the pressed citation, or `null` when the reader pressed the
+	 * active citation again.
 	 */
-	onCite: (citation: ChatCitation | null) => void
+	onCitedChange: (citation: ChatCitation | null) => void
 	/**
 	 * Tells if the selection of a view matches a citation, such as a bar that
 	 * a reader picked in a chart that the citation also selects in. Each piece
@@ -41,7 +42,7 @@ export type ChatCitationProviderProps = {
  * @remarks
  * A citation is a phrase of a reply, such as "twelve stops are late", that
  * selects something in a view beside the chat. The phrase draws as a toggle
- * button. A press calls `onCite`, and the app derives the selection prop of
+ * button. A press calls `onCitedChange`, and the app derives the selection prop of
  * each view from `cited`. An adapter such as {@link toCategorySelection},
  * {@link toRegionSelection}, or {@link toStopSelection} reads
  * the `selector` of the citation for one kind of view.
@@ -54,7 +55,7 @@ export type ChatCitationProviderProps = {
  * selection from outside a tile filters each tile, so do not write `cited`
  * into the selections of the board. Give `cited` to the tiles in a context of
  * the app, and let each tile derive its selection prop from it. Show one
- * selection at a time: in `onCite`, clear the selections of the board, and
+ * selection at a time: in `onCitedChange`, clear the selections of the board, and
  * when a reader picks in a tile, clear `cited`. Thus a tile never marks a
  * citation while a filter that it does not show applies.
  *
@@ -65,7 +66,7 @@ export type ChatCitationProviderProps = {
  *
  * Nesting merges `targets`, as {@link ChatEmbedProvider} merges `renderers`.
  * The inner provider wins on a target that both name. Its `cited` and
- * `onCite` replace those of the outer provider. Its `isMarked` replaces the
+ * `onCitedChange` replace those of the outer provider. Its `isMarked` replaces the
  * outer one only when it gives one.
  *
  * @example
@@ -73,7 +74,7 @@ export type ChatCitationProviderProps = {
  *
  *   const [cited, setCited] = useState<ChatCitation | null>(null)
  *
- *   <ChatCitationProvider targets={targets} cited={cited} onCite={setCited}>
+ *   <ChatCitationProvider targets={targets} cited={cited} onCitedChange={setCited}>
  *     <ChatTranscript messages={messages} />
  *   </ChatCitationProvider>
  *   <BarChart
@@ -83,7 +84,7 @@ export type ChatCitationProviderProps = {
 export function ChatCitationProvider({
 	targets,
 	cited,
-	onCite,
+	onCitedChange,
 	isMarked,
 	children,
 }: ChatCitationProviderProps) {
@@ -93,10 +94,10 @@ export function ChatCitationProvider({
 		() => ({
 			targets: { ...outer.targets, ...targets },
 			cited,
-			onCite,
+			onCitedChange,
 			isMarked: isMarked ?? outer.isMarked,
 		}),
-		[outer.targets, outer.isMarked, targets, cited, onCite, isMarked],
+		[outer.targets, outer.isMarked, targets, cited, onCitedChange, isMarked],
 	)
 
 	return <ChatCitationContext value={value}>{children}</ChatCitationContext>

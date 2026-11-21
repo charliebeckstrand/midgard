@@ -53,7 +53,12 @@ function ChatBesideChart() {
 
 	return (
 		<>
-			<ChatCitationProvider targets={targets} cited={cited} onCite={cite} isMarked={isMarked}>
+			<ChatCitationProvider
+				targets={targets}
+				cited={cited}
+				onCitedChange={cite}
+				isMarked={isMarked}
+			>
 				<ChatMessage sender="assistant">
 					{[{ kind: 'text', id: 't1', text: SOURCE, citations: [CITATION] }]}
 				</ChatMessage>

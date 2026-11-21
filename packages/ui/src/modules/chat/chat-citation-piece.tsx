@@ -73,7 +73,7 @@ function pressKeyDown(event: KeyboardEvent<HTMLElement>, press: () => void) {
  * @internal
  */
 export function ChatCitationPiece({ piece: { range, index }, children }: ChatCitationPieceProps) {
-	const { targets, cited, onCite, isMarked } = useChatCitations()
+	const { targets, cited, onCitedChange, isMarked } = useChatCitations()
 
 	const intl = useIntl()
 
@@ -112,7 +112,7 @@ export function ChatCitationPiece({ piece: { range, index }, children }: ChatCit
 	// and is never read, so a piece with no label gets no description.
 	const label = targets[range.target]?.label
 
-	const press = () => onCite?.(pressed ? null : range)
+	const press = () => onCitedChange?.(pressed ? null : range)
 
 	return (
 		<>
