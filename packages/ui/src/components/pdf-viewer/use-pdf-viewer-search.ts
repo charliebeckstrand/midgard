@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { Color } from '../../core/recipe/colors'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { foldText } from '../../utilities/fold-text'
 import { scrollWithin } from '../../utilities/scroll-within'
 import { toFractionRect } from './pdf-viewer-highlight-geometry'
 import type {
@@ -27,7 +28,7 @@ const DEFAULT_SEARCH_COLOR: Color = 'amber'
  * @internal
  */
 function fold(text: string) {
-	return text.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().replace(/\s+/g, ' ').trim()
+	return foldText(text).replace(/\s+/g, ' ').trim()
 }
 
 /** The folded text of one page, and where each run of the data sits in it. @internal */

@@ -101,6 +101,14 @@ describe('getEntries', () => {
 })
 
 describe('matchesSearch', () => {
+	it('ignores the accents of a key and of a value', () => {
+		expect(matchesSearch('café', 1, 'cafe')).toBe(true)
+
+		expect(matchesSearch('city', 'São Paulo', 'sao')).toBe(true)
+
+		expect(matchesSearch('name', 'cafe', 'CAFÉ')).toBe(true)
+	})
+
 	it('returns false when term is empty', () => {
 		expect(matchesSearch('key', 'value', '')).toBe(false)
 	})

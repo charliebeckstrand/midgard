@@ -26,6 +26,7 @@ import { cn, createContext, createSlot, announce } from 'ui/core'
 | `RasterizeElementOptions` *(type)* | Options for `rasterizeElement`: the bitmap `type`, and `opaque`, which paints the surface under the element below the image. |
 | `RasterImageType` *(type)* | The bitmap formats of a raster: `'image/png' \| 'image/jpeg'`. |
 | `readCookie` | The value of a cookie by name, or `undefined`. In the browser it reads the cookies of the page. A server gives the `Cookie` header of the request. |
+| `foldText` | The text with no accents and in lower case, the form that a search compares: "cafe" finds "Café". Fold the query and the text with it. |
 | `writeCookie` | Writes a cookie for each path of the site, `secure` on HTTPS, for one year by default. Keep a copy of each layout setting of the reader in a cookie. The server then renders it in the first paint (CONVENTIONS §3.13). Browser only. |
 | `AnnounceOptions` *(type)* | Options for `announce` (politeness level). |
 | `ComposeEventHandlersOptions` *(type)* | Options for `composeEventHandlers` (`checkForDefaultPrevented`). |

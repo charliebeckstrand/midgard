@@ -1,3 +1,4 @@
+import { foldText } from '../../utilities/fold-text'
 import type { SearchEntry, SearchKind } from '../plugin/search.ts'
 
 /** The order of the kinds in the results, for entries that match equally well. */
@@ -9,10 +10,7 @@ const KINDS: readonly SearchKind[] = ['page', 'tab', 'component', 'example', 'pr
  * Thus a query with no accents finds a label with accents.
  */
 function normalize(text: string): string {
-	return text
-		.normalize('NFD')
-		.replace(/\p{M}/gu, '')
-		.toLowerCase()
+	return foldText(text)
 		.replace(/[^\p{L}\p{N}]+/gu, ' ')
 		.trim()
 }
