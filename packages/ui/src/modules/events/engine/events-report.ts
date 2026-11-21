@@ -1,7 +1,7 @@
 import { matchesMediaQuery } from '../../../utilities/media-query'
 import { readViewport } from './events-probes'
 import { describePlace } from './events-target'
-import type { EventEntry, EventReport } from './types'
+import type { EventEntry, EventReport, EventReportExport } from './types'
 
 // The report of a bug or of a capture: the snapshot of the page, and its text
 // in Markdown. The report view shows the text, and Copy writes it.
@@ -107,4 +107,17 @@ export function formatMarkdown(entry: EventEntry & { report: EventReport }): str
 	]
 		.join('\n')
 		.trimEnd()
+}
+
+/**
+ * What `sendReport` gets for an event with a report: the title, the text that
+ * Copy writes, and a copy of the report, so a tracker that changes it does
+ * not change the store. @internal
+ */
+export function createReportExport(entry: EventEntry & { report: EventReport }): EventReportExport {
+	return {
+		title: formatTitle(entry),
+		text: formatMarkdown(entry),
+		report: structuredClone(entry.report),
+	}
 }

@@ -631,6 +631,22 @@
 		"defaultMessage": "Preserve",
 		"description": "The label of the checkbox that keeps the events through a reload of the page."
 	},
+	"ui.events.send": {
+		"defaultMessage": "Send",
+		"description": "The button that sends one bug report of the debug tool to the issue tracker of the app."
+	},
+	"ui.events.sendFailed": {
+		"defaultMessage": "Send failed",
+		"description": "The label of the send button of the debug tool after a send fails. A press sends again."
+	},
+	"ui.events.sending": {
+		"defaultMessage": "Sending",
+		"description": "The label of the send button of the debug tool while the send runs."
+	},
+	"ui.events.sent": {
+		"defaultMessage": "Sent",
+		"description": "The label of the send button of the debug tool after the issue tracker holds the report."
+	},
 	"ui.events.stopCapture": {
 		"defaultMessage": "Stop capture",
 		"description": "The button that stops the record and makes a bug report from it."
