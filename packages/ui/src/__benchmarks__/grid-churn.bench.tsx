@@ -10,7 +10,7 @@
  * cancels out. A gesture that costs O(page) has a slope near zero. One array
  * of the loaded rows costs 8 bytes for each row.
  *
- * Two parts of the method keep the noise of a slope well below {@link NOISE}:
+ * Three parts of the method keep the noise of a slope well below {@link NOISE}:
  *
  * - The measure reads only the heap spaces that hold data. V8 compiles a hot
  *   function again at a faster tier while the process runs, and the code
@@ -19,6 +19,10 @@
  *   the mean of the two. The process allocates less as it warms up, so a
  *   small pass that only came first read too many bytes. The mean cancels
  *   that drift.
+ * - Each sample is the mean of two runs of the gesture in sequence. The bytes
+ *   of a render that changes the rows go high and low in turn, by about
+ *   160 KB. A median of single runs took the side of the first run. A change
+ *   of side between two passes moved a slope by 1.8 bytes for each row.
  *
  * Each budget is the slope that the gesture has now, as {@link BUDGETS}
  * records it. A slope must stay within {@link NOISE} of its budget. A change
@@ -50,8 +54,8 @@ const PAGE_SIZE = 10
 /** The rows that one append of infinite scroll adds. */
 const BATCH = 50
 
-/** The runs of each gesture at each size. The median is the measure. */
-const RUNS = 5
+/** The samples of each gesture at each size. The median is the measure. */
+const SAMPLES = 5
 
 /**
  * The noise of a slope, in bytes for each loaded row. It is less than one
@@ -107,8 +111,8 @@ type Gesture = 'rerender' | 'sortFlip' | 'refresh' | 'sortedRefresh' | 'pageTurn
  * of new rows decodes a sort key for each row.
  */
 const BUDGETS: Record<Layout, Partial<Record<Gesture, number>>> = {
-	paged: { rerender: 0, sortFlip: 0, refresh: 0, sortedRefresh: 154, pageTurn: 0, append: 0 },
-	windowed: { rerender: 0, sortFlip: 16, refresh: 8, sortedRefresh: 170, append: 16 },
+	paged: { rerender: 0, sortFlip: 0, refresh: 0, sortedRefresh: 112, pageTurn: 0, append: 0 },
+	windowed: { rerender: 0, sortFlip: 16, refresh: 8, sortedRefresh: 128, append: 16 },
 }
 
 /** The state that a case renders. */
@@ -171,15 +175,19 @@ function allocatedBytes(run: () => void): number {
 }
 
 /**
- * The median bytes of one gesture over {@link RUNS} runs. `prepare` runs
- * outside the measure, and gives the gesture to measure.
+ * The median bytes of one gesture over {@link SAMPLES} samples. A sample is
+ * the mean of two runs in sequence, so that it holds one high run and one low
+ * run. `prepare` runs outside the measure, and gives the gesture to measure.
  */
 function medianBytes(prepare: () => () => void): number {
-	const samples = Array.from({ length: RUNS }, () => allocatedBytes(prepare()))
+	const samples = Array.from(
+		{ length: SAMPLES },
+		() => (allocatedBytes(prepare()) + allocatedBytes(prepare())) / 2,
+	)
 
 	samples.sort((a, b) => a - b)
 
-	return samples[Math.floor(RUNS / 2)] as number
+	return samples[Math.floor(SAMPLES / 2)] as number
 }
 
 /** Mounts a grid on `count` rows, measures each gesture of `layout`, and unmounts it. */
