@@ -1,7 +1,15 @@
 'use client'
 
 import { useComposedRefs } from 'motion/react'
-import { type KeyboardEvent, type ReactNode, type Ref, useCallback, useRef } from 'react'
+import {
+	type ChangeEvent,
+	type KeyboardEvent,
+	type ReactNode,
+	type Ref,
+	useCallback,
+	useLayoutEffect,
+	useRef,
+} from 'react'
 import { BadgeRemovable } from '../../components/badge/badge-removable'
 import { Button } from '../../components/button'
 import { Control } from '../../components/control'
@@ -19,6 +27,12 @@ import { hasBrowserModifier } from '../../utilities/modifier-keys'
 import { ChatPromptPicker } from './chat-prompt-picker'
 import type { ChatCitation } from './engine/chat-content/types'
 import { canSubmitDraft } from './engine/chat-draft/content'
+import {
+	type DraftHistory,
+	isHistoryInput,
+	recallDraft,
+	rememberDraft,
+} from './engine/chat-draft/history'
 import { rebaseCitations } from './engine/chat-draft/rebase'
 import type { ChatPromptSource } from './types'
 import { useChatPromptPicker } from './use-chat-prompt-picker'
@@ -72,7 +86,8 @@ export type ChatPromptProps = {
 	 * The composer moves each citation across a change of the text, and reads
 	 * the caret to find where the change is. A change that touches a citation
 	 * dissolves it, and its text stays as prose. No change of the text makes a
-	 * citation, so a pasted or typed `@name` is prose.
+	 * citation, so a pasted or typed `@name` is prose. An undo or a redo of the
+	 * browser brings back the citations of the draft that it restores.
 	 * @defaultValue []
 	 */
 	citations?: readonly ChatCitation[]
@@ -203,6 +218,14 @@ export function ChatPrompt({
 
 	const textareaRef = useRef<HTMLTextAreaElement>(null)
 
+	// The citations of each draft that the composer showed, so that an undo or a
+	// redo of the browser brings them back with their text.
+	const historyRef = useRef<DraftHistory>(new Map())
+
+	useLayoutEffect(() => {
+		rememberDraft(historyRef.current, value, citations)
+	}, [value, citations])
+
 	const setTextareaRefs = useComposedRefs(textareaRef, ref)
 
 	// The composer always gets an accessible name (WCAG 3.3.2 / 4.1.2):
@@ -254,7 +277,11 @@ export function ChatPrompt({
 				onChange={(event) => {
 					const next = event.target.value
 
-					onValueChange(next, rebaseCitations(value, next, citations, event.target.selectionEnd))
+					onValueChange(
+						next,
+						recallOnHistory(event, historyRef.current) ??
+							rebaseCitations(value, next, citations, event.target.selectionEnd),
+					)
 
 					picker.trackCaret(event.target)
 				}}
@@ -379,6 +406,22 @@ export function ChatPrompt({
 			)}
 		</Control>
 	)
+}
+
+/**
+ * The citations that an undo or a redo of the browser brings back, or
+ * `undefined` for any other change, which the rebase handles. Only an undo or a
+ * redo reads the history, so a typed value never brings a citation back.
+ *
+ * @internal
+ */
+function recallOnHistory(
+	event: ChangeEvent<HTMLTextAreaElement>,
+	history: DraftHistory,
+): readonly ChatCitation[] | undefined {
+	const { inputType } = event.nativeEvent as Partial<InputEvent>
+
+	return isHistoryInput(inputType) ? recallDraft(history, event.target.value) : undefined
 }
 
 /**

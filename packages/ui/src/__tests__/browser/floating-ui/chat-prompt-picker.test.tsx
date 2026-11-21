@@ -74,6 +74,44 @@ describe('the picker of a chat prompt (real browser)', () => {
 		expect(citations()).toBe('')
 	})
 
+	it('brings the citation back on a redo of the choice', async () => {
+		renderUI(<Composer />)
+
+		await userEvent.click(textarea())
+
+		await userEvent.keyboard('Ask @ro{Enter}')
+
+		await userEvent.keyboard('{Control>}z{/Control}')
+
+		await waitFor(() => expect(textarea().value).toBe('Ask @ro'))
+
+		await userEvent.keyboard('{Control>}{Shift>}z{/Shift}{/Control}')
+
+		await waitFor(() => expect(textarea().value).toBe('Ask @Routes '))
+
+		expect(citations()).toBe('@Routes')
+	})
+
+	it('brings no citation back when the reader types its quote again', async () => {
+		renderUI(<Composer />)
+
+		await userEvent.click(textarea())
+
+		await userEvent.keyboard('Ask @ro{Enter}')
+
+		// Two Backspaces delete the space and the whole citation.
+		await userEvent.keyboard('{Backspace}{Backspace}')
+
+		expect(textarea().value).toBe('Ask ')
+
+		// The same value as before, typed: Escape closes the picker of the typed `@`.
+		await userEvent.keyboard('@Routes{Escape} ')
+
+		expect(textarea().value).toBe('Ask @Routes ')
+
+		expect(citations()).toBe('')
+	})
+
 	it('deletes a whole citation on a Backspace at its end', async () => {
 		renderUI(<Composer />)
 
