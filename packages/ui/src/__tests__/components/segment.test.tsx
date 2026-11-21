@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
+import { ControlLockContext } from '../../components/control/context'
 import { Segment, SegmentControl, SegmentItem } from '../../components/segment'
 import { act, allBySlot, bySlot, fireEvent, renderUI, screen, setupUser } from '../helpers'
 
@@ -143,5 +144,41 @@ describe('Segment keyboard navigation', () => {
 		await user.keyboard('{Home}')
 
 		expect(item('A')).toHaveFocus()
+	})
+})
+
+describe('Segment in a locked scope', () => {
+	it('keeps an item live by default, and locks a lockable item', () => {
+		const onValueChange = vi.fn()
+
+		renderUI(
+			<ControlLockContext value>
+				<Segment value="a" onValueChange={onValueChange}>
+					<SegmentControl aria-label="View">
+						<SegmentItem value="a">A</SegmentItem>
+						<SegmentItem value="b">B</SegmentItem>
+						<SegmentItem value="c" lockable>
+							C
+						</SegmentItem>
+					</SegmentControl>
+				</Segment>
+			</ControlLockContext>,
+		)
+
+		const b = screen.getByRole('tab', { name: 'B' })
+
+		const c = screen.getByRole('tab', { name: 'C' })
+
+		expect(b).not.toHaveAttribute('aria-disabled')
+
+		expect(c).toHaveAttribute('aria-disabled', 'true')
+
+		fireEvent.click(c)
+
+		expect(onValueChange).not.toHaveBeenCalled()
+
+		fireEvent.click(b)
+
+		expect(onValueChange).toHaveBeenCalledWith('b')
 	})
 })

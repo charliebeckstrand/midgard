@@ -42,6 +42,15 @@ export type TabProps = {
 	 */
 	disabled?: boolean
 	/**
+	 * Locks the tab in a locked Control scope, such as a `Form` while a submit
+	 * runs. A locked tab is `aria-disabled`, cancels its click, and stays in the
+	 * tab order. Set it on a tab that writes a value, such as the AND/OR
+	 * `SegmentItem` of a query group. A tab that only shows a panel stays
+	 * live.
+	 * @defaultValue false
+	 */
+	lockable?: boolean
+	/**
 	 * Fires when the user first signals intent to open an inactive tab, with
 	 * the tab's `value`. Intent is the pointer entering its trigger, or the
 	 * trigger taking focus. The moment to warm what the panel will need: prefetch
@@ -105,6 +114,7 @@ export function Tab({
 	id,
 	stretch = false,
 	disabled,
+	lockable = false,
 	onPreload,
 	className,
 	children,
@@ -197,9 +207,9 @@ export function Tab({
 		<span className={slots.wrapper} {...tapHandlers}>
 			<HeadlessProvider>
 				<Button
-					// A tab changes no value, so a locked scope, such as a submitting
-					// form, leaves it live.
-					lockable={false}
+					// A tab that only shows a panel changes no value, so a locked scope,
+					// such as a submitting form, leaves it live unless the tab asks.
+					lockable={lockable}
 					// Forwards the full button surface (aria-label, data-testid,
 					// onBlur, title, …); the tab wiring below wins over any
 					// colliding consumer prop. A caller's onPointerEnter / onFocus
