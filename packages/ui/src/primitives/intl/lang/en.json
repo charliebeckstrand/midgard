@@ -179,6 +179,18 @@
 		"defaultMessage": "Next version",
 		"description": "The name of the button that shows the next version of a chat message."
 	},
+	"ui.chat.pickerAdded": {
+		"defaultMessage": "Added {label}, {source}",
+		"description": "Spoken when the reader chooses an item in the picker of the chat composer. The label is the choice, such as \"Late stops\", and the source names its list, such as \"Datasets\"."
+	},
+	"ui.chat.pickerFailed": {
+		"defaultMessage": "Could not load the choices",
+		"description": "The status of the picker of the chat composer when its choices failed to load."
+	},
+	"ui.chat.pickerLoading": {
+		"defaultMessage": "Loading",
+		"description": "The status of the picker of the chat composer while it loads its choices."
+	},
 	"ui.chat.placeholder": {
 		"defaultMessage": "Ask anything",
 		"description": "The hint text of the empty field where the reader writes a chat message."
