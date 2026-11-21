@@ -1,12 +1,14 @@
 'use client'
 
-import { useId, useRef } from 'react'
+import { type ComponentProps, useId, useRef } from 'react'
 import { cn } from '../../core/cn'
+import type { ScaleStep } from '../../core/density/scale'
 import { invalidAttrs } from '../../core/invalid-attrs'
 import { Upload } from '../../primitives/icons/icons'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { useGlass } from '../../providers/glass/context'
 import { useSlots } from '../../providers/headless/use-slots'
+import type { scale as controlScale } from '../../recipes/kata/control'
 import { k } from '../../recipes/kata/file-upload'
 import { Button } from '../button'
 import { lockedProps } from '../button/button-constants'
@@ -17,8 +19,27 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 import { FileUploadHiddenInput } from './file-upload-hidden-input'
 import { fileUploadMessages } from './file-upload-messages'
 import { formatFileNames, selectionSummary } from './file-upload-utilities'
-import type { FileUploadInputProps } from './types'
+import type { FileUploadSharedProps } from './types'
 import { splitProps, useFileUploadState } from './use-file-upload-state'
+
+/**
+ * Props for {@link FileUploadInput}: the shared accept and limit rules, plus the field's size and placeholder.
+ * The root `<div>` takes the rest. The field takes no children, and `defaultValue` holds files.
+ */
+export type FileUploadInputProps = Omit<ComponentProps<'div'>, 'defaultValue' | 'children'> &
+	FileUploadSharedProps & {
+		/**
+		 * The density step of the field. Omit it to take the step of the nearest
+		 * density scope. A step makes the field a density scope.
+		 */
+		size?: ScaleStep<typeof controlScale>
+		/**
+		 * Placeholder when empty; also the hidden input's accessible name.
+		 *
+		 * @defaultValue `'Select a file'`, in the language of the reader.
+		 */
+		placeholder?: string
+	}
 
 /**
  * File picker rendered as a field-shaped button over a hidden

@@ -1,9 +1,11 @@
 'use client'
 
-import { useRef } from 'react'
+import { type ComponentProps, type ReactNode, useRef } from 'react'
 import { cn } from '../../core/cn'
+import type { ScaleStep } from '../../core/density/scale'
 import { Upload } from '../../primitives/icons/icons'
 import { useIntl } from '../../primitives/intl/use-intl'
+import type { scale as buttonScale } from '../../recipes/kata/button'
 import { k } from '../../recipes/kata/file-upload'
 import { Button } from '../button'
 import { lockedProps } from '../button/button-constants'
@@ -11,8 +13,35 @@ import { Icon } from '../icon'
 import { FileUploadHiddenInput } from './file-upload-hidden-input'
 import { fileUploadMessages } from './file-upload-messages'
 import { triggerLabel } from './file-upload-utilities'
-import type { FileUploadButtonProps } from './types'
+import type { FileUploadSharedProps } from './types'
 import { splitProps, useFileUploadState } from './use-file-upload-state'
+
+/**
+ * Props for {@link FileUploadButton}: the shared accept and limit rules, plus the button's size, color, and label.
+ * The root `<div>` takes the rest. `color` is the color of the button, and `defaultValue` holds files.
+ */
+export type FileUploadButtonProps = Omit<ComponentProps<'div'>, 'defaultValue' | 'color'> &
+	FileUploadSharedProps & {
+		/**
+		 * The density step of the button. Omit it to take the step of the nearest
+		 * density scope. A step makes the button a density scope.
+		 */
+		size?: ScaleStep<typeof buttonScale>
+		/** The palette color of the button. @defaultValue 'zinc' */
+		color?: ComponentProps<typeof Button>['color']
+		/**
+		 * The style of the button, such as `plain` for an add button among others.
+		 *
+		 * @defaultValue `'solid'`, or the variant of the surface around the button, as for {@link Button}.
+		 */
+		variant?: ComponentProps<typeof Button>['variant']
+		/**
+		 * The trigger's label, and the hidden input's accessible name.
+		 *
+		 * @defaultValue `'Upload'`, in the language of the reader.
+		 */
+		children?: ReactNode
+	}
 
 /**
  * File picker rendered as a button over a hidden `<input type="file">`.

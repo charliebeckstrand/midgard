@@ -27,8 +27,24 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 import { FileUploadHiddenInput } from './file-upload-hidden-input'
 import { fileUploadMessages } from './file-upload-messages'
 import { formatFileNames, selectionSummary, triggerLabel } from './file-upload-utilities'
-import type { FileUploadDropProps } from './types'
+import type { FileUploadSharedProps } from './types'
 import { splitProps, useFileUploadState } from './use-file-upload-state'
+
+/**
+ * Props for {@link FileUploadDrop}: the shared accept and limit rules, plus the
+ * prompt the empty zone shows. The zone takes the rest: a `<button>` while it
+ * is empty, or else a `<div>`. `defaultValue` holds files.
+ */
+export type FileUploadDropProps = Omit<HTMLAttributes<HTMLElement>, 'defaultValue'> &
+	FileUploadSharedProps & {
+		/**
+		 * Replaces the built-in icon-and-prompt inside the empty zone, and names the
+		 * hidden input. The zone keeps its own height; set another through
+		 * `className`, as `<SignaturePad>` does. The empty zone is a `<button>`, so
+		 * the children must be phrasing content with no interactive element.
+		 */
+		children?: ReactNode
+	}
 
 /**
  * The empty dropzone's icon and prompt, or the caller's `children` in its place.
