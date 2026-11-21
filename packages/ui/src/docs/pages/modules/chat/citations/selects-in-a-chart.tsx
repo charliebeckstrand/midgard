@@ -51,7 +51,7 @@ export default function SelectsInAChart() {
 
 	return (
 		<Stack gap="lg">
-			<ChatCitationProvider targets={targets} cited={cited} onCite={setCited}>
+			<ChatCitationProvider targets={targets} cited={cited} onCitedChange={setCited}>
 				<ChatTranscript messages={messages} />
 			</ChatCitationProvider>
 			<BarChart

@@ -160,7 +160,7 @@ compareBenches(
 			['500 messages · cited', cited],
 		] as const) {
 			const view = (text: string) => (
-				<ChatCitationProvider targets={citationTargets} cited={null} onCite={noCite}>
+				<ChatCitationProvider targets={citationTargets} cited={null} onCitedChange={noCite}>
 					<ChatTranscript messages={withReply(content(text))} streaming />
 				</ChatCitationProvider>
 			)

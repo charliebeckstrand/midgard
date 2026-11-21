@@ -78,7 +78,7 @@ export const [ChatRowContext, useChatRowKey] = createContext<string | number | u
 export type ChatCitationScope = {
 	targets: ChatCitationTargets
 	cited: ChatCitation | null
-	onCite?: (citation: ChatCitation | null) => void
+	onCitedChange?: (citation: ChatCitation | null) => void
 	isMarked?: (citation: ChatCitation) => boolean
 }
 

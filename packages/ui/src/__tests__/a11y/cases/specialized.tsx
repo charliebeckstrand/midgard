@@ -178,7 +178,7 @@ export const specializedCases: readonly Case[] = [
 		// plain text and the citation stays one control.
 		name: 'chat transcript with citations',
 		element: (
-			<ChatCitationProvider key="ctc" targets={citationTargets} cited={null} onCite={noop}>
+			<ChatCitationProvider key="ctc" targets={citationTargets} cited={null} onCitedChange={noop}>
 				<ChatTranscript messages={citedReply} />
 			</ChatCitationProvider>
 		),
@@ -193,7 +193,12 @@ export const specializedCases: readonly Case[] = [
 		// citation on the fill of the user bubble.
 		name: 'chat transcript with a pressed scope',
 		element: (
-			<ChatCitationProvider key="ctp" targets={scopeTargets} cited={scopeCitation} onCite={noop}>
+			<ChatCitationProvider
+				key="ctp"
+				targets={scopeTargets}
+				cited={scopeCitation}
+				onCitedChange={noop}
+			>
 				<ChatTranscript messages={scopedQuestion} />
 			</ChatCitationProvider>
 		),

@@ -30,10 +30,10 @@ const targets = { 'late-by-day': { label: 'Late stops by day' } }
 /** A provider that holds the active citation, as an app does. */
 function Cited({
 	citations,
-	onCite,
+	onCitedChange,
 }: {
 	citations: ChatCitation[]
-	onCite?: (c: ChatCitation | null) => void
+	onCitedChange?: (c: ChatCitation | null) => void
 }) {
 	const [cited, setCited] = useState<ChatCitation | null>(null)
 
@@ -41,8 +41,8 @@ function Cited({
 		<ChatCitationProvider
 			targets={targets}
 			cited={cited}
-			onCite={(citation) => {
-				onCite?.(citation)
+			onCitedChange={(citation) => {
+				onCitedChange?.(citation)
 
 				setCited(citation)
 			}}
@@ -64,33 +64,37 @@ describe('ChatCitationProvider', () => {
 	})
 
 	it('sends the citation on a press, and null on a second press', async () => {
-		const onCite = vi.fn()
+		const onCitedChange = vi.fn()
 
 		const user = userEvent.setup()
 
-		renderUI(<Cited citations={[cite('c1', 'Twelve stops are late')]} onCite={onCite} />)
+		renderUI(
+			<Cited citations={[cite('c1', 'Twelve stops are late')]} onCitedChange={onCitedChange} />,
+		)
 
 		const anchor = screen.getByRole('button', { name: 'Twelve stops are late' })
 
 		await user.click(anchor)
 
-		expect(onCite).toHaveBeenLastCalledWith(expect.objectContaining({ id: 'c1' }))
+		expect(onCitedChange).toHaveBeenLastCalledWith(expect.objectContaining({ id: 'c1' }))
 
 		expect(anchor).toHaveAttribute('aria-pressed', 'true')
 
 		await user.click(anchor)
 
-		expect(onCite).toHaveBeenLastCalledWith(null)
+		expect(onCitedChange).toHaveBeenLastCalledWith(null)
 
 		expect(anchor).toHaveAttribute('aria-pressed', 'false')
 	})
 
 	it('presses from the keyboard as a native button does', async () => {
-		const onCite = vi.fn()
+		const onCitedChange = vi.fn()
 
 		const user = userEvent.setup()
 
-		renderUI(<Cited citations={[cite('c1', 'Twelve stops are late')]} onCite={onCite} />)
+		renderUI(
+			<Cited citations={[cite('c1', 'Twelve stops are late')]} onCitedChange={onCitedChange} />,
+		)
 
 		const anchor = screen.getByRole('button', { name: 'Twelve stops are late' })
 
@@ -109,7 +113,7 @@ describe('ChatCitationProvider', () => {
 
 		expect(anchor).toHaveAttribute('aria-pressed', 'false')
 
-		expect(onCite).toHaveBeenCalledTimes(2)
+		expect(onCitedChange).toHaveBeenCalledTimes(2)
 	})
 
 	it('draws one control for a citation that crosses bold, and marks each piece pressed', async () => {
@@ -176,11 +180,11 @@ describe('ChatCitationProvider', () => {
 
 	it('merges the targets of a nested provider with those of the outer one', () => {
 		renderUI(
-			<ChatCitationProvider targets={targets} cited={null} onCite={() => {}}>
+			<ChatCitationProvider targets={targets} cited={null} onCitedChange={() => {}}>
 				<ChatCitationProvider
 					targets={{ other: { label: 'Other' } }}
 					cited={null}
-					onCite={() => {}}
+					onCitedChange={() => {}}
 				>
 					<ChatMessage sender="assistant">
 						{reply([cite('c1', 'Twelve stops are late'), cite('c2', 'Tuesday', 'other')])}
@@ -202,7 +206,12 @@ describe('ChatCitationProvider isMarked', () => {
 
 	it('marks each piece of a citation that the selection matches, and no other', () => {
 		const { container } = renderUI(
-			<ChatCitationProvider targets={targets} cited={null} onCite={() => {}} isMarked={isTuesday}>
+			<ChatCitationProvider
+				targets={targets}
+				cited={null}
+				onCitedChange={() => {}}
+				isMarked={isTuesday}
+			>
 				<ChatMessage sender="assistant">{reply([late, tuesday])}</ChatMessage>
 			</ChatCitationProvider>,
 		)
@@ -223,7 +232,12 @@ describe('ChatCitationProvider isMarked', () => {
 
 	it('says in the description that the selection matches the citation', () => {
 		renderUI(
-			<ChatCitationProvider targets={targets} cited={null} onCite={() => {}} isMarked={isTuesday}>
+			<ChatCitationProvider
+				targets={targets}
+				cited={null}
+				onCitedChange={() => {}}
+				isMarked={isTuesday}
+			>
 				<ChatMessage sender="assistant">{reply([late, tuesday])}</ChatMessage>
 			</ChatCitationProvider>,
 		)
@@ -245,8 +259,18 @@ describe('ChatCitationProvider isMarked', () => {
 
 	it('keeps the outer isMarked under an inner provider that gives none, and replaces it with one that does', () => {
 		const inner = (isMarked?: (citation: ChatCitation) => boolean) => (
-			<ChatCitationProvider targets={targets} cited={null} onCite={() => {}} isMarked={isTuesday}>
-				<ChatCitationProvider targets={{}} cited={null} onCite={() => {}} isMarked={isMarked}>
+			<ChatCitationProvider
+				targets={targets}
+				cited={null}
+				onCitedChange={() => {}}
+				isMarked={isTuesday}
+			>
+				<ChatCitationProvider
+					targets={{}}
+					cited={null}
+					onCitedChange={() => {}}
+					isMarked={isMarked}
+				>
 					<ChatMessage sender="assistant">{reply([late, tuesday])}</ChatMessage>
 				</ChatCitationProvider>
 			</ChatCitationProvider>
@@ -339,7 +363,7 @@ describe('toStopSelection', () => {
 describe('ChatCitationPiece server markup', () => {
 	it('names a citation that crosses bold by its whole phrase before hydration', () => {
 		const html = renderToString(
-			<ChatCitationProvider targets={targets} cited={null} onCite={() => {}}>
+			<ChatCitationProvider targets={targets} cited={null} onCitedChange={() => {}}>
 				<ChatMessage sender="assistant">
 					{reply([cite('c1', 'most of them on **Tuesday**')])}
 				</ChatMessage>

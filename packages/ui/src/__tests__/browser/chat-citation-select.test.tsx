@@ -37,7 +37,7 @@ function Dashboard() {
 
 	return (
 		<>
-			<ChatCitationProvider targets={targets} cited={cited} onCite={setCited}>
+			<ChatCitationProvider targets={targets} cited={cited} onCitedChange={setCited}>
 				<ChatMessage sender="assistant">
 					{[{ kind: 'text', id: 't1', text: SOURCE, citations: [CITATION] }]}
 				</ChatMessage>

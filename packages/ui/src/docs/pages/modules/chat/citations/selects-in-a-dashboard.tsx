@@ -241,7 +241,12 @@ export default function SelectsInADashboard() {
 
 	return (
 		<Stack gap="lg">
-			<ChatCitationProvider targets={targets} cited={cited} onCite={cite} isMarked={isMarked}>
+			<ChatCitationProvider
+				targets={targets}
+				cited={cited}
+				onCitedChange={cite}
+				isMarked={isMarked}
+			>
 				<ChatTranscript messages={messages} />
 			</ChatCitationProvider>
 			<Cited value={value}>
