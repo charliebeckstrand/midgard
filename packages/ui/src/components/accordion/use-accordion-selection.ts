@@ -141,15 +141,11 @@ export function useAccordionSelection(props: SingleProps | MultipleProps): Accor
 
 	// The single-mode `toArray` wrap mints a new array each call; memoization
 	// keeps the context identity stable across controlled renders.
-	const controlledValue = useMemo(
-		() =>
-			props.multiple === true
-				? props.value
-				: props.value !== undefined
-					? toArray(props.value)
-					: undefined,
-		[props.multiple, props.value],
-	)
+	const controlledValue = useMemo(() => {
+		if (props.multiple === true) return props.value
+
+		return props.value === undefined ? undefined : toArray(props.value)
+	}, [props.multiple, props.value])
 
 	// Set while a toggle that changes nothing runs. `useControllable` compares
 	// by identity, and the array that the owner passes back is not the array of

@@ -16,6 +16,28 @@ import { useDatePickerGridEntry } from './use-date-picker-grid-entry'
 import { type FooterButton, useDatePickerKeyboard } from './use-date-picker-keyboard'
 
 /**
+ * The trigger label of a single date: empty with no date, and else the date in
+ * the pinned `format`, or in the locale of the reader once hydrated. Before
+ * hydration it writes the stand form, which the server render matches.
+ *
+ * @internal
+ */
+function dateLabel(
+	value: Date | null | undefined,
+	format: Parameters<typeof formatDateValue>[1] | undefined,
+	hydrated: boolean,
+	ambient: ReturnType<typeof useLocale>,
+): string {
+	if (!value) return ''
+
+	if (format) return formatDateValue(value, format)
+
+	return hydrated
+		? formatDate(value, ambient.locale, ambient.dateFormat)
+		: standDate(value, ambient.dateFormat)
+}
+
+/**
  * Single-date state for {@link DatePicker}: Form/Control binding, popover
  * open/active wiring, the virtual-highlight keyboard handler, and the
  * clear/today footer.
@@ -219,13 +241,7 @@ export function useDatePickerState({
 		hasValue: value != null,
 		onClear: handleClear,
 		// A pinned `format` writes the label as the typed field writes the date.
-		displayValue: !value
-			? ''
-			: format
-				? formatDateValue(value, format)
-				: hydrated
-					? formatDate(value, ambient.locale, ambient.dateFormat)
-					: standDate(value, ambient.dateFormat),
+		displayValue: dateLabel(value, format, hydrated, ambient),
 		pending,
 		open,
 		onOpenChange,

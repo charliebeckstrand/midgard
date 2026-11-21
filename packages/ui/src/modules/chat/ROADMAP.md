@@ -53,8 +53,6 @@ No rule reads a clock or a random source. The shell mints each id and gives it t
 
 1. **Nested ternaries (*P2*).** `statusText` in [`chat-prompt-picker.tsx`](chat-prompt-picker.tsx) nests three ternaries, and the row `className` in [`chat-transcript.tsx`](chat-transcript.tsx) nests two. [`CONVENTIONS.md`](../../../../../CONVENTIONS.md) §8.4 splits a nested ternary into named steps. Split each one. Biome `style/noNestedTernary` can hold the fix, first in an override for this module, and later in the whole package as its own decision.
 
-2. **A measured ratio in TSDoc (*P2*).** The TSDoc of `ChatEmbedRegistry.mount` in [`types.ts`](types.ts) says that a chart on each reply costs about seven times as much to mount. [`CONVENTIONS.md`](../../../../../CONVENTIONS.md) §12.6 keeps a measurement out of a comment, because later code makes it wrong. Keep the reason in words, and record the number in a dated section of the [browser benchmarks README](../../__benchmarks__/browser/README.md) with `chat-render.bench.tsx` as its bench.
-
 ## Performance
 
 1. **The draft rules on each keystroke (*P3*).** Each change of the composer runs `rebaseCitations`, `recordDraft`, and `findActiveTrigger`, and an undo runs `stepDraft` over a history of up to `DRAFT_HISTORY_LIMIT` drafts. These rules are on the input path, so their cost counts toward INP. [`chat-compute.bench.ts`](../../__benchmarks__/chat-compute.bench.ts) measures none of them. Add cases for a long draft with many citations and a full history. Change a rule only when the bench shows a cost near a frame.

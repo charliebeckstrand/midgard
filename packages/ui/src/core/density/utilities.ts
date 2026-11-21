@@ -414,10 +414,10 @@ function scopes(): CssInJs {
 				.filter((host) => slotStep(host) === step)
 				.map((host) => `var(${toHostWeight(host)})`)
 
-			const total =
-				hosts.length === 0 ? '0' : hosts.length === 1 ? hosts[0] : `calc(${hosts.join(' + ')})`
+			// `sum` gives `0` for no host and the host alone for one.
+			const total = hosts.length > 1 ? `calc(${sum(hosts)})` : sum(hosts)
 
-			return [toWeight(step), total as string]
+			return [toWeight(step), total]
 		}),
 	)
 

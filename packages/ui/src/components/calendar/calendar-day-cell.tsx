@@ -67,6 +67,9 @@ export const CalendarDayCell = memo(function CalendarDayCell({
 		if (!disabled) onSelect(date)
 	}, [disabled, onSelect, date])
 
+	// A selected day is solid, and today is soft at rest.
+	const restVariant = isToday ? 'soft' : 'plain'
+
 	return (
 		<Button
 			type="button"
@@ -79,7 +82,7 @@ export const CalendarDayCell = memo(function CalendarDayCell({
 			data-disabled={dataAttr(disabled && focusable)}
 			// The date picker reads the day of a focused cell from this ISO date.
 			data-date={dayKey(date)}
-			variant={variant ?? (selected ? 'solid' : isToday ? 'soft' : 'plain')}
+			variant={variant ?? (selected ? 'solid' : restVariant)}
 			color={color ?? (selected || isToday ? 'blue' : undefined)}
 			disabled={disabled && !focusable}
 			onClick={handleClick}

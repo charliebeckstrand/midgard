@@ -617,7 +617,10 @@ export function ChartFrame({
 	const emphasis = useMemo<ChartEmphasis>(() => {
 		const held = pointerReference ?? activeReference
 
-		const rules = pointed ? pointed.rules : held === null ? null : [held]
+		let rules: ChartEmphasis['emphasizedReferences'] = null
+
+		if (pointed) rules = pointed.rules
+		else if (held !== null) rules = [held]
 
 		return {
 			activeReference,

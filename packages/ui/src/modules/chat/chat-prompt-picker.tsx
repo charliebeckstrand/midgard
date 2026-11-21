@@ -66,14 +66,13 @@ export function ChatPromptPicker({
 
 	const slots = k()
 
-	const statusText =
-		status === 'failed'
-			? intl.formatMessage(messages.failed)
-			: items.length > 0
-				? ''
-				: status === 'loading'
-					? intl.formatMessage(messages.loading)
-					: intl.formatMessage(intlMessages.noResults)
+	// A failure always shows. Else the status shows only while the list is empty.
+	let statusText = ''
+
+	if (status === 'failed') statusText = intl.formatMessage(messages.failed)
+	else if (items.length === 0 && status === 'loading')
+		statusText = intl.formatMessage(messages.loading)
+	else if (items.length === 0) statusText = intl.formatMessage(intlMessages.noResults)
 
 	return (
 		<Portal open={open}>

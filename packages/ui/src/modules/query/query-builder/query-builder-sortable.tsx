@@ -53,7 +53,11 @@ type QueryBuilderSortableProps = {
 const getKey = (node: QueryNode) => node.id
 
 /** The step of a key in the column of nodes, or `null` for a key off it. @internal */
-const stepFor = (key: string) => (key === 'ArrowDown' ? 1 : key === 'ArrowUp' ? -1 : null)
+function stepFor(key: string): 1 | -1 | null {
+	if (key === 'ArrowDown') return 1
+
+	return key === 'ArrowUp' ? -1 : null
+}
 
 /** The mark of the node that a drop line borders: the line is above it or below it. @internal */
 type DropMark = 'before' | 'after'
@@ -189,7 +193,9 @@ export function QueryBuilderSortable({
 	const onKeyDown = useStableEvent((id: string, event: KeyboardEvent) => {
 		const key = logicalArrowKey(event.key, event.currentTarget)
 
-		const way = key === 'ArrowRight' ? 'in' : key === 'ArrowLeft' ? 'out' : null
+		const outward = key === 'ArrowLeft' ? 'out' : null
+
+		const way = key === 'ArrowRight' ? 'in' : outward
 
 		if (way === null || liftedId !== id || hasBrowserModifier(event) || event.shiftKey) {
 			onItemKeyDown(id, event)

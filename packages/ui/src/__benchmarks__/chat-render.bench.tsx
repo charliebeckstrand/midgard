@@ -195,6 +195,9 @@ compareBenches(
  * heaviest modules in the package and a light stand-in answers the wrong
  * question: a `Sparkline` per reply measured inside the noise of the same
  * transcript carrying none, which says nothing about a chart.
+ *
+ * The findings are in the Chat section of
+ * [`browser/README.md`](browser/README.md).
  */
 const EMBED_SIZES = [50, 500] as const
 

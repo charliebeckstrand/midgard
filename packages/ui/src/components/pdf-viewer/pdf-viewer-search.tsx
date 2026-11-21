@@ -61,6 +61,11 @@ export function PdfViewerSearch({ disabled }: PdfViewerSearchProps) {
 
 	const noMatch = total === 0
 
+	const statusText =
+		current === null
+			? intl.formatMessage(pdfViewerMessages.noMatches)
+			: intl.formatMessage(pdfViewerMessages.matchOfTotal, { current: current + 1, total })
+
 	return (
 		<Popover
 			// Centered under the control. The panel shifts to stay in the viewport at an edge.
@@ -93,14 +98,7 @@ export function PdfViewerSearch({ disabled }: PdfViewerSearchProps) {
 					/>
 					{/* The live region is always in the tree, so the first change of its text is spoken. */}
 					<span data-slot="pdf-viewer-search-status" {...status}>
-						{query === ''
-							? null
-							: current === null
-								? intl.formatMessage(pdfViewerMessages.noMatches)
-								: intl.formatMessage(pdfViewerMessages.matchOfTotal, {
-										current: current + 1,
-										total,
-									})}
+						{query === '' ? null : statusText}
 					</span>
 					<PdfViewerToolbarButton
 						label={intl.formatMessage(pdfViewerMessages.previousMatch)}

@@ -187,12 +187,15 @@ export function withColumnQuery(
 ): GridColumnFilterState[] {
 	const others = prev.filter((filter) => filter.id !== id)
 
-	const next =
-		query === undefined
-			? others
-			: prev.some((filter) => filter.id === id)
-				? prev.map((filter) => (filter.id === id ? { id, value: query } : filter))
-				: [...prev, { id, value: query }]
+	let next: GridColumnFilterState[] = others
+
+	if (query !== undefined) {
+		const present = prev.some((filter) => filter.id === id)
+
+		next = present
+			? prev.map((filter) => (filter.id === id ? { id, value: query } : filter))
+			: [...prev, { id, value: query }]
+	}
 
 	return next.filter((filter) => !(filterable.has(filter.id) && isVacantFilter(filter.value)))
 }

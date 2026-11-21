@@ -6,7 +6,9 @@ import { BaseSequencer, type TestSpecification } from 'vitest/node'
 
 /** Orders two files by path, so that each shard sees the same order. */
 function byPath(a: TestSpecification, b: TestSpecification): number {
-	return a.moduleId < b.moduleId ? -1 : a.moduleId > b.moduleId ? 1 : 0
+	if (a.moduleId < b.moduleId) return -1
+
+	return a.moduleId > b.moduleId ? 1 : 0
 }
 
 /**

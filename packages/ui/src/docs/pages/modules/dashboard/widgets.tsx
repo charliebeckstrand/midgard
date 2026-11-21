@@ -129,7 +129,9 @@ export function Kpi({ value }: KpiProps) {
 
 	const change = latest && prev?.total ? (latest.total - prev.total) / prev.total : 0
 
-	const trend = change > 0 ? 'up' : change < 0 ? 'down' : 'neutral'
+	const fall = change < 0 ? 'down' : 'neutral'
+
+	const trend = change > 0 ? 'up' : fall
 
 	const total = latest ? formatNumber(latest.total, value === 'revenue' ? dollars : undefined) : '–'
 

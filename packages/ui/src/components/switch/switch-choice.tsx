@@ -148,8 +148,10 @@ export function SwitchChoice<T extends string = string>({
 
 	const selected = current ?? null
 
-	const position: Position =
-		selected === start.value ? 'start' : selected === end.value ? 'end' : 'center'
+	let position: Position = 'center'
+
+	if (selected === start.value) position = 'start'
+	else if (selected === end.value) position = 'end'
 
 	const live = !resolvedReadOnly && !resolvedDisabled
 

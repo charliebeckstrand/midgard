@@ -109,11 +109,9 @@ export function GridFooterBar({ config, stats, scope }: GridFooterProps) {
 
 	// One leading status, chosen by precedence: an active selection replaces the
 	// row-count total in place, its `of` denominator keeping the visible context.
-	const status = showSelected
-		? selectedLabel(intl, stats, scope)
-		: showRowTotal
-			? rowTotalLabel(intl, stats, scope)
-			: null
+	let status = showSelected ? selectedLabel(intl, stats, scope) : null
+
+	if (!showSelected && showRowTotal) status = rowTotalLabel(intl, stats, scope)
 
 	const content = config.content?.(stats)
 

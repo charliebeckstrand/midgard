@@ -51,6 +51,9 @@ function ChatBesideChart() {
 		[picked],
 	)
 
+	// The category that the reader picks on the chart, as a selection.
+	const pickedCategories = picked === null ? [] : [picked]
+
 	return (
 		<>
 			<ChatCitationProvider
@@ -68,9 +71,7 @@ function ChatBesideChart() {
 				data={DATA}
 				series={[{ xKey: 'day', yKey: 'late', yName: 'Late stops' }]}
 				width={400}
-				selectedCategories={
-					cited === null ? (picked === null ? [] : [picked]) : toCategorySelection(cited.selector)
-				}
+				selectedCategories={cited === null ? pickedCategories : toCategorySelection(cited.selector)}
 				onCategoryClick={(day) => {
 					setCited(null)
 

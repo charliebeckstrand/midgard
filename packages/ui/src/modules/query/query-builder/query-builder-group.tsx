@@ -154,6 +154,24 @@ function QueryBuilderGroupImpl({
 		return <QueryBuilderSeparator id={child.id} combinator={child.combinator ?? 'and'} />
 	}
 
+	// A reorderable group lists its rules in a sortable column.
+	const rules = reorderable ? (
+		<QueryBuilderSortable
+			group={group}
+			root={root}
+			dropIndex={dropIndex}
+			separator={separator}
+			node={node}
+		/>
+	) : (
+		group.children.map((child, index) => (
+			<div key={child.id} className={slots.group}>
+				{separator(index)}
+				{node(child)}
+			</div>
+		))
+	)
+
 	return (
 		<Wrapper
 			data-slot="query-group"
@@ -171,21 +189,8 @@ function QueryBuilderGroupImpl({
 						title={intl.formatMessage(queryBuilderMessages.noRules)}
 						className="w-full"
 					/>
-				) : reorderable ? (
-					<QueryBuilderSortable
-						group={group}
-						root={root}
-						dropIndex={dropIndex}
-						separator={separator}
-						node={node}
-					/>
 				) : (
-					group.children.map((child, index) => (
-						<div key={child.id} className={slots.group}>
-							{separator(index)}
-							{node(child)}
-						</div>
-					))
+					rules
 				)}
 			</div>
 
