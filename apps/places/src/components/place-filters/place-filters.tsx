@@ -3,6 +3,7 @@
 import dynamic from 'next/dynamic'
 import { Combobox, ComboboxLabel, ComboboxOption, useComboboxDeferredQuery } from 'ui/combobox'
 import { ControlSkeleton } from 'ui/control'
+import { foldText } from 'ui/core'
 import type { DatePickerRelativeValue } from 'ui/date-picker'
 import {
 	FormFilters,
@@ -21,7 +22,6 @@ import {
 	type PlaceFilterValue,
 	type PlaceVisitFilter,
 } from '../../utilities/places-filter'
-import { foldText } from '../../utilities/places-palette'
 import { CategoryPicker } from '../category-picker'
 
 /**

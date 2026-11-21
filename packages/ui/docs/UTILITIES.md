@@ -177,6 +177,12 @@ Import these from `utilities/overlay-layers`. They tell whether an open overlay 
 | `restoreChoiceCookie` | Writes the value in `localStorage` to the cookie of a choice when the cookie holds no value of the choice. Call it in an effect. Import it from `utilities/stored-choice`. |
 | `subscribeChoices` | Subscribes to the writes of each choice in this page and to the `storage` events of the other tabs. Import it from `utilities/stored-choice`. The hook `useStoredChoice` (`hooks/use-stored-choice`) reads a choice through it. |
 
+## Text
+
+| Export | Summary |
+|---|---|
+| `foldText` | The text with no accents and in lower case, the form that a search compares. The lower case does not read the locale. JsonTree, PdfViewer, and the docs search fold through it, and a Biome plugin finds a fold outside it. Import it from `utilities/fold-text`. An app imports it from `ui/core` ([`CORE.md`](CORE.md)). |
+
 ## Measurement
 
 | Export | Summary |

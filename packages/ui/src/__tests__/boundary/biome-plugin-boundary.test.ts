@@ -166,6 +166,18 @@ export const d = Math.min(v, 10)
 `,
 		},
 	],
+	'no-hand-written-fold': [
+		{
+			file: 'fold.ts',
+			source: `declare const text: string
+export const a = text.normalize('NFD').replace(/\\p{M}/gu, '') // flag
+export const b = text.normalize("NFD") // flag
+export const c = text.normalize('NFKD')
+export const d = text.normalize()
+// text.normalize('NFD') in a comment
+`,
+		},
+	],
 	'no-hand-written-bool-attr': [
 		{
 			file: 'attr.tsx',

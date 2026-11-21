@@ -600,6 +600,16 @@
 		{
 			"includes": [
 				"packages/ui/src/**",
+				"apps/**",
+				"!**/__tests__/**",
+				"!**/__benchmarks__/**",
+				"!packages/ui/src/utilities/fold-text.ts"
+			],
+			"plugins": ["./.biome/plugins/no-hand-written-fold.grit"]
+		},
+		{
+			"includes": [
+				"packages/ui/src/**",
 				"packages/shared/src/**",
 				"!**/__tests__/**",
 				"!**/__benchmarks__/**"
