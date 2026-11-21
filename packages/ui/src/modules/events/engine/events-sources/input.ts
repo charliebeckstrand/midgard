@@ -38,7 +38,7 @@ function isNamedKey(key: string): boolean {
 
 /**
  * Whether the events mask the key of a keyboard event: a key that types text
- * into a password field.
+ * into a secret field ({@link isSecret}).
  */
 function isMasked(event: KeyboardEvent): boolean {
 	return isSecret(event.target) && !isNamedKey(event.key)

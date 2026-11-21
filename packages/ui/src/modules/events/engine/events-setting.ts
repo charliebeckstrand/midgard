@@ -81,6 +81,13 @@ export function isEventsOn(): boolean {
  * recorder runs, or at once while the setting is off. A recorder that fails
  * to load leaves the events off for this page load, and the promise resolves,
  * so the page still hydrates.
+ *
+ * The trail writes `***` for the value of a secret field and for each
+ * character that a key types into it. A password field is a secret field. So
+ * is an input with the `autocomplete` token `cc-number`, `cc-exp`, `cc-csc`,
+ * or `one-time-code`. So is an `input` or a `textarea` in an element with the
+ * `data-events-mask` attribute. Put `data-events-mask` on each other field
+ * that holds a secret, or on its form.
  */
 export function startEvents(next: StartEventsOptions = {}): Promise<void> {
 	options = next

@@ -19,7 +19,7 @@ export function isOwn(target: unknown): boolean {
 
 /**
  * The text that the events write in place of a secret: the value of a
- * password field, and each character that a key types into it. It has a
+ * secret field, and each character that a key types into it. It has a
  * fixed length, so it does not tell the length of the secret.
  *
  * @internal
@@ -27,19 +27,45 @@ export function isOwn(target: unknown): boolean {
 export const MASK = '***'
 
 /**
- * The password fields: each input of type `password`, and each
- * `PasswordInput`, which keeps its slot while it shows the password as text.
+ * The attribute that masks each `input` and `textarea` in its element, and
+ * the element itself. An app puts it on a form or a field that holds a
+ * secret which no `autocomplete` token names.
+ *
+ * @internal
  */
-const SECRET = 'input[type="password"], input[data-slot="password-input"]'
+export const MASK_ATTRIBUTE = 'data-events-mask'
 
-/** Whether an event target is a password field, whose value the events do not write. @internal */
+/**
+ * The `autocomplete` tokens of a secret field: the parts of a card that
+ * `CreditCardInput` renders, and a one-time code. A token matches in any
+ * case and after a section or a billing token, as HTML permits.
+ */
+const SECRET_TOKENS = ['cc-number', 'cc-exp', 'cc-csc', 'one-time-code']
+
+/**
+ * The secret fields: each input of type `password`, each `PasswordInput`,
+ * which keeps its slot while it shows the password as text, each input with
+ * a token of {@link SECRET_TOKENS}, and each field in an element with
+ * {@link MASK_ATTRIBUTE}.
+ */
+const SECRET = [
+	'input[type="password"]',
+	'input[data-slot="password-input"]',
+	...SECRET_TOKENS.map((token) => `input[autocomplete~="${token}" i]`),
+	`:is(input, textarea):is([${MASK_ATTRIBUTE}], [${MASK_ATTRIBUTE}] *)`,
+].join(', ')
+
+/** Whether an event target is a secret field, whose value and typed characters the events do not write. @internal */
 export function isSecret(target: unknown): boolean {
-	return target instanceof HTMLInputElement && target.matches(SECRET)
+	return (
+		(target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) &&
+		target.matches(SECRET)
+	)
 }
 
 /**
  * A short name of an event target: the tag, the anchor, and the value of an
- * input. The value of a password field is {@link MASK}.
+ * input. The value of a secret field ({@link isSecret}) is {@link MASK}.
  *
  * @internal
  */
