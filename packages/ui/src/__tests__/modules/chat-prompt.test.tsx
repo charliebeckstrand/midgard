@@ -168,12 +168,44 @@ describe('ChatPrompt', () => {
 
 			const el = getSlot<HTMLTextAreaElement>(container, 'chat-prompt')
 
+			// The caret is before the last letter of the citation.
+			await setupUser().type(el, '{Backspace}', {
+				initialSelectionStart: QUOTE.length - 1,
+				initialSelectionEnd: QUOTE.length - 1,
+			})
+
+			expect(el.value).toBe('@Late stos by day')
+
+			expect(onCitations).toHaveBeenLastCalledWith([])
+		})
+
+		it('deletes a whole citation on a Backspace at its end', async () => {
+			const onCitations = vi.fn()
+
+			const { container } = renderUI(<Scoped onCitations={onCitations} />)
+
+			const el = getSlot<HTMLTextAreaElement>(container, 'chat-prompt')
+
 			await setupUser().type(el, '{Backspace}', {
 				initialSelectionStart: QUOTE.length,
 				initialSelectionEnd: QUOTE.length,
 			})
 
-			expect(el.value).toBe('@Late stop by day')
+			expect(el.value).toBe(' by day')
+
+			expect(onCitations).toHaveBeenLastCalledWith([])
+		})
+
+		it('deletes a whole citation on a Delete at its start', async () => {
+			const onCitations = vi.fn()
+
+			const { container } = renderUI(<Scoped onCitations={onCitations} />)
+
+			const el = getSlot<HTMLTextAreaElement>(container, 'chat-prompt')
+
+			await setupUser().type(el, '{Delete}', { initialSelectionStart: 0, initialSelectionEnd: 0 })
+
+			expect(el.value).toBe(' by day')
 
 			expect(onCitations).toHaveBeenLastCalledWith([])
 		})
