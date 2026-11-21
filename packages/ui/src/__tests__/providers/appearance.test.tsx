@@ -4,6 +4,7 @@ import { type ReactElement, use } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { readRootDensity, writeRootDensity } from '../../core/density'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
+import { useStoredChoice } from '../../hooks/use-stored-choice'
 import { SidebarLayout } from '../../layouts/sidebar/sidebar'
 import { useDensityStep } from '../../primitives/density'
 import { ReducedMotion } from '../../primitives/reduced-motion'
@@ -14,12 +15,11 @@ import {
 	AppearanceSidebarField,
 	useAppearance,
 } from '../../providers/appearance'
-import { type AppearanceChoice, parseChoice } from '../../providers/appearance/appearance-storage'
-import { useAppearanceChoice } from '../../providers/appearance/use-appearance-choice'
 import { useGlass, useResolvedSurface } from '../../providers/glass'
 import { useReaderSurface } from '../../providers/glass/context'
 import { LocaleProvider, useLocale } from '../../providers/locale'
 import { writeCookie } from '../../utilities/cookie'
+import { parseChoice, type StoredChoice } from '../../utilities/stored-choice'
 import {
 	act,
 	bySlot,
@@ -588,14 +588,14 @@ function LocaleOutput() {
 }
 
 /** A stored choice, with its copy in the cookie of the same name. */
-const MIRRORED: AppearanceChoice<'a' | 'b'> = {
+const MIRRORED: StoredChoice<'a' | 'b'> = {
 	key: 'mirrored',
 	values: ['a', 'b'],
 	fallback: 'a',
 }
 
 function MirroredProbe() {
-	const [value, setValue] = useAppearanceChoice(MIRRORED)
+	const [value, setValue] = useStoredChoice(MIRRORED)
 
 	return (
 		<button type="button" onClick={() => setValue('b')}>

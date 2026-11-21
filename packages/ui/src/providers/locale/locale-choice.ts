@@ -1,10 +1,10 @@
 import { getLanguage } from '../../primitives/intl/intl-language'
 import {
-	type AppearanceChoice,
 	parseChoice,
 	readChoice,
+	type StoredChoice,
 	subscribeChoices,
-} from '../appearance/appearance-storage'
+} from '../../utilities/stored-choice'
 
 /**
  * The stored locale choice that follows the languages of the browser. A reader
@@ -30,7 +30,7 @@ export const LOCALE_COOKIE = 'locale'
  *
  * @internal
  */
-export function localeChoice(locales: readonly string[]): AppearanceChoice<string> {
+export function localeChoice(locales: readonly string[]): StoredChoice<string> {
 	return {
 		key: LOCALE_COOKIE,
 		values: [SYSTEM_LOCALE, ...locales],
@@ -145,7 +145,7 @@ export function resolveRequestLocale({
  * @internal
  */
 export function resolveLocaleChoice(
-	choice: AppearanceChoice<string>,
+	choice: StoredChoice<string>,
 	locales: readonly string[],
 	fallback: string,
 ): string {

@@ -5,10 +5,11 @@ import {
 	SidebarLayoutBody,
 	SidebarLayoutHeader,
 } from '../../layouts/sidebar/sidebar'
-import { readChoice, SIDEBAR, writeChoice } from '../../providers/appearance/appearance-storage'
+import { SIDEBAR } from '../../providers/appearance/appearance-storage'
 import { LocaleProvider } from '../../providers/locale'
 import { dan } from '../../recipes/kiso/dan'
 import { adaptive, BREAKPOINT_WIDTHS } from '../../utilities/responsive'
+import { readChoice, writeChoice } from '../../utilities/stored-choice'
 import {
 	act,
 	bySlot,

@@ -5,23 +5,15 @@ import { writeRootDensity } from '../../core/density/steps'
 import { ROOT_REDUCED_MOTION_CLASS } from '../../core/motion/root'
 import { ROOT_OFFCANVAS_SIDEBAR_CLASS } from '../../core/sidebar/root'
 import { ROOT_GLASS_SURFACES_CLASS } from '../../core/surfaces/root'
+import { useStoredChoice } from '../../hooks/use-stored-choice'
 import { ReducedMotionContext } from '../../primitives/reduced-motion/context'
 import { matchesMediaQuery, subscribeMediaQuery } from '../../utilities/media-query'
+import { readChoice, subscribeChoices } from '../../utilities/stored-choice'
 import { levelToStep } from '../density/context'
 import { GlassSurfacesContext } from '../glass/context'
-import {
-	DARK_SCHEME,
-	DENSITY,
-	MOTION,
-	readChoice,
-	SIDEBAR,
-	SURFACES,
-	subscribeChoices,
-	THEME,
-} from './appearance-storage'
+import { DARK_SCHEME, DENSITY, MOTION, SIDEBAR, SURFACES, THEME } from './appearance-storage'
 import { AppearanceContext } from './context'
 import { FontScript } from './font-script'
-import { useAppearanceChoice } from './use-appearance-choice'
 
 /** Props for {@link AppearanceProvider}: the `children` that take the appearance, and the font switch. */
 export type AppearanceProviderProps = {
@@ -95,15 +87,15 @@ export type AppearanceProviderProps = {
  * hydration render also uses the defaults.
  */
 export function AppearanceProvider({ children, font = true }: AppearanceProviderProps) {
-	const [theme, setTheme] = useAppearanceChoice(THEME)
+	const [theme, setTheme] = useStoredChoice(THEME)
 
-	const [density, setDensity] = useAppearanceChoice(DENSITY)
+	const [density, setDensity] = useStoredChoice(DENSITY)
 
-	const [motion, setMotion] = useAppearanceChoice(MOTION)
+	const [motion, setMotion] = useStoredChoice(MOTION)
 
-	const [sidebar, setSidebar] = useAppearanceChoice(SIDEBAR)
+	const [sidebar, setSidebar] = useStoredChoice(SIDEBAR)
 
-	const [surfaces, setSurfaces] = useAppearanceChoice(SURFACES)
+	const [surfaces, setSurfaces] = useStoredChoice(SURFACES)
 
 	useEffect(() => {
 		// The classes on the root are side effects, not rendered state, so the

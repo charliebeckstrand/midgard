@@ -22,18 +22,19 @@ import { createSlot } from '../../core/create-slot'
 import { useIsRtl } from '../../hooks/use-is-rtl'
 import { useKeybindings } from '../../hooks/use-keybindings'
 import { OFFCANVAS_LAYOUT, type OffcanvasLayout, useOffcanvas } from '../../hooks/use-offcanvas'
+import { useStoredChoice } from '../../hooks/use-stored-choice'
 import { Menu } from '../../primitives/icons/icons'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { Landmark } from '../../primitives/landmark'
 import { OffcanvasContext } from '../../primitives/offcanvas/context'
 import { Portal } from '../../primitives/portal'
-import { readChoice, SIDEBAR, writeChoice } from '../../providers/appearance/appearance-storage'
-import { useAppearanceChoice } from '../../providers/appearance/use-appearance-choice'
+import { SIDEBAR } from '../../providers/appearance/appearance-storage'
 import { k } from '../../recipes/kata/sidebar-layout'
 import { Flex } from '../../structure/flex'
 import type { Responsive } from '../../utilities/responsive'
 import { scrollWithin } from '../../utilities/scroll-within'
+import { readChoice, writeChoice } from '../../utilities/stored-choice'
 import { SidebarLayoutContext } from './context'
 import { useStickyBars } from './use-sticky-bars'
 
@@ -195,7 +196,7 @@ export function SidebarLayout({
 
 	const [floatingOpen, setFloatingOpen] = useState(false)
 
-	const [mode] = useAppearanceChoice(SIDEBAR)
+	const [mode] = useStoredChoice(SIDEBAR)
 
 	const [prevMode, setPrevMode] = useState(mode)
 
