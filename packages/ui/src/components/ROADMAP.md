@@ -78,10 +78,6 @@ The apps copy parts of the kit by hand in several places: a focus outline, a fol
 
    Put one `foldText` in `utilities/`, use it in the two components, and export it to the apps through `ui/core`. A Biome plugin that finds `.normalize('NFD')` outside the home can hold the rule. The change crosses packages, so surface the approach first (CLAUDE.md §3.1).
 
-3. **CollapsePanel: the element that takes `className` (*P2*).** `AccordionPanel` puts `className` on an inner body, so a padding stays out of the height that animates. `CollapsePanel` puts `className` on the animated element itself. There a padding gives the panel a height of its own at the start and at the end of the motion. `UncalledTable` in Elections thus wraps its content in a `<div className="pt-4">`.
-
-   Give `CollapsePanel` the rule of `AccordionPanel`: the animated element takes the other props, and an inner body takes `className`. Proof: a `collapse.test.tsx` case that finds the class on the body, and a padding case in `browser/collapse-nested.test.tsx`.
-
 ## Performance
 
 1. **DatePicker, ColorPicker, Combobox: the cost of a closed picker (*P2*).** A form can hold a closed picker in each row. The stops field of Places (`apps/places/src/components/place-form-drawer/trip-stops-field.tsx`) renders a `DatePicker` and an `AddressInput` for each stop. The browser suite measures the closed shell of a menu (`menu-mount.bench.tsx`) and of a popover (`popover-mount.bench.tsx`), but not of a picker. `combobox.bench.tsx` measures a closed `Combobox` only under jsdom. Add a browser bench for a closed picker on the shape of `popover-mount.bench.tsx`, with a rung for each picker. Record its findings in a dated section of `__benchmarks__/browser/README.md`, and gate the costly parts of a closed picker, as the menu work did.

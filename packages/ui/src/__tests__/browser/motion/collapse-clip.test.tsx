@@ -55,16 +55,20 @@ async function watch(done: () => boolean): Promise<Sample[]> {
 const moving = (samples: Sample[], open: number) =>
 	samples.filter((sample) => sample.height < open - 1)
 
-function Disclosure(props: {
+function Disclosure({
+	className,
+	...props
+}: {
 	animate?: 'fade' | 'slide' | false
 	defaultOpen?: boolean
 	mount?: Mount
 	onOpenComplete?: () => void
+	className?: string
 }) {
 	return (
 		<Collapse {...props}>
 			<CollapseTrigger>Toggle</CollapseTrigger>
-			<CollapsePanel>
+			<CollapsePanel className={className}>
 				<div style={{ height: 120 }}>
 					<a href="#edge">Edge link</a>
 				</div>
@@ -112,6 +116,32 @@ describe('the clip of a Collapse panel (real Motion)', () => {
 			expect(steps.length).toBeGreaterThan(0)
 
 			expect(steps.filter((sample) => sample.overflow !== 'hidden')).toEqual([])
+		},
+	)
+
+	it.each(['fade', 'slide'] as const)(
+		'keeps a padding of the className inside the height that moves, animate=%s',
+		async (animate) => {
+			const onOpenComplete = vi.fn()
+
+			renderUI(<Disclosure animate={animate} className="py-4" onOpenComplete={onOpenComplete} />)
+
+			const opening = watch(() => onOpenComplete.mock.calls.length > 0)
+
+			await toggle()
+
+			const samples = await opening
+
+			const body = present(document.querySelector('[data-slot="collapse-body"]'), 'body')
+
+			// The control: the padding is on the body, and the open panel holds it.
+			expect(getComputedStyle(body).paddingTop).toBe('16px')
+
+			expect(panel().getBoundingClientRect().height).toBe(120 + 32)
+
+			// On the element whose height moves, the padding would hold the panel at
+			// 32 px or more, so the open would jump from zero.
+			expect(Math.min(...samples.map((sample) => sample.height))).toBeLessThan(32)
 		},
 	)
 

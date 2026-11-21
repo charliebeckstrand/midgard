@@ -47,23 +47,21 @@ export function UncalledTable({
 				</Flex>
 			</CollapseTrigger>
 
-			<CollapsePanel>
-				<div className="pt-4">
-					<Suspense
-						fallback={
-							<div aria-busy="true">
-								<Placeholder className="h-64" />
-							</div>
-						}
-					>
-						<UncalledGrid
-							entries={entries}
-							sort={sort}
-							onSortChange={setSort}
-							onPick={(entry) => go(entryStep(entry))}
-						/>
-					</Suspense>
-				</div>
+			<CollapsePanel className="pt-4">
+				<Suspense
+					fallback={
+						<div aria-busy="true">
+							<Placeholder className="h-64" />
+						</div>
+					}
+				>
+					<UncalledGrid
+						entries={entries}
+						sort={sort}
+						onSortChange={setSort}
+						onPick={(entry) => go(entryStep(entry))}
+					/>
+				</Suspense>
 			</CollapsePanel>
 		</Collapse>
 	)
