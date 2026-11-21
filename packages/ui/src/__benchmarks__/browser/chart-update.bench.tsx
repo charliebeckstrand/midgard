@@ -79,8 +79,8 @@ compareBenches(
 	WINDOW.slow,
 )
 
-// New values change the percent in each callout, so each redraw measures the
-// callout texts again.
+// The two sets of percents alternate, so after the first two redraws each
+// callout text is already measured, and a redraw measures no label again.
 compareBenches('update · pie · callouts · 8 slices', (bench) => {
 	benches(bench, pie8)
 })

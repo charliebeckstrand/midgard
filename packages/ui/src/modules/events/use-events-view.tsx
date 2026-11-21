@@ -17,6 +17,7 @@ import { Play, Square } from '../../primitives/icons/icons'
 import { intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { formatMarkdown } from './engine/events-report'
+import { hasSendPort } from './engine/events-send'
 import type { EventStore } from './engine/events-store'
 import { formatRow, getKindWidth, groupRows } from './engine/events-text'
 import { EventsCopyButton } from './events-copy-button'
@@ -24,6 +25,7 @@ import { EventsFlagField } from './events-flag-field'
 import { EventsList, type EventsOpenState } from './events-list'
 import { bugsCountMessage, eventsMessages } from './events-messages'
 import { EventsReportList, type ReportEntry } from './events-report-list'
+import { EventsSendButton } from './events-send-button'
 import { useEvents } from './use-events'
 
 /** The tab of the view. */
@@ -51,7 +53,7 @@ export type EventsViewParts = {
  * event, newest first, with "Preserve" and "Batch", then Copy, Capture, and
  * Clear. The Bugs tab shows the events with a report: the bugs and the
  * captures. A report shows in place of the list, with its crumbs, and Copy
- * and Delete of that report. Capture is a switch: "Stop capture" ends the
+ * and Delete of that report, then Send when the app gives `sendReport`. Capture is a switch: "Stop capture" ends the
  * capture and shows its report.
  *
  * @param live - Whether the view renders for each new event, such as the open state of a sheet.
@@ -200,6 +202,8 @@ export function useEventsView(live: boolean): EventsViewParts {
 					>
 						{intl.formatMessage(eventsMessages.delete)}
 					</Button>
+					{/* The key names the report, so the button of one report does not go to another. */}
+					{hasSendPort() && <EventsSendButton key={`send-${report.id}`} entry={report} />}
 				</>
 			),
 		}

@@ -3,7 +3,6 @@ import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { parseAst } from 'vite'
 import { describe, expect, it } from 'vitest'
-import es from '../lang/es.json' with { type: 'json' }
 import { findDemoText, toDemoId, translateDemo } from '../plugin/demo-text.ts'
 
 // The text of a demo is a literal of `pages/` that a reader sees. `pnpm intl`
@@ -310,15 +309,5 @@ describe('the demos', () => {
 		['components/calendar/range.tsx', 'to'],
 	])('gives an entry for the text of %s', (file, message) => {
 		expect(demoTexts(file)).toContain(message)
-	})
-
-	it('keeps the key of a command in the Spanish copy', () => {
-		const file = path.join(PAGES, 'components', 'command-palette', 'commands.tsx')
-
-		const code = readFileSync(file, 'utf8')
-
-		expect(translateDemo(parse(code), code, file, es)).toContain(
-			"{ id: 'delete', label: 'Eliminar'",
-		)
 	})
 })

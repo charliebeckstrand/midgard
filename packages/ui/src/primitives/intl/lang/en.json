@@ -147,6 +147,10 @@
 		"defaultMessage": "Bad reply",
 		"description": "The name of the button that rates a reply of the assistant as bad."
 	},
+	"ui.chat.citationMarked": {
+		"defaultMessage": "Selects in {label}. The selection in that view matches it.",
+		"description": "The description of a phrase of a chat reply that selects items in a view beside the chat, while the items that a reader selected in the view match the phrase. The label is the name of the view, such as \"Late stops by day\"."
+	},
 	"ui.chat.citationSelects": {
 		"defaultMessage": "Selects in {label}",
 		"description": "The description of a phrase of a chat reply that selects items in a view beside the chat. The label is the name of the view, such as \"Late stops by day\"."
@@ -630,6 +634,22 @@
 	"ui.events.preserve": {
 		"defaultMessage": "Preserve",
 		"description": "The label of the checkbox that keeps the events through a reload of the page."
+	},
+	"ui.events.send": {
+		"defaultMessage": "Send",
+		"description": "The button that sends one bug report of the debug tool to the issue tracker of the app."
+	},
+	"ui.events.sendFailed": {
+		"defaultMessage": "Send failed",
+		"description": "The label of the send button of the debug tool after a send fails. A press sends again."
+	},
+	"ui.events.sending": {
+		"defaultMessage": "Sending",
+		"description": "The label of the send button of the debug tool while the send runs."
+	},
+	"ui.events.sent": {
+		"defaultMessage": "Sent",
+		"description": "The label of the send button of the debug tool after the issue tracker holds the report."
 	},
 	"ui.events.stopCapture": {
 		"defaultMessage": "Stop capture",

@@ -6,9 +6,11 @@
  * (synchronous cleanup, so `autoUpdate`'s teardown runs without waiting on the
  * exit animation).
  *
- * `track: 'auto'` wires floating-ui's `autoUpdate` on every open: an
- * IntersectionObserver + a ResizeObserver + ancestor scroll/resize listeners,
- * set up on mount and torn down on unmount. `track: 'point'` drops them for a
+ * `track: 'auto'` wires `trackPanel` of the package on every open: the
+ * `autoUpdate` of floating-ui, which adds scroll and resize listeners on the
+ * overflow ancestors of the panel, and one ResizeObserver on the panel. The
+ * point anchor is a virtual element with no context element, so no layout
+ * shift observer runs. They are set up on mount and torn down on unmount. `track: 'point'` drops them for a
  * surface that already repositions on each point change. The enter-motion cost
  * is identical for both bars, so it cancels: the gap between them is the
  * observer setup/teardown alone.

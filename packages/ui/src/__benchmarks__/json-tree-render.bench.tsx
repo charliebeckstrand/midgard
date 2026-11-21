@@ -1,5 +1,5 @@
 /**
- * JsonTree's render cost: the `JsonNode` recursion and `filterEntries` dominate
+ * JsonTree's render cost: the `JsonTreeNode` recursion and `filterEntries` dominate
  * it, and `json-tree.bench.ts` isolates that pure logic one rung down. The
  * scenarios span expansion depth, an active search (highlight against prune),
  * and the virtualized window, plus a controlled toggle that re-renders a

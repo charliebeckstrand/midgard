@@ -2,8 +2,10 @@
  * One mount/update/destroy adapter for each chart family of the ui module. The
  * module renders through React (`createRoot` + `flushSync`), which is the
  * synchronous commit that the interaction handler of a consumer pays. The
- * animations are off, and each chart draws into the same fixed 800×450 box, so
- * no mount waits on a `ResizeObserver` before its first real paint.
+ * animations are off, and each chart draws at the same fixed 800px width, so
+ * no mount waits on a `ResizeObserver` before its first real paint. The line,
+ * bar, and scatter charts take the default 16/9 height (450px). The pie and
+ * the heatmap fit their height to their content.
  */
 
 import type { ReactElement } from 'react'

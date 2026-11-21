@@ -108,7 +108,8 @@ compareBenches('grid-sort · toSortKey (decorate step)', (bench) => {
 compareBenches('grid-sort · parseNumeric (per-value)', (bench) => {
 	// The regex core of the decorate step, over the value shapes it must
 	// disambiguate. `(1,234)` and `$1,234.50` take the full strip-and-parse path;
-	// `Item 10` and the ISO date take the strip path only to fail the decimal test.
+	// `Item 10` fails the first-character gate at once. The ISO date passes the
+	// gate and takes the strip path only to fail the decimal test.
 	const samples: unknown[] = [1234.5, '$1,234.50', '(1,234)', '45%', 'Item 10', '2024-01-05']
 
 	bench('mixed value shapes · 6 per iter', () => {

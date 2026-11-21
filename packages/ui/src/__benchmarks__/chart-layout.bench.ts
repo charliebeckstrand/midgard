@@ -84,9 +84,9 @@ compareBenches('chart-layout · cartesian layout (every mount, every resize fram
 
 compareBenches('chart-layout · thinned (band label fit)', (bench) => {
 	// The category-label decimation the band axis runs whenever labels would
-	// collide. It allocates an index array the length of the dataset before
-	// filtering it, so it is O(categories) on a chart whose axis can only ever
-	// show a few dozen labels.
+	// collide. It steps by the thinning stride, so it is O(labels) and flat in
+	// the category count. The rows guard that it stays flat on a chart whose
+	// axis can only ever show a few dozen labels.
 	for (const count of [1_000, 10_000, 100_000]) {
 		bench(`${count.toLocaleString()} categories → ~${Math.floor(WIDTH / 60)} labels`, () => {
 			thinned(count, WIDTH, 60)
@@ -242,14 +242,21 @@ compareBenches('chart-hit-test · thinMarksAt (every pointer move)', (bench) => 
 
 		const label = `${count.toLocaleString()} pts × ${seriesCount} series`
 
-		// Mid-plot: the scan runs to completion and resolves a hit.
+		// A point on the first line at mid-plot, so the pointer is in reach.
+		const mid = Math.floor(count / 2)
+
+		const onLine = [xs[mid] as number, scale.map(values[0]?.[mid] as number)] as const
+
+		// On the first line: the scan resolves a hit. Each line is one run, so the
+		// scan walks the whole trace on a hit too.
 		bench(`${label} · hit`, () => {
-			thinMarksAt(seriesRuns, [], WIDTH / 2, HEIGHT / 2)
+			thinMarksAt(seriesRuns, [], onLine[0], onLine[1])
 		})
 
-		// Off every line: no candidate ever beats the tolerance, so the scan pays
-		// its full length with nothing to short-circuit on, the worst case, and
-		// the one a pointer in the plot's empty upper corner actually hits.
+		// Off every line: no candidate beats the tolerance. The scan pays the same
+		// full length as a hit, and this is the case that a pointer in the empty
+		// upper corner of the plot hits. Only a spatial index or an x-bucketed skip
+		// would make the two rows differ.
 		bench(`${label} · miss`, () => {
 			thinMarksAt(seriesRuns, [], WIDTH / 2, -500)
 		})

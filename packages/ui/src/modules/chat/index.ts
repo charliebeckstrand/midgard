@@ -15,7 +15,12 @@ export {
 	type ChatTranscriptSkeletonProps,
 } from './chat-transcript-skeleton'
 export type { ChatBranch } from './engine/chat-branch/types'
-export { toCategorySelection } from './engine/chat-citation'
+export {
+	type ChatStopSelection,
+	toCategorySelection,
+	toRegionSelection,
+	toStopSelection,
+} from './engine/chat-citation'
 export { chatContentText } from './engine/chat-content/text'
 export type {
 	ChatCitation,

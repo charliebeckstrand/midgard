@@ -122,7 +122,10 @@ export const k = defineKata({
 		// each bubble. A dotted underline marks it at rest. An inset ring of
 		// `currentColor` and a solid underline mark it while it is pressed, as the
 		// `tool` box rides `currentColor`. A fill would change the background of
-		// the text, and on the user bubble that lowers the contrast below 4.5:1.
+		// the text, and on the user bubble that lowers the contrast below 4.5:1. A
+		// solid underline of full ink and double weight marks it while the
+		// selection of its view matches it. That look is apart from the ring,
+		// because a press then changes what the board shows.
 		citation: [
 			'cursor-pointer rounded-sm text-inherit box-decoration-clone',
 			'underline decoration-dotted decoration-current/60 underline-offset-2',
@@ -130,6 +133,7 @@ export const k = defineKata({
 			'data-pressed:ring-1 data-pressed:ring-current data-pressed:ring-inset data-pressed:decoration-solid',
 			// Forced colors remove the ring, which is a box-shadow. An outline keeps the mark.
 			'forced-colors:data-pressed:outline-solid forced-colors:data-pressed:outline-1',
+			'data-marked:decoration-current data-marked:decoration-solid data-marked:decoration-2',
 			focus.ring,
 		],
 		// A citation that selects in no view, such as a dataset that scopes a
@@ -138,7 +142,7 @@ export const k = defineKata({
 		// the text of an agent cannot look like a citation. In the user bubble, it
 		// is bold, as Markdown draws bold. The words are the words of the reader,
 		// and a fill on the blue bubble is too heavy.
-		citationMark: [
+		citationStatic: [
 			'box-decoration-clone',
 			'in-data-[sender=user]:font-bold',
 			'in-data-[sender=assistant]:rounded-md in-data-[sender=assistant]:px-1 in-data-[sender=assistant]:font-medium',

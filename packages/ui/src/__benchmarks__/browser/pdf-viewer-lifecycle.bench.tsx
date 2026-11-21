@@ -30,7 +30,8 @@
  * dominates, so the expensive half of an unpark is now the React tree rather than the document,
  * which is the whole point of the cache. And the cache-backed path costs a little more per mount
  * than pre-supplied pages: the store subscription plus the load-guard effect, paid once per mount,
- * against the document fetch and fourteen rasterizations it replaces.
+ * against the fetch and parse of the document and the renders of the shown pages that it
+ * replaces.
  *
  * So this bench is the regression guard on the mount path, and the floor any future
  * `keepMounted`-style change to the parking panel would be trying to reclaim.

@@ -38,7 +38,7 @@ compareBenches('grid-export · rowsToCsv', (bench) => {
 })
 
 compareBenches('grid-export · rowsToHtmlTable', (bench) => {
-	// Same shape as rowsToCsv (backs the Excel and print exporters); `escape-heavy`
+	// Same shape as rowsToCsv (backs the print exporter); `escape-heavy`
 	// forces `&<>` entity encoding on every cell.
 	for (const count of [10, 50, 1_000]) {
 		const plain = shipments(count)

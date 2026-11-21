@@ -9,11 +9,11 @@
  * `empty spans` carries the host, the React root, and 24 trivial elements, so
  * every later rung reads against it. `plain svg` swaps in the markup lucide
  * emits, which prices the SVG elements themselves. `lucide bare` renders the
- * real component, which adds two `forwardRef` layers, a context read, and two
- * regular-expression passes over the icon's name per render. `Icon + lucide`
- * adds this package's wrapper: one component, one `cloneElement`, and one `cn`
- * call. The last rung takes the numeric-size branch, which also builds a
- * `style` object.
+ * real component, which adds two `forwardRef` layers, a context read, and a
+ * build of the attribute object and the class list per render. `Icon + lucide`
+ * adds this package's wrapper: one component, one `cloneElement`, one memoized
+ * kata read, and one `cn` call. The last rung takes the numeric-size branch,
+ * which skips the kata read and builds a `style` object.
  *
  * A mount is what a reader pays for an icon, so every rung mounts and tears
  * down. No memo can help there, which is why no rung re-renders.
@@ -43,7 +43,7 @@ function PlainSvg() {
 			strokeWidth={2}
 			strokeLinecap="round"
 			strokeLinejoin="round"
-			className="lucide lucide-square-pen"
+			className="lucide lucide-square-pen lucide-pen-box lucide-edit lucide-pen-square"
 			aria-hidden="true"
 		>
 			<path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />

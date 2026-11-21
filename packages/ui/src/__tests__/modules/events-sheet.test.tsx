@@ -486,6 +486,98 @@ describe('EventsSheet Bugs', () => {
 	})
 })
 
+describe('EventsSheet Send', () => {
+	/** Opens the report of a new bug in a sheet whose app gives `port`. */
+	async function openReport(port?: () => Promise<unknown>) {
+		await startEvents(port ? { sendReport: port } : {})
+
+		onTestFinished(() => startEvents())
+
+		const sheet = renderSheet()
+
+		reportBug(new Error('boom'))
+
+		sheet.open()
+
+		fireEvent.click(screen.getByText('caught boom'))
+
+		// The code blocks of the report highlight after they mount.
+		await waitFor(() => {
+			for (const block of document.querySelectorAll('[data-slot="code-block"]')) {
+				expect(block.querySelector('pre.shiki')).not.toBeNull()
+			}
+		})
+	}
+
+	it('shows Send only while the app gives a port', async () => {
+		await openReport()
+
+		expect(screen.getByRole('button', { name: 'Copy' })).toBeDefined()
+
+		expect(screen.queryByRole('button', { name: 'Send' })).toBeNull()
+	})
+
+	it('sends the report, keeps the focus on the button while it runs, and shows Sent', async () => {
+		const send = deferred()
+
+		const port = vi.fn(() => send.promise)
+
+		await openReport(port)
+
+		const button = screen.getByRole('button', { name: 'Send' })
+
+		button.focus()
+
+		act(() => {
+			fireEvent.click(button)
+		})
+
+		expect(button.getAttribute('aria-busy')).toBe('true')
+
+		expect(button.textContent).toContain('Sending')
+
+		expect(document.activeElement).toBe(button)
+
+		// A press while the send runs sends nothing.
+		fireEvent.click(button)
+
+		await act(async () => {
+			send.resolve()
+		})
+
+		expect(button.textContent).toBe('Sent')
+
+		expect(document.activeElement).toBe(button)
+
+		fireEvent.click(button)
+
+		expect(port).toHaveBeenCalledTimes(1)
+	})
+
+	it('shows Send failed after a rejection, and a press sends again', async () => {
+		const port = vi
+			.fn<() => Promise<void>>()
+			.mockRejectedValueOnce(new Error('403'))
+			.mockResolvedValueOnce()
+
+		await openReport(port)
+
+		await act(async () => {
+			fireEvent.click(screen.getByRole('button', { name: 'Send' }))
+		})
+
+		const button = screen.getByRole('button', { name: 'Send failed' })
+
+		await act(async () => {
+			fireEvent.click(button)
+		})
+
+		expect(button.textContent).toBe('Sent')
+
+		expect(port).toHaveBeenCalledTimes(2)
+	})
+})
+
 describe('pin', () => {
 	it('pins the view from the sheet, and the panel unpins it', async () => {
 		// The attribute of the pin follows the pin only while the events run.

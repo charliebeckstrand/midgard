@@ -1,7 +1,7 @@
 // @vitest-environment node
 
 import { isQueryActive } from '../modules/query/engine/query-active'
-import { evaluateQuery, matchQueryRule } from '../modules/query/engine/query-evaluate'
+import { compileQuery, evaluateQuery, matchQueryRule } from '../modules/query/engine/query-evaluate'
 import { formatQuerySummary, summarizeQuery } from '../modules/query/engine/query-summary'
 import type { QueryGroup, QueryNode } from '../modules/query/engine/types'
 import { compareBenches } from './compare'
@@ -75,14 +75,27 @@ compareBenches('query-evaluate · evaluateQuery (once per row)', (bench) => {
 })
 
 compareBenches('query-evaluate · a client-side filter pass (1,000 rows)', (bench) => {
-	// What the per-row number above multiplies out to. A grid filtering its own
-	// rows runs this on every keystroke that edits the query, and again on every
-	// dataset refresh, so the per-row walk is charged a thousand times here, and
-	// a hundred thousand times on a dashboard-sized set.
+	// What the per-row number above multiplies out to. A filter runs this on
+	// every keystroke that edits the query, and again on every dataset refresh,
+	// so the per-row walk is charged a thousand times here, and a hundred
+	// thousand times on a dashboard-sized set. The dashboard scope runs
+	// `evaluateQuery` on each row. The grid compiles the tree one time with
+	// `compileQuery`, which drops each child that puts no constraint on the rows,
+	// so the compiled row includes the compile, as one keystroke pays it.
 	for (const { label, tree } of QUERY_TREES.slice(0, 2)) {
 		const disjunction = withCombinator(tree, 'or')
 
-		bench(`${label} · 1,000 rows`, () => {
+		bench(`${label} · 1,000 rows · compileQuery`, () => {
+			const test = compileQuery(disjunction)
+
+			if (test) {
+				rows.filter((candidate) =>
+					test((field) => (candidate as unknown as Record<string, unknown>)[field]),
+				)
+			}
+		})
+
+		bench(`${label} · 1,000 rows · evaluateQuery`, () => {
 			rows.filter((candidate) =>
 				evaluateQuery(
 					disjunction,

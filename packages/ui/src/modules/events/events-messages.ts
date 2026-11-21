@@ -46,6 +46,29 @@ export const eventsMessages = defineMessages({
 		defaultMessage: 'Copied',
 		description: 'The label of the copy button of the debug tool after a copy succeeds.',
 	},
+	send: {
+		id: 'ui.events.send',
+		defaultMessage: 'Send',
+		description:
+			'The button that sends one bug report of the debug tool to the issue tracker of the app.',
+	},
+	sending: {
+		id: 'ui.events.sending',
+		defaultMessage: 'Sending',
+		description: 'The label of the send button of the debug tool while the send runs.',
+	},
+	sent: {
+		id: 'ui.events.sent',
+		defaultMessage: 'Sent',
+		description:
+			'The label of the send button of the debug tool after the issue tracker holds the report.',
+	},
+	sendFailed: {
+		id: 'ui.events.sendFailed',
+		defaultMessage: 'Send failed',
+		description:
+			'The label of the send button of the debug tool after a send fails. A press sends again.',
+	},
 	pin: {
 		id: 'ui.events.pin',
 		defaultMessage: 'Pin',

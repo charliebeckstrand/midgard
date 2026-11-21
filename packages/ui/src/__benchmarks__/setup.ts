@@ -64,8 +64,9 @@ vi.mock('motion/react', async () => {
 	}
 
 	const handler: ProxyHandler<object> = {
-		// `motion.create(Component)` wraps a custom component (the grid's animated
-		// row wraps `TableRow` that way); every other key is a tag.
+		// `create` wraps a custom component (the animated row of the grid calls
+		// `m.create(TableRow)`, which the `motion/react-m` shim below maps here).
+		// Every other key is a tag.
 		get: (_, key: string) => (key === 'create' ? wrap : wrap(key)),
 	}
 
@@ -118,11 +119,15 @@ if (typeof window !== 'undefined') {
 	}
 }
 
-// An editable grid renders from a chunk of its own. Until the chunk is loaded,
-// the grid shows the read-only grid, and then it mounts again as an editable
-// grid. The load before each file gives each bench the grid of a page that
-// already loaded the chunk, as `__tests__/setup/grid-modules.ts` does for the
-// tests. The import comes after the stubs above, so the grid loads against them.
-const { loadGridEditing } = await import('../modules/grid/grid-data')
+// An editable grid and a reorderable List each render from a chunk of their
+// own. Until the chunk is loaded, the component shows its plain form, and then
+// it mounts again. A bench loop yields no task, so the load never lands inside
+// a run. The load before each file gives each bench the component of a page
+// that already loaded the chunk, as the setup of the tests does. The imports
+// come after the stubs above, so the modules load against them.
+const [{ loadGridEditing }, { loadListReorder }] = await Promise.all([
+	import('../modules/grid/grid-data'),
+	import('../components/list/use-list-reorder'),
+])
 
-await loadGridEditing()
+await Promise.all([loadGridEditing(), loadListReorder()])

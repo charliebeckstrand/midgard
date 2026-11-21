@@ -10,7 +10,13 @@ import { Heading } from 'ui/heading'
 import { Icon } from 'ui/icon'
 import { SidebarLayout, SidebarLayoutBody, SidebarLayoutHeader } from 'ui/layouts'
 import { defineMessage, defineMessages, useIntl } from 'ui/primitives/intl'
-import { AppearanceProvider, AppearanceSettings, useAppearance } from 'ui/providers/appearance'
+import {
+	AppearanceLanguageField,
+	AppearanceProvider,
+	AppearanceSettings,
+	AppearanceSidebarField,
+	useAppearance,
+} from 'ui/providers/appearance'
 import { LocaleProvider } from 'ui/providers/locale'
 import { UIProvider } from 'ui/providers/ui'
 import { Stack } from 'ui/stack'
@@ -83,6 +89,8 @@ const ACTIONS = (
 		<EventsButton />
 		<AppearanceSettings>
 			<DirectionListbox />
+			<AppearanceLanguageField />
+			<AppearanceSidebarField />
 			<EventsSwitch />
 		</AppearanceSettings>
 	</>
@@ -121,6 +129,10 @@ const pageTitleMessage = defineMessage<{ page: string }>({
 		'The title of the browser tab on a page of the docs. The page is the name of the page, such as Button, or the path of the address when no page is at it.',
 })
 
+// The locales that the reader can choose in the settings. With one locale, the
+// provider gets no `locales`, so the settings have no Language picker.
+const LOCALE_CHOICES = LOCALES.length > 1 ? LOCALES : undefined
+
 /**
  * The shell of the docs: the sidebar, the header with the name of the page, and the page.
  *
@@ -137,7 +149,7 @@ export default function App() {
 
 	return (
 		<NavigateContext value={navigate}>
-			<LocaleProvider locale={useDocumentLocale()} locales={LOCALES} catalogs={catalogs}>
+			<LocaleProvider locale={useDocumentLocale()} locales={LOCALE_CHOICES} catalogs={catalogs}>
 				<Shell />
 			</LocaleProvider>
 		</NavigateContext>
