@@ -153,6 +153,79 @@ describe('ChatCitationProvider', () => {
 	})
 })
 
+describe('ChatCitationProvider isMarked', () => {
+	const late = cite('late', 'Twelve stops are late')
+
+	const tuesday = cite('tue', 'on **Tuesday**')
+
+	const isTuesday = (citation: ChatCitation) => citation.id === 'tue'
+
+	it('marks each piece of a citation that the selection matches, and no other', () => {
+		const { container } = renderUI(
+			<ChatCitationProvider targets={targets} cited={null} onCite={() => {}} isMarked={isTuesday}>
+				<ChatMessage sender="assistant">{reply([late, tuesday])}</ChatMessage>
+			</ChatCitationProvider>,
+		)
+
+		const anchor = screen.getByRole('button', { name: 'on' })
+
+		expect(anchor).toHaveAttribute('data-marked')
+
+		// A marked citation is not pressed: a press makes it the active citation.
+		expect(anchor).toHaveAttribute('aria-pressed', 'false')
+
+		expect(bySlot(container, 'chat-citation-piece')).toHaveAttribute('data-marked')
+
+		expect(screen.getByRole('button', { name: 'Twelve stops are late' })).not.toHaveAttribute(
+			'data-marked',
+		)
+	})
+
+	it('says in the description that the selection matches the citation', () => {
+		renderUI(
+			<ChatCitationProvider targets={targets} cited={null} onCite={() => {}} isMarked={isTuesday}>
+				<ChatMessage sender="assistant">{reply([late, tuesday])}</ChatMessage>
+			</ChatCitationProvider>,
+		)
+
+		expect(screen.getByRole('button', { name: 'on' })).toHaveAccessibleDescription(
+			'Selects in Late stops by day. The selection in that view matches it.',
+		)
+
+		expect(
+			screen.getByRole('button', { name: 'Twelve stops are late' }),
+		).toHaveAccessibleDescription('Selects in Late stops by day')
+	})
+
+	it('marks nothing without isMarked', () => {
+		const { container } = renderUI(<Cited citations={[late, tuesday]} />)
+
+		expect(container.querySelector('[data-marked]')).toBeNull()
+	})
+
+	it('keeps the outer isMarked under an inner provider that gives none, and replaces it with one that does', () => {
+		const inner = (isMarked?: (citation: ChatCitation) => boolean) => (
+			<ChatCitationProvider targets={targets} cited={null} onCite={() => {}} isMarked={isTuesday}>
+				<ChatCitationProvider targets={{}} cited={null} onCite={() => {}} isMarked={isMarked}>
+					<ChatMessage sender="assistant">{reply([late, tuesday])}</ChatMessage>
+				</ChatCitationProvider>
+			</ChatCitationProvider>
+		)
+
+		const { container, rerender } = renderUI(inner())
+
+		expect(
+			allBySlot(container, 'chat-citation').map((anchor) => anchor.hasAttribute('data-marked')),
+		).toEqual([false, true])
+
+		rerender(inner((citation) => citation.id === 'late'))
+
+		expect(
+			allBySlot(container, 'chat-citation').map((anchor) => anchor.hasAttribute('data-marked')),
+		).toEqual([true, false])
+	})
+})
+
 describe('toCategorySelection', () => {
 	it('reads the categories of a selector', () => {
 		expect(toCategorySelection({ categories: ['Mon', 'Tue'] })).toEqual(['Mon', 'Tue'])

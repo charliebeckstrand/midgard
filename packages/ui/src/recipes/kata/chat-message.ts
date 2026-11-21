@@ -121,12 +121,15 @@ export const k = defineKata({
 		// look. It keeps the font and the foreground of the prose, so it reads on
 		// each bubble. A dotted underline marks it at rest, and a fill of
 		// `currentColor` marks it while it is pressed, as the `tool` box rides
-		// `currentColor`.
+		// `currentColor`. A solid underline of full ink and double weight marks
+		// it while the selection of its view matches it. That look is apart from
+		// the fill, because a press then changes what the board shows.
 		citation: [
 			'cursor-pointer rounded-sm text-inherit',
 			'underline decoration-dotted decoration-current/60 underline-offset-2',
 			'hover:decoration-solid',
 			'data-pressed:bg-current/15 data-pressed:decoration-solid',
+			'data-marked:decoration-current data-marked:decoration-solid data-marked:decoration-2',
 			focus.ring,
 		],
 		// The rating pair of `ChatFeedback`: one control of the actions.

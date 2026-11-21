@@ -9,12 +9,18 @@ import { k } from '../../recipes/kata/chat-message'
 import { useChatCitations } from './context'
 import type { ChatCitation } from './engine/chat-content/types'
 
-const messages = defineMessages<{ selects: { label: string } }>({
+const messages = defineMessages<{ selects: { label: string }; marked: { label: string } }>({
 	selects: {
 		id: 'ui.chat.citationSelects',
 		defaultMessage: 'Selects in {label}',
 		description:
 			'The description of a phrase of a chat reply that selects items in a view beside the chat. The label is the name of the view, such as "Late stops by day".',
+	},
+	marked: {
+		id: 'ui.chat.citationMarked',
+		defaultMessage: 'Selects in {label}. The selection in that view matches it.',
+		description:
+			'The description of a phrase of a chat reply that selects items in a view beside the chat, while the items that a reader selected in the view match the phrase. The label is the name of the view, such as "Late stops by day".',
 	},
 })
 
@@ -33,10 +39,14 @@ export type ChatCitationPieceProps = {
  * no control, so that one citation is one tab stop. A piece is not hidden from
  * a screen reader, because it is part of the phrase.
  *
+ * Each piece reads `isMarked`, so a citation that the selection of its view
+ * matches takes the marked look on each piece. The description of piece 0
+ * then says so.
+ *
  * @internal
  */
 export function ChatCitationPiece({ piece: { range, index }, children }: ChatCitationPieceProps) {
-	const { targets, cited, onCite } = useChatCitations()
+	const { targets, cited, onCite, isMarked } = useChatCitations()
 
 	const intl = useIntl()
 
@@ -44,11 +54,14 @@ export function ChatCitationPiece({ piece: { range, index }, children }: ChatCit
 
 	const pressed = cited?.id === range.id
 
+	const marked = isMarked?.(range) ?? false
+
 	if (index > 0) {
 		return (
 			<span
 				data-slot="chat-citation-piece"
 				data-pressed={dataAttr(pressed)}
+				data-marked={dataAttr(marked)}
 				className={k().citation}
 			>
 				{children}
@@ -67,6 +80,7 @@ export function ChatCitationPiece({ piece: { range, index }, children }: ChatCit
 				type="button"
 				data-slot="chat-citation"
 				data-pressed={dataAttr(pressed)}
+				data-marked={dataAttr(marked)}
 				aria-pressed={pressed}
 				aria-describedby={label === undefined ? undefined : description}
 				className={k().citation}
@@ -77,7 +91,7 @@ export function ChatCitationPiece({ piece: { range, index }, children }: ChatCit
 			{/* Outside the button, so that it is not part of the name. `hidden`, so that browse mode does not read it in the prose. */}
 			{label === undefined ? null : (
 				<span id={description} hidden>
-					{intl.formatMessage(messages.selects, { label })}
+					{intl.formatMessage(marked ? messages.marked : messages.selects, { label })}
 				</span>
 			)}
 		</>
