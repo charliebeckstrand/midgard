@@ -687,7 +687,14 @@ export const k = {
 		// Footer below the table. The footer is its own size container, so the
 		// layout follows the width that the grid has (a dashboard tile, a
 		// dialog, a page), not the viewport.
-		base: ['@container', 'pt-2'],
+		//
+		// The controls are `sm` buttons, 32 px high, at the bottom edge of the
+		// footer. On a coarse pointer, the hit area of each (`TouchTarget`) is
+		// 44 px, so it goes 6 px below the footer. In a box that scrolls, such as
+		// a dashboard tile, the 6 px made a scroll region. Thus the footer takes a
+		// padding of 6 px at the bottom on a coarse pointer, and each hit area
+		// stays in the footer.
+		base: ['@container', 'pt-2', 'pointer-coarse:pb-1.5'],
 		// One row of three equal `flex-1` tracks at all widths: the page-size
 		// picker at the start, the navigation centered, and the row-range status
 		// at the end.
