@@ -96,7 +96,7 @@ type Gesture = 'rerender' | 'sortFlip' | 'refresh' | 'sortedRefresh' | 'pageTurn
  * - `sortFlip`: an asc/desc flip of a sort that the grid has cached.
  * - `refresh`: a new array of the same rows, with no sort.
  * - `sortedRefresh`: a new array of the same rows under a sort. The grid sorts
- *   the new rows from the start (roadmap, avenue 3).
+ *   the new rows from the start, and decodes a sort key for each row.
  * - `pageTurn`: a move to the next page.
  * - `append`: one batch of rows at the end, with no sort.
  *
