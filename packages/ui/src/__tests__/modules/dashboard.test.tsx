@@ -2540,6 +2540,32 @@ describe('Dashboard scope', () => {
 		expect(onValueChange).not.toHaveBeenCalled()
 	})
 
+	it('calls onClear and clears the cross-filter selection of a tile that holds both', () => {
+		const onClear = vi.fn()
+
+		const onValueChange = vi.fn()
+
+		const board: DashboardSelection = { source: '', field: 'region', values: ['East'] }
+
+		const own: DashboardSelection = { source: 'days', field: 'day', values: ['Tue'] }
+
+		renderUI(
+			<Dashboard aria-label="Sales" selection={{ value: [board, own], onValueChange }}>
+				<DashboardTile id="days" title="Days" onClear={onClear}>
+					<Total testId="total" />
+				</DashboardTile>
+			</Dashboard>,
+		)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Clear the selection in Days' }))
+
+		expect(onClear).toHaveBeenCalledTimes(1)
+
+		expect(onValueChange).toHaveBeenCalledTimes(1)
+
+		expect(onValueChange).toHaveBeenCalledWith([board])
+	})
+
 	it('stops applying the selection of a tile that leaves the board, and applies it again on return', () => {
 		function Board({ regions }: { regions: boolean }) {
 			return (
