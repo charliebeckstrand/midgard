@@ -146,7 +146,7 @@ function staticChunks(manifest: Manifest, key: string, found = new Set<string>()
 
 /**
  * The file of each chunk that the copy `key` of a page or a tab module loads,
- * and that the module itself does not load. The Spanish HTML of a page
+ * and that the module itself does not load. The translated HTML of a page
  * preloads them (`kit/localize.tsx`), so the copy does not wait for the
  * module to load.
  */

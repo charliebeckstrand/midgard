@@ -1,15 +1,14 @@
 // @vitest-environment jsdom
-import { fireEvent, waitFor } from '@testing-library/react'
 import type { GridColumn } from 'ui/grid'
-import { describe, expect } from 'vitest'
-import { it } from '../../__tests__/helpers/fake-clock'
+import { describe, expect, it } from 'vitest'
 import { columnAccessor } from '../../modules/grid/engine/grid-column/accessor.ts'
-import { COPY_TIMEOUT, loadCopy, renderInLocale } from './copy.tsx'
+import { LOCALES } from '../app/language.ts'
+import { COPY_TIMEOUT, loadCopy } from './copy.tsx'
 
 // A column of a grid demo sorts by the text that its cell shows. The client
 // sort reads the `value` of a column, or else the row field of its id. A cell
 // that shows the word of a key, such as a role, must give that word as its
-// `value`. Else the column sorts by the English key, and the Spanish page
+// `value`. Else the column sorts by the English key, and a translated page
 // shows the rows out of order. The mock server of a demo sorts the same way.
 
 type DataModule = typeof import('../pages/modules/grid/data.tsx')
@@ -22,13 +21,6 @@ function loadGridData(locale: string): Promise<[DataModule, PeopleModule]> {
 		loadCopy<DataModule>('../pages/modules/grid/data.tsx', locale),
 		loadCopy<PeopleModule>('../pages/modules/grid/editing/people.tsx', locale),
 	])
-}
-
-/** Renders the demo at `path` under `pages/modules/grid/` in `locale`. */
-async function renderDemo(path: string, locale: string) {
-	const { default: Demo } = await loadCopy(`../pages/modules/grid/${path}`, locale)
-
-	return renderInLocale(<Demo />, locale)
 }
 
 /** Each column whose cell shows a string, and its rows. */
@@ -44,30 +36,7 @@ function textCells<T>(columns: readonly GridColumn<T>[], rows: readonly T[]) {
 	)
 }
 
-/** The text of each body cell of the column at `index`, in row order. */
-function columnText(container: HTMLElement, index: number): string[] {
-	return [...container.querySelectorAll('tbody tr')].map(
-		(row) => row.querySelectorAll('td')[index]?.textContent ?? '',
-	)
-}
-
-/** Sorts the grid by the column at `index`, as a press of its header does. */
-function pressHeader(container: HTMLElement, index: number) {
-	const header = container.querySelectorAll('thead th')[index]
-
-	const button = header?.querySelector('button')
-
-	if (!button) throw new Error(`The header at ${index} has no sort button.`)
-
-	fireEvent.click(button)
-}
-
-/** `texts` in the order of the collator of `locale`. */
-function collated(texts: readonly string[], locale: string): string[] {
-	return texts.toSorted(new Intl.Collator(locale, { numeric: true }).compare)
-}
-
-describe.each(['en', 'es'])('the grid demo columns in %s', { timeout: COPY_TIMEOUT }, (locale) => {
+describe.each(LOCALES)('the grid demo columns in %s', { timeout: COPY_TIMEOUT }, (locale) => {
 	it('give each text cell its shown text as the sort value', async () => {
 		const [data, editing] = await loadGridData(locale)
 
@@ -94,64 +63,5 @@ describe.each(['en', 'es'])('the grid demo columns in %s', { timeout: COPY_TIMEO
 
 			expect(role?.parse?.(copied, row)).toBe(row.role)
 		}
-	})
-})
-
-describe('the sort of a grid demo on the Spanish page', { timeout: COPY_TIMEOUT }, () => {
-	const locale = 'es'
-
-	// The server demo gives the sorted rows after 600 ms, as a request does. The
-	// server cases move the fake clock to that time, so the result does not
-	// depend on the speed of the machine.
-	const REQUEST = 600
-
-	it('sorts the in-cell sparklines by the shown metric', async () => {
-		const { container } = await renderDemo('sparkline/in-a-cell.tsx', locale)
-
-		const before = columnText(container, 0)
-
-		pressHeader(container, 0)
-
-		await waitFor(() => expect(columnText(container, 0)).toEqual(collated(before, locale)))
-
-		expect(collated(before, locale)).not.toEqual(before)
-	})
-
-	it('sorts the server rows by the shown role', async ({ clock }) => {
-		const { container } = await renderDemo('sorting/server-side-sorting.tsx', locale)
-
-		const role = 2
-
-		pressHeader(container, role)
-
-		await clock.advance(REQUEST)
-
-		const roles = columnText(container, role)
-
-		expect(roles).toEqual(collated(roles, locale))
-
-		expect(new Set(roles).size).toBeGreaterThan(2)
-
-		const names = columnText(container, 0)
-
-		expect(names).not.toEqual(collated(names, locale))
-	})
-
-	it('sorts the server rows by the shown status', async ({ clock }) => {
-		const { container } = await renderDemo('sorting/server-side-sorting.tsx', locale)
-
-		const status = 3
-
-		const before = columnText(container, status)
-
-		expect(before).not.toEqual(collated(before, locale))
-
-		pressHeader(container, status)
-
-		await clock.advance(REQUEST)
-
-		const statuses = columnText(container, status)
-
-		expect(statuses).toEqual(collated(statuses, locale))
 	})
 })

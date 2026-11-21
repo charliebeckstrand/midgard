@@ -156,9 +156,14 @@ export function translationsText(langDir: string): string {
 		`export const languages = [${languages.map((language) => `'${language}'`).join(', ')}] as const`,
 		'',
 		'/** The loader of the messages of each translation, by language subtag. */',
-		'export const translations = {',
-		...languages.map((language) => `\t${language}: () => import('./${language}.json'),`),
-		'}',
+		// A folder with no translation gets an empty object on one line, as the formatter writes it.
+		...(languages.length === 0
+			? ['export const translations = {}']
+			: [
+					'export const translations = {',
+					...languages.map((language) => `\t${language}: () => import('./${language}.json'),`),
+					'}',
+				]),
 		'',
 	].join('\n')
 }

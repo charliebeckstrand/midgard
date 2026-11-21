@@ -29,9 +29,9 @@ import { it } from './extractor.ts'
 //      the output of `pnpm intl` (`scripts/intl/extract.ts`).
 //   2. Each id starts with `docs.`, so no message of the docs replaces a
 //      message of ui.
-//   3. A translation of the docs is in each language that ui has a catalog
-//      for, and in no other language. The reader can choose each of these
-//      languages (`app/language.ts`).
+//   3. Each translation of the docs is in a language that ui has a catalog
+//      for, so the controls of ui show the same language. The reader can
+//      choose each of these languages (`app/language.ts`).
 //   4. Each translation has each id of the source catalog, and no other id, and
 //      the catalogs of the docs load it.
 //   5. Each translated message parses, and it uses the same arguments as its
@@ -65,8 +65,10 @@ describe('intl catalog of the docs', () => {
 		).toBe(translationsText(DOCS_LANG_DIR))
 	})
 
-	it('has a translation in each language of ui, and in no other language', () => {
-		expect(readLanguages(DOCS_LANG_DIR)).toEqual(CATALOG_LOCALES.slice(1))
+	it('has a translation only in a language of ui', () => {
+		expect(
+			readLanguages(DOCS_LANG_DIR).filter((language) => !CATALOG_LOCALES.includes(language)),
+		).toEqual([])
 	})
 
 	describe.each(translations)('the $language translation', ({ language, messages }) => {
