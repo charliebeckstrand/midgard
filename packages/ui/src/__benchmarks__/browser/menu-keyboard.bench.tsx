@@ -9,8 +9,12 @@
  *
  * Each rung runs twice, capped and uncapped. A capped panel has a real
  * scroller, so the walk stops at the first ancestor. An uncapped panel (the
- * default) has none, so the walk runs to the top of the document and returns
- * nothing. The gap between the two pairs is the cost of the fruitless walk.
+ * default) has no cap of its own. When its rows fit, the walk finds no
+ * scroller and stops below `<body>`, and the gap between the pair is the cost
+ * of that fruitless walk. The fit cap of the floating layer (`fitHeight` in
+ * `useMenuRoot`) gives a taller panel a scroller too. In the bench viewport,
+ * the 24-row and 64-row uncapped panels have one, so only the 8-row pair
+ * prices the fruitless walk.
  *
  * `dispatch only` is the floor to subtract: the same event on the same trigger,
  * carrying a key no handler acts on. What remains above it is the rove. It

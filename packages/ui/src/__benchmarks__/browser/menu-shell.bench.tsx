@@ -112,7 +112,13 @@ compareBenches(
 	WINDOW.slow,
 )
 
-/** The middleware chain `useFloatingPanel` builds, so the split reads the real pass. */
+/**
+ * The offset, flip, and shift head of the chain that `useFloatingPanel` builds.
+ * The package also adds a `size` fit, `hide`, and an anchor-offset pass where
+ * CSS anchor positioning exists, and it tracks through its own `autoUpdate`
+ * wrapper. These rungs therefore price the vendor engine, not the exact pass of
+ * the package.
+ */
 const MIDDLEWARE = [offset(4), flip(), shift({ padding: 8 })]
 
 /**
