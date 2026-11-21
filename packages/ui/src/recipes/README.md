@@ -38,7 +38,7 @@ export const k = defineKata({
 
 A child slot can hold child slots of its own under `slots` (§4 rule 2).
 
-A unit has a `bare` output, in which each slot is `''`. A component resolves its slots with `useSlots(unit, props)`, which gives the bare output under `HeadlessProvider`.
+A unit has a `bare` output, in which each slot is `''`. A component resolves its slots with `useHeadlessSlots(unit, props)`, which gives the bare output under `HeadlessProvider`.
 
 ## 3. Boundary
 

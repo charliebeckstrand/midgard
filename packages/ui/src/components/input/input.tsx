@@ -12,9 +12,9 @@ import {
 import { cn } from '../../core/cn'
 import type { ScaleStep } from '../../core/density/scale'
 import { useFormResetSync } from '../../hooks/use-form-reset-sync'
+import { useHeadlessSlots } from '../../primitives/headless/use-headless-slots'
 import { intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
-import { useSlots } from '../../providers/headless/use-slots'
 import type { scale } from '../../recipes/kata/input'
 import { type InputVariants, k } from '../../recipes/kata/input'
 import { clearNativeInput } from '../../utilities/clear-native-input'
@@ -182,7 +182,7 @@ export function Input({
 			(clearButton ?? suffix)
 		)
 
-	const slots = useSlots(k, {
+	const slots = useHeadlessSlots(k, {
 		variant: field.variant,
 		affixed: isAffixPresent(prefix) || isAffixPresent(frameSuffix),
 	})

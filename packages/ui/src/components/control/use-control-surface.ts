@@ -1,6 +1,6 @@
 'use client'
 
-import { useGlass } from '../../providers/glass/context'
+import { useGlass } from '../../primitives/glass/context'
 import { type ControlVariant, useControl } from './context'
 
 /**

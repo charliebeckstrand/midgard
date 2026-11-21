@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { CommandPalette, CommandPaletteItem } from '../../components/command-palette'
 import { Menu, MenuContent, MenuItem } from '../../components/menu'
-import { GlassSurfacesContext } from '../../providers/glass/context'
+import { GlassSurfacesContext } from '../../primitives/glass/context'
 import { getSlot, noop, renderUI, screen } from '../helpers'
 
 /**

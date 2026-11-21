@@ -7,6 +7,7 @@ import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { useStoredChoice } from '../../hooks/use-stored-choice'
 import { SidebarLayout } from '../../layouts/sidebar/sidebar'
 import { useDensityStep } from '../../primitives/density'
+import { useReaderSurface } from '../../primitives/glass/context'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import {
 	AppearanceLanguageField,
@@ -16,7 +17,6 @@ import {
 	useAppearance,
 } from '../../providers/appearance'
 import { useGlass, useResolvedSurface } from '../../providers/glass'
-import { useReaderSurface } from '../../providers/glass/context'
 import { LocaleProvider, useLocale } from '../../providers/locale'
 import { writeCookie } from '../../utilities/cookie'
 import { parseChoice, type StoredChoice } from '../../utilities/stored-choice'

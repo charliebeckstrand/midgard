@@ -1,6 +1,6 @@
 import { type RenderOptions, type RenderResult, render } from '@testing-library/react'
 import type { ReactElement, ReactNode } from 'react'
-import { GlassContext } from '../../providers/glass/context'
+import { GlassContext } from '../../primitives/glass/context'
 
 type UIContextOptions = {
 	glass?: boolean
