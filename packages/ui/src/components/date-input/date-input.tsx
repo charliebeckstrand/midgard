@@ -12,8 +12,8 @@ import { useIntl } from '../../primitives/intl/use-intl'
 import { useLocale } from '../../providers/locale/context'
 import { isComposing } from '../../utilities/is-composing'
 import { isDayInRange, sameDayOrEmpty } from '../calendar/calendar-utilities'
-import { useControl } from '../control/context'
 import { useControlLabelRef } from '../control/use-control-label-ref'
+import { useControlProps } from '../control/use-control-props'
 import { useControlTypedVerdict } from '../control/use-control-typed-verdict'
 import type { CardValidity } from '../credit-card-input/credit-card-input-utilities'
 import { Icon } from '../icon'
@@ -163,8 +163,6 @@ export function DateInput({
 	'aria-describedby': ariaDescribedBy,
 	...props
 }: DateInputProps) {
-	const control = useControl()
-
 	const ambient = useLocale()
 
 	const intl = useIntl()
@@ -262,8 +260,11 @@ export function DateInput({
 	})
 
 	// The rule of Input for its clear button. Any text counts, also a partial
-	// entry that has no complete `Date` yet.
-	const locked = (disabled ?? control?.disabled) || (readOnly ?? control?.readOnly)
+	// entry that has no complete `Date` yet. The lock of the Input comes from
+	// `useControlProps`, so a locked scope, such as a Form that submits, counts.
+	const lock = useControlProps({ disabled, readOnly })
+
+	const locked = lock.disabled || lock.readOnly
 
 	const clearShown = clearable && text !== '' && !locked
 

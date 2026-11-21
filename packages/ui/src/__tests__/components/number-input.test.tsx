@@ -1,6 +1,7 @@
 import type { ComponentProps } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Control } from '../../components/control'
+import { ControlLockContext } from '../../components/control/context'
 import { Field } from '../../components/fieldset'
 import { NumberInput } from '../../components/number-input'
 import { Form } from '../../modules/form'
@@ -130,6 +131,20 @@ describe('NumberInput', () => {
 				<NumberInput defaultValue={5} />
 			</Control>,
 		)
+
+		expect(screen.getByLabelText('Decrease')).toBeDisabled()
+
+		expect(screen.getByLabelText('Increase')).toBeDisabled()
+	})
+
+	it('disables the steppers in a locked scope', () => {
+		renderUI(
+			<ControlLockContext value>
+				<NumberInput defaultValue={5} />
+			</ControlLockContext>,
+		)
+
+		expect(screen.getByRole('spinbutton')).toHaveAttribute('readonly')
 
 		expect(screen.getByLabelText('Decrease')).toBeDisabled()
 
