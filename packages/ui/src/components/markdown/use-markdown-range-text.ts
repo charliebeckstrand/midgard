@@ -27,5 +27,5 @@ import type { MarkdownRange } from './markdown-ranges'
  *   }
  */
 export function useMarkdownRangeText(range: MarkdownRange): string | undefined {
-	return useMarkdownRangeTexts()?.[range.id]
+	return useMarkdownRangeTexts()?.[range.start]
 }

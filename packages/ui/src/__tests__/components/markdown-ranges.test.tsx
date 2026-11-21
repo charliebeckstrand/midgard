@@ -402,6 +402,25 @@ describe('useMarkdownRangeText', () => {
 		expect(readName(source, quote)).toBe(name)
 	})
 
+	it('gives each range its own text when two ranges share an id', () => {
+		const md = 'Twelve stops are late, most of them on **Tuesday**.'
+
+		const { container } = renderUI(
+			<Markdown
+				ranges={[findRange(md, 'stops', 'hit'), findRange(md, 'on **Tuesday**', 'hit')]}
+				renderRange={renderNamed}
+			>
+				{md}
+			</Markdown>,
+		)
+
+		const names = [...container.querySelectorAll('[data-slot="named"]')].map((piece) =>
+			piece.getAttribute('data-name'),
+		)
+
+		expect(names).toEqual(['stops', 'on Tuesday'])
+	})
+
 	it('gives undefined outside a render that drew the range', () => {
 		function Outside() {
 			return (

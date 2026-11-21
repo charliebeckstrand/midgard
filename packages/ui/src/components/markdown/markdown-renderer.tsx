@@ -176,16 +176,16 @@ export function MarkdownRenderer({
 }
 
 /**
- * The text of each range that the walk drew, by its `id`, with each run of
+ * The text of each range that the walk drew, by its `start`, with each run of
  * white space read as one space.
  *
  * @internal
  */
 function rangeTexts(draw: Draw): MarkdownRangeTexts {
-	const texts: Record<string, string> = {}
+	const texts: Record<number, string> = {}
 
 	draw.ranges.forEach((range, index) => {
-		texts[range.id] = (draw.texts[index] ?? '').replace(/\s+/g, ' ').trim()
+		texts[range.start] = (draw.texts[index] ?? '').replace(/\s+/g, ' ').trim()
 	})
 
 	return texts
