@@ -28,6 +28,7 @@
 				"src/core/touch/base.ts",
 				"src/core/touch/gap.ts",
 				"src/core/touch/pitch.ts",
+				"src/core/touch/scroll.ts",
 				"src/core/scheme/base.ts",
 				"src/core/motion/variants.ts",
 				"src/core/sidebar/variants.ts",

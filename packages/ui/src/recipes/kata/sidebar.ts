@@ -87,7 +87,9 @@ const item = defineKata(
  * never scrolls on the horizontal axis. A vertical scroller also scrolls its
  * horizontal overflow, and on a coarse pointer the hit area of a small control
  * at the edge (`TouchTarget`) goes past the edge. The horizontal axis thus
- * clips, and a label that is too long truncates (`label`).
+ * clips, and a label that is too long truncates (`label`). The body has no
+ * padding, so on the vertical axis it keeps the hit area of its last item in
+ * the box (`touch.scroll`).
  */
 const scroll = 'overflow-x-hidden overflow-y-auto overscroll-contain'
 
@@ -99,7 +101,7 @@ export const k = defineKata(
 			list: stack,
 			label: ['truncate', mini.srOnly],
 			header: [flex.row, dan.gap.scale.md],
-			body: [scroll, flex.col, 'flex-1', dan.gap.scale.lg],
+			body: [scroll, touch.scroll, flex.col, 'flex-1', dan.gap.scale.lg],
 			divider: divider.top,
 			footer: ['sticky bottom-0', ...stack, 'mt-auto'],
 		},

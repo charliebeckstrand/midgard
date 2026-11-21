@@ -16,6 +16,7 @@
 @plugin '../src/core/touch/base.ts';
 @plugin '../src/core/touch/gap.ts';
 @plugin '../src/core/touch/pitch.ts';
+@plugin '../src/core/touch/scroll.ts';
 @plugin '../src/core/scheme/base.ts';
 @plugin '../src/core/motion/variants.ts';
 @plugin '../src/core/sidebar/variants.ts';

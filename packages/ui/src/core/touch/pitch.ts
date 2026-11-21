@@ -20,12 +20,7 @@
  */
 
 import type { PluginCreator } from 'tailwindcss/plugin'
-
-/** The coarse floor of `TouchTarget`, which takes the same value. */
-const FLOOR = '2.75rem'
-
-/** The media query of a coarse pointer, as the `pointer-coarse` variant writes it. */
-const COARSE = '@media (pointer: coarse)'
+import { COARSE, FLOOR } from './floor'
 
 /**
  * The plugin handler. Tailwind reads a named `handler` export as a plugin, so
