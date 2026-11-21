@@ -151,7 +151,7 @@ export function failReplyTools(messages: ChatMessageData[], id: string): ChatMes
  * Whether a message names itself. An empty id is no id: a rule that matched on
  * `''` would name every message that carries none.
  *
- * `seedMessages`, `duplicateMessageIds`, and the row key of the transcript all
+ * `seedMessages`, `findDuplicateIds`, and the row key of the transcript all
  * read this. The rule that assigns an id, the rule that reports a collision,
  * and the key therefore cannot disagree about what an id is.
  *
@@ -194,7 +194,7 @@ export function seedMessages(messages: ChatMessageData[], mintId: () => string):
  *
  * @internal
  */
-export function duplicateMessageIds(messages: ChatMessageData[]): string[] {
+export function findDuplicateIds(messages: ChatMessageData[]): string[] {
 	const seen = new Set<string>()
 
 	const duplicates = new Set<string>()

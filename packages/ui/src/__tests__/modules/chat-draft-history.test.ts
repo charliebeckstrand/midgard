@@ -5,9 +5,9 @@ import {
 	type DraftHistory,
 	type DraftState,
 	EMPTY_HISTORY,
-	historyStep,
 	recordDraft,
 	stepDraft,
+	toHistoryStep,
 } from '../../modules/chat/engine/chat-draft/history'
 
 const routes: ChatCitation = {
@@ -133,17 +133,17 @@ describe('stepDraft', () => {
 	})
 })
 
-describe('historyStep', () => {
+describe('toHistoryStep', () => {
 	it('reads an undo and a redo of the browser', () => {
-		expect(historyStep('historyUndo')).toBe('undo')
+		expect(toHistoryStep('historyUndo')).toBe('undo')
 
-		expect(historyStep('historyRedo')).toBe('redo')
+		expect(toHistoryStep('historyRedo')).toBe('redo')
 	})
 
 	it.each(['insertText', 'deleteContentBackward', 'insertFromPaste', undefined])(
 		'reads no step for %s',
 		(inputType) => {
-			expect(historyStep(inputType)).toBeUndefined()
+			expect(toHistoryStep(inputType)).toBeUndefined()
 		},
 	)
 })

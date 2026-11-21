@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { chatBranches, toChatTree } from '../../modules/chat/engine/chat-branch/tree'
+import { getBranches, toChatTree } from '../../modules/chat/engine/chat-branch/tree'
 import type { ChatPart } from '../../modules/chat/engine/chat-content/types'
 import {
 	appendUserMessage,
@@ -8,9 +8,9 @@ import {
 	branchEditedMessage,
 	branchLastReply,
 	dropEmptyReply,
-	duplicateMessageIds,
 	failReply,
 	failReplyTools,
+	findDuplicateIds,
 	findLastUserMessage,
 	findUserMessage,
 	openReply,
@@ -289,7 +289,7 @@ describe('branchLastReply', () => {
 
 		const retried = { ...tree, path: openReply(tree.path, 'r2') }
 
-		expect(chatBranches(retried)).toEqual({ r2: { index: 1, ids: ['r1', 'r2'] } })
+		expect(getBranches(retried)).toEqual({ r2: { index: 1, ids: ['r1', 'r2'] } })
 	})
 
 	it('changes nothing when the last user message has no reply yet', () => {
@@ -342,7 +342,7 @@ describe('branchEditedMessage', () => {
 
 		expect(tree.forks).toEqual({ '': { before: [messages], after: [] } })
 
-		expect(chatBranches(tree)).toEqual({ u1b: { index: 1, ids: ['u1', 'u1b'] } })
+		expect(getBranches(tree)).toEqual({ u1b: { index: 1, ids: ['u1', 'u1b'] } })
 	})
 
 	it('changes nothing for an id that names no message', () => {
@@ -407,7 +407,7 @@ describe('seedMessages', () => {
 		])
 	})
 
-	it('reads an empty id as no id, the rule duplicateMessageIds reads', () => {
+	it('reads an empty id as no id, the rule findDuplicateIds reads', () => {
 		const messages: ChatMessageData[] = [{ id: '', sender: 'user', content: 'hi' }]
 
 		expect(seedMessages(messages, mintIds())[0]?.id).toBe('minted-1')
@@ -422,18 +422,18 @@ describe('seedMessages', () => {
 	})
 })
 
-describe('duplicateMessageIds', () => {
+describe('findDuplicateIds', () => {
 	it('reports nothing when every message names itself', () => {
-		expect(duplicateMessageIds([user('u1', 'hi'), assistant('r1', 'first')])).toEqual([])
+		expect(findDuplicateIds([user('u1', 'hi'), assistant('r1', 'first')])).toEqual([])
 	})
 
 	it('reports the id two messages share', () => {
-		expect(duplicateMessageIds([user('u1', 'hi'), assistant('u1', 'first')])).toEqual(['u1'])
+		expect(findDuplicateIds([user('u1', 'hi'), assistant('u1', 'first')])).toEqual(['u1'])
 	})
 
 	it('reports an id once, whatever the count', () => {
 		expect(
-			duplicateMessageIds([user('u1', 'hi'), assistant('u1', 'first'), user('u1', 'again')]),
+			findDuplicateIds([user('u1', 'hi'), assistant('u1', 'first'), user('u1', 'again')]),
 		).toEqual(['u1'])
 	})
 
@@ -445,7 +445,7 @@ describe('duplicateMessageIds', () => {
 			assistant('u2', 'second'),
 		]
 
-		expect(duplicateMessageIds(messages)).toEqual(['u1', 'u2'])
+		expect(findDuplicateIds(messages)).toEqual(['u1', 'u2'])
 	})
 
 	it('skips a message with no id, because the shell assigns it one', () => {
@@ -454,7 +454,7 @@ describe('duplicateMessageIds', () => {
 			{ sender: 'assistant', content: 'first' },
 		]
 
-		expect(duplicateMessageIds(messages)).toEqual([])
+		expect(findDuplicateIds(messages)).toEqual([])
 	})
 
 	it('reads an empty id as no id, matching the rule the seeding reads', () => {
@@ -463,6 +463,6 @@ describe('duplicateMessageIds', () => {
 			{ id: '', sender: 'assistant', content: 'first' },
 		]
 
-		expect(duplicateMessageIds(messages)).toEqual([])
+		expect(findDuplicateIds(messages)).toEqual([])
 	})
 })

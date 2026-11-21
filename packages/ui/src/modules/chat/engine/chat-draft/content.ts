@@ -13,22 +13,22 @@ import type { ChatCitation, ChatPart } from '../chat-content/types'
  *
  * @internal
  */
-export function draftContent(value: string): string {
+export function toDraftContent(value: string): string {
 	return value.trim()
 }
 
 /**
- * Whether a draft holds something to send: {@link draftContent} as the boolean
+ * Whether a draft holds something to send: {@link toDraftContent} as the boolean
  * a send control reads.
  *
  * @internal
  */
 export function canSubmitDraft(value: string): boolean {
-	return draftContent(value) !== ''
+	return toDraftContent(value) !== ''
 }
 
 /**
- * The citations of a draft, with offsets into {@link draftContent} of the
+ * The citations of a draft, with offsets into {@link toDraftContent} of the
  * value. The trim removes the whitespace before the text, so each offset moves
  * back by that length. A citation that the trim cuts, or whose quote is not at
  * its address, goes.
@@ -38,13 +38,13 @@ export function canSubmitDraft(value: string): boolean {
  *
  * @internal
  */
-export function draftCitations(
+export function toDraftCitations(
 	value: string,
 	citations: readonly ChatCitation[],
 ): readonly ChatCitation[] {
 	if (citations.length === 0) return citations
 
-	const text = draftContent(value)
+	const text = toDraftContent(value)
 
 	const lead = value.length - value.trimStart().length
 
@@ -88,10 +88,13 @@ export function keepQuoted(
  * never from the text. Thus a reader cannot type one.
  *
  * @internal
- * @param text - The trimmed text, as {@link draftContent} gives it.
- * @param citations - The citations of the text, as {@link draftCitations} gives them.
+ * @param text - The trimmed text, as {@link toDraftContent} gives it.
+ * @param citations - The citations of the text, as {@link toDraftCitations} gives them.
  */
-export function userContent(text: string, citations: readonly ChatCitation[]): string | ChatPart[] {
+export function buildUserContent(
+	text: string,
+	citations: readonly ChatCitation[],
+): string | ChatPart[] {
 	return citations.length === 0
 		? text
 		: [{ kind: 'text', id: TEXT_PART_ID, text, citations: [...citations] }]

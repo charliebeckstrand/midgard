@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'vitest'
 import {
 	addBranch,
-	chatBranches,
+	getBranches,
 	sameBranches,
 	showBranch,
 	showNewestBranch,
@@ -37,7 +37,7 @@ describe('toChatTree', () => {
 
 		expect(tree.path).toBe(messages)
 
-		expect(chatBranches(tree)).toEqual({})
+		expect(getBranches(tree)).toEqual({})
 	})
 })
 
@@ -61,7 +61,7 @@ describe('addBranch', () => {
 
 		expect(ids(tree)).toEqual(['u1', 'r1b', 'u3', 'r3'])
 
-		expect(chatBranches(tree)).toEqual({ r1b: { index: 1, ids: ['r1', 'r1b'] } })
+		expect(getBranches(tree)).toEqual({ r1b: { index: 1, ids: ['r1', 'r1b'] } })
 	})
 
 	it('adds a branch at the start of the transcript', () => {
@@ -69,7 +69,7 @@ describe('addBranch', () => {
 
 		expect(ids(tree)).toEqual(['u1b'])
 
-		expect(chatBranches(tree)).toEqual({ u1b: { index: 1, ids: ['u1', 'u1b'] } })
+		expect(getBranches(tree)).toEqual({ u1b: { index: 1, ids: ['u1', 'u1b'] } })
 	})
 
 	it('shows no branch at the place without a message, until the next one lands', () => {
@@ -77,9 +77,9 @@ describe('addBranch', () => {
 
 		expect(ids(hidden)).toEqual(['u1'])
 
-		expect(chatBranches(hidden)).toEqual({})
+		expect(getBranches(hidden)).toEqual({})
 
-		expect(chatBranches(append(hidden, assistant('r1c')))).toEqual({
+		expect(getBranches(append(hidden, assistant('r1c')))).toEqual({
 			r1c: { index: 2, ids: ['r1', 'r1b', 'r1c'] },
 		})
 	})
@@ -105,7 +105,7 @@ describe('showBranch', () => {
 
 		expect(ids(tree)).toEqual(['u1', 'r1', 'u2', 'r2'])
 
-		expect(chatBranches(tree)).toEqual({ r1: { index: 0, ids: ['r1', 'r1b'] } })
+		expect(getBranches(tree)).toEqual({ r1: { index: 0, ids: ['r1', 'r1b'] } })
 
 		expect(ids(showBranch(tree, 'r1b'))).toEqual(['u1', 'r1b', 'u3', 'r3'])
 	})
@@ -116,13 +116,13 @@ describe('showBranch', () => {
 
 		const edited = addBranch(retried, 0, user('u1b'))
 
-		expect(chatBranches(edited)).toEqual({ u1b: { index: 1, ids: ['u1', 'u1b'] } })
+		expect(getBranches(edited)).toEqual({ u1b: { index: 1, ids: ['u1', 'u1b'] } })
 
 		const back = showBranch(edited, 'u1')
 
 		expect(ids(back)).toEqual(['u1', 'r1', 'u2', 'r2b'])
 
-		expect(chatBranches(back)).toEqual({
+		expect(getBranches(back)).toEqual({
 			u1: { index: 0, ids: ['u1', 'u1b'] },
 			r1: { index: 0, ids: ['r1', 'r1b'] },
 			r2b: { index: 1, ids: ['r2', 'r2b'] },
@@ -153,7 +153,7 @@ describe('showBranch', () => {
 
 		expect(tree.forks).toEqual({})
 
-		expect(chatBranches(tree)).toEqual({})
+		expect(getBranches(tree)).toEqual({})
 	})
 })
 
@@ -165,7 +165,7 @@ describe('showNewestBranch', () => {
 
 		expect(ids(shown)).toEqual(['u1', 'r1b', 'u3', 'r3'])
 
-		expect(chatBranches(shown)).toEqual({ r1b: { index: 1, ids: ['r1', 'r1b'] } })
+		expect(getBranches(shown)).toEqual({ r1b: { index: 1, ids: ['r1', 'r1b'] } })
 	})
 
 	it('removes the fork when its last hidden branch shows', () => {
@@ -187,10 +187,10 @@ describe('sameBranches', () => {
 	it('reads the content, and not the identity', () => {
 		const tree = forked()
 
-		expect(sameBranches(chatBranches(tree), chatBranches(tree))).toBe(true)
+		expect(sameBranches(getBranches(tree), getBranches(tree))).toBe(true)
 
-		expect(sameBranches(chatBranches(tree), chatBranches(showBranch(tree, 'r1')))).toBe(false)
+		expect(sameBranches(getBranches(tree), getBranches(showBranch(tree, 'r1')))).toBe(false)
 
-		expect(sameBranches(chatBranches(tree), {})).toBe(false)
+		expect(sameBranches(getBranches(tree), {})).toBe(false)
 	})
 })

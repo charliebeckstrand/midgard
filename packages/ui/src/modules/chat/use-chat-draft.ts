@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from 'react'
 import type { ChatCitation } from './engine/chat-content/types'
-import { canSubmitDraft, draftCitations, draftContent } from './engine/chat-draft/content'
+import { canSubmitDraft, toDraftCitations, toDraftContent } from './engine/chat-draft/content'
 import { rebaseCitations } from './engine/chat-draft/rebase'
 
 /** Options for {@link useChatDraft}. */
@@ -79,11 +79,11 @@ export function useChatDraft({ onSubmit, initialValue = '' }: ChatDraftOptions =
 	const clear = useCallback(() => setDraft(EMPTY_DRAFT), [])
 
 	const submit = useCallback(() => {
-		const content = draftContent(draft.value)
+		const content = toDraftContent(draft.value)
 
 		if (!content) return
 
-		onSubmit?.(content, draftCitations(draft.value, draft.citations))
+		onSubmit?.(content, toDraftCitations(draft.value, draft.citations))
 
 		setDraft(EMPTY_DRAFT)
 	}, [draft, onSubmit])

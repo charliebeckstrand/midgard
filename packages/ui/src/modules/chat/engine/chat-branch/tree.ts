@@ -94,7 +94,7 @@ function showAt(
  *
  * @internal
  */
-export function chatBranches(tree: ChatTree): Record<string, ChatBranch> {
+export function getBranches(tree: ChatTree): Record<string, ChatBranch> {
 	const { path, forks } = tree
 
 	const branches: Record<string, ChatBranch> = {}

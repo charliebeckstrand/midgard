@@ -1,15 +1,15 @@
 // @vitest-environment node
 
 import { describeTranscript } from '../modules/chat/engine/chat-announcements'
-import { addBranch, chatBranches, toChatTree } from '../modules/chat/engine/chat-branch/tree'
+import { addBranch, getBranches, toChatTree } from '../modules/chat/engine/chat-branch/tree'
 import type { ChatPart } from '../modules/chat/engine/chat-content/types'
 import {
 	appendUserMessage,
 	applyReplyChunk,
 	branchLastReply,
 	dropEmptyReply,
-	duplicateMessageIds,
 	failReplyTools,
+	findDuplicateIds,
 	openReply,
 	seedMessages,
 } from '../modules/chat/engine/chat-transcript'
@@ -77,8 +77,8 @@ compareBenches('chat-transcript · applyReplyChunk (per streamed chunk)', (bench
 			content: '',
 		})
 
-		bench(`${label} · chatBranches (one fork)`, () => {
-			chatBranches({ ...forked, path: messages })
+		bench(`${label} · getBranches (one fork)`, () => {
+			getBranches({ ...forked, path: messages })
 		})
 	}
 })
@@ -126,8 +126,8 @@ compareBenches('chat-transcript · the seed path (once per mount)', (bench) => {
 	}
 
 	for (const { label, messages } of TRANSCRIPTS) {
-		bench(`${label} · duplicateMessageIds`, () => {
-			duplicateMessageIds(messages)
+		bench(`${label} · findDuplicateIds`, () => {
+			findDuplicateIds(messages)
 		})
 	}
 })

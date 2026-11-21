@@ -56,7 +56,7 @@ function exportIcon(type: GridExportAction['type']): ReactElement {
  * renders the same rows from {@link useGridExportActions}. Every route to
  * export therefore reads the same.
  */
-export function gridExportMenuItems(exportActions: GridExportAction[]): GridMenuItem[] {
+export function buildExportItems(exportActions: GridExportAction[]): GridMenuItem[] {
 	return exportActions.map((action) => ({
 		key: `export-${action.type}`,
 		label: action.label,
@@ -418,7 +418,7 @@ export function pinChoiceIcon(target: PinMenuChoice['target'], rtl = false): Rea
  * defaults carry no rule of their own; a host's builder places any it wants.
  * @internal
  */
-export function columnMenuDefaults<T>(args: ColumnMenuDefaultArgs<T>): GridMenuItem[] {
+export function buildColumnMenu<T>(args: ColumnMenuDefaultArgs<T>): GridMenuItem[] {
 	const {
 		intl,
 		column,
@@ -475,7 +475,7 @@ export function columnMenuDefaults<T>(args: ColumnMenuDefaultArgs<T>): GridMenuI
 			key: 'export',
 			label: intl.formatMessage(gridMessages.export),
 			icon: <Download />,
-			items: gridExportMenuItems(exportActions),
+			items: buildExportItems(exportActions),
 		}),
 	]
 }
@@ -490,7 +490,7 @@ export function columnMenuDefaults<T>(args: ColumnMenuDefaultArgs<T>): GridMenuI
  *
  * @internal
  */
-export function fillItems(
+export function buildFillItems(
 	intl: IntlShape,
 	fill: GridRangeFill | undefined,
 	rtl = false,
@@ -524,14 +524,14 @@ export function fillItems(
 
 /**
  * Default cell-menu items: Copy, acting on the right-clicked cell. The fill
- * items of a cell range follow it (see {@link fillItems}). When export is on,
+ * items of a cell range follow it (see {@link buildFillItems}). When export is on,
  * the Export submenu comes next, a grid-wide tool scoped to the selection when
  * rows are selected. Unruled, as the column menu's defaults are; a host's
  * builder places any separator it wants.
  *
  * @internal
  */
-export function cellMenuDefaults(
+export function buildCellMenu(
 	intl: IntlShape,
 	copy: () => void,
 	exportActions: GridExportAction[],
@@ -544,7 +544,7 @@ export function cellMenuDefaults(
 			key: 'export',
 			label: intl.formatMessage(gridMessages.export),
 			icon: <Download />,
-			items: gridExportMenuItems(exportActions),
+			items: buildExportItems(exportActions),
 		}),
 	]
 }

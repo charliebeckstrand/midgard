@@ -32,10 +32,10 @@ import { frozenSide, normalizeFreeze } from './engine/grid-pin/overrides'
 import type { GridRangeFill } from './engine/grid-range/fill'
 import type { GridColumnFilter } from './engine/grid-table/filter-view'
 import {
+	buildCellMenu,
+	buildColumnMenu,
+	buildFillItems,
 	type ColumnMenuDefaultArgs,
-	cellMenuDefaults,
-	columnMenuDefaults,
-	fillItems,
 } from './grid-context-menu-utilities'
 import type {
 	GridCellMenuContext,
@@ -184,7 +184,7 @@ export function GridContextMenu<T>({
 					}
 				: null
 
-			const defaults = columnMenuDefaults({
+			const defaults = buildColumnMenu({
 				intl,
 				column,
 				sort,
@@ -265,7 +265,7 @@ export function GridContextMenu<T>({
 
 			const copy = () => copyText(cellText(value))
 
-			const defaults = cellMenuDefaults(intl, copy, exportActions, fillItems(intl, fill, rtl))
+			const defaults = buildCellMenu(intl, copy, exportActions, buildFillItems(intl, fill, rtl))
 
 			const name = intl.formatMessage(gridMessages.cellMenu)
 

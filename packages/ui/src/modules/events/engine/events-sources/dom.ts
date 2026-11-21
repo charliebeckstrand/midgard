@@ -19,7 +19,7 @@ export const QUIET = 150
  *
  * @internal
  */
-export function bursts(): { getBatch: (key: string) => string; stop: () => void } {
+export function createBursts(): { getBatch: (key: string) => string; stop: () => void } {
 	const open = new Map<string, { id: string; timer: ReturnType<typeof setTimeout> }>()
 
 	return {

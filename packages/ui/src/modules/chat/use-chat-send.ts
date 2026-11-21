@@ -14,7 +14,7 @@ import { useStableValue } from '../../hooks/use-stable-value'
 import { noop } from '../../utilities/noop'
 import { randomId } from '../../utilities/random-id'
 import {
-	chatBranches,
+	getBranches,
 	sameBranches,
 	showBranch as showChatBranch,
 	showNewestBranch,
@@ -25,16 +25,16 @@ import type { ChatBranch } from './engine/chat-branch/types'
 import { toChatParts } from './engine/chat-content/normalize'
 import { chatContentText } from './engine/chat-content/text'
 import type { ChatCitation, ChatPart } from './engine/chat-content/types'
-import { draftCitations, draftContent, userContent } from './engine/chat-draft/content'
+import { buildUserContent, toDraftCitations, toDraftContent } from './engine/chat-draft/content'
 import {
 	appendUserMessage,
 	applyReplyChunk,
 	branchEditedMessage,
 	branchLastReply,
 	dropEmptyReply,
-	duplicateMessageIds,
 	failReply,
 	failReplyTools,
+	findDuplicateIds,
 	findLastUserMessage,
 	findUserMessage,
 	openReply,
@@ -63,7 +63,7 @@ function useDuplicateSeedIdWarning(seed: ChatMessageData[] | undefined): void {
 
 		warned.current = true
 
-		const duplicates = duplicateMessageIds(seed ?? [])
+		const duplicates = findDuplicateIds(seed ?? [])
 
 		if (duplicates.length === 0) return
 
@@ -382,7 +382,7 @@ export function useChatSend({
 
 	// A chunk gives a new tree with the same branches, so the held object stays.
 	const branches = useStableValue(
-		useMemo(() => chatBranches(tree), [tree]),
+		useMemo(() => getBranches(tree), [tree]),
 		sameBranches,
 	)
 
@@ -459,11 +459,11 @@ export function useChatSend({
 			// both read the state of the last render.
 			if (controllerRef.current) return
 
-			const text = draftContent(content)
+			const text = toDraftContent(content)
 
 			if (!text) return
 
-			const message = userContent(text, draftCitations(content, citations))
+			const message = buildUserContent(text, toDraftCitations(content, citations))
 
 			// Minted outside the updater, which React can run more than once.
 			const userId = randomId()
@@ -494,13 +494,13 @@ export function useChatSend({
 		async (id: string, content: string, citations: readonly ChatCitation[] = []) => {
 			if (controllerRef.current) return
 
-			const text = draftContent(content)
+			const text = toDraftContent(content)
 
 			if (!text) return
 
 			if (!findUserMessage(messages, id)) return
 
-			const message = userContent(text, draftCitations(content, citations))
+			const message = buildUserContent(text, toDraftCitations(content, citations))
 
 			// Minted outside the updater, which React can run more than once.
 			const branchId = randomId()

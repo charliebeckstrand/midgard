@@ -23,7 +23,7 @@ import type { ChatPart, ChatTextPart } from './chat-content/types'
  *
  * @internal
  */
-function startingParts(content: string | ChatPart[]): ChatPart[] {
+function toStartingParts(content: string | ChatPart[]): ChatPart[] {
 	return content === '' ? [] : toChatParts(content)
 }
 
@@ -108,7 +108,7 @@ export function applyChunk(
 		return typeof content === 'string' ? chunk : setRunningText(content, chunk)
 	}
 
-	return mergeParts(startingParts(content), chunk)
+	return mergeParts(toStartingParts(content), chunk)
 }
 
 /**

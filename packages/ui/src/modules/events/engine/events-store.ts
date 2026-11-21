@@ -74,12 +74,12 @@ export class EventStore {
 		this.storage = storage
 
 		try {
-			this.capture = JSON.parse(readStorage(storage, key('capture')) ?? 'null') ?? undefined
+			this.capture = JSON.parse(readStorage(storage, toKey('capture')) ?? 'null') ?? undefined
 		} catch {}
 
 		// Only `save` writes the events, so the kept value is an array of events.
 		try {
-			if (this.preserve) this.entries = JSON.parse(readStorage(storage, key('entries')) ?? '[]')
+			if (this.preserve) this.entries = JSON.parse(readStorage(storage, toKey('entries')) ?? '[]')
 		} catch {}
 
 		// The next id comes after the start of a capture that runs too, so the
@@ -213,7 +213,7 @@ export class EventStore {
 
 		this.capture = start
 
-		writeStorage(this.storage, key('capture'), JSON.stringify(start))
+		writeStorage(this.storage, toKey('capture'), JSON.stringify(start))
 
 		this.insert(entry)
 
@@ -234,7 +234,7 @@ export class EventStore {
 
 		this.capture = undefined
 
-		writeStorage(this.storage, key('capture'), null)
+		writeStorage(this.storage, toKey('capture'), null)
 
 		this.insert(entry, (entries) => {
 			const index = entries.indexOf(entry)
@@ -298,7 +298,7 @@ export class EventStore {
 		clearTimeout(this.saveTimer)
 
 		if (!this.preserve) {
-			writeStorage(this.storage, key('entries'), null)
+			writeStorage(this.storage, toKey('entries'), null)
 
 			return
 		}
@@ -308,7 +308,7 @@ export class EventStore {
 		while (
 			!writeStorage(
 				this.storage,
-				key('entries'),
+				toKey('entries'),
 				JSON.stringify(this.entries.slice(this.entries.length - count)),
 			)
 		)
@@ -406,12 +406,12 @@ export class EventStore {
 
 	/** A flag of the tab, such as "Preserve". It stays in `sessionStorage` while "Preserve" is off too. */
 	private flag(field: string): boolean {
-		return getOrCompute(this.flags, field, () => readStorage(this.storage, key(field)) === '1')
+		return getOrCompute(this.flags, field, () => readStorage(this.storage, toKey(field)) === '1')
 	}
 
 	/** Sets a flag of the tab, and tells the listeners. A flag that the storage does not keep does not change. */
 	private setFlag(field: string, on: boolean): void {
-		if (writeStorage(this.storage, key(field), on ? '1' : null)) this.flags.set(field, on)
+		if (writeStorage(this.storage, toKey(field), on ? '1' : null)) this.flags.set(field, on)
 
 		this.changes.emit()
 	}
@@ -448,6 +448,6 @@ function trim(entries: readonly EventEntry[], capacity: number): readonly EventE
 }
 
 /** The storage key of a field of the store. */
-function key(field: string): string {
+function toKey(field: string): string {
 	return `${PREFIX}:${field}`
 }

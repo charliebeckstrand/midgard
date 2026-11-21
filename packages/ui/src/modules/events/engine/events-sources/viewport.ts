@@ -1,6 +1,6 @@
 import { readViewport } from '../events-probes'
 import type { EventSource } from '../types'
-import { addListeners, all, bursts } from './dom'
+import { addListeners, all, createBursts } from './dom'
 
 /**
  * Each resize of the window and of the visual viewport, with the reading of
@@ -9,7 +9,7 @@ import { addListeners, all, bursts } from './dom'
  * @internal
  */
 export const resize: EventSource = (note) => {
-	const { getBatch, stop } = bursts()
+	const { getBatch, stop } = createBursts()
 
 	return all([
 		addListeners(window, ['resize'], () =>

@@ -60,12 +60,12 @@ export function createReport({ title, pointer, focus, ...input }: ReportInput): 
 }
 
 /** A fenced block of lines, or nothing for no lines. */
-function block(heading: string, lines: readonly string[]): string[] {
+function formatBlock(heading: string, lines: readonly string[]): string[] {
 	return lines.length > 0 ? [`### ${heading}`, '', '```text', ...lines, '```', ''] : []
 }
 
 /** A table row. A pipe in the value would end the cell, so it goes out as `\|`. */
-function row(name: string, value: string | undefined): string[] {
+function formatTableRow(name: string, value: string | undefined): string[] {
 	return value ? [`| ${name} | ${value.replaceAll('|', '\\|')} |`] : []
 }
 
@@ -85,25 +85,25 @@ export function formatMarkdown(entry: EventEntry & { report: EventReport }): str
 		'',
 		'| Field | Value |',
 		'|:---|:---|',
-		...row('Id', `\`${report.hash}\``),
-		...row('Origin', report.origin),
-		...row('Route', report.route && `\`${report.route}\``),
-		...row('Started', report.started),
-		...row('At', report.at),
-		...row('Page', `\`${report.page}\``),
-		...row('Build', `\`${report.build}\``),
-		...row('Device', report.device),
-		...row('Root', `\`<html ${report.root}>\``),
-		...row(
+		...formatTableRow('Id', `\`${report.hash}\``),
+		...formatTableRow('Origin', report.origin),
+		...formatTableRow('Route', report.route && `\`${report.route}\``),
+		...formatTableRow('Started', report.started),
+		...formatTableRow('At', report.at),
+		...formatTableRow('Page', `\`${report.page}\``),
+		...formatTableRow('Build', `\`${report.build}\``),
+		...formatTableRow('Device', report.device),
+		...formatTableRow('Root', `\`<html ${report.root}>\``),
+		...formatTableRow(
 			'Viewport',
 			`visual ${visual.height}@${visual.offsetTop}, window ${window}, svh ${svh}, dvh ${dvh}, lvh ${lvh}, safe ${safe.top}/${safe.bottom}, y ${y}`,
 		),
-		...row('Pointer', report.pointer),
-		...row('Focus', report.focus),
+		...formatTableRow('Pointer', report.pointer),
+		...formatTableRow('Focus', report.focus),
 		'',
-		...block('Stack', report.stack),
-		...block('Component stack', report.componentStack),
-		...block('Trail', report.trail),
+		...formatBlock('Stack', report.stack),
+		...formatBlock('Component stack', report.componentStack),
+		...formatBlock('Trail', report.trail),
 	]
 		.join('\n')
 		.trimEnd()

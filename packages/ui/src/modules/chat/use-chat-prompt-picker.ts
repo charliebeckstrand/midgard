@@ -23,7 +23,7 @@ import { isComposing } from '../../utilities/is-composing'
 import { hasBrowserModifier } from '../../utilities/modifier-keys'
 import { randomId } from '../../utilities/random-id'
 import type { ChatCitation } from './engine/chat-content/types'
-import { activeTrigger, chooseInTrigger, type TriggerMatch } from './engine/chat-draft/trigger'
+import { chooseInTrigger, findActiveTrigger, type TriggerMatch } from './engine/chat-draft/trigger'
 import type { ChatPromptItem, ChatPromptSource } from './types'
 
 const messages = defineMessages<{ added: { label: string; source: string } }>({
@@ -102,7 +102,7 @@ export function useChatPromptPicker({
 
 	const match: TriggerMatch | null =
 		sources && sources.length > 0 && caret !== null
-			? activeTrigger(value, caret, sources, citations)
+			? findActiveTrigger(value, caret, sources, citations)
 			: null
 
 	// A dismissal holds for one trigger. With no trigger, it goes.

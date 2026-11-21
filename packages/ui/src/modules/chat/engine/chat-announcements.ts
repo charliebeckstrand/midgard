@@ -55,7 +55,7 @@ export const replyFailed = defineMessage({
  *
  * @internal
  */
-function embedCount(content: string | ChatPart[]): number {
+function getEmbedCount(content: string | ChatPart[]): number {
 	return toChatParts(content).filter((part) => part.kind === 'embed').length
 }
 
@@ -77,7 +77,7 @@ function embedCount(content: string | ChatPart[]): number {
 export function describeReply(intl: IntlShape, content: string | ChatPart[]): string {
 	const spoken = chatContentText(content)
 
-	const views = embedCount(content)
+	const views = getEmbedCount(content)
 
 	if (views === 0) return spoken
 

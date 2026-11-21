@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import type { ChatCitation } from '../../modules/chat/engine/chat-content/types'
-import { activeTrigger, chooseInTrigger } from '../../modules/chat/engine/chat-draft/trigger'
+import { chooseInTrigger, findActiveTrigger } from '../../modules/chat/engine/chat-draft/trigger'
 
 const RULES = [{ trigger: '@' }, { trigger: '/', at: 'start' as const }]
 
@@ -14,17 +14,17 @@ const scope = (start: number, quote: string): ChatCitation => ({
 	selector: null,
 })
 
-describe('activeTrigger', () => {
+describe('findActiveTrigger', () => {
 	it('finds a trigger at the start of the draft', () => {
-		expect(activeTrigger('@la', 3, RULES)).toEqual({ index: 0, start: 0, query: 'la' })
+		expect(findActiveTrigger('@la', 3, RULES)).toEqual({ index: 0, start: 0, query: 'la' })
 	})
 
 	it('finds a trigger after whitespace, with an empty query', () => {
-		expect(activeTrigger('show @', 6, RULES)).toEqual({ index: 0, start: 5, query: '' })
+		expect(findActiveTrigger('show @', 6, RULES)).toEqual({ index: 0, start: 5, query: '' })
 	})
 
 	it('reads the query up to the caret', () => {
-		expect(activeTrigger('@late', 3, RULES)).toEqual({ index: 0, start: 0, query: 'la' })
+		expect(findActiveTrigger('@late', 3, RULES)).toEqual({ index: 0, start: 0, query: 'la' })
 	})
 
 	it.for<[string, string, number]>([
@@ -32,19 +32,19 @@ describe('activeTrigger', () => {
 		['a word that whitespace ends', '@late ', 6],
 		['a caret before the trigger', '@late', 0],
 	])('finds no trigger in %s', ([, value, caret]) => {
-		expect(activeTrigger(value, caret, RULES)).toBeNull()
+		expect(findActiveTrigger(value, caret, RULES)).toBeNull()
 	})
 
 	it('counts a start-only trigger only at the start, after leading whitespace', () => {
-		expect(activeTrigger('  /cl', 5, RULES)).toEqual({ index: 1, start: 2, query: 'cl' })
+		expect(findActiveTrigger('  /cl', 5, RULES)).toEqual({ index: 1, start: 2, query: 'cl' })
 
-		expect(activeTrigger('1 /2', 4, RULES)).toBeNull()
+		expect(findActiveTrigger('1 /2', 4, RULES)).toBeNull()
 
-		expect(activeTrigger('1/2', 3, RULES)).toBeNull()
+		expect(findActiveTrigger('1/2', 3, RULES)).toBeNull()
 	})
 
 	it('finds no trigger in a citation', () => {
-		expect(activeTrigger('@Late stops', 5, RULES, [scope(0, '@Late stops')])).toBeNull()
+		expect(findActiveTrigger('@Late stops', 5, RULES, [scope(0, '@Late stops')])).toBeNull()
 	})
 })
 

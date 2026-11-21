@@ -184,10 +184,10 @@ function syncAttributes(): void {
 }
 
 /** The `localStorage` of the page. The settings are off where the storage throws, such as with site data off. */
-const local = () => getStorage(() => localStorage)
+const getLocal = () => getStorage(() => localStorage)
 
 function readLocal({ key }: Setting): boolean {
-	return readStorage(local(), key) === '1'
+	return readStorage(getLocal(), key) === '1'
 }
 
 /** Writes the cookie of `setting` from `on`. */
@@ -197,7 +197,7 @@ function writeMirror({ cookie }: Setting, on: boolean): void {
 
 /** Writes `setting` from `on`, and its cookie from the stored setting, so the two agree where the storage throws. */
 function writeLocal(setting: Setting, on: boolean): void {
-	writeStorage(local(), setting.key, on ? '1' : null)
+	writeStorage(getLocal(), setting.key, on ? '1' : null)
 
 	writeMirror(setting, readLocal(setting))
 }

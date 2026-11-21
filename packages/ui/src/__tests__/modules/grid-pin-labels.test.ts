@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'vitest'
 import { describePin } from '../../modules/grid/engine/grid-announcements'
 import { pinMenuChoices } from '../../modules/grid/engine/grid-pin/overrides'
-import { fillItems } from '../../modules/grid/grid-context-menu-utilities'
+import { buildFillItems } from '../../modules/grid/grid-context-menu-utilities'
 import { intlEn } from '../../primitives/intl/intl-catalog'
 import { intlEs } from '../helpers/intl'
 
@@ -51,7 +51,10 @@ describe('pin labels', () => {
 		const fill = () => () => {}
 
 		const labels = (rtl: boolean) =>
-			fillItems(intlEn, fill, rtl).map((item) => [item.key, 'label' in item ? item.label : null])
+			buildFillItems(intlEn, fill, rtl).map((item) => [
+				item.key,
+				'label' in item ? item.label : null,
+			])
 
 		expect(labels(false)).toEqual([
 			['fill-down', 'Fill down'],

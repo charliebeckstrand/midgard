@@ -55,13 +55,11 @@ No rule reads a clock or a random source. The shell mints each id and gives it t
 
 2. **A measured ratio in TSDoc (*P2*).** The TSDoc of `ChatEmbedRegistry.mount` in [`types.ts`](types.ts) says that a chart on each reply costs about seven times as much to mount. [`CONVENTIONS.md`](../../../../../CONVENTIONS.md) §12.6 keeps a measurement out of a comment, because later code makes it wrong. Keep the reason in words, and record the number in a dated section of the [browser benchmarks README](../../__benchmarks__/browser/README.md) with `chat-render.bench.tsx` as its bench.
 
-3. **Function names that do not start with a verb (*P3*).** [`CONVENTIONS.md`](../../../../../CONVENTIONS.md) §8.5 starts each function name with a verb. The engine and the shell have names that start with a noun, such as `chatBranches`, `draftContent`, `draftCitations`, `userContent`, `duplicateMessageIds`, `activeTrigger`, `historyStep`, `embedCount`, and `startingParts`. Rename the internal names, such as `getBranches` and `findActiveTrigger`. The public `chatContentText` stays, because its rename breaks an export for no gain to the caller. No gate reads the first word of a name, and a verb list for such a gate is the open question.
-
 ## Performance
 
-1. **The draft rules on each keystroke (*P3*).** Each change of the composer runs `rebaseCitations`, `recordDraft`, and `activeTrigger`, and an undo runs `stepDraft` over a history of up to `DRAFT_HISTORY_LIMIT` drafts. These rules are on the input path, so their cost counts toward INP. [`chat-compute.bench.ts`](../../__benchmarks__/chat-compute.bench.ts) measures none of them. Add cases for a long draft with many citations and a full history. Change a rule only when the bench shows a cost near a frame.
+1. **The draft rules on each keystroke (*P3*).** Each change of the composer runs `rebaseCitations`, `recordDraft`, and `findActiveTrigger`, and an undo runs `stepDraft` over a history of up to `DRAFT_HISTORY_LIMIT` drafts. These rules are on the input path, so their cost counts toward INP. [`chat-compute.bench.ts`](../../__benchmarks__/chat-compute.bench.ts) measures none of them. Add cases for a long draft with many citations and a full history. Change a rule only when the bench shows a cost near a frame.
 
-2. **The branches on each chunk (*P3*).** `useChatSend` runs `chatBranches` on each new tree, and a chunk makes a new tree. Each fork then runs `findLastIndex` over the path from its end. The bench has one fork near the end, so a long transcript with forks near its start has no number. Add that case to `chat-compute.bench.ts`. If it costs, key the memo on `tree.forks` and the held ids of the path, which a chunk does not change.
+2. **The branches on each chunk (*P3*).** `useChatSend` runs `getBranches` on each new tree, and a chunk makes a new tree. Each fork then runs `findLastIndex` over the path from its end. The bench has one fork near the end, so a long transcript with forks near its start has no number. Add that case to `chat-compute.bench.ts`. If it costs, key the memo on `tree.forks` and the held ids of the path, which a chunk does not change.
 
 ## Accessibility and testing
 

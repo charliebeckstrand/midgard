@@ -45,7 +45,7 @@ function isSpace(char: string | undefined): boolean {
  * @internal
  * @param caret - The offset of a collapsed selection.
  */
-export function activeTrigger(
+export function findActiveTrigger(
 	value: string,
 	caret: number,
 	rules: readonly TriggerRule[],

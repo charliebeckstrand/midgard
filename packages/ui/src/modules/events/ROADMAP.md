@@ -51,10 +51,6 @@ The barrel exports only the light modules: the setting, the sink, the shells of 
 
 4. **Console errors and warnings as an option (*P3*).** Sentry records `console.error` and `console.warn` as breadcrumbs, and a library often warns there before it fails. A `console` option of `startEvents` can patch the two methods, as `calls` patches the scroll and focus methods. The option is off by default for the same reason. Open question: `eventsRootOptions` calls `console.error` for a caught error, so the source must skip the error that the store already filed.
 
-## Pattern cleanup
-
-1. **Verb names in the engine (*P2*).** CONVENTIONS.md §8.5 starts each function name with a verb. Some file-private and shared functions of the engine have a noun name. They are `bursts` in [`dom.ts`](engine/events-sources/dom.ts), `key` in [`events-store.ts`](engine/events-store.ts), `block` and `row` in [`events-report.ts`](engine/events-report.ts), and `local` in [`events-setting.ts`](engine/events-setting.ts). Rename them to `createBursts`, `toKey`, `formatBlock`, `formatTableRow`, and `getLocal`. The rename of `bursts` reaches the docs sources ([`sources.ts`](../../docs/debug/sources.ts)). No gate is practical, because a verb list is open.
-
 ## Performance
 
 No item is open, because no measured cost moves a frame. The Events section of [`browser/README.md`](../../__benchmarks__/browser/README.md) holds the figures of 2026-10-20 from [`events-tap.bench.tsx`](../../__benchmarks__/browser/events-tap.bench.tsx) and [`events-store.bench.ts`](../../__benchmarks__/events-store.bench.ts). A tap costs about 0.2 ms with the events on and 0.7 ms during a capture, against 0.02 ms off. The two fixes that the section measured have landed. They are the scroll region of the pinned panel, and the probe of the viewport that stays in the page. With them, a frame of the pinned panel costs about 4 ms, and a resize costs what it costs with the events off. Run both benches again before a change to the store, a source, or the list.

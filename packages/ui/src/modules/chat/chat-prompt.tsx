@@ -31,9 +31,9 @@ import { canSubmitDraft } from './engine/chat-draft/content'
 import {
 	type DraftHistory,
 	EMPTY_HISTORY,
-	historyStep,
 	recordDraft,
 	stepDraft,
+	toHistoryStep,
 } from './engine/chat-draft/history'
 import { rebaseCitations } from './engine/chat-draft/rebase'
 import type { ChatPromptSource } from './types'
@@ -422,7 +422,7 @@ function recallOnHistory(
 	event: ChangeEvent<HTMLTextAreaElement>,
 	historyRef: RefObject<DraftHistory>,
 ): readonly ChatCitation[] | undefined {
-	const step = historyStep((event.nativeEvent as Partial<InputEvent>).inputType)
+	const step = toHistoryStep((event.nativeEvent as Partial<InputEvent>).inputType)
 
 	if (!step) return undefined
 

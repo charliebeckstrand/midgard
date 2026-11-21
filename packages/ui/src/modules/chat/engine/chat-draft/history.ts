@@ -83,7 +83,7 @@ export function recordDraft(
  * @internal
  * @param inputType - The `inputType` of the input event, which a browser with no support leaves out.
  */
-export function historyStep(inputType: string | undefined): HistoryStep | undefined {
+export function toHistoryStep(inputType: string | undefined): HistoryStep | undefined {
 	if (inputType === 'historyUndo') return 'undo'
 
 	if (inputType === 'historyRedo') return 'redo'
