@@ -5,12 +5,52 @@ import { k } from '../../recipes/kata/markdown'
 import { clamp } from '../../utilities/clamp'
 import { Code, CodeBlock } from '../code'
 import { decodeEntities } from './markdown-entities'
+import {
+	atomRange,
+	find,
+	locate,
+	type MarkdownRange,
+	type MarkdownRangePiece,
+	type RangeWalk,
+	rangeWalk,
+	segmentLine,
+} from './markdown-ranges'
 import { MarkdownTableScroll } from './markdown-table-scroll'
 
 const HEADING_TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'] as const
 
 /** The number of levels that a heading in Markdown source moves down the outline of the page. */
 export type MarkdownHeadingOffset = 0 | 1 | 2 | 3 | 4 | 5
+
+/**
+ * Draws one piece of a range. `children` is the text of the piece, in the
+ * inline elements that hold it.
+ */
+export type MarkdownRangeRenderer<R extends MarkdownRange = MarkdownRange> = (
+	piece: MarkdownRangePiece<R>,
+	children: ReactNode,
+) => ReactNode
+
+/**
+ * A walk that draws ranges, with the renderer of their pieces.
+ *
+ * @internal
+ */
+type Draw = RangeWalk & { render: MarkdownRangeRenderer }
+
+/**
+ * The piece that a {@link MarkdownRenderer} draws when the caller gives no
+ * `renderRange`.
+ *
+ * @internal
+ */
+function defaultRangeRenderer({ range }: MarkdownRangePiece, children: ReactNode): ReactNode {
+	return (
+		<span data-slot="markdown-range" data-range={range.id}>
+			{children}
+		</span>
+	)
+}
 
 const SAFE_URL_SCHEMES = /^(?:https?|mailto|tel)$/i
 
@@ -81,17 +121,39 @@ function safeUrl(source: string, allowData = false): string | undefined {
  * A heading takes the level of its source depth plus `headingOffset`, in the
  * range 1 to 6. Its look stays that of its source depth.
  *
+ * With `source` and `ranges`, each range that can draw goes through
+ * `renderRange`. The renderer finds each text token in the source with a
+ * cursor that moves forward, and cuts the text at the edges of each range. A
+ * piece holds only text, in the innermost inline element that holds the text,
+ * so a range that crosses bold or a paragraph break draws as more than one
+ * piece. A piece does not go into a link, a fenced code block, or an image
+ * `alt`. An escape and a code span do not split. With no range, the walk does
+ * not occur.
+ *
  * @param tokens - Token list from `marked`'s block lexer or inline lexer.
  * @param headingOffset - The number of levels to add to each heading.
+ * @param source - The source that `tokens` came from. The ranges address it.
+ * @param ranges - The ranges to draw.
+ * @param renderRange - Draws one piece of a range.
  */
 export function MarkdownRenderer({
 	tokens,
 	headingOffset = 0,
+	source,
+	ranges,
+	renderRange,
 }: {
 	tokens: Token[]
 	headingOffset?: MarkdownHeadingOffset
+	source?: string
+	ranges?: readonly MarkdownRange[]
+	renderRange?: MarkdownRangeRenderer
 }) {
-	return <>{renderChildren(tokens, headingOffset)}</>
+	const walk = source === undefined ? undefined : rangeWalk(source, ranges)
+
+	const draw = walk && { ...walk, render: renderRange ?? defaultRangeRenderer }
+
+	return <>{renderChildren(tokens, headingOffset, undefined, draw)}</>
 }
 
 /**
@@ -106,11 +168,141 @@ function renderChildren(
 	tokens: Token[] | undefined,
 	offset: number,
 	taskLabel?: string,
+	draw?: Draw,
 ): ReactNode {
-	return tokens?.map((token, index) => renderToken(token, index, offset, taskLabel))
+	return tokens?.map((token, index) => renderToken(token, index, offset, taskLabel, draw))
 }
 
-function renderToken(token: Token, index: number, offset: number, taskLabel?: string): ReactNode {
+/**
+ * Renders one token. With a walk, the cursor moves to the start of the token
+ * before its children render, and past its end after. A token that the source
+ * does not hold renders with no ranges, and the cursor stays.
+ *
+ * @internal
+ */
+function renderToken(
+	token: Token,
+	index: number,
+	offset: number,
+	taskLabel?: string,
+	draw?: Draw,
+): ReactNode {
+	// A render with no ranges takes the plain path, with no closure for each token.
+	if (!draw) return renderTokenAt(token, index, offset, taskLabel, undefined)
+
+	return within(draw, token.raw, (found) => renderTokenAt(token, index, offset, taskLabel, found))
+}
+
+/**
+ * Runs `render` with the cursor of the walk at the start of `raw` in the
+ * source, then moves the cursor past the end of `raw`. While `render` runs,
+ * the limit of the walk is the end of `raw`, so a child token is found only in
+ * the source of its parent.
+ *
+ * @internal
+ */
+function within(
+	draw: Draw | undefined,
+	raw: string,
+	render: (draw: Draw | undefined) => ReactNode,
+): ReactNode {
+	if (!draw) return render(undefined)
+
+	const span = locate(draw, raw)
+
+	if (!span) return render(undefined)
+
+	const limit = draw.limit
+
+	draw.cursor = span[0]
+
+	draw.limit = span[1]
+
+	const node = render(draw)
+
+	draw.limit = limit
+
+	draw.cursor = Math.max(draw.cursor, span[1])
+
+	return node
+}
+
+/**
+ * Draws one piece of the range at `range` in the walk.
+ *
+ * @internal
+ */
+function drawPiece(draw: Draw, range: number, key: number, children: ReactNode): ReactNode {
+	const index = draw.pieces[range] ?? 0
+
+	draw.pieces[range] = index + 1
+
+	return (
+		<Fragment key={key}>
+			{draw.render({ range: draw.ranges[range] as MarkdownRange, index }, children)}
+		</Fragment>
+	)
+}
+
+/**
+ * The text of a text token, with each range that it overlaps drawn as a
+ * piece. Each line is found in the source on its own, because a token in a
+ * list item or a blockquote has no indentation. After a line that the source
+ * does not hold, the rest of the token renders with no ranges.
+ *
+ * @internal
+ */
+function markText(draw: Draw, raw: string, key: number): ReactNode {
+	const nodes: ReactNode[] = []
+
+	let found = true
+
+	raw.split('\n').forEach((line, row) => {
+		if (row > 0) nodes.push('\n')
+
+		const at = found && line !== '' ? find(draw, line, draw.cursor) : -1
+
+		if (at === -1) {
+			if (line !== '') found = false
+
+			nodes.push(decodeEntities(line))
+
+			return
+		}
+
+		for (const segment of segmentLine(draw, line, at)) {
+			const text = decodeEntities(segment.text)
+
+			nodes.push(
+				segment.range === undefined ? text : drawPiece(draw, segment.range, nodes.length, text),
+			)
+		}
+
+		draw.cursor = at + line.length
+	})
+
+	return <Fragment key={key}>{nodes}</Fragment>
+}
+
+/**
+ * The text of a token that does not split, such as an escape: a piece when a
+ * range overlaps its source, or the text alone.
+ *
+ * @internal
+ */
+function markAtom(draw: Draw | undefined, raw: string, text: string): ReactNode {
+	const range = draw && atomRange(draw, raw.length)
+
+	return draw && range !== undefined ? drawPiece(draw, range, 0, text) : text
+}
+
+function renderTokenAt(
+	token: Token,
+	index: number,
+	offset: number,
+	taskLabel: string | undefined,
+	draw: Draw | undefined,
+): ReactNode {
 	switch (token.type) {
 		case 'heading': {
 			const depth = clamp(token.depth, 1, 6) as 1 | 2 | 3 | 4 | 5 | 6
@@ -121,40 +313,45 @@ function renderToken(token: Token, index: number, offset: number, taskLabel?: st
 
 			return (
 				<Tag key={index} className={k({ level: depth }).heading}>
-					{renderChildren(token.tokens, offset)}
+					{renderChildren(token.tokens, offset, undefined, draw)}
 				</Tag>
 			)
 		}
 		case 'paragraph':
 			return (
 				<p key={index} className={k().paragraph}>
-					{renderChildren(token.tokens, offset, taskLabel)}
+					{renderChildren(token.tokens, offset, taskLabel, draw)}
 				</p>
 			)
 		case 'text':
-			return token.tokens ? (
-				<Fragment key={index}>{renderChildren(token.tokens, offset)}</Fragment>
-			) : (
-				decodeEntities(token.raw)
-			)
+			if (token.tokens) {
+				return (
+					<Fragment key={index}>{renderChildren(token.tokens, offset, undefined, draw)}</Fragment>
+				)
+			}
+
+			return draw ? markText(draw, token.raw, index) : decodeEntities(token.raw)
 		case 'strong':
 			return (
 				<strong key={index} className={k().strong}>
-					{renderChildren(token.tokens, offset)}
+					{renderChildren(token.tokens, offset, undefined, draw)}
 				</strong>
 			)
 		case 'em':
 			return (
 				<em key={index} className={k().em}>
-					{renderChildren(token.tokens, offset)}
+					{renderChildren(token.tokens, offset, undefined, draw)}
 				</em>
 			)
 		case 'del':
 			return (
 				<del key={index} className={k().del}>
-					{renderChildren(token.tokens, offset)}
+					{renderChildren(token.tokens, offset, undefined, draw)}
 				</del>
 			)
+		// A link renders its text with no walk. A piece in a link would put a
+		// second control in the link, and the link already acts. The cursor moves
+		// past the whole link in `within`.
 		case 'link':
 			return (
 				<a
@@ -179,7 +376,7 @@ function renderToken(token: Token, index: number, offset: number, taskLabel?: st
 		case 'codespan':
 			return (
 				<Code key={index} size="sm">
-					{token.text}
+					{markAtom(draw, token.raw, token.text)}
 				</Code>
 			)
 		case 'code':
@@ -187,11 +384,11 @@ function renderToken(token: Token, index: number, offset: number, taskLabel?: st
 		case 'blockquote':
 			return (
 				<blockquote key={index} className={k().blockquote}>
-					{renderChildren(token.tokens, offset)}
+					{renderChildren(token.tokens, offset, undefined, draw)}
 				</blockquote>
 			)
 		case 'list':
-			return renderList(token as Tokens.List, index, offset)
+			return renderList(token as Tokens.List, index, offset, draw)
 		case 'checkbox':
 			// The checkbox cannot be in a `<label>`, because a loose item holds
 			// paragraphs and nested lists. The plain text of the item names it.
@@ -207,13 +404,13 @@ function renderToken(token: Token, index: number, offset: number, taskLabel?: st
 				/>
 			)
 		case 'table':
-			return renderTable(token as Tokens.Table, index, offset)
+			return renderTable(token as Tokens.Table, index, offset, draw)
 		case 'hr':
 			return <hr key={index} className={k().hr} />
 		case 'br':
 			return <br key={index} />
 		case 'escape':
-			return token.text
+			return <Fragment key={index}>{markAtom(draw, token.raw, token.text)}</Fragment>
 		// Raw HTML, whitespace, and link definitions render nothing.
 		default:
 			return null
@@ -240,8 +437,12 @@ function imageAlt(token: Tokens.Image | Tokens.Generic): string {
 	return token.tokens ? plainText(token.tokens) : decodeEntities(token.text)
 }
 
-function renderList(token: Tokens.List, key: number, offset: number): ReactNode {
-	const items = token.items.map((item, index) => renderListItem(item, index, offset))
+function renderList(token: Tokens.List, key: number, offset: number, draw?: Draw): ReactNode {
+	const items = token.items.map((item, index) =>
+		draw
+			? within(draw, item.raw, (found) => renderListItem(item, index, offset, found))
+			: renderListItem(item, index, offset),
+	)
 
 	if (token.ordered) {
 		const start = typeof token.start === 'number' && token.start !== 1 ? token.start : undefined
@@ -260,10 +461,15 @@ function renderList(token: Tokens.List, key: number, offset: number): ReactNode 
 	)
 }
 
-function renderListItem(item: Tokens.ListItem, index: number, offset: number): ReactNode {
+function renderListItem(
+	item: Tokens.ListItem,
+	index: number,
+	offset: number,
+	draw?: Draw,
+): ReactNode {
 	return (
 		<li key={index} className={k({ task: item.task }).li}>
-			{renderChildren(item.tokens, offset, item.task ? taskLabel(item.tokens) : undefined)}
+			{renderChildren(item.tokens, offset, item.task ? taskLabel(item.tokens) : undefined, draw)}
 		</li>
 	)
 }
@@ -309,21 +515,23 @@ function plainText(tokens: Token[]): string {
 		.join('')
 }
 
-function renderTable(token: Tokens.Table, key: number, offset: number): ReactNode {
+function renderTable(token: Tokens.Table, key: number, offset: number, draw?: Draw): ReactNode {
 	return (
 		<MarkdownTableScroll key={key}>
 			<table className={k().table.base}>
 				<thead>
-					<tr>{token.header.map((cell, index) => renderCell('th', cell, index, offset))}</tr>
+					<tr>{token.header.map((cell, index) => renderCell('th', cell, index, offset, draw))}</tr>
 				</thead>
-				<tbody>{token.rows.map((row, index) => renderRow(row, index, offset))}</tbody>
+				<tbody>{token.rows.map((row, index) => renderRow(row, index, offset, draw))}</tbody>
 			</table>
 		</MarkdownTableScroll>
 	)
 }
 
-function renderRow(row: Tokens.TableCell[], index: number, offset: number): ReactNode {
-	return <tr key={index}>{row.map((cell, column) => renderCell('td', cell, column, offset))}</tr>
+function renderRow(row: Tokens.TableCell[], index: number, offset: number, draw?: Draw): ReactNode {
+	return (
+		<tr key={index}>{row.map((cell, column) => renderCell('td', cell, column, offset, draw))}</tr>
+	)
 }
 
 /** Renders one table cell: a `th` in the head, a `td` in the body. */
@@ -332,10 +540,14 @@ function renderCell(
 	cell: Tokens.TableCell,
 	index: number,
 	offset: number,
+	draw?: Draw,
 ): ReactNode {
+	// A cell has no `raw`. Its trimmed text is the nearest form of its source.
 	return (
 		<Cell key={index} className={k({ align: cell.align ?? undefined })[Cell]}>
-			{renderChildren(cell.tokens, offset)}
+			{draw
+				? within(draw, cell.text, (found) => renderChildren(cell.tokens, offset, undefined, found))
+				: renderChildren(cell.tokens, offset)}
 		</Cell>
 	)
 }
