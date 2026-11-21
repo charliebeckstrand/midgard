@@ -1411,6 +1411,10 @@
 		"defaultMessage": "Legend",
 		"description": "The name of the legend of a map, which names the categories by their colors."
 	},
+	"ui.map.selectedRow": {
+		"defaultMessage": "{name}, selected",
+		"description": "The name of a row of the data table of a map for a region or a mark that the map holds selected, such as \"Ohio, selected\"."
+	},
 	"ui.map.zoom": {
 		"defaultMessage": "Zoom {scale, number, percent}",
 		"description": "Spoken when a key zooms a map in or out, with the zoom as a percent of the fit, such as \"Zoom 150%\"."

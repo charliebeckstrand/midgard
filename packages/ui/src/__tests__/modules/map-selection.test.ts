@@ -3,8 +3,9 @@ import { describe, expect, it } from 'vitest'
 import type { MapOverlayEntry } from '../../modules/map/engine/map-overlay/entry'
 import {
 	ownStop,
-	pickedStop,
-	selectedMarkRow,
+	pickedStops,
+	samePicks,
+	selectedMarkRows,
 	targetParts,
 	targetStop,
 } from '../../modules/map/engine/map-overlay/selection'
@@ -33,30 +34,42 @@ const FLEET: MapOverlayEntry = {
 	getStop: (index) => [0, 0, 1][index] ?? null,
 }
 
-describe('pickedStop', () => {
+describe('pickedStops', () => {
 	it('maps a reported index through the mark that counts in another space', () => {
-		expect(pickedStop({ id: 'fleet', index: 1 }, 'fleet', FLEET.getStop)).toBe(0)
+		expect(pickedStops([{ id: 'fleet', index: 1 }], 'fleet', FLEET.getStop)).toEqual([0])
 
-		expect(pickedStop({ id: 'fleet', index: 2 }, 'fleet', FLEET.getStop)).toBe(1)
+		expect(pickedStops([{ id: 'fleet', index: 2 }], 'fleet', FLEET.getStop)).toEqual([1])
 	})
 
 	it('reads an absent index as the first stop of the mark it names', () => {
-		expect(pickedStop({ id: 'leg' }, 'leg', ROUTE.getStop)).toBe(0)
+		expect(pickedStops([{ id: 'leg' }], 'leg', ROUTE.getStop)).toEqual([0])
 	})
 
-	it('names nothing where the pick names another mark, or nothing at all', () => {
-		expect(pickedStop({ id: 'fleet', index: 0 }, 'leg', ROUTE.getStop)).toBeNull()
+	it('names nothing where the picks name another mark, or nothing at all', () => {
+		expect(pickedStops([{ id: 'fleet', index: 0 }], 'leg', ROUTE.getStop)).toEqual([])
 
-		expect(pickedStop(null, 'leg', ROUTE.getStop)).toBeNull()
+		expect(pickedStops([], 'leg', ROUTE.getStop)).toEqual([])
 	})
 
 	it('names nothing where the mark holds no stop for the index', () => {
-		expect(pickedStop({ id: 'fleet', index: 9 }, 'fleet', FLEET.getStop)).toBeNull()
+		expect(pickedStops([{ id: 'fleet', index: 9 }], 'fleet', FLEET.getStop)).toEqual([])
 
 		// A mark that draws the stops it reports holds one, its own: the silence a
-		// `selectedRegion` naming no region keeps, rather than a halo on that stop
-		// whatever index was asked for.
-		expect(pickedStop({ id: 'leg', index: 3 }, 'leg', ROUTE.getStop)).toBeNull()
+		// `selectedRegions` entry naming no region keeps, rather than a halo on that
+		// stop whatever index was asked for.
+		expect(pickedStops([{ id: 'leg', index: 3 }], 'leg', ROUTE.getStop)).toEqual([])
+	})
+
+	it('names each stop of a set one time, in ascending order', () => {
+		// Points 0 and 1 land in one summary, so two picks name it one time.
+		const picks = [
+			{ id: 'fleet', index: 2 },
+			{ id: 'fleet', index: 1 },
+			{ id: 'leg' },
+			{ id: 'fleet', index: 0 },
+		]
+
+		expect(pickedStops(picks, 'fleet', FLEET.getStop)).toEqual([0, 1])
 	})
 })
 
@@ -73,16 +86,50 @@ describe('targetStop', () => {
 	})
 })
 
-describe('selectedMarkRow', () => {
-	it('keys the row on the stop the mark draws, not the index reported', () => {
-		expect(selectedMarkRow([ROUTE, FLEET], { id: 'fleet', index: 1 })).toBe('fleet:0')
+describe('selectedMarkRows', () => {
+	it('keys each row on the stop the mark draws, not the index reported', () => {
+		expect(selectedMarkRows([ROUTE, FLEET], [{ id: 'fleet', index: 1 }])).toEqual(
+			new Set(['fleet:0']),
+		)
 	})
 
-	it('marks no row where nothing is picked, or where the pick names no mark', () => {
-		expect(selectedMarkRow([ROUTE, FLEET], null)).toBeNull()
+	it('marks the rows of every mark that the picks name', () => {
+		const rows = selectedMarkRows(
+			[ROUTE, FLEET],
+			[{ id: 'fleet', index: 2 }, { id: 'leg' }, { id: 'fleet', index: 0 }],
+		)
+
+		expect(rows).toEqual(new Set(['leg:0', 'fleet:0', 'fleet:1']))
+	})
+
+	it('marks no row where nothing is picked, or where the picks name no mark', () => {
+		expect(selectedMarkRows([ROUTE, FLEET], []).size).toBe(0)
 
 		// A pick outliving the mark it was made against.
-		expect(selectedMarkRow([ROUTE], { id: 'fleet' })).toBeNull()
+		expect(selectedMarkRows([ROUTE], [{ id: 'fleet' }]).size).toBe(0)
+	})
+})
+
+describe('samePicks', () => {
+	it('matches two lists of the same pairs in the same order', () => {
+		expect(
+			samePicks(
+				[{ id: 'leg' }, { id: 'fleet', index: 1 }],
+				[{ id: 'leg' }, { id: 'fleet', index: 1 }],
+			),
+		).toBe(true)
+	})
+
+	it('tells apart a different pair, a different order, and a different length', () => {
+		expect(samePicks([{ id: 'fleet', index: 1 }], [{ id: 'fleet', index: 2 }])).toBe(false)
+
+		expect(samePicks([{ id: 'fleet', index: 1 }], [{ id: 'fleet' }])).toBe(false)
+
+		expect(samePicks([{ id: 'leg' }, { id: 'fleet' }], [{ id: 'fleet' }, { id: 'leg' }])).toBe(
+			false,
+		)
+
+		expect(samePicks([{ id: 'leg' }], [])).toBe(false)
 	})
 })
 

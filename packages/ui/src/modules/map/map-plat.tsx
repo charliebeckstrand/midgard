@@ -7,6 +7,7 @@ import {
 	type CSSProperties,
 	type ReactNode,
 	type Ref,
+	type RefObject,
 	useCallback,
 	useMemo,
 	useRef,
@@ -45,12 +46,12 @@ import { createStopMoves, entryTarget, mapStops } from './engine/map-keyboard/st
 import { groupLegendId, legendItems, overlaySwatchClass } from './engine/map-legend/items'
 import { planLegend } from './engine/map-legend/plan'
 import { type MapOverlayAnchor, sameAnchors } from './engine/map-overlay/entry'
-import { targetParts } from './engine/map-overlay/selection'
+import { samePicks, targetParts } from './engine/map-overlay/selection'
 import { overlaySlotColors } from './engine/map-overlay/slots'
 import { createSpareStore } from './engine/map-overlay/spare'
 import { activeCategory } from './engine/map-region/category'
 import type { MapCategoricalData, MapNoData, MapNumericData } from './engine/map-region/data'
-import { defaultRegionId } from './engine/map-region/identity'
+import { defaultRegionId, selectedRegionIndices } from './engine/map-region/identity'
 import { NO_REGION_CLAIM } from './engine/map-region/spare'
 import type { MapZoomInput } from './engine/map-zoom/input'
 import { mapZoomSettings } from './engine/map-zoom/input'
@@ -416,32 +417,39 @@ type MapPlatBaseProps = AccessibleName &
 		 */
 		onRegionPreload?: (id: string, index: number) => void
 		/**
-		 * The selected region, by the identity {@link onRegionClick} reports. That is
-		 * the `regionId` value, so the pick a click hands the caller comes straight
-		 * back as the pick to draw.
+		 * The selected regions, by the identity that {@link onRegionClick} reports.
+		 * That is the `regionId` value, so the pick that a click gives the caller
+		 * comes straight back as a pick to draw. It is the `selectedCategories` of a
+		 * chart, in the same shape.
 		 *
-		 * The map paints it and holds no selection state of its own. Whatever owns
-		 * the value stays the single source of truth, whether that is the click, a
-		 * Select beside the map, or a route parameter. The two halves of a clickable
-		 * map therefore can't disagree about what is picked.
+		 * The map paints the set and holds no selection state of its own. Whatever
+		 * owns the value stays the single source of truth, whether that is the
+		 * click, a Select beside the map, a route parameter, a dashboard
+		 * cross-filter, or a citation in a chat. The two halves of a clickable map
+		 * therefore cannot disagree about what is picked. To pick more than one
+		 * region, toggle the clicked id in the list.
 		 *
-		 * The selected region takes a foreground-ink outline above the region layers,
-		 * so it survives the hover recede. A pick made before the pointer arrived is
-		 * still marked while the pointer isolates elsewhere. It never dims the rest
-		 * of the map, which would read as broken for as long as the pick stood. Overlay children still draw over it, as they do over every
-		 * region. The region's row in the data table reads as the current one, so
-		 * the selection is in the accessible readout, not the pixels alone.
+		 * Each selected region takes a foreground-ink outline above the region
+		 * layers, so it stays through the hover recede. A pick made before the
+		 * pointer arrived is still marked while the pointer isolates elsewhere.
+		 * Unlike the `selectedCategories` of a chart, the set never dims the rest
+		 * of the map. A standing dim would read as broken for as long as the pick
+		 * stood, and it would fight the hover and the legend emphasis. Overlay
+		 * children still draw over the outlines, as they do over every region. The
+		 * row of each selected region in the data table reads as selected, so the
+		 * selection is in the accessible readout, not the pixels alone.
 		 *
-		 * A pick that opens a Dialog or a Drawer over the map changes the ring in
-		 * the same commit. The ring then keeps its last value until the backdrop of
-		 * the panel arrives, so the new ring does not paint at full contrast for a
-		 * frame and then dim. A ring that was on the map stays as it is when a
-		 * panel opens over it.
+		 * A pick that opens a Dialog or a Drawer over the map changes the set in
+		 * the same commit. The outlines then keep their last value until the
+		 * backdrop of the panel arrives, so a new outline does not paint at full
+		 * contrast for a frame and then dim. Outlines that were on the map stay as
+		 * they are when a panel opens over them.
 		 *
-		 * An id matching no region draws no ring; `null` (or omitting the prop)
-		 * selects nothing.
+		 * An id that matches no region draws no outline. An empty list, or no
+		 * list, selects nothing. The plat holds the last list while its ids stay
+		 * the same, so an inline array costs no render.
 		 */
-		selectedRegion?: string | null
+		selectedRegions?: readonly string[]
 		/**
 		 * Marks the region VALUES as still loading: the atlas is drawn and its numbers
 		 * are not in yet.
@@ -463,26 +471,29 @@ type MapPlatBaseProps = AccessibleName &
 		 */
 		loading?: boolean
 		/**
-		 * The selected overlay mark, in the pair its reporters hand back (see
-		 * {@link MapOverlaySelection} for how the pair reads). It is `selectedRegion`
-		 * for the marks drawn over the geography, on the same terms. The map paints
-		 * the pick and holds no selection state of its own, so whatever owns the
-		 * value stays the single source of truth.
+		 * The selected overlay marks, each in the pair that its reporter gives (see
+		 * {@link MapOverlaySelection} for how the pair reads). It is
+		 * {@link selectedRegions} for the marks drawn over the geography, on the same
+		 * terms. The map paints the picks and holds no selection state of its own,
+		 * so whatever owns the value stays the single source of truth. To pick more
+		 * than one stop, add the reported pair to the list.
 		 *
-		 * The picked mark takes a foreground-ink halo behind it, outside the hover
+		 * Each picked mark takes a foreground-ink halo behind it, outside the hover
 		 * recede. A pick made before the pointer arrived is therefore still marked
-		 * while the pointer isolates elsewhere. Behind rather than over: the mark's own color
-		 * reads through, as a ringed region keeps its fill. The stop's row in the
-		 * data table reads as the current one, so the selection is in the accessible
-		 * readout and not the pixels alone.
+		 * while the pointer isolates elsewhere. The halo is behind the mark, not over
+		 * it, so the color of the mark reads through, as an outlined region keeps
+		 * its fill. The row of each picked stop in the data table reads as
+		 * selected, so the selection is in the accessible readout and not the pixels
+		 * alone. Picks that land in one summary halo that summary one time.
 		 *
 		 * A pick that opens a Dialog or a Drawer over the map waits for its backdrop,
-		 * as a `selectedRegion` ring does.
+		 * as a {@link selectedRegions} outline does.
 		 *
-		 * A pair naming no drawn stop haloes nothing; `null` (or omitting the prop)
-		 * selects nothing.
+		 * A pair that names no drawn stop haloes nothing. An empty list, or no list,
+		 * selects nothing. The plat holds the last list while its pairs stay the
+		 * same, so an inline array costs no render.
 		 */
-		selectedOverlay?: MapOverlaySelection | null
+		selectedOverlays?: readonly MapOverlaySelection[]
 		/**
 		 * Controlled legend emphasis: the legend id whose marks hold while every
 		 * other group dims (what hovering a legend entry sets on its own). Each
@@ -695,21 +706,49 @@ function useRegionPreload(
 }
 
 /**
- * The overlay pick, held on its primitives rather than on the prop's identity.
- * A consumer writing the pair inline hands a fresh object every render, and
- * this value rides the plat context. A churning identity would therefore
- * re-render every mark on the map for a pick that never moved.
+ * Whether a reader beyond the rows needs the name of every region. The
+ * `nameRegions` readout names each region. Each region handler makes each region
+ * a cursor stop that speaks its name. A selected region has a row in the data
+ * table, and the name of that row is the one place where a screen reader learns
+ * which region is selected. A map that shows a selection from elsewhere, with
+ * no rows and no handler, thus names its regions too.
  *
  * @internal
  */
-function useMarkSelection(
-	selection: MapOverlaySelection | null | undefined,
-): MapOverlaySelection | null {
-	const id = selection?.id ?? null
+function needsRegionNames<T>(props: MapPlatProps<T>): boolean {
+	return (
+		props.nameRegions === true ||
+		props.onRegionClick !== undefined ||
+		props.onRegionPreload !== undefined ||
+		props.onRegionContextMenu !== undefined ||
+		(props.selectedRegions?.length ?? 0) > 0
+	)
+}
 
-	const index = selection?.index
-
-	return useMemo(() => (id === null ? null : { id, index }), [id, index])
+/**
+ * Holds a list of picks for the map to draw. A caller builds a new list on each
+ * render, so the held list keeps its reference while its items stay the same.
+ * The region layer, the marks, and the table then hold their render.
+ *
+ * A pick that opens a Dialog or a Drawer changes the list in the commit of the
+ * open, while the backdrop is still clear. The rings and the halos therefore
+ * keep their last value until the backdrop covers the map, so a new mark does
+ * not paint at full contrast for a frame and then dim.
+ *
+ * @param picks - The list of this render, if the caller gives one.
+ * @param none - The list of a map that picks nothing: one reference, so it holds.
+ * @param same - Whether two lists hold the same picks.
+ * @param ref - An element of the map, which tells which overlays cover it.
+ * @returns The list to draw.
+ * @internal
+ */
+function useHeldPicks<T>(
+	picks: readonly T[] | undefined,
+	none: readonly T[],
+	same: (a: readonly T[], b: readonly T[]) => boolean,
+	ref: RefObject<Element | null>,
+): readonly T[] {
+	return useUnderOverlay(useStableValue(picks ?? none, same), ref)
 }
 
 /**
@@ -780,6 +819,12 @@ function regionPointerState(
 
 /** A layer that answers nothing offers no region stops; shared so the gate allocates none. @internal */
 const NO_CENTROIDS: (LngLat | null)[] = []
+
+/** The region selection of a map that selects no region. One reference, so a held selection compares equal. */
+const NO_REGIONS: readonly string[] = []
+
+/** The overlay selection of a map that selects no mark. One reference, so a held selection compares equal. */
+const NO_PICKS: readonly MapOverlaySelection[] = []
 
 /** The plot SVG once the frame is measured: the whole plot box, in its measured pixels. */
 const MEASURED_SVG = { className: 'absolute inset-0 block size-full' }
@@ -882,9 +927,9 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		isRegionDisabled,
 		onRegionContextMenu,
 		onRegionPreload,
-		selectedRegion,
+		selectedRegions,
 		loading,
-		selectedOverlay,
+		selectedOverlays,
 		emphasis: controlledEmphasis,
 		onEmphasisChange,
 		onHiddenChange,
@@ -959,16 +1004,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		regionNumbers,
 		domain: valueExtent,
 		thresholds: valueThresholds,
-	} = useMapRegionReadout(
-		shape.features,
-		props,
-		regionIds,
-		regionLabel,
-		nameRegions ||
-			onRegionClick !== undefined ||
-			onRegionPreload !== undefined ||
-			onRegionContextMenu !== undefined,
-	)
+	} = useMapRegionReadout(shape.features, props, regionIds, regionLabel, needsRegionNames(props))
 
 	const {
 		hidden: switched,
@@ -1051,33 +1087,28 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 
 	const preloadRegion = useRegionPreload(onRegionPreload, regionIds, shape.features)
 
-	// The selection resolved to the index the layers draw by, against the same
-	// ids a click reports, so the pick a consumer echoes back always rings the
-	// region that produced it. An id naming no feature resolves to nothing
-	// rather than to region 0, the miss `indexOf` would otherwise report as -1.
-	//
-	// Memoized like every sibling derivation here, and for the reason `hasReadout`
-	// below states: this component re-renders on each legend point and leave, each
-	// toggle, each overlay registration, and each resize commit, and the scan is
-	// linear in the atlas. A counties map holding a pick read three thousand ids
-	// on every one of them, against a selection that had not moved.
 	const svgRef = useRef<SVGSVGElement>(null)
 
-	// A pick that opens a Dialog or a Drawer changes the selection in the commit
-	// of the open, while the backdrop is still clear. The ring and the halo
-	// therefore keep their last value until the backdrop covers the map, so the
-	// new mark does not paint at full contrast for a frame and then dim.
-	const heldRegion = useUnderOverlay(selectedRegion, svgRef)
+	const heldRegions = useHeldPicks(selectedRegions, NO_REGIONS, sameElements, svgRef)
 
-	const selected = useMemo(() => {
-		if (heldRegion == null) return null
+	// The selection resolved to the indices the layers draw by, against the same
+	// ids a click reports, so a pick that a consumer echoes back always rings the
+	// region that produced it. An id that names no feature resolves to nothing,
+	// not to region 0.
+	//
+	// Memoized like every sibling derivation here, and for the reason `hasReadout`
+	// below states: this component renders again on each legend point and leave,
+	// each toggle, each overlay registration, and each resize commit. The lookup
+	// goes through an identity index that is built once for each atlas, so a held
+	// set costs its own length, not the length of the atlas.
+	const selected = useMemo(
+		() => selectedRegionIndices(regionIds, heldRegions),
+		[regionIds, heldRegions],
+	)
 
-		const index = regionIds.indexOf(heldRegion)
-
-		return index === -1 ? null : index
-	}, [regionIds, heldRegion])
-
-	const markSelection = useUnderOverlay(useMarkSelection(selectedOverlay), svgRef)
+	// The overlay picks ride the plat context, so a new reference would render
+	// every mark on the map again for picks that did not move.
+	const markSelection = useHeldPicks(selectedOverlays, NO_PICKS, samePicks, svgRef)
 
 	// Registration ordinal per entry, so a staggered reveal can key off it.
 	const order = useMemo<ReadonlyMap<string, number>>(
@@ -1323,7 +1354,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 			report,
 			moves,
 			animate,
-			selectedOverlay: markSelection,
+			selectedOverlays: markSelection,
 			unmeasured,
 		}),
 		[
@@ -1444,9 +1475,9 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// Whether anything at all can read out: a matched region, a named region
 	// (`nameRegions`), a registered overlay, or a selected region. The table takes
 	// this wider reading: a mark's own row is an output a map with no rows still
-	// has, and the row of a selected region is where the selection reads as the
-	// current one.
-	const hasReadout = regionsRead || entries.length > 0 || nameRegions || selected !== null
+	// has, and the row of a selected region is where the selection reads as
+	// selected.
+	const hasReadout = regionsRead || entries.length > 0 || nameRegions || selected.length > 0
 
 	// Whether the tooltip and the cursor can read anything out. A region counts
 	// only while its layer answers, because `regionPointer={false}` takes the
@@ -1655,7 +1686,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 					categories={categoryMetas}
 					entries={entries}
 					selected={selected}
-					selectedOverlay={markSelection}
+					selectedOverlays={markSelection}
 					label={ariaLabel}
 					labelledBy={ariaLabelledBy}
 				/>

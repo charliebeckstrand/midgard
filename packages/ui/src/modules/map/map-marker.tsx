@@ -38,8 +38,8 @@ export type MapMarkerProps = MapOverlayProps & {
  * isolates the pair. Every other mark recedes, as under its legend entry's
  * focus. With `onClick` set, every part answers a click, and the
  * keyboard cursor picks the marker with Enter or Space. The plat's
- * `selectedOverlay` haloes both pins and the leg between them, for as long as it
- * names this mark.
+ * `selectedOverlays` halo both pins and the leg between them, for as long as they
+ * name this mark.
  *
  * Another mark's dot can stand close enough that a pin's target would overlap it.
  * The pin's circle is then clipped to the ground nearer to the pin, as a
@@ -169,7 +169,7 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 			{/* One pick, three shapes. A marker is its pair of pins and the leg
 			    between them. The halo therefore marks all of what the mark draws,
 			    rather than the one anchor its stop sits at. */}
-			{selected !== null && (
+			{selected && (
 				<>
 					{d !== '' && (
 						<MapHalo

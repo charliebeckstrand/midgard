@@ -58,7 +58,7 @@ export default function Clustering() {
 				projection="albers-usa"
 				animate
 				legend="right"
-				selectedOverlay={stop === null ? null : { id: 'round', index: stop }}
+				selectedOverlays={stop === null ? [] : [{ id: 'round', index: stop }]}
 			>
 				<MapPoints
 					id="round"

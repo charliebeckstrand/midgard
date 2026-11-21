@@ -80,7 +80,8 @@ export function useMapRegionReadout<T>(
 	regionLabel: ((feature: MapFeature) => string) | undefined,
 	/**
 	 * Whether a reader beyond the rows wants the name of every region: the
-	 * `nameRegions` readout, or the keyboard cursor of a map that picks regions.
+	 * `nameRegions` readout, the keyboard cursor of a map that picks regions, or
+	 * the table row of a selected region.
 	 */
 	nameAll: boolean,
 ): MapRegionReadout {

@@ -260,8 +260,8 @@ export type MapPlatContextValue = {
 	 * the life of the plat.
 	 */
 	moves: MapStopMoves
-	/** The picked mark, by the plat's own prop name; the named mark haloes the stop it resolves to. */
-	selectedOverlay: MapOverlaySelection | null
+	/** The picked marks, by the plat's own prop name; each named mark haloes the stops they resolve to. */
+	selectedOverlays: readonly MapOverlaySelection[]
 	/** Whether the plat animates; overlays pick their motion renderers off it. */
 	animate: boolean
 	/**

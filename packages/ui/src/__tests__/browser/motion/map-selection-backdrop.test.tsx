@@ -26,7 +26,7 @@ function PickProbe() {
 				Pick
 			</button>
 
-			{categoricalPlat({ selectedRegion: picked })}
+			{categoricalPlat({ selectedRegions: picked === null ? [] : [picked] })}
 
 			<Overlay open={picked !== null} onOpenChange={() => setPicked(null)}>
 				<span>panel</span>

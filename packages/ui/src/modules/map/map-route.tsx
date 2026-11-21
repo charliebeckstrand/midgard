@@ -41,8 +41,8 @@ const NO_STOPS: LngLat[] = []
  *
  * A wide invisible hit stroke keeps the thin line aimable. With `onClick` set, that
  * stroke answers a click and the keyboard cursor picks the route with Enter
- * or Space. The plat's `selectedOverlay` haloes the whole line for as long as
- * it names this mark.
+ * or Space. The plat's `selectedOverlays` halo the whole line for as long as
+ * they name this mark.
  *
  * @remarks Renders only inside {@link MapPlat}. The line's width is stated in
  * device pixels, so a zoom widens the ground the route covers and never the
@@ -89,7 +89,7 @@ export function MapRoute({ stops, path, ...shared }: MapRouteProps) {
 
 	return (
 		<>
-			{selected !== null && (
+			{selected && (
 				<MapHalo slot="map-route-selected" d={d} width={ROUTE_STROKE_WIDTH} scale={unitsPerPixel} />
 			)}
 

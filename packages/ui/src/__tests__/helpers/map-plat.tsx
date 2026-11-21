@@ -46,10 +46,10 @@ export function categoricalPlat(extra?: Partial<RowPlatProps>) {
  * drawn over it.
  *
  * @param children - The overlays: points, routes, markers, and geofences.
- * @param props - The overlay the plat holds selected, where a case sets one.
+ * @param props - The overlays the plat holds selected, where a case sets them.
  * @returns The plat element, for `renderUI` or `renderNavigable`.
  */
-export function overlayPlat(children: ReactNode, props?: Pick<MapPlatProps, 'selectedOverlay'>) {
+export function overlayPlat(children: ReactNode, props?: Pick<MapPlatProps, 'selectedOverlays'>) {
 	return (
 		<MapPlat aria-label="Test map" geography={FIXTURE_GEOJSON} width={400} {...props}>
 			{children}

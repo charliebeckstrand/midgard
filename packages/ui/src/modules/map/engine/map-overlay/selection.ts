@@ -1,6 +1,6 @@
 /**
- * The one resolution of what a standing pick names on the overlays. A pick has
- * to reach two surfaces: the halo behind the mark, and `aria-current` on the
+ * The one resolution of what the standing picks name on the overlays. A pick has
+ * to reach two surfaces: the halo behind the mark, and the selected text on the
  * mark's table row. Those two must never name different stops, which is the
  * failure this file exists to prevent. The picture would then mark one dot while
  * a screen reader read another.
@@ -17,7 +17,7 @@ import { markRowKey } from './readout'
 /**
  * The stop mapper a mark registers when it draws the stops it reports. Its one
  * stop is index `0`, and any other index names nothing. That is the silence a
- * `selectedRegion` naming no region keeps, rather than a mark haloed for an
+ * `selectedRegions` entry naming no region keeps, rather than a mark haloed for an
  * index it never had.
  *
  * @internal
@@ -27,25 +27,34 @@ export function ownStop(index: number): number | null {
 }
 
 /**
- * Which of a mark's drawn stops a pick names. `null` where the pick names
- * another mark, or an index the mark has no stop for. A stop of a shared summary
- * that another set draws still counts, because the pick names the part of this
- * set that the summary holds.
+ * Which of a mark's drawn stops the picks name, in ascending order and each one
+ * time. A pick that names another mark, or an index the mark has no stop for,
+ * adds nothing. A stop of a shared summary that another set draws still counts,
+ * because the pick names the part of this set that the summary holds. Two picks
+ * that land in one summary name that stop one time.
  *
- * The caller's index is optional and reads as the mark's first stop, which is
- * the whole of a singular mark. That default lives here rather than at either
- * reader, so the halo and the table row can only ever resolve one dot.
+ * The index of a pick is optional and reads as the first stop of the mark, which
+ * is the whole of a singular mark. That default lives here rather than at either
+ * reader, so the halo and the table row always resolve the same dots.
  *
  * @internal
  */
-export function pickedStop(
-	selection: MapOverlaySelection | null,
+export function pickedStops(
+	selections: readonly MapOverlaySelection[],
 	id: string,
 	getStop: (index: number) => number | null,
-): number | null {
-	if (selection === null || selection.id !== id) return null
+): readonly number[] {
+	const stops = new Set<number>()
 
-	return getStop(selection.index ?? 0)
+	for (const selection of selections) {
+		if (selection.id !== id) continue
+
+		const stop = getStop(selection.index ?? 0)
+
+		if (stop !== null) stops.add(stop)
+	}
+
+	return [...stops].sort((a, b) => a - b)
 }
 
 /**
@@ -84,24 +93,47 @@ export function targetParts(
 }
 
 /**
- * The table row key a pick marks, or `null` where it marks none. That is an id
- * no mark registered, or a stop the named mark does not draw. Resolved through the
- * mark's own registered mapper, the same one the mark reads for its halo.
+ * The table row keys that the picks mark. A pick marks no row where it names an
+ * id that no mark registered, or a stop that the named mark does not draw. Each
+ * key resolves through the registered mapper of the mark, the same one that the
+ * mark reads for its halo.
  *
  * @internal
  */
-export function selectedMarkRow(
+export function selectedMarkRows(
 	entries: readonly MapOverlayEntry[],
-	selection: MapOverlaySelection | null,
-): string | null {
+	selections: readonly MapOverlaySelection[],
+): ReadonlySet<string> {
+	const rows = new Set<string>()
+
+	if (selections.length === 0) return rows
+
 	// Filtered by the same resolution that answers the halo, rather than by an id
-	// match beside it: one comparison decides which mark the pick names, so the
+	// match beside it: one comparison decides which marks the picks name, so the
 	// two readers cannot part over what "names" means.
 	for (const entry of entries) {
-		const stop = pickedStop(selection, entry.id, entry.getStop)
-
-		if (stop !== null) return markRowKey(entry.id, stop)
+		for (const stop of pickedStops(selections, entry.id, entry.getStop)) {
+			rows.add(markRowKey(entry.id, stop))
+		}
 	}
 
-	return null
+	return rows
+}
+
+/**
+ * Whether two lists of picks hold the same pairs in the same order. A caller
+ * builds a new list on each render, and the plat holds the last list while the
+ * pairs stay the same.
+ *
+ * @internal
+ */
+export function samePicks(
+	a: readonly MapOverlaySelection[],
+	b: readonly MapOverlaySelection[],
+): boolean {
+	if (a === b) return true
+
+	if (a.length !== b.length) return false
+
+	return a.every((pick, index) => pick.id === b[index]?.id && pick.index === b[index]?.index)
 }

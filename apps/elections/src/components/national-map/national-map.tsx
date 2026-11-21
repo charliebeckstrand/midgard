@@ -62,7 +62,7 @@ export function NationalMap({
 				geographyObject="states"
 				projection="identity"
 				regionKey="fips"
-				selectedRegion={step?.region.fips ?? null}
+				selectedRegions={step ? [step.region.fips] : []}
 				onRegionClick={(fips: string) => {
 					const state = stateOfFips(fips)
 
