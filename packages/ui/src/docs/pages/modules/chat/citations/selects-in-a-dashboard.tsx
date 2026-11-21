@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { BarChart } from 'ui/chart'
 import {
 	type ChatCitation,
@@ -12,6 +12,7 @@ import { createContext } from 'ui/core'
 import {
 	Dashboard,
 	type DashboardLayoutItem,
+	type DashboardSelection,
 	DashboardTile,
 	useDashboardRows,
 	useDashboardScope,
@@ -149,8 +150,7 @@ function LateByDay() {
 					? toCategorySelection(cited.selector)
 					: scope.selected('day')
 			}
-			// A pick of the reader filters the board and clears the citation, so the
-			// chart never marks a bar that the filter does not hold.
+			// A pick of the reader filters the board and clears the citation.
 			onCategoryClick={(value) => {
 				setCited(null)
 
@@ -175,15 +175,30 @@ const tiles = (
 export default function SelectsInADashboard() {
 	const [cited, setCited] = useState<ChatCitation | null>(null)
 
+	const [selection, setSelection] = useState<DashboardSelection[]>([])
+
 	const value = useMemo(() => ({ cited, setCited }), [cited])
+
+	// The board shows one selection at a time. A citation clears the selections
+	// of the tiles, and a pick in a tile clears the citation. Thus a tile never
+	// marks a citation while a filter that it does not show applies.
+	const cite = useCallback((citation: ChatCitation | null) => {
+		setCited(citation)
+
+		if (citation !== null) setSelection([])
+	}, [])
 
 	return (
 		<Stack gap="lg">
-			<ChatCitationProvider targets={targets} cited={cited} onCite={setCited}>
+			<ChatCitationProvider targets={targets} cited={cited} onCite={cite}>
 				<ChatTranscript messages={messages} />
 			</ChatCitationProvider>
 			<Cited value={value}>
-				<Dashboard aria-label="Late stops this week" layout={{ defaultValue: layout }}>
+				<Dashboard
+					aria-label="Late stops this week"
+					layout={{ defaultValue: layout }}
+					selection={{ value: selection, onValueChange: setSelection }}
+				>
 					{tiles}
 				</Dashboard>
 			</Cited>
