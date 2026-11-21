@@ -101,7 +101,7 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 `heading` · `text` · `shiny-text` · `icon` · `markdown`
 
-> `Markdown` takes `ranges` and `renderRange` to draw a slot over a range of its source, such as an anchor on a phrase. A range gives two offsets into the source and the `quote` between them. It draws only while the quote matches, so a range stays correct while its text streams in. A range that crosses bold or a block boundary draws as more than one piece. A piece does not go into a link or a fenced code block.
+> `Markdown` takes `ranges` and `renderRange` to draw a slot over a range of its source, such as an anchor on a phrase. A range gives two offsets into the source and the `quote` between them. It draws only while the quote matches, so a range stays correct while its text streams in. A range that crosses bold or a block boundary draws as more than one piece. A piece does not go into a link or a fenced code block. `useMarkdownRangeText` gives the text of all the pieces of a range. Call it in a component that `renderRange` draws. A control on piece 0 then takes the whole phrase as its name.
 
 ## Feedback
 

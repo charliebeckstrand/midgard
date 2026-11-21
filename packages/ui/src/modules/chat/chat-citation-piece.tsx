@@ -2,6 +2,7 @@
 
 import { type ReactNode, useId } from 'react'
 import type { MarkdownRangePiece } from '../../components/markdown/markdown-ranges'
+import { useMarkdownRangeText } from '../../components/markdown/use-markdown-range-text'
 import { dataAttr } from '../../core/data-attr'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
@@ -33,8 +34,8 @@ export type ChatCitationPieceProps = {
 }
 
 /**
- * One piece of a citation. Piece 0 is a toggle button whose name is its own
- * text and whose description names the view. A citation that crosses bold
+ * One piece of a citation. Piece 0 is a toggle button whose name is the text
+ * of the whole citation and whose description names the view. A citation that crosses bold
  * draws more pieces. They are visible text with the look of the citation and
  * no control, so that one citation is one tab stop. A piece is not hidden from
  * a screen reader, because it is part of the phrase.
@@ -51,6 +52,10 @@ export function ChatCitationPiece({ piece: { range, index }, children }: ChatCit
 	const intl = useIntl()
 
 	const description = useId()
+
+	// Piece 0 holds only its own text. A citation that crosses bold draws more
+	// pieces, so the button takes the text of all of them as its name.
+	const name = useMarkdownRangeText(range)
 
 	const pressed = cited?.id === range.id
 
@@ -82,6 +87,7 @@ export function ChatCitationPiece({ piece: { range, index }, children }: ChatCit
 				data-pressed={dataAttr(pressed)}
 				data-marked={dataAttr(marked)}
 				aria-pressed={pressed}
+				aria-label={name}
 				aria-describedby={label === undefined ? undefined : description}
 				className={k().citation}
 				onClick={() => onCite?.(pressed ? null : range)}

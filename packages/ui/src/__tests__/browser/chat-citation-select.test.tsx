@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
-import { userEvent } from 'vitest/browser'
+import { page, userEvent } from 'vitest/browser'
 import { BarChart } from '../../modules/chart'
 import {
 	type ChatCitation,
@@ -70,6 +70,9 @@ describe('Chat: a citation selects in a chart', () => {
 		await userEvent.keyboard('{Tab}')
 
 		expect(document.activeElement?.getAttribute('data-slot')).toBe('chat-citation')
+
+		// The citation crosses bold, and the browser names its control by the whole phrase.
+		await expect.element(page.getByRole('button', { name: 'from 4 to 14' })).toHaveFocus()
 
 		await userEvent.keyboard('{Enter}')
 

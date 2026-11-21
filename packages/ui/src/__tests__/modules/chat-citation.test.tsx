@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { renderToString } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 import {
 	type ChatCitation,
@@ -93,6 +94,11 @@ describe('ChatCitationProvider', () => {
 
 		expect(screen.getAllByRole('button')).toHaveLength(1)
 
+		// The control holds only the text before the bold, and its name is the whole phrase.
+		expect(screen.getByRole('button')).toHaveTextContent(/^most of them on$/)
+
+		expect(screen.getByRole('button')).toHaveAccessibleName('most of them on Tuesday')
+
 		const [piece] = allBySlot(container, 'chat-citation-piece')
 
 		expect(piece?.parentElement?.tagName).toBe('STRONG')
@@ -167,7 +173,7 @@ describe('ChatCitationProvider isMarked', () => {
 			</ChatCitationProvider>,
 		)
 
-		const anchor = screen.getByRole('button', { name: 'on' })
+		const anchor = screen.getByRole('button', { name: 'on Tuesday' })
 
 		expect(anchor).toHaveAttribute('data-marked')
 
@@ -188,7 +194,7 @@ describe('ChatCitationProvider isMarked', () => {
 			</ChatCitationProvider>,
 		)
 
-		expect(screen.getByRole('button', { name: 'on' })).toHaveAccessibleDescription(
+		expect(screen.getByRole('button', { name: 'on Tuesday' })).toHaveAccessibleDescription(
 			'Selects in Late stops by day. The selection in that view matches it.',
 		)
 
@@ -293,5 +299,19 @@ describe('toStopSelection', () => {
 		['stops that are not a list', { stops: 'plano' }],
 	])('gives undefined for %s', (_, selector) => {
 		expect(toStopSelection(selector, 'stops', getIndex)).toBeUndefined()
+	})
+})
+
+describe('ChatCitationPiece server markup', () => {
+	it('names a citation that crosses bold by its whole phrase before hydration', () => {
+		const html = renderToString(
+			<ChatCitationProvider targets={targets} cited={null} onCite={() => {}}>
+				<ChatMessage sender="assistant">
+					{reply([cite('c1', 'most of them on **Tuesday**')])}
+				</ChatMessage>
+			</ChatCitationProvider>,
+		)
+
+		expect(html).toContain('aria-label="most of them on Tuesday"')
 	})
 })
