@@ -4,6 +4,7 @@ import { formatMarkdown } from '../../modules/events/engine/events-report'
 import { getSendState, hasSendPort, sendReport } from '../../modules/events/engine/events-send'
 import { startEvents } from '../../modules/events/engine/events-setting'
 import { reportBug } from '../../modules/events/engine/events-sink'
+import { MASK_ATTRIBUTE } from '../../modules/events/engine/events-target'
 import type { EventEntry, EventReport, EventReportExport } from '../../modules/events/engine/types'
 import { attach } from '../helpers/attach'
 import { deferred } from '../helpers/deferred'
@@ -86,6 +87,59 @@ describe('sendReport', () => {
 		expect(sent?.text).toContain('input=***')
 
 		expect(JSON.stringify(sent)).not.toContain('hunter2')
+	})
+
+	it('sends the masked trail of the card, one-time-code, and mask fields, as Copy does', async () => {
+		const port = vi.fn<(report: EventReportExport) => Promise<void>>().mockResolvedValue()
+
+		await givePort(port)
+
+		start()
+
+		const secrets = {
+			'cc-number': '4242424242424242',
+			'cc-exp': '12/34',
+			'cc-csc': '987',
+			'one-time-code': '654321',
+		}
+
+		for (const [autocomplete, secret] of Object.entries(secrets)) {
+			const field = attach(document.createElement('input'))
+
+			field.setAttribute('autocomplete', autocomplete)
+
+			field.value = secret
+
+			field.dispatchEvent(new KeyboardEvent('keydown', { key: '9', code: 'Digit9', bubbles: true }))
+
+			field.dispatchEvent(new Event('input', { bubbles: true }))
+		}
+
+		const form = attach(document.createElement('form'))
+
+		form.setAttribute(MASK_ATTRIBUTE, '')
+
+		const field = form.appendChild(document.createElement('input'))
+
+		field.value = 'mjolnir'
+
+		field.dispatchEvent(new Event('input', { bubbles: true }))
+
+		const note = form.appendChild(document.createElement('textarea'))
+
+		note.dispatchEvent(new KeyboardEvent('keydown', { key: 'q', code: 'KeyQ', bubbles: true }))
+
+		await sendReport(makeReport('boom'))
+
+		const sent = JSON.stringify(port.mock.calls[0]?.[0])
+
+		for (const secret of [...Object.values(secrets), 'mjolnir']) expect(sent).not.toContain(secret)
+
+		expect(sent).not.toContain('keydown 9')
+
+		expect(sent).not.toContain('keydown q')
+
+		expect(sent).toContain('keydown *** textarea')
 	})
 
 	it('sends a report one time, while the send runs and after it succeeds', async () => {

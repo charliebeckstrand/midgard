@@ -1,6 +1,6 @@
 # Events roadmap
 
-> **Goal: a trail that an app can send to its tracker with no secret in it, and that shows the requests before a bug.** The store records each event of the page, and the error channels of the framework say which events are bugs. The next steps close the gaps in the masks and in the network source, and put gates on the invariants that only prose holds now.
+> **Goal: a trail that an app can send to its tracker with no secret in it, and that shows the requests before a bug.** The store records each event of the page, and the error channels of the framework say which events are bugs. The next steps close the gap in the network source, and put gates on the invariants that only prose holds now.
 
 ## Status
 
@@ -17,7 +17,13 @@ A thrown value that two channels report adds to the first report, and adds no ev
 
 Capture is a switch. While it runs, the store keeps each event through a reload, and "Preserve" stays on. Stop files a report that holds each event from the start of the capture.
 
-The trail masks each password field. A password field is an `input[type="password"]` or a `PasswordInput`. Its value shows as `***`, which has a fixed length, and so does each key that types a character into it. A named key, such as `Enter` or `Tab`, stays, so the trail still shows a submit (#3492). No other field has a mask yet (Features 1).
+The trail masks each secret field, by one rule (`isSecret` in [`events-target.ts`](engine/events-target.ts)). A secret field is one of these:
+
+- An `input[type="password"]` or a `PasswordInput`.
+- An input with the `autocomplete` token `cc-number`, `cc-exp`, `cc-csc`, or `one-time-code`. These are the three parts of `CreditCardInput` and the code field of a two-step form.
+- An `input` or a `textarea` in an element with the `data-events-mask` attribute, or with the attribute itself.
+
+The value of a secret field shows as `***`, which has a fixed length, and so does each key that types a character into it. A named key, such as `Enter` or `Tab`, stays, so the trail still shows a submit (#3492). The rule does not find a secret by its content. Thus a field that holds a secret, but has no token of the list and no `data-events-mask`, shows its value and its keys in the trail. The app must put the attribute on that field or on its form.
 
 An app can send a report to its own issue tracker. It gives a port, `sendReport`, to `startEvents`. The port gets the title of the report, the Markdown text that Copy writes, and a copy of the report. Thus a send gives no data that Copy does not give. The view of a report then shows Send after Copy and Delete.
 
@@ -37,15 +43,13 @@ The barrel exports only the light modules: the setting, the sink, the shells of 
 
 ## Features
 
-1. **Masks for each secret field (*P1*).** `SECRET` in [`events-target.ts`](engine/events-target.ts) matches only a password field. `CreditCardInput` sets `autoComplete="cc-number"`, and its CVV part sets `cc-csc`. The trail thus holds the card number and the security code in clear text. They show as the value of each `input` line and as each `keydown` character. A send gives them to the tracker. Sentry Replay masks each input by default, and LogRocket and Sentry give an attribute that masks a subtree (`data-private`, `data-sentry-mask`). Add the `autocomplete` tokens `cc-number`, `cc-csc`, and `one-time-code` to `SECRET`. Add a `data-events-mask` attribute that masks each field inside its element, a `textarea` too. `isSecret` stays the one rule, so `describeTarget` and the key mask both follow it. Extend the mask case of `events-recorder.test.ts` and the masked trail case of `events-send.test.ts`. Name the attribute in the `startEvents` TSDoc and in the `events` entry of [`MODULES.md`](../../../docs/MODULES.md).
+1. **Requests in the network source (*P2*).** The network source ([`network.ts`](engine/events-sources/network.ts)) records only the loads of a script or a link. A request through `fetch` or `XMLHttpRequest` writes no line, but a failed `/api/*` request is a common cause of a bug in the apps (CONVENTIONS.md §6.4). Sentry and LogRocket record each request in their breadcrumbs. The resource timing of the browser gives the request with no patch, through the `fetch` and `xmlhttprequest` initiator types. Write the path with no query, because a query can hold a token, then the duration and the status where the browser gives it. Keep the batch rule of a pass. The source tests in Accessibility and testing 4 prove it.
 
-2. **Requests in the network source (*P2*).** The network source ([`network.ts`](engine/events-sources/network.ts)) records only the loads of a script or a link. A request through `fetch` or `XMLHttpRequest` writes no line, but a failed `/api/*` request is a common cause of a bug in the apps (CONVENTIONS.md §6.4). Sentry and LogRocket record each request in their breadcrumbs. The resource timing of the browser gives the request with no patch, through the `fetch` and `xmlhttprequest` initiator types. Write the path with no query, because a query can hold a token, then the duration and the status where the browser gives it. Keep the batch rule of a pass. The source tests in Accessibility and testing 4 prove it.
+2. **A filter on the Events list (*P2*).** The list holds up to 500 events, or 2,000 while a capture runs, and has no filter. The Console of Chrome DevTools and the breadcrumbs of Sentry filter by kind and by text. Add a kind select and a text field to the actions of the Events tab in [`use-events-view.tsx`](use-events-view.tsx). Apply the filter to the events before `groupRows`, so a batch stays whole. Copy writes the rows that the list shows. A case in [`events-sheet.test.tsx`](../../__tests__/modules/events-sheet.test.tsx) filters a list and copies it.
 
-3. **A filter on the Events list (*P2*).** The list holds up to 500 events, or 2,000 while a capture runs, and has no filter. The Console of Chrome DevTools and the breadcrumbs of Sentry filter by kind and by text. Add a kind select and a text field to the actions of the Events tab in [`use-events-view.tsx`](use-events-view.tsx). Apply the filter to the events before `groupRows`, so a batch stays whole. Copy writes the rows that the list shows. A case in [`events-sheet.test.tsx`](../../__tests__/modules/events-sheet.test.tsx) filters a list and copies it.
+3. **Long animation frames in the paint source (*P3*).** A long frame before a bug is a clue that the trail does not show. The paint source ([`paint.ts`](engine/events-sources/paint.ts)) can observe `long-animation-frame` through `observe`, which skips an entry type that the browser does not support. Sentry records long tasks as spans. Open question: the floor of a line, because each long frame at 50 ms can fill the store on a slow device.
 
-4. **Long animation frames in the paint source (*P3*).** A long frame before a bug is a clue that the trail does not show. The paint source ([`paint.ts`](engine/events-sources/paint.ts)) can observe `long-animation-frame` through `observe`, which skips an entry type that the browser does not support. Sentry records long tasks as spans. Open question: the floor of a line, because each long frame at 50 ms can fill the store on a slow device.
-
-5. **Console errors and warnings as an option (*P3*).** Sentry records `console.error` and `console.warn` as breadcrumbs, and a library often warns there before it fails. A `console` option of `startEvents` can patch the two methods, as `calls` patches the scroll and focus methods. The option is off by default for the same reason. Open question: `eventsRootOptions` calls `console.error` for a caught error, so the source must skip the error that the store already filed.
+4. **Console errors and warnings as an option (*P3*).** Sentry records `console.error` and `console.warn` as breadcrumbs, and a library often warns there before it fails. A `console` option of `startEvents` can patch the two methods, as `calls` patches the scroll and focus methods. The option is off by default for the same reason. Open question: `eventsRootOptions` calls `console.error` for a caught error, so the source must skip the error that the store already filed.
 
 ## Pattern cleanup
 

@@ -8,7 +8,7 @@ import {
 } from '../../modules/events/engine/events-sink'
 import { paint } from '../../modules/events/engine/events-sources/paint'
 import { EventStore, type NewEntry } from '../../modules/events/engine/events-store'
-import { TOOL_ATTRIBUTE } from '../../modules/events/engine/events-target'
+import { MASK_ATTRIBUTE, TOOL_ATTRIBUTE } from '../../modules/events/engine/events-target'
 import { notifyOverlaySignal } from '../../primitives/overlay/overlay-signal'
 import { attach } from '../helpers/attach'
 import { createStorage } from '../helpers/event-storage'
@@ -210,6 +210,79 @@ describe('listen', () => {
 		expect(store.entries[0]?.detail).toEqual({ key: '***', code: '***', repeat: false })
 
 		expect(store.entries[2]?.detail).toEqual({ key: 'Enter', code: 'Enter', repeat: false })
+	})
+
+	it.each([
+		['a card number', 'cc-number', '4242424242424242'],
+		['a card expiry', 'cc-exp', '12/34'],
+		['a card security code', 'cc-csc', '123'],
+		['a one-time code', 'one-time-code', '654321'],
+		['a token in a section', 'section-pay billing CC-Number', '4242424242424242'],
+	])('masks the value of %s and each character typed into it', (_, autocomplete, secret) => {
+		const store = listenTo()
+
+		const field = attach(document.createElement('input'))
+
+		field.setAttribute('autocomplete', autocomplete)
+
+		field.value = secret
+
+		field.dispatchEvent(new KeyboardEvent('keydown', { key: '4', code: 'Digit4', bubbles: true }))
+
+		field.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', code: 'Tab', bubbles: true }))
+
+		field.dispatchEvent(new Event('input', { bubbles: true }))
+
+		expect(texts(store)).toEqual([
+			'keydown *** input=*** synthetic',
+			'keydown Tab input=*** synthetic',
+			'input input=*** synthetic',
+		])
+
+		expect(JSON.stringify(store.entries)).not.toContain(secret)
+	})
+
+	it('masks each input and textarea inside an element with the mask attribute', () => {
+		const store = listenTo()
+
+		const form = attach(document.createElement('form'))
+
+		form.setAttribute(MASK_ATTRIBUTE, '')
+
+		const field = form.appendChild(document.createElement('input'))
+
+		field.value = 'midgard'
+
+		const note = form.appendChild(document.createElement('textarea'))
+
+		note.value = 'asgard'
+
+		// The attribute on the field itself masks it too.
+		const own = attach(document.createElement('input'))
+
+		own.setAttribute(MASK_ATTRIBUTE, '')
+
+		own.value = 'bifrost'
+
+		field.dispatchEvent(new KeyboardEvent('keydown', { key: 'm', code: 'KeyM', bubbles: true }))
+
+		field.dispatchEvent(new Event('input', { bubbles: true }))
+
+		note.dispatchEvent(new KeyboardEvent('keydown', { key: 'a', code: 'KeyA', bubbles: true }))
+
+		note.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', bubbles: true }))
+
+		own.dispatchEvent(new Event('input', { bubbles: true }))
+
+		expect(texts(store)).toEqual([
+			'keydown *** input=*** synthetic',
+			'input input=*** synthetic',
+			'keydown *** textarea synthetic',
+			'keydown Enter textarea synthetic',
+			'input input=*** synthetic',
+		])
+
+		expect(store.entries[2]?.detail).toEqual({ key: '***', code: '***', repeat: false })
 	})
 
 	it('records the start and the end of a scroll as one batch', async ({ clock }) => {
