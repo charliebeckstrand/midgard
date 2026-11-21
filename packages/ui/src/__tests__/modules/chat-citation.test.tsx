@@ -6,6 +6,8 @@ import {
 	ChatMessage,
 	type ChatPart,
 	toCategorySelection,
+	toRegionSelection,
+	toStopSelection,
 } from '../../modules/chat'
 import { allBySlot, bySlot, renderUI, screen, userEvent } from '../helpers'
 
@@ -168,5 +170,55 @@ describe('toCategorySelection', () => {
 		['categories that are not a list', { categories: 'Tue' }],
 	])('gives undefined for %s', (_, selector) => {
 		expect(toCategorySelection(selector)).toBeUndefined()
+	})
+})
+
+describe('toRegionSelection', () => {
+	it('reads the regions of a selector', () => {
+		expect(toRegionSelection({ regions: ['Texas', 'Ohio'] })).toEqual(['Texas', 'Ohio'])
+	})
+
+	it.each([
+		['null', null],
+		['no regions', { categories: ['Tue'] }],
+		['a list with a number', { regions: ['Texas', 48] }],
+		['regions that are not a list', { regions: 'Texas' }],
+	])('gives undefined for %s', (_, selector) => {
+		expect(toRegionSelection(selector)).toBeUndefined()
+	})
+})
+
+describe('toStopSelection', () => {
+	const indexByKey = new Map([
+		['plano', 0],
+		['waco', 3],
+	])
+
+	const getIndex = (key: string) => indexByKey.get(key)
+
+	it('gives each stop as the id of its set and its index in the points', () => {
+		expect(toStopSelection({ stops: ['waco', 'plano'] }, 'stops', getIndex)).toEqual([
+			{ id: 'stops', index: 3 },
+			{ id: 'stops', index: 0 },
+		])
+	})
+
+	it('drops a key that names no drawn stop', () => {
+		expect(toStopSelection({ stops: ['plano', 'austin'] }, 'stops', getIndex)).toEqual([
+			{ id: 'stops', index: 0 },
+		])
+	})
+
+	it('reads an empty list as a selection of nothing', () => {
+		expect(toStopSelection({ stops: [] }, 'stops', getIndex)).toEqual([])
+	})
+
+	it.each([
+		['null', null],
+		['no stops', { regions: ['Texas'] }],
+		['a list with a number', { stops: ['plano', 0] }],
+		['stops that are not a list', { stops: 'plano' }],
+	])('gives undefined for %s', (_, selector) => {
+		expect(toStopSelection(selector, 'stops', getIndex)).toBeUndefined()
 	})
 })
