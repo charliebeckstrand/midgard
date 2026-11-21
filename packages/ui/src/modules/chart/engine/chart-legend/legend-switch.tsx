@@ -30,6 +30,16 @@ import { k } from '../../../../recipes/kata/chart'
  */
 export const LEGEND_TOUCH_ROWS = 'pointer-coarse:touch-gap-y-3 pointer-coarse:py-1.5'
 
+/**
+ * The row gap of {@link LEGEND_TOUCH_ROWS} with no padding, for a column of
+ * entries inside a box that has `LEGEND_TOUCH_ROWS`. The outer box holds the
+ * hit areas at its edges. In the box, a hit area that goes past the column
+ * goes into the gap next to the column. Padding on the column too would add
+ * space and keep in nothing.
+ * @internal
+ */
+export const LEGEND_TOUCH_GAP = 'pointer-coarse:touch-gap-y-3'
+
 /** Props for {@link LegendSwitch}. @internal */
 export type LegendSwitchProps = {
 	/** The `data-slot` of the switch, which the roving and the emphasis select. */
