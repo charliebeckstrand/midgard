@@ -133,16 +133,17 @@ export const k = defineKata({
 			focus.ring,
 		],
 		// A citation that selects in no view, such as a dataset that scopes a
-		// question. It is a soft pill and not a control, so it takes no underline,
-		// which marks a control. Markdown cannot make a pill, so typed text cannot
-		// look like a citation. Each bubble takes its own fill. The gray bubble
-		// takes the soft blue of a Badge. The user bubble takes a darker blue,
-		// because a lighter fill lowers the contrast of its white text below 4.5:1.
+		// question. It is not a control, so it takes no underline, which marks a
+		// control. In a reply, it is a soft pill. Markdown cannot make a pill, so
+		// the text of an agent cannot look like a citation. In the user bubble, it
+		// is bold, as Markdown draws bold. The words are the words of the reader,
+		// and a fill on the blue bubble is too heavy.
 		citationMark: [
-			'rounded-md px-1 font-medium box-decoration-clone',
+			'box-decoration-clone',
+			'in-data-[sender=user]:font-bold',
+			'in-data-[sender=assistant]:rounded-md in-data-[sender=assistant]:px-1 in-data-[sender=assistant]:font-medium',
 			'in-data-[sender=assistant]:bg-blue-500/15 in-data-[sender=assistant]:text-blue-700',
 			'dark:in-data-[sender=assistant]:bg-blue-400/20 dark:in-data-[sender=assistant]:text-blue-300',
-			'in-data-[sender=user]:bg-blue-950/35',
 			forced.outline,
 		],
 		// The rating pair of `ChatFeedback`: one control of the actions.

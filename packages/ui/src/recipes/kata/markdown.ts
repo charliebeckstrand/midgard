@@ -48,7 +48,7 @@ export const k = defineKata({
 		},
 
 		paragraph: 'my-3',
-		strong: 'font-semibold',
+		strong: 'font-bold',
 		em: 'italic',
 		del: 'line-through',
 		// Underlined and medium-weight, not colored: it stays distinguishable from
