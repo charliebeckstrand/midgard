@@ -4,7 +4,7 @@ import type { ReactNode } from 'react'
 import { Markdown } from '../../components/markdown'
 import type { MarkdownRangePiece } from '../../components/markdown/markdown-ranges'
 import { ChatCitationPiece } from './chat-citation-piece'
-import { MESSAGE_HEADING_OFFSET } from './chat-tool'
+import { MESSAGE_HEADING_OFFSET } from './chat-constants'
 import type { ChatCitation, ChatTextPart } from './engine/chat-content/types'
 
 /**

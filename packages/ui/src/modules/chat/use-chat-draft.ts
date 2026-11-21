@@ -8,8 +8,8 @@ import { rebaseCitations } from './engine/chat-draft/rebase'
 /** Options for {@link useChatDraft}. */
 export type ChatDraftOptions = {
 	/**
-	 * Called with the trimmed draft when {@link ChatDraft.submit} fires on
-	 * non-empty input. `citations` address the trimmed text, so give both to
+	 * Fires when {@link ChatDraft.submit} runs on non-empty input, with the
+	 * trimmed draft. `citations` address the trimmed text, so give both to
 	 * `send` of `useChatSend`.
 	 */
 	onSubmit?: (value: string, citations: readonly ChatCitation[]) => void

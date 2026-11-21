@@ -153,7 +153,7 @@ export type ChatSendOptions = {
 	/** Streams the assistant reply for a sent message. See {@link ChatTransport}. */
 	transport: ChatTransport
 	/**
-	 * Called with the trimmed content once a send completes without error.
+	 * Fires when a send completes without error, with the trimmed content.
 	 *
 	 * @remarks
 	 * This reports the completed send, not the submit gesture. The gesture is
@@ -162,7 +162,7 @@ export type ChatSendOptions = {
 	 * failure skips it.
 	 */
 	onSent?: (content: string) => void
-	/** Called when the transport throws or the stream fails, after the reply is marked `failed`. */
+	/** Fires when the transport throws or the stream fails, after the reply is marked `failed`. */
 	onError?: (error: unknown) => void
 }
 

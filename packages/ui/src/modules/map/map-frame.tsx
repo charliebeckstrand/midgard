@@ -278,10 +278,13 @@ export function MapPlotRegion({
 			{...press}
 			// Beside a side legend, the plot takes the column of the grid that the
 			// rail leaves, and can become narrower than its content (`min-w-0`). A
-			// free-form `fill` map instead grows into the height its region already
-			// holds (a `flex-1 min-h-0` child of the `h-full` frame), so the box
-			// measures a real height rather than the zero its own reserve would feed
-			// back.
+			// free-form `fill` map instead grows or shrinks into the height that its
+			// region holds (a `flex-auto min-h-0` child of the `h-full` frame), so the
+			// box measures a real height rather than the zero that its own reserve
+			// would feed back. Its basis is the ratio of the geography. Thus, in a
+			// region of auto height, such as a dashboard tile with `fitContent`, the
+			// plot takes the ratio of `aspectRatio="auto"` and not a height of 0. The
+			// plot is a grid, so the plot box has a definite height in both cases.
 			className={cn(
 				'relative',
 				// Without these, a long press starts a text selection that spreads across
@@ -302,8 +305,9 @@ export function MapPlotRegion({
 				// (`useMapZoom`). Every other map leaves touch alone entirely.
 				zoom && (zoom.modifier === null ? 'touch-none' : 'touch-pan-x touch-pan-y'),
 				aside && 'min-w-0',
-				shape.fill && 'flex-1 min-h-0',
+				shape.fill && 'grid min-h-0 flex-auto',
 			)}
+			style={shape.fill ? { aspectRatio: shape.aspect } : undefined}
 		>
 			{/* PlotBox reserves the box height from its own width, steady before the
 			    width is measured and across animation replays. It takes a fixed height

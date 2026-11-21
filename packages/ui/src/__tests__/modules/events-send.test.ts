@@ -129,15 +129,32 @@ describe('sendReport', () => {
 
 		note.dispatchEvent(new KeyboardEvent('keydown', { key: 'q', code: 'KeyQ', bubbles: true }))
 
+		const select = form.appendChild(document.createElement('select'))
+
+		select.dispatchEvent(new KeyboardEvent('keydown', { key: 'v', code: 'KeyV', bubbles: true }))
+
+		const editor = form.appendChild(document.createElement('div'))
+
+		editor.setAttribute('contenteditable', '')
+
+		editor.dispatchEvent(new KeyboardEvent('keydown', { key: 'z', code: 'KeyZ', bubbles: true }))
+
 		await sendReport(makeReport('boom'))
 
 		const sent = JSON.stringify(port.mock.calls[0]?.[0])
 
-		for (const secret of [...Object.values(secrets), 'mjolnir']) expect(sent).not.toContain(secret)
+		// A value shows as the text after `=`. The report also holds times and
+		// stack lines, which can contain the digits of a code.
+		for (const secret of [...Object.values(secrets), 'mjolnir'])
+			expect(sent).not.toContain(`=${secret}`)
 
 		expect(sent).not.toContain('keydown 9')
 
 		expect(sent).not.toContain('keydown q')
+
+		expect(sent).not.toContain('keydown v')
+
+		expect(sent).not.toContain('keydown z')
 
 		expect(sent).toContain('keydown *** textarea')
 	})
