@@ -8,10 +8,10 @@ import { srcRelative } from './walk-source'
  * relative to `srcDir`, such as `a.ts → b.ts → target.ts`.
  *
  * @remarks The walk follows each relative specifier that survives compilation,
- * and barrels too. Thus it can report more than a bundler keeps, but never
- * less. A type-only import does not count, and the walk does not enter a
- * target. A dynamic `import()` is not a static import, so the walk does not
- * follow it.
+ * a bare `import './x'` included, and barrels too. Thus it can report more
+ * than a bundler keeps. A type-only import does not count, and the walk does
+ * not enter a target. A dynamic `import()` is not a static import, so the walk
+ * does not follow it.
  */
 export function runtimePathsTo(entry: string, isTarget: (file: string) => boolean): string[] {
 	const parents = new Map<string, string | null>([[entry, null]])

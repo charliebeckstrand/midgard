@@ -27,13 +27,11 @@ const srcRoot = join(uiRoot, 'src')
 
 const harnessRoot = join(srcRoot, '__tests__')
 
-// A bare import or a dynamic import has no `from`, so `parseImports` does not
-// read it. Vite puts each of them in the graph of the config too.
-const BARE_IMPORT = /^import\s+['"]([^'"]+)['"]/gm
-
+// A dynamic import is not a statement, so `parseImports` does not read it.
+// Vite puts it in the graph of the config too.
 const DYNAMIC_IMPORT = /\bimport\(\s*['"]([^'"]+)['"]\s*\)/g
 
-/** The runtime specifiers of a file: the `from` imports and the two forms above. */
+/** The runtime specifiers of a file: its static imports and its dynamic imports. */
 function specifiers(content: string): string[] {
 	const code = stripSourceComments(content)
 
@@ -41,9 +39,7 @@ function specifiers(content: string): string[] {
 		...parseImports(code)
 			.filter((ref) => ref.runtime)
 			.map((ref) => ref.specifier),
-		...[...code.matchAll(BARE_IMPORT), ...code.matchAll(DYNAMIC_IMPORT)].map(
-			(match) => match[1] as string,
-		),
+		...[...code.matchAll(DYNAMIC_IMPORT)].map((match) => match[1] as string),
 	]
 }
 
