@@ -10,13 +10,13 @@ import { DateInputResetContext, useDateInputResets } from '../date-input/context
 import { DateTimePending } from '../date-time/date-time-pending'
 import { Field, Label } from '../fieldset'
 import { Icon } from '../icon'
-// Sibling variant reused for the custom range's Start/End fields; safe despite the
-// import cycle since both are hoisted function declarations used only at render.
-import { DatePicker, type DatePickerBaseProps, type DatePickerRelativeProps } from './date-picker'
+import type { DatePickerBaseProps, DatePickerRelativeProps } from './date-picker'
 import { DatePickerContent } from './date-picker-content'
 import { DatePickerFooter } from './date-picker-footer'
+import { DatePickerFrame } from './date-picker-frame'
 import { datePickerMessages } from './date-picker-messages'
 import { relativeListRows } from './date-picker-relative-utilities'
+import { DatePickerSingle } from './date-picker-single'
 import { DatePickerTrigger } from './date-picker-trigger'
 import { useDatePickerRelativeState } from './use-date-picker-relative-state'
 import { useDatePickerSheet } from './use-date-picker-sheet'
@@ -162,35 +162,39 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 						    the author removes does not show in the field calendars. */}
 						<Field onMouseDown={(event) => event.stopPropagation()}>
 							<Label>{intl.formatMessage(datePickerMessages.start)}</Label>
-							<DatePicker
-								input
-								clearable={false}
-								value={state.custom.start ?? undefined}
-								onValueChange={state.custom.onStartChange}
-								readOnly={state.readOnly}
-								onMonthChange={props.onMonthChange}
-								min={props.min}
-								max={state.custom.end ?? props.max}
-								size={size}
-								sheet={props.sheet}
-								footer={props.footer}
-							/>
+							<DatePickerFrame>
+								<DatePickerSingle
+									input
+									clearable={false}
+									value={state.custom.start ?? undefined}
+									onValueChange={state.custom.onStartChange}
+									readOnly={state.readOnly}
+									onMonthChange={props.onMonthChange}
+									min={props.min}
+									max={state.custom.end ?? props.max}
+									size={size}
+									sheet={props.sheet}
+									footer={props.footer}
+								/>
+							</DatePickerFrame>
 						</Field>
 						<Field onMouseDown={(event) => event.stopPropagation()}>
 							<Label>{intl.formatMessage(datePickerMessages.end)}</Label>
-							<DatePicker
-								input
-								clearable={false}
-								value={state.custom.end ?? undefined}
-								onValueChange={state.custom.onEndChange}
-								readOnly={state.readOnly}
-								onMonthChange={props.onMonthChange}
-								min={state.custom.start ?? props.min}
-								max={props.max}
-								size={size}
-								sheet={props.sheet}
-								footer={props.footer}
-							/>
+							<DatePickerFrame>
+								<DatePickerSingle
+									input
+									clearable={false}
+									value={state.custom.end ?? undefined}
+									onValueChange={state.custom.onEndChange}
+									readOnly={state.readOnly}
+									onMonthChange={props.onMonthChange}
+									min={state.custom.start ?? props.min}
+									max={props.max}
+									size={size}
+									sheet={props.sheet}
+									footer={props.footer}
+								/>
+							</DatePickerFrame>
 						</Field>
 					</div>
 				)}
