@@ -171,7 +171,9 @@ describe('two point sets on one place', () => {
 		['the set that draws it', 'stops'],
 		['the set that does not draw it', 'depots'],
 	])('halo the shared summary behind it for a pick of %s', (_, id) => {
-		const { container } = renderUI(overlayPlat(bothSets(), { selectedOverlay: { id, index: 0 } }))
+		const { container } = renderUI(
+			overlayPlat(bothSets(), { selectedOverlays: [{ id, index: 0 }] }),
+		)
 
 		expect(allBySlot(container, 'map-points-selected')).toHaveLength(1)
 

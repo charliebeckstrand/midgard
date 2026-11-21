@@ -525,6 +525,38 @@ export const dataDisplayCases: readonly Case[] = [
 		),
 	},
 	{
+		// The same plot holding a set: two regions and two marks. Each picked row
+		// of the hidden table says "selected" in its name, because `aria-current`
+		// marks one item of a set and a set can hold many rows.
+		name: 'map (selection)',
+		element: (
+			<MapPlat
+				key="ms"
+				aria-label="Delivery map"
+				geography={FIXTURE_GEOJSON}
+				data={FIXTURE_ROWS}
+				regionKey="state"
+				categoryKey="zone"
+				width={400}
+				onRegionClick={() => {}}
+				selectedRegions={['A', 'B']}
+				selectedOverlays={[{ id: 'haul' }, { id: 'depot' }]}
+			>
+				<MapRoute
+					id="haul"
+					label="Line haul"
+					stops={[
+						[2, 2],
+						[28, 8],
+					]}
+					detail="312 mi"
+				/>
+
+				<MapPoint id="depot" label="Depot" at={[15, 5]} />
+			</MapPlat>
+		),
+	},
+	{
 		// The same plot with the zoom on and the readout off: the gestures are the
 		// pointer's, so the scale has to stay reachable from the one tab stop the
 		// zoom earns, and nothing under the aria-hidden SVG may become focusable

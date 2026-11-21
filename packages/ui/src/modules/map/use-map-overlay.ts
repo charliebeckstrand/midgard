@@ -23,7 +23,7 @@ import { markAnchorAt } from './engine/map-hover/anchor'
 import { mapMarkDimmed } from './engine/map-hover/target'
 import { groupLegendId } from './engine/map-legend/items'
 import type { MapEntryDot, MapOverlayKind, MapStopRow } from './engine/map-overlay/entry'
-import { ownStop, pickedStop } from './engine/map-overlay/selection'
+import { ownStop, pickedStops } from './engine/map-overlay/selection'
 import type { MapSpareResolver } from './engine/map-overlay/spare'
 import type { LngLat, MapPoint2D, MapProjector, MapSwatchShape } from './engine/types'
 
@@ -107,8 +107,8 @@ export type MapOverlayProps = {
 	 * regions, and activates the one it sits on with Enter or Space. A tap
 	 * picks the mark, as a click does.
 	 *
-	 * Handing the reported pair back as `MapPlat`'s `selectedOverlay` haloes the
-	 * pick, the way `selectedRegion` rings a picked region.
+	 * Adding the reported pair to `MapPlat`'s `selectedOverlays` haloes the
+	 * pick, the way `selectedRegions` rings a picked region.
 	 */
 	onClick?: (id: string, press: ChartPress) => void
 	/**
@@ -267,14 +267,13 @@ export type MapOverlay = {
 	/** The dim class for the mark's group, under the shared emphasis. */
 	dim: string
 	/**
-	 * Which of the mark's drawn stops the plat holds selected. `null` where the
-	 * pick names another mark, or an index the mark has no stop for. A stop of a
-	 * shared summary that another set draws still counts, because the pick names
-	 * the part of this set that the summary holds. A singular mark reads it as a
-	 * flag. A plural mark haloes the dot it names, and the set that draws a shared
-	 * summary haloes the summary.
+	 * Whether the plat holds a stop of the mark selected. A pick that names
+	 * another mark, or an index the mark has no stop for, does not count. A
+	 * singular mark haloes itself while it holds. A plural mark resolves its own
+	 * halos against its grouping, because a pick can name a shared summary that
+	 * another set draws.
 	 */
-	selected: number | null
+	selected: boolean
 	/** Clears the hover as the pointer leaves the mark's group. */
 	onPointerLeave: () => void
 	/**
@@ -388,7 +387,7 @@ export function useMapOverlay({
 		clusters,
 		moves,
 		animate,
-		selectedOverlay,
+		selectedOverlays,
 	} = useMapPlat()
 
 	const { set, get } = useMapHoverActions()
@@ -521,11 +520,11 @@ export function useMapOverlay({
 	// so this depends on whether there is one: a fact fixed per mark kind.
 	const budget = ownSpare === undefined ? undefined : spareAt
 
-	// The standing pick, resolved off the live mapper rather than the ref the
-	// ledger rides: a refit that regroups a plural mark moves the picked dot, and
+	// The standing picks, resolved off the live mapper rather than the ref the
+	// ledger rides: a refit that regroups a plural mark moves a picked dot, and
 	// the halo has to move with it on that same render. The table resolves the
-	// picked row through this same mapper, so the halo and that row can't disagree.
-	const selected = pickedStop(selectedOverlay, id, resolveStop)
+	// picked rows through this same mapper, so a halo and its row cannot disagree.
+	const selected = pickedStops(selectedOverlays, id, resolveStop).length > 0
 
 	// The readout text is the one registered field the table draws, so it has to
 	// reach the ledger to reach the screen. Held by content rather than by the

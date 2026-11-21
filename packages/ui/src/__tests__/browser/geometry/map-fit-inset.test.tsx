@@ -47,7 +47,7 @@ describe('map fit inset (real browser)', () => {
 	// The westernmost point of the fixture, on its middle parallel, with its
 	// selection halo on.
 	const edge = (
-		<MapPlat aria-label="Test map" geography={FIXTURE_GEOJSON} selectedOverlay={{ id: 'depot' }}>
+		<MapPlat aria-label="Test map" geography={FIXTURE_GEOJSON} selectedOverlays={[{ id: 'depot' }]}>
 			<MapPoint id="depot" label="Depot" at={[0, 5]} />
 		</MapPlat>
 	)

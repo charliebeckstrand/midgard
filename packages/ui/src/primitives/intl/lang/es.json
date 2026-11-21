@@ -352,6 +352,7 @@
 	"ui.map.kind.point": "Punto",
 	"ui.map.kind.route": "Ruta",
 	"ui.map.legend": "Leyenda",
+	"ui.map.selectedRow": "{name}, seleccionado",
 	"ui.map.zoom": "Zoom {scale, number, percent}",
 	"ui.map.zoomReset": "Zoom restablecido",
 	"ui.markdown.table": "Tabla",

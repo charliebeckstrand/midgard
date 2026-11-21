@@ -35,7 +35,7 @@ export type MapPointProps = MapOverlayProps & {
  *
  * An invisible hit circle keeps the dot aimable. With `onClick` set, the hit
  * circle answers a click, and the keyboard cursor picks the point with Enter or
- * Space. The plat's `selectedOverlay` haloes the dot while it names this mark.
+ * Space. The plat's `selectedOverlays` halo the dot while they name this mark.
  *
  * The dot of another mark can stand so close that the two targets overlap. The
  * hit circle then clips to the ground nearer to this dot than to that one. Thus
@@ -161,7 +161,7 @@ export function MapPoint({ at, shape = 'circle', ...shared }: MapPointProps) {
 
 	return (
 		<>
-			{selected !== null && (
+			{selected && (
 				<MapDotHalo
 					slot="map-point-selected"
 					at={position}

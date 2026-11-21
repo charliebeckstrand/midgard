@@ -30,19 +30,15 @@ export function firstRegion(container: HTMLElement) {
 }
 
 /**
- * Each row of the visually hidden data table as a pair of its name and its
- * `aria-current`, in the order that a reader meets them. The regions come
- * first, then one row for each overlay stop.
- *
- * It reads the row header, not the `tr`. The table puts `aria-current` on the
- * header because support for the attribute on a plain `tr` is uneven. Thus the
- * region pick and the overlay pick assert one contract through one reader.
+ * The name of each row of the visually hidden data table, in the order that a
+ * reader meets them. The regions come first, then one row for each overlay stop.
+ * The name of a picked row says "selected", so the region picks and the overlay
+ * picks assert one contract through one reader.
  */
 export function tableRows(container: HTMLElement) {
-	return Array.from(container.querySelectorAll('[data-slot="map-table"] tbody th')).map((cell) => [
-		cell.textContent,
-		cell.getAttribute('aria-current'),
-	])
+	return Array.from(container.querySelectorAll('[data-slot="map-table"] tbody th')).map(
+		(cell) => cell.textContent,
+	)
 }
 
 /**

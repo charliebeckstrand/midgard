@@ -1414,7 +1414,7 @@ describe('MapPlat region click', () => {
 
 describe('MapPlat selected region', () => {
 	it('rings the selected region by the identity a click reports', () => {
-		const { container, rerender } = renderUI(categoricalPlat({ selectedRegion: 'B' }))
+		const { container, rerender } = renderUI(categoricalPlat({ selectedRegions: ['B'] }))
 
 		const ring = bySlot(container, 'map-region-selected')
 
@@ -1426,11 +1426,34 @@ describe('MapPlat selected region', () => {
 		// a selected region still shows its category color.
 		expect(ring).toHaveAttribute('fill', 'none')
 
-		rerender(categoricalPlat({ selectedRegion: 'C' }))
+		rerender(categoricalPlat({ selectedRegions: ['C'] }))
 
 		expect(bySlot(container, 'map-region-selected')?.getAttribute('d')).toBe(
 			allRegions(container)[2]?.getAttribute('d'),
 		)
+	})
+
+	it('rings every selected region in one path, whatever order the ids come in', () => {
+		const { container } = renderUI(categoricalPlat({ selectedRegions: ['C', 'A', 'Z', 'A'] }))
+
+		const rings = allBySlot(container, 'map-region-selected')
+
+		// One element for the whole set, so a large selection adds one path, not
+		// one path for each region. An id that names no region adds nothing, and a
+		// repeated id rings its region one time.
+		expect(rings).toHaveLength(1)
+
+		const regions = allRegions(container)
+
+		expect(rings[0]?.getAttribute('d')).toBe(
+			`${regions[0]?.getAttribute('d')}${regions[2]?.getAttribute('d')}`,
+		)
+	})
+
+	it('reads each selected region as selected in the visually-hidden table', () => {
+		const { container } = renderUI(categoricalPlat({ selectedRegions: ['A', 'C'] }))
+
+		expect(tableRows(container)).toEqual(['Alpha, selected', 'Beta', 'Gamma, selected'])
 	})
 
 	it('rings the region a regionId accessor names, not the atlas id', () => {
@@ -1438,7 +1461,7 @@ describe('MapPlat selected region', () => {
 			categoricalPlat({
 				geography: FIXTURE_TOPOLOGY,
 				regionId: (feature) => String(feature.properties?.name),
-				selectedRegion: 'Alpha',
+				selectedRegions: ['Alpha'],
 			}),
 		)
 
@@ -1455,21 +1478,21 @@ describe('MapPlat selected region', () => {
 		// A stale id (a pick outliving the geography it was made against) must
 		// ring nothing rather than falling to region 0, the miss `indexOf` reports
 		// as -1.
-		rerender(categoricalPlat({ selectedRegion: 'Z' }))
+		rerender(categoricalPlat({ selectedRegions: ['Z'] }))
 
 		expect(bySlot(container, 'map-region-selected')).toBeNull()
 
-		rerender(categoricalPlat({ selectedRegion: 'A' }))
+		rerender(categoricalPlat({ selectedRegions: ['A'] }))
 
 		expect(bySlot(container, 'map-region-selected')).toBeInTheDocument()
 
-		rerender(categoricalPlat({ selectedRegion: null }))
+		rerender(categoricalPlat({ selectedRegions: [] }))
 
 		expect(bySlot(container, 'map-region-selected')).toBeNull()
 	})
 
 	it('stands the ring above the layer, outside the recede and off the hit path', () => {
-		const { container } = renderUI(categoricalPlat({ selectedRegion: 'B' }))
+		const { container } = renderUI(categoricalPlat({ selectedRegions: ['B'] }))
 
 		const ring = bySlot(container, 'map-region-selected')
 
@@ -1491,29 +1514,21 @@ describe('MapPlat selected region', () => {
 		// A map showing a pick made elsewhere (a Select, a route parameter) is a
 		// readout, not a picker: without `onRegionClick` there is no click to
 		// promise.
-		const { container } = renderUI(categoricalPlat({ selectedRegion: 'B' }))
+		const { container } = renderUI(categoricalPlat({ selectedRegions: ['B'] }))
 
 		expect(bySlot(container, 'map-regions')?.getAttribute('class')).not.toContain('cursor-pointer')
 	})
 
 	it('reads the selected region as current in the visually-hidden table', () => {
-		const { container, rerender } = renderUI(categoricalPlat({ selectedRegion: 'B' }))
+		const { container, rerender } = renderUI(categoricalPlat({ selectedRegions: ['B'] }))
 
 		// Value parity for the pick: assistive tech reads the selection off the
 		// table, never off the ring alone.
-		expect(tableRows(container)).toEqual([
-			['Alpha', null],
-			['Beta', 'true'],
-			['Gamma', null],
-		])
+		expect(tableRows(container)).toEqual(['Alpha', 'Beta, selected', 'Gamma'])
 
-		rerender(categoricalPlat({ selectedRegion: null }))
+		rerender(categoricalPlat({ selectedRegions: [] }))
 
-		expect(tableRows(container)).toEqual([
-			['Alpha', null],
-			['Beta', null],
-			['Gamma', null],
-		])
+		expect(tableRows(container)).toEqual(['Alpha', 'Beta', 'Gamma'])
 	})
 
 	it('reads the selected region as current on a picker with no rows', () => {
@@ -1525,15 +1540,11 @@ describe('MapPlat selected region', () => {
 				geography={FIXTURE_GEOJSON}
 				width={400}
 				onRegionClick={vi.fn()}
-				selectedRegion="B"
+				selectedRegions={['B']}
 			/>,
 		)
 
-		expect(tableRows(container)).toEqual([
-			['Alpha', null],
-			['Beta', 'true'],
-			['Gamma', null],
-		])
+		expect(tableRows(container)).toEqual(['Alpha', 'Beta, selected', 'Gamma'])
 	})
 })
 

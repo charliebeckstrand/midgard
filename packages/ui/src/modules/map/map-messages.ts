@@ -64,3 +64,18 @@ export const mapZoomMessage: TypedMessageDescriptor<{ scale: number }> = defineM
 	description:
 		'Spoken when a key zooms a map in or out, with the zoom as a percent of the fit, such as "Zoom 150%".',
 })
+
+/**
+ * The name of a row of the data table of a map that the map holds selected,
+ * such as "Ohio, selected". It takes the `name` of the region or the mark.
+ *
+ * @internal
+ */
+export const mapSelectedRowMessage: TypedMessageDescriptor<{ name: string }> = defineMessage<{
+	name: string
+}>({
+	id: 'ui.map.selectedRow',
+	defaultMessage: '{name}, selected',
+	description:
+		'The name of a row of the data table of a map for a region or a mark that the map holds selected, such as "Ohio, selected".',
+})

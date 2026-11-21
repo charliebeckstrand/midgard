@@ -56,7 +56,7 @@ export default function SelectAState() {
 				regionLabel={stateLabel}
 				onRegionClick={pick}
 				isRegionDisabled={unzoned}
-				selectedRegion={picked}
+				selectedRegions={picked === null ? [] : [picked]}
 				legend="right"
 			/>
 		</Stack>

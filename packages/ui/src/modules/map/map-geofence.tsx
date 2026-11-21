@@ -97,8 +97,8 @@ export type MapGeofenceProps = MapOverlayProps &
  * A hover anywhere in the zone raises the tooltip with its name and detail, and
  * isolates the zone. Every other mark recedes, as under its legend entry's
  * focus. With `onClick` set, the zone answers a click, and the keyboard cursor
- * picks it with Enter or Space. The plat's `selectedOverlay` haloes the outline
- * for as long as it names this mark.
+ * picks it with Enter or Space. The plat's `selectedOverlays` halo the outline
+ * for as long as they name this mark.
  *
  * @remarks Renders only inside {@link MapPlat}, and draws nothing where the
  * projection keeps fewer than three of its points: the US composite drops
@@ -232,7 +232,7 @@ export function MapGeofence({ at, radius, boundary, area, ...shared }: MapGeofen
 
 	return (
 		<>
-			{selected !== null && (
+			{selected && (
 				<MapHalo
 					slot="map-geofence-selected"
 					d={d}

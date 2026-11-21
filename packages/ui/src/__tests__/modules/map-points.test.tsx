@@ -534,7 +534,7 @@ describe('a square point set', () => {
 	it('caps its dots, its summaries, and its halo square, and keys a square swatch', () => {
 		const { container } = renderUI(
 			overlayPlat(<MapPoints id="depots" label="Depots" shape="square" points={BUNCHED} />, {
-				selectedOverlay: { id: 'depots', index: 2 },
+				selectedOverlays: [{ id: 'depots', index: 2 }],
 			}),
 		)
 
@@ -649,7 +649,7 @@ describe('a square MapPoint', () => {
 	it('caps its dot and its halo square', () => {
 		const { container } = renderUI(
 			overlayPlat(<MapPoint id="depot" label="Depot" shape="square" at={DEPOT} />, {
-				selectedOverlay: { id: 'depot', index: 0 },
+				selectedOverlays: [{ id: 'depot', index: 0 }],
 			}),
 		)
 

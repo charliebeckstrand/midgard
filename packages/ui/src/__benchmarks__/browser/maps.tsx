@@ -62,3 +62,30 @@ export function choroplethMaps(atlas: MapAtlas): Subject<ValueData>[] {
 		)),
 	]
 }
+
+/** The regions that one selection holds, by FIPS id. */
+export type SelectionData = { selected: readonly string[] }
+
+/**
+ * The zone map over one prepared atlas, with fixed rows and the selection as
+ * the data. An update then moves the selection alone, and the rows, the
+ * geometry, and the legend stay as they are.
+ */
+export function selectionMaps(atlas: MapAtlas, zones: ZoneData): Subject<SelectionData>[] {
+	return [
+		reactSubject('ui MapPlat', (data) => (
+			<MapPlat
+				aria-label="Bench map"
+				geography={atlas.topology}
+				projection="albers-usa"
+				data={zones.rows}
+				regionKey="fips"
+				categoryKey="zone"
+				categories={UI_CATEGORIES}
+				width={WIDTH}
+				height={HEIGHT}
+				selectedRegions={data.selected}
+			/>
+		)),
+	]
+}
