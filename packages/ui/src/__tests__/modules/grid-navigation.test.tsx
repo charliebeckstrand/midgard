@@ -714,6 +714,29 @@ describe('Grid cursor edges', () => {
 
 		expect(commits).toBe(0)
 	})
+
+	// With no cursor and no range, the follow of a new layout writes no state.
+	// A write of the same `null` made React render again on every other change.
+	it('commits one render for each change of rows while no cell is active', () => {
+		let commits = 0
+
+		const draw = (next: Row[]) => (
+			<Profiler id="grid" onRender={() => commits++}>
+				<Grid columns={columns} rows={next} getKey={getKey} navigable />
+			</Profiler>
+		)
+
+		const { rerender } = renderUI(draw(rows))
+
+		commits = 0
+
+		// A new array of the same rows, then a new order of the rows.
+		for (let i = 0; i < 4; i++) rerender(draw(rows.slice()))
+
+		for (let i = 0; i < 4; i++) rerender(draw(i % 2 === 0 ? rows.toReversed() : rows.slice()))
+
+		expect(commits).toBe(8)
+	})
 })
 
 // Audit Q10. The flat cursor follows its cell by the row key and the column id,

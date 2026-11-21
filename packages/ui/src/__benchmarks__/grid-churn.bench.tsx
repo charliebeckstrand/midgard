@@ -10,7 +10,7 @@
  * cancels out. A gesture that costs O(page) has a slope near zero. One array
  * of the loaded rows costs 8 bytes for each row.
  *
- * Three parts of the method make each slope the same on each run:
+ * Two parts of the method make each slope the same on each run:
  *
  * - The `churn` project of `vitest.bench.config.ts` runs this file without
  *   the optimizing tiers of V8. Those tiers remove some allocations after a
@@ -19,19 +19,15 @@
  * - The measure reads only the heap spaces that hold data. V8 still compiles
  *   a function to baseline code while the process runs, and the code spaces
  *   hold that code. A compile in one pass is not a cost of the gesture.
- * - Each sample is the mean of two runs of the gesture in sequence. A render
- *   that gives the grid new row keys runs the `reconcile` effect of the
- *   cursor, which calls `setActive`. React drops that update before a render
- *   only when no copy of the fiber has pending work. Here that is true on
- *   every other call. On the other calls, React renders `GridDataReadOnly`
- *   again, and that render costs about 190 KB. Thus the bytes of the gesture
- *   go high and low in turn. A median of single runs took the side of the
- *   first run. A change of side between two passes moved a slope by 2 bytes
- *   for each row.
- * - The mean holds one run of each side only when one cycle of `prepare` and
- *   the gesture calls `setActive` once. The `prepare` of `append` renders the
- *   loaded rows again, so each run of `append` falls on the same side. The
- *   mean does not keep the `append` slopes from a change of side.
+ *
+ * Each run of a gesture allocates the same bytes. Before, the `reconcile`
+ * effect of the cursor wrote a `null` that it already held, on each change of
+ * the row keys. React drops such a write before a render only when no copy of
+ * the fiber has pending work. Thus React rendered `GridDataReadOnly` again on
+ * every other change, and the runs went high and low in turn by about 190 KB.
+ * A median took the side of the first run, and moved a slope by 2 bytes for
+ * each row. `grid-navigation.test.tsx` now asserts one commit for each change
+ * of the rows.
  *
  * Each budget is the slope that the gesture has now, as {@link BUDGETS}
  * records it. A slope must stay within {@link NOISE} of its budget. A change
@@ -67,12 +63,12 @@ const PAGE_SIZE = 10
 /** The rows that one append of infinite scroll adds. */
 const BATCH = 50
 
-/** The samples of each gesture at each size. The median is the measure. */
+/** The runs of each gesture at each size. The median is the measure. */
 const SAMPLES = 3
 
 /**
  * The tolerance of a slope, in bytes for each loaded row. A slope repeats to
- * within 0.05 from run to run. One array of the loaded rows costs 8, so a
+ * within 0.1 from run to run. One array of the loaded rows costs 8, so a
  * new array of the rows fails a budget.
  */
 const NOISE = 0.5
@@ -132,8 +128,8 @@ type Gesture = 'rerender' | 'sortFlip' | 'refresh' | 'sortedRefresh' | 'pageTurn
  * keeps its integers small.
  */
 const BUDGETS: Record<Layout, Partial<Record<Gesture, number>>> = {
-	paged: { rerender: 0, sortFlip: 0, refresh: 0, sortedRefresh: 127.4, pageTurn: 0, append: 0 },
-	windowed: { rerender: 0, sortFlip: 15.2, refresh: 8, sortedRefresh: 143.5, append: 16 },
+	paged: { rerender: 0, sortFlip: 0, refresh: 0, sortedRefresh: 126.5, pageTurn: 0, append: 0 },
+	windowed: { rerender: 0, sortFlip: 15.2, refresh: 8, sortedRefresh: 142.4, append: 16 },
 }
 
 /** The state that a case renders. */
@@ -196,17 +192,11 @@ function allocatedBytes(run: () => void): number {
 }
 
 /**
- * The median bytes of one gesture over {@link SAMPLES} samples. A sample is
- * the mean of two runs in sequence. When the runs of a gesture go high and low
- * in turn, a sample holds one run of each side. `append` is the exception, as
- * the file header says. `prepare` runs outside the measure, and gives the
- * gesture to measure.
+ * The median bytes of one gesture over {@link SAMPLES} runs. `prepare` runs
+ * outside the measure, and gives the gesture to measure.
  */
 function medianBytes(prepare: () => () => void): number {
-	const samples = Array.from(
-		{ length: SAMPLES },
-		() => (allocatedBytes(prepare()) + allocatedBytes(prepare())) / 2,
-	)
+	const samples = Array.from({ length: SAMPLES }, () => allocatedBytes(prepare()))
 
 	samples.sort((a, b) => a - b)
 
@@ -267,6 +257,11 @@ function measureGestures(layout: Layout, count: number): Partial<Record<Gesture,
 
 		return () => draw({ sort })
 	})
+
+	// The flips leave the sort that their count of runs gives. A sort of new rows
+	// costs more under one direction than the other, so the refresh starts from
+	// the ascending sort at each count.
+	draw({ sort: ASC })
 
 	bytes.sortedRefresh = medianBytes(() => {
 		const next = rows.slice()
