@@ -133,6 +133,7 @@ Enforced by boundary tests (`packages/ui/src/__tests__/boundary/`). Add a page u
 | Recipe system | [`src/recipes/README.md`](src/recipes/README.md) |
 | Curated surface docs | [`docs/`](docs) |
 | Point-in-time audits | [`docs/audits/`](docs/audits) |
+| Roadmaps | [`ROADMAP.md`](ROADMAP.md), which links the roadmap of the components and of each module |
 
 ---
 

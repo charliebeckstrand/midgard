@@ -1,62 +1,97 @@
 # Query roadmap
 
-> **Goal: a first-class query module, with a pure, framework-free `engine/` that owns the Query domain, the builder as one view over it, and room for read views and adapters beside it.** This file describes the module as it is, and what it must absorb next.
+> **Goal: make the builder safe in each lock scope, and give the engine the operators that real data needs.** The engine, the views, and the URL adapter work. The next work closes the gaps that the lock scope, the date type, and the grid filter show.
 
 ## Status
 
-The Query domain lives in [`engine/`](engine), a pure functional core laid out like the grid and chart engines. `types.ts` holds the node and field types, and `query-node.ts` constructs and guards the nodes. `query-operators.ts` holds the operator sets, and `query-tree.ts` holds the immutable tree edits. `query-active.ts` and `query-evaluate.ts` judge and evaluate a tree. `query-summary.ts`, `query-serialize.ts`, `query-announcements.ts`, and `query-messages.ts` serve the read views, the URL, and the announcer. Each file has its own `*.test.ts` suite, so a change is proven at the layer that it changes.
+The query module edits, reads, and evaluates a tree of rules and groups. `QueryBuilder` is the edit view. `QuerySummary` and `QueryChips` are read views over one token stream. `serializeQuery` and `parseQuery` write a tree to a URL and read it back.
 
-One judgment, `imposesConstraint` in `engine/query-evaluate.ts`, decides if a rule is active. A rule is active when the evaluator has a matcher for its operator, and the operator reads no value or its value is filled. `evaluateQuery`, `isQueryActive`, the summary, and the chips all read it, so they give the same reading. The judgment reads no field set, so `isQueryActive` takes only the group. The fold drops a blank rule, or a group of blank rules, with its combinator. So `A OR (blank)` matches the rows that `A` matches, and the summary shows `A`.
+One judgment, `imposesConstraint` in [`engine/query-evaluate.ts`](engine/query-evaluate.ts), decides if a rule is active. `evaluateQuery`, `compileQuery`, `isQueryActive`, the summary, and the chips all read it. The judgment reads no field set. A property test in `query-evaluate.test.ts` holds `compileQuery` equal to `evaluateQuery`.
 
-`isQueryNode` and `isQueryGroup` in [`engine/query-node.ts`](engine/query-node.ts) are the one structural guard. `isQueryGroup` reads a node through `isQueryNode`. The dashboard spec parse and the grid column filter read a group through `isQueryGroup`.
+The fold reads the children of a group from left to right, with no AND or OR precedence. A rule that puts no constraint on the rows drops out with its combinator. So `A OR (blank)` matches the rows that `A` matches, and the summary shows `A`.
 
-`useQueryTree` (module root) holds the controlled or uncontrolled root and the edit actions, which keep their references. It is internal, because no consumer outside the module uses it. `useQueryBuilderTree` composes it with the focus registry of the builder, so a removal moves the focus to a neighbor (WCAG 2.4.3). The focus ladder is in [`query-builder/query-builder-focus.ts`](query-builder/query-builder-focus.ts). The grid filter path evaluates the query tree of a column through `compileQuery`, an edge from one pure engine to another.
+The evaluator knows each operator by its name. A parity test in `query-operators.test.ts` holds the names of the matchers equal to the built-in operator sets. So the summary finds a label for each operator that the evaluator applies.
 
-## Views
+`isQueryGroup` in [`engine/query-node.ts`](engine/query-node.ts) is the one structural guard. It reads groups to `MAX_DEPTH`. The dashboard spec parse and the grid column filter read a stored tree through it.
 
-`QueryBuilder` is the edit view. [`QuerySummary`](query-summary.tsx) is a read view that needs the core and not the builder. [`engine/query-summary.ts`](engine/query-summary.ts) turns a tree into an ordered token stream (`summarizeQuery`) or a plain line (`formatQuerySummary`). The view renders each active rule as `field operator value`, joined by AND or OR, with brackets for each nested group. The barrel exports the view, the plain line, and the token stream with its token types.
+The tree edits in [`engine/query-tree.ts`](engine/query-tree.ts) keep the identity of each subtree that they do not touch. So the memo of each rule and group renders only the edited path. `moveChild` keeps each combinator in its position. `moveChildInto` gives the moved node the combinator of the place that it enters. `query-tree.test.ts` holds both rules.
 
-The summary names each operator, also one that the field does not offer. The label comes from the set of the field, then from the default set of the field type, then from the other built-in sets. So `isEmpty` on a `number` field reads `is Empty`. A blank dashboard selection makes such a rule. A parity test holds the evaluator operators and the built-in sets equal, so no active rule shows a raw operator name.
+`parseQuery` repairs and reports, as `parseDashboardSpec` does. It drops each node that it cannot read and gives each node a new id. A property test in `query-serialize.test.ts` holds the round trip.
 
-[`QueryChips`](query-chips.tsx) renders the token stream as a filter bar. Each active rule is a chip, and the combinators and brackets sit between the chips. The row is a toolbar with one Tab stop. The remove button of a chip removes its rule, and a combinator switches between AND and OR. The focus moves to a neighbor chip after a removal, and to the row after the last removal. A `readOnly` row renders text only, and each token carries the id of its source node, so the row edits the tree through `useQueryTree`.
+A field can name a custom value editor with `QueryField.editor`. [`QueryValueEditorProvider`](query-value-editor-provider.tsx) maps each key to a component. A set operator (`setOperators`) with no custom editor edits its set with a `TagInput`. `QueryField.formatValue` gives the display text of a key. `query-value-editor.test.tsx` holds the editor contract under jsdom.
 
-## Adapters
+A removal moves the focus to a neighbor (WCAG 2.4.3), through `useQueryRemovalFocus`. `query-builder-focus.test.ts` and the removal cases of `query-builder.test.tsx` hold the ladder.
 
-[`engine/query-serialize.ts`](engine/query-serialize.ts) writes a tree as compact JSON for a URL search param (`serializeQuery`) and reads it back (`parseQuery`). The parse follows the repair-and-report model of `parseDashboardSpec`. It returns `{ value, issues }`, drops each node that it cannot read, and gives each node a new id. An optional `fields` list also drops a rule for an unknown field or operator. So a query survives a reload.
+Under `reorder`, the builder moves nodes over the `Reorder` of Motion. The module loads no `@dnd-kit`, and [`list-dnd-boundary.test.ts`](../../__tests__/boundary/list-dnd-boundary.test.ts) holds that rule.
 
-## Reorder and move
+## Engine
 
-`QueryBuilder` takes an opt-in `reorder` prop, named as `GridProps.reorder` is. With it, each child of a group with more than one child shows a grip. The grip reorders by pointer or by keyboard over the `Reorder` of Motion, and each group is its own `Reorder.Group`. A pointer drag moves the nodes in a draft order and commits the move once, on the drop. Escape cancels it. The announcements name a node by its summary text and its position, from the pure builders in [`engine/query-announcements.ts`](engine/query-announcements.ts).
+The Query domain lives in [`engine/`](engine), a pure functional core. It has no `'use client'` and no runtime `react`, `motion`, `@dnd-kit`, or `@floating-ui` import. It has no `index` barrel and no runtime import from the module root. [`engine-purity-boundary.test.ts`](../../__tests__/boundary/engine-purity-boundary.test.ts) holds this invariant for each pure engine together.
 
-`moveChild` in [`engine/query-tree.ts`](engine/query-tree.ts) moves a node among its siblings, as the `move` action. Each combinator stays in its position, and only the nodes move, so a hidden combinator on the first child never becomes live. `moveChildInto` moves a node into another group, as the `moveInto` action. The node takes the combinator of the node that it displaces, or at the end, of the node before it. Each other node keeps its combinator.
+[`module-filename-boundary.test.ts`](../../__tests__/boundary/module-filename-boundary.test.ts) holds the `query-*` file names of the engine and the `types.ts` exemption.
 
-In the builder, each group is a drop target. The height of the pointer finds the innermost group and the place among its children (`findDrop` in [`query-builder/query-builder-move.ts`](query-builder/query-builder-move.ts)). The group shows the drop with `data-over`, and a line shows the place. While the drag is over another group, the nodes of its own group stop their draft moves. With the keyboard, the arrow toward the end of the line moves a lifted node into the next group, and the arrow toward the start moves it out of its group. Under `requireRule`, the sole node of a group does not leave it.
+## Features
 
-## Values
+1. **A read-only builder (*P1*).** `QueryBuilder` has `disabled` and no `readOnly`, and it renders no lock scope. In a lock scope, such as a `Form` that submits, the reorder grip stays live. `QueryBuilderSortableItem` gives the grip only `disabled`, and `SortableGrip` is a plain `<button>` that reads no lock. So a grip still moves a node while each other control is locked.
 
-A `between` rule reads the span of its data. `QueryField.span` holds the `[min, max]` that the data of a `number` field holds. Each bound of the range editor in [`query-builder-rule-value.tsx`](query-builder/query-builder-rule-value.tsx) clamps to the span and to the other bound, so the pair cannot invert. Each bound shows its end of the span as its placeholder. A range value takes two shares of the rule row, so its two inputs have room beside their steppers. A grid column filter fills the span from the faceted unique values of the column, so a blank cell does not pull the minimum to 0.
+   Add `readOnly` to `QueryBuilder` (CONVENTIONS §4.9), and render `ControlLockContext` with it. Make the grip read `useControlLock` and drop its listeners while locked. The grids, the kanban, and the dashboard also render `SortableGrip`, so the fix reaches them. Extend the lock case of `query-builder.test.tsx` to the grip, the Add menu, and the remove buttons. Add a `read-only` docs example.
 
-A field whose value is not a primitive, such as a related record or a set of tokens, names a custom editor with `QueryField.editor`. The key is a string, so a field stays data that JSON can hold, and the engine imports no React. [`QueryValueEditorProvider`](query-value-editor-provider.tsx) maps each key to a `QueryValueEditor` component. It is a context and not a prop of the builder, so it reaches a builder that another module renders. A key that no provider holds falls back to the input of the field type. The editor gets the field, the operator, the value, a name, `disabled`, and the lock of the nearest lock scope as `readOnly`.
+2. **A custom editor in a grid column filter (*P2*).** `toQueryField` in `grid/grid-column-filter-button.tsx` builds a field from the name, the label, the type, the options, and the span. So a column cannot give `editor`, `formatValue`, or `operators`. A set editor needs `in` or `notIn`, which no field type offers by default. AG Grid takes a custom filter component for each column.
 
-An editor writes a key or a set of keys, and not an object. A set is a list of one or more strings or numbers, each not blank. [`setOperators`](engine/query-operators.ts) holds `in` and `notIn`. A row matches `in` when its value is one member of the set, and a cell that is a list matches when one of its items is a member. `imposesConstraint` reads the shape, so a value of the wrong shape reads as inactive. No field type offers the set operators by default, because a built-in `select` input writes one value. A field adds them to its `operators`.
+   Add a `GridColumn` key that merges a partial `QueryField` into the field of the column. Prove it in `grid-column-filters.test.tsx` and in a grid docs example.
 
-A set operator with no custom editor edits its set with a `TagInput`. A change of operator to another shape of value resets the value to the blank value of that shape (`blankValue` in [`engine/query-node.ts`](engine/query-node.ts)). `QueryField.formatValue` gives the display text of a value, such as the name of a record. The summary, the chips, and the names of the rules read it before the option labels, and a set reads as one list with "or". The function is synchronous, because the summary is a pure fold. An app that loads its labels gives a new field when more labels arrive, and until then the summary shows the key.
+3. **A date range operator (*P2*).** The `date` set holds `on`, `before`, and `after`. `between` is in `NUMERIC_OPERATORS`, so an ISO date range reads as no constraint. AG Grid offers `inRange` for dates, and `DatePicker` already has a `range` mode. Add a range operator for the `date` type that compares the bounds in ISO string order. Give it its own name, because the judgment reads no field type.
 
-The composer of the chat has a picker and a token model too, and the query module does not use them. A mention of the chat is a citation: offsets in the text of a `<textarea>`, with a quote that guards them. A rule value has no text that an offset can address. The custom editor composes the parts that the picker of the chat also composes, such as `Combobox`, `Option`, and `useA11yRoving`. A shared hook for the async search waits for a second consumer in the library.
+   A blank bound is open, as for `between`. Edit the value with `DatePicker` in its `range` mode, in `query-builder-rule-value.tsx`. Prove it in `query-evaluate.test.ts`, the parity test, and the summary tests.
 
-## Engine: the substrate
+4. **Brackets that show the fold (*P3*).** A flat group can mix AND and OR, and the fold reads it from left to right. So `A OR B AND C` matches `(A OR B) AND C`. The summary and the chips write it with no brackets, and a reader who knows SQL reads `A OR (B AND C)`. Bracket each run of the summary where the combinator changes. The open question is the id of a bracket token, because no group node holds the run.
 
-Every domain concept lands in [`engine/`](engine), the module's pure functional core: no `'use client'`, no runtime `react` / `motion` / `@dnd-kit` / `@floating-ui` imports, no `index` barrel (the engine is imported file-by-file), no runtime imports from the module root.
+5. **Group negation (*P3*).** react-querybuilder has `showNotToggle`, which negates a group. Here a reader must invert each rule of a group by hand. Add `not` to `QueryGroup`, read it in the fold and the compile, and write `NOT (…)` in the summary. The open question is the URL form, because a compact group is `[combinator, children]`. Old links must still parse.
 
-[`engine-purity-boundary.test.ts`](../../__tests__/boundary/engine-purity-boundary.test.ts) holds that invariant for this engine and each other pure engine together, so it is a gate rather than a paragraph that each module re-asserts.
+6. **Date cells that hold a `Date` (*P3*).** The date matchers compare text, and `asText` of a `Date` gives `Fri Jan 02 2026…`. So `before` and `after` give a wrong result for such a cell. The TSDoc of `GridColumn.filterType` asks for a string, so the grid is correct today. A `Date` or an ISO date-time cell must read as its calendar day. The open question is the time zone of that day, because the engine is pure and has no locale.
 
-The [`module-filename-boundary.test.ts`](../../__tests__/boundary/module-filename-boundary.test.ts) suite already enforces the engine's `query-*` filename layout and the `types.ts` exemption, so the folder shape is a gate, not a convention.
+## Pattern cleanup
 
-## Backlog
+1. **TSDoc that the set operators made stale (*P1*).** The TSDoc of `isQueryActive` in [`engine/query-active.ts`](engine/query-active.ts) gives the shapes of a value, but not the set shape. One line of it also overruns the others. `NUMERIC_OPERATORS` and `isQueryActive` write "each set bound", and `toBound` in `query-builder-rule-value.tsx` writes "A set bound". Now "set" names an operator shape, so write "each bound".
 
-- **A custom editor in a grid column filter.** `GridColumn.filterType` takes only a primitive type, and `toQueryField` in the column filter button builds the field from the name, the label, the type, the options, and the span. So a column cannot name a custom editor. The column sheet already renders `QueryBuilder`, so a provider above the grid reaches it. The column needs a way to give `editor`, `formatValue`, and `operators` to its field, because a set editor needs `in` or `notIn`, which no field type offers by default.
-- **A read-only builder.** `QueryBuilder` has `disabled` and no `readOnly`, and it sets no lock scope. A read-only view is `QueryChips` with `readOnly` or `QuerySummary` today. A `readOnly` prop can provide the lock scope. The value editor, the buttons, the field and operator selects, and the AND/OR segment read the lock. The segment items take `lockable`, because a `Tab` stays live in a locked scope by default.
+   The TSDoc of `QueryField.editor` and of `QueryValueEditorProvider` says that a field stays data that JSON can hold. But `formatValue` is a function. Give the true reason: the engine imports no React. Review holds this, because no gate reads the meaning of a doccomment.
+
+2. **Operator flags that only a comment ties to the evaluator (*P2*).** The builder reads the `noValue`, `range`, and `set` flags in [`engine/query-operators.ts`](engine/query-operators.ts). The evaluator reads `VALUELESS_OPERATORS`, `RANGE_OPERATORS`, and `SET_OPERATORS` by name in [`engine/query-evaluate.ts`](engine/query-evaluate.ts). Each set says that it mirrors a flag, but the parity test holds only the names. A built-in with a wrong flag gets an editor of one shape and a judgment of another, so its rule reads as inactive. Extend the parity test in `query-operators.test.ts`: a built-in has each flag exactly when its name is in the related set.
+
+## Performance
+
+1. **Compile the rule value once (*P2*).** `compileNode` in [`engine/query-evaluate.ts`](engine/query-evaluate.ts) makes the active judgment once, but each matcher reads the rule value again for each row. A text matcher lowers the rule value for each row. An `in` matcher walks the whole set for each row, and lowers each member each time.
+
+   Make each compiled test hold a lowered value, a parsed number, or a `Set` of the members. `query-evaluate.bench.ts` has no set operator, so add an `in` row with a large set over `shipments`. The compile property test holds the result.
+
+2. **The edit cost under `reorder` (*P3*).** On 2026-10-13, `query-edit.bench.tsx` measured one edit in Chromium. With no reorder, it took 1.06 ms at 32 rules and 1.84 ms at 128 rules. With `reorder`, it took 3.48 ms and 10.16 ms. `Reorder.Group` gives its items a new context value in each render, so each `Reorder.Item` renders again.
+
+   A local fix was measured and not kept, as [the browser bench README §Query builder](../../__benchmarks__/browser/README.md) records. The fix belongs in Motion, as a memo on that context value, so measure each Motion upgrade with the same bench.
+
+## Accessibility and testing
+
+1. **Focus after an add (*P2*).** `addRule` and `addGroup` in [`use-query-tree.ts`](use-query-tree.ts) move no focus. The new rule sits above the Add trigger, so a keyboard reader must go back to reach it. A removal already moves the focus (WCAG 2.4.3), so an add must do the same. Focus the first control of the new node once it enters the tree, through the registry that `useQueryRemovalFocus` reads. Prove it in `query-builder.test.tsx`, and examine it in a real browser, because the Add menu closes in the same step.
+
+2. **A name for each nested group (*P2*).** Each nested group is a `<fieldset>` with the name "Condition group" (`queryBuilderMessages.group`). A screen reader cannot tell two groups apart, but each rule has its summary as its name. Describe each nested group by the summary of its subtree, through `aria-describedby`, as `QueryChips` does for its row (WCAG 1.3.1, 2.4.6). Prove it in `query-builder.test.tsx`.
+
+3. **A browser test of the editor contract (*P2*).** The remarks of `QueryValueEditor` set two rules. Each control of the editor is a Tab stop in the order of the row, and Escape in a popup closes that popup only. `query-value-editor.test.tsx` runs under jsdom and does not press Escape. Add a browser test that mounts the custom editor of the docs inside a `Dialog`. Assert the Tab order of the row, and that Escape closes the listbox and keeps the dialog open.
+
+## Not planned
+
+- **Formatters for a server dialect**, such as the `formatQuery` of react-querybuilder for SQL or MongoDB. The engine evaluates on the client, and no app sends a query to a server. A server reads the URL form and owns its dialect.
+
+- **One combinator for each group**, as in MUI X Data Grid (`logicOperator`) and the default of react-querybuilder. The combinator of each node carries the move rules of `moveChild` and `moveChildInto`.
+
+- **AND before OR.** The fold follows the order that the builder shows. A precedence rule changes the result of each stored tree. Feature 4 makes the order clear in place of this.
+
+- **A depth limit on the builder.** The builder can build a tree deeper than `MAX_DEPTH`, which the guard then refuses. That depth is far past any tree that a person builds by hand.
+
+- **An async `formatValue`.** The summary is a pure fold. An app that loads labels gives a new field when the labels arrive, and the summary shows the key until then.
+
+- **A component in `QueryField.editor`.** A string key keeps the engine free of React, and a context reaches a builder that another module renders.
+
+- **The picker and the token model of the chat.** A chat mention holds offsets in the text of a `<textarea>`. A rule value has no text that an offset can address. A shared hook for the async search waits for a second consumer.
 
 ---
 
-**See also:** [`index.ts`](index.ts) (the public surface) · [grid `ROADMAP.md` §Engine](../grid/ROADMAP.md) (the invariants this adopts) · [`docs/MODULES.md`](../../../docs/MODULES.md).
+**See also:** [`index.ts`](index.ts) (the public surface) · [grid `ROADMAP.md` §Engine](../grid/ROADMAP.md) (the invariants this adopts) · [the browser bench README §Query builder](../../__benchmarks__/browser/README.md) · [`docs/MODULES.md`](../../../docs/MODULES.md).
