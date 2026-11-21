@@ -1,5 +1,6 @@
 import { createRef, type ReactNode, useEffect, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
+import { ControlLockContext } from '../../components/control/context'
 import type { JsonValue } from '../../components/json-tree'
 import {
 	createGroup,
@@ -435,6 +436,28 @@ describe('QueryBuilderGroup', () => {
 		const next = onChange.mock.calls.at(-1)?.[0]
 
 		expect(next.children[1].combinator).toBe('or')
+	})
+
+	it('locks the AND/OR segment in a locked scope, and keeps its focus', () => {
+		const onChange = vi.fn()
+
+		const tree = createGroup('and', [createRule(fields[0]), createRule(fields[0])])
+
+		renderUI(
+			<ControlLockContext value>
+				<QueryBuilder fields={fields} value={tree} onValueChange={onChange} />
+			</ControlLockContext>,
+		)
+
+		const or = screen.getByRole('tab', { name: 'OR' })
+
+		expect(or).toHaveAttribute('aria-disabled', 'true')
+
+		expect(or).not.toBeDisabled()
+
+		fireEvent.click(or)
+
+		expect(onChange).not.toHaveBeenCalled()
 	})
 
 	it('renders a nested group with its own remove control', () => {

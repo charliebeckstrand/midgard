@@ -84,10 +84,10 @@ const QueryBuilderSeparator = memo(function QueryBuilderSeparator({
 				onValueChange={(next) => next && updateCombinator(id, next as QueryCombinator)}
 			>
 				<SegmentControl aria-label={intl.formatMessage(queryBuilderMessages.combinator)}>
-					<SegmentItem value="and" disabled={disabled}>
+					<SegmentItem value="and" disabled={disabled} lockable>
 						{intl.formatMessage(queryMessages.and)}
 					</SegmentItem>
-					<SegmentItem value="or" disabled={disabled}>
+					<SegmentItem value="or" disabled={disabled} lockable>
 						{intl.formatMessage(queryMessages.or)}
 					</SegmentItem>
 				</SegmentControl>
