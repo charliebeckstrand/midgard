@@ -92,6 +92,33 @@ describe('the picker of a chat prompt (real browser)', () => {
 		expect(citations()).toBe('@Routes')
 	})
 
+	it('gives typed prose no citation on an undo, when the same text was chosen later', async () => {
+		renderUI(<Composer />)
+
+		await userEvent.click(textarea())
+
+		// The reader types the phrase as prose, clears the draft, and then chooses it.
+		await userEvent.keyboard('Ask @Routes{Escape} ')
+
+		await userEvent.keyboard('{Control>}a{/Control}{Backspace}')
+
+		await userEvent.keyboard('Ask @ro{Enter}')
+
+		expect(citations()).toBe('@Routes')
+
+		// Undo back to the prose. The browser groups typed keys into undo steps, so
+		// the count of steps is the browser's.
+		for (let step = 0; step < 10; step++) {
+			await userEvent.keyboard('{Control>}z{/Control}')
+
+			if (textarea().value === 'Ask @Routes ' && step > 0) break
+		}
+
+		expect(textarea().value).toBe('Ask @Routes ')
+
+		expect(citations()).toBe('')
+	})
+
 	it('brings no citation back when the reader types its quote again', async () => {
 		renderUI(<Composer />)
 

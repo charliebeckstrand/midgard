@@ -6,6 +6,7 @@ import {
 	type KeyboardEvent,
 	type ReactNode,
 	type Ref,
+	type RefObject,
 	useCallback,
 	useLayoutEffect,
 	useRef,
@@ -29,9 +30,10 @@ import type { ChatCitation } from './engine/chat-content/types'
 import { canSubmitDraft } from './engine/chat-draft/content'
 import {
 	type DraftHistory,
-	isHistoryInput,
-	recallDraft,
-	rememberDraft,
+	EMPTY_HISTORY,
+	historyStep,
+	recordDraft,
+	stepDraft,
 } from './engine/chat-draft/history'
 import { rebaseCitations } from './engine/chat-draft/rebase'
 import type { ChatPromptSource } from './types'
@@ -87,7 +89,7 @@ export type ChatPromptProps = {
 	 * the caret to find where the change is. A change that touches a citation
 	 * dissolves it, and its text stays as prose. No change of the text makes a
 	 * citation, so a pasted or typed `@name` is prose. An undo or a redo of the
-	 * browser brings back the citations of the draft that it restores.
+	 * browser brings back the citations of the draft that it goes to.
 	 * @defaultValue []
 	 */
 	citations?: readonly ChatCitation[]
@@ -218,12 +220,12 @@ export function ChatPrompt({
 
 	const textareaRef = useRef<HTMLTextAreaElement>(null)
 
-	// The citations of each draft that the composer showed, so that an undo or a
-	// redo of the browser brings them back with their text.
-	const historyRef = useRef<DraftHistory>(new Map())
+	// Each draft that the composer showed, in order, so that an undo or a redo of
+	// the browser brings back the citations of the draft that it goes to.
+	const historyRef = useRef<DraftHistory>(EMPTY_HISTORY)
 
 	useLayoutEffect(() => {
-		rememberDraft(historyRef.current, value, citations)
+		historyRef.current = recordDraft(historyRef.current, { value, citations })
 	}, [value, citations])
 
 	const setTextareaRefs = useComposedRefs(textareaRef, ref)
@@ -279,7 +281,7 @@ export function ChatPrompt({
 
 					onValueChange(
 						next,
-						recallOnHistory(event, historyRef.current) ??
+						recallOnHistory(event, historyRef) ??
 							rebaseCitations(value, next, citations, event.target.selectionEnd),
 					)
 
@@ -410,18 +412,27 @@ export function ChatPrompt({
 
 /**
  * The citations that an undo or a redo of the browser brings back, or
- * `undefined` for any other change, which the rebase handles. Only an undo or a
- * redo reads the history, so a typed value never brings a citation back.
+ * `undefined` for any other change, which the rebase handles. A step moves the
+ * cursor of the history to the draft that it goes to. Only an undo or a redo
+ * reads the history, so typed text never makes a citation.
  *
  * @internal
  */
 function recallOnHistory(
 	event: ChangeEvent<HTMLTextAreaElement>,
-	history: DraftHistory,
+	historyRef: RefObject<DraftHistory>,
 ): readonly ChatCitation[] | undefined {
-	const { inputType } = event.nativeEvent as Partial<InputEvent>
+	const step = historyStep((event.nativeEvent as Partial<InputEvent>).inputType)
 
-	return isHistoryInput(inputType) ? recallDraft(history, event.target.value) : undefined
+	if (!step) return undefined
+
+	const found = stepDraft(historyRef.current, event.target.value, step)
+
+	if (!found) return undefined
+
+	historyRef.current = found.history
+
+	return found.citations
 }
 
 /**
