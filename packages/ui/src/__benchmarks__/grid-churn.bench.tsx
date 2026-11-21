@@ -91,10 +91,10 @@ type Gesture = 'rerender' | 'sortFlip' | 'refresh' | 'sortedRefresh' | 'pageTurn
  * - `append`: one batch of rows at the end, with no sort.
  *
  * The windowed grid reads its rows from arrays of every loaded row. A sort
- * flip copies the rows and the keys in view order (16 bytes). A refresh builds
- * the keys again (8 bytes). An append builds the keys again, and the
- * virtualizer copies its measurements (16 bytes). The sort of new rows
- * decodes a sort key for each row (about 154 bytes in each layout).
+ * flip copies the rows and the keys in view order, which is two arrays. A
+ * refresh builds the keys again, which is one array. An append builds the keys
+ * again, and the virtualizer copies its measurements. In each layout, the sort
+ * of new rows decodes a sort key for each row.
  */
 const BUDGETS: Record<Layout, Partial<Record<Gesture, number>>> = {
 	paged: { rerender: 0, sortFlip: 0, refresh: 0, sortedRefresh: 154, pageTurn: 0, append: 0 },
