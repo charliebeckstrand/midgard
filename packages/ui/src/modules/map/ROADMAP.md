@@ -64,7 +64,7 @@ The map draws the set and adds no gesture for it. A click and Enter report one r
 
 A route and the leg of a marker draw the halo along the line. A point and the pins of a marker draw it behind the dot. A zone draws it along its outline. One ink serves every halo and the region ring.
 
-The index counts the points that a `MapPoints` receives, not the dots that it draws. A pick inside a summary therefore draws the halo on that summary, and the pick separates onto its own dot as the frame widens. One rule resolves the stop that a pick names (`engine/map-overlay/selection`). The halo and the `aria-current` row both read that rule, so the picture and the readout always mark the same dot.
+The index counts the points that a `MapPoints` receives, not the dots that it draws. A pick inside a summary therefore draws the halo on that summary, and the pick separates onto its own dot as the frame widens. One rule resolves the stop that a pick names (`engine/map-overlay/selection`). The halo and the selected row both read that rule, so the picture and the readout always mark the same dot.
 
 The overlays are pickable on the same terms. `MapRoute`, `MapPoint`, `MapMarker`, and `MapGeofence` take an optional `id` and report it from `onClick` and `onContextMenu`, in the shape of `onRegionClick`. `MapPoints` also reports the index of the point (§Point sets). An explicit id is also the legend key, so a mark keeps its color and its toggle state across a remount. Each mark registers a keyboard anchor and its activation beside its legend entry. The cursor therefore steps regions and overlays as one field, and Enter picks the mark under it. The plat dispatches the pick and does not need to know the kind of mark.
 

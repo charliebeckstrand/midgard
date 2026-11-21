@@ -128,7 +128,7 @@ describe('MapPlat selected overlay', () => {
 		expect(bySlot(container, 'map-point-selected')).toBeInTheDocument()
 	})
 
-	it('reads the picked mark as current in the visually-hidden table', () => {
+	it('reads the picked mark as selected in the visually-hidden table', () => {
 		const { container, rerender } = renderUI(
 			plat(
 				<>
@@ -214,7 +214,7 @@ describe('MapPoints selected dot', () => {
 			plat(<MapPoints id="fleet" label="Stops" points={BUNCHED} />, { id: 'fleet', index: 1 }),
 		)
 
-		// One row per drawn dot, and the current one is the summary the pick fell
+		// One row per drawn dot, and the selected one is the summary the pick fell
 		// into: the row the halo sits on, resolved through the one mapper both
 		// surfaces read.
 		expect(tableRows(container)).toEqual(['Stops, selected', 'Yard'])

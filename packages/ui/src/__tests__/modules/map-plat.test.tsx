@@ -1519,7 +1519,7 @@ describe('MapPlat selected region', () => {
 		expect(bySlot(container, 'map-regions')?.getAttribute('class')).not.toContain('cursor-pointer')
 	})
 
-	it('reads the selected region as current in the visually-hidden table', () => {
+	it('reads the selected region as selected in the visually-hidden table', () => {
 		const { container, rerender } = renderUI(categoricalPlat({ selectedRegions: ['B'] }))
 
 		// Value parity for the pick: assistive tech reads the selection off the
@@ -1531,7 +1531,7 @@ describe('MapPlat selected region', () => {
 		expect(tableRows(container)).toEqual(['Alpha', 'Beta', 'Gamma'])
 	})
 
-	it('reads the selected region as current on a picker with no rows', () => {
+	it('reads the selected region as selected on a picker with no rows', () => {
 		// No data, so no readout of its own: the selection alone mounts the table,
 		// or the pick would be in the ring and nowhere a screen reader can find it.
 		const { container } = renderUI(

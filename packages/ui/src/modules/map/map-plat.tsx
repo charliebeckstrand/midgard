@@ -1475,8 +1475,8 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// Whether anything at all can read out: a matched region, a named region
 	// (`nameRegions`), a registered overlay, or a selected region. The table takes
 	// this wider reading: a mark's own row is an output a map with no rows still
-	// has, and the row of a selected region is where the selection reads as the
-	// current one.
+	// has, and the row of a selected region is where the selection reads as
+	// selected.
 	const hasReadout = regionsRead || entries.length > 0 || nameRegions || selected.length > 0
 
 	// Whether the tooltip and the cursor can read anything out. A region counts
