@@ -166,6 +166,17 @@ Import these from `utilities/overlay-layers`. They tell whether an open overlay 
 | `readCookie` | The value of a cookie by name, or `undefined` with no such cookie. With no `cookies`, it reads the cookies of this page. A server gives the `Cookie` header of the request. Import it from `utilities/cookie`. An app imports it from `ui/core` ([`CORE.md`](CORE.md)). |
 | `writeCookie` | Writes a cookie for each path of the site, for a number of seconds, so a server can read it. The default life is one year, for a setting of the reader. It is `secure` on HTTPS. Import it from `utilities/cookie`. An app imports it from `ui/core`. |
 
+## Stored choices
+
+| Export | Summary |
+|---|---|
+| `StoredChoice` *(type)* | One stored choice of the reader: its `key`, its `values`, and its `fallback`. The appearance choices, the sidebar, and the locale each store one. Import it from `utilities/stored-choice`. |
+| `readChoice` | The stored value of a choice: the value in its cookie, else the value in `localStorage`, else the fallback. A value outside the values of the choice does not count. Import it from `utilities/stored-choice`. |
+| `parseChoice` | The value of a choice that a raw string holds, else the fallback. A server reads the cookie of a choice with it. Import it from `utilities/stored-choice`. |
+| `writeChoice` | Stores a value in `localStorage` and in the cookie of a choice, and notifies each subscriber in the page. A write that `localStorage` refuses stays in memory for the life of the page. Import it from `utilities/stored-choice`. |
+| `restoreChoiceCookie` | Writes the value in `localStorage` to the cookie of a choice when the cookie holds no value of the choice. Call it in an effect. Import it from `utilities/stored-choice`. |
+| `subscribeChoices` | Subscribes to the writes of each choice in this page and to the `storage` events of the other tabs. Import it from `utilities/stored-choice`. The hook `useStoredChoice` (`hooks/use-stored-choice`) reads a choice through it. |
+
 ## Measurement
 
 | Export | Summary |
