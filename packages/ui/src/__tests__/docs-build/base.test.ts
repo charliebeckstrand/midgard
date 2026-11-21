@@ -4,6 +4,7 @@ import { rm } from 'node:fs/promises'
 import path from 'node:path'
 import { promisify } from 'node:util'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { LOCALES, localeFile } from '../../docs/app/language.ts'
 import { docsTarget } from '../../docs/plugin/target.ts'
 
 // The docs build can be for a path of a site other than the root, such as
@@ -56,15 +57,15 @@ describe('the docs build with a base', () => {
 	})
 
 	it('writes each page in each locale', () => {
-		expect(existsSync(path.join(baseDir, 'button', 'index.html'))).toBe(true)
-
-		expect(existsSync(path.join(baseDir, 'button', 'index.es.html'))).toBe(true)
+		for (const locale of LOCALES) {
+			expect(existsSync(path.join(baseDir, 'button', localeFile('index.html', locale)))).toBe(true)
+		}
 	})
 
 	it('writes the fallback document in each locale', () => {
-		expect(existsSync(path.join(baseDir, '__spa-fallback.html'))).toBe(true)
-
-		expect(existsSync(path.join(baseDir, '__spa-fallback.es.html'))).toBe(true)
+		for (const locale of LOCALES) {
+			expect(existsSync(path.join(baseDir, localeFile('__spa-fallback.html', locale)))).toBe(true)
+		}
 	})
 
 	it('puts the chunks in the assets folder of the base', () => {
