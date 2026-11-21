@@ -1,20 +1,26 @@
 'use client'
 
 import type { ComponentProps, ReactNode } from 'react'
-import { Button } from '../components/button'
-import { Drawer, DrawerBody, DrawerPanel, DrawerTitle, DrawerTrigger } from '../components/drawer'
-import { Icon } from '../components/icon'
-import { OFFCANVAS_LAYOUT, type OffcanvasLayout, useOffcanvas } from '../hooks/use-offcanvas'
-import { SlidersHorizontal } from '../primitives/icons/icons'
-import { intlMessages } from '../primitives/intl/intl-messages'
-import { useIntl } from '../primitives/intl/use-intl'
-import { Landmark } from '../primitives/landmark'
-import { k } from '../recipes/kata/offcanvas'
-import { Box } from '../structure/box'
-import { Flex } from '../structure/flex'
-import { Stack } from '../structure/stack'
-import { mapResponsive, type Responsive } from '../utilities/responsive'
-import { StackedLayout } from './stacked'
+import { Button } from '../../components/button'
+import {
+	Drawer,
+	DrawerBody,
+	DrawerPanel,
+	DrawerTitle,
+	DrawerTrigger,
+} from '../../components/drawer'
+import { Icon } from '../../components/icon'
+import { OFFCANVAS_LAYOUT, type OffcanvasLayout, useOffcanvas } from '../../hooks/use-offcanvas'
+import { SlidersHorizontal } from '../../primitives/icons/icons'
+import { intlMessages } from '../../primitives/intl/intl-messages'
+import { useIntl } from '../../primitives/intl/use-intl'
+import { Landmark } from '../../primitives/landmark'
+import { k } from '../../recipes/kata/offcanvas'
+import { Box } from '../../structure/box'
+import { Flex } from '../../structure/flex'
+import { Stack } from '../../structure/stack'
+import { mapResponsive, type Responsive } from '../../utilities/responsive'
+import { StackedLayout } from '../stacked'
 
 /** The filters and the content stack in the drawer layout, and sit side by side inline. */
 const toDirection = (layout: OffcanvasLayout) => (layout === 'inline' ? 'row' : 'col')
