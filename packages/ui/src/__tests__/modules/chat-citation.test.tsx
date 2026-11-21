@@ -85,6 +85,33 @@ describe('ChatCitationProvider', () => {
 		expect(anchor).toHaveAttribute('aria-pressed', 'false')
 	})
 
+	it('presses from the keyboard as a native button does', async () => {
+		const onCite = vi.fn()
+
+		const user = userEvent.setup()
+
+		renderUI(<Cited citations={[cite('c1', 'Twelve stops are late')]} onCite={onCite} />)
+
+		const anchor = screen.getByRole('button', { name: 'Twelve stops are late' })
+
+		// An inline span, so that the citation wraps with the prose.
+		expect(anchor.tagName).toBe('SPAN')
+
+		await user.tab()
+
+		expect(anchor).toHaveFocus()
+
+		await user.keyboard('{Enter}')
+
+		expect(anchor).toHaveAttribute('aria-pressed', 'true')
+
+		await user.keyboard(' ')
+
+		expect(anchor).toHaveAttribute('aria-pressed', 'false')
+
+		expect(onCite).toHaveBeenCalledTimes(2)
+	})
+
 	it('draws one control for a citation that crosses bold, and marks each piece pressed', async () => {
 		const user = userEvent.setup()
 

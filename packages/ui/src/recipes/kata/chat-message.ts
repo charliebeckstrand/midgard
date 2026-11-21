@@ -117,8 +117,8 @@ export const k = defineKata({
 			],
 		},
 		// A citation: a phrase of the prose that selects in a view beside the chat.
-		// Piece 0 is a button, and the pieces after it are spans with the same
-		// look. It keeps the font and the foreground of the prose, so it reads on
+		// Piece 0 is a span with the button role, so it wraps with the prose. The
+		// pieces after it are spans with the same look. It keeps the font and the foreground of the prose, so it reads on
 		// each bubble. A dotted underline marks it at rest. A solid underline of
 		// full ink and double weight marks it while it is active: while it is
 		// pressed, or while the selection of its view matches it. The two states
