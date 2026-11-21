@@ -641,6 +641,9 @@ function GridEditHost({
 	// and its keys settle the choice.
 	const expanded = useExpanded(slot)
 
+	// A grown editor anchors the part below it to its slot, else to its cell.
+	const belowAnchor = grown ? slot : cell
+
 	const message = error && <GridEditMessage id={errorId}>{error}</GridEditMessage>
 
 	if (newRow) {
@@ -680,7 +683,7 @@ function GridEditHost({
 			</span>
 
 			{(settle !== 'none' || message) && (
-				<GridEditBelow anchor={expanded ? null : grown ? slot : cell}>
+				<GridEditBelow anchor={expanded ? null : belowAnchor}>
 					<GridSettleControls label={label} controls={settle} settle={onSettle} />
 
 					{message}

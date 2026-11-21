@@ -193,9 +193,11 @@ function headerSizing<T>(resize: GridColumnResize | null, column: GridColumn<T>)
 
 	const bounds = sizing?.bounds(column.id)
 
+	// The automatic layout sizes no header from the engine (see `GridColumnResize.fit`).
+	const engineWidth = sizing?.fit ? undefined : sizing?.getSize(column.id)
+
 	return {
-		// The automatic layout sizes no header from the engine (see `GridColumnResize.fit`).
-		width: sizing ? (sizing.fit ? undefined : sizing.getSize(column.id)) : column.width,
+		width: sizing ? engineWidth : column.width,
 		// The separator reads the engine width, which copies the width on the screen in
 		// the automatic layout.
 		size: sizing?.getSize(column.id),

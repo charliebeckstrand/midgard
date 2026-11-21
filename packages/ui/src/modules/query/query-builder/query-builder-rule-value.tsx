@@ -92,9 +92,14 @@ function rangeLimits(
 ): { lo: { min?: number; max?: number }; hi: { min?: number; max?: number } } {
 	const [floor, ceiling] = span ?? []
 
-	const loMax = hi === undefined ? ceiling : floor === undefined ? hi : Math.max(hi, floor)
+	// A bound of one editor never passes the other bound, nor the span.
+	let loMax = ceiling
 
-	const hiMin = lo === undefined ? floor : ceiling === undefined ? lo : Math.min(lo, ceiling)
+	if (hi !== undefined) loMax = floor === undefined ? hi : Math.max(hi, floor)
+
+	let hiMin = floor
+
+	if (lo !== undefined) hiMin = ceiling === undefined ? lo : Math.min(lo, ceiling)
 
 	return { lo: { min: floor, max: loMax }, hi: { min: hiMin, max: ceiling } }
 }
