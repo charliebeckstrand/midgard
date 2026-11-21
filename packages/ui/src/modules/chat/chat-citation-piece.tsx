@@ -56,7 +56,10 @@ export function ChatCitationPiece({ piece: { range, index }, children }: ChatCit
 		)
 	}
 
-	const label = targets[range.target]?.label ?? range.target
+	// `ChatCitedText` passes only the citations of a registered target, so a
+	// label is there. The target is an address and is never read, so a piece
+	// with no label gets no description.
+	const label = targets[range.target]?.label
 
 	return (
 		<>
@@ -65,16 +68,18 @@ export function ChatCitationPiece({ piece: { range, index }, children }: ChatCit
 				data-slot="chat-citation"
 				data-pressed={dataAttr(pressed)}
 				aria-pressed={pressed}
-				aria-describedby={description}
+				aria-describedby={label === undefined ? undefined : description}
 				className={k().citation}
 				onClick={() => onCite?.(pressed ? null : range)}
 			>
 				{children}
 			</button>
 			{/* Outside the button, so that it is not part of the name. `hidden`, so that browse mode does not read it in the prose. */}
-			<span id={description} hidden>
-				{intl.formatMessage(messages.selects, { label })}
-			</span>
+			{label === undefined ? null : (
+				<span id={description} hidden>
+					{intl.formatMessage(messages.selects, { label })}
+				</span>
+			)}
 		</>
 	)
 }
