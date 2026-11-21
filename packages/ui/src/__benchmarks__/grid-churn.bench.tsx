@@ -10,6 +10,16 @@
  * cancels out. A gesture that costs O(page) has a slope near zero. One array
  * of the loaded rows costs 8 bytes for each row.
  *
+ * Two parts of the method keep the noise of a slope well below {@link NOISE}:
+ *
+ * - The measure reads only the heap spaces that hold data. V8 compiles a hot
+ *   function again at a faster tier while the process runs, and the code
+ *   spaces hold that code. A compile in one pass is not a cost of the gesture.
+ * - The small size runs before and after the large size, and the slope reads
+ *   the mean of the two. The process allocates less as it warms up, so a
+ *   small pass that only came first read too many bytes. The mean cancels
+ *   that drift.
+ *
  * Each budget is the slope that the gesture has now, as {@link BUDGETS}
  * records it. A slope must stay within {@link NOISE} of its budget. A change
  * that adds churn for each loaded row therefore fails here. A change that
@@ -20,7 +30,7 @@
  * on each pull request. `--expose-gc` in `vitest.bench.config.ts` gives `gc`.
  */
 
-import { GCProfiler, getHeapStatistics } from 'node:v8'
+import { GCProfiler, getHeapSpaceStatistics } from 'node:v8'
 import { act } from '@testing-library/react'
 import { createRoot } from 'react-dom/client'
 import { expect, test } from 'vitest'
@@ -105,9 +115,36 @@ const BUDGETS: Record<Layout, Partial<Record<Gesture, number>>> = {
 type View = { rows: readonly Shipment[]; sort: GridSortState[]; pageIndex: number }
 
 /**
- * The bytes that `run` allocates on the heap. A full collection runs first,
- * so a collection inside `run` frees only what `run` allocated. The bytes that
- * each such collection frees count as allocated.
+ * Whether a heap space holds compiled code: `code_space` and
+ * `code_large_object_space`.
+ */
+const isCodeSpace = (name: string) => name.includes('code')
+
+/** The sum of the used bytes of the spaces that hold data, from `[name, used]` pairs. */
+function sumDataBytes(spaces: readonly (readonly [name: string, used: number])[]): number {
+	return spaces.reduce((sum, [name, used]) => (isCodeSpace(name) ? sum : sum + used), 0)
+}
+
+/** The used bytes of the heap spaces that hold data, at one side of a collection that `GCProfiler` saw. */
+function profiledDataBytes(side: {
+	heapSpaceStatistics: readonly { spaceName: string; spaceUsedSize: number }[]
+}): number {
+	return sumDataBytes(
+		side.heapSpaceStatistics.map((space) => [space.spaceName, space.spaceUsedSize]),
+	)
+}
+
+/** The used bytes of the heap spaces that hold data, now. */
+function dataBytes(): number {
+	return sumDataBytes(
+		getHeapSpaceStatistics().map((space) => [space.space_name, space.space_used_size]),
+	)
+}
+
+/**
+ * The bytes that `run` allocates in the heap spaces that hold data. A full
+ * collection runs first, so a collection inside `run` frees only what `run`
+ * allocated. The bytes that each such collection frees count as allocated.
  */
 function allocatedBytes(run: () => void): number {
 	if (typeof gc !== 'function') throw new Error('The bench worker has no `gc`.')
@@ -118,16 +155,16 @@ function allocatedBytes(run: () => void): number {
 
 	profiler.start()
 
-	const before = getHeapStatistics().used_heap_size
+	const before = dataBytes()
 
 	run()
 
-	const after = getHeapStatistics().used_heap_size
+	const after = dataBytes()
 
 	let freed = 0
 
 	for (const { beforeGC, afterGC } of profiler.stop()?.statistics ?? []) {
-		freed += beforeGC.heapStatistics.usedHeapSize - afterGC.heapStatistics.usedHeapSize
+		freed += profiledDataBytes(beforeGC) - profiledDataBytes(afterGC)
 	}
 
 	return after - before + freed
@@ -245,14 +282,18 @@ for (const layout of ['paged', 'windowed'] as const) {
 		// allocates nothing in the measured passes.
 		measureGestures(layout, SMALL)
 
-		const small = measureGestures(layout, SMALL)
+		const before = measureGestures(layout, SMALL)
 
 		const large = measureGestures(layout, LARGE)
+
+		const after = measureGestures(layout, SMALL)
 
 		const budgets = Object.entries(BUDGETS[layout]) as [Gesture, number][]
 
 		for (const [gesture, budget] of budgets) {
-			const slope = ((large[gesture] ?? 0) - (small[gesture] ?? 0)) / (LARGE - SMALL)
+			const small = ((before[gesture] ?? 0) + (after[gesture] ?? 0)) / 2
+
+			const slope = ((large[gesture] ?? 0) - small) / (LARGE - SMALL)
 
 			expect(
 				Math.abs(slope - budget),
