@@ -279,8 +279,8 @@ function rendersElement(fn: Node): boolean {
 }
 
 /**
- * Each barreled props type whose component writes an element and that takes no
- * `id`, as `<file> → <Name>Props`. A skeleton is out: it mirrors the explicit
+ * Each barreled props type whose component writes an element and that has no
+ * key from the DOM types of React, as `<file> → <Name>Props`. A skeleton is out: it mirrors the explicit
  * props of its real component (CONVENTIONS §3.7).
  */
 function propsWithNoBase(project: Project): string[] {

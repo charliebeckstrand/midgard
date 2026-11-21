@@ -169,6 +169,33 @@ describe('Slider', () => {
 })
 
 describe('RangeSlider', () => {
+	it('names the pair as a group, and describes each thumb', () => {
+		const { container } = renderUI(
+			<>
+				<RangeSlider defaultValue={[20, 80]} aria-label="Price" aria-describedby="hint" />
+				<p id="hint">In dollars</p>
+			</>,
+		)
+
+		const root = container.querySelector('[data-slot="slider-range"]')
+
+		expect(root).toHaveAttribute('role', 'group')
+
+		expect(root).toHaveAccessibleName('Price')
+
+		expect(root).not.toHaveAttribute('aria-describedby')
+
+		for (const thumb of screen.getAllByRole('slider')) {
+			expect(thumb).toHaveAccessibleDescription('In dollars')
+		}
+	})
+
+	it('gives the root no role when nothing names the pair', () => {
+		const { container } = renderUI(<RangeSlider defaultValue={[20, 80]} />)
+
+		expect(container.querySelector('[data-slot="slider-range"]')).not.toHaveAttribute('role')
+	})
+
 	it('puts the native props and the ref on the root, and runs a consumer pointer handler', () => {
 		const ref = { current: null as HTMLDivElement | null }
 

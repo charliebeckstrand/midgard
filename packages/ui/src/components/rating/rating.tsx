@@ -203,8 +203,9 @@ const ungated = { checkForDefaultPrevented: false }
  * or an empty star as one glyph, so only the part star stacks two. The
  * interactive form sets a whole star, or a half star at a `step` of `0.5`.
  *
- * The native props and the `ref` go to the row `<span>` in the two forms. Its
- * pointer, key, and blur handlers run before those of the row.
+ * The native props and the `ref` go to the row `<span>` in the two forms. In
+ * the interactive form, a pointer, key, or blur handler that you give runs
+ * before the handler of the row.
  */
 export function Rating({
 	value,

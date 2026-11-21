@@ -106,9 +106,30 @@ export type RangeSliderProps = {
 	 * press grabbed, so a start and an end always match.
 	 */
 	onDragEnd?: (thumb: ThumbIndex) => void
+	/**
+	 * Names the pair of thumbs. The root then takes `role="group"`, so the name
+	 * is on an element that can take one. Each thumb keeps its own name from
+	 * `labels`.
+	 */
+	'aria-label'?: string
+	/** Names the pair of thumbs from another element, as `aria-label` does. */
+	'aria-labelledby'?: string
+	/**
+	 * Describes each thumb. It goes before the description and the error ids of
+	 * an enclosing Field.
+	 */
+	'aria-describedby'?: string
 } & Omit<
 	ComponentProps<'div'>,
-	'id' | 'defaultValue' | 'color' | 'children' | 'onDragStart' | 'onDragEnd'
+	| 'id'
+	| 'defaultValue'
+	| 'color'
+	| 'children'
+	| 'onDragStart'
+	| 'onDragEnd'
+	| 'aria-label'
+	| 'aria-labelledby'
+	| 'aria-describedby'
 >
 
 /** The compose options of the root pointer handlers: the drag runs whatever the consumer does. */
@@ -142,8 +163,9 @@ const ungated = { checkForDefaultPrevented: false }
  * A click on a label for the slider focuses the start thumb and keeps both values. The Field
  * Label is such a label. A disabled slider takes no focus from the click.
  *
- * The native props and the `ref` go to the root `<div>`. Its pointer handlers run before
- * the drag.
+ * The native props and the `ref` go to the root `<div>`. A pointer handler that you give
+ * runs before the drag. An `aria-label` or an `aria-labelledby` names the pair, and the root
+ * then takes `role="group"`. An `aria-describedby` goes on each thumb.
  *
  * A value out of `[min, max]` shows at the nearest bound, and a pair out of order shows in
  * order. The thumbs and the ARIA values take that range, and a key or a drag moves a value
@@ -175,6 +197,9 @@ export function RangeSlider({
 	onPointerUp,
 	onPointerCancel,
 	onLostPointerCapture,
+	'aria-label': groupLabel,
+	'aria-labelledby': groupLabelledBy,
+	'aria-describedby': ariaDescribedBy,
 	...props
 }: RangeSliderProps) {
 	const intl = useIntl()
@@ -204,9 +229,15 @@ export function RangeSlider({
 	// The memo keeps the identity of the pair for the callbacks that read it.
 	const current = useMemo(() => boundRange(range ?? [min, max], min, max), [range, min, max])
 
-	// The root has no role, so the validation state and the description go on
-	// each `role="slider"` thumb.
-	const controlProps = useControlProps({ id, disabled, readOnly, invalid })
+	// The root has no role of its own, so the validation state and the
+	// description go on each `role="slider"` thumb.
+	const controlProps = useControlProps({
+		id,
+		disabled,
+		readOnly,
+		invalid,
+		'aria-describedby': ariaDescribedBy,
+	})
 
 	const scope = useControlScope(name, controlProps.id)
 
@@ -311,11 +342,18 @@ export function RangeSlider({
 		/>
 	)
 
+	// A name of the pair needs a role that takes a name, so the two go together.
+	const group =
+		groupLabel || groupLabelledBy
+			? { role: 'group', 'aria-label': groupLabel, 'aria-labelledby': groupLabelledBy }
+			: undefined
+
 	return (
 		<div
 			{...props}
 			ref={ref}
 			data-slot="slider-range"
+			{...group}
 			data-density={size}
 			data-disabled={dataAttr(resolvedDisabled)}
 			className={cn(slots.base, className)}
