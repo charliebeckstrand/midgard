@@ -23,7 +23,7 @@ The trail masks each secret field, by one rule (`isSecret` in [`events-target.ts
 - An input with the `autocomplete` token `cc-number`, `cc-exp`, `cc-csc`, or `one-time-code`. These are the three parts of `CreditCardInput` and the code field of a two-step form.
 - An `input` or a `textarea` in an element with the `data-events-mask` attribute, or with the attribute itself.
 
-The value of a secret field shows as `***`, which has a fixed length, and so does each key that types a character into it. A named key, such as `Enter` or `Tab`, stays, so the trail still shows a submit (#3492). The rule does not find a secret by its content. Thus a field that holds a secret, but has no token of the list and no `data-events-mask`, shows its value and its keys in the trail. The app must put the attribute on that field or on its form.
+The value of a secret field shows as `***`, which has a fixed length, and so does each key that types a character into it. A named key, such as `Enter` or `Tab`, stays, so the trail still shows a submit (#3492). The rule does not find a secret by its content. Thus the trail shows the value and the keys of a secret field with no listed token and no `data-events-mask`. The app must put the attribute on that field or on its form.
 
 An app can send a report to its own issue tracker. It gives a port, `sendReport`, to `startEvents`. The port gets the title of the report, the Markdown text that Copy writes, and a copy of the report. Thus a send gives no data that Copy does not give. The view of a report then shows Send after Copy and Delete.
 
