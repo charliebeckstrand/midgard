@@ -70,6 +70,32 @@ describe('Collapse', () => {
 		expect(panel).not.toHaveAttribute('aria-labelledby')
 	})
 
+	it.each(['fade', 'slide', false] as const)(
+		'puts className on the inner body, and the other props on the panel, animate=%s',
+		(animate) => {
+			renderUI(
+				<Collapse defaultOpen animate={animate}>
+					<CollapseTrigger>Toggle</CollapseTrigger>
+					<CollapsePanel className="pt-4" data-testid="panel">
+						<p>Content</p>
+					</CollapsePanel>
+				</Collapse>,
+			)
+
+			const panel = bySlot(document.body, 'collapse-panel')
+
+			const body = bySlot(document.body, 'collapse-body')
+
+			expect(body).toHaveClass('pt-4')
+
+			expect(body?.parentElement).toBe(panel)
+
+			expect(panel).not.toHaveClass('pt-4')
+
+			expect(panel).toHaveAttribute('data-testid', 'panel')
+		},
+	)
+
 	// `data-slot` is admitted on JSX but not on a props object, so widen it.
 	const triggered = (props: CollapseTriggerProps & { 'data-slot'?: string }) => (
 		<Collapse>

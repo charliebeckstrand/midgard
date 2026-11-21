@@ -1,7 +1,6 @@
 'use client'
 
 import type { ComponentProps, ReactNode } from 'react'
-import { cn } from '../../core/cn'
 import { dataAttr } from '../../core/data-attr'
 import { useOpenComplete } from '../../hooks/use-open-complete'
 import { useReportedChange } from '../../hooks/use-reported-change'
@@ -14,7 +13,8 @@ import { useCollapseContext } from './context'
 
 /**
  * Props for {@link CollapsePanel}. The outer `<div>` of the panel takes the
- * rest, except the keys that Motion gives a meaning of its own.
+ * rest, except the keys that Motion gives a meaning of its own. `className`
+ * goes to the inner body.
  */
 export type CollapsePanelProps = Omit<
 	ComponentProps<'div'>,
@@ -37,6 +37,11 @@ export type CollapsePanelProps = Omit<
  * fits its content, the collapse thus keeps one width while the panel opens.
  * The panel text wraps at that width. Content that cannot wrap, such as a wide
  * table, needs a width on the collapse.
+ *
+ * `className` goes to an inner body, as for `AccordionPanel`, and not to the
+ * element whose height moves. A padding there thus stays inside the height
+ * that animates, so the panel closes to zero and opens with no jump. The
+ * other props go to the outer element.
  *
  * @remarks
  * Under the default `mount="active"` the panel unmounts while closed, so
@@ -82,9 +87,18 @@ export function CollapsePanel({ children, className, ...props }: CollapsePanelPr
 			id={id}
 			{...motionProps}
 			data-open={dataAttr(open)}
-			className={cn(k().panel, className)}
+			className={k().panel}
 		>
-			{contentProps ? <m.div {...contentProps}>{children}</m.div> : children}
+			{/* The `slide` content moves inside the clip, so it is the body itself. */}
+			{contentProps ? (
+				<m.div data-slot="collapse-body" {...contentProps} className={className}>
+					{children}
+				</m.div>
+			) : (
+				<div data-slot="collapse-body" className={className}>
+					{children}
+				</div>
+			)}
 		</m.div>
 	)
 
@@ -102,9 +116,11 @@ export function CollapsePanel({ children, className, ...props }: CollapsePanelPr
 					{...props}
 					id={id}
 					data-open={dataAttr(open)}
-					className={cn(k().panel, className)}
+					className={k().panel}
 				>
-					{children}
+					<div data-slot="collapse-body" className={className}>
+						{children}
+					</div>
 				</div>
 			</MountHold>
 		)
