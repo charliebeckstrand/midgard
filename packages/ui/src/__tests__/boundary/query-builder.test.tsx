@@ -8,6 +8,7 @@ import {
 	type QueryField,
 	type QueryGroup,
 } from '../../modules/query'
+import { findBuiltInOperator } from '../../modules/query/engine/query-operators'
 import { QueryBuilderRuleValue } from '../../modules/query/query-builder'
 import { allBySlot, bySlot, fireEvent, present, renderUI, screen, within } from '../helpers'
 
@@ -39,6 +40,9 @@ vi.mock('motion/react', async () => {
 
 	return { ...base, AnimatePresence }
 })
+
+// The built-in range operator, which the rule passes to the value input.
+const BETWEEN = findBuiltInOperator('between')
 
 const fields: QueryField[] = [
 	{ name: 'name', label: 'Name', type: 'text' },
@@ -534,7 +538,14 @@ describe('QueryBuilderRuleValue', () => {
 	it('renders a NumberInput pair for a range and emits an updated bound tuple', () => {
 		const onChange = vi.fn()
 
-		renderUI(<QueryBuilderRuleValue field={AGE} value={[5, '']} range onValueChange={onChange} />)
+		renderUI(
+			<QueryBuilderRuleValue
+				field={AGE}
+				value={[5, '']}
+				operator={BETWEEN}
+				onValueChange={onChange}
+			/>,
+		)
 
 		const min = screen.getByRole('spinbutton', { name: 'Age minimum' }) as HTMLInputElement
 
@@ -552,7 +563,14 @@ describe('QueryBuilderRuleValue', () => {
 	it('clears a range bound back to an empty string', () => {
 		const onChange = vi.fn()
 
-		renderUI(<QueryBuilderRuleValue field={AGE} value={[5, 10]} range onValueChange={onChange} />)
+		renderUI(
+			<QueryBuilderRuleValue
+				field={AGE}
+				value={[5, 10]}
+				operator={BETWEEN}
+				onValueChange={onChange}
+			/>,
+		)
 
 		const min = screen.getByRole('spinbutton', { name: 'Age minimum' }) as HTMLInputElement
 
@@ -563,7 +581,12 @@ describe('QueryBuilderRuleValue', () => {
 
 	it('shows the field span as the range placeholders, and clamps each bound to it', () => {
 		renderUI(
-			<QueryBuilderRuleValue field={AGE_SPAN} value={['', '']} range onValueChange={vi.fn()} />,
+			<QueryBuilderRuleValue
+				field={AGE_SPAN}
+				value={['', '']}
+				operator={BETWEEN}
+				onValueChange={vi.fn()}
+			/>,
 		)
 
 		const min = screen.getByRole('spinbutton', { name: 'Age minimum' })
@@ -595,7 +618,7 @@ describe('QueryBuilderRuleValue', () => {
 				<QueryBuilderRuleValue
 					field={AGE_SPAN}
 					value={value}
-					range
+					operator={BETWEEN}
 					onValueChange={(next) => {
 						onChange(next)
 
@@ -625,7 +648,12 @@ describe('QueryBuilderRuleValue', () => {
 
 	it('keeps each input’s min at or below its max when a saved bound sits past the span', () => {
 		renderUI(
-			<QueryBuilderRuleValue field={AGE_SPAN} value={[80, '']} range onValueChange={vi.fn()} />,
+			<QueryBuilderRuleValue
+				field={AGE_SPAN}
+				value={[80, '']}
+				operator={BETWEEN}
+				onValueChange={vi.fn()}
+			/>,
 		)
 
 		const min = screen.getByRole('spinbutton', { name: 'Age minimum' }) as HTMLInputElement
@@ -641,7 +669,14 @@ describe('QueryBuilderRuleValue', () => {
 	})
 
 	it('keeps the plain placeholders and clamps only bound to bound with no span', () => {
-		renderUI(<QueryBuilderRuleValue field={AGE} value={[5, '']} range onValueChange={vi.fn()} />)
+		renderUI(
+			<QueryBuilderRuleValue
+				field={AGE}
+				value={[5, '']}
+				operator={BETWEEN}
+				onValueChange={vi.fn()}
+			/>,
+		)
 
 		const min = screen.getByRole('spinbutton', { name: 'Age minimum' })
 

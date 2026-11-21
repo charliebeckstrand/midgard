@@ -15,13 +15,20 @@ import type { Orientation } from '../../../types/orientation'
 import { isActivationKey } from '../../../utilities/keyboard-navigation'
 import { mapResponsive } from '../../../utilities/responsive'
 import { describeNode } from '../engine/query-announcements'
-import { createRule } from '../engine/query-node'
+import { blankValue, createRule } from '../engine/query-node'
 import { getOperators, operatorLabel, operatorValueLabel } from '../engine/query-operators'
-import type { QueryRule } from '../engine/types'
+import type { QueryOperator, QueryRule } from '../engine/types'
 import { useFocusableRef, useQueryBuilderActions, useQueryBuilderState } from './context'
 import { focusKeys } from './query-builder-focus'
 import { queryBuilderMessages } from './query-builder-messages'
 import { QueryBuilderRuleValue } from './query-builder-rule-value'
+
+/** The shape of the value that an operator reads: a range, a set, or a single value. @internal */
+function valueShape(operator: QueryOperator | undefined): 'range' | 'set' | 'single' {
+	if (operator?.range) return 'range'
+
+	return operator?.set ? 'set' : 'single'
+}
 
 /** The flex direction of the parts of a rule in each orientation. @internal */
 function toDirection(orientation: Orientation) {
@@ -89,14 +96,14 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 		(operator: string | null) => {
 			if (!operator) return
 
-			// Switching between a scalar and a range operator changes the value's
-			// shape, so reset to the matching empty value; staying on the same arity
-			// keeps the current value.
-			const nextRange = operators.find((option) => option.value === operator)?.range ?? false
+			// A switch between a single value, a range, and a set changes the shape
+			// of the value, so reset to the blank value of the new shape. A switch
+			// to an operator of the same shape keeps the current value.
+			const next = operators.find((option) => option.value === operator)
 
 			const patch =
-				nextRange !== (selectedOperator?.range ?? false)
-					? { operator, value: nextRange ? ['', ''] : '' }
+				valueShape(next) !== valueShape(selectedOperator)
+					? { operator, value: blankValue(next) }
 					: { operator }
 
 			updateRule(rule.id, patch)
@@ -193,9 +200,9 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 					<div className={selectedOperator?.range ? slots.parts.range : slots.parts.item}>
 						<QueryBuilderRuleValue
 							field={field}
+							operator={selectedOperator}
 							value={rule.value}
 							onValueChange={onValueChange}
-							range={selectedOperator?.range}
 							disabled={disabled}
 							className="w-full"
 						/>
