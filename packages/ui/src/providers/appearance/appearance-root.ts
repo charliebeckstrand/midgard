@@ -3,16 +3,9 @@ import { ROOT_REDUCED_MOTION_CLASS } from '../../core/motion/root'
 import { ROOT_OFFCANVAS_SIDEBAR_CLASS } from '../../core/sidebar/root'
 import { ROOT_GLASS_SURFACES_CLASS } from '../../core/surfaces/root'
 import { readCookie } from '../../utilities/cookie'
+import { parseChoice, type StoredChoice } from '../../utilities/stored-choice'
 import { levelToStep } from '../density/context'
-import {
-	type AppearanceChoice,
-	DENSITY,
-	MOTION,
-	parseChoice,
-	SIDEBAR,
-	SURFACES,
-	THEME,
-} from './appearance-storage'
+import { DENSITY, MOTION, SIDEBAR, SURFACES, THEME } from './appearance-storage'
 
 /**
  * The classes of the root element for the stored choices in `cookies`, the
@@ -30,7 +23,7 @@ import {
  * @internal
  */
 export function appearanceRootClasses(cookies: string): string[] {
-	const read = <T extends string>(choice: AppearanceChoice<T>) =>
+	const read = <T extends string>(choice: StoredChoice<T>) =>
 		parseChoice(choice, readCookie(choice.key, cookies))
 
 	const classes: string[] = []

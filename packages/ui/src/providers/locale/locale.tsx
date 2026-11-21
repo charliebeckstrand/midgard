@@ -5,7 +5,7 @@ import { Direction } from '../../primitives/direction'
 import type { TextDirection } from '../../primitives/direction/context'
 import { IntlProvider } from '../../primitives/intl/intl-provider'
 import type { IntlCatalogs } from '../../primitives/intl/types'
-import { writeChoice } from '../appearance/appearance-storage'
+import { writeChoice } from '../../utilities/stored-choice'
 import {
 	LocaleChoiceContext,
 	type LocaleChoiceValue,

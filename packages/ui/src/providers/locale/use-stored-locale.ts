@@ -2,7 +2,7 @@
 
 import { useEffect, useSyncExternalStore } from 'react'
 import { noopSubscribe } from '../../utilities/noop'
-import { readChoice, restoreChoiceCookie, subscribeChoices } from '../appearance/appearance-storage'
+import { readChoice, restoreChoiceCookie, subscribeChoices } from '../../utilities/stored-choice'
 import { localeChoice, resolveLocaleChoice, SYSTEM_LOCALE, subscribeLocale } from './locale-choice'
 
 /**
