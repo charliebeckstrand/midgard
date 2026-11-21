@@ -161,7 +161,7 @@ describe('MapGeofence', () => {
 				aria-label="Test map"
 				geography={FIXTURE_GEOJSON}
 				width={400}
-				selectedOverlay={{ id: 'zone-a' }}
+				selectedOverlays={[{ id: 'zone-a' }]}
 			>
 				<MapGeofence id="zone-a" label="Zone A" boundary={ZONE} />
 			</MapPlat>,

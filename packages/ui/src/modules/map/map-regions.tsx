@@ -135,13 +135,13 @@ export type MapRegionsProps = Omit<MapRegionLayer, 'paints'> & {
 	 */
 	onRegionContextMenu?: (index: number) => void
 	/**
-	 * The selected region's feature index, `null` when nothing is picked:
-	 * {@link MapPlat} resolves it from the public identity. It only rings the
-	 * region. The layer's clickability rides {@link onRegionClick} alone, so a
-	 * map showing a pick made elsewhere takes no pointer affordance it can't
-	 * honor.
+	 * The feature indices of the selected regions, empty when nothing is picked:
+	 * {@link MapPlat} resolves them from the public identities. They only ring the
+	 * regions. The clickability of the layer rides {@link onRegionClick} alone, so
+	 * a map that shows a pick made elsewhere takes no pointer affordance that it
+	 * cannot honor.
 	 */
-	selected: number | null
+	selected: readonly number[]
 }
 
 /**
@@ -323,11 +323,12 @@ const MapRegionsBase = memo(function MapRegionsBase({
  * back up. One element fades in place of thousands of per-path transitions, and
  * the base tree holds its render through the whole interaction.
  *
- * The selected region rings above both and outside the recede, so the standing
- * pick outlasts every passing emphasis. A selection made before the pointer
- * arrived must not vanish under it. That ring marks the
- * region rather than repainting it: `fill="none"` leaves the region's own
- * color, and whatever dim it carries, reading through.
+ * The selected regions ring above both and outside the recede, so the standing
+ * picks outlast every passing emphasis. A selection made before the pointer
+ * arrived must not vanish under it. The ring marks each region rather than
+ * repainting it: `fill="none"` leaves the color of the region, and whatever dim
+ * it carries, reading through. All the rings are one path, so a large selection
+ * adds one element, not one element for each region.
  *
  * @remarks Under `animate` the geography paints solid at once, and only the
  * category color washes in. Every region's fill crossfades from the neutral
@@ -404,9 +405,14 @@ export const MapRegions = memo(function MapRegions({
 
 	const litEmphasis = useChartSpot(emphasis, receded)
 
-	// A selection naming no drawn region rings nothing: the id can match no
-	// feature, and a region the geometry dropped has a `null` path.
-	const selectedPath = selected === null ? null : (paths[selected] ?? null)
+	// One path for every ring: the ring takes no fill, so the outlines of two
+	// neighbors stroke their shared border twice in one ink, which does not show.
+	// A region that the geometry dropped has a `null` path, and rings nothing.
+	const selectedPath = useMemo(() => {
+		const drawn = selected.flatMap((index) => paths[index] ?? [])
+
+		return drawn.length === 0 ? null : drawn.join('')
+	}, [selected, paths])
 
 	return (
 		<MapRegionsGroup

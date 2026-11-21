@@ -240,16 +240,18 @@ export function PlacesMap({
 	// click, drawer, and filter change, to produce what it already had.
 	const stops = useMemo(() => recordStops(records), [records])
 
-	// The picked point, as the pair the map haloes by: the mark, and the point
-	// of the first record of the selection that the map shows. A summary haloes
-	// wherever the pick merged into.
-	const selectedOverlay = useMemo<MapOverlaySelection | null>(() => {
-		const index = selectedIds(selected)
-			.map((id) => drawnAt.get(id))
-			.find((at) => at !== undefined)
+	// The picked points, as the pairs the map haloes by: the mark, and the point
+	// of each record of the selection that the map shows. A summary haloes
+	// wherever a pick merged into.
+	const selectedOverlays = useMemo<readonly MapOverlaySelection[]>(
+		() =>
+			selectedIds(selected).flatMap((id) => {
+				const index = drawnAt.get(id)
 
-		return index === undefined ? null : { id: RECORDS_MARK, index }
-	}, [selected, drawnAt])
+				return index === undefined ? [] : [{ id: RECORDS_MARK, index }]
+			}),
+		[selected, drawnAt],
+	)
 
 	return (
 		// The fit takes every edge of the box it is handed, so without an inset
@@ -320,7 +322,7 @@ export function PlacesMap({
 				// is stated here alone: the prop withdraws the readout, the pick, and
 				// the pointer cursor together.
 				regionPointer={cut === null}
-				selectedOverlay={selectedOverlay}
+				selectedOverlays={selectedOverlays}
 				// Every region opens, whether or not it holds places: an empty one is a
 				// place to look, and a reader who has just added somewhere new must not
 				// have to find out from a dead click that the map disagreed. The paint

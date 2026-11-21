@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
-import { MapPlat, MapPoint, MapPoints } from '../../modules/map'
+import { type MapOverlaySelection, MapPlat, MapPoint, MapPoints } from '../../modules/map'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 
 /**
@@ -26,9 +26,9 @@ function count(markup: string, pattern: string): number {
 }
 
 /** The server markup of a plat with no width, over the fixture geography. */
-function markup(points: React.ReactNode): string {
+function markup(points: React.ReactNode, picks?: readonly MapOverlaySelection[]): string {
 	return renderToString(
-		<MapPlat aria-label="Test map" geography={FIXTURE_GEOJSON}>
+		<MapPlat aria-label="Test map" geography={FIXTURE_GEOJSON} selectedOverlays={picks}>
 			{points}
 		</MapPlat>,
 	)
@@ -89,5 +89,29 @@ describe('MapPoints server markup', () => {
 		expect(count(html, 'data-slot="map-points-dot"')).toBe(3)
 
 		expect(html).not.toContain('@container map-plot')
+	})
+
+	it('haloes each group of every width that holds a pick', () => {
+		const dots = <MapPoints id="stops" label="Stops" color="blue" points={POINTS} />
+
+		// The second point draws alone in a wide frame and in the summary of a
+		// narrow one, and the far point draws alone at every width.
+		const html = markup(dots, [
+			{ id: 'stops', index: 1 },
+			{ id: 'stops', index: 2 },
+		])
+
+		expect(count(html, 'data-slot="map-points-selected"')).toBe(3)
+
+		// A pick with no index names the first point.
+		expect(count(markup(dots, [{ id: 'stops' }]), 'data-slot="map-points-selected"')).toBe(2)
+	})
+
+	it('haloes nothing for a pick of another mark', () => {
+		const html = markup(<MapPoints id="stops" label="Stops" color="blue" points={POINTS} />, [
+			{ id: 'depots', index: 0 },
+		])
+
+		expect(html).not.toContain('data-slot="map-points-selected"')
 	})
 })

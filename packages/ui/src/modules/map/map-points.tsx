@@ -45,7 +45,7 @@ import { type MapHoverTarget, mapMarkDimmed } from './engine/map-hover/target'
 import { POINT_REVEAL_SETTLE, pointPop } from './engine/map-motion'
 import type { MapEntryDot, MapStopRow } from './engine/map-overlay/entry'
 import { stopName } from './engine/map-overlay/readout'
-import { pickedStop } from './engine/map-overlay/selection'
+import { pickedStops } from './engine/map-overlay/selection'
 import { pixelScale } from './engine/map-projection/frame'
 import type {
 	LngLat,
@@ -369,8 +369,8 @@ type MapPointsPrepaintProps = {
 	shape: MapPointShape
 	/** The color of the mark: its own, because the ledger has not given one yet. */
 	slot: MapSeriesColor
-	/** The point that the standing pick names, or `null`. */
-	picked: number | null
+	/** The points of this set that the standing picks name. */
+	picked: ReadonlySet<number>
 }
 
 /**
@@ -430,9 +430,9 @@ function MapPointsPrepaint({
 			<style suppressHydrationWarning>{rules}</style>
 
 			{/* The halos first, so each draws under every dot, as the measured frame draws it. */}
-			{picked !== null &&
+			{picked.size > 0 &&
 				groups.map(({ node }, index) =>
-					node.at !== null && node.members.includes(picked) ? (
+					node.at !== null && node.members.some((member) => picked.has(member)) ? (
 						<g key={band(index)} {...bandProps(band(index), node.at)}>
 							<MapDotHalo
 								slot="map-points-selected"
@@ -711,29 +711,64 @@ function stopIndex(groups: readonly MapSetCluster[], index: number): number | nu
 }
 
 /**
- * Gives the group of set `id` that the standing pick haloes, or `null`: the dot
- * that holds the pick. A pick of any part of a shared summary haloes the summary
- * from the set that draws it. A halo draws behind its mark, and a set that draws
- * after the summary would cover it.
+ * Gives the group of set `id` that haloes a picked stop of set `set`, or
+ * `null`. A stop outside a shared summary haloes in its own set. A shared
+ * summary haloes from the set that draws it. A halo draws behind its mark, and
+ * a set that draws after the summary would cover it.
  *
  * @internal
  */
-function haloGroup(
-	grouping: MapPointGrouping,
+function findHaloGroup(
+	groups: readonly MapSetCluster[],
+	stop: number,
+	set: string,
 	id: string,
-	selection: MapOverlaySelection | null,
 ): number | null {
-	if (selection === null) return null
+	const shared = groups[stop]?.shared
 
-	const groups = grouping.sets.get(selection.id)?.groups ?? NO_GROUPS
-
-	const stop = pickedStop(selection, selection.id, (index) => stopIndex(groups, index))
-
-	const shared = stop === null ? undefined : groups[stop]?.shared
-
-	if (shared === undefined) return selection.id === id ? stop : null
+	if (shared === undefined) return set === id ? stop : null
 
 	return leads(shared, id) ? (shared.parts[0]?.stop ?? null) : null
+}
+
+/**
+ * Gives the groups of set `id` that the standing picks halo, in ascending order
+ * and each one time: the dots that hold the picks. A pick of any part of a
+ * shared summary haloes the summary from the set that draws it ({@link findHaloGroup}).
+ * Picks that land in one dot halo it one time.
+ *
+ * @internal
+ */
+function haloGroups(
+	grouping: MapPointGrouping,
+	id: string,
+	selections: readonly MapOverlaySelection[],
+): readonly number[] {
+	const haloed = new Set<number>()
+
+	// Each set that a pick names, because a pick of another set can name a shared
+	// summary that this set draws.
+	for (const set of new Set(selections.map((selection) => selection.id))) {
+		const groups = grouping.sets.get(set)?.groups ?? NO_GROUPS
+
+		for (const stop of pickedStops(selections, set, (index) => stopIndex(groups, index))) {
+			const group = findHaloGroup(groups, stop, set, id)
+
+			if (group !== null) haloed.add(group)
+		}
+	}
+
+	return [...haloed].sort((a, b) => a - b)
+}
+
+/**
+ * Gives the points of set `id` that the standing picks name, before the
+ * grouping exists. A pick with no index names the first point.
+ *
+ * @internal
+ */
+function pickedPoints(selections: readonly MapOverlaySelection[], id: string): ReadonlySet<number> {
+	return new Set(selections.flatMap((pick) => (pick.id === id ? [pick.index ?? 0] : [])))
 }
 
 /** Props for {@link MapPoints}. */
@@ -833,9 +868,9 @@ export type MapPointsProps = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> 
  * tooltip with that dot's name and detail. The detail never falls back to the
  * group's (see {@link MapPointDatum.detail}). The keyboard cursor walks the dots
  * one at a time, and `onClick` reports which was picked. An invisible hit
- * circle per dot keeps each aimable. The plat's `selectedOverlay` haloes the
- * dot holding the picked point: the summary it merged into where the frame
- * draws one.
+ * circle per dot keeps each aimable. The plat's `selectedOverlays` halo each
+ * dot that holds a picked point: the summary that it merged into where the
+ * frame draws one. Picks inside one summary halo it one time.
  *
  * Those circles are finger-sized targets. For a mouse a dot narrows to what the
  * ground around it can spare:
@@ -881,7 +916,7 @@ export function MapPoints({
 	// and the readouts this mark registers are the summarized ones, and a summary
 	// is a fact about the projected frame, so the grouping has to resolve before
 	// the mark registers, not after.
-	const { project, clusters, selectedOverlay, unmeasured } = useMapPlat()
+	const { project, clusters, selectedOverlays, unmeasured } = useMapPlat()
 
 	const intl = useIntl()
 
@@ -1131,12 +1166,10 @@ export function MapPoints({
 		onContextMenu: report(onContextMenu),
 	})
 
-	// The picked dot itself, off that same grouping: a pick that merged into a
-	// summary haloes the summary, and separates onto its own dot as the frame
+	// The picked dots themselves, off that same grouping: a pick that merged into
+	// a summary haloes the summary, and separates onto its own dot as the frame
 	// widens around it.
-	const haloed = haloGroup(grouping, id, selectedOverlay)
-
-	const picked = haloed === null ? null : groups[haloed]
+	const haloed = haloGroups(grouping, id, selectedOverlays)
 
 	// How far each dot's target reaches: the whole of it where the dot stands
 	// clear, and less where something else wants the same ground.
@@ -1208,7 +1241,7 @@ export function MapPoints({
 				points={points}
 				radius={clusters.getRadius}
 				shape={shape}
-				picked={selectedOverlay?.id === id ? (selectedOverlay.index ?? 0) : null}
+				picked={pickedPoints(selectedOverlays, id)}
 			/>
 		)
 	}
@@ -1219,15 +1252,20 @@ export function MapPoints({
 
 	return (
 		<>
-			{picked?.at != null && (
-				<MapDotHalo
-					slot="map-points-selected"
-					at={picked.at}
-					radius={(haloed === null ? undefined : radii[haloed]) ?? POINT_RADIUS}
-					shape={haloed === null ? shape : (shapes[haloed] ?? shape)}
-					scale={unitsPerPixel}
-				/>
-			)}
+			{haloed.map((group) => {
+				const at = groups[group]?.at
+
+				return at == null ? null : (
+					<MapDotHalo
+						key={group}
+						slot="map-points-selected"
+						at={at}
+						radius={radii[group] ?? POINT_RADIUS}
+						shape={shapes[group] ?? shape}
+						scale={unitsPerPixel}
+					/>
+				)
+			})}
 
 			<MapPointsReveal animate={animate} drawn={groups.length > 0}>
 				{(pops) => (

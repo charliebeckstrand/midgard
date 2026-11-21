@@ -56,7 +56,7 @@ This shape was proposed for the branches and refuted:
 
 In priority order. Each entry names the gap, the shape of the fix, and where it lands.
 
-- **One selection across the chat and the dashboard: the map.** A citation selects in a chart (see Status). A map takes one `selectedRegion` and one `selectedOverlay`, so a citation cannot mark twelve stops on it yet. Fix the map first, then add a `toRegionSelection` adapter beside `toCategorySelection`. The reverse direction, a selection in the dashboard that marks a phrase, waits for a second consumer to ask for it.
+- **One selection across the chat and the dashboard: the map.** A citation selects in a chart (see Status). The map now takes `selectedRegions` and `selectedOverlays`, each a list, so the map half is an adapter and nothing more. `selectedRegions` is a list of ids, in the shape of `selectedCategories`, so a `toRegionSelection` beside `toCategorySelection` reads `{ regions: string[] }`. A stop is a `{ id, index }` pair, and the index counts the points that the app passes to `MapPoints`. The agent cannot know that index, so the stop adapter takes the map from a row of the app to its index. The reverse direction, a selection in the dashboard that marks a phrase, waits for a second consumer to ask for it.
 
 - **Composer commands and mentions.** A dashboard agent needs a scope, and prose is the worst way to give one. The shape is a token model in `engine/chat-command/`: a trigger character, a token span, and a resolved value. The picker sits over `CommandPalette`, which already holds the keyboard model. `ChatPrompt` has an `actions` slot but no model behind it. `@dataset` scopes a question, and `/command` runs one.
 

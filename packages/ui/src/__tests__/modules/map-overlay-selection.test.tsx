@@ -20,8 +20,9 @@ const BUNCHED = [
 	{ at: YARD, label: 'Yard' },
 ]
 
-function plat(children: React.ReactNode, selectedOverlay?: MapOverlaySelection | null) {
-	return overlayPlat(children, { selectedOverlay })
+/** The plat with `children` drawn over it, holding one pick, or none. */
+function plat(children: React.ReactNode, pick?: MapOverlaySelection | null) {
+	return overlayPlat(children, { selectedOverlays: pick ? [pick] : [] })
 }
 
 describe('MapPlat selected overlay', () => {
@@ -117,7 +118,7 @@ describe('MapPlat selected overlay', () => {
 		expect(bySlot(container, 'map-point-selected')).toBeNull()
 
 		// A singular mark holds one stop, its own: an index past it names nothing,
-		// the silence a `selectedRegion` naming no region keeps.
+		// the silence a `selectedRegions` entry naming no region keeps.
 		rerender(plat(<MapPoint id="depot" label="Depot" at={DEPOT} />, { id: 'depot', index: 2 }))
 
 		expect(bySlot(container, 'map-point-selected')).toBeNull()
@@ -127,7 +128,7 @@ describe('MapPlat selected overlay', () => {
 		expect(bySlot(container, 'map-point-selected')).toBeInTheDocument()
 	})
 
-	it('reads the picked mark as current in the visually-hidden table', () => {
+	it('reads the picked mark as selected in the visually-hidden table', () => {
 		const { container, rerender } = renderUI(
 			plat(
 				<>
@@ -141,10 +142,7 @@ describe('MapPlat selected overlay', () => {
 
 		// Value parity for the pick: assistive tech reads it off the table, never
 		// off the halo alone, and exactly one row carries it.
-		expect(tableRows(container)).toEqual([
-			['Depot', null],
-			['Leg', 'true'],
-		])
+		expect(tableRows(container)).toEqual(['Depot', 'Leg, selected'])
 
 		rerender(
 			plat(
@@ -157,10 +155,7 @@ describe('MapPlat selected overlay', () => {
 			),
 		)
 
-		expect(tableRows(container)).toEqual([
-			['Depot', null],
-			['Leg', null],
-		])
+		expect(tableRows(container)).toEqual(['Depot', 'Leg'])
 	})
 })
 
@@ -219,12 +214,80 @@ describe('MapPoints selected dot', () => {
 			plat(<MapPoints id="fleet" label="Stops" points={BUNCHED} />, { id: 'fleet', index: 1 }),
 		)
 
-		// One row per drawn dot, and the current one is the summary the pick fell
+		// One row per drawn dot, and the selected one is the summary the pick fell
 		// into: the row the halo sits on, resolved through the one mapper both
 		// surfaces read.
-		expect(tableRows(container)).toEqual([
-			['Stops', 'true'],
-			['Yard', null],
+		expect(tableRows(container)).toEqual(['Stops, selected', 'Yard'])
+	})
+})
+
+describe('MapPlat selected overlays', () => {
+	it('haloes each picked mark, and reads each one as selected', () => {
+		const { container } = renderUI(
+			overlayPlat(
+				<>
+					<MapPoint id="depot" label="Depot" at={DEPOT} />
+
+					<MapRoute id="leg" label="Leg" stops={[DEPOT, YARD]} />
+				</>,
+				{ selectedOverlays: [{ id: 'leg' }, { id: 'depot' }] },
+			),
+		)
+
+		expect(bySlot(container, 'map-point-selected')).toBeInTheDocument()
+
+		expect(bySlot(container, 'map-route-selected')).toBeInTheDocument()
+
+		expect(tableRows(container)).toEqual(['Depot, selected', 'Leg, selected'])
+	})
+
+	it('haloes each dot of a set that holds a pick, and a summary one time', () => {
+		const { container } = renderUI(
+			overlayPlat(<MapPoints id="fleet" label="Stops" points={BUNCHED} />, {
+				// Depot and Annex merge into one summary, and Yard stands alone.
+				selectedOverlays: [
+					{ id: 'fleet', index: 0 },
+					{ id: 'fleet', index: 1 },
+					{ id: 'fleet', index: 2 },
+				],
+			}),
+		)
+
+		const halos = allBySlot(container, 'map-points-selected').map((halo) => halo.getAttribute('d'))
+
+		expect(halos).toEqual([
+			bySlot(container, 'map-points-cluster')?.getAttribute('d'),
+			bySlot(container, 'map-points-dot')?.getAttribute('d'),
 		])
+
+		expect(tableRows(container)).toEqual(['Stops, selected', 'Yard, selected'])
+	})
+
+	it('haloes the dots of the picked set alone, where two sets draw apart', () => {
+		const { container } = renderUI(
+			overlayPlat(
+				<>
+					<MapPoints id="fleet" label="Stops" points={[{ at: DEPOT, label: 'Depot' }]} />
+
+					<MapPoints id="yards" label="Yards" points={[{ at: YARD, label: 'Yard' }]} />
+				</>,
+				{ selectedOverlays: [{ id: 'yards', index: 0 }] },
+			),
+		)
+
+		const halos = allBySlot(container, 'map-points-selected').map((halo) => halo.getAttribute('d'))
+
+		const dots = allBySlot(container, 'map-points-dot').map((dot) => dot.getAttribute('d'))
+
+		// The sets draw in the order of the children, so the Yard dot draws second.
+		// The halo traces it, so a pick that reached the Depot dot fails here, not
+		// only in a count.
+		expect(dots).toHaveLength(2)
+
+		expect(dots[0]).not.toBe(dots[1])
+
+		expect(halos).toEqual([dots[1]])
+
+		expect(tableRows(container)).toEqual(['Depot', 'Yard, selected'])
 	})
 })

@@ -131,7 +131,7 @@ describe('ChoroplethChart', () => {
 	})
 
 	it('rings the selected region, the pick that a click reports', () => {
-		const { container } = renderUI(chart({ selectedRegion: 'B' }))
+		const { container } = renderUI(chart({ selectedRegions: ['B'] }))
 
 		const [, beta] = allRegions(container)
 

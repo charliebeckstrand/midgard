@@ -92,7 +92,7 @@ export default function DrillIntoCounties() {
 					categoryKey="state"
 					colorName="State"
 					onRegionClick={(id) => setCounty((prev) => (prev === id ? null : id))}
-					selectedRegion={county}
+					selectedRegions={county === null ? [] : [county]}
 				/>
 			) : (
 				<MapPlat
