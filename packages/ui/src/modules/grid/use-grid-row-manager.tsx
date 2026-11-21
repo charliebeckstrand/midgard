@@ -179,7 +179,7 @@ type GridRowManagerRegionOptions<T> = {
 	toggleGroup: (id: string) => void
 	/** Whether the header context menu is live: the manager's only entry point. */
 	contextMenuActive: boolean
-	/** Commits an engine expansion change (backs Expand all / Collapse all). */
+	/** Commits a client expansion change (backs Expand all / Collapse all). */
 	setGroupExpanded: (next: GroupExpansion) => void
 }
 

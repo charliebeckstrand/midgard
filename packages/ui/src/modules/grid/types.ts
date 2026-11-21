@@ -209,7 +209,7 @@ export type GridColumn<T> = {
 	 */
 	cellTooltip?: (row: T) => ReactNode
 	/**
-	 * Raw value for engine operations: sort, filter, aggregation, and export. It is
+	 * Raw value for the sort, the filter, the aggregation, and the export. It is
 	 * distinct from {@link GridColumn.cell}, which renders. A column needs `value`
 	 * to be searchable.
 	 */
@@ -366,8 +366,8 @@ export type GridPaginationState = {
 }
 
 /**
- * Controlled/uncontrolled pagination binding for {@link GridProps.pagination},
- * backed by the grid's TanStack Table engine.
+ * Controlled/uncontrolled pagination binding for {@link GridProps.pagination}.
+ * The grid holds the page state itself.
  *
  * @remarks Two modes, selected by {@link GridPagination.manual}. In server
  * mode (the default once `rowCount` or `pageCount` is given) the grid never
@@ -448,13 +448,12 @@ export type GridColumnSizing = {
 }
 
 /**
- * Controlled/uncontrolled quick-search binding for {@link GridProps.search},
- * backed by the grid's TanStack Table engine.
+ * Controlled/uncontrolled quick-search binding for {@link GridProps.search}.
  *
  * @remarks Searches the columns that declare a {@link GridColumn.value}
- * accessor. Client-side by default: the engine filters `rows`; set `manual` for
- * server-side, where the consumer refetches from the emitted query and feeds
- * back `rows`.
+ * accessor. Client-side by default: the client view of the grid filters
+ * `rows`. Set `manual` for server-side, where the consumer refetches from the
+ * emitted query and feeds back `rows`.
  */
 export type GridSearch = {
 	value?: string
@@ -464,8 +463,8 @@ export type GridSearch = {
 	 * Server-side (manual) filtering: the consumer refetches from the emitted
 	 * query and feeds back `rows`; the grid doesn't filter locally.
 	 *
-	 * @remarks Filtering mode is table-wide: the search and the column filters
-	 * ({@link GridColumnFilters.manual}) share one engine model, so set both the
+	 * @remarks Filtering mode is table-wide: one client pass applies the search
+	 * and the column filters ({@link GridColumnFilters.manual}), so set both the
 	 * same. If they disagree the grid runs manual for both (a dev warning fires)
 	 * and the client-side surface won't filter.
 	 * @defaultValue false
@@ -528,8 +527,8 @@ export type GridColumnFilters = {
 	 * Server-side (manual) filtering: the consumer refetches from the emitted
 	 * filters and feeds back `rows`; the grid doesn't filter locally.
 	 *
-	 * @remarks Filtering mode is table-wide: the column filters and the search
-	 * ({@link GridSearch.manual}) share one engine model, so set both the same. If
+	 * @remarks Filtering mode is table-wide: one client pass applies the column
+	 * filters and the search ({@link GridSearch.manual}), so set both the same. If
 	 * they disagree the grid runs manual for both (a dev warning fires) and the
 	 * client-side surface won't filter. With no filterable column, this flag has
 	 * no effect, and the search keeps its own mode.
