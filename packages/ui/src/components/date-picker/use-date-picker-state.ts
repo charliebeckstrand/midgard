@@ -16,19 +16,6 @@ import { useDatePickerGridEntry } from './use-date-picker-grid-entry'
 import { type FooterButton, useDatePickerKeyboard } from './use-date-picker-keyboard'
 
 /**
- * Single-date state for {@link DatePicker}: Form/Control binding, popover
- * open/active wiring, the virtual-highlight keyboard handler, and the
- * clear/today footer.
- *
- * @returns Trigger props (`triggerId`, `dialogId`, `displayValue`, `disabled`,
- * `readOnly`, `invalid`, …) and popover plumbing (`open`, `onOpenChange`,
- * `setReference`, `setFloating`, `floatingStyles`, floating-ui prop getters,
- * `context`). It also returns the keyboard handler `onTriggerKeyDown`, the
- * `calendar`/`footer` prop bundles for the open dialog, and `setTouched`, which
- * marks the bound field touched.
- * @internal
- */
-/**
  * The trigger label of a single date: empty with no date, and else the date in
  * the pinned `format`, or in the locale of the reader once hydrated. Before
  * hydration it writes the stand form, which the server render matches.
@@ -50,6 +37,19 @@ function dateLabel(
 		: standDate(value, ambient.dateFormat)
 }
 
+/**
+ * Single-date state for {@link DatePicker}: Form/Control binding, popover
+ * open/active wiring, the virtual-highlight keyboard handler, and the
+ * clear/today footer.
+ *
+ * @returns Trigger props (`triggerId`, `dialogId`, `displayValue`, `disabled`,
+ * `readOnly`, `invalid`, …) and popover plumbing (`open`, `onOpenChange`,
+ * `setReference`, `setFloating`, `floatingStyles`, floating-ui prop getters,
+ * `context`). It also returns the keyboard handler `onTriggerKeyDown`, the
+ * `calendar`/`footer` prop bundles for the open dialog, and `setTouched`, which
+ * marks the bound field touched.
+ * @internal
+ */
 export function useDatePickerState({
 	name,
 	value: valueProp,

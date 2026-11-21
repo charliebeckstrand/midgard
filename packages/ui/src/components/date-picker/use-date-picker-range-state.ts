@@ -16,6 +16,25 @@ import { useDatePickerGridEntry } from './use-date-picker-grid-entry'
 import { type FooterButton, useDatePickerKeyboard } from './use-date-picker-keyboard'
 
 /**
+ * The trigger label of a range: empty with no range, and else the range in the
+ * locale of the reader once hydrated. Before hydration it writes the stand
+ * form, which the server render matches.
+ *
+ * @internal
+ */
+function rangeLabel(
+	value: readonly [Date, Date] | null | undefined,
+	hydrated: boolean,
+	ambient: ReturnType<typeof useLocale>,
+): string {
+	if (!value) return ''
+
+	return hydrated
+		? formatRange(value[0], value[1], ambient.locale, ambient.dateFormat)
+		: standRange(value[0], value[1], ambient.dateFormat)
+}
+
+/**
  * Range state for {@link DatePicker}: a two-tap start/end selection held in a
  * reducer, committed as `[Date, Date]` through the Form/Control binding. It also
  * holds popover wiring, the virtual-highlight keyboard handler, and the clear
@@ -35,25 +54,6 @@ import { type FooterButton, useDatePickerKeyboard } from './use-date-picker-keyb
  * `rangeStart`/`rangeEnd`/`hoverDate` for the in-progress selection.
  * @internal
  */
-/**
- * The trigger label of a range: empty with no range, and else the range in the
- * locale of the reader once hydrated. Before hydration it writes the stand
- * form, which the server render matches.
- *
- * @internal
- */
-function rangeLabel(
-	value: readonly [Date, Date] | null | undefined,
-	hydrated: boolean,
-	ambient: ReturnType<typeof useLocale>,
-): string {
-	if (!value) return ''
-
-	return hydrated
-		? formatRange(value[0], value[1], ambient.locale, ambient.dateFormat)
-		: standRange(value[0], value[1], ambient.dateFormat)
-}
-
 export function useDatePickerRangeState({
 	name,
 	value: valueProp,
