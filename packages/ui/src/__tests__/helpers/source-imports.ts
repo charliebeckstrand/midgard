@@ -15,6 +15,10 @@ export type ImportRef = { specifier: string; runtime: boolean }
 const IMPORT =
 	/^(?:import\s+([\s\S]*?)|export\s+((?:type\s+)?(?:\{[^}]*\}|\*(?:\s+as\s+\w+)?)))\sfrom\s*['"]([^'"]+)['"]/gm
 
+// A bare import has no clause. It loads its module for the side effects, so a
+// bundler keeps it.
+const BARE_IMPORT = /^import\s*['"]([^'"]+)['"]/gm
+
 /**
  * Whether an import clause gives a runtime dependency. The compiler erases
  * `import type { … }`, and a clause in which each named binding has its own
@@ -45,12 +49,22 @@ function isRuntimeClause(clause: string): boolean {
 		.some((part) => !part.startsWith('type '))
 }
 
-/** Each `import … from` and `export … from` statement of `content`, in order. */
+/**
+ * Each `import … from` and `export … from` statement of `content`, then each
+ * bare `import 'x'`. A bare import is always a runtime dependency.
+ */
 export function parseImports(content: string): ImportRef[] {
-	return [...content.matchAll(IMPORT)].map((match) => ({
+	const clauses = [...content.matchAll(IMPORT)].map((match) => ({
 		specifier: match[3] as string,
 		runtime: isRuntimeClause((match[1] ?? match[2]) as string),
 	}))
+
+	const bare = [...content.matchAll(BARE_IMPORT)].map((match) => ({
+		specifier: match[1] as string,
+		runtime: true,
+	}))
+
+	return [...clauses, ...bare]
 }
 
 /** The source file that a relative specifier names, or `undefined`. */

@@ -39,7 +39,7 @@ No app gives a `sendReport` port yet. Picks and Places render `EventsButton` and
 
 The store, the sources, the sink, the report, and the recorder are in [`engine/`](engine). The engine has no `'use client'`, no runtime import of `react`, no runtime import from the module root, and no `index` barrel. [`engine-purity-boundary.test.ts`](../../__tests__/boundary/engine-purity-boundary.test.ts) holds this rule for the events engine and the other engines.
 
-The barrel exports only the light modules: the setting, the sink, the shells of the views, and `postReport`, which imports only types. The recorder, the sources, and the store load only while the events run, through the `import()` in `events-setting.ts`. Thus an app that does not turn on the events loads no part of the recorder. No gate holds this rule yet (Pattern cleanup 1).
+The barrel exports only the light modules: the setting, the sink, the shells of the views, and `postReport`, which imports only types. The recorder, the sources, and the store load only while the events run, through the `import()` in `events-setting.ts`. Thus an app that does not turn on the events loads no part of the recorder. [`events-lazy-boundary.test.ts`](../../__tests__/boundary/events-lazy-boundary.test.ts) holds this rule. It walks the runtime imports from the barrel and from `server/root-marks.ts`, and fails on a path to the recorder, the store, a source, the sheet, or the panel.
 
 ## Features
 
@@ -53,9 +53,7 @@ The barrel exports only the light modules: the setting, the sink, the shells of 
 
 ## Pattern cleanup
 
-1. **A gate for the lazy recorder (*P1*).** The Engine section states that the barrel reaches no part of the recorder, but only prose holds the rule. CONVENTIONS.md §9.4 gives each lazy layer a gate that walks the static module graph, as [`list-dnd-boundary.test.ts`](../../__tests__/boundary/list-dnd-boundary.test.ts) does. Add a boundary test that walks each runtime import from [`index.ts`](index.ts) and from `server/root-marks.ts`. It fails on a path to `events-recorder.ts`, `events-store.ts`, `events-sources/`, `events-sheet.tsx`, or `events-panel.tsx`. A type import does not count.
-
-2. **Verb names in the engine (*P2*).** CONVENTIONS.md §8.5 starts each function name with a verb. Some file-private and shared functions of the engine have a noun name. They are `bursts` in [`dom.ts`](engine/events-sources/dom.ts), `key` in [`events-store.ts`](engine/events-store.ts), `block` and `row` in [`events-report.ts`](engine/events-report.ts), and `local` in [`events-setting.ts`](engine/events-setting.ts). Rename them to `createBursts`, `toKey`, `formatBlock`, `formatTableRow`, and `getLocal`. The rename of `bursts` reaches the docs sources ([`sources.ts`](../../docs/debug/sources.ts)). No gate is practical, because a verb list is open.
+1. **Verb names in the engine (*P2*).** CONVENTIONS.md §8.5 starts each function name with a verb. Some file-private and shared functions of the engine have a noun name. They are `bursts` in [`dom.ts`](engine/events-sources/dom.ts), `key` in [`events-store.ts`](engine/events-store.ts), `block` and `row` in [`events-report.ts`](engine/events-report.ts), and `local` in [`events-setting.ts`](engine/events-setting.ts). Rename them to `createBursts`, `toKey`, `formatBlock`, `formatTableRow`, and `getLocal`. The rename of `bursts` reaches the docs sources ([`sources.ts`](../../docs/debug/sources.ts)). No gate is practical, because a verb list is open.
 
 ## Performance
 
