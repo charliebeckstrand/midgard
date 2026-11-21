@@ -52,11 +52,7 @@ The Query domain lives in [`engine/`](engine), a pure functional core. It has no
 
 ## Pattern cleanup
 
-1. **TSDoc that the set operators made stale (*P1*).** The TSDoc of `isQueryActive` in [`engine/query-active.ts`](engine/query-active.ts) gives the shapes of a value, but not the set shape. One line of it also overruns the others. `NUMERIC_OPERATORS` and `isQueryActive` write "each set bound", and `toBound` in `query-builder-rule-value.tsx` writes "A set bound". Now "set" names an operator shape, so write "each bound".
-
-   The TSDoc of `QueryField.editor` and of `QueryValueEditorProvider` says that a field stays data that JSON can hold. But `formatValue` is a function. Give the true reason: the engine imports no React. Review holds this, because no gate reads the meaning of a doccomment.
-
-2. **Operator flags that only a comment ties to the evaluator (*P2*).** The builder reads the `noValue`, `range`, and `set` flags in [`engine/query-operators.ts`](engine/query-operators.ts). The evaluator reads `VALUELESS_OPERATORS`, `RANGE_OPERATORS`, and `SET_OPERATORS` by name in [`engine/query-evaluate.ts`](engine/query-evaluate.ts). Each set says that it mirrors a flag, but the parity test holds only the names. A built-in with a wrong flag gets an editor of one shape and a judgment of another, so its rule reads as inactive. Extend the parity test in `query-operators.test.ts`: a built-in has each flag exactly when its name is in the related set.
+1. **Operator flags that only a comment ties to the evaluator (*P2*).** The builder reads the `noValue`, `range`, and `set` flags in [`engine/query-operators.ts`](engine/query-operators.ts). The evaluator reads `VALUELESS_OPERATORS`, `RANGE_OPERATORS`, and `SET_OPERATORS` by name in [`engine/query-evaluate.ts`](engine/query-evaluate.ts). Each set says that it mirrors a flag, but the parity test holds only the names. A built-in with a wrong flag gets an editor of one shape and a judgment of another, so its rule reads as inactive. Extend the parity test in `query-operators.test.ts`: a built-in has each flag exactly when its name is in the related set.
 
 ## Performance
 
