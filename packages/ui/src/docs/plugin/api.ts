@@ -665,13 +665,11 @@ function readType(walk: Walk, node: Node | undefined): void {
 
 	if (!node) return
 
-	const parts = ast.isParenthesizedTypeNode(node)
-		? [node.type]
-		: ast.isUnionTypeNode(node) || ast.isIntersectionTypeNode(node)
-			? node.types
-			: []
+	if (ast.isParenthesizedTypeNode(node)) readType(walk, node.type)
 
-	for (const part of parts) readType(walk, part)
+	if (ast.isUnionTypeNode(node) || ast.isIntersectionTypeNode(node)) {
+		for (const part of node.types) readType(walk, part)
+	}
 
 	if (ast.isTypeReferenceNode(node)) readReference(walk, node)
 }

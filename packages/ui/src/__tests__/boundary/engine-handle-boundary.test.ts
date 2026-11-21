@@ -328,11 +328,11 @@ function scanHandle(project: Project, receivers: Receiver[], path: (file: string
 			}
 
 			// A property of an argument: `useResizeView({ table: engine })`.
-			const property = isShorthandPropertyAssignment(parent)
-				? parent
-				: isPropertyAssignment(parent) && parent.initializer === node
-					? parent
-					: undefined
+			const holds =
+				isShorthandPropertyAssignment(parent) ||
+				(isPropertyAssignment(parent) && parent.initializer === node)
+
+			const property = holds ? parent : undefined
 
 			const literal = property?.parent
 

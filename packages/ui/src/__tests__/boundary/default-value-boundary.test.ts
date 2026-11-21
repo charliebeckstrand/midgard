@@ -846,11 +846,11 @@ function scanComponent(
 			return props && owner?.id === props.id ? value.name.text : undefined
 		}
 
-		const symbol = isShorthandPropertyAssignment(value)
-			? checker.getShorthandAssignmentValueSymbol(value)
-			: isIdentifier(value)
-				? checker.getSymbolAtLocation(value)
-				: undefined
+		let symbol: TsSymbol | undefined
+
+		if (isShorthandPropertyAssignment(value))
+			symbol = checker.getShorthandAssignmentValueSymbol(value)
+		else if (isIdentifier(value)) symbol = checker.getSymbolAtLocation(value)
 
 		const declaration = symbol?.valueDeclaration?.resolve(project)
 

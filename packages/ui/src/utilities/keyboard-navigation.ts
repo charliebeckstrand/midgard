@@ -42,7 +42,9 @@ export function crossAxisDelta(key: string, orientation: Orientation): number | 
 
 /** `1` for the `forward` key, `-1` for `back`, else null. @internal */
 function arrowDelta(key: string, forward: string, back: string): number | null {
-	return key === forward ? 1 : key === back ? -1 : null
+	if (key === forward) return 1
+
+	return key === back ? -1 : null
 }
 
 /**

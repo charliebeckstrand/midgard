@@ -859,12 +859,13 @@ describe('createPhotonProvider', () => {
 
 				const german = url.searchParams.get('lang') === 'de'
 
-				const features =
-					url.searchParams.get('layer') === 'state'
-						? [{ ...OREGON, properties: { ...OREGON.properties, name: 'California' } }]
-						: url.searchParams.has('bbox')
-							? [place('Starbucks', german ? 'Kalifornien' : 'California')]
-							: []
+				let features: unknown[] = []
+
+				if (url.searchParams.get('layer') === 'state') {
+					features = [{ ...OREGON, properties: { ...OREGON.properties, name: 'California' } }]
+				} else if (url.searchParams.has('bbox')) {
+					features = [place('Starbucks', german ? 'Kalifornien' : 'California')]
+				}
 
 				return { ok: true, json: async () => ({ features }) } as Response
 			})
