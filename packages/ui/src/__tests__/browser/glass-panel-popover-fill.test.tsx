@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
+import { GlassSurfacesContext } from '../../primitives/glass/context'
 import { AppearanceProvider, AppearanceSettings } from '../../providers/appearance'
-import { GlassSurfacesContext } from '../../providers/glass/context'
 import { renderUI, screen, within } from '../helpers'
 
 /**

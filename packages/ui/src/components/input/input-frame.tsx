@@ -4,7 +4,7 @@ import type { ReactNode } from 'react'
 import { cn } from '../../core/cn'
 import type { DensityStep } from '../../core/density/steps'
 import { ControlFrame } from '../../primitives/control'
-import { Shell } from '../../providers/headless/shell'
+import { HeadlessShell } from '../../primitives/headless/headless-shell'
 
 type InputFrameProps = {
 	input: ReactNode
@@ -45,17 +45,17 @@ export function InputFrame({ input, prefix, suffix, slots, density }: InputFrame
 	return (
 		<ControlFrame density={density} className={cn(slots.base)}>
 			{hasPrefix && (
-				<Shell data-slot="prefix" data-density="slot" className={cn(slots.prefix)}>
+				<HeadlessShell data-slot="prefix" data-density="slot" className={cn(slots.prefix)}>
 					{prefix}
-				</Shell>
+				</HeadlessShell>
 			)}
 
 			{input}
 
 			{hasSuffix && (
-				<Shell data-slot="suffix" data-density="slot" className={cn(slots.suffix)}>
+				<HeadlessShell data-slot="suffix" data-density="slot" className={cn(slots.suffix)}>
 					{suffix}
-				</Shell>
+				</HeadlessShell>
 			)}
 		</ControlFrame>
 	)

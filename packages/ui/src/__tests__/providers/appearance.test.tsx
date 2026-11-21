@@ -6,6 +6,7 @@ import { readRootDensity, writeRootDensity } from '../../core/density'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { SidebarLayout } from '../../layouts/sidebar/sidebar'
 import { useDensityStep } from '../../primitives/density'
+import { useReaderSurface } from '../../primitives/glass/context'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import {
 	AppearanceLanguageField,
@@ -17,7 +18,6 @@ import {
 import { type AppearanceChoice, parseChoice } from '../../providers/appearance/appearance-storage'
 import { useAppearanceChoice } from '../../providers/appearance/use-appearance-choice'
 import { useGlass, useResolvedSurface } from '../../providers/glass'
-import { useReaderSurface } from '../../providers/glass/context'
 import { LocaleProvider, useLocale } from '../../providers/locale'
 import { writeCookie } from '../../utilities/cookie'
 import {
