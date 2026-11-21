@@ -32,12 +32,20 @@ export type ChatCitationProviderProps = {
  * A citation is a phrase of a reply, such as "twelve stops are late", that
  * selects something in a view beside the chat. The phrase draws as a toggle
  * button. A press calls `onCite`, and the app derives the selection prop of
- * each view from `cited`. An adapter such as {@link toCategorySelection} reads
+ * each view from `cited`. An adapter such as {@link toCategorySelection},
+ * {@link toRegionSelection}, or {@link toStopSelection} reads
  * the `selector` of the citation for one kind of view.
  *
  * Controlled, because the selection belongs to the dashboard and not to the
  * chat. The provider holds no state. The anchor reads `cited` to show whether
  * it is pressed, and it compares the citation by `id`.
+ *
+ * In a dashboard, a citation marks and does not filter. A cross-filter
+ * selection from outside a tile filters each tile, so do not write `cited`
+ * into the selections of the board. Give `cited` to the tiles in a context of
+ * the app, and let each tile derive its selection prop from it. When a reader
+ * picks in a tile, clear `cited`, so that the tile does not mark a citation
+ * that its filter does not hold.
  *
  * Nesting merges `targets`, as {@link ChatEmbedProvider} merges `renderers`.
  * The inner provider wins on a target that both name. Its `cited` and
