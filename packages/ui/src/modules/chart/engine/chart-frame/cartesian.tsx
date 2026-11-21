@@ -1,5 +1,6 @@
 import type { ReactElement, ReactNode } from 'react'
 import type { AccessibleName } from '../../../../types/accessible-name'
+import { once } from '../../../../utilities/once'
 import { ChartCartesianAxes } from '../chart-axes/cartesian'
 import type { ChartValueAxisId } from '../chart-axes/schema'
 import {
@@ -310,14 +311,15 @@ function snappedTarget(hit: CartesianHit, index: number | null, value: number): 
  * @internal
  */
 function cartesianTargetAt(hit: CartesianHit): ChartTargetAt {
-	const traces = hit.strokes.map(({ geometry }) => geometry.trace)
+	// The first pointer read builds the traces, so a render builds none.
+	const traces = once(() => hit.strokes.map(({ geometry }) => geometry.trace()))
 
 	const vertical = hit.orientation === 'vertical'
 
 	return (x, y, held, index) => {
 		const [band, value] = vertical ? [x, y] : [y, x]
 
-		const thin = thinMarksAt(traces, hit.rules, band, value, heldThinMarks(held, hit.strokes))
+		const thin = thinMarksAt(traces(), hit.rules, band, value, heldThinMarks(held, hit.strokes))
 
 		if (thin.length > 0) return thinTarget(thin, hit.strokes, hit.rules)
 

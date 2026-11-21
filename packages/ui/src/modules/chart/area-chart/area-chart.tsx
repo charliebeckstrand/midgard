@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
+import { once } from '../../../utilities/once'
 import type { DrawnSeries } from '../engine/chart-cartesian/series'
 import type { Crosshair } from '../engine/chart-crosshair'
 import { ChartCartesianFrame } from '../engine/chart-frame/cartesian'
@@ -138,13 +139,15 @@ function focusStops(
 function stackedToLine(band: StackedAreaGeometry, values: (number | null)[]): LineSeriesGeometry {
 	const points = band.points.filter((_, index) => Number.isFinite(values[index]))
 
+	const runs = band.points.length > 0 ? [band.points] : []
+
 	return {
 		segments: band.line ? [band.line] : [],
 		areas: band.area ? [band.area] : [],
 		points,
-		runs: band.points.length > 0 ? [band.points] : [],
+		runs,
 		// A stacked ribbon draws straight, so its trace is its run.
-		trace: band.points.length > 0 ? [band.points] : [],
+		trace: () => runs,
 		isolated: band.points.length === 1 ? points : [],
 		smooth: false,
 	}
@@ -292,8 +295,8 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 	)
 
 	// The drawn shape of each top edge, held for the hit test so a pointer move
-	// allocates none.
-	const traces = list.map((entry) => entry.geometry.trace)
+	// allocates none. The first pointer read builds it, so a render builds none.
+	const traces = useMemo(() => once(() => list.map((entry) => entry.geometry.trace())), [list])
 
 	const fills = useMemo(() => drawn.map(({ meta }) => tex.fillFor(meta.slot)), [drawn, tex])
 
@@ -321,7 +324,7 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 				// dot on a ribbon's boundary already reads as the ribbon whose edge it
 				// marks.
 				const within = nearestSeriesArea(
-					traces,
+					traces(),
 					(order) => drawn[order]?.baseline ?? floor,
 					x,
 					y,

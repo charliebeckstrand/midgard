@@ -1,6 +1,10 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { hasIsolatedPoint, lineGeometry } from '../../modules/chart/engine/chart-geometry/line'
+import {
+	hasIsolatedPoint,
+	lineGeometry,
+	traceRun,
+} from '../../modules/chart/engine/chart-geometry/line'
 
 describe('lineGeometry', () => {
 	const identity = (value: number) => value
@@ -115,6 +119,22 @@ describe('lineGeometry', () => {
 
 			expect(drawn).toBeLessThan((geometry.runs[index]?.length ?? 0) / 2)
 		}
+	})
+
+	it('builds the trace of each run at the first read, and returns it again after', () => {
+		const geometry = lineGeometry(
+			[10, 30, null, 20, 40, 5],
+			[0, 10, 20, 30, 40, 50],
+			identity,
+			100,
+			'smooth',
+		)
+
+		const trace = geometry.trace()
+
+		expect(trace).toEqual(geometry.runs.map((run) => traceRun(run, 'smooth')))
+
+		expect(geometry.trace()).toBe(trace)
 	})
 })
 
