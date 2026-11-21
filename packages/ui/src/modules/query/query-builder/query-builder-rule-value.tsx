@@ -13,7 +13,7 @@ import { TagInput } from '../../../components/tag-input'
 import { cn } from '../../../core/cn'
 import { useIntl } from '../../../primitives/intl/use-intl'
 import { Flex } from '../../../structure/flex'
-import { finiteOrUndefined } from '../../../utilities/parse-numeric'
+import { finiteOrUndefined, parseNumeric } from '../../../utilities/parse-numeric'
 import type { QueryField, QueryOperator } from '../engine/types'
 import { useQueryValueEditor } from './context'
 import { queryBuilderMessages } from './query-builder-messages'
@@ -47,6 +47,28 @@ function toTuple(value: unknown): [number | '', number | ''] {
 /** A set value as a list of strings; a value that is not a list reads as an empty set. @internal */
 function toMembers(value: unknown): string[] {
 	return Array.isArray(value) ? value.map((member) => String(member ?? '')) : []
+}
+
+/**
+ * Whether a tag can be a member of the set of `field`. A member of a `number`
+ * field must read as a number ({@link parseNumeric}), and each other member can
+ * be any text.
+ *
+ * @internal
+ */
+function isMember(field: QueryField, tag: string): boolean {
+	return field.type !== 'number' || parseNumeric(tag) !== null
+}
+
+/**
+ * The tags of a set input as the members of the set. A member of a `number`
+ * field is a number, as the `NumberInput` of a single value writes it. So the
+ * set compares each cell as a number, and `1234.50` holds the cell `$1,234.50`.
+ *
+ * @internal
+ */
+function toSet(field: QueryField, tags: string[]): JsonValue {
+	return field.type === 'number' ? tags.map((tag) => parseNumeric(tag) ?? tag) : tags
 }
 
 /** A set bound as a number, or `undefined` for a blank bound or one that is not a number. @internal */
@@ -159,7 +181,8 @@ function RangeValue({
  * lock of the nearest lock scope as `readOnly`. Then the operator and the type
  * of the field choose:
  *
- * - a `set` operator: a {@link TagInput} that writes a list of strings
+ * - a `set` operator: a {@link TagInput} that writes a list of strings, or of
+ *   numbers for a `number` field
  * - a `range` operator: a `[min, max]` pair of {@link NumberInput}s. The pair
  *   clamps to the field's `span` and to each other
  * - `select`: a {@link Select}
@@ -210,7 +233,8 @@ export function QueryBuilderRuleValue({
 				aria-label={label}
 				disabled={disabled}
 				className={className}
-				onValueChange={onValueChange}
+				validate={(tag) => isMember(field, tag)}
+				onValueChange={(tags) => onValueChange(toSet(field, tags))}
 			/>
 		)
 	}

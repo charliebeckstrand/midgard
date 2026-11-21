@@ -26,7 +26,14 @@ const customer: QueryField = {
 
 const tags: QueryField = { name: 'tags', label: 'Tags', type: 'text', operators: [...setOperators] }
 
-const fields = [customer, tags]
+const amount: QueryField = {
+	name: 'amount',
+	label: 'Amount',
+	type: 'number',
+	operators: [...setOperators],
+}
+
+const fields = [customer, tags, amount]
 
 const props = vi.fn<(props: QueryValueEditorProps) => void>()
 
@@ -197,6 +204,31 @@ describe('a set operator with no custom editor', () => {
 		fireEvent.keyDown(input, { key: 'Enter' })
 
 		expect(onChange.mock.lastCall?.[0].children[0]).toMatchObject({ value: ['urgent', 'cold'] })
+	})
+
+	it('writes each member of a number field as a number, and refuses a tag that is not one', () => {
+		const onChange = vi.fn()
+
+		renderUI(
+			<Harness
+				start={createGroup('and', [rule({ field: 'amount', value: [1234.5] })])}
+				onChange={onChange}
+			/>,
+		)
+
+		const input = screen.getByRole('textbox', { name: 'Amount value' })
+
+		fireEvent.change(input, { target: { value: 'abc' } })
+
+		fireEvent.keyDown(input, { key: 'Enter' })
+
+		expect(onChange).not.toHaveBeenCalled()
+
+		fireEvent.change(input, { target: { value: '$2000' } })
+
+		fireEvent.keyDown(input, { key: 'Enter' })
+
+		expect(onChange.mock.lastCall?.[0].children[0]).toMatchObject({ value: [1234.5, 2000] })
 	})
 })
 
