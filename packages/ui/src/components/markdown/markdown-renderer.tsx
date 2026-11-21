@@ -4,7 +4,9 @@ import type { BundledLanguage } from 'shiki'
 import { k } from '../../recipes/kata/markdown'
 import { clamp } from '../../utilities/clamp'
 import { Code, CodeBlock } from '../code'
+import type { MarkdownRangeTexts } from './context'
 import { decodeEntities } from './markdown-entities'
+import { MarkdownRangeTextProvider } from './markdown-range-text-provider'
 import {
 	atomRange,
 	find,
@@ -36,7 +38,13 @@ export type MarkdownRangeRenderer<R extends MarkdownRange = MarkdownRange> = (
  *
  * @internal
  */
-type Draw = RangeWalk & { render: MarkdownRangeRenderer }
+type Draw = RangeWalk & {
+	render: MarkdownRangeRenderer
+	/** The text that each range in `ranges` drew so far. */
+	texts: string[]
+	/** The source offset after the last piece that each range in `ranges` drew. */
+	ends: number[]
+}
 
 /**
  * The piece that a {@link MarkdownRenderer} draws when the caller gives no
@@ -151,9 +159,36 @@ export function MarkdownRenderer({
 }) {
 	const walk = source === undefined ? undefined : rangeWalk(source, ranges)
 
-	const draw = walk && { ...walk, render: renderRange ?? defaultRangeRenderer }
+	const draw = walk && {
+		...walk,
+		render: renderRange ?? defaultRangeRenderer,
+		texts: walk.ranges.map(() => ''),
+		ends: walk.ranges.map(() => 0),
+	}
 
-	return <>{renderChildren(tokens, headingOffset, undefined, draw)}</>
+	const nodes = renderChildren(tokens, headingOffset, undefined, draw)
+
+	// Only a caller's renderer reads the text of a range. The walk is done here,
+	// so the text of each range is whole before a piece renders.
+	if (!draw || !renderRange) return <>{nodes}</>
+
+	return <MarkdownRangeTextProvider texts={rangeTexts(draw)}>{nodes}</MarkdownRangeTextProvider>
+}
+
+/**
+ * The text of each range that the walk drew, by its `id`, with each run of
+ * white space read as one space.
+ *
+ * @internal
+ */
+function rangeTexts(draw: Draw): MarkdownRangeTexts {
+	const texts: Record<string, string> = {}
+
+	draw.ranges.forEach((range, index) => {
+		texts[range.id] = (draw.texts[index] ?? '').replace(/\s+/g, ' ').trim()
+	})
+
+	return texts
 }
 
 /**
@@ -232,16 +267,45 @@ function within(
  *
  * @internal
  */
-function drawPiece(draw: Draw, range: number, key: number, children: ReactNode): ReactNode {
+function drawPiece(
+	draw: Draw,
+	range: number,
+	key: number,
+	children: string,
+	start: number,
+	end: number,
+): ReactNode {
 	const index = draw.pieces[range] ?? 0
 
 	draw.pieces[range] = index + 1
+
+	draw.texts[range] = joinPiece(draw, range, children, start)
+
+	draw.ends[range] = end
 
 	return (
 		<Fragment key={key}>
 			{draw.render({ range: draw.ranges[range] as MarkdownRange, index }, children)}
 		</Fragment>
 	)
+}
+
+/**
+ * The text of a range with one more piece. A space joins the piece where the
+ * source between it and the piece before it holds white space, such as a line
+ * break or a block boundary. Elsewhere, such as across bold in a word, the
+ * piece joins directly.
+ *
+ * @internal
+ */
+function joinPiece(draw: Draw, range: number, text: string, start: number): string {
+	const before = draw.texts[range] ?? ''
+
+	const end = draw.ends[range] ?? 0
+
+	const gap = before !== '' && /\s/.test(draw.source.slice(end, start))
+
+	return gap ? `${before} ${text}` : before + text
 }
 
 /**
@@ -270,12 +334,20 @@ function markText(draw: Draw, raw: string, key: number): ReactNode {
 			return
 		}
 
+		let start = at
+
 		for (const segment of segmentLine(draw, line, at)) {
 			const text = decodeEntities(segment.text)
 
+			const end = start + segment.text.length
+
 			nodes.push(
-				segment.range === undefined ? text : drawPiece(draw, segment.range, nodes.length, text),
+				segment.range === undefined
+					? text
+					: drawPiece(draw, segment.range, nodes.length, text, start, end),
 			)
+
+			start = end
 		}
 
 		draw.cursor = at + line.length
@@ -293,7 +365,9 @@ function markText(draw: Draw, raw: string, key: number): ReactNode {
 function markAtom(draw: Draw | undefined, raw: string, text: string): ReactNode {
 	const range = draw && atomRange(draw, raw.length)
 
-	return draw && range !== undefined ? drawPiece(draw, range, 0, text) : text
+	return draw && range !== undefined
+		? drawPiece(draw, range, 0, text, draw.cursor, draw.cursor + raw.length)
+		: text
 }
 
 function renderTokenAt(

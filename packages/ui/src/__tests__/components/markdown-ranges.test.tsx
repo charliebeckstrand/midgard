@@ -1,7 +1,12 @@
 import { fc, test } from '@fast-check/vitest'
 import type { ReactNode } from 'react'
 import { describe, expect, it } from 'vitest'
-import { Markdown, type MarkdownRange, type MarkdownRangePiece } from '../../components/markdown'
+import {
+	Markdown,
+	type MarkdownRange,
+	type MarkdownRangePiece,
+	useMarkdownRangeText,
+} from '../../components/markdown'
 import { renderUI, waitFor } from '../helpers'
 
 /** A range over the first occurrence of `quote` in `source`. */
@@ -349,4 +354,63 @@ describe('Markdown ranges, over built documents', () => {
 			expect(drawn).toBe(expected)
 		},
 	)
+})
+
+/** Piece 0 of a range, with the text of the whole range as a data attribute. */
+function NamedPiece({ piece, children }: { piece: MarkdownRangePiece; children: ReactNode }) {
+	const name = useMarkdownRangeText(piece.range)
+
+	return piece.index === 0 ? (
+		<span data-slot="named" data-name={name}>
+			{children}
+		</span>
+	) : (
+		children
+	)
+}
+
+const renderNamed = (piece: MarkdownRangePiece, children: ReactNode) => (
+	<NamedPiece piece={piece}>{children}</NamedPiece>
+)
+
+/** The text that piece 0 of the one range in `source` reads. */
+function readName(source: string, quote: string): string | null | undefined {
+	const { container } = renderUI(
+		<Markdown ranges={[findRange(source, quote)]} renderRange={renderNamed}>
+			{source}
+		</Markdown>,
+	)
+
+	return container.querySelector('[data-slot="named"]')?.getAttribute('data-name')
+}
+
+describe('useMarkdownRangeText', () => {
+	it.each([
+		['one piece', 'Twelve stops are late today.', 'stops are late', 'stops are late'],
+		[
+			'bold between words',
+			'Late stops rose from **4** to **14** this week.',
+			'from **4** to **14**',
+			'from 4 to 14',
+		],
+		['bold in a word', 'It is **Tue**sday now.', '**Tue**sday', 'Tuesday'],
+		['a soft line break', 'The stops are\nlate today.', 'are\nlate', 'are late'],
+		['a block boundary', 'Twelve stops.\n\nMost on Tuesday.', 'stops.\n\nMost', 'stops. Most'],
+		['an entity', 'Fish &amp; chips here.', 'Fish &amp; chips', 'Fish & chips'],
+		['a code span', 'Run `npm i` now.', '`npm i` now', 'npm i now'],
+	])('gives the whole text of a range across %s', (_, source, quote, name) => {
+		expect(readName(source, quote)).toBe(name)
+	})
+
+	it('gives undefined outside a render that drew the range', () => {
+		function Outside() {
+			return (
+				<span data-slot="outside">{useMarkdownRangeText(findRange('a b', 'a')) ?? 'none'}</span>
+			)
+		}
+
+		const { container } = renderUI(<Outside />)
+
+		expect(container.textContent).toBe('none')
+	})
 })
