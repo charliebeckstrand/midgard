@@ -87,12 +87,17 @@ const KNOWN: readonly { finding: string; paths: readonly string[]; reason: strin
 	},
 	{
 		finding: 'crowded textarea-actions/button',
-		paths: ['/modules/chat/conversation', '/modules/chat/prompt', '/textarea'],
+		paths: [
+			'/modules/chat/conversation',
+			'/modules/chat/prompt',
+			'/modules/chat/scope',
+			'/textarea',
+		],
 		reason: 'An action of a Textarea is 38 px wide, against its text.',
 	},
 	{
 		finding: 'overlap control-frame/chat-prompt | textarea-actions/button',
-		paths: ['/modules/chat/conversation', '/modules/chat/prompt'],
+		paths: ['/modules/chat/conversation', '/modules/chat/prompt', '/modules/chat/scope'],
 		reason: 'The hit area of the send button grows into the text of the prompt.',
 	},
 	{
