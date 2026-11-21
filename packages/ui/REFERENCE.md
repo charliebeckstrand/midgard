@@ -26,7 +26,7 @@ The layers import in one direction, from the bottom up:
 2. `hooks` and `primitives`. A hook can read the context of a primitive, and a primitive can read a hook and the `kata` of `recipes`.
 3. `structure`, `recipes`, `components`, `providers`, `layouts`, and `modules`.
 
-The `noRestrictedImports` overrides in [`biome.json`](../../biome.json) hold the direction: an import from a layer above fails the lint. One exception stays for now. `control-frame.tsx` and `panel-surface.tsx` in `primitives` read the headless and glass contexts in `providers`. Thus the `primitives` override does not name `providers` yet. The move of the two contexts to `primitives` closes the exception (ROADMAP, Pattern cleanup). [`import-cycle-boundary.test.ts`](src/__tests__/boundary/import-cycle-boundary.test.ts) holds the files: no cycle of runtime imports in the shipped source.
+The `noRestrictedImports` overrides in [`biome.json`](../../biome.json) hold the direction: an import from a layer above fails the lint. [`import-cycle-boundary.test.ts`](src/__tests__/boundary/import-cycle-boundary.test.ts) holds the files: no cycle of runtime imports in the shipped source.
 
 Per-symbol behavior, props, and defaults live in each symbol's TSDoc. The docs site (`pnpm --filter ui dev`) renders them beside live examples through the [docs plugin](src/docs/plugin). Keep these docs current per [`../../CONVENTIONS.md`](../../CONVENTIONS.md) §12.
 

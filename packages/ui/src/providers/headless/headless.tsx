@@ -1,7 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { HeadlessContext } from './context'
+import { HeadlessContext } from '../../primitives/headless/context'
 
 /** Props for {@link HeadlessProvider}. */
 export type HeadlessProviderProps = {

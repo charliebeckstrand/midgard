@@ -15,8 +15,8 @@ import {
 	useCommandPaletteQuery,
 } from '../../components/command-palette'
 import type { VirtualItemSource } from '../../hooks/a11y/use-a11y-roving'
+import { GlassSurfacesContext } from '../../primitives/glass/context'
 import { VirtualItemSourceContext } from '../../primitives/virtual-options/context'
-import { GlassSurfacesContext } from '../../providers/glass/context'
 import { LocaleProvider } from '../../providers/locale'
 import { NO_HOVER_QUERY } from '../../utilities/media-query'
 import {

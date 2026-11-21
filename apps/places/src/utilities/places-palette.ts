@@ -1,5 +1,6 @@
 import type { ReactElement } from 'react'
 import type { ContextMenuEntry } from 'ui/context-menu'
+import { foldText } from 'ui/core'
 
 /** One row of the palette: what it shows, and what a pick does. */
 export type PaletteCommand = {
@@ -33,15 +34,6 @@ const DEFAULT_LIMIT = 8
 
 /** The characters between two words. */
 const WORD_BREAK = /[^\p{L}\p{N}]+/u
-
-/**
- * The text in the form that the palette and the region picker compare: lower
- * case, with no accents.
- * With it, "sao" finds "São".
- */
-export function foldText(text: string): string {
-	return text.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase()
-}
 
 /**
  * How well a command matches a folded query, from 5 to 0. A larger number is a

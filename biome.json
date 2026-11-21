@@ -198,9 +198,11 @@
 											"**/layouts",
 											"**/layouts/**",
 											"**/modules",
-											"**/modules/**"
+											"**/modules/**",
+											"**/providers",
+											"**/providers/**"
 										],
-										"message": "Primitives are foundational React/HTML abstractions consumed by components. They must not import from components, structure, layouts, or modules. Imports from recipes/kata/ (the recipe funnel) are permitted; kata is the curated recipe surface for both components and primitives."
+										"message": "Primitives are foundational React/HTML abstractions consumed by components. They must not import from components, structure, layouts, modules, or providers. Imports from recipes/kata/ (the recipe funnel) are permitted; kata is the curated recipe surface for both components and primitives."
 									}
 								]
 							}
@@ -641,6 +643,16 @@
 				"!packages/ui/src/utilities/clamp.ts"
 			],
 			"plugins": ["./.biome/plugins/no-hand-written-clamp.grit"]
+		},
+		{
+			"includes": [
+				"packages/ui/src/**",
+				"apps/**",
+				"!**/__tests__/**",
+				"!**/__benchmarks__/**",
+				"!packages/ui/src/utilities/fold-text.ts"
+			],
+			"plugins": ["./.biome/plugins/no-hand-written-fold.grit"]
 		},
 		{
 			"includes": [

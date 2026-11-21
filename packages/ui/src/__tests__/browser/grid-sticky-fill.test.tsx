@@ -3,7 +3,7 @@ import { describe, expect, it, onTestFinished } from 'vitest'
 import { Card } from '../../components/card'
 import { Drawer, DrawerPanel } from '../../components/drawer'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { GlassSurfacesContext } from '../../providers/glass/context'
+import { GlassSurfacesContext } from '../../primitives/glass/context'
 import { frames, renderUI } from '../helpers'
 
 /**

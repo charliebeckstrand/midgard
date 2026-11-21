@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { Dialog, DialogPanel } from '../../components/dialog'
 import { Drawer, DrawerPanel } from '../../components/drawer'
 import { Sheet, SheetPanel } from '../../components/sheet'
-import { GlassSurfacesContext } from '../../providers/glass/context'
+import { GlassSurfacesContext } from '../../primitives/glass/context'
 import { k } from '../../recipes/kata/panel'
 import { fireEvent, renderUI, screen } from '../helpers'
 

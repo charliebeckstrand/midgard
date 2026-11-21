@@ -1,7 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { GlassContext } from './context'
+import { GlassContext } from '../../primitives/glass/context'
 
 /**
  * Client leaf that writes the ambient glass flag for its subtree. A context

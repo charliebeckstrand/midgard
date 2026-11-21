@@ -1,7 +1,7 @@
 import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Confirm } from '../../components/confirm'
-import { GlassSurfacesContext } from '../../providers/glass/context'
+import { GlassSurfacesContext } from '../../primitives/glass/context'
 import { attach, bySlot, fireEvent, getSlot, renderUI, screen, waitFor } from '../helpers'
 
 describe('Confirm', () => {

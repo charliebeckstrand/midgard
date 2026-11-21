@@ -5,10 +5,10 @@ import { writeRootDensity } from '../../core/density/steps'
 import { ROOT_REDUCED_MOTION_CLASS } from '../../core/motion/root'
 import { ROOT_OFFCANVAS_SIDEBAR_CLASS } from '../../core/sidebar/root'
 import { ROOT_GLASS_SURFACES_CLASS } from '../../core/surfaces/root'
+import { GlassSurfacesContext } from '../../primitives/glass/context'
 import { ReducedMotionContext } from '../../primitives/reduced-motion/context'
 import { matchesMediaQuery, subscribeMediaQuery } from '../../utilities/media-query'
 import { levelToStep } from '../density/context'
-import { GlassSurfacesContext } from '../glass/context'
 import {
 	DARK_SCHEME,
 	DENSITY,

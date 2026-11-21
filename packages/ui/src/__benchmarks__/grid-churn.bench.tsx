@@ -19,10 +19,19 @@
  * - The measure reads only the heap spaces that hold data. V8 still compiles
  *   a function to baseline code while the process runs, and the code spaces
  *   hold that code. A compile in one pass is not a cost of the gesture.
- * - Each sample is the mean of two runs of the gesture in sequence. The bytes
- *   of a render that changes the rows go high and low in turn, by about
- *   190 KB. A median of single runs took the side of the first run. A change
- *   of side between two passes moved a slope by 2 bytes for each row.
+ * - Each sample is the mean of two runs of the gesture in sequence. A render
+ *   that gives the grid new row keys runs the `reconcile` effect of the
+ *   cursor, which calls `setActive`. React drops that update before a render
+ *   only when no copy of the fiber has pending work. Here that is true on
+ *   every other call. On the other calls, React renders `GridDataReadOnly`
+ *   again, and that render costs about 190 KB. Thus the bytes of the gesture
+ *   go high and low in turn. A median of single runs took the side of the
+ *   first run. A change of side between two passes moved a slope by 2 bytes
+ *   for each row.
+ * - The mean holds one run of each side only when one cycle of `prepare` and
+ *   the gesture calls `setActive` once. The `prepare` of `append` renders the
+ *   loaded rows again, so each run of `append` falls on the same side. The
+ *   mean does not keep the `append` slopes from a change of side.
  *
  * Each budget is the slope that the gesture has now, as {@link BUDGETS}
  * records it. A slope must stay within {@link NOISE} of its budget. A change
@@ -63,7 +72,7 @@ const SAMPLES = 3
 
 /**
  * The tolerance of a slope, in bytes for each loaded row. A slope repeats to
- * within 0.01 from run to run. One array of the loaded rows costs 8, so a
+ * within 0.05 from run to run. One array of the loaded rows costs 8, so a
  * new array of the rows fails a budget.
  */
 const NOISE = 0.5
@@ -188,8 +197,10 @@ function allocatedBytes(run: () => void): number {
 
 /**
  * The median bytes of one gesture over {@link SAMPLES} samples. A sample is
- * the mean of two runs in sequence, so that it holds one high run and one low
- * run. `prepare` runs outside the measure, and gives the gesture to measure.
+ * the mean of two runs in sequence. When the runs of a gesture go high and low
+ * in turn, a sample holds one run of each side. `append` is the exception, as
+ * the file header says. `prepare` runs outside the measure, and gives the
+ * gesture to measure.
  */
 function medianBytes(prepare: () => () => void): number {
 	const samples = Array.from(

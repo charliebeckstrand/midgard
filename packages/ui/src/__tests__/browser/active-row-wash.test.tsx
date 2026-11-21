@@ -3,7 +3,7 @@ import { userEvent } from 'vitest/browser'
 import { Button } from '../../components/button'
 import { CommandPalette, CommandPaletteItem } from '../../components/command-palette'
 import { Menu, MenuContent, MenuItem, MenuTrigger } from '../../components/menu'
-import { GlassSurfacesContext } from '../../providers/glass/context'
+import { GlassSurfacesContext } from '../../primitives/glass/context'
 import { getSlot, noop, renderUI, screen, waitFor } from '../helpers'
 import { emulateForcedColors, systemColor } from './helpers/forced-colors'
 

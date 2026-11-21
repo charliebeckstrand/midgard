@@ -1,3 +1,4 @@
+import { foldText } from 'ui/core'
 import { type Election, electionPath } from '../elections/registry'
 import type { UsState } from '../elections/us-states'
 import type { PartySlot } from '../types'
@@ -9,7 +10,6 @@ import {
 	matchesWords,
 	type OfficeRaces,
 	type RaceEntry,
-	searchText,
 	searchWords,
 } from './results'
 
@@ -80,13 +80,13 @@ function raceDescription(entry: RaceEntry, query: string): string {
 
 	const names = [entry.contest.label, entryName(entry), ...leaders.map((leader) => leader.name)]
 
-	const shown = searchText(names.join(' '))
+	const shown = foldText(names.join(' '))
 
 	const words = searchWords(query).filter((word) => !shown.includes(word))
 
 	const found = entry.candidates
 		.slice(LEADERS)
-		.filter((candidate) => words.some((word) => searchText(candidate.name).includes(word)))
+		.filter((candidate) => words.some((word) => foldText(candidate.name).includes(word)))
 
 	return [...leaders, ...found].map((candidate) => candidate.name).join(', ')
 }
