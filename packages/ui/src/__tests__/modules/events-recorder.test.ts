@@ -239,7 +239,12 @@ describe('listen', () => {
 			'input input=*** synthetic',
 		])
 
-		expect(JSON.stringify(store.entries)).not.toContain(secret)
+		// Only the text and the detail of an entry hold what the reader typed. The
+		// id, the time, and the batch are numbers that can hold the digits of a
+		// secret, such as a batch id of `1795275712366` and the code `123`.
+		const recorded = store.entries.map(({ text, detail }) => ({ text, detail }))
+
+		expect(JSON.stringify(recorded)).not.toContain(secret)
 	})
 
 	it('masks each input and textarea inside an element with the mask attribute', () => {
