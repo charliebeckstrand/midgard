@@ -7,6 +7,7 @@ import {
 	StrictMode,
 	Suspense,
 	use,
+	useCallback,
 	useEffect,
 	useLayoutEffect,
 	useRef,
@@ -2510,6 +2511,33 @@ describe('Dashboard scope', () => {
 		expect(screen.getByTestId('total')).toHaveTextContent('60')
 
 		expect(screen.queryByRole('button', { name: /Clear the selection/ })).not.toBeInTheDocument()
+	})
+
+	it('offers the clear control for a selection that the app holds, and sends no cross-filter change', () => {
+		const onValueChange = vi.fn()
+
+		// The app holds a mark for the tile, such as an active chat citation.
+		function App() {
+			const [marked, setMarked] = useState(true)
+
+			const clear = useCallback(() => setMarked(false), [])
+
+			return (
+				<Dashboard aria-label="Sales" selection={{ value: [], onValueChange }}>
+					<DashboardTile id="days" title="Days" onClear={marked ? clear : undefined}>
+						<Total testId="total" />
+					</DashboardTile>
+				</Dashboard>
+			)
+		}
+
+		renderUI(<App />)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Clear the selection in Days' }))
+
+		expect(screen.queryByRole('button', { name: /Clear the selection/ })).not.toBeInTheDocument()
+
+		expect(onValueChange).not.toHaveBeenCalled()
 	})
 
 	it('stops applying the selection of a tile that leaves the board, and applies it again on return', () => {

@@ -160,18 +160,51 @@ function LateByDay() {
 	)
 }
 
-// The tiles take no state of the example, so each render gives the same elements.
+// The Clear control of a tile that shows the active citation. A press clears
+// the citation, as it clears a pick of the reader.
+function useClearCited(target: string): (() => void) | undefined {
+	const { cited, setCited } = useCited()
+
+	const clear = useCallback(() => setCited(null), [setCited])
+
+	return cited?.target === target ? clear : undefined
+}
+
 // On a narrow board, the map tile takes the height of its content. The map keeps
 // its own ratio at the full width of the tile, so a fixed ratio would put the map
 // in a scroll region.
-const tiles = (
-	<>
-		<DashboardTile id="map" title="Late stops" ratio={16 / 10} fitContent>
+function MapTile() {
+	return (
+		<DashboardTile
+			id="map"
+			title="Late stops"
+			ratio={16 / 10}
+			fitContent
+			onClear={useClearCited('late-stops')}
+		>
 			<LateStops />
 		</DashboardTile>
-		<DashboardTile id="days" title="Late stops by day" ratio={16 / 10}>
+	)
+}
+
+function DaysTile() {
+	return (
+		<DashboardTile
+			id="days"
+			title="Late stops by day"
+			ratio={16 / 10}
+			onClear={useClearCited('late-by-day')}
+		>
 			<LateByDay />
 		</DashboardTile>
+	)
+}
+
+// The tiles take no state of the example, so each render gives the same elements.
+const tiles = (
+	<>
+		<MapTile />
+		<DaysTile />
 	</>
 )
 

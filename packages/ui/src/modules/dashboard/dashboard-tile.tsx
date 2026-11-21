@@ -192,6 +192,17 @@ export type DashboardTileProps = {
 	 * @defaultValue false
 	 */
 	expandable?: boolean
+	/**
+	 * A selection that the app holds and the tile shows, such as an active chat
+	 * citation. While it is set, the header row shows the Clear control, as it
+	 * does for a cross-filter selection of the tile. A press calls it, and also
+	 * clears the cross-filter selection of the tile. Give `undefined` when the
+	 * tile shows no such selection.
+	 *
+	 * @remarks
+	 * A new function renders the card again, so use `useCallback`.
+	 */
+	onClear?: () => void
 	className?: string
 	/**
 	 * The widget. Keep the element stable, because a move never renders it again.
@@ -271,6 +282,7 @@ export function DashboardTile(props: DashboardTileProps) {
 		onRemove,
 		onDuplicate,
 		expandable = false,
+		onClear,
 		className,
 		children,
 	} = props
@@ -379,6 +391,7 @@ export function DashboardTile(props: DashboardTileProps) {
 				onRemove={onRemove}
 				onDuplicate={onDuplicate}
 				expandable={expandable}
+				onClear={onClear}
 				// The rows follow the column pitch, so the span gives the shape of the tile.
 				shape={(cell.w * ROW_SUBDIVISION) / cell.h}
 				shell={node}

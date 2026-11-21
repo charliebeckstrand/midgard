@@ -119,20 +119,18 @@ export const k = defineKata({
 		// A citation: a phrase of the prose that selects in a view beside the chat.
 		// Piece 0 is a button, and the pieces after it are spans with the same
 		// look. It keeps the font and the foreground of the prose, so it reads on
-		// each bubble. A dotted underline marks it at rest. An inset ring of
-		// `currentColor` and a solid underline mark it while it is pressed, as the
-		// `tool` box rides `currentColor`. A fill would change the background of
-		// the text, and on the user bubble that lowers the contrast below 4.5:1. A
-		// solid underline of full ink and double weight marks it while the
-		// selection of its view matches it. That look is apart from the ring,
-		// because a press then changes what the board shows.
+		// each bubble. A dotted underline marks it at rest. A solid underline of
+		// full ink and double weight marks it while it is active: while it is
+		// pressed, or while the selection of its view matches it. The two states
+		// have one look, because in each the view shows the selection of the
+		// citation. `aria-pressed` and the description tell them apart. A fill
+		// would change the background of the text, and on the user bubble that
+		// lowers the contrast below 4.5:1. Forced colors keep a text decoration.
 		citation: [
 			'cursor-pointer rounded-sm text-inherit box-decoration-clone',
 			'underline decoration-dotted decoration-current/60 underline-offset-2',
 			'hover:decoration-solid',
-			'data-pressed:ring-1 data-pressed:ring-current data-pressed:ring-inset data-pressed:decoration-solid',
-			// Forced colors remove the ring, which is a box-shadow. An outline keeps the mark.
-			'forced-colors:data-pressed:outline-solid forced-colors:data-pressed:outline-1',
+			'data-pressed:decoration-current data-pressed:decoration-solid data-pressed:decoration-2',
 			'data-marked:decoration-current data-marked:decoration-solid data-marked:decoration-2',
 			focus.ring,
 		],

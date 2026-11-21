@@ -17,17 +17,20 @@ export type DashboardTileClearProps = {
 	id: string
 	/** The name of the tile, for the accessible name of the button. */
 	label: string
+	/** Clears a selection that the app holds and the tile shows. While it is set, the control shows. */
+	onClear?: (() => void) | undefined
 }
 
 /**
  * The control that clears the selection of a tile. It shows only while the tile
  * holds a selection, in the header row, so the user can release a selection
- * where they made it. It subscribes to the store by itself, so a selection change
- * never renders the tile again.
+ * where they made it. A selection that the app holds, such as an active chat
+ * citation, shows it too, through `onClear`. It subscribes to the store by
+ * itself, so a selection change never renders the tile again.
  *
  * @internal
  */
-export function DashboardTileClear({ id, label }: DashboardTileClearProps) {
+export function DashboardTileClear({ id, label, onClear }: DashboardTileClearProps) {
 	const intl = useIntl()
 
 	const selecting = useDashboardStore(
@@ -40,12 +43,15 @@ export function DashboardTileClear({ id, label }: DashboardTileClearProps) {
 
 	const { updateSelections } = useDashboardActions()
 
-	const handleClear = useCallback(
-		() => updateSelections((prev) => clearSelection(prev, id)),
-		[updateSelections, id],
-	)
+	// A tile that holds only a selection of the app sends no change of the
+	// cross-filter value.
+	const handleClear = useCallback(() => {
+		onClear?.()
 
-	if (!selecting) return null
+		if (selecting) updateSelections((prev) => clearSelection(prev, id))
+	}, [onClear, selecting, updateSelections, id])
+
+	if (!selecting && onClear === undefined) return null
 
 	return (
 		<Button
