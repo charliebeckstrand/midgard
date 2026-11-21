@@ -88,9 +88,10 @@ function carryCard<T, C extends KanbanColumnBase<T>>(
 
 /**
  * Keyboard reordering and an accessible drag alternative for the {@link Kanban}
- * board (APG grabbed-element pattern). Space lifts/drops a card with live-region
- * announcements; while lifted, arrows move it within and across columns; while
- * not lifted, arrows/Home/End move focus between cards. Emits the next columns
+ * board (APG grabbed-element pattern). Space lifts a card or drops it, and a
+ * live region announces each step. While a card is lifted, the arrow keys move
+ * it in its column and across columns. While no card is lifted, the arrow keys,
+ * Home, and End move the focus between cards. Emits the next columns
  * through `onReorder`. Returns the lifted-card state and the card
  * `keydown`/`blur` handlers. The handlers keep their identity: `onCardKeyDown`
  * reads the lift and the columns of the last commit through a ref.

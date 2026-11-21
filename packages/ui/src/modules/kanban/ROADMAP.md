@@ -46,11 +46,7 @@ Each file is framework-free, and each has its own test suite under [`__tests__/m
 
 ## Pattern cleanup
 
-1. **The TSDoc of `KanbanCard` is on a private symbol (*P2*).** In `kanban-card.tsx`, the full TSDoc is on `KanbanCardImpl`, and the export `KanbanCard` says "See {@link KanbanCardImpl}". The docs API reference and the editor read the export, so they show a link to a symbol that no barrel exports (CONVENTIONS.md §12.1). Fix: move the TSDoc onto the export, as `Markdown` does in `components/markdown/markdown.tsx`. A check in `tsdoc-coverage-boundary.test.ts` that finds a barreled doc with a link to an `Impl` symbol can hold the fix.
-
-2. **TSDoc and comments out of the house voice (*P2*).** `context.ts` uses the passive "Provided by `<Kanban>`; read by" in each context doc, and its `liftedStore` remarks tell the history of an earlier design. `use-kanban-keyboard.ts` writes "lifts/drops" and "arrows/Home/End", and `kanban.tsx` writes "drag/keyboard state". The comment "Surfaces the column context for use within this card" in `kanban-card.tsx` does not say why the card reads `itemIds`. Fix: rewrite these in STE (rules 4 and 9), and drop the history, which the pull request holds. Review holds rule 4, because the controlled-language gate reads only rules 3, 6, and 10 ([STE.md](../../../../../STE.md)).
-
-3. **Names that do not say what they hold (*P2*).** In `kanban.tsx`, `labelProps` holds each prop of the `<section>`, not only its name (CONVENTIONS.md §8.4). A case in `kanban.test.tsx` names `onValueChange`, a prop that the board does not have; the board takes `onReorder`. Fix: rename the binding to `props`, and name `onReorder` in the case. No gate is practical for either.
+No open items.
 
 ## Performance
 

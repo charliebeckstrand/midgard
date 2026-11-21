@@ -36,29 +36,15 @@ export type KanbanCardProps = Omit<ComponentProps<'li'>, 'value'> & {
 }
 
 /**
- * Draggable card within a {@link KanbanColumn}, keyed by `value`. Wires the
- * `@dnd-kit` sortable bindings when the board is interactive, gives the keyboard
- * bindings to its {@link KanbanCardHandle}, and mirrors its content into the
- * drag overlay. On a read-only or a disabled board, the card takes no drag
- * bindings.
+ * The unmemoized body of {@link KanbanCard}.
  *
- * @remarks
- * Client component. The card is a list item of the `<ul>` of its column body.
- * Each card is a `Card` with the `surface` fill inside its `<li>`, with no
- * role and no tab stop. A control or a link inside the card thus keeps its own
- * role. Only the {@link KanbanCardHandle} starts a drag: a mouse or a finger on
- * the rest of the card selects text and scrolls. The handle also takes the drag
- * instructions and the keyboard lift. The card holds a handle child at its
- * start edge, centered on its height, and puts its other children in one
- * column beside it. An interactive card with no handle warns in development. Set
- * `aria-label` only when the content yields no usable name. Memoized: the card
- * reads only the card-facing {@link KanbanContext}, so a pointer drag doesn't
- * re-render the whole board.
+ * @internal
  */
 function KanbanCardImpl({ value: cardId, id, children, className, ...props }: KanbanCardProps) {
 	const { interactive, disabled, liftedStore, setOverlayEntry } = useKanbanContext()
 
-	// Surfaces the column context for use within this card.
+	// The card reads the item ids of its column, so it can warn when its value
+	// names no item there.
 	const { itemIds } = useKanbanColumnContext()
 
 	// The board's other unjoined key. A card key its column's `items` does not
@@ -164,8 +150,23 @@ function KanbanCardImpl({ value: cardId, id, children, className, ...props }: Ka
 }
 
 /**
- * Draggable card within a {@link KanbanColumn}. See {@link KanbanCardImpl}.
- * Memoized so a card re-renders only when its own props or card-facing context
- * change, not on every pointer-drag move elsewhere on the board.
+ * Draggable card within a {@link KanbanColumn}, keyed by `value`. Wires the
+ * `@dnd-kit` sortable bindings when the board is interactive, gives the keyboard
+ * bindings to its {@link KanbanCardHandle}, and mirrors its content into the
+ * drag overlay. On a read-only or a disabled board, the card takes no drag
+ * bindings.
+ *
+ * @remarks
+ * Client component. The card is a list item of the `<ul>` of its column body.
+ * Each card is a `Card` with the `surface` fill inside its `<li>`, with no
+ * role and no tab stop. A control or a link inside the card thus keeps its own
+ * role. Only the {@link KanbanCardHandle} starts a drag: a mouse or a finger on
+ * the rest of the card selects text and scrolls. The handle also takes the drag
+ * instructions and the keyboard lift. The card holds a handle child at its
+ * start edge, centered on its height, and puts its other children in one
+ * column beside it. An interactive card with no handle warns in development. Set
+ * `aria-label` only when the content yields no usable name. Memoized: the card
+ * reads only the card-facing {@link KanbanContext}, so a pointer drag doesn't
+ * re-render the whole board.
  */
 export const KanbanCard = memo(KanbanCardImpl)
