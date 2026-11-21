@@ -161,9 +161,12 @@ function LateByDay() {
 }
 
 // The tiles take no state of the example, so each render gives the same elements.
+// On a narrow board, the map tile takes the height of its content. The map keeps
+// its own ratio at the full width of the tile, so a fixed ratio would put the map
+// in a scroll region.
 const tiles = (
 	<>
-		<DashboardTile id="map" title="Late stops" ratio={16 / 10}>
+		<DashboardTile id="map" title="Late stops" ratio={16 / 10} fitContent>
 			<LateStops />
 		</DashboardTile>
 		<DashboardTile id="days" title="Late stops by day" ratio={16 / 10}>
