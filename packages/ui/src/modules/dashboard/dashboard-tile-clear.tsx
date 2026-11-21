@@ -5,6 +5,7 @@ import { Button } from '../../components/button'
 import { IntlMessage } from '../../primitives/intl'
 import { intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
+import { k } from '../../recipes/kata/dashboard'
 import { useDashboardActions } from './context'
 import { dashboardMessages } from './dashboard-messages'
 import { clearSelection } from './engine/dashboard-scope'
@@ -59,6 +60,7 @@ export function DashboardTileClear({ id, label, onClear }: DashboardTileClearPro
 			// `Button` sets no `type`, and a `submit` would send an enclosing form.
 			type="button"
 			variant="plain"
+			className={k().clear}
 			onClick={handleClear}
 			aria-label={intl.formatMessage(dashboardMessages.clearSelection, { label })}
 		>

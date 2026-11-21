@@ -123,6 +123,13 @@ const heading = 'min-w-0 flex-1'
 const actions = [flex.row, 'shrink-0 gap-2', dan.size.button.row]
 
 /**
+ * The Clear control of the action row. A labeled button is taller than a bare
+ * icon button, so it takes the block padding that gives it the height of the row.
+ * The row and the content box below it thus keep their height when it shows.
+ */
+const clear = dan.space.button.row
+
+/**
  * The content box. It fills the height that the header leaves. A widget taller
  * than the box scrolls inside it, so the tile never clips content without a way
  * to reach it. A widget that fills the box, such as a chart, shows no scrollbar.
@@ -264,6 +271,7 @@ export const k = defineKata(
 			header,
 			heading,
 			actions,
+			clear,
 			content,
 			expanded,
 			error,
