@@ -70,10 +70,6 @@ The apps copy parts of the kit by hand in several places: a focus outline and th
 
     The TSDoc of `PdfViewer` says that a text layer needs the page surface in a component of its own first. Make that split, then draw the layer, and let the search read it when `data` is absent. Open question: the cost of the layer on a long document, which `__benchmarks__/browser/pdf-viewer-open.bench.tsx` must measure. Proof: a browser case that selects text on a page.
 
-## Pattern cleanup
-
-1. **Nested ternaries: a gate for §8.4 (*P1*).** CONVENTIONS.md §8.4 tells the author to split a nested ternary into named steps, but no gate holds the rule. Biome's `style/noNestedTernary` finds the sites. In this area, they are in `date-picker/use-date-picker-state.ts`, `date-picker/use-date-picker-range-state.ts`, `date-picker/date-picker-trigger.tsx`, `date-input/date-input-utilities.ts`, `credit-card-input/credit-card-input-utilities.ts`, `calendar/calendar-day-cell.tsx`, `address-input/address-input.tsx`, and `switch/switch-choice.tsx`. The rule also finds sites in the other components, the modules, and the hooks. Split each site, then set the rule to `error` in the `ui` source beside `noExcessiveCognitiveComplexity` in `biome.json` (§4.8).
-
 ## Performance
 
 1. **DatePicker, ColorPicker, Combobox: the cost of a closed picker (*P2*).** A form can hold a closed picker in each row. The stops field of Places (`apps/places/src/components/place-form-drawer/trip-stops-field.tsx`) renders a `DatePicker` and an `AddressInput` for each stop. The browser suite measures the closed shell of a menu (`menu-mount.bench.tsx`) and of a popover (`popover-mount.bench.tsx`), but not of a picker. `combobox.bench.tsx` measures a closed `Combobox` only under jsdom. Add a browser bench for a closed picker on the shape of `popover-mount.bench.tsx`, with a rung for each picker. Record its findings in a dated section of `__benchmarks__/browser/README.md`, and gate the costly parts of a closed picker, as the menu work did.

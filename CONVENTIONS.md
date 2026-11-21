@@ -124,7 +124,7 @@ Do not declare a key again when the base gives it. `Omit<ComponentProps<'div'>, 
 
 4.7 A module constant that holds a fixed string, number, or regex takes `UPPER_SNAKE_CASE`, as `SEPARATOR` and `MINUS_SIGNS` do. A fixed `Set` takes it too. A recipe part, a cache, and a value that changes take `camelCase`. An object or an array table follows the form of its file. The [`no-camel-case-fixed-constant`](.biome/plugins/no-camel-case-fixed-constant.grit) Biome plugin finds a fixed value with a `camelCase` name. The route segment config of Next.js keeps its names, as `instant` does.
 
-4.8 Biome's `noExcessiveCognitiveComplexity` is an error in the source of `ui`, `apps`, `auth`, and `shared`. Tests and benchmarks are out of its reach. Split a function that breaks the rule. Do not suppress it.
+4.8 Biome's `noExcessiveCognitiveComplexity` is an error in the source of `ui`, `apps`, `auth`, and `shared`. Tests and benchmarks are out of its reach. Split a function that breaks the rule. Do not suppress it. Biome's `noNestedTernary` is an error in each file of `ui`, the tests and benchmarks included (§8.4).
 
 4.9 A prop takes the name that the table gives for its idea. Use the name in each component that has the idea, and do not use the alias in the last column:
 
@@ -220,7 +220,7 @@ A name does not repeat what its scope already says. In `use-scroll-lock.ts`, wri
 
 A handler that fills an `onX` key by shorthand keeps the name `onX`. A handler that a prop takes by name is `handleX`, unless a name that says what it does is clearer, such as `closeOnLeave`.
 
-Split a declaration that does more than one thing into named steps. A nested ternary is one such declaration, and a condition of three or more mixed clauses is another. Keep the order of evaluation.
+Split a declaration that does more than one thing into named steps. A nested ternary is one such declaration, and a condition of three or more mixed clauses is another. Keep the order of evaluation. §4.8 gives the gate for a nested ternary.
 
 The [`no-abbreviated-binding`](.biome/plugins/no-abbreviated-binding.grit) Biome plugin holds the clipped forms (`e`, `err`, `idx`, `cb`, and the rest of its list). Where a name follows a series or a payload key that the code does not own, suppress the diagnostic and give the reason.
 
