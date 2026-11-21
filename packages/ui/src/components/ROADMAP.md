@@ -82,9 +82,7 @@ The apps copy parts of the kit by hand in several places: a focus outline, a fol
 
    Give `CollapsePanel` the rule of `AccordionPanel`: the animated element takes the other props, and an inner body takes `className`. Proof: a `collapse.test.tsx` case that finds the class on the body, and a padding case in `browser/collapse-nested.test.tsx`.
 
-4. **Breadcrumb: one copy of the order rule (*P3*).** A collapsing `Breadcrumb` renders a `<style>` element with `BREADCRUMB_ORDER_RULE` (`breadcrumb-order.ts`) beside each trail. The rule is the same for each trail, so a page with more than one trail sends it again and parses it again. Give the element an `href` and a `precedence`, so that React renders one copy in the head for the page. Proof: a `breadcrumb.test.tsx` case that renders two collapsing trails and finds one `<style>`, and `browser/breadcrumb-collapse.test.tsx` for the fit.
-
-5. **StepperPanels: an inert slot by hand (*P3*).** `StepperPanels` (`stepper-panels.tsx`) renders an element with its recipe class and the spread, and nothing more. CONVENTIONS §3.6 gives such a slot to `createSlot`, as `StepperDescription` in the same unit uses it. Rewrite it with `createSlot`. A search for this shape finds no other hand-written inert slot in `components/`. Thus a Biome plugin for the shape can hold the rule with no debt.
+4. **StepperPanels: an inert slot by hand (*P3*).** `StepperPanels` (`stepper-panels.tsx`) renders an element with its recipe class and the spread, and nothing more. CONVENTIONS §3.6 gives such a slot to `createSlot`, as `StepperDescription` in the same unit uses it. Rewrite it with `createSlot`. A search for this shape finds no other hand-written inert slot in `components/`. Thus a Biome plugin for the shape can hold the rule with no debt.
 
 ## Performance
 
