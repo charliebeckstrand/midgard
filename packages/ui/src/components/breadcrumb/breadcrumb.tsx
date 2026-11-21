@@ -44,11 +44,7 @@ export function Breadcrumb({ collapse = false, className, ...props }: Breadcrumb
 
 	return (
 		<>
-			{/* The rule is the same for each trail. With `href` and `precedence`, React
-			    renders one copy in the head for the page. */}
-			<style href="ui-breadcrumb-order" precedence="default">
-				{BREADCRUMB_ORDER_RULE}
-			</style>
+			<style>{BREADCRUMB_ORDER_RULE}</style>
 
 			<BreadcrumbNav
 				// What follows the list keeps its width: the crumbs give way first. A box

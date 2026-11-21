@@ -20,31 +20,6 @@ describe('Breadcrumb', () => {
 		expect(el?.tagName).toBe('NAV')
 	})
 
-	it('renders one copy of the order rule for two collapsing trails', () => {
-		const trail = (name: string) => (
-			<Breadcrumb collapse aria-label={name}>
-				<BreadcrumbList>
-					<BreadcrumbItem>
-						<BreadcrumbLink href="/">Home</BreadcrumbLink>
-					</BreadcrumbItem>
-				</BreadcrumbList>
-			</Breadcrumb>
-		)
-
-		renderUI(
-			<>
-				{trail('First')}
-				{trail('Second')}
-			</>,
-		)
-
-		const rules = [...document.querySelectorAll('style')].filter((style) =>
-			style.textContent?.includes('[data-collapse]'),
-		)
-
-		expect(rules).toHaveLength(1)
-	})
-
 	it('names the landmark in the language of the reader, collapsed or not', () => {
 		renderUI(
 			<LocaleProvider locale="es-ES">

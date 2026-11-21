@@ -118,6 +118,8 @@ The apps copy parts of the kit by hand in several places: a focus outline, a fol
 
 - A time field. No app enters a time of day, and `DatePicker` keeps the time of day of its value. Add a time field on `useFormattedInput` when an app needs one.
 
+- One hoisted copy of the Breadcrumb order rule, through the `href` and `precedence` of `<style>`. React keeps a hoisted style in a cache for the document. A hydrated trail adopts the style from the markup of the server, so the style is inside the markup of the page. When that markup goes, the style goes too, and the cache still holds it. A later collapsing trail then gets no rule, and it does not collapse. The browser suite showed it in a shuffled order. The rule is small, and a page seldom has more than one trail, so each trail keeps its own `<style>`.
+
 - An array value on `CheckboxGroup`. Each `Checkbox` binds its own boolean field, as the checkbox demo of the form module does. An array value adds a second binding for the same set.
 
 - A native `disabled` on a `Button` in a locked scope. The lock makes the button `aria-disabled`, so it keeps the focus. Chromium moves the focus of a control that becomes disabled to the body.

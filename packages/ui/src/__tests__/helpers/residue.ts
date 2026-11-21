@@ -65,15 +65,6 @@ const DRAG_CURSOR = '[data-drag-cursor]'
 const RESOURCE_HINT =
 	'link:is([rel~=preload i], [rel~=modulepreload i], [rel~=prefetch i], [rel~=preconnect i], [rel~=dns-prefetch i])'
 
-/**
- * A style that a part of the kit hoists through `precedence`, such as the order
- * rule of a collapsing `Breadcrumb`. Its `href` starts with `ui-`. React
- * renders one copy in the head for the page and keeps it for the life of the
- * page. The rule is fixed, and each later render of the part brings the same
- * rule, so a later case reads no change that it did not cause.
- */
-const KIT_HOISTED_STYLE = 'style[data-precedence][data-href^="ui-"]'
-
 let children = new WeakSet<Element>()
 
 let headChildren = new WeakSet<Element>()
@@ -196,10 +187,7 @@ function collect(): string[] {
 	if (document.head.querySelector(DRAG_CURSOR)) leaks.push('a drag-cursor style, left in head')
 
 	for (const node of document.head.children) {
-		if (
-			!headChildren.has(node) &&
-			!node.matches(`${DRAG_CURSOR}, ${RESOURCE_HINT}, ${KIT_HOISTED_STYLE}`)
-		) {
+		if (!headChildren.has(node) && !node.matches(`${DRAG_CURSOR}, ${RESOURCE_HINT}`)) {
 			leaks.push(`${describeNode(node)}, left in head`)
 		}
 	}
