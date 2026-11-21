@@ -275,9 +275,18 @@ describe('MapPlat selected overlays', () => {
 			),
 		)
 
-		const halos = allBySlot(container, 'map-points-selected')
+		const halos = allBySlot(container, 'map-points-selected').map((halo) => halo.getAttribute('d'))
 
-		expect(halos).toHaveLength(1)
+		const dots = allBySlot(container, 'map-points-dot').map((dot) => dot.getAttribute('d'))
+
+		// The sets draw in the order of the children, so the Yard dot draws second.
+		// The halo traces it, so a pick that reached the Depot dot fails here, not
+		// only in a count.
+		expect(dots).toHaveLength(2)
+
+		expect(dots[0]).not.toBe(dots[1])
+
+		expect(halos).toEqual([dots[1]])
 
 		expect(tableRows(container)).toEqual(['Depot', 'Yard, selected'])
 	})
