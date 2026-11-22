@@ -1,10 +1,9 @@
 'use client'
 
-import { type ReactNode, useEffect, useState } from 'react'
-import { Alert } from 'ui/alert'
+import type { ReactNode } from 'react'
 import { Button } from 'ui/button'
 import { Drawer, DrawerBody, DrawerFooter, DrawerHeader, DrawerPanel, DrawerTitle } from 'ui/drawer'
-import { Form, type FormProps, type SubmitResult } from 'ui/form'
+import { Form, FormError, type FormProps, type SubmitResult } from 'ui/form'
 import { Columns } from 'ui/structure/columns'
 import { Flex } from 'ui/structure/flex'
 import { Text } from 'ui/text'
@@ -73,15 +72,6 @@ export function FormDrawer<V extends Record<string, unknown>>({
 	onSubmit,
 	children,
 }: FormDrawerProps<V>) {
-	// Why the last write failed. The route refuses a write for reasons that no
-	// field shows, such as an email that is not verified or a full list. Without
-	// this message, a refused write only left the drawer open.
-	const [failure, setFailure] = useState<string | null>(null)
-
-	useEffect(() => {
-		if (open) setFailure(null)
-	}, [open])
-
 	return (
 		<Drawer open={open} onOpenChange={onOpenChange}>
 			<DrawerPanel
@@ -117,17 +107,23 @@ export function FormDrawer<V extends Record<string, unknown>>({
 					key={`${String(open)}:${formKey}`}
 					defaultValues={defaultValues}
 					validate={validate}
-					onSubmit={(values) => {
-						setFailure(null)
-
-						return onSubmit(values)
+					// Why a write failed is the issue of the whole form. The route refuses a
+					// write for reasons that no field shows, such as an email that is not
+					// verified or a full list. Without the message, a refused write only left
+					// the drawer open. The form clears it on the next submit, and a new open
+					// mounts a new form with none.
+					onSubmit={async (values) => {
+						try {
+							return await onSubmit(values)
+						} catch (error) {
+							return { formError: failureMessage(error) }
+						}
 					}}
-					// Only a submit that nothing superseded settles. A submit that ends after
-					// the reader closed this form and opened another one does not close the
-					// new form or show its message there.
+					// Only a submit that nothing superseded settles, or writes its issue. A
+					// submit that ends after the reader closed this form and opened another
+					// one does not close the new form or show its message there.
 					onSettled={(outcome) => {
-						if (!outcome.ok) setFailure(failureMessage(outcome.error))
-						else if (open) onOpenChange(false)
+						if (outcome.ok && open) onOpenChange(false)
 					}}
 				>
 					<DrawerBody>
@@ -138,11 +134,7 @@ export function FormDrawer<V extends Record<string, unknown>>({
 						<Columns columns={{ initial: 1, sm: 2 }} gap="xl" align="start" className="pb-6">
 							{children}
 
-							{failure === null ? null : (
-								<Alert severity="error" className="sm:col-span-2">
-									<Text>{failure}</Text>
-								</Alert>
-							)}
+							<FormError className="sm:col-span-2" />
 						</Columns>
 					</DrawerBody>
 
