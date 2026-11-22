@@ -88,6 +88,7 @@ describe('filtersFormState', () => {
 			dirty: false,
 			valid: true,
 			submitting: false,
+			formError: null,
 		})
 	})
 

@@ -1724,7 +1724,7 @@ describe('Form onInvalidSubmit', () => {
 
 		await submit(container)
 
-		expect(onInvalidSubmit).toHaveBeenCalledExactlyOnceWith({ name: ['required'] })
+		expect(onInvalidSubmit).toHaveBeenCalledExactlyOnceWith({ name: ['required'] }, null)
 
 		expect(onSubmit).not.toHaveBeenCalled()
 
@@ -1752,7 +1752,7 @@ describe('Form onInvalidSubmit', () => {
 
 		await submit(container)
 
-		expect(onInvalidSubmit).toHaveBeenCalledExactlyOnceWith({ name: ['required'] })
+		expect(onInvalidSubmit).toHaveBeenCalledExactlyOnceWith({ name: ['required'] }, null)
 	})
 
 	// The documented use is to scroll to the first error, so the fields must
@@ -1821,10 +1821,13 @@ describe('Form native validation', () => {
 
 		await user.click(screen.getByRole('button', { name: 'Submit' }))
 
-		expect(onInvalidSubmit).toHaveBeenCalledExactlyOnceWith({
-			url: ['That is not a web address.'],
-			name: ['required'],
-		})
+		expect(onInvalidSubmit).toHaveBeenCalledExactlyOnceWith(
+			{
+				url: ['That is not a web address.'],
+				name: ['required'],
+			},
+			null,
+		)
 	})
 
 	it('lets the consumer turn native validation back on', () => {

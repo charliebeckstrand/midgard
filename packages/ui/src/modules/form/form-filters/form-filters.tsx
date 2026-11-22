@@ -146,6 +146,7 @@ export function FormFilters<T extends FilterValue = FilterValue>({
 			getValue: (name) => store.getState().values[name],
 			setValue,
 			setErrors: noop,
+			setFormError: noop,
 			setTouched: noop,
 			reset,
 		}),

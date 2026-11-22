@@ -139,7 +139,7 @@ function setExternalErrors<T>(state: FormState<T>, errors: Errors): FormState<T>
 	return { ...state, errors: nextErrors, touched: nextTouched, external: nextExternal }
 }
 
-/** Reducer for `Form` state: applies value/touched/error/sync/reset/submit actions, re-validating per `validateOn`. @internal */
+/** Reducer for `Form` state: applies value/touched/error/form-error/sync/reset/submit actions, re-validating per `validateOn`. A submit sets the issue of the whole form to the result of its client rule, and so clears an issue of the last attempt. @internal */
 export function formReducer<T extends Record<string, unknown>>(
 	state: FormState<T>,
 	action: FormAction<T>,
@@ -151,6 +151,10 @@ export function formReducer<T extends Record<string, unknown>>(
 			return touchField(state, action)
 		case 'set-errors-external':
 			return setExternalErrors(state, action.errors)
+		case 'set-form-error':
+			return state.formError === action.formError
+				? state
+				: { ...state, formError: action.formError }
 		case 'sync-values':
 			if (state.values === action.values && state.defaults === action.values) return state
 
@@ -158,7 +162,14 @@ export function formReducer<T extends Record<string, unknown>>(
 		case 'reset': {
 			const defaults = action.defaults ?? state.defaults
 
-			return { values: { ...defaults }, defaults, errors: {}, touched: {}, external: {} }
+			return {
+				values: { ...defaults },
+				defaults,
+				errors: {},
+				touched: {},
+				external: {},
+				formError: null,
+			}
 		}
 		case 'submit-validate':
 			return {
@@ -166,6 +177,7 @@ export function formReducer<T extends Record<string, unknown>>(
 				errors: action.errors,
 				touched: action.touched,
 				external: {},
+				formError: action.formError,
 			}
 	}
 }

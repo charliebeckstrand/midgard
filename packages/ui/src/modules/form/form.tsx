@@ -55,17 +55,21 @@ export type FormProps<T extends Record<string, unknown>> = {
 	 */
 	onSettled?: (outcome: SubmitOutcome<T>) => void
 	/**
-	 * Fires when client validation refuses a submit, with the failed fields only.
+	 * Fires when client validation refuses a submit, with the failed fields only,
+	 * and the issue of the whole form or `null`.
 	 *
 	 * A refused submit returns before `onSubmit`, and `onSettled` reports only a
 	 * terminal outcome, so nothing else marks the attempt. To the caller a refused
 	 * submit and no submit look the same. Use this callback to count the attempt
-	 * or to announce the refusal. The form already moves the focus to the first
-	 * invalid control, and a callback that moves the focus wins. Server-side issues
-	 * arrive through `helpers.setErrors` or a `{ fieldErrors }` return, not here.
-	 * Every field present carries at least one issue, so the list is never empty.
+	 * or to announce the refusal. When a field has an issue, the form already
+	 * moves the focus to the first invalid control, and a callback that moves the
+	 * focus wins. Server-side issues arrive through `helpers.setErrors` or a
+	 * `{ fieldErrors }` return, not here. Every field present carries at least
+	 * one issue. The map is empty only when the rule of the whole form alone
+	 * refuses the submit (see `zodResolver`). Then `formError` holds its issue,
+	 * and the focus stays where it is, because no field has an issue.
 	 */
-	onInvalidSubmit?: (errors: Partial<Record<keyof T, string[]>>) => void
+	onInvalidSubmit?: (errors: Partial<Record<keyof T, string[]>>, formError: string | null) => void
 	/** Fires when the form resets. */
 	onReset?: () => void
 	/**
@@ -90,8 +94,8 @@ export type FormProps<T extends Record<string, unknown>> = {
  * stable `values` reference, and the form syncs to each new reference. Each
  * field subscribes to its own part of the state through an external store. A
  * keystroke thus renders only that field again, not the whole tree. A submit
- * waits for `onSubmit`. It shows a returned `{ fieldErrors }` or a thrown
- * error. A token that only goes up tells the submit when a newer reset or an
+ * waits for `onSubmit`. It shows a returned `{ fieldErrors }`, a returned
+ * `{ formError }` (an issue of the whole form), or a thrown error. A token that only goes up tells the submit when a newer reset or an
  * unmount superseded it. A native reset of the `<form>` does not change the
  * inputs: the form cancels it and resets its bound fields.
  *
@@ -119,8 +123,8 @@ export type FormProps<T extends Record<string, unknown>> = {
  * `noValidate={false}` to turn native validation back on.
  *
  * The parts of the module act on the state of the form. Put a
- * {@link FormSubmit}, a {@link FormReset}, or a {@link FormErrorSummary}
- * anywhere inside the form.
+ * {@link FormSubmit}, a {@link FormReset}, a {@link FormError}, or a
+ * {@link FormErrorSummary} anywhere inside the form.
  *
  * @typeParam T - Shape of the form-value record.
  */

@@ -1,5 +1,5 @@
 import { hasIssues } from '../../../primitives/form/form-issues'
-import { normalizeIssues, runValidators } from './form-validate'
+import { normalizeIssues, runFormRule, runValidators } from './form-validate'
 import type { Errors, Touched, Validators } from './types'
 
 /**
@@ -12,13 +12,15 @@ import type { Errors, Touched, Validators } from './types'
 export type SubmitValidation = {
 	touched: Touched
 	errors: Errors
+	/** The issue of the whole form from its client rule, or `null`. */
+	formError: string | null
 	refused: boolean
 }
 
 /**
  * Validates every field for a submit, whatever the `validateOn` of the form
- * is. Each key of `values` counts as touched, so that each field shows its
- * issue.
+ * is, and runs the rule of the whole form. Each key of `values` counts as
+ * touched, so that each field shows its issue.
  *
  * @internal
  */
@@ -33,7 +35,14 @@ export function validateSubmit<T extends Record<string, unknown>>(
 	// The `'change'` mode runs each validator.
 	const errors = runValidators(validators, values, touched, 'change')
 
-	return { touched, errors, refused: Object.values(errors).some(hasIssues) }
+	const formError = runFormRule(validators, values)
+
+	return {
+		touched,
+		errors,
+		formError,
+		refused: formError !== null || Object.values(errors).some(hasIssues),
+	}
 }
 
 /**
@@ -73,6 +82,20 @@ export function extractFieldErrors(
 	if (fieldErrors === null || typeof fieldErrors !== 'object') return undefined
 
 	return fieldErrors as Record<string, string | string[] | undefined>
+}
+
+/**
+ * Reads the `formError` of a submit handler return: the issue of the whole
+ * form, or `null` when the return has none or an empty one.
+ *
+ * @internal
+ */
+export function extractFormError(raw: unknown): string | null {
+	if (raw === null || typeof raw !== 'object' || !('formError' in raw)) return null
+
+	const formError = (raw as { formError?: unknown }).formError
+
+	return typeof formError === 'string' && formError !== '' ? formError : null
 }
 
 /**

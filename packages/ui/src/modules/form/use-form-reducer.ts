@@ -77,6 +77,7 @@ export function useFormReducer<T extends Record<string, unknown>>({
 			errors: {},
 			touched: {},
 			external: {},
+			formError: null,
 		}),
 	)
 
@@ -101,7 +102,7 @@ export function useFormReducer<T extends Record<string, unknown>>({
 	// consumer gives a new `onReset` on each render.
 	const reportReset = useStableEvent(() => onReset?.())
 
-	const { values, defaults, errors, touched } = state
+	const { values, defaults, errors, touched, formError } = state
 
 	const dirtyFields = useMemo(() => deriveDirtyFields(values, defaults), [values, defaults])
 
@@ -122,8 +123,9 @@ export function useFormReducer<T extends Record<string, unknown>>({
 			dirty,
 			valid,
 			submitting,
+			formError,
 		}),
-		[values, errors, touched, dirtyFields, dirty, valid, submitting],
+		[values, errors, touched, dirtyFields, dirty, valid, submitting, formError],
 	)
 
 	// Made before the callbacks, so that `getValue` and `handleSubmit` read the
@@ -150,6 +152,10 @@ export function useFormReducer<T extends Record<string, unknown>>({
 		dispatch({ type: 'set-errors-external', errors: normalizeErrors(fieldErrors) })
 	}, [])
 
+	const setFormError = useCallback((message: string | null) => {
+		dispatch({ type: 'set-form-error', formError: message === '' ? null : message })
+	}, [])
+
 	// Resets the store only, and leaves an in-flight submit live.
 	const resetForm = useCallback(
 		(nextDefaults?: Record<string, unknown>) => {
@@ -169,6 +175,7 @@ export function useFormReducer<T extends Record<string, unknown>>({
 		validateRef,
 		setSubmitting,
 		setErrors,
+		setFormError,
 		resetForm,
 		onSubmit,
 		onSettled,
@@ -199,8 +206,8 @@ export function useFormReducer<T extends Record<string, unknown>>({
 	)
 
 	const actions = useMemo<FormActions>(
-		() => ({ getValue, setValue, setErrors, setTouched, reset }),
-		[getValue, setValue, setErrors, setTouched, reset],
+		() => ({ getValue, setValue, setErrors, setFormError, setTouched, reset }),
+		[getValue, setValue, setErrors, setFormError, setTouched, reset],
 	)
 
 	return { formState, store, actions, handleSubmit, handleReset, resets, failures }

@@ -23,6 +23,7 @@ export type {
 	SubmitResult,
 } from './engine/types'
 export { Form, type FormProps } from './form'
+export { FormError, type FormErrorProps } from './form-error'
 export { FormErrorSummary, type FormErrorSummaryProps } from './form-error-summary'
 export {
 	FormFilters,

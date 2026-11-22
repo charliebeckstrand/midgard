@@ -12,6 +12,7 @@ function makeState(values: Record<string, unknown>): FormStateValue {
 		dirty: false,
 		valid: true,
 		submitting: false,
+		formError: null,
 	}
 }
 
