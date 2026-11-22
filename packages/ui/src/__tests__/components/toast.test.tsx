@@ -1010,6 +1010,38 @@ describe('Toast: useToast behavior', () => {
 			expect(onNext).toHaveBeenCalledExactlyOnceWith('timeout')
 		})
 
+		it('keeps a new toast under the id of a dismissed toast that waited in the exit queue', async ({
+			clock,
+		}) => {
+			const onNext = vi.fn()
+
+			const api = renderToasts({}, null)
+
+			act(() => {
+				api.toast({ title: 'A', duration: 100 })
+				api.toast({ id: 'b', title: 'B', duration: 100 })
+			})
+
+			// `A` leaves, and `b` waits in the queue for an exit that never comes.
+			await clock.advance(100)
+
+			act(() => {
+				api.dismiss('b')
+			})
+
+			act(() => {
+				api.toast({ id: 'b', title: 'Result', duration: 10_000, onDismiss: onNext })
+			})
+
+			await clock.advance(5000)
+
+			expect(onNext).not.toHaveBeenCalled()
+
+			await clock.advance(5000)
+
+			expect(onNext).toHaveBeenCalledExactlyOnceWith('timeout')
+		})
+
 		it('staggers the timeouts with the viewport mounted', async ({ clock }) => {
 			const onA = vi.fn()
 

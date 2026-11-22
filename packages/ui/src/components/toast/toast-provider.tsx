@@ -113,14 +113,16 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 
 			const next: ToastData = { ...data, id, duration: data.duration ?? duration }
 
+			// The id leaves the exit queue, so the toast of this call does not leave in
+			// the place of an earlier toast whose time was up under the same id.
+			unqueue(id)
+
 			const live = toastsRef.current.some((item) => item.id === id && !item.dismissed)
 
 			if (live) {
 				// A call with the id of a live toast replaces that toast in place, so the
 				// toast keeps its place and its key. Its countdown starts again.
 				toastsRef.current = toastsRef.current.map((item) => (item.id === id ? next : item))
-
-				unqueue(id)
 
 				if (data.persist) disarm(id)
 				else arm(id, next.duration)
