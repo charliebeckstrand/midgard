@@ -336,3 +336,146 @@ describe('Grid range paste', () => {
 		expect(view.onCommit).not.toHaveBeenCalled()
 	})
 })
+
+describe('Grid range clear and cut', () => {
+	/** Selects the cells of row `row` from column `from` to column `to`, as a drag of the pointer does. */
+	function selectRow(
+		view: ReturnType<typeof renderPasteGrid>,
+		row: number,
+		from: number,
+		to: number,
+	) {
+		fireEvent.mouseDown(view.cell(row, from))
+
+		fireEvent.mouseUp(view.cell(row, from))
+
+		fireEvent.mouseDown(view.cell(row, to), { shiftKey: true })
+	}
+
+	/** Fires a cut as the browser does with no text selection, on the body, and returns the text that the grid wrote. */
+	function cut(): string | undefined {
+		const setData = vi.fn()
+
+		fireEvent.cut(document.body, { clipboardData: { setData } })
+
+		return setData.mock.calls[0]?.[1]
+	}
+
+	it('clears each cell of the range on Delete, as a paste of empty text', async ({ clock }) => {
+		const view = renderPasteGrid()
+
+		selectRow(view, 0, 0, 3)
+
+		fireEvent.keyDown(view.grid, { key: 'Delete' })
+
+		// A text cell takes empty text, and a number cell and a yes/no cell take
+		// no value. The read-only column keeps its value.
+		expect(view.onCommit).toHaveBeenCalledExactlyOnceWith([
+			{ rowKey: 1, columnId: 'name', value: '' },
+			{ rowKey: 1, columnId: 'count', value: undefined },
+			{ rowKey: 1, columnId: 'active', value: undefined },
+		])
+
+		await clock.advance(FIRST_WRITE_MS)
+
+		expect(liveRegion()).toHaveTextContent('3 cells cleared for Alice, 1 skipped')
+	})
+
+	it('clears the active cell on Backspace with no range', () => {
+		const view = renderPasteGrid()
+
+		fireEvent.mouseDown(view.cell(1, 0))
+
+		fireEvent.keyDown(view.grid, { key: 'Backspace' })
+
+		expect(view.onCommit).toHaveBeenCalledExactlyOnceWith([
+			{ rowKey: 2, columnId: 'name', value: '' },
+		])
+	})
+
+	it('saves nothing on a second clear of an emptied cell, and keeps its kind', () => {
+		const view = renderPasteGrid()
+
+		fireEvent.mouseDown(view.cell(0, 1))
+
+		fireEvent.keyDown(view.grid, { key: 'Delete' })
+
+		expect(view.onCommit).toHaveBeenCalledExactlyOnceWith([
+			{ rowKey: 1, columnId: 'count', value: undefined },
+		])
+
+		fireEvent.keyDown(view.grid, { key: 'Delete' })
+
+		// The empty number cell does not take `''`, so no change saves.
+		expect(view.onCommit).toHaveBeenCalledOnce()
+	})
+
+	it('leaves Delete with a modifier to the browser', () => {
+		const view = renderPasteGrid()
+
+		fireEvent.mouseDown(view.cell(0, 0))
+
+		fireEvent.keyDown(view.grid, { key: 'Delete', ctrlKey: true })
+
+		fireEvent.keyDown(view.grid, { key: 'Backspace', shiftKey: true })
+
+		expect(view.onCommit).not.toHaveBeenCalled()
+	})
+
+	it('undoes a clear with one Ctrl+Z', () => {
+		const view = renderPasteGrid()
+
+		selectRow(view, 0, 0, 1)
+
+		fireEvent.keyDown(view.grid, { key: 'Delete' })
+
+		fireEvent.keyDown(view.grid, { key: 'z', ctrlKey: true })
+
+		expect(view.texts()[0]).toEqual(['Alice', '1', 'Yes', 'A'])
+	})
+
+	it('copies the range on a cut, and then clears it', async ({ clock }) => {
+		const view = renderPasteGrid()
+
+		selectRow(view, 0, 0, 1)
+
+		act(() => view.grid.focus())
+
+		expect(cut()).toBe('Alice\t1')
+
+		expect(view.onCommit).toHaveBeenCalledExactlyOnceWith([
+			{ rowKey: 1, columnId: 'name', value: '' },
+			{ rowKey: 1, columnId: 'count', value: undefined },
+		])
+
+		await clock.advance(FIRST_WRITE_MS)
+
+		expect(liveRegion()).toHaveTextContent('2 cells cut for Alice')
+	})
+
+	it('leaves Delete in an open editor to the editor', () => {
+		const view = renderPasteGrid()
+
+		fireEvent.doubleClick(view.cell(0, 0))
+
+		const input = getSlot<HTMLInputElement>(view.container, 'grid-edit-input')
+
+		fireEvent.keyDown(input, { key: 'Delete' })
+
+		expect(view.onCommit).not.toHaveBeenCalled()
+	})
+
+	it('clears and cuts nothing without a grid-owned session', () => {
+		const view = renderPasteGrid({ editable: { session: 'manual', scope: 'row' } })
+
+		fireEvent.mouseDown(view.cell(0, 0))
+
+		fireEvent.keyDown(view.grid, { key: 'Delete' })
+
+		act(() => view.grid.focus())
+
+		cut()
+
+		expect(view.onCommit).not.toHaveBeenCalled()
+	})
+})

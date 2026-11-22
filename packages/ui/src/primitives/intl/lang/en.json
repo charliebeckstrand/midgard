@@ -820,12 +820,12 @@
 		"description": "The name of a cell of a grid by its column and the name of its row, such as \"Status, Wade Cooper\"."
 	},
 	"ui.grid.cellOutcome": {
-		"defaultMessage": "{column} {outcome, select, updated {updated} undone {undone} redone {redone} pasted {pasted} filled {filled} other {not saved}}",
-		"description": "Spoken when an edit of one cell of the grid saves, undoes, redoes, pastes, fills, or fails. The column names the cell."
+		"defaultMessage": "{column} {outcome, select, updated {updated} undone {undone} redone {redone} pasted {pasted} filled {filled} cleared {cleared} cut {cut} other {not saved}}",
+		"description": "Spoken when an edit of one cell of the grid saves, undoes, redoes, pastes, fills, clears, cuts, or fails. The column names the cell."
 	},
 	"ui.grid.cellsOutcome": {
-		"defaultMessage": "{count, plural, one {# cell} other {# cells}} {outcome, select, updated {updated} undone {undone} redone {redone} pasted {pasted} filled {filled} other {not saved}}",
-		"description": "Spoken when an edit of many cells of the grid saves, undoes, redoes, pastes, fills, or fails. The count is the number of cells."
+		"defaultMessage": "{count, plural, one {# cell} other {# cells}} {outcome, select, updated {updated} undone {undone} redone {redone} pasted {pasted} filled {filled} cleared {cleared} cut {cut} other {not saved}}",
+		"description": "Spoken when an edit of many cells of the grid saves, undoes, redoes, pastes, fills, clears, cuts, or fails. The count is the number of cells."
 	},
 	"ui.grid.clearColor": {
 		"defaultMessage": "Clear color",

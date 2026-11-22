@@ -11,6 +11,7 @@ import { useIntl } from '../../primitives/intl/use-intl'
 import {
 	describeHistoryMiss,
 	describeWrite,
+	type GridPasteOutcome,
 	type GridSaveOutcome,
 } from './engine/grid-announcements'
 import {
@@ -125,9 +126,10 @@ export function useGridEditWrites<T>({
 
 	// Writes the text of a paste into its cells, as one save. A cell that its
 	// column cannot edit, that has no `field`, or that holds a draft is
-	// skipped. A text that does not fit its cell is refused.
+	// skipped. A text that does not fit its cell is refused. A clear and a cut
+	// are a paste of empty text, and the outcome names them.
 	const pasteCells = useCallback(
-		(cells: readonly GridPasteCell[]) => {
+		(cells: readonly GridPasteCell[], outcome: GridPasteOutcome = 'pasted') => {
 			const source = editSourceRef.current
 
 			const getRow = rowLookup(source)
@@ -148,7 +150,7 @@ export function useGridEditWrites<T>({
 				else refused.push(paste.change)
 			}
 
-			submitCells(changes, 'pasted', getRow, { refused, skipped })
+			submitCells(changes, outcome, getRow, { refused, skipped })
 		},
 		[editSourceRef, drafts, submitCells],
 	)
