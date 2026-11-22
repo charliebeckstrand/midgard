@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import {
 	type Expression,
 	isAsExpression,
@@ -22,13 +24,20 @@ import {
 import { afterAll, describe, expect, it } from 'vitest'
 import { isFunctionLike } from '../helpers/ts-ast'
 import { startTypeScript, type TypeScriptServer } from '../helpers/ts-server'
-import { docsSites, isSourceFile, srcDir, srcRelative, walkSource } from '../helpers/walk-source'
+import {
+	docsSites,
+	isSourceFile,
+	srcDir,
+	srcRelative,
+	uiRoot,
+	walkSource,
+} from '../helpers/walk-source'
 
 // Spread-order boundary. CONVENTIONS.md §3.9 decides what a consumer may
 // override by where an attribute sits relative to `{...props}`. The rule has
-// three parts (the load-bearing attributes, the `data-slot` anchor, and the
-// internal `ref`) and §3.9 states each. This suite holds them; it does not
-// restate them.
+// four parts: the load-bearing attributes, the `data-slot` anchor, the internal
+// `ref`, and the composed keys (`style` and the DOM handlers). §3.9 states
+// each. This suite holds them, and it does not restate them.
 //
 // The `ref` part needs to know whether the consumer spread can still carry a
 // `ref`. A component that destructures `ref` from its props has taken it out of
@@ -67,7 +76,7 @@ const AGNOSTIC_BASE = /\bHTMLAttributes<HTMLElement>/
  * `role`, `data-slot`, or `ref`. `refTaken` is true when the same pattern binds
  * `ref`, or when the props type omits it.
  */
-type RestBinding = { name: string; native: boolean; refTaken: boolean }
+type RestBinding = { name: string; native: boolean; refTaken: boolean; taken: Set<string> }
 
 /**
  * The expression under its parentheses and casts. A cast changes the type of a
@@ -82,6 +91,23 @@ function uncast(node: Expression): Expression {
 		: node
 }
 
+// The keys that hold a handler or an object, so a spread position keeps only
+// one side (§3.9): `style` and each handler of the React DOM attributes. The set
+// comes from the `DOMAttributes` of `@types/react`, so a handler of a library,
+// such as the `onAnimationComplete` of Motion, is not in it.
+const COMPOSED_KEYS = new Set(['style', ...domHandlers()])
+
+/** The handler names of the `DOMAttributes` interface of `@types/react`. */
+function domHandlers(): string[] {
+	const types = readFileSync(join(uiRoot, 'node_modules/@types/react/index.d.ts'), 'utf8')
+
+	const start = types.indexOf('interface DOMAttributes<T> {')
+
+	const body = types.slice(start, types.indexOf('\n    }', start))
+
+	return [...body.matchAll(/^\s+(on[A-Z]\w*)\??:/gm)].flatMap((match) => match[1] ?? [])
+}
+
 const LOAD_BEARING =
 	/^(?:role|tabIndex|aria-(?:checked|selected|expanded|pressed|current|orientation|disabled|invalid|required|multiselectable|activedescendant))$/
 
@@ -89,8 +115,12 @@ const LOAD_BEARING =
 // the enclosing form.
 const BUTTON_HOST = /^(?:button|Button|ToggleIconButton|Element|Polymorphic\w*)$/
 
-/** One JSX attribute written before the consumer spread. */
-type Attribute = { name: string; value?: string }
+/**
+ * One JSX attribute beside the consumer spread. `value` is the text of a string
+ * literal. `source` is the text of the initializer, so the scan can see an
+ * attribute that composes the key of the spread.
+ */
+type Attribute = { name: string; value?: string; source?: string }
 
 /**
  * One JSX element that takes a consumer spread, and the attributes on each side
@@ -104,6 +134,15 @@ type Site = {
 	before: Attribute[]
 	after: Attribute[]
 	refTaken: boolean
+	/** The name of the consumer spread, such as `props`. */
+	spread: string
+	/**
+	 * The keys that the consumer spread cannot carry: each key that the props
+	 * pattern binds, and each key that the props type omits from its native
+	 * base. `undefined` when the spread carries no native attributes, so it
+	 * carries no `style` and no native handler either.
+	 */
+	taken: Set<string> | undefined
 }
 
 /**
@@ -184,6 +223,10 @@ function sitesIn(file: string, parsed: SourceFile): Site[] {
 
 			let spreadRefTaken = false
 
+			let spreadTaken: Set<string> | undefined
+
+			let spreadName = ''
+
 			for (const property of node.attributes.properties) {
 				if (!isJsxSpreadAttribute(property)) {
 					;(split ? after : before).push({
@@ -192,6 +235,7 @@ function sitesIn(file: string, parsed: SourceFile): Site[] {
 							property.initializer && isStringLiteral(property.initializer)
 								? property.initializer.text
 								: undefined,
+						source: property.initializer ? text(property.initializer) : undefined,
 					})
 
 					continue
@@ -207,7 +251,20 @@ function sitesIn(file: string, parsed: SourceFile): Site[] {
 				if (CONSUMER_SPREAD.test(name) || binding?.native) {
 					split = true
 
+					spreadName = name
+
 					spreadRefTaken = refTakers > 0 || Boolean(binding?.refTaken)
+
+					// A whole props parameter takes no key, and carries native keys when its type has a native base.
+					const parameter = propsParams.at(-1)
+
+					const shape =
+						parameter && isIdentifier(parameter.name) && parameter.name.text === name
+							? typeText(parameter.type, parsed)
+							: ''
+
+					if (binding?.native) spreadTaken = binding.taken
+					else if (NATIVE_BASE.test(shape)) spreadTaken = omittedKeys(shape)
 				}
 			}
 
@@ -219,6 +276,8 @@ function sitesIn(file: string, parsed: SourceFile): Site[] {
 					before,
 					after,
 					refTaken: spreadRefTaken,
+					spread: spreadName,
+					taken: spreadTaken,
 				})
 			}
 		}
@@ -258,6 +317,7 @@ function findRest(
 		name: rest.name.text,
 		native: NATIVE_BASE.test(shape),
 		refTaken: bindsRef(pattern) || REF_OMITTED.test(shape) || AGNOSTIC_BASE.test(shape),
+		taken: new Set([...boundKeys(pattern), ...omittedKeys(shape)]),
 	}
 }
 
@@ -283,6 +343,32 @@ function destructuresRef(parameter: ParameterDeclaration | undefined): boolean {
 	return (
 		parameter !== undefined && isObjectBindingPattern(parameter.name) && bindsRef(parameter.name)
 	)
+}
+
+/** The keys that a props type omits from its native base, as `Omit<ComponentProps<'li'>, 'onDrag'>` omits `onDrag`. */
+function omittedKeys(shape: string): Set<string> {
+	const keys = new Set<string>()
+
+	for (const omit of shape.matchAll(/Omit<\s*ComponentProps<[^>]*>\s*,([^>]*)>/g)) {
+		for (const key of (omit[1] ?? '').matchAll(/'([^']+)'/g)) {
+			if (key[1]) keys.add(key[1])
+		}
+	}
+
+	return keys
+}
+
+/** The keys that an object pattern binds, under their own names or an alias. */
+function boundKeys(pattern: ObjectBindingPattern): Set<string> {
+	const keys = new Set<string>()
+
+	for (const element of pattern.elements) {
+		const key = element.propertyName ?? element.name
+
+		if (!element.dotDotDotToken && key !== undefined && isIdentifier(key)) keys.add(key.text)
+	}
+
+	return keys
 }
 
 /** Whether an object pattern binds `ref`, under its own name or an alias. */
@@ -346,6 +432,30 @@ function collect(
 	return found
 }
 
+/**
+ * Each `style` or handler that a site writes while its consumer spread still
+ * carries the key. On either side of the spread, one of the two values is lost,
+ * as with a ref. After the spread, an attribute that reads the key from the
+ * spread, such as `props.onClick`, composes both.
+ */
+function composedKeys(sites: Site[]): string[] {
+	return collect(
+		sites.map((site) => ({
+			...site,
+			before: [
+				...site.before,
+				...site.after.filter(
+					(attribute) => !attribute.source?.includes(`${site.spread}.${attribute.name}`),
+				),
+			],
+		})),
+		(site, attribute) =>
+			site.taken && COMPOSED_KEYS.has(attribute.name) && !site.taken.has(attribute.name)
+				? `<${site.tag}> ${attribute.name}`
+				: undefined,
+	)
+}
+
 const lines = (violations: string[]) => violations.join('\n  ')
 
 describe('spread order boundary', () => {
@@ -381,6 +491,8 @@ describe('spread order boundary', () => {
 			attribute.name === 'ref' && !site.refTaken ? `<${site.tag}> ref` : undefined,
 	)
 
+	const composed = composedKeys(sites)
+
 	it('no element writes a load-bearing attribute before its spread', () => {
 		expect(
 			ordered,
@@ -399,6 +511,53 @@ describe('spread order boundary', () => {
 		expect(
 			refs,
 			`internal refs a consumer ref replaces (destructure \`ref\` and join it through useComposedRefs, CONVENTIONS.md §3.9):\n  ${lines(refs)}`,
+		).toEqual([])
+	})
+
+	it('no element writes a style or a handler that a consumer key replaces', () => {
+		expect(
+			composed,
+			`styles and handlers that the spread still carries (destructure the key and merge it: composeEventHandlers for a handler, a spread of props.style for a style, CONVENTIONS.md §3.9):\n  ${lines(composed)}`,
+		).toEqual([])
+	})
+
+	it('finds a style or a handler that the spread still carries', () => {
+		const found = (source: string) => composedKeys(fixture('keys.tsx', source))
+
+		const base = `type P = ComponentProps<'div'>`
+
+		expect(
+			found(`${base}\nfunction A(props: P) { return <div onClick={go} {...props} /> }`),
+		).toEqual(['keys.tsx:2 <div> onClick'])
+
+		expect(
+			found(`${base}\nfunction A({ ...props }: P) { return <div {...props} style={s} /> }`),
+		).toEqual(['keys.tsx:2 <div> style'])
+
+		// Composed from the spread, taken out of it, or omitted from its type.
+		expect(
+			found(
+				`${base}\nfunction A(props: P) { return <div {...props} onClick={compose(props.onClick, go)} /> }`,
+			),
+		).toEqual([])
+
+		expect(
+			found(
+				`${base}\nfunction A({ onClick, ...props }: P) { return <div {...props} onClick={go} /> }`,
+			),
+		).toEqual([])
+
+		expect(
+			found(
+				`type Q = Omit<ComponentProps<'li'>, 'onDragEnd'>\nfunction A({ ...props }: Q) { return <li {...props} onDragEnd={go} /> }`,
+			),
+		).toEqual([])
+
+		// A handler of a library, not of the DOM, is out of reach of the spread.
+		expect(
+			found(
+				`${base}\nfunction A({ ...props }: P) { return <m.div {...props} onAnimationComplete={go} /> }`,
+			),
 		).toEqual([])
 	})
 
@@ -421,7 +580,7 @@ describe('spread order boundary', () => {
 	it('reads a consumer spread behind a cast', () => {
 		const [site] = fixture('cast.tsx', `export const a = <div role="row" {...(props as object)} />`)
 
-		expect(site?.before).toEqual([{ name: 'role', value: 'row' }])
+		expect(site?.before).toEqual([{ name: 'role', value: 'row', source: '"row"' }])
 	})
 
 	it('reads a rest of native props under another name, and the ref after it', () => {
@@ -431,7 +590,7 @@ describe('spread order boundary', () => {
 			function Board({ size, ...labelProps }: BoardProps) { return <section {...labelProps} ref={inner} /> }`,
 		)
 
-		expect(site?.after).toEqual([{ name: 'ref', value: undefined }])
+		expect(site?.after).toEqual([{ name: 'ref', value: undefined, source: '{inner}' }])
 
 		expect(site?.refTaken).toBe(false)
 	})
