@@ -17,13 +17,13 @@ Components split into a **static** (server-renderable) tier and a **client** tie
 
 For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcodeMask` preset.
 
-> A `clearable` `input`, `search-input`, `date-input`, `listbox`, `combobox`, or `date-picker` shows a clear button while it holds a value.
+> A `clearable` `input`, `search-input`, `date-input`, `address-input`, `signature-pad`, `listbox`, `combobox`, or `date-picker` shows a clear button while it holds a value.
 
 > An uncontrolled control follows a native form reset. A `Form` cancels the native reset and resets its bound fields. Either reset drops a partial entry, such as typed text that the control did not commit. A control that puts no value in a native form does not follow the native reset: `RangeSlider`, `Listbox`, `Calendar`, the `DatePicker` family, `ColorPicker`, and `SignaturePad`.
 
 > `CheckboxGroup` and `RadioGroup` require their own name: give `aria-label` or `aria-labelledby`. The `<legend>` of an enclosing `<fieldset>` does not name the group.
 
-> `Checkbox`, `Radio`, and `Switch` floor their hit area with `TouchTarget` ([`PRIMITIVES.md`](PRIMITIVES.md)). A container that puts bare controls closer than the floor sets `--touch-target-gap-x` or `--touch-target-gap-y` to its gap, or uses a `touch-gap-*` utility for the two. A toggle group sets them already. Controls that touch in a grid go in a container with the `touch-pitch` utility. On a coarse pointer, each control keeps its size in a cell of at least 44px. Its hit area fills the cell, as in the month picker of `Calendar`. A scroll box with no padding of its own, such as the content box of a dashboard tile, uses the `touch-scroll` utility. On a coarse pointer, a hit area at its bottom edge then stays in the box. The days of `Calendar` fill square cells of 40, 44, or 48 px at `sm`, `md`, and `lg`. The `sm` cell is under the floor.
+> `Checkbox`, `Radio`, and `Switch` floor their hit area with `TouchTarget` ([`PRIMITIVES.md`](PRIMITIVES.md)). A container that puts bare controls closer than the floor sets `--touch-target-gap-x` or `--touch-target-gap-y` to its gap, or uses a `touch-gap-*` utility for the two. A toggle group sets them already. Controls that touch in a grid go in a container with the `touch-pitch` utility. On a coarse pointer, each control keeps its size in a cell of at least 44px. Its hit area fills the cell, as in the month picker of `Calendar`. A scroll box with no padding of its own, such as the content box of a dashboard tile, uses the `touch-scroll` utility. On a coarse pointer, a hit area at its bottom edge then stays in the box. On a coarse pointer, the days of `Calendar` fill square cells of 40, 44, or 48 px at `sm`, `md`, and `lg`. The `sm` cell is under the floor.
 
 > A `RadioGroup` in a `Field` takes the description of the `Field`. A bare `Radio` in the group does not take the id of the `Field`. Wrap each `Radio` in a `RadioField` to give it an id and a `Label`.
 
@@ -71,7 +71,7 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > `UIProvider` mounts one `ToastProvider` and its viewport, so `useToast()` works anywhere under it with no setup. A `toast()` call with the `id` of a live toast replaces that toast in place, and its countdown starts again.
 
-> While a toast shows, the `Toast` viewport is a `region` landmark with the name "Notifications". F8 moves focus to the newest toast, and that focus pauses auto-dismiss.
+> While a toast shows, the `Toast` viewport is a `region` landmark with the name "Notifications". F8 moves focus to the first control of the newest toast that has one, and that focus pauses auto-dismiss.
 
 > `dialog`, `drawer`, and `sheet` have the root-and-parts shape of `popover`: a root such as `Dialog`, a `DialogTrigger`, and a `DialogPanel`.
 

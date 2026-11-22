@@ -122,7 +122,7 @@ Enforced by boundary tests (`packages/ui/src/__tests__/boundary/`). Add a page u
 | Geometry: layout boxes and pure calculations on coordinates, boxes, and shapes ([CONVENTIONS.md](../../CONVENTIONS.md) §10.5) | `packages/ui` | `pnpm test:geometry` |
 | Code under the React Compiler ([CONVENTIONS.md](../../CONVENTIONS.md) §10.7) | `packages/ui` | `pnpm test:compiler` |
 | The rule documents, the Biome plugins, or the apps | `packages/ui` | `pnpm test:workspace` |
-| The accessibility corpus and its sweeps | `packages/ui` | `pnpm test:a11y` |
+| The accessibility tests in `src/__tests__/a11y` | `packages/ui` | `pnpm test:a11y` |
 | Coverage of the jsdom suite and of the browser suite, as one report in `coverage/` | `packages/ui` | `pnpm test:coverage` |
 | Benchmarks | `packages/ui` | `pnpm bench` / `pnpm bench:browser` |
 | The font files and `src/fonts/fonts.css`, after a change to the source font in `fonts/` or to `scripts/fonts/build.ts` (`fonts-boundary.test.ts` fails when they do not agree) | `packages/ui` | `pnpm fonts` |

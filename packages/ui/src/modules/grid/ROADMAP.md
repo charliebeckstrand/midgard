@@ -8,7 +8,7 @@
 
 A grid sorts on several columns, searches, and filters each column through a query-builder sheet. It groups on one column, on the client or on the server, and it aggregates into group totals and a grand total. It pages, scrolls without end, and windows its rows under `virtualize`. It edits by row or by cell, with undo and redo, and it adds rows through a new-row slot. The keyboard cursor, the cell range with copy, paste, and fill, and the column pins complete the core. Column groups, reorder, resize, export, and the context menus complete the surface.
 
-The apps use a small part of this surface. The admin users grid and the elections grid of uncalled races sort and take a row click. The index sheet of places adds a search, a toolbar filter, and a windowed body in a sheet. No app edits, selects a range, or groups.
+The apps use a small part of this surface. The admin users grid sorts and gives an action on each row. The elections grid of uncalled races sorts and takes a row click. The index sheet of places adds a search, a toolbar filter, and a windowed body in a sheet. No app edits, selects a range, or groups.
 
 TanStack Table holds the column state: order, visibility, pins, sizes, and the resize gesture ([`engine/grid-table/features.ts`](engine/grid-table/features.ts)). The grid filters, sorts, and pages in [`use-grid-client-view.ts`](use-grid-client-view.ts), and it groups in [`use-grid-group-tree.ts`](use-grid-group-tree.ts). The engine builds no row model. Parity tests hold the client view equal to a stock engine table, which [`helpers/grid-engine.ts`](../../__tests__/helpers/grid-engine.ts) builds.
 

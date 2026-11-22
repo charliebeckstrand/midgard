@@ -8,7 +8,7 @@ The components live in one directory for each unit, and [`docs/COMPONENTS.md`](.
 
 Gates hold the shared contracts. [`static-component-boundary.test.ts`](../__tests__/boundary/static-component-boundary.test.ts) holds the static tier. [`props-base-boundary.test.ts`](../__tests__/boundary/props-base-boundary.test.ts) holds the native base of each props type. [`tsdoc-coverage-boundary.test.ts`](../__tests__/boundary/tsdoc-coverage-boundary.test.ts) and [`default-value-boundary.test.ts`](../__tests__/boundary/default-value-boundary.test.ts) hold the TSDoc and its defaults.
 
-The shared corpus in [`__tests__/a11y/cases`](../__tests__/a11y/cases) gives each subject to the axe baseline and to the focus sweeps. A component with no subject gets no axe scan, and no gate requires a subject today.
+The shared corpus in [`__tests__/a11y/cases`](../__tests__/a11y/cases) gives each subject to the axe baseline and to the focus sweeps. A component with no subject gets no axe scan. Only [`disclosure-state-boundary.test.ts`](../__tests__/boundary/disclosure-state-boundary.test.ts) requires a subject, and only for a component with an open state.
 
 The apps copy parts of the kit by hand in several places: a focus outline and the last content of an overlay through its exit. The items below move each copy into the kit. This file covers the units of `components/`, and [`../../ROADMAP.md`](../../ROADMAP.md) covers the layers below them.
 
