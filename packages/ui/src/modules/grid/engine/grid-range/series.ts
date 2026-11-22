@@ -159,7 +159,8 @@ function daySeries(days: readonly CalendarDay[], count: number): CalendarDay[] |
  * months, as each day of the same date of the month, steps by months. Twelve
  * months make a year. Another line with a constant step of days steps by days.
  * Each value has the type of its source. `null` for a line that is no such
- * series.
+ * series, and for a series of `YYYY-MM-DD` strings that would leave the years
+ * 0000 to 9999, which the shape cannot hold.
  *
  * @internal
  */
@@ -180,7 +181,9 @@ export function dateSeries(line: readonly unknown[], count: number): unknown[] |
 
 	const next = monthSeries(read, count) ?? daySeries(read, count)
 
-	return next?.map((day) => writeDay(day, iso)) ?? null
+	if (!next || (iso && next.some(({ year }) => year < 0 || year > 9999))) return null
+
+	return next.map((day) => writeDay(day, iso))
 }
 
 /** Text that ends in a whole number: the text before it, and its digits. */

@@ -462,6 +462,14 @@ describe('fillLine dates', () => {
 		expect(fillLine(['2026-02-28', '2026-02-29'], 2)).toEqual(['2026-02-28', '2026-02-29'])
 
 		expect(fillLine(['2026-04-29', '2026-04-31'], 1)).toEqual(['2026-04-29'])
+
+		// A `YYYY-MM-DD` string has four digits of the year, so a series that
+		// would leave the years 0000 to 9999 repeats.
+		expect(fillLine(['0000-01-02', '0000-01-01'], 2)).toEqual(['0000-01-02', '0000-01-01'])
+
+		expect(fillLine(['9999-12-30', '9999-12-31'], 1)).toEqual(['9999-12-30'])
+
+		expect(fillLine(['9999-10-31', '9999-11-30'], 2)).toEqual(['9999-10-31', '9999-11-30'])
 	})
 })
 
