@@ -20,6 +20,7 @@ function initialState(): FormState<Values> {
 		errors: {},
 		touched: {},
 		external: {},
+		formError: null,
 	}
 }
 
@@ -156,6 +157,7 @@ describe('formReducer', () => {
 				errors: { name: ['stale'] },
 				touched: {},
 				external: {},
+				formError: null,
 			}
 
 			const next = formReducer(prior, {
@@ -215,6 +217,7 @@ describe('formReducer', () => {
 				errors: { confirm: ['mismatch'] },
 				touched: { password: true },
 				external: {},
+				formError: null,
 			}
 
 			const next = formReducer(prior, {
@@ -236,6 +239,7 @@ describe('formReducer', () => {
 					errors: { name: ['taken'] },
 					touched: { name: true, age: true },
 					external: { name: true },
+					formError: null,
 				}
 			}
 
@@ -336,6 +340,7 @@ describe('formReducer', () => {
 				errors: {},
 				touched: { name: true },
 				external: {},
+				formError: null,
 			}
 
 			const next = formReducer(prior, {
@@ -369,6 +374,7 @@ describe('formReducer', () => {
 				errors: { name: ['stale'] },
 				touched: {},
 				external: {},
+				formError: null,
 			}
 
 			const next = formReducer(prior, {
@@ -392,6 +398,7 @@ describe('formReducer', () => {
 				errors: { age: ['prev'] },
 				touched: {},
 				external: {},
+				formError: null,
 			}
 
 			const next = formReducer(prior, {
@@ -426,6 +433,7 @@ describe('formReducer', () => {
 				errors: { age: ['taken'] },
 				touched: { age: true },
 				external: { age: true },
+				formError: null,
 			}
 
 			const next = formReducer(prior, {
@@ -445,6 +453,7 @@ describe('formReducer', () => {
 				errors: { name: ['oops'] },
 				touched: { name: true, age: true },
 				external: { name: true },
+				formError: null,
 			}
 
 			const next = formReducer(prior, {
@@ -458,6 +467,7 @@ describe('formReducer', () => {
 				errors: {},
 				touched: {},
 				external: {},
+				formError: null,
 			})
 		})
 
@@ -470,6 +480,7 @@ describe('formReducer', () => {
 				errors: { name: ['oops'] },
 				touched: { name: true },
 				external: {},
+				formError: null,
 			}
 
 			const next = formReducer(prior, { type: 'reset' })
@@ -490,6 +501,7 @@ describe('formReducer', () => {
 				errors: { age: ['too young'] },
 				touched: { name: true },
 				external: { age: true },
+				formError: null,
 			}
 
 			const next = formReducer(prior, {
@@ -517,6 +529,7 @@ describe('formReducer', () => {
 				errors: {},
 				touched: {},
 				external: {},
+				formError: null,
 			}
 
 			const next = formReducer(prior, { type: 'sync-values', values: sharedValues })
@@ -533,10 +546,12 @@ describe('formReducer', () => {
 				errors: { name: ['stale'] },
 				touched: {},
 				external: { name: true },
+				formError: null,
 			}
 
 			const next = formReducer(prior, {
 				type: 'submit-validate',
+				formError: null,
 				errors: { age: ['too young'] },
 				touched: { name: true, age: true },
 			})

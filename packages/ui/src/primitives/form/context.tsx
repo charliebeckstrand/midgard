@@ -6,15 +6,22 @@ import { noopSubscribe } from '../../utilities/noop'
 import { sameElements } from '../../utilities/same-elements'
 import type { FormFieldTarget, FormFieldTargets } from './form-field-targets'
 
-/** Snapshot of a form's reactive state: field values, per-field errors/touched/dirty maps, and the derived `dirty`/`valid`/`submitting` flags. */
+/** Snapshot of a form's reactive state: field values, per-field errors/touched/dirty maps, the derived `dirty`/`valid`/`submitting` flags, and the issue of the whole form. */
 export type FormStateValue = {
 	values: Record<string, unknown>
 	errors: Record<string, string[] | undefined>
 	touchedFields: Record<string, boolean>
 	dirtyFields: Record<string, boolean>
 	dirty: boolean
+	/** Whether no field has an issue. The issue of the whole form does not count. */
 	valid: boolean
 	submitting: boolean
+	/**
+	 * The issue of the whole form, which is about no one field, or `null`. A
+	 * `{ formError }` return of `onSubmit`, `setFormError`, and the rule of the
+	 * whole form of `zodResolver` set it. The next submit and a reset clear it.
+	 */
+	formError: string | null
 }
 
 /** Imperative form mutators. Stable across renders, so reading them never forces a re-render. */
@@ -22,6 +29,8 @@ export type FormActions = {
 	getValue: (name: string) => unknown
 	setValue: (name: string, value: unknown) => void
 	setErrors: (errors: Record<string, string | string[] | undefined>) => void
+	/** Sets the issue of the whole form, or clears it with `null` or `''`. */
+	setFormError: (formError: string | null) => void
 	setTouched: (name: string) => void
 	reset: (nextDefaults?: Record<string, unknown>) => void
 }
@@ -374,6 +383,22 @@ export function useFormErrors(): FormStateValue['errors'] {
 		store?.subscribe ?? noopSubscribe,
 		() => store?.getState().errors ?? NO_ERRORS,
 		() => store?.getServerState().errors ?? NO_ERRORS,
+	)
+}
+
+/**
+ * Subscribes to the issue of the whole form of the enclosing form.
+ *
+ * @returns The issue, or `null` without one or outside a `Form`.
+ * @internal
+ */
+export function useFormError(): string | null {
+	const store = useFormStoreContext()
+
+	return useSyncExternalStore(
+		store?.subscribe ?? noopSubscribe,
+		() => store?.getState().formError ?? null,
+		() => store?.getServerState().formError ?? null,
 	)
 }
 

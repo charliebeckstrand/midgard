@@ -90,8 +90,8 @@ export type FormProps<T extends Record<string, unknown>> = {
  * stable `values` reference, and the form syncs to each new reference. Each
  * field subscribes to its own part of the state through an external store. A
  * keystroke thus renders only that field again, not the whole tree. A submit
- * waits for `onSubmit`. It shows a returned `{ fieldErrors }` or a thrown
- * error. A token that only goes up tells the submit when a newer reset or an
+ * waits for `onSubmit`. It shows a returned `{ fieldErrors }`, a returned
+ * `{ formError }` (an issue of the whole form), or a thrown error. A token that only goes up tells the submit when a newer reset or an
  * unmount superseded it. A native reset of the `<form>` does not change the
  * inputs: the form cancels it and resets its bound fields.
  *
@@ -119,8 +119,8 @@ export type FormProps<T extends Record<string, unknown>> = {
  * `noValidate={false}` to turn native validation back on.
  *
  * The parts of the module act on the state of the form. Put a
- * {@link FormSubmit}, a {@link FormReset}, or a {@link FormErrorSummary}
- * anywhere inside the form.
+ * {@link FormSubmit}, a {@link FormReset}, a {@link FormError}, or a
+ * {@link FormErrorSummary} anywhere inside the form.
  *
  * @typeParam T - Shape of the form-value record.
  */

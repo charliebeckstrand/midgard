@@ -1,6 +1,33 @@
 import type { Errors, Touched, ValidateOn, Validator, Validators } from './types'
 
 /**
+ * The key of the rule of the whole form on a {@link Validators} map. A symbol,
+ * so the field loops, which read the string keys, never see it, and no field
+ * name can take it. {@link zodResolver} sets it for the issues of a schema
+ * with no field (`path: []`).
+ *
+ * @internal
+ */
+export const FORM_RULE: unique symbol = Symbol('formRule')
+
+/** A validators map that can carry the rule of the whole form under {@link FORM_RULE}. @internal */
+export type WithFormRule<T> = Validators<T> & {
+	[FORM_RULE]?: (values: T) => string | undefined
+}
+
+/**
+ * The issue of the whole form from the rule under {@link FORM_RULE}, or `null`
+ * when the map has no rule or the rule passes.
+ *
+ * @internal
+ */
+export function runFormRule<T>(validate: Validators<T> | undefined, values: T): string | null {
+	const rule = (validate as WithFormRule<T> | undefined)?.[FORM_RULE]
+
+	return rule?.(values) ?? null
+}
+
+/**
  * Normalizes a validator return to a non-empty issue array or `undefined`.
  *
  * @internal

@@ -38,13 +38,15 @@ export type FormState<T> = {
 	errors: Errors
 	touched: Touched
 	external: Record<string, true>
+	/** The issue of the whole form, which is about no one field, or `null`. */
+	formError: string | null
 }
 
 /**
  * The actions of the form reducer, told apart by their `type`. An action can:
  *
  * - write a value or mark a field touched.
- * - merge external errors.
+ * - merge external errors, or set the issue of the whole form.
  * - sync the controlled values and their defaults.
  * - reset the form to new defaults or to the held ones.
  * - commit the validation of all the fields for a submit.
@@ -66,9 +68,10 @@ export type FormAction<T> =
 			validateOn: ValidateOn
 	  }
 	| { type: 'set-errors-external'; errors: Errors }
+	| { type: 'set-form-error'; formError: string | null }
 	| { type: 'sync-values'; values: T }
 	| { type: 'reset'; defaults?: T }
-	| { type: 'submit-validate'; touched: Touched; errors: Errors }
+	| { type: 'submit-validate'; touched: Touched; errors: Errors; formError: string | null }
 
 /**
  * Optional shape returned from `onSubmit` to surface server-side validation
@@ -76,22 +79,27 @@ export type FormAction<T> =
  *
  * @remarks
  * An entry of `''` is an issue. An entry of `undefined` or `[]` clears the
- * field. When no entry has an issue, the return counts as a success.
+ * field. A non-empty `formError` is an issue of the whole form, such as
+ * "Invalid credentials", which `FormError` and `FormErrorSummary` show. When
+ * no entry has an issue and `formError` is empty or absent, the return counts
+ * as a success.
  */
 export type SubmitResult<T> = {
 	fieldErrors?: Partial<Record<keyof T, string | string[] | undefined>>
+	/** An issue of the whole form, which is about no one field. */
+	formError?: string
 }
 
 /**
  * Terminal outcome of one submit attempt, delivered to `onSettled`. Client
- * validation failures and `{ fieldErrors }` returns with at least one issue
- * are mid-flow and do not fire `onSettled`. A `{ fieldErrors }` return with no
+ * validation failures, and `{ fieldErrors }` or `{ formError }` returns with at
+ * least one issue, are mid-flow and do not fire `onSettled`. A `{ fieldErrors }` return with no
  * issue is a success. On success, `values` are the values that `onSubmit` got,
  * not the values after a later write or reset.
  */
 export type SubmitOutcome<T> = { ok: true; values: T } | { ok: false; error: Error }
 
-/** Second argument to a {@link FormSubmitHandler}: imperatively set field errors (e.g. from a server response) or reset the form, optionally to new defaults. */
+/** Second argument to a {@link FormSubmitHandler}: imperatively set field errors or the issue of the whole form (e.g. from a server response), or reset the form, optionally to new defaults. */
 export type FormHelpers<T> = {
 	/**
 	 * Sets field errors, such as the errors of a server response.
@@ -101,6 +109,15 @@ export type FormHelpers<T> = {
 	 * reset superseded writes nothing.
 	 */
 	setErrors: (errors: Partial<Record<keyof T, string | string[]>>) => void
+	/**
+	 * Sets the issue of the whole form, such as "Invalid credentials", or
+	 * clears it with `null`. The next submit and a reset clear it too.
+	 *
+	 * @remarks
+	 * A call from the handler of an attempt that a newer submit or an outside
+	 * reset superseded writes nothing.
+	 */
+	setFormError: (formError: string | null) => void
 	/**
 	 * Resets the form, optionally to new defaults.
 	 *

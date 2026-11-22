@@ -35,7 +35,12 @@ describe('validateSubmit', () => {
 	it('does not refuse a form with no validators', () => {
 		const result = validateSubmit(undefined, { name: '', age: 0 })
 
-		expect(result).toEqual({ touched: { name: true, age: true }, errors: {}, refused: false })
+		expect(result).toEqual({
+			touched: { name: true, age: true },
+			errors: {},
+			formError: null,
+			refused: false,
+		})
 	})
 })
 
