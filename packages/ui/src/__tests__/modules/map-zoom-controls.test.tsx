@@ -64,6 +64,31 @@ describe('MapZoomControls', () => {
 		expect(readTransform(container)).not.toBe('translate(0 0) scale(1)')
 	})
 
+	it('puts the group after the plot on the right by default', () => {
+		const { container, plot, getByRole } = renderControls()
+
+		const box = bySlot(container, 'map-plot-box')
+
+		expect(box).toHaveAttribute('data-zoom-controls', 'right')
+
+		expect(plot.compareDocumentPosition(getByRole('group', { name: 'Zoom' }))).toBe(
+			Node.DOCUMENT_POSITION_FOLLOWING,
+		)
+	})
+
+	it.each([
+		['top', Node.DOCUMENT_POSITION_PRECEDING],
+		['bottom', Node.DOCUMENT_POSITION_FOLLOWING],
+		['left', Node.DOCUMENT_POSITION_FOLLOWING],
+		['right', Node.DOCUMENT_POSITION_FOLLOWING],
+	] as const)('puts the group on the %s side, in the order of the screen', (side, position) => {
+		const { container, plot, getByRole } = renderControls({ zoomControls: side })
+
+		expect(bySlot(container, 'map-plot-box')).toHaveAttribute('data-zoom-controls', side)
+
+		expect(plot.compareDocumentPosition(getByRole('group', { name: 'Zoom' }))).toBe(position)
+	})
+
 	it('steps the scale as the keys do, and speaks the same line', async () => {
 		const { container, zoomIn, zoomOut, reset } = renderControls()
 

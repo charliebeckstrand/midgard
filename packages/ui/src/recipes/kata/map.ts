@@ -308,25 +308,40 @@ export const k = {
 	},
 	/**
 	 * The box around the plot and the zoom buttons of a zooming map. The buttons
-	 * take a gutter column at the end of the plot, so they never cover the
-	 * geography. The plot takes the column that stays (`minmax(0,1fr)`), and can
-	 * become narrower than its content. The column order follows the reading
-	 * direction: a right-to-left page puts the gutter at the left.
+	 * take a gutter on one side of the plot, so they never cover the geography.
+	 * The plot takes the space that stays, and can become smaller than its
+	 * content.
+	 *
+	 * The buttons follow the plot in the DOM, except at the top. The `left` and
+	 * `right` entries are physical sides. The main axis of a flex row follows the
+	 * reading direction, so the `rtl:` variant of each side reverses the row.
 	 */
-	zoomBox: 'grid grid-cols-[minmax(0,1fr)_auto] gap-2',
+	zoomBox: {
+		base: 'flex gap-2',
+		top: 'flex-col',
+		bottom: 'flex-col',
+		left: 'flex-row-reverse rtl:flex-row',
+		right: 'flex-row rtl:flex-row-reverse',
+	},
 	/**
-	 * The zoom buttons of a zooming map, at the top of the gutter beside the
-	 * plot. The group sits on the opaque surface fill with a ring, so it reads as
-	 * one control. The buttons touch, so the stack is a grid with the touch
-	 * pitch: on a coarse pointer each row is 44 px tall, and the hit area of a
-	 * button does not reach over the next (CONVENTIONS §3.10).
+	 * The zoom buttons of a zooming map, centered in the gutter beside, above,
+	 * or below the plot. The group sits on the opaque surface fill with a ring,
+	 * so it reads as one control. The buttons touch, so the group is a grid with
+	 * the touch pitch: on a coarse pointer each cell is 44 px, and the hit area
+	 * of a button does not reach over the next (CONVENTIONS §3.10).
 	 */
-	zoomControls: [
-		'grid self-start rounded-lg',
-		narabi.touch.pitch,
-		omote.bg.surface,
-		sen.ring.default,
-	],
+	zoomControls: {
+		base: [
+			'grid shrink-0 self-center rounded-lg',
+			narabi.touch.pitch,
+			omote.bg.surface,
+			sen.ring.default,
+		],
+		/** A stack beside the plot. */
+		stack: '',
+		/** A row above or below the plot. */
+		row: 'grid-flow-col',
+	},
 	/** Motion vocabulary for the mount reveals, from `zu`, so the two modules' reveals never drift. */
 	motion,
 	skeleton: {

@@ -19,7 +19,7 @@ import { ChartPlotBox } from '../chart/engine/chart-plot-box'
 import { useChartMenu } from '../chart/engine/context'
 import { useMapZoomView } from './context'
 import type { MapLegendRail } from './engine/map-legend/plan'
-import type { MapLegendPlacement } from './engine/types'
+import type { MapLegendPlacement, MapZoomControlsPlacement } from './engine/types'
 import { MapHoverProvider } from './map-hover-provider'
 import { MapZoomControls } from './map-zoom-controls'
 import { MapZoomProvider } from './map-zoom-provider'
@@ -216,8 +216,8 @@ type MapPlotRegionProps = Pick<ComponentProps<'div'>, 'aria-label' | 'aria-label
 	tooltip: ReactNode
 	/** What the keyboard cursor needs; the plat resolves it, this element hosts it. */
 	keyboard: Omit<MapKeyboardOptions, 'zoom'>
-	/** Whether a zooming plot shows its zoom buttons ({@link MapZoomControls}). */
-	controls: boolean
+	/** Where a zooming plot shows its zoom buttons ({@link MapZoomControls}), or `null` for none. */
+	controls: MapZoomControlsPlacement | null
 	children: ReactNode
 }
 
@@ -272,7 +272,8 @@ export function MapPlotRegion({
 	// layout of the plot, so they never cover the geography. The image role
 	// makes each descendant presentational, so a button inside the plot has no
 	// name and no role.
-	const zoomControls = controls && zoom !== null ? <MapZoomControls zoom={zoom} /> : null
+	const zoomControls =
+		controls !== null && zoom !== null ? <MapZoomControls zoom={zoom} placement={controls} /> : null
 
 	const plot = (
 		<div
@@ -323,17 +324,47 @@ export function MapPlotRegion({
 		</div>
 	)
 
-	if (zoomControls === null) return plot
+	if (zoomControls === null || controls === null) return plot
 
+	return (
+		<MapZoomBox placement={controls} controls={zoomControls} aside={aside} shape={shape}>
+			{plot}
+		</MapZoomBox>
+	)
+}
+
+/** Props for {@link MapZoomBox}: the plot, its zoom buttons, and their side. @internal */
+type MapZoomBoxProps = {
+	placement: MapZoomControlsPlacement
+	controls: ReactNode
+	aside: boolean
+	shape: Pick<MapFrameShape, 'fill' | 'aspect'>
+	children: ReactNode
+}
+
+/**
+ * The box around the plot and its zoom buttons. It takes the layout of the
+ * plot in the frame, and puts the buttons in a gutter on the side that
+ * `placement` names ({@link k.zoomBox}).
+ *
+ * @internal
+ */
+function MapZoomBox({ placement, controls, aside, shape, children }: MapZoomBoxProps) {
 	return (
 		<div
 			data-slot="map-plot-box"
-			className={cn(k.zoomBox, plotLayout(aside, shape.fill))}
+			data-zoom-controls={placement}
+			// The flex of the box comes last, so it replaces the grid of a `fill` layout.
+			className={cn(plotLayout(aside, shape.fill), k.zoomBox.base, k.zoomBox[placement])}
 			style={plotStyle(shape)}
 		>
-			{plot}
+			{/* The buttons come first only at the top, so the order of the DOM
+			    and of the focus follows the order on the screen there. */}
+			{placement === 'top' && controls}
 
-			{zoomControls}
+			{children}
+
+			{placement !== 'top' && controls}
 		</div>
 	)
 }
@@ -354,13 +385,14 @@ function plotLayout(aside: boolean, fill: boolean): string {
 
 /**
  * The classes that fill the box around the plot and its zoom buttons. The plot
- * is the one grid item of that box, so it stretches to the height of the box.
- * The plot is a grid itself under `fill`, so its content has a definite height.
+ * is the flex item that grows, and the buttons keep their own size. Beside the
+ * buttons, the plot stretches to the height of the box. The plot is a grid
+ * itself under `fill`, so its content has a definite height.
  *
  * @internal
  */
 function plotFill(fill: boolean): string {
-	return cn('min-w-0', fill && 'grid min-h-0')
+	return cn('min-h-0 min-w-0 flex-auto', fill && 'grid')
 }
 
 /**

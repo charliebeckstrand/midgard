@@ -23,6 +23,7 @@ export type {
 	MapProjection,
 	MapShape,
 	MapTopology,
+	MapZoomControlsPlacement,
 } from './engine/types'
 export { MapGeofence, type MapGeofenceProps } from './map-geofence'
 export { MapMarker, type MapMarkerProps } from './map-marker'

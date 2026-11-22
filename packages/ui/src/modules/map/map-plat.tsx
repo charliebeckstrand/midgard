@@ -64,6 +64,7 @@ import type {
 	MapGeography,
 	MapOverlaySelection,
 	MapProjection,
+	MapZoomControlsPlacement,
 } from './engine/types'
 import { MapChrome } from './map-chrome'
 import { MapFrame, MapPlotRegion } from './map-frame'
@@ -233,7 +234,7 @@ type MapPlatBaseProps = AccessibleName &
 		 * the pointer does. Each of these keys speaks the result through a polite
 		 * live region. `+` and `-` speak the new scale as a percent of the fit,
 		 * such as `Zoom 160%`, and `0` speaks `Zoom reset`. Zoom-in, zoom-out,
-		 * and reset buttons show over the top end corner of the plot (see
+		 * and reset buttons show in a gutter beside the plot (see
 		 * `zoomControls`). `true` takes the
 		 * default ceiling, a number sets its own, and the object form adds
 		 * `modifier` (below).
@@ -284,7 +285,9 @@ type MapPlatBaseProps = AccessibleName &
 		 * button steps the view as the `+`, `-`, and `0` keys do, and speaks the
 		 * same line. They sit in a gutter beside the `role="img"` plot, in a named
 		 * group, so they never cover the geography and each is a tab stop of its
-		 * own. A button at the end of its range is
+		 * own. A side places the group: `left` and `right` stack the buttons,
+		 * centered on the height of the plot; `top` and `bottom` set them in a
+		 * row, centered on its width. `true` is `right`. A button at the end of its range is
 		 * `aria-disabled` and keeps the focus. A map with no `zoom` shows none.
 		 *
 		 * The buttons are the single-pointer path to each scale, which WCAG 2.2
@@ -294,7 +297,7 @@ type MapPlatBaseProps = AccessibleName &
 		 *
 		 * @defaultValue true
 		 */
-		zoomControls?: boolean
+		zoomControls?: boolean | MapZoomControlsPlacement
 		/**
 		 * Fires when the view transform changes, with that transform: `x` and `y` pan
 		 * the fitted geography in frame units, `k` scales it.
@@ -648,6 +651,20 @@ function MapZoomLayer({ children }: { children: ReactNode }) {
 			</g>
 		</MapZoomScaleContext>
 	)
+}
+
+/**
+ * The side of the zoom buttons that the `zoomControls` prop names, or `null`
+ * for none. `true` is the end of a physical row: `right`.
+ *
+ * @internal
+ */
+function zoomControlsPlacement(
+	input: boolean | MapZoomControlsPlacement,
+): MapZoomControlsPlacement | null {
+	if (input === false) return null
+
+	return input === true ? 'right' : input
 }
 
 /** The data table's value-column header: the name of the colored field, else the localized "Detail". A data key is never a header. @internal */
@@ -1752,7 +1769,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 					aria-labelledby={ariaLabelledBy}
 					shape={shape}
 					aside={aside}
-					controls={zoomControls}
+					controls={zoomControlsPlacement(zoomControls)}
 					keyboard={{
 						enabled: navigable,
 						activate: activateTarget,
