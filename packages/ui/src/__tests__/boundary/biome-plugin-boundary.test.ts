@@ -358,6 +358,24 @@ export const h = <Button variant="bare" aria-label="Close"><Icon icon={<X />} />
 `,
 		},
 	],
+	'no-unused-layout-read': [
+		{
+			file: 'reads.ts',
+			source: `declare const el: HTMLElement
+declare const key: string
+declare function use(value: unknown): void
+el.offsetHeight // flag
+el.offsetWidth // flag
+el.getBoundingClientRect() // flag
+void key // flag
+export const h = el.offsetHeight
+use(el.getBoundingClientRect())
+void use(1)
+void 0
+// el.offsetHeight in a comment
+`,
+		},
+	],
 	'no-use-prefixed-type-name': [
 		{
 			file: 'types.ts',
