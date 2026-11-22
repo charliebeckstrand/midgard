@@ -34,7 +34,7 @@ The lazy-load hooks are one stack, not copies. `createLazyModule` in [`utilities
 
 4. **Proof of the scope of each Biome plugin (*P2*).** [`CONVENTIONS.md`](../../CONVENTIONS.md) §10.10 and the header of [`biome-plugin-boundary.test.ts`](src/__tests__/boundary/biome-plugin-boundary.test.ts) say that the gate proves the pattern and not the `includes`. A plugin with a wrong glob never runs, and nothing fails. A copy of `biome.json` and `.biome` in a temporary root applies each override by the path of a fixture. A probe at `packages/ui/src/hooks/` gets the clamp diagnostic, and the excluded `packages/ui/src/utilities/clamp.ts` gets none. For each plugin, write one fixture in its scope and one out of it. Lint the temporary root with the real config.
 
-7. **The props-base gate follows a component tag (*P2*).** [`props-base-boundary.test.ts`](src/__tests__/boundary/props-base-boundary.test.ts) counts only a lowercase JSX tag. A part that renders its element through a component, such as `Flex`, `Field`, or `Button`, is out of its reach. The parts of `FormFilters` had no native base for this reason. Follow a component tag to the element that it renders, and report a part whose props do not reach that element.
+5. **The props-base gate follows a component tag (*P2*).** [`props-base-boundary.test.ts`](src/__tests__/boundary/props-base-boundary.test.ts) counts only a lowercase JSX tag. A part that renders its element through a component, such as `Flex`, `Field`, or `Button`, is out of its reach. The parts of `FormFilters` had no native base for this reason. Follow a component tag to the element that it renders, and report a part whose props do not reach that element.
 
 ## Performance
 
