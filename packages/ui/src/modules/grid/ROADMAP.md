@@ -1,6 +1,6 @@
 # Grid roadmap
 
-> **Goal: finish the spreadsheet model of the cell range and the row selection, and keep each gesture measured.** The engine work is done: TanStack Table v9 holds only the column state, and the grid computes its rows itself. The open work is the range features that the first range release left out, a short list of AG Grid gaps, and two churn costs.
+> **Goal: finish the spreadsheet model of the cell range, and keep each gesture measured.** The engine work is done: TanStack Table v9 holds only the column state, and the grid computes its rows itself. The open work is the range features that the first range release left out, a short list of AG Grid gaps, and two churn costs.
 
 ## Status
 
@@ -60,7 +60,7 @@ Each change follows the loop of the [browser benchmark README](../../__benchmark
 
 1. **Forced colors for the range and the fill handle (*P2*).** A cell of the range shows by a blue outline and a tint. The fill handle shows by its background and a border ([`recipes/kata/grid.ts`](../../recipes/kata/grid.ts)). Forced colors remove the tint and replace the colors, and no test examines either part. [`CONVENTIONS.md`](../../../../../CONVENTIONS.md) §5.10 asks each such part to keep a mark. Add a range case and a fill-handle case to [`forced-colors-indicators.test.tsx`](../../__tests__/browser/forced-colors-indicators.test.tsx), and add a `sen.forced` entry where the mark is lost.
 
-2. **A bench for the writes of a range (*P2*).** [`grid-range.bench.tsx`](../../__benchmarks__/browser/grid-range.bench.tsx) times the extend and the shrink of a range, and no bench times a paste or a fill. A paste of a large block goes through `parse` and `validate` for each cell, one `onCommit`, and one history step. Add a paste scenario and a fill-down scenario on the editable grid of that file, at 1,000 rows without a window. Items 1 and 9 of Features then change a measured path.
+2. **A bench for the writes of a range (*P2*).** [`grid-range.bench.tsx`](../../__benchmarks__/browser/grid-range.bench.tsx) times the extend and the shrink of a range, and no bench times a paste or a fill. A paste of a large block goes through `parse` and `validate` for each cell, one `onCommit`, and one history step. Add a paste scenario and a fill-down scenario on the editable grid of that file, at 1,000 rows without a window. Items 3 and 4 of Features then change a measured path.
 
 ## Not planned
 

@@ -10,7 +10,7 @@ The layers have an order. `utilities` and `types` are at the bottom, with `core`
 
 Biome holds the order. The `noRestrictedImports` overrides in [`biome.json`](../../biome.json) keep components, structure, layouts, providers, kata, and kumi out of `hooks`. They keep components, structure, layouts, kumi, and kiso out of `primitives`. Kiso and kumi never import upward, and a consumer reaches a recipe only through its kata ([`src/recipes/README.md`](src/recipes/README.md) §3). An override keeps `core`, `utilities`, and `types` from each layer above them. The `hooks` and `primitives` overrides also keep out `modules`, and the `primitives` override keeps out `providers`. No rule holds `server`.
 
-The static tier renders in React Server Components ([`REFERENCE.md`](REFERENCE.md) §2). [`static-component-boundary.test.ts`](src/__tests__/boundary/static-component-boundary.test.ts) scans a curated list of static leaves, each skeleton, and each file of `structure`. It also scans a curated list of the primitives that the leaves render through. The scan reads one file at a time.
+The static tier renders in React Server Components ([`REFERENCE.md`](REFERENCE.md) §2). [`static-component-boundary.test.ts`](src/__tests__/boundary/static-component-boundary.test.ts) scans a curated list of static leaves, each skeleton, and each file of `structure`. It walks the runtime imports from these files, stops at each `'use client'` file, and scans each file that it reaches.
 
 Each behavior that many units share has one home and a gate ([`CONVENTIONS.md`](../../CONVENTIONS.md) §3.10). The import of a name comes from the file that declares it, and [`import-home-boundary.test.ts`](src/__tests__/boundary/import-home-boundary.test.ts) holds it. [`surface-index.test.ts`](src/__tests__/docs/surface-index.test.ts) holds each surface index in `docs` to its barrel. [`density-native-boundary.test.ts`](src/__tests__/boundary/density-native-boundary.test.ts), [`size-scale-boundary.test.ts`](src/__tests__/boundary/size-scale-boundary.test.ts), and [`density-geometry.test.ts`](src/__tests__/core/density-geometry.test.ts) hold density. [`biome-plugin-boundary.test.ts`](src/__tests__/boundary/biome-plugin-boundary.test.ts) proves the pattern of each Biome plugin against its fixtures.
 
@@ -46,7 +46,7 @@ The lazy-load hooks are one stack, not copies. `createLazyModule` in [`utilities
 
 - A move of `AppearanceSettings` out of `providers`. `UIProvider` also renders the hosts of the toast and the confirm, so the providers layer sits above the components in each case. The move also breaks a public import path for no gain.
 
-- A registry through which a module adds its marks to `rootMarks`. The events module is the one such module, and `ui/server` reaches only its pure engine files. The server gate in Pattern cleanup holds that the server graph stays pure.
+- A registry through which a module adds its marks to `rootMarks`. The events module is the one such module, and `ui/server` reaches only its pure engine files. [`server-graph-boundary.test.ts`](src/__tests__/boundary/server-graph-boundary.test.ts) holds that the server graph stays pure.
 
 - One hook in place of `useIdleLoad`, `useIntentLoad`, `useLazyModule`, and `useIdlePreload`. Each adds one layer over one `LazyModule`, and the apps import the two public ones.
 
