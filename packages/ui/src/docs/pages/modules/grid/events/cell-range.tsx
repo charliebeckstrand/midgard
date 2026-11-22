@@ -10,7 +10,7 @@ export default function CellRange() {
 		<>
 			<Text tone="muted">
 				<PointerHint
-					mouseText="Shift-click or drag across the cells to select a range"
+					mouseText="Shift-click or drag across the cells to select a range, or press Ctrl+A or Cmd+A to select all"
 					touchText="Use a keyboard or a mouse to select a range of cells"
 				/>
 			</Text>

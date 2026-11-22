@@ -1235,6 +1235,9 @@ export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'>
 	 *   scrolls. A drag from a touch pointer or from a control in a cell does not.
 	 * - A move without Shift ends the range. The first Escape ends the range, and
 	 *   the next one clears the cursor.
+	 * - Ctrl/Cmd+A on the grid makes the range from the first data cell to the
+	 *   last, and the cursor goes to the last cell. A group header, a group total,
+	 *   and a detail panel are not cells of the range.
 	 * - Ctrl/Cmd+C on the grid writes the range as TSV, or the active cell with no
 	 *   range. A cell reads as export reads it, with the export's formula guard.
 	 *   The copy also writes the cells as an HTML table, so a paste into a
