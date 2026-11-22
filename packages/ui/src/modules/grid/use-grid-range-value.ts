@@ -1,6 +1,6 @@
 'use client'
 
-import { type RefObject, useLayoutEffect, useRef, useState } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 import { useControlledLatch } from '../../hooks/use-controlled-latch'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import type { GridRangeCells } from './engine/grid-range/range'
@@ -76,15 +76,15 @@ export function focusRow(cells: GridRangeCells): number | undefined {
 export function useGridRangeValue<T>({
 	binding,
 	handle,
-	rowKeysRef,
-	colIndexMapRef,
-	cursorColumnsRef,
+	rowKeys,
+	columns,
 }: {
 	binding: GridRange | undefined
 	handle: GridRangeHandle
-	rowKeysRef: RefObject<readonly (string | number)[]>
-	colIndexMapRef: RefObject<Map<string | number, number>>
-	cursorColumnsRef: RefObject<readonly GridColumn<T>[]>
+	/** The keys of the rows of the cursor, in display order. */
+	rowKeys: readonly (string | number)[]
+	/** The columns of the cursor, in display order. */
+	columns: readonly GridColumn<T>[]
 }): void {
 	const value = binding?.value
 
@@ -111,9 +111,9 @@ export function useGridRangeValue<T>({
 		if (!cells) return null
 
 		const corner = (row: number | undefined, col: number): GridCellRef | null => {
-			const rowKey = row === undefined ? undefined : rowKeysRef.current[row]
+			const rowKey = row === undefined ? undefined : rowKeys[row]
 
-			const column = cursorColumnsRef.current[col]
+			const column = columns[col]
 
 			return rowKey === undefined || !column ? null : { rowKey, columnId: column.id }
 		}
@@ -125,30 +125,37 @@ export function useGridRangeValue<T>({
 		return anchor && focus ? { anchor, focus } : null
 	})
 
-	// Shows a value, or no range for a value that names a cell the grid does not show.
-	const show = useStableEvent((next: GridRangeState | null) => {
-		const at = (cell: GridCellRef): Coord | null => {
-			const row = rowKeysRef.current.indexOf(cell.rowKey)
+	// Shows a value on a layout, or no range for a value that names a cell that
+	// the layout does not hold.
+	const show = useStableEvent(
+		(
+			next: GridRangeState | null,
+			keys: readonly (string | number)[],
+			cols: readonly GridColumn<T>[],
+		) => {
+			const at = (cell: GridCellRef): Coord | null => {
+				const row = keys.indexOf(cell.rowKey)
 
-			const col = colIndexMapRef.current.get(cell.columnId)
+				const col = cols.findIndex((column) => column.id === cell.columnId)
 
-			return row === -1 || col === undefined ? null : { row, col }
-		}
+				return row === -1 || col === -1 ? null : { row, col }
+			}
 
-		const from = next && at(next.anchor)
+			const from = next && at(next.anchor)
 
-		const to = next && at(next.focus)
+			const to = next && at(next.focus)
 
-		if (next && from && to && handle.selectRange(from, to)) {
-			shown(next)
+			if (next && from && to && handle.selectRange(from, to)) {
+				shown(next)
 
-			return
-		}
+				return
+			}
 
-		handle.endRange()
+			handle.endRange()
 
-		shown(null)
-	})
+			shown(null)
+		},
+	)
 
 	// A range needs both corners. The store holds them once the cursor commits.
 	const report = useStableEvent((anchor: Coord | null, focus: Coord | null) => {
@@ -172,19 +179,21 @@ export function useGridRangeValue<T>({
 	const seed = useStableEvent(() => {
 		const initial = binding?.defaultValue
 
-		if (!controlled && initial) show(initial)
+		if (!controlled && initial) show(initial, rowKeys, columns)
 	})
 
 	// The seed of an uncontrolled grid runs one time, before the first report.
 	useLayoutEffect(() => seed(), [seed])
 
-	// The value of a controlled grid at mount, a new value, or a report that the
-	// owner did not take. A report that the owner takes leaves the two the same.
+	// The value of a controlled grid at mount, a new value, a report that the
+	// owner did not take, or a new layout. A report that the owner takes leaves
+	// the two the same. A new layout can hold a row or a column of a value that
+	// the last layout did not, as when the rows load or a filter ends.
 	useLayoutEffect(() => {
 		if (!controlled) return
 
 		const target = value ?? null
 
-		if (!sameRange(screen, target)) show(target)
-	}, [controlled, value, screen, show])
+		if (!sameRange(screen, target)) show(target, rowKeys, columns)
+	}, [controlled, value, screen, rowKeys, columns, show])
 }

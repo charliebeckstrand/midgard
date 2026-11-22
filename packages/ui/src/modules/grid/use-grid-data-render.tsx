@@ -312,9 +312,9 @@ export function useGridDataRender<T>(
 	useGridRangeValue<T>({
 		binding: typeof props.range === 'object' ? props.range : undefined,
 		handle: cursor.range,
-		rowKeysRef: indexRefs.rowKeysRef,
-		colIndexMapRef: indexRefs.colIndexMapRef,
-		cursorColumnsRef: indexRefs.cursorColumnsRef,
+		rowKeys,
+		// The cursor's columns are the visible columns (see `useGridDataView`).
+		columns: visibleColumns,
 	})
 
 	// Lift the column-manager dialog's open state, resolve the (default-on)

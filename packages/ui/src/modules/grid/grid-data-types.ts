@@ -502,8 +502,9 @@ export type GridRangeState = {
  * @remarks A controlled grid shows `value`. The grid reports each change
  * through `onValueChange`, and it shows `value` again when the owner does not
  * take the change. A value that names a row or a column that the grid does
- * not show is no range. The cursor goes to the focus cell of a new value, and
- * the window scrolls to it.
+ * not show is no range until the grid shows the cell, as when the rows load
+ * or a filter ends. The cursor goes to the focus cell of a new value, and the
+ * window scrolls to it.
  */
 export type GridRange = {
 	value?: GridRangeState | null

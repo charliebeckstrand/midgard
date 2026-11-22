@@ -754,6 +754,45 @@ describe('Grid range binding', () => {
 		expect(onValueChange).not.toHaveBeenCalled()
 	})
 
+	it('shows a value whose rows load after it, and when a filter shows its row again', () => {
+		const onValueChange = vi.fn()
+
+		const value = { anchor: at(1, 'name'), focus: at(2, 'role') }
+
+		const grid = (shown: Row[]) => (
+			<Grid
+				columns={columns}
+				rows={shown}
+				getKey={getKey}
+				navigable
+				range={{ value, onValueChange }}
+			/>
+		)
+
+		const { rerender } = renderUI(grid([]))
+
+		rerender(grid(rows))
+
+		expect(inRange()).toEqual([
+			[0, 0],
+			[0, 1],
+			[1, 0],
+			[1, 1],
+		])
+
+		// A filter hides Bob, and the range names a cell that the grid does not show.
+		rerender(grid([rows[0], rows[2]] as Row[]))
+
+		rerender(grid(rows))
+
+		expect(inRange()).toEqual([
+			[0, 0],
+			[0, 1],
+			[1, 0],
+			[1, 1],
+		])
+	})
+
 	it('shows no range for a value that names a row the grid does not show', () => {
 		renderUI(<Owner initial={{ anchor: at(1, 'name'), focus: at(9, 'name') }} />)
 
