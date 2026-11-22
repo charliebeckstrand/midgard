@@ -7,8 +7,8 @@ import {
 	reseatFlagged,
 	returnElement,
 	returnFlagged,
-} from './engine/grid-edit-focus'
-import { askedExitRow, type TransitionPlan } from './engine/grid-edit-transition'
+} from './engine/grid-edit/focus'
+import { askedExitRow, type TransitionPlan } from './engine/grid-edit/transition'
 import {
 	EDITOR_FOCUSABLE,
 	findCoord,
@@ -16,7 +16,7 @@ import {
 	inGrid,
 	isCellEditing,
 	pointsAt,
-} from './engine/grid-editing-utilities'
+} from './engine/grid-edit/utilities'
 import type { GridColumn } from './types'
 import type { Coord } from './use-grid-navigation'
 

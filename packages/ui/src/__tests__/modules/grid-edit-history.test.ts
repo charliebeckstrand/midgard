@@ -9,7 +9,7 @@ import {
 	recordHistory,
 	restoreHistory,
 	takeHistory,
-} from '../../modules/grid/engine/grid-edit-history'
+} from '../../modules/grid/engine/grid-edit/history'
 
 const name: GridHistoryCell = { rowKey: 1, columnId: 'name', before: 'Alice', after: 'Alicia' }
 

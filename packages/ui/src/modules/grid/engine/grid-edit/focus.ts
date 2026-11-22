@@ -3,12 +3,7 @@
  * session, and how the grid marks its own focus moves for the commit on leave.
  */
 
-import {
-	type EditableColumn,
-	type GridActiveEdit,
-	inGrid,
-	isColumnEditable,
-} from './grid-editing-utilities'
+import { type EditableColumn, type GridActiveEdit, inGrid, isColumnEditable } from './utilities'
 
 /**
  * Reseats focus on the grid's single tab stop, `grid`, when focus sits in this

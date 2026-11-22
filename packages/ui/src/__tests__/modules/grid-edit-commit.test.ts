@@ -9,8 +9,8 @@ import {
 	rowLookup,
 	sendCells,
 	settleDrafts,
-} from '../../modules/grid/engine/grid-edit-commit'
-import { createDraftStore } from '../../modules/grid/engine/grid-editing-utilities'
+} from '../../modules/grid/engine/grid-edit/commit'
+import { createDraftStore } from '../../modules/grid/engine/grid-edit/utilities'
 import type { GridEditSource } from '../../modules/grid/grid-data-types'
 import { intlEn } from '../../primitives/intl/intl-catalog'
 

@@ -11,7 +11,6 @@ import {
 import { announce } from '../../core/announcer'
 import { useMountedRef } from '../../hooks/use-mounted-ref'
 import { useIntl } from '../../primitives/intl/use-intl'
-import type { createActiveEditStore } from './engine/grid-active-edit-store'
 import { describeCommit, describeDiscard, describeSettle } from './engine/grid-announcements'
 import { EMPTY_SET } from './engine/grid-constants'
 import {
@@ -20,7 +19,7 @@ import {
 	type InFlightBatch,
 	rowLookup,
 	settleDrafts,
-} from './engine/grid-edit-commit'
+} from './engine/grid-edit/commit'
 import {
 	type GridHistoryCell,
 	type GridHistoryEntry,
@@ -28,8 +27,9 @@ import {
 	type GridPendingEntry,
 	recordWrite,
 	settlePendingEntry,
-} from './engine/grid-edit-history'
-import type { CellRequest } from './engine/grid-edit-transition'
+} from './engine/grid-edit/history'
+import type { createActiveEditStore } from './engine/grid-edit/store'
+import type { CellRequest } from './engine/grid-edit/transition'
 import {
 	type GridActiveEdit,
 	type GridDraftStore,
@@ -37,7 +37,7 @@ import {
 	NEW_ROW_KEY,
 	readRefusals,
 	trackSink,
-} from './engine/grid-editing-utilities'
+} from './engine/grid-edit/utilities'
 import type { GridEditSource } from './grid-data-types'
 import type { GridCellChange, GridEditableConfig } from './grid-editing-types'
 

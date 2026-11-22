@@ -13,7 +13,7 @@ import {
 	recordHistory,
 	restoreHistory,
 	takeHistory,
-} from './engine/grid-edit-history'
+} from './engine/grid-edit/history'
 import type { GridHistoryState } from './grid-editing-types'
 
 /**

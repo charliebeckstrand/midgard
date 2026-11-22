@@ -12,8 +12,8 @@ import {
 	settleOn,
 	type TransitionPlan,
 	writeRowsPlan,
-} from './engine/grid-edit-transition'
-import { type GridActiveEdit, sameCell } from './engine/grid-editing-utilities'
+} from './engine/grid-edit/transition'
+import { type GridActiveEdit, sameCell } from './engine/grid-edit/utilities'
 import type { GridEditSource } from './grid-data-types'
 import { UNEDITABLE_CELL_WARNING } from './use-grid-editing-warnings'
 

@@ -22,7 +22,7 @@ import {
 	type GridDraft,
 	isColumnEditable,
 	NEW_ROW_KEY,
-} from './engine/grid-editing-utilities'
+} from './engine/grid-edit/utilities'
 import { gridMessages } from './engine/grid-messages'
 import {
 	isNewRowAddColumn,

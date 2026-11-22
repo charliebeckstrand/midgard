@@ -17,7 +17,7 @@ import {
 	type GridActiveEdit,
 	inferEditorKind,
 	isColumnEditable,
-} from './engine/grid-editing-utilities'
+} from './engine/grid-edit/utilities'
 import { gridMessages } from './engine/grid-messages'
 import { rowName } from './engine/grid-row/cell'
 import type { GridEditSource } from './grid-data-types'

@@ -11,7 +11,7 @@
  * that changed since keeps its value.
  */
 
-import { shortcutLetter } from './grid-editing-utilities'
+import { shortcutLetter } from './utilities'
 
 /** One saved cell: its address, and its value before and after the save. @internal */
 export type GridHistoryCell = {

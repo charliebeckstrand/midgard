@@ -10,7 +10,7 @@ import {
 import { cn } from '../../core/cn'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities/is-data-column'
-import { isColumnEditable } from './engine/grid-editing-utilities'
+import { isColumnEditable } from './engine/grid-edit/utilities'
 import type { GridIndexedColumn } from './engine/grid-row/cell'
 import type { GridEditingCell } from './grid-editing-cell'
 import { GridNavCell, seatingCellProps } from './grid-nav-cell'

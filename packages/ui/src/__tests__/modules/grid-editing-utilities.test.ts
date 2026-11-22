@@ -5,7 +5,7 @@ import {
 	readKeyPress,
 	seedFromKey,
 	stepEditableColumn,
-} from '../../modules/grid/engine/grid-editing-utilities'
+} from '../../modules/grid/engine/grid-edit/utilities'
 
 /** A plain key press, with no modifier and no input method. */
 const press = (key: string, extra: Partial<GridKeyPress> = {}): GridKeyPress => ({

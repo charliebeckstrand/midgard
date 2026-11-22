@@ -5,15 +5,10 @@
  * the state and the effect that apply a plan.
  */
 
-import type { GridEditSource } from '../grid-data-types'
-import type { GridEditableConfig } from '../grid-editing-types'
-import { EMPTY_SET } from './grid-constants'
-import {
-	findColumn,
-	type GridActiveEdit,
-	isColumnEditable,
-	sameCell,
-} from './grid-editing-utilities'
+import type { GridEditSource } from '../../grid-data-types'
+import type { GridEditableConfig } from '../../grid-editing-types'
+import { EMPTY_SET } from '../grid-constants'
+import { findColumn, type GridActiveEdit, isColumnEditable, sameCell } from './utilities'
 
 /**
  * Whether a cell that a consumer names can hold a session: its row is in the

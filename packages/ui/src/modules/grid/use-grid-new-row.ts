@@ -33,7 +33,7 @@ import {
 	readRefusals,
 	type SinkOutcome,
 	trackSink,
-} from './engine/grid-editing-utilities'
+} from './engine/grid-edit/utilities'
 import {
 	findSlotColumn,
 	firstRefused,

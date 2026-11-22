@@ -4,9 +4,9 @@
  */
 
 import type { KeyboardEvent as ReactKeyboardEvent } from 'react'
-import { closestFloatingPortal } from '../../../utilities/floating-portal-registry'
-import { hasBrowserModifier } from '../../../utilities/modifier-keys'
-import { NATIVE_ENTER, tabStaysInCell } from './grid-editing-utilities'
+import { closestFloatingPortal } from '../../../../utilities/floating-portal-registry'
+import { hasBrowserModifier } from '../../../../utilities/modifier-keys'
+import { NATIVE_ENTER, tabStaysInCell } from './utilities'
 
 /**
  * `node` when its nearest `<table>` is `table`, else `null`. A detail panel can

@@ -5,12 +5,15 @@
  * that it gets. The editing hook owns the refs and the effects that call them.
  */
 
-import type { GridEditSource } from '../grid-data-types'
-import type { GridCellChange, GridCellRef, GridEditableConfig } from '../grid-editing-types'
-import type { GridColumn } from '../types'
-import type { GridSaveOutcome } from './grid-announcements'
-import { columnLabel } from './grid-column/label'
-import type { GridHistoryCell, GridHistoryStep } from './grid-edit-history'
+import type { GridEditSource } from '../../grid-data-types'
+import type { GridCellChange, GridCellRef, GridEditableConfig } from '../../grid-editing-types'
+import type { GridColumn } from '../../types'
+import type { GridSaveOutcome } from '../grid-announcements'
+import { columnLabel } from '../grid-column/label'
+import { coercePaste } from '../grid-range/paste'
+import { unguardField } from '../grid-range/tsv'
+import { rowName } from '../grid-row/cell'
+import type { GridHistoryCell, GridHistoryStep } from './history'
 import {
 	findColumn,
 	type GridActiveEdit,
@@ -21,10 +24,7 @@ import {
 	isThenable,
 	NEW_ROW_KEY,
 	newDraft,
-} from './grid-editing-utilities'
-import { coercePaste } from './grid-range/paste'
-import { unguardField } from './grid-range/tsv'
-import { rowName } from './grid-row/cell'
+} from './utilities'
 
 /** A row's staged drafts, keyed by column id. @internal */
 type RowDrafts = Map<string | number, GridDraft>

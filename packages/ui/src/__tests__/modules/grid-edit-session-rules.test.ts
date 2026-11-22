@@ -5,9 +5,9 @@ import {
 	reseatFlagged,
 	returnElement,
 	returnFlagged,
-} from '../../modules/grid/engine/grid-edit-focus'
-import { claimedBySurface, editorMove, ownNode } from '../../modules/grid/engine/grid-edit-keys'
-import { readLeave } from '../../modules/grid/engine/grid-edit-leave'
+} from '../../modules/grid/engine/grid-edit/focus'
+import { claimedBySurface, editorMove, ownNode } from '../../modules/grid/engine/grid-edit/keys'
+import { readLeave } from '../../modules/grid/engine/grid-edit/leave'
 import { attach, present } from '../helpers'
 
 /**

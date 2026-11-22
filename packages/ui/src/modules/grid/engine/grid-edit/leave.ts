@@ -3,8 +3,8 @@
  * out of the grid, means to a `commitOn` policy.
  */
 
-import type { CommitOn } from '../use-grid-commit-on'
-import { inGrid } from './grid-editing-utilities'
+import type { CommitOn } from '../../use-grid-commit-on'
+import { inGrid } from './utilities'
 
 /**
  * Whether `node`, an element in the DOM of the table `grid`, is inside what a

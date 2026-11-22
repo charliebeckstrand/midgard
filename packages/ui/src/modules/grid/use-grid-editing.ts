@@ -16,11 +16,11 @@ import { useMediaQuery } from '../../hooks/use-media-query'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { PHONE_QUERY } from '../../utilities/media-query'
 import type { GridEditingSession, GridNewRowSession, GridSettleControls } from './context'
-import { createActiveEditStore } from './engine/grid-active-edit-store'
 import { EMPTY_SET } from './engine/grid-constants'
-import type { GridFillCell, GridPasteCell } from './engine/grid-edit-commit'
-import { columnInUse, firstEditorCell } from './engine/grid-edit-focus'
-import type { GridHistoryStep } from './engine/grid-edit-history'
+import type { GridFillCell, GridPasteCell } from './engine/grid-edit/commit'
+import { columnInUse, firstEditorCell } from './engine/grid-edit/focus'
+import type { GridHistoryStep } from './engine/grid-edit/history'
+import { createActiveEditStore } from './engine/grid-edit/store'
 import {
 	type CellRequest,
 	type CrossRowEntry,
@@ -28,7 +28,7 @@ import {
 	initialSessionRow,
 	moveSessionRow,
 	readInitialCell,
-} from './engine/grid-edit-transition'
+} from './engine/grid-edit/transition'
 import {
 	createDraftStore,
 	type EditorKind,
@@ -39,7 +39,7 @@ import {
 	NEW_ROW_KEY,
 	pointsAt,
 	sameCell,
-} from './engine/grid-editing-utilities'
+} from './engine/grid-edit/utilities'
 import { resolveNewRow } from './engine/grid-new-row'
 import type { GridRowStep } from './engine/grid-range/range'
 import type { GridEditSource } from './grid-data-types'
