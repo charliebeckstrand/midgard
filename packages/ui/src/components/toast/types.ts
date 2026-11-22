@@ -99,9 +99,11 @@ export type ToastInput = Omit<ToastData, 'id' | 'duration' | 'dismissed'> & {
 	 */
 	duration?: number
 	/**
-	 * Optional caller-supplied id. When omitted, the provider generates one.
-	 * Callers are responsible for uniqueness; `dismiss(id)` removes every
-	 * toast matching the id.
+	 * The id of the toast. When it is not set, the provider makes one. A call with
+	 * the id of a live toast replaces that toast in place, and its countdown starts
+	 * again. Give a fixed id to a toast that can repeat, such as "Link copied", or
+	 * to a loading toast that turns into its result. The new call replaces each
+	 * field, `onDismiss` too, and the toast that it replaces reports no exit.
 	 */
 	id?: string
 }

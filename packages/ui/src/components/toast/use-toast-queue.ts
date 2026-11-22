@@ -21,8 +21,8 @@ const exitFallback = k.motion.dismiss.duration * 1000 * 2
  *
  * @param onRemove - Called with each toast the queue takes out of the list, after the
  * removal. The queue does not name the reason; the provider reads one from the toast.
- * @returns The queue controls (`start`, `stop`, `handleExitComplete`) plus a
- * `runningRef` flag.
+ * @returns The queue controls (`start`, `stop`, `unqueue`, `handleExitComplete`)
+ * plus a `runningRef` flag.
  * @internal
  */
 export function useToastQueue(
@@ -100,9 +100,15 @@ export function useToastQueue(
 		[advance],
 	)
 
+	// Takes `id` out of the queue, for a toast that a new call replaced: its time
+	// is no longer up.
+	const unqueue = useCallback((id: string) => {
+		queueRef.current = queueRef.current.filter((queued) => queued !== id)
+	}, [])
+
 	const handleExitComplete = useCallback(() => {
 		if (runningRef.current) advance()
 	}, [advance])
 
-	return { runningRef, start, stop, handleExitComplete }
+	return { runningRef, start, stop, unqueue, handleExitComplete }
 }

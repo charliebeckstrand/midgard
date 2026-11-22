@@ -6,6 +6,7 @@ import Persist from './persist.tsx'
 import ToastPlayground from './playground.tsx'
 import Severity from './severity.tsx'
 import WithAction from './with-action.tsx'
+import WithId from './with-id.tsx'
 
 export default function ToastPage() {
 	return (
@@ -14,6 +15,7 @@ export default function ToastPage() {
 			<Example of={Severity} />
 			<Example of={WithAction} />
 			<Example of={Persist} />
+			<Example of={WithId} />
 			<Example of={DismissReason} />
 			<Example of={MaxToasts} />
 			<ApiTable api={api} />
