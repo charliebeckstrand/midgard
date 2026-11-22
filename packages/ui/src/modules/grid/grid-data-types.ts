@@ -6,7 +6,7 @@ import type { scale } from '../../recipes/kata/table'
 import type { GridSortState } from './context'
 import type { GridExportable, GridExportRows } from './engine/grid-export/types'
 import type { GridCellClick, GridCellClickContext, GridRowClick } from './engine/grid-row/cell'
-import type { GridEditableConfig } from './grid-editing-types'
+import type { GridCellRef, GridEditableConfig } from './grid-editing-types'
 import type { GridColumnGroups } from './grid-group-types'
 import type { GridRowGroups } from './grid-row-group-types'
 import type {
@@ -477,6 +477,41 @@ export type GridReorder = {
 	 * @defaultValue true
 	 */
 	handle?: boolean
+}
+
+/**
+ * A cell range of {@link GridProps.range}: the anchor cell, where the range
+ * started, and the focus cell, where the keyboard cursor is. The range is the
+ * rectangle between the two. Each corner names its cell by the row key and the
+ * column id, so a value keeps its meaning when the rows or the columns move.
+ * Plain-object shape so the value serializes.
+ */
+export type GridRangeState = {
+	/** The cell where the range started. */
+	anchor: GridCellRef
+	/** The cell of the keyboard cursor, the corner that a Shift move or a drag moves. */
+	focus: GridCellRef
+}
+
+/**
+ * Controlled or uncontrolled binding of {@link GridProps.range}. The object
+ * form turns the range on, as `true` does, and lets an app read, seed, and
+ * clear the range. `null` is no range. Omit `value` and the grid keeps the
+ * range itself.
+ *
+ * @remarks A controlled grid shows `value`. The grid reports each change
+ * through `onValueChange`, and it shows `value` again when the owner does not
+ * take the change. A value that names a row or a column that the grid does
+ * not show is no range until the grid shows the cell, as when the rows load
+ * or a filter ends. The cursor goes to the focus cell of a new value, and the
+ * window scrolls to it.
+ */
+export type GridRange = {
+	value?: GridRangeState | null
+	/** The range at mount. It applies to the rows and the columns of the first render. */
+	defaultValue?: GridRangeState | null
+	/** Fires when the range changes, with the next range or `null`. Mounting reports nothing. */
+	onValueChange?: (range: GridRangeState | null) => void
 }
 
 /**
@@ -1308,9 +1343,17 @@ export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'>
 	 * Needs the keyboard cursor: {@link GridDataProps.navigable},
 	 * {@link GridDataProps.editable}, or a click handler. With the range on, a
 	 * press on a cell starts no text selection.
+	 *
+	 * Pass a {@link GridRange} binding to read, seed, or clear the range. The
+	 * value names its corners by the row key and the column id. While the
+	 * cursor is on a group header, a group total, or a detail panel, the focus
+	 * of the value is the data row at that edge of the range. A grid that ends
+	 * the range, as a sort does, reports `null`. A controlled owner that keeps
+	 * its value keeps the range on the same cells.
 	 * @defaultValue false
+	 * @see {@link GridRange}
 	 */
-	range?: boolean
+	range?: boolean | GridRange
 
 	/**
 	 * Fires when the keyboard cursor moves or clears, with the cell that it sits

@@ -232,7 +232,8 @@ export function useGridDataSetup<T>(props: GridDataProps<T>) {
 	const cursorInput: GridCursorInput<T> = {
 		// Manual grouping stands the cursor and editing down (see `gated`).
 		navigable: gated.navigable,
-		range,
+		// The binding is the opt-in, as `true` is. `useGridRangeValue` reads its value.
+		range: range !== false,
 		editable: gated.editable,
 		columns: pinnedColumns,
 		onRowActivate: activation.onRowActivate,

@@ -750,12 +750,27 @@ export function useGridNavigation({
 	parseCellCoord: (id: string) => Coord | null
 	/** The anchor of the range, reactive, so a reader can follow a change of the range. */
 	rangeAnchor: Coord | null
+	/**
+	 * The cursor as a place in its order, reactive. Unlike `active`, it is set on
+	 * a group header, a group total, and a detail panel too, so a reader can
+	 * follow each move of the far corner of the range.
+	 */
+	rangeFocus: Coord | null
 	/** The cells of the range at call time, or `null` for no range. */
 	readRange: () => GridRangeCells | null
 	/** The place of a data row in the cursor's order, or -1 for a data row the order does not show. */
 	toCursorRow: (row: number) => number
 	/** Shows the range between two data cells, the first as the anchor and the second as the cursor. */
 	showRange: (from: Coord, to: Coord) => void
+	/**
+	 * Makes the range between two data cells, the first as the anchor, and moves
+	 * the cursor to the second, as Ctrl/Cmd+A does. The window scrolls to the
+	 * cursor. Returns `false`, and changes nothing, with the range off or for a
+	 * data row that the cursor's order does not show.
+	 */
+	selectRange: (from: Coord, to: Coord) => boolean
+	/** Ends the range, and keeps the cursor where it is. */
+	endRange: () => void
 	navTableProps: GridNavTableProps | undefined
 } {
 	const [active, setActive, activeHeld] = useNullableState<Coord>()
@@ -1055,6 +1070,27 @@ export function useGridNavigation({
 		},
 		[toCursorRow, range, setActive, setAnchor],
 	)
+
+	// Makes the range between two data cells, as `selectAll` does. The move that
+	// extends holds the anchor that is set first.
+	const selectRange = useCallback(
+		(from: Coord, to: Coord): boolean => {
+			const anchorRow = toCursorRow(from.row)
+
+			const row = toCursorRow(to.row)
+
+			if (!range || anchorRow === -1 || row === -1) return false
+
+			setAnchor({ row: anchorRow, col: from.col })
+
+			moveToCursor({ row, col: to.col }, true)
+
+			return true
+		},
+		[toCursorRow, range, setAnchor, moveToCursor],
+	)
+
+	const endRange = useCallback(() => setAnchor(null), [setAnchor])
 
 	// Whether the cell at a data row and a column is inside the range.
 	const inRangeAt = useCallback(
@@ -1625,9 +1661,12 @@ export function useGridNavigation({
 		press,
 		parseCellCoord,
 		rangeAnchor: enabled ? anchor : null,
+		rangeFocus: enabled ? active : null,
 		readRange,
 		toCursorRow,
 		showRange,
+		selectRange,
+		endRange,
 		navTableProps,
 	}
 }

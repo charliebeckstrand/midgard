@@ -42,6 +42,7 @@ import { useGridDataView } from './use-grid-data-view'
 import { useGridExport } from './use-grid-export'
 import { useGridRowIndexOffsetSync } from './use-grid-index'
 import { useGridMenuActions } from './use-grid-menu-actions'
+import { useGridRangeValue } from './use-grid-range-value'
 import { useGridReorder } from './use-grid-reorder'
 import { useGridRowManagerRegion } from './use-grid-row-manager'
 import { useGridRowReorder } from './use-grid-row-reorder'
@@ -305,6 +306,16 @@ export function useGridDataRender<T>(
 	})
 
 	const { toggleRow, toggleAll, allSelected, someSelected, unselectable } = selectionActions
+
+	// After the view, whose layout effect ends the range of an old layout, so a
+	// value that comes with a new layout names the cells of that layout.
+	useGridRangeValue<T>({
+		binding: typeof props.range === 'object' ? props.range : undefined,
+		handle: cursor.range,
+		rowKeys,
+		// The cursor's columns are the visible columns (see `useGridDataView`).
+		columns: visibleColumns,
+	})
 
 	// Lift the column-manager dialog's open state, resolve the (default-on)
 	// context menus, and derive the header-menu actions; see `useGridMenuActions`.

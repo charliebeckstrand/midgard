@@ -1119,6 +1119,10 @@
 		"defaultMessage": "How do I close my account?",
 		"description": "Text of a demo in the docs as title, in components/drawer/fit-content.tsx."
 	},
+	"docs.demo.08df0850d81e": {
+		"defaultMessage": "Select a block",
+		"description": "Text of a demo in the docs, in modules/grid/events/cell-range.tsx."
+	},
 	"docs.demo.0934605a294f": {
 		"defaultMessage": "You can cancel your plan at any time from the billing page. Your files stay available until the end of the period that you paid for.",
 		"description": "Text of a demo in the docs as text, in components/dialog/long-content.tsx."
@@ -3253,7 +3257,7 @@
 	},
 	"docs.demo.83b12c2216ef": {
 		"defaultMessage": "Clear",
-		"description": "Text of a demo in the docs, in components/signature-pad/imperative-handle.tsx, modules/form/controlled-values.tsx."
+		"description": "Text of a demo in the docs, in components/signature-pad/imperative-handle.tsx, modules/form/controlled-values.tsx, modules/grid/events/cell-range.tsx."
 	},
 	"docs.demo.83c46be8fbce": {
 		"defaultMessage": "You own the files that you upload. You let the service store them, copy them for backups, and show them to the people that you share them with.",
@@ -4589,7 +4593,7 @@
 	},
 	"docs.demo.c6c094bc0054": {
 		"defaultMessage": "Empty",
-		"description": "Text of a demo in the docs, in components/address-input/business-search.tsx, components/address-input/coordinates.tsx, components/calendar/controlled.tsx and 18 more."
+		"description": "Text of a demo in the docs, in components/address-input/business-search.tsx, components/address-input/coordinates.tsx, components/calendar/controlled.tsx and 19 more."
 	},
 	"docs.demo.c71eb1e3f64d": {
 		"defaultMessage": "\n# Release notes\n\nVersion 2.4 adds **search in attachments**. Run `app update` to get it, or\nread the _full list_ of [changes](https://example.com).\n\n## Changes\n\n- Search finds the text in attachments\n- Shared folders show who changed each file\n  - The list shows the last ten changes\n- The dark theme follows the setting of your system\n\n'>' Back up your files before you update.\n\n```ts\nexport function isLatest(version: string) '{'\n\treturn version === ''2.4''\n'}'\n```\n",
