@@ -187,7 +187,7 @@ In an app, an action such as Close or Remove is a `Button` with `variant="bare"`
 
 ## 6. State & data
 
-6.1 No global state library. Cross-cutting state is React Context at `apps/<app>/app/providers.tsx`. Biome's `noRestrictedImports` keeps the common ones out of `apps`.
+6.1 No global state library. Cross-cutting state is React Context, which the root layout of each app provides (`AppProviders` from `shared/providers`). Biome's `noRestrictedImports` keeps the common ones out of `apps`.
 
 6.2 Server data is fetched in Server Components or `'use server'`. They forward the session cookie of the request and resolve the gateway origin server-side.
 
