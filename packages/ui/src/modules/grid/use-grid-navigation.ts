@@ -26,6 +26,7 @@ import { sameElements } from '../../utilities/same-elements'
 import type { GridNavStore } from './context'
 import { focusFirstControl, ownerCell, SORT_CONTROL } from './engine/grid-cell-controls'
 import { NAV_PAGE_STEP } from './engine/grid-constants'
+import { readKeyPress, shortcutLetter } from './engine/grid-edit/utilities'
 import {
 	type GridRangeCells,
 	type GridRowDistance,
@@ -244,12 +245,16 @@ function browserOwnsKey(event: KeyboardEvent): boolean {
 /**
  * Whether a key is the select-all key: Ctrl or Cmd with A, and no other
  * modifier. The WAI-ARIA APG grid pattern names it for a grid that selects
- * cells. @internal
+ * cells. The letter is read as the undo and the fill read theirs
+ * ({@link shortcutLetter}), so a layout with no Latin letters gives the A of
+ * the physical key. A press that composes text is not the key. @internal
  */
-function isSelectAllKey(event: KeyboardEvent): boolean {
-	if (event.key.toLowerCase() !== 'a' || event.altKey || event.shiftKey) return false
+function isSelectAllKey(event: KeyboardEvent<HTMLTableElement>): boolean {
+	const press = readKeyPress(event)
 
-	return event.metaKey !== event.ctrlKey
+	if (press.composing || press.altKey || event.shiftKey) return false
+
+	return press.metaKey !== press.ctrlKey && shortcutLetter(press) === 'a'
 }
 
 /**

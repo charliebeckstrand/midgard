@@ -147,6 +147,26 @@ describe('Grid range', () => {
 		)
 	})
 
+	it('reads Ctrl+A from the physical key on a layout with no Latin letters', () => {
+		const { grid } = renderRangeGrid()
+
+		fireEvent.mouseDown(cell(0, 0))
+
+		expect(fireEvent.keyDown(grid, { key: 'ф', code: 'KeyA', ctrlKey: true })).toBe(false)
+
+		expect(inRange()).toHaveLength(rows.length * columns.length)
+	})
+
+	it('leaves a Ctrl+A that composes text to the input method', () => {
+		const { grid } = renderRangeGrid()
+
+		fireEvent.mouseDown(cell(0, 0))
+
+		expect(fireEvent.keyDown(grid, { key: 'a', ctrlKey: true, keyCode: 229 })).toBe(true)
+
+		expect(inRange()).toEqual([])
+	})
+
 	it('leaves Ctrl+A to the browser without the range', () => {
 		const { grid } = renderRangeGrid({ range: false })
 
