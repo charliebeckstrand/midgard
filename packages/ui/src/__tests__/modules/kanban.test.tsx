@@ -1119,9 +1119,11 @@ describe('KanbanCardMenu', () => {
 	})
 
 	it('shows one disabled item for a card with no place to move to', async () => {
-		const first = present(keyboardColumns[0], 'first column')
+		const [first] = keyboardColumns
 
-		const only = present(first.items[0], 'first card')
+		const only = first?.items[0]
+
+		if (!first || !only) throw new Error('the fixture has no first card')
 
 		const { container } = renderUI(
 			<MenuBoard onReorder={vi.fn()} columns={[{ ...first, items: [only] }]} />,
