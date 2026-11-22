@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { Button } from 'ui/button'
 import { Field, Label, Message } from 'ui/fieldset'
-import { Form, type FormSubmitHandler } from 'ui/form'
+import { Form, FormError, type FormSubmitHandler } from 'ui/form'
 import { Heading } from 'ui/heading'
 import { AuthLayout } from 'ui/layouts'
 import { Link } from 'ui/link'
@@ -16,7 +16,6 @@ import { authMessages } from './auth-messages'
 import { bifrost } from './bifrost'
 import { newPasswordRules } from './form-validators'
 import { useLeaving } from './use-leaving'
-import { useServerError } from './use-server-error'
 
 type ResetPasswordValues = { password: string; confirmPassword: string }
 
@@ -38,8 +37,6 @@ export function ResetPasswordPage() {
 
 	const router = useRouter()
 
-	const [errorAlert, setServerError] = useServerError()
-
 	const [leaving, leave] = useLeaving()
 
 	const handleSubmit: FormSubmitHandler<ResetPasswordValues> = async (values) => {
@@ -55,9 +52,9 @@ export function ResetPasswordPage() {
 				return
 			}
 
-			setServerError(error?.message || intl.formatMessage(authMessages.resetFailed))
+			return { formError: error?.message || intl.formatMessage(authMessages.resetFailed) }
 		} catch {
-			setServerError(intl.formatMessage(authMessages.unexpected))
+			return { formError: intl.formatMessage(authMessages.unexpected) }
 		}
 	}
 
@@ -72,7 +69,7 @@ export function ResetPasswordPage() {
 				<Stack gap="xl" className="w-full sm:max-w-sm p-6">
 					<Heading className="text-center">{intl.formatMessage(authMessages.resetTitle)}</Heading>
 
-					{errorAlert}
+					<FormError className="w-full" />
 
 					<Field>
 						<Label>{intl.formatMessage(authMessages.newPassword)}</Label>

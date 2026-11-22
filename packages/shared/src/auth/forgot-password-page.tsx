@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Button } from 'ui/button'
 import { announce } from 'ui/core'
 import { Field, Label, Message } from 'ui/fieldset'
-import { Form, type FormSubmitHandler } from 'ui/form'
+import { Form, FormError, type FormSubmitHandler } from 'ui/form'
 import { Heading } from 'ui/heading'
 import { Input } from 'ui/input'
 import { AuthLayout } from 'ui/layouts'
@@ -15,7 +15,6 @@ import { Text } from 'ui/text'
 import { authMessages } from './auth-messages'
 import { bifrost } from './bifrost'
 import { chain, email, required } from './form-validators'
-import { useServerError } from './use-server-error'
 
 type ForgotPasswordValues = { email: string }
 
@@ -36,8 +35,6 @@ export function ForgotPasswordPage() {
 
 	const [notice, setNotice] = useState(false)
 
-	const [errorAlert, setServerError] = useServerError()
-
 	const handleSubmit: FormSubmitHandler<ForgotPasswordValues> = async (values) => {
 		try {
 			const { response, error } = await bifrost.POST('/auth/reset-password', { body: values })
@@ -46,9 +43,6 @@ export function ForgotPasswordPage() {
 				setSent(true)
 
 				setNotice(true)
-
-				// A success clears the error of an earlier try.
-				setServerError('')
 
 				// Each send is announced, also a second send with the same notice,
 				// whose text does not change (WCAG 4.1.3).
@@ -59,11 +53,11 @@ export function ForgotPasswordPage() {
 
 			setNotice(false)
 
-			setServerError(error?.message || intl.formatMessage(authMessages.requestFailed))
+			return { formError: error?.message || intl.formatMessage(authMessages.requestFailed) }
 		} catch {
 			setNotice(false)
 
-			setServerError(intl.formatMessage(authMessages.unexpected))
+			return { formError: intl.formatMessage(authMessages.unexpected) }
 		}
 	}
 
@@ -83,7 +77,7 @@ export function ForgotPasswordPage() {
 						<Text>{intl.formatMessage(authMessages.forgotIntro)}</Text>
 					)}
 
-					{errorAlert}
+					<FormError className="w-full" />
 
 					<Field>
 						<Label>{intl.formatMessage(authMessages.email)}</Label>

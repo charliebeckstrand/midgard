@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { Button } from 'ui/button'
 import { Field, Label, Message } from 'ui/fieldset'
-import { Form, type FormSubmitHandler } from 'ui/form'
+import { Form, FormError, type FormSubmitHandler } from 'ui/form'
 import { Heading } from 'ui/heading'
 import { Input } from 'ui/input'
 import { AuthLayout } from 'ui/layouts'
@@ -18,7 +18,6 @@ import { bifrost } from './bifrost'
 import { chain, email, newPasswordRules, required } from './form-validators'
 import { Turnstile } from './turnstile'
 import { useLeaving } from './use-leaving'
-import { useServerError } from './use-server-error'
 
 type RegisterValues = {
 	email: string
@@ -49,8 +48,6 @@ export function RegisterPage({ turnstileSiteKey }: RegisterPageProps) {
 
 	const router = useRouter()
 
-	const [errorAlert, setServerError] = useServerError()
-
 	const [leaving, leave] = useLeaving()
 
 	const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
@@ -79,13 +76,13 @@ export function RegisterPage({ turnstileSiteKey }: RegisterPageProps) {
 
 			setAttempt((prev) => prev + 1)
 
-			setServerError(error?.message || intl.formatMessage(authMessages.registrationFailed))
+			return { formError: error?.message || intl.formatMessage(authMessages.registrationFailed) }
 		} catch {
 			setTurnstileToken(null)
 
 			setAttempt((prev) => prev + 1)
 
-			setServerError(intl.formatMessage(authMessages.unexpected))
+			return { formError: intl.formatMessage(authMessages.unexpected) }
 		}
 	}
 
@@ -106,7 +103,7 @@ export function RegisterPage({ turnstileSiteKey }: RegisterPageProps) {
 						{intl.formatMessage(authMessages.registerTitle)}
 					</Heading>
 
-					{errorAlert}
+					<FormError className="w-full" />
 
 					<Field>
 						<Label>{intl.formatMessage(authMessages.email)}</Label>

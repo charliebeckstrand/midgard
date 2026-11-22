@@ -4,7 +4,11 @@ import { type ReactNode, useState } from 'react'
 import { ErrorAlert } from './error-alert'
 
 /**
- * Error state of an auth page that is not about one field.
+ * Error state of an auth page that is not about one field, for a page with no
+ * `Form` around the action that fails. The email check and the passkey path of
+ * the second step have no form. A page with a `Form` returns `{ formError }`
+ * from `onSubmit`, or sets `setFormError` of the form actions, and shows the
+ * issue with `FormError`.
  *
  * @internal
  * @returns The alert to render, or `null` without an error, and the setter.

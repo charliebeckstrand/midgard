@@ -159,3 +159,43 @@ describe('LoginPage with the second step', () => {
 		expect(router.push).not.toHaveBeenCalled()
 	})
 })
+
+describe('LoginPage failures', () => {
+	/** Answers each request with `status` and the gateway error `message`. */
+	function stubGateway(status: number, message: string) {
+		vi.stubGlobal(
+			'fetch',
+			vi.fn(async () => Response.json({ message }, { status })),
+		)
+	}
+
+	it('shows the message of a refused password sign-in as the issue of the whole form', async () => {
+		stubGateway(401, 'Invalid email or password.')
+
+		render(<LoginPage />)
+
+		fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'admin@example.com' } })
+		fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'wrong' } })
+		fireEvent.click(screen.getByRole('button', { name: 'Sign in' }))
+
+		const alert = await screen.findByRole('alert')
+
+		expect(alert.textContent).toContain('Invalid email or password.')
+
+		expect(router.push).not.toHaveBeenCalled()
+	})
+
+	it('shows a refused passkey sign-in in the same alert', async () => {
+		stubGateway(400, 'No challenge.')
+
+		render(<LoginPage />)
+
+		await act(async () => {
+			fireEvent.click(screen.getByRole('button', { name: 'Sign in with a passkey' }))
+		})
+
+		const alert = await screen.findByRole('alert')
+
+		expect(alert.textContent).toContain('Passkey sign-in did not complete. Try again.')
+	})
+})

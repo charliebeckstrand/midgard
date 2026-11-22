@@ -7,10 +7,10 @@ import {
 import type { SignInProvider } from 'auth'
 import dynamic from 'next/dynamic'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Suspense } from 'react'
+import { type ReactNode, Suspense } from 'react'
 import { Button } from 'ui/button'
 import { Field, Label, Message } from 'ui/fieldset'
-import { Form, type FormSubmitHandler } from 'ui/form'
+import { Form, FormError, type FormSubmitHandler, useFormActions } from 'ui/form'
 import { Heading } from 'ui/heading'
 import { Input } from 'ui/input'
 import { AuthLayout } from 'ui/layouts'
@@ -27,7 +27,6 @@ import { chain, email, required } from './form-validators'
 import { menuMessages } from './menu-messages'
 import type { SecondFactorMethod } from './second-step-request'
 import { useLeaving } from './use-leaving'
-import { useServerError } from './use-server-error'
 
 type LoginValues = { email: string; password: string }
 
@@ -127,6 +126,40 @@ type LoginPageProps = {
 }
 
 /**
+ * The passkey button of the login form. The sign-in runs outside a submit, so
+ * the button shows its failure as the issue of the whole form through the
+ * actions of the form, as a submit shows its own.
+ *
+ * @internal
+ */
+function PasskeyButton({
+	signIn,
+	children,
+}: {
+	signIn: () => Promise<string | undefined>
+	children: ReactNode
+}) {
+	const actions = useFormActions()
+
+	return (
+		<Button
+			type="button"
+			variant="outline"
+			className="w-full"
+			onClick={async () => {
+				actions?.setFormError(null)
+
+				const formError = await signIn()
+
+				if (formError !== undefined) actions?.setFormError(formError)
+			}}
+		>
+			{children}
+		</Button>
+	)
+}
+
+/**
  * Sign-in page: signs in with a password, a passkey, GitHub, or Google, and
  * goes to `/` on success.
  *
@@ -162,25 +195,24 @@ export function LoginPage({
 
 	const router = useRouter()
 
-	const [errorAlert, setServerError] = useServerError()
-
 	const [leaving, leave] = useLeaving()
 
 	const home = () => router.push('/')
 
-	// Runs `next` after a success, and shows the message of the gateway on a failure.
-	// The form stays disabled until the next page or the second step replaces it.
+	// Runs `next` after a success, and gives the message of the gateway on a
+	// failure, or `undefined` after a success. The form stays disabled until the
+	// next page or the second step replaces it.
 	function finish(
 		{ response, error }: { response: Response; error?: { message: string } },
 		next = home,
-	) {
+	): string | undefined {
 		if (response.ok) {
 			leave(next)
 
-			return
+			return undefined
 		}
 
-		setServerError(error?.message || intl.formatMessage(authMessages.loginFailed))
+		return error?.message || intl.formatMessage(authMessages.loginFailed)
 	}
 
 	// A failed load refreshes too, and the form of the second step then loads its module again.
@@ -194,35 +226,34 @@ export function LoginPage({
 		try {
 			// With `secondStep`, the refresh lets the server page select the second step or a redirect.
 			// The module of the second step loads first, so the form shows with the new page.
-			finish(
+			const formError = finish(
 				await bifrost.POST('/auth/login', { body: values }),
 				secondStep ? refreshWithSecondStep : home,
 			)
+
+			return formError === undefined ? undefined : { formError }
 		} catch {
-			setServerError(intl.formatMessage(authMessages.unexpected))
+			return { formError: intl.formatMessage(authMessages.unexpected) }
 		}
 	}
 
 	// The gateway gives a challenge, the browser signs it with a passkey of the
 	// user, and the gateway checks the result. A cancel in the browser throws.
-	async function signInWithPasskey() {
+	// Gives the message of a failure, or `undefined` after a success.
+	async function signInWithPasskey(): Promise<string | undefined> {
 		try {
 			const { data: options } = await bifrost.POST('/auth/login/options')
 
-			if (!options) {
-				setServerError(intl.formatMessage(authMessages.passkeySignInFailed))
-
-				return
-			}
+			if (!options) return intl.formatMessage(authMessages.passkeySignInFailed)
 
 			// The gateway passes the options of the browser API through, so its spec names no fields.
 			const optionsJSON = options as PublicKeyCredentialRequestOptionsJSON
 
 			const credential = await startAuthentication({ optionsJSON })
 
-			finish(await bifrost.POST('/auth/login/passkey', { body: credential }))
+			return finish(await bifrost.POST('/auth/login/passkey', { body: credential }))
 		} catch {
-			setServerError(intl.formatMessage(authMessages.passkeySignInFailed))
+			return intl.formatMessage(authMessages.passkeySignInFailed)
 		}
 	}
 
@@ -262,7 +293,7 @@ export function LoginPage({
 				<Stack gap="xl" className="w-full sm:max-w-sm p-6">
 					<Heading className="text-center">{intl.formatMessage(authMessages.loginTitle)}</Heading>
 
-					{errorAlert}
+					<FormError className="w-full" />
 
 					<Suspense>
 						<QueryNotice />
@@ -291,9 +322,9 @@ export function LoginPage({
 						{intl.formatMessage(authMessages.signIn)}
 					</Button>
 
-					<Button type="button" variant="outline" className="w-full" onClick={signInWithPasskey}>
+					<PasskeyButton signIn={signInWithPasskey}>
 						{intl.formatMessage(authMessages.signInWithPasskey)}
-					</Button>
+					</PasskeyButton>
 
 					{providers.map((provider) => (
 						<Button
