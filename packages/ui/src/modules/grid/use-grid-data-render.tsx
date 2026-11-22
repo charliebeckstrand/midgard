@@ -42,6 +42,7 @@ import { useGridDataView } from './use-grid-data-view'
 import { useGridExport } from './use-grid-export'
 import { useGridRowIndexOffsetSync } from './use-grid-index'
 import { useGridMenuActions } from './use-grid-menu-actions'
+import { useGridRangeFigures } from './use-grid-range-figures'
 import { useGridRangeValue } from './use-grid-range-value'
 import { useGridReorder } from './use-grid-reorder'
 import { useGridRowManagerRegion } from './use-grid-row-manager'
@@ -314,6 +315,14 @@ export function useGridDataRender<T>(
 		handle: cursor.range,
 		rowKeys,
 		// The cursor's columns are the visible columns (see `useGridDataView`).
+		columns: visibleColumns,
+	})
+
+	// The figures of the range for the footer, deferred behind the range itself.
+	const figures = useGridRangeFigures<T>({
+		ops: setup.cursorInput.rangeFigures,
+		handle: cursor.range,
+		rows: renderRows,
 		columns: visibleColumns,
 	})
 
@@ -819,7 +828,12 @@ export function useGridDataRender<T>(
 							</GridRegion>
 						</GridGroupByContext>
 
-						<GridFooterBar config={footer} stats={footerStats} scope={footerScope} />
+						<GridFooterBar
+							config={footer}
+							stats={footerStats}
+							scope={footerScope}
+							figures={figures}
+						/>
 
 						{pagination && (
 							<GridPaginationFooter

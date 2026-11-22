@@ -8,10 +8,13 @@
 
 import { defineMessages } from '../../../primitives/intl/intl-messages'
 import type { IntlShape } from '../../../primitives/intl/types'
+import type { Aggregation } from '../../../utilities/aggregate'
 import type { GridColumn } from '../types'
+import { formatAggregate } from './grid-aggregate'
 import { columnLabel } from './grid-column/label'
 import type { GridHistoryStep } from './grid-edit/history'
 import { physicalSide } from './grid-pin/overrides'
+import type { GridRangeFigure } from './grid-range/figures'
 import type { GridSortState } from './grid-sort/state'
 
 const messages = defineMessages<{
@@ -48,6 +51,8 @@ const messages = defineMessages<{
 		toColumn: string
 		toRow: number
 	}
+	rangeFigure: { op: Aggregation; value: string }
+	rangeWithFigures: { range: string; figures: string }
 }>({
 	sortCleared: {
 		id: 'ui.grid.sortCleared',
@@ -197,6 +202,19 @@ const messages = defineMessages<{
 			'Range of {rows, plural, one {# row} other {# rows}} and {cols, plural, one {# column} other {# columns}}, {fromColumn} row {fromRow, number} to {toColumn} row {toRow, number}',
 		description:
 			'Spoken when the reader selects a range of cells of the grid: its size, and its two corners by column and row number.',
+	},
+	rangeFigure: {
+		id: 'ui.grid.rangeFigure',
+		defaultMessage:
+			'{op, select, count {Count} sum {Sum} avg {Average} min {Minimum} other {Maximum}} {value}',
+		description:
+			'One figure of a range of cells of the grid, in its footer: the count of the cells with a value, or the sum, the average, the minimum, or the maximum of their numbers. The value is a formatted number.',
+	},
+	rangeWithFigures: {
+		id: 'ui.grid.rangeWithFigures',
+		defaultMessage: '{range}. {figures}',
+		description:
+			'Spoken when the reader selects a range of cells of a grid that shows the figures of the range: the sentence of the range, then the list of its figures.',
 	},
 })
 
@@ -496,5 +514,40 @@ export function describeRange(
 		fromRow: from.row,
 		toColumn: to.column,
 		toRow: to.row,
+	})
+}
+
+/**
+ * One figure of a range as the footer shows it and the grid speaks it, such as
+ * `Sum 1,240.50`. The value takes the number format of the aggregate rows.
+ *
+ * @param locale - The `<LocaleProvider>` locale of the number; the runtime locale without it.
+ * @internal
+ */
+export function describeRangeFigure(
+	intl: IntlShape,
+	figure: GridRangeFigure,
+	locale?: string,
+): string {
+	return intl.formatMessage(messages.rangeFigure, {
+		op: figure.op,
+		value: formatAggregate(figure.value, locale),
+	})
+}
+
+/**
+ * The sentence of a range, then the list of its figures. With no figure, the
+ * sentence of the range alone. @internal
+ */
+export function describeRangeWithFigures(
+	intl: IntlShape,
+	range: string,
+	figures: readonly string[],
+): string {
+	if (figures.length === 0) return range
+
+	return intl.formatMessage(messages.rangeWithFigures, {
+		range,
+		figures: intl.formatList(figures, { type: 'unit' }),
 	})
 }

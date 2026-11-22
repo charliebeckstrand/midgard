@@ -863,3 +863,110 @@ describe('Grid range binding', () => {
 		expect(onValueChange).toHaveBeenLastCalledWith({ anchor: at(1, 'name'), focus: at(2, 'role') })
 	})
 })
+
+describe('Grid range figures', () => {
+	type Sale = { id: number; item: string; units: number; price: string }
+
+	const sales: Sale[] = [
+		{ id: 1, item: 'Pens', units: 10, price: '$1.50' },
+		{ id: 2, item: 'Paper', units: 30, price: '$4.25' },
+		{ id: 3, item: 'Ink', units: 20, price: '$12.00' },
+	]
+
+	const saleColumns: GridColumn<Sale>[] = [
+		{ id: 'item', title: 'Item', cell: (row) => row.item },
+		{ id: 'units', title: 'Units', cell: (row) => String(row.units) },
+		{ id: 'price', title: 'Price', cell: (row) => row.price },
+	]
+
+	const saleCell = (row: number, col: number) =>
+		gridCells()[row * saleColumns.length + col] as HTMLElement
+
+	/** The text of each figure in the footer. */
+	const figures = () =>
+		[...document.querySelectorAll('[data-slot="grid-footer-figure"]')].map(
+			(node) => node.textContent,
+		)
+
+	function renderSales(rangeFigures: boolean | ('count' | 'sum' | 'avg' | 'min' | 'max')[] = true) {
+		renderUI(
+			<Grid
+				columns={saleColumns}
+				rows={sales}
+				getKey={(row) => row.id}
+				navigable
+				range
+				footer={{ rangeFigures }}
+			/>,
+		)
+
+		return screen.getByRole('grid')
+	}
+
+	it('shows the count, the sum, and the average of a range of numbers', () => {
+		const grid = renderSales()
+
+		fireEvent.mouseDown(saleCell(0, 1))
+
+		fireEvent.keyDown(grid, { key: 'ArrowDown', shiftKey: true })
+
+		expect(figures()).toEqual(['Count 2', 'Sum 40', 'Average 20'])
+
+		fireEvent.keyDown(grid, { key: 'ArrowRight', shiftKey: true })
+
+		// The prices read as numbers, as the aggregates read them.
+		expect(figures()).toEqual(['Count 4', 'Sum 45.75', 'Average 11.44'])
+	})
+
+	it('shows the count alone for a range of text, and nothing for one cell', () => {
+		const grid = renderSales()
+
+		fireEvent.mouseDown(saleCell(0, 0))
+
+		expect(figures()).toEqual([])
+
+		expect(document.querySelector('[data-slot="grid-footer"]')).toBeNull()
+
+		fireEvent.keyDown(grid, { key: 'ArrowDown', shiftKey: true })
+
+		expect(figures()).toEqual(['Count 2'])
+
+		fireEvent.keyDown(grid, { key: 'ArrowDown' })
+
+		expect(figures()).toEqual([])
+	})
+
+	it('shows the figures of a list in its order', () => {
+		const grid = renderSales(['max', 'min'])
+
+		fireEvent.mouseDown(saleCell(0, 1))
+
+		fireEvent.keyDown(grid, { key: 'End', ctrlKey: true, shiftKey: true })
+
+		expect(figures()).toEqual(['Maximum 30', 'Minimum 1.5'])
+	})
+
+	it('shows a figure that the list names twice one time', () => {
+		const grid = renderSales(['sum', 'count', 'sum'])
+
+		fireEvent.mouseDown(saleCell(0, 1))
+
+		fireEvent.keyDown(grid, { key: 'ArrowDown', shiftKey: true })
+
+		expect(figures()).toEqual(['Sum 40', 'Count 2'])
+	})
+
+	it('speaks the figures with the range once it stops changing', async ({ clock }) => {
+		const grid = renderSales()
+
+		fireEvent.mouseDown(saleCell(0, 1))
+
+		fireEvent.keyDown(grid, { key: 'ArrowDown', shiftKey: true })
+
+		await settleAnnouncement(clock)
+
+		expect(liveRegion()).toHaveTextContent(
+			'Range of 2 rows and 1 column, Units row 2 to Units row 3. Count 2, Sum 40, Average 20',
+		)
+	})
+})

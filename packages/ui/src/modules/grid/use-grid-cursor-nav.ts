@@ -5,13 +5,19 @@ import { announce } from '../../core/announcer'
 import { useReportedChange } from '../../hooks/use-reported-change'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useIntl } from '../../primitives/intl/use-intl'
-import { describeRange } from './engine/grid-announcements'
+import { useLocale } from '../../providers/locale/context'
+import {
+	describeRange,
+	describeRangeFigure,
+	describeRangeWithFigures,
+} from './engine/grid-announcements'
 import { GRID_CELL } from './engine/grid-cell-controls'
 import { columnAccessor } from './engine/grid-column/accessor'
 import { columnLabel } from './engine/grid-column/label'
 import { GRID_RANGE_ANNOUNCE_MS } from './engine/grid-constants'
 import { cellText } from './engine/grid-export/accessor'
 import { gridMessages } from './engine/grid-messages'
+import { rangeFigures as figuresOf } from './engine/grid-range/figures'
 import { toHtmlTable } from './engine/grid-range/html'
 import type { GridRangeCells } from './engine/grid-range/range'
 import { toTsv } from './engine/grid-range/tsv'
@@ -84,6 +90,7 @@ export type GridCursorRefs<T> = Omit<GridIndexRefs<T>, 'selectableRef' | 'toggle
 export function useGridCursorNav<T>({
 	enabled,
 	range,
+	rangeFigures,
 	onRowActivate,
 	onCellActivate,
 	onActiveCellChange,
@@ -98,6 +105,7 @@ export function useGridCursorNav<T>({
 }: Pick<
 	GridCursorInput<T>,
 	| 'range'
+	| 'rangeFigures'
 	| 'onRowActivate'
 	| 'onCellActivate'
 	| 'onActiveCellChange'
@@ -116,6 +124,8 @@ export function useGridCursorNav<T>({
 	editsAt: (row: number, col: number) => boolean
 }) {
 	const intl = useIntl()
+
+	const { locale } = useLocale()
 
 	const { rowsRef, colCountRef, rowIndexMapRef, rowKeysRef, cursorColumnsRef, rowIndexOffsetRef } =
 		refs
@@ -189,14 +199,21 @@ export function useGridCursorNav<T>({
 			row: ariaRowIndex(rowIndexOffsetRef.current, toCursorRow(row)),
 		})
 
-		announce(
-			describeRange(
-				intl,
-				{ rows: cells.rows.length, cols: cells.cols.length },
-				corner(cells.from),
-				corner(cells.to),
-			),
+		const sentence = describeRange(
+			intl,
+			{ rows: cells.rows.length, cols: cells.cols.length },
+			corner(cells.from),
+			corner(cells.to),
 		)
+
+		// The figures that the footer shows, spoken with the range they describe.
+		const figures = rangeFigures
+			? figuresOf(cells, rowsRef.current, columns, rangeFigures).map((figure) =>
+					describeRangeFigure(intl, figure, locale),
+				)
+			: []
+
+		announce(describeRangeWithFigures(intl, sentence, figures))
 	})
 
 	const { active: rangeFocus } = nav

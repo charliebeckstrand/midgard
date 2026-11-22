@@ -168,6 +168,7 @@ function fillKey(press: GridKeyPress & { shiftKey: boolean }): GridRangeFillDire
 export function useGridEditCursor<T>({
 	navigable,
 	range,
+	rangeFigures,
 	editable,
 	columns,
 	onRowActivate,
@@ -254,6 +255,7 @@ export function useGridEditCursor<T>({
 	const { nav, copies, seated, copyCells } = useGridCursorNav<T>({
 		enabled: cursorEnabled,
 		range,
+		rangeFigures,
 		onRowActivate,
 		onCellActivate: onCellActivateWithEdit,
 		onActiveCellChange,

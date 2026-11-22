@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import { describeRange, describeWrite } from '../../modules/grid/engine/grid-announcements'
+import { RANGE_FIGURES_DEFAULT, rangeFigures } from '../../modules/grid/engine/grid-range/figures'
 import {
 	filledCorners,
 	fillLine,
@@ -508,5 +509,65 @@ describe('toHtmlTable', () => {
 		expect(toHtmlTable([['one\ntwo\r\nthree']])).toBe(
 			`<table><tbody><tr>${td}one${br}two${br}three</td></tr></tbody></table>`,
 		)
+	})
+})
+
+describe('rangeFigures', () => {
+	type Line = { id: number; item: string; amount: unknown }
+
+	const lines: Line[] = [
+		{ id: 1, item: 'Pens', amount: 12 },
+		{ id: 2, item: 'Paper', amount: '$1,200.50' },
+		{ id: 3, item: ' ', amount: null },
+		{ id: 4, item: 'Ink', amount: '15%' },
+	]
+
+	const columns = [
+		{ id: 'item', title: 'Item' },
+		{ id: 'amount', title: 'Amount' },
+	]
+
+	const cells = (rows: number[], cols: number[]) => ({
+		rows,
+		cols,
+		from: { row: rows[0] ?? 0, col: cols[0] ?? 0 },
+		to: { row: rows.at(-1) ?? 0, col: cols.at(-1) ?? 0 },
+	})
+
+	it('counts each cell with a value, and reads the numbers as the aggregates do', () => {
+		const figures = rangeFigures(cells([0, 1, 2, 3], [0, 1]), lines, columns, [
+			'count',
+			'sum',
+			'avg',
+			'min',
+			'max',
+		])
+
+		// The blank item and the null amount hold no value.
+		expect(figures).toEqual([
+			{ op: 'count', value: 6 },
+			{ op: 'sum', value: 1227.5 },
+			{ op: 'avg', value: 1227.5 / 3 },
+			{ op: 'min', value: 12 },
+			{ op: 'max', value: 1200.5 },
+		])
+	})
+
+	it('gives the count only for a range with no number', () => {
+		expect(rangeFigures(cells([0, 1], [0]), lines, columns, RANGE_FIGURES_DEFAULT)).toEqual([
+			{ op: 'count', value: 2 },
+		])
+	})
+
+	it('gives no figures for one cell or no range', () => {
+		expect(rangeFigures(cells([0], [1]), lines, columns, RANGE_FIGURES_DEFAULT)).toEqual([])
+
+		expect(rangeFigures(null, lines, columns, RANGE_FIGURES_DEFAULT)).toEqual([])
+	})
+
+	it('keeps the order of the figures that it is given', () => {
+		const figures = rangeFigures(cells([0, 1], [1]), lines, columns, ['max', 'count'])
+
+		expect(figures.map((figure) => figure.op)).toEqual(['max', 'count'])
 	})
 })

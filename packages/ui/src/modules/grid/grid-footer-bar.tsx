@@ -3,8 +3,11 @@
 import { cn } from '../../core/cn'
 import type { IntlShape } from '../../primitives/intl/types'
 import { useIntl } from '../../primitives/intl/use-intl'
+import { useLocale } from '../../providers/locale/context'
 import { k } from '../../recipes/kata/grid'
+import { describeRangeFigure } from './engine/grid-announcements'
 import { gridMessages } from './engine/grid-messages'
+import type { GridRangeFigure } from './engine/grid-range/figures'
 import type { GridFooterScope } from './grid-data-resolvers'
 import type { GridFooter as GridFooterConfig, GridFooterStats } from './grid-data-types'
 
@@ -20,6 +23,8 @@ type GridFooterProps = {
 	 * (infinite scroll has more to load and no `totalRows`).
 	 */
 	scope: GridFooterScope
+	/** The figures of the cell range (see {@link GridFooterConfig.rangeFigures}), or an empty list. */
+	figures: readonly GridRangeFigure[]
 }
 
 /**
@@ -87,7 +92,9 @@ function selectedLabel(
  * `'12 of 47 rows visible'` while filtered, else a bare `'47 rows'`. Because the selected label
  * nests against the visible extent, its denominator preserves the filter context
  * the total would otherwise show. Any custom {@link GridFooterConfig.content} is
- * pushed to the trailing edge. Renders nothing when no setting yields output.
+ * pushed to the trailing edge, after the figures of the cell range
+ * ({@link GridFooterConfig.rangeFigures}). Renders nothing when no setting
+ * yields output.
  * An enabled `footer` carrying `selectedTotal` alone stays invisible until a
  * row is selected, and a `rowTotal` alone until there is a row to count. The
  * count is announced through a polite live region, so a filter or selection
@@ -98,8 +105,10 @@ function selectedLabel(
  *
  * @internal
  */
-export function GridFooterBar({ config, stats, scope }: GridFooterProps) {
+export function GridFooterBar({ config, stats, scope, figures }: GridFooterProps) {
 	const intl = useIntl()
+
+	const { locale } = useLocale()
 
 	if (!config || !stats) return null
 
@@ -117,6 +126,16 @@ export function GridFooterBar({ config, stats, scope }: GridFooterProps) {
 
 	const counted = config.selectedTotal === true || showRowTotal
 
+	// The figures stay out of the live region: the grid speaks them with the
+	// range once it settles, not on each step of a drag.
+	const figureItems = figures.map((figure) => (
+		<p key={figure.op} data-slot="grid-footer-figure" className={cn(k.summary.item)}>
+			{describeRangeFigure(intl, figure, locale)}
+		</p>
+	))
+
+	const trailing = figures.length > 0 || content != null
+
 	return (
 		<>
 			{counted && (
@@ -125,7 +144,7 @@ export function GridFooterBar({ config, stats, scope }: GridFooterProps) {
 				</p>
 			)}
 
-			{(status != null || content != null) && (
+			{(status != null || trailing) && (
 				<div data-slot="grid-footer" className={cn(k.summary.bar)}>
 					{status != null && (
 						<p aria-hidden="true" className={cn(k.summary.item)}>
@@ -133,7 +152,12 @@ export function GridFooterBar({ config, stats, scope }: GridFooterProps) {
 						</p>
 					)}
 
-					{content != null && <div className={cn(k.summary.trailing)}>{content}</div>}
+					{trailing && (
+						<div className={cn(k.summary.trailing)}>
+							{figureItems}
+							{content}
+						</div>
+					)}
 				</div>
 			)}
 		</>

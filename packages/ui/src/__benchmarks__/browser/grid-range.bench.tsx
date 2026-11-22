@@ -9,7 +9,10 @@
  * at 60 Hz, so a row reads that much above the work.
  *
  * The `fill handle` row is an editable grid, which also places the fill handle
- * on the active cell. The `read-only` row has no handle.
+ * on the active cell. The `read-only` row has no handle. The `range figures`
+ * row is the read-only grid with `footer.rangeFigures`. Its figures render
+ * after the range, so its sample ends on the first frame that shows the
+ * figures of the whole grid, or none after the shrink.
  */
 
 import type { ReactNode } from 'react'
@@ -52,18 +55,39 @@ function press(table: HTMLElement, key: string, shiftKey: boolean): void {
 	)
 }
 
+/**
+ * Resolves on the first rendered frame that shows the figures of the range,
+ * or none, as `shown` asks. The figures render after the range, so they can
+ * follow it by a frame or more. Throws after a second of frames.
+ */
+async function followFigures(box: HTMLElement, shown: boolean): Promise<void> {
+	const showsFigures = () => box.querySelector('[data-slot="grid-footer-figure"]') !== null
+
+	for (let wait = 0; showsFigures() !== shown; wait++) {
+		if (wait === 60) throw new Error('the figures did not follow the range')
+
+		await rendered()
+	}
+}
+
 /** One mounted grid: its report name, the seat of its cursor, and the timed extend. */
 type Extend = { name: string; seat: () => Promise<void>; run: () => Promise<void> }
 
 /**
  * Mounts one grid and closes it over an extend to the last cell and a shrink
- * back to the first. The seat focuses the table and moves the cursor to the
+ * back to the first. `settle` waits, inside the sample, for work that the grid
+ * renders after the range. The seat focuses the table and moves the cursor to the
  * first cell with no range. It runs before the warmup of the bench, because
  * the mount of the next grid takes the focus. The sample throws if the cursor
  * is not on the row that the press gives, or if the last row is not in the
  * range after the extend.
  */
-async function prepare(name: string, rows: Shipment[], grid: () => ReactNode): Promise<Extend> {
+async function prepare(
+	name: string,
+	rows: Shipment[],
+	grid: () => ReactNode,
+	settle: (box: HTMLElement, extended: boolean) => Promise<void> = async () => {},
+): Promise<Extend> {
 	const box = host({ width: GRID_WIDTH, height: GRID_HEIGHT })
 
 	const root = createRoot(box)
@@ -113,6 +137,8 @@ async function prepare(name: string, rows: Shipment[], grid: () => ReactNode): P
 			if (lastInRange !== extended) {
 				throw new Error(`${name}: the last row is ${extended ? 'not ' : ''}in the range`)
 			}
+
+			await settle(box, extended)
 		},
 	}
 }
@@ -132,6 +158,21 @@ const extendsByKey = [
 	await prepare('1,000 rows · read-only', rows, () => (
 		<Grid columns={COLUMNS} rows={rows} getKey={shipmentKey} navigable range />
 	)),
+	await prepare(
+		'1,000 rows · range figures',
+		rows,
+		() => (
+			<Grid
+				columns={COLUMNS}
+				rows={rows}
+				getKey={shipmentKey}
+				navigable
+				range
+				footer={{ rangeFigures: true }}
+			/>
+		),
+		followFigures,
+	),
 ]
 
 compareBenches(

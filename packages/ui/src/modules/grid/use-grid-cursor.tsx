@@ -1,6 +1,7 @@
 'use client'
 
 import { type ReactNode, type RefObject, useRef } from 'react'
+import type { Aggregation } from '../../utilities/aggregate'
 import type { GridNavStore } from './context'
 import type { GridRangeFill } from './engine/grid-range/fill'
 import type { GridCellActivate, GridRowActivate } from './engine/grid-row/bridges'
@@ -31,6 +32,8 @@ export type GridCursorInput<T> = {
 	navigable: boolean
 	/** Whether the cursor holds a cell range (see {@link GridDataProps.range}). */
 	range: boolean
+	/** The figures that the grid speaks with the range (see {@link GridFooter.rangeFigures}), or `null`. */
+	rangeFigures: readonly Aggregation[] | null
 	/** The editing config after the grouping gates. Only the editing cursor reads it. */
 	editable: GridEditableConfig | undefined
 	/** The pinned/resolved columns to augment. */
@@ -127,6 +130,7 @@ const noHistory = () => false
 export function useGridCursor<T>({
 	navigable,
 	range,
+	rangeFigures,
 	columns,
 	onRowActivate,
 	onCellActivate,
@@ -144,6 +148,7 @@ export function useGridCursor<T>({
 	const { nav } = useGridCursorNav<T>({
 		enabled: navigable,
 		range,
+		rangeFigures,
 		onRowActivate,
 		onCellActivate,
 		onActiveCellChange,

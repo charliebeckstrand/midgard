@@ -13,6 +13,7 @@ import { useGridDataActivation } from './use-grid-data-activation'
 import { useGridDataColumns } from './use-grid-data-columns'
 import { useGridIndexRefs } from './use-grid-index'
 import type { GridScrollRowIntoView } from './use-grid-navigation'
+import { useGridRangeFiguresOps } from './use-grid-range-figures'
 import { useGridRowHeight } from './use-grid-row-height'
 
 /**
@@ -220,6 +221,9 @@ export function useGridDataSetup<T>(props: GridDataProps<T>) {
 
 	const indexRefs = useGridIndexRefs(editSource)
 
+	// The figures of the range, which the cursor speaks and the footer shows.
+	const rangeFigures = useGridRangeFiguresOps(props.footer?.rangeFigures)
+
 	const activation = useGridDataActivation<T>({
 		refs: indexRefs,
 		source: editSource,
@@ -234,6 +238,7 @@ export function useGridDataSetup<T>(props: GridDataProps<T>) {
 		navigable: gated.navigable,
 		// The binding is the opt-in, as `true` is. `useGridRangeValue` reads its value.
 		range: range !== false,
+		rangeFigures,
 		editable: gated.editable,
 		columns: pinnedColumns,
 		onRowActivate: activation.onRowActivate,
