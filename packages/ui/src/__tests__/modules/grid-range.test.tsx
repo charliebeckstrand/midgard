@@ -1,5 +1,6 @@
+import { useState } from 'react'
 import { describe, expect, onTestFinished, vi } from 'vitest'
-import { Grid, type GridColumn } from '../../modules/grid'
+import { Grid, type GridColumn, type GridRangeState } from '../../modules/grid'
 import { GRID_RANGE_ANNOUNCE_MS } from '../../modules/grid/engine/grid-constants'
 import { act, FIRST_WRITE_MS, fireEvent, gridCells, liveRegion, renderUI, screen } from '../helpers'
 import { type FakeClock, it } from '../helpers/fake-clock'
@@ -530,5 +531,296 @@ describe('Grid range in an editable grid', () => {
 			[1, 0],
 			[1, 1],
 		])
+	})
+})
+
+describe('Grid range binding', () => {
+	const at = (rowKey: number, columnId: string) => ({ rowKey, columnId })
+
+	/** A grid whose owner holds the range, and takes each change unless `refuse` is set. */
+	function Owner({
+		initial,
+		refuse = false,
+		shown = rows,
+		onValueChange,
+	}: {
+		initial: GridRangeState | null
+		refuse?: boolean
+		shown?: Row[]
+		onValueChange?: (range: GridRangeState | null) => void
+	}) {
+		const [value, setValue] = useState(initial)
+
+		return (
+			<>
+				<button
+					type="button"
+					onClick={() => setValue({ anchor: at(3, 'role'), focus: at(2, 'note') })}
+				>
+					Set
+				</button>
+				<button type="button" onClick={() => setValue(null)}>
+					Clear
+				</button>
+				<Grid
+					columns={columns}
+					rows={shown}
+					getKey={getKey}
+					navigable
+					range={{
+						value,
+						onValueChange: (next) => {
+							onValueChange?.(next)
+
+							if (!refuse) setValue(next)
+						},
+					}}
+				/>
+			</>
+		)
+	}
+
+	it('reports each change by the row key and the column id, and nothing at mount', () => {
+		const onValueChange = vi.fn()
+
+		renderUI(
+			<Grid columns={columns} rows={rows} getKey={getKey} navigable range={{ onValueChange }} />,
+		)
+
+		const grid = screen.getByRole('grid')
+
+		expect(onValueChange).not.toHaveBeenCalled()
+
+		fireEvent.mouseDown(cell(0, 0))
+
+		// A cursor move with no range changes no range.
+		expect(onValueChange).not.toHaveBeenCalled()
+
+		fireEvent.keyDown(grid, { key: 'ArrowDown', shiftKey: true })
+
+		expect(onValueChange).toHaveBeenLastCalledWith({ anchor: at(1, 'name'), focus: at(2, 'name') })
+
+		fireEvent.keyDown(grid, { key: 'ArrowRight', shiftKey: true })
+
+		expect(onValueChange).toHaveBeenLastCalledWith({ anchor: at(1, 'name'), focus: at(2, 'role') })
+
+		fireEvent.keyDown(grid, { key: 'ArrowDown' })
+
+		expect(onValueChange).toHaveBeenLastCalledWith(null)
+
+		expect(onValueChange).toHaveBeenCalledTimes(3)
+	})
+
+	it('seeds the range from `defaultValue`, with the cursor on the focus cell', () => {
+		const onValueChange = vi.fn()
+
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				navigable
+				range={{ defaultValue: { anchor: at(2, 'role'), focus: at(3, 'note') }, onValueChange }}
+			/>,
+		)
+
+		expect(inRange()).toEqual([
+			[1, 1],
+			[1, 2],
+			[2, 1],
+			[2, 2],
+		])
+
+		expect(screen.getByRole('grid')).toHaveAttribute('aria-activedescendant', cell(2, 2).id)
+
+		expect(onValueChange).not.toHaveBeenCalled()
+	})
+
+	it('shows a controlled value, moves to a new value, and clears to no range', () => {
+		const onValueChange = vi.fn()
+
+		renderUI(
+			<Owner
+				initial={{ anchor: at(1, 'name'), focus: at(2, 'role') }}
+				onValueChange={onValueChange}
+			/>,
+		)
+
+		const grid = screen.getByRole('grid')
+
+		expect(inRange()).toEqual([
+			[0, 0],
+			[0, 1],
+			[1, 0],
+			[1, 1],
+		])
+
+		fireEvent.click(screen.getByRole('button', { name: 'Set' }))
+
+		// The anchor is on the third row and the focus on the second.
+		expect(inRange()).toEqual([
+			[1, 1],
+			[1, 2],
+			[2, 1],
+			[2, 2],
+		])
+
+		expect(grid).toHaveAttribute('aria-activedescendant', cell(1, 2).id)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Clear' }))
+
+		expect(inRange()).toEqual([])
+
+		// The cursor stays where the range left it.
+		expect(grid).toHaveAttribute('aria-activedescendant', cell(1, 2).id)
+
+		// A value from the owner is not a change to report.
+		expect(onValueChange).not.toHaveBeenCalled()
+	})
+
+	it('keeps the controlled value when the owner does not take a change', () => {
+		const onValueChange = vi.fn()
+
+		renderUI(
+			<Owner
+				initial={{ anchor: at(1, 'name'), focus: at(1, 'role') }}
+				refuse
+				onValueChange={onValueChange}
+			/>,
+		)
+
+		fireEvent.keyDown(screen.getByRole('grid'), { key: 'ArrowDown', shiftKey: true })
+
+		expect(onValueChange).toHaveBeenCalledWith({ anchor: at(1, 'name'), focus: at(2, 'role') })
+
+		expect(inRange()).toEqual([
+			[0, 0],
+			[0, 1],
+		])
+	})
+
+	it('reports the end of the range on a new order, and an owner that keeps its value keeps the cells', () => {
+		const onValueChange = vi.fn()
+
+		const range = { anchor: at(1, 'name'), focus: at(2, 'name') }
+
+		const { rerender } = renderUI(<Owner initial={range} refuse onValueChange={onValueChange} />)
+
+		rerender(
+			<Owner
+				initial={range}
+				refuse
+				shown={[rows[2], rows[1], rows[0]] as Row[]}
+				onValueChange={onValueChange}
+			/>,
+		)
+
+		expect(onValueChange).toHaveBeenLastCalledWith(null)
+
+		// Bob and Alice are now the second and the third rows.
+		expect(inRange()).toEqual([
+			[1, 0],
+			[2, 0],
+		])
+	})
+
+	it('shows a value that comes with a new order on the cells of that order', () => {
+		const onValueChange = vi.fn()
+
+		const grid = (shown: Row[], value: GridRangeState) => (
+			<Grid
+				columns={columns}
+				rows={shown}
+				getKey={getKey}
+				navigable
+				range={{ value, onValueChange }}
+			/>
+		)
+
+		const { rerender } = renderUI(grid(rows, { anchor: at(1, 'name'), focus: at(1, 'name') }))
+
+		rerender(
+			grid([rows[2], rows[1], rows[0]] as Row[], { anchor: at(3, 'role'), focus: at(2, 'note') }),
+		)
+
+		// Carol and Bob are the first and the second rows of the new order.
+		expect(inRange()).toEqual([
+			[0, 1],
+			[0, 2],
+			[1, 1],
+			[1, 2],
+		])
+
+		expect(onValueChange).not.toHaveBeenCalled()
+	})
+
+	it('shows no range for a value that names a row the grid does not show', () => {
+		renderUI(<Owner initial={{ anchor: at(1, 'name'), focus: at(9, 'name') }} />)
+
+		expect(inRange()).toEqual([])
+	})
+
+	it('gives the data row at the edge as the focus while the cursor is on a group header', () => {
+		type Sale = { id: number; region: string; units: number }
+
+		const sales: Sale[] = [
+			{ id: 1, region: 'West', units: 10 },
+			{ id: 2, region: 'West', units: 30 },
+			{ id: 3, region: 'East', units: 20 },
+		]
+
+		const onValueChange = vi.fn()
+
+		renderUI(
+			<Grid
+				columns={[
+					{ id: 'region', title: 'Region', cell: (row) => row.region, value: (row) => row.region },
+					{ id: 'units', title: 'Units', cell: (row) => `${row.units} units` },
+				]}
+				rows={sales}
+				getKey={(row) => row.id}
+				groupBy={{ value: 'region' }}
+				navigable
+				range={{ onValueChange }}
+			/>,
+		)
+
+		const grid = screen.getByRole('treegrid')
+
+		fireEvent.mouseDown(screen.getByText('10 units'))
+
+		fireEvent.mouseUp(screen.getByText('10 units'))
+
+		// The second step lands on the header of the East group.
+		fireEvent.keyDown(grid, { key: 'ArrowDown', shiftKey: true })
+
+		fireEvent.keyDown(grid, { key: 'ArrowDown', shiftKey: true })
+
+		expect(onValueChange).toHaveBeenLastCalledWith({
+			anchor: at(1, 'units'),
+			focus: at(2, 'units'),
+		})
+	})
+
+	it('reports a range of an editable grid', () => {
+		const onValueChange = vi.fn()
+
+		renderUI(
+			<Grid
+				columns={columns.map((col) => ({ ...col, field: col.id as keyof Row }))}
+				rows={rows}
+				getKey={getKey}
+				editable={{ session: 'managed', onCommit: () => {} }}
+				range={{ onValueChange }}
+			/>,
+		)
+
+		fireEvent.mouseDown(cell(0, 0))
+
+		fireEvent.mouseUp(cell(0, 0))
+
+		fireEvent.mouseDown(cell(1, 1), { shiftKey: true })
+
+		expect(onValueChange).toHaveBeenLastCalledWith({ anchor: at(1, 'name'), focus: at(2, 'role') })
 	})
 })

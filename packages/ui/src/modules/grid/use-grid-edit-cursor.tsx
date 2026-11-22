@@ -52,6 +52,7 @@ import {
 	type GridNewRowPosition,
 	NEW_ROW_INDEX,
 } from './use-grid-navigation'
+import { gridRangeHandle } from './use-grid-range-value'
 import { useGridTouchEntry } from './use-grid-touch-entry'
 
 /** Whether a press carries no modifier and no input method. @internal */
@@ -742,5 +743,6 @@ export function useGridEditCursor<T>({
 		renderNewRow,
 		stepHistory: editing.stepHistory,
 		fill,
+		range: gridRangeHandle(nav),
 	}
 }

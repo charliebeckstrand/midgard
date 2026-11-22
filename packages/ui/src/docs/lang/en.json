@@ -1007,6 +1007,10 @@
 		"defaultMessage": "Search commands",
 		"description": "Text of a demo in the docs, in components/command-palette/keyboard-shortcut.tsx."
 	},
+	"docs.demo.01059eb32cda": {
+		"defaultMessage": "Range:",
+		"description": "Text of a demo in the docs, in modules/grid/events/cell-range.tsx."
+	},
 	"docs.demo.013b174b7690": {
 		"defaultMessage": "Monthly recurring revenue",
 		"description": "Text of a demo in the docs, in components/stat/with-delta-and-description.tsx."
@@ -1118,6 +1122,10 @@
 	"docs.demo.0899f050ab81": {
 		"defaultMessage": "How do I close my account?",
 		"description": "Text of a demo in the docs as title, in components/drawer/fit-content.tsx."
+	},
+	"docs.demo.08df0850d81e": {
+		"defaultMessage": "Select a block",
+		"description": "Text of a demo in the docs, in modules/grid/events/cell-range.tsx."
 	},
 	"docs.demo.0934605a294f": {
 		"defaultMessage": "You can cancel your plan at any time from the billing page. Your files stay available until the end of the period that you paid for.",
@@ -3253,7 +3261,7 @@
 	},
 	"docs.demo.83b12c2216ef": {
 		"defaultMessage": "Clear",
-		"description": "Text of a demo in the docs, in components/signature-pad/imperative-handle.tsx, modules/form/controlled-values.tsx."
+		"description": "Text of a demo in the docs, in components/signature-pad/imperative-handle.tsx, modules/form/controlled-values.tsx, modules/grid/events/cell-range.tsx."
 	},
 	"docs.demo.83c46be8fbce": {
 		"defaultMessage": "You own the files that you upload. You let the service store them, copy them for backups, and show them to the people that you share them with.",
@@ -4981,7 +4989,7 @@
 	},
 	"docs.demo.dc937b598926": {
 		"defaultMessage": "None",
-		"description": "Text of a demo in the docs, in components/command-palette/with-actions.tsx, components/context-menu/with-actions.tsx, components/hold-button/lifecycle-callbacks.tsx and 7 more."
+		"description": "Text of a demo in the docs, in components/command-palette/with-actions.tsx, components/context-menu/with-actions.tsx, components/hold-button/lifecycle-callbacks.tsx and 8 more."
 	},
 	"docs.demo.dcbbc656768e": {
 		"defaultMessage": "Accept agreement",

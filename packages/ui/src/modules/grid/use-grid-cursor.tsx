@@ -17,6 +17,7 @@ import type {
 	GridReconcile,
 	GridScrollRowIntoView,
 } from './use-grid-navigation'
+import { type GridRangeHandle, gridRangeHandle } from './use-grid-range-value'
 
 /**
  * The inputs of the cursor phase of {@link GridData}, which the read-only
@@ -97,6 +98,8 @@ export type GridCursor<T> = {
 	stepHistory: (step: 'undo' | 'redo') => boolean
 	/** The fill of the range, for the cell context menu, or `undefined` while the grid cannot fill. */
 	fill: GridRangeFill | undefined
+	/** The range of the cursor, for the binding of {@link GridDataProps.range}. */
+	range: GridRangeHandle
 }
 
 /** The editing layer leaves no key to a read-only grid. @internal */
@@ -178,5 +181,6 @@ export function useGridCursor<T>({
 		renderNewRow: noNewRow,
 		stepHistory: noHistory,
 		fill: undefined,
+		range: gridRangeHandle(nav),
 	}
 }

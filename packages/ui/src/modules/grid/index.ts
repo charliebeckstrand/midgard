@@ -30,6 +30,8 @@ export type {
 	GridPinning,
 	GridPinningState,
 	GridPreferences,
+	GridRange,
+	GridRangeState,
 	GridReorder,
 	GridRowReorder,
 	GridSelection,
