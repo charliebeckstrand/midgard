@@ -1,8 +1,8 @@
 import { Download, Printer } from '../../primitives/icons/icons'
 import { useIntl } from '../../primitives/intl/use-intl'
+import { ButtonIconTooltip } from '../button/button-icon-tooltip'
 import { ToolbarGroup } from '../toolbar'
 import { pdfViewerMessages } from './pdf-viewer-messages'
-import { PdfViewerToolbarButton } from './pdf-viewer-toolbar-button'
 import { downloadPdf, printPdf } from './pdf-viewer-utilities'
 
 /** Props for {@link PdfViewerDocumentActions}. @internal */
@@ -33,13 +33,13 @@ export function PdfViewerDocumentActions({
 
 	return (
 		<ToolbarGroup aria-label={intl.formatMessage(pdfViewerMessages.document)}>
-			<PdfViewerToolbarButton
+			<ButtonIconTooltip
 				label={intl.formatMessage(pdfViewerMessages.download)}
 				icon={<Download />}
 				disabled={disabled}
 				onClick={download}
 			/>
-			<PdfViewerToolbarButton
+			<ButtonIconTooltip
 				label={intl.formatMessage(pdfViewerMessages.print)}
 				icon={<Printer />}
 				disabled={disabled}

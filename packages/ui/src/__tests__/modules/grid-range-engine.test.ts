@@ -283,6 +283,12 @@ describe('coercePaste', () => {
 		expect(coercePaste(' ', true)).toEqual({ value: undefined })
 	})
 
+	it('keeps an empty cell empty with an empty text', () => {
+		expect(coercePaste('', undefined)).toEqual({ value: undefined })
+
+		expect(coercePaste(' ', null)).toEqual({ value: null })
+	})
+
 	it('refuses a text that does not fit', () => {
 		expect(coercePaste('many', 3)).toBeNull()
 

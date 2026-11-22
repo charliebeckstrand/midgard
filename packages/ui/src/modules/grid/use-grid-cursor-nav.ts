@@ -140,21 +140,22 @@ export function useGridCursorNav<T>({
 
 	const { readRange, toCursorRow, rangeAnchor } = nav
 
-	// A copy while the tab stop has focus writes the range as TSV, or the active
-	// cell with no range. The native event needs no clipboard permission. The
-	// browser sends it to the start of the text selection, else to the body,
-	// never to a focused table, so the document hears it. A copy of selected
-	// text, or from a control in the grid, stays the browser's.
-	const copyRange = useStableEvent((event: ClipboardEvent) => {
+	// Writes the range as TSV to the clipboard of a copy or a cut event, or the
+	// active cell with no range, and returns the cells that it wrote. The native
+	// event needs no clipboard permission. The browser sends it to the start of
+	// the text selection, else to the body, never to a focused table, so the
+	// document hears it. An event for selected text, or from a control in the
+	// grid, stays the browser's, and the result is `null`.
+	const copyCells = useStableEvent((event: ClipboardEvent): GridRangeCells | null => {
 		const table = tableRef.current
 
-		if (!table || document.activeElement !== table || !event.clipboardData) return
+		if (!table || document.activeElement !== table || !event.clipboardData) return null
 
-		if (window.getSelection()?.isCollapsed === false) return
+		if (window.getSelection()?.isCollapsed === false) return null
 
 		const cells = readRange() ?? activeCells(nav.active)
 
-		if (!cells) return
+		if (!cells) return null
 
 		event.preventDefault()
 
@@ -162,6 +163,8 @@ export function useGridCursorNav<T>({
 			'text/plain',
 			toTsv(rangeText(cells, rowsRef.current, cursorColumnsRef.current)),
 		)
+
+		return cells
 	})
 
 	// Speaks the size and the corners of the range once it stops changing.
@@ -204,10 +207,10 @@ export function useGridCursorNav<T>({
 	useEffect(() => {
 		if (!seated) return
 
-		document.addEventListener('copy', copyRange)
+		document.addEventListener('copy', copyCells)
 
-		return () => document.removeEventListener('copy', copyRange)
-	}, [seated, copyRange])
+		return () => document.removeEventListener('copy', copyCells)
+	}, [seated, copyCells])
 
 	useEffect(() => {
 		if (!rangeAnchor || !rangeFocus) return
@@ -278,5 +281,7 @@ export function useGridCursorNav<T>({
 		copies,
 		/** Whether {@link copies} holds and the cursor is on a cell. */
 		seated,
+		/** Writes the range to the clipboard of an event, for the cut of the editing cursor. */
+		copyCells,
 	}
 }

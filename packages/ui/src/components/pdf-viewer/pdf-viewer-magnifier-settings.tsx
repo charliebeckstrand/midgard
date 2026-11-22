@@ -5,6 +5,7 @@ import { ScanSearch } from '../../primitives/icons/icons'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/pdf-viewer'
 import { Stack } from '../../structure/stack'
+import { ButtonIconTooltip } from '../button/button-icon-tooltip'
 import {
 	Dialog,
 	DialogBody,
@@ -18,7 +19,6 @@ import { Radio, RadioField, RadioGroup } from '../radio'
 import { Switch, SwitchField } from '../switch'
 import { usePdfViewerContext } from './context'
 import { pdfViewerMessages } from './pdf-viewer-messages'
-import { PdfViewerToolbarButton } from './pdf-viewer-toolbar-button'
 import {
 	delayOptions,
 	type MagnifierOption,
@@ -76,7 +76,7 @@ export function PdfViewerMagnifierSettings({ disabled }: PdfViewerMagnifierSetti
 	return (
 		<Dialog>
 			<DialogTrigger>
-				<PdfViewerToolbarButton
+				<ButtonIconTooltip
 					label={intl.formatMessage(pdfViewerMessages.magnifierSettings)}
 					icon={<ScanSearch />}
 					// Keyed on the loupe rather than on the dialog: the glyph stands for the lens, so

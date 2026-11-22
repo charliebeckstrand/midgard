@@ -6,13 +6,14 @@ import { applyChanges, EditHelp, initialPeople, personColumns } from './people.t
 export default function PasteAndFill() {
 	const [people, setPeople] = useState(initialPeople)
 
-	// With `range`, the cursor holds a block of cells. A paste or a fill writes
-	// into the block through `onCommit`, as one save that one undo takes back.
+	// With `range`, the cursor holds a block of cells. A paste, a clear, a cut,
+	// or a fill writes into the block through `onCommit`, as one save that one
+	// undo takes back.
 	return (
 		<>
 			<EditHelp label="Paste and fill help">
 				<PointerHint
-					mouseText="Select a range, then paste with Ctrl+V or Cmd+V, or fill down with Ctrl+D or Cmd+D."
+					mouseText="Select a range, then paste with Ctrl+V or Cmd+V, clear with Delete, cut with Ctrl+X or Cmd+X, or fill down with Ctrl+D or Cmd+D."
 					touchText="Use a keyboard or a mouse to select a range and paste into it."
 				/>
 			</EditHelp>

@@ -7,11 +7,11 @@ import { ChevronDown, ChevronUp, Search } from '../../primitives/icons/icons'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/pdf-viewer'
 import { isComposing } from '../../utilities/is-composing'
+import { ButtonIconTooltip } from '../button/button-icon-tooltip'
 import { Popover, PopoverContent, PopoverTrigger } from '../popover'
 import { SearchInput } from '../search-input'
 import { usePdfViewerSearchContext } from './context'
 import { pdfViewerMessages } from './pdf-viewer-messages'
-import { PdfViewerToolbarButton } from './pdf-viewer-toolbar-button'
 
 /** Props for {@link PdfViewerSearch}. @internal */
 type PdfViewerSearchProps = {
@@ -74,7 +74,7 @@ export function PdfViewerSearch({ disabled }: PdfViewerSearchProps) {
 			onOpenChange={(nextOpen) => setOpen(nextOpen && !disabled)}
 		>
 			<PopoverTrigger>
-				<PdfViewerToolbarButton
+				<ButtonIconTooltip
 					label={intl.formatMessage(pdfViewerMessages.search)}
 					icon={<Search />}
 					active={query !== ''}
@@ -100,13 +100,13 @@ export function PdfViewerSearch({ disabled }: PdfViewerSearchProps) {
 					<span data-slot="pdf-viewer-search-status" {...status}>
 						{query === '' ? null : statusText}
 					</span>
-					<PdfViewerToolbarButton
+					<ButtonIconTooltip
 						label={intl.formatMessage(pdfViewerMessages.previousMatch)}
 						icon={<ChevronUp />}
 						disabled={noMatch}
 						onClick={previous}
 					/>
-					<PdfViewerToolbarButton
+					<ButtonIconTooltip
 						label={intl.formatMessage(pdfViewerMessages.nextMatch)}
 						icon={<ChevronDown />}
 						disabled={noMatch}

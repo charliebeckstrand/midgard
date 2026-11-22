@@ -1,9 +1,9 @@
 import { useMemo } from 'react'
 import { Maximize2, ZoomIn, ZoomOut } from '../../primitives/icons/icons'
 import { useIntl } from '../../primitives/intl/use-intl'
+import { ButtonIconTooltip } from '../button/button-icon-tooltip'
 import { ToolbarGroup } from '../toolbar'
 import { pdfViewerMessages } from './pdf-viewer-messages'
-import { PdfViewerToolbarButton } from './pdf-viewer-toolbar-button'
 import type { PdfViewerZoom } from './types'
 
 /** Props for {@link PdfViewerZoomControls}. @internal */
@@ -39,7 +39,7 @@ export function PdfViewerZoomControls({ zoom, disabled }: PdfViewerZoomControlsP
 
 	return (
 		<ToolbarGroup aria-label={intl.formatMessage(pdfViewerMessages.zoom)}>
-			<PdfViewerToolbarButton
+			<ButtonIconTooltip
 				label={intl.formatMessage(pdfViewerMessages.zoomOut)}
 				tooltip={intl.formatMessage(pdfViewerMessages.zoomOutTo, {
 					percent: percent(nextLevelDown),
@@ -48,14 +48,14 @@ export function PdfViewerZoomControls({ zoom, disabled }: PdfViewerZoomControlsP
 				disabled={disabled || zoom.value <= minZoom}
 				onClick={zoomOut}
 			/>
-			<PdfViewerToolbarButton
+			<ButtonIconTooltip
 				label={intl.formatMessage(pdfViewerMessages.zoomIn)}
 				tooltip={intl.formatMessage(pdfViewerMessages.zoomInTo, { percent: percent(nextLevelUp) })}
 				icon={<ZoomIn />}
 				disabled={disabled || zoom.value >= maxZoom}
 				onClick={zoomIn}
 			/>
-			<PdfViewerToolbarButton
+			<ButtonIconTooltip
 				label={intl.formatMessage(pdfViewerMessages.resetZoom)}
 				icon={<Maximize2 />}
 				disabled={disabled || zoom.value === 1}

@@ -1246,6 +1246,11 @@ export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'>
 	 *   of it. Else the block starts at the top-left cell, or at the active cell
 	 *   with no range, and the grid cuts it off at the last row and column. A
 	 *   paste adds no rows.
+	 * - Delete and Backspace on the grid clear the range, or the active cell with
+	 *   no range, under `editable.session: 'managed'`. Ctrl/Cmd+X copies as
+	 *   Ctrl/Cmd+C does, and then clears. A clear is a paste of empty text: a
+	 *   text cell takes `''`, and a number cell or a yes/no cell takes
+	 *   `undefined`, unless {@link GridColumn.parse} reads the text.
 	 * - Ctrl/Cmd+D fills the range down from its top row, and Ctrl/Cmd+R fills
 	 *   it right from its first column, under `editable.session: 'managed'`.
 	 *   The cell menu of {@link GridDataProps.contextMenu} gives the same fills
@@ -1257,14 +1262,15 @@ export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'>
 	 *   range, or from the active cell, along the axis of the larger travel. The
 	 *   release fills the new cells.
 	 *
-	 * A paste or a fill is one save and one entry in the history, through
-	 * {@link GridEditableConfig.onCommit}. A fill copies the values of its
-	 * source cells. A source line of two or more numbers with a constant step
-	 * continues the step. {@link GridColumn.parse} reads each pasted text,
-	 * and {@link GridColumn.validate} checks each value. A refused cell goes to
-	 * {@link GridEditableConfig.onReject}. A paste or a fill skips a cell that
-	 * cannot edit, a cell of a column with no `field`, and a cell that holds a
-	 * draft. The live region counts the written and the skipped cells.
+	 * A paste, a clear, a cut, or a fill is one save and one entry in the
+	 * history, through {@link GridEditableConfig.onCommit}. A fill copies the
+	 * values of its source cells. A source line of two or more numbers with a
+	 * constant step continues the step. {@link GridColumn.parse} reads each
+	 * pasted text, and {@link GridColumn.validate} checks each value. A refused
+	 * cell goes to {@link GridEditableConfig.onReject}. A paste, a clear, or a
+	 * fill skips a cell that cannot edit, a cell of a column with no `field`,
+	 * and a cell that holds a draft. The live region counts the written and the
+	 * skipped cells.
 	 *
 	 * The range covers the body cells of the cursor. A cell of a column with no
 	 * value, such as the selection or actions column, copies as an empty field.
