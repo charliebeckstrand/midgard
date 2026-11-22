@@ -246,7 +246,9 @@ A verb tells one kind of work:
 
 A query takes one of these verbs only when its noun does not tell that work.
 
-The prefixes `is`, `has`, `same`, and `in` are for a function that gives a boolean. `same` compares two values, as `sameDay` does. `in` tells if a node is inside a place, as `inGrid` does. Do not use these prefixes for a function that gives a different type. A boolean query can also start with a modal word, as `canSubmitDraft` and `willThin` do.
+The prefixes `is`, `has`, and `same` are for a function that gives a boolean. `same` compares two values, as `sameDay` does. Do not use these prefixes for a function that gives a different type. A boolean query can also start with a modal word, as `canSubmitDraft` and `willThin` do.
+
+The prefix `in` names a place. A predicate with `in` tells if a node is inside the place, as `inGrid` does. A function with `in` can also put a value in a context, as `inEnglish(element)` does.
 
 In one file, the functions that do the same kind of work take the same form. In the grid menu file, each function that gives menu items is a noun, as `sortMenuItems` and `columnMenuItems` are.
 
