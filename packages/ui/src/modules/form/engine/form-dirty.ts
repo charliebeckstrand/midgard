@@ -24,9 +24,9 @@ function samePlainObjects(a: Record<string, unknown>, b: Record<string, unknown>
 }
 
 /**
- * Equality for the `dirty` derivation. Reference first, then structural over
- * `Date`, plain arrays, and plain objects; reference equality for `File`,
- * `Map`, `Set`, and class instances.
+ * The equality that finds a dirty field. It compares by reference first. It
+ * then compares a `Date`, a plain array, and a plain object by structure. A
+ * `File`, a `Map`, a `Set`, and a class instance match by reference only.
  *
  * @internal
  */

@@ -62,13 +62,14 @@ export function countActiveFilters(record: Record<string, unknown>): number {
 }
 
 /**
- * True when the clear action of a bar would change its record: a slot holds a
- * set value that `target`, the record a clear restores, does not hold.
+ * True when the clear action of a bar would change its record. `target` is the
+ * record that a clear restores. The clear changes the record when a slot holds
+ * a set value that `target` does not hold.
  *
  * @remarks
  * A slot that is not set in both records is the same slot. A set value matches
- * by identity, so an array or a `Date` that holds the same items as the default
- * but is a different object counts as a change.
+ * by identity. An array or a `Date` with the same items as the default is thus
+ * a change when it is a different object.
  *
  * @internal
  */

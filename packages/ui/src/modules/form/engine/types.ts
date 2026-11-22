@@ -15,7 +15,11 @@ export type Validator<T, K extends keyof T> = (
 	values: T,
 ) => string | string[] | undefined
 
-/** Optional {@link Validator} per field of `T`; the map `Form` consumes via its `validate` prop. Build one from a schema with `zodResolver`. */
+/**
+ * A map of the {@link Validator} of each field of `T`. Each field is optional.
+ * `Form` reads the map through its `validate` prop. Make one from a schema with
+ * `zodResolver`.
+ */
 export type Validators<T> = { [K in keyof T]?: Validator<T, K> }
 
 /** When the reducer runs validators: on a field's first blur (`'touched'`), on each change of a field (`'change'`), or only on submit (`'submit'`). A change validates that field and the fields that are touched or have a result already, so that a cross-field rule (a confirmation) stays current. It does not validate a field that the user has not used. A change of one field does not replace an issue of another field that came from `setErrors` or a `{ fieldErrors }` return. A change of the field itself replaces its issue with the result of its validator, or clears the issue when the field has no validator. Under `'submit'`, the issue stays until the next submit. */
@@ -37,10 +41,13 @@ export type FormState<T> = {
 }
 
 /**
- * Discriminated action set for the form reducer. An action writes a value,
- * marks a field touched, merges external errors, re-syncs controlled values
- * and the defaults with them, resets to new defaults or to the held ones, or
- * commits a full-field submit validation.
+ * The actions of the form reducer, told apart by their `type`. An action can:
+ *
+ * - write a value or mark a field touched.
+ * - merge external errors.
+ * - sync the controlled values and their defaults.
+ * - reset the form to new defaults or to the held ones.
+ * - commit the validation of all the fields for a submit.
  *
  * @internal
  */
@@ -100,9 +107,9 @@ export type FormHelpers<T> = {
 	 * @remarks
 	 * From the handler of the current attempt, the reset keeps that attempt live:
 	 * `submitting` stays `true` until the handler settles, and `onSettled` gets
-	 * its outcome. From the handler of an attempt that a newer submit or an
-	 * outside reset superseded, it supersedes the current submit, as `reset`
-	 * from the form actions does.
+	 * its outcome. A newer submit or an outside reset can supersede an attempt.
+	 * From the handler of such an attempt, the reset supersedes the current
+	 * submit, as `reset` from the form actions does.
 	 */
 	reset: (nextDefaults?: T) => void
 }

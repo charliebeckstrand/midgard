@@ -44,8 +44,8 @@ export type FormFiltersProps<T extends FilterValue = FilterValue> = AccessibleNa
 		 * How the bar answers a width that cannot hold its fields. See
 		 * {@link FormFiltersLayout}.
 		 *
-		 * A `rail` keeps each field at the width that it was given and does not
-		 * shrink it, so give each field a width through its `className`. Under a
+		 * A `rail` keeps each field at its given width and does not shrink it.
+		 * Give each field a width through its `className`. Under a
 		 * `rail`, a field has no `w-full` default. A field with no width takes the
 		 * width of its content.
 		 *
@@ -66,21 +66,21 @@ export type FormFiltersProps<T extends FilterValue = FilterValue> = AccessibleNa
 const NO_FILTERS: Record<string, unknown> = {}
 
 /**
- * Coordinator for a row of filter controls over a `Record` value. Shares
- * set/clear and an active-count through context to enclosed
- * {@link FormFiltersField} and {@link FormFiltersClear}. It drops empty fields
- * (undefined, null, `''`, empty array) from the payload, so the value stays
- * minimal.
+ * A bar of filter controls over a `Record` value. Through context, it gives
+ * each {@link FormFiltersField} and {@link FormFiltersClear} inside it a
+ * setter, a clear action, and the count of the active fields. It removes an
+ * empty field (`undefined`, `null`, `''`, or an empty array) from the value, so
+ * the value holds only the set fields.
  *
  * @remarks
- * Controlled via `value`/`onValueChange`, uncontrolled from `defaultValue`.
- * The bar is the form store of its fields: a control inside it binds the slot
- * that its `name` gives, as it binds a field of a `Form`. A bar inside a `Form`
- * holds its own fields, and they do not reach the `Form`.
- * Clearing restores `defaultValue` when set, else empties the record. The bar
- * is a `<fieldset>`, which has the `group` role. Pass `aria-label` or
- * `aria-labelledby` to name it. The active count is announced to assistive
- * tech on change (WCAG 4.1.3).
+ * Give `value` and `onValueChange` to control the bar, or `defaultValue` to let
+ * it hold its own value. The bar is the form store of its fields. A control in
+ * the bar binds the slot of its `name`, as it binds a field of a `Form`. A bar
+ * in a `Form` holds its own fields, and they do not reach the `Form`.
+ * A clear sets the value to `defaultValue`, or to an empty record when there is
+ * no default. The bar is a `<fieldset>`, which has the `group` role. Give
+ * `aria-label` or `aria-labelledby` to name it. When the count of the active
+ * fields changes, the bar announces it to assistive technology (WCAG 4.1.3).
  *
  * The root is the coordinator and a column, and its regions are children. A
  * {@link FormFiltersClear} works anywhere inside the provider.

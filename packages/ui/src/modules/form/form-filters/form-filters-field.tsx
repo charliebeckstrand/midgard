@@ -40,21 +40,20 @@ export type FormFiltersFieldProps<V = unknown> = Omit<FieldProps, 'children'> & 
 
 /**
  * A field of the enclosing {@link FormFilters} that binds one named slot of its
- * value to a control. Given a render function, supplies
- * `{ value, onValueChange }`; given elements, gives the slot `name` to the first
- * non-decoration child (passing `Label`/`Description`/`Message` through
- * untouched).
+ * value to a control. A render function gets `{ value, onValueChange }`. With
+ * elements, the field gives the slot `name` to the first child that is not a
+ * decoration. A `Label`, a `Description`, or a `Message` stays as it is.
  *
  * @remarks
  * The bar is the form store of its fields, so the element form follows the
- * rule of a `Form`: a control binds the slot that its `name` gives. Each
+ * rule of a `Form`. A control binds the slot of its `name`. Each
  * control that binds a `Form` field binds a slot the same way, a wrapper that
  * passes `name` to one of them included. The own `value` or `checked` of a
  * control wins over the slot, as in a `Form`. Must render inside a `FormFilters`.
  *
  * A `Radio` takes its `name` as the native group name and binds no field, so
- * it binds no slot. Use the render function for a radio, for a control that
- * does not bind by `name`, or for your own control.
+ * it binds no slot. Use the render function for a radio. Also use it for your
+ * own control, or for a control that does not bind by `name`.
  *
  * The field is generic over the slot value. Give the type at the call site,
  * as in `<FormFiltersField<number> name="minPrice">`, or annotate the parameter of

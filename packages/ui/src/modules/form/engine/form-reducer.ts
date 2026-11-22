@@ -33,8 +33,8 @@ function touchField<T extends Record<string, unknown>>(
 }
 
 /**
- * The fields that a change of `name` validates in the `'change'` mode: that
- * field, and each field that is touched or has a result in `errors` already. A
+ * The fields that a change of `name` validates in the `'change'` mode. They are
+ * that field, and each field that is touched or already has a result in `errors`. A
  * validator gets all the values, so a change can make the result of a
  * validated field stale (a confirmation that compares to a password). A field
  * that the user has not used gets no result.

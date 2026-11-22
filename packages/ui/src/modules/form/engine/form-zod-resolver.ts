@@ -38,23 +38,23 @@ function bucketIssues(issues: ReadonlyArray<ZodIssue>): Record<string, string[] 
 }
 
 /**
- * Adapts a Zod-shaped schema (anything exposing `safeParse`) into the
- * `Validators<T>` map that `Form` consumes. Takes no dependency on `zod`
- * itself, so Valibot, ArkType, or a hand-rolled schema with the same shape all
- * plug in.
+ * Changes a schema in the shape of Zod into the `Validators<T>` map that `Form`
+ * reads. The schema needs only a `safeParse` method. The resolver does not
+ * import `zod`, so a Valibot, an ArkType, or a hand-written schema of the same
+ * shape also works.
  *
- * @param schema - A {@link ZodLike} schema validating the whole value record.
- * @param defaultValues - The form's defaults; their keys determine which
- * per-field validators are generated.
- * @returns A `Validators<T>` map with one validator per field, suitable for
- * `Form`'s `validate` prop.
- * @typeParam T - The form-value record shape.
- * @remarks Parses the whole schema once per `values` identity and caches the
- * result. Per-field calls within one reducer pass therefore share the same
- * memoized parse, and so does any cross-field refinement. Collects every issue at
- * `path[0] === <field>`, preserving schema order and de-duplicating identical
- * messages. Drops form-level issues (`path: []`); attach them to a real field
- * via `.refine(..., { path: ['…'] })`.
+ * @param schema - A {@link ZodLike} schema that validates the whole value record.
+ * @param defaultValues - The defaults of the form. Their keys tell which field
+ * validators the resolver makes.
+ * @returns A `Validators<T>` map with one validator for each field, for the
+ * `validate` prop of `Form`.
+ * @typeParam T - The shape of the value record.
+ * @remarks The resolver parses the whole schema once for each `values` object,
+ * and keeps the result. The field validators of one reducer pass thus share
+ * one parse, and so does a refinement across fields. A field gets each issue
+ * whose `path[0]` is the field, in the order of the schema, and the same
+ * message only once. An issue of the whole form (`path: []`) is dropped. To
+ * show it, attach it to a field with `.refine(..., { path: ['…'] })`.
  */
 export function zodResolver<T extends Record<string, unknown>>(
 	schema: ZodLike,

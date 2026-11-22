@@ -32,7 +32,7 @@ export function normalizeErrors(errors: Record<string, string | string[] | undef
  * Runs a field when `fields` forces it, when `validateOn` is `'change'`, or when
  * `'touched'` and the field is touched.
  *
- * @param fields - Restricts to (and forces) these field keys; omit to consider every validator.
+ * @param fields - The field keys to run, each of them even when its trigger has not come. Leave it out to consider each validator.
  * @internal
  */
 export function runValidators<T extends Record<string, unknown>>(

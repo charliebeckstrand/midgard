@@ -22,22 +22,24 @@ const messages = defineMessages({
 	},
 })
 
-/** Props for {@link Form}. Generic over the form-value record `T`; field keys and types flow from `defaultValues`. */
+/** Props for {@link Form}. `T` is the record of the form values, and `defaultValues` gives its keys and types. */
 export type FormProps<T extends Record<string, unknown>> = {
 	/**
-	 * Seed values and field schema; keys and types define the form. Single source
-	 * of truth for bound controls' initial state: a bound control's
-	 * `defaultValue`/`defaultChecked` is ignored (CONVENTIONS §7.2).
+	 * The first values of the form. Their keys and types define the fields. They
+	 * are the one source of the first state of a bound control. The form thus
+	 * ignores the `defaultValue` or `defaultChecked` of a bound control
+	 * (CONVENTIONS §7.2).
 	 */
 	defaultValues: T
 	/**
-	 * Controlled re-sync source. Reference change → `values` replaced and the
-	 * dirty baseline shifts; `touched`, `errors`, and `submitting` stay put.
-	 * Passing `undefined` re-syncs to `defaultValues` under the same contract.
-	 * Pass a stable reference; a new derived object each render loops the sync.
+	 * The controlled values of the form. When the reference changes, the form
+	 * replaces its values and moves the baseline that it compares to find a
+	 * dirty field. The `touched`, `errors`, and `submitting` state does not
+	 * change. `undefined` syncs the form to `defaultValues` by the same rule.
+	 * Give a stable reference: a new object on each render syncs again and again.
 	 */
 	values?: T
-	/** Per-field validators; compose one from a schema via {@link zodResolver}. */
+	/** A validator for each field. Make the map from a schema with {@link zodResolver}. */
 	validate?: Validators<T>
 	/**
 	 * When validators run.
@@ -75,22 +77,22 @@ export type FormProps<T extends Record<string, unknown>> = {
 } & Omit<ComponentProps<'form'>, 'onSubmit' | 'onReset' | 'children' | 'values'>
 
 /**
- * Reducer-backed form scope over typed `defaultValues`: tracks dirty, touched,
- * errors, and submitting state, validates on the `validateOn` trigger, and
- * locks its parts while submitting. Renders a layout-neutral
- * (`display: contents`) `<form>`, so it imposes no box; fields read and mutate
- * state through the context hooks ({@link useFormField}, {@link useFormStatus},
- * {@link useFormActions}) rather than props.
+ * A form over the typed `defaultValues`. A reducer holds its state: the dirty,
+ * touched, error, and submit state of the fields. The form validates on the
+ * `validateOn` trigger, and locks its parts while a submit runs. It renders a
+ * `<form>` with `display: contents`, so it adds no box to the layout. A field
+ * reads and changes the state through the context hooks ({@link useFormField},
+ * {@link useFormStatus}, {@link useFormActions}), not through props.
  *
  * @remarks
- * Uncontrolled by default from `defaultValues`; pass a stable `values`
- * reference to drive it as a controlled re-sync source. Field components
- * subscribe to their own slice through an external store, so a keystroke
- * re-renders only the touched field, not the whole tree. Submit awaits
- * `onSubmit`, surfaces a returned `{ fieldErrors }` or thrown error, and
- * guards against superseding resets/unmounts via a monotonic token. A native
- * reset of the `<form>` does not change the inputs: the form cancels it and
- * resets its bound fields.
+ * The form holds its own values from `defaultValues`. To control it, give a
+ * stable `values` reference, and the form syncs to each new reference. Each
+ * field subscribes to its own part of the state through an external store. A
+ * keystroke thus renders only that field again, not the whole tree. A submit
+ * waits for `onSubmit`. It shows a returned `{ fieldErrors }` or a thrown
+ * error. A token that only goes up tells the submit when a newer reset or an
+ * unmount superseded it. A native reset of the `<form>` does not change the
+ * inputs: the form cancels it and resets its bound fields.
  *
  * While a submit runs, the form announces it politely and locks its parts. It
  * locks the Control scope, so each field is read-only and each `Button` is
