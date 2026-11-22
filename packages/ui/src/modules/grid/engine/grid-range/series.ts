@@ -62,7 +62,10 @@ function readDay(value: unknown, iso: boolean): CalendarDay | null {
 	const parsed = { year: Number(year), month: Number(month) - 1, day: Number(day), time: [] }
 
 	const valid =
-		parsed.month <= 11 && parsed.day >= 1 && parsed.day <= daysInMonth(parsed.year, parsed.month)
+		parsed.month >= 0 &&
+		parsed.month <= 11 &&
+		parsed.day >= 1 &&
+		parsed.day <= daysInMonth(parsed.year, parsed.month)
 
 	return valid ? parsed : null
 }

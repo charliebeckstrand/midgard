@@ -93,3 +93,32 @@ export function orderManualGroupSegments<T>(
 
 	return [...headerless, ...headed]
 }
+
+/**
+ * The {@link GridManualGroupSegment}s in the order that the manual body shows
+ * them: split by position, then ordered for a sort on the grouped column. The
+ * body and the span of the selection read the same segments. Pure.
+ *
+ * @internal
+ */
+export function shownManualSegments<T>(
+	rows: GridLeaf<T>[],
+	groupRow: (row: T) => GridGroupHeaderRow | null,
+	direction: 'asc' | 'desc' | null,
+	locale?: string,
+): GridManualGroupSegment<T>[] {
+	return orderManualGroupSegments(segmentManualGroupRows(rows, groupRow), direction, locale)
+}
+
+/**
+ * Whether a manual segment shows its leaves: a group when `expanded` holds its
+ * key, and a leading headerless run always.
+ *
+ * @internal
+ */
+export function manualSegmentOpen<T>(
+	segment: GridManualGroupSegment<T>,
+	expanded: ReadonlySet<string | number>,
+): boolean {
+	return segment.info ? expanded.has(segment.info.key) : true
+}

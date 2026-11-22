@@ -463,6 +463,11 @@ describe('fillLine dates', () => {
 
 		expect(fillLine(['2026-04-29', '2026-04-31'], 1)).toEqual(['2026-04-29'])
 
+		// Month 00 is no month, so it does not read as December of the year before.
+		expect(fillLine(['2026-00-01', '2026-00-02'], 1)).toEqual(['2026-00-01'])
+
+		expect(fillLine(['2026-00-15', '2026-01-15'], 1)).toEqual(['2026-00-15'])
+
 		// A `YYYY-MM-DD` string has four digits of the year, so a series that
 		// would leave the years 0000 to 9999 repeats.
 		expect(fillLine(['0000-01-02', '0000-01-01'], 2)).toEqual(['0000-01-02', '0000-01-01'])

@@ -19,8 +19,8 @@ import { hasErrorSlot } from './engine/grid-data/guards'
 import { applyRowKeyOrder } from './engine/grid-group/row-manager'
 import {
 	type GridManualGroupSegment,
-	orderManualGroupSegments,
-	segmentManualGroupRows,
+	manualSegmentOpen,
+	shownManualSegments,
 } from './engine/grid-group/segments'
 import type { GridGroup, GridLeaf } from './engine/grid-group/tree'
 import {
@@ -269,7 +269,7 @@ function renderManualSegment<T>(
 ): ReactElement {
 	const { props, columnId, renderHeader } = args
 
-	const open = segment.info ? args.expanded.has(segment.info.key) : true
+	const open = manualSegmentOpen(segment, args.expanded)
 
 	return (
 		<Fragment key={segment.header ? segment.header.id : `leading:${index}`}>
@@ -480,11 +480,7 @@ function GridBodyImpl<T>(props: GridBodyProps<T>) {
 	if (manualRows && manualRows.length > 0 && manualGroup && groupColumnId != null) {
 		// A sort on the grouped column reorders the group blocks by value; the
 		// backend's within-group leaf order (and any headerless leading run) stands.
-		const segments = orderManualGroupSegments(
-			segmentManualGroupRows(manualRows, manualGroup.groupRow),
-			manualGroupSort,
-			locale,
-		)
+		const segments = shownManualSegments(manualRows, manualGroup.groupRow, manualGroupSort, locale)
 
 		return (
 			<TableBody>

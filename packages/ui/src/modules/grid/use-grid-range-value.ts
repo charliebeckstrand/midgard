@@ -1,9 +1,10 @@
 'use client'
 
-import { useLayoutEffect, useRef, useState } from 'react'
+import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useControlledLatch } from '../../hooks/use-controlled-latch'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import type { GridRangeCells } from './engine/grid-range/range'
+import type { GridCursorRow } from './grid-cursor-order'
 import type { GridRange, GridRangeState } from './grid-data-types'
 import type { GridCellRef } from './grid-editing-types'
 import type { GridColumn } from './types'
@@ -20,6 +21,8 @@ export type GridRangeHandle = {
 	focus: Coord | null
 	/** The cells of the range at call time, or `null` for no range. */
 	readRange: () => GridRangeCells | null
+	/** The cursor's order, reactive, which `selectRange` resolves a data row against. */
+	order: readonly GridCursorRow[] | null
 	/** Makes the range between two data cells, and moves the cursor to the second. */
 	selectRange: (from: Coord, to: Coord) => boolean
 	/** Ends the range, and keeps the cursor where it is. */
@@ -32,6 +35,7 @@ export function gridRangeHandle(nav: ReturnType<typeof useGridNavigation>): Grid
 		anchor: nav.rangeAnchor,
 		focus: nav.rangeFocus,
 		readRange: nav.readRange,
+		order: nav.order,
 		selectRange: nav.selectRange,
 		endRange: nav.endRange,
 	}
@@ -125,37 +129,38 @@ export function useGridRangeValue<T>({
 		return anchor && focus ? { anchor, focus } : null
 	})
 
+	// The layout that a value resolves against: the rows, the columns, and the
+	// order of the cursor. The order changes alone when a group opens or closes,
+	// and `selectRange` resolves a data row against it.
+	const { order } = handle
+
+	const layout = useMemo(() => ({ keys: rowKeys, cols: columns, order }), [rowKeys, columns, order])
+
 	// Shows a value on a layout, or no range for a value that names a cell that
 	// the layout does not hold.
-	const show = useStableEvent(
-		(
-			next: GridRangeState | null,
-			keys: readonly (string | number)[],
-			cols: readonly GridColumn<T>[],
-		) => {
-			const at = (cell: GridCellRef): Coord | null => {
-				const row = keys.indexOf(cell.rowKey)
+	const show = useStableEvent((next: GridRangeState | null, { keys, cols }: typeof layout) => {
+		const at = (cell: GridCellRef): Coord | null => {
+			const row = keys.indexOf(cell.rowKey)
 
-				const col = cols.findIndex((column) => column.id === cell.columnId)
+			const col = cols.findIndex((column) => column.id === cell.columnId)
 
-				return row === -1 || col === -1 ? null : { row, col }
-			}
+			return row === -1 || col === -1 ? null : { row, col }
+		}
 
-			const from = next && at(next.anchor)
+		const from = next && at(next.anchor)
 
-			const to = next && at(next.focus)
+		const to = next && at(next.focus)
 
-			if (next && from && to && handle.selectRange(from, to)) {
-				shown(next)
+		if (next && from && to && handle.selectRange(from, to)) {
+			shown(next)
 
-				return
-			}
+			return
+		}
 
-			handle.endRange()
+		handle.endRange()
 
-			shown(null)
-		},
-	)
+		shown(null)
+	})
 
 	// A range needs both corners. The store holds them once the cursor commits.
 	const report = useStableEvent((anchor: Coord | null, focus: Coord | null) => {
@@ -179,7 +184,7 @@ export function useGridRangeValue<T>({
 	const seed = useStableEvent(() => {
 		const initial = binding?.defaultValue
 
-		if (!controlled && initial) show(initial, rowKeys, columns)
+		if (!controlled && initial) show(initial, layout)
 	})
 
 	// The seed of an uncontrolled grid runs one time, before the first report.
@@ -188,12 +193,13 @@ export function useGridRangeValue<T>({
 	// The value of a controlled grid at mount, a new value, a report that the
 	// owner did not take, or a new layout. A report that the owner takes leaves
 	// the two the same. A new layout can hold a row or a column of a value that
-	// the last layout did not, as when the rows load or a filter ends.
+	// the last layout did not, as when the rows load, a filter ends, or a group
+	// opens. A group that opens changes the order of the cursor and not the rows.
 	useLayoutEffect(() => {
 		if (!controlled) return
 
 		const target = value ?? null
 
-		if (!sameRange(screen, target)) show(target, rowKeys, columns)
-	}, [controlled, value, screen, rowKeys, columns, show])
+		if (!sameRange(screen, target)) show(target, layout)
+	}, [controlled, value, screen, layout, show])
 }
