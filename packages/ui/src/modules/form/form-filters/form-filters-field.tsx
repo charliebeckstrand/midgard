@@ -41,10 +41,9 @@ export type FormFiltersFieldProps<V = unknown> = {
 
 /**
  * A field of the enclosing {@link FormFilters} that binds one named slot of its
- * value to a control. Given a render function, supplies
- * `{ value, onValueChange }`; given elements, gives the slot `name` to the first
- * non-decoration child (passing `Label`/`Description`/`Message` through
- * untouched).
+ * value to a control. A render function gets `{ value, onValueChange }`. With
+ * elements, the field gives the slot `name` to the first child that is not a
+ * decoration. A `Label`, a `Description`, or a `Message` stays as it is.
  *
  * @remarks
  * The bar is the form store of its fields, so the element form follows the

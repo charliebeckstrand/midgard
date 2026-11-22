@@ -27,7 +27,8 @@ export type FormFiltersClearProps = {
 	 */
 	variant?: ButtonVariants['variant']
 	/**
-	 * Button color for the fallback trigger. Defaults to {@link Button}'s own; ignored for an element child, as `variant` is.
+	 * The button color of the fallback trigger. It defaults to the color of
+	 * {@link Button}. An element child ignores it, as it ignores `variant`.
 	 *
 	 * @defaultValue `'zinc'`, or the button color of the surface around it, such as an Alert.
 	 */
