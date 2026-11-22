@@ -527,7 +527,7 @@ export const dataDisplayCases: readonly Case[] = [
 		),
 	},
 	{
-		// Two series of points over two value axes: the plot is an image, and the
+		// One series of points over two value axes: the plot is an image, and the
 		// hidden data table holds each point.
 		name: 'scatter chart',
 		element: (
