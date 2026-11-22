@@ -145,7 +145,7 @@ Each scenario drives the deterministic shipment rows (`shipments` in [`../fixtur
 
 - [`grid-cursor.bench.tsx`](grid-cursor.bench.tsx): one arrow move of the cell cursor, down one row and back up, at 1k rows without a window. Each sample ends one rendered frame after the key press. The `fill handle` row is an editable grid with a range, which shows the fill handle on the active cell. The `navigable` row shows no handle, and is the floor.
 
-- [`grid-range.bench.tsx`](grid-range.bench.tsx): one extend of the cell range by key, with Shift and Ctrl+End, across 1k rows without a window, and the shrink back with Shift and Ctrl+Home. Each of the 8,000 cells flips its range flag in each sample, so the row measures the fanout of the cursor store. Each sample ends one rendered frame after the key press. The `fill handle` row is an editable grid, and the `read-only` row is a navigable grid.
+- [`grid-range.bench.tsx`](grid-range.bench.tsx): one extend of the cell range by key, with Shift and Ctrl+End, across 1k rows without a window, and the shrink back with Shift and Ctrl+Home. Each of the 8,000 cells flips its range flag in each sample, so the row measures the fanout of the cursor store. Each sample ends one rendered frame after the key press. The `fill handle` row is an editable grid, and the `read-only` row is a navigable grid. The `range figures` row is the read-only grid with `footer.rangeFigures`. Its figures render after the range, so its sample ends on the first rendered frame that shows the figures of the whole grid, or none after the shrink.
 
 - [`grid-group-expand.bench.tsx`](grid-group-expand.bench.tsx): the expand and the collapse of one group, at 10k rows grouped by carrier with every group closed at mount. Each sample clicks the disclosure under `flushSync` and then waits one task, so the render that drops the entering rows is in the sample. The sample settles on no frame. Before the bench registers, the file logs the time, the commits, and the renders of the grouped body for the click and for the task after it.
 
@@ -385,6 +385,17 @@ Each entry names the change and the scenarios it moved.
     | rename keystroke · layout · compiled | 117 to 120 | 9 to 20 |
 
     The expand bench measures a second question. When the entering rows of an expand lose their motion, the grouped body builds its item list and its window once more. That build took 0.5 to 1 ms of an expand of about 90 ms, in both builds. A body that held the item list through the drop changed no measured time, so the body stays as it is.
+
+### Range figures (2026-11-22, this container)
+
+`footer.rangeFigures` reads each cell of the range through the accessor of its column, and sums it. An extend to the last cell thus reads each of the 8,000 cells. The figures read deferred corners of the range, so the extend commits first and the figures follow in a render that React can interrupt. The `range figures` sample waits for that render. Mean and median ms of one extend or shrink, 11 samples each:
+
+| Scenario | mean | p50 | rme |
+| --- | ---: | ---: | ---: |
+| 1,000 rows · read-only | 186.8 | 175.8 | 12.8% |
+| 1,000 rows · range figures | 187.2 | 184.4 | 4.6% |
+
+The two means are within the noise of the read-only row. The median moved by about 9 ms, which is less than one frame. The figures thus add no cost that this bench can resolve against the fanout of the cursor store.
 
 ## Maps
 
