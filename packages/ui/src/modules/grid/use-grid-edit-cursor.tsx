@@ -12,7 +12,7 @@ import {
 } from 'react'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { GridEditingSessionContext, type GridNavStore, GridNewRowContext } from './context'
-import type { GridPasteCell } from './engine/grid-edit-commit'
+import type { GridPasteCell } from './engine/grid-edit/commit'
 import {
 	type EditorKind,
 	type GridKeyPress,
@@ -21,7 +21,7 @@ import {
 	readKeyPress,
 	seedFromKey,
 	shortcutLetter,
-} from './engine/grid-editing-utilities'
+} from './engine/grid-edit/utilities'
 import { resolveNewRow } from './engine/grid-new-row'
 import { resolveNewRowAddWidth, withNewRowAddColumn } from './engine/grid-new-row-column'
 import {

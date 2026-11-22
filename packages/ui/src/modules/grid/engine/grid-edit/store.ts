@@ -1,8 +1,8 @@
-import { createEmitter } from '../../../utilities/emitter'
-import { sameMembers } from '../../../utilities/same-elements'
-import type { GridActiveEditStore } from '../context'
-import { EMPTY_SET } from './grid-constants'
-import { type GridActiveEdit, sameCell } from './grid-editing-utilities'
+import { createEmitter } from '../../../../utilities/emitter'
+import { sameMembers } from '../../../../utilities/same-elements'
+import type { GridActiveEditStore } from '../../context'
+import { EMPTY_SET } from '../grid-constants'
+import { type GridActiveEdit, sameCell } from './utilities'
 
 /**
  * Builds the store behind {@link GridActiveEditStore}. `seat` moves the coord

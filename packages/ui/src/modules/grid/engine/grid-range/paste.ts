@@ -1,6 +1,6 @@
 import { reduceNumbers } from '../../../../utilities/aggregate'
 import { parseNumeric } from '../../../../utilities/parse-numeric'
-import { inferEditorKind } from '../grid-editing-utilities'
+import { inferEditorKind } from '../grid-edit/utilities'
 import type { GridRowStep } from './range'
 
 /**

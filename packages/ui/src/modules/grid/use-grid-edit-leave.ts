@@ -1,9 +1,9 @@
 'use client'
 
 import { type FocusEvent as ReactFocusEvent, type RefObject, useCallback, useRef } from 'react'
-import { type PendingLeave, readLeave } from './engine/grid-edit-leave'
-import type { SessionRow } from './engine/grid-edit-transition'
-import { inGrid } from './engine/grid-editing-utilities'
+import { type PendingLeave, readLeave } from './engine/grid-edit/leave'
+import type { SessionRow } from './engine/grid-edit/transition'
+import { inGrid } from './engine/grid-edit/utilities'
 import type { CommitOn } from './use-grid-commit-on'
 import type { GridSessionTarget } from './use-grid-edit-keys'
 

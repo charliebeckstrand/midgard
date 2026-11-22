@@ -37,7 +37,7 @@ import {
 	inferEditorKind,
 	isBlankDraft,
 	NEW_ROW_KEY,
-} from './engine/grid-editing-utilities'
+} from './engine/grid-edit/utilities'
 import { gridMessages } from './engine/grid-messages'
 import { spokenRowNumber } from './engine/grid-row/shell'
 import { clearStickyChrome, obscuringInsets } from './engine/grid-sticky-insets'

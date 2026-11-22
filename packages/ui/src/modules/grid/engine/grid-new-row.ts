@@ -7,7 +7,7 @@ import {
 	isBlankDraft,
 	isColumnEditable,
 	NEW_ROW_KEY,
-} from './grid-editing-utilities'
+} from './grid-edit/utilities'
 
 /**
  * Where the new-row slot shows, or `null` when the config cannot show it. The

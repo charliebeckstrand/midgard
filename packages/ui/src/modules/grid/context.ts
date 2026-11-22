@@ -7,7 +7,7 @@ import type {
 	GridActiveEdit,
 	GridDraft,
 	GridDraftKey,
-} from './engine/grid-editing-utilities'
+} from './engine/grid-edit/utilities'
 import type { GridGroupByContextValue } from './engine/grid-group/resolve'
 import type { GridSettleStore } from './engine/grid-sizing/settle'
 import type { GridSortState } from './engine/grid-sort/state'

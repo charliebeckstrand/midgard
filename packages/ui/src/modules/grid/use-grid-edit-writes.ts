@@ -23,7 +23,7 @@ import {
 	rowLookup,
 	sendCells,
 	writeTarget,
-} from './engine/grid-edit-commit'
+} from './engine/grid-edit/commit'
 import {
 	type GridHistoryCell,
 	type GridHistoryStep,
@@ -31,8 +31,8 @@ import {
 	historyStep,
 	historyValue,
 	recordWrite,
-} from './engine/grid-edit-history'
-import { findCoord, type GridDraftStore, readKeyPress } from './engine/grid-editing-utilities'
+} from './engine/grid-edit/history'
+import { findCoord, type GridDraftStore, readKeyPress } from './engine/grid-edit/utilities'
 import type { GridEditSource } from './grid-data-types'
 import type { GridCellChange, GridEditableConfig } from './grid-editing-types'
 import type { GridColumn } from './types'

@@ -8,7 +8,7 @@ import { NumberInput } from '../../components/number-input'
 import { ariaAttr } from '../../core/aria-attr'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/grid'
-import type { EditorKind } from './engine/grid-editing-utilities'
+import type { EditorKind } from './engine/grid-edit/utilities'
 import { gridMessages } from './engine/grid-messages'
 
 /**

@@ -13,7 +13,7 @@ import {
 	settledAt,
 	settleOn,
 	writeRowsPlan,
-} from '../../modules/grid/engine/grid-edit-transition'
+} from '../../modules/grid/engine/grid-edit/transition'
 import type { GridEditSource } from '../../modules/grid/grid-data-types'
 import type { GridEditableConfig } from '../../modules/grid/grid-editing-types'
 import { intlEn } from '../../primitives/intl/intl-catalog'

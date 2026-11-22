@@ -7,8 +7,8 @@ import {
 	ownNode,
 	pressOrigin,
 	type SessionMove,
-} from './engine/grid-edit-keys'
-import type { CellRequest, SessionRow } from './engine/grid-edit-transition'
+} from './engine/grid-edit/keys'
+import type { CellRequest, SessionRow } from './engine/grid-edit/transition'
 import {
 	findCoord,
 	type GridActiveEdit,
@@ -16,7 +16,7 @@ import {
 	isColumnEditable,
 	readKeyPress,
 	stepEditableColumn,
-} from './engine/grid-editing-utilities'
+} from './engine/grid-edit/utilities'
 import type { GridRowStep } from './engine/grid-range/range'
 import type { GridColumn } from './types'
 import type { Coord } from './use-grid-navigation'

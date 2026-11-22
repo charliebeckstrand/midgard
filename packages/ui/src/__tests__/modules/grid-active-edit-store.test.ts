@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from 'vitest'
-import { createActiveEditStore } from '../../modules/grid/engine/grid-active-edit-store'
+import { createActiveEditStore } from '../../modules/grid/engine/grid-edit/store'
 
 /**
  * The store that tells each editing cell of the session's coord and editable

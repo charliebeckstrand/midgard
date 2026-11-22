@@ -10,7 +10,7 @@ import { defineMessages } from '../../../primitives/intl/intl-messages'
 import type { IntlShape } from '../../../primitives/intl/types'
 import type { GridColumn } from '../types'
 import { columnLabel } from './grid-column/label'
-import type { GridHistoryStep } from './grid-edit-history'
+import type { GridHistoryStep } from './grid-edit/history'
 import { physicalSide } from './grid-pin/overrides'
 import type { GridSortState } from './grid-sort/state'
 
