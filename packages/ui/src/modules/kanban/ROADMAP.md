@@ -1,6 +1,6 @@
 # Kanban roadmap
 
-> **Goal: a board that an app can persist, constrain, and operate with one pointer.** The board moves cards by pointer and by keyboard through one model. It does not yet tell an app when a move ends, refuse a move, or give a pointer path with no drag (WCAG 2.5.7).
+> **Goal: a board that an app can persist and constrain.** The board moves cards by pointer, by keyboard, and from the `KanbanCardMenu` of a card through one model. The menu is the pointer path with no drag (WCAG 2.5.7). The board does not yet tell an app when a move ends, or refuse a move.
 
 ## Status
 
