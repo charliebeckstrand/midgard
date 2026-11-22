@@ -58,6 +58,9 @@ type PickerResults = {
 	items: readonly ChatPromptItem[]
 }
 
+/** The trigger offset and the draft at a dismissal of the picker. @internal */
+type Dismissal = { start: number; value: string }
+
 const NO_RESULTS: PickerResults = { trigger: '', status: 'ready', items: [] }
 
 /** Options for {@link useChatPromptPicker}. @internal */
@@ -75,8 +78,8 @@ export type ChatPromptPickerOptions = {
  *
  * @remarks
  * The picker is open while the caret is in a trigger, and until the reader
- * dismisses it. A dismissal holds for that trigger: the picker opens again at
- * the next trigger.
+ * dismisses it. A dismissal holds only while the draft stays the same: the
+ * next character or Backspace opens the picker again.
  *
  * A Backspace at the end of a citation deletes one character, as in prose.
  * The citation dissolves, and the picker opens again at its trigger, with the
@@ -109,7 +112,8 @@ export function useChatPromptPicker({
 	// The offset of a collapsed selection while the textarea has the focus.
 	const [caret, setCaret] = useState<number | null>(null)
 
-	const [dismissed, setDismissed] = useState<number | null>(null)
+	// The trigger and the draft at a dismissal.
+	const [dismissed, setDismissed] = useState<Dismissal | null>(null)
 
 	// The trigger of a citation that a Backspace dissolved. The keydown records
 	// it, and the change that the key makes sets it.
@@ -122,10 +126,12 @@ export function useChatPromptPicker({
 	// An anchor holds while the caret is in its query. With no anchored trigger, it goes.
 	if (anchor !== null && !anchored) setAnchor(null)
 
-	// A dismissal holds for one trigger. With no trigger, it goes.
-	if (match === null && dismissed !== null) setDismissed(null)
+	// A dismissal holds while the caret stays in its trigger and the draft stays the same.
+	const held = dismissed !== null && dismissed.start === match?.start && dismissed.value === value
 
-	const open = match !== null && dismissed !== match.start
+	if (dismissed !== null && !held) setDismissed(null)
+
+	const open = match !== null && !held
 
 	const matchSource = open ? match.index : -1
 
@@ -201,7 +207,7 @@ export function useChatPromptPicker({
 	const floating = useFloatingUI({
 		open,
 		onOpenChange: (next) => {
-			if (!next && match) setDismissed(match.start)
+			if (!next && match) setDismissed({ start: match.start, value })
 		},
 		placement: 'top-start',
 		matchReferenceWidth: true,

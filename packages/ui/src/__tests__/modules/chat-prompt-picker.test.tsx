@@ -246,21 +246,25 @@ describe('ChatPrompt picker', () => {
 		expect(onSubmit).toHaveBeenCalledOnce()
 	})
 
-	it('closes on Escape for that trigger, and opens again at the next one', async () => {
+	it('closes on Escape until the next edit of the draft', async () => {
 		const { container } = renderUI(<Composer sources={[datasets]} />)
 
-		const user = await typeInto(container, '@')
+		const user = await typeInto(container, '@ro')
 
 		await user.keyboard('{Escape}')
 
 		expect(screen.queryByRole('listbox')).toBeNull()
 
-		// The query changes, and the trigger is the same one.
-		await user.keyboard('r')
+		// A move of the caret in the trigger keeps the dismissal.
+		await user.keyboard('{ArrowLeft}{ArrowRight}')
 
 		expect(screen.queryByRole('listbox')).toBeNull()
 
-		await user.keyboard(' @')
+		await user.keyboard('u')
+
+		expect(screen.getByRole('listbox')).toBeInTheDocument()
+
+		await user.keyboard('{Escape}{Backspace}')
 
 		expect(screen.getByRole('listbox')).toBeInTheDocument()
 	})
