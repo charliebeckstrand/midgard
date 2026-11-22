@@ -54,11 +54,9 @@ No open items.
 
 ## Accessibility and testing
 
-1. **A move with one pointer and no drag (*P1*).** WCAG 2.5.7 (AA) requires a single-pointer path for each operation that a drag does. The keyboard lift is not a pointer path, so a pointer user who cannot drag cannot move a card. Fix: a "Move to" menu on the card, with an item for each other column and for up and down. The Grid group manager has such a menu (`modules/grid/grid-group-manager.tsx`), and a Trello card has one too. Where: a `moveToColumn` in `engine/kanban-move.ts` over `moveCard`, and a new card part that renders a `Menu` and needs assent ([CLAUDE.md](../../../../../CLAUDE.md) §3.1). Proof: a case in `kanban.test.tsx` that selects an item and reads `onReorder` and the announcement, the card in the `data-complex` corpus, and the docs playground.
+1. **No test of the right-to-left keys (*P2*).** Left and Right swap in a right-to-left layout, but `logical-arrow-boundary.test.ts` holds only the call of `logicalArrowKey`. No case reads the result. Fix: a case in `kanban.test.tsx` that renders the board under `dir="rtl"`, lifts a card, presses ArrowLeft, and reads the next column. Add a case for the focus move too.
 
-2. **No test of the right-to-left keys (*P2*).** Left and Right swap in a right-to-left layout, but `logical-arrow-boundary.test.ts` holds only the call of `logicalArrowKey`. No case reads the result. Fix: a case in `kanban.test.tsx` that renders the board under `dir="rtl"`, lifts a card, presses ArrowLeft, and reads the next column. Add a case for the focus move too.
-
-3. **Escape keeps the keyboard moves (*P3*).** A lifted card commits each step, so Escape only drops it. A pointer cancel puts the card back, and the Dashboard keyboard sensor cancels on Escape too. A reader who lifts by mistake has no undo. Fix: let Escape report the columns from the lift start, as `handleDragCancel` does. Open question: `useKeyboardLifted` serves `List` too, so the change crosses units and needs assent ([CLAUDE.md](../../../../../CLAUDE.md) §3.1). Proof: a case in `use-kanban-keyboard.test.ts`, and a new sentence from `returnedText` in the announcements.
+2. **Escape keeps the keyboard moves (*P3*).** A lifted card commits each step, so Escape only drops it. A pointer cancel puts the card back, and the Dashboard keyboard sensor cancels on Escape too. A reader who lifts by mistake has no undo. Fix: let Escape report the columns from the lift start, as `handleDragCancel` does. Open question: `useKeyboardLifted` serves `List` too, so the change crosses units and needs assent ([CLAUDE.md](../../../../../CLAUDE.md) §3.1). Proof: a case in `use-kanban-keyboard.test.ts`, and a new sentence from `returnedText` in the announcements.
 
 ## Not planned
 

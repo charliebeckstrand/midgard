@@ -7,6 +7,8 @@ import { Grid, type GridColumn } from '../../../modules/grid'
 import {
 	Kanban,
 	KanbanCard,
+	KanbanCardHandle,
+	KanbanCardMenu,
 	KanbanCardSkeleton,
 	KanbanColumn,
 	KanbanColumnBody,
@@ -146,6 +148,37 @@ export const dataComplexCases: readonly Case[] = [
 				placeholders: 2,
 			},
 		],
+	},
+	{
+		// A board that reorders: each card has its drag handle, and the menu that
+		// moves it with one pointer and no drag (WCAG 2.2 SC 2.5.7).
+		name: 'kanban (reorderable)',
+		element: (
+			<Kanban
+				key="kb-reorder"
+				columns={kanbanColumns}
+				getKey={(load: Load) => load.id}
+				onReorder={noop}
+				aria-label="Loads"
+			>
+				{kanbanColumns.map((column) => (
+					<KanbanColumn key={column.id} value={column.id} aria-label={column.title}>
+						<KanbanColumnHeader>
+							<KanbanColumnTitle>{column.title}</KanbanColumnTitle>
+						</KanbanColumnHeader>
+						<KanbanColumnBody>
+							{column.items.map((load) => (
+								<KanbanCard key={load.id} value={load.id} aria-label={load.code}>
+									<KanbanCardHandle />
+									<span>{load.customer}</span>
+									<KanbanCardMenu />
+								</KanbanCard>
+							))}
+						</KanbanColumnBody>
+					</KanbanColumn>
+				))}
+			</Kanban>
+		),
 	},
 	{
 		// Pivot of rows into a row × column matrix with an aggregated value.

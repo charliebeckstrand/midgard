@@ -4,6 +4,7 @@ import {
 	Kanban,
 	KanbanCard,
 	KanbanCardHandle,
+	KanbanCardMenu,
 	KanbanColumn,
 	KanbanColumnBody,
 	KanbanColumnHeader,
@@ -46,6 +47,7 @@ export default function KanbanPlayground(props: KanbanProps<Load, Column>) {
 								<Text tone="muted" size="xs">
 									{formatNumber(load.weight, { style: 'unit', unit: 'pound' })}
 								</Text>
+								<KanbanCardMenu />
 							</KanbanCard>
 						))}
 					</KanbanColumnBody>

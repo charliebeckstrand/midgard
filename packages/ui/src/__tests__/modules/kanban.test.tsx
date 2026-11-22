@@ -4,6 +4,7 @@ import {
 	Kanban,
 	KanbanCard,
 	KanbanCardHandle,
+	KanbanCardMenu,
 	KanbanCardSkeleton,
 	KanbanColumn,
 	KanbanColumnBody,
@@ -22,6 +23,7 @@ import {
 	present,
 	renderUI,
 	screen,
+	setupUser,
 	within,
 } from '../helpers'
 import { axe } from '../helpers/axe'
@@ -396,7 +398,7 @@ describe('KanbanCard', () => {
 
 		expect(handle).toHaveAttribute('id', 'handle-one')
 
-		expect(handle).toHaveAttribute('aria-labelledby', 'handle-one card-one')
+		expect(handle).toHaveAttribute('aria-labelledby', 'handle-one-label card-one')
 	})
 
 	it('renders no handle on a read-only board', () => {
@@ -991,5 +993,107 @@ describe('Kanban in a locale', () => {
 			'aria-roledescription',
 			'ordenable',
 		)
+	})
+})
+
+describe('KanbanCardMenu', () => {
+	function MenuBoard({ onReorder }: { onReorder?: (next: Column[]) => void } = {}) {
+		const [cols, setCols] = useState(keyboardColumns)
+
+		return (
+			<Kanban
+				columns={cols}
+				getKey={(item: Item) => item.id}
+				aria-label="Board"
+				onReorder={
+					onReorder &&
+					((next: Column[]) => {
+						setCols(next)
+
+						onReorder(next)
+					})
+				}
+			>
+				{cols.map((column) => (
+					<KanbanColumn key={column.id} value={column.id} aria-label={column.title}>
+						<KanbanColumnBody empty="Empty">
+							{column.items.map((item) => (
+								<KanbanCard key={item.id} value={item.id}>
+									<KanbanCardHandle />
+									{item.title}
+									<KanbanCardMenu />
+								</KanbanCard>
+							))}
+						</KanbanColumnBody>
+					</KanbanColumn>
+				))}
+			</Kanban>
+		)
+	}
+
+	// The browser suite reads the names of the button and the handle
+	// (`kanban-card-menu.test.tsx`). The name engine of jsdom adds the hidden
+	// label of the other control, so this file finds the button by its card.
+	async function openMenu(container: HTMLElement, card: string) {
+		const user = setupUser()
+
+		await user.click(
+			present(
+				getCard(container, card).querySelector<HTMLElement>('[data-slot="kanban-card-menu"]'),
+				`menu of ${card}`,
+			),
+		)
+
+		return user
+	}
+
+	it('offers the moves of the card', async () => {
+		const { container } = renderUI(<MenuBoard onReorder={vi.fn()} />)
+
+		await openMenu(container, 'a')
+
+		expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual([
+			'Move down',
+			'Move to “Done”',
+		])
+	})
+
+	// The floating mock of jsdom renders the menu inside the card, so the name of
+	// the card would hold the menu items. The browser suite reads the announcement.
+	it('moves the card to the end of another column', async () => {
+		const onReorder = vi.fn()
+
+		const { container } = renderUI(<MenuBoard onReorder={onReorder} />)
+
+		const user = await openMenu(container, 'a')
+
+		await user.click(screen.getByRole('menuitem', { name: 'Move to “Done”' }))
+
+		const next = onReorder.mock.lastCall?.[0] as Column[]
+
+		expect(next.map((column) => column.items.map((item) => item.id))).toEqual([
+			['b', 'c'],
+			['d', 'a'],
+		])
+	})
+
+	it('moves the card one place in its column', async () => {
+		const onReorder = vi.fn()
+
+		const { container } = renderUI(<MenuBoard onReorder={onReorder} />)
+
+		const user = await openMenu(container, 'b')
+
+		await user.click(screen.getByRole('menuitem', { name: 'Move up' }))
+
+		const next = onReorder.mock.lastCall?.[0] as Column[]
+
+		expect(next[0]?.items.map((item) => item.id)).toEqual(['b', 'a', 'c'])
+	})
+
+	it('renders nothing on a board that cannot reorder', () => {
+		const { container } = renderUI(<MenuBoard />)
+
+		expect(bySlot(container, 'kanban-card-menu')).toBeNull()
 	})
 })

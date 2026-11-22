@@ -114,13 +114,14 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 	// holds the closed hand on the whole page until the drop or the cancel.
 	useDragCursor(activeId !== null)
 
-	const { liftedCardId, setLiftedCardId, onCardKeyDown, onCardBlur } = useKanbanKeyboard({
-		columns,
-		getKey,
-		onReorder,
-		enabled: interactive,
-		containerRef,
-	})
+	const { liftedCardId, setLiftedCardId, onCardKeyDown, onCardBlur, cardMoves, moveCard } =
+		useKanbanKeyboard({
+			columns,
+			getKey,
+			onReorder,
+			enabled: interactive,
+			containerRef,
+		})
 
 	// Each card reads its own lift from the store, so a lift renders only the card
 	// that lifts and the card that drops.
@@ -149,8 +150,20 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 			setOverlayEntry,
 			onCardKeyDown,
 			onCardBlur,
+			cardMoves,
+			moveCard,
 		}),
-		[interactive, disabled, onReorder, liftedStore, setOverlayEntry, onCardKeyDown, onCardBlur],
+		[
+			interactive,
+			disabled,
+			onReorder,
+			liftedStore,
+			setOverlayEntry,
+			onCardKeyDown,
+			onCardBlur,
+			cardMoves,
+			moveCard,
+		],
 	)
 
 	// Column-facing drag state: churns every drag-over move; confined to columns.

@@ -206,7 +206,7 @@ describe('kanban card handle (real browser)', () => {
 		if (!card) throw new Error('expected a card')
 
 		// The press lands on the text, away from the handle and the button.
-		const text = card.querySelector('span')
+		const text = card.querySelector('span:not([hidden])')
 
 		if (!text) throw new Error('expected the card text')
 
@@ -235,7 +235,7 @@ describe('kanban card handle (real browser)', () => {
 
 		const handle = getSlot(card, 'kanban-card-handle').getBoundingClientRect()
 
-		const text = card.querySelector('span')?.getBoundingClientRect()
+		const text = card.querySelector('span:not([hidden])')?.getBoundingClientRect()
 
 		const edit = card.querySelector('button:not([data-slot])')?.getBoundingClientRect()
 

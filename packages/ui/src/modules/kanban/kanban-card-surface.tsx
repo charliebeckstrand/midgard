@@ -6,6 +6,7 @@ import { cn } from '../../core/cn'
 import { k } from '../../recipes/kata/kanban'
 import { partitionByType } from '../../utilities/children'
 import { KanbanCardHandle } from './kanban-card-handle'
+import { KanbanCardMenu } from './kanban-card-menu'
 
 /** Props for {@link KanbanCardSurface}: the `<div>` attributes of the card, and its lift state. @internal */
 export type KanbanCardSurfaceProps = ComponentProps<'div'> & {
@@ -15,8 +16,9 @@ export type KanbanCardSurfaceProps = ComponentProps<'div'> & {
 
 /**
  * The box of a Kanban card: a `Card` with the `surface` fill. It holds each
- * {@link KanbanCardHandle} child at its start edge, and puts its other children
- * in one `content` column beside the handle. The card on the board and its
+ * {@link KanbanCardHandle} child at its start edge, and each
+ * {@link KanbanCardMenu} child at its end edge. It puts its other children in
+ * one `content` column between them. The card on the board and its
  * drag overlay both render it, so the overlay has the box of the card.
  *
  * @remarks Client component. A handle aligns as a child of the card, also
@@ -31,7 +33,9 @@ export function KanbanCardSurface({
 	className,
 	...props
 }: KanbanCardSurfaceProps) {
-	const { matched: handles, rest } = partitionByType(children, KanbanCardHandle)
+	const { matched: handles, rest: unhandled } = partitionByType(children, KanbanCardHandle)
+
+	const { matched: menus, rest } = partitionByType(unhandled, KanbanCardMenu)
 
 	// A `false` or `null` slot renders nothing, so it opens no content column.
 	const content = rest.filter((node) => node != null)
@@ -49,6 +53,7 @@ export function KanbanCardSurface({
 					{content}
 				</div>
 			) : null}
+			{menus}
 		</Card>
 	)
 }

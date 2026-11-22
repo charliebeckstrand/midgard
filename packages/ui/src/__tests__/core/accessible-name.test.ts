@@ -55,6 +55,16 @@ describe('accessibleName', () => {
 			'Save',
 		],
 		[
+			'leaves a hidden or aria-hidden descendant out of its own text',
+			'<button>A<span hidden>Drag</span><b aria-hidden="true">*</b><i>!</i></button>',
+			'A!',
+		],
+		[
+			'reads a hidden aria-labelledby target',
+			'<span id="hid" hidden>Drag</span><button aria-labelledby="hid">x</button>',
+			'Drag',
+		],
+		[
 			'ignores an empty aria-label and uses text instead',
 			'<button aria-label="">Fallback</button>',
 			'Fallback',

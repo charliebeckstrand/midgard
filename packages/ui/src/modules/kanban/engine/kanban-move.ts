@@ -175,3 +175,26 @@ export function stepAcrossColumns<T, C extends KanbanColumnBase<T>>(
 
 	return moveCard(board, from, { columnIndex, itemIndex: target.items.length })
 }
+
+/**
+ * The move of a "Move to" menu: the card `cardId` moves to the end of the
+ * column `columnId`.
+ *
+ * @returns `null` when the card or the column is not on the board, or when the
+ * card is in that column already.
+ */
+export function moveToColumn<T, C extends KanbanColumnBase<T>>(
+	board: KanbanBoard<T, C>,
+	cardId: string,
+	columnId: string,
+): KanbanMove<C> | null {
+	const from = board.places.get(cardId)
+
+	const columnIndex = board.columnIndexes.get(columnId)
+
+	const target = columnIndex === undefined ? undefined : board.columns[columnIndex]
+
+	if (!from || columnIndex === undefined || !target || columnIndex === from.columnIndex) return null
+
+	return moveCard(board, from, { columnIndex, itemIndex: target.items.length })
+}
