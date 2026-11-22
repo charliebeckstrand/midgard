@@ -654,17 +654,24 @@ function MapZoomLayer({ children }: { children: ReactNode }) {
 }
 
 /**
- * The side of the zoom buttons that the `zoomControls` prop names, or `null`
- * for none. `true` is the end of a physical row: `right`.
+ * The side of the zoom buttons, or `null` for none: a map that does not zoom
+ * shows none, and `zoomControls={false}` hides them. `true` is the end of a
+ * physical row: `right`.
  *
  * @internal
  */
 function zoomControlsPlacement(
+	zoom: MapZoomInput | undefined,
 	input: boolean | MapZoomControlsPlacement,
 ): MapZoomControlsPlacement | null {
-	if (input === false) return null
+	if (mapZoomSettings(zoom) === null || input === false) return null
 
 	return input === true ? 'right' : input
+}
+
+/** Whether the zoom buttons take a gutter beside the plot, which takes a share of its width. @internal */
+function beside(placement: MapZoomControlsPlacement | null): boolean {
+	return placement === 'left' || placement === 'right'
 }
 
 /** The data table's value-column header: the name of the colored field, else the localized "Detail". A data key is never a header. @internal */
@@ -991,6 +998,10 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		...rest
 	} = props
 
+	// The zoom buttons of a zooming map, or `null` for none. A gutter at the left
+	// or the right takes a share of an explicit `width` from the plot.
+	const controlsPlacement = zoomControlsPlacement(zoomInput, zoomControls)
+
 	const shape = useMapShape({
 		geography,
 		geographyObject,
@@ -1000,6 +1011,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		aspectRatio,
 		graticule: graticuleStep(graticule),
 		sphere,
+		sharedWidth: beside(controlsPlacement),
 	})
 
 	const animate = animation !== false
@@ -1769,7 +1781,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 					aria-labelledby={ariaLabelledBy}
 					shape={shape}
 					aside={aside}
-					controls={zoomControlsPlacement(zoomControls)}
+					controls={controlsPlacement}
 					keyboard={{
 						enabled: navigable,
 						activate: activateTarget,

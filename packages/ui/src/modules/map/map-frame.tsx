@@ -311,7 +311,10 @@ export function MapPlotRegion({
 				zoom && (zoom.modifier === null ? 'touch-none' : 'touch-pan-x touch-pan-y'),
 				zoomControls === null ? plotLayout(aside, shape.fill) : plotFill(shape.fill),
 			)}
-			style={zoomControls === null ? plotStyle(shape) : undefined}
+			// The plot carries the ratio of the geography even inside the box
+			// around it and its zoom buttons. The box also holds the gutter, so the
+			// ratio of the box is not the ratio of the plot.
+			style={plotStyle(shape)}
 		>
 			{/* PlotBox reserves the box height from its own width, steady before the
 			    width is measured and across animation replays. It takes a fixed height
@@ -338,7 +341,7 @@ type MapZoomBoxProps = {
 	placement: MapZoomControlsPlacement
 	controls: ReactNode
 	aside: boolean
-	shape: Pick<MapFrameShape, 'fill' | 'aspect'>
+	shape: Pick<MapFrameShape, 'fill'>
 	children: ReactNode
 }
 
@@ -356,7 +359,6 @@ function MapZoomBox({ placement, controls, aside, shape, children }: MapZoomBoxP
 			data-zoom-controls={placement}
 			// The flex of the box comes last, so it replaces the grid of a `fill` layout.
 			className={cn(plotLayout(aside, shape.fill), k.zoomBox.base, k.zoomBox[placement])}
-			style={plotStyle(shape)}
 		>
 			{/* The buttons come first only at the top, so the order of the DOM
 			    and of the focus follows the order on the screen there. */}
@@ -397,9 +399,11 @@ function plotFill(fill: boolean): string {
 
 /**
  * The style that places the plot in the frame: under `fill`, the basis of the
- * box is the ratio of the geography. Thus, in a region of auto height, such as
+ * plot is the ratio of the geography. Thus, in a region of auto height, such as
  * a dashboard tile with `fitContent`, the plot takes the ratio of
- * `aspectRatio="auto"` and not a height of 0.
+ * `aspectRatio="auto"` and not a height of 0. The plot carries it also inside
+ * the box around the plot and its zoom buttons, because the box holds the
+ * gutter too.
  *
  * @internal
  */

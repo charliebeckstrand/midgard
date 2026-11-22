@@ -96,6 +96,12 @@ export type MapFrameShapeOptions = {
 	graticule: number | null
 	/** Whether the sphere outline draws; the frame path resolves for either part. */
 	sphere: boolean
+	/**
+	 * Something beside the plot takes a share of the explicit `width`, so the
+	 * plot measures the width that stays. Without it, the drawing fits the whole
+	 * `width` and the SVG scales it down to meet the narrower box.
+	 */
+	sharedWidth: boolean
 }
 
 /**
@@ -126,6 +132,7 @@ export function useMapShape({
 	aspectRatio,
 	graticule,
 	sphere,
+	sharedWidth,
 }: MapFrameShapeOptions): MapFrameShape {
 	// The mount-critical geometry (the decode and the measurement-free canonical
 	// fit), memoized across instances and mounts (see
@@ -156,7 +163,7 @@ export function useMapShape({
 		width: frameWidth,
 		height: frameHeight,
 		reserve,
-	} = usePlotFrame(width, sizing, false, true)
+	} = usePlotFrame(width, sizing, sharedWidth, true)
 
 	// The measured refit and the projector, resolved as one unit so a resize moves
 	// both together. One memo over the live frame dimensions fits again on every
