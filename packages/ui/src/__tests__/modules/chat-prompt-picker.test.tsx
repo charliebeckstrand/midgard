@@ -186,6 +186,22 @@ describe('ChatPrompt picker', () => {
 		])
 	})
 
+	it('closes the picker that a Backspace opened at a space after the label', async () => {
+		const { container } = renderUI(<Composer sources={[datasets]} />)
+
+		const user = await typeInto(container, '@late')
+
+		await user.keyboard('{Enter}{Backspace}{Backspace}')
+
+		expect(screen.getByRole('listbox')).toBeInTheDocument()
+
+		await user.keyboard('s and')
+
+		expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+
+		expect(getSlot<HTMLTextAreaElement>(container, 'chat-prompt').value).toBe('@Late stops and')
+	})
+
 	it('moves the highlight with the arrows and chooses on Tab', async () => {
 		const onDraft = vi.fn()
 

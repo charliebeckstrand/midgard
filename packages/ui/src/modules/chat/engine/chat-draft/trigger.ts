@@ -34,15 +34,35 @@ function isSpace(char: string | undefined): boolean {
 	return char !== undefined && /\s/.test(char)
 }
 
+/** A trigger at a known offset, from a citation that dissolved there. @internal */
+export type TriggerAnchor = {
+	/** The offset of the trigger character. */
+	start: number
+	/** The quote of the citation, such as `@Late stops`. */
+	quote: string
+}
+
 /**
- * The offset where the word of a trigger starts: the `anchor`, or the start of
- * the word that holds the caret. It is `-1` for an anchor with a line break
- * between it and the caret.
+ * The offset where the word of a trigger starts: the start of the anchor, or
+ * the start of the word that holds the caret.
+ *
+ * The text from an anchor to the caret can hold whitespace only in the start
+ * that it shares with the quote. Thus the query holds the words of the label,
+ * and a space typed after them ends it, as a space ends any query. For an
+ * anchor that does not hold, the offset is `-1`.
  *
  * @internal
  */
-function queryStart(value: string, caret: number, anchor: number | undefined): number {
-	if (anchor !== undefined) return value.slice(anchor, caret).includes('\n') ? -1 : anchor
+function queryStart(value: string, caret: number, anchor: TriggerAnchor | undefined): number {
+	if (anchor !== undefined) {
+		const text = value.slice(anchor.start, caret)
+
+		let shared = 0
+
+		while (shared < text.length && text[shared] === anchor.quote[shared]) shared++
+
+		return /\s/.test(text.slice(shared)) ? -1 : anchor.start
+	}
 
 	let start = caret - 1
 
@@ -60,9 +80,9 @@ function queryStart(value: string, caret: number, anchor: number | undefined): n
  * A trigger in a citation does not count. The citation is already a choice, so
  * a caret at its end does not open a second picker.
  *
- * An `anchor` sets the offset of the trigger, and the query can then hold
- * spaces, but not a line break. Thus a citation that a Backspace dissolves
- * opens its picker again with all of its label, such as `Late stop`.
+ * An `anchor` sets the offset of the trigger, and the query can then hold the
+ * spaces of its quote. Thus a citation that a Backspace dissolves opens its
+ * picker again with all of its label, such as `Late stop`.
  *
  * @internal
  * @param caret - The offset of a collapsed selection.
@@ -73,7 +93,7 @@ export function activeTrigger(
 	caret: number,
 	rules: readonly TriggerRule[],
 	citations: readonly ChatCitation[] = [],
-	anchor?: number,
+	anchor?: TriggerAnchor,
 ): TriggerMatch | null {
 	const start = queryStart(value, caret, anchor)
 

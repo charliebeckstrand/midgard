@@ -23,7 +23,12 @@ import { isComposing } from '../../utilities/is-composing'
 import { hasBrowserModifier } from '../../utilities/modifier-keys'
 import { randomId } from '../../utilities/random-id'
 import type { ChatCitation } from './engine/chat-content/types'
-import { activeTrigger, chooseInTrigger, type TriggerMatch } from './engine/chat-draft/trigger'
+import {
+	activeTrigger,
+	chooseInTrigger,
+	type TriggerAnchor,
+	type TriggerMatch,
+} from './engine/chat-draft/trigger'
 import type { ChatPromptItem, ChatPromptSource } from './types'
 
 const messages = defineMessages<{ added: { label: string; source: string } }>({
@@ -75,8 +80,9 @@ export type ChatPromptPickerOptions = {
  *
  * A Backspace at the end of a citation deletes one character, as in prose.
  * The citation dissolves, and the picker opens again at its trigger, with the
- * rest of its label as the query. That query can hold spaces, and it holds
- * until the caret leaves it.
+ * rest of its label as the query. That query can hold the spaces of the
+ * label. It ends where any query ends: at a space after the words of the
+ * label, or with the caret before the trigger.
  *
  * The textarea keeps the focus. The options are its active descendant, through
  * the virtual mode of `useA11yRoving`, as the options of a combobox are. A
@@ -107,9 +113,9 @@ export function useChatPromptPicker({
 
 	// The trigger of a citation that a Backspace dissolved. The keydown records
 	// it, and the change that the key makes sets it.
-	const [anchor, setAnchor] = useState<number | null>(null)
+	const [anchor, setAnchor] = useState<TriggerAnchor | null>(null)
 
-	const pendingAnchor = useRef<number | null>(null)
+	const pendingAnchor = useRef<TriggerAnchor | null>(null)
 
 	const { match, anchored } = findTrigger(value, caret, sources, citations, anchor)
 
@@ -355,7 +361,7 @@ function findTrigger(
 	caret: number | null,
 	sources: readonly ChatPromptSource[] | undefined,
 	citations: readonly ChatCitation[],
-	anchor: number | null,
+	anchor: TriggerAnchor | null,
 ): { match: TriggerMatch | null; anchored: boolean } {
 	if (!sources || sources.length === 0 || caret === null) return { match: null, anchored: false }
 
@@ -367,7 +373,7 @@ function findTrigger(
 }
 
 /**
- * The start of the citation that a Backspace at its end dissolves, or `null`
+ * The anchor of the citation that a Backspace at its end dissolves, or `null`
  * for any other key. A Backspace with a modifier deletes more than one
  * character, so it does not count.
  *
@@ -376,14 +382,16 @@ function findTrigger(
 function dissolvedTrigger(
 	event: KeyboardEvent<HTMLTextAreaElement>,
 	citations: readonly ChatCitation[],
-): number | null {
+): TriggerAnchor | null {
 	if (event.key !== 'Backspace' || hasBrowserModifier(event) || isComposing(event)) return null
 
 	const { selectionStart, selectionEnd } = event.currentTarget
 
 	if (selectionStart !== selectionEnd) return null
 
-	return citations.find((citation) => citation.end === selectionStart)?.start ?? null
+	const citation = citations.find((c) => c.end === selectionStart)
+
+	return citation ? { start: citation.start, quote: citation.quote } : null
 }
 
 /**
