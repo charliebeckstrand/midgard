@@ -243,6 +243,8 @@ The [`no-abbreviated-binding`](.biome/plugins/no-abbreviated-binding.grit) Biome
 
 A test fixture starts with `make`, as `makeQueryTree` does.
 
+A pure engine in the d3 style, as in `chart` and `map`, has one exemption. A generator of the engine takes the d3 noun form: the subject, and then the kind of result. Examples are `linearScale`, `barMarks`, `lineGeometry`, and `seatLayout`. A generator makes a scale, the marks, the geometry, or the layout from plain input, as a d3 generator does. Each other function of the engine starts with a verb, as `buildLineSeries` does beside `lineGeometry`.
+
 Do not write `isSameDay`, `isInGrid`, or `valuesEqual`. The [`no-alternate-predicate-binding`](.biome/plugins/no-alternate-predicate-binding.grit) Biome plugin finds these forms.
 
 A boolean value takes no `is` when its word is an adjective, as a prop does: `transposed`, `controlled`, `empty`. The bare word must be free in the scope. Keep `is` for a noun (`isArray`) and for a word that is taken (`isDisabled` beside the `disabled` prop, in `stepper-step.tsx`). Keep a name that a library gives (`isDragging`). Do not make up a weaker word only to drop `is`. Rename a name only when the new name is clearer.

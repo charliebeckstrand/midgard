@@ -50,7 +50,7 @@ The React contexts stay in `context.ts` at the module root, and the comparisons 
 
 1. **Places reaches into internal anchors (*P1*).** `places-map.tsx` selects `map-points`, `map-regions-recede`, and recipe fill classes from an app. A unit has one API (CONVENTIONS §3.12), and these selectors go around it. Features 1 and 2 give the API, and their pull requests remove the selectors. After that, a `data-slot=map-` selector in an app is drift, and a Biome plugin can find it in `apps`.
 
-The rest of the module holds to CONVENTIONS through the gates that the status names. Many function names do not start with a verb of §8.5. That drift is in each module of `ui`, and §Not planned gives the reason that this file does not take it.
+The rest of the module holds to CONVENTIONS through the gates that the status names. The generators of the engine take the d3 noun form, which §8.5 permits. Many other function names do not start with a verb of §8.5. That drift is in each module of `ui`, and §Not planned gives the reason that this file does not take it.
 
 ## Performance
 

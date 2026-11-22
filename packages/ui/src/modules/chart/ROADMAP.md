@@ -38,10 +38,6 @@ The pure files are each file in `chart-geometry/` and `chart-cartesian/`, and `c
 
 4. **Category window with a brush (*P3*).** No chart can zoom to a span of its categories. ECharts `dataZoom`, Recharts `Brush`, and the AG Charts navigator do this for a long time series. The decimation is width-gated, so a narrow window draws at full resolution with no extra work. The open questions are the keyboard model of the brush and its place in the frame (`engine/chart-frame/cartesian.tsx`). A browser test must drive the brush by pointer and by keyboard.
 
-## Pattern cleanup
-
-1. **Verb-first names in the engine (*P3*).** CONVENTIONS.md §8.5 requires a verb at the start of a function name. Most engine exports take the d3 noun form, such as `linearScale`, `barMarks`, `lineGeometry`, and `seatLayout`. One file can mix the two forms, as `lineGeometry` and `buildLineSeries` do in `chart-geometry/line.ts`. The open question is a rename in one pull request for each concept folder, or a recorded d3 exemption in §8.5. Decide the rule first, because a rename touches each test and bench of the core.
-
 ## Performance
 
 1. **A smooth case for the hit-test bench (*P2*).** The `thinMarksAt` group of [`chart-layout.bench.ts`](../../__benchmarks__/chart-layout.bench.ts) times only linear traces. On 2026-11-21 it measured about 0.4 ms for a linear line of 10,000 points. A smooth trace cuts each cubic into chords of 4 px or less, so it holds more points than its run. Add a smooth case, because the next item depends on it.
