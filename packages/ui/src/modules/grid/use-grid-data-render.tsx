@@ -12,13 +12,16 @@ import {
 import { dataAttr } from '../../core/data-attr'
 import { isRtl } from '../../hooks/a11y/logical-arrow'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import type { TextDirection } from '../../primitives/direction/context'
-import { GridGroupByContext, GridSettleContext } from './context'
+import { GridGroupByContext, GridSettleContext, GridUnselectableContext } from './context'
 import { FIRST_ROW_ESTIMATE } from './engine/grid-constants'
 import { gridWrapperClass } from './engine/grid-data/classes'
 import { hasErrorSlot } from './engine/grid-data/guards'
 import { DEFAULT_EXPORTABLE } from './engine/grid-export/registry'
 import { manualGroupPredicate } from './engine/grid-group/resolve'
+import { applyRowKeyOrder } from './engine/grid-group/row-manager'
+import { getGroupKey } from './engine/grid-items/items'
 import { resolveReorder } from './engine/grid-reorder-compute'
 import { composeCellDoubleClick } from './engine/grid-row/bridges'
 import { GridBusyStatus } from './grid-busy-status'
@@ -289,6 +292,7 @@ export function useGridDataRender<T>(
 		sort,
 		selection,
 		setSelection,
+		rowSelectable: selectionConfig?.rowSelectable,
 		paginated: pagination != null,
 		cursorEnabled: cursor.cursorEnabled,
 		cursorNewRow: cursor.newRow,
@@ -300,7 +304,7 @@ export function useGridDataRender<T>(
 		tableRef,
 	})
 
-	const { toggleRow, toggleAll, allSelected, someSelected } = selectionActions
+	const { toggleRow, toggleAll, allSelected, someSelected, unselectable } = selectionActions
 
 	// Lift the column-manager dialog's open state, resolve the (default-on)
 	// context menus, and derive the header-menu actions; see `useGridMenuActions`.
@@ -361,6 +365,23 @@ export function useGridDataRender<T>(
 	const groupOrder = rowManager.presentation?.groupOrder ?? null
 
 	const exportedRows = useCallback(() => rowsForExport(groupOrder), [rowsForExport, groupOrder])
+
+	// The keys of the leaves that the grouped body shows, in its order: the
+	// order of the row manager applied, and the leaves of a closed group left
+	// out. A span of the selection runs over them. With no groups, the span runs
+	// over the rows of the engine, which are the rows that the body shows.
+	const shownLeafKeys = useMemo(
+		() =>
+			groups &&
+			applyRowKeyOrder(groups, groupOrder ?? undefined, getGroupKey).flatMap((group) =>
+				group.expanded ? group.leaves.map((leaf) => leaf.key) : [],
+			),
+		[groups, groupOrder],
+	)
+
+	const toggleShownRow = useStableEvent((key: string | number, span?: boolean) =>
+		toggleRow(key, span, shownLeafKeys ?? undefined),
+	)
 
 	const exportActions = useGridExport<T>({
 		exportable,
@@ -639,7 +660,7 @@ export function useGridDataRender<T>(
 				empty,
 				error,
 				selection,
-				toggleRow,
+				toggleRow: toggleShownRow,
 				selectable: hasSelectionColumn,
 				reorderable: reorderActive,
 				rowReorderActive,
@@ -678,124 +699,126 @@ export function useGridDataRender<T>(
 	return (
 		<GridOverlayDensityContext value={overlayDensity}>
 			<GridSettleContext value={settle}>
-				<div
-					ref={wrapperRef}
-					data-slot="grid"
-					// Flags an in-flight column drag-resize on the grid root. The resize
-					// cursor comes from the handle, which captures the pointer for the drag.
-					// Head and cells read the matching drag state of the settle store to drop
-					// their hover wash and truncation tooltips.
-					data-resizing={dataAttr(resizing)}
-					className={gridWrapperClass(maxHeight === 'fill')}
-				>
-					<GridBusyStatus
-						loading={loading}
-						rowCount={dataRowCount}
-						pageScoped={footerScope === 'page'}
-						errorShown={showingError}
-						failed={hasErrorSlot(infiniteScroll?.error)}
-					/>
-
-					{/* Covers the grid (toolbar included), while an async export resolves
-					    its rows, whichever surface started it. */}
-					<GridExportOverlay active={exportActions.pending} />
-
-					<GridDataDialogs
-						direction={direction}
-						columnManager={
-							renderDialog
-								? {
-										open: columnManagerOpen,
-										onOpenChange: setColumnManagerOpen,
-										label: managerLabel,
-										manager: {
-											columns: managerItems,
-											filterable: columnManagerConfig?.filterable,
-											order: columnOrder,
-											onOrderChange: setColumnOrder,
-											reorderable: reorderEnabled,
-											hidden: hiddenColumns,
-											onHiddenChange: handleHiddenChange,
-											onPinChange: pinColumn,
-											groups: group.editorGroups,
-											onGroupsChange: group.editorSetGroups,
-											onSavePreset: savePreset,
-										},
-									}
-								: null
-						}
-						rowManager={rowManager}
-						widthConfirm={
-							confirmWidthAction
-								? {
-										open: widthConfirmOpen,
-										onOpenChange: setWidthConfirmOpen,
-										action: widthAction,
-										onConfirm: confirmWidthAction,
-									}
-								: null
-						}
-					/>
-
-					<GridToolbar
-						filter={globalFilter}
-						content={toolbar}
-						showColumnManager={showButton}
-						columnManagerLabel={managerLabel}
-						columnManagerButton={managerButton}
-						onManageColumns={() => setColumnManagerOpen(true)}
-						exportActions={exportActions.toolbar}
-						exportButton={exportActions.button}
-						exporting={exportActions.pending}
-						columnFilters={filters}
-						batchActions={batchActions}
-						hasSelection={selection.size > 0}
-						selection={selection}
-						setSelection={setSelection}
-					/>
-
-					<GridGroupByContext value={groupByContext}>
-						<GridRegion
-							reorderConfigured={reorderEnabled || rowReorderConfig != null}
-							canReorder={reorderActive}
-							columnSortable={columnSortable}
-							rowReorderActive={rowReorderActive}
-							rowSortable={rowReorder.sortable}
-							contextMenu={resolvedContextMenu}
-							contextMenuEnabled={contextMenuEnabled}
-							columns={visibleColumns}
-							rows={renderRows}
-							rowKeys={rowKeys}
-							sort={sort}
-							sortColumn={sortColumn}
-							clearSort={clearSort}
-							pinColumn={pinColumn}
-							groupBy={groupByContext}
-							autoSizeColumns={autoSizeColumns}
-							autoSizeColumn={autoSizeColumn}
-							resetColumnWidths={resetColumnWidths}
-							chooseColumns={chooseColumns}
-							manageLabel={managerLabel}
-							exportActions={exportActions.contextMenu}
-							fill={cursor.fill}
-							rowGroupMenu={rowManager.rowGroupMenu}
-							columnGroupMenu={columnGroupMenu}
-							columnFilter={filters}
-						>
-							{tableRegion}
-						</GridRegion>
-					</GridGroupByContext>
-
-					<GridFooterBar config={footer} stats={footerStats} scope={footerScope} />
-
-					{pagination && (
-						<GridPaginationFooter
-							pagination={pagination}
-							label={tableProps?.['aria-label']}
-							labelledBy={tableProps?.['aria-labelledby']}
+				<GridUnselectableContext value={unselectable}>
+					<div
+						ref={wrapperRef}
+						data-slot="grid"
+						// Flags an in-flight column drag-resize on the grid root. The resize
+						// cursor comes from the handle, which captures the pointer for the drag.
+						// Head and cells read the matching drag state of the settle store to drop
+						// their hover wash and truncation tooltips.
+						data-resizing={dataAttr(resizing)}
+						className={gridWrapperClass(maxHeight === 'fill')}
+					>
+						<GridBusyStatus
+							loading={loading}
+							rowCount={dataRowCount}
+							pageScoped={footerScope === 'page'}
+							errorShown={showingError}
+							failed={hasErrorSlot(infiniteScroll?.error)}
 						/>
-					)}
-				</div>
+
+						{/* Covers the grid (toolbar included), while an async export resolves
+					    its rows, whichever surface started it. */}
+						<GridExportOverlay active={exportActions.pending} />
+
+						<GridDataDialogs
+							direction={direction}
+							columnManager={
+								renderDialog
+									? {
+											open: columnManagerOpen,
+											onOpenChange: setColumnManagerOpen,
+											label: managerLabel,
+											manager: {
+												columns: managerItems,
+												filterable: columnManagerConfig?.filterable,
+												order: columnOrder,
+												onOrderChange: setColumnOrder,
+												reorderable: reorderEnabled,
+												hidden: hiddenColumns,
+												onHiddenChange: handleHiddenChange,
+												onPinChange: pinColumn,
+												groups: group.editorGroups,
+												onGroupsChange: group.editorSetGroups,
+												onSavePreset: savePreset,
+											},
+										}
+									: null
+							}
+							rowManager={rowManager}
+							widthConfirm={
+								confirmWidthAction
+									? {
+											open: widthConfirmOpen,
+											onOpenChange: setWidthConfirmOpen,
+											action: widthAction,
+											onConfirm: confirmWidthAction,
+										}
+									: null
+							}
+						/>
+
+						<GridToolbar
+							filter={globalFilter}
+							content={toolbar}
+							showColumnManager={showButton}
+							columnManagerLabel={managerLabel}
+							columnManagerButton={managerButton}
+							onManageColumns={() => setColumnManagerOpen(true)}
+							exportActions={exportActions.toolbar}
+							exportButton={exportActions.button}
+							exporting={exportActions.pending}
+							columnFilters={filters}
+							batchActions={batchActions}
+							hasSelection={selection.size > 0}
+							selection={selection}
+							setSelection={setSelection}
+						/>
+
+						<GridGroupByContext value={groupByContext}>
+							<GridRegion
+								reorderConfigured={reorderEnabled || rowReorderConfig != null}
+								canReorder={reorderActive}
+								columnSortable={columnSortable}
+								rowReorderActive={rowReorderActive}
+								rowSortable={rowReorder.sortable}
+								contextMenu={resolvedContextMenu}
+								contextMenuEnabled={contextMenuEnabled}
+								columns={visibleColumns}
+								rows={renderRows}
+								rowKeys={rowKeys}
+								sort={sort}
+								sortColumn={sortColumn}
+								clearSort={clearSort}
+								pinColumn={pinColumn}
+								groupBy={groupByContext}
+								autoSizeColumns={autoSizeColumns}
+								autoSizeColumn={autoSizeColumn}
+								resetColumnWidths={resetColumnWidths}
+								chooseColumns={chooseColumns}
+								manageLabel={managerLabel}
+								exportActions={exportActions.contextMenu}
+								fill={cursor.fill}
+								rowGroupMenu={rowManager.rowGroupMenu}
+								columnGroupMenu={columnGroupMenu}
+								columnFilter={filters}
+							>
+								{tableRegion}
+							</GridRegion>
+						</GridGroupByContext>
+
+						<GridFooterBar config={footer} stats={footerStats} scope={footerScope} />
+
+						{pagination && (
+							<GridPaginationFooter
+								pagination={pagination}
+								label={tableProps?.['aria-label']}
+								labelledBy={tableProps?.['aria-labelledby']}
+							/>
+						)}
+					</div>
+				</GridUnselectableContext>
 			</GridSettleContext>
 		</GridOverlayDensityContext>
 	)

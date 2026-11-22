@@ -2291,6 +2291,10 @@
 		"defaultMessage": "Task",
 		"description": "Text of a demo in the docs, in components/combobox/virtualized.tsx."
 	},
+	"docs.demo.4c11151b7175": {
+		"defaultMessage": "Tap a checkbox to select its row",
+		"description": "Text of a demo in the docs as touchText, in modules/grid/selection/selection.tsx."
+	},
 	"docs.demo.4c31c173c140": {
 		"defaultMessage": "and scroll to zoom, or use the buttons. Drag to pan.",
 		"description": "Text of a demo in the docs, in modules/map/point/zoomable.tsx."
@@ -4154,6 +4158,10 @@
 	"docs.demo.b004eea6c901": {
 		"defaultMessage": "The half-year total, month by month",
 		"description": "Text of a demo in the docs as description, in modules/dashboard/build-and-save.tsx."
+	},
+	"docs.demo.b01ad52d5b52": {
+		"defaultMessage": "Shift-click a checkbox to select each row from the last one that you checked",
+		"description": "Text of a demo in the docs as mouseText, in modules/grid/selection/selection.tsx."
 	},
 	"docs.demo.b058fc7c5e0b": {
 		"defaultMessage": "Select a state",

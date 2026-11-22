@@ -10,6 +10,7 @@ import { reorderMessages } from '../../primitives/intl/intl-reorder'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { SortableGrip } from '../../primitives/sortable-grip/sortable-grip'
 import { k } from '../../recipes/kata/grid'
+import { useGridUnselectable } from './context'
 import { gridMessages } from './engine/grid-messages'
 import { rowName } from './engine/grid-row/cell'
 import { GridRowActions } from './grid-row-actions'
@@ -79,6 +80,8 @@ type GridSelectCheckboxProps = {
 	/** Shows the partial state of the select-all checkbox. */
 	indeterminate?: boolean
 	onChange: ChangeEventHandler<HTMLInputElement>
+	/** Disables the checkbox of a row that cannot take the selection. */
+	disabled?: boolean
 	/** The accessible name of the checkbox. */
 	label: string
 }
@@ -126,6 +129,11 @@ export function GridFitBox<T>({ col, children }: { col: GridColumn<T>; children:
 	)
 }
 
+/** Whether the event that changed a checkbox held Shift. @internal */
+function isShiftPress(event: Event): boolean {
+	return event instanceof MouseEvent && event.shiftKey
+}
+
 /**
  * The content of a special cell of a row: the drag grip, the selection
  * checkbox, or the row actions, in its {@link GridFitBox}. The flat row and the
@@ -148,12 +156,15 @@ function GridRowSpecialCellImpl<T>({
 	row: T
 	rowKey: string | number
 	selected: boolean
-	toggleRow: (key: string | number) => void
+	/** Toggles the row. With `span`, it sets each row from the last toggled row to this one. */
+	toggleRow: (key: string | number, span?: boolean) => void
 	rowLabel: string | undefined
 	/** The row's sortable bindings while row reorder is live. */
 	sortable?: GridRowSortable
 }): ReactNode {
 	const intl = useIntl()
+
+	const unselectable = useGridUnselectable()
 
 	if (col.dragHandle) {
 		return (
@@ -168,7 +179,10 @@ function GridRowSpecialCellImpl<T>({
 			<GridFitBox col={col}>
 				<GridSelectCheckbox
 					checked={selected}
-					onChange={() => toggleRow(rowKey)}
+					disabled={unselectable.has(rowKey)}
+					// A click with Shift selects the span from the last toggled row. The
+					// change of a checkbox comes from its click, which carries the key.
+					onChange={(event) => toggleRow(rowKey, isShiftPress(event.nativeEvent))}
 					label={intl.formatMessage(gridMessages.selectRow, {
 						row: rowName(intl, rowLabel, rowKey),
 					})}

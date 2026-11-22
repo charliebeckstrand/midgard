@@ -1,8 +1,10 @@
 'use client'
 
-import { useCallback, useMemo } from 'react'
+import { useMemo, useRef } from 'react'
 import { type SetValue, useControllable } from '../../hooks/use-controllable'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { useStableValue } from '../../hooks/use-stable-value'
+import { sameElements } from '../../utilities/same-elements'
 import { toggleItem } from '../../utilities/toggle-item'
 import type { GridSelection } from './grid-data-types'
 
@@ -17,10 +19,58 @@ type GridSelectionState = {
 
 /** The row-derived selection flags and the toggle actions. @internal */
 type GridSelectionActions = {
-	toggleRow: (key: string | number) => void
+	/**
+	 * Toggles a row. With `span`, it sets each row between the last toggled row
+	 * and this one to the new state of this row. The span runs over `order`, the
+	 * keys of the rows that the grid shows, in their order. A rejected row does
+	 * nothing.
+	 */
+	toggleRow: (key: string | number, span?: boolean, order?: readonly (string | number)[]) => void
 	toggleAll: () => void
 	allSelected: boolean
 	someSelected: boolean
+	/** The keys of the shown rows that `rowSelectable` rejects. */
+	unselectable: ReadonlySet<string | number>
+}
+
+/** The binding fields that the selection state reads. @internal */
+type GridSelectionValue = Pick<GridSelection, 'value' | 'defaultValue' | 'onValueChange'>
+
+/** No rows, for a caller of {@link useGridSelection} that gives none. @internal */
+const NO_ROWS: readonly never[] = []
+
+/** No row rejected: the set of a grid with no `rowSelectable`. @internal */
+const NONE_REJECTED: ReadonlySet<string | number> = new Set()
+
+/** Whether two sets of keys hold the same keys in the same order. @internal */
+function sameKeys(a: ReadonlySet<string | number>, b: ReadonlySet<string | number>): boolean {
+	return a.size === b.size && sameElements([...a], [...b])
+}
+
+/**
+ * Sets each key from `from` to `to` in `keys`, both ends included, to `on`. A
+ * key that `skip` holds keeps its state. @internal
+ */
+function setSpan(
+	selected: Set<string | number>,
+	keys: readonly (string | number)[],
+	from: number,
+	to: number,
+	on: boolean,
+	skip: ReadonlySet<string | number>,
+): Set<string | number> {
+	const next = new Set(selected)
+
+	for (let index = Math.min(from, to); index <= Math.max(from, to); index++) {
+		const key = keys[index]
+
+		if (key === undefined || skip.has(key)) continue
+
+		if (on) next.add(key)
+		else next.delete(key)
+	}
+
+	return next
 }
 
 /**
@@ -31,7 +81,7 @@ type GridSelectionActions = {
  *
  * @internal
  */
-export function useGridSelectionState(config: GridSelection | undefined): GridSelectionState {
+export function useGridSelectionState(config: GridSelectionValue | undefined): GridSelectionState {
 	const [selectionRaw, setSelection] = useControllable<Set<string | number>>({
 		value: config?.value,
 		defaultValue: config?.defaultValue ?? EMPTY_SELECTION,
@@ -43,26 +93,61 @@ export function useGridSelectionState(config: GridSelection | undefined): GridSe
 
 /**
  * Derives the `allSelected` / `someSelected` flags and the row/all toggle
- * actions from the current `rowKeys` (the rendered rows). Split from
- * {@link useGridSelectionState} because these need the engine's output, which
- * the selection state must precede. The toggles take the functional-updater
- * form against a `rowKeys` ref, so they stay referentially stable across
- * selection edits (the memoized rows don't churn).
+ * actions from the current `rowKeys` (the rendered rows) and their `rows`.
+ * Split from {@link useGridSelectionState} because these need the engine's
+ * output, which the selection state must precede. The toggles read the newest
+ * rows when they run, so they keep their identity across selection edits (the
+ * memoized rows don't churn).
+ *
+ * `rowSelectable` rejects a row: its toggle does nothing, a span and
+ * select-all skip it, and `allSelected` counts only the rows that it accepts.
+ * A span runs from the last row that a toggle named to the row that it names,
+ * over the order that the toggle gives, else over `rowKeys`.
  *
  * @internal
  */
-export function useGridSelectionActions({
+export function useGridSelectionActions<T>({
 	selection,
 	setSelection,
 	rowKeys,
-}: GridSelectionState & { rowKeys: (string | number)[] }): GridSelectionActions {
-	// Both flags re-scan `rowKeys` (the full set on an unpaginated grid), so they
+	rows,
+	rowSelectable,
+}: GridSelectionState & {
+	rowKeys: (string | number)[]
+	/** The rows of `rowKeys`, in the same order. */
+	rows: readonly T[]
+	rowSelectable: ((row: T) => boolean) | undefined
+}): GridSelectionActions {
+	const rejected = useMemo(() => {
+		if (!rowSelectable) return NONE_REJECTED
+
+		const keys = new Set<string | number>()
+
+		rows.forEach((row, index) => {
+			const key = rowKeys[index]
+
+			if (key !== undefined && !rowSelectable(row)) keys.add(key)
+		})
+
+		return keys.size === 0 ? NONE_REJECTED : keys
+	}, [rows, rowKeys, rowSelectable])
+
+	// The same keys keep one identity, so an inline `rowSelectable` does not
+	// render each row checkbox again on each render of the grid.
+	const unselectable = useStableValue(rejected, sameKeys)
+
+	const selectableKeys = useMemo(
+		() => (unselectable.size === 0 ? rowKeys : rowKeys.filter((key) => !unselectable.has(key))),
+		[rowKeys, unselectable],
+	)
+
+	// Both flags re-scan the keys (the full set on an unpaginated grid), so they
 	// are memoized to recompute only when the rows or the selection actually
 	// change, not on every unrelated GridData render (keystrokes, resize frames).
 	// The `selection.size` guard skips the scan in the common empty-selection state.
 	const allSelected = useMemo(
-		() => rowKeys.length > 0 && rowKeys.every((key) => selection.has(key)),
-		[rowKeys, selection],
+		() => selectableKeys.length > 0 && selectableKeys.every((key) => selection.has(key)),
+		[selectableKeys, selection],
 	)
 
 	const someSelected = useMemo(
@@ -70,26 +155,42 @@ export function useGridSelectionActions({
 		[rowKeys, selection],
 	)
 
-	const toggleRow = useCallback(
-		(key: string | number) => {
-			setSelection((prev) => toggleItem(prev ?? EMPTY_SELECTION, key))
+	// The last row that a toggle named: one end of the next span.
+	const anchorRef = useRef<string | number | null>(null)
+
+	const toggleRow = useStableEvent(
+		(key: string | number, span = false, order: readonly (string | number)[] = rowKeys) => {
+			if (unselectable.has(key)) return
+
+			const from = span && anchorRef.current !== null ? order.indexOf(anchorRef.current) : -1
+
+			const to = order.indexOf(key)
+
+			anchorRef.current = key
+
+			setSelection((prev) => {
+				const selected = prev ?? EMPTY_SELECTION
+
+				if (from === -1 || to === -1) return toggleItem(selected, key)
+
+				return setSpan(selected, order, from, to, !selected.has(key), unselectable)
+			})
 		},
-		[setSelection],
 	)
 
 	// A selection outlives the page and the filter, so select-all adds the shown
 	// rows and deselect-all takes out only the shown rows. A selected row that
-	// the view does not show stays selected. It reads the newest rows, and its
-	// identity holds for the mount.
+	// the view does not show stays selected. A rejected row keeps its state. It
+	// reads the newest rows, and its identity holds for the mount.
 	const toggleAll = useStableEvent(() => {
 		setSelection((prev) => {
 			const selected = prev ?? EMPTY_SELECTION
 
-			const every = rowKeys.length > 0 && rowKeys.every((key) => selected.has(key))
+			const every = selectableKeys.length > 0 && selectableKeys.every((key) => selected.has(key))
 
 			const next = new Set(selected)
 
-			for (const key of rowKeys) {
+			for (const key of selectableKeys) {
 				if (every) next.delete(key)
 				else next.add(key)
 			}
@@ -98,7 +199,7 @@ export function useGridSelectionActions({
 		})
 	})
 
-	return { toggleRow, toggleAll, allSelected, someSelected }
+	return { toggleRow, toggleAll, allSelected, someSelected, unselectable }
 }
 
 /**
@@ -111,16 +212,24 @@ export function useGridSelectionActions({
  *
  * @internal
  */
-export function useGridSelection({
+export function useGridSelection<T>({
 	selectionConfig,
 	rowKeys,
+	rows,
 }: {
-	selectionConfig: GridSelection | undefined
+	selectionConfig: GridSelection<T> | undefined
 	rowKeys: (string | number)[]
+	/** The rows of `rowKeys`, which `rowSelectable` reads. @defaultValue none */
+	rows?: readonly T[]
 }): GridSelectionState & GridSelectionActions {
 	const state = useGridSelectionState(selectionConfig)
 
-	const actions = useGridSelectionActions({ ...state, rowKeys })
+	const actions = useGridSelectionActions({
+		...state,
+		rowKeys,
+		rows: rows ?? NO_ROWS,
+		rowSelectable: selectionConfig?.rowSelectable,
+	})
 
 	return { ...state, ...actions }
 }
