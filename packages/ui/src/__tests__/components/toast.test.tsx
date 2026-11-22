@@ -252,6 +252,87 @@ describe('Toast: useToast behavior', () => {
 		expect(screen.queryByText('Temporary')).not.toBeInTheDocument()
 	})
 
+	it('replaces a live toast in place when a call repeats its id', async ({ clock }) => {
+		const api = renderToasts({ duration: 1000 })
+
+		const first = vi.fn()
+
+		const second = vi.fn()
+
+		act(() => {
+			api.toast({ id: 'copy', title: 'Copying', onDismiss: first })
+		})
+
+		await clock.advance(800)
+
+		act(() => {
+			api.toast({ id: 'copy', title: 'Link copied', onDismiss: second })
+		})
+
+		expect(screen.queryByText('Copying')).not.toBeInTheDocument()
+
+		expect(screen.getAllByText('Link copied')).toHaveLength(1)
+
+		// The countdown starts again at the second call.
+		await clock.advance(800)
+
+		expect(screen.getByText('Link copied')).toBeInTheDocument()
+
+		await clock.advance(1000)
+
+		expect(screen.queryByText('Link copied')).not.toBeInTheDocument()
+
+		expect(first).not.toHaveBeenCalled()
+
+		expect(second).toHaveBeenCalledWith('timeout')
+	})
+
+	it('keeps or counts down a replaced toast by the persist of the new call', async ({ clock }) => {
+		const api = renderToasts({ duration: 500 })
+
+		act(() => {
+			api.toast({ id: 'sync', title: 'Saving' })
+		})
+
+		act(() => {
+			api.toast({ id: 'sync', title: 'Still saving', persist: true })
+		})
+
+		await clock.advance(1500)
+
+		expect(screen.getByText('Still saving')).toBeInTheDocument()
+
+		act(() => {
+			api.toast({ id: 'sync', title: 'Saved' })
+		})
+
+		await clock.advance(1500)
+
+		expect(screen.queryByText('Saved')).not.toBeInTheDocument()
+	})
+
+	it('shows a toast again under the id of a toast that has left', async ({ clock }) => {
+		const api = renderToasts({ duration: 500 })
+
+		act(() => {
+			api.toast({ id: 'again', title: 'First' })
+		})
+
+		act(() => {
+			api.dismiss('again')
+		})
+
+		act(() => {
+			api.toast({ id: 'again', title: 'Second' })
+		})
+
+		await clock.advance(100)
+
+		expect(screen.queryByText('First')).not.toBeInTheDocument()
+
+		expect(screen.getAllByText('Second')).toHaveLength(1)
+	})
+
 	it('keeps persist toasts past the duration', async ({ clock }) => {
 		const api = renderToasts({ duration: 500 })
 
@@ -892,6 +973,41 @@ describe('Toast: useToast behavior', () => {
 			for (const onDismiss of [onA, onB, onC]) {
 				expect(onDismiss).toHaveBeenCalledExactlyOnceWith('timeout')
 			}
+		})
+
+		it('takes a replaced toast out of the exit queue', async ({ clock }) => {
+			const onA = vi.fn()
+
+			const onB = vi.fn()
+
+			const onNext = vi.fn()
+
+			const api = renderToasts({}, null)
+
+			act(() => {
+				api.toast({ title: 'A', duration: 100, onDismiss: onA })
+				api.toast({ id: 'b', title: 'B', duration: 100, onDismiss: onB })
+			})
+
+			// `A` leaves, and `B` waits in the queue for an exit that never comes.
+			await clock.advance(100)
+
+			expect(onA).toHaveBeenCalledExactlyOnceWith('timeout')
+
+			act(() => {
+				api.toast({ id: 'b', title: 'B again', duration: 10_000, onDismiss: onNext })
+			})
+
+			// The queue no longer holds `b`, so the new toast counts its own time.
+			await clock.advance(5000)
+
+			expect(onB).not.toHaveBeenCalled()
+
+			expect(onNext).not.toHaveBeenCalled()
+
+			await clock.advance(5000)
+
+			expect(onNext).toHaveBeenCalledExactlyOnceWith('timeout')
 		})
 
 		it('staggers the timeouts with the viewport mounted', async ({ clock }) => {

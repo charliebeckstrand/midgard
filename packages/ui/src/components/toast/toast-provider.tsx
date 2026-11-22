@@ -43,6 +43,10 @@ export type ToastProviderProps = {
  * Each toast counts down its own `duration`, and leaves with `'timeout'` when its own time is
  * up. A new toast does not change the time left on the others. A hover or focus on any toast
  * pauses all the countdowns (WCAG 2.2.1).
+ *
+ * A `toast()` call with the `id` of a live toast replaces that toast in place, and its
+ * countdown starts again. A repeated toast thus shows once, and a loading toast can turn
+ * into its result.
  */
 export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: ToastProviderProps) {
 	// The callbacks read and write the list in the ref, because one call can read
@@ -65,9 +69,9 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 		if (!toast.dismissed) toast.onDismiss?.('timeout')
 	}, [])
 
-	const { start, stop, handleExitComplete } = useToastQueue(toastsRef, sync, handleRemove)
+	const { start, stop, unqueue, handleExitComplete } = useToastQueue(toastsRef, sync, handleRemove)
 
-	const { arm, pause, resume } = useToastTimer(toastsRef, start, stop)
+	const { arm, disarm, pause, resume } = useToastTimer(toastsRef, start, stop)
 
 	const dismiss = useCallback(
 		(id: string, reason: ToastDismissReason = 'dismissed') => {
@@ -75,8 +79,10 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 
 			if (!toast) return
 
+			// Only the leaving entry goes. A later call can give its id to a new toast
+			// before this frame, and that toast stays.
 			const remove = () => {
-				toastsRef.current = toastsRef.current.filter((item) => item.id !== id)
+				toastsRef.current = toastsRef.current.filter((item) => !(item.id === id && item.dismissed))
 
 				sync()
 
@@ -105,10 +111,28 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 		(data: ToastInput) => {
 			const id = data.id ?? randomId()
 
-			toastsRef.current = [
-				...toastsRef.current,
-				{ ...data, id, duration: data.duration ?? duration },
-			]
+			const next: ToastData = { ...data, id, duration: data.duration ?? duration }
+
+			const live = toastsRef.current.some((item) => item.id === id && !item.dismissed)
+
+			if (live) {
+				// A call with the id of a live toast replaces that toast in place, so the
+				// toast keeps its place and its key. Its countdown starts again.
+				toastsRef.current = toastsRef.current.map((item) => (item.id === id ? next : item))
+
+				unqueue(id)
+
+				if (data.persist) disarm(id)
+				else arm(id, next.duration)
+
+				sync()
+
+				return id
+			}
+
+			// A toast that leaves under the same id has reported its exit. The new toast
+			// takes its place at once, so two entries never share a key.
+			toastsRef.current = [...toastsRef.current.filter((item) => item.id !== id), next]
 
 			if (maxToasts > 0) {
 				const active = toastsRef.current.filter((item) => !item.dismissed)
@@ -124,7 +148,7 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 
 			return id
 		},
-		[maxToasts, duration, arm, dismiss, sync],
+		[maxToasts, duration, arm, disarm, dismiss, sync, unqueue],
 	)
 
 	const resetToast = useCallback(

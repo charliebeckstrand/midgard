@@ -12,7 +12,7 @@ import type { ToastData } from './types'
  * @param start - Called with the ids whose time is up, oldest first. The staggered queue
  * removes them one at a time.
  * @param stop - Called on the first hold, so that the staggered queue stops too.
- * @returns The timer controls: `arm`, `pause` and `resume`.
+ * @returns The timer controls: `arm`, `disarm`, `pause`, and `resume`.
  *
  * @remarks
  * The pause is a source count, not a flag. Each hold (a toast's hover, a
@@ -110,6 +110,18 @@ export function useToastTimer(
 		[settle, schedule],
 	)
 
+	// Drops the countdown of one toast, for a toast that a new call makes persist.
+	const disarm = useCallback(
+		(id: string) => {
+			settle()
+
+			remainingRef.current.delete(id)
+
+			schedule()
+		},
+		[settle, schedule],
+	)
+
 	const pause = useCallback(() => {
 		// Only the first hold freezes the countdowns; further holds just deepen it.
 		if (pauseCountRef.current > 0) {
@@ -147,5 +159,5 @@ export function useToastTimer(
 		schedule()
 	}, [settle, schedule])
 
-	return { arm, pause, resume }
+	return { arm, disarm, pause, resume }
 }

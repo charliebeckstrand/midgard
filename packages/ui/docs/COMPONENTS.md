@@ -67,7 +67,7 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > `useConfirm()` asks a question in the one `Confirm` that `UIProvider` mounts. Use `Confirm` for a message with custom children.
 
-> `UIProvider` mounts one `ToastProvider` and its viewport, so `useToast()` works anywhere under it with no setup.
+> `UIProvider` mounts one `ToastProvider` and its viewport, so `useToast()` works anywhere under it with no setup. A `toast()` call with the `id` of a live toast replaces that toast in place, and its countdown starts again.
 
 > While a toast shows, the `Toast` viewport is a `region` landmark with the name "Notifications". F8 moves focus to the newest toast, and that focus pauses auto-dismiss.
 
