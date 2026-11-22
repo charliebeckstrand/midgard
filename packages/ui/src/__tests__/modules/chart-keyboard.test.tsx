@@ -15,6 +15,7 @@ import { HeatmapChart } from '../../modules/chart/heatmap-chart'
 import { LineChart } from '../../modules/chart/line-chart'
 import { PieChart } from '../../modules/chart/pie-chart'
 import { ScatterChart } from '../../modules/chart/scatter-chart'
+import { SeatChart } from '../../modules/chart/seat-chart/seat-chart'
 import {
 	act,
 	allBySlot,
@@ -1074,6 +1075,81 @@ describe('PieChart and DonutChart keyboard navigation', () => {
 		fireEvent.keyDown(plot, { key: 'ArrowRight' })
 
 		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('North')
+	})
+})
+
+/** A chamber with an empty group between two groups that hold seats. */
+const SEAT_GROUPS = [
+	{ seats: 47, color: 'blue', label: 'Democrats' },
+	{ seats: 0, color: 'green', label: 'Greens' },
+	{ seats: 53, color: 'red', label: 'Republicans' },
+] as const
+
+describe('SeatChart keyboard navigation', () => {
+	it('makes the plot one tab stop and walks the groups with the arrow keys', () => {
+		const { container } = renderUI(
+			<SeatChart aria-label="Senate seats" groups={[...SEAT_GROUPS]} width={400} height={240} />,
+		)
+
+		const plot = getSlot(container, 'chart-plot')
+
+		expect(plot).toHaveAttribute('tabindex', '0')
+
+		// The first arrow reads the first group, at its middle seat.
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Democrats')
+
+		// The empty group has no stop, so the next arrow skips it.
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		const readout = bySlot(container, 'tooltip-content')?.textContent
+
+		expect(readout).toContain('Republicans')
+
+		expect(readout).not.toContain('Greens')
+
+		fireEvent.keyDown(plot, { key: 'ArrowLeft' })
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Democrats')
+
+		fireEvent.keyDown(plot, { key: 'Escape' })
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+	})
+
+	it('reads the seats of each group in its readout', () => {
+		const { container } = renderUI(
+			<SeatChart aria-label="Senate seats" groups={[...SEAT_GROUPS]} width={400} height={240} />,
+		)
+
+		const plot = getSlot(container, 'chart-plot')
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('47')
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('53')
+	})
+
+	it('walks the groups with the vertical arrows too, as a pie does', () => {
+		const { container } = renderUI(
+			<SeatChart aria-label="Senate seats" groups={[...SEAT_GROUPS]} width={400} height={240} />,
+		)
+
+		const plot = getSlot(container, 'chart-plot')
+
+		fireEvent.keyDown(plot, { key: 'ArrowDown' })
+
+		fireEvent.keyDown(plot, { key: 'ArrowDown' })
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Republicans')
+
+		fireEvent.keyDown(plot, { key: 'ArrowUp' })
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Democrats')
 	})
 })
 

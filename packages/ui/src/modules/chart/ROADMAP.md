@@ -54,9 +54,7 @@ On 2026-11-21, `chart-geometry.bench.ts` measured the smooth `lineGeometry` buil
 
 1. **Complete the chart cases of the a11y corpus (*P1*).** `a11y/cases/data-display.tsx` holds Bar, Line, Area, Pie, Donut, Seat, and Combo charts. It holds no `ScatterChart`, `BubbleChart`, `HeatmapChart`, or `ChoroplethChart`, so the sweep gates do not reach them. CONVENTIONS.md §10.5 puts a guarantee for each component of a kind in the corpus. Add a case for each, with an accessible name and a data table.
 
-2. **Keyboard tests for `SeatChart` (*P1*).** `seat-chart.tsx` gives each group one keyboard stop at its middle seat. No test drives it: `seat-chart.test.tsx` sends no arrow key, and `chart-keyboard.test.tsx` renders no `SeatChart`. The elections app shows this chart. Add cases that step through the groups, read the readout of each group, and skip an empty group.
-
-3. **A summary for a large data table (*P3*).** The hidden table holds one row for each category. A series of 10,000 points thus gives a table too long to read in full (WCAG 1.1.1, 1.3.1). The table is deferred, so it costs nothing on the urgent path, and its layout cost is the text boxes. The open question is a summary above some size that points to "View data" (`engine/chart-data-dialog.tsx`). A jsdom test must hold the row limit and the summary text.
+2. **A summary for a large data table (*P3*).** The hidden table holds one row for each category. A series of 10,000 points thus gives a table too long to read in full (WCAG 1.1.1, 1.3.1). The table is deferred, so it costs nothing on the urgent path, and its layout cost is the text boxes. The open question is a summary above some size that points to "View data" (`engine/chart-data-dialog.tsx`). A jsdom test must hold the row limit and the summary text.
 
 ## Not planned
 
