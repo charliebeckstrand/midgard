@@ -1,6 +1,6 @@
 # Utilities
 
-> **Quick-glance index of `src/utilities/`.** Small, dependency-free pure helpers shared across the package: numeric clamping and formatting, locale coalescing, and WCAG color-contrast maths. They also cover caret bookkeeping for formatted inputs, the Escape dismiss-layer stack, a shared document-event subscriber, and roving keyboard-navigation math. **Internal:** `utilities` is not a `package.json` export. Reach it by relative import within the package, not as `ui/utilities`. The folder has no barrel: a caller imports each helper from the file that declares it, such as `from '../../utilities/contrast'` (CONVENTIONS §9.3).
+> **Quick-glance index of `src/utilities/`.** Small helpers shared across the package: numeric clamping and formatting, locale coalescing, and WCAG color-contrast maths. They also cover caret bookkeeping for formatted inputs, the Escape dismiss-layer stack, a shared document-event subscriber, and roving keyboard-navigation math. **Internal:** `utilities` is not a `package.json` export. Reach it by relative import within the package, not as `ui/utilities`. The folder has no barrel: a caller imports each helper from the file that declares it, such as `from '../../utilities/contrast'` (CONVENTIONS §9.3).
 
 ## Numeric
 
@@ -239,7 +239,7 @@ Import these from `utilities/overlay-layers`. They tell whether an open overlay 
 
 ## Children
 
-Import these from `utilities/children`. Each one reads through each Fragment, so a slot in a Fragment counts as a direct child.
+Import these from `utilities/children`. Each one that reads a set of children reads through each Fragment, so a slot in a Fragment counts as a direct child.
 
 | Export | Summary |
 |---|---|
