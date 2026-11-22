@@ -12,16 +12,18 @@ import type { GridColumn } from './types'
 import type { GridRangeHandle } from './use-grid-range-value'
 
 /**
- * The figures that {@link GridFooter.rangeFigures} asks for, or `null` for
- * none. A new list with the same names keeps the same identity, so an inline
- * list does not compute the figures again on each render. @internal
+ * The figures that {@link GridFooter.rangeFigures} asks for, each one time, or
+ * `null` for none. A new list with the same names keeps the same identity, so
+ * an inline list does not compute the figures again on each render. @internal
  */
 export function useGridRangeFiguresOps(
 	setting: GridFooter['rangeFigures'],
 ): readonly Aggregation[] | null {
 	const names = setting === true ? RANGE_FIGURES_DEFAULT : setting || []
 
-	const key = names.join()
+	// A name given twice shows once, so the footer and the speech list each
+	// figure once.
+	const key = [...new Set(names)].join()
 
 	return useMemo(() => (key === '' ? null : (key.split(',') as Aggregation[])), [key])
 }

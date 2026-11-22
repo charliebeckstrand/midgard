@@ -946,6 +946,16 @@ describe('Grid range figures', () => {
 		expect(figures()).toEqual(['Maximum 30', 'Minimum 1.5'])
 	})
 
+	it('shows a figure that the list names twice one time', () => {
+		const grid = renderSales(['sum', 'count', 'sum'])
+
+		fireEvent.mouseDown(saleCell(0, 1))
+
+		fireEvent.keyDown(grid, { key: 'ArrowDown', shiftKey: true })
+
+		expect(figures()).toEqual(['Sum 40', 'Count 2'])
+	})
+
 	it('speaks the figures with the range once it stops changing', async ({ clock }) => {
 		const grid = renderSales()
 
