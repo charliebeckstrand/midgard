@@ -1447,10 +1447,6 @@
 		"defaultMessage": "Neutral",
 		"description": "Text of a demo in the docs, in components/toast/severity.tsx."
 	},
-	"docs.demo.1c8111849638": {
-		"defaultMessage": "Shift-click or drag across the cells to select a range",
-		"description": "Text of a demo in the docs as mouseText, in modules/grid/events/cell-range.tsx."
-	},
 	"docs.demo.1cd53eadd6b9": {
 		"defaultMessage": "Rate your visit",
 		"description": "Text of a demo in the docs, in components/rating/half-stars.tsx."
@@ -4550,6 +4546,10 @@
 	"docs.demo.c4d6bb200f4c": {
 		"defaultMessage": "Folders",
 		"description": "Text of a demo in the docs as aria-label, in components/sidebar/with-actions.tsx."
+	},
+	"docs.demo.c4d9506d75a2": {
+		"defaultMessage": "Shift-click or drag across the cells to select a range, or press Ctrl+A or Cmd+A to select all",
+		"description": "Text of a demo in the docs as mouseText, in modules/grid/events/cell-range.tsx."
 	},
 	"docs.demo.c5a9dd0c5e20": {
 		"defaultMessage": "{label} trend, last 12 periods",
