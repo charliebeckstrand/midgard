@@ -88,4 +88,44 @@ describe('Grid selection span and rowSelectable', () => {
 
 		expect(selected()).toEqual([1, 2, 4])
 	})
+
+	it('runs a span over the leaves that a grouped grid shows, and skips a closed group', () => {
+		type Member = { id: number; name: string; team: string }
+
+		const members: Member[] = [
+			{ id: 1, name: 'Ada', team: 'A' },
+			{ id: 2, name: 'Bo', team: 'B' },
+			{ id: 3, name: 'Cy', team: 'C' },
+			{ id: 4, name: 'Di', team: 'A' },
+		]
+
+		const onValueChange = vi.fn()
+
+		renderUI(
+			<Grid
+				columns={[
+					{ id: 'select', selectable: true },
+					{ id: 'name', title: 'Name', cell: (row: Member) => row.name, value: (row) => row.name },
+					{ id: 'team', title: 'Team', cell: (row: Member) => row.team, value: (row) => row.team },
+				]}
+				rows={members}
+				getKey={(row) => row.id}
+				rowLabel={(row) => row.name}
+				groupBy={{ value: 'team' }}
+				selection={{ onValueChange }}
+			/>,
+		)
+
+		// Close team B, which shows between team A and team C.
+		fireEvent.click(screen.getByRole('button', { name: /^B \(/, expanded: true }))
+
+		fireEvent.click(screen.getByRole('checkbox', { name: 'Select Ada' }))
+
+		fireEvent.click(screen.getByRole('checkbox', { name: 'Select Cy' }), { shiftKey: true })
+
+		// The hidden leaf of team B stays out of the span.
+		const [last] = (onValueChange.mock.lastCall ?? [new Set()]) as [Set<number>]
+
+		expect([...last].sort()).toEqual([1, 3, 4])
+	})
 })

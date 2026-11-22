@@ -21,9 +21,11 @@ type GridSelectionState = {
 type GridSelectionActions = {
 	/**
 	 * Toggles a row. With `span`, it sets each row between the last toggled row
-	 * and this one to the new state of this row. A rejected row does nothing.
+	 * and this one to the new state of this row. The span runs over `order`, the
+	 * keys of the rows that the grid shows, in their order. A rejected row does
+	 * nothing.
 	 */
-	toggleRow: (key: string | number, span?: boolean) => void
+	toggleRow: (key: string | number, span?: boolean, order?: readonly (string | number)[]) => void
 	toggleAll: () => void
 	allSelected: boolean
 	someSelected: boolean
@@ -100,7 +102,7 @@ export function useGridSelectionState(config: GridSelectionValue | undefined): G
  * `rowSelectable` rejects a row: its toggle does nothing, a span and
  * select-all skip it, and `allSelected` counts only the rows that it accepts.
  * A span runs from the last row that a toggle named to the row that it names,
- * over `rowKeys`.
+ * over the order that the toggle gives, else over `rowKeys`.
  *
  * @internal
  */
@@ -156,23 +158,25 @@ export function useGridSelectionActions<T>({
 	// The last row that a toggle named: one end of the next span.
 	const anchorRef = useRef<string | number | null>(null)
 
-	const toggleRow = useStableEvent((key: string | number, span = false) => {
-		if (unselectable.has(key)) return
+	const toggleRow = useStableEvent(
+		(key: string | number, span = false, order: readonly (string | number)[] = rowKeys) => {
+			if (unselectable.has(key)) return
 
-		const from = span && anchorRef.current !== null ? rowKeys.indexOf(anchorRef.current) : -1
+			const from = span && anchorRef.current !== null ? order.indexOf(anchorRef.current) : -1
 
-		const to = rowKeys.indexOf(key)
+			const to = order.indexOf(key)
 
-		anchorRef.current = key
+			anchorRef.current = key
 
-		setSelection((prev) => {
-			const selected = prev ?? EMPTY_SELECTION
+			setSelection((prev) => {
+				const selected = prev ?? EMPTY_SELECTION
 
-			if (from === -1 || to === -1) return toggleItem(selected, key)
+				if (from === -1 || to === -1) return toggleItem(selected, key)
 
-			return setSpan(selected, rowKeys, from, to, !selected.has(key), unselectable)
-		})
-	})
+				return setSpan(selected, order, from, to, !selected.has(key), unselectable)
+			})
+		},
+	)
 
 	// A selection outlives the page and the filter, so select-all adds the shown
 	// rows and deselect-all takes out only the shown rows. A selected row that

@@ -12,6 +12,7 @@ import {
 import { dataAttr } from '../../core/data-attr'
 import { isRtl } from '../../hooks/a11y/logical-arrow'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import type { TextDirection } from '../../primitives/direction/context'
 import { GridGroupByContext, GridSettleContext, GridUnselectableContext } from './context'
 import { FIRST_ROW_ESTIMATE } from './engine/grid-constants'
@@ -19,6 +20,8 @@ import { gridWrapperClass } from './engine/grid-data/classes'
 import { hasErrorSlot } from './engine/grid-data/guards'
 import { DEFAULT_EXPORTABLE } from './engine/grid-export/registry'
 import { manualGroupPredicate } from './engine/grid-group/resolve'
+import { applyRowKeyOrder } from './engine/grid-group/row-manager'
+import { getGroupKey } from './engine/grid-items/items'
 import { resolveReorder } from './engine/grid-reorder-compute'
 import { composeCellDoubleClick } from './engine/grid-row/bridges'
 import { GridBusyStatus } from './grid-busy-status'
@@ -363,6 +366,23 @@ export function useGridDataRender<T>(
 
 	const exportedRows = useCallback(() => rowsForExport(groupOrder), [rowsForExport, groupOrder])
 
+	// The keys of the leaves that the grouped body shows, in its order: the
+	// order of the row manager applied, and the leaves of a closed group left
+	// out. A span of the selection runs over them. With no groups, the span runs
+	// over the rows of the engine, which are the rows that the body shows.
+	const shownLeafKeys = useMemo(
+		() =>
+			groups &&
+			applyRowKeyOrder(groups, groupOrder ?? undefined, getGroupKey).flatMap((group) =>
+				group.expanded ? group.leaves.map((leaf) => leaf.key) : [],
+			),
+		[groups, groupOrder],
+	)
+
+	const toggleShownRow = useStableEvent((key: string | number, span?: boolean) =>
+		toggleRow(key, span, shownLeafKeys ?? undefined),
+	)
+
 	const exportActions = useGridExport<T>({
 		exportable,
 		columns: visibleColumns,
@@ -640,7 +660,7 @@ export function useGridDataRender<T>(
 				empty,
 				error,
 				selection,
-				toggleRow,
+				toggleRow: toggleShownRow,
 				selectable: hasSelectionColumn,
 				reorderable: reorderActive,
 				rowReorderActive,
