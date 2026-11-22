@@ -86,10 +86,10 @@ export function useFormSubmission<T extends Record<string, unknown>>({
 	const reportSettled = useStableEvent((outcome: SubmitOutcome<T>) => onSettled?.(outcome))
 
 	// The payload is built only when a callback reads it.
-	const reportInvalid = useStableEvent((errors: Errors) => {
+	const reportInvalid = useStableEvent((errors: Errors, formError: string | null) => {
 		if (!onInvalidSubmit) return
 
-		onInvalidSubmit(invalidFields(errors) as Partial<Record<keyof T, string[]>>)
+		onInvalidSubmit(invalidFields(errors) as Partial<Record<keyof T, string[]>>, formError)
 	})
 
 	// Monotonic token identifying the current submit. An outside reset, unmount,
@@ -153,7 +153,7 @@ export function useFormSubmission<T extends Record<string, unknown>>({
 					)
 				}
 
-				reportInvalid(errors)
+				reportInvalid(errors, formError)
 
 				return
 			}

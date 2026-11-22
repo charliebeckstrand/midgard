@@ -156,13 +156,22 @@ describe('FormError', () => {
 
 		const onSubmit = vi.fn()
 
-		const { container } = renderLogin({ validate: zodResolver(schema, defaults), onSubmit })
+		const onInvalidSubmit = vi.fn()
+
+		const { container } = renderLogin({
+			validate: zodResolver(schema, defaults),
+			onSubmit,
+			onInvalidSubmit,
+		})
 
 		await submit(container)
 
 		expect(onSubmit).not.toHaveBeenCalled()
 
 		expect(getSlot(container, 'form-error')).toHaveTextContent('Pick a stronger password')
+
+		// No field has an issue, so the map is empty and the issue comes second.
+		expect(onInvalidSubmit).toHaveBeenCalledExactlyOnceWith({}, 'Pick a stronger password')
 	})
 })
 
