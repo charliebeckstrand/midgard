@@ -11,6 +11,7 @@ import {
 } from 'react'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import type { FormActions, FormStateValue, FormStore } from '../../primitives/form/context'
+import type { FormFieldTargets } from '../../primitives/form/form-field-targets'
 import { hasIssues } from '../../primitives/form/form-issues'
 import { dirtyFields as deriveDirtyFields } from './engine/form-dirty'
 import { formReducer } from './engine/form-reducer'
@@ -26,7 +27,10 @@ type FormReducerOptions<T extends Record<string, unknown>> = Pick<
 	FormProps<T>,
 	'defaultValues' | 'values' | 'validate' | 'onSubmit' | 'onSettled' | 'onInvalidSubmit' | 'onReset'
 > &
-	Required<Pick<FormProps<T>, 'validateOn'>>
+	Required<Pick<FormProps<T>, 'validateOn'>> & {
+		/** The control ids of the fields, which a refused submit reads to move the focus. */
+		targets?: FormFieldTargets
+	}
 
 /** State, store, actions, and form-element handlers returned by {@link useFormReducer}. @internal */
 type FormReducerResult = {
@@ -60,6 +64,7 @@ export function useFormReducer<T extends Record<string, unknown>>({
 	onSettled,
 	onInvalidSubmit,
 	onReset,
+	targets,
 }: FormReducerOptions<T>): FormReducerResult {
 	const initialValues = controlledValues ?? defaultValues
 
@@ -168,6 +173,7 @@ export function useFormReducer<T extends Record<string, unknown>>({
 		onSubmit,
 		onSettled,
 		onInvalidSubmit,
+		targets,
 	})
 
 	// The outside reset: the actions and the reset button. It supersedes any

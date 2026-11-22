@@ -12,6 +12,7 @@ import {
 import { flushSync } from 'react-dom'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import type { FormStore } from '../../primitives/form/context'
+import type { FormFieldTargets } from '../../primitives/form/form-field-targets'
 import {
 	extractFieldErrors,
 	hasFieldIssues,
@@ -22,6 +23,7 @@ import {
 } from './engine/form-submission'
 import type { Errors, FormAction, FormHelpers, SubmitOutcome, Validators } from './engine/types'
 import type { FormProps } from './form'
+import { focusFirstControl } from './form-focus'
 
 /** Options for {@link useFormSubmission}. @internal */
 type FormSubmissionOptions<T extends Record<string, unknown>> = Pick<
@@ -36,6 +38,8 @@ type FormSubmissionOptions<T extends Record<string, unknown>> = Pick<
 	setErrors: (errors: Record<string, string | string[] | undefined>) => void
 	/** Resets the store only, and leaves an in-flight submit live. */
 	resetForm: (nextDefaults?: Record<string, unknown>) => void
+	/** The control ids of the fields. A refused submit focuses the first invalid control by them. */
+	targets?: FormFieldTargets
 }
 
 /** The submit handler, the supersede action, and the failure count of {@link useFormSubmission}. @internal */
@@ -69,6 +73,7 @@ export function useFormSubmission<T extends Record<string, unknown>>({
 	onSubmit,
 	onSettled,
 	onInvalidSubmit,
+	targets,
 }: FormSubmissionOptions<T>): FormSubmissionResult {
 	const [failures, setFailures] = useState(0)
 
@@ -128,6 +133,17 @@ export function useFormSubmission<T extends Record<string, unknown>>({
 
 					fail()
 				})
+
+				// The focus goes to the first invalid control, so the reader does not stay
+				// on the submit button. A mounted summary takes the focus itself, and an
+				// `onInvalidSubmit` that moves the focus runs after this and wins.
+				if (targets && !targets.hasSummary()) {
+					focusFirstControl(
+						event.currentTarget.ownerDocument,
+						Object.keys(invalidFields(errors)),
+						targets.getSnapshot(),
+					)
+				}
 
 				reportInvalid(errors)
 
@@ -232,6 +248,7 @@ export function useFormSubmission<T extends Record<string, unknown>>({
 			fail,
 			reportInvalid,
 			reportSettled,
+			targets,
 		],
 	)
 

@@ -1,14 +1,7 @@
 'use client'
 
 import { useComposedRefs } from 'motion/react'
-import {
-	type ComponentProps,
-	type MouseEvent,
-	type ReactNode,
-	useLayoutEffect,
-	useRef,
-	useState,
-} from 'react'
+import { type ComponentProps, type ReactNode, useLayoutEffect, useRef, useState } from 'react'
 import { Alert } from '../../components/alert'
 import { cn } from '../../core/cn'
 import {
@@ -16,12 +9,13 @@ import {
 	useFormFailures,
 	useFormFieldTargets,
 	useFormResets,
+	useRegisterSummary,
 } from '../../primitives/form/context'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k as linkK } from '../../recipes/kata/link'
-import { FOCUSABLE_SELECTOR } from '../../utilities/focusable-selector'
 import { summarizeErrors } from './engine/form-error-summary'
+import { focusControl } from './form-focus'
 
 /** Props for {@link FormErrorSummary}: the `title` of the summary, atop the native attributes of its `<div>`. */
 export type FormErrorSummaryProps = Omit<ComponentProps<'div'>, 'title' | 'color' | 'children'> & {
@@ -40,31 +34,6 @@ const messages = defineMessages({
 			'The heading of the box at the top of a form that lists the fields with errors, after a failed submit.',
 	},
 })
-
-/**
- * Moves the focus to a control by its id. The link keeps its `href`, so the
- * target stays readable, but the page does not jump or change its URL.
- *
- * @remarks Some controls put the id of their field on a wrapper, such as the
- * row of a `Rating`. When the element with the id does not take the focus, the
- * first element in it that is in the tab order takes it.
- * @internal
- */
-function focusControl(event: MouseEvent<HTMLAnchorElement>, id: string): void {
-	event.preventDefault()
-
-	const doc = event.currentTarget.ownerDocument
-
-	const target = doc.getElementById(id)
-
-	if (!target) return
-
-	target.focus()
-
-	if (doc.activeElement === target) return
-
-	target.querySelector<HTMLElement>(FOCUSABLE_SELECTOR)?.focus()
-}
 
 /**
  * A list of the errors of the enclosing `Form`, which shows after a submit fails
@@ -106,6 +75,9 @@ export function FormErrorSummary({
 	const errors = useFormErrors()
 
 	const targets = useFormFieldTargets()
+
+	// The form leaves the focus to a mounted summary after a refused submit.
+	useRegisterSummary()
 
 	const failures = useFormFailures()
 
@@ -183,7 +155,13 @@ export function FormErrorSummary({
 									linkK({ underline: label === undefined }).base,
 									label !== undefined && 'inline-flex flex-col',
 								)}
-								onClick={(event) => focusControl(event, id)}
+								onClick={(event) => {
+									// The link keeps its `href`, so the target stays readable, but the
+									// page does not jump or change its URL.
+									event.preventDefault()
+
+									focusControl(event.currentTarget.ownerDocument, id)
+								}}
 							>
 								{label === undefined ? (
 									issue

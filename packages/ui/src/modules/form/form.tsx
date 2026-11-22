@@ -59,8 +59,9 @@ export type FormProps<T extends Record<string, unknown>> = {
 	 *
 	 * A refused submit returns before `onSubmit`, and `onSettled` reports only a
 	 * terminal outcome, so nothing else marks the attempt. To the caller a refused
-	 * submit and no submit look the same. Use this callback to scroll to the first
-	 * error, to count the attempt, or to announce the refusal. Server-side issues
+	 * submit and no submit look the same. Use this callback to count the attempt
+	 * or to announce the refusal. The form already moves the focus to the first
+	 * invalid control, and a callback that moves the focus wins. Server-side issues
 	 * arrive through `helpers.setErrors` or a `{ fieldErrors }` return, not here.
 	 * Every field present carries at least one issue, so the list is never empty.
 	 */
@@ -93,6 +94,10 @@ export type FormProps<T extends Record<string, unknown>> = {
  * error. A token that only goes up tells the submit when a newer reset or an
  * unmount superseded it. A native reset of the `<form>` does not change the
  * inputs: the form cancels it and resets its bound fields.
+ *
+ * A refused submit moves the focus to the first invalid control, in the order
+ * of the document. A mounted {@link FormErrorSummary} takes the focus in its
+ * place, and an `onInvalidSubmit` that moves the focus wins.
  *
  * While a submit runs, the form announces it politely and locks its parts. It
  * locks the Control scope, so each field is read-only and each `Button` is
@@ -136,6 +141,10 @@ export function Form<T extends Record<string, unknown>>({
 }: FormProps<T>) {
 	const intl = useIntl()
 
+	// The controls of the form register their ids here. FormErrorSummary reads
+	// them, and a refused submit focuses the first invalid control by them.
+	const [targets] = useState(createFormFieldTargets)
+
 	const { formState, store, actions, handleSubmit, handleReset, resets, failures } = useFormReducer(
 		{
 			defaultValues,
@@ -146,12 +155,9 @@ export function Form<T extends Record<string, unknown>>({
 			onSettled,
 			onInvalidSubmit,
 			onReset,
+			targets,
 		},
 	)
-
-	// The controls of the form register their ids here, and FormErrorSummary
-	// reads them.
-	const [targets] = useState(createFormFieldTargets)
 
 	// Only the busy state of FormSubmit shows that a submit runs, and a screen
 	// reader does not speak it. The empty message ends the run, so each submit

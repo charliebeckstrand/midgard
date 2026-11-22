@@ -17,6 +17,7 @@ import { Tab, TabList, Tabs } from '../../components/tabs'
 import { ToggleIconButton } from '../../components/toggle-icon-button'
 import {
 	Form,
+	FormErrorSummary,
 	FormFilters,
 	FormFiltersField,
 	type FormHelpers,
@@ -1893,5 +1894,73 @@ describe('Form focus during a submit', () => {
 		})
 
 		expect(input).toHaveFocus()
+	})
+})
+
+describe('Form focus on a refused submit', () => {
+	const required = (value: unknown) => (value ? undefined : 'required')
+
+	/** A form whose `email` field comes before its `name` field in the document, against the order of `defaultValues`. */
+	function renderRefused(children: ReactNode = null, props: { onInvalidSubmit?: () => void } = {}) {
+		const view = renderUI(
+			<Form
+				defaultValues={{ name: '', email: '' }}
+				validate={{ name: required, email: required }}
+				{...props}
+			>
+				{children}
+				<Field>
+					<Label>Email</Label>
+					<Input name="email" />
+				</Field>
+				<Field>
+					<Label>Name</Label>
+					<Input name="name" />
+				</Field>
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		screen.getByRole('button', { name: 'Submit' }).focus()
+
+		return view
+	}
+
+	it('moves the focus to the first invalid control in the document', async () => {
+		const { container } = renderRefused()
+
+		await submit(container)
+
+		expect(screen.getByRole('textbox', { name: 'Email' })).toHaveFocus()
+	})
+
+	it('skips a valid field', async () => {
+		const { container } = renderRefused()
+
+		fireEvent.change(screen.getByRole('textbox', { name: 'Email' }), {
+			target: { value: 'ada@example.com' },
+		})
+
+		await submit(container)
+
+		expect(screen.getByRole('textbox', { name: 'Name' })).toHaveFocus()
+	})
+
+	it('leaves the focus to a mounted error summary', async () => {
+		const { container } = renderRefused(<FormErrorSummary />)
+
+		await submit(container)
+
+		expect(getSlot(container, 'form-error-summary')).toHaveFocus()
+	})
+
+	it('lets an onInvalidSubmit that moves the focus win', async () => {
+		const { container } = renderRefused(null, {
+			onInvalidSubmit: () => screen.getByRole('button', { name: 'Submit' }).focus(),
+		})
+
+		await submit(container)
+
+		expect(screen.getByRole('button', { name: 'Submit' })).toHaveFocus()
 	})
 })

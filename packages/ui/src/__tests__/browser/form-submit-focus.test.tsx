@@ -89,4 +89,39 @@ describe('Form submit focus (real browser)', () => {
 
 		expect(document.activeElement).toBe(input)
 	})
+	it('moves the focus from the submit button to the first invalid field', async () => {
+		const onSubmit = vi.fn()
+
+		const { container } = renderUI(
+			<Form
+				defaultValues={{ email: '', name: '' }}
+				validate={{
+					email: (value) => (value ? undefined : 'Enter an email.'),
+					name: (value) => (value ? undefined : 'Enter a name.'),
+				}}
+				onSubmit={onSubmit}
+			>
+				<Field>
+					<Label>Name</Label>
+					<Input name="name" />
+				</Field>
+				<Field>
+					<Label>Email</Label>
+					<Input name="email" />
+				</Field>
+				<FormSubmit>Subscribe</FormSubmit>
+			</Form>,
+		)
+
+		const button = getSlot<HTMLButtonElement>(container, 'form-submit')
+
+		button.focus()
+
+		await userEvent.keyboard('{Enter}')
+
+		// The document order decides, not the order of `defaultValues`.
+		await expect.poll(() => document.activeElement?.getAttribute('name')).toBe('name')
+
+		expect(onSubmit).not.toHaveBeenCalled()
+	})
 })
