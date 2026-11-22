@@ -17,8 +17,8 @@ import { srcDir, srcRelative } from '../helpers/walk-source'
 
 const ENTRY = join(srcDir, 'server', 'index.ts')
 
-/** A runtime import of React or of a module under it. */
-const REACT = /^react(?:\/|$)/
+/** A runtime import of React or of React DOM, or of a module under either, such as `react-dom/server`. */
+const REACT = /^react(?:-dom)?(?:\/|$)/
 
 /** One reason for each way that a file of the server graph breaks the rule. */
 function serverBreaches(file: string): string[] {
@@ -34,7 +34,7 @@ function serverBreaches(file: string): string[] {
 		({ specifier, runtime }) => runtime && REACT.test(specifier),
 	)
 
-	if (react.length > 0) reasons.push('imports a value from react')
+	if (react.length > 0) reasons.push('imports a value from react or react-dom')
 
 	return reasons
 }

@@ -10,7 +10,7 @@ import { isSourceFile, srcDir, srcRelative, walkSource } from '../helpers/walk-s
 // the source level, where a regression (a context read quietly turning a
 // leaf back into a client component) produces no build error.
 //
-// Coverage comes from two mechanisms that never overlap:
+// The walk starts from three sets of static files:
 //
 //   - STATIC_COMPONENT_FILES below is the curated list of declared static
 //     *atoms* (text, table parts, inert display leaves). It's a
@@ -19,13 +19,15 @@ import { isSourceFile, srcDir, srcRelative, walkSource } from '../helpers/walk-s
 //     wrappers whose interactivity lives in their children, and those are
 //     not server-renderable leaves. Add a file when a component becomes a
 //     genuine static leaf; never remove one to silence this test.
-//   - Every `*-skeleton.{ts,tsx}` is scanned automatically. Skeleton
-//     variants are static by definition (CONVENTIONS §3.7), a closed set
-//     discoverable by filename, so the scan needs no list and can't drift as
-//     new skeletons land. Do not add skeleton files to the curated list:
-//     the scan already owns them.
-//   - Every source file under `structure` is scanned the same way. The
-//     folder holds only static layout units, so it needs no list either.
+//   - Each `*-skeleton.{ts,tsx}` file. A skeleton variant is static by
+//     definition (CONVENTIONS §3.7), and its file name finds it, so the set
+//     needs no list and does not drift as new skeletons land. Do not add a
+//     skeleton file to the curated list.
+//   - Each source file under `structure`. The folder holds only static layout
+//     units, so it needs no list either.
+//
+// Two sets can reach the same file, such as a skeleton that imports a curated
+// leaf. The walk checks each file once.
 //
 // A leaf is only as server-renderable as what it imports. So the gate walks
 // the runtime imports from each static file, and applies the same checks to
@@ -138,10 +140,9 @@ const CLIENT_POLYMORPHIC = /import \{[^}]*(?<!Static)\bPolymorphic\b(?!Static)[^
 const SKELETON_FILE = /-skeleton\.tsx?$/
 
 /**
- * Return one human-readable reason per way `content` breaches the static
- * contract, or an empty array when the file is server-renderable. Shared by
- * the curated-list check and the skeleton scan so both enforce the same
- * rules.
+ * One reason for each way that `content` breaks the static contract, or an
+ * empty array when the file is server-renderable. The gate applies it to each
+ * file that the walk reaches.
  */
 function staticBreaches(content: string): string[] {
 	const reasons: string[] = []

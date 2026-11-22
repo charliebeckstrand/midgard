@@ -53,7 +53,8 @@ export function runtimePathsTo(entry: string, isTarget: (file: string) => boolea
  * Each file that the runtime imports of `entries` reach, the entries included.
  * The walk follows the same imports as {@link runtimePathsTo}. A file that
  * `isBoundary` accepts is a boundary: the walk does not enter it, and the
- * result does not hold it.
+ * result does not hold it. An entry is never a boundary, so a check can read
+ * an entry that `isBoundary` would accept.
  *
  * @param entries - The absolute paths that the walk starts from.
  * @param isBoundary - Whether the walk stops at a file, given its path and its source.
