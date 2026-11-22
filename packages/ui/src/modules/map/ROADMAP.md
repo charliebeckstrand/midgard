@@ -50,7 +50,7 @@ The React contexts stay in `context.ts` at the module root, and the comparisons 
 
 1. **Places reaches into internal anchors (*P1*).** `places-map.tsx` selects `map-points`, `map-regions-recede`, and recipe fill classes from an app. A unit has one API (CONVENTIONS §3.12), and these selectors go around it. Features 1 and 2 give the API, and their pull requests remove the selectors. After that, a `data-slot=map-` selector in an app is drift, and a Biome plugin can find it in `apps`.
 
-The rest of the module holds to CONVENTIONS through the gates that the status names. The generators of the engine take the d3 noun form, which §8.5 permits. Many other function names do not start with a verb of §8.5. That drift is in each module of `ui`, and §Not planned gives the reason that this file does not take it.
+The rest of the module holds to CONVENTIONS through the gates that the status names. The function names follow §8.5. Most functions of the engine are queries, so each takes the name of its value.
 
 ## Performance
 
@@ -76,7 +76,7 @@ The rest of the module holds to CONVENTIONS through the gates that the status na
 
 - **`vector-effect="non-scaling-stroke"` under the zoom.** Under that attribute, a `pathLength` dash covers only `1 / k` of its path, so a zoomed route loses its far end. The divide by the zoom scale stays.
 
-- **A sweep that renames functions to the verbs of CONVENTIONS §8.5.** Most functions in `chart`, `grid`, and `map` do not use those verbs, and no gate holds the rule. A rename in one module is not clearly better. The decision belongs to the whole package.
+- **A sweep that renames functions to verbs.** CONVENTIONS §8.5 names a query for its value and gives a verb to a command only. A rename that only adds a verb is not clearer.
 
 ---
 

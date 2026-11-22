@@ -1,5 +1,5 @@
 import type { EventSource } from 'ui/events'
-import { all, bursts } from '../../modules/events/engine/events-sources/dom.ts'
+import { all, createBursts } from '../../modules/events/engine/events-sources/dom.ts'
 import { noop } from '../../utilities/noop.ts'
 import { listenComponentEvents } from './component-events.ts'
 
@@ -12,7 +12,7 @@ import { listenComponentEvents } from './component-events.ts'
  * calls of one callback of one component is one batch.
  */
 const components: EventSource = (note) => {
-	const { getBatch, stop } = bursts()
+	const { getBatch, stop } = createBursts()
 
 	const unlisten = listenComponentEvents(({ source, name, path, text, detail }) =>
 		note({ kind: source, name, text, detail, batch: getBatch(`${name} ${path}`) }),

@@ -49,10 +49,6 @@ No rule reads a clock or a random source. The shell mints each id and gives it t
 
 5. **An edit flow in the docs (*P2*).** `useChatSend` gives `edit`, but no docs example calls it. The Edit entry in [`with-context-menu.tsx`](../../docs/pages/modules/chat/with-context-menu.tsx) has no action. Add an example to the Conversation tab. Its action loads the text and the citations of the message into `useChatDraft` with `setValue`, and its submit calls `edit`. The example tells if the composer route is enough, or if the bubble needs an inline editor, as the edit composer of assistant-ui is. `ChatTranscript` renders its rows itself, so an inline editor needs a new prop, and the example decides that.
 
-## Pattern cleanup
-
-1. **Function names that do not start with a verb (*P3*).** [`CONVENTIONS.md`](../../../../../CONVENTIONS.md) §8.5 starts each function name with a verb. The engine and the shell have names that start with a noun, such as `chatBranches`, `draftContent`, `draftCitations`, `userContent`, `duplicateMessageIds`, `activeTrigger`, `historyStep`, `embedCount`, and `startingParts`. Rename the internal names, such as `getBranches` and `findActiveTrigger`. The public `chatContentText` stays, because its rename breaks an export for no gain to the caller. No gate reads the first word of a name, and a verb list for such a gate is the open question.
-
 ## Performance
 
 1. **The draft rules on each keystroke (*P3*).** Each change of the composer runs `rebaseCitations`, `recordDraft`, and `activeTrigger`, and an undo runs `stepDraft` over a history of up to `DRAFT_HISTORY_LIMIT` drafts. These rules are on the input path, so their cost counts toward INP. [`chat-compute.bench.ts`](../../__benchmarks__/chat-compute.bench.ts) measures none of them. Add cases for a long draft with many citations and a full history. Change a rule only when the bench shows a cost near a frame.

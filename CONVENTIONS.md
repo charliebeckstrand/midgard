@@ -224,32 +224,41 @@ Split a declaration that does more than one thing into named steps. A nested ter
 
 The [`no-abbreviated-binding`](.biome/plugins/no-abbreviated-binding.grit) Biome plugin holds the clipped forms (`e`, `err`, `idx`, `cb`, and the rest of its list). Where a name follows a series or a payload key that the code does not own, suppress the diagnostic and give the reason.
 
-8.5 A function name starts with a verb that tells what kind of work the function does:
+8.5 A function name tells what the function gives or what it does.
 
-- `get` reads or picks a value.
+A query gives a value and has no other effect. Give it the name of its value, as `Object.keys` and `Math.max` do: `chatBranches(tree)`, `embedCount(content)`, and `linearScale(options)`. The call then reads as the value. A variable and a data name are also nouns.
+
+A command has an effect, so its name starts with a verb. A command writes state, the DOM, or storage. It can also read an outside source, start a timer, or add a listener.
+
+A verb tells one kind of work:
+
+- `create` makes an object that keeps state, as a store or a registry does.
+- `get` reads a value by its key, as `Map.get` does.
 - `read` reads the DOM, a file, or raw input.
 - `measure` reads the geometry of an element.
-- `find` searches, and can find nothing.
-- `resolve` gets the value that applies from options and defaults.
-- `create` makes an object that keeps state, as a store or a registry does.
-- `build` makes a structure.
-- `format` makes text.
-- `parse` splits raw input.
-- `to` changes a value into a different form.
 - `describe` names a DOM node.
-- `is` and `has` give a boolean.
-- `same` compares two values, as `sameDay` does.
-- `in` tells if a node is inside a place, as `inGrid` does.
+- `find` searches, and can find nothing.
+- `resolve` selects the value that applies from options and defaults.
+- `parse` splits raw input.
+- `format` makes text.
+- `build` makes a structure.
+- `to` changes a value into a different form, as `toString` does.
+
+A query takes one of these verbs only when its noun does not tell that work.
+
+A function that gives a boolean starts with `is`, `has`, `same`, or `in`. `same` compares two values, as `sameDay` does. `in` tells if a node is inside a place, as `inGrid` does. Do not use these prefixes for a function that gives a different type.
+
+In one file, the functions that do the same kind of work take the same form. In the grid menu file, each function that gives menu items is a noun, as `sortMenuItems` and `columnMenuItems` are.
 
 A test fixture starts with `make`, as `makeQueryTree` does.
 
-A pure engine in the d3 style, as in `chart` and `map`, has one exemption. A generator of the engine takes the d3 noun form: the subject, and then the kind of result. Examples are `linearScale`, `barMarks`, `lineGeometry`, and `seatLayout`. A generator makes a scale, the marks, the geometry, or the layout from plain input, as a d3 generator does. Each other function of the engine starts with a verb, as `buildLineSeries` does beside `lineGeometry`.
+Do not add a verb to a clear query, and do not remove a verb only to make a noun.
 
 Do not write `isSameDay`, `isInGrid`, or `valuesEqual`. The [`no-alternate-predicate-binding`](.biome/plugins/no-alternate-predicate-binding.grit) Biome plugin finds these forms.
 
 A boolean value takes no `is` when its word is an adjective, as a prop does: `transposed`, `controlled`, `empty`. The bare word must be free in the scope. Keep `is` for a noun (`isArray`) and for a word that is taken (`isDisabled` beside the `disabled` prop, in `stepper-step.tsx`). Keep a name that a library gives (`isDragging`). Do not make up a weaker word only to drop `is`. Rename a name only when the new name is clearer.
 
-Do not end a name with `Of`, as `rowOf` does. That name does not tell if the function reads, searches, builds, or converts. A lookup table is not a function. Give it the name of its value and of its key, as `sectionByPath` does. A type also does not end with `Of`. A type does not get data, so it does not start with a verb. Give it the shortest noun for the type that it gives, as `Root` does.
+Do not end a name with `Of`, as `rowOf` does. A query takes the name of its value, so the preposition adds nothing, and a command names its work with a verb. A lookup table is not a function. Give it the name of its value and of its key, as `sectionByPath` does. A type also does not end with `Of`. A type does not get data, so it does not start with a verb. Give it the shortest noun for the type that it gives, as `Root` does.
 
 Use the shortest name that still tells what the function does (§8.4). A name does not repeat what its file tells, so the column sizer reads its environment with `readEnv`, not `readSizerEnv`. An export keeps a word only when an importer needs that word to tell the export from a different name, as `resolveStackMode` and `resolveStackAxis` do. The [`no-of-suffixed-binding`](.biome/plugins/no-of-suffixed-binding.grit) Biome plugin finds an `Of` suffix on a value or a type in the apps and the packages.
 

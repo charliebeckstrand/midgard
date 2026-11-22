@@ -56,7 +56,7 @@ function exportIcon(type: GridExportAction['type']): ReactElement {
  * renders the same rows from {@link useGridExportActions}. Every route to
  * export therefore reads the same.
  */
-export function gridExportMenuItems(exportActions: GridExportAction[]): GridMenuItem[] {
+export function exportMenuItems(exportActions: GridExportAction[]): GridMenuItem[] {
 	return exportActions.map((action) => ({
 		key: `export-${action.type}`,
 		label: action.label,
@@ -253,7 +253,7 @@ type ColumnMenuFilter = {
  *
  * @internal
  */
-export type ColumnMenuDefaultArgs<T> = {
+export type ColumnMenuArgs<T> = {
 	/** The intl of the reader, in whose language the items read. */
 	intl: IntlShape
 	column: GridColumn<T>
@@ -418,7 +418,7 @@ export function pinChoiceIcon(target: PinMenuChoice['target'], rtl = false): Rea
  * defaults carry no rule of their own; a host's builder places any it wants.
  * @internal
  */
-export function columnMenuDefaults<T>(args: ColumnMenuDefaultArgs<T>): GridMenuItem[] {
+export function columnMenuItems<T>(args: ColumnMenuArgs<T>): GridMenuItem[] {
 	const {
 		intl,
 		column,
@@ -475,7 +475,7 @@ export function columnMenuDefaults<T>(args: ColumnMenuDefaultArgs<T>): GridMenuI
 			key: 'export',
 			label: intl.formatMessage(gridMessages.export),
 			icon: <Download />,
-			items: gridExportMenuItems(exportActions),
+			items: exportMenuItems(exportActions),
 		}),
 	]
 }
@@ -531,7 +531,7 @@ export function fillItems(
  *
  * @internal
  */
-export function cellMenuDefaults(
+export function cellMenuItems(
 	intl: IntlShape,
 	copy: () => void,
 	exportActions: GridExportAction[],
@@ -544,7 +544,7 @@ export function cellMenuDefaults(
 			key: 'export',
 			label: intl.formatMessage(gridMessages.export),
 			icon: <Download />,
-			items: gridExportMenuItems(exportActions),
+			items: exportMenuItems(exportActions),
 		}),
 	]
 }
@@ -557,7 +557,7 @@ export function cellMenuDefaults(
  *
  * @internal
  */
-export function buildColumnGroupMenu(args: {
+export function columnGroupMenuItems(args: {
 	intl: IntlShape
 	group: GridColumnGroup
 	onClearColor: () => void
@@ -635,7 +635,7 @@ type GridRowGroupMenuArgs = {
  *
  * @internal
  */
-export function buildRowGroupMenu(args: GridRowGroupMenuArgs): GridMenuItem[] {
+export function rowGroupMenuItems(args: GridRowGroupMenuArgs): GridMenuItem[] {
 	return mergeContextMenuItems([
 		[{ key: 'manage-rows', label: args.manageLabel, icon: <ListTree />, onAction: args.onManage }],
 		[

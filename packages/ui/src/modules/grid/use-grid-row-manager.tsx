@@ -20,7 +20,7 @@ import {
 import type { GridMenuResolution } from './engine/grid-menu-targeting'
 import { gridMessages } from './engine/grid-messages'
 import { applyColumnReorder } from './engine/grid-reorder-compute'
-import { buildRowGroupMenu } from './grid-context-menu-utilities'
+import { rowGroupMenuItems } from './grid-context-menu-utilities'
 import type { GridGroupBy } from './grid-data-types'
 import type {
 	GridRowGroup,
@@ -252,7 +252,7 @@ export function useGridRowManagerRegion<T>({
 
 			const group = groupByKey.get(key)
 
-			const items = buildRowGroupMenu({
+			const items = rowGroupMenuItems({
 				intl,
 				expanded: group?.expanded ?? false,
 				color: color(key),

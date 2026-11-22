@@ -175,7 +175,7 @@ function declaredTiles(
  * component, is grouped. Each `DashboardTiles` and each tile in it then takes a
  * group of the slot when it mounts.
  */
-function inReadingOrder(children: ReactNode, order: readonly string[]): ReactNode[] {
+function orderedTiles(children: ReactNode, order: readonly string[]): ReactNode[] {
 	const items = flattenBoardChildren(children)
 
 	const slots = items.flatMap((child, index) =>
@@ -665,7 +665,7 @@ function DashboardCanvas({
 
 	const order = useSyncExternalStore(store.subscribe, readOrder, readOrder)
 
-	const tiles = useMemo(() => inReadingOrder(children, order), [children, order])
+	const tiles = useMemo(() => orderedTiles(children, order), [children, order])
 
 	return (
 		<section
