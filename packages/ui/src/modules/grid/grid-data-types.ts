@@ -1339,8 +1339,12 @@ export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'>
 	 *
 	 * A paste, a clear, a cut, or a fill is one save and one entry in the
 	 * history, through {@link GridEditableConfig.onCommit}. A fill copies the
-	 * values of its source cells. A source line of two or more numbers with a
-	 * constant step continues the step. {@link GridColumn.parse} reads each
+	 * values of its source cells. A source line of two or more values with a
+	 * constant step continues the step: numbers (`1, 2` gives `3`), dates as
+	 * `Date` values or `YYYY-MM-DD` strings by days or by months (`Jan 31,
+	 * Feb 28` gives `Mar 31`), and text that ends in a whole number (`Item 1,
+	 * Item 2` gives `Item 3`). A text series that would go below zero repeats.
+	 * {@link GridColumn.parse} reads each
 	 * pasted text, and {@link GridColumn.validate} checks each value. A refused
 	 * cell goes to {@link GridEditableConfig.onReject}. A paste, a clear, or a
 	 * fill skips a cell that cannot edit, a cell of a column with no `field`,

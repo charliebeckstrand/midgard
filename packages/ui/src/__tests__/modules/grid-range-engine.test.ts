@@ -350,9 +350,119 @@ describe('fillLine', () => {
 
 		expect(fillLine(['a', 'b'], 3)).toEqual(['a', 'b', 'a'])
 
+		// One date, or one text with a number, repeats as one number does.
+		expect(fillLine([new Date(2026, 2, 1)], 2)).toEqual([
+			new Date(2026, 2, 1),
+			new Date(2026, 2, 1),
+		])
+
+		expect(fillLine(['Item 1'], 2)).toEqual(['Item 1', 'Item 1'])
+
 		expect(fillLine([1, '2'], 2)).toEqual([1, '2'])
 
 		expect(fillLine([], 2)).toEqual([])
+	})
+})
+
+describe('fillLine dates', () => {
+	const day = (year: number, month: number, date: number) => new Date(year, month - 1, date)
+
+	it('continues a step of days, and a week as 7 days', () => {
+		expect(fillLine([day(2026, 3, 1), day(2026, 3, 2)], 2)).toEqual([
+			day(2026, 3, 3),
+			day(2026, 3, 4),
+		])
+
+		expect(fillLine([day(2026, 3, 1), day(2026, 3, 8)], 2)).toEqual([
+			day(2026, 3, 15),
+			day(2026, 3, 22),
+		])
+	})
+
+	it('continues a step of months on the same day, or the last day of a short month', () => {
+		expect(fillLine([day(2026, 1, 31), day(2026, 2, 28)], 3)).toEqual([
+			day(2026, 3, 31),
+			day(2026, 4, 30),
+			day(2026, 5, 31),
+		])
+
+		// Two dates a month apart step by months, not by the 31 days between them.
+		expect(fillLine([day(2026, 3, 1), day(2026, 4, 1)], 2)).toEqual([
+			day(2026, 5, 1),
+			day(2026, 6, 1),
+		])
+	})
+
+	it('continues a step of years as 12 months, from a leap day to Feb 28', () => {
+		expect(fillLine([day(2024, 2, 29), day(2025, 2, 28)], 3)).toEqual([
+			day(2026, 2, 28),
+			day(2027, 2, 28),
+			day(2028, 2, 29),
+		])
+
+		expect(fillLine([day(2024, 6, 30), day(2025, 6, 30)], 1)).toEqual([day(2026, 6, 30)])
+	})
+
+	it('steps back by days', () => {
+		expect(fillLine([day(2026, 3, 3), day(2026, 3, 1)], 2)).toEqual([
+			day(2026, 2, 27),
+			day(2026, 2, 25),
+		])
+	})
+
+	// A day step counts days of the calendar, not milliseconds, so a change of
+	// daylight saving time in the local zone moves no date.
+	it('keeps the time of day of a step of days', () => {
+		const at = (date: number) => new Date(2026, 2, date, 9, 30)
+
+		expect(fillLine([at(6), at(7)], 3)).toEqual([at(8), at(9), at(10)])
+	})
+
+	it('continues `YYYY-MM-DD` strings as strings', () => {
+		expect(fillLine(['2026-01-31', '2026-02-28'], 2)).toEqual(['2026-03-31', '2026-04-30'])
+
+		expect(fillLine(['2026-12-30', '2026-12-31'], 2)).toEqual(['2027-01-01', '2027-01-02'])
+	})
+
+	it('repeats a line of dates that is no series', () => {
+		const uneven = [day(2026, 3, 1), day(2026, 3, 2), day(2026, 3, 4)]
+
+		expect(fillLine(uneven, 1)).toEqual([day(2026, 3, 1)])
+
+		// The times of day differ, so the line has no step of whole days.
+		const times = [new Date(2026, 2, 1, 9), new Date(2026, 2, 2, 10)]
+
+		expect(fillLine(times, 1)).toEqual([times[0]])
+
+		expect(fillLine([day(2026, 3, 1), '2026-03-02'], 1)).toEqual([day(2026, 3, 1)])
+
+		expect(fillLine(['2026-02-30', '2026-03-01'], 1)).toEqual(['2026-02-30'])
+	})
+})
+
+describe('fillLine text with a number', () => {
+	it('continues the number at the end of the text', () => {
+		expect(fillLine(['Item 1', 'Item 2'], 2)).toEqual(['Item 3', 'Item 4'])
+
+		expect(fillLine(['Q01', 'Q03'], 3)).toEqual(['Q05', 'Q07', 'Q09'])
+
+		expect(fillLine(['Q09', 'Q10'], 1)).toEqual(['Q11'])
+
+		expect(fillLine(['Item 9', 'Item 10'], 1)).toEqual(['Item 11'])
+	})
+
+	it('steps back, and repeats a series that would go below zero', () => {
+		expect(fillLine(['Item 5', 'Item 4'], 2)).toEqual(['Item 3', 'Item 2'])
+
+		expect(fillLine(['Item 2', 'Item 1'], 2)).toEqual(['Item 2', 'Item 1'])
+	})
+
+	it('repeats text with no number at the end, or with other text before it', () => {
+		expect(fillLine(['Room 12B', 'Room 13B'], 1)).toEqual(['Room 12B'])
+
+		expect(fillLine(['Item 1', 'Task 2'], 1)).toEqual(['Item 1'])
+
+		expect(fillLine(['Item 1', 'Item 2', 'Item 4'], 1)).toEqual(['Item 1'])
 	})
 })
 

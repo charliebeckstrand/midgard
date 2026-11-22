@@ -1,11 +1,12 @@
 /**
  * The fill of a cell range: the values that a source line of cells gives to
- * the cells after it. A line of numbers with a constant step continues the
- * step, and each other line repeats.
+ * the cells after it. A line of numbers, of dates, or of text that ends in a
+ * number continues its step (see `series.ts`), and each other line repeats.
  */
 
 import { clamp } from '../../../../utilities/clamp'
 import type { GridRowDistance, GridRowStep } from './range'
+import { dateSeries, textSeries } from './series'
 
 /** The direction of a fill, from the source cells to the cells that it writes. @internal */
 export type GridFillDirection = 'down' | 'right' | 'up' | 'left'
@@ -55,15 +56,26 @@ function seriesStep(line: readonly unknown[]): number | null {
 
 /**
  * The next `count` values after a source line, in fill order. A line of two
- * or more numbers with a constant step continues the step (`1, 2` gives
- * `3, 4, 5`). Each other line repeats from its first value. @internal
+ * or more values with a constant step continues the step:
+ *
+ * - Numbers: `1, 2` gives `3, 4, 5`.
+ * - Dates, as `Date` values or `YYYY-MM-DD` strings, by days or by months:
+ *   `Jan 31, Feb 28` gives `Mar 31, Apr 30` ({@link dateSeries}).
+ * - Text that ends in a whole number: `Item 1, Item 2` gives `Item 3`
+ *   ({@link textSeries}).
+ *
+ * Each other line repeats from its first value. @internal
  */
 export function fillLine(line: readonly unknown[], count: number): unknown[] {
 	if (line.length === 0 || count <= 0) return []
 
 	const step = seriesStep(line)
 
-	if (step === null) return Array.from({ length: count }, (_, index) => line[index % line.length])
+	if (step === null) {
+		const repeat = () => Array.from({ length: count }, (_, index) => line[index % line.length])
+
+		return dateSeries(line, count) ?? textSeries(line, count) ?? repeat()
+	}
 
 	const numbers = line as readonly number[]
 
