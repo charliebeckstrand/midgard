@@ -87,6 +87,32 @@ describe('FormDrawer', () => {
 		expect(screen.getByText('The list is full.')).toBeTruthy()
 	})
 
+	// `Form` reads an empty issue as no issue, so a failure with no message
+	// would close the drawer as a success and lose the entry.
+	it('stays open with fixed words after a submit that fails with no message', async () => {
+		const onOpenChange = vi.fn()
+
+		render(
+			h(
+				FormDrawer<Values>,
+				props('a', {
+					onOpenChange,
+					onSubmit: async () => {
+						throw new Error()
+					},
+				}),
+			),
+		)
+
+		await act(async () => {
+			fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+		})
+
+		expect(onOpenChange).not.toHaveBeenCalled()
+
+		expect(screen.getByText('The write did not complete. Try again.')).toBeTruthy()
+	})
+
 	// A slow save of one record that lands after the reader opened another
 	// record does not close the form of the other record.
 	it('does not close the form of another record when an earlier submit succeeds', async () => {

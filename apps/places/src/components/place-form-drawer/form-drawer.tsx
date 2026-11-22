@@ -11,14 +11,18 @@ import { Text } from 'ui/text'
 /**
  * What the drawer says about a failed submit. A timed-out search for the typed
  * address gets its own words, because the platform's words for it name an
- * operation that the reader never started.
+ * operation that the reader never started. A failure with no message gets
+ * fixed words, because `Form` reads an empty issue as a success, and the
+ * drawer would close and lose the entry.
  */
 function failureMessage(error: unknown): string {
 	if (error instanceof DOMException && error.name === 'TimeoutError') {
 		return 'The address search did not answer. Try again.'
 	}
 
-	return error instanceof Error ? error.message : String(error)
+	const message = error instanceof Error ? error.message : String(error)
+
+	return message || 'The write did not complete. Try again.'
 }
 
 /** Props for {@link FormDrawer}. */
