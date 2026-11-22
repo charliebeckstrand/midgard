@@ -109,7 +109,7 @@ export type ChatPromptProps = {
 	 * A trigger counts at the start of the draft or after whitespace, and the
 	 * text from the trigger to the caret is the query. The picker sits over the
 	 * composer. ArrowUp and ArrowDown move the highlight, Enter or Tab chooses,
-	 * and Escape closes the picker for that trigger. The textarea keeps the
+	 * and Escape closes the picker until the next edit. The textarea keeps the
 	 * focus, and the options are its active descendant.
 	 *
 	 * Hoist the list out of the render, as a module constant or a `useMemo`.
