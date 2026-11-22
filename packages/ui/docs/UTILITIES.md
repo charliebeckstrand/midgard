@@ -125,7 +125,7 @@ Import these from `utilities/overlay-layers`. They tell whether an open overlay 
 | `registerEnteringOverlay` | Records that the backdrop of an overlay fades in; returns the call that ends the record. `Overlay` calls it from the commit of the open until the backdrop arrives or the overlay closes. |
 | `isUnderEnteringOverlay` | Whether the backdrop of an overlay that covers an element still fades in. `MapPlat` holds a change of its selection then. |
 | `EnteringOverlay` *(type)* | One fade: the node of the overlay and the container that it covers. |
-| `OverlayLayer` *(type)* | One layer: the node of the overlay, the container that it covers, and the regions that it leaves uncovered. |
+| `OverlayLayer` *(type)* | One layer: the node of the overlay and the container that it covers. |
 
 ## Events
 

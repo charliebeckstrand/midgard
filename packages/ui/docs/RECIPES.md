@@ -42,7 +42,7 @@ A group holds slots, axes, and defaults in the shape of a unit. A unit kata that
 | `control` | `textarea` |
 | `input` (extends `control`) | `input`, the `input` unit of `file-upload`. NumberInput renders an `Input`, so it gets the group through it. |
 | `trigger` (extends `control`) | The `list` and `picker` groups |
-| `list` (extends `trigger`) | `listbox`, `combobox` |
+| `list` (extends `trigger`) | `listbox`, `combobox`, `chat-prompt` |
 | `picker` (extends `trigger`) | `date-picker`, `color-picker` |
 | `check` | `checkbox`, `radio` |
 | `slider` | `slider`, `slider-range` |

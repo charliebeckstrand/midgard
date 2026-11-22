@@ -105,6 +105,7 @@ Hooks export the option and return shapes consumers thread through their own pro
 | `SetValue` | Argument to `useControllable`'s setter: a next value, `null`/`undefined` to clear, or a functional updater. |
 | `Responsive` | A single value or a per-breakpoint map, the type that `useResponsiveValue` takes. |
 | `RovingOptions` | Options for `useA11yRoving`. |
+| `VirtualItemSource` | An item source by index for `useA11yRoving`, so that the keys reach items outside a virtualized window. |
 | `ControllableOptions` | Options for `useControllable`: the controlled `value`, the uncontrolled `defaultValue`, and the change report. |
 | `ControllableFlagOptions` | Options for `useControllableFlag`: the controlled flag, the uncontrolled default (`false`), and the change report. |
 | `DeferredToggleOptions` | Options for `useDeferredToggle`. |

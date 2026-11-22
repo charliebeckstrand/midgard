@@ -106,7 +106,7 @@ The apps copy parts of the kit by hand in several places: a focus outline and th
 
 - Sorting, selection, and pagination in `Table`. `Table` is a static-tier component for a table that the server renders, and `Grid` is the interactive table.
 
-- A promise helper on `Toast`, as in Sonner. When a live id replaces its toast (the first feature), a call with the same id moves a loading toast to its result. A second API adds nothing.
+- A promise helper on `Toast`, as in Sonner. A live id replaces its toast, so a call with the same id moves a loading toast to its result. A second API adds nothing.
 
 - Raw HTML in `Markdown`. The renderer drops each `html` token, because a chat transcript renders text that the reader does not control.
 
