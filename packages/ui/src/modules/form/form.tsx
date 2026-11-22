@@ -22,19 +22,21 @@ const messages = defineMessages({
 	},
 })
 
-/** Props for {@link Form}. Generic over the form-value record `T`; field keys and types flow from `defaultValues`. */
+/** Props for {@link Form}. `T` is the record of the form values, and `defaultValues` gives its keys and types. */
 export type FormProps<T extends Record<string, unknown>> = {
 	/**
-	 * Seed values and field schema; keys and types define the form. Single source
-	 * of truth for bound controls' initial state: a bound control's
-	 * `defaultValue`/`defaultChecked` is ignored (CONVENTIONS §7.2).
+	 * The first values of the form. Their keys and types define the fields. They
+	 * are the one source of the first state of a bound control. The form thus
+	 * ignores the `defaultValue` or `defaultChecked` of a bound control
+	 * (CONVENTIONS §7.2).
 	 */
 	defaultValues: T
 	/**
-	 * Controlled re-sync source. Reference change → `values` replaced and the
-	 * dirty baseline shifts; `touched`, `errors`, and `submitting` stay put.
-	 * Passing `undefined` re-syncs to `defaultValues` under the same contract.
-	 * Pass a stable reference; a new derived object each render loops the sync.
+	 * The controlled values of the form. When the reference changes, the form
+	 * replaces its values and moves the baseline that it compares to find a
+	 * dirty field. The `touched`, `errors`, and `submitting` state does not
+	 * change. `undefined` syncs the form to `defaultValues` by the same rule.
+	 * Give a stable reference: a new object on each render syncs again and again.
 	 */
 	values?: T
 	/** Per-field validators; compose one from a schema via {@link zodResolver}. */

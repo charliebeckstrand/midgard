@@ -6,7 +6,12 @@ import type { ResponsiveAlign, ResponsiveDirection } from '../../../structure/fl
 import { formFiltersAxis } from '../engine/form-filters-axis'
 import type { FormFiltersLayout } from '../engine/types'
 
-/** Shared state a `FormFilters` bar exposes to its fields. It holds the current value record, a per-field setter, a clear action, the count of active (non-empty) fields, whether a clear would change the value, and the bar's layout. */
+/**
+ * The state that a `FormFilters` bar gives to its fields: the current value
+ * record, a setter for each field, and a clear action. It also holds the count
+ * of the active (non-empty) fields, whether a clear would change the value, and
+ * the layout of the bar.
+ */
 export type FormFiltersContextValue = {
 	value: Record<string, unknown>
 	setValue: (name: string, fieldValue: unknown) => void

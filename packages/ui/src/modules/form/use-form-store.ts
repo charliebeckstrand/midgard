@@ -5,13 +5,13 @@ import type { FormStateValue, FormStore } from '../../primitives/form/context'
 import { createFormStore } from './engine/form-store'
 
 /**
- * Bridges the reducer-owned form state to an external-store interface; fields
- * subscribe to their own slice via `useSyncExternalStore`.
+ * Gives the form state of the reducer as an external store. Each field
+ * subscribes to its own part of the state through `useSyncExternalStore`.
  *
- * The reducer stays the source of truth; this mirrors each committed
- * `formState` into the store in a layout effect (before paint) and notifies
- * subscribers. Fields whose slice is unchanged bail on the next snapshot;
- * typing in one field re-renders only that field.
+ * The reducer stays the source of the state. A layout effect copies each
+ * committed `formState` into the store before paint, and tells the
+ * subscribers. A field whose part did not change does not render again, so a
+ * keystroke in one field renders only that field.
  *
  * @returns A referentially stable `FormStore` (`subscribe` / `getState` /
  * `getServerState`) that `FormProvider` puts in context.

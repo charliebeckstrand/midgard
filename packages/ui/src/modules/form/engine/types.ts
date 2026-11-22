@@ -37,10 +37,13 @@ export type FormState<T> = {
 }
 
 /**
- * Discriminated action set for the form reducer. An action writes a value,
- * marks a field touched, merges external errors, re-syncs controlled values
- * and the defaults with them, resets to new defaults or to the held ones, or
- * commits a full-field submit validation.
+ * The actions of the form reducer, told apart by their `type`. An action can:
+ *
+ * - write a value or mark a field touched.
+ * - merge external errors.
+ * - sync the controlled values and their defaults.
+ * - reset the form to new defaults or to the held ones.
+ * - commit the validation of all the fields for a submit.
  *
  * @internal
  */
@@ -100,9 +103,9 @@ export type FormHelpers<T> = {
 	 * @remarks
 	 * From the handler of the current attempt, the reset keeps that attempt live:
 	 * `submitting` stays `true` until the handler settles, and `onSettled` gets
-	 * its outcome. From the handler of an attempt that a newer submit or an
-	 * outside reset superseded, it supersedes the current submit, as `reset`
-	 * from the form actions does.
+	 * its outcome. A newer submit or an outside reset can supersede an attempt.
+	 * From the handler of such an attempt, the reset supersedes the current
+	 * submit, as `reset` from the form actions does.
 	 */
 	reset: (nextDefaults?: T) => void
 }

@@ -65,8 +65,6 @@ The engine reads `hasIssues` from the binding contract, because a control and th
 
    Give the bar, the row, and the field the `ComponentProps<'div'>` base, and compose the scroll ref of the row with the consumer ref (§3.9). Clear renders a `Button` or clones its child, so it takes the base of a button only on the fallback arm. [`props-base-boundary.test.ts`](../../__tests__/boundary/props-base-boundary.test.ts) misses these parts, because its checker counts only a lowercase JSX tag. A change to the checker that follows a component tag is a separate item.
 
-2. **TSDoc in STE (*P2*).** Some TSDoc of the module is in the older voice, which [`CLAUDE.md`](../../../../../CLAUDE.md) §2.5 does not allow. Examples are the arrow in `FormProps.values` and the noun clusters in `FormProps.defaultValues` (`form.tsx`). Also see `useFormStore` (`use-form-store.ts`), `zodResolver` (`engine/form-zod-resolver.ts`), and the root TSDoc of `FormFilters` (`form-filters/form-filters.tsx`). Rewrite each block in STE and keep its facts. `pnpm --filter ui ste:report` lists the long sentences, and review holds the rest, because no gate reads articles or noun clusters.
-
 ## Performance
 
 1. **Keystroke bench (*P2*).** No bench measures the form. Under `validateOn: 'touched'`, each keystroke runs the validator of each touched field and gives a new error map, even when no issue changes. Each keystroke also derives the dirty flag of each field again by a deep compare. So `FormErrorSummary` and each reader of `useFormErrors` render again on each keystroke.
