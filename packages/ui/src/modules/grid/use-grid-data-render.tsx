@@ -14,6 +14,7 @@ import { isRtl } from '../../hooks/a11y/logical-arrow'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import type { TextDirection } from '../../primitives/direction/context'
+import { useLocale } from '../../providers/locale/context'
 import { GridGroupByContext, GridSettleContext, GridUnselectableContext } from './context'
 import { FIRST_ROW_ESTIMATE } from './engine/grid-constants'
 import { gridWrapperClass } from './engine/grid-data/classes'
@@ -21,6 +22,7 @@ import { hasErrorSlot } from './engine/grid-data/guards'
 import { DEFAULT_EXPORTABLE } from './engine/grid-export/registry'
 import { manualGroupPredicate } from './engine/grid-group/resolve'
 import { applyRowKeyOrder } from './engine/grid-group/row-manager'
+import { manualSegmentOpen, shownManualSegments } from './engine/grid-group/segments'
 import { getGroupKey } from './engine/grid-items/items'
 import { resolveReorder } from './engine/grid-reorder-compute'
 import { composeCellDoubleClick } from './engine/grid-row/bridges'
@@ -386,23 +388,6 @@ export function useGridDataRender<T>(
 
 	const exportedRows = useCallback(() => rowsForExport(groupOrder), [rowsForExport, groupOrder])
 
-	// The keys of the leaves that the grouped body shows, in its order: the
-	// order of the row manager applied, and the leaves of a closed group left
-	// out. A span of the selection runs over them. With no groups, the span runs
-	// over the rows of the engine, which are the rows that the body shows.
-	const shownLeafKeys = useMemo(
-		() =>
-			groups &&
-			applyRowKeyOrder(groups, groupOrder ?? undefined, getGroupKey).flatMap((group) =>
-				group.expanded ? group.leaves.map((leaf) => leaf.key) : [],
-			),
-		[groups, groupOrder],
-	)
-
-	const toggleShownRow = useStableEvent((key: string | number, span?: boolean) =>
-		toggleRow(key, span, shownLeafKeys ?? undefined),
-	)
-
 	const exportActions = useGridExport<T>({
 		exportable,
 		columns: visibleColumns,
@@ -559,6 +544,41 @@ export function useGridDataRender<T>(
 		sort,
 		animateSort: sortConfig?.animate ?? false,
 	})
+
+	// The keys of the leaves that the grouped body shows, in its order. With
+	// client groups, the order of the row manager applies, and the leaves of a
+	// closed group are left out. With manual groups, the segments of the manual
+	// body give the order, and the leaves of a closed group are left out. A span
+	// of the selection runs over them. With no groups, the span runs over the
+	// rows of the engine, which are the rows that the body shows.
+	// The manual body collates the sort of its groups in this locale (see `GridBody`).
+	const { locale } = useLocale()
+
+	const shownLeafKeys = useMemo(() => {
+		if (manualRows && manualGroupBody) {
+			return shownManualSegments(
+				manualRows,
+				manualGroupBody.groupRow,
+				manualGroupSort,
+				locale,
+			).flatMap((segment) =>
+				manualSegmentOpen(segment, manualGroupBody.expanded)
+					? segment.leaves.map((leaf) => leaf.key)
+					: [],
+			)
+		}
+
+		return (
+			groups &&
+			applyRowKeyOrder(groups, groupOrder ?? undefined, getGroupKey).flatMap((group) =>
+				group.expanded ? group.leaves.map((leaf) => leaf.key) : [],
+			)
+		)
+	}, [manualRows, manualGroupBody, manualGroupSort, locale, groups, groupOrder])
+
+	const toggleShownRow = useStableEvent((key: string | number, span?: boolean) =>
+		toggleRow(key, span, shownLeafKeys ?? undefined),
+	)
 
 	// The cursor speaks the row numbers of a range from this offset.
 	useGridRowIndexOffsetSync(indexRefs.rowIndexOffsetRef, rowIndexOffset)
