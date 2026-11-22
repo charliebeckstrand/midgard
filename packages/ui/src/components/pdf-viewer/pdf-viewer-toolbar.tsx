@@ -10,6 +10,7 @@ import {
 } from '../../primitives/icons/icons'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/pdf-viewer'
+import { ButtonIconTooltip } from '../button/button-icon-tooltip'
 import { SheetTrigger } from '../sheet'
 import { Toolbar, ToolbarGroup, ToolbarSeparator } from '../toolbar'
 import { usePdfViewerContext } from './context'
@@ -18,7 +19,6 @@ import { PdfViewerMagnifierSettings } from './pdf-viewer-magnifier-settings'
 import { pdfViewerMessages } from './pdf-viewer-messages'
 import { PdfViewerPageNavigation } from './pdf-viewer-page-navigation'
 import { PdfViewerSearch } from './pdf-viewer-search'
-import { PdfViewerToolbarButton } from './pdf-viewer-toolbar-button'
 import { PdfViewerZoomControls } from './pdf-viewer-zoom-controls'
 
 /**
@@ -82,7 +82,7 @@ export function PdfViewerToolbar() {
 	// server renders the pinned layout at each width, so the CSS picks the glyph of the open
 	// rail. The rail sits at the inline start, so the glyph mirrors in RTL.
 	const thumbnailsToggle = (
-		<PdfViewerToolbarButton
+		<ButtonIconTooltip
 			label={intl.formatMessage(
 				railed && sidebarOpen ? pdfViewerMessages.hideThumbnails : pdfViewerMessages.showThumbnails,
 			)}
@@ -133,7 +133,7 @@ export function PdfViewerToolbar() {
 					<PdfViewerSearch disabled={controlsDisabled} />
 					<PdfViewerZoomControls zoom={zoom} disabled={controlsDisabled} />
 					<ToolbarGroup aria-label={intl.formatMessage(pdfViewerMessages.view)}>
-						<PdfViewerToolbarButton
+						<ButtonIconTooltip
 							label={intl.formatMessage(pdfViewerMessages.rotate)}
 							icon={<RotateCw />}
 							disabled={controlsDisabled}
@@ -142,7 +142,7 @@ export function PdfViewerToolbar() {
 						{/* Only offered when there is something to hide. `active` carries the two-state
 					    treatment and the argument for it. */}
 						{hasHighlights && (
-							<PdfViewerToolbarButton
+							<ButtonIconTooltip
 								label={highlightsToggleLabel}
 								icon={<Highlighter />}
 								active={highlightsVisible}
@@ -157,7 +157,7 @@ export function PdfViewerToolbar() {
 					    `'config'` mode the press opens the dialog, and the switch it took the place
 					    of is in there. */}
 						{magnifierMode === 'simple' && (
-							<PdfViewerToolbarButton
+							<ButtonIconTooltip
 								label={magnifierToggleLabel}
 								icon={<ScanSearch />}
 								active={magnifierOn}
