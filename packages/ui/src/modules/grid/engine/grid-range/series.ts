@@ -170,15 +170,19 @@ const TRAILING_NUMBER = /^(.*?)(\d{1,15})$/s
  * or more, such as `Item 1, Item 2`. Each value has the same text before the
  * number, and the numbers have a constant step. A source number with a leading
  * zero, such as `Q01`, keeps the width of the widest source number. `null` for
- * a line that is no such series, and for a series that would go below zero.
+ * a line that is no such series, for a series that would go below zero, and
+ * for a value in the shape of `YYYY-MM-DD`, which is a date (see
+ * {@link dateSeries}).
  *
  * @internal
  */
 export function textSeries(line: readonly unknown[], count: number): unknown[] | null {
 	if (line.length < 2) return null
 
+	// A value in the shape of a date is a date, also when it is not a valid
+	// day, so `2026-02-28, 2026-02-29` repeats and does not count on to `-30`.
 	const parts = line.map((value) =>
-		typeof value === 'string' ? TRAILING_NUMBER.exec(value) : null,
+		typeof value === 'string' && !ISO_DAY.test(value) ? TRAILING_NUMBER.exec(value) : null,
 	)
 
 	const prefix = parts[0]?.[1]

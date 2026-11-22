@@ -437,6 +437,11 @@ describe('fillLine dates', () => {
 		expect(fillLine([day(2026, 3, 1), '2026-03-02'], 1)).toEqual([day(2026, 3, 1)])
 
 		expect(fillLine(['2026-02-30', '2026-03-01'], 1)).toEqual(['2026-02-30'])
+
+		// An invalid day in one month is a date, not text that ends in a number.
+		expect(fillLine(['2026-02-28', '2026-02-29'], 2)).toEqual(['2026-02-28', '2026-02-29'])
+
+		expect(fillLine(['2026-04-29', '2026-04-31'], 1)).toEqual(['2026-04-29'])
 	})
 })
 
