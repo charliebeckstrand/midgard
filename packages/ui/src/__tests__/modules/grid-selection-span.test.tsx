@@ -1,5 +1,10 @@
 import { describe, expect, it, vi } from 'vitest'
-import { Grid, type GridColumn } from '../../modules/grid'
+import {
+	Grid,
+	type GridColumn,
+	type GridGroupHeaderRow,
+	type GridSortState,
+} from '../../modules/grid'
 import { fireEvent, renderUI, screen } from '../helpers'
 
 type Row = { id: number; name: string; locked?: boolean }
@@ -127,5 +132,80 @@ describe('Grid selection span and rowSelectable', () => {
 		const [last] = (onValueChange.mock.lastCall ?? [new Set()]) as [Set<number>]
 
 		expect([...last].sort()).toEqual([1, 3, 4])
+	})
+})
+
+/**
+ * Under manual grouping, the span runs over the leaves that the manual body
+ * shows, in its order: the leaves of a closed group are left out, and a sort on
+ * the grouped column moves the group blocks.
+ */
+describe('Grid selection span with manual groups', () => {
+	type Sale = { id: string; region: string; rep?: string; group?: { key: string; count: number } }
+
+	const groupRow = (row: Sale): GridGroupHeaderRow | null =>
+		row.group ? { key: row.group.key, value: row.region, count: row.group.count } : null
+
+	const sales: Sale[] = [
+		{ id: 'g:west', region: 'West', group: { key: 'west', count: 2 } },
+		{ id: 'w1', region: 'West', rep: 'Wade' },
+		{ id: 'w2', region: 'West', rep: 'Tanya' },
+		{ id: 'g:east', region: 'East', group: { key: 'east', count: 2 } },
+		{ id: 'e1', region: 'East', rep: 'Devon' },
+		{ id: 'e2', region: 'East', rep: 'Arlene' },
+		{ id: 'g:north', region: 'North', group: { key: 'north', count: 1 } },
+		{ id: 'n1', region: 'North', rep: 'Nia' },
+	]
+
+	const saleColumns: GridColumn<Sale>[] = [
+		{ id: 'select', selectable: true },
+		{ id: 'region', title: 'Region', cell: (row) => row.region, value: (row) => row.region },
+		{ id: 'rep', title: 'Rep', cell: (row) => row.rep ?? '', value: (row) => row.rep ?? '' },
+	]
+
+	function renderManual(expanded: string[], sort: GridSortState[] = []) {
+		const onValueChange = vi.fn()
+
+		renderUI(
+			<Grid
+				columns={saleColumns}
+				rows={sales}
+				getKey={(row) => row.id}
+				rowLabel={(row) => row.rep ?? row.region}
+				groupBy={{ manual: true, value: 'region', groupRow, expanded: new Set(expanded) }}
+				sort={{ defaultValue: sort }}
+				selection={{ onValueChange }}
+			/>,
+		)
+
+		const box = (name: string) => screen.getByRole('checkbox', { name: `Select ${name}` })
+
+		const selected = () => [...((onValueChange.mock.lastCall?.[0] as Set<string>) ?? [])].sort()
+
+		return { box, selected }
+	}
+
+	it('leaves out the leaves of a closed group', () => {
+		const { box, selected } = renderManual(['west', 'north'])
+
+		fireEvent.click(box('Wade'))
+
+		fireEvent.click(box('Nia'), { shiftKey: true })
+
+		expect(selected()).toEqual(['n1', 'w1', 'w2'])
+	})
+
+	it('runs over the order of a sort on the grouped column', () => {
+		// The sort shows East, North, and then West.
+		const { box, selected } = renderManual(
+			['west', 'east', 'north'],
+			[{ column: 'region', direction: 'asc' }],
+		)
+
+		fireEvent.click(box('Nia'))
+
+		fireEvent.click(box('Wade'), { shiftKey: true })
+
+		expect(selected()).toEqual(['n1', 'w1'])
 	})
 })
