@@ -1,7 +1,17 @@
 import { spawnSync } from 'node:child_process'
-import { mkdirSync, mkdtempSync, readdirSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
+import {
+	cpSync,
+	existsSync,
+	mkdirSync,
+	mkdtempSync,
+	readdirSync,
+	readFileSync,
+	realpathSync,
+	rmSync,
+	writeFileSync,
+} from 'node:fs'
 import { tmpdir } from 'node:os'
-import { join, relative } from 'node:path'
+import { dirname, join, relative } from 'node:path'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { workspaceRoot } from '../helpers/walk-source'
 
@@ -13,8 +23,15 @@ import { workspaceRoot } from '../helpers/walk-source'
 //
 // The fixtures go to a temporary directory, so the lint and the type-check of
 // the repository never read them. A generated config applies each plugin to its
-// own fixture directory alone. The `includes` of a plugin in `biome.json` stay
-// out of reach here, so this gate proves the pattern, not the scope.
+// own fixture directory alone, so the first suite proves the pattern.
+//
+// The second suite proves the scope: the `includes` of each plugin in
+// `biome.json`. A plugin with a wrong glob never runs, and nothing else fails.
+// A temporary root holds a copy of `biome.json` and `.biome`. For each plugin,
+// it puts the first fixture at a path in the scope and at a path out of it, and
+// lints the root with the real config. The message of a diagnostic names its
+// plugin. The path in the scope must exist in the repository, so a probe cannot
+// follow a mistyped glob.
 //
 // A fixture line that ends in `// flag` must carry a diagnostic of its plugin.
 // Every other line must carry none. For a file-level rule, the flagged line is
@@ -439,6 +456,93 @@ export const i = <Button variant="plain"><Icon icon={<X />} /><Badge /></Button>
 	],
 }
 
+/**
+ * For each plugin, a directory in its scope and a path out of it. A probe goes
+ * in a directory of its own under a directory, and a path that ends in `.ts` or
+ * `.tsx` is the probe itself, such as a file that the scope leaves out.
+ */
+const SCOPE: Record<string, { in: string; out: string }> = {
+	'no-abbreviated-binding': { in: 'packages/ui/src/hooks', out: 'patches' },
+	'no-alternate-predicate-binding': { in: 'apps/places/src', out: 'patches' },
+	'no-api-above-browser-floor': { in: 'apps/places/src', out: 'apps/places/src/server' },
+	'no-camel-case-data-slot': { in: 'packages/ui/src/components', out: 'packages/shared/src' },
+	'no-camel-case-fixed-constant': { in: 'packages/ui/src/hooks', out: 'packages/ui/src/recipes' },
+	'no-client-directive-in-route-file': { in: 'apps/places/app', out: 'apps/places/src' },
+	'no-client-gateway-access': { in: 'apps/places/src', out: 'apps/places/src/server' },
+	'no-faint-text-color': { in: 'apps/places/src', out: 'packages/ui/src/components' },
+	'no-formatjs-import-outside-intl': {
+		in: 'packages/ui/src/components',
+		out: 'packages/ui/src/primitives/intl',
+	},
+	'no-full-motion-component': {
+		in: 'packages/ui/src/components',
+		out: 'packages/ui/src/primitives/reduced-motion/reduced-motion-elements.ts',
+	},
+	'no-hand-composed-handler': { in: 'packages/shared/src', out: 'apps/places/src' },
+	'no-hand-written-bool-attr': { in: 'packages/ui/src/components', out: 'apps/places/src' },
+	'no-hand-written-clamp': {
+		in: 'packages/ui/src/hooks',
+		out: 'packages/ui/src/utilities/clamp.ts',
+	},
+	'no-hand-written-fold': { in: 'apps/places/src', out: 'packages/ui/src/utilities/fold-text.ts' },
+	'no-inline-spacing-calc': { in: 'packages/ui/src/recipes', out: 'packages/ui/src/hooks' },
+	'no-key-after-spread': { in: 'apps/places/src', out: 'patches' },
+	'no-motion-reduced-motion-hook': {
+		in: 'packages/ui/src/hooks',
+		out: 'packages/ui/src/__tests__',
+	},
+	'no-of-suffixed-binding': { in: 'packages/shared/src', out: 'patches' },
+	'no-physical-side': { in: 'packages/ui/src/docs', out: 'packages/ui/src/utilities' },
+	'no-react-create-context': {
+		in: 'packages/ui/src/primitives',
+		out: 'packages/ui/src/core/create-context.ts',
+	},
+	'no-renamed-spacing-utility': { in: 'packages/ui/src/layouts', out: 'packages/ui/src/hooks' },
+	'no-respelled-orientation': { in: 'packages/ui/src/utilities', out: 'packages/ui/src/recipes' },
+	'no-stateless-toggle-icon-button': { in: 'apps/places/src', out: 'packages/ui/src/components' },
+	'no-use-prefixed-type-name': {
+		in: 'packages/ui/src/providers',
+		out: 'packages/ui/src/utilities',
+	},
+	'no-value-import-from-sibling-kata': {
+		in: 'packages/ui/src/recipes/kata',
+		out: 'packages/ui/src/recipes/kiso',
+	},
+	'no-value-import-from-tanstack-table': {
+		in: 'packages/ui/src/modules/grid',
+		out: 'packages/ui/src/modules/grid/engine',
+	},
+	'no-whole-floating-context-dep': {
+		in: 'packages/ui/src/components',
+		out: 'packages/ui/src/__benchmarks__',
+	},
+	'require-bare-icon-button': { in: 'apps/places/src', out: 'apps/numbers/src' },
+	'require-client-directive-in-hooks': {
+		in: 'packages/ui/src/hooks',
+		out: 'packages/ui/src/hooks/index.ts',
+	},
+}
+
+/** The path of a probe of `plugin` at `place`, for its fixture `file`. */
+function probePath(plugin: string, place: string, file: string): string {
+	return /\.tsx?$/.test(place) ? place : join(place, `zz-scope-${plugin}`, file)
+}
+
+/** The plugin of each diagnostic message, from the `register_diagnostic` calls of each plugin. */
+function messageOwners(): Map<string, string> {
+	const owners = new Map<string, string>()
+
+	for (const plugin of pluginNames()) {
+		const source = readFileSync(join(pluginDir, `${plugin}.grit`), 'utf8')
+
+		for (const match of source.matchAll(/message = "((?:[^"\\]|\\.)*)"/g)) {
+			owners.set((match[1] ?? '').replace(/\\(.)/g, '$1'), plugin)
+		}
+	}
+
+	return owners
+}
+
 /** The plugins on disk, by name. */
 function pluginNames(): string[] {
 	return readdirSync(pluginDir)
@@ -448,7 +552,7 @@ function pluginNames(): string[] {
 }
 
 /** One `::error title=…,file=…,line=…` row of the `github` reporter. */
-const ROW = /^::\w+ title=([^,]+),file=([^,]+),line=(\d+),/
+const ROW = /^::\w+ title=([^,]+),file=([^,]+),line=(\d+),.*?::(.*)$/
 
 describe('biome plugin boundary', () => {
 	let workspace = ''
@@ -528,5 +632,102 @@ describe('biome plugin boundary', () => {
 
 		expect(other, 'a diagnostic that no plugin reported').toEqual([])
 		expect(flagged).toEqual(expected)
+	})
+})
+
+describe('biome plugin scope', () => {
+	let root = ''
+
+	/** The diagnostics of each plugin, as `<plugin> <file>:<line>`. */
+	const found: string[] = []
+
+	beforeAll(() => {
+		root = realpathSync(mkdtempSync(join(tmpdir(), 'biome-scope-')))
+
+		cpSync(join(workspaceRoot, '.biome'), join(root, '.biome'), { recursive: true })
+
+		const config = JSON.parse(readFileSync(join(workspaceRoot, 'biome.json'), 'utf8'))
+
+		// The root is not a repository, so Biome reads no ignore file.
+		writeFileSync(join(root, 'biome.json'), JSON.stringify({ ...config, vcs: { enabled: false } }))
+
+		for (const [plugin, scope] of Object.entries(SCOPE)) {
+			const fixture = FIXTURES[plugin]?.[0]
+
+			if (!fixture) continue
+
+			for (const place of [scope.in, scope.out]) {
+				const path = join(root, probePath(plugin, place, fixture.file))
+
+				mkdirSync(dirname(path), { recursive: true })
+
+				writeFileSync(path, fixture.source)
+			}
+		}
+
+		const run = spawnSync(
+			process.execPath,
+			[biome, 'lint', '--reporter=github', '--max-diagnostics=none', '.'],
+			{ cwd: root, encoding: 'utf8' },
+		)
+
+		const owners = messageOwners()
+
+		for (const line of `${run.stdout}\n${run.stderr}`.split('\n')) {
+			const row = ROW.exec(line)
+
+			const plugin = row?.[1] === 'plugin' ? owners.get(row[4] ?? '') : undefined
+
+			if (row && plugin) found.push(`${plugin} ${relative(root, row[2] ?? '')}:${row[3]}`)
+		}
+	})
+
+	afterAll(() => {
+		if (root) rmSync(root, { recursive: true, force: true })
+	})
+
+	it('names a scope for every plugin on disk, at paths that exist', () => {
+		expect(Object.keys(SCOPE).sort(), 'give each plugin an entry in SCOPE').toEqual(pluginNames())
+
+		const missing = Object.values(SCOPE)
+			.flatMap((scope) => [scope.in, scope.out])
+			.filter((place) => !existsSync(join(workspaceRoot, place)))
+
+		expect(missing, 'a scope path that the repository does not hold').toEqual([])
+	})
+
+	it('runs each plugin in its scope, and not out of it', () => {
+		const expected = Object.entries(SCOPE)
+			.flatMap(([plugin, scope]) => {
+				const fixture = FIXTURES[plugin]?.[0]
+
+				if (!fixture) return []
+
+				return fixture.source
+					.split('\n')
+					.flatMap((line, index) =>
+						FLAG.test(line)
+							? [`${plugin} ${probePath(plugin, scope.in, fixture.file)}:${index + 1}`]
+							: [],
+					)
+			})
+			.sort()
+
+		// A probe can trip a second plugin whose scope also holds it. Only the
+		// diagnostics of a plugin on its own probes count.
+		const own = found.filter((entry) => {
+			const [plugin = '', place = ''] = entry.split(' ')
+
+			const scope = SCOPE[plugin]
+
+			const file = FIXTURES[plugin]?.[0]?.file ?? ''
+
+			return (
+				scope !== undefined &&
+				[scope.in, scope.out].some((at) => place.startsWith(`${probePath(plugin, at, file)}:`))
+			)
+		})
+
+		expect(own.sort()).toEqual(expected)
 	})
 })
