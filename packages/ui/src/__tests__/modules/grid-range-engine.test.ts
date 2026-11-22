@@ -462,6 +462,11 @@ describe('fillLine dates', () => {
 		expect(fillLine(['2026-02-28', '2026-02-29'], 2)).toEqual(['2026-02-28', '2026-02-29'])
 
 		expect(fillLine(['2026-04-29', '2026-04-31'], 1)).toEqual(['2026-04-29'])
+
+		// Month 00 is no month, so it does not read as December of the year before.
+		expect(fillLine(['2026-00-01', '2026-00-02'], 1)).toEqual(['2026-00-01'])
+
+		expect(fillLine(['2026-00-15', '2026-01-15'], 1)).toEqual(['2026-00-15'])
 	})
 })
 
