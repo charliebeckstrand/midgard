@@ -5,7 +5,7 @@ import { Alert } from 'ui/alert'
 import { Button } from 'ui/button'
 import { useConfirm } from 'ui/confirm'
 import { cn } from 'ui/core'
-import { Form, type SubmitResult } from 'ui/form'
+import { Form, FormError, type SubmitResult } from 'ui/form'
 import { Sheet, SheetBody, SheetFooter, SheetHeader, SheetPanel, SheetTitle } from 'ui/sheet'
 import { Columns } from 'ui/structure/columns'
 import { Flex } from 'ui/structure/flex'
@@ -77,15 +77,15 @@ function linelessCopy(count: number): { title: string; body: string } {
 }
 
 /**
- * The fields of a prediction: a note on the points, the error of the last
- * save, and a {@link PickField} for each game, over the buttons of the sheet.
+ * The fields of a prediction: a note on the points, the issue of the whole
+ * form, such as a refused save, and a {@link PickField} for each game, over
+ * the buttons of the sheet.
  */
 function PredictionForm({
 	games,
 	picks,
 	editing,
 	action,
-	failure,
 	onSubmit,
 	onCancel,
 }: {
@@ -94,7 +94,6 @@ function PredictionForm({
 	editing: boolean
 	/** The label of the button that saves. */
 	action: string
-	failure: string | null
 	onSubmit: (values: PickValues) => Promise<SubmitResult<PickValues> | undefined>
 	onCancel: () => void
 }) {
@@ -111,11 +110,7 @@ function PredictionForm({
 						for each 3 points, or part of 3, that it gets.
 					</Text>
 
-					{failure === null ? null : (
-						<Alert severity="error">
-							<Text>{failure}</Text>
-						</Alert>
-					)}
+					<FormError />
 
 					{/* One grid for all the games, so their sides line up. A week with a game that is off adds a column for its badge. */}
 					<Columns gap="md" className={cn(games.some(isOff) && 'grid-cols-[1fr_auto]')}>
@@ -156,8 +151,6 @@ export function PredictionSheet({
 }: PredictionSheetProps) {
 	const open = week !== null
 
-	const [failure, setFailure] = useState<string | null>(null)
-
 	const confirm = useConfirm()
 
 	// The week the sheet last opened on, and whether it had a prediction then. A
@@ -171,11 +164,7 @@ export function PredictionSheet({
 	if (week !== prevWeek) {
 		setPrevWeek(week)
 
-		if (week !== null) {
-			setHeld({ week, editing: picks[week.number] !== undefined })
-
-			setFailure(null)
-		}
+		if (week !== null) setHeld({ week, editing: picks[week.number] !== undefined })
 	}
 
 	const shown = held?.week ?? null
@@ -190,20 +179,20 @@ export function PredictionSheet({
 
 	const games = useWeekGames(season, shown?.number ?? null, open)
 
-	const save = async (values: PickValues) => {
-		if (shown === null) return
-
-		setFailure(null)
+	// Saves the picks and closes the sheet. Gives the message of a refused save
+	// as the issue of the whole form, or nothing after a success.
+	const save = async (values: PickValues): Promise<SubmitResult<PickValues> | undefined> => {
+		if (shown === null) return undefined
 
 		try {
 			await onSubmit(shown.number, toPicks(values))
 		} catch (error) {
-			setFailure(error instanceof Error ? error.message : String(error))
-
-			return
+			return { formError: error instanceof Error ? error.message : String(error) }
 		}
 
 		onOpenChange(false)
+
+		return undefined
 	}
 
 	const submit = async (values: PickValues): Promise<SubmitResult<PickValues> | undefined> => {
@@ -216,20 +205,12 @@ export function PredictionSheet({
 		const fieldErrors = missingPicks(openGames, values)
 
 		if (fieldErrors !== null) {
-			setFailure('Pick a side in every game that has not kicked off.')
-
-			return { fieldErrors }
+			return { fieldErrors, formError: 'Pick a side in every game that has not kicked off.' }
 		}
-
-		setFailure(null)
 
 		const count = linelessPicks(openGames, values, stored)
 
-		if (count === 0) {
-			await save(values)
-
-			return undefined
-		}
+		if (count === 0) return save(values)
 
 		const copy = linelessCopy(count)
 
@@ -240,9 +221,7 @@ export function PredictionSheet({
 			cancel: { label: 'Keep editing' },
 		})
 
-		if (confirmed) await save(values)
-
-		return undefined
+		return confirmed ? save(values) : undefined
 	}
 
 	return (
@@ -271,7 +250,6 @@ export function PredictionSheet({
 						picks={stored}
 						editing={editing}
 						action={action}
-						failure={failure}
 						onSubmit={submit}
 						onCancel={() => onOpenChange(false)}
 					/>
