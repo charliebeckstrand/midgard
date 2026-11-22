@@ -1007,10 +1007,6 @@
 		"defaultMessage": "Search commands",
 		"description": "Text of a demo in the docs, in components/command-palette/keyboard-shortcut.tsx."
 	},
-	"docs.demo.01059eb32cda": {
-		"defaultMessage": "Range:",
-		"description": "Text of a demo in the docs, in modules/grid/events/cell-range.tsx."
-	},
 	"docs.demo.013b174b7690": {
 		"defaultMessage": "Monthly recurring revenue",
 		"description": "Text of a demo in the docs, in components/stat/with-delta-and-description.tsx."
@@ -4597,7 +4593,7 @@
 	},
 	"docs.demo.c6c094bc0054": {
 		"defaultMessage": "Empty",
-		"description": "Text of a demo in the docs, in components/address-input/business-search.tsx, components/address-input/coordinates.tsx, components/calendar/controlled.tsx and 18 more."
+		"description": "Text of a demo in the docs, in components/address-input/business-search.tsx, components/address-input/coordinates.tsx, components/calendar/controlled.tsx and 19 more."
 	},
 	"docs.demo.c71eb1e3f64d": {
 		"defaultMessage": "\n# Release notes\n\nVersion 2.4 adds **search in attachments**. Run `app update` to get it, or\nread the _full list_ of [changes](https://example.com).\n\n## Changes\n\n- Search finds the text in attachments\n- Shared folders show who changed each file\n  - The list shows the last ten changes\n- The dark theme follows the setting of your system\n\n'>' Back up your files before you update.\n\n```ts\nexport function isLatest(version: string) '{'\n\treturn version === ''2.4''\n'}'\n```\n",
@@ -4989,7 +4985,7 @@
 	},
 	"docs.demo.dc937b598926": {
 		"defaultMessage": "None",
-		"description": "Text of a demo in the docs, in components/command-palette/with-actions.tsx, components/context-menu/with-actions.tsx, components/hold-button/lifecycle-callbacks.tsx and 8 more."
+		"description": "Text of a demo in the docs, in components/command-palette/with-actions.tsx, components/context-menu/with-actions.tsx, components/hold-button/lifecycle-callbacks.tsx and 7 more."
 	},
 	"docs.demo.dcbbc656768e": {
 		"defaultMessage": "Accept agreement",

@@ -13,13 +13,21 @@ const block: GridRangeState = {
 	focus: { rowKey: people[2]?.id ?? 0, columnId: 'role' },
 }
 
-/** A cell of the range as the reader sees it: the column, then the person. */
+// A cell of the range by its column and the person of its row, as the sibling
+// demos name a cell.
 function describeCell({ rowKey, columnId }: GridCellRef): string {
 	const column = columns.find((col) => col.id === columnId)?.title ?? String(columnId)
 
 	const person = people.find((row) => row.id === rowKey)?.name ?? String(rowKey)
 
-	return `${String(column)} of ${person}`
+	return `${String(column)}, ${person}`
+}
+
+// The value of the range, from its anchor to its focus.
+function RangeStatus({ range }: { range: GridRangeState | null }) {
+	if (!range) return 'Empty'
+
+	return `Value: ${describeCell(range.anchor)} to ${describeCell(range.focus)}`
 }
 
 export default function CellRange() {
@@ -51,7 +59,7 @@ export default function CellRange() {
 				getKey={(row) => row.id}
 			/>
 			<Text>
-				Range: {range ? `${describeCell(range.anchor)} to ${describeCell(range.focus)}` : 'None'}
+				<RangeStatus range={range} />
 			</Text>
 		</Stack>
 	)
