@@ -393,6 +393,23 @@ describe('Grid range clear and cut', () => {
 		])
 	})
 
+	it('saves nothing on a second clear of an emptied cell, and keeps its kind', () => {
+		const view = renderPasteGrid()
+
+		fireEvent.mouseDown(view.cell(0, 1))
+
+		fireEvent.keyDown(view.grid, { key: 'Delete' })
+
+		expect(view.onCommit).toHaveBeenCalledExactlyOnceWith([
+			{ rowKey: 1, columnId: 'count', value: undefined },
+		])
+
+		fireEvent.keyDown(view.grid, { key: 'Delete' })
+
+		// The empty number cell does not take `''`, so no change saves.
+		expect(view.onCommit).toHaveBeenCalledOnce()
+	})
+
 	it('leaves Delete with a modifier to the browser', () => {
 		const view = renderPasteGrid()
 
