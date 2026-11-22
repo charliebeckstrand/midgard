@@ -7491,6 +7491,22 @@
 		"defaultMessage": "Zoom controls",
 		"description": "The label of a field of a playground in the docs. The field sets the prop zoomControls of MapPlat."
 	},
+	"docs.prop.zoomControls.bottom": {
+		"defaultMessage": "Bottom",
+		"description": "An option of the Zoom controls field of a playground in the docs. It sets the prop zoomControls to 'bottom' on MapPlat."
+	},
+	"docs.prop.zoomControls.left": {
+		"defaultMessage": "Left",
+		"description": "An option of the Zoom controls field of a playground in the docs. It sets the prop zoomControls to 'left' on MapPlat."
+	},
+	"docs.prop.zoomControls.right": {
+		"defaultMessage": "Right",
+		"description": "An option of the Zoom controls field of a playground in the docs. It sets the prop zoomControls to 'right' on MapPlat."
+	},
+	"docs.prop.zoomControls.top": {
+		"defaultMessage": "Top",
+		"description": "An option of the Zoom controls field of a playground in the docs. It sets the prop zoomControls to 'top' on MapPlat."
+	},
 	"docs.search.button": {
 		"defaultMessage": "Search",
 		"description": "The label of the button at the top of the sidebar that opens the search of the docs."
