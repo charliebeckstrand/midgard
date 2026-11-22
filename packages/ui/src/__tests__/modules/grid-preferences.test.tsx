@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest'
-import { Grid, type GridColumn } from '../../modules/grid'
+import { describe, expect, it, vi } from 'vitest'
+import { Grid, type GridColumn, type GridPreferences } from '../../modules/grid'
 import { fireEvent, renderUI, screen } from '../helpers'
 
 /**
@@ -40,6 +40,122 @@ describe('Grid preferences', () => {
 
 		fireEvent.click(screen.getByRole('menuitem', { name: 'Auto-size' }))
 	}
+
+	/** Opens the column manager and saves a preset, and returns the snapshot. */
+	const savePreset = (onSavePreset: ReturnType<typeof vi.fn>) => {
+		fireEvent.click(screen.getByRole('button', { name: 'Save as preset' }))
+
+		return onSavePreset.mock.lastCall?.[0] as GridPreferences
+	}
+
+	it('saves the widths and the pins in a preset, beside the order and the hidden ids', () => {
+		const onSavePreset = vi.fn()
+
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				resizable
+				preferences={{ columnSizing: { name: 240 }, pinning: { team: 'left' }, hidden: ['role'] }}
+				columnManager={{ defaultOpen: true, onSavePreset }}
+			/>,
+		)
+
+		expect(savePreset(onSavePreset)).toEqual({
+			order: ['name', 'role', 'team'],
+			hidden: ['role'],
+			columnSizing: { name: 240 },
+			pinning: { team: 'left' },
+		})
+	})
+
+	it('saves a pin that the reader set at run time', () => {
+		const onSavePreset = vi.fn()
+
+		renderUI(
+			<Grid columns={columns} rows={rows} getKey={getKey} columnManager={{ onSavePreset }} />,
+		)
+
+		const header = screen
+			.getAllByRole('columnheader')
+			.find((th) => th.textContent?.includes('Role'))
+
+		if (!header) throw new Error('no Role header')
+
+		fireEvent.contextMenu(header)
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Pin' }))
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Pin right' }))
+
+		fireEvent.contextMenu(header)
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Manage columns' }))
+
+		expect(savePreset(onSavePreset).pinning).toEqual({ role: 'right' })
+	})
+
+	it('saves a width that the reader set at run time, and the column it set', () => {
+		const onSavePreset = vi.fn()
+
+		const onValueChange = vi.fn()
+
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				resizable
+				columnSizing={{ onValueChange }}
+				columnManager={{ toolbar: true, onSavePreset }}
+			/>,
+		)
+
+		const separator = screen.getByRole('separator', { name: 'Resize Name' })
+
+		separator.focus()
+
+		fireEvent.keyDown(separator, { key: 'ArrowRight' })
+
+		fireEvent.click(screen.getByRole('button', { name: 'Manage columns' }))
+
+		// The preset holds what the grid reported, as a bound consumer holds it.
+		expect(savePreset(onSavePreset).columnSizing).toEqual(onValueChange.mock.lastCall?.[0])
+
+		expect(onValueChange.mock.lastCall?.[0]).toHaveProperty('name')
+	})
+
+	it('restores the layout of a saved preset through preferences', () => {
+		const onSavePreset = vi.fn()
+
+		const { unmount } = renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				resizable
+				preferences={{ columnSizing: { name: 240 }, pinning: { team: 'left' } }}
+				columnManager={{ defaultOpen: true, onSavePreset }}
+			/>,
+		)
+
+		const preset = savePreset(onSavePreset)
+
+		unmount()
+
+		const { container } = renderUI(
+			<Grid columns={columns} rows={rows} getKey={getKey} resizable preferences={preset} />,
+		)
+
+		const widths = Array.from(container.querySelectorAll('colgroup col')).map(
+			(col) => (col as HTMLElement).style.width,
+		)
+
+		expect(widths).toContain('240px')
+
+		expect(container.querySelector('th[data-grid-col="team"]')?.className).toContain('sticky')
+	})
 
 	it('applies the order from preferences', () => {
 		renderUI(

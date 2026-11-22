@@ -593,7 +593,13 @@ export type GridColumnManagerConfig = GridToolSurfaces & {
 	/** Fires when the open state of the manager dialog changes. */
 	onOpenChange?: (open: boolean) => void
 
-	/** Fires when the user runs the "save preset" action, with the current order and hidden ids as a {@link GridPreferences} snapshot that seeds `preferences` back. */
+	/**
+	 * Fires when the user runs the "save preset" action, with the whole column
+	 * layout as a {@link GridPreferences} snapshot that seeds `preferences` back:
+	 * the order, the hidden ids, the widths, and the runtime pins. The widths are
+	 * the ones the grid reports through {@link GridColumnSizing.onValueChange},
+	 * or the controlled `columnSizing.value`. An automatic fit is not in them.
+	 */
 	onSavePreset?: (preset: GridPreferences) => void
 }
 

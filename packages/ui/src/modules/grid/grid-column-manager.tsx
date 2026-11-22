@@ -114,8 +114,9 @@ export type GridColumnManagerProps = {
 
 	/**
 	 * Fires when the user presses the save-preset button, with the current order
-	 * and hidden ids as a {@link GridPreferences} snapshot. Presence of the handler
-	 * also shows the button.
+	 * and hidden ids as a {@link GridPreferences} snapshot. The grid adds the
+	 * widths and the runtime pins before the snapshot reaches the consumer.
+	 * Presence of the handler also shows the button.
 	 */
 	onSavePreset?: (preset: GridPreferences) => void
 }

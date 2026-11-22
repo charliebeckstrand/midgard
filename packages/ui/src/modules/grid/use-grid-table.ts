@@ -253,6 +253,12 @@ type GridTableResult<T> = {
 	rowsForExport: (groupOrder?: (string | number)[] | null) => T[]
 	/** How many selected rows the filtered set does not hold (see `hiddenSelectionCount`). */
 	hiddenSelected: number
+	/**
+	 * The width preference now: the consumer's state under a controlled
+	 * `columnSizing`, else the last widths that the grid reported. A copy of the
+	 * automatic layout is not in it. The snapshot of a saved preset reads it.
+	 */
+	readSizingPreference: () => GridColumnSizingState
 }
 
 /**
@@ -488,6 +494,34 @@ function useFilterView<T>(args: {
 }
 
 /**
+ * The width preference of a grid: the widths that it reported through
+ * `columnSizing.onValueChange`, or the seed. That is what a consumer that binds
+ * the callback holds. A copy of the automatic layout writes the sizing state
+ * but reports nothing, so it is not in the preference. `report` passes the
+ * widths on to the binding, `clear` reports no widths, and `read` gives the
+ * consumer's state under a controlled binding, else the last report.
+ *
+ * @internal
+ */
+function useSizingPreference(config: GridColumnSizing | undefined) {
+	const preferredRef = useRef<GridColumnSizingState>(
+		config?.value ?? config?.defaultValue ?? EMPTY_SIZING,
+	)
+
+	const report = useStableEvent((next: GridColumnSizingState) => {
+		preferredRef.current = next
+
+		config?.onValueChange?.(next)
+	})
+
+	const clear = useStableEvent(() => report({}))
+
+	const read = useStableEvent((): GridColumnSizingState => config?.value ?? preferredRef.current)
+
+	return { report, clear, read }
+}
+
+/**
  * Builds the {@link https://tanstack.com/table | TanStack Table} instance that
  * holds the column state of a {@link Grid}, and the row views of the grid. It
  * adapts the grid's `GridColumn[]` to TanStack `ColumnDef[]`.
@@ -583,13 +617,15 @@ export function useGridTable<T>({
 	// (a drag, a keyboard nudge, a controlled write), not the internal auto-fit.
 	const autoSizingRef = useRef(false)
 
+	const sizingPreference = useSizingPreference(columnSizingConfig)
+
 	const [columnSizingState, setColumnSizingState] = useControllable<GridColumnSizingState>({
 		value: columnSizingConfig?.value,
 		defaultValue: columnSizingConfig?.defaultValue ?? EMPTY_SIZING,
 		onValueChange: (next) => {
 			if (autoSizingRef.current) return
 
-			columnSizingConfig?.onValueChange?.(next ?? {})
+			sizingPreference.report(next ?? {})
 		},
 	})
 
@@ -610,7 +646,7 @@ export function useGridTable<T>({
 
 	// The consumer's binding, read at call time, so "Reset column widths" can clear
 	// the saved widths with one callback for the mount.
-	const clearSizingPreference = useStableEvent(() => columnSizingConfig?.onValueChange?.({}))
+	const clearSizingPreference = sizingPreference.clear
 
 	// The consumer-seeded widths (a restored/persisted sizing), captured once so the
 	// autosizer can hold them on reload rather than measuring over them.
@@ -1000,5 +1036,6 @@ export function useGridTable<T>({
 		grandTotalRows,
 		rowsForExport,
 		hiddenSelected,
+		readSizingPreference: sizingPreference.read,
 	}
 }
