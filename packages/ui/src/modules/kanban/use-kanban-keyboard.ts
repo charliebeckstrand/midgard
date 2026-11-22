@@ -198,9 +198,11 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 			cardName: names.card(cardId),
 			up: stepInColumn(board, cardId, -1) !== null,
 			down: stepInColumn(board, cardId, 1) !== null,
-			columns: board.columns
-				.filter((_, index) => index !== from?.columnIndex)
-				.map((column) => ({ id: column.id, name: names.column(column.id) })),
+			columns: board.columns.flatMap((column, index) =>
+				index === from?.columnIndex
+					? []
+					: [{ id: column.id, name: names.column(column.id), position: index + 1 }],
+			),
 		}
 	})
 

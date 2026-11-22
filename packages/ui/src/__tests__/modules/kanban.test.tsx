@@ -997,8 +997,17 @@ describe('Kanban in a locale', () => {
 })
 
 describe('KanbanCardMenu', () => {
-	function MenuBoard({ onReorder }: { onReorder?: (next: Column[]) => void } = {}) {
-		const [cols, setCols] = useState(keyboardColumns)
+	function MenuBoard({
+		onReorder,
+		columns = keyboardColumns,
+		named = true,
+	}: {
+		onReorder?: (next: Column[]) => void
+		columns?: Column[]
+		/** Whether each column takes an `aria-label`. */
+		named?: boolean
+	} = {}) {
+		const [cols, setCols] = useState(columns)
 
 		return (
 			<Kanban
@@ -1015,7 +1024,11 @@ describe('KanbanCardMenu', () => {
 				}
 			>
 				{cols.map((column) => (
-					<KanbanColumn key={column.id} value={column.id} aria-label={column.title}>
+					<KanbanColumn
+						key={column.id}
+						value={column.id}
+						aria-label={named ? column.title : undefined}
+					>
 						<KanbanColumnBody empty="Empty">
 							{column.items.map((item) => (
 								<KanbanCard key={item.id} value={item.id}>
@@ -1095,5 +1108,52 @@ describe('KanbanCardMenu', () => {
 		const { container } = renderUI(<MenuBoard />)
 
 		expect(bySlot(container, 'kanban-card-menu')).toBeNull()
+	})
+
+	it('names a column with no name by its position', async () => {
+		const { container } = renderUI(<MenuBoard onReorder={vi.fn()} named={false} />)
+
+		await openMenu(container, 'a')
+
+		expect(screen.getByRole('menuitem', { name: 'Move to “Column 2”' })).toBeInTheDocument()
+	})
+
+	it('shows one disabled item for a card with no place to move to', async () => {
+		const first = present(keyboardColumns[0], 'first column')
+
+		const only = present(first.items[0], 'first card')
+
+		const { container } = renderUI(
+			<MenuBoard onReorder={vi.fn()} columns={[{ ...first, items: [only] }]} />,
+		)
+
+		await openMenu(container, only.id)
+
+		const items = screen.getAllByRole('menuitem')
+
+		expect(items.map((item) => item.textContent)).toEqual(['No move'])
+
+		expect(items[0]).toHaveAttribute('aria-disabled', 'true')
+	})
+
+	it('keeps an inert copy of the button outside a card, as the drag overlay needs', () => {
+		const { container } = renderUI(
+			<Kanban
+				columns={keyboardColumns}
+				getKey={(item: Item) => item.id}
+				aria-label="Board"
+				onReorder={vi.fn()}
+			>
+				<KanbanCardMenu />
+			</Kanban>,
+		)
+
+		const copy = present(bySlot(container, 'kanban-card-menu'), 'copy of the menu button')
+
+		expect(copy).toHaveAttribute('aria-hidden', 'true')
+
+		expect(copy).toHaveAttribute('inert')
+
+		expect(copy).toHaveAttribute('tabindex', '-1')
 	})
 })

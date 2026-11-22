@@ -1395,6 +1395,10 @@
 		"defaultMessage": "JSON",
 		"description": "The accessible name of a tree that shows a JSON value, when no key names its root."
 	},
+	"ui.kanban.column": {
+		"defaultMessage": "Column {position, number}",
+		"description": "The name of a Kanban column that has no name of its own, in the move menu of a card, such as \"Column 2\"."
+	},
 	"ui.kanban.drag": {
 		"defaultMessage": "Drag",
 		"description": "The first word of the name of the drag handle of a Kanban card. The name of the card follows it."
@@ -1414,6 +1418,10 @@
 	"ui.kanban.moveUp": {
 		"defaultMessage": "Move up",
 		"description": "The menu item that moves a Kanban card one place up in its column."
+	},
+	"ui.kanban.noMove": {
+		"defaultMessage": "No move",
+		"description": "The disabled item of the move menu of a Kanban card when the card has no place to move to."
 	},
 	"ui.lightbox.next": {
 		"defaultMessage": "Next photo",

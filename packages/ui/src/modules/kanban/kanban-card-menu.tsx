@@ -16,6 +16,8 @@ type KanbanMenuValues = {
 	moveUp: Record<never, never>
 	moveDown: Record<never, never>
 	moveTo: { column: string }
+	column: { position: number }
+	noMove: Record<never, never>
 }
 
 const messages: MessageSet<KanbanMenuValues> = defineMessages<KanbanMenuValues>({
@@ -39,6 +41,18 @@ const messages: MessageSet<KanbanMenuValues> = defineMessages<KanbanMenuValues>(
 		id: 'ui.kanban.moveTo',
 		defaultMessage: 'Move to “{column}”',
 		description: 'The menu item that moves a Kanban card to the end of another column.',
+	},
+	column: {
+		id: 'ui.kanban.column',
+		defaultMessage: 'Column {position, number}',
+		description:
+			'The name of a Kanban column that has no name of its own, in the move menu of a card, such as "Column 2".',
+	},
+	noMove: {
+		id: 'ui.kanban.noMove',
+		defaultMessage: 'No move',
+		description:
+			'The disabled item of the move menu of a Kanban card when the card has no place to move to.',
 	},
 })
 
@@ -64,7 +78,9 @@ export type KanbanCardMenuProps = Omit<ComponentProps<'button'>, 'type' | 'color
  * Client component. Put it in a card, beside the {@link KanbanCardHandle}. A
  * move from the menu goes through `onReorder`, and the live region announces it
  * as a keyboard step does. The focus then goes to the handle of the card. On a
- * board that cannot reorder, the menu renders nothing.
+ * board that cannot reorder, the menu renders nothing. A column with no name
+ * takes its position in the menu, such as "Column 2". A card with no place to
+ * move to shows one disabled "No move" item.
  */
 export function KanbanCardMenu({
 	'aria-label': ariaLabel,
@@ -86,9 +102,35 @@ export function KanbanCardMenu({
 	// so a closed menu renders no item.
 	const [moves, setMoves] = useState<KanbanCardMoves | null>(null)
 
-	if (!card || !interactive) return null
+	const content = children ?? <Icon icon={<EllipsisVertical />} size="sm" />
+
+	// The drag overlay has no card context. It copies the button with no menu, so
+	// the clone keeps the box of the card.
+	if (!card) {
+		return (
+			<Button
+				variant="bare"
+				{...props}
+				type="button"
+				data-slot="kanban-card-menu"
+				aria-hidden="true"
+				tabIndex={-1}
+				inert
+				className={className}
+			>
+				{content}
+			</Button>
+		)
+	}
+
+	if (!interactive) return null
 
 	const { cardId, itemId } = card
+
+	const columnLabel = (column: KanbanCardMoves['columns'][number]) =>
+		column.name || intl.formatMessage(messages.column, { position: column.position })
+
+	const none = moves !== null && !moves.up && !moves.down && moves.columns.length === 0
 
 	const handleOpenChange = (open: boolean) => setMoves(open ? cardMoves(cardId) : null)
 
@@ -113,10 +155,15 @@ export function KanbanCardMenu({
 							{intl.formatMessage(messages.move)}
 						</span>
 					)}
-					{children ?? <Icon icon={<EllipsisVertical />} size="sm" />}
+					{content}
 				</Button>
 			</MenuTrigger>
 			<MenuContent>
+				{none && (
+					<MenuItem disabled>
+						<MenuLabel>{intl.formatMessage(messages.noMove)}</MenuLabel>
+					</MenuItem>
+				)}
 				{moves?.up && (
 					<MenuItem onAction={() => moveCard(cardId, { direction: -1 }, moves.cardName)}>
 						<MenuLabel>{intl.formatMessage(messages.moveUp)}</MenuLabel>
@@ -132,7 +179,9 @@ export function KanbanCardMenu({
 						key={column.id}
 						onAction={() => moveCard(cardId, { columnId: column.id }, moves.cardName)}
 					>
-						<MenuLabel>{intl.formatMessage(messages.moveTo, { column: column.name })}</MenuLabel>
+						<MenuLabel>
+							{intl.formatMessage(messages.moveTo, { column: columnLabel(column) })}
+						</MenuLabel>
 					</MenuItem>
 				))}
 			</MenuContent>

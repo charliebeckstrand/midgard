@@ -59,8 +59,12 @@ export type KanbanCardMoves = {
 	up: boolean
 	/** Whether the card can move one slot down in its column. */
 	down: boolean
-	/** Each other column, with its accessible name, in the order of the board. */
-	columns: { id: string; name: string }[]
+	/**
+	 * Each other column, in the order of the board, with its accessible name and
+	 * its 1-based position on the board. The name is `''` for a column with no
+	 * name, and the menu then names it by its position.
+	 */
+	columns: { id: string; name: string; position: number }[]
 }
 
 /** The target of a move from the "Move to" menu: one slot in the column, or the end of another column. @internal */
