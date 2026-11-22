@@ -1237,6 +1237,8 @@ export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'>
 	 *   the next one clears the cursor.
 	 * - Ctrl/Cmd+C on the grid writes the range as TSV, or the active cell with no
 	 *   range. A cell reads as export reads it, with the export's formula guard.
+	 *   The copy also writes the cells as an HTML table, so a paste into a
+	 *   document or a mail keeps the table. A paste into the grid reads the TSV.
 	 * - Ctrl/Cmd+V on the grid writes the clipboard's TSV into the range, under
 	 *   `editable.session: 'managed'`. One field goes into each cell of the
 	 *   range. A block goes side by side into a range that is a whole multiple

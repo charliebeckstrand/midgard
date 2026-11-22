@@ -8,6 +8,7 @@ import {
 	handleFill,
 	rangeFillSource,
 } from '../../modules/grid/engine/grid-range/fill'
+import { toHtmlTable } from '../../modules/grid/engine/grid-range/html'
 import { coercePaste, pastePlacement } from '../../modules/grid/engine/grid-range/paste'
 import {
 	edgeScrollStep,
@@ -472,5 +473,30 @@ describe('filledCorners', () => {
 			from: { row: 2, col: 1 },
 			to: { row: 3, col: 2 },
 		})
+	})
+})
+
+describe('toHtmlTable', () => {
+	it('writes one row for each row of the block, with no header row', () => {
+		expect(
+			toHtmlTable([
+				['a', 'b'],
+				['c', 'd'],
+			]),
+		).toBe(
+			'<table><tbody><tr><td>a</td><td>b</td></tr><tr><td>c</td><td>d</td></tr></tbody></table>',
+		)
+	})
+
+	it('escapes the markup, and guards a formula as the TSV does', () => {
+		expect(toHtmlTable([['<b>&</b>', '=SUM(A1)', "'=1"]])).toBe(
+			"<table><tbody><tr><td>&lt;b&gt;&amp;&lt;/b&gt;</td><td>'=SUM(A1)</td><td>''=1</td></tr></tbody></table>",
+		)
+	})
+
+	it('writes a line break in a cell as a <br>', () => {
+		expect(toHtmlTable([['one\ntwo\r\nthree']])).toBe(
+			'<table><tbody><tr><td>one<br>two<br>three</td></tr></tbody></table>',
+		)
 	})
 })

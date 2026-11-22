@@ -20,14 +20,23 @@ function takesGuard(value: string): boolean {
 }
 
 /**
+ * One cell of a copy with the formula guard: a text that a spreadsheet can run
+ * as a formula gets the export guard (see `neutralizeFormula`), and so does
+ * such a text after an apostrophe, so that {@link unguardField} gives back the
+ * same text. The TSV and the HTML table of a copy both write it. @internal
+ */
+export function guardField(value: string): string {
+	return takesGuard(value) ? `'${value}` : value
+}
+
+/**
  * One cell as a TSV field. A field that holds a tab, a line break, or a double
  * quote goes in double quotes, with each quote doubled, as a spreadsheet
- * writes it. A field that a spreadsheet can run as a formula gets the export
- * guard first (see `neutralizeFormula`), and so does such a field after an
- * apostrophe, so that {@link unguardField} gives back the same text. @internal
+ * writes it. The field takes the formula guard first ({@link guardField}).
+ * @internal
  */
 export function tsvField(value: string): string {
-	const guarded = takesGuard(value) ? `'${value}` : value
+	const guarded = guardField(value)
 
 	return NEEDS_QUOTES.test(guarded) ? `"${guarded.replaceAll('"', '""')}"` : guarded
 }
