@@ -226,7 +226,14 @@ describe('dot hit target by pointer modality', () => {
 			// Two stops 0.16° apart: merged at rest in a 400px frame, and separated by
 			// the 8× ceiling. Marks merge by a device-pixel distance, so a pair that has
 			// just parted always sits about 14px apart: however far in the view sits.
-			<MapPlat aria-label="Test map" geography={FIXTURE_GEOJSON} width={400} zoom>
+			// The zoom buttons are off, so no gutter takes a share of the 400px.
+			<MapPlat
+				aria-label="Test map"
+				geography={FIXTURE_GEOJSON}
+				width={400}
+				zoom
+				zoomControls={false}
+			>
 				<MapPoints label="Stops" points={[{ at: [15, 5] }, { at: [15.16, 5] }]} />
 			</MapPlat>,
 		)

@@ -9,6 +9,7 @@ import { k } from '../../recipes/kata/map'
 import { MAP_ZOOM_FIT } from './engine/map-constants'
 import { zoomKeyFactor } from './engine/map-zoom/gesture'
 import { MAP_FIT_TRANSFORM, sameTransform } from './engine/map-zoom/transform'
+import type { MapZoomControlsPlacement } from './engine/types'
 import { describeZoom, mapMessages } from './map-messages'
 import type { MapZoom } from './use-map-zoom'
 
@@ -24,7 +25,14 @@ import type { MapZoom } from './use-map-zoom'
  *
  * @internal
  */
-export function MapZoomControls({ zoom }: { zoom: MapZoom }) {
+export function MapZoomControls({
+	zoom,
+	placement,
+}: {
+	zoom: MapZoom
+	/** The side of the plot the group sits on: a row above or below, a stack beside. */
+	placement: MapZoomControlsPlacement
+}) {
 	const intl = useIntl()
 
 	const { transform, max, cursor } = zoom
@@ -45,7 +53,10 @@ export function MapZoomControls({ zoom }: { zoom: MapZoom }) {
 			role="group"
 			data-slot="map-zoom-controls"
 			aria-label={intl.formatMessage(mapMessages.zoomControls)}
-			className={cn(k.zoomControls)}
+			className={cn(
+				k.zoomControls.base,
+				horizontal(placement) ? k.zoomControls.row : k.zoomControls.stack,
+			)}
 		>
 			<ButtonIconTooltip
 				label={intl.formatMessage(mapMessages.zoomIn)}
@@ -67,4 +78,9 @@ export function MapZoomControls({ zoom }: { zoom: MapZoom }) {
 			/>
 		</div>
 	)
+}
+
+/** Whether the group is a row: above or below the plot. @internal */
+function horizontal(placement: MapZoomControlsPlacement): boolean {
+	return placement === 'top' || placement === 'bottom'
 }

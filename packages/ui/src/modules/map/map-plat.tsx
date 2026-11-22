@@ -64,6 +64,7 @@ import type {
 	MapGeography,
 	MapOverlaySelection,
 	MapProjection,
+	MapZoomControlsPlacement,
 } from './engine/types'
 import { MapChrome } from './map-chrome'
 import { MapFrame, MapPlotRegion } from './map-frame'
@@ -233,7 +234,7 @@ type MapPlatBaseProps = AccessibleName &
 		 * the pointer does. Each of these keys speaks the result through a polite
 		 * live region. `+` and `-` speak the new scale as a percent of the fit,
 		 * such as `Zoom 160%`, and `0` speaks `Zoom reset`. Zoom-in, zoom-out,
-		 * and reset buttons show over the top end corner of the plot (see
+		 * and reset buttons show in a gutter beside the plot (see
 		 * `zoomControls`). `true` takes the
 		 * default ceiling, a number sets its own, and the object form adds
 		 * `modifier` (below).
@@ -282,8 +283,11 @@ type MapPlatBaseProps = AccessibleName &
 		/**
 		 * Shows the zoom-in, zoom-out, and reset buttons of a zooming map. Each
 		 * button steps the view as the `+`, `-`, and `0` keys do, and speaks the
-		 * same line. They sit beside the `role="img"` plot, in a named group, so
-		 * each is a tab stop of its own. A button at the end of its range is
+		 * same line. They sit in a gutter beside the `role="img"` plot, in a named
+		 * group, so they never cover the geography and each is a tab stop of its
+		 * own. A side places the group: `left` and `right` stack the buttons,
+		 * centered on the height of the plot; `top` and `bottom` set them in a
+		 * row, centered on its width. `true` is `right`. A button at the end of its range is
 		 * `aria-disabled` and keeps the focus. A map with no `zoom` shows none.
 		 *
 		 * The buttons are the single-pointer path to each scale, which WCAG 2.2
@@ -293,7 +297,7 @@ type MapPlatBaseProps = AccessibleName &
 		 *
 		 * @defaultValue true
 		 */
-		zoomControls?: boolean
+		zoomControls?: boolean | MapZoomControlsPlacement
 		/**
 		 * Fires when the view transform changes, with that transform: `x` and `y` pan
 		 * the fitted geography in frame units, `k` scales it.
@@ -649,6 +653,27 @@ function MapZoomLayer({ children }: { children: ReactNode }) {
 	)
 }
 
+/**
+ * The side of the zoom buttons, or `null` for none: a map that does not zoom
+ * shows none, and `zoomControls={false}` hides them. `true` is the end of a
+ * physical row: `right`.
+ *
+ * @internal
+ */
+function zoomControlsPlacement(
+	zoom: MapZoomInput | undefined,
+	input: boolean | MapZoomControlsPlacement,
+): MapZoomControlsPlacement | null {
+	if (mapZoomSettings(zoom) === null || input === false) return null
+
+	return input === true ? 'right' : input
+}
+
+/** Whether the zoom buttons take a gutter beside the plot, which takes a share of its width. @internal */
+function beside(placement: MapZoomControlsPlacement | null): boolean {
+	return placement === 'left' || placement === 'right'
+}
+
 /** The data table's value-column header: the name of the colored field, else the localized "Detail". A data key is never a header. @internal */
 function valueColumnHeader(intl: IntlShape, colorName: string | undefined): string {
 	return colorName ?? intl.formatMessage(mapMessages.detail)
@@ -973,6 +998,10 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		...rest
 	} = props
 
+	// The zoom buttons of a zooming map, or `null` for none. A gutter at the left
+	// or the right takes a share of an explicit `width` from the plot.
+	const controlsPlacement = zoomControlsPlacement(zoomInput, zoomControls)
+
 	const shape = useMapShape({
 		geography,
 		geographyObject,
@@ -982,6 +1011,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		aspectRatio,
 		graticule: graticuleStep(graticule),
 		sphere,
+		sharedWidth: beside(controlsPlacement),
 	})
 
 	const animate = animation !== false
@@ -1751,7 +1781,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 					aria-labelledby={ariaLabelledBy}
 					shape={shape}
 					aside={aside}
-					controls={zoomControls}
+					controls={controlsPlacement}
 					keyboard={{
 						enabled: navigable,
 						activate: activateTarget,

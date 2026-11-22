@@ -307,20 +307,41 @@ export const k = {
 		},
 	},
 	/**
-	 * The zoom buttons of a zooming map, over the top end corner of the plot. The
-	 * group sits on the opaque surface fill with a ring, so each glyph stays
-	 * legible over any region color. It follows the reading direction: a
-	 * right-to-left page puts it at the top left. The buttons touch, so the
-	 * stack is a grid with the touch pitch: on a coarse pointer each row is 44 px
-	 * tall, and the hit area of a button does not reach over the next
-	 * (CONVENTIONS §3.10).
+	 * The box around the plot and the zoom buttons of a zooming map. The buttons
+	 * take a gutter on one side of the plot, so they never cover the geography.
+	 * The plot takes the space that stays, and can become smaller than its
+	 * content.
+	 *
+	 * The buttons follow the plot in the DOM, except at the top. The `left` and
+	 * `right` entries are physical sides. The main axis of a flex row follows the
+	 * reading direction, so the `rtl:` variant of each side reverses the row.
 	 */
-	zoomControls: [
-		'absolute end-2 top-2 z-10 grid rounded-lg shadow-sm',
-		narabi.touch.pitch,
-		omote.bg.surface,
-		sen.ring.default,
-	],
+	zoomBox: {
+		base: 'flex gap-2',
+		top: 'flex-col',
+		bottom: 'flex-col',
+		left: 'flex-row-reverse rtl:flex-row',
+		right: 'flex-row rtl:flex-row-reverse',
+	},
+	/**
+	 * The zoom buttons of a zooming map, centered in the gutter beside, above,
+	 * or below the plot. The group sits on the opaque surface fill with a ring,
+	 * so it reads as one control. The buttons touch, so the group is a grid with
+	 * the touch pitch: on a coarse pointer each cell is 44 px, and the hit area
+	 * of a button does not reach over the next (CONVENTIONS §3.10).
+	 */
+	zoomControls: {
+		base: [
+			'grid shrink-0 self-center rounded-lg',
+			narabi.touch.pitch,
+			omote.bg.surface,
+			sen.ring.default,
+		],
+		/** A stack beside the plot. */
+		stack: '',
+		/** A row above or below the plot. */
+		row: 'grid-flow-col',
+	},
 	/** Motion vocabulary for the mount reveals, from `zu`, so the two modules' reveals never drift. */
 	motion,
 	skeleton: {

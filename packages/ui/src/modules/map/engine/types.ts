@@ -212,3 +212,10 @@ export type MapAspectRatio = number | `${number}/${number}` | 'auto' | false
  * does not decide it.
  */
 export type MapLegendPlacement = ChartLegendPlacement
+
+/**
+ * Where the zoom buttons of a zooming map sit around the plot: a row centered
+ * above or below it, or a stack centered beside it. The sides are physical, as
+ * the sides of {@link MapLegendPlacement} are.
+ */
+export type MapZoomControlsPlacement = 'top' | 'right' | 'bottom' | 'left'
