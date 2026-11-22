@@ -14,6 +14,13 @@ import { createContext } from '../../core/create-context'
 export type TooltipContextValue = {
 	open: boolean
 	interactive: boolean
+	/**
+	 * Whether the panel takes the pointer. A panel that a hover opens takes it,
+	 * so the reader can move onto the content (WCAG 2.2 SC 1.4.13), and so does
+	 * an `interactive` panel. A panel that code places, such as an anchored name
+	 * or the point readout, lets the pointer through to what is under it.
+	 */
+	takesPointer: boolean
 	enabled: boolean
 	setReference: (node: HTMLElement | null) => void
 	setFloating: (node: HTMLElement | null) => void

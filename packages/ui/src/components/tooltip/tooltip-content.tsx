@@ -51,9 +51,10 @@ export type TooltipContentProps = {
  * load sooner, and the panel opens when the module is there. Thus a focus,
  * which opens with no delay, does not wait for the network after the idle load.
  *
- * Pointer events are disabled unless the tooltip is `interactive`,
- * so a non-interactive panel never intercepts hover. An `interactive` panel
- * that holds something tabbable joins the tab order of the trigger. Tab goes
+ * Each panel takes the pointer. A hover tooltip stays open while the pointer
+ * travels from the trigger onto the panel, so the reader can rest on the
+ * content (WCAG 2.2 SC 1.4.13). An `interactive` panel that holds something
+ * tabbable joins the tab order of the trigger. Tab goes
  * from the trigger into the panel controls, and Tab after the last control
  * goes to the element after the trigger. Shift+Tab goes back the same way.
  * Focus does not stay in the panel, and the page stays visible to assistive

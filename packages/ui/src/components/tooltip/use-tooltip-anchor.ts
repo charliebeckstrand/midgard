@@ -87,6 +87,7 @@ export function useTooltipAnchor({
 			// it takes no pointer events over its subject, which on a dense surface is
 			// somebody else's, and has to stay pressable through the name.
 			interactive: false,
+			takesPointer: false,
 			enabled: true,
 			setReference: refs.setReference,
 			setFloating: refs.setFloating,

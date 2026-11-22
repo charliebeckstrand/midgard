@@ -342,13 +342,14 @@ export function useTooltipState({
 		enabled: enabled && trigger === 'hover',
 		mouseOnly: true,
 		delay: { open: delay, close: 100 },
-		// A bare `safePolygon()` takes floating-ui's defaults, and `requireIntent`
-		// is one of them. It reads cursor speed: a traverse slower than 0.1 px/ms
-		// reads as unintentional and closes the tooltip on a 40 ms timer (the one
-		// case an interactive tooltip most wants to survive). The dial, if a careful
-		// cursor ever reads as closing, is `{ requireIntent: false, buffer: 2 }`;
-		// `buffer` defaults to 0.5.
-		...(interactive && { handleClose: safePolygon() }),
+		// Each hover tooltip keeps its panel open while the pointer travels from the
+		// trigger onto it. The pointer can then rest on the content, as under a
+		// screen magnifier (WCAG 2.2 SC 1.4.13). A bare `safePolygon()` takes the
+		// defaults of floating-ui, and `requireIntent` is one of them. It reads the
+		// speed of the cursor: a traverse slower than 0.1 px/ms reads as a drift, and
+		// closes the tooltip on a 40 ms timer. The dial, if a careful cursor reads as
+		// closing, is `{ requireIntent: false, buffer: 2 }`. `buffer` defaults to 0.5.
+		handleClose: safePolygon(),
 	})
 
 	const click = useClick(context, { enabled: enabled && trigger === 'click' })
@@ -440,6 +441,7 @@ export function useTooltipState({
 		() => ({
 			open,
 			interactive,
+			takesPointer: interactive || trigger === 'hover',
 			enabled,
 			setReference,
 			setFloating: refs.setFloating,
@@ -455,6 +457,7 @@ export function useTooltipState({
 			generatedTriggerId,
 			open,
 			interactive,
+			trigger,
 			enabled,
 			setReference,
 			refs.setFloating,

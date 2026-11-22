@@ -141,6 +141,12 @@ describe('grid cell truncation tooltip (real browser)', () => {
 
 		await screen.findByRole('tooltip')
 
+		// The open tooltip takes the pointer (WCAG 2.2 SC 1.4.13), and it can cover
+		// the Widen button. Escape dismisses it, as a reader can.
+		await userEvent.keyboard('{Escape}')
+
+		await waitFor(() => expect(screen.queryByRole('tooltip')).not.toBeInTheDocument())
+
 		// Widen past the content (the click also moves the pointer off the cell).
 		await userEvent.click(screen.getByRole('button', { name: 'Widen' }))
 

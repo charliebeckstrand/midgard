@@ -45,6 +45,7 @@ export function TooltipBody({
 	const {
 		open,
 		interactive,
+		takesPointer,
 		setFloating,
 		floatingStyles,
 		getFloatingProps,
@@ -85,9 +86,11 @@ export function TooltipBody({
 			floatingStyles={floatingStyles}
 			getFloatingProps={getFloatingProps}
 			className={surfaceClassName}
-			// `pointer-events` is inherited, so gating it here gates the whole panel
-			// subtree; the inner surface carries no rule of its own.
-			style={{ pointerEvents: interactive ? 'auto' : 'none' }}
+			// A panel that a hover opens takes the pointer, so the reader can move
+			// onto the content and it stays (WCAG 2.2 SC 1.4.13). Only an interactive
+			// panel manages the focus. A panel that code places lets the pointer
+			// through. `pointer-events` is inherited, so this gates the whole panel.
+			style={{ pointerEvents: takesPointer ? 'auto' : 'none' }}
 			// Mounted for the whole open lifetime of an interactive tooltip and
 			// gated through `disabled`. The probe finds a tabbable control one commit
 			// after the panel mounts, and the manager then starts in place. It does

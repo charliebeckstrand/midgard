@@ -214,6 +214,7 @@ export function useTooltipPointer({
 		() => ({
 			open,
 			interactive: false,
+			takesPointer: false,
 			enabled: true,
 			setReference: refs.setReference,
 			setFloating: refs.setFloating,
