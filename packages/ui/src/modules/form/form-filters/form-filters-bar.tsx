@@ -1,14 +1,11 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import type { ComponentProps } from 'react'
 import { Flex } from '../../../structure/flex'
 import { useFormFiltersAxis } from './context'
 
-/** Props for {@link FormFiltersBar}: the row-and-actions line of a filter bar. */
-export type FormFiltersBarProps = {
-	children: ReactNode
-	className?: string
-}
+/** Props for {@link FormFiltersBar}: the row-and-actions line of a filter bar. The `<div>` of the line takes the rest. */
+export type FormFiltersBarProps = ComponentProps<'div'>
 
 /**
  * The control line of a {@link FormFilters} bar: a {@link FormFiltersRow} of fields,
@@ -19,11 +16,12 @@ export type FormFiltersBarProps = {
  * It takes the bar's axis and alignment from the layout. A `rail` holds one row
  * at every width. A `stack` drops to a column on a narrow screen.
  */
-export function FormFiltersBar({ children, className }: FormFiltersBarProps) {
+export function FormFiltersBar({ children, className, ...props }: FormFiltersBarProps) {
 	const { direction, align } = useFormFiltersAxis()
 
 	return (
 		<Flex
+			{...props}
 			data-slot="form-filters-bar"
 			direction={direction}
 			gap="sm"

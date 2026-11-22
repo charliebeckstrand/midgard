@@ -800,3 +800,73 @@ describe('FormFiltersField value types', () => {
 		expect(screen.getByText('north, south')).toBeInTheDocument()
 	})
 })
+
+describe('FormFilters native props', () => {
+	it('passes the native props of each part to its element', () => {
+		const { container } = renderUI(
+			<FormFilters aria-label="Filters" defaultValue={{ q: 'a' }}>
+				<FormFiltersBar id="bar" data-probe="bar">
+					<FormFiltersRow id="row" aria-describedby="hint">
+						<FormFiltersField name="q" id="field" data-probe="field">
+							<Input aria-label="Query" />
+						</FormFiltersField>
+					</FormFiltersRow>
+					<FormFiltersClear aria-describedby="hint">Clear</FormFiltersClear>
+				</FormFiltersBar>
+			</FormFilters>,
+		)
+
+		expect(getSlot(container, 'form-filters-bar')).toHaveAttribute('id', 'bar')
+
+		expect(getSlot(container, 'form-filters-bar')).toHaveAttribute('data-probe', 'bar')
+
+		expect(getSlot(container, 'form-filters-row')).toHaveAttribute('aria-describedby', 'hint')
+
+		expect(document.getElementById('field')).toHaveAttribute('data-probe', 'field')
+
+		expect(screen.getByRole('button', { name: 'Clear' })).toHaveAttribute(
+			'aria-describedby',
+			'hint',
+		)
+	})
+
+	it.each(['rail', 'stack'] as const)('gives the consumer ref the row under a %s', (layout) => {
+		let row: HTMLDivElement | null = null
+
+		const { container } = renderUI(
+			<FormFilters aria-label="Filters" layout={layout}>
+				<FormFiltersBar>
+					<FormFiltersRow
+						ref={(node) => {
+							row = node
+						}}
+					>
+						<FormFiltersField name="q">
+							<Input aria-label="Query" />
+						</FormFiltersField>
+					</FormFiltersRow>
+				</FormFiltersBar>
+			</FormFilters>,
+		)
+
+		expect(row).toBe(getSlot(container, 'form-filters-row'))
+	})
+
+	it('runs the consumer onClick of the fallback trigger before the clear', async () => {
+		const onValueChange = vi.fn()
+
+		const onClick = vi.fn(() => expect(onValueChange).not.toHaveBeenCalled())
+
+		renderUI(
+			<FormFilters aria-label="Filters" value={{ q: 'a' }} onValueChange={onValueChange}>
+				<FormFiltersClear onClick={onClick}>Clear</FormFiltersClear>
+			</FormFilters>,
+		)
+
+		await setupUser().click(screen.getByRole('button', { name: 'Clear' }))
+
+		expect(onClick).toHaveBeenCalledOnce()
+
+		expect(onValueChange).toHaveBeenCalled()
+	})
+})
