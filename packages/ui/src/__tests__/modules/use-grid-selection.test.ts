@@ -112,3 +112,101 @@ describe('useGridSelection', () => {
 		expect(onValueChange).toHaveBeenCalledWith(new Set(['a']))
 	})
 })
+
+describe('useGridSelection span and rowSelectable', () => {
+	type Row = { id: string; locked?: boolean }
+
+	const rows: Row[] = [
+		{ id: 'a' },
+		{ id: 'b' },
+		{ id: 'c', locked: true },
+		{ id: 'd' },
+		{ id: 'e' },
+	]
+
+	const rowKeys = rows.map((row) => row.id)
+
+	const render = (rowSelectable?: (row: Row) => boolean) =>
+		renderHook(() =>
+			useGridSelection<Row>({
+				selectionConfig: { rowSelectable },
+				rowKeys,
+				rows,
+			}),
+		)
+
+	it('selects each row between the last toggled row and this one on a span', () => {
+		const { result } = render()
+
+		act(() => result.current.toggleRow('b'))
+
+		act(() => result.current.toggleRow('e', true))
+
+		expect([...result.current.selection].sort()).toEqual(['b', 'c', 'd', 'e'])
+	})
+
+	it('runs a span upward, and clears it when the row it names was selected', () => {
+		const { result } = render()
+
+		act(() => result.current.toggleRow('d'))
+
+		act(() => result.current.toggleRow('a', true))
+
+		expect([...result.current.selection].sort()).toEqual(['a', 'b', 'c', 'd'])
+
+		// `b` is selected, so the span from `a` to `b` clears both.
+		act(() => result.current.toggleRow('b', true))
+
+		expect([...result.current.selection].sort()).toEqual(['c', 'd'])
+	})
+
+	it('toggles one row on a span with no row toggled before', () => {
+		const { result } = render()
+
+		act(() => result.current.toggleRow('c', true))
+
+		expect([...result.current.selection]).toEqual(['c'])
+	})
+
+	it('rejects a row that rowSelectable refuses, in a toggle, a span, and select-all', () => {
+		const { result } = render((row) => !row.locked)
+
+		expect([...result.current.unselectable]).toEqual(['c'])
+
+		act(() => result.current.toggleRow('c'))
+
+		expect(result.current.selection.size).toBe(0)
+
+		act(() => result.current.toggleRow('a'))
+
+		act(() => result.current.toggleRow('e', true))
+
+		expect([...result.current.selection].sort()).toEqual(['a', 'b', 'd', 'e'])
+
+		// Every row that can take the selection holds it.
+		expect(result.current.allSelected).toBe(true)
+
+		act(() => result.current.toggleAll())
+
+		expect(result.current.selection.size).toBe(0)
+
+		act(() => result.current.toggleAll())
+
+		expect([...result.current.selection].sort()).toEqual(['a', 'b', 'd', 'e'])
+	})
+
+	it('keeps the set of rejected keys while its keys stay the same', () => {
+		const { result, rerender } = renderHook(
+			({ rowSelectable }) =>
+				useGridSelection<Row>({ selectionConfig: { rowSelectable }, rowKeys, rows }),
+			{ initialProps: { rowSelectable: (row: Row) => !row.locked } },
+		)
+
+		const first = result.current.unselectable
+
+		// A new function with the same answer, as an inline prop gives on each render.
+		rerender({ rowSelectable: (row: Row) => !row.locked })
+
+		expect(result.current.unselectable).toBe(first)
+	})
+})

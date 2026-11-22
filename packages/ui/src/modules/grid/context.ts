@@ -52,6 +52,17 @@ export type GridHeadContextValue = {
 export const [GridHeadContext, useGridHead] = createContext<GridHeadContextValue>('GridHead')
 
 /**
+ * The keys of the shown rows that `GridSelection.rowSelectable` rejects.
+ * The checkbox of such a row is disabled. The set keeps its identity while its
+ * keys stay the same, so a render of the grid does not render the rows.
+ *
+ * @internal
+ */
+export const [GridUnselectableContext, useGridUnselectable] = createContext<
+	ReadonlySet<string | number>
+>('GridUnselectable', { default: new Set() })
+
+/**
  * Reads the store of settled column widths (see {@link GridSettleStore}). A
  * visited body cell subscribes to its own column in it, and measures its
  * overflow again when that width settles.

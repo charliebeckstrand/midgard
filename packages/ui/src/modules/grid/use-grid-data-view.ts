@@ -39,6 +39,7 @@ export function useGridDataView<T>({
 	sort,
 	selection,
 	setSelection,
+	rowSelectable,
 	paginated,
 	cursorEnabled,
 	cursorNewRow,
@@ -66,6 +67,8 @@ export function useGridDataView<T>({
 	sort: GridSortState[]
 	selection: ReturnType<typeof useGridSelectionState>['selection']
 	setSelection: ReturnType<typeof useGridSelectionState>['setSelection']
+	/** Whether a row can take the selection (see `GridSelection.rowSelectable`). */
+	rowSelectable: ((row: T) => boolean) | undefined
 	/** Whether the grid shows a page, which narrows the selection narration. */
 	paginated: boolean
 	cursorEnabled: boolean
@@ -153,7 +156,13 @@ export function useGridDataView<T>({
 		[visibleColumns],
 	)
 
-	const selectionActions = useGridSelectionActions({ selection, setSelection, rowKeys })
+	const selectionActions = useGridSelectionActions({
+		selection,
+		setSelection,
+		rowKeys,
+		rows: renderRows,
+		rowSelectable,
+	})
 
 	const { toggleRow, allSelected } = selectionActions
 
