@@ -5,18 +5,27 @@ import { guardField } from './tsv'
 const LINE_BREAK = /\r\n|\r|\n/g
 
 /**
+ * A line break inside a cell. Excel reads a bare `<br>` in a `<td>` as a new
+ * row, and keeps a line break in the cell only with this style, which it
+ * writes itself. Google Sheets and a document ignore the style.
+ */
+const CELL_BREAK = '<br style="mso-data-placement:same-cell">'
+
+/**
  * The HTML table of a block of cells, for the `text/html` part of a copy: one
  * row for each row of the block, and no header row, as a spreadsheet copies a
  * range. A document or a mail keeps the table on a paste, where the TSV gives
  * only text. Each cell takes the formula guard of the TSV ({@link guardField})
  * and the markup escape of the HTML export. A line break in a cell becomes a
- * `<br>`, which a spreadsheet reads as a line break in the cell. @internal
+ * `<br>` that stays in the cell ({@link CELL_BREAK}). @internal
  */
 export function toHtmlTable(block: readonly (readonly string[])[]): string {
 	const rows = block.map(
 		(fields) =>
 			`<tr>${fields
-				.map((field) => `<td>${escapeMarkup(guardField(field)).replace(LINE_BREAK, '<br>')}</td>`)
+				.map(
+					(field) => `<td>${escapeMarkup(guardField(field)).replace(LINE_BREAK, CELL_BREAK)}</td>`,
+				)
 				.join('')}</tr>`,
 	)
 

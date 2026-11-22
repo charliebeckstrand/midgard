@@ -494,9 +494,11 @@ describe('toHtmlTable', () => {
 		)
 	})
 
-	it('writes a line break in a cell as a <br>', () => {
+	it('writes a line break in a cell as a <br> that Excel keeps in the cell', () => {
+		const br = '<br style="mso-data-placement:same-cell">'
+
 		expect(toHtmlTable([['one\ntwo\r\nthree']])).toBe(
-			'<table><tbody><tr><td>one<br>two<br>three</td></tr></tbody></table>',
+			`<table><tbody><tr><td>one${br}two${br}three</td></tr></tbody></table>`,
 		)
 	})
 })
