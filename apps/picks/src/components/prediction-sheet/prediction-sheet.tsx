@@ -180,14 +180,18 @@ export function PredictionSheet({
 	const games = useWeekGames(season, shown?.number ?? null, open)
 
 	// Saves the picks and closes the sheet. Gives the message of a refused save
-	// as the issue of the whole form, or nothing after a success.
+	// as the issue of the whole form, or nothing after a success. A refusal with
+	// no message gets fixed words, because `Form` reads an empty issue as no
+	// issue, and the sheet would stay open with no reason.
 	const save = async (values: PickValues): Promise<SubmitResult<PickValues> | undefined> => {
 		if (shown === null) return undefined
 
 		try {
 			await onSubmit(shown.number, toPicks(values))
 		} catch (error) {
-			return { formError: error instanceof Error ? error.message : String(error) }
+			const message = error instanceof Error ? error.message : String(error)
+
+			return { formError: message || 'The save did not complete. Try again.' }
 		}
 
 		onOpenChange(false)
