@@ -123,10 +123,11 @@ export function useFormSubmission<T extends Record<string, unknown>>({
 			// callback fires. Without this report the caller cannot tell a refused
 			// submit from a submit that never happened.
 			//
-			// The refusal flushes, so the report lands after the commit that marks
-			// the fields. The documented use is to scroll to the first error, and on
-			// the first refused submit nothing carries `aria-invalid` until this
-			// dispatch paints. Only the refusal pays the synchronous render.
+			// The refusal flushes, so the focus move and the report come after the
+			// commit that marks the fields. On the first refused submit, nothing
+			// carries `aria-invalid` until this dispatch commits, and the focus must
+			// land on a control that already shows its error. Only the refusal pays
+			// the synchronous render.
 			if (refused) {
 				flushSync(() => {
 					dispatch({ type: 'submit-validate', touched, errors })
