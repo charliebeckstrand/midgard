@@ -78,10 +78,11 @@ describe('picking a zooming map', () => {
 		const box = plot.getBoundingClientRect()
 
 		// Well past the pan threshold, so the press is a pan rather than a shaky
-		// pick, which is the whole distinction the click suppression rests on.
+		// pick, which is the whole distinction the click suppression rests on. The
+		// drop stays clear of the zoom buttons in the top end corner.
 		await userEvent.dragAndDrop(plot, plot, {
 			sourcePosition: { x: 40, y: 40 },
-			targetPosition: { x: box.width - 40, y: box.height - 40 },
+			targetPosition: { x: box.width - 120, y: box.height - 40 },
 		})
 
 		expect(onRegionClick).not.toHaveBeenCalled()

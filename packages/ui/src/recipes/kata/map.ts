@@ -306,6 +306,17 @@ export const k = {
 				'@lg:grid-cols-[[plot]_minmax(0,1fr)_var(--map-rail)] rtl:@lg:grid-cols-[var(--map-rail)_[plot]_minmax(0,1fr)]',
 		},
 	},
+	/**
+	 * The zoom buttons of a zooming map, over the top end corner of the plot. The
+	 * group sits on the opaque surface fill with a ring, so each glyph stays
+	 * legible over any region color. It follows the reading direction: a
+	 * right-to-left page puts it at the top left.
+	 */
+	zoomControls: [
+		'absolute end-2 top-2 z-10 flex flex-col rounded-lg shadow-sm',
+		omote.bg.surface,
+		sen.ring.default,
+	],
 	/** Motion vocabulary for the mount reveals, from `zu`, so the two modules' reveals never drift. */
 	motion,
 	skeleton: {

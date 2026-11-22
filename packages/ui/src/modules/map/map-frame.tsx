@@ -2,6 +2,7 @@
 
 import {
 	type ComponentProps,
+	type CSSProperties,
 	type MouseEvent,
 	type ReactNode,
 	type Ref,
@@ -20,6 +21,7 @@ import { useMapZoomView } from './context'
 import type { MapLegendRail } from './engine/map-legend/plan'
 import type { MapLegendPlacement } from './engine/types'
 import { MapHoverProvider } from './map-hover-provider'
+import { MapZoomControls } from './map-zoom-controls'
 import { MapZoomProvider } from './map-zoom-provider'
 import { type MapKeyboardOptions, useMapKeyboard } from './use-map-keyboard'
 import type { MapFrameShape } from './use-map-shape'
@@ -214,6 +216,8 @@ type MapPlotRegionProps = Pick<ComponentProps<'div'>, 'aria-label' | 'aria-label
 	tooltip: ReactNode
 	/** What the keyboard cursor needs; the plat resolves it, this element hosts it. */
 	keyboard: Omit<MapKeyboardOptions, 'zoom'>
+	/** Whether a zooming plot shows its zoom buttons ({@link MapZoomControls}). */
+	controls: boolean
 	children: ReactNode
 }
 
@@ -230,6 +234,7 @@ export function MapPlotRegion({
 	aside,
 	tooltip,
 	keyboard: options,
+	controls,
 	children,
 	'aria-label': ariaLabel,
 	'aria-labelledby': ariaLabelledBy,
@@ -263,7 +268,12 @@ export function MapPlotRegion({
 		}, surface?.onClickCapture ?? noop),
 	}
 
-	return (
+	// The buttons sit beside the image, in a box of their own that takes the
+	// layout of the plot. The image role makes each descendant presentational,
+	// so a button inside the plot has no name and no role.
+	const zoomControls = controls && zoom !== null ? <MapZoomControls zoom={zoom} /> : null
+
+	const plot = (
 		<div
 			ref={shapeRef}
 			data-slot="map-plot"
@@ -276,15 +286,8 @@ export function MapPlotRegion({
 			{...keyboard}
 			{...surface}
 			{...press}
-			// Beside a side legend, the plot takes the column of the grid that the
-			// rail leaves, and can become narrower than its content (`min-w-0`). A
-			// free-form `fill` map instead grows or shrinks into the height that its
-			// region holds (a `flex-auto min-h-0` child of the `h-full` frame), so the
-			// box measures a real height rather than the zero that its own reserve
-			// would feed back. Its basis is the ratio of the geography. Thus, in a
-			// region of auto height, such as a dashboard tile with `fitContent`, the
-			// plot takes the ratio of `aspectRatio="auto"` and not a height of 0. The
-			// plot is a grid, so the plot box has a definite height in both cases.
+			// The box measures a real height under `fill`, rather than the zero
+			// that its own reserve would feed back. See `plotLayout`.
 			className={cn(
 				'relative',
 				// Without these, a long press starts a text selection that spreads across
@@ -304,10 +307,9 @@ export function MapPlotRegion({
 				// map. A zoomed view takes one finger too, from the touch events
 				// (`useMapZoom`). Every other map leaves touch alone entirely.
 				zoom && (zoom.modifier === null ? 'touch-none' : 'touch-pan-x touch-pan-y'),
-				aside && 'min-w-0',
-				shape.fill && 'grid min-h-0 flex-auto',
+				zoomControls === null ? plotLayout(aside, shape.fill) : plotFill(shape.fill),
 			)}
-			style={shape.fill ? { aspectRatio: shape.aspect } : undefined}
+			style={zoomControls === null ? plotStyle(shape) : undefined}
 		>
 			{/* PlotBox reserves the box height from its own width, steady before the
 			    width is measured and across animation replays. It takes a fixed height
@@ -319,4 +321,55 @@ export function MapPlotRegion({
 			{tooltip}
 		</div>
 	)
+
+	if (zoomControls === null) return plot
+
+	return (
+		<div
+			data-slot="map-plot-box"
+			className={cn('relative', plotLayout(aside, shape.fill))}
+			style={plotStyle(shape)}
+		>
+			{plot}
+
+			{zoomControls}
+		</div>
+	)
+}
+
+/**
+ * The classes that place the plot in the frame. Beside a side legend, the plot
+ * takes the column of the grid that the rail leaves, and can become narrower
+ * than its content (`min-w-0`). A free-form `fill` map instead grows or shrinks
+ * into the height that its region holds (a `flex-auto min-h-0` child of the
+ * `h-full` frame). The plot box carries them, or the box around the plot and
+ * its zoom buttons where those show.
+ *
+ * @internal
+ */
+function plotLayout(aside: boolean, fill: boolean): string {
+	return cn(aside && 'min-w-0', fill && 'grid min-h-0 flex-auto')
+}
+
+/**
+ * The classes that fill the box around the plot and its zoom buttons. The plot
+ * is the one grid item of that box, so it stretches to the height of the box.
+ * The plot is a grid itself under `fill`, so its content has a definite height.
+ *
+ * @internal
+ */
+function plotFill(fill: boolean): string {
+	return cn('min-w-0', fill && 'grid min-h-0')
+}
+
+/**
+ * The style that places the plot in the frame: under `fill`, the basis of the
+ * box is the ratio of the geography. Thus, in a region of auto height, such as
+ * a dashboard tile with `fitContent`, the plot takes the ratio of
+ * `aspectRatio="auto"` and not a height of 0.
+ *
+ * @internal
+ */
+function plotStyle(shape: Pick<MapFrameShape, 'fill' | 'aspect'>): CSSProperties | undefined {
+	return shape.fill ? { aspectRatio: shape.aspect } : undefined
 }

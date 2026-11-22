@@ -2299,6 +2299,10 @@
 		"defaultMessage": "Task",
 		"description": "Text of a demo in the docs, in components/combobox/virtualized.tsx."
 	},
+	"docs.demo.4c31c173c140": {
+		"defaultMessage": "and scroll to zoom, or use the buttons. Drag to pan.",
+		"description": "Text of a demo in the docs, in modules/map/point/zoomable.tsx."
+	},
 	"docs.demo.4c46466854cb": {
 		"defaultMessage": "Customer support",
 		"description": "Text of a demo in the docs as title, in components/accordion/items.ts."
@@ -2686,10 +2690,6 @@
 	"docs.demo.65f9b90e5379": {
 		"defaultMessage": "Which days had late stops?",
 		"description": "Text of a demo in the docs as content, in modules/chat/citations/selects-in-a-chart.tsx."
-	},
-	"docs.demo.65fc42446252": {
-		"defaultMessage": "Pinch to zoom. Drag with two fingers to pan.",
-		"description": "Text of a demo in the docs as touchText, in modules/map/point/zoomable.tsx."
 	},
 	"docs.demo.663ea1bfffe5": {
 		"defaultMessage": "to",
@@ -4035,6 +4035,10 @@
 		"defaultMessage": "Select an image that is 1 MB or smaller.",
 		"description": "Text of a demo in the docs, in components/file-upload/rejected-files.tsx."
 	},
+	"docs.demo.a978244a029e": {
+		"defaultMessage": "Pinch or use the buttons to zoom. Drag with two fingers to pan.",
+		"description": "Text of a demo in the docs as touchText, in modules/map/point/zoomable.tsx."
+	},
 	"docs.demo.a9b1dd1bbc06": {
 		"defaultMessage": "Hold to confirm",
 		"description": "Text of a demo in the docs, in components/hold-button/hold-to-confirm.tsx."
@@ -4122,10 +4126,6 @@
 	"docs.demo.ad80ed794ac0": {
 		"defaultMessage": "Invoice total",
 		"description": "Text of a demo in the docs, in components/currency-input/currency-and-locale.tsx, providers/locale/locale-provider.tsx, providers/locale/playground.tsx."
-	},
-	"docs.demo.ad9d05d3d66a": {
-		"defaultMessage": "and scroll to zoom. Drag to pan.",
-		"description": "Text of a demo in the docs, in modules/map/point/zoomable.tsx."
 	},
 	"docs.demo.adb5102dc678": {
 		"defaultMessage": "Mammals",
@@ -7474,6 +7474,10 @@
 	"docs.prop.wrap": {
 		"defaultMessage": "Wrap",
 		"description": "The label of a field of a playground in the docs. The field sets the prop wrap of TagInput."
+	},
+	"docs.prop.zoomControls": {
+		"defaultMessage": "Zoom controls",
+		"description": "The label of a field of a playground in the docs. The field sets the prop zoomControls of MapPlat."
 	},
 	"docs.search.button": {
 		"defaultMessage": "Search",

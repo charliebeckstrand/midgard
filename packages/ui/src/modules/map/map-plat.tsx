@@ -232,7 +232,9 @@ type MapPlatBaseProps = AccessibleName &
 		 * own tab stop takes `+`, `-`, and `0`, so the keyboard reaches every scale
 		 * the pointer does. Each of these keys speaks the result through a polite
 		 * live region. `+` and `-` speak the new scale as a percent of the fit,
-		 * such as `Zoom 160%`, and `0` speaks `Zoom reset`. `true` takes the
+		 * such as `Zoom 160%`, and `0` speaks `Zoom reset`. Zoom-in, zoom-out,
+		 * and reset buttons show over the top end corner of the plot (see
+		 * `zoomControls`). `true` takes the
 		 * default ceiling, a number sets its own, and the object form adds
 		 * `modifier` (below).
 		 *
@@ -277,6 +279,21 @@ type MapPlatBaseProps = AccessibleName &
 		 * pans. Reach for it rarely.
 		 */
 		zoom?: MapZoomInput
+		/**
+		 * Shows the zoom-in, zoom-out, and reset buttons of a zooming map. Each
+		 * button steps the view as the `+`, `-`, and `0` keys do, and speaks the
+		 * same line. They sit beside the `role="img"` plot, in a named group, so
+		 * each is a tab stop of its own. A button at the end of its range is
+		 * `aria-disabled` and keeps the focus. A map with no `zoom` shows none.
+		 *
+		 * The buttons are the single-pointer path to each scale, which WCAG 2.2
+		 * SC 2.5.1 and SC 2.5.7 require: without them, only a pinch zooms and only
+		 * a drag pans. Set `false` only where the page gives the reader another
+		 * single-pointer path to each scale.
+		 *
+		 * @defaultValue true
+		 */
+		zoomControls?: boolean
 		/**
 		 * Fires when the view transform changes, with that transform: `x` and `y` pan
 		 * the fitted geography in frame units, `k` scales it.
@@ -923,6 +940,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		tooltip = true,
 		nameRegions = false,
 		zoom: zoomInput,
+		zoomControls = true,
 		onViewChange,
 		regionPointer,
 		animate: animation = false,
@@ -1733,6 +1751,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 					aria-labelledby={ariaLabelledBy}
 					shape={shape}
 					aside={aside}
+					controls={zoomControls}
 					keyboard={{
 						enabled: navigable,
 						activate: activateTarget,

@@ -1453,11 +1453,27 @@
 	},
 	"ui.map.zoom": {
 		"defaultMessage": "Zoom {scale, number, percent}",
-		"description": "Spoken when a key zooms a map in or out, with the zoom as a percent of the fit, such as \"Zoom 150%\"."
+		"description": "Spoken when a key or a zoom button zooms a map in or out, with the zoom as a percent of the fit, such as \"Zoom 150%\"."
+	},
+	"ui.map.zoomControls": {
+		"defaultMessage": "Zoom",
+		"description": "The name of the group of zoom buttons of a map."
+	},
+	"ui.map.zoomFit": {
+		"defaultMessage": "Reset zoom",
+		"description": "The name of the button that puts the zoom of a map back to its fit."
+	},
+	"ui.map.zoomIn": {
+		"defaultMessage": "Zoom in",
+		"description": "The name of the button that zooms a map in one step."
+	},
+	"ui.map.zoomOut": {
+		"defaultMessage": "Zoom out",
+		"description": "The name of the button that zooms a map out one step."
 	},
 	"ui.map.zoomReset": {
 		"defaultMessage": "Zoom reset",
-		"description": "Spoken when a key puts the zoom of a map back to its fit."
+		"description": "Spoken when a key or the reset button puts the zoom of a map back to its fit."
 	},
 	"ui.markdown.table": {
 		"defaultMessage": "Table",

@@ -1,9 +1,12 @@
 import { defineMessage, defineMessages } from '../../primitives/intl/intl-messages'
-import type { TypedMessageDescriptor } from '../../primitives/intl/types'
+import type { IntlShape, TypedMessageDescriptor } from '../../primitives/intl/types'
+import { MAP_ZOOM_FIT } from './engine/map-constants'
+import type { MapTransform } from './engine/map-zoom/transform'
 
 /**
  * The messages of a map. They name the legend, head the value column of the
- * data table, announce a zoom reset, and name each mark kind.
+ * data table, name the zoom buttons, announce a zoom reset, and name each
+ * mark kind.
  *
  * @internal
  */
@@ -22,7 +25,27 @@ export const mapMessages = defineMessages({
 	zoomReset: {
 		id: 'ui.map.zoomReset',
 		defaultMessage: 'Zoom reset',
-		description: 'Spoken when a key puts the zoom of a map back to its fit.',
+		description: 'Spoken when a key or the reset button puts the zoom of a map back to its fit.',
+	},
+	zoomControls: {
+		id: 'ui.map.zoomControls',
+		defaultMessage: 'Zoom',
+		description: 'The name of the group of zoom buttons of a map.',
+	},
+	zoomIn: {
+		id: 'ui.map.zoomIn',
+		defaultMessage: 'Zoom in',
+		description: 'The name of the button that zooms a map in one step.',
+	},
+	zoomOut: {
+		id: 'ui.map.zoomOut',
+		defaultMessage: 'Zoom out',
+		description: 'The name of the button that zooms a map out one step.',
+	},
+	zoomFit: {
+		id: 'ui.map.zoomFit',
+		defaultMessage: 'Reset zoom',
+		description: 'The name of the button that puts the zoom of a map back to its fit.',
 	},
 	route: {
 		id: 'ui.map.kind.route',
@@ -62,8 +85,19 @@ export const mapZoomMessage: TypedMessageDescriptor<{ scale: number }> = defineM
 	id: 'ui.map.zoom',
 	defaultMessage: 'Zoom {scale, number, percent}',
 	description:
-		'Spoken when a key zooms a map in or out, with the zoom as a percent of the fit, such as "Zoom 150%".',
+		'Spoken when a key or a zoom button zooms a map in or out, with the zoom as a percent of the fit, such as "Zoom 150%".',
 })
+
+/**
+ * The view scale as one short line of text, for the announcement of a zoom
+ * step: the scale as a percent of the fit. The zoom keys and the zoom buttons
+ * speak the same line.
+ *
+ * @internal
+ */
+export function describeZoom(intl: IntlShape, transform: MapTransform): string {
+	return intl.formatMessage(mapZoomMessage, { scale: transform.k / MAP_ZOOM_FIT })
+}
 
 /**
  * The name of a row of the data table of a map that the map holds selected,
