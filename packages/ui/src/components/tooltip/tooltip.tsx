@@ -40,13 +40,12 @@ export type TooltipProps = {
 	 */
 	delay?: number
 	/**
-	 * Keeps the content open while the pointer travels into it (safe-polygon),
-	 * letting users interact with its contents.
+	 * Lets the content hold controls that the reader can use. Each hover tooltip
+	 * stays open while the pointer travels onto its content, with or without this
+	 * prop. The travel must read as deliberate: a pointer that crosses slower than
+	 * 0.1 px/ms reads as a drift and closes the content.
 	 * @defaultValue false
-	 * @remarks The travel must read as deliberate: a pointer that crosses slower
-	 * than 0.1 px/ms reads as a drift and closes the content anyway.
-	 *
-	 * Content that holds a tabbable control makes the panel a non-modal
+	 * @remarks Content that holds a tabbable control makes the panel a non-modal
 	 * `role="dialog"`, because a tooltip must not hold interactive content. The
 	 * trigger names the dialog. The dialog is not modal: Tab goes from the
 	 * trigger into the panel controls and then on to the element after the
@@ -193,6 +192,7 @@ function LightTooltip({ enabled, children, ...props }: LightTooltipProps) {
 		() => ({
 			open: false,
 			interactive,
+			takesPointer: interactive || trigger === 'hover',
 			enabled,
 			setReference,
 			setFloating: noop,
@@ -200,7 +200,7 @@ function LightTooltip({ enabled, children, ...props }: LightTooltipProps) {
 			getReferenceProps: noProps,
 			getFloatingProps: noProps,
 		}),
-		[interactive, enabled, setReference],
+		[interactive, trigger, enabled, setReference],
 	)
 
 	const shared = value ?? light

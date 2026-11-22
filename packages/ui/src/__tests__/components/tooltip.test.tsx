@@ -40,10 +40,13 @@ function Shared({ value, children }: { value: TooltipContextValue; children: Rea
 	)
 }
 
-function makeContext(overrides: { open?: boolean; interactive?: boolean } = {}) {
+function makeContext(
+	overrides: { open?: boolean; interactive?: boolean; takesPointer?: boolean } = {},
+) {
 	return {
 		open: overrides.open ?? true,
 		interactive: overrides.interactive ?? false,
+		takesPointer: overrides.takesPointer ?? overrides.interactive ?? false,
 		enabled: true,
 		setReference: noop,
 		setFloating: noop,
@@ -455,10 +458,10 @@ describe('TooltipContent', () => {
 		[true, 'auto'],
 		[false, 'none'],
 	])(
-		'marks the open panel with interactive=%s as pointer-events:%s',
-		(interactive, pointerEvents) => {
+		'marks the open panel with takesPointer=%s as pointer-events:%s',
+		(takesPointer, pointerEvents) => {
 			const { container } = renderUI(
-				<Shared value={makeContext({ open: true, interactive })}>
+				<Shared value={makeContext({ open: true, takesPointer })}>
 					<TooltipContent>Tip</TooltipContent>
 				</Shared>,
 			)
