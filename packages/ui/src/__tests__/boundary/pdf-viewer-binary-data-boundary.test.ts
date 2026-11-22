@@ -6,6 +6,7 @@ import { dirname, join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { STANDARD_FONT_FILES, WASM_FILES } from '../../components/pdf-viewer/pdf-viewer-binary-data'
 import { CMAP_FILES } from '../../components/pdf-viewer/pdf-viewer-cmap-files'
+import { collectPatternViolations, srcDir } from '../helpers/walk-source'
 
 // The viewer gives pdf.js a URL for each file that pdf.js loads at run time. A new version of
 // `pdfjs-dist` can add, remove or rename a file. Then pdf.js asks for a file that has no URL,
@@ -58,5 +59,29 @@ describe('the bundled pdf.js files', () => {
 				expect(url.href).toMatch(new RegExp(`/pdfjs-dist/${directory}/${name}$`))
 			}
 		}
+	})
+
+	it('loads only the legacy build', () => {
+		// The modern build calls new built-ins with no fallback, far above the floor in
+		// `.browserslistrc`. A bare `pdfjs-dist` resolves to the modern build, so only a type can
+		// come from it. The browser test of the floor cannot hold this rule, because the pinned
+		// Chromium has the new built-ins.
+		const violations = collectPatternViolations({
+			dir: srcDir,
+			stripComments: true,
+			patterns: [
+				{ label: 'modern build', regex: /['"]pdfjs-dist\/build\/[^'"]*['"]/g },
+				{
+					label: 'runtime import of the modern build',
+					regex: /^import (?!type )[^'"]*from ['"]pdfjs-dist['"]/gm,
+				},
+				{
+					label: 'dynamic import of the modern build',
+					regex: /\bimport\(['"]pdfjs-dist['"]\)(?!\.[A-Z])/g,
+				},
+			],
+		})
+
+		expect(violations).toEqual([])
 	})
 })

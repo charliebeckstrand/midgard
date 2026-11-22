@@ -21,7 +21,7 @@
  *
  * The documents come from `pdf-fixtures.ts`: US-Letter invoice pages with 40 rows of text,
  * built in memory. The file loads the legacy build of pdf.js, as the viewer does, because the
- * modern build calls built-ins that the pinned Chromium (141) lacks. Its worker goes in as the
+ * modern build calls built-ins that the browser floor in `.browserslistrc` lacks. Its worker goes in as the
  * global `workerPort`, so it lives for the whole run, as the viewer's shared worker does in an
  * app. The viewer gives each load the worker of that port, so the release of one sample does
  * not destroy the worker that the next sample opens on.

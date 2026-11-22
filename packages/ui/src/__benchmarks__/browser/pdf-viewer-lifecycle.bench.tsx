@@ -22,7 +22,7 @@
  * half *was* written against a PDF this file assembles (551 bytes, correct xref, one US-Letter
  * page, so no fixture and no network) and pdf.js parses it here, but `page.render` threw
  * `getOrInsertComputed is not a function`: the modern build of pdf.js 6 calls
- * `Map.prototype.getOrInsertComputed`, which the pinned Playwright Chromium (141) does not
+ * `Map.prototype.getOrInsertComputed`, which the Playwright Chromium of that time (141) did not
  * implement. The viewer now loads the legacy build, and `pdf-viewer-open.bench.tsx` measures
  * the cold open, which is the saving that the cache gives.
  *

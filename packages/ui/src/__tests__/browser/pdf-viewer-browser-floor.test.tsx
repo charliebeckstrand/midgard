@@ -8,11 +8,11 @@ import { pageImage, servePdfFor } from './helpers/pdf-viewer'
  * The viewer renders a real PDF in a browser below the newest built-ins.
  *
  * The modern build of pdf.js 6 calls `Map.prototype.getOrInsertComputed`, `Promise.try`,
- * `Math.sumPrecise` and the `Uint8Array` base64 methods with no fallback. The pinned Chromium
- * (141) lacks `getOrInsertComputed`, so on the modern build the render throws and the viewport
- * shows the error. The viewer loads the legacy build, which fills each one, and the page renders.
- * This file needs a Chromium under 145 to fail without the fix. When the pinned Chromium moves
- * past that, the test still passes, and it no longer proves the floor.
+ * `Math.sumPrecise` and the `Uint8Array` base64 methods with no fallback. The viewer loads the
+ * legacy build, which fills each one, and the page renders. This file fails on the modern build
+ * only in a Chromium under 145. The pinned Chromium is above that, so this file does not prove
+ * the floor. The case `loads only the legacy build` in `pdf-viewer-binary-data-boundary.test.ts`
+ * holds the floor.
  */
 describe('pdf viewer below the newest browsers (real browser)', () => {
 	it('renders the first page of a real document', async () => {
