@@ -1159,9 +1159,17 @@
 		"defaultMessage": "Range of {rows, plural, one {# row} other {# rows}} and {cols, plural, one {# column} other {# columns}}, {fromColumn} row {fromRow, number} to {toColumn} row {toRow, number}",
 		"description": "Spoken when the reader selects a range of cells of the grid: its size, and its two corners by column and row number."
 	},
+	"ui.grid.rangeFigure": {
+		"defaultMessage": "{op, select, count {Count} sum {Sum} avg {Average} min {Minimum} other {Maximum}} {value}",
+		"description": "One figure of a range of cells of the grid, in its footer: the count of the cells with a value, or the sum, the average, the minimum, or the maximum of their numbers. The value is a formatted number."
+	},
 	"ui.grid.rangeOf": {
 		"defaultMessage": "{from, number}–{to, number} of {total, number}",
 		"description": "The page status of a grid: the first and the last row of the page, and the count of rows."
+	},
+	"ui.grid.rangeWithFigures": {
+		"defaultMessage": "{range}. {figures}",
+		"description": "Spoken when the reader selects a range of cells of a grid that shows the figures of the range: the sentence of the range, then the list of its figures."
 	},
 	"ui.grid.removeFromGroup": {
 		"defaultMessage": "Remove from group",

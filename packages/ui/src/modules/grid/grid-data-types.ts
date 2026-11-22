@@ -10,6 +10,7 @@ import type { GridCellRef, GridEditableConfig } from './grid-editing-types'
 import type { GridColumnGroups } from './grid-group-types'
 import type { GridRowGroups } from './grid-row-group-types'
 import type {
+	GridAggFuncName,
 	GridColumn,
 	GridColumnFilters,
 	GridColumnSizing,
@@ -737,6 +738,21 @@ export type GridFooter = {
 	 * @defaultValue false
 	 */
 	selectedTotal?: boolean
+	/**
+	 * Shows the figures of the cell {@link GridDataProps.range | range} at the
+	 * footer's trailing edge, as a spreadsheet does: `'Count 6  Sum 1,240
+	 * Average 206.67'`. `true` shows the count, the sum, and the average. A list
+	 * of aggregation names picks the figures and their order, such as
+	 * `['sum', 'max']`.
+	 *
+	 * The count is the cells that hold a value, text too. The other figures
+	 * read each cell through its column's value, as the aggregates do, and take
+	 * the cells that hold a number. A range of text alone shows the count. A
+	 * range of one cell shows no figures. The grid also speaks the figures with
+	 * the range, once the range stops changing. Needs {@link GridDataProps.range}.
+	 * @defaultValue false
+	 */
+	rangeFigures?: boolean | readonly GridAggFuncName[]
 	/**
 	 * Custom content rendered at the footer's trailing edge, receiving the live
 	 * {@link GridFooterStats}. Use for a summary line, a column aggregate, or a
