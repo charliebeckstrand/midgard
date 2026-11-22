@@ -1,6 +1,6 @@
 # Dashboard roadmap
 
-> **Goal: a board that every reader can arrange, and that filters on more than equal values.** The board composes widgets that it does not know, and it shares one filter scope between the tiles. No app uses the module yet, so the WCAG gap and the peer gaps set the order.
+> **Goal: a board that every reader can arrange, and that filters on more than equal values.** The board composes widgets that it does not know, and it shares one filter scope between the tiles. No app uses the module yet, so the peer gaps set the order.
 
 ## Status
 
@@ -48,9 +48,11 @@ The store is plain JavaScript, and the shell reads it through `useSyncExternalSt
 
 ## Accessibility and testing
 
-1. **A move and a resize with no drag (*P1*).** WCAG 2.2 criterion 2.5.7 requires a single-pointer path for each action that a drag does. A pointer user can move a tile only by a drag of the grip, and resize it only by a drag of a splitter. The keyboard steps do not count, because the criterion is about a pointer. In edit mode, give the grip a menu: Move up, Move down, Move to start, Move to end, and a size step for each axis. Each item runs the engine step that the arrow keys run, so the live region and the limits stay the same. Prove it in `dashboard.test.tsx` and in a browser test that moves and resizes a tile with clicks only.
+1. **The board is not in the shared corpus (*P2*).** The corpus in `__tests__/a11y/cases` holds `Kanban` but no `Dashboard` subject, so the shared sweeps do not read the board. CONVENTIONS.md §10.5 puts each shared guarantee there. Add a `dashboard` subject at rest and in edit mode to `data-complex.tsx`, with a pass-through subject for the `<section>`. The axe baseline, the focus sweep, and the pass-through sweep then hold the board.
 
-2. **The board is not in the shared corpus (*P2*).** The corpus in `__tests__/a11y/cases` holds `Kanban` but no `Dashboard` subject, so the shared sweeps do not read the board. CONVENTIONS.md §10.5 puts each shared guarantee there. Add a `dashboard` subject at rest and in edit mode to `data-complex.tsx`, with a pass-through subject for the `<section>`. The axe baseline, the focus sweep, and the pass-through sweep then hold the board.
+2. **A move and a resize with no drag (*Maybe*).** WCAG 2.2 criterion 2.5.7 requires a single-pointer path for each action that a drag does. A pointer user can move a tile only by a drag of the grip, and resize it only by a drag of a splitter. The keyboard steps do not count, because the criterion is about a pointer. One candidate is a menu on the grip in edit mode, with Move up, Move down, Move to start, Move to end, and a size step for each axis. Each menu entry runs the engine step that the arrow keys run, so the live region and the limits stay the same. Prove it in `dashboard.test.tsx` and in a browser test that moves and resizes a tile with clicks only.
+
+   *Maybe* marks work that waits for a decision and has no priority yet. Decide the place of the path before work starts. A menu on the grip adds no control, but a reader must find it. A button of its own on each tile is easy to find, but it adds a control to each tile in edit mode.
 
 ## Not planned
 
