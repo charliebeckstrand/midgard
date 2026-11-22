@@ -9,9 +9,9 @@ import { renderUI } from '../helpers'
  * costs O(page) makes no pass. A new pass over every loaded row is the cost
  * that a large grid pays on each gesture, so this file names each pass.
  *
- * A case counts the calls of two callbacks of the public API: `getKey`, which
- * keys a row, and the `value` of the sort column, which the sort decodes. It
- * runs each gesture at two counts of loaded rows. The difference of the calls,
+ * A case counts the calls of two callbacks of the public API. `getKey` keys a
+ * row, and the sort decodes the `value` of the sort column. A case runs each
+ * gesture at two counts of loaded rows. The difference of the calls,
  * divided by the difference of the counts, is the count of passes. The work of
  * the page or the window is the same at the two counts, so it cancels out.
  *
@@ -90,8 +90,8 @@ type Passes = { key: number; value: number }
  * - `pageTurn`: a move to the next page.
  *
  * A paged grid keys only the rows of its page. A windowed grid keys each
- * loaded row on each change of the order or of the rows, because it reads its
- * rows from arrays of every loaded row (Grid roadmap, Performance item 1).
+ * loaded row on each change of the order or of the rows. It reads its rows
+ * from arrays of every loaded row (Grid roadmap, Performance item 1).
  */
 const PASSES: Record<Layout, Partial<Record<Gesture, Passes>>> = {
 	paged: {
