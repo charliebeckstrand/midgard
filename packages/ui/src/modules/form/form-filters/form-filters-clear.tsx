@@ -1,16 +1,26 @@
 'use client'
 
-import { isValidElement, type MouseEvent, type MouseEventHandler, type ReactNode } from 'react'
+import {
+	type ComponentProps,
+	isValidElement,
+	type MouseEvent,
+	type MouseEventHandler,
+	type ReactNode,
+} from 'react'
 import { Button } from '../../../components/button'
 import { cn } from '../../../core/cn'
+import { composeEventHandlers } from '../../../core/compose-event-handlers'
 import { cloneWithAction } from '../../../primitives/trigger-child/trigger-child'
 import type { ButtonVariants } from '../../../recipes/kata/button'
 import { k } from '../../../recipes/kata/form-filters'
 import { getTabbableElements } from '../../../utilities/focusable-selector'
 import { useFormFilters } from './context'
 
-/** Props for {@link FormFiltersClear}. */
-export type FormFiltersClearProps = {
+/**
+ * Props for {@link FormFiltersClear}. The fallback `<button>` takes the rest.
+ * An element child carries its own props, so the rest does not reach it.
+ */
+export type FormFiltersClearProps = Omit<ComponentProps<'button'>, 'color' | 'children'> & {
 	children: ReactNode
 	/**
 	 * Button variant for the fallback trigger.
@@ -33,7 +43,6 @@ export type FormFiltersClearProps = {
 	 * @defaultValue `'zinc'`, or the button color of the surface around it, such as an Alert.
 	 */
 	color?: ButtonVariants['color']
-	className?: string
 }
 
 /**
@@ -54,7 +63,14 @@ export type FormFiltersClearProps = {
  *
  * Must render inside a `FormFilters`.
  */
-export function FormFiltersClear({ children, variant, color, className }: FormFiltersClearProps) {
+export function FormFiltersClear({
+	children,
+	variant,
+	color,
+	className,
+	onClick,
+	...props
+}: FormFiltersClearProps) {
 	const { clear, clearable } = useFormFilters()
 
 	const classes = cn(k({ idle: !clearable }).clear, className)
@@ -91,11 +107,12 @@ export function FormFiltersClear({ children, variant, color, className }: FormFi
 
 	return (
 		<Button
+			{...props}
 			type="button"
 			variant={variant}
 			color={color}
 			data-slot="form-filters-clear"
-			onClick={handleClear}
+			onClick={composeEventHandlers(onClick, handleClear)}
 			className={classes}
 		>
 			{children}

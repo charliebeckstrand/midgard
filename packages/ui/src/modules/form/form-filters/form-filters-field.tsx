@@ -8,7 +8,7 @@ import {
 	type ReactElement,
 	type ReactNode,
 } from 'react'
-import { Description, Field, Label, Message } from '../../../components/fieldset'
+import { Description, Field, type FieldProps, Label, Message } from '../../../components/fieldset'
 import { cn } from '../../../core/cn'
 import { useFormFilters, useFormFiltersAxis } from './context'
 
@@ -31,12 +31,11 @@ export type FormFiltersFieldRenderProps<V = unknown> = {
  *
  * @typeParam V - The type of the slot value that the render function receives.
  */
-export type FormFiltersFieldProps<V = unknown> = {
+export type FormFiltersFieldProps<V = unknown> = Omit<FieldProps, 'children'> & {
 	/** Key this field owns within the {@link FormFilters} value record. */
 	name: string
 	/** A control element, or a render function receiving {@link FormFiltersFieldRenderProps}. */
 	children: ReactNode | ((field: FormFiltersFieldRenderProps<V>) => ReactNode)
-	className?: string
 }
 
 /**
@@ -66,6 +65,7 @@ export function FormFiltersField<V = unknown>({
 	name,
 	children,
 	className,
+	...props
 }: FormFiltersFieldProps<V>) {
 	const { value: filterValue, setValue } = useFormFilters()
 
@@ -78,7 +78,11 @@ export function FormFiltersField<V = unknown>({
 			onValueChange: (next) => setValue(name, next),
 		}
 
-		return <Field className={cn(width, className)}>{children(renderProps)}</Field>
+		return (
+			<Field {...props} className={cn(width, className)}>
+				{children(renderProps)}
+			</Field>
+		)
 	}
 
 	// The first non-decoration child is the control. An object, not a `let`:
@@ -95,5 +99,9 @@ export function FormFiltersField<V = unknown>({
 		return cloneElement(child as ReactElement<{ name?: string }>, { name })
 	})
 
-	return <Field className={cn(width, className)}>{processed}</Field>
+	return (
+		<Field {...props} className={cn(width, className)}>
+			{processed}
+		</Field>
+	)
 }

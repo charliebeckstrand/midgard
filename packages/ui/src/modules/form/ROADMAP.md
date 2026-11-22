@@ -59,12 +59,6 @@ The engine reads `hasIssues` from the binding contract, because a control and th
 
    Open questions: whether `Errors` takes a path key such as `stops.0.day`, and whether `useFormField` binds a value by path or reads the issue only. Answer them in a plan before code.
 
-## Pattern cleanup
-
-1. **Native base for the parts of the filter bar (*P2*).** `FormFiltersBarProps`, `FormFiltersRowProps`, `FormFiltersFieldProps`, and `FormFiltersClearProps` take only `children` and `className`. Each part renders an element through `Flex`, `Field`, or `Button`, so a consumer cannot pass an `id`, an `aria-*`, a `data-*`, or a `ref`. That is drift from [`CONVENTIONS.md`](../../../../../CONVENTIONS.md) §4.3.
-
-   Give the bar, the row, and the field the `ComponentProps<'div'>` base, and compose the scroll ref of the row with the consumer ref (§3.9). Clear renders a `Button` or clones its child, so it takes the base of a button only on the fallback arm. [`props-base-boundary.test.ts`](../../__tests__/boundary/props-base-boundary.test.ts) misses these parts, because its checker counts only a lowercase JSX tag. A change to the checker that follows a component tag is a separate item.
-
 ## Performance
 
 1. **Keystroke bench (*P2*).** No bench measures the form. Under `validateOn: 'touched'`, each keystroke runs the validator of each touched field and gives a new error map, even when no issue changes. Each keystroke also derives the dirty flag of each field again by a deep compare. So `FormErrorSummary` and each reader of `useFormErrors` render again on each keystroke.
