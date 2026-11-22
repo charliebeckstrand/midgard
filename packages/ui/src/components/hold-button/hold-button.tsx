@@ -194,7 +194,7 @@ export function HoldButton({
 				// An inline transform, not a `scale-x-0` class: Tailwind sets `scale`,
 				// which the `transform` that Motion writes does not replace.
 				style={{ transform: 'scaleX(0)' }}
-				className={cn(k.fill)}
+				className={k().fill}
 			/>
 			<span className="relative inline-flex items-center gap-[inherit]">{children}</span>
 		</Button>

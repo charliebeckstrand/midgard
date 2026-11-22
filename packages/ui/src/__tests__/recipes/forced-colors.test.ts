@@ -67,7 +67,7 @@ describe('edges and state marks under forced colors', () => {
 		['the start rule of a frozen Grid group', grid.pinned.border.start],
 		['the rule of a Grid column group', gridGroup().rule],
 		['the rule of a Grid column group with a color', gridGroup({ color: 'red' }).rule],
-		['the fill of a HoldButton', holdButton.fill],
+		['the fill of a HoldButton', holdButton().fill],
 		['a JsonTree search match', jsonTree({ highlighted: true }).content],
 		['a Grid search match', grid.cell.mark],
 		['a Grid column that a drag lifts', grid.reorder.cell.base],
