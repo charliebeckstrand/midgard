@@ -277,11 +277,10 @@ const ASSETS = `${path.sep}assets${path.sep}`
 function cacheHeaders(file: string): Record<string, string> {
 	const html = file.endsWith('.html')
 
-	const control = html
-		? 'no-cache'
-		: file.includes(ASSETS)
-			? 'public, max-age=31536000, immutable'
-			: 'public, max-age=3600'
+	let control = 'public, max-age=3600'
+
+	if (html) control = 'no-cache'
+	else if (file.includes(ASSETS)) control = 'public, max-age=31536000, immutable'
 
 	const vary = [
 		...(html ? ['Cookie', 'Accept-Language'] : []),

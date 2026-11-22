@@ -51,9 +51,7 @@ No rule reads a clock or a random source. The shell mints each id and gives it t
 
 ## Pattern cleanup
 
-1. **Nested ternaries (*P2*).** `statusText` in [`chat-prompt-picker.tsx`](chat-prompt-picker.tsx) nests three ternaries, and the row `className` in [`chat-transcript.tsx`](chat-transcript.tsx) nests two. [`CONVENTIONS.md`](../../../../../CONVENTIONS.md) §8.4 splits a nested ternary into named steps. Split each one. Biome `style/noNestedTernary` can hold the fix, first in an override for this module, and later in the whole package as its own decision.
-
-2. **Function names that do not start with a verb (*P3*).** [`CONVENTIONS.md`](../../../../../CONVENTIONS.md) §8.5 starts each function name with a verb. The engine and the shell have names that start with a noun, such as `chatBranches`, `draftContent`, `draftCitations`, `userContent`, `duplicateMessageIds`, `activeTrigger`, `historyStep`, `embedCount`, and `startingParts`. Rename the internal names, such as `getBranches` and `findActiveTrigger`. The public `chatContentText` stays, because its rename breaks an export for no gain to the caller. No gate reads the first word of a name, and a verb list for such a gate is the open question.
+1. **Function names that do not start with a verb (*P3*).** [`CONVENTIONS.md`](../../../../../CONVENTIONS.md) §8.5 starts each function name with a verb. The engine and the shell have names that start with a noun, such as `chatBranches`, `draftContent`, `draftCitations`, `userContent`, `duplicateMessageIds`, `activeTrigger`, `historyStep`, `embedCount`, and `startingParts`. Rename the internal names, such as `getBranches` and `findActiveTrigger`. The public `chatContentText` stays, because its rename breaks an export for no gain to the caller. No gate reads the first word of a name, and a verb list for such a gate is the open question.
 
 ## Performance
 

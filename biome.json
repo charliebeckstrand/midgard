@@ -79,6 +79,16 @@
 			}
 		},
 		{
+			"includes": ["packages/ui/**"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noNestedTernary": "error"
+					}
+				}
+			}
+		},
+		{
 			"includes": [
 				"apps/**",
 				"packages/auth/**",
