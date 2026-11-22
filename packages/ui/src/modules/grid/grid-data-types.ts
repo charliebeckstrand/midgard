@@ -1349,8 +1349,8 @@ export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'>
 	 * pasted text, and {@link GridColumn.validate} checks each value. A refused
 	 * cell goes to {@link GridEditableConfig.onReject}. A paste, a clear, or a
 	 * fill skips a cell that cannot edit, a cell of a column with no `field`,
-	 * and a cell that holds a draft. The live region counts the written and the
-	 * skipped cells.
+	 * a cell whose editor is open, and a cell that holds a draft. The live
+	 * region counts the written and the skipped cells.
 	 *
 	 * The range covers the body cells of the cursor. A cell of a column with no
 	 * value, such as the selection or actions column, copies as an empty field.

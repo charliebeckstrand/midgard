@@ -112,8 +112,8 @@ export function recordHistory(
 /**
  * What the history reads from the grid at a step. `current` gives the live
  * value of a cell, or `null` when its row or its column is gone, or when the
- * column cannot edit now. `drafted` says whether the cell holds a draft,
- * staged or pending.
+ * column cannot edit now. `drafted` says whether the session holds the cell:
+ * its editor is open, or it holds a draft, staged or pending.
  *
  * @internal
  */
@@ -124,7 +124,7 @@ export type GridHistoryRead = {
 
 /**
  * The result of one step. `'empty'` means the stack holds no entry.
- * `'blocked'` means a cell of the newest entry holds a draft, so the entry
+ * `'blocked'` means the session holds a cell of the newest entry, so the entry
  * stays. `'stale'` means no cell of the entry holds the value that the entry
  * wrote, so the entry goes. `'applied'` names the cells to write.
  *
@@ -142,8 +142,8 @@ function expected(cell: GridHistoryCell, step: GridHistoryStep): unknown {
 /**
  * Takes the newest entry of the stack that `step` names. The result names the
  * cells that still hold the value that the entry wrote. The entry moves to the
- * other stack with those cells only. An entry with a drafted cell waits, and an
- * entry with no cell left goes.
+ * other stack with those cells only. An entry with a cell that the session
+ * holds waits, and an entry with no cell left goes.
  *
  * @internal
  */

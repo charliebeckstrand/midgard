@@ -436,7 +436,8 @@ export function describeSettle(
 /**
  * The polite announcement for an undo or a redo that writes nothing (WCAG
  * 4.1.3). `'empty'` reads `Nothing to undo`. `'blocked'` reads `Cannot undo
- * while a cell has an edit`, because a draft of the entry's cells is open.
+ * while a cell has an edit`, because a cell of the entry is open in an editor
+ * or holds a draft.
  * `'stale'` reads `Cannot undo, the cells changed`, because each cell of the
  * entry holds a new value since the save.
  *

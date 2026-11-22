@@ -562,7 +562,8 @@ export type GridEditableConfig = {
 	 * holds the value that the last save wrote. A cell that changed since, for
 	 * example through a refetch, keeps its value. A column with no `field` is
 	 * not in the history, because the grid cannot read its old value. A step
-	 * waits while one of its cells has an edit that is not saved. The history
+	 * waits while the editor of one of its cells is open, or while one of its
+	 * cells has an edit that is not saved. The history
 	 * works under both values of {@link GridEditableConfig.session}. The
 	 * new-row slot is not in it.
 	 * @defaultValue false

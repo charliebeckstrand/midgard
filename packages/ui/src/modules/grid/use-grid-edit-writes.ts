@@ -33,7 +33,7 @@ import {
 	historyValue,
 	recordWrite,
 } from './engine/grid-edit/history'
-import { findCoord, type GridDraftStore, readKeyPress } from './engine/grid-edit/utilities'
+import { findCoord, readKeyPress } from './engine/grid-edit/utilities'
 import type { GridEditSource } from './grid-data-types'
 import type { GridCellChange, GridEditableConfig } from './grid-editing-types'
 import type { GridColumn } from './types'
@@ -49,7 +49,7 @@ import type { Coord } from './use-grid-navigation'
  * @internal
  */
 export function useGridEditWrites<T>({
-	drafts,
+	held,
 	editSourceRef,
 	rowKeysRef,
 	cursorColumnsRef,
@@ -60,7 +60,11 @@ export function useGridEditWrites<T>({
 	sendReject,
 	trackBatch,
 }: {
-	drafts: GridDraftStore
+	/**
+	 * Whether the session holds a cell: its editor is open, or it holds a
+	 * draft. A paste, a fill, and a history step skip such a cell.
+	 */
+	held: (rowKey: string | number, columnId: string | number) => boolean
 	editSourceRef: RefObject<GridEditSource<T>>
 	rowKeysRef: RefObject<(string | number)[]>
 	/** The columns of the cursor: the visible columns, in display order. */
@@ -125,7 +129,7 @@ export function useGridEditWrites<T>({
 	)
 
 	// Writes the text of a paste into its cells, as one save. A cell that its
-	// column cannot edit, that has no `field`, or that holds a draft is
+	// column cannot edit, that has no `field`, or that the session holds is
 	// skipped. A text that does not fit its cell is refused. A clear and a cut
 	// are a paste of empty text, and the outcome names them.
 	const pasteCells = useCallback(
@@ -141,9 +145,7 @@ export function useGridEditWrites<T>({
 			let skipped = 0
 
 			for (const cell of cells) {
-				const drafted = drafts.read(cell.rowKey, cell.columnId) !== undefined
-
-				const paste = drafted ? null : pasteChange(source, getRow, cell)
+				const paste = held(cell.rowKey, cell.columnId) ? null : pasteChange(source, getRow, cell)
 
 				if (!paste) skipped++
 				else if (paste.fits) changes.push(paste.change)
@@ -152,7 +154,7 @@ export function useGridEditWrites<T>({
 
 			submitCells(changes, outcome, getRow, { refused, skipped })
 		},
-		[editSourceRef, drafts, submitCells],
+		[editSourceRef, held, submitCells],
 	)
 
 	// Writes the values of a fill into their cells, as one save. A fill skips
@@ -168,15 +170,13 @@ export function useGridEditWrites<T>({
 			let skipped = 0
 
 			for (const cell of cells) {
-				const drafted = drafts.read(cell.rowKey, cell.columnId) !== undefined
-
-				if (drafted || !writeTarget(source, getRow, cell)) skipped++
+				if (held(cell.rowKey, cell.columnId) || !writeTarget(source, getRow, cell)) skipped++
 				else changes.push(cell)
 			}
 
 			submitCells(changes, 'filled', getRow, { refused: [], skipped })
 		},
-		[editSourceRef, drafts, submitCells],
+		[editSourceRef, held, submitCells],
 	)
 
 	// Moves the cursor to a cell that a history step wrote, when the grid shows
@@ -207,7 +207,7 @@ export function useGridEditWrites<T>({
 
 			const result = takeStep(step, {
 				current: (cell) => readHistoryCell(source, getRow, cell),
-				drafted: (cell) => drafts.read(cell.rowKey, cell.columnId) !== undefined,
+				drafted: (cell) => held(cell.rowKey, cell.columnId),
 			})
 
 			if (result.status !== 'applied') {
@@ -230,7 +230,7 @@ export function useGridEditWrites<T>({
 
 			return true
 		},
-		[historyOn, editSourceRef, takeStep, drafts, submitCells, moveToCell, intl],
+		[historyOn, editSourceRef, takeStep, held, submitCells, moveToCell, intl],
 	)
 
 	// The step of the grid's `ref` handle. Focus is on the control that sent it,
