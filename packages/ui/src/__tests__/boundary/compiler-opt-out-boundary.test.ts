@@ -26,6 +26,10 @@ const OPT_OUTS = {
 
 const OPT_OUT = /(['"])use no memo\1/g
 
+// A suppression of the dependency lint. The pattern joins its parts, so this
+// file does not match itself.
+const DEPENDENCY_IGNORE = new RegExp(['biome', 'ignore lint/correctness/useExhaustive'].join('-'))
+
 describe('React Compiler opt-outs', () => {
 	it('only the listed functions keep the compiler off', () => {
 		const found: Record<string, number> = {}
@@ -39,5 +43,19 @@ describe('React Compiler opt-outs', () => {
 		})
 
 		expect(found).toEqual(OPT_OUTS)
+	})
+
+	// The compiler caches on the dependencies that the lint reads, so a
+	// suppressed lint hides a stale value (CONVENTIONS §10.7). The
+	// `no-unused-layout-read` Biome plugin holds the other half of §10.7: a bare
+	// layout read and a `void` of a name.
+	it('no source suppresses the exhaustive dependency lint', () => {
+		const found: string[] = []
+
+		walkSource(srcDir, (file, content) => {
+			if (isSourceFile(file) && DEPENDENCY_IGNORE.test(content)) found.push(srcRelative(file))
+		})
+
+		expect(found, 'list what the effect or the memo reads (CONVENTIONS §10.7)').toEqual([])
 	})
 })

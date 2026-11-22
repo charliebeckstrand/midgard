@@ -657,6 +657,15 @@
 		{
 			"includes": [
 				"packages/ui/src/**",
+				"!**/__tests__/**",
+				"!**/__benchmarks__/**",
+				"!packages/ui/src/utilities/force-style-flush.ts"
+			],
+			"plugins": ["./.biome/plugins/no-unused-layout-read.grit"]
+		},
+		{
+			"includes": [
+				"packages/ui/src/**",
 				"apps/**",
 				"!**/__tests__/**",
 				"!**/__benchmarks__/**",

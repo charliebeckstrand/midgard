@@ -1,0 +1,27 @@
+language js
+
+// The React Compiler removes a read whose value goes unused (CONVENTIONS
+// §10.7). A bare read of the layout, such as `element.offsetHeight;`, then
+// flushes no style, and a `void key;` then reads nothing. Neither gives an
+// error at run time. Force a style flush with `forceStyleFlush()` from
+// `utilities/force-style-flush.ts`. Make an effect read a value that it uses.
+//
+// The plugin matches an expression statement that only reads `offsetHeight`,
+// `offsetWidth`, or `getBoundingClientRect()`, or that is `void` of a name. A
+// read whose value the code keeps, and `void` of a call, pass.
+//
+// Reach is the `includes` beside this plugin in `biome.json`: the `ui` source,
+// minus tests, benchmarks, and `force-style-flush.ts` itself.
+JsExpressionStatement(expression = $expression) as $statement where {
+	or {
+		$expression <: or { `$_.offsetHeight`, `$_.offsetWidth`, `$_.getBoundingClientRect()` },
+		and {
+			$expression <: `void $name`,
+			$name <: JsIdentifierExpression()
+		}
+	},
+	register_diagnostic(
+		span = $statement,
+		message = "the React Compiler removes a read whose value goes unused: flush a style with `forceStyleFlush()`, and make an effect read a value that it uses (CONVENTIONS §10.7)"
+	)
+}
