@@ -282,8 +282,9 @@ type MapPlatBaseProps = AccessibleName &
 		/**
 		 * Shows the zoom-in, zoom-out, and reset buttons of a zooming map. Each
 		 * button steps the view as the `+`, `-`, and `0` keys do, and speaks the
-		 * same line. They sit beside the `role="img"` plot, in a named group, so
-		 * each is a tab stop of its own. A button at the end of its range is
+		 * same line. They sit in a gutter beside the `role="img"` plot, in a named
+		 * group, so they never cover the geography and each is a tab stop of its
+		 * own. A button at the end of its range is
 		 * `aria-disabled` and keeps the focus. A map with no `zoom` shows none.
 		 *
 		 * The buttons are the single-pointer path to each scale, which WCAG 2.2

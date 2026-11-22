@@ -268,9 +268,10 @@ export function MapPlotRegion({
 		}, surface?.onClickCapture ?? noop),
 	}
 
-	// The buttons sit beside the image, in a box of their own that takes the
-	// layout of the plot. The image role makes each descendant presentational,
-	// so a button inside the plot has no name and no role.
+	// The buttons sit beside the image, in a gutter of a box that takes the
+	// layout of the plot, so they never cover the geography. The image role
+	// makes each descendant presentational, so a button inside the plot has no
+	// name and no role.
 	const zoomControls = controls && zoom !== null ? <MapZoomControls zoom={zoom} /> : null
 
 	const plot = (
@@ -327,7 +328,7 @@ export function MapPlotRegion({
 	return (
 		<div
 			data-slot="map-plot-box"
-			className={cn('relative', plotLayout(aside, shape.fill))}
+			className={cn(k.zoomBox, plotLayout(aside, shape.fill))}
 			style={plotStyle(shape)}
 		>
 			{plot}

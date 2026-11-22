@@ -307,16 +307,22 @@ export const k = {
 		},
 	},
 	/**
-	 * The zoom buttons of a zooming map, over the top end corner of the plot. The
-	 * group sits on the opaque surface fill with a ring, so each glyph stays
-	 * legible over any region color. It follows the reading direction: a
-	 * right-to-left page puts it at the top left. The buttons touch, so the
-	 * stack is a grid with the touch pitch: on a coarse pointer each row is 44 px
-	 * tall, and the hit area of a button does not reach over the next
-	 * (CONVENTIONS §3.10).
+	 * The box around the plot and the zoom buttons of a zooming map. The buttons
+	 * take a gutter column at the end of the plot, so they never cover the
+	 * geography. The plot takes the column that stays (`minmax(0,1fr)`), and can
+	 * become narrower than its content. The column order follows the reading
+	 * direction: a right-to-left page puts the gutter at the left.
+	 */
+	zoomBox: 'grid grid-cols-[minmax(0,1fr)_auto] gap-2',
+	/**
+	 * The zoom buttons of a zooming map, at the top of the gutter beside the
+	 * plot. The group sits on the opaque surface fill with a ring, so it reads as
+	 * one control. The buttons touch, so the stack is a grid with the touch
+	 * pitch: on a coarse pointer each row is 44 px tall, and the hit area of a
+	 * button does not reach over the next (CONVENTIONS §3.10).
 	 */
 	zoomControls: [
-		'absolute end-2 top-2 z-10 grid rounded-lg shadow-sm',
+		'grid self-start rounded-lg',
 		narabi.touch.pitch,
 		omote.bg.surface,
 		sen.ring.default,
