@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
+import { runtimeFiles } from '../helpers/import-graph'
 import { isSourceFile, srcDir, srcRelative, walkSource } from '../helpers/walk-source'
 
 // Static leaves are the library's server-renderable surface: no 'use client'
@@ -25,13 +26,13 @@ import { isSourceFile, srcDir, srcRelative, walkSource } from '../helpers/walk-s
 //     the scan already owns them.
 //   - Every source file under `structure` is scanned the same way. The
 //     folder holds only static layout units, so it needs no list either.
-//   - STATIC_PRIMITIVE_FILES holds the primitives a static leaf renders
-//     through. A leaf can only be as server-renderable as what it imports,
-//     and the checks above read one file at a time: a directive or a hook
-//     landing in `PolymorphicStatic` would leave every leaf that renders
-//     through it clean here while breaking all of them at an app's build.
-//     These files are the static tier's own dependencies, so they answer to
-//     the same contract.
+//
+// A leaf is only as server-renderable as what it imports. So the gate walks
+// the runtime imports from each static file, and applies the same checks to
+// each file that the walk reaches, such as `PolymorphicStatic`. A file with
+// `'use client'` is a client boundary that a server module can render, so the
+// walk stops there. The checks of the import sources below decide which
+// boundaries a static file may cross.
 //
 // Curated paths are relative to `src/components`.
 const STATIC_COMPONENT_FILES = [
@@ -85,17 +86,7 @@ const STATIC_COMPONENT_FILES = [
 	'text/text.tsx',
 ] as const
 
-// Paths are relative to `src/primitives`.
-const STATIC_PRIMITIVE_FILES = [
-	'polymorphic/polymorphic-static.tsx',
-	'polymorphic/types.ts',
-	'polymorphic/polymorphic-render-props.ts',
-	'link/link-rel.ts',
-] as const
-
 const componentsDir = join(srcDir, 'components')
-
-const primitivesDir = join(srcDir, 'primitives')
 
 const structureDir = join(srcDir, 'structure')
 
@@ -115,13 +106,6 @@ function collectStructureFiles(): string[] {
 }
 
 const modulesDir = join(srcDir, 'modules')
-
-/** Each curated static file, with the directory that holds it. */
-const STATIC_FILES = [
-	...STATIC_COMPONENT_FILES.map((file) => [file, componentsDir] as const),
-	...collectStructureFiles().map((path) => [srcRelative(path), srcDir] as const),
-	...STATIC_PRIMITIVE_FILES.map((file) => [file, primitivesDir] as const),
-]
 
 // Ambient-context sources a static leaf must not import. `primitives/link`
 // and `primitives/polymorphic`'s client export read LinkContext;
@@ -188,38 +172,41 @@ function collectSkeletonFiles(): string[] {
 	return files.sort()
 }
 
+/** Whether a source is a client boundary: a module that opens with `'use client'`. */
+function isClient(_file: string, source: string): boolean {
+	return /^['"]use client['"]/.test(source)
+}
+
+/**
+ * Each static file and each file that its runtime imports reach, up to a
+ * client boundary, relative to `src`. The curated leaves, the structure units,
+ * and the skeletons start the walk. A start file stays in the result even when
+ * it is a client module, so its directive fails the check.
+ */
+function collectStaticGraph(): string[] {
+	const entries = [
+		...STATIC_COMPONENT_FILES.map((file) => join(componentsDir, file)),
+		...collectStructureFiles(),
+		...collectSkeletonFiles(),
+	]
+
+	return [...runtimeFiles(entries, isClient)].map(srcRelative).sort()
+}
+
 describe('static component boundary', () => {
-	it.for(STATIC_FILES)('%s stays server-renderable', ([file, dir]) => {
-		const breaches = staticBreaches(readFileSync(join(dir, file), 'utf8'))
+	it.for(collectStaticGraph())('%s stays server-renderable', (file) => {
+		const breaches = staticBreaches(readFileSync(join(srcDir, file), 'utf8'))
 
 		expect(breaches, `${file}: ${breaches.join(', ')}`).toEqual([])
 	})
 
 	it('the curated static list has no stale entries', () => {
-		const missing = [
-			...STATIC_COMPONENT_FILES.filter((file) => !existsSync(join(componentsDir, file))),
-			...STATIC_PRIMITIVE_FILES.filter((file) => !existsSync(join(primitivesDir, file))),
-		]
+		const missing = STATIC_COMPONENT_FILES.filter((file) => !existsSync(join(componentsDir, file)))
 
 		expect(
 			missing,
 			`static list entry/ies point to files that no longer exist — remove them:\n${missing
 				.map((file) => `  ${file}`)
-				.join('\n')}`,
-		).toEqual([])
-	})
-
-	it('every skeleton variant stays server-renderable', () => {
-		const violations = collectSkeletonFiles().flatMap((path) => {
-			const breaches = staticBreaches(readFileSync(path, 'utf8'))
-
-			return breaches.length ? [`${srcRelative(path)}: ${breaches.join(', ')}`] : []
-		})
-
-		expect(
-			violations,
-			`skeleton variants must stay static (CONVENTIONS §3.7):\n${violations
-				.map((line) => `  ${line}`)
 				.join('\n')}`,
 		).toEqual([])
 	})

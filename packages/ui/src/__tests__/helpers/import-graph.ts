@@ -48,3 +48,46 @@ export function runtimePathsTo(entry: string, isTarget: (file: string) => boolea
 
 	return found
 }
+
+/**
+ * Each file that the runtime imports of `entries` reach, the entries included.
+ * The walk follows the same imports as {@link runtimePathsTo}. A file that
+ * `isBoundary` accepts is a boundary: the walk does not enter it, and the
+ * result does not hold it.
+ *
+ * @param entries - The absolute paths that the walk starts from.
+ * @param isBoundary - Whether the walk stops at a file, given its path and its source.
+ * @returns The absolute paths of the files that the walk reached.
+ */
+export function runtimeFiles(
+	entries: readonly string[],
+	isBoundary: (file: string, source: string) => boolean = () => false,
+): Set<string> {
+	const reached = new Set<string>()
+
+	const seen = new Set<string>(entries)
+
+	const queue = [...entries]
+
+	for (let file = queue.shift(); file !== undefined; file = queue.shift()) {
+		const source = readFileSync(file, 'utf8')
+
+		if (!entries.includes(file) && isBoundary(file, source)) continue
+
+		reached.add(file)
+
+		for (const { specifier, runtime } of parseImports(source)) {
+			if (!runtime || !specifier.startsWith('.')) continue
+
+			const next = resolveSource(file, specifier)
+
+			if (next === undefined || seen.has(next)) continue
+
+			seen.add(next)
+
+			queue.push(next)
+		}
+	}
+
+	return reached
+}

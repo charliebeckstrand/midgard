@@ -1,6 +1,6 @@
 # Server
 
-> **Quick-glance index of `ui/server`.** Functions that run on a server: in a Next.js server module, the server of an app (`shared/server`), or the docs server. Each file is plain TypeScript. It renders no React, and it has no `'use client'`. Code that waits for hydration in the browser is in `ui/hooks` (`useHydrated`). CONVENTIONS §3.13 gives the rules of the first paint.
+> **Quick-glance index of `ui/server`.** Functions that run on a server: in a Next.js server module, the server of an app (`shared/server`), or the docs server. Each file is plain TypeScript. It renders no React, and it has no `'use client'`. `server-graph-boundary.test.ts` walks the runtime imports from `server/index.ts` and holds the rule for each file that it reaches. Code that waits for hydration in the browser is in `ui/hooks` (`useHydrated`). CONVENTIONS §3.13 gives the rules of the first paint.
 
 ```ts
 import { markRoot, rootMarks } from 'ui/server'
