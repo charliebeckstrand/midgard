@@ -1,6 +1,6 @@
 # Map roadmap
 
-> **Goal: give the map apps the controls that they now build with overrides, and close the zoom gaps of WCAG 2.2.** Places and Elections use `MapPlat` and `MapPoints` only. The other marks, the OSRM client, and `useMapCoverage` have no app user yet, so new work on them waits for a need.
+> **Goal: give the map apps the controls that they now build with overrides.** Places and Elections use `MapPlat` and `MapPoints` only. The other marks, the OSRM client, and `useMapCoverage` have no app user yet, so new work on them waits for a need.
 
 ## Status
 
@@ -12,7 +12,7 @@ The map is a picker with no selection state of its own. `onRegionClick`, `select
 
 The plot is one tab stop. The arrow keys step to the nearest region or mark in that direction, Enter picks, and Escape leaves the plot. The stop comes from an output that exists: a matched row, a named region, a pick, a zoom, or a registered overlay. A backdrop map takes no stop. The cursor steps by geographic centroids, which the plat computes on the first arrow key. [`map-centroid-deferral.test.tsx`](../../__tests__/boundary/map-centroid-deferral.test.tsx) gates the mount, the render, and the resize paths at zero centroid passes.
 
-`zoom` is a transform over the fitted geography, not a refit. Shift and the wheel zoom, a drag pans, two touches pan and pinch, and `+`, `-`, and `0` zoom from the keyboard. Each spec in pixels divides by the units-per-pixel scale that `MapZoomScaleContext` publishes, so strokes, dots, and hit targets keep their size. [`map-plat-zoom.test.tsx`](../../__tests__/modules/map-plat-zoom.test.tsx) asserts the product of the frame scale and the zoom scale. [`map-zoom-notch-render.test.tsx`](../../__tests__/boundary/map-zoom-notch-render.test.tsx) counts the renders of one wheel notch.
+`zoom` is a transform over the fitted geography, not a refit. Shift and the wheel zoom, a drag pans, two touches pan and pinch, and `+`, `-`, and `0` zoom from the keyboard. The zoom-in, zoom-out, and reset buttons of `MapZoomControls` sit beside the plot, and give the single-pointer path of WCAG 2.2 SC 2.5.1 and SC 2.5.7. Each spec in pixels divides by the units-per-pixel scale that `MapZoomScaleContext` publishes, so strokes, dots, and hit targets keep their size. [`map-plat-zoom.test.tsx`](../../__tests__/modules/map-plat-zoom.test.tsx) asserts the product of the frame scale and the zoom scale. [`map-zoom-notch-render.test.tsx`](../../__tests__/boundary/map-zoom-notch-render.test.tsx) counts the renders of one wheel notch.
 
 `MapPoints` merges the dots that the frame draws too close together into graded summaries. One merge tree for each plat cuts at the scale of the view, so the sets on one plat never overlap. The server cannot know the box, so a set with its own `color` paints the groups of every width behind a container query. [`map-points-server-markup.test.tsx`](../../__tests__/modules/map-points-server-markup.test.tsx) and [`map-stripes-first-paint.test.tsx`](../../__tests__/browser/geometry/map-stripes-first-paint.test.tsx) hold the first paint.
 
