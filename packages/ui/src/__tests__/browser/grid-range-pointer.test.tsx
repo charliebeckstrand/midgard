@@ -423,6 +423,86 @@ describe('grid fill handle (real browser)', () => {
 })
 
 /**
+ * The drag of the fill handle over a series of text and of dates (real
+ * browser). The engine cases hold each rule of a series. These hold that the
+ * drag writes the values of the series, in the type of their source.
+ */
+describe('grid fill handle over text and date series (real browser)', () => {
+	type Row = { id: number; item: string; due: string; start: Date }
+
+	const columns: GridColumn<Row>[] = [
+		{ id: 'item', title: 'Item', field: 'item', cell: (row) => row.item },
+		{ id: 'due', title: 'Due', field: 'due', cell: (row) => row.due },
+		{
+			id: 'start',
+			title: 'Start',
+			field: 'start',
+			cell: (row) => row.start.toDateString(),
+		},
+	]
+
+	// The first two rows make a series in each column, and the rest are blank.
+	const rows: Row[] = [
+		{ id: 1, item: 'Item 1', due: '2026-01-31', start: new Date(2026, 2, 1) },
+		{ id: 2, item: 'Item 2', due: '2026-02-28', start: new Date(2026, 2, 8) },
+		{ id: 3, item: '', due: '', start: new Date(2000, 0, 1) },
+		{ id: 4, item: '', due: '', start: new Date(2000, 0, 1) },
+	]
+
+	/** Selects the first two rows of a column, and drags the fill handle to the last row. */
+	async function dragDown(column: string) {
+		const onCommit = vi.fn()
+
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={(row) => row.id}
+				range
+				editable={{ session: 'managed', onCommit }}
+			/>,
+		)
+
+		onTestFinished(() => commands.releasePointer())
+
+		await userEvent.click(cell(1, column))
+
+		await userEvent.keyboard('{Shift>}{ArrowDown}{/Shift}')
+
+		await commands.pressPointer('[data-slot="grid-fill-handle"]')
+
+		await userEvent.hover(cell(4, column))
+
+		await waitFor(() => expect(document.querySelectorAll('td[data-in-range]')).toHaveLength(4))
+
+		await commands.releasePointer()
+
+		return onCommit.mock.calls.flat()
+	}
+
+	it('continues the number at the end of the text', async () => {
+		expect(await dragDown('item')).toEqual([
+			[{ rowKey: 3, columnId: 'item', value: 'Item 3' }],
+			[{ rowKey: 4, columnId: 'item', value: 'Item 4' }],
+		])
+	})
+
+	it('continues `YYYY-MM-DD` strings by months, on the last day of a short month', async () => {
+		expect(await dragDown('due')).toEqual([
+			[{ rowKey: 3, columnId: 'due', value: '2026-03-31' }],
+			[{ rowKey: 4, columnId: 'due', value: '2026-04-30' }],
+		])
+	})
+
+	it('continues `Date` values by days, as `Date` values', async () => {
+		expect(await dragDown('start')).toEqual([
+			[{ rowKey: 3, columnId: 'start', value: new Date(2026, 2, 15) }],
+			[{ rowKey: 4, columnId: 'start', value: new Date(2026, 2, 22) }],
+		])
+	})
+})
+
+/**
  * The drag of the fill handle in a grouped grid (real browser). The drag
  * counts the rows that the cursor shows, so it skips the rows of a closed
  * group.
