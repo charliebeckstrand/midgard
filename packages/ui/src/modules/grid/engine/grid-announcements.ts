@@ -120,16 +120,16 @@ const messages = defineMessages<{
 	cellOutcome: {
 		id: 'ui.grid.cellOutcome',
 		defaultMessage:
-			'{column} {outcome, select, updated {updated} undone {undone} redone {redone} pasted {pasted} filled {filled} other {not saved}}',
+			'{column} {outcome, select, updated {updated} undone {undone} redone {redone} pasted {pasted} filled {filled} cleared {cleared} cut {cut} other {not saved}}',
 		description:
-			'Spoken when an edit of one cell of the grid saves, undoes, redoes, pastes, fills, or fails. The column names the cell.',
+			'Spoken when an edit of one cell of the grid saves, undoes, redoes, pastes, fills, clears, cuts, or fails. The column names the cell.',
 	},
 	cellsOutcome: {
 		id: 'ui.grid.cellsOutcome',
 		defaultMessage:
-			'{count, plural, one {# cell} other {# cells}} {outcome, select, updated {updated} undone {undone} redone {redone} pasted {pasted} filled {filled} other {not saved}}',
+			'{count, plural, one {# cell} other {# cells}} {outcome, select, updated {updated} undone {undone} redone {redone} pasted {pasted} filled {filled} cleared {cleared} cut {cut} other {not saved}}',
 		description:
-			'Spoken when an edit of many cells of the grid saves, undoes, redoes, pastes, fills, or fails. The count is the number of cells.',
+			'Spoken when an edit of many cells of the grid saves, undoes, redoes, pastes, fills, clears, cuts, or fails. The count is the number of cells.',
 	},
 	forRow: {
 		id: 'ui.grid.forRow',
@@ -328,9 +328,20 @@ function forRow(intl: IntlShape, cells: string, row: string | undefined): string
 
 /**
  * What a save did to its cells: a save updates them, an undo undoes them, a
- * redo redoes them, a paste pastes them, and a fill fills them. @internal
+ * redo redoes them, a paste pastes them, a fill fills them, a clear clears
+ * them, and a cut cuts them. @internal
  */
-export type GridSaveOutcome = 'updated' | 'undone' | 'redone' | 'pasted' | 'filled'
+export type GridSaveOutcome =
+	| 'updated'
+	| 'undone'
+	| 'redone'
+	| 'pasted'
+	| 'filled'
+	| 'cleared'
+	| 'cut'
+
+/** The outcome of a write of text into cells: a paste, a clear, or a cut. @internal */
+export type GridPasteOutcome = Extract<GridSaveOutcome, 'pasted' | 'cleared' | 'cut'>
 
 /**
  * The polite announcement for an inline-edit commit, narrated when staged cells

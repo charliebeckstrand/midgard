@@ -16,6 +16,7 @@ import { useMediaQuery } from '../../hooks/use-media-query'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { PHONE_QUERY } from '../../utilities/media-query'
 import type { GridEditingSession, GridNewRowSession, GridSettleControls } from './context'
+import type { GridPasteOutcome } from './engine/grid-announcements'
 import { EMPTY_SET } from './engine/grid-constants'
 import type { GridFillCell, GridPasteCell } from './engine/grid-edit/commit'
 import { columnInUse, firstEditorCell } from './engine/grid-edit/focus'
@@ -99,11 +100,12 @@ export type GridEditingApi = {
 	 */
 	stepHistory: (step: GridHistoryStep) => boolean
 	/**
-	 * Writes the text of a paste into its cells, as one save, for the paste
-	 * handler of {@link useGridEditCursor}. Present under
-	 * `editable.session: 'managed'` only.
+	 * Writes the text of a paste into its cells, as one save, for the paste,
+	 * clear, and cut handlers of {@link useGridEditCursor}. The outcome names
+	 * the write in its announcement. Present under `editable.session: 'managed'`
+	 * only.
 	 */
-	pasteCells: ((cells: readonly GridPasteCell[]) => void) | undefined
+	pasteCells: ((cells: readonly GridPasteCell[], outcome?: GridPasteOutcome) => void) | undefined
 	/**
 	 * Writes the values of a fill into their cells, as one save, for the fill
 	 * of {@link useGridEditCursor}. Present under `editable.session: 'managed'` only.

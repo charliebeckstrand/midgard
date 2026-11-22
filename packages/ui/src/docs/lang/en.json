@@ -1879,10 +1879,6 @@
 		"defaultMessage": "You created your account.",
 		"description": "Text of a demo in the docs, in components/timeline/per-item-variant.tsx."
 	},
-	"docs.demo.346803b2d461": {
-		"defaultMessage": "Select a range, then paste with Ctrl+V or Cmd+V, or fill down with Ctrl+D or Cmd+D.",
-		"description": "Text of a demo in the docs as mouseText, in modules/grid/editing/paste-and-fill.tsx."
-	},
 	"docs.demo.346a1dd305a8": {
 		"defaultMessage": "Item sizes",
 		"description": "Text of a demo in the docs as aria-label, in components/sidebar/item-size.tsx."
@@ -3962,6 +3958,10 @@
 	"docs.demo.a587aa1f4ffc": {
 		"defaultMessage": "Account settings",
 		"description": "Text of a demo in the docs, in components/heading/playground.tsx."
+	},
+	"docs.demo.a592f9686197": {
+		"defaultMessage": "Select a range, then paste with Ctrl+V or Cmd+V, clear with Delete, cut with Ctrl+X or Cmd+X, or fill down with Ctrl+D or Cmd+D.",
+		"description": "Text of a demo in the docs as mouseText, in modules/grid/editing/paste-and-fill.tsx."
 	},
 	"docs.demo.a59321e137ed": {
 		"defaultMessage": "Twelve stops are late",

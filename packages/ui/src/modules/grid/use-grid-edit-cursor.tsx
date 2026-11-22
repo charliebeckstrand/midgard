@@ -250,7 +250,7 @@ export function useGridEditCursor<T>({
 		return managed && column !== undefined && isColumnEditable(column)
 	})
 
-	const { nav, copies, seated } = useGridCursorNav<T>({
+	const { nav, copies, seated, copyCells } = useGridCursorNav<T>({
 		enabled: cursorEnabled,
 		range,
 		onRowActivate,
@@ -453,6 +453,44 @@ export function useGridEditCursor<T>({
 		)
 	})
 
+	// Writes empty text into the range, or into the active cell with no range,
+	// as one save. A clear is a paste of one empty field, so each cell takes
+	// the empty value of its column (see `coercePaste`).
+	const clearCells = useStableEvent((cells: GridRangeCells, outcome: 'cleared' | 'cut') => {
+		pasteCells?.(
+			pasteTargets([['']], cells, rowKeysRef.current, cursorColumnsRef.current, nav.rowStep),
+			outcome,
+		)
+	})
+
+	// A cut while the tab stop has focus copies as a copy does, and then clears
+	// the cells that it copied.
+	const cutRange = useStableEvent((event: ClipboardEvent) => {
+		if (!pasteCells) return
+
+		const cells = copyCells(event)
+
+		if (cells) clearCells(cells, 'cut')
+	})
+
+	// Delete and Backspace on the tab stop clear the range, or the active cell
+	// with no range. A press from a control in the grid stays the control's.
+	const clearKeys = useStableEvent((event: KeyboardEvent<HTMLTableElement>) => {
+		if (event.target !== event.currentTarget || event.defaultPrevented) return
+
+		if (event.key !== 'Delete' && event.key !== 'Backspace') return
+
+		if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return
+
+		const cells = readRange() ?? activeCells(nav.active)
+
+		if (!pasteCells || !cells) return
+
+		event.preventDefault()
+
+		clearCells(cells, 'cleared')
+	})
+
 	const { fillCells } = editing
 
 	// Fills `count` lines after a source block in `direction`, as one save.
@@ -581,8 +619,17 @@ export function useGridEditCursor<T>({
 
 		document.addEventListener('paste', pasteRange)
 
-		return () => document.removeEventListener('paste', pasteRange)
-	}, [pastes, pasteRange])
+		document.addEventListener('cut', cutRange)
+
+		return () => {
+			document.removeEventListener('paste', pasteRange)
+
+			document.removeEventListener('cut', cutRange)
+		}
+	}, [pastes, pasteRange, cutRange])
+
+	// The clear keys act only where the grid pastes: a range on an editable grid.
+	const clears = copies && pasteCells !== undefined
 
 	// The `<table>` cursor props, with the history keys layered ahead of
 	// navigation when the history is on, and the session's keys when the grid
@@ -611,6 +658,8 @@ export function useGridEditCursor<T>({
 				historyKeys?.(event)
 
 				fillKeys?.(event)
+
+				if (clears) clearKeys(event)
 
 				if (sessionKeys) {
 					sessionKeys(event)
@@ -642,6 +691,8 @@ export function useGridEditCursor<T>({
 		editing.sessionLeave,
 		sessionEntryKeys,
 		fillKeys,
+		clears,
+		clearKeys,
 	])
 
 	const newRowSession = editing.newRow.session
