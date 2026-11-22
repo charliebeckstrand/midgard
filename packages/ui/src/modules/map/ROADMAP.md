@@ -60,11 +60,9 @@ The rest of the module holds to CONVENTIONS through the gates that the status na
 
 ## Accessibility and testing
 
-1. **Visible zoom controls (*P1*).** Both apps turn `zoom` on, and on a touch screen only a pinch zooms and only a drag pans. WCAG 2.2 SC 2.5.1 and SC 2.5.7 require a single-pointer alternative to each, and the zoom keys do not satisfy a pointer criterion. Add zoom-in, zoom-out, and reset buttons outside the `role="img"` plot, with their messages in `map-messages.ts`. Leaflet, MapLibre `NavigationControl`, and Highcharts `mapNavigation` do the same. Prove it with the `map (zoom)` case of the a11y corpus and a browser test that taps each button.
+1. **Arrow keys under a screen reader (*P2*).** The plot is a focusable `role="img"` that handles arrow keys. A screen reader in browse mode can keep the arrow keys for its own cursor, because `img` is not a widget role. Test the map with NVDA on Firefox and with VoiceOver on Safari. If the keys do not reach the plot, change the role together with the chart frame (`chart/engine/chart-frame/frame.tsx`), which has the same role. Highcharts moves focus to proxy buttons for this reason.
 
-2. **Arrow keys under a screen reader (*P2*).** The plot is a focusable `role="img"` that handles arrow keys. A screen reader in browse mode can keep the arrow keys for its own cursor, because `img` is not a widget role. Test the map with NVDA on Firefox and with VoiceOver on Safari. If the keys do not reach the plot, change the role together with the chart frame (`chart/engine/chart-frame/frame.tsx`), which has the same role. Highcharts moves focus to proxy buttons for this reason.
-
-3. **The map under forced colors (*P2*).** [`forced-colors-indicators.test.tsx`](../../__tests__/browser/forced-colors-indicators.test.tsx) examines no map part. Add the selection ring, the overlay halo, the focus ring of the plot, and the region fills. The stripe swatch already hides its gradient under forced colors in `kata/map`. A region color that disappears is acceptable only because the table holds the values, and the test must state that.
+2. **The map under forced colors (*P2*).** [`forced-colors-indicators.test.tsx`](../../__tests__/browser/forced-colors-indicators.test.tsx) examines no map part. Add the selection ring, the overlay halo, the focus ring of the plot, and the region fills. The stripe swatch already hides its gradient under forced colors in `kata/map`. A region color that disappears is acceptable only because the table holds the values, and the test must state that.
 
 ## Not planned
 

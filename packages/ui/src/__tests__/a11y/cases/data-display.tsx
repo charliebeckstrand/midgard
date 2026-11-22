@@ -557,10 +557,10 @@ export const dataDisplayCases: readonly Case[] = [
 		),
 	},
 	{
-		// The same plot with the zoom on and the readout off: the gestures are the
+		// The same plot with the zoom on and the readout off. The gestures are the
 		// pointer's, so the scale has to stay reachable from the one tab stop the
-		// zoom earns, and nothing under the aria-hidden SVG may become focusable
-		// with it.
+		// zoom earns, and from the zoom buttons beside the plot. Nothing under the
+		// aria-hidden SVG may become focusable with it.
 		name: 'map (zoom)',
 		element: (
 			<MapPlat

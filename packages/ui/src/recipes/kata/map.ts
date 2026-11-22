@@ -12,7 +12,7 @@
  * - The hover and de-emphasis treatments.
  */
 import { mode } from '../../core/recipe'
-import { dan, hannou, kokkaku, omote, type SeriesSlot, sen, ugoki, zu } from '../kiso'
+import { dan, hannou, kokkaku, narabi, omote, type SeriesSlot, sen, ugoki, zu } from '../kiso'
 
 const { palette, ink, touch, motion } = zu
 
@@ -306,6 +306,21 @@ export const k = {
 				'@lg:grid-cols-[[plot]_minmax(0,1fr)_var(--map-rail)] rtl:@lg:grid-cols-[var(--map-rail)_[plot]_minmax(0,1fr)]',
 		},
 	},
+	/**
+	 * The zoom buttons of a zooming map, over the top end corner of the plot. The
+	 * group sits on the opaque surface fill with a ring, so each glyph stays
+	 * legible over any region color. It follows the reading direction: a
+	 * right-to-left page puts it at the top left. The buttons touch, so the
+	 * stack is a grid with the touch pitch: on a coarse pointer each row is 44 px
+	 * tall, and the hit area of a button does not reach over the next
+	 * (CONVENTIONS §3.10).
+	 */
+	zoomControls: [
+		'absolute end-2 top-2 z-10 grid rounded-lg shadow-sm',
+		narabi.touch.pitch,
+		omote.bg.surface,
+		sen.ring.default,
+	],
 	/** Motion vocabulary for the mount reveals, from `zu`, so the two modules' reveals never drift. */
 	motion,
 	skeleton: {

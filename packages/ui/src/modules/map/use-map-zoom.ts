@@ -94,6 +94,8 @@ export type MapZoom = {
 	gesturing: boolean
 	/** The key that arms the wheel, or `null` where a plain wheel zooms. */
 	modifier: MapZoomSettings['modifier']
+	/** The ceiling of the scale, so a zoom-in control can tell that it is at the end. */
+	max: number
 	surface: MapZoomSurface
 	cursor: MapZoomCursor
 }
@@ -860,6 +862,7 @@ export function useMapZoom({
 		unitsPerPixel: 1 / transform.k,
 		gesturing,
 		modifier: settings.modifier,
+		max,
 		surface: {
 			onPointerDown,
 			onPointerMove,

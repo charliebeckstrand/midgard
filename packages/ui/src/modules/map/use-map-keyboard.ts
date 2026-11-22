@@ -13,14 +13,13 @@ import {
 import { announce } from '../../core/announcer'
 import { type PlotTabStopProps, usePlotTabStop } from '../../hooks/use-plot-tab-stop'
 import { useStableEvent } from '../../hooks/use-stable-event'
-import type { IntlShape } from '../../primitives/intl/types'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { isActivationKey } from '../../utilities/keyboard-navigation'
 import { hasBrowserModifier } from '../../utilities/modifier-keys'
 import { KEY_PRESS } from '../chart/engine/chart-press'
 import type { ChartPress } from '../chart/engine/types'
 import { useMapHoverActions } from './context'
-import { MAP_CURSOR_INSET, MAP_ZOOM_FIT } from './engine/map-constants'
+import { MAP_CURSOR_INSET } from './engine/map-constants'
 import { type MapHoverTarget, sameTarget } from './engine/map-hover/target'
 import { moveCursor } from './engine/map-keyboard/cursor'
 import type { MapStop, MapStopMoves } from './engine/map-keyboard/stops'
@@ -28,7 +27,7 @@ import { frameToClient } from './engine/map-projection/frame'
 import { type MapZoomKey, mapZoomKey, zoomKeyFactor } from './engine/map-zoom/gesture'
 import { applyTransform, MAP_FIT_TRANSFORM, type MapTransform } from './engine/map-zoom/transform'
 import type { MapPoint2D } from './engine/types'
-import { mapMessages, mapZoomMessage } from './map-messages'
+import { describeZoom, mapMessages } from './map-messages'
 import type { MapZoomCursor } from './use-map-zoom'
 
 /**
@@ -41,16 +40,6 @@ import type { MapZoomCursor } from './use-map-zoom'
  */
 function stopKey(target: MapHoverTarget): string {
 	return target.kind === 'region' ? `r${target.index}` : `e${target.id}:${target.stop}`
-}
-
-/**
- * The view scale as one short line of text, for the announcement of a zoom
- * step: the scale as a percent of the fit.
- *
- * @internal
- */
-function describeZoom(intl: IntlShape, transform: MapTransform): string {
-	return intl.formatMessage(mapZoomMessage, { scale: transform.k / MAP_ZOOM_FIT })
 }
 
 /** The stop list, and each stop's position in it by {@link stopKey}. @internal */
