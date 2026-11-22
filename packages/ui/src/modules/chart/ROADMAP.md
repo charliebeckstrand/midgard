@@ -52,9 +52,7 @@ On 2026-11-21, `chart-geometry.bench.ts` measured the smooth `lineGeometry` buil
 
 ## Accessibility and testing
 
-1. **Complete the chart cases of the a11y corpus (*P1*).** `a11y/cases/data-display.tsx` holds Bar, Line, Area, Pie, Donut, Seat, and Combo charts. It holds no `ScatterChart`, `BubbleChart`, `HeatmapChart`, or `ChoroplethChart`, so the sweep gates do not reach them. CONVENTIONS.md §10.5 puts a guarantee for each component of a kind in the corpus. Add a case for each, with an accessible name and a data table.
-
-2. **A summary for a large data table (*P3*).** The hidden table holds one row for each category. A series of 10,000 points thus gives a table too long to read in full (WCAG 1.1.1, 1.3.1). The table is deferred, so it costs nothing on the urgent path, and its layout cost is the text boxes. The open question is a summary above some size that points to "View data" (`engine/chart-data-dialog.tsx`). A jsdom test must hold the row limit and the summary text.
+1. **A summary for a large data table (*P3*).** The hidden table holds one row for each category. A series of 10,000 points thus gives a table too long to read in full (WCAG 1.1.1, 1.3.1). The table is deferred, so it costs nothing on the urgent path, and its layout cost is the text boxes. The open question is a summary above some size that points to "View data" (`engine/chart-data-dialog.tsx`). A jsdom test must hold the row limit and the summary text.
 
 ## Not planned
 

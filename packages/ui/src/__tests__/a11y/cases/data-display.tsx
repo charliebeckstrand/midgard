@@ -56,11 +56,15 @@ import { Tree, TreeItem, TreeSkeleton } from '../../../components/tree'
 import {
 	AreaChart,
 	BarChart,
+	BubbleChart,
 	type ChartSeries,
+	ChoroplethChart,
 	ComboChart,
 	DonutChart,
+	HeatmapChart,
 	LineChart,
 	PieChart,
+	ScatterChart,
 	SeatChart,
 } from '../../../modules/chart'
 import { Grid, type GridColumn } from '../../../modules/grid'
@@ -82,6 +86,31 @@ const chartSeries: ChartSeries<Quarter>[] = [
 	{ xKey: 'quarter', yKey: 'revenue', yName: 'Revenue' },
 	{ xKey: 'quarter', yKey: 'costs', yName: 'Costs' },
 ]
+
+/** The stops of a delivery round, for the charts that plot one value against another. */
+const stopRows = [
+	{ distance: 2, dwell: 6, weight: 12 },
+	{ distance: 5, dwell: 9, weight: 30 },
+	{ distance: 9, dwell: 4, weight: 18 },
+]
+
+/** The orders of each day and hour, for the heatmap. */
+const activityRows = [
+	{ day: 'Mon', hour: '9', orders: 1 },
+	{ day: 'Mon', hour: '10', orders: 4 },
+	{ day: 'Tue', hour: '9', orders: 5 },
+	{ day: 'Tue', hour: '10', orders: 2 },
+]
+
+/** The customers of each region of the test geography, for the choropleth. */
+const regionRows = [
+	{ region: 'A', customers: 12 },
+	{ region: 'B', customers: 40 },
+	{ region: 'C', customers: 25 },
+]
+
+/** The two ends of the color scale of the heatmap and the choropleth. */
+const colorRange: [string, string] = ['#eff6ff', '#1d4ed8']
 
 const dataTableRows: Person[] = [
 	{ id: 1, name: 'Wade Cooper', email: 'wade@example.com' },
@@ -493,6 +522,72 @@ export const dataDisplayCases: readonly Case[] = [
 					{ type: 'bar', xKey: 'quarter', yKey: 'revenue', yName: 'Revenue' },
 					{ type: 'line', xKey: 'quarter', yKey: 'costs', yName: 'Costs' },
 				]}
+				width={360}
+			/>
+		),
+	},
+	{
+		// One series of points over two value axes: the plot is an image, and the
+		// hidden data table holds each point.
+		name: 'scatter chart',
+		element: (
+			<ScatterChart
+				key="scc"
+				aria-label="Dwell time by stop distance"
+				data={stopRows}
+				series={[{ xKey: 'distance', yKey: 'dwell', yName: 'Dwell' }]}
+				width={360}
+			/>
+		),
+	},
+	{
+		// The scatter with a third value as the size of each point.
+		name: 'bubble chart',
+		element: (
+			<BubbleChart
+				key="buc"
+				aria-label="Dwell time by stop distance and weight"
+				data={stopRows}
+				series={[
+					{
+						xKey: 'distance',
+						yKey: 'dwell',
+						sizeKey: 'weight',
+						sizeName: 'Weight',
+						yName: 'Dwell',
+					},
+				]}
+				width={360}
+			/>
+		),
+	},
+	{
+		// A grid of cells shaded by a value, with a range legend and the table.
+		name: 'heatmap chart',
+		element: (
+			<HeatmapChart
+				key="hmc"
+				aria-label="Orders by weekday and hour"
+				data={activityRows}
+				series={[
+					{ xKey: 'hour', yKey: 'day', colorKey: 'orders', colorRange, colorName: 'Orders' },
+				]}
+				width={360}
+			/>
+		),
+	},
+	{
+		// A map whose regions take the color of a value, with a range legend and
+		// the table of the regions.
+		name: 'choropleth chart',
+		element: (
+			<ChoroplethChart
+				key="chc"
+				aria-label="Customers by region"
+				geography={FIXTURE_GEOJSON}
+				legend="range"
+				data={regionRows}
+				series={[{ idKey: 'region', colorKey: 'customers', colorRange, colorName: 'Customers' }]}
 				width={360}
 			/>
 		),
