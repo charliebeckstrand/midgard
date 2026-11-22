@@ -8,9 +8,15 @@ import { useKeyboardLifted } from '../../hooks/use-keyboard-lifted'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { hasBrowserModifier } from '../../utilities/modifier-keys'
+import type { KanbanCardMoves, KanbanCardTarget } from './context'
 import { describeCard, describeMove } from './engine/kanban-announcements'
 import { indexBoard, type KanbanBoard, type KanbanColumnBase } from './engine/kanban-board'
-import { type KanbanMove, stepAcrossColumns, stepInColumn } from './engine/kanban-move'
+import {
+	type KanbanMove,
+	moveToColumn,
+	stepAcrossColumns,
+	stepInColumn,
+} from './engine/kanban-move'
 import { isNavigationKey, liftedStep, neighborCard } from './engine/kanban-navigation'
 import { currentSlot } from './engine/kanban-slot'
 import { kanbanNames } from './kanban-names'
@@ -180,5 +186,48 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 		})
 	})
 
-	return { liftedCardId, setLiftedCardId, onCardKeyDown, onCardBlur }
+	// The moves that the "Move to" menu of a card offers, read when the menu opens.
+	const cardMoves = useStableEvent((cardId: string): KanbanCardMoves => {
+		const board = indexBoard(columns, getKey)
+
+		const names = kanbanNames(containerRef)
+
+		const from = board.places.get(cardId)
+
+		return {
+			cardName: names.card(cardId),
+			up: stepInColumn(board, cardId, -1) !== null,
+			down: stepInColumn(board, cardId, 1) !== null,
+			columns: board.columns.flatMap((column, index) =>
+				index === from?.columnIndex
+					? []
+					: [{ id: column.id, name: names.column(column.id), position: index + 1 }],
+			),
+		}
+	})
+
+	// A move from the "Move to" menu of a card. It reports the move and announces
+	// it as a keyboard step does, and the focus follows the card to its handle.
+	const moveCard = useStableEvent((cardId: string, target: KanbanCardTarget, cardName: string) => {
+		if (!onReorder) return
+
+		const board = indexBoard(columns, getKey)
+
+		const move =
+			'columnId' in target
+				? moveToColumn(board, cardId, target.columnId)
+				: stepInColumn(board, cardId, target.direction)
+
+		if (!move) return
+
+		onReorder(move.columns)
+
+		const names = { ...kanbanNames(containerRef), card: () => cardName }
+
+		announce(describeMove(intl, names, cardId, move.slot), { assertive: true })
+
+		refocusCard(cardId)
+	})
+
+	return { liftedCardId, setLiftedCardId, onCardKeyDown, onCardBlur, cardMoves, moveCard }
 }

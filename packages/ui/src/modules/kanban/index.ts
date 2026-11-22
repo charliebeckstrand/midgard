@@ -2,6 +2,7 @@ export type { KanbanColumnBase } from './engine/kanban-board'
 export { Kanban, type KanbanProps } from './kanban'
 export { KanbanCard, type KanbanCardProps } from './kanban-card'
 export { KanbanCardHandle, type KanbanCardHandleProps } from './kanban-card-handle'
+export { KanbanCardMenu, type KanbanCardMenuProps } from './kanban-card-menu'
 export { KanbanCardSkeleton, type KanbanCardSkeletonProps } from './kanban-card-skeleton'
 export { KanbanColumn, type KanbanColumnProps } from './kanban-column'
 export {

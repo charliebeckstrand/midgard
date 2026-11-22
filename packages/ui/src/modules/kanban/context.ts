@@ -35,7 +35,40 @@ export type KanbanContextValue = {
 	onCardKeyDown: (cardId: string, event: KeyboardEvent) => void
 	/** Blur handler; clears lifted state when focus leaves a card. */
 	onCardBlur: () => void
+	/**
+	 * The moves that the "Move to" menu of a card offers. Call it from an event,
+	 * such as the open of the menu. It keeps its identity.
+	 */
+	cardMoves: (cardId: string) => KanbanCardMoves
+	/**
+	 * Moves a card from its "Move to" menu, and reports the move. The
+	 * announcement takes `cardName`, the name that {@link KanbanCardMoves} read
+	 * before the menu opened. It keeps its identity.
+	 */
+	moveCard: (cardId: string, target: KanbanCardTarget, cardName: string) => void
 }
+
+/** The moves that the "Move to" menu of a card offers. @internal */
+export type KanbanCardMoves = {
+	/**
+	 * The name of the card before the menu opened. The open menu can sit in the
+	 * card, and its items are not part of the name.
+	 */
+	cardName: string
+	/** Whether the card can move one slot up in its column. */
+	up: boolean
+	/** Whether the card can move one slot down in its column. */
+	down: boolean
+	/**
+	 * Each other column, in the order of the board, with its accessible name and
+	 * its 1-based position on the board. The name is `''` for a column with no
+	 * name, and the menu then names it by its position.
+	 */
+	columns: { id: string; name: string; position: number }[]
+}
+
+/** The target of a move from the "Move to" menu: one slot in the column, or the end of another column. @internal */
+export type KanbanCardTarget = { direction: -1 | 1 } | { columnId: string }
 
 /**
  * The board context of the cards. `<Kanban>` gives it, and each card below the

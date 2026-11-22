@@ -6,6 +6,7 @@ import {
 	dropMove,
 	type KanbanMove,
 	moveCard,
+	moveToColumn,
 	stepAcrossColumns,
 	stepInColumn,
 } from '../../modules/kanban/engine/kanban-move'
@@ -146,5 +147,27 @@ describe('stepAcrossColumns', () => {
 				1,
 			),
 		).toBeNull()
+	})
+})
+
+describe('moveToColumn', () => {
+	it('moves the card to the end of the column', () => {
+		const move = moveToColumn(board, 'a', 'done')
+
+		expect(keys(move)).toEqual([['b', 'c'], ['d', 'a'], []])
+
+		expect(move?.slot).toEqual({ columnId: 'done', position: 2, count: 2 })
+	})
+
+	it('moves into an empty column, past the next one', () => {
+		expect(keys(moveToColumn(board, 'b', 'later'))).toEqual([['a', 'c'], ['d'], ['b']])
+	})
+
+	it('gives null for the column of the card, or for an unknown card or column', () => {
+		expect(moveToColumn(board, 'a', 'todo')).toBeNull()
+
+		expect(moveToColumn(board, 'x', 'done')).toBeNull()
+
+		expect(moveToColumn(board, 'a', 'nowhere')).toBeNull()
 	})
 })

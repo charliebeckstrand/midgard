@@ -105,6 +105,11 @@ export function KanbanCardHandle({
 
 	const { cardId, setActivatorNodeRef, attributes, listeners, dragging, lifted, itemId } = card
 
+	// The word "Drag" sits in a hidden span that only the name of the handle reads.
+	// The card item is the rest of the name, and it holds the other controls of
+	// the card. A hidden span adds nothing to their names, as an `aria-label` would.
+	const labelId = `${handleId}-label`
+
 	return (
 		<SortableGrip
 			{...props}
@@ -112,16 +117,19 @@ export function KanbanCardHandle({
 			data-slot="kanban-card-handle"
 			sortable={{ setActivatorNodeRef, attributes, listeners, dragging }}
 			id={handleId}
-			// "Drag" and then the name of the card item. An explicit name replaces both.
-			label={ariaLabel ?? intl.formatMessage(messages.drag)}
-			aria-labelledby={
-				props['aria-labelledby'] ?? (ariaLabel ? undefined : `${handleId} ${itemId}`)
-			}
+			// An explicit name replaces "Drag" and the name of the card item.
+			label={ariaLabel}
+			aria-labelledby={props['aria-labelledby'] ?? (ariaLabel ? undefined : `${labelId} ${itemId}`)}
 			onKeyDown={composeEventHandlers(onKeyDown, (event) => onCardKeyDown(cardId, event))}
 			onBlur={composeEventHandlers(onBlur, onCardBlur)}
 			data-card-id={cardId}
 			className={cn(k({ lifted }).card.handle, className)}
 		>
+			{ariaLabel ? null : (
+				<span id={labelId} hidden>
+					{intl.formatMessage(messages.drag)}
+				</span>
+			)}
 			{content}
 		</SortableGrip>
 	)
