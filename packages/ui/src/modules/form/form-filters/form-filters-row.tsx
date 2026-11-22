@@ -13,8 +13,16 @@ import { useFormFiltersAxis, useFormFiltersName } from './context'
 /**
  * Props for {@link FormFiltersRow}: the field row of the bar, and the `equal`
  * and scroll knobs that it owns. The `<div>` of the row takes the rest.
+ *
+ * @remarks
+ * A `rail` row that overflows is a scroll region. The row then writes its own
+ * `role`, `tabIndex`, and name, and removes them when the fields fit, so the
+ * row takes none of these props. The name of the region comes from the bar.
  */
-export type FormFiltersRowProps = Omit<ComponentProps<'div'>, 'className'> & {
+export type FormFiltersRowProps = Omit<
+	ComponentProps<'div'>,
+	'className' | 'role' | 'tabIndex' | 'aria-label' | 'aria-labelledby'
+> & {
 	/**
 	 * Stretches each field to equal width.
 	 * @defaultValue false

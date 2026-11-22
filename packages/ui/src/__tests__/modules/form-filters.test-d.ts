@@ -1,5 +1,5 @@
 import { describe, expectTypeOf, it } from 'vitest'
-import type { FormFiltersFieldRenderProps } from '../../modules/form'
+import type { FormFiltersFieldRenderProps, FormFiltersRowProps } from '../../modules/form'
 
 describe('FormFiltersField value types', () => {
 	it('keeps the value unknown when the call site names no type', () => {
@@ -12,5 +12,19 @@ describe('FormFiltersField value types', () => {
 		expectTypeOf<FormFiltersFieldRenderProps<number>['onValueChange']>()
 			.parameter(0)
 			.toEqualTypeOf<number | undefined>()
+	})
+})
+
+describe('FormFiltersRow props', () => {
+	it('leaves out the attributes that the scroll region of a rail writes', () => {
+		expectTypeOf<FormFiltersRowProps>().not.toHaveProperty('role')
+
+		expectTypeOf<FormFiltersRowProps>().not.toHaveProperty('tabIndex')
+
+		expectTypeOf<FormFiltersRowProps>().not.toHaveProperty('aria-label')
+
+		expectTypeOf<FormFiltersRowProps>().not.toHaveProperty('aria-labelledby')
+
+		expectTypeOf<FormFiltersRowProps>().toHaveProperty('aria-describedby')
 	})
 })
