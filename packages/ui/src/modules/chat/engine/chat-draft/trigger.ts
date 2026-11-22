@@ -35,6 +35,24 @@ function isSpace(char: string | undefined): boolean {
 }
 
 /**
+ * The offset where the word of a trigger starts: the `anchor`, or the start of
+ * the word that holds the caret. It is `-1` for an anchor with a line break
+ * between it and the caret.
+ *
+ * @internal
+ */
+function queryStart(value: string, caret: number, anchor: number | undefined): number {
+	if (anchor !== undefined) return value.slice(anchor, caret).includes('\n') ? -1 : anchor
+
+	let start = caret - 1
+
+	while (start >= 0 && !isSpace(value[start])) start--
+
+	// The word that holds the caret starts after the whitespace.
+	return start + 1
+}
+
+/**
  * The trigger that the caret is in, or `null`. The caret is in a trigger when
  * the text from the trigger to the caret holds no whitespace, and the trigger
  * counts at its place.
@@ -42,23 +60,24 @@ function isSpace(char: string | undefined): boolean {
  * A trigger in a citation does not count. The citation is already a choice, so
  * a caret at its end does not open a second picker.
  *
+ * An `anchor` sets the offset of the trigger, and the query can then hold
+ * spaces, but not a line break. Thus a citation that a Backspace dissolves
+ * opens its picker again with all of its label, such as `Late stop`.
+ *
  * @internal
  * @param caret - The offset of a collapsed selection.
+ * @param anchor - The offset of a trigger that the query starts at, in place of the word that holds the caret.
  */
 export function activeTrigger(
 	value: string,
 	caret: number,
 	rules: readonly TriggerRule[],
 	citations: readonly ChatCitation[] = [],
+	anchor?: number,
 ): TriggerMatch | null {
-	let start = caret - 1
+	const start = queryStart(value, caret, anchor)
 
-	while (start >= 0 && !isSpace(value[start])) start--
-
-	// The word that holds the caret starts after the whitespace.
-	start++
-
-	if (start >= caret) return null
+	if (start < 0 || start >= caret) return null
 
 	if (citations.some((citation) => citation.start < caret && citation.end > start)) return null
 

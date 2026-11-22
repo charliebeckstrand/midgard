@@ -28,7 +28,7 @@ const datasets: ChatPromptSource = {
 	trigger: '@',
 	target: 'dataset',
 	label: 'Datasets',
-	search: (query) => ITEMS.filter((item) => item.label.toLowerCase().includes(query)),
+	search: (query) => ITEMS.filter((item) => item.label.toLowerCase().includes(query.toLowerCase())),
 }
 
 const commands: ChatPromptSource = {
@@ -148,6 +148,42 @@ describe('ChatPrompt picker', () => {
 		expect(getSlot<HTMLTextAreaElement>(container, 'chat-prompt').value).toBe('Compare @Routes ')
 
 		expect(screen.queryByRole('listbox')).toBeNull()
+	})
+
+	it('opens again on a Backspace at the end of a choice, with the rest of its label', async () => {
+		const onDraft = vi.fn()
+
+		const { container } = renderUI(<Composer sources={[datasets]} onDraft={onDraft} />)
+
+		const user = await typeInto(container, '@late')
+
+		await user.keyboard('{Enter}')
+
+		expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+
+		// The first Backspace deletes the space after the quote, and the citation holds.
+		await user.keyboard('{Backspace}')
+
+		expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+
+		await user.keyboard('{Backspace}')
+
+		expect(onDraft).toHaveBeenLastCalledWith('@Late stop', [])
+
+		expect(screen.getByRole('listbox', { name: 'Datasets' })).toBeInTheDocument()
+
+		expect(options()).toEqual(['Late stops'])
+
+		await user.keyboard('{Backspace>9/}')
+
+		expect(options()).toEqual(['Late stops', 'Routes', 'Depots'])
+
+		// The reader chooses again, and the quote takes the place of all of the query.
+		await user.keyboard('{ArrowDown}{Enter}')
+
+		expect(onDraft).toHaveBeenLastCalledWith('@Routes ', [
+			expect.objectContaining({ start: 0, end: 7, quote: '@Routes' }),
+		])
 	})
 
 	it('moves the highlight with the arrows and chooses on Tab', async () => {

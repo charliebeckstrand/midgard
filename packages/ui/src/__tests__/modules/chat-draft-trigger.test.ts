@@ -43,6 +43,20 @@ describe('activeTrigger', () => {
 		expect(activeTrigger('1/2', 3, RULES)).toBeNull()
 	})
 
+	it('reads a query with spaces from an anchor, up to a line break', () => {
+		expect(activeTrigger('@Late stop', 10, RULES, [], 0)).toEqual({
+			index: 0,
+			start: 0,
+			query: 'Late stop',
+		})
+
+		expect(activeTrigger('@Late\nstop', 10, RULES, [], 0)).toBeNull()
+
+		expect(activeTrigger('@Late stops', 11, RULES, [scope(0, '@Late stops')], 0)).toBeNull()
+
+		expect(activeTrigger('@late', 0, RULES, [], 0)).toBeNull()
+	})
+
 	it('finds no trigger in a citation', () => {
 		expect(activeTrigger('@Late stops', 5, RULES, [scope(0, '@Late stops')])).toBeNull()
 	})

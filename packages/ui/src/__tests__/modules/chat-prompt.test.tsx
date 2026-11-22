@@ -179,7 +179,7 @@ describe('ChatPrompt', () => {
 			expect(onCitations).toHaveBeenLastCalledWith([])
 		})
 
-		it('deletes a whole citation on a Backspace at its end', async () => {
+		it('deletes one character on a Backspace at the end of a citation', async () => {
 			const onCitations = vi.fn()
 
 			const { container } = renderUI(<Scoped onCitations={onCitations} />)
@@ -191,7 +191,7 @@ describe('ChatPrompt', () => {
 				initialSelectionEnd: QUOTE.length,
 			})
 
-			expect(el.value).toBe(' by day')
+			expect(el.value).toBe('@Late stop by day')
 
 			expect(onCitations).toHaveBeenLastCalledWith([])
 		})

@@ -87,7 +87,9 @@ export type ChatPromptProps = {
 	 * @remarks
 	 * The composer moves each citation across a change of the text, and reads
 	 * the caret to find where the change is. A change that touches a citation
-	 * dissolves it, and its text stays as prose. No change of the text makes a
+	 * dissolves it, and its text stays as prose. A Backspace at the end of a
+	 * citation deletes one character, and the picker of its source opens again
+	 * with the rest of the label as the query. No change of the text makes a
 	 * citation, so a pasted or typed `@name` is prose. An undo or a redo of the
 	 * browser brings back the citations of the draft that it goes to.
 	 * @defaultValue []
@@ -436,10 +438,10 @@ function recallOnHistory(
 }
 
 /**
- * Deletes a whole citation on a Backspace at its end, or on a Delete at its
- * start. The handler selects the citation, and the native delete then removes
- * the selection. Thus the delete is on the undo stack of the browser, and the
- * citation goes as one unit, as it came in as one choice.
+ * Deletes a whole citation on a Delete at its start. The handler selects the
+ * citation, and the native delete then removes the selection. Thus the
+ * delete is on the undo stack of the browser, and the citation goes as one
+ * unit, as it came in as one choice.
  *
  * @internal
  */
@@ -447,7 +449,8 @@ function deleteWholeCitation(
 	event: KeyboardEvent<HTMLTextAreaElement>,
 	citations: readonly ChatCitation[],
 ): void {
-	if (event.key !== 'Backspace' && event.key !== 'Delete') return
+	// A Backspace deletes one character, and the picker opens again at the trigger.
+	if (event.key !== 'Delete') return
 
 	if (hasBrowserModifier(event) || event.shiftKey || isComposing(event)) return
 
@@ -457,7 +460,7 @@ function deleteWholeCitation(
 
 	if (at !== textarea.selectionEnd) return
 
-	const citation = citations.find((c) => (event.key === 'Backspace' ? c.end : c.start) === at)
+	const citation = citations.find((c) => c.start === at)
 
 	if (citation) textarea.setSelectionRange(citation.start, citation.end)
 }
