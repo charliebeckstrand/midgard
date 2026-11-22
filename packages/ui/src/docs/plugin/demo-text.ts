@@ -277,10 +277,10 @@ function findReturns(node: ESTree.Function, finder: Finder): void {
 
 /**
  * The names of the props and the properties of `ui` that take a message but
- * are not text names: the message of a refused cell and the summary of a
- * selection.
+ * are not text names: the message of a refused cell, the summary of a
+ * selection, and the issue of the whole form.
  */
-const MESSAGE_NAMES: ReadonlySet<string> = new Set(['error', 'summarize'])
+const MESSAGE_NAMES: ReadonlySet<string> = new Set(['error', 'summarize', 'formError'])
 
 /**
  * The names of the props and the properties that give a check or a message for

@@ -4943,6 +4943,10 @@
 		"defaultMessage": "New chat",
 		"description": "Text of a demo in the docs as aria-label, in components/sidebar/sections-divider-and-spacer.tsx."
 	},
+	"docs.demo.db2a02d8dacc": {
+		"defaultMessage": "Invalid email or password.",
+		"description": "Text of a demo in the docs as formError, in modules/form/form-error.tsx."
+	},
 	"docs.demo.dbb5f6371b6a": {
 		"defaultMessage": "Your account",
 		"description": "Text of a demo in the docs as title, in components/dialog/long-content.tsx."
