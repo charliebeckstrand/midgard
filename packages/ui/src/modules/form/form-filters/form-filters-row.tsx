@@ -1,6 +1,7 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import { useComposedRefs } from 'motion/react'
+import type { ComponentProps } from 'react'
 import { cn } from '../../../core/cn'
 import { useScrollRegion } from '../../../hooks/use-scroll-region'
 import { intlMessages } from '../../../primitives/intl/intl-messages'
@@ -9,8 +10,19 @@ import { k } from '../../../recipes/kata/form-filters'
 import { Flex } from '../../../structure/flex'
 import { useFormFiltersAxis, useFormFiltersName } from './context'
 
-/** Props for {@link FormFiltersRow}: the bar's field row, plus the `equal` and scroll knobs it owns. */
-export type FormFiltersRowProps = {
+/**
+ * Props for {@link FormFiltersRow}: the field row of the bar, and the `equal`
+ * and scroll knobs that it owns. The `<div>` of the row takes the rest.
+ *
+ * @remarks
+ * A `rail` row that overflows is a scroll region. The row then writes its own
+ * `role`, `tabIndex`, and name, and removes them when the fields fit, so the
+ * row takes none of these props. The name of the region comes from the bar.
+ */
+export type FormFiltersRowProps = Omit<
+	ComponentProps<'div'>,
+	'className' | 'role' | 'tabIndex' | 'aria-label' | 'aria-labelledby'
+> & {
 	/**
 	 * Stretches each field to equal width.
 	 * @defaultValue false
@@ -25,7 +37,6 @@ export type FormFiltersRowProps = {
 	 * own height, and nothing moves. Set here it scrolls with the fields.
 	 */
 	className?: string
-	children: ReactNode
 }
 
 /**
@@ -47,7 +58,7 @@ export type FormFiltersRowProps = {
  * ({@link useScrollRegion}), with the name of the bar, so a keyboard user can
  * scroll it. When the fields fit, the row carries none of these.
  */
-export function FormFiltersRow({ equal, className, children }: FormFiltersRowProps) {
+export function FormFiltersRow({ equal, className, children, ref, ...props }: FormFiltersRowProps) {
 	const { rail, direction, align } = useFormFiltersAxis()
 
 	const name = useFormFiltersName()
@@ -59,9 +70,13 @@ export function FormFiltersRow({ equal, className, children }: FormFiltersRowPro
 		name.label || name.labelledBy ? name : { label: intl.formatMessage(intlMessages.filters) },
 	)
 
+	// Only a `rail` row is a scroll region. The consumer ref reaches the row in each layout.
+	const setRowRef = useComposedRefs(rail ? scrollRegionRef : undefined, ref)
+
 	return (
 		<Flex
-			ref={rail ? scrollRegionRef : undefined}
+			{...props}
+			ref={setRowRef}
 			data-slot="form-filters-row"
 			direction={direction}
 			gap="sm"
