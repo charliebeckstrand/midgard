@@ -518,6 +518,10 @@ const SCOPE: Record<string, { in: string; out: string }> = {
 	'no-renamed-spacing-utility': { in: 'packages/ui/src/layouts', out: 'packages/ui/src/hooks' },
 	'no-respelled-orientation': { in: 'packages/ui/src/utilities', out: 'packages/ui/src/recipes' },
 	'no-stateless-toggle-icon-button': { in: 'apps/places/src', out: 'packages/ui/src/components' },
+	'no-unused-layout-read': {
+		in: 'packages/ui/src/hooks',
+		out: 'packages/ui/src/utilities/force-style-flush.ts',
+	},
 	'no-use-prefixed-type-name': {
 		in: 'packages/ui/src/providers',
 		out: 'packages/ui/src/utilities',
