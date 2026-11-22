@@ -1343,7 +1343,8 @@ export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'>
 	 * constant step continues the step: numbers (`1, 2` gives `3`), dates as
 	 * `Date` values or `YYYY-MM-DD` strings by days or by months (`Jan 31,
 	 * Feb 28` gives `Mar 31`), and text that ends in a whole number (`Item 1,
-	 * Item 2` gives `Item 3`). A text series that would go below zero repeats.
+	 * Item 2` gives `Item 3`). A text series that would go below zero repeats,
+	 * and so does a `YYYY-MM-DD` series that would leave the years 0000 to 9999.
 	 * {@link GridColumn.parse} reads each
 	 * pasted text, and {@link GridColumn.validate} checks each value. A refused
 	 * cell goes to {@link GridEditableConfig.onReject}. A paste, a clear, or a
