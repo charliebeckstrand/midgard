@@ -477,6 +477,8 @@ describe('filledCorners', () => {
 })
 
 describe('toHtmlTable', () => {
+	const td = '<td style="white-space:pre-wrap">'
+
 	it('writes one row for each row of the block, with no header row', () => {
 		expect(
 			toHtmlTable([
@@ -484,13 +486,19 @@ describe('toHtmlTable', () => {
 				['c', 'd'],
 			]),
 		).toBe(
-			'<table><tbody><tr><td>a</td><td>b</td></tr><tr><td>c</td><td>d</td></tr></tbody></table>',
+			`<table><tbody><tr>${td}a</td>${td}b</td></tr><tr>${td}c</td>${td}d</td></tr></tbody></table>`,
 		)
 	})
 
 	it('escapes the markup, and guards a formula as the TSV does', () => {
 		expect(toHtmlTable([['<b>&</b>', '=SUM(A1)', "'=1"]])).toBe(
-			"<table><tbody><tr><td>&lt;b&gt;&amp;&lt;/b&gt;</td><td>'=SUM(A1)</td><td>''=1</td></tr></tbody></table>",
+			`<table><tbody><tr>${td}&lt;b&gt;&amp;&lt;/b&gt;</td>${td}'=SUM(A1)</td>${td}''=1</td></tr></tbody></table>`,
+		)
+	})
+
+	it('keeps the spaces and the tabs of a cell as the cell holds them', () => {
+		expect(toHtmlTable([['  a  b\tc ']])).toBe(
+			`<table><tbody><tr>${td}  a  b\tc </td></tr></tbody></table>`,
 		)
 	})
 
@@ -498,7 +506,7 @@ describe('toHtmlTable', () => {
 		const br = '<br style="mso-data-placement:same-cell">'
 
 		expect(toHtmlTable([['one\ntwo\r\nthree']])).toBe(
-			`<table><tbody><tr><td>one${br}two${br}three</td></tr></tbody></table>`,
+			`<table><tbody><tr>${td}one${br}two${br}three</td></tr></tbody></table>`,
 		)
 	})
 })

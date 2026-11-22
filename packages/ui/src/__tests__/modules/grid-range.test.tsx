@@ -249,9 +249,11 @@ describe('Grid range', () => {
 
 		expect(Object.keys(types)).toEqual(['text/plain', 'text/html'])
 
+		const td = '<td style="white-space:pre-wrap">'
+
 		expect(types['text/html']).toBe(
-			"<table><tbody><tr><td>Admin</td><td>'=1+1</td></tr>" +
-				'<tr><td>User</td><td>two\tparts</td></tr></tbody></table>',
+			`<table><tbody><tr>${td}Admin</td>${td}'=1+1</td></tr>` +
+				`<tr>${td}User</td>${td}two\tparts</td></tr></tbody></table>`,
 		)
 	})
 
