@@ -19,9 +19,22 @@ const DAY_MS = 86_400_000
  */
 type CalendarDay = { year: number; month: number; day: number; time: readonly number[] }
 
+/**
+ * The UTC milliseconds of midnight of a day, as `Date.UTC` gives them for each
+ * year. `Date.UTC` and the `Date` constructor read a year from 0 to 99 as 1900
+ * to 1999, and `setUTCFullYear` reads it as it is.
+ */
+function utcDay(year: number, month: number, day: number): number {
+	const date = new Date(0)
+
+	date.setUTCFullYear(year, month, day)
+
+	return date.getTime()
+}
+
 /** The days of a month, `month` from 0. */
 function daysInMonth(year: number, month: number): number {
-	return new Date(Date.UTC(year, month + 1, 0)).getUTCDate()
+	return new Date(utcDay(year, month + 1, 0)).getUTCDate()
 }
 
 /**
@@ -59,7 +72,15 @@ function writeDay({ year, month, day, time }: CalendarDay, iso: boolean): unknow
 	if (!iso) {
 		const [hours = 0, minutes = 0, seconds = 0, ms = 0] = time
 
-		return new Date(year, month, day, hours, minutes, seconds, ms)
+		// `setFullYear`, not the constructor, which reads a year from 0 to 99 as
+		// 1900 to 1999 (see `utcDay`).
+		const date = new Date(0)
+
+		date.setFullYear(year, month, day)
+
+		date.setHours(hours, minutes, seconds, ms)
+
+		return date
 	}
 
 	const pad = (value: number, width: number) => String(value).padStart(width, '0')
@@ -115,7 +136,7 @@ function monthSeries(days: readonly CalendarDay[], count: number): CalendarDay[]
  * days of the calendar, so a change of daylight saving time moves no date.
  */
 function daySeries(days: readonly CalendarDay[], count: number): CalendarDay[] | null {
-	const numbers = days.map(({ year, month, day }) => Date.UTC(year, month, day) / DAY_MS)
+	const numbers = days.map(({ year, month, day }) => utcDay(year, month, day) / DAY_MS)
 
 	const step = constantGap(numbers)
 

@@ -424,6 +424,26 @@ describe('fillLine dates', () => {
 		expect(fillLine(['2026-12-30', '2026-12-31'], 2)).toEqual(['2027-01-01', '2027-01-02'])
 	})
 
+	// The `Date` constructor and `Date.UTC` read a year from 0 to 99 as 1900 to
+	// 1999, so each year goes through `setFullYear`.
+	it('keeps a year below 100', () => {
+		expect(fillLine(['0050-01-01', '0050-01-02'], 1)).toEqual(['0050-01-03'])
+
+		expect(fillLine(['0000-02-28', '0000-02-29'], 1)).toEqual(['0000-03-01'])
+
+		const year50 = (date: number) => {
+			const value = new Date(0)
+
+			value.setFullYear(50, 0, date)
+
+			value.setHours(0, 0, 0, 0)
+
+			return value
+		}
+
+		expect(fillLine([year50(1), year50(2)], 1)).toEqual([year50(3)])
+	})
+
 	it('repeats a line of dates that is no series', () => {
 		const uneven = [day(2026, 3, 1), day(2026, 3, 2), day(2026, 3, 4)]
 
