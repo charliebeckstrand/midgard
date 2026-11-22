@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, useCallback, useRef, useSyncExternalStore } from 'react'
+import { type ReactNode, useCallback, useEffect, useRef, useSyncExternalStore } from 'react'
 import { createContext } from '../../core/create-context'
 import { noopSubscribe } from '../../utilities/noop'
 import { sameElements } from '../../utilities/same-elements'
@@ -395,4 +395,17 @@ export function useFormFieldTargets(): Readonly<Record<string, FormFieldTarget>>
 		() => targets?.getSnapshot() ?? NO_TARGETS,
 		() => NO_TARGETS,
 	)
+}
+
+/**
+ * Marks a `FormErrorSummary` as mounted in the enclosing form, for the life of
+ * the component. The form then leaves the focus to the summary after a refused
+ * submit.
+ *
+ * @internal
+ */
+export function useRegisterSummary(): void {
+	const targets = useFormFieldTargetsContext()
+
+	useEffect(() => targets?.registerSummary(), [targets])
 }

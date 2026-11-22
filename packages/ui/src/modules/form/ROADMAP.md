@@ -51,11 +51,7 @@ The engine reads `hasIssues` from the binding contract, because a control and th
 
    `FormErrorSummary` shows it as the first row, with no link, and a public hook gives it to an app that places its own `Alert`. Prove it in `form-submission.test.ts`, `form-zod-resolver.test.ts`, and `form-error-summary.test.tsx`, and add a docs example on the server-errors page.
 
-2. **Focus the first invalid field on a refused submit (*P1*).** With no `FormErrorSummary` in the form, a refused submit leaves the focus on the submit button. The sign-in, register, and reset-password pages in `packages/shared/src/auth` have no summary, and no app uses `onInvalidSubmit`. react-hook-form (`shouldFocusError`) and React Aria `Form` move the focus to the first invalid field by default.
-
-   In the refused branch of `useFormSubmission`, focus the control that the target registry gives for the first invalid field. Skip the move when a summary is mounted, because the summary takes the focus. An `onInvalidSubmit` that moves the focus still wins. Move `focusControl` out of `form-error-summary.tsx`, so the summary and the form use one copy. Prove it in `form.test.tsx`, and in `form-submit-focus.test.tsx` for Chromium.
-
-3. **Issues of an item in an array field (*P3*).** A field that holds a list of rows has one issue for the whole list. `stopIssue` in `apps/places/src/components/place-form-drawer/trip-form.ts` folds the issue of each row into one message, with a "Place N" prefix. The control of the row gets no `aria-invalid`, and the summary links to the list. react-hook-form (`useFieldArray`) and TanStack Form give an issue to each item by path. `zodResolver` keeps only `path[0]`.
+2. **Issues of an item in an array field (*P3*).** A field that holds a list of rows has one issue for the whole list. `stopIssue` in `apps/places/src/components/place-form-drawer/trip-form.ts` folds the issue of each row into one message, with a "Place N" prefix. The control of the row gets no `aria-invalid`, and the summary links to the list. react-hook-form (`useFieldArray`) and TanStack Form give an issue to each item by path. `zodResolver` keeps only `path[0]`.
 
    Open questions: whether `Errors` takes a path key such as `stops.0.day`, and whether `useFormField` binds a value by path or reads the issue only. Answer them in a plan before code.
 

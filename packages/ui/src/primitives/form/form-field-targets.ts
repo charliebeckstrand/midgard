@@ -27,6 +27,14 @@ export type FormFieldTargets = {
 	register: (name: string, id: string) => () => void
 	/** Registers the label text of a control by its id, and returns the function that removes it. */
 	registerLabel: (id: string, label: string) => () => void
+	/**
+	 * Registers a mounted `FormErrorSummary`, and returns the function that
+	 * removes it. A summary takes the focus after a failed submit, so the form
+	 * does not move the focus while one is mounted.
+	 */
+	registerSummary: () => () => void
+	/** Whether a `FormErrorSummary` is mounted in the form. */
+	hasSummary: () => boolean
 }
 
 /**
@@ -81,6 +89,9 @@ export function createFormFieldTargets(): FormFieldTargets {
 
 	const { subscribe, emit } = createEmitter()
 
+	// The count of mounted summaries. A count, so the end of one does not hide another.
+	let summaries = 0
+
 	/** Writes the target that `name` gives now into `next`, and returns true on a change. */
 	function write(next: Record<string, FormFieldTarget>, name: string): boolean {
 		const id = ids.get(name)
@@ -129,6 +140,20 @@ export function createFormFieldTargets(): FormFieldTargets {
 				if (ids.remove(name, id)) publish([name])
 			}
 		},
+		registerSummary: () => {
+			summaries += 1
+
+			let removed = false
+
+			return () => {
+				if (removed) return
+
+				removed = true
+
+				summaries -= 1
+			}
+		},
+		hasSummary: () => summaries > 0,
 		registerLabel: (id, label) => {
 			labels.add(id, label)
 
