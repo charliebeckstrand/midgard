@@ -793,6 +793,47 @@ describe('Grid range binding', () => {
 		])
 	})
 
+	it('shows a value again when the group of its rows opens again', () => {
+		type Sale = { id: number; region: string; units: number }
+
+		const sales: Sale[] = [
+			{ id: 1, region: 'West', units: 10 },
+			{ id: 2, region: 'West', units: 30 },
+			{ id: 3, region: 'East', units: 20 },
+		]
+
+		renderUI(
+			<Grid
+				columns={[
+					{ id: 'region', title: 'Region', cell: (row) => row.region, value: (row) => row.region },
+					{ id: 'units', title: 'Units', cell: (row) => `${row.units} units` },
+				]}
+				rows={sales}
+				getKey={(row) => row.id}
+				groupBy={{ value: 'region' }}
+				navigable
+				range={{ value: { anchor: at(1, 'units'), focus: at(2, 'units') }, onValueChange: vi.fn() }}
+			/>,
+		)
+
+		const marked = () =>
+			gridCells()
+				.filter((node) => node.hasAttribute('data-in-range'))
+				.map((node) => node.textContent)
+
+		expect(marked()).toEqual(['10 units', '30 units'])
+
+		// The closed group hides the rows of the value, so the grid shows no range.
+		fireEvent.click(screen.getByRole('button', { name: /^West/, expanded: true }))
+
+		expect(marked()).toEqual([])
+
+		// The rows and the columns are the same, and only the order of the cursor changes.
+		fireEvent.click(screen.getByRole('button', { name: /^West/, expanded: false }))
+
+		expect(marked()).toEqual(['10 units', '30 units'])
+	})
+
 	it('shows no range for a value that names a row the grid does not show', () => {
 		renderUI(<Owner initial={{ anchor: at(1, 'name'), focus: at(9, 'name') }} />)
 

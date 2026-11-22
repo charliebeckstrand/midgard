@@ -23,8 +23,14 @@ export type FormErrorProps = Omit<ComponentProps<'div'>, 'title' | 'color' | 'ch
  *
  * The alert is an error `Alert` (`role="alert"`), so a screen reader speaks the
  * issue when it shows. Each failed submit shows a new alert, so a screen reader
- * speaks the issue again when a second submit fails with the same issue. A `FormErrorSummary` lists the issue of the whole form
- * as its first row, so a form with a summary needs no `FormError`.
+ * speaks the issue again when a second submit fails with the same issue.
+ *
+ * After a failed submit, a `FormErrorSummary` lists the issue of the whole
+ * form as its first row. Thus a form with a summary needs no `FormError` when
+ * only a failed submit sets the issue. The summary shows nothing until a
+ * submit fails, so a form that sets the issue at another time needs a
+ * `FormError`. An example is a call of `setFormError` from a control outside
+ * the submit.
  */
 export function FormError({ title, ...props }: FormErrorProps) {
 	const formError = useFormError()

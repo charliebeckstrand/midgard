@@ -758,6 +758,12 @@ export function useGridNavigation({
 	rangeFocus: Coord | null
 	/** The cells of the range at call time, or `null` for no range. */
 	readRange: () => GridRangeCells | null
+	/**
+	 * The order of a body that renders more than data rows, or `null` for data
+	 * rows only, reactive. It changes with each order that a body publishes, as
+	 * when a group opens or closes.
+	 */
+	order: readonly GridCursorRow[] | null
 	/** The place of a data row in the cursor's order, or -1 for a data row the order does not show. */
 	toCursorRow: (row: number) => number
 	/** Shows the range between two data cells, the first as the anchor and the second as the cursor. */
@@ -1663,6 +1669,7 @@ export function useGridNavigation({
 		rangeAnchor: enabled ? anchor : null,
 		rangeFocus: enabled ? active : null,
 		readRange,
+		order: view.order,
 		toCursorRow,
 		showRange,
 		selectRange,
