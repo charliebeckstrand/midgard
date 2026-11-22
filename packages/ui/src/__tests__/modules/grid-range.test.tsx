@@ -47,6 +47,18 @@ function copy(): string | undefined {
 }
 
 /**
+ * Fires a copy as {@link copy} does, and returns the text that the grid wrote
+ * for each type.
+ */
+function copyTypes(): Record<string, string> {
+	const setData = vi.fn()
+
+	fireEvent.copy(document.body, { clipboardData: { setData } })
+
+	return Object.fromEntries(setData.mock.calls as [string, string][])
+}
+
+/**
  * Moves the clock past the settle window of the range, and then past the first
  * write of the announcer (`FIRST_WRITE_MS`).
  */
@@ -288,6 +300,27 @@ describe('Grid range', () => {
 		fireEvent.keyDown(grid, { key: 'ArrowRight', shiftKey: true })
 
 		expect(copy()).toBe('Admin\t\'=1+1\nUser\t"two\tparts"')
+	})
+
+	it('copies the range as an HTML table too, for a paste into a document', () => {
+		const { grid } = renderRangeGrid()
+
+		fireEvent.mouseDown(cell(0, 1))
+
+		fireEvent.keyDown(grid, { key: 'ArrowDown', shiftKey: true })
+
+		fireEvent.keyDown(grid, { key: 'ArrowRight', shiftKey: true })
+
+		const types = copyTypes()
+
+		expect(Object.keys(types)).toEqual(['text/plain', 'text/html'])
+
+		const td = '<td style="white-space:pre-wrap">'
+
+		expect(types['text/html']).toBe(
+			`<table><tbody><tr>${td}Admin</td>${td}'=1+1</td></tr>` +
+				`<tr>${td}User</td>${td}two\tparts</td></tr></tbody></table>`,
+		)
 	})
 
 	it('copies the active cell with no range', () => {

@@ -12,6 +12,7 @@ import { columnLabel } from './engine/grid-column/label'
 import { GRID_RANGE_ANNOUNCE_MS } from './engine/grid-constants'
 import { cellText } from './engine/grid-export/accessor'
 import { gridMessages } from './engine/grid-messages'
+import { toHtmlTable } from './engine/grid-range/html'
 import type { GridRangeCells } from './engine/grid-range/range'
 import { toTsv } from './engine/grid-range/tsv'
 import { resolveCellAt } from './engine/grid-row/bridges'
@@ -140,12 +141,12 @@ export function useGridCursorNav<T>({
 
 	const { readRange, toCursorRow, rangeAnchor } = nav
 
-	// Writes the range as TSV to the clipboard of a copy or a cut event, or the
-	// active cell with no range, and returns the cells that it wrote. The native
-	// event needs no clipboard permission. The browser sends it to the start of
-	// the text selection, else to the body, never to a focused table, so the
-	// document hears it. An event for selected text, or from a control in the
-	// grid, stays the browser's, and the result is `null`.
+	// Writes the range as TSV and as an HTML table to the clipboard of a copy or
+	// a cut event, or the active cell with no range, and returns the cells that
+	// it wrote. The native event needs no clipboard permission. The browser
+	// sends it to the start of the text selection, else to the body, never to a
+	// focused table, so the document hears it. An event for selected text, or
+	// from a control in the grid, stays the browser's, and the result is `null`.
 	const copyCells = useStableEvent((event: ClipboardEvent): GridRangeCells | null => {
 		const table = tableRef.current
 
@@ -159,10 +160,13 @@ export function useGridCursorNav<T>({
 
 		event.preventDefault()
 
-		event.clipboardData.setData(
-			'text/plain',
-			toTsv(rangeText(cells, rowsRef.current, cursorColumnsRef.current)),
-		)
+		const block = rangeText(cells, rowsRef.current, cursorColumnsRef.current)
+
+		event.clipboardData.setData('text/plain', toTsv(block))
+
+		// A document or a mail keeps the table from the HTML. A paste into the
+		// grid reads the TSV, as a spreadsheet writes TSV too.
+		event.clipboardData.setData('text/html', toHtmlTable(block))
 
 		return cells
 	})
