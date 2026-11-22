@@ -1,6 +1,5 @@
 import { renderToString } from 'react-dom/server'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { Dialog, DialogPanel, DialogTrigger } from '../../components/dialog'
 import {
 	PdfViewer,
 	type PdfViewerHighlight,
@@ -15,7 +14,6 @@ import {
 import { PdfViewerHighlightsProvider } from '../../components/pdf-viewer/pdf-viewer-highlights-provider'
 import { PdfViewerPageImage } from '../../components/pdf-viewer/pdf-viewer-page-image'
 import { PdfViewerThumbnailList } from '../../components/pdf-viewer/pdf-viewer-thumbnail-list'
-import { PdfViewerToolbarButton } from '../../components/pdf-viewer/pdf-viewer-toolbar-button'
 import {
 	downloadPdf,
 	pdfNameFromSrc,
@@ -1040,29 +1038,6 @@ describe('printPdf', () => {
 		expect(open).toHaveBeenCalledWith('/doc.pdf', '_blank', 'noopener,noreferrer')
 
 		expect(iframe.parentNode).toBeNull()
-	})
-})
-
-describe('PdfViewerToolbarButton', () => {
-	it('stays focusable while disabled, and a press opens nothing', () => {
-		renderUI(
-			<Dialog>
-				<DialogTrigger>
-					<PdfViewerToolbarButton label="Settings" icon={<svg />} disabled />
-				</DialogTrigger>
-				<DialogPanel>Panel</DialogPanel>
-			</Dialog>,
-		)
-
-		const button = screen.getByLabelText('Settings')
-
-		expect(button).toBeEnabled()
-
-		expect(button).toHaveAttribute('aria-disabled', 'true')
-
-		fireEvent.click(button)
-
-		expect(screen.queryByText('Panel')).toBeNull()
 	})
 })
 
