@@ -65,7 +65,7 @@ tools: Read, Grep, Glob, Write
 
 - `patches/`: the patch text for that package.
 
-- `tsconfig.base.json`: the `paths` map.
+- The `tsconfig.json` of the owning package: the `paths` map.
 
 - The Vite and Vitest configs of the owning package: any `resolve.alias`.
 
@@ -99,7 +99,7 @@ pnpm does not put a dependency in the root `node_modules`. Read it through the l
       "intent": "The source that you checked, quoted.",
       "reach": {
         "class": "shipped",
-        "sites": ["apps/admin/src/users/page.tsx:40 the quoted text"],
+        "sites": ["apps/admin/app/(signed-in)/(dashboard)/users/page.tsx:40 the quoted text"],
         "search": "The roots and the terms that you searched."
       },
       "severity": { "level": "medium", "reason": "One sentence." },
@@ -133,7 +133,7 @@ pnpm does not put a dependency in the root `node_modules`. Read it through the l
     }
   ],
   "ruledOut": [{ "id": "B01-C02", "guard": "path:line plus the quoted guard." }],
-  "leads": [{ "path": "packages/ui/src/hooks/use-roving.ts", "note": "What you saw." }],
+  "leads": [{ "path": "packages/ui/src/hooks/a11y/use-a11y-roving.ts", "note": "What you saw." }],
   "unlocated": ["B01-C03"]
 }
 ```

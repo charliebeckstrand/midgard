@@ -81,7 +81,7 @@ tools: Read, Grep, Glob, Write
       }
     }
   ],
-  "leads": [{ "path": "packages/ui/src/hooks/use-roving.ts", "note": "What you saw." }],
+  "leads": [{ "path": "packages/ui/src/hooks/a11y/use-a11y-roving.ts", "note": "What you saw." }],
   "lensLines": [
     {
       "lens": "keyboard",

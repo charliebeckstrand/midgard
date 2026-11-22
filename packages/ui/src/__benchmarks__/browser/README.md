@@ -848,7 +848,7 @@ The `always` rows have a wide spread (±11% and ±19%), so read the ratio as abo
 
 [`pdf-viewer-open.bench.tsx`](pdf-viewer-open.bench.tsx) opens documents that [`pdf-fixtures.ts`](pdf-fixtures.ts) builds in memory: US-Letter invoice pages with 40 rows of Helvetica text and the rules between them, so no file and no network. Each `cold open` sample mounts `PdfViewer` in an 800 × 1000 box on a document the cache does not hold, and ends when the render queue is idle. The last sample of each page count prints the mean time to the first painted page. The `stage` scenarios split one page at 2x into the pdf.js render and the encode, with PNG beside the other encoders.
 
-The bench loads the legacy build of pdf.js, as the viewer does. The modern build calls `Map.prototype.getOrInsertComputed` and other new built-ins, and the pinned Chromium (141) does not have them. The legacy worker goes in as the global `workerPort` and lives for the whole run. [`pdf-viewer-lifecycle.bench.tsx`](pdf-viewer-lifecycle.bench.tsx) measures the unpark of a resident document, with no pdf.js work.
+The bench loads the legacy build of pdf.js, as the viewer does. The modern build calls `Map.prototype.getOrInsertComputed` and other new built-ins, and the browser floor in `.browserslistrc` does not have them. The legacy worker goes in as the global `workerPort` and lives for the whole run. [`pdf-viewer-lifecycle.bench.tsx`](pdf-viewer-lifecycle.bench.tsx) measures the unpark of a resident document, with no pdf.js work.
 
 ### Baseline (2026-09-26, this container)
 

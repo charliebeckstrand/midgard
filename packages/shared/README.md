@@ -18,7 +18,7 @@ The apps compile this package from its source, as they do `ui`. The one build st
 | `shared/queries` | `seed` marks the read of a server page with the time of the read, and `seededQuery` puts that read into a client query. The query keeps the entry only while its page is open, so a revisit shows the newer read of the server and does not fetch again. |
 | `shared/refresh` | The refresh of a page, in place. `LiveRefresh` renders the page again on the server each minute while its `live` prop holds and the tab is visible. Each refresh starts only when `/api/build` gives the build of the page, because Next reloads the whole page otherwise. `useBuildWatch` reads the build each minute, and gives `true` after a deploy. The picks app renders `LiveRefresh` on a week in play, and the elections app uses only `useBuildWatch`. |
 | `shared/refresh/build` | The `GET` handler of `/api/build`, which gives the build of the server. Each app that renders `LiveRefresh` or calls `useBuildWatch` serves it. |
-| `shared/events` | `onRouterTransitionStart`, which records the start of each navigation of the App Router as a route event while the events of `ui/events` run. Each app re-exports it from its `instrumentation-client.ts`. |
+| `shared/events` | `onRouterTransitionStart`, which records the start of each navigation of the App Router as a route event while the events of `ui/events` run. Each app other than admin re-exports it from its `instrumentation-client.ts`. |
 | `shared/link-secrets` | `takeLinkSecrets` moves each secret param of an emailed link, such as `?token=`, out of the address and into memory. The `instrumentation-client.ts` of each app with a link page calls it before the page hydrates, so the App Router, the history, the referrers, and the bug reports never hold the secret. `getLinkSecret` gives the value to an event handler. The list of secret params is in `src/link-secrets/index.ts`. |
 | `shared/pages` | `ErrorPage` and `NotFoundPage`, which the `app/error.tsx` and `app/not-found.tsx` of each app re-export as their default exports, and `notFoundMetadata`, which `app/not-found.tsx` re-exports as its `metadata`. `appTitle` gives the `title` of the root layout of each app: the name of the app on the home page, and `Users | Admin` on each other page (`formatTitle`). |
 | `shared/globals.css` | Global stylesheet: `ui/tailwind.css`, which gives the font (except its latin face) and `--font-sans`, the root styles, and a `dark` variant that follows the `.dark` class, else the OS while the root has no `.light` class. `AppearanceProvider` from `ui/providers/appearance` sets the classes, and it adds the latin face. |
@@ -40,7 +40,7 @@ The apps compile this package from its source, as they do `ui`. The one build st
 
 ## 4. Consumers
 
-Each app uses the providers, the stylesheet, the error and 404 pages, and the navigation hook of `shared/events`. Admin, places, picks, and numbers also use the auth UI. [`apps/places`](../../apps/places/README.md), [`apps/picks`](../../apps/picks/README.md), and [`apps/numbers`](../../apps/numbers/README.md) use the Mimir types. This package depends on [`ui`](../ui/README.md).
+Each app uses the providers, the stylesheet, and the error and 404 pages. Each app other than admin also uses the navigation hook of `shared/events`. Admin, places, picks, and numbers also use the auth UI. [`apps/places`](../../apps/places/README.md), [`apps/picks`](../../apps/picks/README.md), and [`apps/numbers`](../../apps/numbers/README.md) use the Mimir types. This package depends on [`ui`](../ui/README.md).
 
 ---
 
