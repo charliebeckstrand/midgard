@@ -34,6 +34,44 @@ function isSpace(char: string | undefined): boolean {
 	return char !== undefined && /\s/.test(char)
 }
 
+/** A trigger at a known offset, from a citation that dissolved there. @internal */
+export type TriggerAnchor = {
+	/** The offset of the trigger character. */
+	start: number
+	/** The quote of the citation, such as `@Late stops`. */
+	quote: string
+}
+
+/**
+ * The offset where the word of a trigger starts: the start of the anchor, or
+ * the start of the word that holds the caret.
+ *
+ * The text from an anchor to the caret can hold whitespace only in the start
+ * that it shares with the quote. Thus the query holds the words of the label,
+ * and a space typed after them ends it, as a space ends any query. For an
+ * anchor that does not hold, the offset is `-1`.
+ *
+ * @internal
+ */
+function queryStart(value: string, caret: number, anchor: TriggerAnchor | undefined): number {
+	if (anchor !== undefined) {
+		const text = value.slice(anchor.start, caret)
+
+		let shared = 0
+
+		while (shared < text.length && text[shared] === anchor.quote[shared]) shared++
+
+		return /\s/.test(text.slice(shared)) ? -1 : anchor.start
+	}
+
+	let start = caret - 1
+
+	while (start >= 0 && !isSpace(value[start])) start--
+
+	// The word that holds the caret starts after the whitespace.
+	return start + 1
+}
+
 /**
  * The trigger that the caret is in, or `null`. The caret is in a trigger when
  * the text from the trigger to the caret holds no whitespace, and the trigger
@@ -42,23 +80,24 @@ function isSpace(char: string | undefined): boolean {
  * A trigger in a citation does not count. The citation is already a choice, so
  * a caret at its end does not open a second picker.
  *
+ * An `anchor` sets the offset of the trigger, and the query can then hold the
+ * spaces of its quote. Thus a citation that a Backspace dissolves opens its
+ * picker again with all of its label, such as `Late stop`.
+ *
  * @internal
  * @param caret - The offset of a collapsed selection.
+ * @param anchor - The offset of a trigger that the query starts at, in place of the word that holds the caret.
  */
 export function activeTrigger(
 	value: string,
 	caret: number,
 	rules: readonly TriggerRule[],
 	citations: readonly ChatCitation[] = [],
+	anchor?: TriggerAnchor,
 ): TriggerMatch | null {
-	let start = caret - 1
+	const start = queryStart(value, caret, anchor)
 
-	while (start >= 0 && !isSpace(value[start])) start--
-
-	// The word that holds the caret starts after the whitespace.
-	start++
-
-	if (start >= caret) return null
+	if (start < 0 || start >= caret) return null
 
 	if (citations.some((citation) => citation.start < caret && citation.end > start)) return null
 

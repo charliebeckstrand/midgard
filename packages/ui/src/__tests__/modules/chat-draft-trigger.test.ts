@@ -43,6 +43,35 @@ describe('activeTrigger', () => {
 		expect(activeTrigger('1/2', 3, RULES)).toBeNull()
 	})
 
+	it('reads a query with the spaces of its quote from an anchor', () => {
+		const anchor = { start: 0, quote: '@Late stops' }
+
+		expect(activeTrigger('@Late stop', 10, RULES, [], anchor)).toEqual({
+			index: 0,
+			start: 0,
+			query: 'Late stop',
+		})
+
+		// Text after the words of the quote extends the query, as in any word.
+		expect(activeTrigger('@Late stopsx', 12, RULES, [], anchor)?.query).toBe('Late stopsx')
+
+		expect(activeTrigger('@Late\nstop', 10, RULES, [], anchor)).toBeNull()
+
+		expect(activeTrigger('@Late stops', 11, RULES, [scope(0, '@Late stops')], anchor)).toBeNull()
+
+		expect(activeTrigger('@late', 0, RULES, [], anchor)).toBeNull()
+	})
+
+	it.for<[string, string]>([
+		['a space after the quote', '@Late stops and'],
+		['a space after a change in the quote', '@Late stox and'],
+		['a caret at the end of a line of prose', '@Late stop by day'],
+	])('ends an anchored query at %s', ([, value]) => {
+		const anchor = { start: 0, quote: '@Late stops' }
+
+		expect(activeTrigger(value, value.length, RULES, [], anchor)).toBeNull()
+	})
+
 	it('finds no trigger in a citation', () => {
 		expect(activeTrigger('@Late stops', 5, RULES, [scope(0, '@Late stops')])).toBeNull()
 	})

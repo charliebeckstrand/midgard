@@ -20,7 +20,8 @@ const sources: ChatPromptSource[] = [
 		trigger: '@',
 		target: 'dataset',
 		label: 'Datasets',
-		search: (query) => ITEMS.filter((item) => item.label.toLowerCase().includes(query)),
+		search: (query) =>
+			ITEMS.filter((item) => item.label.toLowerCase().includes(query.toLowerCase())),
 	},
 ]
 
@@ -126,8 +127,8 @@ describe('the picker of a chat prompt (real browser)', () => {
 
 		await userEvent.keyboard('Ask @ro{Enter}')
 
-		// Two Backspaces delete the space and the whole citation.
-		await userEvent.keyboard('{Backspace}{Backspace}')
+		// The Backspaces delete the space and each character of the citation.
+		await userEvent.keyboard('{Backspace}'.repeat('@Routes '.length))
 
 		expect(textarea().value).toBe('Ask ')
 
@@ -139,7 +140,7 @@ describe('the picker of a chat prompt (real browser)', () => {
 		expect(citations()).toBe('')
 	})
 
-	it('deletes a whole citation on a Backspace at its end', async () => {
+	it('opens the picker again on a Backspace at the end of a citation', async () => {
 		renderUI(<Composer />)
 
 		await userEvent.click(textarea())
@@ -148,12 +149,21 @@ describe('the picker of a chat prompt (real browser)', () => {
 
 		expect(textarea().value).toBe('Ask @Late stops ')
 
-		// The first Backspace deletes the space after the citation, and the second the citation.
+		// The first Backspace deletes the space after the citation, and the second one character of it.
 		await userEvent.keyboard('{Backspace}{Backspace}')
 
-		expect(textarea().value).toBe('Ask ')
+		expect(textarea().value).toBe('Ask @Late stop')
 
 		expect(citations()).toBe('')
+
+		await waitFor(() => expect(screen.getByRole('option')).toHaveTextContent('Late stops'))
+
+		// A space after the words of the label ends the query.
+		await userEvent.keyboard('s and')
+
+		await waitFor(() => expect(screen.queryByRole('listbox')).toBeNull())
+
+		expect(textarea().value).toBe('Ask @Late stops and')
 	})
 
 	it('closes only the picker on Escape inside a dialog', async () => {
