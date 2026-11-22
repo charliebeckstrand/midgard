@@ -1,8 +1,8 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from 'vitest'
 import {
-	buildColumnGroupMenu,
-	buildRowGroupMenu,
+	columnGroupMenuItems,
+	rowGroupMenuItems,
 } from '../../modules/grid/grid-context-menu-utilities'
 import type { GridMenuItem } from '../../modules/grid/types'
 import { intlEn } from '../../primitives/intl/intl-catalog'
@@ -23,9 +23,9 @@ const rowArgs = {
 	onClearColor: vi.fn(),
 }
 
-describe('buildRowGroupMenu', () => {
+describe('rowGroupMenuItems', () => {
 	it('rules Manage rows apart from the expand controls', () => {
-		expect(shape(buildRowGroupMenu({ ...rowArgs, color: undefined }))).toEqual([
+		expect(shape(rowGroupMenuItems({ ...rowArgs, color: undefined }))).toEqual([
 			'Manage rows',
 			'---',
 			'Collapse group',
@@ -35,7 +35,7 @@ describe('buildRowGroupMenu', () => {
 	})
 
 	it('adds Clear color under one more separator once the group has a color', () => {
-		expect(shape(buildRowGroupMenu({ ...rowArgs, color: 'blue' }))).toEqual([
+		expect(shape(rowGroupMenuItems({ ...rowArgs, color: 'blue' }))).toEqual([
 			'Manage rows',
 			'---',
 			'Collapse group',
@@ -47,7 +47,7 @@ describe('buildRowGroupMenu', () => {
 	})
 
 	it('gives no two entries one key', () => {
-		const keys = buildRowGroupMenu({ ...rowArgs, color: 'blue' }).map((item) => item.key)
+		const keys = rowGroupMenuItems({ ...rowArgs, color: 'blue' }).map((item) => item.key)
 
 		expect(new Set(keys).size).toBe(keys.length)
 	})
@@ -57,9 +57,9 @@ describe('the Clear color item of the group menus', () => {
 	it('is one item in the row-group and the column-group menu', () => {
 		const onClearColor = vi.fn()
 
-		const row = buildRowGroupMenu({ ...rowArgs, color: 'blue', onClearColor }).at(-1)
+		const row = rowGroupMenuItems({ ...rowArgs, color: 'blue', onClearColor }).at(-1)
 
-		const column = buildColumnGroupMenu({
+		const column = columnGroupMenuItems({
 			intl: intlEn,
 			group: { id: 'g', title: 'G', columns: [], color: 'blue' },
 			onClearColor,
@@ -73,7 +73,7 @@ describe('the Clear color item of the group menus', () => {
 
 describe('the group menus in a locale', () => {
 	it('labels the row-group menu in the language of the intl', () => {
-		const items = buildRowGroupMenu({ ...rowArgs, intl: intlEs, color: 'blue' })
+		const items = rowGroupMenuItems({ ...rowArgs, intl: intlEs, color: 'blue' })
 
 		expect(shape(items)).toEqual([
 			'Manage rows',

@@ -1,9 +1,8 @@
 language js
 
-// A function name starts with a verb that says what the function does, such
-// as `getRow`, `parseAlpha`, or `buildTicks` (CONVENTIONS §8.5). A name that
-// ends in `Of`, such as `rowOf`, does not say if the function reads, searches,
-// builds, or converts.
+// A query takes the name of its value, and a command starts with a verb, such
+// as `parseAlpha` (CONVENTIONS §8.5). A name that ends in `Of`, such as
+// `rowOf`, adds a preposition that tells nothing.
 //
 // The plugin matches the name of each binding: a function, a variable, a
 // parameter, and a destructured name. A lookup table is a binding too, and it

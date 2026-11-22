@@ -6,7 +6,7 @@ import { columnLabel } from './engine/grid-column/label'
 import type { GridMenuResolution } from './engine/grid-menu-targeting'
 import { gridMessages } from './engine/grid-messages'
 import { recolorGroupIn } from './engine/grid-zone/map'
-import { buildColumnGroupMenu } from './grid-context-menu-utilities'
+import { columnGroupMenuItems } from './grid-context-menu-utilities'
 import type { GridColumnGroup } from './grid-group-types'
 
 /**
@@ -40,7 +40,7 @@ export function useGridColumnGroupMenu(args: {
 
 			if (!group) return null
 
-			const items = buildColumnGroupMenu({
+			const items = columnGroupMenuItems({
 				intl,
 				group,
 				onClearColor: () => setGroups(recolorGroupIn(groups, group.id, undefined)),

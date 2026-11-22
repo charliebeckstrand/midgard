@@ -40,10 +40,6 @@ The store is plain JavaScript, and the shell reads it through `useSyncExternalSt
 
 3. **Place a new tile at a cell (*P3*).** A new tile always takes a row under the lowest tile, so the user must drag it to its place. react-grid-layout and Grafana let the user drop a new tile from a palette onto a free cell. The open question is the drag source: `DndContext` lives inside `Dashboard`, so a palette outside the board needs a seam. Start with an `at` cell option on `addSpecTile` in `engine/dashboard-spec.ts`, which a palette can fill. Prove it in `dashboard-spec.test.ts` and in the "Build and save" example.
 
-## Pattern cleanup
-
-1. **Function names that misread (*P3*).** In `dashboard.tsx`, `inReadingOrder` returns elements, but §8.5 keeps the `in` prefix for a boolean. In `use-dashboard-scope.ts`, `appliedTo` makes a selector that keeps a cache, which §8.5 names with `create`. Rename them to `orderTiles` and `createAppliedSelector`. The other modules have the same drift in other noun names. A sweep of those names belongs to a pass over the repository.
-
 ## Performance
 
 1. **A benchmark for the board (*P2*).** No benchmark under `src/__benchmarks__` measures the dashboard. The render rules hold through `dashboard-card-render.test.tsx`, but no number shows the cost of a mount, a drag frame, or a projection change. Add a browser bench for the board on the pattern of `kanban.bench.tsx`, for a mount and a store preview step at a large board. Add the engine calls `resolveLayout`, `dragPreview`, `tidyCells`, and `projectionSteps` to it. Record the first numbers in a dated section of the browser benchmark README, as CONVENTIONS.md §12.6 says.

@@ -60,7 +60,9 @@ export type DashboardScope = {
  * keeps its list of selections, the selector returns its last result, and it
  * filters nothing.
  */
-function appliedTo(viewer: string | null): (view: DashboardView) => readonly DashboardSelection[] {
+function createAppliedSelector(
+	viewer: string | null,
+): (view: DashboardView) => readonly DashboardSelection[] {
 	let source: readonly DashboardSelection[] | undefined
 
 	let last: readonly DashboardSelection[] | undefined
@@ -103,7 +105,7 @@ export function useDashboardScope(): DashboardScope {
 
 	const selections = useDashboardStore((view) => view.selections)
 
-	const applied = useDashboardStore(useMemo(() => appliedTo(tileId), [tileId]))
+	const applied = useDashboardStore(useMemo(() => createAppliedSelector(tileId), [tileId]))
 
 	const query = useMemo(() => scopeQuery(filter, applied, tileId), [filter, applied, tileId])
 
