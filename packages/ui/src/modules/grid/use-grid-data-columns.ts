@@ -280,6 +280,8 @@ export function useGridDataColumns<T>({
 		overscan,
 		pinnedColumns,
 		pinColumn,
+		// The runtime pins, for the snapshot of a saved preset.
+		pinningState,
 		rowGrouping,
 		groupingMode,
 		detail,

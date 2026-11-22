@@ -25,7 +25,7 @@ import { GridBusyStatus } from './grid-busy-status'
 import { GridDataDialogs } from './grid-data-dialogs'
 import { manualNarrowed, resolveHighlightQuery, rowReorderPermitted } from './grid-data-resolvers'
 import { GridDataTable } from './grid-data-table'
-import type { GridDataProps } from './grid-data-types'
+import type { GridDataProps, GridPreferences } from './grid-data-types'
 import { GridExportOverlay } from './grid-export-overlay'
 import { GridFooterBar } from './grid-footer-bar'
 import { GridPagination as GridPaginationFooter } from './grid-pagination'
@@ -120,6 +120,7 @@ export function useGridDataRender<T>(
 		estimateSize,
 		overscan,
 		pinColumn,
+		pinningState,
 		groupingMode,
 		detail,
 		gated,
@@ -222,6 +223,7 @@ export function useGridDataRender<T>(
 		grandTotalRows,
 		rowsForExport,
 		hiddenSelected,
+		readSizingPreference,
 	} = useGridTable<T>({
 		rows,
 		// The engine receives the full column set and resolves which render (and
@@ -428,6 +430,23 @@ export function useGridDataRender<T>(
 	})
 
 	const rowReorderActive = rowReorder.active
+
+	// The save of a preset takes the whole layout: the order and the hidden ids
+	// from the manager, and the widths and the runtime pins from the grid, so
+	// `preferences` restores what the reader saved.
+	const onSavePreset = columnManagerConfig?.onSavePreset
+
+	const savePreset = useMemo(
+		() =>
+			onSavePreset &&
+			((preset: GridPreferences) =>
+				onSavePreset({
+					...preset,
+					columnSizing: readSizingPreference(),
+					pinning: pinningState ?? {},
+				})),
+		[onSavePreset, readSizingPreference, pinningState],
+	)
 
 	// Phase 5: the layout, the row counts, and the render gates.
 	const {
@@ -700,7 +719,7 @@ export function useGridDataRender<T>(
 											onPinChange: pinColumn,
 											groups: group.editorGroups,
 											onGroupsChange: group.editorSetGroups,
-											onSavePreset: columnManagerConfig?.onSavePreset,
+											onSavePreset: savePreset,
 										},
 									}
 								: null
