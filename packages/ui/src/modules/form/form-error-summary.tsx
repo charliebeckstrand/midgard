@@ -5,6 +5,7 @@ import { type ComponentProps, type ReactNode, useLayoutEffect, useRef, useState 
 import { Alert } from '../../components/alert'
 import { cn } from '../../core/cn'
 import {
+	useFormError,
 	useFormErrors,
 	useFormFailures,
 	useFormFieldTargets,
@@ -40,11 +41,12 @@ const messages = defineMessages({
  * and takes the focus. Each row names its field and links to its control.
  *
  * @remarks
- * A refused submit fails, and so does a handler that returns a field issue.
- * After a failure, the summary shows each field that has an issue, with the
- * first issue of the field. A row goes when its field becomes valid, and the
- * summary goes with the last row. A reset closes the summary until the next
- * failure.
+ * A refused submit fails, and so does a handler that returns a field issue or
+ * an issue of the whole form. After a failure, the summary shows the issue of
+ * the whole form first, as text, and then each field that has an issue, with
+ * the first issue of the field. A row goes when its field becomes valid, and
+ * the summary goes with the last row. A reset closes the summary until the
+ * next failure.
  *
  * A row links to the control of its field. A control that binds the field
  * registers its id, and so does a form-bound `Message`. A click moves the focus
@@ -74,6 +76,8 @@ export function FormErrorSummary({
 
 	const errors = useFormErrors()
 
+	const formError = useFormError()
+
 	const targets = useFormFieldTargets()
 
 	// The form leaves the focus to a mounted summary after a refused submit.
@@ -102,7 +106,7 @@ export function FormErrorSummary({
 
 	const items = summarizeErrors(errors)
 
-	const visible = open && items.length > 0
+	const visible = open && (items.length > 0 || formError !== null)
 
 	const seenFailures = useRef(failures)
 
@@ -140,6 +144,8 @@ export function FormErrorSummary({
 			tabIndex={-1}
 		>
 			<ul className="flex flex-col gap-2">
+				{/* The issue of the whole form has no field, so it has no link. */}
+				{formError !== null && <li data-slot="form-error-summary-form">{formError}</li>}
 				{items.map(({ name, issue }) => {
 					const target = targets[name]
 

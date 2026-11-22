@@ -103,7 +103,8 @@ const NO_FLAGS: Record<string, boolean> = {}
 /**
  * The form state of a filter bar, from its record. A control in the bar binds
  * the slot that its `name` gives, as it binds a field of a `Form`. A filter has
- * no validation, touch, or baseline, so the bar is always valid and clean.
+ * no validation, touch, or baseline, so the bar is always valid and clean, and
+ * it has no issue of the whole form.
  *
  * @internal
  */
@@ -116,5 +117,6 @@ export function filtersFormState(record: Record<string, unknown>): FormStateValu
 		dirty: false,
 		valid: true,
 		submitting: false,
+		formError: null,
 	}
 }

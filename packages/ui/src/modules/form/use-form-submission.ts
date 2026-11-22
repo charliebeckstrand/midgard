@@ -15,6 +15,7 @@ import type { FormStore } from '../../primitives/form/context'
 import type { FormFieldTargets } from '../../primitives/form/form-field-targets'
 import {
 	extractFieldErrors,
+	extractFormError,
 	hasFieldIssues,
 	invalidFields,
 	settleSubmit,
@@ -36,6 +37,8 @@ type FormSubmissionOptions<T extends Record<string, unknown>> = Pick<
 	validateRef: RefObject<Validators<T> | undefined>
 	setSubmitting: (submitting: boolean) => void
 	setErrors: (errors: Record<string, string | string[] | undefined>) => void
+	/** Sets the issue of the whole form, or clears it with `null`. */
+	setFormError: (formError: string | null) => void
 	/** Resets the store only, and leaves an in-flight submit live. */
 	resetForm: (nextDefaults?: Record<string, unknown>) => void
 	/** The control ids of the fields. A refused submit focuses the first invalid control by them. */
@@ -47,7 +50,7 @@ type FormSubmissionResult = {
 	handleSubmit: (event: SyntheticEvent<HTMLFormElement>) => Promise<void>
 	/** Discards the in-flight submit, and clears `submitting`. */
 	supersede: () => void
-	/** How many submit attempts have failed: a refused submit, or a handler that returns a field issue. */
+	/** How many submit attempts have failed: a refused submit, or a handler that returns a field issue or an issue of the whole form. */
 	failures: number
 }
 
@@ -69,6 +72,7 @@ export function useFormSubmission<T extends Record<string, unknown>>({
 	validateRef,
 	setSubmitting,
 	setErrors,
+	setFormError,
 	resetForm,
 	onSubmit,
 	onSettled,
@@ -82,10 +86,10 @@ export function useFormSubmission<T extends Record<string, unknown>>({
 	const reportSettled = useStableEvent((outcome: SubmitOutcome<T>) => onSettled?.(outcome))
 
 	// The payload is built only when a callback reads it.
-	const reportInvalid = useStableEvent((errors: Errors) => {
+	const reportInvalid = useStableEvent((errors: Errors, formError: string | null) => {
 		if (!onInvalidSubmit) return
 
-		onInvalidSubmit(invalidFields(errors) as Partial<Record<keyof T, string[]>>)
+		onInvalidSubmit(invalidFields(errors) as Partial<Record<keyof T, string[]>>, formError)
 	})
 
 	// Monotonic token identifying the current submit. An outside reset, unmount,
@@ -117,7 +121,10 @@ export function useFormSubmission<T extends Record<string, unknown>>({
 
 			const submitValues = store.getState().values as T
 
-			const { touched, errors, refused } = validateSubmit(validateRef.current, submitValues)
+			const { touched, errors, formError, refused } = validateSubmit(
+				validateRef.current,
+				submitValues,
+			)
 
 			// A refused submit returns here and never reaches `onSubmit`, so no other
 			// callback fires. Without this report the caller cannot tell a refused
@@ -130,7 +137,7 @@ export function useFormSubmission<T extends Record<string, unknown>>({
 			// the synchronous render.
 			if (refused) {
 				flushSync(() => {
-					dispatch({ type: 'submit-validate', touched, errors })
+					dispatch({ type: 'submit-validate', touched, errors, formError })
 
 					fail()
 				})
@@ -146,12 +153,13 @@ export function useFormSubmission<T extends Record<string, unknown>>({
 					)
 				}
 
-				reportInvalid(errors)
+				reportInvalid(errors, formError)
 
 				return
 			}
 
-			dispatch({ type: 'submit-validate', touched, errors })
+			// The submit clears the issue of the whole form of the last attempt.
+			dispatch({ type: 'submit-validate', touched, errors, formError })
 
 			// With no handler, the passed validation is the terminal outcome.
 			if (!onSubmit) {
@@ -174,6 +182,9 @@ export function useFormSubmission<T extends Record<string, unknown>>({
 				setErrors: (fieldErrors) => {
 					if (tokenRef.current === token) setErrors(fieldErrors)
 				},
+				setFormError: (message) => {
+					if (tokenRef.current === token) setFormError(message)
+				},
 				reset: (nextDefaults) => {
 					if (tokenRef.current !== token) supersede()
 
@@ -187,17 +198,20 @@ export function useFormSubmission<T extends Record<string, unknown>>({
 
 				const fieldErrors = extractFieldErrors(raw)
 
+				const formError = extractFormError(raw)
+
 				// Apply the returned entries. This also clears each field whose entry
-				// has no issue. An entry with an issue keeps the attempt mid-flow, and
-				// `onSettled` does not fire. `''` normalizes to `['']`, an issue.
-				if (fieldErrors) {
-					setErrors(fieldErrors)
+				// has no issue. An entry with an issue, or an issue of the whole form,
+				// keeps the attempt mid-flow, and `onSettled` does not fire. `''`
+				// normalizes to `['']`, an issue.
+				if (fieldErrors) setErrors(fieldErrors)
 
-					if (hasFieldIssues(fieldErrors)) {
-						fail()
+				if (formError !== null) setFormError(formError)
 
-						return
-					}
+				if (formError !== null || (fieldErrors && hasFieldIssues(fieldErrors))) {
+					fail()
+
+					return
 				}
 
 				// The outcome carries the values that `onSubmit` got, not the values
@@ -243,6 +257,7 @@ export function useFormSubmission<T extends Record<string, unknown>>({
 			validateRef,
 			onSubmit,
 			setErrors,
+			setFormError,
 			setSubmitting,
 			resetForm,
 			supersede,

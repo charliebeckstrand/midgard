@@ -3,6 +3,7 @@ import { ApiTable, Example, PageTabs, Playground } from '../../../kit/index.ts'
 import Checkboxes from './checkboxes.tsx'
 import ControlledValues from './controlled-values.tsx'
 import ErrorSummary from './error-summary.tsx'
+import FormErrorExample from './form-error.tsx'
 import FormPlayground from './playground.tsx'
 import ServerErrors from './server-errors.tsx'
 import SuccessAndFailure from './success-and-failure.tsx'
@@ -20,6 +21,7 @@ export default function FormPage() {
 				<Example of={ErrorSummary} />
 				<Example of={Checkboxes} />
 				<Example of={ServerErrors} />
+				<Example of={FormErrorExample} />
 				<Example of={SuccessAndFailure} />
 				<Example of={UnsavedChanges} />
 				<Example of={ControlledValues} />

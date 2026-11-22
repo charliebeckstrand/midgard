@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from 'vitest'
-import { runValidators } from '../../modules/form/engine/form-validate'
+import { runFormRule, runValidators } from '../../modules/form/engine/form-validate'
 import {
 	type ZodIssue,
 	type ZodLike,
@@ -75,12 +75,27 @@ describe('zodResolver', () => {
 		expect(validators.name?.('', defaults)).toBeUndefined()
 	})
 
-	it('drops form-level issues (empty path) silently', () => {
-		const validators = zodResolver(makeSchema([{ path: [], message: 'global' }]), defaults)
+	it('gives the first issue with no field (empty path) to the rule of the whole form, not to a field', () => {
+		const validators = zodResolver(
+			makeSchema([
+				{ path: [], message: 'global' },
+				{ path: [], message: 'second' },
+			]),
+			defaults,
+		)
 
 		expect(validators.name?.('', defaults)).toBeUndefined()
 
 		expect(validators.age?.(0, defaults)).toBeUndefined()
+
+		expect(runFormRule(validators, defaults)).toBe('global')
+
+		// The rule is under a symbol, so a field loop never runs it.
+		expect(Object.keys(validators)).toEqual(['name', 'age', 'passwordConfirm'])
+	})
+
+	it('gives no issue of the whole form when the schema passes', () => {
+		expect(runFormRule(zodResolver(makeSchema([]), defaults), defaults)).toBeNull()
 	})
 
 	it('parses once per values identity and caches across fields', () => {
