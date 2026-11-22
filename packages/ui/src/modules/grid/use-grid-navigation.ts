@@ -242,6 +242,17 @@ function browserOwnsKey(event: KeyboardEvent): boolean {
 }
 
 /**
+ * Whether a key is the select-all key: Ctrl or Cmd with A, and no other
+ * modifier. The WAI-ARIA APG grid pattern names it for a grid that selects
+ * cells. @internal
+ */
+function isSelectAllKey(event: KeyboardEvent): boolean {
+	if (event.key.toLowerCase() !== 'a' || event.altKey || event.shiftKey) return false
+
+	return event.metaKey !== event.ctrlKey
+}
+
+/**
  * The cursor coord a movement key moves to from `base`, or `null` when the key
  * does not move the cursor. The move runs over places in the cursor's order
  * (see {@link toPosition}), so the header row and the new-row slot are rows of
@@ -942,6 +953,42 @@ export function useGridNavigation({
 		setAnchor(null)
 	}, [setActive, setAnchor])
 
+	// Makes the range from the first data cell to the last, as Shift with
+	// Ctrl/Cmd+End does from the first cell. The cursor goes to the last cell,
+	// and the window scrolls to it. Returns whether the grid has a data cell.
+	const selectAll = useCallback((): boolean => {
+		const places = orderRef.current ? orderIndexRef.current.rows.length : rowsRef.current.length
+
+		const first = rowAtPlace(0)
+
+		const last = rowAtPlace(places - 1)
+
+		const colCount = colCountRef.current
+
+		if (!range || first === undefined || last === undefined || colCount === 0) return false
+
+		setAnchor({ row: toCursorRow(first), col: 0 })
+
+		// The move that extends holds the anchor that is set above.
+		moveToCursor({ row: toCursorRow(last), col: colCount - 1 }, true)
+
+		return true
+	}, [range, rowsRef, rowAtPlace, colCountRef, setAnchor, toCursorRow, moveToCursor])
+
+	// With the range on, Ctrl/Cmd+A selects each data cell, and the grid takes the
+	// key. With the range off, or with no data cell, the key stays the
+	// browser's. Returns whether the key is the select-all key.
+	const onSelectAllKey = useCallback(
+		(event: KeyboardEvent<HTMLTableElement>): boolean => {
+			if (!isSelectAllKey(event)) return false
+
+			if (selectAll()) event.preventDefault()
+
+			return true
+		},
+		[selectAll],
+	)
+
 	// Extends the range to a data cell, as Shift with a click or a drag does. The
 	// pointer is on the cell, so the cell is in the window.
 	const extendTo = useCallback(
@@ -1539,11 +1586,21 @@ export function useGridNavigation({
 		return row === active.row ? active : { row, col: active.col }
 	}, [active, activeStop, view])
 
+	// The select-all key goes ahead of the cursor keys, on the tab stop alone.
+	const onTableKeyDown = useCallback(
+		(event: KeyboardEvent<HTMLTableElement>) => {
+			if (event.target === event.currentTarget && onSelectAllKey(event)) return
+
+			onKeyDown(event)
+		},
+		[onSelectAllKey, onKeyDown],
+	)
+
 	const navTableProps: GridNavTableProps | undefined = enabled
 		? {
 				tabIndex: 0,
 				'aria-activedescendant': activeDescendant,
-				onKeyDown,
+				onKeyDown: onTableKeyDown,
 				onFocus,
 				onBlur,
 				onPointerDown,

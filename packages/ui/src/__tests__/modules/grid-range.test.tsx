@@ -119,6 +119,52 @@ describe('Grid range', () => {
 		])
 	})
 
+	it('selects each data cell with Ctrl+A or Cmd+A, and speaks the range', async ({ clock }) => {
+		const { grid } = renderRangeGrid()
+
+		fireEvent.mouseDown(cell(1, 1))
+
+		const press = fireEvent.keyDown(grid, { key: 'a', ctrlKey: true })
+
+		// The grid takes the key, so the browser selects no text of the page.
+		expect(press).toBe(false)
+
+		expect(inRange()).toHaveLength(rows.length * columns.length)
+
+		// The cursor is the last cell, the far corner from the first cell.
+		expect(grid).toHaveAttribute('aria-activedescendant', cell(2, 2).id)
+
+		fireEvent.mouseDown(cell(0, 0))
+
+		fireEvent.keyDown(grid, { key: 'A', metaKey: true })
+
+		expect(inRange()).toHaveLength(rows.length * columns.length)
+
+		await settleAnnouncement(clock)
+
+		expect(liveRegion()).toHaveTextContent(
+			'Range of 3 rows and 3 columns, Name row 2 to Note row 4',
+		)
+	})
+
+	it('leaves Ctrl+A to the browser without the range', () => {
+		const { grid } = renderRangeGrid({ range: false })
+
+		fireEvent.mouseDown(cell(0, 0))
+
+		expect(fireEvent.keyDown(grid, { key: 'a', ctrlKey: true })).toBe(true)
+	})
+
+	it('leaves Ctrl+A with another modifier to the browser', () => {
+		const { grid } = renderRangeGrid()
+
+		fireEvent.mouseDown(cell(0, 0))
+
+		expect(fireEvent.keyDown(grid, { key: 'a', ctrlKey: true, shiftKey: true })).toBe(true)
+
+		expect(inRange()).toEqual([])
+	})
+
 	it('extends a range with Shift and a click', () => {
 		renderRangeGrid()
 
@@ -350,6 +396,29 @@ describe('Grid range over grouped rows', () => {
 		expect(marked).toEqual(['10 units', '30 units', '20 units'])
 
 		expect(copy()).toBe('10\n30\n20')
+	})
+
+	it('selects each data cell of each group with Ctrl+A, and no group header', () => {
+		renderUI(
+			<Grid
+				columns={saleColumns}
+				rows={sales}
+				getKey={(row) => row.id}
+				groupBy={{ value: 'region' }}
+				navigable
+				range
+			/>,
+		)
+
+		const grid = screen.getByRole('treegrid')
+
+		fireEvent.mouseDown(screen.getByText('30 units'))
+
+		fireEvent.keyDown(grid, { key: 'a', ctrlKey: true })
+
+		const marked = [...grid.querySelectorAll('td[data-in-range]')].map((node) => node.textContent)
+
+		expect(marked).toEqual(['West', '10 units', 'West', '30 units', 'East', '20 units'])
 	})
 
 	it('speaks the row numbers with the group headers counted', async ({ clock }) => {
