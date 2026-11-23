@@ -94,7 +94,7 @@ import { ToggleIconButton, ToggleIconButtonSkeleton } from '../../../components/
 import { Tree, TreeItem, TreeSkeleton } from '../../../components/tree'
 import { type DensityStep, densitySteps } from '../../../core/density'
 import { BarChart, ChartSkeleton, PieChart } from '../../../modules/chart'
-import { ChatMessage, ChatTranscriptSkeleton } from '../../../modules/chat'
+import { type ChatMessageData, ChatTranscript, ChatTranscriptSkeleton } from '../../../modules/chat'
 import {
 	FormFilters,
 	FormFiltersBar,
@@ -968,19 +968,25 @@ describe('skeleton parity (real browser)', () => {
 
 	// A transcript has no fixed height, so this compares one bubble of each side. The real
 	// bubble holds as many lines as the skeleton bubble of its side: one for the user, and two for
-	// the assistant. The column is fixed, so the bubbles of both sides align to the same edges.
+	// the assistant. The column is fixed, so the bubbles of both sides align to the same edges. The
+	// real bubble is in a transcript, because the rows of a transcript keep room on each side.
+	const conversation: ChatMessageData[] = [
+		{ id: 'q', sender: 'user', content: 'Where are the stops?' },
+		{ id: 'a', sender: 'assistant', content: 'Here are the stops.\nTwo of them run late.' },
+	]
+
 	it.each([
-		['user', 0, 'right', 'Where are the stops?'],
-		['assistant', 1, 'left', 'Here are the stops.\nTwo of them run late.'],
+		['user', 0, 'right'],
+		['assistant', 1, 'left'],
 	] as const)(
 		'ChatTranscriptSkeleton has the %s bubble of a transcript',
-		(sender, index, edge, text) => {
+		(_sender, index, edge) => {
 			const real = present(
 				renderUI(
-					<div className="w-120">
-						<ChatMessage sender={sender}>{text}</ChatMessage>
+					<div className="flex h-120 w-120 flex-col">
+						<ChatTranscript messages={conversation} />
 					</div>,
-				).container.querySelector('[data-slot="chat-message-bubble"]'),
+				).container.querySelectorAll('[data-slot="chat-message-bubble"]')[index],
 				'bubble',
 			).getBoundingClientRect()
 

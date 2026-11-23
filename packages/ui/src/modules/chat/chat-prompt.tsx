@@ -121,7 +121,10 @@ export type ChatPromptProps = {
 	sources?: readonly ChatPromptSource[]
 	/** Fires when the user submits (Enter without Shift, or the send button). */
 	onSubmit: () => void
-	/** Fires when the user stops a streaming response: the stop button, or Enter while `streaming`. */
+	/**
+	 * Fires when the user presses the stop button of a streaming response. Enter
+	 * does not stop the response.
+	 */
 	onStop?: () => void
 	/**
 	 * Renders the send button as a stop button that calls `onStop`.
@@ -208,7 +211,9 @@ export type ChatPromptProps = {
  * Auto-resizing chat composer built on Textarea and wrapped in a `<Control>` so
  * the textarea carries an inherent, stable id. Submits on Enter (Shift+Enter for
  * newlines), and toggles its send button to a stop control while `streaming`.
- * While `streaming`, Enter calls `onStop` and does not submit. It offers a
+ * While `streaming`, Enter does nothing, and the draft stays. A reader who
+ * presses Enter asks to send, so the key does not stop a reply that the
+ * reader cannot get back. Only the stop button calls `onStop`. It offers a
  * paperclip file picker when `onAttach` is provided, and surfaces
  * `attachments` as removable chips below the field. The action row (extra
  * `actions`, the paperclip, and send or stop) sits below the textarea, at the
@@ -297,13 +302,10 @@ export function ChatPrompt({
 
 			event.preventDefault()
 
-			if (streaming) {
-				onStop?.()
-			} else if (canSubmit) {
-				onSubmit()
-			}
+			// While a reply streams, Enter keeps the draft for after the reply.
+			if (!streaming && canSubmit) onSubmit()
 		},
-		[streaming, canSubmit, onSubmit, onStop, pickerKeyDown, citations, picker.open, onEscape],
+		[streaming, canSubmit, onSubmit, pickerKeyDown, citations, picker.open, onEscape],
 	)
 
 	// A textbox cannot take the `combobox` role, so it names its popup with the attributes that a textbox takes.
@@ -451,6 +453,7 @@ export function ChatPrompt({
 					source={picker.source}
 					items={picker.items}
 					status={picker.status}
+					statusText={picker.statusText}
 					floatingStyles={picker.floating.floatingStyles}
 					setFloating={picker.floating.refs.setFloating}
 					getFloatingProps={picker.floating.getFloatingProps}

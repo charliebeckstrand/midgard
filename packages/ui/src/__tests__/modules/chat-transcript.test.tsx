@@ -69,16 +69,28 @@ describe('ChatTranscript', () => {
 		expect(present(pulsing[0], 'streaming bubble')).toHaveTextContent('Hello!')
 	})
 
-	it('dims only the bubble of the message that the composer edits', () => {
+	it('names the log "Conversation", and takes a name of the consumer in its place', () => {
+		const { unmount } = renderUI(<ChatTranscript messages={messages} />)
+
+		expect(screen.getByRole('log', { name: 'Conversation' })).toBeInTheDocument()
+
+		unmount()
+
+		renderUI(<ChatTranscript messages={messages} aria-label="Support chat" />)
+
+		expect(screen.getByRole('log', { name: 'Support chat' })).toBeInTheDocument()
+	})
+
+	it('rings only the message that the composer edits', () => {
 		const { container } = renderUI(<ChatTranscript messages={messages} editing="1" />)
 
-		const dimmed = allBySlot(container, 'chat-message-bubble').filter((el) =>
-			el.classList.contains('opacity-50'),
+		const edited = allBySlot(container, 'chat-message').filter((el) =>
+			el.hasAttribute('data-editing'),
 		)
 
-		expect(dimmed).toHaveLength(1)
+		expect(edited).toHaveLength(1)
 
-		expect(present(dimmed[0], 'edited bubble')).toHaveTextContent('Hi there')
+		expect(present(edited[0], 'edited message')).toHaveTextContent('Hi there')
 	})
 
 	describe('the row callbacks', () => {
@@ -141,7 +153,7 @@ describe('ChatTranscript', () => {
 			expect(onAction).toHaveBeenCalledOnce()
 		})
 
-		it('keeps room above the first row only for a hover toolbar', () => {
+		it('keeps the room of a toolbar above the first row only for a hover toolbar', () => {
 			const actions = () => <button type="button">Copy</button>
 
 			const first = (container: HTMLElement) =>
@@ -157,13 +169,14 @@ describe('ChatTranscript', () => {
 				<ChatTranscript messages={messages} actions={actions} trigger="static" />,
 			)
 
-			expect(first(fixed.container)).toBe('')
+			// Without a hover toolbar, the first row keeps only the room of the ring of an edit.
+			expect(first(fixed.container)).toBe('py-1')
 
 			fixed.unmount()
 
 			const bare = renderUI(<ChatTranscript messages={messages} />)
 
-			expect(first(bare.container)).toBe('')
+			expect(first(bare.container)).toBe('py-1')
 		})
 
 		it('does not render a settled row again when a chunk lands', () => {

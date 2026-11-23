@@ -64,8 +64,11 @@ export type ChatCitationActions = {
 	 * that Escape can go on to the surface that holds the chat.
 	 */
 	clear: () => boolean
-	/** A click, Enter, or Space on `citation`. `touch` is true for a tap. */
-	press: (citation: ChatCitation, touch: boolean) => void
+	/**
+	 * A click, a tap, Enter, or Space on `citation`. `hoverless` is true for an
+	 * input that cannot hover: a tap or a key.
+	 */
+	press: (citation: ChatCitation, hoverless: boolean) => void
 }
 
 /**
@@ -158,9 +161,10 @@ export function useChatCitationTrigger(
 		return previewing || cited !== null
 	})
 
-	const press = useStableEvent((citation: ChatCitation, touch: boolean) => {
-		// A touch screen has no hover, so a tap toggles the citation in each mode.
-		if (trigger === 'hover' && !touch) return
+	const press = useStableEvent((citation: ChatCitation, hoverless: boolean) => {
+		// A tap and a key cannot hover, so they toggle the citation in each mode.
+		// A citation is then a toggle button that a press changes.
+		if (trigger === 'hover' && !hoverless) return
 
 		onCitedChange(cited?.id === citation.id ? null : citation)
 	})
