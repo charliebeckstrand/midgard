@@ -443,6 +443,95 @@ describe('ChatCitationProvider trigger', () => {
 		expect(onCitedChange).toHaveBeenLastCalledWith(expect.objectContaining({ id: 'late' }))
 	})
 
+	/** A provider whose app clears `cited` from outside, as a pick in a tile does. */
+	function Clearable({
+		trigger,
+		onCitedChange,
+	}: {
+		trigger: ChatCitationTrigger
+		onCitedChange: (citation: ChatCitation | null) => void
+	}) {
+		const [cited, setCited] = useState<ChatCitation | null>(null)
+
+		return (
+			<>
+				<ChatCitationProvider
+					targets={targets}
+					trigger={trigger}
+					cited={cited}
+					onCitedChange={(citation) => {
+						onCitedChange(citation)
+
+						setCited(citation)
+					}}
+				>
+					<ChatMessage sender="assistant">{reply([late])}</ChatMessage>
+				</ChatCitationProvider>
+				<button type="button" onClick={() => setCited(null)}>
+					Pick in a tile
+				</button>
+			</>
+		)
+	}
+
+	it('presses a citation again after the app clears it', async () => {
+		const onCitedChange = vi.fn()
+
+		const user = userEvent.setup()
+
+		renderUI(<Clearable trigger="click" onCitedChange={onCitedChange} />)
+
+		const citation = screen.getByRole('button', { name: 'Twelve stops are late' })
+
+		await user.click(citation)
+
+		await user.click(screen.getByRole('button', { name: 'Pick in a tile' }))
+
+		expect(citation).toHaveAttribute('aria-pressed', 'false')
+
+		await user.click(citation)
+
+		expect(onCitedChange).toHaveBeenLastCalledWith(expect.objectContaining({ id: 'late' }))
+
+		expect(citation).toHaveAttribute('aria-pressed', 'true')
+	})
+
+	it('sends nothing at the end of a preview that the app cleared', () => {
+		const onCitedChange = vi.fn()
+
+		renderUI(<Clearable trigger="both" onCitedChange={onCitedChange} />)
+
+		const citation = screen.getByRole('button', { name: 'Twelve stops are late' })
+
+		act(() => move(document.body, citation))
+
+		act(() => screen.getByRole('button', { name: 'Pick in a tile' }).click())
+
+		act(() => move(citation, document.body))
+
+		expect(onCitedChange).toHaveBeenCalledTimes(1)
+	})
+
+	it('reads `cited` again when the app does not take a sent value', async () => {
+		const onCitedChange = vi.fn()
+
+		const user = userEvent.setup()
+
+		renderUI(
+			<ChatCitationProvider targets={targets} cited={null} onCitedChange={onCitedChange}>
+				<ChatMessage sender="assistant">{reply([late])}</ChatMessage>
+			</ChatCitationProvider>,
+		)
+
+		const citation = screen.getByRole('button', { name: 'Twelve stops are late' })
+
+		await user.click(citation)
+
+		await user.click(citation)
+
+		expect(onCitedChange.mock.calls.map(([value]) => value?.id ?? null)).toEqual(['late', 'late'])
+	})
+
 	it('takes no hover with the click default', async () => {
 		const { user, onCitedChange, anchor } = setup('click')
 

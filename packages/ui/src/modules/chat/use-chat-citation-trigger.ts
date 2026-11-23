@@ -1,6 +1,6 @@
 'use client'
 
-import { type FocusEvent, useMemo, useRef, useState } from 'react'
+import { type FocusEvent, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { lastInput } from '../../utilities/last-input'
 import type { ChatCitation } from './engine/chat-content/types'
@@ -69,8 +69,10 @@ export function lastInputIsTouch(): boolean {
  *
  * Two pointer events can come before the app draws the last value that the
  * hook sent, as when the pointer moves from one citation to the next. The hook
- * thus reads the value that it sent while `cited` is still the value that it
- * sent from.
+ * thus reads the value that it sent until the next commit. Each send asks for
+ * a render, and each commit forgets the sent value, so after a commit `cited`
+ * is the truth. Thus an app that changes `cited` again, or that does not take
+ * a sent value, does not leave a stale value.
  *
  * @internal
  */
@@ -81,7 +83,16 @@ export function useChatCitationTrigger(
 ): ChatCitationActions {
 	const previewRef = useRef<Preview | null>(null)
 
-	const sentRef = useRef<{ from: ChatCitation | null; value: ChatCitation | null } | null>(null)
+	// The value that the hook sent since the last commit, or `null` when it sent none.
+	const sentRef = useRef<{ value: ChatCitation | null } | null>(null)
+
+	// A send asks for a render, so that a commit comes even when the app does
+	// not take the value.
+	const [, setSends] = useState(0)
+
+	useLayoutEffect(() => {
+		sentRef.current = null
+	})
 
 	// The preview that the render reads, for `pressed`. The ref holds the same
 	// value for the events, which can come before the next render.
@@ -96,7 +107,7 @@ export function useChatCitationTrigger(
 	const current = useStableEvent((): ChatCitation | null => {
 		const sent = sentRef.current
 
-		return sent && sent.from === cited ? sent.value : cited
+		return sent ? sent.value : cited
 	})
 
 	const send = useStableEvent((next: ChatCitation | null) => {
@@ -104,7 +115,9 @@ export function useChatCitationTrigger(
 
 		if (now?.id === next?.id) return
 
-		sentRef.current = { from: cited, value: next }
+		sentRef.current = { value: next }
+
+		setSends((count) => count + 1)
 
 		onCitedChange(next)
 	})
