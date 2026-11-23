@@ -68,4 +68,22 @@ describe('docs page error boundary', () => {
 
 		expect(screen.getByRole('link', { name: 'Open the broken page' })).toBeTruthy()
 	})
+
+	it('gives the title of a page with tabs that throws', () => {
+		vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		renderShell('/loading', {
+			children: [
+				{
+					Component: Page,
+					ErrorBoundary: PageErrorBoundary,
+					children: [{ id: '/loading', path: 'loading', Component: Broken }],
+				},
+			],
+		})
+
+		expect(screen.getByRole('heading', { name: 'Could not load this page', level: 2 })).toBeTruthy()
+
+		expect(document.title).toBe('Loading · Docs')
+	})
 })

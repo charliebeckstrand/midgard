@@ -457,7 +457,7 @@ export function ExampleFrame(
 									max={100}
 									onKeyDown={heightResize.handleProps.onKeyDown}
 									className={cn('absolute inset-0 m-0', sen.focus.ring)}
-								/>{' '}
+								/>
 								<div className="absolute inset-x-0 top-1/2 h-px group-hover:bg-zinc-400 group-data-dragging:bg-zinc-400 pointer-coarse:hidden dark:group-hover:bg-zinc-600 dark:group-data-dragging:bg-zinc-600" />
 								{/* The bar has an odd height, so it centers on the 1px border at whole pixels. */}
 								<div

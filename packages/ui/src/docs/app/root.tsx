@@ -1,7 +1,7 @@
 import pages from 'virtual:docs/pages'
 import { PanelLeft, PanelLeftDashed } from 'lucide-react'
 import { type ReactNode, useEffect, useRef } from 'react'
-import { Links, Meta, Outlet, Scripts, useLocation, useMatches, useNavigate } from 'react-router'
+import { Links, Meta, Outlet, Scripts, useLocation, useNavigate } from 'react-router'
 import { Button } from 'ui/button'
 import { loadShiki } from 'ui/code'
 import { announce } from 'ui/core'
@@ -30,10 +30,12 @@ import { NavigateContext, useDocumentLocale } from './context.ts'
 import { DirectionListbox } from './direction.tsx'
 import { LOCALES } from './language.ts'
 import { PageError } from './page-error.tsx'
+import { PageTitle } from './page-title.tsx'
 import { RouterLink } from './router-link.tsx'
 import { DocsSearch, SearchPaletteHost } from './search.tsx'
 import { DocsSidebar } from './sidebar.tsx'
 import { StaleBuildScript } from './stale-build.tsx'
+import { useMatchedPage } from './use-matched-page.ts'
 import { useNavigationScroll } from './use-navigation-scroll.ts'
 
 /**
@@ -122,14 +124,6 @@ const messages = defineMessages({
 	},
 })
 
-// The title of the browser tab on a page: the name of the page, then the name of the docs.
-const pageTitleMessage = defineMessage<{ page: string }>({
-	id: 'docs.app.pageTitle',
-	defaultMessage: '{page} · Docs',
-	description:
-		'The title of the browser tab on a page of the docs that has no tabs. The page is the name of the page, such as Button, or the text that says that no page is at the address.',
-})
-
 // The title and the heading of a path that has no page.
 const notFoundMessage = defineMessage({
 	id: 'docs.notFound.title',
@@ -172,13 +166,9 @@ function Shell() {
 
 	const { sidebar, setSidebar } = useAppearance()
 
-	const matches = useMatches()
-
 	const intl = useIntl()
 
-	// The page of the matched route. A path that only starts with the path of a
-	// page, such as `/button/foo`, matches the not-found route, so it has no page.
-	const page = pages.find((link) => matches.some((match) => match.id === link.path))
+	const page = useMatchedPage()
 
 	// A path with no page, such as `/button/foo`, takes the title of the
 	// not-found page.
@@ -218,7 +208,7 @@ function Shell() {
 		// on each tab of the page, and no item is current on the not-found page.
 		<UIProvider link={RouterLink} pathname={path}>
 			{/* A page with tabs puts the name of the tab in the title (`PageTabs`). */}
-			{!page?.tabs.length && <title>{intl.formatMessage(pageTitleMessage, { page: title })}</title>}
+			{!page?.tabs.length && <PageTitle page={title} />}
 			<Stylesheet />
 			<DocsSearch>
 				<div ref={scroller} className={SCROLLER}>
