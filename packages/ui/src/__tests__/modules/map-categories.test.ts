@@ -36,6 +36,25 @@ describe('a category tone and stripes', () => {
 		expect(meta?.paint).toEqual({ kind: 'class', fill: k.soft.red.fill, text: k.soft.red.text })
 	})
 
+	it('paints a tinted category in the solid step of its slot at 35% alpha', () => {
+		const [meta] = resolveCategories(FIXTURE_ROWS, 'zone', [
+			{ value: 'East', color: 'green', tone: 'tint' },
+		])
+
+		expect(meta?.paint).toEqual({ kind: 'class', fill: k.tint.green.fill, text: k.tint.green.text })
+
+		// The tint is the solid class with an alpha, so it keeps the hue of the slot in each mode.
+		expect(k.tint.green.fill).toEqual(k.series.green.fill.map((fill) => `${fill}/35`))
+
+		expect(k.tint.green.text).toEqual(k.series.green.text.map((text) => `${text}/35`))
+	})
+
+	it('keeps the tint of each slot in step with the solid palette', () => {
+		for (const slot of Object.keys(k.series) as (keyof typeof k.series)[]) {
+			expect(k.tint[slot].fill).toEqual(k.series[slot].fill.map((fill) => `${fill}/35`))
+		}
+	})
+
 	it('paints a striped category with both slots, in its tone', () => {
 		const [solid, soft] = resolveCategories(FIXTURE_ROWS, 'zone', [
 			{ value: 'East', color: 'blue', stripes: 'red' },

@@ -2,6 +2,7 @@ import { Example } from '../../../../kit/index.ts'
 import Basic from './basic.tsx'
 import Clustering from './clustering.tsx'
 import Shapes from './shapes.tsx'
+import TintedGround from './tinted-ground.tsx'
 import Zoomable from './zoomable.tsx'
 
 export default function PointTab() {
@@ -10,6 +11,7 @@ export default function PointTab() {
 			<Example of={Basic} ratio />
 			<Example of={Clustering} ratio />
 			<Example of={Shapes} ratio />
+			<Example of={TintedGround} ratio />
 			<Example of={Zoomable} ratio />
 		</>
 	)

@@ -37,13 +37,13 @@ const PAINT_LABEL: Record<PlaceVisitFilter, string> = {
  * filter decides which name the rows carry, not which names exist.
  *
  * Green for been, red for not, which is the one pairing a reader brings to the
- * question already. They are held far back in opacity by the wrapper below: at
+ * question already. Both take the tint, so a region reads as tinted ground: at
  * full strength either hue reads as a value on the region, and the dots standing
  * on it carry the values here.
  */
 const COVERED_CATEGORIES: MapCategory[] = [
-	{ value: PAINT_LABEL.visited, color: 'green' },
-	{ value: PAINT_LABEL.unvisited, color: 'red' },
+	{ value: PAINT_LABEL.visited, color: 'green', tone: 'tint' },
+	{ value: PAINT_LABEL.unvisited, color: 'red', tone: 'tint' },
 ]
 
 /** The most names that the readout of a summary gives before it counts the rest. */
@@ -267,18 +267,6 @@ export function PlacesMap({
 				// and its places are one thing here, so both stay forward and the
 				// pointer changes nothing but the readout.
 				'[&_[data-slot=map-points]]:opacity-100! [&_[data-slot=map-regions-recede]]:opacity-100!',
-				// The paint held far back, so a region reads as tinted ground rather than
-				// as a filled shape: the dots carry the values on this map, and a region
-				// at full strength takes the eye off them. `fill-opacity` and not
-				// `opacity`, which would take the seams between regions with it.
-				//
-				// Selected by the fill class, because the module gives a region path no
-				// category anchor on purpose: a county atlas would pay attribute-rule
-				// matching on every one of thousands of paths for it. The two hues here
-				// are the ones `COVERED_CATEGORIES` names, written out because Tailwind
-				// generates only what it finds literally.
-				'[&_[data-slot=map-regions]_.fill-green-600]:[fill-opacity:0.35]',
-				'[&_[data-slot=map-regions]_.fill-red-600]:[fill-opacity:0.35]',
 			)}
 		>
 			<MapPlat

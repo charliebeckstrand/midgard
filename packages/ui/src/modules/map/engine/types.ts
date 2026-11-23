@@ -131,7 +131,7 @@ export type MapGeography = MapTopology | MapFeatureCollection
 
 /**
  * One region category: the data value it matches, with optional legend text,
- * a slot-color override, a soft tone, and stripes of a second color. Omitted
+ * a slot-color override, a soft or tinted tone, and stripes of a second color. Omitted
  * entirely, categories derive from the data in first-appearance order.
  */
 export type MapCategory = {
@@ -147,12 +147,15 @@ export type MapCategory = {
 	/**
 	 * The step of the color. `'soft'` paints the region and its swatch in a
 	 * lighter step of the same hue, so a category can stand beside its full
-	 * tone: a lead that is not called yet beside a win, for example. The soft
-	 * tone also applies to `stripes`.
+	 * tone: a lead that is not called yet beside a win, for example. `'tint'`
+	 * paints the region and its swatch in the full step at 35% alpha, so the
+	 * region reads as tinted ground under the marks that stand on it, such as
+	 * the dots of a `MapPoints`. The seams between the regions keep their full
+	 * ink. The tone also applies to `stripes`.
 	 *
 	 * @defaultValue 'solid'
 	 */
-	tone?: 'solid' | 'soft'
+	tone?: 'solid' | 'soft' | 'tint'
 	/**
 	 * A second color. The region then draws in diagonal stripes of `color` and
 	 * this color, and its legend and tooltip swatches show the same stripes:

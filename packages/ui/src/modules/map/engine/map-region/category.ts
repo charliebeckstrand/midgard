@@ -154,13 +154,20 @@ export function activeCategory(
 	return meta === undefined || hidden.has(categoryLegendId(meta.value)) ? null : meta
 }
 
+/** The inks of the slots, by the tone of a category. */
+const inksByTone = { solid: k.series, soft: k.soft, tint: k.tint } satisfies Record<
+	NonNullable<MapCategory['tone']>,
+	Record<MapSeriesColor, MapSlotInk>
+>
+
 /**
- * The ink of one slot in one tone: the shared palette's, or the map's soft step.
+ * The ink of one slot in one tone: the shared palette's, or the map's soft step
+ * or tint.
  *
  * @internal
  */
-function slotInk(color: MapSeriesColor, tone: MapCategory['tone']): MapSlotInk {
-	const ink = tone === 'soft' ? k.soft[color] : k.series[color]
+function slotInk(color: MapSeriesColor, tone: MapCategory['tone'] = 'solid'): MapSlotInk {
+	const ink = inksByTone[tone][color]
 
 	return { fill: ink.fill, text: ink.text }
 }
