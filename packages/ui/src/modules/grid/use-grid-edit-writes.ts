@@ -89,14 +89,15 @@ export function useGridEditWrites<T>({
 	// through the checks of a save, and its refusals, with the ones the caller
 	// found, go to `onReject` in one call. Its saved cells are one entry in the
 	// history. The announcement also counts the cells that the write skipped. A
-	// history step passes its cells as `history`, so a refused batch puts them
-	// back.
+	// `quiet` write gives its message back and does not speak it, so a paste
+	// that adds rows speaks once for both. A history step passes its cells as
+	// `history`, so a refused batch puts them back.
 	const submitCells = useCallback(
 		(
 			changes: readonly GridCellChange[],
 			outcome: GridSaveOutcome,
 			getRow: (rowKey: string | number) => T | undefined,
-			write?: { refused: readonly GridCellChange[]; skipped: number },
+			write?: { refused: readonly GridCellChange[]; skipped: number; quiet?: boolean },
 			cells: readonly GridHistoryCell[] = [],
 		) => {
 			const { saved, inFlight, refused } = sendCells({
@@ -121,9 +122,11 @@ export function useGridEditWrites<T>({
 				(write?.skipped ?? 0) + rejected.length,
 			)
 
-			if (message) announce(message)
+			if (message && !write?.quiet) announce(message)
 
 			recordWrite(saved.history, inFlight, recordEntry, trackBatch)
+
+			return message
 		},
 		[editSourceRef, hasCommit, sendCommit, sendReject, recordEntry, trackBatch, intl],
 	)
@@ -131,9 +134,10 @@ export function useGridEditWrites<T>({
 	// Writes the text of a paste into its cells, as one save. A cell that its
 	// column cannot edit, that has no `field`, or that the session holds is
 	// skipped. A text that does not fit its cell is refused. A clear and a cut
-	// are a paste of empty text, and the outcome names them.
+	// are a paste of empty text, and the outcome names them. The message of the
+	// write comes back, and a `quiet` paste does not speak it.
 	const pasteCells = useCallback(
-		(cells: readonly GridPasteCell[], outcome: GridPasteOutcome = 'pasted') => {
+		(cells: readonly GridPasteCell[], outcome: GridPasteOutcome = 'pasted', quiet = false) => {
 			const source = editSourceRef.current
 
 			const getRow = rowLookup(source)
@@ -152,7 +156,7 @@ export function useGridEditWrites<T>({
 				else refused.push(paste.change)
 			}
 
-			submitCells(changes, outcome, getRow, { refused, skipped })
+			return submitCells(changes, outcome, getRow, { refused, skipped, quiet })
 		},
 		[editSourceRef, held, submitCells],
 	)

@@ -9,10 +9,12 @@ import {
 	getSlot,
 	gridCells,
 	liveRegion,
+	present,
 	renderUI,
 	screen,
 } from '../helpers'
 import { it } from '../helpers/fake-clock'
+import { gridCell } from '../helpers/grid-cells'
 
 type Row = { id: number; name: string; count: number; active: boolean; code: string }
 
@@ -598,5 +600,217 @@ describe('Grid range writes over an open editor', () => {
 		await clock.advance(FIRST_WRITE_MS)
 
 		expect(liveRegion()).toHaveTextContent('Cannot undo while a cell has an edit')
+	})
+})
+
+describe('Grid paste past the last row', () => {
+	/** The data cell of a column, by its row index. The Add column of the slot shifts `view.cell`. */
+	const at = (row: number, column: string) => gridCell(document, column, row)
+
+	/** The names of the three data rows. */
+	const names = () => [0, 1, 2].map((row) => at(row, 'name').textContent)
+
+	/** The value of the editor of a cell of the new-row slot. */
+	const slotValue = (columnId: string) =>
+		document.querySelector<HTMLInputElement>(`td[data-grid-new-col="${columnId}"] input`)?.value
+
+	it('adds each line after the last row through the new-row slot, in order', async ({ clock }) => {
+		const onRowAdd = vi.fn()
+
+		const view = renderPasteGrid({ editable: { newRow: 'bottom', onRowAdd } })
+
+		fireEvent.mouseDown(at(1, 'name'))
+
+		await act(async () => view.paste('Dan\t4\nErin\t5\nFrank\t6\nGrace\t7'))
+
+		// The lines that fit write the data rows, as one save.
+		expect(
+			[0, 1, 2].map((row) => [at(row, 'name').textContent, at(row, 'count').textContent]),
+		).toEqual([
+			['Alice', '1'],
+			['Dan', '4'],
+			['Erin', '5'],
+		])
+
+		// The count reads as the kind of the column, as a typed entry of the slot does.
+		expect(onRowAdd.mock.calls).toEqual([
+			[{ name: 'Frank', count: 6 }],
+			[{ name: 'Grace', count: 7 }],
+		])
+
+		await clock.advance(FIRST_WRITE_MS)
+
+		expect(liveRegion()).toHaveTextContent('4 cells pasted. 2 rows added')
+	})
+
+	it('waits for each async add before the next line', async () => {
+		const settles: (() => void)[] = []
+
+		const onRowAdd = vi.fn(
+			() =>
+				new Promise<void>((resolve) => {
+					settles.push(resolve)
+				}),
+		)
+
+		const view = renderPasteGrid({ editable: { newRow: 'bottom', onRowAdd } })
+
+		fireEvent.mouseDown(at(2, 'name'))
+
+		await act(async () => view.paste('Zoe\nYan\nXia'))
+
+		expect(onRowAdd).toHaveBeenCalledExactlyOnceWith({ name: 'Yan' })
+
+		// The slot shows the line while its add is in flight.
+		expect(slotValue('name')).toBe('Yan')
+
+		await act(async () => settles[0]?.())
+
+		expect(slotValue('name')).toBe('Xia')
+
+		expect(onRowAdd).toHaveBeenLastCalledWith({ name: 'Xia' })
+
+		expect(onRowAdd).toHaveBeenCalledTimes(2)
+	})
+
+	it('stops at a refused line, and keeps it in the slot with its error', async ({ clock }) => {
+		const onRowAdd = vi.fn()
+
+		const view = renderPasteGrid({
+			columns: columns.map((column) =>
+				column.id === 'name'
+					? { ...column, validate: (value) => (value === 'Bad' ? 'Not a name' : null) }
+					: column,
+			),
+			editable: { newRow: 'bottom', onRowAdd },
+		})
+
+		fireEvent.mouseDown(at(2, 'name'))
+
+		await act(async () => view.paste('Zoe\nYan\nBad\nXia'))
+
+		expect(onRowAdd).toHaveBeenCalledExactlyOnceWith({ name: 'Yan' })
+
+		expect(slotValue('name')).toBe('Bad')
+
+		expect(screen.getByText('Not a name')).toBeTruthy()
+
+		await clock.advance(FIRST_WRITE_MS)
+
+		expect(liveRegion()).toHaveTextContent(
+			'Name pasted for Carol. 1 row added, 1 row refused, 1 row not pasted',
+		)
+	})
+
+	it('adds no line over an entry in the slot', async ({ clock }) => {
+		const onRowAdd = vi.fn()
+
+		const view = renderPasteGrid({ editable: { newRow: 'bottom', onRowAdd } })
+
+		const editor = present(
+			document.querySelector<HTMLInputElement>('td[data-grid-new-col="name"] input'),
+			'the name editor of the slot',
+		)
+
+		fireEvent.change(editor, { target: { value: 'Zed' } })
+
+		fireEvent.mouseDown(at(2, 'name'))
+
+		await act(async () => view.paste('Zoe\nYan\nXia'))
+
+		expect(onRowAdd).not.toHaveBeenCalled()
+
+		expect(slotValue('name')).toBe('Zed')
+
+		await clock.advance(FIRST_WRITE_MS)
+
+		expect(liveRegion()).toHaveTextContent(
+			'Name pasted for Carol. 2 rows not pasted. The new row has an entry.',
+		)
+	})
+
+	it('adds nothing for an empty line, and skips a text that does not fit', async ({ clock }) => {
+		const onRowAdd = vi.fn()
+
+		const view = renderPasteGrid({ editable: { newRow: 'bottom', onRowAdd } })
+
+		fireEvent.mouseDown(at(2, 'name'))
+
+		await act(async () => view.paste('Zoe\t9\n\t\nYan\tmany'))
+
+		expect(onRowAdd).toHaveBeenCalledExactlyOnceWith({ name: 'Yan' })
+
+		await clock.advance(FIRST_WRITE_MS)
+
+		expect(liveRegion()).toHaveTextContent('2 cells pasted for Carol. 1 row added, 1 cell skipped')
+	})
+
+	// The slot checks a required column also when its cell is empty, so an
+	// empty line must not reach the slot.
+	it('passes over an empty line when a column is required', async () => {
+		const onRowAdd = vi.fn()
+
+		const view = renderPasteGrid({
+			columns: columns.map((column) =>
+				column.id === 'name'
+					? { ...column, required: true, validate: (value) => (value ? null : 'Required') }
+					: column,
+			),
+			editable: { newRow: 'bottom', onRowAdd },
+		})
+
+		fireEvent.mouseDown(at(2, 'name'))
+
+		await act(async () => view.paste('Zoe\n\nYan'))
+
+		expect(onRowAdd).toHaveBeenCalledExactlyOnceWith({ name: 'Yan' })
+
+		expect(screen.queryByText('Required')).toBeNull()
+	})
+
+	// The default reading refuses `Active` in a number column, so `parse` reads
+	// it in place of the default, as it does for a data row.
+	it('reads a text of an added row through the column parse, as a data row does', async () => {
+		const onRowAdd = vi.fn()
+
+		const states: Record<string, number> = { Active: 1, Closed: 2 }
+
+		const view = renderPasteGrid({
+			columns: columns.map((column) =>
+				column.id === 'count' ? { ...column, parse: (text) => states[text] } : column,
+			),
+			editable: { newRow: 'bottom', onRowAdd },
+		})
+
+		fireEvent.mouseDown(at(2, 'name'))
+
+		await act(async () => view.paste('Zoe\tActive\nYan\tClosed'))
+
+		expect(view.onCommit).toHaveBeenCalledWith([
+			{ rowKey: 3, columnId: 'name', value: 'Zoe' },
+			{ rowKey: 3, columnId: 'count', value: 1 },
+		])
+
+		expect(onRowAdd).toHaveBeenCalledExactlyOnceWith({ name: 'Yan', count: 2 })
+	})
+
+	it('undoes the cells of the data rows, and keeps the added rows', async ({ clock }) => {
+		const onRowAdd = vi.fn()
+
+		const view = renderPasteGrid({ editable: { newRow: 'bottom', onRowAdd } })
+
+		fireEvent.mouseDown(at(2, 'name'))
+
+		await act(async () => view.paste('Zoe\nYan'))
+
+		fireEvent.keyDown(view.grid, { key: 'z', ctrlKey: true })
+
+		expect(names()).toEqual(['Alice', 'Bob', 'Carol'])
+
+		expect(onRowAdd).toHaveBeenCalledOnce()
+
+		await clock.advance(FIRST_WRITE_MS)
+
+		expect(liveRegion()).toHaveTextContent('Name undone for Zoe')
 	})
 })

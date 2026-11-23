@@ -41,6 +41,9 @@ const messages = defineMessages<{
 	stale: { step: GridHistoryStep }
 	rowAdded: Record<never, never>
 	rowRefused: { count: number }
+	rowsPasted: { added: number; refused: number; rest: number; skipped: number }
+	rowsHeld: { count: number }
+	pasteWithRows: { cells: string; rows: string }
 	skippedOnly: { count: number }
 	withSkipped: { saved: string; count: number }
 	range: {
@@ -176,6 +179,26 @@ const messages = defineMessages<{
 		id: 'ui.grid.rowAdded',
 		defaultMessage: 'Row added',
 		description: 'Spoken when the reader adds a row to the grid.',
+	},
+	rowsPasted: {
+		id: 'ui.grid.rowsPasted',
+		defaultMessage:
+			'{added, plural, =0 {No rows added} one {# row added} other {# rows added}}{refused, plural, =0 {} one {, # row refused} other {, # rows refused}}{rest, plural, =0 {} one {, # row not pasted} other {, # rows not pasted}}{skipped, plural, =0 {} one {, # cell skipped} other {, # cells skipped}}',
+		description:
+			'Spoken after a paste that adds rows to the grid past its last row. The counts are the rows added, the row that the grid refused, the rows after it that the paste did not add, and the cells that the new rows could not take.',
+	},
+	rowsHeld: {
+		id: 'ui.grid.rowsHeld',
+		defaultMessage:
+			'{count, plural, one {# row not pasted} other {# rows not pasted}}. The new row has an entry.',
+		description:
+			'Spoken when a paste does not add rows past the last row, because the new row of the grid holds an entry of the reader.',
+	},
+	pasteWithRows: {
+		id: 'ui.grid.pasteWithRows',
+		defaultMessage: '{cells}. {rows}',
+		description:
+			'Spoken after a paste that writes into the rows of the grid and adds rows after them: the message of the written cells, then the message of the added rows.',
 	},
 	rowRefused: {
 		id: 'ui.grid.rowRefused',
@@ -467,6 +490,27 @@ export function describeRowAdd(intl: IntlShape, refused: number): string {
 	if (refused === 0) return intl.formatMessage(messages.rowAdded)
 
 	return intl.formatMessage(messages.rowRefused, { count: refused })
+}
+
+/**
+ * The polite announcement for the rows that a paste adds past the last row
+ * (WCAG 4.1.3), such as `2 rows added, 1 row refused, 1 row not pasted`. A
+ * `held` paste added no row, because the new row holds an entry. `lead` is
+ * the message of the cells that the paste wrote into the data rows, which
+ * comes first. @internal
+ */
+export function describePasteRows(
+	intl: IntlShape,
+	outcome: { added: number; refused: number; rest: number; skipped: number; held: boolean },
+	lead: string | null,
+): string {
+	const { held, ...counts } = outcome
+
+	const rows = held
+		? intl.formatMessage(messages.rowsHeld, { count: counts.rest })
+		: intl.formatMessage(messages.rowsPasted, counts)
+
+	return lead ? intl.formatMessage(messages.pasteWithRows, { cells: lead, rows }) : rows
 }
 
 /**

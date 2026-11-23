@@ -96,7 +96,9 @@ export default function NewRow() {
 
 	// On a phone, the two Segments stack, as the second does not fit beside the
 	// first. `newRow` pins a blank row to the body, outside the rows. It has its own
-	// sink, `onRowAdd`, as a new person has no key yet.
+	// sink, `onRowAdd`, as a new person has no key yet. With `range`, a paste that
+	// runs past the last row adds a person for each line after it, through the
+	// blank row.
 	return (
 		<>
 			<Flex justify="between" align={{ initial: 'start', sm: 'center' }}>
@@ -129,7 +131,7 @@ export default function NewRow() {
 				</Flex>
 				<EditHelp label="New row help">
 					<PointerHint
-						mouseText="Fill in the blank row, then press Enter to add the person."
+						mouseText="Fill in the blank row, then press Enter to add the person. A paste past the last row adds a person for each extra line."
 						touchText="Fill in the blank row, then press Return to add the person."
 					/>
 				</EditHelp>
@@ -141,6 +143,7 @@ export default function NewRow() {
 				rowLabel={(row) => row.name}
 				maxHeight="320px"
 				header={{ position: 'sticky' }}
+				range
 				editable={{
 					session: 'managed',
 					scope: 'cell',

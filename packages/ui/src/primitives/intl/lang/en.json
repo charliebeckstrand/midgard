@@ -1119,6 +1119,10 @@
 		"defaultMessage": "{saved}, {failed}",
 		"description": "Joins the saved and the failed cells of one save of the grid, such as \"Name updated, 2 cells not saved\"."
 	},
+	"ui.grid.pasteWithRows": {
+		"defaultMessage": "{cells}. {rows}",
+		"description": "Spoken after a paste that writes into the rows of the grid and adds rows after them: the message of the written cells, then the message of the added rows."
+	},
 	"ui.grid.perPage": {
 		"defaultMessage": "{count, number} / page",
 		"description": "The value of the rows-per-page control of a grid, such as \"25 / page\"."
@@ -1235,6 +1239,10 @@
 		"defaultMessage": "{count, plural, one {Row not added, # cell refused} other {Row not added, # cells refused}}",
 		"description": "Spoken when the grid does not add a new row. The count is the number of refused cells."
 	},
+	"ui.grid.rowsHeld": {
+		"defaultMessage": "{count, plural, one {# row not pasted} other {# rows not pasted}}. The new row has an entry.",
+		"description": "Spoken when a paste does not add rows past the last row, because the new row of the grid holds an entry of the reader."
+	},
 	"ui.grid.rowsLoaded": {
 		"defaultMessage": "{rows, plural, one {# row} other {# rows}} loaded",
 		"description": "The row count in the footer of a grid that has loaded part of a set whose total it does not know."
@@ -1242,6 +1250,10 @@
 	"ui.grid.rowsOnPage": {
 		"defaultMessage": "{rows, plural, one {# row} other {# rows}} on this page",
 		"description": "The row count in the footer of a grid that shows one page of a server set whose total it does not know."
+	},
+	"ui.grid.rowsPasted": {
+		"defaultMessage": "{added, plural, =0 {No rows added} one {# row added} other {# rows added}}{refused, plural, =0 {} one {, # row refused} other {, # rows refused}}{rest, plural, =0 {} one {, # row not pasted} other {, # rows not pasted}}{skipped, plural, =0 {} one {, # cell skipped} other {, # cells skipped}}",
+		"description": "Spoken after a paste that adds rows to the grid past its last row. The counts are the rows added, the row that the grid refused, the rows after it that the paste did not add, and the cells that the new rows could not take."
 	},
 	"ui.grid.rowsPerPage": {
 		"defaultMessage": "Rows per page",

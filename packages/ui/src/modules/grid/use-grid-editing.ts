@@ -58,6 +58,7 @@ import { useGridEditWrites } from './use-grid-edit-writes'
 import { useGridEditingWarnings } from './use-grid-editing-warnings'
 import type { Coord, GridNewRowPosition } from './use-grid-navigation'
 import { useGridNewRow } from './use-grid-new-row'
+import { type GridPasteLine, useGridPasteRows } from './use-grid-paste-rows'
 
 /** The editing layer's surface, consumed by {@link useGridEditCursor}. @internal */
 export type GridEditingApi = {
@@ -102,10 +103,22 @@ export type GridEditingApi = {
 	/**
 	 * Writes the text of a paste into its cells, as one save, for the paste,
 	 * clear, and cut handlers of {@link useGridEditCursor}. The outcome names
-	 * the write in its announcement. Present under `editable.session: 'managed'`
-	 * only.
+	 * the write in its announcement, which comes back. A `quiet` write does not
+	 * speak it. Present under `editable.session: 'managed'` only.
 	 */
-	pasteCells: ((cells: readonly GridPasteCell[], outcome?: GridPasteOutcome) => void) | undefined
+	pasteCells:
+		| ((
+				cells: readonly GridPasteCell[],
+				outcome?: GridPasteOutcome,
+				quiet?: boolean,
+		  ) => string | null)
+		| undefined
+	/**
+	 * Adds the lines of a paste after the last data row through the new-row
+	 * slot (see {@link useGridPasteRows}). `lead` is the message of the cells
+	 * that the paste wrote. Present while the grid shows the slot.
+	 */
+	pasteRows: ((lines: readonly GridPasteLine[], lead: string | null) => Promise<void>) | undefined
 	/**
 	 * Writes the values of a fill into their cells, as one save, for the fill
 	 * of {@link useGridEditCursor}. Present under `editable.session: 'managed'` only.
@@ -471,6 +484,14 @@ export function useGridEditing<T>({
 		cellId,
 		moveTo,
 		seatNewRow,
+	})
+
+	const pasteRows = useGridPasteRows<T>({
+		position: newRowPosition,
+		editSourceRef,
+		submitRow: newRow.submitRow,
+		holdsEntry: newRow.holdsEntry,
+		stageRow: newRow.stageRow,
 	})
 
 	// The row the grid-owned session holds, with how it came by it. Row scope
@@ -1032,6 +1053,7 @@ export function useGridEditing<T>({
 		historyKeys,
 		stepHistory,
 		pasteCells: managed ? pasteCells : undefined,
+		pasteRows,
 		fillCells: managed ? fillCells : undefined,
 		sessionLeave: commitOn === 'explicit' || overlay !== null ? undefined : formLeave,
 		newRow: {

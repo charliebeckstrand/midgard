@@ -186,7 +186,9 @@ export type GridColumn<T> = {
 	 * fit goes to {@link GridEditableConfig.onReject}.
 	 *
 	 * The value then goes through {@link GridColumn.validate}, as an edited
-	 * value does.
+	 * value does. In a line that a paste adds as a new row, `row` holds the
+	 * values of the line as the grid reads them without `parse`, keyed by
+	 * `field`.
 	 */
 	parse?: (text: string, row: T) => unknown
 	/**

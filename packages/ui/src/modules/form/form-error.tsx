@@ -2,7 +2,7 @@
 
 import type { ComponentProps, ReactNode } from 'react'
 import { Alert } from '../../components/alert'
-import { useFormActions, useFormError } from '../../primitives/form/context'
+import { useFormActions, useFormError, useFormFailures } from '../../primitives/form/context'
 
 /** Props for {@link FormError}: the `title` of the alert, atop the native attributes of its `<div>`. */
 export type FormErrorProps = Omit<ComponentProps<'div'>, 'title' | 'color' | 'children'> & {
@@ -22,22 +22,31 @@ export type FormErrorProps = Omit<ComponentProps<'div'>, 'title' | 'color' | 'ch
  * so does the close button of the alert.
  *
  * The alert is an error `Alert` (`role="alert"`), so a screen reader speaks the
- * issue when it shows. After a failed submit, a `FormErrorSummary` lists the
- * issue of the whole form as its first row. Thus a form with a summary needs
- * no `FormError` when only a failed submit sets the issue. The summary shows
- * nothing until a submit fails, so a form that sets the issue at another time
- * needs a `FormError`. An example is a call of `setFormError` from a control
- * outside the submit.
+ * issue when it shows. Each failed submit shows a new alert, so a screen reader
+ * speaks the issue again when a second submit fails with the same issue.
+ *
+ * After a failed submit, a `FormErrorSummary` lists the issue of the whole
+ * form as its first row. Thus a form with a summary needs no `FormError` when
+ * only a failed submit sets the issue. The summary shows nothing until a
+ * submit fails, so a form that sets the issue at another time needs a
+ * `FormError`. An example is a call of `setFormError` from a control outside
+ * the submit.
  */
 export function FormError({ title, ...props }: FormErrorProps) {
 	const formError = useFormError()
 
 	const actions = useFormActions()
 
+	// A refusal by the rule of the whole form keeps the same issue from the last
+	// refusal, and a live region does not speak text that does not change. A new
+	// key for each failure mounts a new alert, which the screen reader speaks.
+	const failures = useFormFailures()
+
 	if (formError === null) return null
 
 	return (
 		<Alert
+			key={failures}
 			data-slot="form-error"
 			{...props}
 			severity="error"
