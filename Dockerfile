@@ -7,7 +7,7 @@
 # packages that it uses. The install layer copies only the manifests of that
 # copy, so a source change does not start a new install.
 
-ARG NODE_VERSION=24
+ARG NODE_VERSION=26
 
 FROM node:${NODE_VERSION}-alpine AS base
 # Keep the same version as the `packageManager` field of the root `package.json`.
