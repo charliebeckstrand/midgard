@@ -50,9 +50,7 @@ Each change follows the loop of the [browser benchmark README](../../__benchmark
 
 ## Accessibility and testing
 
-1. **Forced colors for the range and the fill handle (*P2*).** A cell of the range shows by a blue outline and a tint. The fill handle shows by its background and a border ([`recipes/kata/grid.ts`](../../recipes/kata/grid.ts)). Forced colors remove the tint and replace the colors, and no test examines either part. [`CONVENTIONS.md`](../../../../../CONVENTIONS.md) §5.10 asks each such part to keep a mark. Add a range case and a fill-handle case to [`forced-colors-indicators.test.tsx`](../../__tests__/browser/forced-colors-indicators.test.tsx), and add a `sen.forced` entry where the mark is lost.
-
-2. **A bench for the writes of a range (*P2*).** [`grid-range.bench.tsx`](../../__benchmarks__/browser/grid-range.bench.tsx) times the extend and the shrink of a range, and no bench times a paste or a fill. A paste of a large block goes through `parse` and `validate` for each cell, one `onCommit`, and one history step. Add a paste scenario and a fill-down scenario on the editable grid of that file, at 1,000 rows without a window. Items 3 and 4 of Features then change a measured path.
+1. **A bench for the writes of a range (*P2*).** [`grid-range.bench.tsx`](../../__benchmarks__/browser/grid-range.bench.tsx) times the extend and the shrink of a range, and no bench times a paste or a fill. A paste of a large block goes through `parse` and `validate` for each cell, one `onCommit`, and one history step. Add a paste scenario and a fill-down scenario on the editable grid of that file, at 1,000 rows without a window. A later change to a paste or a fill then changes a measured path.
 
 ## Not planned
 
