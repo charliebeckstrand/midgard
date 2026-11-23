@@ -244,3 +244,46 @@ export function sameColorValue(
 
 	return false
 }
+
+/** A coarse name of a color, which a screen reader speaks before its hex code. @internal */
+export type ColorHueName =
+	| 'red'
+	| 'orange'
+	| 'yellow'
+	| 'green'
+	| 'cyan'
+	| 'blue'
+	| 'purple'
+	| 'pink'
+	| 'white'
+	| 'gray'
+	| 'black'
+
+/** The upper bound of each hue name, in degrees. A hue at or past the last bound is red again. */
+const HUE_BOUNDS: readonly (readonly [number, ColorHueName])[] = [
+	[15, 'red'],
+	[40, 'orange'],
+	[70, 'yellow'],
+	[165, 'green'],
+	[195, 'cyan'],
+	[255, 'blue'],
+	[290, 'purple'],
+	[335, 'pink'],
+]
+
+/**
+ * The coarse name of a color: one of eight hues, or white, gray, or black for
+ * a color with almost no hue. The name tells a reader which color a hex code
+ * is. It is not a precise name, and it does not read the alpha.
+ *
+ * @internal
+ */
+export function colorHueName({ h, s, v }: Hsva): ColorHueName {
+	if (v < 12) return 'black'
+
+	if (s < 12) return v > 95 && s < 5 ? 'white' : 'gray'
+
+	const hue = wrap(h, 360)
+
+	return HUE_BOUNDS.find(([bound]) => hue < bound)?.[1] ?? 'red'
+}

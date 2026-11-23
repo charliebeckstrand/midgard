@@ -9,6 +9,8 @@ const { rounded } = kasane
 const { flex } = narabi
 const { focus, ring } = sen
 
+// The checked zinc track in dark is a translucent white wash under 3:1, so it
+// keeps the off ring as its edge (WCAG 1.4.11). Each other hue has a solid fill.
 const color = {
 	zinc: mode(
 		[
@@ -16,7 +18,7 @@ const color = {
 			'[--switch-ring:var(--color-zinc-950)]/90 [--switch-shadow:var(--color-black)]/10 [--switch:white]',
 		],
 		[
-			'dark:[--switch-bg-ring:transparent] dark:[--switch-bg:var(--color-white)]/25',
+			'dark:[--switch-bg-ring:var(--color-white)]/30 dark:[--switch-bg:var(--color-white)]/25',
 			'dark:[--switch-ring:var(--color-zinc-700)]/90',
 		],
 	),

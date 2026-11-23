@@ -7273,7 +7273,7 @@
 	},
 	"docs.prop.required": {
 		"defaultMessage": "Required",
-		"description": "The label of a field of a playground in the docs. The field sets the prop required of AddressInput, TagInput."
+		"description": "The label of a field of a playground in the docs. The field sets the prop required of AddressInput, Rating, TagInput."
 	},
 	"docs.prop.resize": {
 		"defaultMessage": "Resize",

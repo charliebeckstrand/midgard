@@ -27,12 +27,14 @@ const { rounded } = kasane
 const { flex } = narabi
 const { focus, ring } = sen
 
-// Draggable circular handle, centered on its inline-positioned coordinate.
+// Draggable circular handle, centered on its inline-positioned coordinate. The
+// white border shows it on a dark color, and the outer ring keeps a 3:1
+// contrast on the white corner of the area (WCAG 1.4.11).
 const handle = [
 	'absolute pointer-events-none',
 	'size-4 -translate-x-1/2 -translate-y-1/2',
 	rounded.full,
-	'border-2 border-white shadow-sm ring-black/25',
+	'border-2 border-white shadow-sm ring-black/50',
 	...ring.line[1].outset,
 ] as const
 

@@ -21,6 +21,11 @@ type TabsContextValue = {
 	panelsPresent: boolean
 	/** Registers a `TabContents` of any mount policy; returns the deregister cleanup. */
 	registerPanels: () => () => void
+	/**
+	 * `true` for a `segment` group with no panels. Such a group picks a value and
+	 * shows no panel, so its list is a `radiogroup` and each item is a `radio`.
+	 */
+	choice: boolean
 }
 
 export const [TabsContext, useTabsContext] = createContext<TabsContextValue | undefined>('Tabs', {

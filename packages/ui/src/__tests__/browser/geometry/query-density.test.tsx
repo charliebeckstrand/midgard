@@ -132,7 +132,7 @@ function measureSegment(density: Density) {
 
 	const segment = present(container.querySelector('[data-slot="segment"]'), 'the segment')
 
-	const item = present(segment.querySelector('[role="tab"]'), 'a segment item')
+	const item = present(segment.querySelector('[role="radio"]'), 'a segment item')
 
 	return {
 		height: segment.getBoundingClientRect().height,

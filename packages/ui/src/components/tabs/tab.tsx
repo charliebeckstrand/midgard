@@ -100,7 +100,8 @@ function resolveState(options: {
 }
 
 /**
- * Single tab trigger: a headless `<Button>` carrying `role="tab"`, roving
+ * Single tab trigger: a headless `<Button>` carrying `role="tab"` (or
+ * `role="radio"` with `aria-checked` in a segment group with no panels), roving
  * `tabIndex`, and an `<ActiveIndicator>` while selected. Its padding and text
  * follow the nearest density scope. In the `tab` variant it
  * auto-wires `aria-controls` to its `<TabContent>` via the Tabs base id +
@@ -135,6 +136,9 @@ export function Tab({
 	const { ref: indicatorRef, tapHandlers } = useActiveIndicator()
 
 	const isSegment = tabsContext?.variant === 'segment'
+
+	// A segment group with no panels picks a value, so the item is a radio.
+	const choice = tabsContext?.choice === true
 
 	const orientation = tabsContext?.orientation ?? 'horizontal'
 
@@ -219,9 +223,10 @@ export function Tab({
 					ref={setTab}
 					data-slot="tab"
 					data-current={dataAttr(current)}
-					role="tab"
+					role={choice ? 'radio' : 'tab'}
 					id={tabId}
-					aria-selected={current}
+					aria-selected={choice ? undefined : current}
+					aria-checked={choice ? current : undefined}
 					aria-controls={panelInDom ? controlsId : undefined}
 					tabIndex={current ? 0 : -1}
 					disabled={disabled}
