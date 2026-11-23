@@ -14,7 +14,7 @@ const MENU: GridMenuResolution = {
  * An outer grid whose first row holds a detail panel with a nested grid, and
  * whose second row comes after the panel. Each grid marks the cell of its
  * own cursor with `data-active`, so the nested cell comes first in document
- * order.
+ * order. Each cell of a cursor carries `data-grid-cell`.
  */
 function nestedGrids({ outerActive }: { outerActive: boolean }) {
 	const root = attach(document.createElement('div'))
@@ -23,14 +23,14 @@ function nestedGrids({ outerActive }: { outerActive: boolean }) {
 		<div role="grid" tabindex="0" data-testid="outer">
 			<table>
 				<tbody>
-					<tr data-grid-row="1"><td role="gridcell" data-grid-col="name">Outer 1</td></tr>
+					<tr data-grid-row="1"><td role="gridcell" data-grid-cell data-grid-col="name">Outer 1</td></tr>
 					<tr>
 						<td>
 							<div role="grid" tabindex="0">
 								<table>
 									<tbody>
 										<tr data-grid-row="1">
-											<td role="gridcell" data-grid-col="name" data-active>Nested 1</td>
+											<td role="gridcell" data-grid-cell data-grid-col="name" data-active>Nested 1</td>
 										</tr>
 									</tbody>
 								</table>
@@ -38,7 +38,7 @@ function nestedGrids({ outerActive }: { outerActive: boolean }) {
 						</td>
 					</tr>
 					<tr data-grid-row="2">
-						<td role="gridcell" data-grid-col="name" ${outerActive ? 'data-active' : ''} data-testid="outer-cell">Outer 2</td>
+						<td role="gridcell" data-grid-cell data-grid-col="name" ${outerActive ? 'data-active' : ''} data-testid="outer-cell">Outer 2</td>
 					</tr>
 				</tbody>
 			</table>
@@ -76,6 +76,29 @@ describe('openKeyboardMenu', () => {
 			expect.any(Number),
 			expect.any(Number),
 		)
+	})
+
+	// The cursor on a header cell marks a `<th>`, which has no gridcell role.
+	it('opens the menu of an active header cell', () => {
+		const root = attach(document.createElement('div'))
+
+		root.innerHTML = `
+			<div role="grid" tabindex="0" data-testid="grid">
+				<table>
+					<thead><tr><th data-grid-cell data-grid-col="name" data-active>Name</th></tr></thead>
+				</table>
+			</div>
+		`
+
+		const grid = root.querySelector<HTMLElement>('[data-testid="grid"]') as HTMLElement
+
+		const header = root.querySelector<HTMLElement>('th') as HTMLElement
+
+		const resolveItems = vi.fn(() => MENU)
+
+		openKeyboardMenu(grid, resolveItems, () => null, vi.fn(), { current: null })
+
+		expect(resolveItems).toHaveBeenCalledExactlyOnceWith(header)
 	})
 
 	it('opens no menu when only a nested grid has an active cell', () => {
