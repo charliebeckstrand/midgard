@@ -2079,6 +2079,10 @@
 		"defaultMessage": "Read notes",
 		"description": "Text of a demo in the docs, in components/drawer/resize.tsx."
 	},
+	"docs.demo.3eda796ca2bf": {
+		"defaultMessage": "to close.",
+		"description": "Text of a demo in the docs, in components/kbd/icon-keys.tsx."
+	},
 	"docs.demo.3eee266c5ebf": {
 		"defaultMessage": "Search components",
 		"description": "Text of a demo in the docs as placeholder, in primitives/skeleton/skeleton-variants.tsx."
@@ -2410,6 +2414,10 @@
 	"docs.demo.52bfe584a5fc": {
 		"defaultMessage": "Delivery",
 		"description": "Text of a demo in the docs as aria-label, in components/popover/glass.tsx, components/popover/playground.tsx."
+	},
+	"docs.demo.52f878edb34f": {
+		"defaultMessage": "Esc",
+		"description": "Text of a demo in the docs, in components/kbd/icon-keys.tsx."
 	},
 	"docs.demo.5304ab98e581": {
 		"defaultMessage": "Department",
@@ -4723,6 +4731,10 @@
 		"defaultMessage": "Build passed",
 		"description": "Text of a demo in the docs, in components/timeline/item-status.tsx."
 	},
+	"docs.demo.cd97faa984d9": {
+		"defaultMessage": ", and press",
+		"description": "Text of a demo in the docs, in components/kbd/icon-keys.tsx."
+	},
 	"docs.demo.cdb703f15abb": {
 		"defaultMessage": "Which file types can I preview?",
 		"description": "Text of a demo in the docs as title, in components/drawer/fit-content.tsx."
@@ -5538,6 +5550,10 @@
 	"docs.demo.f9bfa3dc7c8f": {
 		"defaultMessage": "Discard changes",
 		"description": "Text of a demo in the docs as label, in components/confirm/playground.tsx."
+	},
+	"docs.demo.f9e5e77abef0": {
+		"defaultMessage": "Move with",
+		"description": "Text of a demo in the docs, in components/kbd/icon-keys.tsx."
 	},
 	"docs.demo.fa2b2f4397d0": {
 		"defaultMessage": "Type the street, the city, and the state.",
@@ -8310,6 +8326,10 @@
 	"docs.title.horizontal": {
 		"defaultMessage": "Horizontal",
 		"description": "The title of an example on a page of the docs. It comes from the file name horizontal.tsx."
+	},
+	"docs.title.icon-keys": {
+		"defaultMessage": "Icon keys",
+		"description": "The title of an example on a page of the docs. It comes from the file name icon-keys.tsx."
 	},
 	"docs.title.icon-only": {
 		"defaultMessage": "Icon only",
