@@ -753,6 +753,73 @@ describe('controls show their state under forced colors (real browser)', () => {
 		expect(high).not.toBe(low)
 	})
 
+	// A cell of the range shows by a tint and an outline. Forced colors remove
+	// the tint, so the outline must hold the mark. The second render strips the
+	// flag of each cell of the range, so only the mark of the range differs.
+	it('grid range: the cells of the range paint differently from the same cells with no range', async () => {
+		const ui = (
+			<Grid
+				navigable
+				range={{
+					defaultValue: {
+						anchor: { rowKey: 1, columnId: 'name' },
+						focus: { rowKey: 2, columnId: 'name' },
+					},
+				}}
+				columns={personColumns}
+				rows={people}
+				getKey={(row) => row.id}
+			/>
+		)
+
+		const marked = await pixels(ui)
+
+		const plain = await pixels(ui, (host) => {
+			const cells = host.querySelectorAll('[data-in-range]')
+
+			expect(cells).toHaveLength(2)
+
+			for (const cell of cells) cell.removeAttribute('data-in-range')
+		})
+
+		expect(plain).not.toBe(marked)
+	})
+
+	// The fill handle shows by its background and a border. Forced colors replace
+	// the background with Canvas, so the handle must keep an edge in a color other
+	// than Canvas. A pixel diff is not enough: a Canvas square over the outline
+	// of the active cell changes pixels and still shows no handle.
+	it('grid fill handle: paints an edge or a fill in a color other than Canvas', async () => {
+		const { container } = renderUI(
+			<Grid
+				range={{
+					defaultValue: {
+						anchor: { rowKey: 1, columnId: 'name' },
+						focus: { rowKey: 1, columnId: 'name' },
+					},
+				}}
+				columns={personColumns.map((column) => ({ ...column, field: 'name' as const }))}
+				rows={people}
+				getKey={(row) => row.id}
+				editable={{ session: 'managed', onCommit: () => {} }}
+			/>,
+		)
+
+		const handle = await waitFor(() =>
+			present(container.querySelector('[data-slot="grid-fill-handle"]'), 'fill handle'),
+		)
+
+		const canvas = systemColor('Canvas')
+
+		const style = getComputedStyle(handle)
+
+		const fill = style.backgroundColor !== canvas
+
+		const edge = style.borderTopWidth !== '0px' && style.borderTopColor !== canvas
+
+		expect(fill || edge).toBe(true)
+	})
+
 	it('control: without forced colors, each pair paints differently', async () => {
 		// Registered before the change, so that a failed read below still hands
 		// the later cases forced colors.
