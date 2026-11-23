@@ -15,6 +15,7 @@ import {
 	useState,
 } from 'react'
 import type { ScaleStep } from '../../core/density/scale'
+import { useA11yAnnouncements } from '../../hooks/a11y/use-a11y-announcements'
 import {
 	clearVirtualActive,
 	clearVirtualActiveIndexed,
@@ -29,6 +30,7 @@ import {
 	type VirtualItemSource,
 	virtualTopMatchIndex,
 } from '../../hooks/a11y/use-a11y-roving'
+import { useEmptyResults } from '../../hooks/use-empty-results'
 import type { FloatingPlacement } from '../../hooks/use-floating-panel'
 import { useFloatingUI } from '../../hooks/use-floating-ui'
 import { useKeyboardSettled } from '../../hooks/use-keyboard-settled'
@@ -37,7 +39,7 @@ import { useStableEvent } from '../../hooks/use-stable-event'
 import { useFormValue } from '../../primitives/form/use-form-value'
 import { useGlass } from '../../primitives/glass/context'
 import { ChevronsUpDown } from '../../primitives/icons/icons'
-import { defineMessages } from '../../primitives/intl/intl-messages'
+import { defineMessages, intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { hasSelection, useOptionSelection } from '../../primitives/option/use-option-selection'
 import { DeferredQueryContext, QueryContext } from '../../primitives/query/context'
@@ -430,6 +432,10 @@ export type ComboboxProps<T> = ComboboxBaseProps<T> & SelectionValueProps<T>
  * hover, such as a phone, a filter change clears the highlight, and only an
  * arrow key sets it.
  *
+ * While the open list holds no option, the panel shows "No results", and the
+ * shared announcer speaks it. The panel mounts with each open, so a live
+ * region in it would not speak.
+ *
  * The input and the panel stamp `data-open` while the panel is open, and the
  * input stamps `data-disabled` while it is disabled.
  *
@@ -601,6 +607,14 @@ export function Combobox<T>({
 		onQueryChange,
 		setValue,
 	})
+
+	// The panel mounts with each open, and its "No results" line only changes
+	// its display. A screen reader speaks neither the text of a new live region
+	// nor a change of display. The shared announcer stays mounted, so it speaks
+	// the status each time the open list empties (WCAG 4.1.3).
+	const empty = useEmptyResults(optionsNode)
+
+	useA11yAnnouncements(open && empty ? intl.formatMessage(intlMessages.noResults) : '')
 
 	// A read-only or a disabled combobox does not open and does not commit. The
 	// guard blocks each open path (input focus and typing, the suffix toggle,
