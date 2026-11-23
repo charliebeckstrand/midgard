@@ -1403,10 +1403,6 @@
 		"defaultMessage": "Level",
 		"description": "Text of a demo in the docs as title, in modules/grid/data.tsx."
 	},
-	"docs.demo.171f2c37fa40": {
-		"defaultMessage": "Color picker",
-		"description": "Text of a demo in the docs as label, in primitives/skeleton/skeleton-variants.tsx."
-	},
 	"docs.demo.177cfe1a1e8c": {
 		"defaultMessage": "Dwell",
 		"description": "Text of a demo in the docs as yName, in modules/chart/bubble/animated.tsx, modules/chart/bubble/size-encoding.tsx, modules/chart/scatter/animated.tsx and 1 more."
@@ -4778,10 +4774,6 @@
 	"docs.demo.c5b14cdb5e46": {
 		"defaultMessage": "Order #1042",
 		"description": "Text of a demo in the docs, in components/drawer/playground.tsx."
-	},
-	"docs.demo.c5eff9e34727": {
-		"defaultMessage": "Date picker",
-		"description": "Text of a demo in the docs as label, in primitives/skeleton/skeleton-variants.tsx."
 	},
 	"docs.demo.c646b55d1fd3": {
 		"defaultMessage": "Hide column",
