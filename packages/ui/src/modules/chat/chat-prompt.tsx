@@ -14,6 +14,7 @@ import {
 import { BadgeRemovable } from '../../components/badge/badge-removable'
 import { Button } from '../../components/button'
 import { Control } from '../../components/control'
+import { ControlContext } from '../../components/control/context'
 import { useFileUploadHandlers } from '../../components/file-upload/use-file-upload-handlers'
 import { Icon } from '../../components/icon'
 import { Textarea } from '../../components/textarea'
@@ -111,7 +112,8 @@ export type ChatPromptProps = {
 	 * text from the trigger to the caret is the query. The picker sits over the
 	 * composer. ArrowUp and ArrowDown move the highlight, Enter or Tab chooses,
 	 * and Escape closes the picker until the next edit. While the list loads,
-	 * no key chooses an item of the last query, and Enter does not send. The textarea keeps the
+	 * Enter and Tab do nothing: no key chooses an item of the last query, Enter
+	 * does not send, and Tab does not move the focus. The textarea keeps the
 	 * focus, and the options are its active descendant.
 	 *
 	 * Hoist the list out of the render, as a module constant or a `useMemo`.
@@ -144,7 +146,9 @@ export type ChatPromptProps = {
 	 * while its status holds: `undefined`, `null`, or `false` renders no row.
 	 * Content that unmounts while the focus is in it,
 	 * such as after a press of its Cancel button, gives the focus to the
-	 * textarea (WCAG 2.4.3).
+	 * textarea (WCAG 2.4.3). A form control in the row is not part of the
+	 * `Control` of the field: it gets its own id, and it takes no `disabled`,
+	 * `size`, or `variant` from the composer.
 	 */
 	toolbar?: ReactNode
 	/**
@@ -460,7 +464,8 @@ export function ChatPrompt({
 /**
  * The row of the `toolbar` of {@link ChatPrompt}. The cleanup of a layout
  * effect runs before React removes the row, so it still finds the focus in it,
- * and it gives the focus to the textarea.
+ * and it gives the focus to the textarea. The row is out of the `Control` of
+ * the field, so a form control in it does not take the id of the textarea.
  *
  * @internal
  */
@@ -483,7 +488,8 @@ function ChatPromptToolbar({
 
 	return (
 		<div ref={rowRef} data-slot="chat-prompt-toolbar" className={k().toolbar}>
-			{children}
+			{/* The `Control` of the composer gives its id to the textarea alone. */}
+			<ControlContext value={undefined}>{children}</ControlContext>
 		</div>
 	)
 }

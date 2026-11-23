@@ -1,5 +1,5 @@
 import { Pencil } from 'lucide-react'
-import { useId, useRef, useState } from 'react'
+import { useId, useLayoutEffect, useRef, useState } from 'react'
 import { Button } from 'ui/button'
 import {
 	type ChatCitation,
@@ -123,6 +123,18 @@ export default function EditAMessage() {
 		setEditing(message.id)
 
 		setValue(text, citations)
+	}
+
+	// The focus moves after the commit, so the composer already holds the text
+	// of the message and the edit status, and a screen reader reads both.
+	useLayoutEffect(() => {
+		if (editing !== undefined) composer.current?.focus()
+	}, [editing])
+
+	// A click does not focus a button in Safari, so the toolbar row cannot find
+	// the focus in it as it unmounts. Cancel gives the focus back to the composer.
+	const cancel = () => {
+		end()
 
 		composer.current?.focus()
 	}
@@ -176,7 +188,7 @@ export default function EditAMessage() {
 								<Text id={status} tone="muted">
 									Editing message
 								</Text>
-								<Button variant="bare" size="sm" onClick={end}>
+								<Button variant="bare" size="sm" onClick={cancel}>
 									Cancel
 								</Button>
 							</Flex>

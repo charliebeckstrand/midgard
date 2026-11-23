@@ -13,6 +13,7 @@ import {
 	locate,
 	type MarkdownRange,
 	type MarkdownRangePiece,
+	overlapping,
 	type RangeWalk,
 	rangeWalk,
 	segmentLine,
@@ -309,6 +310,22 @@ function joinPiece(draw: Draw, range: number, text: string, start: number): stri
 }
 
 /**
+ * Adds the text of an atom that draws no piece, such as a link, to the name of
+ * each range that overlaps the source span from `start` to `end`. As with an
+ * atom that draws a piece, a range that covers part of the atom takes all of
+ * its text.
+ *
+ * @internal
+ */
+function nameAtom(draw: Draw, start: number, end: number, text: string): void {
+	for (const range of overlapping(draw, start, end)) {
+		draw.texts[range] = joinPiece(draw, range, text, start)
+
+		draw.ends[range] = end
+	}
+}
+
+/**
  * The text of a text token, with each range that it overlaps drawn as a
  * piece. Each line is found in the source on its own, because a token in a
  * list item or a blockquote has no indentation. After a line that the source
@@ -425,8 +442,11 @@ function renderTokenAt(
 			)
 		// A link renders its text with no walk. A piece in a link would put a
 		// second control in the link, and the link already acts. The cursor moves
-		// past the whole link in `within`.
+		// past the whole link in `within`. The text of the link is still part of
+		// the name of each range that overlaps it.
 		case 'link':
+			if (draw) nameAtom(draw, draw.cursor, draw.limit, plainText(token.tokens ?? []))
+
 			return (
 				<a
 					key={index}
@@ -616,11 +636,15 @@ function renderCell(
 	offset: number,
 	draw?: Draw,
 ): ReactNode {
-	// A cell has no `raw`. Its trimmed text is the nearest form of its source.
+	// A cell has no `raw`. Its trimmed text is the nearest form of its source,
+	// but marked reads `\|` in the source as `|` in the text. The search puts
+	// each escape back, so that it finds the cell and not text of a later cell.
 	return (
 		<Cell key={index} className={k({ align: cell.align ?? undefined })[Cell]}>
 			{draw
-				? within(draw, cell.text, (found) => renderChildren(cell.tokens, offset, undefined, found))
+				? within(draw, cell.text.replaceAll('|', '\\|'), (found) =>
+						renderChildren(cell.tokens, offset, undefined, found),
+					)
 				: renderChildren(cell.tokens, offset)}
 		</Cell>
 	)

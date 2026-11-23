@@ -118,6 +118,20 @@ describe('Markdown ranges', () => {
 		expect(container.querySelector('th [data-slot="markdown-range"]')).toBeNull()
 	})
 
+	it('draws no range of a cell with an escaped pipe in a later cell', () => {
+		// marked gives the first cell the text `a | late`. The search finds the
+		// cell in its source form, so it does not move into the next cell.
+		const md = '| a \\| late | late |\n|---|---|\n| c | d |'
+
+		const start = md.indexOf('late')
+
+		const { container } = renderUI(
+			<Markdown ranges={[{ id: 'first', start, end: start + 4, quote: 'late' }]}>{md}</Markdown>,
+		)
+
+		expect(container.querySelector('th:nth-child(2) [data-slot="markdown-range"]')).toBeNull()
+	})
+
 	it('puts no piece in a link, and draws the rest of the range', () => {
 		const md = 'See [the late stops](https://example.com/late) on the map.'
 
@@ -398,6 +412,24 @@ describe('useMarkdownRangeText', () => {
 		['a block boundary', 'Twelve stops.\n\nMost on Tuesday.', 'stops.\n\nMost', 'stops. Most'],
 		['an entity', 'Fish &amp; chips here.', 'Fish &amp; chips', 'Fish & chips'],
 		['a code span', 'Run `npm i` now.', '`npm i` now', 'npm i now'],
+		[
+			'a link',
+			'Twelve [stops](https://example.com) are late.',
+			'Twelve [stops](https://example.com) are late',
+			'Twelve stops are late',
+		],
+		[
+			'an autolink',
+			'See https://example.com now.',
+			'https://example.com now',
+			'https://example.com now',
+		],
+		[
+			'a reference link',
+			'See [late][1] today.\n\n[1]: https://example.com',
+			'See [late][1] today',
+			'See late today',
+		],
 	])('gives the whole text of a range across %s', (_, source, quote, name) => {
 		expect(readName(source, quote)).toBe(name)
 	})
