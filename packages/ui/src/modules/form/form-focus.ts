@@ -1,6 +1,45 @@
 import { FOCUSABLE_SELECTOR } from '../../utilities/focusable-selector'
 
 /**
+ * Compares two elements by their position in the document. An element that
+ * comes before another sorts first.
+ *
+ * @internal
+ */
+function byDocumentOrder(a: Element, b: Element): number {
+	return a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1
+}
+
+/**
+ * Sorts `items` by the position of their elements in the document, with the
+ * comparator of {@link focusFirstControl}. `getElement` gives the element of
+ * an item. An item with no element keeps its order, after the items that have
+ * one.
+ *
+ * @returns A new array. The function does not change `items`.
+ * @internal
+ */
+export function sortByDocumentOrder<T>(
+	items: readonly T[],
+	getElement: (item: T) => Element | null | undefined,
+): T[] {
+	const placed: { item: T; element: Element }[] = []
+
+	const unplaced: T[] = []
+
+	for (const item of items) {
+		const element = getElement(item)
+
+		if (element) placed.push({ item, element })
+		else unplaced.push(item)
+	}
+
+	placed.sort((a, b) => byDocumentOrder(a.element, b.element))
+
+	return [...placed.map(({ item }) => item), ...unplaced]
+}
+
+/**
  * Moves the focus to the control with the id `id` in `doc`, and tells whether
  * the focus moved into it.
  *
@@ -45,8 +84,7 @@ export function focusFirstControl(
 		if (target) targets.push(target)
 	}
 
-	// A target that comes before another in the document sorts first.
-	targets.sort((a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1))
+	targets.sort(byDocumentOrder)
 
 	for (const target of targets) if (focusControl(doc, target.id)) return
 }
