@@ -293,7 +293,9 @@ describe('PdfViewer', () => {
 
 		const frame = present(markup.querySelector('div[data-slot="pdf-viewer-page-frame"]'), 'frame')
 
-		expect(frame.style.width).toMatch(/^calc\(min\(100cqw, ?100cqh/)
+		// The CSSOM simplifies the `calc()`: the width is the smaller of the container width and
+		// the container height times the page ratio.
+		expect(frame.style.width).toMatch(/^min\(100cqw, [\d.]+cqh\)$/)
 
 		const img = present<HTMLImageElement>(frame.querySelector('img'), 'img')
 

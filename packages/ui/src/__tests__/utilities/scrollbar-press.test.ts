@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { isScrollbarPress } from '../../utilities/scrollbar-press'
+import { attach } from '../helpers'
 
 type Geometry = {
 	direction?: 'ltr' | 'rtl'
@@ -9,11 +10,12 @@ type Geometry = {
 }
 
 /**
- * A detached scroller that overflows on the vertical axis only. The box is 200px wide, and the
- * geometry reads come from stubs, because jsdom does no layout.
+ * A scroller on the body that overflows on the vertical axis only. The box is 200px wide, and the
+ * geometry reads come from stubs, because jsdom does no layout. The scroller is on the body because
+ * a detached element has no computed style.
  */
 function scroller({ direction = 'ltr', borderLeft = 0, borderRight = 0, gutter = 0 }: Geometry) {
-	const element = document.createElement('div')
+	const element = attach(document.createElement('div'))
 
 	element.style.overflowY = 'auto'
 	element.style.direction = direction

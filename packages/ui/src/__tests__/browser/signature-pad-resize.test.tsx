@@ -61,7 +61,7 @@ async function resizeTo(frame: HTMLElement, width: number) {
 
 /**
  * The drawing on a SignaturePad through a series of resizes. Rides the real
- * browser because jsdom has no canvas pixels.
+ * browser because the jsdom suite has no canvas pixels.
  *
  * Before the fix, each resize painted the old drawing into the new box, so the
  * drawing stretched, and the stretch accumulated.

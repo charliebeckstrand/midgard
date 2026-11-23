@@ -1,7 +1,7 @@
 import { vi } from 'vitest'
 
 /**
- * Build a stub CanvasRenderingContext2D; jsdom ships no canvas backend.
+ * Build a stub CanvasRenderingContext2D; the jsdom setup gives no canvas context.
  * Override any field via `overrides` to assert on or replace behavior.
  */
 export function makeCanvasContext(
