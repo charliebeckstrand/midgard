@@ -209,6 +209,11 @@ export const k = {
 			// Under `maxHeight="fill"`, the scroll region flexes to the height that the
 			// toolbar and the footer leave (see `wrapper.fill`).
 			fill: 'min-h-0 flex-1',
+			// The scroller is a tab stop when no cursor moves through the rows (see
+			// `GridScrollRegion`). The browser paints only its own outline, so the
+			// wrapper takes the inset ring. Inset, because the edge of the grid clips
+			// an outset ring.
+			focus: focus.inset,
 		},
 		// Sticky header bar: an opaque fill so body rows tuck under it on a vertical
 		// scroll. The fill matches the surface under the grid (see `hostSurface`): a

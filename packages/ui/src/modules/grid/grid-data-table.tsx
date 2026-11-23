@@ -107,7 +107,7 @@ type GridDataTableProps<T> = {
 	}
 	grandTotal: { active: boolean; rows: readonly T[] }
 	/** The scroll container for a sticky header or a window. */
-	scroll: Omit<ComponentProps<typeof GridScrollRegion>, 'children'>
+	scroll: Omit<ComponentProps<typeof GridScrollRegion>, 'children' | 'keyboardScroll'>
 	/** The query that highlight-mode search marks, or `null`. */
 	highlightQuery: string | null
 }
@@ -233,7 +233,10 @@ export function GridDataTable<T>({
 
 	return (
 		<GridHighlightContext value={highlightQuery}>
-			<GridScrollRegion {...scroll}>
+			<GridScrollRegion
+				{...scroll}
+				keyboardScroll={!cursor.cursorEnabled && !roving.rovingRows && !roving.rovingCells}
+			>
 				{/* An editable grid mounts the editing contexts around the table.
 				    A read-only grid returns the table as it is. */}
 				{cursor.wrap(tableContent)}
