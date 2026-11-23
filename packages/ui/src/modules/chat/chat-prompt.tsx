@@ -292,8 +292,16 @@ export function ChatPrompt({
 			// The open picker takes its keys first: Enter chooses and does not send.
 			if (pickerKeyDown(event)) return
 
-			// The press is consumed, so an enclosing dialog does not close on it.
-			if (event.key === 'Escape' && editing && onCancelEdit && !isComposing(event)) {
+			// An open picker closes on Escape through its own dismissal, so the edit
+			// keeps the key only while the picker is closed. The press is then
+			// consumed, so an enclosing dialog does not close on it.
+			if (
+				event.key === 'Escape' &&
+				editing &&
+				onCancelEdit &&
+				!picker.open &&
+				!isComposing(event)
+			) {
 				event.preventDefault()
 
 				onCancelEdit()
@@ -313,7 +321,17 @@ export function ChatPrompt({
 				onSubmit()
 			}
 		},
-		[streaming, canSubmit, onSubmit, onStop, pickerKeyDown, citations, editing, onCancelEdit],
+		[
+			streaming,
+			canSubmit,
+			onSubmit,
+			onStop,
+			pickerKeyDown,
+			citations,
+			editing,
+			onCancelEdit,
+			picker.open,
+		],
 	)
 
 	// A textbox cannot take the `combobox` role, so it names its popup with the attributes that a textbox takes.

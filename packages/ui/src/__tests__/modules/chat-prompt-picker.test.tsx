@@ -44,10 +44,12 @@ function Composer({
 	sources,
 	onDraft = noop,
 	onSubmit = noop,
+	onCancelEdit,
 }: {
 	sources: readonly ChatPromptSource[]
 	onDraft?: (value: string, citations: readonly ChatCitation[]) => void
 	onSubmit?: () => void
+	onCancelEdit?: () => void
 }) {
 	const [draft, setDraft] = useState<{ value: string; citations: readonly ChatCitation[] }>({
 		value: '',
@@ -65,6 +67,8 @@ function Composer({
 			}}
 			sources={sources}
 			onSubmit={onSubmit}
+			editing={onCancelEdit !== undefined}
+			onCancelEdit={onCancelEdit}
 		/>
 	)
 }
@@ -267,6 +271,27 @@ describe('ChatPrompt picker', () => {
 		await user.keyboard('{Escape}{Backspace}')
 
 		expect(screen.getByRole('listbox')).toBeInTheDocument()
+	})
+
+	it('takes Escape before the cancel of an edit', async () => {
+		const onCancelEdit = vi.fn()
+
+		const { container } = renderUI(<Composer sources={[datasets]} onCancelEdit={onCancelEdit} />)
+
+		const user = await typeInto(container, '@ro')
+
+		expect(screen.getByRole('listbox')).toBeInTheDocument()
+
+		await user.keyboard('{Escape}')
+
+		expect(screen.queryByRole('listbox')).toBeNull()
+
+		expect(onCancelEdit).not.toHaveBeenCalled()
+
+		// With the picker closed, the next Escape cancels the edit.
+		await user.keyboard('{Escape}')
+
+		expect(onCancelEdit).toHaveBeenCalledOnce()
 	})
 
 	it('opens a command source only at the start of the draft', async () => {
