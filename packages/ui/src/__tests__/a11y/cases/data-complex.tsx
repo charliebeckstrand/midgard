@@ -17,6 +17,7 @@ import {
 } from '../../../modules/kanban'
 import { createGroup, QueryBuilder, QueryChips, type QueryField } from '../../../modules/query'
 import { noop } from '../../helpers'
+import { gridCases } from './grids'
 import type { Case } from './types'
 
 const jsonSample = {
@@ -224,6 +225,8 @@ export const dataComplexCases: readonly Case[] = [
 			/>
 		),
 	},
+	// The grid modes that change the role, the row count, or the row indices.
+	...gridCases,
 	{
 		// Filter bar: FormFiltersField owns the control context; Label names the
 		// Input directly (no Field wrapper) and the value binds through the slot.
