@@ -8,6 +8,7 @@ import {
 } from '../../modules/chat'
 import {
 	deferred,
+	expectAnnouncement,
 	fireEvent,
 	getSlot,
 	noop,
@@ -368,6 +369,20 @@ describe('ChatPrompt picker', () => {
 				'Could not load the choices',
 			),
 		)
+	})
+
+	it('speaks the status through the shared announcer', async () => {
+		const empty: ChatPromptSource = { ...datasets, search: () => [] }
+
+		const { container } = renderUI(<Composer sources={[empty]} />)
+
+		await typeInto(container, '@')
+
+		// The panel mounts with the text, so the announcer speaks it.
+		await expectAnnouncement('No results')
+
+		// The line in the panel is plain text, so the status is not spoken two times.
+		expect(getSlot(document.body, 'chat-prompt-picker-status').tagName).toBe('P')
 	})
 
 	it('aborts the search of a query that changed, and drops its result', async () => {

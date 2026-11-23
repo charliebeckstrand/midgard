@@ -8,7 +8,6 @@ import {
 	useCallback,
 	useEffect,
 	useId,
-	useLayoutEffect,
 	useRef,
 	useState,
 } from 'react'
@@ -21,6 +20,7 @@ import {
 	type VirtualItemSource,
 } from '../../hooks/a11y/use-a11y-roving'
 import { useControlledLatch } from '../../hooks/use-controlled-latch'
+import { useEmptyResults } from '../../hooks/use-empty-results'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useDeferredQueryValue } from '../../primitives/query/use-query-value'
 import { isReservedTextboxKey } from '../combobox/use-combobox-input'
@@ -34,71 +34,6 @@ type CommandPaletteStateOptions = {
 }
 
 const ITEM_SELECTOR = '[data-slot="command-palette-item"]:not([data-disabled])'
-
-// A result in the listbox: a rendered option, or a `VirtualOptions` wrapper that
-// holds items. The wrapper stamps `data-empty` from the length of its items,
-// which is also the `count` of the source it registers. The probe reads the
-// stamp and not the source: the source registers in an effect, which can run
-// after the observer reports the mutation.
-const RESULT_SELECTOR = '[role="option"], [data-slot="virtual-options"]:not([data-empty])'
-
-/**
- * Whether the listbox holds no result, measured again as its subtree changes.
- * A consumer that filters on its own state changes the options with no render
- * of the palette, so a `MutationObserver` watches the listbox. It also watches
- * `data-empty`, which a `VirtualOptions` wrapper toggles with no change to its
- * rows when its window holds none.
- *
- * @param list - The listbox, held as state, because it mounts with the portal
- * of the dialog a commit after the open.
- * @param onChange - Runs after each measure that a change of the subtree
- * causes. The palette seeds the highlight again from it.
- * @returns `false` while no listbox is attached.
- */
-function useEmptyResults(list: HTMLElement | null, onChange: () => void): boolean {
-	const [empty, setEmpty] = useState(false)
-
-	// A layout effect, so that the first measure lands before the paint and the
-	// no-results text does not flash.
-	useLayoutEffect(() => {
-		if (!list) return
-
-		// A write of the same value still costs a render of the palette while a
-		// deferred render is pending, so the probe writes only a change.
-		let prev: boolean | undefined
-
-		const measure = () => {
-			const next = list.querySelector(RESULT_SELECTOR) === null
-
-			if (next === prev) return
-
-			prev = next
-
-			setEmpty(next)
-		}
-
-		measure()
-
-		const observer = new MutationObserver(() => {
-			measure()
-
-			onChange()
-		})
-
-		observer.observe(list, {
-			childList: true,
-			subtree: true,
-			attributes: true,
-			attributeFilter: ['data-empty'],
-		})
-
-		return () => observer.disconnect()
-	}, [list, onChange])
-
-	// The state from the last attach stays while no listbox is attached. The
-	// first measure after the next attach writes it before the paint.
-	return list !== null && empty
-}
 
 /**
  * The ref that a `VirtualOptions` inside the palette registers its item source

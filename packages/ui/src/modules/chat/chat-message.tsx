@@ -4,6 +4,7 @@ import { LoadingDots } from '../../components/loading'
 import { Markdown } from '../../components/markdown'
 import { StatusDot } from '../../components/status'
 import { cn } from '../../core/cn'
+import { dataAttr } from '../../core/data-attr'
 import { IntlMessage } from '../../primitives/intl'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { type ChatMessageVariants, k } from '../../recipes/kata/chat-message'
@@ -92,8 +93,9 @@ export type ChatMessageProps = ChatMessageVariants &
 		 */
 		streaming?: boolean
 		/**
-		 * Marks a message that the composer edits. The bubble dims until the edit
-		 * ends, so the reader sees which message a send replaces.
+		 * Marks a message that the composer edits. A ring marks the bubble until
+		 * the edit ends, so the reader sees which message a send replaces. The
+		 * message root takes `data-editing`.
 		 * @defaultValue false
 		 */
 		editing?: boolean
@@ -164,9 +166,15 @@ export type ChatMessageProps = ChatMessageVariants &
  * {@link Markdown} over the string itself. A transcript of prose therefore
  * allocates nothing per render and lexes once.
  *
- * An `editing` bubble dims to half its opacity, as the bubble of a reply does
- * for a reader who reduces motion while it streams. Each state is one that a
- * send changes.
+ * An `editing` bubble takes a ring: a 2px outline with a 2px gap. The text
+ * of the bubble keeps its full contrast. A dim would lower the white text of
+ * the blue user bubble below 4.5:1. The root takes `data-editing`, so an app
+ * can find the message. The ring is visual only. The app tells a screen reader
+ * about the edit, such as with a status that `aria-describedby` of the
+ * composer points to.
+ *
+ * For a reader who reduces motion, a streaming reply dims to 60% of its
+ * opacity in place of the pulse. On the assistant fill, the text keeps 4.5:1.
  *
  * A `failed` reply ends with a line that says so, after what it landed. The
  * line inherits the foreground of the bubble, and a red dot marks it.
@@ -252,6 +260,7 @@ export const ChatMessage = memo(function ChatMessage({
 			data-slot="chat-message"
 			{...props}
 			data-sender={resolvedSender}
+			data-editing={dataAttr(editing)}
 			className={cn(slots.base, className)}
 		>
 			{contextMenu === undefined ? (

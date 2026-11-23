@@ -207,6 +207,9 @@ describe('ChatCitationProvider', () => {
 
 		expect(piece?.parentElement?.tagName).toBe('STRONG')
 
+		// The name of the control holds the bold text, so browse mode does not read it again.
+		expect(piece).toHaveAttribute('aria-hidden', 'true')
+
 		await user.click(screen.getByRole('button'))
 
 		expect(piece).toHaveAttribute('data-pressed')
@@ -354,16 +357,30 @@ describe('ChatCitationProvider trigger', () => {
 		expect(onCitedChange).not.toHaveBeenCalled()
 	})
 
-	it('does nothing on a click or Enter with a hover trigger', async () => {
+	it('does nothing on a click with a hover trigger', async () => {
 		const { user, onCitedChange, anchor } = setup('hover')
 
 		await user.click(anchor('Twelve stops are late'))
+
+		expect(onCitedChange).not.toHaveBeenCalled()
+	})
+
+	it('toggles a hover citation on Enter and Space, as a key cannot hover', async () => {
+		const { user, onCitedChange, anchor } = setup('hover')
 
 		anchor('Twelve stops are late').focus()
 
 		await user.keyboard('{Enter}')
 
-		expect(onCitedChange).not.toHaveBeenCalled()
+		expect(onCitedChange).toHaveBeenLastCalledWith(expect.objectContaining({ id: 'late' }))
+
+		expect(anchor('Twelve stops are late')).toHaveAttribute('aria-pressed', 'true')
+
+		await user.keyboard(' ')
+
+		expect(onCitedChange).toHaveBeenLastCalledWith(null)
+
+		expect(anchor('Twelve stops are late')).toHaveAttribute('aria-pressed', 'false')
 	})
 
 	it('previews on a keyboard focus, and ends the preview on blur and on Escape', async () => {

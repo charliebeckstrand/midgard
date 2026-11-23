@@ -5,7 +5,7 @@ import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 // The streaming look the bubble projects onto its Markdown child, and the
 // standing dim that replaces the pulse under `prefers-reduced-motion`.
 const PULSE = '[&>[data-slot=markdown]]:motion-safe:animate-pulse'
-const PULSE_REDUCED = '[&>[data-slot=markdown]]:motion-reduce:opacity-50'
+const PULSE_REDUCED = '[&>[data-slot=markdown]]:motion-reduce:opacity-60'
 
 describe('ChatMessage', () => {
 	it('renders children inside the bubble slot', () => {
@@ -128,10 +128,12 @@ describe('ChatMessage', () => {
 		expect(bySlot(container, 'chat-message-failure')).toBeInTheDocument()
 	})
 
-	it('dims the bubble while the composer edits the message', () => {
+	it('rings the bubble and marks the message while the composer edits it', () => {
 		const { container, rerender } = renderUI(<ChatMessage sender="user">Question</ChatMessage>)
 
-		expect(bySlot(container, 'chat-message-bubble')).not.toHaveClass('opacity-50')
+		expect(bySlot(container, 'chat-message-bubble')).not.toHaveClass('outline-offset-2')
+
+		expect(bySlot(container, 'chat-message')).not.toHaveAttribute('data-editing')
 
 		rerender(
 			<ChatMessage sender="user" editing>
@@ -139,7 +141,12 @@ describe('ChatMessage', () => {
 			</ChatMessage>,
 		)
 
-		expect(bySlot(container, 'chat-message-bubble')).toHaveClass('opacity-50')
+		const bubble = bySlot(container, 'chat-message-bubble')
+
+		// A ring and not a dim, so the text of the bubble keeps its contrast.
+		expect(bubble).toHaveClass('outline-2', 'outline-offset-2')
+
+		expect(bySlot(container, 'chat-message')).toHaveAttribute('data-editing')
 	})
 
 	it('renders the actions slot when provided', () => {

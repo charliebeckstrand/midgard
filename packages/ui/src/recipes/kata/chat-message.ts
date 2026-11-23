@@ -43,23 +43,26 @@ const bubble = {
 	// whole streaming look. The classes are written out, because Tailwind scans
 	// the source for whole class names and never sees an assembled one. The gate
 	// is the one of `ugoki.css.pulse`. For the reduced-motion reader a standing
-	// dim stands in, never both, since the pulse already troughs to that opacity.
-	// The pointer affordance alone would leave a keyboard reader nothing.
+	// dim stands in, never both. The reader can read the reply while it streams,
+	// for many seconds, so the dim keeps the text at 4.5:1 (WCAG 1.4.3): 60% gives
+	// 5.1:1 on the assistant fill, and 50% gives only 3.6:1. The pointer
+	// affordance alone would leave a keyboard reader nothing.
 	streaming: {
 		true: [
 			'cursor-progress',
 			'[&>[data-slot=markdown]]:motion-safe:animate-pulse',
-			'[&>[data-slot=markdown]]:motion-reduce:opacity-50',
+			'[&>[data-slot=markdown]]:motion-reduce:opacity-60',
 		],
 		false: '',
 	},
-	// The message that the composer edits. A send replaces it, so it dims, as a
-	// reply that streams dims for the reduced-motion reader. It does not pulse:
-	// the pulse tells that a reply arrives. The change of opacity eases, except
-	// for the reduced-motion reader.
+	// The message that the composer edits. A send replaces it, so a ring marks
+	// it: the resting ring of `focus.virtual`, a 2px outline with a 2px gap. It
+	// reads against the blue fill of the user bubble and against the page. A
+	// dim would lower the text of the bubble below 4.5:1, and the ring keeps
+	// the text at full contrast. Forced colors keep an outline.
 	editing: {
-		true: ['opacity-50', 'motion-safe:transition-opacity'],
-		false: 'motion-safe:transition-opacity',
+		true: focus.virtual,
+		false: '',
 	},
 }
 

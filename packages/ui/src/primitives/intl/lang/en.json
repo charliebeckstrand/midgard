@@ -155,6 +155,10 @@
 		"defaultMessage": "Selects in {label}",
 		"description": "The description of a phrase of a chat reply that selects items in a view beside the chat. The label is the name of the view, such as \"Late stops by day\"."
 	},
+	"ui.chat.conversation": {
+		"defaultMessage": "Conversation",
+		"description": "The name of the scrolling list of the messages of a chat. A screen reader reads it when the focus goes to the list."
+	},
 	"ui.chat.done": {
 		"defaultMessage": "Done",
 		"description": "The status of a step of the assistant that ended well."
