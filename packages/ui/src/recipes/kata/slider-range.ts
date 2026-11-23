@@ -54,7 +54,7 @@ export const k = defineKata({
 				'data-invalid:ring-2',
 				...mode('data-invalid:ring-red-600', 'dark:data-invalid:ring-red-500'),
 				...forced.invalid.outset,
-				'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-600',
+				'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-600 dark:focus-visible:ring-blue-500',
 				...forced.ring.outset,
 				dan.size.slider.thumb,
 			],

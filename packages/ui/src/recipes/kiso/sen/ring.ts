@@ -76,7 +76,10 @@ const thumb = [
 		'dark:data-invalid:[&::-webkit-slider-thumb]:ring-red-500',
 	),
 	'focus-visible:[&::-webkit-slider-thumb]:ring-4',
-	'focus-visible:[&::-webkit-slider-thumb]:ring-blue-600',
+	...mode(
+		'focus-visible:[&::-webkit-slider-thumb]:ring-blue-600',
+		'dark:focus-visible:[&::-webkit-slider-thumb]:ring-blue-500',
+	),
 
 	'[&::-moz-range-thumb]:ring-1',
 	...mode(
@@ -95,7 +98,10 @@ const thumb = [
 		'dark:data-invalid:[&::-moz-range-thumb]:ring-red-500',
 	),
 	'focus-visible:[&::-moz-range-thumb]:ring-4',
-	'focus-visible:[&::-moz-range-thumb]:ring-blue-600',
+	...mode(
+		'focus-visible:[&::-moz-range-thumb]:ring-blue-600',
+		'dark:focus-visible:[&::-moz-range-thumb]:ring-blue-500',
+	),
 ]
 
 export const ring = {

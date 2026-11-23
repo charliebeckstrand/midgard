@@ -50,11 +50,11 @@
  *                 colors a lift draws a 4 px outline, twice the width of a
  *                 focus outline.
  *
- * Focus is blue-600 in each mode. A part that paints its own focus, such as
- * the resize grip (`grip.ts`) and the range thumb (`ring.thumb`), uses the
- * same blue. A row mark on a dark ground with a tint (`cursor` and
- * `within.tinted`) is blue-500 on dark, because blue-600 is below 3:1 against
- * that ground.
+ * Focus is blue-600 on light and blue-500 on dark. A part that paints its
+ * own focus, such as the resize grip (`grip.ts`) and the range thumb
+ * (`ring.thumb`), uses the same pair. Blue-600 on dark is below 3:1 against a
+ * dark popover (2.97:1), a dark field (2.96:1), and a dark soft fill. Blue-500
+ * clears 3:1 against each of them (WCAG 1.4.11).
  *
  * Layer: kiso · Concern: focus indicators
  */
@@ -79,10 +79,9 @@ export const focus = {
 		// CSS outline, not a box-shadow ring: one crisp stroke along the radius.
 		// `outline-offset` opens a transparent gap exposing the surface behind;
 		// the stroke reads against the element's fill even when the fill IS the
-		// accent color. The accent is `blue-600` in both modes. Mouse-focus
-		// outlines are suppressed globally (:focus:not(:focus-visible)).
+		// accent color.
 		'focus-visible:outline-2 focus-visible:outline-offset-2',
-		'focus-visible:outline-blue-600',
+		...mode('focus-visible:outline-blue-600', 'dark:focus-visible:outline-blue-500'),
 	],
 	// `outline-solid` evicts `inset`'s ungated `outline-none` in
 	// tailwind-merge (same outline-style group) when both land on one
@@ -93,12 +92,13 @@ export const focus = {
 	// outranks its width. The ring repeats its width behind the same gate.
 	virtual: [
 		'outline-solid outline-2 outline-offset-2',
-		'outline-blue-600',
+		...mode('outline-blue-600', 'dark:outline-blue-500'),
 		'forced-colors:outline-2',
 	],
 	inset: [
 		'outline-none',
-		'focus-visible:ring-2 ring-inset focus-visible:ring-blue-600',
+		'focus-visible:ring-2 ring-inset',
+		...mode('focus-visible:ring-blue-600', 'dark:focus-visible:ring-blue-500'),
 		// The variants keep the fallback out of the tailwind-merge group of `outline-none`.
 		...forced.ring.inset,
 	],
@@ -112,16 +112,22 @@ export const focus = {
 	overlay: [
 		'outline-none',
 		'after:pointer-events-none after:absolute after:inset-0 after:rounded-[inherit] after:ring-inset',
-		'focus-visible:after:ring-2 focus-visible:after:ring-blue-600',
+		'focus-visible:after:ring-2',
+		...mode('focus-visible:after:ring-blue-600', 'dark:focus-visible:after:ring-blue-500'),
 		'forced-colors:focus-visible:after:outline-solid forced-colors:focus-visible:after:outline-2',
 		'forced-colors:focus-visible:after:-outline-offset-2 forced-colors:focus-visible:after:outline-[Highlight]',
 	],
 	outline: [
-		'has-focus-visible:outline-2 has-focus-visible:outline-blue-600 has-focus-visible:outline-offset-2',
+		'has-focus-visible:outline-2 has-focus-visible:outline-offset-2',
+		...mode('has-focus-visible:outline-blue-600', 'dark:has-focus-visible:outline-blue-500'),
 		/** Swaps to a 2 px border inside `[data-scroll-region]` ancestors, where `overflow-y-auto` clips an outset outline. */
-		'[[data-scroll-region]_&]:has-focus-visible:outline-none [[data-scroll-region]_&]:has-focus-visible:border-2 [[data-scroll-region]_&]:has-focus-visible:border-blue-600',
+		'[[data-scroll-region]_&]:has-focus-visible:outline-none [[data-scroll-region]_&]:has-focus-visible:border-2',
+		...mode(
+			'[[data-scroll-region]_&]:has-focus-visible:border-blue-600',
+			'dark:[[data-scroll-region]_&]:has-focus-visible:border-blue-500',
+		),
 	],
-	indicator: 'focus-visible:after:bg-blue-600',
+	indicator: mode('focus-visible:after:bg-blue-600', 'dark:focus-visible:after:bg-blue-500'),
 	/**
 	 * The `ring` stroke on a part whose parent has the keyboard focus. The `…`
 	 * mark of a hidden breadcrumb crumb draws it, because the mark stands in
@@ -129,7 +135,7 @@ export const focus = {
 	 */
 	parent: [
 		'[:focus-visible>&]:outline-2 [:focus-visible>&]:outline-offset-2',
-		'[:focus-visible>&]:outline-blue-600',
+		...mode('[:focus-visible>&]:outline-blue-600', 'dark:[:focus-visible>&]:outline-blue-500'),
 	],
 	/**
 	 * The keyboard cursor of a list: the focused row, or the roved row
@@ -158,7 +164,8 @@ export const focus = {
 	within: {
 		/** A row whose child control has the focus: the affixed row of Nav, Sidebar, and ChatList. */
 		row: [
-			'ring-inset has-[>:focus-visible]:ring-2 has-[>:focus-visible]:ring-blue-600',
+			'ring-inset has-[>:focus-visible]:ring-2',
+			...mode('has-[>:focus-visible]:ring-blue-600', 'dark:has-[>:focus-visible]:ring-blue-500'),
 			'forced-colors:has-[>:focus-visible]:outline-solid forced-colors:has-[>:focus-visible]:outline-2',
 			'forced-colors:has-[>:focus-visible]:-outline-offset-2 forced-colors:has-[>:focus-visible]:outline-[Highlight]',
 		],
@@ -168,7 +175,11 @@ export const focus = {
 		 * the opaque surface draws the ring again.
 		 */
 		indicator: [
-			'ring-inset group-has-[>:focus-visible]:ring-2 group-has-[>:focus-visible]:ring-blue-600',
+			'ring-inset group-has-[>:focus-visible]:ring-2',
+			...mode(
+				'group-has-[>:focus-visible]:ring-blue-600',
+				'dark:group-has-[>:focus-visible]:ring-blue-500',
+			),
 			'forced-colors:group-has-[>:focus-visible]:outline-solid forced-colors:group-has-[>:focus-visible]:outline-2',
 			'forced-colors:group-has-[>:focus-visible]:-outline-offset-2 forced-colors:group-has-[>:focus-visible]:outline-[Highlight]',
 		],
@@ -186,7 +197,11 @@ export const focus = {
 		],
 		/** A section whose heading holds the control that has the focus: the item of Accordion. */
 		heading: [
-			'ring-inset has-[>:is(h1,h2,h3,h4,h5,h6)>:focus-visible]:ring-2 has-[>:is(h1,h2,h3,h4,h5,h6)>:focus-visible]:ring-blue-600',
+			'ring-inset has-[>:is(h1,h2,h3,h4,h5,h6)>:focus-visible]:ring-2',
+			...mode(
+				'has-[>:is(h1,h2,h3,h4,h5,h6)>:focus-visible]:ring-blue-600',
+				'dark:has-[>:is(h1,h2,h3,h4,h5,h6)>:focus-visible]:ring-blue-500',
+			),
 			'forced-colors:has-[>:is(h1,h2,h3,h4,h5,h6)>:focus-visible]:outline-solid forced-colors:has-[>:is(h1,h2,h3,h4,h5,h6)>:focus-visible]:outline-2',
 			'forced-colors:has-[>:is(h1,h2,h3,h4,h5,h6)>:focus-visible]:-outline-offset-2 forced-colors:has-[>:is(h1,h2,h3,h4,h5,h6)>:focus-visible]:outline-[Highlight]',
 		],

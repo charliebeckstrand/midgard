@@ -166,3 +166,16 @@ describe('Resize grip contrast', () => {
 		expect(getContrast(only(classes, bar), SURFACE[mode])).toBeGreaterThanOrEqual(WCAG_NON_TEXT)
 	})
 })
+
+describe('Dark focus ring contrast', () => {
+	const ring = only(classNames([sen.focus.ring]), /^dark:focus-visible:outline-blue-\d+$/)
+
+	it.for([
+		{ ground: 'page', color: SURFACE.dark },
+		{ ground: 'popover', color: tinted('dark:bg-zinc-800/75', SURFACE.dark) },
+		{ ground: 'field', color: tinted('dark:bg-white/5', SURFACE.dark) },
+		{ ground: 'soft fill', color: tinted('dark:bg-white/10', SURFACE.dark) },
+	])('clears 3:1 against the dark $ground', ({ color }) => {
+		expect(getContrast(ring, color)).toBeGreaterThanOrEqual(WCAG_NON_TEXT)
+	})
+})
