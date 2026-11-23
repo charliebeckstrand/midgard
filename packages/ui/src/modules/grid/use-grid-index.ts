@@ -28,8 +28,11 @@ export type GridIndexRefs<T> = {
 	editSourceRef: RefObject<GridEditSource<T>>
 	/** Whether the grid has a selection column. It gates the cursor's Space-to-select. */
 	selectableRef: RefObject<boolean>
-	/** Toggles the selection of a row, by its key. */
-	toggleRowRef: RefObject<((key: string | number) => void) | null>
+	/**
+	 * Toggles the selection of a row, by its key. With `span`, it sets each shown
+	 * row from the last toggled row to this row (see {@link useGridIndexToggleSync}).
+	 */
+	toggleRowRef: RefObject<((key: string | number, span?: boolean) => void) | null>
 	/** The `aria-rowindex` offset of the first row of the body (see `ariaRowIndex`). */
 	rowIndexOffsetRef: RefObject<number>
 }
@@ -42,7 +45,6 @@ export type GridIndexValues<T> = {
 	rowKeys: (string | number)[]
 	cursorColumns: GridColumn<T>[]
 	selectable: boolean
-	toggleRow: (key: string | number) => void
 }
 
 /**
@@ -68,7 +70,7 @@ export function useGridIndexRefs<T>(source: GridEditSource<T>): GridIndexRefs<T>
 
 	const selectableRef = useRef(false)
 
-	const toggleRowRef = useRef<((key: string | number) => void) | null>(null)
+	const toggleRowRef = useRef<((key: string | number, span?: boolean) => void) | null>(null)
 
 	const rowIndexOffsetRef = useRef(0)
 
@@ -131,6 +133,21 @@ export function useGridIndexSync<T>(refs: GridIndexRefs<T>, values: GridIndexVal
 	refs.cursorColumnsRef.current = values.cursorColumns
 
 	refs.selectableRef.current = values.selectable
+}
 
-	refs.toggleRowRef.current = values.toggleRow
+/**
+ * Writes the row toggle of the cursor into its ref. It is the toggle of the
+ * shown rows, so a span from the Space key runs over the order of the body, as
+ * a span from a click does. Space acts after a commit, so a layout effect
+ * writes it in time.
+ *
+ * @internal
+ */
+export function useGridIndexToggleSync(
+	toggleRowRef: GridIndexRefs<unknown>['toggleRowRef'],
+	toggleRow: (key: string | number, span?: boolean) => void,
+): void {
+	useLayoutEffect(() => {
+		toggleRowRef.current = toggleRow
+	}, [toggleRowRef, toggleRow])
 }

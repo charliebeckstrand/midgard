@@ -78,7 +78,7 @@ export type GridRowsProps<T> = {
 	/** Stable focused-cell activation for cell roving: the cell click then the row click, matching a pointer click. */
 	cellActivate?: GridCellRovingActivate<T>
 	selection: Set<string | number>
-	toggleRow: (key: string | number) => void
+	toggleRow: (key: string | number, span?: boolean) => void
 	/** Whether the grid renders a selection column, so each row exposes its `aria-selected` state. */
 	selectable: boolean
 	/** Renders each non-pinned data cell as a reordering cell that follows its header's shift through a CSS variable. */
@@ -243,7 +243,7 @@ export type GridRowProps<T> = {
 	 */
 	selected: boolean
 	/** Stable reference from the selection hook, safe to pass through `memo`. */
-	toggleRow: (key: string | number) => void
+	toggleRow: (key: string | number, span?: boolean) => void
 	/**
 	 * Whether the grid renders a selection column. When true the row's `<tr>`
 	 * carries `aria-selected`; a grid with no selection column omits it rather

@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useRef } from 'react'
-import { type SetValue, useControllableBinding } from '../../hooks/use-controllable'
+import { type SetBoundValue, useControllableBinding } from '../../hooks/use-controllable'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useStableValue } from '../../hooks/use-stable-value'
 import { sameElements } from '../../utilities/same-elements'
@@ -14,7 +14,7 @@ const EMPTY_SELECTION: Set<string | number> = new Set()
 /** The controllable selection Set and its (updater-capable, stable) setter. @internal */
 type GridSelectionState = {
 	selection: Set<string | number>
-	setSelection: (next: SetValue<Set<string | number>>) => void
+	setSelection: (next: SetBoundValue<Set<string | number>>) => void
 }
 
 /** The row-derived selection flags and the toggle actions. @internal */
@@ -29,6 +29,8 @@ type GridSelectionActions = {
 	toggleAll: () => void
 	allSelected: boolean
 	someSelected: boolean
+	/** Whether `rowSelectable` accepts one or more of the shown rows. */
+	anySelectable: boolean
 	/** The keys of the shown rows that `rowSelectable` rejects. */
 	unselectable: ReadonlySet<string | number>
 }
@@ -96,7 +98,8 @@ export function useGridSelectionState(config: GridSelectionValue | undefined): G
  * memoized rows don't churn).
  *
  * `rowSelectable` rejects a row: its toggle does nothing, a span and
- * select-all skip it, and `allSelected` counts only the rows that it accepts.
+ * select-all skip it, and `allSelected` and `someSelected` count only the rows
+ * that it accepts.
  * A span runs from the last row that a toggle named to the row that it names,
  * over the order that the toggle gives, else over `rowKeys`.
  *
@@ -147,9 +150,11 @@ export function useGridSelectionActions<T>({
 	)
 
 	const someSelected = useMemo(
-		() => selection.size > 0 && rowKeys.some((key) => selection.has(key)),
-		[rowKeys, selection],
+		() => selection.size > 0 && selectableKeys.some((key) => selection.has(key)),
+		[selectableKeys, selection],
 	)
+
+	const anySelectable = selectableKeys.length > 0
 
 	// The last row that a toggle named: one end of the next span.
 	const anchorRef = useRef<string | number | null>(null)
@@ -164,9 +169,7 @@ export function useGridSelectionActions<T>({
 
 			anchorRef.current = key
 
-			setSelection((prev) => {
-				const selected = prev ?? EMPTY_SELECTION
-
+			setSelection((selected) => {
 				if (from === -1 || to === -1) return toggleItem(selected, key)
 
 				return setSpan(selected, order, from, to, !selected.has(key), unselectable)
@@ -179,9 +182,7 @@ export function useGridSelectionActions<T>({
 	// the view does not show stays selected. A rejected row keeps its state. It
 	// reads the newest rows, and its identity holds for the mount.
 	const toggleAll = useStableEvent(() => {
-		setSelection((prev) => {
-			const selected = prev ?? EMPTY_SELECTION
-
+		setSelection((selected) => {
 			const every = selectableKeys.length > 0 && selectableKeys.every((key) => selected.has(key))
 
 			const next = new Set(selected)
@@ -195,7 +196,7 @@ export function useGridSelectionActions<T>({
 		})
 	})
 
-	return { toggleRow, toggleAll, allSelected, someSelected, unselectable }
+	return { toggleRow, toggleAll, allSelected, someSelected, anySelectable, unselectable }
 }
 
 /**

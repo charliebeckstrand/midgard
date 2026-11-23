@@ -171,7 +171,7 @@ export function useGridDataView<T>({
 		rowSelectable,
 	})
 
-	const { toggleRow, allSelected } = selectionActions
+	const { allSelected } = selectionActions
 
 	// Feed the cursor now that the engine has resolved the rows: its index space,
 	// and the selection wiring its Space key reads (see `useGridNavigation`).
@@ -182,7 +182,6 @@ export function useGridDataView<T>({
 		rowKeys,
 		cursorColumns,
 		selectable: hasSelectionColumn,
-		toggleRow,
 	})
 
 	// Narrate sort and selection changes to assistive tech without moving focus

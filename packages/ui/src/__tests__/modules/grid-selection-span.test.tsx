@@ -94,6 +94,61 @@ describe('Grid selection span and rowSelectable', () => {
 		expect(selected()).toEqual([1, 2, 4])
 	})
 
+	it('shows the header clear when only a rejected row holds the selection', () => {
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={(row) => row.id}
+				rowLabel={(row) => row.name}
+				selection={{ defaultValue: new Set([3]), rowSelectable: (row) => !row.locked }}
+			/>,
+		)
+
+		const all = screen.getByRole('checkbox', { name: /Select all/ })
+
+		expect(all).not.toBeChecked()
+
+		expect(all).not.toBePartiallyChecked()
+	})
+
+	it('disables the header checkbox when it rejects each shown row', () => {
+		renderSelectable(() => false)
+
+		expect(screen.getByRole('checkbox', { name: /Select all/ })).toBeDisabled()
+	})
+
+	it('selects the span from the last toggled row with Shift and Space on the cursor', () => {
+		const onValueChange = vi.fn()
+
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={(row) => row.id}
+				rowLabel={(row) => row.name}
+				navigable
+				selection={{ onValueChange }}
+			/>,
+		)
+
+		const grid = screen.getByRole('grid')
+
+		fireEvent.mouseDown(screen.getByText('Ada'))
+
+		fireEvent.keyDown(grid, { key: ' ' })
+
+		fireEvent.keyDown(grid, { key: 'ArrowDown' })
+
+		fireEvent.keyDown(grid, { key: 'ArrowDown' })
+
+		fireEvent.keyDown(grid, { key: ' ', shiftKey: true })
+
+		const [last] = (onValueChange.mock.lastCall ?? [new Set()]) as [Set<number>]
+
+		expect([...last].sort()).toEqual([1, 2, 3])
+	})
+
 	it('runs a span over the leaves that a grouped grid shows, and skips a closed group', () => {
 		type Member = { id: number; name: string; team: string }
 
