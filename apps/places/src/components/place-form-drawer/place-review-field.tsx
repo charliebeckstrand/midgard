@@ -7,6 +7,7 @@ import { Button } from 'ui/button'
 import { Field, Label } from 'ui/fieldset'
 import { useFormValue } from 'ui/form'
 import { Icon } from 'ui/icon'
+import { ColumnsItem } from 'ui/structure/columns'
 import { Stack } from 'ui/structure/stack'
 import { Textarea } from 'ui/textarea'
 import { Toolbar, ToolbarGroup, ToolbarSeparator } from 'ui/toolbar'
@@ -47,45 +48,47 @@ export function PlaceReviewField() {
 	}
 
 	return (
-		<Field className="sm:col-span-2">
-			<Label>Your review</Label>
+		<ColumnsItem span="full">
+			<Field>
+				<Label>Your review</Label>
 
-			<Stack gap="xs">
-				<Toolbar aria-label="Formatting">
-					<ToolbarGroup>
-						<FormatButton
-							label="Bold"
-							icon={<LetterB />}
-							onPress={() => apply((edit) => toggleMarker(edit, 'bold'))}
-						/>
+				<Stack gap="xs">
+					<Toolbar aria-label="Formatting">
+						<ToolbarGroup>
+							<FormatButton
+								label="Bold"
+								icon={<LetterB />}
+								onPress={() => apply((edit) => toggleMarker(edit, 'bold'))}
+							/>
 
-						<FormatButton
-							label="Italic"
-							icon={<Italic />}
-							onPress={() => apply((edit) => toggleMarker(edit, 'italic'))}
-						/>
-					</ToolbarGroup>
+							<FormatButton
+								label="Italic"
+								icon={<Italic />}
+								onPress={() => apply((edit) => toggleMarker(edit, 'italic'))}
+							/>
+						</ToolbarGroup>
 
-					<ToolbarSeparator />
+						<ToolbarSeparator />
 
-					<ToolbarGroup>
-						<FormatButton
-							label="Bulleted list"
-							icon={<List />}
-							onPress={() => apply((edit) => toggleList(edit, 'bulleted'))}
-						/>
+						<ToolbarGroup>
+							<FormatButton
+								label="Bulleted list"
+								icon={<List />}
+								onPress={() => apply((edit) => toggleList(edit, 'bulleted'))}
+							/>
 
-						<FormatButton
-							label="Numbered list"
-							icon={<ListOrdered />}
-							onPress={() => apply((edit) => toggleList(edit, 'numbered'))}
-						/>
-					</ToolbarGroup>
-				</Toolbar>
+							<FormatButton
+								label="Numbered list"
+								icon={<ListOrdered />}
+								onPress={() => apply((edit) => toggleList(edit, 'numbered'))}
+							/>
+						</ToolbarGroup>
+					</Toolbar>
 
-				<Textarea ref={ref} name="review" rows={3} autoResize placeholder="How was it?" />
-			</Stack>
-		</Field>
+					<Textarea ref={ref} name="review" rows={3} autoResize placeholder="How was it?" />
+				</Stack>
+			</Field>
+		</ColumnsItem>
 	)
 }
 

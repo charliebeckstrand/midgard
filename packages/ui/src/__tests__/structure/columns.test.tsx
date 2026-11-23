@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { Columns } from '../../structure/columns'
+import { Columns, ColumnsItem } from '../../structure/columns'
 import { bySlot, renderUI } from '../helpers'
 
 describe('Columns', () => {
@@ -33,5 +33,45 @@ describe('Columns', () => {
 		const { container } = renderUI(<Columns align="start">a</Columns>)
 
 		expect(bySlot(container, 'columns')).toHaveClass('items-start')
+	})
+})
+
+describe('ColumnsItem', () => {
+	it('gives no span by default', () => {
+		const { container } = renderUI(<ColumnsItem>a</ColumnsItem>)
+
+		expect(bySlot(container, 'columns-item')?.className ?? '').not.toMatch(/col-span/)
+	})
+
+	it('spans each column of its row with full', () => {
+		const { container } = renderUI(<ColumnsItem span="full">a</ColumnsItem>)
+
+		expect(bySlot(container, 'columns-item')).toHaveClass('col-span-full')
+	})
+
+	it('gives a class for each breakpoint of span', () => {
+		const { container } = renderUI(
+			<ColumnsItem span={{ initial: 1, md: 2, xl: 'full' }}>a</ColumnsItem>,
+		)
+
+		expect(bySlot(container, 'columns-item')).toHaveClass(
+			'col-span-1',
+			'md:col-span-2',
+			'xl:col-span-full',
+		)
+	})
+
+	it('keeps the class and the attributes of the consumer', () => {
+		const { container } = renderUI(
+			<ColumnsItem span={2} className="pb-2" id="cell">
+				a
+			</ColumnsItem>,
+		)
+
+		const cell = bySlot(container, 'columns-item')
+
+		expect(cell).toHaveClass('col-span-2', 'pb-2')
+
+		expect(cell).toHaveAttribute('id', 'cell')
 	})
 })

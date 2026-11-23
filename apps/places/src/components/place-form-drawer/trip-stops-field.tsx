@@ -13,7 +13,7 @@ import { useFormValue } from 'ui/form'
 import { Icon } from 'ui/icon'
 import { List, ListItem } from 'ui/list'
 import { Listbox } from 'ui/listbox'
-import { Columns } from 'ui/structure/columns'
+import { Columns, ColumnsItem } from 'ui/structure/columns'
 import { Flex } from 'ui/structure/flex'
 import type { Place, PlaceCategory } from '../../types'
 import { CategoryOptions, categoryDisplayValue } from '../category-picker'
@@ -121,21 +121,23 @@ export function TripStopsField({ places }: { places: readonly Place[] }) {
 											align="start"
 											className="min-w-0 flex-1"
 										>
-											<Control className="sm:col-span-2">
-												<AddressInput
-													aria-label={`Place ${position}`}
-													placeholder="Search for a place"
-													provider={provider}
-													value={row.match ?? null}
-													onValueChange={(match) =>
-														write(row.key, {
-															match: match ?? undefined,
-															placeId:
-																match !== null && savedMatches.has(match) ? match.id : undefined,
-														})
-													}
-												/>
-											</Control>
+											<ColumnsItem span="full">
+												<Control>
+													<AddressInput
+														aria-label={`Place ${position}`}
+														placeholder="Search for a place"
+														provider={provider}
+														value={row.match ?? null}
+														onValueChange={(match) =>
+															write(row.key, {
+																match: match ?? undefined,
+																placeId:
+																	match !== null && savedMatches.has(match) ? match.id : undefined,
+															})
+														}
+													/>
+												</Control>
+											</ColumnsItem>
 
 											{row.match !== undefined && row.placeId === undefined ? (
 												<Control>

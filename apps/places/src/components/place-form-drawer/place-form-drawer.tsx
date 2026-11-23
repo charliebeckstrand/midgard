@@ -4,6 +4,7 @@ import { Field, Label, Message } from 'ui/fieldset'
 import { useToday } from 'ui/hooks'
 import { Input } from 'ui/input'
 import { Rating } from 'ui/rating'
+import { ColumnsItem } from 'ui/structure/columns'
 import type { PlaceDraft, Trip } from '../../types'
 import { FormDrawer } from './form-drawer'
 import { LOCATE_TIMEOUT_MS, locatePlace } from './location-form'
@@ -154,9 +155,9 @@ export function PlaceFormDrawer({ target, onOpenChange, onSubmit, trips }: Place
 				<>
 					{/* The search leads across both columns, because it is the field
 					    that fills the others. */}
-					<div className="sm:col-span-2">
+					<ColumnsItem span="full">
 						<PlaceSearchField />
-					</div>
+					</ColumnsItem>
 
 					<Field>
 						<Label>Name</Label>
@@ -168,41 +169,43 @@ export function PlaceFormDrawer({ target, onOpenChange, onSubmit, trips }: Place
 
 					<PlaceCategoryField />
 
-					<div className="sm:col-span-2">
+					<ColumnsItem span="full">
 						<PlaceAddressField />
-					</div>
+					</ColumnsItem>
 
-					<div className="sm:col-span-2">
+					<ColumnsItem span="full">
 						<PlaceWebsiteField />
-					</div>
+					</ColumnsItem>
 				</>
 			) : null}
 
 			{showsVisitFields ? (
 				<>
-					<div className="sm:col-span-2">
+					<ColumnsItem span="full">
 						<PlaceVisitedField
 							trips={trips}
 							// A new visit has no day only while today is not known.
 							pending={defaultValues.visitedAt === undefined}
 						/>
-					</div>
+					</ColumnsItem>
 
 					{trips.length > 0 ? (
-						<div className="sm:col-span-2">
+						<ColumnsItem span="full">
 							<PlaceTripField trips={trips} />
-						</div>
+						</ColumnsItem>
 					) : null}
 
-					<div className="sm:col-span-2">
+					<ColumnsItem span="full">
 						<PlacePhotosField progress={uploads.progress} />
-					</div>
+					</ColumnsItem>
 
-					<Field className="sm:col-span-2">
-						<Label as="span">Rating</Label>
+					<ColumnsItem span="full">
+						<Field>
+							<Label as="span">Rating</Label>
 
-						<Rating name="rating" size="lg" step={0.5} />
-					</Field>
+							<Rating name="rating" size="lg" step={0.5} />
+						</Field>
+					</ColumnsItem>
 
 					<PlaceReviewField />
 				</>

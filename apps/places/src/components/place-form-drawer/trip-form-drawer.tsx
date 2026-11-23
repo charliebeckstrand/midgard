@@ -3,6 +3,7 @@
 import { DatePicker } from 'ui/date-picker'
 import { Field, Label, Message } from 'ui/fieldset'
 import { Input } from 'ui/input'
+import { ColumnsItem } from 'ui/structure/columns'
 import type { Place, TripDraft, TripStop } from '../../types'
 import { FormDrawer } from './form-drawer'
 import { PlacePhotosField } from './place-photos-field'
@@ -72,9 +73,9 @@ export function TripFormDrawer({ target, onOpenChange, onSubmit, places }: TripF
 				return undefined
 			}}
 		>
-			<div className="sm:col-span-2">
+			<ColumnsItem span="full">
 				<TripLocationField />
-			</div>
+			</ColumnsItem>
 
 			<Field>
 				<Label>Name</Label>
@@ -92,14 +93,14 @@ export function TripFormDrawer({ target, onOpenChange, onSubmit, places }: TripF
 				<Message name="days" />
 			</Field>
 
-			<div className="sm:col-span-2">
+			<ColumnsItem span="full">
 				<PlacePhotosField progress={uploads.progress} />
-			</div>
+			</ColumnsItem>
 
 			{editing ? null : (
-				<div className="sm:col-span-2">
+				<ColumnsItem span="full">
 					<TripStopsField places={places} />
-				</div>
+				</ColumnsItem>
 			)}
 		</FormDrawer>
 	)
