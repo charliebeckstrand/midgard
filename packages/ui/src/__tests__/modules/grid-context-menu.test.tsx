@@ -210,6 +210,32 @@ describe('Grid context menus', () => {
 		expect(screen.getByRole('menuitem', { name: 'Copy' })).toBeInTheDocument()
 	})
 
+	// The cursor on a header cell marks a `<th>`, not a gridcell. The keyboard
+	// path found no cell there and kept the native menu.
+	it('opens the column menu at the active header cell from a keyboard context-menu event', () => {
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				navigable
+				contextMenu={{ column: true, cell: true }}
+			/>,
+		)
+
+		const grid = screen.getByRole('grid')
+
+		fireEvent.mouseDown(screen.getByRole('gridcell', { name: 'Alice' }))
+
+		fireEvent.keyDown(grid, { key: 'ArrowUp' })
+
+		expect(screen.getByRole('columnheader', { name: /Name/ })).toHaveAttribute('data-active')
+
+		fireEvent.contextMenu(grid)
+
+		expect(screen.getByRole('menu', { name: 'Name column menu' })).toBeInTheDocument()
+	})
+
 	// An applied filter marks its header button `data-active`, the attribute that
 	// the cursor cell carries. The header comes first inside the grid, so a bare
 	// attribute query found the button and opened no cell menu.
