@@ -151,7 +151,9 @@ function viewTop(instance: Virtualizer<HTMLElement, Element>): number {
  * scroller, or the scroller bounces past an edge, it holds the move and
  * renders the rows shifted by it, and it writes the move when it can. @internal
  */
-type ScrollCorrection = { applyScrollAdjustment: (delta: number) => boolean }
+type ScrollCorrection = {
+	applyScrollAdjustment: (delta: number, behavior?: ScrollBehavior) => boolean
+}
 
 /**
  * The scroll offset in the layout of the list. Since virtual-core 3.19, a
@@ -537,6 +539,31 @@ function useWindowVirtualizer(options: WindowVirtualizerOptions, adjustAbove: bo
 			} finally {
 				measuring = false
 			}
+		}
+
+		// A correction goes to the nearest offset that the scroller can reach, as a
+		// write of `scrollTop` does. Virtual-core 3.19 holds a correction while a
+		// touch on iOS controls the scroller, and it renders the rows shifted by
+		// the held move. It does not clamp that move. A tap that opened a row of a
+		// list that does not scroll thus held an offset past the end, and the
+		// offset stayed after the touch. A tap that closed the row then rendered
+		// the rows shifted down while the row shrank, and they jumped back up when
+		// the touch ended. The layout is current at a measurement, so the height
+		// of the scroller is the new height.
+		const correction = virtualizer as unknown as ScrollCorrection
+
+		const applyScrollAdjustment = correction.applyScrollAdjustment.bind(virtualizer)
+
+		correction.applyScrollAdjustment = (delta, behavior) => {
+			const element = virtualizer.scrollElement
+
+			if (!element) return applyScrollAdjustment(delta, behavior)
+
+			const max = Math.max(0, element.scrollHeight - element.clientHeight)
+
+			const offset = layoutOffset(virtualizer)
+
+			return applyScrollAdjustment(clamp(offset + delta, 0, max) - offset, behavior)
 		}
 
 		return virtualizer
