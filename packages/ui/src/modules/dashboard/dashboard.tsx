@@ -26,6 +26,7 @@ import { useEscapeLayer } from '../../hooks/use-escape-layer'
 import { useReportedChange } from '../../hooks/use-reported-change'
 import { useResizeObserver } from '../../hooks/use-resize-observer'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { useControlLock } from '../../primitives/control/context'
 import { k } from '../../recipes/kata/dashboard'
 import type { HeadingLevel } from '../../recipes/kata/heading'
 import type { AccessibleName } from '../../types/accessible-name'
@@ -532,16 +533,35 @@ export function Dashboard({
 	// It reads the newest reporter, and its identity holds for the mount.
 	const reportError = useStableEvent((id: string, error: unknown) => onTileError?.(id, error))
 
+	// A lock, such as a `Form` while a submit runs, stops each layout gesture as
+	// an edit exit does. A resize does not start or step, and the effect below
+	// cancels a live gesture. The grip of a tile reads the lock itself.
+	const locked = useControlLock()
+
+	const readLocked = useStableEvent(() => locked)
+
+	const lockedResize = useMemo(
+		() => ({
+			beginResize: (...args: Parameters<typeof beginResize>) => {
+				if (!readLocked()) beginResize(...args)
+			},
+			resizeBy: (...args: Parameters<typeof resizeBy>) => {
+				if (!readLocked()) resizeBy(...args)
+			},
+		}),
+		[beginResize, resizeBy, readLocked],
+	)
+
 	const actions = useMemo<DashboardActions>(
 		() => ({
-			beginResize,
-			resizeBy,
+			beginResize: lockedResize.beginResize,
+			resizeBy: lockedResize.resizeBy,
 			cancelResize,
 			setFilter: (next) => setFilterValue(next),
 			updateSelections: (update) => setSelectionValue((prev) => update(prev ?? [])),
 			reportError,
 		}),
-		[beginResize, resizeBy, cancelResize, setFilterValue, setSelectionValue, reportError],
+		[lockedResize, cancelResize, setFilterValue, setSelectionValue, reportError],
 	)
 
 	// The root reads flags only, so a preview never renders the root again.
@@ -562,8 +582,9 @@ export function Dashboard({
 	// holds the closed hand on the whole page until the drop or the cancel.
 	useDragCursor(dragging)
 
-	// A gesture needs edit mode, and its listeners outlive the splitter and the
-	// board. So an edit exit or an unmount ends a live gesture as canceled.
+	// A gesture needs edit mode and no lock, and its listeners outlive the
+	// splitter and the board. So an edit exit, a lock, or an unmount ends a live
+	// gesture as canceled.
 	useLayoutEffect(() => {
 		const cancel = () => {
 			cancelResize()
@@ -571,10 +592,10 @@ export function Dashboard({
 			cancelDrag()
 		}
 
-		if (!editable) cancel()
+		if (!editable || locked) cancel()
 
 		return cancel
-	}, [editable, cancelResize, cancelDrag])
+	}, [editable, locked, cancelResize, cancelDrag])
 
 	return (
 		<DashboardStoreContext value={store}>

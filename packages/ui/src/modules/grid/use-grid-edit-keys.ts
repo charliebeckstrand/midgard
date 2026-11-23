@@ -238,13 +238,13 @@ export function useGridEditKeys<T>({
 			// The new-row slot keeps its own keys, and no data session reads them.
 			if (claimedBySurface(event) || readKeyPress(event).composing || newRowKeys(event)) return
 
-			const target = pressOrigin(event) ?? (event.target as Element)
-
 			const move = event.key === 'Escape' ? 'abandon' : editorMove(event, cellScoped)
 
-			const session = move === null ? null : sessionTarget(target)
+			if (move === null) return
 
-			if (move === null || session === null) return
+			const session = sessionTarget(pressOrigin(event) ?? (event.target as Element))
+
+			if (session === null) return
 
 			if (move === 'abandon') {
 				event.preventDefault()

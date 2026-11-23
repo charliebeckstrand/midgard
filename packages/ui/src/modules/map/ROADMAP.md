@@ -44,9 +44,7 @@ The React contexts stay in `context.ts` at the module root, and the comparisons 
 
 ## Pattern cleanup
 
-1. **A gate for map anchors in an app (*P3*).** Places replaced its selectors of the internal map anchors with `tone: 'tint'` and `recede={false}`, and no app selects a `data-slot=map-` anchor now. A unit has one API (CONVENTIONS §3.12), so such a selector in an app is drift. A Biome plugin can find it in `apps`.
-
-The rest of the module holds to CONVENTIONS through the gates that the status names. The function names follow §8.5. Most functions of the engine are queries, so each takes the name of its value.
+The module holds to CONVENTIONS through the gates that the status names. The function names follow §8.5. Most functions of the engine are queries, so each takes the name of its value. An app reaches the map through its props, such as `tone: 'tint'` and `recede={false}`. The [`no-ui-anchor-selector`](../../../../../.biome/plugins/no-ui-anchor-selector.grit) Biome plugin finds a selector of a `data-slot` anchor in an app.
 
 ## Performance
 

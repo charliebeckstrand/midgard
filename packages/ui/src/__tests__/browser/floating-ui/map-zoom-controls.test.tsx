@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { MapPlat, type MapZoomControlsPlacement } from '../../../modules/map'
-import { bySlot, getSlot, renderUI } from '../../helpers'
+import { bySlot, getSlot, renderUI, screen, waitFor } from '../../helpers'
 import { FIXTURE_GEOJSON } from '../../helpers/map-geography'
 
 /**
@@ -133,6 +133,50 @@ describe('the zoom buttons of a map', () => {
 				across === 'x' ? box.x + box.width / 2 : box.y + box.height / 2
 
 			expect(Math.abs(center(group) - center(plot))).toBeLessThan(1)
+		},
+	)
+
+	it.each<MapZoomControlsPlacement>(['top', 'right', 'bottom', 'left'])(
+		'keeps the tooltip of each button off the other buttons, on the %s side',
+		async (side) => {
+			renderUI(
+				<MapPlat
+					aria-label="Test map"
+					geography={FIXTURE_GEOJSON}
+					width={400}
+					zoom
+					zoomControls={side}
+				/>,
+			)
+
+			const buttons = [...getSlot(document.body, 'map-zoom-controls').querySelectorAll('button')]
+
+			// A hover tooltip takes the pointer (WCAG 2.2 SC 1.4.13). A panel on a
+			// button next to its trigger thus takes the press that the reader aims at
+			// that button.
+			for (const button of buttons) {
+				await userEvent.hover(button)
+
+				const panel = (await screen.findByRole('tooltip')).getBoundingClientRect()
+
+				for (const other of buttons) {
+					if (other === button) continue
+
+					const box = other.getBoundingClientRect()
+
+					const overlaps =
+						panel.left < box.right &&
+						box.left < panel.right &&
+						panel.top < box.bottom &&
+						box.top < panel.bottom
+
+					expect(overlaps, `${button.ariaLabel} over ${other.ariaLabel}`).toBe(false)
+				}
+
+				await userEvent.unhover(button)
+
+				await waitFor(() => expect(screen.queryByRole('tooltip')).not.toBeInTheDocument())
+			}
 		},
 	)
 

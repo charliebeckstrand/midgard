@@ -1060,6 +1060,18 @@ describe('useA11yRoving: row actions', () => {
 
 		expect(byText(container, 'suffix-0')?.tabIndex).toBe(-1)
 	})
+
+	it('manageTabIndex: moves the resting stop to the item of the row whose action takes focus', () => {
+		const container = makeRows([{ suffix: true }, { suffix: true }])
+
+		setup(container, true)
+
+		byText(container, 'suffix-1')?.focus()
+
+		expect(byText(container, 'item-1')?.tabIndex).toBe(0)
+
+		expect(byText(container, 'item-0')?.tabIndex).toBe(-1)
+	})
 })
 
 describe('useA11yRoving: itemSource (indexed navigation over a windowed list)', () => {

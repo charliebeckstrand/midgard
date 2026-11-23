@@ -4,6 +4,7 @@ import type { ComponentProps, PointerEvent } from 'react'
 import { cn } from '../../core/cn'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { dataAttr } from '../../core/data-attr'
+import { useControlLock } from '../../primitives/control/context'
 import { GripVertical } from '../../primitives/icons/icons'
 import { k } from '../../recipes/kata/list'
 import { holdTextSelection } from '../../utilities/hold-text-selection'
@@ -29,6 +30,9 @@ export function ListHandle({ children, className, onPointerDown, ...props }: Lis
 
 	const { reorder, dragging } = useListItemContext()
 
+	// A lock starts no drag, and the grip stays.
+	const locked = useControlLock()
+
 	// A list that cannot reorder shows no grip. A disabled list keeps a muted one.
 	if (itemCount <= 1 || (!interactive && !disabled)) return null
 
@@ -51,7 +55,7 @@ export function ListHandle({ children, className, onPointerDown, ...props }: Lis
 			// The drag start is the activation of the handle, so a consumer's
 			// preventDefault() does not cancel it (CONVENTIONS.md §3.9).
 			onPointerDown={
-				interactive
+				interactive && !locked
 					? composeEventHandlers(onPointerDown, startDrag, { checkForDefaultPrevented: false })
 					: onPointerDown
 			}

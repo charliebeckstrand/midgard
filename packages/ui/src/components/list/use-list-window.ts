@@ -140,18 +140,7 @@ export function useListWindow({
 
 		const observer = new ResizeObserver(measure)
 
-		// A ResizeObserver reports a size, not a position. A box above the parent
-		// can grow and move the list, so the hook observes each ancestor from the
-		// parent up to the child of the scroller that holds the list.
-		for (
-			let node: HTMLElement | null = list.parentElement ?? list;
-			node;
-			node = node.parentElement
-		) {
-			observer.observe(node)
-
-			if (node === scroller || node.parentElement === scroller) break
-		}
+		observeAncestors(observer, list, scroller)
 
 		return () => observer.disconnect()
 	}, [enabled, listRef])
@@ -203,6 +192,25 @@ export function useListWindow({
 	}
 
 	return { indexes, paddingTop: topSpacer, paddingBottom: bottomSpacer, measureRef }
+}
+
+/**
+ * Observes each ancestor of `list` from its parent up to the child of
+ * `scroller` that holds the list.
+ *
+ * @remarks
+ * A ResizeObserver reports a size, not a position. A box above the parent can
+ * grow and move the list, so the hook observes each of these ancestors. A list whose
+ * parent is the scroller observes the scroller.
+ *
+ * @internal
+ */
+function observeAncestors(observer: ResizeObserver, list: HTMLElement, scroller: HTMLElement) {
+	for (let node: HTMLElement | null = list.parentElement ?? list; node; node = node.parentElement) {
+		observer.observe(node)
+
+		if (node === scroller || node.parentElement === scroller) break
+	}
 }
 
 /**

@@ -16,6 +16,7 @@ import {
 	verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { useCallback, useId, useMemo, useRef, useState } from 'react'
+import { useControlLock } from '../primitives/control/context'
 import {
 	droppedText,
 	movedText,
@@ -93,7 +94,11 @@ export type SortableListOptions<T> = {
 	onReorder?: (next: T[]) => void
 	/** Layout axis. @defaultValue 'vertical' */
 	orientation?: Orientation
-	/** Disable pointer + keyboard interaction. @defaultValue false */
+	/**
+	 * Disable pointer + keyboard interaction. A drag that runs when the list
+	 * turns disabled, or when a lock scope locks it, ends as a cancel at its drop.
+	 * @defaultValue false
+	 */
 	disabled?: boolean
 	/** Register dnd-kit's keyboard sensor. Disable when the caller handles keyboard reordering itself. @defaultValue true */
 	keyboardSensor?: boolean
@@ -111,6 +116,9 @@ export type SortableListOptions<T> = {
 	 */
 	describe?: (item: T) => string
 }
+
+/** Makes each drop a cancel, for a list that cannot commit a drop now. */
+const cancelEveryDrop = () => true
 
 /** A rect seen in a mirror: its left and right edges swap sides of zero. */
 function mirror(rect: ClientRect): ClientRect {
@@ -164,6 +172,14 @@ export function useSortableList<T>({
 	const intl = useIntl()
 
 	const interactive = !disabled && !!onReorder
+
+	// Whether a drop can commit now. A drag that runs when the list turns
+	// disabled, or when a lock such as a `Form` that submits arrives, ends as a
+	// cancel at its drop. The cancel announces the return, and no drop that
+	// commits nothing is announced. The lock changes no render.
+	const locked = useControlLock()
+
+	const commits = interactive && !locked
 
 	const [activeId, setActiveId] = useState<string | null>(null)
 
@@ -280,9 +296,11 @@ export function useSortableList<T>({
 			onDragStart: handleDragStart,
 			onDragEnd: handleDragEnd,
 			onDragCancel: handleDragCancel,
+			// dnd-kit reads it at the drop, from the latest props.
+			cancelDrop: commits ? undefined : cancelEveryDrop,
 			accessibility,
 		}),
-		[id, sensors, handleDragStart, handleDragEnd, handleDragCancel, accessibility],
+		[id, sensors, handleDragStart, handleDragEnd, handleDragCancel, commits, accessibility],
 	)
 
 	return {

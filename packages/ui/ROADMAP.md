@@ -30,10 +30,6 @@ The lazy-load hooks are one stack, not copies. `createLazyModule` in [`utilities
 
 1. **A bench for the open of a modal overlay (*P2*).** `Overlay` in [`primitives/overlay`](src/primitives/overlay) moves the focus, locks the scroll, seals the page with `inert`, and records its layer and its fade. The seal touches each element outside the panel, so its cost grows with the page. The browser suite benches the popover, the menu, and the tooltip, and no bench opens a Dialog, a Sheet, or a Drawer. Add `__benchmarks__/browser/overlay-open.bench.tsx`. It opens and closes a Dialog over a page of many siblings. Each sample settles on the focus in the panel, or on the return of the focus. Record the findings in a dated section of [`__benchmarks__/browser/README.md`](src/__benchmarks__/browser/README.md) ([`CONVENTIONS.md`](../../CONVENTIONS.md) §12.6).
 
-## Accessibility and testing
-
-1. **Seam tests for the overlay registries and `useStableValue` (*P2*).** [`overlay-layers.ts`](src/utilities/overlay-layers.ts) decides whether an overlay covers the anchor of a float. [`floating-portal-registry.ts`](src/utilities/floating-portal-registry.ts) decides whether a press landed in a surface that opened from inside a container. Each is a synchronous seam, and only browser tests of whole components reach them, such as [`floating-covered-by-overlay.test.tsx`](src/__tests__/browser/floating-ui/floating-covered-by-overlay.test.tsx). [`use-stable-value.ts`](src/hooks/use-stable-value.ts) holds the identity that the memos of the grid and the map read ([`CONVENTIONS.md`](../../CONVENTIONS.md) §10.7), and it has no test of its own. Add a test file for each under `__tests__/utilities` and `__tests__/hooks` ([`CONVENTIONS.md`](../../CONVENTIONS.md) §10.3).
-
 ## Not planned
 
 - The `popover` attribute, CSS anchor positioning alone, or `showModal()` for the floating and overlay shells. A native close cannot wait for an exit animation in each engine, `showModal()` does not lock the scroll, and it makes the toasts inert ([`PRIMITIVES.md`](docs/PRIMITIVES.md)).

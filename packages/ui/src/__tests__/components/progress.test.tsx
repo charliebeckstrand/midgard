@@ -135,6 +135,25 @@ describe('ProgressBar segments and marks', () => {
 		expect(container.querySelectorAll('[data-slot=progress-mark]')).toHaveLength(1)
 	})
 
+	it('sets no description when the marks have no label', () => {
+		renderUI(<ProgressBar value={60} marks={[{ value: 50 }]} aria-label="Lead" />)
+
+		expect(screen.getByRole('progressbar', { name: 'Lead' })).not.toHaveAttribute(
+			'aria-describedby',
+		)
+	})
+
+	it('keeps only the description of the consumer when the marks have no label', () => {
+		renderUI(
+			<ProgressBar value={60} marks={[{ value: 50 }]} aria-label="Lead" aria-describedby="note" />,
+		)
+
+		expect(screen.getByRole('progressbar', { name: 'Lead' })).toHaveAttribute(
+			'aria-describedby',
+			'note',
+		)
+	})
+
 	it('keeps the description of the consumer', () => {
 		renderUI(
 			<>

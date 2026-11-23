@@ -82,11 +82,51 @@ const findGroup = (element: Element) =>
 	element.parentElement?.closest<HTMLElement>('[data-slot="query-group"]') ?? null
 
 /**
+ * The innermost group whose rows hold the height `y`, out of the subtree of
+ * `item`, or `null` when no group holds `y`.
+ *
+ * @internal
+ */
+function findTarget(root: HTMLElement, item: HTMLElement, y: number): HTMLElement | null {
+	let target: HTMLElement | null = null
+
+	// A nested group comes after the group around it in the order of the
+	// document, so the last group that holds `y` is the innermost one.
+	for (const group of [root, ...root.querySelectorAll<HTMLElement>('[data-slot="query-group"]')]) {
+		if (item.contains(group)) continue
+
+		const box = group.getBoundingClientRect()
+
+		if (y >= box.top && y <= box.bottom) target = group
+	}
+
+	return target
+}
+
+/**
+ * The count of the children of `group` whose middle is above the height `y`.
+ *
+ * @internal
+ */
+function dropIndex(group: HTMLElement, y: number): number {
+	let index = 0
+
+	for (const child of group.querySelectorAll<HTMLElement>('[data-slot="query-sortable"]')) {
+		if (findGroup(child) !== group) continue
+
+		const box = child.getBoundingClientRect()
+
+		if (box.top + box.height / 2 < y) index += 1
+	}
+
+	return index
+}
+
+/**
  * The drop of a node that a pointer drags at the height `y`, in the coordinates
- * of the viewport. The group is the innermost group whose rows hold `y`, out of
- * the subtree of the node. The index counts the children of that group whose
- * middle is above `y`. It is `null` when that group holds the node, or when no
- * group holds `y`.
+ * of the viewport. The group is the target of {@link findTarget}, and the index
+ * is the {@link dropIndex} in that group. It is `null` when that group holds the
+ * node, or when no group holds `y`.
  *
  * @remarks Only the height decides. The node moves on the y axis only, and a
  * nested group starts past the grip of the node, so a pointer that drags
@@ -107,33 +147,13 @@ export function findDrop(item: HTMLElement, y: number): QueryDrop | null {
 
 	if (root === null) return null
 
-	let target: HTMLElement | null = null
-
-	// A nested group comes after the group around it in the order of the
-	// document, so the last group that holds `y` is the innermost one.
-	for (const group of [root, ...root.querySelectorAll<HTMLElement>('[data-slot="query-group"]')]) {
-		if (item.contains(group)) continue
-
-		const box = group.getBoundingClientRect()
-
-		if (y >= box.top && y <= box.bottom) target = group
-	}
+	const target = findTarget(root, item, y)
 
 	const groupId = target?.dataset.groupId
 
 	if (target === null || groupId === undefined || target === findGroup(item)) return null
 
-	let index = 0
-
-	for (const child of target.querySelectorAll<HTMLElement>('[data-slot="query-sortable"]')) {
-		if (findGroup(child) !== target) continue
-
-		const box = child.getBoundingClientRect()
-
-		if (box.top + box.height / 2 < y) index += 1
-	}
-
-	return { groupId, index }
+	return { groupId, index: dropIndex(target, y) }
 }
 
 /**

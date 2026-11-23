@@ -9,6 +9,7 @@ import {
 	ListLabel,
 	type ListProps,
 } from '../../components/list'
+import { ControlLockContext } from '../../primitives/control/context'
 import { intlEn } from '../../primitives/intl/intl-catalog'
 import { reorderMessages } from '../../primitives/intl/intl-reorder'
 import { DensityProvider } from '../../providers/density'
@@ -22,6 +23,7 @@ import {
 	renderUI,
 	screen,
 } from '../helpers'
+import { stubResizeObserver } from '../helpers/stub-resize-observer'
 
 type Item = { id: string; label: string }
 
@@ -130,6 +132,59 @@ describe('List', () => {
 		const el = bySlot(container, 'list')
 
 		expect(el).toHaveAttribute('data-orientation', 'horizontal')
+	})
+})
+
+describe('List: virtualize', () => {
+	const Rows = () => (
+		<List items={items} getKey={(i) => i.id} virtualize>
+			{(item) => <ListItem>{item.label}</ListItem>}
+		</List>
+	)
+
+	it('observes each ancestor from the parent of the list up to the child of the scroller', () => {
+		const observers = stubResizeObserver()
+
+		const { container } = renderUI(
+			<div data-scroll-region>
+				<section>
+					<div>
+						<Rows />
+					</div>
+				</section>
+			</div>,
+		)
+
+		const list = getSlot(container, 'list')
+
+		const parent = present(list.parentElement, 'the parent of the list')
+
+		// The virtualizer observes the scroller with an observer of its own, so the
+		// case reads the observer of the window: the one that starts at the parent.
+		const windowObserver = observers.find((observer) => observer.targets[0] === parent)
+
+		expect(windowObserver?.targets).toEqual([parent, parent.parentElement])
+	})
+
+	it('observes only the scroller when the scroller is the parent of the list', () => {
+		const observers = stubResizeObserver()
+
+		const { container } = renderUI(
+			<main>
+				<div data-scroll-region>
+					<Rows />
+				</div>
+			</main>,
+		)
+
+		const list = getSlot(container, 'list')
+
+		const scroller = present(list.parentElement, 'the scroller')
+
+		// The rows sit in the list, and the virtualizer observes them to measure them.
+		const observed = observers.flatMap((observer) => observer.targets)
+
+		expect(new Set(observed.filter((el) => !list.contains(el)))).toEqual(new Set([scroller]))
 	})
 })
 
@@ -618,6 +673,42 @@ describe('List keyboard reordering', () => {
 		fireEvent.keyDown(content, { key: 'ArrowDown' })
 
 		expect(onReorder).toHaveBeenCalledWith([items[1], items[0], items[2]])
+	})
+
+	it('moves no item from the keyboard in a locked scope, and ends a lift that the lock finds', () => {
+		const onReorder = vi.fn()
+
+		const list = (locked: boolean) => (
+			<ControlLockContext value={locked}>
+				<List items={items} getKey={(i) => i.id} onReorder={onReorder}>
+					{(item) => <ListItem>{item.label}</ListItem>}
+				</List>
+			</ControlLockContext>
+		)
+
+		const { container, rerender } = renderUI(list(false))
+
+		const [first, second] = allBySlot(container, 'list-item') as HTMLElement[]
+
+		first?.focus()
+
+		fireEvent.keyDown(first as HTMLElement, { key: ' ' })
+
+		rerender(list(true))
+
+		// The lock ended the lift, so the arrow moves the focus and not the item.
+		fireEvent.keyDown(first as HTMLElement, { key: 'ArrowDown' })
+
+		expect(document.activeElement).toBe(second)
+
+		// Space lifts nothing while the lock holds.
+		fireEvent.keyDown(second as HTMLElement, { key: ' ' })
+
+		fireEvent.keyDown(second as HTMLElement, { key: 'ArrowUp' })
+
+		expect(document.activeElement).toBe(first)
+
+		expect(onReorder).not.toHaveBeenCalled()
 	})
 
 	it('keeps reordering when a consumer passes its own onKeyDown, and still runs theirs', () => {

@@ -3,6 +3,7 @@
 import { Children, type ComponentProps, type ReactElement } from 'react'
 import { ariaAttr } from '../../core/aria-attr'
 import { dataAttr } from '../../core/data-attr'
+import type { FloatingPlacement } from '../../hooks/use-floating-panel'
 import { Icon } from '../icon'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 import { Button } from './button'
@@ -31,6 +32,13 @@ type ButtonIconTooltipProps = {
 	 * @defaultValue the `label`.
 	 */
 	tooltip?: string
+	/**
+	 * The side of the tooltip. A group of these buttons puts it across the axis
+	 * that the group runs along. A hover tooltip takes the pointer (WCAG 2.2
+	 * SC 1.4.13), so a tooltip on the next button takes the press on that button.
+	 * @defaultValue 'top'
+	 */
+	tooltipPlacement?: FloatingPlacement
 	/**
 	 * Held-down treatment: `soft`'s wash while on, `plain` while off.
 	 *
@@ -83,12 +91,13 @@ export function ButtonIconTooltip({
 	icon,
 	disabled,
 	tooltip,
+	tooltipPlacement,
 	active = false,
 	onClick,
 	...props
 }: ButtonIconTooltipProps) {
 	return (
-		<Tooltip>
+		<Tooltip placement={tooltipPlacement}>
 			<TooltipTrigger>
 				<Button
 					// A view control writes no field, so a locked scope, such as a

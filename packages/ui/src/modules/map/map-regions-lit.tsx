@@ -43,24 +43,7 @@ export function MapRegionsLit({
 	regionCategory,
 	paints,
 }: MapRegionsLitProps) {
-	// The lit set is the exact complement of the shared dim rule
-	// (`mapMarkDimmed` in engine/map-hover/target.ts: change one, change
-	// both): the pointed mark wins over a still-held legend focus, so a
-	// pointed region lights alone, a pointed overlay entry lights nothing
-	// here (the whole layer recedes behind it), else the focused category
-	// lights. Resolved by branch rather than through the helper so a pointer
-	// crossing costs O(1), not a per-region scan.
-	const lit: number[] = []
-
-	if (pointed !== null) {
-		if (pointed.kind === 'region') lit.push(pointed.index)
-	} else if (emphasis !== null) {
-		for (const [index, d] of paths.entries()) {
-			if (d === null) continue
-
-			if (paintAt(paints, regionCategory[index] ?? null).groupId === emphasis) lit.push(index)
-		}
-	}
+	const lit = litIndexes(pointed, emphasis, { paths, regionCategory, paints })
 
 	if (lit.length === 0) return null
 
@@ -97,6 +80,37 @@ export function MapRegionsLit({
 			)}
 		</>
 	)
+}
+
+/**
+ * The indexes of the lit regions. The lit set is the exact complement of the
+ * shared dim rule (`mapMarkDimmed` in engine/map-hover/target.ts: change one,
+ * change both): the pointed mark wins over a still-held legend focus, so a
+ * pointed region lights alone, a pointed overlay entry lights nothing here
+ * (the whole layer recedes behind it), else the focused category lights.
+ * Resolved by branch rather than through the helper so a pointer crossing
+ * costs O(1), not a per-region scan.
+ *
+ * @internal
+ */
+function litIndexes(
+	pointed: MapHoverTarget | null,
+	emphasis: string | null,
+	{ paths, regionCategory, paints }: MapRegionLayer,
+): number[] {
+	if (pointed !== null) return pointed.kind === 'region' ? [pointed.index] : []
+
+	if (emphasis === null) return []
+
+	const lit: number[] = []
+
+	for (const [index, d] of paths.entries()) {
+		if (d === null) continue
+
+		if (paintAt(paints, regionCategory[index] ?? null).groupId === emphasis) lit.push(index)
+	}
+
+	return lit
 }
 
 /**

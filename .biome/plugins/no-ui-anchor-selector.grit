@@ -1,0 +1,25 @@
+language js
+
+// An app reaches a `ui` unit through its props, never through its internal
+// `data-slot` anchors. A unit has one API (CONVENTIONS §3.12), so a selector
+// such as `[&_[data-slot=map-points]]:fill-sky-500` or
+// `querySelector('[data-slot=map-regions]')` in an app goes around it. When
+// the props cannot give the result, add a prop to the unit, as `MapPlat`
+// added `recede`.
+//
+// The plugin matches an attribute selector on `data-slot` in a string, a JSX
+// string, or a template chunk. It matches the CSS form (`[data-slot=…]`, with
+// any match operator) and the Tailwind data variant (`data-[slot=…]`, also
+// behind `has-`, `group-`, or `*:`). A `data-slot` attribute that an element
+// writes is not a selector, so it does not match. A mention in a comment is
+// not a violation.
+//
+// Reach is the `includes` beside this plugin in `biome.json`: the apps, minus
+// tests. A test queries by `data-slot` (CONVENTIONS §10.2).
+or { JsStringLiteralExpression(), JsxString(), JsTemplateChunkElement() } as $selector where {
+	$selector <: r"[\s\S]*data-(?:slot\s*[~|^$*]?=|\[slot[~|^$*]?=)[\s\S]*",
+	register_diagnostic(
+		span = $selector,
+		message = "reach a `ui` unit through its props, not through a `data-slot` anchor; add a prop to the unit when none gives the result"
+	)
+}
