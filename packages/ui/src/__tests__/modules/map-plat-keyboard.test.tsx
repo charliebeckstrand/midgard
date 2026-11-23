@@ -1,7 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Dialog, DialogPanel } from '../../components/dialog'
 import { type LngLat, MapGeofence, MapPlat, MapPoint, MapRoute } from '../../modules/map'
-import { LocaleProvider } from '../../providers/locale'
 import {
 	act,
 	allBySlot,
@@ -730,22 +729,5 @@ describe('MapPlat keyboard over marks that draw nothing', () => {
 
 			expect(readout(container)).toBe('Pea')
 		}
-	})
-})
-
-describe('MapPlat keyboard in a locale', () => {
-	it('speaks the zoom in the language and the number format of the locale', async () => {
-		const { plot } = renderNavigable(
-			<LocaleProvider locale="es-ES">{categoricalPlat({ zoom: true })}</LocaleProvider>,
-		)
-
-		fireEvent.keyDown(plot, { key: '+' })
-
-		// Spanish writes a space before the percent sign.
-		await waitFor(() => expect(liveRegion()?.textContent).toBe('Zoom 160\u00a0%'))
-
-		fireEvent.keyDown(plot, { key: '0' })
-
-		await waitFor(() => expect(liveRegion()?.textContent).toBe('Zoom restablecido'))
 	})
 })

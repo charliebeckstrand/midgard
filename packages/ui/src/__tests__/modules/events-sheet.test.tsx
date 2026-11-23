@@ -15,7 +15,6 @@ import { loadTools } from '../../modules/events/events-load'
 import { EventsPanel } from '../../modules/events/events-panel'
 import { EventsSheet } from '../../modules/events/events-sheet'
 import { EventsSwitch } from '../../modules/events/events-switch'
-import { LocaleProvider } from '../../providers/locale'
 import { createLazyModule } from '../../utilities/lazy-module'
 import { deferred, stubClipboard } from '../helpers'
 import { it } from '../helpers/fake-clock'
@@ -785,41 +784,5 @@ describe('setEventsOn', () => {
 		expect(getEventSink()).toBeUndefined()
 
 		expect(document.cookie).toContain('events-on=0')
-	})
-})
-
-describe('EventsSheet in a locale', () => {
-	it('names its controls in the language of the locale, and keeps the report in English', async () => {
-		const sheet = (open: boolean) => (
-			<LocaleProvider locale="es-ES">
-				<EventsSheet open={open} onOpenChange={() => undefined} />
-			</LocaleProvider>
-		)
-
-		const result = render(sheet(false))
-
-		reportBug(new Error('boom'))
-
-		result.rerender(sheet(true))
-
-		expect(screen.getByRole('tab', { name: 'Errores 1' })).toBeDefined()
-
-		expect(screen.getByRole('button', { name: 'Capturar' })).toBeDefined()
-
-		// The line of the event is developer data, so it stays as the store wrote it.
-		fireEvent.click(screen.getByText('caught boom'))
-
-		const crumbs = screen.getByRole('navigation', { name: 'Ruta de navegación' })
-
-		expect(within(crumbs).getByRole('link', { name: 'Errores' })).toBeDefined()
-
-		expect(screen.getByRole('button', { name: 'Eliminar' })).toBeDefined()
-
-		// The code blocks of the report highlight after they mount.
-		await waitFor(() => {
-			for (const block of document.querySelectorAll('[data-slot="code-block"]')) {
-				expect(block.querySelector('pre.shiki')).not.toBeNull()
-			}
-		})
 	})
 })

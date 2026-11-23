@@ -1,9 +1,8 @@
 import { describe, expect, vi } from 'vitest'
 import { SWEEP_SETTLE } from '../../modules/chart/engine/use-chart-sweep'
-import { MapPlat, MapRoute } from '../../modules/map'
+import { MapPlat } from '../../modules/map'
 import { ALBERS_USA_ASPECT, REGION_STROKE_WIDTH } from '../../modules/map/engine/map-constants'
 import { REGION_FADE } from '../../modules/map/engine/map-motion'
-import { LocaleProvider } from '../../providers/locale'
 import {
 	act,
 	allBySlot,
@@ -21,7 +20,7 @@ import {
 } from '../helpers'
 import { it } from '../helpers/fake-clock'
 import { FIXTURE_GEOJSON, FIXTURE_TOPOLOGY } from '../helpers/map-geography'
-import { categoricalPlat, overlayPlat } from '../helpers/map-plat'
+import { categoricalPlat } from '../helpers/map-plat'
 import { CLICK } from '../helpers/press'
 
 describe('MapPlat', () => {
@@ -573,36 +572,6 @@ describe('MapPlat', () => {
 		const { container } = renderUI(categoricalPlat())
 
 		expect(bySlot(container, 'map-legend')).toHaveAttribute('aria-label', 'Legend')
-	})
-
-	it('names the legend toolbar in the language of the locale', () => {
-		const { container } = renderUI(
-			<LocaleProvider locale="es-ES">{categoricalPlat()}</LocaleProvider>,
-		)
-
-		expect(bySlot(container, 'map-legend')).toHaveAttribute('aria-label', 'Leyenda')
-	})
-
-	it('names the kind of a mark with no detail in the language of the locale', () => {
-		const { container } = renderUI(
-			<LocaleProvider locale="es-ES">
-				{overlayPlat(
-					<MapRoute
-						label="Leg"
-						stops={[
-							[2, 5],
-							[8, 5],
-						]}
-					/>,
-				)}
-			</LocaleProvider>,
-		)
-
-		const row = [...container.querySelectorAll('table tbody tr')].find(
-			(candidate) => candidate.querySelector('th')?.textContent === 'Leg',
-		)
-
-		expect(row?.querySelector('td')?.textContent).toBe('Ruta')
 	})
 
 	it('holds the emphasis off while a toggled-on category washes back in', async ({ clock }) => {

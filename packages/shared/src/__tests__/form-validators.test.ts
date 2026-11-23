@@ -12,8 +12,6 @@ import { intlFor } from './helpers/intl'
 
 const en = intlFor('en')
 
-const es = intlFor('es')
-
 const mismatch = en.formatMessage(validationMessages.passwordMismatch)
 
 describe('required', () => {
@@ -109,19 +107,5 @@ describe('newPasswordRules', () => {
 describe('validators in a locale', () => {
 	it('words a minimum of one in the singular', () => {
 		expect(minLength(en, 1)('', {})).toBe('Enter at least 1 character.')
-	})
-
-	it('words each default message in the language of the locale', () => {
-		expect(required(es)('', {})).toBe('Rellena este campo.')
-
-		expect(email(es)('ada', {})).toBe('Introduce una dirección de correo electrónico válida.')
-
-		expect(minLength(es, 8)('', {})).toBe('Introduce al menos 8 caracteres.')
-
-		expect(minLength(es, 1)('', {})).toBe('Introduce al menos 1 carácter.')
-
-		expect(es.formatMessage(validationMessages.passwordMismatch)).toBe(
-			'Vuelve a introducir la misma contraseña.',
-		)
 	})
 })

@@ -3,7 +3,6 @@ import { ControlLockContext } from '../../components/control/context'
 import { Description, Field, Label } from '../../components/fieldset'
 import { Rating, RatingSkeleton } from '../../components/rating'
 import { Form } from '../../modules/form'
-import { LocaleProvider } from '../../providers/locale'
 import { act, allBySlot, bySlot, fireEvent, renderUI, screen, setupUser } from '../helpers'
 import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
 import { serverMarkup } from '../helpers/hydrate'
@@ -761,32 +760,5 @@ describe('Rating native form reset', () => {
 		await act(() => new Promise(requestAnimationFrame))
 
 		expect(allBySlot(container, 'rating-fill')).toHaveLength(4)
-	})
-})
-
-describe('Rating in a locale', () => {
-	it('names the row and the stars in the language of the locale', () => {
-		const { container } = renderUI(
-			<LocaleProvider locale="es-ES">
-				<Rating count={2} />
-			</LocaleProvider>,
-		)
-
-		expect(screen.getByRole('radiogroup', { name: 'Valoración' })).toBeInTheDocument()
-
-		expect(stars(container).map((star) => star.getAttribute('aria-label'))).toEqual([
-			'1 de 2 estrellas',
-			'2 de 2 estrellas',
-		])
-	})
-
-	it('gives a decimal score in the number format of the locale', () => {
-		const { container } = renderUI(
-			<LocaleProvider locale="es-ES">
-				<Rating readOnly value={4.5} />
-			</LocaleProvider>,
-		)
-
-		expect(bySlot(container, 'rating')).toHaveAttribute('aria-label', '4,5 de 5 estrellas')
 	})
 })

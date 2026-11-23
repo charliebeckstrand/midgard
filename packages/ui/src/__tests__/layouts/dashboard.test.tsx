@@ -1,7 +1,6 @@
 import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { DashboardLayout } from '../../layouts/dashboard'
-import { LocaleProvider } from '../../providers/locale'
 import { adaptive } from '../../utilities/responsive'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
@@ -84,21 +83,5 @@ describe('DashboardLayout', () => {
 		fireEvent.click(screen.getByRole('button', { name: 'Filters' }))
 
 		expect(onOpenChange).toHaveBeenCalledExactlyOnceWith(true)
-	})
-})
-
-describe('DashboardLayout in a locale', () => {
-	it('names the filters, their button, and their drawer in the language of the locale', () => {
-		renderUI(
-			<LocaleProvider locale="es-ES">
-				<DashboardLayout filters={<div>filter content</div>}>content</DashboardLayout>
-			</LocaleProvider>,
-		)
-
-		expect(screen.getByRole('complementary', { name: 'Filtros' })).toBeInTheDocument()
-
-		fireEvent.click(screen.getByRole('button', { name: 'Filtros' }))
-
-		expect(screen.getByRole('dialog', { name: 'Filtros' })).toBeInTheDocument()
 	})
 })

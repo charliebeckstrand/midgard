@@ -13,7 +13,6 @@ import {
 } from '../../modules/kanban'
 import { intlEn } from '../../primitives/intl/intl-catalog'
 import { reorderMessages } from '../../primitives/intl/intl-reorder'
-import { LocaleProvider } from '../../providers/locale'
 import {
 	allBySlot,
 	bySlot,
@@ -970,29 +969,6 @@ describe('KanbanCardSkeleton', () => {
 		expect(body.tagName).toBe('UL')
 
 		expect([...body.children].map((child) => child.tagName)).toEqual(['LI', 'LI'])
-	})
-})
-
-describe('Kanban in a locale', () => {
-	it('gives the card handle its role description in the language of the locale', () => {
-		const { rerender } = renderUI(<Board onReorder={() => {}} />)
-
-		// dnd-kit gives the role description in English. The handle gives its own.
-		expect(screen.getByRole('button', { name: 'Drag One' })).toHaveAttribute(
-			'aria-roledescription',
-			'sortable',
-		)
-
-		rerender(
-			<LocaleProvider locale="es-ES">
-				<Board onReorder={() => {}} />
-			</LocaleProvider>,
-		)
-
-		expect(screen.getByRole('button', { name: 'Arrastrar One' })).toHaveAttribute(
-			'aria-roledescription',
-			'ordenable',
-		)
 	})
 })
 

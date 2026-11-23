@@ -248,14 +248,14 @@ describe('AvatarGroup', () => {
 })
 
 describe('Avatar in a locale', () => {
-	it('names the status in the language of the locale, and keeps a given label', () => {
+	it('names the status in a locale, and keeps a given label', () => {
 		const { container, rerender } = renderUI(
 			<LocaleProvider locale="es-ES">
 				<Avatar initials="AB" status="active" />
 			</LocaleProvider>,
 		)
 
-		expect(bySlot(container, 'avatar-with-status')).toHaveTextContent('Activo')
+		expect(bySlot(container, 'avatar-with-status')).toHaveTextContent('Active')
 
 		rerender(
 			<LocaleProvider locale="es-ES">

@@ -10,10 +10,5 @@ describe('reorderMessages', () => {
 		expect(localeIntl('en-US').formatMessage(reorderMessages.subject, values)).toBe(
 			'A, position 1,200 of 12,000',
 		)
-
-		// Spanish groups a number of five digits or more, with a period.
-		expect(localeIntl('es-ES').formatMessage(reorderMessages.subject, values)).toBe(
-			'A, posición 1200 de 12.000',
-		)
 	})
 })

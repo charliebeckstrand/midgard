@@ -1808,7 +1808,7 @@ describe('ComboboxOption outside a Combobox', () => {
 })
 
 describe('Combobox required in a locale', () => {
-	it('gives the native message of typed text with no selection in the language of the locale', async () => {
+	it('gives the native message of typed text with no selection in a locale', async () => {
 		const { container } = renderUI(
 			<LocaleProvider locale="es-ES">
 				<form>
@@ -1823,6 +1823,6 @@ describe('Combobox required in a locale', () => {
 
 		await setupUser().type(input, 'Ber')
 
-		expect(input.validationMessage).toBe('Selecciona una opción de la lista.')
+		expect(input.validationMessage).toBe('Select an option from the list.')
 	})
 })

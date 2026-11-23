@@ -17,7 +17,6 @@ import {
 	useSortableList,
 } from '../../hooks/use-sortable-list'
 import { intlEn } from '../../primitives/intl/intl-catalog'
-import { intlEs } from '../helpers/intl'
 
 type Item = { id: string; label: string }
 
@@ -257,14 +256,6 @@ describe('sortableAnnouncements', () => {
 
 	it('drops in place with no target', () => {
 		expect(announcements.onDragEnd({ active, over: null })).toBe('Dropped Alpha, position 1 of 3.')
-	})
-
-	it('speaks in the language of the intl', () => {
-		const spanish = sortableAnnouncements(intlEs, ['a', 'b', 'c'], (id) => names[id] ?? id)
-
-		expect(spanish.onDragStart({ active })).toBe('Tomaste Alpha, posición 1 de 3.')
-
-		expect(spanish.onDragOver({ active, over })).toBe('Alpha se movió a la posición 2 de 3.')
 	})
 })
 

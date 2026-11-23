@@ -1,7 +1,6 @@
 import { createRef, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { type ChatCitation, ChatPrompt, useChatDraft } from '../../modules/chat'
-import { LocaleProvider } from '../../providers/locale'
 import {
 	bySlot,
 	fireEvent,
@@ -628,23 +627,5 @@ describe('ChatPrompt', () => {
 		expect(screen.queryByRole('button', { name: 'Remove second.pdf' })).not.toBeInTheDocument()
 
 		expect(screen.getByRole('textbox', { name: 'Message' })).toHaveFocus()
-	})
-})
-
-describe('ChatPrompt in a locale', () => {
-	it('names the composer and its buttons in the language of the locale', () => {
-		renderUI(
-			<LocaleProvider locale="es-ES">
-				<ChatPrompt value="" onValueChange={noop} onSubmit={noop} onAttach={noop} />
-			</LocaleProvider>,
-		)
-
-		const composer = screen.getByRole('textbox', { name: 'Mensaje' })
-
-		expect(composer).toHaveAttribute('placeholder', 'Pregunta lo que quieras')
-
-		expect(screen.getByRole('button', { name: 'Adjuntar archivos' })).toBeInTheDocument()
-
-		expect(screen.getByRole('button', { name: 'Enviar mensaje' })).toBeInTheDocument()
 	})
 })

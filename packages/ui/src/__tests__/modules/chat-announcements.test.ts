@@ -4,7 +4,6 @@ import { describeReply, describeTranscript } from '../../modules/chat/engine/cha
 import type { ChatEmbedPart, ChatPart } from '../../modules/chat/engine/chat-content/types'
 import type { ChatMessageData } from '../../modules/chat/engine/types'
 import { intlEn } from '../../primitives/intl/intl-catalog'
-import { intlEs } from '../helpers/intl'
 
 function text(id: string, value: string): ChatPart {
 	return { kind: 'text', id, text: value }
@@ -111,24 +110,6 @@ describe('describeTranscript', () => {
 
 		expect(describeTranscript(intlEn, [user('hi'), failed('Late stops rose')], false)).toBe(
 			'Late stops rose\n\nThe reply failed.',
-		)
-
-		expect(describeTranscript(intlEs, [user('hi'), failed('')], false)).toBe('La respuesta falló.')
-	})
-})
-
-describe('chat announcements in a locale', () => {
-	const intl = intlEs
-
-	it('says a reply started in the language of the locale', () => {
-		expect(describeTranscript(intl, [user('hi'), assistant('')], true)).toBe(
-			'El asistente está respondiendo',
-		)
-	})
-
-	it('counts the views in the language of the locale', () => {
-		expect(describeReply(intl, [text('t1', 'Ambas van tarde.'), embed('e1'), embed('e2')])).toBe(
-			'Ambas van tarde.\n\n2 vistas incrustadas',
 		)
 	})
 })

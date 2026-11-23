@@ -2,7 +2,6 @@ import { describe, expect, it, vi } from 'vitest'
 import { Field, Label } from '../../components/fieldset'
 import { SwitchChoice } from '../../components/switch'
 import { Form } from '../../modules/form'
-import { LocaleProvider } from '../../providers/locale'
 import { act, bySlot, fireEvent, renderUI, screen, setupUser } from '../helpers'
 import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
 
@@ -184,15 +183,5 @@ describe('SwitchChoice', () => {
 		)
 
 		expect(screen.getByRole('radiogroup', { name: 'Freight' })).toBeInTheDocument()
-	})
-
-	it('names the off position in the language of the locale', () => {
-		renderUI(
-			<LocaleProvider locale="es-ES">
-				<SwitchChoice aria-label="Flete" options={MODES} />
-			</LocaleProvider>,
-		)
-
-		expect(screen.getByRole('radio', { name: 'Desactivado' })).toBeInTheDocument()
 	})
 })

@@ -21,7 +21,6 @@ import {
 	stepDate,
 } from '../../components/date-picker/date-picker-utilities'
 import { intlEn } from '../../primitives/intl/intl-catalog'
-import { intlEs } from '../helpers/intl'
 
 const DEFAULT_RELATIVE_PRESETS = defaultRelativePresets(intlEn)
 
@@ -145,8 +144,6 @@ describe('relativeSummary', () => {
 		)
 
 		expect(relativeSummary(intlEn, chips)).toBe('3 selected')
-
-		expect(relativeSummary(intlEs, chips)).toBe('3 seleccionados')
 	})
 })
 

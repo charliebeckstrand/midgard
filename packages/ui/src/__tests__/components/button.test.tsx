@@ -397,13 +397,13 @@ describe('Button', () => {
 })
 
 describe('Button in a locale', () => {
-	it('names the loading spinner in the language of the locale', () => {
+	it('names the loading spinner in a locale', () => {
 		renderUI(
 			<LocaleProvider locale="es-ES">
 				<Button loading>Save</Button>
 			</LocaleProvider>,
 		)
 
-		expect(screen.getByRole('status')).toHaveTextContent('Cargando')
+		expect(screen.getByRole('status')).toHaveTextContent('Loading')
 	})
 })

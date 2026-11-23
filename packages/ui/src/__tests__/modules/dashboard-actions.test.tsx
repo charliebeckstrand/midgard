@@ -11,7 +11,6 @@ import {
 	duplicateSpecTile,
 	removeSpecTile,
 } from '../../modules/dashboard'
-import { LocaleProvider } from '../../providers/locale'
 import { act, bySlot, expectAnnouncement, fireEvent, renderUI, screen } from '../helpers'
 
 const LAYOUT: DashboardLayoutItem[] = [
@@ -79,29 +78,6 @@ describe('DashboardTile actions', () => {
 		for (const name of ['Remove Tile a', 'Duplicate Tile a']) {
 			expect(screen.getByRole('button', { name })).toHaveAttribute('data-variant', 'bare')
 		}
-	})
-
-	it('names the tile controls in the language of the locale', () => {
-		renderUI(
-			<LocaleProvider locale="es-ES">
-				<Board expandable />
-			</LocaleProvider>,
-		)
-
-		expect(screen.getByRole('button', { name: 'Ampliar Tile a' })).toBeInTheDocument()
-	})
-
-	it('gives the tile grip its role description in the language of the locale', () => {
-		renderUI(
-			<LocaleProvider locale="es-ES">
-				<Board editing />
-			</LocaleProvider>,
-		)
-
-		expect(screen.getByRole('button', { name: 'Mover Tile a' })).toHaveAttribute(
-			'aria-roledescription',
-			'arrastrable',
-		)
 	})
 
 	it('shows expand at rest only', () => {

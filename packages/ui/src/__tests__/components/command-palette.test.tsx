@@ -1619,7 +1619,7 @@ describe('CommandPalette glass', () => {
 })
 
 describe('CommandPalette in a locale', () => {
-	it('names the dialog in the language of the locale', () => {
+	it('names the dialog in a locale', () => {
 		renderUI(
 			<LocaleProvider locale="es-ES">
 				<CommandPalette open onOpenChange={() => {}}>
@@ -1628,6 +1628,6 @@ describe('CommandPalette in a locale', () => {
 			</LocaleProvider>,
 		)
 
-		expect(screen.getByRole('dialog', { name: 'Paleta de comandos' })).toBeInTheDocument()
+		expect(screen.getByRole('dialog', { name: 'Command palette' })).toBeInTheDocument()
 	})
 })

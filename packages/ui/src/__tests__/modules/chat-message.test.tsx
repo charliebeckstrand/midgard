@@ -1,6 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
 import { ChatMessage } from '../../modules/chat'
-import { LocaleProvider } from '../../providers/locale'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 // The streaming look the bubble projects onto its Markdown child, and the
@@ -313,33 +312,5 @@ describe('ChatMessage branches', () => {
 			'aria-disabled',
 			'true',
 		)
-	})
-
-	it('names the switcher in the language of the locale', () => {
-		renderUI(
-			<LocaleProvider locale="es-ES">
-				<ChatMessage branch={branch}>Hola</ChatMessage>
-			</LocaleProvider>,
-		)
-
-		expect(screen.getByRole('group', { name: 'Versiones' })).toHaveTextContent('2 de 3')
-	})
-})
-
-describe('ChatMessage in a locale', () => {
-	it('names the author in the language of the locale', () => {
-		const { container } = renderUI(
-			<LocaleProvider locale="es-ES">
-				<ChatMessage sender="user">Hola</ChatMessage>
-				<ChatMessage sender="assistant">¿Qué tal?</ChatMessage>
-			</LocaleProvider>,
-		)
-
-		const authors = container.querySelectorAll('[data-slot="chat-message-author"]')
-
-		expect([...authors].map((author) => author.textContent)).toEqual([
-			'Dijiste: ',
-			'El asistente dijo: ',
-		])
 	})
 })

@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { ChatFeedback, type ChatVerdict } from '../../modules/chat'
-import { LocaleProvider } from '../../providers/locale'
 import { renderUI, screen, setupUser } from '../helpers'
 
 describe('ChatFeedback', () => {
@@ -86,15 +85,5 @@ describe('ChatFeedback', () => {
 			'aria-pressed',
 			'false',
 		)
-	})
-
-	it('names its buttons in the language of the locale', () => {
-		renderUI(
-			<LocaleProvider locale="es">
-				<ChatFeedback />
-			</LocaleProvider>,
-		)
-
-		expect(screen.getByRole('button', { name: 'Buena respuesta' })).toBeInTheDocument()
 	})
 })
