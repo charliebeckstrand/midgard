@@ -8,7 +8,8 @@ import type { GridColumn } from './types'
  * The live index state of {@link GridData}, one ref for each value. The cursor
  * phase makes the cursor with these refs. The view phase fills them after the
  * engine resolves the rows (see {@link useGridIndexSync}), and the frame phase
- * fills the row offset (see {@link useGridRowIndexOffsetSync}). The cursor and
+ * fills the row offset (see {@link useGridRowIndexOffsetSync}) and whether rows
+ * follow the body (see {@link useGridIndexFollowSync}). The cursor and
  * the cells read them at event time, and the cells also read them in render.
  *
  * @internal
@@ -35,6 +36,11 @@ export type GridIndexRefs<T> = {
 	toggleRowRef: RefObject<((key: string | number, span?: boolean) => void) | null>
 	/** The `aria-rowindex` offset of the first row of the body (see `ariaRowIndex`). */
 	rowIndexOffsetRef: RefObject<number>
+	/**
+	 * Whether data rows come after the last row that the body shows: a next
+	 * page, rows still to load, or a closed group (see {@link useGridIndexFollowSync}).
+	 */
+	rowsFollowRef: RefObject<boolean>
 }
 
 /** The values that {@link useGridIndexSync} writes, one for each ref of {@link GridIndexRefs}. @internal */
@@ -74,6 +80,8 @@ export function useGridIndexRefs<T>(source: GridEditSource<T>): GridIndexRefs<T>
 
 	const rowIndexOffsetRef = useRef(0)
 
+	const rowsFollowRef = useRef(false)
+
 	const [refs] = useState(() => ({
 		rowsRef,
 		colCountRef,
@@ -85,6 +93,7 @@ export function useGridIndexRefs<T>(source: GridEditSource<T>): GridIndexRefs<T>
 		selectableRef,
 		toggleRowRef,
 		rowIndexOffsetRef,
+		rowsFollowRef,
 	}))
 
 	return refs
@@ -103,6 +112,19 @@ export function useGridRowIndexOffsetSync(
 	useLayoutEffect(() => {
 		rowIndexOffsetRef.current = offset
 	}, [rowIndexOffsetRef, offset])
+}
+
+/**
+ * Writes into its ref whether data rows come after the last row that the body
+ * shows, in a layout effect. A paste reads the ref, and adds no row through
+ * the new-row slot while it is set.
+ *
+ * @internal
+ */
+export function useGridIndexFollowSync(rowsFollowRef: RefObject<boolean>, follow: boolean): void {
+	useLayoutEffect(() => {
+		rowsFollowRef.current = follow
+	}, [rowsFollowRef, follow])
 }
 
 /**
