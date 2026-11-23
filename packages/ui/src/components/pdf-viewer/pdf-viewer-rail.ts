@@ -15,11 +15,12 @@ export const PDF_VIEWER_RAIL_WIDTH = { min: 160, default: 240, max: 320 } as con
 export const PDF_VIEWER_RAIL_PROPERTY = '--pdf-viewer-rail'
 
 /**
- * The inline padding of the thumbnail list, on the two sides together (`px-4` in the kata).
+ * The inline space around a thumbnail: the padding of the list on the two sides together
+ * (`px-4` in the kata), and the end padding of the rail that holds the resize handle (`pe-2`).
  *
  * @internal
  */
-const RAIL_PADDING = 32
+const RAIL_PADDING = 40
 
 /**
  * The widest thumbnail in CSS pixels: the widest rail, less its padding. A thumbnail raster is

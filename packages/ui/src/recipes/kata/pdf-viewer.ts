@@ -167,9 +167,11 @@ export const k = defineKata({
 		},
 		sidebar: {
 			// The width is the custom property that the resize handle writes. Its fallback is the
-			// default width, so the server render and the first paint have it.
+			// default width, so the server render and the first paint have it. The end padding is
+			// the gutter of the handle, which is `w-2`. It keeps the handle off the scrollbar of the
+			// list, which is at the end edge of the list.
 			base: [
-				'relative flex-col shrink-0 w-(--pdf-viewer-rail,240px) min-h-0',
+				'relative flex-col shrink-0 w-(--pdf-viewer-rail,240px) min-h-0 pe-2',
 				'overflow-hidden',
 				'border-e',
 				border.color.default,
@@ -204,8 +206,8 @@ export const k = defineKata({
 				],
 				/**
 				 * The resize handle on the end edge of the rail, and the grip that it draws as its
-				 * `::after`. It lies inside the rail, over the padding of the list, because the rail
-				 * clips its overflow.
+				 * `::after`. It lies inside the rail, because the rail clips its overflow. It fills
+				 * the end padding of the rail, so it covers no part of the list or its scrollbar.
 				 */
 				handle: [
 					'absolute inset-y-0 end-0 z-10',
