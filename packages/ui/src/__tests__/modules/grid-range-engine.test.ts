@@ -651,20 +651,62 @@ describe('fillPlan', () => {
 describe('rangeFillSource', () => {
 	const cells = { rows: [0, 1, 2], cols: [1, 2] }
 
-	it('takes the top row for a fill down and the first column for a fill right', () => {
-		expect(rangeFillSource(cells, 'down')).toEqual({
+	const full = () => 'x'
+
+	it('takes the first line in the fill direction when no line is blank', () => {
+		expect(rangeFillSource(cells, 'down', full)).toEqual({
 			source: { rows: [0], cols: [1, 2] },
 			count: 2,
 		})
 
-		expect(rangeFillSource(cells, 'right')).toEqual({
+		expect(rangeFillSource(cells, 'right', full)).toEqual({
 			source: { rows: [0, 1, 2], cols: [1] },
+			count: 1,
+		})
+
+		expect(rangeFillSource(cells, 'up', full)).toEqual({
+			source: { rows: [2], cols: [1, 2] },
+			count: 2,
+		})
+
+		expect(rangeFillSource(cells, 'left', full)).toEqual({
+			source: { rows: [0, 1, 2], cols: [2] },
+			count: 1,
+		})
+	})
+
+	// The lines before the first blank line are the source, so a series
+	// continues, as a drag of the fill handle continues it.
+	it('takes the lines before the first blank line as the source', () => {
+		const column = { rows: [0, 1, 2, 3], cols: [0] }
+
+		const top = (row: number) => (row < 2 ? row + 1 : null)
+
+		expect(rangeFillSource(column, 'down', top)).toEqual({
+			source: { rows: [0, 1], cols: [0] },
+			count: 2,
+		})
+
+		const bottom = (row: number) => (row > 1 ? row : ' ')
+
+		expect(rangeFillSource(column, 'up', bottom)).toEqual({
+			source: { rows: [2, 3], cols: [0] },
+			count: 2,
+		})
+
+		// A line with a value in one cell is not blank.
+		const line = { rows: [0], cols: [0, 1, 2] }
+
+		expect(rangeFillSource(line, 'left', (_, col) => (col === 0 ? undefined : col))).toEqual({
+			source: { rows: [0], cols: [1, 2] },
 			count: 1,
 		})
 	})
 
 	it('gives no fill for a range one cell deep', () => {
-		expect(rangeFillSource({ rows: [0], cols: [1, 2] }, 'down')).toBeNull()
+		expect(rangeFillSource({ rows: [0], cols: [1, 2] }, 'down', full)).toBeNull()
+
+		expect(rangeFillSource({ rows: [0, 1], cols: [1] }, 'left', full)).toBeNull()
 	})
 })
 

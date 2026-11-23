@@ -5,6 +5,7 @@
  */
 
 import { clamp } from '../../../../utilities/clamp'
+import { isBlank } from './figures'
 import type { GridRowDistance, GridRowStep } from './range'
 import { dateSeries, textSeries } from './series'
 
@@ -149,8 +150,12 @@ export function fillPlan(
 	return targets
 }
 
-/** The two fills that a key or a menu item starts: down from the top row, or right from the first column. @internal */
-export type GridRangeFillDirection = 'down' | 'right'
+/**
+ * The fills that a key or a menu item starts. A fill down or right reads the
+ * range from its top row or its first column. A fill up or left reads it from
+ * its bottom row or its last column. @internal
+ */
+export type GridRangeFillDirection = GridFillDirection
 
 /**
  * The fill of a range that a key or a menu item starts. It reads the range
@@ -162,25 +167,44 @@ export type GridRangeFillDirection = 'down' | 'right'
 export type GridRangeFill = (direction: GridRangeFillDirection) => (() => void) | null
 
 /**
- * The source cells and the count of lines of a fill of `cells`, or `null`
- * when the range is one cell deep in `direction`. A fill down takes the top
- * row as its source, and a fill right takes the first column. @internal
+ * The source cells and the count of lines of a fill of `cells` in
+ * `direction`, or `null` when the range is one cell deep in `direction`.
+ *
+ * The source is the lines at the start edge of the fill, up to the first line
+ * where each cell is blank. `read` gives the value of a cell. When no line is blank, the source is
+ * the first line only, so the fill copies it over the range. Thus `1, 2` above
+ * two blank rows gives `3, 4`, the same series that a drag of the fill handle
+ * gives. @internal
  */
 export function rangeFillSource(
 	cells: { rows: readonly number[]; cols: readonly number[] },
 	direction: GridRangeFillDirection,
+	read: (row: number, col: number) => unknown,
 ): { source: { rows: readonly number[]; cols: readonly number[] }; count: number } | null {
-	const down = direction === 'down'
+	const vertical = direction === 'down' || direction === 'up'
 
-	const along = down ? cells.rows : cells.cols
+	const back = direction === 'up' || direction === 'left'
+
+	const along = vertical ? cells.rows : cells.cols
+
+	const across = vertical ? cells.cols : cells.rows
 
 	if (along.length < 2) return null
 
-	const source = down
-		? { rows: cells.rows.slice(0, 1), cols: cells.cols }
-		: { rows: cells.rows, cols: cells.cols.slice(0, 1) }
+	const order = back ? along.toReversed() : along
 
-	return { source, count: along.length - 1 }
+	const blank = (at: number) =>
+		across.every((line) => isBlank(vertical ? read(at, line) : read(line, at)))
+
+	const gap = order.findIndex((at, index) => index > 0 && blank(at))
+
+	const depth = gap === -1 ? 1 : gap
+
+	const lines = back ? along.slice(-depth) : along.slice(0, depth)
+
+	const source = vertical ? { rows: lines, cols: cells.cols } : { rows: cells.rows, cols: lines }
+
+	return { source, count: along.length - depth }
 }
 
 /** The bounds of a block of data cells, inclusive, in data row and data column indexes. @internal */

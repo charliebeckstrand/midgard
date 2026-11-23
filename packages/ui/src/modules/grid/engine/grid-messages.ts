@@ -61,6 +61,7 @@ type GridValues = {
 	print: Record<never, never>
 	copy: Record<never, never>
 	fillDown: Record<never, never>
+	fillUp: Record<never, never>
 	fillRight: Record<never, never>
 	fillLeft: Record<never, never>
 	clearColor: Record<never, never>
@@ -438,20 +439,22 @@ export const gridMessages: MessageSet<GridValues> = defineMessages<GridValues>({
 	fillDown: {
 		id: 'ui.grid.fillDown',
 		defaultMessage: 'Fill down',
-		description:
-			'The menu item that copies the first row of a cell range of a grid down the range.',
+		description: 'The menu item that fills a cell range of a grid down from its top rows.',
+	},
+	fillUp: {
+		id: 'ui.grid.fillUp',
+		defaultMessage: 'Fill up',
+		description: 'The menu item that fills a cell range of a grid up from its bottom rows.',
 	},
 	fillRight: {
 		id: 'ui.grid.fillRight',
 		defaultMessage: 'Fill right',
-		description:
-			'The menu item that copies the first column of a cell range of a grid to the right.',
+		description: 'The menu item that fills a cell range of a grid to the right edge.',
 	},
 	fillLeft: {
 		id: 'ui.grid.fillLeft',
 		defaultMessage: 'Fill left',
-		description:
-			'The menu item that copies the first column of a cell range of a grid to the left.',
+		description: 'The menu item that fills a cell range of a grid to the left edge.',
 	},
 	clearColor: {
 		id: 'ui.grid.clearColor',

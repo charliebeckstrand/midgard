@@ -16,8 +16,8 @@ export const RANGE_FIGURES_DEFAULT: readonly Aggregation[] = ['count', 'sum', 'a
 /** One figure of a range: its aggregation and its value. @internal */
 export type GridRangeFigure = { op: Aggregation; value: number }
 
-/** Whether a cell holds no value: no value, or text of only white space. */
-function isBlank(value: unknown): boolean {
+/** Whether a cell holds no value: no value, or text of only white space. @internal */
+export function isBlank(value: unknown): boolean {
 	return value == null || (typeof value === 'string' && value.trim() === '')
 }
 

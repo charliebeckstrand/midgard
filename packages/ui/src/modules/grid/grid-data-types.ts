@@ -1353,12 +1353,16 @@ export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'>
 	 *   Ctrl/Cmd+C does, and then clears. A clear is a paste of empty text: a
 	 *   text cell takes `''`, and a number cell or a yes/no cell takes
 	 *   `undefined`, unless {@link GridColumn.parse} reads the text.
-	 * - Ctrl/Cmd+D fills the range down from its top row, and Ctrl/Cmd+R fills
-	 *   it right from its first column, under `editable.session: 'managed'`.
-	 *   The cell menu of {@link GridDataProps.contextMenu} gives the same fills
-	 *   as Fill down and Fill right. A key stays the browser's when the range is
-	 *   one cell deep in its direction. A press of another mouse button in the
-	 *   range, such as the one that opens the menu, keeps the range.
+	 * - Ctrl/Cmd+D fills the range down from its top rows, and Ctrl/Cmd+R fills
+	 *   it right from its first columns, under `editable.session: 'managed'`.
+	 *   The cell menu of {@link GridDataProps.contextMenu} gives these fills as
+	 *   Fill down and Fill right, and also Fill up and Fill left. The source of
+	 *   a key or a menu fill is the lines of the range before its first blank
+	 *   line, or the first line when no line is blank. Thus a key or a menu item
+	 *   continues a series, as a drag of the fill handle does. A key stays the
+	 *   browser's when the range is one cell deep in its direction. A press of
+	 *   another mouse button in the range, such as the one that opens the menu,
+	 *   keeps the range.
 	 * - The active cell shows a fill handle on its bottom end corner, under
 	 *   `editable.session: 'managed'`. A drag from it grows the range from the
 	 *   range, or from the active cell, along the axis of the larger travel. The

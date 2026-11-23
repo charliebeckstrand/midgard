@@ -10,6 +10,7 @@ import {
 	ArrowRightToLine,
 	ArrowUp,
 	ArrowUpDown,
+	ArrowUpToLine,
 	Ban,
 	ChevronDown,
 	ChevronLeft,
@@ -639,12 +640,14 @@ export function columnMenuItems<T>(args: ColumnMenuArgs<T>): GridMenuItem[] {
 }
 
 /**
- * The Fill down and Fill right items of the cell menu: one for each fill
- * that the range can make when the menu opens. They are the single-pointer
- * route to a fill (WCAG 2.5.7). Empty while the grid cannot fill.
+ * The fill items of the cell menu: one for each fill that the range can make
+ * when the menu opens, down, up, to the inline end, and to the inline start.
+ * They are the single-pointer route to each fill of a drag of the fill handle
+ * (WCAG 2.5.7). Empty while the grid cannot fill.
  *
- * The across fill goes to the inline end. As the pin items do, its label names
- * the physical edge, so in RTL it reads "Fill left". Its key stays `fill-right`.
+ * The across fills go to the inline end and to the inline start. As the pin
+ * items do, their labels name the physical edge, so in RTL the fill to the
+ * end reads "Fill left". Their keys stay `fill-right` and `fill-left`.
  *
  * @internal
  */
@@ -653,31 +656,28 @@ export function fillItems(
 	fill: GridRangeFill | undefined,
 	rtl = false,
 ): GridMenuItem[] {
-	const down = fill?.('down')
+	const end = rtl
+		? { message: gridMessages.fillLeft, icon: <ArrowLeftToLine /> }
+		: { message: gridMessages.fillRight, icon: <ArrowRightToLine /> }
 
-	const right = fill?.('right')
+	const start = rtl
+		? { message: gridMessages.fillRight, icon: <ArrowRightToLine /> }
+		: { message: gridMessages.fillLeft, icon: <ArrowLeftToLine /> }
 
-	const items: GridMenuItem[] = []
+	const choices = [
+		{ direction: 'down', message: gridMessages.fillDown, icon: <ArrowDownToLine /> },
+		{ direction: 'up', message: gridMessages.fillUp, icon: <ArrowUpToLine /> },
+		{ direction: 'right', ...end },
+		{ direction: 'left', ...start },
+	] as const
 
-	if (down) {
-		items.push({
-			key: 'fill-down',
-			label: intl.formatMessage(gridMessages.fillDown),
-			icon: <ArrowDownToLine />,
-			onAction: down,
-		})
-	}
+	return choices.flatMap(({ direction, message, icon }) => {
+		const onAction = fill?.(direction)
 
-	if (right) {
-		items.push({
-			key: 'fill-right',
-			label: intl.formatMessage(rtl ? gridMessages.fillLeft : gridMessages.fillRight),
-			icon: rtl ? <ArrowLeftToLine /> : <ArrowRightToLine />,
-			onAction: right,
-		})
-	}
-
-	return items
+		return onAction
+			? [{ key: `fill-${direction}`, label: intl.formatMessage(message), icon, onAction }]
+			: []
+	})
 }
 
 /**

@@ -993,15 +993,19 @@
 	},
 	"ui.grid.fillDown": {
 		"defaultMessage": "Fill down",
-		"description": "The menu item that copies the first row of a cell range of a grid down the range."
+		"description": "The menu item that fills a cell range of a grid down from its top rows."
 	},
 	"ui.grid.fillLeft": {
 		"defaultMessage": "Fill left",
-		"description": "The menu item that copies the first column of a cell range of a grid to the left."
+		"description": "The menu item that fills a cell range of a grid to the left edge."
 	},
 	"ui.grid.fillRight": {
 		"defaultMessage": "Fill right",
-		"description": "The menu item that copies the first column of a cell range of a grid to the right."
+		"description": "The menu item that fills a cell range of a grid to the right edge."
+	},
+	"ui.grid.fillUp": {
+		"defaultMessage": "Fill up",
+		"description": "The menu item that fills a cell range of a grid up from its bottom rows."
 	},
 	"ui.grid.filterActive": {
 		"defaultMessage": "Filter {column}, active",

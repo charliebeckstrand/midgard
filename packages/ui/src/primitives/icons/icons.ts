@@ -16,6 +16,7 @@ import {
 	ArrowRightToLine as LucideArrowRightToLine,
 	ArrowUp as LucideArrowUp,
 	ArrowUpDown as LucideArrowUpDown,
+	ArrowUpToLine as LucideArrowUpToLine,
 	Ban as LucideBan,
 	Calendar as LucideCalendar,
 	Check as LucideCheck,
@@ -103,6 +104,8 @@ export const ArrowRightToLine = /* @__PURE__ */ createIcon(LucideArrowRightToLin
 export const ArrowUp = /* @__PURE__ */ createIcon(LucideArrowUp)
 
 export const ArrowUpDown = /* @__PURE__ */ createIcon(LucideArrowUpDown)
+
+export const ArrowUpToLine = /* @__PURE__ */ createIcon(LucideArrowUpToLine)
 
 export const Ban = /* @__PURE__ */ createIcon(LucideBan)
 
