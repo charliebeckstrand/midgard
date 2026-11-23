@@ -812,9 +812,25 @@ export const k = {
 		instant,
 	},
 	nav: {
-		// The `navigable` grid's `<table>` is the cursor's single tab stop; drop its
-		// own focus outline so the active-cell ring is the sole, precise indicator.
-		table: 'outline-0',
+		// The `navigable` grid's `<table>` is the cursor's single tab stop. While a
+		// cell is active, the table shows no focus ring of its own, so the ring of
+		// the active cell is the one indicator. Escape removes the cursor, and focus
+		// that comes back from a portal seats none. The table then has no
+		// `aria-activedescendant` and takes the inset ring, so the focus stays
+		// visible (WCAG 2.4.7). Forced colors remove the ring, so an inset outline
+		// shows the focus there.
+		table: [
+			'outline-0 ring-inset',
+			'[&:not([aria-activedescendant])]:focus-visible:ring-2',
+			...mode(
+				'[&:not([aria-activedescendant])]:focus-visible:ring-blue-600',
+				'dark:[&:not([aria-activedescendant])]:focus-visible:ring-blue-500',
+			),
+			'forced-colors:[&:not([aria-activedescendant])]:focus-visible:outline-solid',
+			'forced-colors:[&:not([aria-activedescendant])]:focus-visible:outline-2',
+			'forced-colors:[&:not([aria-activedescendant])]:focus-visible:-outline-offset-2',
+			'forced-colors:[&:not([aria-activedescendant])]:focus-visible:outline-[Highlight]',
+		],
 		// Active-cell cursor ring for a `navigable` read-only grid, driven by the
 		// `data-active` the cell marker toggles onto the owning cell of the cursor.
 		// Inset so the scroll container can't clip it. It takes the color of
