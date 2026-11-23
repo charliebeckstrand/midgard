@@ -42,7 +42,11 @@ import { useGridDataFrame } from './use-grid-data-frame'
 import type { GridDataSetup } from './use-grid-data-setup'
 import { useGridDataView } from './use-grid-data-view'
 import { useGridExport } from './use-grid-export'
-import { useGridIndexToggleSync, useGridRowIndexOffsetSync } from './use-grid-index'
+import {
+	useGridIndexFollowSync,
+	useGridIndexToggleSync,
+	useGridRowIndexOffsetSync,
+} from './use-grid-index'
 import { useGridMenuActions } from './use-grid-menu-actions'
 import { useGridRangeFigures } from './use-grid-range-figures'
 import { useGridRangeValue } from './use-grid-range-value'
@@ -53,6 +57,32 @@ import { useGridSelectionState } from './use-grid-selection'
 import { useServerSortSettle } from './use-grid-server-sort-settle'
 import { useGridSort } from './use-grid-sort'
 import { useGridTable } from './use-grid-table'
+
+/**
+ * The keys of the leaves of the open groups, in the order of the groups, and
+ * whether a closed group comes after the last of them that holds a leaf. The
+ * body shows no row of a closed group, so its rows come after the last shown
+ * row. A closed manual group counts also with no loaded leaf, because its
+ * rows are on the server.
+ */
+function leafKeys<G extends { leaves: readonly { key: string | number }[] }>(
+	groups: readonly G[],
+	open: (group: G) => boolean,
+): { shown: (string | number)[]; hiddenAfter: boolean } {
+	const shown: (string | number)[] = []
+
+	let hiddenAfter = false
+
+	for (const group of groups) {
+		const closed = !open(group)
+
+		if (closed || group.leaves.length > 0) hiddenAfter = closed
+
+		if (!closed) for (const leaf of group.leaves) shown.push(leaf.key)
+	}
+
+	return { shown, hiddenAfter }
+}
 
 /**
  * The phases of {@link GridData} after the cursor: the engine, the view, the
@@ -556,30 +586,30 @@ export function useGridDataRender<T>(
 	// The manual body collates the sort of its groups in this locale (see `GridBody`).
 	const { locale } = useLocale()
 
-	const shownLeafKeys = useMemo(() => {
+	const groupLeaves = useMemo(() => {
 		if (manualRows && manualGroupBody) {
-			return shownManualSegments(
+			const segments = shownManualSegments(
 				manualRows,
 				manualGroupBody.groupRow,
 				manualGroupSort,
 				locale,
-			).flatMap((segment) =>
-				manualSegmentOpen(segment, manualGroupBody.expanded)
-					? segment.leaves.map((leaf) => leaf.key)
-					: [],
 			)
+
+			return leafKeys(segments, (segment) => manualSegmentOpen(segment, manualGroupBody.expanded))
 		}
 
-		return (
-			groups &&
-			applyRowKeyOrder(groups, groupOrder ?? undefined, getGroupKey).flatMap((group) =>
-				group.expanded ? group.leaves.map((leaf) => leaf.key) : [],
-			)
-		)
+		return groups
+			? leafKeys(
+					applyRowKeyOrder(groups, groupOrder ?? undefined, getGroupKey),
+					(group) => group.expanded,
+				)
+			: null
 	}, [manualRows, manualGroupBody, manualGroupSort, locale, groups, groupOrder])
 
+	const shownLeafKeys = groupLeaves?.shown
+
 	const toggleShownRow = useStableEvent((key: string | number, span?: boolean) =>
-		toggleRow(key, span, shownLeafKeys ?? undefined),
+		toggleRow(key, span, shownLeafKeys),
 	)
 
 	// Space toggles through the same shown order as a click on a row checkbox.
@@ -587,6 +617,16 @@ export function useGridDataRender<T>(
 
 	// The cursor speaks the row numbers of a range from this offset.
 	useGridRowIndexOffsetSync(indexRefs.rowIndexOffsetRef, rowIndexOffset)
+
+	// Data rows after the last row that the body shows: a next page, rows still
+	// to load, or a closed group. A paste then cuts its block off at the last
+	// shown row, and does not add the rest as new rows.
+	useGridIndexFollowSync(
+		indexRefs.rowsFollowRef,
+		pagination?.canNext === true ||
+			infiniteScroll?.hasMore === true ||
+			groupLeaves?.hiddenAfter === true,
+	)
 
 	// The truncating head and cells read the drag state of the settle store (see
 	// `useGridResizing`), not this value, so a sort or a select-all, which churns

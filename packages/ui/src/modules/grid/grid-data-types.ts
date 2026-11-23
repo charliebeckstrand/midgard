@@ -1326,7 +1326,9 @@ export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'>
 	 *   line into the row and pressed Enter. Each line waits for the add of the
 	 *   line before it. The first refused line stops the paste, and stays in the
 	 *   row with its errors. A row that holds an entry of the user takes no
-	 *   line. Another grid cuts the block off at the last row.
+	 *   line. Another grid cuts the block off at the last row. So does a grid
+	 *   whose last shown row comes before a next page, rows still to load, or a
+	 *   closed group.
 	 * - Delete and Backspace on the grid clear the range, or the active cell with
 	 *   no range, under `editable.session: 'managed'`. Ctrl/Cmd+X copies as
 	 *   Ctrl/Cmd+C does, and then clears. A clear is a paste of empty text: a

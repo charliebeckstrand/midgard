@@ -476,17 +476,20 @@ export function useGridEditCursor<T>({
 
 		const columns = cursorColumnsRef.current
 
-		const lines = pasteRows ? pasteLines(block, cells, columns, nav.rowStep) : []
+		// The lines after the last shown row become new rows only at the end of
+		// the data. A next page, rows still to load, or a closed group holds the
+		// rows that come next, so the block is cut off there.
+		const adds = pasteRows && !refs.rowsFollowRef.current ? pasteRows : undefined
 
-		const adds = lines.length > 0 ? pasteRows : undefined
+		const lines = adds ? pasteLines(block, cells, columns, nav.rowStep) : []
 
 		const lead = pasteCells(
 			pasteTargets(block, cells, rowKeysRef.current, columns, nav.rowStep),
 			'pasted',
-			adds !== undefined,
+			lines.length > 0,
 		)
 
-		void adds?.(lines, lead)
+		if (adds && lines.length > 0) void adds(lines, lead)
 	})
 
 	// Writes empty text into the range, or into the active cell with no range,

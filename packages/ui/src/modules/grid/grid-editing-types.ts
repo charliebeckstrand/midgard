@@ -608,7 +608,9 @@ export type GridEditableConfig = {
 	 *
 	 * A paste of a cell {@link GridProps.range | range} that runs past the last
 	 * row adds each line after it through this row, as if the user typed the
-	 * line and pressed Enter.
+	 * line and pressed Enter. This occurs only at the end of the data. When a
+	 * next page, rows still to load, or a closed group comes after the last
+	 * shown row, the paste stops at that row and adds no row.
 	 *
 	 * The row needs {@link GridEditableConfig.session} `'managed'` and
 	 * {@link GridEditableConfig.onRowAdd}. Without either, the grid renders no
