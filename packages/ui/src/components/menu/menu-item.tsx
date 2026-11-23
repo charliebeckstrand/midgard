@@ -60,8 +60,7 @@ export function MenuItem(props: MenuItemProps) {
 
 	const { disabled, className, children, onAction, closeOnAction = true } = props
 
-	// A stable id so a dropdown's `aria-activedescendant` (roving with focus on the
-	// trigger) can point at this row; a consumer-supplied id wins.
+	// A stable id for the row; a consumer-supplied id wins.
 	const reactId = useId()
 
 	const id = props.id ?? reactId

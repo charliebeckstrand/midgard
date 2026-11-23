@@ -145,12 +145,9 @@ export function Menu({
 		<MenuActionsContext value={actions}>
 			<MenuCappedContext value={capped}>
 				<MenuStateContext value={state}>
-					{/* The menu's own pointer level, spanning the trigger as well as the
-				panel. A dropdown's trigger keeps focus while open, so it is where an
-				open submenu's arrow keys arrive. A dropdown roves by
-				`aria-activedescendant` from there, so the pointer marks `data-active`;
-				every other mode roves by real focus and the pointer moves it. */}
-					<MenuPointerLevel virtual={state.isDropdown && !state.isSheet} owner={actions.triggerRef}>
+					{/* The menu's own pointer level. Each mode roves by real focus, and
+				the pointer moves it. */}
+					<MenuPointerLevel>
 						<Root
 							data-slot="menu"
 							// contents: this wrapper must not participate in layout, or it

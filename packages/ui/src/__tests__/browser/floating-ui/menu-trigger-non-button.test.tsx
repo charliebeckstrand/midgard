@@ -6,17 +6,12 @@ import { renderUI, screen, waitFor } from '../../helpers'
 /**
  * Keyboard activation of a `MenuTrigger` wrapping a non-button child.
  *
- * `MenuTrigger` clones an arbitrary child element and opens the menu from
- * `onClick` alone. `handleTriggerKeyDown` never opens: on Enter/Space it arms
- * the auto-repeat guard and delegates to `rovingKeyDown`, which no-ops while the
- * panel is unmounted. A native `<button>` is carried by the browser, which
- * synthesizes a click from Enter and from Space-on-keyup, so the default path
- * works and hides the gap. Any other element gets no synthesized click, so the
- * menu cannot be opened from the keyboard at all.
- *
- * `useClick`'s `keyboardHandlers` covers exactly this: its `onKeyDown`/`onKeyUp`
- * bail through `isButtonTarget(event)` precisely because native buttons need no
- * help. `Popover` already routes through `useClick`; `Menu` does not.
+ * The browser clicks a native `<button>` on Enter, and on the keyup of Space.
+ * It gives no click to other elements, such as a `<div role="button">`. The
+ * trigger clicks such an element itself on Enter, and `useClick` opens it on
+ * Space. A key open moves the focus to the first row before the default action
+ * of the key runs, so the trigger cancels the Enter. If it did not, the Enter
+ * would click the first row and close the menu.
  */
 describe('MenuTrigger keyboard activation (real floating engine)', () => {
 	function tree(trigger: React.ReactElement) {
@@ -46,7 +41,7 @@ describe('MenuTrigger keyboard activation (real floating engine)', () => {
 		</div>
 	)
 
-	/** Focuses the rendered trigger, presses `key`, and resolves once the menu is up. */
+	/** Focuses the rendered trigger, presses `key`, and resolves once the first row has the focus. */
 	const opensFrom = vi.defineHelper(async (trigger: React.ReactElement, key: string) => {
 		renderUI(tree(trigger))
 
@@ -54,7 +49,9 @@ describe('MenuTrigger keyboard activation (real floating engine)', () => {
 
 		await userEvent.keyboard(key)
 
-		await waitFor(() => expect(screen.getByRole('menu')).toBeInTheDocument())
+		await waitFor(() => expect(screen.getByRole('menuitem', { name: 'Edit' })).toHaveFocus())
+
+		expect(screen.getByRole('menu')).toBeInTheDocument()
 	})
 
 	it.for<[string, React.ReactElement, string]>([
