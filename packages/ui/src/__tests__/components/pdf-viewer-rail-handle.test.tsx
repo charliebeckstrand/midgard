@@ -97,7 +97,8 @@ describe('PdfViewer rail resize handle', () => {
 		expect(railWidth(rail)).toBe('160px')
 	})
 
-	// The rail moves focus between its tiles on Home and End. A key on the handle resizes only.
+	// The rail moves focus between its tiles on Home and End, but only for a key from a tile. A
+	// rail that took a key from any of its nodes would move focus off the handle here.
 	it('keeps focus on the handle for a key that resizes', () => {
 		const { container, handle } = renderRail()
 

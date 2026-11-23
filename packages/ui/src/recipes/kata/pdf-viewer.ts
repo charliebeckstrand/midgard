@@ -170,9 +170,11 @@ export const k = defineKata({
 			// default width, so the server render and the first paint have it. The end padding is
 			// the gutter of the handle, which is `w-2`. It keeps the handle off the scrollbar of the
 			// list, which is at the end edge of the list.
+			//
+			// The rail does not clip its overflow, so the hit area of the handle can go past the
+			// border. The root of the viewer clips the rail when it slides off.
 			base: [
 				'relative flex-col shrink-0 w-(--pdf-viewer-rail,240px) min-h-0 pe-2',
-				'overflow-hidden',
 				'border-e',
 				border.color.default,
 			],
@@ -206,13 +208,18 @@ export const k = defineKata({
 				],
 				/**
 				 * The resize handle on the end edge of the rail, and the grip that it draws as its
-				 * `::after`. It lies inside the rail, because the rail clips its overflow. It fills
-				 * the end padding of the rail, so it covers no part of the list or its scrollbar.
+				 * `::after`. It fills the end padding of the rail, so it covers no part of the list or
+				 * its scrollbar.
+				 *
+				 * Its `::before` is the hit area: the full height of the rail, and 24px wide (WCAG
+				 * 2.5.8). It starts at the gutter and goes 16px past the border, over the padding of
+				 * the viewport, which is `p-4`.
 				 */
 				handle: [
 					'absolute inset-y-0 end-0 z-10',
 					flex.row,
 					'w-2 items-center justify-center',
+					"before:absolute before:inset-y-0 before:start-0 before:-end-4 before:content-['']",
 					'cursor-col-resize touch-none outline-none',
 					sen.grip,
 					'after:h-6 after:w-0.5',

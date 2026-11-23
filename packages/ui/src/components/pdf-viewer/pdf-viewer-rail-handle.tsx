@@ -73,8 +73,9 @@ type PdfViewerRailHandleProps = {
  * `--pdf-viewer-rail`. Thus a drag renders only the handle, and not the tiles of the rail, which
  * a long document has many of. The width stays when the rail collapses and opens again.
  *
- * The rail moves focus between its tiles with the arrow keys, Home, and End. The handle is in
- * the rail, so a key that resizes stops at the handle.
+ * The handle is in the rail, which moves focus between its tiles with the arrow keys, Home, and
+ * End. The roving focus of the rail acts only on a key from a tile, so a key on the handle
+ * resizes and does not move focus.
  * @internal
  */
 export function PdfViewerRailHandle({ controls }: PdfViewerRailHandleProps) {
@@ -149,9 +150,6 @@ export function PdfViewerRailHandle({ controls }: PdfViewerRailHandleProps) {
 		if (next === null) return
 
 		event.preventDefault()
-
-		// The roving focus of the rail must not move focus to a tile for this key.
-		event.stopPropagation()
 
 		resizeTo(next)
 	}
