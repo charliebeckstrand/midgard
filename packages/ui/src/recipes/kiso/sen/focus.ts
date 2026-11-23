@@ -33,6 +33,9 @@
  *                 over the selection bar, so the current tab also shows
  *                 focus.
  *   - `parent`    the `ring` stroke on a part whose parent has the focus
+ *   - `cursor`    inset outline on the row of a list: the focused row, or
+ *                 the roved row (`data-active`) of a list that keeps the
+ *                 focus on its input
  *   - `lifted`    z-shift + shadow for a picked-up element, plus the violet
  *                 accent that reads against the panel backdrop. Split into
  *                 `raise`, its forced-colors `mark`, and one entry per
@@ -49,7 +52,9 @@
  *
  * Focus is blue-600 in each mode. A part that paints its own focus, such as
  * the resize grip (`grip.ts`) and the range thumb (`ring.thumb`), uses the
- * same blue.
+ * same blue. A row mark on a dark ground with a tint, such as `cursor` and the
+ * JsonTree row, is blue-500 on dark, because blue-600 is below 3:1 against
+ * that ground.
  *
  * Layer: kiso · Concern: focus indicators
  */
@@ -124,6 +129,21 @@ export const focus = {
 	parent: [
 		'[:focus-visible>&]:outline-2 [:focus-visible>&]:outline-offset-2',
 		'[:focus-visible>&]:outline-blue-600',
+	],
+	/**
+	 * The keyboard cursor of a list: the focused row, or the roved row
+	 * (`data-active`) of a list that roves with `aria-activedescendant`. The wash
+	 * of `hannou` is about 1.1:1 against the panel, so the wash alone is not a
+	 * visible focus (WCAG 2.4.7, 1.4.11). The mark is an outline inside the row,
+	 * so a list that clips its rows does not cut it, and forced colors keep it.
+	 * On dark it is blue-500, because blue-600 is 2.97:1 against the dark
+	 * popover.
+	 */
+	cursor: [
+		'focus-visible:outline-solid focus-visible:outline-2 focus-visible:-outline-offset-2',
+		'data-active:outline-solid data-active:outline-2 data-active:-outline-offset-2',
+		'focus-visible:outline-blue-600 data-active:outline-blue-600',
+		'dark:focus-visible:outline-blue-500 dark:data-active:outline-blue-500',
 	],
 	/**
 	 * The inset ring of a box whose control has keyboard focus. The control
