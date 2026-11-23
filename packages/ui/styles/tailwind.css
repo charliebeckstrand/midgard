@@ -96,6 +96,29 @@
 }
 
 /*
+ * `icons-only` selects a box whose child elements are icons
+ * (`data-slot="icon"`), with at least one icon. A visually hidden name
+ * (`sr-only`) can stand beside them. A text node is not an element, so a key
+ * with an icon and text also matches. A Kbd with only icons is a square.
+ */
+@custom-variant icons-only (
+	&:has(> [data-slot='icon']):not(:has(> :not([data-slot='icon'], .sr-only)))
+);
+
+/*
+ * `baseline-strut` gives a box with no text the baseline of a line of text: an
+ * empty glyph (U+200B) before its content. A Kbd with only an icon takes it,
+ * so it sits on the baseline of a line, as a key with text does. The class
+ * writes the glyph in CSS, because the scanner does not read an escape in a
+ * class name.
+ */
+@utility baseline-strut {
+	&::before {
+		content: '\200b';
+	}
+}
+
+/*
  * The breakpoint classes of Box, Columns, ColumnsItem, Flex, and Split. Their units put the
  * prefix on a class of the shared scale (`ma`) at run time, so the scanner
  * does not find these classes in the source. Each line gives one axis for
