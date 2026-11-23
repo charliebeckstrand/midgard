@@ -1260,8 +1260,9 @@ export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'>
 	 * editors and then its actions, as through a form. Escape gives focus back
 	 * to the grid, and the cursor stays on the cell. Focus that goes to a
 	 * control by other means, such as a press, moves the cursor to its cell. On
-	 * a header cell, Enter sorts the column, and F2 moves focus to the controls
-	 * of the header, such as the sort button and the resize handle.
+	 * a header cell, Enter sorts the column, Shift+Enter adds the column to the
+	 * sort, and F2 moves focus to the controls of the header, such as the sort
+	 * button and the resize handle.
 	 *
 	 * Space on a data cell, and Enter on a data cell with no controls, activate
 	 * the active cell's {@link GridDataProps.onCellClick} and the active row's

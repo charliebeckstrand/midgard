@@ -1374,27 +1374,33 @@ export function useGridNavigation({
 	// Enter and F2 move focus into the active cell, to its first control. Escape
 	// from a control gives focus back to the grid (see `escapeFromCell`). On a
 	// header cell, Enter presses its sort control instead, when the column
-	// sorts. A cell that opens an editor keeps both keys for the editing layer,
+	// sorts. Shift+Enter there adds the column to the sort, as a Shift-click
+	// does. A cell that opens an editor keeps both keys for the editing layer,
 	// and a cell with no control keeps Enter for its activation. Returns whether
 	// it took the key.
 	const onEntryKey = useCallback(
 		(event: KeyboardEvent<HTMLTableElement>, active: Coord): boolean => {
-			if (!isEntryKey(event)) return false
+			const header = active.row === HEADER_ROW_INDEX
+
+			const sortKey = header && event.key === 'Enter' && !hasBrowserModifier(event)
+
+			if (!sortKey && !isEntryKey(event)) return false
 
 			const row = toDataRow(active.row)
-
-			const header = active.row === HEADER_ROW_INDEX
 
 			if (!header && editsAt(row, active.col)) return false
 
 			const cell = document.getElementById(cellId(row, active.col))
 
-			const sort =
-				header && event.key === 'Enter' ? cell?.querySelector<HTMLElement>(SORT_CONTROL) : null
+			const sort = sortKey ? cell?.querySelector<HTMLElement>(SORT_CONTROL) : null
 
-			sort?.click()
+			// The click carries Shift, so that the sort control adds the column.
+			sort?.dispatchEvent(
+				new MouseEvent('click', { bubbles: true, cancelable: true, shiftKey: event.shiftKey }),
+			)
 
-			const took = sort ? true : focusFirstControl(cell)
+			// Shift+Enter on a header with no sort control does not enter the cell.
+			const took = sort ? true : !event.shiftKey && focusFirstControl(cell)
 
 			if (took) event.preventDefault()
 

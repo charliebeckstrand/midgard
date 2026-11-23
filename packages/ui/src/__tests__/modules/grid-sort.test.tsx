@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { ReducedMotionContext } from '../../primitives/reduced-motion/context'
-import { renderUI, screen } from '../helpers'
+import { fireEvent, renderUI, screen } from '../helpers'
 
 describe('Grid client sorting', () => {
 	type Row = { id: number; name: string }
@@ -336,6 +336,52 @@ describe('Grid multi-column sort', () => {
 
 		// One sort column needs no ranking, so no digit appears in the header.
 		expect(screen.getByRole('button', { name: 'Sort by Name' }).textContent).not.toMatch(/\d/)
+	})
+
+	it('adds the column to the sort on Shift+Enter on its header cell', () => {
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} navigable />)
+
+		const grid = screen.getByRole('grid')
+
+		fireEvent.mouseDown(screen.getByRole('gridcell', { name: 'Zoe' }))
+
+		// The cursor goes to the header of Group, which sorts, and then to Name.
+		fireEvent.keyDown(grid, { key: 'ArrowUp' })
+
+		fireEvent.keyDown(grid, { key: 'ArrowLeft' })
+
+		fireEvent.keyDown(grid, { key: 'Enter' })
+
+		fireEvent.keyDown(grid, { key: 'ArrowRight' })
+
+		fireEvent.keyDown(grid, { key: 'Enter', shiftKey: true })
+
+		expect(screen.getByRole('button', { name: 'Sort by Group, sort priority 1' })).toBeVisible()
+
+		expect(screen.getByRole('button', { name: 'Sort by Name, sort priority 2' })).toBeVisible()
+
+		// The cursor stays on the header cell.
+		expect(grid).toHaveFocus()
+	})
+
+	it('does nothing on Shift+Enter on the header cell of a column that does not sort', () => {
+		const fixed = columns.map((column) => ({ ...column, sortable: false }))
+
+		renderUI(<Grid columns={fixed} rows={rows} getKey={getKey} navigable />)
+
+		const grid = screen.getByRole('grid')
+
+		fireEvent.mouseDown(screen.getByRole('gridcell', { name: 'Zoe' }))
+
+		fireEvent.keyDown(grid, { key: 'ArrowUp' })
+
+		fireEvent.keyDown(grid, { key: 'Enter', shiftKey: true })
+
+		expect(
+			screen.getAllByRole('columnheader').map((header) => header.getAttribute('aria-sort')),
+		).toEqual([null, null])
+
+		expect(grid).toHaveFocus()
 	})
 })
 
