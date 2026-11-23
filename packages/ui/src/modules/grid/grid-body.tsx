@@ -283,10 +283,14 @@ function renderManualSegment<T>(
 					expanded={open}
 					toggle={args.toggle}
 					pinning={props.pinning}
+					tree={Boolean(props.rowRoving || props.cellRoving)}
 				/>
 			)}
 			{segment.leaves.map((leaf) => (
-				<GridGroupLeafRow<T> key={leaf.id} {...leafRowProps(props, leaf, { expanded: open })} />
+				<GridGroupLeafRow<T>
+					key={leaf.id}
+					{...leafRowProps(props, leaf, { expanded: open, level: segment.header ? 2 : 1 })}
+				/>
 			))}
 			{/* Expanded, but its children aren't loaded yet (the consumer's
 			    onGroupExpand fetch is in flight): fill the opened group with skeleton

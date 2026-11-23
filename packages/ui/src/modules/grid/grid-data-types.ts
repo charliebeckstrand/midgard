@@ -1311,7 +1311,12 @@ export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'>
 	 * carries the cursor too, so Enter or Space fires the handler. Manual
 	 * grouping ({@link GridGroupBy.manual}) stands the cursor down. A clickable
 	 * grid there roves its rows or data cells instead, and Tab from the roved
-	 * item moves through the controls of its row.
+	 * item moves through the controls of its row. The roving grid is also a
+	 * `treegrid`. Each group header row carries `aria-level` 1 and
+	 * `aria-expanded`, and each leaf carries `aria-level` 2. A leaf of a leading
+	 * run with no group header carries `aria-level` 1.
+	 *
+	 * A `grid` or a `treegrid` that cannot edit carries `aria-readonly`.
 	 *
 	 * Off by default, so a static table keeps the browser/screen-reader's native
 	 * table navigation; opt in for a spreadsheet-style read-only grid.

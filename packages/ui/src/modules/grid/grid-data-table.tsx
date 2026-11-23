@@ -69,8 +69,10 @@ type GridDataTableProps<T> = {
 		colGroup: ReactNode
 		/** The consumer's `tableProps`, with the grid's ref joined to theirs. */
 		props: TableElementProps
-		/** Whether the body is client-grouped, which makes a cursor grid a `treegrid`. */
+		/** Whether the body is grouped, client or manual, which makes a composite a `treegrid`. */
 		tree: boolean
+		/** Whether the grid can edit a cell. */
+		editable: boolean
 		/** Whether the grid renders a selection column. */
 		multiSelectable: boolean
 	}
@@ -182,7 +184,9 @@ export function GridDataTable<T>({
 					loading,
 					gridSemantics: semantics.enabled,
 					navigable: cursor.cursorEnabled,
+					roving: roving.mode,
 					tree: table.tree,
+					editable: table.editable,
 					ariaRowCount: semantics.ariaRowCount,
 					colCount: columns.length,
 					multiSelectable: table.multiSelectable,

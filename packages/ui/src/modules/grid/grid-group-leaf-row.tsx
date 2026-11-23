@@ -74,8 +74,9 @@ type GridGroupLeafRowProps<T> = {
 	 */
 	enter?: boolean
 	/**
-	 * The row's level in a treegrid. A client-grouped body sets it, and a
-	 * treegrid exposes it as `aria-level`. Manual grouping leaves it unset.
+	 * The row's level in a treegrid, which the treegrid exposes as `aria-level`.
+	 * A leaf under a group header is at level 2. A leaf of a headerless leading
+	 * run of a manual grouping is at level 1.
 	 */
 	level?: number
 } & Pick<
@@ -288,8 +289,9 @@ function GridGroupLeafRowImpl<T>({
 }: GridGroupLeafRowProps<T>) {
 	const pad = k.row.group.reveal.pad
 
-	// The cursor makes a client-grouped grid a treegrid, which reads the level.
-	const tree = useGridNavContext().enabled
+	// A keyboard model makes a grouped grid a treegrid, which reads the level:
+	// the cursor over a client grouping, or roving over a manual grouping.
+	const tree = useGridNavContext().enabled || rowRoving || cellRoving
 
 	// Rests the row once its reveal has shrunk to nothing, so a collapsed group's
 	// leaves stop riding the visible commit. A windowed leaf that enters mounts
@@ -379,7 +381,7 @@ export function leafRowProps<T>(
 	args: {
 		expanded: boolean
 		color?: PaletteColor
-		/** The leaf's treegrid level; the client-grouped body sets it. */
+		/** The leaf's treegrid level. */
 		level?: number
 	},
 ): ComponentProps<typeof GridGroupLeafRowImpl<T>> {

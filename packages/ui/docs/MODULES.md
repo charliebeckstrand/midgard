@@ -95,6 +95,8 @@ export async function POST(request: Request) {
 
 > `Form` turns off native validation (`noValidate`). Give each native constraint a validator, or pass `noValidate={false}`. While a submit runs, the form locks its parts: each field is read-only, each `Button` is inert, and a bound write does nothing. A native field that the `<form>` owns, such as a bare `<input>` or `<select>`, refuses each edit. A bare text field also takes `aria-readonly="true"` until the submit ends. Nothing is disabled, so the focus stays where it is. A `disabled` form disables each control in it through its `Fieldset`. A `Button` that must stay live, such as Cancel, takes `lockable={false}`. The form also announces the submit politely. The bindable controls read the form through the internal `primitives/form` contract ([`PRIMITIVES.md`](PRIMITIVES.md)), so no component imports the module.
 
+> `grid` gives its table a role from its keyboard model. The cursor (`navigable`, `editable`, or a click handler) makes a `grid`, and a `treegrid` over a client grouping. Under manual grouping, a click handler roves the rows or the cells, and the table is a `treegrid`. A window or a page with no keyboard model makes a `table`, and a plain grid keeps the native role. A `grid` or a `treegrid` that cannot edit is `aria-readonly`. A `treegrid` gives each group header `aria-level` 1 and `aria-expanded`, and each leaf `aria-level` 2.
+
 ---
 
 **See also:** [`COMPONENTS.md`](COMPONENTS.md) · [`PRIMITIVES.md`](PRIMITIVES.md) · [`../REFERENCE.md`](../REFERENCE.md). Keep this current per [`CONVENTIONS.md` §12](../../../CONVENTIONS.md).

@@ -725,7 +725,8 @@ export function useGridDataRender<T>(
 				held,
 				colGroup,
 				props: { ...tableProps, ref: tableElementRef },
-				tree: groupingActive,
+				tree: groupingMode.active,
+				editable: gated.editable != null,
 				multiSelectable: hasSelectionColumn,
 			}}
 			semantics={{
