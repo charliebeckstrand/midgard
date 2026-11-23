@@ -12,11 +12,6 @@ function readMark(link: HTMLElement) {
 	return { width: Number.parseFloat(style.width), opacity: Number(style.opacity) }
 }
 
-/** Whether the link draws its underline. */
-function isUnderlined(link: HTMLElement) {
-	return getComputedStyle(link).textDecorationLine === 'underline'
-}
-
 /**
  * A button, then a heading with a hash anchor. The id of the heading is not
  * the target of the link, so a click does not move the focus to the target.
@@ -39,9 +34,9 @@ async function renderAnchor({ reveal = false, reduced = false } = {}) {
 }
 
 /**
- * The hash anchor of a docs heading. The `#` mark shows at rest. Keyboard focus
- * and hover draw the underline. A focus that does not match `:focus-visible`,
- * such as the focus of a click, does not draw it.
+ * The hash anchor of a docs heading. The `#` mark shows at half opacity at
+ * rest. Keyboard focus and hover fade it to full opacity. A focus that does not
+ * match `:focus-visible`, such as the focus of a click, does not.
  */
 describe('HashAnchor', () => {
 	it('shows the mark at rest, and keeps it out of the name and the text', async () => {
@@ -50,11 +45,10 @@ describe('HashAnchor', () => {
 		expect(link.getAttribute('href')).toBe('#playground')
 		expect(screen.getByRole('heading').textContent).toBe('Playground')
 		expect(readMark(link).width).toBeGreaterThan(0)
-		expect(readMark(link).opacity).toBe(1)
-		expect(isUnderlined(link)).toBe(false)
+		expect(readMark(link).opacity).toBe(0.5)
 	})
 
-	it('draws the underline on keyboard focus and hides it on blur', async () => {
+	it('fills the mark on keyboard focus and fades it back on blur', async () => {
 		const link = await renderAnchor()
 
 		screen.getByRole('button').focus()
@@ -62,36 +56,38 @@ describe('HashAnchor', () => {
 		await userEvent.keyboard('{Tab}')
 
 		expect(document.activeElement).toBe(link)
-		expect(isUnderlined(link)).toBe(true)
+
+		await expect.poll(() => readMark(link).opacity).toBe(1)
 
 		await userEvent.keyboard('{Shift>}{Tab}{/Shift}')
 
-		expect(isUnderlined(link)).toBe(false)
+		await expect.poll(() => readMark(link).opacity).toBe(0.5)
 	})
 
-	it('draws no underline for the focus of a click', async () => {
+	it('keeps the mark faded for the focus of a click', async () => {
 		const link = await renderAnchor()
 
 		await userEvent.click(link)
 
-		// The pointer leaves, so only the focus can draw the underline.
+		// The pointer leaves, so only the focus can fill the mark.
 		await userEvent.hover(screen.getByRole('button'))
 
 		expect(document.activeElement).toBe(link)
 		expect(link.matches(':focus-visible')).toBe(false)
-		expect(isUnderlined(link)).toBe(false)
+
+		await expect.poll(() => readMark(link).opacity).toBe(0.5)
 	})
 
-	it('draws the underline while a mouse hovers the link', async () => {
+	it('fills the mark while a mouse hovers the link', async () => {
 		const link = await renderAnchor()
 
 		await userEvent.hover(link)
 
-		expect(isUnderlined(link)).toBe(true)
+		await expect.poll(() => readMark(link).opacity).toBe(1)
 
 		await userEvent.hover(screen.getByRole('button'))
 
-		expect(isUnderlined(link)).toBe(false)
+		await expect.poll(() => readMark(link).opacity).toBe(0.5)
 	})
 })
 
