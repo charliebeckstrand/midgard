@@ -55,7 +55,7 @@ function seriesStep(line: readonly unknown[]): number | null {
 }
 
 /**
- * The next `count` values after a source line, in fill order. A line of two
+ * The next values after a source line, in fill order, at most `count`. A line of two
  * or more values with a constant step continues the step:
  *
  * - Numbers: `1, 2` gives `3, 4, 5`.
@@ -64,7 +64,9 @@ function seriesStep(line: readonly unknown[]): number | null {
  * - Text that ends in a whole number: `Item 1, Item 2` gives `Item 3`
  *   ({@link textSeries}).
  *
- * Each other line repeats from its first value. @internal
+ * A date or a text series stops before a value that its type cannot hold, so
+ * it can give fewer than `count` values, and the fill writes no value past
+ * them. Each other line repeats from its first value. @internal
  */
 export function fillLine(line: readonly unknown[], count: number): unknown[] {
 	if (line.length === 0 || count <= 0) return []

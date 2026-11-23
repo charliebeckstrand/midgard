@@ -514,13 +514,38 @@ describe('fillLine dates', () => {
 
 		expect(fillLine(['2026-00-15', '2026-01-15'], 1)).toEqual(['2026-00-15'])
 
-		// A `YYYY-MM-DD` string has four digits of the year, so a series that
-		// would leave the years 0000 to 9999 repeats.
+		// A `YYYY-MM-DD` string has four digits of the year, so a series with
+		// no value in the years 0000 to 9999 repeats.
 		expect(fillLine(['0000-01-02', '0000-01-01'], 2)).toEqual(['0000-01-02', '0000-01-01'])
 
 		expect(fillLine(['9999-12-30', '9999-12-31'], 1)).toEqual(['9999-12-30'])
 
-		expect(fillLine(['9999-10-31', '9999-11-30'], 2)).toEqual(['9999-10-31', '9999-11-30'])
+		// A date and a time are text, not a count.
+		expect(fillLine(['2026-11', '2026-12'], 1)).toEqual(['2026-11'])
+
+		expect(fillLine(['2026/11/29', '2026/11/30'], 1)).toEqual(['2026/11/29'])
+
+		expect(fillLine(['10:00', '10:30'], 1)).toEqual(['10:00'])
+	})
+
+	// The series stops at the end of the years, so a longer fill does not
+	// change the values that a shorter fill gives.
+	it('stops a `YYYY-MM-DD` series before it leaves the years 0000 to 9999', () => {
+		expect(fillLine(['9999-10-31', '9999-11-30'], 1)).toEqual(['9999-12-31'])
+
+		expect(fillLine(['9999-10-31', '9999-11-30'], 3)).toEqual(['9999-12-31'])
+	})
+
+	// The latest day of the month is the anchor, so the series is the same in
+	// each direction.
+	it('reads the same month series in each direction', () => {
+		expect(fillLine(['2026-02-28', '2026-03-31'], 2)).toEqual(['2026-04-30', '2026-05-31'])
+
+		expect(fillLine(['2026-03-31', '2026-02-28'], 2)).toEqual(['2026-01-31', '2025-12-31'])
+
+		expect(fillLine(['2026-01-30', '2026-02-28'], 2)).toEqual(['2026-03-30', '2026-04-30'])
+
+		expect(fillLine(['2026-02-28', '2026-01-30'], 2)).toEqual(['2025-12-30', '2025-11-30'])
 	})
 })
 
@@ -535,10 +560,23 @@ describe('fillLine text with a number', () => {
 		expect(fillLine(['Item 9', 'Item 10'], 1)).toEqual(['Item 11'])
 	})
 
-	it('steps back, and repeats a series that would go below zero', () => {
+	it('steps back, and stops a series before it goes below zero', () => {
 		expect(fillLine(['Item 5', 'Item 4'], 2)).toEqual(['Item 3', 'Item 2'])
 
-		expect(fillLine(['Item 2', 'Item 1'], 2)).toEqual(['Item 2', 'Item 1'])
+		expect(fillLine(['A3', 'A2'], 2)).toEqual(['A1', 'A0'])
+
+		expect(fillLine(['A3', 'A2'], 3)).toEqual(['A1', 'A0'])
+
+		expect(fillLine(['A010', 'A009'], 12)).toHaveLength(9)
+
+		// With no value at zero or more, the line repeats.
+		expect(fillLine(['Item 1', 'Item 0'], 2)).toEqual(['Item 1', 'Item 0'])
+	})
+
+	it('repeats a number of more than 15 digits', () => {
+		expect(fillLine(['X1999999999999998', 'X1999999999999999'], 1)).toEqual(['X1999999999999998'])
+
+		expect(fillLine(['X999999999999998', 'X999999999999999'], 1)).toEqual(['X1000000000000000'])
 	})
 
 	it('repeats text with no number at the end, or with other text before it', () => {
