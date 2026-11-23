@@ -180,9 +180,8 @@ export const list = defineGroup({
 })
 
 /**
- * A trigger that opens a picker dialog. `root` sizes the box of the trigger to
- * its content. The box does not fill its parent, and it does not get wider
- * than its parent. `content` holds the classes of the dialog panel.
+ * A trigger that opens a picker dialog. The trigger fills its parent, as each
+ * other control does. `content` holds the classes of the dialog panel.
  */
 export const picker = defineGroup(
 	{
@@ -193,7 +192,6 @@ export const picker = defineGroup(
 		},
 	},
 	{
-		root: ['w-fit', 'max-w-full'],
 		content: {
 			motion: ugoki.popover,
 			/** The panel above the page: its layer, its column, and its text color. */

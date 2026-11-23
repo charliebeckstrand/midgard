@@ -1,5 +1,5 @@
 import api from 'virtual:docs/api/components/tag-input'
-import { ApiTable, Example, Playground } from '../../../kit/index.ts'
+import { ApiTable, Example, FrameDefaults, Playground } from '../../../kit/index.ts'
 import Controlled from './controlled.tsx'
 import Disabled from './disabled.tsx'
 import MaxTags from './max-tags.tsx'
@@ -9,7 +9,7 @@ import Wrap from './wrap.tsx'
 
 export default function TagInputPage() {
 	return (
-		<>
+		<FrameDefaults box="column">
 			<Playground of={TagInputPlayground} api={api} />
 			<Example of={Wrap} />
 			<Example of={MaxTags} />
@@ -17,6 +17,6 @@ export default function TagInputPage() {
 			<Example of={Controlled} />
 			<Example of={Disabled} />
 			<ApiTable api={api} />
-		</>
+		</FrameDefaults>
 	)
 }

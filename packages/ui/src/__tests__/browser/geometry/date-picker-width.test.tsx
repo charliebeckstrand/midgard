@@ -3,10 +3,9 @@ import { DatePicker } from '../../../components/date-picker'
 import { bySlot, present, renderUI } from '../../helpers'
 
 /**
- * The trigger of a DatePicker is as wide as its value and its calendar icon.
- * It does not fill a wide parent. In a parent that is narrower than its
- * content, it keeps inside the parent. The `input` mode is a DateInput, which
- * fills its parent as an Input does.
+ * The trigger of a DatePicker fills its parent, as each other control does. In
+ * a parent that is narrower than its content, it keeps inside the parent. The
+ * `input` mode is a DateInput, which also fills its parent.
  */
 
 const date = new Date(2026, 5, 15)
@@ -30,28 +29,20 @@ describe('DatePicker trigger width', () => {
 			/>,
 		],
 		['the relative placeholder', <DatePicker key="relative" aria-label="Period" relative />],
-	])('is as wide as %s in a wide parent', (_, picker) => {
+	])('fills a wide parent with %s', (_, picker) => {
 		const { container } = renderUI(<div style={{ width: 600 }}>{picker}</div>)
 
-		const value = present(
-			bySlot(container, 'datepicker-button')?.firstElementChild,
-			'the value',
-		) as HTMLElement
-
-		expect(frame(container)).toBeLessThan(300)
-
-		// The value shows in full, so the trigger does not cut its content.
-		expect(value.scrollWidth).toBeLessThanOrEqual(value.clientWidth)
+		expect(frame(container)).toBe(600)
 	})
 
-	it('is as wide as its content in a flex column', () => {
+	it('fills a flex column', () => {
 		const { container } = renderUI(
 			<div className="flex flex-col" style={{ width: 600 }}>
 				<DatePicker aria-label="Date" defaultValue={date} />
 			</div>,
 		)
 
-		expect(frame(container)).toBeLessThan(300)
+		expect(frame(container)).toBe(600)
 	})
 
 	it('keeps inside a parent that is narrower than its content', () => {
@@ -62,16 +53,6 @@ describe('DatePicker trigger width', () => {
 		)
 
 		expect(frame(container)).toBeLessThanOrEqual(80)
-	})
-
-	it('fills the parent with a `w-full` class', () => {
-		const { container } = renderUI(
-			<div style={{ width: 600 }}>
-				<DatePicker aria-label="Date" defaultValue={date} className="w-full" />
-			</div>,
-		)
-
-		expect(frame(container)).toBe(600)
 	})
 
 	it('fills the parent in `input` mode', () => {

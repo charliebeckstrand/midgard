@@ -160,7 +160,6 @@ export function TripStopsField({ places }: { places: readonly Place[] }) {
 													aria-label={`Day of place ${position}`}
 													min={days?.[0]}
 													max={days?.[1]}
-													className="w-full"
 													value={row.day ?? null}
 													onValueChange={(day: Date | null) =>
 														write(row.key, { day: day ?? undefined })

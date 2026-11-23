@@ -1,5 +1,5 @@
 import api from 'virtual:docs/api/components/mask-input'
-import { ApiTable, Example, Playground } from '../../../kit/index.ts'
+import { ApiTable, Example, FrameDefaults, Playground } from '../../../kit/index.ts'
 import Controlled from './controlled.tsx'
 import CustomFormat from './custom-format.tsx'
 import Disabled from './disabled.tsx'
@@ -9,7 +9,7 @@ import PostalCode from './postal-code.tsx'
 
 export default function MaskInputPage() {
 	return (
-		<>
+		<FrameDefaults box="column">
 			<Playground of={MaskInputPlayground} api={api} />
 			<Example of={InternationalPhone} />
 			<Example of={PostalCode} />
@@ -17,6 +17,6 @@ export default function MaskInputPage() {
 			<Example of={Controlled} />
 			<Example of={Disabled} />
 			<ApiTable api={api} />
-		</>
+		</FrameDefaults>
 	)
 }

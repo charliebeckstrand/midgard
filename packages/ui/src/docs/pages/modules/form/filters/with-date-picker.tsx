@@ -51,7 +51,7 @@ export default function WithDatePicker() {
 					</FormFiltersField>
 					<FormFiltersField name="dateRange">
 						<Label>Date range</Label>
-						<DatePicker range className="w-full" />
+						<DatePicker range />
 					</FormFiltersField>
 					<FormFiltersField name="category">
 						<Label>Category</Label>

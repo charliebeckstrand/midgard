@@ -20,9 +20,6 @@ import {
 //
 //   - The layout in a module page: an error state, a template picker, and the
 //     alert of a board.
-//   - A control that fills its field: the DatePicker of the Filters bar and of
-//     the Glass form controls, which is as wide as its content, fills its field
-//     as the other controls of the example do.
 //   - A frame that an example draws to hold the component: the box of `Flex`.
 //   - The cap of the `Overflow` example of `Tabs`, which makes the tab list
 //     overflow at each width of the frame.
@@ -30,9 +27,7 @@ import {
 const WIDTHS: Record<string, readonly string[]> = {
 	'docs/pages/components/tabs/overflow.tsx': ['max-w-sm'],
 	'docs/pages/modules/dashboard/build-and-save.tsx': ['w-56', 'w-full'],
-	'docs/pages/modules/form/filters/with-date-picker.tsx': ['w-full'],
 	'docs/pages/modules/grid/state/error.tsx': ['w-full'],
-	'docs/pages/providers/glass/form-controls.tsx': ['w-full'],
 	'docs/pages/structure/flex/wrap.tsx': ['w-64'],
 }
 
