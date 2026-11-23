@@ -86,7 +86,7 @@ describe('grid row reorder: a drag commits the new order (real browser)', () => 
 			'Carol',
 		])
 	})
-	it('commits no order for a drop after a lock arrives, and keeps the grips', async () => {
+	it('makes a drop after a lock arrives a cancel, and keeps the grips', async () => {
 		const onReorder = vi.fn()
 
 		let lock: () => void = () => {}
@@ -138,6 +138,14 @@ describe('grid row reorder: a drag commits the new order (real browser)', () => 
 		await held.release()
 
 		expect(onReorder).not.toHaveBeenCalled()
+
+		// The drop is a cancel, so the live region of dnd-kit says that the row went
+		// back. It does not say that a drop moved it.
+		const region = () => document.querySelector('[id^="DndLiveRegion"]')?.textContent ?? ''
+
+		await expect.poll(region).toContain('Returned Alice to position 1 of 3.')
+
+		expect(region()).not.toContain('Dropped')
 
 		// The lock changes no render: each row keeps its grip.
 		expect(screen.getAllByRole('button', { name: /^Reorder / })).toHaveLength(initial.length)
