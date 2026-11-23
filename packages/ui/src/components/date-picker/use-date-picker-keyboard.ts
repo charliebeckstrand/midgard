@@ -85,7 +85,7 @@ export const RECLAIM_KEYS: ReadonlySet<string> = new Set([
  *
  * @internal
  */
-function handleClosedKey(
+export function handleClosedKey(
 	event: KeyboardEvent<HTMLElement>,
 	openCalendar: () => void,
 	input: boolean,
@@ -101,7 +101,9 @@ function handleClosedKey(
 
 /**
  * Handles keys that apply in any zone while the calendar is open: Escape and
- * the Shift+Arrow jumps.
+ * the Shift+Arrow jumps. In `input` mode with no highlight, the user edits
+ * text, so Shift+ArrowUp and Shift+ArrowDown stay with the text field and
+ * select text.
  *
  * @returns `true` once a key is consumed so the caller can skip zone dispatch.
  * @internal
@@ -109,6 +111,7 @@ function handleClosedKey(
 function handleOpenGlobalKey(
 	event: KeyboardEvent<HTMLElement>,
 	context: DatePickerKeyContext,
+	editing: boolean,
 ): boolean {
 	if (event.key === 'Escape') {
 		event.preventDefault()
@@ -117,6 +120,8 @@ function handleOpenGlobalKey(
 
 		return true
 	}
+
+	if (editing) return false
 
 	// Shift+ArrowUp jumps to the toolbar from anywhere; Shift+ArrowDown jumps to the footer.
 	if (event.shiftKey && event.key === 'ArrowUp') {
@@ -178,7 +183,8 @@ function handlePageKey(
  * In `input` mode, no highlight means that the user edits text. Enter thus
  * goes to the DateInput, which commits the text, and Space does nothing. The
  * committing Enter closes an open calendar, so that it does not stay behind
- * the field. The arrow keys still put the highlight in the grid.
+ * the field. Only ArrowUp and ArrowDown put the highlight in the grid, as in
+ * an editable combobox. ArrowLeft and ArrowRight move the caret.
  *
  * @internal
  */
@@ -187,7 +193,11 @@ function handleNoActiveKey(
 	context: DatePickerKeyContext,
 	input: boolean,
 ) {
-	if (isArrowKey(event.key)) {
+	const entersGrid = input
+		? !event.shiftKey && (event.key === 'ArrowUp' || event.key === 'ArrowDown')
+		: isArrowKey(event.key)
+
+	if (entersGrid) {
 		event.preventDefault()
 
 		context.setActive({
@@ -496,16 +506,17 @@ export function useDatePickerKeyboard({
 				onFooterActivate,
 			}
 
-			if (handleOpenGlobalKey(event, context)) return
-
 			// On an arrow or a Page key, a toolbar button or a day button with DOM
 			// focus sets the zone of the model. Only a different zone, index, or day
 			// sets it again.
 			const mapped = zoneOfTarget(event)
 
-			if (isNewControl(active, mapped)) setActive(mapped)
-
 			const current = mapped ?? active
+
+			// In `input` mode with no zone, the key comes from the text field.
+			if (handleOpenGlobalKey(event, context, input && current === null)) return
+
+			if (isNewControl(active, mapped)) setActive(mapped)
 
 			if (handlePageKey(event, current, context)) return
 

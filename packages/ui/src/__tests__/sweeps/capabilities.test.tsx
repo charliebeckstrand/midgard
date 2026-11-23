@@ -324,6 +324,22 @@ const disablesInput = vi.defineHelper(({ render, slot }: TextInputSubject) => {
 	expect(getSlot(container, slot)).toBeDisabled()
 })
 
+/**
+ * The text-input sweep, Enter leg: Enter keeps the focus in the editable
+ * element. A field that blurs on Enter drops the focus to `<body>`.
+ */
+const keepsFocusOnEnter = vi.defineHelper(({ render, slot }: TextInputSubject) => {
+	const { container } = renderUI(render({}))
+
+	const element = getSlot(container, slot)
+
+	act(() => element.focus())
+
+	fireEvent.keyDown(element, { key: 'Enter' })
+
+	expect(element).toHaveFocus()
+})
+
 describe('component pass-through', () => {
 	for (const subject of passThrough) {
 		it(`${subject.slot} passes through HTML attributes`, () => passesThrough(subject))
@@ -378,6 +394,8 @@ describe('component text inputs', () => {
 		it(`${subject.title} passes through placeholder`, () => passesPlaceholder(subject))
 
 		it(`${subject.title} disables the editable element when disabled`, () => disablesInput(subject))
+
+		it(`${subject.title} keeps focus on Enter`, () => keepsFocusOnEnter(subject))
 	}
 
 	it('has subjects to sweep', () => {
@@ -534,6 +552,22 @@ function UnstampedDisclosure({ open, disabled }: { open: boolean; disabled?: boo
  * fails here too.
  */
 describe('capability sweeps: teeth checks', () => {
+	it('fails a text input that blurs on Enter', () => {
+		expect(() =>
+			keepsFocusOnEnter({
+				render: () => (
+					<input
+						data-slot="blurring"
+						onKeyDown={(event) => {
+							if (event.key === 'Enter') event.currentTarget.blur()
+						}}
+					/>
+				),
+				slot: 'blurring',
+			}),
+		).toThrow()
+	})
+
 	it('fails a component that drops the props it is given', () => {
 		expect(() =>
 			passesThrough({ render: () => <div data-slot="dropping" />, slot: 'dropping' }),

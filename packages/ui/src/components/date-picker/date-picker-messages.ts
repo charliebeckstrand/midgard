@@ -1,4 +1,21 @@
 import { defineMessages } from '../../primitives/intl/intl-messages'
+import type { MessageSet } from '../../primitives/intl/types'
+
+// The values of each message, by key.
+type Values = {
+	actions: Record<never, never>
+	today: Record<never, never>
+	openCalendar: Record<never, never>
+	closeCalendar: Record<never, never>
+	selectDate: Record<never, never>
+	selectDates: Record<never, never>
+	selectRange: Record<never, never>
+	customRange: Record<never, never>
+	backToPresets: Record<never, never>
+	start: Record<never, never>
+	rangeStartSet: { date: string }
+	end: Record<never, never>
+}
 
 /**
  * The messages of the date picker: the placeholders of its trigger, the name
@@ -7,7 +24,7 @@ import { defineMessages } from '../../primitives/intl/intl-messages'
  *
  * @internal
  */
-export const datePickerMessages = defineMessages({
+export const datePickerMessages: MessageSet<Values> = defineMessages<Values>({
 	actions: {
 		id: 'ui.datePicker.actions',
 		defaultMessage: 'Date picker actions',
@@ -60,6 +77,12 @@ export const datePickerMessages = defineMessages({
 		id: 'ui.datePicker.start',
 		defaultMessage: 'Start',
 		description: 'The label of the field of the first date of a custom range.',
+	},
+	rangeStartSet: {
+		id: 'ui.datePicker.rangeStartSet',
+		defaultMessage: 'Start date {date}. Select the end date.',
+		description:
+			'Spoken by a screen reader after the first press in a range calendar. {date} is the full name of the start day, such as Tuesday, June 10, 2025.',
 	},
 	end: {
 		id: 'ui.datePicker.end',
