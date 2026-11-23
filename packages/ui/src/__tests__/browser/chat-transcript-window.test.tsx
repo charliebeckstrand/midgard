@@ -551,6 +551,33 @@ describe('the button that goes to the newest message', () => {
 		expect(getNewest(container)).toBeNull()
 	})
 
+	// A branch switch can leave a reply too short to overflow. The browser then
+	// clamps the scroll to the end, and iOS sends no `scroll` event for that.
+	it('hides when the messages no longer overflow', async () => {
+		const turn = (reply: string): ChatMessageData[] => [
+			{ id: 'ask', sender: 'user', content: 'How are late stops trending?' },
+			{ id: 'reply', sender: 'assistant', content: reply },
+		]
+
+		const { container, transcript, rerender } = await mountAtEnd(turn(filler(4).repeat(12)))
+
+		await scrollTo(transcript, 0)
+
+		await waitFor(() => expect(getNewest(container)).not.toBeNull())
+
+		const mute = (event: Event) => event.stopImmediatePropagation()
+
+		window.addEventListener('scroll', mute, true)
+
+		onTestFinished(() => window.removeEventListener('scroll', mute, true))
+
+		rerender(<Frame messages={turn('Late stops rose.')} />)
+
+		await waitFor(() => expect(transcript.scrollHeight).toBe(transcript.clientHeight))
+
+		await waitFor(() => expect(getNewest(container)).toBeNull())
+	})
+
 	it('stays hidden while the transcript follows a new row', async () => {
 		const messages = history(200)
 
