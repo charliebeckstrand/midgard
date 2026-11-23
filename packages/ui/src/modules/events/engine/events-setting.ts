@@ -84,7 +84,8 @@ export function isEventsOn(): boolean {
  *
  * The trail writes `***` for the value of a secret field and for each
  * character that a key types into it. A password field is a secret field. So
- * is an input with the `autocomplete` token `cc-number`, `cc-exp`, `cc-csc`,
+ * is an input with the `autocomplete` token `cc-number`, `cc-exp`,
+ * `cc-exp-month`, `cc-exp-year`, `cc-csc`, `current-password`, `new-password`,
  * or `one-time-code`. So is each field in an element with the
  * `data-events-mask` attribute: an `input`, a `textarea`, a `select`, a
  * `contenteditable` element, or a `Select`. The mask reaches the panel of a

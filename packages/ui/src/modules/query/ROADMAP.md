@@ -1,6 +1,6 @@
 # Query roadmap
 
-> **Goal: make the builder safe in each lock scope, and give the engine the operators that real data needs.** The engine, the views, and the URL adapter work. The next work closes the gaps that the lock scope, the date type, and the grid filter show.
+> **Goal: give the engine the operators that real data needs.** The engine, the views, the URL adapter, and the lock scope work. The next work closes the gaps that the date type and the grid filter show.
 
 ## Status
 
@@ -26,7 +26,7 @@ Under `reorder`, the builder moves nodes over the `Reorder` of Motion. The modul
 
 ## Engine
 
-The Query domain lives in [`engine/`](engine), a pure functional core. It has no `'use client'` and no runtime `react`, `motion`, `@dnd-kit`, or `@floating-ui` import. It has no `index` barrel and no runtime import from the module root. [`engine-purity-boundary.test.ts`](../../__tests__/boundary/engine-purity-boundary.test.ts) holds this invariant for each pure engine together.
+The Query domain lives in [`engine/`](engine), a pure functional core. It has no `'use client'` and no runtime `react`, `motion`, `@dnd-kit`, or `@floating-ui` import. It has no `index` barrel and no runtime import of a file of the module outside `engine/`. [`engine-purity-boundary.test.ts`](../../__tests__/boundary/engine-purity-boundary.test.ts) holds this invariant for each pure engine together.
 
 [`module-filename-boundary.test.ts`](../../__tests__/boundary/module-filename-boundary.test.ts) holds the `query-*` file names of the engine and the `types.ts` exemption.
 
