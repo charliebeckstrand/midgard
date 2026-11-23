@@ -103,8 +103,8 @@ export type ChatTranscriptProps = Omit<ComponentProps<'div'>, 'children' | 'cont
 	 */
 	streaming?: boolean
 	/**
-	 * The id of the message that the composer edits. That message dims, as the
-	 * `editing` of {@link ChatMessage} tells.
+	 * The id of the message that the composer edits. A ring marks that message,
+	 * as the `editing` of {@link ChatMessage} tells.
 	 */
 	editing?: string
 	/**
@@ -565,7 +565,7 @@ export function ChatTranscript({
 			aria-live="off"
 			className={cn(slots.base, className)}
 		>
-			<div ref={contentRef}>
+			<div ref={contentRef} className={slots.content}>
 				{measured && topSpacer > 0 && <div aria-hidden="true" style={{ height: topSpacer }} />}
 				{indexes.map((index) => {
 					const message = messages[index]

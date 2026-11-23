@@ -20,6 +20,10 @@ export const k = defineKata(
 			// The gap is each row's own top padding instead. Every row after the first
 			// carries it, because the first sits flush.
 			row: 'pt-6',
+			// The ring of a bubble that the composer edits sits 4px out of the
+			// bubble. The scroll clips what is past its edge, so the rows keep that
+			// room on each side.
+			content: 'px-1',
 			// The first row when the rows have a hover toolbar. The toolbar rises
 			// above its message, and the scroll clips what sits above the first row,
 			// so this keeps room for it. A device with no hover shows the actions as

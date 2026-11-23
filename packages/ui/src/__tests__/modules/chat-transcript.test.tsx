@@ -81,16 +81,16 @@ describe('ChatTranscript', () => {
 		expect(screen.getByRole('log', { name: 'Support chat' })).toBeInTheDocument()
 	})
 
-	it('dims only the bubble of the message that the composer edits', () => {
+	it('rings only the message that the composer edits', () => {
 		const { container } = renderUI(<ChatTranscript messages={messages} editing="1" />)
 
-		const dimmed = allBySlot(container, 'chat-message-bubble').filter((el) =>
-			el.classList.contains('opacity-60'),
+		const edited = allBySlot(container, 'chat-message').filter((el) =>
+			el.hasAttribute('data-editing'),
 		)
 
-		expect(dimmed).toHaveLength(1)
+		expect(edited).toHaveLength(1)
 
-		expect(present(dimmed[0], 'edited bubble')).toHaveTextContent('Hi there')
+		expect(present(edited[0], 'edited message')).toHaveTextContent('Hi there')
 	})
 
 	describe('the row callbacks', () => {

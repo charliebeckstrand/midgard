@@ -3,7 +3,8 @@
  * in each bubble. The message count comes from the composing skeleton.
  *
  * `root` fills the flex parent of the transcript, as the real transcript
- * does, and clips in place of a scroll. `bubble` has the width cap, the
+ * does, and clips in place of a scroll. It keeps the side room of the rows of
+ * the real transcript. `bubble` has the width cap, the
  * padding, and the radius of the real bubble, and `tail` holds the corner of
  * each side. The real bubble reads `bubble` and `tail` too, so the two cannot
  * drift apart. Each line has the 6-unit line height of the `md` text of the
@@ -17,7 +18,8 @@
  */
 
 export const chat = {
-	root: 'min-h-0 flex-1 overflow-hidden',
+	// The `px-1` is the room that the real transcript keeps on each side of its rows.
+	root: 'min-h-0 flex-1 overflow-hidden px-1',
 	bubble: [
 		// The cap is 85% of the message, with a floor of 12rem, and never more than
 		// the full message. A shrink-to-fit parent (an inline-flex box, an auto grid
