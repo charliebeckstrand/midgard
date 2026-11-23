@@ -18,6 +18,7 @@ export default function PasteAndFill() {
 				/>
 			</EditHelp>
 			<Grid
+				tableProps={{ 'aria-label': 'Paste and fill' }}
 				columns={personColumns}
 				rows={people}
 				getKey={(row) => row.id}

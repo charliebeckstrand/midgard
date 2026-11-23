@@ -110,9 +110,15 @@ const wrapper = [flex.col, 'flex-1', 'min-w-0']
 // The content block is flat in the drawer layout and a card in the inline
 // layout (`content`). Each sets `--surface-fill`, which the sticky
 // header reads.
+//
+// The block is the main landmark and the target of the skip link. It takes the
+// focus only from the skip link, and it is not a control, so it shows no focus
+// ring (WCAG 2.4.7 is for a control). The next Tab shows the focus in the
+// content.
 const content = [
 	flex.col,
 	'grow',
+	'outline-none',
 	// The padding follows the nearest density scope.
 	space.shell.x,
 	space.shell.bottom,
@@ -126,11 +132,8 @@ const content = [
 const header = [flex.row, 'shrink-0', space.shell.bottom]
 
 // The body grows into the free height of the content region, so the footer
-// sits at the bottom of a short page. It scrolls with the page. It takes the
-// focus only from the skip link, and it is not a control, so it shows no focus
-// ring (WCAG 2.4.7 is for a control). The next Tab shows the focus in the
-// content.
-const body = ['flex-1', 'outline-none']
+// sits at the bottom of a short page. It scrolls with the page.
+const body = 'flex-1'
 
 // The skip link is first in the tab order. It is visually hidden until it has
 // the focus. Then it floats at the top center of the viewport, over the sticky

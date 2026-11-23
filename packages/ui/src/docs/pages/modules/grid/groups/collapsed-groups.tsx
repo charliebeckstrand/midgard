@@ -5,6 +5,7 @@ export default function CollapsedGroups() {
 	// Each group starts collapsed, with its value and its count.
 	return (
 		<Grid
+			tableProps={{ 'aria-label': 'Collapsed groups' }}
 			columns={columns}
 			rows={people}
 			getKey={(row) => row.id}

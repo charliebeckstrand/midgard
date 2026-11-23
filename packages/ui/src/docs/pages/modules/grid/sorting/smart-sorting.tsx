@@ -22,6 +22,7 @@ const invoiceColumns: GridColumn<Invoice>[] = [
 export default function SmartSorting() {
 	return (
 		<Grid
+			tableProps={{ 'aria-label': 'Smart sorting' }}
 			columns={invoiceColumns}
 			rows={invoices}
 			getKey={(row) => row.id}

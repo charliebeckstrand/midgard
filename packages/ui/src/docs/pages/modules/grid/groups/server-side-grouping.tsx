@@ -176,6 +176,7 @@ export default function ServerSideGrouping() {
 	// and the rows of each group that opened.
 	return (
 		<Grid
+			tableProps={{ 'aria-label': 'Server side grouping' }}
 			columns={orderColumns}
 			rows={rows}
 			getKey={(row) => row.id}

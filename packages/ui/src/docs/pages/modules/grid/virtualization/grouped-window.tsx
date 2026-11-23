@@ -6,6 +6,7 @@ export default function GroupedWindow() {
 	// A row out of the window unmounts.
 	return (
 		<Grid
+			tableProps={{ 'aria-label': 'Grouped window' }}
 			columns={columns}
 			rows={manyPeople}
 			getKey={(row) => row.id}

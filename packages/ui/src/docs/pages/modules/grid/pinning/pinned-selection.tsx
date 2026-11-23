@@ -10,6 +10,7 @@ export default function PinnedSelection() {
 	// The selection column stays at the left edge, before the pinned Name column.
 	return (
 		<Grid
+			tableProps={{ 'aria-label': 'Pinned selection' }}
 			resizable
 			columns={selectColumns}
 			rows={employees}

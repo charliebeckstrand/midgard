@@ -31,7 +31,12 @@ describe('Landmark', () => {
 			</SidebarLayout>,
 		)
 
-		expect(readTagNames(container, 'body')).toEqual(['main', 'div', 'div'])
+		// The content column of the outer SidebarLayout is the main landmark.
+		expect(readTagNames(container, 'sidebar-content')).toEqual(['main', 'div'])
+
+		expect(readTagNames(container, 'body')).toEqual(['div', 'div', 'div'])
+
+		expect(container.querySelectorAll('main')).toHaveLength(1)
 	})
 
 	it('is a div for the auth and the dashboard layouts in another layout', () => {

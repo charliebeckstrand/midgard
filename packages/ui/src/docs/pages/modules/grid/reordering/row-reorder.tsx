@@ -11,6 +11,7 @@ export default function RowReorder() {
 	// new order.
 	return (
 		<Grid
+			tableProps={{ 'aria-label': 'Row reorder' }}
 			columns={dragColumns}
 			rows={rows}
 			getKey={(row) => row.id}

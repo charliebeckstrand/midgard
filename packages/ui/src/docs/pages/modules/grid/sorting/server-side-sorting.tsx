@@ -51,6 +51,7 @@ export default function ServerSideSorting() {
 
 	return (
 		<Grid
+			tableProps={{ 'aria-label': 'Server side sorting' }}
 			columns={columns}
 			rows={rows}
 			getKey={(row) => row.id}

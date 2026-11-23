@@ -11,6 +11,7 @@ const lockedColumns: GridColumn<Employee>[] = employeeColumns.map((column) => {
 export default function LockedOnBothEdges() {
 	return (
 		<Grid
+			tableProps={{ 'aria-label': 'Locked on both edges' }}
 			resizable
 			columns={lockedColumns}
 			rows={employees}

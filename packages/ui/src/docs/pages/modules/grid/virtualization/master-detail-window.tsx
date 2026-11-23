@@ -10,6 +10,7 @@ export default function MasterDetailWindow() {
 	// render, so it keeps no state.
 	return (
 		<Grid
+			tableProps={{ 'aria-label': 'Master detail window' }}
 			columns={expandColumns}
 			rows={manyPeople}
 			getKey={(row) => row.id}

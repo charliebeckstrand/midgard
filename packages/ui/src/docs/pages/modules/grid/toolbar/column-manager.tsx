@@ -7,6 +7,7 @@ export default function ColumnManager() {
 	// manager moves the columns when `reorder` is on.
 	return (
 		<Grid
+			tableProps={{ 'aria-label': 'Column manager' }}
 			reorder
 			columns={columns}
 			rows={people}

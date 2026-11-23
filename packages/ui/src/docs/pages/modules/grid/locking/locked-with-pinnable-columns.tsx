@@ -10,6 +10,7 @@ const lockedColumns: GridColumn<Employee>[] = employeeColumns.map((column) => {
 export default function LockedWithPinnableColumns() {
 	return (
 		<Grid
+			tableProps={{ 'aria-label': 'Locked with pinnable columns' }}
 			resizable
 			columns={lockedColumns}
 			rows={employees}

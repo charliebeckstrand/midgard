@@ -80,6 +80,7 @@ export default function BulkEdit() {
 				Select rows, then use Edit selected to change them together.
 			</EditHelp>
 			<Grid
+				tableProps={{ 'aria-label': 'Bulk edit' }}
 				columns={columns}
 				rows={rates}
 				getKey={(row) => row.id}
