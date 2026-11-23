@@ -1,6 +1,6 @@
 # Grid roadmap
 
-> **Goal: finish the spreadsheet model of the cell range, and keep each gesture measured.** The engine work is done: TanStack Table v9 holds only the column state, and the grid computes its rows itself. The open work is the range features that the first range release left out, a short list of AG Grid gaps, and two churn costs.
+> **Goal: finish the spreadsheet model of the cell range, and keep each gesture measured.** The engine work is done: TanStack Table v9 holds only the column state, and the grid computes its rows itself. The open work is a range gesture for touch, a short list of AG Grid gaps, and two leads for the cost of a sort.
 
 ## Status
 
@@ -44,19 +44,21 @@ Each shared rule has one definition, so its tests prove an optimization safe bef
 
 Each change follows the loop of the [browser benchmark README](../../__benchmarks__/browser/README.md): a snapshot before, the change, and the same run after, row by row. The node benches and the pure cores then find the responsible function. [`grid-row-passes.test.tsx`](../../__tests__/modules/grid-row-passes.test.tsx) asserts the passes that each gesture makes over the loaded rows, and the commits of each gesture. A change that removes a pass changes its entry in `PASSES` in the same commit.
 
-1. **Window-scoped row arrays (*P2*).** The windowed body reads arrays of every loaded row. A cached sort flip copies the rows and the keys in view order. A refresh and an append each build arrays of the whole set. A window renders only its rows, so these arrays can cover the window and not the set. The windowed `PASSES` of [`grid-row-passes.test.tsx`](../../__tests__/modules/grid-row-passes.test.tsx) record one pass of `getKey` over the loaded rows for a flip, a refresh, and an append. The change removes those passes, and [`grid-scroll.bench.tsx`](../../__benchmarks__/browser/grid-scroll.bench.tsx) must not regress.
+1. **A rank for each distinct text of a sort column (*P3*).** A text sort spends 75 to 88% of `computeSortOrder` in the collation of the text ([`engine/grid-sort/utilities.ts`](engine/grid-sort/utilities.ts)). A column with few distinct values, such as a status or a carrier, compares the same pairs many times. A sort can collate each distinct value one time, give it a rank, and then compare the ranks. On 2026-11-23, at 100,000 rows, a prototype took a column of 10 distinct values from 41 to 18 ms. It took a column of 365 distinct values from 195 to 29 ms. At 95,000 distinct values it was slower, so the sort must choose the path by the count of distinct values. The comparator tests and the `computeSortOrder` rows of [`grid-sorting.bench.ts`](../../__benchmarks__/grid-sorting.bench.ts) prove it.
 
-2. **A sort decode with no object for each row (*P2*).** `toSortKey` in [`engine/grid-sort/utilities.ts`](engine/grid-sort/utilities.ts) makes one `SortKey` object for each row, with the date, boolean, numeric, and text fields of the value. A sorted refresh decodes each loaded row one time, and so does the first flip of a sort. Typed parallel arrays (a `Float64Array` for the numbers and times, a `Uint8Array` for the kind, and one array of text) can hold the same keys. The `toSortKey` and `computeSortOrder` rows of [`grid-sorting.bench.ts`](../../__benchmarks__/grid-sorting.bench.ts) prove it, and the comparator tests must still pass.
-
-## Accessibility and testing
-
-1. **A bench for the writes of a range (*P2*).** [`grid-range.bench.tsx`](../../__benchmarks__/browser/grid-range.bench.tsx) times the extend and the shrink of a range, and no bench times a paste or a fill. A paste of a large block goes through `parse` and `validate` for each cell, one `onCommit`, and one history step. Add a paste scenario and a fill-down scenario on the editable grid of that file, at 1,000 rows without a window. A later change to a paste or a fill then changes a measured path.
+2. **A fast path for a sort column of numbers (*P3*).** A column where each value is a finite number can sort the numbers with no `SortKey` and no check of the kind. On 2026-11-23, at 100,000 rows, a prototype took 31% off `computeSortOrder`. One blank value turns the path off, because a blank sorts last in each direction. The open question is whether the gain is worth a second path beside the one comparator.
 
 ## Not planned
 
 - An imperative repaint of the sort, which reorders the window in place from the cached order. On 2026-11-21, at 100,000 rows of a string column, [`grid-sorting.bench.ts`](../../__benchmarks__/grid-sorting.bench.ts) gave `computeSortOrder` about 58 ms and `materializeSort` about 2.3 ms. The cached order already removes the costly half, and the rest of a browser sort is the top-level commit and the virtualizer. The window is a small set of memoized rows that React moves, not mounts, so a repaint attacks a small surface. Reopen it only when a profile puts real time on the reconciliation of the window.
 
-- A `Uint32Array` for the sort order. The order is an array of small integers, which V8 already keeps packed with no boxing. The cost of a sort is in the decode of the keys, and Performance item 2 takes that cost.
+- A `Uint32Array` for the sort order. The order is an array of small integers, which V8 already keeps packed with no boxing.
+
+- Row arrays that cover only the window. On 2026-11-23, at 100,000 rows, each pass of `getKey` over the loaded rows cost 1 to 2 ms. A flip, a refresh, and an append each make one. The selection, the editing, the row reorder, and the cursor each read the key of every loaded row. Thus most of these arrays must cover the set.
+
+- A sort decode with no object for each row. On 2026-11-23, at 100,000 rows, `toSortKey` was 5 to 20% of `computeSortOrder`. The collation of the text was 75 to 88% of a text sort. A prototype with typed parallel arrays passed the comparator tests. It took 23% off a column of numbers and nothing off a column of text. It adds a second encoding of the comparator rules, and the cached order already removes the decode from each flip after the first. Performance item 2 takes the gain on numbers with a smaller change.
+
+- A bench for the writes of a range before a change to them. No app pastes or fills ([Status](#status)), and no open item changes a paste or a fill. A change to a paste or a fill writes its bench first, beside [`grid-range.bench.tsx`](../../__benchmarks__/browser/grid-range.bench.tsx).
 
 - Several ranges at once. Copy, paste, and fill have no defined shape for ranges that do not touch, and Excel refuses a copy of most such ranges. Ctrl+click is also a browser gesture (`hasBrowserModifier`, [`CONVENTIONS.md`](../../../../../CONVENTIONS.md) §3.10).
 
