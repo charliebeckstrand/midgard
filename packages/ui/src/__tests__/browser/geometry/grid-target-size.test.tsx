@@ -4,10 +4,9 @@ import { renderUI, screen } from '../../helpers'
 import { getCenter } from '../../helpers/geometry/box'
 
 /**
- * Target size (WCAG 2.5.8): the pinned-column unpin button is a 24x24 box with
- * a 20px glyph at its center. The reorder grip renders a 20px glyph, under the
- * 24x24 minimum. A centered transparent `::before` expands its *hit* area
- * without moving the glyph. Verified in a real browser
+ * Target size (WCAG 2.5.8): the pinned-column unpin button and the reorder grip
+ * render a 20px glyph, under the 24x24 minimum. A centered transparent `::before`
+ * expands the *hit* area without moving the glyph. Verified in a real browser
  * (the pseudo-element's hit area needs a layout engine) by probing points just
  * outside the glyph box (top, bottom, and right; the left edge sits flush to the
  * table's scroll boundary, with no adjacent target) and confirming the control is
@@ -43,7 +42,7 @@ describe('grid target size (real browser)', () => {
 		return hits(cx, box.top - 2) && hits(cx, box.bottom + 2) && hits(box.right + 2, cy)
 	}
 
-	it('gives the pinned unpin button a 24x24 box', async () => {
+	it('expands the pinned unpin button hit area beyond its glyph', async () => {
 		renderUI(
 			<div style={{ width: '320px' }}>
 				<Grid columns={columns} rows={rows} getKey={getKey} />
@@ -52,11 +51,7 @@ describe('grid target size (real browser)', () => {
 
 		const button = await screen.findByRole('button', { name: 'Unpin Name' })
 
-		const box = button.getBoundingClientRect()
-
-		expect(box.width).toBeGreaterThanOrEqual(24)
-
-		expect(box.height).toBeGreaterThanOrEqual(24)
+		expect(expandsHitArea(button)).toBe(true)
 	})
 
 	it('expands the reorder grip hit area beyond its glyph', async () => {
