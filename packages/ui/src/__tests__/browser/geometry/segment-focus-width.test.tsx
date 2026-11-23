@@ -20,7 +20,7 @@ describe('Segment: keyboard focus on an item that is not current', () => {
 			</Segment>,
 		)
 
-		const board = document.querySelectorAll<HTMLElement>('[role="tab"]')[1] as HTMLElement
+		const board = document.querySelectorAll<HTMLElement>('[role="radio"]')[1] as HTMLElement
 
 		const width = board.getBoundingClientRect().width
 

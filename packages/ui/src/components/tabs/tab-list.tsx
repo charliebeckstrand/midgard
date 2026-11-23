@@ -1,7 +1,7 @@
 'use client'
 
 import { useComposedRefs } from 'motion/react'
-import { type ComponentProps, useRef } from 'react'
+import { type ComponentProps, type KeyboardEvent, useRef } from 'react'
 import { cn } from '../../core/cn'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { useA11yRoving } from '../../hooks/a11y/use-a11y-roving'
@@ -62,7 +62,8 @@ export type TabListProps = AccessibleName &
 	Omit<ComponentProps<'div'>, 'aria-label' | 'aria-labelledby'>
 
 /**
- * `role="tablist"` container for `<Tab>` children. Manages roving focus along
+ * `role="tablist"` container for `<Tab>` children, or a `role="radiogroup"` in a
+ * segment group with no panels (see {@link Tabs}). Manages roving focus along
  * the resolved `orientation`, and scopes the shared `<ActiveIndicator>`
  * animation. The indicator morphs only along that orientation. A container that
  * moves the list, such as a Dialog that takes its height from the panel, thus
@@ -96,32 +97,68 @@ export function TabList({
 	// Roving reads `ref`, so a consumer `ref` joins it, with the tabbable floor.
 	const setList = useComposedRefs(ref, consumerRef, observeTabbableFloor)
 
-	const handleKeyDown = useA11yRoving(ref, {
+	const rove = useA11yRoving(ref, {
 		itemSelector: TAB_SELECTOR,
 		orientation,
 	})
 
+	const choice = tabsContext?.choice === true
+
+	// In a choice group, the item that an arrow key focuses is also selected, as
+	// a native radio is. The click goes through the handler of the item, so a
+	// locked item keeps the value.
+	const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+		const document = event.currentTarget.ownerDocument
+
+		const before = document.activeElement
+
+		rove(event)
+
+		const after = document.activeElement
+
+		if (choice && after !== before && after instanceof HTMLElement && after.matches(TAB_SELECTOR))
+			after.click()
+	}
+
 	const handleFocus = useTabListScroll(orientation)
 
-	const list = (
+	// Roving takes no gate: the consumer's handler runs first, then roving.
+	const keyDown = composeEventHandlers(onKeyDown, handleKeyDown, {
+		checkForDefaultPrevented: false,
+	})
+
+	// Scrolls a focused tab into the viewport after the consumer's handler.
+	const focus = composeEventHandlers(onFocus, handleFocus, { checkForDefaultPrevented: false })
+
+	const listClass = cn(isSegment ? k.segment.control : slots.list, className)
+
+	// Consumer props spread first; the role, the orientation and the roving
+	// handler after them take precedence. A choice group is horizontal, so its
+	// radiogroup states no orientation.
+	const list = choice ? (
 		<div
 			ref={setList}
 			data-slot="tab-list"
 			data-orientation={orientation}
-			className={cn(isSegment ? k.segment.control : slots.list, className)}
-			// Consumer props spread first; the role, the orientation and the roving
-			// handler below take precedence.
+			className={listClass}
+			{...props}
+			role="radiogroup"
+			onKeyDown={keyDown}
+			onFocus={focus}
+		>
+			{children}
+		</div>
+	) : (
+		<div
+			ref={setList}
+			data-slot="tab-list"
+			data-orientation={orientation}
+			className={listClass}
 			{...props}
 			role="tablist"
 			aria-orientation={orientation}
-			// Roving takes no gate: the consumer's handler runs first, then roving.
-			onKeyDown={composeEventHandlers(onKeyDown, handleKeyDown, {
-				checkForDefaultPrevented: false,
-			})}
-			// Scrolls a focused tab into the viewport after the consumer's handler.
-			onFocus={composeEventHandlers(onFocus, handleFocus, {
-				checkForDefaultPrevented: false,
-			})}
+			onKeyDown={keyDown}
+			onFocus={focus}
 		>
 			{children}
 		</div>

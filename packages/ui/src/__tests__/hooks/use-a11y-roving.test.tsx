@@ -558,6 +558,46 @@ describe('useA11yRoving', () => {
 	})
 })
 
+describe('useA11yRoving: nested containers', () => {
+	// A Segment in a Toolbar: the inner container moves the focus for a key on
+	// its item, so the outer container does not move it again.
+	it('leaves a key whose target is in a nearer roving container to that container', () => {
+		const outer = attach(document.createElement('div'))
+
+		outer.innerHTML =
+			'<button>Bold</button><div data-inner><button>A</button><button>B</button></div><button>Italic</button>'
+
+		const inner = present(outer.querySelector<HTMLElement>('[data-inner]'), 'the inner container')
+
+		const [bold, a, b] = Array.from(outer.querySelectorAll('button'), (button, index) =>
+			present(button, `button ${index}`),
+		)
+
+		const outerHandler = renderRoving(outer, { itemSelector: 'button' }).current
+
+		const innerHandler = renderRoving(inner, { itemSelector: 'button' }).current
+
+		expect(inner).toHaveAttribute('data-roving-root')
+
+		present(a, 'A').focus()
+
+		const event = makeKeyEvent('ArrowDown', { target: present(a, 'A') })
+
+		innerHandler(event)
+
+		outerHandler(event)
+
+		expect(document.activeElement).toBe(b)
+
+		// A key on an item of the outer container still moves the outer focus.
+		present(bold, 'Bold').focus()
+
+		outerHandler(makeKeyEvent('ArrowDown', { target: present(bold, 'Bold') }))
+
+		expect(document.activeElement).toBe(a)
+	})
+})
+
 describe('useA11yRoving: manageTabIndex', () => {
 	// Native <button>s start tabbable (tabIndex 0); the hook collapses them to
 	// a single resting stop.

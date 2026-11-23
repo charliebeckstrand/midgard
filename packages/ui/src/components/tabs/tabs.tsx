@@ -43,6 +43,13 @@ export type TabsProps = Omit<ComponentProps<'div'>, 'defaultValue'> & {
  * context for its list and panels. Controlled or uncontrolled via
  * `value`/`defaultValue`; the `segment` variant forces horizontal orientation.
  * An explicit `size` makes the group a density scope.
+ *
+ * A `segment` group with no `TabContents` and no `TabContent` picks a value and
+ * shows no panel. Its list is then a `radiogroup`, and each item is a `radio`
+ * with `aria-checked`. An arrow key moves the focus and selects the item, as in
+ * a group of native radios. A group with panels keeps the tab roles. The
+ * server and the first client render do not know of the panels, so they render
+ * the radio roles. The tab roles follow when a panel registers.
  */
 export function Tabs({
 	value,
@@ -94,6 +101,11 @@ export function Tabs({
 
 	const panelsPresent = panelsCount > 0
 
+	// A segmented control with no panels picks a value, as a set of radios does.
+	// The role `tab` tells a reader that a panel shows, so the group takes the
+	// radio roles until a panel registers.
+	const choice = variant === 'segment' && !panelsPresent
+
 	const tabsContext = useMemo(
 		() => ({
 			variant,
@@ -103,6 +115,7 @@ export function Tabs({
 			registerMountedPanels,
 			panelsPresent,
 			registerPanels,
+			choice,
 		}),
 		[
 			variant,
@@ -112,6 +125,7 @@ export function Tabs({
 			registerMountedPanels,
 			panelsPresent,
 			registerPanels,
+			choice,
 		],
 	)
 
