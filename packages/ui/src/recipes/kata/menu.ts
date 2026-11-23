@@ -43,6 +43,8 @@ const row = defineKata({
 		dan.space.option.y,
 		dan.text.body,
 	],
+	// The description is one step below the body text of the row.
+	slots: { description: dan.text.small },
 })
 
 export const k = defineKata(
