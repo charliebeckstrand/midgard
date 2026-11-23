@@ -84,7 +84,7 @@ const targets = {
 }
 
 // A pane of the group: a card with a title, a Clear control while a selection
-// applies, and a surface that fills the rest of the card.
+// applies, and a surface under them.
 function Pane({
 	title,
 	onClear,
@@ -174,8 +174,10 @@ export default function SelectsInAMapAndAChart() {
 			>
 				<ChatTranscript messages={messages} />
 			</ChatCitationProvider>
-			{/* The handle between the panes resizes both at once. Each surface fills its pane. */}
-			<ResizableGroup className="h-80">
+			{/* The handle between the panes resizes both at once. Each surface keeps its
+			    aspect ratio, so it gets taller as its pane gets wider, and the taller
+			    surface sets the height of the group. */}
+			<ResizableGroup>
 				<ResizablePanel defaultSize={50} minSize={25}>
 					<Pane
 						title="Late stops"
@@ -185,10 +187,9 @@ export default function SelectsInAMapAndAChart() {
 							aria-label="Late stops"
 							geography={states}
 							projection="albers-usa"
-							aspectRatio={false}
 							// The title of the pane names the one group of dots, as the title of
 							// the chart names its one series. A legend would only take height
-							// from the map in a short pane.
+							// from the map.
 							legend={false}
 							selectedOverlays={
 								cited?.target === 'late-stops'
@@ -210,7 +211,6 @@ export default function SelectsInAMapAndAChart() {
 							aria-label="Late stops by day"
 							data={data}
 							series={[{ xKey: 'day', yKey: 'late', yName: 'Late stops' }]}
-							aspectRatio={false}
 							// An active citation marks its bar. Without one, the bar of the
 							// reader's own pick is marked.
 							selectedCategories={
