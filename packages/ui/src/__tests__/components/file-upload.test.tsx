@@ -101,7 +101,7 @@ describe('FileUpload drop variant selection', () => {
 		expect(screen.getByText('Drop files here or click to browse').tagName).toBe('SPAN')
 	})
 
-	it('replaces the prompt with the filename and a Reset button once a file is selected', () => {
+	it('replaces the prompt with the filename and a clear button once a file is selected', () => {
 		const { container } = renderUI(<FileUploadDrop />)
 
 		selectFiles(container, [resume])
@@ -110,7 +110,7 @@ describe('FileUpload drop variant selection', () => {
 
 		expect(screen.getByText('resume.pdf')).toBeInTheDocument()
 
-		expect(screen.getByRole('button', { name: 'Reset' })).toBeInTheDocument()
+		expect(screen.getByRole('button', { name: 'Clear selected file' })).toBeInTheDocument()
 	})
 
 	it('keeps the dropzone operable so a different file can be picked after a selection', () => {
@@ -135,14 +135,14 @@ describe('FileUpload drop variant selection', () => {
 		expect(screen.getByText('2 files selected')).toBeInTheDocument()
 	})
 
-	it('clears the selection and restores the drop prompt when Reset is clicked', () => {
+	it('clears the selection and restores the drop prompt when the clear button is clicked', () => {
 		const onAccept = vi.fn()
 
 		const { container } = renderUI(<FileUploadDrop onAccept={onAccept} />)
 
 		selectFiles(container, [resume])
 
-		fireEvent.click(screen.getByRole('button', { name: 'Reset' }))
+		fireEvent.click(screen.getByRole('button', { name: 'Clear selected file' }))
 
 		expect(screen.getByText('Drop files here or click to browse')).toBeInTheDocument()
 
@@ -158,7 +158,7 @@ describe('FileUpload drop variant selection', () => {
 
 		expect(screen.queryByText('resume.pdf')).not.toBeInTheDocument()
 
-		expect(screen.queryByRole('button', { name: 'Reset' })).not.toBeInTheDocument()
+		expect(screen.queryByRole('button', { name: 'Clear selected file' })).not.toBeInTheDocument()
 	})
 })
 
@@ -292,7 +292,7 @@ describe('FileUpload input variant under headless', () => {
 })
 
 describe('FileUpload button variant under headless', () => {
-	it('gives the trigger and Reset no cursor class', () => {
+	it('gives the trigger and the clear button no cursor class', () => {
 		const { container } = renderUI(
 			<HeadlessProvider>
 				<FileUploadButton>Pick</FileUploadButton>
@@ -301,7 +301,7 @@ describe('FileUpload button variant under headless', () => {
 
 		selectFiles(container, [resume])
 
-		for (const name of ['Pick', 'Reset']) {
+		for (const name of ['Pick', 'Clear selected file']) {
 			expect(screen.getByRole('button', { name }).className).not.toMatch(/\bcursor-/)
 		}
 	})
@@ -340,14 +340,14 @@ describe('FileUpload button variant', () => {
 })
 
 describe('FileUpload button variant selection', () => {
-	it('keeps the Upload trigger and adds a Reset button once a file is selected', () => {
+	it('keeps the Upload trigger and adds a clear button once a file is selected', () => {
 		const { container } = renderUI(<FileUploadButton />)
 
 		const input = fileInput(container)
 
 		selectFiles(container, [resume])
 
-		expect(screen.getByRole('button', { name: 'Reset' })).toBeInTheDocument()
+		expect(screen.getByRole('button', { name: 'Clear selected file' })).toBeInTheDocument()
 
 		// The trigger stays operable so a different file can be picked.
 		const click = vi.spyOn(input, 'click')
@@ -357,18 +357,18 @@ describe('FileUpload button variant selection', () => {
 		expect(click).toHaveBeenCalledTimes(1)
 	})
 
-	it('clears the selection and removes Reset when Reset is clicked', () => {
+	it('clears the selection and removes the clear button when it is clicked', () => {
 		const onAccept = vi.fn()
 
 		const { container } = renderUI(<FileUploadButton onAccept={onAccept} />)
 
 		selectFiles(container, [resume])
 
-		fireEvent.click(screen.getByRole('button', { name: 'Reset' }))
+		fireEvent.click(screen.getByRole('button', { name: 'Clear selected file' }))
 
 		expect(screen.getByRole('button', { name: 'Upload' })).toBeInTheDocument()
 
-		expect(screen.queryByRole('button', { name: 'Reset' })).not.toBeInTheDocument()
+		expect(screen.queryByRole('button', { name: 'Clear selected file' })).not.toBeInTheDocument()
 
 		expect(onAccept).toHaveBeenLastCalledWith([])
 	})
@@ -405,7 +405,7 @@ describe('FileUpload + Control', () => {
 		expect(describedBy).toContain('doc-error')
 	})
 
-	it('puts the Field identity on the hidden input, not on the display field', () => {
+	it('puts the Field id on the hidden input, and the description on both', () => {
 		const { container } = renderUI(
 			<Control required>
 				<Field severity="error">
@@ -436,7 +436,8 @@ describe('FileUpload + Control', () => {
 
 		expect(field).not.toBeRequired()
 
-		expect(field).not.toHaveAttribute('aria-describedby')
+		// The focus lands on the display field, so the message reaches it too.
+		expect(field.getAttribute('aria-describedby')).toContain(messageId)
 	})
 
 	it('names the hidden input from the Field label, not the placeholder', () => {
@@ -637,7 +638,7 @@ describe('FileUpload read-only', () => {
 
 			expect(onAccept).not.toHaveBeenCalled()
 
-			// A pick swaps in the clear or Reset button.
+			// A pick swaps in the clear button.
 			expect(screen.getAllByRole('button')).toEqual(triggers)
 		})
 
@@ -681,7 +682,7 @@ describe('FileUpload read-only', () => {
 
 			expect(onAccept).not.toHaveBeenCalled()
 
-			// A clear swaps the clear or Reset button out.
+			// A clear swaps the clear button out.
 			expect(screen.getAllByRole('button')).toEqual(triggers)
 		})
 	})
@@ -774,7 +775,9 @@ describe('FileUpload announcements', () => {
 
 		selectFiles(container, [new File(['x'], 'notes.txt', { type: 'text/plain' })])
 
-		await expectAnnouncement(/^notes\.txt is not an accepted file type$/)
+		await expectAnnouncement(
+			/^notes\.txt is not an accepted file type\. Accepted types: image\/\*$/,
+		)
 	})
 
 	it('names more than one refused file in the plural', async () => {
@@ -786,7 +789,7 @@ describe('FileUpload announcements', () => {
 
 		selectFiles(container, [fileOfSize('a.txt', 2), fileOfSize('b.txt', 2)])
 
-		await expectAnnouncement(/^a\.txt, b\.txt are too large$/)
+		await expectAnnouncement(/^a\.txt, b\.txt are too large\. The limit is 1 byte$/)
 	})
 
 	// One message for the batch: a second write to the region would replace the
@@ -800,7 +803,9 @@ describe('FileUpload announcements', () => {
 
 		selectFiles(container, [new File(['a'], 'a.png'), new File(['b'], 'b.png')])
 
-		await expectAnnouncement(/^Selected a\.png\. b\.png is over the file limit$/)
+		await expectAnnouncement(
+			/^Selected a\.png\. b\.png is over the file limit\. The limit is 1 file$/,
+		)
 	})
 
 	// A caller of `onReject` shows the refusal, as an error `Message` does, and
@@ -961,6 +966,106 @@ describe('FileUpload drop filtering', () => {
 	})
 })
 
+describe('FileUpload field wiring', () => {
+	/** Renders `control` in a Field with the Label "Resume" and the Description "A PDF, up to 1 MB." */
+	function renderInField(control: ReactElement) {
+		return renderUI(
+			<Field>
+				<Label>Resume</Label>
+				<Description>A PDF, up to 1 MB.</Description>
+				{control}
+			</Field>,
+		)
+	}
+
+	it.for([
+		['FileUploadInput', <FileUploadInput key="input" />, 'Resume Select a file'],
+		['FileUploadDrop', <FileUploadDrop key="drop" />, /^Resume Drop files here/],
+		['FileUploadButton', <FileUploadButton key="button" />, 'Resume Upload'],
+	] as const)(
+		'names and describes the visible trigger of %s from the Field',
+		([_, control, name]) => {
+			renderInField(control)
+
+			const trigger = screen.getByRole('button', { name })
+
+			expect(trigger).toHaveAccessibleDescription('A PDF, up to 1 MB.')
+		},
+	)
+
+	it('describes the overlay of a filled drop zone from the Field', () => {
+		const { container } = renderInField(<FileUploadDrop />)
+
+		selectFiles(container, [resume])
+
+		expect(screen.getByRole('button', { name: 'Resume resume.pdf' })).toHaveAccessibleDescription(
+			'A PDF, up to 1 MB.',
+		)
+	})
+
+	it('describes the visible trigger with the error Message of the Field', () => {
+		renderUI(
+			<Field severity="error">
+				<Label>Resume</Label>
+				<FileUploadButton />
+				<Message>Select a PDF.</Message>
+			</Field>,
+		)
+
+		const trigger = screen.getByRole('button', { name: 'Resume Upload' })
+
+		expect(trigger).toHaveAccessibleDescription('Select a PDF.')
+	})
+
+	it.for([
+		['FileUploadInput', <FileUploadInput key="input" />, 'Resume Select a file'],
+		['FileUploadDrop', <FileUploadDrop key="drop" />, /^Resume Drop files here/],
+		['FileUploadButton', <FileUploadButton key="button" />, 'Resume Upload'],
+	] as const)(
+		'moves focus from the hidden input of %s to its visible trigger',
+		([_, control, name]) => {
+			const { container } = renderInField(control)
+
+			act(() => fileInput(container).focus())
+
+			expect(screen.getByRole('button', { name })).toHaveFocus()
+		},
+	)
+
+	it('moves focus from the hidden input of a filled drop zone to its overlay', () => {
+		const { container } = renderInField(<FileUploadDrop />)
+
+		selectFiles(container, [resume])
+
+		act(() => fileInput(container).focus())
+
+		expect(screen.getByRole('button', { name: 'Resume resume.pdf' })).toHaveFocus()
+	})
+
+	it('gives the first invalid file field the focus on its visible trigger at a refused submit', async () => {
+		renderUI(
+			<Form
+				defaultValues={{ files: [] as File[], note: '' }}
+				validate={{ files: (files) => (files.length > 0 ? undefined : 'Select a file.') }}
+				onSubmit={() => {}}
+			>
+				<Field>
+					<Label>Resume</Label>
+					<FileUploadButton name="files" />
+					<Message name="files" />
+				</Field>
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Submit' }))
+
+		await act(() => Promise.resolve())
+
+		expect(screen.getByRole('button', { name: 'Resume Upload' })).toHaveFocus()
+	})
+})
+
 describe('FileUpload focus handoff', () => {
 	it('moves focus from the empty drop zone to the overlay after a pick', () => {
 		const { container } = renderUI(<FileUploadDrop />)
@@ -972,12 +1077,12 @@ describe('FileUpload focus handoff', () => {
 		expect(screen.getByRole('button', { name: 'Select a different file' })).toHaveFocus()
 	})
 
-	it('moves focus from Reset to the empty drop zone', () => {
+	it('moves focus from the clear button to the empty drop zone', () => {
 		const { container } = renderUI(<FileUploadDrop />)
 
 		selectFiles(container, [resume])
 
-		const reset = screen.getByRole('button', { name: 'Reset' })
+		const reset = screen.getByRole('button', { name: 'Clear selected file' })
 
 		reset.focus()
 
@@ -1034,12 +1139,12 @@ describe('FileUpload focus handoff', () => {
 		expect(elsewhere).toHaveFocus()
 	})
 
-	it('moves focus from the button variant Reset to the trigger', () => {
+	it('moves focus from the button variant clear button to the trigger', () => {
 		const { container } = renderUI(<FileUploadButton />)
 
 		selectFiles(container, [resume])
 
-		const reset = screen.getByRole('button', { name: 'Reset' })
+		const reset = screen.getByRole('button', { name: 'Clear selected file' })
 
 		reset.focus()
 

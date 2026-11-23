@@ -55,9 +55,10 @@ export type FileUploadInputProps = Omit<ComponentProps<'div'>, 'defaultValue' | 
  * {@link useFileUploadHandlers}. It takes no children: the display button
  * shows the selection or the placeholder.
  *
- * The display button is not the control. It does not take the id, `required`,
- * or `aria-describedby` of the enclosing `<Control>` / `<Field>`; those go to
- * the hidden input only. The button still shows the disabled state, the
+ * The display button is not the control. It does not take the id or `required`
+ * of the enclosing `<Control>` / `<Field>`; those go to the hidden input only.
+ * It takes the `aria-describedby` of the Field, so the Description and the
+ * error Message reach the focus. The button also shows the disabled state, the
  * variant, and the error ring of the enclosing Field. Its name is the Field
  * Label and then the selection summary or the placeholder, through
  * `aria-labelledby`. With no Label, its content gives the name.
@@ -100,17 +101,19 @@ export function FileUploadInput(allProps: FileUploadInputProps) {
 
 	const fieldRef = useRef<HTMLButtonElement>(null)
 
+	const focusField = () => fieldRef.current?.focus()
+
 	const handleClear = () => {
 		clearFiles()
 
 		// Moves focus to the field once the clear button unmounts (WCAG 2.4.3).
-		fieldRef.current?.focus()
+		focusField()
 	}
 
 	// A pick swaps the Browse button for the clear button. Focus moves to the
 	// field first, so that the picker gives it back to a control that stays.
 	const handleBrowse = () => {
-		fieldRef.current?.focus()
+		focusField()
 
 		openPicker()
 	}
@@ -120,8 +123,10 @@ export function FileUploadInput(allProps: FileUploadInputProps) {
 	// The suffix always holds the clear or the browse button, so the frame is affixed.
 	const slots = useHeadlessSlots(k.input, { variant, affixed: true })
 
-	// The display button is not the control, so it takes no Field id, `required`,
-	// or `aria-describedby`. It shows the state of the Field through its own props.
+	// The display button is not the control, so it takes no Field id or
+	// `required`. It shows the state of the Field through its own props. The
+	// description goes on only when it exists, because the tooltip yields its
+	// own description to a key that the button writes, also an empty one.
 	const field = (
 		<Tooltip disabled={!showTooltip}>
 			<TooltipTrigger>
@@ -130,6 +135,7 @@ export function FileUploadInput(allProps: FileUploadInputProps) {
 					type="button"
 					data-slot="file-upload-field"
 					aria-labelledby={control?.labelledBy ? `${control.labelledBy} ${valueId}` : undefined}
+					{...(control?.describedBy && { 'aria-describedby': control.describedBy })}
 					disabled={disabled}
 					{...invalidAttrs(invalid)}
 					className={slots.field}
@@ -147,7 +153,11 @@ export function FileUploadInput(allProps: FileUploadInputProps) {
 
 	return (
 		<div data-slot="file-upload" {...props} className={cn('relative', className)}>
-			<FileUploadHiddenInput {...state.hiddenInput} ariaLabel={placeholder} />
+			<FileUploadHiddenInput
+				{...state.hiddenInput}
+				ariaLabel={placeholder}
+				forwardFocus={focusField}
+			/>
 			<InputFrame
 				input={field}
 				prefix={undefined}

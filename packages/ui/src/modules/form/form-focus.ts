@@ -7,6 +7,10 @@ import { FOCUSABLE_SELECTOR } from '../../utilities/focusable-selector'
  * @remarks Some controls put the id of their field on a wrapper, such as the
  * row of a `Rating`. When the element with the id does not take the focus, the
  * first element in it that is in the tab order takes it.
+ *
+ * A control can pass the focus on to the element that shows it, such as the
+ * hidden input of a file upload to its visible trigger. Thus focus that the
+ * call moves to a different element also counts as focus in the control.
  * @internal
  */
 export function focusControl(doc: Document, id: string): boolean {
@@ -14,9 +18,13 @@ export function focusControl(doc: Document, id: string): boolean {
 
 	if (!target) return false
 
+	const previous = doc.activeElement
+
 	target.focus()
 
 	if (doc.activeElement === target) return true
+
+	if (doc.activeElement !== previous && doc.activeElement !== doc.body) return true
 
 	target.querySelector<HTMLElement>(FOCUSABLE_SELECTOR)?.focus()
 
