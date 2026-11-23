@@ -259,6 +259,12 @@ describe('engine purity boundary · self-check', () => {
 		])
 	})
 
+	it('reads a clause whose comment holds a quote', () => {
+		const refs = parseImports("import {\n\tuseMemo, // don't drop\n} from 'react'\n")
+
+		expect(refs).toEqual([{ specifier: 'react', runtime: true }])
+	})
+
 	it('does not let one import statement swallow the next', () => {
 		const refs = parseImports(
 			"import {\n\tuseMemo,\n} from 'react'\nimport { cn } from '../../core'\n",
