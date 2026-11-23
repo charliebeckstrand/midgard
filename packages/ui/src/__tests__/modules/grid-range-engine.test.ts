@@ -514,8 +514,8 @@ describe('fillLine dates', () => {
 
 		expect(fillLine(['2026-00-15', '2026-01-15'], 1)).toEqual(['2026-00-15'])
 
-		// A `YYYY-MM-DD` string has four digits of the year, so a series with
-		// no value in the years 0000 to 9999 repeats.
+		// A `YYYY-MM-DD` string has four digits of the year, so a series that
+		// would leave the years 0000 to 9999 repeats.
 		expect(fillLine(['0000-01-02', '0000-01-01'], 2)).toEqual(['0000-01-02', '0000-01-01'])
 
 		expect(fillLine(['9999-12-30', '9999-12-31'], 1)).toEqual(['9999-12-30'])
@@ -526,14 +526,10 @@ describe('fillLine dates', () => {
 		expect(fillLine(['2026/11/29', '2026/11/30'], 1)).toEqual(['2026/11/29'])
 
 		expect(fillLine(['10:00', '10:30'], 1)).toEqual(['10:00'])
-	})
 
-	// The series stops at the end of the years, so a longer fill does not
-	// change the values that a shorter fill gives.
-	it('stops a `YYYY-MM-DD` series before it leaves the years 0000 to 9999', () => {
-		expect(fillLine(['9999-10-31', '9999-11-30'], 1)).toEqual(['9999-12-31'])
+		expect(fillLine(['10:30:00', '10:30:15'], 1)).toEqual(['10:30:00'])
 
-		expect(fillLine(['9999-10-31', '9999-11-30'], 3)).toEqual(['9999-12-31'])
+		expect(fillLine(['9999-10-31', '9999-11-30'], 2)).toEqual(['9999-10-31', '9999-11-30'])
 	})
 
 	// The latest day of the month is the anchor, so the series is the same in
@@ -560,17 +556,22 @@ describe('fillLine text with a number', () => {
 		expect(fillLine(['Item 9', 'Item 10'], 1)).toEqual(['Item 11'])
 	})
 
-	it('steps back, and stops a series before it goes below zero', () => {
+	it('steps back, and repeats a series that would go below zero', () => {
 		expect(fillLine(['Item 5', 'Item 4'], 2)).toEqual(['Item 3', 'Item 2'])
 
-		expect(fillLine(['A3', 'A2'], 2)).toEqual(['A1', 'A0'])
+		expect(fillLine(['Item 2', 'Item 1'], 2)).toEqual(['Item 2', 'Item 1'])
+	})
 
-		expect(fillLine(['A3', 'A2'], 3)).toEqual(['A1', 'A0'])
+	// Only the start of a date or a time stops a count. Other dotted or dashed
+	// numbers count on.
+	it('continues a version, an address, a code, and a section number', () => {
+		expect(fillLine(['v1.2.3', 'v1.2.4'], 1)).toEqual(['v1.2.5'])
 
-		expect(fillLine(['A010', 'A009'], 12)).toHaveLength(9)
+		expect(fillLine(['10.0.0.1', '10.0.0.2'], 1)).toEqual(['10.0.0.3'])
 
-		// With no value at zero or more, the line repeats.
-		expect(fillLine(['Item 1', 'Item 0'], 2)).toEqual(['Item 1', 'Item 0'])
+		expect(fillLine(['SKU-12-001', 'SKU-12-002'], 1)).toEqual(['SKU-12-003'])
+
+		expect(fillLine(['1.1', '1.2'], 1)).toEqual(['1.3'])
 	})
 
 	it('repeats a number of more than 15 digits', () => {

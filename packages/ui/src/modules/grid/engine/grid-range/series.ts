@@ -159,14 +159,13 @@ function daySeries(days: readonly CalendarDay[], count: number): CalendarDay[] |
 }
 
 /**
- * The next values of a line of dates, at most `count`: all `Date` values, or
- * all `YYYY-MM-DD` strings, two or more, with one time of day. A line of whole
+ * The next `count` values of a line of dates: all `Date` values, or all
+ * `YYYY-MM-DD` strings, two or more, with one time of day. A line of whole
  * months, as each day of the same date of the month, steps by months. Twelve
  * months make a year. Another line with a constant step of days steps by days.
- * Each value has the type of its source. A series of `YYYY-MM-DD` strings stops
- * before it leaves the years 0000 to 9999, which the shape cannot hold. `null`
- * for a line that is no such series, and for a series with no value in those
- * years.
+ * Each value has the type of its source. `null` for a line that is no such
+ * series, and for a series of `YYYY-MM-DD` strings that would leave the years
+ * 0000 to 9999, which the shape cannot hold.
  *
  * @internal
  */
@@ -187,13 +186,9 @@ export function dateSeries(line: readonly unknown[], count: number): unknown[] |
 
 	const next = monthSeries(read, count) ?? daySeries(read, count)
 
-	if (!next) return null
+	if (!next || (iso && next.some(({ year }) => year < 0 || year > 9999))) return null
 
-	const out = iso ? next.findIndex(({ year }) => year < 0 || year > 9999) : -1
-
-	const held = out === -1 ? next : next.slice(0, out)
-
-	return held.length > 0 ? held.map((day) => writeDay(day, iso)) : null
+	return next.map((day) => writeDay(day, iso))
 }
 
 /** Text that ends in a whole number: the text before it, and its digits. */
@@ -203,21 +198,24 @@ const TRAILING_NUMBER = /^(.*?)(\d+)$/s
 const MAX_DIGITS = 15
 
 /**
- * Text before the number that ends in a digit and a separator, such as the
- * `2026-11-` of `2026-11-30` or the `10:` of `10:30`. The number is then one
- * part of a date or a time, not a count.
+ * Text before the number that ends in the start of a date or a time: a year
+ * and a dash or a slash (`2026-11`), a year and a month (`2026-11-30`), a day
+ * and a month (`11/30/2026`), or an hour, with or without its minutes
+ * (`10:30`, `10:30:15`). The number is then one part of a date or a time, not
+ * a count. Other dotted or dashed numbers, such as `v1.2.3`, `10.0.0.1`, or
+ * `SKU-12-001`, count on.
  */
-const PART_OF_NUMBER = /\d[-/:.]$/
+const PART_OF_DATE_OR_TIME =
+	/(?:^|\D)(?:\d{4}[-/](?:\d{1,2}[-/])?|\d{1,2}[-/]\d{1,2}[-/]|\d{1,2}:(?:\d{2}:)?)$/
 
 /**
- * The next values of a line of text that ends in a whole number, at most
- * `count`: two or more values, such as `Item 1, Item 2`. Each value has the
- * same text before the number, and the numbers have a constant step. A source
- * number with a leading zero, such as `Q01`, keeps the width of the widest
- * source number. A series stops before it goes below zero. `null` for a line
- * that is no such series, for a series with no value at zero or more, and for
- * a number that is one part of a date or a time, such as `2026-11-30` or
- * `10:30` (see {@link dateSeries}).
+ * The next `count` values of a line of text that ends in a whole number, two
+ * or more, such as `Item 1, Item 2`. Each value has the same text before the
+ * number, and the numbers have a constant step. A source number with a leading
+ * zero, such as `Q01`, keeps the width of the widest source number. `null` for
+ * a line that is no such series, for a series that would go below zero, for a
+ * number of more than 15 digits, and for a number that is one part of a date
+ * or a time, such as `2026-11-30` or `10:30` (see {@link dateSeries}).
  *
  * @internal
  */
@@ -235,7 +233,7 @@ export function textSeries(line: readonly unknown[], count: number): unknown[] |
 	// A part of a date or a time repeats, also when it is not valid, so
 	// `2026-02-28, 2026-02-29` does not count on to `-30`, and `10:00, 10:30`
 	// does not count on to `10:60`.
-	if (PART_OF_NUMBER.test(prefix)) return null
+	if (PART_OF_DATE_OR_TIME.test(prefix)) return null
 
 	const digits = parts.map((match) => match?.[2] ?? '')
 
@@ -245,19 +243,14 @@ export function textSeries(line: readonly unknown[], count: number): unknown[] |
 
 	const last = Number(digits.at(-1))
 
-	if (!step) return null
-
-	// The values at zero or more: all of them for a step up.
-	const held = step > 0 ? count : Math.min(count, Math.floor(last / -step))
-
-	if (held === 0) return null
+	if (!step || last + step * count < 0) return null
 
 	const padded = digits.some((value) => value.length > 1 && value.startsWith('0'))
 
 	const width = padded ? Math.max(...digits.map((value) => value.length)) : 0
 
 	return Array.from(
-		{ length: held },
+		{ length: count },
 		(_, index) => `${prefix}${String(last + step * (index + 1)).padStart(width, '0')}`,
 	)
 }
