@@ -93,6 +93,8 @@ type GridSkeletonRowsProps<T> = {
  * without its `<tbody>`. It is for a caller that owns the body and holds this
  * silhouette in place of part of it. The windowed body is the example, whose
  * loading rows sit between its spacers and its trailing infinite-scroll states.
+ * The rows are `aria-hidden` filler. The grid then states its row count, and a
+ * placeholder row has no index in it.
  *
  * @internal
  */
@@ -100,7 +102,7 @@ export function GridSkeletonRows<T>({ columns, pinning }: GridSkeletonRowsProps<
 	return (
 		<>
 			{LOADING_ROW_KEYS.map((rowKey) => (
-				<TableRow key={rowKey} data-grid-placeholder="">
+				<TableRow key={rowKey} data-grid-placeholder="" aria-hidden="true">
 					<GridSkeletonCells columns={columns} pinning={pinning} />
 				</TableRow>
 			))}
