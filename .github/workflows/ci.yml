@@ -433,8 +433,8 @@ jobs:
       # the first seconds. The log of one such run showed two Firefox content
       # processes that stopped on signal 11. Firefox wrote no cause: no
       # sandbox violation and no `MOZ_CRASH`. Signal 11 is not the signal of
-      # the OOM killer (9) or of a full /dev/shm (7). The `density` job of
-      # browser-stress.yml repeats this step to find the trigger.
+      # the OOM killer (9) or of a full /dev/shm (7). density-stress.yml
+      # repeats this step to find the trigger.
       - run: pnpm turbo run test:browser --filter=ui --summarize -- --project density-firefox --project density-webkit
         env:
           DEBUG: pw:browser

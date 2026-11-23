@@ -11,9 +11,6 @@ name: Browser stress
 # Each job takes about five minutes of one runner, so a scheduled run costs
 # about 15 runner minutes each week. No pull request or push starts it. Start
 # other runs from the Actions tab, or with `gh workflow run browser-stress.yml`.
-#
-# A manual run with `suite: density` runs the density instances in place of
-# the stress jobs (the `density` job below).
 on:
   # Each Tuesday at 05:43 UTC.
   schedule:
@@ -24,20 +21,6 @@ on:
         description: The shuffle seeds to run, as a JSON array, for example [1, 2, 3].
         required: false
         default: '[1, 2, 3]'
-      suite:
-        description: The suite to run. `chromium` runs the stress jobs. `density` runs the density job.
-        required: false
-        type: choice
-        options: [chromium, density]
-        default: chromium
-      density-seed:
-        description: The shuffle seed of each density run. Leave it empty for a new seed in each run.
-        required: false
-        default: ''
-      density-runs:
-        description: The number of density runs, from 1 to 50.
-        required: false
-        default: '20'
 
 permissions:
   contents: read
@@ -45,8 +28,6 @@ permissions:
 jobs:
   stress:
     name: stress (seed ${{ matrix.seed }})
-    # A scheduled run has no inputs, so it runs this job.
-    if: inputs.suite != 'density'
     runs-on: ubuntu-latest
     timeout-minutes: 25
     strategy:
@@ -73,78 +54,3 @@ jobs:
         env:
           CI: 1
           VITEST_SEED: ${{ matrix.seed }}
-
-  # The run numbers of the density matrix, and the `playwright` version for
-  # the tag of its container image. A job of its own, because `container`
-  # and `matrix` resolve before the steps of their job run.
-  density-plan:
-    if: inputs.suite == 'density'
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    outputs:
-      runs: ${{ steps.plan.outputs.runs }}
-      version: ${{ steps.plan.outputs.version }}
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-          sparse-checkout: packages/ui/package.json
-          sparse-checkout-cone-mode: false
-      - id: plan
-        run: |
-          case "$RUNS" in
-            ''|*[!0-9]*) echo "density-runs must be a number; received '$RUNS'" >&2; exit 1 ;;
-          esac
-          if [ "$RUNS" -lt 1 ] || [ "$RUNS" -gt 50 ]; then
-            echo "density-runs must be from 1 to 50; received $RUNS" >&2
-            exit 1
-          fi
-          echo "runs=$(jq -nc --argjson n "$RUNS" '[range(1; $n + 1)]')" >> "$GITHUB_OUTPUT"
-          echo "version=$(jq -r '.devDependencies.playwright' packages/ui/package.json)" >> "$GITHUB_OUTPUT"
-        env:
-          RUNS: ${{ inputs.density-runs }}
-
-  # The density instances, many times, on separate runners. In some runs of
-  # the `density` job of ci.yml, two Firefox content processes stopped on
-  # signal 11 in the first seconds, before a file reported. Firefox wrote no
-  # cause to its stderr. With `isolate: false`, the seed sets the first file of
-  # the page. A crash that repeats with one seed thus points to a file. A crash
-  # that does not repeat points to the environment.
-  #
-  # The container, the options, the command, and the environment are those of
-  # the `density` job of ci.yml. The job puts no load on the cores. The two
-  # jobs thus run under the same conditions. WebKit runs too, because it ran
-  # beside Firefox in each crash.
-  density:
-    name: density (run ${{ matrix.run }})
-    needs: density-plan
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    container:
-      image: mcr.microsoft.com/playwright:v${{ needs.density-plan.outputs.version }}-resolute
-      options: --ipc=host
-    strategy:
-      # Let each run finish, so that the result gives the crash rate.
-      fail-fast: false
-      matrix:
-        run: ${{ fromJSON(needs.density-plan.outputs.runs) }}
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-      # The reason is in the `density` job of ci.yml.
-      - run: git config --system --add safe.directory "$GITHUB_WORKSPACE"
-      - uses: ./.github/actions/setup
-      # Playwright starts this Firefox build with no crash reporter variables,
-      # so a crash leaves no dump. This step shows if the build holds a crash
-      # reporter that a later change can turn on.
-      - name: List the crash reporter files of Firefox
-        run: find /ms-playwright -maxdepth 3 -path '*firefox*' \( -iname '*crash*' -o -iname '*minidump*' \) -print | grep . || echo 'The Firefox build holds no crash reporter file.'
-      # Not through turbo: a cache hit would skip the run that this job exists
-      # for.
-      - run: pnpm --filter ui test:browser --project density-firefox --project density-webkit
-        env:
-          DEBUG: pw:browser
-          DENSITY_ENGINES: 1
-          HOME: /root
-          VITEST_SEED: ${{ inputs.density-seed }}
