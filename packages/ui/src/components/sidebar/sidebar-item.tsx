@@ -44,7 +44,7 @@ export type SidebarItemProps = NavItemProps & {
  * button. An `aria-describedby` that you give stays. The row that is current
  * at its mount is the initial scroll target of its scroller
  * (`scroll-initial-target`): where the browser supports it, the first layout
- * puts the row at the top of the view. A row that becomes current later is not
+ * puts the row at the center of the view. A row that becomes current later is not
  * a target, so a selection does not move the scroll.
  */
 export function SidebarItem({

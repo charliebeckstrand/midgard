@@ -12,9 +12,9 @@ import type { PageLink } from '../plugin/pages.ts'
 
 // The letter rail of the docs sidebar. Each letter has an equal band of the
 // rail, so a press selects exactly one letter, and a slide moves from letter to
-// letter. A selection scrolls the body to the first page with the letter. The
-// rail shows the letter of the last jump that the scroll of the body is at or past.
-// The rail starts on the letter of the current page, in the server markup too.
+// letter. A selection scrolls the first page with the letter to the center of
+// the body. The rail shows the letter of the page at the center. It starts on
+// the letter of the current page, in the server markup too.
 // A short rail collapses to some of the letters, with a dot between two of them.
 
 const page = (category: string, name: string): PageLink => ({
@@ -235,31 +235,32 @@ describe('getLetters', () => {
 })
 
 describe('LetterRail', () => {
-	it('shows the letter of the pages at the top of the body', () => {
+	it('shows the letter of the page at the center of the body', () => {
 		const { body, active } = renderSidebar()
 
+		// Alert is at the center.
 		expect(active()).toBe('A')
 
-		// Accordion and Alert are above the top, so Badge is the first page there.
+		// Calendar is at the center.
 		body.scrollTop = 100
 
 		fireEvent.scroll(body)
 
-		expect(active()).toBe('B')
+		expect(active()).toBe('C')
 	})
 
-	it('shows no letter when the components are above the top', () => {
+	it('shows no letter when the components are above the center', () => {
 		const { body, active } = renderSidebar()
 
-		// UI, the last component, is half in view at the top.
-		body.scrollTop = HEADING + ITEM * 8 + ITEM / 2 - 1
+		// The center is on UI, the last component.
+		body.scrollTop = HEADING + ITEM * 9 - VIEW / 2 - 1
 
 		fireEvent.scroll(body)
 
 		expect(active()).toBe('U')
 
-		// The modules are at the top. Their pages have no letter, though Chart and Editor start with C and E.
-		body.scrollTop = HEADING * 2 + ITEM * 9
+		// The center is on the heading of the modules. Their pages have no letter, though Chart and Editor start with C and E.
+		body.scrollTop = HEADING + ITEM * 9 - VIEW / 2
 
 		fireEvent.scroll(body)
 
@@ -283,7 +284,7 @@ describe('LetterRail', () => {
 	})
 
 	it('keeps the letter of the current page until the body scrolls', () => {
-		// With no section after the components, Editor cannot come to the top, and Badge is there.
+		// jsdom makes no first layout, so the body stays at the top, and Alert is at the center.
 		const { body, active } = renderSidebar(COMPONENTS, '/editor')
 
 		expect(active()).toBe('E')
@@ -292,7 +293,7 @@ describe('LetterRail', () => {
 
 		fireEvent.scroll(body)
 
-		expect(active()).toBe('B')
+		expect(active()).toBe('C')
 	})
 
 	it('selects the letter whose band holds the press, at each edge of the band', () => {
@@ -311,42 +312,47 @@ describe('LetterRail', () => {
 		expect(active()).toBe('E')
 	})
 
-	it('scrolls the first page of the letter to the top of the body', () => {
+	it('scrolls the first page of the letter to the center of the body', () => {
 		const { body, track } = renderSidebar()
 
 		tap(track, inBand(2))
 
 		// Calendar is the first page with C, after a heading and four items.
-		expect(body.scrollTop).toBe(HEADING + 4 * ITEM)
+		expect(body.scrollTop).toBe(HEADING + 4 * ITEM + ITEM / 2 - VIEW / 2)
 	})
 
-	it('brings the heading of a section with the first page of the section', () => {
-		const { body, track } = renderSidebar()
+	it('scrolls to the top for a page that cannot come to the center', () => {
+		const { body, track, active } = renderSidebar()
 
 		body.scrollTop = 150
 
 		tap(track, inBand(0))
 
 		expect(body.scrollTop).toBe(0)
+
+		fireEvent.scroll(body)
+
+		// Alert is at the center, and it starts with A too.
+		expect(active()).toBe('A')
 	})
 
-	it('keeps the letter of a jump that the body cannot bring to the top', () => {
+	it('keeps the letter of a jump that the body cannot bring to the center', () => {
 		const { body, track, active } = renderSidebar(COMPONENTS)
 
-		tap(track, inBand(3))
+		tap(track, inBand(5))
 
-		// With no section after the components, Editor is near the end, so the body stops at the end of its content.
+		// With no section after the components, UI is at the end, so the body stops at the end of its content.
 		expect(body.scrollTop).toBe(HEADING + ITEM * 9 - VIEW)
 
 		fireEvent.scroll(body)
 
-		expect(active()).toBe('E')
+		expect(active()).toBe('U')
 
 		body.scrollTop = 100
 
 		fireEvent.scroll(body)
 
-		expect(active()).toBe('B')
+		expect(active()).toBe('C')
 	})
 
 	it('follows a slide from letter to letter, and past an end of the rail', () => {
@@ -591,7 +597,8 @@ describe('LetterRail', () => {
 		it('shows the mark nearest to a hidden active letter as active', () => {
 			const { body, active } = collapse(5)
 
-			body.scrollTop = 100
+			// Button is at the center.
+			body.scrollTop = 50
 
 			fireEvent.scroll(body)
 

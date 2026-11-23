@@ -11,15 +11,15 @@ import type { PageLink } from '../plugin/pages.ts'
 // The letter rail at the side of the sidebar body. A press on a letter scrolls
 // the body to the first page with that letter, and a slide along the rail
 // follows the finger from letter to letter. The rail shows the letter of the
-// page at the top of the body, and mutes the other letters. A page of the
+// page at the center of the body, and mutes the other letters. A page of the
 // rail has a letter, and a page after the pages of the rail has none, so when
-// the pages of the rail are above the top, the rail shows no letter.
+// the pages of the rail are above the center, the rail shows no letter.
 //
-// The rail starts on the letter of the current page, so the server markup
-// paints it. The first layout puts the current row at the top of the body
-// (`SidebarItem`), so the letter at the top is that letter. The letter stays
-// until the body scrolls, as after a jump, because a page near the end of the
-// body cannot come to the top.
+// The center is the line of the sidebar: the first layout puts the current
+// row there (`SidebarItem`), and a jump puts the first page of its letter
+// there. The rail starts on the letter of the current page, so the server
+// markup paints it. A page near an end of the body cannot come to the center,
+// so the letter of the current page or of a jump stays until the body scrolls.
 //
 // A short rail has no space for each letter. Then the rail collapses: it shows
 // some of the letters, with a dot between two of them, and a slide still gets
@@ -102,50 +102,38 @@ export function letterAt(
 /** The page links in `body`, in the order of the sidebar, which is also the order of their position. */
 const getLinks = (body: HTMLElement) => body.querySelectorAll<HTMLElement>('[data-letter]')
 
-/**
- * The element that a jump to `link` brings to the top of the body: the item
- * of the link, or the section of the item when the item is the first in its
- * section, so that the heading of the section comes with the first page.
- */
-function getAnchor(link: Element): Element | undefined {
-	const item = link.closest('[data-slot="sidebar-item"]')
+/** The vertical center of the box of `element`, in the coordinates of the viewport. */
+function getCenter(element: Element): number {
+	const { top, height } = element.getBoundingClientRect()
 
-	if (!item) return undefined
-
-	const section = item.closest('[data-slot="sidebar-section"]')
-
-	return section?.querySelector('[data-slot="sidebar-item"]') === item ? section : item
+	return top + height / 2
 }
 
 /**
- * Scrolls `body` so that the first page with `letter` is at its top. The first
- * match in the order of the document is the first link of the letter in the
- * sidebar. A page name is a word of the code (`plugin/pages.ts`), so the letter
- * needs no escape in the selector.
+ * Scrolls `body` so that the first page with `letter` is at its center. The
+ * first match in the order of the document is the first link of the letter in
+ * the sidebar. A page name is a word of the code (`plugin/pages.ts`), so the
+ * letter needs no escape in the selector.
  */
 function scrollToLetter(body: HTMLElement, letter: string) {
 	const link = body.querySelector(`[data-letter="${letter}"]`)
 
-	const anchor = link && getAnchor(link)
+	if (!link) return
 
-	if (!anchor) return
-
-	body.scrollTop += anchor.getBoundingClientRect().top - body.getBoundingClientRect().top
+	body.scrollTop += getCenter(link) - getCenter(body)
 }
 
 /**
- * The letter of the page at the top of `body`: the first page with a letter
- * whose row is at least half in view. When each page with a letter is above
- * the top, there is no letter.
+ * The letter of the page at the center of `body`: the first page with a letter
+ * whose row ends below the center. When each page with a letter is above the
+ * center, there is no letter.
  */
-function letterAtTop(body: HTMLElement): string | undefined {
-	const top = body.getBoundingClientRect().top
+function letterAtCenter(body: HTMLElement): string | undefined {
+	const center = getCenter(body)
 
-	const link = Array.from(getLinks(body)).find((candidate) => {
-		const row = candidate.getBoundingClientRect()
-
-		return row.bottom - top > row.height / 2
-	})
+	const link = Array.from(getLinks(body)).find(
+		(candidate) => candidate.getBoundingClientRect().bottom > center,
+	)
 
 	return link?.dataset.letter
 }
@@ -225,8 +213,8 @@ export function LetterRail({
 
 	// The scroll position that the last jump, or the mount, gave the body. The
 	// letter of the jump stays active while the body stays there, because the
-	// body cannot bring a page near its end to the top. A scroll to another
-	// position clears it.
+	// body cannot bring a page near one of its ends to the center. A scroll to
+	// another position clears it.
 	const rest = useRef<number | undefined>(undefined)
 
 	const cursor = useDragCursorHold('pointer')
@@ -245,11 +233,11 @@ export function LetterRail({
 
 			rest.current = undefined
 
-			setActive(letterAtTop(body))
+			setActive(letterAtCenter(body))
 		}
 
 		// The letter of the current page stays at the first scroll of the body.
-		// Without one, the rail reads the letter at the top.
+		// Without one, the rail reads the letter at the center.
 		if (mountLetter === undefined) follow()
 		else rest.current = body.scrollTop
 

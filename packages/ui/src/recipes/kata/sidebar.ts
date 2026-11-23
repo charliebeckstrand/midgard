@@ -67,10 +67,12 @@ const item = defineKata(
 				// recipe selects the inner button of the row. See `kata/avatar.ts`.
 				dan.size.icon.spinner,
 				// The row that is current at its mount is the initial scroll target of
-				// the sidebar: the first layout puts it at the top of the view, so the
-				// server markup paints with the row in view, and no script scrolls. A
-				// row that becomes current later does not take the target.
-				'data-initial-target:[scroll-initial-target:nearest]',
+				// the sidebar: the first layout puts it at the center of the view
+				// (`snap-center` gives the alignment of the target, and the sidebar
+				// does not snap). The server markup thus paints with the row in view,
+				// and no script scrolls. A row that becomes current later does not
+				// take the target.
+				'data-initial-target:[scroll-initial-target:nearest] data-initial-target:snap-center',
 			],
 			prefix: affix,
 			suffix: affix,
