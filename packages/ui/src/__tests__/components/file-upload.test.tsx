@@ -1017,6 +1017,21 @@ describe('FileUpload field wiring', () => {
 		expect(trigger).toHaveAccessibleDescription('Select a PDF.')
 	})
 
+	it('marks the visible trigger of FileUploadButton invalid from the Field', () => {
+		renderUI(
+			<Field severity="error">
+				<Label>Resume</Label>
+				<FileUploadButton />
+				<Message>Select a PDF.</Message>
+			</Field>,
+		)
+
+		expect(screen.getByRole('button', { name: 'Resume Upload' })).toHaveAttribute(
+			'aria-invalid',
+			'true',
+		)
+	})
+
 	it.for([
 		['FileUploadInput', <FileUploadInput key="input" />, 'Resume Select a file'],
 		['FileUploadDrop', <FileUploadDrop key="drop" />, /^Resume Drop files here/],

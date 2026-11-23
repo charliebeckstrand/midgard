@@ -3,6 +3,7 @@
 import { type ComponentProps, type ReactNode, useId, useRef } from 'react'
 import { cn } from '../../core/cn'
 import type { ScaleStep } from '../../core/density/scale'
+import { invalidAttrs } from '../../core/invalid-attrs'
 import { Upload } from '../../primitives/icons/icons'
 import { useIntl } from '../../primitives/intl/use-intl'
 import type { scale as buttonScale } from '../../recipes/kata/button'
@@ -68,7 +69,7 @@ export function FileUploadButton(allProps: FileUploadButtonProps) {
 
 	const state = useFileUploadState(shared)
 
-	const { control, disabled, readOnly, files, hasFiles, openPicker, clearFiles } = state
+	const { control, disabled, readOnly, invalid, files, hasFiles, openPicker, clearFiles } = state
 
 	// A read-only field keeps the focus on each of its buttons, and they open
 	// no picker and clear nothing.
@@ -103,6 +104,7 @@ export function FileUploadButton(allProps: FileUploadButtonProps) {
 				// The self-reference adds the text of the trigger to the Field Label.
 				aria-labelledby={control?.labelledBy ? `${control.labelledBy} ${triggerId}` : undefined}
 				aria-describedby={control?.describedBy}
+				{...invalidAttrs(invalid)}
 				type="button"
 				size={size}
 				color={color}
