@@ -1563,13 +1563,9 @@
 		"defaultMessage": "Resize panel",
 		"description": "The name of the grab bar that changes the size of a drawer or a sheet, by a drag or by the arrow keys."
 	},
-	"ui.passwordInput.hide": {
-		"defaultMessage": "Hide password",
-		"description": "The name of the button that hides the text of a password field."
-	},
 	"ui.passwordInput.show": {
 		"defaultMessage": "Show password",
-		"description": "The name of the button that shows the text of a password field."
+		"description": "The fixed name and tooltip of the toggle button that shows or hides the text of a password field. The pressed state tells if the text shows."
 	},
 	"ui.passwordStrength.empty": {
 		"defaultMessage": "Empty",
@@ -1610,6 +1606,10 @@
 	"ui.passwordStrength.ruleUppercase": {
 		"defaultMessage": "One uppercase letter",
 		"description": "A password rule: the password has an uppercase letter."
+	},
+	"ui.passwordStrength.status": {
+		"defaultMessage": "Password strength: {level}",
+		"description": "The status message that a screen reader reads when the strength changes. The level is the name of the strength, for example \"Fair\"."
 	},
 	"ui.passwordStrength.strong": {
 		"defaultMessage": "Strong",
