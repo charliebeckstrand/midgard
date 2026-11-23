@@ -95,6 +95,39 @@ describe('ChatMessage', () => {
 		expect(container.querySelector('strong')?.textContent).toBe('bold')
 	})
 
+	it('shows loading dots in place of an empty streaming reply, and the content once it lands', () => {
+		const { container, rerender } = renderUI(<ChatMessage streaming>{''}</ChatMessage>)
+
+		// The transcript announces the wait, so the dots add no live region.
+		expect(bySlot(container, 'loading-dots')).toHaveAttribute('aria-hidden', 'true')
+
+		expect(screen.queryByRole('status')).not.toBeInTheDocument()
+
+		expect(bySlot(container, 'markdown')).not.toBeInTheDocument()
+
+		rerender(<ChatMessage streaming>Tuesday</ChatMessage>)
+
+		expect(bySlot(container, 'loading-dots')).not.toBeInTheDocument()
+
+		expect(bySlot(container, 'markdown')).toHaveTextContent('Tuesday')
+	})
+
+	it('shows no loading dots in an empty reply that is settled or failed', () => {
+		const { container, rerender } = renderUI(<ChatMessage>{[]}</ChatMessage>)
+
+		expect(bySlot(container, 'loading-dots')).not.toBeInTheDocument()
+
+		rerender(
+			<ChatMessage streaming failed>
+				{''}
+			</ChatMessage>,
+		)
+
+		expect(bySlot(container, 'loading-dots')).not.toBeInTheDocument()
+
+		expect(bySlot(container, 'chat-message-failure')).toBeInTheDocument()
+	})
+
 	it('dims the bubble while the composer edits the message', () => {
 		const { container, rerender } = renderUI(<ChatMessage sender="user">Question</ChatMessage>)
 
