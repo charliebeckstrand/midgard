@@ -398,6 +398,12 @@ export const k = {
 	 * The width is a quarter of the plot, between 5rem and 10rem. The height
 	 * comes from the ratio of the frame, which the component sets.
 	 *
+	 * While the plot holds the keyboard focus, the inset fades out, unless the
+	 * pointer is on it. The arrow keys pan the view, and the cursor keeps its stop
+	 * only a small margin clear of the edge, so an inset in the corner could
+	 * cover the focused mark (WCAG 2.2 SC 2.4.11). The keyboard does not use the
+	 * inset, and a pointer on the corner brings it back.
+	 *
 	 * The inset takes no touch gesture of the browser (`touch-none`), so a
 	 * finger that drags on it moves the view and does not scroll the page. The
 	 * `left` and `right` entries are physical sides, as the zoom buttons are.
@@ -406,6 +412,7 @@ export const k = {
 		base: [
 			'absolute bottom-2 w-1/4 min-w-20 max-w-40 cursor-pointer touch-none overflow-hidden rounded-lg shadow-xs',
 			'starting:opacity-0',
+			'in-[[data-slot=map-plot]:focus-visible]:not-hover:opacity-0',
 			ugoki.css.opacity,
 			ugoki.css.duration,
 			omote.bg.surface,

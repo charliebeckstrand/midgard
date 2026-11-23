@@ -308,7 +308,8 @@ type MapPlatBaseProps = AccessibleName &
 		 * buttons, or at the right where there are none.
 		 *
 		 * The inset is for the pointer alone, and takes no focus. The arrow keys
-		 * already pan the view. At the fit, and on a map with no `zoom`, it
+		 * already pan the view. While the plot holds the keyboard focus, the inset
+		 * fades out, so it never covers the focused mark. At the fit, and on a map with no `zoom`, it
 		 * does not show.
 		 *
 		 * @defaultValue false
