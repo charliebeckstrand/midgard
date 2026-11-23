@@ -52,13 +52,14 @@
  *
  * Focus is blue-600 in each mode. A part that paints its own focus, such as
  * the resize grip (`grip.ts`) and the range thumb (`ring.thumb`), uses the
- * same blue. A row mark on a dark ground with a tint, such as `cursor` and the
- * JsonTree row, is blue-500 on dark, because blue-600 is below 3:1 against
+ * same blue. A row mark on a dark ground with a tint (`cursor` and
+ * `within.tinted`) is blue-500 on dark, because blue-600 is below 3:1 against
  * that ground.
  *
  * Layer: kiso · Concern: focus indicators
  */
 
+import { mode } from '../../../core/recipe'
 import { forced } from './forced'
 
 /**
@@ -142,8 +143,10 @@ export const focus = {
 	cursor: [
 		'focus-visible:outline-solid focus-visible:outline-2 focus-visible:-outline-offset-2',
 		'data-active:outline-solid data-active:outline-2 data-active:-outline-offset-2',
-		'focus-visible:outline-blue-600 data-active:outline-blue-600',
-		'dark:focus-visible:outline-blue-500 dark:data-active:outline-blue-500',
+		...mode(
+			'focus-visible:outline-blue-600 data-active:outline-blue-600',
+			'dark:focus-visible:outline-blue-500 dark:data-active:outline-blue-500',
+		),
 	],
 	/**
 	 * The inset ring of a box whose control has keyboard focus. The control
@@ -168,6 +171,18 @@ export const focus = {
 			'ring-inset group-has-[>:focus-visible]:ring-2 group-has-[>:focus-visible]:ring-blue-600',
 			'forced-colors:group-has-[>:focus-visible]:outline-solid forced-colors:group-has-[>:focus-visible]:outline-2',
 			'forced-colors:group-has-[>:focus-visible]:-outline-offset-2 forced-colors:group-has-[>:focus-visible]:outline-[Highlight]',
+		],
+		/**
+		 * A row on a blue tint whose control has the focus at any depth: the row of
+		 * JsonTree. The tint alone is too faint to mark the focus. The ring must
+		 * clear 3:1 against the page and against the tint. On dark, blue-600 is
+		 * 2.3:1 against a blue-500/30 tint, so the dark ring is blue-500.
+		 */
+		tinted: [
+			'ring-inset has-focus-visible:ring-2',
+			...mode('has-focus-visible:ring-blue-600', 'dark:has-focus-visible:ring-blue-500'),
+			'forced-colors:has-focus-visible:outline-solid forced-colors:has-focus-visible:outline-2',
+			'forced-colors:has-focus-visible:-outline-offset-2 forced-colors:has-focus-visible:outline-[Highlight]',
 		],
 		/** A section whose heading holds the control that has the focus: the item of Accordion. */
 		heading: [
