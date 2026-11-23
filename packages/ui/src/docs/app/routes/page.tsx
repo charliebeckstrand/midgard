@@ -1,6 +1,6 @@
 import { Outlet } from 'react-router'
+import { PageTitle } from '../../kit/page-title.tsx'
 import { PageError } from '../page-error.tsx'
-import { PageTitle } from '../page-title.tsx'
 import { useMatchedPage } from '../use-matched-page.ts'
 
 /** The layout route of each page. It adds no markup, and it holds the error boundary of the pages. */
