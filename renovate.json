@@ -63,6 +63,11 @@
 			"groupName": "vitest"
 		},
 		{
+			"description": "Playwright 1.65.0 and 1.65.1 ship Firefox build 1572. In the density job of ci.yml, that build stopped on signal 11 in some runs. Mozilla bug 2090055 gives the cause: Firefox writes through a null pointer when the page and an isolated world both read ariaLabelledByElements. Firefox build 1575 has the fix, and Playwright 1.66 ships it. Thus packages/ui holds Playwright 1.64.1. Remove this rule when packages/ui uses 1.66 or later.",
+			"matchPackageNames": ["playwright"],
+			"allowedVersions": "!/^1\\.65\\./"
+		},
+		{
 			"description": "Every major waits for a click on the dependency dashboard, so each one lands on its own branch with its own gate run.",
 			"matchUpdateTypes": ["major"],
 			"dependencyDashboardApproval": true

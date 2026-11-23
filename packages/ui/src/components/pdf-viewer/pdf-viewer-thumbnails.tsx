@@ -10,6 +10,7 @@ import { scrollWithin } from '../../utilities/scroll-within'
 import { SheetBody, SheetHeader, SheetPanel, SheetTitle } from '../sheet'
 import { usePdfViewerContext } from './context'
 import { pageLabel, pdfViewerMessages } from './pdf-viewer-messages'
+import { PdfViewerRailHandle } from './pdf-viewer-rail-handle'
 import { PdfViewerThumbnailList } from './pdf-viewer-thumbnail-list'
 import {
 	PdfViewerThumbnailMatches,
@@ -39,7 +40,8 @@ function matchTooltip(pageNumber: number, tile: ReactElement) {
 /**
  * Page thumbnail navigation: a collapsible sidebar on desktop, a left-side Sheet
  * on mobile. Both render {@link PdfViewerThumbnailList}; the sidebar adds roving
- * arrow-key focus across tiles. A tile with a search match shows a search glyph, and its
+ * arrow-key focus across tiles, and a {@link PdfViewerRailHandle} on its end edge
+ * that resizes it. A tile with a search match shows a search glyph, and its
  * tooltip gives the number of matches.
  *
  * @remarks Renders nothing when there are no pages and no load is in progress
@@ -112,6 +114,8 @@ export function PdfViewerThumbnails() {
 	// stays meaningful apart from the document, and the strip of pages does not.
 	const sidebarTitleId = useId()
 
+	const sidebarId = useId()
+
 	// `pending` is the render before the load starts, which is also the server render.
 	const opening = loading || pending
 
@@ -122,6 +126,7 @@ export function PdfViewerThumbnails() {
 			{railed && (
 				<nav
 					ref={sidebarRef}
+					id={sidebarId}
 					data-slot="pdf-viewer-sidebar"
 					aria-labelledby={sidebarTitleId}
 					aria-hidden={!sidebarOpen}
@@ -155,6 +160,9 @@ export function PdfViewerThumbnails() {
 							wrapTile={searchOffered ? matchTooltip : undefined}
 						/>
 					</MountHold>
+
+					{/* Outside the hold, so the width stays on the rail while its contents rest. */}
+					<PdfViewerRailHandle controls={sidebarId} />
 				</nav>
 			)}
 
