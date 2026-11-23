@@ -46,7 +46,7 @@ describe('useCalendarPicker: year grid selection', () => {
 
 		act(() => result.current.viewConfig.onCenter())
 
-		expect(result.current.viewConfig.gridLabel).toBe('Select year')
+		expect(result.current.viewConfig.gridLabel).toBe('Select year, 2020–2029')
 
 		expect(selectedKeys(result.current.viewConfig.cells)).toEqual([2028])
 	})
