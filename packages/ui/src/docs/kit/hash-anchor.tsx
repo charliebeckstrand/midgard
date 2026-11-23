@@ -16,10 +16,11 @@ type HashAnchorProps = {
  * The link from a heading or a name of a page to its own element, such as the
  * "Playground" heading to `#playground`.
  *
- * On keyboard focus, a blue `#` mark comes in before the text. The mark fades
- * in, and its slot opens, so the text moves to the inline end. The mark and
- * the move show the focus, in place of the focus ring of the library. Under
- * reduced motion, the slot opens at once, and only the fade plays.
+ * On keyboard focus and on hover, a blue `#` mark comes in before the text. The
+ * mark fades in, and its slot opens, so the text moves to the inline end. The
+ * mark and the move show the focus, in place of the focus ring of the library.
+ * A touch has no hover, so a tap does not show the mark. Under reduced motion,
+ * the slot opens at once, and only the fade plays.
  *
  * The mark is the content of a `::before` box, so it is not in the text of the
  * heading. A copy of the heading, a search of the page, and the name of the
@@ -30,6 +31,10 @@ export function HashAnchor({ to, children }: HashAnchorProps) {
 
 	const [focused, setFocused] = useState(false)
 
+	const [hovered, setHovered] = useState(false)
+
+	const shown = focused || hovered
+
 	const still = usePrefersReducedMotion()
 
 	return (
@@ -38,13 +43,15 @@ export function HashAnchor({ to, children }: HashAnchorProps) {
 			className="outline-none"
 			onFocus={(event) => setFocused(event.currentTarget.matches(':focus-visible'))}
 			onBlur={() => setFocused(false)}
+			onPointerEnter={(event) => setHovered(event.pointerType !== 'touch')}
+			onPointerLeave={() => setHovered(false)}
 		>
 			<ReducedMotion>
 				<m.span
 					aria-hidden
 					className="inline-block text-blue-600 before:me-1.5 before:content-['#']"
 					initial={false}
-					animate={focused ? { width: 'auto', opacity: 1 } : { width: 0, opacity: 0 }}
+					animate={shown ? { width: 'auto', opacity: 1 } : { width: 0, opacity: 0 }}
 					transition={{ ...ugoki.glide, width: still ? ugoki.instant : ugoki.glide }}
 				/>
 			</ReducedMotion>

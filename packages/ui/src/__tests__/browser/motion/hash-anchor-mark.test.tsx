@@ -12,10 +12,11 @@ function readMark(link: HTMLElement) {
 }
 
 /**
- * Real-Motion check of the hash anchor of a docs heading. Keyboard focus opens
- * the slot of the `#` mark and fades the mark in. A blur hides the mark again.
+ * Real-Motion check of the hash anchor of a docs heading. Keyboard focus and
+ * hover open the slot of the `#` mark and fade the mark in. A blur and a leave
+ * hide the mark again.
  */
-describe('HashAnchor focus mark (real Motion)', () => {
+describe('HashAnchor mark (real Motion)', () => {
 	it('shows the mark on keyboard focus, and keeps it out of the name and the text', async () => {
 		renderUI(
 			<>
@@ -46,6 +47,31 @@ describe('HashAnchor focus mark (real Motion)', () => {
 		expect(readMark(link).width).toBeGreaterThan(0)
 
 		await userEvent.keyboard('{Shift>}{Tab}{/Shift}')
+
+		await expect.poll(() => readMark(link)).toEqual({ width: 0, opacity: 0 })
+	})
+
+	it('shows the mark while a mouse hovers the link', async () => {
+		renderUI(
+			<>
+				<button type="button">Before</button>
+				<h2 id="playground">
+					<HashAnchor to="playground">Playground</HashAnchor>
+				</h2>
+			</>,
+		)
+
+		const link = screen.getByRole('link', { name: 'Playground' })
+
+		await nextPaint()
+
+		await userEvent.hover(link)
+
+		await expect.poll(() => readMark(link).opacity).toBe(1)
+
+		expect(readMark(link).width).toBeGreaterThan(0)
+
+		await userEvent.hover(screen.getByRole('button'))
 
 		await expect.poll(() => readMark(link)).toEqual({ width: 0, opacity: 0 })
 	})
