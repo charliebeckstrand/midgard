@@ -145,6 +145,26 @@ async function readComponent(parse: Parser, file: string): Promise<string> {
 	return component
 }
 
+/** The expression of each named attribute of `element` that holds an expression, by its name. */
+function readAttributes(element: ESTree.JSXOpeningElement): Map<string, ESTree.Node> {
+	const attributes = new Map<string, ESTree.Node>()
+
+	for (const attribute of element.attributes) {
+		if (attribute.type !== 'JSXAttribute' || attribute.name.type !== 'JSXIdentifier') continue
+
+		const { value } = attribute
+
+		if (
+			value?.type === 'JSXExpressionContainer' &&
+			value.expression.type !== 'JSXEmptyExpression'
+		) {
+			attributes.set(attribute.name.name, value.expression)
+		}
+	}
+
+	return attributes
+}
+
 /** Each `<Playground>` of the page or the tab module `file`. */
 async function readPlaygrounds(parse: Parser, file: string): Promise<PlaygroundUse[]> {
 	const program = parse(await readFile(file, 'utf8'), { lang: 'tsx' })
@@ -161,20 +181,7 @@ async function readPlaygrounds(parse: Parser, file: string): Promise<PlaygroundU
 
 	return Promise.all(
 		elements.map(async (element) => {
-			const attributes = new Map<string, ESTree.Node>()
-
-			for (const attribute of element.attributes) {
-				if (attribute.type !== 'JSXAttribute' || attribute.name.type !== 'JSXIdentifier') continue
-
-				const { value } = attribute
-
-				if (
-					value?.type === 'JSXExpressionContainer' &&
-					value.expression.type !== 'JSXEmptyExpression'
-				) {
-					attributes.set(attribute.name.name, value.expression)
-				}
-			}
+			const attributes = readAttributes(element)
 
 			const api = attributes.get('api')
 

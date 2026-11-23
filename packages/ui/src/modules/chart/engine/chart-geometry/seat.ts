@@ -177,6 +177,22 @@ function aisleReach(seats: readonly Seat[], angle: number): number {
 }
 
 /**
+ * The `count` seats of the arc at `radius`, spread evenly from the start of
+ * `span` to its end. A lone seat sits at the middle of the span.
+ *
+ * @internal
+ */
+function arcSeats(radius: number, span: Side['spans'][number], count: number): Seat[] {
+	const length = span.from - span.to
+
+	return Array.from({ length: count }, (_, seat) => {
+		const angle = count === 1 ? span.to + length / 2 : span.to + length * (1 - seat / (count - 1))
+
+		return { ...polar(radius, angle), angle, radius }
+	})
+}
+
+/**
  * The seats of a hemicycle of `total` seats on `rows` arcs. Each arc spreads
  * its seats evenly from the start (`π`) to the end (`0`). A lone seat on an arc
  * sits at the middle of its span. The seats sort by angle and then by radius,
@@ -240,12 +256,7 @@ export function seatLayout(total: number, rows: number, majority?: number): Seat
 
 			if (onArc > 1) space = Math.min(space, (length * radius) / (onArc - 1))
 
-			for (let seat = 0; seat < onArc; seat++) {
-				const angle =
-					onArc === 1 ? span.to + length / 2 : span.to + length * (1 - seat / (onArc - 1))
-
-				seats.push({ x: radius * Math.cos(angle), y: -radius * Math.sin(angle), angle, radius })
-			}
+			seats.push(...arcSeats(radius, span, onArc))
 		})
 	}
 
