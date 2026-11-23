@@ -427,8 +427,14 @@ jobs:
       # Filtered to `ui`, as in `browser`. The container runs as root, and
       # Firefox does not start as root when HOME belongs to another user.
       # GitHub sets HOME to a directory of the runner user.
+      #
+      # `pw:browser` writes the stdout and stderr of each browser to the log.
+      # On some runs, a Firefox content process stops in the first seconds,
+      # and Playwright reports only "The firefox page crashed". Firefox writes
+      # the cause to its stderr, and without this log the cause is lost.
       - run: pnpm turbo run test:browser --filter=ui --summarize -- --project density-firefox --project density-webkit
         env:
+          DEBUG: pw:browser
           DENSITY_ENGINES: 1
           HOME: /root
       - name: Prune the Turbo cache to this run's tasks
