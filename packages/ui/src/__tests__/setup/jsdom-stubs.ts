@@ -158,8 +158,10 @@ if (typeof Element.prototype.setPointerCapture !== 'function') {
 // each call.
 Object.defineProperty(window, 'scrollBy', { writable: true, configurable: true, value: () => {} })
 
-// jsdom has no canvas backend; getContext prints a "Not implemented" jsdomError
-// on every call. Returns null instead; components null-check the context.
+// jsdom paints through `@napi-rs/canvas` when that package is installed, and
+// `pdfjs-dist` installs it. The suite examines no pixels, so getContext returns
+// null, as it does where no canvas backend is installed. Components null-check
+// the context, and a test that needs a context gives its own.
 HTMLCanvasElement.prototype.getContext = (() => null) as HTMLCanvasElement['getContext']
 
 // jsdom implements neither Window's focus() nor print(): each logs a "Not

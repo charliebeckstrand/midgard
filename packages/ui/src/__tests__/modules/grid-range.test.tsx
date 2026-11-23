@@ -359,7 +359,7 @@ describe('Grid range', () => {
 
 		fireEvent.mouseDown(cell(0, 0))
 
-		screen.getByRole('grid').blur()
+		act(() => screen.getByRole('grid').blur())
 
 		expect(copy()).toBeUndefined()
 	})
