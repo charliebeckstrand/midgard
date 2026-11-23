@@ -124,6 +124,51 @@ export const k = {
 		},
 	} satisfies Record<MapSeriesColor, { fill: string[]; text: string[] }>,
 	/**
+	 * The tint of each slot, for a category with `tone: 'tint'`: the solid step
+	 * of the slot at 35% alpha, so a region reads as tinted ground under the
+	 * marks that stand on it. The alpha is on the fill, not on the path, so the
+	 * seams between the regions keep their full ink. Each class is literal, so
+	 * that Tailwind finds it.
+	 */
+	tint: {
+		blue: {
+			fill: mode('fill-blue-600/35', 'dark:fill-blue-500/35'),
+			text: mode('text-blue-600/35', 'dark:text-blue-500/35'),
+		},
+		orange: {
+			fill: mode('fill-orange-600/35', 'dark:fill-orange-600/35'),
+			text: mode('text-orange-600/35', 'dark:text-orange-600/35'),
+		},
+		violet: {
+			fill: mode('fill-violet-600/35', 'dark:fill-violet-500/35'),
+			text: mode('text-violet-600/35', 'dark:text-violet-500/35'),
+		},
+		green: {
+			fill: mode('fill-green-600/35', 'dark:fill-green-600/35'),
+			text: mode('text-green-600/35', 'dark:text-green-600/35'),
+		},
+		red: {
+			fill: mode('fill-red-600/35', 'dark:fill-red-500/35'),
+			text: mode('text-red-600/35', 'dark:text-red-500/35'),
+		},
+		sky: {
+			fill: mode('fill-sky-600/35', 'dark:fill-sky-600/35'),
+			text: mode('text-sky-600/35', 'dark:text-sky-600/35'),
+		},
+		amber: {
+			fill: mode('fill-amber-600/35', 'dark:fill-amber-600/35'),
+			text: mode('text-amber-600/35', 'dark:text-amber-600/35'),
+		},
+		rose: {
+			fill: mode('fill-rose-600/35', 'dark:fill-rose-500/35'),
+			text: mode('text-rose-600/35', 'dark:text-rose-500/35'),
+		},
+		zinc: {
+			fill: mode('fill-zinc-600/35', 'dark:fill-zinc-400/35'),
+			text: mode('text-zinc-600/35', 'dark:text-zinc-400/35'),
+		},
+	} satisfies Record<MapSeriesColor, { fill: string[]; text: string[] }>,
+	/**
 	 * The stripes of a category with `stripes`. On a region, a pattern in the
 	 * region layer draws them. On a swatch, this layer draws them over the
 	 * fill of the first color. The layer takes the `currentColor` class of the
