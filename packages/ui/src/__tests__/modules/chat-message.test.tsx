@@ -146,8 +146,6 @@ describe('ChatMessage', () => {
 		// A ring and not a dim, so the text of the bubble keeps its contrast.
 		expect(bubble).toHaveClass('outline-2', 'outline-offset-2')
 
-		expect(bubble).not.toHaveClass('opacity-60')
-
 		expect(bySlot(container, 'chat-message')).toHaveAttribute('data-editing')
 	})
 

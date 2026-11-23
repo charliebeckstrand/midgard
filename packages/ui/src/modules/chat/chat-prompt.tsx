@@ -27,7 +27,7 @@ import { k } from '../../recipes/kata/chat-prompt'
 import { isComposing } from '../../utilities/is-composing'
 import { keyByOccurrence } from '../../utilities/key-by-occurrence'
 import { hasBrowserModifier } from '../../utilities/modifier-keys'
-import { ChatPromptPicker, pickerStatusText } from './chat-prompt-picker'
+import { ChatPromptPicker } from './chat-prompt-picker'
 import type { ChatCitation } from './engine/chat-content/types'
 import { canSubmitDraft } from './engine/chat-draft/content'
 import {
@@ -446,14 +446,6 @@ export function ChatPrompt({
 				</ul>
 			)}
 			{sources && (
-				// The status of the picker, for a screen reader. The region stays
-				// mounted while the panel opens and closes, and it is never
-				// `display: none`, so each change of its text is spoken.
-				<output data-slot="chat-prompt-picker-announcer" className="sr-only">
-					{pickerStatusText(intl, picker.open, picker.status, picker.items)}
-				</output>
-			)}
-			{sources && (
 				<ChatPromptPicker
 					open={picker.open}
 					listId={picker.listId}
@@ -461,6 +453,7 @@ export function ChatPrompt({
 					source={picker.source}
 					items={picker.items}
 					status={picker.status}
+					statusText={picker.statusText}
 					floatingStyles={picker.floating.floatingStyles}
 					setFloating={picker.floating.refs.setFloating}
 					getFloatingProps={picker.floating.getFloatingProps}

@@ -529,7 +529,7 @@ export function ChatTranscript({
 	const roomy = actions !== undefined && trigger !== 'static'
 
 	// The first row makes room for that toolbar.
-	const firstRow = roomy ? slots.first : undefined
+	const firstRow = roomy ? slots.roomy : slots.first
 
 	useA11yAnnouncements(status)
 

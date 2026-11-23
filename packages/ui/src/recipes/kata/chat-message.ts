@@ -56,16 +56,12 @@ const bubble = {
 		false: '',
 	},
 	// The message that the composer edits. A send replaces it, so a ring marks
-	// it. The ring is the 2px outline with a 2px gap of the focus ring, so it
+	// it: the resting ring of `focus.virtual`, a 2px outline with a 2px gap. It
 	// reads against the blue fill of the user bubble and against the page. A
 	// dim would lower the text of the bubble below 4.5:1, and the ring keeps
 	// the text at full contrast. Forced colors keep an outline.
 	editing: {
-		true: [
-			'outline-2 outline-solid outline-offset-2',
-			...mode('outline-blue-600', 'dark:outline-blue-500'),
-			'forced-colors:outline-2',
-		],
+		true: focus.virtual,
 		false: '',
 	},
 }

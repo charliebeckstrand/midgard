@@ -153,7 +153,7 @@ describe('ChatTranscript', () => {
 			expect(onAction).toHaveBeenCalledOnce()
 		})
 
-		it('keeps room above the first row only for a hover toolbar', () => {
+		it('keeps the room of a toolbar above the first row only for a hover toolbar', () => {
 			const actions = () => <button type="button">Copy</button>
 
 			const first = (container: HTMLElement) =>
@@ -169,13 +169,14 @@ describe('ChatTranscript', () => {
 				<ChatTranscript messages={messages} actions={actions} trigger="static" />,
 			)
 
-			expect(first(fixed.container)).toBe('')
+			// Without a hover toolbar, the first row keeps only the room of the ring of an edit.
+			expect(first(fixed.container)).toBe('py-1')
 
 			fixed.unmount()
 
 			const bare = renderUI(<ChatTranscript messages={messages} />)
 
-			expect(first(bare.container)).toBe('')
+			expect(first(bare.container)).toBe('py-1')
 		})
 
 		it('does not render a settled row again when a chunk lands', () => {

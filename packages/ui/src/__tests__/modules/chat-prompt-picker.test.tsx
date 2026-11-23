@@ -8,6 +8,7 @@ import {
 } from '../../modules/chat'
 import {
 	deferred,
+	expectAnnouncement,
 	fireEvent,
 	getSlot,
 	noop,
@@ -370,33 +371,18 @@ describe('ChatPrompt picker', () => {
 		)
 	})
 
-	it('speaks the status through a region that stays mounted and shown', async () => {
+	it('speaks the status through the shared announcer', async () => {
 		const empty: ChatPromptSource = { ...datasets, search: () => [] }
 
 		const { container } = renderUI(<Composer sources={[empty]} />)
 
-		const region = getSlot(container, 'chat-prompt-picker-announcer')
+		await typeInto(container, '@')
 
-		// The region is there before the picker opens, and it is empty.
-		expect(region.tagName).toBe('OUTPUT')
-
-		expect(region).toHaveTextContent('')
-
-		const user = await typeInto(container, '@')
-
-		// The same node takes the text, so the change of text is spoken.
-		expect(getSlot(container, 'chat-prompt-picker-announcer')).toBe(region)
-
-		expect(region).toHaveTextContent('No results')
-
-		expect(region).not.toHaveClass('hidden')
+		// The panel mounts with the text, so the announcer speaks it.
+		await expectAnnouncement('No results')
 
 		// The line in the panel is plain text, so the status is not spoken two times.
 		expect(getSlot(document.body, 'chat-prompt-picker-status').tagName).toBe('P')
-
-		await user.keyboard('{Escape}')
-
-		expect(region).toHaveTextContent('')
 	})
 
 	it('aborts the search of a query that changed, and drops its result', async () => {
