@@ -31,7 +31,7 @@ import {
 	totalItemKey,
 } from './engine/grid-items/items'
 import { gridMessages } from './engine/grid-messages'
-import { ariaRowIndex, itemAriaRowIndex } from './engine/grid-row/shell'
+import { ariaRowIndex, type GridTreePlace, itemAriaRowIndex } from './engine/grid-row/shell'
 import { detailCursorRows, GridCursorOrder, groupedCursorRows } from './grid-cursor-order'
 import type { ResolvedInfiniteScroll } from './grid-data-resolvers'
 import type { GridGroupBy, GridGroupHeaderRow } from './grid-data-types'
@@ -193,7 +193,7 @@ function renderGroup<T>(
 		presentation: GridRowGroupPresentation | null
 		/** The 0-based place of the header among the rows that assistive tech sees. */
 		position: number
-	},
+	} & Required<GridTreePlace>,
 ): ReactElement {
 	const { props, columnId, renderHeader, totaled, presentation, position } = args
 
@@ -222,12 +222,20 @@ function renderGroup<T>(
 				color={color}
 				totaled={totaled}
 				pinning={props.pinning}
+				place={args.place}
+				setSize={args.setSize}
 				aria-rowindex={rowIndex(0)}
 			/>
 			{group.leaves.map((leaf, index) => (
 				<GridGroupLeafRow<T>
 					key={leaf.id}
-					{...leafRowProps(props, leaf, { expanded, color, level: 2 })}
+					{...leafRowProps(props, leaf, {
+						expanded,
+						color,
+						level: 2,
+						place: index,
+						setSize: group.leaves.length,
+					})}
 					aria-rowindex={rowIndex(index + 1)}
 				/>
 			))}
@@ -351,7 +359,7 @@ function renderGrouped<T>(
 	return (
 		<TableBody>
 			<GridGroupedCursorOrder groups={groups} totaled={totaled} toggle={props.toggleGroup} />
-			{groups.map((group) => {
+			{groups.map((group, index) => {
 				const node = renderGroup(group, {
 					props,
 					columnId: groupColumnId,
@@ -359,6 +367,8 @@ function renderGrouped<T>(
 					totaled,
 					presentation: rowGroupPresentation,
 					position,
+					place: index,
+					setSize: groups.length,
 				})
 
 				position += groupedWindowRowCount([group], totaled)

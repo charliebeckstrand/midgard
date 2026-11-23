@@ -271,6 +271,67 @@ describe('grid virtualized cursor over item bodies (real browser)', () => {
 		})
 	})
 
+	it('gives each rendered row its place from the full set, not from the window', async () => {
+		renderUI(
+			<div style={{ width: '480px' }}>
+				<Grid
+					navigable
+					virtualize={{ estimateSize: 36 }}
+					maxHeight="240px"
+					columns={columns}
+					rows={rows}
+					getKey={getKey}
+					groupBy={{ value: 'team' }}
+					groupTotalRow
+				/>
+			</div>,
+		)
+
+		const grid = screen.getByRole('treegrid')
+
+		await waitFor(() => expect(screen.queryByText('Name 1')).not.toBeNull())
+
+		await jumpToEnd(grid)
+
+		// The last leaf of the last group is the 20th of 20.
+		const leaf = screen.getByText('Name 200').closest('tr')
+
+		expect(leaf).toHaveAttribute('aria-posinset', '20')
+
+		expect(leaf).toHaveAttribute('aria-setsize', '20')
+
+		// Each rendered header has its place among all 10 groups. The window
+		// starts deep in the list, so a count of the rendered rows gives less.
+		const scroll = grid.closest<HTMLElement>('[data-slot="grid-scroll"]')
+
+		if (!scroll) throw new Error('the scroller')
+
+		scroll.scrollTop = scroll.scrollHeight / 2
+
+		await waitFor(() =>
+			expect(
+				grid.querySelector('tr[data-group-row]:not([data-group-key="Team 00"])'),
+			).not.toBeNull(),
+		)
+
+		const headers = [...grid.querySelectorAll('tr[data-group-row]')]
+
+		for (const header of headers) {
+			const team = Number(header.getAttribute('data-group-key')?.replace('Team ', ''))
+
+			expect(header).toHaveAttribute('aria-posinset', String(team + 1))
+
+			expect(header).toHaveAttribute('aria-setsize', '10')
+		}
+
+		// A total is not a member of the set of the leaves.
+		const total = grid.querySelector('tr[data-total-row="group"]')
+
+		expect(total).not.toHaveAttribute('aria-level')
+
+		expect(total).not.toHaveAttribute('aria-posinset')
+	})
+
 	it('scrolls the last open detail panel into the window', async () => {
 		renderUI(
 			<div style={{ width: '480px' }}>

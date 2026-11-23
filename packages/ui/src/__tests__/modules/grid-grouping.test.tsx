@@ -333,4 +333,46 @@ describe('Grid row grouping', () => {
 
 		expect(indices()).toEqual(['2', null, null, '3', '4', '5', '6', '7'])
 	})
+
+	it('gives each treegrid row its place in its set, and leaves the totals out of the set', () => {
+		const { container } = renderUI(
+			<Grid
+				columns={[
+					...columns,
+					{ id: 'id', title: 'ID', cell: (row) => row.id, value: (row) => row.id, aggFunc: 'sum' },
+				]}
+				rows={people}
+				getKey={getKey}
+				groupBy={{ value: 'role' }}
+				groupTotalRow
+				navigable
+			/>,
+		)
+
+		const place = (row: Element) =>
+			[
+				row.getAttribute('aria-level'),
+				row.getAttribute('aria-posinset'),
+				row.getAttribute('aria-setsize'),
+			].join(' ')
+
+		const rows = [...container.querySelectorAll('tbody tr')]
+
+		// Each group: its header, its leaves, then its total.
+		expect(rows.map(place)).toEqual([
+			'1 1 3',
+			'2 1 2',
+			'2 2 2',
+			'  ',
+			'1 2 3',
+			'2 1 2',
+			'2 2 2',
+			'  ',
+			'1 3 3',
+			'2 1 1',
+			'  ',
+		])
+
+		expect(container.querySelectorAll('tr[data-total-row="group"]')).toHaveLength(3)
+	})
 })

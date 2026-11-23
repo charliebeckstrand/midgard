@@ -170,7 +170,9 @@ type GridVirtualizedGroupedBodyProps<T> = {
  * closing rows and makes no row enter.
  *
  * Each exposed row carries `aria-rowindex` over the item list. A closing row is
- * hidden from assistive tech, and it carries no index.
+ * hidden from assistive tech, and it carries no index. In a treegrid, each
+ * header and each leaf also gives its place in its set from the full model
+ * (see `treeRowProps`), because the window renders only some rows of the set.
  *
  * @internal
  */
@@ -261,6 +263,8 @@ export function GridVirtualizedGroupedBody<T>({
 							color={color}
 							totaled={totaled}
 							pinning={pinning}
+							place={item.place}
+							setSize={shown.length}
 							{...windowRow(item, virtualItem.index)}
 						/>
 					)
@@ -290,6 +294,8 @@ export function GridVirtualizedGroupedBody<T>({
 							expanded: item.phase === 'open',
 							color,
 							level: 2,
+							place: item.place,
+							setSize: item.group.leaves.length,
 						})}
 						enter={motions.get(item.reactKey)?.phase === 'entering'}
 						{...windowRow(item, virtualItem.index)}

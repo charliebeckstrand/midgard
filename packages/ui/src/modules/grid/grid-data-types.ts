@@ -1294,8 +1294,11 @@ export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'>
 	 * focus, its own focus ring shows, and the ring of the cell does not.
 	 *
 	 * A client-grouped grid is a `treegrid`. Each group header row carries
-	 * `aria-level` 1 and `aria-expanded`, and each leaf and total carries
-	 * `aria-level` 2. A group header, a group total, and an open detail panel
+	 * `aria-level` 1, `aria-expanded`, and its place among all the groups
+	 * (`aria-posinset`, `aria-setsize`). Each leaf carries `aria-level` 2 and its
+	 * place among the leaves of its group. A window renders only some rows, so
+	 * the places come from the full set. A group total is not a member of the
+	 * set, so it carries no level. A group header, a group total, and an open detail panel
 	 * are one stop each. The cursor keeps its column across a stop. On a group header, Enter
 	 * or Space toggles the group, ArrowRight opens it or steps into it, and
 	 * ArrowLeft closes it. On a detail panel, Enter or F2 moves focus to the

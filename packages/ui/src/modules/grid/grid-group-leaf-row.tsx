@@ -21,9 +21,11 @@ import {
 } from './engine/grid-row/cell'
 import {
 	cellRovingAttrs,
+	type GridTreePlace,
 	type GridWindowRowProps,
 	rowClickableClass,
 	rowShellProps,
+	treeRowProps,
 } from './engine/grid-row/shell'
 import { fitCellProps } from './engine/grid-sizing/fit-styles'
 import type { GridColumnPinning } from './engine/grid-table/pinning-view'
@@ -79,18 +81,19 @@ type GridGroupLeafRowProps<T> = {
 	 * run of a manual grouping is at level 1.
 	 */
 	level?: number
-} & Pick<
-	GridRowsProps<T>,
-	| 'onRowClick'
-	| 'onCellClick'
-	| 'onRowDoubleClick'
-	| 'onCellDoubleClick'
-	| 'rowRoving'
-	| 'cellRoving'
-	| 'cellActivate'
-	| 'truncate'
-	| 'pinning'
-> &
+} & GridTreePlace &
+	Pick<
+		GridRowsProps<T>,
+		| 'onRowClick'
+		| 'onCellClick'
+		| 'onRowDoubleClick'
+		| 'onCellDoubleClick'
+		| 'rowRoving'
+		| 'cellRoving'
+		| 'cellActivate'
+		| 'truncate'
+		| 'pinning'
+	> &
 	GridWindowRowProps
 
 /** Resolves a leaf cell's inner content: an inert grip, the checkbox, the actions, or the rendered value. @internal */
@@ -285,6 +288,8 @@ function GridGroupLeafRowImpl<T>({
 	color,
 	enter = false,
 	level,
+	place,
+	setSize,
 	...windowRow
 }: GridGroupLeafRowProps<T>) {
 	const pad = k.row.group.reveal.pad
@@ -323,7 +328,7 @@ function GridGroupLeafRowImpl<T>({
 				// These cover the collapse from its first frame; the hold above covers
 				// its cost from the last one, once the reveal has finished shrinking.
 				aria-hidden={ariaAttr(!expanded)}
-				aria-level={tree ? level : undefined}
+				{...treeRowProps(tree, level, { place, setSize })}
 				data-row-index={rowIndex}
 				inert={!expanded}
 				onTransitionEnd={reveal.onTransitionEnd}
@@ -383,7 +388,7 @@ export function leafRowProps<T>(
 		color?: PaletteColor
 		/** The leaf's treegrid level. */
 		level?: number
-	},
+	} & GridTreePlace,
 ): ComponentProps<typeof GridGroupLeafRowImpl<T>> {
 	return {
 		expanded: args.expanded,
@@ -408,5 +413,7 @@ export function leafRowProps<T>(
 		pinning: props.pinning,
 		color: args.color,
 		level: args.level,
+		place: args.place,
+		setSize: args.setSize,
 	}
 }

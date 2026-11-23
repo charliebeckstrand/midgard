@@ -103,6 +103,13 @@ describe('groupedWindowItems', () => {
 		expect(items.map((item) => item.position)).toEqual([0, 1, 2, 3, 4])
 	})
 
+	it('gives each header its place among the groups and each leaf its place in its group', () => {
+		const items = groupedWindowItems(groups, { totaled: true, motions: NO_MOTIONS })
+
+		// A total is not a member of a set, so it has no place.
+		expect(items.map((item) => ('place' in item ? item.place : null))).toEqual([0, 0, 1, null, 1])
+	})
+
 	it('keeps a key that looks like a group id apart from the group', () => {
 		const items = groupedWindowItems([group('7', true, ['7'])], {
 			totaled: false,
