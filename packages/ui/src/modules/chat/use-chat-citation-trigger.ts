@@ -1,6 +1,6 @@
 'use client'
 
-import { type FocusEvent, useMemo, useRef } from 'react'
+import { type FocusEvent, type MouseEvent, useMemo, useRef } from 'react'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { lastInput } from '../../utilities/last-input'
 import type { ChatCitation } from './engine/chat-content/types'
@@ -65,10 +65,11 @@ export type ChatCitationActions = {
 	 */
 	clear: () => boolean
 	/**
-	 * A click, a tap, Enter, or Space on `citation`. `hoverless` is true for an
-	 * input that cannot hover: a tap or a key.
+	 * A click, a tap, Enter, or Space on `citation`. `canHover` is true for a
+	 * press from a pointer that can hover, such as a mouse. It is false for a
+	 * tap, a key, or a click from assistive technology.
 	 */
-	press: (citation: ChatCitation, hoverless: boolean) => void
+	press: (citation: ChatCitation, canHover: boolean) => void
 }
 
 /**
@@ -88,9 +89,15 @@ export function focusPreviews(event: FocusEvent<HTMLElement>): boolean {
 	}
 }
 
-/** Whether a tap made the last input, so a click is a tap. @internal */
-export function lastInputIsTouch(): boolean {
-	return lastInput() === 'touch'
+/**
+ * Whether a click comes from a pointer that can hover. A tap cannot hover. A
+ * click from assistive technology, such as a screen reader in browse mode or
+ * voice control, has no press count, and no pointer is on the citation.
+ *
+ * @internal
+ */
+export function clickCanHover(event: MouseEvent<HTMLElement>): boolean {
+	return event.detail !== 0 && lastInput() !== 'touch'
 }
 
 /**
@@ -161,10 +168,12 @@ export function useChatCitationTrigger(
 		return previewing || cited !== null
 	})
 
-	const press = useStableEvent((citation: ChatCitation, hoverless: boolean) => {
-		// A tap and a key cannot hover, so they toggle the citation in each mode.
-		// A citation is then a toggle button that a press changes.
-		if (trigger === 'hover' && !hoverless) return
+	const press = useStableEvent((citation: ChatCitation, canHover: boolean) => {
+		// A pointer that can hover already shows the preview, so its press does
+		// nothing with a hover trigger. A tap, a key, and a click from assistive
+		// technology cannot hover, so they toggle the citation in each mode. A
+		// citation is then a toggle button that a press changes.
+		if (trigger === 'hover' && canHover) return
 
 		onCitedChange(cited?.id === citation.id ? null : citation)
 	})

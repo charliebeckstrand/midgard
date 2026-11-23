@@ -73,6 +73,12 @@ describe('Textarea', () => {
 		expect(fireEvent.mouseDown(screen.getByRole('button', { name: 'send' }))).toBe(false)
 	})
 
+	it('cancels the mousedown of the gap between the actions, so the press keeps the focus', () => {
+		const { container } = renderUI(<Textarea actions={<Button>send</Button>} />)
+
+		expect(fireEvent.mouseDown(getSlot(container, 'textarea-actions'))).toBe(false)
+	})
+
 	it('keeps the mousedown default of a control in the actions row that is not a button', () => {
 		renderUI(
 			<Textarea

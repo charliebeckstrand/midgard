@@ -301,6 +301,62 @@ describe('Resizable: double-click', () => {
 		expect(onSizesChange.mock.calls.at(-1)?.[0]).toEqual([25, 28.125, 46.875])
 	})
 
+	it('keeps a drag that the second press of a double-click makes', () => {
+		const onSizesChange = vi.fn()
+
+		const { container } = renderPair({
+			group: { onSizesChange },
+			a: { defaultSize: 50 },
+			b: { defaultSize: 50 },
+		})
+
+		const group = getSlot(container, 'resizable-group')
+
+		group.getBoundingClientRect = () => DOMRect.fromRect({ width: 200, height: 20 })
+
+		const handle = getSlot(container, 'resizable-handle')
+
+		const press = { pointerId: 1, isPrimary: true, button: 0, clientY: 0 }
+
+		fireEvent.pointerDown(handle, { ...press, clientX: 100 })
+
+		fireEvent.pointerMove(document, { ...press, clientX: 140 })
+
+		fireEvent.pointerUp(document, { ...press, clientX: 140 })
+
+		fireEvent.doubleClick(handle)
+
+		expect(onSizesChange.mock.calls.at(-1)?.[0]).toEqual([70, 30])
+	})
+
+	it('resets on a double-click whose press moves less than a tap', () => {
+		const onSizesChange = vi.fn()
+
+		const { container } = renderPair({
+			group: { onSizesChange },
+			a: { defaultSize: 50 },
+			b: { defaultSize: 50 },
+		})
+
+		const group = getSlot(container, 'resizable-group')
+
+		group.getBoundingClientRect = () => DOMRect.fromRect({ width: 200, height: 20 })
+
+		const handle = getSlot(container, 'resizable-handle')
+
+		const press = { pointerId: 1, isPrimary: true, button: 0, clientY: 0 }
+
+		fireEvent.pointerDown(handle, { ...press, clientX: 100 })
+
+		fireEvent.pointerMove(document, { ...press, clientX: 102 })
+
+		fireEvent.pointerUp(document, { ...press, clientX: 102 })
+
+		fireEvent.doubleClick(handle)
+
+		expect(onSizesChange.mock.calls.at(-1)?.[0]).toEqual([50, 50])
+	})
+
 	it('lets the consumer cancel the reset', () => {
 		const onSizesChange = vi.fn()
 

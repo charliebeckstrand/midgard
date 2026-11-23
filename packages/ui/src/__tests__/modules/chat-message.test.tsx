@@ -59,8 +59,11 @@ describe('ChatMessage', () => {
 		expect(screen.getByText('Late stops rose')).toBeInTheDocument()
 	})
 
-	it('shows only the failure line for a failed reply that landed nothing', () => {
-		const { container } = renderUI(<ChatMessage failed>{[]}</ChatMessage>)
+	it.each([
+		['no part', []],
+		['only an empty part', [{ id: 'a', kind: 'text' as const, text: '' }]],
+	])('shows only the failure line for a failed reply with %s', (_name, parts) => {
+		const { container } = renderUI(<ChatMessage failed>{parts}</ChatMessage>)
 
 		expect(bySlot(container, 'chat-message-failure')?.className).not.toContain('mt-3')
 	})

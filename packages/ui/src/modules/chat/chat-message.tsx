@@ -246,7 +246,7 @@ export const ChatMessage = memo(function ChatMessage({
 			{failed && (
 				<p
 					data-slot="chat-message-failure"
-					className={cn(slots.failure, children.length > 0 && slots.part)}
+					className={cn(slots.failure, !isEmptyContent(children) && slots.part)}
 				>
 					<StatusDot size="sm" status="error" />
 					<IntlMessage message={replyFailed} />
