@@ -210,8 +210,9 @@ const ChatTranscriptRow = memo(function ChatTranscriptRow({
  * also follows a reply that opens while the glide to the last message runs.
  *
  * Only a scroll of the reader toward the start releases the pin. A reader who
- * scrolled up to read is thus not pulled down. A scroll back to the end pins
- * the transcript again. Any other move or resize that leaves a pinned
+ * scrolled up to read is thus not pulled down. A transcript that gets back to
+ * its end is pinned again: by a scroll, or by content that no longer overflows,
+ * as after a branch switch. Any other move or resize that leaves a pinned
  * transcript short of its end takes it back there. That includes a correction
  * of the window as rows measure, a row that grows, and a viewport that gets
  * shorter. The reader's own message pins the transcript, wherever the reader
@@ -406,7 +407,9 @@ export function ChatTranscript({
 	// short of its end, and that the reader did not make, takes it back there.
 	// The move can come from the virtualizer, from the browser, or from no
 	// `scroll` event at all, as when a row grows or the viewport gets shorter.
-	// A stable event, since it reads refs.
+	// A transcript at its end is pinned, whatever took it there. That includes
+	// content that gets too short to overflow, as after a branch switch, for
+	// which iOS sends no `scroll` event. A stable event, since it reads refs.
 	const holdEnd = useStableEvent(() => {
 		const element = containerRef.current
 
@@ -414,6 +417,10 @@ export function ChatTranscript({
 
 		if (isAtEnd(element)) {
 			gliding.current = false
+
+			reading.current = false
+
+			setPinned(true)
 
 			return
 		}
@@ -427,16 +434,13 @@ export function ChatTranscript({
 
 		const { scrollTop } = element
 
-		if (isAtEnd(element)) {
-			setPinned(true)
-
-			reading.current = false
-		} else if (reading.current && scrollTop < lastScrollTop.current) {
+		if (!isAtEnd(element) && reading.current && scrollTop < lastScrollTop.current) {
 			setPinned(false)
 		}
 
 		lastScrollTop.current = scrollTop
 
+		// At the end, this pins the transcript again.
 		holdEnd()
 	})
 
