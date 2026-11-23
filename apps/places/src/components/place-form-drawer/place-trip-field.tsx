@@ -1,6 +1,7 @@
 'use client'
 
-import { DatePicker, DatePickerSkeleton } from 'ui/date-picker'
+import { ControlSkeleton } from 'ui/control'
+import { DatePicker } from 'ui/date-picker'
 import { Field, Label, Message } from 'ui/fieldset'
 import { useFormValue } from 'ui/form'
 import { Listbox, ListboxDescription, ListboxLabel, ListboxOption } from 'ui/listbox'
@@ -68,7 +69,7 @@ export function PlaceVisitedField({ trips, pending }: PlaceVisitedFieldProps) {
 			<Label>Visited</Label>
 
 			{pending ? (
-				<DatePickerSkeleton />
+				<ControlSkeleton />
 			) : (
 				<DatePicker
 					name="visitedAt"

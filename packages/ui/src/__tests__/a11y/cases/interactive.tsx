@@ -1,9 +1,9 @@
 import { useEffect } from 'react'
 import { Button } from '../../../components/button'
-import { ColorPanelSkeleton, ColorPicker, ColorPickerSkeleton } from '../../../components/color'
+import { ColorPanelSkeleton, ColorPicker } from '../../../components/color'
 import { Combobox, ComboboxLabel, ComboboxOption } from '../../../components/combobox'
 import { useComboboxQuery } from '../../../components/combobox/use-combobox-query'
-import { DatePicker, DatePickerSkeleton } from '../../../components/date-picker'
+import { DatePicker } from '../../../components/date-picker'
 import { Field, Label } from '../../../components/fieldset'
 import { Listbox, ListboxLabel, ListboxOption } from '../../../components/listbox'
 import { PdfViewer, type PdfViewerPage } from '../../../components/pdf-viewer'
@@ -234,7 +234,6 @@ export const interactive: readonly InteractiveCase[] = [
 
 			await screen.findByRole('button', { name: 'Today' })
 		},
-		skeleton: [{ element: <DatePickerSkeleton range />, absentSlot: 'datepicker-button' }],
 		disclosure: [
 			{
 				component: 'DatePicker',
@@ -286,10 +285,7 @@ export const interactive: readonly InteractiveCase[] = [
 
 			await screen.findByRole('dialog')
 		},
-		skeleton: [
-			{ element: <ColorPanelSkeleton />, absentSlot: 'color-panel' },
-			{ element: <ColorPickerSkeleton alpha />, absentSlot: 'color-picker-button' },
-		],
+		skeleton: [{ element: <ColorPanelSkeleton />, absentSlot: 'color-panel' }],
 		disclosure: [
 			{
 				// The picker has no prop that opens it, so a click opens it.

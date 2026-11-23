@@ -21,9 +21,7 @@ import { chart } from './chart'
 import { chat } from './chat'
 import { checkbox } from './checkbox'
 import { colorPanel } from './color-panel'
-import { colorPicker } from './color-picker'
 import { control } from './control'
-import { datePicker } from './date-picker'
 import { dateTime } from './date-time'
 import { descriptionList } from './description-list'
 import { heading } from './heading'
@@ -60,9 +58,7 @@ export const kokkaku = {
 	chat,
 	checkbox,
 	colorPanel,
-	colorPicker,
 	control,
-	datePicker,
 	dateTime,
 	descriptionList,
 	heading,

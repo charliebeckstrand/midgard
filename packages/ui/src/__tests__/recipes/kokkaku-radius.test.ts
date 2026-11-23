@@ -4,9 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { k as button } from '../../recipes/kata/button'
 import { k as chart } from '../../recipes/kata/chart'
 import { k as checkbox } from '../../recipes/kata/checkbox'
-import { k as colorPicker } from '../../recipes/kata/color-picker'
 import { k as control } from '../../recipes/kata/control'
-import { k as datePicker } from '../../recipes/kata/date-picker'
 import { k as input } from '../../recipes/kata/input'
 import { k as pagination } from '../../recipes/kata/pagination'
 
@@ -24,12 +22,6 @@ const radius = (classes: ClassValue) =>
 describe('kokkaku radius', () => {
 	it('gives a control skeleton the corner of a control frame', () => {
 		expect(radius(control.skeleton.base)).toEqual(radius(input().base))
-	})
-
-	it('gives a picker skeleton the corner of its trigger', () => {
-		expect(radius(datePicker.skeleton.base)).toEqual(radius(datePicker().base))
-
-		expect(radius(colorPicker.skeleton.base)).toEqual(radius(colorPicker().base))
 	})
 
 	it('gives the Previous and Next square and the chart legend the corner of a button', () => {
