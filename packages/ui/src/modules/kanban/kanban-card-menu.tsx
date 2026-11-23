@@ -78,7 +78,8 @@ export type KanbanCardMenuProps = Omit<ComponentProps<'button'>, 'type' | 'color
  * Client component. Put it in a card, beside the {@link KanbanCardHandle}. A
  * move from the menu goes through `onReorder`, and the live region announces it
  * as a keyboard step does. The focus then goes to the handle of the card. On a
- * board that cannot reorder, the menu renders nothing. A column with no name
+ * board with no `onReorder`, the menu renders nothing. A disabled board keeps
+ * an inert button with no menu, so the cards keep their size. A column with no name
  * takes its position in the menu, such as "Column 2". A card with no place to
  * move to shows one disabled "No move" item.
  */
@@ -90,7 +91,7 @@ export function KanbanCardMenu({
 }: KanbanCardMenuProps) {
 	const intl = useIntl()
 
-	const { interactive, cardMoves, moveCard } = useKanbanContext()
+	const { interactive, disabled, cardMoves, moveCard } = useKanbanContext()
 
 	const card = useKanbanCardContext()
 
@@ -105,8 +106,9 @@ export function KanbanCardMenu({
 	const content = children ?? <Icon icon={<EllipsisVertical />} size="sm" />
 
 	// The drag overlay has no card context. It copies the button with no menu, so
-	// the clone keeps the box of the card.
-	if (!card) {
+	// the clone keeps the box of the card. A disabled board keeps the same inert
+	// button, as it keeps a muted grip, so the cards do not change size.
+	if (!card || disabled) {
 		return (
 			<Button
 				variant="bare"

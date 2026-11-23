@@ -215,7 +215,11 @@ describe('listen', () => {
 	it.each([
 		['a card number', 'cc-number', '4242424242424242'],
 		['a card expiry', 'cc-exp', '12/34'],
+		['the month of a split card expiry', 'cc-exp-month', '12'],
+		['the year of a split card expiry', 'cc-exp-year', '34'],
 		['a card security code', 'cc-csc', '123'],
+		['a password that shows as text', 'current-password', 'hunter2'],
+		['a new password that shows as text', 'new-password', 'hunter3'],
 		['a one-time code', 'one-time-code', '654321'],
 		['a token in a section', 'section-pay billing CC-Number', '4242424242424242'],
 	])('masks the value of %s and each character typed into it', (_, autocomplete, secret) => {

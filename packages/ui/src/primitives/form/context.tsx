@@ -92,7 +92,8 @@ const [FormFailureContext, useFormFailureContext] = createContext<number>('FormF
 
 /**
  * Returns how many submit attempts of the enclosing form have failed. A
- * refused submit fails, and so does a handler that returns a field issue.
+ * refused submit fails. So does a handler that returns or sets a field issue or
+ * an issue of the whole form.
  *
  * @returns The failure count, or `0` outside a `Form`.
  * @remarks The count goes up for each failure, and a reset does not set it back.

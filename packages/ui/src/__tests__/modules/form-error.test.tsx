@@ -89,7 +89,7 @@ describe('FormError', () => {
 		expect(getSlot(container, 'form-error')).toHaveTextContent('The server is down')
 	})
 
-	it('clears the issue on the next submit, on a reset, and on the close button', async () => {
+	it('clears the issue on the next submit and on a reset, and shows no close button', async () => {
 		let answer: string | undefined = 'Invalid credentials'
 
 		const { container } = renderLogin({ onSubmit: () => ({ formError: answer }) })
@@ -114,9 +114,7 @@ describe('FormError', () => {
 
 		await submit(container)
 
-		fireEvent.click(screen.getByRole('button', { name: 'Close' }))
-
-		expect(bySlot(container, 'form-error')).toBeNull()
+		expect(screen.queryByRole('button', { name: 'Close' })).toBeNull()
 	})
 
 	it('sets and clears the issue through useFormActions', () => {

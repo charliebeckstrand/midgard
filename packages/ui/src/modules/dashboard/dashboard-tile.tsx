@@ -201,6 +201,11 @@ export type DashboardTileProps = {
 	 * tile shows no such selection.
 	 *
 	 * @remarks
+	 * The Clear control is in the header row, so a tile with no header row shows
+	 * no Clear. Give the tile a `title` when it can hold a selection. The header
+	 * row does not show and hide with `onClear`, because that would change the
+	 * height of the content.
+	 *
 	 * A new function renders the card again, so use `useCallback`.
 	 */
 	onClear?: () => void

@@ -114,7 +114,10 @@ const pendingIt = it.extend('pending', ({ onTestFinished }) => {
 
 /** A submit event for a handler of {@link useFormReducer} called directly. */
 function submitEvent(): SyntheticEvent<HTMLFormElement> {
-	return { preventDefault: vi.fn() } as unknown as SyntheticEvent<HTMLFormElement>
+	return {
+		preventDefault: vi.fn(),
+		currentTarget: document.createElement('form'),
+	} as unknown as SyntheticEvent<HTMLFormElement>
 }
 
 describe('Form', () => {
@@ -847,6 +850,92 @@ describe('Form', () => {
 		expect(onReset).toHaveBeenCalledOnce()
 
 		expect(onSettled).toHaveBeenCalledExactlyOnceWith({ ok: false, error: failure })
+	})
+
+	it('fails the attempt when a helper writes an issue, as a returned issue does', async () => {
+		const onSettled = vi.fn()
+
+		const { container } = renderUI(
+			<Form
+				defaultValues={{ name: 'Ada' }}
+				onSubmit={(_values, helpers) => {
+					helpers.setErrors({ name: 'taken' })
+				}}
+				onSettled={onSettled}
+			>
+				<FieldProbe name="name" />
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		await submit(container)
+
+		expect(getFieldProbe('name')).toHaveAttribute('data-error', 'taken')
+
+		expect(onSettled).not.toHaveBeenCalled()
+	})
+
+	it('fails the attempt when helpers.setFormError writes an issue', async () => {
+		const onSettled = vi.fn()
+
+		const { container } = renderUI(
+			<Form
+				defaultValues={{ name: 'Ada' }}
+				onSubmit={(_values, helpers) => {
+					helpers.setFormError('Invalid credentials')
+				}}
+				onSettled={onSettled}
+			>
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		await submit(container)
+
+		expect(onSettled).not.toHaveBeenCalled()
+	})
+
+	it.each([
+		[
+			'a clear of the issue of the whole form',
+			(helpers: FormHelpers<Values>) => {
+				helpers.setFormError('Retrying')
+
+				helpers.setFormError(null)
+			},
+		],
+		[
+			'a clear of the field',
+			(helpers: FormHelpers<Values>) => {
+				helpers.setErrors({ name: 'taken' })
+
+				helpers.setErrors({ name: undefined })
+			},
+		],
+		[
+			'a reset',
+			(helpers: FormHelpers<Values>) => {
+				helpers.setErrors({ name: 'taken' })
+
+				helpers.reset()
+			},
+		],
+	])('settles as a success when %s takes back a helper issue', async (_, write) => {
+		const onSettled = vi.fn()
+
+		const { container } = renderUI(
+			<Form
+				defaultValues={{ name: 'Ada' }}
+				onSubmit={(_values, helpers) => write(helpers)}
+				onSettled={onSettled}
+			>
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		await submit(container)
+
+		expect(onSettled).toHaveBeenCalledExactlyOnceWith({ ok: true, values: { name: 'Ada' } })
 	})
 
 	it('delivers { ok: true, values } to onSettled when onSubmit returns void', async () => {
@@ -1955,6 +2044,31 @@ describe('Form focus on a refused submit', () => {
 		await submit(container)
 
 		expect(getSlot(container, 'form-error-summary')).toHaveFocus()
+	})
+
+	it('moves the focus to the first control with a returned issue', async () => {
+		const { container } = renderUI(
+			<Form
+				defaultValues={{ email: 'ada@example.com', name: 'Ada' }}
+				onSubmit={async () => ({ fieldErrors: { name: 'taken' } })}
+			>
+				<Field>
+					<Label>Email</Label>
+					<Input name="email" />
+				</Field>
+				<Field>
+					<Label>Name</Label>
+					<Input name="name" />
+				</Field>
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		screen.getByRole('button', { name: 'Submit' }).focus()
+
+		await submit(container)
+
+		expect(screen.getByRole('textbox', { name: 'Name' })).toHaveFocus()
 	})
 
 	it('lets an onInvalidSubmit that moves the focus win', async () => {

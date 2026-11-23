@@ -50,7 +50,7 @@ type FormSubmissionResult = {
 	handleSubmit: (event: SyntheticEvent<HTMLFormElement>) => Promise<void>
 	/** Discards the in-flight submit, and clears `submitting`. */
 	supersede: () => void
-	/** How many submit attempts have failed: a refused submit, or a handler that returns a field issue or an issue of the whole form. */
+	/** How many submit attempts have failed: a refused submit, or a handler that returns or sets a field issue or an issue of the whole form. */
 	failures: number
 }
 
@@ -121,6 +121,19 @@ export function useFormSubmission<T extends Record<string, unknown>>({
 
 			const submitValues = store.getState().values as T
 
+			// Read before the handler runs: React clears `currentTarget` after the
+			// event, and a returned issue moves the focus after an `await`.
+			const doc = event.currentTarget.ownerDocument
+
+			// The focus goes to the first invalid control, so the reader does not stay
+			// on the submit button. A mounted summary takes the focus itself, and an
+			// `onInvalidSubmit` that moves the focus runs after this and wins.
+			const focusInvalid = (errors: Errors) => {
+				if (!targets || targets.hasSummary()) return
+
+				focusFirstControl(doc, Object.keys(invalidFields(errors)), targets.getSnapshot())
+			}
+
 			const { touched, errors, formError, refused } = validateSubmit(
 				validateRef.current,
 				submitValues,
@@ -142,16 +155,7 @@ export function useFormSubmission<T extends Record<string, unknown>>({
 					fail()
 				})
 
-				// The focus goes to the first invalid control, so the reader does not stay
-				// on the submit button. A mounted summary takes the focus itself, and an
-				// `onInvalidSubmit` that moves the focus runs after this and wins.
-				if (targets && !targets.hasSummary()) {
-					focusFirstControl(
-						event.currentTarget.ownerDocument,
-						Object.keys(invalidFields(errors)),
-						targets.getSnapshot(),
-					)
-				}
+				focusInvalid(errors)
 
 				reportInvalid(errors, formError)
 
@@ -178,15 +182,36 @@ export function useFormSubmission<T extends Record<string, unknown>>({
 			// keeps the attempt live. A handler that a newer submit or an outside
 			// reset superseded resets in full, as an outside reset does, and writes
 			// no errors.
+			//
+			// The issues that the helpers of this attempt left, kept as the store keeps
+			// them: a field write merges by field, the issue of the whole form takes
+			// the last write, and a reset clears both. An issue that stays when the
+			// handler settles fails the attempt, as a returned issue does.
+			let helperFieldErrors: Record<string, string | string[] | undefined> = {}
+
+			let helperFormError = false
+
 			const helpers: FormHelpers<T> = {
 				setErrors: (fieldErrors) => {
-					if (tokenRef.current === token) setErrors(fieldErrors)
+					if (tokenRef.current !== token) return
+
+					setErrors(fieldErrors)
+
+					helperFieldErrors = { ...helperFieldErrors, ...fieldErrors }
 				},
 				setFormError: (message) => {
-					if (tokenRef.current === token) setFormError(message)
+					if (tokenRef.current !== token) return
+
+					setFormError(message)
+
+					helperFormError = message !== null
 				},
 				reset: (nextDefaults) => {
 					if (tokenRef.current !== token) supersede()
+
+					helperFieldErrors = {}
+
+					helperFormError = false
 
 					resetForm(nextDefaults)
 				},
@@ -201,18 +226,31 @@ export function useFormSubmission<T extends Record<string, unknown>>({
 				const formError = extractFormError(raw)
 
 				// Apply the returned entries. This also clears each field whose entry
-				// has no issue. An entry with an issue, or an issue of the whole form,
-				// keeps the attempt mid-flow, and `onSettled` does not fire. `''`
-				// normalizes to `['']`, an issue.
-				if (fieldErrors) setErrors(fieldErrors)
+				// has no issue. An entry with an issue, an issue of the whole form, or a
+				// helper issue that stays keeps the attempt mid-flow, and `onSettled`
+				// does not fire. `''` normalizes to `['']`, an issue.
+				const failed =
+					helperFormError ||
+					formError !== null ||
+					hasFieldIssues({ ...helperFieldErrors, ...fieldErrors })
 
-				if (formError !== null) setFormError(formError)
+				if (failed) {
+					// The write flushes, so the focus lands on a control that already
+					// shows its error, as on a refused submit.
+					flushSync(() => {
+						if (fieldErrors) setErrors(fieldErrors)
 
-				if (formError !== null || (fieldErrors && hasFieldIssues(fieldErrors))) {
-					fail()
+						if (formError !== null) setFormError(formError)
+
+						fail()
+					})
+
+					focusInvalid(store.getState().errors)
 
 					return
 				}
+
+				if (fieldErrors) setErrors(fieldErrors)
 
 				// The outcome carries the values that `onSubmit` got, not the values
 				// after a reset or a write while the handler waited.

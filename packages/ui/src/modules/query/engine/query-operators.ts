@@ -160,9 +160,8 @@ const defaultOperators = {
 /**
  * The built-in set operators: `in` ("is any of") and `notIn` ("is none of").
  * Each one reads a set of values ({@link QueryOperator.set}). No field type
- * offers them by default, because no built-in value input writes a set. A
- * field with a custom value editor that writes a set adds them to its
- * `operators`.
+ * offers them by default, so a field adds them to its `operators`. With no
+ * value editor, the builder edits the set with a `TagInput`.
  *
  * @example
  * ```ts

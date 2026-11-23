@@ -1,6 +1,7 @@
 'use client'
 
 import { type RefObject, useEffect, useEffectEvent, useLayoutEffect, useRef } from 'react'
+import { announce } from '../../core/announcer'
 import { useAnnounceOnAppear } from '../../hooks/a11y/use-announce-on-appear'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
@@ -120,6 +121,26 @@ export function ToastAlert({
 	const contentRef = useRef<HTMLDivElement>(null)
 
 	useAnnounceOnAppear(contentRef, true, { onMount: true, enabled: !assertive })
+
+	// A replacement keeps the node. The live region speaks a change of its text
+	// by itself, but it does not reliably speak a change of its role or a repeat
+	// of its text. Only those two go to the shared announcer, at the politeness
+	// of the new severity, so a screen reader never speaks a replacement twice.
+	const revision = toast.revision
+
+	const spoken = useRef<{ revision?: number; text: string; assertive: boolean } | null>(null)
+
+	useEffect(() => {
+		const text = contentRef.current?.textContent?.trim() ?? ''
+
+		const last = spoken.current
+
+		spoken.current = { revision, text, assertive }
+
+		if (!last || last.revision === revision || !text) return
+
+		if (last.assertive !== assertive || last.text === text) announce(text, { assertive })
+	}, [revision, assertive])
 
 	// Hover and focus each hold the timer's source-counted pause at most once;
 	// the flags keep every hold/release paired so the count balances.

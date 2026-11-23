@@ -1,10 +1,10 @@
 # Form roadmap
 
-> **Goal: a form that owns each failure of a submit, at the level of the form, of the field, and of an item in a field.** Today the form owns the issues of a field only, so each app keeps its own state for the other failures.
+> **Goal: a form that owns each failure of a submit, at the level of the form, of the field, and of an item in a field.** The form owns the issues of a field and the issue of the whole form. The issue of an item in a field is still open.
 
 ## Status
 
-`ui/form` holds `Form` and its parts: `FormSubmit`, `FormReset`, and `FormErrorSummary`. It also holds the filter bar `FormFilters` and its parts, the schema adapter `zodResolver`, and the public hooks of the binding contract. The parts of the bar take the `FormFilters` prefix, and their anchors take the `form-filters` prefix.
+`ui/form` holds `Form` and its parts: `FormSubmit`, `FormReset`, `FormError`, and `FormErrorSummary`. It also holds the filter bar `FormFilters` and its parts, the schema adapter `zodResolver`, and the public hooks of the binding contract. The parts of the bar take the `FormFilters` prefix, and their anchors take the `form-filters` prefix.
 
 The binding contract is in [`primitives/form`](../../primitives/form). It holds the store and the actions of a form, the slice hooks of a field and of the status, and the binding cascade. A component sits below a module, so the contract is a primitive with no entry point. The barrel of this module re-exports its public hooks. [`component-boundary.test.ts`](../../__tests__/boundary/component-boundary.test.ts) lets a module barrel re-export the internal primitive of its own name, and no other primitive.
 
@@ -12,7 +12,7 @@ The binding contract is in [`primitives/form`](../../primitives/form). It holds 
 
 The submit flow is a set of small hooks over the engine. [`useFormReducer`](use-form-reducer.ts) holds the state and the field actions. [`useFormSubmission`](use-form-submission.ts) runs a submit, and [`useFormSync`](use-form-sync.ts) syncs the controlled `values` prop. [`useFormStore`](use-form-store.ts) publishes each committed state to the external store, so a keystroke renders only the field that changed. A monotonic token discards the result of a submit that a reset, an unmount, or a newer submit superseded.
 
-A refused submit and a handler that returns a field issue each count as a failure. A thrown error is the terminal outcome `{ ok: false }`, and goes to `onSettled`. The provider gives the failure count and the reset count to the parts.
+A refused submit counts as a failure. So does a handler that returns or sets a field issue or an issue of the whole form. Each failure with a field issue moves the focus to the first invalid control, unless a `FormErrorSummary` takes it. A thrown error is the terminal outcome `{ ok: false }`, and goes to `onSettled`. The provider gives the failure count and the reset count to the parts.
 
 While a submit runs, the form locks its parts and disables nothing. `Form` renders `ControlLockContext`, a lock scope of Control that knows nothing about forms. The Control cascade reads the lock as `readOnly`, and each `Button` reads it as `aria-disabled` and stays in the tab order. A button that must stay live, such as Cancel, takes `lockable={false}`. The standard close buttons of `Dialog`, `Drawer`, `Sheet`, `Popover`, `CommandPalette`, and the Cancel of `Confirm` take it too. A link `Button` with an `href` is not locked.
 

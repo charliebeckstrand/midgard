@@ -1050,9 +1050,11 @@ describe('KanbanCardMenu', () => {
 		onReorder,
 		columns = keyboardColumns,
 		named = true,
+		disabled,
 	}: {
 		onReorder?: (next: Column[]) => void
 		columns?: Column[]
+		disabled?: boolean
 		/** Whether each column takes an `aria-label`. */
 		named?: boolean
 	} = {}) {
@@ -1063,6 +1065,7 @@ describe('KanbanCardMenu', () => {
 				columns={cols}
 				getKey={(item: Item) => item.id}
 				aria-label="Board"
+				disabled={disabled}
 				onReorder={
 					onReorder &&
 					((next: Column[]) => {
@@ -1157,6 +1160,41 @@ describe('KanbanCardMenu', () => {
 		const { container } = renderUI(<MenuBoard />)
 
 		expect(bySlot(container, 'kanban-card-menu')).toBeNull()
+	})
+
+	it('keeps an inert button with no menu on a disabled board', () => {
+		const { container } = renderUI(<MenuBoard onReorder={vi.fn()} disabled />)
+
+		const button = present(
+			getCard(container, 'a').querySelector('[data-slot="kanban-card-menu"]'),
+			'menu button of a',
+		)
+
+		expect(button).toHaveAttribute('inert')
+
+		expect(button).toHaveAttribute('aria-hidden', 'true')
+	})
+
+	it('moves no card from a menu that stays open while a lock arrives', async () => {
+		const onReorder = vi.fn()
+
+		const { container, rerender } = renderUI(
+			<ControlLockContext value={false}>
+				<MenuBoard onReorder={onReorder} />
+			</ControlLockContext>,
+		)
+
+		const user = await openMenu(container, 'a')
+
+		rerender(
+			<ControlLockContext value>
+				<MenuBoard onReorder={onReorder} />
+			</ControlLockContext>,
+		)
+
+		await user.click(screen.getByRole('menuitem', { name: 'Move to “Done”' }))
+
+		expect(onReorder).not.toHaveBeenCalled()
 	})
 
 	it('names a column with no name by its position', async () => {
