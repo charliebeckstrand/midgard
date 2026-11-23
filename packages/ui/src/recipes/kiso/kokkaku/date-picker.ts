@@ -1,8 +1,8 @@
 /**
  * Kokkaku skeleton: date-picker. The silhouette of the DatePicker trigger: a
- * box with the height of a control, as wide as a date and the calendar icon.
- * Two empty spans give the width. The box takes the inline padding and the gap
- * of the trigger. The first span is as wide as a date in the text of the
+ * box with the height of a control that fills its parent, as the trigger does.
+ * Two empty spans give the least width: a date and the calendar icon. The box
+ * takes the inline padding and the gap of the trigger. The first span is as wide as a date in the text of the
  * trigger. The second span is as large as the calendar icon. Each measure is a
  * stepped `density-*` class, so the box follows the trigger at each step.
  *
@@ -19,7 +19,8 @@ import { control } from './control'
 export const datePicker = {
 	base: [
 		...control.base,
-		'flex w-fit max-w-full items-center',
+		...control.fill,
+		'flex items-center',
 		dan.space.control.x,
 		dan.gap.datePicker,
 	],

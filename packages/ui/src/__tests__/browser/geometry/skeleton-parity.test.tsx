@@ -390,35 +390,31 @@ describe('skeleton parity (real browser)', () => {
 		['md', true],
 		['lg', true],
 	] as const)('DatePickerSkeleton has the box of a %s picker, range %s', (size, range) => {
-		const trigger = (start: Date, end: Date) =>
-			box(
-				renderUI(
-					range ? (
-						<DatePicker aria-label="Dates" size={size} range defaultValue={[start, end]} />
-					) : (
-						<DatePicker aria-label="Date" size={size} defaultValue={end} />
-					),
-				).container.querySelector('[data-slot="control-frame"]'),
-				'date picker',
-			)
+		const end = new Date(2026, 5, 22)
 
-		// The digits of a date do not have the same width, so the trigger width
-		// changes with the value. The skeleton is between the trigger with short
-		// dates and the trigger with long dates. A single picker shows the second
-		// date.
-		const short = trigger(new Date(2026, 0, 1), new Date(2026, 0, 8))
-
-		const long = trigger(new Date(2026, 11, 1), new Date(2026, 11, 28))
+		const real = box(
+			renderUI(
+				range ? (
+					<DatePicker
+						aria-label="Dates"
+						size={size}
+						range
+						defaultValue={[new Date(2026, 5, 15), end]}
+					/>
+				) : (
+					<DatePicker aria-label="Date" size={size} defaultValue={end} />
+				),
+			).container.querySelector('[data-slot="control-frame"]'),
+			'date picker',
+		)
 
 		const skeleton = placeholder(
 			renderUI(<DatePickerSkeleton size={size} range={range} />).container,
 		)
 
-		expect(skeleton.width).toBeGreaterThan(short.width)
+		expect(skeleton.width).toBeNear(real.width, PIXEL)
 
-		expect(skeleton.width).toBeLessThan(long.width)
-
-		expect(skeleton.height).toBeNear(short.height, PIXEL)
+		expect(skeleton.height).toBeNear(real.height, PIXEL)
 	})
 
 	it.for(densitySteps.flatMap((size) => [1, 2, 3].map((rows) => [size, rows] as const)))(

@@ -17,6 +17,8 @@ Components split into a **static** (server-renderable) tier and a **client** tie
 
 For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcodeMask` preset.
 
+> Each framed control fills its container. This includes the triggers of `Listbox`, `Combobox`, `DatePicker`, and `ColorPicker`, and their skeletons. The page or the form sets the width, for example with a column of `max-w-sm`.
+
 > A `clearable` `input`, `search-input`, `date-input`, `address-input`, `signature-pad`, `listbox`, `combobox`, or `date-picker` shows a clear button while it holds a value.
 
 > An uncontrolled control follows a native form reset. A `Form` cancels the native reset and resets its bound fields. Either reset drops a partial entry, such as typed text that the control did not commit. A control that puts no value in a native form does not follow the native reset: `RangeSlider`, `Listbox`, `Calendar`, the `DatePicker` family, `ColorPicker`, and `SignaturePad`.

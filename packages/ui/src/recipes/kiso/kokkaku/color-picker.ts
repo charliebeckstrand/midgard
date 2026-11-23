@@ -1,7 +1,7 @@
 /**
  * Kokkaku skeleton: color-picker. The silhouette of the ColorPicker trigger:
- * a box with the height of a control, as wide as the swatch and the color
- * value. Two empty spans give the width. The box takes the inline padding and
+ * a box with the height of a control that fills its parent, as the trigger
+ * does. Two empty spans give the least width: the swatch and the color value. The box takes the inline padding and
  * the gap of the trigger, the first span is as large as the swatch, and the
  * second span is as wide as the hex value in the mono font of the trigger.
  * Each measure is a stepped `density-*` class, so the box matches the trigger
@@ -18,7 +18,8 @@ import { control } from './control'
 export const colorPicker = {
 	base: [
 		...control.base,
-		'flex w-fit max-w-full items-center',
+		...control.fill,
+		'flex items-center',
 		dan.space.control.x,
 		dan.gap.control,
 	],

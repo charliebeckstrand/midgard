@@ -1,5 +1,5 @@
 import api from 'virtual:docs/api/components/currency-input'
-import { ApiTable, Example, Playground } from '../../../kit/index.ts'
+import { ApiTable, Example, FrameDefaults, Playground } from '../../../kit/index.ts'
 import Controlled from './controlled.tsx'
 import CurrencyAndLocale from './currency-and-locale.tsx'
 import CustomPrecision from './custom-precision.tsx'
@@ -9,7 +9,7 @@ import CurrencyInputPlayground from './playground.tsx'
 
 export default function CurrencyInputPage() {
 	return (
-		<>
+		<FrameDefaults form>
 			<Playground of={CurrencyInputPlayground} api={api} />
 			<Example of={CurrencyAndLocale} />
 			<Example of={NoFractionDigits} />
@@ -17,6 +17,6 @@ export default function CurrencyInputPage() {
 			<Example of={Controlled} />
 			<Example of={Disabled} />
 			<ApiTable api={api} />
-		</>
+		</FrameDefaults>
 	)
 }

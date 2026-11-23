@@ -239,10 +239,9 @@ export type DatePickerProps = DatePickerBaseProps &
  * button. A `clearable` clear button replaces the calendar icon once a value is
  * set, mirroring Listbox/Combobox, which default it off as well.
  *
- * The trigger is as wide as its value and its calendar icon. It does not fill
- * its parent, and it does not get wider than its parent. Pass a `className`
- * such as `w-full` to make it fill the parent. With `input`, the DateInput
- * fills its parent, as an Input does.
+ * The trigger fills its parent, as each other control does. The parent, such
+ * as a form column, sets the width. With `input`, the DateInput also fills its
+ * parent.
  *
  * @remarks
  * In the calendar variants, keyboard navigation runs on a virtual highlight

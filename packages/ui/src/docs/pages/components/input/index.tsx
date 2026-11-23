@@ -1,5 +1,5 @@
 import api from 'virtual:docs/api/components/input'
-import { ApiTable, Example, Playground } from '../../../kit/index.ts'
+import { ApiTable, Example, FrameDefaults, Playground } from '../../../kit/index.ts'
 import Clearable from './clearable.tsx'
 import Disabled from './disabled.tsx'
 import InputPlayground from './playground.tsx'
@@ -10,7 +10,7 @@ import WithSuffix from './with-suffix.tsx'
 
 export default function InputPage() {
 	return (
-		<>
+		<FrameDefaults form>
 			<Playground of={InputPlayground} api={api} />
 			<Example of={WithPrefix} />
 			<Example of={WithSuffix} />
@@ -19,6 +19,6 @@ export default function InputPage() {
 			<Example of={Disabled} />
 			<Example of={ReadOnly} />
 			<ApiTable api={api} />
-		</>
+		</FrameDefaults>
 	)
 }

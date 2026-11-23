@@ -12,7 +12,7 @@ export type ColorPickerSkeletonProps = {
 	 */
 	size?: ScaleStep<typeof scale>
 	/**
-	 * Widens the silhouette to an eight-digit hex value. Set it when the picker
+	 * Widens the least width of the silhouette to an eight-digit hex value. Set it when the picker
 	 * has `alpha`.
 	 *
 	 * @defaultValue false
@@ -22,9 +22,9 @@ export type ColorPickerSkeletonProps = {
 }
 
 /**
- * A placeholder for a {@link ColorPicker} while it loads. It is as wide as the
- * trigger at the same `size` and `alpha`: the swatch and the hex value, not
- * the width of its parent.
+ * A placeholder for a {@link ColorPicker} while it loads. It has the height of
+ * the trigger at the same `size`. It fills its parent, as the trigger does. Its
+ * least width holds the swatch and a hex value, of eight digits with `alpha`.
  */
 export function ColorPickerSkeleton({ size, alpha = false, className }: ColorPickerSkeletonProps) {
 	return (

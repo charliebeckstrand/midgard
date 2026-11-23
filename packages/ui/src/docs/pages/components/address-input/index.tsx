@@ -1,5 +1,5 @@
 import api from 'virtual:docs/api/components/address-input'
-import { ApiTable, Example, Playground } from '../../../kit/index.ts'
+import { ApiTable, Example, FrameDefaults, Playground } from '../../../kit/index.ts'
 import BusinessSearch from './business-search.tsx'
 import Coordinates from './coordinates.tsx'
 import CustomProvider from './custom-provider.tsx'
@@ -8,7 +8,7 @@ import SuggestionsOnFocus from './suggestions-on-focus.tsx'
 
 export default function AddressInputPage() {
 	return (
-		<>
+		<FrameDefaults form>
 			<Playground
 				of={AddressInputPlayground}
 				api={api}
@@ -19,6 +19,6 @@ export default function AddressInputPage() {
 			<Example of={SuggestionsOnFocus} />
 			<Example of={BusinessSearch} />
 			<ApiTable api={api} />
-		</>
+		</FrameDefaults>
 	)
 }

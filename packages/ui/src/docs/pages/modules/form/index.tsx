@@ -1,5 +1,5 @@
 import api from 'virtual:docs/api/modules/form'
-import { ApiTable, Example, PageTabs, Playground } from '../../../kit/index.ts'
+import { ApiTable, Example, FrameDefaults, PageTabs, Playground } from '../../../kit/index.ts'
 import Checkboxes from './checkboxes.tsx'
 import ControlledValues from './controlled-values.tsx'
 import ErrorSummary from './error-summary.tsx'
@@ -16,15 +16,17 @@ export default function FormPage() {
 	return (
 		<>
 			<PageTabs tabs={TABS}>
-				<Playground of={FormPlayground} api={api} />
-				<Example of={Validation} />
-				<Example of={ErrorSummary} />
-				<Example of={Checkboxes} />
-				<Example of={ServerErrors} />
-				<Example of={FormErrorExample} />
-				<Example of={SuccessAndFailure} />
-				<Example of={UnsavedChanges} />
-				<Example of={ControlledValues} />
+				<FrameDefaults form>
+					<Playground of={FormPlayground} api={api} />
+					<Example of={Validation} />
+					<Example of={ErrorSummary} />
+					<Example of={Checkboxes} />
+					<Example of={ServerErrors} />
+					<Example of={FormErrorExample} />
+					<Example of={SuccessAndFailure} />
+					<Example of={UnsavedChanges} />
+					<Example of={ControlledValues} />
+				</FrameDefaults>
 			</PageTabs>
 			<ApiTable api={api} />
 		</>

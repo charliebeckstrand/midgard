@@ -169,6 +169,11 @@ export type FrameOptions = {
 	 */
 	ratio?: boolean
 	/**
+	 * Makes the instance box a form column of 24rem, or the width of a narrower
+	 * frame, for a field that fills its container.
+	 */
+	form?: boolean
+	/**
 	 * Makes the instance area a viewport of 32rem in height, for an instance that
 	 * opens an overlay, a popover, or a toast. The surfaces stay in the area. A
 	 * drag on the bottom border of the area sets the height of the viewport.
@@ -204,17 +209,30 @@ export function FrameDefaults({ children, ...options }: FrameOptions & { childre
 	return <FrameDefaultsContext value={options}>{children}</FrameDefaultsContext>
 }
 
+// The width of the instance box: the frame with `fill`, a form column with
+// `form`, and the width of the instance otherwise.
+function boxWidth(fill: boolean, form: boolean): string {
+	if (fill) return 'w-full'
+
+	if (form) return 'w-sm max-w-full phrasing:flex-row phrasing:flex-wrap phrasing:items-center'
+
+	return 'w-max min-w-[min(24rem,100%)] max-w-full phrasing:flex-row phrasing:flex-wrap phrasing:items-center'
+}
+
 /**
  * The box of the instance. A `page` is the page of the viewport, with no
  * padding. Each other instance is in a padded flex box, which fills the area
- * with `fill`, and is as wide as the instance otherwise.
+ * with `fill`, is a form column of 24rem with `form`, and is as wide as the
+ * instance otherwise.
  */
 function InstanceBox({
 	fill,
+	form,
 	page,
 	children,
 }: {
 	fill: boolean
+	form: boolean
 	page: boolean
 	children: ReactNode
 }) {
@@ -222,15 +240,7 @@ function InstanceBox({
 
 	return (
 		<div className="p-4">
-			<Stack
-				data-slot="example-instance"
-				gap="lg"
-				className={
-					fill
-						? 'w-full'
-						: 'w-max min-w-[min(24rem,100%)] max-w-full phrasing:flex-row phrasing:flex-wrap phrasing:items-center'
-				}
-			>
+			<Stack data-slot="example-instance" gap="lg" className={boxWidth(fill, form)}>
 				{children}
 			</Stack>
 		</div>
@@ -290,6 +300,13 @@ function InstanceBox({
  * does not become wider than the column. A drag sets the width as for each
  * other frame.
  *
+ * A field fills its container, and the page or the form sets the width. In a
+ * box that is as wide as its content, a long message or a row of tags makes
+ * the box and thus the field wider. With `form`, the box is a form column of
+ * 24rem, and the full width of a narrower frame, so each field of a page has
+ * the same width. A page of fields gives `form` to each of its frames with
+ * {@link FrameDefaults}.
+ *
  * A {@link FrameDefaults} around the frame gives the options that the frame
  * does not set.
  */
@@ -309,6 +326,7 @@ export function ExampleFrame(
 		print,
 		surface = false,
 		ratio = false,
+		form = false,
 		viewport = false,
 		page = false,
 		children,
@@ -407,12 +425,12 @@ export function ExampleFrame(
 								// `useToast` in the instance uses a queue of the frame, so its
 								// toasts show in the frame and not at the edge of the window.
 								<ToastHost>
-									<InstanceBox fill={surface || ratio} page={page}>
+									<InstanceBox fill={surface || ratio} form={form} page={page}>
 										{children}
 									</InstanceBox>
 								</ToastHost>
 							) : (
-								<InstanceBox fill={surface || ratio} page={false}>
+								<InstanceBox fill={surface || ratio} form={form} page={false}>
 									{children}
 								</InstanceBox>
 							)}

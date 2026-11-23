@@ -1,5 +1,5 @@
 import api from 'virtual:docs/api/components/date-picker'
-import { ApiTable, Example, Playground } from '../../../kit/index.ts'
+import { ApiTable, Example, FrameDefaults, Playground } from '../../../kit/index.ts'
 import Controlled from './controlled.tsx'
 import FooterButtons from './footer-buttons.tsx'
 import Glass from './glass.tsx'
@@ -11,7 +11,7 @@ import TypedInput from './typed-input.tsx'
 
 export default function DatePickerPage() {
 	return (
-		<>
+		<FrameDefaults form>
 			<Playground of={DatePickerPlayground} api={api} omit={['open', 'truncate']} />
 			<Example of={Controlled} />
 			<Example of={TypedInput} />
@@ -21,6 +21,6 @@ export default function DatePickerPage() {
 			<Example of={FooterButtons} />
 			<Example of={Glass} />
 			<ApiTable api={api} />
-		</>
+		</FrameDefaults>
 	)
 }

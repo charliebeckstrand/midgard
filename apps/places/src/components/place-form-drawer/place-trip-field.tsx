@@ -68,13 +68,12 @@ export function PlaceVisitedField({ trips, pending }: PlaceVisitedFieldProps) {
 			<Label>Visited</Label>
 
 			{pending ? (
-				<DatePickerSkeleton className="w-full" />
+				<DatePickerSkeleton />
 			) : (
 				<DatePicker
 					name="visitedAt"
 					min={trip === undefined ? undefined : fromDay(trip.startsOn)}
 					max={trip === undefined ? undefined : fromDay(trip.endsOn)}
-					className="w-full"
 				/>
 			)}
 

@@ -1,5 +1,5 @@
 import api from 'virtual:docs/api/components/select'
-import { ApiTable, Example, Playground } from '../../../kit/index.ts'
+import { ApiTable, Example, FrameDefaults, Playground } from '../../../kit/index.ts'
 import Controlled from './controlled.tsx'
 import DisabledOption from './disabled-option.tsx'
 import InAField from './in-a-field.tsx'
@@ -9,7 +9,7 @@ import WithDescriptions from './with-descriptions.tsx'
 
 export default function SelectPage() {
 	return (
-		<>
+		<FrameDefaults form>
 			<Playground of={SelectPlayground} api={api} omit={['open', 'required']} />
 			<Example of={InAField} />
 			<Example of={WithDescriptions} />
@@ -17,6 +17,6 @@ export default function SelectPage() {
 			<Example of={Validation} />
 			<Example of={Controlled} />
 			<ApiTable api={api} />
-		</>
+		</FrameDefaults>
 	)
 }
