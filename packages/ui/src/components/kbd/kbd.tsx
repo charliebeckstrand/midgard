@@ -14,7 +14,9 @@ export type KbdProps = ComponentProps<'kbd'> & {
  * text is a square. A key with only an icon, such as
  * `<Kbd><Icon icon={<CornerDownLeft />} /></Kbd>`, is a square as tall as a key
  * with text, also with an `sr-only` name beside the icon. A key with a longer
- * label grows.
+ * label grows. CSS does not see a bare text node, so a key with an icon and
+ * bare text gets the size of a key with only an icon. Put the text in a
+ * `<span>`, or write the glyph as text.
  *
  * @remarks
  * A pure, server-renderable display leaf. Without `size`, the key takes the

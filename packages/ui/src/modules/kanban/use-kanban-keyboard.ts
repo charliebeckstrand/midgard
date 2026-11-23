@@ -209,9 +209,10 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 	})
 
 	// A move from the "Move to" menu of a card. It reports the move and announces
-	// it as a keyboard step does, and the focus follows the card to its handle.
+	// it as a keyboard step does, and the focus follows the card to its handle. A
+	// menu that stays open while a lock arrives starts no move, as the keys do.
 	const moveCard = useStableEvent((cardId: string, target: KanbanCardTarget, cardName: string) => {
-		if (!onReorder) return
+		if (!onReorder || !enabled) return
 
 		const board = indexBoard(columns, getKey)
 

@@ -287,6 +287,22 @@ describe('Toast: useToast behavior', () => {
 		expect(second).toHaveBeenCalledWith('timeout')
 	})
 
+	it('speaks a replaced toast again, at the politeness of its new severity', async () => {
+		const api = renderToasts()
+
+		act(() => {
+			api.toast({ id: 'save', title: 'Saving' })
+		})
+
+		act(() => {
+			api.toast({ id: 'save', title: 'Save failed', severity: 'error' })
+		})
+
+		await vi.waitFor(() => {
+			expect(liveRegion('assertive')?.textContent).toContain('Save failed')
+		})
+	})
+
 	it('keeps or counts down a replaced toast by the persist of the new call', async ({ clock }) => {
 		const api = renderToasts({ duration: 500 })
 

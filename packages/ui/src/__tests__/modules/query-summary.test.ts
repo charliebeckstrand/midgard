@@ -162,6 +162,24 @@ describe('formatQuerySummary', () => {
 		expect(line([rule(ageField, { operator: 'gt', value: '$1,000' })])).toBe('Age > $1,000')
 	})
 
+	it('formats each range bound through the formatValue of the field, as a single value', () => {
+		const priceField: QueryField = {
+			name: 'price',
+			label: 'Price',
+			type: 'number',
+			formatValue: (value) => `$${value}`,
+		}
+
+		const format = (patch: Partial<ReturnType<typeof createRule>>) =>
+			formatQuerySummary(createGroup('and', [rule(priceField, patch)]), [priceField])
+
+		expect(format({ operator: 'equals', value: 10 })).toBe('Price = $10')
+
+		expect(format({ operator: 'between', value: [10, 20] })).toBe('Price between $10 and $20')
+
+		expect(format({ operator: 'between', value: [10, ''] })).toBe('Price ≥ $10')
+	})
+
 	it('joins active rules by the later rule’s combinator', () => {
 		expect(
 			line([

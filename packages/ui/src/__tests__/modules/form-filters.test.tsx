@@ -869,4 +869,18 @@ describe('FormFilters native props', () => {
 
 		expect(onValueChange).toHaveBeenCalled()
 	})
+
+	it('clears on a consumer onClick that calls preventDefault, as the cloned child does', async () => {
+		const onValueChange = vi.fn()
+
+		renderUI(
+			<FormFilters aria-label="Filters" value={{ q: 'a' }} onValueChange={onValueChange}>
+				<FormFiltersClear onClick={(event) => event.preventDefault()}>Clear</FormFiltersClear>
+			</FormFilters>,
+		)
+
+		await setupUser().click(screen.getByRole('button', { name: 'Clear' }))
+
+		expect(onValueChange).toHaveBeenCalled()
+	})
 })

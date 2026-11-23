@@ -153,7 +153,8 @@ export type MapCategory = {
 			 * paints the region and its swatch in the full step at 35% alpha, so the
 			 * region reads as tinted ground under the marks that stand on it, such as
 			 * the dots of a `MapPoints`. The seams between the regions keep their full
-			 * ink.
+			 * ink. A `zinc` tint has no hue, and it is near the fill of a region with
+			 * no data, so do not use it beside regions with no data.
 			 *
 			 * @defaultValue 'solid'
 			 */

@@ -36,11 +36,22 @@ export const MASK = '***'
 export const MASK_ATTRIBUTE = 'data-events-mask'
 
 /**
- * The `autocomplete` tokens of a secret field: the parts of a card that
- * `CreditCardInput` renders, and a one-time code. A token matches in any
- * case and after a section or a billing token, as HTML permits.
+ * The `autocomplete` tokens of a secret field: the number, the expiry, and the
+ * code of a card, a password, and a one-time code. A token matches in any case
+ * and after a section or a billing token, as HTML permits. A token matches as a
+ * whole word, so each part of a split expiry has its own token. A password
+ * token masks a field that shows its password as text.
  */
-const SECRET_TOKENS = ['cc-number', 'cc-exp', 'cc-csc', 'one-time-code']
+const SECRET_TOKENS = [
+	'cc-number',
+	'cc-exp',
+	'cc-exp-month',
+	'cc-exp-year',
+	'cc-csc',
+	'current-password',
+	'new-password',
+	'one-time-code',
+]
 
 /**
  * The fields that are secret in each place. Each input of type `password` is

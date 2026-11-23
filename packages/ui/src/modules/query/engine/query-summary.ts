@@ -77,13 +77,16 @@ function valueText(intl: IntlShape, value: unknown): string {
  * Formats a range operator's `[min, max]` value: `min and max` when both bounds
  * are set, else the open bound as a `≥`/`≤` relation. Reached only for an active
  * range rule, so the value is a `[min, max]` pair with at least one bound set.
+ * Each bound reads as a single value does, through the `formatValue` of the
+ * field.
  *
  * @internal
  */
 function describeRange(
 	intl: IntlShape,
 	id: string,
-	field: string,
+	field: QueryField | undefined,
+	label: string,
 	operator: string,
 	value: unknown,
 ): QuerySummaryRuleToken {
@@ -91,16 +94,16 @@ function describeRange(
 
 	if (!isBlank(lo) && !isBlank(hi)) {
 		const range = intl.formatMessage(queryMessages.range, {
-			min: valueText(intl, lo),
-			max: valueText(intl, hi),
+			min: describeValue(intl, field, lo),
+			max: describeValue(intl, field, hi),
 		})
 
-		return { kind: 'rule', id, field, operator, value: range }
+		return { kind: 'rule', id, field: label, operator, value: range }
 	}
 
 	return isBlank(lo)
-		? { kind: 'rule', id, field, operator: '≤', value: valueText(intl, hi) }
-		: { kind: 'rule', id, field, operator: '≥', value: valueText(intl, lo) }
+		? { kind: 'rule', id, field: label, operator: '≤', value: describeValue(intl, field, hi) }
+		: { kind: 'rule', id, field: label, operator: '≥', value: describeValue(intl, field, lo) }
 }
 
 /**
@@ -206,7 +209,7 @@ export function describeRule(
 	}
 
 	if (RANGE_OPERATORS.has(rule.operator)) {
-		return describeRange(intl, rule.id, label, relation, rule.value)
+		return describeRange(intl, rule.id, field, label, relation, rule.value)
 	}
 
 	return {

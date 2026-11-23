@@ -73,6 +73,11 @@ export type ToastData = {
 	/** True from the time the toast starts to leave. The provider sets it. */
 	dismissed?: boolean
 	/**
+	 * How many times a call with the same id replaced the toast while it showed.
+	 * The provider sets it, and the toast speaks its text again at each change.
+	 */
+	revision?: number
+	/**
 	 * Fires once when this toast leaves the queue, with the reason it left.
 	 *
 	 * `toast()` hands back an id and nothing else, so the caller who raised a toast cannot
@@ -90,7 +95,7 @@ export type ToastData = {
  * provider derives, and without `dismissed`, which the provider owns. `dismissed` marks a
  * toast as leaving, and doubles as the latch that keeps `onDismiss` to one report.
  */
-export type ToastInput = Omit<ToastData, 'id' | 'duration' | 'dismissed'> & {
+export type ToastInput = Omit<ToastData, 'id' | 'duration' | 'dismissed' | 'revision'> & {
 	/**
 	 * The time in milliseconds that the toast stays before it leaves with `timeout`.
 	 * Use `persist` to keep a toast. `Infinity` keeps the toast too, and the timer
@@ -103,7 +108,8 @@ export type ToastInput = Omit<ToastData, 'id' | 'duration' | 'dismissed'> & {
 	 * the id of a live toast replaces that toast in place, and its countdown starts
 	 * again. Give a fixed id to a toast that can repeat, such as "Link copied", or
 	 * to a loading toast that turns into its result. The new call replaces each
-	 * field, `onDismiss` too, and the toast that it replaces reports no exit.
+	 * field, `onDismiss` too, and the toast that it replaces reports no exit. The
+	 * shared announcer speaks the new text, also when it repeats the old text.
 	 */
 	id?: string
 }

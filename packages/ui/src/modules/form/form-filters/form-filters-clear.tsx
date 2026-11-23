@@ -17,6 +17,13 @@ import { getTabbableElements } from '../../../utilities/focusable-selector'
 import { useFormFilters } from './context'
 
 /**
+ * The clear is the activation that the trigger exists to perform, so a caller
+ * `preventDefault()` does not cancel it. The cloned child of `cloneWithAction`
+ * follows the same rule (CONVENTIONS.md §3.9, the first case).
+ */
+const alwaysClear = { checkForDefaultPrevented: false }
+
+/**
  * Props for {@link FormFiltersClear}. The fallback `<button>` takes the rest.
  * An element child carries its own props, so the rest does not reach it.
  */
@@ -112,7 +119,7 @@ export function FormFiltersClear({
 			variant={variant}
 			color={color}
 			data-slot="form-filters-clear"
-			onClick={composeEventHandlers(onClick, handleClear)}
+			onClick={composeEventHandlers(onClick, handleClear, alwaysClear)}
 			className={classes}
 		>
 			{children}
