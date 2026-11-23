@@ -511,6 +511,14 @@ export const space = {
 		y: scale.py.xs,
 	},
 	kbd: {
+		icon: {
+			/** The inline padding of a key with only icons: the block padding of a key (`mark.y`), so the key is a square. */
+			x: 'not-data-has-label:density-px-[0.5,0.75,1,1.25,1.5]',
+			button: {
+				/** The inline padding of a key with only icons in a button: the block padding of such a key (`button.y`). */
+				x: 'not-data-has-label:[&:is([data-variant]>*)]:px-px',
+			},
+		},
 		button: {
 			/** The inline padding of a key in a button. */
 			x: '[&:is([data-variant]>*)]:density-px-[0.5,1,1.5,2,2.5]',

@@ -19,6 +19,12 @@ export const k = defineKata({
 		// Chromium tests the rule only against the keys.
 		dan.space.kbd.button.x,
 		dan.space.kbd.button.y,
+		// A key with only icons is a square as tall as a key with text. Its icon
+		// takes the line height of the key text, and its inline padding takes the
+		// block padding. The component sets `data-has-label` on a key with text.
+		'not-data-has-label:*:data-[slot=icon]:size-[1lh]',
+		dan.space.kbd.icon.x,
+		dan.space.kbd.icon.button.x,
 	],
 })
 

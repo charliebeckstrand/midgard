@@ -1,7 +1,6 @@
 'use client'
 
 import type { ComponentProps, Ref } from 'react'
-import { Children } from 'react'
 import { cn } from '../../core/cn'
 import { useControlLock } from '../../primitives/control/context'
 import { Density } from '../../primitives/density'
@@ -15,7 +14,7 @@ import { Link } from '../link'
 import { LoadingSpinner } from '../loading'
 import { loadingProps, lockedProps } from './button-constants'
 import { ButtonHeadless } from './button-headless'
-import { type ButtonBaseProps, isIconElement, isVisuallyHiddenElement } from './button-utilities'
+import { type ButtonBaseProps, hasTextLabel } from './button-utilities'
 import { useButtonDefaults } from './context'
 
 /**
@@ -104,9 +103,7 @@ export function Button({
 	// (see `data-has-label` in the button recipe), icon-only buttons stay square.
 	// A visually hidden child, such as an `sr-only` name, takes no room, so it is
 	// not a label.
-	const hasLabel = Children.toArray(children).some(
-		(child) => !isIconElement(child) && !isVisuallyHiddenElement(child),
-	)
+	const hasLabel = hasTextLabel(children)
 
 	const classes = cn(k({ variant, color }).base, className)
 

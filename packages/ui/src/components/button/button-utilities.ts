@@ -1,4 +1,4 @@
-import { isValidElement, type ReactNode } from 'react'
+import { Children, isValidElement, type ReactNode } from 'react'
 import type { ButtonVariants } from '../../recipes/kata/button'
 import { Icon } from '../icon'
 
@@ -70,4 +70,17 @@ export function isVisuallyHiddenElement(node: unknown): boolean {
 	const { className } = node.props as { className?: unknown }
 
 	return typeof className === 'string' && SR_ONLY.test(className)
+}
+
+/**
+ * Whether `children` hold a text label: a child that is not an icon and is not
+ * visually hidden. A host with no label holds only icons, so it sizes itself as
+ * a square, as an icon-only Button and an icon-only Kbd do.
+ *
+ * @internal
+ */
+export function hasTextLabel(children: ReactNode): boolean {
+	return Children.toArray(children).some(
+		(child) => !isIconElement(child) && !isVisuallyHiddenElement(child),
+	)
 }
