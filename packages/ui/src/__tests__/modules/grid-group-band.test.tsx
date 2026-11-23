@@ -101,7 +101,7 @@ describe('Grid column groups', () => {
 
 		expect(band).toHaveAccessibleName('Name')
 
-		fireEvent.click(screen.getByRole('button', { name: /^Collapse/ }))
+		fireEvent.click(screen.getByRole('button', { name: 'Name columns' }))
 
 		expect(band).toHaveAccessibleName('Name')
 	})
