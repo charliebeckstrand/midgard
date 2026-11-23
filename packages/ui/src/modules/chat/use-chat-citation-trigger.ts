@@ -58,6 +58,12 @@ export type ChatCitationActions = {
 	unpreview: (citation: ChatCitation, source: PreviewSource) => void
 	/** Ends the preview of the citation `id`, as Escape or an unmount does. */
 	dismiss: (id: string) => void
+	/**
+	 * Ends a preview, and sends `null` through `onCitedChange` when a citation
+	 * is cited, as Escape does. Returns `false` when it had nothing to clear, so
+	 * that Escape can go on to the surface that holds the chat.
+	 */
+	clear: () => boolean
 	/** A click, Enter, or Space on `citation`. `touch` is true for a tap. */
 	press: (citation: ChatCitation, touch: boolean) => void
 }
@@ -92,6 +98,9 @@ export function lastInputIsTouch(): boolean {
  * A preview ends only when its last source ends, so a pointer that leaves a
  * citation with the keyboard focus on it keeps the preview. The hook keeps the
  * preview in a ref, because two pointer events can come before a render.
+ *
+ * Escape clears both, as the Clear control of a view clears `cited`. The focus
+ * stays on the citation.
  *
  * @internal
  */
@@ -139,6 +148,16 @@ export function useChatCitationTrigger(
 		if (previewRef.current?.citation.id === id) end()
 	})
 
+	const clear = useStableEvent((): boolean => {
+		const previewing = previewRef.current !== null
+
+		if (previewing) end()
+
+		if (cited !== null) onCitedChange(null)
+
+		return previewing || cited !== null
+	})
+
 	const press = useStableEvent((citation: ChatCitation, touch: boolean) => {
 		// A touch screen has no hover, so a tap toggles the citation in each mode.
 		if (trigger === 'hover' && !touch) return
@@ -147,7 +166,7 @@ export function useChatCitationTrigger(
 	})
 
 	return useMemo(
-		() => ({ preview, unpreview, dismiss, press }),
-		[preview, unpreview, dismiss, press],
+		() => ({ preview, unpreview, dismiss, clear, press }),
+		[preview, unpreview, dismiss, clear, press],
 	)
 }

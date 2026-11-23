@@ -1,6 +1,4 @@
-import { type ReactNode, useCallback, useMemo, useState } from 'react'
-import { Button } from 'ui/button'
-import { Card, CardBody, CardHeader, CardTitle } from 'ui/card'
+import { useCallback, useMemo, useState } from 'react'
 import { BarChart } from 'ui/chart'
 import {
 	type ChatCitation,
@@ -10,13 +8,13 @@ import {
 	toCategorySelection,
 	toStopSelection,
 } from 'ui/chat'
-import { Flex } from 'ui/flex'
 import { MapPlat, MapPoints } from 'ui/map'
 import { ResizableGroup, ResizableHandle, ResizablePanel } from 'ui/resizable'
 import { Stack } from 'ui/stack'
 import { dayNames as day } from '../../../../data/calendar.ts'
 import { states } from '../../map/data.ts'
 import { deliveryStops } from '../../map/point/data.ts'
+import { Pane } from './pane.tsx'
 
 // The day of each late stop: seven of the twelve are on Tuesday.
 const lateDays = [
@@ -81,33 +79,6 @@ const messages: ChatMessageData[] = [
 const targets = {
 	'late-stops': { label: 'Late stops' },
 	'late-by-day': { label: 'Late stops by day' },
-}
-
-// A pane of the group: a card with a title, a Clear control while a selection
-// applies, and a surface under them.
-function Pane({
-	title,
-	onClear,
-	children,
-}: {
-	title: string
-	onClear?: () => void
-	children: ReactNode
-}) {
-	return (
-		<Card className="flex h-full flex-col">
-			<CardHeader>
-				<Flex align="center" justify="between" gap="sm">
-					<CardTitle>{title}</CardTitle>
-					{/* The control keeps its space while it hides, so both headers have one height. */}
-					<Button variant="plain" onClick={onClear} className={onClear ? undefined : 'invisible'}>
-						Clear
-					</Button>
-				</Flex>
-			</CardHeader>
-			<CardBody className="min-h-0 flex-1">{children}</CardBody>
-		</Card>
-	)
 }
 
 export default function SelectsInAMapAndAChart() {

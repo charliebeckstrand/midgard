@@ -24,7 +24,8 @@ export type ChatCitationProviderProps = {
 	/**
 	 * Fires when a press changes the active citation, with the next value of
 	 * `cited`: the pressed citation, or `null` when the reader pressed the
-	 * active citation again. A hover never calls it.
+	 * active citation again. Escape on a citation sends `null`, as the Clear
+	 * control of a view does. A hover never calls it.
 	 */
 	onCitedChange: (citation: ChatCitation | null) => void
 	/**
@@ -48,8 +49,10 @@ export type ChatCitationProviderProps = {
 	 * and a press toggles `cited`. The order of the list does not matter.
 	 *
 	 * @remarks
-	 * A focus from the keyboard previews, as a hover does. A blur or Escape
-	 * ends the preview. The focus that a click gives does not preview. A touch
+	 * A focus from the keyboard previews, as a hover does. A blur ends the
+	 * preview. Escape on a citation ends a preview and clears `cited`, in each
+	 * mode. With nothing to clear, Escape goes on to the surface that holds the
+	 * chat. The focus that a click gives does not preview. A touch
 	 * screen has no hover, so a tap toggles `cited` in each mode.
 	 *
 	 * @defaultValue `'click'`, or the trigger of the enclosing provider.
