@@ -12,8 +12,12 @@ export type ImportRef = { specifier: string; runtime: boolean }
 
 // A re-export takes only a braced or a `*` clause, so an `export` declaration
 // never reads as one.
+//
+// A clause holds no line that opens with `import`, so a match cannot start at a
+// bare `import './x'` and run on to the `from` of the next statement. A comment
+// in the clause can hold a quote, so the clause does not stop at one.
 const IMPORT =
-	/^(?:import\s+([\s\S]*?)|export\s+((?:type\s+)?(?:\{[^}]*\}|\*(?:\s+as\s+\w+)?)))\sfrom\s*['"]([^'"]+)['"]/gm
+	/^(?:import\s+((?:(?!^import\b)[\s\S])*?)|export\s+((?:type\s+)?(?:\{[^}]*\}|\*(?:\s+as\s+\w+)?)))\sfrom\s*['"]([^'"]+)['"]/gm
 
 // A bare import has no clause. It loads its module for the side effects, so a
 // bundler keeps it.
@@ -66,6 +70,9 @@ export function parseImports(content: string): ImportRef[] {
 
 	return [...clauses, ...bare]
 }
+
+/** A specifier of React or React DOM, or of a module under either, such as `react-dom/client`. */
+export const REACT_SPECIFIER = /^react(?:-dom)?(?:\/|$)/
 
 /** The source file that a relative specifier names, or `undefined`. */
 export function resolveSource(from: string, specifier: string): string | undefined {

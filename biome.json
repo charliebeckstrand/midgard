@@ -58,6 +58,9 @@
 				"rules": {
 					"performance": {
 						"noImgElement": "off"
+					},
+					"style": {
+						"noNestedTernary": "error"
 					}
 				}
 			}
@@ -66,24 +69,14 @@
 			"includes": [
 				"packages/ui/**",
 				"!packages/ui/**/__tests__/**",
+				"!packages/ui/**/__benchmarks__/**",
 				"!packages/ui/**/*.test.ts",
-				"!packages/ui/**/*.test.tsx",
-				"!packages/ui/**/*.bench.ts"
+				"!packages/ui/**/*.test.tsx"
 			],
 			"linter": {
 				"rules": {
 					"complexity": {
 						"noExcessiveCognitiveComplexity": "error"
-					}
-				}
-			}
-		},
-		{
-			"includes": ["packages/ui/**"],
-			"linter": {
-				"rules": {
-					"style": {
-						"noNestedTernary": "error"
 					}
 				}
 			}
@@ -587,20 +580,10 @@
 				"!**/__tests__/**",
 				"!**/__benchmarks__/**"
 			],
-			"plugins": ["./.biome/plugins/no-renamed-spacing-utility.grit"]
-		},
-		{
-			"includes": [
-				"packages/ui/src/recipes/**",
-				"packages/ui/src/components/**",
-				"packages/ui/src/structure/**",
-				"packages/ui/src/modules/**",
-				"packages/ui/src/primitives/**",
-				"packages/ui/src/layouts/**",
-				"!**/__tests__/**",
-				"!**/__benchmarks__/**"
-			],
-			"plugins": ["./.biome/plugins/no-inline-spacing-calc.grit"]
+			"plugins": [
+				"./.biome/plugins/no-renamed-spacing-utility.grit",
+				"./.biome/plugins/no-inline-spacing-calc.grit"
+			]
 		},
 		{
 			"includes": ["packages/ui/src/recipes/kata/**", "!**/__tests__/**", "!**/__benchmarks__/**"],
@@ -630,7 +613,10 @@
 		},
 		{
 			"includes": ["packages/ui/src/**", "!**/__tests__/**", "!**/__benchmarks__/**"],
-			"plugins": ["./.biome/plugins/no-motion-reduced-motion-hook.grit"]
+			"plugins": [
+				"./.biome/plugins/no-motion-reduced-motion-hook.grit",
+				"./.biome/plugins/no-whole-floating-context-dep.grit"
+			]
 		},
 		{
 			"includes": [
@@ -640,10 +626,6 @@
 				"!**/__benchmarks__/**"
 			],
 			"plugins": ["./.biome/plugins/no-full-motion-component.grit"]
-		},
-		{
-			"includes": ["packages/ui/src/**", "!**/__tests__/**", "!**/__benchmarks__/**"],
-			"plugins": ["./.biome/plugins/no-whole-floating-context-dep.grit"]
 		},
 		{
 			"includes": [
@@ -657,6 +639,9 @@
 		{
 			"includes": [
 				"packages/ui/src/**",
+				"packages/shared/src/**",
+				"apps/*/app/**",
+				"apps/*/src/**",
 				"!**/__tests__/**",
 				"!**/__benchmarks__/**",
 				"!packages/ui/src/utilities/force-style-flush.ts"
@@ -703,11 +688,8 @@
 		},
 		{
 			"includes": ["apps/**", "packages/**"],
-			"plugins": ["./.biome/plugins/no-abbreviated-binding.grit"]
-		},
-		{
-			"includes": ["apps/**", "packages/**"],
 			"plugins": [
+				"./.biome/plugins/no-abbreviated-binding.grit",
 				"./.biome/plugins/no-of-suffixed-binding.grit",
 				"./.biome/plugins/no-alternate-predicate-binding.grit",
 				"./.biome/plugins/no-twice-mixed-condition.grit"

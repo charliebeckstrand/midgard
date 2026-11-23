@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { runtimeFiles } from '../helpers/import-graph'
-import { parseImports } from '../helpers/source-imports'
+import { parseImports, REACT_SPECIFIER } from '../helpers/source-imports'
 import { srcDir, srcRelative } from '../helpers/walk-source'
 
 // `ui/server` holds the functions that run on a server: in a Next.js server
@@ -17,9 +17,6 @@ import { srcDir, srcRelative } from '../helpers/walk-source'
 
 const ENTRY = join(srcDir, 'server', 'index.ts')
 
-/** A runtime import of React or of React DOM, or of a module under either, such as `react-dom/server`. */
-const REACT = /^react(?:-dom)?(?:\/|$)/
-
 /** One reason for each way that a file of the server graph breaks the rule. */
 function serverBreaches(file: string): string[] {
 	const source = readFileSync(file, 'utf8')
@@ -31,7 +28,7 @@ function serverBreaches(file: string): string[] {
 	if (file.endsWith('.tsx')) reasons.push('is a .tsx file')
 
 	const react = parseImports(source).filter(
-		({ specifier, runtime }) => runtime && REACT.test(specifier),
+		({ specifier, runtime }) => runtime && REACT_SPECIFIER.test(specifier),
 	)
 
 	if (react.length > 0) reasons.push('imports a value from react or react-dom')
