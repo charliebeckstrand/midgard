@@ -42,6 +42,7 @@ export function useGridDataView<T>({
 	rowSelectable,
 	paginated,
 	cursorEnabled,
+	cursorOrder,
 	cursorNewRow,
 	reconcile,
 	onRowClick,
@@ -72,6 +73,8 @@ export function useGridDataView<T>({
 	/** Whether the grid shows a page, which narrows the selection narration. */
 	paginated: boolean
 	cursorEnabled: boolean
+	/** Whether the body gives the cursor an order of its own: a grouped or a master-detail body. */
+	cursorOrder: boolean
 	/** Where the cursor's new-row slot is, which clamps the cursor when it moves. */
 	cursorNewRow: GridNewRowPosition
 	/** Follows the cursor into the rendered layout, clamps it, and ends a cell range that moved. */
@@ -104,12 +107,16 @@ export function useGridDataView<T>({
 		dataColCount: dataColumns.length,
 	})
 
-	// Only the cursor reads the row indices, so a grid with no cursor skips the
-	// map, which is one entry for each row.
+	// The map gives the data row index of a row to a body that gives the cursor
+	// an order of its own: a grouped body or a master-detail body. A flat row
+	// gives each cell its place in the view, so a flat body reads no map. The map
+	// is one entry for each loaded row, and a sort or a refresh builds it again,
+	// so a grid that does not read it skips it.
+	const indexesRows = cursorEnabled && cursorOrder
+
 	const rowIndexMap = useMemo(
-		() =>
-			new Map(cursorEnabled ? renderRows.map((row, index) => [row, index] as const) : undefined),
-		[cursorEnabled, renderRows],
+		() => new Map(indexesRows ? renderRows.map((row, index) => [row, index] as const) : undefined),
+		[indexesRows, renderRows],
 	)
 
 	const colIndexMap = useMemo(
