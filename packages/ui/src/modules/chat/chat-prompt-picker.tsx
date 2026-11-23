@@ -4,6 +4,7 @@ import type { CSSProperties, Ref } from 'react'
 import { ariaAttr } from '../../core/aria-attr'
 import { cn } from '../../core/cn'
 import { defineMessages, intlMessages } from '../../primitives/intl/intl-messages'
+import type { IntlShape } from '../../primitives/intl/types'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { Option, OptionDescription, OptionLabel, OptionText } from '../../primitives/option'
 import { PopoverPanel } from '../../primitives/popover'
@@ -25,6 +26,28 @@ const messages = defineMessages({
 	},
 })
 
+/**
+ * The status of the open picker: that the list loads, that it holds no item,
+ * or that it failed. A failure always shows. Else the status shows only while
+ * the list is empty. A closed picker has no status.
+ *
+ * @internal
+ */
+export function pickerStatusText(
+	intl: IntlShape,
+	open: boolean,
+	status: PickerStatus,
+	items: readonly ChatPromptItem[],
+): string {
+	if (!open) return ''
+
+	if (status === 'failed') return intl.formatMessage(messages.failed)
+
+	if (items.length > 0) return ''
+
+	return intl.formatMessage(status === 'loading' ? messages.loading : intlMessages.noResults)
+}
+
 /** Props for {@link ChatPromptPicker}. @internal */
 export type ChatPromptPickerProps = {
 	open: boolean
@@ -44,9 +67,12 @@ export type ChatPromptPickerProps = {
  * source, and a status line. The textarea keeps the focus, so each option
  * keeps the press of the pointer off itself.
  *
- * The status line is a live `<output>`. It says that the list loads, that it
- * holds no item, or that it failed. A list that holds items has no status, and
- * its options carry the count to a screen reader.
+ * The status line says that the list loads, that it holds no item, or that it
+ * failed. A list that holds items has no status, and its options carry the
+ * count to a screen reader. The line is not live. The panel mounts with each
+ * open, and a screen reader does not speak the text that a new live region
+ * holds. Thus `ChatPrompt` speaks the status through a region that stays
+ * mounted.
  *
  * @internal
  */
@@ -66,13 +92,7 @@ export function ChatPromptPicker({
 
 	const slots = k()
 
-	// A failure always shows. Else the status shows only while the list is empty.
-	let statusText = ''
-
-	if (status === 'failed') statusText = intl.formatMessage(messages.failed)
-	else if (items.length === 0 && status === 'loading')
-		statusText = intl.formatMessage(messages.loading)
-	else if (items.length === 0) statusText = intl.formatMessage(intlMessages.noResults)
+	const statusText = pickerStatusText(intl, open, status, items)
 
 	return (
 		<Portal open={open}>
@@ -114,12 +134,12 @@ export function ChatPromptPicker({
 							</Option>
 						))}
 					</div>
-					<output
+					<p
 						data-slot="chat-prompt-picker-status"
 						className={cn(slots.status, !statusText && 'hidden')}
 					>
 						{statusText}
-					</output>
+					</p>
 				</PopoverPanel>
 			</div>
 		</Portal>

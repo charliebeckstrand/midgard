@@ -43,13 +43,15 @@ const bubble = {
 	// whole streaming look. The classes are written out, because Tailwind scans
 	// the source for whole class names and never sees an assembled one. The gate
 	// is the one of `ugoki.css.pulse`. For the reduced-motion reader a standing
-	// dim stands in, never both, since the pulse already troughs to that opacity.
-	// The pointer affordance alone would leave a keyboard reader nothing.
+	// dim stands in, never both. The reader can read the reply while it streams,
+	// for many seconds, so the dim keeps the text at 4.5:1 (WCAG 1.4.3): 60% gives
+	// 5.1:1 on the assistant fill, and 50% gives only 3.6:1. The pointer
+	// affordance alone would leave a keyboard reader nothing.
 	streaming: {
 		true: [
 			'cursor-progress',
 			'[&>[data-slot=markdown]]:motion-safe:animate-pulse',
-			'[&>[data-slot=markdown]]:motion-reduce:opacity-50',
+			'[&>[data-slot=markdown]]:motion-reduce:opacity-60',
 		],
 		false: '',
 	},
@@ -58,7 +60,7 @@ const bubble = {
 	// the pulse tells that a reply arrives. The change of opacity eases, except
 	// for the reduced-motion reader.
 	editing: {
-		true: ['opacity-50', 'motion-safe:transition-opacity'],
+		true: ['opacity-60', 'motion-safe:transition-opacity'],
 		false: 'motion-safe:transition-opacity',
 	},
 }

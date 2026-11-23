@@ -69,11 +69,23 @@ describe('ChatTranscript', () => {
 		expect(present(pulsing[0], 'streaming bubble')).toHaveTextContent('Hello!')
 	})
 
+	it('names the log "Conversation", and takes a name of the consumer in its place', () => {
+		const { unmount } = renderUI(<ChatTranscript messages={messages} />)
+
+		expect(screen.getByRole('log', { name: 'Conversation' })).toBeInTheDocument()
+
+		unmount()
+
+		renderUI(<ChatTranscript messages={messages} aria-label="Support chat" />)
+
+		expect(screen.getByRole('log', { name: 'Support chat' })).toBeInTheDocument()
+	})
+
 	it('dims only the bubble of the message that the composer edits', () => {
 		const { container } = renderUI(<ChatTranscript messages={messages} editing="1" />)
 
 		const dimmed = allBySlot(container, 'chat-message-bubble').filter((el) =>
-			el.classList.contains('opacity-50'),
+			el.classList.contains('opacity-60'),
 		)
 
 		expect(dimmed).toHaveLength(1)

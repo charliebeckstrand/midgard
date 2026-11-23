@@ -5,7 +5,7 @@ import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 // The streaming look the bubble projects onto its Markdown child, and the
 // standing dim that replaces the pulse under `prefers-reduced-motion`.
 const PULSE = '[&>[data-slot=markdown]]:motion-safe:animate-pulse'
-const PULSE_REDUCED = '[&>[data-slot=markdown]]:motion-reduce:opacity-50'
+const PULSE_REDUCED = '[&>[data-slot=markdown]]:motion-reduce:opacity-60'
 
 describe('ChatMessage', () => {
 	it('renders children inside the bubble slot', () => {
@@ -131,7 +131,7 @@ describe('ChatMessage', () => {
 	it('dims the bubble while the composer edits the message', () => {
 		const { container, rerender } = renderUI(<ChatMessage sender="user">Question</ChatMessage>)
 
-		expect(bySlot(container, 'chat-message-bubble')).not.toHaveClass('opacity-50')
+		expect(bySlot(container, 'chat-message-bubble')).not.toHaveClass('opacity-60')
 
 		rerender(
 			<ChatMessage sender="user" editing>
@@ -139,7 +139,7 @@ describe('ChatMessage', () => {
 			</ChatMessage>,
 		)
 
-		expect(bySlot(container, 'chat-message-bubble')).toHaveClass('opacity-50')
+		expect(bySlot(container, 'chat-message-bubble')).toHaveClass('opacity-60')
 	})
 
 	it('renders the actions slot when provided', () => {

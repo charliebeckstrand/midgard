@@ -35,6 +35,12 @@ import { useChatTranscriptItemKey } from './use-chat-transcript-item-key'
 import { useChatTranscriptStatus } from './use-chat-transcript-status'
 
 const labels = defineMessages({
+	conversation: {
+		id: 'ui.chat.conversation',
+		defaultMessage: 'Conversation',
+		description:
+			'The name of the scrolling list of the messages of a chat. A screen reader reads it when the focus goes to the list.',
+	},
 	newest: {
 		id: 'ui.chat.newest',
 		defaultMessage: 'Go to the newest message',
@@ -255,7 +261,12 @@ const ChatTranscriptRow = memo(function ChatTranscriptRow({
  * read, because a chart ships its own hidden data table and the readout belongs
  * there.
  *
- * The transcript is a `log`, and its `aria-live` is deliberately `off`. The role
+ * The transcript is a `log` named "Conversation", in the language of the
+ * reader. It is a tab stop while it overflows, so a screen reader reads that
+ * name when the focus goes to it. Pass `aria-label` or `aria-labelledby` to
+ * give another name.
+ *
+ * The `aria-live` of the `log` is deliberately `off`. The role
  * says what the region is, so a reader can find it and knows entries arrive in
  * order. Leaving it live as well would put a second channel over one reply and
  * read it twice, once per streamed rewrite and once settled.
@@ -292,7 +303,8 @@ export function ChatTranscript({
 	const containerRef = useRef<HTMLDivElement>(null)
 
 	// Safari does not focus a scroller, so the hook gives the transcript a tab
-	// stop while it overflows. With no label, the `log` role stays.
+	// stop while it overflows. The hook takes no label, so the `log` role stays.
+	// The element carries its name itself.
 	const scrollRegionRef = useScrollRegion()
 
 	// The window reads `containerRef`, so a consumer `ref` joins it.
@@ -544,6 +556,8 @@ export function ChatTranscript({
 	return (
 		<div
 			data-slot="chat-transcript"
+			// A tab stop while it overflows, so it has a name. A consumer name replaces it.
+			aria-label={intl.formatMessage(labels.conversation)}
 			{...props}
 			ref={setContainer}
 			onScroll={composeEventHandlers(onScroll, trackPin)}

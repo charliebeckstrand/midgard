@@ -76,8 +76,9 @@ function inCitation(node: EventTarget | null, id: string): boolean {
  * of the whole citation and whose description names the view. A citation that crosses bold
  * draws more pieces. They are visible text with the look of the citation. A
  * click on one presses the citation, but no key reaches it, so that one
- * citation is one tab stop. A piece is not hidden from
- * a screen reader, because it is part of the phrase.
+ * citation is one tab stop. These pieces are hidden from a screen reader,
+ * because the name of piece 0 already holds their text. Browse mode thus
+ * reads the phrase one time.
  *
  * Escape on piece 0 ends a preview and clears `cited`, in each mode.
  *
@@ -136,7 +137,8 @@ export function ChatCitationPiece({ piece: { range, index }, children }: ChatCit
 
 	const marked = isMarked?.(range) ?? false
 
-	const press = () => actions.press(range, false)
+	// A key cannot hover, so a key presses the citation in each mode, as a tap does.
+	const press = () => actions.press(range, true)
 
 	const onClick = () => actions.press(range, lastInputIsTouch())
 
@@ -164,6 +166,8 @@ export function ChatCitationPiece({ piece: { range, index }, children }: ChatCit
 			<span
 				data-slot="chat-citation-piece"
 				data-citation={range.id}
+				// The name of piece 0 holds this text, so a screen reader reads it there.
+				aria-hidden="true"
 				data-pressed={dataAttr(pressed)}
 				data-marked={dataAttr(marked)}
 				className={k().citation}

@@ -164,9 +164,9 @@ export type ChatMessageProps = ChatMessageVariants &
  * {@link Markdown} over the string itself. A transcript of prose therefore
  * allocates nothing per render and lexes once.
  *
- * An `editing` bubble dims to half its opacity, as the bubble of a reply does
- * for a reader who reduces motion while it streams. Each state is one that a
- * send changes.
+ * An `editing` bubble dims to 60% of its opacity, as the bubble of a reply
+ * does for a reader who reduces motion while it streams. Each state is one
+ * that a send changes. On the assistant fill, the dimmed text keeps 4.5:1.
  *
  * A `failed` reply ends with a line that says so, after what it landed. The
  * line inherits the foreground of the bubble, and a red dot marks it.

@@ -45,15 +45,16 @@ export type ChatCitationProviderProps = {
 	 * The inputs that show a citation: one input, or a list of them. `'click'`
 	 * toggles `cited` on a press. `'hover'` previews the citation through
 	 * `onPreviewChange` while the pointer or the keyboard focus is on it, and a
-	 * press does nothing. `['hover', 'click']` previews on a hover or a focus,
+	 * click does nothing. `['hover', 'click']` previews on a hover or a focus,
 	 * and a press toggles `cited`. The order of the list does not matter.
 	 *
 	 * @remarks
 	 * A focus from the keyboard previews, as a hover does. A blur ends the
 	 * preview. Escape on a citation ends a preview and clears `cited`, in each
 	 * mode. With nothing to clear, Escape goes on to the surface that holds the
-	 * chat. The focus that a click gives does not preview. A touch
-	 * screen has no hover, so a tap toggles `cited` in each mode.
+	 * chat. The focus that a click gives does not preview. A tap, Enter, and
+	 * Space cannot hover, so they toggle `cited` in each mode. A citation is a
+	 * toggle button, so a press from the keyboard changes it (WCAG 4.1.2).
 	 *
 	 * @defaultValue `'click'`, or the trigger of the enclosing provider.
 	 */
