@@ -1,10 +1,26 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { UIProvider } from 'ui/providers/ui'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { HowToPlay } from '../components/how-to-play'
 
-afterEach(cleanup)
+beforeEach(() => {
+	// jsdom has no `ResizeObserver`, and the body of the dialog watches its size with one.
+	vi.stubGlobal(
+		'ResizeObserver',
+		class {
+			observe() {}
+			unobserve() {}
+			disconnect() {}
+		},
+	)
+})
+
+afterEach(() => {
+	cleanup()
+
+	vi.unstubAllGlobals()
+})
 
 /** Opens the dialog from its button, and gives the dialog. */
 async function openDialog() {

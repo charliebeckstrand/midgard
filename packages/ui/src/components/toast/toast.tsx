@@ -183,6 +183,9 @@ export function Toast({ position = TOAST_POSITION }: ToastProps) {
 			<section
 				ref={viewportRef}
 				data-slot="toast-viewport"
+				// A modal overlay keeps a live layer in the accessibility tree, so a
+				// toast that comes while a Dialog is open is spoken (`core/live-layer.ts`).
+				data-live-layer=""
 				// Named only while it holds a toast: an empty stack is no landmark, and
 				// two empty stacks on one page do not give two of the same name.
 				aria-label={hasToasts ? intl.formatMessage(messages.notifications) : undefined}

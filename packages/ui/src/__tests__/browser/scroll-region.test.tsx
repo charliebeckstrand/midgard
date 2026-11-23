@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { CodeBlock, type CodeBlockProps, primeCodeBlock } from '../../components/code'
+import { Dialog, DialogBody, DialogPanel } from '../../components/dialog'
 import { PdfViewer } from '../../components/pdf-viewer'
 import {
 	Table,
@@ -324,5 +325,45 @@ describe('PdfViewer viewport', () => {
 		expect(viewport.getAttribute('role')).toBe('region')
 
 		expect(viewport.getAttribute('aria-label')).toBe('Page')
+	})
+})
+
+describe('panel body', () => {
+	/** The body of the open dialog. */
+	function body(): HTMLElement {
+		return present(
+			document.querySelector<HTMLElement>('[data-slot="dialog-body"]'),
+			'the dialog body',
+		)
+	}
+
+	it('is a tab stop while its content overflows', async () => {
+		renderUI(
+			<Dialog open onOpenChange={() => {}}>
+				<DialogPanel aria-label="Terms">
+					<DialogBody style={{ maxHeight: 100 }}>
+						<div style={{ height: 500 }} />
+					</DialogBody>
+				</DialogPanel>
+			</Dialog>,
+		)
+
+		await waitFor(() => expect(body().getAttribute('tabindex')).toBe('0'))
+	})
+
+	it('adds no tab stop while its content fits', async () => {
+		renderUI(
+			<Dialog open onOpenChange={() => {}}>
+				<DialogPanel aria-label="Terms">
+					<DialogBody>
+						<div style={{ height: 20 }} />
+					</DialogBody>
+				</DialogPanel>
+			</Dialog>,
+		)
+
+		await frames()
+
+		expect(body().hasAttribute('tabindex')).toBe(false)
 	})
 })

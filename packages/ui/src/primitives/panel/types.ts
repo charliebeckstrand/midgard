@@ -58,7 +58,9 @@ export type PanelOverlayProps = {
 	 * (`absolute` positioning, no body scroll lock), which has to establish a
 	 * positioning context. The panel stays in the box of that element, because
 	 * the overlay clips it, also during the slide. Thus the focus that moves
-	 * into it does not scroll that element.
+	 * into it does not scroll that element. A modal panel then seals only that
+	 * element, and it has no `aria-modal`, because the page outside the
+	 * element stays live.
 	 * @defaultValue `document.body`, with full-viewport `fixed` positioning.
 	 */
 	container?: HTMLElement | null
@@ -74,7 +76,9 @@ export type PanelOverlayProps = {
 	 * The element that gets the focus when the panel closes. Give it when the
 	 * focus belongs elsewhere. Also give it when the element that had the focus
 	 * as the panel opened can be gone at the close.
-	 * @defaultValue the element that had the focus as the panel opened.
+	 * @defaultValue the element that had the focus as the panel opened. When
+	 * that element is gone, the focus goes into its nearest ancestor that is
+	 * still in the page.
 	 */
 	returnFocusTo?: RefObject<HTMLElement | null>
 }

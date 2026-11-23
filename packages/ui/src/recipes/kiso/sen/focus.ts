@@ -33,6 +33,9 @@
  *                 over the selection bar, so the current tab also shows
  *                 focus.
  *   - `parent`    the `ring` stroke on a part whose parent has the focus
+ *   - `cursor`    inset outline on the row of a list: the focused row, or
+ *                 the roved row (`data-active`) of a list that keeps the
+ *                 focus on its input
  *   - `lifted`    z-shift + shadow for a picked-up element, plus the violet
  *                 accent that reads against the panel backdrop. Split into
  *                 `raise`, its forced-colors `mark`, and one entry per
@@ -49,11 +52,14 @@
  *
  * Focus is blue-600 in each mode. A part that paints its own focus, such as
  * the resize grip (`grip.ts`) and the range thumb (`ring.thumb`), uses the
- * same blue.
+ * same blue. A row mark on a dark ground with a tint (`cursor` and
+ * `within.tinted`) is blue-500 on dark, because blue-600 is below 3:1 against
+ * that ground.
  *
  * Layer: kiso · Concern: focus indicators
  */
 
+import { mode } from '../../../core/recipe'
 import { forced } from './forced'
 
 /**
@@ -126,6 +132,23 @@ export const focus = {
 		'[:focus-visible>&]:outline-blue-600',
 	],
 	/**
+	 * The keyboard cursor of a list: the focused row, or the roved row
+	 * (`data-active`) of a list that roves with `aria-activedescendant`. The wash
+	 * of `hannou` is about 1.1:1 against the panel, so the wash alone is not a
+	 * visible focus (WCAG 2.4.7, 1.4.11). The mark is an outline inside the row,
+	 * so a list that clips its rows does not cut it, and forced colors keep it.
+	 * On dark it is blue-500, because blue-600 is 2.97:1 against the dark
+	 * popover.
+	 */
+	cursor: [
+		'focus-visible:outline-solid focus-visible:outline-2 focus-visible:-outline-offset-2',
+		'data-active:outline-solid data-active:outline-2 data-active:-outline-offset-2',
+		...mode(
+			'focus-visible:outline-blue-600 data-active:outline-blue-600',
+			'dark:focus-visible:outline-blue-500 dark:data-active:outline-blue-500',
+		),
+	],
+	/**
 	 * The inset ring of a box whose control has keyboard focus. The control
 	 * removes its own outline, and the box draws the ring around the control and
 	 * its neighbors. A control that sits deeper, such as an action in an affix
@@ -148,6 +171,18 @@ export const focus = {
 			'ring-inset group-has-[>:focus-visible]:ring-2 group-has-[>:focus-visible]:ring-blue-600',
 			'forced-colors:group-has-[>:focus-visible]:outline-solid forced-colors:group-has-[>:focus-visible]:outline-2',
 			'forced-colors:group-has-[>:focus-visible]:-outline-offset-2 forced-colors:group-has-[>:focus-visible]:outline-[Highlight]',
+		],
+		/**
+		 * A row on a blue tint whose control has the focus at any depth: the row of
+		 * JsonTree. The tint alone is too faint to mark the focus. The ring must
+		 * clear 3:1 against the page and against the tint. On dark, blue-600 is
+		 * 2.3:1 against a blue-500/30 tint, so the dark ring is blue-500.
+		 */
+		tinted: [
+			'ring-inset has-focus-visible:ring-2',
+			...mode('has-focus-visible:ring-blue-600', 'dark:has-focus-visible:ring-blue-500'),
+			'forced-colors:has-focus-visible:outline-solid forced-colors:has-focus-visible:outline-2',
+			'forced-colors:has-focus-visible:-outline-offset-2 forced-colors:has-focus-visible:outline-[Highlight]',
 		],
 		/** A section whose heading holds the control that has the focus: the item of Accordion. */
 		heading: [

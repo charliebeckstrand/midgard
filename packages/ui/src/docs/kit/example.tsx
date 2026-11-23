@@ -442,7 +442,7 @@ export function ExampleFrame(
 					<Collapse animate="slide" open={open} onOpenChange={(next) => change(() => next)}>
 						<div className="border-t border-zinc-200 dark:border-zinc-800">
 							<CollapseTrigger
-								className="flex px-4 py-2 text-sm focus-visible:-outline-offset-2"
+								className="flex px-4 py-2 text-sm focus-visible:-outline-offset-2 not-aria-expanded:rounded-es-[calc(var(--radius-lg)-1px)]"
 								onPointerEnter={warm}
 								onPointerDown={warm}
 								onFocus={warm}
