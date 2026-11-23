@@ -1,6 +1,5 @@
-import { createRef, type ReactNode, useEffect, useState } from 'react'
+import { createRef, type ReactElement, type ReactNode, useEffect, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { ControlLockContext } from '../../components/control/context'
 import type { JsonValue } from '../../components/json-tree'
 import {
 	createGroup,
@@ -11,6 +10,7 @@ import {
 } from '../../modules/query'
 import { findBuiltInOperator } from '../../modules/query/engine/query-operators'
 import { QueryBuilderRuleValue } from '../../modules/query/query-builder'
+import { ControlLockContext } from '../../primitives/control/context'
 import { allBySlot, bySlot, fireEvent, present, renderUI, screen, within } from '../helpers'
 
 // Overrides the shared `motion/react` mock: the pass-through `AnimatePresence`
@@ -458,6 +458,96 @@ describe('QueryBuilderGroup', () => {
 		fireEvent.click(or)
 
 		expect(onChange).not.toHaveBeenCalled()
+	})
+
+	describe.each([
+		{
+			lock: 'readOnly',
+			render: (node: ReactElement) => node,
+			props: { readOnly: true },
+		},
+		{
+			lock: 'a locked scope',
+			render: (node: ReactElement) => <ControlLockContext value>{node}</ControlLockContext>,
+			props: {},
+		},
+	])('under $lock', ({ render, props }) => {
+		const lockedTree = () =>
+			createGroup('and', [
+				createRule(fields[0]),
+				createGroup('and', [createRule(fields[1]), createRule(fields[1])]),
+			])
+
+		it('keeps the Add menu, the remove buttons, and each grip inert and in the tab order', () => {
+			const onChange = vi.fn()
+
+			renderUI(
+				render(
+					<QueryBuilder
+						fields={fields}
+						value={lockedTree()}
+						onValueChange={onChange}
+						reorder
+						{...props}
+					/>,
+				),
+			)
+
+			const inert = [
+				...screen.getAllByRole('button', { name: 'Add' }),
+				...screen.getAllByRole('button', { name: 'Remove rule' }),
+				...screen.getAllByRole('button', { name: /^Reorder / }),
+			]
+
+			expect(inert.length).toBeGreaterThan(4)
+
+			for (const button of inert) {
+				expect(button).toHaveAttribute('aria-disabled', 'true')
+
+				expect(button).not.toBeDisabled()
+			}
+
+			for (const add of screen.getAllByRole('button', { name: 'Add' })) fireEvent.click(add)
+
+			expect(screen.queryByRole('menu')).toBeNull()
+
+			for (const remove of screen.getAllByRole('button', { name: 'Remove rule' }))
+				fireEvent.click(remove)
+
+			const [grip] = screen.getAllByRole('button', { name: /^Reorder / })
+
+			fireEvent.keyDown(grip as HTMLElement, { key: ' ' })
+
+			fireEvent.keyDown(grip as HTMLElement, { key: 'ArrowDown' })
+
+			expect(onChange).not.toHaveBeenCalled()
+		})
+
+		it('shows each field as read-only', () => {
+			renderUI(render(<QueryBuilder fields={fields} value={lockedTree()} {...props} />))
+
+			expect(screen.getByRole('textbox', { name: 'Name value' })).toHaveAttribute('readonly')
+		})
+	})
+
+	it('does not unlock a locked scope around it', () => {
+		const onChange = vi.fn()
+
+		renderUI(
+			<ControlLockContext value>
+				<QueryBuilder
+					fields={fields}
+					value={createGroup('and', [createRule(fields[0])])}
+					onValueChange={onChange}
+					readOnly={false}
+				/>
+			</ControlLockContext>,
+		)
+
+		expect(screen.getByRole('button', { name: 'Remove rule' })).toHaveAttribute(
+			'aria-disabled',
+			'true',
+		)
 	})
 
 	it('renders a nested group with its own remove control', () => {

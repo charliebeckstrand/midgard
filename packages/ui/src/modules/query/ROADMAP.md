@@ -20,7 +20,7 @@ The tree edits in [`engine/query-tree.ts`](engine/query-tree.ts) keep the identi
 
 A field can name a custom value editor with `QueryField.editor`. [`QueryValueEditorProvider`](query-value-editor-provider.tsx) maps each key to a component. A set operator (`setOperators`) with no custom editor edits its set with a `TagInput`. `QueryField.formatValue` gives the display text of a key. `query-value-editor.test.tsx` holds the editor contract under jsdom.
 
-A removal moves the focus to a neighbor (WCAG 2.4.3), and an add moves it to the first control of the new rule, through `useQueryFocus`. `query-builder-focus.test.ts` and the removal and add cases of `query-builder.test.tsx` hold the ladder. The summary of its subtree describes each nested group.
+A removal moves the focus to a neighbor (WCAG 2.4.3), and an add moves it to the first control of the new rule, through `useQueryFocus`. `query-builder-focus.test.ts` and the removal and add cases of `query-builder.test.tsx` hold the ladder. The summary of its subtree describes each nested group. `readOnly` makes the builder a lock scope, and each reorder grip reads the lock (`SortableGrip`).
 
 Under `reorder`, the builder moves nodes over the `Reorder` of Motion. The module loads no `@dnd-kit`, and [`list-dnd-boundary.test.ts`](../../__tests__/boundary/list-dnd-boundary.test.ts) holds that rule.
 
@@ -32,23 +32,19 @@ The Query domain lives in [`engine/`](engine), a pure functional core. It has no
 
 ## Features
 
-1. **A read-only builder (*P1*).** `QueryBuilder` has `disabled` and no `readOnly`, and it renders no lock scope. In a lock scope, such as a `Form` that submits, the reorder grip stays live. `QueryBuilderSortableItem` gives the grip only `disabled`, and `SortableGrip` is a plain `<button>` that reads no lock. So a grip still moves a node while each other control is locked.
-
-   Add `readOnly` to `QueryBuilder` (CONVENTIONS §4.9), and render `ControlLockContext` with it. Make the grip read `useControlLock` and drop its listeners while locked. The grids, the kanban, and the dashboard also render `SortableGrip`, so the fix reaches them. Extend the lock case of `query-builder.test.tsx` to the grip, the Add menu, and the remove buttons. Add a `read-only` docs example.
-
-2. **A custom editor in a grid column filter (*P2*).** `toQueryField` in `grid/grid-column-filter-button.tsx` builds a field from the name, the label, the type, the options, and the span. So a column cannot give `editor`, `formatValue`, or `operators`. A set editor needs `in` or `notIn`, which no field type offers by default. AG Grid takes a custom filter component for each column.
+1. **A custom editor in a grid column filter (*P2*).** `toQueryField` in `grid/grid-column-filter-button.tsx` builds a field from the name, the label, the type, the options, and the span. So a column cannot give `editor`, `formatValue`, or `operators`. A set editor needs `in` or `notIn`, which no field type offers by default. AG Grid takes a custom filter component for each column.
 
    Add a `GridColumn` key that merges a partial `QueryField` into the field of the column. Prove it in `grid-column-filters.test.tsx` and in a grid docs example.
 
-3. **A date range operator (*P2*).** The `date` set holds `on`, `before`, and `after`. `between` is in `NUMERIC_OPERATORS`, so an ISO date range reads as no constraint. AG Grid offers `inRange` for dates, and `DatePicker` already has a `range` mode. Add a range operator for the `date` type that compares the bounds in ISO string order. Give it its own name, because the judgment reads no field type.
+2. **A date range operator (*P2*).** The `date` set holds `on`, `before`, and `after`. `between` is in `NUMERIC_OPERATORS`, so an ISO date range reads as no constraint. AG Grid offers `inRange` for dates, and `DatePicker` already has a `range` mode. Add a range operator for the `date` type that compares the bounds in ISO string order. Give it its own name, because the judgment reads no field type.
 
    A blank bound is open, as for `between`. Edit the value with `DatePicker` in its `range` mode, in `query-builder-rule-value.tsx`. Prove it in `query-evaluate.test.ts`, the parity test, and the summary tests.
 
-4. **Brackets that show the fold (*P3*).** A flat group can mix AND and OR, and the fold reads it from left to right. So `A OR B AND C` matches `(A OR B) AND C`. The summary and the chips write it with no brackets, and a reader who knows SQL reads `A OR (B AND C)`. Bracket each run of the summary where the combinator changes. The open question is the id of a bracket token, because no group node holds the run.
+3. **Brackets that show the fold (*P3*).** A flat group can mix AND and OR, and the fold reads it from left to right. So `A OR B AND C` matches `(A OR B) AND C`. The summary and the chips write it with no brackets, and a reader who knows SQL reads `A OR (B AND C)`. Bracket each run of the summary where the combinator changes. The open question is the id of a bracket token, because no group node holds the run.
 
-5. **Group negation (*P3*).** react-querybuilder has `showNotToggle`, which negates a group. Here a reader must invert each rule of a group by hand. Add `not` to `QueryGroup`, read it in the fold and the compile, and write `NOT (…)` in the summary. The open question is the URL form, because a compact group is `[combinator, children]`. Old links must still parse.
+4. **Group negation (*P3*).** react-querybuilder has `showNotToggle`, which negates a group. Here a reader must invert each rule of a group by hand. Add `not` to `QueryGroup`, read it in the fold and the compile, and write `NOT (…)` in the summary. The open question is the URL form, because a compact group is `[combinator, children]`. Old links must still parse.
 
-6. **Date cells that hold a `Date` (*P3*).** The date matchers compare text, and `asText` of a `Date` gives `Fri Jan 02 2026…`. So `before` and `after` give a wrong result for such a cell. The TSDoc of `GridColumn.filterType` asks for a string, so the grid is correct today. A `Date` or an ISO date-time cell must read as its calendar day. The open question is the time zone of that day, because the engine is pure and has no locale.
+5. **Date cells that hold a `Date` (*P3*).** The date matchers compare text, and `asText` of a `Date` gives `Fri Jan 02 2026…`. So `before` and `after` give a wrong result for such a cell. The TSDoc of `GridColumn.filterType` asks for a string, so the grid is correct today. A `Date` or an ISO date-time cell must read as its calendar day. The open question is the time zone of that day, because the engine is pure and has no locale.
 
 ## Pattern cleanup
 
@@ -74,7 +70,7 @@ No open items.
 
 - **One combinator for each group**, as in MUI X Data Grid (`logicOperator`) and the default of react-querybuilder. The combinator of each node carries the move rules of `moveChild` and `moveChildInto`.
 
-- **AND before OR.** The fold follows the order that the builder shows. A precedence rule changes the result of each stored tree. Feature 4 makes the order clear in place of this.
+- **AND before OR.** The fold follows the order that the builder shows. A precedence rule changes the result of each stored tree. Feature 3 makes the order clear in place of this.
 
 - **A depth limit on the builder.** The builder can build a tree deeper than `MAX_DEPTH`, which the guard then refuses. That depth is far past any tree that a person builds by hand.
 

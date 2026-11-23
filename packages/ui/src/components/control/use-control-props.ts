@@ -3,7 +3,8 @@
 import { type ValidationAttrs, validationAttrs } from '../../core/validation-attrs'
 import { useAriaIds } from '../../hooks/use-aria-ids'
 import { useDevWarning } from '../../hooks/use-dev-warning'
-import { useControl, useControlLock } from './context'
+import { useControlLock } from '../../primitives/control/context'
+import { useControl } from './context'
 import { useControlTarget } from './use-control-target'
 
 /** Field-supplied input to {@link useControlProps}: the explicit form-field props a control passes for resolution against its `<Control>` / `<Field>` context. */

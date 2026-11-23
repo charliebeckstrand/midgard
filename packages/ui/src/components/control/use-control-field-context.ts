@@ -2,12 +2,12 @@
 
 import { useMemo } from 'react'
 import { useA11yControl } from '../../hooks/a11y/use-a11y-control'
+import { useControlLock } from '../../primitives/control/context'
 import {
 	type ControlContextValue,
 	type ControlSeverity,
 	type ControlVariant,
 	useControl,
-	useControlLock,
 } from './context'
 
 /**

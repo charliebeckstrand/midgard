@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { ControlLockContext } from '../../components/control/context'
 import {
 	createGroup,
 	QueryBuilder,
@@ -11,6 +10,7 @@ import {
 	QueryValueEditorProvider,
 	setOperators,
 } from '../../modules/query'
+import { ControlLockContext } from '../../primitives/control/context'
 import { fireEvent, renderUI, screen } from '../helpers'
 
 const names: Record<string, string> = { c1: 'Acme', c2: 'Globex' }

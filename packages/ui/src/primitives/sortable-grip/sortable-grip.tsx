@@ -6,6 +6,7 @@ import { cn } from '../../core/cn'
 import { dataAttr } from '../../core/data-attr'
 import type { ScaleStep } from '../../core/density/scale'
 import { k, type scale } from '../../recipes/kata/icon'
+import { useControlLock } from '../control/context'
 import { GripVertical } from '../icons/icons'
 
 /**
@@ -25,6 +26,9 @@ export type SortableGripBindings = {
 	/** Whether the item is held now, which closes the grab hand. */
 	dragging: boolean
 }
+
+/** The props of a grip in a locked scope, in place of its listeners. */
+const lockedProps = { 'aria-disabled': true, 'data-disabled': '' } as const
 
 /** Props for {@link SortableGrip}. @internal */
 export type SortableGripProps = Omit<ComponentProps<'button'>, 'ref' | 'type'> & {
@@ -47,6 +51,11 @@ export type SortableGripProps = Omit<ComponentProps<'button'>, 'ref' | 'type'> &
  * grip drops it. The attributes and the listeners of the sortable come after
  * the consumer props. Thus a stray prop cannot remove the tab stop or the
  * pressed state. `data-dragging` closes the grab hand while the item is held.
+ *
+ * In a locked scope, such as a read-only `QueryBuilder` or a `Form` while a
+ * submit runs, the grip drops its listeners, so neither a pointer nor a key
+ * starts a drag. It stays enabled and in the tab order with `aria-disabled`, as
+ * a locked `Button` does, so it keeps the focus that it has.
  * The children replace the default grip icon. A primitive never imports
  * `<Icon>` from `components/`, so the grip icon takes the same attributes and
  * the same icon ramp as an `<Icon>` here.
@@ -63,6 +72,8 @@ export function SortableGrip({
 }: SortableGripProps) {
 	const { setActivatorNodeRef, attributes, listeners, dragging } = sortable
 
+	const locked = useControlLock()
+
 	const { role: _role, ...gripAttributes } = attributes ?? {}
 
 	return (
@@ -71,7 +82,7 @@ export function SortableGrip({
 			{...props}
 			ref={setActivatorNodeRef}
 			{...gripAttributes}
-			{...listeners}
+			{...(locked ? lockedProps : listeners)}
 			type="button"
 			data-dragging={dataAttr(dragging)}
 			className={cn(className)}
