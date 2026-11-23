@@ -52,6 +52,14 @@ const bubble = {
 		],
 		false: '',
 	},
+	// The message that the composer edits. A send replaces it, so it dims, as a
+	// reply that streams dims for the reduced-motion reader. It does not pulse:
+	// the pulse tells that a reply arrives. The change of opacity eases, except
+	// for the reduced-motion reader.
+	editing: {
+		true: ['opacity-50', 'motion-safe:transition-opacity'],
+		false: 'motion-safe:transition-opacity',
+	},
 }
 
 export const k = defineKata({
@@ -218,18 +226,18 @@ export const k = defineKata({
 			},
 		},
 	},
-	defaults: { sender: 'assistant', streaming: false, trigger: 'hover' },
+	defaults: { sender: 'assistant', streaming: false, editing: false, trigger: 'hover' },
 })
 
 /**
  * Recipe variant props for {@link ChatMessage}: the styling axes its kata
  * exposes (`sender` and `trigger`), for consumers composing custom slots. The
- * `streaming` axis of the bubble is a prop of the message, with its own
- * description.
+ * `streaming` and `editing` axes of the bubble are props of the message, each
+ * with its own description.
  */
 export type ChatMessageVariants = Omit<
 	VariantProps<typeof k>,
-	'sender' | 'streaming' | 'trigger'
+	'sender' | 'streaming' | 'editing' | 'trigger'
 > & {
 	/** The author of the message, which sets the side that the message aligns to. @defaultValue 'assistant' */
 	sender?: VariantProps<typeof k>['sender']

@@ -86,6 +86,12 @@ export type ChatMessageProps = ChatMessageVariants &
 		/** Pulses the bubble content and shows the progress cursor, while a response streams in. @defaultValue false */
 		streaming?: boolean
 		/**
+		 * Marks a message that the composer edits. The bubble dims until the edit
+		 * ends, so the reader sees which message a send replaces.
+		 * @defaultValue false
+		 */
+		editing?: boolean
+		/**
 		 * Marks a reply that failed. The bubble keeps its content and ends with a
 		 * line that says that the reply failed.
 		 * @defaultValue false
@@ -147,6 +153,10 @@ export type ChatMessageProps = ChatMessageVariants &
  * {@link Markdown} over the string itself. A transcript of prose therefore
  * allocates nothing per render and lexes once.
  *
+ * An `editing` bubble dims to half its opacity, as the bubble of a reply does
+ * for a reader who reduces motion while it streams. Each state is one that a
+ * send changes.
+ *
  * A `failed` reply ends with a line that says so, after what it landed. The
  * line inherits the foreground of the bubble, and a red dot marks it.
  *
@@ -175,6 +185,7 @@ export const ChatMessage = memo(function ChatMessage({
 	sender,
 	timestamp,
 	streaming,
+	editing,
 	failed,
 	actions,
 	trigger,
@@ -187,7 +198,7 @@ export const ChatMessage = memo(function ChatMessage({
 }: ChatMessageProps) {
 	const resolvedSender = sender ?? 'assistant'
 
-	const slots = k({ sender, streaming, trigger })
+	const slots = k({ sender, streaming, editing, trigger })
 
 	const bubble = (
 		<div data-slot="chat-message-bubble" className={slots.bubble}>

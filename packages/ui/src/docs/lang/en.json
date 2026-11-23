@@ -1667,6 +1667,10 @@
 		"defaultMessage": "⇧⌘A",
 		"description": "Text of a demo in the docs, in components/menu/icons-and-shortcuts.tsx."
 	},
+	"docs.demo.28ab68ddb911": {
+		"defaultMessage": "Writing a reply",
+		"description": "Text of a demo in the docs, in modules/chat/conversation/conversation.tsx."
+	},
 	"docs.demo.29008d9de4fb": {
 		"defaultMessage": "Min price",
 		"description": "Text of a demo in the docs, in modules/form/filters/render-props.tsx."
@@ -2166,10 +2170,6 @@
 	"docs.demo.45b86ccfc9ae": {
 		"defaultMessage": "No orders match your filters.",
 		"description": "Text of a demo in the docs, in providers/density/playground.tsx."
-	},
-	"docs.demo.45e7454ccbdb": {
-		"defaultMessage": "Editing a message. Send to replace it.",
-		"description": "Text of a demo in the docs, in modules/chat/conversation/edit-a-message.tsx."
 	},
 	"docs.demo.464c4ffd019e": {
 		"defaultMessage": "Edit",
@@ -3154,6 +3154,10 @@
 	"docs.demo.7d339dd6cbb7": {
 		"defaultMessage": "Main content (2/3)",
 		"description": "Text of a demo in the docs, in structure/split/sidebar-layout.tsx."
+	},
+	"docs.demo.7dbfd44a8723": {
+		"defaultMessage": "Editing message",
+		"description": "Text of a demo in the docs, in modules/chat/conversation/edit-a-message.tsx."
 	},
 	"docs.demo.7e1b0d5641f2": {
 		"defaultMessage": "Account",
@@ -6493,7 +6497,7 @@
 	},
 	"docs.prop.editing": {
 		"defaultMessage": "Editing",
-		"description": "The label of a field of a playground in the docs. The field sets the prop editing of Dashboard."
+		"description": "The label of a field of a playground in the docs. The field sets the prop editing of ChatMessage, Dashboard."
 	},
 	"docs.prop.endPoint": {
 		"defaultMessage": "End point",

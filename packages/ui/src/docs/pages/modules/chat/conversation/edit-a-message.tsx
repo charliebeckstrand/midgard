@@ -1,5 +1,5 @@
 import { Pencil } from 'lucide-react'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useId, useRef, useState } from 'react'
 import { Button } from 'ui/button'
 import {
 	type ChatCitation,
@@ -76,6 +76,9 @@ export default function EditAMessage() {
 
 	const [editing, setEditing] = useState<string>()
 
+	// The status in the toolbar describes the composer, so a reader who focuses it hears it.
+	const status = useId()
+
 	const { edit, send } = chat
 
 	const draft = useChatDraft({
@@ -117,13 +120,6 @@ export default function EditAMessage() {
 		clear()
 	}
 
-	// The Cancel button unmounts with the banner, so the focus goes to the composer.
-	const cancel = () => {
-		end()
-
-		composer.current?.focus()
-	}
-
 	// `edit` does nothing while a reply streams, so the controls hide until it settles.
 	const editable = (message: ChatMessageData) => message.sender === 'user' && !chat.streaming
 
@@ -151,19 +147,12 @@ export default function EditAMessage() {
 				<ChatTranscript
 					messages={chat.messages}
 					streaming={chat.streaming}
+					editing={editing}
 					actions={actions}
 					contextMenu={contextMenu}
 					branches={chat.branches}
 					onBranchChange={chat.showBranch}
 				/>
-				{editing && (
-					<Flex align="center" justify="between" gap="sm">
-						<Text tone="muted">Editing a message. Send to replace it.</Text>
-						<Button variant="bare" size="sm" onClick={cancel}>
-							Cancel
-						</Button>
-					</Flex>
-				)}
 				<ChatPrompt
 					ref={composer}
 					value={draft.value}
@@ -172,6 +161,20 @@ export default function EditAMessage() {
 					onSubmit={draft.submit}
 					onStop={chat.stop}
 					streaming={chat.streaming}
+					onEscape={editing ? end : undefined}
+					aria-describedby={editing ? status : undefined}
+					toolbar={
+						editing && (
+							<Flex align="center" justify="between">
+								<Text id={status} tone="muted">
+									Editing message
+								</Text>
+								<Button variant="bare" size="sm" onClick={end}>
+									Cancel
+								</Button>
+							</Flex>
+						)
+					}
 				/>
 			</Stack>
 		</ChatEmbedProvider>

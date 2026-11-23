@@ -95,6 +95,20 @@ describe('ChatMessage', () => {
 		expect(container.querySelector('strong')?.textContent).toBe('bold')
 	})
 
+	it('dims the bubble while the composer edits the message', () => {
+		const { container, rerender } = renderUI(<ChatMessage sender="user">Question</ChatMessage>)
+
+		expect(bySlot(container, 'chat-message-bubble')).not.toHaveClass('opacity-50')
+
+		rerender(
+			<ChatMessage sender="user" editing>
+				Question
+			</ChatMessage>,
+		)
+
+		expect(bySlot(container, 'chat-message-bubble')).toHaveClass('opacity-50')
+	})
+
 	it('renders the actions slot when provided', () => {
 		const { container } = renderUI(
 			<ChatMessage actions={<button type="button">Copy</button>}>content</ChatMessage>,

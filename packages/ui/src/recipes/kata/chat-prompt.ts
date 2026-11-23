@@ -2,7 +2,8 @@
  * Chat-prompt kata: the picker that a trigger character opens in the
  * composer. It is the list group of a control, as the panel of a combobox is.
  * `options` is the scroll region, `list` is the listbox, and `status` is the
- * line that says that the list loads, holds no item, or failed.
+ * line that says that the list loads, holds no item, or failed. `toolbar` is
+ * the row above the field.
  */
 import { defineKata } from '../../core/recipe'
 import { dan, iro } from '../kiso'
@@ -17,5 +18,7 @@ export const k = defineKata({
 		list: ['space-y-0.5', 'empty:hidden'],
 		// The text takes the step of the panel, as the text of an option does.
 		status: ['p-2', dan.text.body, text.muted],
+		// The row of the `toolbar` of the composer, above the field.
+		toolbar: 'mb-2',
 	},
 })

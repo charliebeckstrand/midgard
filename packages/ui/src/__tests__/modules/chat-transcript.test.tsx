@@ -69,6 +69,18 @@ describe('ChatTranscript', () => {
 		expect(present(pulsing[0], 'streaming bubble')).toHaveTextContent('Hello!')
 	})
 
+	it('dims only the bubble of the message that the composer edits', () => {
+		const { container } = renderUI(<ChatTranscript messages={messages} editing="1" />)
+
+		const dimmed = allBySlot(container, 'chat-message-bubble').filter((el) =>
+			el.classList.contains('opacity-50'),
+		)
+
+		expect(dimmed).toHaveLength(1)
+
+		expect(present(dimmed[0], 'edited bubble')).toHaveTextContent('Hi there')
+	})
+
 	describe('the row callbacks', () => {
 		it('gives each message the actions that the callback returns for it', () => {
 			const { container } = renderUI(
