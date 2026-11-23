@@ -1640,6 +1640,40 @@ describe('Grid async commit', () => {
 		expect(view.queryByRole('alert')).toBeNull()
 	})
 
+	it('speaks the batches of one save as one message, so a refusal is not lost', async () => {
+		const view = renderAsyncGrid({}, { controlRows: true })
+
+		view.setOpenRows(new Set([1, 2]))
+
+		fireEvent.change(editorAt(view, view.cell('name')), { target: { value: 'Alicia' } })
+
+		fireEvent.change(editorAt(view, view.cell('name', 1)), { target: { value: 'Robert' } })
+
+		// One consumer save closes both rows, so one sweep sends one batch for each.
+		view.setOpenRows(new Set())
+
+		expect(view.flights).toHaveLength(2)
+
+		await flushAnnouncer()
+
+		const region = liveRegion()
+
+		if (region) region.textContent = ''
+
+		await view.flights[0]?.refuse([{ rowKey: 1, columnId: 'name', error: 'Name taken' }])
+
+		// The save has a batch in flight, so it does not speak yet.
+		await flushAnnouncer()
+
+		expect(liveRegion()?.textContent ?? '').toBe('')
+
+		// The last batch speaks the sum. A message for each batch would speak
+		// only the save of row 2.
+		await view.flights[1]?.accept()
+
+		await expectAnnouncement('Name updated, Name not saved')
+	})
+
 	it('drops the refused drafts when a controlled rows declines to open the row again', async () => {
 		const view = renderAsyncGrid({}, { controlRows: true })
 
