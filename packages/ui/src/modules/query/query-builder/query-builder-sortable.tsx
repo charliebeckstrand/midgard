@@ -1,10 +1,13 @@
 'use client'
 
+import type { AnimationPlaybackControls } from 'motion'
 import { domMax, LazyMotion, Reorder } from 'motion/react'
 import {
 	type KeyboardEvent,
 	type ReactNode,
+	type RefObject,
 	useCallback,
+	useEffect,
 	useId,
 	useLayoutEffect,
 	useMemo,
@@ -14,9 +17,11 @@ import { announce } from '../../../core/announcer'
 import { dataAttr } from '../../../core/data-attr'
 import { querySlot } from '../../../core/query-slot'
 import { logicalArrowKey } from '../../../hooks/a11y/logical-arrow'
+import { travelHeight } from '../../../hooks/travel-height'
 import { useKeyboardReorder } from '../../../hooks/use-keyboard-reorder'
 import { usePrefersReducedMotion } from '../../../hooks/use-prefers-reduced-motion'
 import { useReorderDrag } from '../../../hooks/use-reorder-drag'
+import { useResizeObserver } from '../../../hooks/use-resize-observer'
 import { useStableEvent } from '../../../hooks/use-stable-event'
 import { useControlLock } from '../../../primitives/control/context'
 import { IntlMessage } from '../../../primitives/intl'
@@ -76,6 +81,65 @@ function dropMark(index: number, dropIndex: number | null): DropMark | undefined
 	if (dropIndex === 0) return index === 0 ? 'before' : undefined
 
 	return index === dropIndex - 1 ? 'after' : undefined
+}
+
+/**
+ * Carries the height of a list from its layout before a change of `state` to
+ * its layout after the change, so the content below the list moves with the
+ * nodes of the list. The nodes glide to their new places on the same tween.
+ *
+ * The list rests at the height that its content asks for. A `ResizeObserver`
+ * records that height. The change commits a new layout, and before the frame
+ * paints, the list starts at the recorded height and travels to the new one.
+ * A change during a travel starts from the height that the travel reached.
+ *
+ * Under reduced motion, the list takes its new height at once.
+ *
+ * @internal
+ */
+function useListTravel(ref: RefObject<HTMLElement | null>, state: boolean, instant: boolean) {
+	const rest = useRef<number | null>(null)
+
+	const travel = useRef<AnimationPlaybackControls | null>(null)
+
+	useResizeObserver(ref, () => {
+		if (travel.current === null && ref.current) {
+			rest.current = ref.current.getBoundingClientRect().height
+		}
+	})
+
+	// The state of the last layout that the list traveled to.
+	const last = useRef(state)
+
+	useLayoutEffect(() => {
+		const list = ref.current
+
+		if (state === last.current) return
+
+		last.current = state
+
+		if (!list || instant) return
+
+		const from = travel.current ? list.getBoundingClientRect().height : rest.current
+
+		travel.current?.stop()
+
+		travel.current = null
+
+		list.style.height = ''
+
+		const to = list.getBoundingClientRect().height
+
+		if (from === null || from === to) return
+
+		travel.current = travelHeight(list, from, to, k.glide, () => {
+			travel.current = null
+
+			rest.current = to
+		})
+	}, [ref, state, instant])
+
+	useEffect(() => () => travel.current?.stop(), [])
 }
 
 /**
@@ -310,6 +374,8 @@ export function QueryBuilderSortable({
 	// Motion's `MotionConfig` leaves `layout` animations running, so the nodes
 	// read the preference themselves (WCAG 2.3.3).
 	const instant = usePrefersReducedMotion()
+
+	useListTravel(listRef, sorting, instant)
 
 	const byKey = new Map(children.map((child) => [child.id, child]))
 

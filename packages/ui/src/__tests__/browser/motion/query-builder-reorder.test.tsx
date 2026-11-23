@@ -10,7 +10,7 @@ import {
 	type QueryRule,
 } from '../../../modules/query'
 import { ReducedMotionContext } from '../../../primitives/reduced-motion/context'
-import { allBySlot, fireEvent, frames, getSlot, renderUI, screen } from '../../helpers'
+import { allBySlot, fireEvent, frames, getSlot, present, renderUI, screen } from '../../helpers'
 import { drag } from '../helpers/drag'
 
 /**
@@ -140,16 +140,19 @@ describe('QueryBuilder pointer reorder (real browser)', () => {
 
 		await expect.poll(() => rootOrder(container)).toEqual(['b', 'a', 'c'])
 
-		// The separators fade while the nodes move between them.
+		// The separators leave the flow and the view, and the nodes close their places.
 		expect(getSlot(container, 'query-sortable-list')).toHaveAttribute('data-sorting')
 
-		const separator = getSlot(container, 'query-sortable-list').querySelector(
-			':scope > div:not([data-slot])',
+		const separator = present(
+			getSlot(container, 'query-sortable-list').querySelector<HTMLElement>(
+				':scope > div:not([data-slot])',
+			),
+			'separator',
 		)
 
-		expect(separator).toHaveAttribute('data-sorting')
+		expect(getComputedStyle(separator).position).toBe('absolute')
 
-		await expect.poll(() => separator && getComputedStyle(separator).opacity).toBe('0')
+		expect(getComputedStyle(separator).visibility).toBe('hidden')
 
 		expect(onValueChange).not.toHaveBeenCalled()
 
@@ -165,6 +168,18 @@ describe('QueryBuilder pointer reorder (real browser)', () => {
 		expect(next.children.map((child) => child.combinator)).toEqual(['and', 'or', 'and'])
 
 		await expect.poll(() => first.hasAttribute('data-dragging')).toBe(false)
+
+		// The separators take their places again.
+		const settled = present(
+			getSlot(container, 'query-sortable-list').querySelector<HTMLElement>(
+				':scope > div:not([data-slot])',
+			),
+			'separator',
+		)
+
+		expect(getComputedStyle(settled).position).toBe('static')
+
+		expect(getComputedStyle(settled).visibility).toBe('visible')
 
 		expect(screen.getByText('Dropped Name contains a, position 2 of 3.')).toBeInTheDocument()
 	})
