@@ -50,8 +50,9 @@ export type ChatTextPart = {
  * `ChatCitationProvider`, and `selector` is what that view selects. The
  * chat reads neither.
  *
- * A citation is constructed and not parsed. `send` and `edit` take a string,
- * so the text of a reader cannot hold one.
+ * A citation is constructed and not parsed. `send` and `edit` take the
+ * citations apart from the text, so no text that a reader types or pastes
+ * makes one.
  */
 export type ChatCitation = MarkdownRange & {
 	/** Names the view that the citation selects in. */

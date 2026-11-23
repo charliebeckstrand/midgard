@@ -25,6 +25,8 @@ export const k = defineKata({
 	slots: {
 		content: [flex.row, 'min-w-0', narabi.item],
 		label: 'group-data-selected/option:font-bold',
+		// The description is one step below the body text of the row.
+		description: dan.text.small,
 		/**
 		 * The selected-state check icon: its color and its size. The size is the
 		 * glyph size of each step. The check of a row that is not selected is

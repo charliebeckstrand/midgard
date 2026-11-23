@@ -556,6 +556,29 @@ describe('fillLine text with a number', () => {
 		expect(fillLine(['Item 9', 'Item 10'], 1)).toEqual(['Item 11'])
 	})
 
+	// A date repeats when it starts the text or follows a space. A year in a
+	// code follows another character, and the code counts on.
+	it('continues a code that holds a year', () => {
+		expect(fillLine(['INV-2026-0001', 'INV-2026-0002'], 2)).toEqual([
+			'INV-2026-0003',
+			'INV-2026-0004',
+		])
+
+		expect(fillLine(['PO/2026/17', 'PO/2026/18'], 1)).toEqual(['PO/2026/19'])
+
+		expect(fillLine(['Order #2026-5', 'Order #2026-6'], 1)).toEqual(['Order #2026-7'])
+	})
+
+	it('repeats a date or a time after a word or a date', () => {
+		expect(fillLine(['Due 2026-11-29', 'Due 2026-11-30'], 1)).toEqual(['Due 2026-11-29'])
+
+		expect(fillLine(['2026-11-30 10:00', '2026-11-30 10:30'], 1)).toEqual(['2026-11-30 10:00'])
+
+		expect(fillLine(['2026-11-30T10:00', '2026-11-30T10:30'], 1)).toEqual(['2026-11-30T10:00'])
+
+		expect(fillLine(['Mon 10:00', 'Mon 10:30'], 1)).toEqual(['Mon 10:00'])
+	})
+
 	it('steps back, and repeats a series that would go below zero', () => {
 		expect(fillLine(['Item 5', 'Item 4'], 2)).toEqual(['Item 3', 'Item 2'])
 

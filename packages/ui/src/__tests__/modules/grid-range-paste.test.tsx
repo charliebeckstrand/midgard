@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { describe, expect, vi } from 'vitest'
-import { Grid, type GridColumn, type GridEditableConfig } from '../../modules/grid'
+import { Grid, type GridColumn, type GridEditableConfig, type GridProps } from '../../modules/grid'
 import {
 	act,
 	applyChanges,
@@ -37,6 +37,8 @@ function renderPasteGrid(
 		editable?: Partial<GridEditableConfig>
 		/** Makes `onCommit` return a promise that resolves at once. */
 		async?: boolean
+		/** More props of the grid, such as a page or a grouping. */
+		grid?: Partial<GridProps<Row>>
 	} = {},
 ) {
 	const onCommit = vi.fn()
@@ -67,13 +69,15 @@ function renderPasteGrid(
 					},
 					...props.editable,
 				}}
+				{...props.grid}
 			/>
 		)
 	}
 
 	const view = renderUI(<Harness />)
 
-	const grid = screen.getByRole('grid')
+	// A grouped grid is a tree grid.
+	const grid = screen.queryByRole('grid') ?? screen.getByRole('treegrid')
 
 	const cell = (row: number, col: number) =>
 		gridCells()[row * (props.columns ?? columns).length + col] as HTMLElement
@@ -792,6 +796,81 @@ describe('Grid paste past the last row', () => {
 		])
 
 		expect(onRowAdd).toHaveBeenCalledExactlyOnceWith({ name: 'Yan', count: 2 })
+	})
+
+	// The lines after the last shown row become new rows only at the end of the
+	// data. A next page, rows still to load, or a closed group holds the rows
+	// that come next, so the paste stops at the last shown row.
+	it('adds no row before a next page', async () => {
+		const onRowAdd = vi.fn()
+
+		const view = renderPasteGrid({
+			editable: { newRow: 'bottom', onRowAdd },
+			grid: { pagination: { defaultValue: { pageIndex: 0, pageSize: 2 } } },
+		})
+
+		fireEvent.mouseDown(screen.getByText('Bob'))
+
+		await act(async () => view.paste('Zoe\nYan\nXia'))
+
+		expect(view.onCommit).toHaveBeenCalledExactlyOnceWith([
+			{ rowKey: 2, columnId: 'name', value: 'Zoe' },
+		])
+
+		expect(onRowAdd).not.toHaveBeenCalled()
+	})
+
+	it('adds rows on the last page', async () => {
+		const onRowAdd = vi.fn()
+
+		const view = renderPasteGrid({
+			editable: { newRow: 'bottom', onRowAdd },
+			grid: { pagination: { defaultValue: { pageIndex: 1, pageSize: 2 } } },
+		})
+
+		fireEvent.mouseDown(screen.getByText('Carol'))
+
+		await act(async () => view.paste('Zoe\nYan'))
+
+		expect(onRowAdd).toHaveBeenCalledExactlyOnceWith({ name: 'Yan' })
+	})
+
+	it('adds no row before a closed group, and adds rows after the last open group', async () => {
+		const onRowAdd = vi.fn()
+
+		const view = renderPasteGrid({
+			editable: { newRow: 'bottom', onRowAdd },
+			grid: { groupBy: { defaultValue: 'code' } },
+		})
+
+		const toggleC = () => fireEvent.click(screen.getByRole('button', { name: /^C \(/ }))
+
+		const press = (name: string) => {
+			fireEvent.mouseDown(screen.getByText(name))
+
+			fireEvent.mouseUp(screen.getByText(name))
+		}
+
+		toggleC()
+
+		press('Alice')
+
+		await act(async () => view.paste('Zoe\nYan\nXia'))
+
+		expect(view.onCommit.mock.calls).toEqual([
+			[[{ rowKey: 1, columnId: 'name', value: 'Zoe' }]],
+			[[{ rowKey: 2, columnId: 'name', value: 'Yan' }]],
+		])
+
+		expect(onRowAdd).not.toHaveBeenCalled()
+
+		toggleC()
+
+		press('Carol')
+
+		await act(async () => view.paste('Wes\nVal'))
+
+		expect(onRowAdd).toHaveBeenCalledExactlyOnceWith({ name: 'Val' })
 	})
 
 	it('undoes the cells of the data rows, and keeps the added rows', async ({ clock }) => {

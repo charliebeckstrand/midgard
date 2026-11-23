@@ -1,7 +1,8 @@
-import { type PointerEvent, type RefObject, useEffect, useRef, useState } from 'react'
+import { type PointerEvent, type RefObject, use, useEffect, useRef, useState } from 'react'
 import { cn, dataAttr } from 'ui/core'
 import { useTimeout } from 'ui/hooks'
 import { useDragCursorHold } from '../../hooks/use-drag-cursor.ts'
+import { PathnameContext, type PathnameStore } from '../../primitives/current/context.ts'
 import { sen } from '../../recipes/kiso/index.ts'
 import { clamp } from '../../utilities/clamp.ts'
 import { createPressOwner } from '../../utilities/primary-press.ts'
@@ -13,6 +14,12 @@ import type { PageLink } from '../plugin/pages.ts'
 // page at the top of the body, and mutes the other letters. A page of the
 // rail has a letter, and a page after the pages of the rail has none, so when
 // the pages of the rail are above the top, the rail shows no letter.
+//
+// The rail starts on the letter of the current page, so the server markup
+// paints it. The first layout puts the current row at the top of the body
+// (`SidebarItem`), so the letter at the top is that letter. The letter stays
+// until the body scrolls, as after a jump, because a page near the end of the
+// body cannot come to the top.
 //
 // A short rail has no space for each letter. Then the rail collapses: it shows
 // some of the letters, with a dot between two of them, and a slide still gets
@@ -144,6 +151,19 @@ function letterAtTop(body: HTMLElement): string | undefined {
 }
 
 /**
+ * The letter of the current page in `pages`, from the path of `UIProvider`.
+ * Without a current page in `pages`, there is no letter.
+ */
+function currentLetter(
+	pages: readonly PageLink[],
+	paths: PathnameStore | undefined,
+): string | undefined {
+	const page = paths && pages.find((candidate) => paths.exact.get(candidate.path))
+
+	return page && getInitial(page)
+}
+
+/**
  * How long a touch stays on the rail before the bubble shows, in milliseconds.
  * A tap ends sooner, so a tap does not flash the bubble.
  */
@@ -184,7 +204,13 @@ export function LetterRail({
 
 	const railRef = useRef<HTMLDivElement>(null)
 
-	const [active, setActive] = useState<string | undefined>(undefined)
+	const paths = use(PathnameContext)
+
+	// The letter of the page that is current at the mount. The server and the
+	// hydration read the same path, so they render the same letter.
+	const [mountLetter] = useState(() => currentLetter(pages, paths))
+
+	const [active, setActive] = useState(mountLetter)
 
 	// A touch covers the letter under the finger, so a slide by touch shows the
 	// letter in a bubble at the side of the rail. The bubble shows when the slide
@@ -197,9 +223,10 @@ export function LetterRail({
 
 	const gesture = useRef<Gesture | undefined>(undefined)
 
-	// The scroll position that the last jump gave the body. The letter of the
-	// jump stays active while the body stays there, because the body cannot
-	// bring a page near its end to the top. A scroll to another position clears it.
+	// The scroll position that the last jump, or the mount, gave the body. The
+	// letter of the jump stays active while the body stays there, because the
+	// body cannot bring a page near its end to the top. A scroll to another
+	// position clears it.
 	const rest = useRef<number | undefined>(undefined)
 
 	const cursor = useDragCursorHold('pointer')
@@ -221,12 +248,15 @@ export function LetterRail({
 			setActive(letterAtTop(body))
 		}
 
-		follow()
+		// The letter of the current page stays at the first scroll of the body.
+		// Without one, the rail reads the letter at the top.
+		if (mountLetter === undefined) follow()
+		else rest.current = body.scrollTop
 
 		body.addEventListener('scroll', follow, { passive: true })
 
 		return () => body.removeEventListener('scroll', follow)
-	}, [bodyRef])
+	}, [bodyRef, mountLetter])
 
 	useEffect(() => {
 		const rail = railRef.current

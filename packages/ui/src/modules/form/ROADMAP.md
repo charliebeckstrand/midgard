@@ -37,7 +37,7 @@ A row of a field with no registered control shows its issue as text.
 
 ## Engine
 
-[`engine/`](engine) is the pure functional core of the module. It has no `'use client'`, no runtime `react` import, no `index` barrel, and no runtime import from the module root. [`engine-purity-boundary.test.ts`](../../__tests__/boundary/engine-purity-boundary.test.ts) holds these rules, and [`module-filename-boundary.test.ts`](../../__tests__/boundary/module-filename-boundary.test.ts) holds the `form-*` file names.
+[`engine/`](engine) is the pure functional core of the module. It has no `'use client'`, no runtime `react` import, no `index` barrel, and no runtime import of a file of the module outside `engine/`. [`engine-purity-boundary.test.ts`](../../__tests__/boundary/engine-purity-boundary.test.ts) holds these rules, and [`module-filename-boundary.test.ts`](../../__tests__/boundary/module-filename-boundary.test.ts) holds the `form-*` file names.
 
 The engine holds the vocabulary ([`types.ts`](engine/types.ts)), the validators ([`form-validate.ts`](engine/form-validate.ts)), the dirty flags ([`form-dirty.ts`](engine/form-dirty.ts)), and the reducer ([`form-reducer.ts`](engine/form-reducer.ts)). It also holds the steps of a submit ([`form-submission.ts`](engine/form-submission.ts)), the store ([`form-store.ts`](engine/form-store.ts)), and the schema adapter ([`form-zod-resolver.ts`](engine/form-zod-resolver.ts)). The filter bar reads [`form-filters.ts`](engine/form-filters.ts) and [`form-filters-axis.ts`](engine/form-filters-axis.ts), and the error summary reads [`form-error-summary.ts`](engine/form-error-summary.ts).
 

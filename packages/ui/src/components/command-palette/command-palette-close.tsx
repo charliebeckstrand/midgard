@@ -22,9 +22,10 @@ export type CommandPaletteCloseProps = {
 } & Omit<ButtonProps & { href?: never }, 'href' | 'variant' | 'children'>
 
 /**
- * Button that closes the enclosing {@link CommandPalette}. The palette footer
- * shows it when `footer` is not set. Put it in a custom `footer` to keep the
- * close action next to your own actions.
+ * Button that closes the enclosing {@link CommandPalette}, with a text label.
+ * The palette has no footer row by default, and the X close beside its search
+ * field closes it. Put this button in a `footer` to add a labeled close next to
+ * your own actions.
  *
  * @remarks The label is "Close" and the variant is `soft` when you do not set
  * them. The caller `onClick` runs first, then the palette closes. The button

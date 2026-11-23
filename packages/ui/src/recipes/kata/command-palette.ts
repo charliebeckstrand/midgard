@@ -39,6 +39,9 @@ const row = defineKata({
 			'dark:not-disabled:not-data-disabled:data-active:hover:bg-white/10 dark:group-data-glass/glass:not-disabled:not-data-disabled:data-active:hover:bg-white/20',
 		),
 	],
+	// The text of a row is fixed at `md`, so the description is fixed one step
+	// below it.
+	slots: { description: size.sm },
 })
 
 export const k = defineKata(
