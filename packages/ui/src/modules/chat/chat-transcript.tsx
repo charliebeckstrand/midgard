@@ -32,6 +32,7 @@ import { describeTranscript } from './engine/chat-announcements'
 import type { ChatBranch } from './engine/chat-branch/types'
 import type { ChatMessageData } from './engine/types'
 import { useChatTranscriptItemKey } from './use-chat-transcript-item-key'
+import { useChatTranscriptStatus } from './use-chat-transcript-status'
 
 const labels = defineMessages({
 	newest: {
@@ -256,6 +257,10 @@ const ChatTranscriptRow = memo(function ChatTranscriptRow({
  * hidden from assistive technology. The announcer is unaffected, because it
  * speaks a string and does not read the region.
  *
+ * A switch of a branch speaks the new position of the switched message, such as
+ * "Version 2 of 3". The path below that message changes, but its last reply is
+ * not new, so the transcript does not speak it.
+ *
  * A transcript that mounts with its history in hand announces nothing, because
  * the announcer baselines its first status. One whose `messages` arrive after
  * mount announces the last reply, which is right: from the reader's side, a
@@ -288,9 +293,24 @@ export function ChatTranscript({
 	// A streamed chunk keeps the ids, so the key getter keeps its identity.
 	const getItemKey = useChatTranscriptItemKey(messages, branches)
 
+	const intl = useIntl()
+
+	// A switch speaks its position from the switcher, so the transcript holds the
+	// status that it spoke before the switch.
+	const { status, hold } = useChatTranscriptStatus(
+		describeTranscript(intl, messages, streaming),
+		messages,
+	)
+
+	const switchBranch = useStableEvent((id: string) => {
+		hold(id)
+
+		onBranchChange?.(id)
+	})
+
 	// The switchers are off while a reply streams, because `useChatSend` ignores a
 	// switch then. A button that looks live and does nothing would mislead.
-	const branchChange = streaming === true ? undefined : onBranchChange
+	const branchChange = streaming === true || !onBranchChange ? undefined : switchBranch
 
 	const getScrollElement = useCallback(() => containerRef.current, [])
 
@@ -478,8 +498,6 @@ export function ChatTranscript({
 		glideToEnd()
 	})
 
-	const intl = useIntl()
-
 	const slots = k()
 
 	// A hover toolbar rises above its message, and the scroll clips it above the first row.
@@ -488,7 +506,7 @@ export function ChatTranscript({
 	// The first row makes room for that toolbar.
 	const firstRow = roomy ? slots.first : undefined
 
-	useA11yAnnouncements(describeTranscript(intl, messages, streaming))
+	useA11yAnnouncements(status)
 
 	const measured = virtualItems.length > 0
 

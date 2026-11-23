@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { useCallback, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import type { ChatMessageData } from '../../modules/chat'
 import { ChatTranscript, ChatTranscriptSkeleton } from '../../modules/chat'
@@ -7,6 +7,7 @@ import {
 	bySlot,
 	expectAnnouncement,
 	fireEvent,
+	flushAnnouncer,
 	getSlot,
 	liveRegion,
 	present,
@@ -322,6 +323,142 @@ describe('ChatTranscript', () => {
 			// Still the start line: no chunk reached the region, and the settled
 			// reply has not been spoken because the reply has not settled.
 			expect(liveRegion()).toHaveTextContent('Assistant is replying')
+		})
+
+		describe('a switch of a branch', () => {
+			const question = messages[0] as ChatMessageData
+
+			const first: ChatMessageData = { id: 'r1', sender: 'assistant', content: 'First reply' }
+
+			const second: ChatMessageData = { id: 'r2', sender: 'assistant', content: 'Second reply' }
+
+			const ids = ['r1', 'r2']
+
+			/**
+			 * A transcript whose last reply has two versions, with a switch that the
+			 * owner applies or refuses. With `rebuild`, the owner makes new message
+			 * objects on each render, and a field renders the owner again.
+			 */
+			function Versions({
+				refuse = false,
+				rebuild = false,
+			}: {
+				refuse?: boolean
+				rebuild?: boolean
+			}) {
+				const [shown, setShown] = useState<ChatMessageData[]>([question, second])
+
+				const [extra, setExtra] = useState<ChatMessageData[]>([])
+
+				const [, setDraft] = useState('')
+
+				const path = [...shown, ...extra]
+
+				const last = shown.at(-1) as ChatMessageData
+
+				return (
+					<>
+						<ChatTranscript
+							messages={rebuild ? path.map((message) => ({ ...message })) : path}
+							branches={{ [last.id as string]: { index: ids.indexOf(last.id as string), ids } }}
+							onBranchChange={(id) => {
+								if (!refuse) setShown([question, id === 'r1' ? first : second])
+							}}
+						/>
+						<input aria-label="Draft" onChange={(event) => setDraft(event.target.value)} />
+						<button
+							type="button"
+							onClick={() =>
+								setExtra([
+									{ id: 'q2', sender: 'user', content: 'And the next?' },
+									{ id: 'r3', sender: 'assistant', content: 'Three more are late.' },
+								])
+							}
+						>
+							Reply
+						</button>
+						<button
+							type="button"
+							onClick={() => {
+								setExtra([])
+
+								setShown([question, first])
+							}}
+						>
+							Show first
+						</button>
+					</>
+				)
+			}
+
+			it('speaks the new position, and not the reply that the switch shows', async () => {
+				renderUI(<Versions />)
+
+				fireEvent.click(screen.getByRole('button', { name: 'Previous version' }))
+
+				await expectAnnouncement('Version 1 of 2')
+
+				await flushAnnouncer()
+
+				expect(liveRegion()).not.toHaveTextContent('First reply')
+
+				// The hold ends with the switch: the next reply speaks.
+				fireEvent.click(screen.getByRole('button', { name: 'Reply' }))
+
+				await expectAnnouncement('Three more are late.')
+			})
+
+			it('keeps the hold when the owner makes new message objects on each render', async () => {
+				renderUI(<Versions rebuild />)
+
+				fireEvent.click(screen.getByRole('button', { name: 'Previous version' }))
+
+				await expectAnnouncement('Version 1 of 2')
+
+				// A keystroke renders the owner again, with new objects and the same text.
+				fireEvent.change(screen.getByRole('textbox', { name: 'Draft' }), {
+					target: { value: 'a' },
+				})
+
+				await flushAnnouncer()
+
+				expect(liveRegion()).not.toHaveTextContent('First reply')
+			})
+
+			it('ends a refused hold, so a later path of the owner speaks no hidden version', async () => {
+				renderUI(<Versions refuse />)
+
+				fireEvent.click(screen.getByRole('button', { name: 'Previous version' }))
+
+				fireEvent.click(screen.getByRole('button', { name: 'Reply' }))
+
+				await expectAnnouncement('Three more are late.')
+
+				// The owner shows the first version by its own control. The armed hold
+				// ended with the reply, so the hold does not bind to the old status.
+				fireEvent.click(screen.getByRole('button', { name: 'Show first' }))
+
+				await expectAnnouncement('First reply')
+
+				expect(liveRegion()).not.toHaveTextContent('Second reply')
+			})
+
+			it('speaks nothing when the owner refuses the switch', async () => {
+				renderUI(<Versions refuse />)
+
+				const before = liveRegion()?.textContent
+
+				fireEvent.click(screen.getByRole('button', { name: 'Previous version' }))
+
+				await flushAnnouncer()
+
+				expect(liveRegion()?.textContent).toBe(before)
+
+				// A refused switch leaves no hold, so the next reply speaks.
+				fireEvent.click(screen.getByRole('button', { name: 'Reply' }))
+
+				await expectAnnouncement('Three more are late.')
+			})
 		})
 	})
 })

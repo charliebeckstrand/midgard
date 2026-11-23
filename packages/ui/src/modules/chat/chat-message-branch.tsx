@@ -3,6 +3,7 @@
 import { Button } from '../../components/button'
 import { lockedProps } from '../../components/button/button-constants'
 import { Icon } from '../../components/icon'
+import { useA11yAnnouncements } from '../../hooks/a11y/use-a11y-announcements'
 import { ChevronLeft, ChevronRight } from '../../primitives/icons/icons'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
@@ -15,6 +16,7 @@ const messages = defineMessages<{
 	previous: Record<never, never>
 	next: Record<never, never>
 	position: { index: number; count: number }
+	switched: { index: number; count: number }
 }>({
 	group: {
 		id: 'ui.chat.versions',
@@ -38,6 +40,12 @@ const messages = defineMessages<{
 		description:
 			'The version of a chat message that shows, such as "2 of 3". The index counts from 1, and the count is the number of versions.',
 	},
+	switched: {
+		id: 'ui.chat.versionSwitched',
+		defaultMessage: 'Version {index, number} of {count, number}',
+		description:
+			'Spoken when a chat message shows another of its versions, such as "Version 2 of 3". The index counts from 1, and the count is the number of versions.',
+	},
 })
 
 /** The chevron that points to the start of the line, and mirrors in a right-to-left document. @internal */
@@ -59,6 +67,10 @@ const NEXT_ICON = <Icon icon={<ChevronRight />} className="rtl:-scale-x-100" />
  * an end thus keeps the focus on its button, and the focus does not fall to
  * the body. Without `onBranchChange`, both buttons are off.
  *
+ * A change of the position, such as after a press of a button, speaks the new
+ * position, such as "Version 2 of 3" (WCAG 4.1.3). The position text is not
+ * live, and the names of the buttons do not hold it.
+ *
  * @internal
  */
 export function ChatMessageBranch({
@@ -71,6 +83,13 @@ export function ChatMessageBranch({
 	const intl = useIntl()
 
 	const { index, ids } = branch
+
+	// The row keeps its key through a switch, so the switcher stays mounted and
+	// speaks each new position. A refused switch keeps the position and speaks
+	// nothing.
+	useA11yAnnouncements(
+		intl.formatMessage(messages.switched, { index: index + 1, count: ids.length }),
+	)
 
 	/** The props of the button that shows the branch at `to`. */
 	const step = (to: number) => {
