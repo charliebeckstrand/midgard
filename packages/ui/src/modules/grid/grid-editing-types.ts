@@ -99,6 +99,12 @@ export type GridEditCellContext<T> = {
 	/** Whether the column is {@link GridColumn.required | required}; set `aria-required` on the control. */
 	required: boolean
 	/**
+	 * The id of the error message of the cell, while the cell shows one, else
+	 * `undefined`. Set it as the `aria-describedby` of the control, so that
+	 * assistive technology reads the error with the control (WCAG 1.3.1).
+	 */
+	errorId: string | undefined
+	/**
 	 * Whether an entry on this cell mounted the editor, as Enter, F2, a
 	 * double-click, a typed character, or Tab from the cell before do. A choice
 	 * control then opens its panel, which saves the user a press: pass it to the

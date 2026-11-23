@@ -356,6 +356,40 @@ describe('Grid per-row editing', () => {
 		expect(input).toHaveAttribute('aria-invalid', 'true')
 	})
 
+	it('gives an editCell slot the id of its error message while the error shows', () => {
+		const view = renderGrid([
+			{
+				id: 'name',
+				title: 'Name',
+				field: 'name',
+				cell: (row) => row.name,
+				validate: (value) => (String(value).length > 0 ? null : 'Required'),
+				editCell: ({ value, onValueUpdate, ariaLabel, errorId }) => (
+					<input
+						aria-label={ariaLabel}
+						aria-describedby={errorId}
+						value={String(value ?? '')}
+						onChange={(event) => onValueUpdate(event.target.value)}
+					/>
+				),
+			},
+		])
+
+		view.editRow1()
+
+		const input = view.getByRole('textbox', { name: /Edit Name/ })
+
+		expect(input).not.toHaveAttribute('aria-describedby')
+
+		fireEvent.change(input, { target: { value: '' } })
+
+		const alert = present(view.container.querySelector('[role="alert"]'), '[role="alert"]')
+
+		expect(alert).toHaveTextContent('Required')
+
+		expect(input).toHaveAttribute('aria-describedby', alert.id)
+	})
+
 	it('links the yes/no editor to its validation error for assistive tech', () => {
 		const view = renderGrid([
 			{

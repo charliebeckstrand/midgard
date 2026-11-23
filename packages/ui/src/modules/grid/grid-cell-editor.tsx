@@ -475,8 +475,9 @@ export function GridCellEditor<T>({
 	const error = invalid ?? refused ?? null
 
 	// Links the editor to its message (aria-describedby) so the error reaches AT,
-	// not just sighted users (WCAG 1.3.1 / 3.3.1). An `editCell` slot gets no
-	// id, but the host Control marks a control-aware slot invalid.
+	// not just sighted users (WCAG 1.3.1 / 3.3.1). An `editCell` slot gets the
+	// id while the message shows, and the host Control marks a control-aware
+	// slot invalid.
 	const errorId = useId()
 
 	const body = column.editCell ? (
@@ -492,6 +493,7 @@ export function GridCellEditor<T>({
 			ariaLabel,
 			required: column.required ?? false,
 			entered,
+			errorId: error === null ? undefined : errorId,
 		})
 	) : (
 		<GridEditInputs
