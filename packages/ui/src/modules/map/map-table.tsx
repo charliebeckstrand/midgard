@@ -41,18 +41,21 @@ export type MapTableProps = {
 /**
  * The name of a row, which says "selected" where the row carries a pick. The
  * selection is text in the row header, not `aria-current`: a set can hold many
- * rows, and `aria-current` marks the one current item of a set.
+ * rows, and `aria-current` marks the one current item of a set. A row with no
+ * name takes the readout gap, so its row header is never empty.
  *
  * @internal
  */
-function rowName(intl: IntlShape, name: string | undefined, picked: boolean): string | undefined {
-	return picked ? intl.formatMessage(mapSelectedRowMessage, { name: name ?? '' }) : name
+function rowName(intl: IntlShape, name: string | undefined, picked: boolean): string {
+	const text = name || READOUT_GAP
+
+	return picked ? intl.formatMessage(mapSelectedRowMessage, { name: text }) : text
 }
 
 /** Props for {@link MapTableRow}: the resolved text of one row. @internal */
 type MapTableRowProps = {
 	/** The name of the row, which says "selected" where the row carries a pick. */
-	name: string | undefined
+	name: string
 	value: string
 }
 
