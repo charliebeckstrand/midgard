@@ -45,8 +45,10 @@ import {
 	KanbanColumn,
 	KanbanColumnBody,
 } from '../../modules/kanban'
+import { MapPoints } from '../../modules/map'
 import { createGroup, QueryBuilder, type QueryRule } from '../../modules/query'
 import { bySlot, frames, present, renderUI, waitFor } from '../helpers'
+import { categoricalPlat, overlayPlat } from '../helpers/map-plat'
 import { emulateForcedColors, systemColor } from './helpers/forced-colors'
 
 /**
@@ -1013,3 +1015,102 @@ describe('state marks under forced colors (real browser)', () => {
 		expect(paintsMark(empty.container)).toBe(false)
 	})
 })
+
+/**
+ * The marks of a map under forced colors, in a light and a dark forced theme.
+ *
+ * Chromium keeps the authored fill and stroke of an SVG under forced colors
+ * (`forced-color-adjust: preserve-parent-color`). So the region fills, the
+ * selection outline of a region, and the halo of a picked mark keep their
+ * colors. The outline and the halo draw over the region fills, which keep their
+ * colors too, so each part stays apart from what is under it. The plot is an
+ * HTML element, so its focus ring takes `Highlight`.
+ *
+ * A browser that removed the region fills would still leave each value in the
+ * data table of the map, which holds every value of the choropleth. Thus a
+ * region color is not the only carrier of its value.
+ */
+describe.each(['light', 'dark'] as const)(
+	'map under forced colors, %s (real browser)',
+	(scheme) => {
+		emulateForcedColors(scheme)
+
+		/** The computed stroke of the first shape in the slot `slot`. */
+		const readStroke = (slot: string) => {
+			const group = present(bySlot(document.body, slot), slot)
+
+			const shape = group.matches('path,circle') ? group : group.querySelector('path,circle')
+
+			return getComputedStyle(present(shape, `${slot} shape`))
+		}
+
+		it('keeps the fill of each category apart, and apart from a region with no data', () => {
+			const { container } = renderUI(categoricalPlat())
+
+			const fills = Array.from(
+				present(bySlot(container, 'map-regions'), 'regions').querySelectorAll('path'),
+				(path) => getComputedStyle(path).fill,
+			).filter((fill) => fill !== 'none')
+
+			// Two categories and one region with no data.
+			expect(new Set(fills).size).toBe(3)
+		})
+
+		it('draws the outline of a selected region apart from its fill', async () => {
+			renderUI(categoricalPlat({ selectedRegions: ['A'] }))
+
+			await waitFor(() => expect(bySlot(document.body, 'map-region-selected')).not.toBeNull())
+
+			const outline = readStroke('map-region-selected')
+
+			const fill = getComputedStyle(
+				present(bySlot(document.body, 'map-regions')?.querySelector('path'), 'region A'),
+			).fill
+
+			expect(outline.stroke).not.toBe('none')
+
+			expect(outline.stroke).not.toBe(fill)
+
+			expect(Number.parseFloat(outline.strokeWidth)).toBeGreaterThan(0)
+		})
+
+		it('draws the halo of a picked mark wider than the mark, in another color', async () => {
+			renderUI(
+				overlayPlat(
+					<MapPoints id="places" label="Places" points={[{ label: 'Depot', at: [8, 5] }]} />,
+					{ selectedOverlays: [{ id: 'places', index: 0 }] },
+				),
+			)
+
+			await waitFor(() => expect(bySlot(document.body, 'map-points-selected')).not.toBeNull())
+
+			const halo = readStroke('map-points-selected')
+
+			const dot = readStroke('map-points-dot')
+
+			expect(halo.stroke).not.toBe('none')
+
+			expect(halo.stroke).not.toBe(dot.stroke)
+
+			expect(Number.parseFloat(halo.strokeWidth)).toBeGreaterThan(
+				Number.parseFloat(dot.strokeWidth),
+			)
+		})
+
+		it('draws the focus ring of the plot in Highlight', () => {
+			renderUI(categoricalPlat())
+
+			const plot = present(bySlot(document.body, 'map-plot'), 'plot')
+
+			plot.focus()
+
+			const style = getComputedStyle(plot)
+
+			expect(style.outlineStyle).toBe('solid')
+
+			expect(style.outlineWidth).toBe('2px')
+
+			expect(style.outlineColor).toBe(systemColor('Highlight'))
+		})
+	},
+)
