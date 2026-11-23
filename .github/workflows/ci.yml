@@ -402,9 +402,9 @@ jobs:
   #
   # `--ipc=host` gives the container the shared memory of the runner.
   # Docker gives a container a /dev/shm of 64 MB, and the processes of
-  # Firefox exchange their data through it. With 64 MB, the Firefox page
-  # crashed in the first seconds of some runs, before a case reported.
-  # Playwright recommends this option for its image.
+  # Firefox exchange their data through it. Playwright recommends this option
+  # for its image. It did not stop the crash that the `pw:browser` note below
+  # gives.
   density:
     needs: playwright-version
     runs-on: ubuntu-latest
@@ -429,9 +429,12 @@ jobs:
       # GitHub sets HOME to a directory of the runner user.
       #
       # `pw:browser` writes the stdout and stderr of each browser to the log.
-      # On some runs, a Firefox content process stops in the first seconds,
-      # and Playwright reports only "The firefox page crashed". Firefox writes
-      # the cause to its stderr, and without this log the cause is lost.
+      # On some runs, Playwright reports only "The firefox page crashed" in
+      # the first seconds. The log of one such run showed two Firefox content
+      # processes that stopped on signal 11. Firefox wrote no cause: no
+      # sandbox violation and no `MOZ_CRASH`. Signal 11 is not the signal of
+      # the OOM killer (9) or of a full /dev/shm (7). density-stress.yml
+      # repeats this step to find the trigger.
       - run: pnpm turbo run test:browser --filter=ui --summarize -- --project density-firefox --project density-webkit
         env:
           DEBUG: pw:browser
