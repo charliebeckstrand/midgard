@@ -5,7 +5,7 @@ import { k as jsonTree } from '../../recipes/kata/json-tree'
 import { k as radio } from '../../recipes/kata/radio'
 import { k as switchKata } from '../../recipes/kata/switch'
 import { k as text } from '../../recipes/kata/text'
-import { kasane } from '../../recipes/kiso'
+import { kasane, sen } from '../../recipes/kiso'
 import { check } from '../../recipes/kumi/check'
 import { item } from '../../recipes/kumi/item'
 import { contrastRatio, WCAG_AA_TEXT, WCAG_NON_TEXT } from '../../utilities/contrast'
@@ -154,4 +154,15 @@ describe('Focus ring contrast of a list row', () => {
 			)
 		},
 	)
+})
+
+describe('Resize grip contrast', () => {
+	const classes = classNames([sen.grip])
+
+	it.for([
+		{ mode: 'light', bar: /^after:bg-zinc-\d+$/ },
+		{ mode: 'dark', bar: /^dark:after:bg-zinc-\d+$/ },
+	] as const)('the resting bar clears 3:1 against the $mode page', ({ mode, bar }) => {
+		expect(getContrast(only(classes, bar), SURFACE[mode])).toBeGreaterThanOrEqual(WCAG_NON_TEXT)
+	})
 })

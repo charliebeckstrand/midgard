@@ -11,6 +11,7 @@ import { ToastHost } from '../../components/toast/toast-host.tsx'
 import { useIsRtl } from '../../hooks/use-is-rtl.ts'
 import { usePanelResize } from '../../hooks/use-panel-resize.ts'
 import { BreakpointFrame } from '../../primitives/breakpoint-frame/breakpoint-frame.tsx'
+import { Splitter } from '../../primitives/splitter/splitter.tsx'
 import { sen } from '../../recipes/kiso/index.ts'
 import { getOrCompute } from '../../utilities/get-or-compute.ts'
 import { createLazyModule, type LazyModule } from '../../utilities/lazy-module.ts'
@@ -31,6 +32,18 @@ const messages = defineMessages({
 		defaultMessage: 'Hide code',
 		description:
 			'The label of the button under an example that hides the source code of the example.',
+	},
+	resizeWidth: {
+		id: 'docs.example.resizeWidth',
+		defaultMessage: 'Resize example width',
+		description:
+			'The name of the handle on the end border of an example that changes the width of the example, by a drag or by the arrow keys.',
+	},
+	resizeHeight: {
+		id: 'docs.example.resizeHeight',
+		defaultMessage: 'Resize example height',
+		description:
+			'The name of the handle on the bottom border of an example that changes the height of the example, by a drag or by the arrow keys.',
 	},
 })
 
@@ -377,12 +390,22 @@ export function ExampleFrame(
 			>
 				{/* The drag area comes before the box, so the box can show the border as active. */}
 				<div
-					aria-hidden
 					data-slot="example-resize"
 					onPointerDown={resize.handleProps.onPointerDown}
 					data-dragging={resize.handleProps['data-dragging']}
 					className="peer absolute inset-y-0 -end-3 z-10 w-6 cursor-ew-resize touch-pan-y select-none pointer-coarse:pointer-events-none"
 				>
+					{/* A window splitter over the drag area. It is the tab stop, and the arrow
+					    keys resize the frame, so a keyboard reader can resize it too (WCAG 2.1.1). */}
+					<Splitter
+						label={intl.formatMessage(messages.resizeWidth)}
+						orientation="vertical"
+						value={resize.covers}
+						min={0}
+						max={100}
+						onKeyDown={resize.handleProps.onKeyDown}
+						className={cn('absolute inset-0 m-0', sen.focus.ring)}
+					/>
 					{/* The bar has an odd width, so it centers on the 1px border at whole pixels. */}
 					<div
 						data-slot="example-resize-grip"
@@ -421,12 +444,20 @@ export function ExampleFrame(
 							// The drag area sits across the bottom border of the area, as the
 							// drag area of the width sits across the end border.
 							<div
-								aria-hidden
 								data-slot="example-resize-height"
 								onPointerDown={heightResize.handleProps.onPointerDown}
 								data-dragging={heightResize.handleProps['data-dragging']}
 								className="group absolute inset-x-0 -bottom-3 z-10 h-6 cursor-ns-resize touch-pan-x select-none pointer-coarse:pointer-events-none"
 							>
+								<Splitter
+									label={intl.formatMessage(messages.resizeHeight)}
+									orientation="horizontal"
+									value={heightResize.covers}
+									min={0}
+									max={100}
+									onKeyDown={heightResize.handleProps.onKeyDown}
+									className={cn('absolute inset-0 m-0', sen.focus.ring)}
+								/>{' '}
 								<div className="absolute inset-x-0 top-1/2 h-px group-hover:bg-zinc-400 group-data-dragging:bg-zinc-400 pointer-coarse:hidden dark:group-hover:bg-zinc-600 dark:group-data-dragging:bg-zinc-600" />
 								{/* The bar has an odd height, so it centers on the 1px border at whole pixels. */}
 								<div

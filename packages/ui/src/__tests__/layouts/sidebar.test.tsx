@@ -13,6 +13,7 @@ import {
 	act,
 	bySlot,
 	fireEvent,
+	getSlot,
 	noop,
 	present,
 	readDensityStep,
@@ -611,7 +612,7 @@ describe('SidebarLayout shortcut', () => {
 			</SidebarLayout>,
 		)
 
-		const item = bySlot(container, 'sidebar-panel').querySelector('a') as HTMLAnchorElement
+		const item = present(getSlot(container, 'sidebar-panel').querySelector('a'), 'the sidebar item')
 
 		item.focus()
 

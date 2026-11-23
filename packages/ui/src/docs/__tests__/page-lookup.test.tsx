@@ -8,7 +8,9 @@ import { renderShell } from './render-shell.tsx'
 // The shell takes the page from the matched route, not from the start of the
 // path. A path in a different case, or a path under a page with no route,
 // shows the not-found page, and the header, the title, and the sidebar agree.
-// A path with no page takes the path as its title.
+// A path with no page takes the title "Page not found". A page with tabs
+// puts the name of the tab in the title (`PageTabs`), so the shell writes no
+// title for it.
 
 /** The route config with a stub for each module. The not-found route shows a marker, and each other route shows its children. */
 function makeStubs(entries: readonly RouteConfigEntry[]): RouteObject[] {
@@ -36,7 +38,7 @@ describe('docs page lookup', () => {
 
 		expect(screen.getByRole('heading', { name: 'Grid' })).toBeTruthy()
 
-		expect(document.title).toBe('Grid · Docs')
+		expect(document.querySelector('title')).toBeNull()
 
 		expect(currentItem()).toBe('Grid')
 	})
@@ -48,9 +50,9 @@ describe('docs page lookup', () => {
 
 			expect(screen.getByText('No page')).toBeTruthy()
 
-			expect(screen.getByRole('heading', { name: path })).toBeTruthy()
+			expect(screen.getByRole('heading', { name: 'Page not found' })).toBeTruthy()
 
-			expect(document.title).toBe(`${path} · Docs`)
+			expect(document.title).toBe('Page not found · Docs')
 
 			expect(currentItem()).toBeUndefined()
 		},
@@ -65,9 +67,9 @@ describe('docs page lookup', () => {
 
 		expect(screen.getByText('No page')).toBeTruthy()
 
-		expect(screen.getByRole('heading', { name: '/button/foo' })).toBeTruthy()
+		expect(screen.getByRole('heading', { name: 'Page not found' })).toBeTruthy()
 
-		expect(document.title).toBe('/button/foo · Docs')
+		expect(document.title).toBe('Page not found · Docs')
 
 		expect(currentItem()).toBeUndefined()
 	})
@@ -77,9 +79,9 @@ describe('docs page lookup', () => {
 	it('names no page for the root path, which has no page', () => {
 		renderAt('/')
 
-		expect(screen.getByRole('heading', { name: '/', level: 1 })).toBeTruthy()
+		expect(screen.getByRole('heading', { name: 'Page not found', level: 1 })).toBeTruthy()
 
-		expect(document.title).toBe('/ · Docs')
+		expect(document.title).toBe('Page not found · Docs')
 
 		expect(currentItem()).toBeUndefined()
 	})
