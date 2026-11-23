@@ -677,6 +677,46 @@ describe('Kanban keyboard reorder', () => {
 		expect(itemIds(next, 'done')).toEqual(['d', 'a'])
 	})
 
+	// The columns follow the reading order, so ArrowLeft goes to the next column
+	// in a right-to-left layout.
+	describe('in a right-to-left layout', () => {
+		it('moves the focus to the next column with ArrowLeft', () => {
+			const { container } = renderUI(
+				<div dir="rtl">
+					<KeyboardBoard />
+				</div>,
+			)
+
+			getHandle(container, 'a').focus()
+
+			fireEvent.keyDown(getHandle(container, 'a'), { key: 'ArrowLeft' })
+
+			expect(document.activeElement).toBe(getHandle(container, 'd'))
+
+			fireEvent.keyDown(getHandle(container, 'd'), { key: 'ArrowRight' })
+
+			expect(document.activeElement).toBe(getHandle(container, 'a'))
+		})
+
+		it('moves a lifted card into the next column with ArrowLeft', () => {
+			const onReorder = vi.fn()
+
+			const { container } = renderUI(
+				<div dir="rtl">
+					<KeyboardBoard onReorder={onReorder} />
+				</div>,
+			)
+
+			fireEvent.keyDown(liftedCard(container), { key: 'ArrowLeft' })
+
+			const next = onReorder.mock.calls[0]?.[0]
+
+			expect(itemIds(next, 'todo')).toEqual(['b', 'c'])
+
+			expect(itemIds(next, 'done')).toEqual(['d', 'a'])
+		})
+	})
+
 	it('drops a lifted card on Escape without reordering', () => {
 		const onReorder = vi.fn()
 
