@@ -143,6 +143,17 @@ const LANDMARK = [
 	'[role="main"]',
 ].join(', ')
 
+/**
+ * Whether a control is a skip link: a link to an element of the same page. A
+ * skip link comes before the landmarks that it skips, and the `region` rule of
+ * axe also lets it stand outside a landmark.
+ */
+function isSkipLink(control: Element): boolean {
+	const href = control.getAttribute('href') ?? ''
+
+	return href.startsWith('#') && document.getElementById(href.slice(1)) !== null
+}
+
 describe('a11y landmarks (axe, page scope)', () => {
 	it.each(pages)('%s composes a valid landmark structure', async (_name, page) => {
 		renderUI(page)
@@ -157,7 +168,7 @@ describe('a11y landmarks (axe, page scope)', () => {
 		renderUI(page)
 
 		const stray = [...document.body.querySelectorAll('button, a[href], input')]
-			.filter((control) => !control.closest(LANDMARK))
+			.filter((control) => !control.closest(LANDMARK) && !isSkipLink(control))
 			.map((control) => control.getAttribute('aria-label') ?? control.textContent)
 
 		expect(stray).toEqual([])

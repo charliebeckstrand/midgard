@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, use } from 'react'
+import { type ReactNode, type RefCallback, use } from 'react'
 import { createContext } from '../../core/create-context'
 import type { OffcanvasLayout } from '../../hooks/use-offcanvas'
 import type { Responsive } from '../../utilities/responsive'
@@ -11,6 +11,12 @@ export const [SidebarLayoutContext] = createContext<{
 	bar?: StickyBars['bar']
 	layout: Responsive<OffcanvasLayout>
 	stickyHeader: boolean
+	/**
+	 * The target of the skip link: the id and the ref of the main slot. `null`
+	 * when the layout renders no skip link, as inside the main slot of another
+	 * layout.
+	 */
+	skip: { id: string; target: RefCallback<HTMLElement> } | null
 } | null>('SidebarLayout', {
 	default: null,
 })

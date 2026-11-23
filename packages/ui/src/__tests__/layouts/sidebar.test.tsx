@@ -236,6 +236,87 @@ describe('SidebarLayoutBody', () => {
 	})
 })
 
+describe('SidebarLayout skip link', () => {
+	const page = (body = <SidebarLayoutBody>content</SidebarLayoutBody>) =>
+		renderUI(
+			<SidebarLayout sidebar={<a href="/home">Home</a>} navbar="Navbar">
+				{body}
+			</SidebarLayout>,
+		)
+
+	const skipLink = () => screen.getByRole('link', { name: 'Skip to content' })
+
+	it('puts the link first in the tab order, and points it at the main slot', () => {
+		const { container } = page()
+
+		const main = present(bySlot(container, 'body'), 'main')
+
+		const tabbable = container.querySelectorAll('a[href], button:not([disabled]), [tabindex="0"]')
+
+		expect(tabbable[0]).toBe(skipLink())
+
+		expect(skipLink()).toHaveAttribute('href', `#${main.id}`)
+
+		expect(main.id).not.toBe('')
+	})
+
+	it('lets a script focus the main slot, and keeps it out of the Tab order', () => {
+		const { container } = page()
+
+		expect(bySlot(container, 'body')).toHaveAttribute('tabindex', '-1')
+	})
+
+	it('moves the focus to the main slot, and leaves the hash', () => {
+		const { container } = page()
+
+		const click = new MouseEvent('click', { bubbles: true, cancelable: true })
+
+		act(() => {
+			skipLink().dispatchEvent(click)
+		})
+
+		expect(click.defaultPrevented).toBe(true)
+
+		expect(document.activeElement).toBe(bySlot(container, 'body'))
+
+		expect(window.location.hash).toBe('')
+	})
+
+	it('moves the focus to a main slot that has an id and a ref of the consumer', () => {
+		const ref = createRef<HTMLElement>()
+
+		page(
+			<SidebarLayoutBody id="content" ref={ref}>
+				content
+			</SidebarLayoutBody>,
+		)
+
+		act(() => {
+			fireEvent.click(skipLink())
+		})
+
+		expect(document.activeElement).toBe(ref.current)
+
+		expect(ref.current?.id).toBe('content')
+	})
+
+	it('renders one link when a page nests a layout', () => {
+		renderUI(
+			<SidebarLayout sidebar={<div>outer</div>}>
+				<SidebarLayoutBody>
+					<SidebarLayout sidebar={<div>inner</div>}>
+						<SidebarLayoutBody>inner content</SidebarLayoutBody>
+					</SidebarLayout>
+				</SidebarLayoutBody>
+			</SidebarLayout>,
+		)
+
+		expect(screen.getAllByRole('link', { name: 'Skip to content' })).toHaveLength(1)
+
+		expect(screen.getByText('inner content')).not.toHaveAttribute('tabindex')
+	})
+})
+
 describe('SidebarLayout offcanvas mode', () => {
 	/** Renders an inline layout with a floating sidebar. */
 	const renderFloating = () =>
