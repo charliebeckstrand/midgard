@@ -166,7 +166,14 @@ export const k = defineKata({
 			},
 		},
 		sidebar: {
-			base: ['flex-col shrink-0 w-56 min-h-0', 'overflow-hidden', 'border-e', border.color.default],
+			// The width is the custom property that the resize handle writes. Its fallback is the
+			// default width, so the server render and the first paint have it.
+			base: [
+				'relative flex-col shrink-0 w-(--pdf-viewer-rail,240px) min-h-0',
+				'overflow-hidden',
+				'border-e',
+				border.color.default,
+			],
 			/**
 			 * The slide, and only for a change the reader made.
 			 *
@@ -179,7 +186,7 @@ export const k = defineKata({
 			animates: { true: 'motion-safe:transition-[margin] duration-150 ease-in-out', false: '' },
 			// The margin on the start side, so the rail leaves toward its own edge in
 			// either direction.
-			open: { true: '', false: '-ms-56' },
+			open: { true: '', false: '-ms-(--pdf-viewer-rail,240px)' },
 			// The rail shows only where it is pinned. The `offcanvas` axis holds the
 			// thumbnails layout, so the CSS shows the rail from the first paint. It is
 			// not the `layout` axis of the thumbnails, the list or the grid.
@@ -194,6 +201,19 @@ export const k = defineKata({
 					'font-semibold',
 					'shrink-0',
 					'select-none',
+				],
+				/**
+				 * The resize handle on the end edge of the rail, and the grip that it draws as its
+				 * `::after`. It lies inside the rail, over the padding of the list, because the rail
+				 * clips its overflow.
+				 */
+				handle: [
+					'absolute inset-y-0 end-0 z-10',
+					flex.row,
+					'w-2 items-center justify-center',
+					'cursor-col-resize touch-none outline-none',
+					sen.grip,
+					'after:h-6 after:w-0.5',
 				],
 			},
 		},

@@ -23,7 +23,7 @@ describe('pdf viewer thumbnail rail (real browser)', () => {
 
 		const { container } = renderUI(
 			// The width of the sidebar, so a tile has the size that it has there.
-			<div style={{ display: 'flex', flexDirection: 'column', width: 224, height: 450 }}>
+			<div style={{ display: 'flex', flexDirection: 'column', width: 240, height: 450 }}>
 				<PdfViewerThumbnailList
 					items={items}
 					loading={false}

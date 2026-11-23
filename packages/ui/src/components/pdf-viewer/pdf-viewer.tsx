@@ -239,6 +239,8 @@ export type PdfViewerProps = Omit<ComponentProps<'section'>, 'children' | 'onLoa
 	 * per-breakpoint map sets the layout from each breakpoint, mobile-first. A
 	 * single value sets it at each width. The rail starts open for each document,
 	 * also while a `src` loads, so the viewer keeps one layout from the first paint.
+	 * The rail opens 240px wide. The reader can resize it from 160px to 320px with
+	 * the splitter on its edge, by a drag or by the arrow keys.
 	 * @defaultValue {@link PDF_VIEWER_THUMBNAILS}
 	 */
 	thumbnails?: Responsive<PdfViewerThumbnailLayout>
