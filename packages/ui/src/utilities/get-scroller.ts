@@ -29,6 +29,11 @@ function isClipping(overflow: string): boolean {
 	return overflow === 'hidden' || overflow === 'clip'
 }
 
+/** Whether a box clips its content: on the block axis, or on the inline axis when `inline` is set. */
+function clips(overflowY: string, overflowX: string, inline: boolean): boolean {
+	return isClipping(overflowY) || (inline && isClipping(overflowX))
+}
+
 /** Whether one axis scrolls: by its overflow value, and by its size when `overflowing`. */
 function axisScrolls(
 	overflow: string,
@@ -69,7 +74,7 @@ export function getScroller(
 
 		if (block || across) return element
 
-		if (stopAtClip && (isClipping(overflowY) || (inline && isClipping(overflowX)))) return null
+		if (stopAtClip && clips(overflowY, overflowX, inline)) return null
 	}
 
 	return null

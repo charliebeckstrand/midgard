@@ -365,7 +365,9 @@ export function createDashboardStore(initial: DashboardState): DashboardStore {
 
 		// A projection on screen reads the held width. The first projected frame reads it
 		// too, so a later change of a selection or of edit mode moves no tile.
-		const held = measured > 0 && ((sameBoard && prev?.projected === true) || !full.identity)
+		const projecting = (sameBoard && prev?.projected === true) || !full.identity
+
+		const held = measured > 0 && projecting
 
 		const fit = projectionWidth(measured, held)
 

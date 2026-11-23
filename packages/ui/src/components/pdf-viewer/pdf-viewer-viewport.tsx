@@ -83,7 +83,9 @@ export function PdfViewerViewport() {
 	 * Only a frame needs the pane to be a size container that the scroll box fills. A message
 	 * sits in the pane, and the pane grows to its height. A size container cannot.
 	 */
-	const framed = hasRaster(activePage) || (!error && (loading || pending || !!activePage))
+	const pageExpected = loading || pending || !!activePage
+
+	const framed = hasRaster(activePage) || (!error && pageExpected)
 
 	// With no page to frame, the viewport says why: the load failed, or the
 	// document has no page.
