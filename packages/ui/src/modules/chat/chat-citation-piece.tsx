@@ -53,8 +53,9 @@ function pressKeyDown(event: KeyboardEvent<HTMLElement>, press: () => void) {
 /**
  * One piece of a citation. Piece 0 is a toggle button whose name is the text
  * of the whole citation and whose description names the view. A citation that crosses bold
- * draws more pieces. They are visible text with the look of the citation and
- * no control, so that one citation is one tab stop. A piece is not hidden from
+ * draws more pieces. They are visible text with the look of the citation. A
+ * click on one presses the citation, but no key reaches it, so that one
+ * citation is one tab stop. A piece is not hidden from
  * a screen reader, because it is part of the phrase.
  *
  * Each piece reads `isMarked`, so a citation that the selection of its view
@@ -95,13 +96,20 @@ export function ChatCitationPiece({ piece: { range, index }, children }: ChatCit
 
 	const marked = isMarked?.(range) ?? false
 
+	const press = () => onCitedChange?.(pressed ? null : range)
+
 	if (index > 0) {
+		// A click presses the citation, as a click on piece 0 does. The keys reach
+		// piece 0 alone, so the citation stays one tab stop.
 		return (
+			// biome-ignore lint/a11y/noStaticElementInteractions: piece 0 is the control; this piece only takes the pointer.
+			// biome-ignore lint/a11y/useKeyWithClickEvents: piece 0 takes the keys of the citation.
 			<span
 				data-slot="chat-citation-piece"
 				data-pressed={dataAttr(pressed)}
 				data-marked={dataAttr(marked)}
 				className={k().citation}
+				onClick={press}
 			>
 				{children}
 			</span>
@@ -111,8 +119,6 @@ export function ChatCitationPiece({ piece: { range, index }, children }: ChatCit
 	// The target is registered, so a label is there. The target is an address
 	// and is never read, so a piece with no label gets no description.
 	const label = targets[range.target]?.label
-
-	const press = () => onCitedChange?.(pressed ? null : range)
 
 	return (
 		<>

@@ -1,5 +1,5 @@
 import { Pencil } from 'lucide-react'
-import { useCallback, useId, useRef, useState } from 'react'
+import { useId, useRef, useState } from 'react'
 import { Button } from 'ui/button'
 import {
 	type ChatCitation,
@@ -81,43 +81,50 @@ export default function EditAMessage() {
 
 	const { edit, send } = chat
 
-	const draft = useChatDraft({
-		onSubmit: (value, citations) => {
-			setEditing(undefined)
+	const draft = useChatDraft({ onSubmit: (value, citations) => void send(value, citations) })
 
-			void (editing ? edit(editing, value, citations) : send(value, citations))
-		},
-	})
+	const { setValue } = draft
 
-	const { setValue, clear } = draft
-
-	// A switch of branch can take the message off the shown path, and `edit`
-	// then does nothing. The edit then ends and the draft clears, as Cancel does.
-	if (editing !== undefined && !chat.messages.some((message) => message.id === editing)) {
-		setEditing(undefined)
-
-		clear()
-	}
-
-	const start = useCallback(
-		(message: ChatMessageData) => {
-			if (!message.id) return
-
-			const { text, citations } = readDraft(message.content)
-
-			setEditing(message.id)
-
-			setValue(text, citations)
-
-			composer.current?.focus()
-		},
-		[setValue],
-	)
+	// The draft that the reader wrote before the edit. Each end of the edit (a
+	// cancel, a send, or a switch of branch) gives it back, so an edit does not
+	// lose text that the reader typed.
+	const [held, setHeld] = useState<{ value: string; citations: readonly ChatCitation[] }>()
 
 	const end = () => {
 		setEditing(undefined)
 
-		clear()
+		setValue(held?.value ?? '', held?.citations ?? [])
+
+		setHeld(undefined)
+	}
+
+	// A send of an edit gives back the held draft in place of an empty composer.
+	// `edit` trims the text and moves the citations onto it, as `send` does.
+	const submitEdit = () => {
+		if (editing === undefined || !draft.canSubmit) return
+
+		void edit(editing, draft.value, draft.citations)
+
+		end()
+	}
+
+	// A switch of branch can take the message off the shown path, and `edit`
+	// then does nothing. The edit then ends, as Cancel ends it.
+	if (editing !== undefined && !chat.messages.some((message) => message.id === editing)) end()
+
+	const start = (message: ChatMessageData) => {
+		if (!message.id) return
+
+		const { text, citations } = readDraft(message.content)
+
+		// A switch to another message keeps the draft that the first edit held.
+		if (editing === undefined) setHeld({ value: draft.value, citations: draft.citations })
+
+		setEditing(message.id)
+
+		setValue(text, citations)
+
+		composer.current?.focus()
 	}
 
 	// `edit` does nothing while a reply streams, so the controls hide until it settles.
@@ -158,7 +165,7 @@ export default function EditAMessage() {
 					value={draft.value}
 					citations={draft.citations}
 					onValueChange={draft.setValue}
-					onSubmit={draft.submit}
+					onSubmit={editing ? submitEdit : draft.submit}
 					onStop={chat.stop}
 					streaming={chat.streaming}
 					onEscape={editing ? end : undefined}

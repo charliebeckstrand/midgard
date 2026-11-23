@@ -451,6 +451,62 @@ describe('ChatPrompt picker', () => {
 		expect(onSubmit).toHaveBeenCalledOnce()
 	})
 
+	it('chooses no item of the last query while the next query loads, and does not send', async () => {
+		const searches: ReturnType<typeof deferred<readonly ChatPromptItem[]>>[] = []
+
+		const source: ChatPromptSource = {
+			...datasets,
+			search: () => {
+				const done = deferred<readonly ChatPromptItem[]>()
+
+				searches.push(done)
+
+				return done.promise
+			},
+		}
+
+		const onDraft = vi.fn()
+
+		const onSubmit = vi.fn()
+
+		const { container } = renderUI(
+			<Composer sources={[source]} onDraft={onDraft} onSubmit={onSubmit} />,
+		)
+
+		const user = await typeInto(container, '@')
+
+		searches.at(-1)?.resolve(ITEMS)
+
+		await waitFor(() => expect(options()).toEqual(['Late stops', 'Routes', 'Depots']))
+
+		// The query changes, and the items of the last one stay while it loads.
+		await user.keyboard('d')
+
+		expect(options()).toEqual(['Late stops', 'Routes', 'Depots'])
+
+		const textarea = getSlot<HTMLTextAreaElement>(container, 'chat-prompt')
+
+		// `fireEvent` gives `false` when a handler cancels the key.
+		expect(fireEvent.keyDown(textarea, { key: 'Enter' })).toBe(false)
+
+		expect(fireEvent.keyDown(textarea, { key: 'Tab' })).toBe(true)
+
+		expect(onSubmit).not.toHaveBeenCalled()
+
+		expect(onDraft).toHaveBeenLastCalledWith('@d', [])
+
+		// The answer of the query lands, and Enter chooses from it.
+		searches.at(-1)?.resolve(ITEMS.slice(2))
+
+		await waitFor(() => expect(options()).toEqual(['Depots']))
+
+		await user.keyboard('{Enter}')
+
+		expect(onDraft).toHaveBeenLastCalledWith('@Depots ', [
+			expect.objectContaining({ quote: '@Depots' }),
+		])
+	})
+
 	it('leaves the arrows to the textarea while the list holds no option', async () => {
 		const { container } = renderUI(<Composer sources={[datasets]} />)
 
