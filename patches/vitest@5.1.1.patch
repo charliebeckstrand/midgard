@@ -1,7 +1,7 @@
-diff --git a/dist/chunks/index.Bi0NXYPf.js b/dist/chunks/index.Bi0NXYPf.js
+diff --git a/dist/chunks/index.C7Nn66Gy.js b/dist/chunks/index.C7Nn66Gy.js
 index e17c9673b20533dbba519608382a71f033c3b01f..b2629149debb79f39b68ec74c1170cbaae22bc60 100644
---- a/dist/chunks/index.Bi0NXYPf.js
-+++ b/dist/chunks/index.Bi0NXYPf.js
+--- a/dist/chunks/index.C7Nn66Gy.js
++++ b/dist/chunks/index.C7Nn66Gy.js
 @@ -653,7 +653,7 @@ class VitestModuleRunner extends viteModuleRunner.ModuleRunner {
  		});
  		const url = resolved ? resolved.url : rawId;
