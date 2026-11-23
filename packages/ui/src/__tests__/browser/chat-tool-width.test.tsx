@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { ChatMessage, type ChatToolPart } from '../../modules/chat'
-import { getSlot, present, renderUI } from '../helpers'
+import { getSlot, renderUI } from '../helpers'
 
 const step: ChatToolPart = {
 	kind: 'tool',
@@ -24,10 +24,21 @@ function width(element: Element) {
 	return element.getBoundingClientRect().width
 }
 
+/** The width of the content box of an element, in pixels: its width less its padding. */
+function contentWidth(element: Element) {
+	const style = getComputedStyle(element)
+
+	return (
+		element.clientWidth -
+		Number.parseFloat(style.paddingLeft) -
+		Number.parseFloat(style.paddingRight)
+	)
+}
+
 /**
- * A step fits its head, as an accordion in a host that fits its content does.
- * It does not stretch to the width of the bubble, and it keeps one width while
- * its detail opens.
+ * A closed step fits its head, and not the width of the bubble. An open step
+ * fills the bubble, so its detail has room for a code block or a table. The
+ * bubble keeps its width while the step opens.
  *
  * Rides the real browser because the claim is a layout one: jsdom has no
  * layout.
@@ -45,7 +56,7 @@ describe('the width of a chat step (real browser)', () => {
 		expect(width(tool)).toBeLessThan(width(getSlot(container, 'chat-message-bubble')) / 2)
 	})
 
-	it('keeps one width while its detail opens', async () => {
+	it('fills the bubble while open, and the bubble keeps its width', async () => {
 		const { container } = renderUI(
 			<div style={{ width: 800 }}>
 				<ChatMessage>{[step, prose]}</ChatMessage>
@@ -54,13 +65,19 @@ describe('the width of a chat step (real browser)', () => {
 
 		const tool = getSlot(container, 'chat-tool')
 
+		const bubble = getSlot(container, 'chat-message-bubble')
+
 		const closed = width(tool)
 
-		await userEvent.click(present(tool.querySelector('button'), 'the head of the step'))
+		const before = width(bubble)
 
-		await expect.poll(() => container.querySelector('[data-slot="chat-tool-detail"]')).toBeTruthy()
+		await userEvent.click(getSlot(container, 'collapse-trigger'))
 
-		expect(width(tool)).toBe(closed)
+		await expect.poll(() => width(tool)).toBeCloseTo(contentWidth(bubble), 0)
+
+		expect(width(tool)).toBeGreaterThan(closed)
+
+		expect(width(bubble)).toBe(before)
 	})
 
 	it('wraps at the width of a narrow bubble', () => {
