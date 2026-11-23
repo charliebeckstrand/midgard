@@ -6399,6 +6399,10 @@
 		"defaultMessage": "Reload",
 		"description": "The label of the button that loads the page again after an error."
 	},
+	"docs.playground.adaptive": {
+		"defaultMessage": "Adaptive",
+		"description": "The option of a field of a playground whose value changes with the width of the screen, such as vertical on a phone and horizontal from a tablet up."
+	},
 	"docs.playground.default": {
 		"defaultMessage": "Default",
 		"description": "The badge next to the option of a field of a playground that the component uses when the prop is unset."
