@@ -45,7 +45,10 @@ type ComboboxPanelProps = {
  * the caller supplies floating positioning and open state.
  *
  * @remarks The listbox holds only options (`aria-required-children`); the
- * "No results" status is a sibling toggled by a `peer/:empty` rule.
+ * "No results" line is a sibling toggled by a `peer/:empty` rule. The line is
+ * not live: the panel mounts with each open, and a screen reader does not
+ * speak the text of a new live region. `Combobox` speaks the status through
+ * the shared announcer.
  * `flushPending` runs on exit-complete so the deferred selection commits after
  * the close animation.
  * @internal
@@ -111,9 +114,10 @@ export function ComboboxPanel({
 						}}
 					>
 						{/* The listbox owns only options, per aria-required-children. The
-						    empty-state status message is a sibling inside the panel chrome;
-						    it announces and renders on the dropdown surface. A peer/:empty
-						    toggle swaps the two as options come and go. */}
+						    empty-state line is a sibling inside the panel chrome. A peer/:empty
+						    toggle swaps the two as options come and go. The line is plain
+						    text, because the announcer speaks the status. A live line would
+						    speak it two times. */}
 						<div
 							role="listbox"
 							id={id}
@@ -124,7 +128,7 @@ export function ComboboxPanel({
 						>
 							{children}
 						</div>
-						<output className={cn(k().empty)}>{intl.formatMessage(intlMessages.noResults)}</output>
+						<p className={cn(k().empty)}>{intl.formatMessage(intlMessages.noResults)}</p>
 					</PopoverPanel>
 				</div>
 			</div>

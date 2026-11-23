@@ -8,6 +8,7 @@ import {
 } from '../../components/combobox'
 import { followOptions, highlightSelection } from '../../components/combobox/combobox'
 import { ComboboxPanel } from '../../components/combobox/combobox-panel'
+import { useComboboxQuery } from '../../components/combobox/use-combobox-query'
 import { Control } from '../../components/control'
 import { Description, Field, Fieldset, Label, Message } from '../../components/fieldset'
 import type { HighlightOrigin, VirtualItemSource } from '../../hooks/a11y/use-a11y-roving'
@@ -20,8 +21,11 @@ import {
 	act,
 	attach,
 	bySlot,
+	expectAnnouncement,
 	fireEvent,
+	flushAnnouncer,
 	getSlot,
+	liveRegion,
 	mockDomGeometry,
 	present,
 	renderUI,
@@ -1408,7 +1412,7 @@ describe('ComboboxPanel', () => {
 	})
 
 	// role="listbox" may only own option/group children (aria-required-children,
-	// WCAG 4.1.2); the "No results" status message sits beside the listbox, not
+	// WCAG 4.1.2); the "No results" line sits beside the listbox, not
 	// inside it. The id stays on the listbox so aria-controls resolves correctly.
 	it('keeps the listbox owning only options, with the empty message a sibling', () => {
 		renderPanel(
@@ -1426,9 +1430,76 @@ describe('ComboboxPanel', () => {
 
 		const empty = screen.getByText('No results')
 
-		expect(empty.tagName).toBe('OUTPUT')
+		// Plain text: the announcer speaks the status, so a live line would speak it two times.
+		expect(empty.tagName).toBe('P')
 
 		expect(listbox.contains(empty)).toBe(false)
+	})
+})
+
+const FRUITS = ['Apple', 'Banana']
+
+/** The consumer-driven filter of the options, as a combobox writes it. */
+function MatchingFruits() {
+	const { deferredQuery } = useComboboxQuery()
+
+	return FRUITS.filter((name) => name.toLowerCase().includes(deferredQuery.toLowerCase())).map(
+		(name) => (
+			<ComboboxOption key={name} value={name}>
+				{name}
+			</ComboboxOption>
+		),
+	)
+}
+
+// The panel mounts with each open, and the "No results" line only changes its
+// display. A screen reader speaks neither, so the shared announcer speaks the
+// status (WCAG 4.1.3).
+describe('Combobox no-results status', () => {
+	it('speaks "No results" when a query leaves the open list empty', async () => {
+		const user = setupUser()
+
+		renderUI(
+			<Combobox aria-label="Fruit">
+				<MatchingFruits />
+			</Combobox>,
+		)
+
+		await user.click(screen.getByRole('combobox'))
+
+		expect(screen.getAllByRole('option')).toHaveLength(2)
+
+		await user.keyboard('zz')
+
+		await expectAnnouncement('No results')
+	})
+
+	it('speaks "No results" when the list opens with no option', async () => {
+		const user = setupUser()
+
+		renderUI(<Combobox aria-label="Fruit">{null}</Combobox>)
+
+		await user.click(screen.getByRole('combobox'))
+
+		await expectAnnouncement('No results')
+	})
+
+	it('speaks nothing while the open list holds options', async () => {
+		const user = setupUser()
+
+		renderUI(
+			<Combobox aria-label="Fruit">
+				<MatchingFruits />
+			</Combobox>,
+		)
+
+		await user.click(screen.getByRole('combobox'))
+
+		await user.keyboard('a')
+
+		await flushAnnouncer()
+
+		expect(liveRegion()?.textContent ?? '').not.toContain('No results')
 	})
 })
 
