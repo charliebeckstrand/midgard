@@ -1419,6 +1419,14 @@
 		"defaultMessage": "Yes",
 		"description": "The true choice of a yes-or-no cell of a grid."
 	},
+	"ui.holdButton.confirm": {
+		"defaultMessage": "Activate again to confirm",
+		"description": "Spoken when assistive technology activates a hold button once. A second activation does the action."
+	},
+	"ui.holdButton.instruction": {
+		"defaultMessage": "Press and hold to confirm",
+		"description": "The description of a button that acts only after the reader presses and holds it."
+	},
 	"ui.jsonTree.items": {
 		"defaultMessage": "{count, plural, one {# item} other {# items}}",
 		"description": "The count of the items in an object or an array of a JSON tree, such as \"3 items\"."
