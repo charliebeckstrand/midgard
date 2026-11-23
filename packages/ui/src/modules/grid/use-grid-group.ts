@@ -1,28 +1,21 @@
 'use client'
 
 import { useCallback, useMemo, useState } from 'react'
-import { useControllable } from '../../hooks/use-controllable'
+import { type ControllableBinding, useControllableBinding } from '../../hooks/use-controllable'
 import { useReportedChange } from '../../hooks/use-reported-change'
 import { toggleItem } from '../../utilities/toggle-item'
 import { buildGroupSpans, groupByColumn } from './engine/grid-group/compute'
 import type { GridGroupHeader, GridGroupResult } from './engine/grid-group/resolve'
 import type { GridColumnGroup, GridColumnGroups, GridGroupSpan } from './grid-group-types'
 
-/** Normalizes the {@link GridColumnGroups} prop (array shorthand or binding object) into `useControllable` inputs. @internal */
-function resolveGroupsBinding(groups: GridColumnGroups | undefined): {
-	value: GridColumnGroup[] | undefined
-	defaultValue: GridColumnGroup[]
-	onValueChange: ((groups: GridColumnGroup[]) => void) | undefined
-} {
-	// The array shorthand and the absent prop differ only in the seed.
-	if (!groups || Array.isArray(groups))
-		return { value: undefined, defaultValue: groups ?? [], onValueChange: undefined }
+/** No column groups. @internal */
+const NO_GROUPS: GridColumnGroup[] = []
 
-	return {
-		value: groups.value,
-		defaultValue: groups.defaultValue ?? [],
-		onValueChange: groups.onValueChange,
-	}
+/** Normalizes the {@link GridColumnGroups} prop: the array shorthand seeds an uncontrolled binding. @internal */
+function resolveGroupsBinding(
+	groups: GridColumnGroups | undefined,
+): ControllableBinding<GridColumnGroup[]> | undefined {
+	return Array.isArray(groups) ? { defaultValue: groups } : groups
 }
 
 /**
@@ -43,20 +36,14 @@ export function useGridGroup(
 ): GridGroupResult {
 	const binding = resolveGroupsBinding(groups)
 
-	const [controlledGroups, setGroups] = useControllable<GridColumnGroup[]>({
-		value: binding.value,
-		defaultValue: binding.defaultValue,
-		onValueChange: (next) => binding.onValueChange?.(next ?? []),
-	})
-
-	const resolvedGroups = controlledGroups ?? binding.defaultValue
+	const [resolvedGroups, setGroups] = useControllableBinding(binding, NO_GROUPS)
 
 	// Collapse is grid-owned view state, not persisted through the groups binding;
 	// seed it once from the initial groups' `defaultCollapsed` flags.
 	const [collapsed, setCollapsed] = useState<ReadonlySet<string | number>>(
 		() =>
 			new Set(
-				(binding.value ?? binding.defaultValue)
+				(binding?.value ?? binding?.defaultValue ?? NO_GROUPS)
 					.filter((group) => group.defaultCollapsed)
 					.map((group) => group.id),
 			),

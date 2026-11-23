@@ -271,6 +271,27 @@ describe('Grid column groups', () => {
 
 		expect(screen.getByRole('menuitem', { name: 'Manage columns' })).toBeInTheDocument()
 	})
+
+	// CONVENTIONS §7.3: a controlled binding that gives `undefined` later stays
+	// controlled with no value. It must not fall back to its `defaultValue`.
+	it('draws no band once a controlled binding clears its value', () => {
+		const grid = (value: GridColumnGroup[] | undefined) => (
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				columnGroups={{ value, defaultValue: groups }}
+			/>
+		)
+
+		const { container, rerender } = renderUI(grid(groups))
+
+		expect(bandCell(container)).not.toBeNull()
+
+		rerender(grid(undefined))
+
+		expect(bandCell(container)).toBeNull()
+	})
 })
 
 describe('Grid column-group onCollapsedChange', () => {
