@@ -10,7 +10,8 @@ language js
 // `offsetWidth`, or `getBoundingClientRect()`, or that is `void` of a name. A
 // read whose value the code keeps, and `void` of a call, pass.
 //
-// Reach is the `includes` beside this plugin in `biome.json`: the `ui` source,
+// Reach is the `includes` beside this plugin in `biome.json`: the source of
+// `ui`, `shared`, and the apps, which compile with the React Compiler too,
 // minus tests, benchmarks, and `force-style-flush.ts` itself.
 JsExpressionStatement(expression = $expression) as $statement where {
 	or {

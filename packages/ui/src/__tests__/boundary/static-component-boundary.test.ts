@@ -199,7 +199,14 @@ function isClient(_file: string, source: string): boolean {
  * it is a client module, so its directive fails the check.
  */
 function collectStaticGraph(): string[] {
-	const entries = [...curatedFiles, ...collectStructureFiles(), ...collectSkeletonFiles()]
+	// A stale curated entry would fail the read of the walk while Vitest collects
+	// the cases, and the file would then report no case. The walk leaves it out,
+	// and the stale-entry case below names it.
+	const entries = [
+		...curatedFiles.filter((file) => existsSync(file)),
+		...collectStructureFiles(),
+		...collectSkeletonFiles(),
+	]
 
 	return [...runtimeFiles(entries, isClient)].map(srcRelative).sort()
 }

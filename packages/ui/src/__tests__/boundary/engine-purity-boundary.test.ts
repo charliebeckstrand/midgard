@@ -1,7 +1,8 @@
 import { readFileSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { parseImports, resolveSource } from '../helpers/source-imports'
+import { runtimeFiles } from '../helpers/import-graph'
+import { parseImports, REACT_SPECIFIER, resolveSource } from '../helpers/source-imports'
 import { isSourceFile, srcDir, srcRelative, walkSource } from '../helpers/walk-source'
 
 // The ROADMAP of each module with an engine states the pure-core invariant in
@@ -16,7 +17,8 @@ import { isSourceFile, srcDir, srcRelative, walkSource } from '../helpers/walk-s
 //   - no runtime `react` / `react-dom` / `motion` / `@dnd-kit` / `@floating-ui`
 //     import (a type-only import is fine: `CSSProperties`, `ReactNode`, and
 //     dnd-kit's `ClientRect` describe data the shell renders or hands back)
-//   - no runtime import from the module root: the arrow runs shell → engine,
+//   - no runtime import of a file of the module outside the engine, at the
+//     module root or in another folder of it: the arrow runs shell → engine,
 //     never back, so the engine stands alone
 //   - no `index` barrel: the engine is imported file-by-file, so a consumer
 //     pays for the leaf it names and nothing else
@@ -57,7 +59,7 @@ const CHART_PURE_CORES = [
 /** Whether a runtime import of `specifier` costs an engine its independence. */
 function isFrameworkSpecifier(specifier: string): boolean {
 	return (
-		/^(react|react-dom)$/.test(specifier) ||
+		REACT_SPECIFIER.test(specifier) ||
 		/^(motion|framer-motion)\b/.test(specifier) ||
 		/^@(dnd-kit|floating-ui)\//.test(specifier)
 	)
@@ -86,22 +88,24 @@ function frameworkReaches(file: string, content: string): string[] {
 	return found
 }
 
-/** A source file of an engine, with its path relative to `srcDir`. */
-type EngineFile = { rel: string; depth: number; content: string }
+/** A source file of an engine: its absolute path, its path relative to `srcDir`, and its text. */
+type EngineFile = { file: string; rel: string; content: string }
 
-function toEngineFile(dir: string, file: string, content: string): EngineFile {
-	// Depth 1 is a file directly under `engine/`, 2 one in a concept directory.
-	// Split on both separators: `relative` yields backslashes on Windows, and a
-	// '/'-only split reads every file as depth 1 there.
-	return { rel: srcRelative(file), depth: relative(dir, file).split(/[\\/]/).length, content }
-}
+const toEngineFile = (file: string, content: string): EngineFile => ({
+	file,
+	rel: srcRelative(file),
+	content,
+})
+
+/** Whether `file` is under `dir`. */
+const isUnder = (dir: string, file: string) => !relative(dir, file).startsWith('..')
 
 /** Every source file under an engine. */
 function engineFiles(dir: string): EngineFile[] {
 	const out: EngineFile[] = []
 
 	walkSource(dir, (file, content) => {
-		if (isSourceFile(file)) out.push(toEngineFile(dir, file, content))
+		if (isSourceFile(file)) out.push(toEngineFile(file, content))
 	})
 
 	return out
@@ -116,37 +120,21 @@ function engineFiles(dir: string): EngineFile[] {
 function chartPureFiles(): EngineFile[] {
 	const dir = enginePath('chart')
 
-	const queue: string[] = []
+	const cores: string[] = []
 
 	for (const core of CHART_PURE_CORES) {
 		const path = join(dir, core)
 
-		if (core.endsWith('.ts')) queue.push(path)
+		if (core.endsWith('.ts')) cores.push(path)
 		else
 			walkSource(path, (file) => {
-				if (isSourceFile(file)) queue.push(file)
+				if (isSourceFile(file)) cores.push(file)
 			})
 	}
 
-	const seen = new Map<string, EngineFile>()
-
-	for (let file = queue.shift(); file !== undefined; file = queue.shift()) {
-		if (seen.has(file)) continue
-
-		const content = readFileSync(file, 'utf8')
-
-		seen.set(file, toEngineFile(dir, file, content))
-
-		for (const { specifier, runtime } of parseImports(content)) {
-			if (!runtime || !specifier.startsWith('.')) continue
-
-			const target = resolveSource(file, specifier)
-
-			if (target && !relative(dir, target).startsWith('..')) queue.push(target)
-		}
-	}
-
-	return [...seen.values()]
+	return [...runtimeFiles(cores, (file) => !isUnder(dir, file))].map((file) =>
+		toEngineFile(file, readFileSync(file, 'utf8')),
+	)
 }
 
 /** The files that the rules hold for each engine. */
@@ -173,15 +161,23 @@ describe('engine purity boundary', () => {
 		})
 
 		it(`${module}/engine never imports from its module root at runtime`, () => {
-			const violations = files.flatMap(({ rel, depth, content }) => {
-				// The module root is exactly `depth` levels up from the file, and a
-				// reach at it names a bare segment (`'../types'`, not `'../../core'`).
-				const root = new RegExp(`^${'\\.\\./'.repeat(depth)}[a-z][a-z0-9-]*$`)
+			const root = join(srcDir, 'modules', module)
 
-				return parseImports(content)
-					.filter(({ specifier, runtime }) => runtime && root.test(specifier))
-					.map(({ specifier }) => `${rel} → runtime import of '${specifier}'`)
-			})
+			const engine = enginePath(module)
+
+			// A file of the module outside its engine is a part of the shell, at
+			// the root or in a folder of the module, such as `query/query-builder`.
+			const isShell = (target: string | undefined) =>
+				target !== undefined && isUnder(root, target) && !isUnder(engine, target)
+
+			const violations = files.flatMap(({ file, rel, content }) =>
+				parseImports(content)
+					.filter(
+						({ specifier, runtime }) =>
+							runtime && specifier.startsWith('.') && isShell(resolveSource(file, specifier)),
+					)
+					.map(({ specifier }) => `${rel} → runtime import of '${specifier}'`),
+			)
 
 			expect(
 				violations,
@@ -246,6 +242,21 @@ describe('engine purity boundary · self-check', () => {
 		const refs = parseImports("import { type A, type B } from 'react'\n")
 
 		expect(refs[0]?.runtime).toBe(false)
+	})
+
+	it('detects a runtime import of a subpath of react-dom', () => {
+		expect(
+			frameworkReaches('core.ts', "import { flushSync } from 'react-dom/client'\n"),
+		).not.toEqual([])
+	})
+
+	it('reads a type import after a bare import as a type import', () => {
+		const refs = parseImports("import './a'\nimport type { B } from './b'\n")
+
+		expect(refs).toEqual([
+			{ specifier: './b', runtime: false },
+			{ specifier: './a', runtime: true },
+		])
 	})
 
 	it('does not let one import statement swallow the next', () => {
