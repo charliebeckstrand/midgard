@@ -8,10 +8,11 @@ import { getSlot, noop, renderUI, screen, waitFor } from '../helpers'
 import { emulateForcedColors, systemColor } from './helpers/forced-colors'
 
 /**
- * The wash of a roved row (real paint). A command palette and a dropdown menu
- * rove by `data-active`, and the row never takes focus. `hannou.active` is the
- * only rule that marks the roved row, so it must have the glass form and the
- * forced-colors form that the hover and focus washes have. jsdom compiles no
+ * The wash of a roved row (real paint). A command palette roves by
+ * `data-active`, and the row never takes focus. `hannou.active` is the only
+ * rule that marks that row, so it must have the glass form and the
+ * forced-colors form that the hover and focus washes have. A dropdown menu
+ * roves by real focus, and the focus wash marks its row. jsdom compiles no
  * Tailwind and paints nothing, so only a real browser reads the fill back off
  * the row.
  */

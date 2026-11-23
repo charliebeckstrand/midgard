@@ -46,8 +46,8 @@ function Rows({ count }: { count: number }) {
 }
 
 /**
- * One dropdown, open by default. Focus rests on the trigger, so the rows rove
- * by `aria-activedescendant`.
+ * One dropdown, open by default. The rows rove by real focus, so a key goes to
+ * the row that has the focus ({@link keyTarget}).
  *
  * @param open - Mount the panel open. Pass `false` for a closed menu a bench
  * then clicks open, which is what `menu-open.bench.tsx` measures.
@@ -82,9 +82,10 @@ export function Dropdown({
 	)
 }
 
-/** One open menu a bench drives: its trigger, and the point each row sits at. */
+/** One open menu a bench drives: its trigger, its panel, and the point each row sits at. */
 export type Probe = {
 	trigger: HTMLElement
+	panel: HTMLElement
 	/** The center of each row, resolved once so no sample pays for the layout read. */
 	points: { row: HTMLElement; x: number; y: number }[]
 }
@@ -102,6 +103,7 @@ function readProbe(panel: string, skip?: HTMLElement): Probe {
 
 	return {
 		trigger: document.querySelector<HTMLElement>(`.${panel}-trigger`) as HTMLElement,
+		panel: document.querySelector<HTMLElement>(`.${panel}`) as HTMLElement,
 		points: rows
 			.filter((row) => row !== skip)
 			.map((row) => {
@@ -168,10 +170,11 @@ export async function openCorridor(panel: string): Promise<Probe> {
 
 	const edge = rect.left >= x ? rect.left : rect.right
 
-	const { trigger, points } = readProbe(panel, parent)
+	const { trigger, panel: panelNode, points } = readProbe(panel, parent)
 
 	const probe: Probe = {
 		trigger,
+		panel: panelNode,
 		points: points.map(({ row }, index) => {
 			const progress = (index + 1) / (points.length + 1)
 
@@ -207,7 +210,20 @@ export function pointerMove(row: HTMLElement, x: number, y: number) {
 	)
 }
 
-/** One `keydown` on `target`, the press the trigger's roving handler reads. */
+/**
+ * The element that takes a key of the open menu of `probe`: the row that has
+ * the focus, or else the first row. The trigger takes no key while the menu is
+ * open, and the panel roves its rows by real focus.
+ */
+export function keyTarget(probe: Probe): HTMLElement {
+	const active = document.activeElement
+
+	if (active instanceof HTMLElement && probe.panel.contains(active)) return active
+
+	return probe.points[0]?.row ?? probe.panel
+}
+
+/** One `keydown` on `target`, the press the roving handler of the panel reads. */
 export function pressKey(target: HTMLElement, key: string) {
 	target.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key }))
 }

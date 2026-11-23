@@ -32,9 +32,10 @@ export const item = defineGroup({
 		cursor,
 		tint.base,
 		tint.glass.base,
-		// A list roves its rows with `aria-activedescendant`, so the focus stays on
-		// the trigger or the input. The roved row is `data-active`. The wash and
-		// the cursor outline mark it.
+		// A list such as Option or a command palette roves its rows with
+		// `aria-activedescendant`, so the focus stays on the input. The roved row
+		// is `data-active`, and the wash and the cursor outline mark it. A menu
+		// roves by real focus, and `focus.cursor` and `forced.focus` mark its row.
 		...active,
 		...focus.cursor,
 	],
