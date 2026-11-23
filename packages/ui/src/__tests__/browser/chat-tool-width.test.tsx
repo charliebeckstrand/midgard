@@ -24,6 +24,17 @@ function width(element: Element) {
 	return element.getBoundingClientRect().width
 }
 
+/** Calls `sample` on each frame for `ms` milliseconds. */
+async function eachFrame(ms: number, sample: () => void) {
+	const end = performance.now() + ms
+
+	while (performance.now() < end) {
+		sample()
+
+		await new Promise((resolve) => requestAnimationFrame(resolve))
+	}
+}
+
 /** The width of the content box of an element, in pixels: its width less its padding. */
 function contentWidth(element: Element) {
 	const style = getComputedStyle(element)
@@ -92,5 +103,37 @@ describe('the width of a chat step (real browser)', () => {
 		expect(tool.scrollWidth).toBeLessThanOrEqual(tool.clientWidth)
 
 		expect(width(tool)).toBeLessThanOrEqual(width(getSlot(container, 'chat-message-bubble')))
+	})
+
+	it('keeps the summary beside the label while the width moves', async () => {
+		// The head is wider than the prose, so the head sets the width of the bubble.
+		const { container } = renderUI(
+			<div style={{ width: 800 }}>
+				<ChatMessage>
+					{[
+						{ ...step, label: 'Filter shipments', summary: 'Status is Late AND Lane is North' },
+						{ kind: 'text', id: 'short', text: 'Twelve are late.' },
+					]}
+				</ChatMessage>
+			</div>,
+		)
+
+		const label = getSlot(container, 'chat-tool-label')
+
+		const summary = getSlot(container, 'chat-tool-summary')
+
+		const offsets: number[] = []
+
+		const sample = () => {
+			offsets.push(summary.getBoundingClientRect().top - label.getBoundingClientRect().top)
+		}
+
+		for (const _ of ['open', 'close']) {
+			await userEvent.click(getSlot(container, 'collapse-trigger'))
+
+			await eachFrame(400, sample)
+		}
+
+		expect(Math.max(...offsets.map(Math.abs))).toBeLessThan(1)
 	})
 })
