@@ -6,6 +6,8 @@
  * (`kumi/panel/grip.ts`).
  *
  * The bar is muted at rest, darker on hover, and blue on keyboard focus. The
+ * bar is the only mark of the handle, so at rest it is zinc-500 in each mode:
+ * 4.8:1 on white and 3.7:1 on zinc-900, above the 3:1 of WCAG 1.4.11. The
  * reader sees the bar only by its background, which forced colors remove, so
  * the bar then paints in `CanvasText` in each state. Forced colors also remove
  * the focus color, so an outline on the bar marks the focused handle there.
@@ -18,12 +20,13 @@ import { mode } from '../../../core/recipe'
 export const grip = [
 	'after:rounded-full',
 	...mode(
-		'after:bg-zinc-300 hover:after:bg-zinc-400',
-		'dark:after:bg-zinc-600 dark:hover:after:bg-zinc-500',
+		'after:bg-zinc-500 hover:after:bg-zinc-600',
+		'dark:after:bg-zinc-500 dark:hover:after:bg-zinc-400',
 	),
-	// The dark hover color sorts after `focus-visible:` at the same specificity, so the focus
-	// color repeats in dark.
-	...mode('focus-visible:after:bg-blue-600', 'dark:focus-visible:after:bg-blue-600'),
+	// The dark hover color sorts after `focus-visible:` at the same specificity, so
+	// the dark focus color is a class of its own. It is blue-500, the dark focus
+	// color of `focus.ts`.
+	...mode('focus-visible:after:bg-blue-600', 'dark:focus-visible:after:bg-blue-500'),
 	'forced-colors:after:bg-[CanvasText]',
 	// Each state color above outranks the shape, so the shape repeats in each state.
 	'forced-colors:hover:after:bg-[CanvasText] forced-colors:focus-visible:after:bg-[CanvasText]',

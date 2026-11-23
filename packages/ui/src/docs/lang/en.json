@@ -45,7 +45,7 @@
 	},
 	"docs.app.pageTitle": {
 		"defaultMessage": "{page} · Docs",
-		"description": "The title of the browser tab on a page of the docs. The page is the name of the page, such as Button, or the path of the address when no page is at it."
+		"description": "The title of the browser tab on a page of the docs that has no tabs. The page is the name of the page, such as Button, or the text that says that no page is at the address."
 	},
 	"docs.app.section.components": {
 		"defaultMessage": "Components",
@@ -66,6 +66,10 @@
 	"docs.app.section.structure": {
 		"defaultMessage": "Structure",
 		"description": "The name of the section of the sidebar that lists the layout parts, such as a stack or a split."
+	},
+	"docs.app.tabTitle": {
+		"defaultMessage": "{tab} · {page} · Docs",
+		"description": "The title of the browser tab on a tab of a page of the docs. The tab is the name of the tab, such as Sorting, and the page is the name of the page, such as Grid."
 	},
 	"docs.app.toggleSidebar": {
 		"defaultMessage": "Toggle sidebar",
@@ -5939,6 +5943,14 @@
 		"defaultMessage": "Reset",
 		"description": "The label of the button that puts an example back in its first state, such as after a close or a delete."
 	},
+	"docs.example.resizeHeight": {
+		"defaultMessage": "Resize example height",
+		"description": "The name of the handle on the bottom border of an example that changes the height of the example, by a drag or by the arrow keys."
+	},
+	"docs.example.resizeWidth": {
+		"defaultMessage": "Resize example width",
+		"description": "The name of the handle on the end border of an example that changes the width of the example, by a drag or by the arrow keys."
+	},
 	"docs.example.showCode": {
 		"defaultMessage": "Show code",
 		"description": "The label of the button under an example that shows the source code of the example."
@@ -5947,9 +5959,13 @@
 		"defaultMessage": "{width} × {height}",
 		"description": "The size of an example in pixels, which shows while the reader resizes the example, such as \"640 × 480\"."
 	},
-	"docs.notFound.body": {
+	"docs.notFound.path": {
+		"defaultMessage": "No page of the docs is at {path}.",
+		"description": "The text of the page that shows for a path that has no page of the docs. The path is the path of the address, such as /button/foo."
+	},
+	"docs.notFound.title": {
 		"defaultMessage": "Page not found",
-		"description": "The text of the page that shows for a path that has no page of the docs."
+		"description": "The title and the heading of the page that shows for a path that has no page of the docs."
 	},
 	"docs.page.accordion": {
 		"defaultMessage": "Accordion",

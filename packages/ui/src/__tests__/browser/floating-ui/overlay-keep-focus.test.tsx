@@ -74,6 +74,41 @@ function PaletteToDrawer() {
 	)
 }
 
+/**
+ * A Dialog whose trigger is in a box that an action of the Dialog hides, as a
+ * setting can hide the sidebar that holds the trigger of the settings.
+ */
+function HidesTrigger() {
+	const [open, setOpen] = useState(false)
+
+	const [hidden, setHidden] = useState(false)
+
+	return (
+		<div>
+			<div hidden={hidden}>
+				<Button type="button" onClick={() => setOpen(true)}>
+					Settings
+				</Button>
+			</div>
+			<Button type="button">After</Button>
+			<Dialog open={open} onOpenChange={setOpen}>
+				<DialogPanel aria-label="Settings" footer={null}>
+					<Button
+						type="button"
+						onClick={() => {
+							setHidden(true)
+
+							setOpen(false)
+						}}
+					>
+						Hide
+					</Button>
+				</DialogPanel>
+			</Dialog>
+		</div>
+	)
+}
+
 /** Waits until no element with `name` is in the document. */
 async function gone(name: string) {
 	await waitFor(() => expect(screen.queryByRole('dialog', { name })).toBeNull())
@@ -117,6 +152,24 @@ describe('overlay keeps the focus (real focus manager)', () => {
 		await screen.findByText('Step two')
 
 		await waitFor(() => expect(document.activeElement).not.toBe(document.body))
+	})
+
+	it('gives the focus to the nearest control that can take it when the trigger is hidden', async () => {
+		renderUI(<HidesTrigger />)
+
+		await userEvent.click(screen.getByRole('button', { name: 'Settings' }))
+
+		await screen.findByRole('dialog', { name: 'Settings' })
+
+		screen.getByRole('button', { name: 'Hide' }).focus()
+
+		await userEvent.keyboard('{Enter}')
+
+		await gone('Settings')
+
+		await waitFor(() =>
+			expect(document.activeElement).toBe(screen.getByRole('button', { name: 'After' })),
+		)
 	})
 
 	it('gives an overlay that opens from a closing overlay the return target of that overlay', async () => {

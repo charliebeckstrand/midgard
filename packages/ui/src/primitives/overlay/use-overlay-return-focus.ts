@@ -50,26 +50,26 @@ function ancestors(element: Element | null): Element[] {
 }
 
 /**
- * The element that gets the focus in place of a target that is gone, such as
- * a button in a table row that the overlay deleted. It comes from the nearest
- * ancestor of the old target that is still in the page and gives one: the
- * ancestor, if it can get the focus, else its first tabbable element. The focus then stays near the
- * place of the action, and does not fall to `<body>` (WCAG 2.4.3).
+ * The elements that can get the focus back, in order. The first is the target,
+ * if it is in the page. Then come the elements of each ancestor of the old
+ * target that is still in the page, nearest first: the ancestor, if it can get
+ * the focus, else its tabbable elements. The focus then stays near the place
+ * of the action, and does not fall to `<body>` (WCAG 2.4.3). This covers a
+ * button in a table row that the overlay deleted, and a trigger that is in the
+ * page but hidden, such as a control in a sidebar that a setting of the overlay
+ * hid.
  */
-function fallback(path: Element[]): HTMLElement | null {
+function* candidates(target: Element | null, path: Element[]): Generator<HTMLElement> {
+	if (target instanceof HTMLElement && target.isConnected) yield target
+
 	// An ancestor can be in the page but hold no control, such as a list whose
 	// last row the overlay deleted. The walk then goes on up the path.
 	for (const node of path) {
 		if (!node.isConnected || !(node instanceof HTMLElement)) continue
 
-		if (node.matches(FOCUSABLE_SELECTOR) && node.tabIndex >= 0) return node
-
-		const first = getTabbableElements(node)[0]
-
-		if (first) return first
+		if (node.matches(FOCUSABLE_SELECTOR) && node.tabIndex >= 0) yield node
+		else yield* getTabbableElements(node)
 	}
-
-	return null
 }
 
 /** Whether `target` is not an element that can get the focus back. */
@@ -99,16 +99,21 @@ function giveBack(entry: Entry, target: Element | null): void {
 		return
 	}
 
-	const element =
-		target instanceof HTMLElement && target.isConnected ? target : fallback(entry.path)
+	const doc = (target ?? entry.path[0])?.ownerDocument
 
-	if (!element) return
+	if (!doc) return
 
-	const active = element.ownerDocument.activeElement
+	const active = doc.activeElement
 
-	if (active !== null && active !== element.ownerDocument.body) return
+	if (active !== null && active !== doc.body) return
 
-	element.focus({ preventScroll: true })
+	// A call to `focus()` does nothing on an element that cannot get the focus,
+	// such as a hidden one. The activeElement then tells if the call took.
+	for (const element of candidates(target, entry.path)) {
+		element.focus({ preventScroll: true })
+
+		if (doc.activeElement === element) return
+	}
 }
 
 /**

@@ -8,6 +8,7 @@ import {
 	type ReactNode,
 	use,
 	useCallback,
+	useEffect,
 	useId,
 	useLayoutEffect,
 	useMemo,
@@ -38,11 +39,17 @@ import { k } from '../../recipes/kata/sidebar-layout'
 import { Flex } from '../../structure/flex'
 import type { Responsive } from '../../utilities/responsive'
 import { scrollWithin } from '../../utilities/scroll-within'
-import { readChoice, writeChoice } from '../../utilities/stored-choice'
+import { readChoice, subscribeChoices, writeChoice } from '../../utilities/stored-choice'
 import { SidebarLayoutContext } from './context'
 import { useStickyBars } from './use-sticky-bars'
 
 const messages = defineMessages({
+	navigation: {
+		id: 'ui.sidebarLayout.navigation',
+		defaultMessage: 'Navigation',
+		description:
+			'The name of the panel that shows the navigation over the page: the drawer of a narrow page, and the sheet that a pointer opens at the edge of a wide page.',
+	},
 	navigationBar: {
 		id: 'ui.sidebarLayout.navigationBar',
 		defaultMessage: 'Navigation bar',
@@ -280,6 +287,27 @@ export function SidebarLayout({
 		if (mainRef.current) focusSkipTarget(mainRef.current)
 	}, [])
 
+	// The inline panel of the sidebar.
+	const panelRef = useRef<HTMLDivElement>(null)
+
+	// A change to offcanvas hides the inline panel. If the panel holds the focus,
+	// as after ⌘B on a sidebar item, the browser drops the focus to `<body>` at the
+	// next render, and the next Tab starts at the top of the page (WCAG 2.4.3).
+	// The change of the choice and this listener are in the same task, before that
+	// render, so the focus is still in the panel here. It goes to the main
+	// landmark, as a skip does.
+	useEffect(
+		() =>
+			subscribeChoices(() => {
+				if (readChoice(SIDEBAR) !== 'offcanvas') return
+
+				if (!panelRef.current?.contains(document.activeElement)) return
+
+				if (mainRef.current) focusSkipTarget(mainRef.current)
+			}),
+		[],
+	)
+
 	const layoutValue = useMemo(
 		() => ({ actions, bar: setBar, layout, stickyHeader }),
 		[actions, setBar, layout, stickyHeader],
@@ -322,7 +350,7 @@ export function SidebarLayout({
 				)}
 
 				{/* Inline sidebar when locked. It hides while offcanvas. */}
-				<div data-slot="sidebar-panel" className={slots.panel}>
+				<div ref={panelRef} data-slot="sidebar-panel" className={slots.panel}>
 					{sidebar}
 				</div>
 
@@ -335,6 +363,7 @@ export function SidebarLayout({
 						width="fit"
 						modal={false}
 						backdrop
+						aria-label={intl.formatMessage(messages.navigation)}
 						// The peek closes when the pointer leaves, or on a tap outside it, so it has
 						// no Close row.
 						footer={null}
@@ -366,7 +395,7 @@ export function SidebarLayout({
 				{/* Drawer sidebar. The root holds the drawer and its trigger in the navbar. */}
 				<Drawer open={open} onOpenChange={setOpen}>
 					{/* A nav item and the close of `SidebarHeader` close the navigation, so it has no Close row. */}
-					<DrawerPanel footer={null}>
+					<DrawerPanel footer={null} aria-label={intl.formatMessage(messages.navigation)}>
 						<OffcanvasContext value={offcanvasValue}>
 							<div ref={scrollToCurrent} className="contents">
 								{sidebar}

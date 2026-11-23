@@ -22,7 +22,7 @@ import { hannou } from '../../kiso'
  */
 const FOCUS = [
 	'focus-visible:after:outline-2 focus-visible:after:outline-offset-2',
-	'focus-visible:after:outline-blue-600',
+	...mode('focus-visible:after:outline-blue-600', 'dark:focus-visible:after:outline-blue-500'),
 ]
 
 /**

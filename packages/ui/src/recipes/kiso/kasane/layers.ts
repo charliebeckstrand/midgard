@@ -69,8 +69,14 @@ const focus = [
 	'forced-colors:focus-within:after:-outline-offset-2 forced-colors:focus-within:after:outline-[Highlight]',
 	'forced-colors:data-open:after:outline-solid forced-colors:data-open:after:outline-2',
 	'forced-colors:data-open:after:-outline-offset-2 forced-colors:data-open:after:outline-[Highlight]',
-	'not-has-[[data-invalid],[data-valid],[data-warning]]:focus-within:after:ring-blue-600',
-	'not-has-[[data-invalid],[data-valid],[data-warning]]:data-open:after:ring-blue-600',
+	...mode(
+		'not-has-[[data-invalid],[data-valid],[data-warning]]:focus-within:after:ring-blue-600',
+		'dark:not-has-[[data-invalid],[data-valid],[data-warning]]:focus-within:after:ring-blue-500',
+	),
+	...mode(
+		'not-has-[[data-invalid],[data-valid],[data-warning]]:data-open:after:ring-blue-600',
+		'dark:not-has-[[data-invalid],[data-valid],[data-warning]]:data-open:after:ring-blue-500',
+	),
 ]
 
 /**
