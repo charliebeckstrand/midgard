@@ -375,6 +375,19 @@ export const h = <Button variant="bare" aria-label="Close"><Icon icon={<X />} />
 `,
 		},
 	],
+	'no-ui-anchor-selector': [
+		{
+			file: 'anchor.tsx',
+			source: `export const a = <svg className="[&_[data-slot=map-points]]:opacity-50" /> // flag
+export const b = () => document.querySelector('[data-slot="map-regions"]') // flag
+export const c = \`has-data-[slot=map-regions]:ring-1 \${size}\` // flag
+export const d = 'group-data-[slot=icon]:size-4' // flag
+export const e = () => document.querySelectorAll("[data-slot^='map-']") // flag
+export const f = <span data-slot="probe-label">Label</span>
+export const g = <MapPlat recede={false} />
+`,
+		},
+	],
 	'no-unused-layout-read': [
 		{
 			file: 'reads.ts',
@@ -518,6 +531,7 @@ const SCOPE: Record<string, { in: string; out: string }> = {
 	'no-renamed-spacing-utility': { in: 'packages/ui/src/layouts', out: 'packages/ui/src/hooks' },
 	'no-respelled-orientation': { in: 'packages/ui/src/utilities', out: 'packages/ui/src/recipes' },
 	'no-stateless-toggle-icon-button': { in: 'apps/places/src', out: 'packages/ui/src/components' },
+	'no-ui-anchor-selector': { in: 'apps/places/src', out: 'apps/places/src/__tests__' },
 	'no-unused-layout-read': {
 		in: 'packages/ui/src/hooks',
 		out: 'packages/ui/src/utilities/force-style-flush.ts',
