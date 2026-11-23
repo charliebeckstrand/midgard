@@ -123,6 +123,10 @@ export default function EditAMessage() {
 		setEditing(message.id)
 
 		setValue(text, citations)
+
+		// A second start of the same message does not change `editing`, so the
+		// effect below does not run. The status already shows, so the focus moves now.
+		if (message.id === editing) composer.current?.focus()
 	}
 
 	// The focus moves after the commit, so the composer already holds the text
