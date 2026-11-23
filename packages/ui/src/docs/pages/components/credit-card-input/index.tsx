@@ -9,7 +9,7 @@ import CreditCardInputPlayground from './playground.tsx'
 
 export default function CreditCardInputPage() {
 	return (
-		<FrameDefaults form>
+		<FrameDefaults box="column">
 			<Playground of={CreditCardInputPlayground} api={api} />
 			<Example of={BrandDetection} />
 			<Example of={CardDetails} />

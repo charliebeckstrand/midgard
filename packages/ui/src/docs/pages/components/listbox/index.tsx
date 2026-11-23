@@ -7,7 +7,7 @@ import WithPrefix from './with-prefix.tsx'
 
 export default function ListboxPage() {
 	return (
-		<FrameDefaults form>
+		<FrameDefaults box="column">
 			<Playground of={ListboxPlayground} api={api} omit={['open', 'required']} />
 			<Example of={WithPrefix} />
 			<Example of={Controlled} />

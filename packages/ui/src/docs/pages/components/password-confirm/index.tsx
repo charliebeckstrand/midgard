@@ -6,7 +6,7 @@ import WithStrengthMeter from './with-strength-meter.tsx'
 
 export default function PasswordConfirmPage() {
 	return (
-		<FrameDefaults form>
+		<FrameDefaults box="column">
 			<Playground of={PasswordConfirmPlayground} api={api} />
 			<Example of={WithStrengthMeter} />
 			<Example of={InAForm} />

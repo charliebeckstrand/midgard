@@ -7,9 +7,9 @@ import Thumbnails from './thumbnails.tsx'
 export default function LightboxPage() {
 	return (
 		<>
-			<Playground of={LightboxPlayground} api={api} ratio />
-			<Example of={SinglePhoto} ratio />
-			<Example of={Thumbnails} ratio />
+			<Playground of={LightboxPlayground} api={api} box="ratio" />
+			<Example of={SinglePhoto} box="ratio" />
+			<Example of={Thumbnails} box="ratio" />
 			<ApiTable api={api} />
 		</>
 	)

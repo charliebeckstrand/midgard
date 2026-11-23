@@ -7,7 +7,7 @@ import WithInput from './with-input.tsx'
 
 export default function PasswordStrengthPage() {
 	return (
-		<FrameDefaults form>
+		<FrameDefaults box="column">
 			<Playground of={PasswordStrengthPlayground} api={api} />
 			<Example of={WithInput} />
 			<Example of={CustomRules} />

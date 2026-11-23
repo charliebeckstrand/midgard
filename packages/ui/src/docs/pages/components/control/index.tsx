@@ -7,7 +7,7 @@ import Skeleton from './skeleton.tsx'
 
 export default function ControlPage() {
 	return (
-		<FrameDefaults form>
+		<FrameDefaults box="column">
 			<Playground of={ControlPlayground} api={api} omit={['required']} />
 			<Example of={Required} />
 			<Example of={NestedFields} />

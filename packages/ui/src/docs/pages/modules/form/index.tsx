@@ -16,7 +16,7 @@ export default function FormPage() {
 	return (
 		<>
 			<PageTabs tabs={TABS}>
-				<FrameDefaults form>
+				<FrameDefaults box="column">
 					<Playground of={FormPlayground} api={api} />
 					<Example of={Validation} />
 					<Example of={ErrorSummary} />

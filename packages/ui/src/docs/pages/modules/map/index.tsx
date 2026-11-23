@@ -11,10 +11,10 @@ export default function MapPage() {
 	return (
 		<>
 			<PageTabs tabs={TABS}>
-				<Playground of={MapPlayground} api={api} omit={['animate', 'binning']} ratio />
-				<Example of={SelectAState} ratio />
-				<Example of={SelectSeveralStates} ratio />
-				<Example of={SplitTimeZones} ratio />
+				<Playground of={MapPlayground} api={api} omit={['animate', 'binning']} box="ratio" />
+				<Example of={SelectAState} box="ratio" />
+				<Example of={SelectSeveralStates} box="ratio" />
+				<Example of={SplitTimeZones} box="ratio" />
 			</PageTabs>
 			<ApiTable api={api} />
 		</>

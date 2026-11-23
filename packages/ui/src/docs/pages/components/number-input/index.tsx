@@ -9,7 +9,7 @@ import WithPrefix from './with-prefix.tsx'
 
 export default function NumberInputPage() {
 	return (
-		<FrameDefaults form>
+		<FrameDefaults box="column">
 			<Playground of={NumberInputPlayground} api={api} />
 			<Example of={Controlled} />
 			<Example of={DecimalStep} />

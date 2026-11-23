@@ -10,7 +10,7 @@ import WithSuffix from './with-suffix.tsx'
 
 export default function InputPage() {
 	return (
-		<FrameDefaults form>
+		<FrameDefaults box="column">
 			<Playground of={InputPlayground} api={api} />
 			<Example of={WithPrefix} />
 			<Example of={WithSuffix} />

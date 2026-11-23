@@ -9,7 +9,7 @@ import WithDescriptions from './with-descriptions.tsx'
 
 export default function SelectPage() {
 	return (
-		<FrameDefaults form>
+		<FrameDefaults box="column">
 			<Playground of={SelectPlayground} api={api} omit={['open', 'required']} />
 			<Example of={InAField} />
 			<Example of={WithDescriptions} />

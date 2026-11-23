@@ -9,7 +9,7 @@ import Wrap from './wrap.tsx'
 
 export default function TagInputPage() {
 	return (
-		<FrameDefaults form>
+		<FrameDefaults box="column">
 			<Playground of={TagInputPlayground} api={api} />
 			<Example of={Wrap} />
 			<Example of={MaxTags} />

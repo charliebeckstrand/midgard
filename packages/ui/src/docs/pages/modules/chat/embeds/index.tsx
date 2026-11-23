@@ -5,8 +5,8 @@ import UnregisteredName from './unregistered-name.tsx'
 export default function EmbedsTab() {
 	return (
 		<>
-			<Example of={RegisteredRenderer} surface />
-			<Example of={UnregisteredName} surface />
+			<Example of={RegisteredRenderer} box="surface" />
+			<Example of={UnregisteredName} box="surface" />
 		</>
 	)
 }
