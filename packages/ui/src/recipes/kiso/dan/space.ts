@@ -519,15 +519,14 @@ export const space = {
 		y: 'density-set-[0.5,0.75,1,1.25,1.5]/[--kbd-py]',
 		icon: {
 			/**
-			 * The inline padding of a key whose one child element is an icon: the
-			 * block padding of a key (`mark.y`), so the key is a square. A text node
-			 * is not an element, so CSS finds such a key with no help from the
-			 * component.
+			 * The inline padding of a key with only icons (`icons-only`): the block
+			 * padding of a key (`mark.y`), so a key with one icon is a square. CSS
+			 * finds such a key with no help from the component.
 			 */
-			x: 'has-[>[data-slot=icon]:only-child]:density-px-[0.5,0.75,1,1.25,1.5]',
+			x: 'icons-only:density-px-[0.5,0.75,1,1.25,1.5]',
 			button: {
 				/** The inline padding of such a key in a button: the 1 px of its block padding (`button.y`). */
-				x: 'has-[>[data-slot=icon]:only-child]:[&:is([data-variant]>*)]:px-px',
+				x: 'icons-only:[&:is([data-variant]>*)]:px-px',
 			},
 		},
 		button: {

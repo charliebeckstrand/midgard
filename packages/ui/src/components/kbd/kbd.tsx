@@ -13,7 +13,8 @@ export type KbdProps = ComponentProps<'kbd'> & {
  * A key is never narrower than it is tall, so a key with one glyph in a line of
  * text is a square. A key with only an icon, such as
  * `<Kbd><Icon icon={<CornerDownLeft />} /></Kbd>`, is a square as tall as a key
- * with text, and a key with a longer label grows.
+ * with text, also with an `sr-only` name beside the icon. A key with a longer
+ * label grows.
  *
  * @remarks
  * A pure, server-renderable display leaf. Without `size`, the key takes the

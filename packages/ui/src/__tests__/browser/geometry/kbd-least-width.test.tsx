@@ -58,4 +58,30 @@ describe('the width of a Kbd (real browser)', () => {
 			expect(label?.width).toBeGreaterThan(label?.height ?? 0)
 		}
 	})
+
+	it('treats a hidden name and a second icon as a key with only icons', () => {
+		const { container } = renderUI(
+			<p>
+				<Kbd>K</Kbd>{' '}
+				<Kbd>
+					<Icon icon={<ArrowUp />} />
+					<span className="sr-only">Up</span>
+				</Kbd>{' '}
+				<Kbd>
+					<Icon icon={<ArrowUp />} />
+					<Icon icon={<ArrowUp />} />
+				</Kbd>
+			</p>,
+		)
+
+		const [text, named, pair] = boxes(container)
+
+		expect(named?.width).toBeNear(named?.height ?? 0, HALF_PIXEL)
+
+		for (const key of [named, pair]) {
+			expect(key?.height).toBeNear(text?.height ?? 0, HALF_PIXEL)
+
+			expect(key?.top).toBeNear(text?.top ?? 0, HALF_PIXEL)
+		}
+	})
 })
