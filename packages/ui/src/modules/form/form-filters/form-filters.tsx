@@ -5,7 +5,11 @@ import { ControlTargetsContext } from '../../../components/control/context'
 import { cn } from '../../../core/cn'
 import { useA11yAnnouncements } from '../../../hooks/a11y/use-a11y-announcements'
 import { useControllable } from '../../../hooks/use-controllable'
-import { ControlLockContext } from '../../../primitives/control/context'
+import {
+	ControlDisabledContext,
+	ControlLockContext,
+	useControlDisabled,
+} from '../../../primitives/control/context'
 import { type FormActions, FormProvider } from '../../../primitives/form/context'
 import { useIntl } from '../../../primitives/intl/use-intl'
 import { k } from '../../../recipes/kata/form-filters'
@@ -82,6 +86,8 @@ const NO_FILTERS: Record<string, unknown> = {}
  * no default. The bar is a `<fieldset>`, which has the `group` role. Give
  * `aria-label` or `aria-labelledby` to name it. When the count of the active
  * fields changes, the bar announces it to assistive technology (WCAG 4.1.3).
+ * A `disabled` bar also disables the controls that are not form-associated,
+ * as a disabled `Fieldset` does.
  *
  * The root is the coordinator and a column, and its regions are children. A
  * {@link FormFiltersClear} works anywhere inside the provider.
@@ -179,6 +185,8 @@ export function FormFilters<T extends FilterValue = FilterValue>({
 		[filterValue, setValue, handleClear, activeCount, clearable, layout],
 	)
 
+	const disabledByAncestor = useControlDisabled()
+
 	return (
 		<FormFiltersContext value={context}>
 			<FormFiltersNameContext value={name}>
@@ -194,9 +202,12 @@ export function FormFilters<T extends FilterValue = FilterValue>({
 				>
 					<FormProvider store={store} actions={formActions} resets={resets}>
 						{/* A bar inside a Form holds its own fields. It unlocks them while the
-						Form submits, and keeps them out of the targets of its summary. */}
+						Form submits, and keeps them out of the targets of its summary. A
+						disabled bar disables the Control cascade, as a Fieldset does. */}
 						<ControlTargetsContext value={undefined}>
-							<ControlLockContext value={false}>{children}</ControlLockContext>
+							<ControlDisabledContext value={disabledByAncestor || props.disabled === true}>
+								<ControlLockContext value={false}>{children}</ControlLockContext>
+							</ControlDisabledContext>
 						</ControlTargetsContext>
 					</FormProvider>
 				</fieldset>
