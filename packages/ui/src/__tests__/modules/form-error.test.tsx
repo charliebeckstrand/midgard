@@ -173,6 +173,32 @@ describe('FormError', () => {
 		// No field has an issue, so the map is empty and the issue comes second.
 		expect(onInvalidSubmit).toHaveBeenCalledExactlyOnceWith({}, 'Pick a stronger password')
 	})
+
+	it('shows a new alert when a second submit fails with the same issue', async () => {
+		// The rule of the whole form refuses each submit with the same issue, so the
+		// issue does not clear between the two submits.
+		const schema: ZodLike = {
+			safeParse: () => ({
+				success: false,
+				error: { issues: [{ path: [], message: 'Pick a stronger password' }] },
+			}),
+		}
+
+		const { container } = renderLogin({ validate: zodResolver(schema, defaults) })
+
+		await submit(container)
+
+		const first = getSlot(container, 'form-error')
+
+		await submit(container)
+
+		// A new alert node, so that a screen reader speaks the issue again.
+		const second = getSlot(container, 'form-error')
+
+		expect(second).not.toBe(first)
+
+		expect(second).toHaveTextContent('Pick a stronger password')
+	})
 })
 
 describe('FormErrorSummary with an issue of the whole form', () => {
