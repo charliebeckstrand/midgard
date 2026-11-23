@@ -259,8 +259,10 @@ export function ChatPrompt({
 	const toolbarScope = useMemo<ChatPromptToolbarScope>(
 		() => ({
 			labelId: toolbarLabelId,
-			dismissRef,
-			textareaRef,
+			setDismiss: (handler) => {
+				dismissRef.current = handler
+			},
+			focusField: () => textareaRef.current?.focus(),
 			mount: () => {
 				setHasToolbar(true)
 

@@ -68,11 +68,9 @@ export function ChatPromptToolbar({
 	useLayoutEffect(() => {
 		if (!scope) return
 
-		scope.dismissRef.current = onDismiss
+		scope.setDismiss(onDismiss)
 
-		return () => {
-			scope.dismissRef.current = undefined
-		}
+		return () => scope.setDismiss(undefined)
 	}, [scope, onDismiss])
 
 	// The cleanup of a layout effect runs before React removes the row, so it
@@ -87,7 +85,7 @@ export function ChatPromptToolbar({
 		return () => {
 			unmount()
 
-			if (row?.contains(row.ownerDocument.activeElement)) scope.textareaRef.current?.focus()
+			if (row?.contains(row.ownerDocument.activeElement)) scope.focusField()
 		}
 	}, [scope])
 

@@ -1,6 +1,5 @@
 'use client'
 
-import type { RefObject } from 'react'
 import { createContext } from '../../core/create-context'
 import type { ChatCitation } from './engine/chat-content/types'
 import type { ChatCitationTargets, ChatEmbedRegistry } from './types'
@@ -106,10 +105,10 @@ export const [ChatCitationContext, useChatCitations] = createContext<ChatCitatio
 export type ChatPromptToolbarScope = {
 	/** The id of the label of the toolbar. The textarea takes it as its description. */
 	labelId: string
-	/** The handler that Escape in the textarea calls, as the toolbar sets it. */
-	dismissRef: RefObject<(() => void) | undefined>
-	/** The textarea, which takes the focus when the toolbar unmounts with it. */
-	textareaRef: RefObject<HTMLTextAreaElement | null>
+	/** Sets the handler that Escape in the textarea calls. `undefined` clears it. */
+	setDismiss: (handler: (() => void) | undefined) => void
+	/** Gives the focus to the textarea, as when the toolbar unmounts with the focus in it. */
+	focusField: () => void
 	/** Tells the prompt that a toolbar is mounted. It returns the unmount. */
 	mount: () => () => void
 }
