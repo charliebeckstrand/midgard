@@ -2,7 +2,7 @@ import { renderHook } from '@testing-library/react'
 import { type RefObject, useRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { useSignaturePadCanvasSizing } from '../../components/signature-pad/use-signature-pad-canvas-sizing'
-import { makeCanvasContext } from '../helpers'
+import { attach, makeCanvasContext } from '../helpers'
 
 type ContainerRef = RefObject<HTMLDivElement | null>
 
@@ -31,7 +31,8 @@ function setup(options: {
 		canvas.getBoundingClientRect = () => DOMRect.fromRect({ width: 100, height: 60 })
 	}
 
-	const container = containerSize === null ? null : document.createElement('div')
+	// The container is on the body, because a detached element has no computed style.
+	const container = containerSize === null ? null : attach(document.createElement('div'))
 
 	if (container && containerSize) {
 		// jsdom has no layout, so the test gives the client size. The client size
