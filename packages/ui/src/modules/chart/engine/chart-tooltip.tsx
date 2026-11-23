@@ -366,6 +366,7 @@ export function ChartTooltip({
 		<TooltipPointer
 			open={open}
 			point={anchor}
+			target={index}
 			originRef={plotRef}
 			offset={TRACK_OFFSET}
 			// `track="point"` under both triggers. A hover readout repositions on every

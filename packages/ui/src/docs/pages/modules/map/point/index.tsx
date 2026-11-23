@@ -8,11 +8,11 @@ import Zoomable from './zoomable.tsx'
 export default function PointTab() {
 	return (
 		<>
-			<Example of={Basic} ratio />
-			<Example of={Clustering} ratio />
-			<Example of={Shapes} ratio />
-			<Example of={TintedGround} ratio />
-			<Example of={Zoomable} ratio />
+			<Example of={Basic} box="ratio" />
+			<Example of={Clustering} box="ratio" />
+			<Example of={Shapes} box="ratio" />
+			<Example of={TintedGround} box="ratio" />
+			<Example of={Zoomable} box="ratio" />
 		</>
 	)
 }

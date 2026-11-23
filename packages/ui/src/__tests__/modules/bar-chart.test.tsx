@@ -278,6 +278,30 @@ describe('BarChart', () => {
 		expect(spots(container)).toHaveLength(0)
 	})
 
+	it('under the click trigger, shows the next pinned band after Escape closes a pin', () => {
+		const { container } = renderUI(chart({ tooltip: { trigger: 'click' } }))
+
+		const hit = getSlot(container, 'chart-hit')
+
+		const pin = (clientX: number) => {
+			fireEvent.pointerDown(hit, { clientX, clientY: 100, pointerType: 'mouse' })
+
+			fireEvent.click(hit, { clientX, clientY: 100 })
+		}
+
+		pin(280)
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Q3')
+
+		fireEvent.keyDown(document.body, { key: 'Escape' })
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+
+		pin(60)
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Q1')
+	})
+
 	it('selects on a mouse click', () => {
 		const select = vi.fn()
 

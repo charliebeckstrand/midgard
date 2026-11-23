@@ -6,12 +6,12 @@
  * (the input-mode field adjacency), `icon`, `placeholder`, and the `content`
  * group are extras.
  * `relative` adds the layout of the relative popover: the preset `list`, the
- * `custom` range affordance, and the trigger chip row. `skeleton` is the form
- * of DatePickerSkeleton. The group gives `root`, the base of `portal`, and the
- * base of `content`.
+ * `custom` range affordance, and the trigger chip row. The group gives the base
+ * of `portal` and the base of `content`. The silhouette of the trigger is the
+ * one of each framed control, `ControlSkeleton`.
  */
 import { defineKata } from '../../core/recipe'
-import { dan, iro, kokkaku, narabi } from '../kiso'
+import { dan, iro, narabi } from '../kiso'
 import { picker } from '../kumi/control'
 
 export { scale } from '../kumi/control'
@@ -34,7 +34,6 @@ const extras = {
 	control: field,
 	icon: [flex.row, 'pointer-events-none', text.muted],
 	placeholder: text.muted,
-	skeleton: kokkaku.datePicker,
 	/** The positioned wrapper of the popover. The floating surface gives it the focus ring. */
 	portal,
 	content: {

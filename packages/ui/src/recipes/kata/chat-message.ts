@@ -209,8 +209,13 @@ export const k = defineKata({
 			// not reflow. The width eases in the tempo of the panel height.
 			// `interpolate-size` lets the width move between `fit-content` and a
 			// length. An engine without it changes the width in one step.
+			//
+			// The minimum keeps the head on its line while the width moves. A width
+			// between `fit-content` and `100%` resolves its percentage against zero
+			// in the intrinsic width of the bubble. Without the minimum, the bubble
+			// then narrows to its prose, and the summary wraps under the label.
 			base: [
-				'w-fit max-w-full rounded-xl border border-current/20 px-3 py-2',
+				'w-fit min-w-fit max-w-full rounded-xl border border-current/20 px-3 py-2',
 				'has-[>[data-slot=collapse][data-open]]:w-full',
 				'[interpolate-size:allow-keywords] motion-safe:transition-[width]',
 				css.collapse,

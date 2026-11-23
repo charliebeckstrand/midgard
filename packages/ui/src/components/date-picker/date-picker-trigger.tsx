@@ -168,7 +168,7 @@ export function DatePickerTrigger({
 			getReferenceProps={getReferenceProps}
 			slots={slots}
 			size={size}
-			className={cn(k.root, className)}
+			className={className}
 			suffix={
 				showClear ? (
 					<SelectionClearButton

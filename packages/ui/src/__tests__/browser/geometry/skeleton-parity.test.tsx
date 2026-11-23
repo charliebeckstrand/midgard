@@ -25,11 +25,10 @@ import {
 	type ColorPanelProps,
 	ColorPanelSkeleton,
 	ColorPicker,
-	ColorPickerSkeleton,
 } from '../../../components/color'
 import { DEFAULT_SWATCHES } from '../../../components/color/color-constants'
 import { ControlSkeleton } from '../../../components/control'
-import { DatePicker, DatePickerSkeleton } from '../../../components/date-picker'
+import { DatePicker } from '../../../components/date-picker'
 import {
 	DescriptionDetails,
 	DescriptionList,
@@ -353,73 +352,31 @@ describe('skeleton parity (real browser)', () => {
 		})
 	})
 
-	it.each([
-		['sm', false],
-		['md', false],
-		['lg', false],
-		['sm', true],
-		['md', true],
-		['lg', true],
-	] as const)('ColorPickerSkeleton has the box of a %s picker, alpha %s', (size, alpha) => {
-		const real = box(
-			renderUI(
-				<ColorPicker
-					aria-label="Color"
+	it.each(['sm', 'md', 'lg'] as const)(
+		'ControlSkeleton has the box of a %s DatePicker and ColorPicker',
+		(size) => {
+			const skeleton = placeholder(renderUI(<ControlSkeleton size={size} />).container)
+
+			for (const picker of [
+				<DatePicker
+					key="date"
+					aria-label="Date"
 					size={size}
-					alpha={alpha}
-					defaultValue={alpha ? '#3b82f680' : '#3b82f6'}
+					defaultValue={new Date(2026, 5, 22)}
 				/>,
-			).container.querySelector('[data-slot="control-frame"]'),
-			'color picker',
-		)
+				<ColorPicker key="color" aria-label="Color" size={size} defaultValue="#3b82f6" />,
+			]) {
+				const real = box(
+					renderUI(picker).container.querySelector('[data-slot="control-frame"]'),
+					'picker',
+				)
 
-		const skeleton = placeholder(
-			renderUI(<ColorPickerSkeleton size={size} alpha={alpha} />).container,
-		)
+				expect(skeleton.width).toBeNear(real.width, PIXEL)
 
-		expect(skeleton.width).toBeNear(real.width, PIXEL)
-
-		expect(skeleton.height).toBeNear(real.height, PIXEL)
-	})
-
-	it.each([
-		['sm', false],
-		['md', false],
-		['lg', false],
-		['sm', true],
-		['md', true],
-		['lg', true],
-	] as const)('DatePickerSkeleton has the box of a %s picker, range %s', (size, range) => {
-		const trigger = (start: Date, end: Date) =>
-			box(
-				renderUI(
-					range ? (
-						<DatePicker aria-label="Dates" size={size} range defaultValue={[start, end]} />
-					) : (
-						<DatePicker aria-label="Date" size={size} defaultValue={end} />
-					),
-				).container.querySelector('[data-slot="control-frame"]'),
-				'date picker',
-			)
-
-		// The digits of a date do not have the same width, so the trigger width
-		// changes with the value. The skeleton is between the trigger with short
-		// dates and the trigger with long dates. A single picker shows the second
-		// date.
-		const short = trigger(new Date(2026, 0, 1), new Date(2026, 0, 8))
-
-		const long = trigger(new Date(2026, 11, 1), new Date(2026, 11, 28))
-
-		const skeleton = placeholder(
-			renderUI(<DatePickerSkeleton size={size} range={range} />).container,
-		)
-
-		expect(skeleton.width).toBeGreaterThan(short.width)
-
-		expect(skeleton.width).toBeLessThan(long.width)
-
-		expect(skeleton.height).toBeNear(short.height, PIXEL)
-	})
+				expect(skeleton.height).toBeNear(real.height, PIXEL)
+			}
+		},
+	)
 
 	it.for(densitySteps.flatMap((size) => [1, 2, 3].map((rows) => [size, rows] as const)))(
 		'TextareaSkeleton has the box and the radius of a %s textarea at %i rows',

@@ -104,7 +104,7 @@ export function ColorPickerTrigger({
 			getReferenceProps={getReferenceProps}
 			slots={slots}
 			size={size}
-			className={cn(k.root, className)}
+			className={className}
 		>
 			<HeadlessProvider>
 				<Button

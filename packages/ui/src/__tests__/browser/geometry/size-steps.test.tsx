@@ -9,12 +9,7 @@ import { Calendar, CalendarRange, CalendarSkeleton } from '../../../components/c
 import { Card, CardTitle } from '../../../components/card'
 import { Checkbox, CheckboxSkeleton } from '../../../components/checkbox'
 import { Code, CodeBlock } from '../../../components/code'
-import {
-	ColorPanel,
-	ColorPanelSkeleton,
-	ColorPicker,
-	ColorPickerSkeleton,
-} from '../../../components/color'
+import { ColorPanel, ColorPanelSkeleton, ColorPicker } from '../../../components/color'
 import { Combobox, ComboboxLabel, ComboboxOption } from '../../../components/combobox'
 import {
 	CommandPalette,
@@ -30,7 +25,7 @@ import {
 } from '../../../components/credit-card-input'
 import { CurrencyInput } from '../../../components/currency-input'
 import { DateInput } from '../../../components/date-input'
-import { DatePicker, DatePickerSkeleton } from '../../../components/date-picker'
+import { DatePicker } from '../../../components/date-picker'
 import { Drawer, DrawerBody, DrawerPanel, DrawerTitle } from '../../../components/drawer'
 import { FileUploadButton, FileUploadInput } from '../../../components/file-upload'
 import { Group } from '../../../components/group'
@@ -178,7 +173,6 @@ const FIXTURES: { [N in SizedComponent]: (size: (typeof SIZE_AXES)[N][number]) =
 	ColorPicker: (size) => (
 		<ColorPicker size={size as never} aria-label="Color" defaultValue="#3b82f6" />
 	),
-	ColorPickerSkeleton: (size) => <ColorPickerSkeleton size={size as never} />,
 	Combobox: (size) => (
 		<Combobox size={size as never} aria-label="Stage" displayValue={(value: string) => value}>
 			{options(ComboboxOption as never, ComboboxLabel as never)}
@@ -214,7 +208,6 @@ const FIXTURES: { [N in SizedComponent]: (size: (typeof SIZE_AXES)[N][number]) =
 	DatePicker: (size) => (
 		<DatePicker size={size as never} aria-label="Date" defaultValue={new Date(2026, 0, 1)} />
 	),
-	DatePickerSkeleton: (size) => <DatePickerSkeleton size={size as never} />,
 	DrawerPanel: (size) => (
 		<Drawer open onOpenChange={() => {}}>
 			<DrawerPanel size={size}>

@@ -133,6 +133,14 @@ describe('PdfViewer', () => {
 		expect(thumbnails[1]).toHaveAttribute('data-current')
 	})
 
+	it('gives the thumbnail rail one Tab stop, on the current page', async () => {
+		const { container } = renderUI(<PdfViewer pages={pages} defaultPage={2} />)
+
+		const thumbnails = allBySlot(container, 'pdf-viewer-thumbnail')
+
+		await waitFor(() => expect(thumbnails.map((el) => el.tabIndex)).toEqual([-1, 0, -1]))
+	})
+
 	it('changes pages when a thumbnail is clicked', () => {
 		const onPageChange = vi.fn()
 
