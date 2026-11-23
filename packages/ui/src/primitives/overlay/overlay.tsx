@@ -19,6 +19,7 @@ import {
 } from 'react'
 import { cn } from '../../core/cn'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
+import { liveLayers } from '../../core/live-layer'
 import { useDismissable } from '../../hooks/use-dismissable'
 import { useScrollLock } from '../../hooks/use-scroll-lock'
 import { k } from '../../recipes/kata/overlay'
@@ -471,6 +472,10 @@ function OverlayFocus({
 	// press does not get to it. The tab order runs in DOM order out of the
 	// panel, through the page, and back.
 	//
+	// An overlay fixed to the viewport gives the live layers to the trap, so the
+	// trap does not hide a toast that comes while the overlay is open
+	// (`liveLayers`). An overlay in a container does not cover them.
+	//
 	// `guards={false}` alone already forces the `inert` marking in 0.27. The
 	// prop `outsideElementsInert` states the intent, because no version
 	// promises to keep that side effect.
@@ -501,7 +506,7 @@ function OverlayFocus({
 			returnFocus={false}
 			guards={!scoped}
 			outsideElementsInert={scoped}
-			getInsideElements={scoped ? () => outside(container) : undefined}
+			getInsideElements={scoped ? () => outside(container) : liveLayers}
 		>
 			{children}
 		</FloatingFocusManager>
