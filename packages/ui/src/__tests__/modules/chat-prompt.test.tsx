@@ -724,6 +724,18 @@ describe('ChatPrompt toolbar', () => {
 		expect(notPrevented).toBe(true)
 	})
 
+	it('renders outside a prompt, with its controls named by its own label', () => {
+		renderUI(
+			<ChatPromptToolbar label="Editing">
+				<button type="button">Cancel</button>
+			</ChatPromptToolbar>,
+		)
+
+		expect(screen.getByRole('toolbar', { name: 'Editing' })).toContainElement(
+			screen.getByRole('button', { name: 'Cancel' }),
+		)
+	})
+
 	it('renders a label with no controls as a status line', () => {
 		const { container } = renderUI(
 			<ChatPrompt
