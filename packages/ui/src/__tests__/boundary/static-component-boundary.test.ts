@@ -10,7 +10,7 @@ import { isSourceFile, srcDir, srcRelative, walkSource } from '../helpers/walk-s
 // the source level, where a regression (a context read quietly turning a
 // leaf back into a client component) produces no build error.
 //
-// The walk starts from three sets of static files:
+// The walk starts from four sets of static files:
 //
 //   - STATIC_COMPONENT_FILES below is the curated list of declared static
 //     *atoms* (text, table parts, inert display leaves). It's a
@@ -25,6 +25,9 @@ import { isSourceFile, srcDir, srcRelative, walkSource } from '../helpers/walk-s
 //     skeleton file to the curated list.
 //   - Each source file under `structure`. The folder holds only static layout
 //     units, so it needs no list either.
+//   - STATIC_LAYOUT_FILES below is the list of the page layouts that
+//     docs/LAYOUTS.md declares static. Server modules of the apps render them,
+//     and the other layouts are client components, so the folder needs a list.
 //
 // Two sets can reach the same file, such as a skeleton that imports a curated
 // leaf. The walk checks each file once.
@@ -36,7 +39,7 @@ import { isSourceFile, srcDir, srcRelative, walkSource } from '../helpers/walk-s
 // walk stops there. The checks of the import sources below decide which
 // boundaries a static file may cross.
 //
-// Curated paths are relative to `src/components`.
+// Curated component paths are relative to `src/components`.
 const STATIC_COMPONENT_FILES = [
 	'alert/alert-body.tsx',
 	'aspect-ratio/aspect-ratio.tsx',
@@ -88,7 +91,18 @@ const STATIC_COMPONENT_FILES = [
 	'text/text.tsx',
 ] as const
 
+// Curated layout paths are relative to `src/layouts`.
+const STATIC_LAYOUT_FILES = ['auth/auth.tsx', 'stacked/stacked.tsx'] as const
+
 const componentsDir = join(srcDir, 'components')
+
+const layoutsDir = join(srcDir, 'layouts')
+
+/** Each curated static file, as a full path. */
+const curatedFiles = [
+	...STATIC_COMPONENT_FILES.map((file) => join(componentsDir, file)),
+	...STATIC_LAYOUT_FILES.map((file) => join(layoutsDir, file)),
+]
 
 const structureDir = join(srcDir, 'structure')
 
@@ -180,16 +194,12 @@ function isClient(_file: string, source: string): boolean {
 
 /**
  * Each static file and each file that its runtime imports reach, up to a
- * client boundary, relative to `src`. The curated leaves, the structure units,
- * and the skeletons start the walk. A start file stays in the result even when
+ * client boundary, relative to `src`. The curated leaves and layouts, the
+ * structure units, and the skeletons start the walk. A start file stays in the result even when
  * it is a client module, so its directive fails the check.
  */
 function collectStaticGraph(): string[] {
-	const entries = [
-		...STATIC_COMPONENT_FILES.map((file) => join(componentsDir, file)),
-		...collectStructureFiles(),
-		...collectSkeletonFiles(),
-	]
+	const entries = [...curatedFiles, ...collectStructureFiles(), ...collectSkeletonFiles()]
 
 	return [...runtimeFiles(entries, isClient)].map(srcRelative).sort()
 }
@@ -202,7 +212,7 @@ describe('static component boundary', () => {
 	})
 
 	it('the curated static list has no stale entries', () => {
-		const missing = STATIC_COMPONENT_FILES.filter((file) => !existsSync(join(componentsDir, file)))
+		const missing = curatedFiles.filter((file) => !existsSync(file)).map(srcRelative)
 
 		expect(
 			missing,
