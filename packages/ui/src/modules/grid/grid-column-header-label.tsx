@@ -168,9 +168,11 @@ export function GridColumnHeaderLabel({
 						{title}
 						{sortDirectionIcon(sorted, direction)}
 						{sortPriority != null && (
-							<span aria-hidden className={cn(k.sort.badge)}>
-								{intl.formatNumber(sortPriority)}
-							</span>
+							<span
+								aria-hidden
+								data-priority={intl.formatNumber(sortPriority)}
+								className={cn(k.sort.badge)}
+							/>
 						)}
 					</Button>
 				)}

@@ -406,7 +406,18 @@ export const k = {
 		icon: [text.default, 'shrink-0'],
 		// Priority number beside the arrow under a multi-column sort: small, muted,
 		// tabular (so digits hold their box), and non-shrinking next to the title.
-		badge: [size.xs, 'leading-none', 'tabular-nums', 'shrink-0', text.muted],
+		// The digit is the `::after` content, from `data-priority`. The name of the
+		// sort button gives the priority. A text node would put the digit in the
+		// visible text of the button, which then does not match its name for axe
+		// (`label-content-name-mismatch`, WCAG 2.5.3).
+		badge: [
+			size.xs,
+			'leading-none',
+			'tabular-nums',
+			'shrink-0',
+			text.muted,
+			'after:content-[attr(data-priority)]',
+		],
 	},
 	reorder: {
 		// Lift the actively dragged column above its neighbors and float it on its

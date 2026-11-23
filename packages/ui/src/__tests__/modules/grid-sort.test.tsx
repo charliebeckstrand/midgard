@@ -313,15 +313,19 @@ describe('Grid multi-column sort', () => {
 			/>,
 		)
 
-		// Name is priority 1, Group priority 2: the digit shows visually and the
-		// priority rides in the button's accessible name (the visible badge is aria-hidden).
+		// Name is priority 1, Group priority 2: the badge paints the digit as its
+		// `::after` content, and the priority rides in the button's accessible
+		// name. The digit is not a text node, so the visible text of the button is
+		// the title alone, and it is in the name (WCAG 2.5.3).
 		const name = screen.getByRole('button', { name: 'Sort by Name, sort priority 1' })
 
 		const group = screen.getByRole('button', { name: 'Sort by Group, sort priority 2' })
 
-		expect(name.textContent).toContain('1')
+		expect(name.querySelector('[data-priority]')).toHaveAttribute('data-priority', '1')
 
-		expect(group.textContent).toContain('2')
+		expect(group.querySelector('[data-priority]')).toHaveAttribute('data-priority', '2')
+
+		expect(name.textContent).toBe('Name')
 	})
 
 	it('omits the priority badge under a single-column sort', () => {
