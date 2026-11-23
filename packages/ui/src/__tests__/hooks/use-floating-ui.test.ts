@@ -301,6 +301,29 @@ describe('useFloatingUI', () => {
 		})
 	})
 
+	// A menu action can move the focus, such as to a composer, before the close.
+	// The mock gives no panel element, so the restore from a focus in the panel
+	// is in `browser/floating-ui/context-menu-action-focus.test.tsx`.
+	describe('focus that the close leaves', () => {
+		it('skips focus return when the focus is on an element outside the panel', () => {
+			const trigger = attach(document.createElement('button'))
+
+			const focus = vi.spyOn(trigger, 'focus')
+
+			const { rerender } = setup({ returnFocusTo: { current: trigger } })
+
+			const composer = attach(document.createElement('textarea'))
+
+			composer.focus()
+
+			rerender({ open: false })
+
+			expect(focus).not.toHaveBeenCalled()
+
+			expect(document.activeElement).toBe(composer)
+		})
+	})
+
 	describe('listener lifecycle', () => {
 		it('detaches the listener on unmount', () => {
 			const { onOpenChange, unmount } = setup()
