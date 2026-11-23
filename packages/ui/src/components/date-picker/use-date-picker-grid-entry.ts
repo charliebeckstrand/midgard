@@ -54,14 +54,20 @@ export function useDatePickerGridEntryFocus(
 	listboxId: string,
 	calendarRef: RefObject<CalendarHandle | null>,
 ): RefObject<HTMLElement | null> {
-	return useMemo(
-		() => ({
-			get current() {
-				const date = calendarRef.current?.getEntryDate()
+	return useMemo(() => entryFocusRef(listboxId, calendarRef), [listboxId, calendarRef])
+}
 
-				return date ? document.getElementById(dayOptionId(listboxId, date)) : null
-			},
-		}),
-		[listboxId, calendarRef],
-	)
+// The React Compiler does not compile an object getter in a hook, so the getter
+// is in this plain function.
+function entryFocusRef(
+	listboxId: string,
+	calendarRef: RefObject<CalendarHandle | null>,
+): RefObject<HTMLElement | null> {
+	return {
+		get current() {
+			const date = calendarRef.current?.getEntryDate()
+
+			return date ? document.getElementById(dayOptionId(listboxId, date)) : null
+		},
+	}
 }
