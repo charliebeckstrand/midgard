@@ -62,7 +62,7 @@ function GridSelectHeaderCell<T>({
 	/** The accessible name of the checkbox. */
 	label: string
 }) {
-	const { allSelected, someSelected, toggleAll } = useGridHead()
+	const { allSelected, someSelected, anySelectable, toggleAll } = useGridHead()
 
 	const intl = useIntl()
 
@@ -72,6 +72,7 @@ function GridSelectHeaderCell<T>({
 				<GridSelectCheckbox
 					checked={allSelected}
 					indeterminate={someSelected && !allSelected}
+					disabled={!anySelectable}
 					onChange={toggleAll}
 					label={label}
 				/>

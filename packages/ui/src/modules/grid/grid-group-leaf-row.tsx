@@ -57,7 +57,7 @@ type GridGroupLeafRowProps<T> = {
 	row: T
 	rowKey: string | number
 	selected: boolean
-	toggleRow: (key: string | number) => void
+	toggleRow: (key: string | number, span?: boolean) => void
 	selectable: boolean
 	rowLabel?: string
 	/** Whether the row shows its loading state, from {@link GridRowsProps.rowLoading}. @defaultValue false */
@@ -99,7 +99,7 @@ function leafCellInner<T>(args: {
 	rowIndex: number
 	rowKey: string | number
 	selected: boolean
-	toggleRow: (key: string | number) => void
+	toggleRow: (key: string | number, span?: boolean) => void
 	rowLabel: string | undefined
 	truncate: boolean
 }): ReactNode {
@@ -134,7 +134,7 @@ type GridGroupLeafCellProps<T> = {
 	rowIndex: number
 	rowKey: string | number
 	selected: boolean
-	toggleRow: (key: string | number) => void
+	toggleRow: (key: string | number, span?: boolean) => void
 	rowLabel: string | undefined
 	truncate: boolean
 	pinning: GridColumnPinning | null

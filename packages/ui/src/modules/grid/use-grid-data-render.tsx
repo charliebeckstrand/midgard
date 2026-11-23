@@ -42,7 +42,7 @@ import { useGridDataFrame } from './use-grid-data-frame'
 import type { GridDataSetup } from './use-grid-data-setup'
 import { useGridDataView } from './use-grid-data-view'
 import { useGridExport } from './use-grid-export'
-import { useGridRowIndexOffsetSync } from './use-grid-index'
+import { useGridIndexToggleSync, useGridRowIndexOffsetSync } from './use-grid-index'
 import { useGridMenuActions } from './use-grid-menu-actions'
 import { useGridRangeFigures } from './use-grid-range-figures'
 import { useGridRangeValue } from './use-grid-range-value'
@@ -309,7 +309,8 @@ export function useGridDataRender<T>(
 		tableRef,
 	})
 
-	const { toggleRow, toggleAll, allSelected, someSelected, unselectable } = selectionActions
+	const { toggleRow, toggleAll, allSelected, someSelected, anySelectable, unselectable } =
+		selectionActions
 
 	// After the view, whose layout effect ends the range of an old layout, so a
 	// value that comes with a new layout names the cells of that layout.
@@ -581,6 +582,9 @@ export function useGridDataRender<T>(
 		toggleRow(key, span, shownLeafKeys ?? undefined),
 	)
 
+	// Space toggles through the same shown order as a click on a row checkbox.
+	useGridIndexToggleSync(indexRefs.toggleRowRef, toggleShownRow)
+
 	// The cursor speaks the row numbers of a range from this offset.
 	useGridRowIndexOffsetSync(indexRefs.rowIndexOffsetRef, rowIndexOffset)
 
@@ -594,12 +598,22 @@ export function useGridDataRender<T>(
 			toggleAll,
 			allSelected,
 			someSelected,
+			anySelectable,
 			sort,
 			toggleSort,
 			pinColumn,
 			stickyHeader,
 		}),
-		[toggleAll, allSelected, someSelected, sort, toggleSort, pinColumn, stickyHeader],
+		[
+			toggleAll,
+			allSelected,
+			someSelected,
+			anySelectable,
+			sort,
+			toggleSort,
+			pinColumn,
+			stickyHeader,
+		],
 	)
 
 	const windowed = gated.virtualize

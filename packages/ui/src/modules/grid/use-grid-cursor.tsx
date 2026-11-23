@@ -46,7 +46,7 @@ export type GridCursorInput<T> = {
 	/** Whether the grid has a selection column; gates the cursor's Space-to-select. */
 	selectableRef: RefObject<boolean>
 	/** Toggles the active row's selection by display index, for the cursor's Space key. */
-	toggleActiveRow: ((rowIndex: number) => void) | undefined
+	toggleActiveRow: ((rowIndex: number, span: boolean) => void) | undefined
 	/** Scrolls a row into the virtualized window before the cursor lands on it; null when unwindowed. */
 	scrollRowIntoViewRef: RefObject<GridScrollRowIntoView | null>
 	/** The grid's scroll container, measured for the cursor's viewport-relative PageUp/Down step. */

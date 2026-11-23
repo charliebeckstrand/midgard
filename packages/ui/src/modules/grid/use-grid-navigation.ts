@@ -699,8 +699,11 @@ export function useGridNavigation({
 	onCellActivate: GridCellActivate | undefined
 	/** Whether the grid has a selection column; gates Space-to-select. */
 	selectableRef: RefObject<boolean>
-	/** Toggles the active row's selection by display index, when selectable. */
-	toggleActiveRow: ((rowIndex: number) => void) | undefined
+	/**
+	 * Toggles the active row's selection by display index, when selectable. With
+	 * `span` (Shift+Space), it sets each row from the last toggled row to this row.
+	 */
+	toggleActiveRow: ((rowIndex: number, span: boolean) => void) | undefined
 	/**
 	 * Scrolls a row into the virtualized window before the cursor lands on it; null
 	 * when unwindowed. A body with a published order also receives the row's item key.
@@ -807,7 +810,9 @@ export function useGridNavigation({
 	)
 
 	// Read selection toggling as a stable event, so the key handler's deps stay stable.
-	const toggleActive = useStableEvent((rowIndex: number) => toggleActiveRow?.(rowIndex))
+	const toggleActive = useStableEvent((rowIndex: number, span: boolean) =>
+		toggleActiveRow?.(rowIndex, span),
+	)
 
 	const { sub } = useIdScope()
 
@@ -1325,7 +1330,7 @@ export function useGridNavigation({
 				event.preventDefault()
 
 				if (selectableRef.current) {
-					toggleActive(coord.row)
+					toggleActive(coord.row, event.shiftKey)
 
 					return
 				}

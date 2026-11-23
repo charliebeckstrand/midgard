@@ -23,6 +23,8 @@ export type GridHeadContextValue = {
 	toggleAll: () => void
 	allSelected: boolean
 	someSelected: boolean
+	/** Whether a shown row can be selected. With none, the select-all checkbox is disabled. */
+	anySelectable: boolean
 	/** The active sort columns in priority order; empty when unsorted. */
 	sort: GridSortState[]
 	/**

@@ -563,10 +563,10 @@ export type GridPreferences = {
  * Controlled/uncontrolled row-selection binding for {@link GridProps.selection},
  * plus an optional batch-action bar shown while any row is selected.
  *
- * Shift with a click on a row checkbox selects each row between the last row
- * that the reader toggled and this one, or clears each of them when the
- * clicked row was selected. The span runs over the rows that the grid shows,
- * in their order.
+ * Shift with a click on a row checkbox, or Shift+Space on the row of the
+ * cursor, selects each row between the last row that the reader toggled and
+ * this one, or clears each of them when this row was selected. The span runs
+ * over the rows that the grid shows, in their order.
  *
  * @typeParam T - Shape of a single row.
  */
@@ -576,7 +576,8 @@ export type GridSelection<T = unknown> = {
 	/**
 	 * Whether a row can take the selection. A row that it rejects shows a
 	 * disabled checkbox. A click, the Space key, a span, and select-all skip
-	 * it, and the select-all checkbox counts only the rows that it accepts. A
+	 * it, and the select-all checkbox counts only the rows that it accepts. With
+	 * no shown row that it accepts, the select-all checkbox is disabled. A
 	 * rejected row that `value` already holds stays selected, until the
 	 * consumer takes it out.
 	 * @defaultValue each row can take the selection
