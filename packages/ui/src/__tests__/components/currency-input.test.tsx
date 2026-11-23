@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { type FormEvent, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { CurrencyInput, type CurrencyInputProps } from '../../components/currency-input'
 import { Form } from '../../modules/form'
@@ -347,16 +347,48 @@ describe('CurrencyInput', () => {
 		expect(input.value).toBe('42.00')
 	})
 
-	it('blurs the input when Enter is pressed', async () => {
-		const { input, user } = renderCurrency({ defaultValue: 10 })
+	it('commits on Enter and keeps the focus in the field', async () => {
+		const { input, user, onValueChange } = renderCurrency({ defaultValue: 10 })
 
-		input.focus()
+		await user.click(input)
 
-		expect(document.activeElement).toBe(input)
+		await user.clear(input)
+
+		await user.type(input, '1234.5')
+
+		expect(input.value).toBe('1,234.5')
 
 		await user.keyboard('{Enter}')
 
-		expect(document.activeElement).not.toBe(input)
+		// The buffer ends, so the display text shows, and the focus stays (WCAG 2.4.3).
+		expect(document.activeElement).toBe(input)
+
+		expect(input.value).toBe('1,234.50')
+
+		expect(onValueChange).toHaveBeenLastCalledWith(1234.5)
+	})
+
+	it('submits an enclosing form on Enter', async () => {
+		const onSubmit = vi.fn((event: FormEvent) => event.preventDefault())
+
+		const view = renderUI(
+			<form onSubmit={onSubmit}>
+				<CurrencyInput defaultValue={10} />
+				<button type="submit">Save</button>
+			</form>,
+		)
+
+		const user = setupUser()
+
+		const input = getSlot<HTMLInputElement>(view.container, 'currency-input')
+
+		await user.click(input)
+
+		await user.keyboard('{Enter}')
+
+		expect(onSubmit).toHaveBeenCalledOnce()
+
+		expect(document.activeElement).toBe(input)
 	})
 
 	it('keeps focus on an Enter that confirms an input-method candidate', () => {
