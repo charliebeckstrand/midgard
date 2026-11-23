@@ -119,11 +119,8 @@ export const k = defineKata(
 					'forced-colors:data-dragging:outline-offset-2 forced-colors:data-dragging:outline-[Highlight]',
 				],
 				slots: {
-					/**
-					 * The children of a group while they reorder. The box adds no layout, and
-					 * it marks a drag in progress for the separators below.
-					 */
-					list: 'group/sortable contents',
+					/** The children of a group while they reorder. The box adds no layout. */
+					list: 'contents',
 					/**
 					 * The grip centers on the first control line of a rule at each density
 					 * step (`dan.space.query.grip`). Beside a group, it sits at the same
@@ -147,9 +144,12 @@ export const k = defineKata(
 					/**
 					 * The AND/OR between two nodes aligns with the nodes: one `nest.indent`
 					 * past the grip and the gap. The nodes move over it during a drag, so it
-					 * fades until the drop.
+					 * fades until the drop. The separator holds `data-sorting` itself, because
+					 * the list is a `display: contents` box. WebKit did not restyle the
+					 * separators when the attribute of the list changed. They faded only when
+					 * a move put them in a new place.
 					 */
-					separator: [nest.indent, css.opacity, 'group-data-sorting/sortable:opacity-0'],
+					separator: [nest.indent, css.opacity, 'data-sorting:opacity-0'],
 				},
 			},
 		},

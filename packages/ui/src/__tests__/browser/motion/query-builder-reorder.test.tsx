@@ -143,6 +143,14 @@ describe('QueryBuilder pointer reorder (real browser)', () => {
 		// The separators fade while the nodes move between them.
 		expect(getSlot(container, 'query-sortable-list')).toHaveAttribute('data-sorting')
 
+		const separator = getSlot(container, 'query-sortable-list').querySelector(
+			':scope > div:not([data-slot])',
+		)
+
+		expect(separator).toHaveAttribute('data-sorting')
+
+		await expect.poll(() => separator && getComputedStyle(separator).opacity).toBe('0')
+
 		expect(onValueChange).not.toHaveBeenCalled()
 
 		await held.release()
