@@ -257,23 +257,35 @@ if (!host[framesKept]) {
 // does not match it on another element after a press of a pointer. The stub
 // reads the last input, as the browser does, so that a gate on `:focus-visible`
 // sees the focus that a browser shows.
-const elementMatches = Element.prototype.matches
+//
+// Vitest runs this file again before each test file on the shared window, so
+// the stub installs once, as the frame keeper does. Else each file wraps the
+// stub of the last file.
+const focusVisibleStubbed = Symbol.for('midgard.focusVisibleStubbed')
 
-const TYPEABLE =
-	'input:not([type="button"],[type="checkbox"],[type="color"],[type="file"],[type="image"],[type="radio"],[type="range"],[type="reset"],[type="submit"]),textarea,[contenteditable]:not([contenteditable="false"])'
+const stubHost = window as Window & { [focusVisibleStubbed]?: true }
 
-function matches(this: Element, selectors: string): boolean {
-	if (selectors !== ':focus-visible') return elementMatches.call(this, selectors)
+if (!stubHost[focusVisibleStubbed]) {
+	stubHost[focusVisibleStubbed] = true
 
-	if (!elementMatches.call(this, ':focus')) return false
+	const elementMatches = Element.prototype.matches
 
-	const input = lastInput()
+	const typeable =
+		'input:not([type="button"],[type="checkbox"],[type="color"],[type="file"],[type="image"],[type="radio"],[type="range"],[type="reset"],[type="submit"]),textarea,[contenteditable]:not([contenteditable="false"])'
 
-	return input === null || input === 'keyboard' || elementMatches.call(this, TYPEABLE)
+	function matches(this: Element, selectors: string): boolean {
+		if (selectors !== ':focus-visible') return elementMatches.call(this, selectors)
+
+		if (!elementMatches.call(this, ':focus')) return false
+
+		const input = lastInput()
+
+		return input === null || input === 'keyboard' || elementMatches.call(this, typeable)
+	}
+
+	Object.defineProperty(Element.prototype, 'matches', {
+		writable: true,
+		configurable: true,
+		value: matches,
+	})
 }
-
-Object.defineProperty(Element.prototype, 'matches', {
-	writable: true,
-	configurable: true,
-	value: matches,
-})
