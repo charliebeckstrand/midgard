@@ -604,11 +604,29 @@ export type FloatingPanelOptions = {
 	 * `button`/`[tabindex]` descendant instead. An `'outside-press'` close skips
 	 * the restore, because focus follows the pointer. So does a `'focus-out'`
 	 * close: Tab already carried focus to the next tabbable, and snapping back
-	 * would undo it. Focus already inside the element also skips it. There is
-	 * nothing to restore, and snapping to the descendant would yank a caret
-	 * (Escape while typing in an input-mode DatePicker's DateInput).
+	 * would undo it. The restore also skips a close that leaves the focus
+	 * outside the panel and not on the body, as on this element or on an
+	 * element that an action focused. Snapping to the descendant would yank a
+	 * caret (Escape while typing in an input-mode DatePicker's DateInput), or
+	 * undo the move of the action.
 	 */
 	returnFocusTo?: RefObject<HTMLElement | null>
+}
+
+/**
+ * Whether the focus at a close goes back to the trigger. The focus goes back
+ * only when the close left it in the panel, or dropped it to the body because
+ * the panel unmounted. Focus on another element tells that a person or an
+ * action put it there, such as a menu action that moves the focus to a
+ * composer. The trigger is such an element too: retargeting its first button
+ * would yank focus from a typeable reference mid-edit.
+ *
+ * @internal
+ */
+function isFocusToRestore(active: Element | null, panel: Element | null): boolean {
+	if (active === null || active === active.ownerDocument.body) return true
+
+	return panel?.contains(active) ?? false
 }
 
 /**
@@ -848,23 +866,21 @@ export function useFloatingPanel({
 		// An outside press skips restoration (focus follows the pointer), as
 		// does a focus-out (Tab moved focus to the next tabbable; APG select
 		// closes and lets the keystroke proceed). Every other close (Escape,
-		// selection, programmatic) restores it.
+		// selection, programmatic) restores it, unless the focus is already on an
+		// element outside the panel (see `isFocusToRestore`).
 		const reason = closeReasonRef.current?.reason
 
 		if (prevOpenRef.current && !open && reason !== 'outside-press' && reason !== 'focus-out') {
 			const trigger = returnFocusTo?.current
 
-			// Focus already within the trigger means there is nothing to restore;
-			// retargeting its first button would yank focus from a typeable
-			// reference mid-edit.
-			if (trigger && !trigger.contains(document.activeElement))
+			if (trigger && isFocusToRestore(document.activeElement, floatingElement))
 				(trigger.querySelector<HTMLElement>('button, [tabindex]') ?? trigger).focus()
 		}
 
 		closeReasonRef.current = undefined
 
 		prevOpenRef.current = open
-	}, [open, returnFocusTo])
+	}, [open, returnFocusTo, floatingElement])
 
 	return { refs, floatingStyles, context, placement: resolvedPlacement, isPositioned, update }
 }
