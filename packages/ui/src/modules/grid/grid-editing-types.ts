@@ -78,7 +78,9 @@ export type GridEditCellContext<T> = {
 	 * Stage `next` (when given) as the final value of the cell. Where a
 	 * cell-scoped session holds the cell ({@link GridEditableConfig.scope}
 	 * `'cell'`), this also commits the cell and ends the session, as F2 does.
-	 * The cursor stays on the cell. Everywhere else it only stages, as
+	 * The cursor stays on the cell. While {@link GridColumn.validate} refuses
+	 * the value, the commit holds back, and the editor stays open with its
+	 * message. Everywhere else it only stages, as
 	 * `onValueUpdate` does. Under row scope, and under the default
 	 * consumer-owned session, the row commits as one, so there is no per-cell
 	 * close. The overlay of a phone and the new-row slot also only stage: Save
@@ -365,8 +367,10 @@ export type GridEditableConfig = {
 	 *
 	 * A commit on leave is the commit of Enter. It ends the session, and a cell
 	 * that {@link GridColumn.validate} refuses goes to
-	 * {@link GridEditableConfig.onReject}, not to `onCommit`. It does not move
-	 * the cursor, and focus stays where the user sent it.
+	 * {@link GridEditableConfig.onReject}, not to `onCommit`. Focus has left
+	 * the editor, so the editor cannot stay open as it does for Enter. The
+	 * grid announces that the cell did not save. A commit on leave does not
+	 * move the cursor, and focus stays where the user sent it.
 	 *
 	 * @remarks Three kinds of focus move do not leave. The first is a move into
 	 * a floating surface that an editor opens, such as a listbox panel or a
@@ -534,12 +538,18 @@ export type GridEditableConfig = {
 	 * and each pasted text that does not fit its cell, with the text as the value.
 	 * {@link GridColumn.parse} (or the default coercion) decides the fit.
 	 *
-	 * A refused cell leaves the staging map with every other closed cell, so the
-	 * value the user typed is gone and nothing says so. `onCommit` cannot report
-	 * it: a row whose every cell was refused produces no commit batch and reaches
-	 * no sink. Use this callback to keep the typed value, to mark the row, or to
-	 * explain the refusal. Cells dropped for other reasons stay out: an unchanged
-	 * cell is no refusal, and a column that stopped being editable refused nothing.
+	 * In a grid-owned session, Enter, Tab, F2, and the save controls do not
+	 * close a cell that `validate` refuses. The editor stays open with its
+	 * message, and the grid speaks the error. A refused cell still closes when
+	 * focus leaves the editor under {@link GridEditableConfig.commitOn}, when
+	 * focus moves to another cell, or when your `rows` closes the row. The cell
+	 * then leaves the staging map with every other closed cell, so the value
+	 * that the user typed is gone. The grid announces that the cell did not
+	 * save. `onCommit` cannot report it: a row whose every cell was refused
+	 * produces no commit batch and reaches no sink. Use this callback to keep
+	 * the typed value, to mark the row, or to explain the refusal. Cells dropped
+	 * for other reasons stay out: an unchanged cell is no refusal, and a column
+	 * that stopped being editable refused nothing.
 	 *
 	 * @remarks A refusal from an async `onCommit` does not call this, because
 	 * the grid keeps that value as a staged edit and shows the error itself.

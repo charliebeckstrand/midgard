@@ -35,7 +35,9 @@ export type GridSessionTarget = { rowKey: string | number; columnId: string | nu
  * row's editable cells, and the cell left behind commits. Under row scope Tab
  * stays with the browser, and the row commits when it closes (see
  * `GridEditableConfig.scope`). Every editor therefore inherits the keys
- * without wiring of its own.
+ * without wiring of its own. A move that commits holds back while
+ * `validate` refuses a cell that it closes: the editor stays open, and the
+ * cursor and focus do not move.
  *
  * @typeParam T - Shape of a single row.
  * @internal
@@ -56,6 +58,7 @@ export function useGridEditKeys<T>({
 	isPending,
 	enterEdit,
 	endSession,
+	holdsSave,
 	newRowKeys,
 }: {
 	cellScoped: boolean
@@ -80,6 +83,11 @@ export function useGridEditKeys<T>({
 	isPending: (rowKey: string | number, columnId: string | number) => boolean
 	enterEdit: (rowKey: string | number, columnId: string | number) => void
 	endSession: (rowKey: string | number, outcome: 'save' | 'discard') => void
+	/**
+	 * Whether a save of the open cells of the row holds back, because
+	 * `validate` refuses one of them. It speaks the error when it holds.
+	 */
+	holdsSave: (rowKey: string | number) => boolean
 	/** The keys of the new-row slot, which return `true` for a press from the slot. */
 	newRowKeys: (event: ReactKeyboardEvent<HTMLTableElement>) => boolean
 }) {
@@ -218,14 +226,18 @@ export function useGridEditKeys<T>({
 		],
 	)
 
-	// Runs the move a key asked of the session from an open editor.
+	// Runs the move a key asked of the session from an open editor. Each move
+	// commits the cells that it closes: the held cell under cell scope, and the
+	// row under row scope. So a refusal holds every move.
 	const runMove = useCallback(
 		(move: SessionMove, rowKey: string | number, columnId: string | number) => {
+			if (holdsSave(rowKey)) return
+
 			if (move === 'down') commitDown(rowKey, columnId)
 			else if (move === 'here') commitHere(rowKey, columnId)
 			else commitAlong(rowKey, columnId, move === 'previous' ? -1 : 1)
 		},
-		[commitDown, commitAlong, commitHere],
+		[commitDown, commitAlong, commitHere, holdsSave],
 	)
 
 	// Escape anywhere in an editing grid abandons its session, so it never reads

@@ -36,6 +36,7 @@ const messages = defineMessages<{
 	forRow: { cells: string; row: string }
 	partial: { saved: string; failed: string }
 	discarded: { count: number }
+	held: { column: string; error: string }
 	nothingTo: { step: GridHistoryStep }
 	blocked: { step: GridHistoryStep }
 	stale: { step: GridHistoryStep }
@@ -156,6 +157,12 @@ const messages = defineMessages<{
 		defaultMessage: '{count, plural, one {# change discarded} other {# changes discarded}}',
 		description:
 			'Spoken when the grid drops edits that were not saved. The count is the number of edits.',
+	},
+	held: {
+		id: 'ui.grid.held',
+		defaultMessage: '{column}: {error}',
+		description:
+			'Spoken when the reader tries to save an edit of the grid that the column refuses. The edit stays open. The error is the message of the column.',
 	},
 	nothingTo: {
 		id: 'ui.grid.nothingTo',
@@ -454,6 +461,20 @@ export function describeSettle(
 				})
 
 	return forRow(intl, parts, row)
+}
+
+/**
+ * The assertive announcement for a save that the grid holds back, because
+ * {@link GridColumn.validate} refuses a cell that the save closes (WCAG
+ * 3.3.1). The editor stays open, so the message names the column and gives
+ * its error: `Email: Enter a valid address`.
+ *
+ * @param column - The label of the column of the refused cell.
+ * @param error - The message that `validate` gave.
+ * @internal
+ */
+export function describeHeld(intl: IntlShape, column: string, error: string): string {
+	return intl.formatMessage(messages.held, { column, error })
 }
 
 /**

@@ -170,7 +170,11 @@ export type GridColumn<T> = {
 	 * Validates an edited cell value in an {@link GridProps.editable | editable}
 	 * grid. Receives the pending value and its row. Return an error message to
 	 * reject it, or `null` to accept it. The editor shows the message inline while
-	 * editing, and the cell is dropped (not emitted) when the row saves.
+	 * editing. In a grid-owned session, a save from the editor holds back while
+	 * the column refuses the value: the editor stays open, and the grid speaks
+	 * the message. A cell that closes with a refused value, as on a leave, drops
+	 * and does not go to `onCommit`, and the grid announces that it did not
+	 * save.
 	 */
 	validate?: (value: unknown, row: T) => string | null
 	/**

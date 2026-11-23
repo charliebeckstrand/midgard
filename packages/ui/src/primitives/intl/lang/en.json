@@ -1047,6 +1047,10 @@
 		"defaultMessage": "position {position, number} of {total, number}",
 		"description": "The place of a dragged group in the list of groups, inside an announcement of the group editor."
 	},
+	"ui.grid.held": {
+		"defaultMessage": "{column}: {error}",
+		"description": "Spoken when the reader tries to save an edit of the grid that the column refuses. The edit stays open. The error is the message of the column."
+	},
 	"ui.grid.hid": {
 		"defaultMessage": "Hid {column} column",
 		"description": "Spoken when the reader hides a column of the grid."

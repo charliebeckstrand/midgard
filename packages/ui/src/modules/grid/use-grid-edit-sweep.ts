@@ -11,7 +11,7 @@ import {
 import { announce } from '../../core/announcer'
 import { useMountedRef } from '../../hooks/use-mounted-ref'
 import { useIntl } from '../../primitives/intl/use-intl'
-import { describeCommit, describeDiscard, describeSettle } from './engine/grid-announcements'
+import { describeDiscard, describeSettle } from './engine/grid-announcements'
 import { EMPTY_SET } from './engine/grid-constants'
 import {
 	dropStrandedHolds,
@@ -172,8 +172,9 @@ export function useGridEditSweep<T>({
 		announce(describeDiscard(intl, dropped)),
 	)
 
-	const announceCommit = useEffectEvent((columns: readonly string[], row: string | undefined) =>
-		announce(describeCommit(intl, columns, row)),
+	const announceSweep = useEffectEvent(
+		(columns: readonly string[], refused: readonly string[], row: string | undefined) =>
+			announce(describeSettle(intl, columns, refused, row)),
 	)
 
 	// A controlled `rows` that declines to open a refused row again chose to
@@ -358,9 +359,12 @@ export function useGridEditSweep<T>({
 			onReject: sendReject,
 		})
 
-		// Announce the commit politely, without moving focus (WCAG 4.1.3). An
-		// async batch announces as it settles.
-		if (saved.columns.length > 0) announceCommit(saved.columns, saved.row)
+		// Announce the commit politely, without moving focus (WCAG 4.1.3). A cell
+		// that `validate` refused did not save, and the message says so. An async
+		// batch announces as it settles.
+		if (saved.columns.length + saved.refused.length > 0) {
+			announceSweep(saved.columns, saved.refused, saved.row)
+		}
 
 		// One sweep is one user action, so its cells are one entry. With an async
 		// batch, the entry records when the last batch settles.
