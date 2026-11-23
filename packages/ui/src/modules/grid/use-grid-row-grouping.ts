@@ -1,7 +1,7 @@
 'use client'
 
 import { type Dispatch, type SetStateAction, useState } from 'react'
-import { useControllable } from '../../hooks/use-controllable'
+import { useControllable, useControllableBinding } from '../../hooks/use-controllable'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { toggleItem } from '../../utilities/toggle-item'
 import { ALL_GROUPS_CLOSED, ALL_GROUPS_OPEN, type GroupExpansion } from './engine/grid-group/tree'
@@ -58,11 +58,7 @@ export function useGridRowGrouping<T>(
 	config: GridGroupBy<T> | undefined,
 	isGroupable: (id: string | number) => boolean,
 ): GridRowGroupingResult<T> {
-	const [grouping, setGrouping] = useControllable<(string | number) | null>({
-		value: config?.value,
-		defaultValue: config?.defaultValue ?? null,
-		onValueChange: (next) => config?.onValueChange?.(next ?? null),
-	})
+	const [grouping, setGrouping] = useControllableBinding(config, null)
 
 	// Manual grouping reads no column value: the backend groups, so any key stands.
 	const resolved =

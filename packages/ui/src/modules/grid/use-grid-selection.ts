@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useRef } from 'react'
-import { type SetValue, useControllable } from '../../hooks/use-controllable'
+import { type SetValue, useControllableBinding } from '../../hooks/use-controllable'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useStableValue } from '../../hooks/use-stable-value'
 import { sameElements } from '../../utilities/same-elements'
@@ -82,13 +82,9 @@ function setSpan(
  * @internal
  */
 export function useGridSelectionState(config: GridSelectionValue | undefined): GridSelectionState {
-	const [selectionRaw, setSelection] = useControllable<Set<string | number>>({
-		value: config?.value,
-		defaultValue: config?.defaultValue ?? EMPTY_SELECTION,
-		onValueChange: (next) => config?.onValueChange?.(next ?? EMPTY_SELECTION),
-	})
+	const [selection, setSelection] = useControllableBinding(config, EMPTY_SELECTION)
 
-	return { selection: selectionRaw ?? EMPTY_SELECTION, setSelection }
+	return { selection, setSelection }
 }
 
 /**
