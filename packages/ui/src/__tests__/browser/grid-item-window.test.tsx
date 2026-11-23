@@ -1,5 +1,6 @@
 import { useMemo, useRef } from 'react'
 import { describe, expect, it } from 'vitest'
+import { GridNavContext, type GridNavStore } from '../../modules/grid/context'
 import { NO_WINDOW_RECORD, useGridItemWindow } from '../../modules/grid/use-grid-item-window'
 import { frames, present, renderUI, waitFor } from '../helpers'
 
@@ -12,6 +13,23 @@ import { frames, present, renderUI, waitFor } from '../helpers'
 describe('useGridItemWindow (real browser)', () => {
 	type Handle = {
 		scrollToIndex: (index: number, options?: { align?: 'start' | 'end' }) => void
+	}
+
+	// A grid with no cursor, so the window keeps no row of the cursor.
+	const nav: GridNavStore = {
+		enabled: false,
+		subscribe: () => () => {},
+		isActive: () => false,
+		isInRange: () => false,
+		fillHandle: null,
+		isStopActive: () => false,
+		activeKey: () => null,
+		stopId: (key) => key,
+		seatStop: () => {},
+		cellId: () => '',
+		seatHeader: () => {},
+		claimReveal: () => false,
+		publish: () => {},
 	}
 
 	/** A row height that differs from the estimate, as a wrapped row does. */
@@ -74,7 +92,11 @@ describe('useGridItemWindow (real browser)', () => {
 	it('lands a scrollToIndex row below the sticky head and above the bottom edge', async () => {
 		const handle: Handle = { scrollToIndex: () => {} }
 
-		const { container } = renderUI(<Harness handle={handle} />)
+		const { container } = renderUI(
+			<GridNavContext value={nav}>
+				<Harness handle={handle} />
+			</GridNavContext>,
+		)
 
 		const scroll = present(
 			container.querySelector<HTMLElement>('[data-slot="grid-scroll"]'),

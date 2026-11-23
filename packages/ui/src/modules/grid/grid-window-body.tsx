@@ -1,6 +1,7 @@
 'use client'
 
-import type { ReactNode, RefObject, TransitionEventHandler } from 'react'
+import type { VirtualItem } from '@tanstack/virtual-core'
+import type { FocusEventHandler, ReactNode, RefObject, TransitionEventHandler } from 'react'
 import { TableBody } from '../../components/table'
 import type { GridColumnPinning } from './engine/grid-table/pinning-view'
 import { GridSkeletonRows } from './grid-skeleton-cells'
@@ -17,14 +18,24 @@ type GridWindowBodyProps<T> = {
 	bottomSpacer: number
 	/** The count of items in the whole list. */
 	itemCount: number
-	/** The count of items that the window renders. */
-	windowCount: number
+	/** The items that the window renders, in index order, with each kept item. */
+	virtualItems: readonly VirtualItem[]
+	/** The height of the rows that are not rendered before each item (see `useVirtualWindow`). */
+	gaps: readonly number[]
+	/** Renders the keyed row of one item. */
+	renderItem: (virtualItem: VirtualItem) => ReactNode
 	onTransitionEnd?: TransitionEventHandler<HTMLTableSectionElement>
+	onFocus?: FocusEventHandler<HTMLTableSectionElement>
+	onBlur?: FocusEventHandler<HTMLTableSectionElement>
 	/** A row after the bottom spacer, such as the infinite-scroll trailer. */
 	trailer?: ReactNode
-	/** The rendered rows of the window. */
-	children: ReactNode
 }
+
+/**
+ * The prefix of the React key of a gap spacer. It keeps the key of a spacer
+ * apart from the keys of the rows in the same list. @internal
+ */
+const GAP_KEY = 'grid-window-gap:'
 
 /**
  * One `aria-hidden` spacer row, which stands in for the rows outside the
@@ -45,7 +56,11 @@ function GridWindowSpacer({ height, colSpan }: { height: number; colSpan: number
 
 /**
  * The `<tbody>` of each windowed grid body. It puts a spacer above and below
- * the rendered rows, and an optional trailer row after them.
+ * the rendered rows, and an optional trailer row after them. A row that the
+ * window keeps out of view renders at its true position. A gap spacer before
+ * it, or before the window, stands in for the rows between them. The rows and
+ * the spacers are one keyed list, so a kept row keeps its node when the window
+ * comes back to it.
  *
  * @remarks Until the scroll element measures, the window assumes
  * `FIRST_WINDOW_RECT` for it. A server render and the first client render thus
@@ -65,17 +80,37 @@ export function GridWindowBody<T>({
 	topSpacer,
 	bottomSpacer,
 	itemCount,
-	windowCount,
+	virtualItems,
+	gaps,
+	renderItem,
 	onTransitionEnd,
+	onFocus,
+	onBlur,
 	trailer,
-	children,
 }: GridWindowBodyProps<T>) {
-	const warming = itemCount > 0 && windowCount === 0
+	const warming = itemCount > 0 && virtualItems.length === 0
+
+	const rows = virtualItems.flatMap((virtualItem, at) => {
+		const row = renderItem(virtualItem)
+
+		const gap = gaps[at] ?? 0
+
+		if (gap <= 0) return [row]
+
+		return [
+			<GridWindowSpacer
+				key={`${GAP_KEY}${virtualItem.key}`}
+				height={gap}
+				colSpan={columns.length}
+			/>,
+			row,
+		]
+	})
 
 	return (
-		<TableBody ref={bodyRef} onTransitionEnd={onTransitionEnd}>
+		<TableBody ref={bodyRef} onTransitionEnd={onTransitionEnd} onFocus={onFocus} onBlur={onBlur}>
 			<GridWindowSpacer height={topSpacer} colSpan={columns.length} />
-			{warming ? <GridSkeletonRows columns={columns} pinning={pinning} /> : children}
+			{warming ? <GridSkeletonRows columns={columns} pinning={pinning} /> : rows}
 			{!warming && <GridWindowSpacer height={bottomSpacer} colSpan={columns.length} />}
 			{trailer}
 		</TableBody>

@@ -145,6 +145,7 @@ describe('measureColumns', () => {
 			isInRange: () => false,
 			fillHandle: null,
 			isStopActive: () => false,
+			activeKey: () => null,
 			stopId: (key) => key,
 			seatStop: () => {},
 			cellId: () => '',

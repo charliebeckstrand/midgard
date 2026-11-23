@@ -150,6 +150,7 @@ const INERT_STORE: GridNavStore = {
 	isInRange: () => false,
 	fillHandle: null,
 	isStopActive: () => false,
+	activeKey: () => null,
 	stopId: (key) => key,
 	seatStop: () => {},
 	cellId: () => '',
@@ -1251,6 +1252,15 @@ export function useGridNavigation({
 			const current = readActive()
 
 			return current !== null && stopAt(current.row)?.key === key
+		},
+		activeKey: () => {
+			const current = readActive()
+
+			if (current === null || chromeRow(current.row)) return null
+
+			const order = orderRef.current
+
+			return order ? (order[current.row]?.key ?? null) : current.row
 		},
 		stopId,
 		seatStop,

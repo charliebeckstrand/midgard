@@ -78,6 +78,7 @@ it('mounts an entering group total closed, and opens it after a flush', () => {
 		isInRange: () => false,
 		fillHandle: null,
 		isStopActive: () => false,
+		activeKey: () => null,
 		stopId: (key) => key,
 		seatStop: () => {},
 		cellId: () => '',

@@ -102,6 +102,11 @@ type GridVirtualizedDetailBodyProps<T> = GridRowsProps<T> & GridItemWindowOption
  * Each exposed row carries `aria-rowindex` over the item list. A closing panel
  * is hidden from assistive tech, and it carries no index.
  *
+ * The row of the cursor and the row that holds focus stay mounted out of view,
+ * at their true positions and with their `aria-rowindex` (see
+ * `useGridWindowKeep`). A panel is a row of its own, so focus in a panel keeps
+ * the panel.
+ *
  * @internal
  */
 export function GridVirtualizedDetailBody<T>(props: GridVirtualizedDetailBodyProps<T>) {
@@ -139,8 +144,17 @@ export function GridVirtualizedDetailBody<T>(props: GridVirtualizedDetailBodyPro
 		[rows, rowKeys, expanded, rowExpandable, motions, expansion?.indexed],
 	)
 
-	const { bodyRef, closingEndItem, virtualItems, topSpacer, bottomSpacer, measureRef } =
-		useGridItemWindow(items, props, record)
+	const {
+		bodyRef,
+		closingEndItem,
+		onFocus,
+		onBlur,
+		virtualItems,
+		topSpacer,
+		bottomSpacer,
+		gaps,
+		measureRef,
+	} = useGridItemWindow(items, props, record)
 
 	// The cursor walks each data row and each open panel.
 	const cursorOrder = useMemo(
@@ -170,10 +184,12 @@ export function GridVirtualizedDetailBody<T>(props: GridVirtualizedDetailBodyPro
 			topSpacer={topSpacer}
 			bottomSpacer={bottomSpacer}
 			itemCount={items.length}
-			windowCount={virtualItems.length}
+			virtualItems={virtualItems}
+			gaps={gaps}
 			onTransitionEnd={onTransitionEnd}
-		>
-			{virtualItems.map((virtualItem) => {
+			onFocus={onFocus}
+			onBlur={onBlur}
+			renderItem={(virtualItem) => {
 				const item = items[virtualItem.index] as GridDetailWindowItem
 
 				const row = rows[item.dataIndex] as T
@@ -207,7 +223,7 @@ export function GridVirtualizedDetailBody<T>(props: GridVirtualizedDetailBodyPro
 						aria-rowindex={aria(item)}
 					/>
 				)
-			})}
-		</GridWindowBody>
+			}}
+		/>
 	)
 }

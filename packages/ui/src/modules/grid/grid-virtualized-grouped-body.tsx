@@ -174,6 +174,10 @@ type GridVirtualizedGroupedBodyProps<T> = {
  * header and each leaf also gives its place in its set from the full model
  * (see `treeRowProps`), because the window renders only some rows of the set.
  *
+ * The row of the cursor and the row that holds focus stay mounted out of view,
+ * at their true positions and with their `aria-rowindex` (see
+ * `useGridWindowKeep`).
+ *
  * @internal
  */
 export function GridVirtualizedGroupedBody<T>({
@@ -210,8 +214,17 @@ export function GridVirtualizedGroupedBody<T>({
 		[shown, totaled, motions],
 	)
 
-	const { bodyRef, closingEndItem, virtualItems, topSpacer, bottomSpacer, measureRef } =
-		useGridItemWindow(items, rowWindow, record)
+	const {
+		bodyRef,
+		closingEndItem,
+		onFocus,
+		onBlur,
+		virtualItems,
+		topSpacer,
+		bottomSpacer,
+		gaps,
+		measureRef,
+	} = useGridItemWindow(items, rowWindow, record)
 
 	// The cursor walks the open rows. A scroll frame keeps the same order.
 	const cursorOrder = useMemo(
@@ -243,10 +256,12 @@ export function GridVirtualizedGroupedBody<T>({
 			topSpacer={topSpacer}
 			bottomSpacer={bottomSpacer}
 			itemCount={items.length}
-			windowCount={virtualItems.length}
+			virtualItems={virtualItems}
+			gaps={gaps}
 			onTransitionEnd={onTransitionEnd}
-		>
-			{virtualItems.map((virtualItem) => {
+			onFocus={onFocus}
+			onBlur={onBlur}
+			renderItem={(virtualItem) => {
 				const item = items[virtualItem.index] as GridGroupedWindowItem<T>
 
 				const color = getColor(item.group)
@@ -301,7 +316,7 @@ export function GridVirtualizedGroupedBody<T>({
 						{...windowRow(item, virtualItem.index)}
 					/>
 				)
-			})}
-		</GridWindowBody>
+			}}
+		/>
 	)
 }

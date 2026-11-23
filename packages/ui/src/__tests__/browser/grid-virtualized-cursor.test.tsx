@@ -107,22 +107,25 @@ describe('grid virtualized cursor (real browser)', () => {
 
 		scroll.scrollTop = 0
 
-		await waitFor(() => expect(screen.queryByText('Name 51')).toBeNull())
+		await waitFor(() => expect(screen.queryByText('Name 40')).toBeNull())
 
-		// Row 51 comes back into the overscan below the viewport. Its active cell
-		// mounts again, and the reader's scroll stays where it was put.
+		// The window keeps the row of the cursor out of view. Row 51 comes back into
+		// the overscan below the viewport, and the reader's scroll stays where it
+		// was put.
+		expect(screen.queryByText('Name 51')).not.toBeNull()
+
 		scroll.scrollTop = 1520
 
-		await waitFor(() => expect(screen.queryByText('Name 51')).not.toBeNull())
+		await waitFor(() => expect(screen.queryByText('Name 45')).not.toBeNull())
 
 		await frames()
 
 		expect(scroll.scrollTop).toBe(1520)
 	})
 
-	// A scroll by the wheel or the scrollbar unmounts the row that holds focus,
-	// and focus fell to the page with no event to tell the grid.
-	it('takes focus back on the grid when the window unmounts the focused control', async () => {
+	// A scroll by the wheel or the scrollbar moves the window away from the row
+	// that holds focus. The window keeps that row, so focus stays on the control.
+	it('keeps the focused control when the window scrolls away from its row', async () => {
 		// A run of many files can leave the page without window focus, and a blur
 		// of the window keeps the cell open by design.
 		vi.spyOn(document, 'hasFocus').mockReturnValue(true)
@@ -159,21 +162,21 @@ describe('grid virtualized cursor (real browser)', () => {
 
 		scroll.scrollTop = 3000
 
-		await waitFor(() => expect(edit.isConnected).toBe(false))
-
-		const grid = screen.getByRole('grid')
-
-		await waitFor(() => expect(document.activeElement).toBe(grid))
+		await waitFor(() => expect(screen.queryByText('Name 3')).toBeNull())
 
 		await frames()
 
 		// The focus does not scroll the window back to the row of the cursor, and
-		// the cursor stays on its cell, out of the window.
+		// the cursor stays on its cell, which stays in the document.
 		expect(scroll.scrollTop).toBeGreaterThan(1000)
 
-		expect(screen.queryByRole('button', { name: 'Edit Name 2' })).toBeNull()
+		expect(edit.isConnected).toBe(true)
 
-		expect(grid).toHaveAttribute('aria-activedescendant')
+		expect(document.activeElement).toBe(edit)
+
+		const grid = screen.getByRole('grid')
+
+		expect(document.getElementById(grid.getAttribute('aria-activedescendant') ?? '')).not.toBeNull()
 	})
 
 	it('seats a mounted cell when focus enters a scrolled window', async () => {
@@ -435,10 +438,16 @@ describe('grid virtualized page step past a nested grid (real browser)', () => {
 
 		await waitFor(() => expect(screen.queryByText('Task of Name 1')).not.toBeNull())
 
-		// Focus seats the cursor on the first cell of the first row.
+		// Focus seats the cursor on the first cell of the first row. The next step
+		// moves it to the panel of that row. The window keeps the row of the
+		// cursor, so the cursor on the first row would keep that row in the window.
 		grid.focus()
 
 		await waitFor(() => expect(grid.getAttribute('aria-activedescendant')).toBeTruthy())
+
+		fireEvent.keyDown(grid, { key: 'ArrowDown' })
+
+		await waitFor(() => expect(grid.getAttribute('aria-activedescendant')).toMatch(/detail/))
 
 		const outerRow = present(
 			grid.querySelector<HTMLElement>(':scope > tbody > tr[data-grid-row]'),
@@ -466,7 +475,7 @@ describe('grid virtualized page step past a nested grid (real browser)', () => {
 				'the active cell',
 			)
 
-			expect(readCursorRow(cell)).toBe(step)
+			expect(readCursorRow(cell)).toBe(1 + step)
 		})
 	})
 })
