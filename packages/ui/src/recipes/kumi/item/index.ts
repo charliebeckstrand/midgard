@@ -10,7 +10,7 @@
  */
 
 import { defineGroup } from '../../../core/recipe'
-import { hannou, iro, ji, kasane, narabi, sen } from '../../kiso'
+import { dan, hannou, iro, ji, kasane, narabi, sen } from '../../kiso'
 
 const { active, cursor, disabled, tint } = hannou
 const { on, text } = iro
@@ -50,11 +50,14 @@ export const item = defineGroup({
 		/**
 		 * The description of the row. It takes `on.wash.muted`, not `muted`: the
 		 * row grounds a hovered or roved row on the tint wash, which `muted` is not
-		 * legal over. See `iro/ramp.ts`. A spacer pseudo-element (`before:w-2`)
-		 * shrinks before the text truncates, so the ellipsis lands inside the row.
+		 * legal over. See `iro/ramp.ts`. The text is one step below the body text
+		 * of the nearest density scope, so the description is smaller than the
+		 * label. A spacer pseudo-element (`before:w-2`) shrinks before the text
+		 * truncates, so the ellipsis lands inside the row.
 		 */
 		description: [
 			'flex',
+			dan.text.small,
 			'flex-1',
 			'overflow-hidden',
 			'before:w-2 before:min-w-0 before:shrink',
