@@ -22,6 +22,7 @@ import {
 	renderUI,
 	screen,
 } from '../helpers'
+import { stubResizeObserver } from '../helpers/stub-resize-observer'
 
 type Item = { id: string; label: string }
 
@@ -130,6 +131,59 @@ describe('List', () => {
 		const el = bySlot(container, 'list')
 
 		expect(el).toHaveAttribute('data-orientation', 'horizontal')
+	})
+})
+
+describe('List: virtualize', () => {
+	const Rows = () => (
+		<List items={items} getKey={(i) => i.id} virtualize>
+			{(item) => <ListItem>{item.label}</ListItem>}
+		</List>
+	)
+
+	it('observes each ancestor from the parent of the list up to the child of the scroller', () => {
+		const observers = stubResizeObserver()
+
+		const { container } = renderUI(
+			<div data-scroll-region>
+				<section>
+					<div>
+						<Rows />
+					</div>
+				</section>
+			</div>,
+		)
+
+		const list = getSlot(container, 'list')
+
+		const parent = present(list.parentElement, 'the parent of the list')
+
+		// The virtualizer observes the scroller with an observer of its own, so the
+		// case reads the observer of the window: the one that starts at the parent.
+		const windowObserver = observers.find((observer) => observer.targets[0] === parent)
+
+		expect(windowObserver?.targets).toEqual([parent, parent.parentElement])
+	})
+
+	it('observes only the scroller when the scroller is the parent of the list', () => {
+		const observers = stubResizeObserver()
+
+		const { container } = renderUI(
+			<main>
+				<div data-scroll-region>
+					<Rows />
+				</div>
+			</main>,
+		)
+
+		const list = getSlot(container, 'list')
+
+		const scroller = present(list.parentElement, 'the scroller')
+
+		// The rows sit in the list, and the virtualizer observes them to measure them.
+		const observed = observers.flatMap((observer) => observer.targets)
+
+		expect(new Set(observed.filter((el) => !list.contains(el)))).toEqual(new Set([scroller]))
 	})
 })
 

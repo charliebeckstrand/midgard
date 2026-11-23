@@ -416,6 +416,8 @@ export function flattenTree({
 }: FlattenTreeOptions): FlatNode[] {
 	const rows: FlatNode[] = []
 
+	const filtered = filter && search !== ''
+
 	function walk(
 		value: JsonValue,
 		keyName: string | number | undefined,
@@ -423,18 +425,19 @@ export function flattenTree({
 		depth: number,
 		position: FlatSetPosition,
 	) {
-		const highlighted = search ? matchesSearch(keyName, value, search) : false
+		const highlighted = matchesSearch(keyName, value, search)
 
 		if (!isBranch(value)) {
-			if (filter && search && !highlighted) return
+			if (filtered && !highlighted) return
 
 			rows.push({ type: 'leaf', path, keyName, value, depth, highlighted, ...position })
 
 			return
 		}
 
-		const entries =
-			filter && search ? filterEntries(getEntries(value), search, searchIndex) : getEntries(value)
+		const entries = filtered
+			? filterEntries(getEntries(value), search, searchIndex)
+			: getEntries(value)
 
 		const open = isOpen(path, depth)
 

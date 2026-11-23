@@ -326,4 +326,16 @@ describe('flattenTree', () => {
 
 		expect(nodes.filter((n) => n.type === 'leaf')).toHaveLength(1)
 	})
+
+	it('keeps every row when filter is enabled with no search term', () => {
+		const tree = { a: 'yes', b: { c: 'no' } }
+
+		const isOpen = openFrom(['$', '$.b'])
+
+		const nodes = flatten(tree, { isOpen, filter: true })
+
+		expect(nodes).toEqual(flatten(tree, { isOpen }))
+
+		expect(nodes.filter((n) => n.type === 'leaf')).toHaveLength(2)
+	})
 })
