@@ -1015,10 +1015,6 @@
 		"defaultMessage": "Press and hold a group header and select Manage rows",
 		"description": "Text of a demo in the docs as touchText, in modules/grid/groups/row-manager.tsx."
 	},
-	"docs.demo.0156a26b09b5": {
-		"defaultMessage": "Sign to accept the agreement.",
-		"description": "Text of a demo in the docs as validate, in components/signature-pad/in-a-form.tsx."
-	},
 	"docs.demo.02165c3b623b": {
 		"defaultMessage": "Most of the rise sits on the north routes.",
 		"description": "Text of a demo in the docs as text, in modules/chat/embeds/registered-renderer.tsx."
@@ -1506,6 +1502,10 @@
 	"docs.demo.1dc901581307": {
 		"defaultMessage": "Project dates",
 		"description": "Text of a demo in the docs as aria-label, in components/date-picker/glass.tsx."
+	},
+	"docs.demo.1dcb7f51bc70": {
+		"defaultMessage": "Or type your full name to sign with the keyboard.",
+		"description": "Text of a demo in the docs, in components/signature-pad/in-a-form.tsx."
 	},
 	"docs.demo.1dd10f244a62": {
 		"defaultMessage": "Animation",
@@ -3739,6 +3739,10 @@
 		"defaultMessage": "Stat delta",
 		"description": "Text of a demo in the docs as label, in primitives/skeleton/skeleton-variants.tsx."
 	},
+	"docs.demo.936003cea58d": {
+		"defaultMessage": "Typed signature",
+		"description": "Text of a demo in the docs, in components/signature-pad/in-a-form.tsx."
+	},
 	"docs.demo.93c91c851e7a": {
 		"defaultMessage": "Price",
 		"description": "Text of a demo in the docs, in components/currency-input/no-fraction-digits.tsx, components/slider/range.tsx."
@@ -5906,6 +5910,10 @@
 	"docs.demo.ffb6f5764bdd": {
 		"defaultMessage": "Newest first",
 		"description": "Text of a demo in the docs as label, in components/listbox/with-prefix.tsx."
+	},
+	"docs.demo.ffbdc981d73e": {
+		"defaultMessage": "Draw your signature or type your full name.",
+		"description": "Text of a demo in the docs as validate, in components/signature-pad/in-a-form.tsx."
 	},
 	"docs.direction.label": {
 		"defaultMessage": "Direction",

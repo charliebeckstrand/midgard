@@ -1,4 +1,4 @@
-import { act } from '@testing-library/react'
+import { act, screen } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Checkbox } from '../../components/checkbox'
@@ -154,7 +154,7 @@ describe('FormErrorSummary', () => {
 		expect(email).toHaveFocus()
 	})
 
-	it('links a file upload with no bound Message to its hidden input', async () => {
+	it('links a file upload with no bound Message to its hidden input, which gives the focus to its trigger', async () => {
 		const { container } = renderUI(
 			<Form defaultValues={{ files: [] }} validate={{ files: () => 'Attach a file.' }}>
 				<FormErrorSummary />
@@ -173,7 +173,8 @@ describe('FormErrorSummary', () => {
 
 		fireEvent.click(link)
 
-		expect(container.querySelector('#files-control')).toHaveFocus()
+		// Nothing shows the hidden input, so it passes the focus to the trigger.
+		expect(screen.getByRole('button', { name: 'Files Upload' })).toHaveFocus()
 	})
 
 	it('shows the issue of a field with no registered control as text', async () => {

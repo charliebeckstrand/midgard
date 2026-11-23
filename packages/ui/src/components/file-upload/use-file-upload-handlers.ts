@@ -136,7 +136,13 @@ export function useFileUploadHandlers({
 			// so the live region speaks it (WCAG 4.1.3). A caller of `onReject` owns
 			// the feedback of a refusal, and the error `Message` that it shows is an
 			// alert. A second, polite text for the refusal would be lost under it.
-			announce(describeSelection(intl, { accepted, rejected: onReject ? [] : rejected }))
+			announce(
+				describeSelection(
+					intl,
+					{ accepted, rejected: onReject ? [] : rejected },
+					{ accept, maxSize, maxCount },
+				),
+			)
 
 			if (rejected.length > 0) onReject?.(rejected)
 

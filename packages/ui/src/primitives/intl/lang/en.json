@@ -720,20 +720,16 @@
 		"description": "The prompt of an empty drop zone on a touch device."
 	},
 	"ui.fileUpload.refusedCount": {
-		"defaultMessage": "{count, plural, one {{names} is over the file limit} other {{names} are over the file limit}}",
-		"description": "Spoken when the field refuses files because it takes no more files. The names are the file names, joined by commas."
+		"defaultMessage": "{count, plural, one {{names} is over the file limit} other {{names} are over the file limit}}. The limit is {max, plural, one {# file} other {# files}}",
+		"description": "Spoken when the field refuses files because it takes no more files. The names are the file names, joined by commas. The limit is the number of files that the field takes."
 	},
 	"ui.fileUpload.refusedSize": {
-		"defaultMessage": "{count, plural, one {{names} is too large} other {{names} are too large}}",
-		"description": "Spoken when the field refuses files because they are larger than the limit. The names are the file names, joined by commas."
+		"defaultMessage": "{count, plural, one {{names} is too large} other {{names} are too large}}. The limit is {limit}",
+		"description": "Spoken when the field refuses files because they are larger than the limit. The names are the file names, joined by commas. The limit is a size, such as \"1 MB\"."
 	},
 	"ui.fileUpload.refusedType": {
-		"defaultMessage": "{count, plural, one {{names} is not an accepted file type} other {{names} are not accepted file types}}",
-		"description": "Spoken when the field refuses files because their type is not accepted. The names are the file names, joined by commas."
-	},
-	"ui.fileUpload.reset": {
-		"defaultMessage": "Reset",
-		"description": "The label of the button that clears the selected files."
+		"defaultMessage": "{count, plural, one {{names} is not an accepted file type} other {{names} are not accepted file types}}. Accepted types: {accept}",
+		"description": "Spoken when the field refuses files because their type is not accepted. The names are the file names, joined by commas. The accepted types are the file types and extensions that the field takes, such as \"image/png, .pdf\"."
 	},
 	"ui.fileUpload.selectDifferent": {
 		"defaultMessage": "Select a different file",
@@ -1422,6 +1418,14 @@
 	"ui.grid.yes": {
 		"defaultMessage": "Yes",
 		"description": "The true choice of a yes-or-no cell of a grid."
+	},
+	"ui.holdButton.confirm": {
+		"defaultMessage": "Activate again to confirm",
+		"description": "Spoken when assistive technology activates a hold button once. A second activation does the action."
+	},
+	"ui.holdButton.instruction": {
+		"defaultMessage": "Press and hold to confirm",
+		"description": "The description of a button that acts only after the reader presses and holds it."
 	},
 	"ui.jsonTree.items": {
 		"defaultMessage": "{count, plural, one {# item} other {# items}}",
@@ -2226,6 +2230,10 @@
 	"ui.signaturePad.empty": {
 		"defaultMessage": "{name}, empty",
 		"description": "The name of a signature pad with no signature on it. The name is the name of the pad, such as \"Signature\"."
+	},
+	"ui.signaturePad.emptyState": {
+		"defaultMessage": "empty",
+		"description": "Added to the name of a signature pad with no signature on it, after the label of its field, as in \"Witness signature empty\"."
 	},
 	"ui.signaturePad.label": {
 		"defaultMessage": "Signature",

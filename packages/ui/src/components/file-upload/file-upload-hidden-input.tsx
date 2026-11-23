@@ -23,6 +23,11 @@ export type FileUploadHiddenInputProps = {
 	invalid?: boolean
 	filesEmpty: boolean
 	onChange: ChangeEventHandler<HTMLInputElement>
+	/**
+	 * Moves the focus to the visible trigger of the component. The input calls
+	 * it when it takes the focus, because nothing on screen shows the input.
+	 */
+	forwardFocus: () => void
 }
 
 /**
@@ -32,6 +37,10 @@ export type FileUploadHiddenInputProps = {
  * from the first render. A registered Label also names it through
  * `aria-labelledby`. With no Label, each variant
  * supplies a name drawn from its visible trigger.
+ *
+ * Focus that reaches the input, such as the focus that a `Form` gives the
+ * first invalid field or a link of a `FormErrorSummary`, moves on to the
+ * visible trigger (WCAG 2.4.7).
  *
  * @internal
  */
@@ -46,6 +55,7 @@ export function FileUploadHiddenInput({
 	invalid,
 	filesEmpty,
 	onChange,
+	forwardFocus,
 }: FileUploadHiddenInputProps) {
 	const fallbackLabel = useControlFallbackLabel(ariaLabel)
 
@@ -67,6 +77,7 @@ export function FileUploadHiddenInput({
 			// selection separately and drops the constraint once files are held.
 			required={control?.required && filesEmpty}
 			onChange={onChange}
+			onFocus={forwardFocus}
 			className="sr-only"
 			tabIndex={-1}
 			{...invalidAttrs(invalid)}
