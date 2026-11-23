@@ -237,6 +237,28 @@ describe('DatePicker (relative)', () => {
 		expect(screen.getByRole('button', { name: 'Today' })).toBeInTheDocument()
 	})
 
+	// The button that has the focus unmounts with its view, so each change of
+	// mode moves the focus into the new view.
+	it('moves the focus to the Start field and back to the Custom range row', async () => {
+		const { user } = await openRelative()
+
+		const custom = screen.getByRole('button', { name: /Custom range/ })
+
+		custom.focus()
+
+		await user.keyboard('{Enter}')
+
+		expect(screen.getByRole('textbox', { name: 'Start' })).toHaveFocus()
+
+		await user.tab({ shift: true })
+
+		expect(screen.getByRole('button', { name: 'Back to presets' })).toHaveFocus()
+
+		await user.keyboard('{Enter}')
+
+		expect(screen.getByRole('button', { name: /Custom range/ })).toHaveFocus()
+	})
+
 	// The Start/End fields pass no format, so they follow the ambient locale, as
 	// the Calendar beside them does.
 	it('lays out the Start/End fields in the ambient locale', async () => {

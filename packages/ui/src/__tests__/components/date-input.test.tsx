@@ -313,22 +313,70 @@ describe('DateInput', () => {
 		)
 	})
 
-	it('blurs on Enter, but not on an Enter that confirms an input-method candidate', () => {
-		const { input } = renderDateInput()
+	it('commits the entry on Enter and keeps the focus in the field', async () => {
+		const onValueChange = vi.fn()
 
-		input.focus()
+		const { input, user } = renderDateInput({ onValueChange })
+
+		await user.click(input)
+
+		await user.keyboard('6152025')
+
+		await user.keyboard('{Enter}')
+
+		expect(input).toHaveFocus()
+
+		expect(input).toHaveValue('06/15/2025')
+
+		expect(onValueChange).toHaveBeenLastCalledWith(new Date(2025, 5, 15))
+	})
+
+	it('refuses a partial entry on Enter, as a blur does', async () => {
+		const { input, user, container } = renderDateInput()
+
+		await user.click(input)
+
+		await user.keyboard('061{Enter}')
+
+		expect(input).toHaveFocus()
+
+		expect(input).toHaveAttribute('aria-invalid', 'true')
+
+		expect(bySlot(container, 'message')).toHaveTextContent('Enter a valid date (MM/DD/YYYY).')
+	})
+
+	it('submits an enclosing form on Enter', async () => {
+		const onSubmit = vi.fn((event: SubmitEvent) => event.preventDefault())
+
+		const user = setupUser()
+
+		renderUI(
+			<form onSubmit={(event) => onSubmit(event.nativeEvent as SubmitEvent)}>
+				<DateInput />
+			</form>,
+		)
+
+		await user.click(screen.getByRole('textbox'))
+
+		await user.keyboard('06/15/2025{Enter}')
+
+		expect(onSubmit).toHaveBeenCalledOnce()
+	})
+
+	it('closes no entry on an Enter that confirms an input-method candidate', async () => {
+		const { input, user } = renderDateInput()
+
+		await user.click(input)
+
+		await user.keyboard('061')
 
 		fireEvent.keyDown(input, { key: 'Enter', keyCode: 229 })
 
-		expect(document.activeElement).toBe(input)
-
 		fireEvent.keyDown(input, { key: 'Enter', isComposing: true })
 
-		expect(document.activeElement).toBe(input)
+		expect(input).toHaveFocus()
 
-		fireEvent.keyDown(input, { key: 'Enter' })
-
-		expect(document.activeElement).not.toBe(input)
+		expect(input).not.toHaveAttribute('aria-invalid', 'true')
 	})
 
 	it('keeps partial text on blur and marks it invalid', async () => {

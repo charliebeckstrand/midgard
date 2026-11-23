@@ -1,8 +1,9 @@
 'use client'
 
-import { type HTMLAttributes, type ReactNode, useEffect } from 'react'
+import { type HTMLAttributes, type ReactNode, useEffect, useRef, useState } from 'react'
 import { cn } from '../../core/cn'
 import type { Severity } from '../../core/validation-attrs'
+import { useAnnounceOnAppear } from '../../hooks/a11y/use-announce-on-appear'
 import { useFormField } from '../../primitives/form/context'
 import { hasIssues } from '../../primitives/form/form-issues'
 import { k } from '../../recipes/kata/fieldset'
@@ -72,14 +73,29 @@ function resolveElementId(
 }
 
 /**
- * Validation or status feedback for a form control. The `error` severity renders
- * `role="alert"` and registers its id into the field's `aria-describedby`. Bound
- * to a form field by `name`, it auto-renders that field's first error, or every
- * error as a `<ul>` inside a live-region `<div>` with `all`. It suppresses itself
- * when there are none. The `warning` severity renders `role="status"` from its
- * children and also registers into `aria-describedby`, because it tells about
- * the value of the field. The `success` severity renders `role="status"` from
- * its children and does not register as a description.
+ * Validation or status feedback for a form control. The `error` severity
+ * registers its id into the field's `aria-describedby`. Bound to a form field by
+ * `name`, it auto-renders that field's first error, or every error as a `<ul>`
+ * inside a `<div>` with `all`. It suppresses itself when there are none. The
+ * `warning` severity renders its children and also registers into
+ * `aria-describedby`, because it tells about the value of the field. The
+ * `success` severity renders its children and does not register as a
+ * description.
+ *
+ * @remarks Only a message with no form binding is a live region. An `error`
+ * message renders `role="alert"`, because the app decides when it appears. A
+ * `warning` or `success` message renders `role="status"`. A screen reader can
+ * miss a status region that mounts together with its text (WCAG 4.1.3). Thus a
+ * polite message that mounts after the first commit of its `<Field>` or
+ * `<Control>` also sends its text to the shared announcer, as an `Alert` does.
+ *
+ * A form-bound message is not a live region. Its id stays in the
+ * `aria-describedby` of the control, and the control keeps `aria-invalid`. A
+ * refused submit moves the focus to the first invalid control or to a
+ * `FormErrorSummary`, and the screen reader then speaks the error. Thus a
+ * submit does not start many alerts together, and a keystroke that changes the
+ * error does not interrupt the reader. The trade-off: an error that appears on
+ * blur is spoken only when the reader goes back to the field or submits.
  *
  * @remarks A nested `<Message>` is presentational: it does not mark the control
  * invalid. Drive the validation ring (and, for `error`, `aria-invalid`) with
@@ -99,6 +115,11 @@ export function Message({
 	...props
 }: MessageProps) {
 	const control = useControl()
+
+	const ref = useRef<HTMLParagraphElement>(null)
+
+	// Read once, when the message mounts: whether its field mounted before it.
+	const [mountedAfterField] = useState(() => control?.isMounted?.() ?? false)
 
 	const field = useFormField(name)
 
@@ -130,6 +151,17 @@ export function Message({
 
 	const elementId = resolveElementId(id, severity, control)
 
+	// Only a message with no form binding is a live region. A form-bound message
+	// is a description, and the focus move of a refused submit speaks it.
+	const live = field === undefined
+
+	const polite = live && severity !== 'error'
+
+	// A screen reader can miss `role="status"` when the region and its text mount
+	// together, so a polite message that mounts after its field mirrors its text
+	// through the announcer (WCAG 4.1.3), as an Alert does.
+	useAnnounceOnAppear(ref, true, { onMount: mountedAfterField, enabled: polite })
+
 	const registerMessage = control?.registerMessage
 
 	useEffect(() => {
@@ -142,30 +174,32 @@ export function Message({
 
 	// The error severity renders only when it has something to say (form-bound
 	// with issues, or unbound with children); an empty one would leave a stray
-	// `role="alert"`. `rendersError` already encodes that; warning/success always
+	// element. `rendersError` already encodes that; warning/success always
 	// render their children.
 	if (severity === 'error' && !rendersError) return null
 
 	const classes = cn(k({ severity }).message, className)
 
-	// Errors use `role="alert"` (assertive); success feedback uses `role="status"` (polite).
-	const role = severity === 'error' ? 'alert' : 'status'
+	// An unbound error uses `role="alert"` (assertive); a warning or a success
+	// uses `role="status"` (polite). A form-bound message has no live role.
+	const liveRole = severity === 'error' ? 'alert' : 'status'
+
+	const role = live ? liveRole : undefined
 
 	if (isFormBoundError && issues && all && issues.length > 1) {
 		// Text alone can collide as a key; the native validator path doesn't
 		// dedupe identical messages. Repeats get an occurrence suffix.
 		const keyed = keyByOccurrence(issues)
 
-		// ARIA in HTML does not allow `alert` or `status` on a `<ul>`, and the
-		// role removes the list semantics of the items. The live region is a
-		// `<div>`, and a plain `<ul>` inside it keeps the list.
+		// The `<div>` holds the id and the classes, and a plain `<ul>` inside it
+		// keeps the list. This branch is always form-bound, so it has no live role.
 		return (
 			<div
 				data-severity={severity}
 				id={elementId}
 				className={classes}
-				// Consumer props spread first; the anchor and the live-region role
-				// below take precedence.
+				// Consumer props spread first; the anchor and the role below take
+				// precedence.
 				{...props}
 				data-slot="message"
 				role={role}
@@ -183,11 +217,12 @@ export function Message({
 
 	return (
 		<p
+			ref={ref}
 			data-severity={severity}
 			id={elementId}
 			className={classes}
-			// Consumer props spread first; the anchor and the live-region role
-			// below take precedence.
+			// Consumer props spread first; the anchor and the role below take
+			// precedence.
 			{...props}
 			data-slot="message"
 			role={role}

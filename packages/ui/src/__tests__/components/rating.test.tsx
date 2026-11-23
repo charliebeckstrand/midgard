@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
+import { Control } from '../../components/control'
 import { Description, Field, Label } from '../../components/fieldset'
 import { Rating, RatingSkeleton } from '../../components/rating'
 import { Form } from '../../modules/form'
@@ -337,6 +338,68 @@ describe('Rating', () => {
 		)
 
 		expect(container.querySelector('#score')).toBe(bySlot(container, 'rating'))
+	})
+
+	describe('required', () => {
+		it('sets aria-required on the radiogroup from an enclosing Control or its own prop', () => {
+			const { rerender } = renderUI(
+				<Control required>
+					<Rating aria-label="Score" />
+				</Control>,
+			)
+
+			expect(screen.getByRole('radiogroup', { name: 'Score' })).toHaveAttribute(
+				'aria-required',
+				'true',
+			)
+
+			rerender(<Rating aria-label="Score" required />)
+
+			expect(screen.getByRole('radiogroup', { name: 'Score' })).toHaveAttribute(
+				'aria-required',
+				'true',
+			)
+
+			rerender(<Rating aria-label="Score" />)
+
+			expect(screen.getByRole('radiogroup', { name: 'Score' })).not.toHaveAttribute('aria-required')
+		})
+	})
+
+	// WCAG 2.5.8: each star of the interactive form has a hit area of the floor of
+	// `TouchTarget`, in a cell of at least that floor.
+	describe('target size', () => {
+		it('puts each star label in a hit area, in a cell of the floor', () => {
+			const { container } = renderUI(<Rating aria-label="Score" count={3} />)
+
+			for (const star of allBySlot(container, 'rating-star')) {
+				expect(star.querySelector('[data-slot="touch-target"]')).not.toBeNull()
+
+				expect(star).toHaveClass('min-w-6', 'pointer-coarse:min-w-11')
+			}
+		})
+
+		it('gives each half of a star a 24px label from the center, in a cell of two halves', () => {
+			const { container } = renderUI(<Rating aria-label="Score" step={0.5} count={1} />)
+
+			const [start, end] = allBySlot(container, 'rating-half')
+
+			expect(start).toHaveClass('w-6', 'end-1/2')
+
+			expect(end).toHaveClass('w-6', 'start-1/2')
+
+			for (const half of [start, end])
+				expect(half?.querySelector('[data-slot="touch-target"]')).not.toBeNull()
+
+			expect(bySlot(container, 'rating-star')).toHaveClass('min-w-12')
+		})
+
+		it('keeps the stars of the display form at the size of the glyph', () => {
+			const { container } = renderUI(<Rating aria-label="Score" readOnly value={2.5} />)
+
+			for (const star of allBySlot(container, 'rating-star'))
+				expect(star).not.toHaveClass('min-w-6')
+		})
 	})
 
 	describe('half step', () => {

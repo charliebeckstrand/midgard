@@ -1,6 +1,6 @@
 'use client'
 
-import { type ComponentProps, type Ref, useCallback } from 'react'
+import { type ComponentProps, type Ref, useCallback, useId } from 'react'
 import { ariaAttr } from '../../core/aria-attr'
 import { cn } from '../../core/cn'
 import { dataAttr } from '../../core/data-attr'
@@ -9,6 +9,7 @@ import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/signature-pad'
 import { clamp } from '../../utilities/clamp'
 import { Button } from '../button'
+import { useControl } from '../control/context'
 import { type SignaturePadHandle, useSignaturePadState } from './use-signature-pad-state'
 
 const messages = defineMessages({
@@ -21,6 +22,12 @@ const messages = defineMessages({
 		id: 'ui.signaturePad.label',
 		defaultMessage: 'Signature',
 		description: 'The name of the canvas of a signature pad, when no label names it.',
+	},
+	emptyState: {
+		id: 'ui.signaturePad.emptyState',
+		defaultMessage: 'empty',
+		description:
+			'Added to the name of a signature pad with no signature on it, after the label of its field, as in "Witness signature empty".',
 	},
 	clear: {
 		id: 'ui.signaturePad.clear',
@@ -117,7 +124,9 @@ export type SignaturePadProps = Omit<
 	clearable?: boolean
 	/**
 	 * Accessible name for the canvas. While no stroke is present, the name says
-	 * that the pad is empty, as in "Signature, empty".
+	 * that the pad is empty, as in "Signature, empty". Without it, the Label of
+	 * the enclosing Field names the canvas, and with no Label the name is the
+	 * default.
 	 *
 	 * @defaultValue `'Signature'`, in the language of the reader.
 	 */
@@ -128,13 +137,21 @@ export type SignaturePadProps = Omit<
 /**
  * Pointer-driven canvas for capturing a signature; emits a data URL when a stroke ends and stays sized to its container under devicePixelRatio.
  *
+ * A drawn signature needs a pointer, and the canvas is not in the tab order.
+ * Thus a form that requires a signature must also give a way to sign with
+ * the keyboard, such as a field for a typed name (WCAG 2.1.1). The "In a
+ * form" example of the docs shows one.
+ *
  * @remarks
  * Backs the controlled triad and an enclosing `<Form>`/`<Control>` field. A
  * `name` binds the data URL to the form store. The ambient `<Control>` cascade
  * applies as `useControlProps` resolves it. An explicit `disabled` or
  * `readOnly` wins over the Control's. The validation ring and the description
- * ids go onto the canvas (`role="img"`). On clear, focus moves
- * to the canvas as the clear button unmounts (WCAG 2.4.3). The backing store is
+ * ids go onto the canvas (`role="img"`). The Label of an enclosing Field
+ * names the canvas through `aria-labelledby`, unless an `aria-label` is given.
+ * On clear, focus moves to the canvas as the clear button unmounts
+ * (WCAG 2.4.3), and the pad shows a focus ring while the canvas has the
+ * keyboard focus. The backing store is
  * `string | null`; `undefined` is never emitted. The pad puts no value in a
  * native form, so a native form reset does not clear it. The reset of a
  * `<Form>` sets a bound pad back to the default of its field.
@@ -164,6 +181,14 @@ export function SignaturePad({
 	const placeholder = placeholderProp ?? intl.formatMessage(messages.placeholder)
 
 	const ariaLabel = ariaLabelProp ?? intl.formatMessage(messages.label)
+
+	const control = useControl()
+
+	// A Field Label names the canvas, as a `<label for>` cannot name a
+	// `<canvas>`. An `aria-label` from the caller wins over it.
+	const labelledBy = ariaLabelProp === undefined ? control?.labelledBy : undefined
+
+	const emptyId = useId()
 
 	const strokeWidth = clamp(rawStrokeWidth, STROKE_WIDTH.min, STROKE_WIDTH.max)
 
@@ -222,6 +247,9 @@ export function SignaturePad({
 				// disabled/read-only is conveyed via `aria-disabled` below.
 				role="img"
 				aria-label={empty ? intl.formatMessage(emptyMessage, { name: ariaLabel }) : ariaLabel}
+				// The hidden empty state follows the Label in the name, as in
+				// "Witness signature empty".
+				aria-labelledby={labelledBy && (empty ? `${labelledBy} ${emptyId}` : labelledBy)}
 				aria-describedby={describedBy}
 				aria-disabled={ariaAttr(resolvedDisabled || resolvedReadOnly)}
 				// Programmatically focusable (not in the tab order); receives focus
@@ -241,6 +269,11 @@ export function SignaturePad({
 				onPointerCancel={commit}
 				onPointerLeave={commit}
 			/>
+			{labelledBy && empty && (
+				<span id={emptyId} hidden>
+					{intl.formatMessage(messages.emptyState)}
+				</span>
+			)}
 			{empty && !resolvedDisabled && !resolvedReadOnly && (
 				<div data-slot="signature-pad-placeholder" className={k().placeholder}>
 					{placeholder}

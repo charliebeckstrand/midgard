@@ -1,6 +1,7 @@
 /**
  * The slider group: the shared structure of `<Slider />` and `<RangeSlider />`.
- * The `base` slot carries the `--slider-track` variable, and the `color` axis
+ * The `base` slot carries the `--slider-track` and `--slider-track-ring`
+ * variables, and the `color` axis
  * sets the `--slider-fill` variable. Slider paints them through a WebKit and a
  * Gecko gradient on the native input. RangeSlider paints a fill element.
  */
@@ -18,10 +19,18 @@ export const scale = defineScale(
 )
 
 export const slider = defineGroup({
-	/** The color of the part of the track that is not filled. It is the same for each fill color. */
+	/**
+	 * The color of the part of the track that is not filled, and the color of the
+	 * inset ring of the track. They are the same for each fill color. The ring is
+	 * the off ring of a switch: it is the edge of the track, so it keeps a 3:1
+	 * contrast against the page in each mode (WCAG 1.4.11).
+	 */
 	base: mode(
-		'[--slider-track:var(--color-zinc-200)]',
-		'dark:[--slider-track:var(--color-zinc-700)]',
+		['[--slider-track:var(--color-zinc-200)]', '[--slider-track-ring:var(--color-zinc-950)]/40'],
+		[
+			'dark:[--slider-track:var(--color-zinc-700)]',
+			'dark:[--slider-track-ring:var(--color-white)]/30',
+		],
 	),
 	/** The color of the filled part of the track: the `zu.marker` shade of each hue. */
 	color: {

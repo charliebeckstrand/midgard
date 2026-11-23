@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import {
 	classifyTokens,
 	describeBatch,
+	describeRejection,
 	splitTokens,
 } from '../../components/tag-input/tag-input-utilities'
 import { intlEn } from '../../primitives/intl/intl-catalog'
@@ -103,5 +104,15 @@ describe('describeBatch', () => {
 				overLimit: 2,
 			}),
 		).toBe('Added 2 tags. c is already in the list. Tag limit reached. x is not a valid tag.')
+	})
+})
+
+describe('describeRejection', () => {
+	it.each([
+		['gives no text for no refused token', [], ''],
+		['names a single refused token', ['x'], 'x is not a valid tag.'],
+		['counts several refused tokens', ['x', 'y'], '2 not valid.'],
+	])('%s', (_name, rejected, expected) => {
+		expect(describeRejection(intlEn, rejected)).toBe(expected)
 	})
 })

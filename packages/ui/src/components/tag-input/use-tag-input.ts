@@ -30,6 +30,13 @@ type TagInputOptions = {
 	onReject?: (rejected: TokenRejection) => void
 	/** Runs after a native form reset sets the uncontrolled tags back to `defaultValue`. */
 	onReset?: () => void
+	/**
+	 * Puts the refused tokens in the live-region sentence. Set it to `false`
+	 * when an error Message tells the refusal, so a screen reader does not hear
+	 * it two times.
+	 * @defaultValue true
+	 */
+	announceRejected?: boolean
 }
 
 /**
@@ -43,8 +50,9 @@ type TagInputOptions = {
  * Layers over {@link useFormValue}: a bound `name` wins, else controlled `value`,
  * else uncontrolled state seeded from `defaultValue`. Mutators announce every
  * outcome (add, duplicate, limit, rejection) to the live region (WCAG 4.1.3,
- * 3.3.1). `addTags` is the only add path, and it takes a batch also for one
- * tag, so the keyboard and a paste commit a draft the same way.
+ * 3.3.1), but not a rejection while `announceRejected` is `false`. `addTags`
+ * is the only add path, and it takes a batch also for one tag, so the
+ * keyboard and a paste commit a draft the same way.
  *
  * @internal
  */
@@ -57,6 +65,7 @@ export function useTagInput({
 	validate,
 	onReject,
 	onReset,
+	announceRejected = true,
 }: TagInputOptions) {
 	const intl = useIntl()
 
@@ -98,7 +107,7 @@ export function useTagInput({
 
 			if (batch.accepted.length > 0) setTags([...tags, ...batch.accepted])
 
-			const said = describeBatch(intl, batch)
+			const said = describeBatch(intl, announceRejected ? batch : { ...batch, rejected: [] })
 
 			if (said !== '') announce(said)
 
@@ -115,7 +124,7 @@ export function useTagInput({
 
 			return batch.rejected
 		},
-		[tags, setTags, max, validate, onReject, intl],
+		[tags, setTags, max, validate, onReject, intl, announceRejected],
 	)
 
 	const removeTag = useCallback(

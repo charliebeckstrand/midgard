@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
+import { Control } from '../../components/control'
 import { Field, Label } from '../../components/fieldset'
 import { SwitchChoice } from '../../components/switch'
 import { Form } from '../../modules/form'
@@ -31,6 +32,30 @@ describe('SwitchChoice', () => {
 		expect(screen.getByRole('radio', { name: 'Off' })).toBe(radios[1])
 
 		expect(screen.getByRole('radio', { name: 'TL' })).toBe(radios[2])
+	})
+
+	it('sets aria-required on the group from an enclosing Control or its own prop', () => {
+		const { rerender } = renderUI(
+			<Control required>
+				<SwitchChoice aria-label="Freight" options={MODES} />
+			</Control>,
+		)
+
+		expect(screen.getByRole('radiogroup', { name: 'Freight' })).toHaveAttribute(
+			'aria-required',
+			'true',
+		)
+
+		rerender(<SwitchChoice aria-label="Freight" options={MODES} required />)
+
+		expect(screen.getByRole('radiogroup', { name: 'Freight' })).toHaveAttribute(
+			'aria-required',
+			'true',
+		)
+
+		rerender(<SwitchChoice aria-label="Freight" options={MODES} />)
+
+		expect(screen.getByRole('radiogroup', { name: 'Freight' })).not.toHaveAttribute('aria-required')
 	})
 
 	it('starts off, with the thumb in the middle', () => {

@@ -6,7 +6,7 @@ import { dataAttr } from '../../core/data-attr'
 import { useA11yLiveRegion } from '../../hooks/a11y/use-a11y-live-region'
 import { Check, Dot } from '../../primitives/icons/icons'
 import { IntlMessage } from '../../primitives/intl'
-import { defineMessages } from '../../primitives/intl/intl-messages'
+import { defineMessage, defineMessages } from '../../primitives/intl/intl-messages'
 import type { MessageDescriptor } from '../../primitives/intl/types'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/password-strength'
@@ -81,6 +81,14 @@ const messages = defineMessages({
 	},
 })
 
+/** The text of the live region: the subject, then the name of the level. */
+const statusMessage = defineMessage<{ level: string }>({
+	id: 'ui.passwordStrength.status',
+	defaultMessage: 'Password strength: {level}',
+	description:
+		'The status message that a screen reader reads when the strength changes. The level is the name of the strength, for example "Fair".',
+})
+
 /**
  * Default rule set: at least 8 characters and at least one uppercase letter,
  * digit, and symbol. The label of each rule shows in the language of the
@@ -149,7 +157,7 @@ export type PasswordStrengthProps = Omit<ComponentProps<'div'>, 'children'> & {
 	onStrengthChange?: (strength: PasswordStrengthChange) => void
 }
 
-/** Password strength meter and rule checklist driven by a `value` against a set of `rules`. Renders a native `meter` with the level as its value text, beside a decorative four-segment bar, and reports the level via `onStrengthChange`. */
+/** Password strength meter and rule checklist driven by a `value` against a set of `rules`. Renders a native `meter` with the level as its value text, beside a decorative four-segment bar. A live region announces each change as "Password strength: <level>", and the component reports the level via `onStrengthChange`. */
 export function PasswordStrength({
 	value,
 	rules = defaultPasswordRules,
@@ -189,7 +197,13 @@ export function PasswordStrength({
 					/>
 				))}
 			</div>
-			<div {...liveLabel}>{label}</div>
+			{/* The live region reads the full status, so the level word has a
+			    subject when the user hears it alone. The visible text is only
+			    the level word. */}
+			<div {...liveLabel}>
+				<span className="sr-only">{intl.formatMessage(statusMessage, { level: label })}</span>
+				<span aria-hidden="true">{label}</span>
+			</div>
 			{showRules && (
 				<ul className={k().rules}>
 					{results.map(({ rule, passed }) => (

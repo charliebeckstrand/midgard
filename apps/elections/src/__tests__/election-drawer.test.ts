@@ -221,9 +221,9 @@ describe('ElectionDrawer', () => {
 			})
 
 		const selected = (name: string) =>
-			screen.getByRole('tab', { name }).getAttribute('aria-selected')
+			screen.getByRole('radio', { name }).getAttribute('aria-checked')
 
-		fireEvent.click(screen.getByRole('tab', { name: 'By county' }))
+		fireEvent.click(screen.getByRole('radio', { name: 'By county' }))
 
 		expect(selected('By county')).toBe('true')
 
@@ -241,7 +241,7 @@ describe('ElectionDrawer', () => {
 
 		const first = render(drawer(new QueryClient()))
 
-		fireEvent.click(screen.getByRole('tab', { name: 'By county' }))
+		fireEvent.click(screen.getByRole('radio', { name: 'By county' }))
 
 		// The switch writes over the entry, so Back walks the trail and not the switches.
 		expect(window.location.search).toBe('?region=ga&office=senate&view=counties')
@@ -251,7 +251,7 @@ describe('ElectionDrawer', () => {
 
 		render(drawer(new QueryClient()))
 
-		expect(screen.getByRole('tab', { name: 'By county' }).getAttribute('aria-selected')).toBe(
+		expect(screen.getByRole('radio', { name: 'By county' }).getAttribute('aria-checked')).toBe(
 			'true',
 		)
 	})
@@ -266,13 +266,13 @@ describe('ElectionDrawer', () => {
 		const view = render(drawer(client))
 
 		const selected = (name: string) =>
-			screen.getByRole('tab', { name }).getAttribute('aria-selected')
+			screen.getByRole('radio', { name }).getAttribute('aria-checked')
 
 		// Detailed shows the party of each candidate, as the overview of the race does.
 		expect(selected('Detailed')).toBe('true')
 		expect(screen.getByText('Republican')).toBeTruthy()
 
-		fireEvent.click(screen.getByRole('tab', { name: 'Condensed' }))
+		fireEvent.click(screen.getByRole('radio', { name: 'Condensed' }))
 
 		expect(screen.queryByText('Republican')).toBeNull()
 

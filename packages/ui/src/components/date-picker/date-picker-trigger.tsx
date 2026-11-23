@@ -8,12 +8,15 @@ import type { ScaleStep } from '../../core/density/scale'
 import type { ValidationAttrs } from '../../core/validation-attrs'
 import { useTruncation } from '../../hooks/use-truncation'
 import { Calendar as CalendarIcon } from '../../primitives/icons/icons'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { SelectTrigger } from '../../primitives/select-trigger'
 import { HeadlessProvider } from '../../providers/headless'
 import type { scale } from '../../recipes/kata/date-picker'
 import { k } from '../../recipes/kata/date-picker'
 import { Button } from '../button'
+import { useControlFallbackLabel } from '../control/use-control-fallback-label'
 import { useControlSurface } from '../control/use-control-surface'
+import { dateInputMessages } from '../date-input/date-input-messages'
 import { DateTimePending } from '../date-time/date-time-pending'
 import { Icon } from '../icon'
 import { SelectionClearButton } from '../input/input-clear-button'
@@ -92,8 +95,8 @@ type DatePickerTriggerProps = {
  *
  * The button has `role="combobox"`, as on Listbox. A select-only combobox
  * takes its value from its content, so a screen reader announces the date
- * after an `aria-label` or a Field label. The role also makes `aria-readonly`
- * and `aria-required` valid.
+ * after an `aria-label` or a Field label. With neither, it takes the name
+ * "Date". The role also makes `aria-readonly` and `aria-required` valid.
  *
  * @internal
  */
@@ -131,6 +134,15 @@ export function DatePickerTrigger({
 	const [valueRef, truncated] = useTruncation<HTMLSpanElement>()
 
 	const buttonRef = useRef<HTMLButtonElement>(null)
+
+	// A combobox takes no name from its content, so a trigger with no Field label
+	// and no `aria-label` takes the name "Date", as `DateInput` does (WCAG 4.1.2).
+	const intl = useIntl()
+
+	const fallbackLabel = useControlFallbackLabel(
+		intl.formatMessage(dateInputMessages.name),
+		buttonRef,
+	)
 
 	// Mirrors the Listbox/Combobox affordance: the clear button stands in for the
 	// calendar icon while a value is set, clearing on click and returning focus
@@ -175,7 +187,7 @@ export function DatePickerTrigger({
 					type="button"
 					id={triggerId}
 					role="combobox"
-					aria-label={ariaLabel}
+					aria-label={ariaLabel ?? fallbackLabel}
 					aria-haspopup="dialog"
 					aria-expanded={open}
 					aria-controls={open ? dialogId : undefined}

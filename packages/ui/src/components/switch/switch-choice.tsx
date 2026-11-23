@@ -66,6 +66,13 @@ export type SwitchChoiceProps<T extends string = string> = Pick<SwitchVariants, 
 	 */
 	disabled?: boolean
 	/**
+	 * Marks the switch as required: the group sets `aria-required`. The off
+	 * position is not a value, so a required switch asks for one of the two
+	 * options.
+	 * @defaultValue `false`, or the state of the enclosing Control or Field.
+	 */
+	required?: boolean
+	/**
 	 * The accessible name of the middle position.
 	 * @defaultValue `'Off'`, in the language of the reader.
 	 */
@@ -90,8 +97,8 @@ type Position = 'start' | 'center' | 'end'
  *
  * Binds to an enclosing Form field by `name`. An uncontrolled switch goes back
  * to `defaultValue` on a native form reset, and `onValueChange` reports it.
- * Resolves `id` / `disabled` / `readOnly` / `invalid` from an enclosing
- * `<Control>` or `<Field>`. A `<Label as="span">` in the Field names the group
+ * Resolves `id` / `disabled` / `readOnly` / `required` / `invalid` from an
+ * enclosing `<Control>` or `<Field>`. A `<Label as="span">` in the Field names the group
  * through `aria-labelledby`. The track takes the step of the nearest density
  * scope.
  */
@@ -105,6 +112,7 @@ export function SwitchChoice<T extends string = string>({
 	color,
 	readOnly,
 	disabled,
+	required,
 	offLabel,
 	id,
 	className,
@@ -130,12 +138,14 @@ export function SwitchChoice<T extends string = string>({
 		id: resolvedId,
 		disabled: resolvedDisabled,
 		readOnly: resolvedReadOnly,
+		required: resolvedRequired,
 		'aria-describedby': describedBy,
 		validation,
 	} = useControlProps({
 		id,
 		disabled,
 		readOnly,
+		required,
 		invalid,
 		'aria-describedby': ariaDescribedBy,
 	})
@@ -242,6 +252,7 @@ export function SwitchChoice<T extends string = string>({
 			aria-labelledby={labelledBy}
 			aria-describedby={describedBy}
 			aria-readonly={ariaAttr(resolvedReadOnly)}
+			aria-required={ariaAttr(resolvedRequired)}
 			className={cn(k({ color }).choice.base, className)}
 			onBlur={handleBlur}
 		>

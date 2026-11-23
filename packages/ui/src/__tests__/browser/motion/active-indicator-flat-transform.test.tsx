@@ -31,7 +31,7 @@ describe('active indicator morph (real Motion)', () => {
 			</Segment>,
 		)
 
-		const county = screen.getByRole('tab', { name: 'By county' })
+		const county = screen.getByRole('radio', { name: 'By county' })
 
 		// A reader presses a Segment that has painted. Motion completes the mount
 		// of the indicator in a microtask after the render. A press in the task of

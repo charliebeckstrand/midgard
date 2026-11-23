@@ -23,9 +23,9 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > `CheckboxGroup` and `RadioGroup` require their own name: give `aria-label` or `aria-labelledby`. The `<legend>` of an enclosing `<fieldset>` does not name the group.
 
-> `Checkbox`, `Radio`, and `Switch` floor their hit area with `TouchTarget` ([`PRIMITIVES.md`](PRIMITIVES.md)). A container that puts bare controls closer than the floor sets `--touch-target-gap-x` or `--touch-target-gap-y` to its gap, or uses a `touch-gap-*` utility for the two. A toggle group sets them already. Controls that touch in a grid go in a container with the `touch-pitch` utility. On a coarse pointer, each control keeps its size in a cell of at least 44px. Its hit area fills the cell, as in the month picker of `Calendar`. A scroll box with no padding of its own, such as the content box of a dashboard tile, uses the `touch-scroll` utility. On a coarse pointer, a hit area at its bottom edge then stays in the box. On a coarse pointer, the days of `Calendar` fill square cells of 40, 44, or 48 px at `sm`, `md`, and `lg`. The `sm` cell is under the floor.
+> `Checkbox`, `Radio`, `Switch`, and each star of an interactive `Rating` floor their hit area with `TouchTarget` ([`PRIMITIVES.md`](PRIMITIVES.md)). A `Rating` puts each star in a column of at least the floor. At a half step, each half of a star is 24 px wide on each pointer. A container that puts bare controls closer than the floor sets `--touch-target-gap-x` or `--touch-target-gap-y` to its gap, or uses a `touch-gap-*` utility for the two. A toggle group sets them already. Controls that touch in a grid go in a container with the `touch-pitch` utility. On a coarse pointer, each control keeps its size in a cell of at least 44px. Its hit area fills the cell, as in the month picker of `Calendar`. A scroll box with no padding of its own, such as the content box of a dashboard tile, uses the `touch-scroll` utility. On a coarse pointer, a hit area at its bottom edge then stays in the box. On a coarse pointer, the days of `Calendar` fill square cells of 40, 44, or 48 px at `sm`, `md`, and `lg`. The `sm` cell is under the floor.
 
-> A `RadioGroup` in a `Field` takes the description of the `Field`. A bare `Radio` in the group does not take the id of the `Field`. Wrap each `Radio` in a `RadioField` to give it an id and a `Label`.
+> A `RadioGroup` or a `CheckboxGroup` in a `Field` takes the description and the error message of the `Field`. A bare `Radio` or `Checkbox` in the group does not take the id of the `Field`. Wrap each `Radio` in a `RadioField`, or each `Checkbox` in a `CheckboxField`, to give it an id and a `Label`. A checkbox in a `CheckboxGroup` does not take the `required` state of a `Control`, because that state is for the group.
 
 > A `readOnly` or `disabled` `rating` renders one image. Its name is the name of the consumer or the `Field` label.
 
@@ -33,13 +33,19 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > On a phone (`PHONE_QUERY`, [`UTILITIES.md`](UTILITIES.md)), a dropdown `Menu` and a `DatePicker` open as a bottom sheet in place of the popover. Set `sheet={false}` to keep the popover.
 
+> The dialog of a `DatePicker` follows the WAI-ARIA APG date picker dialog. The open moves DOM focus to the selected day, else today, else the first enabled day, and the `Calendar` keyboard moves the focus. The `input` mode keeps the focus in the text field and points its `aria-activedescendant` at the id of the highlighted day. A `Calendar` with a `listboxId` gives each day the id `<listboxId>-<YYYY-MM-DD>`. `CalendarRange` selects each day of the committed range.
+
 > The date text of `Intl` in `calendar` and `date-picker` waits for hydration, as in `date-time`. The server render and the hydration render show a skeleton of the month label, of the weekday row, and of the value in the trigger. The skeleton holds English text, without `Intl`, so it has about the size of the label. A `date-picker` with a pinned `format` writes its value without `Intl`, so it shows the value in the server render.
 
 > A `required` `tag-input` needs at least one tag. An enclosing `Control` can also make it required. A native form submit stops while the list is empty, and the typed draft does not count as a tag.
 
+> A `tag-input` keeps the tokens that `validate` refuses in the draft and shows its `invalidMessage` below the field until the next keystroke. Give `invalidMessage={null}` to show no message. The live region then announces the refusal.
+
 > The tags of a `tag-input` stay on one row and scroll on the inline axis. With `wrap`, they wrap onto more rows, and the add button stays at the end of the first row. The affixes of each other input stay on one row with the input.
 
-> `checkbox`, `switch`, `RadioGroup`, and `ColorPicker` take `readOnly` from their own prop or from an enclosing `Control`.
+> `checkbox`, `switch`, `RadioGroup`, and `ColorPicker` take `readOnly` from their own prop or from an enclosing `Control`. `Rating`, `SwitchChoice`, and `ColorPicker` set `aria-required` from their own `required` prop or from an enclosing `Control`.
+
+> The `ColorPicker` trigger is a `combobox`, as the `DatePicker` trigger is. Its value is the hex code that it shows. Each preset swatch has a coarse color name and its hex code as its name, such as "Red, #EF4444".
 
 > A read-only control shows the default cursor, not the pointer: on the control, on its `Field` label, and on the affix of a picker trigger. A control that is also disabled shows `not-allowed`. The shared `hannou.cursor` reads `aria-readonly="true"`, `data-readonly`, or the native `readonly` on the element or a descendant.
 
@@ -49,6 +55,10 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > `Control` broadcasts the state of a `Field` to one control-aware descendant. Its `variant` sets the surface of that control, also of a `Listbox`, `Combobox`, `DatePicker`, or `ColorPicker` trigger. A `soft` control has no border and a translucent wash, so it reads on a glass panel. A `bare` control draws no frame and no focus ring, for a host that draws them, such as a `Grid` cell around its editor. `Form` and its filter bar are parts of the `form` module ([`MODULES.md`](MODULES.md)).
 
+> A disabled `Fieldset` disables the Control cascade in it. Thus a control that is not form-associated, such as a `SignaturePad` or the track of a `RangeSlider`, is disabled too. `Fieldset` is a client component.
+
+> Only a `Message` with no form binding is a live region: an `error` message is `role="alert"`, and a `warning` or `success` message is `role="status"`. A polite message that mounts after its `Field` also sends its text to the shared announcer. A form-bound `Message` is not a live region. It stays in the `aria-describedby` of the control, and the focus move of a refused submit speaks it.
+
 ## Buttons & actions
 
 `button` · `copy-button` · `hold-button` · `toggle-icon-button`
@@ -56,6 +66,8 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 > For a copy control with a text label, use `useCopyButtonState` from `copy-button`.
 
 > A `Button` in a locked Control scope, such as a `Form` while a submit runs, is `aria-disabled` and cancels its click. It stays in the tab order. A `HoldButton` there starts no hold, and a lock that comes during a hold cancels it. Pass `lockable={false}` to keep either live. A library button that writes no field, such as a `Tab`, a `CopyButton`, or a `ToggleIconButton`, stays live. So does the standard close button of an overlay, and the Cancel button of `Confirm`, also when the overlay opens from inside a locked `Form`. A field in the overlay locks with the form. A `Tab` or a `SegmentItem` that writes a value, such as the AND/OR segment of a query group, takes `lockable` and locks.
+
+> A `HoldButton` has the built-in description "Press and hold to confirm". Assistive technology can send a click with no pointer press and no key press, and such a click cannot start a hold. It arms a confirm step, and a second such click in the next five seconds completes the action.
 
 ## Navigation
 
@@ -94,6 +106,8 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 ## Layout & surfaces
 
 `group` · `card` · `divider` · `aspect-ratio` · `resizable` · `collapse` · `accordion` · `segment` · `placeholder`
+
+> A `Segment` with no `TabContents` and no `TabContent` picks a value, so it is a `radiogroup` of `radio` items. An arrow key moves the focus and selects the item. A `Segment` with panels keeps the tab roles. A `Segment` with `activation="manual"` also keeps the tab roles: an arrow key moves only the focus, and Enter or Space selects the item. Use it when a pick shows a different view or writes the address.
 
 > For a custom trigger or panel in an `AccordionItem`, use `useAccordionItem` from `accordion`. It gives the open state, `toggle`, and the ARIA props of the trigger and the panel. A custom trigger that spreads `triggerProps` takes part in the arrow keys of the accordion.
 

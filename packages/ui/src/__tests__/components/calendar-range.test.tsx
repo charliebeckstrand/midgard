@@ -1,6 +1,6 @@
 import { describe, expect, vi } from 'vitest'
 import { CalendarRange } from '../../components/calendar/calendar-range'
-import { bySlot, fireEvent, renderUI, screen } from '../helpers'
+import { act, bySlot, fireEvent, renderUI, screen } from '../helpers'
 import { it } from '../helpers/fake-clock'
 
 function d(year: number, month: number, day: number) {
@@ -36,12 +36,16 @@ describe('CalendarRange', () => {
 		expect(screen.getByRole('listbox')).toHaveAttribute('aria-multiselectable', 'true')
 	})
 
-	it('marks cells inside the range with a soft background', () => {
+	it('selects the cells inside the range and paints them with a soft background', () => {
 		renderUI(<CalendarRange rangeStart={d(2024, 3, 5)} rangeEnd={d(2024, 3, 10)} />)
 
 		const inside = findDay(7)
 
-		expect(inside).toHaveAttribute('aria-selected', 'false')
+		expect(inside).toHaveAttribute('aria-selected', 'true')
+
+		expect(inside).toHaveAttribute('data-variant', 'soft')
+
+		expect(findDay(11)).toHaveAttribute('aria-selected', 'false')
 
 		expect(inside?.className).toContain('rounded-none')
 	})
@@ -87,10 +91,25 @@ describe('CalendarRange', () => {
 		expect(onHoverDateChange).toHaveBeenCalledWith(null)
 	})
 
-	it('uses hoverDate for the effective range end when provided', () => {
+	it('calls onHoverDateChange with the day that gets the focus', () => {
+		const onHoverDateChange = vi.fn()
+
+		renderUI(<CalendarRange rangeStart={d(2024, 3, 5)} onHoverDateChange={onHoverDateChange} />)
+
+		act(() => findDay(9)?.focus())
+
+		expect(onHoverDateChange).toHaveBeenCalledWith(d(2024, 3, 9))
+	})
+
+	it('paints the hoverDate preview as the range end but selects only the start', () => {
 		renderUI(<CalendarRange rangeStart={d(2024, 3, 5)} hoverDate={d(2024, 3, 8)} />)
 
-		expect(findDay(8)).toHaveAttribute('aria-selected', 'true')
+		expect(findDay(5)).toHaveAttribute('aria-selected', 'true')
+
+		// The preview end paints as an endpoint, but the reader has not picked it.
+		expect(findDay(8)).toHaveAttribute('aria-selected', 'false')
+
+		expect(findDay(8)).toHaveAttribute('data-variant', 'solid')
 
 		expect(findDay(7)).toHaveAttribute('aria-selected', 'false')
 

@@ -221,9 +221,9 @@ describe('QueryBuilder', () => {
 
 		for (const input of inputs) expect(input).toHaveAttribute('disabled')
 
-		const tabs = screen.getAllByRole('tab')
+		const tabs = screen.getAllByRole('radio')
 
-		// An AND and an OR tab before each child after the first.
+		// An AND and an OR radio before each child after the first.
 		expect(tabs).toHaveLength(2 * 4)
 
 		for (const tab of tabs) expect(tab).toHaveAttribute('disabled')
@@ -431,7 +431,7 @@ describe('QueryBuilderGroup', () => {
 		renderUI(<QueryBuilder fields={fields} value={tree} onValueChange={onChange} />)
 
 		// Click the OR option on the segment between the two rules.
-		fireEvent.click(screen.getByRole('tab', { name: 'OR' }))
+		fireEvent.click(screen.getByRole('radio', { name: 'OR' }))
 
 		const next = onChange.mock.calls.at(-1)?.[0]
 
@@ -449,7 +449,7 @@ describe('QueryBuilderGroup', () => {
 			</ControlLockContext>,
 		)
 
-		const or = screen.getByRole('tab', { name: 'OR' })
+		const or = screen.getByRole('radio', { name: 'OR' })
 
 		expect(or).toHaveAttribute('aria-disabled', 'true')
 
@@ -1103,9 +1103,9 @@ describe('QueryBuilder reorder grips', () => {
 
 		expect(nodes).toHaveLength(2)
 
-		for (const node of nodes) expect(within(node).queryByRole('tablist')).toBeNull()
+		for (const node of nodes) expect(within(node).queryByRole('radiogroup')).toBeNull()
 
-		expect(screen.getByRole('tablist', { name: 'Combinator' })).toBeInTheDocument()
+		expect(screen.getByRole('radiogroup', { name: 'Combinator' })).toBeInTheDocument()
 	})
 
 	it('disables each grip when the builder is disabled', () => {

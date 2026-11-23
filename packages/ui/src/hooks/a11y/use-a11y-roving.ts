@@ -1090,6 +1090,39 @@ function handleTypeahead(
 }
 
 /**
+ * The mark that each live roving container carries. A container that holds
+ * another roving container reads it to find the nearest one.
+ */
+const ROVING_ROOT = 'data-roving-root'
+
+/**
+ * Whether a nearer roving container inside `container` holds the target of the
+ * key. That container moves the focus for the key, so `container` does not
+ * move it again. Without this rule, a Segment in a Toolbar moves two items for
+ * each arrow key. A target outside `container`, such as the input that holds
+ * the focus in virtual mode, belongs to no nearer container.
+ *
+ * @internal
+ */
+function ownedByNearerRoving(target: EventTarget | null, container: HTMLElement | null): boolean {
+	if (!container || !(target instanceof Element)) return false
+
+	const nearest = target.closest(`[${ROVING_ROOT}]`)
+
+	return nearest !== null && nearest !== container && container.contains(nearest)
+}
+
+/**
+ * Whether the hook takes a key: it navigates, and no nearer roving container
+ * holds the target of the key ({@link ownedByNearerRoving}).
+ *
+ * @internal
+ */
+function takesKey(enabled: boolean, target: EventTarget | null, container: HTMLElement | null) {
+	return enabled && !ownedByNearerRoving(target, container)
+}
+
+/**
  * Focus-mode `Escape`: drops focus from the item inside `container`. Virtual
  * mode is out of scope, because its focus sits on an owning input.
  *
@@ -1325,6 +1358,10 @@ export type RovingOptions = NavigationConfig & {
  * the browser, which reads such a chord for its history or its page. The
  * activation key keeps its modifier keys.
  *
+ * A key whose target is inside a nearer roving container, such as a Segment in
+ * a Toolbar, is for that container, so this hook ignores it. Each live container
+ * carries the `data-roving-root` mark for this rule.
+ *
  * A key skips each item under an `inert` ancestor: an arrow, Home, End,
  * type-ahead, the Tab trap, and the activation key. An exiting group is inert
  * until it unmounts, so focus does not move to a row that then goes. A
@@ -1370,6 +1407,20 @@ export function useA11yRoving(
 	const actionSelector = row?.actionSelector
 
 	const typeaheadMatchers = useTypeahead()
+
+	// Marks the container while the hook navigates, so a roving container around
+	// it leaves the keys of its items to it (`ownedByNearerRoving`).
+	useEffect(() => {
+		if (!enabled) return
+
+		const container = containerRef.current
+
+		if (!container) return
+
+		container.setAttribute(ROVING_ROOT, '')
+
+		return () => container.removeAttribute(ROVING_ROOT)
+	}, [containerRef, enabled])
 
 	// Focus-mode single-tab-stop ownership. Seats exactly one matched item at
 	// `tabIndex=0` and demotes the rest to `-1`, re-running as the subtree mutates
@@ -1451,7 +1502,7 @@ export function useA11yRoving(
 
 	return useCallback(
 		(event: KeyboardEvent) => {
-			if (!enabled) return
+			if (!takesKey(enabled, event.target, containerRef.current)) return
 
 			if (handleEscapeBlur(event, containerRef.current, escapeBlurs, mode)) return
 

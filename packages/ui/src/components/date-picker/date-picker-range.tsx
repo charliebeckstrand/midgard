@@ -13,7 +13,8 @@ import { useDatePickerSheet } from './use-date-picker-sheet'
 /**
  * Range variant of {@link DatePicker}: a `CalendarRange` in the popover with a
  * two-tap start/end selection, committing `[Date, Date]`. Rendered by
- * `DatePicker` when `range` is set.
+ * `DatePicker` when `range` is set. The open moves DOM focus to the entry day
+ * of the calendar, and the calendar owns the keys of the dialog.
  *
  * @internal
  */
@@ -55,7 +56,7 @@ export function DatePickerRange(props: DatePickerBaseProps & DatePickerRangeProp
 				size={size}
 				sheet={sheet}
 				footer={<DatePickerFooter {...footer} />}
-				onKeyDown={state.onTriggerKeyDown}
+				initialFocusRef={state.entryFocusRef}
 			>
 				<CalendarRange
 					ref={calendarRef}
@@ -67,7 +68,8 @@ export function DatePickerRange(props: DatePickerBaseProps & DatePickerRangeProp
 					hoverDate={calendar.hoverDate}
 					onHoverDateChange={calendar.onHoverDateChange}
 					onMonthChange={props.onMonthChange}
-					active={calendar.active}
+					listboxId={calendar.listboxId}
+					footerRef={calendar.footerRef}
 				/>
 			</DatePickerContent>
 		</>

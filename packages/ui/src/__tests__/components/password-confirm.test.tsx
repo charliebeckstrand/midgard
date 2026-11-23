@@ -39,6 +39,34 @@ function renderPair(
 	)
 }
 
+describe('PasswordConfirm autocomplete', () => {
+	it('gives both fields the new-password token', () => {
+		renderPair()
+
+		const { password, confirm } = passwordInputs()
+
+		// A password manager offers a new password only on this token (WCAG 1.3.5).
+		expect(password).toHaveAttribute('autocomplete', 'new-password')
+
+		expect(confirm).toHaveAttribute('autocomplete', 'new-password')
+	})
+
+	it('lets a caller override the token', () => {
+		renderUI(
+			<PasswordConfirm>
+				<PasswordConfirmNew name="password" autoComplete="off" />
+				<PasswordConfirmRepeat name="confirm" autoComplete="off" />
+			</PasswordConfirm>,
+		)
+
+		const { password, confirm } = passwordInputs()
+
+		expect(password).toHaveAttribute('autocomplete', 'off')
+
+		expect(confirm).toHaveAttribute('autocomplete', 'off')
+	})
+})
+
 describe('PasswordConfirmRepeat', () => {
 	it('records the value when the caller onChange prevents the default', () => {
 		// CONVENTIONS.md §3.9: the caller's handler runs first, and its

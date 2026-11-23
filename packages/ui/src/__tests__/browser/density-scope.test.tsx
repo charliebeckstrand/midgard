@@ -947,7 +947,11 @@ describe('density scopes on families (real browser)', () => {
 			</DensityProvider>,
 		)
 
-		expect(Number.parseFloat(getComputedStyle(screen.getByRole('tab')).fontSize)).toBe(font)
+		expect(
+			Number.parseFloat(
+				getComputedStyle(screen.getByRole(variant === 'segment' ? 'radio' : 'tab')).fontSize,
+			),
+		).toBe(font)
 	})
 
 	it('pads the sidebar layout content at the step of a compact provider', () => {

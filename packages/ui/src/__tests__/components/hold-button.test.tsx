@@ -1,9 +1,10 @@
+import { screen } from '@testing-library/react'
 import { animate } from 'motion'
 import { Activity, type FormEvent } from 'react'
 import { afterEach, beforeEach, describe, expect, vi } from 'vitest'
 import { HoldButton, type HoldButtonProps } from '../../components/hold-button'
 import { ControlLockContext } from '../../primitives/control/context'
-import { bySlot, fireEvent, getSlot, present, renderUI } from '../helpers'
+import { bySlot, expectAnnouncement, fireEvent, getSlot, present, renderUI } from '../helpers'
 import { it, onFakeClock } from '../helpers/fake-clock'
 
 // `animate` is the shared module spy (setup/module-mocks.ts). The stub runs no
@@ -486,6 +487,150 @@ describe('HoldButton', () => {
 	// The caller's handler runs first (CONVENTIONS.md §3.9). A caller
 	// `preventDefault()` can keep a hold from starting, but never from ending: a
 	// skipped cancel would leave the timer to fire `onHoldComplete` after release.
+	describe('instruction', () => {
+		it('describes the button with the hold instruction, after a caller description', () => {
+			renderUI(
+				<>
+					<span id="note">Removes each rule</span>
+					<HoldButton aria-describedby="note">Remove</HoldButton>
+				</>,
+			)
+
+			const el = screen.getByRole('button', { name: 'Remove' })
+
+			expect(el).toHaveAccessibleDescription('Removes each rule Press and hold to confirm')
+		})
+	})
+
+	describe('activation from assistive technology', () => {
+		onFakeClock()
+
+		it('arms on a click with no press, and completes on a second such click', async ({ clock }) => {
+			const onHoldComplete = vi.fn()
+
+			const { el } = renderHold({ onHoldComplete })
+
+			fireEvent.click(el)
+
+			expect(onHoldComplete).not.toHaveBeenCalled()
+
+			await expectAnnouncement('Activate again to confirm')
+
+			expect(el).toHaveAccessibleDescription('Activate again to confirm')
+
+			await clock.advance(1000)
+
+			fireEvent.click(el)
+
+			expect(onHoldComplete).toHaveBeenCalledOnce()
+
+			expect(el).toHaveAccessibleDescription('Press and hold to confirm')
+		})
+
+		it('disarms when the confirm window ends', async ({ clock }) => {
+			const onHoldComplete = vi.fn()
+
+			const { el } = renderHold({ onHoldComplete })
+
+			fireEvent.click(el)
+
+			await clock.advance(5000)
+
+			expect(el).toHaveAccessibleDescription('Press and hold to confirm')
+
+			fireEvent.click(el)
+
+			expect(onHoldComplete).not.toHaveBeenCalled()
+		})
+
+		const pointerPress = (el: HTMLElement) => {
+			fireEvent.pointerDown(el, PRESS)
+
+			fireEvent.pointerUp(el)
+		}
+
+		const enterPress = (el: HTMLElement) => {
+			fireEvent.keyDown(el, { key: 'Enter' })
+
+			fireEvent.keyUp(el, { key: 'Enter' })
+		}
+
+		const prevent = (event: { preventDefault: () => void }) => event.preventDefault()
+
+		it.for([
+			['a pointer press', {}, pointerPress],
+			['an Enter keydown', {}, enterPress],
+			// A caller `preventDefault()` stops the hold, but the click still follows.
+			['a caller-prevented pointer press', { onPointerDown: prevent }, pointerPress],
+		] as const)('neither arms nor completes on the click that follows %s', ([_, props, press]) => {
+			const onHoldComplete = vi.fn()
+
+			const { el } = renderHold({ ...props, onHoldComplete })
+
+			for (let i = 0; i < 3; i++) {
+				press(el)
+
+				fireEvent.click(el)
+			}
+
+			expect(onHoldComplete).not.toHaveBeenCalled()
+
+			expect(el).toHaveAccessibleDescription('Press and hold to confirm')
+		})
+
+		it('marks each repeat of a held Enter as a press', () => {
+			const onHoldComplete = vi.fn()
+
+			const { el } = renderHold({ onHoldComplete })
+
+			fireEvent.keyDown(el, { key: 'Enter' })
+
+			fireEvent.click(el)
+
+			fireEvent.keyDown(el, { key: 'Enter', repeat: true })
+
+			fireEvent.click(el)
+
+			expect(onHoldComplete).not.toHaveBeenCalled()
+
+			expect(el).toHaveAccessibleDescription('Press and hold to confirm')
+		})
+
+		it('submits the form on the confirm click of a submit button', () => {
+			const onSubmit = vi.fn((event: FormEvent<HTMLFormElement>) => {
+				event.preventDefault()
+			})
+
+			const { container } = renderUI(
+				<form onSubmit={onSubmit}>
+					<HoldButton type="submit">Delete</HoldButton>
+				</form>,
+			)
+
+			const el = getSlot(container, 'hold-button')
+
+			fireEvent.click(el)
+
+			expect(onSubmit).not.toHaveBeenCalled()
+
+			fireEvent.click(el)
+
+			expect(onSubmit).toHaveBeenCalledOnce()
+		})
+	})
+
+	describe('hit area', () => {
+		it('clips the fill in a wrapper, so the button does not clip its TouchTarget', () => {
+			const { el } = renderHold()
+
+			expect(el).not.toHaveClass('overflow-hidden')
+
+			const fill = present(el.querySelector('[style]'), 'fill')
+
+			expect(fill.parentElement).toHaveClass('overflow-hidden')
+		})
+	})
+
 	describe('handler composition', () => {
 		onFakeClock()
 

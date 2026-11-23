@@ -13,8 +13,9 @@ export type FormErrorSummaryItem = {
 
 /**
  * Gives one row for each field of `errors` that has an issue, in the order of
- * the map. A submit writes the map in the order of the validators, which is the
- * order of the fields in most forms.
+ * the map. The map can have an order that is not the order of the fields, so
+ * `FormErrorSummary` then sorts the rows by the position of each control in the
+ * document.
  *
  * @remarks A row holds the first issue of its field, as a form-bound `Message`
  * shows it.

@@ -87,7 +87,7 @@ export type CalendarDayContextValue = {
 	active: boolean
 }
 
-/** Per-day overrides returned from {@link CalendarProps.getDayProps}: selection, button variant/color, hover handlers, and classes. */
+/** Per-day overrides returned from {@link CalendarProps.getDayProps}: selection, button variant/color, hover and focus handlers, and classes. */
 export type CalendarDayProps = {
 	selected?: boolean
 	variant?: ButtonVariants['variant']
@@ -95,6 +95,8 @@ export type CalendarDayProps = {
 	className?: string
 	onMouseEnter?: () => void
 	onMouseLeave?: () => void
+	/** Fires when the day button gets DOM focus, as when an arrow key moves to it. */
+	onFocus?: () => void
 }
 
 /** Props for {@link Calendar}: value binding, range bounds, the `isDayDisabled` day rule, locale/size, the `getDayProps` cell hook, and the imperative `ref`. */
@@ -179,14 +181,13 @@ export type CalendarProps = {
 	 * Id for the day `role="listbox"`, so a parent that keeps DOM focus on its
 	 * own input (e.g. DatePicker `input` mode) can point that input's
 	 * `aria-controls` at the grid the roving cursor moves through.
+	 *
+	 * With an id, each day cell has the id `<listboxId>-<YYYY-MM-DD>`, from the
+	 * local day of the cell. The id of a day does not move to another cell. The
+	 * parent sets the `aria-activedescendant` of its input to the id of the day
+	 * that `active` highlights. That is the active-descendant pattern.
 	 */
 	listboxId?: string
-	/**
-	 * Id stamped on the active grid cell. A parent that keeps DOM focus on its
-	 * own input can point that input's `aria-activedescendant` at the roved day.
-	 * That is the active-descendant pattern; it pairs with `active` and `listboxId`.
-	 */
-	activeDescendantId?: string
 	/**
 	 * Marks the day listbox `aria-multiselectable`. Set it when `getDayProps`
 	 * selects more than one day, as {@link CalendarRange} does for its two
@@ -297,7 +298,6 @@ export function Calendar({
 	getDayProps,
 	footerRef,
 	listboxId,
-	activeDescendantId,
 	multiselectable,
 	ref,
 	locale,
@@ -490,7 +490,6 @@ export function Calendar({
 				pending={!hydrated}
 				localeTag={localeTag}
 				listboxId={listboxId}
-				activeDescendantId={activeDescendantId}
 				multiselectable={multiselectable}
 			/>
 		</Box>

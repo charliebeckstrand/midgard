@@ -50,7 +50,7 @@ export function DatePickerSingle(props: DatePickerBaseProps & DatePickerSinglePr
 		open,
 		onTriggerKeyDown,
 		listboxId,
-		activeDescendantId,
+		entryFocusRef,
 		setReference,
 		getReferenceProps,
 		value,
@@ -79,11 +79,17 @@ export function DatePickerSingle(props: DatePickerBaseProps & DatePickerSinglePr
 		floatingRef: floatingRef,
 	})
 
+	// The text field keeps DOM focus only in the `input` popover, and the picker
+	// then steers a highlight of the grid. The sheet is modal and covers the
+	// reference, so it takes the focus as the popover without `input` does:
+	// DOM focus goes to a day, and the calendar owns the keys.
+	const steered = input && !sheet
+
 	// With `input`, the dialog's Tab edges hand focus back to the reference
-	// group before the virtual model sees the key. The sheet is modal and covers
-	// the reference, so its Tab cycle stays in the sheet.
-	const handleContentKeyDown =
-		input && !sheet ? composeEventHandlers(onDialogKeyDown, onTriggerKeyDown) : onTriggerKeyDown
+	// group before the keyboard model sees the key.
+	const handleContentKeyDown = steered
+		? composeEventHandlers(onDialogKeyDown, onTriggerKeyDown)
+		: undefined
 
 	const getTriggerElements = () => (triggerRef.current ? [triggerRef.current] : [])
 
@@ -104,11 +110,11 @@ export function DatePickerSingle(props: DatePickerBaseProps & DatePickerSinglePr
 			sheet={sheet}
 			footer={<DatePickerFooter {...footer} />}
 			onKeyDown={handleContentKeyDown}
-			// `input` mode seeds open-focus on the editable DateInput (not the dialog
-			// container) so the user can type and the same keydown stream roves the
-			// grid via the input's `aria-activedescendant`. The button-trigger variant
-			// keeps the container-focus virtual-highlight default.
-			initialFocusRef={focusHomeRef}
+			// The steered popover seeds open-focus on the editable DateInput, so the
+			// user can type and the same keydown stream roves the grid via the
+			// input's `aria-activedescendant`. Else the focus goes to the entry day:
+			// the selected day, else today, else the first enabled day.
+			initialFocusRef={steered ? focusHomeRef : entryFocusRef}
 			// The reference group stays editable (and Tab-reachable via
 			// useDatePickerInputTab) while open, so it must stay out of the modal
 			// trap's aria-hidden marking. Non-input mode keeps the standard
@@ -121,10 +127,10 @@ export function DatePickerSingle(props: DatePickerBaseProps & DatePickerSinglePr
 				onDayClick={calendar.onDayClick}
 				min={props.min}
 				max={props.max}
-				active={calendar.active}
+				active={steered ? calendar.active : undefined}
 				onMonthChange={props.onMonthChange}
 				listboxId={listboxId}
-				activeDescendantId={activeDescendantId}
+				footerRef={calendar.footerRef}
 			/>
 		</DatePickerContent>
 	)

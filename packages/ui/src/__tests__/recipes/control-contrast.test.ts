@@ -1,11 +1,15 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from 'vitest'
 
+import { k as colorPanel } from '../../recipes/kata/color-panel'
 import { k as jsonTree } from '../../recipes/kata/json-tree'
 import { k as radio } from '../../recipes/kata/radio'
+import { k as rating } from '../../recipes/kata/rating'
+import { k as slider } from '../../recipes/kata/slider'
+import { k as rangeSlider } from '../../recipes/kata/slider-range'
 import { k as switchKata } from '../../recipes/kata/switch'
 import { k as text } from '../../recipes/kata/text'
-import { kasane } from '../../recipes/kiso'
+import { kasane, sen } from '../../recipes/kiso'
 import { check } from '../../recipes/kumi/check'
 import { item } from '../../recipes/kumi/item'
 import { contrastRatio, WCAG_AA_TEXT, WCAG_NON_TEXT } from '../../utilities/contrast'
@@ -85,6 +89,105 @@ describe('Switch track edge contrast', () => {
 		const edged = tinted(only(classes, edge), track)
 
 		expect(contrastRatio(edged, SURFACE[mode])).toBeGreaterThanOrEqual(WCAG_NON_TEXT)
+	})
+})
+
+describe('Switch checked track edge contrast', () => {
+	const classes = classNames([switchKata({ color: 'zinc' }).base])
+
+	it.for([
+		{ mode: 'light', fill: /^\[--switch-bg:/, edge: /^\[--switch-bg-ring:/ },
+		{ mode: 'dark', fill: /^dark:\[--switch-bg:/, edge: /^dark:\[--switch-bg-ring:/ },
+	] as const)(
+		'the zinc checked track clears 3:1 against the $mode page',
+		({ mode, fill, edge }) => {
+			const track = tinted(only(classes, fill), SURFACE[mode])
+
+			const edged = tinted(only(classes, edge), track)
+
+			expect(contrastRatio(edged, SURFACE[mode])).toBeGreaterThanOrEqual(WCAG_NON_TEXT)
+		},
+	)
+})
+
+describe('Slider edge contrast', () => {
+	const group = classNames([slider({}).base])
+
+	// At the minimum value the track has no fill, so the ring of the track and the
+	// ring of the thumb are the only edges that show the control.
+	it.for([
+		{ mode: 'light', fill: /^\[--slider-track:/, edge: /^\[--slider-track-ring:/ },
+		{ mode: 'dark', fill: /^dark:\[--slider-track:/, edge: /^dark:\[--slider-track-ring:/ },
+	] as const)('the track ring clears 3:1 against the $mode page', ({ mode, fill, edge }) => {
+		const track = tinted(only(group, fill), SURFACE[mode])
+
+		const edged = tinted(only(group, edge), track)
+
+		expect(contrastRatio(edged, SURFACE[mode])).toBeGreaterThanOrEqual(WCAG_NON_TEXT)
+	})
+
+	it('each slider paints the ring of the track', () => {
+		const native = classNames([slider({}).base])
+
+		expect(native).toContain('[&::-webkit-slider-runnable-track]:ring-(--slider-track-ring)')
+
+		expect(native).toContain('[&::-moz-range-track]:ring-(--slider-track-ring)')
+
+		expect(classNames([rangeSlider({}).track])).toContain('ring-(--slider-track-ring)')
+	})
+
+	it.for([
+		{
+			name: 'native WebKit',
+			classes: sen.ring.thumb,
+			ring: /^(dark:)?\[&::-webkit-slider-thumb\]:ring-(zinc|white)/,
+		},
+		{
+			name: 'native Gecko',
+			classes: sen.ring.thumb,
+			ring: /^(dark:)?\[&::-moz-range-thumb\]:ring-(zinc|white)/,
+		},
+		{ name: 'RangeSlider', classes: rangeSlider({}).thumb, ring: /^(dark:)?ring-(zinc|white)/ },
+	])('the $name thumb ring clears 3:1 against the page in each mode', ({ classes, ring }) => {
+		const rings = classNames([classes]).filter((className) => ring.test(className))
+
+		const light = only(rings, /^[^d]/)
+
+		const dark = only(rings, /^dark:/)
+
+		expect(contrastRatio(tinted(light, SURFACE.light), SURFACE.light)).toBeGreaterThanOrEqual(
+			WCAG_NON_TEXT,
+		)
+
+		expect(contrastRatio(tinted(dark, SURFACE.dark), SURFACE.dark)).toBeGreaterThanOrEqual(
+			WCAG_NON_TEXT,
+		)
+	})
+})
+
+describe('Rating empty star contrast', () => {
+	const classes = classNames([rating({}).track])
+
+	it('the empty star clears 3:1 against the page in each mode', () => {
+		expect(getContrast(only(classes, /^text-zinc-\d+$/), SURFACE.light)).toBeGreaterThanOrEqual(
+			WCAG_NON_TEXT,
+		)
+
+		expect(getContrast(only(classes, /^dark:text-zinc-\d+$/), SURFACE.dark)).toBeGreaterThanOrEqual(
+			WCAG_NON_TEXT,
+		)
+	})
+})
+
+describe('ColorPanel handle contrast', () => {
+	// The white corner of the area is the hardest ground of the handle. The white
+	// border shows the handle on a dark color.
+	it('the outer ring clears 3:1 on white', () => {
+		const edge = only(colorPanel({}).handle, /^ring-black\/\d+$/)
+
+		expect(contrastRatio(tinted(edge, SURFACE.light), SURFACE.light)).toBeGreaterThanOrEqual(
+			WCAG_NON_TEXT,
+		)
 	})
 })
 

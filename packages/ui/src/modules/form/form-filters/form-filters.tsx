@@ -184,8 +184,14 @@ export function FormFilters<T extends FilterValue = FilterValue>({
 			<FormFiltersNameContext value={name}>
 				{/* `min-w-auto` replaces the min-content floor of a `<fieldset>`, so the
 			    bar sizes as a `<div>` does. The anchor comes after the spread, because
-			    `FormFiltersClear` finds the bar by it. */}
-				<fieldset {...props} data-slot="form-filters" className={cn(k().base, className)}>
+			    `FormFiltersClear` finds the bar by it. The bar takes the focus from a
+			    clear trigger that hides, and it is not a tab stop. */}
+				<fieldset
+					{...props}
+					data-slot="form-filters"
+					tabIndex={-1}
+					className={cn(k().base, className)}
+				>
 					<FormProvider store={store} actions={formActions} resets={resets}>
 						{/* A bar inside a Form holds its own fields. It unlocks them while the
 						Form submits, and keeps them out of the targets of its summary. */}

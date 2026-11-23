@@ -29,7 +29,7 @@ describe('layout stability (real browser): portal pickers in a space-y container
 		{
 			name: 'ColorPicker',
 			element: <ColorPicker defaultValue="#ef4444" />,
-			triggerRole: 'button',
+			triggerRole: 'combobox',
 			panelRole: 'dialog',
 			controlSlot: 'control',
 		},

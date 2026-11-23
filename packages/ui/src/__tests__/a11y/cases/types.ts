@@ -56,7 +56,10 @@ type TextInputProbe = {
 	disabled?: boolean
 }
 
-/** A text field whose ref, placeholder, and disabled state reach its editable element. */
+/**
+ * A text field whose ref, placeholder, and disabled state reach its editable
+ * element. Enter keeps the focus in that element.
+ */
 export type TextInputSubject = {
 	/** Renders the subject with `props` on the component under test. */
 	render: (props: TextInputProbe) => ReactElement
@@ -157,7 +160,10 @@ export type Case = Scenario & {
 	 * slider and the range slider.
 	 */
 	density?: readonly DensitySubject[]
-	/** Text fields whose ref, placeholder, and disabled state reach the editable element. */
+	/**
+	 * Text fields whose ref, placeholder, and disabled state reach the editable
+	 * element, and whose editable element keeps the focus on Enter.
+	 */
 	textInput?: readonly TextInputSubject[]
 	/** Form-bound controls whose blur marks the field touched, whatever the caller's `onBlur` does. */
 	touchOnBlur?: readonly TouchOnBlurSubject[]

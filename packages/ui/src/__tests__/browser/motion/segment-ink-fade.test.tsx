@@ -21,9 +21,9 @@ describe('Segment item ink', () => {
 			</Segment>,
 		)
 
-		const list = screen.getByRole('tab', { name: 'List' })
+		const list = screen.getByRole('radio', { name: 'List' })
 
-		const cards = screen.getByRole('tab', { name: 'Cards' })
+		const cards = screen.getByRole('radio', { name: 'Cards' })
 
 		const transition = getComputedStyle(cards).transitionProperty
 
@@ -43,7 +43,7 @@ describe('Segment item ink', () => {
 
 		const inks = await sampleMotionFrames(
 			() => getComputedStyle(cards).color,
-			(ink) => cards.getAttribute('aria-selected') === 'true' && ink !== resting,
+			(ink) => cards.getAttribute('aria-checked') === 'true' && ink !== resting,
 			{ during: async () => cards.click() },
 		)
 

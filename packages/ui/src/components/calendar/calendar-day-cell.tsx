@@ -25,7 +25,7 @@ type DayCellProps = {
 	variant?: ButtonVariants['variant']
 	color?: ButtonVariants['color']
 	className?: string
-	/** Stamped on the active cell only, so a parent's `aria-activedescendant` can reference the roved day. */
+	/** The id of the day, so a parent's `aria-activedescendant` can reference it. */
 	id?: string
 	gridColumnStart?: number
 	/** Resolved BCP 47 tag; the day number and the accessible name of the day use the same locale as the visible grid. */
@@ -35,6 +35,7 @@ type DayCellProps = {
 	onSelect: (date: Date) => void
 	onMouseEnter?: () => void
 	onMouseLeave?: () => void
+	onFocus?: () => void
 }
 
 /**
@@ -62,6 +63,7 @@ export const CalendarDayCell = memo(function CalendarDayCell({
 	onSelect,
 	onMouseEnter,
 	onMouseLeave,
+	onFocus,
 }: DayCellProps) {
 	const handleClick = useCallback(() => {
 		if (!disabled) onSelect(date)
@@ -88,6 +90,7 @@ export const CalendarDayCell = memo(function CalendarDayCell({
 			onClick={handleClick}
 			onMouseEnter={onMouseEnter}
 			onMouseLeave={onMouseLeave}
+			onFocus={onFocus}
 			style={gridColumnStart ? { gridColumnStart } : undefined}
 			className={cn(k().day.base, isActive && k().day.active, className)}
 		>

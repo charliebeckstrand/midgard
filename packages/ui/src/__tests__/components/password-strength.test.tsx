@@ -76,4 +76,22 @@ describe('PasswordStrength', () => {
 
 		expect(screen.getByText('Weak')).toBeInTheDocument()
 	})
+
+	it('names the subject in the live region and shows only the level', () => {
+		renderUI(<PasswordStrength value="Abcdefg1" />)
+
+		const region = screen.getByRole('status')
+
+		expect(region).toHaveAttribute('aria-atomic', 'true')
+
+		// A screen reader reads the whole region, so the level has a subject when
+		// the user hears it alone (WCAG 4.1.3).
+		expect(region.querySelector('.sr-only')).toHaveTextContent('Password strength: Good')
+
+		// The visible text is only the level word, and it is hidden from the
+		// accessibility tree, so the region does not read the level two times.
+		const visible = region.querySelector('[aria-hidden="true"]')
+
+		expect(visible).toHaveTextContent(/^Good$/)
+	})
 })
