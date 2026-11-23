@@ -63,6 +63,8 @@ export function findFocusTarget(tree: QueryGroup, id: string): FocusTarget[] {
 export const focusKeys = {
 	node: (id: string) => `node:${id}`,
 	add: (groupId: string) => `add:${groupId}`,
+	/** The box of the controls of a rule, which takes the focus after an add. */
+	entry: (ruleId: string) => `entry:${ruleId}`,
 }
 
 export function getFocusKey(target: FocusTarget): string {

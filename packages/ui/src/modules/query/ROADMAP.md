@@ -20,7 +20,7 @@ The tree edits in [`engine/query-tree.ts`](engine/query-tree.ts) keep the identi
 
 A field can name a custom value editor with `QueryField.editor`. [`QueryValueEditorProvider`](query-value-editor-provider.tsx) maps each key to a component. A set operator (`setOperators`) with no custom editor edits its set with a `TagInput`. `QueryField.formatValue` gives the display text of a key. `query-value-editor.test.tsx` holds the editor contract under jsdom.
 
-A removal moves the focus to a neighbor (WCAG 2.4.3), through `useQueryRemovalFocus`. `query-builder-focus.test.ts` and the removal cases of `query-builder.test.tsx` hold the ladder.
+A removal moves the focus to a neighbor (WCAG 2.4.3), and an add moves it to the first control of the new rule, through `useQueryFocus`. `query-builder-focus.test.ts` and the removal and add cases of `query-builder.test.tsx` hold the ladder. The summary of its subtree describes each nested group.
 
 Under `reorder`, the builder moves nodes over the `Reorder` of Motion. The module loads no `@dnd-kit`, and [`list-dnd-boundary.test.ts`](../../__tests__/boundary/list-dnd-boundary.test.ts) holds that rule.
 
@@ -66,11 +66,7 @@ No open items.
 
 ## Accessibility and testing
 
-1. **Focus after an add (*P2*).** `addRule` and `addGroup` in [`use-query-tree.ts`](use-query-tree.ts) move no focus. The new rule sits above the Add trigger, so a keyboard reader must go back to reach it. A removal already moves the focus (WCAG 2.4.3), so an add must do the same. Focus the first control of the new node once it enters the tree, through the registry that `useQueryRemovalFocus` reads. Prove it in `query-builder.test.tsx`, and examine it in a real browser, because the Add menu closes in the same step.
-
-2. **A name for each nested group (*P2*).** Each nested group is a `<fieldset>` with the name "Condition group" (`queryBuilderMessages.group`). A screen reader cannot tell two groups apart, but each rule has its summary as its name. Describe each nested group by the summary of its subtree, through `aria-describedby`, as `QueryChips` does for its row (WCAG 1.3.1, 2.4.6). Prove it in `query-builder.test.tsx`.
-
-3. **A browser test of the editor contract (*P2*).** The remarks of `QueryValueEditor` set two rules. Each control of the editor is a Tab stop in the order of the row, and Escape in a popup closes that popup only. `query-value-editor.test.tsx` runs under jsdom and does not press Escape. Add a browser test that mounts the custom editor of the docs inside a `Dialog`. Assert the Tab order of the row, and that Escape closes the listbox and keeps the dialog open.
+1. **A browser test of the editor contract (*P2*).** The remarks of `QueryValueEditor` set two rules. Each control of the editor is a Tab stop in the order of the row, and Escape in a popup closes that popup only. `query-value-editor.test.tsx` runs under jsdom and does not press Escape. Add a browser test that mounts the custom editor of the docs inside a `Dialog`. Assert the Tab order of the row, and that Escape closes the listbox and keeps the dialog open.
 
 ## Not planned
 

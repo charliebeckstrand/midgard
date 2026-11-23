@@ -470,6 +470,31 @@ describe('QueryBuilderGroup', () => {
 		expect(screen.getByRole('button', { name: 'Remove group' })).toBeInTheDocument()
 	})
 
+	it('describes each nested group by the summary of its subtree', () => {
+		const tree = createGroup('and', [
+			createGroup('and', [{ ...createRule(fields[0]), value: 'Ada' }]),
+			createGroup('and', [{ ...createRule(fields[1]), operator: 'gt', value: 30 }]),
+		])
+
+		renderUI(<QueryBuilder fields={fields} value={tree} />)
+
+		const [first, second] = screen.getAllByRole('group', { name: 'Condition group' })
+
+		expect(first).toHaveAccessibleDescription('Name equals Ada')
+
+		expect(second).toHaveAccessibleDescription('Age > 30')
+	})
+
+	it('gives no description to a nested group with an empty summary', () => {
+		const tree = createGroup('and', [createGroup('and')])
+
+		renderUI(<QueryBuilder fields={fields} value={tree} />)
+
+		expect(screen.getByRole('group', { name: 'Condition group' })).not.toHaveAttribute(
+			'aria-describedby',
+		)
+	})
+
 	it('adds a sub-group from a nested group (arbitrary depth)', () => {
 		const onChange = vi.fn()
 
@@ -858,6 +883,78 @@ describe('QueryBuilder removal focus', () => {
 		rerender(<QueryBuilder fields={fields} value={createGroup('and', [first])} />)
 
 		expect(document.activeElement).toBe(firstRemove)
+	})
+})
+
+describe('QueryBuilder add focus', () => {
+	const fieldSelects = () => screen.getAllByRole('combobox', { name: 'Field' })
+
+	it('moves focus to the field select of a new rule', () => {
+		renderUI(<QueryBuilder fields={fields} defaultValue={createGroup('and', [createRule()])} />)
+
+		openAddMenu()
+
+		fireEvent.click(addRuleItem())
+
+		expect(fieldSelects()).toHaveLength(2)
+
+		expect(document.activeElement).toBe(fieldSelects()[1])
+	})
+
+	it('moves focus to the first rule of a new group', () => {
+		renderUI(<QueryBuilder fields={fields} />)
+
+		openAddMenu()
+
+		fireEvent.click(addGroupItem())
+
+		const group = screen.getByRole('group', { name: 'Condition group' })
+
+		expect(document.activeElement).toBe(within(group).getByRole('combobox', { name: 'Field' }))
+	})
+
+	it('moves focus to the operator select when the field select is hidden', () => {
+		renderUI(<QueryBuilder fields={fields} hideFieldSelector />)
+
+		openAddMenu()
+
+		fireEvent.click(addRuleItem())
+
+		expect(document.activeElement).toBe(screen.getByRole('combobox', { name: 'Operator' }))
+	})
+
+	it('keeps focus on the Add trigger when the owner refuses the add', () => {
+		renderUI(<QueryBuilder fields={fields} value={createGroup('and')} onValueChange={() => {}} />)
+
+		const trigger = screen.getByRole('button', { name: 'Add' })
+
+		trigger.focus()
+
+		openAddMenu()
+
+		fireEvent.click(addRuleItem())
+
+		expect(screen.queryAllByRole('combobox', { name: 'Field' })).toHaveLength(0)
+
+		expect(document.activeElement).toBe(trigger)
+	})
+
+	it('moves focus once a late update adds the node', () => {
+		const onChange = vi.fn()
+
+		const { rerender } = renderUI(
+			<QueryBuilder fields={fields} value={createGroup('and')} onValueChange={onChange} />,
+		)
+
+		openAddMenu()
+
+		fireEvent.click(addRuleItem())
+
+		const next = onChange.mock.calls.at(-1)?.[0] as QueryGroup
+
+		rerender(<QueryBuilder fields={fields} value={next} onValueChange={onChange} />)
+
+		expect(document.activeElement).toBe(screen.getByRole('combobox', { name: 'Field' }))
 	})
 })
 

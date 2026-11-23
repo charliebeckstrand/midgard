@@ -96,6 +96,10 @@ export type QueryBuilderProps = Omit<ComponentProps<'fieldset'>, 'children' | 'd
  * `value`/`onValueChange`. It supplies field config and tree-edit actions to
  * its descendants via context.
  *
+ * An add moves the focus to the first control of the new rule, and a removal
+ * moves it to a neighbor (WCAG 2.4.3). The summary of its subtree describes
+ * each nested group, so a screen reader can tell two groups apart.
+ *
  * @remarks A field whose value is not a primitive, such as a related record or
  * a set of tokens, names a custom editor with its `editor` key, and a
  * `QueryValueEditorProvider` above the builder holds the editor. A `set`

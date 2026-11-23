@@ -122,6 +122,10 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 
 	const removeRef = useFocusableRef(focusKeys.node(rule.id))
 
+	// The box of the controls takes the focus after an add. Its first tabbable
+	// control takes it, because a `Select` gives no ref.
+	const entryRef = useFocusableRef(focusKeys.entry(rule.id))
+
 	const displayField = useCallback(
 		(fieldName: string) => getField(fieldName)?.label ?? '',
 		[getField],
@@ -154,6 +158,7 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 			className={cn(slots.rule, className)}
 		>
 			<Flex
+				ref={entryRef}
 				flex="1"
 				gap="sm"
 				direction={mapResponsive(orientation, toDirection)}
