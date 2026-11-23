@@ -409,9 +409,12 @@ export const g = <MapPlat recede={false} />
 			source: `.a [data-slot=map-points] { fill: red; } /* flag */
 .b [data-slot='map-regions'] { stroke: red; } /* flag */
 .c:has([data-slot^="map-"]) { opacity: 0.5; } /* flag */
-.d [data-state=open] { color: red; }
-.e [data-slot] { color: red; }
-/* .f [data-slot=probe] in a comment */
+.d { @apply in-data-[slot=map-points]:fill-red-500; } /* flag */
+.e { @apply [&_[data-slot=map-regions]]:opacity-50; } /* flag */
+.f { @apply data-[state=open]:p-2; }
+.g [data-state=open] { color: red; }
+.h [data-slot] { color: red; }
+/* .i [data-slot=probe] in a comment */
 `,
 		},
 	],
@@ -646,6 +649,9 @@ describe('biome plugin boundary', () => {
 			join(workspace, 'biome.json'),
 			JSON.stringify({
 				assist: { enabled: false },
+				// The real config parses the Tailwind directives, such as `@apply`, so a
+				// CSS fixture can hold one.
+				css: { parser: { tailwindDirectives: true } },
 				formatter: { enabled: false },
 				linter: { rules: { preset: 'none' } },
 				vcs: { enabled: false },
