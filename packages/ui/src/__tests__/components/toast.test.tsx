@@ -418,6 +418,25 @@ describe('Toast: useToast behavior', () => {
 		expect(screen.getByText('Deleted')).toBeInTheDocument()
 	})
 
+	it.for([
+		['false', false],
+		['an empty string', ''],
+		['an empty array', []],
+	] as const)(
+		'counts down a toast whose actions are %s, as it shows no actions',
+		async ([, actions], { clock }) => {
+			const api = renderToasts({ duration: 500 })
+
+			act(() => {
+				api.toast({ title: 'No actions', actions })
+			})
+
+			await clock.advance(1500)
+
+			expect(screen.queryByText('No actions')).not.toBeInTheDocument()
+		},
+	)
+
 	it('counts down a toast with actions that sets a duration or persist: false', async ({
 		clock,
 	}) => {

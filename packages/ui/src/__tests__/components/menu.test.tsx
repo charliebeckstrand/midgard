@@ -593,6 +593,55 @@ describe('MenuContent', () => {
 		})
 	})
 
+	// A key that opens the menu moves the focus to the first row, so the repeats
+	// of a held key come to that row.
+	describe('ignores the auto-repeat of the key that opened the menu', () => {
+		it.each([
+			['Enter', 'Enter'],
+			['Space', ' '],
+		])('does not select a row on a repeat %s', (_name, key) => {
+			const onAction = vi.fn()
+
+			renderUI(
+				<Menu defaultOpen>
+					<MenuContent>
+						<MenuItem onAction={onAction}>Edit</MenuItem>
+					</MenuContent>
+				</Menu>,
+			)
+
+			const row = screen.getByRole('menuitem', { name: 'Edit' })
+
+			expect(fireEvent.keyDown(row, { key, repeat: true })).toBe(false)
+
+			expect(onAction).not.toHaveBeenCalled()
+
+			fireEvent.keyDown(row, { key })
+
+			expect(onAction).toHaveBeenCalledOnce()
+		})
+
+		it('cancels a repeat Enter on a link row, so the anchor does not navigate', () => {
+			const onAction = vi.fn()
+
+			renderUI(
+				<Menu defaultOpen>
+					<MenuContent>
+						<MenuItem href="#about" onAction={onAction}>
+							About
+						</MenuItem>
+					</MenuContent>
+				</Menu>,
+			)
+
+			const row = screen.getByRole('menuitem', { name: 'About' })
+
+			expect(fireEvent.keyDown(row, { key: 'Enter', repeat: true })).toBe(false)
+
+			expect(onAction).not.toHaveBeenCalled()
+		})
+	})
+
 	it('pulls focus into the panel when a right-click context menu opens', () => {
 		renderUI(
 			<Menu>
@@ -1073,6 +1122,51 @@ describe('MenuSub', () => {
 		expect(row).toHaveAttribute('aria-expanded', 'false')
 
 		expect(row).toHaveFocus()
+	})
+
+	// A key that opens the menu moves the focus to the first row. When that row
+	// is a submenu row, the repeats of a held key come to it.
+	it('does not open a submenu on a repeat Enter or Space on its row', () => {
+		renderUI(staticSubmenu())
+
+		const row = screen.getByRole('menuitem', { name: /More/ })
+
+		expect(fireEvent.keyDown(row, { key: 'Enter', repeat: true })).toBe(false)
+
+		expect(fireEvent.keyDown(row, { key: ' ', repeat: true })).toBe(false)
+
+		expect(row).toHaveAttribute('aria-expanded', 'false')
+	})
+
+	it('does not toggle a submenu of a sheet on a repeat Enter or Space on its row', async () => {
+		stubMatchMedia((query) => query.startsWith('(hover: none)'))
+
+		renderUI(
+			<Menu placement="bottom-start" sheet>
+				<MenuTrigger>
+					<button type="button">Open</button>
+				</MenuTrigger>
+				<MenuContent>
+					<MenuSub label="More">
+						<MenuItem>Nested</MenuItem>
+					</MenuSub>
+				</MenuContent>
+			</Menu>,
+		)
+
+		await setupUser().click(screen.getByRole('button', { name: 'Open' }))
+
+		const row = await screen.findByRole('menuitem', { name: /More/ })
+
+		for (const key of ['Enter', ' ']) {
+			expect(fireEvent.keyDown(row, { key, repeat: true })).toBe(false)
+
+			expect(row).toHaveAttribute('aria-expanded', 'false')
+		}
+
+		fireEvent.keyDown(row, { key: 'Enter' })
+
+		expect(row).toHaveAttribute('aria-expanded', 'true')
 	})
 
 	// Alt+ArrowLeft and Cmd+ArrowLeft are the browser's Back. The panel lets the
