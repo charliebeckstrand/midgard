@@ -2227,6 +2227,10 @@
 		"defaultMessage": "{name}, empty",
 		"description": "The name of a signature pad with no signature on it. The name is the name of the pad, such as \"Signature\"."
 	},
+	"ui.signaturePad.emptyState": {
+		"defaultMessage": "empty",
+		"description": "Added to the name of a signature pad with no signature on it, after the label of its field, as in \"Witness signature empty\"."
+	},
 	"ui.signaturePad.label": {
 		"defaultMessage": "Signature",
 		"description": "The name of the canvas of a signature pad, when no label names it."
