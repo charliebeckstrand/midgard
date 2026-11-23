@@ -782,6 +782,7 @@ describe('Grid context menus', () => {
 			'Sort',
 			'Pin',
 			'Auto-size',
+			'Width',
 			'Export',
 		])
 	})

@@ -79,8 +79,15 @@ export function GridRegion<T>({
 
 	if (!contextMenu) return reordered
 
+	// The menu moves of the columns stand down with the header drag that they
+	// stand in for. The row moves are empty while the rows do not reorder.
 	return (
-		<GridContextMenu config={contextMenu} enabled={contextMenuEnabled} {...menu}>
+		<GridContextMenu
+			config={contextMenu}
+			enabled={contextMenuEnabled}
+			{...menu}
+			columnMoves={canReorder ? menu.columnMoves : null}
+		>
 			{reordered}
 		</GridContextMenu>
 	)

@@ -919,6 +919,10 @@
 		"defaultMessage": "Data grid",
 		"description": "The name of a grid that the app gives no name."
 	},
+	"ui.grid.decreaseWidth": {
+		"defaultMessage": "Decrease width",
+		"description": "The menu item that makes a grid column narrower by one step."
+	},
 	"ui.grid.detailsColumn": {
 		"defaultMessage": "Details",
 		"description": "The hidden name of the header of the column of the buttons that open the detail panel of each row, when the column has no title."
@@ -1055,6 +1059,10 @@
 		"defaultMessage": "Hid {column} column",
 		"description": "Spoken when the reader hides a column of the grid."
 	},
+	"ui.grid.increaseWidth": {
+		"defaultMessage": "Increase width",
+		"description": "The menu item that makes a grid column wider by one step."
+	},
 	"ui.grid.isOver": {
 		"defaultMessage": "{item} is over {place}.",
 		"description": "Spoken while a column or a group is dragged over a place in the group editor, such as \"Name column is over Contact group.\"."
@@ -1075,9 +1083,45 @@
 		"defaultMessage": "Manage rows",
 		"description": "The menu item that opens the dialog that orders and colors the row groups of a grid."
 	},
+	"ui.grid.move": {
+		"defaultMessage": "Move",
+		"description": "The menu item of a grid column that opens the choices that move the column to a new place."
+	},
+	"ui.grid.moveDown": {
+		"defaultMessage": "Move down",
+		"description": "The menu item that moves a grid row, or a column in the column manager, one place down."
+	},
+	"ui.grid.moveLeft": {
+		"defaultMessage": "Move left",
+		"description": "The menu item that moves a grid column one place to the left on the screen."
+	},
+	"ui.grid.moveRight": {
+		"defaultMessage": "Move right",
+		"description": "The menu item that moves a grid column one place to the right on the screen."
+	},
 	"ui.grid.moveTo": {
 		"defaultMessage": "Move to “{group}”",
 		"description": "The menu item that moves a column into a column group of a grid."
+	},
+	"ui.grid.moveToBottom": {
+		"defaultMessage": "Move to bottom",
+		"description": "The menu item that moves a column to the bottom of the list in the column manager."
+	},
+	"ui.grid.moveToEnd": {
+		"defaultMessage": "Move to end",
+		"description": "The menu item that moves a grid column to the last place, after the other columns that move."
+	},
+	"ui.grid.moveToStart": {
+		"defaultMessage": "Move to start",
+		"description": "The menu item that moves a grid column to the first place, before the other columns that move."
+	},
+	"ui.grid.moveToTop": {
+		"defaultMessage": "Move to top",
+		"description": "The menu item that moves a column to the top of the list in the column manager."
+	},
+	"ui.grid.moveUp": {
+		"defaultMessage": "Move up",
+		"description": "The menu item that moves a grid row, or a column in the column manager, one place up."
 	},
 	"ui.grid.newGroup": {
 		"defaultMessage": "New group",
@@ -1422,6 +1466,10 @@
 	"ui.grid.unpinned": {
 		"defaultMessage": "Unpinned {column}",
 		"description": "Spoken when the reader unpins a column of the grid."
+	},
+	"ui.grid.width": {
+		"defaultMessage": "Width",
+		"description": "The menu item of a grid column that opens the choices that make the column wider or narrower."
 	},
 	"ui.grid.withSkipped": {
 		"defaultMessage": "{saved}, {count, plural, other {# skipped}}",

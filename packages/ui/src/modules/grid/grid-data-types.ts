@@ -1020,7 +1020,7 @@ export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'>
 	 * container.
 	 *
 	 * The first user width change takes width control. That is a drag, a keyboard nudge,
-	 * or an action in the header menu's Auto-size submenu. Every column then holds where it
+	 * or an action in the header menu's Auto-size or Width submenu. Every column then holds where it
 	 * sits, so a change to one never reflows the others. The table then grows or shrinks
 	 * freely, into trailing space or a horizontal scroll, rather than re-fitting. A press on
 	 * the handle that moves nothing takes no control.
@@ -1031,7 +1031,10 @@ export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'>
 	 * "Auto-size this column" (also a double-click, a double tap, or Enter on the handle)
 	 * sets one column to its content width. "Auto-size all columns" gives each column the
 	 * width that "Auto-size this column" gives it. "Reset column widths" gives the widths
-	 * back to the automatic fit, as on a fresh mount. Widths persist through {@link GridDataProps.columnSizing}.
+	 * back to the automatic fit, as on a fresh mount. The Width submenu of the
+	 * header menu gives "Increase width" and "Decrease width", which step the
+	 * width as PageUp and PageDown on the handle do. They are the path to a width
+	 * of your choice with no drag (WCAG 2.5.7). Widths persist through {@link GridDataProps.columnSizing}.
 	 * Set `false` to drop the handles (columns still auto-size).
 	 * @defaultValue true
 	 */
@@ -1102,9 +1105,12 @@ export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'>
 
 	/**
 	 * Right-click context menus. A `column` menu on headers carries Manage columns,
-	 * then Filter (under the `'menu'` affordance), Sort, Pin, Group by, Auto-size,
-	 * and Export. A
-	 * `cell` menu on body cells carries Copy, then the Export menu. Related actions
+	 * then Filter (under the `'menu'` affordance), Sort, Pin, Move (under
+	 * {@link GridDataProps.reorder | reorder}), Group by, Auto-size, Width (under
+	 * {@link GridDataProps.resizable | resizable}), and Export. A `cell` menu on
+	 * body cells carries Copy, the Fill items of a cell range, "Move up" and "Move
+	 * down" (under {@link GridDataProps.rowReorder | rowReorder}), then the
+	 * Export menu. Related actions
 	 * are consolidated into hover-opened submenus, so the menu opens one row per
 	 * concern. On by default; pass `false` to disable. Each side takes the
 	 * defaults (`true`) or a builder that reshapes them. "Manage columns" opens
@@ -1194,6 +1200,14 @@ export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'>
 	 * `true` prefixes each reorderable header with a grip handle. Pass a
 	 * {@link GridReorder} object with `handle: false` to drop that grip, which
 	 * makes the whole header the drag handle instead.
+	 *
+	 * The column menu gives the same moves with no drag (WCAG 2.5.7): "Move
+	 * left", "Move right", "Move to start", and "Move to end". "Move left" and
+	 * "Move right" name the side on the screen, so a right-to-left grid swaps
+	 * them. The column manager gives "Move up", "Move down", "Move to top", and
+	 * "Move to bottom" on each row. A move from a menu commits through
+	 * `columnOrder` and the live region announces the new place, as a drop does.
+	 * It is not a drag, so it fires no `onReorderStart` or `onReorderEnd`.
 	 * @defaultValue false
 	 * @see {@link GridReorder}
 	 */
@@ -1227,6 +1241,10 @@ export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'>
 	 * new order back onto your `rows`. The consumer owns the data, so the grid
 	 * reports the reordered set rather than mutating it. Each row's grip
 	 * drags by pointer or keyboard (`@dnd-kit`), moving the row within the set.
+	 * The cell menu gives "Move up" and "Move down" for the same move with no
+	 * drag (WCAG 2.5.7). A move from the menu commits through `onReorder` and the
+	 * live region announces the new place. It fires no `onReorderStart` or
+	 * `onReorderEnd`.
 	 *
 	 * Reordering is a manual ordering of the natural row order, so the grid stands
 	 * it down whenever that order isn't what's shown. The handles then turn inert.

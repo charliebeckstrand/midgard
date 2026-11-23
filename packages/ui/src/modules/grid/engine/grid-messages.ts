@@ -37,6 +37,18 @@ type GridValues = {
 	autoSizeColumn: Record<never, never>
 	autoSizeAll: Record<never, never>
 	resetWidths: Record<never, never>
+	width: Record<never, never>
+	increaseWidth: Record<never, never>
+	decreaseWidth: Record<never, never>
+	move: Record<never, never>
+	moveLeft: Record<never, never>
+	moveRight: Record<never, never>
+	moveToStart: Record<never, never>
+	moveToEnd: Record<never, never>
+	moveUp: Record<never, never>
+	moveDown: Record<never, never>
+	moveToTop: Record<never, never>
+	moveToBottom: Record<never, never>
 	manageColumns: Record<never, never>
 	manageRows: Record<never, never>
 	filterColumn: { column: string }
@@ -297,6 +309,73 @@ export const gridMessages: MessageSet<GridValues> = defineMessages<GridValues>({
 		defaultMessage: 'Reset column widths',
 		description:
 			'The menu item that gives the widths of the grid columns back to the automatic fit.',
+	},
+	width: {
+		id: 'ui.grid.width',
+		defaultMessage: 'Width',
+		description:
+			'The menu item of a grid column that opens the choices that make the column wider or narrower.',
+	},
+	increaseWidth: {
+		id: 'ui.grid.increaseWidth',
+		defaultMessage: 'Increase width',
+		description: 'The menu item that makes a grid column wider by one step.',
+	},
+	decreaseWidth: {
+		id: 'ui.grid.decreaseWidth',
+		defaultMessage: 'Decrease width',
+		description: 'The menu item that makes a grid column narrower by one step.',
+	},
+	move: {
+		id: 'ui.grid.move',
+		defaultMessage: 'Move',
+		description:
+			'The menu item of a grid column that opens the choices that move the column to a new place.',
+	},
+	moveLeft: {
+		id: 'ui.grid.moveLeft',
+		defaultMessage: 'Move left',
+		description: 'The menu item that moves a grid column one place to the left on the screen.',
+	},
+	moveRight: {
+		id: 'ui.grid.moveRight',
+		defaultMessage: 'Move right',
+		description: 'The menu item that moves a grid column one place to the right on the screen.',
+	},
+	moveToStart: {
+		id: 'ui.grid.moveToStart',
+		defaultMessage: 'Move to start',
+		description:
+			'The menu item that moves a grid column to the first place, before the other columns that move.',
+	},
+	moveToEnd: {
+		id: 'ui.grid.moveToEnd',
+		defaultMessage: 'Move to end',
+		description:
+			'The menu item that moves a grid column to the last place, after the other columns that move.',
+	},
+	moveUp: {
+		id: 'ui.grid.moveUp',
+		defaultMessage: 'Move up',
+		description:
+			'The menu item that moves a grid row, or a column in the column manager, one place up.',
+	},
+	moveDown: {
+		id: 'ui.grid.moveDown',
+		defaultMessage: 'Move down',
+		description:
+			'The menu item that moves a grid row, or a column in the column manager, one place down.',
+	},
+	moveToTop: {
+		id: 'ui.grid.moveToTop',
+		defaultMessage: 'Move to top',
+		description: 'The menu item that moves a column to the top of the list in the column manager.',
+	},
+	moveToBottom: {
+		id: 'ui.grid.moveToBottom',
+		defaultMessage: 'Move to bottom',
+		description:
+			'The menu item that moves a column to the bottom of the list in the column manager.',
 	},
 	manageColumns: {
 		id: 'ui.grid.manageColumns',

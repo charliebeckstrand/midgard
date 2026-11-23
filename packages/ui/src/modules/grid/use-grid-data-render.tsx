@@ -450,7 +450,11 @@ export function useGridDataRender<T>(
 	// headers render.
 	const { enabled: reorderEnabled, handle: reorderHandle } = resolveReorder(reorder)
 
-	const { canReorder, sortable: columnSortable } = useGridReorder<T>({
+	const {
+		canReorder,
+		sortable: columnSortable,
+		moves: columnMoves,
+	} = useGridReorder<T>({
 		reorder: reorderEnabled,
 		visibleColumns,
 		reorderColumns,
@@ -898,6 +902,9 @@ export function useGridDataRender<T>(
 								rowGroupMenu={rowManager.rowGroupMenu}
 								columnGroupMenu={columnGroupMenu}
 								columnFilter={filters}
+								columnMoves={columnMoves}
+								rowMoves={rowReorder.moves}
+								resize={resize}
 							>
 								{tableRegion}
 							</GridRegion>

@@ -8,6 +8,7 @@ import { columnLabel } from './engine/grid-column/label'
 import { gridMessages } from './engine/grid-messages'
 import { isFrozen } from './engine/grid-pin/overrides'
 import type { GridColumn } from './types'
+import { useGridItemMoves } from './use-grid-item-moves'
 
 /** Stable drag id for a column. @internal */
 const columnDragId = (col: { id: string | number }) => String(col.id)
@@ -38,8 +39,14 @@ type GridReorderOptions<T> = {
  * around the whole table region, never the `<table>` itself. The dnd context
  * injects hidden accessibility nodes that must not be `<table>` children.
  *
- * @returns `canReorder` (render gate) and the `sortable` options of
- * `@dnd-kit`'s horizontal sortable.
+ * The column menu moves the same columns with no drag (WCAG 2.5.7). Its
+ * `moves` commit through the same `reorderColumns` that a drop calls, and
+ * announce the new place with the same name and position that a drag step
+ * reads. A move from the menu is not a drag, so it fires no
+ * `onReorderStart` or `onReorderEnd`.
+ *
+ * @returns `canReorder` (render gate), the `sortable` options of
+ * `@dnd-kit`'s horizontal sortable, and the menu `moves` of the columns.
  * @internal
  */
 export function useGridReorder<T>({
@@ -71,6 +78,19 @@ export function useGridReorder<T>({
 
 	const handleDragEnd = useCallback((col: GridColumn<T>) => onReorderEnd?.(col.id), [onReorderEnd])
 
+	const describe = useCallback(
+		(col: GridColumn<T>) =>
+			intl.formatMessage(gridMessages.columnName, { column: columnLabel(col) }),
+		[intl],
+	)
+
+	const moves = useGridItemMoves({
+		items: canReorder ? draggableColumns : EMPTY_COLUMNS,
+		getKey: columnDragId,
+		commit: handleReorder,
+		describe,
+	})
+
 	const sortable: SortableListOptions<GridColumn<T>> = {
 		items: draggableColumns,
 		getKey: columnDragId,
@@ -78,8 +98,8 @@ export function useGridReorder<T>({
 		orientation: 'horizontal',
 		onDragStart: onReorderStart ? handleDragStart : undefined,
 		onDragEnd: onReorderEnd ? handleDragEnd : undefined,
-		describe: (col) => intl.formatMessage(gridMessages.columnName, { column: columnLabel(col) }),
+		describe,
 	}
 
-	return { canReorder, sortable }
+	return { canReorder, sortable, moves }
 }
