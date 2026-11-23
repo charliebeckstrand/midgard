@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo } from 'react'
 import type { SortableListOptions } from '../../hooks/use-sortable-list'
+import { useControlLock } from '../../primitives/control/context'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { isDataColumn } from '../../utilities/is-data-column'
 import { columnLabel } from './engine/grid-column/label'
@@ -59,9 +60,16 @@ export function useGridReorder<T>({
 
 	const canReorder = reorder && draggableColumns.length > 1
 
+	// A lock, such as a `Form` while a submit runs, commits no order, as a drop
+	// with no reorder does. The grip starts no drag under a lock, but a drag that
+	// started before it can still drop. The lock changes no render.
+	const locked = useControlLock()
+
 	const handleReorder = useCallback(
-		(next: GridColumn<T>[]) => reorderColumns(next.map((col) => col.id)),
-		[reorderColumns],
+		(next: GridColumn<T>[]) => {
+			if (!locked) reorderColumns(next.map((col) => col.id))
+		},
+		[locked, reorderColumns],
 	)
 
 	const handleDragStart = useCallback(

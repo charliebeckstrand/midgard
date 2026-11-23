@@ -7,6 +7,7 @@ import {
 	KanbanColumn,
 	KanbanColumnBody,
 } from '../../modules/kanban'
+import { ControlLockContext } from '../../primitives/control/context'
 import { renderUI } from '../helpers'
 import { getCenter } from '../helpers/geometry/box'
 import { drag } from './helpers/drag'
@@ -25,12 +26,14 @@ describe('Kanban drop target (real browser)', () => {
 	type BoardProps = {
 		initial: Column[]
 		disabled?: boolean
+		/** A lock scope around the board, as a `Form` gives while a submit runs. */
+		locked?: boolean
 		/** Sees each reorder before the board takes it. */
 		onReorder?: (next: Column[]) => void
 	}
 
 	/** A board that takes each reorder, as an app does, so a live move lands. */
-	function Board({ initial, disabled, onReorder }: BoardProps) {
+	function Board({ initial, disabled, locked = false, onReorder }: BoardProps) {
 		const [columns, setColumns] = useState(initial)
 
 		const reorder = (next: Column[]) => {
@@ -40,26 +43,28 @@ describe('Kanban drop target (real browser)', () => {
 		}
 
 		return (
-			<Kanban
-				columns={columns}
-				getKey={(item: Item) => item.id}
-				onReorder={reorder}
-				disabled={disabled}
-				aria-label="Board"
-			>
-				{columns.map((column) => (
-					<KanbanColumn key={column.id} value={column.id} aria-label={column.id}>
-						<KanbanColumnBody>
-							{column.items.map((item) => (
-								<KanbanCard key={item.id} value={item.id}>
-									<KanbanCardHandle />
-									{item.label}
-								</KanbanCard>
-							))}
-						</KanbanColumnBody>
-					</KanbanColumn>
-				))}
-			</Kanban>
+			<ControlLockContext value={locked}>
+				<Kanban
+					columns={columns}
+					getKey={(item: Item) => item.id}
+					onReorder={reorder}
+					disabled={disabled}
+					aria-label="Board"
+				>
+					{columns.map((column) => (
+						<KanbanColumn key={column.id} value={column.id} aria-label={column.id}>
+							<KanbanColumnBody>
+								{column.items.map((item) => (
+									<KanbanCard key={item.id} value={item.id}>
+										<KanbanCardHandle />
+										{item.label}
+									</KanbanCard>
+								))}
+							</KanbanColumnBody>
+						</KanbanColumn>
+					))}
+				</Kanban>
+			</ControlLockContext>
 		)
 	}
 
@@ -68,6 +73,8 @@ describe('Kanban drop target (real browser)', () => {
 
 		// The same component type keeps the board state through the rerender.
 		const disable = () => rerender(<Board initial={initial} onReorder={onReorder} disabled />)
+
+		const lock = () => rerender(<Board initial={initial} onReorder={onReorder} locked />)
 
 		const column = (id: string) => {
 			const el = container.querySelector<HTMLElement>(`[data-column-id="${id}"]`)
@@ -94,7 +101,7 @@ describe('Kanban drop target (real browser)', () => {
 			return el
 		}
 
-		return { column, card, handle, disable }
+		return { column, card, handle, disable, lock }
 	}
 
 	it('steps up the fill of an empty column while a card is over it', async () => {
@@ -183,43 +190,56 @@ describe('Kanban drop target (real browser)', () => {
 		expect(source).not.toHaveAttribute('data-over')
 	})
 
-	it('cancels the drop and reverts the move when the board turns disabled during the drag', async () => {
-		const initial: Column[] = [
-			{ id: 'todo', items: [{ id: 'a', label: 'Alpha' }] },
-			{ id: 'done', items: [{ id: 'b', label: 'Bravo' }] },
-		]
+	it.each([
+		{ change: 'turns disabled', apply: 'disable' },
+		{ change: 'turns locked', apply: 'lock' },
+	] as const)(
+		'cancels the drop and reverts the move when the board $change during the drag',
+		async ({ apply }) => {
+			const initial: Column[] = [
+				{ id: 'todo', items: [{ id: 'a', label: 'Alpha' }] },
+				{ id: 'done', items: [{ id: 'b', label: 'Bravo' }] },
+			]
 
-		const onReorder = vi.fn<(next: Column[]) => void>()
+			const onReorder = vi.fn<(next: Column[]) => void>()
 
-		const { column, card, handle, disable } = board(initial, onReorder)
+			const view = board(initial, onReorder)
 
-		const target = column('done')
+			const { column, card, handle } = view
 
-		const from = getCenter(handle('a'))
+			const target = column('done')
 
-		const held = await drag(handle('a'), from, [
-			{ x: from.x, y: from.y + 20 },
-			getCenter(card('b')),
-		])
+			const from = getCenter(handle('a'))
 
-		// The live move puts the card in the other column.
-		await expect.poll(() => target.hasAttribute('data-over')).toBe(true)
+			const held = await drag(handle('a'), from, [
+				{ x: from.x, y: from.y + 20 },
+				getCenter(card('b')),
+			])
 
-		expect(target).toContainElement(card('a'))
+			// The live move puts the card in the other column.
+			await expect.poll(() => target.hasAttribute('data-over')).toBe(true)
 
-		disable()
+			expect(target).toContainElement(card('a'))
 
-		await held.release()
+			const calls = onReorder.mock.calls.length
 
-		// The drop is a cancel, so the board reports the columns from the drag start.
-		await expect.poll(() => onReorder.mock.lastCall?.[0]).toEqual(initial)
+			view[apply]()
 
-		expect(column('todo')).toContainElement(card('a'))
+			await held.release()
 
-		expect(target).not.toHaveAttribute('data-over')
+			// The drop reports only the revert.
+			await expect.poll(() => onReorder.mock.calls.length).toBe(calls + 1)
 
-		expect(column('todo')).not.toHaveAttribute('data-over')
+			// The drop is a cancel, so the board reports the columns from the drag start.
+			await expect.poll(() => onReorder.mock.lastCall?.[0]).toEqual(initial)
 
-		expect(document.head.querySelector('style[data-drag-cursor]')).toBeNull()
-	})
+			expect(column('todo')).toContainElement(card('a'))
+
+			expect(target).not.toHaveAttribute('data-over')
+
+			expect(column('todo')).not.toHaveAttribute('data-over')
+
+			expect(document.head.querySelector('style[data-drag-cursor]')).toBeNull()
+		},
+	)
 })

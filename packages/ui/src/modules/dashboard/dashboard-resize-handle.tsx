@@ -3,6 +3,7 @@
 import { useComposedRefs } from 'motion/react'
 import { type KeyboardEvent, type PointerEvent, useLayoutEffect, useRef } from 'react'
 import { dataAttr } from '../../core/data-attr'
+import { useControlLock } from '../../primitives/control/context'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { Splitter } from '../../primitives/splitter/splitter'
 import { k } from '../../recipes/kata/dashboard'
@@ -65,6 +66,10 @@ export function DashboardResizeHandle({
 
 	const { beginResize, resizeBy } = useDashboardActions()
 
+	// The board refuses a resize while a lock holds. The handle says so, and it
+	// stays in the tab order, as a locked button does.
+	const locked = useControlLock()
+
 	const horizontal = edge === 's'
 
 	const span = horizontal ? cell.h : cell.w
@@ -119,6 +124,7 @@ export function DashboardResizeHandle({
 		'data-slot': 'dashboard-resize-handle',
 		'data-edge': edge,
 		'data-resizing': dataAttr(resizing),
+		'aria-disabled': locked || undefined,
 		className: k({ edge }).resize.handle,
 		onPointerDown: (event: PointerEvent<HTMLElement>) => beginResize(id, edge, event),
 	}

@@ -89,9 +89,14 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 }: KanbanProps<T, C>) {
 	const interactive = !disabled && !!onReorder
 
-	// The handle passes its key handler past the listeners of the grip, so the
-	// keyboard reads the lock itself. A lock ends a lift, as `disabled` does.
+	// Whether a card can move now. A lock, such as a `Form` while a submit runs,
+	// stops a move as `disabled` does: it ends a keyboard lift, stops the live
+	// moves of a pointer drag, and makes its drop a cancel. The grip stops each
+	// new drag, but a drag that started before the lock goes on until its drop.
+	// The lock changes no render: the handles and the menus stay.
 	const locked = useControlLock()
+
+	const moving = interactive && !locked
 
 	const sensors = useSortableSensors({ keyboard: false })
 
@@ -124,7 +129,7 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 			columns,
 			getKey,
 			onReorder,
-			enabled: interactive && !locked,
+			enabled: moving,
 			containerRef,
 		})
 
@@ -186,12 +191,13 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 					collisionDetection={closestCorners}
 					accessibility={accessibility}
 					onDragStart={interactive ? handleDragStart : undefined}
-					onDragOver={interactive ? handleDragOver : undefined}
+					onDragOver={moving ? handleDragOver : undefined}
 					// dnd-kit reads the handlers and `cancelDrop` at the drop, from the
 					// latest props. The end and the cancel stay wired, so a drag that
-					// continues after the board turns non-interactive still ends.
-					// `cancelDrop` then makes the drop a cancel, and the cancel reverts.
-					cancelDrop={interactive ? undefined : cancelEveryDrop}
+					// continues after the board turns non-interactive or locked still
+					// ends. `cancelDrop` then makes the drop a cancel, and the cancel
+					// reverts.
+					cancelDrop={moving ? undefined : cancelEveryDrop}
 					onDragEnd={handleDragEnd}
 					onDragCancel={handleDragCancel}
 				>

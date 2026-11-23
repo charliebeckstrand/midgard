@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { beforeAll, describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { loadGridReorderKit } from '../../modules/grid/grid-region'
-import { renderUI, screen } from '../helpers'
+import { ControlLockContext } from '../../primitives/control/context'
+import { act, renderUI, screen } from '../helpers'
 import { drag } from './helpers/drag'
 
 // The grid loads its drag and drop module as it mounts. The load before the
@@ -84,5 +85,61 @@ describe('grid row reorder: a drag commits the new order (real browser)', () => 
 			'Alice',
 			'Carol',
 		])
+	})
+	it('commits no order for a drop after a lock arrives, and keeps the grips', async () => {
+		const onReorder = vi.fn()
+
+		let lock: () => void = () => {}
+
+		function Harness() {
+			const [rows, setRows] = useState(initial)
+
+			const [locked, setLocked] = useState(false)
+
+			lock = () => setLocked(true)
+
+			return (
+				<ControlLockContext value={locked}>
+					<Grid
+						columns={columns}
+						rows={rows}
+						getKey={(row) => row.id}
+						rowLabel={(row) => row.name}
+						rowReorder={{
+							onReorder: (next) => {
+								onReorder(next)
+
+								setRows(next)
+							},
+						}}
+					/>
+				</ControlLockContext>
+			)
+		}
+
+		renderUI(<Harness />)
+
+		const grip = screen.getByRole('button', { name: 'Reorder Alice' })
+
+		const bob = screen.getByRole('button', { name: 'Reorder Bob' }).getBoundingClientRect()
+
+		const from = grip.getBoundingClientRect()
+
+		const x = from.x + 5
+
+		const held = await drag(grip, { x, y: from.y + 5 }, [
+			{ x, y: from.y + 12 },
+			{ x, y: bob.y + bob.height / 2 + 2 },
+		])
+
+		// A submit locks the grid while the row is in the air.
+		await act(async () => lock())
+
+		await held.release()
+
+		expect(onReorder).not.toHaveBeenCalled()
+
+		// The lock changes no render: each row keeps its grip.
+		expect(screen.getAllByRole('button', { name: /^Reorder / })).toHaveLength(initial.length)
 	})
 })
