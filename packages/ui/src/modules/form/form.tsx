@@ -2,10 +2,11 @@
 
 import { useComposedRefs } from 'motion/react'
 import { type ComponentProps, type ReactNode, useRef, useState } from 'react'
-import { ControlLockContext, ControlTargetsContext } from '../../components/control/context'
+import { ControlTargetsContext } from '../../components/control/context'
 import { Fieldset } from '../../components/fieldset'
 import { cn } from '../../core/cn'
 import { useA11yAnnouncements } from '../../hooks/a11y/use-a11y-announcements'
+import { ControlLockContext } from '../../primitives/control/context'
 import { FormProvider } from '../../primitives/form/context'
 import { createFormFieldTargets } from '../../primitives/form/form-field-targets'
 import { defineMessages } from '../../primitives/intl/intl-messages'

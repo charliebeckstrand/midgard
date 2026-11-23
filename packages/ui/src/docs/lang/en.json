@@ -6981,7 +6981,7 @@
 	},
 	"docs.prop.readOnly": {
 		"defaultMessage": "Read only",
-		"description": "The label of a field of a playground in the docs. The field sets the prop readOnly of AddressInput, Checkbox, ColorPicker, Combobox, Control, DatePicker, Listbox, Radio, Rating, Select, SignaturePad, Slider, Switch."
+		"description": "The label of a field of a playground in the docs. The field sets the prop readOnly of AddressInput, Checkbox, ColorPicker, Combobox, Control, DatePicker, Listbox, QueryBuilder, Radio, Rating, Select, SignaturePad, Slider, Switch."
 	},
 	"docs.prop.region": {
 		"defaultMessage": "Region",

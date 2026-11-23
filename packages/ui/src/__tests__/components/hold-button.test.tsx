@@ -1,8 +1,8 @@
 import { animate } from 'motion'
 import { Activity, type FormEvent } from 'react'
 import { afterEach, beforeEach, describe, expect, vi } from 'vitest'
-import { ControlLockContext } from '../../components/control/context'
 import { HoldButton, type HoldButtonProps } from '../../components/hold-button'
+import { ControlLockContext } from '../../primitives/control/context'
 import { bySlot, fireEvent, getSlot, present, renderUI } from '../helpers'
 import { it, onFakeClock } from '../helpers/fake-clock'
 

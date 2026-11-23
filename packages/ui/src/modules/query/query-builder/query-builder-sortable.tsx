@@ -18,6 +18,7 @@ import { useKeyboardReorder } from '../../../hooks/use-keyboard-reorder'
 import { usePrefersReducedMotion } from '../../../hooks/use-prefers-reduced-motion'
 import { useReorderDrag } from '../../../hooks/use-reorder-drag'
 import { useStableEvent } from '../../../hooks/use-stable-event'
+import { useControlLock } from '../../../primitives/control/context'
 import { IntlMessage } from '../../../primitives/intl'
 import { droppedText, movedText, reorderMessages } from '../../../primitives/intl/intl-reorder'
 import { useIntl } from '../../../primitives/intl/use-intl'
@@ -86,8 +87,8 @@ function dropMark(index: number, dropIndex: number | null): DropMark | undefined
  * @remarks
  * Only the grip starts a pointer drag. The nodes move in a draft order as the
  * pointer passes them, and the drop commits the move once. Escape, a
- * `pointercancel`, and a builder that turns disabled cancel the drag and put
- * the nodes back. With the keyboard, Space on a grip picks the
+ * `pointercancel`, and a builder that turns disabled or read-only cancel the
+ * drag and put the nodes back. A lift ends the same way. With the keyboard, Space on a grip picks the
  * node up, each arrow key moves it one position, and Space, Enter, or Escape
  * drops it. Each step is announced by the summary text of the node and its
  * position in the group.
@@ -117,6 +118,12 @@ export function QueryBuilderSortable({
 	node,
 }: QueryBuilderSortableProps) {
 	const { fields, disabled, requireRule } = useQueryBuilderState()
+
+	// A lock, such as `readOnly`, stops a move as `disabled` does. The grip keeps
+	// the focus, so no blur ends a lift that the lock finds.
+	const locked = useControlLock()
+
+	const enabled = !disabled && !locked
 
 	const { move, moveInto } = useQueryBuilderActions()
 
@@ -168,7 +175,7 @@ export function QueryBuilderSortable({
 		focusItem,
 		itemName: name,
 		stepFor,
-		enabled: !disabled,
+		enabled,
 	})
 
 	// A move into another group. The group that then holds the node lifts it and
@@ -260,7 +267,7 @@ export function QueryBuilderSortable({
 		name,
 		// A pointer drag drops a keyboard lift.
 		onStart: useCallback(() => setLiftedId(null), [setLiftedId]),
-		enabled: !disabled,
+		enabled,
 	})
 
 	const onDrag = useStableEvent((id: string, y: number) => {

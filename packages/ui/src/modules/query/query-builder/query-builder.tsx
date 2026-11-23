@@ -4,6 +4,7 @@ import { type ComponentProps, useCallback, useMemo, useState } from 'react'
 import { Fieldset } from '../../../components/fieldset'
 import { cn } from '../../../core/cn'
 import { useStableEvent } from '../../../hooks/use-stable-event'
+import { ControlLockContext, useControlLock } from '../../../primitives/control/context'
 import { k } from '../../../recipes/kata/query-builder'
 import type { Orientation } from '../../../types/orientation'
 import { adaptive, type Responsive } from '../../../utilities/responsive'
@@ -39,6 +40,15 @@ export type QueryBuilderProps = Omit<ComponentProps<'fieldset'>, 'children' | 'd
 	onValueChange?: (value: QueryGroup) => void
 	/** Disables every control in the tree. @defaultValue false */
 	disabled?: boolean
+	/**
+	 * Shows the query and refuses each edit. The builder is a lock scope: each
+	 * field is read-only, and each button and grip is inert, but each part stays
+	 * in the tab order, so a reader can still reach and read the rules. A
+	 * builder in a locked scope, such as a `Form` while a submit runs, is
+	 * read-only too.
+	 * @defaultValue false
+	 */
+	readOnly?: boolean
 	/**
 	 * Allows nested groups via an "Add group" action. Set `false` for a flat list
 	 * of rules joined by AND/OR.
@@ -111,6 +121,7 @@ export function QueryBuilder({
 	defaultValue,
 	onValueChange,
 	disabled = false,
+	readOnly = false,
 	allowGroups = true,
 	hideFieldSelector = false,
 	orientation = QUERY_BUILDER_ORIENTATION,
@@ -125,6 +136,10 @@ export function QueryBuilder({
 		defaultValue,
 		onValueChange,
 	})
+
+	// A read-only builder locks its parts. It never unlocks a scope around it,
+	// such as a `Form` that submits.
+	const locked = useControlLock() || readOnly
 
 	const getRoot = useStableEvent(() => root)
 
@@ -157,7 +172,9 @@ export function QueryBuilder({
 				disabled={disabled}
 				className={cn(slots.base, className)}
 			>
-				<QueryBuilderGroup group={root} root />
+				<ControlLockContext value={locked}>
+					<QueryBuilderGroup group={root} root />
+				</ControlLockContext>
 			</Fieldset>
 		</QueryBuilderProvider>
 	)

@@ -1,10 +1,11 @@
 'use client'
 
 import { type ComponentProps, type ReactNode, useCallback, useMemo, useState } from 'react'
-import { ControlLockContext, ControlTargetsContext } from '../../../components/control/context'
+import { ControlTargetsContext } from '../../../components/control/context'
 import { cn } from '../../../core/cn'
 import { useA11yAnnouncements } from '../../../hooks/a11y/use-a11y-announcements'
 import { useControllable } from '../../../hooks/use-controllable'
+import { ControlLockContext } from '../../../primitives/control/context'
 import { type FormActions, FormProvider } from '../../../primitives/form/context'
 import { useIntl } from '../../../primitives/intl/use-intl'
 import { k } from '../../../recipes/kata/form-filters'

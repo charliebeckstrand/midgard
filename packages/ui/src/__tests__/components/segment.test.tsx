@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
-import { ControlLockContext } from '../../components/control/context'
 import { Segment, SegmentControl, SegmentItem } from '../../components/segment'
+import { ControlLockContext } from '../../primitives/control/context'
 import { act, allBySlot, bySlot, fireEvent, renderUI, screen, setupUser } from '../helpers'
 
 // Segment is a thin preset over <Tabs variant="segment">, so it renders the

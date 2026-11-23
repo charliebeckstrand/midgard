@@ -1,10 +1,10 @@
 import type { ReactElement, ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Control } from '../../components/control'
-import { ControlLockContext } from '../../components/control/context'
 import { Description, Field, Label, Message } from '../../components/fieldset'
 import { FileUploadButton, FileUploadDrop, FileUploadInput } from '../../components/file-upload'
 import { Form } from '../../modules/form'
+import { ControlLockContext } from '../../primitives/control/context'
 import { HeadlessProvider } from '../../providers/headless'
 import {
 	act,

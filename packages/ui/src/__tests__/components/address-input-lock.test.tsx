@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { AddressSuggestion } from '../../components/address-input'
 import { AddressInput } from '../../components/address-input'
-import { ControlLockContext } from '../../components/control/context'
+import { ControlLockContext } from '../../primitives/control/context'
 import { bySlot, renderUI, screen } from '../helpers'
 
 // K3-C03: the lock makes the Combobox read-only, which hides its clear button.

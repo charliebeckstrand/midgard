@@ -1,10 +1,10 @@
 import type { ComponentProps } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Control } from '../../components/control'
-import { ControlLockContext } from '../../components/control/context'
 import { Field } from '../../components/fieldset'
 import { NumberInput } from '../../components/number-input'
 import { Form } from '../../modules/form'
+import { ControlLockContext } from '../../primitives/control/context'
 import { LocaleProvider } from '../../providers/locale'
 import { act, expectAnnouncement, fireEvent, frame, renderUI, screen, setupUser } from '../helpers'
 

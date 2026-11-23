@@ -5,12 +5,12 @@ import { type KeyboardEvent, type MouseEvent, type Ref, useRef } from 'react'
 import { cn } from '../../core/cn'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { useControlLock } from '../../primitives/control/context'
 import { k } from '../../recipes/kata/hold-button'
 import { holdTextSelection } from '../../utilities/hold-text-selection'
 import { isActivationKey } from '../../utilities/keyboard-navigation'
 import { isPrimaryPress } from '../../utilities/primary-press'
 import { Button, type ButtonProps } from '../button'
-import { useControlLock } from '../control/context'
 import { useHoldButtonGesture } from './use-hold-button-gesture'
 
 /**
