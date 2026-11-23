@@ -65,7 +65,9 @@ function resizeDeltaForKey(key: string, isHorizontal: boolean, step: number): nu
  * `<hr>`, a separator whose `aria-orientation` is perpendicular to the group
  * axis. A drag or the arrow keys adjust the adjacent panel within its min and
  * max bounds. Shift takes a larger step, and Home/End reach the extremes. A key
- * with Ctrl, Meta, or Alt is for the browser, so it keeps its default. In a
+ * with Ctrl, Meta, or Alt is for the browser, so it keeps its default.
+ * A double-click moves the handle back to where the default sizes of its two
+ * panels put it, so two panels of `defaultSize={50}` go back to half each. In a
  * right-to-left group the panels start on the right, so the horizontal arrows
  * and the drag mirror: ArrowLeft and a move to the left grow the panel before
  * the handle. `aria-valuemin` and `aria-valuemax` give the range that this
@@ -78,11 +80,13 @@ export function ResizableHandle({
 	className,
 	onPointerDown,
 	onKeyDown: onKeyDownProp,
+	onDoubleClick,
 	...props
 }: ResizableHandleProps) {
 	const intl = useIntl()
 
-	const { orientation, dragging, sizes, panelConfigs, startDrag, resize, panelId } = useResizable()
+	const { orientation, dragging, sizes, panelConfigs, startDrag, resize, reset, panelId } =
+		useResizable()
 	const { handleIndex = 0 } = useResizableIndex()
 
 	// The range is where the left panel can go while both panels of the pair
@@ -141,6 +145,8 @@ export function ResizableHandle({
 				alwaysResize,
 			)}
 			onKeyDown={composeEventHandlers(onKeyDownProp, onKeyDown, alwaysResize)}
+			// A double-click resets the pair. A consumer can cancel it with `preventDefault`.
+			onDoubleClick={composeEventHandlers(onDoubleClick, () => reset(handleIndex))}
 			className={cn(k({ orientation }).handle, className)}
 		/>
 	)

@@ -6,7 +6,7 @@ export default function ScopeTab() {
 	return (
 		<>
 			<Example of={MentionsAndCommands} surface />
-			<Example of={AskAboutAChart} ratio />
+			<Example of={AskAboutAChart} surface />
 		</>
 	)
 }

@@ -2691,6 +2691,10 @@
 		"defaultMessage": "House seats",
 		"description": "Text of a demo in the docs as aria-label, in components/progress/segments.tsx, modules/chart/seat/center-content.tsx, modules/chart/seat/majority.tsx."
 	},
+	"docs.demo.653c3e3519f9": {
+		"defaultMessage": "Resize the chart",
+		"description": "Text of a demo in the docs as aria-label, in modules/chat/citations/selects-in-a-chart.tsx, modules/chat/scope/ask-about-a-chart.tsx."
+	},
 	"docs.demo.65479e3e408a": {
 		"defaultMessage": "Marks",
 		"description": "Text of a demo in the docs as aria-label, in components/toolbar/with-groups.tsx."

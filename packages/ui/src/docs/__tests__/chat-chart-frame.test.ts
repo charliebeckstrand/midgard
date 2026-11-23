@@ -5,11 +5,11 @@ import { describe, expect, it } from 'vitest'
 
 // A chart keeps its aspect ratio, so it gets taller as it gets wider. In a chat
 // demo that fills the column, the chart can be taller than the screen. Each
-// chat demo with such a chart therefore has a `ratio` frame. The frame starts
-// at half of the column, but not narrower than 32rem, and a drag on its end
-// border sets the width up to the full column. A chart with
-// `aspectRatio={false}` fills a box of a fixed height, so the rule does not
-// apply to it.
+// such chart in a chat demo therefore sits in a `ResizablePanel`. The panel
+// starts at a part of the column, and the handle at its end edge sets the
+// width up to the full column. The frame of the example stays full width. A
+// chart with `aspectRatio={false}` fills a box of a fixed height, so the rule
+// does not apply to it.
 
 const CHAT_PAGES = path.resolve(import.meta.dirname, '..', 'pages', 'modules', 'chat')
 
@@ -23,37 +23,32 @@ function demoFiles(): string[] {
 }
 
 /**
- * Whether `code` renders a chart that keeps its aspect ratio. The test reads
- * each chart element, such as `<BarChart … />`, because an `aspectRatio` of
- * another element, such as a map, does not apply to the chart.
+ * Each chart element in `code` that keeps its aspect ratio, such as
+ * `<BarChart … />`, with the code before it. The test reads each chart element,
+ * because an `aspectRatio` of another element, such as a map, does not apply
+ * to the chart.
  */
-const keepsRatio = (code: string) =>
-	/from 'ui\/chart'/.test(code) &&
-	Array.from(code.matchAll(/<(\w*Chart)\b[\s\S]*?(?:\/>|<\/\1>)/g), ([chart]) => chart).some(
-		(chart) => !/aspectRatio=\{false\}/.test(chart),
-	)
+function findRatioCharts(code: string): { chart: string; before: string }[] {
+	if (!/from 'ui\/chart'/.test(code)) return []
 
-/** The `<Example>` or `<Playground>` element that shows the demo in `file`. */
-function findFrame(file: string): string | undefined {
-	const index = read(path.join(path.dirname(file), 'index.tsx'))
-
-	const name = index.match(
-		new RegExp(`import (\\w+) from '\\./${path.basename(file).replace('.', '\\.')}'`),
-	)?.[1]
-
-	return name === undefined
-		? undefined
-		: index.match(new RegExp(`<\\w+ of=\\{${name}\\}[^>]*>`))?.[0]
+	return Array.from(code.matchAll(/<(\w*Chart)\b[\s\S]*?(?:\/>|<\/\1>)/g), (match) => ({
+		chart: match[0],
+		before: code.slice(0, match.index),
+	})).filter(({ chart }) => !/aspectRatio=\{false\}/.test(chart))
 }
 
+/** Whether the code before an element leaves a `ResizablePanel` open around it. */
+const inPanel = (before: string) =>
+	before.lastIndexOf('<ResizablePanel') > before.lastIndexOf('</ResizablePanel>')
+
 describe('the chat demos with a chart that keeps its ratio', () => {
-	const files = demoFiles().filter((file) => keepsRatio(read(file)))
+	const files = demoFiles().filter((file) => findRatioCharts(read(file)).length > 0)
 
 	it('find demos to check', () => {
 		expect(files.length).toBeGreaterThan(0)
 	})
 
-	it.each(files)('%s shows in a ratio frame', (file) => {
-		expect(findFrame(file)).toMatch(/\bratio\b/)
+	it.each(files)('%s puts each such chart in a resizable panel', (file) => {
+		for (const { before } of findRatioCharts(read(file))) expect(inPanel(before)).toBe(true)
 	})
 })

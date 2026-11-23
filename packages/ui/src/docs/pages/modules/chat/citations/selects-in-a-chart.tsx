@@ -7,6 +7,7 @@ import {
 	ChatTranscript,
 	toCategorySelection,
 } from 'ui/chat'
+import { ResizableGroup, ResizableHandle, ResizablePanel } from 'ui/resizable'
 import { Stack } from 'ui/stack'
 import { dayNames as day } from '../../../../data/calendar.ts'
 
@@ -54,14 +55,23 @@ export default function SelectsInAChart() {
 			<ChatCitationProvider targets={targets} cited={cited} onCitedChange={setCited}>
 				<ChatTranscript messages={messages} />
 			</ChatCitationProvider>
-			<BarChart
-				aria-label="Late stops by day"
-				data={DAYS}
-				series={[{ xKey: 'day', yKey: 'late', yName: 'Late stops' }]}
-				selectedCategories={
-					cited?.target === 'late-by-day' ? toCategorySelection(cited.selector) : undefined
-				}
-			/>
+			{/* The chart starts at half of the column, so it is not too tall. The
+			    handle at its end edge sets the width, from 30% to the full column,
+			    and a double-click on the handle gives the half again. */}
+			<ResizableGroup>
+				<ResizablePanel defaultSize={50} minSize={30}>
+					<BarChart
+						aria-label="Late stops by day"
+						data={DAYS}
+						series={[{ xKey: 'day', yKey: 'late', yName: 'Late stops' }]}
+						selectedCategories={
+							cited?.target === 'late-by-day' ? toCategorySelection(cited.selector) : undefined
+						}
+					/>
+				</ResizablePanel>
+				<ResizableHandle aria-label="Resize the chart" />
+				<ResizablePanel defaultSize={50} />
+			</ResizableGroup>
 		</Stack>
 	)
 }
