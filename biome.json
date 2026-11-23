@@ -683,8 +683,11 @@
 			"plugins": ["./.biome/plugins/no-stateless-toggle-icon-button.grit"]
 		},
 		{
-			"includes": ["apps/**", "!**/__tests__/**"],
-			"plugins": ["./.biome/plugins/no-ui-anchor-selector.grit"]
+			"includes": ["apps/**", "packages/shared/**", "!**/__tests__/**"],
+			"plugins": [
+				"./.biome/plugins/no-ui-anchor-selector.grit",
+				"./.biome/plugins/no-ui-anchor-selector-css.grit"
+			]
 		},
 		{
 			"includes": ["apps/**", "packages/**"],

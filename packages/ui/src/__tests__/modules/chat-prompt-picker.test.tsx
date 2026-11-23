@@ -445,10 +445,12 @@ describe('ChatPrompt picker', () => {
 
 		expect(options()).toEqual([])
 
-		// No stale option has the highlight, so Enter sends.
+		// No stale option has the highlight, and the list loads, so Enter does nothing.
 		await user.keyboard('{Enter}')
 
-		expect(onSubmit).toHaveBeenCalledOnce()
+		expect(onSubmit).not.toHaveBeenCalled()
+
+		expect(getSlot<HTMLTextAreaElement>(container, 'chat-prompt').value).toBe('@Depots @')
 	})
 
 	it('chooses no item of the last query while the next query loads, and does not send', async () => {
@@ -489,7 +491,8 @@ describe('ChatPrompt picker', () => {
 		// `fireEvent` gives `false` when a handler cancels the key.
 		expect(fireEvent.keyDown(textarea, { key: 'Enter' })).toBe(false)
 
-		expect(fireEvent.keyDown(textarea, { key: 'Tab' })).toBe(true)
+		// Tab does not move the focus out of the composer.
+		expect(fireEvent.keyDown(textarea, { key: 'Tab' })).toBe(false)
 
 		expect(onSubmit).not.toHaveBeenCalled()
 
@@ -505,6 +508,36 @@ describe('ChatPrompt picker', () => {
 		expect(onDraft).toHaveBeenLastCalledWith('@Depots ', [
 			expect.objectContaining({ quote: '@Depots' }),
 		])
+	})
+
+	it('does not send on Enter while the first query of a trigger loads', async () => {
+		const searches: ReturnType<typeof deferred<readonly ChatPromptItem[]>>[] = []
+
+		const source: ChatPromptSource = {
+			...datasets,
+			search: () => {
+				const done = deferred<readonly ChatPromptItem[]>()
+
+				searches.push(done)
+
+				return done.promise
+			},
+		}
+
+		const onSubmit = vi.fn()
+
+		const { container } = renderUI(<Composer sources={[source]} onSubmit={onSubmit} />)
+
+		const user = await typeInto(container, 'Show @La')
+
+		// The list holds no item yet.
+		expect(options()).toEqual([])
+
+		await user.keyboard('{Enter}')
+
+		expect(onSubmit).not.toHaveBeenCalled()
+
+		expect(getSlot<HTMLTextAreaElement>(container, 'chat-prompt').value).toBe('Show @La')
 	})
 
 	it('leaves the arrows to the textarea while the list holds no option', async () => {

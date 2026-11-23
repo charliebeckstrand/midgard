@@ -1,0 +1,33 @@
+language css
+
+// The stylesheet half of `no-ui-anchor-selector`. An app reaches a `ui` unit
+// through its props, never through its internal `data-slot` anchors
+// (CONVENTIONS §3.12). A rule such as `.x [data-slot=map-points] { … }` in the
+// `globals.css` of an app goes around the unit, as a class string does.
+//
+// The plugin matches an attribute selector on `data-slot` with any match
+// operator, also inside `:has()` or `:not()`. A selector on the presence of the
+// attribute alone (`[data-slot]`) names no anchor, so it does not match, as in
+// the source plugin. In an `@apply` list, it matches the forms of the source
+// plugin: the CSS form in an arbitrary variant (`[&_[data-slot=…]]:`) and the
+// Tailwind data variant (`data-[slot=…]:`). A mention in a comment is not a
+// violation.
+//
+// Reach is the `includes` beside this plugin in `biome.json`: the apps and
+// `shared`, minus tests.
+or {
+	CssAttributeSelector() as $selector where {
+		$selector <: r"\[\s*data-slot\s*[~|^$*]?=[\s\S]*",
+		register_diagnostic(
+			span = $selector,
+			message = "style a `ui` unit through its props, not through a `data-slot` anchor in a stylesheet; add a prop to the unit when none gives the result"
+		)
+	},
+	TwApplyAtRule() as $apply where {
+		$apply <: r"[\s\S]*data-(?:slot\s*[~|^$*]?=|\[slot[~|^$*]?=)[\s\S]*",
+		register_diagnostic(
+			span = $apply,
+			message = "style a `ui` unit through its props, not through a `data-slot` anchor in a stylesheet; add a prop to the unit when none gives the result"
+		)
+	}
+}
