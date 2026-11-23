@@ -7,6 +7,7 @@ import { intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/dashboard'
 import { useDashboardActions } from './context'
+import { keepFocusOnBoard } from './dashboard-focus'
 import { dashboardMessages } from './dashboard-messages'
 import { clearSelection } from './engine/dashboard-scope'
 import type { DashboardState, DashboardView } from './engine/dashboard-store'
@@ -56,6 +57,8 @@ export function DashboardTileClear({ id, label, onClear }: DashboardTileClearPro
 
 	return (
 		<Button
+			// Clear unmounts when the selection clears, so the focus goes to the board.
+			ref={keepFocusOnBoard}
 			data-slot="dashboard-tile-clear"
 			// `Button` sets no `type`, and a `submit` would send an enclosing form.
 			type="button"

@@ -2585,6 +2585,34 @@ describe('Dashboard scope', () => {
 		expect(onValueChange).not.toHaveBeenCalled()
 	})
 
+	it('gives the focus to the board when Clear unmounts with it', async () => {
+		function App() {
+			const [marked, setMarked] = useState(true)
+
+			const clear = useCallback(() => setMarked(false), [])
+
+			return (
+				<Dashboard aria-label="Sales">
+					<DashboardTile id="days" title="Days" onClear={marked ? clear : undefined}>
+						<Total testId="total" />
+					</DashboardTile>
+				</Dashboard>
+			)
+		}
+
+		const { container } = renderUI(<App />)
+
+		const clear = screen.getByRole('button', { name: 'Clear the selection in Days' })
+
+		clear.focus()
+
+		fireEvent.click(clear)
+
+		await act(async () => {})
+
+		expect(container.querySelector('[data-slot="dashboard"]')).toHaveFocus()
+	})
+
 	it('calls onClear and clears the cross-filter selection of a tile that holds both', () => {
 		const onClear = vi.fn()
 

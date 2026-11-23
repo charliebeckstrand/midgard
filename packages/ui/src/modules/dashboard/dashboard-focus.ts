@@ -7,9 +7,10 @@ const BOARD_SELECTOR = '[data-slot="dashboard"]'
 const GRIP_SELECTOR = '[data-slot="dashboard-handle"]'
 
 /**
- * The ref of an edit-only control of a tile: the grip, a splitter, or the
- * duplicate or remove control. When the control unmounts with the focus, for
- * example when edit mode ends, the focus goes to the board. It therefore never
+ * The ref of a control of a tile that can unmount: the grip, a splitter, the
+ * duplicate or remove control, or Clear. When the control unmounts with the
+ * focus, for example when edit mode ends or Clear clears the selection, the
+ * focus goes to the board. It therefore never
  * falls to the page.
  *
  * @remarks

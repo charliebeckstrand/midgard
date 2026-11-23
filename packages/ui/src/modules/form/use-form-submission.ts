@@ -39,6 +39,8 @@ type FormSubmissionOptions<T extends Record<string, unknown>> = Pick<
 	setErrors: (errors: Record<string, string | string[] | undefined>) => void
 	/** Sets the issue of the whole form, or clears it with `null`. */
 	setFormError: (formError: string | null) => void
+	/** Counts a write of an issue of the whole form that does not go through `setFormError`. */
+	countFormError: () => void
 	/** Resets the store only, and leaves an in-flight submit live. */
 	resetForm: (nextDefaults?: Record<string, unknown>) => void
 	/** The control ids of the fields. A refused submit focuses the first invalid control by them. */
@@ -73,6 +75,7 @@ export function useFormSubmission<T extends Record<string, unknown>>({
 	setSubmitting,
 	setErrors,
 	setFormError,
+	countFormError,
 	resetForm,
 	onSubmit,
 	onSettled,
@@ -151,6 +154,8 @@ export function useFormSubmission<T extends Record<string, unknown>>({
 			if (refused) {
 				flushSync(() => {
 					dispatch({ type: 'submit-validate', touched, errors, formError })
+
+					if (formError !== null) countFormError()
 
 					fail()
 				})
@@ -235,14 +240,19 @@ export function useFormSubmission<T extends Record<string, unknown>>({
 					hasFieldIssues({ ...helperFieldErrors, ...fieldErrors })
 
 				if (failed) {
-					// The write flushes, so the focus lands on a control that already
-					// shows its error, as on a refused submit.
+					// The write flushes with the end of the lock, so the focus lands on a
+					// control that already shows its error and is not read-only, as on a
+					// refused submit. The later `done` call then changes nothing.
 					flushSync(() => {
 						if (fieldErrors) setErrors(fieldErrors)
 
 						if (formError !== null) setFormError(formError)
 
 						fail()
+
+						inFlightRef.current = null
+
+						setSubmitting(false)
 					})
 
 					focusInvalid(store.getState().errors)
@@ -296,6 +306,7 @@ export function useFormSubmission<T extends Record<string, unknown>>({
 			onSubmit,
 			setErrors,
 			setFormError,
+			countFormError,
 			setSubmitting,
 			resetForm,
 			supersede,

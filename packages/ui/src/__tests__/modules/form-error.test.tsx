@@ -197,6 +197,35 @@ describe('FormError', () => {
 
 		expect(second).toHaveTextContent('Pick a stronger password')
 	})
+	it('keeps the alert that a helper showed when the attempt settles later', async () => {
+		let finish: () => void = () => {}
+
+		const pending = new Promise<void>((resolve) => {
+			finish = resolve
+		})
+
+		const { container } = renderLogin({
+			onSubmit: async (_, helpers) => {
+				helpers.setFormError('Account locked')
+
+				await pending
+			},
+		})
+
+		await submit(container)
+
+		const shown = getSlot(container, 'form-error')
+
+		await act(async () => {
+			finish()
+
+			await pending
+		})
+
+		// The failure of the attempt is not a new write, so no new alert speaks the
+		// issue a second time.
+		expect(getSlot(container, 'form-error')).toBe(shown)
+	})
 })
 
 describe('FormErrorSummary with an issue of the whole form', () => {
