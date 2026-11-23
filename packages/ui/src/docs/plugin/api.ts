@@ -895,13 +895,18 @@ function parseDefault(tag: string, literal: boolean): { code?: string; sentence?
 	return code ? { code, sentence: text } : { sentence: text }
 }
 
+/** The TSDoc `text` with each inline link as its label, or as its target when it has no label. */
+export function resolveLinks(text: string): string {
+	return text.replace(LINK, (_, target: string, label: string) => label || target)
+}
+
 /**
  * The text of a tag as the description of a symbol gives it: a link as its
  * label or its target, and one code span, such as `` `'start'` ``, without
  * the backticks.
  */
 function plainText(text: string): string {
-	const trimmed = text.replace(LINK, (_, target: string, label: string) => label || target).trim()
+	const trimmed = resolveLinks(text).trim()
 
 	return /^`[^`]+`$/.test(trimmed) ? trimmed.slice(1, -1) : trimmed
 }

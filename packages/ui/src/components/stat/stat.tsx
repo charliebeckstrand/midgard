@@ -6,11 +6,11 @@ import { k } from '../../recipes/kata/stat'
 export type StatProps = ComponentProps<'div'>
 
 /**
- * Composition root for a data-display metric. It is a full-height flex column
- * that stacks `<StatLabel>`, `<StatValue>`, `<StatDelta>`, and
- * `<StatDescription>` children with consistent spacing. Holds no value of its
- * own; arrange the sub-parts to taste. A static leaf with no client hooks, so
- * it renders in React Server Components; mirror its tree with the matching
- * `*Skeleton` parts while loading.
+ * The root of a metric display. It is a full-height flex column that stacks
+ * `<StatLabel>`, `<StatValue>`, `<StatDelta>`, and `<StatDescription>` children
+ * with consistent spacing. Holds no value of its own; arrange the sub-parts to
+ * taste. A static leaf with no client hooks, so it renders in React Server
+ * Components; mirror its tree with the matching `*Skeleton` parts while
+ * loading.
  */
 export const Stat = createSlot('div', 'stat', k().base)

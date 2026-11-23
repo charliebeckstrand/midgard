@@ -16,12 +16,13 @@ export type TextProps = TextVariants & {
 } & PolymorphicStaticProps<'p', 'color'>
 
 /**
- * Text styled by `tone`, `color`, and `size` from the text recipe. Polymorphic:
- * renders a `<p>`, a different element via `as`, a plain anchor when `href` is
- * set, or a composed element via `render` (e.g. `render={<Link />}`) to wire
- * the app router link at the call site. Static leaf: renders in React Server
- * Components. Compose `<TextSkeleton>` in the loading tree for a placeholder.
- * Set `pulse` on text that reports work in progress, such as an upload status.
+ * Body text styled by `tone`, `color`, and `size`. The styles come from the
+ * text recipe. Polymorphic: renders a `<p>`, a different element via `as`, a
+ * plain anchor when `href` is set, or a composed element via `render` (e.g.
+ * `render={<Link />}`) to wire the app router link at the call site. Static
+ * leaf: renders in React Server Components. Compose `<TextSkeleton>` in the
+ * loading tree for a placeholder. Set `pulse` on text that reports work in
+ * progress, such as an upload status.
  *
  * @remarks
  * Without `size`, the text takes the size of its parent. An explicit `size`

@@ -5,22 +5,21 @@ import { describe, expect, it } from 'vitest'
 import { summaryText } from '../plugin/summaries.ts'
 import { renderShell } from './render-shell.tsx'
 
-// The header shows the summary of the page under its title, in English, as
-// the API reference shows the TSDoc (CONVENTIONS.md §13.10).
+// The summary of the page is right under the header with its title, in
+// English, as the API reference shows the TSDoc (CONVENTIONS.md §13.10).
 
 function renderPage(path: string) {
 	return renderShell(path, {
 		children: [
 			{ id: '/button', path: 'button', Component: () => <p>Button page</p> },
-			{ id: '/loading', path: 'loading', Component: () => <p>Loading page</p> },
 			{ path: '*', Component: Outlet },
 		],
 	})
 }
 
-/** The paragraph under the title in the header, or `null`. */
+/** The paragraph right after the header, or `null`. */
 function readSummary(): HTMLElement | null {
-	return document.querySelector<HTMLElement>('[data-slot="header"] p')
+	return document.querySelector<HTMLElement>('[data-slot="header"] + p')
 }
 
 describe('docs page summary', () => {
@@ -35,13 +34,14 @@ describe('docs page summary', () => {
 
 		expect(summary?.querySelector('code')?.textContent).toBe('<button>')
 
-		expect(screen.getByRole('heading', { name: 'Button' }).nextElementSibling).toBe(summary)
+		expect(
+			screen.getByRole('heading', { name: 'Button' }).closest('[data-slot="header"]')
+				?.nextElementSibling,
+		).toBe(summary)
 	})
 
-	it('shows no summary on a page with no base component', () => {
-		renderPage('/loading')
-
-		expect(summaries['/loading']).toBeUndefined()
+	it('shows no summary on a path with no page', () => {
+		renderPage('/nothing-here')
 
 		expect(readSummary()).toBeNull()
 	})

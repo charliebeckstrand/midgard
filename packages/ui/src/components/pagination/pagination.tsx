@@ -10,9 +10,9 @@ import { paginationMessages } from './pagination-messages'
 export type PaginationProps = ComponentProps<'nav'>
 
 /**
- * Labeled pagination `<nav>` container, named "Pagination" in the language of
- * the reader. Pass `aria-label` to give it another name. Page controls are ordinary,
- * individually Tab-focusable links/buttons; no roving keyboard model
+ * A navigation landmark of page links, named "Pagination" in the language of
+ * the reader. Pass `aria-label` to give it another name. Page controls are
+ * ordinary, individually Tab-focusable links/buttons; no roving keyboard model
  * (matching `Nav`).
  *
  * @remarks

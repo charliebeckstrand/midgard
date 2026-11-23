@@ -1,3 +1,9 @@
+/**
+ * Line, bar, area, pie, heatmap, and other charts.
+ *
+ * @packageDocumentation
+ */
+
 export { AreaChart, type AreaChartProps } from './area-chart'
 export { BarChart, type BarChartProps } from './bar-chart'
 export { BubbleChart, type BubbleChartProps } from './bubble-chart'

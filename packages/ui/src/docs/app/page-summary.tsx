@@ -1,5 +1,6 @@
 import { Fragment } from 'react'
 import { Text } from 'ui/text'
+import { dan } from '../../recipes/kiso/index.ts'
 import { keyByOccurrence } from '../../utilities/key-by-occurrence.ts'
 import { TSDOC } from '../kit/tsdoc.ts'
 import type { SummaryPart } from '../plugin/summaries.ts'
@@ -17,12 +18,18 @@ function toSource(part: SummaryPart): string {
  * that wash fails the AA contrast. The TSDoc stays English, so the sentence has
  * the language and the direction of {@link TSDOC}. The paragraph keeps the
  * direction of the page, so the sentence starts at the start edge.
+ *
+ * The summary is between the header and the body of the layout, so the sticky
+ * header keeps one row. The bottom padding of the header is the gap above the
+ * summary. The summary has the same padding at its bottom, so each gap is the
+ * padding of the shell, as at the sides and above the title, at each density
+ * step.
  */
 export function PageSummary({ summary }: { summary: readonly SummaryPart[] }) {
 	const keys = keyByOccurrence(summary.map(toSource))
 
 	return (
-		<Text tone="muted">
+		<Text tone="muted" className={dan.space.shell.bottom}>
 			<span {...TSDOC}>
 				{summary.map((part, index) => {
 					const key = keys[index]?.key

@@ -2,12 +2,13 @@
 import path from 'node:path'
 import { describe, expect } from 'vitest'
 import { findPages } from '../plugin/pages.ts'
-import { pageSummaries, summarize, summaryText } from '../plugin/summaries.ts'
+import { pageSummaries, readPackageDoc, summarize, summaryText } from '../plugin/summaries.ts'
 import { it } from './extractor.ts'
 
-// The header of each page shows the first sentence of the TSDoc of its base
-// component under the title (`plugin/summaries.ts`). The sentence states what
-// the component is (CONVENTIONS.md §12.1), so it stays short.
+// Each page shows a summary under its title (`plugin/summaries.ts`): the first
+// sentence of the package documentation of its barrel, or else of the TSDoc
+// of its base component. The sentence states what the page shows
+// (CONVENTIONS.md §12.1), so it stays short.
 
 const DOCS = path.resolve(import.meta.dirname, '..')
 
@@ -40,36 +41,61 @@ describe('summarize', () => {
 	})
 })
 
+describe('readPackageDoc', () => {
+	it('gives the text of a leading package comment before its first tag', () => {
+		const code = [
+			'/**',
+			' * Progress indicators: a {@link ProgressBar | bar}',
+			' * and a gauge.',
+			' *',
+			' * @packageDocumentation',
+			' */',
+			'',
+			"export { ProgressBar } from './progress-bar'",
+		].join('\n')
+
+		expect(readPackageDoc(code)).toBe('Progress indicators: a bar\nand a gauge.')
+	})
+
+	it('gives nothing for a leading comment with no package tag, or for no comment', () => {
+		expect(readPackageDoc("/** A note. */\nexport { A } from './a'")).toBeUndefined()
+
+		expect(readPackageDoc("export { A } from './a'")).toBeUndefined()
+	})
+})
+
 describe('page summaries', () => {
-	it('gives the TSDoc of the component or the provider with the name of the page', {
+	it('gives the package documentation of the barrel, or the TSDoc of the base component', {
 		timeout: 120_000,
 	}, async ({ extractor }) => {
 		const summaries = await pageSummaries(DOCS, (barrel) => extractor.extract(barrel))
 
 		expect(summaries['/button']).toEqual([
-			'Polymorphic action control: renders a ',
+			'An action control that renders a ',
 			{ code: '<button>' },
-			' or, when ',
-			{ code: 'href' },
-			' is set, a ',
+			', or a ',
 			{ code: '<Link>' },
-			' anchor.',
+			' anchor when ',
+			{ code: 'href' },
+			' is set.',
 		])
 
 		expect(summaryText(summaries['/providers/density'] ?? [])).toMatch(/^A provider that opens/)
+
+		expect(summaryText(summaries['/progress'] ?? [])).toMatch(/^Progress indicators/)
 	})
 
-	it('keeps each summary to one sentence that fits on one line', {
+	it('gives each page a summary of one sentence that fits on one line', {
 		timeout: 120_000,
 	}, async ({ extractor }) => {
 		const summaries = await pageSummaries(DOCS, (barrel) => extractor.extract(barrel))
 
-		const long = findPages(DOCS).flatMap(({ path: route }) => {
+		const wrong = findPages(DOCS).flatMap(({ path: route }) => {
 			const text = summaryText(summaries[route] ?? [])
 
-			return text.length > MAX_SUMMARY ? [`${route}: ${text}`] : []
+			return text === '' || text.length > MAX_SUMMARY ? [`${route}: ${text}`] : []
 		})
 
-		expect(long).toEqual([])
+		expect(wrong).toEqual([])
 	})
 })

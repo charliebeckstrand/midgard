@@ -1,3 +1,9 @@
+/**
+ * Panels in a row or a column that the reader resizes with a drag handle.
+ *
+ * @packageDocumentation
+ */
+
 export {
 	ResizableGroup,
 	type ResizableGroupProps,

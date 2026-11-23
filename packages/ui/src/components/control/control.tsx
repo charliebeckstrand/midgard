@@ -47,14 +47,14 @@ export type ControlProps = {
 }
 
 /**
- * Form-field context provider. It generates a stable id and broadcasts
- * `autoComplete`, `disabled`, `readOnly`, `required`, `severity`, and `variant`
- * to control-aware descendants, such as an input, a switch, or a listbox.
- * Nests: `disabled` / `readOnly`
- * cascade through inner Controls, and `required` / `severity` / `variant`
- * inherit unless overridden. A `size` makes the field a density scope. It is
- * not in the context: each field, and each nested Control, takes the step of its nearest
- * density scope in CSS.
+ * A provider that shares the id and the state of a form field with its
+ * controls. It generates a stable id and broadcasts `autoComplete`, `disabled`,
+ * `readOnly`, `required`, `severity`, and `variant` to control-aware
+ * descendants, such as an input, a switch, or a listbox. Nests: `disabled` /
+ * `readOnly` cascade through inner Controls, and `required` / `severity` /
+ * `variant` inherit unless overridden. A `size` makes the field a density
+ * scope. It is not in the context: each field, and each nested Control, takes
+ * the step of its nearest density scope in CSS.
  *
  * @remarks A Control holds one control-aware descendant, because that
  * descendant adopts the one id. To group fields, nest one Control for each

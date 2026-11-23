@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { Lexer, type Token } from 'marked'
-import type { BarrelApi, ComponentApi } from './api.ts'
+import { type BarrelApi, type ComponentApi, resolveLinks } from './api.ts'
 import { findPages, type Page, readApiImports } from './pages.ts'
 
 /** A part of a summary: text, or the code of a code span. */
@@ -85,6 +85,27 @@ export function summaryText(summary: readonly SummaryPart[]): string {
 	return summary.map((part) => (typeof part === 'string' ? part : part.code)).join('')
 }
 
+// The doc comment at the start of a barrel, with its text in the first group.
+const LEADING_DOC = /^\/\*\*([\s\S]*?)\*\//
+
+/**
+ * The text of the `@packageDocumentation` comment at the start of the barrel
+ * with the source `code`, before its first tag. A barrel that documents a set
+ * of components, such as `components/progress`, has one. TypeScript gives
+ * the comment to no symbol, so the plugin reads it from the source.
+ */
+export function readPackageDoc(code: string): string | undefined {
+	const comment = LEADING_DOC.exec(code)?.[1]
+
+	if (!comment?.includes('@packageDocumentation')) return undefined
+
+	const lines = comment.split('\n').map((line) => line.replace(/^\s*\* ?/, ''))
+
+	const end = lines.findIndex((line) => line.startsWith('@'))
+
+	return resolveLinks(lines.slice(0, end === -1 ? undefined : end).join('\n')).trim() || undefined
+}
+
 /**
  * The base component of `page` in the API data of its barrels: the component
  * with the name of the page, such as `Button`, or else the provider of that
@@ -101,11 +122,12 @@ function findBase(page: Page, apis: readonly BarrelApi[]): ComponentApi | undefi
 }
 
 /**
- * The summary of each page of the docs at `docs`: the first sentence of the
- * TSDoc of its base component ({@link summarize}). A page with no base
- * component, or with a base component that has no TSDoc, has no summary. The
- * base component is in a barrel whose API data the `index.tsx` of the page
- * imports. `readApi` gives the API data of a barrel.
+ * The summary of each page of the docs at `docs`: the first sentence
+ * ({@link summarize}) of the package documentation of the barrel that the page
+ * imports ({@link readPackageDoc}), or else of the TSDoc of the base component
+ * of the page. The `index.tsx` of the page imports the API data of the barrel.
+ * A page with neither has no summary. `readApi` gives the API data of a
+ * barrel.
  */
 export async function pageSummaries(
 	docs: string,
@@ -113,13 +135,22 @@ export async function pageSummaries(
 ): Promise<Summaries> {
 	const pages = path.join(docs, 'pages')
 
+	// The source of `ui`, which holds the barrels, such as `components/button`.
+	const src = path.join(docs, '..')
+
 	const entries = await Promise.all(
 		findPages(docs).map(async (page) => {
 			const code = await readFile(path.join(pages, page.folder, 'index.tsx'), 'utf8')
 
-			const apis = await Promise.all(readApiImports(code).map(readApi))
+			const barrels = readApiImports(code)
 
-			const description = findBase(page, apis)?.description
+			const [apis, sources] = await Promise.all([
+				Promise.all(barrels.map(readApi)),
+				Promise.all(barrels.map((barrel) => readFile(path.join(src, barrel, 'index.ts'), 'utf8'))),
+			])
+
+			const description =
+				sources.map(readPackageDoc).find(Boolean) ?? findBase(page, apis)?.description
 
 			const summary = description ? summarize(description) : []
 

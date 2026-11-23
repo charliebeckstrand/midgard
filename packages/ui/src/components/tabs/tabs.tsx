@@ -49,8 +49,8 @@ export type TabsProps = Omit<ComponentProps<'div'>, 'defaultValue'> & {
 }
 
 /**
- * Tab-group root holding selection state and `variant`/`orientation`
- * context for its list and panels. Controlled or uncontrolled via
+ * The root of a set of tabs. It holds the selection state and the `variant` and
+ * `orientation` context of its list and panels. Controlled or uncontrolled via
  * `value`/`defaultValue`; the `segment` variant forces horizontal orientation.
  * An explicit `size` makes the group a density scope.
  *

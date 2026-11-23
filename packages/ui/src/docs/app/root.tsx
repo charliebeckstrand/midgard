@@ -235,12 +235,10 @@ function Shell() {
 									<Icon icon={<PanelLeftDashed />} className="sidebar-offcanvas:hidden" />
 									<Icon icon={<PanelLeft />} className="hidden sidebar-offcanvas:block" />
 								</Button>
-								<Stack gap="xs">
-									<Heading>{title}</Heading>
-									{summary && <PageSummary summary={summary} />}
-								</Stack>
+								<Heading>{title}</Heading>
 							</Flex>
 						</SidebarLayoutHeader>
+						{summary && <PageSummary summary={summary} />}
 						<SearchPaletteHost />
 						<SidebarLayoutBody>
 							<Stack gap="xl">

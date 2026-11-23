@@ -82,9 +82,9 @@ export type HoldButtonProps = Omit<
 }
 
 /**
- * Button that fires `onHoldComplete` only after a sustained press of `duration` ms.
- * A fill overlay animates progress, and releasing early cancels. Responds to
- * both pointer hold and Space/Enter keydown.
+ * A button that acts only after a press held for `duration` ms. It then fires
+ * `onHoldComplete`. A fill overlay animates progress, and releasing early
+ * cancels. Responds to both pointer hold and Space/Enter keydown.
  *
  * The button has a built-in description, "Press and hold to confirm", through
  * `aria-describedby`. A caller `aria-describedby` comes before it.
