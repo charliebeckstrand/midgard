@@ -81,7 +81,7 @@ No rule reads a clock or a random source. The shell mints each id and gives it t
 
 - **A tree of nested nodes.** A chunk would copy each node above the reply, so its cost would be the length of the transcript in new objects. The tree keeps the shown path as a list, and the hidden branches beside it.
 
-- **An inline editor in the bubble.** The edit composer of assistant-ui replaces the bubble with an editor. The [Edit a message](../../docs/pages/modules/chat/conversation/edit-a-message.tsx) example loads the text and the citations of the message into the composer with `setValue` of `useChatDraft`, and its submit calls `edit`. The composer already holds the citations, the picker, and the undo history, and an editor in the bubble would copy each of them. It would also need a new prop of `ChatTranscript`, because the transcript renders its rows.
+- **An inline editor in the bubble.** The edit composer of assistant-ui replaces the bubble with an editor. The [Edit a message](../../docs/pages/modules/chat/conversation/edit-a-message.tsx) example loads the text and the citations into the composer with `setValue` of `useChatDraft`. Its submit calls `edit`. The composer already holds the citations, the picker, and the undo history, and an editor in the bubble would copy each of them. It would also need a new prop of `ChatTranscript`, because the transcript renders its rows.
 
 - **A `reasoning` kind of part.** The reasoning parts of the Vercel AI SDK and assistant-ui are a step with a detail behind a disclosure. A `tool` part with `detail` already draws that.
 

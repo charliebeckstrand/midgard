@@ -76,21 +76,25 @@ export default function EditAMessage() {
 
 	const [editing, setEditing] = useState<string>()
 
-	// A switch of branch can take the message off the shown path, and `edit`
-	// then does nothing. The edit thus ends when its message is not shown.
-	const target = chat.messages.some((message) => message.id === editing) ? editing : undefined
-
 	const { edit, send } = chat
 
 	const draft = useChatDraft({
 		onSubmit: (value, citations) => {
 			setEditing(undefined)
 
-			void (target ? edit(target, value, citations) : send(value, citations))
+			void (editing ? edit(editing, value, citations) : send(value, citations))
 		},
 	})
 
 	const { setValue, clear } = draft
+
+	// A switch of branch can take the message off the shown path, and `edit`
+	// then does nothing. The edit then ends and the draft clears, as Cancel does.
+	if (editing !== undefined && !chat.messages.some((message) => message.id === editing)) {
+		setEditing(undefined)
+
+		clear()
+	}
 
 	const start = useCallback(
 		(message: ChatMessageData) => {
@@ -107,10 +111,15 @@ export default function EditAMessage() {
 		[setValue],
 	)
 
-	const cancel = () => {
+	const end = () => {
 		setEditing(undefined)
 
 		clear()
+	}
+
+	// The Cancel button unmounts with the banner, so the focus goes to the composer.
+	const cancel = () => {
+		end()
 
 		composer.current?.focus()
 	}
@@ -124,8 +133,8 @@ export default function EditAMessage() {
 				variant="bare"
 				size="sm"
 				aria-label="Edit"
-				aria-pressed={message.id === target}
-				onClick={() => start(message)}
+				aria-pressed={message.id === editing}
+				onClick={() => (message.id === editing ? end() : start(message))}
 			>
 				<Icon icon={<Pencil />} />
 			</Button>
@@ -147,7 +156,7 @@ export default function EditAMessage() {
 					branches={chat.branches}
 					onBranchChange={chat.showBranch}
 				/>
-				{target && (
+				{editing && (
 					<Flex align="center" justify="between" gap="sm">
 						<Text tone="muted">Editing a message. Send to replace it.</Text>
 						<Button variant="bare" size="sm" onClick={cancel}>
