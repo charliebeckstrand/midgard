@@ -1124,6 +1124,51 @@ describe('MenuSub', () => {
 		expect(row).toHaveFocus()
 	})
 
+	// A key that opens the menu moves the focus to the first row. When that row
+	// is a submenu row, the repeats of a held key come to it.
+	it('does not open a submenu on a repeat Enter or Space on its row', () => {
+		renderUI(staticSubmenu())
+
+		const row = screen.getByRole('menuitem', { name: /More/ })
+
+		expect(fireEvent.keyDown(row, { key: 'Enter', repeat: true })).toBe(false)
+
+		expect(fireEvent.keyDown(row, { key: ' ', repeat: true })).toBe(false)
+
+		expect(row).toHaveAttribute('aria-expanded', 'false')
+	})
+
+	it('does not toggle a submenu of a sheet on a repeat Enter or Space on its row', async () => {
+		stubMatchMedia((query) => query.startsWith('(hover: none)'))
+
+		renderUI(
+			<Menu placement="bottom-start" sheet>
+				<MenuTrigger>
+					<button type="button">Open</button>
+				</MenuTrigger>
+				<MenuContent>
+					<MenuSub label="More">
+						<MenuItem>Nested</MenuItem>
+					</MenuSub>
+				</MenuContent>
+			</Menu>,
+		)
+
+		await setupUser().click(screen.getByRole('button', { name: 'Open' }))
+
+		const row = await screen.findByRole('menuitem', { name: /More/ })
+
+		for (const key of ['Enter', ' ']) {
+			expect(fireEvent.keyDown(row, { key, repeat: true })).toBe(false)
+
+			expect(row).toHaveAttribute('aria-expanded', 'false')
+		}
+
+		fireEvent.keyDown(row, { key: 'Enter' })
+
+		expect(row).toHaveAttribute('aria-expanded', 'true')
+	})
+
 	// Alt+ArrowLeft and Cmd+ArrowLeft are the browser's Back. The panel lets the
 	// chord through and keeps the submenu open.
 	it.each<[string, { altKey?: boolean; metaKey?: boolean }]>([
