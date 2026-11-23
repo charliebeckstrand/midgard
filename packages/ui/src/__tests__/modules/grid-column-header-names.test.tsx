@@ -2,9 +2,10 @@ import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { renderUI, screen } from '../helpers'
 
-// A header with no title still names its column, so a screen reader does not
-// announce an empty column header. The selection, drag-handle, and Add columns
-// name themselves the same way.
+// A header takes its name from its title alone, and not from the names of the
+// controls in it. A header with no title still names its column, so a screen
+// reader does not announce an empty column header. The selection, drag-handle,
+// and Add columns name themselves the same way.
 
 type Row = { id: number; name: string }
 
@@ -14,9 +15,15 @@ const name: GridColumn<Row> = { id: 'name', title: 'Name', cell: (row) => row.na
 
 const getKey = (row: Row) => row.id
 
-/** The accessible names of the column headers. */
-function headerNames(): string[] {
-	return screen.getAllByRole('columnheader').map((header) => header.textContent ?? '')
+/** Asserts the accessible names of the column headers, in order. */
+function expectHeaderNames(names: string[]): void {
+	const headers = screen.getAllByRole('columnheader')
+
+	expect(headers).toHaveLength(names.length)
+
+	headers.forEach((header, index) => {
+		expect(header).toHaveAccessibleName(names[index])
+	})
 }
 
 describe('a column header with no title', () => {
@@ -30,7 +37,7 @@ describe('a column header with no title', () => {
 			/>,
 		)
 
-		expect(headerNames()).toEqual(['Details', 'Name'])
+		expectHeaderNames(['Details', 'Name'])
 	})
 
 	it('names an actions column', () => {
@@ -42,7 +49,7 @@ describe('a column header with no title', () => {
 			/>,
 		)
 
-		expect(headerNames()).toEqual(['Name', 'Actions'])
+		expectHeaderNames(['Name', 'Actions'])
 	})
 
 	it('keeps the title that an actions column gives', () => {
@@ -57,6 +64,97 @@ describe('a column header with no title', () => {
 			/>,
 		)
 
-		expect(headerNames()).toEqual(['Name', 'Tools'])
+		expectHeaderNames(['Name', 'Tools'])
+	})
+})
+
+describe('a column header with controls', () => {
+	type Wide = Row & { revenue: number }
+
+	const wideRows: Wide[] = [{ id: 1, name: 'Alice', revenue: 10 }]
+
+	const nameColumn: GridColumn<Wide> = {
+		id: 'name',
+		title: 'Name',
+		sortable: true,
+		cell: (row) => row.name,
+	}
+
+	const revenue: GridColumn<Wide> = {
+		id: 'revenue',
+		title: 'Revenue',
+		sortable: true,
+		filterable: true,
+		groupable: true,
+		cell: (row) => row.revenue,
+	}
+
+	const columns = [nameColumn, revenue]
+
+	it('takes its name from the title, not from its sort, filter, group, and resize controls', () => {
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={wideRows}
+				getKey={getKey}
+				resizable
+				groupBy={{ value: null, onValueChange: () => {}, groupButton: true }}
+			/>,
+		)
+
+		// The controls keep their own names.
+		expect(screen.getByRole('button', { name: 'Sort by Revenue' })).toBeInTheDocument()
+
+		expect(screen.getByRole('separator', { name: 'Resize Revenue' })).toBeInTheDocument()
+
+		expectHeaderNames(['Name', 'Revenue'])
+	})
+
+	it('keeps the sort priority badge out of the name', () => {
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={wideRows}
+				getKey={getKey}
+				sort={{
+					defaultValue: [
+						{ column: 'name', direction: 'asc' },
+						{ column: 'revenue', direction: 'desc' },
+					],
+				}}
+			/>,
+		)
+
+		expectHeaderNames(['Name', 'Revenue'])
+	})
+
+	it('takes its name from the title in a reorderable header with a grip', () => {
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={wideRows}
+				getKey={getKey}
+				resizable
+				reorder={{ handle: true }}
+			/>,
+		)
+
+		expect(screen.getByRole('button', { name: 'Reorder Revenue' })).toBeInTheDocument()
+
+		expectHeaderNames(['Name', 'Revenue'])
+	})
+
+	it('takes its name from the title in a pinned header with an unpin button', () => {
+		renderUI(
+			<Grid
+				columns={[{ ...nameColumn, pinned: 'left' }, revenue]}
+				rows={wideRows}
+				getKey={getKey}
+			/>,
+		)
+
+		expect(screen.getByRole('button', { name: 'Unpin Name' })).toBeInTheDocument()
+
+		expectHeaderNames(['Name', 'Revenue'])
 	})
 })

@@ -111,6 +111,11 @@ function GridGroupHeadCell({
 	// is for a pointer, and a badge takes no focus.
 	const descriptionId = useId()
 
+	// The title of the group alone names the band. Without it, the band takes
+	// its name from all of its content: the collapse toggle, the hidden count,
+	// and the description.
+	const titleId = useId()
+
 	const description = span.kind === 'group' ? span.group.description : undefined
 
 	return (
@@ -122,6 +127,7 @@ function GridGroupHeadCell({
 			// column-group context menu (Clear color / Manage columns).
 			data-group-band={dataAttr(span.kind === 'group')}
 			data-group-id={span.kind === 'group' ? span.group.id : undefined}
+			aria-labelledby={span.kind === 'group' ? titleId : undefined}
 			aria-describedby={description ? descriptionId : undefined}
 			className={cn(
 				k().base,
@@ -134,6 +140,7 @@ function GridGroupHeadCell({
 			{span.kind === 'group' && (
 				<div className={k().content}>
 					<GridGroupBand
+						titleId={titleId}
 						group={span.group}
 						collapsed={header.collapsed.has(span.group.id)}
 						hiddenCount={countHidden(span.group, header.collapsedHidden)}
@@ -165,6 +172,8 @@ function GridGroupHeadCell({
 
 /** Props for {@link GridGroupBand}. @internal */
 type GridGroupBandProps = {
+	/** The id of the title span. The band cell takes its name from it. */
+	titleId: string
 	group: GridColumnGroup
 	collapsed: boolean
 	/** The number of members that the collapse hides. */
@@ -182,7 +191,13 @@ function countHidden(group: GridColumnGroup, collapsedHidden: ReadonlySet<string
 }
 
 /** The colored band content: icon + title Badge, a trailing fold chevron (collapsible), and a `+N` count when collapsed. @internal */
-function GridGroupBand({ group, collapsed, hiddenCount, onToggleCollapse }: GridGroupBandProps) {
+function GridGroupBand({
+	titleId,
+	group,
+	collapsed,
+	hiddenCount,
+	onToggleCollapse,
+}: GridGroupBandProps) {
 	const intl = useIntl()
 
 	const label = columnLabel(group)
@@ -193,7 +208,7 @@ function GridGroupBand({ group, collapsed, hiddenCount, onToggleCollapse }: Grid
 			variant="soft"
 			prefix={group.icon ? <Icon icon={group.icon} /> : undefined}
 		>
-			{group.title ?? String(group.id)}
+			<span id={titleId}>{group.title ?? String(group.id)}</span>
 		</Badge>
 	)
 

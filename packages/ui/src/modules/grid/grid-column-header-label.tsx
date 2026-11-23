@@ -50,9 +50,12 @@ function sortDirectionIcon(
  * @internal
  */
 function GridHeaderTitle({
+	id,
 	title,
 	control,
 }: {
+	/** The id of the title span. The header cell takes its name from it. */
+	id: string
 	title: ReactNode
 	control?: (title: ReactElement) => ReactElement
 }): ReactElement {
@@ -74,9 +77,10 @@ function GridHeaderTitle({
 	)
 
 	// `data-grid-content` marks the title leaf so the autosizer reads its
-	// intrinsic width and decides the column's header-driven minimum.
+	// intrinsic width and decides the column's header-driven minimum. The header
+	// cell refers to its `id` for its name.
 	const span = (
-		<span ref={ref} data-grid-content className={cn(k.head.title)}>
+		<span ref={ref} id={id} data-grid-content className={cn(k.head.title)}>
 			{title}
 		</span>
 	)
@@ -94,8 +98,15 @@ function GridHeaderTitle({
 	)
 }
 
-/** Title text, wrapped in a sort-toggle button when the column is sortable and interactive. @internal */
+/**
+ * Title text, wrapped in a sort-toggle button when the column is sortable and
+ * interactive. The title span takes `titleId`, so that the header cell can take
+ * its name from the title alone (see `aria-labelledby` on the header).
+ *
+ * @internal
+ */
 export function GridColumnHeaderLabel({
+	titleId,
 	column,
 	sorted,
 	direction,
@@ -103,6 +114,7 @@ export function GridColumnHeaderLabel({
 	toggleSort,
 	interactive,
 }: {
+	titleId: string
 	column: Pick<GridColumn<unknown>, 'id' | 'title' | 'sortable'>
 	sorted: boolean
 	direction: 'asc' | 'desc' | undefined
@@ -112,11 +124,12 @@ export function GridColumnHeaderLabel({
 }): ReactNode {
 	const intl = useIntl()
 
-	if (!column.sortable || !interactive) return <GridHeaderTitle title={column.title} />
+	if (!column.sortable || !interactive) return <GridHeaderTitle id={titleId} title={column.title} />
 
 	return (
 		<HeadlessProvider>
 			<GridHeaderTitle
+				id={titleId}
 				title={column.title}
 				control={(title) => (
 					<Button

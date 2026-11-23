@@ -65,6 +65,30 @@ describe('Grid column groups', () => {
 		)
 	})
 
+	it('names a band by its title alone, not by its toggle, count, or description', () => {
+		const folding: GridColumnGroup[] = [
+			{
+				id: 'name',
+				title: 'Name',
+				description: 'Given and family name',
+				collapsible: true,
+				columns: ['first', 'last'],
+			},
+		]
+
+		const { container } = renderUI(
+			<Grid columns={columns} rows={rows} getKey={getKey} columnGroups={folding} />,
+		)
+
+		const band = present(bandCell(container), 'the band')
+
+		expect(band).toHaveAccessibleName('Name')
+
+		fireEvent.click(screen.getByRole('button', { name: /^Collapse/ }))
+
+		expect(band).toHaveAccessibleName('Name')
+	})
+
 	it('renders no band row when no group is configured', () => {
 		const { container } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
