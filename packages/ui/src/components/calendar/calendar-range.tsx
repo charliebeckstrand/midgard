@@ -34,12 +34,18 @@ export type CalendarRangeProps = {
 	 * it: the day is not an endpoint and is not selected.
 	 */
 	hoverDate?: Date | null
-	/** Fires when the pointer enters or leaves a day, with that day or `null`, so the parent can drive the `hoverDate` preview. */
+	/**
+	 * Fires when the pointer enters or leaves a day, with that day or `null`, so
+	 * the parent can drive the `hoverDate` preview. It also fires with the day
+	 * when the day gets DOM focus, so an arrow key previews the band too.
+	 */
 	onHoverDateChange?: (date: Date | null) => void
 	/** Fires when the month of the grid changes, with the first of that month. The prop passes through to `<Calendar>`. */
 	onMonthChange?: (month: Date) => void
 	active?: CalendarActive | null
 	footerRef?: RefObject<HTMLElement | null>
+	/** Id for the day listbox, which also gives each day its id. The prop passes through to `<Calendar>`. */
+	listboxId?: string
 	ref?: Ref<CalendarHandle>
 	/** Forwarded to `<Calendar>`. See its docs for the resolution chain. */
 	locale?: string
@@ -98,12 +104,14 @@ const leaveHandlers = new WeakMap<(date: Date | null) => void, () => void>()
 /**
  * The hover handlers of a day cell. Each handler keeps its identity for the same
  * `onHoverDateChange` and the same day while that month renders. A memoized cell then
- * holds when the band moves past it.
+ * holds when the band moves past it. The focus of a day also reports it, so
+ * an arrow key previews the band as the pointer does. A blur reports nothing:
+ * the next focus or hover replaces the preview.
  */
 function hoverHandlers(
 	onHoverDateChange: ((date: Date | null) => void) | undefined,
 	date: Date,
-): Pick<CalendarDayProps, 'onMouseEnter' | 'onMouseLeave'> {
+): Pick<CalendarDayProps, 'onMouseEnter' | 'onMouseLeave' | 'onFocus'> {
 	if (!onHoverDateChange) return {}
 
 	const byDay = getOrCompute(
@@ -112,20 +120,46 @@ function hoverHandlers(
 		() => new WeakMap<Date, () => void>(),
 	)
 
+	const enter = getOrCompute(byDay, date, (day) => () => onHoverDateChange(day))
+
 	return {
-		onMouseEnter: getOrCompute(byDay, date, (day) => () => onHoverDateChange(day)),
+		onMouseEnter: enter,
 		onMouseLeave: getOrCompute(leaveHandlers, onHoverDateChange, (report) => () => report(null)),
+		onFocus: enter,
 	}
+}
+
+/**
+ * Whether `date` is in the committed range: from `rangeStart` to `rangeEnd`,
+ * the two days included. With no `rangeEnd`, only `rangeStart` is in it. The
+ * `hoverDate` preview is not part of it.
+ *
+ * @internal
+ */
+function isCommitted(
+	date: Date,
+	rangeStart: Date | null | undefined,
+	rangeEnd: Date | null | undefined,
+): boolean {
+	if (rangeStart == null) return rangeEnd != null && sameDay(date, rangeEnd)
+
+	if (rangeEnd == null) return sameDay(date, rangeStart)
+
+	return (
+		sameDay(date, rangeStart) || sameDay(date, rangeEnd) || isBetween(date, rangeStart, rangeEnd)
+	)
 }
 
 /**
  * Range-aware variant of {@link Calendar}. Drives the underlying calendar's
  * per-day styling through `getDayProps`. It paints the band between
- * `rangeStart` and the effective end, marks both endpoints selected in a
- * multiselectable listbox, and rounds
+ * `rangeStart` and the effective end. In a multiselectable listbox, it selects
+ * each day from `rangeStart` to `rangeEnd`, the endpoints included, or only
+ * `rangeStart` while no end is set. The `hoverDate` preview selects no day. It
+ * rounds
  * the leading and trailing edges in either selection order. The effective end
  * is the `hoverDate` preview when it and `rangeStart` are set, else
- * `rangeEnd`. Hover over a day
+ * `rangeEnd`. Hover over a day, or its focus,
  * reports it through `onHoverDateChange` for live in-progress feedback. Endpoint
  * state is fully controlled by the parent. When the parent moves `rangeStart`
  * (else `rangeEnd`) to another month, the view follows it. Forwards `locale`,
@@ -144,6 +178,7 @@ export function CalendarRange({
 	onMonthChange,
 	active,
 	footerRef,
+	listboxId,
 	ref,
 	locale,
 	size,
@@ -163,15 +198,23 @@ export function CalendarRange({
 				effectiveEnd,
 			)
 
+			// The listbox selects each day of the committed range, so a screen reader
+			// reads a day in the band as selected. The band of a preview paints the
+			// same, but it selects no day.
+			let variant: CalendarDayProps['variant']
+
+			if (isInnerRange) variant = 'soft'
+			else if (isEdge) variant = 'solid'
+
 			return {
-				selected: isEdge,
-				variant: isInnerRange ? 'soft' : undefined,
-				color: isInnerRange ? 'blue' : undefined,
+				selected: isCommitted(date, rangeStart, rangeEnd),
+				variant,
+				color: isInnerRange || isEdge ? 'blue' : undefined,
 				className: k({ inner: isInnerRange, start: isStartEdge, end: isEndEdge }).day.range,
 				...hoverHandlers(onHoverDateChange, date),
 			}
 		},
-		[rangeStart, effectiveEnd, onHoverDateChange],
+		[rangeStart, rangeEnd, effectiveEnd, onHoverDateChange],
 	)
 
 	return (
@@ -188,6 +231,7 @@ export function CalendarRange({
 			getDayProps={getDayProps}
 			multiselectable
 			footerRef={footerRef}
+			listboxId={listboxId}
 			locale={locale}
 			size={size}
 			className={className}

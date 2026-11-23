@@ -1,5 +1,7 @@
 'use client'
 
+import { useRef } from 'react'
+import { flushSync } from 'react-dom'
 import { cn } from '../../core/cn'
 import { ArrowLeft, ChevronRight } from '../../primitives/icons/icons'
 import { useIntl } from '../../primitives/intl/use-intl'
@@ -60,6 +62,24 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 	// half fills the first column, the rest the second.
 	const rows = relativeListRows(state.presets.length + 1)
 
+	// A change of mode unmounts the button that has the focus. Each change thus
+	// moves the focus into the new view: the Start field of the custom range, or
+	// the "Custom range" row of the list. The commit is synchronous, so the new
+	// view is in the DOM when the focus moves.
+	const viewRef = useRef<HTMLDivElement>(null)
+
+	const showCustom = () => {
+		flushSync(state.enterCustom)
+
+		viewRef.current?.querySelector<HTMLElement>('input')?.focus()
+	}
+
+	const showList = () => {
+		flushSync(state.backToList)
+
+		viewRef.current?.querySelector<HTMLElement>('[data-relative-custom]')?.focus()
+	}
+
 	// The chip row owns the trigger's value area and wraps, so each chip that does
 	// not fit grows the trigger a row taller. Leaving it undefined (for `chips:
 	// false`, or for a selection with nothing to draw) hands the area back to the
@@ -105,6 +125,7 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 			>
 				{state.mode === 'list' ? (
 					<div
+						ref={viewRef}
 						className={cn(k.relative.list)}
 						// Pins the column-major row count; static recipe classes can't
 						// carry a data-dependent track count.
@@ -135,32 +156,31 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 							aria-pressed={state.customActive}
 							data-relative-custom=""
 							className={cn(k.relative.custom.row)}
-							onClick={state.enterCustom}
+							onClick={showCustom}
 						>
 							{customRange}
 							<Icon icon={<ChevronRight />} className="rtl:-scale-x-100" />
 						</Button>
 					</div>
 				) : (
-					<div className={cn(k.relative.custom.panel)}>
+					<div ref={viewRef} className={cn(k.relative.custom.panel)}>
 						<Button
 							type="button"
 							variant="bare"
 							className={cn(k.relative.custom.back)}
-							onClick={state.backToList}
+							onClick={showList}
 						>
 							<Icon icon={<ArrowLeft />} className="rtl:-scale-x-100" />
 							{intl.formatMessage(datePickerMessages.backToPresets)}
 						</Button>
 						{/* Each field is a single-date picker in `input` mode: a typed
-						    DateInput whose suffix button opens a calendar. The popover
-						    preventDefaults mousedown to hold DOM focus on the dialog for
-						    the calendar variants' virtual model. Stop mousedown here, so a
-						    click focuses the input. `clearable` is off so the suffix
+						    DateInput whose suffix button opens a calendar. The custom
+						    panel has no steered model, so a click focuses the input.
+						    `clearable` is off so the suffix
 						    (and thus the field width) stays fixed as a date is entered.
 						    Each field takes the root `footer`, so a footer button that
 						    the author removes does not show in the field calendars. */}
-						<Field onMouseDown={(event) => event.stopPropagation()}>
+						<Field>
 							<Label>{intl.formatMessage(datePickerMessages.start)}</Label>
 							<DatePickerFrame>
 								<DatePickerSingle
@@ -178,7 +198,7 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 								/>
 							</DatePickerFrame>
 						</Field>
-						<Field onMouseDown={(event) => event.stopPropagation()}>
+						<Field>
 							<Label>{intl.formatMessage(datePickerMessages.end)}</Label>
 							<DatePickerFrame>
 								<DatePickerSingle

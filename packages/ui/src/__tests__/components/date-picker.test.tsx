@@ -4,12 +4,23 @@ import { Control } from '../../components/control'
 import { DatePicker, type DatePickerProps } from '../../components/date-picker'
 import { DatePickerCalendarButton } from '../../components/date-picker/date-picker-calendar-button'
 import { useDatePickerState } from '../../components/date-picker/use-date-picker-state'
-import { Field } from '../../components/fieldset'
+import { Field, Label } from '../../components/fieldset'
 import { Form } from '../../modules/form'
 import { LocaleProvider } from '../../providers/locale'
-import { act, bySlot, fireEvent, getSlot, renderUI, screen, setupUser, within } from '../helpers'
+import {
+	act,
+	bySlot,
+	createEvent,
+	fireEvent,
+	getSlot,
+	renderUI,
+	screen,
+	setupUser,
+	within,
+} from '../helpers'
 import { axe } from '../helpers/axe'
 import { it } from '../helpers/fake-clock'
+import { expectAnnouncement } from '../helpers/live-region'
 
 // The footer Clear and the trigger clear share the "Clear selection" name; scope
 // footer-clear queries to the popover toolbar so the closed trigger's clear (now
@@ -105,6 +116,26 @@ const pickers: [string, DatePickerProps][] = [
 describe('DatePicker', () => {
 	// The range variant threads aria-label through to the same trigger. The
 	// placeholder is not a programmatic name.
+	// A combobox takes no name from its content, so the placeholder does not name it.
+	it.for(pickers)('names an unlabelled %s trigger "Date"', ([, variant]) => {
+		renderUI(<DatePicker {...variant} />)
+
+		expect(screen.getByRole('combobox', { name: 'Date' })).toBeInTheDocument()
+	})
+
+	it('drops the fallback name when a Field label names the trigger', async () => {
+		renderUI(
+			<Field>
+				<Label>Due date</Label>
+				<DatePicker />
+			</Field>,
+		)
+
+		const trigger = await screen.findByRole('combobox', { name: 'Due date' })
+
+		expect(trigger).not.toHaveAttribute('aria-label')
+	})
+
 	it.for(pickers)('names the %s trigger via aria-label for unwrapped pickers', ([, variant]) => {
 		renderUI(<DatePicker {...variant} aria-label="Due date" />)
 
@@ -673,8 +704,8 @@ describe('DatePicker footer', () => {
 	})
 })
 
-// Focus stays on the trigger while an aria-activedescendant model drives the
-// grid. Covers the keyboard path: opening, moving the highlight, and committing.
+// The calendar variants follow the APG date picker dialog: DOM focus moves
+// through the days, and the calendar owns the keys.
 describe('DatePicker keyboard', () => {
 	it.each(['{ArrowDown}', '{ArrowUp}', '{Enter}', ' '])(
 		'opens the calendar from the closed trigger with %s',
@@ -695,60 +726,107 @@ describe('DatePicker keyboard', () => {
 		},
 	)
 
-	it('shows the active-day highlight while DOM focus stays on the dialog', async () => {
+	// Opens a picker with `props` from the keyboard, as a keyboard user does.
+	async function openWithKeys(props: DatePickerProps) {
 		const user = setupUser()
 
-		// June 2025; the initial highlight lands on the 15th.
-		const { container } = renderUI(<DatePicker defaultValue={new Date(2025, 5, 15)} />)
+		const view = renderUI(<DatePicker {...props} />)
 
-		const button = getSlot<HTMLButtonElement>(container, 'datepicker-button')
+		const button = getSlot<HTMLButtonElement>(view.container, 'datepicker-button')
 
 		button.focus()
 
-		await user.keyboard('{ArrowDown}') // open
+		await user.keyboard('{Enter}')
 
-		await user.keyboard('{ArrowDown}') // materialize the highlight on the 15th
+		return { ...view, user, button }
+	}
 
-		const day = findDay(15)
+	it.for(pickers)('focuses the selected day when the %s dialog opens', async ([, variant]) => {
+		const props: DatePickerProps = variant.range
+			? { range: true, defaultValue: [new Date(2025, 5, 15), new Date(2025, 5, 18)] }
+			: { defaultValue: new Date(2025, 5, 15) }
 
-		expect(day).not.toHaveFocus()
+		await openWithKeys(props)
 
-		// The highlight ring must render without DOM focus; a `focus-visible:`
-		// gated ring never shows under the virtual model.
-		expect(day).toHaveClass('outline-2')
+		expect(findDay(15)).toHaveFocus()
 
-		// `outline-solid` must survive the merge and evict the Button reset's
-		// ungated `outline-none`, which would keep the stroke invisible.
-		expect(day).toHaveClass('outline-solid')
-
-		expect(day).not.toHaveClass('outline-none')
+		expect(findDay(15)).toHaveAttribute('aria-selected', 'true')
 	})
 
-	it('keeps focus inside the dialog when an arrow move crosses months with a day cell focused', async () => {
-		const user = setupUser()
+	it('focuses today when the dialog opens with no value', async ({ clock }) => {
+		clock.set(new Date(2025, 5, 20, 9))
 
-		const { container } = renderUI(<DatePicker defaultValue={new Date(2025, 5, 15)} />)
+		const { button } = await openWithKeys({})
 
-		const button = getSlot<HTMLButtonElement>(container, 'datepicker-button')
+		await clock.advance(16)
 
-		button.focus()
+		expect(findDay(20)).toHaveFocus()
 
-		await user.keyboard('{ArrowDown}') // open
+		expect(button).toHaveAttribute('aria-expanded', 'true')
+	})
 
-		// The modal trap lets Tab reach day cells; seat DOM focus on one.
-		const day3 = findDay(3)
+	it('focuses the first enabled day when today is outside min and max', async ({ clock }) => {
+		clock.set(new Date(2025, 5, 20, 9))
 
-		act(() => day3.focus())
+		await openWithKeys({ min: new Date(2025, 5, 24), max: new Date(2025, 6, 31) })
 
-		// B01-C12, Q8: the arrow steps from the focused 3rd to May 27th. The move
-		// re-anchors the view to May and unmounts every June day button.
+		await clock.advance(16)
+
+		expect(findDay(24)).toHaveFocus()
+	})
+
+	it('moves DOM focus with the arrow keys, the Page keys, Home, and End', async () => {
+		const { user } = await openWithKeys({ defaultValue: new Date(2025, 5, 15) })
+
+		await user.keyboard('{ArrowRight}')
+
+		expect(findDay(16)).toHaveFocus()
+
+		await user.keyboard('{ArrowDown}')
+
+		expect(findDay(23)).toHaveFocus()
+
+		await user.keyboard('{PageDown}')
+
+		expect(screen.getByRole('button', { name: /July 2025/ })).toBeInTheDocument()
+
+		expect(findDay(23)).toHaveFocus()
+
+		await user.keyboard('{Shift>}{PageUp}{/Shift}')
+
+		expect(screen.getByRole('button', { name: /July 2024/ })).toBeInTheDocument()
+
+		expect(findDay(23)).toHaveFocus()
+
+		await user.keyboard('{Home}')
+
+		expect(findDay(1)).toHaveFocus()
+
+		await user.keyboard('{End}')
+
+		expect(findDay(31)).toHaveFocus()
+	})
+
+	it('keeps focus on a day when an arrow move crosses months', async () => {
+		const { user } = await openWithKeys({ defaultValue: new Date(2025, 6, 3) })
+
+		expect(findDay(3)).toHaveFocus()
+
+		// The move re-anchors the view to June and unmounts every July day button.
 		await user.keyboard('{ArrowUp}')
 
-		expect(findDay(31)).toBeInTheDocument() // May has 31 days; the view moved
+		expect(screen.getByRole('button', { name: /June 2025/ })).toBeInTheDocument()
 
-		expect(findDay(27)).toHaveClass('outline-2')
+		expect(findDay(26)).toHaveFocus()
+	})
 
-		expect(screen.getByRole('dialog', { name: 'Select a date' })).toHaveFocus()
+	it('draws the focus ring on the focused day from the keyboard', async () => {
+		await openWithKeys({ defaultValue: new Date(2025, 5, 15) })
+
+		// A real focus shows the `focus-visible` ring of the day button.
+		expect(findDay(15).className).toContain('focus-visible:outline-2')
+
+		expect(findDay(15)).not.toHaveClass('outline-2')
 	})
 
 	it('keeps arrow keys inside the open month picker', async ({ clock }) => {
@@ -778,60 +856,98 @@ describe('DatePicker keyboard', () => {
 		expect(yearLabel).toHaveFocus()
 
 		// No move applies; the press must stay sealed in the picker rather than
-		// drive the calendar underneath or pull focus back to the dialog.
+		// drive the calendar underneath.
 		await clock.user.keyboard('{ArrowUp}')
 
 		expect(yearLabel).toHaveFocus()
 
-		expect(screen.getByRole('listbox', { name: 'Select month' })).toBeInTheDocument()
+		expect(screen.getByRole('listbox', { name: 'Select month, 2025' })).toBeInTheDocument()
 	})
 
-	it('moves the active day with arrows and commits it with Enter', async () => {
-		const user = setupUser()
-
+	it.each(['{Enter}', ' '])('commits the focused day with %s', async (key) => {
 		const onChange = vi.fn()
 
-		// June 2025; the initial highlight lands on the 15th.
-		const { container } = renderUI(
-			<DatePicker defaultValue={new Date(2025, 5, 15)} onValueChange={onChange} />,
-		)
+		const { user, button } = await openWithKeys({
+			defaultValue: new Date(2025, 5, 15),
+			onValueChange: onChange,
+		})
 
-		const button = getSlot<HTMLButtonElement>(container, 'datepicker-button')
+		await user.keyboard('{ArrowDown}') // one week forward → the 22nd
 
-		button.focus()
-
-		await user.keyboard('{ArrowDown}') // open
-
-		await user.keyboard('{ArrowDown}') // materialize the highlight on the 15th
-
-		await user.keyboard('{ArrowDown}') // move one week forward → the 22nd
-
-		await user.keyboard('{Enter}') // commit
+		await user.keyboard(key)
 
 		expect(onChange).toHaveBeenCalledExactlyOnceWith(new Date(2025, 5, 22))
 
 		expect(button).toHaveAttribute('aria-expanded', 'false')
+
+		expect(button).toHaveFocus()
 	})
 
-	// B01-C06: the first arrow enters the month that the calendar shows.
-	it('enters the shown month on the first arrow after the month buttons move the view', async () => {
-		const user = setupUser()
+	it('closes on Escape from a day and returns focus to the trigger', async () => {
+		const { user, button } = await openWithKeys({ defaultValue: new Date(2025, 5, 15) })
 
-		const { container } = renderUI(<DatePicker defaultValue={new Date(2025, 5, 15)} />)
+		await user.keyboard('{ArrowRight}{Escape}')
 
-		const button = getSlot<HTMLButtonElement>(container, 'datepicker-button')
+		expect(button).toHaveAttribute('aria-expanded', 'false')
 
-		button.focus()
+		expect(button).toHaveFocus()
+	})
 
-		await user.keyboard('{ArrowDown}') // open on June 2025
+	it('enters the shown month on ArrowDown from the header after Next month', async () => {
+		const { user } = await openWithKeys({ defaultValue: new Date(2025, 5, 15) })
 
-		await user.click(screen.getByRole('button', { name: 'Next month' })) // show July
+		const next = screen.getByRole('button', { name: 'Next month' })
 
-		await user.keyboard('{ArrowRight}')
+		// A press focuses the button, so the focus does not stay on a June day
+		// that the step unmounts.
+		await user.click(next)
+
+		expect(next).toHaveFocus()
+
+		await user.keyboard('{ArrowDown}')
 
 		expect(screen.getByRole('button', { name: /July 2025/ })).toBeInTheDocument()
 
-		expect(findDay(1)).toHaveClass('outline-2')
+		expect(findDay(1)).toHaveFocus()
+	})
+
+	it('moves the focus from the footer up into the grid', async () => {
+		const { user } = await openWithKeys({ defaultValue: new Date(2025, 5, 15) })
+
+		act(() => footerClear().focus())
+
+		await user.keyboard('{ArrowUp}')
+
+		expect(findDay(15)).toHaveFocus()
+	})
+
+	it('selects each day of a range and announces the start after the first press', async () => {
+		const onChange = vi.fn()
+
+		const { user } = await openWithKeys({
+			range: true,
+			defaultValue: [new Date(2025, 5, 10), new Date(2025, 5, 12)],
+			onValueChange: onChange,
+		})
+
+		expect(findDay(11)).toHaveAttribute('aria-selected', 'true')
+
+		expect(findDay(10)).toHaveFocus()
+
+		await user.keyboard('{Enter}') // a new start on the 10th
+
+		await expectAnnouncement('Start date Tuesday, June 10, 2025. Select the end date.')
+
+		// The focus previews the end. The preview selects no day.
+		await user.keyboard('{ArrowRight}{ArrowRight}{ArrowRight}')
+
+		expect(findDay(13)).toHaveFocus()
+
+		expect(findDay(12)).toHaveAttribute('aria-selected', 'false')
+
+		await user.keyboard('{Enter}')
+
+		expect(onChange).toHaveBeenCalledExactlyOnceWith([new Date(2025, 5, 10), new Date(2025, 5, 13)])
 	})
 })
 
@@ -1489,11 +1605,55 @@ describe('DatePicker input', () => {
 
 		expect(activeDescendant(input)).toBe(findDay(22))
 
+		// Each day has its own id, so each move changes the attribute, and the
+		// id of a day does not move to another cell.
+		const active22 = input.getAttribute('aria-activedescendant')
+
+		expect(active22).not.toBe(active15)
+
+		expect(findDay(15)).toHaveAttribute('id', active15)
+
 		await user.keyboard('{Escape}') // close clears the reference
 
 		expect(input).not.toHaveAttribute('aria-activedescendant')
 
 		expect(input).not.toHaveAttribute('aria-controls')
+	})
+
+	it('leaves ArrowLeft, ArrowRight, and Shift+Arrow with the text while no day is highlighted', async () => {
+		const { user, input } = await openInputPicker()
+
+		for (const key of [
+			'{ArrowLeft}',
+			'{ArrowRight}',
+			'{Shift>}{ArrowUp}{/Shift}',
+			'{Shift>}{ArrowDown}{/Shift}',
+		]) {
+			await user.keyboard(key)
+
+			expect(input).not.toHaveAttribute('aria-activedescendant')
+
+			expect(screen.getByRole('toolbar', { name: 'Date picker actions' })).toBeInTheDocument()
+		}
+
+		// The caret moved: ArrowLeft and ArrowRight were not cancelled.
+		const event = createEvent.keyDown(input, { key: 'ArrowLeft' })
+
+		fireEvent(input, event)
+
+		expect(event.defaultPrevented).toBe(false)
+
+		expect(input).toHaveFocus()
+
+		// ArrowDown still enters the grid.
+		await user.keyboard('{ArrowDown}')
+
+		expect(activeDescendant(input)).toBe(findDay(15))
+
+		// With a day highlighted, ArrowRight moves the highlight.
+		await user.keyboard('{ArrowRight}')
+
+		expect(activeDescendant(input)).toBe(findDay(16))
 	})
 
 	it('commits the highlighted day on Enter without leaving the input', async () => {

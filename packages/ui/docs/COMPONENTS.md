@@ -33,6 +33,8 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > On a phone (`PHONE_QUERY`, [`UTILITIES.md`](UTILITIES.md)), a dropdown `Menu` and a `DatePicker` open as a bottom sheet in place of the popover. Set `sheet={false}` to keep the popover.
 
+> The dialog of a `DatePicker` follows the WAI-ARIA APG date picker dialog. The open moves DOM focus to the selected day, else today, else the first enabled day, and the `Calendar` keyboard moves the focus. The `input` mode keeps the focus in the text field and points its `aria-activedescendant` at the id of the highlighted day. A `Calendar` with a `listboxId` gives each day the id `<listboxId>-<YYYY-MM-DD>`. `CalendarRange` selects each day of the committed range.
+
 > The date text of `Intl` in `calendar` and `date-picker` waits for hydration, as in `date-time`. The server render and the hydration render show a skeleton of the month label, of the weekday row, and of the value in the trigger. The skeleton holds English text, without `Intl`, so it has about the size of the label. A `date-picker` with a pinned `format` writes its value without `Intl`, so it shows the value in the server render.
 
 > A `required` `tag-input` needs at least one tag. An enclosing `Control` can also make it required. A native form submit stops while the list is empty, and the typed draft does not count as a tag.

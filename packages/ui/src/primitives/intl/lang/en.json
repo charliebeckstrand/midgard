@@ -36,16 +36,16 @@
 		"description": "The name of the button that shows the year before in the month picker."
 	},
 	"ui.calendar.selectMonth": {
-		"defaultMessage": "Select month",
-		"description": "The name of the grid of months in the month picker."
+		"defaultMessage": "Select month, {year}",
+		"description": "The name of the grid of months in the month picker. {year} is the year of the grid, such as 2025."
 	},
 	"ui.calendar.selectMonthYear": {
 		"defaultMessage": "Select month and year",
 		"description": "The name of the panel that holds the month picker and the year picker."
 	},
 	"ui.calendar.selectYear": {
-		"defaultMessage": "Select year",
-		"description": "The name of the grid of years in the year picker."
+		"defaultMessage": "Select year, {decade}",
+		"description": "The name of the grid of years in the year picker. {decade} is the span of years that the grid shows, such as 2020–2029."
 	},
 	"ui.chart.chart": {
 		"defaultMessage": "Chart",
@@ -562,6 +562,10 @@
 	"ui.datePicker.openCalendar": {
 		"defaultMessage": "Open calendar",
 		"description": "The name of the button that opens the calendar of a date field."
+	},
+	"ui.datePicker.rangeStartSet": {
+		"defaultMessage": "Start date {date}. Select the end date.",
+		"description": "Spoken by a screen reader after the first press in a range calendar. {date} is the full name of the start day, such as Tuesday, June 10, 2025."
 	},
 	"ui.datePicker.selectDate": {
 		"defaultMessage": "Select a date",

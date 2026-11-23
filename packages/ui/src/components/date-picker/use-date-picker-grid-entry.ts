@@ -1,5 +1,6 @@
-import { type RefObject, useCallback } from 'react'
+import { type RefObject, useCallback, useMemo } from 'react'
 import type { CalendarHandle } from '../calendar'
+import { dayOptionId } from '../calendar/calendar-utilities'
 import { clampDate } from './date-picker-utilities'
 
 /**
@@ -34,4 +35,33 @@ export function useDatePickerGridEntry(
 	}, [calendarRef, getInitialActiveDate])
 
 	return { getInitialActiveDate, getViewEntryDate }
+}
+
+/**
+ * The day button that gets DOM focus when the dialog opens, as a ref. It is
+ * the entry day of the calendar (`CalendarHandle.getEntryDate`): the selected
+ * day, else today, else the first enabled day of the shown month. The ref
+ * reads the day when the focus manager reads `current`, after the dialog
+ * mounts, so the day is the day of the open. It finds the button by the id that
+ * the grid gives each day from `listboxId`.
+ *
+ * @param listboxId - The id that the picker gives the day listbox.
+ * @returns A ref whose `current` is the day button, or `null` when the shown
+ * month holds no enabled day. The focus manager then focuses its default.
+ * @internal
+ */
+export function useDatePickerGridEntryFocus(
+	listboxId: string,
+	calendarRef: RefObject<CalendarHandle | null>,
+): RefObject<HTMLElement | null> {
+	return useMemo(
+		() => ({
+			get current() {
+				const date = calendarRef.current?.getEntryDate()
+
+				return date ? document.getElementById(dayOptionId(listboxId, date)) : null
+			},
+		}),
+		[listboxId, calendarRef],
+	)
 }

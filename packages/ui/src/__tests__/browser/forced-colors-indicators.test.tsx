@@ -540,10 +540,10 @@ describe('controls show their state under forced colors (real browser)', () => {
 		})
 	}
 
-	// The open picker holds focus and moves a virtual ring over the days. The
-	// selected day is a solid Button, whose resting outline is 1 px under forced
-	// colors. The ring of the active day must stay 2 px on it, as on a plain day.
-	it('date picker: the ring of the active day is 2 px on the selected day too', async () => {
+	// The open picker moves DOM focus over the days. The selected day is a solid
+	// Button, whose resting outline is 1 px under forced colors. The focus ring
+	// must stay 2 px on it, as on a plain day.
+	it('date picker: the focus ring of a day is 2 px on the selected day too', async () => {
 		renderUI(<DatePicker aria-label="Day" defaultValue={new Date(2024, 2, 10)} />)
 
 		await frames()
@@ -551,16 +551,15 @@ describe('controls show their state under forced colors (real browser)', () => {
 		await userEvent.keyboard('{Enter}')
 		await frames()
 
-		const active = () =>
-			present(document.querySelector<HTMLElement>('[role=option][id]'), 'active day')
+		const focused = () => present(document.activeElement as HTMLElement | null, 'focused day')
 
 		const widths: Record<string, string> = {}
 
-		for (const key of ['{ArrowRight}', '{ArrowLeft}']) {
+		for (const key of ['{ArrowLeft}', '{ArrowRight}']) {
 			await userEvent.keyboard(key)
 			await frames()
 
-			const day = active()
+			const day = focused()
 
 			widths[`${day.textContent} ${day.getAttribute('aria-selected')}`] =
 				getComputedStyle(day).outlineWidth
