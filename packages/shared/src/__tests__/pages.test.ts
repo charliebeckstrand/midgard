@@ -19,16 +19,6 @@ describe('ErrorPage', () => {
 	it('gives its title as the heading of the page', () => {
 		expect(renderInLocale('en', errorPage)).toMatch(/<h1[^>]*>Something went wrong<\/h1>/)
 	})
-
-	it('shows its text in the language of the locale', () => {
-		const html = renderInLocale('es', errorPage)
-
-		expect(html).toContain('Algo salió mal')
-
-		expect(html).toContain('No se pudo cargar la página. Vuelve a intentarlo pronto.')
-
-		expect(html).toContain('Volver a intentar')
-	})
 })
 
 describe('NotFoundPage', () => {
@@ -36,13 +26,9 @@ describe('NotFoundPage', () => {
 		expect(renderInLocale('en', createElement(NotFoundPage))).toMatch(/<h1[^>]*>404<\/h1>/)
 	})
 
-	it('shows its text in the language of the locale', () => {
+	it('shows its text in English', () => {
 		expect(renderInLocale('en', createElement(NotFoundPage))).toContain(
 			'This page could not be found',
-		)
-
-		expect(renderInLocale('es', createElement(NotFoundPage))).toContain(
-			'No se encontró esta página',
 		)
 	})
 })

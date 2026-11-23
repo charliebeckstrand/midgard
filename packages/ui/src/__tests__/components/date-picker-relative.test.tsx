@@ -562,7 +562,7 @@ describe('DatePicker (relative)', () => {
 })
 
 describe('DatePicker (relative) in a locale', () => {
-	it('shows the placeholder, the panel, and the presets in the language of the locale', async () => {
+	it('shows the default placeholder, and names the panel by its mode, in a locale', async () => {
 		const user = setupUser()
 
 		const { container } = renderUI(
@@ -571,22 +571,14 @@ describe('DatePicker (relative) in a locale', () => {
 			</LocaleProvider>,
 		)
 
-		expect(container.textContent).toContain('Selecciona un intervalo')
+		expect(container.textContent).toContain('Select range')
 
 		await user.click(getSlot<HTMLButtonElement>(container, 'datepicker-button'))
 
-		expect(screen.getByRole('dialog', { name: 'Selecciona un intervalo' })).toBeInTheDocument()
+		expect(screen.getByRole('dialog', { name: 'Select range' })).toBeInTheDocument()
 
-		expect(screen.getByRole('button', { name: 'Últimos 7 días' })).toBeInTheDocument()
+		await user.click(screen.getByRole('button', { name: 'Custom range' }))
 
-		await user.click(screen.getByRole('button', { name: 'Intervalo personalizado' }))
-
-		expect(screen.getByRole('dialog', { name: 'Intervalo personalizado' })).toBeInTheDocument()
-
-		expect(screen.getByRole('button', { name: 'Volver a los intervalos' })).toBeInTheDocument()
-
-		expect(screen.getByText('Inicio')).toBeInTheDocument()
-
-		expect(screen.getByText('Fin')).toBeInTheDocument()
+		expect(screen.getByRole('dialog', { name: 'Custom range' })).toBeInTheDocument()
 	})
 })

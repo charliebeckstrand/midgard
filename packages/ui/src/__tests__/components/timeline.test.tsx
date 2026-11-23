@@ -6,7 +6,6 @@ import {
 	TimelineTimestamp,
 	TimelineTitle,
 } from '../../components/timeline'
-import { LocaleProvider } from '../../providers/locale'
 import { bySlot, renderUI, screen } from '../helpers'
 
 describe('Timeline', () => {
@@ -152,18 +151,6 @@ describe('TimelineItem marker', () => {
 		expect(dot).toHaveAttribute('role', 'img')
 
 		expect(dot).toHaveAccessibleName('Error')
-	})
-
-	it('names the status dot in the language of the locale', () => {
-		const { container } = renderUI(
-			<LocaleProvider locale="es-ES">
-				<Timeline>
-					<TimelineItem status="warning" />
-				</Timeline>
-			</LocaleProvider>,
-		)
-
-		expect(bySlot(container, 'status-dot')).toHaveAccessibleName('Advertencia')
 	})
 
 	it('leaves a color-only marker decorative', () => {

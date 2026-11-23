@@ -22,7 +22,6 @@ import {
 import { PdfViewerZoomControls } from '../../components/pdf-viewer/pdf-viewer-zoom-controls'
 import type { PdfViewerSlot } from '../../components/pdf-viewer/types'
 import { Toolbar } from '../../components/toolbar'
-import { LocaleProvider } from '../../providers/locale'
 import { BREAKPOINT_WIDTHS } from '../../utilities/responsive'
 import {
 	act,
@@ -1874,26 +1873,5 @@ describe('PdfViewer fit', () => {
 		const { container } = renderUI(<PdfViewer pages={sizedPages} />)
 
 		expect(bySlot(container, 'pdf-viewer')).not.toHaveClass('h-full')
-	})
-})
-
-describe('PdfViewer in a locale', () => {
-	it('names the viewer, its controls, and its pages in the language of the locale', () => {
-		const { container } = renderUI(
-			<LocaleProvider locale="es-ES">
-				{/* Pages with no label of their own take the name of the viewer. */}
-				<PdfViewer pages={pages.map(({ label: _label, ...page }) => page)} />
-			</LocaleProvider>,
-		)
-
-		expect(screen.getByRole('toolbar', { name: 'Controles del PDF' })).toBeInTheDocument()
-
-		expect(screen.getByLabelText('Acercar')).toBeInTheDocument()
-
-		expect(screen.getByRole('navigation', { name: 'Páginas' })).toBeInTheDocument()
-
-		expect(screen.getByRole('button', { name: 'Ir a Página 1' })).toBeInTheDocument()
-
-		expect(getSlot(container, 'pdf-viewer-page-status')).toHaveTextContent('Página 1 de 3')
 	})
 })

@@ -8,7 +8,7 @@ import {
 	summarizeQuery,
 } from '../../modules/query/engine/query-summary'
 import type { QueryField, QueryNode, QueryRule } from '../../modules/query/engine/types'
-import { intlEs } from '../helpers/intl'
+import { localeIntl } from '../../primitives/intl/intl-catalog'
 
 const nameField: QueryField = { name: 'name', label: 'Name', type: 'text' }
 
@@ -435,31 +435,24 @@ describe('a field with a custom value editor', () => {
 		expect(summary('c1')).toBe('')
 	})
 
-	it('gives the set operator and the list in the language of the intl', () => {
+	it('joins the values of a set in the list format of the intl', () => {
 		const group = createGroup('and', [
 			{ ...createRule(customerField), operator: 'in', value: ['c1', 'c2'] } as QueryRule,
 		])
 
-		expect(formatQuerySummary(group, [customerField], intlEs)).toBe(
-			'Customer es alguno de Acme o Globex',
+		// ui has no Spanish translation, so the operator is English. The list
+		// takes the conjunction of the locale.
+		expect(formatQuerySummary(group, [customerField], localeIntl('es'))).toBe(
+			'Customer is any of Acme o Globex',
 		)
 	})
 })
 
 describe('formatQuerySummary in a locale', () => {
-	it('gives the built-in labels in the language of the intl', () => {
-		const group = createGroup('and', [
-			rule(nameField, { operator: 'isEmpty' }),
-			{ ...rule(ageField, { operator: 'between', value: [18, 65] }), combinator: 'or' as const },
-		])
-
-		expect(formatQuerySummary(group, fields, intlEs)).toBe('Name está vacío O Age entre 18 y 65')
-	})
-
 	it('gives a number value in the number form of the intl', () => {
 		const group = createGroup('and', [rule(ageField, { operator: 'gt', value: 2500000.5 })])
 
-		expect(formatQuerySummary(group, fields, intlEs)).toBe('Age > 2.500.000,5')
+		expect(formatQuerySummary(group, fields, localeIntl('es'))).toBe('Age > 2.500.000,5')
 	})
 
 	it('keeps an operator of the app as the app wrote it', () => {
@@ -472,6 +465,6 @@ describe('formatQuerySummary in a locale', () => {
 
 		const group = createGroup('and', [rule(codeField, { operator: 'equals', value: 'A1' })])
 
-		expect(formatQuerySummary(group, [codeField], intlEs)).toBe('Code matches A1')
+		expect(formatQuerySummary(group, [codeField], localeIntl('es'))).toBe('Code matches A1')
 	})
 })

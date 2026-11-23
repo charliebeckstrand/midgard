@@ -10,7 +10,6 @@ import {
 } from '../../modules/form/engine/form-filters'
 import { formFiltersAxis } from '../../modules/form/engine/form-filters-axis'
 import { intlEn } from '../../primitives/intl/intl-catalog'
-import { intlEs } from '../helpers/intl'
 
 describe('isFilterActive', () => {
 	it.each([
@@ -69,10 +68,6 @@ describe('formatActiveFilters', () => {
 		expect(formatActiveFilters(intlEn, 0)).toBe('0 filters active')
 
 		expect(formatActiveFilters(intlEn, 3)).toBe('3 filters active')
-
-		expect(formatActiveFilters(intlEs, 1)).toBe('1 filtro activo')
-
-		expect(formatActiveFilters(intlEs, 3)).toBe('3 filtros activos')
 	})
 })
 

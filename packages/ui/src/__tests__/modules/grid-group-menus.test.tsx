@@ -6,7 +6,6 @@ import {
 } from '../../modules/grid/grid-context-menu-utilities'
 import type { GridMenuItem } from '../../modules/grid/types'
 import { intlEn } from '../../primitives/intl/intl-catalog'
-import { intlEs } from '../helpers/intl'
 
 /** The rows of a menu by label, and each separator as `---`. */
 const shape = (items: GridMenuItem[]) =>
@@ -68,21 +67,5 @@ describe('the Clear color item of the group menus', () => {
 		}).at(-1)
 
 		expect(row).toEqual(column)
-	})
-})
-
-describe('the group menus in a locale', () => {
-	it('labels the row-group menu in the language of the intl', () => {
-		const items = rowGroupMenuItems({ ...rowArgs, intl: intlEs, color: 'blue' })
-
-		expect(shape(items)).toEqual([
-			'Manage rows',
-			'---',
-			'Contraer el grupo',
-			'Expandir todos los grupos',
-			'Contraer todos los grupos',
-			'---',
-			'Quitar el color',
-		])
 	})
 })

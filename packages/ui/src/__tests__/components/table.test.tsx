@@ -12,7 +12,6 @@ import {
 	TableRow,
 } from '../../components/table'
 import { DensityProvider } from '../../providers/density'
-import { LocaleProvider } from '../../providers/locale'
 import { bySlot, renderUI, screen } from '../helpers'
 
 /** The body of one row with one cell, for the cases that need no other content. */
@@ -269,24 +268,14 @@ describe('TableLoading', () => {
 })
 
 describe('TableEmpty', () => {
-	it('shows the default empty message in the language of the locale', () => {
-		const { rerender } = renderUI(
+	it('shows the default empty message', () => {
+		renderUI(
 			<Table>
 				<TableEmpty columns={2} />
 			</Table>,
 		)
 
 		expect(screen.getByText('No items')).toBeInTheDocument()
-
-		rerender(
-			<LocaleProvider locale="es">
-				<Table>
-					<TableEmpty columns={2} />
-				</Table>
-			</LocaleProvider>,
-		)
-
-		expect(screen.getByText('Sin elementos')).toBeInTheDocument()
 	})
 
 	it('shows its own content in place of the default message', () => {

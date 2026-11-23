@@ -1,11 +1,8 @@
-import { createElement, type ReactNode } from 'react'
+import { createElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { ForgotPasswordPage } from '../auth/forgot-password-page'
 import { LoginPage } from '../auth/login-page'
 import { RegisterPage } from '../auth/register-page'
-import { ResetPasswordPage } from '../auth/reset-password-page'
 import { SecondStep } from '../auth/second-step'
-import { VerifyEmailPage } from '../auth/verify-email-page'
 import { renderInLocale } from './helpers/intl'
 
 // The pages read the router and the query of the App Router, which a server
@@ -25,54 +22,6 @@ describe('LoginPage', () => {
 		expect(html).toContain('Sign in to your account')
 
 		expect(html).toContain('Continue with GitHub')
-	})
-
-	it('shows its text, its notice, and its provider button in the language of the locale', () => {
-		const html = renderInLocale('es', page)
-
-		for (const text of [
-			'Inicia sesión en tu cuenta',
-			'Correo electrónico',
-			'¿Olvidaste tu contraseña?',
-			'Iniciar sesión con una llave de acceso',
-			'Continuar con GitHub',
-			'¿No tienes una cuenta?',
-			'Revisa tu correo para terminar el registro y luego inicia sesión.',
-		]) {
-			expect(html).toContain(text)
-		}
-	})
-})
-
-describe('the other auth pages', () => {
-	// Each row makes its page in the test, so the table holds no elements.
-	const pages: [string, () => ReactNode, string[]][] = [
-		[
-			'RegisterPage',
-			() => createElement(RegisterPage, {}),
-			['Crea tu cuenta', 'Nombre completo', 'Crear cuenta', '¿Ya tienes una cuenta?'],
-		],
-		[
-			'ForgotPasswordPage',
-			() => createElement(ForgotPasswordPage),
-			['Restablece tu contraseña', 'Enviar enlace', 'Volver a iniciar sesión'],
-		],
-		[
-			'ResetPasswordPage',
-			() => createElement(ResetPasswordPage),
-			['Establece una contraseña nueva', 'Contraseña nueva', 'Establecer contraseña'],
-		],
-		[
-			'VerifyEmailPage',
-			() => createElement(VerifyEmailPage),
-			['Verifica tu correo', 'Verificar correo'],
-		],
-	]
-
-	it.each(pages)('%s shows its text in the language of the locale', (_, page, texts) => {
-		const html = renderInLocale('es', page())
-
-		for (const text of texts) expect(html).toContain(text)
 	})
 })
 

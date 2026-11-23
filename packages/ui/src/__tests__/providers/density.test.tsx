@@ -16,13 +16,10 @@ describe('densityLevels', () => {
 		expect(densityLevels.map(({ value }) => value)).toEqual(['loose', 'snug', 'compact'])
 	})
 
-	it('names each level in the language of the reader', () => {
-		const names = (locale: string) =>
-			densityLevels.map((level) => localeIntl(locale).formatMessage(level.message))
+	it('names each level', () => {
+		const names = densityLevels.map((level) => localeIntl('en-US').formatMessage(level.message))
 
-		expect(names('en-US')).toEqual(['Loose', 'Snug', 'Compact'])
-
-		expect(names('es-ES')).toEqual(['Amplia', 'Estándar', 'Compacta'])
+		expect(names).toEqual(['Loose', 'Snug', 'Compact'])
 	})
 })
 

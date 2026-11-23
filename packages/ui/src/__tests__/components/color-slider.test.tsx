@@ -286,27 +286,18 @@ describe('ColorSlider (thumb)', () => {
 })
 
 describe('ColorPanel in a locale', () => {
-	it('names the sliders and the area in the language of the locale', () => {
+	it('gives the hue and the opacity in the number format of the locale', () => {
 		renderUI(
 			<LocaleProvider locale="es-ES">
 				<ColorPanel alpha format="hsva" defaultValue={start} />
 			</LocaleProvider>,
 		)
 
-		expect(screen.getByRole('slider', { name: 'Tono' })).toBeInTheDocument()
-
-		expect(screen.getByRole('slider', { name: 'Opacidad' })).toBeInTheDocument()
+		// The hue and the opacity give their values in the number format of the locale.
+		expect(screen.getByRole('slider', { name: 'Hue' })).toHaveAttribute('aria-valuetext', '180°')
 
 		// The percent format of Spanish puts a no-break space before the sign.
-		expect(screen.getByRole('slider', { name: 'Saturación y brillo' })).toHaveAttribute(
-			'aria-valuetext',
-			'Saturación 50\u00a0%, brillo 50\u00a0%',
-		)
-
-		// The hue and the opacity give their values in the number format of the locale.
-		expect(screen.getByRole('slider', { name: 'Tono' })).toHaveAttribute('aria-valuetext', '180°')
-
-		expect(screen.getByRole('slider', { name: 'Opacidad' })).toHaveAttribute(
+		expect(screen.getByRole('slider', { name: 'Alpha' })).toHaveAttribute(
 			'aria-valuetext',
 			'50\u00a0%',
 		)

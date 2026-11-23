@@ -14,8 +14,9 @@
  *
  * The build has the HTML of each page in each locale (`src/docs/app/language.ts`).
  * An HTML file goes in the locale of the request: the locale cookie, else the
- * `Accept-Language` header. Thus `/stepper` gets `stepper/index.es.html` for a
- * Spanish reader, at the same path.
+ * `Accept-Language` header. With a translation of the docs, `/stepper` thus
+ * gets `stepper/index.<language>.html` for a reader of that language, at the
+ * same path.
  *
  * An HTML file also takes the stored settings of the reader on its root
  * element: the theme, the density, the motion, and the sidebar of the

@@ -4,7 +4,6 @@ import { describeNode } from '../../modules/query/engine/query-announcements'
 import { createGroup, createRule } from '../../modules/query/engine/query-node'
 import type { QueryField } from '../../modules/query/engine/types'
 import { intlEn } from '../../primitives/intl/intl-catalog'
-import { intlEs } from '../helpers/intl'
 
 const fields: QueryField[] = [
 	{ name: 'name', label: 'Name', type: 'text' },
@@ -36,22 +35,6 @@ describe('describeNode', () => {
 	it('names a group as a condition group', () => {
 		expect(describeNode(intlEn, createGroup('and', [createRule(nameField)]), fields)).toBe(
 			'condition group',
-		)
-	})
-})
-
-describe('describeNode in a locale', () => {
-	const intl = intlEs
-
-	it('names a node in the language of the intl', () => {
-		const rule = { ...createRule(nameField), operator: 'contains', value: 'lee' }
-
-		expect(describeNode(intl, rule, fields)).toBe('Name contiene lee')
-
-		expect(describeNode(intl, createRule(nameField), fields)).toBe('Regla de Name')
-
-		expect(describeNode(intl, createGroup('and', [createRule(nameField)]), fields)).toBe(
-			'grupo de condiciones',
 		)
 	})
 })

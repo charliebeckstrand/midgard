@@ -7,7 +7,6 @@ import {
 	selectionSummary,
 } from '../../components/file-upload/file-upload-utilities'
 import { intlEn } from '../../primitives/intl/intl-catalog'
-import { intlEs } from '../helpers/intl'
 
 // File.size is the byte length of its parts; a string of length n yields size n.
 const fileOfSize = (name: string, size: number) => new File(['x'.repeat(size)], name)
@@ -63,8 +62,6 @@ describe('selectionSummary', () => {
 		const c = new File(['c'], 'c.txt')
 
 		expect(selectionSummary(intlEn, [a, b, c], true)).toBe('3 files selected')
-
-		expect(selectionSummary(intlEs, [a, b, c], true)).toBe('3 archivos seleccionados')
 	})
 })
 

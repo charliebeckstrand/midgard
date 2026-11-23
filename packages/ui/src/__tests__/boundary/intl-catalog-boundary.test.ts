@@ -45,10 +45,6 @@ describe('intl catalog', () => {
 		).toBe(translationsText(LANG_DIR))
 	})
 
-	it('has at least one translation', () => {
-		expect(translations.length).toBeGreaterThan(0)
-	})
-
 	describe.each(translations)('the $language translation', ({ language, messages }) => {
 		it('has each id of the source catalog, and no other id', () => {
 			expect(Object.keys(messages).sort()).toEqual(Object.keys(source).sort())

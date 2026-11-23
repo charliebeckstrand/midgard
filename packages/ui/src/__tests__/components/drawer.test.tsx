@@ -2,7 +2,6 @@ import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import { Drawer, DrawerClose, DrawerPanel } from '../../components/drawer'
-import { LocaleProvider } from '../../providers/locale'
 import {
 	bySlot,
 	fireEvent,
@@ -488,24 +487,5 @@ describe('Drawer drag handle', () => {
 		expect(panel.style.height).toBe('')
 
 		expect(panel).not.toHaveAttribute('data-resizing')
-	})
-})
-
-describe('Drawer handle in a locale', () => {
-	it('names the handle in the language of the locale', () => {
-		const { container } = renderUI(
-			<LocaleProvider locale="es-ES">
-				<Drawer open onOpenChange={() => {}}>
-					<DrawerPanel handle height="half" aria-label="Panel">
-						<p>Body</p>
-					</DrawerPanel>
-				</Drawer>
-			</LocaleProvider>,
-		)
-
-		expect(getSlot(container, 'drawer-handle')).toHaveAttribute(
-			'aria-label',
-			'Cambiar el tamaño del panel',
-		)
 	})
 })

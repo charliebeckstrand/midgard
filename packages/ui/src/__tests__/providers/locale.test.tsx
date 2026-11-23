@@ -254,17 +254,15 @@ function EmptyListbox() {
 const fruit = () => screen.getByRole('combobox', { name: 'Fruit' })
 
 describe('LocaleProvider messages', () => {
-	it.each([
-		['es-MX', 'Seleccionar'],
-		['fr-FR', 'Select'],
-	])('shows the messages of ui for %s in its language, else in English', (locale, text) => {
+	// ui has no translation, so each locale shows its English defaults.
+	it.each(['es-MX', 'fr-FR'])('shows the English defaults of ui for %s', (locale) => {
 		renderUI(
 			<LocaleProvider locale={locale}>
 				<EmptyListbox />
 			</LocaleProvider>,
 		)
 
-		expect(fruit()).toHaveTextContent(text)
+		expect(fruit()).toHaveTextContent('Select')
 	})
 
 	it('shows the English defaults with no provider', () => {
@@ -284,34 +282,6 @@ describe('LocaleProvider messages', () => {
 
 		expect(fruit()).toHaveTextContent('Select')
 	})
-
-	it('words a count with the plural rules of the language', () => {
-		renderUI(
-			<LocaleProvider locale="es-ES">
-				<Listbox aria-label="Fruit" multiple value={['a', 'b', 'c', 'd']}>
-					{['a', 'b', 'c', 'd'].map((value) => (
-						<ListboxOption key={value} value={value}>
-							{value}
-						</ListboxOption>
-					))}
-				</Listbox>
-			</LocaleProvider>,
-		)
-
-		expect(fruit()).toHaveTextContent('4 seleccionados')
-	})
-
-	it('follows the stored locale to its language', () => {
-		localStorage.setItem('locale', 'es-ES')
-
-		renderUI(
-			<LocaleProvider locale="en-US" locales={['en-US', 'es-ES']}>
-				<EmptyListbox />
-			</LocaleProvider>,
-		)
-
-		expect(fruit()).toHaveTextContent('Seleccionar')
-	})
 })
 
 // The messages of a test app, defined as an app defines its own.
@@ -328,17 +298,32 @@ const appMessages = defineMessages({
 	},
 })
 
+// A count of the test app, which the plural rules of the language word.
+const countMessage = defineMessages<{ fruits: { count: number } }>({
+	fruits: {
+		id: 'test.fruits',
+		defaultMessage: '{count, plural, one {# fruit} other {# fruits}}',
+		description: 'A count of fruit in a test app.',
+	},
+})
+
 // The catalogs of the test app, as a module constant.
-const appCatalogs = { es: { 'test.greeting': 'Hola' } }
+const appCatalogs = {
+	es: {
+		'test.greeting': 'Hola',
+		'test.fruits': '{count, plural, one {# fruta} other {# frutas}}',
+	},
+}
 
 /** Shows the messages of the test app in the language of the nearest provider. */
-function AppText() {
+function AppText({ count = 4 }: { count?: number }) {
 	const intl = useIntl()
 
 	return (
 		<>
 			<span data-testid="greeting">{intl.formatMessage(appMessages.greeting)}</span>
 			<span data-testid="farewell">{intl.formatMessage(appMessages.farewell)}</span>
+			<span data-testid="fruits">{intl.formatMessage(countMessage.fruits, { count })}</span>
 		</>
 	)
 }
@@ -347,8 +332,10 @@ const greeting = () => screen.getByTestId('greeting')
 
 const farewell = () => screen.getByTestId('farewell')
 
+const fruits = () => screen.getByTestId('fruits')
+
 describe('LocaleProvider catalogs', () => {
-	it('shows a message of an app in the language of the locale, beside the messages of ui', () => {
+	it('shows a message of an app in the language of the locale, beside the English of ui', () => {
 		renderUI(
 			<LocaleProvider locale="es-ES" catalogs={appCatalogs}>
 				<AppText />
@@ -358,7 +345,31 @@ describe('LocaleProvider catalogs', () => {
 
 		expect(greeting()).toHaveTextContent('Hola')
 
-		expect(fruit()).toHaveTextContent('Seleccionar')
+		expect(fruit()).toHaveTextContent('Select')
+	})
+
+	it('words a count with the plural rules of the language', () => {
+		renderUI(
+			<LocaleProvider locale="es-ES" catalogs={appCatalogs}>
+				<AppText count={1} />
+			</LocaleProvider>,
+		)
+
+		expect(fruits()).toHaveTextContent('1 fruta')
+	})
+
+	it('follows the stored locale to its language', () => {
+		localStorage.setItem('locale', 'es-ES')
+
+		renderUI(
+			<LocaleProvider locale="en-US" locales={['en-US', 'es-ES']} catalogs={appCatalogs}>
+				<AppText />
+			</LocaleProvider>,
+		)
+
+		expect(greeting()).toHaveTextContent('Hola')
+
+		expect(fruits()).toHaveTextContent('4 frutas')
 	})
 
 	it('shows the English default of a message that the catalog does not have', () => {
@@ -529,7 +540,7 @@ describe('LocaleProvider catalog loads', () => {
 
 		expect(greeting()).toHaveTextContent('Hello')
 
-		expect(fruit()).toHaveTextContent('Seleccionar')
+		expect(fruit()).toHaveTextContent('Select')
 
 		expect(consoleError).toHaveBeenCalledWith(error)
 	})

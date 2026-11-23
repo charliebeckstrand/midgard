@@ -6,7 +6,6 @@ import {
 	splitTokens,
 } from '../../components/tag-input/tag-input-utilities'
 import { intlEn } from '../../primitives/intl/intl-catalog'
-import { intlEs } from '../helpers/intl'
 
 describe('splitTokens', () => {
 	it.each([
@@ -104,11 +103,5 @@ describe('describeBatch', () => {
 				overLimit: 2,
 			}),
 		).toBe('Added 2 tags. c is already in the list. Tag limit reached. x is not a valid tag.')
-	})
-
-	it('speaks in the language of the intl', () => {
-		expect(describeBatch(intlEs, { ...empty, accepted: ['a', 'b'] })).toBe(
-			'Se añadieron 2 etiquetas.',
-		)
 	})
 })

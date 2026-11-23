@@ -3,9 +3,7 @@ import { Grid, type GridColumn } from '../../modules/grid'
 import {
 	describeColumnVisibility,
 	describeCommit,
-	describePin,
 	describeResize,
-	describeSelection,
 	describeSettle,
 } from '../../modules/grid/engine/grid-announcements'
 import { GRID_STATUS_DEBOUNCE_MS } from '../../modules/grid/engine/grid-constants'
@@ -21,7 +19,6 @@ import {
 	setupUser,
 } from '../helpers'
 import { it } from '../helpers/fake-clock'
-import { intlEs } from '../helpers/intl'
 
 /**
  * Grid status messages (WCAG 4.1.3): sort, selection, and page changes narrate
@@ -217,25 +214,5 @@ describe('Grid announcement builders', () => {
 		expect(describeSettle(intlEn, ['Age'], ['Name'], 'row 1')).toBe(
 			'Age updated, Name not saved for row 1',
 		)
-	})
-})
-
-describe('grid announcements in a locale', () => {
-	const intl = intlEs
-
-	it('speaks the selection and the save in the language of the intl', () => {
-		expect(describeSelection(intl, 3, false, false)).toBe('3 filas seleccionadas')
-
-		expect(describeSelection(intl, 1, false, false)).toBe('1 fila seleccionada')
-
-		expect(describeSettle(intl, ['Age'], ['Name', 'Note'], 'Alice')).toBe(
-			'Age: actualizado, 2 celdas sin guardar en Alice',
-		)
-	})
-
-	it('speaks a pin and a resize in the language of the intl', () => {
-		expect(describePin(intl, 'Name', 'left')).toBe('Se fijó Name a la izquierda')
-
-		expect(describeResize(intl, 'Name', 1)).toBe('Columna Name: 1 píxel')
 	})
 })

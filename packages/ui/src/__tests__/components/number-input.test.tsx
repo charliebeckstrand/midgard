@@ -65,7 +65,7 @@ describe('NumberInput', () => {
 
 		const user = setupUser()
 
-		await user.click(screen.getByLabelText('Disminuir'))
+		await user.click(screen.getByLabelText('Decrease'))
 
 		await expectAnnouncement(/^0,5$/)
 	})
@@ -384,19 +384,5 @@ describe('NumberInput', () => {
 		await user.click(screen.getByLabelText('Increase'))
 
 		expect(input.value).toBe('6')
-	})
-})
-
-describe('NumberInput in a locale', () => {
-	it('names the steppers in the language of the locale', () => {
-		renderUI(
-			<LocaleProvider locale="es-ES">
-				<NumberInput aria-label="Cantidad" />
-			</LocaleProvider>,
-		)
-
-		expect(screen.getByLabelText('Disminuir')).toBeInTheDocument()
-
-		expect(screen.getByLabelText('Aumentar')).toBeInTheDocument()
 	})
 })

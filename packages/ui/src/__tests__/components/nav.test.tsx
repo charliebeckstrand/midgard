@@ -417,21 +417,13 @@ describe('NavContent / NavContents', () => {
 })
 
 describe('NavBar in a locale', () => {
-	it('names the landmark in the language of the locale, and keeps a given name', () => {
-		const { container, rerender } = renderUI(
+	it('keeps a given name in place of the default name of the locale', () => {
+		const { container } = renderUI(
 			<LocaleProvider locale="es-ES">
-				<NavBar>content</NavBar>
+				<NavBar aria-label="Account">content</NavBar>
 			</LocaleProvider>,
 		)
 
-		expect(bySlot(container, 'nav-bar')).toHaveAttribute('aria-label', 'Principal')
-
-		rerender(
-			<LocaleProvider locale="es-ES">
-				<NavBar aria-label="Cuenta">content</NavBar>
-			</LocaleProvider>,
-		)
-
-		expect(bySlot(container, 'nav-bar')).toHaveAttribute('aria-label', 'Cuenta')
+		expect(bySlot(container, 'nav-bar')).toHaveAttribute('aria-label', 'Account')
 	})
 })

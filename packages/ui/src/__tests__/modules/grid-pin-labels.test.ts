@@ -4,7 +4,6 @@ import { describePin } from '../../modules/grid/engine/grid-announcements'
 import { pinMenuChoices } from '../../modules/grid/engine/grid-pin/overrides'
 import { fillItems } from '../../modules/grid/grid-context-menu-utilities'
 import { intlEn } from '../../primitives/intl/intl-catalog'
-import { intlEs } from '../helpers/intl'
 
 /**
  * The pin menu and its announcement name the physical edge a column goes to.
@@ -61,15 +60,6 @@ describe('pin labels', () => {
 		expect(labels(true)).toEqual([
 			['fill-down', 'Fill down'],
 			['fill-right', 'Fill left'],
-		])
-	})
-})
-
-describe('pin labels in a locale', () => {
-	it('names the edges in the language of the intl', () => {
-		expect(pinMenuChoices(intlEs, 'left', false).map(({ label }) => label)).toEqual([
-			'Fijar a la derecha',
-			'Soltar',
 		])
 	})
 })

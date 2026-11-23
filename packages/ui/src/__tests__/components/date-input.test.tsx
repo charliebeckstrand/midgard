@@ -942,37 +942,35 @@ describe('DateInput form reset', () => {
 })
 
 describe('DateInput in a locale', () => {
-	it('names the field and reports the bound in the language of the locale', async () => {
+	it('reports the bound in the date format of the locale', async () => {
 		const { container } = renderUI(
 			<LocaleProvider locale="es-ES">
 				<DateInput min={new Date(2026, 0, 1)} max={new Date(2026, 11, 31)} />
 			</LocaleProvider>,
 		)
 
-		const input = screen.getByRole('textbox', { name: 'Fecha' })
+		const input = screen.getByRole('textbox', { name: 'Date' })
 
 		await setupUser().type(input, '15062027')
 
 		expect(bySlot(container, 'message')).toHaveTextContent(
-			'Escribe una fecha entre el 01/01/2026 y el 31/12/2026',
+			'Enter a date between 01/01/2026 and 31/12/2026.',
 		)
-
-		expect(screen.getByRole('button', { name: 'Borrar la fecha' })).toBeInTheDocument()
 	})
 
-	it('writes the letters of the placeholder and of the format error in the language of the locale', async () => {
+	it('orders the fields of the placeholder and of the format error in the date format of the locale', async () => {
 		const { container } = renderUI(
 			<LocaleProvider locale="es-ES">
 				<DateInput />
 			</LocaleProvider>,
 		)
 
-		const input = screen.getByRole('textbox', { name: 'Fecha' })
+		const input = screen.getByRole('textbox', { name: 'Date' })
 
-		expect(input).toHaveAttribute('placeholder', 'DD/MM/AAAA')
+		expect(input).toHaveAttribute('placeholder', 'DD/MM/YYYY')
 
 		await setupUser().type(input, '31022026')
 
-		expect(bySlot(container, 'message')).toHaveTextContent('(DD/MM/AAAA)')
+		expect(bySlot(container, 'message')).toHaveTextContent('Enter a valid date (DD/MM/YYYY).')
 	})
 })

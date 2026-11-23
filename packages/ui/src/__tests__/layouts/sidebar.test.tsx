@@ -6,7 +6,6 @@ import {
 	SidebarLayoutHeader,
 } from '../../layouts/sidebar/sidebar'
 import { SIDEBAR } from '../../providers/appearance/appearance-storage'
-import { LocaleProvider } from '../../providers/locale'
 import { dan } from '../../recipes/kiso/dan'
 import { adaptive, BREAKPOINT_WIDTHS } from '../../utilities/responsive'
 import { readChoice, writeChoice } from '../../utilities/stored-choice'
@@ -510,19 +509,5 @@ describe('SidebarLayout shortcut', () => {
 		})
 
 		expect(readChoice(SIDEBAR)).toBe('locked')
-	})
-})
-
-describe('SidebarLayout in a locale', () => {
-	it('names the navigation bar and its menu button in the language of the locale', () => {
-		renderUI(
-			<LocaleProvider locale="es-ES">
-				<SidebarLayout sidebar={<div>sidebar</div>}>body</SidebarLayout>
-			</LocaleProvider>,
-		)
-
-		expect(screen.getByRole('region', { name: 'Barra de navegación' })).toBeInTheDocument()
-
-		expect(screen.getByRole('button', { name: 'Abrir navegación' })).toBeInTheDocument()
 	})
 })
