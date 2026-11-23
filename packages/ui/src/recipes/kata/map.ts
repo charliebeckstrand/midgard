@@ -387,6 +387,41 @@ export const k = {
 		/** A row above or below the plot. */
 		row: 'grid-flow-col',
 	},
+	/**
+	 * The overview inset of a zoomed map: a thumbnail of the whole geography in
+	 * a bottom corner of the plot, with the current view lit. It takes the
+	 * surface and the ring of the zoom buttons, so the two read as one set of
+	 * controls. It shows only while the view is zoomed in, and it fades in from
+	 * its first style (`starting:`), so it needs no Motion and stays still under
+	 * reduced motion.
+	 *
+	 * The width is a quarter of the plot, between 5rem and 10rem. The height
+	 * comes from the ratio of the frame, which the component sets.
+	 *
+	 * The inset takes no touch gesture of the browser (`touch-none`), so a
+	 * finger that drags on it moves the view and does not scroll the page. The
+	 * `left` and `right` entries are physical sides, as the zoom buttons are.
+	 */
+	overview: {
+		base: [
+			'absolute bottom-2 w-1/4 min-w-20 max-w-40 cursor-pointer touch-none overflow-hidden rounded-lg shadow-xs',
+			'starting:opacity-0',
+			ugoki.css.opacity,
+			ugoki.css.duration,
+			omote.bg.surface,
+			sen.ring.default,
+		],
+		// biome-ignore lint/plugin/no-physical-side: the inset takes the physical side of the zoom buttons
+		left: 'left-2',
+		// biome-ignore lint/plugin/no-physical-side: the inset takes the physical side of the zoom buttons
+		right: 'right-2',
+		/** The silhouette of the geography: every region in one quiet fill. */
+		land: mode('fill-zinc-400', 'dark:fill-zinc-500'),
+		/** The scrim over the ground outside the view, so the view reads as lit. */
+		scrim: mode('fill-white/50', 'dark:fill-zinc-900/50'),
+		/** The edge of the view: the selection ink, which holds its contrast on each fill. */
+		view: [...ink.selected, 'fill-none'],
+	},
 	/** Motion vocabulary for the mount reveals, from `zu`, so the two modules' reveals never drift. */
 	motion,
 	skeleton: {

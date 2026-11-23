@@ -81,7 +81,7 @@ import {
 } from './map-tooltip'
 import { useMapLegendRegistry } from './use-map-legend-registry'
 import { useMapRegionReadout } from './use-map-region-readout'
-import { useMapShape } from './use-map-shape'
+import { type MapFrameShape, useMapShape } from './use-map-shape'
 import { useMapToggle } from './use-map-toggle'
 
 /**
@@ -298,6 +298,22 @@ type MapPlatBaseProps = AccessibleName &
 		 * @defaultValue true
 		 */
 		zoomControls?: boolean | MapZoomControlsPlacement
+		/**
+		 * Shows the overview inset of a zooming map while the view is zoomed in: a
+		 * thumbnail of the whole geography in a bottom corner of the plot, with a
+		 * frame on the part the view shows. A press on the thumbnail centers the
+		 * view there, and a drag on it moves the view along. It gives the pointer
+		 * a single-pointer path to all of the ground (WCAG 2.2 SC 2.5.7), and it
+		 * tells the reader where the view is. It sits on the side of the zoom
+		 * buttons, or at the right where there are none.
+		 *
+		 * The inset is for the pointer alone, and takes no focus. The arrow keys
+		 * already pan the view. At the fit, and on a map with no `zoom`, it
+		 * does not show.
+		 *
+		 * @defaultValue false
+		 */
+		zoomOverview?: boolean
 		/**
 		 * Fires when the view transform changes, with that transform: `x` and `y` pan
 		 * the fitted geography in frame units, `k` scales it.
@@ -683,6 +699,29 @@ function zoomControlsPlacement(
 	return input === true ? 'right' : input
 }
 
+/**
+ * What the overview inset draws: the region paths of the plat, and the corner
+ * on the side of the zoom buttons. With no buttons, or a row of them, it sits
+ * at the right. It is `null` where the inset does not show: the plat asks for
+ * none, or the map does not zoom.
+ *
+ * @internal
+ */
+function overviewInset(
+	shown: boolean,
+	shape: Pick<MapFrameShape, 'paths' | 'regionFrame' | 'viewWidth' | 'viewHeight'>,
+	controls: MapZoomControlsPlacement | null,
+) {
+	if (!shown) return null
+
+	return {
+		paths: shape.paths,
+		frame: shape.regionFrame,
+		view: { width: shape.viewWidth, height: shape.viewHeight },
+		side: controls === 'left' ? ('left' as const) : ('right' as const),
+	}
+}
+
 /** Whether the zoom buttons take a gutter beside the plot, which takes a share of its width. @internal */
 function beside(placement: MapZoomControlsPlacement | null): boolean {
 	return placement === 'left' || placement === 'right'
@@ -980,6 +1019,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		nameRegions = false,
 		zoom: zoomInput,
 		zoomControls = true,
+		zoomOverview = false,
 		onViewChange,
 		regionPointer,
 		animate: animation = false,
@@ -1802,6 +1842,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 					shape={shape}
 					aside={aside}
 					controls={controlsPlacement}
+					overview={overviewInset(zoomOverview && zoomable, shape, controlsPlacement)}
 					keyboard={{
 						enabled: navigable,
 						activate: activateTarget,

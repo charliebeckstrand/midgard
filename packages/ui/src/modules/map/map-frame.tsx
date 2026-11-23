@@ -22,6 +22,7 @@ import type { MapLegendRail } from './engine/map-legend/plan'
 import type { MapLegendPlacement, MapZoomControlsPlacement } from './engine/types'
 import { MapHoverProvider } from './map-hover-provider'
 import { MapZoomControls } from './map-zoom-controls'
+import { MapZoomOverview } from './map-zoom-overview'
 import { MapZoomProvider } from './map-zoom-provider'
 import { type MapKeyboardOptions, useMapKeyboard } from './use-map-keyboard'
 import type { MapFrameShape } from './use-map-shape'
@@ -218,6 +219,8 @@ type MapPlotRegionProps = Pick<ComponentProps<'div'>, 'aria-label' | 'aria-label
 	keyboard: Omit<MapKeyboardOptions, 'zoom'>
 	/** Where a zooming plot shows its zoom buttons ({@link MapZoomControls}), or `null` for none. */
 	controls: MapZoomControlsPlacement | null
+	/** What the overview inset draws ({@link MapZoomOverview}), or `null` for none. */
+	overview: ComponentProps<typeof MapZoomOverview> | null
 	children: ReactNode
 }
 
@@ -235,6 +238,7 @@ export function MapPlotRegion({
 	tooltip,
 	keyboard: options,
 	controls,
+	overview,
 	children,
 	'aria-label': ariaLabel,
 	'aria-labelledby': ariaLabelledBy,
@@ -322,6 +326,9 @@ export function MapPlotRegion({
 			<ChartPlotBox reserve={shape.reserve} height={shape.boxHeight} fill={shape.fill}>
 				{children}
 			</ChartPlotBox>
+
+			{/* Before the tooltip, so a readout near the corner paints over it. */}
+			{overview !== null && <MapZoomOverview {...overview} />}
 
 			{tooltip}
 		</div>

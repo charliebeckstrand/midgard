@@ -29,6 +29,7 @@ import {
 } from './engine/map-zoom/gesture'
 import { type MapZoomInput, type MapZoomSettings, mapZoomSettings } from './engine/map-zoom/input'
 import {
+	centerTransform,
 	constrainTransform,
 	MAP_FIT_TRANSFORM,
 	type MapTransform,
@@ -72,6 +73,11 @@ export type MapZoomCursor = {
 	 * the rule it serves is the cursor's.
 	 */
 	show: (at: MapPoint2D, inset: number) => MapTransform
+	/**
+	 * Pans so a point of the fitted geography draws at the center of the frame,
+	 * at the current scale. The overview inset aims the view through it.
+	 */
+	center: (at: MapPoint2D) => void
 }
 
 /**
@@ -855,6 +861,12 @@ export function useMapZoom({
 		return next
 	}
 
+	function center(at: MapPoint2D) {
+		const { transform: from, view: frame } = live.current
+
+		commit(centerTransform(from, at, frame))
+	}
+
 	if (settings === null) return null
 
 	return {
@@ -876,7 +888,7 @@ export function useMapZoom({
 			onLostPointerCapture,
 			onClickCapture,
 		},
-		cursor: { transform, stepZoom, fit, show },
+		cursor: { transform, stepZoom, fit, show, center },
 	}
 }
 

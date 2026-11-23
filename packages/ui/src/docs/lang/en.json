@@ -1821,7 +1821,7 @@
 	},
 	"docs.demo.2e544a292f69": {
 		"defaultMessage": "Shift",
-		"description": "Text of a demo in the docs, in modules/map/point/zoomable.tsx."
+		"description": "Text of a demo in the docs, in modules/map/point/overview-inset.tsx, modules/map/point/zoomable.tsx."
 	},
 	"docs.demo.2ec9f9d45546": {
 		"defaultMessage": "Files to commit",
@@ -2450,6 +2450,10 @@
 	"docs.demo.513740128f95": {
 		"defaultMessage": "GB29 NWBK 6016 1331 9268 19",
 		"description": "Text of a demo in the docs as placeholder, in components/mask-input/custom-format.tsx."
+	},
+	"docs.demo.5241b237058f": {
+		"defaultMessage": "Pinch or use the buttons to zoom in. Then tap or drag the overview in the corner to move the view.",
+		"description": "Text of a demo in the docs as touchText, in modules/map/point/overview-inset.tsx."
 	},
 	"docs.demo.5260f6b2fa9f": {
 		"defaultMessage": "Delete row",
@@ -3441,7 +3445,7 @@
 	},
 	"docs.demo.877a8887947e": {
 		"defaultMessage": "Stops",
-		"description": "Text of a demo in the docs as label, in modules/map/point/clustering.tsx, modules/map/point/shapes.tsx, modules/map/point/zoomable.tsx."
+		"description": "Text of a demo in the docs as label, in modules/map/point/clustering.tsx, modules/map/point/overview-inset.tsx, modules/map/point/shapes.tsx and 1 more."
 	},
 	"docs.demo.87b395ffbc2e": {
 		"defaultMessage": "Remit to",
@@ -3815,6 +3819,10 @@
 		"defaultMessage": "Last row click",
 		"description": "Text of a demo in the docs as aria-label, in modules/grid/events/row-click.tsx."
 	},
+	"docs.demo.96e497fa317e": {
+		"defaultMessage": "and the wheel, or the buttons. Then click or drag the overview in the corner to move the view.",
+		"description": "Text of a demo in the docs, in modules/map/point/overview-inset.tsx."
+	},
 	"docs.demo.96f64f836aa3": {
 		"defaultMessage": "Project members",
 		"description": "Text of a demo in the docs as aria-label, in components/avatar/avatar-group.tsx."
@@ -4173,7 +4181,7 @@
 	},
 	"docs.demo.a6fcbf2bb6ea": {
 		"defaultMessage": "{count} stops · {miles} across",
-		"description": "Text of a demo in the docs as clusterDetail, in modules/map/point/clustering.tsx, modules/map/point/zoomable.tsx. The arguments {count} and {miles} are values from the code."
+		"description": "Text of a demo in the docs as clusterDetail, in modules/map/point/clustering.tsx, modules/map/point/overview-inset.tsx, modules/map/point/zoomable.tsx. The arguments {count} and {miles} are values from the code."
 	},
 	"docs.demo.a710c2b90913": {
 		"defaultMessage": "Unsaved changes",
@@ -4957,7 +4965,7 @@
 	},
 	"docs.demo.d1170c4935b0": {
 		"defaultMessage": "{length} stops",
-		"description": "Text of a demo in the docs as detail, in modules/map/point/clustering.tsx, modules/map/point/zoomable.tsx. The argument {length} is a value from the code."
+		"description": "Text of a demo in the docs as detail, in modules/map/point/clustering.tsx, modules/map/point/overview-inset.tsx, modules/map/point/zoomable.tsx. The argument {length} is a value from the code."
 	},
 	"docs.demo.d12860c21e78": {
 		"defaultMessage": "Link copied",
@@ -5374,6 +5382,10 @@
 	"docs.demo.e55c76591fa2": {
 		"defaultMessage": "Align center",
 		"description": "Text of a demo in the docs as label, in components/toolbar/with-groups.tsx."
+	},
+	"docs.demo.e562b906548b": {
+		"defaultMessage": "Zoom in with",
+		"description": "Text of a demo in the docs, in modules/map/point/overview-inset.tsx."
 	},
 	"docs.demo.e575728dbbee": {
 		"defaultMessage": "Ship date",
@@ -5813,7 +5825,7 @@
 	},
 	"docs.demo.fc2cc2afe911": {
 		"defaultMessage": "Delivery rounds",
-		"description": "Text of a demo in the docs as aria-label, in modules/map/point/clustering.tsx, modules/map/point/zoomable.tsx."
+		"description": "Text of a demo in the docs as aria-label, in modules/map/point/clustering.tsx, modules/map/point/overview-inset.tsx, modules/map/point/zoomable.tsx."
 	},
 	"docs.demo.fc33f73246f4": {
 		"defaultMessage": "City",
@@ -7815,6 +7827,10 @@
 		"defaultMessage": "Top",
 		"description": "An option of the Zoom controls field of a playground in the docs. It sets the prop zoomControls to 'top' on MapPlat."
 	},
+	"docs.prop.zoomOverview": {
+		"defaultMessage": "Zoom overview",
+		"description": "The label of a field of a playground in the docs. The field sets the prop zoomOverview of MapPlat."
+	},
 	"docs.search.button": {
 		"defaultMessage": "Search",
 		"description": "The label of the button at the top of the sidebar that opens the search of the docs."
@@ -8842,6 +8858,10 @@
 	"docs.title.overflow": {
 		"defaultMessage": "Overflow",
 		"description": "The title of an example on a page of the docs. It comes from the file name overflow.tsx."
+	},
+	"docs.title.overview-inset": {
+		"defaultMessage": "Overview inset",
+		"description": "The title of an example on a page of the docs. It comes from the file name overview-inset.tsx."
 	},
 	"docs.title.past": {
 		"defaultMessage": "Past",
