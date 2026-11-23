@@ -145,9 +145,9 @@ export const k = defineKata(
 					 * The AND/OR between two nodes aligns with the nodes: one `nest.indent`
 					 * past the grip and the gap. The nodes move over it during a drag, so it
 					 * fades until the drop. The separator holds `data-sorting` itself, because
-					 * the list is a `display: contents` box: WebKit did not restyle the
-					 * separators when the attribute of the list changed, so they faded only
-					 * when a move put them in a new place.
+					 * the list is a `display: contents` box. WebKit did not restyle the
+					 * separators when the attribute of the list changed. They faded only when
+					 * a move put them in a new place.
 					 */
 					separator: [nest.indent, css.opacity, 'data-sorting:opacity-0'],
 				},
