@@ -27,6 +27,7 @@ import {
 	allBySlot,
 	bySlot,
 	expectAnnouncement,
+	fireEvent,
 	flushAnnouncer,
 	getSlot,
 	liveRegion,
@@ -574,8 +575,8 @@ describe('FormFiltersClear', () => {
 		expect(screen.getByRole('textbox', { name: 'Name' })).toHaveFocus()
 	})
 
-	it('leaves the focus alone after a pointer clear', async () => {
-		renderUI(
+	it('moves the focus to the bar after a pointer clear, and opens no keyboard', async () => {
+		const { container } = renderUI(
 			<FormFilters aria-label="Filters" value={{ name: 'hi' }}>
 				<FormFiltersField name="name">
 					<Input aria-label="Name" />
@@ -584,9 +585,48 @@ describe('FormFiltersClear', () => {
 			</FormFilters>,
 		)
 
+		// A pointer press focuses the button, as in desktop Chrome and Firefox.
 		await setupUser().click(screen.getByRole('button', { name: 'Clear' }))
 
+		const bar = getSlot(container, 'form-filters')
+
+		expect(bar).toHaveFocus()
+
 		expect(screen.getByRole('textbox', { name: 'Name' })).not.toHaveFocus()
+	})
+
+	it('keeps the bar out of the tab order', () => {
+		const { container } = renderUI(
+			<FormFilters aria-label="Filters">
+				<FormFiltersClear>Clear</FormFiltersClear>
+			</FormFilters>,
+		)
+
+		expect(getSlot(container, 'form-filters')).toHaveAttribute('tabindex', '-1')
+	})
+
+	it('leaves the focus alone after a pointer clear from outside the trigger', async () => {
+		renderUI(
+			<>
+				<input aria-label="Search" />
+				<FormFilters aria-label="Filters" value={{ name: 'hi' }}>
+					<FormFiltersField name="name">
+						<Input aria-label="Name" />
+					</FormFiltersField>
+					<FormFiltersClear>Clear</FormFiltersClear>
+				</FormFilters>
+			</>,
+		)
+
+		const search = screen.getByRole('textbox', { name: 'Search' })
+
+		search.focus()
+
+		// A click that does not move the focus, as a press with `preventDefault`
+		// on `mousedown` does.
+		fireEvent.click(screen.getByRole('button', { name: 'Clear' }), { detail: 1 })
+
+		expect(search).toHaveFocus()
 	})
 
 	it('renders the default Button for a bare string child', async () => {

@@ -64,9 +64,10 @@ export type FormFiltersClearProps = Omit<ComponentProps<'button'>, 'color' | 'ch
  * to undo nothing. It takes no space until it appears, so the fields fill
  * the line of the bar while there is nothing to clear.
  *
- * A clear from the keyboard hides the trigger that has the focus, so the focus
- * moves to the first control of the bar. A pointer press leaves the focus
- * alone, so a tap does not open the keyboard of a phone.
+ * A clear hides the trigger. When the trigger has the focus, the focus moves,
+ * so it does not go to the `<body>`. After a clear from the keyboard, the focus
+ * moves to the first control of the bar. After a pointer press, the focus moves
+ * to the bar itself, so a tap does not open the keyboard of a phone.
  *
  * Must render inside a `FormFilters`.
  */
@@ -85,20 +86,29 @@ export function FormFiltersClear({
 	const handleClear = (event: MouseEvent) => {
 		const trigger = event.currentTarget
 
-		// A click from the keyboard has no press count.
-		const keyboard = event.detail === 0 && trigger.contains(document.activeElement)
+		const focused = trigger.contains(document.activeElement)
 
 		clear()
 
-		if (!keyboard) return
+		if (!focused) return
 
-		const bar = trigger.closest('[data-slot="form-filters"]')
+		const bar = trigger.closest<HTMLElement>('[data-slot="form-filters"]')
+
+		// A click from the keyboard has no press count. A pointer press moves the
+		// focus to the bar, which opens no keyboard.
+		if (event.detail !== 0) {
+			bar?.focus()
+
+			return
+		}
 
 		// An overflowing `rail` row is a tab stop of its own, a scroll region. The
-		// focus goes past it to the first control.
-		getTabbableElements(bar)
-			.find((element) => !trigger.contains(element) && element.getAttribute('role') !== 'region')
-			?.focus()
+		// focus goes past it to the first control, or to the bar when it has none.
+		const first = getTabbableElements(bar).find(
+			(element) => !trigger.contains(element) && element.getAttribute('role') !== 'region',
+		)
+
+		;(first ?? bar)?.focus()
 	}
 
 	// A single element child is cloned with the clear handler; anything else (a
