@@ -637,9 +637,11 @@ describe('TabContent (idiomatic)', () => {
 
 		const panel = document.getElementById(tab.getAttribute('aria-controls') as string)
 
-		expect(panel?.className).toContain('focus-visible:after:ring-blue-600')
+		expect(panel?.className).toContain('focus-visible:outline-blue-600')
 
-		expect(panel?.className).not.toContain('focus-visible:outline-offset-2')
+		expect(panel?.className).toContain('focus-visible:-outline-offset-2')
+
+		expect(panel?.className).not.toMatch(/(^|\s)focus-visible:outline-offset-2/)
 	})
 })
 
