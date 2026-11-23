@@ -12,6 +12,8 @@ function entries(text: string): ContextMenuEntry[] {
 			icon: <Copy />,
 			onAction: () => void navigator.clipboard?.writeText(text),
 		},
+		// This example has no transcript and no composer, so Edit and Delete have no
+		// action. The Edit a message example of the Conversation tab wires Edit.
 		{ key: 'edit', label: 'Edit', icon: <Pencil /> },
 		{ key: 'delete', label: 'Delete', icon: <Trash /> },
 	]

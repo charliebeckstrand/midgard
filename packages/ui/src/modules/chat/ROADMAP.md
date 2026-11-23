@@ -47,8 +47,6 @@ No rule reads a clock or a random source. The shell mints each id and gives it t
 
 4. **The branch context of a transport call (*P2*).** The transport gets the content, the signal, and the parts of one message. After `edit` or `retry`, it cannot tell a new turn from a replacement, and it gets no earlier turn of the shown path. A server that holds its own thread thus answers an edit as if the old branch still stood. Add a field to `ChatTransportMessage`: the shown path before the message, or the id of the message that it replaces. The `useChat` hook of the Vercel AI SDK sends the whole path for this reason. This changes the contract of the transport, so agree the approach first ([`CLAUDE.md`](../../../../../CLAUDE.md) §3.1).
 
-5. **An edit flow in the docs (*P2*).** `useChatSend` gives `edit`, but no docs example calls it. The Edit entry in [`with-context-menu.tsx`](../../docs/pages/modules/chat/with-context-menu.tsx) has no action. Add an example to the Conversation tab. Its action loads the text and the citations of the message into `useChatDraft` with `setValue`, and its submit calls `edit`. The example tells if the composer route is enough, or if the bubble needs an inline editor, as the edit composer of assistant-ui is. `ChatTranscript` renders its rows itself, so an inline editor needs a new prop, and the example decides that.
-
 ## Performance
 
 1. **The draft rules on each keystroke (*P3*).** Each change of the composer runs `rebaseCitations`, `recordDraft`, and `activeTrigger`, and an undo runs `stepDraft` over a history of up to `DRAFT_HISTORY_LIMIT` drafts. These rules are on the input path, so their cost counts toward INP. [`chat-compute.bench.ts`](../../__benchmarks__/chat-compute.bench.ts) measures none of them. Add cases for a long draft with many citations and a full history. Change a rule only when the bench shows a cost near a frame.
@@ -82,6 +80,8 @@ No rule reads a clock or a random source. The shell mints each id and gives it t
 - **A picker over `CommandPalette`.** The palette is a modal dialog that owns its input. The picker composes `useA11yRoving` in virtual mode on the textarea, which the palette also composes.
 
 - **A tree of nested nodes.** A chunk would copy each node above the reply, so its cost would be the length of the transcript in new objects. The tree keeps the shown path as a list, and the hidden branches beside it.
+
+- **An inline editor in the bubble.** The edit composer of assistant-ui replaces the bubble with an editor. The [Edit a message](../../docs/pages/modules/chat/conversation/edit-a-message.tsx) example loads the text and the citations of the message into the composer with `setValue` of `useChatDraft`, and its submit calls `edit`. The composer already holds the citations, the picker, and the undo history, and an editor in the bubble would copy each of them. It would also need a new prop of `ChatTranscript`, because the transcript renders its rows.
 
 - **A `reasoning` kind of part.** The reasoning parts of the Vercel AI SDK and assistant-ui are a step with a detail behind a disclosure. A `tool` part with `detail` already draws that.
 
