@@ -12,16 +12,23 @@ function readMark(link: HTMLElement) {
 	return { width: Number.parseFloat(style.width), opacity: Number(style.opacity) }
 }
 
+/** Whether the link draws its underline. */
+function isUnderlined(link: HTMLElement) {
+	return getComputedStyle(link).textDecorationLine === 'underline'
+}
+
 /**
  * A button, then a heading with a hash anchor. The id of the heading is not
  * the target of the link, so a click does not move the focus to the target.
  */
-async function renderAnchor(reduced = false) {
+async function renderAnchor({ reveal = false, reduced = false } = {}) {
 	renderUI(
 		<ReducedMotionContext value={reduced}>
 			<button type="button">Before</button>
 			<h2>
-				<HashAnchor to="playground">Playground</HashAnchor>
+				<HashAnchor to="playground" reveal={reveal}>
+					Playground
+				</HashAnchor>
 			</h2>
 		</ReducedMotionContext>,
 	)
@@ -32,14 +39,71 @@ async function renderAnchor(reduced = false) {
 }
 
 /**
- * Real-Motion check of the hash anchor of a docs heading. Keyboard focus and
- * hover open the slot of the `#` mark and fade the mark in. A blur and a leave
- * hide the mark again. A focus that does not match `:focus-visible`, such as
- * the focus of a click, does not show the mark.
+ * The hash anchor of a docs heading. The `#` mark shows at rest. Keyboard focus
+ * and hover draw the underline. A focus that does not match `:focus-visible`,
+ * such as the focus of a click, does not draw it.
  */
-describe('HashAnchor mark (real Motion)', () => {
-	it('shows the mark on keyboard focus, and keeps it out of the name and the text', async () => {
+describe('HashAnchor', () => {
+	it('shows the mark at rest, and keeps it out of the name and the text', async () => {
 		const link = await renderAnchor()
+
+		expect(link.getAttribute('href')).toBe('#playground')
+		expect(screen.getByRole('heading').textContent).toBe('Playground')
+		expect(readMark(link).width).toBeGreaterThan(0)
+		expect(readMark(link).opacity).toBe(1)
+		expect(isUnderlined(link)).toBe(false)
+	})
+
+	it('draws the underline on keyboard focus and hides it on blur', async () => {
+		const link = await renderAnchor()
+
+		screen.getByRole('button').focus()
+
+		await userEvent.keyboard('{Tab}')
+
+		expect(document.activeElement).toBe(link)
+		expect(isUnderlined(link)).toBe(true)
+
+		await userEvent.keyboard('{Shift>}{Tab}{/Shift}')
+
+		expect(isUnderlined(link)).toBe(false)
+	})
+
+	it('draws no underline for the focus of a click', async () => {
+		const link = await renderAnchor()
+
+		await userEvent.click(link)
+
+		// The pointer leaves, so only the focus can draw the underline.
+		await userEvent.hover(screen.getByRole('button'))
+
+		expect(document.activeElement).toBe(link)
+		expect(link.matches(':focus-visible')).toBe(false)
+		expect(isUnderlined(link)).toBe(false)
+	})
+
+	it('draws the underline while a mouse hovers the link', async () => {
+		const link = await renderAnchor()
+
+		await userEvent.hover(link)
+
+		expect(isUnderlined(link)).toBe(true)
+
+		await userEvent.hover(screen.getByRole('button'))
+
+		expect(isUnderlined(link)).toBe(false)
+	})
+})
+
+/**
+ * Real-Motion check of a hash anchor with `reveal`, as the name of a prop.
+ * Keyboard focus and hover open the slot of the `#` mark and fade the mark in.
+ * A blur and a leave hide the mark again. A focus that does not match
+ * `:focus-visible`, such as the focus of a click, does not show the mark.
+ */
+describe('HashAnchor with reveal (real Motion)', () => {
+	it('shows the mark on keyboard focus, and keeps it out of the name and the text', async () => {
+		const link = await renderAnchor({ reveal: true })
 
 		expect(link.getAttribute('href')).toBe('#playground')
 		expect(screen.getByRole('heading').textContent).toBe('Playground')
@@ -61,7 +125,7 @@ describe('HashAnchor mark (real Motion)', () => {
 	})
 
 	it('shows no mark for the focus of a click', async () => {
-		const link = await renderAnchor()
+		const link = await renderAnchor({ reveal: true })
 
 		await userEvent.click(link)
 
@@ -75,7 +139,7 @@ describe('HashAnchor mark (real Motion)', () => {
 	})
 
 	it('shows the mark while a mouse hovers the link', async () => {
-		const link = await renderAnchor()
+		const link = await renderAnchor({ reveal: true })
 
 		await userEvent.hover(link)
 
@@ -89,7 +153,7 @@ describe('HashAnchor mark (real Motion)', () => {
 	})
 
 	it('opens the slot at once under reduced motion, while the mark fades in', async () => {
-		const link = await renderAnchor(true)
+		const link = await renderAnchor({ reveal: true, reduced: true })
 
 		// The keys move the focus to the link and back to the button, and the mark
 		// closes. A script focus after a keyboard focus matches `:focus-visible`,

@@ -8,25 +8,56 @@ import { ugoki } from '../../recipes/kiso/index.ts'
 type HashAnchorProps = {
 	/** The id of the element that the link goes to. */
 	to: string
+	/**
+	 * Shows the mark only on keyboard focus and on hover, for a link in a long
+	 * list, such as the name of each prop of the API reference.
+	 *
+	 * @defaultValue false
+	 */
+	reveal?: boolean
 	children: ReactNode
 }
+
+/**
+ * The blue `#` mark before the text. It is the content of a `::before` box, so
+ * it is not in the text of the heading. A copy of the heading, a search of the
+ * page, and the name of the link do not hold it. The box is `inline-block`, so
+ * the underline of the link does not go under the mark.
+ */
+const MARK = "inline-block text-blue-600 before:me-1.5 before:content-['#']"
 
 /**
  * The link from a heading or a name of a page to its own element, such as the
  * "Playground" heading to `#playground`.
  *
- * On keyboard focus and on hover, a blue `#` mark comes in before the text. The
- * mark fades in, and its slot opens, so the text moves to the inline end. The
- * mark and the move show the focus, in place of the focus ring of the library.
- * A touch has no hover, so a tap does not show the mark. Under reduced motion,
- * the `ReducedMotion` root makes the slot open at once, because Motion skips a
- * tween of the width, and only the fade plays.
+ * A blue `#` mark comes before the text. On keyboard focus and on hover, a
+ * blue underline comes under the text. The underline shows the focus, in place
+ * of the focus ring of the library. Forced colors keep the underline.
  *
- * The mark is the content of a `::before` box, so it is not in the text of the
- * heading. A copy of the heading, a search of the page, and the name of the
- * link do not hold it.
+ * With `reveal`, the mark shows only on keyboard focus and on hover. The mark
+ * fades in, and its slot opens, so the text moves to the inline end. The mark
+ * and the move show the focus. A touch has no hover, so a tap does not show
+ * the mark. Under reduced motion, the `ReducedMotion` root makes the slot open
+ * at once, because Motion skips a tween of the width, and only the fade plays.
  */
-export function HashAnchor({ to, children }: HashAnchorProps) {
+export function HashAnchor({ to, reveal = false, children }: HashAnchorProps) {
+	const { component: LinkComponent } = useLink()
+
+	if (reveal) return <RevealAnchor to={to}>{children}</RevealAnchor>
+
+	return (
+		<LinkComponent
+			href={`#${to}`}
+			className="outline-none decoration-2 decoration-blue-600 underline-offset-4 hover:underline focus-visible:underline"
+		>
+			<span aria-hidden className={MARK} />
+			{children}
+		</LinkComponent>
+	)
+}
+
+/** The {@link HashAnchor} with `reveal`: the mark shows on keyboard focus and on hover. */
+function RevealAnchor({ to, children }: Omit<HashAnchorProps, 'reveal'>) {
 	const { component: LinkComponent } = useLink()
 
 	const [focused, setFocused] = useState(false)
@@ -47,7 +78,7 @@ export function HashAnchor({ to, children }: HashAnchorProps) {
 			<ReducedMotion>
 				<m.span
 					aria-hidden
-					className="inline-block text-blue-600 before:me-1.5 before:content-['#']"
+					className={MARK}
 					initial={false}
 					animate={shown ? { width: 'auto', opacity: 1 } : { width: 0, opacity: 0 }}
 					transition={ugoki.glide}
