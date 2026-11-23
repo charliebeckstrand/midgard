@@ -28,10 +28,11 @@ function sampleValue<T>(rows: readonly T[], field: keyof T): unknown {
  * The values of one line of a paste for the new-row slot, each by its column
  * id, and the count of its fields that the slot does not take. A field with text in a column that the
  * slot cannot edit, or that has no `field`, is skipped. So is a text that does
- * not fit the kind of its column. The text loses the guard apostrophe of a
- * copy. {@link GridColumn.parse} reads it with the line as its row: the values
- * of the line as the grid reads them with no `parse`, keyed by `field`, as
- * `validate` reads the row of the slot.
+ * not fit the kind of its column, in a column with no `parse`. The text loses
+ * the guard apostrophe of a copy. {@link GridColumn.parse} reads it in place of
+ * the default reading, as it does for a data row, with the line as its row:
+ * the values of the line as the grid reads them with no `parse`, keyed by
+ * `field`, as `validate` reads the row of the slot.
  */
 function readLine<T>(source: GridEditSource<T>, line: GridPasteLine) {
 	const read: { column: GridColumn<T>; text: string; value: unknown }[] = []
@@ -49,17 +50,19 @@ function readLine<T>(source: GridEditSource<T>, line: GridPasteLine) {
 
 		const editable = column !== undefined && field != null && isColumnEditable(column)
 
+		// The default reading gives the row of `parse`. A column with `parse`
+		// reads the text through it in place of the default, as a data row does.
 		const value = editable ? coercePaste(text, sampleValue(source.rows, field)) : null
 
-		if (!editable || !value) {
+		if (!editable || (!value && !column.parse)) {
 			if (text.trim() !== '') skipped++
 
 			continue
 		}
 
-		read.push({ column, text, value: value.value })
+		read.push({ column, text, value: value?.value })
 
-		row[String(field)] = value.value
+		if (value) row[String(field)] = value.value
 	}
 
 	const entries = read.map(

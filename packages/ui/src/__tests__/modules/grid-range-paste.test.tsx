@@ -624,6 +624,32 @@ describe('Grid paste past the last row', () => {
 		expect(liveRegion()).toHaveTextContent('2 cells pasted for Carol. 1 row added, 1 cell skipped')
 	})
 
+	// The default reading refuses `Active` in a number column, so `parse` reads
+	// it in place of the default, as it does for a data row.
+	it('reads a text of an added row through the column parse, as a data row does', async () => {
+		const onRowAdd = vi.fn()
+
+		const states: Record<string, number> = { Active: 1, Closed: 2 }
+
+		const view = renderPasteGrid({
+			columns: columns.map((column) =>
+				column.id === 'count' ? { ...column, parse: (text) => states[text] } : column,
+			),
+			editable: { newRow: 'bottom', onRowAdd },
+		})
+
+		fireEvent.mouseDown(at(2, 'name'))
+
+		await act(async () => view.paste('Zoe\tActive\nYan\tClosed'))
+
+		expect(view.onCommit).toHaveBeenCalledWith([
+			{ rowKey: 3, columnId: 'name', value: 'Zoe' },
+			{ rowKey: 3, columnId: 'count', value: 1 },
+		])
+
+		expect(onRowAdd).toHaveBeenCalledExactlyOnceWith({ name: 'Yan', count: 2 })
+	})
+
 	it('undoes the cells of the data rows, and keeps the added rows', async ({ clock }) => {
 		const onRowAdd = vi.fn()
 
