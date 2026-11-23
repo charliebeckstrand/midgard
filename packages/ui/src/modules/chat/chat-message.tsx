@@ -154,7 +154,8 @@ export type ChatMessageProps = ChatMessageVariants &
  *
  * A `streaming` reply that has no content yet shows {@link LoadingDots} in its
  * bubble, and not an empty bubble. The first text or part replaces the dots. A
- * `failed` reply shows its failure line and no dots.
+ * `failed` reply shows its failure line and no dots. The dots are hidden from
+ * assistive technology, because {@link ChatTranscript} announces the wait.
  *
  * A part list draws one block per part, each keyed by the part's own id. A text
  * block is its own {@link Markdown}. An `embed` block is the renderer that
@@ -210,7 +211,9 @@ export const ChatMessage = memo(function ChatMessage({
 
 	const slots = k({ sender, streaming, editing, trigger })
 
-	// A reply with nothing in it yet shows the dots, and not an empty bubble.
+	// A reply with nothing in it yet shows the dots, and not an empty bubble. The
+	// dots are an `<output>`, a live region. The transcript announces the wait
+	// on its one channel, so the dots stay out of the accessibility tree.
 	const pending = streaming === true && !failed && isEmptyContent(children)
 
 	const content =
@@ -231,7 +234,7 @@ export const ChatMessage = memo(function ChatMessage({
 			<span data-slot="chat-message-author" className="sr-only">
 				<IntlMessage message={AUTHOR[resolvedSender]} />:{' '}
 			</span>
-			{pending ? <LoadingDots /> : content}
+			{pending ? <LoadingDots aria-hidden="true" /> : content}
 			{failed && (
 				<p
 					data-slot="chat-message-failure"

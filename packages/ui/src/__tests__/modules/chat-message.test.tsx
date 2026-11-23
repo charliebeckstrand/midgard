@@ -98,7 +98,10 @@ describe('ChatMessage', () => {
 	it('shows loading dots in place of an empty streaming reply, and the content once it lands', () => {
 		const { container, rerender } = renderUI(<ChatMessage streaming>{''}</ChatMessage>)
 
-		expect(bySlot(container, 'loading-dots')).toBeInTheDocument()
+		// The transcript announces the wait, so the dots add no live region.
+		expect(bySlot(container, 'loading-dots')).toHaveAttribute('aria-hidden', 'true')
+
+		expect(screen.queryByRole('status')).not.toBeInTheDocument()
 
 		expect(bySlot(container, 'markdown')).not.toBeInTheDocument()
 
