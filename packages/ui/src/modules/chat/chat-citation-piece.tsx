@@ -1,6 +1,12 @@
 'use client'
 
-import { type KeyboardEvent, type ReactNode, useId } from 'react'
+import {
+	type FocusEvent,
+	type KeyboardEvent,
+	type PointerEvent,
+	type ReactNode,
+	useId,
+} from 'react'
 import type { MarkdownRangePiece } from '../../components/markdown/markdown-ranges'
 import { useMarkdownRangeText } from '../../components/markdown/use-markdown-range-text'
 import { dataAttr } from '../../core/data-attr'
@@ -9,6 +15,7 @@ import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/chat-message'
 import { useChatCitations } from './context'
 import type { ChatCitation } from './engine/chat-content/types'
+import { focusPreviews, lastInputIsTouch } from './use-chat-citation-trigger'
 
 const messages = defineMessages<{ selects: { label: string }; marked: { label: string } }>({
 	selects: {
@@ -51,12 +58,30 @@ function pressKeyDown(event: KeyboardEvent<HTMLElement>, press: () => void) {
 }
 
 /**
+ * Whether `node` is in a piece of the citation `id`. A citation that crosses
+ * bold draws more pieces, and a pointer that moves from one to the next leaves
+ * a piece but stays on the citation.
+ *
+ * @internal
+ */
+function inCitation(node: EventTarget | null, id: string): boolean {
+	if (!(node instanceof Element)) return false
+
+	return node.closest('[data-citation]')?.getAttribute('data-citation') === id
+}
+
+/**
  * One piece of a citation. Piece 0 is a toggle button whose name is the text
  * of the whole citation and whose description names the view. A citation that crosses bold
  * draws more pieces. They are visible text with the look of the citation. A
  * click on one presses the citation, but no key reaches it, so that one
  * citation is one tab stop. A piece is not hidden from
  * a screen reader, because it is part of the phrase.
+ *
+ * With a trigger that holds `'hover'`, each piece previews the citation while
+ * the pointer is on it, and piece 0 previews it while a keyboard focus is on
+ * it. The pieces of one citation share a `data-citation` attribute, so a
+ * pointer that moves from one piece to the next keeps the preview.
  *
  * Each piece reads `isMarked`, so a citation that the selection of its view
  * matches takes the marked look on each piece. The description of piece 0
@@ -74,7 +99,7 @@ function pressKeyDown(event: KeyboardEvent<HTMLElement>, press: () => void) {
  * @internal
  */
 export function ChatCitationPiece({ piece: { range, index }, children }: ChatCitationPieceProps) {
-	const { targets, cited, onCitedChange, isMarked } = useChatCitations()
+	const { targets, isMarked, trigger = 'click', actions } = useChatCitations()
 
 	const intl = useIntl()
 
@@ -84,9 +109,7 @@ export function ChatCitationPiece({ piece: { range, index }, children }: ChatCit
 	// pieces, so the button takes the text of all of them as its name.
 	const name = useMarkdownRangeText(range)
 
-	const pressed = cited?.id === range.id
-
-	if (!Object.hasOwn(targets, range.target)) {
+	if (!Object.hasOwn(targets, range.target) || actions === undefined) {
 		return (
 			<span data-slot="chat-citation-static" className={k().citationStatic}>
 				{children}
@@ -94,9 +117,29 @@ export function ChatCitationPiece({ piece: { range, index }, children }: ChatCit
 		)
 	}
 
+	// The kept citation, and not a preview, is pressed.
+	const pressed = actions.pressed?.id === range.id
+
 	const marked = isMarked?.(range) ?? false
 
-	const press = () => onCitedChange?.(pressed ? null : range)
+	const press = () => actions.press(range, false)
+
+	const onClick = () => actions.press(range, lastInputIsTouch())
+
+	// A click trigger takes no hover, so its pieces get no pointer handlers.
+	const hover =
+		trigger === 'click'
+			? undefined
+			: {
+					onPointerEnter: (event: PointerEvent<HTMLElement>) => {
+						// A touch screen has no hover. A tap presses the citation.
+						if (event.pointerType !== 'touch') actions.preview(range, 'pointer')
+					},
+					onPointerLeave: (event: PointerEvent<HTMLElement>) => {
+						// The pointer that moves to the next piece of the citation stays on it.
+						if (!inCitation(event.relatedTarget, range.id)) actions.unpreview(range, 'pointer')
+					},
+				}
 
 	if (index > 0) {
 		// A click presses the citation, as a click on piece 0 does. The keys reach
@@ -106,10 +149,12 @@ export function ChatCitationPiece({ piece: { range, index }, children }: ChatCit
 			// biome-ignore lint/a11y/useKeyWithClickEvents: piece 0 takes the keys of the citation.
 			<span
 				data-slot="chat-citation-piece"
+				data-citation={range.id}
 				data-pressed={dataAttr(pressed)}
 				data-marked={dataAttr(marked)}
 				className={k().citation}
-				onClick={press}
+				onClick={onClick}
+				{...hover}
 			>
 				{children}
 			</span>
@@ -120,6 +165,18 @@ export function ChatCitationPiece({ piece: { range, index }, children }: ChatCit
 	// and is never read, so a piece with no label gets no description.
 	const label = targets[range.target]?.label
 
+	// A keyboard focus previews the citation, as a hover does. A blur and Escape
+	// end the preview.
+	const focus =
+		trigger === 'click'
+			? undefined
+			: {
+					onFocus: (event: FocusEvent<HTMLElement>) => {
+						if (focusPreviews(event)) actions.preview(range, 'focus')
+					},
+					onBlur: () => actions.unpreview(range, 'focus'),
+				}
+
 	return (
 		<>
 			{/* biome-ignore lint/a11y/useSemanticElements: a <button> is an atomic inline box, so a citation could not wrap with the prose. */}
@@ -127,17 +184,23 @@ export function ChatCitationPiece({ piece: { range, index }, children }: ChatCit
 				role="button"
 				tabIndex={0}
 				data-slot="chat-citation"
+				data-citation={range.id}
 				data-pressed={dataAttr(pressed)}
 				data-marked={dataAttr(marked)}
 				aria-pressed={pressed}
 				aria-label={name}
 				aria-describedby={label === undefined ? undefined : description}
 				className={k().citation}
-				onClick={press}
-				onKeyDown={(event) => pressKeyDown(event, press)}
+				onClick={onClick}
+				onKeyDown={(event) => {
+					if (event.key === 'Escape' && trigger !== 'click') actions.dismiss(range)
+					else pressKeyDown(event, press)
+				}}
 				onKeyUp={(event) => {
 					if (event.key === ' ') press()
 				}}
+				{...hover}
+				{...focus}
 			>
 				{children}
 			</span>
