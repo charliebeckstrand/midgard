@@ -875,11 +875,12 @@ export const k = {
 			// The fill handle on the bottom end corner of the active cell (`range` in
 			// a managed editable grid). A drag from it fills. The square sits inside
 			// the corner, so the scroll region does not clip it at the last row or
-			// column, and a wider hit area sits around it. The keys and the cell menu
-			// give the same fills with no drag (WCAG 2.5.7).
+			// column. The hit area grows 9px past the 6px padding box on each side,
+			// to 24px (WCAG 2.5.8). The keys and the cell menu give the same fills
+			// with no drag (WCAG 2.5.7).
 			handle: [
 				'pointer-events-auto absolute bottom-0 end-0 size-2 cursor-crosshair border',
-				'before:absolute before:-inset-1.5',
+				'before:absolute before:-inset-2.25',
 				'bg-blue-600',
 				...mode('border-white', 'dark:border-zinc-900'),
 			],
