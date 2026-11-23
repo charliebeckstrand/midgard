@@ -54,7 +54,8 @@ export const panel = defineGroup({
 		description: [...text.muted, size.md, 'leading-tight'],
 		/** Optional wrapper around body + footer; a Form or similar can wrap both while preserving the panel's slot rhythm. */
 		content: [...fit.column, scale.lg],
-		body: [...text.muted, fit.scroll],
+		/** A body that scrolls is a tab stop (`useScrollRegion`). The inset ring shows its focus, because the scroll clips an outset ring. */
+		body: [...text.muted, fit.scroll, sen.focus.inset],
 		footer: [flex.row, 'justify-end', scale.sm],
 	},
 	defaults: { surface: 'flat' },
