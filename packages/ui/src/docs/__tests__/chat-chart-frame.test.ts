@@ -22,9 +22,16 @@ function demoFiles(): string[] {
 		.toSorted()
 }
 
-/** Whether `code` renders a chart that keeps its aspect ratio. */
+/**
+ * Whether `code` renders a chart that keeps its aspect ratio. The test reads
+ * each chart element, such as `<BarChart … />`, because an `aspectRatio` of
+ * another element, such as a map, does not apply to the chart.
+ */
 const keepsRatio = (code: string) =>
-	/from 'ui\/chart'/.test(code) && !/aspectRatio=\{false\}/.test(code)
+	/from 'ui\/chart'/.test(code) &&
+	Array.from(code.matchAll(/<(\w*Chart)\b[\s\S]*?(?:\/>|<\/\1>)/g), ([chart]) => chart).some(
+		(chart) => !/aspectRatio=\{false\}/.test(chart),
+	)
 
 /** The `<Example>` or `<Playground>` element that shows the demo in `file`. */
 function findFrame(file: string): string | undefined {
