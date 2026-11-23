@@ -64,7 +64,10 @@ describe('PlacePhotosField', () => {
 
 		await pick('a.gif')
 
-		expect(screen.getByRole('status').textContent).toBe('a.gif is not a JPEG, PNG, or WebP image.')
+		// The shared announcer is a status region too, and can hold the same text.
+		const statuses = screen.getAllByRole('status').map((region) => region.textContent)
+
+		expect(statuses).toContain('a.gif is not a JPEG, PNG, or WebP image.')
 	})
 
 	it('names one refused file in the singular', async () => {
