@@ -36,7 +36,7 @@ import { pixelScale } from './engine/map-projection/frame'
 import type { MapCategoryMeta } from './engine/map-region/category'
 import {
 	type MapRegionLayer,
-	paintAt,
+	regionPaint,
 	resolveRegionPaints,
 	stripePatternId,
 } from './engine/map-region/paint'
@@ -294,7 +294,7 @@ const MapRegionsBase = memo(function MapRegionsBase({
 	return (
 		<>
 			{drawn.map(({ index, d }) => {
-				const paint = paintAt(paints, regionCategory[index] ?? null)
+				const paint = regionPaint(paints, regionCategory, index)
 
 				return (
 					<Region

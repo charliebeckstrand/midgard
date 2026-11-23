@@ -6,7 +6,7 @@ import { spotClass } from '../chart/engine/chart-series'
 import { useMapZoomScale } from './context'
 import { REGION_EMPHASIZED_STROKE_WIDTH } from './engine/map-constants'
 import type { MapHoverTarget } from './engine/map-hover/target'
-import { type MapRegionLayer, paintAt } from './engine/map-region/paint'
+import { type MapRegionLayer, regionPaint } from './engine/map-region/paint'
 
 /** Props for {@link MapRegionsLit}: what the emphasis holds lit above the receded layer. @internal */
 type MapRegionsLitProps = MapRegionLayer & {
@@ -51,7 +51,7 @@ export function MapRegionsLit({
 		<>
 			<g data-slot="map-regions-lit" className={cn('pointer-events-none', spotClass(receded))}>
 				{lit.map((index) => {
-					const paint = paintAt(paints, regionCategory[index] ?? null)
+					const paint = regionPaint(paints, regionCategory, index)
 
 					return (
 						<path
@@ -107,7 +107,7 @@ function litIndexes(
 	for (const [index, d] of paths.entries()) {
 		if (d === null) continue
 
-		if (paintAt(paints, regionCategory[index] ?? null).groupId === emphasis) lit.push(index)
+		if (regionPaint(paints, regionCategory, index).groupId === emphasis) lit.push(index)
 	}
 
 	return lit
@@ -145,7 +145,7 @@ function MapRegionsEmphasized({
 				<path
 					key={index}
 					d={paths[index] as string}
-					className={paintAt(paints, regionCategory[index] ?? null).outline}
+					className={regionPaint(paints, regionCategory, index).outline}
 				/>
 			))}
 		</g>

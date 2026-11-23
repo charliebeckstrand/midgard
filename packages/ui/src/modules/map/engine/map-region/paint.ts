@@ -186,7 +186,16 @@ export function resolveRegionPaints(
 	}
 }
 
-/** The paint for one region's category index, the neutral where nothing matches. @internal */
-export function paintAt(paints: ResolvedRegionPaints, category: number | null): RegionPaint {
+/** The paint for one region's category index, the neutral where nothing matches. */
+function paintAt(paints: ResolvedRegionPaints, category: number | null): RegionPaint {
 	return (category === null ? undefined : paints.byCategory[category]) ?? paints.none
+}
+
+/** The paint for the region at `index`, by its category. @internal */
+export function regionPaint(
+	paints: ResolvedRegionPaints,
+	regionCategory: (number | null)[],
+	index: number,
+): RegionPaint {
+	return paintAt(paints, regionCategory[index] ?? null)
 }
