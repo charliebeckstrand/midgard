@@ -1,7 +1,9 @@
 import { act, fireEvent, render } from '@testing-library/react'
+import { renderToString } from 'react-dom/server'
 import { describe, expect, vi } from 'vitest'
 import { it, onFakeClock } from '../../__tests__/helpers/fake-clock'
 import { stubResizeObserver } from '../../__tests__/helpers/stub-resize-observer'
+import { UIProvider } from '../../providers/ui'
 import { clamp } from '../../utilities/clamp.ts'
 import { getLetters, getMarks, HOLD_DELAY, letterAt } from '../app/letter-rail.tsx'
 import { DocsSearch } from '../app/search.tsx'
@@ -12,6 +14,7 @@ import type { PageLink } from '../plugin/pages.ts'
 // rail, so a press selects exactly one letter, and a slide moves from letter to
 // letter. A selection scrolls the body to the first page with the letter. The
 // rail shows the letter of the last jump that the scroll of the body is at or past.
+// The rail starts on the letter of the current page, in the server markup too.
 // A short rail collapses to some of the letters, with a dot between two of them.
 
 const page = (category: string, name: string): PageLink => ({
@@ -108,12 +111,17 @@ function layOut(body: HTMLElement) {
 	})
 }
 
-function renderSidebar(pages = PAGES) {
-	const { container } = render(
+/** The sidebar, with `pathname` as the path of the current page. */
+const sidebar = (pages: readonly PageLink[], pathname?: string) => (
+	<UIProvider pathname={pathname}>
 		<DocsSearch>
 			<DocsSidebar pages={pages} />
-		</DocsSearch>,
-	)
+		</DocsSearch>
+	</UIProvider>
+)
+
+function renderSidebar(pages = PAGES, pathname?: string) {
+	const { container } = render(sidebar(pages, pathname))
 
 	const body = container.querySelector<HTMLElement>('[data-slot="sidebar-body"]')
 
@@ -256,6 +264,35 @@ describe('LetterRail', () => {
 		fireEvent.scroll(body)
 
 		expect(active()).toBeUndefined()
+	})
+
+	it('renders the letter of the current page in the server markup', () => {
+		const markup = document.createElement('div')
+
+		markup.innerHTML = renderToString(sidebar(PAGES, '/locale'))
+
+		expect(markup.querySelector('[data-slot="letter-rail"] [data-active]')?.textContent).toBe('L')
+	})
+
+	it('renders no letter in the server markup when the current page is past the rail', () => {
+		const markup = document.createElement('div')
+
+		markup.innerHTML = renderToString(sidebar(PAGES, '/grid'))
+
+		expect(markup.querySelector('[data-slot="letter-rail"] [data-active]')).toBeNull()
+	})
+
+	it('keeps the letter of the current page until the body scrolls', () => {
+		// With no section after the components, Editor cannot come to the top, and Badge is there.
+		const { body, active } = renderSidebar(COMPONENTS, '/editor')
+
+		expect(active()).toBe('E')
+
+		body.scrollTop = 100
+
+		fireEvent.scroll(body)
+
+		expect(active()).toBe('B')
 	})
 
 	it('selects the letter whose band holds the press, at each edge of the band', () => {

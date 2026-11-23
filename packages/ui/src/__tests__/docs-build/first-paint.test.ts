@@ -96,6 +96,27 @@ describe.concurrent('the sidebar of the docs build', () => {
 	})
 })
 
+/** The active letter of the letter rail, or `null` when no letter is active. */
+const READ_RAIL = `document.querySelector('[data-slot="letter-rail"] [data-active]')?.textContent ?? null`
+
+// The rail paints the letter of the current page before hydration, and the
+// hydration keeps it. A page past the components has no letter.
+describe.concurrent('the letter rail of the docs build', () => {
+	it.for([
+		['/badge', 'B'],
+		['/tree', 'T'],
+		['/modules/grid', null],
+	] as const)('%s paints its letter before hydration', async ([path, letter], context) => {
+		const { expect } = context
+
+		const { painted, hydrated } = await readBoth<string | null>(context, path, 1280, READ_RAIL)
+
+		expect(painted).toBe(letter)
+
+		expect(hydrated).toBe(painted)
+	})
+})
+
 /** The scroll of the tab row, whether it overflows, and the scroll of the page. */
 type TabRowState = { scrollLeft: number; overflows: boolean; pageY: number }
 
