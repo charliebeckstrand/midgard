@@ -14,8 +14,10 @@ language js
 // writes is not a selector, so it does not match. A mention in a comment is
 // not a violation.
 //
-// Reach is the `includes` beside this plugin in `biome.json`: the apps, minus
-// tests. A test queries by `data-slot` (CONVENTIONS §10.2).
+// Reach is the `includes` beside this plugin in `biome.json`: the apps and
+// `shared`, whose pages the apps render, minus tests. A test queries by
+// `data-slot` (CONVENTIONS §10.2). The `no-ui-anchor-selector-css` plugin holds
+// the rule in a stylesheet.
 or { JsStringLiteralExpression(), JsxString(), JsTemplateChunkElement() } as $selector where {
 	$selector <: r"[\s\S]*data-(?:slot\s*[~|^$*]?=|\[slot[~|^$*]?=)[\s\S]*",
 	register_diagnostic(

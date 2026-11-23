@@ -49,7 +49,7 @@ import { MapPoints } from '../../modules/map'
 import { createGroup, QueryBuilder, type QueryRule } from '../../modules/query'
 import { bySlot, frames, present, renderUI, waitFor } from '../helpers'
 import { categoricalPlat, overlayPlat } from '../helpers/map-plat'
-import { emulateForcedColors, systemColor } from './helpers/forced-colors'
+import { emulateForcedColors, showsOnCanvas, systemColor } from './helpers/forced-colors'
 
 /**
  * Under forced colors, each control still shows its state. The two renders of
@@ -392,9 +392,8 @@ describe('controls show their state under forced colors (real browser)', () => {
 		)
 		const tab = present(container.querySelector('[data-slot=tab][aria-selected=true]'), 'tab')
 		const indicator = present(tab.parentElement?.children[1], 'indicator')
-		const canvas = systemColor('Canvas')
 		const style = getComputedStyle(indicator)
-		expect(style.backgroundColor === canvas && style.borderTopWidth === '0px').toBe(false)
+		expect(!showsOnCanvas(style.backgroundColor) && style.borderTopWidth === '0px').toBe(false)
 	})
 
 	// The focus marker of an underline tab is a background on `::after`, which
@@ -479,15 +478,14 @@ describe('controls show their state under forced colors (real browser)', () => {
 					</TimelineItem>
 				</Timeline>,
 			)
-			const canvas = systemColor('Canvas')
 			const markers = [...container.querySelectorAll<HTMLElement>('[data-slot=timeline-marker]')]
 			expect(markers).toHaveLength(3)
 			const middle = present(markers[1], 'marker')
-			expect(getComputedStyle(middle, '::before').backgroundColor).not.toBe(canvas)
-			expect(getComputedStyle(middle, '::after').backgroundColor).not.toBe(canvas)
+			expect(showsOnCanvas(getComputedStyle(middle, '::before').backgroundColor)).toBe(true)
+			expect(showsOnCanvas(getComputedStyle(middle, '::after').backgroundColor)).toBe(true)
 			for (const marker of markers) {
 				const dot = getComputedStyle(present(marker.firstElementChild, 'dot'))
-				expect(dot.backgroundColor === canvas && dot.borderTopWidth === '0px').toBe(false)
+				expect(!showsOnCanvas(dot.backgroundColor) && dot.borderTopWidth === '0px').toBe(false)
 			}
 		},
 	)
@@ -811,13 +809,11 @@ describe('controls show their state under forced colors (real browser)', () => {
 			present(container.querySelector('[data-slot="grid-fill-handle"]'), 'fill handle'),
 		)
 
-		const canvas = systemColor('Canvas')
-
 		const style = getComputedStyle(handle)
 
-		const fill = style.backgroundColor !== canvas
+		const fill = showsOnCanvas(style.backgroundColor)
 
-		const edge = style.borderTopWidth !== '0px' && style.borderTopColor !== canvas
+		const edge = style.borderTopWidth !== '0px' && showsOnCanvas(style.borderTopColor)
 
 		expect(fill || edge).toBe(true)
 	})
@@ -912,7 +908,7 @@ describe('Swatch under forced colors (real browser)', () => {
 			const { container } = renderUI(<Swatch shape={shape} color="blue" />)
 			const el = present(bySlot(container, 'swatch'), 'swatch')
 
-			expect(getComputedStyle(el).backgroundColor).not.toBe(systemColor('Canvas'))
+			expect(showsOnCanvas(getComputedStyle(el).backgroundColor)).toBe(true)
 		},
 	)
 
@@ -923,7 +919,7 @@ describe('Swatch under forced colors (real browser)', () => {
 
 		expect(style.backgroundImage).toContain('repeating-linear-gradient')
 
-		expect(style.color).not.toBe(systemColor('Canvas'))
+		expect(showsOnCanvas(style.color)).toBe(true)
 	})
 })
 

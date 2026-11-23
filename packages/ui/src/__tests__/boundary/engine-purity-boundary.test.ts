@@ -259,6 +259,15 @@ describe('engine purity boundary · self-check', () => {
 		])
 	})
 
+	it('reads a type re-export after a bare import as a type re-export', () => {
+		const refs = parseImports("import './a'\nexport type { T } from './b'\n")
+
+		expect(refs).toEqual([
+			{ specifier: './b', runtime: false },
+			{ specifier: './a', runtime: true },
+		])
+	})
+
 	it('reads a clause whose comment holds a quote', () => {
 		const refs = parseImports("import {\n\tuseMemo, // don't drop\n} from 'react'\n")
 
