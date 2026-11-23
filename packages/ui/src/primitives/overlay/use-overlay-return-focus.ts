@@ -51,19 +51,25 @@ function ancestors(element: Element | null): Element[] {
 
 /**
  * The element that gets the focus in place of a target that is gone, such as
- * a button in a table row that the overlay deleted. It is the nearest ancestor
- * of the old target that is still in the page, if it can get the focus, else
- * the first tabbable element in that ancestor. The focus then stays near the
+ * a button in a table row that the overlay deleted. It comes from the nearest
+ * ancestor of the old target that is still in the page and gives one: the
+ * ancestor, if it can get the focus, else its first tabbable element. The focus then stays near the
  * place of the action, and does not fall to `<body>` (WCAG 2.4.3).
  */
 function fallback(path: Element[]): HTMLElement | null {
-	const near = path.find((node) => node.isConnected)
+	// An ancestor can be in the page but hold no control, such as a list whose
+	// last row the overlay deleted. The walk then goes on up the path.
+	for (const node of path) {
+		if (!node.isConnected || !(node instanceof HTMLElement)) continue
 
-	if (!(near instanceof HTMLElement)) return null
+		if (node.matches(FOCUSABLE_SELECTOR) && node.tabIndex >= 0) return node
 
-	if (near.matches(FOCUSABLE_SELECTOR) && near.tabIndex >= 0) return near
+		const first = getTabbableElements(node)[0]
 
-	return getTabbableElements(near)[0] ?? null
+		if (first) return first
+	}
+
+	return null
 }
 
 /** Whether `target` is not an element that can get the focus back. */

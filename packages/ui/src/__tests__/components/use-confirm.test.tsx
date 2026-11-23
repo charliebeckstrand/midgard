@@ -281,6 +281,21 @@ describe('useConfirm', () => {
 			await waitFor(() => expect(screen.getByRole('button', { name: 'Delete B' })).toHaveFocus())
 		})
 
+		it('goes on up when the nearest ancestor holds no control', async () => {
+			renderUI(
+				<UIProvider>
+					<div>
+						<Rows initial={['A']} />
+						<button type="button">Add row</button>
+					</div>
+				</UIProvider>,
+			)
+
+			await deleteRow('A')
+
+			await waitFor(() => expect(screen.getByRole('button', { name: 'Add row' })).toHaveFocus())
+		})
+
 		it('gives the focus to returnFocusTo', async () => {
 			function Page() {
 				const after = useRef<HTMLButtonElement>(null)
