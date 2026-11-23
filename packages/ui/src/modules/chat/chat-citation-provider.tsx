@@ -25,6 +25,7 @@ export type ChatCitationProviderProps = {
 	 * A press sends the pressed citation, or `null` when the reader pressed the
 	 * active citation again. A hover or a focus sends the citation that it
 	 * previews, and its end sends the citation that was active before it.
+	 * Escape on a citation sends `null`, as the Clear control of a view does.
 	 */
 	onCitedChange: (citation: ChatCitation | null) => void
 	/**
@@ -41,8 +42,9 @@ export type ChatCitationProviderProps = {
 	 * a hover never clears a citation that a press keeps. `aria-pressed` shows
 	 * the kept citation and not the preview.
 	 *
-	 * A focus from the keyboard previews, as a hover does. A blur or Escape
-	 * ends the preview. The focus that a click gives does not preview. A touch
+	 * A focus from the keyboard previews, as a hover does. A blur ends the
+	 * preview. Escape clears the active citation in each mode, kept or
+	 * previewed. The focus that a click gives does not preview. A touch
 	 * screen has no hover, so a tap toggles the citation in each mode.
 	 *
 	 * @defaultValue `'click'`, or the trigger of the enclosing provider.

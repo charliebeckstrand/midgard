@@ -78,6 +78,8 @@ function inCitation(node: EventTarget | null, id: string): boolean {
  * citation is one tab stop. A piece is not hidden from
  * a screen reader, because it is part of the phrase.
  *
+ * Escape on piece 0 clears the active citation, in each mode.
+ *
  * With a trigger that holds `'hover'`, each piece previews the citation while
  * the pointer is on it, and piece 0 previews it while a keyboard focus is on
  * it. The pieces of one citation share a `data-citation` attribute, so a
@@ -165,8 +167,8 @@ export function ChatCitationPiece({ piece: { range, index }, children }: ChatCit
 	// and is never read, so a piece with no label gets no description.
 	const label = targets[range.target]?.label
 
-	// A keyboard focus previews the citation, as a hover does. A blur and Escape
-	// end the preview.
+	// A keyboard focus previews the citation, as a hover does. A blur ends the
+	// preview, and Escape clears it.
 	const focus =
 		trigger === 'click'
 			? undefined
@@ -193,8 +195,18 @@ export function ChatCitationPiece({ piece: { range, index }, children }: ChatCit
 				className={k().citation}
 				onClick={onClick}
 				onKeyDown={(event) => {
-					if (event.key === 'Escape' && trigger !== 'click') actions.dismiss(range)
-					else pressKeyDown(event, press)
+					if (event.key === 'Escape') {
+						// With no active citation, Escape goes on to the surface that holds
+						// the chat, such as a dialog. `useEscapeLayer` ignores a press whose
+						// default is prevented.
+						if (actions.clear()) {
+							event.preventDefault()
+
+							event.stopPropagation()
+						}
+					} else {
+						pressKeyDown(event, press)
+					}
 				}}
 				onKeyUp={(event) => {
 					if (event.key === ' ') press()

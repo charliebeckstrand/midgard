@@ -122,6 +122,68 @@ describe('ChatCitationProvider', () => {
 		expect(onCitedChange).toHaveBeenCalledTimes(2)
 	})
 
+	it('clears the active citation on Escape, and keeps the focus on the citation', async () => {
+		const onCitedChange = vi.fn()
+
+		const user = userEvent.setup()
+
+		renderUI(
+			<Cited
+				citations={[cite('c1', 'Twelve stops are late'), cite('c2', 'on **Tuesday**')]}
+				onCitedChange={onCitedChange}
+			/>,
+		)
+
+		const late = screen.getByRole('button', { name: 'Twelve stops are late' })
+
+		await user.click(late)
+
+		// Escape on another citation clears the active one too.
+		await user.tab()
+
+		expect(screen.getByRole('button', { name: 'on Tuesday' })).toHaveFocus()
+
+		await user.keyboard('{Escape}')
+
+		expect(onCitedChange).toHaveBeenLastCalledWith(null)
+
+		expect(late).toHaveAttribute('aria-pressed', 'false')
+
+		expect(screen.getByRole('button', { name: 'on Tuesday' })).toHaveFocus()
+	})
+
+	it('lets Escape go on to the surface that holds the chat when no citation is active', async () => {
+		const onCitedChange = vi.fn()
+
+		const onKeyDown = vi.fn((event: KeyboardEvent) => event.defaultPrevented)
+
+		const user = userEvent.setup()
+
+		renderUI(
+			// biome-ignore lint/a11y/noStaticElementInteractions: the wrapper stands in for a dialog that reads Escape.
+			<div onKeyDown={(event) => onKeyDown(event.nativeEvent)}>
+				<Cited citations={[cite('c1', 'Twelve stops are late')]} onCitedChange={onCitedChange} />
+			</div>,
+		)
+
+		await user.tab()
+
+		await user.keyboard('{Escape}')
+
+		expect(onCitedChange).not.toHaveBeenCalled()
+
+		expect(onKeyDown).toHaveLastReturnedWith(false)
+
+		await user.keyboard('{Enter}')
+
+		onKeyDown.mockClear()
+
+		await user.keyboard('{Escape}')
+
+		// Escape cleared the citation, so the surface does not get it.
+		expect(onKeyDown).not.toHaveBeenCalled()
+	})
+
 	it('draws one control for a citation that crosses bold, and marks each piece pressed', async () => {
 		const user = userEvent.setup()
 
@@ -423,6 +485,31 @@ describe('ChatCitationProvider trigger', () => {
 		act(() => move(piece, document.body))
 
 		expect(onCitedChange).toHaveBeenLastCalledWith(null)
+	})
+
+	it('clears a kept hover and click citation on Escape while the focus previews it', async () => {
+		const { user, onCitedChange, anchor } = setup(['hover', 'click'])
+
+		await user.tab()
+
+		await user.keyboard('{Enter}')
+
+		expect(anchor('Twelve stops are late')).toHaveAttribute('aria-pressed', 'true')
+
+		await user.keyboard('{Escape}')
+
+		expect(onCitedChange).toHaveBeenLastCalledWith(null)
+
+		expect(anchor('Twelve stops are late')).toHaveAttribute('aria-pressed', 'false')
+
+		// The end of the cleared preview sends nothing.
+		onCitedChange.mockClear()
+
+		await user.tab()
+
+		expect(onCitedChange).toHaveBeenLastCalledWith(expect.objectContaining({ id: 'tue' }))
+
+		expect(onCitedChange).toHaveBeenCalledTimes(1)
 	})
 
 	it('keeps a hover and click citation that Enter presses after the focus leaves', async () => {

@@ -61,8 +61,12 @@ export type ChatCitationActions = {
 	preview: (citation: ChatCitation, source: PreviewSource) => void
 	/** Removes a source from the preview of `citation`. The preview ends with its last source. */
 	unpreview: (citation: ChatCitation, source: PreviewSource) => void
-	/** Ends the preview of `citation`, as Escape does. */
-	dismiss: (citation: ChatCitation) => void
+	/**
+	 * Ends a preview and sends `null`, as Escape does. Returns `false` when no
+	 * citation was active, so that Escape can go on to the surface that holds
+	 * the chat.
+	 */
+	clear: () => boolean
 	/** A click, Enter, or Space on `citation`. `touch` is true for a tap. */
 	press: (citation: ChatCitation, touch: boolean) => void
 }
@@ -97,6 +101,9 @@ export function lastInputIsTouch(): boolean {
  * again. Thus a hover never clears a citation that a press keeps. A preview
  * ends only when its last source ends, so a pointer that leaves a citation
  * with the keyboard focus on it keeps the preview.
+ *
+ * Escape clears the active citation in each mode, kept or previewed, as the
+ * Clear control of a view does. The focus stays on the citation.
  *
  * Two pointer events can come before the app draws the last value that the
  * hook sent, as when the pointer moves from one citation to the next. The hook
@@ -191,10 +198,16 @@ export function useChatCitationTrigger(
 		if (open.sources.size === 0) end(open)
 	})
 
-	const dismiss = useStableEvent((citation: ChatCitation) => {
+	const clear = useStableEvent((): boolean => {
 		const open = previewRef.current
 
-		if (open?.id === citation.id) end(open)
+		if (open === null && current() === null) return false
+
+		if (open !== null) setPreview(null)
+
+		send(null)
+
+		return true
 	})
 
 	const press = useStableEvent((citation: ChatCitation, touch: boolean) => {
@@ -219,7 +232,7 @@ export function useChatCitationTrigger(
 	const pressed = shown && cited?.id === shown.id ? shown.committed : cited
 
 	return useMemo(
-		() => ({ pressed, preview, unpreview, dismiss, press }),
-		[pressed, preview, unpreview, dismiss, press],
+		() => ({ pressed, preview, unpreview, clear, press }),
+		[pressed, preview, unpreview, clear, press],
 	)
 }
