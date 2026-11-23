@@ -37,6 +37,18 @@ type GridValues = {
 	autoSizeColumn: Record<never, never>
 	autoSizeAll: Record<never, never>
 	resetWidths: Record<never, never>
+	width: Record<never, never>
+	increaseWidth: Record<never, never>
+	decreaseWidth: Record<never, never>
+	move: Record<never, never>
+	moveLeft: Record<never, never>
+	moveRight: Record<never, never>
+	moveToStart: Record<never, never>
+	moveToEnd: Record<never, never>
+	moveUp: Record<never, never>
+	moveDown: Record<never, never>
+	moveToTop: Record<never, never>
+	moveToBottom: Record<never, never>
 	manageColumns: Record<never, never>
 	manageRows: Record<never, never>
 	filterColumn: { column: string }
@@ -49,6 +61,7 @@ type GridValues = {
 	print: Record<never, never>
 	copy: Record<never, never>
 	fillDown: Record<never, never>
+	fillUp: Record<never, never>
 	fillRight: Record<never, never>
 	fillLeft: Record<never, never>
 	clearColor: Record<never, never>
@@ -72,6 +85,7 @@ type GridValues = {
 	groupName: Record<never, never>
 	groupNameFor: { group: string }
 	removeGroupNamed: { group: string }
+	moveGroupNamed: { group: string }
 	moveTo: { group: string }
 	removeFromGroup: Record<never, never>
 	color: Record<never, never>
@@ -137,10 +151,8 @@ type GridValues = {
 	search: Record<never, never>
 	newRow: Record<never, never>
 	addRow: Record<never, never>
-	expandNamed: { group: string }
-	collapseNamed: { group: string }
-	expandDetails: { row: string }
-	collapseDetails: { row: string }
+	groupColumns: { group: string }
+	rowDetails: { row: string }
 	loadFailed: Record<never, never>
 }
 
@@ -298,6 +310,73 @@ export const gridMessages: MessageSet<GridValues> = defineMessages<GridValues>({
 		description:
 			'The menu item that gives the widths of the grid columns back to the automatic fit.',
 	},
+	width: {
+		id: 'ui.grid.width',
+		defaultMessage: 'Width',
+		description:
+			'The menu item of a grid column that opens the choices that make the column wider or narrower.',
+	},
+	increaseWidth: {
+		id: 'ui.grid.increaseWidth',
+		defaultMessage: 'Increase width',
+		description: 'The menu item that makes a grid column wider by one step.',
+	},
+	decreaseWidth: {
+		id: 'ui.grid.decreaseWidth',
+		defaultMessage: 'Decrease width',
+		description: 'The menu item that makes a grid column narrower by one step.',
+	},
+	move: {
+		id: 'ui.grid.move',
+		defaultMessage: 'Move',
+		description:
+			'The menu item of a grid column that opens the choices that move the column to a new place.',
+	},
+	moveLeft: {
+		id: 'ui.grid.moveLeft',
+		defaultMessage: 'Move left',
+		description: 'The menu item that moves a grid column one place to the left on the screen.',
+	},
+	moveRight: {
+		id: 'ui.grid.moveRight',
+		defaultMessage: 'Move right',
+		description: 'The menu item that moves a grid column one place to the right on the screen.',
+	},
+	moveToStart: {
+		id: 'ui.grid.moveToStart',
+		defaultMessage: 'Move to start',
+		description:
+			'The menu item that moves a grid column to the first place, before the other columns that move.',
+	},
+	moveToEnd: {
+		id: 'ui.grid.moveToEnd',
+		defaultMessage: 'Move to end',
+		description:
+			'The menu item that moves a grid column to the last place, after the other columns that move.',
+	},
+	moveUp: {
+		id: 'ui.grid.moveUp',
+		defaultMessage: 'Move up',
+		description:
+			'The menu item that moves a grid row, or a column in the column manager, one place up.',
+	},
+	moveDown: {
+		id: 'ui.grid.moveDown',
+		defaultMessage: 'Move down',
+		description:
+			'The menu item that moves a grid row, or a column in the column manager, one place down.',
+	},
+	moveToTop: {
+		id: 'ui.grid.moveToTop',
+		defaultMessage: 'Move to top',
+		description: 'The menu item that moves a column to the top of the list in the column manager.',
+	},
+	moveToBottom: {
+		id: 'ui.grid.moveToBottom',
+		defaultMessage: 'Move to bottom',
+		description:
+			'The menu item that moves a column to the bottom of the list in the column manager.',
+	},
 	manageColumns: {
 		id: 'ui.grid.manageColumns',
 		defaultMessage: 'Manage columns',
@@ -359,20 +438,22 @@ export const gridMessages: MessageSet<GridValues> = defineMessages<GridValues>({
 	fillDown: {
 		id: 'ui.grid.fillDown',
 		defaultMessage: 'Fill down',
-		description:
-			'The menu item that copies the first row of a cell range of a grid down the range.',
+		description: 'The menu item that fills a cell range of a grid down from its top rows.',
+	},
+	fillUp: {
+		id: 'ui.grid.fillUp',
+		defaultMessage: 'Fill up',
+		description: 'The menu item that fills a cell range of a grid up from its bottom rows.',
 	},
 	fillRight: {
 		id: 'ui.grid.fillRight',
 		defaultMessage: 'Fill right',
-		description:
-			'The menu item that copies the first column of a cell range of a grid to the right.',
+		description: 'The menu item that fills a cell range of a grid to the right edge.',
 	},
 	fillLeft: {
 		id: 'ui.grid.fillLeft',
 		defaultMessage: 'Fill left',
-		description:
-			'The menu item that copies the first column of a cell range of a grid to the left.',
+		description: 'The menu item that fills a cell range of a grid to the left edge.',
 	},
 	clearColor: {
 		id: 'ui.grid.clearColor',
@@ -483,6 +564,12 @@ export const gridMessages: MessageSet<GridValues> = defineMessages<GridValues>({
 		id: 'ui.grid.removeGroupNamed',
 		defaultMessage: 'Remove group {group}',
 		description: 'The name of the button that removes a column group of a grid.',
+	},
+	moveGroupNamed: {
+		id: 'ui.grid.moveGroupNamed',
+		defaultMessage: 'Move group {group}',
+		description:
+			'The name of the button that opens the choices that move a column group to a new place in the list of groups.',
 	},
 	moveTo: {
 		id: 'ui.grid.moveTo',
@@ -837,25 +924,17 @@ export const gridMessages: MessageSet<GridValues> = defineMessages<GridValues>({
 		defaultMessage: 'Add row',
 		description: 'The name of the button that adds the new row to a grid.',
 	},
-	expandNamed: {
-		id: 'ui.grid.expandNamed',
-		defaultMessage: 'Expand {group}',
-		description: 'The name of the button that shows the columns of a collapsed column group.',
+	groupColumns: {
+		id: 'ui.grid.groupColumns',
+		defaultMessage: '{group} columns',
+		description:
+			'The name of the button that shows or hides the columns of a column group. The button gives its state through aria-expanded, so the name does not change.',
 	},
-	collapseNamed: {
-		id: 'ui.grid.collapseNamed',
-		defaultMessage: 'Collapse {group}',
-		description: 'The name of the button that hides the columns of a column group.',
-	},
-	expandDetails: {
-		id: 'ui.grid.expandDetails',
-		defaultMessage: 'Expand details for {row}',
-		description: 'The name of the button that opens the detail panel of a row of a grid.',
-	},
-	collapseDetails: {
-		id: 'ui.grid.collapseDetails',
-		defaultMessage: 'Collapse details for {row}',
-		description: 'The name of the button that closes the detail panel of a row of a grid.',
+	rowDetails: {
+		id: 'ui.grid.rowDetails',
+		defaultMessage: 'Details for {row}',
+		description:
+			'The name of the button that opens or closes the detail panel of a row of a grid. The button gives its state through aria-expanded, so the name does not change.',
 	},
 	loadFailed: {
 		id: 'ui.grid.loadFailed',

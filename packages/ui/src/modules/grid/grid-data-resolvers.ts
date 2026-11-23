@@ -34,6 +34,7 @@ import type {
 } from './grid-data-types'
 import type { GridColumn, GridColumnFilters, GridSearch } from './types'
 import type { GridNavTableProps, GridNewRowPosition } from './use-grid-navigation'
+import type { GridRovingMode } from './use-grid-roving'
 
 /**
  * Defaults each data column's {@link GridColumn.sortable} to `true` when it
@@ -139,17 +140,21 @@ export function resolveInfiniteScroll(
 }
 
 /**
- * The role that the grid gives its table when the caller gives none. A cursor
- * makes it a `treegrid` over a client-grouped body, else a `grid`. A window
- * with no cursor makes it a `table`. Otherwise the table keeps its native
- * role. @internal
+ * The role that the grid gives its table when the caller gives none. A keyboard
+ * model makes it a composite: the cursor, or row or cell roving. The composite
+ * is a `treegrid` over a grouped body or over focusable rows, else a `grid`. A
+ * window with no keyboard model makes it a `table`. Otherwise the table keeps
+ * its native role. @internal
  */
 function tableRole(args: {
 	navigable: boolean
+	roving: GridRovingMode
 	tree: boolean
 	gridSemantics: boolean
 }): string | undefined {
-	if (args.navigable) return args.tree ? 'treegrid' : 'grid'
+	if (args.navigable || args.roving !== 'none') {
+		return args.tree || args.roving === 'row' ? 'treegrid' : 'grid'
+	}
 
 	return args.gridSemantics ? 'table' : undefined
 }
@@ -208,19 +213,46 @@ function tableStyle(
 }
 
 /**
+ * The name and the states of a `grid` or a `treegrid` table. A composite needs
+ * an accessible name (WCAG 1.3.1, 4.1.2), so the grid gives a default name when
+ * the caller gives neither `aria-label` nor `aria-labelledby`.
+ * `aria-multiselectable` is a state of a composite only. A windowed
+ * `role="table"` or a native table gives selection through the `aria-selected`
+ * of each row. A `gridcell` is editable by default, so a composite with no
+ * editor is `aria-readonly`. @internal
+ */
+function compositeProps(args: {
+	intl: IntlShape
+	tableProps: TableElementProps | undefined
+	multiSelectable: boolean
+	editable: boolean
+}): TableElementProps {
+	const unnamed =
+		args.tableProps?.['aria-label'] == null && args.tableProps?.['aria-labelledby'] == null
+
+	return {
+		...(unnamed ? { 'aria-label': args.intl.formatMessage(gridMessages.dataGrid) } : {}),
+		...(args.multiSelectable ? { 'aria-multiselectable': true } : {}),
+		...(args.editable ? {} : { 'aria-readonly': true }),
+	}
+}
+
+/**
  * Assembles the `<table>` element props: the caller's `tableProps`, with its
  * key, focus, and pointer-press handlers composed ahead of the grid's,
  * `aria-busy` while loading, and the role/index scheme. The role is `grid` when
- * the table carries a keyboard cursor. `navigable` and an editable grid both
- * turn the cursor on. A cursor over a client-grouped body makes it `treegrid`.
- * It is `table` when the body is only a window onto a larger set
- * (`gridSemantics`: virtualization or pagination) with no cursor, and native
- * otherwise. A caller's `tableProps.role` wins over each of them. A windowed
- * body also carries the full row/column counts (valid on both roles); per-cell
- * indices come from head/row.
+ * the table carries a keyboard model. `navigable` and an editable grid both
+ * turn the cursor on. A click handler under manual grouping turns row or cell
+ * roving on (see `useGridRoving`). A grouped body, or roving over rows, makes it
+ * `treegrid`. It is `table` when the body is only a window onto a larger set
+ * (`gridSemantics`: virtualization or pagination) with no keyboard model, and
+ * native otherwise. A caller's `tableProps.role` wins over each of them. A
+ * windowed body also carries the full row/column counts (valid on both roles);
+ * per-cell indices come from head/row. A composite with no editor is
+ * `aria-readonly`.
  *
  * @remarks `role="grid"` is withheld until a keyboard model backs it. A windowed
- * but non-navigable table stays `role="table"`, which still honors
+ * table with no keyboard model stays `role="table"`, which still honors
  * `aria-rowcount`/`aria-colcount`, rather than promising cell navigation it
  * doesn't implement.
  * @internal
@@ -236,8 +268,12 @@ export function resolveTableProps(args: {
 	loading: boolean
 	gridSemantics: boolean
 	navigable: boolean
-	/** Whether the body is client-grouped, which makes a cursor grid a `treegrid`. */
+	/** The roving mode of a grid with no cursor (see `useGridRoving`). */
+	roving: GridRovingMode
+	/** Whether the body is grouped, which makes a composite a `treegrid`. */
 	tree: boolean
+	/** Whether the grid can edit a cell. A composite that cannot is `aria-readonly`. */
+	editable: boolean
 	ariaRowCount: number
 	colCount: number
 	/** The grid renders a selection column; advertise `aria-multiselectable` when it resolves to a true `role="grid"`. */
@@ -252,13 +288,6 @@ export function resolveTableProps(args: {
 	held?: boolean
 }): TableElementProps {
 	const role = args.tableProps?.role ?? tableRole(args)
-
-	const gridRole = role === 'grid' || role === 'treegrid'
-
-	const unnamed =
-		gridRole &&
-		args.tableProps?.['aria-label'] == null &&
-		args.tableProps?.['aria-labelledby'] == null
 
 	return {
 		...args.tableProps,
@@ -275,12 +304,7 @@ export function resolveTableProps(args: {
 		...(args.fit ? { 'data-grid-fit-layout': args.fit } : {}),
 		...(args.fit && args.held ? { 'data-grid-fit-held': '' } : {}),
 		...(role ? { role } : {}),
-		// A `role="grid"` needs an accessible name (WCAG 1.3.1 / 4.1.2); default one
-		// when the caller named the grid through neither `tableProps` escape hatch.
-		...(unnamed ? { 'aria-label': args.intl.formatMessage(gridMessages.dataGrid) } : {}),
-		// `aria-multiselectable` is a grid-only state; a windowed `role="table"` or a
-		// native table conveys selection through each row's `aria-selected` alone.
-		...(args.multiSelectable && gridRole ? { 'aria-multiselectable': true } : {}),
+		...(role === 'grid' || role === 'treegrid' ? compositeProps(args) : {}),
 		// Withheld over a loading/error/empty placeholder (a single spanning cell),
 		// which would otherwise advertise a full row/column count that isn't rendered.
 		...(args.gridSemantics && args.bodyHasRows

@@ -196,6 +196,44 @@ describe('Grid range fill', () => {
 		expect(view.texts().map((row) => row[1])).toEqual(['1', '1', '1'])
 	})
 
+	// A drag of the fill handle continues a series and fills up or left. The
+	// keys and the menu give the same fills with no drag (WCAG 2.5.7).
+	it('continues a series from the lines before the first blank line', () => {
+		const view = renderFillGrid()
+
+		view.select([2, 1], [2, 1])
+
+		fireEvent.keyDown(view.grid, { key: 'Delete' })
+
+		expect(view.cell(2, 1).textContent).not.toBe('3')
+
+		view.select([0, 1], [2, 1])
+
+		fireEvent.keyDown(view.grid, { key: 'd', ctrlKey: true })
+
+		expect(view.texts().map((row) => row[1])).toEqual(['1', '2', '3'])
+	})
+
+	it('fills up and to the inline start from the cell menu', () => {
+		const view = renderFillGrid()
+
+		view.select([0, 0], [2, 1])
+
+		fireEvent.contextMenu(view.cell(1, 1))
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Fill up' }))
+
+		expect(view.texts().map((row) => row[0])).toEqual(['Carol', 'Carol', 'Carol'])
+
+		view.select([1, 0], [1, 1])
+
+		fireEvent.contextMenu(view.cell(1, 1))
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Fill left' }))
+
+		expect(view.texts()[1]).toEqual(['3', '3', 'B'])
+	})
+
 	it('keeps the range on a Ctrl+primary press, the macOS secondary click', () => {
 		const view = renderFillGrid()
 

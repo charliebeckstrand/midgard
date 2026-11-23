@@ -1192,6 +1192,47 @@ describe('Grid', () => {
 			expect(end?.querySelector('td')).toHaveAttribute('colspan', String(columns.length))
 		})
 
+		it('counts and indexes the end message as the last row', () => {
+			const { container } = renderUI(
+				<Grid
+					columns={columns}
+					rows={manyRows}
+					getKey={getKey}
+					virtualize={windowed}
+					maxHeight="300px"
+					infiniteScroll={{ onLoadMore: vi.fn(), hasMore: false, endMessage: 'No more results' }}
+				/>,
+			)
+
+			// The column header, the rows, and the end message.
+			const count = manyRows.length + 2
+
+			expect(container.querySelector('table')).toHaveAttribute('aria-rowcount', String(count))
+
+			expect(bySlot(container, 'grid-load-end')).toHaveAttribute('aria-rowindex', String(count))
+		})
+
+		it('leaves an error row out of the count while more rows remain', () => {
+			const { container } = renderUI(
+				<Grid
+					columns={columns}
+					rows={manyRows}
+					getKey={getKey}
+					virtualize={windowed}
+					maxHeight="300px"
+					infiniteScroll={{
+						onLoadMore: vi.fn(),
+						totalRows: 1000,
+						error: 'Could not load more',
+					}}
+				/>,
+			)
+
+			expect(container.querySelector('table')).toHaveAttribute('aria-rowcount', '1001')
+
+			expect(bySlot(container, 'grid-load-error')).not.toHaveAttribute('aria-rowindex')
+		})
+
 		it('holds the end message back while rows may still load', () => {
 			const { container } = renderUI(
 				<Grid

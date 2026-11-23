@@ -72,16 +72,6 @@ const KNOWN: readonly { path: string; rule: string; reason: string; theme?: Them
 			'The card brand of the disabled CreditCardInput example, which WCAG exempts as inactive.',
 		theme: 'dark',
 	},
-	// WCAG 2.5.3 asks that the name of a control holds the text of its visible
-	// label. The label of a sort button is the column title, and the name holds
-	// it. The digit beside it is the sort priority, a state, and the name also
-	// holds it. axe 4.14 reads the visible text of the button as one word with
-	// the digit ("Name2"), which no name holds.
-	{
-		path: '/modules/grid/sorting',
-		rule: 'label-content-name-mismatch',
-		reason: 'The sort priority badge of a sort button, which is a state and not its label.',
-	},
 	{
 		path: '/tag-input',
 		rule: 'color-contrast',

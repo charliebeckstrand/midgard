@@ -2,24 +2,35 @@
 
 import { DndContext } from '@dnd-kit/core'
 import { SortableContext } from '@dnd-kit/sortable'
+import { useCallback } from 'react'
+import { Button } from '../../components/button'
 import { Card } from '../../components/card'
+import { Icon } from '../../components/icon'
 import { Menu } from '../../components/menu'
 import { dataAttr } from '../../core/data-attr'
 import type { PaletteColor } from '../../core/recipe/colors'
 import { restrictToVerticalAxis, useSortableList } from '../../hooks/use-sortable-list'
+import { ArrowUpDown } from '../../primitives/icons/icons'
+import { reorderMessages } from '../../primitives/intl/intl-reorder'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k as groupK } from '../../recipes/kata/grid-group'
 import { k } from '../../recipes/kata/grid-row-manager'
 import { columnLabel } from './engine/grid-column/label'
 import { gridMessages } from './engine/grid-messages'
 import { restrictToParentElement } from './engine/grid-reorder-compute'
+import type { GridItemMoves } from './engine/grid-reorder-move'
 import { DEFAULT_COLOR_OPTIONS, GridManagerColorMenu } from './grid-manager-color-menu'
 import { GridManagerGrip } from './grid-manager-grip'
+import { GridManagerMoveMenu } from './grid-manager-move-menu'
 import type { GridRowManagerGroup } from './grid-row-group-types'
+import { useGridItemMoves } from './use-grid-item-moves'
 import { useGridZoneSortable } from './use-grid-zone-sortable'
 
 /** Locks the group drag to the y-axis and bounds it to the list, so a zone can't be dragged off either end. @internal */
 const GROUP_DRAG_MODIFIERS = [restrictToVerticalAxis, restrictToParentElement]
+
+/** The drag key of a group. @internal */
+const groupKey = (group: GridRowManagerGroup) => String(group.key)
 
 /** Props for {@link GridRowManager}. @internal */
 export type GridRowManagerProps = {
@@ -35,7 +46,8 @@ export type GridRowManagerProps = {
  * The row manager's editor: a zone per row-group (a reorder grip, the group's
  * label + row count, and a color {@link Menu}). Whole groups reorder as a vertical
  * list, through the grip beside each label or its keyboard lift. The drag is
- * locked to the y-axis and bounded to the list. A colored group outlines its whole Card in its
+ * locked to the y-axis and bounded to the list. A move menu beside the color
+ * menu gives the same moves with no drag (WCAG 2.5.7). A colored group outlines its whole Card in its
  * hue. Rows within a group are not managed: they follow the grid's order. Every
  * edit commits through the handlers, which write the {@link GridGroupBy.rowGroups}
  * overlay.
@@ -52,15 +64,28 @@ export type GridRowManagerProps = {
 export function GridRowManager({ groups, onRecolor, onReorderGroups }: GridRowManagerProps) {
 	const intl = useIntl()
 
-	const { itemIds, strategy, dndContextProps } = useSortableList({
-		items: groups,
-		getKey: (group) => String(group.key),
-		onReorder: (next) => onReorderGroups(next.map((group) => group.key)),
-		describe: (group) =>
+	const commit = useCallback(
+		(next: GridRowManagerGroup[]) => onReorderGroups(next.map((group) => group.key)),
+		[onReorderGroups],
+	)
+
+	const describe = useCallback(
+		(group: GridRowManagerGroup) =>
 			intl.formatMessage(gridMessages.rowGroupName, {
 				group: columnLabel({ id: group.key, title: group.label }),
 			}),
+		[intl],
+	)
+
+	const { itemIds, strategy, dndContextProps } = useSortableList({
+		items: groups,
+		getKey: groupKey,
+		onReorder: commit,
+		describe,
 	})
+
+	// The menu path of the drag, with the same commit and the same name.
+	const moves = useGridItemMoves({ items: groups, getKey: groupKey, commit, describe })
 
 	return (
 		<div data-slot="grid-row-manager" className={k().base}>
@@ -70,7 +95,12 @@ export function GridRowManager({ groups, onRecolor, onReorderGroups }: GridRowMa
 					    position of each. The DndContext nodes stay outside it. */}
 					<ul className={k().list}>
 						{groups.map((group) => (
-							<GridRowManagerZone key={group.key} group={group} onRecolor={onRecolor} />
+							<GridRowManagerZone
+								key={group.key}
+								group={group}
+								onRecolor={onRecolor}
+								moves={groups.length > 1 ? moves : null}
+							/>
 						))}
 					</ul>
 				</SortableContext>
@@ -83,16 +113,18 @@ export function GridRowManager({ groups, onRecolor, onReorderGroups }: GridRowMa
 type GridRowManagerZoneProps = {
 	group: GridRowManagerGroup
 	onRecolor: (key: string | number, color: PaletteColor | undefined) => void
+	/** The menu moves of the groups, or `null` when a lone group has no place to go. */
+	moves: GridItemMoves | null
 }
 
 /**
  * One group zone: a Card outlined in the group's color. Its header carries the
- * reorder grip, the group label + count, and the color Menu (pushed to the
- * trailing edge).
+ * reorder grip, the group label + count, and, at the trailing edge, the move
+ * menu and the color Menu.
  *
  * @internal
  */
-function GridRowManagerZone({ group, onRecolor }: GridRowManagerZoneProps) {
+function GridRowManagerZone({ group, onRecolor, moves }: GridRowManagerZoneProps) {
 	const intl = useIntl()
 
 	const { setNodeRef, setActivatorNodeRef, attributes, listeners, style, dragging } =
@@ -117,12 +149,26 @@ function GridRowManagerZone({ group, onRecolor }: GridRowManagerZoneProps) {
 						<span className={k().zone.count}>({intl.formatNumber(group.count)})</span>
 					</div>
 
-					<GridManagerColorMenu
-						label={label}
-						color={group.color}
-						colorOptions={DEFAULT_COLOR_OPTIONS}
-						onRecolor={(next) => onRecolor(group.key, next)}
-					/>
+					<div className={k().zone.actions}>
+						{moves && (
+							<GridManagerMoveMenu itemKey={String(group.key)} moves={moves}>
+								<Button
+									type="button"
+									variant="bare"
+									aria-label={intl.formatMessage(reorderMessages.moveHandle, { item: label })}
+								>
+									<Icon icon={<ArrowUpDown />} />
+								</Button>
+							</GridManagerMoveMenu>
+						)}
+
+						<GridManagerColorMenu
+							label={label}
+							color={group.color}
+							colorOptions={DEFAULT_COLOR_OPTIONS}
+							onRecolor={(next) => onRecolor(group.key, next)}
+						/>
+					</div>
 				</div>
 			</Card>
 		</li>

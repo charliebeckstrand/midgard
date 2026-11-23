@@ -48,6 +48,13 @@ describe('Grid virtualize on a self-rendering body', () => {
 
 		// The window holds no rows in jsdom, so no leaf renders.
 		expect(container.querySelectorAll('tr[data-grid-row]')).toHaveLength(0)
+
+		// The placeholder rows in their place are filler, with no row index.
+		const placeholders = [...container.querySelectorAll('tr[data-grid-placeholder]')]
+
+		expect(placeholders.length).toBeGreaterThan(0)
+
+		for (const row of placeholders) expect(row).toHaveAttribute('aria-hidden', 'true')
 	})
 
 	it('windows a master-detail grid and counts each open panel', () => {

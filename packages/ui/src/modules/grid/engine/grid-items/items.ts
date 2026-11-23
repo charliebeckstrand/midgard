@@ -49,12 +49,16 @@ type ItemBase = {
  * - An open group total is `total:<group.id>`, and a closing one is
  *   `closing-total:<group.id>`.
  *
+ * `place` is the 0-based place of a header among the groups, or of a leaf
+ * among the leaves of its group. A treegrid gives it to assistive tech,
+ * because the window renders only some rows of each set.
+ *
  * @internal
  */
 export type GridGroupedWindowItem<T> = ItemBase &
 	(
-		| { kind: 'group'; group: GridGroup<T> }
-		| { kind: 'leaf'; group: GridGroup<T>; leaf: GridLeaf<T> }
+		| { kind: 'group'; group: GridGroup<T>; place: number }
+		| { kind: 'leaf'; group: GridGroup<T>; leaf: GridLeaf<T>; place: number }
 		| { kind: 'total'; group: GridGroup<T>; rows: readonly T[] }
 	)
 
@@ -158,7 +162,9 @@ export function groupedWindowItems<T>(
 
 	const cursor = { position: 0 }
 
-	for (const group of groups) {
+	for (let place = 0; place < groups.length; place++) {
+		const group = groups[place] as GridGroup<T>
+
 		const groupKey = groupItemKey(group.id)
 
 		items.push({
@@ -168,6 +174,7 @@ export function groupedWindowItems<T>(
 			position: cursor.position++,
 			phase: 'open',
 			group,
+			place,
 		})
 
 		if (group.expanded) pushOpenRows(items, cursor, group, args.totaled)
@@ -191,7 +198,9 @@ function pushOpenRows<T>(
 	group: GridGroup<T>,
 	totaled: boolean,
 ): void {
-	for (const leaf of group.leaves) {
+	for (let place = 0; place < group.leaves.length; place++) {
+		const leaf = group.leaves[place] as GridLeaf<T>
+
 		const key = leafItemKey(leaf.id)
 
 		items.push({
@@ -202,6 +211,7 @@ function pushOpenRows<T>(
 			phase: 'open',
 			group,
 			leaf,
+			place,
 		})
 	}
 
@@ -231,7 +241,9 @@ function pushClosingRows<T>(
 	totaled: boolean,
 	motions: ReadonlyMap<string, GridRowMotion>,
 ): void {
-	for (const leaf of group.leaves) {
+	for (let place = 0; place < group.leaves.length; place++) {
+		const leaf = group.leaves[place] as GridLeaf<T>
+
 		const reactKey = leafItemKey(leaf.id)
 
 		const size = closingSize(motions, reactKey)
@@ -247,6 +259,7 @@ function pushClosingRows<T>(
 			size,
 			group,
 			leaf,
+			place,
 		})
 	}
 

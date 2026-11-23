@@ -356,6 +356,40 @@ describe('Grid per-row editing', () => {
 		expect(input).toHaveAttribute('aria-invalid', 'true')
 	})
 
+	it('gives an editCell slot the id of its error message while the error shows', () => {
+		const view = renderGrid([
+			{
+				id: 'name',
+				title: 'Name',
+				field: 'name',
+				cell: (row) => row.name,
+				validate: (value) => (String(value).length > 0 ? null : 'Required'),
+				editCell: ({ value, onValueUpdate, ariaLabel, errorId }) => (
+					<input
+						aria-label={ariaLabel}
+						aria-describedby={errorId}
+						value={String(value ?? '')}
+						onChange={(event) => onValueUpdate(event.target.value)}
+					/>
+				),
+			},
+		])
+
+		view.editRow1()
+
+		const input = view.getByRole('textbox', { name: /Edit Name/ })
+
+		expect(input).not.toHaveAttribute('aria-describedby')
+
+		fireEvent.change(input, { target: { value: '' } })
+
+		const alert = present(view.container.querySelector('[role="alert"]'), '[role="alert"]')
+
+		expect(alert).toHaveTextContent('Required')
+
+		expect(input).toHaveAttribute('aria-describedby', alert.id)
+	})
+
 	it('links the yes/no editor to its validation error for assistive tech', () => {
 		const view = renderGrid([
 			{
@@ -1782,20 +1816,38 @@ describe('Grid commit-and-move keys', () => {
 		expect(cursorOn(view)).toBe(view.cell('count').id)
 	})
 
-	it('wraps Tab and Shift+Tab at the edges of the row', () => {
+	// A Tab that wrapped inside the row never left the grid, and Escape, the
+	// only other exit, discards the edit (WCAG 2.1.1).
+	it('commits on Tab at the edges of the row and returns focus to the grid', () => {
 		const view = renderKeysGrid()
 
+		fireEvent.doubleClick(view.cell('count'))
+
+		const number = getSlot<HTMLInputElement>(view.container, 'grid-edit-number-input')
+
+		fireEvent.change(number, { target: { value: '7' } })
+
+		// Tab from the last editable cell commits, as F2 does.
+		expect(fireEvent.keyDown(number, { key: 'Tab' })).toBe(false)
+
+		expect(view.onCommit).toHaveBeenCalledExactlyOnceWith([
+			{ rowKey: 1, columnId: 'count', value: 7 },
+		])
+
+		expect(editorsIn(view.container)).toHaveLength(0)
+
+		expect(view.getByRole('grid')).toHaveFocus()
+
+		expect(cursorOn(view)).toBe(view.cell('count').id)
+
+		// Shift+Tab from the first editable cell does the same.
 		fireEvent.doubleClick(view.cell('name'))
 
-		// Shift+Tab from the first editable cell wraps to the last.
 		fireEvent.keyDown(getSlot(view.container, 'grid-edit-input'), { key: 'Tab', shiftKey: true })
 
-		expect(bySlot(view.container, 'grid-edit-number-input')).toHaveFocus()
+		expect(editorsIn(view.container)).toHaveLength(0)
 
-		// Tab from the last wraps back to the first, on the same row.
-		fireEvent.keyDown(getSlot(view.container, 'grid-edit-number-input'), { key: 'Tab' })
-
-		expect(bySlot(view.container, 'grid-edit-input')).toHaveFocus()
+		expect(view.getByRole('grid')).toHaveFocus()
 
 		expect(cursorOn(view)).toBe(view.cell('name').id)
 	})
@@ -1867,7 +1919,7 @@ describe('Grid commit-and-move keys', () => {
 			expect(bySlot(view.container, 'grid-edit-number-input')).toHaveFocus()
 		})
 
-		it('commits on Shift+Tab from the first control and moves to the previous cell', () => {
+		it('commits on Shift+Tab from the first control at the start of the row', () => {
 			const view = renderSessionGrid({ editable: { scope: 'cell' }, cols: slotColumns })
 
 			fireEvent.doubleClick(view.cell('name'))
@@ -1880,8 +1932,11 @@ describe('Grid commit-and-move keys', () => {
 
 			expect(view.onCommit).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'name', value: 'Alicia' }])
 
-			// The row wraps, so the previous editable cell is the count cell.
-			expect(bySlot(view.container, 'grid-edit-number-input')).toHaveFocus()
+			// The name cell is the first editable cell, so the key commits there,
+			// and focus goes back to the grid.
+			expect(editorsIn(view.container)).toHaveLength(0)
+
+			expect(view.getByRole('grid')).toHaveFocus()
 		})
 
 		it('still commits on Tab from the listbox editor, whose settle pair is out of the tab order', () => {

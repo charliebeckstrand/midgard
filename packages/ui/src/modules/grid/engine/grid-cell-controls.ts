@@ -94,6 +94,28 @@ export function focusFirstControl(cell: HTMLElement | null): boolean {
 	return control !== undefined
 }
 
+/**
+ * Moves focus to `cell` itself when the cell takes focus, as the header of a
+ * column that drags by its whole cell does. Returns whether it moved focus.
+ *
+ * @internal
+ */
+export function focusOwnCell(cell: HTMLElement | null): boolean {
+	if (!cell || !isControl(cell)) return false
+
+	cell.focus()
+
+	return true
+}
+
+/**
+ * Whether no element holds focus: the page holds it, as after the removal of
+ * the element that held it. @internal
+ */
+export function focusIsLost(): boolean {
+	return document.activeElement === null || document.activeElement === document.body
+}
+
 /** Takes a control out of the tab order, and keeps its `tabindex` to give back. */
 function pin(element: HTMLElement): void {
 	if (element.tabIndex < 0) return

@@ -50,10 +50,20 @@ function sortDirectionIcon(
  * @internal
  */
 function GridHeaderTitle({
+	id,
 	title,
+	fallback,
 	control,
 }: {
+	/** The id of the title span. The header cell takes its name from it. */
+	id: string
 	title: ReactNode
+	/**
+	 * The hidden text of a column with no title, from `columnLabel`. The header
+	 * cell takes its name from the title span, so an empty span gives the
+	 * header an empty name.
+	 */
+	fallback: string
 	control?: (title: ReactElement) => ReactElement
 }): ReactElement {
 	// No settle key: the header cell re-renders on its own engine `width` prop
@@ -74,10 +84,11 @@ function GridHeaderTitle({
 	)
 
 	// `data-grid-content` marks the title leaf so the autosizer reads its
-	// intrinsic width and decides the column's header-driven minimum.
+	// intrinsic width and decides the column's header-driven minimum. The header
+	// cell refers to its `id` for its name.
 	const span = (
-		<span ref={ref} data-grid-content className={cn(k.head.title)}>
-			{title}
+		<span ref={ref} id={id} data-grid-content className={cn(k.head.title)}>
+			{title == null || title === '' ? <span className="sr-only">{fallback}</span> : title}
 		</span>
 	)
 
@@ -94,8 +105,15 @@ function GridHeaderTitle({
 	)
 }
 
-/** Title text, wrapped in a sort-toggle button when the column is sortable and interactive. @internal */
+/**
+ * Title text, wrapped in a sort-toggle button when the column is sortable and
+ * interactive. The title span takes `titleId`, so that the header cell can take
+ * its name from the title alone (see `aria-labelledby` on the header).
+ *
+ * @internal
+ */
 export function GridColumnHeaderLabel({
+	titleId,
 	column,
 	sorted,
 	direction,
@@ -103,6 +121,7 @@ export function GridColumnHeaderLabel({
 	toggleSort,
 	interactive,
 }: {
+	titleId: string
 	column: Pick<GridColumn<unknown>, 'id' | 'title' | 'sortable'>
 	sorted: boolean
 	direction: 'asc' | 'desc' | undefined
@@ -112,12 +131,15 @@ export function GridColumnHeaderLabel({
 }): ReactNode {
 	const intl = useIntl()
 
-	if (!column.sortable || !interactive) return <GridHeaderTitle title={column.title} />
+	if (!column.sortable || !interactive)
+		return <GridHeaderTitle id={titleId} title={column.title} fallback={columnLabel(column)} />
 
 	return (
 		<HeadlessProvider>
 			<GridHeaderTitle
+				id={titleId}
 				title={column.title}
+				fallback={columnLabel(column)}
 				control={(title) => (
 					<Button
 						type="button"
@@ -146,9 +168,11 @@ export function GridColumnHeaderLabel({
 						{title}
 						{sortDirectionIcon(sorted, direction)}
 						{sortPriority != null && (
-							<span aria-hidden className={cn(k.sort.badge)}>
-								{intl.formatNumber(sortPriority)}
-							</span>
+							<span
+								aria-hidden
+								data-priority={intl.formatNumber(sortPriority)}
+								className={cn(k.sort.badge)}
+							/>
 						)}
 					</Button>
 				)}

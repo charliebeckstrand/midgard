@@ -26,6 +26,7 @@ import {
 	resolveSemantics,
 } from './grid-data-resolvers'
 import type { GridDataProps } from './grid-data-types'
+import { trailerCounted } from './grid-infinite-scroll-trailer'
 import type { GridRowsProps } from './grid-row'
 import { resolveGrandTotal } from './grid-total-row'
 import type { GridColumn } from './types'
@@ -232,8 +233,8 @@ export function useGridDataFrame<T>({
 	// counts too. It shows only over a body that shows data or its empty state.
 	const newRowPlace = placeNewRow(cursorNewRow, loading, showingError)
 
-	// The group band and grand-total row each add a rendered header/footer row, so
-	// the count spans them; and infinite scroll with more rows to load can't state
+	// The group band, the grand-total row, and an infinite-scroll message row at
+	// the end each add a rendered row, so the count spans them; and infinite scroll with more rows to load can't state
 	// the whole extent (unless the binding's `totalRows` states it), so the count
 	// goes ARIA-indeterminate (`-1`) rather than advertising the loaded window as
 	// the full set (see `resolveAriaRowCount`). A grouped or master-detail body
@@ -250,7 +251,10 @@ export function useGridDataFrame<T>({
 			expanded: expansion?.expanded,
 			rowExpandable: expansion?.rowExpandable,
 		}),
-		groupRowOffset + Number(grandTotal.active) + Number(newRowPlace !== null),
+		groupRowOffset +
+			Number(grandTotal.active) +
+			Number(newRowPlace !== null) +
+			Number(trailerCounted(infiniteScroll)),
 		infiniteScroll,
 	)
 

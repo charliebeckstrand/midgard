@@ -10,18 +10,26 @@ import {
 	ArrowRightToLine,
 	ArrowUp,
 	ArrowUpDown,
+	ArrowUpToLine,
 	Ban,
+	ChevronDown,
+	ChevronLeft,
+	ChevronRight,
 	ChevronsDownUp,
 	ChevronsUpDown,
+	ChevronUp,
 	Columns3,
 	Copy,
 	Download,
+	GripVertical,
 	Group,
 	ListFilter,
 	ListTree,
+	Minus,
 	MoveHorizontal,
 	Pin,
 	PinOff,
+	Plus,
 	Printer,
 	RotateCcw,
 	StretchHorizontal,
@@ -41,6 +49,7 @@ import {
 	pinMenuChoices,
 } from './engine/grid-pin/overrides'
 import type { GridRangeFill } from './engine/grid-range/fill'
+import type { GridMoveTarget } from './engine/grid-reorder-move'
 import { sameSorts } from './engine/grid-sort/state'
 import type { GridColumnGroup } from './grid-group-types'
 import type { GridColumn, GridMenuItem } from './types'
@@ -289,8 +298,38 @@ export type ColumnMenuArgs<T> = {
 	exportActions: GridExportAction[]
 	/** The column's filter affordance, or `null` when the grid has no column filters. */
 	filter: ColumnMenuFilter | null
-	/** Whether the grid lays out right to left, which swaps the pin labels and arrows. */
+	/**
+	 * The menu moves of the right-clicked column, or `null` when the column does
+	 * not move now. Backs the Move items.
+	 */
+	move: ColumnMenuMove | null
+	/**
+	 * The width steps of the right-clicked column, or `null` when the column is
+	 * not resizable. Backs the Width items.
+	 */
+	width: ColumnMenuWidth | null
+	/** Whether the grid lays out right to left, which swaps the pin and move labels and arrows. */
 	rtl: boolean
+}
+
+/**
+ * The menu moves of one column: the moves that change its place, and the
+ * commit of one move. @internal
+ */
+export type ColumnMenuMove = {
+	targets: readonly GridMoveTarget[]
+	run: (target: GridMoveTarget) => void
+}
+
+/**
+ * The width steps of one column: whether it can grow and shrink, and the
+ * commit of one step. A step is the PageUp or PageDown step of the resize
+ * handle. @internal
+ */
+export type ColumnMenuWidth = {
+	canIncrease: boolean
+	canDecrease: boolean
+	step: (direction: 1 | -1) => void
 }
 
 /**
@@ -397,6 +436,109 @@ export function pinChoiceIcon(target: PinMenuChoice['target'], rtl = false): Rea
 }
 
 /**
+ * The moves that the column menu offers, in menu order. @internal
+ */
+export const COLUMN_MOVES: readonly GridMoveTarget[] = ['previous', 'next', 'first', 'last']
+
+/**
+ * The Move items of a column's menu: one for each move that changes the place
+ * of the column. They are the single-pointer path of a header drag (WCAG
+ * 2.5.7). "Move left" and "Move right" name the physical side, as the pin
+ * items do, so in RTL the move to the previous place reads "Move right".
+ * "Move to start" and "Move to end" name the first and the last place. Empty
+ * when the column does not move.
+ *
+ * @internal
+ */
+function moveMenuItems(intl: IntlShape, move: ColumnMenuMove | null, rtl: boolean): GridMenuItem[] {
+	if (!move) return []
+
+	const left = { label: gridMessages.moveLeft, icon: <ChevronLeft /> }
+
+	const right = { label: gridMessages.moveRight, icon: <ChevronRight /> }
+
+	const start = { label: gridMessages.moveToStart, icon: <ArrowLeftToLine /> }
+
+	const end = { label: gridMessages.moveToEnd, icon: <ArrowRightToLine /> }
+
+	const choices = {
+		previous: rtl ? right : left,
+		next: rtl ? left : right,
+		first: rtl ? { ...start, icon: <ArrowRightToLine /> } : start,
+		last: rtl ? { ...end, icon: <ArrowLeftToLine /> } : end,
+	}
+
+	return move.targets.map((target) => ({
+		key: `move-${target}`,
+		label: intl.formatMessage(choices[target].label),
+		icon: choices[target].icon,
+		onAction: () => move.run(target),
+	}))
+}
+
+/**
+ * The Width items of a column's menu: "Increase width" and "Decrease width",
+ * each a PageUp or PageDown step of the resize handle. They are the
+ * single-pointer path to a width that the reader chooses (WCAG 2.5.7). An item
+ * shows only while its step changes the width, so a column at its bound
+ * offers one item. Empty when the column is not resizable.
+ *
+ * @internal
+ */
+function widthMenuItems(intl: IntlShape, width: ColumnMenuWidth | null): GridMenuItem[] {
+	if (!width) return []
+
+	const items: GridMenuItem[] = []
+
+	if (width.canIncrease) {
+		items.push({
+			key: 'increase-width',
+			label: intl.formatMessage(gridMessages.increaseWidth),
+			icon: <Plus />,
+			onAction: () => width.step(1),
+		})
+	}
+
+	if (width.canDecrease) {
+		items.push({
+			key: 'decrease-width',
+			label: intl.formatMessage(gridMessages.decreaseWidth),
+			icon: <Minus />,
+			onAction: () => width.step(-1),
+		})
+	}
+
+	return items
+}
+
+/** The moves that the cell menu offers for its row, in menu order. @internal */
+export const ROW_MOVES = ['previous', 'next'] as const
+
+/**
+ * The "Move up" and "Move down" items of the cell menu: one for each move that
+ * changes the place of the row. They are the single-pointer path of a row
+ * drag (WCAG 2.5.7). Empty while the rows do not reorder.
+ *
+ * @internal
+ */
+export function rowMoveItems(
+	intl: IntlShape,
+	targets: readonly ('previous' | 'next')[],
+	run: (target: GridMoveTarget) => void,
+): GridMenuItem[] {
+	return targets.map((target) => {
+		const up = target === 'previous'
+
+		return {
+			key: up ? 'move-row-up' : 'move-row-down',
+			label: intl.formatMessage(up ? gridMessages.moveUp : gridMessages.moveDown),
+			icon: up ? <ChevronUp /> : <ChevronDown />,
+			onAction: () => run(target),
+		}
+	})
+}
+
+/**
  * Default header-menu items, consolidated into hover-opened submenus so the
  * menu opens one row per concern rather than a dozen flat actions. "Manage
  * columns" (when a manager is reachable) leads, then the clicked column's own
@@ -407,8 +549,11 @@ export function pinChoiceIcon(target: PinMenuChoice['target'], rtl = false): Rea
  *   it sorts by this column alone, with "Clear sort" once the column is
  *   sorted).
  * - Pin (Pin left / Pin right / Unpin).
+ * - Move (Move left / Move right / Move to start / Move to end), while the
+ *   column reorders.
  * - The group-by toggle, a single action so it stays a plain row.
  * - Auto-size (this column, all columns, then Reset column widths).
+ * - Width (Increase width / Decrease width), while the column resizes.
  *
  * Export (one row per active export type) closes them out.
  *
@@ -435,6 +580,8 @@ export function columnMenuItems<T>(args: ColumnMenuArgs<T>): GridMenuItem[] {
 		manageLabel,
 		exportActions,
 		filter,
+		move,
+		width,
 		rtl,
 	} = args
 
@@ -458,6 +605,12 @@ export function columnMenuItems<T>(args: ColumnMenuArgs<T>): GridMenuItem[] {
 			icon: <Pin />,
 			items: pinMenuItems(intl, column, pinColumn, rtl),
 		}),
+		...submenuItems({
+			key: 'move',
+			label: intl.formatMessage(gridMessages.move),
+			icon: <GripVertical />,
+			items: moveMenuItems(intl, move, rtl),
+		}),
 		...groupMenuItems(intl, column, groupBy),
 		...submenuItems({
 			key: 'auto-size-menu',
@@ -472,6 +625,12 @@ export function columnMenuItems<T>(args: ColumnMenuArgs<T>): GridMenuItem[] {
 			}),
 		}),
 		...submenuItems({
+			key: 'width',
+			label: intl.formatMessage(gridMessages.width),
+			icon: <MoveHorizontal />,
+			items: widthMenuItems(intl, width),
+		}),
+		...submenuItems({
 			key: 'export',
 			label: intl.formatMessage(gridMessages.export),
 			icon: <Download />,
@@ -481,12 +640,14 @@ export function columnMenuItems<T>(args: ColumnMenuArgs<T>): GridMenuItem[] {
 }
 
 /**
- * The Fill down and Fill right items of the cell menu: one for each fill
- * that the range can make when the menu opens. They are the single-pointer
- * route to a fill (WCAG 2.5.7). Empty while the grid cannot fill.
+ * The fill items of the cell menu: one for each fill that the range can make
+ * when the menu opens, down, up, to the inline end, and to the inline start.
+ * They are the single-pointer route to each fill of a drag of the fill handle
+ * (WCAG 2.5.7). Empty while the grid cannot fill.
  *
- * The across fill goes to the inline end. As the pin items do, its label names
- * the physical edge, so in RTL it reads "Fill left". Its key stays `fill-right`.
+ * The across fills go to the inline end and to the inline start. As the pin
+ * items do, their labels name the physical edge, so in RTL the fill to the
+ * end reads "Fill left". Their keys stay `fill-right` and `fill-left`.
  *
  * @internal
  */
@@ -495,36 +656,34 @@ export function fillItems(
 	fill: GridRangeFill | undefined,
 	rtl = false,
 ): GridMenuItem[] {
-	const down = fill?.('down')
+	const end = rtl
+		? { message: gridMessages.fillLeft, icon: <ArrowLeftToLine /> }
+		: { message: gridMessages.fillRight, icon: <ArrowRightToLine /> }
 
-	const right = fill?.('right')
+	const start = rtl
+		? { message: gridMessages.fillRight, icon: <ArrowRightToLine /> }
+		: { message: gridMessages.fillLeft, icon: <ArrowLeftToLine /> }
 
-	const items: GridMenuItem[] = []
+	const choices = [
+		{ direction: 'down', message: gridMessages.fillDown, icon: <ArrowDownToLine /> },
+		{ direction: 'up', message: gridMessages.fillUp, icon: <ArrowUpToLine /> },
+		{ direction: 'right', ...end },
+		{ direction: 'left', ...start },
+	] as const
 
-	if (down) {
-		items.push({
-			key: 'fill-down',
-			label: intl.formatMessage(gridMessages.fillDown),
-			icon: <ArrowDownToLine />,
-			onAction: down,
-		})
-	}
+	return choices.flatMap(({ direction, message, icon }) => {
+		const onAction = fill?.(direction)
 
-	if (right) {
-		items.push({
-			key: 'fill-right',
-			label: intl.formatMessage(rtl ? gridMessages.fillLeft : gridMessages.fillRight),
-			icon: rtl ? <ArrowLeftToLine /> : <ArrowRightToLine />,
-			onAction: right,
-		})
-	}
-
-	return items
+		return onAction
+			? [{ key: `fill-${direction}`, label: intl.formatMessage(message), icon, onAction }]
+			: []
+	})
 }
 
 /**
  * Default cell-menu items: Copy, acting on the right-clicked cell. The fill
- * items of a cell range follow it (see {@link fillItems}). When export is on,
+ * items of a cell range follow it (see {@link fillItems}), then the move items
+ * of the row while the rows reorder (see {@link rowMoveItems}). When export is on,
  * the Export submenu comes next, a grid-wide tool scoped to the selection when
  * rows are selected. Unruled, as the column menu's defaults are; a host's
  * builder places any separator it wants.
@@ -536,10 +695,12 @@ export function cellMenuItems(
 	copy: () => void,
 	exportActions: GridExportAction[],
 	fill: GridMenuItem[] = [],
+	move: GridMenuItem[] = [],
 ): GridMenuItem[] {
 	return [
 		{ key: 'copy', label: intl.formatMessage(gridMessages.copy), icon: <Copy />, onAction: copy },
 		...fill,
+		...move,
 		...submenuItems({
 			key: 'export',
 			label: intl.formatMessage(gridMessages.export),

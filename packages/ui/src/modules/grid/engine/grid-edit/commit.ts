@@ -77,7 +77,7 @@ function flushRow<T>(
 
 		// A refused cell leaves the staging map like any other closed cell, so
 		// without this list the value the user typed is gone with no report.
-		if (check === 'refuse') refused.push(cell)
+		if (typeof check === 'object') refused.push(cell)
 		else if (check === 'keep') changes.push(cell)
 	}
 
@@ -86,15 +86,15 @@ function flushRow<T>(
 
 /**
  * What the checks of a save make of one changed cell of `row`: it keeps the
- * cell, it drops the cell, or {@link GridColumn.validate} refuses the cell. A
- * cell drops when its column cannot edit now, or when its value is the row's
- * value. @internal
+ * cell, it drops the cell, or {@link GridColumn.validate} refuses the cell with
+ * the error that it gives. A cell drops when its column cannot edit now, or
+ * when its value is the row's value. @internal
  */
 function checkCell<T>(
 	columns: readonly GridColumn<T>[],
 	row: T,
 	cell: GridCellChange,
-): 'keep' | 'drop' | 'refuse' {
+): 'keep' | 'drop' | { error: string } {
 	const col = findColumn(columns, cell.columnId)
 
 	// The mount predicate closes a locked column's editor on the next render,
@@ -106,7 +106,37 @@ function checkCell<T>(
 
 	if (Object.is(cell.value, original)) return 'drop'
 
-	return col.validate?.(cell.value, row) != null ? 'refuse' : 'keep'
+	const error = col.validate?.(cell.value, row)
+
+	return error != null ? { error } : 'keep'
+}
+
+/**
+ * The first of the staged `cells` of a row that {@link GridColumn.validate}
+ * refuses: the label of its column and its error. It returns `null` when the
+ * checks of a save refuse no cell. A save that closes the cells drops a
+ * refused cell (see {@link flushRow}), so a grid-owned save holds the session
+ * open while this finds one. The row is the live row, else the snapshot of
+ * each draft, as the sweep reads it. @internal
+ */
+export function findRefusal<T>(
+	source: GridEditSource<T>,
+	rowKey: string | number,
+	cells: Iterable<readonly [string | number, GridDraft]>,
+): { label: string; error: string } | null {
+	const live = rowLookup(source)(rowKey)
+
+	for (const [columnId, draft] of cells) {
+		const check = checkCell(source.columns, live ?? (draft.row as T), {
+			rowKey,
+			columnId,
+			value: draft.value,
+		})
+
+		if (typeof check === 'object') return { label: cellLabel(source, columnId), error: check.error }
+	}
+
+	return null
 }
 
 /**
@@ -257,10 +287,16 @@ export type InFlightBatch = {
 
 /**
  * The cells that one sweep saved, with the column label of each and the
- * history cells of the sweep. `row` names the row when one row holds all the
- * cells. @internal
+ * history cells of the sweep. `refused` holds the column label of each cell
+ * that {@link GridColumn.validate} refused. `row` names the row when one row
+ * holds all the cells. @internal
  */
-type SavedCells = { columns: string[]; row: string | undefined; history: GridHistoryCell[] }
+type SavedCells = {
+	columns: string[]
+	refused: string[]
+	row: string | undefined
+	history: GridHistoryCell[]
+}
 
 /**
  * The in-flight record of one row's batch, whose sink returned a promise: the
@@ -299,28 +335,31 @@ function inFlightBatch<T>(
 
 /**
  * What the batches of one sweep, or of one write, sent: the column label of
- * each saved cell, the history cells of the saves, and each batch whose sink
- * returned a promise. `row` is the name of the last row that saved, and `rows`
- * counts the rows that saved. @internal
+ * each saved cell and of each refused cell, the history cells of the saves,
+ * and each batch whose sink returned a promise. `row` is the name of the last
+ * row that saved or refused a cell, and `rows` holds the keys of those rows.
+ * @internal
  */
 type SendTally = {
 	columns: string[]
+	refused: string[]
 	history: GridHistoryCell[]
 	row: string | undefined
-	rows: number
+	rows: Set<string | number>
 	inFlight: InFlightBatch[]
 }
 
 /** An empty {@link SendTally}. @internal */
 function sendTally(): SendTally {
-	return { columns: [], history: [], row: undefined, rows: 0, inFlight: [] }
+	return { columns: [], refused: [], history: [], row: undefined, rows: new Set(), inFlight: [] }
 }
 
-/** The {@link SavedCells} of a tally. It names the row when one row saved. @internal */
+/** The {@link SavedCells} of a tally. It names the row when one row holds the cells. @internal */
 function toSaved(tally: SendTally): SavedCells {
 	return {
 		columns: tally.columns,
-		row: tally.rows === 1 ? tally.row : undefined,
+		refused: tally.refused,
+		row: tally.rows.size === 1 ? tally.row : undefined,
 		history: tally.history,
 	}
 }
@@ -370,7 +409,7 @@ function dispatchBatch<T>(
 
 		tally.row = name
 
-		tally.rows++
+		tally.rows.add(rowKey)
 
 		return
 	}
@@ -395,7 +434,8 @@ function dispatchBatch<T>(
 /**
  * Commits every staged cell that the session closed, one `onCommit` batch per
  * row. It hands the cells `validate` refused to `onReject`, and returns the
- * cells saved across them as {@link SavedCells}, for the commit announcement.
+ * cells saved and refused across them as {@link SavedCells}, for the commit
+ * announcement.
  * A row with no sink to reach counts nothing, so the announcement never speaks
  * a commit that did not happen. Each closed draft leaves the store. A draft of
  * a cell that is still open stays staged. A batch whose sink returns a promise
@@ -450,7 +490,17 @@ export function flushClosedCells<T>(args: {
 
 		// Reported per row, like the commit batch beside it, and independent of it:
 		// a row whose every cell was refused reaches no sink at all otherwise.
-		if (refused.length > 0) args.onReject?.(refused)
+		// The tally also holds each refused cell, so the announcement says that
+		// it did not save.
+		if (refused.length > 0) {
+			args.onReject?.(refused)
+
+			for (const cell of refused) tally.refused.push(cellLabel(args.source, cell.columnId))
+
+			tally.row = getRowName(args.source, rowKey, row)
+
+			tally.rows.add(rowKey)
+		}
 
 		dispatchBatch(
 			{ rowKey, row, changes, outcome: 'updated', record: true, drafts: rowDrafts, steps: [] },
@@ -546,7 +596,7 @@ function checkRow<T>(
 	for (const change of changes) {
 		const check = checkCell(source.columns, row, change)
 
-		if (check === 'refuse') refused.push(change)
+		if (typeof check === 'object') refused.push(change)
 		else if (check === 'keep') kept.push(change)
 	}
 

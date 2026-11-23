@@ -232,6 +232,33 @@ export type GridWindowRowProps = {
 }
 
 /**
+ * The place of a treegrid row in its set of siblings. `place` is 0-based, and
+ * `setSize` counts the set. The two are numbers, not one object, so a memoized
+ * row keeps its props across a body render. @internal
+ */
+export type GridTreePlace = { place?: number; setSize?: number }
+
+/**
+ * The tree attributes of a row: its `aria-level`, and its place in its set
+ * (`aria-posinset`, `aria-setsize`). A window renders only some rows of a set,
+ * so the row gives its place from the full model, and assistive tech does not
+ * count the rendered rows. Outside a treegrid the row gets none of them.
+ *
+ * @internal
+ */
+export function treeRowProps(
+	tree: boolean,
+	level: number | undefined,
+	{ place, setSize }: GridTreePlace,
+): { 'aria-level'?: number; 'aria-posinset'?: number; 'aria-setsize'?: number } {
+	if (!tree || level === undefined) return {}
+
+	if (place === undefined || setSize === undefined) return { 'aria-level': level }
+
+	return { 'aria-level': level, 'aria-posinset': place + 1, 'aria-setsize': setSize }
+}
+
+/**
  * The roving attributes a focusable data cell carries in cell mode. They are the
  * `data-roving` marker the grid's roving hook seats a `tabIndex` on, and an
  * Enter / Space handler that activates the cell. That handler is gated to the

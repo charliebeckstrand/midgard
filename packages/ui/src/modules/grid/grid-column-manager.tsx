@@ -7,8 +7,9 @@ import { List, ListItem } from '../../components/list'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from '../../components/menu'
 import { SearchInput } from '../../components/search-input'
 import { useDirectionScope } from '../../primitives/direction/context'
-import { EllipsisVertical, Lock, Pin } from '../../primitives/icons/icons'
+import { ArrowUpDown, EllipsisVertical, Lock, Pin } from '../../primitives/icons/icons'
 import { intlMessages } from '../../primitives/intl/intl-messages'
+import { reorderMessages } from '../../primitives/intl/intl-reorder'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { useDeferredQueryValue } from '../../primitives/query/use-query-value'
 import { k } from '../../recipes/kata/grid-column-manager'
@@ -17,13 +18,16 @@ import { columnLabel } from './engine/grid-column/label'
 import { gridMessages } from './engine/grid-messages'
 import { effectivePinSide, pinMenuChoices } from './engine/grid-pin/overrides'
 import { applyColumnReorder } from './engine/grid-reorder-compute'
+import type { GridItemMoves } from './engine/grid-reorder-move'
 import { type PinColumn, pinChoiceIcon } from './grid-context-menu-utilities'
 import type { GridPreferences } from './grid-data-types'
 import { GridGroupManager } from './grid-group-manager'
 import type { GridColumnGroup } from './grid-group-types'
 import { GridManagerCheckboxRow } from './grid-manager-checkbox-row'
+import { GridManagerMoveMenu } from './grid-manager-move-menu'
 import type { GridColumnManagerItem } from './types'
 import { isColumnShown, useGridColumnVisibility } from './use-grid-column-visibility'
+import { useGridItemMoves } from './use-grid-item-moves'
 
 /**
  * Whether the manager serves a right-to-left grid. The pin labels and their
@@ -78,8 +82,9 @@ export type GridColumnManagerProps = {
 	/**
 	 * Lets the user drag the scrolling columns to reorder them. When `false`, the
 	 * orderable list drops its drag handles and renders read-only: visibility
-	 * toggles and pin controls still work. The group editor drops its grips too,
-	 * and a column changes its group only through its "Move to" menu.
+	 * toggles and pin controls still work. The group editor drops its grips and
+	 * the place moves of its move menus too, and a column changes its group only
+	 * through its "Move to" items.
 	 * {@link Grid} forwards its {@link GridProps.reorder} flag here, so the
 	 * manager only reorders columns when the grid opts in.
 	 * @defaultValue true
@@ -172,6 +177,35 @@ function GridColumnPinControl({
 				))}
 			</MenuContent>
 		</Menu>
+	)
+}
+
+/** Props for {@link GridColumnMoveControl}. @internal */
+type GridColumnMoveControlProps = {
+	item: GridColumnManagerItem
+	moves: GridItemMoves
+}
+
+/**
+ * Per-column move control of the orderable list: the path of the drag grip
+ * with no drag (see {@link GridManagerMoveMenu}). Its trigger takes the look
+ * of the pin control beside it.
+ *
+ * @internal
+ */
+function GridColumnMoveControl({ item, moves }: GridColumnMoveControlProps) {
+	const intl = useIntl()
+
+	return (
+		<GridManagerMoveMenu itemKey={String(item.id)} moves={moves}>
+			<button
+				type="button"
+				className={k().pin}
+				aria-label={intl.formatMessage(reorderMessages.moveHandle, { item: columnLabel(item) })}
+			>
+				<Icon icon={<ArrowUpDown />} />
+			</button>
+		</GridManagerMoveMenu>
 	)
 }
 
@@ -275,8 +309,10 @@ type GridColumnManagerOrderableListProps = {
  * The flat orderable-column region: a checkbox row per scrolling column,
  * drag-sortable when `reorderable` and read-only otherwise (no drag handles).
  * Each row toggles its column's hidden state and, with `onPinChange`, carries a
- * trailing pin control. Columns with `hideable: false` show but can't be
- * unchecked, also when the hidden set names them.
+ * trailing pin control. A reorderable row also carries a move control, the
+ * path of the grip with no drag (see {@link GridColumnMoveControl}). Columns
+ * with `hideable: false` show but can't be unchecked, also when the hidden set
+ * names them.
  *
  * @internal
  */
@@ -291,17 +327,28 @@ function GridColumnManagerOrderableList({
 }: GridColumnManagerOrderableListProps) {
 	const intl = useIntl()
 
+	const describe = useCallback(
+		(col: GridColumnManagerItem) =>
+			intl.formatMessage(gridMessages.columnName, { column: columnLabel(col) }),
+		[intl],
+	)
+
+	const moves = useGridItemMoves({ items, getKey, commit: onReorder, describe })
+
 	const renderRow = (col: GridColumnManagerItem) => (
 		<ListItem
 			suffix={
-				onPinChange ? (
-					<GridColumnPinControl
-						item={col}
-						side={undefined}
-						onPinChange={onPinChange}
-						placement="bottom-end"
-					/>
-				) : undefined
+				<>
+					{reorderable && items.length > 1 && <GridColumnMoveControl item={col} moves={moves} />}
+					{onPinChange && (
+						<GridColumnPinControl
+							item={col}
+							side={undefined}
+							onPinChange={onPinChange}
+							placement="bottom-end"
+						/>
+					)}
+				</>
 			}
 		>
 			<GridManagerCheckboxRow

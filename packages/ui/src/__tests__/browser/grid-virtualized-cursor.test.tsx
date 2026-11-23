@@ -120,6 +120,62 @@ describe('grid virtualized cursor (real browser)', () => {
 		expect(scroll.scrollTop).toBe(1520)
 	})
 
+	// A scroll by the wheel or the scrollbar unmounts the row that holds focus,
+	// and focus fell to the page with no event to tell the grid.
+	it('takes focus back on the grid when the window unmounts the focused control', async () => {
+		// A run of many files can leave the page without window focus, and a blur
+		// of the window keeps the cell open by design.
+		vi.spyOn(document, 'hasFocus').mockReturnValue(true)
+
+		renderUI(
+			<div style={{ width: '320px' }}>
+				<Grid
+					navigable
+					virtualize={{ estimateSize: 36, overscan: 2 }}
+					maxHeight="180px"
+					columns={[
+						...columns,
+						{ id: 'actions', actions: (row) => <button type="button">Edit {row.name}</button> },
+					]}
+					rows={rows}
+					getKey={getKey}
+				/>
+			</div>,
+		)
+
+		const scroll = present(
+			document.querySelector<HTMLElement>('[data-slot="grid-scroll"]'),
+			'[data-slot="grid-scroll"]',
+		)
+
+		const edit = await waitFor(() => screen.getByRole('button', { name: 'Edit Name 2' }))
+
+		edit.focus()
+
+		expect(document.activeElement).toBe(edit)
+
+		// The cursor follows focus into the cell, and its reveal settles first.
+		await frames()
+
+		scroll.scrollTop = 3000
+
+		await waitFor(() => expect(edit.isConnected).toBe(false))
+
+		const grid = screen.getByRole('grid')
+
+		await waitFor(() => expect(document.activeElement).toBe(grid))
+
+		await frames()
+
+		// The focus does not scroll the window back to the row of the cursor, and
+		// the cursor stays on its cell, out of the window.
+		expect(scroll.scrollTop).toBeGreaterThan(1000)
+
+		expect(screen.queryByRole('button', { name: 'Edit Name 2' })).toBeNull()
+
+		expect(grid).toHaveAttribute('aria-activedescendant')
+	})
+
 	it('seats a mounted cell when focus enters a scrolled window', async () => {
 		const { grid, scroll } = await renderWindow({ overscan: 10 })
 
@@ -213,6 +269,67 @@ describe('grid virtualized cursor over item bodies (real browser)', () => {
 
 			expect(document.getElementById(id)?.closest('tr')).toHaveTextContent('Name 200')
 		})
+	})
+
+	it('gives each rendered row its place from the full set, not from the window', async () => {
+		renderUI(
+			<div style={{ width: '480px' }}>
+				<Grid
+					navigable
+					virtualize={{ estimateSize: 36 }}
+					maxHeight="240px"
+					columns={columns}
+					rows={rows}
+					getKey={getKey}
+					groupBy={{ value: 'team' }}
+					groupTotalRow
+				/>
+			</div>,
+		)
+
+		const grid = screen.getByRole('treegrid')
+
+		await waitFor(() => expect(screen.queryByText('Name 1')).not.toBeNull())
+
+		await jumpToEnd(grid)
+
+		// The last leaf of the last group is the 20th of 20.
+		const leaf = screen.getByText('Name 200').closest('tr')
+
+		expect(leaf).toHaveAttribute('aria-posinset', '20')
+
+		expect(leaf).toHaveAttribute('aria-setsize', '20')
+
+		// Each rendered header has its place among all 10 groups. The window
+		// starts deep in the list, so a count of the rendered rows gives less.
+		const scroll = grid.closest<HTMLElement>('[data-slot="grid-scroll"]')
+
+		if (!scroll) throw new Error('the scroller')
+
+		scroll.scrollTop = scroll.scrollHeight / 2
+
+		await waitFor(() =>
+			expect(
+				grid.querySelector('tr[data-group-row]:not([data-group-key="Team 00"])'),
+			).not.toBeNull(),
+		)
+
+		const headers = [...grid.querySelectorAll('tr[data-group-row]')]
+
+		for (const header of headers) {
+			const team = Number(header.getAttribute('data-group-key')?.replace('Team ', ''))
+
+			expect(header).toHaveAttribute('aria-posinset', String(team + 1))
+
+			expect(header).toHaveAttribute('aria-setsize', '10')
+		}
+
+		// A total is not a member of the set of the leaves.
+		const total = grid.querySelector('tr[data-total-row="group"]')
+
+		expect(total).not.toHaveAttribute('aria-level')
+
+		expect(total).not.toHaveAttribute('aria-posinset')
 	})
 
 	it('scrolls the last open detail panel into the window', async () => {

@@ -2,6 +2,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import {
 	dropStrandedHolds,
+	findRefusal,
 	flushClosedCells,
 	historyOutcome,
 	pasteChange,
@@ -49,6 +50,34 @@ function stagedStore(cells: [Row, string, unknown][]) {
 	return store
 }
 
+describe('findRefusal', () => {
+	const source = makeSource([alice, bob])
+
+	it('gives the label and the error of the first cell that validate refuses', () => {
+		const drafts = stagedStore([
+			[alice, 'name', 'Alicia'],
+			[alice, 'count', -1],
+		])
+
+		expect(findRefusal(source, 1, drafts.readRow(1) ?? [])).toEqual({
+			label: 'Count',
+			error: 'Too low',
+		})
+	})
+
+	it('gives null for a valid cell, an unchanged cell, and a locked cell', () => {
+		const drafts = stagedStore([
+			[alice, 'count', 9],
+			[bob, 'count', 5],
+			[bob, 'locked', 'z'],
+		])
+
+		expect(findRefusal(source, 1, drafts.readRow(1) ?? [])).toBeNull()
+
+		expect(findRefusal(source, 2, drafts.readRow(2) ?? [])).toBeNull()
+	})
+})
+
 describe('flushClosedCells', () => {
 	const source = makeSource([alice, bob])
 
@@ -74,6 +103,7 @@ describe('flushClosedCells', () => {
 
 		expect(result.saved).toEqual({
 			columns: ['Name'],
+			refused: [],
 			row: 'Alice',
 			history: [{ rowKey: 1, columnId: 'name', before: 'Alice', after: 'Alicia' }],
 		})
@@ -109,6 +139,34 @@ describe('flushClosedCells', () => {
 		expect(onCommit).not.toHaveBeenCalled()
 
 		expect(result.saved.columns).toEqual([])
+
+		// The refused cell is in the tally, so the sweep says that it did not save.
+		expect(result.saved.refused).toEqual(['Count'])
+
+		expect(result.saved.row).toBe('Alice')
+	})
+
+	it('names no row when the saved and the refused cells are on two rows', () => {
+		const drafts = stagedStore([
+			[alice, 'name', 'Alicia'],
+			[bob, 'count', -1],
+		])
+
+		const result = flushClosedCells({
+			drafts,
+			editableRows: new Set(),
+			activeEdit: null,
+			source,
+			getRow: rowLookup(source),
+			onCommit: vi.fn(),
+			onReject: undefined,
+		})
+
+		expect(result.saved.columns).toEqual(['Name'])
+
+		expect(result.saved.refused).toEqual(['Count'])
+
+		expect(result.saved.row).toBeUndefined()
 	})
 
 	it('holds a batch whose sink returns a promise as in flight', () => {
@@ -226,7 +284,7 @@ describe('sendCells', () => {
 			history: [],
 		})
 
-		expect(result.saved).toEqual({ columns: [], row: undefined, history: [] })
+		expect(result.saved).toEqual({ columns: [], refused: [], row: undefined, history: [] })
 	})
 })
 

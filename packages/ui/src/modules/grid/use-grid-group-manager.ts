@@ -6,6 +6,7 @@ import type { PaletteColor } from '../../core/recipe/colors'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { gridMessages } from './engine/grid-messages'
+import { applyColumnReorder } from './engine/grid-reorder-compute'
 import {
 	addGroupTo,
 	assignColumn,
@@ -41,7 +42,8 @@ function isBelowOverMidpoint(event: DragOverEvent): boolean {
 /**
  * State and handlers for the column-manager's group editor. The zones (groups +
  * ungrouped pool) and the create/remove/rename/recolor/assign actions commit
- * through `onGroupsChange`. Dragging follows the house multi-container pattern
+ * through `onGroupsChange`. `reorderZone` is the menu path of a reorder in one
+ * zone, and it commits as a drop does. Dragging follows the house multi-container pattern
  * (see {@link Kanban}). A local {@link ZoneMap} override re-parents the active
  * column between zones live in `onDragOver`, so it never disappears and the
  * reflow animates. `onDragEnd` then settles the same-zone order and translates
@@ -154,6 +156,20 @@ export function useGridGroupManager({
 		[groups, order, orderableIds, onGroupsChange, onOrderChange],
 	)
 
+	// The menu path of a reorder in one zone. `shown` is the next order of the
+	// members on the screen. A member that the filter hides keeps its slot, as in
+	// the flat list. The map commits as a drop commits it.
+	const reorderZone = useStableEvent((zoneId: string, shown: string[]) => {
+		const moved = new Set(shown)
+
+		commit({
+			...baseZoneMap,
+			[zoneId]: applyColumnReorder(baseZoneMap[zoneId] ?? [], shown, (id) =>
+				moved.has(String(id)),
+			).map(String),
+		})
+	})
+
 	const handleDragEnd = useCallback(
 		(event: DragEndEvent) => {
 			const { active, over } = event
@@ -193,6 +209,7 @@ export function useGridGroupManager({
 		renameGroup,
 		recolorGroup,
 		assign,
+		reorderZone,
 		handleDragStart,
 		handleDragOver,
 		handleDragEnd,
