@@ -7,7 +7,7 @@ import ColorPlayground from './playground.tsx'
 
 export default function ColorPage() {
 	return (
-		<FrameDefaults form>
+		<FrameDefaults box="column">
 			<Playground of={ColorPlayground} api={api} omit={['format']} />
 			<Example of={InlinePanel} />
 			<Example of={CustomSwatches} />

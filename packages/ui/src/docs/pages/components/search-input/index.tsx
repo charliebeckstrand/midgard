@@ -6,7 +6,7 @@ import SearchInputPlayground from './playground.tsx'
 
 export default function SearchInputPage() {
 	return (
-		<FrameDefaults form>
+		<FrameDefaults box="column">
 			<Playground of={SearchInputPlayground} api={api} />
 			<Example of={Controlled} />
 			<Example of={Disabled} />

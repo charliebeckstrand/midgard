@@ -9,7 +9,7 @@ import PostalCode from './postal-code.tsx'
 
 export default function MaskInputPage() {
 	return (
-		<FrameDefaults form>
+		<FrameDefaults box="column">
 			<Playground of={MaskInputPlayground} api={api} />
 			<Example of={InternationalPhone} />
 			<Example of={PostalCode} />

@@ -8,7 +8,7 @@ import Virtualized from './virtualized.tsx'
 
 export default function ComboboxPage() {
 	return (
-		<FrameDefaults form>
+		<FrameDefaults box="column">
 			<Playground of={ComboboxPlayground} api={api} omit={['open', 'required']} />
 			<Example of={Controlled} />
 			<Example of={CustomSummary} />

@@ -6,7 +6,7 @@ import Menus from './menus.tsx'
 export default function GlassPage() {
 	return (
 		<>
-			<Example of={FormControls} form />
+			<Example of={FormControls} box="column" />
 			<Example of={Menus} />
 			<ApiTable api={api} />
 		</>

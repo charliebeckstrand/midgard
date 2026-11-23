@@ -2,5 +2,5 @@ import { Example } from '../../../../kit/index.ts'
 import DrillIntoCounties from './drill-into-counties.tsx'
 
 export default function CountyTab() {
-	return <Example of={DrillIntoCounties} ratio />
+	return <Example of={DrillIntoCounties} box="ratio" />
 }

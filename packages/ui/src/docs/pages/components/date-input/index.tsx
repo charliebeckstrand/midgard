@@ -8,7 +8,7 @@ import DateInputPlayground from './playground.tsx'
 
 export default function DateInputPage() {
 	return (
-		<FrameDefaults form>
+		<FrameDefaults box="column">
 			<Playground of={DateInputPlayground} api={api} />
 			<Example of={MinAndMax} />
 			<Example of={InvalidMessage} />

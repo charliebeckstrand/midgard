@@ -9,7 +9,7 @@ import CurrencyInputPlayground from './playground.tsx'
 
 export default function CurrencyInputPage() {
 	return (
-		<FrameDefaults form>
+		<FrameDefaults box="column">
 			<Playground of={CurrencyInputPlayground} api={api} />
 			<Example of={CurrencyAndLocale} />
 			<Example of={NoFractionDigits} />

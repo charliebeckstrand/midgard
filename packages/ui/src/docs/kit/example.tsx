@@ -159,20 +159,26 @@ function viewportCeiling(viewport: HTMLElement): number {
 	return Math.max(window.innerHeight, viewportFloor(viewport))
 }
 
+/**
+ * The width of the instance box.
+ *
+ * - `content`: as wide as the instance, and at least 24rem.
+ * - `column`: a form column of 24rem, or the width of a narrower frame, for
+ *   fields that fill their container.
+ * - `surface`: the width of the frame, for a surface of a page.
+ * - `ratio`: the width of the frame, and the frame starts at half the column,
+ *   for a surface that keeps an aspect ratio.
+ */
+export type FrameBox = 'content' | 'column' | 'surface' | 'ratio'
+
 /** The props of an example frame that set the box of the instance. */
 export type FrameOptions = {
-	/** Makes the instance box fill the frame, for a surface of a page. */
-	surface?: boolean
 	/**
-	 * Makes the instance box fill the frame, and starts the frame at half the
-	 * column, for a surface that keeps an aspect ratio.
+	 * Sets the width of the instance box.
+	 *
+	 * @defaultValue 'content'
 	 */
-	ratio?: boolean
-	/**
-	 * Makes the instance box a form column of 24rem, or the width of a narrower
-	 * frame, for a field that fills its container.
-	 */
-	form?: boolean
+	box?: FrameBox
 	/**
 	 * Makes the instance area a viewport of 32rem in height, for an instance that
 	 * opens an overlay, a popover, or a toast. The surfaces stay in the area. A
@@ -209,30 +215,27 @@ export function FrameDefaults({ children, ...options }: FrameOptions & { childre
 	return <FrameDefaultsContext value={options}>{children}</FrameDefaultsContext>
 }
 
-// The width of the instance box: the frame with `fill`, a form column with
-// `form`, and the width of the instance otherwise.
-function boxWidth(fill: boolean, form: boolean): string {
-	if (fill) return 'w-full'
-
-	if (form) return 'w-sm max-w-full phrasing:flex-row phrasing:flex-wrap phrasing:items-center'
-
-	return 'w-max min-w-[min(24rem,100%)] max-w-full phrasing:flex-row phrasing:flex-wrap phrasing:items-center'
+// The classes of the instance box for each width. A box that is not the width
+// of the frame puts phrasing children on a row that wraps.
+const boxClasses: Record<FrameBox, string> = {
+	content:
+		'w-max min-w-[min(24rem,100%)] max-w-full phrasing:flex-row phrasing:flex-wrap phrasing:items-center',
+	column: 'w-sm max-w-full phrasing:flex-row phrasing:flex-wrap phrasing:items-center',
+	surface: 'w-full',
+	ratio: 'w-full',
 }
 
 /**
  * The box of the instance. A `page` is the page of the viewport, with no
- * padding. Each other instance is in a padded flex box, which fills the area
- * with `fill`, is a form column of 24rem with `form`, and is as wide as the
- * instance otherwise.
+ * padding. Each other instance is in a padded flex box, with the width that
+ * `box` sets.
  */
 function InstanceBox({
-	fill,
-	form,
+	box,
 	page,
 	children,
 }: {
-	fill: boolean
-	form: boolean
+	box: FrameBox
 	page: boolean
 	children: ReactNode
 }) {
@@ -240,7 +243,7 @@ function InstanceBox({
 
 	return (
 		<div className="p-4">
-			<Stack data-slot="example-instance" gap="lg" className={boxWidth(fill, form)}>
+			<Stack data-slot="example-instance" gap="lg" className={boxClasses[box]}>
 				{children}
 			</Stack>
 		</div>
@@ -253,9 +256,10 @@ function InstanceBox({
  * The title is a link to the frame. Its id is the file name of the example,
  * such as `with-icon`, so a reader can share the address of one example.
  *
- * The instance box is as wide as the instance, and at least 24rem, as a form
- * column on a page. When each child of the box is phrasing content, such as a
- * button or a badge, the children make a row that wraps. Otherwise they stack.
+ * By default, the instance box is as wide as the instance, and at least 24rem,
+ * as a form column on a page. When each child of the box is phrasing content,
+ * such as a button or a badge, the children make a row that wraps. Otherwise
+ * they stack.
  * The box is a flex box, and its gap spaces the children. A margin does not
  * cross a wrapper that has `display: contents`, such as the wrapper of a menu,
  * but the gap does.
@@ -290,22 +294,22 @@ function InstanceBox({
  *
  * A surface of a page, such as a chart, a map, or a document viewer, takes the
  * width of its container and has no width of its own. In a box that is as
- * wide as its content, it gets only the 24rem minimum. With `surface`, the
- * box fills the frame.
+ * wide as its content, it gets only the 24rem minimum. With `box="surface"`,
+ * the box fills the frame.
  *
  * A surface that keeps an aspect ratio, such as a chart, a map, a document
  * viewer, or a grid of photos, gets taller as it gets wider. In the full column,
- * it can be taller than the screen. With `ratio`, the box fills the frame, and
- * the frame starts at half the column but not narrower than 32rem. The frame
- * does not become wider than the column. A drag sets the width as for each
+ * it can be taller than the screen. With `box="ratio"`, the box fills the
+ * frame, and the frame starts at half the column but not narrower than 32rem.
+ * The frame does not become wider than the column. A drag sets the width as for each
  * other frame.
  *
  * A field fills its container, and the page or the form sets the width. In a
  * box that is as wide as its content, a long message or a row of tags makes
- * the box and thus the field wider. With `form`, the box is a form column of
- * 24rem, and the full width of a narrower frame, so each field of a page has
- * the same width. A page of fields gives `form` to each of its frames with
- * {@link FrameDefaults}.
+ * the box and thus the field wider. With `box="column"`, the box is a form
+ * column of 24rem, and the full width of a narrower frame, so each field of a
+ * page has the same width. A page of fields gives `box="column"` to each of
+ * its frames with {@link FrameDefaults}.
  *
  * A {@link FrameDefaults} around the frame gives the options that the frame
  * does not set.
@@ -324,9 +328,7 @@ export function ExampleFrame(
 		meta,
 		actions,
 		print,
-		surface = false,
-		ratio = false,
-		form = false,
+		box = 'content',
 		viewport = false,
 		page = false,
 		children,
@@ -390,7 +392,9 @@ export function ExampleFrame(
 				ref={resize.ref}
 				style={resize.size === null ? undefined : { width: resize.size }}
 				className={
-					ratio ? 'relative w-[max(50%,32rem)] min-w-40 max-w-full' : 'relative min-w-40 max-w-full'
+					box === 'ratio'
+						? 'relative w-[max(50%,32rem)] min-w-40 max-w-full'
+						: 'relative min-w-40 max-w-full'
 				}
 			>
 				{/* The drag area comes before the box, so the box can show the border as active. */}
@@ -425,12 +429,12 @@ export function ExampleFrame(
 								// `useToast` in the instance uses a queue of the frame, so its
 								// toasts show in the frame and not at the edge of the window.
 								<ToastHost>
-									<InstanceBox fill={surface || ratio} form={form} page={page}>
+									<InstanceBox box={box} page={page}>
 										{children}
 									</InstanceBox>
 								</ToastHost>
 							) : (
-								<InstanceBox fill={surface || ratio} form={form} page={false}>
+								<InstanceBox box={box} page={false}>
 									{children}
 								</InstanceBox>
 							)}

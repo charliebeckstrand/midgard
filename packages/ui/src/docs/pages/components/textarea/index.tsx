@@ -7,7 +7,7 @@ import WithActions from './with-actions.tsx'
 
 export default function TextareaPage() {
 	return (
-		<FrameDefaults form>
+		<FrameDefaults box="column">
 			<Playground of={TextareaPlayground} api={api} />
 			<Example of={WithActions} />
 			<Example of={MaxHeight} />

@@ -7,7 +7,7 @@ import Severity from './severity.tsx'
 
 export default function FieldsetPage() {
 	return (
-		<FrameDefaults form>
+		<FrameDefaults box="column">
 			<Playground of={FieldsetPlayground} api={api} />
 			<Example of={Severity} />
 			<Example of={LabelWithHint} />

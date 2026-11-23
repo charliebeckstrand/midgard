@@ -8,11 +8,11 @@ import SegmentLabels from './segment-labels.tsx'
 export default function PieTab() {
 	return (
 		<>
-			<Example of={NoLabels} ratio />
-			<Example of={SegmentLabels} ratio />
-			<Example of={CalloutLabels} ratio />
-			<Example of={LegendPlacement} ratio />
-			<Example of={Animated} ratio />
+			<Example of={NoLabels} box="ratio" />
+			<Example of={SegmentLabels} box="ratio" />
+			<Example of={CalloutLabels} box="ratio" />
+			<Example of={LegendPlacement} box="ratio" />
+			<Example of={Animated} box="ratio" />
 		</>
 	)
 }

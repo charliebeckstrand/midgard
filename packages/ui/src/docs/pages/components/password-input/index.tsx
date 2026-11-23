@@ -8,7 +8,7 @@ import WithPrefix from './with-prefix.tsx'
 
 export default function PasswordInputPage() {
 	return (
-		<FrameDefaults form>
+		<FrameDefaults box="column">
 			<Playground of={PasswordInputPlayground} api={api} />
 			<Example of={WithPrefix} />
 			<Example of={Disabled} />

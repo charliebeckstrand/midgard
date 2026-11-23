@@ -8,7 +8,7 @@ import SuggestionsOnFocus from './suggestions-on-focus.tsx'
 
 export default function AddressInputPage() {
 	return (
-		<FrameDefaults form>
+		<FrameDefaults box="column">
 			<Playground
 				of={AddressInputPlayground}
 				api={api}
