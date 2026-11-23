@@ -341,7 +341,11 @@ export function QueryBuilderSortable({
 							between ? (
 								// The separator keeps its slot through the drag, so it takes the
 								// key of the node that the slot holds before the drag.
-								<div key={`${children[index]?.id}-separator`} className={slots.sortable.separator}>
+								<div
+									key={`${children[index]?.id}-separator`}
+									data-sorting={dataAttr(sorting)}
+									className={slots.sortable.separator}
+								>
 									{between}
 								</div>
 							) : null,
