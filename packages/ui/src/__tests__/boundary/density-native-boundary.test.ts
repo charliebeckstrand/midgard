@@ -394,8 +394,6 @@ const consumers: { file: string; code: string }[] = []
 const isConsumer = (file: string) => /\.(?:tsx?|mts|css|mdx)$/.test(file)
 
 const visitConsumer = (file: string, content: string) => {
-	if (!isConsumer(file)) return
-
 	const code = file.endsWith('.css')
 		? content.replace(/\/\*[\s\S]*?\*\//g, '')
 		: stripSourceComments(content)
@@ -404,9 +402,9 @@ const visitConsumer = (file: string, content: string) => {
 }
 
 for (const app of readdirSync(join(workspaceRoot, 'apps')))
-	walkSource(join(workspaceRoot, 'apps', app), visitConsumer)
+	walkSource(join(workspaceRoot, 'apps', app), visitConsumer, undefined, isConsumer)
 
-walkSource(join(workspaceRoot, 'packages', 'shared', 'src'), visitConsumer)
+walkSource(join(workspaceRoot, 'packages', 'shared', 'src'), visitConsumer, undefined, isConsumer)
 
 for (const file of readdirSync(uiRoot).filter((name) => name.endsWith('.css'))) {
 	const path = join(uiRoot, file)

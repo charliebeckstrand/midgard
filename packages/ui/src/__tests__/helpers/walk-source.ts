@@ -70,11 +70,19 @@ const SKIP = new Set(['__tests__', '__benchmarks__', 'node_modules', 'dist'])
  * excluded tree costs no I/O. `dir` itself is never pruned, so a caller can
  * point this at a tree the default set excludes. Shared by the boundary tests,
  * which scan source layers for forbidden patterns.
+ *
+ * `accept` selects the files to read by path, before the read. A scan of the
+ * root of a package or an app must give it. A build tool writes a temporary
+ * file at such a root and removes it again, such as the
+ * `tsup.config.bundled_*.mjs` of tsup or the `*.timestamp-*.mjs` of Vite. A
+ * read after the removal fails with `ENOENT`, and a file that the scan does
+ * not accept is never read.
  */
 export function walkSource(
 	dir: string,
 	visit: (file: string, content: string) => void,
 	skip?: ReadonlySet<string>,
+	accept?: (file: string) => boolean,
 ): void {
 	for (const entry of readdirSync(dir, { withFileTypes: true })) {
 		if (entry.name.startsWith('.') || SKIP.has(entry.name) || skip?.has(entry.name)) continue
@@ -82,8 +90,8 @@ export function walkSource(
 		const path = join(dir, entry.name)
 
 		if (entry.isDirectory()) {
-			walkSource(path, visit, skip)
-		} else if (entry.isFile()) {
+			walkSource(path, visit, skip, accept)
+		} else if (entry.isFile() && (accept?.(path) ?? true)) {
 			visit(path, readFileSync(path, 'utf8'))
 		}
 	}
@@ -114,12 +122,15 @@ export function workspaceSources(roots: readonly string[]): Map<string, string> 
 	for (const root of roots) {
 		if (!existsSync(root)) continue
 
-		walkSource(root, (file, content) => {
-			if (!isSourceFile(file) || /\.test\.[cm]?tsx?$/.test(file)) return
-
-			// Prose that names a call or a class is not a use of it.
-			files.set(workspaceKey(file), stripSourceComments(content))
-		})
+		walkSource(
+			root,
+			(file, content) => {
+				// Prose that names a call or a class is not a use of it.
+				files.set(workspaceKey(file), stripSourceComments(content))
+			},
+			undefined,
+			(file) => isSourceFile(file) && !/\.test\.[cm]?tsx?$/.test(file),
+		)
 	}
 
 	return files
