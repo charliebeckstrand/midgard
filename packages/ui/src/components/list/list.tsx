@@ -102,11 +102,12 @@ export type ListProps<T> = BaseListProps<T> &
 
 /**
  * An ordered `items` source, rendered as a `<ul>` through a `children` render
- * function, in one of five `variant`s and either orientation. With `onReorder`
- * it becomes reorderable over Motion's `Reorder`, by pointer drag on the handle
- * or keyboard lift (Space then arrows). It auto-inserts a {@link ListHandle}
- * per item unless `handle: false`. A read-only list (no `onReorder`) shows
- * no handle. A read-only list renders a plain `<ul>` with no drag wiring. Compose {@link ListItem} (with {@link ListLabel} /
+ * function. It takes one of five `variant`s and either orientation. With
+ * `onReorder` it becomes reorderable over Motion's `Reorder`, by pointer drag
+ * on the handle or keyboard lift (Space then arrows). It auto-inserts a
+ * {@link ListHandle} per item unless `handle: false`. A read-only list (no
+ * `onReorder`) shows no handle. A read-only list renders a plain `<ul>` with no
+ * drag wiring. Compose {@link ListItem} (with {@link ListLabel} /
  * {@link ListDescription}) in the render function.
  *
  * @remarks

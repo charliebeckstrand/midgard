@@ -1,4 +1,5 @@
 import pages from 'virtual:docs/pages'
+import summaries from 'virtual:docs/summaries'
 import { PanelLeft, PanelLeftDashed } from 'lucide-react'
 import { type ReactNode, useEffect, useRef } from 'react'
 import { Links, Meta, Outlet, Scripts, useLocation, useNavigate } from 'react-router'
@@ -31,6 +32,7 @@ import { NavigateContext, useDocumentLocale } from './context.ts'
 import { DirectionListbox } from './direction.tsx'
 import { LOCALES } from './language.ts'
 import { PageError } from './page-error.tsx'
+import { PageSummary } from './page-summary.tsx'
 import { RouterLink } from './router-link.tsx'
 import { DocsSearch, SearchPaletteHost } from './search.tsx'
 import { DocsSidebar } from './sidebar.tsx'
@@ -174,6 +176,8 @@ function Shell() {
 	// not-found page.
 	const title = page?.name ?? intl.formatMessage(notFoundMessage)
 
+	const summary = page && summaries[page.path]
+
 	useIdle(warmShiki)
 
 	// The path of the page, the same for each of its tabs.
@@ -231,7 +235,10 @@ function Shell() {
 									<Icon icon={<PanelLeftDashed />} className="sidebar-offcanvas:hidden" />
 									<Icon icon={<PanelLeft />} className="hidden sidebar-offcanvas:block" />
 								</Button>
-								<Heading>{title}</Heading>
+								<Stack gap="xs">
+									<Heading>{title}</Heading>
+									{summary && <PageSummary summary={summary} />}
+								</Stack>
 							</Flex>
 						</SidebarLayoutHeader>
 						<SearchPaletteHost />

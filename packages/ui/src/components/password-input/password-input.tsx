@@ -77,7 +77,10 @@ function VisibilityToggle({ visible, onToggle, label, disabled }: ToggleProps) {
 	)
 }
 
-/** Masked Input with a tooltip-labeled suffix button that toggles plaintext visibility; suppress it via `showToggle={false}`. */
+/**
+ * Masked Input with a tooltip-labeled suffix button that toggles plaintext
+ * visibility. Suppress the button via `showToggle={false}`.
+ */
 export function PasswordInput({
 	showToggle = true,
 	onVisibleChange,

@@ -12,6 +12,12 @@ declare module 'virtual:docs/pages' {
 	export default pages
 }
 
+declare module 'virtual:docs/summaries' {
+	const summaries: import('./plugin/summaries.ts').Summaries
+
+	export default summaries
+}
+
 declare module 'virtual:docs/search' {
 	const entries: readonly import('./plugin/search.ts').SearchEntry[]
 

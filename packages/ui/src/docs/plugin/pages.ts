@@ -84,6 +84,14 @@ export function findPages(docs: string): Page[] {
 		)
 }
 
+// The module of a page or a tab imports the API data of a barrel by this id.
+const API_IMPORT = /['"]virtual:docs\/api\/([\w/-]+)['"]/g
+
+/** The barrels whose API data the module with the source `code` imports, such as `components/button`. */
+export function readApiImports(code: string): string[] {
+	return [...code.matchAll(API_IMPORT)].flatMap(([, barrel]) => (barrel ? [barrel] : []))
+}
+
 /** The `index.tsx` of each page and of each tab in `docs/pages`, as absolute paths. */
 export function findRouteFiles(docs: string): string[] {
 	const pages = path.join(docs, 'pages')
