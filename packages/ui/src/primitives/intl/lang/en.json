@@ -2203,6 +2203,10 @@
 		"defaultMessage": "Sidebar",
 		"description": "The name of the navigation landmark at the side of a page, which a screen reader speaks with its role."
 	},
+	"ui.sidebarLayout.navigation": {
+		"defaultMessage": "Navigation",
+		"description": "The name of the panel that shows the navigation over the page: the drawer of a narrow page, and the sheet that a pointer opens at the edge of a wide page."
+	},
 	"ui.sidebarLayout.navigationBar": {
 		"defaultMessage": "Navigation bar",
 		"description": "The name of the bar at the top of a narrow page that holds the button that opens the navigation."

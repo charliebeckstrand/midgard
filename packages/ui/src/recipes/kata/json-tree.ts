@@ -35,7 +35,7 @@ const row = [
 	'py-0.5',
 	size.sm,
 	rounded.lg,
-	// The tint alone is about 1.1:1 against the page, so the ring of
+	// The tint alone is below 3:1 against the page in each mode, so the ring of
 	// `sen.focus.within.tinted` marks the focused row (WCAG 2.4.7, 1.4.11). The
 	// leaf and the toggle remove their own outline.
 	...mode('has-focus-visible:bg-blue-100/60', 'dark:has-focus-visible:bg-blue-500/30'),
