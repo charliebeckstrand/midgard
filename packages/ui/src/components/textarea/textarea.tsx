@@ -1,7 +1,7 @@
 'use client'
 
 import { useComposedRefs } from 'motion/react'
-import { type ComponentProps, type ReactNode, useRef } from 'react'
+import { type ComponentProps, type MouseEvent, type ReactNode, useRef } from 'react'
 import { cn } from '../../core/cn'
 import type { ScaleStep } from '../../core/density/scale'
 import { ControlFrame } from '../../primitives/control'
@@ -33,7 +33,12 @@ export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
 	 * @defaultValue false
 	 */
 	autoResize?: boolean
-	/** Control slot rendered as a right-justified row below the field; its presence pins `resize: none`. `null` and `false` count as absent. */
+	/**
+	 * Control slot rendered as a right-justified row below the field; its
+	 * presence pins `resize: none`. `null` and `false` count as absent. A press
+	 * on a button in the row does not move the focus, and the button still
+	 * gets the click.
+	 */
 	actions?: ReactNode
 	/**
 	 * Forces the invalid state. When omitted, inherits from Control / Form context.
@@ -65,6 +70,10 @@ export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
  * because that property ignores `rows` and is not in each browser at the
  * floor. With `actions`, the frame stacks the field above a right-justified
  * actions row.
+ * A press on a button in the actions row cancels the default of its
+ * `mousedown`, so the focus stays where it was. Thus a press does not show the
+ * focus ring of the frame, and it does not take the focus from the field.
+ * The Tab key still moves the focus to the buttons.
  * With `resize`, a touch device gets a grip of its own on the edge that the
  * drag moves, because Safari on iOS and iPadOS draws no native grip.
  * A set `size` opens a density scope. The actions row gets the affix size, one
@@ -151,10 +160,24 @@ export function Textarea({
 					data-slot="textarea-actions"
 					data-density="slot"
 					className={cn(slots.actions)}
+					onMouseDown={keepFocusOnPress}
 				>
 					{actions}
 				</HeadlessShell>
 			)}
 		</ControlFrame>
 	)
+}
+
+/**
+ * Cancels the focus move of a press on a button in the actions row. The click
+ * still fires. A press on another control, such as a `<select>`, keeps its
+ * default, because that control opens or takes text on the press.
+ */
+function keepFocusOnPress(event: MouseEvent<HTMLElement>) {
+	if (!(event.target instanceof Element)) return
+
+	const button = event.target.closest('button, [role="button"]')
+
+	if (button && event.currentTarget.contains(button)) event.preventDefault()
 }
