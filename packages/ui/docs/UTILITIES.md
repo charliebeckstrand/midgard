@@ -112,6 +112,7 @@ Import these from `utilities/floating-portal-registry`. They tell whether a pres
 | `referenceOpenedWithin` | Whether the surface in a portal node was opened from inside a container, at any depth. A surface that opened from a surface in the container is in the container too. |
 | `portalReference` | The reference element of the surface in a portal node, or `null`. |
 | `pressLandsInSurfaceOpenedWithin` | Whether a press landed in a floating surface opened from inside a container, at any depth. `useDismissable` asks it for a boundary that is not a floating panel. |
+| `containsThroughPortals` | Whether an element is in a container, or in a floating surface that was opened from inside the container, at any depth. |
 
 ## Overlay layers
 
@@ -147,6 +148,7 @@ Import these from `utilities/overlay-layers`. They tell whether an open overlay 
 | `isNativeContextMenuRequest` | Whether a `contextmenu` event asks for the browser's native menu (Ctrl + secondary-button click) instead of a custom one. |
 | `isScrollOverflow` | Whether an `overflow` value lets the user scroll the box: `auto`, `scroll`, or `overlay`. Import it from `utilities/scroll-overflow`. |
 | `isScrollbarPress` | Whether a press landed on the scrollbar gutter of an element, not on its content. A floating surface does not dismiss for a gutter press. |
+| `lastInput` | The last input on the page: the `pointerType` of the last press, `keyboard` for a key press, or `null` before the first input. Listeners in the capture phase record it from the load of the module. Import it from `utilities/last-input`. |
 | `hasBrowserModifier` | Whether a key press or a click holds Ctrl, Meta, or Alt. Such a chord is for the browser, so a handler does not take it. Import it from `utilities/modifier-keys`. |
 | `isPrimaryPress` | Whether a press can start a gesture: the primary pointer, the primary button, and no Ctrl. Import it from `utilities/primary-press`. |
 | `createPressOwner` | A `PressOwner` that holds a gesture for one pointer from its press to its end. Import it from `utilities/primary-press`. |
@@ -198,6 +200,11 @@ Import these from `utilities/overlay-layers`. They tell whether an open overlay 
 | `ScrollerOptions` *(type)* | Options for `getScroller`: `inline`, `overflowing`, and `stopAtClip`. |
 | `scrollWithin` | Scrolls a node into view in its nearest scrollable ancestor, and leaves each outer scroller as it is. Import it from `utilities/scroll-within`. |
 | `ScrollWithinOptions` *(type)* | Options for `scrollWithin`: `behavior`, `block`, and `inline`, as in `scrollIntoView`. |
+| `scrollNodeWithin` | Scrolls a node into view in a scroller that the caller gives, and leaves each outer scroller as it is. An axis that the caller does not give keeps its scroll position. Import it from `utilities/scroll-within`. |
+| `markStickyBar` | Writes or removes the mark of a bar that sticks to the top of its scroller. `useStickyBars` writes it on each bar that sticks at the current width. |
+| `isUnderStickyBar` | Whether a sticky bar covers all of the box of an anchor. A floating panel hides while its reference is under such a bar. Import the two from `utilities/sticky-cover`. |
+| `anchorFollowsTransforms` | Whether the browser puts an anchored box at the transformed box of its anchor. A probe reads it one time for each document. Call it only in a browser that supports anchor positioning. |
+| `inTransformedSubtree` | Whether an element or one of its ancestors in the flattened tree has a transform. Import the two from `utilities/anchor-transforms`. |
 | `forceStyleFlush` | Makes the browser compute styles and layout now, so a CSS transition has a style to start from. It is a call, not a bare `offsetHeight` read, which the React Compiler removes. |
 
 ## Keyboard navigation
