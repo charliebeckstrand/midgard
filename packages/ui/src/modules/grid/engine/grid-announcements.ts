@@ -428,17 +428,19 @@ export function describeDiscard(intl: IntlShape, changes: number): string {
 }
 
 /**
- * The polite announcement for an async inline-edit commit as it settles (WCAG
- * 4.1.3). A batch holds one row. An accepted batch reads as
- * {@link describeCommit} does (`Name updated for Alice`). A refused batch names
- * the refused cells the same way (`Name not saved for Alice`). A partial
- * acceptance speaks both parts in one message (`Name updated, 2 cells not
- * saved for Alice`). The caller announces once for each batch.
+ * The polite announcement for the cells of one write as they settle (WCAG
+ * 4.1.3). An async write gives the cells of all its batches, from one or more
+ * rows, when its last batch settles. The sync sweep gives the cells that
+ * `validate` refused. Accepted cells read as {@link describeCommit} does
+ * (`Name updated for Alice`). Refused cells read the same way (`Name not saved
+ * for Alice`). Both parts speak in one message (`Name updated, 2 cells not
+ * saved for Alice`). The caller announces once for each write.
  *
  * @param saved - The column label of each accepted cell.
  * @param refused - The column label of each refused cell.
- * @param row - The label of the row of the batch.
- * @param outcome - What the batch did to the accepted cells.
+ * @param row - The label of the row that holds the cells, or `undefined` when
+ * more than one row holds them.
+ * @param outcome - What the write did to the accepted cells.
  * @internal
  */
 export function describeSettle(
