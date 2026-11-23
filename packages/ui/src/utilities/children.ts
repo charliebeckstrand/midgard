@@ -63,6 +63,18 @@ export function flattenFragments(children: ReactNode, prefix = ''): FlatChild[] 
 }
 
 /**
+ * Whether a slot holds content. `0` is content and renders in its slot.
+ * `undefined`, `null`, `true`, `false`, `''`, an empty array, and an array or a
+ * Fragment that holds only these are empty.
+ *
+ * @internal
+ */
+export function hasContent(node: ReactNode): boolean {
+	// `Children.forEach` gives `null` for each boolean.
+	return flattenFragments(node).some((child) => child.node != null && child.node !== '')
+}
+
+/**
  * Whether a child is an element of `type`.
  *
  * @internal
