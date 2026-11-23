@@ -1755,9 +1755,17 @@
 		"defaultMessage": "Print",
 		"description": "The button that prints a PDF."
 	},
+	"ui.pdfViewer.railWidth": {
+		"defaultMessage": "{width, plural, one {# pixel} other {# pixels}}",
+		"description": "The width of the panel with the small images of the pages of a PDF, read by its resize bar."
+	},
 	"ui.pdfViewer.resetZoom": {
 		"defaultMessage": "Reset zoom",
 		"description": "The button that sets the zoom of a PDF back to 100%."
+	},
+	"ui.pdfViewer.resizePages": {
+		"defaultMessage": "Resize pages",
+		"description": "The name of the bar on the edge of the panel with the small images of the pages of a PDF. A drag or the arrow keys change the width of the panel."
 	},
 	"ui.pdfViewer.rotate": {
 		"defaultMessage": "Rotate",

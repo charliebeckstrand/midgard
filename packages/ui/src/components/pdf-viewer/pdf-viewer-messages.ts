@@ -9,6 +9,8 @@ type PdfViewerValues = {
 	showThumbnails: Record<never, never>
 	hideThumbnails: Record<never, never>
 	pages: Record<never, never>
+	resizePages: Record<never, never>
+	railWidth: { width: number }
 	showHighlights: Record<never, never>
 	hideHighlights: Record<never, never>
 	magnifierOn: Record<never, never>
@@ -88,6 +90,18 @@ export const pdfViewerMessages: MessageSet<PdfViewerValues> = defineMessages<Pdf
 		id: 'ui.pdfViewer.pages',
 		defaultMessage: 'Pages',
 		description: 'The title of the panel with the small images of the pages of a PDF.',
+	},
+	resizePages: {
+		id: 'ui.pdfViewer.resizePages',
+		defaultMessage: 'Resize pages',
+		description:
+			'The name of the bar on the edge of the panel with the small images of the pages of a PDF. A drag or the arrow keys change the width of the panel.',
+	},
+	railWidth: {
+		id: 'ui.pdfViewer.railWidth',
+		defaultMessage: '{width, plural, one {# pixel} other {# pixels}}',
+		description:
+			'The width of the panel with the small images of the pages of a PDF, read by its resize bar.',
 	},
 	showHighlights: {
 		id: 'ui.pdfViewer.showHighlights',
