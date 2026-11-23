@@ -222,7 +222,7 @@ type PanelResize = {
 
 /**
  * Resize engine for {@link ResizableGroup}: normalized panel sizes, the active
- * drag index, and the pointer/keyboard `startDrag`/`resize` actions. Sizes are
+ * drag index, and the pointer/keyboard `startDrag`/`resize`/`reset` actions. Sizes are
  * percentages summing to 100; pointer drags attach document listeners and
  * redistribute adjacent panels within their min/max via `clampPair`.
  *
@@ -295,6 +295,27 @@ export function useResizablePanel({
 		setSizes(clamped)
 
 		reportSizes(clamped)
+	})
+
+	// The reset moves the handle back to where the defaults of its two panels put
+	// it. The pair keeps its sum, so the other panels do not move.
+	const reset = useStableEvent((handleIndex: number) => {
+		const seed = seedSizes(panelConfigs)
+
+		const left = sizes[handleIndex]
+		const right = sizes[handleIndex + 1]
+		const seedLeft = seed[handleIndex]
+		const seedRight = seed[handleIndex + 1]
+
+		if (left === undefined || right === undefined) return
+
+		if (seedLeft === undefined || seedRight === undefined) return
+
+		const seedTotal = seedLeft + seedRight
+
+		if (seedTotal <= 0) return
+
+		resize(handleIndex, ((left + right) * seedLeft) / seedTotal - left)
 	})
 
 	const startDrag = useStableEvent((handleIndex: number, event: ReactPointerEvent) => {
@@ -471,5 +492,5 @@ export function useResizablePanel({
 		return () => cleanupRef.current?.()
 	}, [])
 
-	return { sizes, dragging, startDrag, resize }
+	return { sizes, dragging, startDrag, resize, reset }
 }

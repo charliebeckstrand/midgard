@@ -98,7 +98,7 @@ export function ResizableGroup({
 		[children],
 	)
 
-	const { sizes, dragging, startDrag, resize } = useResizablePanel({
+	const { sizes, dragging, startDrag, resize, reset } = useResizablePanel({
 		groupRef,
 		orientation,
 		panelConfigs,
@@ -140,8 +140,8 @@ export function ResizableGroup({
 	}, [children])
 
 	const contextValue = useMemo(
-		() => ({ orientation, dragging, sizes, panelConfigs, startDrag, resize, panelId }),
-		[orientation, dragging, sizes, panelConfigs, startDrag, resize, panelId],
+		() => ({ orientation, dragging, sizes, panelConfigs, startDrag, resize, reset, panelId }),
+		[orientation, dragging, sizes, panelConfigs, startDrag, resize, reset, panelId],
 	)
 
 	return (

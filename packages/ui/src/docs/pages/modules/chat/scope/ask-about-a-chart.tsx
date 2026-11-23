@@ -8,6 +8,7 @@ import {
 	useChatDraft,
 	useChatSend,
 } from 'ui/chat'
+import { ResizableGroup, ResizableHandle, ResizablePanel } from 'ui/resizable'
 import { Stack } from 'ui/stack'
 import { dayNames as day } from '../../../../data/calendar.ts'
 
@@ -87,11 +88,20 @@ export default function AskAboutAChart() {
 	return (
 		<Stack gap="lg">
 			<Stack gap="sm">
-				<BarChart
-					aria-label={dataset.label}
-					data={DAYS}
-					series={[{ xKey: 'day', yKey: 'late', yName: 'Late stops' }]}
-				/>
+				{/* The chart starts at half of the column, so it is not too tall. The
+				    handle at its end edge sets the width, from 30% to the full column,
+				    and a double-click on the handle gives the half again. */}
+				<ResizableGroup>
+					<ResizablePanel defaultSize={50} minSize={30}>
+						<BarChart
+							aria-label={dataset.label}
+							data={DAYS}
+							series={[{ xKey: 'day', yKey: 'late', yName: 'Late stops' }]}
+						/>
+					</ResizablePanel>
+					<ResizableHandle aria-label="Resize the chart" />
+					<ResizablePanel defaultSize={50} />
+				</ResizableGroup>
 				<Button variant="outline" className="self-start" onClick={ask}>
 					Ask about this chart
 				</Button>

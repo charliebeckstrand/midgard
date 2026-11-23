@@ -12,6 +12,8 @@ type ResizableContextType = {
 	panelConfigs: PanelConfig[]
 	startDrag: (handleIndex: number, event: ReactPointerEvent) => void
 	resize: (handleIndex: number, delta: number) => void
+	/** Moves a handle back to where the default sizes of its two panels put it. */
+	reset: (handleIndex: number) => void
 	/** Gives the id of the panel at an index, so a handle can name the panel that it sizes in `aria-controls`. */
 	panelId: (panelIndex: number) => string
 }

@@ -251,6 +251,73 @@ describe('Resizable: keyboard', () => {
 	})
 })
 
+describe('Resizable: double-click', () => {
+	it('moves the handle back to the default sizes of its panels', () => {
+		const onSizesChange = vi.fn()
+
+		const { container } = renderPair({
+			group: { onSizesChange },
+			a: { defaultSize: 50 },
+			b: { defaultSize: 50 },
+		})
+
+		const handle = getSlot(container, 'resizable-handle')
+
+		fireEvent.keyDown(handle, { key: 'ArrowRight', shiftKey: true })
+
+		fireEvent.doubleClick(handle)
+
+		expect(onSizesChange.mock.calls.at(-1)?.[0]).toEqual([50, 50])
+
+		expect(handle).toHaveAttribute('aria-valuenow', '50')
+	})
+
+	it('resets only the pair beside the handle, in the ratio of their defaults', () => {
+		const onSizesChange = vi.fn()
+
+		const { container } = renderUI(
+			<ResizableGroup onSizesChange={onSizesChange}>
+				<ResizablePanel defaultSize={20}>A</ResizablePanel>
+				<ResizableHandle />
+				<ResizablePanel defaultSize={30}>B</ResizablePanel>
+				<ResizableHandle />
+				<ResizablePanel defaultSize={50}>C</ResizablePanel>
+			</ResizableGroup>,
+		)
+
+		const [first, second] = allBySlot(container, 'resizable-handle')
+
+		if (!first || !second) throw new Error('two handles')
+
+		fireEvent.keyDown(first, { key: 'ArrowRight' })
+
+		fireEvent.keyDown(second, { key: 'ArrowRight', shiftKey: true })
+
+		expect(onSizesChange.mock.calls.at(-1)?.[0]).toEqual([25, 35, 40])
+
+		// B and C hold 75%. Their defaults are 30 and 50, so B gets 3/8 of it.
+		fireEvent.doubleClick(second)
+
+		expect(onSizesChange.mock.calls.at(-1)?.[0]).toEqual([25, 28.125, 46.875])
+	})
+
+	it('lets the consumer cancel the reset', () => {
+		const onSizesChange = vi.fn()
+
+		const { container } = renderUI(
+			<ResizableGroup onSizesChange={onSizesChange}>
+				<ResizablePanel>A</ResizablePanel>
+				<ResizableHandle onDoubleClick={(event) => event.preventDefault()} />
+				<ResizablePanel>B</ResizablePanel>
+			</ResizableGroup>,
+		)
+
+		fireEvent.doubleClick(getSlot(container, 'resizable-handle'))
+
+		expect(onSizesChange).not.toHaveBeenCalled()
+	})
+})
+
 describe('Resizable: drag', () => {
 	it('sets data-dragging on the handle during pointer drag', () => {
 		const { container } = renderPair({ a: { defaultSize: 50 }, b: { defaultSize: 50 } })
