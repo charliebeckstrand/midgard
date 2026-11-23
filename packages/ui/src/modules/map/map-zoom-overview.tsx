@@ -4,28 +4,26 @@ import { type PointerEvent, useRef } from 'react'
 import { cn } from '../../core/cn'
 import { useDragCursorHold } from '../../hooks/use-drag-cursor'
 import { k } from '../../recipes/kata/map'
+import { getOrCompute } from '../../utilities/get-or-compute'
 import { holdTextSelection } from '../../utilities/hold-text-selection'
 import { isPrimaryPress } from '../../utilities/primary-press'
 import { useMapZoomView } from './context'
 import { MAP_ZOOM_FIT } from './engine/map-constants'
 import { clientToFrame, type MapClientBox } from './engine/map-projection/frame'
-import {
-	type MapTransform,
-	type MapViewFrame,
-	transformAttribute,
-} from './engine/map-zoom/transform'
+import { invertTransform, transformAttribute } from './engine/map-zoom/transform'
+import type { MapZoomControlsPlacement } from './engine/types'
+import type { MapFrameShape } from './use-map-shape'
 import type { MapZoom } from './use-map-zoom'
 
-/** Props for {@link MapZoomOverview}: the geography to draw, and the corner to sit in. @internal */
+/** Props for {@link MapZoomOverview}: the geography to draw, and the side of the zoom buttons. @internal */
 type MapZoomOverviewProps = {
-	/** The canonical region paths of the plat, as the region layer takes them. */
-	paths: readonly (string | null)[]
-	/** The transform that carries the canonical paths onto the drawn frame, or `null` where they sit in it. */
-	frame: MapTransform | null
-	/** The drawn frame, which the inset shows whole. */
-	view: MapViewFrame
-	/** The bottom corner the inset sits in: the side of the zoom buttons. */
-	side: 'left' | 'right'
+	/** The region paths, the transform that carries them onto the drawn frame, and that frame. */
+	shape: Pick<MapFrameShape, 'paths' | 'regionFrame' | 'viewWidth' | 'viewHeight'>
+	/**
+	 * The side of the zoom buttons, or `null` for none. The inset takes the
+	 * bottom corner on the left for `left`, and on the right in every other case.
+	 */
+	controls: MapZoomControlsPlacement | null
 }
 
 /**
@@ -61,17 +59,17 @@ export function MapZoomOverview(props: MapZoomOverviewProps) {
  * @internal
  */
 function MapZoomOverviewInset({
-	paths,
-	frame,
-	view,
-	side,
+	shape: { paths, regionFrame: frame, viewWidth, viewHeight },
+	controls,
 	zoom,
 }: MapZoomOverviewProps & { zoom: MapZoom }) {
-	const svgRef = useRef<SVGSVGElement>(null)
+	const view = { width: viewWidth, height: viewHeight }
 
-	// The box of the thumbnail, read once when a press lands. The press moves
-	// the view and not the inset, so the box holds for the whole drag, and a
-	// move does not force a layout after the transform it just wrote.
+	// The box of the thumbnail while a press holds it, else `null`. It is read
+	// once when the press lands: the press moves the view and not the inset, so
+	// the box holds for the whole drag, and a move does not force a layout after
+	// the transform it just wrote. The SVG fills the inset, so the inset's box is
+	// the SVG's.
 	const box = useRef<MapClientBox | null>(null)
 
 	// A press drags the view, so it holds the closed hand on the page, as a pan
@@ -82,8 +80,7 @@ function MapZoomOverviewInset({
 
 	// The part of the fitted frame that the view shows.
 	const shown = {
-		x: -transform.x / transform.k,
-		y: -transform.y / transform.k,
+		...invertTransform({ x: 0, y: 0 }, transform),
 		width: view.width / transform.k,
 		height: view.height / transform.k,
 	}
@@ -101,13 +98,13 @@ function MapZoomOverviewInset({
 	function onPointerDown(event: PointerEvent<HTMLElement>) {
 		event.stopPropagation()
 
-		if (!isPrimaryPress(event) || svgRef.current === null) return
+		if (!isPrimaryPress(event)) return
 
 		holdTextSelection(event)
 
 		event.currentTarget.setPointerCapture(event.pointerId)
 
-		box.current = svgRef.current.getBoundingClientRect()
+		box.current = event.currentTarget.getBoundingClientRect()
 
 		cursorHold.start()
 
@@ -117,7 +114,7 @@ function MapZoomOverviewInset({
 	function onPointerMove(event: PointerEvent<HTMLElement>) {
 		event.stopPropagation()
 
-		if (box.current !== null && event.currentTarget.hasPointerCapture(event.pointerId)) aim(event)
+		aim(event)
 	}
 
 	function onPointerEnd(event: PointerEvent<HTMLElement>) {
@@ -132,7 +129,7 @@ function MapZoomOverviewInset({
 		<div
 			data-slot="map-zoom-overview"
 			aria-hidden="true"
-			className={cn(k.overview.base, k.overview[side])}
+			className={cn(k.overview.base, controls === 'left' ? k.overview.left : k.overview.right)}
 			style={{ aspectRatio: `${view.width} / ${view.height}` }}
 			onPointerDown={onPointerDown}
 			onPointerMove={onPointerMove}
@@ -142,7 +139,6 @@ function MapZoomOverviewInset({
 			onClick={(event) => event.stopPropagation()}
 		>
 			<svg
-				ref={svgRef}
 				aria-hidden="true"
 				className="block size-full"
 				viewBox={`0 0 ${view.width} ${view.height}`}
@@ -186,13 +182,5 @@ const LAND = new WeakMap<readonly (string | null)[], string>()
  * @internal
  */
 function landPath(paths: readonly (string | null)[]): string {
-	const held = LAND.get(paths)
-
-	if (held !== undefined) return held
-
-	const joined = paths.filter((d) => d !== null).join('')
-
-	LAND.set(paths, joined)
-
-	return joined
+	return getOrCompute(LAND, paths, () => paths.filter((d) => d !== null).join(''))
 }

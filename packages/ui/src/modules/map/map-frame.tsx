@@ -219,8 +219,8 @@ type MapPlotRegionProps = Pick<ComponentProps<'div'>, 'aria-label' | 'aria-label
 	keyboard: Omit<MapKeyboardOptions, 'zoom'>
 	/** Where a zooming plot shows its zoom buttons ({@link MapZoomControls}), or `null` for none. */
 	controls: MapZoomControlsPlacement | null
-	/** What the overview inset draws ({@link MapZoomOverview}), or `null` for none. */
-	overview: ComponentProps<typeof MapZoomOverview> | null
+	/** Whether a zoomed view shows the overview inset ({@link MapZoomOverview}). */
+	overview: boolean
 	children: ReactNode
 }
 
@@ -328,7 +328,7 @@ export function MapPlotRegion({
 			</ChartPlotBox>
 
 			{/* Before the tooltip, so a readout near the corner paints over it. */}
-			{overview !== null && <MapZoomOverview {...overview} />}
+			{overview && <MapZoomOverview shape={shape} controls={controls} />}
 
 			{tooltip}
 		</div>

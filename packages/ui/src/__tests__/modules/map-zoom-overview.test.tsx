@@ -9,7 +9,7 @@ import { categoricalPlat } from '../helpers/map-plat'
  * ground under it, and a drag moves the view along.
  */
 
-/** Where the inset's SVG sits, and its width. Its height takes the ratio of the frame. */
+/** Where the inset sits, and its width. Its height takes the ratio of the frame. */
 const INSET_BOX = { left: 300, top: 150, width: 100 } as const
 
 /** Renders a zooming plat with the inset, and zooms it in with the key. */
@@ -29,13 +29,13 @@ function renderOverview(extra?: Parameters<typeof categoricalPlat>[0]) {
 
 	const box = { ...INSET_BOX, height: (INSET_BOX.width * height) / width }
 
-	/** Gives the inset's SVG its box, which jsdom reports as zero. */
+	/** Gives the inset its box, which jsdom reports as zero. */
 	const measure = () => {
-		const svg = inset()?.querySelector('svg')
+		const node = inset()
 
-		if (!svg) throw new Error('no inset to measure')
+		if (node === null) throw new Error('no inset to measure')
 
-		vi.spyOn(svg, 'getBoundingClientRect').mockReturnValue({
+		vi.spyOn(node, 'getBoundingClientRect').mockReturnValue({
 			...box,
 			x: box.left,
 			y: box.top,
@@ -49,20 +49,14 @@ function renderOverview(extra?: Parameters<typeof categoricalPlat>[0]) {
 }
 
 describe('MapZoomOverview', () => {
-	it('shows nothing at the fit, and shows the inset once the view zooms in', () => {
-		const { inset, zoomIn } = renderOverview()
+	it('shows only while the view is zoomed in', () => {
+		const { inset, zoomIn, plot } = renderOverview()
 
 		expect(inset()).toBeNull()
 
 		zoomIn()
 
 		expect(inset()).toHaveAttribute('aria-hidden', 'true')
-	})
-
-	it('goes when the view returns to the fit', () => {
-		const { inset, zoomIn, plot } = renderOverview()
-
-		zoomIn()
 
 		fireEvent.keyDown(plot, { key: '0' })
 

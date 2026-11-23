@@ -81,7 +81,7 @@ import {
 } from './map-tooltip'
 import { useMapLegendRegistry } from './use-map-legend-registry'
 import { useMapRegionReadout } from './use-map-region-readout'
-import { type MapFrameShape, useMapShape } from './use-map-shape'
+import { useMapShape } from './use-map-shape'
 import { useMapToggle } from './use-map-toggle'
 
 /**
@@ -697,29 +697,6 @@ function zoomControlsPlacement(
 	if (mapZoomSettings(zoom) === null || input === false) return null
 
 	return input === true ? 'right' : input
-}
-
-/**
- * What the overview inset draws: the region paths of the plat, and the corner
- * on the side of the zoom buttons. With no buttons, or a row of them, it sits
- * at the right. It is `null` where the inset does not show: the plat asks for
- * none, or the map does not zoom.
- *
- * @internal
- */
-function overviewInset(
-	shown: boolean,
-	shape: Pick<MapFrameShape, 'paths' | 'regionFrame' | 'viewWidth' | 'viewHeight'>,
-	controls: MapZoomControlsPlacement | null,
-) {
-	if (!shown) return null
-
-	return {
-		paths: shape.paths,
-		frame: shape.regionFrame,
-		view: { width: shape.viewWidth, height: shape.viewHeight },
-		side: controls === 'left' ? ('left' as const) : ('right' as const),
-	}
 }
 
 /** Whether the zoom buttons take a gutter beside the plot, which takes a share of its width. @internal */
@@ -1842,7 +1819,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 					shape={shape}
 					aside={aside}
 					controls={controlsPlacement}
-					overview={overviewInset(zoomOverview && zoomable, shape, controlsPlacement)}
+					overview={zoomOverview}
 					keyboard={{
 						enabled: navigable,
 						activate: activateTarget,
