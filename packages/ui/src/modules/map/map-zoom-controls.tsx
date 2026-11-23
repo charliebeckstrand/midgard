@@ -47,6 +47,8 @@ export function MapZoomControls({
 		announce(intl.formatMessage(mapMessages.zoomReset))
 	}
 
+	// The tooltips face away from the plot, across the axis of the group. A
+	// flip then puts a tooltip on the plot, never on the next button.
 	return (
 		// biome-ignore lint/a11y/useSemanticElements: a fieldset is a form part, and the group holds no field.
 		<div
@@ -60,18 +62,21 @@ export function MapZoomControls({
 		>
 			<ButtonIconTooltip
 				label={intl.formatMessage(mapMessages.zoomIn)}
+				tooltipPlacement={placement}
 				icon={<ZoomIn />}
 				disabled={transform.k >= max}
 				onClick={() => step('in')}
 			/>
 			<ButtonIconTooltip
 				label={intl.formatMessage(mapMessages.zoomOut)}
+				tooltipPlacement={placement}
 				icon={<ZoomOut />}
 				disabled={transform.k <= MAP_ZOOM_FIT}
 				onClick={() => step('out')}
 			/>
 			<ButtonIconTooltip
 				label={intl.formatMessage(mapMessages.zoomFit)}
+				tooltipPlacement={placement}
 				icon={<Maximize2 />}
 				disabled={sameTransform(transform, MAP_FIT_TRANSFORM)}
 				onClick={fit}
