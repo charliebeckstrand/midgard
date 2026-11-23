@@ -299,6 +299,7 @@ export function useGridDataRender<T>(
 		rowSelectable: selectionConfig?.rowSelectable,
 		paginated: pagination != null,
 		cursorEnabled: cursor.cursorEnabled,
+		cursorOrder: groupingActive || detail.active,
 		cursorNewRow: cursor.newRow,
 		reconcile: cursor.reconcile,
 		onRowClick,

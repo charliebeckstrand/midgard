@@ -58,6 +58,8 @@ export type MountOptions = {
 	grouped?: boolean
 	/** Starts each group closed, for the expand scenario. The grid must mount with {@link MountOptions.grouped}. */
 	collapsed?: boolean
+	/** Gives the grid the keyboard cursor, which follows its cell through a sort. */
+	navigable?: boolean
 }
 
 /** The rows on each page of a paginated grid. */
@@ -205,6 +207,7 @@ function uiGrid(): GridSubject {
 							}
 							rows={current}
 							getKey={shipmentKey}
+							navigable={options?.navigable}
 							virtualize
 							maxHeight={`${GRID_HEIGHT}px`}
 							sort={{ value: sort }}
