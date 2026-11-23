@@ -2,6 +2,7 @@
 
 import { type ComponentProps, useId } from 'react'
 import { cn } from '../../core/cn'
+import { useAriaIds } from '../../hooks/use-aria-ids'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
@@ -223,6 +224,8 @@ function LayeredBar({
 
 	const description = useDescription(single ? [] : parts, marks, max)
 
+	const ariaDescribedBy = useAriaIds(describedBy, description ? descriptionId : null)
+
 	const labelled = marks.some((mark) => mark.label)
 
 	return (
@@ -238,9 +241,7 @@ function LayeredBar({
 						'aria-valuemax': max,
 					}
 				: { role: 'img' })}
-			aria-describedby={
-				[describedBy, description ? descriptionId : null].filter(Boolean).join(' ') || undefined
-			}
+			aria-describedby={ariaDescribedBy}
 			className={cn(k().base, k().bar.layered, labelled && k().bar.labelled, className)}
 		>
 			<div className={k().bar.fills}>
