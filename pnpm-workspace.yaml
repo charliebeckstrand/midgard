@@ -29,7 +29,7 @@ catalog:
   react-dom: 19.3.1
   tailwindcss: ^4.3.0
   topojson-client: ^3.1.0
-  tsup: ^8.5.1
+  tsup: ^9.0.0
   tsx: ^4.19.0
   typescript: ^7.0.2
   us-atlas: ^3.0.1

@@ -1,4 +1,5 @@
 import { Example } from '../../../../kit/index.ts'
+import PreviewsOnHover from './previews-on-hover.tsx'
 import SelectsInAChart from './selects-in-a-chart.tsx'
 import SelectsInAMapAndAChart from './selects-in-a-map-and-a-chart.tsx'
 
@@ -7,6 +8,7 @@ export default function CitationsTab() {
 		<>
 			<Example of={SelectsInAChart} surface />
 			<Example of={SelectsInAMapAndAChart} surface />
+			<Example of={PreviewsOnHover} surface />
 		</>
 	)
 }

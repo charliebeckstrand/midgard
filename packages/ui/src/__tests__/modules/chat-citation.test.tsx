@@ -1,16 +1,19 @@
 import { useState } from 'react'
 import { renderToString } from 'react-dom/server'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
 	type ChatCitation,
 	ChatCitationProvider,
+	type ChatCitationTrigger,
 	ChatMessage,
 	type ChatPart,
 	toCategorySelection,
 	toRegionSelection,
 	toStopSelection,
 } from '../../modules/chat'
-import { allBySlot, bySlot, renderUI, screen, userEvent } from '../helpers'
+import { toCitationMode } from '../../modules/chat/use-chat-citation-trigger'
+import { __resetLastInput } from '../../utilities/last-input'
+import { act, allBySlot, bySlot, renderUI, screen, userEvent } from '../helpers'
 
 const SOURCE = 'Twelve stops are late, most of them on **Tuesday**.'
 
@@ -31,15 +34,18 @@ const targets = { 'late-by-day': { label: 'Late stops by day' } }
 function Cited({
 	citations,
 	onCitedChange,
+	trigger,
 }: {
 	citations: ChatCitation[]
 	onCitedChange?: (c: ChatCitation | null) => void
+	trigger?: ChatCitationTrigger
 }) {
 	const [cited, setCited] = useState<ChatCitation | null>(null)
 
 	return (
 		<ChatCitationProvider
 			targets={targets}
+			trigger={trigger}
 			cited={cited}
 			onCitedChange={(citation) => {
 				onCitedChange?.(citation)
@@ -222,6 +228,348 @@ describe('ChatCitationProvider', () => {
 		)
 
 		expect(screen.getAllByRole('button')).toHaveLength(2)
+	})
+})
+
+describe('ChatCitationProvider trigger', () => {
+	const late = cite('late', 'Twelve stops are late')
+
+	const tuesday = cite('tue', 'on **Tuesday**')
+
+	beforeEach(() => __resetLastInput())
+
+	/** Moves a mouse from one node to the next. React makes enter and leave from over and out. */
+	function move(from: Element, to: Element) {
+		const init = { pointerType: 'mouse', bubbles: true }
+
+		from.dispatchEvent(new PointerEvent('pointerout', { ...init, relatedTarget: to }))
+
+		to.dispatchEvent(new PointerEvent('pointerover', { ...init, relatedTarget: from }))
+	}
+
+	function setup(trigger: ChatCitationTrigger, citations = [late, tuesday]) {
+		const onCitedChange = vi.fn()
+
+		const user = userEvent.setup()
+
+		const view = renderUI(
+			<Cited citations={citations} onCitedChange={onCitedChange} trigger={trigger} />,
+		)
+
+		const anchor = (name: string) => screen.getByRole('button', { name })
+
+		return { ...view, user, onCitedChange, anchor }
+	}
+
+	it('applies a hover citation while the pointer is on it, and clears it on leave', async () => {
+		const { user, onCitedChange, anchor } = setup('hover')
+
+		await user.hover(anchor('Twelve stops are late'))
+
+		expect(onCitedChange).toHaveBeenLastCalledWith(expect.objectContaining({ id: 'late' }))
+
+		// A preview is not a press.
+		expect(anchor('Twelve stops are late')).toHaveAttribute('aria-pressed', 'false')
+
+		await user.unhover(anchor('Twelve stops are late'))
+
+		expect(onCitedChange).toHaveBeenLastCalledWith(null)
+
+		expect(onCitedChange).toHaveBeenCalledTimes(2)
+	})
+
+	it('does nothing on a click or Enter with a hover trigger', async () => {
+		const { user, onCitedChange, anchor } = setup('hover')
+
+		await user.click(anchor('Twelve stops are late'))
+
+		await user.unhover(anchor('Twelve stops are late'))
+
+		onCitedChange.mockClear()
+
+		anchor('Twelve stops are late').focus()
+
+		await user.keyboard('{Enter}')
+
+		expect(onCitedChange).not.toHaveBeenCalled()
+	})
+
+	it('previews a hover citation on a keyboard focus, and clears it on blur and on Escape', async () => {
+		const { user, onCitedChange } = setup('hover')
+
+		await user.tab()
+
+		expect(onCitedChange).toHaveBeenLastCalledWith(expect.objectContaining({ id: 'late' }))
+
+		await user.keyboard('{Escape}')
+
+		expect(onCitedChange).toHaveBeenLastCalledWith(null)
+
+		await user.tab()
+
+		expect(onCitedChange).toHaveBeenLastCalledWith(expect.objectContaining({ id: 'tue' }))
+
+		await user.tab()
+
+		expect(onCitedChange).toHaveBeenLastCalledWith(null)
+	})
+
+	it('toggles a hover citation on a tap, as a touch screen has no hover', async () => {
+		const { user, onCitedChange, anchor } = setup('hover')
+
+		await user.pointer({ keys: '[TouchA]', target: anchor('Twelve stops are late') })
+
+		expect(onCitedChange).toHaveBeenCalledTimes(1)
+
+		expect(onCitedChange).toHaveBeenLastCalledWith(expect.objectContaining({ id: 'late' }))
+
+		expect(anchor('Twelve stops are late')).toHaveAttribute('aria-pressed', 'true')
+	})
+
+	it('previews a hover and click citation on hover, and keeps it after a click', async () => {
+		const { user, onCitedChange, anchor } = setup(['hover', 'click'])
+
+		await user.hover(anchor('Twelve stops are late'))
+
+		expect(anchor('Twelve stops are late')).toHaveAttribute('aria-pressed', 'false')
+
+		await user.click(anchor('Twelve stops are late'))
+
+		expect(anchor('Twelve stops are late')).toHaveAttribute('aria-pressed', 'true')
+
+		await user.unhover(anchor('Twelve stops are late'))
+
+		expect(onCitedChange).toHaveBeenCalledTimes(1)
+
+		expect(onCitedChange).toHaveBeenLastCalledWith(expect.objectContaining({ id: 'late' }))
+	})
+
+	it('releases a kept hover and click citation on a second click, and clears it on leave', async () => {
+		const { user, onCitedChange, anchor } = setup(['hover', 'click'])
+
+		await user.click(anchor('Twelve stops are late'))
+
+		await user.click(anchor('Twelve stops are late'))
+
+		expect(anchor('Twelve stops are late')).toHaveAttribute('aria-pressed', 'false')
+
+		// The preview stays while the pointer is on the citation.
+		expect(onCitedChange).toHaveBeenLastCalledWith(expect.objectContaining({ id: 'late' }))
+
+		await user.unhover(anchor('Twelve stops are late'))
+
+		expect(onCitedChange).toHaveBeenLastCalledWith(null)
+	})
+
+	it('gives back the kept citation when the preview of another ends', async () => {
+		const { user, onCitedChange, anchor } = setup(['hover', 'click'])
+
+		await user.click(anchor('Twelve stops are late'))
+
+		await user.hover(anchor('on Tuesday'))
+
+		expect(onCitedChange).toHaveBeenLastCalledWith(expect.objectContaining({ id: 'tue' }))
+
+		expect(anchor('Twelve stops are late')).toHaveAttribute('aria-pressed', 'true')
+
+		await user.unhover(anchor('on Tuesday'))
+
+		expect(onCitedChange).toHaveBeenLastCalledWith(expect.objectContaining({ id: 'late' }))
+	})
+
+	it('keeps the kept citation when the pointer moves from one preview to the next before a render', () => {
+		const { onCitedChange, anchor } = setup(['hover', 'click'])
+
+		act(() => anchor('Twelve stops are late').click())
+
+		const late = anchor('Twelve stops are late')
+
+		const tue = anchor('on Tuesday')
+
+		// One act holds the events, so no render comes between them.
+		act(() => {
+			move(document.body, tue)
+
+			move(tue, late)
+
+			move(late, document.body)
+		})
+
+		expect(onCitedChange.mock.calls.map(([citation]) => citation?.id ?? null)).toEqual([
+			'late',
+			'tue',
+			'late',
+		])
+
+		expect(anchor('Twelve stops are late')).toHaveAttribute('aria-pressed', 'true')
+	})
+
+	it('keeps the preview while the pointer moves to the bold piece of the citation', () => {
+		const { onCitedChange, container } = setup(['hover', 'click'], [tuesday])
+
+		const [anchor] = allBySlot(container, 'chat-citation')
+
+		const [piece] = allBySlot(container, 'chat-citation-piece')
+
+		if (!anchor || !piece) throw new Error('no pieces')
+
+		// user-event gives no relatedTarget, and the piece reads it.
+		act(() => move(document.body, anchor))
+
+		act(() => move(anchor, piece))
+
+		expect(onCitedChange).toHaveBeenCalledTimes(1)
+
+		act(() => move(piece, document.body))
+
+		expect(onCitedChange).toHaveBeenLastCalledWith(null)
+	})
+
+	it('keeps a hover and click citation that Enter presses after the focus leaves', async () => {
+		const { user, onCitedChange, anchor } = setup(['hover', 'click'])
+
+		await user.tab()
+
+		await user.keyboard('{Enter}')
+
+		await user.tab()
+
+		expect(anchor('Twelve stops are late')).toHaveAttribute('aria-pressed', 'true')
+
+		// The focus on the next citation previews it.
+		expect(onCitedChange).toHaveBeenLastCalledWith(expect.objectContaining({ id: 'tue' }))
+
+		await user.tab()
+
+		expect(onCitedChange).toHaveBeenLastCalledWith(expect.objectContaining({ id: 'late' }))
+	})
+
+	/** A provider whose app clears `cited` from outside, as a pick in a tile does. */
+	function Clearable({
+		trigger,
+		onCitedChange,
+	}: {
+		trigger: ChatCitationTrigger
+		onCitedChange: (citation: ChatCitation | null) => void
+	}) {
+		const [cited, setCited] = useState<ChatCitation | null>(null)
+
+		return (
+			<>
+				<ChatCitationProvider
+					targets={targets}
+					trigger={trigger}
+					cited={cited}
+					onCitedChange={(citation) => {
+						onCitedChange(citation)
+
+						setCited(citation)
+					}}
+				>
+					<ChatMessage sender="assistant">{reply([late])}</ChatMessage>
+				</ChatCitationProvider>
+				<button type="button" onClick={() => setCited(null)}>
+					Pick in a tile
+				</button>
+			</>
+		)
+	}
+
+	it('presses a citation again after the app clears it', async () => {
+		const onCitedChange = vi.fn()
+
+		const user = userEvent.setup()
+
+		renderUI(<Clearable trigger="click" onCitedChange={onCitedChange} />)
+
+		const citation = screen.getByRole('button', { name: 'Twelve stops are late' })
+
+		await user.click(citation)
+
+		await user.click(screen.getByRole('button', { name: 'Pick in a tile' }))
+
+		expect(citation).toHaveAttribute('aria-pressed', 'false')
+
+		await user.click(citation)
+
+		expect(onCitedChange).toHaveBeenLastCalledWith(expect.objectContaining({ id: 'late' }))
+
+		expect(citation).toHaveAttribute('aria-pressed', 'true')
+	})
+
+	it('sends nothing at the end of a preview that the app cleared', () => {
+		const onCitedChange = vi.fn()
+
+		renderUI(<Clearable trigger={['hover', 'click']} onCitedChange={onCitedChange} />)
+
+		const citation = screen.getByRole('button', { name: 'Twelve stops are late' })
+
+		act(() => move(document.body, citation))
+
+		act(() => screen.getByRole('button', { name: 'Pick in a tile' }).click())
+
+		act(() => move(citation, document.body))
+
+		expect(onCitedChange).toHaveBeenCalledTimes(1)
+	})
+
+	it('reads `cited` again when the app does not take a sent value', async () => {
+		const onCitedChange = vi.fn()
+
+		const user = userEvent.setup()
+
+		renderUI(
+			<ChatCitationProvider targets={targets} cited={null} onCitedChange={onCitedChange}>
+				<ChatMessage sender="assistant">{reply([late])}</ChatMessage>
+			</ChatCitationProvider>,
+		)
+
+		const citation = screen.getByRole('button', { name: 'Twelve stops are late' })
+
+		await user.click(citation)
+
+		await user.click(citation)
+
+		expect(onCitedChange.mock.calls.map(([value]) => value?.id ?? null)).toEqual(['late', 'late'])
+	})
+
+	it.each([
+		['click', 'click'],
+		['hover', 'hover'],
+		[['click'], 'click'],
+		[['hover'], 'hover'],
+		[['hover', 'click'], 'hover-click'],
+		[['click', 'hover'], 'hover-click'],
+	] as const)('reads the trigger %j as the mode %s', (trigger, mode) => {
+		expect(toCitationMode(trigger)).toBe(mode)
+	})
+
+	it('takes no hover with the click default', async () => {
+		const { user, onCitedChange, anchor } = setup('click')
+
+		await user.hover(anchor('Twelve stops are late'))
+
+		await user.tab()
+
+		expect(onCitedChange).not.toHaveBeenCalled()
+	})
+
+	it('takes the trigger of the outer provider under an inner one that gives none', async () => {
+		const onCitedChange = vi.fn()
+
+		const user = userEvent.setup()
+
+		renderUI(
+			<ChatCitationProvider targets={targets} cited={null} onCitedChange={() => {}} trigger="hover">
+				<ChatCitationProvider targets={{}} cited={null} onCitedChange={onCitedChange}>
+					<ChatMessage sender="assistant">{reply([late])}</ChatMessage>
+				</ChatCitationProvider>
+			</ChatCitationProvider>,
+		)
+
+		await user.hover(screen.getByRole('button'))
+
+		expect(onCitedChange).toHaveBeenLastCalledWith(expect.objectContaining({ id: 'late' }))
 	})
 })
 

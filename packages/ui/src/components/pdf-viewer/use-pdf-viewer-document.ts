@@ -20,6 +20,7 @@ import {
 	sizePage,
 	subscribeDocument,
 } from './pdf-viewer-document-cache'
+import { PDF_VIEWER_THUMBNAIL_WIDTH } from './pdf-viewer-rail'
 import type { PdfViewerSlot } from './types'
 
 /**
@@ -161,15 +162,6 @@ type PdfDocumentResult = PdfDocumentSnapshot & {
 }
 
 /**
- * The width of a thumbnail in CSS pixels: the rail, less its padding.
- *
- * @remarks The raster is this width times the device pixel ratio, up to 2x. So a thumbnail is
- * sharp on a dense screen and costs no more than the rail can show.
- * @internal
- */
-const THUMBNAIL_WIDTH = 192
-
-/**
  * The device pixels that a render draws for each CSS pixel: the device pixel ratio, from `min`
  * up to 2.
  *
@@ -207,7 +199,7 @@ function renderPage(page: PDFPageProxy, raster: PdfPageRaster, scale: number): P
 		scale:
 			raster === 'full'
 				? Math.min(scale, Math.sqrt(MAX_RASTER_PIXELS / (points.width * points.height)))
-				: Math.min(scale, (THUMBNAIL_WIDTH * density) / points.width),
+				: Math.min(scale, (PDF_VIEWER_THUMBNAIL_WIDTH * density) / points.width),
 	})
 
 	const canvas = document.createElement('canvas')
