@@ -36,8 +36,8 @@ export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
 	/**
 	 * Control slot rendered as a right-justified row below the field; its
 	 * presence pins `resize: none`. `null` and `false` count as absent. A press
-	 * on a button in the row does not move the focus, and the button still
-	 * gets the click. Under `<HeadlessProvider>`, there is no row, so a press
+	 * on a button in the row, or on the empty part of the row, does not move
+	 * the focus, and the button still gets the click. Under `<HeadlessProvider>`, there is no row, so a press
 	 * moves the focus as usual.
 	 */
 	actions?: ReactNode
@@ -71,8 +71,8 @@ export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
  * because that property ignores `rows` and is not in each browser at the
  * floor. With `actions`, the frame stacks the field above a right-justified
  * actions row.
- * A press on a button in the actions row cancels the default of its
- * `mousedown`, so the focus stays where it was. Thus a press does not show the
+ * A press on a button in the actions row, or on the empty part of the row,
+ * cancels the default of its `mousedown`, so the focus stays where it was. Thus a press does not show the
  * focus ring of the frame, and it does not take the focus from the field.
  * The Tab key still moves the focus to the buttons. Under
  * `<HeadlessProvider>`, the row renders no element to hold this guard. The
@@ -174,18 +174,22 @@ export function Textarea({
 }
 
 /**
- * Cancels the focus move of a press in the actions row: on a button, or on the
- * gap between the actions. The frame looks like one field, so the focus stays
- * in the textarea. The click still fires. A press on a field, such as a
- * `<select>`, keeps its default, because that field opens or takes text on the
- * press.
+ * Cancels the focus move of a press on a button in the actions row, or on the
+ * empty part of the row. The frame looks like one field, so the focus stays
+ * where it was. The click still fires. A press on another control, such as a
+ * `<select>`, keeps its default, because that control opens or takes text on
+ * the press.
  */
 function keepFocusOnPress(event: MouseEvent<HTMLElement>) {
 	if (!(event.target instanceof Element)) return
 
-	const field = event.target.closest('input, select, textarea')
+	if (event.target === event.currentTarget) {
+		event.preventDefault()
 
-	if (field && event.currentTarget.contains(field)) return
+		return
+	}
 
-	event.preventDefault()
+	const button = event.target.closest('button, [role="button"]')
+
+	if (button && event.currentTarget.contains(button)) event.preventDefault()
 }
