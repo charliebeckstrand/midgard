@@ -356,27 +356,22 @@ export const k = {
 			label: [flex.inline, 'min-w-0', dan.gap.scale.xs],
 			// Pin button on a frozen column's header: an icon-only control that
 			// unpins the column. Muted at rest, tinting on hover/focus so it reads as
-			// the actionable affordance it is. `-ms-1` pulls the button toward the
-			// inline start by the Pin glyph's optical inset, so the visible pin lands
-			// over the column's cell values rather than a step past their start. The
-			// Pin's leading ink sits ~4px into its `size-5` box (x=5 of lucide's
-			// 24-unit grid, scaled by 20/24), shallower than the grip's dots at x=8,
-			// so it takes a smaller pull than the grip's `-ms-1.5`; a shared value
-			// would over-pull one glyph or the other. That pull seats the box flush
-			// to the table's horizontal scroll wrapper (`overflow-x-auto`, see
-			// `components/table`), which clips an outset outline at its edge; the
+			// the actionable affordance it is. The box is 24x24, the minimum target of
+			// WCAG 2.5.8, with the 20px glyph at its center. A hit area drawn by a
+			// `::before` is not a target to axe, and it covered the edge of the sort
+			// button beside it, so the box itself takes the size. `-ms-1.5` pulls the
+			// box toward the inline start: the Pin's leading ink sits 2px into the box
+			// and ~4px into the glyph (x=5 of lucide's 24-unit grid, scaled by 20/24),
+			// so the visible pin lands over the column's cell values. That pull seats
+			// the box near the table's horizontal scroll wrapper (`overflow-x-auto`,
+			// see `components/table`), which clips an outset outline at its edge; the
 			// focus ring is therefore `inset`: clip-safe, like `k.nav.cell` and
-			// unlike the inboard `k.sort.button`, whose outset `ring` clears the
-			// edge. The 20px glyph is below the 24x24 minimum target (WCAG 2.5.8). A
-			// centered, transparent `::before` expands the *hit* area to >=24x24
-			// without moving the glyph (so the optical `-ms` alignment and inset ring
-			// are untouched): growing the box itself would re-center the icon off
-			// that tuned inset.
+			// unlike the inboard `k.sort.button`, whose outset `ring` clears the edge.
 			button: [
 				flex.inline,
-				'shrink-0',
-				'-ms-1',
-				...hit,
+				'justify-center',
+				'size-6 shrink-0',
+				'-ms-1.5',
 				text.muted,
 				fg.hover,
 				focus.inset,
