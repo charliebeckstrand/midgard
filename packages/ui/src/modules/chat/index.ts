@@ -38,7 +38,10 @@ export type {
 	ChatPromptItem,
 	ChatPromptSource,
 } from './types'
-export type { ChatCitationTrigger } from './use-chat-citation-trigger'
+export type {
+	ChatCitationTrigger,
+	ChatCitationTriggerInput,
+} from './use-chat-citation-trigger'
 export { type ChatDraft, type ChatDraftOptions, useChatDraft } from './use-chat-draft'
 export {
 	type ChatSend,

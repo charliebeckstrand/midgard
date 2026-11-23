@@ -4,7 +4,11 @@ import { type ReactNode, useMemo } from 'react'
 import { ChatCitationContext, type ChatCitationScope, useChatCitations } from './context'
 import type { ChatCitation } from './engine/chat-content/types'
 import type { ChatCitationTargets } from './types'
-import { type ChatCitationTrigger, useChatCitationTrigger } from './use-chat-citation-trigger'
+import {
+	type ChatCitationTrigger,
+	toCitationMode,
+	useChatCitationTrigger,
+} from './use-chat-citation-trigger'
 
 /** Props for {@link ChatCitationProvider}. */
 export type ChatCitationProviderProps = {
@@ -24,10 +28,11 @@ export type ChatCitationProviderProps = {
 	 */
 	onCitedChange: (citation: ChatCitation | null) => void
 	/**
-	 * The input that makes a citation active. `'click'` toggles the citation on
-	 * a press. `'hover'` makes it active while the pointer or the keyboard focus
-	 * is on it, and a press does nothing. `'both'` previews it on a hover or a
-	 * focus, and a press keeps it after the preview ends.
+	 * The inputs that make a citation active: one input, or a list of them.
+	 * `'click'` toggles the citation on a press. `'hover'` makes it active while
+	 * the pointer or the keyboard focus is on it, and a press does nothing.
+	 * `['hover', 'click']` previews it on a hover or a focus, and a press keeps
+	 * it after the preview ends. The order of the list does not matter.
 	 *
 	 * @remarks
 	 * A preview sends the citation through `onCitedChange`, so the view shows
@@ -113,7 +118,7 @@ export function ChatCitationProvider({
 }: ChatCitationProviderProps) {
 	const outer = useChatCitations()
 
-	const mode = trigger ?? outer.trigger ?? 'click'
+	const mode = trigger === undefined ? (outer.trigger ?? 'click') : toCitationMode(trigger)
 
 	const actions = useChatCitationTrigger(mode, cited, onCitedChange)
 

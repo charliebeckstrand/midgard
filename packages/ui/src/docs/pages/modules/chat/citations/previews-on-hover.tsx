@@ -54,7 +54,12 @@ export default function PreviewsOnHover() {
 		<Stack gap="lg">
 			{/* A hover or a keyboard focus previews the citation in the chart. A
 			    click keeps it after the pointer leaves. */}
-			<ChatCitationProvider targets={targets} trigger="both" cited={cited} onCitedChange={setCited}>
+			<ChatCitationProvider
+				targets={targets}
+				trigger={['hover', 'click']}
+				cited={cited}
+				onCitedChange={setCited}
+			>
 				<ChatTranscript messages={messages} />
 			</ChatCitationProvider>
 			<ResizableGroup>

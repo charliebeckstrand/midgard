@@ -6,11 +6,42 @@ import { lastInput } from '../../utilities/last-input'
 import type { ChatCitation } from './engine/chat-content/types'
 
 /**
- * The input that makes a citation active. `'click'` toggles it on a press.
+ * One input that makes a citation active. `'click'` toggles it on a press.
  * `'hover'` makes it active while the pointer or the keyboard focus is on it.
- * `'both'` previews it on a hover or a focus, and a press keeps it.
  */
-export type ChatCitationTrigger = 'click' | 'hover' | 'both'
+export type ChatCitationTriggerInput = 'click' | 'hover'
+
+/**
+ * The inputs that make a citation active: one input, or a list of them. With
+ * `['hover', 'click']`, a hover or a focus previews the citation, and a press
+ * keeps it.
+ */
+export type ChatCitationTrigger =
+	| ChatCitationTriggerInput
+	| readonly [ChatCitationTriggerInput, ...ChatCitationTriggerInput[]]
+
+/**
+ * The inputs of a trigger as one value, so that a memo can list it.
+ * `'hover-click'` is a hover that previews and a press that keeps.
+ *
+ * @internal
+ */
+export type ChatCitationMode = 'click' | 'hover' | 'hover-click'
+
+/**
+ * Reads the mode of a trigger. A list with no input takes the click default.
+ *
+ * @internal
+ */
+export function toCitationMode(trigger: ChatCitationTrigger): ChatCitationMode {
+	if (typeof trigger === 'string') return trigger
+
+	const hover = trigger.includes('hover')
+
+	if (!hover) return 'click'
+
+	return trigger.includes('click') ? 'hover-click' : 'hover'
+}
 
 /** The input that holds a preview. */
 type PreviewSource = 'pointer' | 'focus'
@@ -77,7 +108,7 @@ export function lastInputIsTouch(): boolean {
  * @internal
  */
 export function useChatCitationTrigger(
-	trigger: ChatCitationTrigger,
+	trigger: ChatCitationMode,
 	cited: ChatCitation | null,
 	onCitedChange: (citation: ChatCitation | null) => void,
 ): ChatCitationActions {

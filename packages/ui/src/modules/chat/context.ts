@@ -3,7 +3,7 @@
 import { createContext } from '../../core/create-context'
 import type { ChatCitation } from './engine/chat-content/types'
 import type { ChatCitationTargets, ChatEmbedRegistry } from './types'
-import type { ChatCitationActions, ChatCitationTrigger } from './use-chat-citation-trigger'
+import type { ChatCitationActions, ChatCitationMode } from './use-chat-citation-trigger'
 
 /**
  * True when a {@link ChatListItem} renders inside a {@link ChatList}. The list
@@ -81,7 +81,7 @@ export const [ChatRowContext, useChatRowKey] = createContext<string | number | u
 export type ChatCitationScope = {
 	targets: ChatCitationTargets
 	isMarked?: (citation: ChatCitation) => boolean
-	trigger?: ChatCitationTrigger
+	trigger?: ChatCitationMode
 	actions?: ChatCitationActions
 }
 

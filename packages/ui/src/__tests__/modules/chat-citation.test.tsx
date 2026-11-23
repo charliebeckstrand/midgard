@@ -11,6 +11,7 @@ import {
 	toRegionSelection,
 	toStopSelection,
 } from '../../modules/chat'
+import { toCitationMode } from '../../modules/chat/use-chat-citation-trigger'
 import { __resetLastInput } from '../../utilities/last-input'
 import { act, allBySlot, bySlot, renderUI, screen, userEvent } from '../helpers'
 
@@ -325,8 +326,8 @@ describe('ChatCitationProvider trigger', () => {
 		expect(anchor('Twelve stops are late')).toHaveAttribute('aria-pressed', 'true')
 	})
 
-	it('previews a both citation on hover, and keeps it after a click', async () => {
-		const { user, onCitedChange, anchor } = setup('both')
+	it('previews a hover and click citation on hover, and keeps it after a click', async () => {
+		const { user, onCitedChange, anchor } = setup(['hover', 'click'])
 
 		await user.hover(anchor('Twelve stops are late'))
 
@@ -343,8 +344,8 @@ describe('ChatCitationProvider trigger', () => {
 		expect(onCitedChange).toHaveBeenLastCalledWith(expect.objectContaining({ id: 'late' }))
 	})
 
-	it('releases a kept both citation on a second click, and clears it on leave', async () => {
-		const { user, onCitedChange, anchor } = setup('both')
+	it('releases a kept hover and click citation on a second click, and clears it on leave', async () => {
+		const { user, onCitedChange, anchor } = setup(['hover', 'click'])
 
 		await user.click(anchor('Twelve stops are late'))
 
@@ -361,7 +362,7 @@ describe('ChatCitationProvider trigger', () => {
 	})
 
 	it('gives back the kept citation when the preview of another ends', async () => {
-		const { user, onCitedChange, anchor } = setup('both')
+		const { user, onCitedChange, anchor } = setup(['hover', 'click'])
 
 		await user.click(anchor('Twelve stops are late'))
 
@@ -377,7 +378,7 @@ describe('ChatCitationProvider trigger', () => {
 	})
 
 	it('keeps the kept citation when the pointer moves from one preview to the next before a render', () => {
-		const { onCitedChange, anchor } = setup('both')
+		const { onCitedChange, anchor } = setup(['hover', 'click'])
 
 		act(() => anchor('Twelve stops are late').click())
 
@@ -404,7 +405,7 @@ describe('ChatCitationProvider trigger', () => {
 	})
 
 	it('keeps the preview while the pointer moves to the bold piece of the citation', () => {
-		const { onCitedChange, container } = setup('both', [tuesday])
+		const { onCitedChange, container } = setup(['hover', 'click'], [tuesday])
 
 		const [anchor] = allBySlot(container, 'chat-citation')
 
@@ -424,8 +425,8 @@ describe('ChatCitationProvider trigger', () => {
 		expect(onCitedChange).toHaveBeenLastCalledWith(null)
 	})
 
-	it('keeps a both citation that Enter presses after the focus leaves', async () => {
-		const { user, onCitedChange, anchor } = setup('both')
+	it('keeps a hover and click citation that Enter presses after the focus leaves', async () => {
+		const { user, onCitedChange, anchor } = setup(['hover', 'click'])
 
 		await user.tab()
 
@@ -499,7 +500,7 @@ describe('ChatCitationProvider trigger', () => {
 	it('sends nothing at the end of a preview that the app cleared', () => {
 		const onCitedChange = vi.fn()
 
-		renderUI(<Clearable trigger="both" onCitedChange={onCitedChange} />)
+		renderUI(<Clearable trigger={['hover', 'click']} onCitedChange={onCitedChange} />)
 
 		const citation = screen.getByRole('button', { name: 'Twelve stops are late' })
 
@@ -530,6 +531,17 @@ describe('ChatCitationProvider trigger', () => {
 		await user.click(citation)
 
 		expect(onCitedChange.mock.calls.map(([value]) => value?.id ?? null)).toEqual(['late', 'late'])
+	})
+
+	it.each([
+		['click', 'click'],
+		['hover', 'hover'],
+		[['click'], 'click'],
+		[['hover'], 'hover'],
+		[['hover', 'click'], 'hover-click'],
+		[['click', 'hover'], 'hover-click'],
+	] as const)('reads the trigger %j as the mode %s', (trigger, mode) => {
+		expect(toCitationMode(trigger)).toBe(mode)
 	})
 
 	it('takes no hover with the click default', async () => {

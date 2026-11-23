@@ -78,7 +78,7 @@ function inCitation(node: EventTarget | null, id: string): boolean {
  * citation is one tab stop. A piece is not hidden from
  * a screen reader, because it is part of the phrase.
  *
- * With a `hover` or a `both` trigger, each piece previews the citation while
+ * With a trigger that holds `'hover'`, each piece previews the citation while
  * the pointer is on it, and piece 0 previews it while a keyboard focus is on
  * it. The pieces of one citation share a `data-citation` attribute, so a
  * pointer that moves from one piece to the next keeps the preview.

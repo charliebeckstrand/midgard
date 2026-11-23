@@ -104,7 +104,9 @@ describe('Chat: a citation selects in a chart', () => {
 	it('previews on a hover across the pieces of the citation, and a click keeps it', async () => {
 		const onCitedChange = vi.fn()
 
-		const { container } = renderUI(<Dashboard trigger="both" onCitedChange={onCitedChange} />)
+		const { container } = renderUI(
+			<Dashboard trigger={['hover', 'click']} onCitedChange={onCitedChange} />,
+		)
 
 		const bars = () => container.querySelector('[data-slot="chart-bar"]')
 
