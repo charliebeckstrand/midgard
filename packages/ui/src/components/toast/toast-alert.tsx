@@ -122,21 +122,24 @@ export function ToastAlert({
 
 	useAnnounceOnAppear(contentRef, true, { onMount: true, enabled: !assertive })
 
-	// A replacement keeps the node, and a live region does not reliably speak a
-	// change of its role or a repeat of its text. So each new revision goes to the
-	// shared announcer, at the politeness of the new severity.
+	// A replacement keeps the node. The live region speaks a change of its text
+	// by itself, but it does not reliably speak a change of its role or a repeat
+	// of its text. Only those two go to the shared announcer, at the politeness
+	// of the new severity, so a screen reader never speaks a replacement twice.
 	const revision = toast.revision
 
-	const spokenRevision = useRef(revision)
+	const spoken = useRef<{ revision?: number; text: string; assertive: boolean } | null>(null)
 
 	useEffect(() => {
-		if (revision === spokenRevision.current) return
+		const text = contentRef.current?.textContent?.trim() ?? ''
 
-		spokenRevision.current = revision
+		const last = spoken.current
 
-		const message = contentRef.current?.textContent?.trim()
+		spoken.current = { revision, text, assertive }
 
-		if (message) announce(message, { assertive })
+		if (!last || last.revision === revision || !text) return
+
+		if (last.assertive !== assertive || last.text === text) announce(text, { assertive })
 	}, [revision, assertive])
 
 	// Hover and focus each hold the timer's source-counted pause at most once;

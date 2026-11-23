@@ -303,6 +303,51 @@ describe('Toast: useToast behavior', () => {
 		})
 	})
 
+	it('leaves a replaced toast with new text at the same politeness to its own region', async ({
+		clock,
+	}) => {
+		const api = renderToasts()
+
+		act(() => {
+			api.toast({ id: 'save', title: 'Saving' })
+		})
+
+		await vi.waitFor(() => {
+			expect(liveRegion()?.textContent).toContain('Saving')
+		})
+
+		act(() => {
+			api.toast({ id: 'save', title: 'Saved', severity: 'success' })
+		})
+
+		await clock.advance(500)
+
+		// The status region of the toast speaks the new text, so the announcer keeps the old one.
+		expect(liveRegion()?.textContent).not.toContain('Saved')
+	})
+
+	it('speaks a replaced toast again when its text repeats', async ({ clock }) => {
+		const api = renderToasts()
+
+		act(() => {
+			api.toast({ id: 'copy', title: 'Link copied' })
+		})
+
+		await clock.advance(500)
+
+		const first = liveRegion()?.textContent
+
+		act(() => {
+			api.toast({ id: 'copy', title: 'Link copied' })
+		})
+
+		await vi.waitFor(() => {
+			expect(liveRegion()?.textContent).not.toBe(first)
+		})
+
+		expect(liveRegion()?.textContent).toContain('Link copied')
+	})
+
 	it('keeps or counts down a replaced toast by the persist of the new call', async ({ clock }) => {
 		const api = renderToasts({ duration: 500 })
 
