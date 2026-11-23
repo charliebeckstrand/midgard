@@ -24,7 +24,12 @@ import { noopSubscribe } from '../../utilities/noop'
 import { createPressOwner, isPrimaryPress, type PressOwner } from '../../utilities/primary-press'
 import { sameElements } from '../../utilities/same-elements'
 import type { GridNavStore } from './context'
-import { focusFirstControl, ownerCell, SORT_CONTROL } from './engine/grid-cell-controls'
+import {
+	focusFirstControl,
+	focusOwnCell,
+	ownerCell,
+	SORT_CONTROL,
+} from './engine/grid-cell-controls'
 import { NAV_PAGE_STEP } from './engine/grid-constants'
 import { readKeyPress, shortcutLetter } from './engine/grid-edit/utilities'
 import {
@@ -1442,12 +1447,29 @@ export function useGridNavigation({
 		[toDataRow, cellId, editsAt],
 	)
 
+	// A header that drags by its whole cell tells the reader to press Space to
+	// pick it up. Its drag keys listen on the cell, so Space moves focus there,
+	// and the next Space lifts the column. Returns whether it took the key.
+	const onHeaderSpace = useCallback(
+		(event: KeyboardEvent<HTMLTableElement>, active: Coord): boolean => {
+			if (event.key !== ' ' || active.row !== HEADER_ROW_INDEX) return false
+
+			const took = focusOwnCell(document.getElementById(cellId(HEADER_ROW_INDEX, active.col)))
+
+			if (took) event.preventDefault()
+
+			return took
+		},
+		[cellId],
+	)
+
 	// The keys of the active cell. Enter and F2 first move focus into the cell
-	// (see `onEntryKey`). Else Enter and Space act on the cell, and Escape
+	// (see `onEntryKey`), and so does Space on a header that drags by its cell
+	// (see `onHeaderSpace`). Else Enter and Space act on the cell, and Escape
 	// unseats the cursor. A header cell has no row to act on.
 	const onCellKey = useCallback(
 		(event: KeyboardEvent<HTMLTableElement>, base: Coord) => {
-			if (onEntryKey(event, base)) return
+			if (onEntryKey(event, base) || onHeaderSpace(event, base)) return
 
 			const cellKey = isActivationKey(event.key)
 
@@ -1461,7 +1483,16 @@ export function useGridNavigation({
 				else unseat()
 			}
 		},
-		[onEntryKey, activateOrSelectRow, toDataRow, readActive, activeCursor, unseat, setAnchor],
+		[
+			onEntryKey,
+			onHeaderSpace,
+			activateOrSelectRow,
+			toDataRow,
+			readActive,
+			activeCursor,
+			unseat,
+			setAnchor,
+		],
 	)
 
 	// Moves the cursor from `base` by a movement key. A key that names no cell,

@@ -474,7 +474,9 @@ export type GridReorder = {
 	 * takes the grab cursor, grabbing while lifted, plus the pointer and keyboard
 	 * activator, and no grip renders. A sortable column's sort control keeps its
 	 * pointer cursor: set on the control itself, it out-resolves the header's
-	 * inherited grab cursor on that child.
+	 * inherited grab cursor on that child. In a navigable grid, Space on the
+	 * header under the cursor moves focus to the header cell, and the next
+	 * Space lifts the column.
 	 * @defaultValue true
 	 */
 	handle?: boolean
