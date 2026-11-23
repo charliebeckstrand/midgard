@@ -162,7 +162,7 @@ export default function SelectsInAMapAndAChart() {
 			    aspect ratio, so it gets taller as its pane gets wider, and the taller
 			    surface sets the height of the group. */}
 			<ResizableGroup>
-				<ResizablePanel defaultSize={50} minSize={25}>
+				<ResizablePanel defaultSize={50} minSize={30}>
 					<Pane
 						title="Late stops"
 						onClear={cited?.target === 'late-stops' ? clearCited : undefined}
@@ -186,7 +186,7 @@ export default function SelectsInAMapAndAChart() {
 					</Pane>
 				</ResizablePanel>
 				<ResizableHandle aria-label="Resize the map and the chart" />
-				<ResizablePanel defaultSize={50} minSize={25}>
+				<ResizablePanel defaultSize={50} minSize={30}>
 					<Pane
 						title="Late stops by day"
 						onClear={cited?.target === 'late-by-day' || picked !== null ? clearChart : undefined}

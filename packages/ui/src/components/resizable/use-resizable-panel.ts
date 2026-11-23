@@ -11,6 +11,7 @@ import {
 import { isRtl } from '../../hooks/a11y/logical-arrow'
 import { useDragCursor } from '../../hooks/use-drag-cursor'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { TAP_THRESHOLD } from '../../hooks/use-touch-tap'
 import type { Orientation } from '../../types/orientation'
 import { clamp } from '../../utilities/clamp'
 import { holdTextSelection } from '../../utilities/hold-text-selection'
@@ -238,6 +239,10 @@ export function useResizablePanel({
 }: PanelResize) {
 	const cleanupRef = useRef<(() => void) | null>(null)
 
+	// Whether the last press moved past a tap. The second press of a double-click
+	// can drag, and the drag must stay, so a double-click after it resets nothing.
+	const draggedRef = useRef(false)
+
 	// The pointer that drives the drag, on whichever handle it pressed.
 	const [press] = useState(createPressOwner)
 	// Seed the sizes from the panel defaults: normalized to 100%, then clamped.
@@ -300,6 +305,8 @@ export function useResizablePanel({
 	// The reset moves the handle back to where the defaults of its two panels put
 	// it. The pair keeps its sum, so the other panels do not move.
 	const reset = useStableEvent((handleIndex: number) => {
+		if (draggedRef.current) return
+
 		const seed = seedSizes(panelConfigs)
 
 		const left = sizes[handleIndex]
@@ -323,6 +330,8 @@ export function useResizablePanel({
 
 		// A palm that lands on any handle mid-drag takes no drag.
 		if (!group || !press.claim(event)) return
+
+		draggedRef.current = false
 
 		holdTextSelection(event)
 
@@ -405,6 +414,10 @@ export function useResizablePanel({
 
 				return
 			}
+
+			const pos = drag.orientation === 'horizontal' ? event.clientX : event.clientY
+
+			if (Math.abs(pos - drag.startPos) > TAP_THRESHOLD) draggedRef.current = true
 
 			const deltaPercent = dragDeltaPercent(drag, event)
 

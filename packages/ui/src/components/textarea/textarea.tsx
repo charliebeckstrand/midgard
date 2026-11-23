@@ -174,14 +174,18 @@ export function Textarea({
 }
 
 /**
- * Cancels the focus move of a press on a button in the actions row. The click
- * still fires. A press on another control, such as a `<select>`, keeps its
- * default, because that control opens or takes text on the press.
+ * Cancels the focus move of a press in the actions row: on a button, or on the
+ * gap between the actions. The frame looks like one field, so the focus stays
+ * in the textarea. The click still fires. A press on a field, such as a
+ * `<select>`, keeps its default, because that field opens or takes text on the
+ * press.
  */
 function keepFocusOnPress(event: MouseEvent<HTMLElement>) {
 	if (!(event.target instanceof Element)) return
 
-	const button = event.target.closest('button, [role="button"]')
+	const field = event.target.closest('input, select, textarea')
 
-	if (button && event.currentTarget.contains(button)) event.preventDefault()
+	if (field && event.currentTarget.contains(field)) return
+
+	event.preventDefault()
 }

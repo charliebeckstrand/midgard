@@ -109,6 +109,8 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 `group` · `card` · `divider` · `aspect-ratio` · `resizable` · `collapse` · `accordion` · `segment` · `placeholder`
 
+> A double-click on a `ResizableHandle` moves it back to where the default sizes of its two panels put it. When the second press of the double-click drags, the drag stays.
+
 > A `Segment` with no `TabContents` and no `TabContent` picks a value, so it is a `radiogroup` of `radio` items. An arrow key moves the focus and selects the item. A `Segment` with panels keeps the tab roles. A `Segment` with `activation="manual"` also keeps the tab roles: an arrow key moves only the focus, and Enter or Space selects the item. Use it when a pick shows a different view or writes the address.
 
 > For a custom trigger or panel in an `AccordionItem`, use `useAccordionItem` from `accordion`. It gives the open state, `toggle`, and the ARIA props of the trigger and the panel. A custom trigger that spreads `triggerProps` takes part in the arrow keys of the accordion.
@@ -137,7 +139,7 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > `PdfViewer` searches the OCR text that `data` gives, as `PdfViewerTextItem` runs. The toolbar then has a Search control. `search` turns it off, or sets the color of the matches and the page turn, through `PdfViewerSearchOptions`.
 
-> The thumbnail rail of `PdfViewer` opens 240px wide. A splitter on its end edge resizes it from 160px to 320px, by a drag or by the arrow keys. A double-click sets 240px again. The rail is one Tab stop on the current page, and the arrow keys move between the pages. A `src` document renders each thumbnail for the widest rail, so a thumbnail is sharp at each width.
+> The thumbnail rail of `PdfViewer` opens 240px wide. A splitter on its end edge resizes it from 160px to 320px, by a drag or by the arrow keys. A double-click sets 240px again, unless its second press dragged. The rail is one Tab stop on the current page, and the arrow keys move between the pages. A `src` document renders each thumbnail for the widest rail, so a thumbnail is sharp at each width.
 
 ## Loading skeletons
 

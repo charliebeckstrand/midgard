@@ -4,6 +4,7 @@ import { type KeyboardEvent, type PointerEvent, useLayoutEffect, useRef, useStat
 import { dataAttr } from '../../core/data-attr'
 import { isRtl, logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { useDragCursor } from '../../hooks/use-drag-cursor'
+import { TAP_THRESHOLD } from '../../hooks/use-touch-tap'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { Splitter } from '../../primitives/splitter/splitter'
 import { k } from '../../recipes/kata/pdf-viewer'
@@ -65,8 +66,8 @@ type PdfViewerRailHandleProps = {
  *
  * A drag moves the edge. The arrow keys step the width by 8px, PageUp and PageDown step it by
  * 32px, and Home and End set the bounds of {@link PDF_VIEWER_RAIL_WIDTH}. A double-click sets the
- * default width again. A key with Ctrl, Meta, or Alt is for the browser, so it keeps its default.
- * The rail starts at the inline start, so in a right-to-left layout the drag and the horizontal
+ * default width again, unless its second press dragged. A key with Ctrl, Meta, or Alt is for the
+ * browser, so it keeps its default. The rail starts at the inline start, so in a right-to-left layout the drag and the horizontal
  * arrows mirror: ArrowLeft and a move to the left widen the rail.
  *
  * @remarks The handle holds the width, and writes it on the rail as the custom property
@@ -88,6 +89,10 @@ export function PdfViewerRailHandle({ controls }: PdfViewerRailHandleProps) {
 	const grab = useRef<Grab | null>(null)
 
 	const ref = useRef<HTMLHRElement>(null)
+
+	// Whether the last press moved past a tap. The second press of a double-click
+	// can drag, and the drag must stay, so a double-click after it resets nothing.
+	const dragged = useRef(false)
 
 	// The resize cursor stays on the page for the whole drag, over a tile or the page too.
 	useDragCursor(dragging, 'col-resize')
@@ -116,6 +121,8 @@ export function PdfViewerRailHandle({ controls }: PdfViewerRailHandleProps) {
 		// on pointerup and pointercancel, and the release ends the drag.
 		event.currentTarget.setPointerCapture(event.pointerId)
 
+		dragged.current = false
+
 		grab.current = {
 			pointer: event.pointerId,
 			at: event.clientX,
@@ -130,6 +137,8 @@ export function PdfViewerRailHandle({ controls }: PdfViewerRailHandleProps) {
 		const start = grab.current
 
 		if (start?.pointer !== event.pointerId) return
+
+		if (Math.abs(event.clientX - start.at) > TAP_THRESHOLD) dragged.current = true
 
 		resizeTo(start.width + start.sign * (event.clientX - start.at))
 	}
@@ -170,7 +179,9 @@ export function PdfViewerRailHandle({ controls }: PdfViewerRailHandleProps) {
 			onPointerDown={handlePointerDown}
 			onPointerMove={handlePointerMove}
 			onLostPointerCapture={handleLostPointerCapture}
-			onDoubleClick={() => resizeTo(PDF_VIEWER_RAIL_WIDTH.default)}
+			onDoubleClick={() => {
+				if (!dragged.current) resizeTo(PDF_VIEWER_RAIL_WIDTH.default)
+			}}
 			onKeyDown={handleKeyDown}
 		/>
 	)

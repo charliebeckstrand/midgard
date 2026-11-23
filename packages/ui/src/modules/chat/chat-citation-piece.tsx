@@ -3,6 +3,7 @@
 import {
 	type FocusEvent,
 	type KeyboardEvent,
+	type MouseEvent,
 	type PointerEvent,
 	type ReactNode,
 	useEffect,
@@ -16,7 +17,7 @@ import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/chat-message'
 import { useChatCitations } from './context'
 import type { ChatCitation } from './engine/chat-content/types'
-import { focusPreviews, lastInputIsTouch } from './use-chat-citation-trigger'
+import { clickCanHover, focusPreviews } from './use-chat-citation-trigger'
 
 const messages = defineMessages<{ selects: { label: string }; marked: { label: string } }>({
 	selects: {
@@ -138,9 +139,9 @@ export function ChatCitationPiece({ piece: { range, index }, children }: ChatCit
 	const marked = isMarked?.(range) ?? false
 
 	// A key cannot hover, so a key presses the citation in each mode, as a tap does.
-	const press = () => actions.press(range, true)
+	const press = () => actions.press(range, false)
 
-	const onClick = () => actions.press(range, lastInputIsTouch())
+	const onClick = (event: MouseEvent<HTMLElement>) => actions.press(range, clickCanHover(event))
 
 	// A click trigger takes no hover, so its pieces get no pointer handlers.
 	const hover =

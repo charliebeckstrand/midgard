@@ -67,7 +67,8 @@ function resizeDeltaForKey(key: string, isHorizontal: boolean, step: number): nu
  * max bounds. Shift takes a larger step, and Home/End reach the extremes. A key
  * with Ctrl, Meta, or Alt is for the browser, so it keeps its default.
  * A double-click moves the handle back to where the default sizes of its two
- * panels put it, so two panels of `defaultSize={50}` go back to half each. In a
+ * panels put it, so two panels of `defaultSize={50}` go back to half each. A
+ * double-click whose second press dragged keeps the drag. In a
  * right-to-left group the panels start on the right, so the horizontal arrows
  * and the drag mirror: ArrowLeft and a move to the left grow the panel before
  * the handle. `aria-valuemin` and `aria-valuemax` give the range that this

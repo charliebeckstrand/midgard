@@ -413,6 +413,24 @@ describe('ChatCitationProvider trigger', () => {
 		expect(anchor('Twelve stops are late')).toHaveAttribute('aria-pressed', 'true')
 	})
 
+	it('toggles a hover citation on a click from assistive technology, as it cannot hover', async () => {
+		const { user, onCitedChange, onPreviewChange, anchor } = setup('hover')
+
+		// A mouse press first, so the last input is a pointer that can hover.
+		await user.click(document.body)
+
+		// A screen reader in browse mode sends a click with no press count.
+		act(() => {
+			anchor('Twelve stops are late').dispatchEvent(
+				new MouseEvent('click', { bubbles: true, detail: 0 }),
+			)
+		})
+
+		expect(onCitedChange).toHaveBeenLastCalledWith(expect.objectContaining({ id: 'late' }))
+
+		expect(onPreviewChange).not.toHaveBeenCalled()
+	})
+
 	it('previews a hover and click citation on hover, and cites it on a click', async () => {
 		const { user, onCitedChange, previews, anchor } = setup(['hover', 'click'])
 
