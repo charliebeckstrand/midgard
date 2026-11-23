@@ -3,7 +3,6 @@ import { Badge } from 'ui/badge'
 import { cn } from 'ui/core'
 import { Flex } from 'ui/flex'
 import { Heading } from 'ui/heading'
-import { Link } from 'ui/link'
 import { Markdown, primeMarkdown } from 'ui/markdown'
 import { defineMessage, defineMessages, IntlMessage, useIntl } from 'ui/primitives/intl'
 import { Stack } from 'ui/stack'
@@ -14,6 +13,7 @@ import { k } from '../../recipes/kata/json-tree.ts'
 import type { BarrelApi, ComponentApi, PropApi } from '../plugin/api.ts'
 import { toApiId } from './anchors.ts'
 import { usePendingAnchor } from './context.ts'
+import { HashAnchor } from './hash-anchor.tsx'
 import { runInSlices } from './idle.ts'
 import { formatLiteral } from './names.ts'
 import { scrollToPending } from './pending-anchor.ts'
@@ -192,7 +192,7 @@ function PropRow({ component, prop }: { component: string; prop: PropApi }) {
 						prop.deprecated !== undefined && 'line-through decoration-zinc-400',
 					)}
 				>
-					<Link href={`#${id}`}>{prop.name}</Link>
+					<HashAnchor to={id}>{prop.name}</HashAnchor>
 				</span>
 				{prop.required && (
 					<span className="text-red-600 text-sm dark:text-red-500">

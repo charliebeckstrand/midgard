@@ -5,7 +5,6 @@ import { Collapse, CollapsePanel, CollapseTrigger } from 'ui/collapse'
 import { cn, createContext } from 'ui/core'
 import { Flex } from 'ui/flex'
 import { Heading } from 'ui/heading'
-import { Link } from 'ui/link'
 import { defineMessage, defineMessages, useIntl } from 'ui/primitives/intl'
 import { Stack } from 'ui/stack'
 import { ToastHost } from '../../components/toast/toast-host.tsx'
@@ -16,6 +15,7 @@ import { sen } from '../../recipes/kiso/index.ts'
 import { getOrCompute } from '../../utilities/get-or-compute.ts'
 import { createLazyModule, type LazyModule } from '../../utilities/lazy-module.ts'
 import type { ExampleCode, ExampleMeta } from '../plugin/examples.ts'
+import { HashAnchor } from './hash-anchor.tsx'
 import { exampleTitle } from './names.ts'
 import { useLoadThenOpen } from './use-load-then-open.ts'
 
@@ -364,7 +364,7 @@ export function ExampleFrame(
 		<Stack gap="sm" data-slot="example">
 			<Flex gap="md" direction="col" align="start">
 				<Heading level={2} id={meta.id}>
-					<Link href={`#${meta.id}`}>{title}</Link>
+					<HashAnchor to={meta.id}>{title}</HashAnchor>
 				</Heading>
 				{actions}
 			</Flex>
