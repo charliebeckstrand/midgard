@@ -1350,6 +1350,8 @@ export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'>
 	 * Feb 28` gives `Mar 31`), and text that ends in a whole number (`Item 1,
 	 * Item 2` gives `Item 3`). A text series that would go below zero repeats,
 	 * and so does a `YYYY-MM-DD` series that would leave the years 0000 to 9999.
+	 * A number that is one part of a date or a time, such as the `30` of
+	 * `10:30` or of `2026-11-30`, repeats.
 	 * {@link GridColumn.parse} reads each
 	 * pasted text, and {@link GridColumn.validate} checks each value. A refused
 	 * cell goes to {@link GridEditableConfig.onReject}. A paste, a clear, or a

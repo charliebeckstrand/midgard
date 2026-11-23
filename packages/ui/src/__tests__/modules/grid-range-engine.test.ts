@@ -520,7 +520,28 @@ describe('fillLine dates', () => {
 
 		expect(fillLine(['9999-12-30', '9999-12-31'], 1)).toEqual(['9999-12-30'])
 
+		// A date and a time are text, not a count.
+		expect(fillLine(['2026-11', '2026-12'], 1)).toEqual(['2026-11'])
+
+		expect(fillLine(['2026/11/29', '2026/11/30'], 1)).toEqual(['2026/11/29'])
+
+		expect(fillLine(['10:00', '10:30'], 1)).toEqual(['10:00'])
+
+		expect(fillLine(['10:30:00', '10:30:15'], 1)).toEqual(['10:30:00'])
+
 		expect(fillLine(['9999-10-31', '9999-11-30'], 2)).toEqual(['9999-10-31', '9999-11-30'])
+	})
+
+	// The latest day of the month is the anchor, so the series is the same in
+	// each direction.
+	it('reads the same month series in each direction', () => {
+		expect(fillLine(['2026-02-28', '2026-03-31'], 2)).toEqual(['2026-04-30', '2026-05-31'])
+
+		expect(fillLine(['2026-03-31', '2026-02-28'], 2)).toEqual(['2026-01-31', '2025-12-31'])
+
+		expect(fillLine(['2026-01-30', '2026-02-28'], 2)).toEqual(['2026-03-30', '2026-04-30'])
+
+		expect(fillLine(['2026-02-28', '2026-01-30'], 2)).toEqual(['2025-12-30', '2025-11-30'])
 	})
 })
 
@@ -539,6 +560,24 @@ describe('fillLine text with a number', () => {
 		expect(fillLine(['Item 5', 'Item 4'], 2)).toEqual(['Item 3', 'Item 2'])
 
 		expect(fillLine(['Item 2', 'Item 1'], 2)).toEqual(['Item 2', 'Item 1'])
+	})
+
+	// Only the start of a date or a time stops a count. Other dotted or dashed
+	// numbers count on.
+	it('continues a version, an address, a code, and a section number', () => {
+		expect(fillLine(['v1.2.3', 'v1.2.4'], 1)).toEqual(['v1.2.5'])
+
+		expect(fillLine(['10.0.0.1', '10.0.0.2'], 1)).toEqual(['10.0.0.3'])
+
+		expect(fillLine(['SKU-12-001', 'SKU-12-002'], 1)).toEqual(['SKU-12-003'])
+
+		expect(fillLine(['1.1', '1.2'], 1)).toEqual(['1.3'])
+	})
+
+	it('repeats a number of more than 15 digits', () => {
+		expect(fillLine(['X1999999999999998', 'X1999999999999999'], 1)).toEqual(['X1999999999999998'])
+
+		expect(fillLine(['X999999999999998', 'X999999999999999'], 1)).toEqual(['X1000000000000000'])
 	})
 
 	it('repeats text with no number at the end, or with other text before it', () => {
