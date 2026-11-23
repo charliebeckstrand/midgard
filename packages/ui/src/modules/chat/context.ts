@@ -96,28 +96,3 @@ export const [ChatCitationContext, useChatCitations] = createContext<ChatCitatio
 	'ChatCitationProvider',
 	{ default: NO_CITATIONS },
 )
-
-/**
- * What {@link ChatPrompt} gives to its {@link ChatPromptToolbar}.
- *
- * @internal
- */
-export type ChatPromptToolbarScope = {
-	/** The id of the label of the toolbar. The textarea takes it as its description. */
-	labelId: string
-	/** Sets the handler that Escape in the textarea calls. `undefined` clears it. */
-	setDismiss: (handler: (() => void) | undefined) => void
-	/** Gives the focus to the textarea, as when the toolbar unmounts with the focus in it. */
-	focusField: () => void
-	/** Tells the prompt that a toolbar is mounted. It returns the unmount. */
-	mount: () => () => void
-}
-
-/**
- * The scope of the toolbar of the nearest {@link ChatPrompt}, or `null` outside
- * one.
- *
- * @internal
- */
-export const [ChatPromptToolbarContext, useChatPromptToolbarScope] =
-	createContext<ChatPromptToolbarScope | null>('ChatPromptToolbar', { default: null })

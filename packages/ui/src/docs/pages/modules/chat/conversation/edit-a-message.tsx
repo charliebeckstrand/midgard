@@ -1,19 +1,20 @@
 import { Pencil } from 'lucide-react'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useId, useRef, useState } from 'react'
 import { Button } from 'ui/button'
 import {
 	type ChatCitation,
 	ChatEmbedProvider,
 	type ChatMessageData,
 	ChatPrompt,
-	ChatPromptToolbar,
 	ChatTranscript,
 	useChatDraft,
 	useChatSend,
 } from 'ui/chat'
 import type { ContextMenuEntry } from 'ui/context-menu'
+import { Flex } from 'ui/flex'
 import { Icon } from 'ui/icon'
 import { Stack } from 'ui/stack'
+import { Text } from 'ui/text'
 import { renderers } from '../embeds/renderers.tsx'
 import { transport } from './reply.ts'
 
@@ -74,6 +75,9 @@ export default function EditAMessage() {
 	const composer = useRef<HTMLTextAreaElement>(null)
 
 	const [editing, setEditing] = useState<string>()
+
+	// The status in the toolbar describes the composer, so a reader who focuses it hears it.
+	const status = useId()
 
 	const { edit, send } = chat
 
@@ -157,13 +161,18 @@ export default function EditAMessage() {
 					onSubmit={draft.submit}
 					onStop={chat.stop}
 					streaming={chat.streaming}
+					onEscape={editing ? end : undefined}
+					aria-describedby={editing ? status : undefined}
 					toolbar={
 						editing && (
-							<ChatPromptToolbar label="Editing" onDismiss={end}>
+							<Flex align="center" justify="between">
+								<Text id={status} tone="muted">
+									Editing
+								</Text>
 								<Button variant="bare" size="sm" onClick={end}>
 									Cancel
 								</Button>
-							</ChatPromptToolbar>
+							</Flex>
 						)
 					}
 				/>

@@ -9,7 +9,6 @@ export { ChatList, type ChatListProps } from './chat-list'
 export { ChatListItem, type ChatListItemProps } from './chat-list-item'
 export { ChatMessage, type ChatMessageProps } from './chat-message'
 export { ChatPrompt, type ChatPromptProps } from './chat-prompt'
-export { ChatPromptToolbar, type ChatPromptToolbarProps } from './chat-prompt-toolbar'
 export { ChatTranscript, type ChatTranscriptProps } from './chat-transcript'
 export {
 	ChatTranscriptSkeleton,

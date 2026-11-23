@@ -1,6 +1,6 @@
 import { createRef, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { type ChatCitation, ChatPrompt, ChatPromptToolbar, useChatDraft } from '../../modules/chat'
+import { type ChatCitation, ChatPrompt, useChatDraft } from '../../modules/chat'
 import {
 	bySlot,
 	fireEvent,
@@ -631,7 +631,7 @@ describe('ChatPrompt', () => {
 })
 
 describe('ChatPrompt toolbar', () => {
-	/** A prompt with an edit toolbar while `editing`, as an app composes it. */
+	/** A prompt with an edit status in its toolbar while `editing`, as an app composes it. */
 	function EditingPrompt({ onCancel }: { onCancel: () => void }) {
 		const [editing, setEditing] = useState(true)
 
@@ -646,48 +646,47 @@ describe('ChatPrompt toolbar', () => {
 				value="Draft"
 				onValueChange={noop}
 				onSubmit={noop}
+				onEscape={editing ? cancel : undefined}
+				aria-describedby={editing ? 'status' : undefined}
 				toolbar={
-					editing ? (
-						<ChatPromptToolbar label="Editing" onDismiss={cancel}>
+					editing && (
+						<>
+							<span id="status">Editing</span>
 							<button type="button" onClick={cancel}>
 								Cancel
 							</button>
-						</ChatPromptToolbar>
-					) : undefined
+						</>
+					)
 				}
 			/>
 		)
 	}
 
-	it('renders the toolbar above the field, with its controls named by the label', () => {
+	it('renders the toolbar above the field', () => {
 		const { container } = renderUI(<EditingPrompt onCancel={noop} />)
 
 		const row = getSlot(container, 'chat-prompt-toolbar')
 
+		expect(row).toHaveTextContent('Editing')
+
 		expect(row.compareDocumentPosition(getSlot(container, 'chat-prompt'))).toBe(
 			Node.DOCUMENT_POSITION_FOLLOWING,
 		)
-
-		expect(screen.getByRole('toolbar', { name: 'Editing' })).toContainElement(
-			screen.getByRole('button', { name: 'Cancel' }),
-		)
 	})
 
-	it('gives the label to the textarea as its description', () => {
+	it('renders no row with no toolbar', () => {
+		const { container } = renderUI(<ChatPrompt value="" onValueChange={noop} onSubmit={noop} />)
+
+		expect(bySlot(container, 'chat-prompt-toolbar')).toBeNull()
+	})
+
+	it('gives aria-describedby to the textarea', () => {
 		renderUI(<EditingPrompt onCancel={noop} />)
 
 		expect(screen.getByRole('textbox', { name: 'Message' })).toHaveAccessibleDescription('Editing')
 	})
 
-	it('drops the description when the toolbar goes', async () => {
-		renderUI(<EditingPrompt onCancel={noop} />)
-
-		await setupUser().click(screen.getByRole('button', { name: 'Cancel' }))
-
-		expect(screen.getByRole('textbox', { name: 'Message' })).not.toHaveAttribute('aria-describedby')
-	})
-
-	it('gives the focus to the textarea when it unmounts with the focus in it', async () => {
+	it('gives the focus to the textarea when the toolbar unmounts with the focus in it', async () => {
 		const onCancel = vi.fn()
 
 		const { container } = renderUI(<EditingPrompt onCancel={onCancel} />)
@@ -701,7 +700,25 @@ describe('ChatPrompt toolbar', () => {
 		expect(getSlot(container, 'chat-prompt')).toHaveFocus()
 	})
 
-	it('calls onDismiss on Escape in the textarea, and consumes the key', () => {
+	it('leaves the focus where it is when the toolbar unmounts without it', () => {
+		const outside = document.createElement('button')
+
+		document.body.append(outside)
+
+		const { rerender } = renderUI(
+			<ChatPrompt value="" onValueChange={noop} onSubmit={noop} toolbar="Writing a reply" />,
+		)
+
+		outside.focus()
+
+		rerender(<ChatPrompt value="" onValueChange={noop} onSubmit={noop} />)
+
+		expect(outside).toHaveFocus()
+
+		outside.remove()
+	})
+
+	it('calls onEscape on Escape in the textarea, and consumes the key', () => {
 		const onCancel = vi.fn()
 
 		const { container } = renderUI(<EditingPrompt onCancel={onCancel} />)
@@ -714,7 +731,7 @@ describe('ChatPrompt toolbar', () => {
 		expect(notPrevented).toBe(false)
 	})
 
-	it('leaves Escape alone with no toolbar', () => {
+	it('leaves Escape alone with no onEscape', () => {
 		const { container } = renderUI(
 			<ChatPrompt value="Draft" onValueChange={noop} onSubmit={noop} />,
 		)
@@ -722,32 +739,5 @@ describe('ChatPrompt toolbar', () => {
 		const notPrevented = fireEvent.keyDown(getSlot(container, 'chat-prompt'), { key: 'Escape' })
 
 		expect(notPrevented).toBe(true)
-	})
-
-	it('renders outside a prompt, with its controls named by its own label', () => {
-		renderUI(
-			<ChatPromptToolbar label="Editing">
-				<button type="button">Cancel</button>
-			</ChatPromptToolbar>,
-		)
-
-		expect(screen.getByRole('toolbar', { name: 'Editing' })).toContainElement(
-			screen.getByRole('button', { name: 'Cancel' }),
-		)
-	})
-
-	it('renders a label with no controls as a status line', () => {
-		const { container } = renderUI(
-			<ChatPrompt
-				value=""
-				onValueChange={noop}
-				onSubmit={noop}
-				toolbar={<ChatPromptToolbar label="Writing a reply" />}
-			/>,
-		)
-
-		expect(getSlot(container, 'chat-prompt-toolbar')).toHaveTextContent('Writing a reply')
-
-		expect(screen.queryByRole('toolbar')).toBeNull()
 	})
 })

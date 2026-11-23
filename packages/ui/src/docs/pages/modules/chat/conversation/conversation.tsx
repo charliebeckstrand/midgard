@@ -6,7 +6,6 @@ import {
 	ChatFeedback,
 	type ChatMessageData,
 	ChatPrompt,
-	ChatPromptToolbar,
 	ChatTranscript,
 	type ChatVerdict,
 	chatContentText,
@@ -16,6 +15,7 @@ import {
 import { CopyButton } from 'ui/copy-button'
 import { Icon } from 'ui/icon'
 import { Stack } from 'ui/stack'
+import { Text } from 'ui/text'
 import { renderers } from '../embeds/renderers.tsx'
 import { transport } from './reply.ts'
 
@@ -90,7 +90,13 @@ export default function Conversation() {
 					onSubmit={draft.submit}
 					onStop={chat.stop}
 					streaming={chat.streaming}
-					toolbar={chat.streaming && <ChatPromptToolbar label="Writing a reply" />}
+					toolbar={
+						chat.streaming && (
+							<Text tone="muted" pulse>
+								Writing a reply
+							</Text>
+						)
+					}
 				/>
 			</Stack>
 		</ChatEmbedProvider>

@@ -1669,7 +1669,7 @@
 	},
 	"docs.demo.28ab68ddb911": {
 		"defaultMessage": "Writing a reply",
-		"description": "Text of a demo in the docs as label, in modules/chat/conversation/conversation.tsx."
+		"description": "Text of a demo in the docs, in modules/chat/conversation/conversation.tsx."
 	},
 	"docs.demo.29008d9de4fb": {
 		"defaultMessage": "Min price",
@@ -5549,7 +5549,7 @@
 	},
 	"docs.demo.fab4539d26e0": {
 		"defaultMessage": "Editing",
-		"description": "Text of a demo in the docs as label, in modules/chat/conversation/edit-a-message.tsx."
+		"description": "Text of a demo in the docs, in modules/chat/conversation/edit-a-message.tsx."
 	},
 	"docs.demo.fb3d7e2c77f4": {
 		"defaultMessage": "File actions",

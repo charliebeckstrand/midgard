@@ -8,11 +8,8 @@ import {
 	type Ref,
 	type RefObject,
 	useCallback,
-	useId,
 	useLayoutEffect,
-	useMemo,
 	useRef,
-	useState,
 } from 'react'
 import { BadgeRemovable } from '../../components/badge/badge-removable'
 import { Button } from '../../components/button'
@@ -25,11 +22,11 @@ import { dataAttr } from '../../core/data-attr'
 import { ArrowUp, Paperclip, Square } from '../../primitives/icons/icons'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
+import { k } from '../../recipes/kata/chat-prompt'
 import { isComposing } from '../../utilities/is-composing'
 import { keyByOccurrence } from '../../utilities/key-by-occurrence'
 import { hasBrowserModifier } from '../../utilities/modifier-keys'
 import { ChatPromptPicker } from './chat-prompt-picker'
-import { ChatPromptToolbarContext, type ChatPromptToolbarScope } from './context'
 import type { ChatCitation } from './engine/chat-content/types'
 import { canSubmitDraft } from './engine/chat-draft/content'
 import {
@@ -141,11 +138,19 @@ export type ChatPromptProps = {
 	 */
 	rows?: number
 	/**
-	 * A row above the field, such as a {@link ChatPromptToolbar} that says that
-	 * the draft edits a sent message, or that a reply streams. Render it only
-	 * while its status holds.
+	 * A row above the field, such as a status that says that the draft edits a
+	 * sent message, or that a reply streams, with its controls. Render it only
+	 * while its status holds: `undefined`, `null`, or `false` renders no row.
+	 * Content that unmounts while the focus is in it,
+	 * such as after a press of its Cancel button, gives the focus to the
+	 * textarea (WCAG 2.4.3).
 	 */
 	toolbar?: ReactNode
+	/**
+	 * Fires on Escape in the textarea while no picker is open, such as to cancel
+	 * an edit. The press is consumed, so an enclosing dialog does not close on it.
+	 */
+	onEscape?: () => void
 	/**
 	 * Makes send inert without disabling the textarea. The send button is
 	 * `aria-disabled` and stays focusable, as it is for an empty draft.
@@ -187,6 +192,11 @@ export type ChatPromptProps = {
 	'aria-label'?: string
 	/** Points at a visible label for the composer, in place of `aria-label`. */
 	'aria-labelledby'?: string
+	/**
+	 * Points at text that describes the composer, such as the status in the
+	 * `toolbar`, so a reader who focuses the field hears it.
+	 */
+	'aria-describedby'?: string
 }
 
 /**
@@ -199,10 +209,8 @@ export type ChatPromptProps = {
  * `actions`, the paperclip, and send or stop) sits below the textarea, at the
  * inline end of the row.
  *
- * A `toolbar` renders above the field. The textarea takes the label of a
- * {@link ChatPromptToolbar} as its description, and Escape in the textarea
- * calls the `onDismiss` of the toolbar, unless an open picker takes the key
- * first.
+ * A `toolbar` renders above the field. Escape in the textarea calls
+ * `onEscape`, unless an open picker takes the key first.
  *
  * A send button that cannot send, such as for an empty draft, is
  * `aria-disabled` and ignores the press. It is not natively disabled, so it
@@ -217,6 +225,7 @@ export function ChatPrompt({
 	onStop,
 	streaming = false,
 	toolbar,
+	onEscape,
 	placeholder,
 	rows = 2,
 	disabled,
@@ -229,6 +238,7 @@ export function ChatPrompt({
 	ref,
 	'aria-label': ariaLabel,
 	'aria-labelledby': ariaLabelledBy,
+	'aria-describedby': ariaDescribedBy,
 }: ChatPromptProps) {
 	const intl = useIntl()
 
@@ -248,29 +258,7 @@ export function ChatPrompt({
 
 	const setTextareaRefs = useComposedRefs(textareaRef, ref)
 
-	const toolbarLabelId = useId()
-
-	// The Escape handler of the toolbar, which the toolbar sets.
-	const dismissRef = useRef<(() => void) | undefined>(undefined)
-
-	// Whether a toolbar is mounted, so the textarea names its label as its description.
-	const [hasToolbar, setHasToolbar] = useState(false)
-
-	const toolbarScope = useMemo<ChatPromptToolbarScope>(
-		() => ({
-			labelId: toolbarLabelId,
-			setDismiss: (handler) => {
-				dismissRef.current = handler
-			},
-			focusField: () => textareaRef.current?.focus(),
-			mount: () => {
-				setHasToolbar(true)
-
-				return () => setHasToolbar(false)
-			},
-		}),
-		[toolbarLabelId],
-	)
+	const focusField = useCallback(() => textareaRef.current?.focus(), [])
 
 	// The composer always gets an accessible name (WCAG 3.3.2 / 4.1.2):
 	// aria-labelledby wins over aria-label; falls back to 'Message'.
@@ -287,15 +275,13 @@ export function ChatPrompt({
 			// The open picker takes its keys first: Enter chooses and does not send.
 			if (pickerKeyDown(event)) return
 
-			// An open picker closes on Escape through its own dismissal, so the toolbar
+			// An open picker closes on Escape through its own dismissal, so `onEscape`
 			// takes the key only while the picker is closed. The press is then
 			// consumed, so an enclosing dialog does not close on it.
-			const dismiss = dismissRef.current
-
-			if (event.key === 'Escape' && dismiss && !picker.open && !isComposing(event)) {
+			if (event.key === 'Escape' && onEscape && !picker.open && !isComposing(event)) {
 				event.preventDefault()
 
-				dismiss()
+				onEscape()
 
 				return
 			}
@@ -312,7 +298,7 @@ export function ChatPrompt({
 				onSubmit()
 			}
 		},
-		[streaming, canSubmit, onSubmit, onStop, pickerKeyDown, citations, picker.open],
+		[streaming, canSubmit, onSubmit, onStop, pickerKeyDown, citations, picker.open, onEscape],
 	)
 
 	// A textbox cannot take the `combobox` role, so it names its popup with the attributes that a textbox takes.
@@ -327,8 +313,9 @@ export function ChatPrompt({
 	return (
 		// Control supplies the stable id the textarea resolves through useControlProps.
 		<Control className={className}>
-			{toolbar != null && (
-				<ChatPromptToolbarContext value={toolbarScope}>{toolbar}</ChatPromptToolbarContext>
+			{/* `editing && …` gives `false`, which renders nothing, so it is no toolbar. */}
+			{toolbar != null && typeof toolbar !== 'boolean' && (
+				<ChatPromptToolbar onUnmountWithFocus={focusField}>{toolbar}</ChatPromptToolbar>
 			)}
 			<Textarea
 				ref={setTextareaRefs}
@@ -354,7 +341,7 @@ export function ChatPrompt({
 				rows={rows}
 				placeholder={placeholder ?? intl.formatMessage(messages.placeholder)}
 				{...labelProps}
-				aria-describedby={hasToolbar ? toolbarLabelId : undefined}
+				aria-describedby={ariaDescribedBy}
 				className="max-h-64"
 				actions={
 					<>
@@ -466,6 +453,37 @@ export function ChatPrompt({
 				/>
 			)}
 		</Control>
+	)
+}
+
+/**
+ * The row of the `toolbar` of {@link ChatPrompt}. The cleanup of a layout
+ * effect runs before React removes the row, so it still finds the focus in it,
+ * and it gives the focus to the textarea.
+ *
+ * @internal
+ */
+function ChatPromptToolbar({
+	onUnmountWithFocus,
+	children,
+}: {
+	onUnmountWithFocus: () => void
+	children: ReactNode
+}) {
+	const rowRef = useRef<HTMLDivElement>(null)
+
+	useLayoutEffect(() => {
+		const row = rowRef.current
+
+		return () => {
+			if (row?.contains(row.ownerDocument.activeElement)) onUnmountWithFocus()
+		}
+	}, [onUnmountWithFocus])
+
+	return (
+		<div ref={rowRef} data-slot="chat-prompt-toolbar" className={k().toolbar}>
+			{children}
+		</div>
 	)
 }
 
