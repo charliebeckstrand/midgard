@@ -150,19 +150,26 @@ export function Form<T extends Record<string, unknown>>({
 	// them, and a refused submit focuses the first invalid control by them.
 	const [targets] = useState(createFormFieldTargets)
 
-	const { formState, store, actions, handleSubmit, handleReset, resets, failures } = useFormReducer(
-		{
-			defaultValues,
-			values,
-			validate,
-			validateOn,
-			onSubmit,
-			onSettled,
-			onInvalidSubmit,
-			onReset,
-			targets,
-		},
-	)
+	const {
+		formState,
+		store,
+		actions,
+		handleSubmit,
+		handleReset,
+		resets,
+		failures,
+		formErrorWrites,
+	} = useFormReducer({
+		defaultValues,
+		values,
+		validate,
+		validateOn,
+		onSubmit,
+		onSettled,
+		onInvalidSubmit,
+		onReset,
+		targets,
+	})
 
 	// Only the busy state of FormSubmit shows that a submit runs, and a screen
 	// reader does not speak it. The empty message ends the run, so each submit
@@ -182,6 +189,7 @@ export function Form<T extends Record<string, unknown>>({
 			actions={actions}
 			resets={resets}
 			failures={failures}
+			formErrorWrites={formErrorWrites}
 			locked={formState.submitting}
 			targets={targets}
 		>

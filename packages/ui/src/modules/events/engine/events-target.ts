@@ -56,12 +56,13 @@ const SECRET_TOKENS = [
 /**
  * The fields that are secret in each place. Each input of type `password` is
  * one, and so is each `PasswordInput`, which keeps its slot while it shows
- * the password as text. So is each input with a token of {@link SECRET_TOKENS}.
+ * the password as text. So is each input or select with a token of
+ * {@link SECRET_TOKENS}. A split card expiry is often a pair of selects.
  */
 const SECRET = [
 	'input[type="password"]',
 	'input[data-slot="password-input"]',
-	...SECRET_TOKENS.map((token) => `input[autocomplete~="${token}" i]`),
+	...SECRET_TOKENS.map((token) => `:is(input, select)[autocomplete~="${token}" i]`),
 ].join(', ')
 
 /**

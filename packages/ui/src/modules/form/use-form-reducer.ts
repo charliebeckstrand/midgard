@@ -43,6 +43,8 @@ type FormReducerResult = {
 	resets: number
 	/** How many submit attempts have failed. */
 	failures: number
+	/** How many times the form has written an issue of the whole form. */
+	formErrorWrites: number
 }
 
 /**
@@ -152,9 +154,23 @@ export function useFormReducer<T extends Record<string, unknown>>({
 		dispatch({ type: 'set-errors-external', errors: normalizeErrors(fieldErrors) })
 	}, [])
 
-	const setFormError = useCallback((message: string | null) => {
-		dispatch({ type: 'set-form-error', formError: message === '' ? null : message })
-	}, [])
+	// Counts each write of an issue of the whole form. `FormError` shows a new
+	// alert for each write, so a screen reader speaks each write once, also when
+	// the text does not change.
+	const [formErrorWrites, setFormErrorWrites] = useState(0)
+
+	const countFormError = useCallback(() => setFormErrorWrites((count) => count + 1), [])
+
+	const setFormError = useCallback(
+		(message: string | null) => {
+			const formError = message === '' ? null : message
+
+			dispatch({ type: 'set-form-error', formError })
+
+			if (formError !== null) countFormError()
+		},
+		[countFormError],
+	)
 
 	// Resets the store only, and leaves an in-flight submit live.
 	const resetForm = useCallback(
@@ -176,6 +192,7 @@ export function useFormReducer<T extends Record<string, unknown>>({
 		setSubmitting,
 		setErrors,
 		setFormError,
+		countFormError,
 		resetForm,
 		onSubmit,
 		onSettled,
@@ -210,5 +227,14 @@ export function useFormReducer<T extends Record<string, unknown>>({
 		[getValue, setValue, setErrors, setFormError, setTouched, reset],
 	)
 
-	return { formState, store, actions, handleSubmit, handleReset, resets, failures }
+	return {
+		formState,
+		store,
+		actions,
+		handleSubmit,
+		handleReset,
+		resets,
+		failures,
+		formErrorWrites,
+	}
 }

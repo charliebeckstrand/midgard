@@ -108,8 +108,8 @@ export type ToastInput = Omit<ToastData, 'id' | 'duration' | 'dismissed' | 'revi
 	 * the id of a live toast replaces that toast in place, and its countdown starts
 	 * again. Give a fixed id to a toast that can repeat, such as "Link copied", or
 	 * to a loading toast that turns into its result. The new call replaces each
-	 * field, `onDismiss` too, and the toast that it replaces reports no exit. The
-	 * shared announcer speaks the new text, also when it repeats the old text.
+	 * field, `onDismiss` too, and the toast that it replaces reports no exit. A
+	 * screen reader speaks the new text, also when it repeats the old text.
 	 */
 	id?: string
 }

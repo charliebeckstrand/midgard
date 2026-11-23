@@ -2,7 +2,7 @@
 
 import type { ComponentProps, ReactNode } from 'react'
 import { Alert } from '../../components/alert'
-import { useFormError, useFormFailures } from '../../primitives/form/context'
+import { useFormError, useFormErrorWrites } from '../../primitives/form/context'
 
 /** Props for {@link FormError}: the `title` of the alert, atop the native attributes of its `<div>`. */
 export type FormErrorProps = Omit<ComponentProps<'div'>, 'title' | 'color' | 'children'> & {
@@ -23,8 +23,10 @@ export type FormErrorProps = Omit<ComponentProps<'div'>, 'title' | 'color' | 'ch
  * and the issue stays until the next submit or a reset.
  *
  * The alert is an error `Alert` (`role="alert"`), so a screen reader speaks the
- * issue when it shows. Each failed submit shows a new alert, so a screen reader
- * speaks the issue again when a second submit fails with the same issue.
+ * issue when it shows. Each write of the issue shows a new alert, so a screen
+ * reader speaks the issue again when a second submit fails with the same issue.
+ * A handler that sets the issue and then waits for more work gets one
+ * announcement, not a second one when the attempt settles.
  *
  * After a failed submit, a `FormErrorSummary` lists the issue of the whole
  * form as its first row. Thus a form with a summary needs no `FormError` when
@@ -38,14 +40,15 @@ export function FormError({ title, ...props }: FormErrorProps) {
 
 	// A refusal by the rule of the whole form keeps the same issue from the last
 	// refusal, and a live region does not speak text that does not change. A new
-	// key for each failure mounts a new alert, which the screen reader speaks.
-	const failures = useFormFailures()
+	// key for each write mounts a new alert, which the screen reader speaks. The
+	// failure of the attempt is not a write, so it does not speak the issue again.
+	const writes = useFormErrorWrites()
 
 	if (formError === null) return null
 
 	return (
 		<Alert
-			key={failures}
+			key={writes}
 			data-slot="form-error"
 			{...props}
 			severity="error"

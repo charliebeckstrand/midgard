@@ -105,6 +105,25 @@ export function useFormFailures(): number {
 	return useFormFailureContext()
 }
 
+const [FormErrorWritesContext, useFormErrorWritesContext] = createContext<number>(
+	'FormErrorWrites',
+	{ default: 0 },
+)
+
+/**
+ * Returns how many times the enclosing form has written an issue of the whole
+ * form: a refusal by the rule of the whole form, a `{ formError }` return, and
+ * each call of `setFormError` with an issue.
+ *
+ * @returns The write count, or `0` outside a `Form`.
+ * @remarks `FormError` keys its alert by the count, so each write shows a new
+ * alert, which a screen reader speaks once.
+ * @internal
+ */
+export function useFormErrorWrites(): number {
+	return useFormErrorWritesContext()
+}
+
 const [FormLockedContext, useFormLockedContext] = createContext<boolean>('FormLocked', {
 	default: false,
 })
@@ -140,6 +159,7 @@ export function FormProvider({
 	actions,
 	resets,
 	failures = 0,
+	formErrorWrites = 0,
 	locked = false,
 	targets,
 	children,
@@ -149,6 +169,8 @@ export function FormProvider({
 	resets: number
 	/** How many submit attempts have failed. A provider with no submit leaves it at `0`. */
 	failures?: number
+	/** How many times the form has written an issue of the whole form. A provider with no submit leaves it at `0`. */
+	formErrorWrites?: number
 	/** Locks each field of the form: a field write does nothing. */
 	locked?: boolean
 	/** The registry of the control ids and the labels of the fields, which a `FormErrorSummary` reads. A provider with no summary leaves it out. */
@@ -160,9 +182,11 @@ export function FormProvider({
 			<FormStoreContext value={store}>
 				<FormResetContext value={resets}>
 					<FormFailureContext value={failures}>
-						<FormLockedContext value={locked}>
-							<FormFieldTargetsContext value={targets}>{children}</FormFieldTargetsContext>
-						</FormLockedContext>
+						<FormErrorWritesContext value={formErrorWrites}>
+							<FormLockedContext value={locked}>
+								<FormFieldTargetsContext value={targets}>{children}</FormFieldTargetsContext>
+							</FormLockedContext>
+						</FormErrorWritesContext>
 					</FormFailureContext>
 				</FormResetContext>
 			</FormStoreContext>

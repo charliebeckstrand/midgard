@@ -2071,6 +2071,62 @@ describe('Form focus on a refused submit', () => {
 		expect(screen.getByRole('textbox', { name: 'Name' })).toHaveFocus()
 	})
 
+	it('moves the focus to a returned issue after the lock lifts', async () => {
+		const { container } = renderUI(
+			<Form
+				defaultValues={{ name: 'Ada' }}
+				onSubmit={async () => ({ fieldErrors: { name: 'taken' } })}
+			>
+				<Field>
+					<Label>Name</Label>
+					<Input name="name" />
+				</Field>
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		const name = screen.getByRole('textbox', { name: 'Name' })
+
+		let readOnlyAtFocus: boolean | undefined
+
+		name.addEventListener('focus', () => {
+			readOnlyAtFocus = name.hasAttribute('readonly')
+		})
+
+		screen.getByRole('button', { name: 'Submit' }).focus()
+
+		await submit(container)
+
+		expect(name).toHaveFocus()
+
+		expect(readOnlyAtFocus).toBe(false)
+	})
+
+	it('skips an invalid control that does not take the focus', async () => {
+		const { container } = renderUI(
+			<Form
+				defaultValues={{ email: 'ada@example.com', name: 'Ada' }}
+				onSubmit={async () => ({ fieldErrors: { email: 'taken', name: 'taken' } })}
+			>
+				<Field>
+					<Label>Email</Label>
+					<Input name="email" disabled />
+				</Field>
+				<Field>
+					<Label>Name</Label>
+					<Input name="name" />
+				</Field>
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		screen.getByRole('button', { name: 'Submit' }).focus()
+
+		await submit(container)
+
+		expect(screen.getByRole('textbox', { name: 'Name' })).toHaveFocus()
+	})
+
 	it('lets an onInvalidSubmit that moves the focus win', async () => {
 		const { container } = renderRefused(null, {
 			onInvalidSubmit: () => screen.getByRole('button', { name: 'Submit' }).focus(),

@@ -250,6 +250,18 @@ describe('listen', () => {
 		expect(JSON.stringify(written)).not.toContain(secret)
 	})
 
+	it('masks each key of a select that is a part of a split card expiry', () => {
+		const store = listenTo()
+
+		const month = attach(document.createElement('select'))
+
+		month.setAttribute('autocomplete', 'cc-exp-month')
+
+		month.dispatchEvent(new KeyboardEvent('keydown', { key: '0', code: 'Digit0', bubbles: true }))
+
+		expect(texts(store)).toEqual(['keydown *** select synthetic'])
+	})
+
 	it('masks each input and textarea inside an element with the mask attribute', () => {
 		const store = listenTo()
 
