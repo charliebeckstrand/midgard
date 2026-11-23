@@ -198,15 +198,16 @@ const TRAILING_NUMBER = /^(.*?)(\d+)$/s
 const MAX_DIGITS = 15
 
 /**
- * Text before the number that ends in the start of a date or a time: a year
- * and a dash or a slash (`2026-11`), a year and a month (`2026-11-30`), a day
- * and a month (`11/30/2026`), or an hour, with or without its minutes
- * (`10:30`, `10:30:15`). The number is then one part of a date or a time, not
- * a count. Other dotted or dashed numbers, such as `v1.2.3`, `10.0.0.1`, or
- * `SKU-12-001`, count on.
+ * Text before the number that is the start of a date or a time: a year and a
+ * dash or a slash (`2026-11`), a year and a month (`2026-11-30`), a day and a
+ * month (`11/30/2026`), or an hour, with or without its minutes (`10:30`,
+ * `10:30:15`). The number is then one part of a date or a time, not a count.
+ * The shape starts the value, so a date or a time in other text, such as
+ * `INV-2026-0001` or `John 3:16`, counts on, as do other dotted or dashed
+ * numbers, such as `v1.2.3`, `10.0.0.1`, or `SKU-12-001`.
  */
 const PART_OF_DATE_OR_TIME =
-	/(?:^|\D)(?:\d{4}[-/](?:\d{1,2}[-/])?|\d{1,2}[-/]\d{1,2}[-/]|\d{1,2}:(?:\d{2}:)?)$/
+	/^(?:\d{4}[-/](?:\d{1,2}[-/])?|\d{1,2}[-/]\d{1,2}[-/]|\d{1,2}:(?:\d{2}:)?)$/
 
 /**
  * The next `count` values of a line of text that ends in a whole number, two

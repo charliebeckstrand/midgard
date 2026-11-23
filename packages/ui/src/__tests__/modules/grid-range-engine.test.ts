@@ -556,6 +556,21 @@ describe('fillLine text with a number', () => {
 		expect(fillLine(['Item 9', 'Item 10'], 1)).toEqual(['Item 11'])
 	})
 
+	// A date or a time repeats only when it starts the value. A year or a
+	// reference in other text is part of a code, which counts on.
+	it('continues a code that holds a year or a reference', () => {
+		expect(fillLine(['INV-2026-0001', 'INV-2026-0002'], 2)).toEqual([
+			'INV-2026-0003',
+			'INV-2026-0004',
+		])
+
+		expect(fillLine(['PO/2026/17', 'PO/2026/18'], 1)).toEqual(['PO/2026/19'])
+
+		expect(fillLine(['Order #2026-5', 'Order #2026-6'], 1)).toEqual(['Order #2026-7'])
+
+		expect(fillLine(['John 3:16', 'John 3:17'], 1)).toEqual(['John 3:18'])
+	})
+
 	it('steps back, and repeats a series that would go below zero', () => {
 		expect(fillLine(['Item 5', 'Item 4'], 2)).toEqual(['Item 3', 'Item 2'])
 
