@@ -1,6 +1,7 @@
 'use client'
 
 import { type RefObject, useEffectEvent, useLayoutEffect } from 'react'
+import { FOCUSABLE_SELECTOR, getTabbableElements } from '../../utilities/focusable-selector'
 
 /** A modal overlay, from its mount to its unmount. */
 type Entry = {
@@ -11,6 +12,12 @@ type Entry = {
 	 * opened, or the target that an overlay below it gave at its unmount.
 	 */
 	target: Element | null
+	/**
+	 * The ancestors of the element that had the focus as the overlay opened,
+	 * nearest first, below `<body>`. When the target is gone at the close, the
+	 * focus goes into the nearest one that is still in the page.
+	 */
+	path: Element[]
 }
 
 /** The mounted modal overlays. */
@@ -22,11 +29,41 @@ let mounts = 0
 function mount(target: Element | null): Entry {
 	mounts += 1
 
-	const entry: Entry = { order: mounts, target }
+	const entry: Entry = { order: mounts, target, path: ancestors(target) }
 
 	entries.add(entry)
 
 	return entry
+}
+
+/** The ancestors of `element`, nearest first, below `<body>`. */
+function ancestors(element: Element | null): Element[] {
+	const path: Element[] = []
+
+	const body = element?.ownerDocument.body
+
+	for (let node = element?.parentElement; node && node !== body; node = node.parentElement) {
+		path.push(node)
+	}
+
+	return path
+}
+
+/**
+ * The element that gets the focus in place of a target that is gone, such as
+ * a button in a table row that the overlay deleted. It is the nearest ancestor
+ * of the old target that is still in the page, if it can get the focus, else
+ * the first tabbable element in that ancestor. The focus then stays near the
+ * place of the action, and does not fall to `<body>` (WCAG 2.4.3).
+ */
+function fallback(path: Element[]): HTMLElement | null {
+	const near = path.find((node) => node.isConnected)
+
+	if (!(near instanceof HTMLElement)) return null
+
+	if (near.matches(FOCUSABLE_SELECTOR) && near.tabIndex >= 0) return near
+
+	return getTabbableElements(near)[0] ?? null
 }
 
 /** Whether `target` is not an element that can get the focus back. */
@@ -45,18 +82,27 @@ function giveBack(entry: Entry, target: Element | null): void {
 	const above = [...entries].filter((other) => other.order > entry.order)
 
 	if (above.length > 0) {
-		for (const other of above) if (missing(other.target)) other.target = target
+		for (const other of above) {
+			if (!missing(other.target)) continue
+
+			other.target = target
+
+			other.path = entry.path
+		}
 
 		return
 	}
 
-	if (!(target instanceof HTMLElement) || !target.isConnected) return
+	const element =
+		target instanceof HTMLElement && target.isConnected ? target : fallback(entry.path)
 
-	const active = target.ownerDocument.activeElement
+	if (!element) return
 
-	if (active !== null && active !== target.ownerDocument.body) return
+	const active = element.ownerDocument.activeElement
 
-	target.focus({ preventScroll: true })
+	if (active !== null && active !== element.ownerDocument.body) return
+
+	element.focus({ preventScroll: true })
 }
 
 /**
@@ -69,6 +115,9 @@ function giveBack(entry: Entry, target: Element | null): void {
  * exit, and a fast second Enter on a button of the panel would press the
  * trigger and open the overlay again. Thus the overlay gives the focus manager
  * no return focus and returns the focus itself, after the exit.
+ *
+ * When the target is gone at the close, the focus goes into the nearest
+ * ancestor of the old focus that is still in the page.
  *
  * The focus comes back only from `<body>`. The overlay moves the focus there
  * at the close, and the browser moves it there when the focused element of an

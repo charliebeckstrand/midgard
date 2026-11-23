@@ -8,6 +8,15 @@ import type { ConfirmProps } from './confirm'
  * actions, and an optional `action` that runs before the dialog closes.
  */
 export type ConfirmOptions = Pick<ConfirmProps, 'title' | 'description'> & {
+	/**
+	 * The element that gets the focus when the dialog closes. Set it when the
+	 * action removes the control that asked, such as a Delete button in a row,
+	 * or when the question comes from a menu.
+	 * @defaultValue the element that had the focus as the dialog opened. When
+	 * that element is gone, the focus goes into its nearest ancestor that is
+	 * still in the page.
+	 */
+	returnFocusTo?: ConfirmProps['returnFocusTo']
 	/** The text and the color of the confirm (primary) action. */
 	confirm?: Pick<NonNullable<ConfirmProps['confirm']>, 'label' | 'color'>
 	/** The text and the color of the cancel (plain) action. */

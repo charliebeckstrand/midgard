@@ -67,13 +67,13 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > A hover `Tooltip` stays open while the pointer moves onto its content. The reader can thus rest on the text (WCAG 2.2 SC 1.4.13). Escape closes it. `interactive` only lets the content hold controls.
 
-> `useConfirm()` asks a question in the one `Confirm` that `UIProvider` mounts. Use `Confirm` for a message with custom children.
+> `useConfirm()` asks a question in the one `Confirm` that `UIProvider` mounts. Use `Confirm` for a message with custom children. When the dialog closes, the focus goes back to the control that asked. When that control is gone, as after a delete of its row, the focus goes into its nearest ancestor that is still in the page. Set `returnFocusTo` to choose the target.
 
 > `UIProvider` mounts one `ToastProvider` and its viewport, so `useToast()` works anywhere under it with no setup. A `toast()` call with the `id` of a live toast replaces that toast in place, and its countdown starts again. A screen reader speaks the new text.
 
 > While a toast shows, the `Toast` viewport is a `region` landmark with the name "Notifications". F8 moves focus to the first control of the newest toast that has one, and that focus pauses auto-dismiss. A toast with `actions` and no `duration` stays until the reader closes it (WCAG 2.2.1). A modal overlay does not hide the viewport from a screen reader, so a toast that comes while a `Dialog` is open is spoken.
 
-> `dialog`, `drawer`, and `sheet` have the root-and-parts shape of `popover`: a root such as `Dialog`, a `DialogTrigger`, and a `DialogPanel`.
+> `dialog`, `drawer`, and `sheet` have the root-and-parts shape of `popover`: a root such as `Dialog`, a `DialogTrigger`, and a `DialogPanel`. A panel with a `container` seals only that element and has no `aria-modal`. A `Body` that scrolls is a tab stop.
 
 > A `DialogPanel`, a `DrawerPanel`, or a `SheetPanel` has no `glass` prop. It follows the Surfaces setting of the reader: flat by default, glass when the reader picks Glass in `AppearanceSettings`. A `<GlassProvider>` does not change it. `CommandPalette`, `Confirm`, and the phone sheet of a `Menu` follow the same setting.
 

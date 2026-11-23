@@ -94,7 +94,9 @@ export type OverlayProps = {
 	 * the focus belongs elsewhere. Also give it when the element that had the
 	 * focus as the overlay opened can be gone at the close.
 	 *
-	 * @defaultValue the element that had the focus as the overlay opened.
+	 * @defaultValue the element that had the focus as the overlay opened. When
+	 * that element is gone, the focus goes into its nearest ancestor that is
+	 * still in the page.
 	 */
 	returnFocusTo?: RefObject<HTMLElement | null>
 	/**
