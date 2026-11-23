@@ -32,6 +32,7 @@ import {
 	NEW_ROW_INDEX,
 	useGridNavigation,
 } from './use-grid-navigation'
+import { focusRow } from './use-grid-range-value'
 import { useGridTabStops } from './use-grid-tab-stops'
 
 /**
@@ -187,6 +188,12 @@ export function useGridCursorNav<T>({
 
 		if (!cells) return
 
+		// The focus can sit on a row that holds no data, such as a group header.
+		// The range then ends at its data row at the cursor's edge.
+		const to = focusRow(cells)
+
+		if (to === undefined) return
+
 		const columns = cursorColumnsRef.current
 
 		// The `aria-rowindex` of the row: its place in the cursor's order counts the
@@ -203,7 +210,7 @@ export function useGridCursorNav<T>({
 			intl,
 			{ rows: cells.rows.length, cols: cells.cols.length },
 			corner(cells.from),
-			corner(cells.to),
+			corner({ row: to, col: cells.to.col }),
 		)
 
 		// The figures that the footer shows, spoken with the range they describe.
@@ -216,13 +223,15 @@ export function useGridCursorNav<T>({
 		announce(describeRangeWithFigures(intl, sentence, figures))
 	})
 
-	const { active: rangeFocus } = nav
+	const { rangeFocus } = nav
 
 	const copies = enabled && range
 
 	// The clipboard listeners act only on a seated cursor, so a grid with no
-	// cursor keeps none on the document. A boolean, so a cursor move does not
-	// add them again.
+	// cursor keeps none on the document. The cursor of the range counts, as for
+	// the clear keys and the fill keys, so a range keeps its clipboard while its
+	// focus is on a group header. A boolean, so a cursor move does not add them
+	// again.
 	const seated = copies && rangeFocus !== null
 
 	useEffect(() => {

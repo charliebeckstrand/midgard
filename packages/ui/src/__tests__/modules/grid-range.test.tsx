@@ -505,6 +505,38 @@ describe('Grid range over grouped rows', () => {
 			'Range of 3 rows and 1 column, Units row 3 to Units row 6',
 		)
 	})
+
+	it('copies and speaks the range while its focus is on a group header', async ({ clock }) => {
+		renderUI(
+			<Grid
+				columns={saleColumns}
+				rows={sales}
+				getKey={(row) => row.id}
+				groupBy={{ value: 'region' }}
+				navigable
+				range
+			/>,
+		)
+
+		const grid = screen.getByRole('treegrid')
+
+		fireEvent.mouseDown(screen.getByText('10 units'))
+
+		fireEvent.mouseUp(screen.getByText('10 units'))
+
+		// The second step lands on the header of the East group.
+		fireEvent.keyDown(grid, { key: 'ArrowDown', shiftKey: true })
+
+		fireEvent.keyDown(grid, { key: 'ArrowDown', shiftKey: true })
+
+		expect(copy()).toBe('10\n30')
+
+		await settleAnnouncement(clock)
+
+		expect(liveRegion()).toHaveTextContent(
+			'Range of 2 rows and 1 column, Units row 3 to Units row 4',
+		)
+	})
 })
 
 describe('Grid range in an editable grid', () => {
