@@ -1,5 +1,11 @@
 import { useComposedRefs } from 'motion/react'
-import { type ComponentType, type ReactNode, useEffect, useState } from 'react'
+import {
+	type ComponentType,
+	type FocusEvent,
+	type ReactNode,
+	useLayoutEffect,
+	useState,
+} from 'react'
 import { CodeBlock, primeCodeBlock } from 'ui/code'
 import { Collapse, CollapsePanel, CollapseTrigger } from 'ui/collapse'
 import { cn, createContext } from 'ui/core'
@@ -55,6 +61,15 @@ const sizeMessage = defineMessage<{ width: number; height: number }>({
 		'The size of an example in pixels, which shows while the reader resizes the example, such as "640 × 480".',
 })
 
+// One side of an example in pixels, which a screen reader speaks as the value
+// of a resize handle, such as "640 pixels".
+const pixelsMessage = defineMessage<{ pixels: number }>({
+	id: 'docs.example.pixels',
+	defaultMessage: '{pixels} pixels',
+	description:
+		'The width or the height of an example in pixels, which a screen reader speaks as the value of the handle that resizes the example, such as "640 pixels".',
+})
+
 function isExample(component: object): component is ExampleMeta {
 	return 'title' in component && 'code' in component
 }
@@ -106,20 +121,23 @@ function Code({
 	)
 }
 
+type Size = { width: number; height: number }
+
 /**
- * The width and the height of `target` in pixels, in the top end corner of the
- * frame. It shows only while `active`, and it measures only then, so the size
- * of an idle frame renders nothing.
+ * The width and the height of `target` in pixels, while `active`, and `null`
+ * otherwise. It measures only while `active`, so an idle frame does no work.
+ * The first size is measured before the paint, so a splitter that takes the
+ * focus has its value text at once.
  */
-function FrameSize({ target, active }: { target: HTMLElement | null; active: boolean }) {
-	const intl = useIntl()
+function useFrameSize(target: HTMLElement | null, active: boolean): Size | null {
+	const [size, setSize] = useState<Size | null>(null)
 
-	const [size, setSize] = useState<{ width: number; height: number } | null>(null)
-
-	useEffect(() => {
+	useLayoutEffect(() => {
 		if (!active || target === null) return
 
-		// The observer reports the size at once, and then each change.
+		setSize({ width: target.clientWidth, height: target.clientHeight })
+
+		// The observer reports each change of the size.
 		const observer = new ResizeObserver(([entry]) => {
 			if (!entry) return
 
@@ -138,7 +156,12 @@ function FrameSize({ target, active }: { target: HTMLElement | null; active: boo
 		}
 	}, [active, target])
 
-	if (!active || size === null) return null
+	return size
+}
+
+/** The size of the instance area, in the top end corner of the frame. */
+function FrameSize({ size }: { size: Size }) {
+	const intl = useIntl()
 
 	return (
 		<span
@@ -393,6 +416,18 @@ export function ExampleFrame(
 		resize.handleProps['data-dragging'] !== undefined ||
 		heightResize.handleProps['data-dragging'] !== undefined
 
+	// A splitter that has the keyboard focus. The size shows while it has the
+	// focus, as it shows during a drag, so a keyboard reader sees the size too.
+	const [keyFocus, setKeyFocus] = useState(false)
+
+	const size = useFrameSize(area, dragging || keyFocus)
+
+	const splitterFocus = {
+		onFocus: (event: FocusEvent<HTMLElement>) =>
+			setKeyFocus(event.currentTarget.matches(':focus-visible')),
+		onBlur: () => setKeyFocus(false),
+	}
+
 	return (
 		<Stack gap="sm" data-slot="example">
 			<Flex gap="md" direction="col" align="start">
@@ -417,17 +452,6 @@ export function ExampleFrame(
 					data-dragging={resize.handleProps['data-dragging']}
 					className="peer absolute inset-y-0 -end-3 z-10 w-6 cursor-ew-resize touch-pan-y select-none pointer-coarse:pointer-events-none"
 				>
-					{/* A window splitter over the drag area. It is the tab stop, and the arrow
-					    keys resize the frame, so a keyboard reader can resize it too (WCAG 2.1.1). */}
-					<Splitter
-						label={intl.formatMessage(messages.resizeWidth)}
-						orientation="vertical"
-						value={resize.covers}
-						min={0}
-						max={100}
-						onKeyDown={resize.handleProps.onKeyDown}
-						className={cn('absolute inset-0 m-0', sen.focus.ring)}
-					/>
 					{/* The bar has an odd width, so it centers on the 1px border at whole pixels. */}
 					<div
 						data-slot="example-resize-grip"
@@ -477,7 +501,11 @@ export function ExampleFrame(
 									value={heightResize.covers}
 									min={0}
 									max={100}
+									valueText={
+										size ? intl.formatMessage(pixelsMessage, { pixels: size.height }) : undefined
+									}
 									onKeyDown={heightResize.handleProps.onKeyDown}
+									{...splitterFocus}
 									className={cn('absolute inset-0 m-0', sen.focus.ring)}
 								/>
 								<div className="absolute inset-x-0 top-1/2 h-px group-hover:bg-zinc-400 group-data-dragging:bg-zinc-400 pointer-coarse:hidden dark:group-hover:bg-zinc-600 dark:group-data-dragging:bg-zinc-600" />
@@ -508,7 +536,24 @@ export function ExampleFrame(
 						</CollapsePanel>
 					</Collapse>
 				</div>
-				<FrameSize target={area} active={dragging} />
+				{/* A window splitter on the end border, over the drag area. It is the tab
+				    stop, and the arrow keys resize the frame, so a keyboard reader can
+				    resize it too (WCAG 2.1.1). It comes after the box, so the Tab order
+				    reaches it after the content that it sizes. The pointer goes through it
+				    to the drag area, which comes first, so the box can show its border as
+				    active. */}
+				<Splitter
+					label={intl.formatMessage(messages.resizeWidth)}
+					orientation="vertical"
+					value={resize.covers}
+					min={0}
+					max={100}
+					valueText={size ? intl.formatMessage(pixelsMessage, { pixels: size.width }) : undefined}
+					onKeyDown={resize.handleProps.onKeyDown}
+					{...splitterFocus}
+					className={cn('pointer-events-none absolute inset-y-0 -end-3 m-0 w-6', sen.focus.ring)}
+				/>
+				{size && <FrameSize size={size} />}
 			</div>
 		</Stack>
 	)

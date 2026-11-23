@@ -55,4 +55,66 @@ describe('ExampleFrame resize keys (real browser)', () => {
 			expect(frame.getBoundingClientRect().width).toBeGreaterThan(shrunk)
 		})
 	}
+
+	it('puts the width splitter after the content in the Tab order', async () => {
+		renderUI(
+			<ExampleFrame meta={META}>
+				<button type="button">Instance</button>
+			</ExampleFrame>,
+		)
+
+		await nextPaint()
+
+		screen.getByRole('button', { name: 'Instance' }).focus()
+
+		await userEvent.tab()
+
+		expect(document.activeElement).toHaveAccessibleName('Show code')
+
+		await userEvent.tab()
+
+		expect(document.activeElement).toHaveAccessibleName('Resize example width')
+	})
+
+	it('gives the width in pixels as the value text, and shows the size, while the splitter has the keyboard focus', async () => {
+		const { container } = renderUI(
+			<div style={{ width: 800 }}>
+				<ExampleFrame meta={META}>
+					<button type="button">Instance</button>
+				</ExampleFrame>
+			</div>,
+		)
+
+		await nextPaint()
+
+		const splitter = screen.getByRole('separator', { name: 'Resize example width' })
+
+		expect(splitter).not.toHaveAttribute('aria-valuetext')
+
+		expect(container.querySelector('[data-slot="example-size"]')).toBeNull()
+
+		screen.getByRole('button', { name: 'Show code' }).focus()
+
+		await userEvent.tab()
+
+		expect(document.activeElement).toBe(splitter)
+
+		expect(splitter.getAttribute('aria-valuetext')).toMatch(/^\d+ pixels$/)
+
+		expect(getSlot(container, 'example-size')).toBeVisible()
+
+		await userEvent.keyboard('{ArrowLeft}')
+
+		await nextPaint()
+
+		const shrunk = Number.parseInt(splitter.getAttribute('aria-valuetext') ?? '', 10)
+
+		expect(shrunk).toBeLessThan(800)
+
+		await userEvent.tab({ shift: true })
+
+		expect(splitter).not.toHaveAttribute('aria-valuetext')
+
+		expect(container.querySelector('[data-slot="example-size"]')).toBeNull()
+	})
 })

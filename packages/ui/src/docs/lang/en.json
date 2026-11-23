@@ -5927,6 +5927,10 @@
 		"defaultMessage": "Hide code",
 		"description": "The label of the button under an example that hides the source code of the example."
 	},
+	"docs.example.pixels": {
+		"defaultMessage": "{pixels} pixels",
+		"description": "The width or the height of an example in pixels, which a screen reader speaks as the value of the handle that resizes the example, such as \"640 pixels\"."
+	},
 	"docs.example.playground": {
 		"defaultMessage": "Playground",
 		"description": "The heading of the first example of a page, where the reader changes the props of the component to see the result."
