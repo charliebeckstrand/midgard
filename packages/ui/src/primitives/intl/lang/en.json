@@ -299,9 +299,17 @@
 		"defaultMessage": "Hue",
 		"description": "The name of the slider that sets the hue of a color."
 	},
+	"ui.color.picker": {
+		"defaultMessage": "Color",
+		"description": "The name of the button that opens a color picker, when no label names it."
+	},
 	"ui.color.select": {
 		"defaultMessage": "Select color",
 		"description": "The name of the dialog of a color picker."
+	},
+	"ui.color.swatch": {
+		"defaultMessage": "{hue, select, red {Red} orange {Orange} yellow {Yellow} green {Green} cyan {Cyan} blue {Blue} purple {Purple} pink {Pink} white {White} black {Black} other {Gray}}, {hex}",
+		"description": "The name of one preset color: a coarse name of the color, then its hexadecimal code, such as \"Red, #EF4444\"."
 	},
 	"ui.color.swatches": {
 		"defaultMessage": "Swatches",

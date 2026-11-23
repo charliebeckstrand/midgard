@@ -19,6 +19,7 @@ import { useFormValue } from '../../primitives/form/use-form-value'
 import { Star } from '../../primitives/icons/icons'
 import { defineMessage, defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
+import { TouchTarget } from '../../primitives/touch-target'
 import type { scale } from '../../recipes/kata/rating'
 import { k, type RatingVariants } from '../../recipes/kata/rating'
 import { clamp } from '../../utilities/clamp'
@@ -127,6 +128,12 @@ export type RatingProps = RatingVariants & {
 	 */
 	disabled?: boolean
 	/**
+	 * Marks the score as required. The interactive form sets `aria-required` on
+	 * its radiogroup. The display form takes no input, so it does not set it.
+	 * @defaultValue `false`, or the state of the enclosing Control or Field.
+	 */
+	required?: boolean
+	/**
 	 * Lets a click on the current score clear it. A star rating has no other way
 	 * back to "unrated", because every star a reader can reach sets a score.
 	 *
@@ -189,7 +196,7 @@ const ungated = { checkForDefaultPrevented: false }
  * Binds to an enclosing Form field by `name`. An uncontrolled rating goes back
  * to `defaultValue` on a native form reset, also while it is `readOnly` or
  * `disabled`, and `onValueChange` reports it. Resolves `id` / `disabled` /
- * `readOnly` / `invalid` from an enclosing `<Control>` or `<Field>`. The stars
+ * `readOnly` / `required` / `invalid` from an enclosing `<Control>` or `<Field>`. The stars
  * take the step of the nearest density scope. A `<Label as="span">` in the
  * Field names the stars through `aria-labelledby`. No one element of the stars
  * is labelable, so a `<label for>` points at nothing.
@@ -198,6 +205,12 @@ const ungated = { checkForDefaultPrevented: false }
  * click is canceled rather than handled after the fact. A radio restores its
  * own checkedness when its activation is canceled. The clear therefore never
  * races the `change` that would otherwise set the same star again.
+ *
+ * The interactive form puts each star in a cell of at least 24 px on a fine
+ * pointer and 44 px on a coarse pointer, so the hit area of each star takes the
+ * floor of `TouchTarget` (WCAG 2.5.8). At a half step, each half is 24 px wide
+ * on each pointer, so a star takes a cell of at least 48 px. The display form
+ * takes no input, so its stars keep the size of the glyph.
  *
  * The display form draws a fractional score (an average of reviews is not a
  * whole number) by clipping a filled star over an empty one. It draws a whole
@@ -218,6 +231,7 @@ export function Rating({
 	size,
 	readOnly,
 	disabled,
+	required,
 	color,
 	clearable = true,
 	getValueText: getValueTextProp,
@@ -269,12 +283,14 @@ export function Rating({
 		id: resolvedId,
 		disabled: resolvedDisabled,
 		readOnly: resolvedReadOnly,
+		required: resolvedRequired,
 		'aria-describedby': describedBy,
 		validation,
 	} = useControlProps({
 		id,
 		disabled,
 		readOnly,
+		required,
 		invalid,
 		'aria-describedby': ariaDescribedBy,
 	})
@@ -470,7 +486,9 @@ export function Rating({
 
 	/**
 	 * The label for one score, over the native radio that sets it. A whole step
-	 * makes it the star's box, and a half step makes it one half of the box.
+	 * makes it the cell of the star, and a half step makes it one half of the
+	 * star: a box of 24 px from the center of the star to one side. The hit area
+	 * of the label floors at the minimums of `TouchTarget`.
 	 */
 	function choice(score: number, label: { slot: string; className: string }, children?: ReactNode) {
 		return (
@@ -481,27 +499,29 @@ export function Rating({
 				className={label.className}
 				onPointerEnter={(event) => handlePointerEnter(event, score)}
 			>
-				<input
-					// The radio of the first score carries the reset. Every radio of the row
-					// is in the same form, and a dead row renders no radios.
-					ref={score === step ? resetRef : undefined}
-					type="radio"
-					data-slot="rating-input"
-					name={scope.id}
-					value={score}
-					checked={current === score}
-					aria-label={getValueText(score, count)}
-					className={k().input}
-					onChange={() => commit(score)}
-					onClick={(event) => {
-						handleClick(event, score)
+				<TouchTarget>
+					<input
+						// The radio of the first score carries the reset. Every radio of the row
+						// is in the same form, and a dead row renders no radios.
+						ref={score === step ? resetRef : undefined}
+						type="radio"
+						data-slot="rating-input"
+						name={scope.id}
+						value={score}
+						checked={current === score}
+						aria-label={getValueText(score, count)}
+						className={k().input}
+						onChange={() => commit(score)}
+						onClick={(event) => {
+							handleClick(event, score)
 
-						// A click on the checked radio fires no change, so the press ends here.
-						if (current === score) pressed.current = false
-					}}
-				/>
+							// A click on the checked radio fires no change, so the press ends here.
+							if (current === score) pressed.current = false
+						}}
+					/>
 
-				{children}
+					{children}
+				</TouchTarget>
 			</label>
 		)
 	}
@@ -520,8 +540,9 @@ export function Rating({
 			aria-labelledby={labelledBy}
 			aria-describedby={describedBy}
 			aria-readonly={ariaAttr(!live)}
+			aria-required={ariaAttr(resolvedRequired)}
 			{...validation}
-			className={rowClass}
+			className={cn(rowClass, k().row)}
 			// The consumer's handler runs first. The press flag and the preview are
 			// bookkeeping of the row, so they run also after a handler that cancels.
 			onPointerDown={composeEventHandlers(onPointerDown, startPress, ungated)}
@@ -542,20 +563,22 @@ export function Rating({
 				// order.
 				if (step === 0.5) {
 					return (
-						<span key={key} data-slot="rating-star" className={k({ interactive: true }).star}>
-							{choice(star - 0.5, { slot: 'rating-half', className: k({ side: 'start' }).half })}
+						<span key={key} data-slot="rating-star" className={k({ step: 'half' }).cell}>
+							<span className={k().star}>
+								{choice(star - 0.5, { slot: 'rating-half', className: k({ side: 'start' }).half })}
 
-							{choice(star, { slot: 'rating-half', className: k({ side: 'end' }).half })}
+								{choice(star, { slot: 'rating-half', className: k({ side: 'end' }).half })}
 
-							{glyphs(star)}
+								{glyphs(star)}
+							</span>
 						</span>
 					)
 				}
 
 				return choice(
 					star,
-					{ slot: 'rating-star', className: k({ interactive: true }).star },
-					glyphs(star),
+					{ slot: 'rating-star', className: k({ step: 'whole' }).cell },
+					<span className={k().star}>{glyphs(star)}</span>,
 				)
 			})}
 		</span>

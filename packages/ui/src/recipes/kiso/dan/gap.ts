@@ -111,6 +111,8 @@ export const gap = {
 		 * below the scope around it, and `kata/query-chips.ts` gives the lengths.
 		 */
 		chips: 'density-set-[2.75,3.25,3.75,4.25,4.25]/[--touch-target-gap-x]',
+		/** The touch gap between two stars of a rating, as `rating` gives it. */
+		rating: 'density-set-[0.25,0.5,0.75,1,1.25]/[--touch-target-gap-x]',
 		/** The touch gap between two toggle fields on a coarse pointer, as `dan.space.fieldset.toggle` gives it. */
 		toggle: 'pointer-coarse:density-set-[3,4.5,6,7.5,9]/[--touch-target-gap-y]',
 		toolbar: {

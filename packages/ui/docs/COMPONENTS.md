@@ -23,9 +23,9 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > `CheckboxGroup` and `RadioGroup` require their own name: give `aria-label` or `aria-labelledby`. The `<legend>` of an enclosing `<fieldset>` does not name the group.
 
-> `Checkbox`, `Radio`, and `Switch` floor their hit area with `TouchTarget` ([`PRIMITIVES.md`](PRIMITIVES.md)). A container that puts bare controls closer than the floor sets `--touch-target-gap-x` or `--touch-target-gap-y` to its gap, or uses a `touch-gap-*` utility for the two. A toggle group sets them already. Controls that touch in a grid go in a container with the `touch-pitch` utility. On a coarse pointer, each control keeps its size in a cell of at least 44px. Its hit area fills the cell, as in the month picker of `Calendar`. A scroll box with no padding of its own, such as the content box of a dashboard tile, uses the `touch-scroll` utility. On a coarse pointer, a hit area at its bottom edge then stays in the box. On a coarse pointer, the days of `Calendar` fill square cells of 40, 44, or 48 px at `sm`, `md`, and `lg`. The `sm` cell is under the floor.
+> `Checkbox`, `Radio`, `Switch`, and each star of an interactive `Rating` floor their hit area with `TouchTarget` ([`PRIMITIVES.md`](PRIMITIVES.md)). A `Rating` puts each star in a column of at least the floor. At a half step, each half of a star is 24 px wide on each pointer. A container that puts bare controls closer than the floor sets `--touch-target-gap-x` or `--touch-target-gap-y` to its gap, or uses a `touch-gap-*` utility for the two. A toggle group sets them already. Controls that touch in a grid go in a container with the `touch-pitch` utility. On a coarse pointer, each control keeps its size in a cell of at least 44px. Its hit area fills the cell, as in the month picker of `Calendar`. A scroll box with no padding of its own, such as the content box of a dashboard tile, uses the `touch-scroll` utility. On a coarse pointer, a hit area at its bottom edge then stays in the box. On a coarse pointer, the days of `Calendar` fill square cells of 40, 44, or 48 px at `sm`, `md`, and `lg`. The `sm` cell is under the floor.
 
-> A `RadioGroup` in a `Field` takes the description of the `Field`. A bare `Radio` in the group does not take the id of the `Field`. Wrap each `Radio` in a `RadioField` to give it an id and a `Label`.
+> A `RadioGroup` or a `CheckboxGroup` in a `Field` takes the description and the error message of the `Field`. A bare `Radio` or `Checkbox` in the group does not take the id of the `Field`. Wrap each `Radio` in a `RadioField`, or each `Checkbox` in a `CheckboxField`, to give it an id and a `Label`. A checkbox in a `CheckboxGroup` does not take the `required` state of a `Control`, because that state is for the group.
 
 > A `readOnly` or `disabled` `rating` renders one image. Its name is the name of the consumer or the `Field` label.
 
@@ -39,7 +39,9 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > The tags of a `tag-input` stay on one row and scroll on the inline axis. With `wrap`, they wrap onto more rows, and the add button stays at the end of the first row. The affixes of each other input stay on one row with the input.
 
-> `checkbox`, `switch`, `RadioGroup`, and `ColorPicker` take `readOnly` from their own prop or from an enclosing `Control`.
+> `checkbox`, `switch`, `RadioGroup`, and `ColorPicker` take `readOnly` from their own prop or from an enclosing `Control`. `Rating`, `SwitchChoice`, and `ColorPicker` set `aria-required` from their own `required` prop or from an enclosing `Control`.
+
+> The `ColorPicker` trigger is a `combobox`, as the `DatePicker` trigger is. Its value is the hex code that it shows. Each preset swatch has a coarse color name and its hex code as its name, such as "Red, #EF4444".
 
 > A read-only control shows the default cursor, not the pointer: on the control, on its `Field` label, and on the affix of a picker trigger. A control that is also disabled shows `not-allowed`. The shared `hannou.cursor` reads `aria-readonly="true"`, `data-readonly`, or the native `readonly` on the element or a descendant.
 
@@ -94,6 +96,8 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 ## Layout & surfaces
 
 `group` · `card` · `divider` · `aspect-ratio` · `resizable` · `collapse` · `accordion` · `segment` · `placeholder`
+
+> A `Segment` with no `TabContents` and no `TabContent` picks a value, so it is a `radiogroup` of `radio` items. An arrow key moves the focus and selects the item. A `Segment` with panels keeps the tab roles.
 
 > For a custom trigger or panel in an `AccordionItem`, use `useAccordionItem` from `accordion`. It gives the open state, `toggle`, and the ARIA props of the trigger and the panel. A custom trigger that spreads `triggerProps` takes part in the arrow keys of the accordion.
 

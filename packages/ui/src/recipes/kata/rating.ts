@@ -24,7 +24,7 @@ import { hidden } from '../kumi/check'
 const { cursor, disabled } = hannou
 const { css } = ugoki
 const { marker } = zu
-const { flex } = narabi
+const { flex, touch } = narabi
 const { focus } = sen
 
 /**
@@ -35,38 +35,64 @@ const { focus } = sen
 const color = { current: 'text-current', ...marker }
 
 /**
- * One star's box: the position the clipped fill is measured against. It carries
- * the cursor and the focus ring for the interactive form, where the box is a
- * `<label>` over its own native radio.
+ * One star's box: the position the clipped fill is measured against. It has
+ * the size of the glyph.
  */
-const star = {
-	base: ['relative', flex.inline, 'shrink-0', focus.outline],
-	interactive: {
-		true: [...cursor],
-		false: '',
+const star = ['relative', flex.inline, 'shrink-0']
+
+/**
+ * The cell of one star in the interactive form, which carries the cursor and
+ * the focus ring. Each cell is at least the floor of `TouchTarget` wide: 24 px
+ * on a fine pointer and 44 px on a coarse pointer (WCAG 2.5.8). The star is in
+ * the middle of its cell.
+ *
+ * At a whole step, the cell is the `<label>` over the radio of the star, and
+ * the gap of the rating is between two cells. The row writes that gap as the
+ * touch gap (`row`), so each hit area meets the next and does not overlap it.
+ *
+ * At a half step, the cell holds the two halves of the star (`half`), so it is
+ * at least 48 px wide on each pointer. The halves touch, so each hit area keeps
+ * to its half on the inline axis. On a coarse pointer a half is thus 24 px wide
+ * and not 44 px: a cell of 88 px would make a row of five stars too wide for a
+ * phone.
+ */
+const cell = {
+	base: [flex.inline, 'justify-center shrink-0', focus.outline, ...cursor],
+	step: {
+		whole: 'relative min-w-6 pointer-coarse:min-w-11',
+		half: ['min-w-12', touch.flush.x],
 	},
 }
 
 /**
  * One half of a star at a half step: the `<label>` over the radio for that
- * score. The halves sit on the inline axis, so they mirror in a right-to-left
- * row as the fill does.
+ * score. Each half is 24 px wide and goes from the center of the star to one
+ * side, so the two halves fill the cell. The halves sit on the inline axis, so
+ * they mirror in a right-to-left row as the fill does.
  */
 const half = {
-	base: 'absolute inset-y-0 w-1/2',
+	base: 'absolute inset-y-0 w-6',
 	side: {
-		start: 'start-0',
-		end: 'end-0',
+		start: 'end-1/2',
+		end: 'start-1/2',
 	},
 }
 
 /**
+ * The row of the interactive form: the gap of the rating as the touch gap, so
+ * that a touch gap of a container does not reach the stars.
+ */
+const row = dan.gap.touch.rating
+
+/**
  * The empty glyph under every star, in the neutral the unfilled part reads as.
- * In an invalid row, the outline of each empty star turns red, as the box of an
+ * The empty star shows the length of the scale, so it keeps a 3:1 contrast
+ * against the page in each mode (WCAG 1.4.11). The shape of the glyph, an
+ * outline and not a solid star, tells it from a filled star. In an invalid row, the outline of each empty star turns red, as the box of an
  * invalid checkbox does.
  */
 const track = [
-	...mode('text-zinc-300', 'dark:text-zinc-600'),
+	...mode('text-zinc-500', 'dark:text-zinc-500'),
 	...mode('group-data-invalid/rating:text-red-600', 'dark:group-data-invalid/rating:text-red-500'),
 ]
 
@@ -77,7 +103,9 @@ export const k = defineKata(
 		slots: {
 			/** The group that the track reads the invalid state of the row from. The skeleton does not take it. */
 			group: 'group/rating',
+			row,
 			star,
+			cell,
 			half,
 			track,
 			/** The glyph size at each step. The track and the fill share it, so the two stack exactly. */
@@ -109,7 +137,7 @@ export const k = defineKata(
 			/** Visually-hidden native radio, overlaying its own star. */
 			input: hidden,
 		},
-		defaults: { color: 'amber', interactive: false, side: 'start', clearing: false },
+		defaults: { color: 'amber', side: 'start', step: 'whole', clearing: false },
 	},
 	{ skeleton: kokkaku.rating },
 )
