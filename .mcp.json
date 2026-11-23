@@ -4,7 +4,7 @@
 			"command": "sh",
 			"args": [
 				"-c",
-				"if [ -x \"$PLAYWRIGHT_BROWSERS_PATH/chromium\" ]; then set -- --headless --browser chromium --executable-path \"$PLAYWRIGHT_BROWSERS_PATH/chromium\"; fi; exec npx -y @playwright/mcp@0.0.83 --isolated \"$@\""
+				"if [ -x \"$PLAYWRIGHT_BROWSERS_PATH/chromium\" ]; then set -- --headless --browser chromium --executable-path \"$PLAYWRIGHT_BROWSERS_PATH/chromium\"; fi; exec npx -y @playwright/mcp@0.0.86 --isolated \"$@\""
 			]
 		},
 		"next-devtools": {
@@ -15,16 +15,16 @@
 			"command": "sh",
 			"args": [
 				"-c",
-				"if [ -x \"$PLAYWRIGHT_BROWSERS_PATH/chromium\" ]; then set -- --headless --executable-path \"$PLAYWRIGHT_BROWSERS_PATH/chromium\" --chrome-arg=--no-sandbox; fi; exec npx -y chrome-devtools-mcp@1.10.1 --isolated --no-usage-statistics --no-performance-crux \"$@\""
+				"if [ -x \"$PLAYWRIGHT_BROWSERS_PATH/chromium\" ]; then set -- --headless --executable-path \"$PLAYWRIGHT_BROWSERS_PATH/chromium\" --chrome-arg=--no-sandbox; fi; exec npx -y chrome-devtools-mcp@1.13.0 --isolated --no-usage-statistics --no-performance-crux \"$@\""
 			]
 		},
 		"context7": {
 			"command": "npx",
-			"args": ["-y", "@upstash/context7-mcp@4.3.0"]
+			"args": ["-y", "@upstash/context7-mcp@4.7.3"]
 		},
 		"digitalocean": {
 			"command": "npx",
-			"args": ["-y", "@digitalocean/mcp@1.4.0", "--services", "apps"]
+			"args": ["-y", "@digitalocean/mcp@1.6.8", "--services", "apps"]
 		},
 		"sequential-thinking": {
 			"command": "npx",
