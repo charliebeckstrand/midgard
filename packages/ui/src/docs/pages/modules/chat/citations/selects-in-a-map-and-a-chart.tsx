@@ -116,6 +116,17 @@ export default function SelectsInAMapAndAChart() {
 	// The day that the reader picked in the chart, which filters the map.
 	const [picked, setPicked] = useState<string | null>(null)
 
+	// A hover previews a citation over the cited one, and a click cites it. The
+	// panes draw the preview, but each Clear control reads `cited` and `picked`
+	// alone, so it shows only for a selection that a click keeps.
+	const [previewed, setPreviewed] = useState<ChatCitation | null>(null)
+
+	const active = previewed ?? cited
+
+	// One selection shows at a time, so a preview hides the pick until it ends.
+	// The pick stays, and it shows again when the preview ends.
+	const filter = previewed === null ? picked : null
+
 	// One selection applies at a time. A citation clears the pick of the reader,
 	// and a pick clears the citation. Thus a pane never marks a citation while a
 	// filter that it does not show applies.
@@ -134,8 +145,8 @@ export default function SelectsInAMapAndAChart() {
 	// The rows that the pick lets through. The map draws these rows, so the
 	// index of a stop counts these rows.
 	const shown = useMemo(
-		() => (picked === null ? rows : rows.filter((row) => row.day === picked)),
-		[picked],
+		() => (filter === null ? rows : rows.filter((row) => row.day === filter)),
+		[filter],
 	)
 
 	const getIndex = useMemo(() => {
@@ -147,10 +158,10 @@ export default function SelectsInAMapAndAChart() {
 	// A pick in the chart marks each citation that selects the picked day.
 	const isMarked = useCallback(
 		(citation: ChatCitation) =>
-			picked !== null &&
+			filter !== null &&
 			citation.target === 'late-by-day' &&
-			(toCategorySelection(citation.selector) ?? []).includes(picked),
-		[picked],
+			(toCategorySelection(citation.selector) ?? []).includes(filter),
+		[filter],
 	)
 
 	const clearCited = useCallback(() => setCited(null), [])
@@ -162,14 +173,16 @@ export default function SelectsInAMapAndAChart() {
 		setPicked(null)
 	}, [])
 
-	const pickedDays = picked === null ? undefined : [picked]
+	const pickedDays = filter === null ? undefined : [filter]
 
 	return (
 		<Stack gap="lg">
 			<ChatCitationProvider
 				targets={targets}
+				trigger={['hover', 'click']}
 				cited={cited}
 				onCitedChange={cite}
+				onPreviewChange={setPreviewed}
 				isMarked={isMarked}
 			>
 				<ChatTranscript messages={messages} />
@@ -192,8 +205,8 @@ export default function SelectsInAMapAndAChart() {
 							// from the map.
 							legend={false}
 							selectedOverlays={
-								cited?.target === 'late-stops'
-									? toStopSelection(cited.selector, 'stops', getIndex)
+								active?.target === 'late-stops'
+									? toStopSelection(active.selector, 'stops', getIndex)
 									: undefined
 							}
 						>
@@ -211,10 +224,10 @@ export default function SelectsInAMapAndAChart() {
 							aria-label="Late stops by day"
 							data={data}
 							series={[{ xKey: 'day', yKey: 'late', yName: 'Late stops' }]}
-							// An active citation marks its bar. Without one, the bar of the
-							// reader's own pick is marked.
+							// A previewed or cited citation marks its bar. Without one, the bar
+							// of the reader's own pick is marked.
 							selectedCategories={
-								cited?.target === 'late-by-day' ? toCategorySelection(cited.selector) : pickedDays
+								active?.target === 'late-by-day' ? toCategorySelection(active.selector) : pickedDays
 							}
 							// A pick of the reader filters the map and clears the citation.
 							onCategoryClick={pick}
