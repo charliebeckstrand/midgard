@@ -17,6 +17,7 @@ import {
 import { cn } from '../../core/cn'
 import { dataAttr } from '../../core/data-attr'
 import type { DensityStep } from '../../core/density/steps'
+import { liveLayers } from '../../core/live-layer'
 import { k } from '../../recipes/kata/popover'
 import { Density } from '../density'
 import { Portal } from '../portal'
@@ -75,7 +76,8 @@ export type FloatingSurfaceProps = {
  * @remarks Passing `trapFocusContext` wraps the open surface in a modal
  * `FloatingFocusManager` that traps Tab. It cedes initial focus and close-time
  * restore to the consuming panel hook, which `trapFocusProps` overrides
- * per-surface.
+ * per-surface. A modal trap keeps the live layers of the document, such as the
+ * toast viewport, out of the hidden page (`liveLayers`).
  *
  * The positioned wrapper carries `data-slot="floating-surface"`, and it stamps
  * `data-open` while the surface is open.
@@ -161,6 +163,16 @@ export function FloatingSurface({
 		</div>
 	)
 
+	// A modal manager hides the page, but not the live layers (`liveLayers`), so
+	// a toast that comes while the surface is open is spoken. The elements that
+	// the caller gives stay inside too.
+	const givenInside = trapFocusProps?.getInsideElements
+
+	const insideElements =
+		(trapFocusProps?.modal ?? true)
+			? () => [...liveLayers(), ...(givenInside?.() ?? [])]
+			: givenInside
+
 	// `Density` sits above the portal, so an explicit step is the scope that the
 	// portal host writes, and the children read the same step in context.
 	return (
@@ -179,6 +191,7 @@ export function FloatingSurface({
 						returnFocus={false}
 						initialFocus={-1}
 						{...trapFocusProps}
+						getInsideElements={insideElements}
 					>
 						{surface}
 					</FloatingFocusManager>

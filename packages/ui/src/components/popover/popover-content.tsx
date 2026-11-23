@@ -5,7 +5,6 @@ import { type ComponentProps, type ReactNode, useLayoutEffect, useState } from '
 import { cn } from '../../core/cn'
 import { dataAttr } from '../../core/data-attr'
 import type { ScaleStep } from '../../core/density/scale'
-import { liveLayers } from '../../core/live-layer'
 import { useA11yAutoFocus } from '../../hooks/a11y/use-a11y-auto-focus'
 import { FloatingSurface } from '../../primitives/floating-surface'
 import { useResolvedSurface } from '../../primitives/glass/context'
@@ -121,8 +120,7 @@ export function PopoverContent({
 			// trigger into the panel and from the panel on to the next element after
 			// the trigger.
 			trapFocusContext={floatingContext}
-			// A modal manager hides the page, but not the live layers (`liveLayers`).
-			trapFocusProps={{ modal, getInsideElements: modal ? liveLayers : undefined }}
+			trapFocusProps={{ modal }}
 		>
 			<m.div
 				data-slot="popover-content"
