@@ -1319,8 +1319,13 @@ export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'>
 	 *   `editable.session: 'managed'`. One field goes into each cell of the
 	 *   range. A block goes side by side into a range that is a whole multiple
 	 *   of it. Else the block starts at the top-left cell, or at the active cell
-	 *   with no range, and the grid cuts it off at the last row and column. A
-	 *   paste adds no rows.
+	 *   with no range, and the grid cuts it off at the last column. A grid that
+	 *   shows the row of {@link GridEditableConfig.newRow} adds each line after
+	 *   the last row through it, one line at a time, as if the user typed the
+	 *   line into the row and pressed Enter. Each line waits for the add of the
+	 *   line before it. The first refused line stops the paste, and stays in the
+	 *   row with its errors. A row that holds an entry of the user takes no
+	 *   line. Another grid cuts the block off at the last row.
 	 * - Delete and Backspace on the grid clear the range, or the active cell with
 	 *   no range, under `editable.session: 'managed'`. Ctrl/Cmd+X copies as
 	 *   Ctrl/Cmd+C does, and then clears. A clear is a paste of empty text: a

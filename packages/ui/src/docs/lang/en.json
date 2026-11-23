@@ -2255,6 +2255,10 @@
 		"defaultMessage": "Amount",
 		"description": "Text of a demo in the docs as aria-label, title, in components/currency-input/disabled.tsx, components/currency-input/playground.tsx, modules/grid/sorting/smart-sorting.tsx and 1 more."
 	},
+	"docs.demo.49f8e64c7347": {
+		"defaultMessage": "Fill in the blank row, then press Enter to add the person. A paste past the last row adds a person for each extra line.",
+		"description": "Text of a demo in the docs as mouseText, in modules/grid/editing/new-row.tsx."
+	},
 	"docs.demo.4a32ad846791": {
 		"defaultMessage": "Holiday promo",
 		"description": "Text of a demo in the docs as label, in components/segment/campaigns.ts."
@@ -3146,10 +3150,6 @@
 	"docs.demo.7e1b0d5641f2": {
 		"defaultMessage": "Account",
 		"description": "Text of a demo in the docs as aria-label, label, in components/menu/title-and-description.tsx, components/nav/with-content.tsx, components/sidebar/sections-divider-and-spacer.tsx and 1 more."
-	},
-	"docs.demo.7e1d054ecad7": {
-		"defaultMessage": "Fill in the blank row, then press Enter to add the person.",
-		"description": "Text of a demo in the docs as mouseText, in modules/grid/editing/new-row.tsx."
 	},
 	"docs.demo.7e345c3ba789": {
 		"defaultMessage": "IBAN",

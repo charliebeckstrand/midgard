@@ -20,7 +20,8 @@ export type GridPasteTarget = { row: number; col: number; text: string }
  *   of the block, side by side.
  * - Else the block starts at the top-left cell of the range and keeps its own
  *   size. The part of the block after the last data row or the last data
- *   column is cut off.
+ *   column is cut off. {@link pasteOverflow} gives the lines after the last
+ *   data row.
  *
  * A row of the block that is shorter than the widest row gives empty text for
  * the fields that it does not have. @internal
@@ -31,25 +32,13 @@ export function pastePlacement(
 	cols: number,
 	step: GridRowStep,
 ): GridPasteTarget[] {
-	const height = block.length
+	const shape = blockShape(block, area)
 
-	// The reduce does not spread the rows as call arguments, so a paste of
-	// many rows does not overflow the stack.
-	const lengths = block.map((fields) => fields.length)
+	if (!shape) return []
 
-	const width = height === 0 ? 0 : reduceNumbers(lengths, 'max')
+	const { height, width, top, left, field } = shape
 
-	const top = area.rows[0]
-
-	const left = area.cols[0]
-
-	if (height === 0 || width === 0 || top === undefined || left === undefined) return []
-
-	const field = (i: number, j: number) => block[i % height]?.[j % width] ?? ''
-
-	const fits = area.rows.length % height === 0 && area.cols.length % width === 0
-
-	if (fits) {
+	if (shape.fits) {
 		return area.rows.flatMap((row, i) =>
 			area.cols.map((col, j) => ({ row, col, text: field(i, j) })),
 		)
@@ -68,6 +57,73 @@ export function pastePlacement(
 	}
 
 	return targets
+}
+
+/**
+ * The lines of a block that {@link pastePlacement} cuts off after the last
+ * data row, each as its fields with their data column indexes. The part of a
+ * line after the last data column is cut off, as it is for a row. A block that
+ * a range takes side by side has no such line. A grid that shows the new-row
+ * slot adds each line as a row. @internal
+ */
+export function pasteOverflow(
+	block: readonly (readonly string[])[],
+	area: { rows: readonly number[]; cols: readonly number[] },
+	cols: number,
+	step: GridRowStep,
+): { col: number; text: string }[][] {
+	const shape = blockShape(block, area)
+
+	if (!shape || shape.fits) return []
+
+	const { height, width, top, left, field } = shape
+
+	const lines: { col: number; text: string }[][] = []
+
+	for (let i = 0; i < height; i++) {
+		if (step(top, i) !== undefined) continue
+
+		const line: { col: number; text: string }[] = []
+
+		for (let j = 0; j < width && left + j < cols; j++)
+			line.push({ col: left + j, text: field(i, j) })
+
+		lines.push(line)
+	}
+
+	return lines
+}
+
+/**
+ * The size of a block and where it starts in a range, or `null` for an empty
+ * block or range. `fits` is whether the range is a whole multiple of the block
+ * on both axes. `field` gives a field of the block, and repeats the block past
+ * its edge. A row of the block that is shorter than the widest row gives empty
+ * text for the fields that it does not have.
+ */
+function blockShape(
+	block: readonly (readonly string[])[],
+	area: { rows: readonly number[]; cols: readonly number[] },
+) {
+	const height = block.length
+
+	// The reduce does not spread the rows as call arguments, so a paste of
+	// many rows does not overflow the stack.
+	const lengths = block.map((fields) => fields.length)
+
+	const width = height === 0 ? 0 : reduceNumbers(lengths, 'max')
+
+	const top = area.rows[0]
+
+	const left = area.cols[0]
+
+	if (height === 0 || width === 0 || top === undefined || left === undefined) return null
+
+	const field = (i: number, j: number) => block[i % height]?.[j % width] ?? ''
+
+	const fits = area.rows.length % height === 0 && area.cols.length % width === 0
+
+	return { height, width, top, left, field, fits }
 }
 
 /** The texts that paste as `true` and as `false` into a yes/no cell, in lowercase. */

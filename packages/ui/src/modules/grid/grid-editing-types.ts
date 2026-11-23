@@ -564,7 +564,9 @@ export type GridEditableConfig = {
 	 * not in the history, because the grid cannot read its old value. A step
 	 * waits while one of its cells has an edit that is not saved. The history
 	 * works under both values of {@link GridEditableConfig.session}. The
-	 * new-row slot is not in it.
+	 * new-row slot is not in it, and neither is a row that a paste adds through
+	 * the slot. An undo of such a paste restores the cells that it wrote into
+	 * the data rows, and the added rows stay.
 	 * @defaultValue false
 	 */
 	history?: boolean
@@ -602,6 +604,10 @@ export type GridEditableConfig = {
 	 * takes the first index after the header rows, and the data rows move down
 	 * one. At the bottom it takes the index after the last data row, before a
 	 * grand-total row. Its name is "New row".
+	 *
+	 * A paste of a cell {@link GridProps.range | range} that runs past the last
+	 * row adds each line after it through this row, as if the user typed the
+	 * line and pressed Enter.
 	 *
 	 * The row needs {@link GridEditableConfig.session} `'managed'` and
 	 * {@link GridEditableConfig.onRowAdd}. Without either, the grid renders no

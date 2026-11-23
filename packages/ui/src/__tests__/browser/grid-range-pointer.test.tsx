@@ -294,6 +294,64 @@ describe('grid range copy and paste round trip (real browser)', () => {
 })
 
 /**
+ * A paste that runs past the last row, in a real browser. The lines after the
+ * last row go through the new-row slot, and its async add holds each line
+ * until the one before it settles.
+ */
+describe('grid paste past the last row (real browser)', () => {
+	type Row = { id: number; name: string; count: number }
+
+	const columns: GridColumn<Row>[] = [
+		{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
+		{ id: 'count', title: 'Count', field: 'count', cell: (row) => String(row.count) },
+	]
+
+	const rows: Row[] = [
+		{ id: 1, name: 'Alice', count: 1 },
+		{ id: 2, name: 'Bob', count: 2 },
+	]
+
+	it('adds each line after the last row through the slot, in order', async () => {
+		const onCommit = vi.fn()
+
+		// An async add: each line waits for the promise of the line before it.
+		const onRowAdd = vi.fn(() => Promise.resolve())
+
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={(row) => row.id}
+				range
+				editable={{ session: 'managed', newRow: 'bottom', onRowAdd, onCommit }}
+			/>,
+		)
+
+		await userEvent.click(cell(2, 'name'))
+
+		const transfer = new DataTransfer()
+
+		transfer.setData('text/plain', 'Ben\t20\nCleo\t30\nDev\t40\n')
+
+		document.body.dispatchEvent(
+			new ClipboardEvent('paste', { clipboardData: transfer, bubbles: true, cancelable: true }),
+		)
+
+		expect(onCommit).toHaveBeenCalledExactlyOnceWith([
+			{ rowKey: 2, columnId: 'name', value: 'Ben' },
+			{ rowKey: 2, columnId: 'count', value: 20 },
+		])
+
+		await waitFor(() => expect(onRowAdd).toHaveBeenCalledTimes(2))
+
+		expect(onRowAdd.mock.calls).toEqual([
+			[{ name: 'Cleo', count: 30 }],
+			[{ name: 'Dev', count: 40 }],
+		])
+	})
+})
+
+/**
  * The fill keys in a real browser. Ctrl+D and Ctrl+R also belong to the
  * browser, so the grid must claim a key only when it fills.
  */

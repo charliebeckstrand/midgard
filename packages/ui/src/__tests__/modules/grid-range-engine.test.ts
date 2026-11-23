@@ -10,7 +10,11 @@ import {
 	rangeFillSource,
 } from '../../modules/grid/engine/grid-range/fill'
 import { toHtmlTable } from '../../modules/grid/engine/grid-range/html'
-import { coercePaste, pastePlacement } from '../../modules/grid/engine/grid-range/paste'
+import {
+	coercePaste,
+	pasteOverflow,
+	pastePlacement,
+} from '../../modules/grid/engine/grid-range/paste'
 import {
 	edgeScrollStep,
 	inRangeRect,
@@ -202,6 +206,48 @@ function stepOver(shown: readonly number[]) {
 		return place === -1 ? undefined : shown[place + steps]
 	}
 }
+
+describe('pasteOverflow', () => {
+	const cols = 3
+
+	const step = stepOver([0, 1, 2])
+
+	it('gives the lines after the last data row, each with its columns', () => {
+		const block = [
+			['a', '1'],
+			['b', '2'],
+			['c', '3'],
+			['d', '4'],
+		]
+
+		expect(pasteOverflow(block, { rows: [1], cols: [1] }, cols, step)).toEqual([
+			[
+				{ col: 1, text: 'c' },
+				{ col: 2, text: '3' },
+			],
+			[
+				{ col: 1, text: 'd' },
+				{ col: 2, text: '4' },
+			],
+		])
+	})
+
+	it('cuts a line off at the last column, as it cuts a row', () => {
+		expect(pasteOverflow([['a'], ['b', 'x', 'y']], { rows: [2], cols: [1] }, cols, step)).toEqual([
+			[
+				{ col: 1, text: 'b' },
+				{ col: 2, text: 'x' },
+			],
+		])
+	})
+
+	it('gives no line for a block that fits, or that a range takes side by side', () => {
+		expect(pasteOverflow([['a'], ['b']], { rows: [0], cols: [0] }, cols, step)).toEqual([])
+
+		// The range is a whole multiple of the block, so the block stays in it.
+		expect(pasteOverflow([['a']], { rows: [1, 2], cols: [0] }, cols, step)).toEqual([])
+	})
+})
 
 describe('pastePlacement', () => {
 	const cols = 4

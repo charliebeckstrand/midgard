@@ -37,6 +37,8 @@ import {
 import {
 	findSlotColumn,
 	firstRefused,
+	type GridRowAddResult,
+	type GridRowAddSettled,
 	type NewRowFlight,
 	refuseNewRow,
 	restoreRefused,
@@ -121,6 +123,20 @@ export function useGridNewRow<T>({
 	enter: (columnId: string | number, seed?: string | number) => void
 	/** The editor that the grid infers for a column of the slot. */
 	editorKind: (column: { id: string | number; field?: PropertyKey }) => EditorKind
+	/**
+	 * Adds the values that the slot holds, as Enter does, and gives what became
+	 * of the add. A `quiet` add keeps focus and speaks nothing. A paste adds
+	 * each of its new rows through it.
+	 */
+	submitRow: (quiet: boolean) => GridRowAddResult
+	/** Whether the slot holds a value of the user, or an add in flight. A paste does not overwrite it. */
+	holdsEntry: () => boolean
+	/**
+	 * Puts values in the slot in place of what it holds, each by its column id,
+	 * and mounts the editors again to show them. A paste puts each of its new
+	 * rows there before it adds the row.
+	 */
+	stageRow: (entries: readonly (readonly [string | number, unknown])[]) => void
 } {
 	const intl = useIntl()
 
@@ -216,9 +232,10 @@ export function useGridNewRow<T>({
 	)
 
 	// Clears the slot after an accepted add. Focus goes to its first editable
-	// cell when `focus` asks for it.
+	// cell when `focus` asks for it. A paste speaks once for all of its rows, so
+	// its adds are `quiet`.
 	const accept = useCallback(
-		(focus: boolean) => {
+		(focus: boolean, quiet = false) => {
 			if (focus) {
 				reseat()
 
@@ -229,7 +246,7 @@ export function useGridNewRow<T>({
 
 			remount()
 
-			announce(describeRowAdd(intl, 0))
+			if (!quiet) announce(describeRowAdd(intl, 0))
 		},
 		[drafts, firstEditable, reseat, intl],
 	)
@@ -256,7 +273,9 @@ export function useGridNewRow<T>({
 				for (const [columnId, draft] of flight.cells)
 					drafts.settle(NEW_ROW_KEY, columnId, draft, null)
 
-				accept(inGrid(document.activeElement, tableRef.current))
+				accept(!flight.quiet && inGrid(document.activeElement, tableRef.current), flight.quiet)
+
+				flight.done?.('added')
 
 				return
 			}
@@ -268,21 +287,26 @@ export function useGridNewRow<T>({
 
 			remount()
 
-			announce(describeRowAdd(intl, refused.size))
+			if (!flight.quiet) announce(describeRowAdd(intl, refused.size))
+
+			flight.done?.('refused')
 		},
 		[drafts, editableColumn, accept, tableRef, cursorColumnsRef, intl],
 	)
 
-	// Adds the row. The checks run before the add starts, so a row that
-	// `validate` refuses never goes pending. A row with no value that passes
-	// the checks adds nothing. A
-	// refusal blocks the add: the editors mount again with the errors, also an
-	// error that reads another cell, or that a required cell with no value
-	// carries. Focus goes to the first refused cell, with no scroll. A second
-	// add waits while one is in flight. It reads the newest position and
-	// `onRowAdd`.
-	const addRow = useStableEvent(() => {
-		if (position === null || flightRef.current !== null) return
+	// Adds the row, and gives what became of it: `added`, `empty` for a row
+	// with no value, `refused`, or `busy` while an add is in flight. An async
+	// add gives a promise of the settled result. The checks run before the add
+	// starts, so a row that `validate` refuses never goes pending. A row with
+	// no value that passes the checks adds nothing. A refusal blocks the add:
+	// the editors mount again with the errors, also an error that reads
+	// another cell, or that a required cell with no value carries. Focus goes
+	// to the first refused cell, with no scroll. A second add waits while one
+	// is in flight. It reads the newest position and `onRowAdd`. A `quiet` add,
+	// one row of a paste, keeps focus where it is and speaks nothing, because
+	// the paste speaks once for all of its rows.
+	const submitRow = useStableEvent((quiet: boolean): GridRowAddResult => {
+		if (position === null || flightRef.current !== null) return 'busy'
 
 		const row = drafts.readRow(NEW_ROW_KEY)
 
@@ -301,19 +325,19 @@ export function useGridNewRow<T>({
 
 			remount()
 
-			announce(describeRowAdd(intl, refused.size))
+			if (!quiet) announce(describeRowAdd(intl, refused.size))
 
-			return
+			return 'refused'
 		}
 
-		if (cells.length === 0) return
+		if (cells.length === 0) return 'empty'
 
 		const result = config?.onRowAdd?.(values)
 
 		if (!isThenable(result)) {
-			accept(true)
+			accept(!quiet, quiet)
 
-			return
+			return 'added'
 		}
 
 		// The editors turn inert while the add is in flight, so focus moves to
@@ -322,7 +346,12 @@ export function useGridNewRow<T>({
 
 		const flight: NewRowFlight = {
 			cells: cells.map(({ column, draft }) => [column.id, draft]),
+			quiet,
 		}
+
+		const settled = new Promise<GridRowAddSettled>((resolve) => {
+			flight.done = resolve
+		})
 
 		for (const [columnId, draft] of flight.cells) drafts.pend(NEW_ROW_KEY, columnId, draft)
 
@@ -331,7 +360,13 @@ export function useGridNewRow<T>({
 		setInFlight(true)
 
 		trackSink(result, mountedRef, (outcome) => settle(flight, outcome))
+
+		return settled
 	})
+
+	const addRow = useCallback(() => {
+		void submitRow(false)
+	}, [submitRow])
 
 	const enter = useCallback(
 		(columnId: string | number, seed?: string | number) => {
@@ -431,5 +466,24 @@ export function useGridNewRow<T>({
 		[position, generation, inFlight, drafts, claimFocus, addRow, editorKind, cellId, seatNewRow],
 	)
 
-	return { session, keys, enter, editorKind }
+	const holdsEntry = useCallback(() => {
+		if (flightRef.current !== null) return true
+
+		return (
+			collectNewRow(drafts.readRow(NEW_ROW_KEY), editSourceRef.current.columns).cells.length > 0
+		)
+	}, [drafts, editSourceRef])
+
+	const stageRow = useCallback(
+		(entries: readonly (readonly [string | number, unknown])[]) => {
+			drafts.unstageRow(NEW_ROW_KEY)
+
+			for (const [columnId, value] of entries) drafts.stage(NEW_ROW_KEY, columnId, value, null)
+
+			remount()
+		},
+		[drafts],
+	)
+
+	return { session, keys, enter, editorKind, submitRow, holdsEntry, stageRow }
 }

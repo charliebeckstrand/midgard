@@ -38,8 +38,26 @@ export function findSlotColumn(
 	return columns.find((column) => String(column.id) === attr)?.id
 }
 
-/** An add that `onRowAdd` returned as a promise, with the drafts it holds as pending. @internal */
-export type NewRowFlight = { cells: [string | number, GridDraft][] }
+/** What became of an add of the new-row slot that settled. @internal */
+export type GridRowAddSettled = 'added' | 'refused'
+
+/**
+ * What became of an add of the new-row slot: `empty` for a row with no value,
+ * `busy` while another add is in flight, or a promise of the settled result
+ * for an add that `onRowAdd` returned as a promise. @internal
+ */
+export type GridRowAddResult = GridRowAddSettled | 'empty' | 'busy' | Promise<GridRowAddSettled>
+
+/**
+ * An add that `onRowAdd` returned as a promise, with the drafts it holds as
+ * pending. A `quiet` add is one row of a paste, which speaks once for all of
+ * its rows. `done` hears the result when the add settles. @internal
+ */
+export type NewRowFlight = {
+	cells: [string | number, GridDraft][]
+	quiet: boolean
+	done?: (result: GridRowAddSettled) => void
+}
 
 /**
  * Stages an empty draft that carries its error for each refused cell that
