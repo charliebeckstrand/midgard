@@ -32,7 +32,8 @@ export type ColumnsProps = {
 /**
  * A grid of equal columns. `columns` sets the count of the columns, and `gap`
  * sets the space between the cells on the shared spacing scale. Use it in place
- * of a `grid` class with a `gap` class, so the gap follows density. Use
+ * of a `grid` class with a `gap` class, so the gap follows density. A child
+ * that spans more than one column goes in a {@link ColumnsItem}. Use
  * {@link Split} for two panes with a ratio.
  *
  * @remarks
