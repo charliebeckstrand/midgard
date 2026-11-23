@@ -991,27 +991,39 @@ export function useGridNavigation({
 		setAnchor(null)
 	}, [setActive, setAnchor])
 
+	// Makes the range over the data cells of the columns from `left` to `right`,
+	// from the first data row to the last. The cursor goes to the last cell, and
+	// the window scrolls to it. Returns whether the grid has such a data cell.
+	const selectColumns = useCallback(
+		(left: number, right: number): boolean => {
+			const places = orderRef.current ? orderIndexRef.current.rows.length : rowsRef.current.length
+
+			const first = rowAtPlace(0)
+
+			const last = rowAtPlace(places - 1)
+
+			const colCount = colCountRef.current
+
+			if (!range || first === undefined || last === undefined) return false
+
+			if (left < 0 || right >= colCount || left > right) return false
+
+			setAnchor({ row: toCursorRow(first), col: left })
+
+			// The move that extends holds the anchor that is set above.
+			moveToCursor({ row: toCursorRow(last), col: right }, true)
+
+			return true
+		},
+		[range, rowsRef, rowAtPlace, colCountRef, setAnchor, toCursorRow, moveToCursor],
+	)
+
 	// Makes the range from the first data cell to the last, as Shift with
-	// Ctrl/Cmd+End does from the first cell. The cursor goes to the last cell,
-	// and the window scrolls to it. Returns whether the grid has a data cell.
-	const selectAll = useCallback((): boolean => {
-		const places = orderRef.current ? orderIndexRef.current.rows.length : rowsRef.current.length
-
-		const first = rowAtPlace(0)
-
-		const last = rowAtPlace(places - 1)
-
-		const colCount = colCountRef.current
-
-		if (!range || first === undefined || last === undefined || colCount === 0) return false
-
-		setAnchor({ row: toCursorRow(first), col: 0 })
-
-		// The move that extends holds the anchor that is set above.
-		moveToCursor({ row: toCursorRow(last), col: colCount - 1 }, true)
-
-		return true
-	}, [range, rowsRef, rowAtPlace, colCountRef, setAnchor, toCursorRow, moveToCursor])
+	// Ctrl/Cmd+End does from the first cell.
+	const selectAll = useCallback(
+		(): boolean => selectColumns(0, colCountRef.current - 1),
+		[selectColumns, colCountRef],
+	)
 
 	// With the range on, Ctrl/Cmd+A selects each data cell, and the grid takes the
 	// key. With the range off, or with no data cell, the key stays the
@@ -1729,14 +1741,37 @@ export function useGridNavigation({
 		return row === active.row ? active : { row, col: active.col }
 	}, [active, activeStop, view])
 
-	// The select-all key goes ahead of the cursor keys, on the tab stop alone.
+	// With the range on, Ctrl+Space selects the column of the cursor (APG grid).
+	// With the range off, the key toggles the row, as Space does. Returns
+	// whether it took the key.
+	const onSelectColumnKey = useCallback(
+		(event: KeyboardEvent<HTMLTableElement>): boolean => {
+			if (event.key !== ' ' || !event.ctrlKey || event.metaKey || event.altKey) return false
+
+			if (event.shiftKey) return false
+
+			const active = readActive()
+
+			if (!active || !selectColumns(active.col, active.col)) return false
+
+			event.preventDefault()
+
+			return true
+		},
+		[readActive, selectColumns],
+	)
+
+	// The select-all and select-column keys go ahead of the cursor keys, on the
+	// tab stop alone.
 	const onTableKeyDown = useCallback(
 		(event: KeyboardEvent<HTMLTableElement>) => {
-			if (event.target === event.currentTarget && onSelectAllKey(event)) return
+			if (event.target === event.currentTarget) {
+				if (onSelectAllKey(event) || onSelectColumnKey(event)) return
+			}
 
 			onKeyDown(event)
 		},
-		[onSelectAllKey, onKeyDown],
+		[onSelectAllKey, onSelectColumnKey, onKeyDown],
 	)
 
 	const navTableProps: GridNavTableProps | undefined = enabled
