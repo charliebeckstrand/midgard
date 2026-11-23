@@ -66,6 +66,37 @@ describe('Textarea', () => {
 		expect(readDensityStep(getSlot(container, 'button'))).toBe('xs')
 	})
 
+	it('cancels the mousedown of a button in the actions row, so the press keeps the focus', () => {
+		renderUI(<Textarea actions={<Button>send</Button>} />)
+
+		// fireEvent returns false when a handler cancels the default.
+		expect(fireEvent.mouseDown(screen.getByRole('button', { name: 'send' }))).toBe(false)
+	})
+
+	it('keeps the mousedown default of a control in the actions row that is not a button', () => {
+		renderUI(
+			<Textarea
+				actions={
+					<select aria-label="model">
+						<option>a</option>
+					</select>
+				}
+			/>,
+		)
+
+		expect(fireEvent.mouseDown(screen.getByRole('combobox', { name: 'model' }))).toBe(true)
+	})
+
+	it('keeps the mousedown default of an action under headless context, which renders no row', () => {
+		renderUI(
+			<HeadlessProvider>
+				<Textarea actions={<Button>send</Button>} />
+			</HeadlessProvider>,
+		)
+
+		expect(fireEvent.mouseDown(screen.getByRole('button', { name: 'send' }))).toBe(true)
+	})
+
 	it('gives the textarea an id outside a Control', () => {
 		const { container } = renderUI(<Textarea />)
 
