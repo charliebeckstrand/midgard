@@ -1,5 +1,6 @@
 import { createRef, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
+import { Switch } from '../../components/switch'
 import { type ChatCitation, ChatPrompt, useChatDraft } from '../../modules/chat'
 import {
 	bySlot,
@@ -714,6 +715,23 @@ describe('ChatPrompt toolbar', () => {
 		const { container } = renderUI(<ChatPrompt value="" onValueChange={noop} onSubmit={noop} />)
 
 		expect(bySlot(container, 'chat-prompt-toolbar')).toBeNull()
+	})
+
+	it('gives a form control in the toolbar an id of its own', () => {
+		renderUI(
+			<ChatPrompt
+				value=""
+				onValueChange={noop}
+				onSubmit={noop}
+				toolbar={<Switch aria-label="Search the web" />}
+			/>,
+		)
+
+		const field = screen.getByRole('textbox', { name: 'Message' })
+
+		const control = screen.getByRole('switch', { name: 'Search the web' })
+
+		expect(control.id).not.toBe(field.id)
 	})
 
 	it('gives aria-describedby to the textarea', () => {

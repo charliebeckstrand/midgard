@@ -12,7 +12,9 @@ import type { MarkdownRange } from './markdown-ranges'
  * @remarks
  * A range that crosses inline formatting or a block boundary draws as more
  * than one piece, and piece 0 holds only its own text. This hook gives the
- * text of all the pieces. Two pieces join with one space where the source
+ * text of all the pieces. A link draws no piece, but its text is part of the
+ * text of each range that overlaps it, so the name is the phrase that the
+ * reader sees. Two pieces join with one space where the source
  * between them holds white space, such as a line break or a block boundary,
  * and join directly elsewhere, such as across bold in a word. Runs of white
  * space read as one space.

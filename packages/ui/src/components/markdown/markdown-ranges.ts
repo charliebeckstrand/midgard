@@ -164,7 +164,7 @@ export function locate(walk: RangeWalk, raw: string): [number, number] | undefin
  *
  * @internal
  */
-function overlapping(walk: RangeWalk, start: number, end: number): number[] {
+export function overlapping(walk: RangeWalk, start: number, end: number): number[] {
 	const found: number[] = []
 
 	walk.ranges.forEach((range, index) => {

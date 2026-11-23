@@ -311,12 +311,11 @@ export function useChatPromptPicker({
 			}
 
 			if (event.key === 'Enter' || event.key === 'Tab') {
-				// The items of a list that loads answer an earlier query, so no key
-				// chooses one. Enter then does nothing, so it does not send a draft
-				// that the reader meant to complete. Tab stays with the textarea.
-				if (status === 'loading' && items.length > 0) {
-					return takeKey(event, event.key === 'Enter', noop)
-				}
+				// While the list loads, its items answer an earlier query or there
+				// are none, so no key chooses. The key then does nothing: Enter does
+				// not send a draft that the reader meant to complete, and Tab does
+				// not move the focus out of the composer.
+				if (status === 'loading') return takeKey(event, true, noop)
 
 				const item = activeItem()
 
@@ -325,7 +324,7 @@ export function useChatPromptPicker({
 
 			return false
 		},
-		[open, rove, activeItem, choose, citations, status, items],
+		[open, rove, activeItem, choose, citations, status],
 	)
 
 	const hasSources = sources !== undefined && sources.length > 0
