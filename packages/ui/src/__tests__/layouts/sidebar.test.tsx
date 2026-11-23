@@ -269,6 +269,10 @@ describe('SidebarLayout skip link', () => {
 	it('moves the focus to the main slot, and leaves the hash', () => {
 		const { container } = page()
 
+		// The window is shared across the files of the project, so the case
+		// compares the hash with its own value before the click.
+		const hash = window.location.hash
+
 		const click = new MouseEvent('click', { bubbles: true, cancelable: true })
 
 		act(() => {
@@ -279,7 +283,7 @@ describe('SidebarLayout skip link', () => {
 
 		expect(document.activeElement).toBe(bySlot(container, 'body'))
 
-		expect(window.location.hash).toBe('')
+		expect(window.location.hash).toBe(hash)
 	})
 
 	it('moves the focus to a main slot that has an id and a ref of the consumer', () => {
@@ -298,6 +302,14 @@ describe('SidebarLayout skip link', () => {
 		expect(document.activeElement).toBe(ref.current)
 
 		expect(ref.current?.id).toBe('content')
+
+		expect(skipLink()).toHaveAttribute('href', '#content')
+	})
+
+	it('renders no link when the layout has no main slot', () => {
+		renderUI(<SidebarLayout sidebar={<div>sidebar</div>}>content</SidebarLayout>)
+
+		expect(screen.queryByRole('link', { name: 'Skip to content' })).toBeNull()
 	})
 
 	it('renders one link when a page nests a layout', () => {

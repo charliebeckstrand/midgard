@@ -262,26 +262,25 @@ export function SidebarLayout({
 
 	const mainId = useId()
 
-	const mainRef = useRef<HTMLElement | null>(null)
-
-	const setMain = useCallback((node: HTMLElement | null) => {
-		mainRef.current = node
-	}, [])
+	// The main slot that mounted, or `null`. A layout with no `SidebarLayoutBody`
+	// has no target, so it renders no link.
+	const [main, setMain] = useState<HTMLElement | null>(null)
 
 	const skip = useMemo(
 		() => (enclosed ? null : { id: mainId, target: setMain }),
-		[enclosed, mainId, setMain],
+		[enclosed, mainId],
 	)
 
 	// The link moves the focus to the main slot itself. The hash would scroll
 	// only, and a router can read a change of the hash as a navigation.
-	const skipToMain = useCallback((event: MouseEvent) => {
-		if (!mainRef.current) return
+	const skipToMain = useCallback(
+		(event: MouseEvent) => {
+			event.preventDefault()
 
-		event.preventDefault()
-
-		mainRef.current.focus()
-	}, [])
+			main?.focus()
+		},
+		[main],
+	)
 
 	const layoutValue = useMemo(
 		() => ({ actions, bar: setBar, layout, stickyHeader, skip }),
@@ -305,8 +304,9 @@ export function SidebarLayout({
 
 				{/* Skip link: first in the tab order, and visible only with the focus. The
 				    hot zone before it takes no focus. */}
-				{skip && (
-					<Button href={`#${skip.id}`} onClick={skipToMain} className={slots.skip}>
+				{skip && main && (
+					// The `href` reads the id that the main slot renders, which can be an id of the consumer.
+					<Button href={`#${main.id}`} onClick={skipToMain} className={slots.skip}>
 						{intl.formatMessage(messages.skipToContent)}
 					</Button>
 				)}
