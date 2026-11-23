@@ -117,6 +117,10 @@ function LateStops() {
 			geography={states}
 			projection="albers-usa"
 			aspectRatio={false}
+			// The title of the tile names the one group of dots, as the title of
+			// the chart names its one series. A legend would only take height
+			// from the map in a short tile.
+			legend={false}
 			selectedOverlays={
 				cited?.target === 'late-stops'
 					? toStopSelection(cited.selector, 'stops', getIndex)
@@ -171,8 +175,8 @@ function useClearCited(target: string): (() => void) | undefined {
 	return cited?.target === target ? clear : undefined
 }
 
-// The map fills its tile (`aspectRatio={false}`), so the map and its legend fit
-// the fixed height of a tile on a wide board. On a narrow board, the map tile
+// The map fills its tile (`aspectRatio={false}`), so the map fits the fixed
+// height of a tile on a wide board. On a narrow board, the map tile
 // takes the height of its content (`fitContent`), and the map takes its own ratio.
 function MapTile() {
 	return (
