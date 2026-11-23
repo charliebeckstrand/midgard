@@ -153,28 +153,7 @@ export function sparklineGeometry(
 	// clamped vertex; the path bridges across the dropped sample.
 	const drawn = points.filter((point) => Number.isFinite(point.y))
 
-	// One point can't form a segment; draw a flat line across the box so it reads.
-	const line =
-		drawn.length === 1
-			? `M ${padding} ${drawn[0]?.y} L ${width - padding} ${drawn[0]?.y}`
-			: `M ${drawn.map((point) => `${point.x} ${point.y}`).join(' L ')}`
-
-	const first = drawn[0]
-
-	// A lone drawn point draws as a full-width line, so its end point sits at the
-	// end of that line, not at the x of the datum.
-	const last =
-		drawn.length === 1 && first ? { x: width - padding, y: first.y } : (drawn.at(-1) ?? null)
-
-	// Close the fill on the outermost drawn points, not the box corners: when a
-	// boundary datum is non-finite the drawn line stops short of the edge, and
-	// closing on the corner would paint a wedge with no line above it. A lone
-	// drawn point is forced full-width (above), so it closes on the box edges to
-	// read as a band rather than collapsing to a vertical line at its center.
-	const area =
-		first && last && drawn.length > 1
-			? `${line} L ${last.x} ${baseline} L ${first.x} ${baseline} Z`
-			: `${line} L ${width - padding} ${baseline} L ${padding} ${baseline} Z`
+	const { line, area, last } = traceMarks(drawn, { width, padding, baseline })
 
 	const bars = projectBars(data, {
 		norm,
@@ -189,6 +168,60 @@ export function sparklineGeometry(
 	})
 
 	return { points, line, area, bars, last, baseline }
+}
+
+/** The box that {@link traceMarks} reads, resolved by {@link sparklineGeometry}. @internal */
+type TraceBox = {
+	width: number
+	padding: number
+	/** The y of the zero line, which the area closes on. */
+	baseline: number
+}
+
+/**
+ * Traces the line, the area, and the end point through the drawn points.
+ * @internal
+ */
+function traceMarks(
+	drawn: SparklinePoint[],
+	{ width, padding, baseline }: TraceBox,
+): Pick<SparklineGeometry, 'line' | 'area' | 'last'> {
+	const first = drawn[0]
+
+	const end = drawn.at(-1)
+
+	// A non-finite box, such as a `NaN` height, drops every point, so the marks
+	// hold no vertex.
+	if (!first || !end) {
+		const line = 'M '
+
+		return {
+			line,
+			area: `${line} L ${width - padding} ${baseline} L ${padding} ${baseline} Z`,
+			last: null,
+		}
+	}
+
+	if (drawn.length === 1) {
+		// One point can't form a segment; draw a flat line across the box so it reads.
+		const line = `M ${padding} ${first.y} L ${width - padding} ${first.y}`
+
+		// A lone drawn point draws as a full-width line, so its end point sits at the
+		// end of that line, not at the x of the datum. The fill closes on the box edges,
+		// so it reads as a band rather than collapsing to a vertical line at its center.
+		return {
+			line,
+			area: `${line} L ${width - padding} ${baseline} L ${padding} ${baseline} Z`,
+			last: { x: width - padding, y: first.y },
+		}
+	}
+
+	const line = `M ${drawn.map((point) => `${point.x} ${point.y}`).join(' L ')}`
+
+	// Close the fill on the outermost drawn points, not the box corners: when a
+	// boundary datum is non-finite the drawn line stops short of the edge, and
+	// closing on the corner would paint a wedge with no line above it.
+	return { line, area: `${line} L ${end.x} ${baseline} L ${first.x} ${baseline} Z`, last: end }
 }
 
 /** The scale that {@link projectBars} reads, resolved by {@link sparklineGeometry}. @internal */

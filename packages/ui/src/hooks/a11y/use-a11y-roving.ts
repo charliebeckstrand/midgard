@@ -655,6 +655,25 @@ function pinRowActions(container: HTMLElement, actionSelector: string): void {
 }
 
 /**
+ * The item in the row of `target`, when `target` is a different control in that
+ * row. Focus that moves to an affix action keeps the resting stop on the item
+ * of the row: Tab enters again on an item, never on an action.
+ *
+ * @internal
+ */
+function rowAnchor(
+	target: EventTarget | null,
+	items: HTMLElement[],
+	rowSelector: string | undefined,
+): HTMLElement | undefined {
+	if (!rowSelector || !(target instanceof HTMLElement)) return undefined
+
+	const row = target.closest(rowSelector)
+
+	return row ? items.find((item) => row.contains(item)) : undefined
+}
+
+/**
  * The item that holds the focus-mode Tab stop, when exactly one item has
  * `tabIndex=0`. With `manageTabIndex`, this is the item where the user roved,
  * else the item that the hook seated.
@@ -1397,24 +1416,10 @@ export function useA11yRoving(
 		const onFocusIn = (event: FocusEvent) => {
 			const items = queryItems(container, itemSelector)
 
-			const target = items.find((item) => item === event.target)
+			const stop =
+				items.find((item) => item === event.target) ?? rowAnchor(event.target, items, rowSelector)
 
-			if (target) {
-				seat(items, target)
-
-				return
-			}
-
-			// Focus moving elsewhere inside a row (to an affix action) keeps the
-			// resting stop on the row's item: Tab re-enters on an item, never an
-			// action.
-			if (rowSelector && event.target instanceof HTMLElement) {
-				const rowEl = event.target.closest(rowSelector)
-
-				const anchor = rowEl ? items.find((item) => rowEl.contains(item)) : undefined
-
-				if (anchor) seat(items, anchor)
-			}
+			if (stop) seat(items, stop)
 		}
 
 		container.addEventListener('focusin', onFocusIn)
