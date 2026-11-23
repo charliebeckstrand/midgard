@@ -115,10 +115,10 @@ export type DialogPanelProps = Omit<DialogPanelVariants, 'surface'> &
 	}
 
 /**
- * The root of a modal dialog. It holds the open state, controlled
- * (`open`/`onOpenChange`) or uncontrolled (`defaultOpen`), and gives it to
- * `<DialogTrigger>` and `<DialogPanel>`. It renders no element. A trigger in
- * the root opens an uncontrolled dialog. Escape, the backdrop, and
+ * A modal dialog that opens from its trigger. It holds the open state,
+ * controlled (`open`/`onOpenChange`) or uncontrolled (`defaultOpen`), and gives
+ * it to `<DialogTrigger>` and `<DialogPanel>`. It renders no element. A trigger
+ * in the root opens an uncontrolled dialog. Escape, the backdrop, and
  * `<DialogClose>` close it, and focus then goes back to the trigger.
  *
  * @example

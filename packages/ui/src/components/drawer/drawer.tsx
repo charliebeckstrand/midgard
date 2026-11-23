@@ -138,11 +138,12 @@ export type DrawerPanelProps = Omit<DrawerPanelVariants, 'surface' | 'height'> &
 	}
 
 /**
- * The root of a drawer. It holds the open state, controlled
- * (`open`/`onOpenChange`) or uncontrolled (`defaultOpen`), and gives it to
- * `<DrawerTrigger>` and `<DrawerPanel>`. It renders no element. A trigger in
- * the root opens an uncontrolled drawer. Escape, the backdrop, and
- * `<DrawerClose>` close it, and focus then goes back to the trigger.
+ * A panel that slides up from the bottom of the screen when its trigger opens
+ * it. It holds the open state, controlled (`open`/`onOpenChange`) or
+ * uncontrolled (`defaultOpen`), and gives it to `<DrawerTrigger>` and
+ * `<DrawerPanel>`. It renders no element. A trigger in the root opens an
+ * uncontrolled drawer. Escape, the backdrop, and `<DrawerClose>` close it, and
+ * focus then goes back to the trigger.
  *
  * @example
  * ```tsx
