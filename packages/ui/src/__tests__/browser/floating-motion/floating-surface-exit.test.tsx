@@ -201,7 +201,7 @@ describe('a pointer-opened context menu in its exit (real engine, real Motion)',
 })
 
 describe('a dropdown menu in its exit (real engine, real Motion)', () => {
-	it('keeps the focus on the trigger, and the rows take no press', async () => {
+	it('gives the focus back to the trigger, and the rows take no press', async () => {
 		const onEdit = vi.fn()
 
 		renderUI(
@@ -226,11 +226,13 @@ describe('a dropdown menu in its exit (real engine, real Motion)', () => {
 
 		await waitFor(() => expect(row('Edit')).toBeVisible())
 
-		fireEvent.keyDown(trigger, { key: 'ArrowDown' })
+		await waitFor(() => expect(panel).toHaveFocus())
 
-		expect(row('Edit')).toHaveAttribute('data-active')
+		await userEvent.keyboard('{ArrowDown}')
 
-		fireEvent.keyDown(trigger, { key: 'Enter' })
+		expect(row('Edit')).toHaveFocus()
+
+		await userEvent.keyboard('{Enter}')
 
 		expect(onEdit).toHaveBeenCalledOnce()
 

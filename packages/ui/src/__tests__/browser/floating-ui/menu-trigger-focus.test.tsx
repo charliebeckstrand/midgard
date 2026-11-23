@@ -22,11 +22,13 @@ async function openMenu(element: ReactElement): Promise<HTMLElement> {
 }
 
 /**
- * Opening a dropdown menu keeps keyboard focus on the trigger: it is never
- * pulled into the portaled, animating panel, which a real browser can drop to
- * `<body>` on open (WCAG 2.4.3). Tab off the trigger then closes the menu and
- * carries focus to the next tabbable in one keystroke. Real focus movement needs
- * the live floating engine, so this runs in the browser suite.
+ * Opening a dropdown menu moves real focus into the `menu`, as the menu button
+ * pattern of the APG tells. A screen reader then switches to focus mode, and
+ * the arrow keys reach the rows (WCAG 4.1.2, 2.1.1). The focus never drops to
+ * `<body>` on the way into the portaled, animating panel (WCAG 2.4.3). Tab in
+ * the menu closes it and carries focus to the tabbable after the trigger in one
+ * keystroke. Real focus movement needs the live floating engine, so this runs
+ * in the browser suite.
  */
 describe('MenuTrigger focus on open (real floating engine)', () => {
 	function tree() {
@@ -47,44 +49,69 @@ describe('MenuTrigger focus on open (real floating engine)', () => {
 	}
 
 	it.each([
-		['click', (trigger: HTMLElement) => userEvent.click(trigger)],
-		['Enter', () => userEvent.keyboard('{Enter}')],
-	])('keeps focus on the trigger on open (%s), never dropping to body', async (_, open) => {
-		renderUI(tree())
-		const trigger = screen.getByRole('button', { name: 'Open' })
-		trigger.focus()
+		['click', (trigger: HTMLElement) => userEvent.click(trigger), 'menu'],
+		['Enter', () => userEvent.keyboard('{Enter}'), 'menuitem'],
+	] as const)(
+		'moves focus into the menu on open (%s), never dropping to body',
+		async (_, open, role) => {
+			renderUI(tree())
+			const trigger = screen.getByRole('button', { name: 'Open' })
+			trigger.focus()
 
-		await open(trigger)
-		await screen.findByRole('menu')
+			await open(trigger)
+			await screen.findByRole('menu')
 
-		await waitFor(() => {
-			expect(document.activeElement).not.toBe(document.body)
-			expect(trigger).toHaveFocus()
-		})
-	})
+			await waitFor(() => {
+				expect(document.activeElement).not.toBe(document.body)
+				expect(document.activeElement?.getAttribute('role')).toBe(role)
+			})
 
-	it('closes the menu and moves focus onward when Tab is pressed', async () => {
-		const trigger = await openMenu(tree())
-		expect(trigger).toHaveFocus()
+			// No trigger state points into the panel: the focus itself is the cursor.
+			expect(trigger).not.toHaveAttribute('aria-activedescendant')
+		},
+	)
 
-		await userEvent.keyboard('{Tab}')
+	it.each([
+		['{Tab}', 'after'],
+		['{Shift>}{Tab}{/Shift}', 'before'],
+	])('closes the menu and moves focus onward on %s', async (key, target) => {
+		await openMenu(
+			<>
+				<button type="button">before</button>
+				{tree()}
+			</>,
+		)
+
+		await waitFor(() => expect(screen.getByRole('menu')).toHaveFocus())
+
+		await userEvent.keyboard(key)
 
 		await waitFor(() => {
 			expect(screen.queryByRole('menu')).not.toBeInTheDocument()
-			// Focus proceeds to the next tabbable after the trigger, not back onto it
-			// and not to the body.
-			expect(screen.getByRole('button', { name: 'after' })).toHaveFocus()
+			// Focus goes on from the trigger, not back onto it and not to the body.
+			expect(screen.getByRole('button', { name: target })).toHaveFocus()
+		})
+	})
+
+	it('returns focus to the trigger on Escape', async () => {
+		const trigger = await openMenu(tree())
+
+		await userEvent.keyboard('{ArrowDown}')
+
+		await userEvent.keyboard('{Escape}')
+
+		await waitFor(() => {
+			expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+			expect(trigger).toHaveFocus()
 		})
 	})
 })
 
 /**
- * A dropdown keeps focus on its trigger, so its items rove by
- * `aria-activedescendant`: arrow keys move a `data-active` cursor over the items
- * and point the trigger at the active row, and Enter activates it, all without
- * moving focus off the trigger.
+ * The rows of a dropdown rove by real focus: the arrow keys move the focus
+ * over the rows, and Enter or Space runs the focused row.
  */
-describe('MenuTrigger arrow-key roving (real floating engine)', () => {
+describe('MenuContent arrow-key roving (real floating engine)', () => {
 	function menu(onEdit = () => {}, onDuplicate = () => {}) {
 		return (
 			<Menu placement="bottom-start">
@@ -99,55 +126,46 @@ describe('MenuTrigger arrow-key roving (real floating engine)', () => {
 		)
 	}
 
-	it('ArrowDown roves the active item while focus stays on the trigger', async () => {
-		const trigger = await openMenu(menu())
+	it('ArrowDown moves the focus over the rows', async () => {
+		await openMenu(menu())
 
 		const edit = screen.getByRole('menuitem', { name: 'Edit' })
 		const duplicate = screen.getByRole('menuitem', { name: 'Duplicate' })
 
 		await userEvent.keyboard('{ArrowDown}')
 
-		await waitFor(() => expect(edit).toHaveAttribute('data-active'))
-		// Focus never leaves the trigger; the active row is tracked by ARIA, not focus.
-		expect(trigger).toHaveFocus()
-		expect(trigger).toHaveAttribute('aria-activedescendant', edit.id)
+		await waitFor(() => expect(edit).toHaveFocus())
 
 		await userEvent.keyboard('{ArrowDown}')
 
-		await waitFor(() => expect(duplicate).toHaveAttribute('data-active'))
-		expect(edit).not.toHaveAttribute('data-active')
-		expect(trigger).toHaveFocus()
-		expect(trigger).toHaveAttribute('aria-activedescendant', duplicate.id)
+		await waitFor(() => expect(duplicate).toHaveFocus())
 	})
 
-	it('Enter activates the active item and closes the menu', async () => {
+	it('Enter runs the focused row, closes the menu, and returns focus to the trigger', async () => {
 		const onEdit = vi.fn()
-		await openMenu(menu(onEdit))
+		const trigger = await openMenu(menu(onEdit))
 
 		await userEvent.keyboard('{ArrowDown}')
-		await waitFor(() =>
-			expect(screen.getByRole('menuitem', { name: 'Edit' })).toHaveAttribute('data-active'),
-		)
+		await waitFor(() => expect(screen.getByRole('menuitem', { name: 'Edit' })).toHaveFocus())
 
 		await userEvent.keyboard('{Enter}')
 
 		await waitFor(() => {
 			expect(onEdit).toHaveBeenCalledTimes(1)
 			expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+			expect(trigger).toHaveFocus()
 		})
 	})
 
-	it('Space activates the active item and stays closed (does not re-toggle)', async () => {
+	it('Space runs the focused row and stays closed (does not re-toggle)', async () => {
 		const onEdit = vi.fn()
 		await openMenu(menu(onEdit))
 
 		await userEvent.keyboard('{ArrowDown}')
-		await waitFor(() =>
-			expect(screen.getByRole('menuitem', { name: 'Edit' })).toHaveAttribute('data-active'),
-		)
+		await waitFor(() => expect(screen.getByRole('menuitem', { name: 'Edit' })).toHaveFocus())
 
-		// Space selects the active row like Enter; the trigger's native Space
-		// activation must not fire and re-open the just-closed menu.
+		// Space runs the row like Enter. The focus goes back to the trigger, and the
+		// release of the key must not click the trigger and open the menu again.
 		await userEvent.keyboard('[Space]')
 
 		await waitFor(() => {
@@ -160,27 +178,14 @@ describe('MenuTrigger arrow-key roving (real floating engine)', () => {
 		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
 		expect(onEdit).toHaveBeenCalledTimes(1)
 	})
-
-	it('clears aria-activedescendant when the menu closes', async () => {
-		const trigger = await openMenu(menu())
-
-		await userEvent.keyboard('{ArrowDown}')
-		await waitFor(() => expect(trigger).toHaveAttribute('aria-activedescendant'))
-
-		await userEvent.keyboard('{Escape}')
-
-		await waitFor(() => {
-			expect(screen.queryByRole('menu')).not.toBeInTheDocument()
-			expect(trigger).not.toHaveAttribute('aria-activedescendant')
-		})
-	})
 })
 
 /**
- * A key opens a dropdown on its first row, as the menu button pattern of the
- * APG tells: Enter, Space, and ArrowDown. A disabled row is not a stop. A press
- * of the pointer opens the menu with no active row. The jsdom mock records no
- * open event, so only this suite shows the cursor.
+ * A key opens a dropdown with the focus on its first row, as the menu button
+ * pattern of the APG tells: Enter, Space, and ArrowDown. A disabled row is not
+ * a stop. A press of the pointer opens the menu with the focus on the panel and
+ * no focused row. The jsdom mock records no open event, so only this suite
+ * shows the first focus.
  */
 describe('MenuTrigger key open (real floating engine)', () => {
 	function rows(onEdit = () => {}) {
@@ -210,19 +215,15 @@ describe('MenuTrigger key open (real floating engine)', () => {
 	}
 
 	it.each(['{Enter}', '[Space]', '{ArrowDown}'])(
-		'opens on the first row on %s, with focus on the trigger',
+		'opens with the focus on the first row on %s',
 		async (key) => {
-			const trigger = renderRows()
+			renderRows()
 
 			await userEvent.keyboard(key)
 
 			const edit = await screen.findByRole('menuitem', { name: 'Edit' })
 
-			await waitFor(() => expect(trigger).toHaveAttribute('aria-activedescendant', edit.id))
-
-			expect(edit).toHaveAttribute('data-active')
-
-			expect(trigger).toHaveFocus()
+			await waitFor(() => expect(edit).toHaveFocus())
 		},
 	)
 
@@ -233,9 +234,7 @@ describe('MenuTrigger key open (real floating engine)', () => {
 
 		await userEvent.keyboard('{Enter}')
 
-		await waitFor(() =>
-			expect(screen.getByRole('menuitem', { name: 'Edit' })).toHaveAttribute('data-active'),
-		)
+		await waitFor(() => expect(screen.getByRole('menuitem', { name: 'Edit' })).toHaveFocus())
 
 		await userEvent.keyboard('{Enter}')
 
@@ -247,34 +246,27 @@ describe('MenuTrigger key open (real floating engine)', () => {
 	})
 
 	it('moves to the next row on an ArrowDown after a key open', async () => {
-		const trigger = renderRows()
+		renderRows()
 
 		await userEvent.keyboard('{Enter}')
 
-		await waitFor(() =>
-			expect(screen.getByRole('menuitem', { name: 'Edit' })).toHaveAttribute('data-active'),
-		)
+		await waitFor(() => expect(screen.getByRole('menuitem', { name: 'Edit' })).toHaveFocus())
 
 		await userEvent.keyboard('{ArrowDown}')
 
-		const duplicate = screen.getByRole('menuitem', { name: 'Duplicate' })
-
-		await waitFor(() => expect(trigger).toHaveAttribute('aria-activedescendant', duplicate.id))
+		await waitFor(() => expect(screen.getByRole('menuitem', { name: 'Duplicate' })).toHaveFocus())
 	})
 
-	it('opens with no active row on a click', async () => {
+	it('opens with the focus on the panel on a click', async () => {
 		const trigger = renderRows()
 
 		await userEvent.click(trigger)
 
-		await screen.findByRole('menu')
+		const menu = await screen.findByRole('menu')
 
 		await frames()
 
-		expect(trigger).not.toHaveAttribute('aria-activedescendant')
-
-		for (const row of screen.getAllByRole('menuitem'))
-			expect(row).not.toHaveAttribute('data-active')
+		expect(menu).toHaveFocus()
 	})
 
 	// TalkBack on Android sends a double tap as a click with a pointer type and
@@ -298,28 +290,28 @@ describe('MenuTrigger key open (real floating engine)', () => {
 
 		const edit = await screen.findByRole('menuitem', { name: 'Edit' })
 
-		await waitFor(() => expect(trigger).toHaveAttribute('aria-activedescendant', edit.id))
+		await waitFor(() => expect(edit).toHaveFocus())
 	})
 
 	// A click with no pointer but a pointer type is not a key. Floating UI does
-	// not call it virtual, so the menu opens with no active row.
-	it('opens with no active row on a click that has a pointer type', async () => {
+	// not call it virtual, so the menu opens with the focus on the panel.
+	it('opens with the focus on the panel on a click that has a pointer type', async () => {
 		const trigger = renderRows()
 
 		trigger.dispatchEvent(
 			new PointerEvent('click', { bubbles: true, detail: 0, pointerType: 'mouse' }),
 		)
 
-		await screen.findByRole('menu')
+		const menu = await screen.findByRole('menu')
 
 		await frames()
 
-		expect(trigger).not.toHaveAttribute('aria-activedescendant')
+		expect(menu).toHaveFocus()
 	})
 
 	// A row closes the menu with no event, so the record of the key open must
 	// not outlive the close. Else an open by the `open` prop reads it as a key.
-	it('opens with no active row from the open prop after a key open', async () => {
+	it('opens with the focus on the panel from the open prop after a key open', async () => {
 		function Controlled() {
 			const [open, setOpen] = useState(false)
 
@@ -348,7 +340,7 @@ describe('MenuTrigger key open (real floating engine)', () => {
 
 		await userEvent.keyboard('{Enter}')
 
-		await waitFor(() => expect(trigger).toHaveAttribute('aria-activedescendant'))
+		await waitFor(() => expect(screen.getByRole('menuitem', { name: 'Edit' })).toHaveFocus())
 
 		await userEvent.keyboard('{Enter}')
 
@@ -356,11 +348,11 @@ describe('MenuTrigger key open (real floating engine)', () => {
 
 		await userEvent.click(screen.getByRole('button', { name: 'Show' }))
 
-		await screen.findByRole('menu')
+		const menu = await screen.findByRole('menu')
 
 		await frames()
 
-		expect(trigger).not.toHaveAttribute('aria-activedescendant')
+		expect(menu).toHaveFocus()
 	})
 })
 

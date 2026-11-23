@@ -1,4 +1,4 @@
-import { type ComponentProps, createRef, type ReactNode, type Ref } from 'react'
+import type { ComponentProps, ReactNode, Ref } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import {
@@ -14,11 +14,7 @@ import {
 	MenuText,
 	MenuTrigger,
 } from '../../components/menu'
-import {
-	MenuActionsContext,
-	MenuCappedContext,
-	MenuStateContext,
-} from '../../components/menu/context'
+import { MenuCappedContext } from '../../components/menu/context'
 import { MenuPointerLevel } from '../../components/menu/menu-pointer-level'
 import { MenuViewport } from '../../components/menu/menu-viewport'
 import {
@@ -26,7 +22,6 @@ import {
 	bySlot,
 	fireEvent,
 	getSlot,
-	noop,
 	present,
 	renderUI,
 	screen,
@@ -387,7 +382,7 @@ describe('MenuContent', () => {
 		expect(container.querySelector('[role="menu"]')).toBeInTheDocument()
 	})
 
-	it('keeps focus on the trigger when a dropdown opens', () => {
+	it('moves focus into the panel when a dropdown opens from a press', () => {
 		renderUI(
 			<Menu placement="bottom-start">
 				<MenuTrigger>
@@ -406,13 +401,12 @@ describe('MenuContent', () => {
 
 		fireEvent.click(trigger)
 
-		// Opening never pulls focus into the panel; it rests on the trigger so a
-		// portaled, animating panel can't drop it to <body> (WCAG 2.4.3).
-		expect(trigger).toHaveFocus()
+		// Real focus moves into the `menu`, so a screen reader switches to focus mode
+		// and the arrow keys reach the rows (APG menu button). A press opens the
+		// menu with no active row.
+		expect(screen.getByRole('menu')).toHaveFocus()
 
-		expect(screen.getByRole('menu')).not.toHaveFocus()
-
-		expect(screen.getByRole('menuitem', { name: 'Edit' })).not.toHaveFocus()
+		expect(trigger).not.toHaveAttribute('aria-activedescendant')
 	})
 
 	it.each([
@@ -597,87 +591,6 @@ describe('MenuContent', () => {
 			expect(fireEvent.keyDown(trigger, { key: 'Enter', repeat: true })).toBe(false)
 			expect(fireEvent.keyDown(trigger, { key: 'Enter', repeat: true })).toBe(false)
 		})
-	})
-
-	// A closed panel stays mounted for its 150 ms exit, and its last row keeps
-	// `data-active`. In that time the roving handler finds the rows, so it does
-	// not no-op. A second Enter then runs the row again and does not open the
-	// menu. The jsdom mocks remove the panel at once, so this harness gives the
-	// trigger the contexts of a menu and a spy for the handler. No browser
-	// project has the real Motion exit and the real floating engine together.
-	describe('roves only while the menu is open', () => {
-		function harness(open: boolean) {
-			const rovingKeyDown = vi.fn()
-
-			const dismissToTab = vi.fn()
-
-			const triggerRef = createRef<HTMLElement>()
-
-			renderUI(
-				<MenuStateContext
-					value={{
-						open,
-						menuId: 'menu',
-						isDropdown: true,
-						isSheet: false,
-						floatingStyles: {},
-						getReferenceProps: (props = {}) => props,
-						getFloatingProps: () => ({}),
-					}}
-				>
-					<MenuActionsContext
-						value={{
-							setOpen: noop,
-							close: noop,
-							dismissToTab,
-							rovingKeyDown,
-							openedByKey: () => false,
-							static: false,
-							triggerRef,
-							setReference: noop,
-							setFloating: noop,
-							openAt: noop,
-						}}
-					>
-						<MenuPointerLevel virtual owner={triggerRef}>
-							<MenuTrigger>
-								<button type="button">Open</button>
-							</MenuTrigger>
-						</MenuPointerLevel>
-					</MenuActionsContext>
-				</MenuStateContext>,
-			)
-
-			return { trigger: screen.getByRole('button', { name: 'Open' }), rovingKeyDown, dismissToTab }
-		}
-
-		it.each(['Enter', ' ', 'ArrowDown', 'End', 'e', 'Tab'])(
-			'leaves %j to the trigger of a closed menu',
-			(key) => {
-				const { trigger, rovingKeyDown, dismissToTab } = harness(false)
-
-				// The default action stays: Enter and Space click the trigger, which opens the menu.
-				// ArrowDown clicks the trigger itself, so it cancels its page scroll.
-				expect(fireEvent.keyDown(trigger, { key })).toBe(key !== 'ArrowDown')
-
-				expect(rovingKeyDown).not.toHaveBeenCalled()
-
-				expect(dismissToTab).not.toHaveBeenCalled()
-			},
-		)
-
-		it.each(['Enter', ' ', 'ArrowDown', 'End', 'e', 'Tab'])(
-			'gives %j to the rows of an open menu',
-			(key) => {
-				const { trigger, rovingKeyDown, dismissToTab } = harness(true)
-
-				fireEvent.keyDown(trigger, { key })
-
-				expect(rovingKeyDown).toHaveBeenCalledOnce()
-
-				expect(dismissToTab).toHaveBeenCalledTimes(key === 'Tab' ? 1 : 0)
-			},
-		)
 	})
 
 	it('pulls focus into the panel when a right-click context menu opens', () => {
@@ -1159,15 +1072,7 @@ describe('MenuSub', () => {
 
 		expect(row).toHaveAttribute('aria-expanded', 'false')
 
-		if (model === 'static') {
-			expect(row).toHaveFocus()
-		} else {
-			const trigger = screen.getByText('Open')
-
-			expect(trigger).toHaveFocus()
-
-			expect(trigger).toHaveAttribute('aria-activedescendant', row.id)
-		}
+		expect(row).toHaveFocus()
 	})
 
 	// Alt+ArrowLeft and Cmd+ArrowLeft are the browser's Back. The panel lets the
@@ -1300,8 +1205,14 @@ describe('Menu pointer leave', () => {
 		return trigger
 	}
 
-	/** Opens a context menu or a static menu with {@link rows}. */
-	function openFocusMenu(model: 'context' | 'static') {
+	/** Opens a dropdown, a context menu, or a static menu with {@link rows}. */
+	function openFocusMenu(model: 'dropdown' | 'context' | 'static') {
+		if (model === 'dropdown') {
+			openDropdown()
+
+			return
+		}
+
 		const { container } = renderUI(
 			<Menu defaultOpen={model === 'static'}>
 				<MenuContent aria-label="Actions">{rows}</MenuContent>
@@ -1317,27 +1228,7 @@ describe('Menu pointer leave', () => {
 	/** The panel of the menu, before the panel of its submenu in the order of the document. */
 	const rootPanel = () => screen.getAllByRole('menu')[0] as HTMLElement
 
-	// The jsdom mocks give the dropdown no floating element to rove, so the
-	// browser suite presses the next arrow key (`menu-pointer-leave.test.tsx`).
-	it('clears the active row of a dropdown, and focus stays on the trigger', () => {
-		const trigger = openDropdown()
-
-		fireEvent.pointerMove(row('Second'), mouse)
-
-		expect(row('Second')).toHaveAttribute('data-active')
-
-		expect(trigger).toHaveAttribute('aria-activedescendant', row('Second').id)
-
-		fireEvent.pointerLeave(getRows(rootPanel()), mouse)
-
-		expect(rootPanel().querySelector('[data-active]')).toBeNull()
-
-		expect(trigger).not.toHaveAttribute('aria-activedescendant')
-
-		expect(trigger).toHaveFocus()
-	})
-
-	it.each(['context', 'static'] as const)(
+	it.each(['dropdown', 'context', 'static'] as const)(
 		'moves focus from the row to the panel of a %s menu, and the next ArrowDown starts at the first row',
 		(model) => {
 			openFocusMenu(model)
@@ -1381,18 +1272,6 @@ describe('Menu pointer leave', () => {
 		expect(row(/More/)).toHaveFocus()
 
 		expect(row(/More/)).toHaveAttribute('aria-expanded', 'true')
-	})
-
-	it('keeps the active parent row of a dropdown with an open submenu', () => {
-		const trigger = openDropdown()
-
-		fireEvent.pointerMove(row(/More/), mouse)
-
-		fireEvent.pointerLeave(getRows(rootPanel()), mouse)
-
-		expect(row(/More/)).toHaveAttribute('data-active')
-
-		expect(trigger).toHaveAttribute('aria-activedescendant', row(/More/).id)
 	})
 
 	// The submenu panel is a level of its own, so its leave clears its own rows
