@@ -1,8 +1,8 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useA11yControl } from '../../hooks/a11y/use-a11y-control'
-import { useControlLock } from '../../primitives/control/context'
+import { useControlDisabled, useControlLock } from '../../primitives/control/context'
 import {
 	type ControlContextValue,
 	type ControlSeverity,
@@ -48,11 +48,29 @@ export function useControlFieldContext(
 ): ControlContextValue {
 	const parent = useControl()
 
+	// A disabled Fieldset disables each field in it, as a disabled ancestor does.
+	const fieldsetDisabled = useControlDisabled()
+
 	// A locked scope, such as a form that submits, makes each field read-only, as
 	// a read-only ancestor does.
 	const locked = useControlLock()
 
 	const a11y = useA11yControl(id)
+
+	// React runs the effects of a child before the effects of its parent. A slot
+	// that mounts in the first commit of the field thus reads `false`, and a slot
+	// that mounts in a later commit reads `true`.
+	const mountedRef = useRef(false)
+
+	useEffect(() => {
+		mountedRef.current = true
+
+		return () => {
+			mountedRef.current = false
+		}
+	}, [])
+
+	const isMounted = useCallback(() => mountedRef.current, [])
 
 	const { autoComplete, disabled, readOnly, required, severity, variant } = overrides
 
@@ -62,13 +80,27 @@ export function useControlFieldContext(
 		() => ({
 			id,
 			autoComplete: autoComplete ?? parent?.autoComplete,
-			disabled: disabled || parent?.disabled,
+			disabled: fieldsetDisabled || disabled || parent?.disabled,
 			readOnly: locked ? true : readOnly || parent?.readOnly,
 			required: required ?? parent?.required,
 			severity: severity ?? parent?.severity,
 			variant: variant ?? parent?.variant,
+			isMounted,
 			...a11y,
 		}),
-		[id, autoComplete, disabled, readOnly, required, severity, variant, parent, locked, a11y],
+		[
+			id,
+			autoComplete,
+			disabled,
+			readOnly,
+			required,
+			severity,
+			variant,
+			parent,
+			fieldsetDisabled,
+			locked,
+			isMounted,
+			a11y,
+		],
 	)
 }

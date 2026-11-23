@@ -49,6 +49,10 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > `Control` broadcasts the state of a `Field` to one control-aware descendant. Its `variant` sets the surface of that control, also of a `Listbox`, `Combobox`, `DatePicker`, or `ColorPicker` trigger. A `soft` control has no border and a translucent wash, so it reads on a glass panel. A `bare` control draws no frame and no focus ring, for a host that draws them, such as a `Grid` cell around its editor. `Form` and its filter bar are parts of the `form` module ([`MODULES.md`](MODULES.md)).
 
+> A disabled `Fieldset` disables the Control cascade in it. Thus a control that is not form-associated, such as a `SignaturePad` or the track of a `RangeSlider`, is disabled too. `Fieldset` is a client component.
+
+> Only a `Message` with no form binding is a live region: an `error` message is `role="alert"`, and a `warning` or `success` message is `role="status"`. A polite message that mounts after its `Field` also sends its text to the shared announcer. A form-bound `Message` is not a live region. It stays in the `aria-describedby` of the control, and the focus move of a refused submit speaks it.
+
 ## Buttons & actions
 
 `button` · `copy-button` · `hold-button` · `toggle-icon-button`
