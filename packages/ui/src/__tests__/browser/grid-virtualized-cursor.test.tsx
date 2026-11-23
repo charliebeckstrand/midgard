@@ -123,6 +123,10 @@ describe('grid virtualized cursor (real browser)', () => {
 	// A scroll by the wheel or the scrollbar unmounts the row that holds focus,
 	// and focus fell to the page with no event to tell the grid.
 	it('takes focus back on the grid when the window unmounts the focused control', async () => {
+		// A run of many files can leave the page without window focus, and a blur
+		// of the window keeps the cell open by design.
+		vi.spyOn(document, 'hasFocus').mockReturnValue(true)
+
 		renderUI(
 			<div style={{ width: '320px' }}>
 				<Grid
