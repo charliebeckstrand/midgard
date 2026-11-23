@@ -110,14 +110,22 @@ export function MenuContent({
 	// A key opens a floating menu with the focus on its first row, as the menu
 	// button pattern of the APG tells. A dropdown reads the event that opened it.
 	// A context menu has a `triggerRef` only after a keyboard open (`openAt`).
-	// The panel focuses itself first (`PopoverPanel`), and this effect runs
-	// after it. A press of the pointer leaves the focus on the panel.
+	// A press of the pointer puts the focus on the panel. On a mount the panel
+	// focuses itself (`PopoverPanel`) before this effect runs. A reopen inside
+	// the exit animation reuses the mounted panel, and that autofocus does not
+	// run again, so this effect also focuses the panel when the focus is not in
+	// it. If not, the focus stays on the trigger, and the keys of the open menu
+	// reach nothing.
 	useLayoutEffect(() => {
 		if (!open || isSheet || isStatic || !panelNode) return
 
 		const keyOpen = isDropdown ? openedByKey() : triggerRef.current !== null
 
-		if (keyOpen) queryItems(panelNode, MENUITEM_SELECTOR)[0]?.focus({ preventScroll: true })
+		if (keyOpen) {
+			queryItems(panelNode, MENUITEM_SELECTOR)[0]?.focus({ preventScroll: true })
+		} else if (!panelNode.contains(document.activeElement)) {
+			panelNode.focus({ preventScroll: true })
+		}
 	}, [open, isSheet, isStatic, isDropdown, panelNode, openedByKey, triggerRef])
 
 	// A name from the consumer replaces the name from the title, and the title
