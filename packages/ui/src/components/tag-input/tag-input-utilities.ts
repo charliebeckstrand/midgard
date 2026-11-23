@@ -29,9 +29,9 @@ const messages = defineMessages<{
 	},
 	rejected: {
 		id: 'ui.tagInput.rejected',
-		defaultMessage: '{count, plural, one {{tag} is not a valid tag} other {# not valid}}',
+		defaultMessage: '{count, plural, one {{tag} is not a valid tag} other {# tags are not valid}}',
 		description:
-			'Spoken when typed or pasted tags fail the validation. With one tag, it names the tag.',
+			'Spoken, and shown below the field as an error, when typed or pasted tags fail the validation. With one tag, it names the tag.',
 	},
 	removed: {
 		id: 'ui.tagInput.removed',

@@ -492,7 +492,7 @@ describe('TagInput paste', () => {
 
 		paste(getInput(container), 'oops,nope')
 
-		expect(screen.getByRole('alert')).toHaveTextContent('2 not valid.')
+		expect(screen.getByRole('alert')).toHaveTextContent('2 tags are not valid.')
 	})
 
 	it('removes the Message on the next keystroke', async () => {

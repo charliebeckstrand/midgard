@@ -137,22 +137,23 @@ export type TagInputProps = Omit<
 	 * already held, and how many had no room.
 	 *
 	 * Every commit splits four ways, and `onValueChange` reports one part of it.
-	 * The other three reach the live region and stop there, which no caller can
-	 * read. Use this callback to explain a refusal in the caller's own words, or to
-	 * count what a paste dropped. `rejected` is also what the field puts back in the
-	 * draft; `duplicates` and `overLimit` are not, because the field already shows
-	 * both.
+	 * The live region announces the other three, and this callback gives them to
+	 * the caller, for example to count what a paste dropped. It does not change
+	 * the announcement or the message. To give the text of a refusal in your own
+	 * words, use `invalidMessage`. `rejected` is also what the field puts back in
+	 * the draft; `duplicates` and `overLimit` are not, because the field already
+	 * shows both.
 	 */
 	onReject?: (rejected: TokenRejection) => void
 	/**
 	 * Error message shown while the draft holds tokens that `validate` refused,
 	 * as an error `<Message>` with an id of its own, wired into the
 	 * `aria-describedby` of the input, also outside a Field. While it shows, the
-	 * live region does not also announce the refusal. Pass `null` (or `false`)
-	 * to suppress it; the live region then announces the refusal, and
-	 * `onReject` can supply your own text.
+	 * live region does not also announce the refusal. Give your own text here to
+	 * explain a refusal. Pass `null` (or `false`) to show no message; the live
+	 * region then announces the refusal.
 	 *
-	 * @defaultValue The refused tag and `'is not a valid tag.'`, or the count and `'not valid.'` for more than one, in the language of the reader.
+	 * @defaultValue The refused tag and `'is not a valid tag.'`, or the count and `'tags are not valid.'` for more than one, in the language of the reader.
 	 */
 	invalidMessage?: ReactNode
 	/**
