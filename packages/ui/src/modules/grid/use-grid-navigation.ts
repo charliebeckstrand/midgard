@@ -1516,13 +1516,13 @@ export function useGridNavigation({
 
 			const stop = orderRef.current?.find((entry) => stopId(entry.key) === cell.id)
 
-			const current = readActive()
-
 			if (stop) {
-				if (stopAt(current?.row ?? -1)?.key !== stop.key) seatStop(stop.key)
+				if (!store.isStopActive(stop.key)) seatStop(stop.key)
 
 				return
 			}
+
+			const current = readActive()
 
 			const coord = readCellCoord(cell.id, ANY_CELL_ID_TAIL)
 
@@ -1530,7 +1530,7 @@ export function useGridNavigation({
 
 			if (next && next.row !== -1 && !sameCoord(current, next)) moveToCursor(next, false, true)
 		},
-		[stopId, stopAt, seatStop, readCellCoord, toCursorRow, readActive, moveToCursor],
+		[stopId, store, seatStop, readCellCoord, toCursorRow, readActive, moveToCursor],
 	)
 
 	const onFocus = useCallback(
