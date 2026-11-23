@@ -31,7 +31,7 @@ import {
 	type GridRangeFillDirection,
 	rangeFillSource,
 } from './engine/grid-range/fill'
-import { pastePlacement } from './engine/grid-range/paste'
+import { pasteOverflow, pastePlacement } from './engine/grid-range/paste'
 import type { GridRangeCells, GridRowStep } from './engine/grid-range/range'
 import { parseTsv } from './engine/grid-range/tsv'
 import type { GridCellActivate } from './engine/grid-row/bridges'
@@ -52,6 +52,7 @@ import {
 	type GridNewRowPosition,
 	NEW_ROW_INDEX,
 } from './use-grid-navigation'
+import type { GridPasteLine } from './use-grid-paste-rows'
 import { gridRangeHandle } from './use-grid-range-value'
 import { useGridTouchEntry } from './use-grid-touch-entry'
 
@@ -115,6 +116,26 @@ function pasteTargets<T>(
 
 		return rowKey === undefined || !column ? [] : [{ rowKey, columnId: column.id, text }]
 	})
+}
+
+/**
+ * The lines of a block that run past the last data row (see
+ * {@link pasteOverflow}), each field with the id of its column. A place that
+ * names no column is left out. @internal
+ */
+function pasteLines<T>(
+	block: string[][],
+	cells: GridRangeCells,
+	columns: readonly GridColumn<T>[],
+	step: GridRowStep,
+): GridPasteLine[] {
+	return pasteOverflow(block, cells, columns.length, step).map((line) =>
+		line.flatMap(({ col, text }) => {
+			const column = columns[col]
+
+			return column ? [{ columnId: column.id, text }] : []
+		}),
+	)
 }
 
 /**
@@ -432,12 +453,14 @@ export function useGridEditCursor<T>({
 		touch: managed ? touchEntry : undefined,
 	})
 
-	const { session, pasteCells } = editing
+	const { session, pasteCells, pasteRows } = editing
 
 	// A paste while the tab stop has focus writes the clipboard's TSV into the
 	// range, or from the active cell with no range. As with copy, the document
 	// hears the event. A paste into an open editor stays the editor's, because
-	// the editor, not the tab stop, has focus.
+	// the editor, not the tab stop, has focus. The lines after the last data row
+	// go through the new-row slot when the grid shows it, and one message then
+	// speaks for the whole paste.
 	const pasteRange = useStableEvent((event: ClipboardEvent) => {
 		const table = tableRef.current
 
@@ -451,9 +474,19 @@ export function useGridEditCursor<T>({
 
 		const block = parseTsv(event.clipboardData.getData('text/plain'))
 
-		pasteCells(
-			pasteTargets(block, cells, rowKeysRef.current, cursorColumnsRef.current, nav.rowStep),
+		const columns = cursorColumnsRef.current
+
+		const lines = pasteRows ? pasteLines(block, cells, columns, nav.rowStep) : []
+
+		const adds = lines.length > 0 ? pasteRows : undefined
+
+		const lead = pasteCells(
+			pasteTargets(block, cells, rowKeysRef.current, columns, nav.rowStep),
+			'pasted',
+			adds !== undefined,
 		)
+
+		void adds?.(lines, lead)
 	})
 
 	// Writes empty text into the range, or into the active cell with no range,
