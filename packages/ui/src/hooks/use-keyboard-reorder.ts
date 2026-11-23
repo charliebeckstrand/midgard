@@ -138,7 +138,9 @@ export function useKeyboardReorder<T>(options: KeyboardReorderOptions<T>) {
 		if (event.key === ' ') {
 			event.preventDefault()
 
-			toggleLift(id, describe)
+			// A surface that takes no lift, such as a locked list, ignores Space. Its
+			// arrows still move the focus.
+			if (options.enabled) toggleLift(id, describe)
 
 			return
 		}

@@ -30,6 +30,7 @@ import {
 } from '../../modules/dashboard'
 import type { DashboardStore } from '../../modules/dashboard/engine/dashboard-store'
 import type { QueryGroup } from '../../modules/query/engine/types'
+import { ControlLockContext } from '../../primitives/control/context'
 import { useHeaderActions } from '../../primitives/header-actions'
 import {
 	allBySlot,
@@ -1434,19 +1435,24 @@ describe('Dashboard gesture owner', () => {
 	/** A controlled board that saves each commit, and reports it to `onLayout`. */
 	function Controlled({
 		editing = true,
+		locked = false,
 		onLayout,
 		onDragEnd,
 	}: {
 		editing?: boolean
+		/** A lock scope around the board, as a `Form` gives while a submit runs. */
+		locked?: boolean
 		onLayout: (next: DashboardLayoutItem[]) => void
 		onDragEnd?: DashboardProps['onDragEnd']
 	}) {
 		return (
-			<Board
-				editing={editing}
-				onDragEnd={onDragEnd}
-				layout={useControlledLayout(LAYOUT, onLayout)}
-			/>
+			<ControlLockContext value={locked}>
+				<Board
+					editing={editing}
+					onDragEnd={onDragEnd}
+					layout={useControlledLayout(LAYOUT, onLayout)}
+				/>
+			</ControlLockContext>
 		)
 	}
 
@@ -1690,32 +1696,39 @@ describe('Dashboard gesture owner', () => {
 		expect(onDragEnd).toHaveBeenCalledExactlyOnceWith({ id: 'a', canceled: true, layout: removed })
 	})
 
-	it('ends a keyboard drag as canceled when edit mode ends, so a later Space commits nothing', async () => {
-		const onLayout = vi.fn()
+	it.each([
+		{ change: 'edit mode ends', props: { editing: false } },
+		{ change: 'a lock arrives', props: { locked: true } },
+	])(
+		'ends a keyboard drag as canceled when $change, so a later Space commits nothing',
+		async ({ props }) => {
+			const onLayout = vi.fn()
 
-		const onDragEnd = vi.fn()
+			const onDragEnd = vi.fn()
 
-		const { rerender } = renderUI(<Controlled onLayout={onLayout} onDragEnd={onDragEnd} />)
+			const { rerender } = renderUI(<Controlled onLayout={onLayout} onDragEnd={onDragEnd} />)
 
-		await lift('Move Revenue', 'ArrowRight', 12)
+			await lift('Move Revenue', 'ArrowRight', 12)
 
-		rerender(<Controlled editing={false} onLayout={onLayout} onDragEnd={onDragEnd} />)
+			rerender(<Controlled {...props} onLayout={onLayout} onDragEnd={onDragEnd} />)
 
-		expect(onDragEnd).toHaveBeenCalledExactlyOnceWith({ id: 'a', canceled: true, layout: LAYOUT })
+			expect(onDragEnd).toHaveBeenCalledExactlyOnceWith({ id: 'a', canceled: true, layout: LAYOUT })
 
-		expect(readArea(screen.getByRole('group', { name: 'Revenue' }))).toBe(
-			'1 / 1 / span 27 / span 12',
-		)
+			expect(readArea(screen.getByRole('group', { name: 'Revenue' }))).toBe(
+				'1 / 1 / span 27 / span 12',
+			)
 
-		// The grip left with edit mode, and the keyboard sensor still listens on the document.
-		fireEvent.keyDown(document, { code: 'Space', key: ' ' })
+			// The grip left with edit mode or took the lock, and the keyboard sensor still
+			// listens on the document.
+			fireEvent.keyDown(document, { code: 'Space', key: ' ' })
 
-		await settleTick()
+			await settleTick()
 
-		expect(onLayout).not.toHaveBeenCalled()
+			expect(onLayout).not.toHaveBeenCalled()
 
-		expect(onDragEnd).toHaveBeenCalledTimes(1)
-	})
+			expect(onDragEnd).toHaveBeenCalledTimes(1)
+		},
+	)
 
 	it('ends a keyboard drag as canceled when the board unmounts, so a later Space commits nothing', async () => {
 		const onLayout = vi.fn()

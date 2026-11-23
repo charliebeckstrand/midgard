@@ -9,6 +9,7 @@ import {
 	ListLabel,
 	type ListProps,
 } from '../../components/list'
+import { ControlLockContext } from '../../primitives/control/context'
 import { intlEn } from '../../primitives/intl/intl-catalog'
 import { reorderMessages } from '../../primitives/intl/intl-reorder'
 import { DensityProvider } from '../../providers/density'
@@ -672,6 +673,42 @@ describe('List keyboard reordering', () => {
 		fireEvent.keyDown(content, { key: 'ArrowDown' })
 
 		expect(onReorder).toHaveBeenCalledWith([items[1], items[0], items[2]])
+	})
+
+	it('moves no item from the keyboard in a locked scope, and ends a lift that the lock finds', () => {
+		const onReorder = vi.fn()
+
+		const list = (locked: boolean) => (
+			<ControlLockContext value={locked}>
+				<List items={items} getKey={(i) => i.id} onReorder={onReorder}>
+					{(item) => <ListItem>{item.label}</ListItem>}
+				</List>
+			</ControlLockContext>
+		)
+
+		const { container, rerender } = renderUI(list(false))
+
+		const [first, second] = allBySlot(container, 'list-item') as HTMLElement[]
+
+		first?.focus()
+
+		fireEvent.keyDown(first as HTMLElement, { key: ' ' })
+
+		rerender(list(true))
+
+		// The lock ended the lift, so the arrow moves the focus and not the item.
+		fireEvent.keyDown(first as HTMLElement, { key: 'ArrowDown' })
+
+		expect(document.activeElement).toBe(second)
+
+		// Space lifts nothing while the lock holds.
+		fireEvent.keyDown(second as HTMLElement, { key: ' ' })
+
+		fireEvent.keyDown(second as HTMLElement, { key: 'ArrowUp' })
+
+		expect(document.activeElement).toBe(first)
+
+		expect(onReorder).not.toHaveBeenCalled()
 	})
 
 	it('keeps reordering when a consumer passes its own onKeyDown, and still runs theirs', () => {

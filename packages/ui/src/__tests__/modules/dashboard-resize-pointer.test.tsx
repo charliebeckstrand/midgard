@@ -9,6 +9,7 @@ import {
 	type DashboardLayoutItem,
 	DashboardTile,
 } from '../../modules/dashboard'
+import { ControlLockContext } from '../../primitives/control/context'
 import { fireEvent, getSlot, renderUI, screen } from '../helpers'
 import { stubCanvasWidth, useControlledLayout } from '../helpers/dashboard-board'
 
@@ -24,17 +25,28 @@ type Spies = {
 }
 
 /** A controlled board with one free-form tile and no width floor. */
-function Board({ editing = true, spies }: { editing?: boolean; spies: Spies }) {
+function Board({
+	editing = true,
+	locked = false,
+	spies,
+}: {
+	editing?: boolean
+	/** A lock scope around the board, as a `Form` gives while a submit runs. */
+	locked?: boolean
+	spies: Spies
+}) {
 	return (
-		<Dashboard
-			aria-label="Board"
-			editing={editing}
-			layout={useControlledLayout(LAYOUT, spies.onLayout)}
-			onResizeStart={spies.onResizeStart}
-			onResizeEnd={spies.onResizeEnd}
-		>
-			<DashboardTile id="a" title="Revenue" minWidth={0} />
-		</Dashboard>
+		<ControlLockContext value={locked}>
+			<Dashboard
+				aria-label="Board"
+				editing={editing}
+				layout={useControlledLayout(LAYOUT, spies.onLayout)}
+				onResizeStart={spies.onResizeStart}
+				onResizeEnd={spies.onResizeEnd}
+			>
+				<DashboardTile id="a" title="Revenue" minWidth={0} />
+			</Dashboard>
+		</ControlLockContext>
 	)
 }
 
@@ -443,5 +455,51 @@ describe('Dashboard pointer resize', () => {
 		expect(spies.onLayout).toHaveBeenCalledExactlyOnceWith([{ id: 'a', x: 0, y: 0, w: 10, h: 10 }])
 
 		expect(spies.onResizeEnd).toHaveBeenCalledTimes(1)
+	})
+
+	it('ends a live resize as canceled when a lock arrives, so the release commits nothing', () => {
+		const spies = makeSpies()
+
+		const { container, rerender } = renderUI(<Board spies={spies} />)
+
+		const east = eastSplitter()
+
+		pressAndMove(east)
+
+		rerender(<Board spies={spies} locked />)
+
+		expect(spies.onResizeEnd).toHaveBeenCalledExactlyOnceWith({
+			id: 'a',
+			canceled: true,
+			layout: LAYOUT,
+		})
+
+		fireEvent.pointerUp(east, { pointerId: 1 })
+
+		expect(spies.onLayout).not.toHaveBeenCalled()
+
+		expect(area(container)).toBe('1 / 1 / span 10 / span 8')
+	})
+
+	it('starts no resize under a lock, from the pointer or the keyboard, and marks the splitter', () => {
+		const spies = makeSpies()
+
+		renderUI(<Board spies={spies} locked />)
+
+		const east = eastSplitter()
+
+		expect(east).toHaveAttribute('aria-disabled', 'true')
+
+		pressAndMove(east)
+
+		fireEvent.pointerUp(east, { pointerId: 1 })
+
+		east.focus()
+
+		fireEvent.keyDown(east, { key: 'ArrowRight' })
+
+		expect(spies.onResizeStart).not.toHaveBeenCalled()
+
+		expect(spies.onLayout).not.toHaveBeenCalled()
 	})
 })

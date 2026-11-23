@@ -7,6 +7,7 @@ import { keyMatcher, useKeyedStore } from '../../hooks/use-keyed-store'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { useReorderDrag } from '../../hooks/use-reorder-drag'
 import { useScrollRegion } from '../../hooks/use-scroll-region'
+import { useControlLock } from '../../primitives/control/context'
 import { IntlMessage } from '../../primitives/intl'
 import { reorderMessages } from '../../primitives/intl/intl-reorder'
 import { k, type ListVariant } from '../../recipes/kata/list'
@@ -163,6 +164,13 @@ export function List<T>({
 
 	const interactive = !disabled && onReorder !== undefined
 
+	// Whether an item can move now. A lock, such as a `Form` while a submit runs,
+	// stops a move as `disabled` does: it ends a lift and a drag, and the drag puts
+	// the items back. The lock changes no render, so the grips stay.
+	const locked = useControlLock()
+
+	const moving = interactive && !locked
+
 	// A read-only list has no reorder to disable, so it is never disabled.
 	const reorderDisabled = !!disabled && onReorder !== undefined
 
@@ -183,7 +191,7 @@ export function List<T>({
 		getKey: effectiveGetKey,
 		orientation,
 		onReorder,
-		enabled: interactive,
+		enabled: moving,
 		containerRef,
 	})
 
@@ -208,7 +216,7 @@ export function List<T>({
 		name: useCallback((id: string) => listItemName(containerRef.current, id), []),
 		// A pointer drag drops a keyboard lift.
 		onStart: useCallback(() => setLiftedId(null), [setLiftedId]),
-		enabled: interactive,
+		enabled: moving,
 	})
 
 	const describedBy = useId()
