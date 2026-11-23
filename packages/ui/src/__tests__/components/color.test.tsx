@@ -717,6 +717,19 @@ describe('ColorPicker', () => {
 		expect(trigger).toHaveTextContent('#EF4444')
 	})
 
+	it('takes its name from a Field label over its aria-label, as DatePicker does', async () => {
+		renderUI(
+			<Field>
+				<Label>Brand color</Label>
+				<ColorPicker defaultValue="#ef4444" aria-label="Accent" />
+			</Field>,
+		)
+
+		const trigger = await screen.findByRole('combobox', { name: 'Brand color' })
+
+		expect(trigger).not.toHaveAttribute('aria-label')
+	})
+
 	it('names a trigger with no Field label from its aria-label, or as Color', () => {
 		const { rerender } = renderUI(<ColorPicker defaultValue="#ef4444" />)
 

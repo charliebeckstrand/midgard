@@ -136,6 +136,19 @@ describe('DatePicker', () => {
 		expect(trigger).not.toHaveAttribute('aria-label')
 	})
 
+	it('takes its name from a Field label over its aria-label, as ColorPicker does', async () => {
+		renderUI(
+			<Field>
+				<Label>Due date</Label>
+				<DatePicker aria-label="Deadline" />
+			</Field>,
+		)
+
+		const trigger = await screen.findByRole('combobox', { name: 'Due date' })
+
+		expect(trigger).not.toHaveAttribute('aria-label')
+	})
+
 	it.for(pickers)('names the %s trigger via aria-label for unwrapped pickers', ([, variant]) => {
 		renderUI(<DatePicker {...variant} aria-label="Due date" />)
 
