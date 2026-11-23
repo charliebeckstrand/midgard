@@ -162,9 +162,11 @@ export function HoldButton({
 
 	const armTimer = useTimeout()
 
-	const markPress = () => {
+	// It writes a ref, so it is a stable event and not a closure that render
+	// passes to a function.
+	const markPress = useStableEvent(() => {
 		pressedRef.current = true
-	}
+	})
 
 	const disarm = () => {
 		armTimer.clear()
