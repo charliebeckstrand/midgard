@@ -14,6 +14,7 @@ import { cn } from '../../core/cn'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { dataAttr } from '../../core/data-attr'
 import { invalidAttrs } from '../../core/invalid-attrs'
+import { joinAriaIds } from '../../hooks/use-aria-ids'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useTruncation } from '../../hooks/use-truncation'
 import { Upload } from '../../primitives/icons/icons'
@@ -74,10 +75,12 @@ type DropSelectionProps = {
 	files: File[]
 	multiple?: boolean
 	disabled?: boolean
-	/** Makes the overlay and `Reset` inert, as {@link lockedProps} do. */
+	/** Makes the overlay and the clear button inert, as {@link lockedProps} do. */
 	readOnly?: boolean
 	/** The id of the enclosing Field Label. With it, the overlay takes the Label and the selection text as its name. */
 	labelledBy?: string
+	/** The ids of the Description and the Message of the enclosing Field. */
+	describedBy?: string
 	/** Marks the overlay invalid, from the error state of the enclosing Field or the bound Form field. */
 	invalid?: boolean
 	/** Forces the tooltip open for the multi-file summary (see {@link FileUploadRenderState.showTooltip}). */
@@ -91,10 +94,10 @@ type DropSelectionProps = {
 
 /**
  * The `drop` variant's filled state: a full-area overlay trigger to re-pick,
- * the selection label, and a `Reset` button. The overlay is a sibling of
- * `Reset`, never its parent, which would nest interactive controls. The label
- * paints above it but stays `pointer-events-none`, so a click anywhere but
- * `Reset` re-opens the picker. The label truncates to one line. The overlay, as
+ * the selection label, and a clear button. The overlay is a sibling of the
+ * clear button, never its parent, which would nest interactive controls. The
+ * label paints above it but stays `pointer-events-none`, so a click anywhere
+ * but the clear button re-opens the picker. The label truncates to one line. The overlay, as
  * the tooltip trigger, reveals the full name(s) on hover or focus. That happens
  * when the multi-file summary hides them, or a single name is clipped.
  *
@@ -106,6 +109,7 @@ function DropSelection({
 	disabled,
 	readOnly,
 	labelledBy,
+	describedBy,
 	invalid,
 	alwaysTooltip,
 	overlayRef,
@@ -132,6 +136,9 @@ function DropSelection({
 						// A Field Label wins over `aria-label`, so the name is the Label
 						// and then the selection text.
 						aria-labelledby={labelledBy ? `${labelledBy} ${textId}` : undefined}
+						// Only a description that exists goes on, because the tooltip yields
+						// its own description to a key that the overlay writes, also an empty one.
+						{...(describedBy && { 'aria-describedby': describedBy })}
 						disabled={disabled}
 						{...invalidAttrs(invalid)}
 						onClick={onPick}
@@ -159,7 +166,7 @@ function DropSelection({
 				className="relative z-10"
 				{...(readOnly && lockedProps)}
 			>
-				{intl.formatMessage(fileUploadMessages.reset)}
+				{intl.formatMessage(fileUploadMessages.clear, { count: files.length })}
 			</Button>
 		</>
 	)
@@ -172,8 +179,9 @@ function DropSelection({
  *
  * @remarks
  * The visually-hidden input is the real control. It takes the id, `required`,
- * and `aria-describedby` of the enclosing `<Control>` / `<Field>`. The visible
- * zone does not take them, but its focusable buttons show the error state of
+ * and `aria-describedby` of the enclosing `<Control>` / `<Field>`. The empty
+ * zone and the overlay also take the `aria-describedby`, so the Description
+ * and the error Message reach the focus, and they show the error state of
  * the Field. In a Field with a Label, the name of the empty zone is the Label
  * and then the prompt, and the name of the overlay is the Label and then the
  * selection text, through `aria-labelledby`. With no Label, the empty zone
@@ -186,14 +194,14 @@ function DropSelection({
  * says "click to browse" for a mouse or a pen, and "tap to browse" for a touch
  * screen. CSS picks the text, so the first paint shows the correct text.
  *
- * Once a selection exists the zone shows the file name and a `Reset` button
+ * Once a selection exists the zone shows the file name and a clear button
  * under it. A `multiple` selection past one shows an "x files selected"
  * summary instead. The label truncates to one line and reveals the full name
  * or names in a tooltip. The zone stays clickable, focusable, and keyboard-operable, so
  * another file can be selected without clearing first.
  *
  * The swap between the empty and the filled state replaces the focusable
- * control. When focus is in the zone at a pick, a drop, or a `Reset`, it moves
+ * control. When focus is in the zone at a pick, a drop, or a clear, it moves
  * to the control that replaces it (WCAG 2.4.3).
  *
  * It stands a fixed height and takes another through `className`, the way
@@ -240,10 +248,10 @@ export function FileUploadDrop(allProps: FileUploadDropProps) {
 		handleDrop,
 	} = state
 
-	// The built-in filled state carries its own `Reset` button, which can't nest
+	// The built-in filled state carries its own clear button, which can't nest
 	// inside a trigger `<button>`; it renders a plain container plus the overlay
 	// trigger in {@link DropSelection}. Empty, or caller `children` (no built-in
-	// Reset): a single trigger `<button>` opens the picker.
+	// clear button): a single trigger `<button>` opens the picker.
 	const filled = hasFiles && children == null
 
 	// The root of each state. One of the two is mounted at a time. The root of
@@ -290,6 +298,9 @@ export function FileUploadDrop(allProps: FileUploadDropProps) {
 		clearFiles()
 	}
 
+	// The trigger of the state that shows takes the focus of the hidden input.
+	const focusTrigger = () => (overlayRef.current ?? emptyRef.current)?.focus()
+
 	const dragProps = {
 		'data-drag-over': dataAttr(dragOver),
 		onDragOver: composeEventHandlers(onDragOver, handleDragOver),
@@ -322,6 +333,7 @@ export function FileUploadDrop(allProps: FileUploadDropProps) {
 				{...state.hiddenInput}
 				ariaLabel={triggerLabel(children, intl.formatMessage(fileUploadMessages.uploadFile))}
 				onChange={handlePickChange}
+				forwardFocus={focusTrigger}
 			/>
 			{filled ? (
 				<div
@@ -339,6 +351,7 @@ export function FileUploadDrop(allProps: FileUploadDropProps) {
 						disabled={disabled}
 						readOnly={readOnly}
 						labelledBy={control?.labelledBy}
+						describedBy={control?.describedBy}
 						invalid={invalid}
 						alwaysTooltip={showTooltip}
 						overlayRef={overlayRef}
@@ -359,6 +372,7 @@ export function FileUploadDrop(allProps: FileUploadDropProps) {
 						props['aria-labelledby'] ??
 						(control?.labelledBy ? `${control.labelledBy} ${emptyId}` : undefined)
 					}
+					aria-describedby={joinAriaIds([props['aria-describedby'], control?.describedBy])}
 					disabled={disabled}
 					{...invalidAttrs(invalid)}
 					onClick={composeEventHandlers(props.onClick, openPicker)}

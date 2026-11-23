@@ -35,12 +35,17 @@ const targets = { 'late-by-day': { label: 'Late stops by day' } }
 /** A chat beside a chart, as a dashboard holds them. */
 function Dashboard({
 	trigger,
-	onCitedChange,
+	onPreviewChange,
 }: {
 	trigger?: ChatCitationTrigger
-	onCitedChange?: (citation: ChatCitation | null) => void
+	onPreviewChange?: (citation: ChatCitation | null) => void
 }) {
 	const [cited, setCited] = useState<ChatCitation | null>(null)
+
+	const [previewed, setPreviewed] = useState<ChatCitation | null>(null)
+
+	// A preview shows over the cited citation.
+	const shown = previewed ?? cited
 
 	return (
 		<>
@@ -48,10 +53,11 @@ function Dashboard({
 				targets={targets}
 				trigger={trigger}
 				cited={cited}
-				onCitedChange={(citation) => {
-					onCitedChange?.(citation)
+				onCitedChange={setCited}
+				onPreviewChange={(citation) => {
+					onPreviewChange?.(citation)
 
-					setCited(citation)
+					setPreviewed(citation)
 				}}
 			>
 				<ChatMessage sender="assistant">
@@ -64,7 +70,7 @@ function Dashboard({
 				series={[{ xKey: 'day', yKey: 'late', yName: 'Late stops' }]}
 				width={400}
 				selectedCategories={
-					cited?.target === 'late-by-day' ? toCategorySelection(cited.selector) : undefined
+					shown?.target === 'late-by-day' ? toCategorySelection(shown.selector) : undefined
 				}
 			/>
 		</>
@@ -101,11 +107,11 @@ describe('Chat: a citation selects in a chart', () => {
 		expect(document.activeElement?.tagName).toBe('A')
 	})
 
-	it('previews on a hover across the pieces of the citation, and a click keeps it', async () => {
-		const onCitedChange = vi.fn()
+	it('previews on a hover across the pieces of the citation, and a click cites it', async () => {
+		const onPreviewChange = vi.fn()
 
 		const { container } = renderUI(
-			<Dashboard trigger={['hover', 'click']} onCitedChange={onCitedChange} />,
+			<Dashboard trigger={['hover', 'click']} onPreviewChange={onPreviewChange} />,
 		)
 
 		const bars = () => container.querySelector('[data-slot="chart-bar"]')
@@ -121,11 +127,11 @@ describe('Chat: a citation selects in a chart', () => {
 		// The pointer that moves through the bold pieces stays on the citation.
 		for (const piece of pieces) await userEvent.hover(piece)
 
-		expect(onCitedChange).toHaveBeenCalledTimes(1)
+		expect(onPreviewChange).toHaveBeenCalledTimes(1)
 
 		await userEvent.hover(page.getByRole('link'))
 
-		expect(onCitedChange).toHaveBeenLastCalledWith(null)
+		expect(onPreviewChange).toHaveBeenLastCalledWith(null)
 
 		expect(bars()?.getAttribute('class')).not.toContain('opacity-25')
 

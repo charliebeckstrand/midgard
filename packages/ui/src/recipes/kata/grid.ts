@@ -813,7 +813,7 @@ export const k = {
 		// Active-cell cursor ring for a `navigable` read-only grid, driven by the
 		// `data-active` the cell marker toggles onto the owning cell of the cursor.
 		// Inset so the scroll container can't clip it. It takes the color of
-		// `focus.ring` (`blue-600` in both modes), so the active cell and the
+		// `focus.ring` (blue-600 on light, blue-500 on dark), so the active cell and the
 		// focus ring of a header or a control read as one indicator. While a
 		// control in the cell shows its own focus ring (`:focus-visible`), that
 		// ring marks the place, so the cell shows none: one ring at a time. A
@@ -823,7 +823,7 @@ export const k = {
 		cell: [
 			'data-active:not-has-[:focus-visible]:ring-2',
 			'data-active:ring-inset',
-			'data-active:not-has-[:focus-visible]:ring-blue-600',
+			'data-active:not-has-[:focus-visible]:ring-blue-600 dark:data-active:not-has-[:focus-visible]:ring-blue-500',
 			// Forced colors remove the ring, which is a box-shadow. This inset outline
 			// replaces it there, as in `focus.inset`.
 			'forced-colors:data-active:not-has-[:focus-visible]:outline-solid',
@@ -879,11 +879,12 @@ export const k = {
 			'has-[[data-slot=grid-edit-host]]:ring-inset',
 			'has-[[data-slot=grid-edit-host]:not([data-invalid])]:not-data-active:not-focus-within:ring-1',
 			...mode(
-				'has-[[data-slot=grid-edit-host]:not([data-invalid])]:not-data-active:not-focus-within:ring-zinc-300',
-				'dark:has-[[data-slot=grid-edit-host]:not([data-invalid])]:not-data-active:not-focus-within:ring-zinc-700',
+				'has-[[data-slot=grid-edit-host]:not([data-invalid])]:not-data-active:not-focus-within:ring-zinc-500',
+				'dark:has-[[data-slot=grid-edit-host]:not([data-invalid])]:not-data-active:not-focus-within:ring-zinc-500',
 			),
 			'has-[[data-slot=grid-edit-host]:not([data-invalid])]:focus-within:ring-2',
 			'has-[[data-slot=grid-edit-host]:not([data-invalid])]:focus-within:ring-blue-600',
+			'dark:has-[[data-slot=grid-edit-host]:not([data-invalid])]:focus-within:ring-blue-500',
 			'has-[[data-slot=grid-edit-host][data-invalid]]:ring-2',
 			...mode(
 				'has-[[data-slot=grid-edit-host][data-invalid]]:ring-red-600',
@@ -956,7 +957,7 @@ export const k = {
 			dan.space.cell.y,
 			hostSurface,
 			...ring.line[2].inset,
-			'ring-blue-600',
+			'ring-blue-600 dark:ring-blue-500',
 			...mode('in-data-invalid:ring-red-600', 'dark:in-data-invalid:ring-red-500'),
 			'forced-colors:outline-[Highlight]',
 		],

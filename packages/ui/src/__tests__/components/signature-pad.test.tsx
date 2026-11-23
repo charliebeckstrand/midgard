@@ -2,7 +2,7 @@ import type { PointerEvent as ReactPointerEvent } from 'react'
 import { act, createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Control } from '../../components/control'
-import { Description, Message } from '../../components/fieldset'
+import { Description, Field, Label, Message } from '../../components/fieldset'
 import { SignaturePad, type SignaturePadHandle } from '../../components/signature-pad'
 import {
 	configureStroke,
@@ -152,6 +152,54 @@ describe('SignaturePad', () => {
 		expect(canvas).toHaveAttribute('role', 'img')
 
 		expect(canvas).toHaveAttribute('aria-label', 'Customer signature, empty')
+	})
+
+	it('takes its name from the Field Label', () => {
+		renderUI(
+			<Field>
+				<Label as="span">Witness signature</Label>
+				<SignaturePad value="data:image/png;base64,AAAA" />
+			</Field>,
+		)
+
+		expect(screen.getByRole('img', { name: 'Witness signature' })).toBeInTheDocument()
+	})
+
+	it('says that a pad named by a Field Label is empty', () => {
+		renderUI(
+			<Field>
+				<Label as="span">Witness signature</Label>
+				<SignaturePad />
+			</Field>,
+		)
+
+		expect(screen.getByRole('img', { name: 'Witness signature empty' })).toBeInTheDocument()
+	})
+
+	it('lets an aria-label win over the Field Label', () => {
+		renderUI(
+			<Field>
+				<Label as="span">Witness signature</Label>
+				<SignaturePad aria-label="Signer" />
+			</Field>,
+		)
+
+		expect(screen.getByRole('img', { name: 'Signer, empty' })).toBeInTheDocument()
+	})
+
+	it('falls back to "Signature" with no Label', () => {
+		renderUI(<SignaturePad />)
+
+		expect(screen.getByRole('img', { name: 'Signature, empty' })).toBeInTheDocument()
+	})
+
+	it('draws the focus ring on the pad while the canvas has the keyboard focus', () => {
+		const { container } = renderUI(<SignaturePad />)
+
+		expect(getSlot(container, 'signature-pad')).toHaveClass(
+			'has-[canvas:focus-visible]:outline-2',
+			'has-[canvas:focus-visible]:outline-blue-600',
+		)
 	})
 
 	it('keeps a dark ink on its white surface in the dark theme', () => {

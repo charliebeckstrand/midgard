@@ -407,9 +407,34 @@ describe('Calendar month/year picker', () => {
 
 		await user.click(openPicker(/June 2025/))
 
-		expect(screen.getByRole('listbox', { name: 'Select month' })).toBeInTheDocument()
+		// The name of the grid holds its year, as the option names do not.
+		expect(screen.getByRole('listbox', { name: 'Select month, 2025' })).toBeInTheDocument()
 
 		expect(screen.getByRole('option', { name: 'Jun', selected: true })).toBeInTheDocument()
+	})
+
+	it('names the year of each grid and announces a year step and a decade step', async () => {
+		const user = setupUser()
+
+		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} />)
+
+		await user.click(openPicker(/June 2025/))
+
+		await user.click(screen.getByRole('button', { name: 'Next year' }))
+
+		await expectAnnouncement('2026')
+
+		expect(screen.getByRole('listbox', { name: 'Select month, 2026' })).toBeInTheDocument()
+
+		await user.click(screen.getByRole('button', { name: '2026' }))
+
+		expect(screen.getByRole('listbox', { name: 'Select year, 2020–2029' })).toBeInTheDocument()
+
+		await user.click(screen.getByRole('button', { name: 'Next decade' }))
+
+		await expectAnnouncement('2030–2039')
+
+		expect(screen.getByRole('listbox', { name: 'Select year, 2030–2039' })).toBeInTheDocument()
 	})
 
 	it('labels the picker panel as a dialog', async () => {
@@ -492,7 +517,7 @@ describe('Calendar month/year picker', () => {
 
 		act(() => ref.current?.openPicker())
 
-		expect(screen.getByRole('listbox', { name: 'Select month' })).toBeInTheDocument()
+		expect(screen.getByRole('listbox', { name: 'Select month, 2025' })).toBeInTheDocument()
 
 		expect(screen.getByRole('button', { name: '2025' })).toBeInTheDocument()
 	})
@@ -1221,7 +1246,7 @@ describe('Calendar entry date', () => {
 		expectEntry(ref, new Date(2025, 5, 10))
 	})
 
-	it('enters a range on its endpoint in the shown month', async ({ clock }) => {
+	it('enters a range on its first selected day in the shown month', async ({ clock }) => {
 		clock.set(now)
 
 		const ref = createRef<CalendarHandle>()
@@ -1236,7 +1261,8 @@ describe('Calendar entry date', () => {
 
 		await act(async () => ref.current?.nextMonth())
 
-		expectEntry(ref, new Date(2025, 5, 25))
+		// The range selects each of its days, so the entry is the first day of June.
+		expectEntry(ref, new Date(2025, 5, 1))
 	})
 })
 

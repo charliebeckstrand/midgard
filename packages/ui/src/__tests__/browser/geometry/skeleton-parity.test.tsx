@@ -822,7 +822,7 @@ describe('skeleton parity (real browser)', () => {
 		)
 
 		expect(placeholder(renderUI(<SegmentSkeleton />).container).height).toBe(
-			height(container.querySelector('[role="tablist"]'), 'segment control'),
+			height(container.querySelector('[role="radiogroup"]'), 'segment control'),
 		)
 	})
 

@@ -36,7 +36,7 @@ function Views() {
 /** Picks `item` in the Segment of the visible view `from`. */
 function pick(from: string, item: string) {
 	within(screen.getByRole('region', { name: from }))
-		.getByRole('tab', { name: item })
+		.getByRole('radio', { name: item })
 		.click()
 }
 

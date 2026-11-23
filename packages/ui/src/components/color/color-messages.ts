@@ -1,5 +1,6 @@
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import type { MessageSet } from '../../primitives/intl/types'
+import type { ColorHueName } from './color-utilities'
 
 // The values of each color message, by key.
 type ColorValues = {
@@ -14,12 +15,14 @@ type ColorValues = {
 	hue: Record<never, never>
 	alpha: Record<never, never>
 	swatches: Record<never, never>
+	swatch: { hue: ColorHueName; hex: string }
+	picker: Record<never, never>
 }
 
 /**
  * The messages of the color controls: the names of the area, the sliders, the
- * channel fields, the hex field, the eyedropper, the swatches, and the picker
- * dialog.
+ * channel fields, the hex field, the eyedropper, the swatches and each preset,
+ * and the picker trigger and its dialog.
  *
  * @internal
  */
@@ -82,5 +85,17 @@ export const colorMessages: MessageSet<ColorValues> = defineMessages<ColorValues
 		id: 'ui.color.swatches',
 		defaultMessage: 'Swatches',
 		description: 'The name of the group of preset colors.',
+	},
+	swatch: {
+		id: 'ui.color.swatch',
+		defaultMessage:
+			'{hue, select, red {Red} orange {Orange} yellow {Yellow} green {Green} cyan {Cyan} blue {Blue} purple {Purple} pink {Pink} white {White} black {Black} other {Gray}}, {hex}',
+		description:
+			'The name of one preset color: a coarse name of the color, then its hexadecimal code, such as "Red, #EF4444".',
+	},
+	picker: {
+		id: 'ui.color.picker',
+		defaultMessage: 'Color',
+		description: 'The name of the button that opens a color picker, when no label names it.',
 	},
 })

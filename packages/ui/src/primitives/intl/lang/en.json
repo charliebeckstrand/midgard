@@ -36,16 +36,16 @@
 		"description": "The name of the button that shows the year before in the month picker."
 	},
 	"ui.calendar.selectMonth": {
-		"defaultMessage": "Select month",
-		"description": "The name of the grid of months in the month picker."
+		"defaultMessage": "Select month, {year}",
+		"description": "The name of the grid of months in the month picker. {year} is the year of the grid, such as 2025."
 	},
 	"ui.calendar.selectMonthYear": {
 		"defaultMessage": "Select month and year",
 		"description": "The name of the panel that holds the month picker and the year picker."
 	},
 	"ui.calendar.selectYear": {
-		"defaultMessage": "Select year",
-		"description": "The name of the grid of years in the year picker."
+		"defaultMessage": "Select year, {decade}",
+		"description": "The name of the grid of years in the year picker. {decade} is the span of years that the grid shows, such as 2020–2029."
 	},
 	"ui.chart.chart": {
 		"defaultMessage": "Chart",
@@ -299,9 +299,17 @@
 		"defaultMessage": "Hue",
 		"description": "The name of the slider that sets the hue of a color."
 	},
+	"ui.color.picker": {
+		"defaultMessage": "Color",
+		"description": "The name of the button that opens a color picker, when no label names it."
+	},
 	"ui.color.select": {
 		"defaultMessage": "Select color",
 		"description": "The name of the dialog of a color picker."
+	},
+	"ui.color.swatch": {
+		"defaultMessage": "{hue, select, red {Red} orange {Orange} yellow {Yellow} green {Green} cyan {Cyan} blue {Blue} purple {Purple} pink {Pink} white {White} black {Black} other {Gray}}, {hex}",
+		"description": "The name of one preset color: a coarse name of the color, then its hexadecimal code, such as \"Red, #EF4444\"."
 	},
 	"ui.color.swatches": {
 		"defaultMessage": "Swatches",
@@ -563,6 +571,10 @@
 		"defaultMessage": "Open calendar",
 		"description": "The name of the button that opens the calendar of a date field."
 	},
+	"ui.datePicker.rangeStartSet": {
+		"defaultMessage": "Start date {date}. Select the end date.",
+		"description": "Spoken by a screen reader after the first press in a range calendar. {date} is the full name of the start day, such as Tuesday, June 10, 2025."
+	},
 	"ui.datePicker.selectDate": {
 		"defaultMessage": "Select a date",
 		"description": "The text of an empty date picker that holds one date, and the name of the panel that holds its calendar."
@@ -716,20 +728,16 @@
 		"description": "The prompt of an empty drop zone on a touch device."
 	},
 	"ui.fileUpload.refusedCount": {
-		"defaultMessage": "{count, plural, one {{names} is over the file limit} other {{names} are over the file limit}}",
-		"description": "Spoken when the field refuses files because it takes no more files. The names are the file names, joined by commas."
+		"defaultMessage": "{count, plural, one {{names} is over the file limit} other {{names} are over the file limit}}. The limit is {max, plural, one {# file} other {# files}}",
+		"description": "Spoken when the field refuses files because it takes no more files. The names are the file names, joined by commas. The limit is the number of files that the field takes."
 	},
 	"ui.fileUpload.refusedSize": {
-		"defaultMessage": "{count, plural, one {{names} is too large} other {{names} are too large}}",
-		"description": "Spoken when the field refuses files because they are larger than the limit. The names are the file names, joined by commas."
+		"defaultMessage": "{count, plural, one {{names} is too large} other {{names} are too large}}. The limit is {limit}",
+		"description": "Spoken when the field refuses files because they are larger than the limit. The names are the file names, joined by commas. The limit is a size, such as \"1 MB\"."
 	},
 	"ui.fileUpload.refusedType": {
-		"defaultMessage": "{count, plural, one {{names} is not an accepted file type} other {{names} are not accepted file types}}",
-		"description": "Spoken when the field refuses files because their type is not accepted. The names are the file names, joined by commas."
-	},
-	"ui.fileUpload.reset": {
-		"defaultMessage": "Reset",
-		"description": "The label of the button that clears the selected files."
+		"defaultMessage": "{count, plural, one {{names} is not an accepted file type} other {{names} are not accepted file types}}. Accepted types: {accept}",
+		"description": "Spoken when the field refuses files because their type is not accepted. The names are the file names, joined by commas. The accepted types are the file types and extensions that the field takes, such as \"image/png, .pdf\"."
 	},
 	"ui.fileUpload.selectDifferent": {
 		"defaultMessage": "Select a different file",
@@ -1419,6 +1427,14 @@
 		"defaultMessage": "Yes",
 		"description": "The true choice of a yes-or-no cell of a grid."
 	},
+	"ui.holdButton.confirm": {
+		"defaultMessage": "Activate again to confirm",
+		"description": "Spoken when assistive technology activates a hold button once. A second activation does the action."
+	},
+	"ui.holdButton.instruction": {
+		"defaultMessage": "Press and hold to confirm",
+		"description": "The description of a button that acts only after the reader presses and holds it."
+	},
 	"ui.jsonTree.items": {
 		"defaultMessage": "{count, plural, one {# item} other {# items}}",
 		"description": "The count of the items in an object or an array of a JSON tree, such as \"3 items\"."
@@ -1563,13 +1579,9 @@
 		"defaultMessage": "Resize panel",
 		"description": "The name of the grab bar that changes the size of a drawer or a sheet, by a drag or by the arrow keys."
 	},
-	"ui.passwordInput.hide": {
-		"defaultMessage": "Hide password",
-		"description": "The name of the button that hides the text of a password field."
-	},
 	"ui.passwordInput.show": {
 		"defaultMessage": "Show password",
-		"description": "The name of the button that shows the text of a password field."
+		"description": "The fixed name and tooltip of the toggle button that shows or hides the text of a password field. The pressed state tells if the text shows."
 	},
 	"ui.passwordStrength.empty": {
 		"defaultMessage": "Empty",
@@ -1610,6 +1622,10 @@
 	"ui.passwordStrength.ruleUppercase": {
 		"defaultMessage": "One uppercase letter",
 		"description": "A password rule: the password has an uppercase letter."
+	},
+	"ui.passwordStrength.status": {
+		"defaultMessage": "Password strength: {level}",
+		"description": "The status message that a screen reader reads when the strength changes. The level is the name of the strength, for example \"Fair\"."
 	},
 	"ui.passwordStrength.strong": {
 		"defaultMessage": "Strong",
@@ -2203,6 +2219,10 @@
 		"defaultMessage": "Sidebar",
 		"description": "The name of the navigation landmark at the side of a page, which a screen reader speaks with its role."
 	},
+	"ui.sidebarLayout.navigation": {
+		"defaultMessage": "Navigation",
+		"description": "The name of the panel that shows the navigation over the page: the drawer of a narrow page, and the sheet that a pointer opens at the edge of a wide page."
+	},
 	"ui.sidebarLayout.navigationBar": {
 		"defaultMessage": "Navigation bar",
 		"description": "The name of the bar at the top of a narrow page that holds the button that opens the navigation."
@@ -2222,6 +2242,10 @@
 	"ui.signaturePad.empty": {
 		"defaultMessage": "{name}, empty",
 		"description": "The name of a signature pad with no signature on it. The name is the name of the pad, such as \"Signature\"."
+	},
+	"ui.signaturePad.emptyState": {
+		"defaultMessage": "empty",
+		"description": "Added to the name of a signature pad with no signature on it, after the label of its field, as in \"Witness signature empty\"."
 	},
 	"ui.signaturePad.label": {
 		"defaultMessage": "Signature",

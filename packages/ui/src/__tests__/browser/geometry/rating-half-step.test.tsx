@@ -13,8 +13,19 @@ function box(container: HTMLElement, slot: string, index = 0): DOMRect {
 	return element.getBoundingClientRect()
 }
 
+/** The box of the glyph of the star that holds the fill at `index`: the box the fill is measured against. */
+function glyph(container: HTMLElement, index: number): DOMRect {
+	const fill = container.querySelectorAll('[data-slot="rating-fill"]')[index]
+
+	if (!fill?.parentElement) throw new Error(`no rating-fill at ${index}`)
+
+	return fill.parentElement.getBoundingClientRect()
+}
+
 /**
  * A Rating at a half step splits each star into a start half and an end half.
+ * The two halves fill the cell of the star, and they meet at the center of the
+ * glyph.
  * The halves and the part fill sit on the inline axis, so a right-to-left row
  * mirrors them. Only a real browser lays out the inline axis.
  */
@@ -26,13 +37,20 @@ describe('Rating: half step', () => {
 
 		const [start, end] = [box(container, 'rating-half', 4), box(container, 'rating-half', 5)]
 
+		const center = glyph(container, 2)
+
 		expect(start.left).toBeNear(star.left, HALF_PIXEL)
 
 		expect(end.right).toBeNear(star.right, HALF_PIXEL)
 
 		expect(start.width).toBeNear(star.width / 2, HALF_PIXEL)
 
-		expect(box(container, 'rating-fill', 2).left).toBeNear(star.left, HALF_PIXEL)
+		// WCAG 2.5.8: each half is a 24px target.
+		expect(start.width).toBeNear(24, HALF_PIXEL)
+
+		expect(start.right).toBeNear(center.left + center.width / 2, HALF_PIXEL)
+
+		expect(box(container, 'rating-fill', 2).left).toBeNear(center.left, HALF_PIXEL)
 	})
 
 	it('puts the start half on the right of a right-to-left star', () => {
@@ -53,9 +71,11 @@ describe('Rating: half step', () => {
 		// The part fill grows from the inline start, which is the right edge here.
 		const fill = box(container, 'rating-fill', 2)
 
-		expect(fill.right).toBeNear(star.right, HALF_PIXEL)
+		const center = glyph(container, 2)
 
-		expect(fill.width).toBeNear(star.width / 2, HALF_PIXEL)
+		expect(fill.right).toBeNear(center.right, HALF_PIXEL)
+
+		expect(fill.width).toBeNear(center.width / 2, HALF_PIXEL)
 	})
 
 	it('moves one half on an arrow key', async () => {

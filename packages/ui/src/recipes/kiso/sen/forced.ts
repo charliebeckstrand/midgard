@@ -23,8 +23,12 @@ export const forced = {
 	outline: 'forced-colors:outline-solid forced-colors:outline-1',
 	/** Item text: preserves semantic foreground color. */
 	text: 'forced-color-adjust-none forced-colors:text-[CanvasText]',
-	/** Focus state: maps to system highlight colors. */
-	focus: 'forced-colors:focus:bg-[Highlight] forced-colors:focus:text-[HighlightText]',
+	/**
+	 * Focus state: maps to system highlight colors. The pair wins with `!` over
+	 * each wash and hover step, because the focused row of a menu is often the
+	 * row under the pointer, as `hannou.active` does for a roved row.
+	 */
+	focus: 'forced-colors:focus:bg-[Highlight]! forced-colors:focus:text-[HighlightText]!',
 	/** Form control: restores native appearance and checked-state visibility. */
 	control:
 		'forced-colors:opacity-100 forced-colors:appearance-auto forced-colors:checked:appearance-auto',

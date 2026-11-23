@@ -18,7 +18,7 @@ type Sample = { offset: Offset; transform: string }
 function markerOffset(): Offset | null {
 	const indicator = document.querySelector<HTMLElement>('[data-slot="active-indicator"]')
 
-	const tab = indicator?.parentElement?.querySelector<HTMLElement>('[role="tab"]')
+	const tab = indicator?.parentElement?.querySelector<HTMLElement>('[role="tab"], [role="radio"]')
 
 	if (!indicator || !tab) return null
 
@@ -126,9 +126,9 @@ describe('active indicator in a list that moves (real Motion)', () => {
 			</div>,
 		)
 
-		const day = screen.getByRole('tab', { name: 'Day' })
+		const day = screen.getByRole('radio', { name: 'Day' })
 
-		const weeks = screen.getByRole('tab', { name: 'Two week view' })
+		const weeks = screen.getByRole('radio', { name: 'Two week view' })
 
 		const lineHeight = Number.parseFloat(getComputedStyle(weeks).lineHeight)
 

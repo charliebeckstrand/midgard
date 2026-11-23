@@ -466,6 +466,85 @@ describe('TagInput paste', () => {
 		expect(getInput(container)).not.toHaveAttribute('aria-invalid', 'true')
 	})
 
+	it('shows the refusal as an error Message that describes the input', async () => {
+		const { container } = renderUI(
+			<TagInput placeholder="Zip" validate={(tag) => /^\d{5}$/.test(tag)} />,
+		)
+
+		paste(getInput(container), '77002,oops')
+
+		const alert = screen.getByRole('alert')
+
+		expect(alert).toHaveTextContent('oops is not a valid tag.')
+
+		expect(getInput(container)).toHaveAccessibleDescription('oops is not a valid tag.')
+
+		// The Message tells the refusal, so the live region does not say it again.
+		await expectAnnouncement('Added 77002.')
+
+		expect(liveRegion()).not.toHaveTextContent('not a valid tag')
+	})
+
+	it('counts several refused tokens in the Message', () => {
+		const { container } = renderUI(
+			<TagInput placeholder="Zip" validate={(tag) => /^\d{5}$/.test(tag)} />,
+		)
+
+		paste(getInput(container), 'oops,nope')
+
+		expect(screen.getByRole('alert')).toHaveTextContent('2 not valid.')
+	})
+
+	it('removes the Message on the next keystroke', async () => {
+		const user = setupUser()
+
+		const { container } = renderUI(
+			<TagInput placeholder="Zip" validate={(tag) => /^\d{5}$/.test(tag)} />,
+		)
+
+		paste(getInput(container), 'oops,nope')
+
+		await user.type(getInput(container), '1')
+
+		expect(screen.queryByRole('alert')).toBeNull()
+
+		expect(getInput(container)).not.toHaveAttribute('aria-describedby')
+	})
+
+	it('shows a custom invalidMessage, and none for null', () => {
+		const validate = (tag: string) => /^\d{5}$/.test(tag)
+
+		const custom = renderUI(
+			<TagInput placeholder="Zip" validate={validate} invalidMessage="Enter a 5-digit ZIP code." />,
+		)
+
+		paste(getInput(custom.container), 'oops,')
+
+		expect(screen.getByRole('alert')).toHaveTextContent('Enter a 5-digit ZIP code.')
+
+		custom.unmount()
+
+		const off = renderUI(<TagInput placeholder="Zip" validate={validate} invalidMessage={null} />)
+
+		paste(getInput(off.container), 'oops,')
+
+		expect(screen.queryByRole('alert')).toBeNull()
+
+		expect(getInput(off.container)).toHaveAttribute('aria-invalid', 'true')
+	})
+
+	it('registers the Message into the description of a Control', () => {
+		const { container } = renderUI(
+			<Control>
+				<TagInput placeholder="Zip" validate={(tag) => /^\d{5}$/.test(tag)} />
+			</Control>,
+		)
+
+		paste(getInput(container), 'oops,')
+
+		expect(getInput(container)).toHaveAccessibleDescription('oops is not a valid tag.')
+	})
+
 	it('fills only the remaining room at the cap', () => {
 		const { container } = renderUI(<TagInput defaultValue={['a']} max={2} placeholder="Zip" />)
 
@@ -524,8 +603,8 @@ describe('TagInput announcements', () => {
 			'react is already in the list',
 		],
 		[
-			'names the reason when validation rejects a tag',
-			() => <TagInput validate={(tag) => tag.length >= 2} />,
+			'names the reason when validation rejects a tag and no Message shows it',
+			() => <TagInput validate={(tag) => tag.length >= 2} invalidMessage={null} />,
 			'x{Enter}',
 			'x is not a valid tag',
 		],

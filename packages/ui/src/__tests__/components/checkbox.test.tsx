@@ -1,7 +1,8 @@
 import { createRef, type ReactElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Checkbox, CheckboxField, CheckboxGroup } from '../../components/checkbox'
-import { Description, Label } from '../../components/fieldset'
+import { Control } from '../../components/control'
+import { Description, Field, Label, Message } from '../../components/fieldset'
 import { Form } from '../../modules/form'
 import {
 	act,
@@ -167,6 +168,78 @@ describe('CheckboxGroup', () => {
 
 		// §3.9: `role` is load-bearing, so the group semantics stay.
 		expect(screen.getByRole('group', { name: 'Notifications' })).toBeInTheDocument()
+	})
+
+	it('takes the description and the error message of an enclosing Field', () => {
+		renderUI(
+			<Field severity="error">
+				<Label as="span">Topics</Label>
+				<Description>Pick the topics to follow.</Description>
+				<CheckboxGroup aria-label="Topics">
+					<CheckboxField>
+						<Checkbox />
+						<Label>News</Label>
+					</CheckboxField>
+				</CheckboxGroup>
+				<Message>Pick at least one</Message>
+			</Field>,
+		)
+
+		const group = screen.getByRole('group', { name: 'Topics' })
+
+		expect(group).toHaveAccessibleDescription('Pick the topics to follow. Pick at least one')
+
+		// The checkbox of a CheckboxField keeps its own description, which is empty.
+		expect(screen.getByRole('checkbox', { name: 'News' })).not.toHaveAccessibleDescription(
+			'Pick the topics to follow. Pick at least one',
+		)
+	})
+
+	// A required group asks for a choice, and a native `required` on each box
+	// would ask for each box.
+	it('keeps the required state of an enclosing Control off each checkbox', () => {
+		renderUI(
+			<Control required>
+				<Field>
+					<Label as="span">Topics</Label>
+					<CheckboxGroup aria-label="Topics">
+						<CheckboxField>
+							<Checkbox />
+							<Label>News</Label>
+						</CheckboxField>
+						<Checkbox aria-label="Sports" />
+						<Checkbox aria-label="Weather" required />
+					</CheckboxGroup>
+				</Field>
+			</Control>,
+		)
+
+		expect(screen.getByRole('checkbox', { name: 'News' })).not.toBeRequired()
+
+		expect(screen.getByRole('checkbox', { name: 'Sports' })).not.toBeRequired()
+
+		expect(screen.getByRole('checkbox', { name: 'Weather' })).toBeRequired()
+	})
+
+	it('keeps the id and the description of the Field off a bare checkbox of the group', () => {
+		renderUI(
+			<Field htmlFor="topics">
+				<Label as="span">Topics</Label>
+				<Description>Pick the topics to follow.</Description>
+				<CheckboxGroup aria-label="Topics">
+					<Checkbox aria-label="News" />
+					<Checkbox aria-label="Sports" />
+				</CheckboxGroup>
+			</Field>,
+		)
+
+		for (const name of ['News', 'Sports']) {
+			const box = screen.getByRole('checkbox', { name })
+
+			expect(box).not.toHaveAttribute('id', 'topics')
+
+			expect(box).not.toHaveAttribute('aria-describedby')
+		}
 	})
 })
 

@@ -84,6 +84,18 @@ export function dayKey(date: Date): string {
 	return toCalendarDate(date).toString()
 }
 
+/**
+ * The id of the day cell of `date` in the day listbox `listboxId`. Each day
+ * has its own id, and the id does not move to another cell. A parent input
+ * that keeps the focus sets its `aria-activedescendant` to the id of the
+ * highlighted day, so each move changes the value of the attribute.
+ *
+ * @internal
+ */
+export function dayOptionId(listboxId: string, date: Date): string {
+	return `${listboxId}-${dayKey(date)}`
+}
+
 /** The local-midnight `Date` of a key that {@link dayKey} gives. @internal */
 export function dayOfKey(key: string): Date {
 	return fromCalendarDate(parseDate(key))

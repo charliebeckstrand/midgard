@@ -1,11 +1,24 @@
 'use client'
 
 import { useComposedRefs } from 'motion/react'
-import { type KeyboardEvent, type MouseEvent, type Ref, useRef } from 'react'
+import {
+	type KeyboardEvent,
+	type MouseEvent,
+	type PointerEvent,
+	type Ref,
+	useId,
+	useRef,
+	useState,
+} from 'react'
+import { announce } from '../../core/announcer'
 import { cn } from '../../core/cn'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
+import { joinAriaIds } from '../../hooks/use-aria-ids'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { useTimeout } from '../../hooks/use-timeout'
 import { useControlLock } from '../../primitives/control/context'
+import { defineMessages } from '../../primitives/intl/intl-messages'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/hold-button'
 import { holdTextSelection } from '../../utilities/hold-text-selection'
 import { isActivationKey } from '../../utilities/keyboard-navigation'
@@ -19,6 +32,27 @@ import { useHoldButtonGesture } from './use-hold-button-gesture'
  * the user let go (CONVENTIONS.md §3.9, the third case).
  */
 const alwaysEnd = { checkForDefaultPrevented: false }
+
+const messages = defineMessages({
+	instruction: {
+		id: 'ui.holdButton.instruction',
+		defaultMessage: 'Press and hold to confirm',
+		description:
+			'The description of a button that acts only after the reader presses and holds it.',
+	},
+	confirm: {
+		id: 'ui.holdButton.confirm',
+		defaultMessage: 'Activate again to confirm',
+		description:
+			'Spoken when assistive technology activates a hold button once. A second activation does the action.',
+	},
+})
+
+/**
+ * The time, in milliseconds, in which a second click from assistive technology
+ * completes the action that the first click armed.
+ */
+const CONFIRM_WINDOW_MS = 5000
 
 /**
  * Props for {@link HoldButton}: the non-anchor {@link ButtonProps} branch minus
@@ -52,7 +86,18 @@ export type HoldButtonProps = Omit<
  * A fill overlay animates progress, and releasing early cancels. Responds to
  * both pointer hold and Space/Enter keydown.
  *
+ * The button has a built-in description, "Press and hold to confirm", through
+ * `aria-describedby`. A caller `aria-describedby` comes before it.
+ *
  * @remarks
+ * Assistive technology, such as a screen reader in browse mode or a switch
+ * device, often sends a click with no pointer press and no key press. Such a
+ * click cannot start a hold. Thus it arms a confirm step: the button announces
+ * "Activate again to confirm", and a second click of the same kind in the next
+ * five seconds completes the action. A click that follows a pointer press or an
+ * activation keydown is the end of a press, and it never arms or completes.
+ * Thus a pointer or a keyboard user must hold.
+ *
  * Only the activation key that started the hold cancels it; the other key's
  * release mid-hold is ignored. Blur and pointer leave/cancel abort the hold, and
  * the gesture hook adds window-blur and tab-visibility guards so a backgrounded
@@ -92,6 +137,7 @@ export function HoldButton({
 	onKeyDown,
 	onKeyUp,
 	onBlur,
+	'aria-describedby': describedBy,
 	'data-slot': slot = 'hold-button',
 	type = 'button',
 	ref,
@@ -101,9 +147,38 @@ export function HoldButton({
 
 	const composedRef = useComposedRefs(buttonRef, ref as Ref<HTMLButtonElement> | undefined)
 
+	const intl = useIntl()
+
+	const instructionId = useId()
+
+	// True from a pointer press or an activation keydown until the click that
+	// the press sends. A click with no such press comes from assistive
+	// technology, which cannot hold.
+	const pressedRef = useRef(false)
+
+	// True after a click from assistive technology, until a second such click
+	// completes the action or the confirm window ends.
+	const [armed, setArmed] = useState(false)
+
+	const armTimer = useTimeout()
+
+	// It writes a ref, so it is a stable event and not a closure that render
+	// passes to a function.
+	const markPress = useStableEvent(() => {
+		pressedRef.current = true
+	})
+
+	const disarm = () => {
+		armTimer.clear()
+
+		setArmed(false)
+	}
+
 	// A `submit` or `reset` button acts on its form here, after the hold, and
 	// not on the native click.
 	const handleHoldComplete = useStableEvent(() => {
+		disarm()
+
 		onHoldComplete?.()
 
 		const button = buttonRef.current
@@ -116,16 +191,35 @@ export function HoldButton({
 		else if (type === 'reset') form.reset()
 	})
 
-	// A quick press sends a native click after the pointer pair, and Enter sends
-	// one on keydown. Cancel it, or a `submit` or `reset` button acts on its
-	// form before the hold completes.
-	const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
-		if (type !== 'button') event.preventDefault()
-	}
-
 	// A locked scope cancels each activation of a button, and the hold is the
 	// activation of this one.
 	const locked = useControlLock() && lockable
+
+	// A quick press sends a native click after the pointer pair, and Enter sends
+	// one on keydown. Cancel it, or a `submit` or `reset` button acts on its
+	// form before the hold completes. A locked scope replaces this handler, so
+	// it never runs while the lock holds.
+	const handleClick = useStableEvent((event: MouseEvent<HTMLButtonElement>) => {
+		if (type !== 'button') event.preventDefault()
+
+		if (pressedRef.current) {
+			pressedRef.current = false
+
+			return
+		}
+
+		if (armed) {
+			handleHoldComplete()
+
+			return
+		}
+
+		setArmed(true)
+
+		armTimer.set(() => setArmed(false), CONFIRM_WINDOW_MS)
+
+		announce(intl.formatMessage(messages.confirm))
+	})
 
 	const { fillRef, start, cancel } = useHoldButtonGesture({
 		duration,
@@ -142,7 +236,12 @@ export function HoldButton({
 	// The key handlers read the held-key ref, so each is a stable event and not
 	// a closure that render passes to a function.
 	const handleKeyDown = useStableEvent((event: KeyboardEvent<HTMLButtonElement>) => {
-		if (event.repeat || !isActivationKey(event.key)) return
+		if (!isActivationKey(event.key)) return
+
+		// A held Enter sends a click on each repeat, so each repeat marks a press.
+		pressedRef.current = true
+
+		if (event.repeat) return
 
 		if (heldKeyRef.current === null) heldKeyRef.current = event.key
 
@@ -162,6 +261,8 @@ export function HoldButton({
 	const handleBlur = useStableEvent(() => {
 		heldKeyRef.current = null
 
+		pressedRef.current = false
+
 		cancel()
 	})
 
@@ -173,13 +274,18 @@ export function HoldButton({
 			disabled={disabled}
 			lockable={lockable}
 			data-slot={slot}
-			className={cn('relative overflow-hidden select-none [-webkit-touch-callout:none]', className)}
-			onPointerDown={composeEventHandlers(onPointerDown, (event) => {
-				// A held touch selects no text on the page.
-				holdTextSelection(event)
+			className={cn('relative select-none [-webkit-touch-callout:none]', className)}
+			onPointerDown={composeEventHandlers(
+				// A caller `preventDefault()` stops the hold but not the click that
+				// follows, so the press is marked in each case.
+				composeEventHandlers(onPointerDown, markPress, alwaysEnd),
+				(event: PointerEvent<HTMLButtonElement>) => {
+					// A held touch selects no text on the page.
+					holdTextSelection(event)
 
-				if (isPrimaryPress(event)) start()
-			})}
+					if (isPrimaryPress(event)) start()
+				},
+			)}
 			onPointerUp={composeEventHandlers(onPointerUp, cancel, alwaysEnd)}
 			onPointerCancel={composeEventHandlers(onPointerCancel, cancel, alwaysEnd)}
 			onPointerLeave={composeEventHandlers(onPointerLeave, cancel, alwaysEnd)}
@@ -187,16 +293,23 @@ export function HoldButton({
 			onKeyUp={composeEventHandlers(onKeyUp, handleKeyUp, alwaysEnd)}
 			onBlur={composeEventHandlers(onBlur, handleBlur, alwaysEnd)}
 			onClick={handleClick}
+			aria-describedby={joinAriaIds([describedBy, instructionId])}
 		>
-			<span
-				ref={fillRef}
-				aria-hidden="true"
-				// An inline transform, not a `scale-x-0` class: Tailwind sets `scale`,
-				// which the `transform` that Motion writes does not replace.
-				style={{ transform: 'scaleX(0)' }}
-				className={k().fill}
-			/>
+			{/* The clip holds the fill in the box of the button. The button does not
+			    clip, so the hit area of its TouchTarget can go past its box. */}
+			<span aria-hidden="true" className={k().clip}>
+				<span
+					ref={fillRef}
+					// An inline transform, not a `scale-x-0` class: Tailwind sets `scale`,
+					// which the `transform` that Motion writes does not replace.
+					style={{ transform: 'scaleX(0)' }}
+					className={k().fill}
+				/>
+			</span>
 			<span className="relative inline-flex items-center gap-[inherit]">{children}</span>
+			<span id={instructionId} hidden>
+				{intl.formatMessage(armed ? messages.confirm : messages.instruction)}
+			</span>
 		</Button>
 	)
 }

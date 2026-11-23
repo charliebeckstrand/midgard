@@ -16,7 +16,7 @@ import { useToastTimer } from './use-toast-timer'
 export type ToastProviderProps = {
 	children: ReactNode
 	/**
-	 * Default lifetime (ms) for toasts that don't set `persist` or their own `duration`.
+	 * Default lifetime (ms) for toasts that set no `persist`, no `duration`, and no `actions`.
 	 *
 	 * @defaultValue 5000
 	 */
@@ -111,7 +111,11 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 		(data: ToastInput) => {
 			const id = data.id ?? randomId()
 
-			const next: ToastData = { ...data, id, duration: data.duration ?? duration }
+			// A toast with actions is a time limit on input, so it stays until the
+			// reader acts, unless the caller sets a time (WCAG 2.2.1).
+			const persist = data.persist ?? (data.actions != null && data.duration === undefined)
+
+			const next: ToastData = { ...data, id, persist, duration: data.duration ?? duration }
 
 			// The id leaves the exit queue, so the toast of this call does not leave in
 			// the place of an earlier toast whose time was up under the same id.
@@ -128,7 +132,7 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 
 				toastsRef.current = toastsRef.current.map((item) => (item.id === id ? replaced : item))
 
-				if (data.persist) disarm(id)
+				if (persist) disarm(id)
 				else arm(id, next.duration)
 
 				sync()
@@ -148,7 +152,7 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 				}
 			}
 
-			if (!data.persist) arm(id, data.duration ?? duration)
+			if (!persist) arm(id, next.duration)
 
 			sync()
 

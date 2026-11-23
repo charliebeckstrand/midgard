@@ -64,10 +64,10 @@ const rovedPaletteRow = vi.defineHelper(async (glass: boolean): Promise<HTMLElem
 })
 
 /**
- * The row of an open dropdown menu, roved by the pointer. A dropdown keeps
- * focus on its trigger, so the row takes `data-active` and not focus. The
- * pointer stays on the row. `sheet={false}` keeps the panel next to its
- * trigger at the narrow viewport of the suite, where a sheet roves by focus.
+ * The row of an open dropdown menu, roved by the pointer. The rows rove by real
+ * focus, so the row takes the focus. The pointer stays on the row.
+ * `sheet={false}` keeps the panel next to its trigger at the narrow viewport of
+ * the suite.
  */
 const rovedMenuRow = vi.defineHelper(async (glass: boolean): Promise<HTMLElement> => {
 	renderUI(
@@ -87,9 +87,7 @@ const rovedMenuRow = vi.defineHelper(async (glass: boolean): Promise<HTMLElement
 
 	await userEvent.hover(row)
 
-	await waitFor(() => expect(row).toHaveAttribute('data-active'))
-
-	expect(row).not.toHaveFocus()
+	await waitFor(() => expect(row).toHaveFocus())
 
 	return row
 })
@@ -126,7 +124,7 @@ describe('roved row wash in a glass parent (real browser)', () => {
 
 		expect(row.matches(':hover')).toBe(false)
 
-		expect(row).toHaveAttribute('data-active')
+		expect(row).toHaveFocus()
 
 		expect(readWash(row)).toBeCloseTo(GLASS_ACTIVE, 3)
 	})

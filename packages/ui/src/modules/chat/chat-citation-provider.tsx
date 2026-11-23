@@ -1,6 +1,7 @@
 'use client'
 
 import { type ReactNode, useMemo } from 'react'
+import { useDevWarning } from '../../hooks/use-dev-warning'
 import { ChatCitationContext, type ChatCitationScope, useChatCitations } from './context'
 import type { ChatCitation } from './engine/chat-content/types'
 import type { ChatCitationTargets } from './types'
@@ -21,29 +22,38 @@ export type ChatCitationProviderProps = {
 	/** The active citation, or `null`. The app holds it, because the selection belongs to the view. */
 	cited: ChatCitation | null
 	/**
-	 * Fires when the active citation changes, with the next value of `cited`.
-	 * A press sends the pressed citation, or `null` when the reader pressed the
-	 * active citation again. A hover or a focus sends the citation that it
-	 * previews, and its end sends the citation that was active before it.
+	 * Fires when a press changes the active citation, with the next value of
+	 * `cited`: the pressed citation, or `null` when the reader pressed the
+	 * active citation again. Escape on a citation sends `null`, as the Clear
+	 * control of a view does. A hover never calls it.
 	 */
 	onCitedChange: (citation: ChatCitation | null) => void
 	/**
-	 * The inputs that make a citation active: one input, or a list of them.
-	 * `'click'` toggles the citation on a press. `'hover'` makes it active while
-	 * the pointer or the keyboard focus is on it, and a press does nothing.
-	 * `['hover', 'click']` previews it on a hover or a focus, and a press keeps
-	 * it after the preview ends. The order of the list does not matter.
+	 * Fires when a hover or a keyboard focus starts a preview, with the
+	 * previewed citation, and with `null` when the preview ends or its citation
+	 * unmounts. Draw each view
+	 * from `previewed ?? cited`, so a preview shows over the active citation and
+	 * the active citation comes back when the preview ends. The preview does
+	 * not change `cited`, so a control that clears `cited`, such as a Clear
+	 * button of a view, reads `cited` alone.
+	 *
+	 * A trigger with `'hover'` needs it. Without it, a hover shows nothing, and
+	 * the provider warns in development.
+	 */
+	onPreviewChange?: (citation: ChatCitation | null) => void
+	/**
+	 * The inputs that show a citation: one input, or a list of them. `'click'`
+	 * toggles `cited` on a press. `'hover'` previews the citation through
+	 * `onPreviewChange` while the pointer or the keyboard focus is on it, and a
+	 * press does nothing. `['hover', 'click']` previews on a hover or a focus,
+	 * and a press toggles `cited`. The order of the list does not matter.
 	 *
 	 * @remarks
-	 * A preview sends the citation through `onCitedChange`, so the view shows
-	 * it as it shows a pressed citation. When the preview ends, the provider
-	 * sends the citation that was active before it, which can be `null`. Thus
-	 * a hover never clears a citation that a press keeps. `aria-pressed` shows
-	 * the kept citation and not the preview.
-	 *
-	 * A focus from the keyboard previews, as a hover does. A blur or Escape
-	 * ends the preview. The focus that a click gives does not preview. A touch
-	 * screen has no hover, so a tap toggles the citation in each mode.
+	 * A focus from the keyboard previews, as a hover does. A blur ends the
+	 * preview. Escape on a citation ends a preview and clears `cited`, in each
+	 * mode. With nothing to clear, Escape goes on to the surface that holds the
+	 * chat. The focus that a click gives does not preview. A touch
+	 * screen has no hover, so a tap toggles `cited` in each mode.
 	 *
 	 * @defaultValue `'click'`, or the trigger of the enclosing provider.
 	 */
@@ -75,7 +85,8 @@ export type ChatCitationProviderProps = {
  * the `selector` of the citation for one kind of view.
  *
  * Controlled, because the selection belongs to the dashboard and not to the
- * chat. The provider holds no state. The anchor reads `cited` to show whether
+ * chat. The provider holds no state but the inputs that hold a preview. The
+ * app holds the preview too, from `onPreviewChange`. The anchor reads `cited` to show whether
  * it is pressed, and it compares the citation by `id`.
  *
  * In a dashboard, a citation marks and does not filter. A cross-filter
@@ -92,8 +103,8 @@ export type ChatCitationProviderProps = {
  * in place of the pick.
  *
  * Nesting merges `targets`, as {@link ChatEmbedProvider} merges `renderers`.
- * The inner provider wins on a target that both name. Its `cited` and
- * `onCitedChange` replace those of the outer provider. Its `isMarked` and its
+ * The inner provider wins on a target that both name. Its `cited`,
+ * `onCitedChange`, and `onPreviewChange` replace those of the outer provider. Its `isMarked` and its
  * `trigger` replace the outer ones only when it gives them.
  *
  * @example
@@ -112,6 +123,7 @@ export function ChatCitationProvider({
 	targets,
 	cited,
 	onCitedChange,
+	onPreviewChange,
 	isMarked,
 	trigger,
 	children,
@@ -120,16 +132,22 @@ export function ChatCitationProvider({
 
 	const mode = trigger === undefined ? (outer.trigger ?? 'click') : toCitationMode(trigger)
 
-	const actions = useChatCitationTrigger(mode, cited, onCitedChange)
+	const actions = useChatCitationTrigger(mode, cited, onCitedChange, onPreviewChange)
+
+	useDevWarning(
+		mode !== 'click' && onPreviewChange === undefined,
+		'ChatCitationProvider: a `hover` trigger needs `onPreviewChange`, so a hover shows nothing.',
+	)
 
 	const value = useMemo<ChatCitationScope>(
 		() => ({
 			targets: { ...outer.targets, ...targets },
+			cited,
 			isMarked: isMarked ?? outer.isMarked,
 			trigger: mode,
 			actions,
 		}),
-		[outer.targets, outer.isMarked, targets, isMarked, mode, actions],
+		[outer.targets, outer.isMarked, targets, cited, isMarked, mode, actions],
 	)
 
 	return <ChatCitationContext value={value}>{children}</ChatCitationContext>

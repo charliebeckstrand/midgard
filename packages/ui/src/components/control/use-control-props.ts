@@ -3,7 +3,7 @@
 import { type ValidationAttrs, validationAttrs } from '../../core/validation-attrs'
 import { useAriaIds } from '../../hooks/use-aria-ids'
 import { useDevWarning } from '../../hooks/use-dev-warning'
-import { useControlLock } from '../../primitives/control/context'
+import { useControlDisabled, useControlLock } from '../../primitives/control/context'
 import { useControl } from './context'
 import { useControlTarget } from './use-control-target'
 
@@ -63,7 +63,8 @@ function strayIdWarning(explicitId: string, wrapperId: string): string {
  * Resolution order: explicit input wins, then the wrapping `<Control>` /
  * `<Field>` context. `invalid` instead OR's the form-bound flag with the
  * context's. In a locked scope, such as a `Form` that submits, `readOnly` is
- * `true` whatever the input says.
+ * `true` whatever the input says. In a disabled `Fieldset`, such as the one of a
+ * disabled `Form`, `disabled` is `true` by the same rule.
  *
  * Does **not** resolve size. A field takes its step from the nearest density
  * scope. The Control context carries no size.
@@ -93,6 +94,10 @@ function strayIdWarning(explicitId: string, wrapperId: string): string {
  */
 export function useControlProps(input: ControlPropsOptions = {}): ControlPropsResult {
 	const control = useControl()
+
+	// A disabled Fieldset disables each control in it, whatever the control's
+	// own prop says. A bare control, outside a Field, reads it here.
+	const fieldsetDisabled = useControlDisabled()
 
 	// A locked scope, such as a form that submits, makes each field read-only,
 	// whatever the field's own prop says. A bare control, outside a Field, reads
@@ -133,7 +138,7 @@ export function useControlProps(input: ControlPropsOptions = {}): ControlPropsRe
 	return {
 		id,
 		autoComplete: input.autoComplete ?? control?.autoComplete,
-		disabled: input.disabled ?? control?.disabled,
+		disabled: fieldsetDisabled ? true : (input.disabled ?? control?.disabled),
 		required: input.required ?? control?.required,
 		readOnly: locked ? true : (input.readOnly ?? control?.readOnly),
 		invalid,

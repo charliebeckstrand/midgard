@@ -1,19 +1,22 @@
 'use client'
 
-import type { DateDuration } from '@internationalized/date'
-import { useCallback, useMemo, useReducer, useRef } from 'react'
+import { type KeyboardEvent, useCallback, useId, useMemo, useReducer, useRef } from 'react'
 
+import { useA11yAnnouncements } from '../../hooks/a11y/use-a11y-announcements'
 import { useHydrated } from '../../hooks/use-hydrated'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { useLocale } from '../../providers/locale/context'
-import type { CalendarActive, CalendarHandle } from '../calendar'
-import { orderDates } from '../calendar/calendar-utilities'
+import { resolveLocale } from '../../utilities/resolve-locale'
+import type { CalendarHandle } from '../calendar'
+import { formatDayName, orderDates } from '../calendar/calendar-utilities'
 import { useControlPickerField } from '../control/use-control-picker-field'
 import { useControlPickerPopover } from '../control/use-control-picker-popover'
 import type { DatePickerBaseProps, DatePickerRangeProps } from './date-picker'
+import { datePickerMessages } from './date-picker-messages'
 import { datePickerRangeReducer, initialDatePickerRangeState } from './date-picker-range-reducer'
-import { clampDate, formatRange, standRange, stepDate } from './date-picker-utilities'
-import { useDatePickerGridEntry } from './use-date-picker-grid-entry'
-import { type FooterButton, useDatePickerKeyboard } from './use-date-picker-keyboard'
+import { formatRange, standRange } from './date-picker-utilities'
+import { useDatePickerGridEntryFocus } from './use-date-picker-grid-entry'
+import { type FooterButton, handleClosedKey } from './use-date-picker-keyboard'
 
 /**
  * The trigger label of a range: empty with no range, and else the range in the
@@ -37,8 +40,10 @@ function rangeLabel(
 /**
  * Range state for {@link DatePicker}: a two-tap start/end selection held in a
  * reducer, committed as `[Date, Date]` through the Form/Control binding. It also
- * holds popover wiring, the virtual-highlight keyboard handler, and the clear
- * footer.
+ * holds popover wiring, the key handler of the closed trigger, and the clear
+ * footer. In the open dialog, DOM focus moves through the days, and the
+ * calendar owns the keys. The focus of a day previews the end of the range, as
+ * a hover does. The first press announces the start and asks for the end.
  *
  * @remarks
  * Selection commits the `[Date, Date]` immediately. The trigger label and any
@@ -50,7 +55,8 @@ function rangeLabel(
  *
  * @returns Trigger props, popover plumbing, `onTriggerKeyDown`,
  * `onExitComplete` (resets the in-progress selection after the exit
- * animation), and the `calendar`/`footer` prop bundles. `calendar` exposes
+ * animation), `entryFocusRef` (the day that gets focus on open), and the
+ * `calendar`/`footer` prop bundles. `calendar` exposes
  * `rangeStart`/`rangeEnd`/`hoverDate` for the in-progress selection.
  * @internal
  */
@@ -59,8 +65,6 @@ export function useDatePickerRangeState({
 	value: valueProp,
 	defaultValue,
 	onValueChange,
-	min,
-	max,
 	footer,
 	placement = 'bottom-start',
 	disabled,
@@ -86,9 +90,17 @@ export function useDatePickerRangeState({
 
 	const [state, dispatch] = useReducer(datePickerRangeReducer, initialDatePickerRangeState)
 
-	const { rangeStart, hoverDate, active } = state
+	const { rangeStart, hoverDate } = state
 
 	const calendarRef = useRef<CalendarHandle>(null)
+
+	const footerRef = useRef<HTMLDivElement>(null)
+
+	// The id of the day listbox. Each day takes an id from it, and the open finds
+	// the day to focus by that id.
+	const listboxId = useId()
+
+	const entryFocusRef = useDatePickerGridEntryFocus(listboxId, calendarRef)
 
 	// Clears the in-progress selection. Deferred to `onExitComplete` (and re-run
 	// on the next open) so the pinned start and previewed end survive the exit
@@ -96,29 +108,6 @@ export function useDatePickerRangeState({
 	const resetSelection = useCallback(() => {
 		dispatch({ type: 'reset' })
 	}, [])
-
-	// With no range in progress and no value, the cursor starts on today. A `min`
-	// or a `max` only bounds it.
-	const { getInitialActiveDate, getViewEntryDate } = useDatePickerGridEntry(
-		rangeStart ?? value?.[0],
-		min,
-		max,
-		calendarRef,
-	)
-
-	// A step of days or months starts on `from`, the day that the key handler
-	// gives, and stays between `min` and `max`. While a range is in progress, the
-	// new day also previews the end of the range.
-	const moveGrid = useCallback(
-		(step: DateDuration, from: Date) => {
-			const next = clampDate(stepDate(from, step), min, max)
-
-			if (rangeStart !== null) dispatch({ type: 'hover', date: next })
-
-			return next
-		},
-		[min, max, rangeStart],
-	)
 
 	const {
 		open,
@@ -178,38 +167,31 @@ export function useDatePickerRangeState({
 
 	const footerButtons = useMemo<FooterButton[]>(() => (showClear ? ['clear'] : []), [showClear])
 
-	const onFooterActivate = useCallback(
-		(kind: FooterButton) => {
-			if (kind === 'clear') handleClear()
-		},
-		[handleClear],
-	)
-
-	const setActive = useCallback(
-		(next: CalendarActive | null) => dispatch({ type: 'setActive', active: next }),
-		[],
-	)
-
 	const onHoverDateChange = useCallback(
 		(date: Date | null) => dispatch({ type: 'hover', date }),
 		[],
 	)
 
-	const onTriggerKeyDown = useDatePickerKeyboard({
-		disabled: field.disabled,
-		open,
-		active,
-		setActive,
-		openCalendar,
-		closeCalendar,
-		moveGrid,
-		getInitialActiveDate,
-		getViewEntryDate,
-		handleSelect,
-		calendarRef,
-		footerButtons,
-		onFooterActivate,
-	})
+	// The trigger takes keys only while closed: the open dialog is modal and holds
+	// the focus.
+	const onTriggerKeyDown = useCallback(
+		(event: KeyboardEvent<HTMLElement>) => {
+			if (!field.disabled && !open) handleClosedKey(event, openCalendar, false)
+		},
+		[field.disabled, open, openCalendar],
+	)
+
+	// The first press sets the start and the dialog stays open. A screen reader
+	// then hears the start and that the next press sets the end (WCAG 4.1.3).
+	const intl = useIntl()
+
+	useA11yAnnouncements(
+		rangeStart
+			? intl.formatMessage(datePickerMessages.rangeStartSet, {
+					date: formatDayName(rangeStart, resolveLocale(ambient.locale)),
+				})
+			: null,
+	)
 
 	// The text of `Intl` waits for hydration, as in `Calendar`. Until then the
 	// trigger shows a skeleton of the label.
@@ -244,13 +226,17 @@ export function useDatePickerRangeState({
 			onHoverDateChange,
 			// A press, not a change: the second press of a range commits it.
 			onDayClick: handleSelect,
-			active: open ? active : null,
 			calendarRef,
+			listboxId,
+			footerRef,
 		},
+		entryFocusRef,
 		footer: {
-			active,
+			active: null,
 			footerButtons,
 			onClear: handleClear,
+			footerRef,
+			onKeyDown: (event: KeyboardEvent<HTMLElement>) => calendarRef.current?.footerKeyDown(event),
 		},
 	}
 }

@@ -46,6 +46,12 @@ export type ControlContextValue = {
 	registerLabel?: (renderedId?: string) => () => void
 	registerDescription?: (renderedId?: string) => () => void
 	registerMessage?: (renderedId?: string) => () => void
+	/**
+	 * Whether the field finished its first commit. A slot reads it when it
+	 * mounts: `false` in the first commit of the field, `true` in a later one. A
+	 * polite `<Message>` that mounts later announces its text.
+	 */
+	isMounted?: () => boolean
 }
 
 /**

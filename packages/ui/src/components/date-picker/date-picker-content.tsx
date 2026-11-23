@@ -4,6 +4,7 @@ import type { FloatingRootContext } from '@floating-ui/react'
 import {
 	type CSSProperties,
 	type KeyboardEvent,
+	type MouseEvent,
 	type ReactNode,
 	type RefObject,
 	useRef,
@@ -61,15 +62,16 @@ type DatePickerContentProps = {
 	 */
 	size?: ScaleStep<typeof scale>
 	/**
-	 * The picker's virtual-focus key handler (zones + active highlight). It
-	 * lives on the trigger and, via this prop, on the dialog itself. Initial
-	 * focus lands on the dialog, not its first tabbable button. The model
-	 * keeps working once a real browser moves focus into the modal trap.
+	 * The key handler of a picker that steers a highlight (zones + active
+	 * highlight) while DOM focus stays in its text field: the `input` popover.
+	 * It lives on the field and, via this prop, on the dialog itself.
 	 *
 	 * Presence is the contract: passing a handler declares that the dialog owns
-	 * navigation keys, so the shell reclaims DOM focus on them. Omit it for a
-	 * variant whose content owns its own keyboard (the relative custom range's
-	 * editable fields), and the shell leaves focus alone.
+	 * navigation keys, so the shell reclaims DOM focus on them, and a press does
+	 * not move DOM focus to a control of the dialog. Omit it for a
+	 * variant whose content owns its own keyboard, and the shell leaves focus
+	 * alone. The calendar of the other variants moves DOM focus itself, and the
+	 * relative custom range has editable fields.
 	 */
 	onKeyDown?: (event: KeyboardEvent<HTMLElement>) => void
 	/**
@@ -81,12 +83,14 @@ type DatePickerContentProps = {
 	 */
 	getInsideElements?: () => Element[]
 	/**
-	 * Element to seed DOM focus on when the dialog opens. Defaults to the dialog
-	 * container for the virtual-highlight model. `input` mode passes the editable
-	 * DateInput so focus lands there. The user can type, and the same keydown
-	 * stream roves the grid through the input's `aria-activedescendant`. The input
-	 * sits inside the reference (`getInsideElements`), so the modal focus manager
-	 * treats it as related and does not self-close.
+	 * Element to seed DOM focus on when the dialog opens. A calendar variant
+	 * passes its entry day, the day that holds the Tab stop of the grid. The
+	 * `input` popover passes the editable DateInput so focus lands there. The
+	 * user can type, and the same keydown stream roves the grid through the
+	 * input's `aria-activedescendant`. The input sits inside the reference
+	 * (`getInsideElements`), so the modal focus manager treats it as related and
+	 * does not self-close. When it is unset or its `current` is `null`, the
+	 * focus goes to the dialog container.
 	 */
 	initialFocusRef?: RefObject<HTMLElement | null>
 	/**
@@ -111,16 +115,16 @@ type DatePickerContentProps = {
 
 /**
  * Portaled, animated modal dialog shell for the picker popover. It wires
- * `FloatingFocusManager`, and it seeds focus on the dialog container (not its
- * first tabbable) for the virtual-highlight model. An explicit `size` makes
- * the panel a density scope.
+ * `FloatingFocusManager`, and it seeds focus on `initialFocusRef` (not the
+ * first tabbable, the "Previous month" button). An explicit `size` makes the
+ * panel a density scope.
  *
  * @remarks
- * On a navigation key from a control in the dialog, the dialog's `onKeyDown`
- * gives DOM focus back to the seed of the open focus: the container, or the
- * input in `input` mode. A grid move that re-anchors the month therefore cannot
- * drop focus to `<body>`. Portaled descendants (the month/year picker) own
- * their own keyboard.
+ * With `onKeyDown`, on a navigation key from a control in the dialog, the
+ * dialog's `onKeyDown` gives DOM focus back to the seed of the open focus, the
+ * input of the `input` popover. A grid move that re-anchors the month therefore
+ * cannot drop focus to `<body>`. Portaled descendants (the month/year picker)
+ * own their own keyboard.
  *
  * @internal
  */
@@ -152,16 +156,12 @@ export function DatePickerContent({
 
 	const glass = useGlass()
 
-	// Focus lands on the dialog container (tabIndex -1) instead of floating-ui's
-	// default, the first tabbable, i.e. the "Previous month" button. The picker
-	// uses a virtual highlight; seeding DOM focus on a button both misleads AT
-	// and orphans the arrow-key model. `input` mode overrides this with the
-	// editable DateInput via `initialFocusRef`.
+	// The fallback of the open focus: the dialog container (tabIndex -1), not
+	// floating-ui's default, the first tabbable, i.e. the "Previous month"
+	// button.
 	const dialogRef = useRef<HTMLDivElement | null>(null)
 
-	// The sheet is modal and covers the reference, so focus goes into the sheet
-	// also in `input` mode.
-	const focusRef = (!sheet && initialFocusRef) || dialogRef
+	const focusRef = initialFocusRef ?? dialogRef
 
 	// `FloatingSurface` composes this through floating-ui, so the handlers of the
 	// engine merge with it.
@@ -179,13 +179,13 @@ export function DatePickerContent({
 
 		// Activation keys on a DOM-focused control (the user Tabbed
 		// to a header/footer button) belong to that control; only
-		// the dialog itself routes them to the virtual model.
+		// the dialog itself routes them to the steered model.
 		if (isActivationKey(event.key) && event.target !== event.currentTarget) return
 
-		// Navigation keys belong to the virtual model even when the
+		// Navigation keys belong to the steered model even when the
 		// user has Tabbed onto a control inside. Give focus back to
-		// the seed of the open focus first: the dialog, or the input
-		// in `input` mode. A grid move can re-anchor the month and
+		// the seed of the open focus first: the input of the `input`
+		// popover. A grid move can re-anchor the month and
 		// unmount the focused day button, which drops focus to <body>.
 		if (RECLAIM_KEYS.has(event.key) && event.target !== event.currentTarget) {
 			const seed = focusRef.current ?? event.currentTarget
@@ -196,20 +196,28 @@ export function DatePickerContent({
 		onKeyDown(event)
 	}
 
+	// A steered model keeps DOM focus where it is: a press on a control of the
+	// dialog does not move the focus to it. Without a steered model, a press
+	// focuses the control, as in a standalone calendar. Then a month step from
+	// the pointer does not leave the focus on a day button that unmounts.
+	const handleMouseDown = onKeyDown
+		? (event: MouseEvent<HTMLElement>) => event.preventDefault()
+		: undefined
+
 	if (sheet) {
-		// The drawer is the dialog. It holds the focus of the keyboard model and
-		// takes its keys, as the dialog of the popover does.
+		// The drawer is the dialog. It takes the open focus and the keys, as the
+		// dialog of the popover does.
 		return (
 			<Drawer open={open} onOpenChange={(next) => context.onOpenChange(next)}>
 				<DrawerPanel
 					ref={dialogRef}
 					size={size}
 					tabIndex={-1}
-					initialFocus={dialogRef}
+					initialFocus={focusRef}
 					returnFocusTo={returnFocusRef}
 					className={cn(k.content.sheet.panel)}
 					onKeyDown={handleDialogKeyDown}
-					onMouseDown={(event) => event.preventDefault()}
+					onMouseDown={handleMouseDown}
 					footer={
 						<>
 							<div className={cn(k.content.sheet.actions)}>{footer}</div>
@@ -257,7 +265,7 @@ export function DatePickerContent({
 				{...k.content.motion}
 				data-slot="datepicker-content"
 				className={cn(k.content.base, glass && k.content.glass)}
-				onMouseDown={(event) => event.preventDefault()}
+				onMouseDown={handleMouseDown}
 			>
 				<Box
 					bg={glass ? 'none' : 'popover'}

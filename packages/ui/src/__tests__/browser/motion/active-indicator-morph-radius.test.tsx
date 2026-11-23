@@ -50,7 +50,7 @@ describe('active indicator morph radius (real Motion)', () => {
 			</Segment>,
 		)
 
-		const county = screen.getByRole('tab', { name: 'By county with a long label' })
+		const county = screen.getByRole('radio', { name: 'By county with a long label' })
 
 		// Motion completes the mount of the indicator in a microtask after the
 		// render. A press before that takes no snapshot, so no morph runs.

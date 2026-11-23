@@ -145,7 +145,7 @@ export const k = defineKata(
 						'not-data-current:not-disabled:not-data-disabled:hover:text-zinc-700',
 						'dark:not-data-current:not-disabled:not-data-disabled:hover:text-zinc-200',
 					),
-					focus.indicator,
+					...focus.indicator,
 					...disabled.base,
 					'outline-none',
 					'whitespace-nowrap',

@@ -13,7 +13,7 @@ ARG NODE_VERSION=24
 FROM node:${NODE_VERSION}-alpine AS base
 # Keep the same version as the `packageManager` field of the root `package.json`.
 # `dockerfile-pin-boundary.test.ts` in ui checks it.
-RUN npm install --global pnpm@12.21.0
+RUN npm install --global pnpm@12.22.0
 WORKDIR /app
 
 FROM base AS prune

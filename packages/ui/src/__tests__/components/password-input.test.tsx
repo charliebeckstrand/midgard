@@ -34,6 +34,32 @@ describe('PasswordInput', () => {
 		expect(toggle).toHaveAccessibleName('Show password')
 	})
 
+	it('keeps the tooltip text equal to the fixed name in both states', async () => {
+		renderUI(<PasswordInput />)
+
+		const user = setupUser()
+
+		const toggle = screen.getByRole('button', { name: 'Show password' })
+
+		// The keyboard focus opens the tooltip, the visible label of the icon
+		// button. Its text must agree with the name (WCAG 2.5.3).
+		await user.tab()
+
+		await user.tab()
+
+		expect(toggle).toHaveFocus()
+
+		expect(await screen.findByRole('tooltip')).toHaveTextContent('Show password')
+
+		await user.keyboard('{Enter}')
+
+		expect(toggle).toHaveAttribute('aria-pressed', 'true')
+
+		expect(await screen.findByRole('tooltip')).toHaveTextContent('Show password')
+
+		expect(screen.queryByText('Hide password')).toBeNull()
+	})
+
 	it('disables the toggle when the input is disabled', () => {
 		renderUI(<PasswordInput disabled />)
 

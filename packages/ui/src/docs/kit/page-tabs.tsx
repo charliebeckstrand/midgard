@@ -12,6 +12,16 @@ import { Stack } from 'ui/stack'
 import { Tab, TabContent, TabContents, TabList, Tabs } from 'ui/tabs'
 import { tabName, toSlug } from './names.ts'
 
+// The title of the browser tab on a page with tabs: the name of the tab, the
+// name of the page, then the name of the docs. Each tab has its own address,
+// so each tab has its own title (WCAG 2.4.2).
+const tabTitleMessage = defineMessage<{ tab: string; page: string }>({
+	id: 'docs.app.tabTitle',
+	defaultMessage: '{tab} · {page} · Docs',
+	description:
+		'The title of the browser tab on a tab of a page of the docs. The tab is the name of the tab, such as Sorting, and the page is the name of the page, such as Grid.',
+})
+
 const sectionsMessage = defineMessage({
 	id: 'docs.tabs.sections',
 	defaultMessage: 'Sections',
@@ -55,7 +65,9 @@ export function PageTabs({ tabs, children }: { tabs: readonly string[]; children
 	// tab with no folder, or a folder with no tab, fails the build.
 	const slugs = others.map(toSlug).toSorted()
 
-	const folders = pages.find((link) => link.path === page)?.tabs ?? []
+	const link = pages.find((entry) => entry.path === page)
+
+	const folders = link?.tabs ?? []
 
 	if (slugs.join() !== folders.join()) {
 		throw new Error(
@@ -69,6 +81,8 @@ export function PageTabs({ tabs, children }: { tabs: readonly string[]; children
 
 	const intl = useIntl()
 
+	const currentName = tabs.find((tab) => toSlug(tab) === current) ?? first
+
 	return (
 		<Tabs
 			value={current}
@@ -78,6 +92,12 @@ export function PageTabs({ tabs, children }: { tabs: readonly string[]; children
 				navigate(tab === home ? '.' : tab)
 			}}
 		>
+			<title>
+				{intl.formatMessage(tabTitleMessage, {
+					tab: tabName(intl, current, currentName),
+					page: link?.name ?? page,
+				})}
+			</title>
 			<TabList aria-label={intl.formatMessage(sectionsMessage)}>
 				{tabs.map((tab) => {
 					const slug = toSlug(tab)

@@ -6,7 +6,7 @@ import { k } from '../../recipes/kata/calendar'
 import { DateTimePending } from '../date-time/date-time-pending'
 import type { CalendarDayContextValue, CalendarDayProps } from './calendar'
 import { CalendarDayCell } from './calendar-day-cell'
-import { getDayState } from './calendar-utilities'
+import { dayOptionId, getDayState } from './calendar-utilities'
 
 type CalendarGridProps = {
 	gridRef: RefObject<HTMLDivElement | null>
@@ -31,10 +31,11 @@ type CalendarGridProps = {
 	monthLabel: string
 	/** Resolved BCP 47 tag, threaded to each cell's accessible day name. */
 	localeTag: string
-	/** Id for the `role="listbox"` grid, so a parent input's `aria-controls` can point at it. */
+	/**
+	 * Id for the `role="listbox"` grid, so a parent input's `aria-controls` can
+	 * point at it. Each day cell then takes the id that {@link dayOptionId} gives.
+	 */
 	listboxId?: string
-	/** Id stamped on the active cell, so a parent input's `aria-activedescendant` can reference the roved day. */
-	activeDescendantId?: string
 	/** Marks the listbox `aria-multiselectable`, for a `getDayProps` that selects more than one day. */
 	multiselectable?: boolean
 }
@@ -64,7 +65,6 @@ export const CalendarGrid = memo(function CalendarGrid({
 	monthLabel,
 	localeTag,
 	listboxId,
-	activeDescendantId,
 	multiselectable,
 }: CalendarGridProps) {
 	const dayInput = { today, value, activeGridDate, isDisabled, isDayDisabled, getDayProps }
@@ -103,13 +103,14 @@ export const CalendarGrid = memo(function CalendarGrid({
 							variant={dayProps?.variant}
 							color={dayProps?.color}
 							className={dayProps?.className}
-							id={context.active ? activeDescendantId : undefined}
+							id={listboxId ? dayOptionId(listboxId, date) : undefined}
 							gridColumnStart={gridColumnStart}
 							localeTag={localeTag}
 							named={!pending}
 							onSelect={onSelect}
 							onMouseEnter={dayProps?.onMouseEnter}
 							onMouseLeave={dayProps?.onMouseLeave}
+							onFocus={dayProps?.onFocus}
 						/>
 					)
 				})}

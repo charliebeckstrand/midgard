@@ -5,6 +5,7 @@ import {
 	type KeyboardEvent,
 	type PointerEvent,
 	type ReactNode,
+	useEffect,
 	useId,
 } from 'react'
 import type { MarkdownRangePiece } from '../../components/markdown/markdown-ranges'
@@ -78,6 +79,8 @@ function inCitation(node: EventTarget | null, id: string): boolean {
  * citation is one tab stop. A piece is not hidden from
  * a screen reader, because it is part of the phrase.
  *
+ * Escape on piece 0 ends a preview and clears `cited`, in each mode.
+ *
  * With a trigger that holds `'hover'`, each piece previews the citation while
  * the pointer is on it, and piece 0 previews it while a keyboard focus is on
  * it. The pieces of one citation share a `data-citation` attribute, so a
@@ -99,7 +102,7 @@ function inCitation(node: EventTarget | null, id: string): boolean {
  * @internal
  */
 export function ChatCitationPiece({ piece: { range, index }, children }: ChatCitationPieceProps) {
-	const { targets, isMarked, trigger = 'click', actions } = useChatCitations()
+	const { targets, cited, isMarked, trigger = 'click', actions } = useChatCitations()
 
 	const intl = useIntl()
 
@@ -109,6 +112,17 @@ export function ChatCitationPiece({ piece: { range, index }, children }: ChatCit
 	// pieces, so the button takes the text of all of them as its name.
 	const name = useMarkdownRangeText(range)
 
+	const { id } = range
+
+	// A node that unmounts gets no leave and no blur. Piece 0 thus ends a
+	// preview of its citation when it unmounts, as when a reply is replaced, so
+	// the app does not keep a preview that no control clears.
+	useEffect(() => {
+		if (index > 0) return
+
+		return () => actions?.dismiss(id)
+	}, [actions, id, index])
+
 	if (!Object.hasOwn(targets, range.target) || actions === undefined) {
 		return (
 			<span data-slot="chat-citation-static" className={k().citationStatic}>
@@ -117,8 +131,8 @@ export function ChatCitationPiece({ piece: { range, index }, children }: ChatCit
 		)
 	}
 
-	// The kept citation, and not a preview, is pressed.
-	const pressed = actions.pressed?.id === range.id
+	// The cited citation, and not a preview, is pressed.
+	const pressed = cited?.id === range.id
 
 	const marked = isMarked?.(range) ?? false
 
@@ -165,8 +179,8 @@ export function ChatCitationPiece({ piece: { range, index }, children }: ChatCit
 	// and is never read, so a piece with no label gets no description.
 	const label = targets[range.target]?.label
 
-	// A keyboard focus previews the citation, as a hover does. A blur and Escape
-	// end the preview.
+	// A keyboard focus previews the citation, as a hover does. A blur ends the
+	// preview, and Escape clears it.
 	const focus =
 		trigger === 'click'
 			? undefined
@@ -193,8 +207,18 @@ export function ChatCitationPiece({ piece: { range, index }, children }: ChatCit
 				className={k().citation}
 				onClick={onClick}
 				onKeyDown={(event) => {
-					if (event.key === 'Escape' && trigger !== 'click') actions.dismiss(range)
-					else pressKeyDown(event, press)
+					if (event.key === 'Escape') {
+						// With nothing to clear, Escape goes on to the surface that holds the
+						// chat, such as a dialog. `useEscapeLayer` ignores a press whose
+						// default is prevented.
+						if (actions.clear()) {
+							event.preventDefault()
+
+							event.stopPropagation()
+						}
+					} else {
+						pressKeyDown(event, press)
+					}
 				}}
 				onKeyUp={(event) => {
 					if (event.key === ' ') press()

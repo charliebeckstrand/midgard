@@ -186,6 +186,19 @@ export function describeBatch(
 }
 
 /**
+ * The text of the error Message of {@link TagInput} for the tokens that
+ * `validate` refused, or `''` when it refused none. It is the same text as the
+ * rejection part of {@link describeBatch}.
+ *
+ * @internal
+ */
+export function describeRejection(intl: IntlShape, rejected: readonly string[]): string {
+	if (rejected.length === 0) return ''
+
+	return `${intl.formatMessage(messages.rejected, { count: rejected.length, tag: rejected[0] ?? '' })}.`
+}
+
+/**
  * The live-region text when the reader removes `tag`.
  *
  * @internal

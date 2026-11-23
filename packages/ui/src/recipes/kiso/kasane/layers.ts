@@ -20,8 +20,13 @@ import { ring } from '../sen/ring'
  * by 1 px without alpha-stacking into a darker line at the join. Radius
  * is not bundled; each composer adds its own radius, as a stepped
  * `density-rounded-*` class when it follows density.
+ *
+ * The ring is zinc-500 in each mode. A light field has the fill of the page,
+ * so the ring is the only mark of the control, and it must clear 3:1 against
+ * the page (WCAG 1.4.11). Zinc-500 gives 4.8:1 on white and 3.7:1 on
+ * zinc-900. `control-contrast.test.ts` guards it.
  */
-const base = [...ring.line[1].inset, ...mode('ring-zinc-300', 'dark:ring-zinc-700')]
+const base = [...ring.line[1].inset, ...mode('ring-zinc-500', 'dark:ring-zinc-500')]
 
 /**
  * `::before` inset fill: paints the surface inside the 1 px outer ring.
@@ -40,14 +45,14 @@ const overlay = [
 ]
 
 /**
- * Outer ring color on hover: one shade darker / lighter than resting. It skips a
+ * Outer ring color on hover: one shade further from the page than resting. It skips a
  * disabled control and a validation state, like `focus`. The dark class comes
  * later in the CSS, so it would otherwise replace the validation ring on hover
  * in dark mode. One `not-has-[…]` holds the selector list.
  */
 const hover = mode(
-	'not-has-[>:disabled,[data-invalid],[data-valid],[data-warning]]:hover:ring-zinc-400',
-	'not-has-[>:disabled,[data-invalid],[data-valid],[data-warning]]:dark:hover:ring-zinc-600',
+	'not-has-[>:disabled,[data-invalid],[data-valid],[data-warning]]:hover:ring-zinc-600',
+	'not-has-[>:disabled,[data-invalid],[data-valid],[data-warning]]:dark:hover:ring-zinc-400',
 )
 
 /** `::after` 2 px focus ring: blue when no validation state is active. */
@@ -64,8 +69,14 @@ const focus = [
 	'forced-colors:focus-within:after:-outline-offset-2 forced-colors:focus-within:after:outline-[Highlight]',
 	'forced-colors:data-open:after:outline-solid forced-colors:data-open:after:outline-2',
 	'forced-colors:data-open:after:-outline-offset-2 forced-colors:data-open:after:outline-[Highlight]',
-	'not-has-[[data-invalid],[data-valid],[data-warning]]:focus-within:after:ring-blue-600',
-	'not-has-[[data-invalid],[data-valid],[data-warning]]:data-open:after:ring-blue-600',
+	...mode(
+		'not-has-[[data-invalid],[data-valid],[data-warning]]:focus-within:after:ring-blue-600',
+		'dark:not-has-[[data-invalid],[data-valid],[data-warning]]:focus-within:after:ring-blue-500',
+	),
+	...mode(
+		'not-has-[[data-invalid],[data-valid],[data-warning]]:data-open:after:ring-blue-600',
+		'dark:not-has-[[data-invalid],[data-valid],[data-warning]]:data-open:after:ring-blue-500',
+	),
 ]
 
 /**

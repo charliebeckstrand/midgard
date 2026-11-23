@@ -1,6 +1,7 @@
 'use client'
 
 import { type RefObject, useEffectEvent, useLayoutEffect } from 'react'
+import { FOCUSABLE_SELECTOR, getTabbableElements } from '../../utilities/focusable-selector'
 
 /** A modal overlay, from its mount to its unmount. */
 type Entry = {
@@ -11,6 +12,12 @@ type Entry = {
 	 * opened, or the target that an overlay below it gave at its unmount.
 	 */
 	target: Element | null
+	/**
+	 * The ancestors of the element that had the focus as the overlay opened,
+	 * nearest first, below `<body>`. When the target is gone at the close, the
+	 * focus goes into the nearest one that is still in the page.
+	 */
+	path: Element[]
 }
 
 /** The mounted modal overlays. */
@@ -22,11 +29,47 @@ let mounts = 0
 function mount(target: Element | null): Entry {
 	mounts += 1
 
-	const entry: Entry = { order: mounts, target }
+	const entry: Entry = { order: mounts, target, path: ancestors(target) }
 
 	entries.add(entry)
 
 	return entry
+}
+
+/** The ancestors of `element`, nearest first, below `<body>`. */
+function ancestors(element: Element | null): Element[] {
+	const path: Element[] = []
+
+	const body = element?.ownerDocument.body
+
+	for (let node = element?.parentElement; node && node !== body; node = node.parentElement) {
+		path.push(node)
+	}
+
+	return path
+}
+
+/**
+ * The elements that can get the focus back, in order. The first is the target,
+ * if it is in the page. Then come the elements of each ancestor of the old
+ * target that is still in the page, nearest first: the ancestor, if it can get
+ * the focus, else its tabbable elements. The focus then stays near the place
+ * of the action, and does not fall to `<body>` (WCAG 2.4.3). This covers a
+ * button in a table row that the overlay deleted, and a trigger that is in the
+ * page but hidden, such as a control in a sidebar that a setting of the overlay
+ * hid.
+ */
+function* candidates(target: Element | null, path: Element[]): Generator<HTMLElement> {
+	if (target instanceof HTMLElement && target.isConnected) yield target
+
+	// An ancestor can be in the page but hold no control, such as a list whose
+	// last row the overlay deleted. The walk then goes on up the path.
+	for (const node of path) {
+		if (!node.isConnected || !(node instanceof HTMLElement)) continue
+
+		if (node.matches(FOCUSABLE_SELECTOR) && node.tabIndex >= 0) yield node
+		else yield* getTabbableElements(node)
+	}
 }
 
 /** Whether `target` is not an element that can get the focus back. */
@@ -45,18 +88,32 @@ function giveBack(entry: Entry, target: Element | null): void {
 	const above = [...entries].filter((other) => other.order > entry.order)
 
 	if (above.length > 0) {
-		for (const other of above) if (missing(other.target)) other.target = target
+		for (const other of above) {
+			if (!missing(other.target)) continue
+
+			other.target = target
+
+			other.path = entry.path
+		}
 
 		return
 	}
 
-	if (!(target instanceof HTMLElement) || !target.isConnected) return
+	const doc = (target ?? entry.path[0])?.ownerDocument
 
-	const active = target.ownerDocument.activeElement
+	if (!doc) return
 
-	if (active !== null && active !== target.ownerDocument.body) return
+	const active = doc.activeElement
 
-	target.focus({ preventScroll: true })
+	if (active !== null && active !== doc.body) return
+
+	// A call to `focus()` does nothing on an element that cannot get the focus,
+	// such as a hidden one. The activeElement then tells if the call took.
+	for (const element of candidates(target, entry.path)) {
+		element.focus({ preventScroll: true })
+
+		if (doc.activeElement === element) return
+	}
 }
 
 /**
@@ -69,6 +126,9 @@ function giveBack(entry: Entry, target: Element | null): void {
  * exit, and a fast second Enter on a button of the panel would press the
  * trigger and open the overlay again. Thus the overlay gives the focus manager
  * no return focus and returns the focus itself, after the exit.
+ *
+ * When the target is gone at the close, the focus goes into the nearest
+ * ancestor of the old focus that is still in the page.
  *
  * The focus comes back only from `<body>`. The overlay moves the focus there
  * at the close, and the browser moves it there when the focused element of an

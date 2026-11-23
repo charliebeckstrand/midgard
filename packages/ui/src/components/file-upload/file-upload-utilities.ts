@@ -57,7 +57,8 @@ export type FileRejection = {
 	reason: 'type' | 'size' | 'count'
 }
 
-type FileConstraints = {
+/** The limits of a selection, which `partitionFiles` applies and `describeSelection` speaks. @internal */
+export type FileConstraints = {
 	/** Accepted file types, in the syntax of the `accept` attribute. */
 	accept?: string
 	/** Maximum size per file, in bytes. */
@@ -133,16 +134,37 @@ export function partitionFiles(
 	return { accepted: kept, rejected }
 }
 
-/** The live-region message of each reason of a refusal. */
-const REFUSED = {
-	type: fileUploadMessages.refusedType,
-	size: fileUploadMessages.refusedSize,
-	count: fileUploadMessages.refusedCount,
-} as const
+/** The units of a file size, from the smallest, with the number of bytes in each. */
+const SIZE_UNITS = [
+	['byte', 1],
+	['kilobyte', 1e3],
+	['megabyte', 1e6],
+	['gigabyte', 1e9],
+] as const
+
+/**
+ * Formats a number of bytes in the largest unit that holds at least one of it,
+ * with one decimal at most, such as "1 MB" for `1_000_000`. The units are
+ * decimal, as `maxSize` in the docs uses them.
+ *
+ * @internal
+ */
+export function formatFileSize(intl: IntlShape, bytes: number): string {
+	const [unit, size] = SIZE_UNITS.findLast(([, size]) => bytes >= size) ?? SIZE_UNITS[0]
+
+	return intl.formatNumber(bytes / size, {
+		style: 'unit',
+		unit,
+		unitDisplay: 'short',
+		maximumFractionDigits: 1,
+	})
+}
 
 /**
  * The live-region text of one pick or drop: the accepted files, then the
- * refused files of each reason, in the order of `partitionFiles`.
+ * refused files of each reason, in the order of `partitionFiles`. Each refusal
+ * also gives the limit that it enforces: the accepted types, the size limit, or
+ * the file limit (WCAG 3.3.3).
  *
  * A batch gets one message, because a second write to the region replaces the
  * first before a screen reader speaks it (WCAG 4.1.3).
@@ -153,23 +175,63 @@ const REFUSED = {
 export function describeSelection(
 	intl: IntlShape,
 	{ accepted, rejected }: { accepted: File[]; rejected: readonly FileRejection[] },
+	{ accept, maxSize, maxCount }: FileConstraints,
 ): string {
 	const said: string[] = []
 
-	const part = (message: (typeof REFUSED)[keyof typeof REFUSED], files: File[]) => {
-		const names = formatFileNames(files)
+	const refused = (reason: FileRejection['reason']) => {
+		const files = rejected.filter((rejection) => rejection.reason === reason)
 
-		if (names !== undefined) said.push(intl.formatMessage(message, { count: files.length, names }))
+		return { count: files.length, names: formatFileNames(files.map(({ file }) => file)) }
 	}
 
-	part(fileUploadMessages.announced, accepted)
+	const picked = formatFileNames(accepted)
 
-	for (const reason of ['type', 'size', 'count'] as const) {
-		part(
-			REFUSED[reason],
-			rejected
-				.filter((rejection) => rejection.reason === reason)
-				.map((rejection) => rejection.file),
+	if (picked !== undefined) {
+		said.push(
+			intl.formatMessage(fileUploadMessages.announced, { count: accepted.length, names: picked }),
+		)
+	}
+
+	// A refusal of a reason comes only from its limit, so each limit is set here.
+	const type = refused('type')
+
+	if (type.names !== undefined) {
+		const types = (accept ?? '')
+			.split(',')
+			.map((token) => token.trim())
+			.filter(Boolean)
+
+		said.push(
+			intl.formatMessage(fileUploadMessages.refusedType, {
+				count: type.count,
+				names: type.names,
+				accept: intl.formatList(types, { type: 'unit' }),
+			}),
+		)
+	}
+
+	const size = refused('size')
+
+	if (size.names !== undefined) {
+		said.push(
+			intl.formatMessage(fileUploadMessages.refusedSize, {
+				count: size.count,
+				names: size.names,
+				limit: formatFileSize(intl, maxSize ?? 0),
+			}),
+		)
+	}
+
+	const count = refused('count')
+
+	if (count.names !== undefined) {
+		said.push(
+			intl.formatMessage(fileUploadMessages.refusedCount, {
+				count: count.count,
+				names: count.names,
+				max: maxCount ?? 0,
+			}),
 		)
 	}
 

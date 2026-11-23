@@ -19,6 +19,11 @@ export type PasswordConfirmNewProps = Omit<PasswordInputProps, 'onChange'> & {
  * `value`, the bound Form field, or the typed text. A form reset, a seeded
  * value, and a controlled value thus update the match state. Other inputs in
  * the coordinator do not feed it. Must render within a {@link PasswordConfirm}.
+ *
+ * The field sets `autoComplete="new-password"`, so a password manager can
+ * offer a new password and does not fill the saved one. An `autoComplete` prop
+ * overrides it. The default also wins over an `autoComplete` on an enclosing
+ * `Control`, so give the token on the field to change it.
  */
 export function PasswordConfirmNew({ onChange, ref, ...props }: PasswordConfirmNewProps) {
 	const { ref: fieldRef, onChange: handleChange } = usePasswordConfirmField('password', {
@@ -27,5 +32,7 @@ export function PasswordConfirmNew({ onChange, ref, ...props }: PasswordConfirmN
 		ref,
 	})
 
-	return <PasswordInput {...props} ref={fieldRef} onChange={handleChange} />
+	return (
+		<PasswordInput autoComplete="new-password" {...props} ref={fieldRef} onChange={handleChange} />
+	)
 }

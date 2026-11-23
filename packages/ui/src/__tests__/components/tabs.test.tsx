@@ -353,8 +353,9 @@ describe('Tab', () => {
 		expect(tab).toHaveAttribute('aria-controls', panel.id)
 	})
 
-	it('sets no aria-controls on a segment tab with no TabContents', () => {
-		// A segmented control often has no panels, so a reference would point at a missing id.
+	it('sets no aria-controls on a segment item with no TabContents', () => {
+		// A segmented control often has no panels, so a reference would point at a
+		// missing id. With no panels, each item is a radio.
 		renderUI(
 			<Tabs variant="segment" defaultValue="a">
 				<TabList aria-label="Tabs">
@@ -364,8 +365,8 @@ describe('Tab', () => {
 			</Tabs>,
 		)
 
-		for (const tab of screen.getAllByRole('tab')) {
-			expect(tab).not.toHaveAttribute('aria-controls')
+		for (const item of screen.getAllByRole('radio')) {
+			expect(item).not.toHaveAttribute('aria-controls')
 		}
 	})
 
@@ -439,8 +440,9 @@ describe('Tab', () => {
 
 		rerender(<Group withPanel={false} />)
 
-		for (const tab of screen.getAllByRole('tab')) {
-			expect(tab).not.toHaveAttribute('aria-controls')
+		// With no panel, the segment items are radios.
+		for (const item of screen.getAllByRole('radio')) {
+			expect(item).not.toHaveAttribute('aria-controls')
 		}
 	})
 

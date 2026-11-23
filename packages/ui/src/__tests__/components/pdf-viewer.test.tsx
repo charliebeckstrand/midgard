@@ -823,6 +823,13 @@ describe('PdfViewer', () => {
 
 		expect(screen.queryByRole('dialog', { name: 'Pages' })).toBeNull()
 
+		// The button that opened the sheet is gone on desktop, so the sheet gives
+		// the focus to the nearest control of the viewer at its unmount: the
+		// toggle of the rail. The tooltip of the toggle then opens.
+		await act(async () => {})
+
+		expect(screen.getByLabelText('Hide thumbnails')).toHaveFocus()
+
 		resize(false)
 
 		expect(screen.queryByRole('dialog', { name: 'Pages' })).toBeNull()

@@ -1,11 +1,12 @@
 import { defineKata, mode, type VariantProps } from '../../core/recipe'
-import { dan, iro, ji, kasane, kokkaku, narabi, omote, sen } from '../kiso'
+import { dan, iro, ji, kasane, kokkaku, narabi, omote, sen, ugoki } from '../kiso'
 
 const { palette, text } = iro
 const { rounded } = kasane
 const { size } = ji
 const { flex } = narabi
 const { focus, forced } = sen
+const { css } = ugoki
 
 // A row of controls: the actions of a message, and the rating pair of
 // `ChatFeedback` in them, which sits as close as the other actions do.
@@ -201,7 +202,19 @@ export const k = defineKata({
 		 * summary de-emphasizes by weight instead.
 		 */
 		tool: {
-			base: ['rounded-xl border border-current/20 px-3 py-2'],
+			// A closed step fits its head. A head wider than the bubble wraps at the
+			// width of the bubble. An open step fills the bubble, so its detail has
+			// room for a code block or a table. The panel of the collapse adds nothing
+			// to the intrinsic width, so the bubble keeps its width and its prose does
+			// not reflow. The width eases in the tempo of the panel height.
+			// `interpolate-size` lets the width move between `fit-content` and a
+			// length. An engine without it changes the width in one step.
+			base: [
+				'w-fit max-w-full rounded-xl border border-current/20 px-3 py-2',
+				'has-[>[data-slot=collapse][data-open]]:w-full',
+				'[interpolate-size:allow-keywords] motion-safe:transition-[width]',
+				css.collapse,
+			],
 			slots: {
 				// The head wraps. A summary that does not fit beside the label goes to a
 				// line of its own and shows in full. The summary says what the step did,

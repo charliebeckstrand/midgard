@@ -27,11 +27,11 @@ describe('Segment: container narrower than its labels', () => {
 
 		const box = screen.getByTestId('box').getBoundingClientRect()
 
-		const control = container.querySelector('[role="tablist"]')?.getBoundingClientRect()
+		const control = container.querySelector('[role="radiogroup"]')?.getBoundingClientRect()
 
-		const all = screen.getByRole('tab', { name: 'All' }).getBoundingClientRect()
+		const all = screen.getByRole('radio', { name: 'All' }).getBoundingClientRect()
 
-		const archivedTab = screen.getByRole('tab', { name: 'Archived campaigns' })
+		const archivedTab = screen.getByRole('radio', { name: 'Archived campaigns' })
 
 		const archived = archivedTab.getBoundingClientRect()
 
@@ -77,9 +77,9 @@ describe('Segment: container narrower than its labels', () => {
 
 		const scroller = container.querySelector<HTMLElement>('[data-slot="tab-list-scroll"]')
 
-		const control = container.querySelector('[role="tablist"]')
+		const control = container.querySelector('[role="radiogroup"]')
 
-		const last = screen.getByRole('tab', { name: 'Governor' })
+		const last = screen.getByRole('radio', { name: 'Governor' })
 
 		// The box holds every item, and the viewport, not the page, takes the overflow.
 		expect(last.getBoundingClientRect().right).toBeLessThanOrEqual(
@@ -121,7 +121,7 @@ describe('Segment: container narrower than its labels', () => {
 		)
 
 		const [overview, senate, house] = screen
-			.getAllByRole('tab')
+			.getAllByRole('radio')
 			.map((tab) => tab.getBoundingClientRect())
 
 		expect(senate?.left).toBe(overview?.right)
@@ -139,7 +139,7 @@ describe('Segment: container narrower than its labels', () => {
 			</Segment>,
 		)
 
-		const [first, second] = [...container.querySelectorAll('[role="tab"]')].map((tab) =>
+		const [first, second] = [...container.querySelectorAll('[role="radio"]')].map((tab) =>
 			tab.getBoundingClientRect(),
 		)
 
