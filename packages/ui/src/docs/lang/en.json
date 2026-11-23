@@ -6443,6 +6443,18 @@
 		"defaultMessage": "medium",
 		"description": "The name of the medium range of screen widths, as in \"Horizontal from medium\". Write it in lowercase."
 	},
+	"docs.prop.activation": {
+		"defaultMessage": "Activation",
+		"description": "The label of a field of a playground in the docs. The field sets the prop activation of Segment, Tabs."
+	},
+	"docs.prop.activation.automatic": {
+		"defaultMessage": "Automatic",
+		"description": "An option of the Activation field of a playground in the docs. It sets the prop activation to 'automatic' on Segment, Tabs."
+	},
+	"docs.prop.activation.manual": {
+		"defaultMessage": "Manual",
+		"description": "An option of the Activation field of a playground in the docs. It sets the prop activation to 'manual' on Segment, Tabs."
+	},
 	"docs.prop.aggregation": {
 		"defaultMessage": "Aggregation",
 		"description": "The label of a field of a playground in the docs. The field sets the prop aggregation of PivotTable."
