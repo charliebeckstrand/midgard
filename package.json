@@ -18,9 +18,9 @@
 		"@commitlint/config-conventional": "^21.0.2",
 		"knip": "^6.26.0",
 		"lefthook": "^2.1.10",
-		"turbo": "2.11.11"
+		"turbo": "2.11.13"
 	},
-	"packageManager": "pnpm@12.20.0",
+	"packageManager": "pnpm@12.21.0",
 	"dependencies": {
 		"hlidskjalf": "^0.4.5"
 	}
