@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback } from 'react'
-import { useControllable } from '../../hooks/use-controllable'
+import { useControllableBinding } from '../../hooks/use-controllable'
 import type { GridSortState } from './context'
 import { EMPTY_SORT, nextSort } from './engine/grid-sort/state'
 import type { GridSort } from './grid-data-types'
@@ -19,21 +19,16 @@ export function useGridSort(config: GridSort | undefined): {
 	setSort: (sort: GridSortState[]) => void
 	toggleSort: (column: string | number, additive: boolean) => void
 } {
-	const [sortState, setSortState] = useControllable<GridSortState[]>({
-		value: config?.value,
-		defaultValue: config?.defaultValue ?? EMPTY_SORT,
-		// The list is never meaningfully `undefined`; coalesce so the public callback
-		// keeps its non-nullable shape (an empty list is the unsorted state).
-		onValueChange: (next) => config?.onValueChange?.(next ?? EMPTY_SORT),
-	})
+	// The empty list is the unsorted state.
+	const [sort, setSort] = useControllableBinding(config, EMPTY_SORT)
 
 	const cycle = config?.cycle
 
 	const toggleSort = useCallback(
 		(column: string | number, additive: boolean) =>
-			setSortState((prev) => nextSort(prev ?? EMPTY_SORT, column, additive, cycle)),
-		[setSortState, cycle],
+			setSort((prev) => nextSort(prev, column, additive, cycle)),
+		[setSort, cycle],
 	)
 
-	return { sort: sortState ?? EMPTY_SORT, setSort: setSortState, toggleSort }
+	return { sort, setSort, toggleSort }
 }

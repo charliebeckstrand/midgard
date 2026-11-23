@@ -175,3 +175,57 @@ export function useControllableFlag({
 
 	return [current, setFlag]
 }
+
+/**
+ * A controlled or uncontrolled binding prop: a `value`, its `defaultValue`,
+ * and a change report that never carries a clear.
+ *
+ * @internal
+ */
+export type ControllableBinding<T> = {
+	value?: T
+	defaultValue?: T
+	onValueChange?: (value: T) => void
+}
+
+/**
+ * Argument to the setter of {@link useControllableBinding}: a next value, a
+ * clear, or an updater. The updater gets the empty value in place of `undefined`.
+ *
+ * @internal
+ */
+export type SetBoundValue<T> = T | null | undefined | ((prev: T) => T | null | undefined)
+
+/**
+ * The form of {@link useControllable} for a binding prop that has an empty
+ * value, such as a sort list, a selection set, or a page.
+ *
+ * @param binding - The binding, or `undefined` when the consumer gives none.
+ * @param empty - The value that a clear reads and reports as. It is also the
+ * default when the binding gives no `defaultValue`.
+ * @returns A `[value, setValue]` tuple. `value` is never `undefined`, and an
+ * updater gets `empty` in place of `undefined`.
+ * @internal
+ */
+export function useControllableBinding<T>(
+	binding: ControllableBinding<T> | undefined,
+	empty: T,
+): [T, (value: SetBoundValue<T>) => void] {
+	const [value = empty, setValue] = useControllable<T>({
+		value: binding?.value,
+		defaultValue: binding?.defaultValue ?? empty,
+		onValueChange: (next) => binding?.onValueChange?.(next ?? empty),
+	})
+
+	const setBound = useCallback(
+		(next: SetBoundValue<T>) =>
+			setValue(
+				typeof next === 'function'
+					? (prev) => (next as (prev: T) => T | null | undefined)(prev ?? empty)
+					: next,
+			),
+		[setValue, empty],
+	)
+
+	return [value, setBound]
+}

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { PaletteColor } from '../../core/recipe/colors'
-import { useControllable } from '../../hooks/use-controllable'
+import { useControllableBinding } from '../../hooks/use-controllable'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { groupValueLabel } from './engine/grid-column/label'
@@ -63,11 +63,7 @@ type GridRowManagerOptions = {
 export function useGridRowManager({ config, naturalGroups }: GridRowManagerOptions) {
 	const binding = useMemo(() => normalizeRowGroups(config), [config])
 
-	const [overlay = EMPTY_OVERLAY, setOverlay] = useControllable<GridRowGroup[]>({
-		value: binding.value,
-		defaultValue: binding.defaultValue ?? EMPTY_OVERLAY,
-		onValueChange: (next) => binding.onValueChange?.(next ?? EMPTY_OVERLAY),
-	})
+	const [overlay, setOverlay] = useControllableBinding(binding, EMPTY_OVERLAY)
 
 	const overlayByKey = useMemo(
 		() => new Map(overlay.map((group) => [String(group.key), group])),

@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useMemo } from 'react'
-import { useControllable } from '../../hooks/use-controllable'
+import { useControllableBinding } from '../../hooks/use-controllable'
 import { toggleItem } from '../../utilities/toggle-item'
 import { resolveDetailExpansion } from './engine/grid-group/resolve'
 import type { GridExpandable } from './grid-data-types'
@@ -32,16 +32,12 @@ export function useGridExpansion<T>(
 	idScope: string,
 	paginated: boolean,
 ) {
-	const [expanded, setExpanded] = useControllable<Set<string | number>>({
-		value: config?.value,
-		defaultValue: config?.defaultValue ?? EMPTY_EXPANSION,
-		onValueChange: (next) => config?.onValueChange?.(next ?? EMPTY_EXPANSION),
-	})
+	const [expanded, setExpanded] = useControllableBinding(config, EMPTY_EXPANSION)
 
 	// The functional-updater form keeps the toggle referentially stable across
 	// expansion edits, so the memoized rows don't churn when a panel opens.
 	const toggle = useCallback(
-		(key: string | number) => setExpanded((prev) => toggleItem(prev ?? EMPTY_EXPANSION, key)),
+		(key: string | number) => setExpanded((prev) => toggleItem(prev, key)),
 		[setExpanded],
 	)
 
@@ -52,7 +48,7 @@ export function useGridExpansion<T>(
 	return useMemo(
 		() =>
 			resolveDetailExpansion(
-				{ active, expanded: expanded ?? EMPTY_EXPANSION, toggle, render, rowExpandable },
+				{ active, expanded, toggle, render, rowExpandable },
 				groupingActive,
 				idScope,
 				paginated,

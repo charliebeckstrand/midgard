@@ -1,6 +1,10 @@
 import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
-import { useControllable, useControllableFlag } from '../../hooks/use-controllable'
+import {
+	useControllable,
+	useControllableBinding,
+	useControllableFlag,
+} from '../../hooks/use-controllable'
 import { useControlledLatch } from '../../hooks/use-controlled-latch'
 
 describe('useControllable', () => {
@@ -326,5 +330,74 @@ describe('useControllableFlag', () => {
 		expect(result.current[0]).toBe(true)
 
 		expect(onValueChange).toHaveBeenCalledWith(true)
+	})
+})
+
+describe('useControllableBinding', () => {
+	const EMPTY: string[] = []
+
+	it('reads the empty value when the binding is undefined', () => {
+		const { result } = renderHook(() => useControllableBinding<string[]>(undefined, EMPTY))
+
+		expect(result.current[0]).toBe(EMPTY)
+	})
+
+	it('starts from the defaultValue of the binding', () => {
+		const { result } = renderHook(() => useControllableBinding({ defaultValue: ['a'] }, EMPTY))
+
+		expect(result.current[0]).toEqual(['a'])
+	})
+
+	it('reads and reports a clear as the empty value', () => {
+		const onValueChange = vi.fn()
+
+		const { result } = renderHook(() =>
+			useControllableBinding({ defaultValue: ['a'], onValueChange }, EMPTY),
+		)
+
+		act(() => result.current[1](null))
+
+		expect(result.current[0]).toBe(EMPTY)
+
+		expect(onValueChange).toHaveBeenCalledWith(EMPTY)
+	})
+
+	it('gives an updater the empty value in place of a cleared value', () => {
+		const { result } = renderHook(() => useControllableBinding({ defaultValue: ['a'] }, EMPTY))
+
+		act(() => result.current[1](null))
+
+		const seen: string[][] = []
+
+		act(() => {
+			result.current[1]((prev) => {
+				seen.push(prev)
+
+				return [...prev, 'b']
+			})
+		})
+
+		expect(seen).toEqual([EMPTY])
+
+		expect(result.current[0]).toEqual(['b'])
+	})
+
+	it('follows a controlled value and reports without storing it', () => {
+		const onValueChange = vi.fn()
+
+		const { result, rerender } = renderHook(
+			({ value }) => useControllableBinding({ value, onValueChange }, EMPTY),
+			{ initialProps: { value: ['a'] } },
+		)
+
+		act(() => result.current[1](['b']))
+
+		expect(result.current[0]).toEqual(['a'])
+
+		expect(onValueChange).toHaveBeenCalledWith(['b'])
+
+		rerender({ value: ['b'] })
+
+		expect(result.current[0]).toEqual(['b'])
 	})
 })

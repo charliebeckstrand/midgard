@@ -33,7 +33,7 @@ import {
 	useState,
 } from 'react'
 import type { DensityStep } from '../../core/density/steps'
-import { useControllable } from '../../hooks/use-controllable'
+import { useControllable, useControllableBinding } from '../../hooks/use-controllable'
 import { useControlledLatch } from '../../hooks/use-controlled-latch'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useLocale } from '../../providers/locale/context'
@@ -97,7 +97,6 @@ import type {
 	GridColumnSizing,
 	GridColumnSizingState,
 	GridPagination,
-	GridPaginationState,
 	GridSearch,
 } from './types'
 import { useGridClientView } from './use-grid-client-view'
@@ -581,21 +580,16 @@ export function useGridTable<T>({
 	// Server mode is implied once a total is supplied; otherwise the grid slices.
 	const manual = isManualPagination(paginationConfig)
 
-	const [paginationState, setPaginationState] = useControllable<GridPaginationState>({
-		value: paginationConfig?.value,
-		defaultValue: paginationConfig?.defaultValue ?? DEFAULT_PAGINATION_STATE,
-		// The page is never meaningfully `undefined`; coalesce so the public
-		// callback keeps its non-nullable shape.
-		onValueChange: (next) => paginationConfig?.onValueChange?.(next ?? DEFAULT_PAGINATION_STATE),
-	})
-
-	const resolvedPagination = paginationState ?? DEFAULT_PAGINATION_STATE
+	const [resolvedPagination, setPaginationState] = useControllableBinding(
+		paginationConfig,
+		DEFAULT_PAGINATION_STATE,
+	)
 
 	// The footer writes the page through an updater over the resolved page. A
 	// write that gives an equal page keeps the page, so it reports no change.
 	const writePagination = useCallback(
 		(update: (prev: PaginationState) => PaginationState) =>
-			setPaginationState((prev) => keepSame(prev, update(prev ?? DEFAULT_PAGINATION_STATE))),
+			setPaginationState((prev) => keepSame(prev, update(prev))),
 		[setPaginationState],
 	)
 
@@ -608,7 +602,7 @@ export function useGridTable<T>({
 	const resetPage = useCallback(() => {
 		if (!paginated || pageControlled) return
 
-		setPaginationState((prev) => (prev && prev.pageIndex !== 0 ? { ...prev, pageIndex: 0 } : prev))
+		setPaginationState((prev) => (prev.pageIndex !== 0 ? { ...prev, pageIndex: 0 } : prev))
 	}, [paginated, pageControlled, setPaginationState])
 
 	// Held true by the autosizer around its own writes (see `useGridColumnSizing`),
@@ -682,13 +676,10 @@ export function useGridTable<T>({
 
 	const globalConfigured = globalFilterConfig != null
 
-	const [globalFilterState, setGlobalFilterState] = useControllable<string>({
-		value: globalFilterConfig?.value,
-		defaultValue: globalFilterConfig?.defaultValue ?? '',
-		onValueChange: (next) => globalFilterConfig?.onValueChange?.(next ?? ''),
-	})
-
-	const resolvedGlobalFilter = globalFilterState ?? ''
+	const [resolvedGlobalFilter, setGlobalFilterState] = useControllableBinding(
+		globalFilterConfig,
+		'',
+	)
 
 	const setGlobalFilter = useCallback(
 		(value: string) => {
@@ -702,17 +693,14 @@ export function useGridTable<T>({
 	const hasColumnFilters = columns.some((col) => col.filterable && col.value)
 
 	// Each entry holds the query tree of a column, which the client view evaluates.
-	const [columnFiltersState, setColumnFiltersState] = useControllable<GridColumnFilterState[]>({
-		value: columnFiltersConfig?.value,
-		defaultValue: columnFiltersConfig?.defaultValue ?? EMPTY_COLUMN_FILTERS,
-		onValueChange: (next) => columnFiltersConfig?.onValueChange?.(next ?? []),
-	})
-
-	const resolvedColumnFilters = columnFiltersState ?? EMPTY_COLUMN_FILTERS
+	const [resolvedColumnFilters, setColumnFiltersState] = useControllableBinding(
+		columnFiltersConfig,
+		EMPTY_COLUMN_FILTERS,
+	)
 
 	const writeColumnFilters = useCallback(
 		(update: (prev: GridColumnFilterState[]) => GridColumnFilterState[]) => {
-			setColumnFiltersState((prev) => keepSame(prev, update(prev ?? EMPTY_COLUMN_FILTERS)))
+			setColumnFiltersState((prev) => keepSame(prev, update(prev)))
 
 			resetPage()
 		},
