@@ -1746,9 +1746,10 @@ export function useGridNavigation({
 	// whether it took the key.
 	const onSelectColumnKey = useCallback(
 		(event: KeyboardEvent<HTMLTableElement>): boolean => {
-			if (event.key !== ' ' || !event.ctrlKey || event.metaKey || event.altKey) return false
+			// Ctrl alone takes the key. A chord with Meta, Alt, or Shift is not this key.
+			const ctrlAlone = event.ctrlKey && !event.metaKey && !event.altKey && !event.shiftKey
 
-			if (event.shiftKey) return false
+			if (event.key !== ' ' || !ctrlAlone) return false
 
 			const active = readActive()
 

@@ -3,7 +3,7 @@ import {
 	type GridMenuResolution,
 	openKeyboardMenu,
 } from '../../modules/grid/engine/grid-menu-targeting'
-import { attach } from '../helpers'
+import { attach, present } from '../helpers'
 
 const MENU: GridMenuResolution = {
 	items: [{ label: 'Copy', onAction: () => {} }],
@@ -90,9 +90,9 @@ describe('openKeyboardMenu', () => {
 			</div>
 		`
 
-		const grid = root.querySelector<HTMLElement>('[data-testid="grid"]') as HTMLElement
+		const grid = present(root.querySelector<HTMLElement>('[data-testid="grid"]'), 'the grid')
 
-		const header = root.querySelector<HTMLElement>('th') as HTMLElement
+		const header = present(root.querySelector<HTMLElement>('th'), 'the header cell')
 
 		const resolveItems = vi.fn(() => MENU)
 
