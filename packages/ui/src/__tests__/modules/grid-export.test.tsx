@@ -5,7 +5,16 @@ import { resolveExportActions } from '../../modules/grid/engine/grid-export/reso
 import type { GridExportRows } from '../../modules/grid/engine/grid-export/types'
 import { intlEn } from '../../primitives/intl/intl-catalog'
 import { downloadCsv } from '../../utilities/export-output'
-import { deferred, fireEvent, renderUI, screen, tick, waitFor, within } from '../helpers'
+import {
+	deferred,
+	expectAnnouncement,
+	fireEvent,
+	renderUI,
+	screen,
+	tick,
+	waitFor,
+	within,
+} from '../helpers'
 import { captureDownload } from '../helpers/capture-download'
 
 describe('rowsToCsv', () => {
@@ -900,11 +909,18 @@ describe('Grid export', () => {
 
 		await waitFor(() => expect(overlay()).not.toBeNull())
 
-		// The spinner's own live region announces the wait; the visible text repeats it
-		// for sighted users without doubling the announcement.
-		expect(overlay()?.querySelector('[data-slot="loading-spinner"]')).not.toBeNull()
+		// A live region that mounts with its text is often not spoken, so the
+		// shared announcer speaks the wait, and the spinner is hidden.
+		expect(overlay()?.querySelector('[data-slot="loading-spinner"]')).toHaveAttribute(
+			'aria-hidden',
+			'true',
+		)
+
+		expect(overlay()?.querySelector('output:not([aria-hidden])')).toBeNull()
 
 		expect(overlay()?.textContent).toContain('Exporting')
+
+		await expectAnnouncement('Exporting')
 
 		server.resolve(allRows)
 
