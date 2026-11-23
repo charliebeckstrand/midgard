@@ -153,6 +153,8 @@ function viewTop(instance: Virtualizer<HTMLElement, Element>): number {
  */
 type ScrollCorrection = {
 	applyScrollAdjustment: (delta: number, behavior?: ScrollBehavior) => boolean
+	/** The end of the scroller, live from the DOM, plus the held move. */
+	getMaxScrollOffset: () => number
 }
 
 /**
@@ -555,11 +557,10 @@ function useWindowVirtualizer(options: WindowVirtualizerOptions, adjustAbove: bo
 		const applyScrollAdjustment = correction.applyScrollAdjustment.bind(virtualizer)
 
 		correction.applyScrollAdjustment = (delta, behavior) => {
-			const element = virtualizer.scrollElement
-
-			if (!element) return applyScrollAdjustment(delta, behavior)
-
-			const max = Math.max(0, element.scrollHeight - element.clientHeight)
+			// The offset includes a held move, and the rows render shifted back by it.
+			// The bound of the offset thus is the end of the scroller plus the hold,
+			// which `getMaxScrollOffset` gives.
+			const max = Math.max(0, correction.getMaxScrollOffset())
 
 			const offset = layoutOffset(virtualizer)
 
