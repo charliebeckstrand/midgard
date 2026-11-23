@@ -580,9 +580,11 @@ function MapPointsShared({
 	hit,
 	onPointerLeave,
 }: MapPointsSharedProps) {
-	const { colors, report } = useMapPlat()
+	const { colors, report, recede } = useMapPlat()
 
-	const dimmed = useMapPointed((pointed, emphasis) => sharedDimmed(summary, pointed, emphasis))
+	const dimmed = useMapPointed(
+		(pointed, emphasis) => recede && sharedDimmed(summary, pointed, emphasis),
+	)
 
 	const arcs = summary.parts.map((part) => {
 		const color = colors.get(part.id)

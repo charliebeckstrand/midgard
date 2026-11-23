@@ -556,6 +556,20 @@ type MapPlatBaseProps = AccessibleName &
 		 */
 		onEmphasisChange?: (emphasis: string | null) => void
 		/**
+		 * Whether the map recedes the other marks around the pointed mark and the
+		 * legend emphasis. With `false`, the pointer and the legend dim nothing: a
+		 * region and the dots on it stay at full strength, and the pointer changes
+		 * only the readout, the tooltip, and the cursor. The lit copies of the
+		 * pointed and the emphasized regions do not render, so the legend emphasis
+		 * draws no outline either.
+		 *
+		 * Use it where a region and the marks on it are one thing, such as a map
+		 * whose dots stand on tinted ground. There, a recede that dims one of them
+		 * when the pointer moves onto the other reads as a flicker.
+		 * @defaultValue true
+		 */
+		recede?: boolean
+		/**
 		 * Fires when the plat's legend switches a group on or off, with the set of
 		 * legend ids that it has switched off.
 		 *
@@ -978,6 +992,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		selectedOverlays,
 		emphasis: controlledEmphasis,
 		onEmphasisChange,
+		recede = true,
 		onHiddenChange,
 		className,
 		children,
@@ -1405,6 +1420,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 			report,
 			moves,
 			animate,
+			recede,
 			selectedOverlays: markSelection,
 			unmeasured,
 		}),
@@ -1420,6 +1436,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 			report,
 			moves,
 			animate,
+			recede,
 			markSelection,
 			unmeasured,
 		],
@@ -1705,6 +1722,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 								interactive={regions.tracked}
 								hidden={hidden}
 								emphasis={emphasis}
+								recede={recede}
 								animate={animate}
 								sweep={sweep}
 								onRegionClick={regions.click}

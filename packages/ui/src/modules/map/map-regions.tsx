@@ -23,7 +23,7 @@ import {
 	MapZoomScaleContext,
 	useMapHoverActions,
 	useMapPlat,
-	useMapPointedMark,
+	useMapPointed,
 	useMapZoomScale,
 } from './context'
 import {
@@ -89,6 +89,8 @@ export type MapRegionsProps = Omit<MapRegionLayer, 'paints'> & {
 	hidden: ReadonlySet<string>
 	/** The emphasized legend id; regions outside its category recede. */
 	emphasis: string | null
+	/** Whether the pointed mark and the emphasis recede the layer (`MapPlatProps.recede`). */
+	recede: boolean
 	animate: boolean
 	/**
 	 * Each region's position along an `animate="sweep"` reveal, from `0` (east)
@@ -357,6 +359,7 @@ export const MapRegions = memo(function MapRegions({
 	interactive,
 	hidden,
 	emphasis,
+	recede,
 	animate,
 	sweep,
 	onRegionClick,
@@ -367,7 +370,9 @@ export const MapRegions = memo(function MapRegions({
 }: MapRegionsProps) {
 	const { set } = useMapHoverActions()
 
-	const pointed = useMapPointedMark()
+	// A plat that does not recede reads no pointed mark here, so a crossing
+	// renders nothing in this layer.
+	const pointed = useMapPointed((mark) => (recede ? mark : null))
 
 	// The color reveal: static maps color at once; an animated map holds the
 	// neutral backdrop for the first beat, then flips to the category fills so
@@ -397,13 +402,17 @@ export const MapRegions = memo(function MapRegions({
 		[categories, patternBase, hidden, revealed, animate, clickable],
 	)
 
-	const receded = pointed !== null || emphasis !== null
+	// With no recede, the layer never dims, and the spots below stay `null`, so no
+	// lit copy renders.
+	const receded = recede && (pointed !== null || emphasis !== null)
 
 	// The lit copies keep their emphasis while a lift fades the layer back up, so
 	// a lit region never drops to the dim on its way ({@link useChartSpot}).
 	const litPointed = useChartSpot(pointed, receded)
 
-	const litEmphasis = useChartSpot(emphasis, receded)
+	// The spot seeds its held state with the first value, so a plat that does not
+	// recede passes no emphasis. A controlled emphasis at mount then lights nothing.
+	const litEmphasis = useChartSpot(recede ? emphasis : null, receded)
 
 	// One path for every ring: the ring takes no fill, so the outlines of two
 	// neighbors stroke their shared border twice in one ink, which does not show.

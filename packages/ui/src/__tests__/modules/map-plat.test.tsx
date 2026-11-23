@@ -1,6 +1,6 @@
 import { describe, expect, vi } from 'vitest'
 import { SWEEP_SETTLE } from '../../modules/chart/engine/use-chart-sweep'
-import { MapPlat } from '../../modules/map'
+import { MapPlat, MapPoints } from '../../modules/map'
 import { ALBERS_USA_ASPECT, REGION_STROKE_WIDTH } from '../../modules/map/engine/map-constants'
 import { REGION_FADE } from '../../modules/map/engine/map-motion'
 import {
@@ -513,6 +513,77 @@ describe('MapPlat', () => {
 		expect(bySlot(container, 'map-regions-lit')?.querySelectorAll('path')).toHaveLength(1)
 
 		expect(shownLayer(container, 'map-regions-lit')).toBeNull()
+	})
+
+	describe('with recede={false}', () => {
+		/** The classes of each recede wrapper: the region layer and each overlay group. */
+		const recedeClasses = (container: HTMLElement) =>
+			[bySlot(container, 'map-regions-recede'), ...allBySlot(container, 'map-points')].map(
+				(group) => group?.getAttribute('class') ?? '',
+			)
+
+		const pointRegion = (container: HTMLElement) => {
+			const region = present(bySlot(container, 'map-regions')?.querySelector('path'), 'region path')
+
+			fireEvent.pointerEnter(region, { clientX: 40, clientY: 20 })
+		}
+
+		const platWithDots = (recede?: boolean) =>
+			categoricalPlat({
+				recede,
+				children: (
+					<MapPoints id="places" label="Places" points={[{ label: 'Depot', at: [8, 5] }]} />
+				),
+			})
+
+		it('recedes nothing under a pointed region, and draws no lit copy', () => {
+			const { container } = renderUI(platWithDots(false))
+
+			pointRegion(container)
+
+			// The pointer still reads the region.
+			expect(bySlot(container, 'tooltip-content')).not.toBeNull()
+
+			for (const classes of recedeClasses(container)) expect(classes).not.toContain('opacity-25')
+
+			expect(bySlot(container, 'map-regions-lit')).toBeNull()
+		})
+
+		it('recedes nothing under a legend emphasis', () => {
+			const { container } = renderUI(categoricalPlat({ recede: false }))
+
+			const [east] = allBySlot(container, 'map-legend-item')
+
+			fireEvent.pointerEnter(east as HTMLButtonElement)
+
+			expect(bySlot(container, 'map-regions-recede')?.getAttribute('class')).not.toContain(
+				'opacity-25',
+			)
+
+			expect(bySlot(container, 'map-regions-lit')).toBeNull()
+		})
+
+		it('draws no lit copy for a controlled emphasis at mount', () => {
+			const { container, rerender } = renderUI(
+				categoricalPlat({ recede: false, emphasis: 'category:East' }),
+			)
+
+			expect(bySlot(container, 'map-regions-lit')).toBeNull()
+
+			rerender(categoricalPlat({ recede: false, emphasis: 'category:West' }))
+
+			expect(bySlot(container, 'map-regions-lit')).toBeNull()
+
+			expect(bySlot(container, 'map-regions-emphasized')).toBeNull()
+		})
+
+		it('recedes the dots under a pointed region by default', () => {
+			const { container } = renderUI(platWithDots())
+
+			pointRegion(container)
+
+			expect(recedeClasses(container).some((classes) => classes.includes('opacity-25'))).toBe(true)
+		})
 	})
 
 	it('emphasizes a legend entry on a visible keyboard focus only', () => {
