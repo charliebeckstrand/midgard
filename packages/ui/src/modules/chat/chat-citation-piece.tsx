@@ -99,7 +99,7 @@ function inCitation(node: EventTarget | null, id: string): boolean {
  * @internal
  */
 export function ChatCitationPiece({ piece: { range, index }, children }: ChatCitationPieceProps) {
-	const { targets, isMarked, trigger = 'click', actions } = useChatCitations()
+	const { targets, cited, isMarked, trigger = 'click', actions } = useChatCitations()
 
 	const intl = useIntl()
 
@@ -117,8 +117,8 @@ export function ChatCitationPiece({ piece: { range, index }, children }: ChatCit
 		)
 	}
 
-	// The kept citation, and not a preview, is pressed.
-	const pressed = actions.pressed?.id === range.id
+	// The cited citation, and not a preview, is pressed.
+	const pressed = cited?.id === range.id
 
 	const marked = isMarked?.(range) ?? false
 

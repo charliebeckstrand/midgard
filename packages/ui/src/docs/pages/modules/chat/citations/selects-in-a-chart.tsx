@@ -50,9 +50,20 @@ const targets = { 'late-by-day': { label: 'Late stops by day' } }
 export default function SelectsInAChart() {
 	const [cited, setCited] = useState<ChatCitation | null>(null)
 
+	// A hover previews a citation over the cited one, and a click cites it.
+	const [previewed, setPreviewed] = useState<ChatCitation | null>(null)
+
+	const shown = previewed ?? cited
+
 	return (
 		<Stack gap="lg">
-			<ChatCitationProvider targets={targets} cited={cited} onCitedChange={setCited}>
+			<ChatCitationProvider
+				targets={targets}
+				trigger={['hover', 'click']}
+				cited={cited}
+				onCitedChange={setCited}
+				onPreviewChange={setPreviewed}
+			>
 				<ChatTranscript messages={messages} />
 			</ChatCitationProvider>
 			{/* The chart starts at half of the column, so it is not too tall. The
@@ -65,7 +76,7 @@ export default function SelectsInAChart() {
 						data={DAYS}
 						series={[{ xKey: 'day', yKey: 'late', yName: 'Late stops' }]}
 						selectedCategories={
-							cited?.target === 'late-by-day' ? toCategorySelection(cited.selector) : undefined
+							shown?.target === 'late-by-day' ? toCategorySelection(shown.selector) : undefined
 						}
 					/>
 				</ResizablePanel>
