@@ -482,6 +482,127 @@ describe('Grid range clear and cut', () => {
 	})
 })
 
+/**
+ * A write that no session staged skips a cell whose editor is open, as it
+ * skips a cell that holds a draft. The editor reads its value one time, when it
+ * opens, so a write to its cell would not reach it: the editor would show the
+ * old value, and its next save would write that value back.
+ */
+describe('Grid range writes over an open editor', () => {
+	/**
+	 * Opens the editor of a cell, and then moves the cursor away with a click.
+	 * The default `commitOn` keeps the editor open, and the click focuses the
+	 * table, as a browser does on a press in a cell.
+	 */
+	function leaveOpen(view: ReturnType<typeof renderPasteGrid>, row: number, col: number) {
+		fireEvent.doubleClick(view.cell(row, col))
+
+		const input = getSlot<HTMLInputElement>(view.container, 'grid-edit-input')
+
+		const away = view.cell(2, 1)
+
+		fireEvent.mouseDown(away)
+
+		fireEvent.mouseUp(away)
+
+		act(() => view.grid.focus())
+
+		return input
+	}
+
+	/** Makes the range from the cell under the cursor to another cell with a Shift+click. */
+	function extendTo(view: ReturnType<typeof renderPasteGrid>, row: number, col: number) {
+		fireEvent.mouseDown(view.cell(row, col), { shiftKey: true })
+
+		fireEvent.mouseUp(view.cell(row, col))
+	}
+
+	it('skips the open cell on a clear, and clears the others', async ({ clock }) => {
+		const view = renderPasteGrid()
+
+		const input = leaveOpen(view, 0, 0)
+
+		extendTo(view, 0, 0)
+
+		fireEvent.keyDown(view.grid, { key: 'Delete' })
+
+		expect(input).toBeInTheDocument()
+
+		expect(input).toHaveValue('Alice')
+
+		const written = view.onCommit.mock.calls.flat(2)
+
+		expect(written).not.toContainEqual(expect.objectContaining({ rowKey: 1, columnId: 'name' }))
+
+		expect(written).toContainEqual({ rowKey: 3, columnId: 'name', value: '' })
+
+		await clock.advance(FIRST_WRITE_MS)
+
+		// Five cells of three rows clear, and the open cell is skipped.
+		expect(liveRegion()).toHaveTextContent('5 cells cleared, 1 skipped')
+	})
+
+	it('skips the open cell on a paste', () => {
+		const view = renderPasteGrid()
+
+		const input = leaveOpen(view, 0, 0)
+
+		extendTo(view, 0, 0)
+
+		view.paste('Zed')
+
+		expect(input).toHaveValue('Alice')
+
+		expect(view.onCommit.mock.calls.flat(2)).not.toContainEqual(
+			expect.objectContaining({ rowKey: 1, columnId: 'name' }),
+		)
+	})
+
+	it('skips the open cell on a fill', () => {
+		const view = renderPasteGrid()
+
+		const input = leaveOpen(view, 1, 0)
+
+		fireEvent.mouseDown(view.cell(0, 0))
+
+		fireEvent.mouseUp(view.cell(0, 0))
+
+		extendTo(view, 1, 0)
+
+		fireEvent.keyDown(view.grid, { key: 'd', ctrlKey: true })
+
+		expect(input).toHaveValue('Bob')
+
+		expect(view.onCommit).not.toHaveBeenCalled()
+	})
+
+	it('does not undo into an open cell', async ({ clock }) => {
+		const view = renderPasteGrid()
+
+		fireEvent.mouseDown(view.cell(0, 0))
+
+		fireEvent.mouseUp(view.cell(0, 0))
+
+		view.paste('Zed')
+
+		const input = leaveOpen(view, 0, 0)
+
+		expect(input).toHaveValue('Zed')
+
+		view.onCommit.mockClear()
+
+		fireEvent.keyDown(view.grid, { key: 'z', ctrlKey: true })
+
+		expect(input).toHaveValue('Zed')
+
+		expect(view.onCommit).not.toHaveBeenCalled()
+
+		await clock.advance(FIRST_WRITE_MS)
+
+		expect(liveRegion()).toHaveTextContent('Cannot undo while a cell has an edit')
+	})
+})
+
 describe('Grid paste past the last row', () => {
 	/** The data cell of a column, by its row index. The Add column of the slot shifts `view.cell`. */
 	const at = (row: number, column: string) => gridCell(document, column, row)

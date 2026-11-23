@@ -974,8 +974,24 @@ export function useGridEditing<T>({
 		[activeEditStore, sessionLeave],
 	)
 
+	// Whether the session holds a cell: its editor is open, or it holds a draft.
+	// A write that no session staged skips such a cell. An editor reads its value
+	// one time, when it opens, so a write to an open cell would not reach the
+	// editor. The editor would show the old value, and its next save would write
+	// that value back.
+	const held = useStableEvent(
+		(rowKey: string | number, columnId: string | number) =>
+			drafts.read(rowKey, columnId) !== undefined ||
+			isCellEditing({
+				rowKey,
+				columnId,
+				editableRows: editableRowsRef.current,
+				activeEdit: activeEditRef.current,
+			}),
+	)
+
 	const { pasteCells, fillCells, stepHistory, historyKeys } = useGridEditWrites({
-		drafts,
+		held,
 		editSourceRef,
 		rowKeysRef,
 		cursorColumnsRef,
