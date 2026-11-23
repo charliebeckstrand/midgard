@@ -1,6 +1,6 @@
 'use client'
 
-import { type KeyboardEvent, type MouseEvent, type ReactNode, useId } from 'react'
+import type { KeyboardEvent, MouseEvent, ReactNode } from 'react'
 import { ariaAttr } from '../../core/aria-attr'
 import { cn } from '../../core/cn'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
@@ -60,10 +60,9 @@ export function MenuItem(props: MenuItemProps) {
 
 	const { disabled, className, children, onAction, closeOnAction = true } = props
 
-	// A stable id for the row; a consumer-supplied id wins.
-	const reactId = useId()
-
-	const id = props.id ?? reactId
+	// The row needs no id of its own: it takes real focus, and no
+	// `aria-activedescendant` points at it.
+	const id = props.id
 
 	function handleSelect() {
 		if (disabled) return

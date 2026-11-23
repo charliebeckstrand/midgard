@@ -213,54 +213,6 @@ function applyVirtualActiveDom(
 }
 
 /**
- * Element-addressed counterpart to {@link setVirtualActive}, for a caller that
- * already holds the row. It marks `row` active inside `container` and repoints
- * the owner's `aria-activedescendant`.
- *
- * @remarks
- * {@link setVirtualActive} takes an index into a list. A pointer arrival has to
- * build that list and search it for its own row. The callee then scans the list
- * again for the row that was active. This one takes the row, so the build and
- * the search go. It reads the previous row off `container` in one engine-side
- * query.
- *
- * `itemSelector` holds that query to the rows, as the list holds
- * {@link setVirtualActive}. An element inside a row can carry its own
- * `data-active`, and this leaves it alone.
- *
- * `row` must carry an `id`, because that is what `aria-activedescendant` points
- * at. A row without one, or a row outside `container`, leaves the highlight
- * where it is.
- *
- * @internal
- */
-export function setVirtualActiveElement(
-	container: HTMLElement | null,
-	row: HTMLElement,
-	itemSelector: string,
-	activeDescendantRef?: RefObject<HTMLElement | null>,
-	{ ariaSelected = true }: { ariaSelected?: boolean } = {},
-): void {
-	if (!row.id || !container?.contains(row)) return
-
-	for (const prev of container.querySelectorAll<HTMLElement>('[data-active]')) {
-		if (prev === row || !prev.matches(itemSelector)) continue
-
-		prev.removeAttribute('data-active')
-
-		if (ariaSelected) prev.setAttribute('aria-selected', 'false')
-	}
-
-	if (row.dataset.active === undefined) {
-		row.setAttribute('data-active', '')
-
-		if (ariaSelected) row.setAttribute('aria-selected', 'true')
-	}
-
-	activeDescendantRef?.current?.setAttribute('aria-activedescendant', row.id)
-}
-
-/**
  * The in-flight mount watcher per container. Each navigation owns at most one.
  * {@link setVirtualActiveIndexed} disconnects the previous one up front, so a
  * superseded watcher doesn't linger (or stack) waiting for a mutation that

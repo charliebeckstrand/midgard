@@ -2372,8 +2372,8 @@
 		"description": "Spoken when the field holds the most tags that it takes, so a tag is not added."
 	},
 	"ui.tagInput.rejected": {
-		"defaultMessage": "{count, plural, one {{tag} is not a valid tag} other {# not valid}}",
-		"description": "Spoken when typed or pasted tags fail the validation. With one tag, it names the tag."
+		"defaultMessage": "{count, plural, one {{tag} is not a valid tag} other {# tags are not valid}}",
+		"description": "Spoken, and shown below the field as an error, when typed or pasted tags fail the validation. With one tag, it names the tag."
 	},
 	"ui.tagInput.removed": {
 		"defaultMessage": "Removed {tag}",

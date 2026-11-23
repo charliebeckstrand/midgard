@@ -1,9 +1,8 @@
 /**
  * What a pointer sweep across an open dropdown costs in a real engine.
  *
- * A dropdown keeps focus on its trigger, so each arrival moves a `data-active`
- * cursor rather than focus. The level reads the row off the event and repoints
- * the trigger's `aria-activedescendant` at it.
+ * A dropdown roves its rows by real focus, so each arrival moves the focus to
+ * its row. The level reads the row off the event.
  *
  * The corridor rung is the one jsdom cannot report at all. With a submenu open,
  * every arrival on a sibling row measures that panel. The level reads the

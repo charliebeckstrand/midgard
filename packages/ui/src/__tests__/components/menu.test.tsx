@@ -654,8 +654,8 @@ describe('MenuContent', () => {
 
 		fireEvent.contextMenu(screen.getByTestId('surface'))
 
-		// A context menu has no persistent trigger to hold focus, so (unlike a
-		// dropdown) it moves focus into the panel for keyboard navigation.
+		// A pointer open moves the focus into the panel, as a pointer open of a
+		// dropdown does, so the keys of the menu reach it.
 		expect(screen.getByRole('menu')).toHaveFocus()
 	})
 

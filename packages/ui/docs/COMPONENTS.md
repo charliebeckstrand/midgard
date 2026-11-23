@@ -45,7 +45,7 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > The tags of a `tag-input` stay on one row and scroll on the inline axis. With `wrap`, they wrap onto more rows, and the add button stays at the end of the first row. The affixes of each other input stay on one row with the input.
 
-> `checkbox`, `switch`, `RadioGroup`, and `ColorPicker` take `readOnly` from their own prop or from an enclosing `Control`. `Rating`, `SwitchChoice`, and `ColorPicker` set `aria-required` from their own `required` prop or from an enclosing `Control`.
+> `checkbox`, `switch`, `RadioGroup`, and `ColorPicker` take `readOnly` from their own prop or from an enclosing `Control`. `Rating` and `SwitchChoice` set `aria-required` from their own `required` prop or from an enclosing `Control`. The `ColorPicker` and `DatePicker` triggers set it from an enclosing `Control`.
 
 > The `ColorPicker` trigger is a `combobox`, as the `DatePicker` trigger is. Its value is the hex code that it shows. Each preset swatch has a coarse color name and its hex code as its name, such as "Red, #EF4444".
 
