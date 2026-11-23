@@ -504,6 +504,11 @@ function followIndex(
 /** The row keys and the data column ids of one layout of the grid. @internal */
 type CursorLayout = { rows: readonly unknown[]; cols: readonly unknown[] }
 
+/** Whether a layout has other cells than the layout before it. */
+function layoutMoved(seen: CursorLayout, next: CursorLayout): boolean {
+	return !(sameElements(seen.rows, next.rows) && sameElements(seen.cols, next.cols))
+}
+
 /**
  * Finds the cursor's cell again in a new layout: its column by the column id,
  * and its row by the row key when `byRow` is set. A body that publishes an
@@ -1247,8 +1252,8 @@ export function useGridNavigation({
 	// and the clamp gives the nearest cell. The cursor never dangles past the
 	// rendered grid, and it clears when the grid empties. A layout with the same
 	// cells costs one pass over the keys, and it commits no render. With no
-	// cursor and no range, the call writes no state, so React does not render
-	// again to find the same `null`.
+	// cursor and no range, the call compares no keys and writes no state, so
+	// React does not render again to find the same `null`.
 	const reconcile = useCallback(
 		(rowKeys: readonly unknown[], columnIds: readonly unknown[], slot: GridNewRowPosition) => {
 			const seen = layoutRef.current
@@ -1257,13 +1262,16 @@ export function useGridNavigation({
 
 			layoutRef.current = next
 
-			const moved =
-				seen !== null && !(sameElements(seen.rows, rowKeys) && sameElements(seen.cols, columnIds))
+			const from = readActive()
+
+			// With no cursor and no range, no cell follows the layout, so the call
+			// compares no keys. A refresh of many rows skips that pass.
+			if (from === null && !activeHeld() && !anchorHeld()) return
+
+			const moved = seen !== null && layoutMoved(seen, next)
 
 			// The cells under the range moved, so its rectangle names other cells now.
 			if (moved && anchorHeld()) setAnchor(null)
-
-			const from = readActive()
 
 			const followed =
 				moved && from ? followCell(from, seen, next, orderRef.current === null) : from
