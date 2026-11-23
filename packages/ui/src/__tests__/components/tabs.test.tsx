@@ -630,14 +630,16 @@ describe('TabContent (idiomatic)', () => {
 		await waitFor(() => expect(panel).not.toHaveAttribute('tabindex'))
 	})
 
-	it('carries the design-system focus ring, not the browser default', () => {
+	it('carries the design-system focus ring inside the panel, which the container clips', () => {
 		renderContents()
 
 		const tab = screen.getByRole('tab', { name: 'A' })
 
 		const panel = document.getElementById(tab.getAttribute('aria-controls') as string)
 
-		expect(panel?.className).toContain('focus-visible:outline-blue-600')
+		expect(panel?.className).toContain('focus-visible:after:ring-blue-600')
+
+		expect(panel?.className).not.toContain('focus-visible:outline-offset-2')
 	})
 })
 

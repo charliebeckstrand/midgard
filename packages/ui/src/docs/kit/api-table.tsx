@@ -2,12 +2,12 @@ import { useCallback, useEffect, useEffectEvent, useRef } from 'react'
 import { NavigationType, useLocation, useNavigationType } from 'react-router'
 import { Accordion, AccordionItem, AccordionPanel, AccordionTrigger } from 'ui/accordion'
 import { Heading } from 'ui/heading'
-import { Link } from 'ui/link'
 import { defineMessage, IntlMessage, useIntl } from 'ui/primitives/intl'
 import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
 import { createLazyModule } from '../../utilities/lazy-module.ts'
 import type { BarrelApi } from '../plugin/api.ts'
+import { AnchorLink } from './anchor-link.tsx'
 import { API, componentOfHash, toApiId } from './anchors.ts'
 import { PendingAnchorContext } from './context.ts'
 import { type PendingAnchor, scrollToPending } from './pending-anchor.ts'
@@ -122,9 +122,9 @@ export function ApiTable({ api }: { api: BarrelApi }) {
 	return (
 		<Stack gap="sm">
 			<Heading level={2} id={API}>
-				<Link href={`#${API}`}>
+				<AnchorLink id={API}>
 					<IntlMessage message={apiReferenceMessage} />
-				</Link>
+				</AnchorLink>
 			</Heading>
 			{translated && (
 				<Text tone="muted">

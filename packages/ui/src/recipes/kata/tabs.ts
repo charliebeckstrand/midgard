@@ -207,9 +207,13 @@ export const k = defineKata(
 			 * reach and scroll it. The design-system blue focus ring replaces the
 			 * browser default when it takes focus. The ring is `:focus-visible`-gated, so
 			 * a panel that holds its own focusable content (and is never tabbable) never
-			 * shows it.
+			 * shows it. The ring is the `overlay` shape, inside the panel: an animated
+			 * `TabContents` clips its overflow for the height morph, which hides an
+			 * outset ring. The panel content can reach its edge, so the ring paints over
+			 * it. The panel is `relative` for the ring; a panel in motion sets its
+			 * position inline.
 			 */
-			panel: focus.ring,
+			panel: ['relative', focus.overlay],
 		},
 		defaults: { orientation: 'horizontal', stretch: false },
 	},
