@@ -1102,7 +1102,11 @@ describe.each(['light', 'dark'] as const)(
 
 			const plot = present(bySlot(document.body, 'map-plot'), 'plot')
 
-			plot.focus()
+			// The ring is a `:focus-visible` ring. A script focus matches
+			// `:focus-visible` only when the focus before it did, and a pointer
+			// press of an earlier test on the shared page clears that. So the
+			// focus asks for the match itself.
+			plot.focus({ focusVisible: true } as FocusOptions)
 
 			const style = getComputedStyle(plot)
 
