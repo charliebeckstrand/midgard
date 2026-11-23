@@ -5,7 +5,7 @@ import { announce } from '../../core/announcer'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { describePasteRows } from './engine/grid-announcements'
-import { findColumn, isColumnEditable } from './engine/grid-edit/utilities'
+import { findColumn, isBlankDraft, isColumnEditable } from './engine/grid-edit/utilities'
 import type { GridRowAddResult } from './engine/grid-new-row'
 import { coercePaste } from './engine/grid-range/paste'
 import { unguardField } from './engine/grid-range/tsv'
@@ -74,6 +74,24 @@ function readLine<T>(source: GridEditSource<T>, line: GridPasteLine) {
 }
 
 /**
+ * Puts the values of one line in the new-row slot and adds it, and gives what
+ * became of the add. A line with no value adds nothing and does not reach the
+ * slot: the slot would run its checks on it, and a `required` column would
+ * refuse it and stop the paste.
+ */
+async function addLine(
+	entries: readonly (readonly [string | number, unknown])[],
+	stageRow: (entries: readonly (readonly [string | number, unknown])[]) => void,
+	submitRow: (quiet: boolean) => GridRowAddResult,
+): Promise<Awaited<GridRowAddResult>> {
+	if (entries.every(([, value]) => isBlankDraft(value))) return 'empty'
+
+	stageRow(entries)
+
+	return submitRow(true)
+}
+
+/**
  * Adds the lines of a paste after the last data row through the new-row slot,
  * one line at a time, as if the user typed each line into the slot and
  * pressed Enter. Each line waits for the add of the line before it. The slot
@@ -125,9 +143,7 @@ export function useGridPasteRows<T>({
 
 			skipped += read.skipped
 
-			stageRow(read.entries)
-
-			const result = await submitRow(true)
+			const result = await addLine(read.entries, stageRow, submitRow)
 
 			if (result === 'added') added++
 

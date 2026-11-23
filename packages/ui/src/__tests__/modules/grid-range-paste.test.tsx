@@ -624,6 +624,29 @@ describe('Grid paste past the last row', () => {
 		expect(liveRegion()).toHaveTextContent('2 cells pasted for Carol. 1 row added, 1 cell skipped')
 	})
 
+	// The slot checks a required column also when its cell is empty, so an
+	// empty line must not reach the slot.
+	it('passes over an empty line when a column is required', async () => {
+		const onRowAdd = vi.fn()
+
+		const view = renderPasteGrid({
+			columns: columns.map((column) =>
+				column.id === 'name'
+					? { ...column, required: true, validate: (value) => (value ? null : 'Required') }
+					: column,
+			),
+			editable: { newRow: 'bottom', onRowAdd },
+		})
+
+		fireEvent.mouseDown(at(2, 'name'))
+
+		await act(async () => view.paste('Zoe\n\nYan'))
+
+		expect(onRowAdd).toHaveBeenCalledExactlyOnceWith({ name: 'Yan' })
+
+		expect(screen.queryByText('Required')).toBeNull()
+	})
+
 	// The default reading refuses `Active` in a number column, so `parse` reads
 	// it in place of the default, as it does for a data row.
 	it('reads a text of an added row through the column parse, as a data row does', async () => {
