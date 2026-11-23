@@ -802,8 +802,8 @@ importers:
         specifier: ^0.5.0
         version: 0.5.0(vitest@5.1.0)
       '@formatjs/cli-lib':
-        specifier: ^9.0.9
-        version: 9.0.9
+        specifier: ^10.4.0
+        version: 10.4.0
       '@formatjs/icu-messageformat-parser':
         specifier: ^3.5.21
         version: 3.5.23
@@ -1040,6 +1040,9 @@ packages:
   '@babel/types@8.0.6':
     resolution: {integrity: sha512-c+xgSWboV2pdwXP67BUWDVRHi2BO5Q3KwxyFVs7taVTY+fsK47/L51ZXQoV9rozHJDNHvJ4v4WEsI/IlxV2l2A==}
     engines: {node: ^22.18.0 || >=24.11.0}
+
+  '@bazel/runfiles@6.5.0':
+    resolution: {integrity: sha512-RzahvqTkfpY2jsDxo8YItPX+/iZ6hbiikw1YhE0bA9EKBR5Og8Pa6FHn9PO9M0zaXRVsr0GFQLKbB/0rzy9SzA==}
 
   '@bcoe/v8-coverage@1.0.2':
     resolution: {integrity: sha512-6zABk/ECA/QYSCQ1NGiVwwbQerUCZ+TQbp64Q3AgmfNvurHH0j8TtXa1qbShXA6qqkpAj4V5W8pP6mLe1mcMqA==}
@@ -1486,13 +1489,13 @@ packages:
   '@floating-ui/utils@0.2.12':
     resolution: {integrity: sha512-HpCo8tmWzLVad5s2d19EhAz5zqrrQ6s69qd6moPMQvkOuSwDT1YgRfWSVuc4ennqrgv3OHppiOGMQ7oC13yIww==}
 
-  '@formatjs/cli-lib@9.0.9':
-    resolution: {integrity: sha512-eEr7rOC+ga1i1i0zKR7IA5Ifp4rpo8VWhMHoQStvIPxHuqR7TAo00zv/YuVpT2HD3bhpcNX6/2/Hi0YWZO9Kxw==}
-    engines: {node: '>= 20.12.0'}
+  '@formatjs/cli-lib@10.4.0':
+    resolution: {integrity: sha512-aE52caCg5VgCVhBjVlD2mAM45vHR1761H3u19/H6ahyHnVsYMLsIwr0ItXl+q+pNneGk72uGHXEfNEYgMpUQPw==}
+    engines: {node: '>= 22.12.0'}
     peerDependencies:
       '@glimmer/env': '*'
       '@glimmer/reference': '*'
-      '@glimmer/syntax': ^0.84.3 || ^0.95.0
+      '@glimmer/syntax': ^0.84.3 || ^0.95.0 || ^0.97.0
       '@glimmer/validator': '*'
       '@vue/compiler-core': '3'
       content-tag: '4'
@@ -1516,51 +1519,55 @@ packages:
       vue:
         optional: true
 
-  '@formatjs/cli-native-darwin-arm64@1.1.17':
-    resolution: {integrity: sha512-RB3OD7yKakaUXocjqAy6HSBDFGlyFaDIveO/GA6ddjWF7UBHt2YdyJyUYxaA0rNDvs2DTyqt8YKgMl1kqVVlYQ==}
+  '@formatjs/cli-native-darwin-arm64@1.1.37':
+    resolution: {integrity: sha512-1oA2iVZbteyABmG16iZ0Yv2AVnI7pOYIYYduS1TXwW5UZ7L0yOiLI5qH8Bxaw29j/t2+t4gZb9dSq0B1AIEbDQ==}
     cpu: [arm64]
     os: [darwin]
 
-  '@formatjs/cli-native-linux-arm64-musl@1.0.15':
-    resolution: {integrity: sha512-dmie/XV+sycRUEBY9GwDIteNEXm/WafsIELkINyrHV3mCLkhsZAgWf6CJ4a/ohQKV7LDkWiaaJ/rRLcEYFwZrA==}
+  '@formatjs/cli-native-darwin-x64@1.1.5':
+    resolution: {integrity: sha512-DcKBJRKd4rCFagZ3FC8cexl2Sws5AUWu7lzFCTsrxZHWPsdzJKXPAYNNAQnix0QO5goOYYYt8JoF+DApCzva3A==}
+    cpu: [x64]
+    os: [darwin]
+
+  '@formatjs/cli-native-linux-arm64-musl@1.0.35':
+    resolution: {integrity: sha512-JQF5UhLryDvdXu27JHH2RSJDDGlT+uy61eyoCZ3y4hu/MoJn4wAE6RMdWAti6NVCCjybpIJRWGxAtFOgqjBUBA==}
     cpu: [arm64]
     os: [linux]
     libc: [musl]
 
-  '@formatjs/cli-native-linux-arm64@1.2.17':
-    resolution: {integrity: sha512-t058WJ5nHDYdXTzwJt6EJ5xXNzHoEUG5hYCwBFkp1PvlTJok+vzaDiOnjNBxg/AWjxBWd324f3jpz5oIEL/c7w==}
+  '@formatjs/cli-native-linux-arm64@1.2.37':
+    resolution: {integrity: sha512-97x5AWiOn1JpDHlXUPZo6ieEe2z6JD5yzxGr01NzSf2M9GFqYvLtKUTzqYhsvDpw2LiWdAii8JJhZlgZubTDog==}
     cpu: [arm64]
     os: [linux]
     libc: [glibc]
 
-  '@formatjs/cli-native-linux-x64-musl@1.0.15':
-    resolution: {integrity: sha512-XaeyOB/VQ/QQGoTRZffRLbd/tUIGNTLM/OprzpZ+leuCuGT42qDNPlcTBRmzXaBLG5qsWKeBO34N95uE6AZfag==}
+  '@formatjs/cli-native-linux-x64-musl@1.0.35':
+    resolution: {integrity: sha512-IXA/CTuAyZ3LJ7CJ6pDviqcA9IIyhefO0XAkjYWJvxoxc7Q5SBqfeLhwyCNATIkGzQHQFP6pIqblJbKyA10wHQ==}
     cpu: [x64]
     os: [linux]
     libc: [musl]
 
-  '@formatjs/cli-native-linux-x64@1.1.17':
-    resolution: {integrity: sha512-p7xALk3DyLNGKirurKeLjRmaQpGh06pW6TIrx0EN7H8ccTreH3PIZD1FWapSqDeY1/8OKo3cMhioy/Qhq5nPAw==}
+  '@formatjs/cli-native-linux-x64@1.1.37':
+    resolution: {integrity: sha512-y7MjujUu4nU+H865VaACvHuFOumJyrOfERZaxEOBXoCdhBls9GyGamcCMpbt647SyeBiHmQ8Isd02+vyDjCPfQ==}
     cpu: [x64]
     os: [linux]
     libc: [glibc]
 
-  '@formatjs/cli-native-win32-x64@1.1.18':
-    resolution: {integrity: sha512-3d/R3nRmi56gXvVmzpEJixCAOam/F74RWqqTBLxnXEikMOhxSuGMRt99YynqvJIIJsn7tsVSBt2tg6T3cpms3w==}
+  '@formatjs/cli-native-win32-arm64@1.1.5':
+    resolution: {integrity: sha512-ePXuTSANOp11SVP1o+Wy7kn0xJw04pg2zSKSgjVYdp9dRk8kSo3sQZP5EFPKGw8p5qwbuynZB8QaNcuaXlBzpA==}
+    cpu: [arm64]
+    os: [win32]
+
+  '@formatjs/cli-native-win32-x64@1.1.38':
+    resolution: {integrity: sha512-KZ4V5WlacghTagd3oCfWXvqc6/wk9pyXS0ZmljmWKigQw40EtKwBRL49Wq7+DYIPFHhR2z4g1YLZElV9Bz5KPA==}
     cpu: [x64]
     os: [win32]
 
   '@formatjs/fast-memoize@3.1.7':
     resolution: {integrity: sha512-zXfhLpvA6T7+efdt9JLbBwZ00tT7NsBMDVnDu8rpHeNNv8KfRZAMo2gkG0k9lK/Nzc//3kJ9pImsfuJxk3KhUA==}
 
-  '@formatjs/icu-messageformat-parser@3.5.17':
-    resolution: {integrity: sha512-cN9jhVqT7u0K9tix43fhjoUwL0nazyW6zsNIXs2QdPADr+nurPfYyssUiMqcSCGlPcCiqnYVxgSn7zBSuI+5Bg==}
-
   '@formatjs/icu-messageformat-parser@3.5.23':
     resolution: {integrity: sha512-iB1fYfhtSGd8uH9A8b1m01Ujcv6QtQnJasefP3jPApmz72L/zNipzf3BdoinTMd1xuviVChjUJWL60iTwjUQ+w==}
-
-  '@formatjs/icu-skeleton-parser@2.1.11':
-    resolution: {integrity: sha512-j8cUmOJzVgkHuS0QiQ6ga76UIoLOFSAMWhs7aZJztH3aAdCOAE6vpC8KVvFB4cU10ON0y2/5oOVmPJ43s2lTwA==}
 
   '@formatjs/icu-skeleton-parser@2.1.13':
     resolution: {integrity: sha512-IdAJ9NrHn7AF0zqncD9UpxQozTYyJtbwwrZnJMEKVxTcOOXtVkUb2XYTpNOGTAv58NCsk0rjRB9G+i2SvBmGAQ==}
@@ -3334,9 +3341,9 @@ packages:
   comma-separated-tokens@2.0.3:
     resolution: {integrity: sha512-Fu4hJdvzeylCfQPp9SGWidpzrMs7tTrlu6Vb8XGaRGck8QSNZJJp538Wrb60Lax4fPwR64ViY468OIUTbRlGZg==}
 
-  commander@14.0.3:
-    resolution: {integrity: sha512-H+y0Jo/T1RZ9qPP4Eh1pkcQcLRglraJaSLoyOtHxu6AapkjWVCy2Sit1QQ4x3Dng8qDlSsZEet7g5Pq06MvTgw==}
-    engines: {node: '>=20'}
+  commander@15.1.0:
+    resolution: {integrity: sha512-cgnQ88TRrWcC7pVq46RzJVRMktu3W2RcbnoidnfBsl1bmDCBwJS/udcIZpKoCrbAYYaCqsz1yZCVIgbIaU3ddQ==}
+    engines: {node: '>=22.12.0'}
 
   commander@2.20.3:
     resolution: {integrity: sha512-GpVkmM8vF2vQUkj2LvZmD35JxeJOLCwJ9cUkugyk2nuhbv3+mJvpLYYt+0+USMxE+oj+ey/lJEnhZw75x/OMcQ==}
@@ -5199,6 +5206,8 @@ snapshots:
       '@babel/helper-string-parser': 8.0.6
       '@babel/helper-validator-identifier': 8.0.6
 
+  '@bazel/runfiles@6.5.0': {}
+
   '@bcoe/v8-coverage@1.0.2': {}
 
   '@biomejs/biome@2.6.8':
@@ -5573,54 +5582,57 @@ snapshots:
 
   '@floating-ui/utils@0.2.12': {}
 
-  '@formatjs/cli-lib@9.0.9':
+  '@formatjs/cli-lib@10.4.0':
     dependencies:
       '@babel/types': 8.0.6
-      '@formatjs/icu-messageformat-parser': 3.5.17
+      '@bazel/runfiles': 6.5.0
+      '@formatjs/icu-messageformat-parser': 3.5.23
       '@types/fs-extra': 11.0.4
       '@types/node': 24.19.2
-      commander: 14.0.3
+      commander: 15.1.0
       fast-glob: 3.3.3
       fs-extra: 11.4.1
       json-stable-stringify: 1.3.0
       loud-rejection: 2.2.0
     optionalDependencies:
-      '@formatjs/cli-native-darwin-arm64': 1.1.17
-      '@formatjs/cli-native-linux-arm64': 1.2.17
-      '@formatjs/cli-native-linux-arm64-musl': 1.0.15
-      '@formatjs/cli-native-linux-x64': 1.1.17
-      '@formatjs/cli-native-linux-x64-musl': 1.0.15
-      '@formatjs/cli-native-win32-x64': 1.1.18
+      '@formatjs/cli-native-darwin-arm64': 1.1.37
+      '@formatjs/cli-native-darwin-x64': 1.1.5
+      '@formatjs/cli-native-linux-arm64': 1.2.37
+      '@formatjs/cli-native-linux-arm64-musl': 1.0.35
+      '@formatjs/cli-native-linux-x64': 1.1.37
+      '@formatjs/cli-native-linux-x64-musl': 1.0.35
+      '@formatjs/cli-native-win32-arm64': 1.1.5
+      '@formatjs/cli-native-win32-x64': 1.1.38
 
-  '@formatjs/cli-native-darwin-arm64@1.1.17':
+  '@formatjs/cli-native-darwin-arm64@1.1.37':
     optional: true
 
-  '@formatjs/cli-native-linux-arm64-musl@1.0.15':
+  '@formatjs/cli-native-darwin-x64@1.1.5':
     optional: true
 
-  '@formatjs/cli-native-linux-arm64@1.2.17':
+  '@formatjs/cli-native-linux-arm64-musl@1.0.35':
     optional: true
 
-  '@formatjs/cli-native-linux-x64-musl@1.0.15':
+  '@formatjs/cli-native-linux-arm64@1.2.37':
     optional: true
 
-  '@formatjs/cli-native-linux-x64@1.1.17':
+  '@formatjs/cli-native-linux-x64-musl@1.0.35':
     optional: true
 
-  '@formatjs/cli-native-win32-x64@1.1.18':
+  '@formatjs/cli-native-linux-x64@1.1.37':
+    optional: true
+
+  '@formatjs/cli-native-win32-arm64@1.1.5':
+    optional: true
+
+  '@formatjs/cli-native-win32-x64@1.1.38':
     optional: true
 
   '@formatjs/fast-memoize@3.1.7': {}
 
-  '@formatjs/icu-messageformat-parser@3.5.17':
-    dependencies:
-      '@formatjs/icu-skeleton-parser': 2.1.11
-
   '@formatjs/icu-messageformat-parser@3.5.23':
     dependencies:
       '@formatjs/icu-skeleton-parser': 2.1.13
-
-  '@formatjs/icu-skeleton-parser@2.1.11': {}
 
   '@formatjs/icu-skeleton-parser@2.1.13': {}
 
@@ -6560,7 +6572,7 @@ snapshots:
   '@types/fs-extra@11.0.4':
     dependencies:
       '@types/jsonfile': 6.1.4
-      '@types/node': 25.9.9
+      '@types/node': 24.19.2
 
   '@types/geojson@7946.0.16': {}
 
@@ -6597,7 +6609,7 @@ snapshots:
 
   '@types/jsonfile@6.1.4':
     dependencies:
-      '@types/node': 25.9.9
+      '@types/node': 24.19.2
 
   '@types/mdast@4.0.4':
     dependencies:
@@ -6982,7 +6994,7 @@ snapshots:
 
   comma-separated-tokens@2.0.3: {}
 
-  commander@14.0.3: {}
+  commander@15.1.0: {}
 
   commander@2.20.3: {}
 
