@@ -8,6 +8,7 @@ import { useDragCursor } from '../../hooks/use-drag-cursor'
 import { keyMatcher, useKeyedStore } from '../../hooks/use-keyed-store'
 import { useScrollRegion } from '../../hooks/use-scroll-region'
 import { useSortableSensors } from '../../hooks/use-sortable-sensors'
+import { useControlLock } from '../../primitives/control/context'
 import { k } from '../../recipes/kata/kanban'
 import type { AccessibleName } from '../../types/accessible-name'
 import { KanbanContext, KanbanDragStateContext } from './context'
@@ -88,6 +89,10 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 }: KanbanProps<T, C>) {
 	const interactive = !disabled && !!onReorder
 
+	// The handle passes its key handler past the listeners of the grip, so the
+	// keyboard reads the lock itself. A lock ends a lift, as `disabled` does.
+	const locked = useControlLock()
+
 	const sensors = useSortableSensors({ keyboard: false })
 
 	// Without an id, dnd-kit makes the id of the drag description from a counter
@@ -119,7 +124,7 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 			columns,
 			getKey,
 			onReorder,
-			enabled: interactive,
+			enabled: interactive && !locked,
 			containerRef,
 		})
 

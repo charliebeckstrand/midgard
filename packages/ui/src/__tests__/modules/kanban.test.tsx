@@ -11,6 +11,7 @@ import {
 	KanbanColumnHeader,
 	KanbanColumnTitle,
 } from '../../modules/kanban'
+import { ControlLockContext } from '../../primitives/control/context'
 import { intlEn } from '../../primitives/intl/intl-catalog'
 import { reorderMessages } from '../../primitives/intl/intl-reorder'
 import {
@@ -705,6 +706,38 @@ describe('Kanban keyboard reorder', () => {
 
 		expect(document.activeElement).toBe(handle)
 
+		expect(onReorder).not.toHaveBeenCalled()
+	})
+
+	it('moves no card from the keyboard in a locked scope', () => {
+		const onReorder = vi.fn()
+
+		const { container, rerender } = renderUI(
+			<ControlLockContext value={false}>
+				<KeyboardBoard onReorder={onReorder} />
+			</ControlLockContext>,
+		)
+
+		// A lift that the lock finds ends, so the next arrow moves no card.
+		const handle = liftedCard(container)
+
+		rerender(
+			<ControlLockContext value>
+				<KeyboardBoard onReorder={onReorder} />
+			</ControlLockContext>,
+		)
+
+		expect(handle).toHaveAttribute('aria-disabled', 'true')
+
+		expect(handle).not.toBeDisabled()
+
+		fireEvent.keyDown(handle, { key: 'ArrowDown' })
+
+		fireEvent.keyDown(handle, { key: ' ' })
+
+		fireEvent.keyDown(handle, { key: 'ArrowDown' })
+
+		// The arrows still move the focus between the cards, and no card moves.
 		expect(onReorder).not.toHaveBeenCalled()
 	})
 

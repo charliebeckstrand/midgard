@@ -156,7 +156,9 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 		if (event.key === ' ') {
 			event.preventDefault()
 
-			toggleLift(cardId, describe)
+			// A surface that takes no lift, such as a locked board, ignores Space.
+			// The arrows still move the focus between the cards.
+			if (enabled) toggleLift(cardId, describe)
 
 			return
 		}
