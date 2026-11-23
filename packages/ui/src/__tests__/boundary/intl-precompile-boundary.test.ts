@@ -93,8 +93,6 @@ describe('intl precompile boundary', () => {
 			walkSource(
 				root,
 				(file, content) => {
-					if (!isSourceFile(file) || /\.test\.[cm]?tsx?$/.test(file)) return
-
 					try {
 						if (compileDescriptors(content, file) !== content) compiled++
 					} catch (error) {
@@ -102,6 +100,7 @@ describe('intl precompile boundary', () => {
 					}
 				},
 				skip,
+				(file) => isSourceFile(file) && !/\.test\.[cm]?tsx?$/.test(file),
 			)
 		}
 
