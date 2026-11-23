@@ -332,10 +332,14 @@ export function useResizablePanel({
 
 		const totalSize = orientation === 'horizontal' ? rect.width : rect.height
 
-		// Handle widths don't count toward the draggable size.
+		// Handle widths don't count toward the draggable size. Only this group's own
+		// handles count: a nested group's handles sit inside a panel, whose size
+		// already holds them, and on the cross axis they would add a wrong width.
 		let handleWidth = 0
 
-		for (const handle of group.querySelectorAll<HTMLElement>('[data-slot="resizable-handle"]')) {
+		for (const handle of group.querySelectorAll<HTMLElement>(
+			':scope > [data-slot="resizable-handle"]',
+		)) {
 			const box = handle.getBoundingClientRect()
 
 			handleWidth += orientation === 'horizontal' ? box.width : box.height

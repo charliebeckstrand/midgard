@@ -85,9 +85,14 @@ export function PdfViewerThumbnails() {
 
 	const sidebarRef = useRef<HTMLElement>(null)
 
+	// One Tab stop for the rail, with arrows between pages: each tile as a stop
+	// costs one Tab for each page to reach the resize handle or the viewport. The
+	// stop rests on the current page, and goes back to it when the page changes.
 	const handleSidebarKeyDown = useA11yRoving(sidebarRef, {
 		itemSelector: '[data-slot="pdf-viewer-thumbnail"]',
 		orientation: 'vertical',
+		manageTabIndex: true,
+		activeSelector: '[aria-current="page"]',
 	})
 
 	const intl = useIntl()
