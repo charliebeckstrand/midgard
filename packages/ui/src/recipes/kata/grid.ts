@@ -1017,7 +1017,9 @@ export const k = {
 				'px-1.5 py-0.5 whitespace-normal',
 				size.xs,
 				'text-white shadow',
-				...mode('bg-red-600', 'dark:bg-red-500'),
+				// White text on red-600 is 4.8:1 in each mode. The red-500 fill gives only
+				// 3.8:1, below the 4.5:1 of WCAG 1.4.3.
+				'bg-red-600',
 				// The fill and the shadow are the only edge of the message over the next
 				// row, and forced colors remove both.
 				forced.outline,
