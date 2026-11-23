@@ -8,7 +8,7 @@
  * the `body`, the `footer`, and the `skip` link.
  */
 import { defineKata, mode } from '../../core/recipe'
-import { dan, kasane, narabi, omote, sen, sou } from '../kiso'
+import { dan, kasane, narabi, omote, sou } from '../kiso'
 
 const { flex, offcanvas } = narabi
 const { gap, space } = dan
@@ -126,8 +126,11 @@ const content = [
 const header = [flex.row, 'shrink-0', space.shell.bottom]
 
 // The body grows into the free height of the content region, so the footer
-// sits at the bottom of a short page. It scrolls with the page.
-const body = ['flex-1', sen.focus.inset]
+// sits at the bottom of a short page. It scrolls with the page. It takes the
+// focus only from the skip link, and it is not a control, so it shows no focus
+// ring (WCAG 2.4.7 is for a control). The next Tab shows the focus in the
+// content.
+const body = ['flex-1', 'outline-none']
 
 // The skip link is first in the tab order. It is visually hidden until it has
 // the focus. Then it floats at the top center of the viewport, over the sticky

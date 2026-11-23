@@ -260,10 +260,43 @@ describe('SidebarLayout skip link', () => {
 		expect(main.id).not.toBe('')
 	})
 
-	it('lets a script focus the main slot, and keeps it out of the Tab order', () => {
+	it('makes the main slot focusable only from the skip link until it loses the focus', () => {
 		const { container } = page()
 
-		expect(bySlot(container, 'body')).toHaveAttribute('tabindex', '-1')
+		const main = present(bySlot(container, 'body'), 'main')
+
+		// A click on the text of the slot does not focus it.
+		expect(main).not.toHaveAttribute('tabindex')
+
+		act(() => {
+			fireEvent.click(skipLink())
+		})
+
+		expect(main).toHaveAttribute('tabindex', '-1')
+
+		act(() => {
+			main.blur()
+		})
+
+		expect(main).not.toHaveAttribute('tabindex')
+	})
+
+	it('keeps a tabIndex of the consumer on the main slot', () => {
+		const { container } = page(<SidebarLayoutBody tabIndex={0}>content</SidebarLayoutBody>)
+
+		const main = present(bySlot(container, 'body'), 'main')
+
+		act(() => {
+			fireEvent.click(skipLink())
+		})
+
+		expect(document.activeElement).toBe(main)
+
+		act(() => {
+			main.blur()
+		})
+
+		expect(main).toHaveAttribute('tabindex', '0')
 	})
 
 	it('moves the focus to the main slot, and leaves the hash', () => {

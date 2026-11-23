@@ -9,6 +9,8 @@ const page = () =>
 		<SidebarLayout sidebar={<a href="/home">Home</a>} navbar="Navbar">
 			<SidebarLayoutBody>
 				<button type="button">In the content</button>
+				<p>Text of the content</p>
+				<button type="button">After the text</button>
 			</SidebarLayoutBody>
 		</SidebarLayout>,
 	)
@@ -46,5 +48,17 @@ describe('the skip link of SidebarLayout (real browser)', () => {
 		await userEvent.keyboard('{Tab}')
 
 		expect(document.activeElement).toBe(screen.getByRole('button', { name: 'In the content' }))
+	})
+
+	it('continues the Tab order from a click on the text of the main slot', async () => {
+		const { container } = page()
+
+		await userEvent.click(screen.getByText('Text of the content'))
+
+		expect(document.activeElement).not.toBe(getSlot(container, 'body'))
+
+		await userEvent.keyboard('{Tab}')
+
+		expect(document.activeElement).toBe(screen.getByRole('button', { name: 'After the text' }))
 	})
 })

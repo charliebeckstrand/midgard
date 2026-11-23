@@ -278,7 +278,7 @@ export function SidebarLayout({
 		(event: MouseEvent) => {
 			event.preventDefault()
 
-			main?.focus()
+			if (main) focusSkipTarget(main)
 		},
 		[main],
 	)
@@ -472,8 +472,9 @@ const bodyClass = k().body
  * with the page at each width. It grows into the free height of the content
  * region, so the footer sits at the bottom of a short page. Inside the main
  * slot of another layout, it renders a `<div>`, so the page keeps one main
- * landmark. It is the target of the skip link of its layout, so a script can
- * give it the focus (`tabIndex={-1}`), and the Tab key does not stop on it.
+ * landmark. It is the target of the skip link of its layout. The link gives
+ * it `tabindex="-1"` until it loses the focus, so a click on its text does not
+ * move the start of the Tab order to the top of the slot.
  */
 export function SidebarLayoutBody({ className, ref, ...props }: SidebarLayoutBodyProps) {
 	const skip = use(SidebarLayoutContext)?.skip ?? null
@@ -486,13 +487,29 @@ export function SidebarLayoutBody({ className, ref, ...props }: SidebarLayoutBod
 			data-slot="body"
 			id={skip?.id}
 			{...props}
-			// The skip link needs a target that takes the focus, so a consumer
-			// `tabIndex` does not replace it.
-			tabIndex={skip ? -1 : props.tabIndex}
 			ref={setBody}
 			className={cn(bodyClass, className)}
 		/>
 	)
+}
+
+/**
+ * Moves the focus to the target of a skip link. A target that a script cannot
+ * focus takes `tabindex="-1"` until it loses the focus. A permanent
+ * `tabindex` would let a click on the text of the main slot focus the slot,
+ * and the next Tab would then go to the first control of the slot, and not to
+ * the control after the click.
+ *
+ * @internal
+ */
+function focusSkipTarget(target: HTMLElement) {
+	if (!target.hasAttribute('tabindex')) {
+		target.setAttribute('tabindex', '-1')
+
+		target.addEventListener('blur', () => target.removeAttribute('tabindex'), { once: true })
+	}
+
+	target.focus()
 }
 
 /** Props for {@link SidebarLayoutFooter} (`<footer>` attributes). */
