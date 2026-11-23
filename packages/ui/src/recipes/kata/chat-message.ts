@@ -201,7 +201,11 @@ export const k = defineKata({
 		 * summary de-emphasizes by weight instead.
 		 */
 		tool: {
-			base: ['rounded-xl border border-current/20 px-3 py-2'],
+			// The step fits its head, as an accordion in a host that fits its content
+			// does. The panel of the collapse adds nothing to the intrinsic width, so
+			// the step keeps one width while it opens, and the detail wraps at that
+			// width. A head wider than the bubble wraps at the width of the bubble.
+			base: ['w-fit max-w-full rounded-xl border border-current/20 px-3 py-2'],
 			slots: {
 				// The head wraps. A summary that does not fit beside the label goes to a
 				// line of its own and shows in full. The summary says what the step did,
