@@ -85,8 +85,9 @@ export default function EditAMessage() {
 
 	const { setValue } = draft
 
-	// The draft that the reader wrote before the edit. An end of the edit with no
-	// send gives it back, so an edit does not lose text that the reader typed.
+	// The draft that the reader wrote before the edit. Each end of the edit (a
+	// cancel, a send, or a switch of branch) gives it back, so an edit does not
+	// lose text that the reader typed.
 	const [held, setHeld] = useState<{ value: string; citations: readonly ChatCitation[] }>()
 
 	const end = () => {
