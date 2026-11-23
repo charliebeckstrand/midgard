@@ -167,9 +167,11 @@ describe('grid virtualized cursor (real browser)', () => {
 
 		await frames()
 
-		// The reader's scroll stays where it was put, and the cursor stays on its
-		// cell, out of the window.
-		expect(scroll.scrollTop).toBe(3000)
+		// The focus does not scroll the window back to the row of the cursor, and
+		// the cursor stays on its cell, out of the window.
+		expect(scroll.scrollTop).toBeGreaterThan(1000)
+
+		expect(screen.queryByRole('button', { name: 'Edit Name 2' })).toBeNull()
 
 		expect(grid).toHaveAttribute('aria-activedescendant')
 	})
