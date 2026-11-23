@@ -144,25 +144,39 @@ export type MapCategory = {
 	 * fixed order, so a category keeps its color when siblings toggle.
 	 */
 	color?: MapSeriesColor
-	/**
-	 * The step of the color. `'soft'` paints the region and its swatch in a
-	 * lighter step of the same hue, so a category can stand beside its full
-	 * tone: a lead that is not called yet beside a win, for example. `'tint'`
-	 * paints the region and its swatch in the full step at 35% alpha, so the
-	 * region reads as tinted ground under the marks that stand on it, such as
-	 * the dots of a `MapPoints`. The seams between the regions keep their full
-	 * ink. The tone also applies to `stripes`.
-	 *
-	 * @defaultValue 'solid'
-	 */
-	tone?: 'solid' | 'soft' | 'tint'
-	/**
-	 * A second color. The region then draws in diagonal stripes of `color` and
-	 * this color, and its legend and tooltip swatches show the same stripes:
-	 * a state whose seats split between two parties, for example.
-	 */
-	stripes?: MapSeriesColor
-}
+} & (
+	| {
+			/**
+			 * The step of the color. `'soft'` paints the region and its swatch in a
+			 * lighter step of the same hue, so a category can stand beside its full
+			 * tone: a lead that is not called yet beside a win, for example. `'tint'`
+			 * paints the region and its swatch in the full step at 35% alpha, so the
+			 * region reads as tinted ground under the marks that stand on it, such as
+			 * the dots of a `MapPoints`. The seams between the regions keep their full
+			 * ink.
+			 *
+			 * @defaultValue 'solid'
+			 */
+			tone?: 'solid' | 'soft' | 'tint'
+			stripes?: undefined
+	  }
+	| {
+			/**
+			 * The step of both colors of the stripes. A tint takes no stripes: the
+			 * swatch lays the second color over the first, and two inks at 35% alpha
+			 * blend into a color that no region shows.
+			 *
+			 * @defaultValue 'solid'
+			 */
+			tone?: 'solid' | 'soft'
+			/**
+			 * A second color. The region then draws in diagonal stripes of `color` and
+			 * this color, and its legend and tooltip swatches show the same stripes:
+			 * a state whose seats split between two parties, for example.
+			 */
+			stripes: MapSeriesColor
+	  }
+)
 
 /**
  * A picked overlay mark, in the pair its reporters hand back: the mark's `id`,

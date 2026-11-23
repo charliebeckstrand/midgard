@@ -13,8 +13,9 @@ const warehouses: { city: string; at: LngLat; loads: number }[] = [
 
 // The tint holds each zone back, so the states read as ground and the dots
 // carry the values.
-const tintedZones: MapCategory[] = zoneCategories.map((category) => ({
-	...category,
+const tintedZones: MapCategory[] = zoneCategories.map(({ value, color }) => ({
+	value,
+	color,
 	tone: 'tint',
 }))
 

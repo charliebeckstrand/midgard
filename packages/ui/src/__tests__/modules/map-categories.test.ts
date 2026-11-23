@@ -12,6 +12,7 @@ import {
 	resolveCategories,
 } from '../../modules/map/engine/map-region/category'
 import { rowsByRegion } from '../../modules/map/engine/map-region/data'
+import type { MapCategory } from '../../modules/map/engine/types'
 import type { MapSeriesColor } from '../../recipes/kata/map'
 import { k } from '../../recipes/kata/map'
 import { FIXTURE_ROWS } from '../helpers/map-geography'
@@ -47,6 +48,13 @@ describe('a category tone and stripes', () => {
 		expect(k.tint.green.fill).toEqual(k.series.green.fill.map((fill) => `${fill}/35`))
 
 		expect(k.tint.green.text).toEqual(k.series.green.text.map((text) => `${text}/35`))
+	})
+
+	it('takes no stripes in the tint, because two inks at 35% blend in the swatch', () => {
+		// @ts-expect-error A striped category takes `solid` or `soft` only.
+		const striped: MapCategory = { value: 'East', color: 'blue', stripes: 'red', tone: 'tint' }
+
+		expect(striped.stripes).toBe('red')
 	})
 
 	it('keeps the tint of each slot in step with the solid palette', () => {
