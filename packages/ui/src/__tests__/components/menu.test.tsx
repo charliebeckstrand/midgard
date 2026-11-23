@@ -593,6 +593,55 @@ describe('MenuContent', () => {
 		})
 	})
 
+	// A key that opens the menu moves the focus to the first row, so the repeats
+	// of a held key come to that row.
+	describe('ignores the auto-repeat of the key that opened the menu', () => {
+		it.each([
+			['Enter', 'Enter'],
+			['Space', ' '],
+		])('does not select a row on a repeat %s', (_name, key) => {
+			const onAction = vi.fn()
+
+			renderUI(
+				<Menu defaultOpen>
+					<MenuContent>
+						<MenuItem onAction={onAction}>Edit</MenuItem>
+					</MenuContent>
+				</Menu>,
+			)
+
+			const row = screen.getByRole('menuitem', { name: 'Edit' })
+
+			expect(fireEvent.keyDown(row, { key, repeat: true })).toBe(false)
+
+			expect(onAction).not.toHaveBeenCalled()
+
+			fireEvent.keyDown(row, { key })
+
+			expect(onAction).toHaveBeenCalledOnce()
+		})
+
+		it('cancels a repeat Enter on a link row, so the anchor does not navigate', () => {
+			const onAction = vi.fn()
+
+			renderUI(
+				<Menu defaultOpen>
+					<MenuContent>
+						<MenuItem href="#about" onAction={onAction}>
+							About
+						</MenuItem>
+					</MenuContent>
+				</Menu>,
+			)
+
+			const row = screen.getByRole('menuitem', { name: 'About' })
+
+			expect(fireEvent.keyDown(row, { key: 'Enter', repeat: true })).toBe(false)
+
+			expect(onAction).not.toHaveBeenCalled()
+		})
+	})
+
 	it('pulls focus into the panel when a right-click context menu opens', () => {
 		renderUI(
 			<Menu>
