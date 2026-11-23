@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { BarChart } from '../../modules/chart'
 import {
 	type ChatCitation,
 	ChatCitationProvider,
+	type ChatCitationTrigger,
 	ChatMessage,
 	toCategorySelection,
 } from '../../modules/chat'
@@ -32,12 +33,27 @@ const DATA = [
 const targets = { 'late-by-day': { label: 'Late stops by day' } }
 
 /** A chat beside a chart, as a dashboard holds them. */
-function Dashboard() {
+function Dashboard({
+	trigger,
+	onCitedChange,
+}: {
+	trigger?: ChatCitationTrigger
+	onCitedChange?: (citation: ChatCitation | null) => void
+}) {
 	const [cited, setCited] = useState<ChatCitation | null>(null)
 
 	return (
 		<>
-			<ChatCitationProvider targets={targets} cited={cited} onCitedChange={setCited}>
+			<ChatCitationProvider
+				targets={targets}
+				trigger={trigger}
+				cited={cited}
+				onCitedChange={(citation) => {
+					onCitedChange?.(citation)
+
+					setCited(citation)
+				}}
+			>
 				<ChatMessage sender="assistant">
 					{[{ kind: 'text', id: 't1', text: SOURCE, citations: [CITATION] }]}
 				</ChatMessage>
@@ -83,5 +99,42 @@ describe('Chat: a citation selects in a chart', () => {
 		await userEvent.keyboard('{Tab}')
 
 		expect(document.activeElement?.tagName).toBe('A')
+	})
+
+	it('previews on a hover across the pieces of the citation, and a click keeps it', async () => {
+		const onCitedChange = vi.fn()
+
+		const { container } = renderUI(
+			<Dashboard trigger={['hover', 'click']} onCitedChange={onCitedChange} />,
+		)
+
+		const bars = () => container.querySelector('[data-slot="chart-bar"]')
+
+		const anchor = page.getByRole('button', { name: 'from 4 to 14' })
+
+		const pieces = container.querySelectorAll('[data-slot="chat-citation-piece"]')
+
+		await userEvent.hover(anchor)
+
+		expect(bars()?.getAttribute('class')).toContain('opacity-25')
+
+		// The pointer that moves through the bold pieces stays on the citation.
+		for (const piece of pieces) await userEvent.hover(piece)
+
+		expect(onCitedChange).toHaveBeenCalledTimes(1)
+
+		await userEvent.hover(page.getByRole('link'))
+
+		expect(onCitedChange).toHaveBeenLastCalledWith(null)
+
+		expect(bars()?.getAttribute('class')).not.toContain('opacity-25')
+
+		await userEvent.click(anchor)
+
+		await userEvent.hover(page.getByRole('link'))
+
+		await expect.element(anchor).toHaveAttribute('aria-pressed', 'true')
+
+		expect(bars()?.getAttribute('class')).toContain('opacity-25')
 	})
 })
