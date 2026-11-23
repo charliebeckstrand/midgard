@@ -34,6 +34,37 @@ describe.each(['ltr', 'rtl'] as const)('pdf viewer rail handle, %s (real browser
 		else expect(handle.right).toBeLessThanOrEqual(list.left)
 	})
 
+	// The gutter of the handle is part of the space after a tile, not more space after it.
+	it('gives a tile the same space on each side', () => {
+		const { container } = renderUI(
+			<div dir={dir} style={{ width: 400, height: 500 }}>
+				<PdfViewer pages={pages} thumbnails="rail" fit="width" className="h-full" />
+			</div>,
+		)
+
+		const rail = getSlot(container, 'pdf-viewer-sidebar')
+
+		const list = getSlot(container, 'pdf-viewer-thumbnails')
+
+		const box = rail.getBoundingClientRect()
+
+		// The space that a classic scrollbar of the list takes. It is 0 for an overlay scrollbar.
+		const scrollbar = list.offsetWidth - list.clientWidth
+
+		// The rail has a border on its end edge only.
+		const border = rail.offsetWidth - rail.clientWidth
+
+		const tile = getSlot(container, 'pdf-viewer-thumbnail').getBoundingClientRect()
+
+		const start = dir === 'ltr' ? tile.left - box.left : box.right - tile.right
+
+		const end = (dir === 'ltr' ? box.right - tile.right : tile.left - box.left) - border - scrollbar
+
+		expect(start).toBeCloseTo(16, 0)
+
+		expect(end).toBeCloseTo(16, 0)
+	})
+
 	// A press 24px wide, over the full height of the rail: the gutter and 16px past the border.
 	it('takes a press on the full height of the line, 16px past the border', () => {
 		const { container } = renderUI(

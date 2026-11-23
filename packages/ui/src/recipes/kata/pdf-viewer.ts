@@ -232,7 +232,9 @@ export const k = defineKata({
 					flex.col,
 					'basis-0 grow shrink min-h-0',
 					dan.gap.scale.sm,
-					'overflow-y-auto px-4 pb-4',
+					// The end padding is 8px less than the start padding, because the rail adds the
+					// 8px gutter of its resize handle after it. The tiles thus have 16px on each side.
+					'overflow-y-auto ps-4 pe-2 pb-4',
 				],
 				grid: ['grid grid-cols-2', dan.gap.scale.sm],
 			},
