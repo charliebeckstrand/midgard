@@ -1,5 +1,4 @@
 import { type ReactNode, useState } from 'react'
-import { usePrefersReducedMotion } from 'ui/hooks'
 import { useLink } from 'ui/primitives/link'
 import { ReducedMotion } from 'ui/primitives/reduced-motion'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements.ts'
@@ -20,7 +19,8 @@ type HashAnchorProps = {
  * mark fades in, and its slot opens, so the text moves to the inline end. The
  * mark and the move show the focus, in place of the focus ring of the library.
  * A touch has no hover, so a tap does not show the mark. Under reduced motion,
- * the slot opens at once, and only the fade plays.
+ * the `ReducedMotion` root makes the slot open at once, because Motion skips a
+ * tween of the width, and only the fade plays.
  *
  * The mark is the content of a `::before` box, so it is not in the text of the
  * heading. A copy of the heading, a search of the page, and the name of the
@@ -34,8 +34,6 @@ export function HashAnchor({ to, children }: HashAnchorProps) {
 	const [hovered, setHovered] = useState(false)
 
 	const shown = focused || hovered
-
-	const still = usePrefersReducedMotion()
 
 	return (
 		<LinkComponent
@@ -52,7 +50,7 @@ export function HashAnchor({ to, children }: HashAnchorProps) {
 					className="inline-block text-blue-600 before:me-1.5 before:content-['#']"
 					initial={false}
 					animate={shown ? { width: 'auto', opacity: 1 } : { width: 0, opacity: 0 }}
-					transition={{ ...ugoki.glide, width: still ? ugoki.instant : ugoki.glide }}
+					transition={ugoki.glide}
 				/>
 			</ReducedMotion>
 			{children}
