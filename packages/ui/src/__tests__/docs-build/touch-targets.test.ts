@@ -189,11 +189,6 @@ const KNOWN: readonly { finding: string; paths: readonly string[]; reason: strin
 		reason: 'The eyedropper of the color panel is 38 px wide, beside the copy button.',
 	},
 	{
-		finding: 'crowded rating/rating-star',
-		paths: ['/rating'],
-		reason: 'A star of Rating is 20 px, and the stars touch.',
-	},
-	{
 		finding: 'crowded rating-star/rating-half',
 		paths: ['/rating'],
 		reason: 'A half of a star of Rating is 10 × 20 px, against the other half.',
