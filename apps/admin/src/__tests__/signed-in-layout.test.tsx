@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { requireSession, type Session } from 'auth'
 import { useState } from 'react'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import SignedInLayout from '../../app/(signed-in)/layout'
 
 vi.mock('auth', () => ({ requireSession: vi.fn() }))
@@ -38,6 +38,11 @@ async function layout(two_step: boolean) {
 }
 
 describe('SignedInLayout', () => {
+	// Each case counts the mounts of its own page, in any order of the cases.
+	beforeEach(() => {
+		mounts = 0
+	})
+
 	it('keeps the page mounted when the admin passes the second step', async () => {
 		const { rerender } = render(await layout(false))
 
@@ -47,5 +52,17 @@ describe('SignedInLayout', () => {
 		rerender(await layout(true))
 
 		expect(screen.getByText(/^Mount/).textContent).toBe('Mount 1')
+	})
+
+	it('puts the page of an admin in the main landmark, which the skip link targets', async () => {
+		render(await layout(true))
+
+		const main = screen.getByRole('main')
+
+		expect(main.contains(screen.getByText(/^Mount/))).toBe(true)
+
+		const skip = screen.getByRole('link', { name: 'Skip to content' })
+
+		expect(skip.getAttribute('href')).toBe(`#${main.id}`)
 	})
 })
