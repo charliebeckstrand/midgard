@@ -1,3 +1,4 @@
+import { lastInput } from '../../utilities/last-input'
 import { makeMediaQueryList } from '../helpers/stub-match-media'
 
 /**
@@ -248,4 +249,43 @@ if (!host[framesKept]) {
 	request(keep)
 
 	request(keep)
+}
+
+// jsdom 31 matches `:focus-visible` on each focused element, so the focus that
+// a click gives a button matches it. A browser matches it on a field that takes
+// text, after a key press, and on a script focus before the first input. It
+// does not match it on another element after a press of a pointer. The stub
+// reads the last input, as the browser does, so that a gate on `:focus-visible`
+// sees the focus that a browser shows.
+//
+// Vitest runs this file again before each test file on the shared window, so
+// the stub installs once, as the frame keeper does. Else each file wraps the
+// stub of the last file.
+const focusVisibleStubbed = Symbol.for('midgard.focusVisibleStubbed')
+
+const stubHost = window as Window & { [focusVisibleStubbed]?: true }
+
+if (!stubHost[focusVisibleStubbed]) {
+	stubHost[focusVisibleStubbed] = true
+
+	const elementMatches = Element.prototype.matches
+
+	const typeable =
+		'input:not([type="button"],[type="checkbox"],[type="color"],[type="file"],[type="image"],[type="radio"],[type="range"],[type="reset"],[type="submit"]),textarea,[contenteditable]:not([contenteditable="false"])'
+
+	function matches(this: Element, selectors: string): boolean {
+		if (selectors !== ':focus-visible') return elementMatches.call(this, selectors)
+
+		if (!elementMatches.call(this, ':focus')) return false
+
+		const input = lastInput()
+
+		return input === null || input === 'keyboard' || elementMatches.call(this, typeable)
+	}
+
+	Object.defineProperty(Element.prototype, 'matches', {
+		writable: true,
+		configurable: true,
+		value: matches,
+	})
 }
