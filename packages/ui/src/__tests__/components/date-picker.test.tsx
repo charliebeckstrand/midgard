@@ -1556,13 +1556,13 @@ describe('DatePicker input', () => {
 
 		await user.keyboard('{Enter}')
 
-		// Enter committed the typed date and blurred the field; it did not open the
-		// calendar the way the button-trigger variant's Enter does.
+		// Enter committed the typed date and kept the focus in the field; it did not
+		// open the calendar the way the button-trigger variant's Enter does.
 		expect(bySlot(container, 'datepicker-content')).not.toBeInTheDocument()
 
 		expect(onChange).toHaveBeenLastCalledWith(expect.any(Date))
 
-		expect(input).not.toHaveFocus()
+		expect(input).toHaveFocus()
 	})
 
 	it('roves the grid via aria-activedescendant while focus stays on the input', async () => {
