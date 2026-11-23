@@ -4,6 +4,7 @@ import {
 	type FocusEvent,
 	type ReactNode,
 	useLayoutEffect,
+	useRef,
 	useState,
 } from 'react'
 import { CodeBlock, primeCodeBlock } from 'ui/code'
@@ -422,6 +423,12 @@ export function ExampleFrame(
 
 	const size = useFrameSize(area, dragging || keyFocus)
 
+	// The width splitter comes after the box, and the pointer goes through it to
+	// the drag area. A press on the drag area moves the focus to the splitter,
+	// as a press on the height splitter does, so the arrow keys resize the
+	// frame after a drag.
+	const widthSplitter = useRef<HTMLHRElement>(null)
+
 	const splitterFocus = {
 		onFocus: (event: FocusEvent<HTMLElement>) =>
 			setKeyFocus(event.currentTarget.matches(':focus-visible')),
@@ -448,7 +455,15 @@ export function ExampleFrame(
 				{/* The drag area comes before the box, so the box can show the border as active. */}
 				<div
 					data-slot="example-resize"
-					onPointerDown={resize.handleProps.onPointerDown}
+					onPointerDown={(event) => {
+						// The default of the press would move the focus to the body, as the
+						// drag area takes no focus, so the press prevents it.
+						event.preventDefault()
+
+						widthSplitter.current?.focus({ preventScroll: true })
+
+						resize.handleProps.onPointerDown(event)
+					}}
 					data-dragging={resize.handleProps['data-dragging']}
 					className="peer absolute inset-y-0 -end-3 z-10 w-6 cursor-ew-resize touch-pan-y select-none pointer-coarse:pointer-events-none"
 				>
@@ -543,6 +558,7 @@ export function ExampleFrame(
 				    to the drag area, which comes first, so the box can show its border as
 				    active. */}
 				<Splitter
+					ref={widthSplitter}
 					label={intl.formatMessage(messages.resizeWidth)}
 					orientation="vertical"
 					value={resize.covers}

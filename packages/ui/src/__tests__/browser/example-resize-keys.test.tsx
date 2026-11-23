@@ -117,4 +117,32 @@ describe('ExampleFrame resize keys (real browser)', () => {
 
 		expect(container.querySelector('[data-slot="example-size"]')).toBeNull()
 	})
+
+	it('moves the focus to the width splitter on a press of the drag area', async () => {
+		const { container } = renderUI(
+			<div style={{ width: 800 }}>
+				<ExampleFrame meta={META}>
+					<button type="button">Instance</button>
+				</ExampleFrame>
+			</div>,
+		)
+
+		await nextPaint()
+
+		const frame = present(getSlot(container, 'example-resize').parentElement, 'the example frame')
+
+		screen.getByRole('button', { name: 'Instance' }).focus()
+
+		await userEvent.click(getSlot(container, 'example-resize'))
+
+		expect(document.activeElement).toBe(
+			screen.getByRole('separator', { name: 'Resize example width' }),
+		)
+
+		const start = frame.getBoundingClientRect().width
+
+		await userEvent.keyboard('{ArrowLeft}')
+
+		expect(frame.getBoundingClientRect().width).toBeLessThan(start)
+	})
 })
