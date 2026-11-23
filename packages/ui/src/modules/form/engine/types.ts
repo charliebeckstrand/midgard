@@ -105,8 +105,9 @@ export type FormHelpers<T> = {
 	 * Sets field errors, such as the errors of a server response.
 	 *
 	 * @remarks
-	 * A call that sets an issue fails the attempt, as a `{ fieldErrors }`
-	 * return does, so `onSettled` does not fire. A call from the handler of an attempt that a newer submit or an outside
+	 * An issue that a call sets fails the attempt, as a `{ fieldErrors }`
+	 * return does, so `onSettled` does not fire. A later clear of the field, or
+	 * `reset`, in the same attempt takes the issue back. A call from the handler of an attempt that a newer submit or an outside
 	 * reset superseded writes nothing.
 	 */
 	setErrors: (errors: Partial<Record<keyof T, string | string[]>>) => void
@@ -115,8 +116,9 @@ export type FormHelpers<T> = {
 	 * clears it with `null`. The next submit and a reset clear it too.
 	 *
 	 * @remarks
-	 * A call that sets an issue fails the attempt, as a `{ formError }` return
-	 * does, so `onSettled` does not fire. A call from the handler of an attempt that a newer submit or an outside
+	 * An issue that a call sets fails the attempt, as a `{ formError }` return
+	 * does, so `onSettled` does not fire. A later call with `null`, or `reset`,
+	 * in the same attempt takes the issue back. A call from the handler of an attempt that a newer submit or an outside
 	 * reset superseded writes nothing.
 	 */
 	setFormError: (formError: string | null) => void

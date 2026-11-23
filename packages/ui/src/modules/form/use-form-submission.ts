@@ -183,9 +183,13 @@ export function useFormSubmission<T extends Record<string, unknown>>({
 			// reset superseded resets in full, as an outside reset does, and writes
 			// no errors.
 			//
-			// A helper write that holds an issue fails the attempt, as a returned issue
-			// does.
-			let helperIssue = false
+			// The issues that the helpers of this attempt left, kept as the store keeps
+			// them: a field write merges by field, the issue of the whole form takes
+			// the last write, and a reset clears both. An issue that stays when the
+			// handler settles fails the attempt, as a returned issue does.
+			let helperFieldErrors: Record<string, string | string[] | undefined> = {}
+
+			let helperFormError = false
 
 			const helpers: FormHelpers<T> = {
 				setErrors: (fieldErrors) => {
@@ -193,17 +197,21 @@ export function useFormSubmission<T extends Record<string, unknown>>({
 
 					setErrors(fieldErrors)
 
-					if (hasFieldIssues(fieldErrors)) helperIssue = true
+					helperFieldErrors = { ...helperFieldErrors, ...fieldErrors }
 				},
 				setFormError: (message) => {
 					if (tokenRef.current !== token) return
 
 					setFormError(message)
 
-					if (message !== null) helperIssue = true
+					helperFormError = message !== null
 				},
 				reset: (nextDefaults) => {
 					if (tokenRef.current !== token) supersede()
+
+					helperFieldErrors = {}
+
+					helperFormError = false
 
 					resetForm(nextDefaults)
 				},
@@ -219,12 +227,12 @@ export function useFormSubmission<T extends Record<string, unknown>>({
 
 				// Apply the returned entries. This also clears each field whose entry
 				// has no issue. An entry with an issue, an issue of the whole form, or a
-				// helper write of an issue keeps the attempt mid-flow, and `onSettled`
+				// helper issue that stays keeps the attempt mid-flow, and `onSettled`
 				// does not fire. `''` normalizes to `['']`, an issue.
 				const failed =
-					helperIssue ||
+					helperFormError ||
 					formError !== null ||
-					(fieldErrors !== undefined && hasFieldIssues(fieldErrors))
+					hasFieldIssues({ ...helperFieldErrors, ...fieldErrors })
 
 				if (failed) {
 					// The write flushes, so the focus lands on a control that already

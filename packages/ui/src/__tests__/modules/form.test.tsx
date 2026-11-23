@@ -895,6 +895,49 @@ describe('Form', () => {
 		expect(onSettled).not.toHaveBeenCalled()
 	})
 
+	it.each([
+		[
+			'a clear of the issue of the whole form',
+			(helpers: FormHelpers<Values>) => {
+				helpers.setFormError('Retrying')
+
+				helpers.setFormError(null)
+			},
+		],
+		[
+			'a clear of the field',
+			(helpers: FormHelpers<Values>) => {
+				helpers.setErrors({ name: 'taken' })
+
+				helpers.setErrors({ name: undefined })
+			},
+		],
+		[
+			'a reset',
+			(helpers: FormHelpers<Values>) => {
+				helpers.setErrors({ name: 'taken' })
+
+				helpers.reset()
+			},
+		],
+	])('settles as a success when %s takes back a helper issue', async (_, write) => {
+		const onSettled = vi.fn()
+
+		const { container } = renderUI(
+			<Form
+				defaultValues={{ name: 'Ada' }}
+				onSubmit={(_values, helpers) => write(helpers)}
+				onSettled={onSettled}
+			>
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		await submit(container)
+
+		expect(onSettled).toHaveBeenCalledExactlyOnceWith({ ok: true, values: { name: 'Ada' } })
+	})
+
 	it('delivers { ok: true, values } to onSettled when onSubmit returns void', async () => {
 		const onSettled = vi.fn()
 
