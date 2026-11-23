@@ -563,6 +563,20 @@ describe('MapPlat', () => {
 			expect(bySlot(container, 'map-regions-lit')).toBeNull()
 		})
 
+		it('draws no lit copy for a controlled emphasis at mount', () => {
+			const { container, rerender } = renderUI(
+				categoricalPlat({ recede: false, emphasis: 'category:East' }),
+			)
+
+			expect(bySlot(container, 'map-regions-lit')).toBeNull()
+
+			rerender(categoricalPlat({ recede: false, emphasis: 'category:West' }))
+
+			expect(bySlot(container, 'map-regions-lit')).toBeNull()
+
+			expect(bySlot(container, 'map-regions-emphasized')).toBeNull()
+		})
+
 		it('recedes the dots under a pointed region by default', () => {
 			const { container } = renderUI(platWithDots())
 

@@ -410,7 +410,9 @@ export const MapRegions = memo(function MapRegions({
 	// a lit region never drops to the dim on its way ({@link useChartSpot}).
 	const litPointed = useChartSpot(pointed, receded)
 
-	const litEmphasis = useChartSpot(emphasis, receded)
+	// The spot seeds its held state with the first value, so a plat that does not
+	// recede passes no emphasis. A controlled emphasis at mount then lights nothing.
+	const litEmphasis = useChartSpot(recede ? emphasis : null, receded)
 
 	// One path for every ring: the ring takes no fill, so the outlines of two
 	// neighbors stroke their shared border twice in one ink, which does not show.
