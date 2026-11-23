@@ -5,6 +5,7 @@
  *
  * - `button`: the header button.
  * - `dot`: the report dot of the header button.
+ * - `ring`: the capture ring of the header button.
  * - `pin`: the Pin button of the sheet.
  * - `chevron`: the chevron slot of an entry.
  * - `text`: the text of an entry.
@@ -57,6 +58,15 @@ export const k = defineKata(
 				'absolute end-1 top-1 hidden size-1.5 rounded-full bg-red-500',
 				'[:root[data-events-reports]_&]:block',
 				forced.mark,
+			],
+			/**
+			 * The ring of the header button, which shows while a capture runs. The red
+			 * of the icon is not the only sign of the capture (WCAG 1.4.1). Forced
+			 * colors keep the border, so the ring stays.
+			 */
+			ring: [
+				'absolute end-1 bottom-1 hidden size-2 rounded-full border-2 border-red-600',
+				'[:root[data-events-capture]_&]:block',
 			],
 			/** The Pin button of the sheet, which shows in the inline layout only. */
 			pin: { responsive: { layout: narabi.offcanvas.inline.inlineFlex } },

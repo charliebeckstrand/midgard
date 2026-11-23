@@ -1,6 +1,6 @@
 'use client'
 
-import { memo } from 'react'
+import { memo, useId, useMemo } from 'react'
 import { Alert } from '../../../components/alert'
 import { Button } from '../../../components/button'
 import { HoldButton } from '../../../components/hold-button'
@@ -15,6 +15,7 @@ import { useIntl } from '../../../primitives/intl/use-intl'
 import { k } from '../../../recipes/kata/query-builder'
 import { Flex } from '../../../structure/flex'
 import { queryMessages } from '../engine/query-messages'
+import { formatQuerySummary } from '../engine/query-summary'
 import type { QueryCombinator, QueryGroup, QueryNode } from '../engine/types'
 import {
 	useDropIndex,
@@ -100,7 +101,8 @@ const QueryBuilderSeparator = memo(function QueryBuilderSeparator({
  * Renders one query group: its child rules and nested groups, each joined by an
  * AND/OR combinator segment, plus "add rule"/"add group" actions. The root
  * renders as a plain `<div>`; nested groups render as a labeled `<fieldset>`
- * with a hold-to-remove control. Memoized: the tree-edit helpers preserve the
+ * with a hold-to-remove control, and the summary of the subtree describes each
+ * one. Memoized: the tree-edit helpers preserve the
  * identity of untouched subtrees, so an edit re-renders only the affected group.
  * While a pointer drag from another group drops its node here, the group sets
  * `data-over` and passes the place of the drop to its nodes.
@@ -111,7 +113,7 @@ function QueryBuilderGroupImpl({
 	removable = true,
 	className,
 }: QueryBuilderGroupProps) {
-	const { disabled, allowGroups, requireRule, reorderable } = useQueryBuilderState()
+	const { fields, disabled, allowGroups, requireRule, reorderable } = useQueryBuilderState()
 
 	const { addRule, addGroup, remove } = useQueryBuilderActions()
 
@@ -137,6 +139,16 @@ function QueryBuilderGroupImpl({
 	// (implicit role=group) named by aria-label, exposing nesting to AT.
 	// Tailwind preflight zeroes fieldset border/margin/padding.
 	const Wrapper = root ? 'div' : 'fieldset'
+
+	// Each nested group has the same name, so the summary of its subtree
+	// describes it, and a reader can tell two groups apart (WCAG 1.3.1, 2.4.6).
+	// The root is the whole query, which the builder does not describe.
+	const summary = useMemo(
+		() => (root ? '' : formatQuerySummary(group, fields, intl)),
+		[root, group, fields, intl],
+	)
+
+	const summaryId = useId()
 
 	const node = (child: QueryNode) =>
 		child.type === 'group' ? (
@@ -179,8 +191,14 @@ function QueryBuilderGroupImpl({
 			data-combinator={group.combinator}
 			data-over={dataAttr(dropIndex !== null)}
 			aria-label={root ? undefined : intl.formatMessage(queryBuilderMessages.group)}
+			aria-describedby={summary ? summaryId : undefined}
 			className={cn(k({ nested: !root }).group, className)}
 		>
+			{summary && (
+				<span id={summaryId} hidden>
+					{summary}
+				</span>
+			)}
 			<div className={slots.group}>
 				{group.children.length === 0 ? (
 					<Alert

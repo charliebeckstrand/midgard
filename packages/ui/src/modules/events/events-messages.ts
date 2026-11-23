@@ -14,6 +14,24 @@ export const eventsMessages = defineMessages({
 		description:
 			'The name of the debug tool that lists the events of the page, of its button, and of its list.',
 	},
+	eventsCapturing: {
+		id: 'ui.events.eventsCapturing',
+		defaultMessage: 'Events, capture running',
+		description:
+			'The name of the header button of the debug tool while a capture records the events.',
+	},
+	eventsReports: {
+		id: 'ui.events.eventsReports',
+		defaultMessage: 'Events, bug reports held',
+		description:
+			'The name of the header button of the debug tool while the tool holds a bug report.',
+	},
+	eventsCapturingReports: {
+		id: 'ui.events.eventsCapturingReports',
+		defaultMessage: 'Events, capture running, bug reports held',
+		description:
+			'The name of the header button of the debug tool while a capture records the events and the tool holds a bug report.',
+	},
 	bugs: {
 		id: 'ui.events.bugs',
 		defaultMessage: 'Bugs',
@@ -24,11 +42,6 @@ export const eventsMessages = defineMessages({
 		defaultMessage: 'View',
 		description:
 			'The name of the control that switches the debug tool between its events and its bugs.',
-	},
-	viewReport: {
-		id: 'ui.events.viewReport',
-		defaultMessage: 'View',
-		description: 'The name of the button that opens one bug report of the debug tool.',
 	},
 	delete: {
 		id: 'ui.events.delete',

@@ -1,5 +1,6 @@
 import { renderHook } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
+import { createRule } from '../../modules/query/engine/query-node'
 import type { QueryField } from '../../modules/query/engine/types'
 import type { QueryBuilderActions } from '../../modules/query/query-builder/context'
 import {
@@ -25,8 +26,8 @@ const stateValue = {
 const actionsValue: QueryBuilderActions = {
 	updateRule: () => {},
 	updateCombinator: () => {},
-	addRule: () => {},
-	addGroup: () => {},
+	addRule: () => createRule(fields[0]),
+	addGroup: () => createRule(fields[0]),
 	remove: () => {},
 	move: () => {},
 	moveInto: () => {},

@@ -22,7 +22,7 @@ import {
 	summarizeQuery,
 } from './engine/query-summary'
 import type { QueryField, QueryGroup } from './engine/types'
-import { useQueryRemovalFocus } from './use-query-removal-focus'
+import { useQueryFocus } from './use-query-focus'
 import { useQueryTree } from './use-query-tree'
 
 const messages = defineMessages<{
@@ -224,7 +224,7 @@ export function QueryChips({
 	// Each remove button registers here by rule id. A removal gives its focus
 	// ladder, and focus moves after the rule leaves the tree. With no chip left,
 	// the row takes focus with its empty text.
-	const { register, focusFirst } = useQueryRemovalFocus<HTMLButtonElement>(root, () =>
+	const { register, focusFirst } = useQueryFocus<HTMLButtonElement>(root, () =>
 		rowRef.current?.focus(),
 	)
 

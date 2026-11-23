@@ -4,14 +4,16 @@ import { useCallback, useMemo } from 'react'
 import { useControllable } from '../../hooks/use-controllable'
 import { createGroup, createRule } from './engine/query-node'
 import { addChild, mapNode, moveChild, moveChildInto, removeChild } from './engine/query-tree'
-import type { QueryCombinator, QueryField, QueryGroup, QueryRule } from './engine/types'
+import type { QueryCombinator, QueryField, QueryGroup, QueryNode, QueryRule } from './engine/types'
 
 /** Tree-edit actions over a query root; each is referentially stable across edits. @internal */
 export type QueryTreeActions = {
 	updateRule: (id: string, patch: Partial<QueryRule>) => void
 	updateCombinator: (id: string, combinator: QueryCombinator) => void
-	addRule: (groupId: string) => void
-	addGroup: (groupId: string) => void
+	/** Adds a rule at the end of a group, and gives the new rule. */
+	addRule: (groupId: string) => QueryNode
+	/** Adds a group that holds one rule at the end of a group, and gives the new group. */
+	addGroup: (groupId: string) => QueryNode
 	remove: (id: string) => void
 	/** Moves a node to `toIndex` in its own group. Each combinator stays in its position. */
 	move: (id: string, toIndex: number) => void
@@ -88,20 +90,25 @@ export function useQueryTree({
 		[setTree, initial],
 	)
 
-	const addRule = useCallback(
-		(groupId: string) => {
-			setTree((prev) => addChild(prev ?? initial, groupId, createRule(fields[0])))
+	// The node is made before the update, so the caller knows its id, and a
+	// second run of the updater adds the same node.
+	const add = useCallback(
+		(groupId: string, node: QueryNode) => {
+			setTree((prev) => addChild(prev ?? initial, groupId, node))
+
+			return node
 		},
-		[setTree, initial, fields],
+		[setTree, initial],
+	)
+
+	const addRule = useCallback(
+		(groupId: string) => add(groupId, createRule(fields[0])),
+		[add, fields],
 	)
 
 	const addGroup = useCallback(
-		(groupId: string) => {
-			setTree((prev) =>
-				addChild(prev ?? initial, groupId, createGroup('and', [createRule(fields[0])])),
-			)
-		},
-		[setTree, initial, fields],
+		(groupId: string) => add(groupId, createGroup('and', [createRule(fields[0])])),
+		[add, fields],
 	)
 
 	const remove = useCallback(
