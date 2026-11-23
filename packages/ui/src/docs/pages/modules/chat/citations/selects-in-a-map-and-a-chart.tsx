@@ -8,6 +8,7 @@ import {
 	toCategorySelection,
 	toStopSelection,
 } from 'ui/chat'
+import { useMediaQuery } from 'ui/hooks'
 import { MapPlat, MapPoints } from 'ui/map'
 import { ResizableGroup, ResizableHandle, ResizablePanel } from 'ui/resizable'
 import { Stack } from 'ui/stack'
@@ -146,6 +147,51 @@ export default function SelectsInAMapAndAChart() {
 
 	const pickedDays = filter === null ? undefined : [filter]
 
+	// At phone width, half of the column is too narrow for the map, so the panes
+	// stack. A resizable group puts its panels side by side only.
+	const wide = useMediaQuery('(width >= 40rem)')
+
+	const map = (
+		<Pane title="Late stops" onClear={cited?.target === 'late-stops' ? clearCited : undefined}>
+			<MapPlat
+				aria-label="Late stops"
+				geography={states}
+				projection="albers-usa"
+				// The title of the pane names the one group of dots, as the title of
+				// the chart names its one series. A legend would only take height
+				// from the map.
+				legend={false}
+				selectedOverlays={
+					active?.target === 'late-stops'
+						? toStopSelection(active.selector, 'stops', getIndex)
+						: undefined
+				}
+			>
+				<MapPoints id="stops" label="Late stops" points={shown} />
+			</MapPlat>
+		</Pane>
+	)
+
+	const chart = (
+		<Pane
+			title="Late stops by day"
+			onClear={cited?.target === 'late-by-day' || picked !== null ? clearChart : undefined}
+		>
+			<BarChart
+				aria-label="Late stops by day"
+				data={data}
+				series={[{ xKey: 'day', yKey: 'late', yName: 'Late stops' }]}
+				// A previewed or cited citation marks its bar. Without one, the bar
+				// of the reader's own pick is marked.
+				selectedCategories={
+					active?.target === 'late-by-day' ? toCategorySelection(active.selector) : pickedDays
+				}
+				// A pick of the reader filters the map and clears the citation.
+				onCategoryClick={pick}
+			/>
+		</Pane>
+	)
+
 	return (
 		<Stack gap="lg">
 			<ChatCitationProvider
@@ -161,51 +207,22 @@ export default function SelectsInAMapAndAChart() {
 			{/* The handle between the panes resizes both at once. Each surface keeps its
 			    aspect ratio, so it gets taller as its pane gets wider, and the taller
 			    surface sets the height of the group. */}
-			<ResizableGroup>
-				<ResizablePanel defaultSize={50} minSize={30}>
-					<Pane
-						title="Late stops"
-						onClear={cited?.target === 'late-stops' ? clearCited : undefined}
-					>
-						<MapPlat
-							aria-label="Late stops"
-							geography={states}
-							projection="albers-usa"
-							// The title of the pane names the one group of dots, as the title of
-							// the chart names its one series. A legend would only take height
-							// from the map.
-							legend={false}
-							selectedOverlays={
-								active?.target === 'late-stops'
-									? toStopSelection(active.selector, 'stops', getIndex)
-									: undefined
-							}
-						>
-							<MapPoints id="stops" label="Late stops" points={shown} />
-						</MapPlat>
-					</Pane>
-				</ResizablePanel>
-				<ResizableHandle aria-label="Resize the map and the chart" />
-				<ResizablePanel defaultSize={50} minSize={30}>
-					<Pane
-						title="Late stops by day"
-						onClear={cited?.target === 'late-by-day' || picked !== null ? clearChart : undefined}
-					>
-						<BarChart
-							aria-label="Late stops by day"
-							data={data}
-							series={[{ xKey: 'day', yKey: 'late', yName: 'Late stops' }]}
-							// A previewed or cited citation marks its bar. Without one, the bar
-							// of the reader's own pick is marked.
-							selectedCategories={
-								active?.target === 'late-by-day' ? toCategorySelection(active.selector) : pickedDays
-							}
-							// A pick of the reader filters the map and clears the citation.
-							onCategoryClick={pick}
-						/>
-					</Pane>
-				</ResizablePanel>
-			</ResizableGroup>
+			{wide ? (
+				<ResizableGroup>
+					<ResizablePanel defaultSize={50} minSize={30}>
+						{map}
+					</ResizablePanel>
+					<ResizableHandle aria-label="Resize the map and the chart" />
+					<ResizablePanel defaultSize={50} minSize={30}>
+						{chart}
+					</ResizablePanel>
+				</ResizableGroup>
+			) : (
+				<Stack gap="lg">
+					{map}
+					{chart}
+				</Stack>
+			)}
 		</Stack>
 	)
 }

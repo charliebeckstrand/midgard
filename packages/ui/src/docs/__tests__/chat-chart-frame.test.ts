@@ -49,6 +49,29 @@ function openPanel(before: string): string | null {
 	return before.slice(start, before.indexOf('>', start) + 1)
 }
 
+/**
+ * The code before each place where the demo draws a chart. A chart in a
+ * `const`, such as `const chart = (<Pane>…</Pane>)`, draws where the demo
+ * writes `{chart}`, so each such use is a place. Otherwise the chart draws
+ * where it is written.
+ */
+function drawSites(code: string, before: string): string[] {
+	const holder = Array.from(before.matchAll(/\n\tconst (\w+) = \(\n/g)).at(-1)
+
+	// The chart is in the `const` only when the `const` has not closed before it.
+	if (holder === undefined || before.includes('\n\t)\n', holder.index)) return [before]
+
+	const use = `{${holder[1]}}`
+
+	const sites: string[] = []
+
+	for (let at = code.indexOf(use); at !== -1; at = code.indexOf(use, at + 1)) {
+		sites.push(code.slice(0, at))
+	}
+
+	return sites
+}
+
 describe('the chat demos with a chart that keeps its ratio', () => {
 	const files = demoFiles().filter((file) => findRatioCharts(read(file)).length > 0)
 
@@ -57,14 +80,21 @@ describe('the chat demos with a chart that keeps its ratio', () => {
 	})
 
 	it.each(files)('%s puts each such chart in a resizable panel at half the column', (file) => {
-		for (const { before } of findRatioCharts(read(file))) {
-			const panel = openPanel(before)
+		const code = read(file)
 
-			expect(panel).not.toBeNull()
+		for (const { before } of findRatioCharts(code)) {
+			// A demo can stack its panes at phone width, so one place in a panel is enough.
+			const panels = drawSites(code, before)
+				.map(openPanel)
+				.filter((panel) => panel !== null)
 
-			expect(panel).toContain('defaultSize={50}')
+			expect(panels).not.toEqual([])
 
-			expect(panel).toContain('minSize={30}')
+			for (const panel of panels) {
+				expect(panel).toContain('defaultSize={50}')
+
+				expect(panel).toContain('minSize={30}')
+			}
 		}
 	})
 })
