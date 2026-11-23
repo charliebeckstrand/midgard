@@ -1,10 +1,12 @@
 'use client'
 
 import {
+	defaultRangeExtractor,
 	elementScroll,
 	measureElement,
 	observeElementOffset,
 	observeElementRect,
+	type Range,
 	type VirtualItem,
 	Virtualizer,
 	type VirtualizerOptions,
@@ -69,6 +71,16 @@ export type VirtualWindowOptions = {
 	 * @defaultValue `{ width: 0, height: 0 }`
 	 */
 	initialRect?: { width: number; height: number }
+	/**
+	 * The indices of the items that the window renders also when they are out of
+	 * view. A list keeps the row that holds focus, or the row that
+	 * `aria-activedescendant` names, so a scroll does not unmount it. Each kept
+	 * item renders at its true position, and `gaps` gives the height of the rows
+	 * between it and the window. The window ignores an index outside the list.
+	 *
+	 * @defaultValue []
+	 */
+	keep?: readonly number[]
 }
 
 /**
@@ -457,6 +469,20 @@ function syncScrollHeight(instance: Virtualizer<HTMLElement, Element>): void {
 	if (Math.abs(height - rect.height) > 1) instance.scrollRect = { ...rect, height }
 }
 
+/**
+ * The range extractor of a window that keeps items out of view. It gives the
+ * default range, plus each kept index in the list, in index order. @internal
+ */
+function keepRange(keep: readonly number[]): (range: Range) => number[] {
+	return (range) => {
+		const indexes = new Set(defaultRangeExtractor(range))
+
+		for (const index of keep) if (index >= 0 && index < range.count) indexes.add(index)
+
+		return [...indexes].sort((a, b) => a - b)
+	}
+}
+
 /** The options that {@link useWindowVirtualizer} passes through. @internal */
 type WindowVirtualizerOptions = Omit<
 	VirtualizerOptions<HTMLElement, Element>,
@@ -622,6 +648,18 @@ type VirtualWindow = {
 	 */
 	bottomSpacer: number
 	/**
+	 * For each item of `virtualItems`, the height in pixels of the rows that the
+	 * window does not render between that item and the item before it. It is 0
+	 * for the first item, because `topSpacer` comes before it. Only an item that
+	 * `keep` holds out of view makes a gap larger than 0.
+	 */
+	gaps: readonly number[]
+	/**
+	 * The index of the last item of the window, or -1 while the window is empty.
+	 * An item that `keep` holds after the window does not count.
+	 */
+	lastIndex: number
+	/**
 	 * Scrolls the item at `index` into the window, mounting it if it was outside
 	 * it. `behavior: 'smooth'` glides there, and the default jumps. It reads the
 	 * live height of the scroller first, so a call in the frame where the
@@ -720,6 +758,16 @@ type MeasuredVirtualWindow = VirtualWindow & {
  * window can resolve. A caller that draws stand-in rows while the window is
  * empty, such as a skeleton, can leave this spacer out until rows render.
  *
+ * A caller can keep items mounted out of view through `keep`, as the
+ * `rangeExtractor` of TanStack Virtual does for a pinned index. A grid body
+ * keeps the row of its cursor and the row that holds focus. A scroll by the
+ * wheel or the scrollbar then does not unmount an open editor, and
+ * `aria-activedescendant` names a cell in the document. A kept item renders
+ * at its true position, and its gap in `gaps` stands in for the rows between
+ * it and the window. The spacers and `lastIndex` stay those of the window.
+ * The start anchor reads each rendered item, and a kept item above the top
+ * edge ends above it, so the anchor does not record it.
+ *
  * The flat grid body stays on the uniform path. The client-grouped body and
  * the master-detail body take the measured path under `virtualize`. Their
  * headers, totals, and detail panels do not share one height. Each keeps a
@@ -744,6 +792,7 @@ export function useVirtualWindow({
 	scrollPaddingStart,
 	scrollPaddingEnd,
 	initialRect,
+	keep,
 	getItemKey,
 	anchorTo,
 	followOnAppend,
@@ -754,6 +803,16 @@ export function useVirtualWindow({
 	const getSize = useMemo(
 		() => (typeof estimateSize === 'number' ? () => estimateSize : estimateSize),
 		[estimateSize],
+	)
+
+	// The kept indices as a value, so a new array with the same indices keeps the
+	// range extractor, and the virtualizer computes the same items. With no kept
+	// index, the extractor stays the library default.
+	const keepKey = keep?.join(',') ?? ''
+
+	const rangeExtractor = useMemo(
+		() => (keepKey === '' ? undefined : keepRange(keepKey.split(',').map(Number))),
+		[keepKey],
 	)
 
 	// An undefined `getItemKey` leaves the library's index key in place: the
@@ -778,6 +837,7 @@ export function useVirtualWindow({
 			scrollPaddingStart,
 			scrollPaddingEnd,
 			initialRect,
+			rangeExtractor,
 			getItemKey,
 			anchorTo,
 			followOnAppend,
@@ -831,6 +891,23 @@ export function useVirtualWindow({
 	// Without this it measures zero, and the window stays empty for good.
 	const bottomSpacer = lastItem ? totalSize - (lastItem.end - margin) : totalSize
 
+	// The items are in index order. Two neighbors of the window touch, so only a
+	// kept item out of view has a gap to the item before it.
+	const rowGap = gap ?? 0
+
+	const gaps = virtualItems.map((item, at) => {
+		const before = virtualItems[at - 1]
+
+		return before ? Math.max(0, item.start - before.end - rowGap) : 0
+	})
+
+	// The window ends where the default range ends: the overscan after the last
+	// row in view.
+	const lastIndex =
+		virtualItems.length === 0 || rendered.end === null
+			? -1
+			: Math.min(rendered.end + overscan, count - 1)
+
 	// The state that this render read. A virtualizer change that keeps it renders
 	// nothing.
 
@@ -872,6 +949,8 @@ export function useVirtualWindow({
 		virtualItems,
 		topSpacer,
 		bottomSpacer,
+		gaps,
+		lastIndex,
 		scrollToIndex,
 		measureRef,
 	}

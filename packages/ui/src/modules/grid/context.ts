@@ -146,6 +146,13 @@ export type GridNavStore = {
 	fillHandle: GridFillHandle | null
 	/** Whether the cursor sits on the one-stop row with this item key. */
 	isStopActive: (key: string) => boolean
+	/**
+	 * The key by which a windowed body names the row of the cursor, as the
+	 * cursor scrolls a row into the window: the item key under a published
+	 * order, else the data row index. It is `null` when the cursor is not on a
+	 * body row. A windowed body keeps that row mounted out of view.
+	 */
+	activeKey: () => string | number | null
 	/** The element id of the one cell of a one-stop row, matched by `aria-activedescendant`. */
 	stopId: (key: string) => string
 	/** Seats the cursor on the one-stop row with this item key, as a click on it does. */
