@@ -59,6 +59,11 @@ export const k = defineKata(
 				'focus-visible:outline-none',
 				...disabled.base,
 				...cursor,
+				// The open header of an accordion that is not collapsible has
+				// `aria-disabled`: a press does not close it. Thus it shows the default
+				// cursor. The `enabled` term makes the rule stop on a disabled item, which
+				// keeps `not-allowed`.
+				'aria-disabled:enabled:cursor-default',
 			],
 			indicator: [
 				'shrink-0',
