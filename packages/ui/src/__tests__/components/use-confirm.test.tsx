@@ -1,3 +1,4 @@
+import { type RefObject, useRef, useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { type ConfirmFunction, useConfirm } from '../../components/confirm'
 import { UIProvider } from '../../providers/ui'
@@ -213,5 +214,111 @@ describe('useConfirm', () => {
 		await ask()
 
 		expect(target).toContainElement(screen.getByRole('alertdialog'))
+	})
+
+	describe('focus at the close', () => {
+		/** A list whose rows each delete themselves after a confirm. */
+		function Rows({
+			initial,
+			after,
+		}: {
+			initial: string[]
+			after?: RefObject<HTMLElement | null>
+		}) {
+			const confirm = useConfirm()
+
+			const [rows, setRows] = useState(initial)
+
+			return (
+				<ul>
+					{rows.map((row) => (
+						<li key={row}>
+							<span>{row}</span>
+							<button
+								type="button"
+								// The action removes the row while the dialog is open, so the
+								// control that asked is gone when the dialog closes.
+								onClick={() =>
+									confirm({
+										confirm: { label: 'Delete' },
+										returnFocusTo: after,
+										action: () => setRows((list) => list.filter((item) => item !== row)),
+									})
+								}
+							>
+								Delete {row}
+							</button>
+						</li>
+					))}
+				</ul>
+			)
+		}
+
+		/** Asks from the button of `row`, confirms, and waits for the dialog to leave. */
+		async function deleteRow(row: string) {
+			const button = screen.getByRole('button', { name: `Delete ${row}` })
+
+			button.focus()
+
+			fireEvent.click(button)
+
+			await screen.findByRole('alertdialog')
+
+			fireEvent.click(screen.getByRole('button', { name: 'Delete' }))
+
+			await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument())
+		}
+
+		it('moves the focus into the nearest ancestor when the asking control is gone', async () => {
+			renderUI(
+				<UIProvider>
+					<Rows initial={['A', 'B']} />
+				</UIProvider>,
+			)
+
+			await deleteRow('A')
+
+			await waitFor(() => expect(screen.getByRole('button', { name: 'Delete B' })).toHaveFocus())
+		})
+
+		it('goes on up when the nearest ancestor holds no control', async () => {
+			renderUI(
+				<UIProvider>
+					<div>
+						<Rows initial={['A']} />
+						<button type="button">Add row</button>
+					</div>
+				</UIProvider>,
+			)
+
+			await deleteRow('A')
+
+			await waitFor(() => expect(screen.getByRole('button', { name: 'Add row' })).toHaveFocus())
+		})
+
+		it('gives the focus to returnFocusTo', async () => {
+			function Page() {
+				const after = useRef<HTMLButtonElement>(null)
+
+				return (
+					<>
+						<Rows initial={['A', 'B']} after={after} />
+						<button ref={after} type="button">
+							Add row
+						</button>
+					</>
+				)
+			}
+
+			renderUI(
+				<UIProvider>
+					<Page />
+				</UIProvider>,
+			)
+
+			await deleteRow('A')
+
+			await waitFor(() => expect(screen.getByRole('button', { name: 'Add row' })).toHaveFocus())
+		})
 	})
 })
