@@ -3,6 +3,7 @@
 import { createContext } from '../../core/create-context'
 import type { ChatCitation } from './engine/chat-content/types'
 import type { ChatCitationTargets, ChatEmbedRegistry } from './types'
+import type { ChatCitationActions, ChatCitationTrigger } from './use-chat-citation-trigger'
 
 /**
  * True when a {@link ChatListItem} renders inside a {@link ChatList}. The list
@@ -70,20 +71,22 @@ export const [ChatRowContext, useChatRowKey] = createContext<string | number | u
 
 /**
  * The citations in scope, as {@link ChatCitationProvider} supplied them: the
- * views that a citation can select in, the active citation, the call that
- * changes it, and the test for a citation that the selection of a view matches.
+ * views that a citation can select in, the test for a citation that the
+ * selection of a view matches, the trigger, and the calls that the pieces of a
+ * citation make. The calls hold the active citation and the call that changes
+ * it.
  *
  * @internal
  */
 export type ChatCitationScope = {
 	targets: ChatCitationTargets
-	cited: ChatCitation | null
-	onCitedChange?: (citation: ChatCitation | null) => void
 	isMarked?: (citation: ChatCitation) => boolean
+	trigger?: ChatCitationTrigger
+	actions?: ChatCitationActions
 }
 
 /** The scope with no target: each citation renders as prose. @internal */
-const NO_CITATIONS: ChatCitationScope = { targets: {}, cited: null }
+const NO_CITATIONS: ChatCitationScope = { targets: {} }
 
 /**
  * The citations in scope. Optional context with an empty default, as the embed
