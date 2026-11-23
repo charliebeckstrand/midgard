@@ -120,6 +120,56 @@ describe('grid virtualized cursor (real browser)', () => {
 		expect(scroll.scrollTop).toBe(1520)
 	})
 
+	// A scroll by the wheel or the scrollbar unmounts the row that holds focus,
+	// and focus fell to the page with no event to tell the grid.
+	it('takes focus back on the grid when the window unmounts the focused control', async () => {
+		renderUI(
+			<div style={{ width: '320px' }}>
+				<Grid
+					navigable
+					virtualize={{ estimateSize: 36, overscan: 2 }}
+					maxHeight="180px"
+					columns={[
+						...columns,
+						{ id: 'actions', actions: (row) => <button type="button">Edit {row.name}</button> },
+					]}
+					rows={rows}
+					getKey={getKey}
+				/>
+			</div>,
+		)
+
+		const scroll = present(
+			document.querySelector<HTMLElement>('[data-slot="grid-scroll"]'),
+			'[data-slot="grid-scroll"]',
+		)
+
+		const edit = await waitFor(() => screen.getByRole('button', { name: 'Edit Name 2' }))
+
+		edit.focus()
+
+		expect(document.activeElement).toBe(edit)
+
+		// The cursor follows focus into the cell, and its reveal settles first.
+		await frames()
+
+		scroll.scrollTop = 3000
+
+		await waitFor(() => expect(edit.isConnected).toBe(false))
+
+		const grid = screen.getByRole('grid')
+
+		await waitFor(() => expect(document.activeElement).toBe(grid))
+
+		await frames()
+
+		// The reader's scroll stays where it was put, and the cursor stays on its
+		// cell, out of the window.
+		expect(scroll.scrollTop).toBe(3000)
+
+		expect(grid).toHaveAttribute('aria-activedescendant')
+	})
+
 	it('seats a mounted cell when focus enters a scrolled window', async () => {
 		const { grid, scroll } = await renderWindow({ overscan: 10 })
 
