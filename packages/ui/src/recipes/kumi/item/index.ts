@@ -17,7 +17,7 @@ const { on, text } = iro
 const { size } = ji
 const { rounded } = kasane
 const { flex } = narabi
-const { forced } = sen
+const { focus, forced } = sen
 
 export const item = defineGroup({
 	base: [
@@ -33,9 +33,10 @@ export const item = defineGroup({
 		tint.base,
 		tint.glass.base,
 		// A list roves its rows with `aria-activedescendant`, so the focus stays on
-		// the trigger or the input. The roved row is `data-active`, and this wash
-		// marks it.
+		// the trigger or the input. The roved row is `data-active`. The wash and
+		// the cursor outline mark it.
 		...active,
+		...focus.cursor,
 	],
 	slots: {
 		/** The label of the row, on one line. */

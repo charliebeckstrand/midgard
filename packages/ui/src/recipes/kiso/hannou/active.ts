@@ -4,8 +4,9 @@
  * 5% intensity. The `item` group reads it (`kumi/item`), so each unit whose
  * roving cursor marks the active row with `data-active` gets it.
  *
- * A roved row does not take focus, so this wash is the only mark of the cursor.
- * Thus it has the two forms of the hover/focus wash. Inside a glass parent it
+ * A roved row does not take focus. The wash has the two forms of the
+ * hover/focus wash. It is too faint to be the only mark of the cursor, so the
+ * item group also adds `sen.focus.cursor`. Inside a glass parent it
  * takes the step of `tint.glass.base`, where 5% reads as nothing. Under forced colors
  * it maps to `Highlight` and `HighlightText`, as `sen.forced.focus` does for a
  * focused row. The forced pair wins with `!` over each wash and hover step,

@@ -879,8 +879,8 @@ export const k = {
 			'has-[[data-slot=grid-edit-host]]:ring-inset',
 			'has-[[data-slot=grid-edit-host]:not([data-invalid])]:not-data-active:not-focus-within:ring-1',
 			...mode(
-				'has-[[data-slot=grid-edit-host]:not([data-invalid])]:not-data-active:not-focus-within:ring-zinc-300',
-				'dark:has-[[data-slot=grid-edit-host]:not([data-invalid])]:not-data-active:not-focus-within:ring-zinc-700',
+				'has-[[data-slot=grid-edit-host]:not([data-invalid])]:not-data-active:not-focus-within:ring-zinc-500',
+				'dark:has-[[data-slot=grid-edit-host]:not([data-invalid])]:not-data-active:not-focus-within:ring-zinc-500',
 			),
 			'has-[[data-slot=grid-edit-host]:not([data-invalid])]:focus-within:ring-2',
 			'has-[[data-slot=grid-edit-host]:not([data-invalid])]:focus-within:ring-blue-600',
