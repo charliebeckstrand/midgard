@@ -85,6 +85,7 @@ type GridValues = {
 	groupName: Record<never, never>
 	groupNameFor: { group: string }
 	removeGroupNamed: { group: string }
+	moveGroupNamed: { group: string }
 	moveTo: { group: string }
 	removeFromGroup: Record<never, never>
 	color: Record<never, never>
@@ -563,6 +564,12 @@ export const gridMessages: MessageSet<GridValues> = defineMessages<GridValues>({
 		id: 'ui.grid.removeGroupNamed',
 		defaultMessage: 'Remove group {group}',
 		description: 'The name of the button that removes a column group of a grid.',
+	},
+	moveGroupNamed: {
+		id: 'ui.grid.moveGroupNamed',
+		defaultMessage: 'Move group {group}',
+		description:
+			'The name of the button that opens the choices that move a column group to a new place in the list of groups.',
 	},
 	moveTo: {
 		id: 'ui.grid.moveTo',

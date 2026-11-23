@@ -21,6 +21,7 @@ import {
 	memo,
 	type ReactNode,
 	type RefObject,
+	useCallback,
 	useId,
 	useLayoutEffect,
 	useMemo,
@@ -30,7 +31,7 @@ import { Button } from '../../components/button'
 import { Card, CardBody, CardHeader } from '../../components/card'
 import { Icon } from '../../components/icon'
 import { Input } from '../../components/input'
-import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from '../../components/menu'
+import { MenuItem, MenuLabel } from '../../components/menu'
 import { cn } from '../../core/cn'
 import { createContext } from '../../core/create-context'
 import { dataAttr } from '../../core/data-attr'
@@ -40,7 +41,7 @@ import { useSortableItem } from '../../hooks/use-sortable-item'
 import { useSortableSensors } from '../../hooks/use-sortable-sensors'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useStableValue } from '../../hooks/use-stable-value'
-import { EllipsisVertical, Plus, Trash } from '../../primitives/icons/icons'
+import { ArrowUpDown, EllipsisVertical, Plus, Trash } from '../../primitives/icons/icons'
 import { IntlMessage } from '../../primitives/intl'
 import { intlMessages } from '../../primitives/intl/intl-messages'
 import { pickedUpText, reorderMessages } from '../../primitives/intl/intl-reorder'
@@ -51,6 +52,7 @@ import { k } from '../../recipes/kata/grid-group'
 import { sameElements } from '../../utilities/same-elements'
 import { columnLabel } from './engine/grid-column/label'
 import { gridMessages } from './engine/grid-messages'
+import type { GridItemMoves } from './engine/grid-reorder-move'
 import {
 	findZoneId,
 	GROUP_PREFIX,
@@ -65,9 +67,11 @@ import type { GridColumnGroup } from './grid-group-types'
 import { GridManagerCheckboxRow } from './grid-manager-checkbox-row'
 import { GridManagerColorMenu } from './grid-manager-color-menu'
 import { GridManagerGrip } from './grid-manager-grip'
+import { GridManagerMoveMenu } from './grid-manager-move-menu'
 import type { GridColumnManagerItem } from './types'
 import { isColumnShown } from './use-grid-column-visibility'
 import { useGridGroupManager } from './use-grid-group-manager'
+import { useGridItemMoves } from './use-grid-item-moves'
 import { useGridZoneSortable } from './use-grid-zone-sortable'
 
 /**
@@ -159,6 +163,12 @@ const [GroupManagerReorderableContext, useGroupManagerReorderable] = createConte
 	'GridGroupManagerReorderable',
 )
 
+/** The key of a group, as the group moves read it. @internal */
+const groupKey = (group: GridColumnGroup) => String(group.id)
+
+/** The key of a column row, as the zone moves read it: the live id itself. @internal */
+const rowKey = (id: string) => id
+
 /** Props for {@link GridGroupManager}. @internal */
 export type GridGroupManagerProps = {
 	groups: GridColumnGroup[]
@@ -180,9 +190,9 @@ export type GridGroupManagerProps = {
 	/** Commits the next column order after a within-ungrouped reorder. */
 	onOrderChange: (order: (string | number)[]) => void
 	/**
-	 * Renders the drag grips of the columns and the groups. When `false`, the
-	 * editor renders no grip, and a column changes its group only through its
-	 * "Move to" menu.
+	 * Renders the drag grips of the columns and the groups, and the place moves
+	 * of their move menus. When `false`, the editor renders no grip, and a
+	 * column changes its group only through its "Move to" items.
 	 */
 	reorderable: boolean
 }
@@ -269,9 +279,12 @@ export function groupManagerAnnouncements(
  * The column-manager's group editor: a "New group" button, a zone per group, and
  * an ungrouped pool. Each zone carries a name {@link Input}, a color
  * {@link Menu}, a remove button, and its member columns. Columns drag between zones (pointer or
- * keyboard) to change membership; each row also carries a "Move to" menu as an
- * accessible alternative to the drag. Without `reorderable`, the editor drops
- * the grips, and the "Move to" menu is the only way to change a group. Group
+ * keyboard) to change membership. Each row also carries a move menu, the path of
+ * the drag with no drag (WCAG 2.5.7). It moves the column up or down in its zone,
+ * and its "Move to" items move the column to another group. Each group also has
+ * a move menu that moves the group in the list of groups. A menu move commits
+ * through the path of a drop. Without `reorderable`, the editor drops the grips
+ * and the place moves, and the "Move to" items are the only way to change a group. Group
  * edits commit through `onGroupsChange`; visibility stays on the shared hidden
  * set. Under the manager's filter each zone renders only its matching members,
  * holding the rest in place (see `matches`).
@@ -369,6 +382,22 @@ export function GridGroupManager({
 		movedRef.current = null
 	})
 
+	const intl = useIntl()
+
+	const describeGroup = useCallback(
+		(group: GridColumnGroup) =>
+			intl.formatMessage(gridMessages.columnGroupName, { group: columnLabel(group) }),
+		[intl],
+	)
+
+	// The menu path of the group drag, with the commit of a group drop.
+	const groupMoves = useGridItemMoves({
+		items: groups,
+		getKey: groupKey,
+		commit: onGroupsChange,
+		describe: describeGroup,
+	})
+
 	const shared = {
 		byId,
 		visibleColumnIds,
@@ -379,10 +408,9 @@ export function GridGroupManager({
 		recolorGroup: manager.recolorGroup,
 		removeGroup,
 		assign: manager.assign,
+		reorderZone: manager.reorderZone,
 		movedRef,
 	}
-
-	const intl = useIntl()
 
 	// The keyboard sensor of dnd-kit drops with Space and cancels with Escape.
 	const accessibility = useMemo(
@@ -430,6 +458,7 @@ export function GridGroupManager({
 											key={zone.id}
 											zone={zone}
 											columnIds={manager.zoneMap[String(zone.id)] ?? []}
+											groupMoves={reorderable && groups.length > 1 ? groupMoves : null}
 											{...shared}
 										/>
 									))}
@@ -482,10 +511,14 @@ type GridGroupManagerZoneViewProps = {
 	recolorGroup: (id: string | number, color: PaletteColor | undefined) => void
 	removeGroup: (id: string | number) => void
 	assign: (columnId: string | number, groupId: string | number | null) => void
+	/** Commits the next order of the members of a zone that are on the screen. */
+	reorderZone: (zoneId: string, shown: string[]) => void
 	/** The column whose Move trigger held focus as its row unmounted. */
 	movedRef: RefObject<string | number | null>
 	/** The group-reorder drag handle, placed ahead of the name Input; absent on the ungrouped pool. */
 	handle?: ReactNode
+	/** The menu moves of the groups, or `null` when the groups do not reorder. */
+	groupMoves?: GridItemMoves | null
 }
 
 /**
@@ -530,10 +563,14 @@ function GridGroupManagerZoneView({
 	recolorGroup,
 	removeGroup,
 	assign,
+	reorderZone,
 	movedRef,
 	handle,
+	groupMoves = null,
 }: GridGroupManagerZoneViewProps) {
 	const intl = useIntl()
+
+	const reorderable = useGroupManagerReorderable()
 
 	const { setNodeRef } = useDroppable({ id: zoneDropId(zone.id) })
 
@@ -548,6 +585,25 @@ function GridGroupManagerZoneView({
 	// A rename gives each zone a new list of the same ids. The held list keeps the
 	// sortable context of the zone, so the context renders no row.
 	const visibleIds = useStableValue(filteredIds, sameElements)
+
+	const describe = useCallback(
+		(id: string) =>
+			intl.formatMessage(gridMessages.columnName, { column: columnLabel(byId.get(id) ?? { id }) }),
+		[intl, byId],
+	)
+
+	const commitOrder = useStableEvent((shown: string[]) => reorderZone(String(zone.id), shown))
+
+	// The menu path of the drag in this zone, over the rows on the screen. The
+	// moves keep their identity through a rename, so a rename renders no row.
+	const moves = useGridItemMoves({
+		items: visibleIds,
+		getKey: rowKey,
+		commit: commitOrder,
+		describe,
+	})
+
+	const rowMoves = reorderable && visibleIds.length > 1 ? moves : null
 
 	// Colors already taken by other groups: offered disabled, so a color maps to
 	// at most one group. Memoized so a drag/hover re-render doesn't rescan every
@@ -574,6 +630,7 @@ function GridGroupManagerZoneView({
 					<GridGroupManagerZoneHeader
 						group={zone.group}
 						handle={handle}
+						moves={groupMoves}
 						usedColors={usedColors}
 						renameGroup={renameGroup}
 						recolorGroup={recolorGroup}
@@ -607,6 +664,7 @@ function GridGroupManagerZoneView({
 										item={item}
 										zoneId={zone.id}
 										movable={groups.length > 0}
+										moves={rowMoves}
 										hidden={hidden}
 										onToggle={onToggle}
 										assign={assign}
@@ -627,6 +685,8 @@ type GridGroupManagerZoneHeaderProps = {
 	group: GridColumnGroup
 	/** The group-reorder drag handle, rendered leading the name Input. */
 	handle?: ReactNode
+	/** The menu moves of the groups, or `null` when the groups do not reorder. */
+	moves: GridItemMoves | null
 	/** Colors already used by other groups; offered disabled so each maps to one group. */
 	usedColors: Set<PaletteColor>
 	renameGroup: (id: string | number, title: string) => void
@@ -634,10 +694,17 @@ type GridGroupManagerZoneHeaderProps = {
 	removeGroup: (id: string | number) => void
 }
 
-/** A group zone's config header: the reorder handle, name Input, color Menu, and remove button. @internal */
+/**
+ * A group zone's config header: the reorder handle, name Input, move menu,
+ * color Menu, and remove button. The move menu is the path of the handle with
+ * no drag.
+ *
+ * @internal
+ */
 function GridGroupManagerZoneHeader({
 	group,
 	handle,
+	moves,
 	usedColors,
 	renameGroup,
 	recolorGroup,
@@ -659,6 +726,18 @@ function GridGroupManagerZoneHeader({
 				value={typeof group.title === 'string' ? group.title : ''}
 				onChange={(event) => renameGroup(group.id, event.target.value)}
 			/>
+
+			{moves && (
+				<GridManagerMoveMenu itemKey={String(group.id)} moves={moves}>
+					<Button
+						type="button"
+						variant="bare"
+						aria-label={intl.formatMessage(gridMessages.moveGroupNamed, { group: label })}
+					>
+						<Icon icon={<ArrowUpDown />} />
+					</Button>
+				</GridManagerMoveMenu>
+			)}
 
 			<GridManagerColorMenu
 				label={label}
@@ -686,6 +765,8 @@ type GridGroupManagerColumnRowProps = {
 	zoneId: string | number
 	/** Whether a group exists to move the column into or out of. */
 	movable: boolean
+	/** The menu moves of the zone, or `null` when the column does not change its place. */
+	moves: GridItemMoves | null
 	hidden: Set<string | number>
 	onToggle: (id: string | number) => void
 	assign: (columnId: string | number, groupId: string | number | null) => void
@@ -694,8 +775,9 @@ type GridGroupManagerColumnRowProps = {
 }
 
 /**
- * One column row inside a zone: drag grip, visibility checkbox, and a "Move to"
- * menu. The row is memoized, and its props keep their identity through a
+ * One column row inside a zone: drag grip, visibility checkbox, and a move
+ * menu. The menu moves the column in its zone, and its "Move to" items move
+ * the column to another group. The row is memoized, and its props keep their identity through a
  * rename, so a rename renders no row.
  *
  * @internal
@@ -704,6 +786,7 @@ const GridGroupManagerColumnRow = memo(function GridGroupManagerColumnRow({
 	item,
 	zoneId,
 	movable,
+	moves,
 	hidden,
 	onToggle,
 	assign,
@@ -722,13 +805,17 @@ const GridGroupManagerColumnRow = memo(function GridGroupManagerColumnRow({
 
 	const moveRef = useRef<HTMLButtonElement>(null)
 
+	// The menu means something once the column has a place to go: another place
+	// in its zone, or a group to move into or out of. Else it opens empty.
+	const menu = movable || moves !== null
+
 	// A Move item moves the row into the list of another zone, so React mounts it
 	// again, and the focused trigger leaves the document. The old row records its
 	// column as it unmounts, and the new row takes focus on its trigger.
 	useLayoutEffect(() => {
 		const trigger = moveRef.current
 
-		if (!movable || !trigger) return
+		if (!menu || !trigger) return
 
 		if (movedRef.current === item.id) {
 			movedRef.current = null
@@ -739,7 +826,7 @@ const GridGroupManagerColumnRow = memo(function GridGroupManagerColumnRow({
 		return () => {
 			if (trigger.contains(document.activeElement)) movedRef.current = item.id
 		}
-	}, [movable, movedRef, item.id])
+	}, [menu, movedRef, item.id])
 
 	return (
 		<li
@@ -766,24 +853,25 @@ const GridGroupManagerColumnRow = memo(function GridGroupManagerColumnRow({
 				aria-label={intl.formatMessage(gridMessages.showColumn, { column: label })}
 			/>
 
-			{/* The "Move to" menu only means something once a group exists to move into,
-			    or out of. With no groups it would open empty, so it's withheld. */}
-			{movable && (
-				<Menu placement="bottom-end">
-					<MenuTrigger>
-						<Button
-							ref={moveRef}
-							type="button"
-							variant="bare"
-							aria-label={intl.formatMessage(reorderMessages.moveHandle, { item: label })}
-						>
-							<Icon icon={<EllipsisVertical />} />
-						</Button>
-					</MenuTrigger>
-					<MenuContent>
-						<GridGroupManagerMoveItems columnId={item.id} zoneId={zoneId} assign={assign} />
-					</MenuContent>
-				</Menu>
+			{menu && (
+				<GridManagerMoveMenu
+					itemKey={String(item.id)}
+					moves={moves}
+					items={
+						movable && (
+							<GridGroupManagerMoveItems columnId={item.id} zoneId={zoneId} assign={assign} />
+						)
+					}
+				>
+					<Button
+						ref={moveRef}
+						type="button"
+						variant="bare"
+						aria-label={intl.formatMessage(reorderMessages.moveHandle, { item: label })}
+					>
+						<Icon icon={<EllipsisVertical />} />
+					</Button>
+				</GridManagerMoveMenu>
 			)}
 		</li>
 	)
@@ -797,7 +885,7 @@ type GridGroupManagerMoveItemsProps = {
 }
 
 /**
- * The items of the "Move to" menu of a column row: one for each other group,
+ * The "Move to" items of the move menu of a column row: one for each other group,
  * and a remove item for a column in a group. The menu mounts them only while
  * it is open, so they read the groups from the context of the editor.
  *

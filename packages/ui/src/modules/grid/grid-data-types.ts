@@ -1207,8 +1207,10 @@ export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'>
 	 * left", "Move right", "Move to start", and "Move to end". "Move left" and
 	 * "Move right" name the side on the screen, so a right-to-left grid swaps
 	 * them. The column manager gives "Move up", "Move down", "Move to top", and
-	 * "Move to bottom" on each row. A move from a menu commits through
-	 * `columnOrder` and the live region announces the new place, as a drop does.
+	 * "Move to bottom" on each row. Its group editor gives the same moves on each
+	 * row in a group or in the ungrouped pool, and on each group. A move from a
+	 * menu commits through `columnOrder` (and `columnGroups` in the group editor),
+	 * and the live region announces the new place, as a drop does.
 	 * It is not a drag, so it fires no `onReorderStart` or `onReorderEnd`.
 	 * @defaultValue false
 	 * @see {@link GridReorder}

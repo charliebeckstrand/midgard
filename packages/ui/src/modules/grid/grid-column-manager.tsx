@@ -82,8 +82,9 @@ export type GridColumnManagerProps = {
 	/**
 	 * Lets the user drag the scrolling columns to reorder them. When `false`, the
 	 * orderable list drops its drag handles and renders read-only: visibility
-	 * toggles and pin controls still work. The group editor drops its grips too,
-	 * and a column changes its group only through its "Move to" menu.
+	 * toggles and pin controls still work. The group editor drops its grips and
+	 * the place moves of its move menus too, and a column changes its group only
+	 * through its "Move to" items.
 	 * {@link Grid} forwards its {@link GridProps.reorder} flag here, so the
 	 * manager only reorders columns when the grid opts in.
 	 * @defaultValue true

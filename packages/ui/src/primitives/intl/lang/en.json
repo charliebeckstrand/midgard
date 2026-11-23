@@ -1083,6 +1083,10 @@
 		"defaultMessage": "Move down",
 		"description": "The menu item that moves a grid row, or a column in the column manager, one place down."
 	},
+	"ui.grid.moveGroupNamed": {
+		"defaultMessage": "Move group {group}",
+		"description": "The name of the button that opens the choices that move a column group to a new place in the list of groups."
+	},
 	"ui.grid.moveLeft": {
 		"defaultMessage": "Move left",
 		"description": "The menu item that moves a grid column one place to the left on the screen."

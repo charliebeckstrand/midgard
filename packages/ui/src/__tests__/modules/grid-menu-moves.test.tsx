@@ -2,6 +2,8 @@ import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { GridColumnManager } from '../../modules/grid/grid-column-manager'
 import { columnMenuItems } from '../../modules/grid/grid-context-menu-utilities'
+import { GridGroupManager } from '../../modules/grid/grid-group-manager'
+import type { GridColumnGroup } from '../../modules/grid/grid-group-types'
 import { GridRowManager } from '../../modules/grid/grid-row-manager'
 import { intlEn } from '../../primitives/intl/intl-catalog'
 import { expectAnnouncement, fireEvent, renderUI, screen, waitFor } from '../helpers'
@@ -327,6 +329,150 @@ describe('Grid menu moves and width steps', () => {
 			renderUI(<GridRowManager groups={[alpha]} onRecolor={vi.fn()} onReorderGroups={vi.fn()} />)
 
 			expect(screen.queryByRole('button', { name: 'Move Alpha' })).not.toBeInTheDocument()
+		})
+	})
+
+	describe('group editor move control', () => {
+		const items = [
+			{ id: 'first', title: 'First' },
+			{ id: 'last', title: 'Last' },
+			{ id: 'email', title: 'Email' },
+			{ id: 'phone', title: 'Phone' },
+		]
+
+		const groups: GridColumnGroup[] = [
+			{ id: 'one', title: 'One', columns: ['first', 'last'] },
+			{ id: 'two', title: 'Two', columns: [] },
+		]
+
+		const order = ['first', 'last', 'email', 'phone']
+
+		const renderEditor = ({
+			editorGroups = groups,
+			reorderable = true,
+			matches = () => true,
+		}: {
+			editorGroups?: GridColumnGroup[]
+			reorderable?: boolean
+			matches?: (item: { id: string | number }) => boolean
+		} = {}) => {
+			const onGroupsChange = vi.fn()
+
+			const onOrderChange = vi.fn()
+
+			renderUI(
+				<GridGroupManager
+					groups={editorGroups}
+					onGroupsChange={onGroupsChange}
+					columns={items}
+					matches={matches}
+					hidden={new Set()}
+					onToggle={vi.fn()}
+					order={order}
+					onOrderChange={onOrderChange}
+					reorderable={reorderable}
+				/>,
+			)
+
+			return { onGroupsChange, onOrderChange }
+		}
+
+		it('moves an ungrouped column through the commit of a drop and announces its place', async () => {
+			const { onGroupsChange, onOrderChange } = renderEditor()
+
+			fireEvent.click(screen.getByRole('button', { name: 'Move Email' }))
+
+			// The place moves come first, and the "Move to" items follow them.
+			expect(labels()).toEqual(['Move down', 'Move to bottom', 'Move to “One”', 'Move to “Two”'])
+
+			fireEvent.click(item('Move down'))
+
+			expect(onOrderChange).toHaveBeenLastCalledWith(['first', 'last', 'phone', 'email'])
+
+			// A drop commits the groups too, with the same members.
+			expect(onGroupsChange).toHaveBeenLastCalledWith([
+				{ id: 'one', title: 'One', columns: ['first', 'last'] },
+				{ id: 'two', title: 'Two', columns: [] },
+			])
+
+			await expectAnnouncement('Email column moved to position 2 of 2.', 'assertive')
+		})
+
+		it('moves a column in its group through the groups', async () => {
+			const { onGroupsChange, onOrderChange } = renderEditor()
+
+			fireEvent.click(screen.getByRole('button', { name: 'Move Last' }))
+
+			expect(labels()).toEqual(['Move up', 'Move to top', 'Move to “Two”', 'Remove from group'])
+
+			fireEvent.click(item('Move to top'))
+
+			expect(onGroupsChange).toHaveBeenLastCalledWith([
+				{ id: 'one', title: 'One', columns: ['last', 'first'] },
+				{ id: 'two', title: 'Two', columns: [] },
+			])
+
+			expect(onOrderChange).toHaveBeenLastCalledWith(order)
+
+			await expectAnnouncement('Last column moved to position 1 of 2.', 'assertive')
+		})
+
+		it('moves a column among the rows on the screen, and a filtered-out column keeps its slot', () => {
+			const { onOrderChange } = renderEditor({
+				editorGroups: [],
+				matches: (column) => column.id !== 'last',
+			})
+
+			fireEvent.click(screen.getByRole('button', { name: 'Move First' }))
+
+			fireEvent.click(item('Move down'))
+
+			expect(onOrderChange).toHaveBeenLastCalledWith(['email', 'last', 'first', 'phone'])
+		})
+
+		it('moves a group through the groups and announces its place', async () => {
+			const { onGroupsChange } = renderEditor()
+
+			fireEvent.click(screen.getByRole('button', { name: 'Move group Two' }))
+
+			expect(labels()).toEqual(['Move up', 'Move to top'])
+
+			fireEvent.click(item('Move up'))
+
+			expect(onGroupsChange).toHaveBeenLastCalledWith([groups[1], groups[0]])
+
+			await expectAnnouncement('Two group moved to position 1 of 2.', 'assertive')
+		})
+
+		it('offers the place moves only while the editor reorders', () => {
+			renderEditor({ reorderable: false })
+
+			expect(screen.queryByRole('button', { name: 'Move group One' })).not.toBeInTheDocument()
+
+			fireEvent.click(screen.getByRole('button', { name: 'Move Email' }))
+
+			expect(labels()).toEqual(['Move to “One”', 'Move to “Two”'])
+		})
+
+		it('offers no place move for a lone column or a lone group', () => {
+			renderEditor({
+				editorGroups: [{ id: 'one', title: 'One', columns: ['first'] }],
+				matches: (column) => column.id !== 'phone',
+			})
+
+			expect(screen.queryByRole('button', { name: 'Move group One' })).not.toBeInTheDocument()
+
+			fireEvent.click(screen.getByRole('button', { name: 'Move First' }))
+
+			expect(labels()).toEqual(['Remove from group'])
+		})
+
+		it('renders the column menu with no group while the column has a place to go', () => {
+			renderEditor({ editorGroups: [] })
+
+			fireEvent.click(screen.getByRole('button', { name: 'Move First' }))
+
+			expect(labels()).toEqual(['Move down', 'Move to bottom'])
 		})
 	})
 })

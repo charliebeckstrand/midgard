@@ -1,8 +1,15 @@
 'use client'
 
-import { type ReactElement, useState } from 'react'
+import { type ReactElement, type ReactNode, useState } from 'react'
 import { Icon } from '../../components/icon'
-import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from '../../components/menu'
+import {
+	Menu,
+	MenuContent,
+	MenuItem,
+	MenuLabel,
+	MenuSeparator,
+	MenuTrigger,
+} from '../../components/menu'
 import { ArrowDown, ArrowUp, ChevronDown, ChevronUp } from '../../primitives/icons/icons'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { gridMessages } from './engine/grid-messages'
@@ -28,8 +35,16 @@ const MANAGER_MOVE_ITEMS = {
 type GridManagerMoveMenuProps = {
 	/** The key of the item, as the moves read it. */
 	itemKey: string
-	/** The menu moves of the list that holds the item. */
-	moves: GridItemMoves
+	/**
+	 * The menu moves of the list that holds the item, or `null` when the item
+	 * does not change its place in the list.
+	 */
+	moves: GridItemMoves | null
+	/**
+	 * More move items after the place moves, such as the "Move to" items of the
+	 * group editor. A separator divides the two sets.
+	 */
+	items?: ReactNode
 	/** The trigger button. It carries the name of the menu, such as "Move Name". */
 	children: ReactElement
 }
@@ -40,11 +55,11 @@ type GridManagerMoveMenuProps = {
  * grip of the row (WCAG 2.5.7). A move commits through the callback that a
  * drop calls, and the live region announces the new place. The menu reads the
  * moves when it opens, and it offers only the moves that change the place of
- * the item. The column manager and the row manager share it.
+ * the item. The column manager, the row manager, and the group editor share it.
  *
  * @internal
  */
-export function GridManagerMoveMenu({ itemKey, moves, children }: GridManagerMoveMenuProps) {
+export function GridManagerMoveMenu({ itemKey, moves, items, children }: GridManagerMoveMenuProps) {
 	const intl = useIntl()
 
 	const [targets, setTargets] = useState<GridMoveTarget[]>([])
@@ -52,16 +67,20 @@ export function GridManagerMoveMenu({ itemKey, moves, children }: GridManagerMov
 	return (
 		<Menu
 			placement="bottom-end"
-			onOpenChange={(open) => setTargets(open ? moves.targets(itemKey, MANAGER_MOVES) : [])}
+			onOpenChange={(open) =>
+				setTargets(open && moves ? moves.targets(itemKey, MANAGER_MOVES) : [])
+			}
 		>
 			<MenuTrigger>{children}</MenuTrigger>
 			<MenuContent>
 				{targets.map((target) => (
-					<MenuItem key={target} onAction={() => moves.move(itemKey, target)}>
+					<MenuItem key={target} onAction={() => moves?.move(itemKey, target)}>
 						<Icon icon={MANAGER_MOVE_ITEMS[target].icon} />
 						<MenuLabel>{intl.formatMessage(MANAGER_MOVE_ITEMS[target].label)}</MenuLabel>
 					</MenuItem>
 				))}
+				{targets.length > 0 && items && <MenuSeparator />}
+				{items}
 			</MenuContent>
 		</Menu>
 	)
