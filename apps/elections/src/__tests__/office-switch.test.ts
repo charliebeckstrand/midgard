@@ -53,15 +53,15 @@ function Views() {
 	})
 }
 
-/** The radio of `name` in the view of `view`. */
-function radioIn(view: string, name: string): HTMLElement {
-	const radio = screen
-		.getAllByRole('radio', { name })
+/** The tab of `name` in the view of `view`. */
+function tabIn(view: string, name: string): HTMLElement {
+	const tab = screen
+		.getAllByRole('tab', { name })
 		.find((element) => document.querySelector(`[data-view="${view}"]`)?.contains(element))
 
-	if (radio === undefined) throw new Error(`The ${view} view has no ${name} radio.`)
+	if (tab === undefined) throw new Error(`The ${view} view has no ${name} tab.`)
 
-	return radio
+	return tab
 }
 
 /** Whether the view of `view` shows. */
@@ -78,7 +78,7 @@ describe('OfficeSwitch', () => {
 		expect(shows('overview')).toBe(true)
 
 		await act(async () => {
-			fireEvent.click(radioIn('overview', 'Senate'))
+			fireEvent.click(tabIn('overview', 'Senate'))
 		})
 
 		expect(shows('senate')).toBe(true)
@@ -104,7 +104,7 @@ describe('OfficeSwitch', () => {
 
 		render(h(Views))
 
-		const senate = radioIn('overview', 'Senate')
+		const senate = tabIn('overview', 'Senate')
 
 		await act(async () => {
 			senate.focus()
@@ -116,6 +116,30 @@ describe('OfficeSwitch', () => {
 
 		expect(view?.contains(document.activeElement)).toBe(true)
 
-		expect(document.activeElement?.getAttribute('aria-checked')).toBe('true')
+		expect(document.activeElement?.getAttribute('aria-selected')).toBe('true')
+	})
+
+	it('moves only the focus on an arrow key, so it writes no address', async () => {
+		window.history.replaceState(null, '', '/e')
+
+		const before = window.history.length
+
+		render(h(Views))
+
+		const overview = tabIn('overview', 'Overview')
+
+		await act(async () => {
+			overview.focus()
+
+			fireEvent.keyDown(overview, { key: 'ArrowRight' })
+		})
+
+		expect(document.activeElement).toBe(tabIn('overview', 'Senate'))
+
+		expect(shows('overview')).toBe(true)
+
+		expect(window.location.pathname).toBe('/e')
+
+		expect(window.history.length).toBe(before)
 	})
 })

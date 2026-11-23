@@ -36,6 +36,16 @@ export type TabsProps = Omit<ComponentProps<'div'>, 'defaultValue'> & {
 	 * step of the nearest density scope. A step makes the group a density scope.
 	 */
 	size?: ScaleStep<typeof scale>
+	/**
+	 * How a `segment` group with no panels selects an item. With `automatic`,
+	 * the group is a radio group, and an arrow key moves the focus and selects
+	 * the item. With `manual`, the group keeps the tab roles: an arrow key moves
+	 * only the focus, and Enter or Space selects the item. Use `manual` when a
+	 * pick shows a different view or writes the address, so that each arrow key
+	 * does not load a view. A group with panels always keeps the tab roles.
+	 * @defaultValue 'automatic'
+	 */
+	activation?: 'automatic' | 'manual'
 }
 
 /**
@@ -49,7 +59,8 @@ export type TabsProps = Omit<ComponentProps<'div'>, 'defaultValue'> & {
  * with `aria-checked`. An arrow key moves the focus and selects the item, as in
  * a group of native radios. A group with panels keeps the tab roles. The
  * server and the first client render do not know of the panels, so they render
- * the radio roles. The tab roles follow when a panel registers.
+ * the radio roles. The tab roles follow when a panel registers. A group with
+ * `activation="manual"` keeps the tab roles.
  */
 export function Tabs({
 	value,
@@ -58,6 +69,7 @@ export function Tabs({
 	variant = 'tab',
 	orientation = 'horizontal',
 	size,
+	activation = 'automatic',
 	className,
 	children,
 	...props
@@ -103,8 +115,9 @@ export function Tabs({
 
 	// A segmented control with no panels picks a value, as a set of radios does.
 	// The role `tab` tells a reader that a panel shows, so the group takes the
-	// radio roles until a panel registers.
-	const choice = variant === 'segment' && !panelsPresent
+	// radio roles until a panel registers. A group with manual activation keeps
+	// the tab roles, because a radio selects on each arrow key.
+	const choice = variant === 'segment' && !panelsPresent && activation === 'automatic'
 
 	const tabsContext = useMemo(
 		() => ({

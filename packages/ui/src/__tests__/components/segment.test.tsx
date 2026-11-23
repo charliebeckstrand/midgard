@@ -241,6 +241,40 @@ describe('Segment keyboard navigation', () => {
 
 		expect(onValueChange).not.toHaveBeenCalled()
 	})
+
+	// A pick that shows a view or writes the address waits for Enter or Space.
+	it('keeps the tab roles and moves only the focus with manual activation', async () => {
+		const user = setupUser()
+
+		const onValueChange = vi.fn()
+
+		renderUI(
+			<Segment defaultValue="a" activation="manual" onValueChange={onValueChange}>
+				<SegmentControl aria-label="View">
+					<SegmentItem value="a">A</SegmentItem>
+					<SegmentItem value="b">B</SegmentItem>
+				</SegmentControl>
+			</Segment>,
+		)
+
+		expect(screen.getByRole('tablist', { name: 'View' })).toBeInTheDocument()
+
+		const tab = (name: string) => screen.getByRole('tab', { name })
+
+		act(() => tab('A').focus())
+
+		await user.keyboard('{ArrowRight}')
+
+		expect(tab('B')).toHaveFocus()
+
+		expect(onValueChange).not.toHaveBeenCalled()
+
+		await user.keyboard('{Enter}')
+
+		expect(onValueChange).toHaveBeenCalledWith('b')
+
+		expect(tab('B')).toHaveAttribute('aria-selected', 'true')
+	})
 })
 
 describe('Segment in a locked scope', () => {
