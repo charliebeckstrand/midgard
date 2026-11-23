@@ -4,7 +4,7 @@ import { cn } from 'ui/core'
 import { Flex } from 'ui/flex'
 import { useScrollRegion } from 'ui/hooks'
 import { Input } from 'ui/input'
-import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
+import { Listbox, ListboxDescription, ListboxLabel, ListboxOption, ListboxText } from 'ui/listbox'
 import { NumberInput } from 'ui/number-input'
 import { useDensityStep } from 'ui/primitives/density'
 import {
@@ -63,6 +63,12 @@ const messages = defineMessages({
 		defaultMessage: 'None',
 		description:
 			'The option of a field of a playground that leaves the prop unset, when an unset prop has no value.',
+	},
+	adaptive: {
+		id: 'docs.playground.adaptive',
+		defaultMessage: 'Adaptive',
+		description:
+			'The option of a field of a playground whose value changes with the width of the screen, such as vertical on a phone and horizontal from a tablet up.',
 	},
 	default: {
 		id: 'docs.playground.default',
@@ -146,25 +152,32 @@ function formatSizeClass(intl: IntlShape, bp: string): string {
 }
 
 /**
+ * The rule of a value for each breakpoint of the field of `prop`, in the
+ * language of `intl`. It names the size class from which each value holds,
+ * such as "Vertical, Horizontal from medium".
+ */
+function formatRule(intl: IntlShape, prop: string, value: Exclude<Value, Literal>): string {
+	return Object.entries(value)
+		.map(([bp, entry]) =>
+			bp === 'initial'
+				? formatLabel(intl, prop, entry)
+				: intl.formatMessage(fromSizeClassMessage, {
+						value: formatLabel(intl, prop, entry),
+						sizeClass: formatSizeClass(intl, bp),
+					}),
+		)
+		.join(', ')
+}
+
+/**
  * The label of a value of the field of `prop`, in the language of `intl`. A
- * value for each breakpoint names the size class from which each value holds,
- * such as "Vertical, Horizontal from medium". A word value has a catalog entry
- * of its own (`names.ts`), and a value with no word, such as `16/9`, reads as
- * written.
+ * value for each breakpoint is "Adaptive", and its option describes the rule
+ * ({@link formatRule}), so the field stays as short as a field of one value. A
+ * word value has a catalog entry of its own (`names.ts`), and a value with no
+ * word, such as `16/9`, reads as written.
  */
 function formatLabel(intl: IntlShape, prop: string, value: Value): string {
-	if (typeof value === 'object') {
-		return Object.entries(value)
-			.map(([bp, entry]) =>
-				bp === 'initial'
-					? formatLabel(intl, prop, entry)
-					: intl.formatMessage(fromSizeClassMessage, {
-							value: formatLabel(intl, prop, entry),
-							sizeClass: formatSizeClass(intl, bp),
-						}),
-			)
-			.join(', ')
-	}
+	if (typeof value === 'object') return intl.formatMessage(messages.adaptive)
 
 	if (typeof value === 'boolean') return intl.formatMessage(value ? messages.on : messages.off)
 
@@ -378,11 +391,21 @@ function FieldPicker({
 
 	const options = [
 		...(unset
-			? [{ key: UNSET, label: intl.formatMessage(messages.none), fallback: true, code: false }]
+			? [
+					{
+						key: UNSET,
+						label: intl.formatMessage(messages.none),
+						description: undefined,
+						fallback: true,
+						code: false,
+					},
+				]
 			: []),
 		...field.values.map((option) => ({
 			key: JSON.stringify(option),
 			label: formatLabel(intl, field.name, option),
+			// The option of a value for each breakpoint describes its rule under the label.
+			description: typeof option === 'object' ? formatRule(intl, field.name, option) : undefined,
 			fallback: option === field.default,
 			// A value with no word, such as `16/9`, shows as written, so it is code.
 			code: typeof option === 'string' && !isWord(option),
@@ -417,8 +440,15 @@ function FieldPicker({
 		>
 			{options.map((option) => (
 				<ListboxOption key={option.key} value={option.key}>
-					<Flex gap="sm">
-						<ListboxLabel>{show(option)}</ListboxLabel>
+					<Flex gap="sm" align={option.description === undefined ? undefined : 'start'}>
+						{option.description === undefined ? (
+							<ListboxLabel>{show(option)}</ListboxLabel>
+						) : (
+							<ListboxText>
+								<ListboxLabel>{show(option)}</ListboxLabel>
+								<ListboxDescription>{option.description}</ListboxDescription>
+							</ListboxText>
+						)}
 						{option.fallback && (
 							<Badge size={stepDown(step)} variant="soft" color="blue">
 								{intl.formatMessage(messages.default)}
@@ -436,7 +466,8 @@ function FieldPicker({
  * a field for each prop of its component whose type is a union of literals.
  * A responsive prop gets a field of its values too, and a default for each
  * breakpoint, such as `{ initial: 'vertical', sm: 'horizontal' }`, is the
- * first option of the field.
+ * first option of the field. That option reads "Adaptive", and describes the
+ * rule under its label.
  * A number prop with a number as its default, such as `max`, gets a number
  * field, and `free` names more props that get a text or a number field.
  * `start` gives a choice field a first value that is not its default, so the

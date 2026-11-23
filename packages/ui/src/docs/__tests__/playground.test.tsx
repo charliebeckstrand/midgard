@@ -180,12 +180,14 @@ describe('Playground', () => {
 		expect(instanceProps()).toEqual({})
 	})
 
-	it('gives a responsive prop its default for each breakpoint as the first option', () => {
+	it('gives a responsive prop its default for each breakpoint as the first option, Adaptive', () => {
 		render(<Playground of={ThingPlayground} api={API} />)
 
 		const orientation = screen.getByRole('combobox', { name: 'Orientation' })
 
-		expect(orientation.textContent).toContain('Vertical, Horizontal from medium')
+		expect(orientation.textContent).toContain('Adaptive')
+
+		expect(orientation.textContent).not.toContain('from medium')
 
 		expect(instanceProps()).toEqual({})
 
@@ -194,7 +196,7 @@ describe('Playground', () => {
 		const options = screen.getAllByRole('option')
 
 		expect(options.map((option) => option.textContent)).toEqual([
-			'Vertical, Horizontal from mediumDefault',
+			'AdaptiveVertical, Horizontal from mediumDefault',
 			'Horizontal',
 			'Vertical',
 		])
