@@ -110,7 +110,8 @@ export type ChatPromptProps = {
 	 * A trigger counts at the start of the draft or after whitespace, and the
 	 * text from the trigger to the caret is the query. The picker sits over the
 	 * composer. ArrowUp and ArrowDown move the highlight, Enter or Tab chooses,
-	 * and Escape closes the picker until the next edit. The textarea keeps the
+	 * and Escape closes the picker until the next edit. While the list loads,
+	 * no key chooses an item of the last query, and Enter does not send. The textarea keeps the
 	 * focus, and the options are its active descendant.
 	 *
 	 * Hoist the list out of the render, as a module constant or a `useMemo`.
@@ -518,6 +519,11 @@ function recallOnHistory(
  * delete is on the undo stack of the browser, and the citation goes as one
  * unit, as it came in as one choice.
  *
+ * A choice puts a space after the quote. The delete also removes that space
+ * when whitespace or the start of the draft is before the citation. Thus
+ * `a @X b` becomes `a b`, and no double space stays. A citation with a word
+ * directly before it keeps the space, so the two words do not join.
+ *
  * @internal
  */
 function deleteWholeCitation(
@@ -537,5 +543,13 @@ function deleteWholeCitation(
 
 	const citation = citations.find((c) => c.start === at)
 
-	if (citation) textarea.setSelectionRange(citation.start, citation.end)
+	if (!citation) return
+
+	const { value } = textarea
+
+	const before = value[citation.start - 1]
+
+	const spaced = value[citation.end] === ' ' && (before === undefined || /\s/.test(before))
+
+	textarea.setSelectionRange(citation.start, spaced ? citation.end + 1 : citation.end)
 }

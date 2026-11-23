@@ -139,6 +139,34 @@ describe('ChatCitationProvider', () => {
 		expect(piece).toHaveAttribute('data-pressed')
 	})
 
+	it('presses a citation that crosses bold on a click of its bold piece', async () => {
+		const user = userEvent.setup()
+
+		const onCitedChange = vi.fn()
+
+		const { container } = renderUI(
+			<Cited
+				citations={[cite('c1', 'most of them on **Tuesday**')]}
+				onCitedChange={onCitedChange}
+			/>,
+		)
+
+		const [piece] = allBySlot(container, 'chat-citation-piece')
+
+		if (!piece) throw new Error('no piece')
+
+		await user.click(piece)
+
+		expect(onCitedChange).toHaveBeenLastCalledWith(expect.objectContaining({ id: 'c1' }))
+
+		expect(screen.getByRole('button')).toHaveAttribute('aria-pressed', 'true')
+
+		// A second click releases it, as a second press of piece 0 does.
+		await user.click(piece)
+
+		expect(onCitedChange).toHaveBeenLastCalledWith(null)
+	})
+
 	it('draws a citation whose target is not registered as static text, with no control', () => {
 		const { container } = renderUI(
 			<Cited citations={[cite('c1', 'Twelve stops are late', 'unknown')]} />,

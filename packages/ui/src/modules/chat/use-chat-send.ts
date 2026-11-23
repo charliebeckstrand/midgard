@@ -190,10 +190,11 @@ export type ChatSend = {
 	 * transport. No-ops on empty input.
 	 *
 	 * @remarks
-	 * `citations` address `content` as the composer holds it, before the trim.
-	 * `useChatDraft` gives them to its `onSubmit` in that form. The send moves
-	 * each one onto the trimmed text, and the message holds them on its text
-	 * part. A citation whose quote is not at its address goes.
+	 * `citations` address `content`. The content can be the trimmed text that
+	 * `useChatDraft` gives to its `onSubmit`, or the draft as the composer holds
+	 * it, before the trim. The send moves each citation onto the trimmed text,
+	 * and the message holds them on its text part. A citation whose quote is not
+	 * at its address goes.
 	 */
 	send: (content: string, citations?: readonly ChatCitation[]) => Promise<void>
 	/**

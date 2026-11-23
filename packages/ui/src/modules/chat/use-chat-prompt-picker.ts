@@ -21,6 +21,7 @@ import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { isComposing } from '../../utilities/is-composing'
 import { hasBrowserModifier } from '../../utilities/modifier-keys'
+import { noop } from '../../utilities/noop'
 import { randomId } from '../../utilities/random-id'
 import type { ChatCitation } from './engine/chat-content/types'
 import {
@@ -51,7 +52,8 @@ type PickerResults = {
 	/**
 	 * The trigger that the results are for: its source and its offset. The
 	 * items of one trigger stay while its next query loads, and the items of
-	 * another trigger never show, so an early Enter cannot choose one.
+	 * another trigger never show. No key chooses an item that stays while the
+	 * list loads, so an early Enter cannot choose an item of an earlier query.
 	 */
 	trigger: string
 	status: PickerStatus
@@ -225,6 +227,9 @@ export function useChatPromptPicker({
 
 	const items = results.trigger === matchTrigger ? results.items : []
 
+	// A trigger that has no result yet loads.
+	const status: PickerStatus = results.trigger === matchTrigger ? results.status : 'loading'
+
 	// The top match takes the highlight each time the items change, so Enter
 	// chooses what the reader sees first.
 	useLayoutEffect(() => {
@@ -306,6 +311,13 @@ export function useChatPromptPicker({
 			}
 
 			if (event.key === 'Enter' || event.key === 'Tab') {
+				// The items of a list that loads answer an earlier query, so no key
+				// chooses one. Enter then does nothing, so it does not send a draft
+				// that the reader meant to complete. Tab stays with the textarea.
+				if (status === 'loading' && items.length > 0) {
+					return takeKey(event, event.key === 'Enter', noop)
+				}
+
 				const item = activeItem()
 
 				return takeKey(event, item !== undefined, () => item && choose(item))
@@ -313,7 +325,7 @@ export function useChatPromptPicker({
 
 			return false
 		},
-		[open, rove, activeItem, choose, citations],
+		[open, rove, activeItem, choose, citations, status, items],
 	)
 
 	const hasSources = sources !== undefined && sources.length > 0
@@ -347,7 +359,7 @@ export function useChatPromptPicker({
 		listRef,
 		source,
 		items,
-		status: results.trigger === matchTrigger ? results.status : ('loading' as const),
+		status,
 		floating,
 		choose,
 		onKeyDown,

@@ -109,7 +109,14 @@ describe('ChatPrompt', () => {
 		}
 
 		/** A composer over a draft that starts as `@Late stops by day`, scoped to one dataset. */
-		function Scoped({ onCitations }: { onCitations: (c: readonly ChatCitation[]) => void }) {
+		function Scoped({
+			onCitations,
+			before = '',
+		}: {
+			onCitations: (c: readonly ChatCitation[]) => void
+			/** Text before the citation. */
+			before?: string
+		}) {
 			const draft = useChatDraft()
 
 			const [seeded, setSeeded] = useState(false)
@@ -117,7 +124,11 @@ describe('ChatPrompt', () => {
 			if (!seeded) {
 				setSeeded(true)
 
-				draft.setValue(`${QUOTE} by day`, [scope])
+				const at = before.length
+
+				draft.setValue(`${before}${QUOTE} by day`, [
+					{ ...scope, start: at, end: at + QUOTE.length },
+				])
 			}
 
 			onCitations(draft.citations)
@@ -204,9 +215,34 @@ describe('ChatPrompt', () => {
 
 			await setupUser().type(el, '{Delete}', { initialSelectionStart: 0, initialSelectionEnd: 0 })
 
-			expect(el.value).toBe(' by day')
+			// The space after the quote goes with it, so the draft keeps no leading space.
+			expect(el.value).toBe('by day')
 
 			expect(onCitations).toHaveBeenLastCalledWith([])
+		})
+
+		it('leaves one space between the words around a deleted citation', async () => {
+			const onCitations = vi.fn()
+
+			const { container } = renderUI(<Scoped onCitations={onCitations} before="Show " />)
+
+			const el = getSlot<HTMLTextAreaElement>(container, 'chat-prompt')
+
+			await setupUser().type(el, '{Delete}', { initialSelectionStart: 5, initialSelectionEnd: 5 })
+
+			expect(el.value).toBe('Show by day')
+
+			expect(onCitations).toHaveBeenLastCalledWith([])
+		})
+
+		it('keeps the space after a deleted citation that a word is directly before', async () => {
+			const { container } = renderUI(<Scoped onCitations={noop} before="Show" />)
+
+			const el = getSlot<HTMLTextAreaElement>(container, 'chat-prompt')
+
+			await setupUser().type(el, '{Delete}', { initialSelectionStart: 4, initialSelectionEnd: 4 })
+
+			expect(el.value).toBe('Show by day')
 		})
 
 		it('makes no citation from a typed quote', async () => {
