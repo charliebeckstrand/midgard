@@ -5,6 +5,7 @@ import {
 	type KeyboardEvent,
 	type PointerEvent,
 	type ReactNode,
+	useEffect,
 	useId,
 } from 'react'
 import type { MarkdownRangePiece } from '../../components/markdown/markdown-ranges'
@@ -109,6 +110,17 @@ export function ChatCitationPiece({ piece: { range, index }, children }: ChatCit
 	// pieces, so the button takes the text of all of them as its name.
 	const name = useMarkdownRangeText(range)
 
+	const { id } = range
+
+	// A node that unmounts gets no leave and no blur. Piece 0 thus ends a
+	// preview of its citation when it unmounts, as when a reply is replaced, so
+	// the app does not keep a preview that no control clears.
+	useEffect(() => {
+		if (index > 0) return
+
+		return () => actions?.dismiss(id)
+	}, [actions, id, index])
+
 	if (!Object.hasOwn(targets, range.target) || actions === undefined) {
 		return (
 			<span data-slot="chat-citation-static" className={k().citationStatic}>
@@ -193,7 +205,7 @@ export function ChatCitationPiece({ piece: { range, index }, children }: ChatCit
 				className={k().citation}
 				onClick={onClick}
 				onKeyDown={(event) => {
-					if (event.key === 'Escape' && trigger !== 'click') actions.dismiss(range)
+					if (event.key === 'Escape' && trigger !== 'click') actions.dismiss(range.id)
 					else pressKeyDown(event, press)
 				}}
 				onKeyUp={(event) => {

@@ -430,6 +430,54 @@ describe('ChatCitationProvider trigger', () => {
 		expect(previews()).toEqual(['late', null, 'tue'])
 	})
 
+	it('ends the preview when the reply that holds the citation unmounts', async () => {
+		const onPreviewChange = vi.fn()
+
+		const user = userEvent.setup()
+
+		const tree = (shown: boolean) => (
+			<ChatCitationProvider
+				targets={targets}
+				cited={null}
+				onCitedChange={() => {}}
+				onPreviewChange={onPreviewChange}
+				trigger="hover"
+			>
+				{shown ? <ChatMessage sender="assistant">{reply([late])}</ChatMessage> : null}
+			</ChatCitationProvider>
+		)
+
+		const { rerender } = renderUI(tree(true))
+
+		await user.hover(screen.getByRole('button'))
+
+		rerender(tree(false))
+
+		expect(onPreviewChange.mock.calls.map(([c]) => c?.id ?? null)).toEqual(['late', null])
+	})
+
+	it('sends nothing when a citation with no preview unmounts', () => {
+		const onPreviewChange = vi.fn()
+
+		const tree = (shown: boolean) => (
+			<ChatCitationProvider
+				targets={targets}
+				cited={null}
+				onCitedChange={() => {}}
+				onPreviewChange={onPreviewChange}
+				trigger="hover"
+			>
+				{shown ? <ChatMessage sender="assistant">{reply([late])}</ChatMessage> : null}
+			</ChatCitationProvider>
+		)
+
+		const { rerender } = renderUI(tree(true))
+
+		rerender(tree(false))
+
+		expect(onPreviewChange).not.toHaveBeenCalled()
+	})
+
 	it('cites a hover and click citation on Enter', async () => {
 		const { user, onCitedChange, anchor } = setup(['hover', 'click'])
 

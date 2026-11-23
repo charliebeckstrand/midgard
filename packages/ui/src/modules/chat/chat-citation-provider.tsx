@@ -29,7 +29,8 @@ export type ChatCitationProviderProps = {
 	onCitedChange: (citation: ChatCitation | null) => void
 	/**
 	 * Fires when a hover or a keyboard focus starts a preview, with the
-	 * previewed citation, and with `null` when the preview ends. Draw each view
+	 * previewed citation, and with `null` when the preview ends or its citation
+	 * unmounts. Draw each view
 	 * from `previewed ?? cited`, so a preview shows over the active citation and
 	 * the active citation comes back when the preview ends. The preview does
 	 * not change `cited`, so a control that clears `cited`, such as a Clear

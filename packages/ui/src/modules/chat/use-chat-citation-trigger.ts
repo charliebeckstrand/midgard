@@ -56,8 +56,8 @@ export type ChatCitationActions = {
 	preview: (citation: ChatCitation, source: PreviewSource) => void
 	/** Removes a source from the preview of `citation`. The preview ends with its last source. */
 	unpreview: (citation: ChatCitation, source: PreviewSource) => void
-	/** Ends the preview of `citation`, as Escape does. */
-	dismiss: (citation: ChatCitation) => void
+	/** Ends the preview of the citation `id`, as Escape or an unmount does. */
+	dismiss: (id: string) => void
 	/** A click, Enter, or Space on `citation`. `touch` is true for a tap. */
 	press: (citation: ChatCitation, touch: boolean) => void
 }
@@ -135,8 +135,8 @@ export function useChatCitationTrigger(
 		if (open.sources.size === 0) end()
 	})
 
-	const dismiss = useStableEvent((citation: ChatCitation) => {
-		if (previewRef.current?.citation.id === citation.id) end()
+	const dismiss = useStableEvent((id: string) => {
+		if (previewRef.current?.citation.id === id) end()
 	})
 
 	const press = useStableEvent((citation: ChatCitation, touch: boolean) => {
