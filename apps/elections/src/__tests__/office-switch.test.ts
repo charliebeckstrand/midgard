@@ -53,15 +53,15 @@ function Views() {
 	})
 }
 
-/** The tab of `name` in the view of `view`. */
-function tabIn(view: string, name: string): HTMLElement {
-	const tab = screen
-		.getAllByRole('tab', { name })
+/** The radio of `name` in the view of `view`. */
+function radioIn(view: string, name: string): HTMLElement {
+	const radio = screen
+		.getAllByRole('radio', { name })
 		.find((element) => document.querySelector(`[data-view="${view}"]`)?.contains(element))
 
-	if (tab === undefined) throw new Error(`The ${view} view has no ${name} tab.`)
+	if (radio === undefined) throw new Error(`The ${view} view has no ${name} radio.`)
 
-	return tab
+	return radio
 }
 
 /** Whether the view of `view` shows. */
@@ -78,7 +78,7 @@ describe('OfficeSwitch', () => {
 		expect(shows('overview')).toBe(true)
 
 		await act(async () => {
-			fireEvent.click(tabIn('overview', 'Senate'))
+			fireEvent.click(radioIn('overview', 'Senate'))
 		})
 
 		expect(shows('senate')).toBe(true)
@@ -104,7 +104,7 @@ describe('OfficeSwitch', () => {
 
 		render(h(Views))
 
-		const senate = tabIn('overview', 'Senate')
+		const senate = radioIn('overview', 'Senate')
 
 		await act(async () => {
 			senate.focus()
@@ -116,6 +116,6 @@ describe('OfficeSwitch', () => {
 
 		expect(view?.contains(document.activeElement)).toBe(true)
 
-		expect(document.activeElement?.getAttribute('aria-selected')).toBe('true')
+		expect(document.activeElement?.getAttribute('aria-checked')).toBe('true')
 	})
 })

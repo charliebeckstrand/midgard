@@ -37,7 +37,7 @@ export function OfficeSwitch({ items, value }: { items: readonly OfficeItem[]; v
 
 		focusOnShow = false
 
-		list.current?.querySelector<HTMLElement>('[role="tab"][aria-selected="true"]')?.focus()
+		list.current?.querySelector<HTMLElement>('[role="radio"][aria-checked="true"]')?.focus()
 	}, [])
 
 	return (
