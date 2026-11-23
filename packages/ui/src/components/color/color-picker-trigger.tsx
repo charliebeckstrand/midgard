@@ -1,6 +1,6 @@
 'use client'
 
-import type { RefCallback } from 'react'
+import { type RefCallback, useRef } from 'react'
 import { ariaAttr } from '../../core/aria-attr'
 import { cn } from '../../core/cn'
 import { dataAttr } from '../../core/data-attr'
@@ -12,7 +12,7 @@ import { HeadlessProvider } from '../../providers/headless'
 import type { scale } from '../../recipes/kata/color-picker'
 import { k } from '../../recipes/kata/color-picker'
 import { Button } from '../button'
-import { useControl } from '../control/context'
+import { useControlFallbackLabel } from '../control/use-control-fallback-label'
 import { useControlSurface } from '../control/use-control-surface'
 import { colorMessages } from './color-messages'
 import { hsvaToCss, hsvaToHex } from './color-utilities'
@@ -87,9 +87,14 @@ export function ColorPickerTrigger({
 
 	const slots = k({ variant: useControlSurface() })
 
+	const buttonRef = useRef<HTMLButtonElement>(null)
+
 	// A Label of the enclosing Field names the trigger through its `for`. Only
-	// where no Label registers does the trigger take a name of its own.
-	const labelled = useControl()?.labelledBy !== undefined
+	// where no label names it does the trigger take a name of its own.
+	const fallbackLabel = useControlFallbackLabel(
+		ariaLabel ?? intl.formatMessage(colorMessages.picker),
+		buttonRef,
+	)
 
 	const swatchColor = hsvaToCss(hsva, alpha)
 
@@ -108,12 +113,11 @@ export function ColorPickerTrigger({
 		>
 			<HeadlessProvider>
 				<Button
+					ref={buttonRef}
 					type="button"
 					id={triggerId}
 					role="combobox"
-					aria-label={
-						labelled ? undefined : (ariaLabel ?? intl.formatMessage(colorMessages.picker))
-					}
+					aria-label={fallbackLabel}
 					aria-haspopup="dialog"
 					aria-expanded={open}
 					aria-controls={open ? dialogId : undefined}

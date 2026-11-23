@@ -216,7 +216,11 @@ export type DatePickerBaseProps = {
 	defaultOpen?: boolean
 	/** Fires when the calendar opens or closes (trigger, dismiss, Escape, selection). */
 	onOpenChange?: (open: boolean) => void
-	/** Accessible name for the trigger when no Field/Label wraps the picker. */
+	/**
+	 * The name of the trigger when no label names it. A Label of the enclosing
+	 * Field wins over it.
+	 * @defaultValue `'Date'`, in the language of the reader.
+	 */
 	'aria-label'?: string
 }
 

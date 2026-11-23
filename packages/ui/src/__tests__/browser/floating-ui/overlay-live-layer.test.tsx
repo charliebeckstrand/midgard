@@ -1,9 +1,17 @@
+import type { ReactNode } from 'react'
 import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Button } from '../../../components/button'
+import { ColorPicker } from '../../../components/color'
+import { DatePicker } from '../../../components/date-picker'
 import { Dialog, DialogBody, DialogPanel, DialogTitle } from '../../../components/dialog'
-import { Toast, ToastProvider, useToast } from '../../../components/toast'
-import { renderUI, screen, waitFor } from '../../helpers'
+import {
+	Toast,
+	ToastProvider,
+	type useToast as UseToast,
+	useToast,
+} from '../../../components/toast'
+import { act, getSlot, renderUI, screen, waitFor } from '../../helpers'
 
 /**
  * A modal Dialog hides the page from AT, but not the toast viewport, against
@@ -59,4 +67,50 @@ describe('overlay live layer (real browser)', () => {
 
 		expect(alert.closest('[aria-hidden="true"]')).toBeNull()
 	})
+
+	// A picker panel traps the focus through `FloatingSurface`, and not through
+	// `Overlay` or `PopoverContent`. Its modal trap keeps the live layers too.
+	it.each([
+		['ColorPicker', <ColorPicker key="color" defaultValue="#3b82f6" />, 'color-picker-content'],
+		['DatePicker', <DatePicker key="date" aria-label="Due date" />, 'datepicker-content'],
+	])(
+		'keeps a toast raised while a %s is open in the accessibility tree',
+		async (_name, picker, slot) => {
+			let raise: ReturnType<typeof UseToast>['toast'] | undefined
+
+			function Raiser({ children }: { children: ReactNode }) {
+				raise = useToast().toast
+
+				return children
+			}
+
+			renderUI(
+				<ToastProvider>
+					<Raiser>
+						<Button>Outside</Button>
+						{picker}
+					</Raiser>
+					<Toast />
+				</ToastProvider>,
+			)
+
+			await userEvent.click(screen.getByRole('combobox'))
+
+			await waitFor(() => getSlot(document.body, slot))
+
+			const outside = screen.getByText('Outside').closest('button') as HTMLElement
+
+			await waitFor(() => expect(outside.closest('[aria-hidden="true"]')).not.toBeNull())
+
+			act(() => {
+				raise?.({ title: 'Failed to save', severity: 'error' })
+			})
+
+			const alert = await screen.findByRole('alert')
+
+			expect(alert).toHaveTextContent('Failed to save')
+
+			expect(alert.closest('[aria-hidden="true"]')).toBeNull()
+		},
+	)
 })

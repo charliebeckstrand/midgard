@@ -137,10 +137,11 @@ export function DatePickerTrigger({
 
 	// A combobox takes no name from its content, so a trigger with no Field label
 	// and no `aria-label` takes the name "Date", as `DateInput` does (WCAG 4.1.2).
+	// A label of the Field wins over the `aria-label`, as on `ColorPicker`.
 	const intl = useIntl()
 
 	const fallbackLabel = useControlFallbackLabel(
-		intl.formatMessage(dateInputMessages.name),
+		ariaLabel ?? intl.formatMessage(dateInputMessages.name),
 		buttonRef,
 	)
 
@@ -187,7 +188,7 @@ export function DatePickerTrigger({
 					type="button"
 					id={triggerId}
 					role="combobox"
-					aria-label={ariaLabel ?? fallbackLabel}
+					aria-label={fallbackLabel}
 					aria-haspopup="dialog"
 					aria-expanded={open}
 					aria-controls={open ? dialogId : undefined}

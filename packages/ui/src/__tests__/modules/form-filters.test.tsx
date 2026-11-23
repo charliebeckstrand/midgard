@@ -6,6 +6,7 @@ import { Label } from '../../components/fieldset'
 import { Input } from '../../components/input'
 import { Radio } from '../../components/radio'
 import { SearchInput } from '../../components/search-input'
+import { RangeSlider } from '../../components/slider'
 import { Switch } from '../../components/switch'
 import { Textarea } from '../../components/textarea'
 import {
@@ -98,6 +99,18 @@ describe('FormFilters group', () => {
 		)
 
 		expect(screen.getByRole('group', { name: 'Order filters' })).toBeInTheDocument()
+	})
+
+	it('disables the Control cascade, also for a control that is not form-associated', () => {
+		const { container } = renderUI(
+			<FormFilters aria-label="Order filters" disabled>
+				<FormFiltersField name="price">
+					<RangeSlider />
+				</FormFiltersField>
+			</FormFilters>,
+		)
+
+		expect(getSlot(container, 'slider-range')).toHaveAttribute('data-disabled')
 	})
 })
 
