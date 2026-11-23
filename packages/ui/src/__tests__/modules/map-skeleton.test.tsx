@@ -10,7 +10,7 @@ describe('MapSkeleton', () => {
 
 		const box = bySlot(container, 'placeholder')
 
-		expect(box?.getAttribute('style')).toContain(`aspect-ratio: ${16 / 9}`)
+		expect(box).toHaveStyle({ aspectRatio: `${16 / 9}` })
 
 		// The placeholder is the frame: no wrapper adds a second slot.
 		expect(container.querySelectorAll('[data-slot]')).toHaveLength(1)
@@ -23,32 +23,26 @@ describe('MapSkeleton', () => {
 		// the swap this component exists to prevent.
 		const composite = renderUI(<MapSkeleton projection="albers-usa" />)
 
-		expect(bySlot(composite.container, 'placeholder')?.getAttribute('style')).toContain(
-			`aspect-ratio: ${ALBERS_USA_ASPECT}`,
-		)
+		expect(bySlot(composite.container, 'placeholder')).toHaveStyle({
+			aspectRatio: `${ALBERS_USA_ASPECT}`,
+		})
 
 		// A world projection frames arbitrary geography and knows no ratio, so it
 		// falls through to the generic reserve.
 		const world = renderUI(<MapSkeleton projection="mercator" />)
 
-		expect(bySlot(world.container, 'placeholder')?.getAttribute('style')).toContain(
-			`aspect-ratio: ${16 / 9}`,
-		)
+		expect(bySlot(world.container, 'placeholder')).toHaveStyle({ aspectRatio: `${16 / 9}` })
 
 		// An explicit ratio is the narrower statement and wins over both.
 		const fixed = renderUI(<MapSkeleton projection="albers-usa" aspectRatio="4/3" />)
 
-		expect(bySlot(fixed.container, 'placeholder')?.getAttribute('style')).toContain(
-			`aspect-ratio: ${4 / 3}`,
-		)
+		expect(bySlot(fixed.container, 'placeholder')).toHaveStyle({ aspectRatio: `${4 / 3}` })
 	})
 
 	it('takes an explicit ratio, and fills the container under ratio={false}', () => {
 		const fixed = renderUI(<MapSkeleton aspectRatio="4/3" />)
 
-		expect(bySlot(fixed.container, 'placeholder')?.getAttribute('style')).toContain(
-			`aspect-ratio: ${4 / 3}`,
-		)
+		expect(bySlot(fixed.container, 'placeholder')).toHaveStyle({ aspectRatio: `${4 / 3}` })
 
 		const fill = renderUI(<MapSkeleton aspectRatio={false} />)
 
@@ -70,7 +64,7 @@ describe('MapSkeleton', () => {
 		expect(composite.container.querySelector('div[data-slot=placeholder]')).toBeNull()
 
 		// The outline itself reserves the frame.
-		expect(outline?.getAttribute('style')).toContain(`aspect-ratio: ${ALBERS_USA_ASPECT}`)
+		expect(outline).toHaveStyle({ aspectRatio: `${ALBERS_USA_ASPECT}` })
 
 		const off = renderUI(<MapSkeleton projection="albers-usa" outline={false} />)
 

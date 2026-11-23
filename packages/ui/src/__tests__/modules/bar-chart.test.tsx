@@ -1002,7 +1002,7 @@ describe('BarChart', () => {
 
 		const figure = getSlot(container, 'chart-figure')
 
-		expect(figure.style.aspectRatio.replace(/\s*\/\s*1$/, '')).toBe('1.7777777777777777')
+		expect(figure).toHaveStyle({ aspectRatio: `${16 / 9}` })
 
 		// The plot box no longer reserves its own ratio: it fills the region the
 		// figure sized.
@@ -1022,7 +1022,7 @@ describe('BarChart', () => {
 
 		const figure = getSlot(container, 'chart-figure')
 
-		expect(figure.style.aspectRatio.replace(/\s*\/\s*1$/, '')).toBe('1.7777777777777777')
+		expect(figure).toHaveStyle({ aspectRatio: `${16 / 9}` })
 
 		// The plot box reserves no ratio of its own: it fills and measures the figure.
 		expect(bySlot(container, 'aspect-ratio')).toBeNull()
