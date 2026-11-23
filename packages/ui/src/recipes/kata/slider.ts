@@ -27,7 +27,9 @@ export const k = defineKata(
 
 			// --slider-value is set inline (0-100%). The group sets --slider-fill from
 			// the color variant, and --slider-track, which is the same for each color.
-			// A native range runs from the inline start, so the fill does too.
+			// A native range runs from the inline start, so the fill does too. The
+			// inset ring of --slider-track-ring is the edge of the whole track.
+			...ring.track,
 			'[--slider-run:to_right] rtl:[--slider-run:to_left]',
 			'[&::-webkit-slider-runnable-track]:w-full',
 			'[&::-webkit-slider-runnable-track]:rounded-full',

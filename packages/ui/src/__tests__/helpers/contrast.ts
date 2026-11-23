@@ -35,10 +35,15 @@ const THEME: Map<string, string> = (() => {
 	return map
 })()
 
-const SHADE = /(zinc|red|amber|green|blue|rose|violet|sky)-(\d{2,3})(?:\/(\d{1,3}))?/
+/**
+ * A shade and its alpha. The alpha follows the token (`ring-zinc-950/40`), or
+ * it follows the arbitrary property that holds the token as a theme variable
+ * (`[--ring:var(--color-zinc-950)]/40`).
+ */
+const SHADE = /(zinc|red|amber|green|blue|rose|violet|sky)-(\d{2,3})(?:\)\])?(?:\/(\d{1,3}))?/
 
-/** The two shadeless tokens, which carry their alpha the same way (`bg-white/10`). */
-const NEUTRAL = /\b(white|black)(?:\/(\d{1,3}))?\b/
+/** The two shadeless tokens, which carry their alpha the same way (`bg-white/10`, `[--bg:var(--color-white)]/10`). */
+const NEUTRAL = /\b(white|black)(?:\)\])?(?:\/(\d{1,3}))?\b/
 
 /** A Tailwind `/alpha` suffix as a fraction; absent means opaque. */
 const parseAlpha = (suffix: string | undefined): number => (suffix ? Number(suffix) / 100 : 1)
