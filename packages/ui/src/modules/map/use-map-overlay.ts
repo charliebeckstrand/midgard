@@ -387,6 +387,7 @@ export function useMapOverlay({
 		clusters,
 		moves,
 		animate,
+		recede,
 		selectedOverlays,
 	} = useMapPlat()
 
@@ -394,8 +395,10 @@ export function useMapOverlay({
 
 	// Only whether this mark dims. A crossing or a legend hover that leaves the
 	// answer as it was, such as one between two regions, renders no overlay mark.
-	const dimmed = useMapPointed((pointed, emphasis) =>
-		mapMarkDimmed(pointed, { kind: 'entry', id, stop: 0 }, emphasis, groupId),
+	// A plat that does not recede dims no mark.
+	const dimmed = useMapPointed(
+		(pointed, emphasis) =>
+			recede && mapMarkDimmed(pointed, { kind: 'entry', id, stop: 0 }, emphasis, groupId),
 	)
 
 	const unitsPerPixel = useMapZoomScale()

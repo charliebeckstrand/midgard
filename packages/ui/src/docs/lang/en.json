@@ -6987,6 +6987,10 @@
 		"defaultMessage": "Read only",
 		"description": "The label of a field of a playground in the docs. The field sets the prop readOnly of AddressInput, Checkbox, ColorPicker, Combobox, Control, DatePicker, Listbox, QueryBuilder, Radio, Rating, Select, SignaturePad, Slider, Switch."
 	},
+	"docs.prop.recede": {
+		"defaultMessage": "Recede",
+		"description": "The label of a field of a playground in the docs. The field sets the prop recede of MapPlat."
+	},
 	"docs.prop.region": {
 		"defaultMessage": "Region",
 		"description": "The label of a field of a playground in the docs. The field sets the prop region of Accordion."

@@ -109,15 +109,6 @@ export function useMapPointed<T>(
 	return useSyncExternalStore(store.subscribe, read, read)
 }
 
-/** The pointed mark itself, for a reader that draws from it. See {@link MapPointedStore}. @internal */
-export function useMapPointedMark(): MapHoverTarget | null {
-	return useMapPointed(identity)
-}
-
-function identity<T>(value: T): T {
-	return value
-}
-
 /**
  * The view transform and its gestures, or `null` on a map that does not zoom.
  * It is one encoding of that bit, which the layer, the plot region, and the
@@ -264,6 +255,8 @@ export type MapPlatContextValue = {
 	selectedOverlays: readonly MapOverlaySelection[]
 	/** Whether the plat animates; overlays pick their motion renderers off it. */
 	animate: boolean
+	/** Whether the pointed mark and the legend emphasis recede the other marks (`MapPlatProps.recede`). */
+	recede: boolean
 	/**
 	 * The canonical frame, in frame units, while the box is not measured: on the
 	 * server, and in the hydration render. `null` once the box is measured.

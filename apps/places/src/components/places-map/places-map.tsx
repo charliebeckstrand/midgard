@@ -1,7 +1,6 @@
 'use client'
 
 import { useCallback, useMemo } from 'react'
-import { cn } from 'ui/core'
 import {
 	type MapCategory,
 	type MapFeatureCollection,
@@ -257,18 +256,7 @@ export function PlacesMap({
 		// The fit takes every edge of the box it is handed, so without an inset
 		// the geography meets the chrome and a coastal dot sits half off the
 		// screen. The plat fits whatever box it gets, so the margin is the box.
-		<div
-			className={cn(
-				FRAME_INSET,
-				// Nothing on this map recedes. The plat's emphasis reads a region and the
-				// dots on it as separate marks, so pointing one dimmed the other, and
-				// crossing between them cross-faded the two, which is the flicker a
-				// reader sees moving from a region onto a place standing on it. A region
-				// and its places are one thing here, so both stay forward and the
-				// pointer changes nothing but the readout.
-				'[&_[data-slot=map-points]]:opacity-100! [&_[data-slot=map-regions-recede]]:opacity-100!',
-			)}
-		>
+		<div className={FRAME_INSET}>
 			<MapPlat
 				aria-label={framed === null ? 'Places across the world' : `Places in ${framed}`}
 				geography={geography}
@@ -284,6 +272,13 @@ export function PlacesMap({
 				categoryKey="visited"
 				// The paint of the visited regions: `COVERED_CATEGORIES` gives its reason.
 				categories={COVERED_CATEGORIES}
+				// Nothing on this map recedes. The plat's emphasis reads a region and the
+				// dots on it as separate marks, so pointing one dimmed the other, and
+				// crossing between them cross-faded the two, which is the flicker a
+				// reader sees moving from a region onto a place standing on it. A region
+				// and its places are one thing here, so both stay forward and the
+				// pointer changes nothing but the readout.
+				recede={false}
 				// One mark and one region category, so a legend would draw two rows
 				// that each name a paint rather than telling two things apart.
 				legend={false}
