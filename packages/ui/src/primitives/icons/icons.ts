@@ -31,6 +31,7 @@ import {
 	Columns3 as LucideColumns3,
 	Copy as LucideCopy,
 	CopyPlus as LucideCopyPlus,
+	CornerDownLeft as LucideCornerDownLeft,
 	CornerLeftDown as LucideCornerLeftDown,
 	CreditCard as LucideCreditCard,
 	Dot as LucideDot,
@@ -132,6 +133,8 @@ export const Columns3 = /* @__PURE__ */ createIcon(LucideColumns3)
 export const Copy = /* @__PURE__ */ createIcon(LucideCopy)
 
 export const CopyPlus = /* @__PURE__ */ createIcon(LucideCopyPlus)
+
+export const CornerDownLeft = /* @__PURE__ */ createIcon(LucideCornerDownLeft)
 
 export const CornerLeftDown = /* @__PURE__ */ createIcon(LucideCornerLeftDown)
 

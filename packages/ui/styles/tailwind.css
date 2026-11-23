@@ -50,11 +50,15 @@
  * the width of the text, so a higher percentage moves the shine to the left.
  * The shine starts past the right edge and stops past the left edge.
  * ShinyText sets the duration from its `speed` prop.
+ *
+ * `animate-drop-in` brings a surface in from a little above its place, as it
+ * fades in. The skip link of SidebarLayout takes it when it gets the focus.
  */
 @theme {
 	--animate-progress-sweep: progress-sweep 1.5s ease-in-out infinite;
 	--animate-progress-sweep-rtl: progress-sweep-rtl 1.5s ease-in-out infinite;
 	--animate-shiny-text: shiny-text 2s linear infinite;
+	--animate-drop-in: drop-in 150ms ease-out;
 
 	@keyframes progress-sweep {
 		from {
@@ -71,6 +75,13 @@
 		}
 		to {
 			transform: translateX(-300%);
+		}
+	}
+
+	@keyframes drop-in {
+		from {
+			opacity: 0;
+			transform: translateY(-0.5rem);
 		}
 	}
 

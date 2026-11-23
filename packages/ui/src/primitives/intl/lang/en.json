@@ -2203,6 +2203,10 @@
 		"defaultMessage": "Open navigation",
 		"description": "The name of the menu button that opens the navigation of a narrow page."
 	},
+	"ui.sidebarLayout.skipToContent": {
+		"defaultMessage": "Skip to content",
+		"description": "The link first in the tab order of a page that moves the focus past the navigation to the main content."
+	},
 	"ui.signaturePad.clear": {
 		"defaultMessage": "Clear signature",
 		"description": "The name of the button that erases the signature on the pad."

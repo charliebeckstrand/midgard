@@ -30,10 +30,6 @@ The lazy-load hooks are one stack, not copies. `createLazyModule` in [`utilities
 
 1. **A bench for the open of a modal overlay (*P2*).** `Overlay` in [`primitives/overlay`](src/primitives/overlay) moves the focus, locks the scroll, seals the page with `inert`, and records its layer and its fade. The seal touches each element outside the panel, so its cost grows with the page. The browser suite benches the popover, the menu, and the tooltip, and no bench opens a Dialog, a Sheet, or a Drawer. Add `__benchmarks__/browser/overlay-open.bench.tsx`. It opens and closes a Dialog over a page of many siblings. Each sample settles on the focus in the panel, or on the return of the focus. Record the findings in a dated section of [`__benchmarks__/browser/README.md`](src/__benchmarks__/browser/README.md) ([`CONVENTIONS.md`](../../CONVENTIONS.md) §12.6).
 
-## Accessibility and testing
-
-1. **A skip link in `SidebarLayout` (*P2*).** A reader with a keyboard tabs through each item of the sidebar before the content. The landmarks meet WCAG 2.4.1, but they help only a reader with a screen reader. GOV.UK Frontend and the U.S. Web Design System give a skip link that shows when it has the focus. Add one to [`layouts/sidebar/sidebar.tsx`](src/layouts/sidebar/sidebar.tsx), first in the tab order, with its text from `defineMessages`. A layout in the main slot of another layout renders none, because `useLandmark` tells it that a main encloses it. A browser test proves that the first Tab shows the link, and that Enter moves the focus to the main slot.
-
 ## Not planned
 
 - The `popover` attribute, CSS anchor positioning alone, or `showModal()` for the floating and overlay shells. A native close cannot wait for an exit animation in each engine, `showModal()` does not lock the scroll, and it makes the toasts inert ([`PRIMITIVES.md`](docs/PRIMITIVES.md)).

@@ -5,10 +5,10 @@
  * `panel` and `aside`, the `actions`, the parts of the floating sidebar
  * (`floating.peek`, `floating.sheet`, `floating.body`, `floating.buffer`), the
  * `content` and its `content.wrapper`, the `header` and its `header.actions`,
- * the `body`, and the `footer`.
+ * the `body`, the `footer`, and the `skip` link.
  */
 import { defineKata, mode } from '../../core/recipe'
-import { dan, narabi, omote, sen, sou } from '../kiso'
+import { dan, kasane, narabi, omote, sen, sou } from '../kiso'
 
 const { flex, offcanvas } = narabi
 const { gap, space } = dan
@@ -129,6 +129,20 @@ const header = [flex.row, 'shrink-0', space.shell.bottom]
 // sits at the bottom of a short page. It scrolls with the page.
 const body = ['flex-1', sen.focus.inset]
 
+// The skip link is first in the tab order. It is visually hidden until it has
+// the focus. Then it floats at the top center of the viewport, over the sticky
+// navbar (`z-30`), on the surface of a popover, and it drops in when the
+// reader allows motion. The `not-focus` variant outranks `fixed`, so the link
+// is fixed only while it has the focus.
+const skip = [
+	'fixed inset-x-0 top-5 z-40 mx-auto w-fit',
+	'not-focus:sr-only',
+	kasane.rounded.full,
+	omote.popover,
+	'shadow-lg',
+	'focus:motion-safe:animate-drop-in',
+]
+
 // The classes of each part that changes with the layout, for the drawer and
 // the inline values, are the `layout` axis of the part. Each value of a table
 // writes the same properties on the same selectors (CONVENTIONS §5.9). A part
@@ -193,5 +207,6 @@ export const k = defineKata({
 		},
 		body,
 		footer: 'shrink-0',
+		skip,
 	},
 })
