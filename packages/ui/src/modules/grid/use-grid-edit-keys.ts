@@ -32,7 +32,8 @@ export type GridSessionTarget = { rowKey: string | number; columnId: string | nu
  * handler. Escape abandons the session. From an open editor, Enter commits and
  * moves down, and F2 commits and stays. Under cell scope, Tab and Shift+Tab
  * move to the next control in the same cell when there is one, else along the
- * row's editable cells, and the cell left behind commits. Under row scope Tab
+ * row's editable cells, and the cell left behind commits. At the edge of the
+ * row, the key commits as F2 does. Under row scope Tab
  * stays with the browser, and the row commits when it closes (see
  * `GridEditableConfig.scope`). Every editor therefore inherits the keys
  * without wiring of its own. A move that commits holds back while
@@ -178,10 +179,10 @@ export function useGridEditKeys<T>({
 		[endSession, moveTo, rowKeysRef, cursorColumnsRef],
 	)
 
-	// Under cell scope, Tab and Shift+Tab move along the row's editable columns,
-	// and wrap at the edges. The move re-points the session, so the cell it
-	// leaves commits. A row with one editable column has nowhere to go, so the
-	// key commits there, as F2 does.
+	// Under cell scope, Tab and Shift+Tab move along the row's editable columns.
+	// The move re-points the session, so the cell it leaves commits. At the edge
+	// of the row the key has nowhere to go, so it commits there, as F2 does.
+	// Focus goes back to the tab stop, and the next Tab leaves the grid.
 	const commitAlong = useCallback(
 		(rowKey: string | number, columnId: string | number, step: 1 | -1) => {
 			const columns = cursorColumnsRef.current
@@ -195,7 +196,7 @@ export function useGridEditKeys<T>({
 
 			const target = columns[next]
 
-			if (next === col || !target) {
+			if (!target) {
 				commitHere(rowKey, columnId)
 
 				return

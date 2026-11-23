@@ -289,8 +289,9 @@ export type GridEditableConfig = {
 	 * - Under `scope: 'cell'`, Tab and Shift+Tab move to the next control in
 	 *   the same cell when there is one, as in an `editCell` slot with several
 	 *   controls. Tab from the last control, or Shift+Tab from the first, moves
-	 *   along the row's editable cells, and wraps at the edges. The cell left
-	 *   behind commits.
+	 *   along the row's editable cells. The cell left behind commits. At the
+	 *   edge of the row, the key commits as F2 does, with focus back on the
+	 *   grid, so the next Tab leaves the grid.
 	 * - Under `'row'`, Tab and Shift+Tab stay with the browser. The open row is
 	 *   a row of fields, so Tab moves through its editors and then its actions,
 	 *   such as save and discard, as through a form. The row commits when it
