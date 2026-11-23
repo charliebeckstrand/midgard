@@ -19,7 +19,6 @@ const { size } = ji
 const { rounded } = kasane
 const { flex, nest } = narabi
 const { border, focus } = sen
-const { css } = ugoki
 
 /** A part of a `vertical` rule, which stacks at full width. */
 const stacked = 'min-w-auto flex-initial'
@@ -143,13 +142,10 @@ export const k = defineKata(
 					node: 'min-w-0 flex-1',
 					/**
 					 * The AND/OR between two nodes aligns with the nodes: one `nest.indent`
-					 * past the grip and the gap. The nodes move over it during a drag, so it
-					 * fades until the drop. The separator holds `data-sorting` itself, because
-					 * the list is a `display: contents` box. WebKit did not restyle the
-					 * separators when the attribute of the list changed. They faded only when
-					 * a move put them in a new place.
+					 * past the grip and the gap. It stays in view through a drag, because
+					 * each combinator keeps its slot while the nodes move.
 					 */
-					separator: [nest.indent, css.opacity, 'data-sorting:opacity-0'],
+					separator: nest.indent,
 				},
 			},
 		},
