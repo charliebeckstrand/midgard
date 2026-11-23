@@ -1409,7 +1409,7 @@
 	},
 	"docs.demo.19766ed6ccb2": {
 		"defaultMessage": "Cancel",
-		"description": "Text of a demo in the docs, in components/card/with-header-and-footer.tsx, components/dialog/with-form.tsx, components/sheet/with-form.tsx and 3 more."
+		"description": "Text of a demo in the docs, in components/card/with-header-and-footer.tsx, components/dialog/with-form.tsx, components/sheet/with-form.tsx and 4 more."
 	},
 	"docs.demo.197aee787794": {
 		"defaultMessage": "Leave grid",
@@ -1666,6 +1666,10 @@
 	"docs.demo.28587fe37507": {
 		"defaultMessage": "⇧⌘A",
 		"description": "Text of a demo in the docs, in components/menu/icons-and-shortcuts.tsx."
+	},
+	"docs.demo.28ab68ddb911": {
+		"defaultMessage": "Writing a reply",
+		"description": "Text of a demo in the docs as label, in modules/chat/conversation/conversation.tsx."
 	},
 	"docs.demo.29008d9de4fb": {
 		"defaultMessage": "Min price",
@@ -5542,6 +5546,10 @@
 	"docs.demo.fa8ed0bdabdd": {
 		"defaultMessage": "Plan",
 		"description": "Text of a demo in the docs as aria-label, label, in components/list/stages.ts, components/radio/playground.tsx, components/select/with-descriptions.tsx and 1 more."
+	},
+	"docs.demo.fab4539d26e0": {
+		"defaultMessage": "Editing",
+		"description": "Text of a demo in the docs as label, in modules/chat/conversation/edit-a-message.tsx."
 	},
 	"docs.demo.fb3d7e2c77f4": {
 		"defaultMessage": "File actions",

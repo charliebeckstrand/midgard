@@ -147,10 +147,6 @@
 		"defaultMessage": "Bad reply",
 		"description": "The name of the button that rates a reply of the assistant as bad."
 	},
-	"ui.chat.cancelEdit": {
-		"defaultMessage": "Cancel edit",
-		"description": "The name of the button in the chat composer that stops the edit of a sent message and clears the draft."
-	},
 	"ui.chat.citationMarked": {
 		"defaultMessage": "Selects in {label}. The selection in that view matches it.",
 		"description": "The description of a phrase of a chat reply that selects items in a view beside the chat, while the items that a reader selected in the view match the phrase. The label is the name of the view, such as \"Late stops by day\"."
@@ -162,10 +158,6 @@
 	"ui.chat.done": {
 		"defaultMessage": "Done",
 		"description": "The status of a step of the assistant that ended well."
-	},
-	"ui.chat.editing": {
-		"defaultMessage": "Editing",
-		"description": "The label in the chat composer while the reader edits a message that they sent. A send replaces that message."
 	},
 	"ui.chat.failed": {
 		"defaultMessage": "Failed",

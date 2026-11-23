@@ -5,6 +5,7 @@ import {
 	ChatPrompt,
 	type ChatPromptItem,
 	type ChatPromptSource,
+	ChatPromptToolbar,
 } from '../../modules/chat'
 import {
 	deferred,
@@ -67,8 +68,7 @@ function Composer({
 			}}
 			sources={sources}
 			onSubmit={onSubmit}
-			editing={onCancelEdit !== undefined}
-			onCancelEdit={onCancelEdit}
+			toolbar={onCancelEdit && <ChatPromptToolbar label="Editing" onDismiss={onCancelEdit} />}
 		/>
 	)
 }
@@ -273,7 +273,7 @@ describe('ChatPrompt picker', () => {
 		expect(screen.getByRole('listbox')).toBeInTheDocument()
 	})
 
-	it('takes Escape before the cancel of an edit', async () => {
+	it('takes Escape before the dismissal of a toolbar', async () => {
 		const onCancelEdit = vi.fn()
 
 		const { container } = renderUI(<Composer sources={[datasets]} onCancelEdit={onCancelEdit} />)
@@ -288,7 +288,7 @@ describe('ChatPrompt picker', () => {
 
 		expect(onCancelEdit).not.toHaveBeenCalled()
 
-		// With the picker closed, the next Escape cancels the edit.
+		// With the picker closed, the next Escape dismisses the toolbar.
 		await user.keyboard('{Escape}')
 
 		expect(onCancelEdit).toHaveBeenCalledOnce()

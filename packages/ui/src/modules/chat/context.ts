@@ -1,5 +1,6 @@
 'use client'
 
+import type { RefObject } from 'react'
 import { createContext } from '../../core/create-context'
 import type { ChatCitation } from './engine/chat-content/types'
 import type { ChatCitationTargets, ChatEmbedRegistry } from './types'
@@ -96,3 +97,28 @@ export const [ChatCitationContext, useChatCitations] = createContext<ChatCitatio
 	'ChatCitationProvider',
 	{ default: NO_CITATIONS },
 )
+
+/**
+ * What {@link ChatPrompt} gives to its {@link ChatPromptToolbar}.
+ *
+ * @internal
+ */
+export type ChatPromptToolbarScope = {
+	/** The id of the label of the toolbar. The textarea takes it as its description. */
+	labelId: string
+	/** The handler that Escape in the textarea calls, as the toolbar sets it. */
+	dismissRef: RefObject<(() => void) | undefined>
+	/** The textarea, which takes the focus when the toolbar unmounts with it. */
+	textareaRef: RefObject<HTMLTextAreaElement | null>
+	/** Tells the prompt that a toolbar is mounted. It returns the unmount. */
+	mount: () => () => void
+}
+
+/**
+ * The scope of the toolbar of the nearest {@link ChatPrompt}, or `null` outside
+ * one.
+ *
+ * @internal
+ */
+export const [ChatPromptToolbarContext, useChatPromptToolbarScope] =
+	createContext<ChatPromptToolbarScope | null>('ChatPromptToolbar', { default: null })

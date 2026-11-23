@@ -1,6 +1,6 @@
 import { createRef, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { type ChatCitation, ChatPrompt, useChatDraft } from '../../modules/chat'
+import { type ChatCitation, ChatPrompt, ChatPromptToolbar, useChatDraft } from '../../modules/chat'
 import {
 	bySlot,
 	fireEvent,
@@ -630,73 +630,112 @@ describe('ChatPrompt', () => {
 	})
 })
 
-describe('ChatPrompt editing', () => {
-	it('shows the edit label as the description of the textarea', () => {
-		renderUI(<ChatPrompt value="Draft" onValueChange={noop} onSubmit={noop} editing />)
+describe('ChatPrompt toolbar', () => {
+	/** A prompt with an edit toolbar while `editing`, as an app composes it. */
+	function EditingPrompt({ onCancel }: { onCancel: () => void }) {
+		const [editing, setEditing] = useState(true)
+
+		const cancel = () => {
+			setEditing(false)
+
+			onCancel()
+		}
+
+		return (
+			<ChatPrompt
+				value="Draft"
+				onValueChange={noop}
+				onSubmit={noop}
+				toolbar={
+					editing ? (
+						<ChatPromptToolbar label="Editing" onDismiss={cancel}>
+							<button type="button" onClick={cancel}>
+								Cancel
+							</button>
+						</ChatPromptToolbar>
+					) : undefined
+				}
+			/>
+		)
+	}
+
+	it('renders the toolbar above the field, with its controls named by the label', () => {
+		const { container } = renderUI(<EditingPrompt onCancel={noop} />)
+
+		const row = getSlot(container, 'chat-prompt-toolbar')
+
+		expect(row.compareDocumentPosition(getSlot(container, 'chat-prompt'))).toBe(
+			Node.DOCUMENT_POSITION_FOLLOWING,
+		)
+
+		expect(screen.getByRole('toolbar', { name: 'Editing' })).toContainElement(
+			screen.getByRole('button', { name: 'Cancel' }),
+		)
+	})
+
+	it('gives the label to the textarea as its description', () => {
+		renderUI(<EditingPrompt onCancel={noop} />)
 
 		expect(screen.getByRole('textbox', { name: 'Message' })).toHaveAccessibleDescription('Editing')
 	})
 
-	it('shows no edit label when not editing', () => {
-		const { container } = renderUI(<ChatPrompt value="" onValueChange={noop} onSubmit={noop} />)
+	it('drops the description when the toolbar goes', async () => {
+		renderUI(<EditingPrompt onCancel={noop} />)
 
-		expect(bySlot(container, 'chat-prompt-editing')).toBeNull()
+		await setupUser().click(screen.getByRole('button', { name: 'Cancel' }))
 
-		expect(screen.queryByRole('button', { name: 'Cancel edit' })).toBeNull()
+		expect(screen.getByRole('textbox', { name: 'Message' })).not.toHaveAttribute('aria-describedby')
 	})
 
-	it('cancels the edit from its button and gives the focus to the textarea', async () => {
-		const onCancelEdit = vi.fn()
+	it('gives the focus to the textarea when it unmounts with the focus in it', async () => {
+		const onCancel = vi.fn()
 
-		const { container } = renderUI(
-			<ChatPrompt
-				value="Draft"
-				onValueChange={noop}
-				onSubmit={noop}
-				editing
-				onCancelEdit={onCancelEdit}
-			/>,
-		)
+		const { container } = renderUI(<EditingPrompt onCancel={onCancel} />)
 
-		await setupUser().click(screen.getByRole('button', { name: 'Cancel edit' }))
+		await setupUser().click(screen.getByRole('button', { name: 'Cancel' }))
 
-		expect(onCancelEdit).toHaveBeenCalledTimes(1)
+		expect(onCancel).toHaveBeenCalledTimes(1)
+
+		expect(bySlot(container, 'chat-prompt-toolbar')).toBeNull()
 
 		expect(getSlot(container, 'chat-prompt')).toHaveFocus()
 	})
 
-	it('cancels the edit on Escape, and consumes the key', () => {
-		const onCancelEdit = vi.fn()
+	it('calls onDismiss on Escape in the textarea, and consumes the key', () => {
+		const onCancel = vi.fn()
 
-		const { container } = renderUI(
-			<ChatPrompt
-				value="Draft"
-				onValueChange={noop}
-				onSubmit={noop}
-				editing
-				onCancelEdit={onCancelEdit}
-			/>,
-		)
+		const { container } = renderUI(<EditingPrompt onCancel={onCancel} />)
 
 		const notPrevented = fireEvent.keyDown(getSlot(container, 'chat-prompt'), { key: 'Escape' })
 
-		expect(onCancelEdit).toHaveBeenCalledTimes(1)
+		expect(onCancel).toHaveBeenCalledTimes(1)
 
 		// `fireEvent` returns false when a listener prevented the default.
 		expect(notPrevented).toBe(false)
 	})
 
-	it('leaves Escape alone when not editing', () => {
-		const onCancelEdit = vi.fn()
-
+	it('leaves Escape alone with no toolbar', () => {
 		const { container } = renderUI(
-			<ChatPrompt value="Draft" onValueChange={noop} onSubmit={noop} onCancelEdit={onCancelEdit} />,
+			<ChatPrompt value="Draft" onValueChange={noop} onSubmit={noop} />,
 		)
 
 		const notPrevented = fireEvent.keyDown(getSlot(container, 'chat-prompt'), { key: 'Escape' })
 
-		expect(onCancelEdit).not.toHaveBeenCalled()
-
 		expect(notPrevented).toBe(true)
+	})
+
+	it('renders a label with no controls as a status line', () => {
+		const { container } = renderUI(
+			<ChatPrompt
+				value=""
+				onValueChange={noop}
+				onSubmit={noop}
+				toolbar={<ChatPromptToolbar label="Writing a reply" />}
+			/>,
+		)
+
+		expect(getSlot(container, 'chat-prompt-toolbar')).toHaveTextContent('Writing a reply')
+
+		expect(screen.queryByRole('toolbar')).toBeNull()
 	})
 })

@@ -6,6 +6,7 @@ import {
 	ChatEmbedProvider,
 	type ChatMessageData,
 	ChatPrompt,
+	ChatPromptToolbar,
 	ChatTranscript,
 	useChatDraft,
 	useChatSend,
@@ -156,8 +157,15 @@ export default function EditAMessage() {
 					onSubmit={draft.submit}
 					onStop={chat.stop}
 					streaming={chat.streaming}
-					editing={editing !== undefined}
-					onCancelEdit={end}
+					toolbar={
+						editing && (
+							<ChatPromptToolbar label="Editing" onDismiss={end}>
+								<Button variant="bare" size="sm" onClick={end}>
+									Cancel
+								</Button>
+							</ChatPromptToolbar>
+						)
+					}
 				/>
 			</Stack>
 		</ChatEmbedProvider>

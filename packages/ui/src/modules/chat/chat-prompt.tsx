@@ -10,7 +10,9 @@ import {
 	useCallback,
 	useId,
 	useLayoutEffect,
+	useMemo,
 	useRef,
+	useState,
 } from 'react'
 import { BadgeRemovable } from '../../components/badge/badge-removable'
 import { Button } from '../../components/button'
@@ -20,14 +22,14 @@ import { Icon } from '../../components/icon'
 import { Textarea } from '../../components/textarea'
 import { ariaAttr } from '../../core/aria-attr'
 import { dataAttr } from '../../core/data-attr'
-import { ArrowUp, Paperclip, Square, X } from '../../primitives/icons/icons'
+import { ArrowUp, Paperclip, Square } from '../../primitives/icons/icons'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
-import { k } from '../../recipes/kata/chat-prompt'
 import { isComposing } from '../../utilities/is-composing'
 import { keyByOccurrence } from '../../utilities/key-by-occurrence'
 import { hasBrowserModifier } from '../../utilities/modifier-keys'
 import { ChatPromptPicker } from './chat-prompt-picker'
+import { ChatPromptToolbarContext, type ChatPromptToolbarScope } from './context'
 import type { ChatCitation } from './engine/chat-content/types'
 import { canSubmitDraft } from './engine/chat-draft/content'
 import {
@@ -62,18 +64,6 @@ const messages = defineMessages({
 		id: 'ui.chat.stop',
 		defaultMessage: 'Stop generating',
 		description: 'The name of the button that stops the reply that the assistant writes.',
-	},
-	editing: {
-		id: 'ui.chat.editing',
-		defaultMessage: 'Editing',
-		description:
-			'The label in the chat composer while the reader edits a message that they sent. A send replaces that message.',
-	},
-	cancelEdit: {
-		id: 'ui.chat.cancelEdit',
-		defaultMessage: 'Cancel edit',
-		description:
-			'The name of the button in the chat composer that stops the edit of a sent message and clears the draft.',
 	},
 	send: {
 		id: 'ui.chat.send',
@@ -151,19 +141,11 @@ export type ChatPromptProps = {
 	 */
 	rows?: number
 	/**
-	 * Marks the draft as an edit of a sent message. The action row starts with
-	 * an "Editing" label, in the language of the reader, and the textarea takes
-	 * that label as its description. Give the `editing` of `ChatTranscript` the
-	 * id of the message, so its bubble dims too.
-	 * @defaultValue false
+	 * A row above the field, such as a {@link ChatPromptToolbar} that says that
+	 * the draft edits a sent message, or that a reply streams. Render it only
+	 * while its status holds.
 	 */
-	editing?: boolean
-	/**
-	 * Ends the edit, such as with a `clear` of `useChatDraft`. While `editing`,
-	 * a button after the label and the Escape key call it. The textarea then
-	 * takes the focus.
-	 */
-	onCancelEdit?: () => void
+	toolbar?: ReactNode
 	/**
 	 * Makes send inert without disabling the textarea. The send button is
 	 * `aria-disabled` and stays focusable, as it is for an empty draft.
@@ -217,9 +199,10 @@ export type ChatPromptProps = {
  * `actions`, the paperclip, and send or stop) sits below the textarea, at the
  * inline end of the row.
  *
- * While `editing`, the action row starts with an "Editing" label and, with
- * `onCancelEdit`, a cancel button. Escape in the textarea cancels the edit,
- * unless an open picker takes the key first.
+ * A `toolbar` renders above the field. The textarea takes the label of a
+ * {@link ChatPromptToolbar} as its description, and Escape in the textarea
+ * calls the `onDismiss` of the toolbar, unless an open picker takes the key
+ * first.
  *
  * A send button that cannot send, such as for an empty draft, is
  * `aria-disabled` and ignores the press. It is not natively disabled, so it
@@ -233,8 +216,7 @@ export function ChatPrompt({
 	onSubmit,
 	onStop,
 	streaming = false,
-	editing = false,
-	onCancelEdit,
+	toolbar,
 	placeholder,
 	rows = 2,
 	disabled,
@@ -266,16 +248,27 @@ export function ChatPrompt({
 
 	const setTextareaRefs = useComposedRefs(textareaRef, ref)
 
-	const editingId = useId()
+	const toolbarLabelId = useId()
 
-	const slots = k()
+	// The Escape handler of the toolbar, which the toolbar sets.
+	const dismissRef = useRef<(() => void) | undefined>(undefined)
 
-	// The cancel button unmounts with the label, so the textarea takes the focus (WCAG 2.4.3).
-	const cancelEdit = useCallback(() => {
-		onCancelEdit?.()
+	// Whether a toolbar is mounted, so the textarea names its label as its description.
+	const [hasToolbar, setHasToolbar] = useState(false)
 
-		textareaRef.current?.focus()
-	}, [onCancelEdit])
+	const toolbarScope = useMemo<ChatPromptToolbarScope>(
+		() => ({
+			labelId: toolbarLabelId,
+			dismissRef,
+			textareaRef,
+			mount: () => {
+				setHasToolbar(true)
+
+				return () => setHasToolbar(false)
+			},
+		}),
+		[toolbarLabelId],
+	)
 
 	// The composer always gets an accessible name (WCAG 3.3.2 / 4.1.2):
 	// aria-labelledby wins over aria-label; falls back to 'Message'.
@@ -292,19 +285,15 @@ export function ChatPrompt({
 			// The open picker takes its keys first: Enter chooses and does not send.
 			if (pickerKeyDown(event)) return
 
-			// An open picker closes on Escape through its own dismissal, so the edit
-			// keeps the key only while the picker is closed. The press is then
+			// An open picker closes on Escape through its own dismissal, so the toolbar
+			// takes the key only while the picker is closed. The press is then
 			// consumed, so an enclosing dialog does not close on it.
-			if (
-				event.key === 'Escape' &&
-				editing &&
-				onCancelEdit &&
-				!picker.open &&
-				!isComposing(event)
-			) {
+			const dismiss = dismissRef.current
+
+			if (event.key === 'Escape' && dismiss && !picker.open && !isComposing(event)) {
 				event.preventDefault()
 
-				onCancelEdit()
+				dismiss()
 
 				return
 			}
@@ -321,17 +310,7 @@ export function ChatPrompt({
 				onSubmit()
 			}
 		},
-		[
-			streaming,
-			canSubmit,
-			onSubmit,
-			onStop,
-			pickerKeyDown,
-			citations,
-			editing,
-			onCancelEdit,
-			picker.open,
-		],
+		[streaming, canSubmit, onSubmit, onStop, pickerKeyDown, citations, picker.open],
 	)
 
 	// A textbox cannot take the `combobox` role, so it names its popup with the attributes that a textbox takes.
@@ -346,6 +325,9 @@ export function ChatPrompt({
 	return (
 		// Control supplies the stable id the textarea resolves through useControlProps.
 		<Control className={className}>
+			{toolbar != null && (
+				<ChatPromptToolbarContext value={toolbarScope}>{toolbar}</ChatPromptToolbarContext>
+			)}
 			<Textarea
 				ref={setTextareaRefs}
 				data-slot="chat-prompt"
@@ -370,28 +352,10 @@ export function ChatPrompt({
 				rows={rows}
 				placeholder={placeholder ?? intl.formatMessage(messages.placeholder)}
 				{...labelProps}
-				aria-describedby={editing ? editingId : undefined}
+				aria-describedby={hasToolbar ? toolbarLabelId : undefined}
 				className="max-h-64"
 				actions={
 					<>
-						{editing && (
-							// `me-auto` holds the label at the inline start of the row, and the
-							// controls stay at its end.
-							<span data-slot="chat-prompt-editing" className={slots.editing}>
-								<span id={editingId}>{intl.formatMessage(messages.editing)}</span>
-								{onCancelEdit && (
-									<Button
-										type="button"
-										variant="plain"
-										size="sm"
-										aria-label={intl.formatMessage(messages.cancelEdit)}
-										onClick={cancelEdit}
-									>
-										<Icon icon={<X />} />
-									</Button>
-								)}
-							</span>
-						)}
 						{actions}
 						{onAttach && (
 							<>
