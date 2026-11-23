@@ -1,5 +1,6 @@
 import { type ComponentProps, memo, type ReactNode } from 'react'
 import type { ContextMenuEntry } from '../../components/context-menu/types'
+import { LoadingDots } from '../../components/loading'
 import { Markdown } from '../../components/markdown'
 import { StatusDot } from '../../components/status'
 import { cn } from '../../core/cn'
@@ -14,6 +15,7 @@ import { ChatMessageMenu } from './chat-message-menu'
 import { ChatTool } from './chat-tool'
 import { replyFailed } from './engine/chat-announcements'
 import type { ChatBranch } from './engine/chat-branch/types'
+import { isEmptyContent } from './engine/chat-content/normalize'
 import type { ChatPart } from './engine/chat-content/types'
 import type { ChatMessageData } from './engine/types'
 
@@ -83,7 +85,11 @@ export type ChatMessageProps = ChatMessageVariants &
 	Omit<ComponentProps<'div'>, 'children' | 'contextMenu'> & {
 		/** Wall-clock label shown below the bubble. */
 		timestamp?: ReactNode
-		/** Pulses the bubble content and shows the progress cursor, while a response streams in. @defaultValue false */
+		/**
+		 * Pulses the bubble content and shows the progress cursor, while a response
+		 * streams in. A streaming bubble with no content yet shows loading dots.
+		 * @defaultValue false
+		 */
 		streaming?: boolean
 		/**
 		 * Marks a message that the composer edits. The bubble dims until the edit
@@ -146,6 +152,10 @@ export type ChatMessageProps = ChatMessageVariants &
  * progress cursor and projects a pulse onto that prose. The bubble is steady
  * again when the stream ends. The kata holds the whole look.
  *
+ * A `streaming` reply that has no content yet shows {@link LoadingDots} in its
+ * bubble, and not an empty bubble. The first text or part replaces the dots. A
+ * `failed` reply shows its failure line and no dots.
+ *
  * A part list draws one block per part, each keyed by the part's own id. A text
  * block is its own {@link Markdown}. An `embed` block is the renderer that
  * {@link ChatEmbedProvider} registered under its name. A `tool` block is a step
@@ -200,22 +210,28 @@ export const ChatMessage = memo(function ChatMessage({
 
 	const slots = k({ sender, streaming, editing, trigger })
 
+	// A reply with nothing in it yet shows the dots, and not an empty bubble.
+	const pending = streaming === true && !failed && isEmptyContent(children)
+
+	const content =
+		typeof children === 'string' ? (
+			<Markdown headingOffset={MESSAGE_HEADING_OFFSET}>{children}</Markdown>
+		) : (
+			children.map((part, index) => (
+				<ChatMessageBlock
+					key={part.id}
+					part={part}
+					className={index === 0 ? undefined : slots.part}
+				/>
+			))
+		)
+
 	const bubble = (
 		<div data-slot="chat-message-bubble" className={slots.bubble}>
 			<span data-slot="chat-message-author" className="sr-only">
 				<IntlMessage message={AUTHOR[resolvedSender]} />:{' '}
 			</span>
-			{typeof children === 'string' ? (
-				<Markdown headingOffset={MESSAGE_HEADING_OFFSET}>{children}</Markdown>
-			) : (
-				children.map((part, index) => (
-					<ChatMessageBlock
-						key={part.id}
-						part={part}
-						className={index === 0 ? undefined : slots.part}
-					/>
-				))
-			)}
+			{pending ? <LoadingDots /> : content}
 			{failed && (
 				<p
 					data-slot="chat-message-failure"
