@@ -52,11 +52,18 @@ function sortDirectionIcon(
 function GridHeaderTitle({
 	id,
 	title,
+	fallback,
 	control,
 }: {
 	/** The id of the title span. The header cell takes its name from it. */
 	id: string
 	title: ReactNode
+	/**
+	 * The hidden text of a column with no title, from `columnLabel`. The header
+	 * cell takes its name from the title span, so an empty span gives the
+	 * header an empty name.
+	 */
+	fallback: string
 	control?: (title: ReactElement) => ReactElement
 }): ReactElement {
 	// No settle key: the header cell re-renders on its own engine `width` prop
@@ -81,7 +88,7 @@ function GridHeaderTitle({
 	// cell refers to its `id` for its name.
 	const span = (
 		<span ref={ref} id={id} data-grid-content className={cn(k.head.title)}>
-			{title}
+			{title == null || title === '' ? <span className="sr-only">{fallback}</span> : title}
 		</span>
 	)
 
@@ -124,13 +131,15 @@ export function GridColumnHeaderLabel({
 }): ReactNode {
 	const intl = useIntl()
 
-	if (!column.sortable || !interactive) return <GridHeaderTitle id={titleId} title={column.title} />
+	if (!column.sortable || !interactive)
+		return <GridHeaderTitle id={titleId} title={column.title} fallback={columnLabel(column)} />
 
 	return (
 		<HeadlessProvider>
 			<GridHeaderTitle
 				id={titleId}
 				title={column.title}
+				fallback={columnLabel(column)}
 				control={(title) => (
 					<Button
 						type="button"

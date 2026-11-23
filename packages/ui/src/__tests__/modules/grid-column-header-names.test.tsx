@@ -66,6 +66,22 @@ describe('a column header with no title', () => {
 
 		expectHeaderNames(['Name', 'Tools'])
 	})
+
+	it('names a data column with no title by its id', () => {
+		// The title span holds the id as hidden text. An empty span would give
+		// the header an empty name.
+		renderUI(
+			<Grid
+				columns={[name, { id: 'score', sortable: true, cell: () => '1' }]}
+				rows={rows}
+				getKey={getKey}
+			/>,
+		)
+
+		const [, score] = screen.getAllByRole('columnheader')
+
+		expect(score).toHaveAccessibleName('score')
+	})
 })
 
 describe('a column header with controls', () => {
