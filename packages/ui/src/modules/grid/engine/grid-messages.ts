@@ -150,10 +150,8 @@ type GridValues = {
 	search: Record<never, never>
 	newRow: Record<never, never>
 	addRow: Record<never, never>
-	expandNamed: { group: string }
-	collapseNamed: { group: string }
-	expandDetails: { row: string }
-	collapseDetails: { row: string }
+	groupColumns: { group: string }
+	rowDetails: { row: string }
 	loadFailed: Record<never, never>
 }
 
@@ -919,25 +917,17 @@ export const gridMessages: MessageSet<GridValues> = defineMessages<GridValues>({
 		defaultMessage: 'Add row',
 		description: 'The name of the button that adds the new row to a grid.',
 	},
-	expandNamed: {
-		id: 'ui.grid.expandNamed',
-		defaultMessage: 'Expand {group}',
-		description: 'The name of the button that shows the columns of a collapsed column group.',
+	groupColumns: {
+		id: 'ui.grid.groupColumns',
+		defaultMessage: '{group} columns',
+		description:
+			'The name of the button that shows or hides the columns of a column group. The button gives its state through aria-expanded, so the name does not change.',
 	},
-	collapseNamed: {
-		id: 'ui.grid.collapseNamed',
-		defaultMessage: 'Collapse {group}',
-		description: 'The name of the button that hides the columns of a column group.',
-	},
-	expandDetails: {
-		id: 'ui.grid.expandDetails',
-		defaultMessage: 'Expand details for {row}',
-		description: 'The name of the button that opens the detail panel of a row of a grid.',
-	},
-	collapseDetails: {
-		id: 'ui.grid.collapseDetails',
-		defaultMessage: 'Collapse details for {row}',
-		description: 'The name of the button that closes the detail panel of a row of a grid.',
+	rowDetails: {
+		id: 'ui.grid.rowDetails',
+		defaultMessage: 'Details for {row}',
+		description:
+			'The name of the button that opens or closes the detail panel of a row of a grid. The button gives its state through aria-expanded, so the name does not change.',
 	},
 	loadFailed: {
 		id: 'ui.grid.loadFailed',

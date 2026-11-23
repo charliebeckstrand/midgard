@@ -48,7 +48,7 @@ describe('Grid master-detail', () => {
 			<Grid columns={columns} rows={people} getKey={getKey} expandable={{ render: detail }} />,
 		)
 
-		const toggle = screen.getByRole('button', { name: 'Expand details for row 1' })
+		const toggle = screen.getByRole('button', { name: 'Details for row 1', expanded: false })
 
 		expect(toggle).toHaveAttribute('aria-expanded', 'false')
 
@@ -61,15 +61,14 @@ describe('Grid master-detail', () => {
 
 		expect(
 			screen
-				.getByRole('button', { name: 'Collapse details for row 1' })
+				.getByRole('button', { name: 'Details for row 1', expanded: true })
 				.querySelector('[data-slot="icon"]'),
 		).toHaveAttribute('data-open')
 
 		// The panel opens: aria-expanded flips, the detail row leaves the hidden state.
-		expect(screen.getByRole('button', { name: 'Collapse details for row 1' })).toHaveAttribute(
-			'aria-expanded',
-			'true',
-		)
+		expect(
+			screen.getByRole('button', { name: 'Details for row 1', expanded: true }),
+		).toHaveAttribute('aria-expanded', 'true')
 
 		expect(detailRow(container, 1)).not.toHaveAttribute('aria-hidden')
 
@@ -80,7 +79,7 @@ describe('Grid master-detail', () => {
 		// The other rows stay closed.
 		expect(detailRow(container, 2)).toHaveAttribute('aria-hidden', 'true')
 
-		await user.click(screen.getByRole('button', { name: 'Collapse details for row 1' }))
+		await user.click(screen.getByRole('button', { name: 'Details for row 1', expanded: true }))
 
 		expect(detailRow(container, 1)).toHaveAttribute('aria-hidden', 'true')
 	})
@@ -90,7 +89,7 @@ describe('Grid master-detail', () => {
 			<Grid columns={columns} rows={people} getKey={getKey} expandable={{ render: detail }} />,
 		)
 
-		const toggle = screen.getByRole('button', { name: 'Expand details for row 1' })
+		const toggle = screen.getByRole('button', { name: 'Details for row 1', expanded: false })
 
 		const panelId = toggle.getAttribute('aria-controls') ?? ''
 
@@ -126,7 +125,7 @@ describe('Grid master-detail', () => {
 
 		const { container } = renderUI(<Harness />)
 
-		await user.click(screen.getByRole('button', { name: 'Expand details for row 2' }))
+		await user.click(screen.getByRole('button', { name: 'Details for row 2', expanded: false }))
 
 		expect(detailRow(container, 2)).not.toHaveAttribute('aria-hidden')
 	})
@@ -142,9 +141,11 @@ describe('Grid master-detail', () => {
 		)
 
 		// Devon is a Manager: no toggle; the others have one.
-		expect(screen.queryByRole('button', { name: /details for row 3/ })).toBeNull()
+		expect(screen.queryByRole('button', { name: /Details for row 3/ })).toBeNull()
 
-		expect(screen.getByRole('button', { name: 'Expand details for row 1' })).toBeInTheDocument()
+		expect(
+			screen.getByRole('button', { name: 'Details for row 1', expanded: false }),
+		).toBeInTheDocument()
 	})
 
 	it('never renders the detail of a row rowExpandable rejects', () => {
@@ -190,13 +191,13 @@ describe('Grid master-detail', () => {
 
 		expect(track()).not.toHaveAttribute('data-open')
 
-		await user.click(screen.getByRole('button', { name: 'Expand details for row 1' }))
+		await user.click(screen.getByRole('button', { name: 'Details for row 1', expanded: false }))
 
 		// Reduced motion drops the transition, so the track has nothing to prime and
 		// opens in the commit the toggle lands in: no wake, no second pass.
 		expect(track()).toHaveAttribute('data-open')
 
-		await user.click(screen.getByRole('button', { name: 'Collapse details for row 1' }))
+		await user.click(screen.getByRole('button', { name: 'Details for row 1', expanded: true }))
 
 		expect(track()).not.toHaveAttribute('data-open')
 	})
@@ -218,7 +219,7 @@ describe('Grid master-detail', () => {
 
 		expect(table).toHaveAttribute('aria-rowcount', '4')
 
-		await user.click(screen.getByRole('button', { name: 'Expand details for row 1' }))
+		await user.click(screen.getByRole('button', { name: 'Details for row 1', expanded: false }))
 
 		// The open panel is the row after its data row, and the rows below it move down.
 		expect(table).toHaveAttribute('aria-rowcount', '5')
@@ -245,7 +246,7 @@ describe('Grid master-detail', () => {
 
 		const table = container.querySelector('table')
 
-		await user.click(screen.getByRole('button', { name: 'Expand details for row 1' }))
+		await user.click(screen.getByRole('button', { name: 'Details for row 1', expanded: false }))
 
 		// The count is the rows of every page, and a page holds no panel.
 		expect(table).toHaveAttribute('aria-rowcount', '4')

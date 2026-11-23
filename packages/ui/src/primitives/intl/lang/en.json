@@ -863,17 +863,9 @@
 		"defaultMessage": "Collapse all groups",
 		"description": "The menu item that closes every row group of a grid."
 	},
-	"ui.grid.collapseDetails": {
-		"defaultMessage": "Collapse details for {row}",
-		"description": "The name of the button that closes the detail panel of a row of a grid."
-	},
 	"ui.grid.collapseGroup": {
 		"defaultMessage": "Collapse group",
 		"description": "The menu item that closes a row group of a grid."
-	},
-	"ui.grid.collapseNamed": {
-		"defaultMessage": "Collapse {group}",
-		"description": "The name of the button that hides the columns of a column group."
 	},
 	"ui.grid.color": {
 		"defaultMessage": "Color",
@@ -959,17 +951,9 @@
 		"defaultMessage": "Expand all groups",
 		"description": "The menu item that opens every row group of a grid."
 	},
-	"ui.grid.expandDetails": {
-		"defaultMessage": "Expand details for {row}",
-		"description": "The name of the button that opens the detail panel of a row of a grid."
-	},
 	"ui.grid.expandGroup": {
 		"defaultMessage": "Expand group",
 		"description": "The menu item that opens a row group of a grid."
-	},
-	"ui.grid.expandNamed": {
-		"defaultMessage": "Expand {group}",
-		"description": "The name of the button that shows the columns of a collapsed column group."
 	},
 	"ui.grid.export": {
 		"defaultMessage": "Export",
@@ -1034,6 +1018,10 @@
 	"ui.grid.groupBy": {
 		"defaultMessage": "Group by “{column}”",
 		"description": "The menu item that groups the rows of a grid by a column. The column is its name."
+	},
+	"ui.grid.groupColumns": {
+		"defaultMessage": "{group} columns",
+		"description": "The name of the button that shows or hides the columns of a column group. The button gives its state through aria-expanded, so the name does not change."
 	},
 	"ui.grid.groupHandle": {
 		"defaultMessage": "Reorder group {group}",
@@ -1298,6 +1286,10 @@
 	"ui.grid.rowCount": {
 		"defaultMessage": "{rows, plural, one {# row} other {# rows}}",
 		"description": "The row count in the footer of a grid."
+	},
+	"ui.grid.rowDetails": {
+		"defaultMessage": "Details for {row}",
+		"description": "The name of the button that opens or closes the detail panel of a row of a grid. The button gives its state through aria-expanded, so the name does not change."
 	},
 	"ui.grid.rowGroupName": {
 		"defaultMessage": "group {group}",

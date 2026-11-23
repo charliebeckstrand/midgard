@@ -30,7 +30,7 @@ describe('Grid column groups', () => {
 	]
 
 	const bandCell = (root: HTMLElement) =>
-		root.querySelector<HTMLTableCellElement>('thead th[scope="colgroup"]')
+		root.querySelector<HTMLTableCellElement>('thead th[data-group-band]')
 
 	it('renders a band spanning its member columns', () => {
 		const { container } = renderUI(
@@ -60,9 +60,26 @@ describe('Grid column groups', () => {
 			<Grid columns={columns} rows={rows} getKey={getKey} columnGroups={described} />,
 		)
 
-		expect(present(bandCell(container), 'the band')).toHaveAccessibleDescription(
-			'Given and family name',
+		const band = present(bandCell(container), 'the band')
+
+		expect(band).toHaveAccessibleDescription('Given and family name')
+
+		// The description is not also part of the name, so it reads one time.
+		expect(band).toHaveAccessibleName('Name')
+	})
+
+	it('names exactly its columns, and fills a column with no group with a data cell', () => {
+		const { container } = renderUI(
+			<Grid columns={columns} rows={rows} getKey={getKey} columnGroups={groups} />,
 		)
+
+		// A `colgroup` scope reads a `<colgroup>`, not the span of the band.
+		expect(bandCell(container)).toHaveAttribute('scope', 'col')
+
+		const bandRow = present(bandCell(container)?.parentElement, 'the band row')
+
+		// The Email column has no group: an empty spacer, not an empty header.
+		expect([...bandRow.children].map((cell) => cell.tagName)).toEqual(['TH', 'TD'])
 	})
 
 	it('names a band by its title alone, not by its toggle, count, or description', () => {
@@ -96,7 +113,7 @@ describe('Grid column groups', () => {
 	})
 
 	const bandRule = (root: HTMLElement) =>
-		root.querySelector<HTMLElement>('thead th[scope="colgroup"] [data-slot="grid-group-rule"]')
+		root.querySelector<HTMLElement>('thead th[data-group-band] [data-slot="grid-group-rule"]')
 
 	it('underlines a colored group’s band in its color', () => {
 		const { container } = renderUI(
@@ -230,7 +247,7 @@ describe('Grid column groups', () => {
 			<Grid columns={columns} rows={rows} getKey={getKey} columnGroups={collapsible} />,
 		)
 
-		const toggle = () => container.querySelector<HTMLButtonElement>('th[scope="colgroup"] button')
+		const toggle = () => container.querySelector<HTMLButtonElement>('th[data-group-band] button')
 
 		// Expanded → caret right.
 		expect(toggle()?.querySelector('.lucide-chevron-right')).not.toBeNull()
@@ -239,6 +256,18 @@ describe('Grid column groups', () => {
 
 		// Collapsed → caret left.
 		expect(toggle()?.querySelector('.lucide-chevron-left')).not.toBeNull()
+	})
+
+	it('keeps the name of the toggle and gives its state through aria-expanded', () => {
+		const collapsible: GridColumnGroup[] = [
+			{ id: 'name', title: 'Name', columns: ['first', 'last'], collapsible: true },
+		]
+
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} columnGroups={collapsible} />)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Name columns', expanded: true }))
+
+		expect(screen.getByRole('button', { name: 'Name columns', expanded: false })).toBeVisible()
 	})
 
 	it('offers Manage columns then Clear color (in that order) on a colored band', () => {
