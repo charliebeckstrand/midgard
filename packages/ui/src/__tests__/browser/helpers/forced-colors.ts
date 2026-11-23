@@ -47,3 +47,19 @@ export function systemColor(keyword: string): string {
 
 	return color
 }
+
+/**
+ * Whether a computed color paints a mark that the eye can find on the page under forced colors.
+ *
+ * @remarks
+ * A color paints when it is not transparent and it is not `Canvas`. A check for `Canvas` alone
+ * accepts a transparent background, which paints nothing.
+ *
+ * @param color - A computed color, such as `getComputedStyle(el).backgroundColor`.
+ * @returns `true` when the color paints a mark.
+ */
+export function showsOnCanvas(color: string): boolean {
+	if (color === 'transparent' || /^rgba\(.*,\s*0(?:\.0+)?\)$/.test(color)) return false
+
+	return color !== systemColor('Canvas')
+}

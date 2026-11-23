@@ -34,6 +34,8 @@ import { workspaceRoot } from '../helpers/walk-source'
 // follow a mistyped glob.
 //
 // A fixture line that ends in `// flag` must carry a diagnostic of its plugin.
+// A stylesheet has no line comment, so a line of a CSS fixture ends in
+// `/* flag */`.
 // Every other line must carry none. For a file-level rule, the flagged line is
 // where the plugin puts its span.
 
@@ -42,7 +44,7 @@ const pluginDir = join(workspaceRoot, '.biome', 'plugins')
 const biome = join(workspaceRoot, 'node_modules', '@biomejs', 'biome', 'bin', 'biome')
 
 /** The marker that ends a fixture line the plugin must flag. */
-const FLAG = /\/\/ flag$/
+const FLAG = /(?:\/\/ flag|\/\* flag \*\/)$/
 
 type Fixture = { file: string; source: string }
 
@@ -401,6 +403,18 @@ export const g = <MapPlat recede={false} />
 `,
 		},
 	],
+	'no-ui-anchor-selector-css': [
+		{
+			file: 'anchor.css',
+			source: `.a [data-slot=map-points] { fill: red; } /* flag */
+.b [data-slot='map-regions'] { stroke: red; } /* flag */
+.c:has([data-slot^="map-"]) { opacity: 0.5; } /* flag */
+.d [data-state=open] { color: red; }
+.e [data-slot] { color: red; }
+/* .f [data-slot=probe] in a comment */
+`,
+		},
+	],
 	'no-unused-layout-read': [
 		{
 			file: 'reads.ts',
@@ -546,6 +560,7 @@ const SCOPE: Record<string, { in: string; out: string }> = {
 	'no-stateless-toggle-icon-button': { in: 'apps/places/src', out: 'packages/ui/src/components' },
 	'no-twice-mixed-condition': { in: 'packages/ui/src/hooks', out: 'patches' },
 	'no-ui-anchor-selector': { in: 'apps/places/src', out: 'apps/places/src/__tests__' },
+	'no-ui-anchor-selector-css': { in: 'packages/shared/src', out: 'packages/ui/src' },
 	'no-unused-layout-read': {
 		in: 'packages/ui/src/hooks',
 		out: 'packages/ui/src/utilities/force-style-flush.ts',
