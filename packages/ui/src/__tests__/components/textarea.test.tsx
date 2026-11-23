@@ -87,6 +87,16 @@ describe('Textarea', () => {
 		expect(fireEvent.mouseDown(screen.getByRole('combobox', { name: 'model' }))).toBe(true)
 	})
 
+	it('keeps the mousedown default of an action under headless context, which renders no row', () => {
+		renderUI(
+			<HeadlessProvider>
+				<Textarea actions={<Button>send</Button>} />
+			</HeadlessProvider>,
+		)
+
+		expect(fireEvent.mouseDown(screen.getByRole('button', { name: 'send' }))).toBe(true)
+	})
+
 	it('gives the textarea an id outside a Control', () => {
 		const { container } = renderUI(<Textarea />)
 

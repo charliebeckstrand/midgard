@@ -37,7 +37,8 @@ export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
 	 * Control slot rendered as a right-justified row below the field; its
 	 * presence pins `resize: none`. `null` and `false` count as absent. A press
 	 * on a button in the row does not move the focus, and the button still
-	 * gets the click.
+	 * gets the click. Under `<HeadlessProvider>`, there is no row, so a press
+	 * moves the focus as usual.
 	 */
 	actions?: ReactNode
 	/**
@@ -73,7 +74,10 @@ export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
  * A press on a button in the actions row cancels the default of its
  * `mousedown`, so the focus stays where it was. Thus a press does not show the
  * focus ring of the frame, and it does not take the focus from the field.
- * The Tab key still moves the focus to the buttons.
+ * The Tab key still moves the focus to the buttons. Under
+ * `<HeadlessProvider>`, the row renders no element to hold this guard. The
+ * consumer owns the structure there, so it cancels the `mousedown` on its
+ * own buttons if it needs to.
  * With `resize`, a touch device gets a grip of its own on the edge that the
  * drag moves, because Safari on iOS and iPadOS draws no native grip.
  * A set `size` opens a density scope. The actions row gets the affix size, one
