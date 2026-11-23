@@ -1,4 +1,4 @@
-import { defineKata } from '../../core/recipe'
+import { defineKata, mode } from '../../core/recipe'
 import { dan, hannou, ji, kasane, narabi, sen } from '../kiso'
 import { validation } from '../kumi/check'
 
@@ -21,7 +21,10 @@ export const k = defineKata({
 		// fills the pad, which clips it. So the pad draws the `sen.focus.ring`
 		// stroke while its canvas has the keyboard focus.
 		'has-[canvas:focus-visible]:outline-2 has-[canvas:focus-visible]:outline-offset-2',
-		'has-[canvas:focus-visible]:outline-blue-600',
+		...mode(
+			'has-[canvas:focus-visible]:outline-blue-600',
+			'dark:has-[canvas:focus-visible]:outline-blue-500',
+		),
 		// The canvas carries the `data-*` validation state, so the pad paints the ring.
 		...validation,
 		...disabled.base,

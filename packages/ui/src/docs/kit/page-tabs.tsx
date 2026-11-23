@@ -11,16 +11,7 @@ import { defineMessage, useIntl } from 'ui/primitives/intl'
 import { Stack } from 'ui/stack'
 import { Tab, TabContent, TabContents, TabList, Tabs } from 'ui/tabs'
 import { tabName, toSlug } from './names.ts'
-
-// The title of the browser tab on a page with tabs: the name of the tab, the
-// name of the page, then the name of the docs. Each tab has its own address,
-// so each tab has its own title (WCAG 2.4.2).
-const tabTitleMessage = defineMessage<{ tab: string; page: string }>({
-	id: 'docs.app.tabTitle',
-	defaultMessage: '{tab} · {page} · Docs',
-	description:
-		'The title of the browser tab on a tab of a page of the docs. The tab is the name of the tab, such as Sorting, and the page is the name of the page, such as Grid.',
-})
+import { PageTitle } from './page-title.tsx'
 
 const sectionsMessage = defineMessage({
 	id: 'docs.tabs.sections',
@@ -92,12 +83,7 @@ export function PageTabs({ tabs, children }: { tabs: readonly string[]; children
 				navigate(tab === home ? '.' : tab)
 			}}
 		>
-			<title>
-				{intl.formatMessage(tabTitleMessage, {
-					tab: tabName(intl, current, currentName),
-					page: link?.name ?? page,
-				})}
-			</title>
+			<PageTitle page={link?.name ?? page} tab={tabName(intl, current, currentName)} />
 			<TabList aria-label={intl.formatMessage(sectionsMessage)}>
 				{tabs.map((tab) => {
 					const slug = toSlug(tab)

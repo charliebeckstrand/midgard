@@ -143,8 +143,6 @@ export const focus = {
 	 * of `hannou` is about 1.1:1 against the panel, so the wash alone is not a
 	 * visible focus (WCAG 2.4.7, 1.4.11). The mark is an outline inside the row,
 	 * so a list that clips its rows does not cut it, and forced colors keep it.
-	 * On dark it is blue-500, because blue-600 is 2.97:1 against the dark
-	 * popover.
 	 */
 	cursor: [
 		'focus-visible:outline-solid focus-visible:outline-2 focus-visible:-outline-offset-2',
