@@ -78,7 +78,14 @@ export function HeatmapChartTooltip({
 	// that viewport point on a window scroll, off its cell. Without `autoUpdate`,
 	// the pin keeps its document position and scrolls with the cell.
 	return (
-		<TooltipPointer open={open} point={point} originRef={plotRef} track="point" size="sm">
+		<TooltipPointer
+			open={open}
+			point={point}
+			target={cell}
+			originRef={plotRef}
+			track="point"
+			size="sm"
+		>
 			{card}
 		</TooltipPointer>
 	)

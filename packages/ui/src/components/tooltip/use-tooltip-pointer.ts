@@ -10,9 +10,17 @@ import type { TooltipContextValue } from './context'
 export type TooltipPointerOptions = {
 	/**
 	 * Whether the readout shows; the caller derives it from its own hover state.
-	 * An Escape press closes the readout until this goes false.
+	 * An Escape press closes the readout until this goes false or
+	 * {@link target} changes.
 	 */
 	open: boolean
+	/**
+	 * The identity of what the readout reads, such as a band index, a cell
+	 * index, or a map target. An Escape press closes the readout for this target
+	 * only, so the next target opens it again while `open` stays true. Compared
+	 * with `Object.is`. Omitted, only the end of the hover opens it again.
+	 */
+	target?: unknown
 	/**
 	 * Coordinates to anchor at, or `null` while nothing is pointed. Without
 	 * {@link originRef}, they are client coordinates. With it, they are in the
@@ -162,8 +170,9 @@ function createPointAnchor(
  * `role="tooltip"`/`aria-describedby`; the readout is a pointer enhancement
  * that the consumer marks `aria-hidden`. Escape closes the readout wherever the
  * focus is (WCAG 1.4.13), as it closes a `Tooltip`. The readout stays closed
- * until the caller's `open` goes false, which is when the hover ends. `track` defaults to `'auto'` (parity
- * with `autoUpdate`); every current caller opts into `'point'`.
+ * until the caller's `open` goes false or its `target` changes. `track`
+ * defaults to `'auto'` (parity with `autoUpdate`); every current caller opts
+ * into `'point'`.
  * @internal
  * @see {@link useFloatingPanel}
  */
@@ -174,18 +183,23 @@ export function useTooltipPointer({
 	offset = 12,
 	track = 'auto',
 	originRef,
+	target,
 }: TooltipPointerOptions): TooltipContextValue {
-	// An Escape press ends the hover, though the pointer stays. Adjusted during
-	// render: the next hover opens the readout again.
-	const [dismissed, setDismissed] = useState(false)
+	// The target that an Escape press closed the readout on, boxed so that a
+	// `null` target can be dismissed too. Adjusted during render: the readout
+	// opens again when the hover ends, or on the next target, such as a click
+	// that pins another band.
+	const [dismissed, setDismissed] = useState<{ target: unknown } | null>(null)
 
-	if (!requested && dismissed) setDismissed(false)
+	if (dismissed !== null && (!requested || !Object.is(dismissed.target, target))) {
+		setDismissed(null)
+	}
 
-	const open = requested && !dismissed
+	const open = requested && dismissed === null
 
 	// Out of the dismiss stack, as a `Tooltip`: any Escape closes the readout,
 	// and the layer below, such as a Dialog, still gets the press.
-	useEscapeLayer({ open, layered: false, onDismiss: () => setDismissed(true) })
+	useEscapeLayer({ open, layered: false, onDismiss: () => setDismissed({ target }) })
 
 	const { refs, floatingStyles, update } = useFloatingPanel({
 		placement,
