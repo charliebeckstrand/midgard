@@ -91,7 +91,7 @@ export function QueryBuilderSortableItem({
 			value={id}
 			dragListener={false}
 			dragControls={controls}
-			transition={instant ? k.instant : undefined}
+			transition={instant ? k.instant : k.glide}
 			// The release from the pointer to the slot is an animation of the drag,
 			// which the transition of the item does not reach. Motion spreads
 			// `dragTransition` into the transition of the release, where a `duration`

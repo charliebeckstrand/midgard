@@ -19,6 +19,7 @@ const { size } = ji
 const { rounded } = kasane
 const { flex, nest } = narabi
 const { border, focus } = sen
+const { css } = ugoki
 
 /** A part of a `vertical` rule, which stacks at full width. */
 const stacked = 'min-w-auto flex-initial'
@@ -118,8 +119,11 @@ export const k = defineKata(
 					'forced-colors:data-dragging:outline-offset-2 forced-colors:data-dragging:outline-[Highlight]',
 				],
 				slots: {
-					/** The children of a group while they reorder. The box adds no layout. */
-					list: 'contents',
+					/**
+					 * The children of a group while they reorder. The list is a column with the
+					 * gap of the group, so a drag can carry its height (`glide`).
+					 */
+					list: [flex.col, dan.gap.scale.md, 'relative'],
 					/**
 					 * The grip centers on the first control line of a rule at each density
 					 * step (`dan.space.query.grip`). Beside a group, it sits at the same
@@ -142,10 +146,17 @@ export const k = defineKata(
 					node: 'min-w-0 flex-1',
 					/**
 					 * The AND/OR between two nodes aligns with the nodes: one `nest.indent`
-					 * past the grip and the gap. It stays in view through a drag, because
-					 * each combinator keeps its slot while the nodes move.
+					 * past the grip and the gap. During a drag (`data-sorting`), it leaves the
+					 * flow and the view at once, and the nodes glide together to close its
+					 * place. On the drop, it takes its place again and fades in as the nodes
+					 * glide apart.
 					 */
-					separator: nest.indent,
+					separator: [
+						nest.indent,
+						css.opacity,
+						'data-sorting:invisible data-sorting:absolute data-sorting:opacity-0',
+						'data-sorting:transition-none',
+					],
 				},
 			},
 		},
@@ -154,5 +165,7 @@ export const k = defineKata(
 	{
 		/** The move of a node under reduced motion: the node lands at once. */
 		instant: ugoki.instant,
+		/** The move of a node to a new place, and the height of the list that moves with it. */
+		glide: ugoki.glide,
 	},
 )
