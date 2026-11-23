@@ -64,11 +64,15 @@ function renderSheet() {
 	}
 }
 
+// jsdom loads no stylesheet, so the name of the button holds each of its state
+// names. `events-button-state.test.tsx` reads the name of each state in a browser.
+const TRIGGER = { name: /^Events/ }
+
 describe('EventsButton', () => {
 	it('opens the sheet, and opens the loaded sheet in the commit of the click', async () => {
 		render(<EventsButton />)
 
-		const trigger = screen.getByRole('button', { name: 'Events' })
+		const trigger = screen.getByRole('button', TRIGGER)
 
 		// The first press loads the sheet.
 		fireEvent.click(trigger)
@@ -89,7 +93,7 @@ describe('EventsButton', () => {
 	it('stamps aria-expanded and data-open on the trigger while the sheet is open', async () => {
 		render(<EventsButton />)
 
-		const trigger = screen.getByRole('button', { name: 'Events' })
+		const trigger = screen.getByRole('button', TRIGGER)
 
 		expect(trigger).toHaveAttribute('aria-haspopup', 'dialog')
 
@@ -119,7 +123,7 @@ describe('EventsButton', () => {
 
 		render(<EventsButton />)
 
-		fireEvent.click(screen.getByRole('button', { name: 'Events' }))
+		fireEvent.click(screen.getByRole('button', TRIGGER))
 
 		await vi.waitFor(() => expect(store.paused).toBe(true))
 
@@ -353,7 +357,7 @@ describe('EventsSheet Bugs', () => {
 		expect(screen.getByRole('list', { name: 'Bugs' })).toBeDefined()
 	})
 
-	it('copies the report on view, and its Delete goes back to the list and keeps the event', async () => {
+	it('copies the report on a press of its row, and its Delete goes back to the list and keeps the event', async () => {
 		const writeText = mockClipboard()
 
 		const sheet = renderSheet()
@@ -368,11 +372,7 @@ describe('EventsSheet Bugs', () => {
 
 		const list = screen.getByRole('list', { name: 'Bugs' })
 
-		fireEvent.click(
-			within(within(list).getByText('caught boom').closest('li') ?? list).getByRole('button', {
-				name: 'View',
-			}),
-		)
+		fireEvent.click(within(list).getByText('caught boom'))
 
 		await act(async () => {
 			fireEvent.click(screen.getByRole('button', { name: 'Copy' }))

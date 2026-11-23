@@ -57,13 +57,9 @@ No item is open, because no measured cost moves a frame. The Events section of [
 
 ## Accessibility and testing
 
-1. **States in the name of the header button (*P2*).** `EventsButton` shows a capture only as a red icon, and a filed report only as a dot. Its name stays "Events" in each state. This breaks WCAG 2.2 1.4.1 for the capture, and a screen reader does not hear either state. Forced colors also remove the red. Show a second glyph while a capture runs, by the root attribute, as the dot does. Put hidden text in the name for each state, which the same attributes show, in place of the fixed `aria-label`. A browser test reads the accessible name and the glyph in each state, under forced colors too.
+1. **Corpus subjects for the views (*P2*).** No entry of [`a11y/cases`](../../__tests__/a11y/cases) renders `EventsButton`, the open sheet, or `EventsSwitch`. So the baseline, the focus, and the trap sweeps do not reach them (CONVENTIONS.md §10.5). Add the subjects. Open question: the sheet loads in a chunk after a press, so the harness must load it at collection (CONVENTIONS.md §10.14).
 
-2. **One action for each report row (*P2*).** In [`events-report-list.tsx`](events-report-list.tsx), the row is a `button` (`ListItem` with `onClick`) that opens the report. Its View button does the same action, so the keyboard stops two times for one action. Its `ListX` glyph also reads as a removal. Remove the View button and its `viewReport` message, and keep Copy and Delete. The case that opens a report from its row in `events-sheet.test.tsx` holds the action.
-
-3. **Corpus subjects for the views (*P2*).** No entry of [`a11y/cases`](../../__tests__/a11y/cases) renders `EventsButton`, the open sheet, or `EventsSwitch`. So the baseline, the focus, and the trap sweeps do not reach them (CONVENTIONS.md §10.5). Add the subjects. Open question: the sheet loads in a chunk after a press, so the harness must load it at collection (CONVENTIONS.md §10.14).
-
-4. **Tests for the network and viewport sources (*P2*).** No case drives the network source, or the `resize` and `height` sources of [`viewport.ts`](engine/events-sources/viewport.ts). The `paint` case of `events-recorder.test.ts` stubs `PerformanceObserver` and gives it entries, which is the seam of CONVENTIONS.md §10.3. Use the same stub for the network source: the cache mark, a failed status, and the batch of a pass. Dispatch `resize` events for the viewport sources, and assert one batch for a burst.
+2. **Tests for the network and viewport sources (*P2*).** No case drives the network source, or the `resize` and `height` sources of [`viewport.ts`](engine/events-sources/viewport.ts). The `paint` case of `events-recorder.test.ts` stubs `PerformanceObserver` and gives it entries, which is the seam of CONVENTIONS.md §10.3. Use the same stub for the network source: the cache mark, a failed status, and the batch of a pass. Dispatch `resize` events for the viewport sources, and assert one batch for a burst.
 
 ## Not planned
 

@@ -6,7 +6,7 @@ import { Icon } from '../../components/icon'
 import { List, ListItem } from '../../components/list'
 import { Text } from '../../components/text'
 import { cn } from '../../core/cn'
-import { Copy, ListX, Trash } from '../../primitives/icons/icons'
+import { Copy, Trash } from '../../primitives/icons/icons'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/events'
 import { Flex } from '../../structure/flex'
@@ -26,8 +26,8 @@ function getKey(entry: ReportEntry): string {
 
 /**
  * One report in the list: the title, the page and the time, and the hash,
- * then View, Copy, and Delete. A press on the row outside the actions opens
- * the report, as View does.
+ * then Copy and Delete. A press on the row outside the actions opens the
+ * report.
  */
 function ReportLine({
 	entry,
@@ -47,14 +47,6 @@ function ReportLine({
 			onClick={onView}
 			suffix={
 				<Flex align="center" gap="sm">
-					<Button
-						variant="bare"
-						size="sm"
-						aria-label={intl.formatMessage(eventsMessages.viewReport)}
-						onClick={onView}
-					>
-						<Icon icon={<ListX />} />
-					</Button>
 					<CopyButton size="sm" icon={<Copy />} text={() => formatMarkdown(entry)} />
 					<Button
 						variant="bare"
