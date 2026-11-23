@@ -11,10 +11,8 @@ import {
 	useChatSend,
 } from 'ui/chat'
 import type { ContextMenuEntry } from 'ui/context-menu'
-import { Flex } from 'ui/flex'
 import { Icon } from 'ui/icon'
 import { Stack } from 'ui/stack'
-import { Text } from 'ui/text'
 import { renderers } from '../embeds/renderers.tsx'
 import { transport } from './reply.ts'
 
@@ -117,13 +115,6 @@ export default function EditAMessage() {
 		clear()
 	}
 
-	// The Cancel button unmounts with the banner, so the focus goes to the composer.
-	const cancel = () => {
-		end()
-
-		composer.current?.focus()
-	}
-
 	// `edit` does nothing while a reply streams, so the controls hide until it settles.
 	const editable = (message: ChatMessageData) => message.sender === 'user' && !chat.streaming
 
@@ -151,19 +142,12 @@ export default function EditAMessage() {
 				<ChatTranscript
 					messages={chat.messages}
 					streaming={chat.streaming}
+					editing={editing}
 					actions={actions}
 					contextMenu={contextMenu}
 					branches={chat.branches}
 					onBranchChange={chat.showBranch}
 				/>
-				{editing && (
-					<Flex align="center" justify="between" gap="sm">
-						<Text tone="muted">Editing a message. Send to replace it.</Text>
-						<Button variant="bare" size="sm" onClick={cancel}>
-							Cancel
-						</Button>
-					</Flex>
-				)}
 				<ChatPrompt
 					ref={composer}
 					value={draft.value}
@@ -172,6 +156,8 @@ export default function EditAMessage() {
 					onSubmit={draft.submit}
 					onStop={chat.stop}
 					streaming={chat.streaming}
+					editing={editing !== undefined}
+					onCancelEdit={end}
 				/>
 			</Stack>
 		</ChatEmbedProvider>

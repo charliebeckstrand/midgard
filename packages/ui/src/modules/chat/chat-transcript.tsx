@@ -97,6 +97,11 @@ export type ChatTranscriptProps = Omit<ComponentProps<'div'>, 'children' | 'cont
 	 */
 	streaming?: boolean
 	/**
+	 * The id of the message that the composer edits. That message dims, as the
+	 * `editing` of {@link ChatMessage} tells.
+	 */
+	editing?: string
+	/**
 	 * Controls that act on one message, such as copy, retry, and edit. The
 	 * transcript calls it for each row that it renders and gives the result to
 	 * the `actions` of that {@link ChatMessage}. Return `undefined` for a message
@@ -139,6 +144,7 @@ type ChatTranscriptRowProps = Pick<
 > & {
 	message: ChatMessageData
 	streaming: boolean
+	editing: boolean
 	branch: ChatBranch | undefined
 }
 
@@ -153,6 +159,7 @@ type ChatTranscriptRowProps = Pick<
 const ChatTranscriptRow = memo(function ChatTranscriptRow({
 	message,
 	streaming,
+	editing,
 	actions,
 	trigger,
 	contextMenu,
@@ -163,6 +170,7 @@ const ChatTranscriptRow = memo(function ChatTranscriptRow({
 		<ChatMessage
 			sender={message.sender}
 			streaming={streaming}
+			editing={editing}
 			failed={message.failed}
 			timestamp={message.timestamp}
 			actions={actions?.(message)}
@@ -269,6 +277,7 @@ const ChatTranscriptRow = memo(function ChatTranscriptRow({
 export function ChatTranscript({
 	messages,
 	streaming,
+	editing,
 	actions,
 	trigger,
 	contextMenu,
@@ -563,6 +572,7 @@ export function ChatTranscript({
 									streaming={
 										streaming === true && message.sender === 'assistant' && index === count - 1
 									}
+									editing={editing !== undefined && message.id === editing}
 									actions={actions}
 									trigger={trigger}
 									contextMenu={contextMenu}

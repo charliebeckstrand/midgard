@@ -629,3 +629,74 @@ describe('ChatPrompt', () => {
 		expect(screen.getByRole('textbox', { name: 'Message' })).toHaveFocus()
 	})
 })
+
+describe('ChatPrompt editing', () => {
+	it('shows the edit label as the description of the textarea', () => {
+		renderUI(<ChatPrompt value="Draft" onValueChange={noop} onSubmit={noop} editing />)
+
+		expect(screen.getByRole('textbox', { name: 'Message' })).toHaveAccessibleDescription('Editing')
+	})
+
+	it('shows no edit label when not editing', () => {
+		const { container } = renderUI(<ChatPrompt value="" onValueChange={noop} onSubmit={noop} />)
+
+		expect(bySlot(container, 'chat-prompt-editing')).toBeNull()
+
+		expect(screen.queryByRole('button', { name: 'Cancel edit' })).toBeNull()
+	})
+
+	it('cancels the edit from its button and gives the focus to the textarea', async () => {
+		const onCancelEdit = vi.fn()
+
+		const { container } = renderUI(
+			<ChatPrompt
+				value="Draft"
+				onValueChange={noop}
+				onSubmit={noop}
+				editing
+				onCancelEdit={onCancelEdit}
+			/>,
+		)
+
+		await setupUser().click(screen.getByRole('button', { name: 'Cancel edit' }))
+
+		expect(onCancelEdit).toHaveBeenCalledTimes(1)
+
+		expect(getSlot(container, 'chat-prompt')).toHaveFocus()
+	})
+
+	it('cancels the edit on Escape, and consumes the key', () => {
+		const onCancelEdit = vi.fn()
+
+		const { container } = renderUI(
+			<ChatPrompt
+				value="Draft"
+				onValueChange={noop}
+				onSubmit={noop}
+				editing
+				onCancelEdit={onCancelEdit}
+			/>,
+		)
+
+		const notPrevented = fireEvent.keyDown(getSlot(container, 'chat-prompt'), { key: 'Escape' })
+
+		expect(onCancelEdit).toHaveBeenCalledTimes(1)
+
+		// `fireEvent` returns false when a listener prevented the default.
+		expect(notPrevented).toBe(false)
+	})
+
+	it('leaves Escape alone when not editing', () => {
+		const onCancelEdit = vi.fn()
+
+		const { container } = renderUI(
+			<ChatPrompt value="Draft" onValueChange={noop} onSubmit={noop} onCancelEdit={onCancelEdit} />,
+		)
+
+		const notPrevented = fireEvent.keyDown(getSlot(container, 'chat-prompt'), { key: 'Escape' })
+
+		expect(onCancelEdit).not.toHaveBeenCalled()
+
+		expect(notPrevented).toBe(true)
+	})
+})

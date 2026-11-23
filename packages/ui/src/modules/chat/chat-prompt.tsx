@@ -8,6 +8,7 @@ import {
 	type Ref,
 	type RefObject,
 	useCallback,
+	useId,
 	useLayoutEffect,
 	useRef,
 } from 'react'
@@ -19,9 +20,10 @@ import { Icon } from '../../components/icon'
 import { Textarea } from '../../components/textarea'
 import { ariaAttr } from '../../core/aria-attr'
 import { dataAttr } from '../../core/data-attr'
-import { ArrowUp, Paperclip, Square } from '../../primitives/icons/icons'
+import { ArrowUp, Paperclip, Square, X } from '../../primitives/icons/icons'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
+import { k } from '../../recipes/kata/chat-prompt'
 import { isComposing } from '../../utilities/is-composing'
 import { keyByOccurrence } from '../../utilities/key-by-occurrence'
 import { hasBrowserModifier } from '../../utilities/modifier-keys'
@@ -60,6 +62,18 @@ const messages = defineMessages({
 		id: 'ui.chat.stop',
 		defaultMessage: 'Stop generating',
 		description: 'The name of the button that stops the reply that the assistant writes.',
+	},
+	editing: {
+		id: 'ui.chat.editing',
+		defaultMessage: 'Editing',
+		description:
+			'The label in the chat composer while the reader edits a message that they sent. A send replaces that message.',
+	},
+	cancelEdit: {
+		id: 'ui.chat.cancelEdit',
+		defaultMessage: 'Cancel edit',
+		description:
+			'The name of the button in the chat composer that stops the edit of a sent message and clears the draft.',
 	},
 	send: {
 		id: 'ui.chat.send',
@@ -137,6 +151,20 @@ export type ChatPromptProps = {
 	 */
 	rows?: number
 	/**
+	 * Marks the draft as an edit of a sent message. The action row starts with
+	 * an "Editing" label, in the language of the reader, and the textarea takes
+	 * that label as its description. Give the `editing` of `ChatTranscript` the
+	 * id of the message, so its bubble dims too.
+	 * @defaultValue false
+	 */
+	editing?: boolean
+	/**
+	 * Ends the edit, such as with a `clear` of `useChatDraft`. While `editing`,
+	 * a button after the label and the Escape key call it. The textarea then
+	 * takes the focus.
+	 */
+	onCancelEdit?: () => void
+	/**
 	 * Makes send inert without disabling the textarea. The send button is
 	 * `aria-disabled` and stays focusable, as it is for an empty draft.
 	 * @defaultValue false
@@ -189,6 +217,10 @@ export type ChatPromptProps = {
  * `actions`, the paperclip, and send or stop) sits below the textarea, at the
  * inline end of the row.
  *
+ * While `editing`, the action row starts with an "Editing" label and, with
+ * `onCancelEdit`, a cancel button. Escape in the textarea cancels the edit,
+ * unless an open picker takes the key first.
+ *
  * A send button that cannot send, such as for an empty draft, is
  * `aria-disabled` and ignores the press. It is not natively disabled, so it
  * keeps the focus when a send or a stop empties the draft.
@@ -201,6 +233,8 @@ export function ChatPrompt({
 	onSubmit,
 	onStop,
 	streaming = false,
+	editing = false,
+	onCancelEdit,
 	placeholder,
 	rows = 2,
 	disabled,
@@ -232,6 +266,17 @@ export function ChatPrompt({
 
 	const setTextareaRefs = useComposedRefs(textareaRef, ref)
 
+	const editingId = useId()
+
+	const slots = k()
+
+	// The cancel button unmounts with the label, so the textarea takes the focus (WCAG 2.4.3).
+	const cancelEdit = useCallback(() => {
+		onCancelEdit?.()
+
+		textareaRef.current?.focus()
+	}, [onCancelEdit])
+
 	// The composer always gets an accessible name (WCAG 3.3.2 / 4.1.2):
 	// aria-labelledby wins over aria-label; falls back to 'Message'.
 	const labelProps = ariaLabelledBy
@@ -247,6 +292,15 @@ export function ChatPrompt({
 			// The open picker takes its keys first: Enter chooses and does not send.
 			if (pickerKeyDown(event)) return
 
+			// The press is consumed, so an enclosing dialog does not close on it.
+			if (event.key === 'Escape' && editing && onCancelEdit && !isComposing(event)) {
+				event.preventDefault()
+
+				onCancelEdit()
+
+				return
+			}
+
 			deleteWholeCitation(event, citations)
 
 			if (event.key !== 'Enter' || event.shiftKey || isComposing(event)) return
@@ -259,7 +313,7 @@ export function ChatPrompt({
 				onSubmit()
 			}
 		},
-		[streaming, canSubmit, onSubmit, onStop, pickerKeyDown, citations],
+		[streaming, canSubmit, onSubmit, onStop, pickerKeyDown, citations, editing, onCancelEdit],
 	)
 
 	// A textbox cannot take the `combobox` role, so it names its popup with the attributes that a textbox takes.
@@ -298,9 +352,28 @@ export function ChatPrompt({
 				rows={rows}
 				placeholder={placeholder ?? intl.formatMessage(messages.placeholder)}
 				{...labelProps}
+				aria-describedby={editing ? editingId : undefined}
 				className="max-h-64"
 				actions={
 					<>
+						{editing && (
+							// `me-auto` holds the label at the inline start of the row, and the
+							// controls stay at its end.
+							<span data-slot="chat-prompt-editing" className={slots.editing}>
+								<span id={editingId}>{intl.formatMessage(messages.editing)}</span>
+								{onCancelEdit && (
+									<Button
+										type="button"
+										variant="plain"
+										size="sm"
+										aria-label={intl.formatMessage(messages.cancelEdit)}
+										onClick={cancelEdit}
+									>
+										<Icon icon={<X />} />
+									</Button>
+								)}
+							</span>
+						)}
 						{actions}
 						{onAttach && (
 							<>

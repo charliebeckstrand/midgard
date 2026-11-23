@@ -1409,7 +1409,7 @@
 	},
 	"docs.demo.19766ed6ccb2": {
 		"defaultMessage": "Cancel",
-		"description": "Text of a demo in the docs, in components/card/with-header-and-footer.tsx, components/dialog/with-form.tsx, components/sheet/with-form.tsx and 4 more."
+		"description": "Text of a demo in the docs, in components/card/with-header-and-footer.tsx, components/dialog/with-form.tsx, components/sheet/with-form.tsx and 3 more."
 	},
 	"docs.demo.197aee787794": {
 		"defaultMessage": "Leave grid",
@@ -2166,10 +2166,6 @@
 	"docs.demo.45b86ccfc9ae": {
 		"defaultMessage": "No orders match your filters.",
 		"description": "Text of a demo in the docs, in providers/density/playground.tsx."
-	},
-	"docs.demo.45e7454ccbdb": {
-		"defaultMessage": "Editing a message. Send to replace it.",
-		"description": "Text of a demo in the docs, in modules/chat/conversation/edit-a-message.tsx."
 	},
 	"docs.demo.464c4ffd019e": {
 		"defaultMessage": "Edit",
@@ -6493,7 +6489,7 @@
 	},
 	"docs.prop.editing": {
 		"defaultMessage": "Editing",
-		"description": "The label of a field of a playground in the docs. The field sets the prop editing of Dashboard."
+		"description": "The label of a field of a playground in the docs. The field sets the prop editing of ChatMessage, Dashboard."
 	},
 	"docs.prop.endPoint": {
 		"defaultMessage": "End point",
