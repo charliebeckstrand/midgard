@@ -738,7 +738,7 @@ describe('controls show their state under forced colors (real browser)', () => {
 		const rest = await pixels(ui)
 		const held = await pixels(ui, (host) => {
 			const fill = present(
-				host.querySelector<HTMLElement>('[data-slot=hold-button] > [style*=scaleX]'),
+				host.querySelector<HTMLElement>('[data-slot=hold-button] [style*=scaleX]'),
 				'fill',
 			)
 			fill.style.transform = 'scaleX(0.5)'
