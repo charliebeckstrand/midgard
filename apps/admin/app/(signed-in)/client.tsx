@@ -13,7 +13,13 @@ import { type ReactNode, use } from 'react'
 import { SignOutMenuItem } from 'shared/auth'
 import { Avatar } from 'ui/avatar'
 import { Button } from 'ui/button'
-import { SidebarLayout, StackedLayout, StackedLayoutBody, StackedLayoutHeader } from 'ui/layouts'
+import {
+	SidebarLayout,
+	SidebarLayoutBody,
+	StackedLayout,
+	StackedLayoutBody,
+	StackedLayoutHeader,
+} from 'ui/layouts'
 import { Link } from 'ui/link'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator, MenuTrigger } from 'ui/menu'
 import { NavBar } from 'ui/nav'
@@ -141,7 +147,8 @@ function SidebarShell({ user, children }: { user: User; children: ReactNode }) {
 						</Sidebar>
 					}
 				>
-					{children}
+					{/* The main landmark of the page, and the target of the skip link of the layout. */}
+					<SidebarLayoutBody>{children}</SidebarLayoutBody>
 				</SidebarLayout>
 			</div>
 		</UIProvider>
