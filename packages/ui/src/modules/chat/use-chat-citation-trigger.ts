@@ -1,20 +1,21 @@
 'use client'
 
-import { type FocusEvent, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { type FocusEvent, useMemo, useRef } from 'react'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { lastInput } from '../../utilities/last-input'
 import type { ChatCitation } from './engine/chat-content/types'
 
 /**
- * One input that makes a citation active. `'click'` toggles it on a press.
- * `'hover'` makes it active while the pointer or the keyboard focus is on it.
+ * One input that shows a citation. `'click'` toggles the cited citation on a
+ * press. `'hover'` previews the citation while the pointer or the keyboard
+ * focus is on it.
  */
 export type ChatCitationTriggerInput = 'click' | 'hover'
 
 /**
- * The inputs that make a citation active: one input, or a list of them. With
+ * The inputs that show a citation: one input, or a list of them. With
  * `['hover', 'click']`, a hover or a focus previews the citation, and a press
- * keeps it.
+ * cites it.
  */
 export type ChatCitationTrigger =
 	| ChatCitationTriggerInput
@@ -22,7 +23,7 @@ export type ChatCitationTrigger =
 
 /**
  * The inputs of a trigger as one value, so that a memo can list it.
- * `'hover-click'` is a hover that previews and a press that keeps.
+ * `'hover-click'` is a hover that previews and a press that cites.
  *
  * @internal
  */
@@ -46,25 +47,21 @@ export function toCitationMode(trigger: ChatCitationTrigger): ChatCitationMode {
 /** The input that holds a preview. */
 type PreviewSource = 'pointer' | 'focus'
 
-/**
- * A citation that a hover or a focus shows. `committed` is the citation that
- * comes back when the preview ends. `sources` are the inputs that still hold
- * the preview.
- */
-type Preview = { id: string; committed: ChatCitation | null; sources: Set<PreviewSource> }
+/** The previewed citation, and the inputs that still hold the preview. */
+type Preview = { citation: ChatCitation; sources: Set<PreviewSource> }
 
-/** The calls that the pieces of a citation make, and the citation that is pressed. @internal */
+/** The calls that the pieces of a citation make. @internal */
 export type ChatCitationActions = {
-	/** The citation that `aria-pressed` shows: the committed citation, not a preview. */
-	pressed: ChatCitation | null
 	/** Starts a preview of `citation`, or adds a source to its preview. */
 	preview: (citation: ChatCitation, source: PreviewSource) => void
 	/** Removes a source from the preview of `citation`. The preview ends with its last source. */
 	unpreview: (citation: ChatCitation, source: PreviewSource) => void
+	/** Ends the preview of the citation `id`, as Escape or an unmount does. */
+	dismiss: (id: string) => void
 	/**
-	 * Ends a preview and sends `null`, as Escape does. Returns `false` when no
-	 * citation was active, so that Escape can go on to the surface that holds
-	 * the chat.
+	 * Ends a preview, and sends `null` through `onCitedChange` when a citation
+	 * is cited, as Escape does. Returns `false` when it had nothing to clear, so
+	 * that Escape can go on to the surface that holds the chat.
 	 */
 	clear: () => boolean
 	/** A click, Enter, or Space on `citation`. `touch` is true for a tap. */
@@ -94,23 +91,16 @@ export function lastInputIsTouch(): boolean {
 }
 
 /**
- * The trigger logic of {@link ChatCitationProvider}. It sends each change
- * through `onCitedChange`, so the app holds one value, `cited`.
+ * The trigger logic of {@link ChatCitationProvider}. A press toggles `cited`
+ * through `onCitedChange`. A hover or a keyboard focus sends a preview through
+ * `onPreviewChange`, and never changes `cited`.
  *
- * A preview keeps the committed citation, and the end of the preview sends it
- * again. Thus a hover never clears a citation that a press keeps. A preview
- * ends only when its last source ends, so a pointer that leaves a citation
- * with the keyboard focus on it keeps the preview.
+ * A preview ends only when its last source ends, so a pointer that leaves a
+ * citation with the keyboard focus on it keeps the preview. The hook keeps the
+ * preview in a ref, because two pointer events can come before a render.
  *
- * Escape clears the active citation in each mode, kept or previewed, as the
- * Clear control of a view does. The focus stays on the citation.
- *
- * Two pointer events can come before the app draws the last value that the
- * hook sent, as when the pointer moves from one citation to the next. The hook
- * thus reads the value that it sent until the next commit. Each send asks for
- * a render, and each commit forgets the sent value, so after a commit `cited`
- * is the truth. Thus an app that changes `cited` again, or that does not take
- * a sent value, does not leave a stale value.
+ * Escape clears both, as the Clear control of a view clears `cited`. The focus
+ * stays on the citation.
  *
  * @internal
  */
@@ -118,54 +108,14 @@ export function useChatCitationTrigger(
 	trigger: ChatCitationMode,
 	cited: ChatCitation | null,
 	onCitedChange: (citation: ChatCitation | null) => void,
+	onPreviewChange: ((citation: ChatCitation | null) => void) | undefined,
 ): ChatCitationActions {
 	const previewRef = useRef<Preview | null>(null)
 
-	// The value that the hook sent since the last commit, or `null` when it sent none.
-	const sentRef = useRef<{ value: ChatCitation | null } | null>(null)
+	const end = useStableEvent(() => {
+		previewRef.current = null
 
-	// A send asks for a render, so that a commit comes even when the app does
-	// not take the value.
-	const [, setSends] = useState(0)
-
-	useLayoutEffect(() => {
-		sentRef.current = null
-	})
-
-	// The preview that the render reads, for `pressed`. The ref holds the same
-	// value for the events, which can come before the next render.
-	const [shown, setShown] = useState<{ id: string; committed: ChatCitation | null } | null>(null)
-
-	const setPreview = (next: Preview | null) => {
-		previewRef.current = next
-
-		setShown(next && { id: next.id, committed: next.committed })
-	}
-
-	const current = useStableEvent((): ChatCitation | null => {
-		const sent = sentRef.current
-
-		return sent ? sent.value : cited
-	})
-
-	const send = useStableEvent((next: ChatCitation | null) => {
-		const now = current()
-
-		if (now?.id === next?.id) return
-
-		sentRef.current = { value: next }
-
-		setSends((count) => count + 1)
-
-		onCitedChange(next)
-	})
-
-	const end = useStableEvent((preview: Preview) => {
-		setPreview(null)
-
-		// The app can change `cited` during the preview, as a pick in a view does.
-		// Then the preview is not on screen, and its end sends nothing.
-		if (current()?.id === preview.id) send(preview.committed)
+		onPreviewChange?.(null)
 	})
 
 	const preview = useStableEvent((citation: ChatCitation, source: PreviewSource) => {
@@ -173,66 +123,50 @@ export function useChatCitationTrigger(
 
 		const open = previewRef.current
 
-		if (open?.id === citation.id) {
+		if (open?.citation.id === citation.id) {
 			open.sources.add(source)
 
 			return
 		}
 
-		// A move from one preview to the next keeps the committed citation of the
-		// first, because the citation on screen is a preview.
-		const committed = open && current()?.id === open.id ? open.committed : current()
+		previewRef.current = { citation, sources: new Set([source]) }
 
-		setPreview({ id: citation.id, committed, sources: new Set([source]) })
-
-		send(citation)
+		onPreviewChange?.(citation)
 	})
 
 	const unpreview = useStableEvent((citation: ChatCitation, source: PreviewSource) => {
 		const open = previewRef.current
 
-		if (open?.id !== citation.id) return
+		if (open?.citation.id !== citation.id) return
 
 		open.sources.delete(source)
 
-		if (open.sources.size === 0) end(open)
+		if (open.sources.size === 0) end()
+	})
+
+	const dismiss = useStableEvent((id: string) => {
+		if (previewRef.current?.citation.id === id) end()
 	})
 
 	const clear = useStableEvent((): boolean => {
-		const open = previewRef.current
+		const previewing = previewRef.current !== null
 
-		if (open === null && current() === null) return false
+		if (previewing) end()
 
-		if (open !== null) setPreview(null)
+		if (cited !== null) onCitedChange(null)
 
-		send(null)
-
-		return true
+		return previewing || cited !== null
 	})
 
 	const press = useStableEvent((citation: ChatCitation, touch: boolean) => {
 		// A touch screen has no hover, so a tap toggles the citation in each mode.
 		if (trigger === 'hover' && !touch) return
 
-		const open = previewRef.current
-
-		if (open?.id === citation.id) {
-			// The preview stays on screen. The press changes what its end sends.
-			setPreview({
-				...open,
-				committed: open.committed?.id === citation.id ? null : citation,
-			})
-
-			return
-		}
-
-		send(current()?.id === citation.id ? null : citation)
+		onCitedChange(cited?.id === citation.id ? null : citation)
 	})
 
-	const pressed = shown && cited?.id === shown.id ? shown.committed : cited
-
 	return useMemo(
-		() => ({ pressed, preview, unpreview, clear, press }),
-		[pressed, preview, unpreview, clear, press],
+		() => ({ preview, unpreview, dismiss, clear, press }),
+		[preview, unpreview, dismiss, clear, press],
 	)
 }
