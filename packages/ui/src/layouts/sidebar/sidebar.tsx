@@ -18,6 +18,7 @@ import { defaultKeybindingsHandlerIgnore, type KeybindingFilter } from 'tinykeys
 import { Button } from '../../components/button'
 import { Drawer, DrawerPanel, DrawerTrigger } from '../../components/drawer'
 import { Icon } from '../../components/icon'
+import { Kbd } from '../../components/kbd'
 import { Sheet, SheetPanel } from '../../components/sheet'
 import { cn } from '../../core/cn'
 import { createSlot } from '../../core/create-slot'
@@ -25,7 +26,7 @@ import { useIsRtl } from '../../hooks/use-is-rtl'
 import { useKeybindings } from '../../hooks/use-keybindings'
 import { OFFCANVAS_LAYOUT, type OffcanvasLayout, useOffcanvas } from '../../hooks/use-offcanvas'
 import { useStoredChoice } from '../../hooks/use-stored-choice'
-import { Menu } from '../../primitives/icons/icons'
+import { CornerDownLeft, Menu } from '../../primitives/icons/icons'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { Landmark } from '../../primitives/landmark'
@@ -306,7 +307,20 @@ export function SidebarLayout({
 				    hot zone before it takes no focus. */}
 				{skip && main && (
 					// The `href` reads the id that the main slot renders, which can be an id of the consumer.
-					<Button href={`#${main.id}`} onClick={skipToMain} className={slots.skip}>
+					<Button
+						href={`#${main.id}`}
+						onClick={skipToMain}
+						variant="plain"
+						color="inherit"
+						// The key tells the reader to press Enter. Its icon is decorative, so
+						// the name of the link stays its text.
+						suffix={
+							<Kbd>
+								<Icon icon={<CornerDownLeft />} />
+							</Kbd>
+						}
+						className={slots.skip}
+					>
 						{intl.formatMessage(messages.skipToContent)}
 					</Button>
 				)}
