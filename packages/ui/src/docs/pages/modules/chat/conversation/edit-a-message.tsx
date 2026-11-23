@@ -167,7 +167,7 @@ export default function EditAMessage() {
 						editing && (
 							<Flex align="center" justify="between">
 								<Text id={status} tone="muted">
-									Editing
+									Editing message
 								</Text>
 								<Button variant="bare" size="sm" onClick={end}>
 									Cancel

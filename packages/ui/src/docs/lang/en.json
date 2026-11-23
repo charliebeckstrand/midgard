@@ -3155,6 +3155,10 @@
 		"defaultMessage": "Main content (2/3)",
 		"description": "Text of a demo in the docs, in structure/split/sidebar-layout.tsx."
 	},
+	"docs.demo.7dbfd44a8723": {
+		"defaultMessage": "Editing message",
+		"description": "Text of a demo in the docs, in modules/chat/conversation/edit-a-message.tsx."
+	},
 	"docs.demo.7e1b0d5641f2": {
 		"defaultMessage": "Account",
 		"description": "Text of a demo in the docs as aria-label, label, in components/menu/title-and-description.tsx, components/nav/with-content.tsx, components/sidebar/sections-divider-and-spacer.tsx and 1 more."
@@ -5546,10 +5550,6 @@
 	"docs.demo.fa8ed0bdabdd": {
 		"defaultMessage": "Plan",
 		"description": "Text of a demo in the docs as aria-label, label, in components/list/stages.ts, components/radio/playground.tsx, components/select/with-descriptions.tsx and 1 more."
-	},
-	"docs.demo.fab4539d26e0": {
-		"defaultMessage": "Editing",
-		"description": "Text of a demo in the docs, in modules/chat/conversation/edit-a-message.tsx."
 	},
 	"docs.demo.fb3d7e2c77f4": {
 		"defaultMessage": "File actions",
