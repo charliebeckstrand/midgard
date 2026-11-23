@@ -59,8 +59,6 @@ No rule reads a clock or a random source. The shell mints each id and gives it t
 
 1. **The a11y corpus misses four surfaces (*P2*).** [`specialized.tsx`](../../__tests__/a11y/cases/specialized.tsx) has no `ChatList` with `ChatListItem` rows and actions, no `ChatFeedback`, no message with a branch switcher, and no `ChatPrompt` with `sources`. The sweeps thus do not read their names, their roles, or their contrast. Add one entry for each, and the open state of the picker where the corpus can hold it.
 
-2. **A branch switch says nothing about its position (*P2*).** The position text of [`chat-message-branch.tsx`](chat-message-branch.tsx), such as `2 of 3`, is not live, and the button names do not hold it. A press on Next version thus gives a screen reader no status (WCAG 4.1.3). The announcer then speaks the last reply of the transcript, which can be far below the switched message. Speak the new position on a switch, and decide whether the last reply speaks too. A case in `chat-transcript.test.tsx` with `expectAnnouncement` proves each half.
-
 ## Not planned
 
 - **A model encoded in Markdown.** A user message that holds the vocabulary has the same bytes as an assistant message, so user text would draw a live embed. A part list is constructed and not parsed, so a user cannot spoof one.

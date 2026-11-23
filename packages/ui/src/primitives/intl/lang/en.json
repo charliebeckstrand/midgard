@@ -239,6 +239,10 @@
 		"defaultMessage": "{index, number} of {count, number}",
 		"description": "The version of a chat message that shows, such as \"2 of 3\". The index counts from 1, and the count is the number of versions."
 	},
+	"ui.chat.versionSwitched": {
+		"defaultMessage": "Version {index, number} of {count, number}",
+		"description": "Spoken when a chat message shows another of its versions, such as \"Version 2 of 3\". The index counts from 1, and the count is the number of versions."
+	},
 	"ui.chat.versions": {
 		"defaultMessage": "Versions",
 		"description": "The name of the controls below a chat message that show its other versions. A retry or an edit makes a version."
