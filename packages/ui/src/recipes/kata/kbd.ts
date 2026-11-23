@@ -19,10 +19,20 @@ export const k = defineKata({
 		// Chromium tests the rule only against the keys.
 		dan.space.kbd.button.x,
 		dan.space.kbd.button.y,
-		// A key with only icons is a square as tall as a key with text. Its icon
-		// takes the line height of the key text, and its inline padding takes the
-		// block padding. The component sets `data-has-label` on a key with text.
-		'not-data-has-label:*:data-[slot=icon]:size-[1lh]',
+		// A key is never narrower than it is tall, as a key of a keyboard. A key
+		// with one glyph is thus a square, and a key with a longer label grows. Its
+		// height is the line of the key text and its block padding (`--kbd-py`).
+		dan.space.kbd.y,
+		dan.space.kbd.button.py,
+		'min-w-[calc(1lh+2*var(--kbd-py))]',
+		// An icon takes the line height, so a key with only an icon is as tall as a
+		// key with text. Such a key takes its block padding as its inline padding,
+		// so it is a square too. CSS finds it by its one child element, the icon.
+		'*:data-[slot=icon]:size-[1lh]',
+		// A key with only an icon has no text, so it has no baseline, and a line of
+		// text puts its bottom edge on the baseline. An empty glyph gives it the
+		// baseline of a key with text, so the two keys line up.
+		'has-[>[data-slot=icon]:only-child]:baseline-strut',
 		dan.space.kbd.icon.x,
 		dan.space.kbd.icon.button.x,
 	],

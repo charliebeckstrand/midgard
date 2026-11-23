@@ -511,15 +511,28 @@ export const space = {
 		y: scale.py.xs,
 	},
 	kbd: {
+		/**
+		 * The block padding of a key as a custom property (`--kbd-py`), which the
+		 * least width of the key reads. It has the steps of `mark.y`, which pads
+		 * the key.
+		 */
+		y: 'density-set-[0.5,0.75,1,1.25,1.5]/[--kbd-py]',
 		icon: {
-			/** The inline padding of a key with only icons: the block padding of a key (`mark.y`), so the key is a square. */
-			x: 'not-data-has-label:density-px-[0.5,0.75,1,1.25,1.5]',
+			/**
+			 * The inline padding of a key whose one child element is an icon: the
+			 * block padding of a key (`mark.y`), so the key is a square. A text node
+			 * is not an element, so CSS finds such a key with no help from the
+			 * component.
+			 */
+			x: 'has-[>[data-slot=icon]:only-child]:density-px-[0.5,0.75,1,1.25,1.5]',
 			button: {
-				/** The inline padding of a key with only icons in a button: the block padding of such a key (`button.y`). */
-				x: 'not-data-has-label:[&:is([data-variant]>*)]:px-px',
+				/** The inline padding of such a key in a button: the 1 px of its block padding (`button.y`). */
+				x: 'has-[>[data-slot=icon]:only-child]:[&:is([data-variant]>*)]:px-px',
 			},
 		},
 		button: {
+			/** The block padding of a key in a button as `--kbd-py`: the 1 px of `button.y`. */
+			py: '[&:is([data-variant]>*)]:[--kbd-py:1px]',
 			/** The inline padding of a key in a button. */
 			x: '[&:is([data-variant]>*)]:density-px-[0.5,1,1.5,2,2.5]',
 			/**
