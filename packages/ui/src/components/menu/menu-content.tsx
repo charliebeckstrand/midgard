@@ -2,6 +2,7 @@
 
 import { type ReactNode, useId, useLayoutEffect, useState } from 'react'
 import { cn } from '../../core/cn'
+import { queryItems } from '../../hooks/a11y/use-a11y-roving'
 import { FloatingSurface } from '../../primitives/floating-surface'
 import { useResolvedSurface } from '../../primitives/glass/context'
 import { PopoverPanel } from '../../primitives/popover'
@@ -82,7 +83,14 @@ export function MenuContent({
 }: MenuContentProps) {
 	const { open, menuId, isDropdown, isSheet, floatingStyles, getFloatingProps, size } =
 		useMenuState()
-	const { close, static: isStatic, setFloating, triggerRef } = useMenuActions()
+	const {
+		close,
+		dismissToTab,
+		openedByKey,
+		static: isStatic,
+		setFloating,
+		triggerRef,
+	} = useMenuActions()
 	const glass = useResolvedSurface(glassProp) === 'glass'
 
 	const [triggerId, setTriggerId] = useState<string>()
@@ -96,6 +104,29 @@ export function MenuContent({
 	useLayoutEffect(() => {
 		if (open && isDropdown) setTriggerId(triggerRef.current?.id || undefined)
 	}, [open, isDropdown, triggerRef])
+
+	const [panelNode, setPanelNode] = useState<HTMLDivElement | null>(null)
+
+	// A key opens a floating menu with the focus on its first row, as the menu
+	// button pattern of the APG tells. A dropdown reads the event that opened it.
+	// A context menu has a `triggerRef` only after a keyboard open (`openAt`).
+	// A press of the pointer puts the focus on the panel. On a mount the panel
+	// focuses itself (`PopoverPanel`) before this effect runs. A reopen inside
+	// the exit animation reuses the mounted panel, and that autofocus does not
+	// run again, so this effect also focuses the panel when the focus is not in
+	// it. If not, the focus stays on the trigger, and the keys of the open menu
+	// reach nothing.
+	useLayoutEffect(() => {
+		if (!open || isSheet || isStatic || !panelNode) return
+
+		const keyOpen = isDropdown ? openedByKey() : triggerRef.current !== null
+
+		if (keyOpen) {
+			queryItems(panelNode, MENUITEM_SELECTOR)[0]?.focus({ preventScroll: true })
+		} else if (!panelNode.contains(document.activeElement)) {
+			panelNode.focus({ preventScroll: true })
+		}
+	}, [open, isSheet, isStatic, isDropdown, panelNode, openedByKey, triggerRef])
 
 	// A name from the consumer replaces the name from the title, and the title
 	// replaces the name from the trigger.
@@ -185,24 +216,29 @@ export function MenuContent({
 				aria-labelledby={labelledby}
 				aria-describedby={described ? descriptionId : undefined}
 				itemSelector={MENUITEM_SELECTOR}
-				// A dropdown keeps focus on its trigger while open; opening never
-				// pulls focus into the panel. Seating focus on the portaled,
-				// animating panel is the path that drops to `<body>` on open in a
-				// real browser: leaving it on the trigger sidesteps that, and Tab
-				// off the trigger closes the menu (see MenuTrigger). A right-click
-				// context menu has no persistent trigger to hold focus, so it still
-				// pulls focus into the panel for keyboard navigation.
-				autoFocus={!isDropdown}
-				// Tab is held inside the panel wherever focus lives in it (a
-				// right-click context menu): the menu is left by dismissing it, and
-				// Tab walking off into the page behind an open overlay strands the
-				// user outside a surface still on screen. A dropdown is exempt: its
-				// focus stays on the trigger, where Tab out is the documented close.
+				ref={setPanelNode}
+				// Focus goes into the panel on open. The menu keeps it until a row
+				// runs, Escape closes the menu, or Tab leaves it.
+				autoFocus
+				// A context menu holds Tab inside the panel: it has no trigger for Tab
+				// to go on from. In a dropdown, Tab closes the menu and goes on from
+				// the trigger (below).
 				trapTab={!isDropdown}
 				typeahead
 				glass={glass}
 				className={cn(panel.floating, panel.base, className)}
 				onKeyDown={(event) => {
+					// The focus goes to the trigger before the browser runs the Tab, so
+					// the Tab goes on from the trigger to the tabbable after or before
+					// it. The `'focus-out'` close leaves the focus there.
+					if (event.key === 'Tab' && isDropdown) {
+						triggerRef.current?.focus({ preventScroll: true })
+
+						dismissToTab(event.nativeEvent)
+
+						return
+					}
+
 					if (event.key !== 'Escape') return
 
 					// React commits the close before the document listener runs, so

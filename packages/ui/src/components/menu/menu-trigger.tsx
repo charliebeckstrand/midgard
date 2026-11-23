@@ -13,15 +13,24 @@ import {
 	triggerChild,
 } from '../../primitives/trigger-child/trigger-child'
 import { isActivationKey } from '../../utilities/keyboard-navigation'
-import { useMenuActions, useMenuPointer, useMenuState } from './context'
-import { opensSubmenu } from './menu-sub'
+import { useMenuActions, useMenuState } from './context'
 
 /**
  * The key handlers of the trigger run after the handlers of the consumer, also
- * when the consumer calls `preventDefault()`. They hold the menu cursor and the
- * auto-repeat guard, which a consumer cannot cancel (CONVENTIONS.md §3.9).
+ * when the consumer calls `preventDefault()`. They hold the auto-repeat guard,
+ * which a consumer cannot cancel (CONVENTIONS.md §3.9).
  */
 const activation = { checkForDefaultPrevented: false }
+
+/**
+ * Whether the browser clicks `element` itself on Enter. A `<button>` and an
+ * `<a>` get that click. Other elements, such as a `<div role="button">`, do not.
+ *
+ * @internal
+ */
+function clicksOnEnter(element: HTMLElement) {
+	return element.tagName === 'BUTTON' || element.tagName === 'A'
+}
 
 /**
  * Opens a closed menu on ArrowDown, as Enter and Space do (the menu button
@@ -31,12 +40,21 @@ const activation = { checkForDefaultPrevented: false }
  * first row. A consumer that cancels the key keeps the menu closed, as a
  * canceled Enter does.
  *
+ * Enter on a trigger that the browser does not click on Enter opens the menu
+ * in the same way. The key is canceled, so its default action does not go to
+ * the first row, which has the focus when the default action runs.
+ *
  * @internal
  */
-function openOnArrowDown(event: KeyboardEvent) {
-	if (event.key !== 'ArrowDown' || event.defaultPrevented) return
+function openOnKey(event: KeyboardEvent) {
+	if (event.defaultPrevented) return
 
 	if (!(event.currentTarget instanceof HTMLElement)) return
+
+	const opens =
+		event.key === 'ArrowDown' || (event.key === 'Enter' && !clicksOnEnter(event.currentTarget))
+
+	if (!opens) return
 
 	event.preventDefault()
 
@@ -66,12 +84,10 @@ export type MenuTriggerProps = ComponentProps<'button'>
  * such as a `<button>`, that has no `data-slot` of its own. A component child,
  * such as a `<Button>`, keeps the anchor that it writes for itself.
  *
- * Enter, Space, or ArrowDown opens the menu on its first row, and the next
- * Enter runs that row. A press of the pointer opens the menu with no active
- * row.
- *
- * The trigger keeps focus while the menu is open. Tab off it therefore closes
- * the menu, and lets focus proceed to the next tabbable in one keystroke.
+ * Enter, Space, or ArrowDown opens the menu with the focus on its first row.
+ * A press of the pointer opens the menu with the focus on the panel and no
+ * active row. Focus goes back to the trigger when the menu closes. Tab in the
+ * menu closes it, and the focus goes on to the tabbable after the trigger.
  *
  * The trigger stamps `data-open` while the menu is open, and `data-disabled`
  * while it is disabled.
@@ -79,9 +95,7 @@ export type MenuTriggerProps = ComponentProps<'button'>
 export function MenuTrigger({ children, className, ref, ...props }: MenuTriggerProps) {
 	const { open, menuId, getReferenceProps } = useMenuState()
 
-	const { dismissToTab, rovingKeyDown, triggerRef, setReference } = useMenuActions()
-
-	const { enterSubmenu } = useMenuPointer()
+	const { triggerRef, setReference } = useMenuActions()
 
 	// The dropdown panel points its `aria-labelledby` at the trigger, so the
 	// trigger always has an id. An id of the child or of the consumer stays.
@@ -118,17 +132,9 @@ export function MenuTrigger({ children, className, ref, ...props }: MenuTriggerP
 	// requires letting go and pressing again.
 	const activationHeldRef = useRef(false)
 
-	// Focus rests on the trigger while the menu is open, so every navigation key
-	// arrives here rather than in the panel. `rovingKeyDown` moves the
-	// `aria-activedescendant` cursor over the items (arrow / Home / End /
-	// type-ahead) and activates the active row on Enter/Space.
-	// Tab closes without `preventDefault`, letting the browser carry focus onward;
-	// `dismissToTab` marks the close `'focus-out'` so focus is not yanked back.
-	//
-	// A closed menu gets none of this, but ArrowDown opens it. The panel stays
-	// mounted for its exit animation, and the row that ran keeps `data-active`,
-	// so the roving handler still finds the rows. An Enter in that time would
-	// run the row again and cancel the click that opens the menu.
+	// A closed menu opens on ArrowDown, and on Enter where the browser does not
+	// click the trigger. While the menu is open, the focus is in
+	// the panel, which takes the navigation keys.
 	const handleTriggerKeyDown = useStableEvent((event: KeyboardEvent) => {
 		if (isActivationKey(event.key)) {
 			// Swallow every auto-repeat's native click; only a fresh press arms and
@@ -141,39 +147,7 @@ export function MenuTrigger({ children, className, ref, ...props }: MenuTriggerP
 			}
 		}
 
-		if (!open) {
-			openOnArrowDown(event)
-
-			return
-		}
-
-		// A submenu hovered open under this dropdown owns the arrows while it is
-		// up, the same as in a right-click menu. The difference is that focus rests
-		// here, so the press arrives on the trigger rather than on the parent row.
-		if (enterSubmenu(event.key)) {
-			event.preventDefault()
-
-			return
-		}
-
-		// The keys that open a submenu from a focused row open the submenu of the
-		// active row here. The row takes the key as a click with no pointer behind
-		// it, which seats focus on the first row of the panel ({@link MenuSub}).
-		const activeId = event.currentTarget.getAttribute('aria-activedescendant')
-
-		const row = activeId ? document.getElementById(activeId) : null
-
-		if (row?.dataset.slot === 'menu-sub-trigger' && opensSubmenu(event, row)) {
-			event.preventDefault()
-
-			row.click()
-
-			return
-		}
-
-		rovingKeyDown(event)
-
-		if (event.key === 'Tab') dismissToTab(event.nativeEvent)
+		if (!open) openOnKey(event)
 	})
 
 	// Space activates a button on keyup; suppress that release when no fresh press

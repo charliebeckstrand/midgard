@@ -1,19 +1,7 @@
 'use client'
 
-import {
-	type PointerEvent,
-	type ReactNode,
-	type RefObject,
-	useCallback,
-	useMemo,
-	useRef,
-	useState,
-} from 'react'
-import {
-	queryItems,
-	setVirtualActive,
-	setVirtualActiveElement,
-} from '../../hooks/a11y/use-a11y-roving'
+import { type PointerEvent, type ReactNode, useCallback, useMemo, useRef, useState } from 'react'
+import { queryItems } from '../../hooks/a11y/use-a11y-roving'
 import { MenuOpenSubContext, MenuPointerContext, type MenuPointerValue } from './context'
 import { MENUITEM_SELECTOR } from './use-menu-root'
 
@@ -82,14 +70,6 @@ function inCorridor(point: Point, prev: Point, from: Point, rect: DOMRect): bool
 
 /** Props for {@link MenuPointerLevel}. */
 export type MenuPointerLevelProps = {
-	/**
-	 * Rove by `data-active` and the owner's `aria-activedescendant` instead of
-	 * real focus: the dropdown model, where focus rests on the trigger.
-	 * @defaultValue false
-	 */
-	virtual?: boolean
-	/** Virtual mode: the element carrying `aria-activedescendant` (a dropdown's trigger). */
-	owner?: RefObject<HTMLElement | null>
 	/** The level's rows, and any submenu panels hanging off them. */
 	children: ReactNode
 }
@@ -102,10 +82,8 @@ export type MenuPointerLevelProps = {
  * @remarks The pointer drives the same cursor the arrow keys do. A menu
  * therefore carries one highlight, rather than a hover wash beside a stale
  * focus ring. A keyboard rove picks up from the row the pointer left off on.
- * Which cursor that is follows the level's roving model. It is real focus for a
- * right-click menu and for every submenu panel. It is `data-active` plus the
- * trigger's `aria-activedescendant` for a dropdown, whose focus stays on its
- * trigger. The pointer that leaves the rows takes the cursor with it
+ * The cursor is real focus at each level. The pointer that leaves the rows
+ * takes the cursor with it
  * ({@link MenuPointerValue.leave}), unless a submenu is open.
  *
  * Nothing here waits on a clock. The cursor lands on the row under the pointer
@@ -123,7 +101,7 @@ export type MenuPointerLevelProps = {
  * re-renders neither the menu nor the row that owns the panel's subtree, only
  * the rows that read it.
  */
-export function MenuPointerLevel({ virtual = false, owner, children }: MenuPointerLevelProps) {
+export function MenuPointerLevel({ children }: MenuPointerLevelProps) {
 	const [openKey, setOpenKey] = useState<string | null>(null)
 
 	// Read back inside the handlers below, which run between a set and the render
@@ -147,46 +125,13 @@ export function MenuPointerLevel({ virtual = false, owner, children }: MenuPoint
 		setOpenKey(next)
 	}, [])
 
-	/** Seats the level's roving cursor on `row`, in whichever model it roves by. */
-	const moveCursor = useCallback(
-		(row: HTMLElement) => {
-			if (!virtual) {
-				// `preventScroll`: the row is already under the pointer, and letting
-				// focus scroll the capped viewport would shift the list out from under
-				// it mid-sweep. Keyboard roving still scrolls its target into view.
-				if (document.activeElement !== row) row.focus({ preventScroll: true })
-
-				return
-			}
-
-			// Real focus belongs on the owner in this model, and a trip into a
-			// submenu's panel (which roves by focus) leaves it on a row of a panel
-			// about to close. Coming back out hands it to the owner, or it would drop
-			// to the document when that panel goes and take the keyboard with it.
-			const controller = owner?.current
-
-			if (controller && document.activeElement !== controller)
-				controller.focus({ preventScroll: true })
-
-			if (row.dataset.active !== undefined) return
-
-			// Addressed by element, not by index: the arrival carries its own row, so
-			// reading the panel's whole item list back out to find that row's index
-			// would put three linear passes on a sweep that moves one attribute.
-			// `aria-selected` is not a `menuitem` state, so the highlight stays a
-			// pure cursor, as in the dropdown's own roving.
-			setVirtualActiveElement(
-				row.closest<HTMLElement>('[role="menu"]'),
-				row,
-				MENUITEM_SELECTOR,
-				owner,
-				{
-					ariaSelected: false,
-				},
-			)
-		},
-		[virtual, owner],
-	)
+	/** Seats the level's roving cursor on `row`. */
+	const moveCursor = useCallback((row: HTMLElement) => {
+		// `preventScroll`: the row is already under the pointer, and letting focus
+		// scroll the capped viewport would shift the list out from under it
+		// mid-sweep. Keyboard roving still scrolls its target into view.
+		if (document.activeElement !== row) row.focus({ preventScroll: true })
+	}, [])
 
 	/**
 	 * Whether `point` is the pointer crossing this level on its way into the open
@@ -270,25 +215,19 @@ export function MenuPointerLevel({ virtual = false, owner, children }: MenuPoint
 	)
 
 	// The pointer leaves the rows of this level, so the rows lose the cursor:
-	// the next arrow key then starts at the first row. A dropdown drops
-	// `data-active` and `aria-activedescendant`. Elsewhere, focus goes from the
-	// row to the panel. A level with an open submenu keeps the cursor on the
-	// parent row, so the pointer can cross the gap into the submenu. Touch has
-	// no hover, and a tap fires `pointerleave` after it lifts.
-	const leave = useCallback(
-		(event: PointerEvent<HTMLElement>) => {
-			if (event.pointerType === 'touch' || openKeyRef.current !== null) return
+	// the next arrow key then starts at the first row. Focus goes from the row to
+	// the panel. A level with an open submenu keeps the cursor on the parent row,
+	// so the pointer can cross the gap into the submenu. Touch has no hover, and
+	// a tap fires `pointerleave` after it lifts.
+	const leave = useCallback((event: PointerEvent<HTMLElement>) => {
+		if (event.pointerType === 'touch' || openKeyRef.current !== null) return
 
-			const rows = event.currentTarget
+		const rows = event.currentTarget
 
-			if (virtual) {
-				setVirtualActive(queryItems(rows, MENUITEM_SELECTOR), -1, owner, { ariaSelected: false })
-			} else if (rows.contains(document.activeElement)) {
-				rows.closest<HTMLElement>('[role="menu"]')?.focus({ preventScroll: true })
-			}
-		},
-		[virtual, owner],
-	)
+		if (rows.contains(document.activeElement)) {
+			rows.closest<HTMLElement>('[role="menu"]')?.focus({ preventScroll: true })
+		}
+	}, [])
 
 	const registerPanel = useCallback((subKey: string, node: HTMLElement | null) => {
 		if (node) panels.current.set(subKey, node)

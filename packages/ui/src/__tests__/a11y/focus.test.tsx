@@ -45,11 +45,11 @@ describe('a11y focus: overlays capture focus on open', () => {
  * previously-focused-element path, which jsdom resolves to `<body>` rather than
  * the trigger; covered in the real-browser suite. Popover restores via a direct
  * `.focus()` on the trigger ref (`useFloatingPanel`'s `returnFocusTo`), which
- * jsdom honors. Menu never moves focus off its trigger in the first place, so
- * closing leaves it there with nothing to restore.
+ * jsdom honors. Menu takes the same path: the focus goes into the panel on
+ * open, and back to the trigger on close.
  */
 describe('a11y focus: restoration (dropdown family)', () => {
-	it('keeps focus on its trigger through open and Escape', async () => {
+	it('moves focus into the menu on open, and back to its trigger on Escape', async () => {
 		const user = setupUser()
 
 		renderUI(
@@ -73,9 +73,9 @@ describe('a11y focus: restoration (dropdown family)', () => {
 
 		screen.getByRole('menu')
 
-		// Focus stayed on the trigger while the menu was open, so Escape closes it
-		// with the trigger still focused (WCAG 2.4.3): no restore needed.
-		expect(trigger).toHaveFocus()
+		// A press puts the focus on the panel. Escape gives it back to the
+		// trigger (WCAG 2.4.3).
+		expect(screen.getByRole('menu')).toHaveFocus()
 
 		await user.keyboard('{Escape}')
 

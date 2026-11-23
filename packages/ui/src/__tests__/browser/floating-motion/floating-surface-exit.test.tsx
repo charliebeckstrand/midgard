@@ -201,7 +201,7 @@ describe('a pointer-opened context menu in its exit (real engine, real Motion)',
 })
 
 describe('a dropdown menu in its exit (real engine, real Motion)', () => {
-	it('keeps the focus on the trigger, and the rows take no press', async () => {
+	it('gives the focus back to the trigger, and the rows take no press', async () => {
 		const onEdit = vi.fn()
 
 		renderUI(
@@ -226,11 +226,13 @@ describe('a dropdown menu in its exit (real engine, real Motion)', () => {
 
 		await waitFor(() => expect(row('Edit')).toBeVisible())
 
-		fireEvent.keyDown(trigger, { key: 'ArrowDown' })
+		await waitFor(() => expect(panel).toHaveFocus())
 
-		expect(row('Edit')).toHaveAttribute('data-active')
+		await userEvent.keyboard('{ArrowDown}')
 
-		fireEvent.keyDown(trigger, { key: 'Enter' })
+		expect(row('Edit')).toHaveFocus()
+
+		await userEvent.keyboard('{Enter}')
 
 		expect(onEdit).toHaveBeenCalledOnce()
 
@@ -244,6 +246,59 @@ describe('a dropdown menu in its exit (real engine, real Motion)', () => {
 
 		expect(trigger).toHaveFocus()
 	})
+})
+
+describe('a dropdown menu reopened in its exit (real engine, real Motion)', () => {
+	// A reopen inside the exit reuses the panel that is still mounted, so no mount
+	// moves the focus into it. The focus must still leave the trigger, or the keys
+	// of the open menu reach nothing. A press puts the focus on the panel, and a
+	// click with no pointer behind it (a key) on the first row.
+	it.each(
+		EXIT_MOTION_CASES.flatMap(({ name, reduced }) => [
+			{ name, reduced, detail: 1, target: 'the panel' },
+			{ name, reduced, detail: 0, target: 'the first row' },
+		]),
+	)(
+		'puts the focus on $target under $name (click detail $detail)',
+		async ({ reduced, detail, target }) => {
+			renderUI(
+				<Motion reduced={reduced}>
+					<Menu placement="bottom-start">
+						<MenuTrigger>
+							<Button>Open</Button>
+						</MenuTrigger>
+						<MenuContent>
+							<MenuItem>Edit</MenuItem>
+							<MenuItem>Duplicate</MenuItem>
+						</MenuContent>
+					</Menu>
+				</Motion>,
+			)
+
+			const trigger = screen.getByRole('button', { name: 'Open' })
+
+			await userEvent.click(trigger)
+
+			const panel = await screen.findByRole('menu')
+
+			await waitFor(() => expect(panel).toHaveFocus())
+
+			fireEvent.keyDown(panel, { key: 'Escape' })
+
+			expectExiting(panel)
+
+			expect(trigger).toHaveFocus()
+
+			fireEvent.click(trigger, { detail })
+
+			// The same panel opens again.
+			expect(screen.getByRole('menu')).toBe(panel)
+
+			const expected = target === 'the panel' ? panel : row('Edit')
+
+			await waitFor(() => expect(expected).toHaveFocus())
+		},
+	)
 })
 
 describe('a surface that holds the focus in its exit (real engine, real Motion)', () => {
