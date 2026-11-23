@@ -98,8 +98,8 @@ export type ColorPickerProps = ColorPickerBaseProps & ColorValueProps
  *
  * The trigger has `role="combobox"`, as the trigger of `DatePicker` has. Its
  * value is the hex code that it shows, so a screen reader announces the color
- * after the name. It sets `aria-required` and `aria-readonly` from its props
- * or from the enclosing Control.
+ * after the name. It sets `aria-required` from the enclosing Control, and
+ * `aria-readonly` from its prop or from the enclosing Control.
  *
  * @see {@link ColorPanel} for the inline variant.
  */
