@@ -10,7 +10,6 @@ import { useIntl } from '../../primitives/intl/use-intl'
 import { MountHold } from '../../primitives/mount'
 import { useLocale } from '../../providers/locale/context'
 import { k } from '../../recipes/kata/grid'
-import { useGridNavContext } from './context'
 import { aggregateLabelSpan, hasAggregation, renderAggregate } from './engine/grid-aggregate'
 import { NO_PADDING, NO_ROWS } from './engine/grid-constants'
 import { gridMessages } from './engine/grid-messages'
@@ -317,10 +316,6 @@ function GridGroupTotalRow<T>({
 
 	const stopProps = useGridNavStopProps(navKey ?? '')
 
-	// Under the cursor, a client-grouped grid is a treegrid, and a total sits
-	// at the level of its group's leaves.
-	const tree = useGridNavContext().enabled && navKey !== undefined
-
 	// A collapsed group's total is clipped to nothing with its leaves; take it out
 	// of the accessibility tree too, matching the leaf rows (WCAG 1.3.1).
 	return (
@@ -329,7 +324,6 @@ function GridGroupTotalRow<T>({
 				{...windowRow}
 				data-total-row="group"
 				aria-hidden={ariaAttr(!expanded)}
-				aria-level={tree ? 2 : undefined}
 				inert={!expanded}
 				onTransitionEnd={reveal.onTransitionEnd}
 			>

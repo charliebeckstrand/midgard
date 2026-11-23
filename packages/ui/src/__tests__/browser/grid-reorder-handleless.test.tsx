@@ -1,4 +1,5 @@
 import { beforeAll, describe, expect, it } from 'vitest'
+import { userEvent } from 'vitest/browser'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { loadGridReorderKit } from '../../modules/grid/grid-region'
 import { fireEvent, renderUI, screen, waitFor } from '../helpers'
@@ -71,6 +72,41 @@ describe('grid column reorder: whole-header handle (real browser)', () => {
 
 		// Drop the drag so the held column doesn't outlive the test.
 		fireEvent.keyDown(headerA, { code: 'Escape' })
+	})
+
+	// In a navigable grid, focus stays on the table, and the header is the
+	// active descendant. The header tells the reader to press Space to pick it
+	// up, so Space must reach the drag keys on the cell.
+	it('lifts the column with Space from the cursor of a navigable grid', async () => {
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={(row) => row.id}
+				navigable
+				reorder={{ handle: false }}
+			/>,
+		)
+
+		const headerA = gridHeader(document, 'a')
+
+		await userEvent.click(screen.getByRole('gridcell', { name: 'a1' }))
+
+		await userEvent.keyboard('{ArrowUp}')
+
+		expect(headerA).toHaveAttribute('data-active')
+
+		// The first Space moves focus to the header cell, the drag activator.
+		await userEvent.keyboard(' ')
+
+		expect(document.activeElement).toBe(headerA)
+
+		// The next Space lifts the column.
+		await userEvent.keyboard(' ')
+
+		await waitFor(() => expect(headerA).toHaveAttribute('data-dragging'))
+
+		await userEvent.keyboard('{Escape}')
 	})
 
 	it('keeps the grip when handle defaults to true', () => {

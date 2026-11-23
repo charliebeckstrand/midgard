@@ -7,11 +7,11 @@ import { Icon } from '../../components/icon'
 import { TableHeader, TableRow } from '../../components/table'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { cn } from '../../core/cn'
-import { dataAttr } from '../../core/data-attr'
 import { ChevronLeft, ChevronRight } from '../../primitives/icons/icons'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k as gridK } from '../../recipes/kata/grid'
 import { k } from '../../recipes/kata/grid-group'
+import { k as tableK } from '../../recipes/kata/table'
 import { useGridHead } from './context'
 import { columnLabel } from './engine/grid-column/label'
 import type { GridGroupHeader } from './engine/grid-group/resolve'
@@ -36,7 +36,9 @@ type GridGroupHeadProps = {
  * above the column-header row. A `group` span draws its colored {@link Badge}
  * (icon + title, an optional description tooltip, and a collapse toggle when
  * {@link GridColumnGroup.collapsible}). A `plain` span is an empty spacer that
- * sticks to a pinned column's edge, so the band tracks the frozen columns.
+ * sticks to a pinned column's edge, so the band tracks the frozen columns. The
+ * spacer is a `<td>`, because a header with no text names nothing (axe
+ * `empty-table-header`).
  * Under a sticky header the band sticks at the top edge, and the column row
  * sticks below it (see `gridK.sticky.stack`).
  *
@@ -101,70 +103,92 @@ function GridGroupHeadCell({
 	stickyHeader,
 	ariaColIndex,
 }: GridGroupHeadCellProps) {
-	// A plain filler over a pinned column sticks to its edge like the column below,
-	// so the band doesn't scroll away from a frozen column; a group band never
-	// covers a pinned column (see `buildGroupSpans`), so it needs no sticky offset.
-	const pinned = span.kind === 'plain'
-
 	// The description of a group reaches the keyboard and a screen reader as
 	// hidden text that the band describes itself by. The tooltip over the badge
 	// is for a pointer, and a badge takes no focus.
 	const descriptionId = useId()
 
-	const description = span.kind === 'group' ? span.group.description : undefined
+	// The title of the group alone names the band. Without it, the band takes
+	// its name from all of its content: the collapse toggle, the hidden count,
+	// and the description.
+	const titleId = useId()
+
+	const className = cn(k().base, stickyHeader && gridK.sticky.head)
+
+	// A plain filler over a pinned column sticks to its edge like the column below,
+	// so the band doesn't scroll away from a frozen column; a group band never
+	// covers a pinned column (see `buildGroupSpans`), so it needs no sticky offset.
+	if (span.kind === 'plain') {
+		return (
+			<td
+				colSpan={span.colSpan}
+				aria-colindex={ariaColIndex}
+				className={cn(
+					tableK().header,
+					className,
+					pinnedClassName(pinning, span.leadColumnId, { header: true }),
+				)}
+				style={pinnedOffsetStyle(pinning, span.leadColumnId)}
+				data-grid-pin={pinnedCellAttribute(pinning, span.leadColumnId)}
+			/>
+		)
+	}
+
+	const description = span.group.description
 
 	return (
+		// `scope="col"` with a `colSpan` names exactly the columns that the band
+		// spans. A `colgroup` scope reads a `<colgroup>`, which holds every column
+		// of a resizable grid.
 		<TableHeader
-			scope={span.kind === 'group' ? 'colgroup' : 'col'}
+			scope="col"
 			colSpan={span.colSpan}
 			aria-colindex={ariaColIndex}
 			// A group band carries its id so a right-click on its badge resolves to the
 			// column-group context menu (Clear color / Manage columns).
-			data-group-band={dataAttr(span.kind === 'group')}
-			data-group-id={span.kind === 'group' ? span.group.id : undefined}
+			data-group-band=""
+			data-group-id={span.group.id}
+			aria-labelledby={titleId}
 			aria-describedby={description ? descriptionId : undefined}
-			className={cn(
-				k().base,
-				stickyHeader && gridK.sticky.head,
-				pinned && pinnedClassName(pinning, span.leadColumnId, { header: true }),
-			)}
-			style={pinned ? pinnedOffsetStyle(pinning, span.leadColumnId) : undefined}
-			data-grid-pin={pinned ? pinnedCellAttribute(pinning, span.leadColumnId) : undefined}
+			className={className}
 		>
-			{span.kind === 'group' && (
-				<div className={k().content}>
-					<GridGroupBand
-						group={span.group}
-						collapsed={header.collapsed.has(span.group.id)}
-						hiddenCount={countHidden(span.group, header.collapsedHidden)}
-						onToggleCollapse={header.onToggleCollapse}
-					/>
+			<div className={k().content}>
+				<GridGroupBand
+					titleId={titleId}
+					group={span.group}
+					collapsed={header.collapsed.has(span.group.id)}
+					hiddenCount={countHidden(span.group, header.collapsedHidden)}
+					onToggleCollapse={header.onToggleCollapse}
+				/>
 
-					{/* A group draws a 2px rule under its Badge, spanning the cell's content
+				{/* A group draws a 2px rule under its Badge, spanning the cell's content
 					    width: inset by the header padding, so it aligns with the column titles
 					    and splits from the neighboring group. Colored in the group's hue, or a
 					    neutral gray when it has none (matching a colorless row group's rail),
 					    so clearing a color leaves the underline in place rather than dropping
 					    it. */}
-					<div
-						data-slot="grid-group-rule"
-						className={k({ color: span.group.color }).rule}
-						aria-hidden="true"
-					/>
+				<div
+					data-slot="grid-group-rule"
+					className={k({ color: span.group.color }).rule}
+					aria-hidden="true"
+				/>
 
-					{description && (
-						<span id={descriptionId} className="sr-only">
-							{description}
-						</span>
-					)}
-				</div>
-			)}
+				{/* `hidden` keeps the description out of the name of the band, and
+					    `aria-describedby` still reads it, so it reads one time. */}
+				{description && (
+					<span id={descriptionId} hidden>
+						{description}
+					</span>
+				)}
+			</div>
 		</TableHeader>
 	)
 }
 
 /** Props for {@link GridGroupBand}. @internal */
 type GridGroupBandProps = {
+	/** The id of the title span. The band cell takes its name from it. */
+	titleId: string
 	group: GridColumnGroup
 	collapsed: boolean
 	/** The number of members that the collapse hides. */
@@ -182,7 +206,13 @@ function countHidden(group: GridColumnGroup, collapsedHidden: ReadonlySet<string
 }
 
 /** The colored band content: icon + title Badge, a trailing fold chevron (collapsible), and a `+N` count when collapsed. @internal */
-function GridGroupBand({ group, collapsed, hiddenCount, onToggleCollapse }: GridGroupBandProps) {
+function GridGroupBand({
+	titleId,
+	group,
+	collapsed,
+	hiddenCount,
+	onToggleCollapse,
+}: GridGroupBandProps) {
 	const intl = useIntl()
 
 	const label = columnLabel(group)
@@ -193,7 +223,7 @@ function GridGroupBand({ group, collapsed, hiddenCount, onToggleCollapse }: Grid
 			variant="soft"
 			prefix={group.icon ? <Icon icon={group.icon} /> : undefined}
 		>
-			{group.title ?? String(group.id)}
+			<span id={titleId}>{group.title ?? String(group.id)}</span>
 		</Badge>
 	)
 
@@ -222,10 +252,9 @@ function GridGroupBand({ group, collapsed, hiddenCount, onToggleCollapse }: Grid
 				variant="bare"
 				type="button"
 				aria-expanded={!collapsed}
-				aria-label={intl.formatMessage(
-					collapsed ? gridMessages.expandNamed : gridMessages.collapseNamed,
-					{ group: label },
-				)}
+				// A stable name: `aria-expanded` gives the state, so a name with a verb
+				// would say the state a second time.
+				aria-label={intl.formatMessage(gridMessages.groupColumns, { group: label })}
 				onClick={() => onToggleCollapse(group.id)}
 			>
 				{/* A column group folds horizontally: a caret to the inline start while

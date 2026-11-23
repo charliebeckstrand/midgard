@@ -126,6 +126,7 @@ export function GridVirtualizedBody<T>(props: GridVirtualizedBodyProps<T>) {
 						infiniteScroll={infiniteScroll}
 						columns={visibleColumns}
 						pinning={pinning}
+						ariaRowIndex={ariaRowIndex(props.rowIndexOffset, rows.length)}
 					/>
 				)
 			}

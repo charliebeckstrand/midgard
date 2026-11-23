@@ -22,7 +22,7 @@ import {
 import { intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { type AlertVariants, k } from '../../recipes/kata/alert'
-import { flattenFragments } from '../../utilities/children'
+import { hasContent } from '../../utilities/children'
 import { Button } from '../button'
 import { type ButtonDefaults, ButtonDefaultsProvider } from '../button/context'
 import { Icon } from '../icon'
@@ -46,18 +46,6 @@ const severityIcons = {
 	warning: <TriangleExclamationPoint />,
 	error: <CircleX />,
 } satisfies Record<AlertSeverity, ReactElement>
-
-/**
- * Whether a slot holds content. `0` is content and renders in its slot.
- * `undefined`, `null`, `true`, `false`, `''`, an empty array, and an array or a
- * Fragment that holds only these are empty.
- *
- * @internal
- */
-function hasContent(node: ReactNode): boolean {
-	// `Children.forEach` gives `null` for each boolean.
-	return flattenFragments(node).some((child) => child.node != null && child.node !== '')
-}
 
 /** Wraps loose children in {@link AlertBody}; renders nothing for an empty child. @internal */
 function renderChildren(children: ReactNode): ReactNode {

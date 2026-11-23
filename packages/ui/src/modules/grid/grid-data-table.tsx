@@ -69,8 +69,10 @@ type GridDataTableProps<T> = {
 		colGroup: ReactNode
 		/** The consumer's `tableProps`, with the grid's ref joined to theirs. */
 		props: TableElementProps
-		/** Whether the body is client-grouped, which makes a cursor grid a `treegrid`. */
+		/** Whether the body is grouped, client or manual, which makes a composite a `treegrid`. */
 		tree: boolean
+		/** Whether the grid can edit a cell. */
+		editable: boolean
 		/** Whether the grid renders a selection column. */
 		multiSelectable: boolean
 	}
@@ -107,7 +109,7 @@ type GridDataTableProps<T> = {
 	}
 	grandTotal: { active: boolean; rows: readonly T[] }
 	/** The scroll container for a sticky header or a window. */
-	scroll: Omit<ComponentProps<typeof GridScrollRegion>, 'children'>
+	scroll: Omit<ComponentProps<typeof GridScrollRegion>, 'children' | 'keyboardScroll'>
 	/** The query that highlight-mode search marks, or `null`. */
 	highlightQuery: string | null
 }
@@ -182,7 +184,9 @@ export function GridDataTable<T>({
 					loading,
 					gridSemantics: semantics.enabled,
 					navigable: cursor.cursorEnabled,
+					roving: roving.mode,
 					tree: table.tree,
+					editable: table.editable,
 					ariaRowCount: semantics.ariaRowCount,
 					colCount: columns.length,
 					multiSelectable: table.multiSelectable,
@@ -233,7 +237,10 @@ export function GridDataTable<T>({
 
 	return (
 		<GridHighlightContext value={highlightQuery}>
-			<GridScrollRegion {...scroll}>
+			<GridScrollRegion
+				{...scroll}
+				keyboardScroll={!cursor.cursorEnabled && !roving.rovingRows && !roving.rovingCells}
+			>
 				{/* An editable grid mounts the editing contexts around the table.
 				    A read-only grid returns the table as it is. */}
 				{cursor.wrap(tableContent)}

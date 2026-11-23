@@ -209,6 +209,11 @@ export const k = {
 			// Under `maxHeight="fill"`, the scroll region flexes to the height that the
 			// toolbar and the footer leave (see `wrapper.fill`).
 			fill: 'min-h-0 flex-1',
+			// The scroller is a tab stop when no cursor moves through the rows (see
+			// `GridScrollRegion`). The browser paints only its own outline, so the
+			// wrapper takes the inset ring. Inset, because the edge of the grid clips
+			// an outset ring.
+			focus: focus.inset,
 		},
 		// Sticky header bar: an opaque fill so body rows tuck under it on a vertical
 		// scroll. The fill matches the surface under the grid (see `hostSurface`): a
@@ -406,7 +411,18 @@ export const k = {
 		icon: [text.default, 'shrink-0'],
 		// Priority number beside the arrow under a multi-column sort: small, muted,
 		// tabular (so digits hold their box), and non-shrinking next to the title.
-		badge: [size.xs, 'leading-none', 'tabular-nums', 'shrink-0', text.muted],
+		// The digit is the `::after` content, from `data-priority`. The name of the
+		// sort button gives the priority. A text node would put the digit in the
+		// visible text of the button, which then does not match its name for axe
+		// (`label-content-name-mismatch`, WCAG 2.5.3).
+		badge: [
+			size.xs,
+			'leading-none',
+			'tabular-nums',
+			'shrink-0',
+			text.muted,
+			'after:content-[attr(data-priority)]',
+		],
 	},
 	reorder: {
 		// Lift the actively dragged column above its neighbors and float it on its
@@ -807,9 +823,25 @@ export const k = {
 		instant,
 	},
 	nav: {
-		// The `navigable` grid's `<table>` is the cursor's single tab stop; drop its
-		// own focus outline so the active-cell ring is the sole, precise indicator.
-		table: 'outline-0',
+		// The `navigable` grid's `<table>` is the cursor's single tab stop. While a
+		// cell is active, the table shows no focus ring of its own, so the ring of
+		// the active cell is the one indicator. Escape removes the cursor, and focus
+		// that comes back from a portal seats none. The table then has no
+		// `aria-activedescendant` and takes the inset ring, so the focus stays
+		// visible (WCAG 2.4.7). Forced colors remove the ring, so an inset outline
+		// shows the focus there.
+		table: [
+			'outline-0 ring-inset',
+			'[&:not([aria-activedescendant])]:focus-visible:ring-2',
+			...mode(
+				'[&:not([aria-activedescendant])]:focus-visible:ring-blue-600',
+				'dark:[&:not([aria-activedescendant])]:focus-visible:ring-blue-500',
+			),
+			'forced-colors:[&:not([aria-activedescendant])]:focus-visible:outline-solid',
+			'forced-colors:[&:not([aria-activedescendant])]:focus-visible:outline-2',
+			'forced-colors:[&:not([aria-activedescendant])]:focus-visible:-outline-offset-2',
+			'forced-colors:[&:not([aria-activedescendant])]:focus-visible:outline-[Highlight]',
+		],
 		// Active-cell cursor ring for a `navigable` read-only grid, driven by the
 		// `data-active` the cell marker toggles onto the owning cell of the cursor.
 		// Inset so the scroll container can't clip it. It takes the color of
@@ -854,11 +886,12 @@ export const k = {
 			// The fill handle on the bottom end corner of the active cell (`range` in
 			// a managed editable grid). A drag from it fills. The square sits inside
 			// the corner, so the scroll region does not clip it at the last row or
-			// column, and a wider hit area sits around it. The keys and the cell menu
-			// give the same fills with no drag (WCAG 2.5.7).
+			// column. The hit area grows 9px past the 6px padding box on each side,
+			// to 24px (WCAG 2.5.8). The keys and the cell menu give the same fills
+			// with no drag (WCAG 2.5.7).
 			handle: [
 				'pointer-events-auto absolute bottom-0 end-0 size-2 cursor-crosshair border',
-				'before:absolute before:-inset-1.5',
+				'before:absolute before:-inset-2.25',
 				'bg-blue-600',
 				...mode('border-white', 'dark:border-zinc-900'),
 			],
@@ -996,7 +1029,9 @@ export const k = {
 				'px-1.5 py-0.5 whitespace-normal',
 				size.xs,
 				'text-white shadow',
-				...mode('bg-red-600', 'dark:bg-red-500'),
+				// White text on red-600 is 4.8:1 in each mode. The red-500 fill gives only
+				// 3.8:1, below the 4.5:1 of WCAG 1.4.3.
+				'bg-red-600',
 				// The fill and the shadow are the only edge of the message over the next
 				// row, and forced colors remove both.
 				forced.outline,

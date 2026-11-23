@@ -231,13 +231,13 @@ describe('Grid row roving under manual grouping', () => {
 		renderRoving({ onRowClick: vi.fn() })
 
 		// Exactly one resting stop (the first row); the rest are -1.
-		expect(bodyRows(screen.getByRole('table')).map((row) => row.tabIndex)).toEqual([0, -1, -1])
+		expect(bodyRows(screen.getByRole('treegrid')).map((row) => row.tabIndex)).toEqual([0, -1, -1])
 	})
 
 	it('moves focus with ArrowDown / ArrowUp, carrying the resting stop', () => {
 		renderRoving({ onRowClick: vi.fn() })
 
-		const table = screen.getByRole('table')
+		const table = screen.getByRole('treegrid')
 
 		const rowEls = bodyRows(table)
 
@@ -258,7 +258,7 @@ describe('Grid row roving under manual grouping', () => {
 	it('jumps to the last / first row with End / Home', () => {
 		renderRoving({ onRowClick: vi.fn() })
 
-		const table = screen.getByRole('table')
+		const table = screen.getByRole('treegrid')
 
 		const rowEls = bodyRows(table)
 
@@ -285,7 +285,7 @@ describe('Grid row roving under manual grouping', () => {
 
 		renderRoving({ onRowDoubleClick })
 
-		const rowEls = bodyRows(screen.getByRole('table'))
+		const rowEls = bodyRows(screen.getByRole('treegrid'))
 
 		rowEls[1]?.focus()
 
@@ -301,7 +301,7 @@ describe('Grid row roving under manual grouping', () => {
 
 		renderRoving({ onRowClick })
 
-		const row = bodyRows(screen.getByRole('table'))[0] as HTMLElement
+		const row = bodyRows(screen.getByRole('treegrid'))[0] as HTMLElement
 
 		row.focus()
 
@@ -333,7 +333,7 @@ describe('Grid tab stops under roving', () => {
 
 		act(() => item('Alice')?.focus())
 
-		fireEvent.keyDown(screen.getByRole('table'), { key: 'ArrowDown' })
+		fireEvent.keyDown(screen.getByRole('treegrid'), { key: 'ArrowDown' })
 
 		expect(item('Bob')).toHaveFocus()
 
@@ -350,7 +350,7 @@ describe('Grid cell roving under manual grouping', () => {
 	it('makes the data cells a single-tab-stop 2D roving group', () => {
 		renderRoving({ onCellClick: vi.fn() })
 
-		const cells = rovingCells(screen.getByRole('table'))
+		const cells = rovingCells(screen.getByRole('treegrid'))
 
 		// 3 rows x 2 data columns; exactly one resting stop.
 		expect(cells).toHaveLength(6)
@@ -361,7 +361,7 @@ describe('Grid cell roving under manual grouping', () => {
 	it('steps a column with Left/Right and a row with Up/Down', () => {
 		renderRoving({ onCellClick: vi.fn() })
 
-		const table = screen.getByRole('table')
+		const table = screen.getByRole('treegrid')
 
 		const cells = rovingCells(table)
 
@@ -390,7 +390,7 @@ describe('Grid cell roving under manual grouping', () => {
 
 		renderRoving({ onCellClick, onRowClick })
 
-		const cells = rovingCells(screen.getByRole('table'))
+		const cells = rovingCells(screen.getByRole('treegrid'))
 
 		// Third row's Role cell (row-major index 5: rows 0..2 x cols name,role).
 		cells[5]?.focus()
@@ -409,7 +409,7 @@ describe('Grid cell roving under manual grouping', () => {
 	it('takes precedence over row roving when both handlers are set', () => {
 		renderRoving({ onCellClick: vi.fn(), onRowClick: vi.fn() })
 
-		const table = screen.getByRole('table')
+		const table = screen.getByRole('treegrid')
 
 		// Cell mode: the cells are the roving items, the rows are not.
 		expect(rovingCells(table).length).toBe(6)
@@ -440,7 +440,7 @@ describe('Grid cell roving under manual grouping', () => {
 
 		renderRoving({ onCellDoubleClick, onRowDoubleClick })
 
-		const cells = rovingCells(screen.getByRole('table'))
+		const cells = rovingCells(screen.getByRole('treegrid'))
 
 		expect(cells).toHaveLength(6)
 
@@ -460,7 +460,7 @@ describe('Grid cell roving under manual grouping', () => {
 
 		renderRoving({ onCellClick, onCellDoubleClick })
 
-		const cells = rovingCells(screen.getByRole('table'))
+		const cells = rovingCells(screen.getByRole('treegrid'))
 
 		cells[0]?.focus()
 
@@ -476,7 +476,7 @@ describe('Grid cell roving under manual grouping', () => {
 
 		renderRoving({ onCellClick })
 
-		const cell = rovingCells(screen.getByRole('table'))[0] as HTMLElement
+		const cell = rovingCells(screen.getByRole('treegrid'))[0] as HTMLElement
 
 		cell.focus()
 
@@ -552,7 +552,7 @@ describe("Grid table props beside the grid's own keyboard", () => {
 		if (roving) renderRoving(props)
 		else renderUI(<Grid columns={columns} rows={rows} getKey={getKey} {...props} />)
 
-		const table = screen.getByRole(roving ? 'table' : 'grid')
+		const table = screen.getByRole(roving ? 'treegrid' : 'grid')
 
 		expect(ref.current).toBe(table)
 
@@ -563,5 +563,52 @@ describe("Grid table props beside the grid's own keyboard", () => {
 		expect(onFocus).toHaveBeenCalledTimes(1)
 
 		expect(onKeyDown).toHaveBeenCalledTimes(1)
+	})
+})
+
+describe('Grid roving semantics under manual grouping', () => {
+	it.each([
+		['row', { onRowClick: vi.fn() }],
+		['cell', { onCellClick: vi.fn() }],
+	] as const)('makes a %s-roving grid a named, read-only treegrid', (_mode, props) => {
+		renderRoving(props)
+
+		const table = screen.getByRole('treegrid', { name: 'Data grid' })
+
+		expect(table).toHaveAttribute('aria-readonly', 'true')
+	})
+
+	it('gives the group header its level and expansion, and each leaf its level', () => {
+		renderRoving({ onRowClick: vi.fn() })
+
+		const table = screen.getByRole('treegrid')
+
+		const header = table.querySelector('tr[data-group-row]')
+
+		expect(header).toHaveAttribute('aria-level', '1')
+
+		expect(header).toHaveAttribute('aria-expanded', 'true')
+
+		expect(bodyRows(table).map((row) => row.getAttribute('aria-level'))).toEqual(['2', '2', '2'])
+	})
+
+	it('puts a leaf of a leading run with no header at level 1', () => {
+		renderRoving({ onRowClick: vi.fn(), rows: [rows[0] as Row, ...manualRows] })
+
+		const levels = bodyRows(screen.getByRole('treegrid')).map((row) =>
+			row.getAttribute('aria-level'),
+		)
+
+		expect(levels).toEqual(['1', '2', '2', '2'])
+	})
+
+	it('leaves a manual grouping with no click handler a native table with no levels', () => {
+		renderRoving({})
+
+		const table = screen.getByRole('table')
+
+		expect(table).not.toHaveAttribute('role')
+
+		expect(table.querySelector('tr[aria-level], tr[aria-expanded]')).toBeNull()
 	})
 })

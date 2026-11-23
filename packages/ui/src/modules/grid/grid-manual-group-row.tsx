@@ -33,6 +33,8 @@ type GridManualGroupRowProps<T> = {
 	toggle: (key: string | number) => void
 	/** Frozen-column controls, so the cells over a pinned column stick like its data cells. `null` when none. */
 	pinning: GridColumnPinning | null
+	/** Whether the table is a treegrid, which reads the level and the expansion of the row. */
+	tree: boolean
 }
 
 /**
@@ -58,6 +60,7 @@ function GridManualGroupRowImpl<T>({
 	expanded,
 	toggle,
 	pinning,
+	tree,
 }: GridManualGroupRowProps<T>) {
 	const aggregated = hasAggregation(columns)
 
@@ -66,7 +69,12 @@ function GridManualGroupRowImpl<T>({
 	const pinned = pinnedSpanProps(pinning, columns.slice(0, span))
 
 	return (
-		<TableRow data-group-row data-expanded={dataAttr(expanded)}>
+		<TableRow
+			data-group-row
+			data-expanded={dataAttr(expanded)}
+			aria-level={tree ? 1 : undefined}
+			aria-expanded={tree ? expanded : undefined}
+		>
 			<TableCell
 				colSpan={span}
 				className={cn(k.row.group.rail.neutral, pinned.className)}

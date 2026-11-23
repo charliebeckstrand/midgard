@@ -57,7 +57,7 @@ function GridExpandToggleImpl({
 	if (!expandable) return null
 
 	// `||`, not `??`: a blank label falls back to the key rather than leaving a
-	// dangling "Expand details for ".
+	// dangling "Details for ".
 	const name = rowName(intl, rowLabel || undefined, rowKey)
 
 	return (
@@ -67,10 +67,9 @@ function GridExpandToggleImpl({
 			onClick={() => toggle(rowKey)}
 			aria-expanded={expanded}
 			aria-controls={panelId}
-			aria-label={intl.formatMessage(
-				expanded ? gridMessages.collapseDetails : gridMessages.expandDetails,
-				{ row: name },
-			)}
+			// A stable name: `aria-expanded` gives the state, so a name with a verb
+			// would say the state a second time.
+			aria-label={intl.formatMessage(gridMessages.rowDetails, { row: name })}
 		>
 			{/* `data-open` rides the chevron element itself. An `Icon` clones it and
 			    preserves props it doesn't set, and a lucide glyph forwards `data-*`

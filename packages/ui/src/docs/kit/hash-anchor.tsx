@@ -22,9 +22,10 @@ type HashAnchorProps = {
 /**
  * The blue `#` mark before the text. It is the content of a `::before` box, so
  * it is not in the text of the heading. A copy of the heading, a search of the
- * page, and the name of the link do not hold it.
+ * page, and the name of the link do not hold it. The mark shows the focus, so
+ * it takes the focus blue of each mode: blue-600 on light and blue-500 on dark.
  */
-const MARK = "inline-block text-blue-600 before:me-1.5 before:content-['#']"
+const MARK = "inline-block text-blue-600 dark:text-blue-500 before:me-1.5 before:content-['#']"
 
 /**
  * The link from a heading or a name of a page to its own element, such as the

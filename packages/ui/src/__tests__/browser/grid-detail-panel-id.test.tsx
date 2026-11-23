@@ -35,11 +35,11 @@ describe('Grid detail panel id in a windowed body (real browser)', () => {
 		const toggle = (label: string) =>
 			container.querySelector<HTMLElement>(`[aria-label="${label}"]`)
 
-		await waitFor(() => expect(toggle('Collapse details for row r 0')).not.toBeNull())
+		await waitFor(() => expect(toggle('Details for row r 0')).not.toBeNull())
 
-		const open = toggle('Collapse details for row r 0')
+		const open = toggle('Details for row r 0')
 
-		const closed = toggle('Expand details for row r 1')
+		const closed = toggle('Details for row r 1')
 
 		expect(document.getElementById(open?.getAttribute('aria-controls') ?? '')).not.toBeNull()
 

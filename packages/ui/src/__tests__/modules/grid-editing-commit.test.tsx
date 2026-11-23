@@ -97,6 +97,76 @@ describe('Grid commitOn', () => {
 
 	const alicia = [{ rowKey: 1, columnId: 'name', value: 'Alicia' }]
 
+	/** The session columns, with a name that `validate` requires. */
+	const requiredName: GridColumn<SessionRow>[] = [
+		{
+			...(sessionColumns[0] as GridColumn<SessionRow>),
+			validate: (value) => (String(value).length > 0 ? null : 'Required'),
+		},
+		sessionColumns[1] as GridColumn<SessionRow>,
+	]
+
+	/** Opens the name cell of the first row and clears it. */
+	function clearName(view: ReturnType<typeof renderCommitOn>) {
+		fireEvent.doubleClick(view.cell('name'))
+
+		const input = getSlot<HTMLInputElement>(view.container, 'grid-edit-input')
+
+		fireEvent.change(input, { target: { value: '' } })
+
+		return input
+	}
+
+	it('holds the cell on Tab under cell scope while validate refuses', async () => {
+		const view = renderCommitOn({ scope: 'cell' }, requiredName)
+
+		const input = clearName(view)
+
+		fireEvent.keyDown(input, { key: 'Tab' })
+
+		expect(view.onReject).not.toHaveBeenCalled()
+
+		expect(bySlot(view.container, 'grid-edit-input')).toBe(input)
+
+		expect(input).toHaveFocus()
+
+		expect(bySlot(view.container, 'grid-edit-number-input')).toBeNull()
+
+		await expectAnnouncement('Name: Required', 'assertive')
+	})
+
+	it('holds the cell on its save control while validate refuses', async () => {
+		const view = renderCommitOn({ scope: 'cell' }, requiredName)
+
+		clearName(view)
+
+		fireEvent.click(view.getByRole('button', { name: /^Save/ }))
+
+		expect(view.onReject).not.toHaveBeenCalled()
+
+		expect(editorsIn(view.container)).toHaveLength(1)
+
+		await expectAnnouncement('Name: Required', 'assertive')
+	})
+
+	it('holds the row on Enter from a valid cell while another cell of the row refuses', async () => {
+		const view = renderCommitOn({ scope: 'row' }, requiredName)
+
+		clearName(view)
+
+		const count = getSlot<HTMLInputElement>(view.container, 'grid-edit-number-input')
+
+		moveFocus(count)
+
+		fireEvent.keyDown(count, { key: 'Enter' })
+
+		expect(view.onCommit).not.toHaveBeenCalled()
+
+		expect(editorsIn(view.container)).toHaveLength(2)
+
+		await expectAnnouncement('Name: Required', 'assertive')
+	})
+
 	for (const scope of scopes) {
 		describe(`under scope '${scope}'`, () => {
 			it("commits nothing when focus leaves the grid under the default 'explicit'", () => {
@@ -269,16 +339,8 @@ describe('Grid commitOn', () => {
 				expect(bySlot(view.container, 'grid-edit-input')).toBe(input)
 			})
 
-			it('refuses an invalid draft on leave, as Enter does', () => {
-				const cols: GridColumn<SessionRow>[] = [
-					{
-						...(sessionColumns[0] as GridColumn<SessionRow>),
-						validate: (value) => (String(value).length > 0 ? null : 'Required'),
-					},
-					sessionColumns[1] as GridColumn<SessionRow>,
-				]
-
-				const view = renderCommitOn({ scope, commitOn: 'leaveGrid' }, cols)
+			it('refuses an invalid draft on leave, and announces that it did not save', async () => {
+				const view = renderCommitOn({ scope, commitOn: 'leaveGrid' }, requiredName)
 
 				fireEvent.doubleClick(view.cell('name'))
 
@@ -296,7 +358,43 @@ describe('Grid commitOn', () => {
 				expect(view.onCommit).not.toHaveBeenCalled()
 
 				expect(editorsIn(view.container)).toHaveLength(0)
+
+				// The drop is not silent.
+				await expectAnnouncement('Name not saved for row 1')
 			})
+
+			it.each(['Enter', 'F2'])(
+				'holds the editor open on %s while validate refuses, and speaks the error',
+				async (key) => {
+					const view = renderCommitOn({ scope }, requiredName)
+
+					const input = clearName(view)
+
+					fireEvent.keyDown(input, { key })
+
+					// Nothing commits, nothing is refused, and the editor keeps the value.
+					expect(view.onCommit).not.toHaveBeenCalled()
+
+					expect(view.onReject).not.toHaveBeenCalled()
+
+					expect(bySlot(view.container, 'grid-edit-input')).toBe(input)
+
+					expect(input).toHaveFocus()
+
+					expect(input).toHaveAttribute('aria-invalid', 'true')
+
+					expect(view.container.querySelector('[role="alert"]')).toHaveTextContent('Required')
+
+					await expectAnnouncement('Name: Required', 'assertive')
+
+					// A valid value then commits on the same key.
+					fireEvent.change(input, { target: { value: 'Alicia' } })
+
+					fireEvent.keyDown(input, { key })
+
+					expect(view.onCommit).toHaveBeenCalledExactlyOnceWith(alicia)
+				},
+			)
 
 			it('discards on Escape without a commit on the way out', () => {
 				const view = renderCommitOn({ scope, commitOn: 'leaveEditor' })
@@ -1540,6 +1638,40 @@ describe('Grid async commit', () => {
 		expect(typed).toHaveFocus()
 
 		expect(view.queryByRole('alert')).toBeNull()
+	})
+
+	it('speaks the batches of one save as one message, so a refusal is not lost', async () => {
+		const view = renderAsyncGrid({}, { controlRows: true })
+
+		view.setOpenRows(new Set([1, 2]))
+
+		fireEvent.change(editorAt(view, view.cell('name')), { target: { value: 'Alicia' } })
+
+		fireEvent.change(editorAt(view, view.cell('name', 1)), { target: { value: 'Robert' } })
+
+		// One consumer save closes both rows, so one sweep sends one batch for each.
+		view.setOpenRows(new Set())
+
+		expect(view.flights).toHaveLength(2)
+
+		await flushAnnouncer()
+
+		const region = liveRegion()
+
+		if (region) region.textContent = ''
+
+		await view.flights[0]?.refuse([{ rowKey: 1, columnId: 'name', error: 'Name taken' }])
+
+		// The save has a batch in flight, so it does not speak yet.
+		await flushAnnouncer()
+
+		expect(liveRegion()?.textContent ?? '').toBe('')
+
+		// The last batch speaks the sum. A message for each batch would speak
+		// only the save of row 2.
+		await view.flights[1]?.accept()
+
+		await expectAnnouncement('Name updated, Name not saved')
 	})
 
 	it('drops the refused drafts when a controlled rows declines to open the row again', async () => {

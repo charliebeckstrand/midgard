@@ -1,6 +1,7 @@
 'use client'
 
 import { type ReactNode, useCallback, useMemo, useRef, useState } from 'react'
+import { hasContent } from '../../utilities/children'
 import { randomId } from '../../utilities/random-id'
 import {
 	ToastContext,
@@ -112,8 +113,9 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 			const id = data.id ?? randomId()
 
 			// A toast with actions is a time limit on input, so it stays until the
-			// reader acts, unless the caller sets a time (WCAG 2.2.1).
-			const persist = data.persist ?? (data.actions != null && data.duration === undefined)
+			// reader acts, unless the caller sets a time (WCAG 2.2.1). The test is the
+			// test of the Alert, so a toast that shows no actions row gets a timer.
+			const persist = data.persist ?? (hasContent(data.actions) && data.duration === undefined)
 
 			const next: ToastData = { ...data, id, persist, duration: data.duration ?? duration }
 

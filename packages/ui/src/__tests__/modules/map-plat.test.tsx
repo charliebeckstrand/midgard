@@ -951,6 +951,16 @@ describe('MapPlat', () => {
 		)
 	})
 
+	it('gives a region with no name a row header that is not empty', () => {
+		const { container } = renderUI(categoricalPlat({ regionLabel: () => '' }))
+
+		const headers = Array.from(
+			bySlot(container, 'map-table')?.querySelectorAll('tbody th') ?? [],
+		).map((cell) => cell.textContent)
+
+		expect(headers).toEqual(['—', '—', '—'])
+	})
+
 	// A user who moves from table to table knows which map a table is for.
 	it('names the visually-hidden table by the name of the map', () => {
 		const labelled = renderUI(categoricalPlat())

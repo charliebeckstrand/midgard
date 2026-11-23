@@ -1,7 +1,6 @@
 import { getTabbableElements } from '../../../../utilities/focusable-selector'
 import { getOrCompute } from '../../../../utilities/get-or-compute'
 import { isComposing } from '../../../../utilities/is-composing'
-import { wrap } from '../../../../utilities/keyboard-navigation'
 import type { GridCellRef } from '../../grid-editing-types'
 import { GRID_ROLE } from '../grid-constants'
 
@@ -63,10 +62,10 @@ export function findCoord(
 
 /**
  * The next editable column along a row from display index `from`, one `step`
- * to the right (`1`) or the left (`-1`). The walk wraps at the edges, and skips
- * each column {@link isColumnEditable} refuses. It also skips each index that
- * `blocked` names, such as a cell whose commit is in flight. It returns `from`
- * itself when no other column is open to a move, and `-1` when none is.
+ * to the right (`1`) or the left (`-1`). The walk stops at the edge of the row,
+ * and skips each column {@link isColumnEditable} refuses. It also skips each
+ * index that `blocked` names, such as a cell whose commit is in flight. It
+ * returns `-1` when no column past `from` is open to a move.
  * @internal
  */
 export function stepEditableColumn(
@@ -75,11 +74,7 @@ export function stepEditableColumn(
 	step: 1 | -1,
 	blocked?: (index: number) => boolean,
 ): number {
-	const count = columns.length
-
-	for (let offset = 1; offset <= count; offset++) {
-		const index = wrap(from + step * offset, count)
-
+	for (let index = from + step; index >= 0 && index < columns.length; index += step) {
 		const column = columns[index]
 
 		if (column && isColumnEditable(column) && !blocked?.(index)) return index

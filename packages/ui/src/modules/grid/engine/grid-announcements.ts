@@ -36,6 +36,7 @@ const messages = defineMessages<{
 	forRow: { cells: string; row: string }
 	partial: { saved: string; failed: string }
 	discarded: { count: number }
+	held: { column: string; error: string }
 	nothingTo: { step: GridHistoryStep }
 	blocked: { step: GridHistoryStep }
 	stale: { step: GridHistoryStep }
@@ -156,6 +157,12 @@ const messages = defineMessages<{
 		defaultMessage: '{count, plural, one {# change discarded} other {# changes discarded}}',
 		description:
 			'Spoken when the grid drops edits that were not saved. The count is the number of edits.',
+	},
+	held: {
+		id: 'ui.grid.held',
+		defaultMessage: '{column}: {error}',
+		description:
+			'Spoken when the reader tries to save an edit of the grid that the column refuses. The edit stays open. The error is the message of the column.',
 	},
 	nothingTo: {
 		id: 'ui.grid.nothingTo',
@@ -421,17 +428,19 @@ export function describeDiscard(intl: IntlShape, changes: number): string {
 }
 
 /**
- * The polite announcement for an async inline-edit commit as it settles (WCAG
- * 4.1.3). A batch holds one row. An accepted batch reads as
- * {@link describeCommit} does (`Name updated for Alice`). A refused batch names
- * the refused cells the same way (`Name not saved for Alice`). A partial
- * acceptance speaks both parts in one message (`Name updated, 2 cells not
- * saved for Alice`). The caller announces once for each batch.
+ * The polite announcement for the cells of one write as they settle (WCAG
+ * 4.1.3). An async write gives the cells of all its batches, from one or more
+ * rows, when its last batch settles. The sync sweep gives the cells that
+ * `validate` refused. Accepted cells read as {@link describeCommit} does
+ * (`Name updated for Alice`). Refused cells read the same way (`Name not saved
+ * for Alice`). Both parts speak in one message (`Name updated, 2 cells not
+ * saved for Alice`). The caller announces once for each write.
  *
  * @param saved - The column label of each accepted cell.
  * @param refused - The column label of each refused cell.
- * @param row - The label of the row of the batch.
- * @param outcome - What the batch did to the accepted cells.
+ * @param row - The label of the row that holds the cells, or `undefined` when
+ * more than one row holds them.
+ * @param outcome - What the write did to the accepted cells.
  * @internal
  */
 export function describeSettle(
@@ -454,6 +463,20 @@ export function describeSettle(
 				})
 
 	return forRow(intl, parts, row)
+}
+
+/**
+ * The assertive announcement for a save that the grid holds back, because
+ * {@link GridColumn.validate} refuses a cell that the save closes (WCAG
+ * 3.3.1). The editor stays open, so the message names the column and gives
+ * its error: `Email: Enter a valid address`.
+ *
+ * @param column - The label of the column of the refused cell.
+ * @param error - The message that `validate` gave.
+ * @internal
+ */
+export function describeHeld(intl: IntlShape, column: string, error: string): string {
+	return intl.formatMessage(messages.held, { column, error })
 }
 
 /**

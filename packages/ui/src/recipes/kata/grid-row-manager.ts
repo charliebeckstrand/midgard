@@ -1,6 +1,6 @@
 /**
  * Row-manager kata: layout for the "Manage rows" editor, which is the vertical
- * stack of group zones and each zone's header (label, count, color menu). The
+ * stack of group zones and each zone's header (label, count, move menu, color menu). The
  * drag grip takes the `kata/grid-group` grip. Color is not here, because a
  * zone's tint comes from the shared `kata/grid-group` `outline` (Card outline).
  * So this carries only the flex layout.
@@ -23,7 +23,7 @@ export const k = defineKata({
 		zone: {
 			slots: {
 				// A group zone's row: the grip + label + count grouped at the leading edge,
-				// the color Menu pushed to the trailing edge (`justify-between`).
+				// the move menu and the color Menu pushed to the trailing edge (`justify-between`).
 				header: [flex.row, 'justify-between', dan.gap.scale.sm],
 				// The leading group: the reorder grip, the label, and the count, sitting
 				// together; `min-w-0` lets the label truncate rather than shove the count.
@@ -32,6 +32,8 @@ export const k = defineKata({
 				label: ['min-w-0', 'truncate', 'font-medium'],
 				// The row count, sitting right beside the label.
 				count: [text.muted, 'tabular-nums', 'shrink-0'],
+				// The trailing group: the move menu and the color Menu, which do not shrink.
+				actions: [flex.row, dan.gap.scale.sm, 'shrink-0'],
 			},
 		},
 	},

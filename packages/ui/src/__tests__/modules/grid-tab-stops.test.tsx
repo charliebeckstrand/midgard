@@ -163,6 +163,52 @@ describe('Grid tab stops', () => {
 		expect(tabbable(grid)).toEqual([])
 	})
 
+	// A removed row takes its focused control out of the document, and focus
+	// fell to the page, with no event to tell the grid.
+	it('takes focus back on the grid when the row that holds focus is removed', async () => {
+		function Harness() {
+			const [list, setList] = useState(rows)
+
+			const removable: GridColumn<Row>[] = [
+				{ id: 'name', title: 'Name', cell: (row) => row.name },
+				{
+					id: 'actions',
+					actions: (row) => (
+						<button
+							type="button"
+							onClick={() => setList((prev) => prev.filter((item) => item.id !== row.id))}
+						>
+							Delete {row.name}
+						</button>
+					),
+				},
+			]
+
+			return <Grid columns={removable} rows={list} getKey={getKey} navigable />
+		}
+
+		renderUI(<Harness />)
+
+		const grid = screen.getByRole('grid')
+
+		const del = screen.getByRole('button', { name: 'Delete Bob' })
+
+		act(() => del.focus())
+
+		// The observer runs in a microtask after the change.
+		await act(async () => fireEvent.click(del))
+
+		expect(del).not.toBeInTheDocument()
+
+		expect(grid).toHaveFocus()
+
+		// The cursor clamps to the cell that is left.
+		expect(grid).toHaveAttribute(
+			'aria-activedescendant',
+			screen.getByRole('button', { name: 'Delete Alice' }).closest('td')?.id,
+		)
+	})
+
 	it('gives the controls back their tab order with no cursor', () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 

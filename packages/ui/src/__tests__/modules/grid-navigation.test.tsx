@@ -653,6 +653,111 @@ describe('Grid cursor edges', () => {
 		expect(grid).toHaveAttribute('aria-activedescendant')
 	})
 
+	// APG grid: focus comes back to the cell that last had it. The grid cleared
+	// the cursor on blur and seeded the first cell, or the last for Shift+Tab.
+	it('seats the cursor on the cell that it left when focus comes back', () => {
+		renderUI(
+			<>
+				<button type="button">Before</button>
+				<Grid columns={columns} rows={rows} getKey={getKey} navigable />
+				<button type="button">After</button>
+			</>,
+		)
+
+		const grid = screen.getByRole('grid')
+
+		const cells = screen.getAllByRole('gridcell')
+
+		fireEvent.mouseDown(cells[ROW1_ROLE] as HTMLElement)
+
+		const after = screen.getByRole('button', { name: 'After' })
+
+		fireEvent.blur(grid, { relatedTarget: after })
+
+		expect(grid).not.toHaveAttribute('aria-activedescendant')
+
+		// Shift+Tab back from after the grid.
+		fireEvent.focus(grid, { relatedTarget: after })
+
+		expect(grid).toHaveAttribute('aria-activedescendant', cells[ROW1_ROLE]?.id)
+	})
+
+	it('seeds the first cell on a first Shift+Tab entry', () => {
+		renderUI(
+			<>
+				<Grid columns={columns} rows={rows} getKey={getKey} navigable />
+				<button type="button">After</button>
+			</>,
+		)
+
+		const grid = screen.getByRole('grid')
+
+		fireEvent.focus(grid, { relatedTarget: screen.getByRole('button', { name: 'After' }) })
+
+		expect(grid).toHaveAttribute('aria-activedescendant', screen.getAllByRole('gridcell')[NAME]?.id)
+	})
+
+	it('seats the cursor again on the same cell, with no step, at the first key after Escape', () => {
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} navigable />)
+
+		const grid = screen.getByRole('grid')
+
+		const cells = screen.getAllByRole('gridcell')
+
+		fireEvent.mouseDown(cells[ROW1_ROLE] as HTMLElement)
+
+		fireEvent.keyDown(grid, { key: 'Escape' })
+
+		expect(grid).not.toHaveAttribute('aria-activedescendant')
+
+		expect(fireEvent.keyDown(grid, { key: 'ArrowDown' })).toBe(false)
+
+		expect(grid).toHaveAttribute('aria-activedescendant', cells[ROW1_ROLE]?.id)
+
+		// The next key moves as usual.
+		fireEvent.keyDown(grid, { key: 'ArrowDown' })
+
+		expect(grid).toHaveAttribute('aria-activedescendant', cells[ROW2_ROLE]?.id)
+	})
+
+	it('follows the cell that it left into new rows, and clamps it', () => {
+		const ui = (shown: Row[]) => <Grid columns={columns} rows={shown} getKey={getKey} navigable />
+
+		const view = renderUI(ui(rows))
+
+		const grid = screen.getByRole('grid')
+
+		fireEvent.mouseDown(screen.getByRole('gridcell', { name: 'Bob' }))
+
+		fireEvent.keyDown(grid, { key: 'Escape' })
+
+		// Bob moves to the first row.
+		view.rerender(ui([rows[1] as Row, rows[0] as Row, rows[2] as Row]))
+
+		fireEvent.keyDown(grid, { key: 'ArrowLeft' })
+
+		expect(grid).toHaveAttribute(
+			'aria-activedescendant',
+			screen.getByRole('gridcell', { name: 'Bob' }).id,
+		)
+
+		fireEvent.keyDown(grid, { key: 'ArrowDown' })
+
+		fireEvent.keyDown(grid, { key: 'ArrowDown' })
+
+		fireEvent.keyDown(grid, { key: 'Escape' })
+
+		// The row that the cursor left is gone, so the cursor clamps to the last row.
+		view.rerender(ui([rows[1] as Row]))
+
+		fireEvent.keyDown(grid, { key: 'ArrowLeft' })
+
+		expect(grid).toHaveAttribute(
+			'aria-activedescendant',
+			screen.getByRole('gridcell', { name: 'Bob' }).id,
+		)
+	})
+
 	it('leaves a browser shortcut to the browser', () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} navigable />)
 

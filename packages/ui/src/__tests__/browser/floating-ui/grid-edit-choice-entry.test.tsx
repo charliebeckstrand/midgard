@@ -159,7 +159,7 @@ describe('grid choice editor on entry (real floating engine)', () => {
 		await waitFor(() => expect(screen.getByRole('grid')).toHaveFocus())
 	})
 
-	it('commits a pick that Tab makes once, and Tab moves on along the row', async () => {
+	it('commits a pick that Tab makes once, and Tab at the row end returns to the grid', async () => {
 		const onCommit = vi.fn()
 
 		const { container } = renderUI(
@@ -175,15 +175,13 @@ describe('grid choice editor on entry (real floating engine)', () => {
 
 		await screen.findByRole('listbox')
 
-		// Tab picks the active option, commits the cell, and moves the session
-		// along the row, which wraps to the name cell.
+		// Tab picks the active option and commits the cell. The done cell ends the
+		// row, so focus goes back to the grid, and the next Tab leaves it.
 		await userEvent.keyboard('{ArrowUp}{Tab}')
 
-		await waitFor(() =>
-			expect(getCell(container, 'name').contains(document.activeElement)).toBe(true),
-		)
+		await waitFor(() => expect(document.activeElement).toBe(container.querySelector('table')))
 
-		expect(bySlot(container, 'grid-edit-input')).not.toBeNull()
+		expect(bySlot(container, 'grid-edit-input')).toBeNull()
 
 		expect(onCommit).toHaveBeenCalledExactlyOnceWith([{ rowKey: 1, columnId: 'done', value: true }])
 	})
@@ -272,15 +270,13 @@ describe('grid choice editor on entry (real floating engine)', () => {
 
 		await screen.findByRole('listbox')
 
-		// Tab in the panel keeps the value, closes the panel, and moves the session
-		// on along the row, which wraps to the name cell.
+		// Tab in the panel keeps the value and closes the panel. The done cell
+		// ends the row, so focus goes back to the grid.
 		await userEvent.keyboard('{Tab}')
 
 		await waitFor(() => expect(panel()).toBeNull())
 
-		await waitFor(() =>
-			expect(getCell(container, 'name').contains(document.activeElement)).toBe(true),
-		)
+		await waitFor(() => expect(document.activeElement).toBe(container.querySelector('table')))
 
 		expect(bySlot(container, 'grid-edit-boolean-input')).toBeNull()
 	})

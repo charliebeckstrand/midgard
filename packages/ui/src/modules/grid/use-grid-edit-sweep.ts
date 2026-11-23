@@ -11,7 +11,7 @@ import {
 import { announce } from '../../core/announcer'
 import { useMountedRef } from '../../hooks/use-mounted-ref'
 import { useIntl } from '../../primitives/intl/use-intl'
-import { describeCommit, describeDiscard, describeSettle } from './engine/grid-announcements'
+import { describeDiscard, describeSettle } from './engine/grid-announcements'
 import { EMPTY_SET } from './engine/grid-constants'
 import {
 	dropStrandedHolds,
@@ -40,6 +40,18 @@ import {
 } from './engine/grid-edit/utilities'
 import type { GridEditSource } from './grid-data-types'
 import type { GridCellChange, GridEditableConfig } from './grid-editing-types'
+
+/**
+ * The settled batches of one write: the column labels of the accepted and the
+ * refused cells, the keys of their rows, and the name of the last row.
+ * @internal
+ */
+type SettleTally = {
+	saved: string[]
+	failed: string[]
+	rows: Set<string | number>
+	row: string | undefined
+}
 
 /**
  * Commits the cells that the session closed, and settles what each commit
@@ -172,8 +184,54 @@ export function useGridEditSweep<T>({
 		announce(describeDiscard(intl, dropped)),
 	)
 
-	const announceCommit = useEffectEvent((columns: readonly string[], row: string | undefined) =>
-		announce(describeCommit(intl, columns, row)),
+	const announceSweep = useEffectEvent(
+		(columns: readonly string[], refused: readonly string[], row: string | undefined) =>
+			announce(describeSettle(intl, columns, refused, row)),
+	)
+
+	// The settled batches of each write that has a batch in flight. One write
+	// is one user action, and its batches settle one by one, each on its own
+	// promise. A second `announce` in one task replaces the first, so one
+	// message for each batch could lose a refusal behind the save of another
+	// row. The write speaks once, as its last batch settles, with the sum of
+	// its batches, as the sweep speaks the sync saves of all its rows.
+	const settlesRef = useRef(new WeakMap<GridPendingEntry, SettleTally>())
+
+	const tallySettle = useCallback(
+		(
+			batch: InFlightBatch,
+			entry: GridPendingEntry,
+			cells: { saved: readonly string[]; failed: readonly string[] },
+		) => {
+			const tallies = settlesRef.current
+
+			const tally = tallies.get(entry) ?? { saved: [], failed: [], rows: new Set(), row: undefined }
+
+			if (cells.saved.length + cells.failed.length > 0) {
+				tally.saved.push(...cells.saved)
+
+				tally.failed.push(...cells.failed)
+
+				tally.rows.add(batch.rowKey)
+
+				tally.row = batch.row
+			}
+
+			if (entry.open > 0) {
+				tallies.set(entry, tally)
+
+				return
+			}
+
+			tallies.delete(entry)
+
+			if (tally.rows.size === 0) return
+
+			const row = tally.rows.size === 1 ? tally.row : undefined
+
+			announce(describeSettle(intl, tally.saved, tally.failed, row, batch.outcome))
+		},
+		[intl],
 	)
 
 	// A controlled `rows` that declines to open a refused row again chose to
@@ -209,7 +267,8 @@ export function useGridEditSweep<T>({
 	// reads the row again. A refused draft is staged again, with its error, and
 	// focus stays where it is. Under row scope the refused row opens again.
 	// Under cell scope a refused cell opens beside the session, unless the
-	// session holds it. One polite announcement speaks the batch.
+	// session holds it. One polite announcement speaks the batches of one
+	// write, as the last of them settles (see `tallySettle`).
 	const settleBatch = useCallback(
 		(batch: InFlightBatch, refused: Map<string | number, string>, entry: GridPendingEntry) => {
 			const { rowKey } = batch
@@ -237,6 +296,8 @@ export function useGridEditSweep<T>({
 				recordEntry,
 			)
 
+			tallySettle(batch, entry, { saved, failed })
+
 			if (saved.length + failed.length === 0) return
 
 			activeEditStore.notify()
@@ -258,8 +319,6 @@ export function useGridEditSweep<T>({
 				// write, so the check above sees the decline.
 				bump()
 			}
-
-			announce(describeSettle(intl, saved, failed, batch.row, batch.outcome))
 		},
 		[
 			cellScoped,
@@ -271,7 +330,7 @@ export function useGridEditSweep<T>({
 			recordEntry,
 			restoreStep,
 			bump,
-			intl,
+			tallySettle,
 		],
 	)
 
@@ -358,9 +417,12 @@ export function useGridEditSweep<T>({
 			onReject: sendReject,
 		})
 
-		// Announce the commit politely, without moving focus (WCAG 4.1.3). An
-		// async batch announces as it settles.
-		if (saved.columns.length > 0) announceCommit(saved.columns, saved.row)
+		// Announce the commit politely, without moving focus (WCAG 4.1.3). A cell
+		// that `validate` refused did not save, and the message says so. An async
+		// batch announces as it settles.
+		if (saved.columns.length + saved.refused.length > 0) {
+			announceSweep(saved.columns, saved.refused, saved.row)
+		}
 
 		// One sweep is one user action, so its cells are one entry. With an async
 		// batch, the entry records when the last batch settles.

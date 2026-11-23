@@ -31,6 +31,7 @@ import { k } from '../../recipes/kata/menu'
 import { hasBrowserModifier } from '../../utilities/modifier-keys'
 import { Icon } from '../icon'
 import { useMenuOpenSub, useMenuPointer, useMenuState } from './context'
+import { isHeldActivation } from './menu-item-utilities'
 import { MenuPointerLevel } from './menu-pointer-level'
 import { MenuViewport } from './menu-viewport'
 import { snapMenuHeight } from './menu-viewport-utilities'
@@ -216,6 +217,14 @@ function MenuSubSheet({
 
 	const handleTriggerKeyDown = useStableEvent((event: KeyboardEvent<HTMLButtonElement>) => {
 		if (disabled || hasBrowserModifier(event)) return
+
+		// The key that opened the menu can come here as a repeat, and it does not
+		// toggle the row.
+		if (isHeldActivation(event)) {
+			event.preventDefault()
+
+			return
+		}
 
 		const key = logicalArrowKey(event.key, event.currentTarget)
 
@@ -436,6 +445,14 @@ function MenuSubFloating({
 	// stable event and not a closure that render passes to a function.
 	const handleTriggerKeyDown = useStableEvent((event: KeyboardEvent<HTMLButtonElement>) => {
 		if (disabled) return
+
+		// The key that opened the menu can come here as a repeat, and it does not
+		// open the submenu.
+		if (isHeldActivation(event)) {
+			event.preventDefault()
+
+			return
+		}
 
 		if (opensSubmenu(event, event.currentTarget)) {
 			event.preventDefault()

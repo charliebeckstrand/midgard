@@ -198,6 +198,41 @@ describe('Grid range', () => {
 		expect(inRange()).toEqual([])
 	})
 
+	// APG grid: Ctrl+Space selects the column. The key toggled the row, as
+	// Space does.
+	it('selects the column of the cursor with Ctrl+Space', () => {
+		const { grid } = renderRangeGrid()
+
+		fireEvent.mouseDown(cell(1, 1))
+
+		expect(fireEvent.keyDown(grid, { key: ' ', ctrlKey: true })).toBe(false)
+
+		expect(inRange()).toEqual([
+			[0, 1],
+			[1, 1],
+			[2, 1],
+		])
+
+		expect(grid).toHaveAttribute('aria-activedescendant', cell(2, 1).id)
+	})
+
+	it('leaves Ctrl+Space to the row without the range', () => {
+		renderUI(
+			<Grid
+				columns={[{ id: 'select', selectable: true }, ...columns]}
+				rows={rows}
+				getKey={getKey}
+				navigable
+			/>,
+		)
+
+		fireEvent.mouseDown(screen.getByRole('gridcell', { name: 'Alice' }))
+
+		fireEvent.keyDown(screen.getByRole('grid'), { key: ' ', ctrlKey: true })
+
+		expect(screen.getByRole('checkbox', { name: 'Select row 1' })).toBeChecked()
+	})
+
 	it('extends a range with Shift and a click', () => {
 		renderRangeGrid()
 

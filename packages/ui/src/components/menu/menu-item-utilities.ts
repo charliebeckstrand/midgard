@@ -24,6 +24,10 @@ export function handleMenuItemClick<E extends HTMLElement>(
  * disabled, so disabled items stay inert on the keyboard path too.
  *
  * @remarks
+ * An auto-repeat of Enter or Space does not select. A key that opens the menu
+ * moves the focus to the first row, so the repeats of a held key come to that
+ * row ({@link isHeldActivation}).
+ *
  * Selection is the activation that the item exists to perform, so a consumer
  * `preventDefault()` does not cancel it (CONVENTIONS §3.9).
  *
@@ -43,7 +47,7 @@ export function handleMenuItemKeyDown<E extends HTMLElement>(
 			if (keyEvent.key === 'Enter' || keyEvent.key === ' ') {
 				keyEvent.preventDefault()
 
-				onSelect()
+				if (!isHeldActivation(keyEvent)) onSelect()
 			}
 		},
 		{ checkForDefaultPrevented: false },
@@ -51,9 +55,21 @@ export function handleMenuItemKeyDown<E extends HTMLElement>(
 }
 
 /**
+ * Whether `event` is an auto-repeat of Enter or Space. A key that opens a menu
+ * or a submenu moves the focus to its first row, and the repeats of the held
+ * key then come to that row. A row does not take them as a choice.
+ *
+ * @internal
+ */
+export function isHeldActivation(event: KeyboardEvent): boolean {
+	return event.repeat && (event.key === 'Enter' || event.key === ' ')
+}
+
+/**
  * Space activation for a menu link row. Runs the consumer's `onKeyDown`
  * first. Then Space cancels the page scroll and clicks the anchor, so the
- * row navigates and selects as a pointer click does. Enter stays native.
+ * row navigates and selects as a pointer click does. Enter stays native. An
+ * auto-repeat of Enter or Space does nothing ({@link isHeldActivation}).
  *
  * @remarks
  * The click is the activation that the row exists to perform, so a consumer
@@ -68,6 +84,12 @@ export function handleMenuLinkKeyDown<E extends HTMLElement>(
 	composeEventHandlers(
 		consumerOnKeyDown,
 		(keyEvent) => {
+			if (isHeldActivation(keyEvent)) {
+				keyEvent.preventDefault()
+
+				return
+			}
+
 			if (keyEvent.key !== ' ') return
 
 			keyEvent.preventDefault()

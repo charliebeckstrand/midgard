@@ -10,7 +10,7 @@ import { aggregateLabelSpan, hasAggregation } from './engine/grid-aggregate'
 import type { GridGroup } from './engine/grid-group/tree'
 import { groupItemKey } from './engine/grid-items/items'
 import { pinnedSpanProps } from './engine/grid-pin/styles'
-import type { GridWindowRowProps } from './engine/grid-row/shell'
+import { type GridTreePlace, type GridWindowRowProps, treeRowProps } from './engine/grid-row/shell'
 import type { GridColumnPinning } from './engine/grid-table/pinning-view'
 import { GridAggregateCells } from './grid-aggregate-cells'
 import type { GridGroupBy } from './grid-data-types'
@@ -37,7 +37,8 @@ type GridGroupRowProps<T> = {
 	totaled: boolean
 	/** Frozen-column controls, so the cells over a pinned column stick like its data cells. `null` when none. */
 	pinning: GridColumnPinning | null
-} & GridWindowRowProps
+} & Required<GridTreePlace> &
+	GridWindowRowProps
 
 /**
  * A group-header row carrying a bare disclosure button that toggles the group's
@@ -65,6 +66,8 @@ function GridGroupRowImpl<T>({
 	color,
 	totaled,
 	pinning,
+	place,
+	setSize,
 	...windowRow
 }: GridGroupRowProps<T>) {
 	const { expanded, value } = group
@@ -94,7 +97,7 @@ function GridGroupRowImpl<T>({
 			data-group-row
 			data-group-key={group.key}
 			data-expanded={dataAttr(expanded)}
-			aria-level={tree ? 1 : undefined}
+			{...treeRowProps(tree, 1, { place, setSize })}
 			aria-expanded={tree ? expanded : undefined}
 		>
 			<TableCell

@@ -85,6 +85,8 @@ export function useGridRoving({
 	/** Count of roving-visitable data columns; the `cols` grid width for two-dimensional cell roving. */
 	dataColCount: number
 }): {
+	/** The resolved {@link GridRovingMode}. */
+	mode: GridRovingMode
 	/** Whether the rows are roving items (row mode). */
 	rovingRows: boolean
 	/** Whether the data cells are roving items (cell mode). */
@@ -123,6 +125,7 @@ export function useGridRoving({
 	useGridTabStops(tableRef, mode === 'none' ? null : GRID_ROW)
 
 	return {
+		mode,
 		rovingRows: mode === 'row',
 		rovingCells: cellMode,
 		tableProps: mode === 'none' ? undefined : { onKeyDown: rovingKeyDown },

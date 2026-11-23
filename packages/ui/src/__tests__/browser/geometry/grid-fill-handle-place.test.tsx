@@ -110,6 +110,22 @@ describe('grid fill handle place (real browser)', () => {
 		await waitFor(() => expectOnCorner(cell(3, 'b')))
 	})
 
+	// WCAG 2.5.8 asks for a target of 24px or more. The square is 8px, and a
+	// wider hit area sits around it.
+	it('has a hit area of 24px or more', async () => {
+		renderUI(view(200))
+
+		await userEvent.click(cell(2, 'a'))
+
+		await waitFor(() => expectOnCorner(cell(2, 'a')))
+
+		const area = getComputedStyle(handle(), '::before')
+
+		expect(Number.parseFloat(area.width)).toBeGreaterThanOrEqual(24)
+
+		expect(Number.parseFloat(area.height)).toBeGreaterThanOrEqual(24)
+	})
+
 	it('does not read a fitting active cell as clipped', async () => {
 		renderUI(view(200))
 

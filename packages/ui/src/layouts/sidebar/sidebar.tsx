@@ -149,7 +149,10 @@ export type SidebarLayoutProps = ComponentProps<'div'> & {
  * The selection is a class on the root element, which the server writes from a
  * cookie, so the first paint shows the correct sidebar. ⌘B
  * (Ctrl+B on other platforms) toggles the setting. A held chord toggles it one
- * time, and a press in a form field does not toggle it.
+ * time, and a press in a form field does not toggle it. When the setting
+ * changes to `offcanvas` while the focus is in the panel, the focus moves to
+ * the main landmark, as a skip does, so the next Tab does not start at the top
+ * of the page.
  *
  * @remarks The page scrolls at each width, so the scroll restoration of a router
  * resets and restores the position of the page. In a box that scrolls (below),
@@ -179,7 +182,8 @@ export type SidebarLayoutProps = ComponentProps<'div'> & {
  * scope. The floating sheet has the width of the panel at each step. The
  * floating sidebar is non-modal, so its peek never steals focus or locks body
  * scroll, but `backdrop` still dims the page behind it. The sheet closes when
- * the layout at the viewport becomes the drawer.
+ * the layout at the viewport becomes the drawer. The drawer and the floating
+ * sheet have the name "Navigation".
  *
  * The sidebar sits on the start edge of the reading direction. In a
  * right-to-left page, the panel, the floating sheet, and its hover strip are
@@ -503,7 +507,7 @@ export type SidebarLayoutBodyProps = ComponentProps<'main'>
 const bodyClass = k().body
 
 /**
- * Main content slot for {@link SidebarLayout} (`data-slot="body"`). It scrolls
+ * Body slot for {@link SidebarLayout} (`data-slot="body"`). It scrolls
  * with the page at each width. It grows into the free height of the content
  * region, so the footer sits at the bottom of a short page. The content
  * column of the layout is the main landmark, so the header with the title of

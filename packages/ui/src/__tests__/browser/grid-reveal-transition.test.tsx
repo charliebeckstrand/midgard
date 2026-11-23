@@ -57,13 +57,13 @@ describe('grid reveal transition (real browser)', () => {
 
 		const runs = watchTransitions(container)
 
-		await user.click(screen.getByRole('button', { name: 'Expand details for row 1' }))
+		await user.click(screen.getByRole('button', { name: 'Details for row 1', expanded: false }))
 
 		await waitFor(() => expect(runs).toContain(REVEAL))
 
 		runs.length = 0
 
-		await user.click(screen.getByRole('button', { name: 'Collapse details for row 1' }))
+		await user.click(screen.getByRole('button', { name: 'Details for row 1', expanded: true }))
 
 		await waitFor(() => expect(runs).toContain(REVEAL))
 	})

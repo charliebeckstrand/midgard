@@ -492,6 +492,31 @@ describe('Grid row selection semantics', () => {
 
 		expect(screen.getByRole('grid')).toHaveAttribute('aria-multiselectable', 'true')
 	})
+
+	it('marks a navigable grid that cannot edit read-only', () => {
+		renderUI(<Grid columns={plainColumns} rows={rows} getKey={getKey} navigable />)
+
+		expect(screen.getByRole('grid')).toHaveAttribute('aria-readonly', 'true')
+	})
+
+	it('leaves aria-readonly off an editable grid and a plain table', () => {
+		const { unmount } = renderUI(
+			<Grid
+				columns={[{ ...plainColumns[0], field: 'name' } as GridColumn<Row>]}
+				rows={rows}
+				getKey={getKey}
+				editable={{ onCommit: vi.fn() }}
+			/>,
+		)
+
+		expect(screen.getByRole('grid')).not.toHaveAttribute('aria-readonly')
+
+		unmount()
+
+		renderUI(<Grid columns={plainColumns} rows={rows} getKey={getKey} />)
+
+		expect(screen.getByRole('table')).not.toHaveAttribute('aria-readonly')
+	})
 })
 
 describe('Grid busy live region', () => {

@@ -1,6 +1,7 @@
 import type { MouseEvent, RefObject } from 'react'
 import { isRtl } from '../../../hooks/a11y/logical-arrow'
 import type { GridMenuItem } from '../types'
+import { GRID_CELL } from './grid-cell-controls'
 import { GRID_ROLE } from './grid-constants'
 
 /**
@@ -112,8 +113,9 @@ export function tryCellMenu(
  * on the focused grid or row rather than a cell (WCAG 2.1.1).
  *
  * - On the grid, it retargets to the active cursor cell. The cursor on a
- *   group-header row opens the menu of the group, as a right-click on the row
- *   does. No-ops when no cell is active.
+ *   header cell opens the column menu, and the cursor on a group-header row
+ *   opens the menu of the group, as a right-click there does. No-ops when no
+ *   cell is active.
  * - On a focused data row (row roving, or the Tab stop of a windowed body), it
  *   opens the menu of the row's first data cell, the menu that a right-click
  *   there opens.
@@ -147,14 +149,15 @@ export function openKeyboardMenu(
 
 	if (grid !== target) return
 
-	// The cursor marks its gridcell alone. An applied filter and an active group
-	// mark their header buttons with the same attribute, and the header comes
-	// first in the grid. A grid in a detail panel keeps the mark of its own
-	// cursor, and its cell ids name nothing in this grid, so only a cell that
-	// this grid owns counts.
-	const active = Array.from(
-		grid.querySelectorAll<HTMLElement>('[role="gridcell"][data-active]'),
-	).find((cell) => cell.closest(GRID_ROLE) === grid)
+	// The cursor marks its cell alone: a body cell, or a header cell, which then
+	// opens its column menu. An applied filter and an active group mark their
+	// header buttons with the same attribute, so only a cell of the cursor
+	// counts. A grid in a detail panel keeps the mark of its own cursor, and its
+	// cell ids name nothing in this grid, so only a cell that this grid owns
+	// counts.
+	const active = Array.from(grid.querySelectorAll<HTMLElement>(`${GRID_CELL}[data-active]`)).find(
+		(cell) => cell.closest(GRID_ROLE) === grid,
+	)
 
 	if (!active) return
 

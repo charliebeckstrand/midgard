@@ -30,7 +30,7 @@ describe('grid column-group caret (real browser)', () => {
 				</div>,
 			)
 
-			const toggle = screen.getByRole('button', { name: /Collapse/ })
+			const toggle = screen.getByRole('button', { name: 'Work columns' })
 
 			const caret = present(toggle.querySelector('svg'), 'the caret')
 
