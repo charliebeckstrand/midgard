@@ -1,9 +1,9 @@
 /**
  * Kokkaku skeleton: date-picker. The silhouette of the DatePicker trigger: a
  * box with the height of a control that fills its parent, as the trigger does.
- * Two empty spans give the least width: a date and the calendar icon. The box
- * takes the inline padding and the gap of the trigger. The first span is as wide as a date in the text of the
- * trigger. The second span is as large as the calendar icon. Each measure is a
+ * Two empty spans give the content width, which a parent that is as wide as
+ * its content reads. The box takes the inline padding and the gap of the
+ * trigger. The first span is as wide as a date in the text of the trigger. The second span is as large as the calendar icon. Each measure is a
  * stepped `density-*` class, so the box follows the trigger at each step.
  *
  * The digits of a date do not have the same width, so the width of a date

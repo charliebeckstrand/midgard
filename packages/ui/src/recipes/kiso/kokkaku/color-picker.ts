@@ -1,8 +1,9 @@
 /**
  * Kokkaku skeleton: color-picker. The silhouette of the ColorPicker trigger:
  * a box with the height of a control that fills its parent, as the trigger
- * does. Two empty spans give the least width: the swatch and the color value. The box takes the inline padding and
- * the gap of the trigger, the first span is as large as the swatch, and the
+ * does. Two empty spans give the content width, which a parent that is as
+ * wide as its content reads. The box takes the inline padding and the gap of
+ * the trigger, the first span is as large as the swatch, and the
  * second span is as wide as the hex value in the mono font of the trigger.
  * Each measure is a stepped `density-*` class, so the box matches the trigger
  * at each step.
