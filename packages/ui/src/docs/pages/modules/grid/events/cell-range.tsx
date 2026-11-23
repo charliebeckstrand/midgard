@@ -52,6 +52,7 @@ export default function CellRange() {
 				</Button>
 			</Flex>
 			<Grid
+				tableProps={{ 'aria-label': 'Cell range' }}
 				navigable
 				range={{ value: range, onValueChange: setRange }}
 				columns={columns}

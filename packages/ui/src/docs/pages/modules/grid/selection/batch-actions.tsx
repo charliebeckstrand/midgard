@@ -13,6 +13,7 @@ export default function BatchActions() {
 		<>
 			{rows.length === 0 && <ResetButton onClick={() => setRows(people)} />}
 			<Grid
+				tableProps={{ 'aria-label': 'Batch actions' }}
 				columns={selectColumns}
 				rows={rows}
 				getKey={(row) => row.id}

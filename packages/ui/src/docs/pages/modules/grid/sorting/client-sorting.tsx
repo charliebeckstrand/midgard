@@ -12,6 +12,7 @@ export default function ClientSorting() {
 
 	return (
 		<Grid
+			tableProps={{ 'aria-label': 'Client sorting' }}
 			columns={searchableColumns}
 			rows={people}
 			getKey={(row) => row.id}

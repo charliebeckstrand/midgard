@@ -240,16 +240,19 @@ describe('SidebarLayout skip link', () => {
 	const page = (body = <SidebarLayoutBody>content</SidebarLayoutBody>) =>
 		renderUI(
 			<SidebarLayout sidebar={<a href="/home">Home</a>} navbar="Navbar">
+				<SidebarLayoutHeader>
+					<h1>Title</h1>
+				</SidebarLayoutHeader>
 				{body}
 			</SidebarLayout>,
 		)
 
 	const skipLink = () => screen.getByRole('link', { name: 'Skip to content' })
 
-	it('puts the link first in the tab order, and points it at the main slot', () => {
+	it('puts the link first in the tab order, and points it at the main landmark', () => {
 		const { container } = page()
 
-		const main = present(bySlot(container, 'body'), 'main')
+		const main = screen.getByRole('main')
 
 		const tabbable = container.querySelectorAll('a[href], button:not([disabled]), [tabindex="0"]')
 
@@ -260,12 +263,26 @@ describe('SidebarLayout skip link', () => {
 		expect(main.id).not.toBe('')
 	})
 
-	it('makes the main slot focusable only from the skip link until it loses the focus', () => {
+	it('puts the header with the title of the page and the body in the main landmark', () => {
 		const { container } = page()
 
-		const main = present(bySlot(container, 'body'), 'main')
+		const main = screen.getByRole('main')
 
-		// A click on the text of the slot does not focus it.
+		expect(main).toContainElement(screen.getByRole('heading', { name: 'Title' }))
+
+		const body = present(bySlot(container, 'body'), 'body')
+
+		expect(main).toContainElement(body)
+
+		expect(body.tagName).toBe('DIV')
+	})
+
+	it('makes the main landmark focusable only from the skip link until it loses the focus', () => {
+		page()
+
+		const main = screen.getByRole('main')
+
+		// A click on the text of the landmark does not focus it.
 		expect(main).not.toHaveAttribute('tabindex')
 
 		act(() => {
@@ -281,26 +298,8 @@ describe('SidebarLayout skip link', () => {
 		expect(main).not.toHaveAttribute('tabindex')
 	})
 
-	it('keeps a tabIndex of the consumer on the main slot', () => {
-		const { container } = page(<SidebarLayoutBody tabIndex={0}>content</SidebarLayoutBody>)
-
-		const main = present(bySlot(container, 'body'), 'main')
-
-		act(() => {
-			fireEvent.click(skipLink())
-		})
-
-		expect(document.activeElement).toBe(main)
-
-		act(() => {
-			main.blur()
-		})
-
-		expect(main).toHaveAttribute('tabindex', '0')
-	})
-
-	it('moves the focus to the main slot, and leaves the hash', () => {
-		const { container } = page()
+	it('moves the focus to the main landmark, and leaves the hash', () => {
+		page()
 
 		// The window is shared across the files of the project, so the case
 		// compares the hash with its own value before the click.
@@ -314,38 +313,36 @@ describe('SidebarLayout skip link', () => {
 
 		expect(click.defaultPrevented).toBe(true)
 
-		expect(document.activeElement).toBe(bySlot(container, 'body'))
+		expect(document.activeElement).toBe(screen.getByRole('main'))
 
 		expect(window.location.hash).toBe(hash)
 	})
 
-	it('moves the focus to a main slot that has an id and a ref of the consumer', () => {
+	it('gives the id, the ref, and the tabIndex of the consumer to the body', () => {
 		const ref = createRef<HTMLElement>()
 
 		page(
-			<SidebarLayoutBody id="content" ref={ref}>
+			<SidebarLayoutBody id="content" ref={ref} tabIndex={0}>
 				content
 			</SidebarLayoutBody>,
 		)
 
-		act(() => {
-			fireEvent.click(skipLink())
-		})
+		expect(ref.current).toHaveAttribute('id', 'content')
 
-		expect(document.activeElement).toBe(ref.current)
+		expect(ref.current).toHaveAttribute('tabindex', '0')
 
-		expect(ref.current?.id).toBe('content')
-
-		expect(skipLink()).toHaveAttribute('href', '#content')
+		expect(skipLink()).toHaveAttribute('href', `#${screen.getByRole('main').id}`)
 	})
 
-	it('renders no link when the layout has no main slot', () => {
+	it('renders the link and the main landmark when the layout has no body slot', () => {
 		renderUI(<SidebarLayout sidebar={<div>sidebar</div>}>content</SidebarLayout>)
 
-		expect(screen.queryByRole('link', { name: 'Skip to content' })).toBeNull()
+		expect(skipLink()).toBeInTheDocument()
+
+		expect(screen.getByRole('main')).toHaveTextContent('content')
 	})
 
-	it('renders one link when a page nests a layout', () => {
+	it('renders one link and one main landmark when a page nests a layout', () => {
 		renderUI(
 			<SidebarLayout sidebar={<div>outer</div>}>
 				<SidebarLayoutBody>
@@ -358,7 +355,7 @@ describe('SidebarLayout skip link', () => {
 
 		expect(screen.getAllByRole('link', { name: 'Skip to content' })).toHaveLength(1)
 
-		expect(screen.getByText('inner content')).not.toHaveAttribute('tabindex')
+		expect(screen.getAllByRole('main')).toHaveLength(1)
 	})
 })
 

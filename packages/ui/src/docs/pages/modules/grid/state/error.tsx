@@ -6,6 +6,7 @@ export default function ErrorState() {
 	// The error shows in place of the rows, as for a failed request.
 	return (
 		<Grid
+			tableProps={{ 'aria-label': 'Error' }}
 			columns={columns}
 			rows={[]}
 			getKey={(row) => row.id}

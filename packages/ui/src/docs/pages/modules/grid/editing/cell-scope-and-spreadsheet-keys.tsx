@@ -64,6 +64,7 @@ export default function CellScopeAndSpreadsheetKeys() {
 				</EditHelp>
 			</Flex>
 			<Grid
+				tableProps={{ 'aria-label': 'Cell scope and spreadsheet keys' }}
 				columns={personColumns}
 				rows={people}
 				getKey={(row) => row.id}

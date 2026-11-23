@@ -1035,6 +1035,10 @@
 		"defaultMessage": "Volume, product revenue, and each order",
 		"description": "Text of a demo in the docs as description, in modules/dashboard/build-and-save.tsx."
 	},
+	"docs.demo.025f086d97fb": {
+		"defaultMessage": "Toolbar only",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/export/toolbar-only.tsx."
+	},
 	"docs.demo.029169c263fd": {
 		"defaultMessage": "Your organization requires two-factor authentication.",
 		"description": "Text of a demo in the docs, in components/switch/disabled.tsx."
@@ -1098,6 +1102,10 @@
 	"docs.demo.0728b18e8f2b": {
 		"defaultMessage": "Waiting for review by the design team",
 		"description": "Text of a demo in the docs, in structure/flex/equal.tsx."
+	},
+	"docs.demo.076c195e33c2": {
+		"defaultMessage": "Batch actions",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/selection/batch-actions.tsx."
 	},
 	"docs.demo.0788cf3501b7": {
 		"defaultMessage": "Hold to delete",
@@ -1215,6 +1223,10 @@
 		"defaultMessage": "Headline numbers, regions, and the product mix",
 		"description": "Text of a demo in the docs as description, in modules/dashboard/build-and-save.tsx."
 	},
+	"docs.demo.0fbd23b173e2": {
+		"defaultMessage": "Resizable columns",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/resizing/resizable-columns.tsx."
+	},
 	"docs.demo.0fd702c51087": {
 		"defaultMessage": "Edit a cell, then tap Undo.",
 		"description": "Text of a demo in the docs as touchText, in modules/grid/editing/undo-and-redo.tsx."
@@ -1299,6 +1311,10 @@
 		"defaultMessage": "Role",
 		"description": "Text of a demo in the docs as title, in components/description-list/playground.tsx, components/table/empty.tsx, components/table/loading.tsx and 3 more."
 	},
+	"docs.demo.14934434d409": {
+		"defaultMessage": "Editable",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/editing/editable.tsx."
+	},
 	"docs.demo.14ae31664801": {
 		"defaultMessage": "Enter a project name.",
 		"description": "Text of a demo in the docs as validate, in components/dialog/with-form.tsx."
@@ -1342,6 +1358,14 @@
 	"docs.demo.15d650348069": {
 		"defaultMessage": "Item deleted",
 		"description": "Text of a demo in the docs, in components/hold-button/destructive.tsx."
+	},
+	"docs.demo.160ae80b9fe3": {
+		"defaultMessage": "Server side sorting",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/sorting/server-side-sorting.tsx."
+	},
+	"docs.demo.1655dee9f071": {
+		"defaultMessage": "Pinned selection",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/pinning/pinned-selection.tsx."
 	},
 	"docs.demo.1680044de870": {
 		"defaultMessage": "Joined date",
@@ -1446,6 +1470,10 @@
 	"docs.demo.1bea65e5e9cc": {
 		"defaultMessage": "Sign with a mouse, a finger, or a stylus.",
 		"description": "Text of a demo in the docs, in components/signature-pad/in-a-form.tsx."
+	},
+	"docs.demo.1c1b7fa253db": {
+		"defaultMessage": "Server side grouping",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/groups/server-side-grouping.tsx."
 	},
 	"docs.demo.1c6225ec7092": {
 		"defaultMessage": "Budget",
@@ -1578,6 +1606,10 @@
 	"docs.demo.22b3467c1ba9": {
 		"defaultMessage": "Not saved",
 		"description": "Text of a demo in the docs, in components/signature-pad/imperative-handle.tsx."
+	},
+	"docs.demo.22ddda53e748": {
+		"defaultMessage": "Locked with pinnable columns",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/locking/locked-with-pinnable-columns.tsx."
 	},
 	"docs.demo.2313fe21ea84": {
 		"defaultMessage": "Edit {name}",
@@ -1747,6 +1779,10 @@
 		"defaultMessage": "Next day",
 		"description": "Text of a demo in the docs as detail, in modules/map/geofence/circle.tsx."
 	},
+	"docs.demo.2bb15fee5a84": {
+		"defaultMessage": "Row manager",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/groups/row-manager.tsx."
+	},
 	"docs.demo.2bd873d6c734": {
 		"defaultMessage": "Breadcrumb",
 		"description": "Text of a demo in the docs as label, in components/breadcrumb/playground.tsx, primitives/skeleton/skeleton-variants.tsx, providers/ui/replaced-icons.tsx."
@@ -1754,6 +1790,10 @@
 	"docs.demo.2bf63d817630": {
 		"defaultMessage": "Margin",
 		"description": "Text of a demo in the docs as label, yName, in modules/chart/animated.tsx, modules/chart/area/smooth-interpolation.tsx, modules/chart/combo/animated.tsx and 5 more."
+	},
+	"docs.demo.2c1ee3eb5aa9": {
+		"defaultMessage": "Row form",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/editing/row-form.tsx."
 	},
 	"docs.demo.2c3d371cbfd3": {
 		"defaultMessage": "Blank",
@@ -1921,7 +1961,7 @@
 	},
 	"docs.demo.3664895579f0": {
 		"defaultMessage": "Export",
-		"description": "Text of a demo in the docs as label, in components/context-menu/submenus.tsx, components/menu/submenus.tsx."
+		"description": "Text of a demo in the docs as aria-label, label, in components/context-menu/submenus.tsx, components/menu/submenus.tsx, modules/grid/export/export.tsx."
 	},
 	"docs.demo.36770a67e7fa": {
 		"defaultMessage": "See the visits and the conversions of the last 30 days.",
@@ -2119,6 +2159,14 @@
 		"defaultMessage": "No change",
 		"description": "Text of a demo in the docs as placeholder, in modules/grid/editing/bulk-edit.tsx."
 	},
+	"docs.demo.42b880455029": {
+		"defaultMessage": "With filenames",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/export/with-filenames.tsx."
+	},
+	"docs.demo.42e2e37d197c": {
+		"defaultMessage": "Cell scope and spreadsheet keys",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/editing/cell-scope-and-spreadsheet-keys.tsx."
+	},
 	"docs.demo.43af08d5a594": {
 		"defaultMessage": "Updated on March 3",
 		"description": "Text of a demo in the docs, in components/dialog/long-content.tsx."
@@ -2170,6 +2218,10 @@
 	"docs.demo.45b86ccfc9ae": {
 		"defaultMessage": "No orders match your filters.",
 		"description": "Text of a demo in the docs, in providers/density/playground.tsx."
+	},
+	"docs.demo.462c07b140b2": {
+		"defaultMessage": "In a cell",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/sparkline/in-a-cell.tsx."
 	},
 	"docs.demo.464c4ffd019e": {
 		"defaultMessage": "Edit",
@@ -2253,7 +2305,7 @@
 	},
 	"docs.demo.49c266baaaa7": {
 		"defaultMessage": "Search",
-		"description": "Text of a demo in the docs as placeholder, in components/sidebar/with-suffix-slot.tsx, modules/form/filters/playground.tsx, modules/form/filters/render-props.tsx and 2 more."
+		"description": "Text of a demo in the docs as aria-label, placeholder, in components/sidebar/with-suffix-slot.tsx, modules/form/filters/playground.tsx, modules/form/filters/render-props.tsx and 3 more."
 	},
 	"docs.demo.49dca65f362f": {
 		"defaultMessage": "United States",
@@ -2342,6 +2394,10 @@
 	"docs.demo.4db88b16931d": {
 		"defaultMessage": "Manage your project configuration.",
 		"description": "Text of a demo in the docs, in components/card/playground.tsx, components/card/with-header-and-footer.tsx."
+	},
+	"docs.demo.4dcf7663546a": {
+		"defaultMessage": "Animated sorting",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/sorting/animated-sorting.tsx."
 	},
 	"docs.demo.4e4116871bf1": {
 		"defaultMessage": "Set password",
@@ -2445,7 +2501,7 @@
 	},
 	"docs.demo.54a0e8c17ebb": {
 		"defaultMessage": "Error",
-		"description": "Text of a demo in the docs, in components/toast/severity.tsx."
+		"description": "Text of a demo in the docs as aria-label, in components/toast/severity.tsx, modules/grid/state/error.tsx."
 	},
 	"docs.demo.54a57c3147c4": {
 		"defaultMessage": "Privacy",
@@ -2571,6 +2627,10 @@
 		"defaultMessage": "Long-haul corridors",
 		"description": "Text of a demo in the docs as aria-label, in modules/map/route/basic.tsx."
 	},
+	"docs.demo.5c144a3a1159": {
+		"defaultMessage": "Client infinite scroll",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/virtualization/client-infinite-scroll.tsx."
+	},
 	"docs.demo.5c2b06176d6c": {
 		"defaultMessage": "Signups",
 		"description": "Text of a demo in the docs as label, yName, in modules/chart/line/date-labels.tsx, modules/grid/sparkline/in-a-cell.tsx."
@@ -2643,6 +2703,10 @@
 		"defaultMessage": "Filter tree",
 		"description": "Text of a demo in the docs as aria-label, placeholder, in components/json-tree/search-with-filter.tsx."
 	},
+	"docs.demo.62da6bd90a22": {
+		"defaultMessage": "Row groups",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/groups/row-groups.tsx."
+	},
 	"docs.demo.62f2ccfffcc5": {
 		"defaultMessage": "Secondary",
 		"description": "Text of a demo in the docs as label, in components/nav/nav-bar.tsx."
@@ -2654,6 +2718,10 @@
 	"docs.demo.6300ef800bb8": {
 		"defaultMessage": "Never",
 		"description": "Text of a demo in the docs as label, in components/radio/controlled.tsx."
+	},
+	"docs.demo.635cf0994fbe": {
+		"defaultMessage": "Expandable rows",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/expansion/expandable-rows.tsx."
 	},
 	"docs.demo.63718d617ed2": {
 		"defaultMessage": "Harbor Labs",
@@ -2795,6 +2863,10 @@
 		"defaultMessage": "Select a template and add tiles. Then select Edit layout to drag them by their grips and resize them by their edges.",
 		"description": "Text of a demo in the docs as touchText, in modules/dashboard/build-and-save.tsx."
 	},
+	"docs.demo.691f614cd1ab": {
+		"defaultMessage": "Double click",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/events/double-click.tsx."
+	},
 	"docs.demo.69493e6f1a69": {
 		"defaultMessage": "Hex",
 		"description": "Text of a demo in the docs as label, in components/swatch/color.tsx."
@@ -2819,6 +2891,10 @@
 		"defaultMessage": "Check your order before you pay.",
 		"description": "Text of a demo in the docs as description, in components/tabs/controlled.tsx."
 	},
+	"docs.demo.6ba8b523bba1": {
+		"defaultMessage": "Row reorder",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/reordering/row-reorder.tsx."
+	},
 	"docs.demo.6bb4c1177681": {
 		"defaultMessage": "Slide",
 		"description": "Text of a demo in the docs, in components/tabs/animation.tsx."
@@ -2835,6 +2911,10 @@
 		"defaultMessage": "Fast",
 		"description": "Text of a demo in the docs, in components/hold-button/durations.tsx."
 	},
+	"docs.demo.6ca2467ee317": {
+		"defaultMessage": "Smart sorting",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/sorting/smart-sorting.tsx."
+	},
 	"docs.demo.6cfba92fc401": {
 		"defaultMessage": "Estimate (hours)",
 		"description": "Text of a demo in the docs as title, in modules/grid/filters/date-number-and-boolean-filters.tsx."
@@ -2846,6 +2926,10 @@
 	"docs.demo.6dd5aa83396a": {
 		"defaultMessage": "How are late stops trending this week?",
 		"description": "Text of a demo in the docs as content, text, in modules/chat/conversation/conversation.tsx, modules/chat/conversation/edit-a-message.tsx, modules/chat/conversation/failed-reply.tsx and 1 more."
+	},
+	"docs.demo.6ddf63c8d7c6": {
+		"defaultMessage": "Aggregation and totals",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/groups/aggregation-and-totals.tsx."
 	},
 	"docs.demo.6e16eb32baba": {
 		"defaultMessage": "New row help",
@@ -2934,6 +3018,10 @@
 	"docs.demo.71988c4d8e08": {
 		"defaultMessage": "Text",
 		"description": "Text of a demo in the docs as label, in primitives/skeleton/skeleton-variants.tsx."
+	},
+	"docs.demo.71a03535a73a": {
+		"defaultMessage": "Sticky header",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/header/sticky-header.tsx."
 	},
 	"docs.demo.71bf90935fc2": {
 		"defaultMessage": "Reference",
@@ -3047,6 +3135,10 @@
 		"defaultMessage": "Ascending",
 		"description": "Text of a demo in the docs as label, in components/context-menu/submenus.tsx."
 	},
+	"docs.demo.776609d1ac25": {
+		"defaultMessage": "Locked left",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/locking/locked-left.tsx."
+	},
 	"docs.demo.77fd72a7585b": {
 		"defaultMessage": "Units sold by month",
 		"description": "Text of a demo in the docs as aria-label, in modules/dashboard/widgets.tsx."
@@ -3071,6 +3163,10 @@
 		"defaultMessage": "Enter a username.",
 		"description": "Text of a demo in the docs as validate, in modules/form/server-errors.tsx."
 	},
+	"docs.demo.78ed7d3d2649": {
+		"defaultMessage": "Paste and fill",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/editing/paste-and-fill.tsx."
+	},
 	"docs.demo.7913dcafb16d": {
 		"defaultMessage": "Select a template and add tiles. Then select Edit layout to drag and resize them.",
 		"description": "Text of a demo in the docs as mouseText, in modules/dashboard/build-and-save.tsx."
@@ -3091,9 +3187,17 @@
 		"defaultMessage": "Single sign-on and audit logs",
 		"description": "Text of a demo in the docs as description, in components/select/with-descriptions.tsx."
 	},
+	"docs.demo.79c1cc4152d8": {
+		"defaultMessage": "Undo and redo",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/editing/undo-and-redo.tsx."
+	},
 	"docs.demo.79f29b4ad01b": {
 		"defaultMessage": "Ask about the routes, the stops, or the depots of this week.",
 		"description": "Text of a demo in the docs as content, in modules/chat/conversation/conversation.tsx."
+	},
+	"docs.demo.7a0470083bd6": {
+		"defaultMessage": "Icon only",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/toolbar/icon-only.tsx."
 	},
 	"docs.demo.7a457ced2989": {
 		"defaultMessage": "Write the release notes",
@@ -3375,6 +3479,10 @@
 		"defaultMessage": "Progress bar",
 		"description": "Text of a demo in the docs as label, in primitives/skeleton/skeleton-variants.tsx."
 	},
+	"docs.demo.88c3445e4ecc": {
+		"defaultMessage": "Search highlight",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/filters/search-highlight.tsx."
+	},
 	"docs.demo.89713b9c9c1b": {
 		"defaultMessage": "Accept",
 		"description": "Text of a demo in the docs as label, in components/confirm/with-body-content.tsx, components/dialog/long-content.tsx."
@@ -3426,6 +3534,10 @@
 	"docs.demo.8bfdb93cafaa": {
 		"defaultMessage": "Keywords",
 		"description": "Text of a demo in the docs, in components/tag-input/max-tags.tsx."
+	},
+	"docs.demo.8c2c0f74cc10": {
+		"defaultMessage": "Range figures",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/footer/range-figures.tsx."
 	},
 	"docs.demo.8c30b8a484ff": {
 		"defaultMessage": "How to reach this person",
@@ -3507,6 +3619,14 @@
 		"defaultMessage": "Hold",
 		"description": "Text of a demo in the docs, in modules/map/point/zoomable.tsx."
 	},
+	"docs.demo.8e8f526b3d3c": {
+		"defaultMessage": "Cell range",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/events/cell-range.tsx."
+	},
+	"docs.demo.8ea6cab3dcce": {
+		"defaultMessage": "New row",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/editing/new-row.tsx."
+	},
 	"docs.demo.8ec64ccbfdaa": {
 		"defaultMessage": "One lowercase letter",
 		"description": "Text of a demo in the docs as label, in components/password-strength/custom-rules.tsx."
@@ -3514,6 +3634,10 @@
 	"docs.demo.8ee57323a6f2": {
 		"defaultMessage": "All statuses",
 		"description": "Text of a demo in the docs as placeholder, in modules/form/filters/playground.tsx, modules/form/filters/search-and-status.tsx, providers/density/playground.tsx."
+	},
+	"docs.demo.8f41c604be00": {
+		"defaultMessage": "Column manager",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/toolbar/column-manager.tsx."
 	},
 	"docs.demo.8f4f8efcbee1": {
 		"defaultMessage": "Align right",
@@ -3695,6 +3819,10 @@
 		"defaultMessage": "You get an email 30 days before a change to these terms. If you use the service after that date, you accept the new terms.",
 		"description": "Text of a demo in the docs as text, in components/dialog/long-content.tsx."
 	},
+	"docs.demo.97832ff4f847": {
+		"defaultMessage": "Column filters",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/filters/column-filters.tsx."
+	},
 	"docs.demo.978354db0c00": {
 		"defaultMessage": "Target",
 		"description": "Text of a demo in the docs as label, in modules/chart/line/reference-labels.tsx, modules/chart/reference-lines.tsx."
@@ -3838,6 +3966,10 @@
 	"docs.demo.9d839036e32d": {
 		"defaultMessage": "Returns & refunds",
 		"description": "Text of a demo in the docs as title, in components/accordion/items.ts."
+	},
+	"docs.demo.9dcc0bf0992e": {
+		"defaultMessage": "Row total",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/footer/row-total.tsx."
 	},
 	"docs.demo.9dcff98e275f": {
 		"defaultMessage": "Timeline",
@@ -4011,6 +4143,10 @@
 		"defaultMessage": "Visits by day",
 		"description": "Text of a demo in the docs as aria-label, in modules/chart/line/time-axis.tsx."
 	},
+	"docs.demo.a6273fb551f2": {
+		"defaultMessage": "Playground",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/playground.tsx."
+	},
 	"docs.demo.a6395ce14076": {
 		"defaultMessage": "The share of revenue of each product",
 		"description": "Text of a demo in the docs as description, in modules/dashboard/build-and-save.tsx."
@@ -4123,9 +4259,17 @@
 		"defaultMessage": "Update your payment method and download your invoices.",
 		"description": "Text of a demo in the docs as text, in components/tabs/settings.ts."
 	},
+	"docs.demo.abdecf7fce8d": {
+		"defaultMessage": "Bulk edit",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/editing/bulk-edit.tsx."
+	},
 	"docs.demo.ac2eb48819cf": {
 		"defaultMessage": "The privacy policy tells you what data the service collects and why. The service does not sell your data to other companies.",
 		"description": "Text of a demo in the docs as text, in components/dialog/long-content.tsx."
+	},
+	"docs.demo.ac4bb682f53e": {
+		"defaultMessage": "Pinned columns",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/pinning/pinned-columns.tsx."
 	},
 	"docs.demo.ac7c949f1211": {
 		"defaultMessage": "Inactive",
@@ -4134,6 +4278,10 @@
 	"docs.demo.ac8a73189fe3": {
 		"defaultMessage": "Profile photo",
 		"description": "Text of a demo in the docs, in components/file-upload/rejected-files.tsx."
+	},
+	"docs.demo.ac9bced03c5d": {
+		"defaultMessage": "Column groups",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/groups/column-groups.tsx."
 	},
 	"docs.demo.acde6fd42e33": {
 		"defaultMessage": "Sales report for the first quarter",
@@ -4202,6 +4350,10 @@
 	"docs.demo.b07c42d073fe": {
 		"defaultMessage": "US states",
 		"description": "Text of a demo in the docs as aria-label, in modules/map/county/drill-into-counties.tsx."
+	},
+	"docs.demo.b0be3eff1430": {
+		"defaultMessage": "Client sorting",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/sorting/client-sorting.tsx."
 	},
 	"docs.demo.b10fb966d720": {
 		"defaultMessage": "Volume",
@@ -4351,6 +4503,10 @@
 		"defaultMessage": "To the right",
 		"description": "Text of a demo in the docs as label, in components/context-menu/submenus.tsx."
 	},
+	"docs.demo.b82ba0933dd3": {
+		"defaultMessage": "Server infinite scroll",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/virtualization/server-infinite-scroll.tsx."
+	},
 	"docs.demo.b832002da297": {
 		"defaultMessage": "Invoice",
 		"description": "Text of a demo in the docs, in components/radio/disabled-option.tsx."
@@ -4399,6 +4555,10 @@
 		"defaultMessage": "Notify teams",
 		"description": "Text of a demo in the docs, in components/listbox/controlled.tsx, components/listbox/in-a-form.tsx."
 	},
+	"docs.demo.ba28c3445509": {
+		"defaultMessage": "Editor types",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/editing/editor-types.tsx."
+	},
 	"docs.demo.ba4520ab4f25": {
 		"defaultMessage": "Subdomain",
 		"description": "Text of a demo in the docs as aria-label, in components/input/with-suffix.tsx."
@@ -4438,6 +4598,10 @@
 	"docs.demo.bc814a0fcb35": {
 		"defaultMessage": "Motion:",
 		"description": "Text of a demo in the docs, in providers/appearance/current-appearance.tsx."
+	},
+	"docs.demo.bce01532db1b": {
+		"defaultMessage": "Master detail window",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/virtualization/master-detail-window.tsx."
 	},
 	"docs.demo.bd290d62ada2": {
 		"defaultMessage": "Line haul",
@@ -4535,6 +4699,10 @@
 		"defaultMessage": "Your order ships in one business day. You get a tracking link by email.",
 		"description": "Text of a demo in the docs, in components/collapse/playground.tsx."
 	},
+	"docs.demo.c1a0e04dada1": {
+		"defaultMessage": "Column reorder with handle",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/reordering/column-reorder-with-handle.tsx."
+	},
 	"docs.demo.c1ef40ce0484": {
 		"defaultMessage": "Australia",
 		"description": "Text of a demo in the docs as label, in components/select/countries.ts."
@@ -4554,6 +4722,10 @@
 	"docs.demo.c271872ba54f": {
 		"defaultMessage": "Enter the details for your new project.",
 		"description": "Text of a demo in the docs, in components/dialog/with-form.tsx."
+	},
+	"docs.demo.c27632126050": {
+		"defaultMessage": "Cell click",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/events/cell-click.tsx."
 	},
 	"docs.demo.c2800171dfd1": {
 		"defaultMessage": "Mia Chen joined the team in June.",
@@ -4607,6 +4779,10 @@
 		"defaultMessage": "Hide column",
 		"description": "Text of a demo in the docs as label, in components/context-menu/submenus.tsx."
 	},
+	"docs.demo.c6623a5921eb": {
+		"defaultMessage": "Row click",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/events/row-click.tsx."
+	},
 	"docs.demo.c666591df053": {
 		"defaultMessage": "Street",
 		"description": "Text of a demo in the docs as aria-label, placeholder, in components/fieldset/disabled.tsx, components/group/with-inputs.tsx."
@@ -4621,7 +4797,7 @@
 	},
 	"docs.demo.c6c094bc0054": {
 		"defaultMessage": "Empty",
-		"description": "Text of a demo in the docs, in components/address-input/business-search.tsx, components/address-input/coordinates.tsx, components/calendar/controlled.tsx and 19 more."
+		"description": "Text of a demo in the docs as aria-label, in components/address-input/business-search.tsx, components/address-input/coordinates.tsx, components/calendar/controlled.tsx and 20 more."
 	},
 	"docs.demo.c71eb1e3f64d": {
 		"defaultMessage": "\n# Release notes\n\nVersion 2.4 adds **search in attachments**. Run `app update` to get it, or\nread the _full list_ of [changes](https://example.com).\n\n## Changes\n\n- Search finds the text in attachments\n- Shared folders show who changed each file\n  - The list shows the last ten changes\n- The dark theme follows the setting of your system\n\n'>' Back up your files before you update.\n\n```ts\nexport function isLatest(version: string) '{'\n\treturn version === ''2.4''\n'}'\n```\n",
@@ -4694,6 +4870,10 @@
 	"docs.demo.ca1d22b0751f": {
 		"defaultMessage": "Press and hold here",
 		"description": "Text of a demo in the docs as touchText, in components/context-menu/glass.tsx, components/context-menu/playground.tsx, components/context-menu/submenus.tsx and 1 more."
+	},
+	"docs.demo.ca4067071fcf": {
+		"defaultMessage": "Selection",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/selection/selection.tsx."
 	},
 	"docs.demo.ca7981b46ecf": {
 		"defaultMessage": "Off",
@@ -4787,6 +4967,10 @@
 		"defaultMessage": "Got it. The door code is 4421.",
 		"description": "Text of a demo in the docs as text, in modules/chat/timestamped.tsx, modules/chat/with-actions.tsx, modules/chat/with-context-menu.tsx."
 	},
+	"docs.demo.d184cd0ce1db": {
+		"defaultMessage": "Column reorder without handle",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/reordering/column-reorder-without-handle.tsx."
+	},
 	"docs.demo.d1b853ddb9aa": {
 		"defaultMessage": "Freight rate and shipped weight by month",
 		"description": "Text of a demo in the docs as aria-label, in modules/chart/line/dashed-line.tsx, modules/chart/line/dual-axis.tsx."
@@ -4862,6 +5046,10 @@
 	"docs.demo.d624dd1c0a44": {
 		"defaultMessage": "Seven days, north and south routes",
 		"description": "Text of a demo in the docs as summary, in modules/chat/conversation/reply.ts."
+	},
+	"docs.demo.d65bb26d00b6": {
+		"defaultMessage": "Locked on both edges",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/locking/locked-on-both-edges.tsx."
 	},
 	"docs.demo.d65cfeb1b8eb": {
 		"defaultMessage": "Select the events that send you an email.",
@@ -5005,7 +5193,7 @@
 	},
 	"docs.demo.dc380888c4e2": {
 		"defaultMessage": "Loading",
-		"description": "Text of a demo in the docs, in components/loading/inside-a-button.tsx."
+		"description": "Text of a demo in the docs as aria-label, in components/loading/inside-a-button.tsx, modules/grid/state/loading.tsx."
 	},
 	"docs.demo.dc62b1ee6323": {
 		"defaultMessage": "The operating ceiling of the budget.",
@@ -5031,6 +5219,10 @@
 		"defaultMessage": "View",
 		"description": "Text of a demo in the docs as aria-label, in components/menu/sections.tsx, components/segment/disabled-item.tsx, components/segment/playground.tsx and 1 more."
 	},
+	"docs.demo.dcd0bfefd528": {
+		"defaultMessage": "Date number and boolean filters",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/filters/date-number-and-boolean-filters.tsx."
+	},
 	"docs.demo.dcd1d5223f73": {
 		"defaultMessage": "Name",
 		"description": "Text of a demo in the docs as label, title, in components/description-list/playground.tsx, components/listbox/with-prefix.tsx, components/menu/sections.tsx and 12 more."
@@ -5042,6 +5234,10 @@
 	"docs.demo.dd0ae7a5cbcf": {
 		"defaultMessage": "Save changes",
 		"description": "Text of a demo in the docs, in components/card/with-header-and-footer.tsx, structure/flex/with-actions.tsx."
+	},
+	"docs.demo.dd0eae443e69": {
+		"defaultMessage": "Collapsed groups",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/groups/collapsed-groups.tsx."
 	},
 	"docs.demo.dde07654d9fb": {
 		"defaultMessage": "KC → {abbreviation}",
@@ -5071,6 +5267,10 @@
 		"defaultMessage": "Last error: None",
 		"description": "Text of a demo in the docs, in modules/events/report-a-bug.tsx."
 	},
+	"docs.demo.df4c7737b8db": {
+		"defaultMessage": "Collapsible groups",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/groups/collapsible-groups.tsx."
+	},
 	"docs.demo.df4fe8dd42cb": {
 		"defaultMessage": "One second",
 		"description": "Text of a demo in the docs, in components/tooltip/delay.tsx."
@@ -5098,6 +5298,10 @@
 	"docs.demo.e0e7d293043c": {
 		"defaultMessage": "Latency",
 		"description": "Text of a demo in the docs as label, in modules/grid/sparkline/in-a-cell.tsx."
+	},
+	"docs.demo.e197d407f209": {
+		"defaultMessage": "Selection summary",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/footer/selection-summary.tsx."
 	},
 	"docs.demo.e1cb6d30fa3f": {
 		"defaultMessage": "Due date",
@@ -5146,6 +5350,10 @@
 	"docs.demo.e46149b6aef0": {
 		"defaultMessage": "75 Linden Avenue",
 		"description": "Text of a demo in the docs as label, in components/address-input/places.ts."
+	},
+	"docs.demo.e4938f2a073f": {
+		"defaultMessage": "Export with selection",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/export/export-with-selection.tsx."
 	},
 	"docs.demo.e4bb9f1ece9a": {
 		"defaultMessage": "Start",
@@ -5286,6 +5494,10 @@
 	"docs.demo.eb814be3ca3b": {
 		"defaultMessage": "Main",
 		"description": "Text of a demo in the docs as aria-label, label, in components/nav/nav-bar.tsx, components/sidebar/playground.tsx, components/sidebar/sections-divider-and-spacer.tsx and 3 more."
+	},
+	"docs.demo.ebaaeb1d788b": {
+		"defaultMessage": "Async commit",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/editing/async-commit.tsx."
 	},
 	"docs.demo.ebf12ef47cf5": {
 		"defaultMessage": "Draft",
@@ -5507,6 +5719,10 @@
 		"defaultMessage": "Invite by email",
 		"description": "Text of a demo in the docs, in components/menu/submenus.tsx."
 	},
+	"docs.demo.f77caee8b10d": {
+		"defaultMessage": "Grouped window",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/virtualization/grouped-window.tsx."
+	},
 	"docs.demo.f7e0b8036cbe": {
 		"defaultMessage": "Revenue by product",
 		"description": "Text of a demo in the docs as aria-label, title, in modules/dashboard/build-and-save.tsx, modules/dashboard/widgets.tsx."
@@ -5678,6 +5894,10 @@
 	"docs.demo.ff8b555d818f": {
 		"defaultMessage": "Update available",
 		"description": "Text of a demo in the docs as title, in components/toast/severity.tsx."
+	},
+	"docs.demo.ffa0b4725f7c": {
+		"defaultMessage": "Group editor",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/groups/group-editor.tsx."
 	},
 	"docs.demo.ffabf9ce7c33": {
 		"defaultMessage": "clip.mp4",

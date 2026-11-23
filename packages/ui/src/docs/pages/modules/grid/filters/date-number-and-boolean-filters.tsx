@@ -62,5 +62,12 @@ const ticketColumns: GridColumn<Ticket>[] = [
 ]
 
 export default function DateNumberAndBooleanFilters() {
-	return <Grid columns={ticketColumns} rows={tickets} getKey={(row) => row.id} />
+	return (
+		<Grid
+			tableProps={{ 'aria-label': 'Date number and boolean filters' }}
+			columns={ticketColumns}
+			rows={tickets}
+			getKey={(row) => row.id}
+		/>
+	)
 }

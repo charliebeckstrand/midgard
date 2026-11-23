@@ -147,7 +147,7 @@ function SidebarShell({ user, children }: { user: User; children: ReactNode }) {
 						</Sidebar>
 					}
 				>
-					{/* The main landmark of the page, and the target of the skip link of the layout. */}
+					{/* The body of the page, in the main landmark of the layout. */}
 					<SidebarLayoutBody>{children}</SidebarLayoutBody>
 				</SidebarLayout>
 			</div>

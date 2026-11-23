@@ -8,6 +8,7 @@ export default function AnimatedSorting() {
 	// With `animate`, the rows move to their new places when the sort changes.
 	return (
 		<Grid
+			tableProps={{ 'aria-label': 'Animated sorting' }}
 			columns={searchableColumns}
 			rows={people}
 			getKey={(row) => row.id}

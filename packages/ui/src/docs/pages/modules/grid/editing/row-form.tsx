@@ -33,6 +33,7 @@ export default function RowForm() {
 				/>
 			</EditHelp>
 			<Grid
+				tableProps={{ 'aria-label': 'Row form' }}
 				columns={columns}
 				rows={people}
 				getKey={(row) => row.id}

@@ -57,6 +57,7 @@ export default function Editable() {
 				/>
 			</EditHelp>
 			<Grid
+				tableProps={{ 'aria-label': 'Editable' }}
 				columns={columns}
 				rows={people}
 				getKey={(row) => row.id}

@@ -10,6 +10,7 @@ export default function GroupEditor() {
 	// `reorder`, drag a column to a group. The Move menu of a row also moves it.
 	return (
 		<Grid
+			tableProps={{ 'aria-label': 'Group editor' }}
 			columns={columns}
 			rows={people}
 			getKey={(row) => row.id}

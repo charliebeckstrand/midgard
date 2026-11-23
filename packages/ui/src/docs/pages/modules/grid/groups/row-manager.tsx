@@ -22,6 +22,7 @@ export default function RowManager() {
 				/>
 			</Text>
 			<Grid
+				tableProps={{ 'aria-label': 'Row manager' }}
 				columns={salesColumns}
 				rows={sales}
 				getKey={(row) => row.id}

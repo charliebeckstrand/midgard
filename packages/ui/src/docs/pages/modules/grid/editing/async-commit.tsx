@@ -46,6 +46,7 @@ export default function AsyncCommit() {
 				Save an empty name, or the name Error, to see the server refuse it.
 			</EditHelp>
 			<Grid
+				tableProps={{ 'aria-label': 'Async commit' }}
 				columns={personColumns}
 				rows={people}
 				getKey={(row) => row.id}

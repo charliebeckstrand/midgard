@@ -28,7 +28,13 @@ export default function RowClick() {
 	// Space to click a row.
 	return (
 		<Stack gap="md">
-			<Grid columns={actionColumns} rows={people} getKey={(row) => row.id} onRowClick={pick} />
+			<Grid
+				tableProps={{ 'aria-label': 'Row click' }}
+				columns={actionColumns}
+				rows={people}
+				getKey={(row) => row.id}
+				onRowClick={pick}
+			/>
 			<Text>Last row click: {picked ? null : 'None'}</Text>
 			{picked && <JsonTree data={picked} aria-label="Last row click" {...tree} />}
 		</Stack>

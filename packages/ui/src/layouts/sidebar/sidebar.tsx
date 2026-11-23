@@ -178,11 +178,17 @@ export type SidebarLayoutProps = ComponentProps<'div'> & {
  * right-to-left page, the panel, the floating sheet, and its hover strip are
  * on the right. The `aside` sits on the end edge.
  *
+ * The content column is the main landmark (`data-slot="sidebar-content"`).
+ * It holds the children: {@link SidebarLayoutHeader} with the title of the
+ * page, {@link SidebarLayoutBody}, and {@link SidebarLayoutFooter}. A reader
+ * that goes to the main landmark thus gets the title of the page first.
+ *
  * A "Skip to content" link is first in the tab order, so a reader with a
- * keyboard gets past the navigation (WCAG 2.4.1). The link shows only while it
- * has the focus, and it moves the focus to {@link SidebarLayoutBody}. Inside
- * the main slot of another layout, the layout renders no link, as the page
- * has one.
+ * keyboard gets past the navigation (WCAG 2.4.1). It is in the server HTML.
+ * The link shows only while it has the focus, and it moves the focus to the
+ * main landmark, which takes `tabindex="-1"` until it loses the focus. Inside
+ * the main slot of another layout, the content column is a `<div>`, and the
+ * layout renders no link, as the page has one.
  */
 export function SidebarLayout({
 	navbar,
@@ -263,29 +269,20 @@ export function SidebarLayout({
 
 	const mainId = useId()
 
-	// The main slot that mounted, or `null`. A layout with no `SidebarLayoutBody`
-	// has no target, so it renders no link.
-	const [main, setMain] = useState<HTMLElement | null>(null)
+	// The content column: the main landmark of the page and the target of the skip link.
+	const mainRef = useRef<HTMLElement>(null)
 
-	const skip = useMemo(
-		() => (enclosed ? null : { id: mainId, target: setMain }),
-		[enclosed, mainId],
-	)
-
-	// The link moves the focus to the main slot itself. The hash would scroll
+	// The link moves the focus to the main landmark itself. The hash would scroll
 	// only, and a router can read a change of the hash as a navigation.
-	const skipToMain = useCallback(
-		(event: MouseEvent) => {
-			event.preventDefault()
+	const skipToMain = useCallback((event: MouseEvent) => {
+		event.preventDefault()
 
-			if (main) focusSkipTarget(main)
-		},
-		[main],
-	)
+		if (mainRef.current) focusSkipTarget(mainRef.current)
+	}, [])
 
 	const layoutValue = useMemo(
-		() => ({ actions, bar: setBar, layout, stickyHeader, skip }),
-		[actions, setBar, layout, stickyHeader, skip],
+		() => ({ actions, bar: setBar, layout, stickyHeader }),
+		[actions, setBar, layout, stickyHeader],
 	)
 
 	return (
@@ -305,10 +302,9 @@ export function SidebarLayout({
 
 				{/* Skip link: first in the tab order, and visible only with the focus. The
 				    hot zone before it takes no focus. */}
-				{skip && main && (
-					// The `href` reads the id that the main slot renders, which can be an id of the consumer.
+				{!enclosed && (
 					<Button
-						href={`#${main.id}`}
+						href={`#${mainId}`}
 						onClick={skipToMain}
 						variant="plain"
 						color="inherit"
@@ -404,9 +400,19 @@ export function SidebarLayout({
 					</Landmark>
 				</Drawer>
 
-				{/* Content */}
+				{/* Content: the main landmark of the page, so the header with the title of
+				    the page is in it, and the target of the skip link. Inside the main
+				    slot of another layout, it is a `<div>` (`Landmark`). */}
 				<div className={slots.content.wrapper}>
-					<div className={slots.content.base}>{children}</div>
+					<Landmark
+						as="main"
+						id={enclosed ? undefined : mainId}
+						ref={mainRef}
+						data-slot="sidebar-content"
+						className={slots.content.base}
+					>
+						{children}
+					</Landmark>
 				</div>
 
 				{/* Inline aside: on the end edge, after the content. */}
@@ -470,34 +476,20 @@ const bodyClass = k().body
 /**
  * Main content slot for {@link SidebarLayout} (`data-slot="body"`). It scrolls
  * with the page at each width. It grows into the free height of the content
- * region, so the footer sits at the bottom of a short page. Inside the main
- * slot of another layout, it renders a `<div>`, so the page keeps one main
- * landmark. It is the target of the skip link of its layout. The link gives
- * it `tabindex="-1"` until it loses the focus, so a click on its text does not
- * move the start of the Tab order to the top of the slot.
+ * region, so the footer sits at the bottom of a short page. The content
+ * column of the layout is the main landmark, so the header with the title of
+ * the page is in it too, and the slot renders a `<div>`. Outside a layout, it
+ * renders a `<main>`.
  */
-export function SidebarLayoutBody({ className, ref, ...props }: SidebarLayoutBodyProps) {
-	const skip = use(SidebarLayoutContext)?.skip ?? null
-
-	const setBody = useComposedRefs<HTMLElement>(skip?.target, ref)
-
-	return (
-		<Landmark
-			as="main"
-			data-slot="body"
-			id={skip?.id}
-			{...props}
-			ref={setBody}
-			className={cn(bodyClass, className)}
-		/>
-	)
+export function SidebarLayoutBody({ className, ...props }: SidebarLayoutBodyProps) {
+	return <Landmark as="main" data-slot="body" {...props} className={cn(bodyClass, className)} />
 }
 
 /**
  * Moves the focus to the target of a skip link. A target that a script cannot
  * focus takes `tabindex="-1"` until it loses the focus. A permanent
- * `tabindex` would let a click on the text of the main slot focus the slot,
- * and the next Tab would then go to the first control of the slot, and not to
+ * `tabindex` would let a click on the text of the main landmark focus it, and
+ * the next Tab would then go to the first control of the landmark, and not to
  * the control after the click.
  *
  * @internal

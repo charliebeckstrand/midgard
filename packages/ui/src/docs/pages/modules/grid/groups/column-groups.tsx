@@ -4,6 +4,12 @@ import { columnGroups } from './data.tsx'
 
 export default function ColumnGroups() {
 	return (
-		<Grid columns={columns} rows={people} getKey={(row) => row.id} columnGroups={columnGroups} />
+		<Grid
+			tableProps={{ 'aria-label': 'Column groups' }}
+			columns={columns}
+			rows={people}
+			getKey={(row) => row.id}
+			columnGroups={columnGroups}
+		/>
 	)
 }

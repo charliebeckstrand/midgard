@@ -6,6 +6,7 @@ export default function WithFilenames() {
 	// `grid.csv` or `grid.xlsx`.
 	return (
 		<Grid
+			tableProps={{ 'aria-label': 'With filenames' }}
 			exportable={{
 				types: [{ csv: { filename: 'people.csv' }, excel: { filename: 'people.xlsx' } }],
 				toolbar: true,

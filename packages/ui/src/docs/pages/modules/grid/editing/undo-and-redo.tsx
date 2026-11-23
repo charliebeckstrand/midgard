@@ -37,6 +37,7 @@ export default function UndoAndRedo() {
 				</EditHelp>
 			</Flex>
 			<Grid
+				tableProps={{ 'aria-label': 'Undo and redo' }}
 				ref={gridRef}
 				columns={personColumns}
 				rows={people}
