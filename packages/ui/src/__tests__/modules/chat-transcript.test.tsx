@@ -334,23 +334,38 @@ describe('ChatTranscript', () => {
 
 			const ids = ['r1', 'r2']
 
-			/** A transcript whose last reply has two versions, with a switch that the owner applies or refuses. */
-			function Versions({ refuse = false }: { refuse?: boolean }) {
+			/**
+			 * A transcript whose last reply has two versions, with a switch that the
+			 * owner applies or refuses. With `rebuild`, the owner makes new message
+			 * objects on each render, and a field renders the owner again.
+			 */
+			function Versions({
+				refuse = false,
+				rebuild = false,
+			}: {
+				refuse?: boolean
+				rebuild?: boolean
+			}) {
 				const [shown, setShown] = useState<ChatMessageData[]>([question, second])
 
 				const [extra, setExtra] = useState<ChatMessageData[]>([])
+
+				const [, setDraft] = useState('')
+
+				const path = [...shown, ...extra]
 
 				const last = shown.at(-1) as ChatMessageData
 
 				return (
 					<>
 						<ChatTranscript
-							messages={[...shown, ...extra]}
+							messages={rebuild ? path.map((message) => ({ ...message })) : path}
 							branches={{ [last.id as string]: { index: ids.indexOf(last.id as string), ids } }}
 							onBranchChange={(id) => {
 								if (!refuse) setShown([question, id === 'r1' ? first : second])
 							}}
 						/>
+						<input aria-label="Draft" onChange={(event) => setDraft(event.target.value)} />
 						<button
 							type="button"
 							onClick={() =>
@@ -361,6 +376,16 @@ describe('ChatTranscript', () => {
 							}
 						>
 							Reply
+						</button>
+						<button
+							type="button"
+							onClick={() => {
+								setExtra([])
+
+								setShown([question, first])
+							}}
+						>
+							Show first
 						</button>
 					</>
 				)
@@ -381,6 +406,41 @@ describe('ChatTranscript', () => {
 				fireEvent.click(screen.getByRole('button', { name: 'Reply' }))
 
 				await expectAnnouncement('Three more are late.')
+			})
+
+			it('keeps the hold when the owner makes new message objects on each render', async () => {
+				renderUI(<Versions rebuild />)
+
+				fireEvent.click(screen.getByRole('button', { name: 'Previous version' }))
+
+				await expectAnnouncement('Version 1 of 2')
+
+				// A keystroke renders the owner again, with new objects and the same text.
+				fireEvent.change(screen.getByRole('textbox', { name: 'Draft' }), {
+					target: { value: 'a' },
+				})
+
+				await flushAnnouncer()
+
+				expect(liveRegion()).not.toHaveTextContent('First reply')
+			})
+
+			it('ends a refused hold, so a later path of the owner speaks no hidden version', async () => {
+				renderUI(<Versions refuse />)
+
+				fireEvent.click(screen.getByRole('button', { name: 'Previous version' }))
+
+				fireEvent.click(screen.getByRole('button', { name: 'Reply' }))
+
+				await expectAnnouncement('Three more are late.')
+
+				// The owner shows the first version by its own control. The armed hold
+				// ended with the reply, so the hold does not bind to the old status.
+				fireEvent.click(screen.getByRole('button', { name: 'Show first' }))
+
+				await expectAnnouncement('First reply')
+
+				expect(liveRegion()).not.toHaveTextContent('Second reply')
 			})
 
 			it('speaks nothing when the owner refuses the switch', async () => {

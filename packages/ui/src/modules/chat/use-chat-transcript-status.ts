@@ -5,12 +5,16 @@ import { useStableEvent } from '../../hooks/use-stable-event'
 import type { ChatMessageData } from './engine/types'
 
 /**
- * The state of a hold. An armed hold waits for the path that shows the version
- * `id`. A bound hold keeps `status` while the last message of that path stays.
+ * The state of a hold. Each state keeps `held`, the status that the transcript
+ * spoke before the switch, and `live`, the live status that the state started
+ * from.
+ *
+ * - An armed hold waits for the path that shows the version `id`.
+ * - A bound hold speaks `held` while the live status stays `live`.
  */
 type Hold =
-	| { kind: 'armed'; id: string; status: string }
-	| { kind: 'bound'; last: ChatMessageData | undefined; status: string }
+	| { kind: 'armed'; id: string; held: string; live: string }
+	| { kind: 'bound'; held: string; live: string }
 
 /**
  * The status that the transcript speaks, held through a switch of a branch.
@@ -22,9 +26,13 @@ type Hold =
  * transcript keeps the status that it spoke before the switch.
  *
  * `hold` arms the hold for the version `id`. The hold binds on the first path
- * that shows `id`, and it ends when the last message changes again, such as for
- * a new reply or a streamed chunk. An owner that refuses the switch never shows
- * `id`, so the hold never binds and the status stays live.
+ * that shows `id`. Then it holds while the live status stays the status of that
+ * path, and it ends when the live status changes, such as for a new reply.
+ * An armed hold ends when the live status changes before the path shows `id`,
+ * such as when the owner refuses the switch and a new reply comes.
+ *
+ * The hold compares the text of the status, as the announcer does. An owner
+ * that makes new message objects on each render thus keeps the hold.
  *
  * @param status - The live status of the transcript.
  * @param messages - The messages of the shown path.
@@ -37,19 +45,23 @@ export function useChatTranscriptStatus(
 ): { status: string; hold: (id: string) => void } {
 	const [hold, setHold] = useState<Hold | null>(null)
 
-	const last = messages.at(-1)
-
 	// The state changes during the render, so the effects of the commit read the
-	// bound status and speak nothing for the new path.
-	if (hold?.kind === 'armed' && messages.some((message) => message.id === hold.id)) {
-		setHold({ kind: 'bound', last, status: hold.status })
-	} else if (hold?.kind === 'bound' && hold.last !== last) {
+	// new state and speak nothing for the switched path.
+	if (hold?.kind === 'armed') {
+		if (messages.some((message) => message.id === hold.id)) {
+			setHold({ kind: 'bound', held: hold.held, live: status })
+		} else if (status !== hold.live) {
+			setHold(null)
+		}
+	} else if (hold?.kind === 'bound' && status !== hold.live) {
 		setHold(null)
 	}
 
-	const spoken = hold?.kind === 'bound' ? hold.status : status
+	const spoken = hold?.kind === 'bound' ? hold.held : status
 
-	const arm = useStableEvent((id: string) => setHold({ kind: 'armed', id, status: spoken }))
+	const arm = useStableEvent((id: string) =>
+		setHold({ kind: 'armed', id, held: spoken, live: status }),
+	)
 
 	return { status: spoken, hold: arm }
 }
