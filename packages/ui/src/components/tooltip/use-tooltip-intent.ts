@@ -67,7 +67,9 @@ export function isTooltipOpen(
 	requested: boolean,
 	heldDisabled: boolean,
 ): boolean {
-	return enabled && ((held && !heldDisabled) || requested)
+	const heldOpen = held && !heldDisabled
+
+	return enabled && (heldOpen || requested)
 }
 
 /** The nodes that take a typed key, as `isTypeableElement` of Floating UI reads them. */

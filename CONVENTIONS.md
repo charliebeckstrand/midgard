@@ -221,7 +221,7 @@ A name does not repeat what its scope already says. In `use-scroll-lock.ts`, wri
 
 A handler that fills an `onX` key by shorthand keeps the name `onX`. A handler that a prop takes by name is `handleX`, unless a name that says what it does is clearer, such as `closeOnLeave`.
 
-Split a declaration that does more than one thing into named steps. A nested ternary is one such declaration, and a condition of three or more mixed clauses is another. Keep the order of evaluation. §4.8 gives the gate for a nested ternary.
+Split a declaration that does more than one thing into named steps. A nested ternary is one such declaration. A condition that changes between `&&` and `||` two times, such as `a && (b || (c && d))`, is another: give its inner group a name. A condition that changes one time, such as `a && (b || c)`, stays as it is. Keep the order of evaluation. §4.8 gives the gate for a nested ternary. The [`no-twice-mixed-condition`](.biome/plugins/no-twice-mixed-condition.grit) Biome plugin gives the gate for a mixed condition.
 
 The [`no-abbreviated-binding`](.biome/plugins/no-abbreviated-binding.grit) Biome plugin holds the clipped forms (`e`, `err`, `idx`, `cb`, and the rest of its list). Where a name follows a series or a payload key that the code does not own, suppress the diagnostic and give the reason.
 

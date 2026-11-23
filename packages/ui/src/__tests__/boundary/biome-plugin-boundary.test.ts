@@ -375,6 +375,19 @@ export const h = <Button variant="bare" aria-label="Close"><Icon icon={<X />} />
 `,
 		},
 	],
+	'no-twice-mixed-condition': [
+		{
+			file: 'conditions.ts',
+			source: `export const a = (x: boolean, y: boolean, z: boolean, w: boolean) => x && (y || (z && w)) // flag
+export const b = (x: boolean, y: boolean, z: boolean, w: boolean) => (x && (y || z)) || w // flag
+export const c = (x: boolean, y: boolean, z: boolean, w: boolean) => x && ((y && z) || w) // flag
+export const d = (x: boolean, y: boolean, z: boolean) => x && (y || z)
+export const e = (x: boolean, y: boolean, z: boolean, w: boolean) => x || y || (z && w)
+export const f = (x: boolean, y: boolean, z: boolean, w: boolean) => (x || y) && (z || w)
+export const g = (x: boolean, y: boolean, z: boolean, w: boolean) => x && Boolean(y || (z && w))
+`,
+		},
+	],
 	'no-ui-anchor-selector': [
 		{
 			file: 'anchor.tsx',
@@ -531,6 +544,7 @@ const SCOPE: Record<string, { in: string; out: string }> = {
 	'no-renamed-spacing-utility': { in: 'packages/ui/src/layouts', out: 'packages/ui/src/hooks' },
 	'no-respelled-orientation': { in: 'packages/ui/src/utilities', out: 'packages/ui/src/recipes' },
 	'no-stateless-toggle-icon-button': { in: 'apps/places/src', out: 'packages/ui/src/components' },
+	'no-twice-mixed-condition': { in: 'packages/ui/src/hooks', out: 'patches' },
 	'no-ui-anchor-selector': { in: 'apps/places/src', out: 'apps/places/src/__tests__' },
 	'no-unused-layout-read': {
 		in: 'packages/ui/src/hooks',

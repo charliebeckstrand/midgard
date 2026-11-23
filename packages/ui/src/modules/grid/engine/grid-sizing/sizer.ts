@@ -353,7 +353,9 @@ export function createColumnSizer({
 		// A held column needs no content, so a grid whose every column is held reads
 		// again only for a missing fact or a provisional pass. A content-sized column
 		// is never held.
-		const stale = (fresh && (joined.length > 0 || fitted.length > 0)) || !seen || unfloored
+		const freshColumns = fresh && (joined.length > 0 || fitted.length > 0)
+
+		const stale = freshColumns || !seen || unfloored
 
 		if (stale) read(env, new Set(joined.map((col) => String(col.id))))
 

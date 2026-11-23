@@ -709,7 +709,8 @@
 			"includes": ["apps/**", "packages/**"],
 			"plugins": [
 				"./.biome/plugins/no-of-suffixed-binding.grit",
-				"./.biome/plugins/no-alternate-predicate-binding.grit"
+				"./.biome/plugins/no-alternate-predicate-binding.grit",
+				"./.biome/plugins/no-twice-mixed-condition.grit"
 			]
 		},
 		{

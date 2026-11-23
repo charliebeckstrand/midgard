@@ -594,6 +594,15 @@ function sameNode(a: AstNode, b: AstNode): boolean {
 	return a.pos === b.pos && a.end === b.end
 }
 
+/** Whether `parent` passes the place of `child` through: a wrapper, or a branch of a `?:`. */
+function passesPlace(parent: AstNode, child: AstNode): boolean {
+	if (isConditionalExpression(parent)) return !sameNode(parent.condition, child)
+
+	return (
+		isParenthesizedExpression(parent) || isAsExpression(parent) || isSatisfiesExpression(parent)
+	)
+}
+
 /**
  * Whether the result of a `??` is the value of its prop at that place: a JSX
  * attribute or child, a property, or a variable with one name. A branch of a
@@ -605,13 +614,7 @@ function standsAlone(node: AstNode): boolean {
 
 	let parent = node.parent
 
-	while (
-		parent &&
-		(isParenthesizedExpression(parent) ||
-			isAsExpression(parent) ||
-			isSatisfiesExpression(parent) ||
-			(isConditionalExpression(parent) && !sameNode(parent.condition, child)))
-	) {
+	while (parent && passesPlace(parent, child)) {
 		child = parent
 
 		parent = parent.parent
@@ -804,7 +807,9 @@ function scanComponent(
 
 		const [tag] = tags
 
-		if (tags.length === 1 && (tag === expected || (isName && tag === `{@link ${expected}}`))) {
+		const matches = tag === expected || (isName && tag === `{@link ${expected}}`)
+
+		if (tags.length === 1 && matches) {
 			return
 		}
 

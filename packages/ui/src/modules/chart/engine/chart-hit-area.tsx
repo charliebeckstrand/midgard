@@ -152,6 +152,8 @@ function ChartHitRect({
 		onMarkClick,
 	})
 
+	const clickable = (trigger === 'click' && snaps) || onIndexClick || onMarkClick
+
 	return (
 		<rect
 			ref={ref}
@@ -162,10 +164,7 @@ function ChartHitRect({
 			height={plot.height}
 			fill="none"
 			pointerEvents="all"
-			className={cn(
-				k.hit,
-				((trigger === 'click' && snaps) || onIndexClick || onMarkClick) && 'cursor-pointer',
-			)}
+			className={cn(k.hit, clickable && 'cursor-pointer')}
 			{...handlers}
 		/>
 	)

@@ -1551,7 +1551,9 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// only while its layer answers, because `regionPointer={false}` takes the
 	// regions off the pointer and out of the stop list. The table keeps their
 	// rows, since the switch withdraws the pointer and not the data.
-	const pointReadout = (regions.answers && (regionsRead || nameRegions)) || entries.length > 0
+	const regionReadout = regions.answers && (regionsRead || nameRegions)
+
+	const pointReadout = regionReadout || entries.length > 0
 
 	// `tooltip` asks and `pointReadout` answers; the readout channels all want the
 	// pair. Bound once rather than spelled at each of them.

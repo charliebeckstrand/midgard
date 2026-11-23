@@ -182,11 +182,13 @@ export function useTooltipState({
 		// pointer events after the state mounts. A tap that starts the state of a
 		// tooltip that mounted before the load gives its pointer events first,
 		// and then the compatibility mouse events, which that gate lets through.
-		gate: (next, gateRefs, reason) =>
-			!next ||
-			(enabled &&
-				!isReferenceDisabled(gateRefs.reference.current) &&
-				(reason !== 'hover' || hoverOpens(pointerRef.current))),
+		gate: (next, gateRefs, reason) => {
+			if (!next) return true
+
+			if (!enabled || isReferenceDisabled(gateRefs.reference.current)) return false
+
+			return reason !== 'hover' || hoverOpens(pointerRef.current)
+		},
 	})
 
 	// Adjusted during render: a tooltip that turns off drops the request, so it

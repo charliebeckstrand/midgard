@@ -1,0 +1,49 @@
+language js
+
+// A condition that changes between `&&` and `||` two times is hard to read,
+// such as `a && (b || (c && d))`. Give the inner group a name of its own, and
+// keep the order of evaluation (CONVENTIONS §8.4). A condition that changes
+// one time, such as `a && (b || c)`, passes.
+//
+// A group is an `&&` or an `||` expression, with or without parentheses. A
+// chain of one operator is one group, so `a || b || (c && d)` changes one
+// time. The search stops at each node that is not a part of the chain, so a
+// condition in a call argument or in a function body is a condition of its
+// own.
+//
+// Reach is the `includes` beside this plugin in `biome.json`: the apps and the
+// packages, with their tests.
+
+pattern or_group() {
+	or { `$_ || $_`, `($_ || $_)` }
+}
+
+pattern and_group() {
+	or { `$_ && $_`, `($_ && $_)` }
+}
+
+pattern or_group_holding_and() {
+	and {
+		or_group(),
+		contains and_group() until not or_group()
+	}
+}
+
+pattern and_group_holding_or() {
+	and {
+		and_group(),
+		contains or_group() until not and_group()
+	}
+}
+
+or {
+	`$_ && $right` where { $right <: or_group_holding_and() },
+	`$left && $_` where { $left <: or_group_holding_and() },
+	`$_ || $right` where { $right <: and_group_holding_or() },
+	`$left || $_` where { $left <: and_group_holding_or() }
+} as $condition where {
+	register_diagnostic(
+		span = $condition,
+		message = "this condition changes between `&&` and `||` two times: give the inner group a name (CONVENTIONS §8.4)"
+	)
+}
