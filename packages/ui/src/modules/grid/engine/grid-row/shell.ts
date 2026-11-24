@@ -112,6 +112,11 @@ type GridRowShellArgs<T> = GridRowShellHandlers<T> & {
 	row: T
 	rowKey: string | number
 	selected: boolean
+	/**
+	 * Whether the row can take the selection: the grid has a selection column,
+	 * and `rowSelectable` does not reject the row. A row that cannot states no
+	 * `aria-selected`.
+	 */
 	selectable: boolean
 	/** Whether the row is a roving-tabindex item right now (callers gate on expansion themselves). */
 	rowRoving: boolean

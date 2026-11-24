@@ -8,7 +8,7 @@ import type { PaletteColor } from '../../core/recipe/colors'
 import { MountHold } from '../../primitives/mount'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities/is-data-column'
-import { useGridNavContext } from './context'
+import { useGridNavContext, useGridUnselectable } from './context'
 import { NO_PADDING } from './engine/grid-constants'
 import type { GridLeaf } from './engine/grid-group/tree'
 import { isNewRowAddColumn } from './engine/grid-new-row-column'
@@ -298,6 +298,12 @@ function GridGroupLeafRowImpl<T>({
 	// the cursor over a client grouping, or roving over a manual grouping.
 	const tree = useGridNavContext().enabled || rowRoving || cellRoving
 
+	// A row that `rowSelectable` rejects cannot take the selection, so it states
+	// no selected state.
+	const unselectable = useGridUnselectable()
+
+	const takesSelection = selectable && !unselectable.has(rowKey)
+
 	// Rests the row once its reveal has shrunk to nothing, so a collapsed group's
 	// leaves stop riding the visible commit. A windowed leaf that enters mounts
 	// at the closed track and opens over the transition.
@@ -316,7 +322,7 @@ function GridGroupLeafRowImpl<T>({
 					row,
 					rowKey,
 					selected,
-					selectable,
+					selectable: takesSelection,
 					rowRoving: rowRoving && expanded,
 					onRowClick,
 					onCellClick,

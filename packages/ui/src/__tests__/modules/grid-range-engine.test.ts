@@ -325,10 +325,16 @@ describe('coercePaste', () => {
 		expect(coercePaste('text', null)).toEqual({ value: 'text' })
 	})
 
-	it('clears a number cell and a yes/no cell with an empty text', () => {
+	it('clears a cell that holds no string with an empty text', () => {
 		expect(coercePaste('', 3)).toEqual({ value: undefined })
 
 		expect(coercePaste(' ', true)).toEqual({ value: undefined })
+
+		expect(coercePaste('', new Date(2026, 10, 30))).toEqual({ value: undefined })
+
+		expect(coercePaste(' ', { id: 1 })).toEqual({ value: undefined })
+
+		expect(coercePaste('', 'text')).toEqual({ value: '' })
 	})
 
 	it('keeps an empty cell empty with an empty text', () => {
@@ -556,8 +562,8 @@ describe('fillLine text with a number', () => {
 		expect(fillLine(['Item 9', 'Item 10'], 1)).toEqual(['Item 11'])
 	})
 
-	// A date repeats when it starts the text or follows a space. A year in a
-	// code follows another character, and the code counts on.
+	// A year with no month repeats only when it starts the text or follows a
+	// space. A year in a code follows another character, and the code counts on.
 	it('continues a code that holds a year', () => {
 		expect(fillLine(['INV-2026-0001', 'INV-2026-0002'], 2)).toEqual([
 			'INV-2026-0003',
@@ -577,6 +583,22 @@ describe('fillLine text with a number', () => {
 		expect(fillLine(['2026-11-30T10:00', '2026-11-30T10:30'], 1)).toEqual(['2026-11-30T10:00'])
 
 		expect(fillLine(['Mon 10:00', 'Mon 10:30'], 1)).toEqual(['Mon 10:00'])
+	})
+
+	// A full date or a time in a code is not a count, so the code repeats and
+	// writes no day 31 of November and no minute 60.
+	it('repeats a date or a time after a character that is not a digit', () => {
+		expect(fillLine(['log-2026-11-29', 'log-2026-11-30'], 1)).toEqual(['log-2026-11-29'])
+
+		expect(fillLine(['(2026-11-29', '(2026-11-30'], 1)).toEqual(['(2026-11-29'])
+
+		expect(fillLine(['Due:2026-11-29', 'Due:2026-11-30'], 1)).toEqual(['Due:2026-11-29'])
+
+		expect(fillLine(['@10:00', '@10:30'], 1)).toEqual(['@10:00'])
+
+		expect(fillLine(['2026-11-30_10:00', '2026-11-30_10:30'], 1)).toEqual(['2026-11-30_10:00'])
+
+		expect(fillLine(['INV-2026-11-0001', 'INV-2026-11-0002'], 1)).toEqual(['INV-2026-11-0001'])
 	})
 
 	it('steps back, and repeats a series that would go below zero', () => {
