@@ -106,6 +106,15 @@
 );
 
 /*
+ * `text-trim` applies a class only in a browser that trims a text box to the
+ * cap height and the baseline (`text-box: trim-both cap alphabetic`). Chrome
+ * 133 and Safari 18.2 trim. Firefox does not, so it keeps the classes with no
+ * variant. An inline mark takes it, so the space above its text and the space
+ * below its text are equal.
+ */
+@custom-variant text-trim (@supports (text-box: trim-both cap alphabetic));
+
+/*
  * `baseline-strut` gives a box with no text the baseline of a line of text: an
  * empty glyph (U+200B) before its content. A Kbd with only an icon takes it,
  * so it sits on the baseline of a line, as a key with text does. The class
