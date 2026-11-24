@@ -1,12 +1,15 @@
 // @vitest-environment node
-import { describe, expect, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createTooltipGroup } from '../../components/tooltip/tooltip-group'
-import { it } from '../helpers/fake-clock'
+
+// The store reads only the timers. The setups install the real clock again
+// after each test.
+beforeEach(() => {
+	vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+})
 
 describe('createTooltipGroup', () => {
-	it('is warm while a tooltip is open and for the grace period after the close', async ({
-		clock,
-	}) => {
+	it('is warm while a tooltip is open and for the grace period after the close', () => {
 		const group = createTooltipGroup(() => 300)
 
 		const onChange = vi.fn()
@@ -21,11 +24,11 @@ describe('createTooltipGroup', () => {
 
 		close()
 
-		await clock.advance(299)
+		vi.advanceTimersByTime(299)
 
 		expect(group.warm()).toBe(true)
 
-		await clock.advance(1)
+		vi.advanceTimersByTime(1)
 
 		expect(group.warm()).toBe(false)
 
@@ -33,9 +36,7 @@ describe('createTooltipGroup', () => {
 		expect(onChange).toHaveBeenCalledTimes(2)
 	})
 
-	it('hands over from the open tooltip to the next, and the old close starts no grace period', async ({
-		clock,
-	}) => {
+	it('hands over from the open tooltip to the next, and the old close starts no grace period', () => {
 		const group = createTooltipGroup(() => 300)
 
 		const first = vi.fn()
@@ -49,39 +50,39 @@ describe('createTooltipGroup', () => {
 		// The close of the first tooltip comes after the handover.
 		closeFirst()
 
-		await clock.advance(1000)
+		vi.advanceTimersByTime(1000)
 
 		expect(group.warm()).toBe(true)
 
 		closeSecond()
 
-		await clock.advance(300)
+		vi.advanceTimersByTime(300)
 
 		expect(group.warm()).toBe(false)
 	})
 
-	it('stays warm when a tooltip opens in the grace period', async ({ clock }) => {
+	it('stays warm when a tooltip opens in the grace period', () => {
 		const group = createTooltipGroup(() => 300)
 
 		group.open(vi.fn())()
 
-		await clock.advance(200)
+		vi.advanceTimersByTime(200)
 
 		group.open(vi.fn())
 
-		await clock.advance(1000)
+		vi.advanceTimersByTime(1000)
 
 		expect(group.warm()).toBe(true)
 	})
 
-	it('stops the grace period on dispose', async ({ clock }) => {
+	it('stops the grace period on dispose', () => {
 		const group = createTooltipGroup(() => 300)
 
 		group.open(vi.fn())()
 
 		group.dispose()
 
-		await clock.advance(1000)
+		vi.advanceTimersByTime(1000)
 
 		// No timer ran, so the group did not turn cold.
 		expect(group.warm()).toBe(true)
