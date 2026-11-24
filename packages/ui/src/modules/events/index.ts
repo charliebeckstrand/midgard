@@ -1,6 +1,6 @@
 /**
- * A log of component events, shown in a pinned panel that a header button
- * opens.
+ * A log of component events. A header button opens it in a sheet, and Pin
+ * docks the sheet as a panel at the edge of the page.
  *
  * @packageDocumentation
  */
