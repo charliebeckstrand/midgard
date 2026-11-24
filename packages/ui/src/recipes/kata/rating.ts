@@ -38,11 +38,23 @@ const color = { current: 'text-current', ...marker }
  * One star's box: the position the clipped fill is measured against. It has
  * the size of the glyph.
  */
-const star = ['relative', flex.inline, 'shrink-0']
+/**
+ * The focus ring of a star. It goes around the glyph, not around the wider cell
+ * of the hit area. At a half step, the star holds the two radios, so
+ * `focus.outline` (`has-focus-visible`) draws it. At a whole step, the radio
+ * comes before the star in the cell, so the star reads the radio as a `peer`.
+ */
+const starFocus = [
+	focus.outline,
+	'peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2',
+	...mode('peer-focus-visible:outline-blue-600', 'dark:peer-focus-visible:outline-blue-500'),
+]
+
+const star = ['relative', flex.inline, 'shrink-0', starFocus]
 
 /**
- * The cell of one star in the interactive form, which carries the cursor and
- * the focus ring. Each cell is at least the floor of `TouchTarget` wide: 24 px
+ * The cell of one star in the interactive form, which carries the cursor. The
+ * star in it carries the focus ring (`starFocus`). Each cell is at least the floor of `TouchTarget` wide: 24 px
  * on a fine pointer and 44 px on a coarse pointer (WCAG 2.5.8). The star is in
  * the middle of its cell.
  *
@@ -57,7 +69,7 @@ const star = ['relative', flex.inline, 'shrink-0']
  * phone.
  */
 const cell = {
-	base: [flex.inline, 'justify-center shrink-0', focus.outline, ...cursor],
+	base: [flex.inline, 'justify-center shrink-0', ...cursor],
 	step: {
 		whole: 'relative min-w-6 pointer-coarse:min-w-11',
 		half: ['min-w-12', touch.flush.x],
@@ -134,8 +146,8 @@ export const k = defineKata(
 				 */
 				clearing: { true: 'opacity-40', false: '' },
 			},
-			/** Visually-hidden native radio, overlaying its own star. */
-			input: hidden,
+			/** Visually-hidden native radio, overlaying its own star. It is the `peer` of the star at a whole step. */
+			input: [hidden, 'peer'],
 		},
 		defaults: { color: 'amber', side: 'start', step: 'whole', clearing: false },
 	},
