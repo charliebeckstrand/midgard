@@ -18,6 +18,15 @@ const prose = markdown()
 const block = code({ canvas: 'dark' }).block
 
 /**
+ * The classes of the `pre` of a code block: the frame and the scroll box of
+ * the code kata in one box, with no copy button. The frame of the kata is a
+ * flex row for its copy button. Here the box is a block, and the code is
+ * inline in it. In a flex row, the code is a flex item as wide as its text,
+ * so an empty code has no width, and the browser draws no caret in it.
+ */
+const codeBlockClass = cn(block.base, block.content, block.fallback, 'block')
+
+/**
  * The block nodes of a draft: the Markdown blocks that a chat message renders.
  * A block that the schema does not hold, such as a table or raw HTML, is a
  * `raw` atom that keeps its source.
@@ -98,11 +107,7 @@ const nodes = {
 		defining: true,
 		attrs: { lang: { default: '', validate: 'string' } },
 		parseDOM: [{ tag: 'pre', preserveWhitespace: 'full' }],
-		toDOM: (): DOMOutputSpec => [
-			'pre',
-			{ class: cn(block.base, block.content, block.fallback), dir: 'ltr' },
-			['code', 0],
-		],
+		toDOM: (): DOMOutputSpec => ['pre', { class: codeBlockClass, dir: 'ltr' }, ['code', 0]],
 	},
 	horizontal_rule: {
 		group: 'block',
@@ -121,7 +126,7 @@ const nodes = {
 		attrs: { source: { validate: 'string' } },
 		toDOM: (node): DOMOutputSpec => [
 			'pre',
-			{ class: cn(block.base, block.content, block.fallback), dir: 'ltr' },
+			{ class: codeBlockClass, dir: 'ltr' },
 			['code', node.attrs.source],
 		],
 	},
