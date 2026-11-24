@@ -377,7 +377,12 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 	return (
 		<WysiwygContext value={context}>
 			{/* biome-ignore lint/a11y/noStaticElementInteractions: a focus-out surface for the toolbar and the field, not a control. The field marks itself touched when the focus leaves both. */}
-			<div data-slot="wysiwyg-root" className={cn(slots.root)} onBlur={handleBlur}>
+			<div
+				data-slot="wysiwyg-root"
+				data-disabled={dataAttr(field.disabled)}
+				className={cn(slots.root)}
+				onBlur={handleBlur}
+			>
 				{apart && children}
 				<ControlFrame
 					as="div"

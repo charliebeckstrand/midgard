@@ -30,13 +30,13 @@ describe('kasane.softLayers', () => {
 		expect(soft).not.toContain('before:absolute')
 	})
 
-	it('fills with a wash that deepens on hover, except when disabled', () => {
+	it('fills with a wash that deepens on hover, except when disabled or read-only', () => {
 		expect(softLayers).toEqual(
 			expect.arrayContaining([
 				'bg-zinc-950/5',
 				'dark:bg-white/5',
-				'not-has-[>:disabled]:hover:bg-zinc-950/10',
-				'not-has-[>:disabled]:dark:hover:bg-white/10',
+				'not-data-disabled:not-has-[>:disabled,[aria-readonly=true],[data-readonly],[readonly]]:hover:bg-zinc-950/10',
+				'not-data-disabled:not-has-[>:disabled,[aria-readonly=true],[data-readonly],[readonly]]:dark:hover:bg-white/10',
 			]),
 		)
 	})

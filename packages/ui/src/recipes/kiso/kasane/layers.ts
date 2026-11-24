@@ -45,13 +45,16 @@ const overlay = [
 
 /**
  * Outer ring color on hover: one shade further from the page than resting. It skips a
- * disabled control and a validation state, like `focus`. The dark class comes
- * later in the CSS, so it would otherwise replace the validation ring on hover
- * in dark mode. One `not-has-[…]` holds the selector list.
+ * control that takes no edit and a validation state, like `focus`. A control
+ * takes no edit when it is disabled (a `:disabled` field, or `data-disabled` on
+ * a frame whose field is not a native control) or read-only (the marks of
+ * `hannou.cursor`). The dark class comes later in the CSS, so it would
+ * otherwise replace the validation ring on hover in dark mode. One
+ * `not-has-[…]` holds the selector list.
  */
 const hover = mode(
-	'not-has-[>:disabled,[data-invalid],[data-valid],[data-warning]]:hover:ring-zinc-600',
-	'not-has-[>:disabled,[data-invalid],[data-valid],[data-warning]]:dark:hover:ring-zinc-400',
+	'not-data-disabled:not-has-[>:disabled,[aria-readonly=true],[data-readonly],[readonly],[data-invalid],[data-valid],[data-warning]]:hover:ring-zinc-600',
+	'not-data-disabled:not-has-[>:disabled,[aria-readonly=true],[data-readonly],[readonly],[data-invalid],[data-valid],[data-warning]]:dark:hover:ring-zinc-400',
 )
 
 /** `::after` 2 px focus ring: blue when no validation state is active. */
@@ -117,8 +120,8 @@ const disabled = [
  * is behind it. It is no heavier than the fill of a default control: 5% zinc on
  * light, and 5% white on dark, which is the dark fill of `surface.default`.
  * Hover doubles it: 10% zinc on light, 10% white on dark. A soft control thus
- * has the weight of a default control without its ring. Hover skips a disabled
- * control, like `hover`.
+ * has the weight of a default control without its ring. Hover skips a control
+ * that takes no edit, like `hover`.
  *
  * Forced colors replace the wash with the page color, so the wash takes the
  * outline of `sen.forced` at the place of the 1 px inset ring that it replaces
@@ -129,8 +132,8 @@ const wash = [
 	forced.outline,
 	'forced-colors:-outline-offset-1',
 	...mode(
-		'not-has-[>:disabled]:hover:bg-zinc-950/10',
-		'not-has-[>:disabled]:dark:hover:bg-white/10',
+		'not-data-disabled:not-has-[>:disabled,[aria-readonly=true],[data-readonly],[readonly]]:hover:bg-zinc-950/10',
+		'not-data-disabled:not-has-[>:disabled,[aria-readonly=true],[data-readonly],[readonly]]:dark:hover:bg-white/10',
 	),
 ]
 

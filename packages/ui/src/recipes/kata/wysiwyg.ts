@@ -134,7 +134,15 @@ export const k = defineKata(
 			 * toolbar and the frame below it. Else it has no box, and the frame is
 			 * the box of the field.
 			 */
-			root: { separated: { true: ['flex flex-col', dan.gap.scale.sm], false: 'contents' } },
+			root: {
+				/**
+				 * A disabled field shows `not-allowed` over each of its parts, the
+				 * field and the toolbar too. The field is not a native control, so the
+				 * root reads its own `data-disabled`.
+				 */
+				base: 'data-disabled:cursor-not-allowed data-disabled:**:cursor-not-allowed',
+				separated: { true: ['flex flex-col', dan.gap.scale.sm], false: 'contents' },
+			},
 		},
 		defaults: { toolbar: false, separated: false },
 	},
