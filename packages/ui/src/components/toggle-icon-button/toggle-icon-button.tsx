@@ -48,9 +48,10 @@ export type ToggleIconButtonProps = AccessibleName & {
 } & Omit<ComponentProps<'button'>, 'children' | 'type' | 'color' | 'aria-label' | 'aria-labelledby'>
 
 /**
- * Two-state icon Button reflecting `pressed` via `aria-pressed`. Swaps `icon`
- * for `pressedIcon` and, unless `animate` is false, cross-fades between the two.
- * Requires `aria-label` or `aria-labelledby`.
+ * An icon button with an on state and an off state. It shows `pressed` through
+ * `aria-pressed`. Swaps `icon` for `pressedIcon` and, unless `animate` is
+ * false, cross-fades between the two. Requires `aria-label` or
+ * `aria-labelledby`.
  *
  * @remarks
  * A consumer `onClick` runs before the toggle. Its `preventDefault()` does not

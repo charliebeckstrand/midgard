@@ -61,9 +61,9 @@ export type CollapseProps = Omit<ComponentProps<'div'>, 'children'> & {
 }
 
 /**
- * Disclosure container that animates a single panel open and closed. Drives
- * state controllably via `open`/`onOpenChange` or uncontrolled via `defaultOpen`,
- * wires `aria-expanded`/`aria-controls` through {@link useCollapseContext}, and
+ * A panel that opens and closes with an animation. Drives state controllably
+ * via `open`/`onOpenChange` or uncontrolled via `defaultOpen`, wires
+ * `aria-expanded`/`aria-controls` through {@link useCollapseContext}, and
  * honors reduced-motion. Compose `<CollapseTrigger>` and `<CollapsePanel>` as
  * children for full control over placement.
  *

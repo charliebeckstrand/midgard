@@ -109,13 +109,14 @@ export type AddressInputProps = Omit<
 }
 
 /**
- * Address autocomplete over a pluggable geocoding `provider`. Built on
- * `<Combobox>`: debounces the query by `debounce`, fetches once the query
- * reaches `minQueryLength`, and renders each {@link AddressSuggestion} as a
- * labeled option with optional description. The suffix tracks selection state.
- * It shows a `<LoadingSpinner>` while fetching, and a `<MapPin>` when empty or
- * disabled. Otherwise it cedes the slot to the Combobox clear button. The
- * whole field pulses (`animate-pulse`) while a fetch is in flight.
+ * An address field that suggests matches from a geocoding `provider` as the
+ * reader types. Built on `<Combobox>`: debounces the query by `debounce`,
+ * fetches once the query reaches `minQueryLength`, and renders each
+ * {@link AddressSuggestion} as a labeled option with optional description. The
+ * suffix tracks selection state. It shows a `<LoadingSpinner>` while fetching,
+ * and a `<MapPin>` when empty or disabled. Otherwise it cedes the slot to the
+ * Combobox clear button. The whole field pulses (`animate-pulse`) while a fetch
+ * is in flight.
  *
  * It searches by business or place name as readily as by address. The default
  * provider leads a named match with its name and carries the street line

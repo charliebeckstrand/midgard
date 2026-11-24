@@ -77,8 +77,8 @@ export type AccordionProps = (SingleProps | MultipleProps) &
 	}
 
 /**
- * Vertically stacked set of collapsible sections. A single accordion keeps at
- * most one open (optionally `collapsible` to none); `multiple` allows any
+ * A stack of sections that each expand and collapse. A single accordion keeps
+ * at most one open (optionally `collapsible` to none); `multiple` allows any
  * number. Controlled via `value`/`onValueChange` or uncontrolled. `variant`
  * defaults to `'separated'`.
  *

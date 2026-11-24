@@ -116,13 +116,13 @@ export type DateInputProps = Omit<
 }
 
 /**
- * Text Input that masks typed digits into a date pattern (`format`, defaulting
- * to the ambient locale's field order). Emits a `Date` via `onValueChange` once the text is a
- * complete, real, in-range date. Marks itself invalid, and renders the
- * `invalidMessage`, in three cases. A complete entry does not parse, it falls
- * outside `min`/`max`, or blur leaves a partial entry behind. Controlled
- * or uncontrolled via `value`/`defaultValue`, and bound to an enclosing Form
- * field by `name` (the stored value is the `Date`).
+ * A text field that formats the typed digits as a date. The pattern is
+ * `format`, or else the field order of the ambient locale. Emits a `Date` via
+ * `onValueChange` once the text is a complete, real, in-range date. Marks
+ * itself invalid, and renders the `invalidMessage`, in three cases. A complete
+ * entry does not parse, it falls outside `min`/`max`, or blur leaves a partial
+ * entry behind. Controlled or uncontrolled via `value`/`defaultValue`, and
+ * bound to an enclosing Form field by `name` (the stored value is the `Date`).
  *
  * @remarks
  * Falls back to an `aria-label` of `'Date'` only when nothing names it. It

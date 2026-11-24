@@ -120,9 +120,9 @@ function GridImpl<T>({ pagination, maxHeight, ...props }: GridProps<T>) {
 }
 
 /**
- * Data grid over {@link GridProps}: columns, sorting, filtering, grouping,
- * selection, and virtualization. Memoized on its shallow-equal props, so an
- * embedded grid rests while its host re-renders around it. See
- * {@link GridImpl} for the full binding remarks.
+ * A data grid with sorting, filtering, grouping, selection, and virtualization.
+ * It takes its columns and its rows as {@link GridProps}. Memoized on its
+ * shallow-equal props, so an embedded grid rests while its host re-renders
+ * around it. See {@link GridImpl} for the full binding remarks.
  */
 export const Grid = memo(GridImpl) as typeof GridImpl

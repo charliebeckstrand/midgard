@@ -31,11 +31,11 @@ export type DateTimeProps = Omit<ComponentProps<'time'>, 'dateTime' | 'children'
 }
 
 /**
- * An absolute date or time in a `<time>` element, in the locale of the nearest
- * `LocaleProvider`. It follows the rules of `useDateFormat`: a `timeZone` in
- * `format`, else the zone of the provider, else the zone of the reader. The
- * browser writes the text, after hydration. The server render and the
- * hydration render put a skeleton in the `<time>`. A `DateText` value shows
+ * A date or a time, written in the locale of the nearest `LocaleProvider`. It
+ * renders a `<time>` element. It follows the rules of `useDateFormat`: a
+ * `timeZone` in `format`, else the zone of the provider, else the zone of the
+ * reader. The browser writes the text, after hydration. The server render and
+ * the hydration render put a skeleton in the `<time>`. A `DateText` value shows
  * the text of the server in each render, with no skeleton, and `format` does
  * not apply. An invalid `value` renders an empty `<span>`.
  *

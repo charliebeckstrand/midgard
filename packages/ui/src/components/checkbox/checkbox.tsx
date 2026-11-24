@@ -33,15 +33,16 @@ export type CheckboxProps = CheckboxVariants & {
 } & Omit<ComponentProps<'input'>, 'type' | 'size' | 'readOnly'>
 
 /**
- * Labeled checkbox with an `indeterminate` tri-state. Binds to enclosing Form
- * and Control context for `name` and validation. The box takes the step of the
- * nearest density scope, and an explicit `size` opens a scope on the label. An explicit
- * `checked` prop wins over the bound field; `onChange` fires in either mode.
- * `defaultChecked` reaches the element only while the checkbox is uncontrolled,
- * so a bound checkbox ignores it (§7.2). `className`, `style`, and `hidden` go
- * to the visible box, and the other native attributes go to the input. The hit
- * area floors at the minimums of `TouchTarget`, 24 px on a fine pointer and 44
- * px on a coarse pointer, and the box keeps its size.
+ * A checkbox with its label. It can also show an `indeterminate` state. Binds
+ * to enclosing Form and Control context for `name` and validation. The box
+ * takes the step of the nearest density scope, and an explicit `size` opens a
+ * scope on the label. An explicit `checked` prop wins over the bound field;
+ * `onChange` fires in either mode. `defaultChecked` reaches the element only
+ * while the checkbox is uncontrolled, so a bound checkbox ignores it (§7.2).
+ * `className`, `style`, and `hidden` go to the visible box, and the other
+ * native attributes go to the input. The hit area floors at the minimums of
+ * `TouchTarget`, 24 px on a fine pointer and 44 px on a coarse pointer, and the
+ * box keeps its size.
  */
 export function Checkbox({
 	className,

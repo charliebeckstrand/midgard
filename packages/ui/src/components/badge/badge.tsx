@@ -17,11 +17,11 @@ type BadgeBaseProps = Omit<BadgeVariants, 'interactive'> & {
 export type BadgeProps = BadgeBaseProps & PolymorphicStaticProps<'span', 'prefix'>
 
 /**
- * Compact label chip for status, counts, or tags, with optional `prefix`/`suffix`
- * icons. Polymorphic: renders a `<span>`, a plain anchor when `href` is set, or a
- * composed element via `render` (e.g. `render={<Link />}`) to wire the app router
- * link at the call site. A link badge takes a focus ring, and the hover wash of
- * its variant and color.
+ * A small label for a status, a count, or a tag. It can show a `prefix` icon
+ * and a `suffix` icon. Polymorphic: renders a `<span>`, a plain anchor when
+ * `href` is set, or a composed element via `render` (e.g. `render={<Link />}`)
+ * to wire the app router link at the call site. A link badge takes a focus
+ * ring, and the hover wash of its variant and color.
  *
  * @remarks
  * Static leaf: renders in React Server Components. Without `size`, the badge

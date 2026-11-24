@@ -42,11 +42,12 @@ export type SidebarProps = Omit<ComponentProps<'nav'>, 'aria-label'> & {
 }
 
 /**
- * Vertical navigation landmark with a true roving-tabindex keyboard model. The
- * item list is a single Tab stop, Up/Down arrows move focus between items, and
- * Left/Right rove into an item's prefix/suffix actions. The resting stop
- * sits on the current item (`aria-current`), falling back to the first
- * item. Establishes an active-indicator scope.
+ * A vertical navigation landmark with arrow-key navigation. It has a true
+ * roving-tabindex keyboard model. The item list is a single Tab stop, Up/Down
+ * arrows move focus between items, and Left/Right rove into an item's
+ * prefix/suffix actions. The resting stop sits on the current item
+ * (`aria-current`), falling back to the first item. Establishes an
+ * active-indicator scope.
  *
  * @remarks
  * The `<nav>` takes no composite role, so AT does not announce the arrow keys.

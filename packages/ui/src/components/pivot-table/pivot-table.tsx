@@ -63,9 +63,9 @@ export type PivotTableProps<T> = Pick<
 }
 
 /**
- * Two-axis aggregation table: groups `rows` by `(row × column)` `keys` and
- * aggregates the value field into each cell, optionally rendering row/column
- * totals. Renders over {@link Table}.
+ * A table that groups and totals data on two axes. It groups `rows` by
+ * `(row × column)` `keys` and aggregates the value field into each cell,
+ * optionally rendering row/column totals. Renders over {@link Table}.
  *
  * @remarks
  * The numbers align to the inline end, so they follow the text direction. A

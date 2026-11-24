@@ -6,9 +6,9 @@ import { type DividerVariants, k } from '../../recipes/kata/divider'
 export type DividerProps = DividerVariants & ComponentProps<'hr'>
 
 /**
- * Thin rule that separates content, rendered as a styled `<hr>`. Draws a top
- * border when `horizontal` and an inline-start border when `vertical`, which
- * is the right edge in a right-to-left document. `soft` lightens the line.
+ * A thin line that separates content. It renders a styled `<hr>`. Draws a top
+ * border when `horizontal` and an inline-start border when `vertical`, which is
+ * the right edge in a right-to-left document. `soft` lightens the line.
  *
  * @remarks
  * The rule keeps the implicit `separator` role of the native `<hr>`. The

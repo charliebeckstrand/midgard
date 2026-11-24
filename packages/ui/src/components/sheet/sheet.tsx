@@ -135,11 +135,12 @@ export type SheetPanelProps = Omit<SheetPanelVariants, 'surface' | 'width' | 'si
 	}
 
 /**
- * Composition root for a sheet. It holds the open state, controlled
- * (`open`/`onOpenChange`) or uncontrolled (`defaultOpen`), and gives it to
- * `<SheetTrigger>` and `<SheetPanel>`. It renders no element. A trigger in the
- * root opens an uncontrolled sheet. Escape, the backdrop, and `<SheetClose>`
- * close it, and focus then goes back to the trigger.
+ * A panel that slides in from an edge of the screen when its trigger opens it.
+ * It holds the open state, controlled (`open`/`onOpenChange`) or uncontrolled
+ * (`defaultOpen`), and gives it to `<SheetTrigger>` and `<SheetPanel>`. It
+ * renders no element. A trigger in the root opens an uncontrolled sheet.
+ * Escape, the backdrop, and `<SheetClose>` close it, and focus then goes back
+ * to the trigger.
  *
  * @example
  * ```tsx
