@@ -96,11 +96,16 @@ export const k = defineKata({
 				omote.popover,
 				// Hidden, but in the Tab order: focus on the button shows the toolbar,
 				// as the pointer does. The toolbar takes no press while it is hidden,
-				// so it does not cover the message above it. `hover:` applies only on
-				// a device that hovers, so a touch screen shows the toolbar only to a
-				// keyboard or a screen reader, and a long press opens the menu there.
+				// so it does not cover the message above it.
 				'pointer-events-none opacity-0',
-				'group-hover/chat-message:pointer-events-auto group-hover/chat-message:opacity-100',
+				// A hover on the bubble shows the toolbar, and not a hover on the empty
+				// side of the message row. The toolbar overlaps the bubble, so the
+				// pointer goes onto it with no gap, and its own hover holds it. A hover
+				// counts only on a device that hovers: a tap on a touch screen leaves
+				// `:hover` behind, and a long press opens the menu there.
+				'[@media(hover:hover)]:group-has-[[data-slot=chat-message-bubble]:hover]/chat-message:pointer-events-auto',
+				'[@media(hover:hover)]:group-has-[[data-slot=chat-message-bubble]:hover]/chat-message:opacity-100',
+				'hover:pointer-events-auto hover:opacity-100',
 				'group-focus-within/chat-message:pointer-events-auto group-focus-within/chat-message:opacity-100',
 				// The menu portals out of the message, so neither hover nor focus can
 				// hold the toolbar while it is open. The expanded button holds it.

@@ -169,6 +169,13 @@ describe('ChatMessage', () => {
 
 		// No rule turns the toolbar into a row below the bubble.
 		expect(toolbar.className).not.toContain('static')
+
+		// A hover on the bubble shows it, and a hover on the rest of the row does not.
+		expect(toolbar).toHaveClass(
+			'[@media(hover:hover)]:group-has-[[data-slot=chat-message-bubble]:hover]/chat-message:opacity-100',
+		)
+
+		expect(toolbar.className).not.toContain('group-hover/chat-message')
 	})
 
 	it('keeps the hidden menu button in the Tab order', () => {
