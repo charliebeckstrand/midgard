@@ -1019,10 +1019,6 @@
 		"defaultMessage": "Press and hold a group header and select Manage rows",
 		"description": "Text of a demo in the docs as touchText, in modules/grid/groups/row-manager.tsx."
 	},
-	"docs.demo.019edab4972b": {
-		"defaultMessage": "Hover a message for its menu",
-		"description": "Text of a demo in the docs as mouseText, in modules/chat/with-context-menu.tsx."
-	},
 	"docs.demo.02165c3b623b": {
 		"defaultMessage": "Most of the rise sits on the north routes.",
 		"description": "Text of a demo in the docs as text, in modules/chat/embeds/registered-renderer.tsx."
@@ -4535,6 +4531,10 @@
 		"defaultMessage": "Costs",
 		"description": "Text of a demo in the docs as yName, in modules/chart/animated.tsx, modules/chart/area/animated.tsx, modules/chart/combo/animated.tsx and 9 more."
 	},
+	"docs.demo.b8e3da36cf84": {
+		"defaultMessage": "Right-click a message",
+		"description": "Text of a demo in the docs as mouseText, in modules/chat/with-context-menu.tsx."
+	},
 	"docs.demo.b8f0388090f0": {
 		"defaultMessage": "Twelve stops are late this week, and {label}.",
 		"description": "Text of a demo in the docs as text, in modules/chat/citations/selects-in-a-chart.tsx. The argument {label} is a value from the code."
@@ -7633,15 +7633,19 @@
 	},
 	"docs.prop.trigger": {
 		"defaultMessage": "Trigger",
-		"description": "The label of a field of a playground in the docs. The field sets the prop trigger of Tooltip."
+		"description": "The label of a field of a playground in the docs. The field sets the prop trigger of ChatMessage, Tooltip."
 	},
 	"docs.prop.trigger.click": {
 		"defaultMessage": "Click",
 		"description": "An option of the Trigger field of a playground in the docs. It sets the prop trigger to 'click' on Tooltip."
 	},
+	"docs.prop.trigger.contextmenu": {
+		"defaultMessage": "Contextmenu",
+		"description": "An option of the Trigger field of a playground in the docs. It sets the prop trigger to 'contextmenu' on ChatMessage."
+	},
 	"docs.prop.trigger.hover": {
 		"defaultMessage": "Hover",
-		"description": "An option of the Trigger field of a playground in the docs. It sets the prop trigger to 'hover' on Tooltip."
+		"description": "An option of the Trigger field of a playground in the docs. It sets the prop trigger to 'hover' on ChatMessage, Tooltip."
 	},
 	"docs.prop.truncate": {
 		"defaultMessage": "Truncate",
