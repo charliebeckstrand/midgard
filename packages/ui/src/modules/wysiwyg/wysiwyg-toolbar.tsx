@@ -62,16 +62,17 @@ function actionGroups(actions: readonly WysiwygAction[]) {
  * @remarks The toolbar has `role="toolbar"`, one Tab stop, and arrow keys
  * between its buttons, and `aria-controls` points at the field. A press on a
  * button does not move the focus, so the selection stays in the field and the
- * virtual keyboard stays open. Until the editor loads, and while the field is
- * disabled or read-only, the buttons are `aria-disabled` and keep their
- * places in the arrow order.
+ * virtual keyboard stays open. Until the editor loads, the buttons are
+ * `aria-disabled` and keep their places in the arrow order. While the field
+ * is disabled or read-only, the toolbar is `inert`: it has no Tab stop, it
+ * takes no press, and it opens no tooltip.
  */
 export function WysiwygToolbar({
 	actions = WYSIWYG_ACTIONS,
 	'aria-label': ariaLabel,
 	className,
 }: WysiwygToolbarProps) {
-	const { fieldId, toolbarClassName } = useWysiwyg()
+	const { fieldId, locked, toolbarClassName } = useWysiwyg()
 
 	const intl = useIntl()
 
@@ -79,6 +80,7 @@ export function WysiwygToolbar({
 		<Toolbar
 			aria-label={ariaLabel ?? intl.formatMessage(wysiwygMessages.toolbar)}
 			aria-controls={fieldId}
+			inert={locked}
 			// The buttons take the affix step, one below the field, as the buttons
 			// of the actions row do.
 			data-density="slot"

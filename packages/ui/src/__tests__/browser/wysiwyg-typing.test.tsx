@@ -241,6 +241,25 @@ describe('Wysiwyg (real browser)', () => {
 		},
 	)
 
+	it('skips the toolbar of a read-only field on Tab, and shows no tooltip', async () => {
+		renderUI(
+			<>
+				<button type="button">Before</button>
+				<Wysiwyg aria-label="Notes" defaultValue="Text" readOnly separated>
+					<WysiwygToolbar />
+				</Wysiwyg>
+			</>,
+		)
+
+		screen.getByRole('button', { name: 'Before' }).focus()
+
+		await userEvent.tab()
+
+		expect(screen.getByRole('textbox')).toHaveFocus()
+
+		expect(document.querySelector('[role=tooltip]')).toBeNull()
+	})
+
 	it('grows with its content up to the max height, and then scrolls', async () => {
 		renderUI(<Notes />)
 

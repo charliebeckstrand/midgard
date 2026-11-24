@@ -171,6 +171,22 @@ describe('Wysiwyg', () => {
 		expect(screen.getByRole('button', { name: 'Bold' })).toHaveAttribute('aria-disabled', 'true')
 	})
 
+	it.for([
+		['disabled', { disabled: true }],
+		['read-only', { readOnly: true }],
+	] as const)(
+		'makes the toolbar inert while %s, so it has no Tab stop and no tooltip',
+		([, lock]) => {
+			renderUI(
+				<Wysiwyg aria-label="Guide" defaultValue="Text" {...lock}>
+					<WysiwygToolbar />
+				</Wysiwyg>,
+			)
+
+			expect(screen.getByRole('toolbar', { hidden: true })).toHaveAttribute('inert')
+		},
+	)
+
 	it('shows no action as on while read-only', async () => {
 		renderUI(
 			<Wysiwyg aria-label="Guide" defaultValue="**Bold**" readOnly>
