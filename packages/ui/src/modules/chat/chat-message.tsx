@@ -233,9 +233,11 @@ export type ChatMessageProps = ChatMessageVariants &
  * focuses a control, but that focus does not show the toolbar. A device with
  * no hover thus shows it only to a keyboard or a screen reader, and a long
  * press opens the menu there. The button stays in the Tab order while it is
- * hidden, so a keyboard reader reaches the menu. A message with a menu keeps
- * 24px of room above its bubble for the toolbar. The toolbar thus stays in the
- * box of the message, and a host that clips its overflow does not cut it.
+ * hidden, so a keyboard reader reaches the menu. On a device that hovers, a
+ * message with a menu keeps 24px of room above its bubble for the toolbar. The
+ * toolbar thus stays in the box of the message, and a host that clips its
+ * overflow does not cut it. A device with no hover keeps no room, and the
+ * toolbar covers the top corner of the bubble when it shows there.
  *
  * After a copy, the focus goes to the bubble, and not back to the button in the
  * toolbar. The next Tab thus goes into the controls of the message again. The
