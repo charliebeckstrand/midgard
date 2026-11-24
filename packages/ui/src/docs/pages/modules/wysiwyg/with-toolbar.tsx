@@ -4,7 +4,7 @@ import { drafts } from './drafts.ts'
 
 export default function WithToolbar() {
 	// The toolbar shows the actions in the order given, with a separator where
-	// the text actions end and the block actions start.
+	// one group ends and the next starts.
 	return (
 		<Field>
 			<Label>Release notes</Label>

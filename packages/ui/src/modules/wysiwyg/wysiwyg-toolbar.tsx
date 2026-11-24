@@ -8,15 +8,23 @@ import { useIntl } from '../../primitives/intl/use-intl'
 import { useWysiwyg } from './context'
 import type { WysiwygAction } from './types'
 import { WysiwygActionButton } from './wysiwyg-action-button'
-import { WYSIWYG_ACTIONS, wysiwygActions, wysiwygMessages } from './wysiwyg-actions'
+import {
+	WYSIWYG_ACTIONS,
+	type WysiwygActionGroup,
+	wysiwygActions,
+	wysiwygGroupMessages,
+	wysiwygMessages,
+} from './wysiwyg-actions'
 import { WysiwygLinkButton } from './wysiwyg-link-button'
 
 /** Props for {@link WysiwygToolbar}. */
 export type WysiwygToolbarProps = {
 	/**
 	 * The actions of the toolbar, in the order given. A separator goes where
-	 * the list changes from text actions to block actions, or back. The default
-	 * is each {@link WysiwygAction}, text actions first.
+	 * the list changes from one group to the next: text (`bold`, `italic`,
+	 * `strike`), references (`link`, `quote`), lists (`bulletList`,
+	 * `orderedList`), and code (`code`, `codeBlock`). The default is each
+	 * {@link WysiwygAction}, in that order.
 	 * @defaultValue WYSIWYG_ACTIONS
 	 */
 	actions?: readonly WysiwygAction[]
@@ -30,20 +38,20 @@ export type WysiwygToolbarProps = {
 }
 
 /**
- * The actions in groups: a run of text actions, or a run of block actions.
+ * The actions in groups: each run of actions of one {@link WysiwygActionGroup}.
  *
  * @internal
  */
 function actionGroups(actions: readonly WysiwygAction[]) {
-	const groups: { block: boolean; actions: WysiwygAction[] }[] = []
+	const groups: { group: WysiwygActionGroup; actions: WysiwygAction[] }[] = []
 
 	for (const action of actions) {
-		const block = wysiwygActions[action].kind === 'block'
+		const { group } = wysiwygActions[action]
 
 		const last = groups.at(-1)
 
-		if (last?.block === block) last.actions.push(action)
-		else groups.push({ block, actions: [action] })
+		if (last?.group === group) last.actions.push(action)
+		else groups.push({ group, actions: [action] })
 	}
 
 	return groups
@@ -91,11 +99,7 @@ export function WysiwygToolbar({
 			{actionGroups(actions).map((group, index) => (
 				<Fragment key={group.actions.join(' ')}>
 					{index > 0 && <ToolbarSeparator />}
-					<ToolbarGroup
-						aria-label={intl.formatMessage(
-							group.block ? wysiwygMessages.blocks : wysiwygMessages.text,
-						)}
-					>
+					<ToolbarGroup aria-label={intl.formatMessage(wysiwygGroupMessages[group.group])}>
 						{group.actions.map((action) =>
 							action === 'link' ? (
 								<WysiwygLinkButton key={action} />

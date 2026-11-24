@@ -437,7 +437,7 @@ describe('WysiwygToolbar', () => {
 		expect(toolbar).toHaveAttribute('aria-controls', screen.getByRole('textbox').id)
 	})
 
-	it('shows the actions in the order given, with a separator between text and blocks', () => {
+	it('shows the actions in the order given, with a separator between groups', () => {
 		renderUI(
 			<Wysiwyg aria-label="Notes">
 				<WysiwygToolbar actions={['italic', 'bold', 'quote']} />
@@ -456,9 +456,33 @@ describe('WysiwygToolbar', () => {
 			within(toolbar)
 				.getAllByRole('group')
 				.map((group) => group.ariaLabel),
-		).toEqual(['Text', 'Blocks'])
+		).toEqual(['Text', 'References'])
 
 		expect(within(toolbar).getAllByRole('separator')).toHaveLength(1)
+	})
+
+	it('shows the text, references, lists, and code groups by default', () => {
+		renderUI(
+			<Wysiwyg aria-label="Notes">
+				<WysiwygToolbar />
+			</Wysiwyg>,
+		)
+
+		const groups = within(screen.getByRole('toolbar')).getAllByRole('group')
+
+		expect(
+			groups.map((group) => [
+				group.ariaLabel,
+				within(group)
+					.getAllByRole('button')
+					.map((button) => button.ariaLabel),
+			]),
+		).toEqual([
+			['Text', ['Bold', 'Italic', 'Strikethrough']],
+			['References', ['Link', 'Quote']],
+			['Lists', ['Bulleted list', 'Numbered list']],
+			['Code', ['Code', 'Code block']],
+		])
 	})
 
 	it('shows the pressed state of each action at the selection', async () => {
