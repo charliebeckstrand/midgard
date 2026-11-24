@@ -143,10 +143,6 @@
 		"defaultMessage": "Add attachment",
 		"description": "The name of the button that opens a file picker to attach files to a chat message."
 	},
-	"ui.chat.badReply": {
-		"defaultMessage": "Bad reply",
-		"description": "The name of the button that rates a reply of the assistant as bad."
-	},
 	"ui.chat.citationMarked": {
 		"defaultMessage": "Selects in {label}. The selection in that view matches it.",
 		"description": "The description of a phrase of a chat reply that selects items in a view beside the chat, while the items that a reader selected in the view match the phrase. The label is the name of the view, such as \"Late stops by day\"."
@@ -159,6 +155,10 @@
 		"defaultMessage": "Conversation",
 		"description": "The name of the scrolling list of the messages of a chat. A screen reader reads it when the focus goes to the list."
 	},
+	"ui.chat.copy": {
+		"defaultMessage": "Copy",
+		"description": "The item of the menu of a chat message that copies the text of the message to the clipboard."
+	},
 	"ui.chat.done": {
 		"defaultMessage": "Done",
 		"description": "The status of a step of the assistant that ended well."
@@ -167,13 +167,9 @@
 		"defaultMessage": "Failed",
 		"description": "The status of a step of the assistant that ended with an error."
 	},
-	"ui.chat.goodReply": {
-		"defaultMessage": "Good reply",
-		"description": "The name of the button that rates a reply of the assistant as good."
-	},
 	"ui.chat.messageActions": {
 		"defaultMessage": "Message actions",
-		"description": "The name of the menu that opens on a right-click or a long press on a chat message. It holds the actions of that message."
+		"description": "The name of the menu of a chat message, and of the button that opens it. On a touch screen, a long press on the message also opens the menu. It holds the actions of that message."
 	},
 	"ui.chat.missing": {
 		"defaultMessage": "This chat cannot show a “{name}” block.",

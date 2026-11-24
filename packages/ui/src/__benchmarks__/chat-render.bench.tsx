@@ -48,7 +48,7 @@ function contentHeight(element: HTMLElement): number {
 	for (const child of Array.from(element.firstElementChild?.children ?? [])) {
 		const node = child as HTMLElement
 
-		height += slot(node) === 'chat-transcript-row' ? ROW : Number.parseFloat(node.style.height) || 0
+		height += slot(node) === 'chat-message' ? ROW : Number.parseFloat(node.style.height) || 0
 	}
 
 	return height
@@ -61,7 +61,7 @@ modelLayout({
 	isScroller: (element) => slot(element) === 'chat-transcript',
 	viewport: VIEWPORT,
 	width: 800,
-	rowHeight: (element) => (slot(element) === 'chat-transcript-row' ? ROW : 0),
+	rowHeight: (element) => (slot(element) === 'chat-message' ? ROW : 0),
 	scrollHeight: contentHeight,
 })
 

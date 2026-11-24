@@ -56,10 +56,14 @@ function Cited({
 			}}
 			onPreviewChange={onPreviewChange}
 		>
-			<ChatMessage sender="assistant">{reply(citations)}</ChatMessage>
+			<ChatMessage sender="assistant" contextMenu={false}>
+				{reply(citations)}
+			</ChatMessage>
 		</ChatCitationProvider>
 	)
 }
+
+// Each message takes no menu, so each button that a case finds is a citation.
 
 describe('ChatCitationProvider', () => {
 	it('draws a citation as a toggle button named by its phrase and described by its view', () => {
@@ -259,7 +263,9 @@ describe('ChatCitationProvider', () => {
 
 	it('draws each piece of a citation with no provider as static text, with no control', () => {
 		const { container } = renderUI(
-			<ChatMessage sender="user">{reply([cite('c1', 'most of them on **Tuesday**')])}</ChatMessage>,
+			<ChatMessage sender="user" contextMenu={false}>
+				{reply([cite('c1', 'most of them on **Tuesday**')])}
+			</ChatMessage>,
 		)
 
 		expect(screen.queryByRole('button')).toBeNull()
@@ -290,7 +296,7 @@ describe('ChatCitationProvider', () => {
 					cited={null}
 					onCitedChange={() => {}}
 				>
-					<ChatMessage sender="assistant">
+					<ChatMessage sender="assistant" contextMenu={false}>
 						{reply([cite('c1', 'Twelve stops are late'), cite('c2', 'Tuesday', 'other')])}
 					</ChatMessage>
 				</ChatCitationProvider>
@@ -542,7 +548,11 @@ describe('ChatCitationProvider trigger', () => {
 				onPreviewChange={onPreviewChange}
 				trigger="hover"
 			>
-				{shown ? <ChatMessage sender="assistant">{reply([late])}</ChatMessage> : null}
+				{shown ? (
+					<ChatMessage sender="assistant" contextMenu={false}>
+						{reply([late])}
+					</ChatMessage>
+				) : null}
 			</ChatCitationProvider>
 		)
 
@@ -566,7 +576,11 @@ describe('ChatCitationProvider trigger', () => {
 				onPreviewChange={onPreviewChange}
 				trigger="hover"
 			>
-				{shown ? <ChatMessage sender="assistant">{reply([late])}</ChatMessage> : null}
+				{shown ? (
+					<ChatMessage sender="assistant" contextMenu={false}>
+						{reply([late])}
+					</ChatMessage>
+				) : null}
 			</ChatCitationProvider>
 		)
 
@@ -640,7 +654,9 @@ describe('ChatCitationProvider trigger', () => {
 
 		renderUI(
 			<ChatCitationProvider targets={targets} cited={null} onCitedChange={() => {}} trigger="hover">
-				<ChatMessage sender="assistant">{reply([late])}</ChatMessage>
+				<ChatMessage sender="assistant" contextMenu={false}>
+					{reply([late])}
+				</ChatMessage>
 			</ChatCitationProvider>,
 		)
 
@@ -668,7 +684,9 @@ describe('ChatCitationProvider trigger', () => {
 					onCitedChange={() => {}}
 					onPreviewChange={onPreviewChange}
 				>
-					<ChatMessage sender="assistant">{reply([late])}</ChatMessage>
+					<ChatMessage sender="assistant" contextMenu={false}>
+						{reply([late])}
+					</ChatMessage>
 				</ChatCitationProvider>
 			</ChatCitationProvider>,
 		)
@@ -694,7 +712,9 @@ describe('ChatCitationProvider isMarked', () => {
 				onCitedChange={() => {}}
 				isMarked={isTuesday}
 			>
-				<ChatMessage sender="assistant">{reply([late, tuesday])}</ChatMessage>
+				<ChatMessage sender="assistant" contextMenu={false}>
+					{reply([late, tuesday])}
+				</ChatMessage>
 			</ChatCitationProvider>,
 		)
 
@@ -720,7 +740,9 @@ describe('ChatCitationProvider isMarked', () => {
 				onCitedChange={() => {}}
 				isMarked={isTuesday}
 			>
-				<ChatMessage sender="assistant">{reply([late, tuesday])}</ChatMessage>
+				<ChatMessage sender="assistant" contextMenu={false}>
+					{reply([late, tuesday])}
+				</ChatMessage>
 			</ChatCitationProvider>,
 		)
 
@@ -753,7 +775,9 @@ describe('ChatCitationProvider isMarked', () => {
 					onCitedChange={() => {}}
 					isMarked={isMarked}
 				>
-					<ChatMessage sender="assistant">{reply([late, tuesday])}</ChatMessage>
+					<ChatMessage sender="assistant" contextMenu={false}>
+						{reply([late, tuesday])}
+					</ChatMessage>
 				</ChatCitationProvider>
 			</ChatCitationProvider>
 		)
@@ -846,7 +870,7 @@ describe('ChatCitationPiece server markup', () => {
 	it('names a citation that crosses bold by its whole phrase before hydration', () => {
 		const html = renderToString(
 			<ChatCitationProvider targets={targets} cited={null} onCitedChange={() => {}}>
-				<ChatMessage sender="assistant">
+				<ChatMessage sender="assistant" contextMenu={false}>
 					{reply([cite('c1', 'most of them on **Tuesday**')])}
 				</ChatMessage>
 			</ChatCitationProvider>,

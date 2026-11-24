@@ -1261,7 +1261,7 @@
 	},
 	"docs.demo.11d63ab759c1": {
 		"defaultMessage": "Heading out now. ETA 3:00 PM.",
-		"description": "Text of a demo in the docs as text, in modules/chat/playground.tsx, modules/chat/timestamped.tsx, modules/chat/with-actions.tsx and 1 more."
+		"description": "Text of a demo in the docs, in modules/chat/playground.tsx, modules/chat/timestamped.tsx, modules/chat/with-context-menu.tsx."
 	},
 	"docs.demo.1215ec467ba3": {
 		"defaultMessage": "Your bio is saved.",
@@ -2225,7 +2225,7 @@
 	},
 	"docs.demo.464c4ffd019e": {
 		"defaultMessage": "Edit",
-		"description": "Text of a demo in the docs as aria-label, label, title, in components/command-palette/commands.tsx, components/context-menu/playground.tsx, components/menu/controlled.tsx and 9 more."
+		"description": "Text of a demo in the docs as aria-label, label, title, in components/command-palette/commands.tsx, components/context-menu/playground.tsx, components/menu/controlled.tsx and 8 more."
 	},
 	"docs.demo.467065a16a2e": {
 		"defaultMessage": "Textarea",
@@ -3757,7 +3757,7 @@
 	},
 	"docs.demo.942087cc2d41": {
 		"defaultMessage": "Retry",
-		"description": "Text of a demo in the docs as aria-label, in modules/chat/conversation/conversation.tsx, modules/chat/conversation/failed-reply.tsx, modules/chat/with-actions.tsx."
+		"description": "Text of a demo in the docs as label, in modules/chat/conversation/conversation.tsx, modules/chat/conversation/failed-reply.tsx."
 	},
 	"docs.demo.946884c0bab5": {
 		"defaultMessage": "Select a brand color, or enter a hex value.",
@@ -4973,7 +4973,7 @@
 	},
 	"docs.demo.d175d09d870d": {
 		"defaultMessage": "Got it. The door code is 4421.",
-		"description": "Text of a demo in the docs as text, in modules/chat/timestamped.tsx, modules/chat/with-actions.tsx, modules/chat/with-context-menu.tsx."
+		"description": "Text of a demo in the docs, in modules/chat/timestamped.tsx, modules/chat/with-context-menu.tsx."
 	},
 	"docs.demo.d184cd0ce1db": {
 		"defaultMessage": "Column reorder without handle",
@@ -5147,10 +5147,6 @@
 		"defaultMessage": "Middle",
 		"description": "Text of a demo in the docs, in structure/flex/align-and-justify.tsx."
 	},
-	"docs.demo.d97239a628a7": {
-		"defaultMessage": "Add reaction",
-		"description": "Text of a demo in the docs as aria-label, in modules/chat/with-actions.tsx."
-	},
 	"docs.demo.d9fa921e328d": {
 		"defaultMessage": "Depot handover",
 		"description": "Text of a demo in the docs as title, in modules/chat/list/list.tsx."
@@ -5321,7 +5317,7 @@
 	},
 	"docs.demo.e21f935f11d7": {
 		"defaultMessage": "Copy",
-		"description": "Text of a demo in the docs as label, in components/context-menu/glass.tsx, components/context-menu/playground.tsx, components/group/item-count.tsx and 3 more."
+		"description": "Text of a demo in the docs as label, in components/context-menu/glass.tsx, components/context-menu/playground.tsx, components/group/item-count.tsx and 2 more."
 	},
 	"docs.demo.e22820fcf5cd": {
 		"defaultMessage": "Topics",
@@ -5337,7 +5333,7 @@
 	},
 	"docs.demo.e2d0a54968ea": {
 		"defaultMessage": "Delete",
-		"description": "Text of a demo in the docs as label, in components/command-palette/commands.tsx, components/confirm/ask-with-a-hook.tsx, components/context-menu/with-actions.tsx and 11 more."
+		"description": "Text of a demo in the docs as label, in components/command-palette/commands.tsx, components/confirm/ask-with-a-hook.tsx, components/context-menu/with-actions.tsx and 10 more."
 	},
 	"docs.demo.e2d0c55ef24b": {
 		"defaultMessage": "Zoom:",
@@ -5762,10 +5758,6 @@
 	"docs.demo.f89bef2f30b1": {
 		"defaultMessage": "Stat description",
 		"description": "Text of a demo in the docs as label, in primitives/skeleton/skeleton-variants.tsx."
-	},
-	"docs.demo.f8d46c2570e7": {
-		"defaultMessage": "More actions",
-		"description": "Text of a demo in the docs as aria-label, in modules/chat/with-actions.tsx."
 	},
 	"docs.demo.f8f4a5eeac9f": {
 		"defaultMessage": "Add a country code, such as +1.",
@@ -7641,15 +7633,19 @@
 	},
 	"docs.prop.trigger": {
 		"defaultMessage": "Trigger",
-		"description": "The label of a field of a playground in the docs. The field sets the prop trigger of Tooltip."
+		"description": "The label of a field of a playground in the docs. The field sets the prop trigger of ChatMessage, Tooltip."
 	},
 	"docs.prop.trigger.click": {
 		"defaultMessage": "Click",
 		"description": "An option of the Trigger field of a playground in the docs. It sets the prop trigger to 'click' on Tooltip."
 	},
+	"docs.prop.trigger.contextmenu": {
+		"defaultMessage": "Contextmenu",
+		"description": "An option of the Trigger field of a playground in the docs. It sets the prop trigger to 'contextmenu' on ChatMessage."
+	},
 	"docs.prop.trigger.hover": {
 		"defaultMessage": "Hover",
-		"description": "An option of the Trigger field of a playground in the docs. It sets the prop trigger to 'hover' on Tooltip."
+		"description": "An option of the Trigger field of a playground in the docs. It sets the prop trigger to 'hover' on ChatMessage, Tooltip."
 	},
 	"docs.prop.truncate": {
 		"defaultMessage": "Truncate",

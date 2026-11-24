@@ -1,19 +1,14 @@
 import { RotateCcw } from 'lucide-react'
-import { useCallback, useState } from 'react'
-import { Button } from 'ui/button'
+import { useCallback } from 'react'
 import {
 	ChatEmbedProvider,
-	ChatFeedback,
 	type ChatMessageData,
 	ChatPrompt,
 	ChatTranscript,
-	type ChatVerdict,
-	chatContentText,
 	useChatDraft,
 	useChatSend,
 } from 'ui/chat'
-import { CopyButton } from 'ui/copy-button'
-import { Icon } from 'ui/icon'
+import type { ContextMenuConfig } from 'ui/context-menu'
 import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
 import { renderers } from '../embeds/renderers.tsx'
@@ -49,29 +44,17 @@ export default function Conversation() {
 
 	const { retry } = chat
 
-	// An app sends each rating with the id of its message.
-	const [ratings, setRatings] = useState<Record<string, ChatVerdict | null>>({})
-
-	const actions = useCallback(
-		(message: ChatMessageData) => (
-			<>
-				<CopyButton size="sm" text={() => chatContentText(message.content)} />
-				{message.sender === 'assistant' && message.id !== 'welcome' && (
-					<ChatFeedback
-						value={ratings[message.id ?? ''] ?? null}
-						onValueChange={(value) =>
-							setRatings((prev) => ({ ...prev, [message.id ?? '']: value }))
-						}
-					/>
-				)}
-				{message.id === retryable && (
-					<Button variant="bare" size="sm" aria-label="Retry" onClick={() => void retry()}>
-						<Icon icon={<RotateCcw />} />
-					</Button>
-				)}
-			</>
-		),
-		[retryable, retry, ratings],
+	// The menu of each message holds Copy by default. The last reply adds Retry.
+	const contextMenu = useCallback(
+		(message: ChatMessageData): ContextMenuConfig | undefined =>
+			message.id === retryable
+				? {
+						items: [
+							{ key: 'retry', label: 'Retry', icon: <RotateCcw />, onAction: () => void retry() },
+						],
+					}
+				: undefined,
+		[retryable, retry],
 	)
 
 	return (
@@ -80,7 +63,7 @@ export default function Conversation() {
 				<ChatTranscript
 					messages={chat.messages}
 					streaming={chat.streaming}
-					actions={actions}
+					contextMenu={contextMenu}
 					branches={chat.branches}
 					onBranchChange={chat.showBranch}
 				/>

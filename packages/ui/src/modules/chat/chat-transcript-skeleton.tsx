@@ -28,15 +28,14 @@ export type ChatTranscriptSkeletonProps = {
  * scroll, so it does not take keyboard focus.
  *
  * Each bubble has the width cap, the padding, the radius, and the side of a
- * real bubble. Each message after the first has the gap of a real transcript
- * row. A transcript holds content of no fixed length. Thus only one bubble of
+ * real bubble. Each message has the gap of a real transcript row. A transcript holds content of no fixed length. Thus only one bubble of
  * each side has the box of a real bubble of the same line count.
  * @see {@link ChatTranscript}
  */
 export function ChatTranscriptSkeleton({ messages = 4, className }: ChatTranscriptSkeletonProps) {
 	const messageKeys = rangeKeys(messages, 'message')
 
-	const { row, first } = k()
+	const { row } = k()
 
 	return (
 		<div aria-hidden="true" className={cn(k.skeleton.root, className)}>
@@ -44,13 +43,11 @@ export function ChatTranscriptSkeleton({ messages = 4, className }: ChatTranscri
 				const sender = index % 2 === 0 ? 'user' : 'assistant'
 
 				return (
-					<div key={messageKey} className={index > 0 ? row : first}>
-						<div className={kMessage({ sender }).base}>
-							<div className={cn(k.skeleton.bubble, k.skeleton.tail[sender])}>
-								{k.skeleton.lines[sender].map((width) => (
-									<Placeholder key={width} className={cn(k.skeleton.line, width)} />
-								))}
-							</div>
+					<div key={messageKey} className={cn(kMessage({ sender }).base, row)}>
+						<div className={cn(k.skeleton.bubble, k.skeleton.tail[sender])}>
+							{k.skeleton.lines[sender].map((width) => (
+								<Placeholder key={width} className={cn(k.skeleton.line, width)} />
+							))}
 						</div>
 					</div>
 				)
