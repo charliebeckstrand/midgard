@@ -19,7 +19,7 @@ import { ControlActions, ControlFrame } from '../../primitives/control'
 import { k as markdown } from '../../recipes/kata/markdown'
 import type { scale } from '../../recipes/kata/wysiwyg'
 import { WysiwygContext, type WysiwygContextValue } from './context'
-import type { WysiwygAction, WysiwygBlock, WysiwygHandle } from './types'
+import type { WysiwygBlock, WysiwygHandle, WysiwygToggleAction } from './types'
 import { useWysiwygEditor } from './use-wysiwyg-editor'
 import { useWysiwygField } from './use-wysiwyg-field'
 import { useWysiwygLabelFocus } from './use-wysiwyg-label-focus'
@@ -297,7 +297,7 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 		onValueChange: onValueChange && emit,
 		defaultValue: options.defaultValue ?? '',
 		placeholder,
-		rows: hasActions || inside,
+		stacked: hasActions || inside,
 		toolbar: inside && !hasActions,
 		separated,
 	})
@@ -383,7 +383,7 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 		locked,
 		toolbarClassName: cn(slots.toolbar),
 		...selection(editor, subscribe, locked),
-		run: (action: WysiwygAction) => {
+		run: (action: WysiwygToggleAction) => {
 			editor?.run(action)
 		},
 		linkOpen,

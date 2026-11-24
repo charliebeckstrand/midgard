@@ -39,7 +39,7 @@ export function WysiwygLinkButton() {
 	return (
 		<Popover placement="bottom-start" open={linkOpen} onOpenChange={setLinkOpen}>
 			<PopoverTrigger>
-				<WysiwygActionButton action="link" toggle={false} onClick={() => undefined} />
+				<WysiwygActionButton action="link" />
 			</PopoverTrigger>
 			<PopoverContent aria-label={intl.formatMessage(wysiwygActions.link.message)}>
 				<WysiwygLinkForm />
