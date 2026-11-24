@@ -72,7 +72,7 @@ function getTranscript(container: HTMLElement) {
 }
 
 const getRows = (container: HTMLElement) =>
-	Array.from(container.querySelectorAll<HTMLElement>('[data-slot="chat-transcript-row"]'))
+	Array.from(container.querySelectorAll<HTMLElement>('[data-slot="chat-message"]'))
 
 /** How far the transcript sits above its own end, in pixels. */
 function distanceFromEnd(transcript: HTMLElement) {

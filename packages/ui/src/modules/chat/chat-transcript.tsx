@@ -133,21 +133,31 @@ export type ChatTranscriptProps = Omit<ComponentProps<'div'>, 'children' | 'cont
 /** Props for {@link ChatTranscriptRow}. @internal */
 type ChatTranscriptRowProps = Pick<ChatTranscriptProps, 'contextMenu' | 'onBranchChange'> & {
 	message: ChatMessageData
+	/** The position of the message, which the window reads from `data-index`. */
+	index: number
+	/** The measure ref of the window. It keeps its identity. */
+	ref: (node: Element | null) => void
+	/** The gap above the message. */
+	className: string
 	streaming: boolean
 	editing: boolean
 	branch: ChatBranch | undefined
 }
 
 /**
- * The message of one row. It calls the row callbacks of the transcript, and it
- * is memoized on its props. A chunk keeps the object of each settled message,
- * so a settled row skips its render, also when it has a menu. That holds
- * while the callbacks keep their identity.
+ * The message of one row. The message is the row: the window measures its
+ * root, so no box wraps it. It calls the row callbacks of the transcript, and
+ * it is memoized on its props. A chunk keeps the object of each settled
+ * message, so a settled row skips its render, also when it has a menu. That
+ * holds while the callbacks keep their identity.
  *
  * @internal
  */
 const ChatTranscriptRow = memo(function ChatTranscriptRow({
 	message,
+	index,
+	ref,
+	className,
 	streaming,
 	editing,
 	contextMenu,
@@ -156,6 +166,9 @@ const ChatTranscriptRow = memo(function ChatTranscriptRow({
 }: ChatTranscriptRowProps) {
 	return (
 		<ChatMessage
+			ref={ref}
+			data-index={index}
+			className={className}
 			sender={message.sender}
 			streaming={streaming}
 			editing={editing}
@@ -218,8 +231,7 @@ const ChatTranscriptRow = memo(function ChatTranscriptRow({
  * has a menu with Copy unless `contextMenu` is `false`. The transcript calls
  * the callback only for the rows that it renders. Keep its identity stable, as
  * with `useCallback`, so a streamed chunk does not render the settled rows
- * again. The toolbar of the menu button floats above its message, so the first
- * row then keeps room above it, on a device that hovers.
+ * again.
  *
  * `branches` gives a message the switcher of {@link ChatMessage}. The row of a
  * message with branches takes the key of its oldest branch, so a switch keeps
@@ -503,13 +515,6 @@ export function ChatTranscript({
 
 	const slots = k()
 
-	// The toolbar of the menu button rises above its message, and the scroll
-	// clips it above the first row.
-	const roomy = contextMenu !== false
-
-	// The first row makes room for that toolbar.
-	const firstRow = roomy ? slots.roomy : slots.first
-
 	useA11yAnnouncements(status)
 
 	const measured = virtualItems.length > 0
@@ -544,7 +549,7 @@ export function ChatTranscript({
 			aria-live="off"
 			className={cn(slots.base, className)}
 		>
-			<div ref={contentRef} className={slots.content}>
+			<div ref={contentRef}>
 				{measured && topSpacer > 0 && <div aria-hidden="true" style={{ height: topSpacer }} />}
 				{indexes.map((index) => {
 					const message = messages[index]
@@ -556,26 +561,21 @@ export function ChatTranscript({
 					const branch = message.id ? branches?.[message.id] : undefined
 
 					return (
-						<div
-							key={key}
-							ref={measureRef}
-							data-index={index}
-							data-slot="chat-transcript-row"
-							className={index > 0 ? slots.row : firstRow}
-						>
-							<ChatRowContext value={key}>
-								<ChatTranscriptRow
-									message={message}
-									streaming={
-										streaming === true && message.sender === 'assistant' && index === count - 1
-									}
-									editing={editing !== undefined && message.id === editing}
-									contextMenu={contextMenu}
-									branch={branch}
-									onBranchChange={branch && branchChange}
-								/>
-							</ChatRowContext>
-						</div>
+						<ChatRowContext key={key} value={key}>
+							<ChatTranscriptRow
+								ref={measureRef}
+								index={index}
+								className={slots.row}
+								message={message}
+								streaming={
+									streaming === true && message.sender === 'assistant' && index === count - 1
+								}
+								editing={editing !== undefined && message.id === editing}
+								contextMenu={contextMenu}
+								branch={branch}
+								onBranchChange={branch && branchChange}
+							/>
+						</ChatRowContext>
 					)
 				})}
 				{measured && bottomSpacer > 0 && (

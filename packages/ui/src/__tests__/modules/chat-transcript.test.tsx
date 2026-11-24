@@ -127,21 +127,16 @@ describe('ChatTranscript', () => {
 			expect(onAction).toHaveBeenCalledOnce()
 		})
 
-		it('keeps the room of the menu toolbar above the first row only with a menu', () => {
-			const first = (container: HTMLElement) =>
-				present(allBySlot(container, 'chat-transcript-row')[0], 'first row').className
+		it('makes each message a row, with the same gap above each, the first too', () => {
+			const { container } = renderUI(<ChatTranscript messages={messages} />)
 
-			// The default menu puts its button in a toolbar above the message.
-			const menu = renderUI(<ChatTranscript messages={messages} />)
+			const rows = allBySlot(container, 'chat-message')
 
-			expect(first(menu.container)).toContain('pt-8')
+			// The window measures the message itself, and no box wraps it.
+			expect(rows.map((row) => row.dataset.index)).toEqual(['0', '1'])
 
-			menu.unmount()
-
-			// Without a menu, the first row keeps only the room of the ring of an edit.
-			const bare = renderUI(<ChatTranscript messages={messages} contextMenu={false} />)
-
-			expect(first(bare.container)).toBe('py-1')
+			// The gap holds the toolbar of the menu button above each bubble.
+			for (const row of rows) expect(row).toHaveClass('pt-6')
 		})
 
 		it('does not render a settled row again when a chunk lands', () => {

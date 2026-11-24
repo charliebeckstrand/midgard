@@ -218,9 +218,10 @@ export type ChatMessageProps = ChatMessageVariants &
  * The toolbar shows while the pointer is over the bubble, while focus is in
  * it, or while its menu is open. A device with no hover thus shows it only to
  * a keyboard or a screen reader. The button stays in the Tab order while it
- * is hidden, so a keyboard reader reaches the menu. The toolbar floats above
- * the message by most of its own height. A host that clips its overflow, such as a scroll container, keeps
- * that space free above its first message.
+ * is hidden, so a keyboard reader reaches the menu. A message with a menu
+ * keeps 24px of room above its bubble for the toolbar. The toolbar thus stays
+ * in the box of the message, and a host that clips its overflow does not cut
+ * it.
  *
  * Memoized on its (shallow-equal) props, so a transcript's settled bubbles skip
  * re-rendering, and re-lexing their Markdown. Only the streaming bubble's
@@ -241,11 +242,11 @@ export const ChatMessage = memo(function ChatMessage({
 }: ChatMessageProps) {
 	const resolvedSender = sender ?? 'assistant'
 
-	const slots = k({ sender, streaming, editing })
-
 	const menu = contextMenu === false ? undefined : contextMenu
 
 	const hasMenu = hasMenuItems(contextMenu)
+
+	const slots = k({ sender, streaming, editing, menu: hasMenu })
 
 	// A reply with nothing in it yet shows the dots, and not an empty bubble. The
 	// dots are an `<output>`, a live region. The transcript announces the wait

@@ -67,13 +67,21 @@ const bubble = {
 
 export const k = defineKata({
 	// The toolbar is placed against the message, so the message is its
-	// containing block. The named group lets the toolbar show while the pointer
-	// is anywhere over the message, or while focus is in it.
+	// containing block. The named group lets the toolbar show while the bubble
+	// is hovered, or while focus is in the message.
 	base: [flex.col, 'group/chat-message relative'],
 	sender: {
 		user: 'items-end',
 		assistant: 'items-start',
 		system: 'items-center',
+	},
+	// A message with a menu keeps 24px of room above its bubble for the toolbar.
+	// The toolbar stays in the box of the message, so a host that clips its
+	// overflow, such as a card or a scroll, does not cut it. The room is the
+	// gap of a transcript row, so a message in a transcript adds none.
+	menu: {
+		true: kokkaku.chat.row,
+		false: '',
 	},
 	slots: {
 		bubble,
@@ -84,14 +92,16 @@ export const k = defineKata({
 		branch: [...controls, 'mt-1 tabular-nums', size.xs, ...text.muted],
 		/**
 		 * The toolbar of the menu button: it floats over the outer top corner of
-		 * the bubble. That is the corner on the side of the speaker. It rises by
-		 * its own height less `--spacing(2.5)`, so it overlaps the padding of the
-		 * bubble and not its text. It is never a row of icons below the bubble.
+		 * the bubble. That is the corner on the side of the speaker. It sits at
+		 * the top of the message, in the `menu` room. The toolbar is 34px high,
+		 * because its button has a fixed size, so it overlaps the bubble by 10px:
+		 * the padding of the bubble, and not its text. It is never a row of icons
+		 * below the bubble.
 		 */
 		toolbar: {
 			base: [
 				flex.row,
-				'absolute z-10 bottom-[calc(100%-(--spacing(2.5)))] w-fit p-1',
+				'absolute top-0 z-10 w-fit p-1',
 				rounded.lg,
 				omote.popover,
 				// Hidden, but in the Tab order: focus on the button shows the toolbar,
@@ -234,7 +244,7 @@ export const k = defineKata({
 			},
 		},
 	},
-	defaults: { sender: 'assistant', streaming: false, editing: false },
+	defaults: { sender: 'assistant', streaming: false, editing: false, menu: false },
 })
 
 /**
@@ -245,7 +255,7 @@ export const k = defineKata({
  */
 export type ChatMessageVariants = Omit<
 	VariantProps<typeof k>,
-	'sender' | 'streaming' | 'editing'
+	'sender' | 'streaming' | 'editing' | 'menu'
 > & {
 	/** The author of the message, which sets the side that the message aligns to. @defaultValue 'assistant' */
 	sender?: VariantProps<typeof k>['sender']

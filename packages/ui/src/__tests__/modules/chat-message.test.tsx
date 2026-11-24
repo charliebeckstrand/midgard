@@ -193,6 +193,21 @@ describe('ChatMessage', () => {
 		expect(toolbar.className).not.toContain('group-hover/chat-message')
 	})
 
+	it('keeps room for the toolbar above the bubble', () => {
+		const ROOM = 'pt-6'
+
+		const menu = renderUI(<ChatMessage>content</ChatMessage>)
+
+		expect(getSlot(menu.container, 'chat-message')).toHaveClass(ROOM)
+
+		menu.unmount()
+
+		// A message with no menu has no toolbar, so it keeps no room.
+		const bare = renderUI(<ChatMessage contextMenu={false}>content</ChatMessage>)
+
+		expect(getSlot(bare.container, 'chat-message')).not.toHaveClass(ROOM)
+	})
+
 	it('keeps the hidden toolbar button in the Tab order', () => {
 		renderUI(<ChatMessage>content</ChatMessage>)
 
