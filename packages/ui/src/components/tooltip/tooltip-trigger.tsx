@@ -3,6 +3,7 @@
 import { useComposedRefs } from 'motion/react'
 import type { ComponentProps, ReactNode, Ref } from 'react'
 import { cn } from '../../core/cn'
+import { dataAttr } from '../../core/data-attr'
 import { useFloatingReference } from '../../hooks/use-floating-reference'
 import {
 	mergeTriggerProps,
@@ -48,7 +49,12 @@ export type TooltipTriggerProps = Omit<ComponentProps<'span'>, 'children'> & {
  * such as a `<Button>`, keeps the anchor that it writes for itself.
  *
  * The trigger stamps no `data-open`. It is often a control of the consumer or a
- * menu trigger, and the recipe of that element can read `data-open`.
+ * menu trigger, and the recipe of that element can read `data-open`. It stamps
+ * `data-tooltip-open` while its panel is open. The panel portals out of the
+ * host of the trigger, so a hover on the panel is not a hover on that host. A
+ * host that shows on hover, such as the toolbar of a chat message, reads the
+ * attribute (`has-data-tooltip-open:`) and stays while the pointer rests on the
+ * panel (WCAG 2.2 SC 1.4.13).
  *
  * The child's own ref merges with the floating ref. The non-element fallback
  * renders a plain `<span>`, which is valid in phrasing content. A `<button>`
@@ -67,7 +73,7 @@ export type TooltipTriggerProps = Omit<ComponentProps<'span'>, 'children'> & {
  * win a clash, and a handler on both runs the two.
  */
 export function TooltipTrigger({ children, className, ref, ...props }: TooltipTriggerProps) {
-	const { setReference, getReferenceProps, enabled, triggerId } = useTooltipTriggerContext()
+	const { setReference, getReferenceProps, enabled, open, triggerId } = useTooltipTriggerContext()
 
 	const child = triggerChild(children)
 
@@ -93,6 +99,7 @@ export function TooltipTrigger({ children, className, ref, ...props }: TooltipTr
 					...childProps,
 					...getReferenceProps(childProps),
 					id: childProps.id ?? triggerId,
+					'data-tooltip-open': dataAttr(open),
 				}}
 				ref={setTrigger}
 				slot="tooltip-trigger"
@@ -108,6 +115,7 @@ export function TooltipTrigger({ children, className, ref, ...props }: TooltipTr
 			{...(getReferenceProps(props) as ComponentProps<'span'>)}
 			ref={setTrigger}
 			id={props.id ?? triggerId}
+			data-tooltip-open={dataAttr(open)}
 			className={triggerClassName}
 		>
 			{children}

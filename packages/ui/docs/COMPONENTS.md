@@ -83,7 +83,7 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 `dialog` · `drawer` · `sheet` · `popover` · `tooltip` · `confirm` · `alert` · `banner` · `toast` · `lightbox`
 
-> A hover `Tooltip` stays open while the pointer moves onto its content. The reader can thus rest on the text (WCAG 2.2 SC 1.4.13). Escape closes it. `interactive` only lets the content hold controls.
+> A hover `Tooltip` stays open while the pointer moves onto its content. The reader can thus rest on the text (WCAG 2.2 SC 1.4.13). Escape closes it. `interactive` only lets the content hold controls. While the content is open, the trigger has `data-tooltip-open`. The content portals out of the host of the trigger. A host that shows on hover reads the attribute and stays while the pointer is on the content.
 
 > A `TooltipGroup` makes its tooltips act as one set. The first tooltip waits for its `delay`. While a tooltip of the group is open, and for 300 ms after it closes, the next tooltip opens at once with no animation. The open tooltip then closes at once. Each `Toolbar` is a group.
 
