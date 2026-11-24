@@ -31,7 +31,7 @@ async function links(): Promise<{ name: string; url: unknown }[]> {
 		}))
 }
 
-/** Records whether the last click that reached the window was canceled. */
+/** Records whether each click and middle click that reached the window was canceled. */
 const clicks: boolean[] = []
 
 const record = (event: MouseEvent) => {
@@ -42,6 +42,8 @@ const record = (event: MouseEvent) => {
 }
 
 window.addEventListener('click', record)
+
+window.addEventListener('auxclick', record)
 
 /** Loads the editor of the field through a press. */
 async function load(): Promise<HTMLElement> {
@@ -89,7 +91,10 @@ describe('Wysiwyg links (real browser)', () => {
 
 		await userEvent.click(link)
 
-		expect(clicks).toEqual([true])
+		// A middle press opens no new tab.
+		await userEvent.click(link, { button: 'middle' })
+
+		expect(clicks).toEqual([true, true])
 	})
 
 	it('draws no href for a URL that can run script', async () => {
