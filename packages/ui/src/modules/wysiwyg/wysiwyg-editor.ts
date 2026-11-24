@@ -12,6 +12,7 @@ import { caretBlock, replaceInBlock } from './engine/wysiwyg-block'
 import {
 	exitCodeDown,
 	exitCodeOnEmptyLine,
+	isLinkActive,
 	linkDraft,
 	linkRange,
 	setLink,
@@ -23,8 +24,8 @@ import { parseMarkdown } from './engine/wysiwyg-markdown/parse'
 import { serializeMarkdown, serializeMarkdownRanges } from './engine/wysiwyg-markdown/serialize'
 import { SET_VALUE, wysiwygRanges } from './engine/wysiwyg-ranges'
 import { isEmptyDoc, schema } from './engine/wysiwyg-schema'
-import type { WysiwygAction, WysiwygBlock, WysiwygBlockRange } from './types'
-import { type WysiwygShortcut, wysiwygActions } from './wysiwyg-actions'
+import type { WysiwygAction, WysiwygBlock, WysiwygBlockRange, WysiwygToggleAction } from './types'
+import { WYSIWYG_ACTIONS, type WysiwygShortcut, wysiwygActions } from './wysiwyg-actions'
 
 /**
  * The settings of an editor that the field can change while it lives.
@@ -80,8 +81,8 @@ export type WysiwygEditor = {
 	update: (props: WysiwygEditorProps) => void
 	/** Replaces the doc with a Markdown source and its ranges, out of the undo history. */
 	setValue: (markdown: string, ranges: readonly MarkdownRange[]) => void
-	/** Runs an action on the selection. */
-	run: (action: WysiwygAction) => boolean
+	/** Runs a toggle action on the selection. */
+	run: (action: WysiwygToggleAction) => boolean
 	/** Whether an action is on at the selection. */
 	isActive: (action: WysiwygAction) => boolean
 	/**
@@ -135,7 +136,7 @@ export function createWysiwygEditor(
 
 	const actionKeys: Record<string, Command> = {}
 
-	for (const action of Object.keys(wysiwygActions) as WysiwygAction[]) {
+	for (const action of WYSIWYG_ACTIONS) {
 		const key = keyName(wysiwygActions[action].shortcut)
 
 		actionKeys[key] = action === 'link' ? () => props.onLink() : wysiwygCommands[action].run
@@ -291,7 +292,8 @@ export function createWysiwygEditor(
 			props.onUpdate()
 		},
 		run: (action) => wysiwygCommands[action].run(view.state, view.dispatch, view),
-		isActive: (action) => wysiwygCommands[action].active(view.state),
+		isActive: (action) =>
+			action === 'link' ? isLinkActive(view.state) : wysiwygCommands[action].active(view.state),
 		link: (href, text) => {
 			setLink(href, text)(view.state, view.dispatch, view)
 
@@ -320,7 +322,7 @@ export function createWysiwygEditor(
  *
  * @internal
  */
-function formatAction(inputType: string): WysiwygAction | undefined {
+function formatAction(inputType: string): WysiwygToggleAction | undefined {
 	switch (inputType) {
 		case 'formatBold':
 			return 'bold'

@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext } from '../../core/create-context'
-import type { WysiwygAction } from './types'
+import type { WysiwygAction, WysiwygToggleAction } from './types'
 
 /**
  * What a {@link Wysiwyg} gives its parts, such as {@link WysiwygToolbar}.
@@ -24,8 +24,8 @@ export type WysiwygContextValue = {
 	subscribe: (listener: () => void) => () => void
 	/** Whether an action is on at the selection. */
 	isActive: (action: WysiwygAction) => boolean
-	/** Runs an action on the selection. */
-	run: (action: WysiwygAction) => void
+	/** Runs a toggle action on the selection. */
+	run: (action: WysiwygToggleAction) => void
 	/** Whether the link popover is open. */
 	linkOpen: boolean
 	setLinkOpen: (open: boolean) => void

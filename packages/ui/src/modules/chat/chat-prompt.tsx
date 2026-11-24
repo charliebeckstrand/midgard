@@ -27,9 +27,9 @@ import { k } from '../../recipes/kata/chat-prompt'
 import { isComposing } from '../../utilities/is-composing'
 import { keyByOccurrence } from '../../utilities/key-by-occurrence'
 import { hasBrowserModifier } from '../../utilities/modifier-keys'
-import type { WysiwygHandle } from '../wysiwyg/types'
+import { Wysiwyg, WysiwygToolbar } from '../wysiwyg'
+import type { WysiwygAction, WysiwygHandle } from '../wysiwyg/types'
 import { ChatPromptPicker } from './chat-prompt-picker'
-import { ChatPromptWysiwyg, type ChatPromptWysiwygOptions } from './chat-prompt-wysiwyg'
 import type { ChatCitation } from './engine/chat-content/types'
 import { canSubmitDraft } from './engine/chat-draft/content'
 import {
@@ -77,6 +77,15 @@ const messages = defineMessages({
 		description: 'The name of the button that sends a chat message.',
 	},
 })
+
+/** The object form of the `wysiwyg` prop of a ChatPrompt. */
+export type ChatPromptWysiwygOptions = {
+	/**
+	 * The buttons of the formatting toolbar, in the order given.
+	 * @defaultValue Each {@link WysiwygAction}, as on `WysiwygToolbar`.
+	 */
+	actions?: readonly WysiwygAction[]
+}
 
 /** Props for {@link ChatPrompt}. */
 export type ChatPromptProps = {
@@ -239,6 +248,11 @@ export type ChatPromptProps = {
 	 * `toolbar`, so a reader who focuses the field hears it.
 	 */
 	'aria-describedby'?: string
+}
+
+/** The buttons of the formatting toolbar of a `wysiwyg` prop that is on. @internal */
+function toolbarActions(wysiwyg: true | ChatPromptWysiwygOptions) {
+	return wysiwyg === true ? undefined : wysiwyg.actions
 }
 
 /**
@@ -457,9 +471,8 @@ export function ChatPrompt({
 				<ChatPromptToolbar onUnmountWithFocus={focusField}>{toolbar}</ChatPromptToolbar>
 			)}
 			{wysiwyg ? (
-				<ChatPromptWysiwyg
+				<Wysiwyg
 					ref={setWysiwygRefs}
-					config={wysiwyg}
 					value={value}
 					ranges={citations}
 					onValueChange={onValueChange}
@@ -471,8 +484,12 @@ export function ChatPrompt({
 					placeholder={placeholder ?? intl.formatMessage(messages.placeholder)}
 					{...labelProps}
 					aria-describedby={ariaDescribedBy}
+					enterKeyHint="send"
+					className="max-h-64"
 					actions={actionRow}
-				/>
+				>
+					<WysiwygToolbar actions={toolbarActions(wysiwyg)} />
+				</Wysiwyg>
 			) : (
 				<Textarea
 					ref={setTextareaRefs}

@@ -1,5 +1,5 @@
 import { exitCode, lift, setBlockType, toggleMark, wrapIn } from 'prosemirror-commands'
-import type { Mark, MarkType, NodeType } from 'prosemirror-model'
+import type { Mark, MarkType, Node, NodeType, ResolvedPos } from 'prosemirror-model'
 import { liftListItem, wrapInList } from 'prosemirror-schema-list'
 import {
 	type Command,
@@ -8,7 +8,7 @@ import {
 	TextSelection,
 	type Transaction,
 } from 'prosemirror-state'
-import type { WysiwygAction } from '../types'
+import type { WysiwygToggleAction } from '../types'
 import { schema } from './wysiwyg-schema'
 
 /**
@@ -60,18 +60,24 @@ export function isMarkActive(state: EditorState, type: MarkType): boolean {
 }
 
 /**
- * The depth of the nearest ancestor of a type around the selection, or `-1`.
+ * The nearest ancestor around the selection that has one of `types`, and its
+ * depth, or `null`.
  *
  * @internal
  */
-function ancestorDepth(state: EditorState, type: NodeType): number {
+function ancestor(
+	state: EditorState,
+	types: readonly NodeType[],
+): { node: Node; depth: number } | null {
 	const { $from } = state.selection
 
 	for (let depth = $from.depth; depth > 0; depth--) {
-		if ($from.node(depth).type === type) return depth
+		const node = $from.node(depth)
+
+		if (types.includes(node.type)) return { node, depth }
 	}
 
-	return -1
+	return null
 }
 
 /**
@@ -85,17 +91,7 @@ function listCommand(type: NodeType): WysiwygCommand {
 
 	// The nearest list decides: an item of a list in a list of the other kind is
 	// in the inner list.
-	const nearest = (state: EditorState) => {
-		const { $from } = state.selection
-
-		for (let depth = $from.depth; depth > 0; depth--) {
-			const node = $from.node(depth)
-
-			if (node.type === type || node.type === other) return { node, depth }
-		}
-
-		return null
-	}
+	const nearest = (state: EditorState) => ancestor(state, [type, other])
 
 	return {
 		run: (state, dispatch) => {
@@ -122,10 +118,10 @@ function listCommand(type: NodeType): WysiwygCommand {
 /** @internal */
 const quote: WysiwygCommand = {
 	run: (state, dispatch) =>
-		ancestorDepth(state, nodes.blockquote) >= 0
+		ancestor(state, [nodes.blockquote])
 			? lift(state, dispatch)
 			: wrapIn(nodes.blockquote)(state, dispatch),
-	active: (state) => ancestorDepth(state, nodes.blockquote) >= 0,
+	active: (state) => ancestor(state, [nodes.blockquote]) !== null,
 }
 
 /**
@@ -229,32 +225,42 @@ export const exitCodeDown: Command = (state, dispatch, view) => {
 }
 
 /**
- * The command of each action but `link`, which needs a URL and opens a
- * popover. `link` has the active test and the removal of a link.
+ * The command of each toggle action. The link action needs a URL, so the
+ * link popover runs {@link setLink}, and {@link isLinkActive} is its active
+ * test.
  *
  * @internal
  */
-export const wysiwygCommands: Record<WysiwygAction, WysiwygCommand> = {
+export const wysiwygCommands: Record<WysiwygToggleAction, WysiwygCommand> = {
 	bold: markCommand(marks.strong),
 	italic: markCommand(marks.em),
 	strike: markCommand(marks.strike),
 	code: markCommand(marks.code),
-	link: {
-		run: (state, dispatch) => {
-			if (!isMarkActive(state, marks.link) && !linkAtCaret(state)) return false
-
-			const range = linkRange(state)
-
-			if (dispatch) dispatch(state.tr.removeMark(range.from, range.to, marks.link))
-
-			return true
-		},
-		active: (state) => isMarkActive(state, marks.link) || linkAtCaret(state) !== null,
-	},
 	bulletList: listCommand(nodes.bullet_list),
 	orderedList: listCommand(nodes.ordered_list),
 	quote,
 	codeBlock,
+}
+
+/**
+ * Whether the selection is in a link: a range that has the link mark on the
+ * whole of it, or a caret in a link.
+ *
+ * @internal
+ */
+export function isLinkActive(state: EditorState): boolean {
+	return isMarkActive(state, marks.link) || linkAtCaret(state) !== null
+}
+
+/**
+ * The link mark at a position. A link is not inclusive, so the marks of a
+ * position hold it only inside the link. At the start of a link, the text
+ * after the position gives it.
+ *
+ * @internal
+ */
+function linkMark($pos: ResolvedPos): Mark | undefined {
+	return marks.link.isInSet($pos.marks()) ?? marks.link.isInSet($pos.nodeAfter?.marks ?? [])
 }
 
 /**
@@ -263,12 +269,12 @@ export const wysiwygCommands: Record<WysiwygAction, WysiwygCommand> = {
  *
  * @internal
  */
-export function linkAtCaret(state: EditorState): { from: number; to: number; href: string } | null {
+function linkAtCaret(state: EditorState): { from: number; to: number; href: string } | null {
 	const { $from, empty } = state.selection
 
 	if (!empty) return null
 
-	const mark = marks.link.isInSet($from.marks()) ?? marks.link.isInSet($from.nodeAfter?.marks ?? [])
+	const mark = linkMark($from)
 
 	if (!mark) return null
 
@@ -312,9 +318,7 @@ export function linkRange(state: EditorState): { from: number; to: number } {
 export function linkDraft(state: EditorState): { text: string; href: string } {
 	const { from, to } = linkRange(state)
 
-	const { $from } = state.selection
-
-	const mark = marks.link.isInSet($from.marks()) ?? marks.link.isInSet($from.nodeAfter?.marks ?? [])
+	const mark = linkMark(state.selection.$from)
 
 	return { text: state.doc.textBetween(from, to, ' '), href: mark?.attrs.href ?? '' }
 }

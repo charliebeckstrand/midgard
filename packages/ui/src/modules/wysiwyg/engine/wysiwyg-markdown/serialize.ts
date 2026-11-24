@@ -365,10 +365,8 @@ function span(mark: Mark, inner: readonly Item[], line: Line): string {
 	) {
 		line.start = false
 
-		// A link is one atom, so a range on part of it takes all of it.
-		const range = inner.map((each) => schema.marks.range.isInSet(each.marks)).find(Boolean)
-
-		return range ? markPiece(range, plain, line) : plain
+		// A link is one atom.
+		return atomPiece(inner, plain, line)
 	}
 
 	const open = delimiter(mark, 'open')
@@ -381,11 +379,7 @@ function span(mark: Mark, inner: readonly Item[], line: Line): string {
 
 	const content = run(inner, line)
 
-	const lead = content.match(/^\s*/)?.[0] ?? ''
-
-	const trail = content.slice(lead.length).match(/\s*$/)?.[0] ?? ''
-
-	const core = content.slice(lead.length, content.length - trail.length)
+	const { lead, core, trail } = splitSpace(content)
 
 	if (core === '') {
 		line.start = before && content === ''
@@ -395,6 +389,15 @@ function span(mark: Mark, inner: readonly Item[], line: Line): string {
 
 	// Whitespace at the start of a line is not text in Markdown (see `escapeText`).
 	return `${before ? '' : lead}${open}${core}${close}${trail}`
+}
+
+/** The white space at the start and at the end of a text, and the text between. @internal */
+function splitSpace(text: string): { lead: string; core: string; trail: string } {
+	const lead = text.match(/^\s*/)?.[0] ?? ''
+
+	const trail = text.slice(lead.length).match(/\s*$/)?.[0] ?? ''
+
+	return { lead, core: text.slice(lead.length, text.length - trail.length), trail }
 }
 
 /** @internal */
@@ -443,9 +446,17 @@ function codeSpan(inner: readonly Item[], line: Line): string {
 			? ' '
 			: ''
 
-	const written = `${ticks}${pad}${code}${pad}${ticks}`
+	// A code span is one atom.
+	return atomPiece(inner, `${ticks}${pad}${code}${pad}${ticks}`, line)
+}
 
-	// A code span is one atom. A range that holds part of it takes all of it.
+/**
+ * The written text of an atom, such as a code span. A range that holds part
+ * of the atom takes all of it.
+ *
+ * @internal
+ */
+function atomPiece(inner: readonly Item[], written: string, line: Line): string {
 	const range = inner.map((each) => schema.marks.range.isInSet(each.marks)).find(Boolean)
 
 	return range ? markPiece(range, written, line) : written
@@ -459,11 +470,7 @@ function codeSpan(inner: readonly Item[], line: Line): string {
 function rangeSpan(mark: Mark, inner: readonly Item[], line: Line): string {
 	const content = run(inner, line)
 
-	const lead = content.match(/^\s*/)?.[0] ?? ''
-
-	const trail = content.slice(lead.length).match(/\s*$/)?.[0] ?? ''
-
-	const core = content.slice(lead.length, content.length - trail.length)
+	const { lead, core, trail } = splitSpace(content)
 
 	return core === '' ? content : `${lead}${markPiece(mark, core, line)}${trail}`
 }

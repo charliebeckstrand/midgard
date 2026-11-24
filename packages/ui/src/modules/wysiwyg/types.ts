@@ -16,6 +16,14 @@ export type WysiwygAction =
 	| 'quote'
 	| 'codeBlock'
 
+/**
+ * An action that a toolbar button toggles at the selection: each
+ * {@link WysiwygAction} but `link`, which opens a popover and has no command.
+ *
+ * @internal
+ */
+export type WysiwygToggleAction = Exclude<WysiwygAction, 'link'>
+
 /** A range in a {@link WysiwygBlock}: its id, and its span in the text of the block. */
 export type WysiwygBlockRange = {
 	id: string
