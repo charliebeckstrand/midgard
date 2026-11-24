@@ -6,9 +6,9 @@ import {
 	Link,
 	List,
 	ListOrdered,
+	Quote,
 	SquareCode,
 	Strikethrough,
-	TextQuote,
 } from '../../primitives/icons/icons'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import type { MessageDescriptor } from '../../primitives/intl/types'
@@ -178,7 +178,7 @@ export const wysiwygActions: Record<WysiwygAction, WysiwygActionEntry> = {
 	quote: {
 		group: 'references',
 		message: wysiwygMessages.quote,
-		icon: TextQuote,
+		icon: Quote,
 		shortcut: { shift: true, key: '9' },
 	},
 	bulletList: {
