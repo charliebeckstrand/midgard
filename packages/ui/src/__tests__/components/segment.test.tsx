@@ -275,6 +275,27 @@ describe('Segment keyboard navigation', () => {
 
 		expect(tab('B')).toHaveAttribute('aria-selected', 'true')
 	})
+
+	it('does not give its manual activation to a Segment inside it', () => {
+		renderUI(
+			<Segment defaultValue="a" activation="manual">
+				<SegmentControl aria-label="View">
+					<SegmentItem value="a">A</SegmentItem>
+					<SegmentItem value="b">B</SegmentItem>
+				</SegmentControl>
+				<Segment defaultValue="x">
+					<SegmentControl aria-label="Scale">
+						<SegmentItem value="x">X</SegmentItem>
+						<SegmentItem value="y">Y</SegmentItem>
+					</SegmentControl>
+				</Segment>
+			</Segment>,
+		)
+
+		expect(screen.getByRole('tablist', { name: 'View' })).toBeInTheDocument()
+
+		expect(screen.getByRole('radiogroup', { name: 'Scale' })).toBeInTheDocument()
+	})
 })
 
 describe('Segment in a locked scope', () => {

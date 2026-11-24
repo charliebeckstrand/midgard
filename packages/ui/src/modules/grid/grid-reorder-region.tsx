@@ -215,7 +215,7 @@ function SortableRow<T>(props: GridRowProps<T>) {
  *
  * @internal
  */
-export const gridReorderKit = { RowSortableScope, SortableColumnHeader, SortableRow }
+const gridReorderKit = { RowSortableScope, SortableColumnHeader, SortableRow }
 
 /** The drag and drop parts of the grid. @internal */
 export type GridReorderKit = typeof gridReorderKit

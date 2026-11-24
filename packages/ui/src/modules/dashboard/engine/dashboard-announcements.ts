@@ -15,7 +15,9 @@ type TileAtCell = { item: string; cell: string }
 
 const messages = defineMessages<{
 	cell: { column: number; columns: number; row: number; width: number }
+	position: DashboardStackPlace
 	dragStart: TileAtCell
+	dragHint: Record<never, never>
 	cannotGo: { item: string }
 	atStart: TileAtCell
 	swaps: TileAtCell & { partner: string }
@@ -28,6 +30,12 @@ const messages = defineMessages<{
 	duplicated: { item: string }
 	tidied: { moved: number }
 }>({
+	position: {
+		id: 'ui.dashboard.position',
+		defaultMessage: 'position {position, number} of {total, number}',
+		description:
+			'The place of a dashboard tile when the narrow board stacks the tiles: its place in reading order, and the count of tiles.',
+	},
 	cell: {
 		id: 'ui.dashboard.cell',
 		defaultMessage:
@@ -37,10 +45,14 @@ const messages = defineMessages<{
 	},
 	dragStart: {
 		id: 'ui.dashboard.dragStart',
-		defaultMessage:
-			'Picked up {item} at {cell}. Use the arrow keys to move it. Press Space to drop it, or Escape to cancel.',
+		defaultMessage: 'Picked up {item} at {cell}.',
 		description:
 			'Spoken when the reader picks up a dashboard tile. The cell is the place of the tile.',
+	},
+	dragHint: {
+		id: 'ui.dashboard.dragHint',
+		defaultMessage: 'Use the arrow keys to move it. Press Space to drop it, or Escape to cancel.',
+		description: 'Spoken after the reader picks up a dashboard tile.',
 	},
 	cannotGo: {
 		id: 'ui.dashboard.cannotGo',
@@ -51,7 +63,7 @@ const messages = defineMessages<{
 		id: 'ui.dashboard.atStart',
 		defaultMessage: '{item} is over its start place, {cell}. A drop now changes nothing.',
 		description:
-			'Spoken while a dragged tile is over the place where the drag started. The cell is that place.',
+			'Spoken while a dragged tile is over the place where the drag started. The cell is that place: a grid cell, such as "column 3 of 24, row 2, 8 columns wide", or a place in the stack of a narrow board, such as "position 2 of 5".',
 	},
 	swaps: {
 		id: 'ui.dashboard.swaps',
@@ -120,10 +132,12 @@ export function describeDragStart(
 	cell: DashboardCell,
 	columns: number,
 ): string {
-	return intl.formatMessage(messages.dragStart, {
+	const start = intl.formatMessage(messages.dragStart, {
 		item: label,
 		cell: describeCell(intl, cell, columns),
 	})
+
+	return `${start} ${intl.formatMessage(messages.dragHint)}`
 }
 
 /** The text when a drag previews a new place, or no change. */
@@ -221,18 +235,32 @@ export function describeStackStart(
 	label: string,
 	place: DashboardStackPlace,
 ): string {
-	return intl.formatMessage(reorderMessages.pickedUp, {
+	const start = intl.formatMessage(reorderMessages.pickedUp, {
 		subject: describeSubject(intl, label, place),
 	})
+
+	return `${start} ${intl.formatMessage(messages.dragHint)}`
 }
 
-/** The text when a drag in the re-pack previews a new place, or the start place. */
+/** The text when a drag in the re-pack previews a new place. */
 export function describeStackMove(
 	intl: IntlShape,
 	label: string,
 	place: DashboardStackPlace,
 ): string {
 	return intl.formatMessage(reorderMessages.moved, { item: label, ...place })
+}
+
+/** The text when a drag in the re-pack is over the start place, where a drop changes nothing. */
+export function describeStackAtStart(
+	intl: IntlShape,
+	label: string,
+	place: DashboardStackPlace,
+): string {
+	return intl.formatMessage(messages.atStart, {
+		item: label,
+		cell: intl.formatMessage(messages.position, place),
+	})
 }
 
 /** The text when a drop in the re-pack commits, or changes nothing. */

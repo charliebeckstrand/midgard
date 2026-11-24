@@ -12,7 +12,7 @@ import WithToolbar from './with-toolbar.tsx'
 export default function WysiwygPage() {
 	return (
 		<FrameDefaults box="column">
-			<Playground of={WysiwygPlayground} api={api} />
+			<Playground of={WysiwygPlayground} api={api} omit={['aria-autocomplete', 'aria-haspopup']} />
 			<Example of={WithToolbar} />
 			<Example of={Separated} />
 			<Example of={Controlled} />

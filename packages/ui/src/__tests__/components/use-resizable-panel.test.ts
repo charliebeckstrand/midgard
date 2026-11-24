@@ -491,6 +491,61 @@ describe('useResizablePanel', () => {
 			expect(onSizesChange).toHaveBeenCalledExactlyOnceWith([70, 30])
 		})
 
+		it('reports nothing for a frame or a lift that changes no size', () => {
+			const onSizesChange = vi.fn()
+
+			const { result } = renderPanel({
+				groupRef: wideGroup(),
+				panelConfigs: [
+					{ key: '.0', defaultSize: 50, minSize: 0, maxSize: 60 },
+					{ key: '.1', defaultSize: 50, minSize: 0, maxSize: 100 },
+				],
+				onSizesChange,
+			})
+
+			act(() => {
+				result.current.startDrag(0, handleDown({ button: 0, clientX: 500, clientY: 0 }))
+			})
+
+			// Past the maxSize of the first panel, each frame clamps to the same pair.
+			for (const clientX of [700, 800, 900]) {
+				act(() => {
+					document.dispatchEvent(
+						new PointerEvent('pointermove', { pointerId: 1, clientX, clientY: 0 }),
+					)
+
+					flushFrames()
+				})
+			}
+
+			act(() => {
+				document.dispatchEvent(
+					new PointerEvent('pointerup', { pointerId: 1, clientX: 900, clientY: 0 }),
+				)
+			})
+
+			expect(onSizesChange).toHaveBeenCalledExactlyOnceWith([60, 40])
+
+			// A press and a lift with no move change nothing.
+			act(() => {
+				result.current.startDrag(0, handleDown({ button: 0, clientX: 500, clientY: 0 }))
+			})
+
+			act(() => {
+				document.dispatchEvent(
+					new PointerEvent('pointermove', { pointerId: 1, clientX: 500, clientY: 40 }),
+				)
+
+				flushFrames()
+
+				document.dispatchEvent(
+					new PointerEvent('pointerup', { pointerId: 1, clientX: 500, clientY: 40 }),
+				)
+			})
+
+			expect(onSizesChange).toHaveBeenCalledOnce()
+		})
+
 		it('commits the last move at once when the pointer lifts before the frame', () => {
 			const cancelAnimationFrame = vi.fn()
 

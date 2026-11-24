@@ -43,6 +43,8 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > A `tag-input` keeps the tokens that `validate` refuses in the draft and shows its `invalidMessage` below the field until the next keystroke. Give `invalidMessage={null}` to show no message. The live region then announces the refusal.
 
+> A `file-upload` component shows the files that a pick or a drop refuses, and the reason of each, in its `invalidMessage`. The message shows below the component until the next pick, drop, or clear. Give `invalidMessage={null}` to show no message. The live region then announces the refusal, unless the caller sets `onReject` and shows its own message.
+
 > The tags of a `tag-input` stay on one row and scroll on the inline axis. With `wrap`, they wrap onto more rows, and the add button stays at the end of the first row. The affixes of each other input stay on one row with the input.
 
 > `checkbox`, `switch`, `RadioGroup`, and `ColorPicker` take `readOnly` from their own prop or from an enclosing `Control`. `Rating` and `SwitchChoice` set `aria-required` from their own `required` prop or from an enclosing `Control`. The `ColorPicker` and `DatePicker` triggers set it from an enclosing `Control`.
@@ -83,6 +85,8 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > A hover `Tooltip` stays open while the pointer moves onto its content. The reader can thus rest on the text (WCAG 2.2 SC 1.4.13). Escape closes it. `interactive` only lets the content hold controls.
 
+> A `TooltipGroup` makes its tooltips act as one set. The first tooltip waits for its `delay`. While a tooltip of the group is open, and for 300 ms after it closes, the next tooltip opens at once with no animation. The open tooltip then closes at once. Each `Toolbar` is a group.
+
 > `useConfirm()` asks a question in the one `Confirm` that `UIProvider` mounts. Use `Confirm` for a message with custom children. When the dialog closes, the focus goes back to the control that asked. When that control is gone, as after a delete of its row, the focus goes into its nearest ancestor that is still in the page. Set `returnFocusTo` to choose the target.
 
 > `UIProvider` mounts one `ToastProvider` and its viewport, so `useToast()` works anywhere under it with no setup. A `toast()` call with the `id` of a live toast replaces that toast in place, and its countdown starts again. A screen reader speaks the new text.
@@ -103,7 +107,7 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > `date-time` uses the `timeZone` of its `format`, else of the provider, else the zone of the reader. It shows a skeleton until hydration, also with a set zone. The date data of the server and of the browser give different text for some formats. The skeleton holds the date in UTC in the shape of English text, without `Intl`, so it has about the size of the date. A page that must paint a date in its first frame writes it on the server with `formatDateText` from `ui/server`. The `DateText` is then the `value` of `date-time`.
 
-> A `list` loads its drag code only when it has `onReorder`. The `bare` variant has no row padding and no dividers, for rows of form controls. A horizontal `list` stays on one row, which scrolls when it is wider than its parent.
+> A `list` loads its drag code only when it has `onReorder`. When the code arrives, the rows mount again. The focus stays on the same control of its row. The `bare` variant has no row padding and no dividers, for rows of form controls. A horizontal `list` stays on one row, which scrolls when it is wider than its parent.
 
 > `CodeBlock` highlights with Shiki in a module worker. A Vite app must set `worker.format` to `'es'`.
 

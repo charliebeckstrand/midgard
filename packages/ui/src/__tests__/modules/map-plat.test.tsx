@@ -722,6 +722,30 @@ describe('MapPlat', () => {
 		expect(bySlot(container, 'map-regions-lit')?.querySelectorAll('path')).toHaveLength(1)
 	})
 
+	it('keeps the readout closed after Escape until the pointer reads another region', () => {
+		const { container } = renderUI(categoricalPlat())
+
+		const [alpha, beta] = allRegions(container)
+
+		fireEvent.pointerEnter(alpha as Element, { clientX: 40, clientY: 20 })
+
+		expect(bySlot(container, 'tooltip-content')).not.toBeNull()
+
+		// Escape closes the readout wherever the focus is (WCAG 1.4.13).
+		fireEvent.keyDown(document.body, { key: 'Escape' })
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+
+		// Each move builds a new target. The readout stays closed while it names the same region.
+		fireEvent.pointerMove(alpha as Element, { clientX: 44, clientY: 22 })
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+
+		fireEvent.pointerEnter(beta as Element, { clientX: 150, clientY: 20 })
+
+		expect(bySlot(container, 'tooltip-content')).not.toBeNull()
+	})
+
 	it('isolates the pointed region, dimming every other region', () => {
 		const { container } = renderUI(categoricalPlat())
 

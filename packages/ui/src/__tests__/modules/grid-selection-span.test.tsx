@@ -94,6 +94,15 @@ describe('Grid selection span and rowSelectable', () => {
 		expect(selected()).toEqual([1, 2, 4])
 	})
 
+	// A rejected row cannot take the selection, so it states no selected state.
+	it('gives a rejected row no aria-selected', () => {
+		const { box } = renderSelectable((row) => !row.locked)
+
+		expect(box('Cy').closest('tr')).not.toHaveAttribute('aria-selected')
+
+		expect(box('Bo').closest('tr')).toHaveAttribute('aria-selected', 'false')
+	})
+
 	it('shows the header clear when only a rejected row holds the selection', () => {
 		renderUI(
 			<Grid

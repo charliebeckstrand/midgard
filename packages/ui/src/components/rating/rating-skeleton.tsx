@@ -27,6 +27,10 @@ export type RatingSkeletonProps = {
  *
  * @remarks A `<span>` row of `<span>` stars, as the rating itself is, so it stands in for one
  * anywhere a rating can go, a line of text included.
+ *
+ * The row has the box of a `readOnly` or `disabled` Rating. An interactive
+ * Rating puts each star in a cell of at least the touch-target floor, so its
+ * row is wider than the skeleton.
  */
 export function RatingSkeleton({ count = 5, size, className }: RatingSkeletonProps) {
 	return renderRowSkeleton({

@@ -120,11 +120,12 @@ export const k = defineKata(
 			 * each glyph of the toolbar has the inset of the text on the top, the
 			 * start, and the end. A separated toolbar is above the frame, and it keeps
 			 * only the inline padding, so its glyphs line up with the text. A bare
-			 * field has no inset, so its toolbar has no padding. The Toolbar sets its
-			 * gap.
+			 * field has no inset, so its toolbar has no padding, and a negative
+			 * inline margin cancels the padding of the buttons. The first glyph then
+			 * starts at the edge of the text. The Toolbar sets its gap.
 			 */
 			toolbar: {
-				variant: framed(dan.space.control.toolbar.x),
+				variant: { ...framed(dan.space.control.toolbar.x), bare: dan.space.control.toolbar.bare },
 				compound: FRAMED.map((variant) => ({
 					variant,
 					separated: false,

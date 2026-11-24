@@ -28,7 +28,6 @@ import {
 	fillPlan,
 	type GridFillDirection,
 	type GridFillRect,
-	type GridRangeFillDirection,
 	rangeFillSource,
 } from './engine/grid-range/fill'
 import { pasteOverflow, pastePlacement } from './engine/grid-range/paste'
@@ -155,7 +154,7 @@ function span(from: number, to: number): number[] {
  * The fill direction of a key press on the tab stop, or `null` for another
  * key. Ctrl/Cmd+D fills down and Ctrl/Cmd+R fills right. @internal
  */
-function fillKey(press: GridKeyPress & { shiftKey: boolean }): GridRangeFillDirection | null {
+function fillKey(press: GridKeyPress & { shiftKey: boolean }): GridFillDirection | null {
 	if (press.composing || press.altKey || press.shiftKey || !(press.ctrlKey || press.metaKey)) {
 		return null
 	}
@@ -273,7 +272,7 @@ export function useGridEditCursor<T>({
 		return managed && column !== undefined && isColumnEditable(column)
 	})
 
-	const { nav, copies, seated, copyCells } = useGridCursorNav<T>({
+	const { nav, copies, seated, copyCells, copyAt } = useGridCursorNav<T>({
 		enabled: cursorEnabled,
 		range,
 		rangeFigures,
@@ -567,7 +566,7 @@ export function useGridEditCursor<T>({
 
 	// The fill of the range in `direction` from its leading lines, bound to the
 	// range as it is now.
-	const planFill = useStableEvent((direction: GridRangeFillDirection) => {
+	const planFill = useStableEvent((direction: GridFillDirection) => {
 		const cells = readRange()
 
 		const rows = rowsRef.current
@@ -614,6 +613,7 @@ export function useGridEditCursor<T>({
 	const startFillDrag = useGridFillDrag({
 		readSource: readFillSource,
 		showRange: nav.showRange,
+		rangeCols: nav.rangeCols,
 		fill: fillFromHandle,
 		parseCellCoord: nav.parseCellCoord,
 		rowStep: nav.rowStep,
@@ -786,6 +786,7 @@ export function useGridEditCursor<T>({
 		renderNewRow,
 		stepHistory: editing.stepHistory,
 		fill,
+		copyAt,
 		range: gridRangeHandle(nav),
 	}
 }

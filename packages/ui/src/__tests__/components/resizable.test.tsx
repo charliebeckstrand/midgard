@@ -202,6 +202,14 @@ describe('Resizable: keyboard', () => {
 			[45, 55],
 		],
 		['Shift + arrow uses a 10% step', {}, { key: 'ArrowRight', shiftKey: true }, [60, 40]],
+		['PageUp grows the left panel by 10%', {}, { key: 'PageUp' }, [60, 40]],
+		['PageDown shrinks the left panel by 10%', {}, { key: 'PageDown' }, [40, 60]],
+		[
+			'PageUp grows the top panel in a vertical group',
+			{ orientation: 'vertical' },
+			{ key: 'PageUp' },
+			[60, 40],
+		],
 		['Home collapses the left panel to its minimum', { minSize: 10 }, { key: 'Home' }, [10, 90]],
 		['End grows the left panel to its maximum', { maxSize: 90 }, { key: 'End' }, [90, 10]],
 		[
@@ -246,6 +254,20 @@ describe('Resizable: keyboard', () => {
 		})
 
 		expect(proceeded).toBe(true)
+
+		expect(onSizesChange).not.toHaveBeenCalled()
+	})
+
+	it('reports nothing for a step at a bound', () => {
+		const onSizesChange = vi.fn()
+
+		const { container } = renderPair({
+			group: { onSizesChange },
+			a: { defaultSize: 10, minSize: 10 },
+			b: { defaultSize: 90 },
+		})
+
+		fireEvent.keyDown(getSlot(container, 'resizable-handle'), { key: 'ArrowLeft' })
 
 		expect(onSizesChange).not.toHaveBeenCalled()
 	})
@@ -368,9 +390,69 @@ describe('Resizable: double-click', () => {
 			</ResizableGroup>,
 		)
 
+		const handle = getSlot(container, 'resizable-handle')
+
+		fireEvent.keyDown(handle, { key: 'ArrowRight' })
+
+		fireEvent.doubleClick(handle)
+
+		expect(onSizesChange).toHaveBeenCalledOnce()
+
+		expect(handle).toHaveAttribute('aria-valuenow', '55')
+	})
+
+	it('reports nothing for a double-click at the default sizes', () => {
+		const onSizesChange = vi.fn()
+
+		const { container } = renderPair({
+			group: { onSizesChange },
+			a: { defaultSize: 50 },
+			b: { defaultSize: 50 },
+		})
+
 		fireEvent.doubleClick(getSlot(container, 'resizable-handle'))
 
 		expect(onSizesChange).not.toHaveBeenCalled()
+	})
+
+	it('reports the reset after the drag brackets of its two presses', () => {
+		const onSizesChange = vi.fn()
+		const onResizeEnd = vi.fn()
+
+		const { container } = renderPair({
+			group: { onSizesChange, onResizeEnd },
+			a: { defaultSize: 50 },
+			b: { defaultSize: 50 },
+		})
+
+		const group = getSlot(container, 'resizable-group')
+
+		group.getBoundingClientRect = () => DOMRect.fromRect({ width: 200, height: 20 })
+
+		const handle = getSlot(container, 'resizable-handle')
+
+		fireEvent.keyDown(handle, { key: 'ArrowRight' })
+
+		const press = { pointerId: 1, isPrimary: true, button: 0, clientX: 110, clientY: 0 }
+
+		for (let count = 0; count < 2; count++) {
+			fireEvent.pointerDown(handle, press)
+
+			fireEvent.pointerUp(document, press)
+		}
+
+		fireEvent.doubleClick(handle)
+
+		expect(onResizeEnd).toHaveBeenCalledTimes(2)
+
+		expect(onSizesChange.mock.calls.at(-1)?.[0]).toEqual([50, 50])
+
+		// A consumer that persists from onResizeEnd alone misses the reset.
+		const lastEnd = Math.max(...onResizeEnd.mock.invocationCallOrder)
+
+		const lastChange = Math.max(...onSizesChange.mock.invocationCallOrder)
+
+		expect(lastChange).toBeGreaterThan(lastEnd)
 	})
 })
 

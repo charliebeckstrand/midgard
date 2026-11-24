@@ -24,7 +24,7 @@ export const GROUP_PREFIX = '\u0000group:'
  *
  * @internal
  */
-export const ZONE_PREFIX = '\u0000zone:'
+const ZONE_PREFIX = '\u0000zone:'
 
 /** The droppable id of a zone. @internal */
 export function zoneDropId(zoneId: string | number): string {
@@ -232,9 +232,18 @@ export function moveBetweenZones(
  * or to the end when dropped on the zone's droppable. It returns the map unchanged
  * for a cross-zone drop, or a no-op.
  *
+ * The move runs over the members that `shown` passes, the ones on the screen
+ * under the filter of the manager. A member that the filter hides keeps its
+ * slot, as in the flat list and in the menu path of the move.
+ *
  * @internal
  */
-export function settleDragEnd(map: ZoneMap, activeId: string, overId: string): ZoneMap {
+export function settleDragEnd(
+	map: ZoneMap,
+	activeId: string,
+	overId: string,
+	shown: (id: string) => boolean = () => true,
+): ZoneMap {
 	const from = findZoneId(map, activeId)
 
 	const to = findZoneId(map, overId)
@@ -243,13 +252,17 @@ export function settleDragEnd(map: ZoneMap, activeId: string, overId: string): Z
 
 	const ids = map[from] ?? []
 
-	const oldIndex = ids.indexOf(activeId)
+	const visible = ids.filter(shown)
 
-	const newIndex = overId === zoneDropId(from) ? ids.length - 1 : ids.indexOf(overId)
+	const oldIndex = visible.indexOf(activeId)
+
+	const newIndex = overId === zoneDropId(from) ? visible.length - 1 : visible.indexOf(overId)
 
 	if (oldIndex === -1 || newIndex === -1 || oldIndex === newIndex) return map
 
-	return { ...map, [from]: moveItem(ids, oldIndex, newIndex) }
+	const moved = moveItem(visible, oldIndex, newIndex)
+
+	return { ...map, [from]: applyColumnReorder(ids, moved, (id) => shown(String(id))).map(String) }
 }
 
 /**

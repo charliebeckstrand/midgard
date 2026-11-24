@@ -24,9 +24,9 @@ import { wysiwygActions, wysiwygMessages } from './wysiwyg-actions'
  * While the popover is open, the field marks that text, or the caret, as the
  * focus is in the popover. Apply sets the text and the link, and a selection
  * stays selected. At a caret outside a link, the text goes in at the caret.
- * With no text, the URL is the text. Apply and Remove link move the focus back to
- * the field. Escape and an outside press close the popover, and the focus goes
- * back to the button.
+ * With no text, the URL is the text. Apply and Remove link move the focus back
+ * to the field. Escape and an outside press close the popover, and the focus
+ * goes back to the button.
  * @internal
  */
 export function WysiwygLinkButton() {

@@ -263,6 +263,7 @@ Import these from `utilities/export-output`.
 | Export | Summary |
 |---|---|
 | `copyText` | Writes text to the clipboard when the API is available. A failed write does nothing. |
+| `copyRichText` | Writes text and its HTML form to the clipboard as one item, so a document keeps the table and a sheet reads the text. Without `ClipboardItem`, it writes the text alone, through `copyText`. |
 | `csvField` | Escapes one CSV field per RFC 4180, and guards a field that a spreadsheet reads as a formula. |
 | `CsvFieldOptions` *(type)* | Options for `csvField`: `formatted` keeps a formatted number as it is. |
 | `neutralizeFormula` | Puts a quote before a field that a spreadsheet would run as a formula. A signed plain number passes. |

@@ -9,7 +9,7 @@ export default function WithToolbar() {
 		<Field>
 			<Label>Release notes</Label>
 			<Wysiwyg defaultValue={drafts.summary}>
-				<WysiwygToolbar actions={['bold', 'italic', 'link', 'bulletList', 'orderedList']} />
+				<WysiwygToolbar actions={['bold', 'italic', 'bulletList', 'orderedList', 'link']} />
 			</Wysiwyg>
 		</Field>
 	)

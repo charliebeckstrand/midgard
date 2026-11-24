@@ -207,6 +207,8 @@ export function PlacePhotosField({ progress }: PlacePhotosFieldProps) {
 		maxSize: MAX_PHOTO_BYTES,
 		maxCount: room,
 		disabled: room <= 0,
+		// The field shows its own Message, so the file upload shows none.
+		invalidMessage: null,
 		onReject: (refused: FileRejection[]) => {
 			refusing.current = true
 

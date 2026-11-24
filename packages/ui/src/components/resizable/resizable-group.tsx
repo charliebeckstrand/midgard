@@ -30,7 +30,10 @@ export type ResizableGroupProps = ComponentProps<'div'> & {
 	 * @defaultValue 'horizontal'
 	 */
 	orientation?: Orientation
-	/** Fires when a resize changes the sizes, with the panel sizes (percentages summing to 100). */
+	/**
+	 * Fires when a resize changes the sizes, with the panel sizes (percentages summing to 100).
+	 * A step or a reset that changes no size does not fire it.
+	 */
 	onSizesChange?: (sizes: number[]) => void
 	/**
 	 * Fires when a pointer drag-resize begins, with the index of the handle. Pair with
@@ -38,8 +41,11 @@ export type ResizableGroupProps = ComponentProps<'div'> & {
 	 *
 	 * `onSizesChange` reports the sizes but not the gesture, and it fires once per
 	 * frame for the whole drag. It therefore cannot say when to persist, nor when
-	 * to hold something expensive down. A keyboard nudge has no drag lifecycle and
-	 * commits straight through `onSizesChange`, so it fires neither of these.
+	 * to hold something expensive down. A keyboard nudge and a double-click reset have
+	 * no drag lifecycle. They commit straight through `onSizesChange`, so they fire
+	 * neither of these. The two presses of a double-click each start and end a drag
+	 * before the reset, so the reset comes after the last `onResizeEnd`. A consumer
+	 * that persists from `onResizeEnd` must also persist a reset from `onSizesChange`.
 	 */
 	onResizeStart?: (handleIndex: number) => void
 	/**

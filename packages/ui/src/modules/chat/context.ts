@@ -71,9 +71,9 @@ export const [ChatRowContext, useChatRowKey] = createContext<string | number | u
 
 /**
  * The citations in scope, as {@link ChatCitationProvider} supplied them: the
- * views that a citation can select in, the cited citation, the test for a
- * citation that the selection of a view matches, the trigger, and the calls
- * that the pieces of a citation make.
+ * views that a citation can show, the cited citation, the test for a citation
+ * that the selection of a view matches, the trigger, the calls that the pieces
+ * of a citation make, and the panel of a citation whose target has `render`.
  *
  * @internal
  */
@@ -83,6 +83,10 @@ export type ChatCitationScope = {
 	isMarked?: (citation: ChatCitation) => boolean
 	trigger?: ChatCitationMode
 	actions?: ChatCitationActions
+	/** Opens the panel of a citation whose target has `render`. */
+	show?: (citation: ChatCitation) => void
+	/** The id of the citation whose panel is open, or `null`. */
+	shown?: string | null
 }
 
 /** The scope with no target: each citation renders as prose. @internal */

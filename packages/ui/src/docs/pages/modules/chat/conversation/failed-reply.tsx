@@ -1,9 +1,9 @@
 import { RotateCcw } from 'lucide-react'
 import { useCallback } from 'react'
-import { ChatEmbedProvider, type ChatMessageData, ChatTranscript, useChatSend } from 'ui/chat'
+import { ChatCitationProvider, type ChatMessageData, ChatTranscript, useChatSend } from 'ui/chat'
 import type { ContextMenuConfig } from 'ui/context-menu'
-import { renderers } from '../embeds/renderers.tsx'
 import { transport } from './reply.ts'
+import { targets } from './targets.tsx'
 
 const initialMessages: ChatMessageData[] = [
 	{ id: 'question', sender: 'user', content: 'How are late stops trending this week?' },
@@ -34,13 +34,13 @@ export default function FailedReply() {
 	)
 
 	return (
-		<ChatEmbedProvider renderers={renderers}>
+		<ChatCitationProvider targets={targets}>
 			<ChatTranscript
 				messages={chat.messages}
 				streaming={streaming}
 				contextMenu={contextMenu}
 				className="h-72"
 			/>
-		</ChatEmbedProvider>
+		</ChatCitationProvider>
 	)
 }

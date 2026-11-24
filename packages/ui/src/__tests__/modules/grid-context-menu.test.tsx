@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn, type GridSortState } from '../../modules/grid'
 import { createGroup, createRule, type QueryField } from '../../modules/query'
-import { act, fireEvent, present, renderUI, screen, setupUser } from '../helpers'
+import { act, fireEvent, present, renderUI, screen, setupUser, stubClipboard } from '../helpers'
 
 describe('Grid context menus', () => {
 	type Row = { id: number; name: string; role: string }
@@ -188,6 +188,41 @@ describe('Grid context menus', () => {
 		rightClick('cell', 'Alice')
 
 		expect(screen.getByRole('menuitem', { name: 'Copy' })).toBeInTheDocument()
+	})
+
+	// The Copy item copies what Ctrl+C copies on the same selection.
+	it('copies the range that holds the cell, else the cell, as Ctrl+C does', () => {
+		const writeText = vi.fn(() => Promise.resolve())
+
+		stubClipboard({ writeText })
+
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				navigable
+				range
+				contextMenu={{ cell: true }}
+			/>,
+		)
+
+		fireEvent.mouseDown(screen.getByRole('gridcell', { name: 'Alice' }))
+
+		fireEvent.keyDown(screen.getByRole('grid'), { key: 'ArrowDown', shiftKey: true })
+
+		fireEvent.contextMenu(screen.getByRole('gridcell', { name: 'Alice' }))
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Copy' }))
+
+		expect(writeText).toHaveBeenLastCalledWith('Alice\nBob')
+
+		// A cell out of the range copies alone, through the field of its id.
+		fireEvent.contextMenu(screen.getByRole('gridcell', { name: 'Developer' }))
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Copy' }))
+
+		expect(writeText).toHaveBeenLastCalledWith('Developer')
 	})
 
 	it('opens the cell menu at the active cell from a keyboard context-menu event', async () => {

@@ -1,8 +1,12 @@
 'use client'
 
+import { createElement, Fragment, type ReactNode, useCallback, useState } from 'react'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
+import { useControlTypedVerdict } from '../control/use-control-typed-verdict'
 import type { FileUploadHiddenInputProps } from './file-upload-hidden-input'
+import { describeSelection, type FileRejection } from './file-upload-utilities'
 import type { FileUploadSharedProps } from './types'
 import { useFileUploadHandlers } from './use-file-upload-handlers'
 
@@ -23,6 +27,10 @@ export type FileUploadRenderState = ReturnType<typeof useFileUploadHandlers> & {
 	readOnly: boolean | undefined
 	/** The error state of the enclosing Control, or an error on the bound Form field. */
 	invalid: true | undefined
+	/** The `aria-describedby` of each trigger: the ids of the Control, and the id of the refusal Message outside a Control. */
+	describedBy: string | undefined
+	/** The error Message of the last refusal, or `null`. Render it after the component. */
+	refusal: ReactNode
 	hasFiles: boolean
 	/** Forces the selection tooltip open for the "x files selected" summary,
 	 * whose collapsed count hides the names. A single name needs it only when
@@ -54,6 +62,7 @@ export function splitProps<P extends FileUploadSharedProps>({
 	maxCount,
 	onAccept,
 	onReject,
+	invalidMessage,
 	onDragOverChange,
 	...rest
 }: P) {
@@ -69,6 +78,7 @@ export function splitProps<P extends FileUploadSharedProps>({
 		maxCount,
 		onAccept,
 		onReject,
+		invalidMessage,
 		onDragOverChange,
 	}
 
@@ -88,7 +98,9 @@ export function splitProps<P extends FileUploadSharedProps>({
  * @internal
  */
 export function useFileUploadState(props: FileUploadSharedProps): FileUploadRenderState {
-	const { multiple, maxCount, ...options } = props
+	const { multiple, maxCount, invalidMessage, ...options } = props
+
+	const intl = useIntl()
 
 	// Mirrors Control/Field id + invalid + required + error-message wiring onto
 	// the hidden `<input type="file">`, the real control in each component. The
@@ -102,13 +114,57 @@ export function useFileUploadState(props: FileUploadSharedProps): FileUploadRend
 	// field to it.
 	const { disabled, readOnly } = useControlProps({ disabled: props.disabled, name: props.name })
 
+	// The files that the last pick or drop refused, until the next pick, drop,
+	// clear, or reset. The default text gives them back with their reasons.
+	const [refused, setRefused] = useState<readonly FileRejection[]>([])
+
+	// Counts the batches that refuse files. An alert speaks when it comes into
+	// the page, and a Message with the same text as the last one changes no
+	// node. Each refusing batch thus mounts a new Message (WCAG 4.1.3).
+	const [refusals, setRefusals] = useState(0)
+
+	// A single-file component takes one file at most. The picker holds to that,
+	// but a drop can carry many.
+	const limit = multiple ? maxCount : Math.min(maxCount ?? 1, 1)
+
+	// The limits that the Message gives with a refusal.
+	const limits = { accept: props.accept, maxSize: props.maxSize, maxCount: limit }
+
+	// Only an absent `invalidMessage` takes the default. `null` and `false`
+	// suppress the Message.
+	const messageShown = invalidMessage === undefined || Boolean(invalidMessage)
+
+	const verdict = useControlTypedVerdict({
+		describedBy: control?.describedBy,
+		message:
+			invalidMessage === undefined
+				? describeSelection(intl, { accepted: [], rejected: refused }, limits)
+				: invalidMessage,
+	})
+
+	const setInvalid = verdict.setInvalid
+
+	const onRefuse = useCallback(
+		(rejected: readonly FileRejection[]) => {
+			setRefused(rejected)
+
+			setInvalid(rejected.length > 0)
+
+			if (rejected.length > 0) setRefusals((count) => count + 1)
+		},
+		[setInvalid],
+	)
+
 	const handlers = useFileUploadHandlers({
 		...options,
 		disabled,
 		readOnly,
-		// A single-file component takes one file at most. The picker holds to
-		// that, but a drop can carry many.
-		maxCount: multiple ? maxCount : Math.min(maxCount ?? 1, 1),
+		// The error Message is an alert, and a caller of `onReject` with no
+		// Message shows its own. Each speaks the refusal, so the live region
+		// does not also speak it.
+		announceRefused: !messageShown && props.onReject === undefined,
+		onRefuse,
+		maxCount: limit,
 	})
 
 	const invalid = control?.severity === 'error' || handlers.invalid || undefined
@@ -121,10 +177,13 @@ export function useFileUploadState(props: FileUploadSharedProps): FileUploadRend
 		disabled,
 		readOnly,
 		invalid,
+		describedBy: verdict.describedBy,
+		refusal: createElement(Fragment, { key: refusals }, verdict.message),
 		hasFiles,
 		showTooltip: Boolean(multiple && handlers.files.length > 1),
 		hiddenInput: {
 			control,
+			describedBy: verdict.describedBy,
 			inputRef: handlers.inputRef,
 			accept: props.accept,
 			multiple,

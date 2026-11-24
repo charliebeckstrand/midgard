@@ -38,9 +38,6 @@ type GridSelectionActions = {
 /** The binding fields that the selection state reads. @internal */
 type GridSelectionValue = Pick<GridSelection, 'value' | 'defaultValue' | 'onValueChange'>
 
-/** No rows, for a caller of {@link useGridSelection} that gives none. @internal */
-const NO_ROWS: readonly never[] = []
-
 /** No row rejected: the set of a grid with no `rowSelectable`. @internal */
 const NONE_REJECTED: ReadonlySet<string | number> = new Set()
 
@@ -197,36 +194,4 @@ export function useGridSelectionActions<T>({
 	})
 
 	return { toggleRow, toggleAll, allSelected, someSelected, anySelectable, unselectable }
-}
-
-/**
- * Owns the data table's selection: the controllable `Set<key>`, the row/all
- * toggles, and the `allSelected` / `someSelected` flags derived from the current
- * rowKeys. A thin composition of {@link useGridSelectionState} and
- * {@link useGridSelectionActions}, which {@link GridData} calls directly so the
- * selection state can sit above the engine. This composed form is the file's
- * single entry point for callers that don't need that split.
- *
- * @internal
- */
-export function useGridSelection<T>({
-	selectionConfig,
-	rowKeys,
-	rows,
-}: {
-	selectionConfig: GridSelection<T> | undefined
-	rowKeys: (string | number)[]
-	/** The rows of `rowKeys`, which `rowSelectable` reads. @defaultValue none */
-	rows?: readonly T[]
-}): GridSelectionState & GridSelectionActions {
-	const state = useGridSelectionState(selectionConfig)
-
-	const actions = useGridSelectionActions({
-		...state,
-		rowKeys,
-		rows: rows ?? NO_ROWS,
-		rowSelectable: selectionConfig?.rowSelectable,
-	})
-
-	return { ...state, ...actions }
 }

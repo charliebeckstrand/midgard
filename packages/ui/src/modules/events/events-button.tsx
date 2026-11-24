@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { dataAttr } from '../../core/data-attr'
@@ -12,6 +12,7 @@ import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/events'
 import { createLazyModule } from '../../utilities/lazy-module'
 import { noop } from '../../utilities/noop'
+import { markEventsRoot } from './engine/events-setting'
 import { loadTools } from './events-load'
 import { eventsMessages } from './events-messages'
 
@@ -51,7 +52,9 @@ const NAMES = [
  * and a ring shows. The same attributes show the hidden name of the state, such
  * as "Events, capture running". A hover or a focus loads the sheet before the
  * press, and a press before the sheet loads opens it when it arrives. While the sheet is open,
- * the button stamps `aria-expanded` and `data-open`.
+ * the button stamps `aria-expanded` and `data-open`. When it mounts, it writes
+ * the root attributes again, so it stays after React renders `<html>` again on
+ * the client, as after an error in the hydration.
  *
  * @remarks The store pauses while the sheet loads, so it does not record the
  * load of its own sheet. After a press, the pause stays until the sheet
@@ -85,6 +88,9 @@ export function EventsButton() {
 
 		loadTools(sheet, true).then(() => setOpen(true), fail)
 	}
+
+	// A render of `<html>` on the client removes the root attributes.
+	useEffect(markEventsRoot, [])
 
 	const slots = k({ layout })
 

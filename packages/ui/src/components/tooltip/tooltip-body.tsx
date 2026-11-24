@@ -1,7 +1,7 @@
 'use client'
 
 import type { FloatingFocusManagerProps } from '@floating-ui/react'
-import { useLayoutEffect, useState } from 'react'
+import { type ComponentProps, useLayoutEffect, useState } from 'react'
 import { cn } from '../../core/cn'
 import { useA11yHasTabbable } from '../../hooks/a11y/use-a11y-has-tabbable'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
@@ -29,6 +29,27 @@ const DIALOG_FOCUS: Omit<FloatingFocusManagerProps, 'context' | 'children'> = {
 	modal: false,
 }
 
+/** Props for {@link TooltipPanel}: the props of the `m.div` with no motion. */
+type TooltipPanelProps = Omit<ComponentProps<typeof m.div>, keyof typeof k.motion>
+
+/**
+ * The animated bubble of {@link TooltipBody}. It reads `instant` from context,
+ * not from a prop. The exit keeps the props of the last open render, and only
+ * the close tells whether a sibling closed the tooltip. A context gets to the
+ * exiting subtree, so the exit reads the value of the close.
+ */
+function TooltipPanel(props: TooltipPanelProps) {
+	const { instant } = useTooltipContext()
+
+	// The scale moves `transform`, which `MotionConfig` does not hold still, so the
+	// panel reads the setting itself (WCAG 2.3.3).
+	const motion = usePrefersReducedMotion() ? k.still : k.motion
+
+	const preset = instant ? k.instant : motion
+
+	return <m.div {...preset} {...props} />
+}
+
 /**
  * The panel of {@link TooltipContent}, in a module of its own. It carries
  * Motion and the floating surface, so `TooltipContent` loads it on demand.
@@ -54,10 +75,6 @@ export function TooltipBody({
 	} = useTooltipContext()
 
 	const glass = useResolvedSurface(glassProp) === 'glass'
-
-	// The scale moves `transform`, which `MotionConfig` does not hold still, so the
-	// panel reads the setting itself (WCAG 2.3.3).
-	const preset = usePrefersReducedMotion() ? k.still : k.motion
 
 	// State, not a ref: the panel mounts a commit after the portal node exists,
 	// and the probe has to run against the node React attaches.
@@ -104,8 +121,7 @@ export function TooltipBody({
 			data-slot="tooltip-content"
 			density={size}
 		>
-			<m.div
-				{...preset}
+			<TooltipPanel
 				ref={setPanel}
 				onFocus={(event) => setFocusedPanel(event.currentTarget)}
 				onBlur={(event) => {
@@ -114,7 +130,7 @@ export function TooltipBody({
 				className={cn(k({ surface: glass ? 'glass' : 'flat' }).base, className)}
 			>
 				{children}
-			</m.div>
+			</TooltipPanel>
 		</FloatingSurface>
 	)
 }

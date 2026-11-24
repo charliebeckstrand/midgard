@@ -21,6 +21,7 @@
 @plugin '../src/core/motion/variants.ts';
 @plugin '../src/core/sidebar/variants.ts';
 @plugin '../src/core/surfaces/variants.ts';
+@plugin '../src/core/text-trim/variants.ts';
 @plugin '../src/core/scroll/fade.ts';
 @plugin '../src/core/panel/base.ts';
 
