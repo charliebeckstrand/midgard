@@ -1499,6 +1499,10 @@
 		"defaultMessage": "Neutral",
 		"description": "Text of a demo in the docs, in components/toast/severity.tsx."
 	},
+	"docs.demo.1c82c4d53539": {
+		"defaultMessage": "Show the message again tomorrow",
+		"description": "Text of a demo in the docs, in components/tooltip/in-a-group.tsx."
+	},
 	"docs.demo.1cd53eadd6b9": {
 		"defaultMessage": "Rate your visit",
 		"description": "Text of a demo in the docs, in components/rating/half-stars.tsx."
@@ -2487,6 +2491,10 @@
 		"defaultMessage": "GB29 NWBK 6016 1331 9268 19",
 		"description": "Text of a demo in the docs as placeholder, in components/mask-input/custom-format.tsx."
 	},
+	"docs.demo.52102940fe58": {
+		"defaultMessage": "Snooze",
+		"description": "Text of a demo in the docs, in components/tooltip/in-a-group.tsx."
+	},
 	"docs.demo.5241b237058f": {
 		"defaultMessage": "Pinch or use the buttons to zoom in. Then tap or drag the overview in the corner to move the view.",
 		"description": "Text of a demo in the docs as touchText, in modules/map/point/overview-inset.tsx."
@@ -2873,7 +2881,7 @@
 	},
 	"docs.demo.66f4804ee23d": {
 		"defaultMessage": "Archive",
-		"description": "Text of a demo in the docs as label, in components/command-palette/commands.tsx, components/confirm/cancel-or-close.tsx, components/menu/controlled.tsx and 4 more."
+		"description": "Text of a demo in the docs as label, in components/command-palette/commands.tsx, components/confirm/cancel-or-close.tsx, components/menu/controlled.tsx and 5 more."
 	},
 	"docs.demo.6786f87960fa": {
 		"defaultMessage": "Order filters",
@@ -4999,6 +5007,10 @@
 		"defaultMessage": "New folder",
 		"description": "Text of a demo in the docs as label, in components/command-palette/commands.tsx."
 	},
+	"docs.demo.cfb214a6f7e1": {
+		"defaultMessage": "Move the message out of the inbox",
+		"description": "Text of a demo in the docs, in components/tooltip/in-a-group.tsx."
+	},
 	"docs.demo.d00a994d3394": {
 		"defaultMessage": "Track the tasks of the project. Upgrade to the Pro plan to open reports.",
 		"description": "Text of a demo in the docs, in components/tabs/disabled-tab.tsx."
@@ -5198,6 +5210,10 @@
 	"docs.demo.d93006ec2e43": {
 		"defaultMessage": "Middle",
 		"description": "Text of a demo in the docs, in structure/flex/align-and-justify.tsx."
+	},
+	"docs.demo.d9a7a6ccc0e1": {
+		"defaultMessage": "Send the message to another person",
+		"description": "Text of a demo in the docs, in components/tooltip/in-a-group.tsx."
 	},
 	"docs.demo.d9fa921e328d": {
 		"defaultMessage": "Depot handover",
@@ -5706,6 +5722,10 @@
 	"docs.demo.f1ae34edf992": {
 		"defaultMessage": "Media library",
 		"description": "Text of a demo in the docs as aria-label, in components/tree/rich-content.tsx."
+	},
+	"docs.demo.f1c65e14817e": {
+		"defaultMessage": "Forward",
+		"description": "Text of a demo in the docs, in components/tooltip/in-a-group.tsx."
 	},
 	"docs.demo.f212d75da6c0": {
 		"defaultMessage": "Send your questions about these terms to legal@example.com. You get an answer within five business days.",
@@ -8742,6 +8762,10 @@
 	"docs.title.in-a-form": {
 		"defaultMessage": "In a form",
 		"description": "The title of an example on a page of the docs. It comes from the file name in-a-form.tsx."
+	},
+	"docs.title.in-a-group": {
+		"defaultMessage": "In a group",
+		"description": "The title of an example on a page of the docs. It comes from the file name in-a-group.tsx."
 	},
 	"docs.title.inline-panel": {
 		"defaultMessage": "Inline panel",

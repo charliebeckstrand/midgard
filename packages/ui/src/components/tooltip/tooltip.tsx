@@ -35,7 +35,9 @@ export type TooltipProps = {
 	 */
 	trigger?: 'hover' | 'click'
 	/**
-	 * Hover open delay in milliseconds (close delay is fixed at 100ms).
+	 * Hover open delay in milliseconds (close delay is fixed at 100ms). In a
+	 * `<TooltipGroup>`, such as a `<Toolbar>`, a tooltip opens with no delay while
+	 * another tooltip of the group is open or just closed.
 	 * @defaultValue 250
 	 */
 	delay?: number
