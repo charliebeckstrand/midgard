@@ -6517,15 +6517,15 @@
 	},
 	"docs.prop.activation": {
 		"defaultMessage": "Activation",
-		"description": "The label of a field of a playground in the docs. The field sets the prop activation of Segment, Tabs."
+		"description": "The label of a field of a playground in the docs. The field sets the prop activation of Segment."
 	},
 	"docs.prop.activation.automatic": {
 		"defaultMessage": "Automatic",
-		"description": "An option of the Activation field of a playground in the docs. It sets the prop activation to 'automatic' on Segment, Tabs."
+		"description": "An option of the Activation field of a playground in the docs. It sets the prop activation to 'automatic' on Segment."
 	},
 	"docs.prop.activation.manual": {
 		"defaultMessage": "Manual",
-		"description": "An option of the Activation field of a playground in the docs. It sets the prop activation to 'manual' on Segment, Tabs."
+		"description": "An option of the Activation field of a playground in the docs. It sets the prop activation to 'manual' on Segment."
 	},
 	"docs.prop.aggregation": {
 		"defaultMessage": "Aggregation",
