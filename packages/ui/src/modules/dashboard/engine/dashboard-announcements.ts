@@ -63,7 +63,7 @@ const messages = defineMessages<{
 		id: 'ui.dashboard.atStart',
 		defaultMessage: '{item} is over its start place, {cell}. A drop now changes nothing.',
 		description:
-			'Spoken while a dragged tile is over the place where the drag started. The cell is that place.',
+			'Spoken while a dragged tile is over the place where the drag started. The cell is that place: a grid cell, such as "column 3 of 24, row 2, 8 columns wide", or a place in the stack of a narrow board, such as "position 2 of 5".',
 	},
 	swaps: {
 		id: 'ui.dashboard.swaps',
