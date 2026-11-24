@@ -22,8 +22,8 @@ export type WysiwygToolbarProps = {
 	/**
 	 * The actions of the toolbar, in the order given. A separator goes where
 	 * the list changes from one group to the next: text (`bold`, `italic`,
-	 * `strike`), references (`link`, `quote`), lists (`bulletList`,
-	 * `orderedList`), and code (`code`, `codeBlock`). The default is each
+	 * `strike`), lists (`bulletList`, `orderedList`), references (`link`,
+	 * `quote`), and code (`code`, `codeBlock`). The default is each
 	 * {@link WysiwygAction}, in that order.
 	 * @defaultValue WYSIWYG_ACTIONS
 	 */
