@@ -152,66 +152,33 @@ describe('ChatMessage', () => {
 		expect(bySlot(container, 'chat-message')).toHaveAttribute('data-editing')
 	})
 
-	it('renders the actions slot when provided', () => {
-		const { container } = renderUI(
-			<ChatMessage actions={<button type="button">Copy</button>}>content</ChatMessage>,
-		)
-
-		const actions = bySlot(container, 'chat-message-actions')
-
-		expect(actions).toBeInTheDocument()
-
-		expect(screen.getByRole('button', { name: 'Copy' })).toBeInTheDocument()
-	})
-
-	it('shows static actions as a row below the bubble', () => {
-		const { container } = renderUI(
-			<ChatMessage trigger="static" actions={<button type="button">Copy</button>}>
-				content
-			</ChatMessage>,
-		)
-
-		const actions = bySlot(container, 'chat-message-actions')
-
-		expect(actions).toHaveClass('mt-1')
-
-		expect(actions?.className).not.toContain('absolute')
-	})
-
 	it.each([
 		['user', 'end-2'],
 		['assistant', 'start-2'],
-	] as const)('floats hover actions over the outer top corner of a %s bubble', (sender, side) => {
-		const { container } = renderUI(
-			<ChatMessage sender={sender} actions={<button type="button">Copy</button>}>
-				content
-			</ChatMessage>,
-		)
+	] as const)('floats the menu button over the outer top corner of a %s bubble', (sender, side) => {
+		const { container } = renderUI(<ChatMessage sender={sender}>content</ChatMessage>)
 
-		const actions = bySlot(container, 'chat-message-actions')
+		const toolbar = getSlot(container, 'chat-message-toolbar')
 
-		expect(actions).toHaveClass('absolute', 'opacity-0', side)
+		expect(toolbar).toContainElement(screen.getByRole('button', { name: 'Message actions' }))
+
+		expect(toolbar).toHaveClass('absolute', 'opacity-0', side)
 
 		// The message is the containing block and the group that shows the toolbar.
 		expect(bySlot(container, 'chat-message')).toHaveClass('relative', 'group/chat-message')
 
-		// A device with no hover shows the toolbar as a plain row below the bubble.
-		expect(actions).toHaveClass(
-			'[@media(hover:none)]:static',
-			'[@media(hover:none)]:opacity-100',
-			'[@media(hover:none)]:bg-transparent',
-			'[@media(hover:none)]:ring-0',
-		)
+		// No rule turns the toolbar into a row below the bubble.
+		expect(toolbar.className).not.toContain('static')
 	})
 
-	it('keeps hidden hover actions in the Tab order', () => {
-		renderUI(<ChatMessage actions={<button type="button">Copy</button>}>content</ChatMessage>)
+	it('keeps the hidden menu button in the Tab order', () => {
+		renderUI(<ChatMessage>content</ChatMessage>)
 
-		const copy = screen.getByRole('button', { name: 'Copy' })
+		const button = screen.getByRole('button', { name: 'Message actions' })
 
-		copy.focus()
+		button.focus()
 
-		expect(copy).toHaveFocus()
+		expect(button).toHaveFocus()
 	})
 
 	it('opens a menu with Copy on a right-click on the bubble', () => {
@@ -260,7 +227,7 @@ describe('ChatMessage', () => {
 
 		const button = screen.getByRole('button', { name: 'Message actions' })
 
-		expect(getSlot(container, 'chat-message-actions')).toContainElement(button)
+		expect(getSlot(container, 'chat-message-toolbar')).toContainElement(button)
 
 		fireEvent.click(button)
 
@@ -291,19 +258,7 @@ describe('ChatMessage', () => {
 
 		expect(screen.queryByRole('button', { name: 'Message actions' })).not.toBeInTheDocument()
 
-		expect(bySlot(container, 'chat-message-actions')).not.toBeInTheDocument()
-	})
-
-	it('hides the menu button of a hover toolbar on a device with no hover until it has the focus', () => {
-		const { container } = renderUI(<ChatMessage>content</ChatMessage>)
-
-		expect(getSlot(container, 'chat-message-menu-button')).toHaveClass(
-			'[@media(hover:none)]:not-focus-within:not-has-aria-expanded:sr-only',
-		)
-
-		const fixed = renderUI(<ChatMessage trigger="static">content</ChatMessage>)
-
-		expect(getSlot(fixed.container, 'chat-message-menu-button').className).not.toContain('sr-only')
+		expect(bySlot(container, 'chat-message-toolbar')).not.toBeInTheDocument()
 	})
 
 	it('renders settled content as Markdown', () => {

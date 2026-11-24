@@ -4,7 +4,6 @@ import { useComposedRefs } from 'motion/react'
 import {
 	type ComponentProps,
 	memo,
-	type ReactNode,
 	type UIEvent,
 	useCallback,
 	useEffect,
@@ -26,7 +25,7 @@ import { ArrowDown } from '../../primitives/icons/icons'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/chat-transcript'
-import { ChatMessage, type ChatMessageProps } from './chat-message'
+import { ChatMessage } from './chat-message'
 import { ChatRowContext } from './context'
 import { describeTranscript } from './engine/chat-announcements'
 import type { ChatBranch } from './engine/chat-branch/types'
@@ -108,20 +107,6 @@ export type ChatTranscriptProps = Omit<ComponentProps<'div'>, 'children' | 'cont
 	 */
 	editing?: string
 	/**
-	 * Controls that show beside the menu button of one message, such as the
-	 * rating pair of {@link ChatFeedback}. The transcript calls it for each row
-	 * that it renders and gives the result to the `actions` of that
-	 * {@link ChatMessage}. Return `undefined` for a message with no controls.
-	 */
-	actions?: (message: ChatMessageData) => ReactNode
-	/**
-	 * When `actions` show, as on {@link ChatMessage}: `'hover'` is a toolbar
-	 * over the top corner of the bubble, and `'static'` is a row below it.
-	 * @defaultValue 'hover'
-	 * @media hover
-	 */
-	trigger?: ChatMessageProps['trigger']
-	/**
 	 * The menu of one message, with Copy by default, as the `contextMenu` of
 	 * {@link ChatMessage} tells. The transcript calls it for each row that it
 	 * renders and gives the result to that message. Return `items` for the
@@ -146,10 +131,7 @@ export type ChatTranscriptProps = Omit<ComponentProps<'div'>, 'children' | 'cont
 }
 
 /** Props for {@link ChatTranscriptRow}. @internal */
-type ChatTranscriptRowProps = Pick<
-	ChatTranscriptProps,
-	'actions' | 'trigger' | 'contextMenu' | 'onBranchChange'
-> & {
+type ChatTranscriptRowProps = Pick<ChatTranscriptProps, 'contextMenu' | 'onBranchChange'> & {
 	message: ChatMessageData
 	streaming: boolean
 	editing: boolean
@@ -159,7 +141,7 @@ type ChatTranscriptRowProps = Pick<
 /**
  * The message of one row. It calls the row callbacks of the transcript, and it
  * is memoized on its props. A chunk keeps the object of each settled message,
- * so a settled row skips its render, also when it has actions. That holds
+ * so a settled row skips its render, also when it has a menu. That holds
  * while the callbacks keep their identity.
  *
  * @internal
@@ -168,8 +150,6 @@ const ChatTranscriptRow = memo(function ChatTranscriptRow({
 	message,
 	streaming,
 	editing,
-	actions,
-	trigger,
 	contextMenu,
 	branch,
 	onBranchChange,
@@ -181,8 +161,6 @@ const ChatTranscriptRow = memo(function ChatTranscriptRow({
 			editing={editing}
 			failed={message.failed}
 			timestamp={message.timestamp}
-			actions={actions?.(message)}
-			trigger={trigger}
 			contextMenu={contextMenu === false ? false : contextMenu?.(message)}
 			branch={branch}
 			onBranchChange={onBranchChange}
@@ -236,13 +214,12 @@ const ChatTranscriptRow = memo(function ChatTranscriptRow({
  * pins the transcript again. After the press, the focus goes to the
  * transcript, which is a tab stop while it overflows.
  *
- * `contextMenu` and `actions` give each row the menu and the controls of a
- * {@link ChatMessage}. Each message has a menu with Copy unless `contextMenu`
- * is `false`. The transcript calls the callbacks only for the rows that it
- * renders. Keep their identity stable, as with `useCallback`, so a streamed
- * chunk does not render the settled rows again. A `'hover'` toolbar floats
- * above its message, so the first row then keeps room above it, on a device
- * that hovers.
+ * `contextMenu` gives each row the menu of a {@link ChatMessage}. Each message
+ * has a menu with Copy unless `contextMenu` is `false`. The transcript calls
+ * the callback only for the rows that it renders. Keep its identity stable, as
+ * with `useCallback`, so a streamed chunk does not render the settled rows
+ * again. The toolbar of the menu button floats above its message, so the first
+ * row then keeps room above it, on a device that hovers.
  *
  * `branches` gives a message the switcher of {@link ChatMessage}. The row of a
  * message with branches takes the key of its oldest branch, so a switch keeps
@@ -293,8 +270,6 @@ export function ChatTranscript({
 	messages,
 	streaming,
 	editing,
-	actions,
-	trigger,
 	contextMenu,
 	branches,
 	onBranchChange,
@@ -528,9 +503,9 @@ export function ChatTranscript({
 
 	const slots = k()
 
-	// A hover toolbar rises above its message, and the scroll clips it above the
-	// first row. The toolbar holds the menu button of a message with a menu.
-	const roomy = (actions !== undefined || contextMenu !== false) && trigger !== 'static'
+	// The toolbar of the menu button rises above its message, and the scroll
+	// clips it above the first row.
+	const roomy = contextMenu !== false
 
 	// The first row makes room for that toolbar.
 	const firstRow = roomy ? slots.roomy : slots.first
@@ -595,8 +570,6 @@ export function ChatTranscript({
 										streaming === true && message.sender === 'assistant' && index === count - 1
 									}
 									editing={editing !== undefined && message.id === editing}
-									actions={actions}
-									trigger={trigger}
 									contextMenu={contextMenu}
 									branch={branch}
 									onBranchChange={branch && branchChange}

@@ -1,12 +1,10 @@
 import { RotateCcw } from 'lucide-react'
-import { useCallback, useState } from 'react'
+import { useCallback } from 'react'
 import {
 	ChatEmbedProvider,
-	ChatFeedback,
 	type ChatMessageData,
 	ChatPrompt,
 	ChatTranscript,
-	type ChatVerdict,
 	useChatDraft,
 	useChatSend,
 } from 'ui/chat'
@@ -46,21 +44,6 @@ export default function Conversation() {
 
 	const { retry } = chat
 
-	// An app sends each rating with the id of its message.
-	const [ratings, setRatings] = useState<Record<string, ChatVerdict | null>>({})
-
-	// The rating pair shows its state, so it stays beside the menu button.
-	const actions = useCallback(
-		(message: ChatMessageData) =>
-			message.sender === 'assistant' && message.id !== 'welcome' ? (
-				<ChatFeedback
-					value={ratings[message.id ?? ''] ?? null}
-					onValueChange={(value) => setRatings((prev) => ({ ...prev, [message.id ?? '']: value }))}
-				/>
-			) : undefined,
-		[ratings],
-	)
-
 	// The menu of each message holds Copy by default. The last reply adds Retry.
 	const contextMenu = useCallback(
 		(message: ChatMessageData): ContextMenuConfig | undefined =>
@@ -80,7 +63,6 @@ export default function Conversation() {
 				<ChatTranscript
 					messages={chat.messages}
 					streaming={chat.streaming}
-					actions={actions}
 					contextMenu={contextMenu}
 					branches={chat.branches}
 					onBranchChange={chat.showBranch}

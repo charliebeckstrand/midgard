@@ -27,11 +27,11 @@ export const k = defineKata(
 			row: 'pt-5 pb-1',
 			first: 'py-1',
 			content: kokkaku.chat.gutter,
-			// The first row when the rows have a hover toolbar. The toolbar rises
-			// above its message, and the scroll clips what sits above the first row,
-			// so this keeps room for it. A device with no hover shows the actions as
-			// a row below the bubble, so there the first row keeps only the room of
-			// the ring.
+			// The first row when the rows have a menu. The toolbar of the menu
+			// button rises above its message, and the scroll clips what sits above
+			// the first row, so this keeps room for it. A device with no hover opens
+			// the menu with a long press and rarely shows the toolbar, so there the
+			// first row keeps only the room of the ring.
 			roomy: 'pt-8 pb-1 [@media(hover:none)]:pt-1',
 			// The holder of the button that goes to the newest message. It sticks to
 			// the bottom edge of the scroll and has no height, so it moves no row and

@@ -354,17 +354,6 @@ const KNOWN: readonly { finding: string; paths: readonly string[]; reason: strin
 		paths: ['/modules/dashboard'],
 		reason: 'The view data button of a chart is 26 px wide, against the expand button.',
 	},
-	// Chat.
-	{
-		finding: 'overlap chat-message-actions/button | chat-message-actions/copy-button',
-		paths: ['/modules/chat'],
-		reason: 'The actions of a message have no touch gap, so their hit areas overlap.',
-	},
-	{
-		finding: 'overlap chat-message-actions/button | menu/button',
-		paths: ['/modules/chat'],
-		reason: 'The actions of a message have no touch gap, so their hit areas overlap.',
-	},
 	// PdfViewer.
 	{
 		finding: 'crowded pdf-viewer-highlights/button',

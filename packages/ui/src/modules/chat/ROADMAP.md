@@ -4,7 +4,7 @@
 
 ## Status
 
-The module ships a transcript, a message bubble, a composer, a list of conversations, and two hooks. `ChatTranscript` renders a window over its messages and follows the newest reply. `ChatTranscriptSkeleton` holds the space of a transcript while it loads. `ChatMessage` draws Markdown, pulses while a reply arrives, and says when a reply failed. Its menu holds Copy and the items of the app. A right-click, a touch long press, or the menu button in its toolbar opens the menu. It also takes an `actions` row for a control that is not a menu item, such as a rating. `ChatFeedback` rates a reply. `ChatPrompt` is a composer with attachments, a picker, a toolbar above the field, and a send button that turns into a stop button.
+The module ships a transcript, a message bubble, a composer, a list of conversations, and two hooks. `ChatTranscript` renders a window over its messages and follows the newest reply. `ChatTranscriptSkeleton` holds the space of a transcript while it loads. `ChatMessage` draws Markdown, pulses while a reply arrives, and says when a reply failed. Its menu holds each action of the message: Copy, and the items of the app. A right-click, a touch long press, or the menu button over the corner of the bubble opens the menu, and the message shows no row of icons. `ChatPrompt` is a composer with attachments, a picker, a toolbar above the field, and a send button that turns into a stop button.
 
 `useChatSend` holds the transcript and streams each reply through a `ChatTransport` that the caller supplies. The module assumes no endpoint and no wire format. A seed message keeps the id that it carries, so a persisted conversation keeps its addresses after a reload. `useChatDraft` holds the text of the composer and its citations as one state.
 
@@ -55,9 +55,13 @@ No rule reads a clock or a random source. The shell mints each id and gives it t
 
 ## Accessibility and testing
 
-1. **The a11y corpus misses four surfaces (*P2*).** [`specialized.tsx`](../../__tests__/a11y/cases/specialized.tsx) has no `ChatList` with `ChatListItem` rows and actions, no `ChatFeedback`, no message with a branch switcher, and no `ChatPrompt` with `sources`. The sweeps thus do not read their names, their roles, or their contrast. Add one entry for each, and the open state of the picker where the corpus can hold it.
+1. **The a11y corpus misses three surfaces (*P2*).** [`specialized.tsx`](../../__tests__/a11y/cases/specialized.tsx) has no `ChatList` with `ChatListItem` rows and actions, no message with a branch switcher, and no `ChatPrompt` with `sources`. The sweeps thus do not read their names, their roles, or their contrast. Add one entry for each, and the open state of the picker where the corpus can hold it.
 
 ## Not planned
+
+- **A row of icons on a message.** A row of icons below a bubble is hard to read as part of its message on a phone. The menu holds each action of a message, and a right-click, a long press, or the menu button opens it.
+
+- **A rating of a reply.** No app has a use for a good or bad rating, so the module has no rating control.
 
 - **A model encoded in Markdown.** A user message that holds the vocabulary has the same bytes as an assistant message, so user text would draw a live embed. A part list is constructed and not parsed, so a user cannot spoof one.
 

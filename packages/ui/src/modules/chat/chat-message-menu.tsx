@@ -109,26 +109,20 @@ export function ChatMessageMenu({
  *
  * @internal
  */
-export function ChatMessageMenuButton({
-	config,
-	content,
-	className,
-}: ChatMessageMenuProps & { className?: string }) {
+export function ChatMessageMenuButton({ config, content }: ChatMessageMenuProps) {
 	const { entries, name } = useMenuEntries({ config, content })
 
 	return (
-		<span data-slot="chat-message-menu-button" className={className}>
-			<Menu placement="bottom-end" capped={config?.capped}>
-				<MenuTrigger>
-					<Button type="button" variant="bare" size="sm" aria-label={name}>
-						<Icon icon={<EllipsisVertical />} />
-					</Button>
-				</MenuTrigger>
+		<Menu placement="bottom-end" capped={config?.capped}>
+			<MenuTrigger>
+				<Button type="button" variant="bare" size="sm" aria-label={name}>
+					<Icon icon={<EllipsisVertical />} />
+				</Button>
+			</MenuTrigger>
 
-				<MenuContent>
-					<ContextMenuList entries={entries} />
-				</MenuContent>
-			</Menu>
-		</span>
+			<MenuContent>
+				<ContextMenuList entries={entries} />
+			</MenuContent>
+		</Menu>
 	)
 }

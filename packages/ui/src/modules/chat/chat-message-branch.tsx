@@ -108,7 +108,7 @@ export function ChatMessageBranch({
 		>
 			<Button
 				type="button"
-				variant="plain"
+				variant="bare"
 				size="sm"
 				// A switch of the branch writes no field, so a locked scope leaves it live.
 				lockable={false}
@@ -120,7 +120,7 @@ export function ChatMessageBranch({
 			<span>{intl.formatMessage(messages.position, { index: index + 1, count: ids.length })}</span>
 			<Button
 				type="button"
-				variant="plain"
+				variant="bare"
 				size="sm"
 				lockable={false}
 				aria-label={intl.formatMessage(messages.next)}

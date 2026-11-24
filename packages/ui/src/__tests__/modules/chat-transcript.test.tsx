@@ -94,42 +94,6 @@ describe('ChatTranscript', () => {
 	})
 
 	describe('the row callbacks', () => {
-		it('gives each message the actions that the callback returns for it', () => {
-			const { container } = renderUI(
-				<ChatTranscript
-					messages={messages}
-					contextMenu={false}
-					actions={(message) =>
-						message.sender === 'assistant' ? <button type="button">Retry</button> : undefined
-					}
-				/>,
-			)
-
-			const rows = allBySlot(container, 'chat-message')
-
-			expect(bySlot(present(rows[0], 'user row'), 'chat-message-actions')).toBeNull()
-
-			expect(getSlot(present(rows[1], 'assistant row'), 'chat-message-actions')).toContainElement(
-				screen.getByRole('button', { name: 'Retry' }),
-			)
-		})
-
-		it('passes the trigger to each message', () => {
-			const { container } = renderUI(
-				<ChatTranscript
-					messages={messages}
-					trigger="static"
-					actions={() => <button type="button">Copy</button>}
-				/>,
-			)
-
-			for (const actions of allBySlot(container, 'chat-message-actions')) {
-				expect(actions.className).toContain('mt-1')
-
-				expect(actions.className).not.toContain('absolute')
-			}
-		})
-
 		it('opens the context menu that the callback returns for a message', () => {
 			const onAction = vi.fn()
 
@@ -158,34 +122,18 @@ describe('ChatTranscript', () => {
 			expect(onAction).toHaveBeenCalledOnce()
 		})
 
-		it('keeps the room of a toolbar above the first row only for a hover toolbar', () => {
-			const actions = () => <button type="button">Copy</button>
-
+		it('keeps the room of the menu toolbar above the first row only with a menu', () => {
 			const first = (container: HTMLElement) =>
 				present(allBySlot(container, 'chat-transcript-row')[0], 'first row').className
 
-			const hover = renderUI(<ChatTranscript messages={messages} actions={actions} />)
-
-			expect(first(hover.container)).toContain('pt-8')
-
-			hover.unmount()
-
-			const fixed = renderUI(
-				<ChatTranscript messages={messages} actions={actions} trigger="static" />,
-			)
-
-			// Without a hover toolbar, the first row keeps only the room of the ring of an edit.
-			expect(first(fixed.container)).toBe('py-1')
-
-			fixed.unmount()
-
-			// The default menu puts its button in a hover toolbar.
+			// The default menu puts its button in a toolbar above the message.
 			const menu = renderUI(<ChatTranscript messages={messages} />)
 
 			expect(first(menu.container)).toContain('pt-8')
 
 			menu.unmount()
 
+			// Without a menu, the first row keeps only the room of the ring of an edit.
 			const bare = renderUI(<ChatTranscript messages={messages} contextMenu={false} />)
 
 			expect(first(bare.container)).toBe('py-1')
@@ -195,7 +143,7 @@ describe('ChatTranscript', () => {
 			const calls: string[] = []
 
 			function Chat({ reply }: { reply: string }) {
-				const actions = useCallback((message: ChatMessageData) => {
+				const contextMenu = useCallback((message: ChatMessageData) => {
 					calls.push(message.id ?? '')
 
 					return undefined
@@ -208,7 +156,7 @@ describe('ChatTranscript', () => {
 							{ id: '2', sender: 'assistant', content: reply },
 						]}
 						streaming
-						actions={actions}
+						contextMenu={contextMenu}
 					/>
 				)
 			}
