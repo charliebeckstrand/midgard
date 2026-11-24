@@ -90,7 +90,7 @@ describe('TouchTarget activation region (real browser)', () => {
 	 * Two hosts under the floor, in a row or a stack that states its gap to
 	 * `TouchTarget` on that axis.
 	 */
-	const renderPair = (axis: 'x' | 'y', gap: number) =>
+	const renderPair = (axis: 'x' | 'y', gap: number, { size = 16, tile = false } = {}) =>
 		renderUI(
 			<div
 				style={
@@ -101,6 +101,7 @@ describe('TouchTarget activation region (real browser)', () => {
 						gap,
 						padding: '64px',
 						[`--touch-target-gap-${axis}`]: `${gap}px`,
+						...(tile && { [`--touch-target-tile-${axis}`]: 1 }),
 					} as CSSProperties
 				}
 			>
@@ -109,7 +110,7 @@ describe('TouchTarget activation region (real browser)', () => {
 						key={name}
 						type="button"
 						aria-label={name}
-						style={{ position: 'relative', width: 16, height: 16, padding: 0, border: 0 }}
+						style={{ position: 'relative', width: size, height: size, padding: 0, border: 0 }}
 					>
 						<TouchTarget>
 							<span />
@@ -200,4 +201,63 @@ describe('TouchTarget activation region (real browser)', () => {
 
 		expect(hitsHost(second.host, x, midpoint + 1)).toBe(true)
 	})
+
+	it('keeps the gap between two hosts at the floor dead space when the row does not tile', () => {
+		renderPair('x', 6, { size: 32 })
+
+		const first = measure('First')
+
+		const second = measure('Second')
+
+		// Each host is over the floor, so each hit area stays at its host.
+		expect(first.box.width).toBe(32)
+
+		expect(hitsHost(first.host, first.hostBox.right + 3, first.hostBox.top + 16)).toBe(false)
+
+		expect(hitsHost(second.host, first.hostBox.right + 3, first.hostBox.top + 16)).toBe(false)
+	})
+
+	it.for(['x', 'y'] as const)(
+		'fills the gap between two hosts at the floor when the %s axis tiles',
+		(axis) => {
+			renderPair(axis, 6, { size: 32, tile: true })
+
+			const first = measure('First')
+
+			const second = measure('Second')
+
+			const along = (box: DOMRect) => (axis === 'x' ? box.width : box.height)
+
+			const across = (box: DOMRect) => (axis === 'x' ? box.height : box.width)
+
+			// 32px and half of the 6px gap on each side is 38px along the axis. The
+			// other axis keeps the host.
+			expect(along(first.box)).toBe(38)
+
+			expect(along(second.box)).toBe(38)
+
+			expect(across(first.box)).toBe(32)
+
+			// The two hit areas meet at the midpoint of the gap and do not overlap.
+			if (axis === 'x') expect(first.box.right).toBe(second.box.left)
+			else expect(first.box.bottom).toBe(second.box.top)
+
+			// Each point of the gap activates the nearer host. The points are whole
+			// pixels, as a hit test reads them.
+			const end = axis === 'x' ? first.hostBox.right : first.hostBox.bottom
+
+			const cross = (axis === 'x' ? first.hostBox.top : first.hostBox.left) + 16
+
+			const point = (offset: number) =>
+				axis === 'x' ? ([end + offset, cross] as const) : ([cross, end + offset] as const)
+
+			expect(hitsHost(first.host, ...point(1))).toBe(true)
+
+			expect(hitsHost(first.host, ...point(2))).toBe(true)
+
+			expect(hitsHost(second.host, ...point(4))).toBe(true)
+
+			expect(hitsHost(second.host, ...point(5))).toBe(true)
+		},
+	)
 })

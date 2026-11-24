@@ -36,11 +36,12 @@ describe('TouchTarget', () => {
 			omits: ['pointer-fine:hidden'],
 		},
 		{
-			// Without the gap of an axis, the fallback is the floor, and the cap is a no-op.
-			name: 'caps each axis at the host plus the gap that a container states, else at the floor',
+			// Without the gap of an axis, the fallback is the floor, and the cap is a
+			// no-op. Without the tile of an axis, the tile term is the host.
+			name: 'caps each axis at the host plus the gap that a container states, else at the floor, and fills the gap on a tiled axis',
 			contains: [
-				'w-[max(100%,min(var(--touch-target-floor),100%_+_var(--touch-target-gap-x,var(--touch-target-floor))))]',
-				'h-[max(100%,min(var(--touch-target-floor),100%_+_var(--touch-target-gap-y,var(--touch-target-floor))))]',
+				'w-[max(100%_+_var(--touch-target-gap-x,0px)_*_var(--touch-target-tile-x,0),min(var(--touch-target-floor),100%_+_var(--touch-target-gap-x,var(--touch-target-floor))))]',
+				'h-[max(100%_+_var(--touch-target-gap-y,0px)_*_var(--touch-target-tile-y,0),min(var(--touch-target-floor),100%_+_var(--touch-target-gap-y,var(--touch-target-floor))))]',
 			],
 			omits: [],
 		},
