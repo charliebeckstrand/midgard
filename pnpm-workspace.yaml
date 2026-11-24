@@ -47,8 +47,6 @@ catalogs:
 allowBuilds:
   esbuild: false
   lefthook: true
-  protobufjs: false
-  sharp: false
 
 # pnpm gives a package one copy for each set of peers that it resolves to. The
 # optional peers of `next` reach `supports-color` through `@babel/core` and
