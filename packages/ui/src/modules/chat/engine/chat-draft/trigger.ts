@@ -116,10 +116,14 @@ export function activeTrigger(
 
 /** What a choice gives: the next draft and the caret after the citation. @internal */
 export type TriggerChoice = {
+	/** The start of the word that the text replaces, which is the offset of the trigger. */
+	start: number
+	/** The end of the word that the text replaces. */
+	tail: number
 	/** The text that goes in place of the word of the trigger. */
 	text: string
-	/** The end of the word that the text replaces. The word starts at the trigger. */
-	tail: number
+	/** The new citation, in the next draft. */
+	citation: ChatCitation
 	value: string
 	citations: readonly ChatCitation[]
 	caret: number
@@ -161,8 +165,10 @@ export function chooseInTrigger(
 	const kept = rebaseCitations(value, next, citations, match.start + text.length)
 
 	return {
-		text,
+		start: match.start,
 		tail,
+		text,
+		citation: chosen,
 		value: next,
 		citations: [...kept, chosen].sort((a, b) => a.start - b.start),
 		caret: end + 1,

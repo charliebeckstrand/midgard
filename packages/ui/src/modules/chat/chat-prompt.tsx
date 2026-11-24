@@ -41,7 +41,9 @@ import {
 } from './engine/chat-draft/history'
 import { rebaseCitations } from './engine/chat-draft/rebase'
 import type { ChatPromptSource } from './types'
-import { useChatPromptPicker } from './use-chat-prompt-picker'
+import { type PickerKeyEvent, useChatPromptPicker } from './use-chat-prompt-picker'
+import { useTextareaPickerField } from './use-chat-textarea-picker-field'
+import { useWysiwygPickerField } from './use-chat-wysiwyg-picker-field'
 
 const messages = defineMessages({
 	placeholder: {
@@ -98,9 +100,8 @@ export type ChatPromptProps = {
 	 * browser brings back the citations of the draft that it goes to.
 	 *
 	 * While {@link ChatPromptProps.wysiwyg} is on, the field marks each citation,
-	 * and a change that touches one dissolves it, as in the textarea. A
-	 * Backspace or a Delete in a citation then deletes one character, and no
-	 * picker opens.
+	 * and a change that touches one dissolves it, as in the textarea. A Delete
+	 * at the start of a citation then deletes one character.
 	 * @defaultValue []
 	 */
 	citations?: readonly ChatCitation[]
@@ -120,12 +121,14 @@ export type ChatPromptProps = {
 	 * composer. ArrowUp and ArrowDown move the highlight, Enter or Tab chooses,
 	 * and Escape closes the picker until the next edit. While the list loads,
 	 * Enter and Tab do nothing: no key chooses an item of the last query, Enter
-	 * does not send, and Tab does not move the focus. The textarea keeps the
+	 * does not send, and Tab does not move the focus. The field keeps the
 	 * focus, and the options are its active descendant.
 	 *
 	 * Hoist the list out of the render, as a module constant or a `useMemo`.
 	 *
-	 * While {@link ChatPromptProps.wysiwyg} is on, the field opens no picker.
+	 * While {@link ChatPromptProps.wysiwyg} is on, the query is the plain text of
+	 * the block of the caret, so it holds no Markdown syntax. A choice is one
+	 * step of the undo history of the field.
 	 */
 	sources?: readonly ChatPromptSource[]
 	/** Fires when the user submits (Enter without Shift, or the send button). */
@@ -163,8 +166,7 @@ export type ChatPromptProps = {
 	 * on a toolbar button keeps the focus in the field. The editor loads after
 	 * the mount, and until then the field shows the draft as text.
 	 *
-	 * While it is on, the field keeps the citations of the draft as marks, and
-	 * opens no picker for `sources`.
+	 * While it is on, the field keeps the citations of the draft as marks.
 	 * @defaultValue false
 	 */
 	wysiwyg?: boolean | ChatPromptWysiwygOptions
@@ -217,7 +219,7 @@ export type ChatPromptProps = {
 	 * Ref to the field, such as to focus the composer imperatively: the
 	 * textarea, or the {@link WysiwygHandle} while `wysiwyg` is on.
 	 */
-	ref?: Ref<HTMLTextAreaElement | WysiwygHandle>
+	ref?: Ref<HTMLTextAreaElement | WysiwygHandle<ChatCitation>>
 	/**
 	 * Accessible name for the composer. A placeholder is not an accessible name;
 	 * the textarea defaults to `"Message"` when neither this nor
@@ -297,11 +299,13 @@ export function ChatPrompt({
 	}, [value, citations])
 
 	// The field that has the focus calls: the textarea, or the handle of the Wysiwyg.
-	const fieldRef = useRef<HTMLTextAreaElement | WysiwygHandle>(null)
+	const fieldRef = useRef<HTMLTextAreaElement | WysiwygHandle<ChatCitation>>(null)
 
 	const setTextareaRefs = useComposedRefs(textareaRef, fieldRef, ref)
 
-	const setWysiwygRefs = useComposedRefs(fieldRef, ref)
+	const wysiwygRef = useRef<WysiwygHandle<ChatCitation>>(null)
+
+	const setWysiwygRefs = useComposedRefs(wysiwygRef, fieldRef, ref)
 
 	const focusField = useCallback(() => fieldRef.current?.focus(), [])
 
@@ -311,9 +315,31 @@ export function ChatPrompt({
 		? { 'aria-labelledby': ariaLabelledBy }
 		: { 'aria-label': ariaLabel ?? intl.formatMessage(messages.prompt) }
 
-	const picker = useChatPromptPicker({ sources, value, citations, textareaRef, onValueChange })
+	const textareaField = useTextareaPickerField({
+		enabled: Boolean(sources?.length),
+		value,
+		citations,
+		textareaRef,
+		onValueChange,
+	})
+
+	const wysiwygField = useWysiwygPickerField({ citations, handleRef: wysiwygRef })
+
+	const picker = useChatPromptPicker({
+		sources,
+		field: wysiwyg ? wysiwygField.field : textareaField.field,
+	})
 
 	const { onKeyDown: pickerKeyDown } = picker
+
+	// The open picker takes its keys first: Enter chooses and does not send. An
+	// open picker closes on Escape through its own dismissal, so `onEscape` takes
+	// the key only while the picker is closed.
+	const takeKey = useCallback(
+		(event: PickerKeyEvent): boolean =>
+			pickerKeyDown(event) || takeEscape(event, onEscape, picker.open),
+		[pickerKeyDown, onEscape, picker.open],
+	)
 
 	// While a reply streams, Enter keeps the draft for after the reply.
 	const send = useCallback(() => {
@@ -322,19 +348,7 @@ export function ChatPrompt({
 
 	const handleKeyDown = useCallback(
 		(event: KeyboardEvent<HTMLTextAreaElement>) => {
-			// The open picker takes its keys first: Enter chooses and does not send.
-			if (pickerKeyDown(event)) return
-
-			// An open picker closes on Escape through its own dismissal, so `onEscape`
-			// takes the key only while the picker is closed. The press is then
-			// consumed, so an enclosing dialog does not close on it.
-			if (event.key === 'Escape' && onEscape && !picker.open && !isComposing(event)) {
-				event.preventDefault()
-
-				onEscape()
-
-				return
-			}
+			if (takeKey(event)) return
 
 			deleteWholeCitation(event, citations)
 
@@ -344,7 +358,7 @@ export function ChatPrompt({
 
 			send()
 		},
-		[send, pickerKeyDown, citations, picker.open, onEscape],
+		[send, takeKey, citations],
 	)
 
 	// A textbox cannot take the `combobox` role, so it names its popup with the attributes that a textbox takes.
@@ -427,7 +441,9 @@ export function ChatPrompt({
 					ranges={citations}
 					onValueChange={onValueChange}
 					onEnter={send}
-					onEscape={onEscape}
+					onKeyDown={takeKey}
+					onSelectionChange={wysiwygField.onSelectionChange}
+					{...pickerProps}
 					rows={rows}
 					placeholder={placeholder ?? intl.formatMessage(messages.placeholder)}
 					{...labelProps}
@@ -448,11 +464,11 @@ export function ChatPrompt({
 								rebaseCitations(value, next, citations, event.target.selectionEnd),
 						)
 
-						picker.trackCaret(event.target)
+						textareaField.track(event.target)
 					}}
-					onSelect={(event) => picker.trackCaret(event.currentTarget)}
-					onFocus={(event) => picker.trackCaret(event.currentTarget)}
-					onBlur={picker.forgetCaret}
+					onSelect={(event) => textareaField.track(event.currentTarget)}
+					onFocus={(event) => textareaField.track(event.currentTarget)}
+					onBlur={textareaField.forget}
 					onKeyDown={handleKeyDown}
 					{...pickerProps}
 					autoResize
@@ -504,7 +520,7 @@ export function ChatPrompt({
 					})}
 				</ul>
 			)}
-			{sources && !wysiwyg && (
+			{sources && (
 				<ChatPromptPicker
 					open={picker.open}
 					listId={picker.listId}
@@ -579,6 +595,27 @@ function recallOnHistory(
 	historyRef.current = found.history
 
 	return found.citations
+}
+
+/**
+ * Calls `onEscape` on an Escape outside an IME composition while no picker is
+ * open, and consumes the press, so an enclosing dialog does not close on it.
+ *
+ * @internal
+ * @returns Whether it took the key.
+ */
+function takeEscape(
+	event: PickerKeyEvent,
+	onEscape: (() => void) | undefined,
+	pickerOpen: boolean,
+): boolean {
+	if (event.key !== 'Escape' || !onEscape || pickerOpen || isComposing(event)) return false
+
+	event.preventDefault()
+
+	onEscape()
+
+	return true
 }
 
 /**

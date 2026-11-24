@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Dialog, DialogPanel } from '../../../components/dialog'
 import {
@@ -13,6 +13,7 @@ import { getSlot, renderUI, screen, waitFor } from '../../helpers'
 const ITEMS: ChatPromptItem[] = [
 	{ key: 'late', label: 'Late stops', selector: { dataset: 'late' } },
 	{ key: 'routes', label: 'Routes', selector: { dataset: 'routes' } },
+	{ key: 'q3', label: '*Q3* [plan]', selector: { dataset: 'q3' } },
 ]
 
 const sources: ChatPromptSource[] = [
@@ -26,7 +27,7 @@ const sources: ChatPromptSource[] = [
 ]
 
 /** A composer that holds its own draft, as `useChatDraft` does, and shows its citations. */
-function Composer() {
+function Composer({ wysiwyg = false }: { wysiwyg?: boolean }) {
 	const [draft, setDraft] = useState<{ value: string; citations: readonly ChatCitation[] }>({
 		value: '',
 		citations: [],
@@ -40,8 +41,11 @@ function Composer() {
 				onValueChange={(value, citations) => setDraft({ value, citations })}
 				sources={sources}
 				onSubmit={() => {}}
+				wysiwyg={wysiwyg}
 			/>
 			<output data-testid="citations">{draft.citations.map((c) => c.quote).join('|')}</output>
+			<output data-testid="value">{draft.value}</output>
+			<output data-testid="draft">{JSON.stringify(draft.citations)}</output>
 		</>
 	)
 }
@@ -204,6 +208,202 @@ describe('the picker of a chat prompt (real browser)', () => {
 		const panel = getSlot(document.body, 'chat-prompt-picker')
 
 		const frame = textarea().closest('[data-slot="control-frame"]')
+
+		await waitFor(() => {
+			const panelBox = panel.getBoundingClientRect()
+
+			const frameBox = frame?.getBoundingClientRect()
+
+			expect(panelBox.bottom).toBeLessThanOrEqual(frameBox?.top ?? 0)
+
+			expect(Math.round(panelBox.width)).toBe(Math.round(frameBox?.width ?? 0))
+		})
+	})
+})
+
+/** The editable element of the formatted field, once its editor loads and has the focus. */
+async function editable(): Promise<HTMLElement> {
+	await userEvent.click(screen.getByRole('textbox'))
+
+	await waitFor(() =>
+		expect(screen.getByRole('textbox')).toHaveAttribute('contenteditable', 'true'),
+	)
+
+	const field = screen.getByRole('textbox')
+
+	await waitFor(() => expect(field).toHaveFocus())
+
+	return field
+}
+
+const value = () => screen.getByTestId('value').textContent
+
+const draftCitations = (): ChatCitation[] =>
+	JSON.parse(screen.getByTestId('draft').textContent ?? '')
+
+/**
+ * The picker of a chat prompt with `wysiwyg` in a real browser: the query in
+ * the text of the block, the citation in the Markdown value, and the undo
+ * history of the editor.
+ */
+describe('the picker of a chat prompt in the formatted field (real browser)', () => {
+	it('puts a citation in the value, with the offsets of the Markdown', async () => {
+		renderUI(<Composer wysiwyg />)
+
+		const field = await editable()
+
+		// The query is in the text of the block, past the bold.
+		await userEvent.keyboard('Ask **now** @ro')
+
+		const option = await screen.findByRole('option', { name: 'Routes' })
+
+		// The field keeps the focus, and the highlight is its active descendant.
+		expect(field).toHaveFocus()
+
+		expect(field).toHaveAttribute('aria-controls', screen.getByRole('listbox').id)
+
+		await waitFor(() => expect(field).toHaveAttribute('aria-activedescendant', option.id))
+
+		await userEvent.keyboard('{Enter}')
+
+		await waitFor(() => expect(screen.queryByRole('listbox')).toBeNull())
+
+		expect(value()).toBe('Ask **now** @Routes ')
+
+		expect(draftCitations()).toEqual([
+			{
+				id: expect.any(String),
+				target: 'dataset',
+				selector: { dataset: 'routes' },
+				start: 12,
+				end: 19,
+				quote: '@Routes',
+			},
+		])
+
+		expect(field.querySelector('[data-slot="wysiwyg-range"]')).toHaveTextContent('@Routes')
+
+		// Enter chose, and did not send or split the block.
+		expect(field.querySelectorAll('p')).toHaveLength(1)
+
+		// The caret is after the space, so the reader types on.
+		await userEvent.keyboard('today')
+
+		expect(value()).toBe('Ask **now** @Routes today')
+	})
+
+	it('takes the choice back on an undo, and brings it back on a redo', async () => {
+		renderUI(<Composer wysiwyg />)
+
+		await editable()
+
+		await userEvent.keyboard('Ask @ro{Enter}')
+
+		await waitFor(() => expect(citations()).toBe('@Routes'))
+
+		await userEvent.keyboard('{Control>}z{/Control}')
+
+		// The undo gives back the query, and the picker opens on it again.
+		await waitFor(() => expect(value()).toBe('Ask @ro'))
+
+		expect(citations()).toBe('')
+
+		await waitFor(() => expect(screen.getByRole('option')).toHaveTextContent('Routes'))
+
+		// A real keyboard gives `Z` with Shift. ProseMirror reads a `z` with Shift as an undo.
+		await userEvent.keyboard('{Escape}{Control>}{Shift>}Z{/Shift}{/Control}')
+
+		await waitFor(() => expect(value()).toBe('Ask @Routes '))
+
+		expect(citations()).toBe('@Routes')
+	})
+
+	it('writes a label with Markdown characters as text', async () => {
+		renderUI(<Composer wysiwyg />)
+
+		const field = await editable()
+
+		await userEvent.keyboard('See @q3')
+
+		await screen.findByRole('option', { name: '*Q3* [plan]' })
+
+		await userEvent.keyboard('{Tab}')
+
+		await waitFor(() => expect(value()).toBe('See @\\*Q3\\* \\[plan\\] '))
+
+		// The field shows the label as typed, with no emphasis and no link.
+		expect(field).toHaveTextContent('See @*Q3* [plan]')
+
+		expect(field.querySelector('em')).toBeNull()
+
+		expect(citations()).toBe('@\\*Q3\\* \\[plan\\]')
+	})
+
+	it('opens the picker again on a Backspace at the end of a citation', async () => {
+		renderUI(<Composer wysiwyg />)
+
+		await editable()
+
+		await userEvent.keyboard('Ask @la{Enter}')
+
+		await waitFor(() => expect(value()).toBe('Ask @Late stops '))
+
+		await userEvent.keyboard('{Backspace}{Backspace}')
+
+		await waitFor(() => expect(value()).toBe('Ask @Late stop'))
+
+		expect(citations()).toBe('')
+
+		await waitFor(() => expect(screen.getByRole('option')).toHaveTextContent('Late stops'))
+	})
+
+	it('closes only the picker on Escape inside a dialog, and then the dialog', async () => {
+		const onOpenChange = vi.fn()
+
+		renderUI(
+			<Dialog open onOpenChange={onOpenChange}>
+				<DialogPanel aria-label="Ask">
+					<Composer wysiwyg />
+				</DialogPanel>
+			</Dialog>,
+		)
+
+		const field = await editable()
+
+		await userEvent.keyboard('@')
+
+		expect(await screen.findByRole('listbox')).toBeVisible()
+
+		await userEvent.keyboard('{Escape}')
+
+		await waitFor(() => expect(screen.queryByRole('listbox')).toBeNull())
+
+		expect(screen.getByRole('dialog')).toBeVisible()
+
+		expect(field).toHaveFocus()
+
+		expect(field).not.toHaveAttribute('aria-activedescendant')
+
+		// With the picker closed, the next Escape is for the dialog.
+		await userEvent.keyboard('{Escape}')
+
+		expect(onOpenChange).toHaveBeenCalledWith(false)
+	})
+
+	it('sits above the composer, as wide as its frame', async () => {
+		renderUI(
+			<div style={{ paddingTop: 400, width: 480 }}>
+				<Composer wysiwyg />
+			</div>,
+		)
+
+		const field = await editable()
+
+		await userEvent.keyboard('@')
+
+		const panel = getSlot(document.body, 'chat-prompt-picker')
+
+		const frame = field.closest('[data-slot="control-frame"]')
 
 		await waitFor(() => {
 			const panelBox = panel.getBoundingClientRect()
