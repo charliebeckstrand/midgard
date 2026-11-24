@@ -4,7 +4,11 @@ import { type ReactNode, useMemo } from 'react'
 import { Button } from '../../components/button'
 import { ContextMenu, ContextMenuList } from '../../components/context-menu'
 import { resolveContextMenuEntries } from '../../components/context-menu/context-menu-merge'
-import type { ContextMenuConfig, ContextMenuEntry } from '../../components/context-menu/types'
+import type {
+	ContextMenuConfig,
+	ContextMenuEntry,
+	ContextMenuItem,
+} from '../../components/context-menu/types'
 import { Icon } from '../../components/icon'
 import { Menu, MenuContent, MenuTrigger } from '../../components/menu'
 import { Copy, EllipsisVertical } from '../../primitives/icons/icons'
@@ -13,6 +17,7 @@ import { useIntl } from '../../primitives/intl/use-intl'
 import { copyText } from '../../utilities/export-output'
 import { chatContentText } from './engine/chat-content/text'
 import type { ChatPart } from './engine/chat-content/types'
+import type { ChatMessageData } from './engine/types'
 
 /** @internal */
 const messages = defineMessages({
@@ -74,9 +79,9 @@ function useMenuEntries({ config, content, bubble }: ChatMessageMenuProps): {
 				label: copy,
 				icon: <Copy />,
 				disabled: text === '',
-				// The focus goes to the bubble, and not back to the menu button. The next
-				// Tab thus goes into the controls of the message again. The menu keeps the
-				// focus on an element that an action focused.
+				// The focus goes to the bubble, and not to the button in the toolbar. The
+				// next Tab thus goes into the controls of the message again. The menu keeps
+				// the focus on an element that an action focused.
 				onAction: () => {
 					copyText(text)
 
@@ -113,17 +118,70 @@ export function ChatMessageMenu({
 }
 
 /**
- * The button that opens the menu of a chat message as a dropdown. It holds the
- * same entries as the context menu, so a reader with a keyboard and a reader
- * who does not know the right-click get to each action.
+ * Where the dropdown opens, on the side of the speaker, as the message and its
+ * toolbar align. A reply aligns to the start and the reader's own message to
+ * the end. A system line is centered.
  *
  * @internal
  */
-export function ChatMessageMenuButton({ config, content, bubble }: ChatMessageMenuProps) {
+const MENU_PLACEMENT = {
+	user: 'bottom-end',
+	assistant: 'bottom-start',
+	system: 'bottom',
+} as const satisfies Record<ChatMessageData['sender'], string>
+
+/**
+ * The one item of a menu that holds a single item, or `undefined` for any
+ * other menu.
+ *
+ * @internal
+ */
+function loneItem(entries: ContextMenuEntry[]): ContextMenuItem | undefined {
+	const [only] = entries
+
+	if (entries.length !== 1 || only === undefined) return undefined
+
+	return 'separator' in only || 'items' in only ? undefined : only
+}
+
+/**
+ * The button in the toolbar of a chat message. A menu of more than one item
+ * opens as a dropdown from an ellipsis button, with the same entries as the
+ * context menu. Thus a reader with a keyboard and a reader who does not know
+ * the right-click get to each action. A menu of one item with an icon, such
+ * as Copy alone, has no ellipsis: the toolbar shows the button of that item,
+ * which runs its action at once.
+ *
+ * @internal
+ */
+export function ChatMessageMenuButton({
+	config,
+	content,
+	bubble,
+	sender,
+}: ChatMessageMenuProps & { sender: ChatMessageData['sender'] }) {
 	const { entries, name } = useMenuEntries({ config, content, bubble })
 
+	const action = loneItem(entries)
+
+	// An item with no icon has nothing to draw in the toolbar, so it keeps the menu.
+	if (action?.icon) {
+		return (
+			<Button
+				type="button"
+				variant="bare"
+				size="sm"
+				disabled={action.disabled}
+				onClick={action.onAction}
+			>
+				<Icon icon={action.icon} />
+				<span className="sr-only">{action.label}</span>
+			</Button>
+		)
+	}
+
 	return (
-		<Menu placement="bottom-end" capped={config?.capped}>
+		<Menu placement={MENU_PLACEMENT[sender]} capped={config?.capped}>
 			<MenuTrigger>
 				<Button type="button" variant="bare" size="sm" aria-label={name}>
 					<Icon icon={<EllipsisVertical />} />
