@@ -2,6 +2,7 @@ import { describe, expect, vi } from 'vitest'
 import { ChatMessage } from '../../modules/chat'
 import { NO_HOVER_QUERY } from '../../utilities/media-query'
 import {
+	act,
 	bySlot,
 	fireEvent,
 	getSlot,
@@ -466,7 +467,8 @@ describe('ChatMessage', () => {
 
 		const elsewhere = screen.getByRole('textbox', { name: 'Elsewhere' })
 
-		elsewhere.focus()
+		// The blur closes the tooltip of the Copy button.
+		act(() => elsewhere.focus())
 
 		await clock.advance(2000)
 

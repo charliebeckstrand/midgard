@@ -246,7 +246,9 @@ describe('PdfViewer search', () => {
 
 		expect(tiles[0]).toHaveFocus()
 
-		await new Promise((resolve) => setTimeout(resolve, 300))
+		// The focus closed the tooltip of the Search control, and its tooltip group
+		// turns cold in this wait, so the wait runs in `act`.
+		await act(() => new Promise((resolve) => setTimeout(resolve, 300)))
 
 		expect(matchTooltips()).toHaveLength(0)
 
