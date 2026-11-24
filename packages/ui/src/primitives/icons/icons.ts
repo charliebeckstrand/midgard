@@ -73,7 +73,6 @@ import {
 	Play as LucidePlay,
 	Plus as LucidePlus,
 	Printer as LucidePrinter,
-	Quote as LucideQuote,
 	RotateCcw as LucideRotateCcw,
 	RotateCw as LucideRotateCw,
 	ScanSearch as LucideScanSearch,
@@ -86,6 +85,7 @@ import {
 	StretchHorizontal as LucideStretchHorizontal,
 	Strikethrough as LucideStrikethrough,
 	Table2 as LucideTable2,
+	TextQuote as LucideTextQuote,
 	ThumbsDown as LucideThumbsDown,
 	ThumbsUp as LucideThumbsUp,
 	Trash as LucideTrash,
@@ -228,8 +228,6 @@ export const Plus = /* @__PURE__ */ createIcon(LucidePlus)
 
 export const Printer = /* @__PURE__ */ createIcon(LucidePrinter)
 
-export const Quote = /* @__PURE__ */ createIcon(LucideQuote)
-
 export const RotateCcw = /* @__PURE__ */ createIcon(LucideRotateCcw)
 
 export const RotateCw = /* @__PURE__ */ createIcon(LucideRotateCw)
@@ -253,6 +251,8 @@ export const StretchHorizontal = /* @__PURE__ */ createIcon(LucideStretchHorizon
 export const Strikethrough = /* @__PURE__ */ createIcon(LucideStrikethrough)
 
 export const Table2 = /* @__PURE__ */ createIcon(LucideTable2)
+
+export const TextQuote = /* @__PURE__ */ createIcon(LucideTextQuote)
 
 export const ThumbsDown = /* @__PURE__ */ createIcon(LucideThumbsDown)
 
