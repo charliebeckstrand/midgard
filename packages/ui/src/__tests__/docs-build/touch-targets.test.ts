@@ -270,12 +270,12 @@ const KNOWN: readonly { finding: string; paths: readonly string[]; reason: strin
 	},
 	{
 		finding: 'crowded toolbar-group/wysiwyg-action',
-		paths: ['/modules/wysiwyg'],
+		paths: ['/modules/chat/prompt', '/modules/wysiwyg'],
 		reason: 'A button of a Wysiwyg toolbar is 34 × 35 px, and the buttons touch.',
 	},
 	{
 		finding: 'crowded popover/wysiwyg-action',
-		paths: ['/modules/wysiwyg'],
+		paths: ['/modules/chat/prompt', '/modules/wysiwyg'],
 		reason: 'The link button of a Wysiwyg toolbar is 34 × 35 px, beside the other buttons.',
 	},
 	{
