@@ -683,9 +683,13 @@ export type GridColumnMenuContext<T> = {
  *   this column alone in that direction. Under a sort by more than one column,
  *   both directions stay, because each collapses the sort onto this column.
  * - The Pin menu (Pin left / Pin right / Unpin).
+ * - The Move menu (key `move`), which moves the column one place or to an
+ *   edge, while the columns reorder (see {@link GridProps.reorder}).
  * - Group by …, when groupable.
  * - The Auto-size menu (this column, all columns, then Reset column widths),
  *   when resizing is on.
+ * - The Width menu (key `width`), which widens or narrows the column one
+ *   step, when resizing is on.
  * - The Export menu.
  *
  * No separator divides them.
@@ -725,8 +729,11 @@ export type GridCellMenuContext<T> = {
  * that receives the {@link GridCellMenuContext} and the defaults. The builder
  * returns the final item list. The defaults are Copy, then Fill down, Fill
  * up, Fill right, and Fill left when a cell {@link GridProps.range | range}
- * can fill, then the Export
- * menu when {@link GridProps.exportable} is on.
+ * can fill, then Move up and Move down (keys `move-row-up` and
+ * `move-row-down`) while the rows reorder (see
+ * {@link GridProps.rowReorder}), then the Export menu when
+ * {@link GridProps.exportable} is on. A move that does not change the order
+ * is left out.
  *
  * @typeParam T - Shape of a single row.
  */

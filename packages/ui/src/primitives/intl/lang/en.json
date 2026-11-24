@@ -1081,7 +1081,7 @@
 	},
 	"ui.grid.moveDown": {
 		"defaultMessage": "Move down",
-		"description": "The menu item that moves a grid row, or a column in the column manager, one place down."
+		"description": "The menu item that moves a grid row, or an item of a manager list of a grid (a column, a column group, or a row group), one place down."
 	},
 	"ui.grid.moveGroupNamed": {
 		"defaultMessage": "Move group {group}",
@@ -1101,7 +1101,7 @@
 	},
 	"ui.grid.moveToBottom": {
 		"defaultMessage": "Move to bottom",
-		"description": "The menu item that moves a column to the bottom of the list in the column manager."
+		"description": "The menu item that moves an item of a manager list of a grid (a column, a column group, or a row group) to the bottom of its list."
 	},
 	"ui.grid.moveToEnd": {
 		"defaultMessage": "Move to end",
@@ -1113,11 +1113,11 @@
 	},
 	"ui.grid.moveToTop": {
 		"defaultMessage": "Move to top",
-		"description": "The menu item that moves a column to the top of the list in the column manager."
+		"description": "The menu item that moves an item of a manager list of a grid (a column, a column group, or a row group) to the top of its list."
 	},
 	"ui.grid.moveUp": {
 		"defaultMessage": "Move up",
-		"description": "The menu item that moves a grid row, or a column in the column manager, one place up."
+		"description": "The menu item that moves a grid row, or an item of a manager list of a grid (a column, a column group, or a row group), one place up."
 	},
 	"ui.grid.newGroup": {
 		"defaultMessage": "New group",

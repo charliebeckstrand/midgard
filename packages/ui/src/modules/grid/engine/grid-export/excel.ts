@@ -45,7 +45,7 @@ const OOXML_ESCAPE = /_x([0-9A-Fa-f]{4})_/g
  *
  * @internal
  */
-export function escapeSheetText(text: string): string {
+function escapeSheetText(text: string): string {
 	return escapeXml(encodeForbidden(text.replace(OOXML_ESCAPE, '_x005F_x$1_')))
 }
 

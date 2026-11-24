@@ -88,7 +88,7 @@ export function groupTotaled<T>(
 }
 
 /** The open key of a leaf, which is also its React key. @internal */
-export function leafItemKey(leafId: string): string {
+function leafItemKey(leafId: string): string {
 	return `leaf:${leafId}`
 }
 
