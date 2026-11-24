@@ -600,8 +600,10 @@ export function runRovingKey(
  * Seat the single focus-mode Tab stop: `active` takes `tabIndex=0` and every
  * other item `-1`. Writes only on divergence; a MutationObserver watches
  * `tabindex` and fires on every edit. Pass `undefined` to demote all.
+ *
+ * @internal
  */
-function seatTabStop(items: HTMLElement[], active: HTMLElement | undefined): void {
+export function seatTabStop(items: HTMLElement[], active: HTMLElement | undefined): void {
 	for (const item of items) {
 		const desired = item === active ? 0 : -1
 

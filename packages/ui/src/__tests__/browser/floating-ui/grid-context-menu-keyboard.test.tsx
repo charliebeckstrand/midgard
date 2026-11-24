@@ -88,9 +88,10 @@ describe('grid context menu keyboard access (real browser)', () => {
 			/>,
 		)
 
-		present(screen.getByText('Alice').closest('tr'), 'tr').focus()
+		// The group header holds the Tab stop, so the arrows go from it to Bob.
+		present(document.querySelector<HTMLElement>('tr[data-group-row]'), 'tr').focus()
 
-		await userEvent.keyboard('{ArrowDown}')
+		await userEvent.keyboard('{ArrowDown}{ArrowDown}')
 
 		const row = present(screen.getByText('Bob').closest('tr'), 'tr')
 

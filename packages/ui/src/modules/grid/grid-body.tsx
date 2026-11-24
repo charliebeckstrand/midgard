@@ -291,7 +291,8 @@ function renderManualSegment<T>(
 					expanded={open}
 					toggle={args.toggle}
 					pinning={props.pinning}
-					tree={Boolean(props.rowRoving || props.cellRoving)}
+					rowRoving={Boolean(props.rowRoving)}
+					cellRoving={Boolean(props.cellRoving)}
 				/>
 			)}
 			{segment.leaves.map((leaf) => (

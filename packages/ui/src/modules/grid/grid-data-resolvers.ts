@@ -142,7 +142,8 @@ export function resolveInfiniteScroll(
 /**
  * The role that the grid gives its table when the caller gives none. A keyboard
  * model makes it a composite: the cursor, or row or cell roving. The composite
- * is a `treegrid` over a grouped body or over focusable rows, else a `grid`. A
+ * is a `treegrid` over a grouped body, else a `grid`. Roving runs only under
+ * manual grouping, so a roving grid is always a `treegrid`. A
  * window with no keyboard model makes it a `table`. Otherwise the table keeps
  * its native role. @internal
  */
@@ -152,9 +153,7 @@ function tableRole(args: {
 	tree: boolean
 	gridSemantics: boolean
 }): string | undefined {
-	if (args.navigable || args.roving !== 'none') {
-		return args.tree || args.roving === 'row' ? 'treegrid' : 'grid'
-	}
+	if (args.navigable || args.roving !== 'none') return args.tree ? 'treegrid' : 'grid'
 
 	return args.gridSemantics ? 'table' : undefined
 }
@@ -243,8 +242,7 @@ function compositeProps(args: {
  * `aria-busy` while loading, and the role/index scheme. The role is `grid` when
  * the table carries a keyboard model. `navigable` and an editable grid both
  * turn the cursor on. A click handler under manual grouping turns row or cell
- * roving on (see `useGridRoving`). A grouped body, or roving over rows, makes it
- * `treegrid`. It is `table` when the body is only a window onto a larger set
+ * roving on (see `useGridRoving`). A grouped body makes it `treegrid`. It is `table` when the body is only a window onto a larger set
  * (`gridSemantics`: virtualization or pagination) with no keyboard model, and
  * native otherwise. A caller's `tableProps.role` wins over each of them. A
  * windowed body also carries the full row/column counts (valid on both roles);
