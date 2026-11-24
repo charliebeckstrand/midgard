@@ -30,6 +30,10 @@ type WysiwygFieldOptions = {
 	'aria-describedby'?: string
 	/** Whether the frame has a row above or below the field. */
 	rows: boolean
+	/** Whether a toolbar is above the field and no row of actions is below it. */
+	toolbar: boolean
+	/** Whether the toolbar is above the frame, apart from the field. */
+	separated: boolean
 }
 
 /**
@@ -92,7 +96,12 @@ export function useWysiwygField(options: WysiwygFieldOptions) {
 
 	const variant = options.variant ?? control?.variant ?? (glass ? 'glass' : undefined)
 
-	const slots = useHeadlessSlots(k, { variant, actions: options.rows })
+	const slots = useHeadlessSlots(k, {
+		variant,
+		actions: options.rows,
+		toolbar: options.toolbar,
+		separated: options.separated,
+	})
 
 	const named = options['aria-labelledby'] !== undefined || options['aria-label'] !== undefined
 

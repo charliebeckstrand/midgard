@@ -306,6 +306,23 @@ export const space = {
 		x: 'density-px-ring-[2,2.5,3,3.5,4]',
 		/** The block padding of a control, inside its ring. */
 		y: 'density-py-ring-[1,1.5,2,2.5,3]',
+		/**
+		 * A toolbar of bare buttons in the top row of a control frame, as on a
+		 * Wysiwyg. The padding of the toolbar and the padding of a bare button
+		 * add up to the inline padding of the control, so each glyph has the inset
+		 * of the text.
+		 */
+		toolbar: {
+			/** The inline padding of the toolbar, inside the ring of the frame. */
+			x: 'density-px-ring-[1.75,2,2.25,2.5,2.75]',
+			/** The top padding of the toolbar. */
+			top: 'density-pt-[1.5,1.75,2,2.25,2.5]',
+			/**
+			 * The bottom padding of the field below the toolbar, when the field is
+			 * the last row. It equals the inline padding of the control.
+			 */
+			bottom: 'density-pb-[1.75,2.25,2.75,3.25,3.75]',
+		},
 	},
 	affix: {
 		/** The start padding of a control prefix slot. */

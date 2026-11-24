@@ -4,9 +4,7 @@ import { Fragment } from 'react'
 import { Toolbar, ToolbarGroup, ToolbarSeparator } from '../../components/toolbar'
 import { cn } from '../../core/cn'
 import { keepFocusOnPress } from '../../primitives/control/control-keep-focus-on-press'
-import { useHeadlessSlots } from '../../primitives/headless/use-headless-slots'
 import { useIntl } from '../../primitives/intl/use-intl'
-import { k } from '../../recipes/kata/wysiwyg'
 import { useWysiwyg } from './context'
 import type { WysiwygAction } from './types'
 import { WysiwygActionButton } from './wysiwyg-action-button'
@@ -53,40 +51,40 @@ function actionGroups(actions: readonly WysiwygAction[]) {
 
 /**
  * The formatting toolbar of a {@link Wysiwyg}. Give it as a child of the
- * Wysiwyg, and it renders in the row above the field. `actions` sets which
- * buttons it shows.
+ * Wysiwyg, and it renders in the row above the field, or above the frame with
+ * `separated` on the Wysiwyg. `actions` sets which buttons it shows.
  *
  * Each text and block action is a toggle button with `aria-pressed`, which
  * shows whether the action is on at the selection. Link opens a popover with
- * a URL field. Each button has a tooltip with its name and its shortcut, and
- * `aria-keyshortcuts`.
+ * a URL field. Each button has a tooltip with its name, and its shortcut is
+ * in `aria-keyshortcuts`.
  *
  * @remarks The toolbar has `role="toolbar"`, one Tab stop, and arrow keys
  * between its buttons, and `aria-controls` points at the field. A press on a
  * button does not move the focus, so the selection stays in the field and the
- * virtual keyboard stays open. Until the editor loads, and while the field is
- * disabled or read-only, the buttons are `aria-disabled` and keep their
- * places in the arrow order.
+ * virtual keyboard stays open. Until the editor loads, the buttons are
+ * `aria-disabled` and keep their places in the arrow order. While the field
+ * is disabled or read-only, the toolbar is `inert`: it has no Tab stop, it
+ * takes no press, and it opens no tooltip.
  */
 export function WysiwygToolbar({
 	actions = WYSIWYG_ACTIONS,
 	'aria-label': ariaLabel,
 	className,
 }: WysiwygToolbarProps) {
-	const { fieldId } = useWysiwyg()
+	const { fieldId, locked, toolbarClassName } = useWysiwyg()
 
 	const intl = useIntl()
-
-	const slots = useHeadlessSlots(k, {})
 
 	return (
 		<Toolbar
 			aria-label={ariaLabel ?? intl.formatMessage(wysiwygMessages.toolbar)}
 			aria-controls={fieldId}
+			inert={locked}
 			// The buttons take the affix step, one below the field, as the buttons
 			// of the actions row do.
 			data-density="slot"
-			className={cn(slots.toolbar, className)}
+			className={cn(toolbarClassName, className)}
 			onMouseDown={keepFocusOnPress}
 		>
 			{actionGroups(actions).map((group, index) => (

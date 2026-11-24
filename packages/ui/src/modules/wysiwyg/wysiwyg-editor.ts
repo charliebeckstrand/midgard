@@ -163,6 +163,10 @@ export function createWysiwygEditor(
 			return event.defaultPrevented
 		},
 		handleDOMEvents: {
+			// ProseMirror takes a press from the browser and draws the selection
+			// itself, but only in a view that takes edits. A read-only field leaves
+			// the press to the browser, so the reader can select its text.
+			mousedown: () => !props.editable,
 			// The edit menu of iOS and the format keys of some keyboards send these.
 			beforeinput: (_, event) => {
 				const action = formatAction((event as InputEvent).inputType)

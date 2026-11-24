@@ -1,5 +1,8 @@
+import type { ReactElement } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Input } from '../../components/input'
+import { Textarea } from '../../components/textarea'
+import { Wysiwyg } from '../../modules/wysiwyg'
 import { present, renderUI } from '../helpers'
 import { acrossHover } from './helpers/across-hover'
 import { holdRootClass } from './helpers/root-state'
@@ -14,7 +17,7 @@ import { holdRootClass } from './helpers/root-state'
  *
  * Rides the real browser because the claim is a computed one: jsdom loads no stylesheet.
  */
-describe('the validation ring of a framed control under the pointer (real browser)', () => {
+describe('the ring of a framed control under the pointer (real browser)', () => {
 	async function ringBeforeAndAfterHover(dark: boolean) {
 		if (dark) holdRootClass('dark')
 
@@ -43,5 +46,26 @@ describe('the validation ring of a framed control under the pointer (real browse
 		const { before, after } = await acrossHover(frame, 'boxShadow')
 
 		expect(after).not.toBe(before)
+	})
+
+	/**
+	 * A control that takes no edit keeps its ring under the pointer. The field of
+	 * a Wysiwyg is not a native control, so its frame carries `data-disabled`,
+	 * and its field carries `aria-readonly`.
+	 */
+	it.for([
+		['a disabled Input', <Input key="i" aria-label="Email" disabled />],
+		['a read-only Input', <Input key="i" aria-label="Email" readOnly />],
+		['a read-only Textarea', <Textarea key="t" aria-label="Notes" readOnly />],
+		['a disabled Wysiwyg', <Wysiwyg key="w" aria-label="Notes" disabled />],
+		['a read-only Wysiwyg', <Wysiwyg key="w" aria-label="Notes" readOnly />],
+	] as [string, ReactElement][])('keeps the ring of %s on hover', async ([, control]) => {
+		const { container } = renderUI(control)
+
+		const frame = present(container.querySelector('[data-slot="control-frame"]'), 'control frame')
+
+		const { before, after } = await acrossHover(frame, 'boxShadow')
+
+		expect(after).toBe(before)
 	})
 })

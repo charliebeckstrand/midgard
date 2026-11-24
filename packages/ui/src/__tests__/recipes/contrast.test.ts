@@ -256,12 +256,6 @@ const TINT_CONSUMERS: readonly {
 	// The `solid` bar; items ink at `iro.text.default`, not at a muted rung.
 	{ file: 'recipes/kata/nav.ts', surfaces: [nav.item({ affix: false }).button] },
 	{ file: 'recipes/kata/toolbar.ts', surfaces: [] },
-	// The `soft` control frame, inked by the text and the placeholder of its field.
-	{
-		file: 'recipes/kiso/kasane/layers.ts',
-		surfaces: [input({ variant: 'soft' }).field],
-		ground: SOFT_WASH,
-	},
 	{ file: 'recipes/kata/box.ts', surfaces: [] },
 	// The skeleton bubble, which holds placeholders and no ink.
 	{ file: 'recipes/kata/chat-transcript.ts', surfaces: [] },
@@ -346,6 +340,26 @@ describe('tint wash foreground contrast', () => {
 			})
 		},
 	)
+})
+
+/**
+ * The `soft` control frame paints a wash of its own, not `bg.tint`. The text
+ * and the placeholder of its field must clear text AA on its hovered wash.
+ */
+describe('soft control foreground contrast', () => {
+	const inks = inksByMode([input({ variant: 'soft' }).field])
+
+	it.each(MODES)('grounds no ink below text AA on the soft wash in %s mode', (mode) => {
+		const failing = inks[mode].flatMap((ink) => {
+			const ratio = getContrast(ink, SOFT_WASH[mode])
+
+			return ratio < TEXT_AA ? [`${ink} @ ${ratio.toFixed(2)}:1`] : []
+		})
+
+		expect(inks[mode].length).toBeGreaterThan(0)
+
+		expect(failing).toEqual([])
+	})
 })
 
 /**

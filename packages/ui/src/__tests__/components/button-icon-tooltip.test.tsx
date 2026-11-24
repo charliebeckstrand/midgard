@@ -24,4 +24,18 @@ describe('ButtonIconTooltip', () => {
 
 		expect(screen.queryByText('Panel')).toBeNull()
 	})
+
+	it('keeps a bare button bare while on, and marks it active', () => {
+		renderUI(
+			<ButtonIconTooltip label="Bold" icon={<svg />} variant="bare" active disabled={false} />,
+		)
+
+		expect(screen.getByLabelText('Bold')).toHaveAttribute('data-active')
+	})
+
+	it('marks no plain button active, because it takes the soft variant while on', () => {
+		renderUI(<ButtonIconTooltip label="Bold" icon={<svg />} active disabled={false} />)
+
+		expect(screen.getByLabelText('Bold')).not.toHaveAttribute('data-active')
+	})
 })

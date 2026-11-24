@@ -23,6 +23,7 @@ import type { WysiwygAction, WysiwygHandle } from './types'
 import { useWysiwygEditor } from './use-wysiwyg-editor'
 import { useWysiwygField } from './use-wysiwyg-field'
 import { useWysiwygLabelFocus } from './use-wysiwyg-label-focus'
+import type { WysiwygEditor } from './wysiwyg-editor'
 
 /** Props for {@link Wysiwyg}. */
 export type WysiwygProps<R extends MarkdownRange = MarkdownRange> = {
@@ -58,7 +59,8 @@ export type WysiwygProps<R extends MarkdownRange = MarkdownRange> = {
 	/**
 	 * The minimum height in lines. The field grows with its content, and a
 	 * `max-height` class sets the maximum height.
-	 * @defaultValue 3
+	 * @defaultValue 1
+	 * @minimum 1
 	 */
 	rows?: number
 	/** The text that the empty field shows. */
@@ -74,6 +76,12 @@ export type WysiwygProps<R extends MarkdownRange = MarkdownRange> = {
 	 * row does not move the focus, so the selection stays in the field.
 	 */
 	children?: ReactNode
+	/**
+	 * Puts the row above the field, such as a {@link WysiwygToolbar}, above the
+	 * frame with a gap. The frame then holds only the field and `actions`.
+	 * @defaultValue false
+	 */
+	separated?: boolean
 	/**
 	 * Enter calls it, and Shift+Enter then does what Enter does without it, so a
 	 * Markdown shortcut such as `- ` works on the new line. Without it, Enter
@@ -122,6 +130,27 @@ export type WysiwygProps<R extends MarkdownRange = MarkdownRange> = {
 	'aria-describedby'?: string
 	/** Gets the {@link WysiwygHandle} of the field. */
 	ref?: Ref<WysiwygHandle>
+}
+
+/** The subscription of a locked field, which takes no update. @internal */
+function ignoreUpdates(): () => void {
+	return () => undefined
+}
+
+/**
+ * How the toolbar follows the selection. A locked field is inert: the toolbar
+ * does not follow the selection, and it shows no action as on.
+ *
+ * @internal
+ */
+function selection(
+	editor: WysiwygEditor | null,
+	subscribe: WysiwygContextValue['subscribe'],
+	locked: boolean,
+): Pick<WysiwygContextValue, 'subscribe' | 'isActive'> {
+	if (locked) return { subscribe: ignoreUpdates, isActive: () => false }
+
+	return { subscribe, isActive: (action) => editor?.isActive(action) ?? false }
 }
 
 /**
@@ -200,12 +229,13 @@ function reactProps(attributes: Record<string, string>): Record<string, string> 
  * uncontrolled field back to `defaultValue`.
  */
 export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
-	rows = 3,
+	rows = 1,
 	placeholder,
 	actions,
 	children,
 	onEnter,
 	onKeyDown,
+	separated = false,
 	size,
 	ref,
 	ranges = [],
@@ -215,6 +245,11 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 	const hasActions = actions != null && actions !== false
 
 	const hasToolbar = children != null && children !== false
+
+	// The toolbar is the top row of the frame, or above the frame with `separated`.
+	const inside = hasToolbar && !separated
+
+	const apart = hasToolbar && separated
 
 	// Each range that the field has held, by its id, so an undo that brings a
 	// range back gives the object of the caller.
@@ -238,7 +273,9 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 		onValueChange: onValueChange && emit,
 		defaultValue: options.defaultValue ?? '',
 		placeholder,
-		rows: hasActions || hasToolbar,
+		rows: hasActions || inside,
+		toolbar: inside && !hasActions,
+		separated,
 	})
 
 	const { value, slots, locked } = field
@@ -311,8 +348,8 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 		fieldId: field.fieldId,
 		ready: editor !== null,
 		locked,
-		subscribe,
-		isActive: (action: WysiwygAction) => editor?.isActive(action) ?? false,
+		toolbarClassName: cn(slots.toolbar),
+		...selection(editor, subscribe, locked),
 		run: (action: WysiwygAction) => {
 			editor?.run(action)
 		},
@@ -329,46 +366,64 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 		setLink: (href: string) => editor?.link(href),
 	}
 
-	// The field is touched when the focus leaves the frame, and not when it
-	// moves to a part of it, such as a toolbar button.
-	function handleBlur(event: FocusEvent<HTMLSpanElement>) {
+	// The field is touched when the focus leaves the field and its rows, and not
+	// when it moves to a part of them, such as a toolbar button.
+	function handleBlur(event: FocusEvent<HTMLElement>) {
 		if (!event.currentTarget.contains(event.relatedTarget)) field.setTouched()
 	}
 
-	const style = {
+	// The root keeps one shape for each layout, so a change of `separated` does
+	// not mount the host again, which holds the element of the editor.
+	return (
+		<WysiwygContext value={context}>
+			{/* biome-ignore lint/a11y/noStaticElementInteractions: a focus-out surface for the toolbar and the field, not a control. The field marks itself touched when the focus leaves both. */}
+			<div
+				data-slot="wysiwyg-root"
+				data-disabled={dataAttr(field.disabled)}
+				className={cn(slots.root)}
+				onBlur={handleBlur}
+			>
+				{apart && children}
+				<ControlFrame
+					as="div"
+					density={size}
+					data-disabled={dataAttr(field.disabled)}
+					className={cn(slots.base)}
+				>
+					{inside && children}
+					<div
+						ref={host}
+						data-slot="wysiwyg"
+						className={cn(slots.host)}
+						style={fieldStyle(rows, placeholder)}
+					>
+						{!editor && (
+							<WysiwygStatic
+								attributes={field.attributes}
+								value={value}
+								focusable={!field.disabled}
+								onWant={() => setWanted(true)}
+							/>
+						)}
+					</div>
+					{hasActions && (
+						<ControlActions data-slot="wysiwyg-actions" className={cn(slots.actions)}>
+							{actions}
+						</ControlActions>
+					)}
+					{!field.controlled && <input type="hidden" ref={resetRef} />}
+				</ControlFrame>
+			</div>
+		</WysiwygContext>
+	)
+}
+
+/** The custom properties of the field: its minimum rows and its placeholder text. */
+function fieldStyle(rows: number, placeholder: string | undefined) {
+	return {
 		'--wysiwyg-rows': rows,
 		...(placeholder === undefined ? {} : { '--wysiwyg-placeholder': JSON.stringify(placeholder) }),
 	} as CSSProperties
-
-	return (
-		<WysiwygContext value={context}>
-			<ControlFrame
-				as="div"
-				density={size}
-				data-disabled={dataAttr(field.disabled)}
-				className={cn(slots.base)}
-				onBlur={handleBlur}
-			>
-				{hasToolbar && children}
-				<div ref={host} data-slot="wysiwyg" className={cn(slots.host)} style={style}>
-					{!editor && (
-						<WysiwygStatic
-							attributes={field.attributes}
-							value={value}
-							focusable={!field.disabled}
-							onWant={() => setWanted(true)}
-						/>
-					)}
-				</div>
-				{hasActions && (
-					<ControlActions data-slot="wysiwyg-actions" className={cn(slots.actions)}>
-						{actions}
-					</ControlActions>
-				)}
-				{!field.controlled && <input type="hidden" ref={resetRef} />}
-			</ControlFrame>
-		</WysiwygContext>
-	)
 }
 
 /** Props for {@link WysiwygStatic}. @internal */

@@ -7,7 +7,7 @@ import { k, type scale } from '../../recipes/kata/wysiwyg'
 export type WysiwygSkeletonProps = {
 	/**
 	 * The lines that the field holds at its minimum height.
-	 * @defaultValue 3
+	 * @defaultValue 1
 	 */
 	rows?: number
 	/**
@@ -22,7 +22,7 @@ export type WysiwygSkeletonProps = {
  * A placeholder for a {@link Wysiwyg} while it loads: `rows` lines of text and
  * the padding of the field, as the silhouette of a Textarea has.
  */
-export function WysiwygSkeleton({ rows = 3, size, className }: WysiwygSkeletonProps) {
+export function WysiwygSkeleton({ rows = 1, size, className }: WysiwygSkeletonProps) {
 	return (
 		<Placeholder data-density={size} className={cn(k.skeleton.base, className)}>
 			<span className={k.skeleton.strut} style={{ height: `${rows}lh` }} />

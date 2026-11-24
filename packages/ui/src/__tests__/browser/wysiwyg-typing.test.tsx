@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Wysiwyg, WysiwygToolbar } from '../../modules/wysiwyg'
-import { renderUI, screen, waitFor } from '../helpers'
+import { getSlot, present, renderUI, screen, waitFor } from '../helpers'
 
 /** A field that shows its Markdown value. */
 function Notes({ initial = '', onEnter }: { initial?: string; onEnter?: () => void }) {
@@ -168,6 +168,96 @@ describe('Wysiwyg (real browser)', () => {
 		await userEvent.keyboard('{Control>}z{/Control}')
 
 		expect(value()).toBe('Ship it')
+	})
+
+	it('is inert while read-only: a press shows no action as on, and no shortcut edits', async () => {
+		const onValueChange = vi.fn()
+
+		renderUI(
+			<Wysiwyg
+				aria-label="Notes"
+				defaultValue="**Bold** text"
+				readOnly
+				onValueChange={onValueChange}
+			>
+				<WysiwygToolbar />
+			</Wysiwyg>,
+		)
+
+		await userEvent.click(screen.getByRole('textbox'))
+
+		// The editor replaces the field of the server render, and it shows the formatting.
+		await waitFor(() => expect(screen.getByRole('textbox').querySelector('strong')).not.toBeNull())
+
+		const field = screen.getByRole('textbox')
+
+		await userEvent.tripleClick(present(field.querySelector('strong'), 'the bold text'))
+
+		await userEvent.keyboard('{Control>}b{/Control}')
+
+		expect(screen.getByRole('button', { name: 'Bold' })).toHaveAttribute('aria-pressed', 'false')
+
+		expect(field.querySelector('strong')).not.toBeNull()
+
+		expect(onValueChange).not.toHaveBeenCalled()
+	})
+
+	it('lets the reader select the text of a read-only field with the pointer', async () => {
+		renderUI(<Wysiwyg aria-label="Notes" defaultValue="Some **bold** and *italic* text" readOnly />)
+
+		await userEvent.click(screen.getByRole('textbox'))
+
+		await waitFor(() => expect(screen.getByRole('textbox').querySelector('strong')).not.toBeNull())
+
+		const field = screen.getByRole('textbox')
+
+		await userEvent.dragAndDrop(
+			present(field.querySelector('strong'), 'the bold text'),
+			present(field.querySelector('em'), 'the italic text'),
+		)
+
+		expect(window.getSelection()?.toString()).toContain('and')
+	})
+
+	it.for([false, true])(
+		'shows not-allowed over each part of a disabled field (separated: %s)',
+		async (separated) => {
+			const { container } = renderUI(
+				<Wysiwyg aria-label="Notes" defaultValue="Text" disabled separated={separated}>
+					<WysiwygToolbar />
+				</Wysiwyg>,
+			)
+
+			const parts = [
+				getSlot(container, 'control-frame'),
+				screen.getByRole('textbox'),
+				screen.getByRole('toolbar'),
+				screen.getByRole('button', { name: 'Bold' }),
+			]
+
+			expect(parts.map((part) => getComputedStyle(part).cursor)).toEqual(
+				parts.map(() => 'not-allowed'),
+			)
+		},
+	)
+
+	it('skips the toolbar of a read-only field on Tab, and shows no tooltip', async () => {
+		renderUI(
+			<>
+				<button type="button">Before</button>
+				<Wysiwyg aria-label="Notes" defaultValue="Text" readOnly separated>
+					<WysiwygToolbar />
+				</Wysiwyg>
+			</>,
+		)
+
+		screen.getByRole('button', { name: 'Before' }).focus()
+
+		await userEvent.tab()
+
+		expect(screen.getByRole('textbox')).toHaveFocus()
+
+		expect(document.querySelector('[role=tooltip]')).toBeNull()
 	})
 
 	it('grows with its content up to the max height, and then scrolls', async () => {

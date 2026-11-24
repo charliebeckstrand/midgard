@@ -171,6 +171,79 @@ describe('Wysiwyg', () => {
 		expect(screen.getByRole('button', { name: 'Bold' })).toHaveAttribute('aria-disabled', 'true')
 	})
 
+	it.for([
+		['disabled', { disabled: true }],
+		['read-only', { readOnly: true }],
+	] as const)(
+		'makes the toolbar inert while %s, so it has no Tab stop and no tooltip',
+		([, lock]) => {
+			renderUI(
+				<Wysiwyg aria-label="Guide" defaultValue="Text" {...lock}>
+					<WysiwygToolbar />
+				</Wysiwyg>,
+			)
+
+			expect(screen.getByRole('toolbar', { hidden: true })).toHaveAttribute('inert')
+		},
+	)
+
+	it('shows no action as on while read-only', async () => {
+		renderUI(
+			<Wysiwyg aria-label="Guide" defaultValue="**Bold**" readOnly>
+				<WysiwygToolbar actions={['bold']} />
+			</Wysiwyg>,
+		)
+
+		await loadEditor()
+
+		// The caret starts in the bold text.
+		expect(screen.getByRole('button', { name: 'Bold' })).toHaveAttribute('aria-pressed', 'false')
+	})
+
+	it('puts a separated toolbar above the frame, out of it', () => {
+		const { container } = renderUI(
+			<Wysiwyg aria-label="Notes" separated>
+				<WysiwygToolbar />
+			</Wysiwyg>,
+		)
+
+		const frame = getSlot(container, 'control-frame')
+
+		const toolbar = screen.getByRole('toolbar')
+
+		expect(frame).not.toContainElement(toolbar)
+
+		expect(frame).toContainElement(screen.getByRole('textbox'))
+
+		expect(getSlot(container, 'wysiwyg-root').firstElementChild).toBe(toolbar)
+	})
+
+	it('keeps the editor when `separated` changes', async () => {
+		const { rerender } = renderUI(
+			<Wysiwyg aria-label="Notes" defaultValue="Text">
+				<WysiwygToolbar />
+			</Wysiwyg>,
+		)
+
+		await loadEditor()
+
+		rerender(
+			<Wysiwyg aria-label="Notes" defaultValue="Text" separated>
+				<WysiwygToolbar />
+			</Wysiwyg>,
+		)
+
+		expect(screen.getByRole('textbox')).toHaveTextContent('Text')
+
+		rerender(
+			<Wysiwyg aria-label="Notes" defaultValue="Text">
+				<WysiwygToolbar />
+			</Wysiwyg>,
+		)
+
+		expect(screen.getByRole('textbox')).toHaveTextContent('Text')
+	})
+
 	it('dims the frame of a disabled field and drops its tab stop', () => {
 		const { container } = renderUI(<Wysiwyg aria-label="Guide" disabled />)
 
