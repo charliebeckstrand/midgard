@@ -16,6 +16,7 @@ import {
 import { mapZoomSettings } from '../../modules/map/engine/map-zoom/input'
 import {
 	applyTransform,
+	centerTransform,
 	constrainTransform,
 	MAP_FIT_TRANSFORM,
 	type MapTransform,
@@ -170,6 +171,31 @@ describe('panTransform', () => {
 		const at = zoomTransform(MAP_FIT_TRANSFORM, { x: 200, y: 100 }, 2, VIEW, MAX)
 
 		expect(panTransform(at, 9999, 9999, VIEW)).toEqual({ x: 0, y: 0, k: 2 })
+	})
+})
+
+describe('centerTransform', () => {
+	it('draws the point at the middle of the frame, at the same scale', () => {
+		const at = zoomTransform(MAP_FIT_TRANSFORM, { x: 0, y: 0 }, 4, VIEW, MAX)
+
+		const out = centerTransform(at, { x: 150, y: 75 }, VIEW)
+
+		expect(out.k).toBe(at.k)
+
+		expect(applyTransform({ x: 150, y: 75 }, out)).toEqual({ x: 200, y: 100 })
+	})
+
+	it('holds the view inside the scaled frame for a point near an edge', () => {
+		const at = zoomTransform(MAP_FIT_TRANSFORM, { x: 200, y: 100 }, 4, VIEW, MAX)
+
+		// The corner itself cannot draw at the middle: the pan stops at the edge.
+		const out = centerTransform(at, { x: 0, y: 0 }, VIEW)
+
+		expect(out).toEqual({ k: 4, x: 0, y: 0 })
+	})
+
+	it('leaves the fit where it is', () => {
+		expect(centerTransform(MAP_FIT_TRANSFORM, { x: 10, y: 10 }, VIEW)).toEqual(MAP_FIT_TRANSFORM)
 	})
 })
 

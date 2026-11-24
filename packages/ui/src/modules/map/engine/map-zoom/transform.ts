@@ -170,6 +170,29 @@ export function showTransform(
 	)
 }
 
+/**
+ * Pans the view so a frame point draws at the center of the frame, at the
+ * current scale. The point is a point of the fitted geography, not a drawn one:
+ * the overview inset names the ground it shows, which the transform has not
+ * moved. Near an edge the constraint holds the view inside the scaled frame, so
+ * the point then draws off center.
+ *
+ * @internal
+ */
+export function centerTransform(
+	transform: MapTransform,
+	at: MapPoint2D,
+	view: MapViewFrame,
+): MapTransform {
+	const { k } = transform
+
+	return constrainTransform(
+		{ k, x: view.width / 2 - at.x * k, y: view.height / 2 - at.y * k },
+		view,
+		k,
+	)
+}
+
 /** The scale held between the fit and the ceiling: the one place that rule is written. */
 function clampScale(k: number, max: number): number {
 	return clamp(k, MAP_ZOOM_FIT, Math.max(MAP_ZOOM_FIT, max))
