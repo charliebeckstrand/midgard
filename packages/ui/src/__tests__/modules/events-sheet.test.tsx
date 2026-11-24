@@ -659,6 +659,24 @@ describe('pin', () => {
 		expect(getEventSink()).toBeUndefined()
 	})
 
+	it('writes the root attributes again when the panel mounts, as a render of `<html>` on the client removes them', () => {
+		restoreEventsOn()
+
+		localStorage.setItem('events:on', '1')
+
+		localStorage.setItem('events:pinned', '1')
+
+		const root = document.documentElement
+
+		for (const name of ['data-events', 'data-events-pinned']) root.removeAttribute(name)
+
+		render(<EventsAside />)
+
+		expect(root).toHaveAttribute('data-events')
+
+		expect(root).toHaveAttribute('data-events-pinned')
+	})
+
 	it('mounts the pinned panel when the events turn on, and unmounts it when they turn off', async () => {
 		restoreEventsOn()
 
