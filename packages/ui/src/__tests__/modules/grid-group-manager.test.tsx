@@ -182,6 +182,22 @@ describe('group manager drag helpers', () => {
 			g: ['b', 'c', 'a'],
 		})
 	})
+
+	// The menu path of the move keeps the slot of a member that the filter
+	// hides, and the drop agrees with it.
+	it('keeps the slot of a member that the filter hides', () => {
+		const pool = { [UNGROUPED]: ['first', 'last', 'email', 'phone'] }
+
+		const shown = (id: string) => id !== 'last'
+
+		expect(settleDragEnd(pool, 'first', 'email', shown)).toEqual({
+			[UNGROUPED]: ['email', 'last', 'first', 'phone'],
+		})
+
+		expect(settleDragEnd(pool, 'first', zoneDropId(UNGROUPED), shown)).toEqual({
+			[UNGROUPED]: ['email', 'last', 'phone', 'first'],
+		})
+	})
 })
 
 describe('zoneMapToStores', () => {

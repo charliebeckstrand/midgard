@@ -720,6 +720,37 @@ describe('Grid cursor edges', () => {
 		expect(grid).toHaveAttribute('aria-activedescendant', cells[ROW2_ROLE]?.id)
 	})
 
+	// A grouped body publishes an order of group headers and leaves. A row that
+	// joins a group above moves each place below it.
+	it('follows the row that it left by key in a grouped grid', () => {
+		const ui = (shown: Row[]) => (
+			<Grid
+				columns={columns}
+				rows={shown}
+				getKey={getKey}
+				navigable
+				groupBy={{ defaultValue: 'role' }}
+			/>
+		)
+
+		const view = renderUI(ui(rows))
+
+		const grid = screen.getByRole('treegrid')
+
+		fireEvent.mouseDown(screen.getByRole('gridcell', { name: 'Carol' }))
+
+		fireEvent.keyDown(grid, { key: 'Escape' })
+
+		view.rerender(ui([...rows, { id: 4, name: 'Dan', role: 'Admin' }]))
+
+		fireEvent.keyDown(grid, { key: 'ArrowLeft' })
+
+		expect(grid).toHaveAttribute(
+			'aria-activedescendant',
+			screen.getByRole('gridcell', { name: 'Carol' }).id,
+		)
+	})
+
 	it('follows the cell that it left into new rows, and clamps it', () => {
 		const ui = (shown: Row[]) => <Grid columns={columns} rows={shown} getKey={getKey} navigable />
 
