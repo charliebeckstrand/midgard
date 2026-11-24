@@ -79,9 +79,31 @@ export function useListKeepFocus(
 					: null
 		}
 
+		// A focus that goes to `<body>`, such as at a press on empty space, sends
+		// no `focusin`. A blur with no next element from an element that stays in
+		// the DOM thus drops the note. An element that leaves the DOM keeps it. The
+		// check waits one microtask, after the commit that can remove the element.
+		const drop = (event: FocusEvent) => {
+			if (event.relatedTarget !== null) return
+
+			const target = event.target
+
+			queueMicrotask(() => {
+				if (target instanceof Element && target.isConnected && spot.current?.element === target) {
+					spot.current = null
+				}
+			})
+		}
+
 		doc.addEventListener('focusin', note)
 
-		return () => doc.removeEventListener('focusin', note)
+		doc.addEventListener('focusout', drop)
+
+		return () => {
+			doc.removeEventListener('focusin', note)
+
+			doc.removeEventListener('focusout', drop)
+		}
 	}, [containerRef])
 
 	// The `remount` of the last commit.

@@ -59,4 +59,22 @@ describe('useListKeepFocus', () => {
 
 		expect(document.activeElement).toBe(outside)
 	})
+
+	// A press on empty space moves the focus to `<body>` with no `focusin`.
+	it('leaves a focus that went to the body there', async () => {
+		const { rerender } = renderUI(<Rows swap={false} />)
+
+		const button = screen.getByRole('button', { name: 'Remove b' })
+
+		button.focus()
+
+		button.blur()
+
+		// The note drops one microtask after the blur.
+		await Promise.resolve()
+
+		rerender(<Rows swap />)
+
+		expect(document.activeElement).toBe(document.body)
+	})
 })
