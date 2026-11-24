@@ -1,4 +1,4 @@
-import { Pencil } from 'lucide-react'
+import { Pencil, X } from 'lucide-react'
 import { useId, useLayoutEffect, useRef, useState } from 'react'
 import { Button } from 'ui/button'
 import {
@@ -10,6 +10,7 @@ import {
 	useChatDraft,
 	useChatSend,
 } from 'ui/chat'
+import { useConfirm } from 'ui/confirm'
 import type { ContextMenuConfig } from 'ui/context-menu'
 import { Flex } from 'ui/flex'
 import { Stack } from 'ui/stack'
@@ -68,12 +69,31 @@ function readDraft(content: ChatMessageData['content']): {
 		: { text: '', citations: [] }
 }
 
+type Draft = ReturnType<typeof readDraft>
+
+/** Tells whether the composer still holds the text and the citations of the message. */
+function sameDraft(a: Draft, b: Draft): boolean {
+	return (
+		a.text === b.text &&
+		a.citations.length === b.citations.length &&
+		a.citations.every(
+			(citation, index) =>
+				citation.id === b.citations[index]?.id &&
+				citation.start === b.citations[index]?.start &&
+				citation.end === b.citations[index]?.end,
+		)
+	)
+}
+
 export default function EditAMessage() {
 	const chat = useChatSend({ transport, initialMessages })
 
 	const composer = useRef<HTMLTextAreaElement>(null)
 
-	const [editing, setEditing] = useState<string>()
+	// The message in the edit, with its text and its citations as the edit started.
+	const [editing, setEditing] = useState<{ id: string; from: Draft }>()
+
+	const confirm = useConfirm()
 
 	// The status in the toolbar describes the composer, so a reader who focuses it hears it.
 	const status = useId()
@@ -102,30 +122,43 @@ export default function EditAMessage() {
 	const submitEdit = () => {
 		if (editing === undefined || !draft.canSubmit) return
 
-		void edit(editing, draft.value, draft.citations)
+		void edit(editing.id, draft.value, draft.citations)
 
 		end()
 	}
 
 	// A switch of branch can take the message off the shown path, and `edit`
 	// then does nothing. The edit then ends, as Cancel ends it.
-	if (editing !== undefined && !chat.messages.some((message) => message.id === editing)) end()
+	if (editing !== undefined && !chat.messages.some((message) => message.id === editing.id)) end()
 
-	const start = (message: ChatMessageData) => {
-		if (!message.id) return
+	const changed =
+		editing !== undefined &&
+		!sameDraft(editing.from, { text: draft.value, citations: draft.citations })
 
-		const { text, citations } = readDraft(message.content)
+	// Each end of an edit that drops a changed draft asks first. These ends are
+	// a cancel, a switch to another message, and a switch of branch that takes
+	// the message away. The focus goes back to the composer, also when the
+	// question came from the menu of a message.
+	const discard = async () =>
+		!changed ||
+		confirm({
+			title: 'Discard your changes?',
+			confirm: { label: 'Discard', color: 'red' },
+			cancel: { label: 'Keep editing' },
+			returnFocusTo: composer,
+		})
+
+	const start = async (message: ChatMessageData) => {
+		if (!message.id || !(await discard())) return
+
+		const from = readDraft(message.content)
 
 		// A switch to another message keeps the draft that the first edit held.
 		if (editing === undefined) setHeld({ value: draft.value, citations: draft.citations })
 
-		setEditing(message.id)
+		setEditing({ id: message.id, from })
 
-		setValue(text, citations)
-
-		// A second start of the same message does not change `editing`, so the
-		// effect below does not run. The status already shows, so the focus moves now.
-		if (message.id === editing) composer.current?.focus()
+		setValue(from.text, from.citations)
 	}
 
 	// The focus moves after the commit, so the composer already holds the text
@@ -134,9 +167,25 @@ export default function EditAMessage() {
 		if (editing !== undefined) composer.current?.focus()
 	}, [editing])
 
+	// A switch of branch at the message in the edit, or above it, takes the
+	// message off the shown path.
+	const showBranch = async (id: string) => {
+		const at = chat.messages.findIndex(
+			(message) => message.id !== undefined && chat.branches[message.id]?.ids.includes(id),
+		)
+
+		const edited = chat.messages.findIndex((message) => message.id === editing?.id)
+
+		if (at <= edited && !(await discard())) return
+
+		chat.showBranch(id)
+	}
+
 	// A click does not focus a button in Safari, so the toolbar row cannot find
 	// the focus in it as it unmounts. Cancel gives the focus back to the composer.
-	const cancel = () => {
+	const cancel = async () => {
+		if (!(await discard())) return
+
 		end()
 
 		composer.current?.focus()
@@ -145,13 +194,19 @@ export default function EditAMessage() {
 	// `edit` does nothing while a reply streams, so the controls hide until it settles.
 	const editable = (message: ChatMessageData) => message.sender === 'user' && !chat.streaming
 
-	// The menu of each message holds Copy by default. A user message adds Edit.
-	const contextMenu = (message: ChatMessageData): ContextMenuConfig | undefined =>
-		editable(message)
-			? {
-					items: [{ key: 'edit', label: 'Edit', icon: <Pencil />, onAction: () => start(message) }],
-				}
-			: undefined
+	// The menu of each message holds Copy by default. A user message adds Edit,
+	// and the message in the edit shows Cancel in its place.
+	const contextMenu = (message: ChatMessageData): ContextMenuConfig | undefined => {
+		if (!editable(message)) return undefined
+
+		return {
+			items: [
+				message.id === editing?.id
+					? { key: 'cancel', label: 'Cancel', icon: <X />, onAction: () => void cancel() }
+					: { key: 'edit', label: 'Edit', icon: <Pencil />, onAction: () => void start(message) },
+			],
+		}
+	}
 
 	return (
 		<ChatCitationProvider targets={targets}>
@@ -159,10 +214,10 @@ export default function EditAMessage() {
 				<ChatTranscript
 					messages={chat.messages}
 					streaming={chat.streaming}
-					editing={editing}
+					editing={editing?.id}
 					contextMenu={contextMenu}
 					branches={chat.branches}
-					onBranchChange={chat.showBranch}
+					onBranchChange={(id) => void showBranch(id)}
 				/>
 				<ChatPrompt
 					ref={composer}
@@ -172,7 +227,7 @@ export default function EditAMessage() {
 					onSubmit={editing ? submitEdit : draft.submit}
 					onStop={chat.stop}
 					streaming={chat.streaming}
-					onEscape={editing ? end : undefined}
+					onEscape={editing ? () => void cancel() : undefined}
 					aria-describedby={editing ? status : undefined}
 					toolbar={
 						editing && (
@@ -180,7 +235,7 @@ export default function EditAMessage() {
 								<Text id={status} tone="muted">
 									Editing message
 								</Text>
-								<Button variant="bare" size="sm" onClick={cancel}>
+								<Button variant="bare" size="sm" onClick={() => void cancel()}>
 									Cancel
 								</Button>
 							</Flex>
