@@ -26,7 +26,7 @@ import { MapPlat } from 'ui/modules/map' // or the 'ui/map' shorthand
 
 > The pointer reads each line of the data and each reference line within 16 px of it. A line stays in reach 2 px farther out, so a pointer that shakes on the edge does not flip the readout. The lines in reach stay lit, and each other mark and line recedes, on the plot and in the tooltip. The tooltip reads the category under the pointer, with a row for each reference line in reach. On lines at a value alone, the tooltip of the first line reads each of them.
 
-> Escape closes the pointer readout of a chart, a heatmap, or a map, wherever the focus is (WCAG 1.4.13). The readout stays closed until the pointer leaves or reads another mark, cell, or region. Under the click trigger, a click on another band opens the readout there.
+> Escape closes the pointer readout of a chart, a heatmap, or a map, wherever the focus is (WCAG 1.4.13). The readout stays closed until the pointer leaves or reads a new target. On a chart, that is another category. On a heatmap, it is another cell, and on a map, another region or overlay stop. Under the click trigger, a click on another band opens the readout there.
 
 > A busy chart can name its reference lines in the legend in place of their labels. Set `legend: { references: true }` on the chart, or `legend: true` on one line. Each line that the legend names takes a dashed chip there, and no label on the plot. A line at a category takes a chip too, and its category readout still shows its label. A chip toggles its line. The legend shows when it names a line, as for two or more series. A line with `legend: false` keeps its label on the plot.
 

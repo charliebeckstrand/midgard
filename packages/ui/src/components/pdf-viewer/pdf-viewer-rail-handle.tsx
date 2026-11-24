@@ -11,7 +11,7 @@ import { k } from '../../recipes/kata/pdf-viewer'
 import { clamp } from '../../utilities/clamp'
 import { holdTextSelection } from '../../utilities/hold-text-selection'
 import { hasBrowserModifier } from '../../utilities/modifier-keys'
-import { isPrimaryPress } from '../../utilities/primary-press'
+import { createPressOwner } from '../../utilities/primary-press'
 import { pdfViewerMessages } from './pdf-viewer-messages'
 import { PDF_VIEWER_RAIL_PROPERTY, PDF_VIEWER_RAIL_WIDTH } from './pdf-viewer-rail'
 
@@ -45,8 +45,6 @@ function widthForKey(key: string, width: number): number | null {
 
 /** What a drag measured at its start. @internal */
 type Grab = {
-	/** The pointer that pressed the handle. The drag follows only that pointer. */
-	pointer: number
 	/** Where the pointer went down on the x axis, and the width that it went down on. */
 	at: number
 	width: number
@@ -88,6 +86,10 @@ export function PdfViewerRailHandle({ controls }: PdfViewerRailHandleProps) {
 
 	const grab = useRef<Grab | null>(null)
 
+	// The pointer that the drag follows. A second press, such as a resting palm under a pen,
+	// cannot start the drag again or take it.
+	const [press] = useState(createPressOwner)
+
 	const ref = useRef<HTMLHRElement>(null)
 
 	// Whether the last press moved past a tap. The second press of a double-click
@@ -109,8 +111,9 @@ export function PdfViewerRailHandle({ controls }: PdfViewerRailHandleProps) {
 	}
 
 	function handlePointerDown(event: PointerEvent<HTMLHRElement>) {
-		// Only a plain primary press starts a drag. A context-menu gesture falls through.
-		if (!isPrimaryPress(event)) return
+		// Only a plain primary press starts a drag, and only while no pointer drags. A
+		// context-menu gesture falls through.
+		if (!press.claim(event)) return
 
 		holdTextSelection(event)
 
@@ -124,7 +127,6 @@ export function PdfViewerRailHandle({ controls }: PdfViewerRailHandleProps) {
 		dragged.current = false
 
 		grab.current = {
-			pointer: event.pointerId,
 			at: event.clientX,
 			width,
 			sign: isRtl(event.currentTarget) ? -1 : 1,
@@ -136,7 +138,7 @@ export function PdfViewerRailHandle({ controls }: PdfViewerRailHandleProps) {
 	function handlePointerMove(event: PointerEvent<HTMLHRElement>) {
 		const start = grab.current
 
-		if (start?.pointer !== event.pointerId) return
+		if (start === null || !press.owns(event)) return
 
 		if (Math.abs(event.clientX - start.at) > TAP_THRESHOLD) dragged.current = true
 
@@ -144,7 +146,9 @@ export function PdfViewerRailHandle({ controls }: PdfViewerRailHandleProps) {
 	}
 
 	function handleLostPointerCapture(event: PointerEvent<HTMLHRElement>) {
-		if (grab.current?.pointer !== event.pointerId) return
+		if (!press.owns(event)) return
+
+		press.release()
 
 		grab.current = null
 
