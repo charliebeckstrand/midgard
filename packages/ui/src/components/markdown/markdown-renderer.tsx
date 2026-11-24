@@ -9,9 +9,12 @@ import { decodeEntities } from './markdown-entities'
 import { MarkdownRangeTextProvider } from './markdown-range-text-provider'
 import {
 	atomRange,
+	groupInline,
+	isRangeGroup,
 	type MarkdownRange,
 	type MarkdownRangePiece,
 	overlapping,
+	type RangeGroup,
 	type RangeWalk,
 	rangeWalk,
 	textLines,
@@ -44,6 +47,11 @@ type Draw = RangeWalk & {
 	texts: string[]
 	/** The source offset after the last piece that each range in `ranges` drew. */
 	ends: number[]
+	/**
+	 * The range of the group that renders now. The group is one piece around its
+	 * tokens, so the text of the range in them draws as text.
+	 */
+	grouped?: number
 }
 
 /**
@@ -132,11 +140,13 @@ function safeUrl(source: string, allowData = false): string | undefined {
  * With `source` and `ranges`, each range that can draw goes through
  * `renderRange`. The renderer finds each text token in the source with a
  * cursor that moves forward, and cuts the text at the edges of each range. A
- * piece holds only text, in the innermost inline element that holds the text,
- * so a range that crosses bold or a paragraph break draws as more than one
- * piece. A piece does not go into a link, a fenced code block, or an image
- * `alt`. An escape and a code span do not split. With no range, the walk does
- * not occur.
+ * range in one block that holds each inline element that it touches whole,
+ * such as `**4** to **14**`, draws as one piece around those elements. Any
+ * other range draws as pieces of text, each in the innermost inline element
+ * that holds the text, so a range that ends inside bold or crosses a paragraph
+ * break draws as more than one piece. A piece does not go into a link, a
+ * fenced code block, or an image `alt`, and it does not hold a link. An escape
+ * and a code span do not split. With no range, the walk does not occur.
  *
  * @param tokens - Token list from `marked`'s block lexer or inline lexer.
  * @param headingOffset - The number of levels to add to each heading.
@@ -205,7 +215,42 @@ function renderChildren(
 	taskLabel?: string,
 	draw?: Draw,
 ): ReactNode {
-	return tokens?.map((token, index) => renderToken(token, index, offset, taskLabel, draw))
+	if (!draw || !tokens) {
+		return tokens?.map((token, index) => renderToken(token, index, offset, taskLabel, draw))
+	}
+
+	return groupInline(draw, tokens).map((item, index) =>
+		isRangeGroup(item)
+			? drawGroup(draw, item, index, offset)
+			: renderToken(item, index, offset, taskLabel, draw),
+	)
+}
+
+/**
+ * Draws a {@link RangeGroup} as one piece around its tokens. The tokens render
+ * with the walk, so the cursor moves through them and the range takes their
+ * text as its name.
+ *
+ * @internal
+ */
+function drawGroup(draw: Draw, group: RangeGroup, key: number, offset: number): ReactNode {
+	draw.grouped = group.range
+
+	const nodes = group.tokens.map((token, index) =>
+		renderToken(token, index, offset, undefined, draw),
+	)
+
+	draw.grouped = undefined
+
+	const index = draw.pieces[group.range] ?? 0
+
+	draw.pieces[group.range] = index + 1
+
+	return (
+		<Fragment key={key}>
+			{draw.render({ range: draw.ranges[group.range] as MarkdownRange, index }, nodes)}
+		</Fragment>
+	)
 }
 
 /**
@@ -229,7 +274,8 @@ function renderToken(
 }
 
 /**
- * Draws one piece of the range at `range` in the walk.
+ * Draws one piece of the range at `range` in the walk. In a group of the
+ * range, it draws the text alone.
  *
  * @internal
  */
@@ -241,13 +287,16 @@ function drawPiece(
 	start: number,
 	end: number,
 ): ReactNode {
-	const index = draw.pieces[range] ?? 0
-
-	draw.pieces[range] = index + 1
-
 	draw.texts[range] = joinPiece(draw, range, children, start)
 
 	draw.ends[range] = end
+
+	// The group around this text is the piece.
+	if (draw.grouped === range) return <Fragment key={key}>{children}</Fragment>
+
+	const index = draw.pieces[range] ?? 0
+
+	draw.pieces[range] = index + 1
 
 	return (
 		<Fragment key={key}>

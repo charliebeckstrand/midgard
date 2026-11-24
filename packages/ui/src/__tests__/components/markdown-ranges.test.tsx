@@ -38,20 +38,78 @@ describe('Markdown ranges', () => {
 		expect(container.textContent).toBe(md)
 	})
 
-	it('splits a range that crosses bold into one piece for each text, in the element that holds it', () => {
+	it('draws a range that holds each bold that it touches whole as one piece around the bold', () => {
 		const md = 'Late stops rose from **4** to **14** this week.'
 
 		const { container } = renderUI(
 			<Markdown ranges={[findRange(md, 'from **4** to **14**')]}>{md}</Markdown>,
 		)
 
-		expect(text(container)).toEqual(['from ', '4', ' to ', '14'])
+		expect(text(container)).toEqual(['from 4 to 14'])
+
+		expect(pieces(container)[0]?.querySelectorAll('strong')).toHaveLength(2)
+
+		expect(container.querySelector('p')?.textContent).toBe(
+			'Late stops rose from 4 to 14 this week.',
+		)
+	})
+
+	it('draws a range from the start of a bold to the end of a later bold as one piece', () => {
+		const md = 'Late stops rose from **4** to *14* this week.'
+
+		const { container } = renderUI(
+			<Markdown ranges={[findRange(md, '**4** to *14*')]}>{md}</Markdown>,
+		)
+
+		expect(text(container)).toEqual(['4 to 14'])
+
+		expect(pieces(container)[0]?.firstElementChild?.tagName).toBe('STRONG')
+
+		expect(pieces(container)[0]?.lastElementChild?.tagName).toBe('EM')
+	})
+
+	it('splits a range that ends inside bold into one piece for each text, in the element that holds it', () => {
+		const md = 'Late stops rose from **4** to **14** this week.'
+
+		const { container } = renderUI(
+			<Markdown ranges={[findRange(md, 'from **4** to **1')]}>{md}</Markdown>,
+		)
+
+		expect(text(container)).toEqual(['from ', '4', ' to ', '1'])
 
 		expect(pieces(container)[1]?.parentElement?.tagName).toBe('STRONG')
 	})
 
+	it('splits a range that holds a link, so that no piece holds the link', () => {
+		const md = 'See **the** [late stops](https://example.com/late) today.'
+
+		const { container } = renderUI(
+			<Markdown
+				ranges={[findRange(md, 'See **the** [late stops](https://example.com/late) today')]}
+			>
+				{md}
+			</Markdown>,
+		)
+
+		expect(text(container)).toEqual(['See ', 'the', ' ', ' today'])
+
+		expect(container.querySelector('[data-slot="markdown-range"] a')).toBeNull()
+	})
+
+	it('groups two ranges in one block, and splits a range that starts in a text that a group cut', () => {
+		const md = 'A **b** c d **e** f.'
+
+		const { container } = renderUI(
+			<Markdown ranges={[findRange(md, 'A **b** c'), findRange(md, 'd **e')]}>{md}</Markdown>,
+		)
+
+		expect(text(container)).toEqual(['A b c', 'd ', 'e'])
+
+		expect(container.textContent).toBe('A b c d e f.')
+	})
+
 	it('gives each piece its index in the range', () => {
-		const md = 'A **b** c.'
+		const md = 'A **bc** d.'
 
 		const seen: number[] = []
 
@@ -62,12 +120,12 @@ describe('Markdown ranges', () => {
 		}
 
 		const { container } = renderUI(
-			<Markdown ranges={[findRange(md, 'A **b** c')]} renderRange={render}>
+			<Markdown ranges={[findRange(md, 'A **b')]} renderRange={render}>
 				{md}
 			</Markdown>,
 		)
 
-		expect(seen).toEqual([0, 1, 2])
+		expect(seen).toEqual([0, 1])
 
 		expect(container.querySelectorAll('button')).toHaveLength(1)
 

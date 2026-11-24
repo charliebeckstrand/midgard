@@ -45,8 +45,10 @@ export type MarkdownProps<R extends MarkdownRange = MarkdownRange> = Omit<
 	 */
 	ranges?: readonly R[]
 	/**
-	 * Draws one piece of a range. A range that crosses inline formatting or a
-	 * block boundary draws as more than one piece. Draw a control only on piece
+	 * Draws one piece of a range. A range in one block that holds each inline
+	 * element that it touches whole is one piece around those elements. A range
+	 * that ends inside an inline element, holds a link, or crosses a block
+	 * boundary draws as more than one piece. Draw a control only on piece
 	 * 0, so that one range is one tab stop. Without it, each piece is a `<span>`
 	 * with `data-slot="markdown-range"` and `data-range` set to the id of its
 	 * range. Give a stable function, because the block is memoized on its props.

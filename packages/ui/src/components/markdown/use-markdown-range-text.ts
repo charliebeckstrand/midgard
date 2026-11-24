@@ -10,8 +10,9 @@ import type { MarkdownRange } from './markdown-ranges'
  * control the whole phrase as its name.
  *
  * @remarks
- * A range that crosses inline formatting or a block boundary draws as more
- * than one piece, and piece 0 holds only its own text. This hook gives the
+ * A range that ends inside an inline element, holds a link, or crosses a
+ * block boundary draws as more than one piece, and piece 0 holds only its own
+ * text. This hook gives the
  * text of all the pieces. A link draws no piece, but its text is part of the
  * text of each range that overlaps it, so the name is the phrase that the
  * reader sees. Two pieces join with one space where the source
