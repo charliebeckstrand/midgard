@@ -194,8 +194,10 @@ describe('ChatMessage', () => {
 		expect(toolbar.className).not.toContain('group-hover/chat-message')
 	})
 
-	it('keeps room for the toolbar above the bubble', () => {
-		const ROOM = 'pt-6'
+	it('keeps room for the toolbar above the bubble on a device that hovers', () => {
+		// A device with no hover never shows the toolbar on a touch, so the room
+		// is under the hover condition of the toolbar.
+		const ROOM = '[@media(hover:hover)]:pt-6'
 
 		const menu = renderUI(<ChatMessage>content</ChatMessage>)
 
