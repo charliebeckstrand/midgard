@@ -690,6 +690,7 @@ export function useGridNavigation({
 	rowIndexMapRef,
 	editsAt,
 	range = false,
+	rangeColCount,
 }: {
 	enabled: boolean
 	/** Live rendered rows; backs cursor bounds and the Enter/Space row lookup. */
@@ -726,6 +727,12 @@ export function useGridNavigation({
 	editsAt: (row: number, col: number) => boolean
 	/** Whether the cursor holds a cell range (see {@link GridDataProps.range}). */
 	range?: boolean
+	/**
+	 * The count of the first columns that a range can hold, read at event time.
+	 * A column after them, such as the Add column of the new-row slot, holds no
+	 * data, so a range does not reach it. Omitted, a range can hold each column.
+	 */
+	rangeColCount?: () => number
 }): {
 	active: Coord | null
 	store: GridNavStore
@@ -777,6 +784,8 @@ export function useGridNavigation({
 	order: readonly GridCursorRow[] | null
 	/** The place of a data row in the cursor's order, or -1 for a data row the order does not show. */
 	toCursorRow: (row: number) => number
+	/** The count of the columns that a range can hold, at call time. */
+	rangeCols: () => number
 	/** Shows the range between two data cells, the first as the anchor and the second as the cursor. */
 	showRange: (from: Coord, to: Coord) => void
 	/**
@@ -912,16 +921,26 @@ export function useGridNavigation({
 
 	useLayoutEffect(() => activeCursor.set(active, anchor), [active, anchor, activeCursor])
 
+	// The count of the columns that a range can hold, at call time.
+	const rangeCols = useCallback(
+		() => rangeColCount?.() ?? colCountRef.current,
+		[rangeColCount, colCountRef],
+	)
+
 	// The anchor that a move with the range on keeps: the one held, else the
 	// cell the cursor leaves. A range starts only at a data cell, so a one-stop
-	// row, the header row, or the new-row slot sets none.
+	// row, the header row, the new-row slot, or a column that a range cannot
+	// hold sets none.
 	const holdAnchor = useCallback(() => {
 		const from = readActive()
 
-		const seed = from && !chromeRow(from.row) && toDataRow(from.row) !== -1 ? from : null
+		const seed =
+			from && !chromeRow(from.row) && toDataRow(from.row) !== -1 && from.col < rangeCols()
+				? from
+				: null
 
 		setAnchor((held) => held ?? seed)
-	}, [readActive, toDataRow, setAnchor])
+	}, [readActive, toDataRow, setAnchor, rangeCols])
 
 	// The two corners of the range at call time, or `null` for no range.
 	const readCorners = useCallback(() => {
@@ -956,7 +975,8 @@ export function useGridNavigation({
 			if (extending) holdAnchor()
 			else setAnchor(null)
 
-			const col = clamp(coord.col, 0, colCount - 1)
+			// A move that extends the range stays in the columns that it can hold.
+			const col = clamp(coord.col, 0, (extending ? Math.min(colCount, rangeCols()) : colCount) - 1)
 
 			// Bring the target row into the virtualized window so its cell mounts
 			// before `aria-activedescendant` points at it; a no-op when unwindowed.
@@ -970,7 +990,17 @@ export function useGridNavigation({
 			// so it commits no render.
 			setActive((prev) => (prev && prev.row === row && prev.col === col ? prev : { row, col }))
 		},
-		[colCountRef, count, scrollRowIntoViewRef, newRowRef, holdAnchor, range, setActive, setAnchor],
+		[
+			colCountRef,
+			count,
+			scrollRowIntoViewRef,
+			newRowRef,
+			holdAnchor,
+			range,
+			setActive,
+			setAnchor,
+			rangeCols,
+		],
 	)
 
 	// The public move takes a data row index, as every caller outside this hook
@@ -1003,7 +1033,7 @@ export function useGridNavigation({
 
 			const last = rowAtPlace(places - 1)
 
-			const colCount = colCountRef.current
+			const colCount = Math.min(colCountRef.current, rangeCols())
 
 			if (!range || first === undefined || last === undefined) return false
 
@@ -1016,14 +1046,14 @@ export function useGridNavigation({
 
 			return true
 		},
-		[range, rowsRef, rowAtPlace, colCountRef, setAnchor, toCursorRow, moveToCursor],
+		[range, rowsRef, rowAtPlace, colCountRef, setAnchor, toCursorRow, moveToCursor, rangeCols],
 	)
 
 	// Makes the range from the first data cell to the last, as Shift with
 	// Ctrl/Cmd+End does from the first cell.
 	const selectAll = useCallback(
-		(): boolean => selectColumns(0, colCountRef.current - 1),
-		[selectColumns, colCountRef],
+		(): boolean => selectColumns(0, rangeCols() - 1),
+		[selectColumns, rangeCols],
 	)
 
 	// With the range on, Ctrl/Cmd+A selects each data cell, and the grid takes the
@@ -1825,6 +1855,7 @@ export function useGridNavigation({
 		readRange,
 		order: view.order,
 		toCursorRow,
+		rangeCols,
 		showRange,
 		selectRange,
 		endRange,

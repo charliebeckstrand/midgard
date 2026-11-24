@@ -17,6 +17,7 @@ import { columnLabel } from './engine/grid-column/label'
 import { GRID_RANGE_ANNOUNCE_MS } from './engine/grid-constants'
 import { cellText } from './engine/grid-export/accessor'
 import { gridMessages } from './engine/grid-messages'
+import { isNewRowAddColumn } from './engine/grid-new-row-column'
 import { rangeFigures as figuresOf } from './engine/grid-range/figures'
 import { toHtmlTable } from './engine/grid-range/html'
 import type { GridRangeCells } from './engine/grid-range/range'
@@ -142,6 +143,14 @@ export function useGridCursorNav<T>({
 	const { rowsRef, colCountRef, rowIndexMapRef, rowKeysRef, cursorColumnsRef, rowIndexOffsetRef } =
 		refs
 
+	// A range holds the columns before the Add column of the new-row slot, which
+	// holds no data (see `withNewRowAddColumn`).
+	const rangeColCount = useStableEvent(() => {
+		const at = cursorColumnsRef.current.findIndex((column) => isNewRowAddColumn(column.id))
+
+		return at === -1 ? colCountRef.current : at
+	})
+
 	const nav = useGridNavigation({
 		enabled,
 		rowsRef,
@@ -156,6 +165,7 @@ export function useGridCursorNav<T>({
 		rowIndexMapRef: rowIndexMapRef as RefObject<Map<unknown, number>>,
 		editsAt,
 		range: enabled && range,
+		rangeColCount,
 	})
 
 	// The controls in the cells leave the tab order, so the grid is one tab stop.

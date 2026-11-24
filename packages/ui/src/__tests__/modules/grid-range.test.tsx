@@ -599,6 +599,39 @@ describe('Grid range in an editable grid', () => {
 			[1, 1],
 		])
 	})
+
+	// The Add column of the new-row slot holds no data, so no range reaches it.
+	it('keeps the range out of the Add column of the new-row slot', () => {
+		const onValueChange = vi.fn()
+
+		renderUI(
+			<Grid
+				columns={columns.map((col) => ({ ...col, field: col.id as keyof Row }))}
+				rows={rows}
+				getKey={getKey}
+				editable={{ session: 'managed', newRow: 'bottom', onRowAdd: () => {}, onCommit: () => {} }}
+				range={{ onValueChange }}
+			/>,
+		)
+
+		const grid = screen.getByRole('grid')
+
+		act(() => grid.focus())
+
+		fireEvent.keyDown(grid, { key: 'a', ctrlKey: true })
+
+		expect(onValueChange).toHaveBeenLastCalledWith({
+			anchor: { rowKey: 1, columnId: 'name' },
+			focus: { rowKey: 3, columnId: 'note' },
+		})
+
+		expect(copy()?.split('\n')[0]).toBe("Alice\tAdmin\t'=1+1")
+
+		// A move that extends the range stops at the last data column.
+		fireEvent.keyDown(grid, { key: 'ArrowRight', shiftKey: true })
+
+		expect(onValueChange).toHaveBeenCalledTimes(1)
+	})
 })
 
 describe('Grid range binding', () => {
