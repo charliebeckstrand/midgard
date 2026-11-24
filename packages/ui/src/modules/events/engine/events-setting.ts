@@ -173,6 +173,24 @@ export function hasEventsDock(): boolean {
 /** Calls `listener` when a pinned panel mounts or unmounts. @internal */
 export const subscribeEventsDocks = dockChanges.subscribe
 
+/**
+ * Writes each attribute of the events on the root element again: the
+ * settings, and the reports and the capture of the store. React owns
+ * `<html>`, and when it renders the root again on the client, it removes
+ * each attribute that it does not render. It does this after an error in
+ * the hydration. Thus each view that CSS shows by the attributes calls this
+ * when it mounts, as `AppearanceProvider` writes its classes again.
+ *
+ * @internal
+ */
+export function markEventsRoot(): void {
+	syncAttributes()
+
+	// The store exists only while the recorder is loaded, and the recorder
+	// loads only while the events run.
+	if (isEventsOn()) void loadRecorder().then(({ markRoot }) => markRoot(), noop)
+}
+
 /** Copies the settings to the attributes of the root element. */
 function syncAttributes(): void {
 	const root = document.documentElement

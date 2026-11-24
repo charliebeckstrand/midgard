@@ -9,6 +9,7 @@ import {
 	addEventsDock,
 	isEventsOn,
 	isEventsPinned,
+	markEventsRoot,
 	subscribeEventsOn,
 	subscribeEventsPinned,
 } from './engine/events-setting'
@@ -30,7 +31,8 @@ const getServerSnapshot = () => false
  * the server writes on the root element. The page then paints at its
  * final width, and the content of the panel loads after hydration. The
  * sources skip the events in the panel, so the store does not record its own
- * rows, and the panel does not pause the store.
+ * rows, and the panel does not pause the store. When it mounts, it writes the
+ * root attributes again, as `EventsButton` does.
  */
 export function EventsAside() {
 	const intl = useIntl()
@@ -46,6 +48,9 @@ export function EventsAside() {
 
 	// The mounted panel lets the sheet show Pin.
 	useEffect(addEventsDock, [])
+
+	// A render of `<html>` on the client removes the root attributes.
+	useEffect(markEventsRoot, [])
 
 	// The store pauses while the panel loads, so it does not record the load of
 	// its own module. A load that fails leaves the box empty.

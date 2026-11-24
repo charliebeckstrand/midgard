@@ -143,6 +143,28 @@ describe('EventsButton', () => {
 
 		expect(store.entries.at(-1)?.text).toBe('/after-close')
 	})
+
+	it('writes the root attributes again when it mounts, as a render of `<html>` on the client removes them', async () => {
+		restoreEventsOn()
+
+		localStorage.setItem('events:on', '1')
+
+		const store = start()
+
+		act(() => store.startCapture())
+
+		const root = document.documentElement
+
+		// After an error in the hydration, React renders `<html>` again, and
+		// removes each attribute that it does not render.
+		for (const name of ['data-events', 'data-events-capture']) root.removeAttribute(name)
+
+		render(<EventsButton />)
+
+		await vi.waitFor(() => expect(root).toHaveAttribute('data-events-capture'))
+
+		expect(root).toHaveAttribute('data-events')
+	})
 })
 
 describe('loadTools', () => {
