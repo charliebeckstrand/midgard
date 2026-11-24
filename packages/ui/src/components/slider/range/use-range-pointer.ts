@@ -57,10 +57,13 @@ function resolveDraggingThumb(
  * @remarks
  * `preventScroll` stops a scroll into view. A scroll moves the track rectangle
  * below the captured pointer, and the next move makes the value jump.
+ * `focusVisible: false` stops the focus ring. Each call comes from a pointer,
+ * and a script focus shows the ring when the last focus came from a key or
+ * when no focus came before it, as at the load of the page.
  * @internal
  */
 function focusThumb(thumbRefs: ThumbButtonRefs, thumb: ThumbIndex): void {
-	thumbRefs[thumb].current?.focus({ preventScroll: true })
+	thumbRefs[thumb].current?.focus({ preventScroll: true, focusVisible: false })
 }
 
 /**
