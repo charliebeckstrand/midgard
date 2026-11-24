@@ -5,6 +5,7 @@ import DecimalStep from './decimal-step.tsx'
 import Disabled from './disabled.tsx'
 import NumberInputPlayground from './playground.tsx'
 import Validation from './validation.tsx'
+import Width from './width.tsx'
 import WithPrefix from './with-prefix.tsx'
 
 export default function NumberInputPage() {
@@ -14,6 +15,7 @@ export default function NumberInputPage() {
 			<Example of={Controlled} />
 			<Example of={DecimalStep} />
 			<Example of={WithPrefix} />
+			<Example of={Width} />
 			<Example of={Validation} />
 			<Example of={Disabled} />
 			<ApiTable api={api} />

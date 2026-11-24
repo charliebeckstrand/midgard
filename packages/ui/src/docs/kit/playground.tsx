@@ -347,7 +347,7 @@ function FreePicker({
 				min={field.min}
 				max={field.max}
 				step={field.step}
-				className={cn('w-20 shrink-0', getMediaClass(field))}
+				className={getMediaClass(field)}
 				value={typeof value === 'number' ? value : null}
 				onValueChange={(next) => onValueChange(next ?? undefined)}
 			/>

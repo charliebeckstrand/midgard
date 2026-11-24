@@ -58,7 +58,7 @@ export type InputProps = Omit<InputVariants, 'size' | 'variant'> & {
 	invalid?: boolean
 	/** Controlled value. `undefined` leaves the input uncontrolled; `null` keeps it controlled with no current value (CONVENTIONS §7.3). */
 	value?: ComponentProps<'input'>['value'] | null
-} & Omit<ComponentProps<'input'>, 'size' | 'prefix' | 'value'>
+} & Omit<ComponentProps<'input'>, 'size' | 'prefix' | 'value' | 'width'>
 
 /**
  * A text field with an optional `prefix`, `suffix`, and clear button. Resolves
@@ -85,6 +85,7 @@ export function Input({
 	type,
 	variant,
 	size,
+	width,
 	prefix,
 	suffix,
 	clearable = false,
@@ -183,6 +184,7 @@ export function Input({
 	const slots = useHeadlessSlots(k, {
 		variant: field.variant,
 		affixed: isAffixPresent(prefix) || isAffixPresent(frameSuffix),
+		width,
 	})
 
 	const inputEl = (
