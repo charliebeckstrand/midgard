@@ -51,8 +51,14 @@ function block(node: Node, alternate: boolean): string {
 	switch (node.type.name) {
 		case 'paragraph':
 			return inline(node)
-		case 'heading':
-			return `${'#'.repeat(node.attrs.level)} ${inline(node)}`.trimEnd()
+		case 'heading': {
+			// A run of `#` at the end, after a space, would close the heading.
+			const text = inline(node)
+				.trimEnd()
+				.replace(/(^|\s)(#+)$/, '$1\\$2')
+
+			return `${'#'.repeat(node.attrs.level)} ${text}`.trimEnd()
+		}
 		case 'blockquote':
 			return blocks(node, false)
 				.split('\n')
@@ -65,7 +71,9 @@ function block(node: Node, alternate: boolean): string {
 		case 'code_block':
 			return fenced(node.textContent, node.attrs.lang)
 		case 'horizontal_rule':
-			return '---'
+			// Not `---`, which under the line of a tight list item is a setext
+			// underline, and not `***`, which after a `* ` marker is one rule.
+			return '___'
 		case 'raw':
 			return node.attrs.source
 		default:
