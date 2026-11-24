@@ -4,7 +4,11 @@ import { type ReactNode, useMemo } from 'react'
 import { Button } from '../../components/button'
 import { ContextMenu, ContextMenuList } from '../../components/context-menu'
 import { resolveContextMenuEntries } from '../../components/context-menu/context-menu-merge'
-import type { ContextMenuConfig, ContextMenuEntry } from '../../components/context-menu/types'
+import type {
+	ContextMenuConfig,
+	ContextMenuEntry,
+	ContextMenuItem,
+} from '../../components/context-menu/types'
 import { Icon } from '../../components/icon'
 import { Menu, MenuContent, MenuTrigger } from '../../components/menu'
 import { Copy, EllipsisVertical } from '../../primitives/icons/icons'
@@ -103,14 +107,49 @@ export function ChatMessageMenu({
 }
 
 /**
- * The button that opens the menu of a chat message as a dropdown. It holds the
- * same entries as the context menu, so a reader with a keyboard and a reader
- * who does not know the right-click get to each action.
+ * The one item of a menu that holds a single item, or `undefined` for any
+ * other menu.
+ *
+ * @internal
+ */
+function loneItem(entries: ContextMenuEntry[]): ContextMenuItem | undefined {
+	const [only] = entries
+
+	if (entries.length !== 1 || only === undefined) return undefined
+
+	return 'separator' in only || 'items' in only ? undefined : only
+}
+
+/**
+ * The button in the toolbar of a chat message. A menu of more than one item
+ * opens as a dropdown from an ellipsis button, with the same entries as the
+ * context menu. Thus a reader with a keyboard and a reader who does not know
+ * the right-click get to each action. A menu of one item with an icon, such
+ * as Copy alone, has no ellipsis: the toolbar shows the button of that item,
+ * which runs its action at once.
  *
  * @internal
  */
 export function ChatMessageMenuButton({ config, content }: ChatMessageMenuProps) {
 	const { entries, name } = useMenuEntries({ config, content })
+
+	const action = loneItem(entries)
+
+	// An item with no icon has nothing to draw in the toolbar, so it keeps the menu.
+	if (action?.icon) {
+		return (
+			<Button
+				type="button"
+				variant="bare"
+				size="sm"
+				disabled={action.disabled}
+				onClick={action.onAction}
+			>
+				<Icon icon={action.icon} />
+				<span className="sr-only">{action.label}</span>
+			</Button>
+		)
+	}
 
 	return (
 		<Menu placement="bottom-end" capped={config?.capped}>

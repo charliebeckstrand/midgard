@@ -160,7 +160,7 @@ describe('ChatMessage', () => {
 
 		const toolbar = getSlot(container, 'chat-message-toolbar')
 
-		expect(toolbar).toContainElement(screen.getByRole('button', { name: 'Message actions' }))
+		expect(toolbar).toContainElement(screen.getByRole('button', { name: 'Copy' }))
 
 		expect(toolbar).toHaveClass('absolute', 'opacity-0', side)
 
@@ -178,10 +178,10 @@ describe('ChatMessage', () => {
 		expect(toolbar.className).not.toContain('group-hover/chat-message')
 	})
 
-	it('keeps the hidden menu button in the Tab order', () => {
+	it('keeps the hidden toolbar button in the Tab order', () => {
 		renderUI(<ChatMessage>content</ChatMessage>)
 
-		const button = screen.getByRole('button', { name: 'Message actions' })
+		const button = screen.getByRole('button', { name: 'Copy' })
 
 		button.focus()
 
@@ -244,6 +244,34 @@ describe('ChatMessage', () => {
 		])
 	})
 
+	it('shows the one action of a menu as its own button, with no ellipsis', () => {
+		const writeText = vi.fn(() => Promise.resolve())
+
+		stubClipboard({ writeText })
+
+		renderUI(<ChatMessage>Some text</ChatMessage>)
+
+		expect(screen.queryByRole('button', { name: 'Message actions' })).not.toBeInTheDocument()
+
+		fireEvent.click(screen.getByRole('button', { name: 'Copy' }))
+
+		expect(writeText).toHaveBeenCalledWith('Some text')
+
+		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+	})
+
+	it('keeps the ellipsis for a lone item with no icon', () => {
+		renderUI(
+			<ChatMessage contextMenu={{ defaultItems: false, items: [{ key: 'edit', label: 'Edit' }] }}>
+				content
+			</ChatMessage>,
+		)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Message actions' }))
+
+		expect(screen.getByRole('menuitem', { name: 'Edit' })).toBeInTheDocument()
+	})
+
 	it('turns Copy off while the message has no text', () => {
 		const { container } = renderUI(<ChatMessage streaming>{''}</ChatMessage>)
 
@@ -263,7 +291,7 @@ describe('ChatMessage', () => {
 
 		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
 
-		expect(screen.queryByRole('button', { name: 'Message actions' })).not.toBeInTheDocument()
+		expect(screen.queryByRole('button')).not.toBeInTheDocument()
 
 		expect(bySlot(container, 'chat-message-toolbar')).not.toBeInTheDocument()
 	})

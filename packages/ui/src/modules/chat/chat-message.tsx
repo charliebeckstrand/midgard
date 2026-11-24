@@ -211,7 +211,9 @@ export type ChatMessageProps = ChatMessageVariants &
  * ({@link chatContentText}), and it is off while the message has no text.
  *
  * The menu button sits in a toolbar over the outer top corner of the bubble.
- * The toolbar shows while the pointer is over the message, while focus is in
+ * A menu of one item with an icon, such as Copy alone, has no menu button:
+ * the toolbar shows the button of that item, which runs its action at once.
+ * The toolbar shows while the pointer is over the bubble, while focus is in
  * it, or while its menu is open. A device with no hover thus shows it only to
  * a keyboard or a screen reader, and a long press opens the menu there. The
  * button stays in the Tab order while it is hidden, so a keyboard reader
