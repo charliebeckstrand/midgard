@@ -13,7 +13,7 @@ import { announce } from '../../core/announcer'
 import { useReportedChange } from '../../hooks/use-reported-change'
 import { useFormValue } from '../../primitives/form/use-form-value'
 import { useIntl } from '../../primitives/intl/use-intl'
-import { describeSelection, partitionFiles } from './file-upload-utilities'
+import { describeSelection, type FileRejection, partitionFiles } from './file-upload-utilities'
 import type { FileUploadSharedProps } from './types'
 
 /**
@@ -41,6 +41,13 @@ type FileHandlersOptions = Pick<
 > & {
 	/** Keeps the selection: the picker does not open, and a pick, a drop, or a clear changes nothing. */
 	readOnly?: boolean
+	/**
+	 * Lets the live region speak the refused files. Set it to `false` while a Message or the caller shows them.
+	 * @defaultValue true
+	 */
+	announceRefused?: boolean
+	/** Gets the refused files of each pick or drop, `[]` for a batch with none, and `[]` at a clear or a reset. */
+	onRefuse?: (rejected: readonly FileRejection[]) => void
 }
 
 /**
@@ -52,8 +59,9 @@ type FileHandlersOptions = Pick<
  * to `defaultValue` on a native form reset. Incoming files (picker or drop)
  * are split through `partitionFiles` against `accept`, `maxSize` and
  * `maxCount`. Accepted files fire `onAccept`, rejected ones fire `onReject`,
- * and one live-region message names the accepted files. Without `onReject`, the
- * message also names the refused files with their reasons. A batch with no
+ * and one live-region message names the accepted files. With
+ * `announceRefused`, the message also names the refused files with their
+ * reasons. Each batch gives its refused files to `onRefuse`. A batch with no
  * accepted file keeps the current selection. Drag highlight uses a depth counter so nested
  * children don't flicker `dragOver`; `disabled` and `readOnly` short-circuit the
  * picker and drop handling, and `readOnly` also refuses a clear. Only a drag that carries files counts: a text, link, or
@@ -79,6 +87,8 @@ export function useFileUploadHandlers({
 	onAccept,
 	onReject,
 	onDragOverChange,
+	announceRefused = true,
+	onRefuse,
 }: FileHandlersOptions) {
 	const intl = useIntl()
 
@@ -99,6 +109,8 @@ export function useFileUploadHandlers({
 		defaultValue: defaultValue ?? [],
 		// An empty selection is `[]`, so a cleared value reports as one.
 		onValueChange: onValueChange && ((next) => onValueChange(next ?? [])),
+		// The refusal is part of the last pick, so a reset drops it with the files.
+		onReset: () => onRefuse?.([]),
 	})
 
 	const files = current ?? []
@@ -133,16 +145,18 @@ export function useFileUploadHandlers({
 			})
 
 			// The batch lands on a visually-hidden input with no audible feedback,
-			// so the live region speaks it (WCAG 4.1.3). A caller of `onReject` owns
-			// the feedback of a refusal, and the error `Message` that it shows is an
-			// alert. A second, polite text for the refusal would be lost under it.
+			// so the live region speaks it (WCAG 4.1.3). While an error `Message`
+			// shows the refusal, that alert speaks it. A second, polite text for the
+			// refusal would be lost under it.
 			announce(
 				describeSelection(
 					intl,
-					{ accepted, rejected: onReject ? [] : rejected },
+					{ accepted, rejected: announceRefused ? rejected : [] },
 					{ accept, maxSize, maxCount },
 				),
 			)
+
+			onRefuse?.(rejected)
 
 			if (rejected.length > 0) onReject?.(rejected)
 
@@ -156,7 +170,19 @@ export function useFileUploadHandlers({
 
 			onAccept?.(accepted)
 		},
-		[inert, accept, maxSize, maxCount, onAccept, onReject, setFiles, setTouched, intl],
+		[
+			inert,
+			accept,
+			maxSize,
+			maxCount,
+			announceRefused,
+			onAccept,
+			onReject,
+			onRefuse,
+			setFiles,
+			setTouched,
+			intl,
+		],
 	)
 
 	const handleChange = useCallback(
@@ -177,12 +203,14 @@ export function useFileUploadHandlers({
 
 		setTouched()
 
+		onRefuse?.([])
+
 		onAccept?.([])
 
 		// Mirrors handleChange's reset: an empty value lets the same file be
 		// picked again immediately after clearing.
 		if (inputRef.current) inputRef.current.value = ''
-	}, [inert, onAccept, setFiles, setTouched])
+	}, [inert, onAccept, onRefuse, setFiles, setTouched])
 
 	// Disabled and read-only dropzones skip `preventDefault`: the element never
 	// becomes a valid drop target, `data-drag-over` is never set, and the browser

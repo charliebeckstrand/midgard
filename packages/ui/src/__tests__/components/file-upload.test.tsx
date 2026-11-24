@@ -15,6 +15,7 @@ import {
 	present,
 	renderUI,
 	screen,
+	waitFor,
 } from '../helpers'
 
 /** The hidden native file input. */
@@ -768,10 +769,14 @@ describe('FileUpload announcements', () => {
 		await expectAnnouncement('Selected 2 files: a.png, b.png')
 	})
 
-	// A refused file shows no change on the hidden input, so the zone speaks the
-	// refusal itself, and each caller does not have to (WCAG 4.1.3).
+	// A refused file shows no change on the hidden input. With no Message, the
+	// zone speaks the refusal itself, and each caller does not have to (WCAG 4.1.3).
 	it('announces a refused file by name and reason', async () => {
-		const { container } = renderUI(<FileUploadDrop accept="image/*">Upload</FileUploadDrop>)
+		const { container } = renderUI(
+			<FileUploadDrop accept="image/*" invalidMessage={null}>
+				Upload
+			</FileUploadDrop>,
+		)
 
 		selectFiles(container, [new File(['x'], 'notes.txt', { type: 'text/plain' })])
 
@@ -782,7 +787,7 @@ describe('FileUpload announcements', () => {
 
 	it('names more than one refused file in the plural', async () => {
 		const { container } = renderUI(
-			<FileUploadDrop multiple maxSize={1}>
+			<FileUploadDrop multiple maxSize={1} invalidMessage={null}>
 				Upload
 			</FileUploadDrop>,
 		)
@@ -796,7 +801,7 @@ describe('FileUpload announcements', () => {
 	// first before a screen reader speaks it.
 	it('announces the accepted and the refused files of one batch in one message', async () => {
 		const { container } = renderUI(
-			<FileUploadDrop multiple maxCount={1}>
+			<FileUploadDrop multiple maxCount={1} invalidMessage={null}>
 				Upload
 			</FileUploadDrop>,
 		)
@@ -812,7 +817,7 @@ describe('FileUpload announcements', () => {
 	// that message is an alert. A polite refusal text would be lost under it.
 	it('leaves the refusal to a caller of onReject', async () => {
 		const { container } = renderUI(
-			<FileUploadDrop multiple maxCount={1} onReject={() => {}}>
+			<FileUploadDrop multiple maxCount={1} onReject={() => {}} invalidMessage={null}>
 				Upload
 			</FileUploadDrop>,
 		)
@@ -820,6 +825,134 @@ describe('FileUpload announcements', () => {
 		selectFiles(container, [new File(['a'], 'kept.png'), new File(['b'], 'refused.png')])
 
 		await expectAnnouncement(/^Selected kept\.png$/)
+	})
+})
+
+describe('FileUpload invalidMessage', () => {
+	/** A text file, which `accept="image/*"` refuses. */
+	const notes = new File(['x'], 'notes.txt', { type: 'text/plain' })
+
+	// The refused file leaves no trace in the field, so a visible text names it
+	// and its reason (WCAG 3.3.1).
+	it.for([
+		[
+			'FileUploadButton',
+			(ui: ReactNode) => <FileUploadButton accept="image/*">{ui}</FileUploadButton>,
+		],
+		['FileUploadInput', () => <FileUploadInput accept="image/*" />],
+		['FileUploadDrop', (ui: ReactNode) => <FileUploadDrop accept="image/*">{ui}</FileUploadDrop>],
+	] as const)('%s shows the refusal below the field, until the next pick', ([, render]) => {
+		const { container } = renderUI(render('Upload'))
+
+		selectFiles(container, [notes])
+
+		const message = screen.getByRole('alert')
+
+		expect(message).toHaveTextContent(
+			/^notes\.txt is not an accepted file type\. Accepted types: image\/\*$/,
+		)
+
+		// Outside a Field, the trigger references the Message itself.
+		const trigger = present(
+			container.querySelector<HTMLElement>(`[aria-describedby~="${message.id}"]:not(input)`),
+			'trigger',
+		)
+
+		expect(trigger).toHaveAccessibleDescription(message.textContent ?? '')
+
+		expect(fileInput(container)).toHaveAttribute('aria-describedby', message.id)
+
+		selectFiles(container, [new File(['x'], 'a.png', { type: 'image/png' })])
+
+		expect(screen.queryByRole('alert')).toBeNull()
+	})
+
+	it('drops the refusal at a clear', () => {
+		const { container } = renderUI(
+			<FileUploadButton multiple maxCount={1}>
+				Upload
+			</FileUploadButton>,
+		)
+
+		selectFiles(container, [new File(['a'], 'a.png'), new File(['b'], 'b.png')])
+
+		expect(screen.getByRole('alert')).toHaveTextContent(
+			/^b\.png is over the file limit\. The limit is 1 file$/,
+		)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Clear selected file' }))
+
+		expect(screen.queryByRole('alert')).toBeNull()
+	})
+
+	// The alert speaks the refusal, so the live region speaks only the accepted
+	// files. A second text would be lost under the alert.
+	it('leaves the refusal out of the announcement while the Message shows', async () => {
+		const { container } = renderUI(
+			<FileUploadDrop multiple maxCount={1}>
+				Upload
+			</FileUploadDrop>,
+		)
+
+		selectFiles(container, [new File(['a'], 'kept.png'), new File(['b'], 'refused.png')])
+
+		await expectAnnouncement(/^Selected kept\.png$/)
+	})
+
+	it('shows a custom invalidMessage, and none for null', () => {
+		const custom = renderUI(
+			<FileUploadDrop accept="image/*" invalidMessage="Pick an image.">
+				Upload
+			</FileUploadDrop>,
+		)
+
+		selectFiles(custom.container, [notes])
+
+		expect(screen.getByRole('alert')).toHaveTextContent('Pick an image.')
+
+		custom.unmount()
+
+		const off = renderUI(
+			<FileUploadDrop accept="image/*" invalidMessage={null}>
+				Upload
+			</FileUploadDrop>,
+		)
+
+		selectFiles(off.container, [notes])
+
+		expect(screen.queryByRole('alert')).toBeNull()
+	})
+
+	it('registers the Message into the description of a Field', () => {
+		const { container } = renderUI(
+			<Field>
+				<Label>Avatar</Label>
+				<FileUploadButton accept="image/*" />
+			</Field>,
+		)
+
+		selectFiles(container, [notes])
+
+		expect(screen.getByRole('button', { name: 'Avatar Upload' })).toHaveAccessibleDescription(
+			/^notes\.txt is not an accepted file type/,
+		)
+	})
+
+	it('drops the refusal at a native form reset', async () => {
+		const { container } = renderUI(
+			<form>
+				<FileUploadButton accept="image/*" />
+			</form>,
+		)
+
+		selectFiles(container, [notes])
+
+		expect(screen.getByRole('alert')).toBeInTheDocument()
+
+		act(() => present<HTMLFormElement>(container.querySelector('form'), 'form').reset())
+
+		// The reset sync runs in the next frame, after a handler can cancel the reset.
+		await waitFor(() => expect(screen.queryByRole('alert')).toBeNull())
 	})
 })
 
