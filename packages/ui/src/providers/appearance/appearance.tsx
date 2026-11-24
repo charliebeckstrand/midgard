@@ -5,6 +5,7 @@ import { writeRootDensity } from '../../core/density/steps'
 import { ROOT_REDUCED_MOTION_CLASS } from '../../core/motion/root'
 import { ROOT_OFFCANVAS_SIDEBAR_CLASS } from '../../core/sidebar/root'
 import { ROOT_GLASS_SURFACES_CLASS } from '../../core/surfaces/root'
+import { markInlineTrim } from '../../core/text-trim/root'
 import { useStoredChoice } from '../../hooks/use-stored-choice'
 import { GlassSurfacesContext } from '../../primitives/glass/context'
 import { ReducedMotionContext } from '../../primitives/reduced-motion/context'
@@ -49,6 +50,11 @@ export type AppearanceProviderProps = {
  * `sidebar-offcanvas` class, which the `sidebar-offcanvas` variant of
  * `ui/tailwind.css` reads. `SidebarLayout` then shows its sidebar as a floating
  * sheet while its layout is inline.
+ *
+ * After hydration, the provider adds the `no-inline-trim` class to the root
+ * element in a browser that reads the trim of a text box but does not trim an
+ * inline box (`markInlineTrim`). The `inline-trim` variant of `ui/tailwind.css`
+ * reads it.
  *
  * While the surfaces are `'glass'`, the root element has the `surfaces-glass`
  * class, which the `surfaces-glass` variant of `ui/tailwind.css` reads. A modal
@@ -155,6 +161,11 @@ export function AppearanceProvider({ children, font = true }: AppearanceProvider
 			unsubscribeScheme?.()
 		}
 	}, [])
+
+	// A browser can read the trim of a text box and trim only a block
+	// container. The probe runs once, and it turns off the `inline-trim`
+	// variant in such a browser.
+	useEffect(() => markInlineTrim(document.documentElement), [])
 
 	const value = useMemo(
 		() => ({

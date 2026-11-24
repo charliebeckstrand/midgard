@@ -79,6 +79,7 @@ export function FileUploadInput(allProps: FileUploadInputProps) {
 	const { multiple } = shared
 	const {
 		control,
+		describedBy,
 		disabled,
 		readOnly,
 		invalid,
@@ -135,7 +136,7 @@ export function FileUploadInput(allProps: FileUploadInputProps) {
 					type="button"
 					data-slot="file-upload-field"
 					aria-labelledby={control?.labelledBy ? `${control.labelledBy} ${valueId}` : undefined}
-					{...(control?.describedBy && { 'aria-describedby': control.describedBy })}
+					{...(describedBy && { 'aria-describedby': describedBy })}
 					disabled={disabled}
 					{...invalidAttrs(invalid)}
 					className={slots.field}
@@ -152,40 +153,43 @@ export function FileUploadInput(allProps: FileUploadInputProps) {
 	)
 
 	return (
-		<div data-slot="file-upload" {...props} className={cn('relative', className)}>
-			<FileUploadHiddenInput
-				{...state.hiddenInput}
-				ariaLabel={placeholder}
-				forwardFocus={focusField}
-			/>
-			<InputFrame
-				input={field}
-				prefix={undefined}
-				suffix={
-					hasFiles ? (
-						<InputClearButton
-							label={intl.formatMessage(fileUploadMessages.clear, { count: files.length })}
-							disabled={disabled}
-							locked={readOnly}
-							onClick={handleClear}
-						/>
-					) : (
-						<Button
-							type="button"
-							variant="bare"
-							className="pointer-events-auto"
-							aria-label={intl.formatMessage(fileUploadMessages.browse)}
-							disabled={disabled}
-							onClick={handleBrowse}
-							{...inert}
-						>
-							<Icon icon={<Upload />} />
-						</Button>
-					)
-				}
-				slots={slots}
-				density={size}
-			/>
-		</div>
+		<>
+			<div data-slot="file-upload" {...props} className={cn('relative', className)}>
+				<FileUploadHiddenInput
+					{...state.hiddenInput}
+					ariaLabel={placeholder}
+					forwardFocus={focusField}
+				/>
+				<InputFrame
+					input={field}
+					prefix={undefined}
+					suffix={
+						hasFiles ? (
+							<InputClearButton
+								label={intl.formatMessage(fileUploadMessages.clear, { count: files.length })}
+								disabled={disabled}
+								locked={readOnly}
+								onClick={handleClear}
+							/>
+						) : (
+							<Button
+								type="button"
+								variant="bare"
+								className="pointer-events-auto"
+								aria-label={intl.formatMessage(fileUploadMessages.browse)}
+								disabled={disabled}
+								onClick={handleBrowse}
+								{...inert}
+							>
+								<Icon icon={<Upload />} />
+							</Button>
+						)
+					}
+					slots={slots}
+					density={size}
+				/>
+			</div>
+			{state.refusal}
+		</>
 	)
 }

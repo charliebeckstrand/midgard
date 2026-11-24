@@ -7,7 +7,7 @@ import { dataAttr } from '../../core/data-attr'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { k } from '../../recipes/kata/grid'
 import { noop } from '../../utilities/noop'
-import { GridReorderKitContext } from './context'
+import { GridReorderKitContext, useGridUnselectable } from './context'
 import type { GridDetailExpansion } from './engine/grid-group/resolve'
 import { detailOpen } from './engine/grid-items/items'
 import { isNewRowAddColumn } from './engine/grid-new-row-column'
@@ -377,6 +377,12 @@ export function GridRowImpl<T>({
 	// not change with the reduced-motion preference, so the element type holds.
 	const animate = animateSortRows && sortable == null
 
+	// A row that `rowSelectable` rejects cannot take the selection, so it states
+	// no selected state.
+	const unselectable = useGridUnselectable()
+
+	const takesSelection = selectable && !unselectable.has(rowKey)
+
 	// One element, chosen per row. Only a motion row gets the motion props: React
 	// rejects an unknown camelCase prop on a DOM element, even an undefined one.
 	const Row = (animate ? MotionTableRow : TableRow) as typeof MotionTableRow
@@ -409,7 +415,7 @@ export function GridRowImpl<T>({
 				row,
 				rowKey,
 				selected,
-				selectable,
+				selectable: takesSelection,
 				// A flat row never roves: a click handler turns the cursor on, and
 				// only manual grouping, whose leaves are group rows, stands it down.
 				rowRoving: false,

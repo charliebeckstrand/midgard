@@ -163,6 +163,70 @@ describe('Grid tab stops', () => {
 		expect(tabbable(grid)).toEqual([])
 	})
 
+	// A blur and a focus in one task, as an `autoFocus` control that replaces
+	// the control that left does. The cell of the control that takes focus
+	// stays open.
+	it('keeps the cell open when a blur and a focus in it come in one task', async () => {
+		const grid = renderGrid()
+
+		const edit = screen.getByRole('button', { name: 'Edit Alice' })
+
+		const del = screen.getByRole('button', { name: 'Delete Alice' })
+
+		act(() => edit.focus())
+
+		await act(async () => {
+			edit.blur()
+
+			del.focus()
+		})
+
+		expect(del).toHaveFocus()
+
+		expect(tabbable(grid)).toEqual([edit, del])
+	})
+
+	// The control leaves the document and its cell stays. A browser that sends
+	// no blur for a removal leaves only the observer to see it.
+	it('takes focus back on the grid when a control that holds focus swaps for another', async () => {
+		function Harness() {
+			const [editing, setEditing] = useState(false)
+
+			const swapping: GridColumn<Row>[] = [
+				{ id: 'name', title: 'Name', cell: (row) => row.name },
+				{
+					id: 'actions',
+					actions: (row) =>
+						editing && row.id === 1 ? (
+							<button key="save" type="button">
+								Save {row.name}
+							</button>
+						) : (
+							<button key="edit" type="button" onClick={() => setEditing(true)}>
+								Edit {row.name}
+							</button>
+						),
+				},
+			]
+
+			return <Grid columns={swapping} rows={rows} getKey={getKey} navigable />
+		}
+
+		renderUI(<Harness />)
+
+		const grid = screen.getByRole('grid')
+
+		const edit = screen.getByRole('button', { name: 'Edit Alice' })
+
+		act(() => edit.focus())
+
+		await act(async () => fireEvent.click(edit))
+
+		expect(edit).not.toBeInTheDocument()
+
+		expect(grid).toHaveFocus()
+	})
+
 	// A removed row takes its focused control out of the document, and focus
 	// fell to the page, with no event to tell the grid.
 	it('takes focus back on the grid when the row that holds focus is removed', async () => {

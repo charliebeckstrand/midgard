@@ -28,7 +28,10 @@ import type { GridGroupManagerProps } from './grid-group-manager'
 type GridGroupManagerOptions = Pick<
 	GridGroupManagerProps,
 	'groups' | 'onGroupsChange' | 'columns' | 'order' | 'onOrderChange'
->
+> & {
+	/** The ids of the columns that pass the manager's filter. A drop moves only among them. */
+	shown: ReadonlySet<string>
+}
 
 /** Whether the dragged item sits below the over-item's vertical midpoint (for the insertion nudge). @internal */
 function isBelowOverMidpoint(event: DragOverEvent): boolean {
@@ -59,6 +62,7 @@ export function useGridGroupManager({
 	columns,
 	order,
 	onOrderChange,
+	shown,
 }: GridGroupManagerOptions) {
 	const intl = useIntl()
 
@@ -184,14 +188,14 @@ export function useGridGroupManager({
 					)
 				}
 			} else if (over && override) {
-				commit(settleDragEnd(override, draggedId, String(over.id)))
+				commit(settleDragEnd(override, draggedId, String(over.id), (id) => shown.has(id)))
 			}
 
 			setOverride(null)
 
 			setActiveId(null)
 		},
-		[override, commit, groups, onGroupsChange],
+		[override, commit, groups, onGroupsChange, shown],
 	)
 
 	const handleDragCancel = useCallback(() => {

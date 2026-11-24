@@ -43,6 +43,8 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > A `tag-input` keeps the tokens that `validate` refuses in the draft and shows its `invalidMessage` below the field until the next keystroke. Give `invalidMessage={null}` to show no message. The live region then announces the refusal.
 
+> A `file-upload` component shows the files that a pick or a drop refuses, and the reason of each, in its `invalidMessage`. The message shows below the component until the next pick, drop, or clear. Give `invalidMessage={null}` to show no message. The live region then announces the refusal, unless the caller sets `onReject` and shows its own message.
+
 > The tags of a `tag-input` stay on one row and scroll on the inline axis. With `wrap`, they wrap onto more rows, and the add button stays at the end of the first row. The affixes of each other input stay on one row with the input.
 
 > `checkbox`, `switch`, `RadioGroup`, and `ColorPicker` take `readOnly` from their own prop or from an enclosing `Control`. `Rating` and `SwitchChoice` set `aria-required` from their own `required` prop or from an enclosing `Control`. The `ColorPicker` and `DatePicker` triggers set it from an enclosing `Control`.

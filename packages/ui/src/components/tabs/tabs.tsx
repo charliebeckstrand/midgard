@@ -8,7 +8,13 @@ import { useCurrentState } from '../../primitives/current/use-current-state'
 import { useCurrentStore } from '../../primitives/current/use-current-store'
 import { k, type scale } from '../../recipes/kata/tabs'
 import { Box } from '../../structure/box'
-import { TabsContext, type TabsOrientation, type TabsVariant } from './context'
+import {
+	TabsActivationContext,
+	TabsContext,
+	type TabsOrientation,
+	type TabsVariant,
+	useTabsActivation,
+} from './context'
 
 /** Props for {@link Tabs}: selection state, the `variant`/`orientation` context broadcast to its list and panels, and the `size` scope, plus native `<div>` attributes (less `defaultValue`). */
 export type TabsProps = Omit<ComponentProps<'div'>, 'defaultValue'> & {
@@ -36,16 +42,6 @@ export type TabsProps = Omit<ComponentProps<'div'>, 'defaultValue'> & {
 	 * step of the nearest density scope. A step makes the group a density scope.
 	 */
 	size?: ScaleStep<typeof scale>
-	/**
-	 * How a `segment` group with no panels selects an item. With `automatic`,
-	 * the group is a radio group, and an arrow key moves the focus and selects
-	 * the item. With `manual`, the group keeps the tab roles: an arrow key moves
-	 * only the focus, and Enter or Space selects the item. Use `manual` when a
-	 * pick shows a different view or writes the address, so that each arrow key
-	 * does not load a view. A group with panels always keeps the tab roles.
-	 * @defaultValue 'automatic'
-	 */
-	activation?: 'automatic' | 'manual'
 }
 
 /**
@@ -59,8 +55,8 @@ export type TabsProps = Omit<ComponentProps<'div'>, 'defaultValue'> & {
  * with `aria-checked`. An arrow key moves the focus and selects the item, as in
  * a group of native radios. A group with panels keeps the tab roles. The
  * server and the first client render do not know of the panels, so they render
- * the radio roles. The tab roles follow when a panel registers. A group with
- * `activation="manual"` keeps the tab roles.
+ * the radio roles. The tab roles follow when a panel registers. A `Segment`
+ * with `activation="manual"` keeps the tab roles.
  */
 export function Tabs({
 	value,
@@ -69,12 +65,13 @@ export function Tabs({
 	variant = 'tab',
 	orientation = 'horizontal',
 	size,
-	activation = 'automatic',
 	className,
 	children,
 	...props
 }: TabsProps) {
 	const context = useCurrentState({ value, defaultValue, onValueChange })
+
+	const activation = useTabsActivation()
 
 	// Each item reads its own value from the store, so a change renders only the
 	// item that stops being current and the item that becomes current.
@@ -153,7 +150,8 @@ export function Tabs({
 						className={cn(k({ orientation: resolvedOrientation }).base, className)}
 						{...props}
 					>
-						{children}
+						{/* The activation of a Segment is for its own group only. */}
+						<TabsActivationContext value="automatic">{children}</TabsActivationContext>
 					</Box>
 				</TabsContext>
 			</CurrentStoreContext>

@@ -29,7 +29,6 @@ export default function WithActions() {
 				onValueChange={setMessage}
 				onEnter={send}
 				enterKeyHint="send"
-				rows={1}
 				placeholder="Ask anything"
 				actions={
 					<Button aria-label="Send" color="blue" disabled={message.trim() === ''} onClick={send}>

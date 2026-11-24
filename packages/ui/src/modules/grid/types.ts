@@ -40,6 +40,14 @@ export type GridAggCellContext<T> = {
  */
 export type GridColumn<T> = {
 	id: string | number
+	/**
+	 * The header content. The header cell takes its name from it. A column with
+	 * no title is named by its `id`. A title that is not a string must hold
+	 * text: an icon alone gives the header an empty name, so put the name in
+	 * hidden text beside it, such as `<span className="sr-only">Actions</span>`.
+	 * The labels that need a string, such as the sort button, the filter, and
+	 * the export, use a string title, else the `id`.
+	 */
 	title?: ReactNode
 	/** Lets the user sort this data column. Set `false` to opt a column out; sorting flows through the grid's `sort` binding. @defaultValue true */
 	sortable?: boolean
@@ -714,7 +722,13 @@ export type GridCellMenuContext<T> = {
 	column: GridColumn<T>
 	/** The column's {@link GridColumn.value} for the row, else its rendered text. */
 	value: unknown
-	/** Copies the cell value to the clipboard. */
+	/**
+	 * Copies to the clipboard what Ctrl+C copies: the cell range when it holds
+	 * this cell, else this cell. Each cell reads through
+	 * {@link GridColumn.value}, else the row field named by the column id, and
+	 * takes the formula guard of the TSV. The HTML form of the block goes with
+	 * the text where the clipboard takes it.
+	 */
 	copy: () => void
 	/** One action per configured export type (see {@link GridProps.exportable}); empty when export is off, or held back from the menus by its {@link GridToolSurfaces.contextMenu} switch. */
 	exportActions: GridExportAction[]

@@ -69,6 +69,10 @@ const LOCALE_SOURCE = 'utilities/resolve-locale.ts'
 const ALLOWED = new Map([
 	['hooks/use-drag-cursor.ts DOM text', 'The text of a `<style>` node is a CSS rule.'],
 	[
+		'core/text-trim/root.ts DOM text',
+		'The glyph of the probe of `markInlineTrim` is hidden. The probe measures it, and no reader sees it.',
+	],
+	[
 		'components/json-tree/json-tree-node-key.tsx number with no locale',
 		'A JSON tree shows its data in JSON notation, so an array index stays as JSON writes it.',
 	],

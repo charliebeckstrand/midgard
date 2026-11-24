@@ -27,6 +27,9 @@ type FillDrag = {
  *
  * @param readSource - The source block at the press, or `null` for none.
  * @param showRange - Shows the range between two data cells.
+ * @param rangeCols - The count of the columns that a range can hold. The drag
+ *   stops at the last of them, so a fill does not reach the Add column of the
+ *   new-row slot.
  * @param fill - Fills `count` lines after the source in `direction`.
  * @param parseCellCoord - The data cell that an element id names, or `null`.
  * @param rowStep - The data row a number of rows away, over the rows that the cursor shows.
@@ -41,6 +44,7 @@ type FillDrag = {
 export function useGridFillDrag({
 	readSource,
 	showRange,
+	rangeCols,
 	fill,
 	parseCellCoord,
 	rowStep,
@@ -50,6 +54,7 @@ export function useGridFillDrag({
 }: {
 	readSource: () => GridFillRect | null
 	showRange: (from: Coord, to: Coord) => void
+	rangeCols: () => number
 	fill: (source: GridFillRect, direction: GridFillDirection, count: number) => void
 	parseCellCoord: (id: string) => Coord | null
 	rowStep: GridRowStep
@@ -64,7 +69,9 @@ export function useGridFillDrag({
 
 		if (!drag) return
 
-		drag.fill = handleFill(drag.source, coord, rowDistance)
+		const target = { row: coord.row, col: Math.min(coord.col, rangeCols() - 1) }
+
+		drag.fill = handleFill(drag.source, target, rowDistance)
 
 		const { from, to } = filledCorners(drag.source, drag.fill, rowStep)
 

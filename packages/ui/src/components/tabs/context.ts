@@ -31,3 +31,13 @@ type TabsContextValue = {
 export const [TabsContext, useTabsContext] = createContext<TabsContextValue | undefined>('Tabs', {
 	default: undefined,
 })
+
+/**
+ * How a `segment` group with no panels selects an item. `Segment` gives it from
+ * its `activation` prop, and each `Tabs` reads it. A `Tabs` gives `automatic`
+ * to its children, so a group inside a manual `Segment` does not take it.
+ */
+export const [TabsActivationContext, useTabsActivation] = createContext<'automatic' | 'manual'>(
+	'TabsActivation',
+	{ default: 'automatic' },
+)

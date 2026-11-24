@@ -9,6 +9,7 @@ import {
 	screen,
 	stubClipboard,
 	stubMatchMedia,
+	within,
 } from '../helpers'
 import { it } from '../helpers/fake-clock'
 
@@ -194,8 +195,10 @@ describe('ChatMessage', () => {
 		expect(toolbar.className).not.toContain('group-hover/chat-message')
 	})
 
-	it('keeps room for the toolbar above the bubble', () => {
-		const ROOM = 'pt-6'
+	it('keeps room for the toolbar above the bubble on a device that hovers', () => {
+		// A device with no hover never shows the toolbar on a touch, so the room
+		// is under the hover condition of the toolbar.
+		const ROOM = '[@media(hover:hover)]:pt-6'
 
 		const menu = renderUI(<ChatMessage>content</ChatMessage>)
 
@@ -209,14 +212,19 @@ describe('ChatMessage', () => {
 		expect(getSlot(bare.container, 'chat-message')).not.toHaveClass(ROOM)
 	})
 
-	it('keeps the hidden toolbar button in the Tab order', () => {
+	it('keeps the hidden toolbar button in the Tab order, and names it in a tooltip', async ({
+		clock,
+	}) => {
 		renderUI(<ChatMessage>content</ChatMessage>)
 
-		const button = screen.getByRole('button', { name: 'Copy' })
+		await clock.user.tab()
 
-		button.focus()
+		expect(screen.getByRole('button', { name: 'Copy' })).toHaveFocus()
 
-		expect(button).toHaveFocus()
+		// A keyboard focus opens the tooltip of the icon button.
+		await clock.advance(0)
+
+		expect(screen.getByRole('tooltip')).toHaveTextContent('Copy')
 	})
 
 	it('opens a menu with Copy over the bubble on a touch screen', () => {
@@ -262,21 +270,144 @@ describe('ChatMessage', () => {
 		expect(onAction).toHaveBeenCalledOnce()
 	})
 
-	it('opens the same menu from the menu button in the toolbar', () => {
+	it('opens the rest of the menu from the ellipsis in the toolbar', () => {
 		const { container } = renderUI(
 			<ChatMessage contextMenu={{ items: [{ key: 'edit', label: 'Edit' }] }}>content</ChatMessage>,
 		)
 
-		const button = screen.getByRole('button', { name: 'Message actions' })
+		// Copy has an icon, so it is a button of the toolbar. Edit has none, so it
+		// stays in the menu.
+		const toolbar = screen.getByRole('toolbar', { name: 'Message actions' })
 
-		expect(getSlot(container, 'chat-message-toolbar')).toContainElement(button)
+		expect(getSlot(container, 'chat-message-toolbar')).toContainElement(toolbar)
 
-		fireEvent.click(button)
+		expect(
+			within(toolbar)
+				.getAllByRole('button')
+				.map((button) => button.getAttribute('aria-label')),
+		).toEqual(['Copy', 'More actions'])
+
+		fireEvent.click(screen.getByRole('button', { name: 'More actions' }))
+
+		expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual(['Edit'])
+	})
+
+	it('shows up to three items with an icon as buttons, with no ellipsis', () => {
+		const onEdit = vi.fn()
+
+		renderUI(
+			<ChatMessage
+				contextMenu={{
+					items: [
+						{ key: 'edit', label: 'Edit', icon: <svg />, onAction: onEdit },
+						{ key: 'retry', label: 'Retry', icon: <svg /> },
+					],
+				}}
+			>
+				content
+			</ChatMessage>,
+		)
+
+		const toolbar = screen.getByRole('toolbar', { name: 'Message actions' })
+
+		expect(
+			within(toolbar)
+				.getAllByRole('button')
+				.map((button) => button.getAttribute('aria-label') ?? button.textContent),
+		).toEqual(['Copy', 'Edit', 'Retry'])
+
+		expect(screen.queryByRole('button', { name: /actions/ })).not.toBeInTheDocument()
+
+		fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
+
+		expect(onEdit).toHaveBeenCalledOnce()
+	})
+
+	it('shows the first three items as buttons and the rest in the ellipsis menu', () => {
+		const icon = <svg />
+
+		renderUI(
+			<ChatMessage
+				contextMenu={{
+					items: [
+						{ key: 'edit', label: 'Edit', icon },
+						{ key: 'retry', label: 'Retry', icon },
+						{ key: 'share', label: 'Share', icon },
+						{ separator: true },
+						{ key: 'delete', label: 'Delete', icon },
+					],
+				}}
+			>
+				content
+			</ChatMessage>,
+		)
+
+		const toolbar = screen.getByRole('toolbar', { name: 'Message actions' })
+
+		expect(
+			within(toolbar)
+				.getAllByRole('button')
+				.map((button) => button.getAttribute('aria-label') ?? button.textContent),
+		).toEqual(['Copy', 'Edit', 'Retry', 'More actions'])
+
+		fireEvent.click(screen.getByRole('button', { name: 'More actions' }))
+
+		// The separator between Copy and the items of the caller goes with the
+		// buttons. The menu keeps the separator of the caller.
+		expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual([
+			'Share',
+			'Delete',
+		])
+
+		expect(screen.getAllByRole('separator')).toHaveLength(1)
+	})
+
+	it('stops the buttons at the first item with no icon, so the order holds', () => {
+		renderUI(
+			<ChatMessage
+				contextMenu={{
+					items: [
+						{ key: 'edit', label: 'Edit' },
+						{ key: 'retry', label: 'Retry', icon: <svg /> },
+					],
+				}}
+			>
+				content
+			</ChatMessage>,
+		)
+
+		expect(screen.queryByRole('button', { name: 'Retry' })).not.toBeInTheDocument()
+
+		fireEvent.click(screen.getByRole('button', { name: 'More actions' }))
 
 		expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual([
-			'Copy',
 			'Edit',
+			'Retry',
 		])
+	})
+
+	it('is one Tab stop, and the arrow keys move between its buttons', async ({ clock }) => {
+		renderUI(
+			<ChatMessage contextMenu={{ items: [{ key: 'retry', label: 'Retry', icon: <svg /> }] }}>
+				content
+			</ChatMessage>,
+		)
+
+		const copy = screen.getByRole('button', { name: 'Copy' })
+
+		const retry = screen.getByRole('button', { name: 'Retry' })
+
+		expect([copy.tabIndex, retry.tabIndex]).toEqual([0, -1])
+
+		await clock.user.tab()
+
+		expect(copy).toHaveFocus()
+
+		await clock.user.keyboard('{ArrowRight}')
+
+		expect(retry).toHaveFocus()
+
+		expect([copy.tabIndex, retry.tabIndex]).toEqual([-1, 0])
 	})
 
 	it('shows Copy alone as a copy button, which shows a check after the copy', async ({ clock }) => {
@@ -286,7 +417,7 @@ describe('ChatMessage', () => {
 
 		const { container } = renderUI(<ChatMessage>Some text</ChatMessage>)
 
-		expect(screen.queryByRole('button', { name: 'Message actions' })).not.toBeInTheDocument()
+		expect(screen.queryByRole('button', { name: /actions/ })).not.toBeInTheDocument()
 
 		const button = screen.getByRole('button', { name: 'Copy' })
 
@@ -374,7 +505,7 @@ describe('ChatMessage', () => {
 
 		expect(onAction).toHaveBeenCalledOnce()
 
-		expect(screen.queryByRole('button', { name: 'Message actions' })).not.toBeInTheDocument()
+		expect(screen.queryByRole('button', { name: /actions/ })).not.toBeInTheDocument()
 	})
 
 	it('keeps the ellipsis for a lone item with no icon', () => {
@@ -409,8 +540,8 @@ describe('ChatMessage', () => {
 
 		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
 
-		// The menu button in the toolbar is the way to the actions.
-		expect(screen.getByRole('button', { name: 'Message actions' })).toBeInTheDocument()
+		// The toolbar is the way to the actions.
+		expect(screen.getByRole('button', { name: 'More actions' })).toBeInTheDocument()
 	})
 
 	it('opens the menu on a right-click on a device that hovers, with trigger contextmenu', () => {

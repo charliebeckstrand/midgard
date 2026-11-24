@@ -12,7 +12,7 @@ import { ChatCitedText } from './chat-cited-text'
 import { MESSAGE_HEADING_OFFSET } from './chat-constants'
 import { ChatEmbed } from './chat-embed'
 import { ChatMessageBranch } from './chat-message-branch'
-import { ChatMessageMenu, ChatMessageMenuButton } from './chat-message-menu'
+import { ChatMessageMenu, ChatMessageToolbar } from './chat-message-menu'
 import { ChatTool } from './chat-tool'
 import { replyFailed } from './engine/chat-announcements'
 import type { ChatBranch } from './engine/chat-branch/types'
@@ -82,7 +82,7 @@ function ChatMessageBlock({ part, className }: { part: ChatPart; className?: str
  * Whether the menu of a message has an item. It has one unless the caller
  * removes the menu, or removes the defaults and adds no item. A menu with no
  * item does not open, so the bubble keeps the native menu, and the message
- * shows no menu button.
+ * shows no toolbar.
  *
  * @internal
  */
@@ -121,8 +121,9 @@ export type ChatMessageProps = ChatMessageVariants &
 		failed?: boolean
 		/**
 		 * The menu of the message, which holds each action of the message. On a
-		 * device that hovers, the menu button over the corner of the bubble opens
-		 * it. On a device with no hover, a long press on the bubble opens it. Its
+		 * device that hovers, the toolbar over the corner of the bubble shows the
+		 * first three as icon buttons, and an ellipsis button opens the rest. On a
+		 * device with no hover, a long press on the bubble opens the menu. Its
 		 * default item is Copy, with the key `'copy'`, which copies the text of
 		 * the message. `items` adds the actions of the app, such as
 		 * Edit and Retry, after a separator ({@link ContextMenuConfig}). `false`
@@ -131,8 +132,8 @@ export type ChatMessageProps = ChatMessageVariants &
 		 */
 		contextMenu?: ContextMenuConfig | false
 		/**
-		 * How the menu opens on a device that hovers. `'hover'` shows the menu
-		 * button in a toolbar while the pointer is over the bubble, and a
+		 * How the menu opens on a device that hovers. `'hover'` shows the actions
+		 * in a toolbar while the pointer is over the bubble, and a
 		 * right-click keeps the native menu of the browser. `'contextmenu'` opens
 		 * the menu on a right-click on the bubble, and the message shows no
 		 * toolbar. The bubble is then a tab stop, so a keyboard opens the menu with
@@ -217,25 +218,31 @@ export type ChatMessageProps = ChatMessageVariants &
  * already landed a chart pulses its prose and leaves the chart steady.
  *
  * The menu holds each action of the message, and the message shows no row of
- * icons. On a device that hovers, the menu button opens it, and a right-click
- * keeps the native menu of the browser. With `trigger` `'contextmenu'`, a
- * right-click on the bubble opens it there in place of the menu button. On a
- * device with no hover, a touch long press on the bubble opens it as a context
- * menu, for each `trigger`. The Copy item copies
- * the plain text of the message ({@link chatContentText}), and it is off while
- * the message has no text.
+ * icons below its bubble. On a device that hovers, a toolbar over the bubble
+ * shows the actions, and a right-click keeps the native menu of the browser.
+ * With `trigger` `'contextmenu'`, a right-click on the bubble opens the menu
+ * there in place of the toolbar. On a device with no hover, a touch long press
+ * on the bubble opens it as a context menu, for each `trigger`. The Copy item
+ * copies the plain text of the message ({@link chatContentText}), and it is off
+ * while the message has no text.
  *
- * The menu button sits in a toolbar over the outer top corner of the bubble.
- * A menu of one item with an icon, such as Copy alone, has no menu button:
- * the toolbar shows the button of that item, which runs its action at once.
+ * The toolbar sits over the outer top corner of the bubble. It shows the first
+ * three items of the menu as icon buttons, each with a tooltip, and a press
+ * runs the action at once. An ellipsis button, "More actions", opens a dropdown
+ * with the other entries. A menu of three items or fewer, each with an icon,
+ * such as Copy, Edit, and Retry, has no ellipsis. The icon buttons stop at the
+ * first submenu or item with no icon, so the order of the menu holds. The
+ * toolbar is one Tab stop, and the arrow keys move between its buttons.
  * The toolbar shows while the pointer is over the bubble or the toolbar, while
  * a keyboard focus is in the message, or while its menu is open. A press also
  * focuses a control, but that focus does not show the toolbar. A device with
  * no hover thus shows it only to a keyboard or a screen reader, and a long
- * press opens the menu there. The button stays in the Tab order while it is
- * hidden, so a keyboard reader reaches the menu. A message with a menu keeps
- * 24px of room above its bubble for the toolbar. The toolbar thus stays in the
- * box of the message, and a host that clips its overflow does not cut it.
+ * press opens the menu there. The toolbar stays in the Tab order while it is
+ * hidden, so a keyboard reader reaches the menu. On a device that hovers, a
+ * message with a menu keeps 24px of room above its bubble for the toolbar. The
+ * toolbar thus stays in the box of the message, and a host that clips its
+ * overflow does not cut it. A device with no hover keeps no room, and the
+ * toolbar covers the top corner of the bubble when it shows there.
  *
  * After a copy, the focus goes to the bubble, and not back to the button in the
  * toolbar. The next Tab thus goes into the controls of the message again. The
@@ -266,7 +273,7 @@ export const ChatMessage = memo(function ChatMessage({
 
 	const hasMenu = hasMenuItems(contextMenu)
 
-	// The toolbar holds the menu button on a device that hovers, unless a
+	// The toolbar holds the actions on a device that hovers, unless a
 	// right-click opens the menu there.
 	const toolbar = hasMenu && trigger === 'hover'
 
@@ -347,7 +354,7 @@ export const ChatMessage = memo(function ChatMessage({
 			)}
 			{toolbar && (
 				<div data-slot="chat-message-toolbar" className={slots.toolbar}>
-					<ChatMessageMenuButton
+					<ChatMessageToolbar
 						config={menu}
 						content={children}
 						bubble={bubbleId}

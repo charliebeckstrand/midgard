@@ -141,21 +141,22 @@ const BOOLEAN_TEXT = new Map([
  * when the text does not fit the kind of that value. A number cell reads a
  * number as sort and filter read it. A yes/no cell reads `true`, `false`,
  * `yes`, `no`, `1`, or `0`, in any case. A text cell takes the text as it is.
- * An empty text clears a number cell or a yes/no cell, as its editor does
- * when it is empty. An empty text keeps an empty cell (`null` or
- * `undefined`) as it is. Such a cell has no kind to read, and a clear of it
- * must not write `''` and make it a text cell. @internal
+ * An empty text clears each cell that does not hold a string, such as a
+ * number, a yes/no, or a date cell, as its editor does when it is empty. It
+ * writes `undefined`, not `''`, so the clear does not make the cell a text
+ * cell. An empty text keeps an empty cell (`null` or `undefined`) as it is.
+ * @internal
  */
 export function coercePaste(text: string, current: unknown): { value: unknown } | null {
-	if (current == null && text.trim() === '') return { value: current }
+	const trimmed = text.trim()
+
+	if (trimmed === '' && typeof current !== 'string') {
+		return { value: current == null ? current : undefined }
+	}
 
 	const kind = inferEditorKind(current)
 
 	if (kind === 'text') return { value: text }
-
-	const trimmed = text.trim()
-
-	if (trimmed === '') return { value: undefined }
 
 	if (kind === 'number') {
 		const value = parseNumeric(trimmed)

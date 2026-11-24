@@ -160,7 +160,9 @@ export type MenuSubProps = {
  * screen reader user cannot see the side. Open state is the enclosing level's, not this row's
  * ({@link MenuPointerLevel}), so one submenu hangs off a menu at a time. The
  * pointer reads its course against that one panel, and the row's own panel
- * provides the next level down. Tab is held inside the open panel, cycling its
+ * provides the next level down. The first submenu of a level fades in. A
+ * submenu that replaces an open sibling opens at once, and the sibling closes
+ * at once, as in a native menu. Tab is held inside the open panel, cycling its
  * rows. The panel portals out of the enclosing {@link MenuContent}, so its
  * height-capped, scrolling viewport can't clip it.
  *
@@ -332,9 +334,16 @@ function MenuSubFloating({
 	// takes no input during the exit of the root.
 	const { open: rootOpen } = useMenuState()
 
-	const shown = useMenuOpenSub() === subKey
+	const { key: openKey, from } = useMenuOpenSub()
+
+	const shown = openKey === subKey
 
 	const open = shown && rootOpen
+
+	// A swap from one sibling submenu to another shows no motion. Two panels that
+	// fade across each other would show the page through both. The panel that
+	// opens and the panel that it replaces both read it, in the same commit.
+	const instant = open ? from !== null : from === subKey
 
 	// Clears the key, so a reopen of the root starts with the submenu closed.
 	useEffect(() => {
@@ -608,6 +617,7 @@ function MenuSubFloating({
 			<MenuPointerLevel>
 				<FloatingSurface
 					open={open}
+					instant={instant}
 					setFloating={setPanel}
 					floatingStyles={floatingStyles}
 					getFloatingProps={getFloatingProps}

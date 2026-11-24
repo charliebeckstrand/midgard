@@ -78,12 +78,16 @@ export const k = defineKata({
 		assistant: 'items-start',
 		system: 'items-center',
 	},
-	// A message with a menu keeps 24px of room above its bubble for the toolbar.
-	// The toolbar stays in the box of the message, so a host that clips its
-	// overflow, such as a card or a scroll, does not cut it. The room is the
-	// gap of a transcript row, so a message in a transcript adds none.
+	// On a device that hovers, a message with a menu keeps 24px of room above
+	// its bubble for the toolbar. The toolbar stays in the box of the message,
+	// so a host that clips its overflow, such as a card or a scroll, does not
+	// cut it. The room is the gap of a transcript row (`kokkaku.chat.row`), so a
+	// message in a transcript adds none. A device with no hover never shows the
+	// toolbar on a touch, so the message keeps no room there. The toolbar shows
+	// there only for a keyboard focus or an open menu, and then it covers the
+	// top corner of the bubble.
 	menu: {
-		true: kokkaku.chat.row,
+		true: '[@media(hover:hover)]:pt-6',
 		false: '',
 	},
 	slots: {
@@ -94,12 +98,12 @@ export const k = defineKata({
 		// is, and its digits keep one width, so `9 of 10` does not move its buttons.
 		branch: [...controls, 'mt-1 tabular-nums', size.xs, ...text.muted],
 		/**
-		 * The toolbar of the menu button: it floats over the outer top corner of
-		 * the bubble. That is the corner on the side of the speaker. It sits at
-		 * the top of the message, in the `menu` room. The toolbar is 34px high,
-		 * because its button has a fixed size, so it overlaps the bubble by 10px:
-		 * the padding of the bubble, and not its text. It is never a row of icons
-		 * below the bubble.
+		 * The frame of the toolbar of the message actions: it floats over the
+		 * outer top corner of the bubble. That is the corner on the side of the
+		 * speaker. It sits at the top of the message, in the `menu` room. The
+		 * toolbar is 34px high, because its buttons have a fixed size, so it
+		 * overlaps the bubble by 10px: the padding of the bubble, and not its
+		 * text. It is never a row of icons below the bubble.
 		 */
 		toolbar: {
 			base: [

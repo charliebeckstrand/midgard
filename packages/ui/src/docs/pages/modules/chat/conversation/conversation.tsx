@@ -1,7 +1,7 @@
 import { RotateCcw } from 'lucide-react'
 import { useCallback } from 'react'
 import {
-	ChatEmbedProvider,
+	ChatCitationProvider,
 	type ChatMessageData,
 	ChatPrompt,
 	ChatTranscript,
@@ -11,8 +11,8 @@ import {
 import type { ContextMenuConfig } from 'ui/context-menu'
 import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
-import { renderers } from '../embeds/renderers.tsx'
 import { transport } from './reply.ts'
+import { targets } from './targets.tsx'
 
 // The draft that the composer opens with, so the reader can send it at once.
 const suggestion = { text: 'How are late stops trending this week?' }
@@ -58,7 +58,7 @@ export default function Conversation() {
 	)
 
 	return (
-		<ChatEmbedProvider renderers={renderers}>
+		<ChatCitationProvider targets={targets}>
 			<Stack gap="md" className="h-112">
 				<ChatTranscript
 					messages={chat.messages}
@@ -82,6 +82,6 @@ export default function Conversation() {
 					}
 				/>
 			</Stack>
-		</ChatEmbedProvider>
+		</ChatCitationProvider>
 	)
 }

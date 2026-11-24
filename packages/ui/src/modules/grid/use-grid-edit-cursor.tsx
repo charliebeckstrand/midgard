@@ -273,7 +273,7 @@ export function useGridEditCursor<T>({
 		return managed && column !== undefined && isColumnEditable(column)
 	})
 
-	const { nav, copies, seated, copyCells } = useGridCursorNav<T>({
+	const { nav, copies, seated, copyCells, copyAt } = useGridCursorNav<T>({
 		enabled: cursorEnabled,
 		range,
 		rangeFigures,
@@ -614,6 +614,7 @@ export function useGridEditCursor<T>({
 	const startFillDrag = useGridFillDrag({
 		readSource: readFillSource,
 		showRange: nav.showRange,
+		rangeCols: nav.rangeCols,
 		fill: fillFromHandle,
 		parseCellCoord: nav.parseCellCoord,
 		rowStep: nav.rowStep,
@@ -786,6 +787,7 @@ export function useGridEditCursor<T>({
 		renderNewRow,
 		stepHistory: editing.stepHistory,
 		fill,
+		copyAt,
 		range: gridRangeHandle(nav),
 	}
 }

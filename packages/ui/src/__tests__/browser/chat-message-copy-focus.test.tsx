@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
+import type { ContextMenuConfig } from '../../components/context-menu/types'
 import { ChatMessage } from '../../modules/chat'
 import { frames, getSlot, renderUI, screen, stubClipboard } from '../helpers'
 import { budget } from './helpers/wall-clock'
@@ -7,8 +8,11 @@ import { budget } from './helpers/wall-clock'
 /** The time that the check of a copy holds, with room for a slow machine. */
 const CHECK = { timeout: budget(4000) }
 
-/** A menu with an item after Copy, so the toolbar shows the menu button. */
-const MENU = { items: [{ key: 'edit', label: 'Edit' }] }
+/**
+ * A menu that starts with an item with no icon, so the toolbar shows the
+ * ellipsis alone, and Copy is in the menu.
+ */
+const MENU: ContextMenuConfig = { insert: 'before', items: [{ key: 'edit', label: 'Edit' }] }
 
 /**
  * Copy moves the focus to the bubble. The hover toolbar thus goes when the

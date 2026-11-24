@@ -232,6 +232,7 @@ export function FileUploadDrop(allProps: FileUploadDropProps) {
 	const { multiple } = shared
 	const {
 		control,
+		describedBy,
 		disabled,
 		readOnly,
 		invalid,
@@ -351,7 +352,7 @@ export function FileUploadDrop(allProps: FileUploadDropProps) {
 						disabled={disabled}
 						readOnly={readOnly}
 						labelledBy={control?.labelledBy}
-						describedBy={control?.describedBy}
+						describedBy={describedBy}
 						invalid={invalid}
 						alwaysTooltip={showTooltip}
 						overlayRef={overlayRef}
@@ -372,7 +373,7 @@ export function FileUploadDrop(allProps: FileUploadDropProps) {
 						props['aria-labelledby'] ??
 						(control?.labelledBy ? `${control.labelledBy} ${emptyId}` : undefined)
 					}
-					aria-describedby={joinAriaIds([props['aria-describedby'], control?.describedBy])}
+					aria-describedby={joinAriaIds([props['aria-describedby'], describedBy])}
 					disabled={disabled}
 					{...invalidAttrs(invalid)}
 					onClick={composeEventHandlers(props.onClick, openPicker)}
@@ -383,6 +384,7 @@ export function FileUploadDrop(allProps: FileUploadDropProps) {
 					{dropPrompt(children)}
 				</button>
 			)}
+			{state.refusal}
 		</>
 	)
 }
