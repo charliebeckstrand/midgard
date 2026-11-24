@@ -300,6 +300,7 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 		stacked: hasActions || inside,
 		toolbar: inside && !hasActions,
 		separated,
+		top: inside,
 	})
 
 	const { value, slots, locked } = field

@@ -54,6 +54,8 @@ export const k = defineKata(
 		toolbar: { true: [], false: [] },
 		/** Whether the toolbar is above the frame, apart from the field. */
 		separated: { true: [], false: [] },
+		/** Whether the toolbar is the top row of the frame, above the field. */
+		top: { true: [], false: [] },
 		slots: {
 			/** The element that holds the field, and the markup of the server render before the editor loads. */
 			host: 'block w-full min-w-0',
@@ -108,11 +110,23 @@ export const k = defineKata(
 				 * inline padding of the field, so the text has the inset of the glyphs
 				 * of the toolbar on each side. A bare field has no inset.
 				 */
-				compound: FRAMED.map((variant) => ({
-					variant,
-					toolbar: true,
-					class: dan.space.control.toolbar.bottom,
-				})),
+				compound: [
+					...FRAMED.map((variant) => ({
+						variant,
+						toolbar: true,
+						class: dan.space.control.toolbar.bottom,
+					})),
+					// Below a toolbar in the frame, the space above the text is a top margin
+					// and not a padding, so it is out of the scroll of the field. The floor
+					// gives a field of one row the height of an Input. A field below a
+					// toolbar does not need it, and with no top padding, the floor would
+					// make the field taller.
+					...FRAMED.map((variant) => ({
+						variant,
+						top: true,
+						class: ['pt-0 min-h-0', dan.space.control.toolbar.gap],
+					})),
+				],
 			},
 			/**
 			 * The toolbar above the field. In a framed field, its padding and the
@@ -147,7 +161,7 @@ export const k = defineKata(
 				separated: { true: ['flex flex-col', dan.gap.scale.sm], false: 'contents' },
 			},
 		},
-		defaults: { toolbar: false, separated: false },
+		defaults: { toolbar: false, separated: false, top: false },
 	},
 	{ skeleton: textarea },
 )
