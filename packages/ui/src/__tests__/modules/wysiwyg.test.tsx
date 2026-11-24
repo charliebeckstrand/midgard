@@ -202,6 +202,32 @@ describe('Wysiwyg', () => {
 		expect(getSlot(container, 'wysiwyg-root').firstElementChild).toBe(toolbar)
 	})
 
+	it('keeps the editor when `separated` changes', async () => {
+		const { rerender } = renderUI(
+			<Wysiwyg aria-label="Notes" defaultValue="Text">
+				<WysiwygToolbar />
+			</Wysiwyg>,
+		)
+
+		await loadEditor()
+
+		rerender(
+			<Wysiwyg aria-label="Notes" defaultValue="Text" separated>
+				<WysiwygToolbar />
+			</Wysiwyg>,
+		)
+
+		expect(screen.getByRole('textbox')).toHaveTextContent('Text')
+
+		rerender(
+			<Wysiwyg aria-label="Notes" defaultValue="Text">
+				<WysiwygToolbar />
+			</Wysiwyg>,
+		)
+
+		expect(screen.getByRole('textbox')).toHaveTextContent('Text')
+	})
+
 	it('dims the frame of a disabled field and drops its tab stop', () => {
 		const { container } = renderUI(<Wysiwyg aria-label="Guide" disabled />)
 

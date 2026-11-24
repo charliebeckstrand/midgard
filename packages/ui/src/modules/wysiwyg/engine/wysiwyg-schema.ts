@@ -197,6 +197,21 @@ const marks = {
 		parseDOM: [{ tag: 'code' }],
 		toDOM: (): DOMOutputSpec => ['code', { class: code().base, dir: 'ltr' }, 0],
 	},
+	/**
+	 * A range of the value, such as a citation of a chat draft. The caller
+	 * constructs it, so no input makes one, and an edit in it removes it.
+	 * It is the last mark, so each other mark holds it and it splits none of
+	 * them. Two ranges do not overlap, as on Markdown.
+	 */
+	range: {
+		attrs: { id: { validate: 'string' } },
+		inclusive: false,
+		toDOM: (mark): DOMOutputSpec => [
+			'span',
+			{ 'data-slot': 'wysiwyg-range', 'data-range': mark.attrs.id },
+			0,
+		],
+	},
 } satisfies Record<string, MarkSpec>
 
 /**

@@ -1,6 +1,7 @@
 'use client'
 
 import { type RefObject, useLayoutEffect, useReducer, useRef, useState } from 'react'
+import type { MarkdownRange } from '../../components/markdown/markdown-ranges'
 import { useIdlePreload } from '../../hooks/use-idle-preload'
 import { useLazyModule } from '../../hooks/use-lazy-module'
 import { useStableEvent } from '../../hooks/use-stable-event'
@@ -35,20 +36,50 @@ type WysiwygEditorOptions = {
 	host: RefObject<HTMLDivElement | null>
 	/** The Markdown source of the field. */
 	value: string
+	/** The ranges of `value`. */
+	ranges: readonly MarkdownRange[]
 	/** Loads the editor at once, such as on the first focus or press. Without it, the editor loads in idle time. */
 	wanted: boolean
 	/** The settings of the editor, but the two events that this hook owns. */
 	props: Omit<WysiwygEditorProps, 'onChange' | 'onUpdate'>
-	/** Fires with the Markdown of the doc after each edit. */
-	onChange: (markdown: string) => void
+	/** Fires with the Markdown of the doc and its ranges after each edit. */
+	onChange: (markdown: string, ranges: MarkdownRange[]) => void
+}
+
+/** A Markdown source and its ranges. @internal */
+type Source = { value: string; ranges: readonly MarkdownRange[] }
+
+/**
+ * Whether two sources are one source. A range is the same range when its id,
+ * its offsets, and its quote are, so a caller can give the ranges back as new
+ * objects with more fields.
+ *
+ * @internal
+ */
+function sameSource(a: Source, b: Source): boolean {
+	return (
+		a.value === b.value &&
+		a.ranges.length === b.ranges.length &&
+		a.ranges.every((range, index) => {
+			const other = b.ranges[index]
+
+			return (
+				other !== undefined &&
+				range.id === other.id &&
+				range.start === other.start &&
+				range.end === other.end &&
+				range.quote === other.quote
+			)
+		})
+	)
 }
 
 /**
  * The editor of a Wysiwyg field. It loads the engine in idle time, or at once
  * while `wanted` is true, and then makes the editor in `host`. It gives each
- * render the new settings, and it replaces the doc when `value` differs from
- * the source of the doc, such as on a clear after a send, or on an edit that
- * a controlled parent refuses.
+ * render the new settings, and it replaces the doc when `value` or `ranges`
+ * differ from the source of the doc, such as on a clear after a send, or on an
+ * edit that a controlled parent refuses.
  *
  * @returns The editor, or `null` until it loads, and the subscription to each
  *   new state of the editor.
@@ -57,7 +88,14 @@ type WysiwygEditorOptions = {
  * does not replace the doc again.
  * @internal
  */
-export function useWysiwygEditor({ host, value, wanted, props, onChange }: WysiwygEditorOptions) {
+export function useWysiwygEditor({
+	host,
+	value,
+	ranges,
+	wanted,
+	props,
+	onChange,
+}: WysiwygEditorOptions) {
 	useIdlePreload(engine)
 
 	const loaded = useLazyModule(engine, wanted)
@@ -66,18 +104,18 @@ export function useWysiwygEditor({ host, value, wanted, props, onChange }: Wysiw
 
 	const [updates] = useState(createEmitter)
 
-	// The Markdown source of the doc: the value at the creation, then the last
-	// value that the editor emitted or that the field set.
-	const source = useRef(value)
+	// The Markdown source of the doc and its ranges: the value at the creation,
+	// then the last value that the editor emitted or that the field set.
+	const source = useRef<Source>({ value, ranges })
 
 	// A render after each edit, so the sync below compares the doc with the
 	// value even when the parent refuses the edit and does not render.
 	const [, checkValue] = useReducer((count: number) => count + 1, 0)
 
-	const handleChange = useStableEvent((markdown: string) => {
-		source.current = markdown
+	const handleChange = useStableEvent((markdown: string, next: MarkdownRange[]) => {
+		source.current = { value: markdown, ranges: next }
 
-		onChange(markdown)
+		onChange(markdown, next)
 
 		checkValue()
 	})
@@ -92,9 +130,9 @@ export function useWysiwygEditor({ host, value, wanted, props, onChange }: Wysiw
 		// The markup before the load can have the focus. The editor then takes it.
 		const focused = element.contains(element.ownerDocument.activeElement)
 
-		source.current = value
+		source.current = { value, ranges }
 
-		const next = module.createWysiwygEditor(element, value, editorProps)
+		const next = module.createWysiwygEditor(element, value, ranges, editorProps)
 
 		if (focused) next.view.focus()
 
@@ -126,11 +164,13 @@ export function useWysiwygEditor({ host, value, wanted, props, onChange }: Wysiw
 	// The doc shows the value after each commit, as a controlled `<textarea>`
 	// does. A parent that refuses an edit thus takes the edit out of the doc.
 	useLayoutEffect(() => {
-		if (!editor || value === source.current) return
+		const current = { value, ranges }
 
-		source.current = value
+		if (!editor || sameSource(current, source.current)) return
 
-		editor.setValue(value)
+		source.current = current
+
+		editor.setValue(value, ranges)
 	})
 
 	return { editor, subscribe: updates.subscribe }

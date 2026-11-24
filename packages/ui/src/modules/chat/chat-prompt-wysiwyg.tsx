@@ -4,6 +4,7 @@ import type { Ref } from 'react'
 import { isComposing } from '../../utilities/is-composing'
 import { Wysiwyg, type WysiwygProps, WysiwygToolbar } from '../wysiwyg'
 import type { WysiwygAction, WysiwygHandle } from '../wysiwyg/types'
+import type { ChatCitation } from './engine/chat-content/types'
 
 /** The object form of the `wysiwyg` prop of a ChatPrompt. */
 export type ChatPromptWysiwygOptions = {
@@ -16,8 +17,10 @@ export type ChatPromptWysiwygOptions = {
 
 /** Props for {@link ChatPromptWysiwyg}. @internal */
 type ChatPromptWysiwygProps = Pick<
-	WysiwygProps,
+	WysiwygProps<ChatCitation>,
 	| 'value'
+	| 'ranges'
+	| 'onValueChange'
 	| 'rows'
 	| 'placeholder'
 	| 'actions'
@@ -27,8 +30,6 @@ type ChatPromptWysiwygProps = Pick<
 > & {
 	/** The `wysiwyg` prop of the ChatPrompt, when it is on. */
 	config: true | ChatPromptWysiwygOptions
-	/** Fires with the Markdown of the field after each edit. */
-	onValueChange: (value: string) => void
 	/** Enter calls it. */
 	onEnter: () => void
 	/** Escape calls it, outside an IME composition. */

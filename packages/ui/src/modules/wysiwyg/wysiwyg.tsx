@@ -10,6 +10,7 @@ import {
 	useState,
 } from 'react'
 import type { ControlVariant } from '../../components/control/context'
+import { type MarkdownRange, rangeWalk } from '../../components/markdown/markdown-ranges'
 import { cn } from '../../core/cn'
 import { dataAttr } from '../../core/data-attr'
 import type { ScaleStep } from '../../core/density/scale'
@@ -22,15 +23,39 @@ import type { WysiwygAction, WysiwygHandle } from './types'
 import { useWysiwygEditor } from './use-wysiwyg-editor'
 import { useWysiwygField } from './use-wysiwyg-field'
 import { useWysiwygLabelFocus } from './use-wysiwyg-label-focus'
+import type { WysiwygEditor } from './wysiwyg-editor'
 
 /** Props for {@link Wysiwyg}. */
-export type WysiwygProps = {
+export type WysiwygProps<R extends MarkdownRange = MarkdownRange> = {
 	/** Controlled value, in Markdown. `undefined` leaves the field uncontrolled; `null` keeps it controlled with no current value (CONVENTIONS §7.3). */
 	value?: string | null
 	/** Initial value, in Markdown, when uncontrolled and not form-bound. */
 	defaultValue?: string
-	/** Fires with the Markdown of the field after each edit. */
-	onValueChange?: (value: string) => void
+	/**
+	 * The ranges of the value, such as the citations of a chat draft. The field
+	 * marks the text of each range, as `Markdown` draws it.
+	 *
+	 * @remarks
+	 * A range is constructed and not typed: no edit and no paste makes one. An
+	 * edit in a range, or a split of its block, removes its mark, and its text
+	 * stays as prose. An undo brings the range back. A range draws only while
+	 * its `quote` matches the value. A range in a code block, or in a construct
+	 * that the field shows as its source, is not marked.
+	 *
+	 * Give back the ranges of `onValueChange` at each edit, as with a
+	 * controlled value. A new set of ranges, or a range with other offsets,
+	 * marks the field again.
+	 * @defaultValue []
+	 */
+	ranges?: readonly R[]
+	/**
+	 * Fires with the Markdown of the field after each edit, and the ranges that
+	 * the edit kept. Each range is the object of `ranges` with the `start`,
+	 * `end`, and `quote` of the new value. A native reset of an uncontrolled
+	 * field gives the ranges of the first render that can draw on its default
+	 * value.
+	 */
+	onValueChange?: (value: string, ranges: R[]) => void
 	/**
 	 * The minimum height in lines. The field grows with its content, and a
 	 * `max-height` class sets the maximum height.
@@ -113,6 +138,42 @@ function ignoreUpdates(): () => void {
 }
 
 /**
+ * How the toolbar follows the selection. A locked field is inert: the toolbar
+ * does not follow the selection, and it shows no action as on.
+ *
+ * @internal
+ */
+function selection(
+	editor: WysiwygEditor | null,
+	subscribe: WysiwygContextValue['subscribe'],
+	locked: boolean,
+): Pick<WysiwygContextValue, 'subscribe' | 'isActive'> {
+	if (locked) return { subscribe: ignoreUpdates, isActive: () => false }
+
+	return { subscribe, isActive: (action) => editor?.isActive(action) ?? false }
+}
+
+/**
+ * The ranges that can draw on `value`: each range of `ranges` that can, then
+ * each range of `fallback` with another id that can.
+ *
+ * @internal
+ */
+function drawable<R extends MarkdownRange>(
+	value: string,
+	ranges: readonly R[],
+	fallback: readonly R[],
+): R[] {
+	const kept = rangeWalk(value, ranges)?.ranges ?? []
+
+	const ids = new Set(kept.map((range) => range.id))
+
+	const rest = fallback.filter((range) => !ids.has(range.id))
+
+	return [...kept, ...(rangeWalk(value, rest)?.ranges ?? [])]
+}
+
+/**
  * The HTML attributes of the field as React props, for the markup before the
  * editor loads. The editor takes them by their HTML names.
  *
@@ -154,6 +215,9 @@ function reactProps(attributes: Record<string, string>): Record<string, string> 
  * that the reader types goes nowhere. The focus goes on to the editor when it
  * loads.
  *
+ * With `ranges`, the field marks the text of each range, such as a citation,
+ * and keeps the ranges across each edit that does not touch them.
+ *
  * The value is the Markdown source. A value with another spelling of a
  * construct, such as `__bold__`, stays as given until the reader edits the
  * field. An edit then gives the one spelling of each construct: `**bold**`,
@@ -164,7 +228,7 @@ function reactProps(attributes: Record<string, string>): Record<string, string> 
  * `Form` field by `name`, or read `value`. A native form reset sets an
  * uncontrolled field back to `defaultValue`.
  */
-export function Wysiwyg({
+export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 	rows = 1,
 	placeholder,
 	actions,
@@ -174,19 +238,43 @@ export function Wysiwyg({
 	separated = false,
 	size,
 	ref,
+	ranges = [],
+	onValueChange,
 	...options
-}: WysiwygProps) {
+}: WysiwygProps<R>) {
 	const hasActions = actions != null && actions !== false
 
 	const hasToolbar = children != null && children !== false
 
+	// The toolbar is the top row of the frame, or above the frame with `separated`.
+	const inside = hasToolbar && !separated
+
+	const apart = hasToolbar && separated
+
+	// Each range that the field has held, by its id, so an undo that brings a
+	// range back gives the object of the caller.
+	const known = useRef(new Map<string, R>())
+
+	// The ranges of the first render, which are the ranges of the default value.
+	const [initialRanges] = useState(ranges)
+
+	// The ranges of the edit that sets the value now. A change of the value that
+	// is not an edit, such as a form reset, has none, and gives the ranges that
+	// can draw on the new value.
+	const edited = useRef<R[] | undefined>(undefined)
+
+	const emit = useStableEvent((next: string) =>
+		onValueChange?.(next, edited.current ?? drawable(next, ranges, initialRanges)),
+	)
+
 	// The reset ref apart, so the rest of the field reads as values in the render.
 	const { resetRef, ...field } = useWysiwygField({
 		...options,
+		onValueChange: onValueChange && emit,
 		defaultValue: options.defaultValue ?? '',
 		placeholder,
-		rows: hasActions || (hasToolbar && !separated),
-		toolbar: hasToolbar && !hasActions && !separated,
+		rows: hasActions || inside,
+		toolbar: inside && !hasActions,
 		separated,
 	})
 
@@ -211,9 +299,24 @@ export function Wysiwyg({
 		return true
 	})
 
+	const handleChange = useStableEvent((markdown: string, spans: MarkdownRange[]) => {
+		for (const range of ranges) known.current.set(range.id, range)
+
+		edited.current = spans.flatMap((span) => {
+			const range = known.current.get(span.id)
+
+			return range ? [{ ...range, ...span }] : []
+		})
+
+		field.setValue(markdown)
+
+		edited.current = undefined
+	})
+
 	const { editor, subscribe } = useWysiwygEditor({
 		host,
 		value,
+		ranges,
 		wanted,
 		props: {
 			attributes: field.attributes,
@@ -222,7 +325,7 @@ export function Wysiwyg({
 			onKeyDown,
 			onLink: openLink,
 		},
-		onChange: field.setValue,
+		onChange: handleChange,
 	})
 
 	// The editable element, or the markup before the editor loads.
@@ -241,15 +344,12 @@ export function Wysiwyg({
 
 	useWysiwygLabelFocus(field.disabled ? undefined : field.labelId, focus)
 
-	// A locked field is inert: the toolbar shows no action as on, and it does not
-	// follow the selection.
 	const context: WysiwygContextValue = {
 		fieldId: field.fieldId,
 		ready: editor !== null,
 		locked,
 		toolbarClassName: cn(slots.toolbar),
-		subscribe: locked ? ignoreUpdates : subscribe,
-		isActive: (action: WysiwygAction) => !locked && (editor?.isActive(action) ?? false),
+		...selection(editor, subscribe, locked),
 		run: (action: WysiwygAction) => {
 			editor?.run(action)
 		},
@@ -272,52 +372,43 @@ export function Wysiwyg({
 		if (!event.currentTarget.contains(event.relatedTarget)) field.setTouched()
 	}
 
-	const apart = hasToolbar && separated
-
-	const frame = (
-		<ControlFrame
-			as="div"
-			density={size}
-			data-disabled={dataAttr(field.disabled)}
-			className={cn(slots.base)}
-			onBlur={apart ? undefined : handleBlur}
-		>
-			{hasToolbar && !separated && children}
-			<div
-				ref={host}
-				data-slot="wysiwyg"
-				className={cn(slots.host)}
-				style={fieldStyle(rows, placeholder)}
-			>
-				{!editor && (
-					<WysiwygStatic
-						attributes={field.attributes}
-						value={value}
-						focusable={!field.disabled}
-						onWant={() => setWanted(true)}
-					/>
-				)}
-			</div>
-			{hasActions && (
-				<ControlActions data-slot="wysiwyg-actions" className={cn(slots.actions)}>
-					{actions}
-				</ControlActions>
-			)}
-			{!field.controlled && <input type="hidden" ref={resetRef} />}
-		</ControlFrame>
-	)
-
+	// The root keeps one shape for each layout, so a change of `separated` does
+	// not mount the host again, which holds the element of the editor.
 	return (
 		<WysiwygContext value={context}>
-			{apart ? (
-				// biome-ignore lint/a11y/noStaticElementInteractions: a focus-out surface for the toolbar and the field, not a control. The field marks itself touched when the focus leaves both.
-				<div data-slot="wysiwyg-root" className={cn(slots.root)} onBlur={handleBlur}>
-					{children}
-					{frame}
-				</div>
-			) : (
-				frame
-			)}
+			{/* biome-ignore lint/a11y/noStaticElementInteractions: a focus-out surface for the toolbar and the field, not a control. The field marks itself touched when the focus leaves both. */}
+			<div data-slot="wysiwyg-root" className={cn(slots.root)} onBlur={handleBlur}>
+				{apart && children}
+				<ControlFrame
+					as="div"
+					density={size}
+					data-disabled={dataAttr(field.disabled)}
+					className={cn(slots.base)}
+				>
+					{inside && children}
+					<div
+						ref={host}
+						data-slot="wysiwyg"
+						className={cn(slots.host)}
+						style={fieldStyle(rows, placeholder)}
+					>
+						{!editor && (
+							<WysiwygStatic
+								attributes={field.attributes}
+								value={value}
+								focusable={!field.disabled}
+								onWant={() => setWanted(true)}
+							/>
+						)}
+					</div>
+					{hasActions && (
+						<ControlActions data-slot="wysiwyg-actions" className={cn(slots.actions)}>
+							{actions}
+						</ControlActions>
+					)}
+					{!field.controlled && <input type="hidden" ref={resetRef} />}
+				</ControlFrame>
+			</div>
 		</WysiwygContext>
 	)
 }

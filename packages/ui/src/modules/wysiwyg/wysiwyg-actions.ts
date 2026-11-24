@@ -169,18 +169,6 @@ export const wysiwygActions: Record<WysiwygAction, WysiwygActionEntry> = {
 export const WYSIWYG_ACTIONS = Object.keys(wysiwygActions) as WysiwygAction[]
 
 /**
- * The keys of a shortcut as the tooltip shows them, in the order of the
- * platform: `⌘B` and `⌥⇧⌘X` on Apple platforms, `⌃B` and `⌃⌥⇧X` elsewhere.
- *
- * @internal
- */
-export function shortcutText({ shift, alt, key }: WysiwygShortcut, apple: boolean): string {
-	const modifiers = `${alt ? '⌥' : ''}${shift ? '⇧' : ''}`
-
-	return apple ? `${modifiers}⌘${key}` : `⌃${modifiers}${key}`
-}
-
-/**
  * The `aria-keyshortcuts` value of a shortcut, such as `Meta+B` on Apple
  * platforms and `Control+Shift+X` elsewhere.
  *
