@@ -23,8 +23,9 @@ type PdfViewerPageTextOptions = {
  * @remarks The page is an image, so its name ("Page 3") is all that a screen reader gets from
  * it. The text is the text alternative of the content of the page (WCAG 1.1.1). It comes from
  * the OCR `data` of the consumer when `data` has a run on the page, in the order of `data`.
- * Else it comes from the text that pdf.js reads off a `src` document. A scan with no OCR data
- * has no text.
+ * Else it comes from the text that pdf.js reads off a `src` document. The rule applies to each
+ * page, so a page that the OCR skipped still gets the text of the document. A scan with no OCR
+ * data has no text.
  * @internal
  */
 export function usePdfViewerPageText({

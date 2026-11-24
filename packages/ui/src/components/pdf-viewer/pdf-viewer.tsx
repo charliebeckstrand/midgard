@@ -190,8 +190,8 @@ export type PdfViewerProps = Omit<ComponentProps<'section'>, 'children' | 'onLoa
 	 *
 	 * @remarks The search reads no text of its own, from a `src` or from `pages`. Give the runs
 	 * in reading order, because the search and the hidden text join the runs of a page in the
-	 * order of `data`. Without `data`, a `src` document gives the hidden text from its own text,
-	 * and a `pages` document gives none.
+	 * order of `data`. A page with no run in `data`, such as a page that the OCR skipped, takes
+	 * its hidden text from the text of a `src` document, and takes none on the `pages` path.
 	 * Each `rect` is in the unit named by `highlightUnit`, as a highlight is.
 	 *
 	 * Identity need not be stable, but a stable array is cheaper. The search folds the text

@@ -103,6 +103,27 @@ describe('PdfViewer page text', () => {
 
 		expect(read).not.toHaveBeenCalled()
 	})
+
+	it('reads the text of a src document for a page with no run in the data', async () => {
+		const read = vi.fn(async (index: number) => `pdf.js text ${index + 1}`)
+
+		ensureDocumentLoad('/partial.pdf', async (report) => {
+			report.open([1, 2, 3].map((id) => ({ id, src: '', width: 918, height: 1188 })))
+
+			report.read(read)
+		})
+
+		const { container, rerender } = renderUI(<PdfViewer src="/partial.pdf" data={data} page={1} />)
+
+		await waitFor(() => expect(shownText(container)).toBe('Invoice 1042 Total due: $310'))
+
+		// The OCR skipped page 3, so it takes the text of the document.
+		rerender(<PdfViewer src="/partial.pdf" data={data} page={3} />)
+
+		await waitFor(() => expect(shownText(container)).toBe('pdf.js text 3'))
+
+		expect(read.mock.calls.map(([index]) => index)).toEqual([2])
+	})
 })
 
 describe('readPageText', () => {

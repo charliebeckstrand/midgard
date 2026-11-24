@@ -143,7 +143,7 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > `PdfViewer` searches the OCR text that `data` gives, as `PdfViewerTextItem` runs. The toolbar then has a Search control. `search` turns it off, or sets the color of the matches and the page turn, through `PdfViewerSearchOptions`.
 
-> The page of `PdfViewer` is an image, so the text of the page on screen follows it as visually hidden text, for a screen reader. The text comes from the runs of `data` on that page, else from the text that pdf.js reads off a `src` document. A scan with no `data` has no text.
+> The page of `PdfViewer` is an image, so the text of the page on screen follows it as visually hidden text, for a screen reader. The text comes from the runs of `data` on that page. A page with no run in `data` takes the text that pdf.js reads off a `src` document. A scan with no `data` has no text.
 
 > `PdfViewer` shows its toolbar while a `src` opens and after the document opens with a page. A load that failed and a document with no page show the message of the pane and no toolbar.
 
