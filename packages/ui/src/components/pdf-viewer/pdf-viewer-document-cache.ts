@@ -125,6 +125,13 @@ type PdfRasterResult = string | ImageBitmap | null
  */
 type PdfPageRenderer = (index: number, raster: PdfPageRaster, factor?: number) => PdfRenderJob
 
+/**
+ * Reads the text of the page at the 0-based `index`, from the document that the load keeps
+ * open. Resolves to an empty string for a page with no text, such as a scan.
+ * @internal
+ */
+type PdfPageReader = (index: number) => Promise<string>
+
 /** The render in flight for an entry. @internal */
 type RunningJob = {
 	index: number
@@ -159,6 +166,10 @@ type Held = {
 	release: (() => void) | null
 	/** Renders one page on request, from the document that the load keeps open. */
 	renderer: PdfPageRenderer | null
+	/** Reads the text of one page on request, from the document that the load keeps open. */
+	reader: PdfPageReader | null
+	/** The text of each page that a viewer asked for, by 0-based index, so each page reads once. */
+	texts: Map<number, Promise<string>>
 	/**
 	 * The page that each viewer shows, as a 0-based index, keyed by a token of the viewer.
 	 *
@@ -232,6 +243,10 @@ function revoke(snapshot: PdfDocumentSnapshot) {
 function free(held: Held) {
 	// Stop the queue before the release destroys the document that it renders from.
 	held.renderer = null
+
+	held.reader = null
+
+	held.texts.clear()
 
 	if (held.job) {
 		held.job.canceled = true
@@ -326,6 +341,8 @@ function heldFor(src: string): Held {
 		loading: false,
 		release: null,
 		renderer: null,
+		reader: null,
+		texts: new Map(),
 		focus: new Map(),
 		widths: new Map(),
 		thumbnails: new Map(),
@@ -433,6 +450,8 @@ export type PdfLoadReport = {
 	 * that the viewers ask for.
 	 */
 	serve: (renderer: PdfPageRenderer) => void
+	/** Gives the entry the reader of the text of its pages. See {@link readPageText}. */
+	read: (reader: PdfPageReader) => void
 }
 
 /** Rasterizes a document, reporting each page as it lands. @internal */
@@ -538,6 +557,9 @@ export function ensureDocumentLoad(src: string | undefined, run: PdfLoadRun) {
 			held.renderer = renderer
 
 			pump(src, held)
+		},
+		read: (reader) => {
+			if (documents.get(src) === held) held.reader = reader
 		},
 	}).then(
 		() => settle({}),
@@ -969,6 +991,48 @@ export function focusPage(src: string | undefined, token: object, index: number)
 
 		if (documents.get(src) === held) pump(src, held)
 	}
+}
+
+/**
+ * Whether the open document at `src` can read the text of its pages.
+ *
+ * @remarks The load gives the reader before it settles, so a viewer that sees the load
+ * settle can ask without a wait.
+ * @internal
+ */
+export function canReadPageText(src: string | undefined): boolean {
+	return !!src && !!documents.get(src)?.reader
+}
+
+/**
+ * Reads the text of the page at the 0-based `index` of `src`.
+ *
+ * @returns The text of the page, an empty string for a page with no text, or `null` when no
+ * open document can read it: no `src`, a load that has not opened, or a read that failed.
+ * @remarks The entry keeps each read, so a page that a viewer shows again reads no text
+ * again. A failed read is not kept, and the next ask tries again.
+ * @internal
+ */
+export function readPageText(src: string | undefined, index: number): Promise<string | null> {
+	const held = src ? documents.get(src) : undefined
+
+	const reader = held?.reader
+
+	if (!held || !reader) return Promise.resolve(null)
+
+	let text = held.texts.get(index)
+
+	if (!text) {
+		text = reader(index)
+
+		held.texts.set(index, text)
+
+		text.catch(() => {
+			if (held.texts.get(index) === text) held.texts.delete(index)
+		})
+	}
+
+	return text.catch(() => null)
 }
 
 /**
