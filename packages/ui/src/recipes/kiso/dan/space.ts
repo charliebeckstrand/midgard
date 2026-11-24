@@ -51,6 +51,9 @@ const rowY = 'density-py-[0.5,1,1.5,2,2.5]'
  */
 const itemX = scale.px.md
 
+/** The inline padding of a menu item, as a margin. */
+const itemMx = 'density-mx-[1.5,2.25,3,3.75,4.5]'
+
 /** The bottom padding of a tab and of an accordion body: the `lg` stop of the padding scale. */
 const bottom = 'density-pb-[2,3,4,5,6]'
 
@@ -388,14 +391,14 @@ export const space = {
 			/** The inline padding of a menu item. */
 			x: itemX,
 			/** The inline padding of a menu item, as a margin. */
-			mx: 'density-mx-[1.5,2.25,3,3.75,4.5]',
+			mx: itemMx,
 		},
 		separator: {
 			/**
 			 * The inline margin of a menu separator: the inline padding of a menu item.
 			 * The rule starts and ends where the content of a row starts and ends.
 			 */
-			x: 'density-mx-[1.5,2.25,3,3.75,4.5]',
+			x: itemMx,
 			/**
 			 * The block margin of a menu separator, as `--ui-menu-separator`. The space
 			 * between the rule and the content of the row on each side is the same as
