@@ -647,10 +647,6 @@ describe('Grid roving group headers under manual grouping', () => {
 
 		fireEvent.keyDown(table, { key: 'ArrowRight' })
 
-		process.stderr.write(
-			`DBG ${document.activeElement?.outerHTML.replace(/class="[^"]*"/g, '').slice(0, 300)}\n`,
-		)
-
 		expect(bodyRows(table)[0]).toHaveFocus()
 
 		fireEvent.keyDown(table, { key: 'ArrowUp' })
@@ -701,6 +697,11 @@ describe('Grid roving group headers under manual grouping', () => {
 		const { table } = renderHeaders({ onRowClick: vi.fn() })
 
 		expect(headerRow(table).querySelector('button')).toHaveAttribute('tabindex', '-1')
+
+		// The header takes the focus ring, but no pointer cursor: only its button takes a click.
+		expect(headerRow(table).className).toContain('ring-inset')
+
+		expect(headerRow(table).className).not.toContain('cursor-pointer')
 	})
 
 	it('leaves the disclosure button of a header in the tab order without roving', () => {

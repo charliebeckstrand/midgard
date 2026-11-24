@@ -501,6 +501,10 @@ export const k = {
 			// the underline rule of a column group. Each entry is complete, so a cell
 			// takes one entry and no merge order applies.
 			rail: { ...railColor, neutral: railNeutral },
+			// The focus ring of a group header that roves: its row or its label cell.
+			// The disclosure button takes the click, so the header has no pointer
+			// cursor.
+			roving: focus.inset,
 			// Chevron at the row's trailing edge: the group row renders a right chevron
 			// when collapsed and a down chevron when expanded; `shrink-0` holds its size
 			// beside the label. A right-to-left grid mirrors it, so a collapsed chevron

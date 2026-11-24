@@ -53,7 +53,8 @@ type GridManualGroupRowProps<T> = {
  *
  * Roving makes the table a treegrid, and the header an item of the roving: the
  * row in row mode, and the label cell in cell mode (see `useGridRoving`). The
- * item takes the focus ring and the keys of the group. The disclosure button
+ * item takes the focus ring and the keys of the group, but no pointer cursor,
+ * because the disclosure button takes the click. The disclosure button
  * then leaves the tab order, so the grid stays one Tab stop.
  *
  * @internal
@@ -85,12 +86,12 @@ function GridManualGroupRowImpl<T>({
 			aria-level={tree ? 1 : undefined}
 			aria-expanded={tree ? expanded : undefined}
 			data-roving={dataAttr(rowRoving)}
-			className={cn(rowRoving && k.row.clickable)}
+			className={cn(rowRoving && k.row.group.roving)}
 		>
 			<TableCell
 				colSpan={span}
 				data-roving={dataAttr(cellRoving)}
-				className={cn(k.row.group.rail.neutral, cellRoving && k.cell.rovable, pinned.className)}
+				className={cn(k.row.group.rail.neutral, cellRoving && k.row.group.roving, pinned.className)}
 				style={pinned.style}
 				data-grid-pin={pinned.pin}
 			>
