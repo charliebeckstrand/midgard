@@ -52,7 +52,8 @@ async function sampleOpacities(
 }
 
 /** Whether `opacity` is a value between the two ends of a fade. */
-const fading = (opacity: number | null) => opacity !== null && opacity > 0 && opacity < 1
+const fading = (opacity: number | null | undefined) =>
+	typeof opacity === 'number' && opacity > 0 && opacity < 1
 
 /**
  * In a warm `<TooltipGroup>`, the panel of the next tooltip shows with no
