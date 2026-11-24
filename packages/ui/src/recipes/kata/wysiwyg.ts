@@ -66,6 +66,12 @@ export const k = defineKata(
 					'[&.ProseMirror-hideselection]:caret-transparent',
 					'[&.ProseMirror-hideselection_*]:selection:bg-transparent',
 					'[&_img.ProseMirror-separator]:inline [&_img.ProseMirror-separator]:m-0 [&_img.ProseMirror-separator]:border-0',
+					// The held selection: the text or the caret that a popover acts on, such
+					// as the link popover, while the focus is out of the field. The text has
+					// the color of a selection, and the caret is a line that takes no width.
+					'[&_[data-slot=wysiwyg-held]]:bg-[Highlight] [&_[data-slot=wysiwyg-held]]:text-[HighlightText]',
+					'[&_[data-slot=wysiwyg-held-caret]]:inline-block [&_[data-slot=wysiwyg-held-caret]]:h-[1lh] [&_[data-slot=wysiwyg-held-caret]]:align-top',
+					'[&_[data-slot=wysiwyg-held-caret]]:-me-px [&_[data-slot=wysiwyg-held-caret]]:border-s [&_[data-slot=wysiwyg-held-caret]]:border-current',
 					// A range, such as a citation, is a soft pill, as a citation that
 					// selects in no view is in a reply. It has no padding, so the caret
 					// sits at the edge of its text.

@@ -1,7 +1,13 @@
 import { exitCode, lift, setBlockType, toggleMark, wrapIn } from 'prosemirror-commands'
-import type { MarkType, NodeType } from 'prosemirror-model'
+import type { Mark, MarkType, NodeType } from 'prosemirror-model'
 import { liftListItem, wrapInList } from 'prosemirror-schema-list'
-import { type Command, type EditorState, Selection, TextSelection } from 'prosemirror-state'
+import {
+	type Command,
+	type EditorState,
+	Selection,
+	TextSelection,
+	type Transaction,
+} from 'prosemirror-state'
 import type { WysiwygAction } from '../types'
 import { schema } from './wysiwyg-schema'
 
@@ -297,29 +303,97 @@ export function linkRange(state: EditorState): { from: number; to: number } {
 }
 
 /**
- * Sets a link on the range of the link action. With a caret outside a link,
- * it inserts the URL as the text of the link.
+ * The text and the URL of the range of the link action, for the fields of the
+ * link popover. The blocks of a range join with a space, as the text field has
+ * one line.
  *
  * @internal
  */
-export function setLink(href: string): Command {
+export function linkDraft(state: EditorState): { text: string; href: string } {
+	const { from, to } = linkRange(state)
+
+	const { $from } = state.selection
+
+	const mark = marks.link.isInSet($from.marks()) ?? marks.link.isInSet($from.nodeAfter?.marks ?? [])
+
+	return { text: state.doc.textBetween(from, to, ' '), href: mark?.attrs.href ?? '' }
+}
+
+/**
+ * Sets the text and the link of the range of the link action. An empty URL
+ * removes the link, and an empty text is the URL.
+ *
+ * When the text is the text of the range, only the link changes, so the other
+ * marks of the text and the inline atoms stay. Else the new text replaces the
+ * range, and it keeps the marks of the start of the range. At a caret outside
+ * a link, the text goes in at the caret. A selection then selects the new
+ * text, and a caret goes after it.
+ *
+ * @internal
+ */
+export function setLink(href: string, text: string): Command {
 	return (state, dispatch) => {
-		const range = linkRange(state)
+		const { from, to } = linkRange(state)
 
-		const mark = marks.link.create({ href })
+		const current = state.doc.textBetween(from, to, ' ')
 
-		if (dispatch) {
-			const tr = state.tr
+		const label = text === '' ? current || href : text
 
-			if (range.from === range.to) {
-				tr.insert(range.from, schema.text(href, [mark]))
-			} else {
-				tr.removeMark(range.from, range.to, marks.link).addMark(range.from, range.to, mark)
-			}
+		if (label === '') return false
 
-			dispatch(tr.scrollIntoView())
-		}
+		if (!dispatch) return true
+
+		const mark = href === '' ? null : marks.link.create({ href })
+
+		const tr =
+			from !== to && label === current
+				? relink(state.tr, from, to, mark)
+				: writeLink(state, from, to, label, mark)
+
+		dispatch(tr.scrollIntoView())
 
 		return true
 	}
+}
+
+/** Sets the link of a range, or removes it with no mark. Each other mark stays. @internal */
+function relink(tr: Transaction, from: number, to: number, mark: Mark | null): Transaction {
+	tr.removeMark(from, to, marks.link)
+
+	return mark ? tr.addMark(from, to, mark) : tr
+}
+
+/**
+ * Replaces a range with the text of a link. The text takes the marks of the
+ * start of the range. A selection then selects the text, and a caret goes
+ * after it.
+ *
+ * @internal
+ */
+function writeLink(
+	state: EditorState,
+	from: number,
+	to: number,
+	label: string,
+	mark: Mark | null,
+): Transaction {
+	const $from = state.doc.resolve(from)
+
+	const start =
+		from === to ? (state.storedMarks ?? $from.marks()) : (state.doc.nodeAt(from)?.marks ?? [])
+
+	const own = marks.link.removeFromSet(start)
+
+	// The block takes only the marks that it allows, so a code block takes no link.
+	const set = $from.parent.type.allowedMarks(mark ? mark.addToSet(own) : own)
+
+	const tr = state.tr.replaceWith(from, to, schema.text(label, set))
+
+	const end = from + label.length
+
+	return tr.setSelection(
+		state.selection.empty
+			? TextSelection.create(tr.doc, end)
+			: TextSelection.create(tr.doc, from, end),
+	)
 }

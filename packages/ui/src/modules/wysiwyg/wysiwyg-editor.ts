@@ -12,9 +12,12 @@ import { caretBlock, replaceInBlock } from './engine/wysiwyg-block'
 import {
 	exitCodeDown,
 	exitCodeOnEmptyLine,
+	linkDraft,
+	linkRange,
 	setLink,
 	wysiwygCommands,
 } from './engine/wysiwyg-commands'
+import { HELD, wysiwygHeld } from './engine/wysiwyg-held'
 import { wysiwygInputRules } from './engine/wysiwyg-input-rules'
 import { parseMarkdown } from './engine/wysiwyg-markdown/parse'
 import { serializeMarkdown, serializeMarkdownRanges } from './engine/wysiwyg-markdown/serialize'
@@ -81,10 +84,18 @@ export type WysiwygEditor = {
 	run: (action: WysiwygAction) => boolean
 	/** Whether an action is on at the selection. */
 	isActive: (action: WysiwygAction) => boolean
-	/** Sets a link on the selection, or removes the link with an empty URL. */
-	link: (href: string) => void
-	/** The URL of the link at the selection, or an empty string. */
-	linkHref: () => string
+	/**
+	 * Sets the text and the link of the selection, or of the link at a caret,
+	 * and moves the focus back to the field. An empty URL removes the link.
+	 */
+	link: (href: string, text: string) => void
+	/** The text and the URL of the selection, or of the link at a caret. */
+	linkDraft: () => { text: string; href: string }
+	/**
+	 * Marks the range of the link action while the focus is in the link
+	 * popover. `false` removes the mark.
+	 */
+	hold: (held: boolean) => void
 	/** The text block that holds a collapsed caret, or `null`. */
 	block: () => WysiwygBlock | null
 	/** Replaces a span of that block, and marks `range` in the new text. */
@@ -158,6 +169,7 @@ export function createWysiwygEditor(
 		doc: parseMarkdown(value, ranges),
 		plugins: [
 			wysiwygRanges(),
+			wysiwygHeld(),
 			wysiwygInputRules(),
 			history(),
 			keymap({
@@ -280,20 +292,17 @@ export function createWysiwygEditor(
 		},
 		run: (action) => wysiwygCommands[action].run(view.state, view.dispatch, view),
 		isActive: (action) => wysiwygCommands[action].active(view.state),
-		link: (href) => {
-			if (href === '') wysiwygCommands.link.run(view.state, view.dispatch, view)
-			else setLink(href)(view.state, view.dispatch, view)
+		link: (href, text) => {
+			setLink(href, text)(view.state, view.dispatch, view)
 
 			view.focus()
 		},
-		linkHref: () => {
-			const { $from } = view.state.selection
+		linkDraft: () => linkDraft(view.state),
+		hold: (held) => {
+			// The field can go before the popover does.
+			if (view.isDestroyed) return
 
-			const mark =
-				schema.marks.link.isInSet($from.marks()) ??
-				schema.marks.link.isInSet($from.nodeAfter?.marks ?? [])
-
-			return mark?.attrs.href ?? ''
+			view.dispatch(view.state.tr.setMeta(HELD, held ? linkRange(view.state) : null))
 		},
 		block: () => caretBlock(view.state),
 		replace: (from, to, text, range) => {
