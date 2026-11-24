@@ -170,6 +170,65 @@ describe('Wysiwyg (real browser)', () => {
 		expect(value()).toBe('Ship it')
 	})
 
+	it('links the selected text from the link popover, and keeps it selected', async () => {
+		renderUI(<Notes initial="Ship it" />)
+
+		const field = await editable()
+
+		await userEvent.keyboard('{End}{Shift>}{ArrowLeft}{ArrowLeft}{/Shift}')
+
+		await userEvent.click(screen.getByRole('button', { name: 'Link' }))
+
+		const dialog = await screen.findByRole('dialog', { name: 'Link' })
+
+		const url = screen.getByRole('textbox', { name: 'URL' })
+
+		await waitFor(() => expect(url).toHaveFocus())
+
+		expect(screen.getByRole('textbox', { name: 'Text' })).toHaveValue('it')
+
+		// The field marks the selection while the focus is in the popover.
+		expect(field.querySelector('[data-slot=wysiwyg-held]')).toHaveTextContent('it')
+
+		expect(dialog).toBeVisible()
+
+		await userEvent.keyboard('https://a.dev{Enter}')
+
+		expect(value()).toBe('Ship [it](https://a.dev)')
+
+		await waitFor(() => expect(field).toHaveFocus())
+
+		expect(window.getSelection()?.toString()).toBe('it')
+
+		expect(field.querySelector('[data-slot=wysiwyg-held]')).toBeNull()
+	})
+
+	it('puts the text and the link in at the caret from the link popover', async () => {
+		renderUI(<Notes initial="Ship " />)
+
+		const field = await editable()
+
+		await userEvent.keyboard('{End}')
+
+		await userEvent.click(screen.getByRole('button', { name: 'Link' }))
+
+		const text = await screen.findByRole('textbox', { name: 'Text' })
+
+		await waitFor(() => expect(text).toHaveFocus())
+
+		expect(field.querySelector('[data-slot=wysiwyg-held-caret]')).not.toBeNull()
+
+		await userEvent.keyboard('the docs{Tab}https://a.dev{Enter}')
+
+		expect(value()).toBe('Ship [the docs](https://a.dev)')
+
+		await waitFor(() => expect(field).toHaveFocus())
+
+		await userEvent.keyboard(' now')
+
+		expect(value()).toBe('Ship [the docs](https://a.dev) now')
+	})
+
 	it('is inert while read-only: a press shows no action as on, and no shortcut edits', async () => {
 		const onValueChange = vi.fn()
 

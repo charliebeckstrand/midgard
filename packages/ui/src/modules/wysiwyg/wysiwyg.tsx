@@ -362,8 +362,9 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 				linkButtons.current--
 			}
 		},
-		linkHref: () => editor?.linkHref() ?? '',
-		setLink: (href: string) => editor?.link(href),
+		linkDraft: () => editor?.linkDraft() ?? { text: '', href: '' },
+		setLink: (href: string, text: string) => editor?.link(href, text),
+		holdSelection: (held: boolean) => editor?.hold(held),
 	}
 
 	// The field is touched when the focus leaves the field and its rows, and not

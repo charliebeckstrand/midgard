@@ -36,10 +36,18 @@ export type WysiwygContextValue = {
 	 * @returns The release of the count.
 	 */
 	registerLink: () => () => void
-	/** The URL of the link at the selection, or an empty string. */
-	linkHref: () => string
-	/** Sets a link on the selection, or removes it with an empty URL. */
-	setLink: (href: string) => void
+	/** The text and the URL of the selection, or of the link at a caret. */
+	linkDraft: () => { text: string; href: string }
+	/**
+	 * Sets the text and the link of the selection, or of the link at a caret.
+	 * An empty URL removes the link.
+	 */
+	setLink: (href: string, text: string) => void
+	/**
+	 * Marks the selection while the focus is in the link popover, or removes
+	 * the mark with `false`.
+	 */
+	holdSelection: (held: boolean) => void
 }
 
 export const [WysiwygContext, useWysiwyg] = createContext<WysiwygContextValue>('Wysiwyg')

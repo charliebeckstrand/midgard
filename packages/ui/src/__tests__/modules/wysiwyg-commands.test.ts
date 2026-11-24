@@ -1,8 +1,8 @@
 // @vitest-environment node
 
-import { EditorState, type Transaction } from 'prosemirror-state'
+import { EditorState, TextSelection, type Transaction } from 'prosemirror-state'
 import { describe, expect, it } from 'vitest'
-import { wysiwygCommands } from '../../modules/wysiwyg/engine/wysiwyg-commands'
+import { linkDraft, setLink, wysiwygCommands } from '../../modules/wysiwyg/engine/wysiwyg-commands'
 import { parseMarkdown } from '../../modules/wysiwyg/engine/wysiwyg-markdown/parse'
 import { serializeMarkdown } from '../../modules/wysiwyg/engine/wysiwyg-markdown/serialize'
 
@@ -33,6 +33,86 @@ describe('the Code block action', () => {
 	it('keeps an inline atom as its source in the code', () => {
 		expect(toggleCodeBlock('See ![chart](chart.png) here')).toBe(
 			'```\nSee ![chart](chart.png) here\n```',
+		)
+	})
+})
+
+/**
+ * A state of a source with the selection from `from` to `to`, as offsets in
+ * the text of its one paragraph.
+ */
+function selectText(source: string, from: number, to = from): EditorState {
+	const state = EditorState.create({ doc: parseMarkdown(source) })
+
+	return state.apply(state.tr.setSelection(TextSelection.create(state.doc, from + 1, to + 1)))
+}
+
+/** Runs the link of the popover on a state, and gives the Markdown and the selected text. */
+function link(state: EditorState, href: string, text: string) {
+	let next = state
+
+	setLink(href, text)(state, (tr: Transaction) => {
+		next = next.apply(tr)
+	})
+
+	const { from, to } = next.selection
+
+	return { markdown: serializeMarkdown(next.doc), selected: next.doc.textBetween(from, to) }
+}
+
+describe('the link of the popover', () => {
+	it('gives the selected text, and the text and the URL of a link at the caret', () => {
+		expect(linkDraft(selectText('Read the docs', 5, 8))).toEqual({ text: 'the', href: '' })
+
+		expect(linkDraft(selectText('Read [the docs](https://a.dev) now', 7))).toEqual({
+			text: 'the docs',
+			href: 'https://a.dev',
+		})
+
+		expect(linkDraft(selectText('Read', 4))).toEqual({ text: '', href: '' })
+	})
+
+	it('links the selected text, keeps its marks, and keeps it selected', () => {
+		expect(link(selectText('Read **the** docs', 5, 8), 'https://a.dev', 'the')).toEqual({
+			markdown: 'Read [**the**](https://a.dev) docs',
+			selected: 'the',
+		})
+	})
+
+	it('replaces the selected text with new text, and selects it', () => {
+		expect(link(selectText('Read the docs', 5, 13), 'https://a.dev', 'the guide')).toEqual({
+			markdown: 'Read [the guide](https://a.dev)',
+			selected: 'the guide',
+		})
+	})
+
+	it('puts the text and the link in at the caret, and the caret after it', () => {
+		const state = selectText('Read  now', 5)
+
+		expect(link(state, 'https://a.dev', 'the docs')).toEqual({
+			markdown: 'Read [the docs](https://a.dev) now',
+			selected: '',
+		})
+
+		// A link whose text is its URL is an autolink.
+		expect(link(state, 'https://a.dev', '').markdown).toBe('Read https://a.dev now')
+	})
+
+	it('changes the text and the URL of the link at the caret', () => {
+		expect(
+			link(selectText('Read [the docs](https://a.dev) now', 7), 'https://b.dev', 'it'),
+		).toEqual({ markdown: 'Read [it](https://b.dev) now', selected: '' })
+	})
+
+	it('removes the link with an empty URL, and the text stays', () => {
+		expect(link(selectText('Read [the docs](https://a.dev) now', 7), '', 'the docs').markdown).toBe(
+			'Read the docs now',
+		)
+	})
+
+	it('puts no link in a code block', () => {
+		expect(link(selectText('```\ncode\n```', 2), 'https://a.dev', 'x').markdown).toBe(
+			'```\ncoxde\n```',
 		)
 	})
 })

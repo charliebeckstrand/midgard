@@ -33,6 +33,11 @@ export const wysiwygMessages = defineMessages({
 		description:
 			'The name of the group of toolbar buttons that change the current block, such as Quote.',
 	},
+	linkText: {
+		id: 'ui.wysiwyg.linkText',
+		defaultMessage: 'Text',
+		description: 'The label of the field that holds the text that a link shows.',
+	},
 	linkUrl: {
 		id: 'ui.wysiwyg.linkUrl',
 		defaultMessage: 'URL',
@@ -41,7 +46,7 @@ export const wysiwygMessages = defineMessages({
 	apply: {
 		id: 'ui.wysiwyg.apply',
 		defaultMessage: 'Apply',
-		description: 'The button that sets the link of the selected text to the typed web address.',
+		description: 'The button that sets the text and the web address of a link.',
 	},
 	removeLink: {
 		id: 'ui.wysiwyg.removeLink',

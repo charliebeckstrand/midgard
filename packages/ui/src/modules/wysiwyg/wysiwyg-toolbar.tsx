@@ -56,8 +56,9 @@ function actionGroups(actions: readonly WysiwygAction[]) {
  *
  * Each text and block action is a toggle button with `aria-pressed`, which
  * shows whether the action is on at the selection. Link opens a popover with
- * a URL field. Each button has a tooltip with its name, and its shortcut is
- * in `aria-keyshortcuts`.
+ * a text field and a URL field. The text field holds the selected text, and
+ * Apply links it, or puts the text and the link in at the caret. Each button
+ * has a tooltip with its name, and its shortcut is in `aria-keyshortcuts`.
  *
  * @remarks The toolbar has `role="toolbar"`, one Tab stop, and arrow keys
  * between its buttons, and `aria-controls` points at the field. A press on a

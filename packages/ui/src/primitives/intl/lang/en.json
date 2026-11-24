@@ -2389,7 +2389,7 @@
 	},
 	"ui.wysiwyg.apply": {
 		"defaultMessage": "Apply",
-		"description": "The button that sets the link of the selected text to the typed web address."
+		"description": "The button that sets the text and the web address of a link."
 	},
 	"ui.wysiwyg.blocks": {
 		"defaultMessage": "Blocks",
@@ -2418,6 +2418,10 @@
 	"ui.wysiwyg.link": {
 		"defaultMessage": "Link",
 		"description": "The name of the toolbar button that adds or edits a link on the selected text."
+	},
+	"ui.wysiwyg.linkText": {
+		"defaultMessage": "Text",
+		"description": "The label of the field that holds the text that a link shows."
 	},
 	"ui.wysiwyg.linkUrl": {
 		"defaultMessage": "URL",
