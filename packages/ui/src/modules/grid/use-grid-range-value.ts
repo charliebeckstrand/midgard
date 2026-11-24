@@ -47,7 +47,7 @@ function sameCell(a: GridCellRef, b: GridCellRef): boolean {
 }
 
 /** Whether two values of the range name the same cells. @internal */
-export function sameRange(a: GridRangeState | null, b: GridRangeState | null): boolean {
+function sameRange(a: GridRangeState | null, b: GridRangeState | null): boolean {
 	if (a === null || b === null) return a === b
 
 	return sameCell(a.anchor, b.anchor) && sameCell(a.focus, b.focus)

@@ -65,7 +65,7 @@ function exportIcon(type: GridExportAction['type']): ReactElement {
  * renders the same rows from {@link useGridExportActions}. Every route to
  * export therefore reads the same.
  */
-export function exportMenuItems(exportActions: GridExportAction[]): GridMenuItem[] {
+function exportMenuItems(exportActions: GridExportAction[]): GridMenuItem[] {
 	return exportActions.map((action) => ({
 		key: `export-${action.type}`,
 		label: action.label,

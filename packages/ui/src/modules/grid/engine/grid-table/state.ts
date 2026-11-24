@@ -104,9 +104,8 @@ function hashKey(key: string | number): number {
  * so the fingerprint.
  *
  * The function runs on each change of the rows, over each loaded row. Its loop
- * is an indexed loop, and its sums stay in 30 bits, so it allocates nothing for
- * each row. Until V8 optimizes a `for...of` loop, each step of that loop
- * allocates an iterator result.
+ * is an indexed loop, so it allocates no iterator result for each row, as a
+ * `for...of` loop does until V8 optimizes it.
  *
  * @internal
  */

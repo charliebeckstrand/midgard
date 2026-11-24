@@ -120,6 +120,42 @@ describe('grid windowed body keeps the cursor row and the focused row (real brow
 			expect(scroll.scrollTop).toBeGreaterThan(2000)
 		})
 
+		// The window keeps a row only while the cursor is on it.
+		it(`lets the kept row of a ${name} window go when the cursor moves to another row`, async () => {
+			const { scroll } = await renderWindow(
+				<Grid<Row>
+					navigable
+					virtualize={{ estimateSize: ROW, overscan: 2 }}
+					maxHeight="180px"
+					columns={columns}
+					rows={rows}
+					getKey={(row) => row.id}
+					{...props}
+				/>,
+			)
+
+			const grid = screen.getByRole(name === 'grouped' ? 'treegrid' : 'grid')
+
+			fireEvent.mouseDown(present(screen.getByText('Name 2').closest('td'), 'cell'))
+
+			await waitFor(() => readActiveId(grid))
+
+			await scrollAway(scroll, 3000)
+
+			expect(screen.queryByText('Name 2')).not.toBeNull()
+
+			const shown = present(
+				[...grid.querySelectorAll('td[data-grid-col="name"]')].find(
+					(cell) => cell.textContent !== 'Name 2',
+				),
+				'a cell in the window',
+			)
+
+			fireEvent.mouseDown(shown)
+
+			await waitFor(() => expect(screen.queryByText('Name 2')).toBeNull())
+		})
+
 		it(`keeps an open editor of a ${name} window focused when a scroll moves it out`, async () => {
 			// A run of many files can leave the page without window focus.
 			vi.spyOn(document, 'hasFocus').mockReturnValue(true)
