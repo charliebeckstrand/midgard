@@ -31,8 +31,8 @@ type WysiwygFieldOptions = {
 	'aria-autocomplete'?: string
 	'aria-haspopup'?: string
 	'aria-controls'?: string
-	/** Whether the frame has a row above or below the field. */
-	rows: boolean
+	/** Whether the frame stacks the field with a row above or below it. */
+	stacked: boolean
 	/** Whether a toolbar is above the field and no row of actions is below it. */
 	toolbar: boolean
 	/** Whether the toolbar is above the frame, apart from the field. */
@@ -101,7 +101,7 @@ export function useWysiwygField(options: WysiwygFieldOptions) {
 
 	const slots = useHeadlessSlots(k, {
 		variant,
-		actions: options.rows,
+		actions: options.stacked,
 		toolbar: options.toolbar,
 		separated: options.separated,
 	})

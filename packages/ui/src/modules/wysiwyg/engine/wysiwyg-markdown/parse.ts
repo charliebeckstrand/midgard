@@ -56,11 +56,7 @@ function toBlock(token: Token, walk: RangeWalk | undefined): Node | null {
 			return schema.node('paragraph', null, toInline(token.tokens ?? [], [], walk))
 		// A loose line of a tight list item, which holds its inline tokens.
 		case 'text':
-			return schema.node(
-				'paragraph',
-				null,
-				token.tokens ? toInline(token.tokens, [], walk) : toInline([token], [], walk),
-			)
+			return schema.node('paragraph', null, toInline(token.tokens ?? [token], [], walk))
 		case 'heading':
 			return schema.node(
 				'heading',
