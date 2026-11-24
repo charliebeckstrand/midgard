@@ -1,6 +1,6 @@
 # Wysiwyg roadmap
 
-> **Goal: one rich text field for each place that writes Markdown.** The field, the toolbar, the Markdown bridge, and the `wysiwyg` prop of `ChatPrompt` work. The next work is the citations of a chat draft as marks of the doc.
+> **Goal: one rich text field for each place that writes Markdown.** The field, the toolbar, the Markdown bridge, the ranges, and the `wysiwyg` prop of `ChatPrompt` work. The next work is the picker of a chat draft in the field.
 
 ## Status
 
@@ -9,6 +9,8 @@
 The frame, the floor, and the actions row are the ones of `Textarea`, through the kumi `multiline` group and `ControlActions`. A `<textarea>` cannot show formatting, so the field grows by CSS and not by the auto-resize script of `Textarea`. A zero-width float of `rows` lines sets its minimum height.
 
 `ChatPrompt` takes `wysiwyg`, and its field is then a Wysiwyg with a toolbar.
+
+The field takes `ranges`, the `MarkdownRange` type of `Markdown`, such as the citations of a chat draft. Each range is a `range` mark of the doc. The parse places the marks with the range walk of the renderer of `Markdown`, so a range covers the same text in the field and in a message. The serializer marks the edges of each piece of a range with two characters that the doc does not hold, and then reads their offsets and removes them. `onValueChange` thus gives each range with the offsets of the new value. The rule in [`engine/wysiwyg-ranges.ts`](engine/wysiwyg-ranges.ts) removes the mark of a range that an edit touches, and the text stays. The mark has no parse rule, so no paste makes a range. [`wysiwyg-ranges.test.ts`](../../__tests__/modules/wysiwyg-ranges.test.ts) holds the bridge and the rule, and [`chat-prompt-wysiwyg-citations.test.tsx`](../../__tests__/browser/chat-prompt-wysiwyg-citations.test.tsx) holds the citations of a composer in Chromium.
 
 The editor loads after the mount, in idle time, or at once on the first focus or press of the field ([`use-wysiwyg-editor.ts`](use-wysiwyg-editor.ts)). Until it loads, the field shows the Markdown source as text, with the same frame and the same floor. The focus goes on to the editor when it loads.
 
@@ -20,7 +22,7 @@ The bridge parses with the `lex()` of `Markdown`, so the field and a rendered me
 
 ## Next
 
-1. A citation of a chat draft as a mark of the doc, so that `ChatPrompt` keeps its citations and its picker with `wysiwyg` ([chat roadmap](../chat/ROADMAP.md), Features 5).
+1. The picker of a chat draft in the field, so that `ChatPrompt` keeps its picker with `wysiwyg` ([chat roadmap](../chat/ROADMAP.md), Features 5).
 2. The iPhone checks: the keyboard stays up on a toolbar tap, the Bold item of the edit menu works, autocorrect at the end of a bold word, and Enter with `onEnter`.
 
 ## Not planned

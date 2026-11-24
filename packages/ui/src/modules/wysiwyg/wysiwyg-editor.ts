@@ -6,11 +6,13 @@ import { Fragment, Slice } from 'prosemirror-model'
 import { splitListItem } from 'prosemirror-schema-list'
 import { type Command, EditorState, type Transaction } from 'prosemirror-state'
 import { EditorView } from 'prosemirror-view'
+import type { MarkdownRange } from '../../components/markdown/markdown-ranges'
 import { isComposing } from '../../utilities/is-composing'
 import { setLink, wysiwygCommands } from './engine/wysiwyg-commands'
 import { wysiwygInputRules } from './engine/wysiwyg-input-rules'
 import { parseMarkdown } from './engine/wysiwyg-markdown/parse'
-import { serializeMarkdown } from './engine/wysiwyg-markdown/serialize'
+import { serializeMarkdown, serializeMarkdownRanges } from './engine/wysiwyg-markdown/serialize'
+import { SET_VALUE, wysiwygRanges } from './engine/wysiwyg-ranges'
 import { isEmptyDoc, schema } from './engine/wysiwyg-schema'
 import type { WysiwygAction } from './types'
 import { type WysiwygShortcut, wysiwygActions } from './wysiwyg-actions'
@@ -27,8 +29,8 @@ export type WysiwygEditorProps = {
 	 */
 	attributes: Record<string, string>
 	editable: boolean
-	/** Fires with the Markdown of the doc after each change of the doc. */
-	onChange: (markdown: string) => void
+	/** Fires with the Markdown of the doc and its ranges after each change of the doc. */
+	onChange: (markdown: string, ranges: MarkdownRange[]) => void
 	/** Fires after each new state, so the toolbar can read the active actions. */
 	onUpdate: () => void
 	/**
@@ -57,8 +59,8 @@ export type WysiwygEditor = {
 	view: EditorView
 	/** Gives the editor new settings. */
 	update: (props: WysiwygEditorProps) => void
-	/** Replaces the doc with a Markdown source, out of the undo history. */
-	setValue: (markdown: string) => void
+	/** Replaces the doc with a Markdown source and its ranges, out of the undo history. */
+	setValue: (markdown: string, ranges: readonly MarkdownRange[]) => void
 	/** Runs an action on the selection. */
 	run: (action: WysiwygAction) => boolean
 	/** Whether an action is on at the selection. */
@@ -95,6 +97,7 @@ const breakLine: Command = (state, dispatch) => {
 export function createWysiwygEditor(
 	host: HTMLElement,
 	value: string,
+	ranges: readonly MarkdownRange[],
 	initial: WysiwygEditorProps,
 ): WysiwygEditor {
 	let props = initial
@@ -130,8 +133,9 @@ export function createWysiwygEditor(
 	}
 
 	const state = EditorState.create({
-		doc: parseMarkdown(value),
+		doc: parseMarkdown(value, ranges),
 		plugins: [
+			wysiwygRanges(),
 			wysiwygInputRules(),
 			history(),
 			keymap({
@@ -192,7 +196,11 @@ export function createWysiwygEditor(
 
 			view.updateState(next)
 
-			if (tr.docChanged) props.onChange(serializeMarkdown(next.doc))
+			if (tr.docChanged) {
+				const out = serializeMarkdownRanges(next.doc)
+
+				props.onChange(out.markdown, out.ranges)
+			}
 
 			props.onUpdate()
 		},
@@ -205,12 +213,13 @@ export function createWysiwygEditor(
 
 			view.setProps({})
 		},
-		setValue: (markdown) => {
-			const doc = parseMarkdown(markdown)
+		setValue: (markdown, next) => {
+			const doc = parseMarkdown(markdown, next)
 
 			const tr = view.state.tr
 				.replaceWith(0, view.state.doc.content.size, doc.content)
 				.setMeta('addToHistory', false)
+				.setMeta(SET_VALUE, true)
 
 			view.updateState(view.state.apply(tr))
 

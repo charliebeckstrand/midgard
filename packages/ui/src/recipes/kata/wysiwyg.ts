@@ -55,6 +55,14 @@ export const k = defineKata(
 					'[&.ProseMirror-hideselection]:caret-transparent',
 					'[&.ProseMirror-hideselection_*]:selection:bg-transparent',
 					'[&_img.ProseMirror-separator]:inline [&_img.ProseMirror-separator]:m-0 [&_img.ProseMirror-separator]:border-0',
+					// A range, such as a citation, is a soft pill, as a citation that
+					// selects in no view is in a reply. It has no padding, so the caret
+					// sits at the edge of its text.
+					'[&_[data-slot=wysiwyg-range]]:rounded-sm [&_[data-slot=wysiwyg-range]]:box-decoration-clone',
+					'[&_[data-slot=wysiwyg-range]]:font-medium',
+					'[&_[data-slot=wysiwyg-range]]:bg-blue-500/15 [&_[data-slot=wysiwyg-range]]:text-blue-700',
+					'dark:[&_[data-slot=wysiwyg-range]]:bg-blue-400/20 dark:[&_[data-slot=wysiwyg-range]]:text-blue-300',
+					'forced-colors:[&_[data-slot=wysiwyg-range]]:outline-solid forced-colors:[&_[data-slot=wysiwyg-range]]:outline-1',
 				],
 				/**
 				 * The placeholder takes the placeholder colors of the control reset, and
