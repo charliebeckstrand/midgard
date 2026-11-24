@@ -85,6 +85,7 @@ import type { DensityStep } from '../../../core/density'
 import { ChartSkeleton } from '../../../modules/chart'
 import { Form, FormReset, FormSubmit } from '../../../modules/form'
 import { Grid, type GridColumn } from '../../../modules/grid'
+import { Wysiwyg, WysiwygSkeleton } from '../../../modules/wysiwyg'
 import { renderUI } from '../../helpers'
 import { SIZE_AXES, type SizedComponent } from '../../helpers/size-axes'
 import { settledValue } from '../helpers/sample'
@@ -411,6 +412,8 @@ const FIXTURES: { [N in SizedComponent]: (size: (typeof SIZE_AXES)[N][number]) =
 		</Tree>
 	),
 	TreeSkeleton: (size) => <TreeSkeleton size={size} />,
+	Wysiwyg: (size) => <Wysiwyg size={size} aria-label="Notes" defaultValue="Notes" />,
+	WysiwygSkeleton: (size) => <WysiwygSkeleton size={size} />,
 }
 
 /** The properties of the computed style that the reading takes. */

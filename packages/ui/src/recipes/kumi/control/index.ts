@@ -1,10 +1,10 @@
 /**
  * The control group: the shared structure of the framed controls. Textarea
- * extends `multiline`, a control with a field of many lines. Input and the
- * field of FileUpload extend `input`, a control with a single-line field. A
- * `trigger` is a control that opens a floating panel. Listbox and Combobox
- * extend `list`, a trigger that opens a list of options. DatePicker and
- * ColorPicker extend `picker`, a trigger that opens a picker dialog.
+ * and Wysiwyg extend `multiline`, a control with a field of many lines. Input
+ * and the field of FileUpload extend `input`, a control with a single-line
+ * field. A `trigger` is a control that opens a floating panel. Listbox and
+ * Combobox extend `list`, a trigger that opens a list of options. DatePicker
+ * and ColorPicker extend `picker`, a trigger that opens a picker dialog.
  *
  * - `base` is the frame (`<ControlFrame>`): the kasane chrome, the radius, and
  *   the surface that `variant` sets.

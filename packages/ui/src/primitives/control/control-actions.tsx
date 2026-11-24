@@ -1,17 +1,18 @@
 'use client'
 
-import type { ComponentProps, MouseEvent } from 'react'
+import type { ComponentProps } from 'react'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { HeadlessShell } from '../headless/headless-shell'
+import { keepFocusOnPress } from './control-keep-focus-on-press'
 
 /** Props for {@link ControlActions}: the standard `span` attributes. */
 export type ControlActionsProps = ComponentProps<'span'>
 
 /**
  * A row of controls inside the frame of a form control, such as the actions
- * row below a Textarea. The frame looks like one field, so a press on a
- * button in the row, or on the empty part of the row, does not move the
- * focus. The button still gets the click, and the Tab key still moves the
+ * row below a Textarea or a Wysiwyg field. The frame looks like one field, so
+ * a press on a button in the row, or on the empty part of the row, does not
+ * move the focus. The button still gets the click, and the Tab key still moves the
  * focus to the buttons.
  *
  * @remarks
@@ -33,24 +34,4 @@ export function ControlActions({ onMouseDown, children, ...props }: ControlActio
 			{children}
 		</HeadlessShell>
 	)
-}
-
-/**
- * Cancels the focus move of a press on a button in the row, or on the empty
- * part of the row.
- *
- * @internal
- */
-function keepFocusOnPress(event: MouseEvent<HTMLElement>) {
-	if (!(event.target instanceof Element)) return
-
-	if (event.target === event.currentTarget) {
-		event.preventDefault()
-
-		return
-	}
-
-	const button = event.target.closest('button, [role="button"]')
-
-	if (button && event.currentTarget.contains(button)) event.preventDefault()
 }

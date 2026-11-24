@@ -106,6 +106,10 @@
 			"types": "./src/modules/query/index.ts",
 			"default": "./src/modules/query/index.ts"
 		},
+		"./wysiwyg": {
+			"types": "./src/modules/wysiwyg/index.ts",
+			"default": "./src/modules/wysiwyg/index.ts"
+		},
 		"./tailwind.css": "./styles/tailwind.css",
 		"./scripts/intl/catalog": {
 			"types": "./scripts/intl/catalog.ts",
@@ -167,6 +171,14 @@
 		"marked": "^18.1.0",
 		"motion": "^14.0.0",
 		"pdfjs-dist": "^6.4.299",
+		"prosemirror-commands": "^1.7.2",
+		"prosemirror-history": "^1.5.2",
+		"prosemirror-inputrules": "^1.7.0",
+		"prosemirror-keymap": "^1.2.3",
+		"prosemirror-model": "^1.25.13",
+		"prosemirror-schema-list": "^1.6.1",
+		"prosemirror-state": "^1.4.4",
+		"prosemirror-view": "^1.43.0",
 		"shiki": "^4.5.0",
 		"tabbable": "^6.4.0",
 		"tailwind-merge": "^3.7.0",

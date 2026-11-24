@@ -2386,5 +2386,65 @@
 	"ui.toast.notifications": {
 		"defaultMessage": "Notifications",
 		"description": "The name of the region that holds the toasts."
+	},
+	"ui.wysiwyg.apply": {
+		"defaultMessage": "Apply",
+		"description": "The button that sets the link of the selected text to the typed web address."
+	},
+	"ui.wysiwyg.blocks": {
+		"defaultMessage": "Blocks",
+		"description": "The name of the group of toolbar buttons that change the current block, such as Quote."
+	},
+	"ui.wysiwyg.bold": {
+		"defaultMessage": "Bold",
+		"description": "The name of the toolbar button that makes the selected text bold."
+	},
+	"ui.wysiwyg.bulletList": {
+		"defaultMessage": "Bulleted list",
+		"description": "The name of the toolbar button that makes the current block a bulleted list."
+	},
+	"ui.wysiwyg.code": {
+		"defaultMessage": "Code",
+		"description": "The name of the toolbar button that shows the selected text as inline code."
+	},
+	"ui.wysiwyg.codeBlock": {
+		"defaultMessage": "Code block",
+		"description": "The name of the toolbar button that makes the current block a block of code."
+	},
+	"ui.wysiwyg.italic": {
+		"defaultMessage": "Italic",
+		"description": "The name of the toolbar button that makes the selected text italic."
+	},
+	"ui.wysiwyg.link": {
+		"defaultMessage": "Link",
+		"description": "The name of the toolbar button that adds or edits a link on the selected text."
+	},
+	"ui.wysiwyg.linkUrl": {
+		"defaultMessage": "URL",
+		"description": "The label of the field that holds the web address of a link."
+	},
+	"ui.wysiwyg.orderedList": {
+		"defaultMessage": "Numbered list",
+		"description": "The name of the toolbar button that makes the current block a numbered list."
+	},
+	"ui.wysiwyg.quote": {
+		"defaultMessage": "Quote",
+		"description": "The name of the toolbar button that makes the current block a quote."
+	},
+	"ui.wysiwyg.removeLink": {
+		"defaultMessage": "Remove link",
+		"description": "The button that removes the link from the selected text."
+	},
+	"ui.wysiwyg.strike": {
+		"defaultMessage": "Strikethrough",
+		"description": "The name of the toolbar button that draws a line through the selected text."
+	},
+	"ui.wysiwyg.text": {
+		"defaultMessage": "Text",
+		"description": "The name of the group of toolbar buttons that format the selected text, such as Bold."
+	},
+	"ui.wysiwyg.toolbar": {
+		"defaultMessage": "Formatting",
+		"description": "The name of the toolbar of buttons that format the text of a rich text field."
 	}
 }
