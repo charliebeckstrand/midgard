@@ -1,88 +1,89 @@
-import { describe, expect, it, vi } from 'vitest'
+// @vitest-environment node
+import { describe, expect, vi } from 'vitest'
 import { createTooltipGroup } from '../../components/tooltip/tooltip-group'
+import { it } from '../helpers/fake-clock'
 
 describe('createTooltipGroup', () => {
-	it('is warm while a tooltip is open and for the grace period after the close', () => {
-		vi.useFakeTimers()
+	it('is warm while a tooltip is open and for the grace period after the close', async ({
+		clock,
+	}) => {
+		const group = createTooltipGroup(() => 300)
 
-		try {
-			const group = createTooltipGroup(() => 300)
+		const onChange = vi.fn()
 
-			const onChange = vi.fn()
+		group.subscribe(onChange)
 
-			group.subscribe(onChange)
+		expect(group.warm()).toBe(false)
 
-			expect(group.warm()).toBe(false)
+		const close = group.open(vi.fn())
 
-			const close = group.open(vi.fn())
+		expect(group.warm()).toBe(true)
 
-			expect(group.warm()).toBe(true)
+		close()
 
-			close()
+		await clock.advance(299)
 
-			vi.advanceTimersByTime(299)
+		expect(group.warm()).toBe(true)
 
-			expect(group.warm()).toBe(true)
+		await clock.advance(1)
 
-			vi.advanceTimersByTime(1)
+		expect(group.warm()).toBe(false)
 
-			expect(group.warm()).toBe(false)
-
-			// One call for each change of `warm`.
-			expect(onChange).toHaveBeenCalledTimes(2)
-		} finally {
-			vi.useRealTimers()
-		}
+		// One call for each change of `warm`.
+		expect(onChange).toHaveBeenCalledTimes(2)
 	})
 
-	it('hands over from the open tooltip to the next, and the old close starts no grace period', () => {
-		vi.useFakeTimers()
+	it('hands over from the open tooltip to the next, and the old close starts no grace period', async ({
+		clock,
+	}) => {
+		const group = createTooltipGroup(() => 300)
 
-		try {
-			const group = createTooltipGroup(() => 300)
+		const first = vi.fn()
 
-			const first = vi.fn()
+		const closeFirst = group.open(first)
 
-			const closeFirst = group.open(first)
+		const closeSecond = group.open(vi.fn())
 
-			const closeSecond = group.open(vi.fn())
+		expect(first).toHaveBeenCalledOnce()
 
-			expect(first).toHaveBeenCalledOnce()
+		// The close of the first tooltip comes after the handover.
+		closeFirst()
 
-			// The close of the first tooltip comes after the handover.
-			closeFirst()
+		await clock.advance(1000)
 
-			vi.advanceTimersByTime(1000)
+		expect(group.warm()).toBe(true)
 
-			expect(group.warm()).toBe(true)
+		closeSecond()
 
-			closeSecond()
+		await clock.advance(300)
 
-			vi.advanceTimersByTime(300)
-
-			expect(group.warm()).toBe(false)
-		} finally {
-			vi.useRealTimers()
-		}
+		expect(group.warm()).toBe(false)
 	})
 
-	it('keeps warm when a tooltip opens in the grace period', () => {
-		vi.useFakeTimers()
+	it('stays warm when a tooltip opens in the grace period', async ({ clock }) => {
+		const group = createTooltipGroup(() => 300)
 
-		try {
-			const group = createTooltipGroup(() => 300)
+		group.open(vi.fn())()
 
-			group.open(vi.fn())()
+		await clock.advance(200)
 
-			vi.advanceTimersByTime(200)
+		group.open(vi.fn())
 
-			group.open(vi.fn())
+		await clock.advance(1000)
 
-			vi.advanceTimersByTime(1000)
+		expect(group.warm()).toBe(true)
+	})
 
-			expect(group.warm()).toBe(true)
-		} finally {
-			vi.useRealTimers()
-		}
+	it('stops the grace period on dispose', async ({ clock }) => {
+		const group = createTooltipGroup(() => 300)
+
+		group.open(vi.fn())()
+
+		group.dispose()
+
+		await clock.advance(1000)
+
+		// No timer ran, so the group did not turn cold.
+		expect(group.warm()).toBe(true)
 	})
 })

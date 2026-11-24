@@ -3,6 +3,7 @@
 import type { FloatingRootContext } from '@floating-ui/react'
 import type { CSSProperties } from 'react'
 import { createContext } from '../../core/create-context'
+import type { TooltipGroupStore } from './tooltip-group'
 
 /**
  * The value shared through {@link TooltipContext}: the floating handles a
@@ -66,3 +67,9 @@ export type TooltipTriggerValue = Pick<
 
 export const [TooltipTriggerContext, useTooltipTriggerContext] =
 	createContext<TooltipTriggerValue>('Tooltip')
+
+/** The store of the nearest `<TooltipGroup>`, or `null` outside a group. */
+export const [TooltipGroupContext, useTooltipGroup] = createContext<TooltipGroupStore | null>(
+	'TooltipGroup',
+	{ default: null },
+)

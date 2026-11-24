@@ -1,8 +1,8 @@
 'use client'
 
 import { type ReactNode, useEffect, useState } from 'react'
-import { createContext } from '../../core/create-context'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { TooltipGroupContext } from './context'
 
 /**
  * The shared state of a {@link TooltipGroup}. It holds no Floating UI, so a
@@ -41,7 +41,7 @@ export function createTooltipGroup(readTimeout: () => number): TooltipGroupStore
 
 	let warm = false
 
-	let timer: number | undefined
+	let timer: ReturnType<typeof setTimeout> | undefined
 
 	const listeners = new Set<() => void>()
 
@@ -63,7 +63,7 @@ export function createTooltipGroup(readTimeout: () => number): TooltipGroupStore
 			}
 		},
 		open: (handover) => {
-			window.clearTimeout(timer)
+			clearTimeout(timer)
 
 			const previous = current
 
@@ -80,17 +80,12 @@ export function createTooltipGroup(readTimeout: () => number): TooltipGroupStore
 
 				current = null
 
-				timer = window.setTimeout(() => setWarm(false), readTimeout())
+				timer = setTimeout(() => setWarm(false), readTimeout())
 			}
 		},
-		dispose: () => window.clearTimeout(timer),
+		dispose: () => clearTimeout(timer),
 	}
 }
-
-export const [TooltipGroupContext, useTooltipGroup] = createContext<TooltipGroupStore | null>(
-	'TooltipGroup',
-	{ default: null },
-)
 
 /** Props for {@link TooltipGroup}. */
 export type TooltipGroupProps = {

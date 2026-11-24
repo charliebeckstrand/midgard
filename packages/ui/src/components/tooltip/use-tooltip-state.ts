@@ -26,9 +26,8 @@ import { useReportedChange } from '../../hooks/use-reported-change'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { subscribeOverlaySignal } from '../../primitives/overlay/overlay-signal'
 import { noop, noopSubscribe } from '../../utilities/noop'
-import type { TooltipContextValue } from './context'
+import { type TooltipContextValue, useTooltipGroup } from './context'
 import type { TooltipProps } from './tooltip'
-import { useTooltipGroup } from './tooltip-group'
 import { isReferenceDisabled, observeReferenceDisabled } from './tooltip-reference-disabled'
 import {
 	hoverOpens,
