@@ -17,6 +17,7 @@ import { useIntl } from '../../primitives/intl/use-intl'
 import { copyText } from '../../utilities/export-output'
 import { chatContentText } from './engine/chat-content/text'
 import type { ChatPart } from './engine/chat-content/types'
+import type { ChatMessageData } from './engine/types'
 
 /** @internal */
 const messages = defineMessages({
@@ -107,6 +108,19 @@ export function ChatMessageMenu({
 }
 
 /**
+ * Where the dropdown opens, on the side of the speaker, as the message and its
+ * toolbar align. A reply aligns to the start and the reader's own message to
+ * the end. A system line is centered.
+ *
+ * @internal
+ */
+const MENU_PLACEMENT = {
+	user: 'bottom-end',
+	assistant: 'bottom-start',
+	system: 'bottom',
+} as const satisfies Record<ChatMessageData['sender'], string>
+
+/**
  * The one item of a menu that holds a single item, or `undefined` for any
  * other menu.
  *
@@ -130,7 +144,11 @@ function loneItem(entries: ContextMenuEntry[]): ContextMenuItem | undefined {
  *
  * @internal
  */
-export function ChatMessageMenuButton({ config, content }: ChatMessageMenuProps) {
+export function ChatMessageMenuButton({
+	config,
+	content,
+	sender,
+}: ChatMessageMenuProps & { sender: ChatMessageData['sender'] }) {
 	const { entries, name } = useMenuEntries({ config, content })
 
 	const action = loneItem(entries)
@@ -152,7 +170,7 @@ export function ChatMessageMenuButton({ config, content }: ChatMessageMenuProps)
 	}
 
 	return (
-		<Menu placement="bottom-end" capped={config?.capped}>
+		<Menu placement={MENU_PLACEMENT[sender]} capped={config?.capped}>
 			<MenuTrigger>
 				<Button type="button" variant="bare" size="sm" aria-label={name}>
 					<Icon icon={<EllipsisVertical />} />

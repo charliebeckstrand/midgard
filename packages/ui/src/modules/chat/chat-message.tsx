@@ -307,7 +307,7 @@ export const ChatMessage = memo(function ChatMessage({
 			)}
 			{hasMenu && (
 				<div data-slot="chat-message-toolbar" className={slots.toolbar}>
-					<ChatMessageMenuButton config={menu} content={children} />
+					<ChatMessageMenuButton config={menu} content={children} sender={resolvedSender} />
 				</div>
 			)}
 		</div>
