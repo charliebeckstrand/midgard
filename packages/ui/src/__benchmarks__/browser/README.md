@@ -1,6 +1,6 @@
 # Browser benchmarks
 
-> **The chart, grid, and map modules of `ui`, and its menu, popover, icon, tooltip, and PDF-viewer components, its query builder, and its events module, measured in real Chromium. The Chat section records a jsdom bench.** `pnpm bench:browser` runs the suite. The suite runs no other library, so a change reads against the earlier builds of each module. The jsdom benches one directory up localize a regression, and this suite sizes it.
+> **The chart, grid, and map modules of `ui`, and its menu, popover, icon, tooltip, and PDF-viewer components, its query builder, its events module, and its Wysiwyg, measured in real Chromium. The Chat section records a jsdom bench.** `pnpm bench:browser` runs the suite. The suite runs no other library, so a change reads against the earlier builds of each module. The jsdom benches one directory up localize a regression, and this suite sizes it.
 
 ## Why a browser suite
 
@@ -850,6 +850,29 @@ Mean ms in Chromium, the median of three interleaved pairs. The "Prototype" colu
 | 500 messages | 7.1 ms | 43.0 ms | 6.1× |
 
 The `always` rows have a wide spread (±11% and ±19%), so read the ratio as about six to seven. The TSDoc of `ChatEmbedRegistry.mount` gives the reason and not the number, because a later change can move the number.
+
+## Wysiwyg
+
+### Methodology
+
+[`wysiwyg-typing.bench.tsx`](wysiwyg-typing.bench.tsx) times one edit and one mount of a `Wysiwyg` with its toolbar. An edit is one transaction that inserts or deletes one character at the end of the doc, under `flushSync`. A sample thus holds the work of ProseMirror, the Markdown bridge, and the React commit, but not the read of the DOM change. The edit rungs are an uncontrolled field, a field that a parent controls, and the ChatPrompt with `wysiwyg`. The doc rungs give a controlled field of 2,000, 20,000, and 100,000 characters. The bench logs the renders of one edit for each field.
+
+### Findings (2026-11-24, this container)
+
+The mean ms of one edit, over two interleaved pairs of runs:
+
+| Field | Before | After |
+| --- | ---: | ---: |
+| uncontrolled, small doc | 1.07 | 0.25 |
+| controlled, small doc | 0.99 | 0.22 |
+| ChatPrompt `wysiwyg` | 1.12 | 0.45 |
+| controlled, 2,000 characters | 1.37 | 0.28 |
+| controlled, 20,000 characters | 3.19 | 0.76 |
+| controlled, 100,000 characters | 11.5 | 3.0 |
+
+Before the change, each edit rendered the toolbar and each of its buttons again, and wrote the Markdown of the whole doc again. The fix keeps the context value of the field, memoizes the toolbar, and keeps the Markdown of each block by its node. After it, an edit renders only the field. Most of the 3.0 ms at 100,000 characters is the view update of ProseMirror.
+
+The mount of a large doc costs mostly the browser layout of its content: at 100,000 characters, about 135 ms of a 220 ms mount. The markup before the editor loads pays the same layout.
 
 ## PDF viewer
 

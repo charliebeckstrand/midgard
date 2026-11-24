@@ -83,13 +83,11 @@ export function serializeMarkdownRanges(doc: Node): {
  * @internal
  */
 function rangeMarks(doc: Node): RangeMarks | undefined {
-	let held = false
+	if (!doc.rangeHasMark(0, doc.content.size, schema.marks.range)) return undefined
 
 	const used = new Set<string>()
 
 	doc.descendants((node) => {
-		if (schema.marks.range.isInSet(node.marks)) held = true
-
 		for (const text of [
 			node.text,
 			...Object.values(node.attrs),
@@ -98,8 +96,6 @@ function rangeMarks(doc: Node): RangeMarks | undefined {
 			if (typeof text === 'string') for (const char of text) used.add(char)
 		}
 	})
-
-	if (!held) return undefined
 
 	const free: string[] = []
 
@@ -112,6 +108,44 @@ function rangeMarks(doc: Node): RangeMarks | undefined {
 	const [open, close] = free
 
 	return open && close ? { open, close, ids: [] } : undefined
+}
+
+/**
+ * The Markdown of each block without the edge marks of ranges, by its node and
+ * then by its `alternate`. A node does not change, and an edit keeps each node
+ * that it does not touch, so an edit writes only the blocks that it changes.
+ *
+ * @internal
+ */
+const written = new WeakMap<Node, Map<boolean, string>>()
+
+/**
+ * The Markdown of a block, from {@link written} when the walk writes no edge
+ * marks. The edge marks of a doc depend on all of its text, so a block with
+ * them is written each time.
+ *
+ * @internal
+ */
+function cachedBlock(node: Node, alternate: boolean, ranges: RangeMarks | undefined): string {
+	if (ranges) return block(node, alternate, ranges)
+
+	let byAlternate = written.get(node)
+
+	if (!byAlternate) {
+		byAlternate = new Map()
+
+		written.set(node, byAlternate)
+	}
+
+	let text = byAlternate.get(alternate)
+
+	if (text === undefined) {
+		text = block(node, alternate, undefined)
+
+		byAlternate.set(alternate, text)
+	}
+
+	return text
 }
 
 /**
@@ -134,7 +168,7 @@ function blocks(container: Node, tight: boolean, ranges: RangeMarks | undefined)
 
 		previous = node
 
-		const text = block(node, alternate, ranges)
+		const text = cachedBlock(node, alternate, ranges)
 
 		if (text !== '') out.push(text)
 	})
