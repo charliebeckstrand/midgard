@@ -633,18 +633,23 @@ function useWindowVirtualizer(options: WindowVirtualizerOptions, adjustAbove: bo
 
 type VirtualWindow = {
 	/**
-	 * The items currently in the viewport plus overscan, in order. Empty until the
+	 * The items currently in the viewport plus overscan, and each item that
+	 * `keep` holds out of view, in index order. Empty until the
 	 * virtualizer has resolved *and* measured the scroll element. That is the commit
 	 * the re-sync guard below recovers, plus every commit while the element measures
 	 * zero (a `display: none` ancestor, a server render). A caller holding
 	 * items in hand must not read an empty window as "no items to show".
 	 */
 	virtualItems: VirtualItem[]
-	/** Pixel height of the spacer standing in for rows above the viewport. */
+	/**
+	 * Pixel height of the spacer standing in for the rows before the first item
+	 * of `virtualItems`, a kept item included.
+	 */
 	topSpacer: number
 	/**
-	 * Pixel height of the spacer standing in for rows below the viewport. While
-	 * the window is empty, it holds the height of every row.
+	 * Pixel height of the spacer standing in for the rows after the last item
+	 * of `virtualItems`, a kept item included. While the window is empty, it
+	 * holds the height of every row.
 	 */
 	bottomSpacer: number
 	/**
@@ -764,7 +769,9 @@ type MeasuredVirtualWindow = VirtualWindow & {
  * wheel or the scrollbar then does not unmount an open editor, and
  * `aria-activedescendant` names a cell in the document. A kept item renders
  * at its true position, and its gap in `gaps` stands in for the rows between
- * it and the window. The spacers and `lastIndex` stay those of the window.
+ * it and the window. `virtualItems` holds the kept items, so `topSpacer`
+ * stands before the first rendered item and `bottomSpacer` after the last,
+ * kept items included. `lastIndex` stays that of the window.
  * The start anchor reads each rendered item, and a kept item above the top
  * edge ends above it, so the anchor does not record it.
  *

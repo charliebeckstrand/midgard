@@ -3,6 +3,7 @@
 import type { FloatingRootContext } from '@floating-ui/react'
 import type { CSSProperties } from 'react'
 import { createContext } from '../../core/create-context'
+import type { TooltipGroupStore } from './tooltip-group'
 
 /**
  * The value shared through {@link TooltipContext}: the floating handles a
@@ -13,6 +14,12 @@ import { createContext } from '../../core/create-context'
  */
 export type TooltipContextValue = {
 	open: boolean
+	/**
+	 * Whether the panel shows and goes with no animation. A `<TooltipGroup>`
+	 * sets it for a tooltip that opens while a sibling is open or just closed,
+	 * and for a tooltip that a sibling closes. Absent outside a group.
+	 */
+	instant?: boolean
 	interactive: boolean
 	/**
 	 * Whether the panel takes the pointer. A panel that a hover opens takes it,
@@ -60,3 +67,9 @@ export type TooltipTriggerValue = Pick<
 
 export const [TooltipTriggerContext, useTooltipTriggerContext] =
 	createContext<TooltipTriggerValue>('Tooltip')
+
+/** The store of the nearest `<TooltipGroup>`, or `null` outside a group. */
+export const [TooltipGroupContext, useTooltipGroup] = createContext<TooltipGroupStore | null>(
+	'TooltipGroup',
+	{ default: null },
+)

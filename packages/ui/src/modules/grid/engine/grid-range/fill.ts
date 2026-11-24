@@ -9,7 +9,11 @@ import { isBlank } from './figures'
 import type { GridRowDistance, GridRowStep } from './range'
 import { dateSeries, textSeries } from './series'
 
-/** The direction of a fill, from the source cells to the cells that it writes. @internal */
+/**
+ * The direction of a fill, from the source cells to the cells that it writes.
+ * A fill down or right reads the range from its top row or its first column.
+ * A fill up or left reads it from its bottom row or its last column. @internal
+ */
 export type GridFillDirection = 'down' | 'right' | 'up' | 'left'
 
 /**
@@ -151,20 +155,13 @@ export function fillPlan(
 }
 
 /**
- * The fills that a key or a menu item starts. A fill down or right reads the
- * range from its top row or its first column. A fill up or left reads it from
- * its bottom row or its last column. @internal
- */
-export type GridRangeFillDirection = GridFillDirection
-
-/**
  * The fill of a range that a key or a menu item starts. It reads the range
  * now, and returns the fill of that range in `direction`, or `null` when the
  * range cannot fill that way. The context menu reads it when it opens, so an
  * item fills the range that the menu opened on, after focus leaves the grid.
  * @internal
  */
-export type GridRangeFill = (direction: GridRangeFillDirection) => (() => void) | null
+export type GridRangeFill = (direction: GridFillDirection) => (() => void) | null
 
 /**
  * The source cells and the count of lines of a fill of `cells` in
@@ -178,7 +175,7 @@ export type GridRangeFill = (direction: GridRangeFillDirection) => (() => void) 
  */
 export function rangeFillSource(
 	cells: { rows: readonly number[]; cols: readonly number[] },
-	direction: GridRangeFillDirection,
+	direction: GridFillDirection,
 	read: (row: number, col: number) => unknown,
 ): { source: { rows: readonly number[]; cols: readonly number[] }; count: number } | null {
 	const vertical = direction === 'down' || direction === 'up'

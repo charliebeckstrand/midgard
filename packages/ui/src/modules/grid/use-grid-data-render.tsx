@@ -505,7 +505,7 @@ export function useGridDataRender<T>(
 				onSavePreset({
 					...preset,
 					columnSizing: readSizingPreference(),
-					pinning: pinningState ?? {},
+					pinning: pinningState,
 				})),
 		[onSavePreset, readSizingPreference, pinningState],
 	)
