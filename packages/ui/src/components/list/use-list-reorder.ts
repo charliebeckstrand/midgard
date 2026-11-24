@@ -27,7 +27,8 @@ export function loadListReorder(): Promise<ListReorderParts> {
  * Until the module arrives, the list renders a plain `<ul>`, and the keyboard
  * reorder works. A pointer drag starts after the module arrives. When the
  * module arrives, the `<ul>` changes to the `Reorder` group, and React mounts
- * the rows again. When the module has arrived before the list mounts, the list
+ * the rows again. `useListKeepFocus` then gives the focus of a row to the same
+ * control of its new row. When the module has arrived before the list mounts, the list
  * renders the group in its first render, except in a hydration render, which
  * matches the server markup.
  *

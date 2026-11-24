@@ -15,6 +15,7 @@ import type { Orientation } from '../../types/orientation'
 import { ListContext } from './context'
 import { ListItemReorder } from './list-item-reorder'
 import { ListItemStatic } from './list-item-static'
+import { useListKeepFocus } from './use-list-keep-focus'
 import { listItemName, useListKeyboard } from './use-list-keyboard'
 import { useListReorder } from './use-list-reorder'
 import { useListWindow } from './use-list-window'
@@ -226,6 +227,10 @@ export function List<T>({
 
 	// `Reorder` loads in a chunk of its own, so a read-only list does not load it.
 	const reorderParts = useListReorder(interactive)
+
+	// The arrival of the parts mounts the rows again, so the focus of a row
+	// moves to its new row.
+	useListKeepFocus(containerRef, reorderParts)
 
 	// Motion reads the reduced-motion preference only when an element mounts, and
 	// a list can render outside a `ReducedMotion` root. So the rows read the
