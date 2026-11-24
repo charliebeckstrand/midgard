@@ -1,9 +1,24 @@
 import { describe, expect, it, vi } from 'vitest'
 import { ChatMessage } from '../../modules/chat'
-import { bySlot, fireEvent, getSlot, renderUI, screen, stubClipboard } from '../helpers'
+import { NO_HOVER_QUERY } from '../../utilities/media-query'
+import {
+	bySlot,
+	fireEvent,
+	getSlot,
+	renderUI,
+	screen,
+	stubClipboard,
+	stubMatchMedia,
+} from '../helpers'
 
 // The streaming look the bubble projects onto its Markdown child, and the
 // standing dim that replaces the pulse under `prefers-reduced-motion`.
+// A touch screen: the context menu over the bubble opens only on a device
+// with no hover. jsdom matches no query, so it is a device that hovers.
+function stubTouch() {
+	stubMatchMedia((query) => query === NO_HOVER_QUERY)
+}
+
 const PULSE = '[&>[data-slot=markdown]]:motion-safe:animate-pulse'
 const PULSE_REDUCED = '[&>[data-slot=markdown]]:motion-reduce:opacity-60'
 
@@ -188,10 +203,12 @@ describe('ChatMessage', () => {
 		expect(button).toHaveFocus()
 	})
 
-	it('opens a menu with Copy on a right-click on the bubble', () => {
+	it('opens a menu with Copy over the bubble on a touch screen', () => {
 		const writeText = vi.fn(() => Promise.resolve())
 
 		stubClipboard({ writeText })
+
+		stubTouch()
 
 		const { container } = renderUI(<ChatMessage>Some **bold** text</ChatMessage>)
 
@@ -209,6 +226,8 @@ describe('ChatMessage', () => {
 
 	it('adds the items of the caller after Copy', () => {
 		const onAction = vi.fn()
+
+		stubTouch()
 
 		const { container } = renderUI(
 			<ChatMessage contextMenu={{ items: [{ key: 'edit', label: 'Edit', onAction }] }}>
@@ -273,6 +292,8 @@ describe('ChatMessage', () => {
 	})
 
 	it('turns Copy off while the message has no text', () => {
+		stubTouch()
+
 		const { container } = renderUI(<ChatMessage streaming>{''}</ChatMessage>)
 
 		fireEvent.contextMenu(getSlot(container, 'chat-message-bubble'))
@@ -280,10 +301,26 @@ describe('ChatMessage', () => {
 		expect(screen.getByRole('menuitem', { name: 'Copy' })).toHaveAttribute('aria-disabled', 'true')
 	})
 
+	it('keeps the native menu of the bubble on a device that hovers', () => {
+		const { container } = renderUI(
+			<ChatMessage contextMenu={{ items: [{ key: 'edit', label: 'Edit' }] }}>content</ChatMessage>,
+		)
+
+		// fireEvent returns false when a handler cancels the event.
+		expect(fireEvent.contextMenu(getSlot(container, 'chat-message-bubble'))).toBe(true)
+
+		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+
+		// The menu button in the toolbar is the way to the actions.
+		expect(screen.getByRole('button', { name: 'Message actions' })).toBeInTheDocument()
+	})
+
 	it.each([
 		['false', false],
 		['a menu with no item', { defaultItems: false }],
 	] as const)('keeps the native menu and shows no menu button for %s', (_, contextMenu) => {
+		stubTouch()
+
 		const { container } = renderUI(<ChatMessage contextMenu={contextMenu}>content</ChatMessage>)
 
 		// fireEvent returns false when a handler cancels the event.

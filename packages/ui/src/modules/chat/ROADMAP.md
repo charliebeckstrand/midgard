@@ -4,7 +4,7 @@
 
 ## Status
 
-The module ships a transcript, a message bubble, a composer, a list of conversations, and two hooks. `ChatTranscript` renders a window over its messages and follows the newest reply. `ChatTranscriptSkeleton` holds the space of a transcript while it loads. `ChatMessage` draws Markdown, pulses while a reply arrives, and says when a reply failed. Its menu holds each action of the message: Copy, and the items of the app. A right-click, a touch long press, or the menu button over the corner of the bubble opens the menu, and the message shows no row of icons. `ChatPrompt` is a composer with attachments, a picker, a toolbar above the field, and a send button that turns into a stop button.
+The module ships a transcript, a message bubble, a composer, a list of conversations, and two hooks. `ChatTranscript` renders a window over its messages and follows the newest reply. `ChatTranscriptSkeleton` holds the space of a transcript while it loads. `ChatMessage` draws Markdown, pulses while a reply arrives, and says when a reply failed. Its menu holds each action of the message: Copy, and the items of the app. On a device that hovers, the menu button over the corner of the bubble opens the menu. On a touch screen, a long press on the bubble opens it. The message shows no row of icons. `ChatPrompt` is a composer with attachments, a picker, a toolbar above the field, and a send button that turns into a stop button.
 
 `useChatSend` holds the transcript and streams each reply through a `ChatTransport` that the caller supplies. The module assumes no endpoint and no wire format. A seed message keeps the id that it carries, so a persisted conversation keeps its addresses after a reload. `useChatDraft` holds the text of the composer and its citations as one state.
 
@@ -59,7 +59,7 @@ No rule reads a clock or a random source. The shell mints each id and gives it t
 
 ## Not planned
 
-- **A row of icons on a message.** A row of icons below a bubble is hard to read as part of its message on a phone. The menu holds each action of a message, and a right-click, a long press, or the menu button opens it.
+- **A row of icons on a message.** A row of icons below a bubble is hard to read as part of its message on a phone. The menu holds each action of a message, and the menu button or a long press opens it.
 
 - **A rating of a reply.** No app has a use for a good or bad rating, so the module has no rating control.
 

@@ -120,10 +120,11 @@ export type ChatMessageProps = ChatMessageVariants &
 		 */
 		failed?: boolean
 		/**
-		 * The menu of the message, which holds each action of the message. A
-		 * right-click or a touch long press on the bubble opens it, and so does
-		 * the menu button over the corner of the bubble. Its default item is Copy, with the key `'copy'`, which copies
-		 * the text of the message. `items` adds the actions of the app, such as
+		 * The menu of the message, which holds each action of the message. On a
+		 * device that hovers, the menu button over the corner of the bubble opens
+		 * it. On a device with no hover, a long press on the bubble opens it. Its
+		 * default item is Copy, with the key `'copy'`, which copies the text of
+		 * the message. `items` adds the actions of the app, such as
 		 * Edit and Retry, after a separator ({@link ContextMenuConfig}). `false`
 		 * removes the menu and its button, and the bubble keeps the native menu
 		 * of the browser.
@@ -205,20 +206,20 @@ export type ChatMessageProps = ChatMessageVariants &
  * already landed a chart pulses its prose and leaves the chart steady.
  *
  * The menu holds each action of the message, and the message shows no row of
- * icons. The menu opens in four ways: a right-click on the bubble, a touch
- * long press on it, the context-menu key or Shift+F10 from a focused control in
- * it, and the menu button. The Copy item copies the plain text of the message
- * ({@link chatContentText}), and it is off while the message has no text.
+ * icons. On a device that hovers, the menu button opens it, and a right-click
+ * keeps the native menu of the browser. On a device with no hover, a touch
+ * long press on the bubble opens it as a context menu. The Copy item copies
+ * the plain text of the message ({@link chatContentText}), and it is off while
+ * the message has no text.
  *
  * The menu button sits in a toolbar over the outer top corner of the bubble.
  * A menu of one item with an icon, such as Copy alone, has no menu button:
  * the toolbar shows the button of that item, which runs its action at once.
  * The toolbar shows while the pointer is over the bubble, while focus is in
  * it, or while its menu is open. A device with no hover thus shows it only to
- * a keyboard or a screen reader, and a long press opens the menu there. The
- * button stays in the Tab order while it is hidden, so a keyboard reader
- * reaches the menu. The toolbar floats above the message by most of its own
- * height. A host that clips its overflow, such as a scroll container, keeps
+ * a keyboard or a screen reader. The button stays in the Tab order while it
+ * is hidden, so a keyboard reader reaches the menu. The toolbar floats above
+ * the message by most of its own height. A host that clips its overflow, such as a scroll container, keeps
  * that space free above its first message.
  *
  * Memoized on its (shallow-equal) props, so a transcript's settled bubbles skip

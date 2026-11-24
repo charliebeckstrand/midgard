@@ -11,10 +11,12 @@ import type {
 } from '../../components/context-menu/types'
 import { Icon } from '../../components/icon'
 import { Menu, MenuContent, MenuTrigger } from '../../components/menu'
+import { useMediaQuery } from '../../hooks/use-media-query'
 import { Copy, EllipsisVertical } from '../../primitives/icons/icons'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { copyText } from '../../utilities/export-output'
+import { NO_HOVER_QUERY } from '../../utilities/media-query'
 import { chatContentText } from './engine/chat-content/text'
 import type { ChatPart } from './engine/chat-content/types'
 import type { ChatMessageData } from './engine/types'
@@ -25,7 +27,7 @@ const messages = defineMessages({
 		id: 'ui.chat.messageActions',
 		defaultMessage: 'Message actions',
 		description:
-			'The name of the menu of a chat message, and of the button that opens it. A right-click or a long press on the message also opens the menu. It holds the actions of that message.',
+			'The name of the menu of a chat message, and of the button that opens it. On a touch screen, a long press on the message also opens the menu. It holds the actions of that message.',
 	},
 	copy: {
 		id: 'ui.chat.copy',
@@ -88,8 +90,10 @@ function useMenuEntries({ config, content }: ChatMessageMenuProps): {
 }
 
 /**
- * The context menu of a chat message, over its bubble. A right-click, a touch
- * long press, or the context-menu key opens it.
+ * The context menu of a chat message, over its bubble, on a device with no
+ * hover. A touch long press opens it there. A device that hovers shows the
+ * toolbar on a hover of the bubble, so there a right-click keeps the native
+ * menu of the browser.
  *
  * @internal
  */
@@ -100,8 +104,12 @@ export function ChatMessageMenu({
 }: ChatMessageMenuProps & { children: ReactNode }) {
 	const { entries, name } = useMenuEntries({ config, content })
 
+	// The wrapper stays when the menu turns off, so the bubble does not mount
+	// again when the query settles after hydration.
+	const touch = useMediaQuery(NO_HOVER_QUERY)
+
 	return (
-		<ContextMenu items={entries} capped={config?.capped} aria-label={name}>
+		<ContextMenu items={entries} capped={config?.capped} disabled={!touch} aria-label={name}>
 			{children}
 		</ContextMenu>
 	)
@@ -137,10 +145,10 @@ function loneItem(entries: ContextMenuEntry[]): ContextMenuItem | undefined {
 /**
  * The button in the toolbar of a chat message. A menu of more than one item
  * opens as a dropdown from an ellipsis button, with the same entries as the
- * context menu. Thus a reader with a keyboard and a reader who does not know
- * the right-click get to each action. A menu of one item with an icon, such
- * as Copy alone, has no ellipsis: the toolbar shows the button of that item,
- * which runs its action at once.
+ * context menu of a touch screen. Thus a reader with a pointer or a keyboard
+ * gets to each action. A menu of one item with an icon, such as Copy alone,
+ * has no ellipsis: the toolbar shows the button of that item, which runs its
+ * action at once.
  *
  * @internal
  */

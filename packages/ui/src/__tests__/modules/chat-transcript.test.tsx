@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import type { ChatMessageData } from '../../modules/chat'
 import { ChatTranscript, ChatTranscriptSkeleton } from '../../modules/chat'
+import { NO_HOVER_QUERY } from '../../utilities/media-query'
 import {
 	allBySlot,
 	bySlot,
@@ -13,6 +14,7 @@ import {
 	present,
 	renderUI,
 	screen,
+	stubMatchMedia,
 } from '../helpers'
 
 const messages: ChatMessageData[] = [
@@ -96,6 +98,9 @@ describe('ChatTranscript', () => {
 	describe('the row callbacks', () => {
 		it('opens the context menu that the callback returns for a message', () => {
 			const onAction = vi.fn()
+
+			// The long press of a touch screen opens the menu over the bubble.
+			stubMatchMedia((query) => query === NO_HOVER_QUERY)
 
 			const { container } = renderUI(
 				<ChatTranscript

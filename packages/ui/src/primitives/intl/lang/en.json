@@ -169,7 +169,7 @@
 	},
 	"ui.chat.messageActions": {
 		"defaultMessage": "Message actions",
-		"description": "The name of the menu of a chat message, and of the button that opens it. A right-click or a long press on the message also opens the menu. It holds the actions of that message."
+		"description": "The name of the menu of a chat message, and of the button that opens it. On a touch screen, a long press on the message also opens the menu. It holds the actions of that message."
 	},
 	"ui.chat.missing": {
 		"defaultMessage": "This chat cannot show a “{name}” block.",

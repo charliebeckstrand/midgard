@@ -1019,6 +1019,10 @@
 		"defaultMessage": "Press and hold a group header and select Manage rows",
 		"description": "Text of a demo in the docs as touchText, in modules/grid/groups/row-manager.tsx."
 	},
+	"docs.demo.019edab4972b": {
+		"defaultMessage": "Hover a message for its menu",
+		"description": "Text of a demo in the docs as mouseText, in modules/chat/with-context-menu.tsx."
+	},
 	"docs.demo.02165c3b623b": {
 		"defaultMessage": "Most of the rise sits on the north routes.",
 		"description": "Text of a demo in the docs as text, in modules/chat/embeds/registered-renderer.tsx."
@@ -4530,10 +4534,6 @@
 	"docs.demo.b88fc5fc4765": {
 		"defaultMessage": "Costs",
 		"description": "Text of a demo in the docs as yName, in modules/chart/animated.tsx, modules/chart/area/animated.tsx, modules/chart/combo/animated.tsx and 9 more."
-	},
-	"docs.demo.b8e3da36cf84": {
-		"defaultMessage": "Right-click a message",
-		"description": "Text of a demo in the docs as mouseText, in modules/chat/with-context-menu.tsx."
 	},
 	"docs.demo.b8f0388090f0": {
 		"defaultMessage": "Twelve stops are late this week, and {label}.",

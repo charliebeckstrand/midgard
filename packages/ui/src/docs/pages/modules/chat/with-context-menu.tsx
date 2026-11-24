@@ -18,7 +18,10 @@ export default function WithContextMenu() {
 	return (
 		<>
 			<Text tone="muted">
-				<PointerHint mouseText="Right-click a message" touchText="Press and hold a message" />
+				<PointerHint
+					mouseText="Hover a message for its menu"
+					touchText="Press and hold a message"
+				/>
 			</Text>
 			<ChatMessage sender="assistant" contextMenu={menu}>
 				Heading out now. ETA 3:00 PM.
