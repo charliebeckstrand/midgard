@@ -106,11 +106,14 @@
 );
 
 /*
- * `text-trim` applies a class only in a browser that trims a text box to the
- * cap height and the baseline (`text-box: trim-both cap alphabetic`). Chrome
- * 133 and Safari 18.2 trim. Firefox does not, so it keeps the classes with no
- * variant. An inline mark takes it, so the space above its text and the space
- * below its text are equal.
+ * `text-trim` applies a class only in a browser that reads
+ * `text-box: trim-both cap alphabetic`, which trims a text box to the cap
+ * height and the baseline. Chrome 133, Safari 18.2, and Firefox 154 read it. A
+ * browser that does not read it keeps the classes with no variant. An inline
+ * mark takes it, so the space above its text and the space below its text are
+ * equal. The query cannot see if the browser trims an inline box: Safari 18.2
+ * to 26.4 trims only a block container, so an inline Code there gets the
+ * larger padding with no trim.
  */
 @custom-variant text-trim (@supports (text-box: trim-both cap alphabetic));
 
