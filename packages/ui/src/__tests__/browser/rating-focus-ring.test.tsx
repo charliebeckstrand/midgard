@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Rating } from '../../components/rating'
-import { frames, renderUI } from '../helpers'
+import { frames, present, renderUI } from '../helpers'
 
 /**
  * The focus ring of an interactive Rating goes around the star, not around the
@@ -20,7 +20,7 @@ describe('Rating focus ring (real browser)', () => {
 			</>,
 		)
 
-		;(document.querySelector('button') as HTMLElement).focus()
+		present<HTMLElement>(document.querySelector('button'), 'button').focus()
 
 		await userEvent.keyboard('{Tab}')
 
@@ -34,7 +34,7 @@ describe('Rating focus ring (real browser)', () => {
 
 		const [star] = ringed as [HTMLElement]
 
-		const glyph = star.querySelector('svg') as SVGElement
+		const glyph = present<SVGElement>(star.querySelector('svg'), 'svg')
 
 		expect(star.getBoundingClientRect().width).toBe(glyph.getBoundingClientRect().width)
 	})
