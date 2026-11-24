@@ -90,7 +90,8 @@ export function clippedText(root: HTMLElement): string[] {
 
 /**
  * In-flow interactive siblings whose boxes overlap: a missing gap/margin
- * collapsed two controls onto each other. Positioned (`absolute`/`fixed`)
+ * collapsed two controls onto each other. An inline control that wraps is
+ * read box by box, one box for each line. Positioned (`absolute`/`fixed`)
  * elements are excluded, because overlaid adornments (input clear buttons,
  * badges) are intentional, and overlap up to 2px is tolerated for joined groups that
  * collapse shared borders with `-ml-px`.
@@ -117,13 +118,7 @@ export function overlappingTargets(root: HTMLElement): string[] {
 	for (const siblings of byParent.values()) {
 		for (let i = 0; i < siblings.length; i++) {
 			for (let j = i + 1; j < siblings.length; j++) {
-				const a = (siblings[i] as HTMLElement).getBoundingClientRect()
-				const b = (siblings[j] as HTMLElement).getBoundingClientRect()
-
-				const overlapX = Math.min(a.right, b.right) - Math.max(a.left, b.left)
-				const overlapY = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top)
-
-				if (overlapX > 2 && overlapY > 2) {
+				if (boxesOverlap(siblings[i] as HTMLElement, siblings[j] as HTMLElement)) {
 					offenders.add(siblings[i] as HTMLElement)
 
 					offenders.add(siblings[j] as HTMLElement)
@@ -133,6 +128,25 @@ export function overlappingTargets(root: HTMLElement): string[] {
 	}
 
 	return [...offenders].map(label)
+}
+
+/**
+ * Whether a box of `a` and a box of `b` overlap by more than 2px on each axis.
+ * An inline control that wraps, such as a citation in prose, has one box on
+ * each line. The bounding box of those boxes covers the start of the next line
+ * and the end of the line before, so the check reads each box.
+ */
+function boxesOverlap(a: HTMLElement, b: HTMLElement): boolean {
+	const boxesB = [...b.getClientRects()]
+
+	return [...a.getClientRects()].some((boxA) =>
+		boxesB.some((boxB) => {
+			const overlapX = Math.min(boxA.right, boxB.right) - Math.max(boxA.left, boxB.left)
+			const overlapY = Math.min(boxA.bottom, boxB.bottom) - Math.max(boxA.top, boxB.top)
+
+			return overlapX > 2 && overlapY > 2
+		}),
+	)
 }
 
 /**

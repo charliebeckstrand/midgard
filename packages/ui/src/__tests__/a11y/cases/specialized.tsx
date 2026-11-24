@@ -174,8 +174,8 @@ export const specializedCases: readonly Case[] = [
 	},
 	{
 		// A citation is a toggle button inside the prose, named by its phrase and
-		// described by its view. The second crosses bold, so its later piece is
-		// plain text and the citation stays one control.
+		// described by its view. The second holds the bold whole, so it is one
+		// control around the bold.
 		name: 'chat transcript with citations',
 		element: (
 			<ChatCitationProvider key="ctc" targets={citationTargets} cited={null} onCitedChange={noop}>
