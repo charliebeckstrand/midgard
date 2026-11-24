@@ -345,16 +345,23 @@ function span(mark: Mark, inner: readonly Item[], line: Line): string {
 
 	const plain = inner.map((each) => each.node.text ?? '').join('')
 
+	// A bare URL stays bare. A range on it is not a format, so it does not count.
 	if (
 		mark.type === schema.marks.link &&
 		plain === mark.attrs.href &&
 		!mark.attrs.title &&
-		inner.every((each) => each.marks.length === 0 && each.node.isText) &&
+		inner.every(
+			(each) =>
+				each.node.isText && each.marks.every((inside) => inside.type === schema.marks.range),
+		) &&
 		/^https?:\/\/[^\s<>]+$/.test(plain)
 	) {
 		line.start = false
 
-		return plain
+		// A link is one atom, so a range on part of it takes all of it.
+		const range = inner.map((each) => schema.marks.range.isInSet(each.marks)).find(Boolean)
+
+		return range ? markPiece(range, plain, line) : plain
 	}
 
 	const open = delimiter(mark, 'open')
