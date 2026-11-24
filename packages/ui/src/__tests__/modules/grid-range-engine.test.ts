@@ -599,6 +599,8 @@ describe('fillLine text with a number', () => {
 		expect(fillLine(['2026-11-30_10:00', '2026-11-30_10:30'], 1)).toEqual(['2026-11-30_10:00'])
 
 		expect(fillLine(['INV-2026-11-0001', 'INV-2026-11-0002'], 1)).toEqual(['INV-2026-11-0001'])
+
+		expect(fillLine(['2026-11-30T10:00', '2026-11-30T10:30'], 1)).toEqual(['2026-11-30T10:00'])
 	})
 
 	it('steps back, and repeats a series that would go below zero', () => {
@@ -615,6 +617,14 @@ describe('fillLine text with a number', () => {
 		expect(fillLine(['10.0.0.1', '10.0.0.2'], 1)).toEqual(['10.0.0.3'])
 
 		expect(fillLine(['SKU-12-001', 'SKU-12-002'], 1)).toEqual(['SKU-12-003'])
+
+		expect(fillLine(['SKU-12-34-001', 'SKU-12-34-002'], 1)).toEqual(['SKU-12-34-003'])
+
+		expect(fillLine(['PN-10-20-5', 'PN-10-20-6'], 1)).toEqual(['PN-10-20-7'])
+
+		expect(fillLine(['B12-3-1', 'B12-3-2'], 1)).toEqual(['B12-3-3'])
+
+		expect(fillLine(['R1:1', 'R1:2'], 1)).toEqual(['R1:3'])
 
 		expect(fillLine(['1.1', '1.2'], 1)).toEqual(['1.3'])
 	})

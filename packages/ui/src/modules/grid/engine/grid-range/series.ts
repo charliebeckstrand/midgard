@@ -202,17 +202,19 @@ const MAX_DIGITS = 15
  * and a dash or a slash (`2026-11`), a year and a month (`2026-11-30`), a day
  * and a month (`11/30/2026`), or an hour, with or without its minutes
  * (`10:30`, `10:30:15`). The number is then one part of a date or a time, not
- * a count. A full date or a time follows any character that is not a digit,
- * as in `Due 2026-11-30`, `log-2026-11-30`, or `2026-11-30T10:30`. A year
- * with no month starts the text or follows a space. Thus a year in a code,
- * such as `INV-2026-0001` or `PO/2026/17`, counts on, as do other dotted or
- * dashed numbers, such as `v1.2.3`, `10.0.0.1`, or `SKU-12-001`. A code with
- * a year and a month, such as `INV-2026-11-0001`, repeats, because it has the
- * shape of a date. A reference such as `John 3:16` has the shape of a time,
- * so it repeats.
+ * a count. A year and a month follow any character that is not a digit, as
+ * in `Due 2026-11-30` or `log-2026-11-30`. An hour follows a character that
+ * is not a letter or a digit, or the `T` of a date, as in `@10:30` or
+ * `2026-11-30T10:30`. A year with no month, and a day and a month, start the
+ * text or follow a space. Thus a year in a code, such as `INV-2026-0001` or
+ * `PO/2026/17`, counts on, as do other dotted, dashed, or colon numbers, such
+ * as `v1.2.3`, `10.0.0.1`, `SKU-12-001`, `SKU-12-34-001`, or `R1:1`. A code
+ * with a year and a month, such as `INV-2026-11-0001`, repeats, because it
+ * has the shape of a date. A reference such as `John 3:16` has the shape of a
+ * time, so it repeats.
  */
 const PART_OF_DATE_OR_TIME =
-	/(?:^|\s)\d{4}[-/]$|(?:^|\D)(?:\d{4}[-/]\d{1,2}[-/]|\d{1,2}[-/]\d{1,2}[-/]|\d{1,2}:(?:\d{2}:)?)$/
+	/(?:^|\s)(?:\d{4}[-/]|\d{1,2}[-/]\d{1,2}[-/])$|(?:^|\D)\d{4}[-/]\d{1,2}[-/]$|(?:^|[^\p{L}\d]|\dT)\d{1,2}:(?:\d{2}:)?$/u
 
 /**
  * The next `count` values of a line of text that ends in a whole number, two

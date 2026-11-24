@@ -614,6 +614,7 @@ export function useGridEditCursor<T>({
 	const startFillDrag = useGridFillDrag({
 		readSource: readFillSource,
 		showRange: nav.showRange,
+		rangeCols: nav.rangeCols,
 		fill: fillFromHandle,
 		parseCellCoord: nav.parseCellCoord,
 		rowStep: nav.rowStep,

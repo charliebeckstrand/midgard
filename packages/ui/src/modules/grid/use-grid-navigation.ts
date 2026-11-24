@@ -784,6 +784,8 @@ export function useGridNavigation({
 	order: readonly GridCursorRow[] | null
 	/** The place of a data row in the cursor's order, or -1 for a data row the order does not show. */
 	toCursorRow: (row: number) => number
+	/** The count of the columns that a range can hold, at call time. */
+	rangeCols: () => number
 	/** Shows the range between two data cells, the first as the anchor and the second as the cursor. */
 	showRange: (from: Coord, to: Coord) => void
 	/**
@@ -1841,6 +1843,7 @@ export function useGridNavigation({
 		readRange,
 		order: view.order,
 		toCursorRow,
+		rangeCols,
 		showRange,
 		selectRange,
 		endRange,

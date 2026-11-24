@@ -478,6 +478,46 @@ describe('grid fill handle (real browser)', () => {
 
 		expect(onCommit).toHaveBeenCalledExactlyOnceWith([{ rowKey: 2, columnId: 'name', value: 2 }])
 	})
+
+	// The Add column of the new-row slot holds no data, so the drag stops at the
+	// last data column.
+	it('fills no cell of the Add column of the new-row slot', async () => {
+		const onCommit = vi.fn()
+
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={(row) => row.id}
+				range
+				editable={{ session: 'managed', newRow: 'bottom', onRowAdd: () => {}, onCommit }}
+			/>,
+		)
+
+		onTestFinished(() => commands.releasePointer())
+
+		await userEvent.click(cell(2, 'name'))
+
+		await commands.pressPointer('[data-slot="grid-fill-handle"]')
+
+		// The Add column is the last column of the row.
+		const add = present(
+			document.querySelector<HTMLElement>('tr[data-grid-row="2"] td:last-child'),
+			'the Add column cell of row 2',
+		)
+
+		expect(add).not.toBe(cell(2, 'name'))
+
+		await userEvent.hover(add)
+
+		expect(document.querySelectorAll('td[data-in-range]')).toHaveLength(1)
+
+		expect(cell(2, 'name').hasAttribute('data-in-range')).toBe(true)
+
+		await commands.releasePointer()
+
+		expect(onCommit).not.toHaveBeenCalled()
+	})
 })
 
 /**
