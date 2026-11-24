@@ -32,7 +32,7 @@ describe('Wysiwyg', () => {
 		expect(field).toHaveAttribute('data-empty')
 	})
 
-	it('shows the source before the editor loads, and loads it on focus', async () => {
+	it('shows the formatting of the value before the editor loads, and loads it on focus', async () => {
 		renderUI(
 			<Wysiwyg aria-label="Notes" defaultValue="**Launch**">
 				<WysiwygToolbar actions={['bold']} />
@@ -45,7 +45,8 @@ describe('Wysiwyg', () => {
 
 		expect(field).toHaveAttribute('tabindex', '0')
 
-		expect(field).toHaveTextContent('**Launch**')
+		// The markup before the load draws the formatting, as the editor does.
+		expect(within(field).getByText('Launch').tagName).toBe('STRONG')
 
 		const bold = screen.getByRole('button', { name: 'Bold' })
 

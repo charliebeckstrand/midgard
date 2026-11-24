@@ -16,7 +16,6 @@ import { dataAttr } from '../../core/data-attr'
 import type { ScaleStep } from '../../core/density/scale'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { ControlActions, ControlFrame } from '../../primitives/control'
-import { k as markdown } from '../../recipes/kata/markdown'
 import type { scale } from '../../recipes/kata/wysiwyg'
 import { WysiwygContext, type WysiwygContextValue } from './context'
 import type { WysiwygBlock, WysiwygHandle, WysiwygToggleAction } from './types'
@@ -25,6 +24,7 @@ import { useWysiwygField } from './use-wysiwyg-field'
 import { useWysiwygLabelFocus } from './use-wysiwyg-label-focus'
 import { useWysiwygSelection } from './use-wysiwyg-selection'
 import type { WysiwygEditor } from './wysiwyg-editor'
+import { WysiwygStatic } from './wysiwyg-static'
 
 /** Props for {@link Wysiwyg}. */
 export type WysiwygProps<R extends MarkdownRange = MarkdownRange> = {
@@ -197,23 +197,6 @@ function drawable<R extends MarkdownRange>(
 }
 
 /**
- * The HTML attributes of the field as React props, for the markup before the
- * editor loads. The editor takes them by their HTML names.
- *
- * @internal
- */
-function reactProps(attributes: Record<string, string>): Record<string, string> {
-	const { class: className = '', tabindex, enterkeyhint, ...rest } = attributes
-
-	return {
-		...rest,
-		className,
-		...(tabindex === undefined ? {} : { tabIndex: tabindex }),
-		...(enterkeyhint === undefined ? {} : { enterKeyHint: enterkeyhint }),
-	}
-}
-
-/**
  * A rich text field that holds Markdown. It shows the formatting of its
  * source, rather than the syntax: `**bold**` shows as **bold**. Its value is a
  * Markdown string. Its children are the row above the field, such as a
@@ -233,10 +216,10 @@ function reactProps(attributes: Record<string, string>): Record<string, string> 
  * @remarks The field is a `contenteditable` element with `role="textbox"` and
  * `aria-multiline`, because a `<textarea>` cannot show formatting. The editor
  * is ProseMirror. It loads after the mount, in idle time, or at once on the
- * first focus or press of the field. Until then, the field shows the Markdown
- * source as text, with the same frame and the same minimum height, and a key
- * that the reader types goes nowhere. The focus goes on to the editor when it
- * loads.
+ * first focus or press of the field. Until then, and in the server render, the
+ * field shows the formatting of the value as the editor draws it, so the first
+ * paint has the layout of the field, but a key that the reader types goes
+ * nowhere. The focus goes on to the editor when it loads.
  *
  * With `ranges`, the field marks the text of each range, such as a citation,
  * and keeps the ranges across each edit that does not touch them.
@@ -435,6 +418,7 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 							<WysiwygStatic
 								attributes={field.attributes}
 								value={value}
+								ranges={ranges}
 								focusable={!field.disabled}
 								onWant={() => setWanted(true)}
 							/>
@@ -458,36 +442,4 @@ function fieldStyle(rows: number, placeholder: string | undefined) {
 		'--wysiwyg-rows': rows,
 		...(placeholder === undefined ? {} : { '--wysiwyg-placeholder': JSON.stringify(placeholder) }),
 	} as CSSProperties
-}
-
-/** Props for {@link WysiwygStatic}. @internal */
-type WysiwygStaticProps = {
-	attributes: Record<string, string>
-	value: string
-	focusable: boolean
-	/** Fires on the first focus or press, which loads the editor at once. */
-	onWant: () => void
-}
-
-/**
- * The field before the editor loads, and the markup of the server render: the
- * Markdown source as text, with the attributes of the field. The editor puts
- * its own element beside it, and this one then goes.
- *
- * @internal
- */
-function WysiwygStatic({ attributes, value, focusable, onWant }: WysiwygStaticProps) {
-	return (
-		// biome-ignore lint/a11y/useSemanticElements: the field holds the blocks of the editor, which a <textarea> cannot hold.
-		<div
-			{...reactProps(attributes)}
-			role="textbox"
-			tabIndex={focusable ? 0 : undefined}
-			data-empty={dataAttr(value.trim() === '')}
-			onFocus={onWant}
-			onPointerDown={onWant}
-		>
-			<p className={markdown().paragraph}>{value === '' ? <br /> : value}</p>
-		</div>
-	)
 }
