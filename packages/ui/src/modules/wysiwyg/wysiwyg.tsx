@@ -19,10 +19,11 @@ import { ControlActions, ControlFrame } from '../../primitives/control'
 import { k as markdown } from '../../recipes/kata/markdown'
 import type { scale } from '../../recipes/kata/wysiwyg'
 import { WysiwygContext, type WysiwygContextValue } from './context'
-import type { WysiwygAction, WysiwygHandle } from './types'
+import type { WysiwygAction, WysiwygBlock, WysiwygHandle } from './types'
 import { useWysiwygEditor } from './use-wysiwyg-editor'
 import { useWysiwygField } from './use-wysiwyg-field'
 import { useWysiwygLabelFocus } from './use-wysiwyg-label-focus'
+import { useWysiwygSelection } from './use-wysiwyg-selection'
 import type { WysiwygEditor } from './wysiwyg-editor'
 
 /** Props for {@link Wysiwyg}. */
@@ -92,6 +93,14 @@ export type WysiwygProps<R extends MarkdownRange = MarkdownRange> = {
 	/** Runs first on each key in the field. A handler that cancels the key stops the editor. */
 	onKeyDown?: (event: KeyboardEvent) => void
 	/**
+	 * Fires with the text block that holds the caret ({@link WysiwygBlock}) when
+	 * the block, its text, or the caret changes, such as for a completion that
+	 * reads the word at the caret. It gives `null` while the field does not have
+	 * the focus, while the field is disabled or read-only, and while the
+	 * selection is not a caret in a text block outside a code block.
+	 */
+	onSelectionChange?: (block: WysiwygBlock | null) => void
+	/**
 	 * The `enterkeyhint` of the field, such as `send`, for the Enter key of a virtual keyboard.
 	 * @defaultValue No hint: the keyboard shows its own Enter key.
 	 */
@@ -128,8 +137,14 @@ export type WysiwygProps<R extends MarkdownRange = MarkdownRange> = {
 	'aria-labelledby'?: string
 	/** Consumer-supplied `aria-describedby`, merged ahead of the field's registered description / error ids. */
 	'aria-describedby'?: string
+	/** The `aria-autocomplete` of the field, for a completion that it controls. */
+	'aria-autocomplete'?: 'inline' | 'list' | 'both' | 'none'
+	/** The `aria-haspopup` of the field, for a completion that it controls. */
+	'aria-haspopup'?: 'listbox' | 'menu' | 'tree' | 'grid' | 'dialog'
+	/** The `aria-controls` of the field, such as the id of an open completion list. */
+	'aria-controls'?: string
 	/** Gets the {@link WysiwygHandle} of the field. */
-	ref?: Ref<WysiwygHandle>
+	ref?: Ref<WysiwygHandle<R>>
 }
 
 /** The subscription of a locked field, which takes no update. @internal */
@@ -235,6 +250,7 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 	children,
 	onEnter,
 	onKeyDown,
+	onSelectionChange,
 	separated = false,
 	size,
 	ref,
@@ -335,12 +351,21 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 	const focus = () => {
 		setWanted(true)
 
-		if (editor) editor.view.focus()
+		if (editor) editor.focus()
 		else element()?.focus()
 	}
 
+	const replace = (from: number, to: number, text: string, range?: R) => {
+		// The edit gives the range back by its id, as the object of the caller.
+		if (range) known.current.set(range.id, range)
+
+		editor?.replace(from, to, text, range && { id: range.id, start: range.start, end: range.end })
+	}
+
 	// The handle is made again at each commit, so it holds the current value and element.
-	useImperativeHandle(ref, () => ({ focus, value, element: element() }))
+	useImperativeHandle(ref, () => ({ focus, value, element: element(), replace }))
+
+	useWysiwygSelection(editor, subscribe, locked, onSelectionChange)
 
 	useWysiwygLabelFocus(field.disabled ? undefined : field.labelId, focus)
 

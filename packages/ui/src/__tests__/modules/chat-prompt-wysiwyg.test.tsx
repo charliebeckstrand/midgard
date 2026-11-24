@@ -99,9 +99,13 @@ describe('ChatPrompt with wysiwyg', () => {
 		expect((ref.current as WysiwygHandle).value).toBe('Draft')
 	})
 
-	it('opens no picker for sources', () => {
+	it('names the popup of the picker on the field for sources', () => {
 		renderUI(<ChatPrompt value="" onValueChange={noop} onSubmit={noop} sources={SOURCES} wysiwyg />)
 
-		expect(screen.getByRole('textbox')).not.toHaveAttribute('aria-haspopup')
+		const field = screen.getByRole('textbox')
+
+		expect(field).toHaveAttribute('aria-haspopup', 'listbox')
+
+		expect(field).toHaveAttribute('aria-autocomplete', 'list')
 	})
 })

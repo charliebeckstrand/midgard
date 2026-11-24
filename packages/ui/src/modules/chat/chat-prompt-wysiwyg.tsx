@@ -1,7 +1,6 @@
 'use client'
 
 import type { Ref } from 'react'
-import { isComposing } from '../../utilities/is-composing'
 import { Wysiwyg, type WysiwygProps, WysiwygToolbar } from '../wysiwyg'
 import type { WysiwygAction, WysiwygHandle } from '../wysiwyg/types'
 import type { ChatCitation } from './engine/chat-content/types'
@@ -27,14 +26,17 @@ type ChatPromptWysiwygProps = Pick<
 	| 'aria-label'
 	| 'aria-labelledby'
 	| 'aria-describedby'
+	| 'aria-autocomplete'
+	| 'aria-haspopup'
+	| 'aria-controls'
+	| 'onKeyDown'
+	| 'onSelectionChange'
 > & {
 	/** The `wysiwyg` prop of the ChatPrompt, when it is on. */
 	config: true | ChatPromptWysiwygOptions
 	/** Enter calls it. */
 	onEnter: () => void
-	/** Escape calls it, outside an IME composition. */
-	onEscape?: () => void
-	ref?: Ref<WysiwygHandle>
+	ref?: Ref<WysiwygHandle<ChatCitation>>
 }
 
 /**
@@ -43,22 +45,9 @@ type ChatPromptWysiwygProps = Pick<
  *
  * @internal
  */
-export function ChatPromptWysiwyg({ config, onEnter, onEscape, ...props }: ChatPromptWysiwygProps) {
+export function ChatPromptWysiwyg({ config, ...props }: ChatPromptWysiwygProps) {
 	return (
-		<Wysiwyg
-			{...props}
-			onEnter={onEnter}
-			onKeyDown={(event) => {
-				if (event.key !== 'Escape' || !onEscape || isComposing(event)) return
-
-				// The press is consumed, so an enclosing dialog does not close on it.
-				event.preventDefault()
-
-				onEscape()
-			}}
-			enterKeyHint="send"
-			className="max-h-64"
-		>
+		<Wysiwyg {...props} enterKeyHint="send" className="max-h-64">
 			<WysiwygToolbar actions={config === true ? undefined : config.actions} />
 		</Wysiwyg>
 	)
