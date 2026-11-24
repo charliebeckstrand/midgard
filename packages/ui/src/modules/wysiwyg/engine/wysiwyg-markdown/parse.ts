@@ -77,12 +77,15 @@ function toBlock(token: Token, walk: RangeWalk | undefined): Node | null {
 		}
 		case 'list':
 			return toList(token as Tokens.List, walk)
-		case 'code':
+		case 'code': {
+			const code = codeLines(token.text)
+
 			return schema.node(
 				'code_block',
 				{ lang: token.lang ?? '' },
-				token.text ? schema.text(token.text) : undefined,
+				code ? schema.text(code) : undefined,
 			)
+		}
 		case 'hr':
 			return schema.node('horizontal_rule')
 		default:
@@ -115,6 +118,19 @@ function toList(token: Tokens.List, walk: RangeWalk | undefined): Node {
 				items,
 			)
 		: schema.node('bullet_list', { tight: !token.loose }, items)
+}
+
+/**
+ * The lines of a code block, with a newline between two lines and none after
+ * the last line, as the serializer writes them. The text that `marked` gives
+ * keeps the newline at the end of the last line in some blocks, such as a
+ * fenced block with a blank last line and an indented block. This removes it,
+ * so a blank last line does not grow on each round trip.
+ *
+ * @internal
+ */
+function codeLines(text: string): string {
+	return text.endsWith('\n') ? text.slice(0, -1) : text
 }
 
 /** @internal */

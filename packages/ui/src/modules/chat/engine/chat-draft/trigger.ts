@@ -114,11 +114,11 @@ export function activeTrigger(
 	return null
 }
 
-/** What a choice gives: the next draft and the caret after the citation. @internal */
+/** What a choice gives: the next draft and the caret after the text of the choice. @internal */
 export type TriggerChoice = {
 	/** The start of the word that the text replaces, which is the offset of the trigger. */
 	start: number
-	/** The end of the word that the text replaces. */
+	/** The end of the region that the text replaces: the word, and a space after it. */
 	tail: number
 	/** The text that goes in place of the word of the trigger. */
 	text: string
@@ -133,8 +133,14 @@ export type TriggerChoice = {
  * The draft after a choice in the picker of `match`. The word of the trigger
  * becomes the quote of the citation, which is the trigger and the label of the
  * choice. The word ends at the next whitespace, so a choice with the caret in
- * a word replaces all of the word. A space follows the quote unless whitespace
- * already does, and the caret goes after that space.
+ * a word replaces all of the word.
+ *
+ * One space follows the quote, and the caret goes after that space. A space
+ * that already follows the word is that space: the region of the choice takes
+ * it in, and the text puts it back. Thus the caret after the text is after the
+ * space in each field, as the field puts the caret after the text that it
+ * writes. Other whitespace, such as a line break, stays after the quote, and
+ * the caret goes to the end of the quote.
  *
  * @internal
  * @param citation - The new citation, with no address yet. The rule gives it its offsets and its quote.
@@ -154,7 +160,11 @@ export function chooseInTrigger(
 
 	while (tail < value.length && !isSpace(value[tail])) tail++
 
-	const text = isSpace(value[tail]) ? quote : `${quote} `
+	const after = value[tail]
+
+	if (after === ' ') tail++
+
+	const text = after === undefined || after === ' ' ? `${quote} ` : quote
 
 	const next = value.slice(0, match.start) + text + value.slice(tail)
 
@@ -171,6 +181,6 @@ export function chooseInTrigger(
 		citation: chosen,
 		value: next,
 		citations: [...kept, chosen].sort((a, b) => a.start - b.start),
-		caret: end + 1,
+		caret: match.start + text.length,
 	}
 }

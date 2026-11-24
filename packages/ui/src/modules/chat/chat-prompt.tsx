@@ -41,7 +41,11 @@ import {
 } from './engine/chat-draft/history'
 import { rebaseCitations } from './engine/chat-draft/rebase'
 import type { ChatPromptSource } from './types'
-import { type PickerKeyEvent, useChatPromptPicker } from './use-chat-prompt-picker'
+import {
+	type PickerDraft,
+	type PickerKeyEvent,
+	useChatPromptPicker,
+} from './use-chat-prompt-picker'
 import { useTextareaPickerField } from './use-chat-textarea-picker-field'
 import { useWysiwygPickerField } from './use-chat-wysiwyg-picker-field'
 
@@ -104,13 +108,13 @@ export type ChatPromptProps = {
 	 * the caret to find where the change is. A change that touches a citation
 	 * dissolves it, and its text stays as prose. A Backspace at the end of a
 	 * citation deletes one character, and the picker of its source opens again
-	 * with the rest of the label as the query. No change of the text makes a
-	 * citation, so a pasted or typed `@name` is prose. An undo or a redo of the
-	 * browser brings back the citations of the draft that it goes to.
+	 * with the rest of the label as the query. A Delete at the start of a
+	 * citation deletes all of it, as it came in as one choice. No change of the
+	 * text makes a citation, so a pasted or typed `@name` is prose. An undo or a
+	 * redo of the browser brings back the citations of the draft that it goes to.
 	 *
 	 * While {@link ChatPromptProps.wysiwyg} is on, the field marks each citation,
-	 * and a change that touches one dissolves it, as in the textarea. A Delete
-	 * at the start of a citation then deletes one character.
+	 * and the keys above act as in the textarea.
 	 * @defaultValue []
 	 */
 	citations?: readonly ChatCitation[]
@@ -339,6 +343,8 @@ export function ChatPrompt({
 
 	const wysiwygField = useWysiwygPickerField({ citations, handleRef: wysiwygRef })
 
+	const { keyDraft } = wysiwygField
+
 	const picker = useChatPromptPicker({
 		sources,
 		field: wysiwyg ? wysiwygField.field : textareaField.field,
@@ -373,6 +379,23 @@ export function ChatPrompt({
 			send()
 		},
 		[send, takeKey, citations],
+	)
+
+	// The formatted field has no native delete to select for, so it removes the
+	// span through its handle, as one step of its undo history.
+	const handleWysiwygKeyDown = useCallback(
+		(event: PickerKeyEvent) => {
+			if (takeKey(event)) return
+
+			const span = wholeCitation(event, keyDraft())
+
+			if (!span) return
+
+			event.preventDefault()
+
+			wysiwygRef.current?.replace(span.start, span.end, '')
+		},
+		[takeKey, keyDraft],
 	)
 
 	// A textbox cannot take the `combobox` role, so it names its popup with the attributes that a textbox takes.
@@ -454,7 +477,7 @@ export function ChatPrompt({
 					ranges={citations}
 					onValueChange={onValueChange}
 					onEnter={send}
-					onKeyDown={takeKey}
+					onKeyDown={handleWysiwygKeyDown}
 					onSelectionChange={wysiwygField.onSelectionChange}
 					{...pickerProps}
 					rows={rows}
@@ -636,15 +659,44 @@ function takeEscape(
 }
 
 /**
- * Deletes a whole citation on a Delete at its start. The handler selects the
- * citation, and the native delete then removes the selection. Thus the
- * delete is on the undo stack of the browser, and the citation goes as one
- * unit, as it came in as one choice.
+ * The span that a Delete at the start of a citation removes: all of the
+ * citation, as it came in as one choice. Each field removes the span as one
+ * step of its undo history.
  *
- * A choice puts a space after the quote. The delete also removes that space
- * when whitespace or the start of the draft is before the citation. Thus
+ * A choice puts a space after the quote. The span also holds that space when
+ * whitespace or the start of the draft is before the citation. Thus
  * `a @X b` becomes `a b`, and no double space stays. A citation with a word
  * directly before it keeps the space, so the two words do not join.
+ *
+ * @internal
+ * @returns The span, or `null` for another key or a caret at no citation.
+ */
+function wholeCitation(
+	event: PickerKeyEvent,
+	draft: PickerDraft | null,
+): { start: number; end: number } | null {
+	// A Backspace deletes one character, and the picker opens again at the trigger.
+	if (event.key !== 'Delete' || !draft) return null
+
+	if (hasBrowserModifier(event) || event.shiftKey || isComposing(event)) return null
+
+	const { value, caret, citations } = draft
+
+	const citation = citations.find((c) => c.start === caret)
+
+	if (!citation) return null
+
+	const before = value[citation.start - 1]
+
+	const spaced = value[citation.end] === ' ' && (before === undefined || /\s/.test(before))
+
+	return { start: citation.start, end: spaced ? citation.end + 1 : citation.end }
+}
+
+/**
+ * Deletes a whole citation of the textarea ({@link wholeCitation}). The
+ * handler selects the citation, and the native delete then removes the
+ * selection, so the delete is on the undo stack of the browser.
  *
  * @internal
  */
@@ -652,26 +704,11 @@ function deleteWholeCitation(
 	event: KeyboardEvent<HTMLTextAreaElement>,
 	citations: readonly ChatCitation[],
 ): void {
-	// A Backspace deletes one character, and the picker opens again at the trigger.
-	if (event.key !== 'Delete') return
+	const { value, selectionStart, selectionEnd } = event.currentTarget
 
-	if (hasBrowserModifier(event) || event.shiftKey || isComposing(event)) return
+	const draft = selectionStart === selectionEnd ? { value, caret: selectionStart, citations } : null
 
-	const textarea = event.currentTarget
+	const span = wholeCitation(event, draft)
 
-	const at = textarea.selectionStart
-
-	if (at !== textarea.selectionEnd) return
-
-	const citation = citations.find((c) => c.start === at)
-
-	if (!citation) return
-
-	const { value } = textarea
-
-	const before = value[citation.start - 1]
-
-	const spaced = value[citation.end] === ' ' && (before === undefined || /\s/.test(before))
-
-	textarea.setSelectionRange(citation.start, spaced ? citation.end + 1 : citation.end)
+	if (span) event.currentTarget.setSelectionRange(span.start, span.end)
 }
