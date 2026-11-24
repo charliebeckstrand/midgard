@@ -103,6 +103,51 @@ describe('Wysiwyg (real browser)', () => {
 		expect(field).toHaveTextContent(/^Hello$/)
 	})
 
+	it('gives the ranges of the default value on a form reset, and not those of the last edit', async () => {
+		const source = 'Ask @Sales'
+
+		const given = { id: 'sales', start: 4, end: 10, quote: '@Sales' }
+
+		const changes: unknown[] = []
+
+		function Reset() {
+			const [ranges, setRanges] = useState([given])
+
+			return (
+				<form>
+					<Wysiwyg
+						aria-label="Notes"
+						defaultValue={source}
+						ranges={ranges}
+						onValueChange={(next, kept) => {
+							changes.push([next, kept])
+
+							setRanges(kept)
+						}}
+					/>
+				</form>
+			)
+		}
+
+		renderUI(<Reset />)
+
+		const field = await editable()
+
+		await userEvent.keyboard('{Home}Please ')
+
+		await waitFor(() =>
+			expect(changes.at(-1)).toEqual([`Please ${source}`, [{ ...given, start: 11, end: 17 }]]),
+		)
+
+		field.closest('form')?.reset()
+
+		await waitFor(() => expect(changes.at(-1)).toEqual([source, [given]]))
+
+		await waitFor(() =>
+			expect(field.querySelector('[data-slot="wysiwyg-range"]')).toHaveTextContent('@Sales'),
+		)
+	})
+
 	it('formats the selection from the toolbar and keeps the focus in the field', async () => {
 		renderUI(<Notes initial="Ship it" />)
 

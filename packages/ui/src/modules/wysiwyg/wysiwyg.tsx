@@ -10,7 +10,7 @@ import {
 	useState,
 } from 'react'
 import type { ControlVariant } from '../../components/control/context'
-import type { MarkdownRange } from '../../components/markdown/markdown-ranges'
+import { type MarkdownRange, rangeWalk } from '../../components/markdown/markdown-ranges'
 import { cn } from '../../core/cn'
 import { dataAttr } from '../../core/data-attr'
 import type { ScaleStep } from '../../core/density/scale'
@@ -50,7 +50,9 @@ export type WysiwygProps<R extends MarkdownRange = MarkdownRange> = {
 	/**
 	 * Fires with the Markdown of the field after each edit, and the ranges that
 	 * the edit kept. Each range is the object of `ranges` with the `start`,
-	 * `end`, and `quote` of the new value.
+	 * `end`, and `quote` of the new value. A native reset of an uncontrolled
+	 * field gives the ranges of the first render that can draw on its default
+	 * value.
 	 */
 	onValueChange?: (value: string, ranges: R[]) => void
 	/**
@@ -120,6 +122,26 @@ export type WysiwygProps<R extends MarkdownRange = MarkdownRange> = {
 	'aria-describedby'?: string
 	/** Gets the {@link WysiwygHandle} of the field. */
 	ref?: Ref<WysiwygHandle>
+}
+
+/**
+ * The ranges that can draw on `value`: each range of `ranges` that can, then
+ * each range of `fallback` with another id that can.
+ *
+ * @internal
+ */
+function drawable<R extends MarkdownRange>(
+	value: string,
+	ranges: readonly R[],
+	fallback: readonly R[],
+): R[] {
+	const kept = rangeWalk(value, ranges)?.ranges ?? []
+
+	const ids = new Set(kept.map((range) => range.id))
+
+	const rest = fallback.filter((range) => !ids.has(range.id))
+
+	return [...kept, ...(rangeWalk(value, rest)?.ranges ?? [])]
 }
 
 /**
@@ -198,10 +220,17 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 	// range back gives the object of the caller.
 	const known = useRef(new Map<string, R>())
 
-	// The ranges of the last edit, which the change of the value gives.
-	const edited = useRef<R[]>([])
+	// The ranges of the first render, which are the ranges of the default value.
+	const [initialRanges] = useState(ranges)
 
-	const emit = useStableEvent((next: string) => onValueChange?.(next, edited.current))
+	// The ranges of the edit that sets the value now. A change of the value that
+	// is not an edit, such as a form reset, has none, and gives the ranges that
+	// can draw on the new value.
+	const edited = useRef<R[] | undefined>(undefined)
+
+	const emit = useStableEvent((next: string) =>
+		onValueChange?.(next, edited.current ?? drawable(next, ranges, initialRanges)),
+	)
 
 	// The reset ref apart, so the rest of the field reads as values in the render.
 	const { resetRef, ...field } = useWysiwygField({
@@ -243,6 +272,8 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 		})
 
 		field.setValue(markdown)
+
+		edited.current = undefined
 	})
 
 	const { editor, subscribe } = useWysiwygEditor({
