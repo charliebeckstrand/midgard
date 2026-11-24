@@ -1449,7 +1449,7 @@
 	},
 	"docs.demo.19766ed6ccb2": {
 		"defaultMessage": "Cancel",
-		"description": "Text of a demo in the docs, in components/card/with-header-and-footer.tsx, components/dialog/with-form.tsx, components/sheet/with-form.tsx and 4 more."
+		"description": "Text of a demo in the docs as label, in components/card/with-header-and-footer.tsx, components/dialog/with-form.tsx, components/sheet/with-form.tsx and 4 more."
 	},
 	"docs.demo.197aee787794": {
 		"defaultMessage": "Leave grid",
@@ -2098,6 +2098,10 @@
 	"docs.demo.3ac8bbca9a74": {
 		"defaultMessage": "Billing",
 		"description": "Text of a demo in the docs as label, in components/menu/title-and-description.tsx, components/nav/with-content.tsx, components/tabs/settings.ts."
+	},
+	"docs.demo.3b13192b9d88": {
+		"defaultMessage": "Discard your changes?",
+		"description": "Text of a demo in the docs as title, in modules/chat/conversation/edit-a-message.tsx."
 	},
 	"docs.demo.3ba37c617eff": {
 		"defaultMessage": "January 2026",
@@ -5505,7 +5509,7 @@
 	},
 	"docs.demo.e76fd2add010": {
 		"defaultMessage": "Keep editing",
-		"description": "Text of a demo in the docs as label, in components/confirm/playground.tsx."
+		"description": "Text of a demo in the docs as label, in components/confirm/playground.tsx, modules/chat/conversation/edit-a-message.tsx."
 	},
 	"docs.demo.e7ad522ea327": {
 		"defaultMessage": "Application",
@@ -5561,7 +5565,7 @@
 	},
 	"docs.demo.eb1a70e39274": {
 		"defaultMessage": "Discard",
-		"description": "Text of a demo in the docs, in modules/form/unsaved-changes.tsx."
+		"description": "Text of a demo in the docs as label, in modules/chat/conversation/edit-a-message.tsx, modules/form/unsaved-changes.tsx."
 	},
 	"docs.demo.eb5e7a5e3d68": {
 		"defaultMessage": "Date modified",
