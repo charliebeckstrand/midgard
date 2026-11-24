@@ -77,12 +77,11 @@ export type SliderProps = SliderBaseProps &
 	>
 
 /**
- * A range input for a single value. It is controlled or uncontrolled. It
- * resolves `id`, `disabled`, `readOnly`, and `invalid` from an enclosing
- * Control or Field, and binds to an enclosing Form field by `name`. The slider
- * takes the step of the nearest density scope, and an explicit `size` opens a
- * scope on the input. The fill position is exposed as a `--slider-value` CSS
- * variable.
+ * Range input for a single value, controlled or uncontrolled. It resolves `id`,
+ * `disabled`, `readOnly`, and `invalid` from an enclosing Control or Field, and binds to an
+ * enclosing Form field by `name`. The slider takes the step of the nearest
+ * density scope, and an explicit `size` opens a scope on the input. The
+ * fill position is exposed as a `--slider-value` CSS variable.
  *
  * @remarks Renders a native `<input type="range">`, so screen-reader semantics
  * and arrow-key stepping come from the platform; only `aria-valuetext` is

@@ -30,14 +30,14 @@ export type BreadcrumbProps = {
 } & ComponentProps<'nav'>
 
 /**
- * A navigation landmark that shows the path to the current page. It follows the
- * APG breadcrumb pattern and renders a `<nav>` named "Breadcrumb" in the
- * language of the reader. Holds a `<BreadcrumbList>` of `<BreadcrumbItem>`s,
- * each wrapping a `<BreadcrumbLink>`, with `<BreadcrumbSeparator>`s between
- * crumbs. Set `collapse` to keep a long trail on one line. Static leaf: renders
- * in React Server Components. The `<nav>` is its client part, which reads the
- * name from the nearest `LocaleProvider`. Pass `aria-label` to give the trail
- * another name. Compose `<BreadcrumbSkeleton>` for loading trees.
+ * Breadcrumb navigation landmark: renders a `<nav>` named "Breadcrumb" in the
+ * language of the reader (APG). Holds a `<BreadcrumbList>` of
+ * `<BreadcrumbItem>`s, each wrapping a `<BreadcrumbLink>`, with
+ * `<BreadcrumbSeparator>`s between crumbs. Set `collapse` to keep a long trail
+ * on one line. Static leaf: renders in React Server Components. The `<nav>`
+ * is its client part, which reads the name from the nearest `LocaleProvider`.
+ * Pass `aria-label` to give the trail another name. Compose
+ * `<BreadcrumbSkeleton>` for loading trees.
  */
 export function Breadcrumb({ collapse = false, className, ...props }: BreadcrumbProps) {
 	if (!collapse) return <BreadcrumbNav className={className} {...props} />

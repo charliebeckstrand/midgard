@@ -63,9 +63,7 @@ export type CopyButtonProps = {
 } & Omit<ComponentProps<'button'>, 'children' | 'type' | 'color' | 'aria-label'>
 
 /**
- * A button that copies text to the clipboard. It has the look of
- * ToggleIconButton. Writes `text`, flips to a check glyph, and reverts after
- * `timeout`.
+ * Clipboard-copy control with the look of ToggleIconButton. Writes `text`, flips to a check glyph, and reverts after `timeout`.
  *
  * @remarks
  * It is an action, not a toggle, so it sets no `aria-pressed`. It stays

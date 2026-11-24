@@ -19,11 +19,11 @@ export type AspectRatioProps = {
 } & ComponentProps<'div'>
 
 /**
- * A box that holds its content to a fixed aspect ratio and clips the overflow.
+ * Box constraining its content to a fixed aspect ratio with overflow clipped.
  * A named preset resolves to a recipe class; a numeric `ratio` is applied as an
- * inline `aspect-ratio` style. A number that is not finite or not more than
- * zero gives the `1/1` preset. On each path, the ratio wins over an
- * `aspectRatio` in `style`. Static leaf: renders in React Server Components.
+ * inline `aspect-ratio` style. A number that is not finite or not more than zero
+ * gives the `1/1` preset. On each path, the ratio wins over an `aspectRatio` in
+ * `style`. Static leaf: renders in React Server Components.
  */
 export function AspectRatio({
 	ratio = '1/1',

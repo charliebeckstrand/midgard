@@ -11,10 +11,10 @@ export type StackProps = Omit<FlexProps, 'direction' | 'align'> & {
 }
 
 /**
- * A vertical flex container. It is a Flex with `direction` fixed to `col`. Use
- * Flex directly to lay out along the inline axis. Children stretch across the
- * inline axis and `gap` is explicit, matching Flex. Static leaf: renders in
- * React Server Components.
+ * Vertical flex container: Flex with `direction` fixed to `col`. Use Flex
+ * directly to lay out along the inline axis. Children stretch across the inline
+ * axis and `gap` is explicit, matching Flex. Static leaf:
+ * renders in React Server Components.
  */
 export function Stack(props: StackProps) {
 	return <Flex data-slot="stack" direction="col" {...props} />

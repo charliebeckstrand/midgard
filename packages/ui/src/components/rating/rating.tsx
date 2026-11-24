@@ -182,8 +182,7 @@ export type RatingProps = RatingVariants & {
 const ungated = { checkForDefaultPrevented: false }
 
 /**
- * A row of stars that shows a score. The score is out of
- * {@link RatingProps.count}.
+ * Star rating: a row of stars standing for a score out of {@link RatingProps.count}.
  *
  * Interactive, it is a `role="radiogroup"` over one native `<input type="radio">`
  * per star. Arrow keys, focus, and the announced position therefore come from

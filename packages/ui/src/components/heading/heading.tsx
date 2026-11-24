@@ -24,10 +24,10 @@ export type HeadingProps = {
 } & ComponentProps<'h1'>
 
 /**
- * A heading, rendered as `h1` to `h6` by `level`. Weight tracks the level. The
- * font size is the natural size of the level, moved one rung for each step away
- * from `md`. The heading takes the step of the nearest density scope, and an
- * explicit `size` makes the heading a density scope. Static leaf: renders in
+ * Semantic heading rendering `h1`-`h6` per `level`. Weight tracks the level.
+ * The font size is the natural size of the level, moved one rung for each step
+ * away from `md`. The heading takes the step of the nearest density scope, and
+ * an explicit `size` makes the heading a density scope. Static leaf: renders in
  * React Server Components. Compose `<HeadingSkeleton>` in the loading tree for
  * a placeholder.
  */

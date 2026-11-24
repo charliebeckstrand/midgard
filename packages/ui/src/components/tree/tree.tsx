@@ -51,16 +51,7 @@ export type TreeProps = AccessibleName &
 		children: ReactNode
 	}
 
-/**
- * A tree view with keyboard navigation. It is a `role="tree"` with a roving
- * tabindex and the APG arrow moves to a first child and to a parent. Type-ahead
- * moves to the next visible, enabled row whose label starts with the typed
- * text. It keeps the first item tabbable across open/close and filtering, and
- * shares depth and `indent` to nested items via context. Requires
- * `aria-label`/`aria-labelledby`. A consumer `ref` reaches the tree element. A
- * consumer `onKeyDown` runs before the arrow moves and the roving, so a
- * consumer can add a key, such as Delete.
- */
+/** Root of a `role="tree"` with roving-tabindex keyboard navigation and the APG arrow moves to a first child and to a parent. Type-ahead moves to the next visible, enabled row whose label starts with the typed text. It keeps the first item tabbable across open/close and filtering, and shares depth and `indent` to nested items via context. Requires `aria-label`/`aria-labelledby`. A consumer `ref` reaches the tree element. A consumer `onKeyDown` runs before the arrow moves and the roving, so a consumer can add a key, such as Delete. */
 export function Tree({
 	size,
 	indent = true,

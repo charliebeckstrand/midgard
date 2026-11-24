@@ -102,11 +102,11 @@ function partitionChildren(children: ReactNode): {
 }
 
 /**
- * A flow of steps that shows the current step. It is controlled and indexed,
- * keyed by a numeric `value`. Partitions its children into a step row and a
- * `<StepperPanels>` group, scopes an `ActiveIndicator` for the current-step
- * marker, and shares step state via context. Each `<StepperStep>` derives its
- * completed/current/upcoming state by comparing its own index against `value`.
+ * Controlled, indexed multi-step flow keyed by a numeric `value`. Partitions
+ * its children into a step row and a `<StepperPanels>` group,
+ * scopes an `ActiveIndicator` for the current-step marker, and shares step state
+ * via context. Each `<StepperStep>` derives its completed/current/upcoming state
+ * by comparing its own index against `value`.
  *
  * @remarks
  * Client component (`'use client'`). By default the row is `vertical` at

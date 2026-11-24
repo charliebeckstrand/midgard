@@ -31,16 +31,15 @@ export type SwitchProps = SwitchVariants & {
 } & Omit<ComponentProps<'input'>, 'type' | 'size' | 'defaultChecked' | 'readOnly'>
 
 /**
- * A toggle control backed by a native `role="switch"` checkbox. It is
- * controlled via `checked`, or uncontrolled. Owns its checked state, keeping
- * `aria-checked` in sync. Integrates with enclosing `<Form>` and `<Control>`
- * for binding and validation. The track takes the step of the nearest density
- * scope, and an explicit `size` opens a scope on the label. An explicit
- * `checked` prop wins over the bound field, and `onChange` fires in either
- * mode. `className`, `style`, and `hidden` go to the visible track, and the
- * other native attributes go to the input. The hit area floors at the minimums
- * of `TouchTarget`, 24 px on a fine pointer and 44 px on a coarse pointer, and
- * the track keeps its size.
+ * Toggle control backed by a native `role="switch"` checkbox; controlled via
+ * `checked` or uncontrolled. Owns its checked state, keeping `aria-checked` in
+ * sync. Integrates with enclosing `<Form>` and `<Control>` for binding and
+ * validation. The track takes the step of the nearest density scope, and an
+ * explicit `size` opens a scope on the label. An explicit `checked` prop wins over the bound field, and
+ * `onChange` fires in either mode. `className`, `style`, and `hidden` go to the
+ * visible track, and the other native attributes go to the input. The hit area
+ * floors at the minimums of `TouchTarget`, 24 px on a fine pointer and 44 px on
+ * a coarse pointer, and the track keeps its size.
  */
 export function Switch({
 	className,

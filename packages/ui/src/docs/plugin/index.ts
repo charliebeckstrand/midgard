@@ -33,7 +33,6 @@ import {
 import type { HighlightTask } from './highlight-worker.ts'
 import { findPages, type Page, type PageLink } from './pages.ts'
 import { type SearchEntry, searchEntries } from './search.ts'
-import { pageSummaries, type Summaries } from './summaries.ts'
 
 const VIRTUAL = 'virtual:docs/'
 
@@ -43,10 +42,8 @@ const PAGES = `${VIRTUAL}pages`
 
 const SEARCH = `${VIRTUAL}search`
 
-const SUMMARIES = `${VIRTUAL}summaries`
-
-/** The ms with no edit, after an edit, before the search and the summaries load again (`staleIndexes`). */
-const INDEX_RELOAD_DELAY = 2000
+/** The ms with no edit, after an edit, before the search loads again (`staleSearch`). */
+const SEARCH_RELOAD_DELAY = 2000
 
 // The module of `localize`, which a page or a tab module imports (`copies.ts`).
 const LOCALIZE = path.resolve(import.meta.dirname, '..', 'kit', 'localize.tsx')
@@ -75,14 +72,13 @@ function data(value: unknown): string {
 }
 
 /**
- * The Vite plugin of the docs. It gives five virtual modules, each of which
+ * The Vite plugin of the docs. It gives four virtual modules, each of which
  * exports data:
  *
  * - `virtual:docs/api/<barrel>`: the API data of a barrel, such as `components/button` ({@link createApiWorker}).
  * - `virtual:docs/pages`: the link of each page ({@link findPages}).
  * - `virtual:docs/code/<folder>`: the code of each example in a folder of `pages/`, highlighted ({@link loadCodes}).
  * - `virtual:docs/search`: the entries of the search of the docs ({@link searchEntries}).
- * - `virtual:docs/summaries`: the summary of each page ({@link pageSummaries}).
  *
  * It transforms each module of `pages/`. It adds the title and the code module
  * to the default export of each example ({@link attachMeta}), and it sends
@@ -164,15 +160,12 @@ export function reactDocs({ clientDir }: { clientDir?: string } = {}): Plugin {
 
 	const lang = path.join(docs, 'lang')
 
-	// The entries of the search and the summaries of the pages. They read each
-	// page and the API data of each barrel that a page imports, so an edit to
-	// either makes them stale.
+	// The entries of the search. They read each page and the API data of each
+	// barrel that a page shows, so an edit to either makes them stale.
 	let search: Promise<SearchEntry[]> | undefined
 
-	let summaries: Promise<Summaries> | undefined
-
-	// The timer of the next load of the search and the summaries in each environment ({@link staleIndexes}).
-	const indexReloads = new Map<string, ReturnType<typeof setTimeout>>()
+	// The timer of the next load of the search in each environment ({@link staleSearch}).
+	const searchReloads = new Map<string, ReturnType<typeof setTimeout>>()
 
 	// The routes that the server started with ({@link formatRoutes}).
 	let routes = ''
@@ -246,17 +239,16 @@ export function reactDocs({ clientDir }: { clientDir?: string } = {}): Plugin {
 	}
 
 	/**
-	 * Loads the search and the summaries in `environment` again, when an edit
-	 * to `file` makes them stale. An edit to a page or to a source of `ui` can
-	 * change them.
+	 * Loads the search in `environment` again, when an edit to `file` makes it
+	 * stale. An edit to a page or to a source of `ui` can change the entries.
 	 *
-	 * Each module reads the API data of each barrel, so a new copy waits for each
-	 * barrel. The modules are thus not part of the update of the edit, which would
-	 * wait for them too. They load again in an update of their own, after the update
-	 * of the edit, when no edit came for {@link INDEX_RELOAD_DELAY} ms. A run of
-	 * edits thus does not wait for them.
+	 * The entries read the API data of each barrel, so a new copy waits for each
+	 * barrel. The module is thus not part of the update of the edit, which would
+	 * wait for it too. It loads again in an update of its own, after the update
+	 * of the edit, when no edit came for {@link SEARCH_RELOAD_DELAY} ms. A run of
+	 * edits thus does not wait for the entries.
 	 */
-	function staleIndexes(environment: DevEnvironment, file: string): void {
+	function staleSearch(environment: DevEnvironment, file: string): void {
 		const isPage = file.startsWith(pages)
 
 		const isSource = isUiSource(file)
@@ -265,21 +257,15 @@ export function reactDocs({ clientDir }: { clientDir?: string } = {}): Plugin {
 
 		search = undefined
 
-		summaries = undefined
+		const module = environment.moduleGraph.getModuleById(virtualId(SEARCH))
 
-		const modules = [SEARCH, SUMMARIES].flatMap(
-			(name) => environment.moduleGraph.getModuleById(virtualId(name)) ?? [],
-		)
+		if (!module) return
 
-		if (modules.length === 0) return
+		clearTimeout(searchReloads.get(environment.name))
 
-		clearTimeout(indexReloads.get(environment.name))
+		const reload = setTimeout(() => void environment.reloadModule(module), SEARCH_RELOAD_DELAY)
 
-		const reload = setTimeout(() => {
-			for (const module of modules) void environment.reloadModule(module)
-		}, INDEX_RELOAD_DELAY)
-
-		indexReloads.set(environment.name, reload)
+		searchReloads.set(environment.name, reload)
 	}
 
 	return {
@@ -307,12 +293,6 @@ export function reactDocs({ clientDir }: { clientDir?: string } = {}): Plugin {
 					search ??= searchEntries(docs, this.parse.bind(this), readApi)
 
 					return data(await search)
-				}
-
-				if (name === SUMMARIES) {
-					summaries ??= pageSummaries(docs, readApi)
-
-					return data(await summaries)
 				}
 
 				if (name.startsWith(API)) {
@@ -416,7 +396,7 @@ export function reactDocs({ clientDir }: { clientDir?: string } = {}): Plugin {
 				)
 			}
 
-			staleIndexes(this.environment, file)
+			staleSearch(this.environment, file)
 
 			for (const module of stale) graph.invalidateModule(module)
 

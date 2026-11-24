@@ -172,11 +172,10 @@ export type TagInputProps = Omit<
 }
 
 /**
- * A field for a list of tags. It shows its tags as removable badges in the
- * `<Input>` prefix. It is controlled or uncontrolled via
- * `value`/`defaultValue`. It commits on Enter, comma, blur, the Add button or a
- * paste. Backspace removes the trailing tag, and `validate` and `max` gate the
- * additions.
+ * Token-entry field rendering its tags as removable badges in the `<Input>`
+ * prefix. It is controlled or uncontrolled via `value`/`defaultValue`. It
+ * commits on Enter, comma, blur, the Add button or a paste. Backspace removes
+ * the trailing tag, and `validate` and `max` gate the additions.
  *
  * @remarks
  * Binds to an enclosing `<Form>` field by `name` (the inner text input stays

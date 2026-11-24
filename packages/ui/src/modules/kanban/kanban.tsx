@@ -47,17 +47,17 @@ export type KanbanProps<T, C extends KanbanColumnBase<T>> = AccessibleName &
 const cancelEveryDrop = () => true
 
 /**
- * A board of cards in columns. It is built over `@dnd-kit`. Reorders cards
- * within and across columns by pointer drag (with a drag overlay) or keyboard
- * lift, and emits the next `columns` array through `onReorder`. With no
- * `onReorder`, the board is read-only: each card takes `data-readonly`, and the
- * handles render nothing. With `onReorder` and `disabled`, the board is
- * disabled: each card and each column body take `data-disabled`, each body
- * dims, and each handle shows a muted grip. The board gives the state of the
- * drag and of the keyboard to each {@link KanbanColumn} and {@link KanbanCard}
- * below it through context. Compose the header slot and the body slot of each
- * column within. A pointer drags a card, and the keyboard lifts a card, only
- * from its {@link KanbanCardHandle}.
+ * Multi-column board over `@dnd-kit`. Reorders cards within and across columns
+ * by pointer drag (with a drag overlay) or keyboard lift, and emits the next
+ * `columns` array through `onReorder`. With no `onReorder`, the board is
+ * read-only: each card takes `data-readonly`, and the handles render nothing.
+ * With `onReorder` and `disabled`, the board is disabled: each card and each
+ * column body take `data-disabled`, each body dims, and each handle shows a
+ * muted grip. The board gives the state of the drag and of the keyboard to
+ * each {@link KanbanColumn} and {@link KanbanCard} below it through context.
+ * Compose the header slot and the body slot of each column within. A pointer
+ * drags a card, and the keyboard lifts a card, only from its
+ * {@link KanbanCardHandle}.
  *
  * @remarks
  * Client component. The board is a named `role="region"` (`<section>`), so the

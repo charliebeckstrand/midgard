@@ -272,12 +272,11 @@ function AnimatedSparklineMarks({
 }
 
 /**
- * Compact inline trend chart: a line or bar sparkline. It renders as a
- * self-contained, decoration-free SVG (`role="img"`). Sized at the step of the
- * nearest density scope unless `width` / `height` fix it, it maps `data` onto
- * its drawing box through {@link sparklineGeometry}. A flat or single-point
- * series still draws visibly, and a stray non-finite value doesn't collapse the
- * scale.
+ * Compact inline trend chart (a line or bar sparkline) rendered as a
+ * self-contained, decoration-free SVG (`role="img"`). Sized at the step of
+ * the nearest density scope unless `width` / `height` fix it, it maps `data` onto its
+ * drawing box through {@link sparklineGeometry}. A flat or single-point series
+ * still draws visibly, and a stray non-finite value doesn't collapse the scale.
  *
  * @remarks Built for a {@link Grid} cell (drop it into a column's `cell`
  * renderer), but usable anywhere. In a Grid cell it takes the step of the

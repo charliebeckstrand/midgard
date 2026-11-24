@@ -87,8 +87,8 @@ function MarkdownImpl<R extends MarkdownRange = MarkdownRange>({
 }
 
 /**
- * Markdown rendered as styled prose. It renders the source to a React element
- * tree with [marked](https://marked.js.org), in a block `<div>`.
+ * Markdown source rendered to a React element tree with
+ * [marked](https://marked.js.org) and styled as prose, in a block `<div>`.
  * GitHub-flavored Markdown is enabled, so tables, task lists,
  * `~~strikethrough~~`, and autolinks all parse. With `breaks`, each line break
  * in a paragraph renders as a `<br>`. A table that is wider than the prose

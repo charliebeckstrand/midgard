@@ -95,9 +95,8 @@ const noProps = () => ({})
 const serverModule = () => null
 
 /**
- * A tooltip that opens on hover or focus. It wires up floating state and shares
- * `placement` and `delay` with its `<TooltipTrigger>` and `<TooltipContent>`
- * via context.
+ * Hover/focus tooltip root; wires up floating state and shares `placement` and
+ * `delay` with its `<TooltipTrigger>` and `<TooltipContent>` via context.
  *
  * @remarks Opens on hover or on click, as `trigger` selects, and on keyboard
  * focus. A tap does not open a hover tooltip, and a focus after a touch press

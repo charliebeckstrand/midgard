@@ -17,7 +17,6 @@ import { HashAnchor } from './hash-anchor.tsx'
 import { runInSlices } from './idle.ts'
 import { formatLiteral } from './names.ts'
 import { scrollToPending } from './pending-anchor.ts'
-import { TSDOC } from './tsdoc.ts'
 
 const messages = defineMessages({
 	props: {
@@ -90,6 +89,15 @@ function withNode(text: string, node: ReactNode): ReactNode {
 		</>
 	)
 }
+
+/**
+ * The language and the direction of the TSDoc of ui, which stays English in
+ * each language of the docs (CONVENTIONS.md §13.10). The `lang` of the text
+ * tells a screen reader to read it with an English voice. The `dir` keeps the
+ * text left to right on a right-to-left page, so the period of a sentence
+ * stays at its end.
+ */
+const TSDOC = { lang: 'en', dir: 'ltr' } as const
 
 const CHIP = 'rounded px-1.5 py-0.5 font-mono text-[0.8125rem]/5'
 

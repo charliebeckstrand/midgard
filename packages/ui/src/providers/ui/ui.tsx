@@ -95,16 +95,16 @@ export type UIProviderProps = {
 const [UIProviderContext] = createContext<boolean>('UIProvider', { default: false })
 
 /**
- * The app-root provider of the framework bindings of `ui`. Registers the link
- * component, the default portal container, the current path, and the icons that
- * replace the Lucide defaults. It also mounts the dialog that `useConfirm` from
- * `ui/confirm` asks in, and the toast queue and viewport that `useToast` from
- * `ui/toast` uses. The dialog and the viewport load in idle time after the
- * hydration, or on the first question or toast when that comes first. Put
- * `LocaleProvider` above it, because the confirm dialog reads the contexts
- * above the provider. It loads the Motion features of the `ReducedMotion` roots
- * at idle after hydration, so the first dialog, menu, or popover that opens
- * animates in its first frame.
+ * Single app-root integration point for the library's framework bindings.
+ * Registers the link component, the default portal container, the current
+ * path, and the icons that replace the Lucide defaults. It also mounts the dialog that `useConfirm` from `ui/confirm` asks in,
+ * and the toast queue and viewport that `useToast` from `ui/toast` uses. The
+ * dialog and the viewport load in idle time after the hydration, or on the
+ * first question or toast when that comes first. Put `LocaleProvider` above
+ * it, because the confirm dialog reads the contexts above the provider. It
+ * loads the Motion features of the
+ * `ReducedMotion` roots at idle after hydration, so the first dialog, menu, or
+ * popover that opens animates in its first frame.
  *
  * Each binding is independent and optional: the provider broadcasts a binding
  * only when its prop is provided. A nested `<UIProvider>` overrides one

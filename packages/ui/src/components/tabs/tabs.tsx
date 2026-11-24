@@ -49,10 +49,10 @@ export type TabsProps = Omit<ComponentProps<'div'>, 'defaultValue'> & {
 }
 
 /**
- * A set of tabs, each with its own panel. It holds the selection state and the
- * `variant` and `orientation` context of its list and panels. Controlled or
- * uncontrolled via `value`/`defaultValue`; the `segment` variant forces
- * horizontal orientation. An explicit `size` makes the group a density scope.
+ * Tab-group root holding selection state and `variant`/`orientation`
+ * context for its list and panels. Controlled or uncontrolled via
+ * `value`/`defaultValue`; the `segment` variant forces horizontal orientation.
+ * An explicit `size` makes the group a density scope.
  *
  * A `segment` group with no `TabContents` and no `TabContent` picks a value and
  * shows no panel. Its list is then a `radiogroup`, and each item is a `radio`

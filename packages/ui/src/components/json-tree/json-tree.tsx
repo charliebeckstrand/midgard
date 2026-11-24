@@ -116,13 +116,12 @@ function expansionReader(expanded: ReadonlySet<string> | undefined): (path: stri
 }
 
 /**
- * A collapsible tree view of a JSON value. It is a `role="tree"` over an
- * arbitrary {@link JsonValue}. Expands to `defaultExpandDepth` by default, or
- * runs controlled via `expanded` / `onExpandedChange`; `collapsible` keeps some
- * or all branches open; `search` highlights and auto-expands matching nodes
- * (and hides non-matches in filter mode). Roving-focus keyboard navigation
- * moves between tree items. `ArrowRight` opens a closed branch or moves to the
- * first child of an open one. `ArrowLeft` closes an open branch or moves to the
+ * Collapsible `role="tree"` view for an arbitrary {@link JsonValue}. Expands to
+ * `defaultExpandDepth` by default, or runs controlled via `expanded` /
+ * `onExpandedChange`; `collapsible` keeps some or all branches open; `search` highlights and auto-expands matching nodes (and
+ * hides non-matches in filter mode). Roving-focus keyboard navigation moves
+ * between tree items. `ArrowRight` opens a closed branch or moves to the first
+ * child of an open one. `ArrowLeft` closes an open branch or moves to the
  * parent. On a branch that does not collapse, `ArrowRight` moves to the first
  * child and `ArrowLeft` moves to the parent. The two keys swap in a
  * right-to-left layout.

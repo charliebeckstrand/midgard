@@ -4,7 +4,7 @@ import { toApiId } from '../kit/anchors.ts'
 import { humanize } from '../kit/humanize.ts'
 import type { BarrelApi } from './api.ts'
 import { exampleFiles, examplesIn, type Parser, toCodeKey } from './examples.ts'
-import { findPages, readApiImports } from './pages.ts'
+import { findPages } from './pages.ts'
 
 /** What an entry of the search is. */
 export type SearchKind = 'page' | 'tab' | 'example' | 'component' | 'prop' | 'event'
@@ -20,6 +20,9 @@ export type SearchEntry = {
 	context: string
 }
 
+// The module of a page or a tab imports the API data of a barrel by this id.
+const API_IMPORT = /['"]virtual:docs\/api\/([\w/-]+)['"]/g
+
 /**
  * The barrels whose API data the page or the tab in `folder` shows. A module
  * that renders no `<ApiTable` shows no API reference, although it can import
@@ -30,7 +33,7 @@ async function readBarrels(folder: string): Promise<string[]> {
 
 	if (!code.includes('<ApiTable')) return []
 
-	return readApiImports(code)
+	return [...code.matchAll(API_IMPORT)].flatMap(([, barrel]) => (barrel ? [barrel] : []))
 }
 
 /**
