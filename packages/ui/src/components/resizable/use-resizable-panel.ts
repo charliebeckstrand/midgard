@@ -5,6 +5,7 @@ import {
 	type RefObject,
 	useEffect,
 	useEffectEvent,
+	useLayoutEffect,
 	useRef,
 	useState,
 } from 'react'
@@ -269,6 +270,29 @@ export function useResizablePanel({
 
 	const reportSizes = useEffectEvent((next: number[]) => onSizesChange?.(next))
 
+	// The sizes of the last commit. A drag frame can run before React renders the
+	// commit before it, so the state of a render can be one commit behind.
+	const committed = useRef(sizes)
+
+	// A reseed of the panel set changes the sizes during a render, not through a commit.
+	useLayoutEffect(() => {
+		committed.current = sizes
+	}, [sizes])
+
+	// The one way that a resize, a reset, and a drag commit sizes. Sizes equal to
+	// the committed ones change nothing, so they report nothing.
+	const commit = useStableEvent((next: number[]) => {
+		if (next.every((size, index) => size === committed.current[index])) return
+
+		committed.current = next
+
+		// Side effects run here, not inside the setSizes updater: StrictMode
+		// double-invokes the updater, firing onSizesChange twice per keypress.
+		setSizes(next)
+
+		reportSizes(next)
+	})
+
 	const reportResizeStart = useEffectEvent((handleIndex: number) => onResizeStart?.(handleIndex))
 
 	const reportResizeEnd = useEffectEvent((handleIndex: number) => onResizeEnd?.(handleIndex))
@@ -293,16 +317,7 @@ export function useResizablePanel({
 		next[leftIndex] = prev[leftIndex] + delta
 		next[rightIndex] = prev[rightIndex] - delta
 
-		const clamped = clampPair(next, leftIndex, panelConfigs)
-
-		// A step at a bound, or a reset at the defaults, changes nothing, so it reports nothing.
-		if (clamped.every((size, index) => size === prev[index])) return
-
-		// Side effects run here, not inside the setSizes updater: StrictMode
-		// double-invokes the updater, firing onSizesChange twice per keypress.
-		setSizes(clamped)
-
-		reportSizes(clamped)
+		commit(clampPair(next, leftIndex, panelConfigs))
 	})
 
 	// The reset moves the handle back to where the defaults of its two panels put
@@ -402,9 +417,7 @@ export function useResizablePanel({
 
 			pending = null
 
-			setSizes(clamped)
-
-			reportSizes(clamped)
+			commit(clamped)
 		}
 
 		const onMove = (event: PointerEvent) => {
