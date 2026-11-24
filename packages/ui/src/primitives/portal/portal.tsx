@@ -48,6 +48,16 @@ export type PortalProps = {
 	 * @defaultValue false
 	 */
 	ssr?: boolean
+	/**
+	 * Whether the surface opens and closes with no motion, as a surface that
+	 * replaces another one does. A menu that swaps one submenu for its sibling
+	 * is an example. An open starts at rest. A close gives the value to the
+	 * exit as the `custom` of `AnimatePresence`, so an exit that is a variant
+	 * of it, such as `ugoki.popover`, ends at once. The value at the open and
+	 * at the close applies.
+	 * @defaultValue false
+	 */
+	instant?: boolean
 	/** Fires once the exit animation finishes and the portal node unmounts. */
 	onExitComplete?: () => void
 	/** The open surface, mounted while `open` and kept through its exit animation. */
@@ -110,7 +120,14 @@ function PortalScope({ children }: { children: ReactNode }) {
  * exit. When the boundary reveals it, the exit completes at once, without the
  * animation.
  */
-export function Portal({ open, container, ssr = false, onExitComplete, children }: PortalProps) {
+export function Portal({
+	open,
+	container,
+	ssr = false,
+	instant = false,
+	onExitComplete,
+	children,
+}: PortalProps) {
 	const root = usePortalContainer(container)
 
 	const density = useDensityScope()
@@ -175,7 +192,11 @@ export function Portal({ open, container, ssr = false, onExitComplete, children 
 			<PortalScope>
 				<BreakpointFrameContext value={frame}>
 					<ReducedMotion>
-						<AnimatePresence initial={!restore} onExitComplete={handleExitComplete}>
+						<AnimatePresence
+							initial={!restore && !instant}
+							custom={instant}
+							onExitComplete={handleExitComplete}
+						>
 							{open && children}
 						</AnimatePresence>
 					</ReducedMotion>

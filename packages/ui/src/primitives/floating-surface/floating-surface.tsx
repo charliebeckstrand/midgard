@@ -20,7 +20,7 @@ import type { DensityStep } from '../../core/density/steps'
 import { liveLayers } from '../../core/live-layer'
 import { k } from '../../recipes/kata/popover'
 import { Density } from '../density'
-import { Portal } from '../portal'
+import { Portal, type PortalProps } from '../portal'
 import { SurfaceNodeContext } from '../portal/context'
 
 /**
@@ -48,6 +48,12 @@ export type FloatingSurfaceProps = {
 	 */
 	trapFocusProps?: Omit<FloatingFocusManagerProps, 'context' | 'children'>
 	onExitComplete?: () => void
+	/**
+	 * Whether the surface opens and closes with no motion, as a surface that
+	 * replaces another one does ({@link PortalProps.instant}).
+	 * @defaultValue false
+	 */
+	instant?: boolean
 	/**
 	 * The density step. Omit it to take the step of the scope of the place that
 	 * opened the surface, which the portal carries. A step makes the surface a
@@ -94,6 +100,7 @@ export function FloatingSurface({
 	trapFocusContext,
 	trapFocusProps,
 	onExitComplete,
+	instant,
 	density,
 	className,
 	style,
@@ -177,7 +184,7 @@ export function FloatingSurface({
 	// portal host writes, and the children read the same step in context.
 	return (
 		<Density step={density}>
-			<Portal open={open} onExitComplete={onExitComplete}>
+			<Portal open={open} instant={instant} onExitComplete={onExitComplete}>
 				{trapFocusContext ? (
 					// `returnFocus={false}`: `useFloatingPanel`'s reason-aware effect owns
 					// the close restore, as in DatePickerContent. `initialFocus={-1}`: the

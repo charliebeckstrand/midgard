@@ -136,10 +136,21 @@ export type MenuPointerValue = {
 
 export const [MenuPointerContext, useMenuPointer] = createContext<MenuPointerValue>('Menu')
 
+/** The submenu open at one menu level. */
+export type MenuOpenSub = {
+	/** Key of the open submenu, or `null` when none is. */
+	key: string | null
+	/**
+	 * Key of the sibling submenu that `key` replaced at once, or `null` when no
+	 * submenu was open before it. The two then open and close with no motion.
+	 */
+	from: string | null
+}
+
 /**
- * Key of the submenu open at the enclosing level, or `null` when none is. Split
- * from {@link MenuPointerContext} the way {@link MenuStateContext} is split from
+ * The submenu open at the enclosing level. Split from
+ * {@link MenuPointerContext} the way {@link MenuStateContext} is split from
  * {@link MenuActionsContext}, and for the same reason. This is the one value
  * that changes as the pointer sweeps, and only a {@link MenuSub} needs it.
  */
-export const [MenuOpenSubContext, useMenuOpenSub] = createContext<string | null>('Menu')
+export const [MenuOpenSubContext, useMenuOpenSub] = createContext<MenuOpenSub>('Menu')
