@@ -64,7 +64,7 @@ export type WysiwygProps<R extends MarkdownRange = MarkdownRange> = {
 	 * @minimum 1
 	 */
 	rows?: number
-	/** The text that the empty field shows. */
+	/** The text that the empty field shows. A screen reader gets it through `aria-placeholder`. */
 	placeholder?: string
 	/**
 	 * Control slot rendered as a right-justified row below the field, as on

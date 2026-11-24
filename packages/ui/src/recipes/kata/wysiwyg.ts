@@ -75,6 +75,11 @@ export const k = defineKata(
 					'[&[data-empty]>:first-child]:before:pointer-events-none',
 					'[&[data-empty]>:first-child]:before:absolute',
 					'[&[data-empty]>:first-child]:before:content-(--wysiwyg-placeholder)',
+					// The field gives the placeholder to a screen reader through
+					// `aria-placeholder`. The empty alternative text keeps the generated text
+					// out of the value that a screen reader reads. A browser that has no
+					// alternative text for `content` reads the text.
+					"supports-[content:'a'_/_'']:[&[data-empty]>:first-child]:before:content-[var(--wysiwyg-placeholder)_/_'']",
 					// The marks of the editor: its selected node, its hidden selection, and
 					// the separator image that it puts beside an inline node.
 					'[&_.ProseMirror-selectednode]:outline-2 [&_.ProseMirror-selectednode]:outline-blue-500',
