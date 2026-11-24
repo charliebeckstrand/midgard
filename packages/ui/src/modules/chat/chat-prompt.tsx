@@ -42,8 +42,8 @@ import {
 import { rebaseCitations } from './engine/chat-draft/rebase'
 import type { ChatPromptSource } from './types'
 import { type PickerKeyEvent, useChatPromptPicker } from './use-chat-prompt-picker'
-import { useTextareaPickerField } from './use-textarea-picker-field'
-import { useWysiwygPickerField } from './use-wysiwyg-picker-field'
+import { useTextareaPickerField } from './use-chat-textarea-picker-field'
+import { useWysiwygPickerField } from './use-chat-wysiwyg-picker-field'
 
 const messages = defineMessages({
 	placeholder: {
