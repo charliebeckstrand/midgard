@@ -25,15 +25,15 @@ import { useButtonDefaults } from './context'
 export type ButtonProps = ButtonBaseProps & PolymorphicProps<'button', 'prefix'>
 
 /**
- * Polymorphic action control: renders a `<button>` or, when `href` is set,
- * a `<Link>` anchor. Without `size`, it takes the step of the nearest density
- * scope through stepped classes, and reads no context. An explicit `size`
- * makes the button its own scope. It swaps in a `<LoadingSpinner>` while
- * `loading`. It collapses to a square hit area when
- * icon-only, and degrades to headless output under that provider. Compose `<ButtonSkeleton>`
- * in loading trees. A button with no `variant` or `color` takes the one of the
- * surface around it, such as the soft color of an alert for its actions. The
- * defaults of a surface stop at a portal, such as a dialog that an action opens.
+ * A button that starts an action. It renders a `<button>`, or a `<Link>` anchor
+ * when `href` is set. Without `size`, it takes the step of the nearest density
+ * scope through stepped classes, and reads no context. An explicit `size` makes
+ * the button its own scope. It swaps in a `<LoadingSpinner>` while `loading`.
+ * It collapses to a square hit area when icon-only, and degrades to headless
+ * output under that provider. Compose `<ButtonSkeleton>` in loading trees. A
+ * button with no `variant` or `color` takes the one of the surface around it,
+ * such as the soft color of an alert for its actions. The defaults of a surface
+ * stop at a portal, such as a dialog that an action opens.
  *
  * A loading button stays enabled, so it keeps the focus that it has. It is
  * `aria-disabled`, leaves the tab order, and cancels each activation, the

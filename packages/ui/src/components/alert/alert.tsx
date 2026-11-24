@@ -209,7 +209,7 @@ function AlertContent({
 }
 
 /**
- * A closable message bar with severity-driven color, icon, and ARIA role. It
+ * A message bar whose severity sets its color, its icon, and its ARIA role. It
  * takes its content through `title`, `description`, `actions`, and `children`,
  * and runs controlled or uncontrolled via `open`/`defaultOpen`. A `closable`
  * close button can return focus to `returnFocusTo` when it closes the alert.

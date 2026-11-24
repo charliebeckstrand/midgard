@@ -1,3 +1,9 @@
+/**
+ * Maps of SVG geography with points, routes, and geofences.
+ *
+ * @packageDocumentation
+ */
+
 export type { MapSeriesColor } from '../../recipes/kata/map'
 export type { MapLegendInput } from './engine/map-legend/plan'
 export { binEmphasisId } from './engine/map-region/category'

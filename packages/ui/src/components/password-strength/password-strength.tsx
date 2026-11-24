@@ -157,7 +157,13 @@ export type PasswordStrengthProps = Omit<ComponentProps<'div'>, 'children'> & {
 	onStrengthChange?: (strength: PasswordStrengthChange) => void
 }
 
-/** Password strength meter and rule checklist driven by a `value` against a set of `rules`. Renders a native `meter` with the level as its value text, beside a decorative four-segment bar. A live region announces each change as "Password strength: <level>", and the component reports the level via `onStrengthChange`. */
+/**
+ * A strength meter and a rule checklist for a password. It checks the `value`
+ * against a set of `rules`. Renders a native `meter` with the level as its
+ * value text, beside a decorative four-segment bar. A live region announces
+ * each change as "Password strength: <level>", and the component reports the
+ * level via `onStrengthChange`.
+ */
 export function PasswordStrength({
 	value,
 	rules = defaultPasswordRules,

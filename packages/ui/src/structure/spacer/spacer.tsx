@@ -5,10 +5,10 @@ import { cn } from '../../core/cn'
 export type SpacerProps = {} & Omit<ComponentProps<'div'>, 'children'>
 
 /**
- * Flexible gap that expands to consume free space inside a flex container,
- * pushing siblings to opposite ends. Renders an `aria-hidden` `flex-1`
- * `<div>` that stretches on the cross axis; takes no children. A static leaf
- * with no client hooks, so it renders in React Server Components.
+ * A gap that grows to fill the free space in a flex container. It pushes its
+ * siblings to opposite ends. Renders an `aria-hidden` `flex-1` `<div>` that
+ * stretches on the cross axis; takes no children. A static leaf with no client
+ * hooks, so it renders in React Server Components.
  */
 export function Spacer({ className, ...props }: SpacerProps) {
 	return (

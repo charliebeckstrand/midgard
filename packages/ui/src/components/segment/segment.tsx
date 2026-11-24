@@ -7,7 +7,10 @@ import { Tabs, type TabsProps } from '../tabs'
  */
 export type SegmentProps = Omit<TabsProps, 'variant' | 'orientation'>
 
-/** Segmented control: preset over `<Tabs variant="segment">` with orientation pinned to horizontal. */
+/**
+ * A segmented control that selects one option in a horizontal row. It is a
+ * preset over `<Tabs variant="segment">` with orientation pinned to horizontal.
+ */
 export function Segment(props: SegmentProps) {
 	return <Tabs data-slot="segment" variant="segment" {...props} />
 }

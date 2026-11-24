@@ -48,14 +48,15 @@ export type CreditCardInputProps = Omit<
 }
 
 /**
- * Numeric Input that masks card numbers into brand-aware spaced groups as you
- * type. It detects the brand from the digits and surfaces its label as the
+ * A field for a card number that spaces the digits in the groups of the card
+ * brand. It detects the brand from the digits and surfaces its label as the
  * suffix, at the text size of the input. The brand describes the input
- * (`aria-describedby`), so a screen reader reads it with the number. Emits the formatted value, brand, and
- * Luhn + length + pattern validity through `onValueChange`, `onBrandChange`,
- * and `onValidityChange`, and binds to an enclosing Form field by `name`. Sets
- * `autoComplete="cc-number"` and defaults a "Card number" aria-label, in the
- * language of the reader, yielding to a Field `<Label>` or a native `<label>`.
+ * (`aria-describedby`), so a screen reader reads it with the number. Emits the
+ * formatted value, brand, and Luhn + length + pattern validity through
+ * `onValueChange`, `onBrandChange`, and `onValidityChange`, and binds to an
+ * enclosing Form field by `name`. Sets `autoComplete="cc-number"` and defaults
+ * a "Card number" aria-label, in the language of the reader, yielding to a
+ * Field `<Label>` or a native `<label>`.
  *
  * @see {@link CreditCardInputExpiry}
  * @see {@link CreditCardInputCvv}

@@ -135,7 +135,9 @@ export type SignaturePadProps = Omit<
 }
 
 /**
- * Pointer-driven canvas for capturing a signature; emits a data URL when a stroke ends and stays sized to its container under devicePixelRatio.
+ * A canvas that records a signature that the reader draws with a pointer. It
+ * emits a data URL when a stroke ends and stays sized to its container under
+ * devicePixelRatio.
  *
  * A drawn signature needs a pointer, and the canvas is not in the tab order.
  * Thus a form that requires a signature must also give a way to sign with

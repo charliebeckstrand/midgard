@@ -161,11 +161,12 @@ export type CommandPaletteProps = Pick<DialogProps, 'open' | 'defaultOpen'> &
 const DEFAULT_TRIGGER_SHORTCUT = '$mod+KeyK'
 
 /**
- * Searchable command launcher in a modal dialog; items read the query via
- * {@link useCommandPaletteQuery} for client-side filtering. Drives open state
- * controlled (`open`/`onOpenChange`) or uncontrolled (`defaultOpen`), as
- * {@link Dialog} does. The query is controlled (`query`/`onQueryChange`) or held
- * by the palette. An uncontrolled palette opens from `triggerShortcut` alone.
+ * A dialog that searches a list of commands and runs the one that the reader
+ * picks. Items read the query via {@link useCommandPaletteQuery} for
+ * client-side filtering. Drives open state controlled (`open`/`onOpenChange`)
+ * or uncontrolled (`defaultOpen`), as {@link Dialog} does. The query is
+ * controlled (`query`/`onQueryChange`) or held by the palette. An uncontrolled
+ * palette opens from `triggerShortcut` alone.
  *
  * @remarks Focus moves into the search input on open via the Dialog
  * `initialFocus`. Arrow keys drive a virtual roving highlight via

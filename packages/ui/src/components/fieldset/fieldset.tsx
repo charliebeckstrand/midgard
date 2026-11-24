@@ -9,7 +9,7 @@ import { k } from '../../recipes/kata/fieldset'
 export type FieldsetProps = ComponentProps<'fieldset'>
 
 /**
- * A native `<fieldset>` that groups related form controls. Caption it with a
+ * A group of related form controls, in a native `<fieldset>`. Caption it with a
  * `<Legend>` and lay out each control as a `<Field>` (`<Label>`, the control,
  * `<Description>`, and `<Message>`).
  *

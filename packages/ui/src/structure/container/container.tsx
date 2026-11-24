@@ -27,7 +27,7 @@ export type ContainerProps = {
 } & ComponentProps<'div'>
 
 /**
- * Centered page wrapper that fills the height of its parent. It has a maximum
+ * A centered page wrapper that fills the height of its parent. It has a maximum
  * width from `lg` up and horizontal `padding` at every width.
  */
 export function Container({ size, padding, className, children, ...props }: ContainerProps) {

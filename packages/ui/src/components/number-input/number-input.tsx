@@ -69,9 +69,10 @@ export type NumberInputProps = Omit<
 }
 
 /**
- * Numeric Input with stepper buttons. On blur, it clamps to `min`/`max` and
- * rounds to the `step` precision, unless `round` is `false`. It does not clamp
- * or round during entry. It binds to an enclosing Form field by `name`.
+ * A number field with buttons that step the value up and down. On blur, it
+ * clamps to `min`/`max` and rounds to the `step` precision, unless `round` is
+ * `false`. It does not clamp or round during entry. It binds to an enclosing
+ * Form field by `name`.
  *
  * @remarks Stays controlled whenever a `value` prop is present; binds to the
  * Form field named `name` otherwise. Raw input is stored verbatim while typing

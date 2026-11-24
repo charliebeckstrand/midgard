@@ -234,14 +234,15 @@ export type DatePickerProps = DatePickerBaseProps &
 	(DatePickerSingleProps | DatePickerRangeProps | DatePickerRelativeProps)
 
 /**
- * Popover date picker. It switches between single and range calendar selection
- * on the `range` prop, or a relative-range picker on the `relative` prop. The
- * relative picker is single-select by default, and multi-select with
- * `multiple: true`. It supports controlled or uncontrolled `value`. The picker takes
- * the step of the nearest density scope, and an explicit `size` opens a scope. With `input`, a
- * typed DateInput replaces the trigger and the calendar opens from its suffix
- * button. A `clearable` clear button replaces the calendar icon once a value is
- * set, mirroring Listbox/Combobox, which default it off as well.
+ * A date field that opens a calendar in a popover. It switches between single
+ * and range calendar selection on the `range` prop, or a relative-range picker
+ * on the `relative` prop. The relative picker is single-select by default, and
+ * multi-select with `multiple: true`. It supports controlled or uncontrolled
+ * `value`. The picker takes the step of the nearest density scope, and an
+ * explicit `size` opens a scope. With `input`, a typed DateInput replaces the
+ * trigger and the calendar opens from its suffix button. A `clearable` clear
+ * button replaces the calendar icon once a value is set, mirroring
+ * Listbox/Combobox, which default it off as well.
  *
  * The trigger fills its parent, as each other control does. The parent, such
  * as a form column, sets the width. With `input`, the DateInput also fills its

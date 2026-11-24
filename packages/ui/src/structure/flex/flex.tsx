@@ -61,10 +61,10 @@ export type FlexProps = {
 } & ComponentProps<'div'>
 
 /**
- * Flex container with responsive `direction`, `gap`, `align`, and `justify`,
- * plus `wrap`, `full`-width, and `flex`-fill modifiers. Use Flex for rows and
- * Stack for columns; cross-axis `align` defaults from `direction` when unset.
- * It renders a `<div>`, or a `<span>` with `as="span"`.
+ * A flex container with a responsive `direction`, `gap`, `align`, and
+ * `justify`. It also takes the `wrap`, `full`-width, and `flex`-fill modifiers.
+ * Use Flex for rows and Stack for columns; cross-axis `align` defaults from
+ * `direction` when unset. It renders a `<div>`, or a `<span>` with `as="span"`.
  *
  * @remarks
  * Static leaf with no client boundary: renders in React Server Components.

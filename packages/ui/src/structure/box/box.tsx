@@ -61,11 +61,11 @@ export type BoxProps<Omitted extends PropertyKey = never> = Omit<BoxBaseProps, O
 	PolymorphicStaticProps<'div', Omitted>
 
 /**
- * Static layout primitive for padding, radius, background, and outline tokens.
- * Renders in React Server Components. Every token is explicit; an omitted token
- * applies no style. A `density` step makes the box a density scope. With an
- * `href`, the box renders a link that stays a block, so a linked surface, such
- * as a Card, draws one frame around its content.
+ * A layout box with padding, radius, background, and outline tokens. Renders in
+ * React Server Components. Every token is explicit; an omitted token applies no
+ * style. A `density` step makes the box a density scope. With an `href`, the
+ * box renders a link that stays a block, so a linked surface, such as a Card,
+ * draws one frame around its content.
  */
 export function Box({
 	p,

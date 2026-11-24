@@ -15,11 +15,10 @@ export type DensityProviderProps = {
 }
 
 /**
- * A provider that opens a density scope for a region at a friendly level
- * (`compact`, `snug`, or `loose`). The wrapper element writes the step of the
- * level to `data-density`, so each stepped class in the region takes that step
- * in CSS. An `<Input>` in `<DensityProvider density="compact">` is `sm` with no
- * change to its props.
+ * A provider that sets the density of a region: `compact`, `snug`, or `loose`.
+ * The wrapper element writes the step of the level to `data-density`, so each
+ * stepped class in the region takes that step in CSS. An `<Input>` in
+ * `<DensityProvider density="compact">` is `sm` with no change to its props.
  *
  * The provider also opens the `Density` context at the same step. A `Portal`
  * reads it, so a panel that the region opens keeps the step. The few client

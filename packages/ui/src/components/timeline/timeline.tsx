@@ -23,10 +23,10 @@ export type TimelineProps = ComponentProps<'ol'> & {
 }
 
 /**
- * Ordered sequence of events rendered as an `<ol>` of `<TimelineItem>` rows.
+ * A sequence of events in order. It renders an `<ol>` of `<TimelineItem>` rows.
  * Lays out along `orientation`, vertical or horizontal. It propagates both
- * `orientation` and `variant` to its items via context, so markers and connector
- * lines stay consistent across the run.
+ * `orientation` and `variant` to its items via context, so markers and
+ * connector lines stay consistent across the run.
  *
  * The item spacing and the text take the step of the nearest density scope.
  * At `md` an item has `pb-8` below it, with a `text-lg` title.

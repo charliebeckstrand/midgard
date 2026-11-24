@@ -20,14 +20,14 @@ type GroupBaseProps = {
 export type GroupProps = GroupBaseProps & ComponentProps<'div'>
 
 /**
- * A container that joins adjacent children visually. It carries the `tsunagi` join
- * classes (`recipes/kata/group`). They drop the inner radii and overlap
- * adjacent borders by 1 px, keyed on the DOM position of each child. A child
- * that renders nothing takes no position, and the children of a Fragment join
- * as siblings. The root stamps `data-orientation`, the axis marker every
- * oriented container carries. A vertical group stretches each child to the
- * width of the group, so the outer edges line up. Static leaf: renders in React
- * Server Components.
+ * A container that joins its children into one visual unit, such as a row of
+ * buttons. It carries the `tsunagi` join classes (`recipes/kata/group`). They
+ * drop the inner radii and overlap adjacent borders by 1 px, keyed on the DOM
+ * position of each child. A child that renders nothing takes no position, and
+ * the children of a Fragment join as siblings. The root stamps
+ * `data-orientation`, the axis marker every oriented container carries. A
+ * vertical group stretches each child to the width of the group, so the outer
+ * edges line up. Static leaf: renders in React Server Components.
  *
  * An explicit `size` opens a density scope, so the children (Button, Input,
  * and so on) take that step unless they have a `size` of their own. With no

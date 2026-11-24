@@ -35,9 +35,10 @@ export type TimeAgoProps = Omit<ComponentProps<'time'>, 'dateTime' | 'children' 
 }
 
 /**
- * Self-refreshing relative timestamp rendered in a `<time>` element. Formats via
- * `Intl.RelativeTimeFormat`, and falls back to a plain `<span>` for invalid
- * dates. It steps its refresh `interval` coarser as the value ages.
+ * A relative time, such as "5 minutes ago", that updates itself. It renders a
+ * `<time>` element. Formats via `Intl.RelativeTimeFormat`, and falls back to a
+ * plain `<span>` for invalid dates. It steps its refresh `interval` coarser as
+ * the value ages.
  *
  * To show the absolute time in a tooltip, put TimeAgo in a `<TooltipTrigger>`
  * and give it `tabIndex={0}`. The `<time>` element takes no focus of its own, so

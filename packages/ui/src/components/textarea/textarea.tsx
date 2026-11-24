@@ -56,11 +56,11 @@ export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
 } & Omit<ComponentProps<'textarea'>, 'size' | 'value' | 'rows'>
 
 /**
- * Multi-line text control with optional `autoResize` and an `actions` slot.
- * Resolves variant and binding from enclosing `<Form>`, `<Control>`, and
- * `<GlassProvider>` contexts, and takes the step of the nearest density scope.
- * Under headless context, the textarea and its actions render bare, with no
- * frame and no classes.
+ * A text field for many lines. It can grow with its content (`autoResize`) and
+ * show `actions`. Resolves variant and binding from enclosing `<Form>`,
+ * `<Control>`, and `<GlassProvider>` contexts, and takes the step of the
+ * nearest density scope. Under headless context, the textarea and its actions
+ * render bare, with no frame and no classes.
  *
  * @remarks Shares the control setup of Input through {@link useInputControl},
  * including the §7.3 value contract that `useInputValue` owns. `defaultValue`

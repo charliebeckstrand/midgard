@@ -50,10 +50,11 @@ export type CurrencyInputProps = Omit<
 }
 
 /**
- * Numeric Input that formats its value as localized currency. Emits a `number`
- * via `onValueChange` while displaying grouped digits and the currency symbol,
- * and binds to an enclosing Form field by `name`. Resolves `currency` and
- * `locale` from props, then `<LocaleProvider>`, then runtime defaults.
+ * A number field that shows its value as currency in the locale of the reader.
+ * Emits a `number` via `onValueChange` while displaying grouped digits and the
+ * currency symbol, and binds to an enclosing Form field by `name`. Resolves
+ * `currency` and `locale` from props, then `<LocaleProvider>`, then runtime
+ * defaults.
  *
  * @remarks Holds a raw editing buffer once typing begins, and falls back to the
  * display formatter once the buffer clears on blur or `Enter`. A value from outside that

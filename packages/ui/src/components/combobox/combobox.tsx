@@ -405,24 +405,24 @@ function warnOnMixedSource(
 export type ComboboxProps<T> = ComboboxBaseProps<T> & SelectionValueProps<T>
 
 /**
- * Type-ahead select pairing a text input with a floating option panel.
- * Supports single or `multiple` selection, controlled or uncontrolled `value`,
- * and `clearable`/`nullable` affordances. Resolves `autoComplete`, `disabled`,
- * `readOnly`, and `required` against an enclosing `<Control>`, takes the step
- * of the nearest density scope (an explicit `size` opens a scope on the
- * trigger and the panel), and
- * registers with `<Form>` under `name`. Tracks the highlight as a virtual
+ * A select with a text field that filters its options as the reader types. The
+ * options show in a floating panel. Supports single or `multiple` selection,
+ * controlled or uncontrolled `value`, and `clearable`/`nullable` affordances.
+ * Resolves `autoComplete`, `disabled`, `readOnly`, and `required` against an
+ * enclosing `<Control>`, takes the step of the nearest density scope (an
+ * explicit `size` opens a scope on the trigger and the panel), and registers
+ * with `<Form>` under `name`. Tracks the highlight as a virtual
  * active-descendant (APG editable combobox) with DOM focus held on the input,
  * re-anchoring across filter and async option changes. Filtering is
  * consumer-driven: `children` read the live and deferred query via
  * {@link useComboboxQuery} and render matching {@link ComboboxOption}s,
- * supporting both synchronous lists and async option sources. Wrap the
- * options in `VirtualOptions` with `getOptionId` for large lists. Arrow and
- * type-ahead then navigate the full option set by index, reaching options
- * outside the rendered window instead of stopping at its edge. Each option
- * must then be one of the `items` of `VirtualOptions`. Put a create row into
- * the items, not after the wrapper. Arrow and type-ahead do not reach an
- * option outside the items, and a development warning tells you so.
+ * supporting both synchronous lists and async option sources. Wrap the options
+ * in `VirtualOptions` with `getOptionId` for large lists. Arrow and type-ahead
+ * then navigate the full option set by index, reaching options outside the
+ * rendered window instead of stopping at its edge. Each option must then be one
+ * of the `items` of `VirtualOptions`. Put a create row into the items, not
+ * after the wrapper. Arrow and type-ahead do not reach an option outside the
+ * items, and a development warning tells you so.
  *
  * @remarks
  * Supply `aria-label` when no `<Field>`/`<Label>` wraps the combobox; the

@@ -9,13 +9,13 @@ export type KbdProps = ComponentProps<'kbd'> & {
 }
 
 /**
- * Keyboard-key glyph. Write a modifier as part of the children, in platform order (⌃⌘).
- * A key is never narrower than it is tall, so a key with one glyph in a line of
- * text is a square. A key with only an icon, such as
- * `<Kbd><Icon icon={<CornerDownLeft />} /></Kbd>`, is a square as tall as a key
- * with text, also with an `sr-only` name beside the icon. A key with a longer
- * label grows. CSS does not see a bare text node, so a key with an icon and
- * bare text gets the size of a key with only an icon. Put the text in a
+ * A key of the keyboard, shown as a keycap. Write a modifier as part of the
+ * children, in platform order (⌃⌘). A key is never narrower than it is tall, so
+ * a key with one glyph in a line of text is a square. A key with only an icon,
+ * such as `<Kbd><Icon icon={<CornerDownLeft />} /></Kbd>`, is a square as tall
+ * as a key with text, also with an `sr-only` name beside the icon. A key with a
+ * longer label grows. CSS does not see a bare text node, so a key with an icon
+ * and bare text gets the size of a key with only an icon. Put the text in a
  * `<span>`, or write the glyph as text.
  *
  * @remarks

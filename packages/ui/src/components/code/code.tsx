@@ -10,8 +10,9 @@ export type CodeProps = ComponentProps<'code'> & {
 }
 
 /**
- * Inline monospace `<code>` span. Without `size`, the mark takes the step of
- * the nearest density scope. An explicit `size` makes the mark a density scope.
+ * A span of inline code in a monospace font, as a `<code>` element. Without
+ * `size`, the mark takes the step of the nearest density scope. An explicit
+ * `size` makes the mark a density scope.
  *
  * @remarks
  * A pure server-renderable display leaf: it reads no context, so it carries no

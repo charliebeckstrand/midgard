@@ -68,13 +68,12 @@ export type TableProps = TableVariants &
 	}
 
 /**
- * Styled `<table>` shell. Static leaf: renders in React Server Components.
- * The table owns `outline`, `striped`, and `hover` and projects them onto
+ * A styled `<table>`. Static leaf: renders in React Server Components. The
+ * table owns `outline`, `striped`, and `hover` and projects them onto
  * descendant rows and cells. A `size` makes the scroll container a density
  * scope (Box `density`), so the cells and size-aware client children take its
- * step. Without a `size`, the cells follow the nearest scope around the
- * table. TableBody, TableCell, and TableHeader read
- * no context.
+ * step. Without a `size`, the cells follow the nearest scope around the table.
+ * TableBody, TableCell, and TableHeader read no context.
  *
  * While the table is wider than its container, the scroll container is a tab
  * stop, so a keyboard user can scroll it with the arrow keys. It then also

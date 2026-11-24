@@ -1,3 +1,9 @@
+/**
+ * Progress indicators: a linear bar and a circular gauge.
+ *
+ * @packageDocumentation
+ */
+
 export type { ProgressGaugeVariants, ProgressTrackVariants } from '../../recipes/kata/progress'
 export {
 	ProgressBar,

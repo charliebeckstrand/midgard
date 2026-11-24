@@ -74,10 +74,10 @@ export type ToastProps = {
 }
 
 /**
- * The viewport of the toast queue from the surrounding `<ToastProvider>`, which
- * renders into a portal at the configured viewport position. Drop one anywhere
- * inside the provider's subtree (e.g. the app shell); it need not sit next to
- * `useToast()` callers.
+ * The area that shows the toast messages of the surrounding `<ToastProvider>`.
+ * It renders into a portal at the configured viewport position. Drop one
+ * anywhere inside the provider's subtree (e.g. the app shell); it need not sit
+ * next to `useToast()` callers.
  *
  * @remarks The viewport is not itself a live region. Each toast maps its
  * severity to politeness via its own `role`. `warning` and `error` interrupt as

@@ -223,24 +223,23 @@ export type CalendarProps = {
 }
 
 /**
- * Single-date month-grid picker. Binds to an enclosing Form field by `name`
- * (value-typed cascade) or falls back to controlled/uncontrolled `value`;
- * `min`/`max` bound the selectable range, and `isDayDisabled` disables single
- * days in it. Resolves `locale` against an
- * enclosing Locale provider. The header, grid, and day cells take the step of
- * the nearest density scope, and a set `size` makes the calendar that scope.
- * The calendar has three steps: `sm`, `md`, and `lg`. In an `xs` or `xl`
- * scope, it renders at `sm` or `lg`. On a coarse pointer, each day fills a
- * square cell of 40, 44, or 48 px, so the calendar is 280, 308, or 336 px
- * wide. The `sm` cell is under the 44 px floor of `TouchTarget`, so that the
- * cell steps with the density. The hit areas of the days tile the grid, and
- * each month or year of the picker has a cell of at least 44 px.
- * When a parent steers `active`, the parent owns the keys of the header, the
- * grid, and the footer, and the calendar moves no focus for them. Tab still
- * reaches each header button and the one Tab stop of the grid. Month changes
- * are announced to screen readers (WCAG 4.1.3). Exposes navigation and picker
- * control to a parent via the {@link CalendarHandle} `ref` for embedded use
- * (e.g. DatePicker).
+ * A month grid that selects one date. Binds to an enclosing Form field by
+ * `name` (value-typed cascade) or falls back to controlled/uncontrolled
+ * `value`; `min`/`max` bound the selectable range, and `isDayDisabled` disables
+ * single days in it. Resolves `locale` against an enclosing Locale provider.
+ * The header, grid, and day cells take the step of the nearest density scope,
+ * and a set `size` makes the calendar that scope. The calendar has three steps:
+ * `sm`, `md`, and `lg`. In an `xs` or `xl` scope, it renders at `sm` or `lg`.
+ * On a coarse pointer, each day fills a square cell of 40, 44, or 48 px, so the
+ * calendar is 280, 308, or 336 px wide. The `sm` cell is under the 44 px floor
+ * of `TouchTarget`, so that the cell steps with the density. The hit areas of
+ * the days tile the grid, and each month or year of the picker has a cell of at
+ * least 44 px. When a parent steers `active`, the parent owns the keys of the
+ * header, the grid, and the footer, and the calendar moves no focus for them.
+ * Tab still reaches each header button and the one Tab stop of the grid. Month
+ * changes are announced to screen readers (WCAG 4.1.3). Exposes navigation and
+ * picker control to a parent via the {@link CalendarHandle} `ref` for embedded
+ * use (e.g. DatePicker).
  *
  * With no `active`, the day grid follows the WAI-ARIA APG date grid. An arrow
  * that leaves the month steps the month. That includes ArrowUp on the top row

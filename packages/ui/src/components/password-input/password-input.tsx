@@ -77,7 +77,10 @@ function VisibilityToggle({ visible, onToggle, label, disabled }: ToggleProps) {
 	)
 }
 
-/** Masked Input with a tooltip-labeled suffix button that toggles plaintext visibility; suppress it via `showToggle={false}`. */
+/**
+ * A password field with a button that shows or hides the password. A tooltip
+ * labels the button. Suppress the button via `showToggle={false}`.
+ */
 export function PasswordInput({
 	showToggle = true,
 	onVisibleChange,

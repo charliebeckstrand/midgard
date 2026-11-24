@@ -30,12 +30,13 @@ export type AppearanceProviderProps = {
 }
 
 /**
- * App-root owner of the theme, density, motion, sidebar, and surfaces preferences. It keeps them
- * in `localStorage`. It toggles the `.dark` class on the root element, and while
- * the theme is `'system'` it follows the OS preference live. It writes the step
- * of the density as a class on the root element (`writeRootDensity`), which
- * makes the root the density scope of the app. At `md` the root has no class.
- * {@link useAppearance} reads the state, and {@link AppearanceSettings} edits it.
+ * A provider at the root of the app that holds the theme, density, motion,
+ * sidebar, and surface preferences. It keeps them in `localStorage`. It toggles
+ * the `.dark` class on the root element, and while the theme is `'system'` it
+ * follows the OS preference live. It writes the step of the density as a class
+ * on the root element (`writeRootDensity`), which makes the root the density
+ * scope of the app. At `md` the root has no class. {@link useAppearance} reads
+ * the state, and {@link AppearanceSettings} edits it.
  *
  * While the motion is `'reduced'`, the root element has the `reduced-motion`
  * class, which the `motion-reduce` and `motion-safe` variants of

@@ -83,10 +83,11 @@ export type FormProps<T extends Record<string, unknown>> = {
 } & Omit<ComponentProps<'form'>, 'onSubmit' | 'onReset' | 'children' | 'values'>
 
 /**
- * A form over the typed `defaultValues`. A reducer holds its state: the dirty,
- * touched, error, and submit state of the fields. The form validates on the
- * `validateOn` trigger, and locks its parts while a submit runs. It renders a
- * `<form>` with `display: contents`, so it adds no box to the layout. A field
+ * A form that holds the values, the validation, and the submit of its fields.
+ * The values take the type of `defaultValues`. A reducer holds its state: the
+ * dirty, touched, error, and submit state of the fields. The form validates on
+ * the `validateOn` trigger, and locks its parts while a submit runs. It renders
+ * a `<form>` with `display: contents`, so it adds no box to the layout. A field
  * reads and changes the state through the context hooks ({@link useFormField},
  * {@link useFormStatus}, {@link useFormActions}), not through props.
  *

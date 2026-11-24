@@ -1,3 +1,10 @@
+/**
+ * The parts of a chat: a transcript, message bubbles, a prompt, and a list of
+ * conversations.
+ *
+ * @packageDocumentation
+ */
+
 export type { ChatMessageVariants } from '../../recipes/kata/chat-message'
 export {
 	ChatCitationProvider,

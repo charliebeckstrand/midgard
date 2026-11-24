@@ -36,8 +36,8 @@ export type OdometerProps = {
 } & Omit<ComponentProps<'span'>, 'children'>
 
 /**
- * Numeric readout that tweens between values over `duration`; assistive tech
- * reads only the settled target, as text.
+ * A number that rolls to each new value over `duration`. Assistive tech reads
+ * only the settled target, as text.
  *
  * @remarks
  * Client-only (`'use client'`): the tween runs in an effect, so server and first
