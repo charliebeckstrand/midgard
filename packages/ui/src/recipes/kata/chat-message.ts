@@ -5,7 +5,7 @@ const { palette, text } = iro
 const { rounded } = kasane
 const { size } = ji
 const { flex } = narabi
-const { focus, forced } = sen
+const { focus, forced, ring } = sen
 const { css } = ugoki
 
 // A row of controls, such as the branch switcher.
@@ -106,7 +106,14 @@ export const k = defineKata({
 				flex.row,
 				'absolute top-0 z-10 w-fit p-1',
 				rounded.lg,
-				omote.popover,
+				// The fill is opaque and the ring is inside the toolbar, so the edge has
+				// one tone over the page and over the bubble. A translucent fill and an
+				// outer ring let the bubble show through the lower part of the
+				// toolbar. The toolbar sits at the top edge of the message, so an outer
+				// ring would also go past the edge of a host that clips its overflow.
+				'[--popover-alpha:100%]',
+				omote.bg.popover,
+				ring.inset,
 				// Hidden, but in the Tab order: a keyboard focus on the button shows the
 				// toolbar, as the pointer does. A press also focuses the button, but that
 				// focus does not show the toolbar, so the toolbar goes when the pointer

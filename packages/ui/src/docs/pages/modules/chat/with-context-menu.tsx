@@ -4,9 +4,10 @@ import type { ContextMenuConfig } from 'ui/context-menu'
 import { Text } from 'ui/text'
 import { PointerHint } from '../../../kit/pointer-hint.tsx'
 
-// The menu holds Copy by default. This example has no transcript and no
-// composer, so Edit and Delete have no action. The Edit a message example of
-// the Conversation tab wires Edit.
+// The menu holds Copy by default. `trigger="contextmenu"` opens it on a
+// right-click on a device that hovers, in place of the menu button. This
+// example has no transcript and no composer, so Edit and Delete have no
+// action. The Edit a message example of the Conversation tab wires Edit.
 const menu: ContextMenuConfig = {
 	items: [
 		{ key: 'edit', label: 'Edit', icon: <Pencil /> },
@@ -18,15 +19,12 @@ export default function WithContextMenu() {
 	return (
 		<>
 			<Text tone="muted">
-				<PointerHint
-					mouseText="Hover a message for its menu"
-					touchText="Press and hold a message"
-				/>
+				<PointerHint mouseText="Right-click a message" touchText="Press and hold a message" />
 			</Text>
-			<ChatMessage sender="assistant" contextMenu={menu}>
+			<ChatMessage sender="assistant" trigger="contextmenu" contextMenu={menu}>
 				Heading out now. ETA 3:00 PM.
 			</ChatMessage>
-			<ChatMessage sender="user" contextMenu={menu}>
+			<ChatMessage sender="user" trigger="contextmenu" contextMenu={menu}>
 				Got it. The door code is 4421.
 			</ChatMessage>
 		</>

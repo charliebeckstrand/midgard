@@ -9,6 +9,7 @@ import type {
 	ContextMenuEntry,
 	ContextMenuItem,
 } from '../../components/context-menu/types'
+import { CopyButton } from '../../components/copy-button'
 import { Icon } from '../../components/icon'
 import { Menu, MenuContent, MenuTrigger } from '../../components/menu'
 import { useMediaQuery } from '../../hooks/use-media-query'
@@ -56,6 +57,14 @@ type ChatMessageMenuProps = {
  */
 function useMenuEntries({ config, content, bubble }: ChatMessageMenuProps): {
 	entries: ContextMenuEntry[]
+	/** The default Copy item, so the toolbar can tell it from an item of the caller. */
+	copyItem: ContextMenuItem
+	/** The plain text of the message, which Copy copies. */
+	text: string
+	/** Moves the focus to the bubble. */
+	focusBubble: () => void
+	/** The name of the Copy item. */
+	copy: string
 	name: string
 } {
 	const intl = useIntl()
@@ -70,39 +79,41 @@ function useMenuEntries({ config, content, bubble }: ChatMessageMenuProps): {
 
 	const insert = config?.insert
 
-	const entries = useMemo(() => {
-		// The plain-text projection that the announcer and `retry` also read. A
-		// message with no text yet, such as a reply that waits, has nothing to copy.
-		const text = chatContentText(content)
+	// The plain-text projection that the announcer and `retry` also read. A
+	// message with no text yet, such as a reply that waits, has nothing to copy.
+	const text = useMemo(() => chatContentText(content), [content])
 
-		const defaults: ContextMenuEntry[] = [
-			{
-				key: 'copy',
-				label: copy,
-				icon: <Copy />,
-				disabled: text === '',
-				// The focus goes to the bubble, and not to the button in the toolbar. The
-				// next Tab thus goes into the controls of the message again. The menu keeps
-				// the focus on an element that an action focused.
-				onAction: () => {
-					copyText(text)
+	const { entries, copyItem, focusBubble } = useMemo(() => {
+		// The focus goes to the bubble, and not to the button in the toolbar. The
+		// next Tab thus goes into the controls of the message again. The menu keeps
+		// the focus on an element that an action focused.
+		const focusBubble = () => document.getElementById(bubble)?.focus({ preventScroll: true })
 
-					document.getElementById(bubble)?.focus({ preventScroll: true })
-				},
+		const copyItem: ContextMenuItem = {
+			key: 'copy',
+			label: copy,
+			icon: <Copy />,
+			disabled: text === '',
+			onAction: () => {
+				copyText(text)
+
+				focusBubble()
 			},
-		]
+		}
 
-		return resolveContextMenuEntries({ items, defaultItems, insert }, defaults)
-	}, [content, copy, items, defaultItems, insert, bubble])
+		const entries = resolveContextMenuEntries({ items, defaultItems, insert }, [copyItem])
 
-	return { entries, name }
+		return { entries, copyItem, focusBubble }
+	}, [text, copy, items, defaultItems, insert, bubble])
+
+	return { entries, copyItem, text, focusBubble, copy, name }
 }
 
 /**
- * The context menu of a chat message, over its bubble, on a device with no
- * hover. A touch long press opens it there. A device that hovers shows the
- * toolbar on a hover of the bubble, so there a right-click keeps the native
- * menu of the browser.
+ * The context menu of a chat message, over its bubble. On a device with no
+ * hover, a touch long press opens it. A device that hovers shows the toolbar
+ * on a hover of the bubble, so there a right-click keeps the native menu of
+ * the browser, unless `rightClick` opens the menu there too.
  *
  * @internal
  */
@@ -110,8 +121,9 @@ export function ChatMessageMenu({
 	config,
 	content,
 	bubble,
+	rightClick,
 	children,
-}: ChatMessageMenuProps & { children: ReactNode }) {
+}: ChatMessageMenuProps & { rightClick: boolean; children: ReactNode }) {
 	const { entries, name } = useMenuEntries({ config, content, bubble })
 
 	// The wrapper stays when the menu turns off, so the bubble does not mount
@@ -119,7 +131,12 @@ export function ChatMessageMenu({
 	const touch = useMediaQuery(NO_HOVER_QUERY)
 
 	return (
-		<ContextMenu items={entries} capped={config?.capped} disabled={!touch} aria-label={name}>
+		<ContextMenu
+			items={entries}
+			capped={config?.capped}
+			disabled={!touch && !rightClick}
+			aria-label={name}
+		>
 			{children}
 		</ContextMenu>
 	)
@@ -156,9 +173,9 @@ function loneItem(entries: ContextMenuEntry[]): ContextMenuItem | undefined {
  * The button in the toolbar of a chat message. A menu of more than one item
  * opens as a dropdown from an ellipsis button, with the same entries as the
  * context menu of a touch screen. Thus a reader with a pointer or a keyboard
- * gets to each action. A menu of one item with an icon, such as Copy alone,
- * has no ellipsis: the toolbar shows the button of that item, which runs its
- * action at once.
+ * gets to each action. A menu of one item with an icon has no ellipsis: the
+ * toolbar shows the button of that item, which runs its action at once. Copy
+ * alone is a {@link CopyButton}, which shows a check after the copy.
  *
  * @internal
  */
@@ -168,9 +185,28 @@ export function ChatMessageMenuButton({
 	bubble,
 	sender,
 }: ChatMessageMenuProps & { sender: ChatMessageData['sender'] }) {
-	const { entries, name } = useMenuEntries({ config, content, bubble })
+	const { entries, copyItem, text, focusBubble, copy, name } = useMenuEntries({
+		config,
+		content,
+		bubble,
+	})
 
 	const action = loneItem(entries)
+
+	// Copy alone is a copy button, which shows a check after the copy. The focus
+	// goes to the bubble, as after the Copy item of the menu.
+	if (action === copyItem) {
+		return (
+			<CopyButton
+				size="sm"
+				icon={<Copy />}
+				text={text}
+				disabled={action.disabled}
+				aria-label={copy}
+				onClick={focusBubble}
+			/>
+		)
+	}
 
 	// An item with no icon has nothing to draw in the toolbar, so it keeps the menu.
 	if (action?.icon) {

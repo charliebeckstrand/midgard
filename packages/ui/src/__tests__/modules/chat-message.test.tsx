@@ -278,20 +278,49 @@ describe('ChatMessage', () => {
 		])
 	})
 
-	it('shows the one action of a menu as its own button, with no ellipsis', () => {
+	it('shows Copy alone as a copy button, which shows a check after the copy', async () => {
 		const writeText = vi.fn(() => Promise.resolve())
 
 		stubClipboard({ writeText })
 
-		renderUI(<ChatMessage>Some text</ChatMessage>)
+		const { container } = renderUI(<ChatMessage>Some text</ChatMessage>)
 
 		expect(screen.queryByRole('button', { name: 'Message actions' })).not.toBeInTheDocument()
 
 		fireEvent.click(screen.getByRole('button', { name: 'Copy' }))
 
+		// The copied state names the button "Copied" and draws the check.
+		const copied = await screen.findByRole('button', { name: 'Copied' })
+
+		expect(copied).toHaveAttribute('data-copied')
+
 		expect(writeText).toHaveBeenCalledWith('Some text')
 
+		// The focus goes to the bubble, as after the Copy item of the menu.
+		expect(getSlot(container, 'chat-message-bubble')).toHaveFocus()
+
 		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+	})
+
+	it('shows a lone item of the caller with an icon as its own button', () => {
+		const onAction = vi.fn()
+
+		renderUI(
+			<ChatMessage
+				contextMenu={{
+					defaultItems: false,
+					items: [{ key: 'retry', label: 'Retry', icon: <svg />, onAction }],
+				}}
+			>
+				content
+			</ChatMessage>,
+		)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Retry' }))
+
+		expect(onAction).toHaveBeenCalledOnce()
+
+		expect(screen.queryByRole('button', { name: 'Message actions' })).not.toBeInTheDocument()
 	})
 
 	it('keeps the ellipsis for a lone item with no icon', () => {
@@ -328,6 +357,31 @@ describe('ChatMessage', () => {
 
 		// The menu button in the toolbar is the way to the actions.
 		expect(screen.getByRole('button', { name: 'Message actions' })).toBeInTheDocument()
+	})
+
+	it('opens the menu on a right-click on a device that hovers, with trigger contextmenu', () => {
+		const { container } = renderUI(
+			<ChatMessage trigger="contextmenu" contextMenu={{ items: [{ key: 'edit', label: 'Edit' }] }}>
+				content
+			</ChatMessage>,
+		)
+
+		// The menu opens over the bubble, and the message has no toolbar and no room for it.
+		expect(bySlot(container, 'chat-message-toolbar')).not.toBeInTheDocument()
+
+		expect(getSlot(container, 'chat-message')).not.toHaveClass('pt-6')
+
+		const bubble = getSlot(container, 'chat-message-bubble')
+
+		// The bubble is the tab stop that a keyboard opens the menu from.
+		expect(bubble).toHaveAttribute('tabindex', '0')
+
+		fireEvent.contextMenu(bubble)
+
+		expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual([
+			'Copy',
+			'Edit',
+		])
 	})
 
 	it.each([

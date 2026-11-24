@@ -131,6 +131,17 @@ export type ChatMessageProps = ChatMessageVariants &
 		 */
 		contextMenu?: ContextMenuConfig | false
 		/**
+		 * How the menu opens on a device that hovers. `'hover'` shows the menu
+		 * button in a toolbar while the pointer is over the bubble, and a
+		 * right-click keeps the native menu of the browser. `'contextmenu'` opens
+		 * the menu on a right-click on the bubble, and the message shows no
+		 * toolbar. The bubble is then a tab stop, so a keyboard opens the menu with
+		 * the ContextMenu key or Shift+F10. On a device with no hover, a long press
+		 * opens the menu for each value.
+		 * @defaultValue 'hover'
+		 */
+		trigger?: 'hover' | 'contextmenu'
+		/**
 		 * The branches at the place of the message. A retry and an edit each add
 		 * one. With more than one, a switcher below the bubble shows the position,
 		 * such as `2 of 3`, between a previous and a next button.
@@ -207,8 +218,10 @@ export type ChatMessageProps = ChatMessageVariants &
  *
  * The menu holds each action of the message, and the message shows no row of
  * icons. On a device that hovers, the menu button opens it, and a right-click
- * keeps the native menu of the browser. On a device with no hover, a touch
- * long press on the bubble opens it as a context menu. The Copy item copies
+ * keeps the native menu of the browser. With `trigger` `'contextmenu'`, a
+ * right-click on the bubble opens it there in place of the menu button. On a
+ * device with no hover, a touch long press on the bubble opens it as a context
+ * menu, for each `trigger`. The Copy item copies
  * the plain text of the message ({@link chatContentText}), and it is off while
  * the message has no text.
  *
@@ -240,6 +253,7 @@ export const ChatMessage = memo(function ChatMessage({
 	editing,
 	failed,
 	contextMenu,
+	trigger = 'hover',
 	branch,
 	onBranchChange,
 	className,
@@ -252,7 +266,13 @@ export const ChatMessage = memo(function ChatMessage({
 
 	const hasMenu = hasMenuItems(contextMenu)
 
-	const slots = k({ sender, streaming, editing, menu: hasMenu })
+	// The toolbar holds the menu button on a device that hovers, unless a
+	// right-click opens the menu there.
+	const toolbar = hasMenu && trigger === 'hover'
+
+	const rightClick = hasMenu && trigger === 'contextmenu'
+
+	const slots = k({ sender, streaming, editing, menu: toolbar })
 
 	// The id of the bubble. The Copy item moves the focus to the bubble.
 	const bubbleId = useId()
@@ -278,7 +298,14 @@ export const ChatMessage = memo(function ChatMessage({
 	const bubble = (
 		// Tab does not stop on the bubble, but the Copy item of the menu moves the
 		// focus to it.
-		<div id={bubbleId} tabIndex={-1} data-slot="chat-message-bubble" className={slots.bubble}>
+		<div
+			id={bubbleId}
+			// A right-click menu has no button, so the bubble is the tab stop that a
+			// keyboard opens it from.
+			tabIndex={rightClick ? 0 : -1}
+			data-slot="chat-message-bubble"
+			className={slots.bubble}
+		>
 			<span data-slot="chat-message-author" className="sr-only">
 				<IntlMessage message={AUTHOR[resolvedSender]} />:{' '}
 			</span>
@@ -306,7 +333,7 @@ export const ChatMessage = memo(function ChatMessage({
 			{contextMenu === false ? (
 				bubble
 			) : (
-				<ChatMessageMenu config={menu} content={children} bubble={bubbleId}>
+				<ChatMessageMenu config={menu} content={children} bubble={bubbleId} rightClick={rightClick}>
 					{bubble}
 				</ChatMessageMenu>
 			)}
@@ -318,7 +345,7 @@ export const ChatMessage = memo(function ChatMessage({
 					{timestamp}
 				</div>
 			)}
-			{hasMenu && (
+			{toolbar && (
 				<div data-slot="chat-message-toolbar" className={slots.toolbar}>
 					<ChatMessageMenuButton
 						config={menu}
