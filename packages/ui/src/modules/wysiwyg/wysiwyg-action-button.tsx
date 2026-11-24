@@ -13,24 +13,19 @@ import { shortcutAria, wysiwygActions } from './wysiwyg-actions'
 const serverInactive = () => false
 
 /** Props for {@link WysiwygActionButton}. @internal */
-type WysiwygActionButtonProps = {
-	action: WysiwygAction
-	/**
-	 * Whether the button is a toggle with `aria-pressed`. The link button opens
-	 * a popover, so it is not a toggle, but it shows whether the caret is in a
-	 * link.
-	 * @defaultValue true
-	 */
-	toggle?: boolean
-} & Omit<
+type WysiwygActionButtonProps = { action: WysiwygAction } & Omit<
 	ComponentProps<typeof ButtonIconTooltip>,
 	'label' | 'tooltip' | 'icon' | 'active' | 'disabled'
 >
 
 /**
  * A button of a {@link WysiwygToolbar}: the glyph, the name, and the shortcut
- * of its action, from the action table. The tooltip shows the name only. It is on while the action is on at
- * the selection. A press runs the action, unless the caller gives `onClick`.
+ * of its action, from the action table. The tooltip shows the name only. The
+ * button is on while the action is on at the selection.
+ *
+ * A toggle action has `aria-pressed`, and a press runs it. The link button
+ * opens a popover, so it is no toggle, and its trigger handles the press. It
+ * is on while the selection is in a link.
  *
  * @remarks The pressed state comes from a store of the editor, so a keystroke
  * renders only the buttons whose state changed. The shortcut in
@@ -38,12 +33,7 @@ type WysiwygActionButtonProps = {
  * The server render names Command.
  * @internal
  */
-export function WysiwygActionButton({
-	action,
-	toggle = true,
-	onClick,
-	...props
-}: WysiwygActionButtonProps) {
+export function WysiwygActionButton({ action, onClick, ...props }: WysiwygActionButtonProps) {
 	const { ready, locked, subscribe, isActive, run } = useWysiwyg()
 
 	const intl = useIntl()
@@ -64,13 +54,13 @@ export function WysiwygActionButton({
 			{...props}
 			data-action={action}
 			variant="bare"
-			aria-pressed={toggle ? active : undefined}
+			aria-pressed={action === 'link' ? undefined : active}
 			aria-keyshortcuts={shortcutAria(shortcut, apple)}
 			label={label}
 			icon={<Glyph />}
 			active={active}
 			disabled={!ready || locked}
-			onClick={onClick ?? (() => run(action))}
+			onClick={action === 'link' ? onClick : () => run(action)}
 		/>
 	)
 }

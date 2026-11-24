@@ -10,7 +10,7 @@
  * the `::before` of the first block of an empty field, and its text is the
  * `--wysiwyg-placeholder` string of the field.
  */
-import { defineKata } from '../../core/recipe'
+import { defineKata, mode } from '../../core/recipe'
 import { dan, hannou, kokkaku } from '../kiso'
 import { framed, multiline } from '../kumi/control'
 
@@ -21,6 +21,21 @@ const { disabled } = hannou
 
 /** The variants that draw a frame, and so give the field and the toolbar an inset. */
 const FRAMED = ['default', 'outline', 'soft', 'glass'] as const
+
+/**
+ * The colors of the placeholder, which is the `::before` of the first block of
+ * an empty field: the placeholder colors of the control reset, and of a `soft`
+ * field (`kumi/control/frame.ts`).
+ */
+const placeholder = mode(
+	'[&[data-empty]>:first-child]:before:text-zinc-500',
+	'dark:[&[data-empty]>:first-child]:before:text-zinc-400',
+)
+
+const softPlaceholder = mode(
+	'[&[data-empty]>:first-child]:before:text-zinc-600',
+	'dark:[&[data-empty]>:first-child]:before:text-zinc-300',
+)
 
 export const k = defineKata(
 	{
@@ -81,31 +96,12 @@ export const k = defineKata(
 					'dark:[&_[data-slot=wysiwyg-range]]:bg-blue-400/20 dark:[&_[data-slot=wysiwyg-range]]:text-blue-300',
 					'forced-colors:[&_[data-slot=wysiwyg-range]]:outline-solid forced-colors:[&_[data-slot=wysiwyg-range]]:outline-1',
 				],
-				/**
-				 * The placeholder takes the placeholder colors of the control reset, and
-				 * the stronger ones of a `soft` field.
-				 */
 				variant: {
-					default: [
-						'[&[data-empty]>:first-child]:before:text-zinc-500',
-						'dark:[&[data-empty]>:first-child]:before:text-zinc-400',
-					],
-					outline: [
-						'[&[data-empty]>:first-child]:before:text-zinc-500',
-						'dark:[&[data-empty]>:first-child]:before:text-zinc-400',
-					],
-					soft: [
-						'[&[data-empty]>:first-child]:before:text-zinc-600',
-						'dark:[&[data-empty]>:first-child]:before:text-zinc-300',
-					],
-					glass: [
-						'[&[data-empty]>:first-child]:before:text-zinc-500',
-						'dark:[&[data-empty]>:first-child]:before:text-zinc-400',
-					],
-					bare: [
-						'[&[data-empty]>:first-child]:before:text-zinc-500',
-						'dark:[&[data-empty]>:first-child]:before:text-zinc-400',
-					],
+					default: placeholder,
+					outline: placeholder,
+					soft: softPlaceholder,
+					glass: placeholder,
+					bare: placeholder,
 				},
 				/**
 				 * The end padding of the last row below a toolbar in a framed field: the
