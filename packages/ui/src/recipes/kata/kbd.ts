@@ -12,18 +12,19 @@ export const k = defineKata({
 		flex.inline,
 		'justify-center',
 		...mark.base,
-		...mark.density,
+		dan.text.small,
+		dan.space.mark.x,
 		// In a Button (`data-variant`), the key has less padding, so the key does
 		// not make the button taller. The key text is one step below the label of
 		// the button with no change. Each class selects the key itself, so
 		// Chromium tests the rule only against the keys.
 		dan.space.kbd.button.x,
-		dan.space.kbd.button.y,
 		// A key is never narrower than it is tall, as a key of a keyboard. A key
 		// with one glyph is thus a square, and a key with a longer label grows. Its
 		// height is the line of the key text and its block padding (`--kbd-py`).
 		dan.space.kbd.y,
 		dan.space.kbd.button.py,
+		dan.space.kbd.py,
 		'min-w-[calc(1lh+2*var(--kbd-py))]',
 		// An icon takes the line height, so a key with only an icon is as tall as a
 		// key with text. A key with only icons (`icons-only`, which allows an
@@ -36,6 +37,19 @@ export const k = defineKata({
 		'icons-only:baseline-strut',
 		dan.space.kbd.icon.x,
 		dan.space.kbd.icon.button.x,
+		// The line of the key text holds the ascent above the cap height and the
+		// descent below the baseline, so the text sits low in the key. Where the
+		// browser can, the key trims its text box to the cap height and the
+		// baseline, and the padding adds the trimmed space back on each side
+		// (`kbd.trim`). A flex box does not trim, so the key is then an inline
+		// block, with its content in the center. Each icon is inline, and it
+		// fills the line from the padding at the top to the padding at the bottom.
+		'text-trim:inline-block',
+		'text-trim:text-center',
+		'text-trim:[text-box:trim-both_cap_alphabetic]',
+		dan.space.kbd.trim,
+		'text-trim:*:data-[slot=icon]:inline',
+		'text-trim:*:data-[slot=icon]:align-[calc((1cap-1lh)/2)]',
 	],
 })
 

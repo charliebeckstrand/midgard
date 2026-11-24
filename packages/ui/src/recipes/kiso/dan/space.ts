@@ -530,39 +530,59 @@ export const space = {
 	mark: {
 		/** The inline padding of an inline code mark and a key. */
 		x: 'density-px-[0.5,1,1.5,2,2.5]',
-		/** The block padding of an inline code mark and a key. */
+		/** The block padding of an inline code mark. A key has the same steps in `kbd.y`. */
 		y: scale.py.xs,
+		/**
+		 * The block padding of an inline code mark in a browser that trims an
+		 * inline box (`inline-trim`): `y` and a quarter of the text size. The trim
+		 * removes the space above the cap height and below the baseline. Thus the
+		 * space above the text and the space below it are equal, and the mark keeps
+		 * about the height that it has with no trim.
+		 */
+		trim: 'inline-trim:density-py-[1.125,1.5,1.875,2.25,2.625]',
 	},
 	kbd: {
 		/**
 		 * The block padding of a key as a custom property (`--kbd-py`), which the
-		 * least width of the key reads. It has the steps of `mark.y`, which pads
-		 * the key.
+		 * padding (`py`) and the least width of the key read. It has the steps of
+		 * `mark.y`.
 		 */
 		y: 'density-set-[0.5,0.75,1,1.25,1.5]/[--kbd-py]',
+		/**
+		 * The block padding of a key: `--kbd-py`, and the space that the trim of
+		 * the text box removes (`--kbd-trim`) where the browser trims it.
+		 */
+		py: 'py-[calc(var(--kbd-py)+var(--kbd-trim,0px))]',
+		/**
+		 * The space that the trim of the text box removes from each side of a key
+		 * (`--kbd-trim`), in a browser that trims it (`text-trim`): half of the line
+		 * less the cap height. The padding (`py`) adds it back, so the key keeps
+		 * its height, and the space above the text and the space below it are
+		 * equal.
+		 */
+		trim: 'text-trim:[--kbd-trim:calc((1lh-1cap)/2)]',
 		icon: {
 			/**
-			 * The inline padding of a key with only icons (`icons-only`): the block
-			 * padding of a key (`mark.y`), so a key with one icon is a square. CSS
+			 * The inline padding of a key with only icons (`icons-only`): the steps
+			 * of the block padding of a key (`y`), so a key with one icon is a square. CSS
 			 * finds such a key with no help from the component.
 			 */
 			x: 'icons-only:density-px-[0.5,0.75,1,1.25,1.5]',
 			button: {
-				/** The inline padding of such a key in a button: the 1 px of its block padding (`button.y`). */
+				/** The inline padding of such a key in a button: the 1 px of its block padding (`button.py`). */
 				x: 'icons-only:[&:is([data-variant]>*)]:px-px',
 			},
 		},
 		button: {
-			/** The block padding of a key in a button as `--kbd-py`: the 1 px of `button.y`. */
+			/**
+			 * The block padding of a key in a button as `--kbd-py`: 1 px at each step.
+			 * The key text is one step below the label, so its line is 2 px shorter
+			 * than the line of the label, and the key keeps the height of the label
+			 * line.
+			 */
 			py: '[&:is([data-variant]>*)]:[--kbd-py:1px]',
 			/** The inline padding of a key in a button. */
 			x: '[&:is([data-variant]>*)]:density-px-[0.5,1,1.5,2,2.5]',
-			/**
-			 * The block padding of a key in a button: 1 px at each step. The key text is
-			 * one step below the label, so its line is 2 px shorter than the line of the
-			 * label, and the key keeps the height of the label line.
-			 */
-			y: '[&:is([data-variant]>*)]:py-px',
 		},
 	},
 	lightbox: {
