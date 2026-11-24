@@ -214,6 +214,10 @@ export function createWysiwygEditor(
 
 				return true
 			},
+			// A link in the field does not navigate. A press puts the caret in its
+			// text, or selects in a read-only field.
+			click: (_, event) => cancelLink(event),
+			auxclick: (_, event) => cancelLink(event),
 			// A reader of the caret, such as a picker, follows the focus too.
 			focus: () => {
 				props.onUpdate()
@@ -314,6 +318,18 @@ export function createWysiwygEditor(
 		},
 		destroy: () => view.destroy(),
 	}
+}
+
+/**
+ * Cancels the navigation of a press on a link of the field. The editor then
+ * handles the press as on any text.
+ *
+ * @internal
+ */
+function cancelLink(event: MouseEvent): false {
+	if (event.target instanceof Element && event.target.closest('a[href]')) event.preventDefault()
+
+	return false
 }
 
 /**
