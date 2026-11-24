@@ -1,8 +1,8 @@
-import { act, type ComponentProps, createRef } from 'react'
+import { act, type ComponentProps, createRef, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import { Grid, type GridCellClickContext, type GridColumn } from '../../modules/grid'
-import { fireEvent, renderUI, screen } from '../helpers'
+import { fireEvent, present, renderUI, screen } from '../helpers'
 
 type Row = {
 	id: number | string
@@ -28,8 +28,22 @@ const getKey = (row: Row) => row.id
 const bodyRows = (table: HTMLElement) =>
 	Array.from(table.querySelectorAll<HTMLElement>('tr[data-grid-row]'))
 
+/** The roving data cells, without the label cell of a group header. */
 const rovingCells = (table: HTMLElement) =>
-	Array.from(table.querySelectorAll<HTMLElement>('td[data-roving]'))
+	Array.from(table.querySelectorAll<HTMLElement>('tr[data-grid-row] > td[data-roving]'))
+
+/** The group header row of the manual grouping. */
+const headerRow = (table: HTMLElement) =>
+	present(table.querySelector<HTMLElement>('tr[data-group-row]'), 'the group header row')
+
+/** The roving item of the group header: its row in row mode, its label cell in cell mode. */
+const headerItem = (table: HTMLElement) =>
+	present(
+		table.querySelector<HTMLElement>(
+			'tr[data-group-row][data-roving], tr[data-group-row] > td[data-roving]',
+		),
+		'the roving item of the group header',
+	)
 
 /**
  * The rows of a manual grouping: one group header with all three rows below
@@ -227,11 +241,15 @@ describe('Grid click handlers', () => {
 })
 
 describe('Grid row roving under manual grouping', () => {
-	it('seats a single Tab stop across the clickable rows', () => {
+	it('seats a single Tab stop across the group header and the clickable rows', () => {
 		renderRoving({ onRowClick: vi.fn() })
 
-		// Exactly one resting stop (the first row); the rest are -1.
-		expect(bodyRows(screen.getByRole('treegrid')).map((row) => row.tabIndex)).toEqual([0, -1, -1])
+		const table = screen.getByRole('treegrid')
+
+		// Exactly one resting stop (the group header, the first item); the rest are -1.
+		expect(headerRow(table).tabIndex).toBe(0)
+
+		expect(bodyRows(table).map((row) => row.tabIndex)).toEqual([-1, -1, -1])
 	})
 
 	it('moves focus with ArrowDown / ArrowUp, carrying the resting stop', () => {
@@ -241,7 +259,9 @@ describe('Grid row roving under manual grouping', () => {
 
 		const rowEls = bodyRows(table)
 
-		rowEls[0]?.focus()
+		act(() => headerRow(table).focus())
+
+		fireEvent.keyDown(table, { key: 'ArrowDown' })
 
 		fireEvent.keyDown(table, { key: 'ArrowDown' })
 
@@ -249,6 +269,8 @@ describe('Grid row roving under manual grouping', () => {
 
 		// The roving hook carries the resting `tabIndex=0` to the focused row.
 		expect(rowEls.map((row) => row.tabIndex)).toEqual([-1, 0, -1])
+
+		expect(headerRow(table).tabIndex).toBe(-1)
 
 		fireEvent.keyDown(table, { key: 'ArrowUp' })
 
@@ -262,7 +284,7 @@ describe('Grid row roving under manual grouping', () => {
 
 		const rowEls = bodyRows(table)
 
-		rowEls[0]?.focus()
+		act(() => headerRow(table).focus())
 
 		fireEvent.keyDown(table, { key: 'End' })
 
@@ -270,7 +292,7 @@ describe('Grid row roving under manual grouping', () => {
 
 		fireEvent.keyDown(table, { key: 'Home' })
 
-		expect(document.activeElement).toBe(rowEls[0])
+		expect(document.activeElement).toBe(headerRow(table))
 	})
 
 	it('rings a clickable row with an inset focus ring (clip-safe)', () => {
@@ -331,9 +353,15 @@ describe('Grid tab stops under roving', () => {
 	] as const)('opens the row of %s to Tab', (_name, handler, item) => {
 		renderRoving({ columns: withButton, [handler]: vi.fn() })
 
-		act(() => item('Alice')?.focus())
+		const table = screen.getByRole('treegrid')
 
-		fireEvent.keyDown(screen.getByRole('treegrid'), { key: 'ArrowDown' })
+		act(() => headerItem(table).focus())
+
+		fireEvent.keyDown(table, { key: 'ArrowDown' })
+
+		expect(item('Alice')).toHaveFocus()
+
+		fireEvent.keyDown(table, { key: 'ArrowDown' })
 
 		expect(item('Bob')).toHaveFocus()
 
@@ -350,12 +378,17 @@ describe('Grid cell roving under manual grouping', () => {
 	it('makes the data cells a single-tab-stop 2D roving group', () => {
 		renderRoving({ onCellClick: vi.fn() })
 
-		const cells = rovingCells(screen.getByRole('treegrid'))
+		const table = screen.getByRole('treegrid')
 
-		// 3 rows x 2 data columns; exactly one resting stop.
+		const cells = rovingCells(table)
+
+		// 3 rows x 2 data columns, and the label cell of the group header, which
+		// holds the one resting stop.
 		expect(cells).toHaveLength(6)
 
-		expect(cells.filter((c) => c.tabIndex === 0)).toHaveLength(1)
+		expect(headerItem(table).tabIndex).toBe(0)
+
+		expect(cells.filter((c) => c.tabIndex === 0)).toHaveLength(0)
 	})
 
 	it('steps a column with Left/Right and a row with Up/Down', () => {
@@ -365,7 +398,11 @@ describe('Grid cell roving under manual grouping', () => {
 
 		const cells = rovingCells(table)
 
-		cells[0]?.focus()
+		act(() => headerItem(table).focus())
+
+		fireEvent.keyDown(table, { key: 'ArrowDown' })
+
+		expect(document.activeElement).toBe(cells[0])
 
 		fireEvent.keyDown(table, { key: 'ArrowRight' })
 
@@ -533,6 +570,143 @@ describe('Grid cell roving under manual grouping', () => {
 		fireEvent.keyDown(button, { key: 'Enter' })
 
 		expect(onCellClick).not.toHaveBeenCalled()
+	})
+})
+
+/**
+ * The group header of a manual grouping is a roving item, with the keys of a
+ * group header of the cursor: Enter or Space toggles, ArrowRight opens a closed
+ * group and steps into an open one, and ArrowLeft closes an open group.
+ */
+describe('Grid roving group headers under manual grouping', () => {
+	/** A grid that roves, and holds its expansion in state, open at the start. */
+	function renderHeaders(props: Partial<ComponentProps<typeof Grid<Row>>>) {
+		function Owner() {
+			const [expanded, setExpanded] = useState<Set<string | number>>(() => new Set(['all', 'more']))
+
+			return (
+				<Grid
+					columns={columns}
+					rows={manualRows}
+					getKey={getKey}
+					groupBy={{
+						manual: true,
+						value: 'role',
+						groupRow,
+						expanded,
+						onExpandedChange: setExpanded,
+					}}
+					{...props}
+				/>
+			)
+		}
+
+		renderUI(<Owner />)
+
+		return { table: screen.getByRole('treegrid') }
+	}
+
+	it.each([
+		['row', { onRowClick: vi.fn() }],
+		['cell', { onCellClick: vi.fn() }],
+	] as const)('toggles the group with the keys of a %s-roving header', (_mode, props) => {
+		const { table } = renderHeaders(props)
+
+		const header = headerRow(table)
+
+		act(() => headerItem(table).focus())
+
+		fireEvent.keyDown(table, { key: 'ArrowLeft' })
+
+		expect(header).toHaveAttribute('aria-expanded', 'false')
+
+		// ArrowLeft on a closed group does nothing.
+		fireEvent.keyDown(table, { key: 'ArrowLeft' })
+
+		expect(header).toHaveAttribute('aria-expanded', 'false')
+
+		fireEvent.keyDown(table, { key: 'ArrowRight' })
+
+		expect(header).toHaveAttribute('aria-expanded', 'true')
+
+		fireEvent.keyDown(table, { key: 'Enter' })
+
+		expect(header).toHaveAttribute('aria-expanded', 'false')
+
+		fireEvent.keyDown(table, { key: ' ' })
+
+		expect(header).toHaveAttribute('aria-expanded', 'true')
+
+		expect(headerItem(table)).toHaveFocus()
+	})
+
+	it('steps into an open group with ArrowRight, and back up to the header with ArrowUp', () => {
+		const { table } = renderHeaders({ onRowClick: vi.fn() })
+
+		act(() => headerItem(table).focus())
+
+		fireEvent.keyDown(table, { key: 'ArrowRight' })
+
+		process.stderr.write(
+			`DBG ${document.activeElement?.outerHTML.replace(/class="[^"]*"/g, '').slice(0, 300)}\n`,
+		)
+
+		expect(bodyRows(table)[0]).toHaveFocus()
+
+		fireEvent.keyDown(table, { key: 'ArrowUp' })
+
+		expect(headerRow(table)).toHaveFocus()
+	})
+
+	it('keeps the column of a cell across the header in cell mode', () => {
+		const { table } = renderHeaders({
+			onCellClick: vi.fn(),
+			rows: [
+				...manualRows,
+				{ id: 'g:more', name: 'More', role: '', group: { key: 'more', count: 1 } },
+				{ id: 4, name: 'Dan', role: 'User' },
+			],
+		})
+
+		const cells = rovingCells(table)
+
+		act(() => headerItem(table).focus())
+
+		fireEvent.keyDown(table, { key: 'ArrowDown' })
+
+		fireEvent.keyDown(table, { key: 'ArrowRight' })
+
+		// Carol's Role cell, then the header of the second group, then Dan's Role cell.
+		fireEvent.keyDown(table, { key: 'ArrowDown' })
+
+		fireEvent.keyDown(table, { key: 'ArrowDown' })
+
+		expect(cells[5]).toHaveFocus()
+
+		fireEvent.keyDown(table, { key: 'ArrowDown' })
+
+		expect(table.querySelectorAll('tr[data-group-row]')[1]?.querySelector('td')).toHaveFocus()
+
+		fireEvent.keyDown(table, { key: 'ArrowDown' })
+
+		expect(cells[7]).toHaveFocus()
+
+		// ArrowDown on the last row wraps to the first item, the first header.
+		fireEvent.keyDown(table, { key: 'ArrowDown' })
+
+		expect(headerItem(table)).toHaveFocus()
+	})
+
+	it('takes the disclosure button of a roving header out of the tab order', () => {
+		const { table } = renderHeaders({ onRowClick: vi.fn() })
+
+		expect(headerRow(table).querySelector('button')).toHaveAttribute('tabindex', '-1')
+	})
+
+	it('leaves the disclosure button of a header in the tab order without roving', () => {
+		renderRoving({})
+
+		expect(screen.getByRole('button', { name: /All/ })).not.toHaveAttribute('tabindex')
 	})
 })
 

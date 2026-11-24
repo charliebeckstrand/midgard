@@ -3,7 +3,6 @@
 import { type RefObject, useLayoutEffect, useMemo } from 'react'
 import { useA11yAnnouncements } from '../../hooks/a11y/use-a11y-announcements'
 import { useIntl } from '../../primitives/intl/use-intl'
-import { isDataColumn } from '../../utilities/is-data-column'
 import type { GridSortState } from './context'
 import { describeSelection, describeSort } from './engine/grid-announcements'
 import { hasErrorSlot } from './engine/grid-data/guards'
@@ -91,9 +90,6 @@ export function useGridDataView<T>({
 	// it sorts, filters, or paginates.
 	const cursorColumns = visibleColumns
 
-	// The roving cells of a grid with no cursor are its data cells.
-	const dataColumns = useMemo(() => visibleColumns.filter(isDataColumn), [visibleColumns])
-
 	// Roving-tabindex keyboard navigation over the clickable rows (row mode) or
 	// data cells (cell mode), for a grid that carries click handlers but no
 	// cursor: only under manual grouping, which stands the cursor down.
@@ -104,7 +100,6 @@ export function useGridDataView<T>({
 		onCellClick: onCellClick != null,
 		onCellDoubleClick: onCellDoubleClick != null,
 		tableRef,
-		dataColCount: dataColumns.length,
 	})
 
 	// The map gives the data row index of a row to a body that gives the cursor

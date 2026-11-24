@@ -33,8 +33,10 @@ type GridManualGroupRowProps<T> = {
 	toggle: (key: string | number) => void
 	/** Frozen-column controls, so the cells over a pinned column stick like its data cells. `null` when none. */
 	pinning: GridColumnPinning | null
-	/** Whether the table is a treegrid, which reads the level and the expansion of the row. */
-	tree: boolean
+	/** Whether the rows are roving items (row mode), which makes the header row an item. */
+	rowRoving: boolean
+	/** Whether the cells are roving items (cell mode), which makes the label cell an item. */
+	cellRoving: boolean
 }
 
 /**
@@ -49,6 +51,11 @@ type GridManualGroupRowProps<T> = {
  * itself. The label span ends at a frozen boundary, so each cell over a frozen
  * column sticks with that column (see `aggregateLabelSpan`).
  *
+ * Roving makes the table a treegrid, and the header an item of the roving: the
+ * row in row mode, and the label cell in cell mode (see `useGridRoving`). The
+ * item takes the focus ring and the keys of the group. The disclosure button
+ * then leaves the tab order, so the grid stays one Tab stop.
+ *
  * @internal
  */
 function GridManualGroupRowImpl<T>({
@@ -60,8 +67,11 @@ function GridManualGroupRowImpl<T>({
 	expanded,
 	toggle,
 	pinning,
-	tree,
+	rowRoving,
+	cellRoving,
 }: GridManualGroupRowProps<T>) {
+	const tree = rowRoving || cellRoving
+
 	const aggregated = hasAggregation(columns)
 
 	const span = aggregated ? aggregateLabelSpan(columns, pinning) : columns.length
@@ -74,10 +84,13 @@ function GridManualGroupRowImpl<T>({
 			data-expanded={dataAttr(expanded)}
 			aria-level={tree ? 1 : undefined}
 			aria-expanded={tree ? expanded : undefined}
+			data-roving={dataAttr(rowRoving)}
+			className={cn(rowRoving && k.row.clickable)}
 		>
 			<TableCell
 				colSpan={span}
-				className={cn(k.row.group.rail.neutral, pinned.className)}
+				data-roving={dataAttr(cellRoving)}
+				className={cn(k.row.group.rail.neutral, cellRoving && k.cell.rovable, pinned.className)}
 				style={pinned.style}
 				data-grid-pin={pinned.pin}
 			>
@@ -88,6 +101,7 @@ function GridManualGroupRowImpl<T>({
 					renderHeader={renderHeader}
 					expanded={expanded}
 					onToggle={() => toggle(info.key)}
+					tabbable={!tree}
 				/>
 			</TableCell>
 

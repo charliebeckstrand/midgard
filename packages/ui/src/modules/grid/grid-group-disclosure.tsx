@@ -27,6 +27,7 @@ export function GridGroupDisclosure({
 	renderHeader,
 	expanded,
 	onToggle,
+	tabbable = true,
 }: {
 	value: unknown
 	count: number
@@ -35,6 +36,8 @@ export function GridGroupDisclosure({
 	renderHeader: GridGroupBy['renderHeader']
 	expanded: boolean
 	onToggle: () => void
+	/** Whether the button is in the tab order. A header that roves is the item, so its button is not. */
+	tabbable?: boolean
 }) {
 	const intl = useIntl()
 
@@ -47,6 +50,7 @@ export function GridGroupDisclosure({
 			type="button"
 			variant="bare"
 			onClick={onToggle}
+			tabIndex={tabbable ? undefined : -1}
 			// The visible label names the button, and `aria-expanded` gives its state,
 			// so the count and a `renderHeader` label stay in the name (WCAG 2.5.3).
 			aria-expanded={expanded}
