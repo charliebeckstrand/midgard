@@ -1,10 +1,10 @@
 /**
  * The control group: the shared structure of the framed controls. Textarea
- * extends `control`. Input and the field of FileUpload extend `input`, a
- * control with a single-line field. A `trigger` is a control that opens a floating
- * panel. Listbox and Combobox extend `list`, a trigger that opens a list of
- * options. DatePicker and ColorPicker extend `picker`, a trigger that opens a
- * picker dialog.
+ * extends `multiline`, a control with a field of many lines. Input and the
+ * field of FileUpload extend `input`, a control with a single-line field. A
+ * `trigger` is a control that opens a floating panel. Listbox and Combobox
+ * extend `list`, a trigger that opens a list of options. DatePicker and
+ * ColorPicker extend `picker`, a trigger that opens a picker dialog.
  *
  * - `base` is the frame (`<ControlFrame>`): the kasane chrome, the radius, and
  *   the surface that `variant` sets.
@@ -16,7 +16,7 @@
  */
 
 import { defineGroup } from '../../../core/recipe'
-import { dan, hannou, iro, narabi, omote, sou, ugoki } from '../../kiso'
+import { dan, hannou, iro, narabi, omote, sen, sou, ugoki } from '../../kiso'
 import { affix } from './affix'
 import { density, inset } from './density'
 import { chrome, frame, softChrome, softPlaceholder } from './frame'
@@ -27,6 +27,7 @@ export { scale } from './density'
 
 const { cursor } = hannou
 const { fit, flex } = narabi
+const { border } = sen
 
 /**
  * The classes of a slot under each surface. The framed surfaces take
@@ -70,6 +71,39 @@ export const control = defineGroup({
 		suffix: { base: affix.base, variant: framed(affix.suffix) },
 	},
 	defaults: { variant: 'default' },
+})
+
+/**
+ * A control that takes text in a field of many lines. The frame can stack the
+ * field above a row of actions, and the field can be a `<textarea>` or an
+ * editable element.
+ */
+export const multiline = defineGroup({
+	extends: control,
+	/**
+	 * The frame when a row of actions is present: it draws the border, and it
+	 * stacks the field above the row.
+	 */
+	actions: { true: [...border.default, 'flex-col items-stretch'], false: [] },
+	slots: {
+		field: {
+			base: 'block',
+			/**
+			 * The floor gives a field of one row the height of a framed Input. A
+			 * `bare` field has no inset, as a `bare` Input has none, so it takes no
+			 * floor, and a row is one line of text.
+			 */
+			variant: framed(dan.size.control.floor),
+			/** Strips the chrome of the field when the frame holds a row of actions. */
+			actions: { true: ['border-0', 'rounded-none', 'focus:outline-hidden'], false: [] },
+		},
+		/**
+		 * The row of actions beneath the field, at the inline end. Its gap also caps
+		 * the hit areas of the actions (`TouchTarget`), so they do not overlap.
+		 */
+		actions: [flex.row, 'justify-end mt-auto', dan.gap.scale.sm, 'pe-2 pb-2', dan.gap.touch.x.sm],
+	},
+	defaults: { actions: false },
 })
 
 /**
