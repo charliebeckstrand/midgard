@@ -11,7 +11,7 @@ import type { GridEditableConfig } from './grid-editing-types'
 import type { GridNewRow } from './grid-new-row'
 import type { GridColumn } from './types'
 import { useGridCursorColumns } from './use-grid-cursor-columns'
-import { type GridCursorRefs, useGridCursorNav } from './use-grid-cursor-nav'
+import { type GridCopyAt, type GridCursorRefs, useGridCursorNav } from './use-grid-cursor-nav'
 import type {
 	GridNavTableProps,
 	GridNewRowPosition,
@@ -101,6 +101,8 @@ export type GridCursor<T> = {
 	stepHistory: (step: 'undo' | 'redo') => boolean
 	/** The fill of the range, for the cell context menu, or `undefined` while the grid cannot fill. */
 	fill: GridRangeFill | undefined
+	/** The copy of the cell context menu: the range that holds the cell, else the cell. */
+	copyAt: GridCopyAt
 	/** The range of the cursor, for the binding of {@link GridDataProps.range}. */
 	range: GridRangeHandle
 }
@@ -145,7 +147,7 @@ export function useGridCursor<T>({
 	// A read-only grid shows no new-row slot, so the cursor clamps to no slot.
 	const newRowRef = useRef<GridNewRowPosition>(null)
 
-	const { nav } = useGridCursorNav<T>({
+	const { nav, copyAt } = useGridCursorNav<T>({
 		enabled: navigable,
 		range,
 		rangeFigures,
@@ -186,6 +188,7 @@ export function useGridCursor<T>({
 		renderNewRow: noNewRow,
 		stepHistory: noHistory,
 		fill: undefined,
+		copyAt,
 		range: gridRangeHandle(nav),
 	}
 }

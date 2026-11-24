@@ -14,6 +14,28 @@ export function copyText(text: string): void {
 	navigator.clipboard?.writeText(text).catch(() => {})
 }
 
+/**
+ * Writes text and its HTML form to the clipboard, so a document keeps the
+ * table and a sheet reads the text. Where the clipboard takes no
+ * `ClipboardItem`, it writes the text alone (see {@link copyText}).
+ *
+ * @internal
+ */
+export function copyRichText(text: string, html: string): void {
+	if (typeof ClipboardItem === 'undefined' || !navigator.clipboard?.write) {
+		copyText(text)
+
+		return
+	}
+
+	const item = new ClipboardItem({
+		'text/plain': new Blob([text], { type: 'text/plain' }),
+		'text/html': new Blob([html], { type: 'text/html' }),
+	})
+
+	navigator.clipboard.write([item]).catch(() => {})
+}
+
 /** A leading character a spreadsheet unconditionally reads as a formula/command start. @internal */
 const FORMULA_LEAD = /^[=@\t\r]/
 

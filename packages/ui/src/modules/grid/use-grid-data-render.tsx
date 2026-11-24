@@ -900,6 +900,7 @@ export function useGridDataRender<T>(
 								manageLabel={managerLabel}
 								exportActions={exportActions.contextMenu}
 								fill={cursor.fill}
+								copyAt={cursor.copyAt}
 								rowGroupMenu={rowManager.rowGroupMenu}
 								columnGroupMenu={columnGroupMenu}
 								columnFilter={filters}

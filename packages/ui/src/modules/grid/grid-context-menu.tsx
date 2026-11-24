@@ -17,13 +17,12 @@ import { isRtl } from '../../hooks/a11y/logical-arrow'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useTimeout } from '../../hooks/use-timeout'
 import { useIntl } from '../../primitives/intl/use-intl'
-import { copyText } from '../../utilities/export-output'
+import { copyRichText } from '../../utilities/export-output'
 import { isDataColumn } from '../../utilities/is-data-column'
 import { isNativeContextMenuRequest } from '../../utilities/native-context-menu'
 import { describeResize } from './engine/grid-announcements'
 import { columnLabel } from './engine/grid-column/label'
 import { COLUMN_RESIZE_PAGE_STEP, GRID_STATUS_DEBOUNCE_MS } from './engine/grid-constants'
-import { cellText } from './engine/grid-export/accessor'
 import {
 	type GridMenuResolution,
 	openKeyboardMenu,
@@ -56,6 +55,7 @@ import type {
 	GridContextMenu as GridContextMenuConfig,
 	GridMenuItem,
 } from './types'
+import type { GridCopyAt } from './use-grid-cursor-nav'
 
 /** Props for {@link GridContextMenu}. @internal */
 export type GridContextMenuProps<T> = Pick<
@@ -89,6 +89,8 @@ export type GridContextMenuProps<T> = Pick<
 	rowKeys: (string | number)[]
 	/** The fill of the cell range, for the cell menu's Fill items, or `undefined` while the grid cannot fill. */
 	fill: GridRangeFill | undefined
+	/** The copy of the cell menu's Copy item: the range that holds the cell, else the cell. */
+	copyAt: GridCopyAt
 	/**
 	 * Resolves the group-header menu items and name for a right-clicked group by
 	 * its key (the group's text key) and its header row, or `null` when the row
@@ -153,6 +155,7 @@ export function GridContextMenu<T>({
 	manageLabel,
 	exportActions,
 	fill,
+	copyAt,
 	rowGroupMenu,
 	columnGroupMenu,
 	columnFilter,
@@ -347,7 +350,14 @@ export function GridContextMenu<T>({
 
 			const value = column.value ? column.value(row) : text
 
-			const copy = () => copyText(cellText(value))
+			// The same copy as Ctrl+C on the cell or on the range that holds it. Read
+			// as the menu opens, as the fill items are: the menu takes focus from the
+			// grid, and the grid then ends its cursor.
+			const block = copyAt(rowKey, columnId)
+
+			const copy = () => {
+				if (block) copyRichText(block.text, block.html)
+			}
 
 			const moves = rowMoveItems(intl, rowMoves.targets(rowKey, ROW_MOVES), (target) =>
 				rowMoves.move(rowKey, target),
@@ -371,7 +381,7 @@ export function GridContextMenu<T>({
 
 			return { items: cellMenu(context, defaults), name }
 		},
-		[cellMenu, columnById, rows, rowKeys, exportActions, fill, rowMoves, intl],
+		[cellMenu, columnById, rows, rowKeys, exportActions, fill, copyAt, rowMoves, intl],
 	)
 
 	// `enabled` gates every resolver (a `null` resolution leaves the native menu
