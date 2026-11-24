@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { cdp, userEvent } from 'vitest/browser'
 import { Wysiwyg } from '../../modules/wysiwyg'
 import { renderUI, screen, waitFor } from '../helpers'
@@ -41,9 +41,20 @@ const record = (event: MouseEvent) => {
 	event.preventDefault()
 }
 
-window.addEventListener('click', record)
+// The browser instance shares one page across its files, so the listeners
+// live only for the cases of this file. A listener that stays would cancel
+// the clicks of the next file, such as the click of a label.
+beforeEach(() => {
+	window.addEventListener('click', record)
 
-window.addEventListener('auxclick', record)
+	window.addEventListener('auxclick', record)
+})
+
+afterEach(() => {
+	window.removeEventListener('click', record)
+
+	window.removeEventListener('auxclick', record)
+})
 
 /** Loads the editor of the field through a press. */
 async function load(): Promise<HTMLElement> {
