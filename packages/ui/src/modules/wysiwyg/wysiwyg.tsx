@@ -137,9 +137,15 @@ export type WysiwygProps<R extends MarkdownRange = MarkdownRange> = {
 	'aria-labelledby'?: string
 	/** Consumer-supplied `aria-describedby`, merged ahead of the field's registered description / error ids. */
 	'aria-describedby'?: string
-	/** The `aria-autocomplete` of the field, for a completion that it controls. */
+	/**
+	 * The `aria-autocomplete` of the field, for a completion that it controls.
+	 * @defaultValue No attribute: the field offers no completion.
+	 */
 	'aria-autocomplete'?: 'inline' | 'list' | 'both' | 'none'
-	/** The `aria-haspopup` of the field, for a completion that it controls. */
+	/**
+	 * The `aria-haspopup` of the field, for a completion that it controls.
+	 * @defaultValue No attribute: the field opens no popup.
+	 */
 	'aria-haspopup'?: 'listbox' | 'menu' | 'tree' | 'grid' | 'dialog'
 	/** The `aria-controls` of the field, such as the id of an open completion list. */
 	'aria-controls'?: string
