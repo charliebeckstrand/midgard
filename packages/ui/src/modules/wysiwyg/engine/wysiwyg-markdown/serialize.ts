@@ -302,7 +302,14 @@ function run(items: readonly Item[], line: Line): string {
 
 		const inner = items.slice(index, end).map((each) => ({ ...each, marks: each.marks.slice(1) }))
 
-		out += span(mark, inner, line)
+		const written = span(mark, inner, line)
+
+		// A `!` directly before the text of a link would make the link an image.
+		if (mark.type === schema.marks.link && written.startsWith('[') && out.endsWith('!')) {
+			out = `${out.slice(0, -1)}\\!`
+		}
+
+		out += written
 
 		index = end
 	}
@@ -386,7 +393,8 @@ function span(mark: Mark, inner: readonly Item[], line: Line): string {
 		return content
 	}
 
-	return `${lead}${open}${core}${close}${trail}`
+	// Whitespace at the start of a line is not text in Markdown (see `escapeText`).
+	return `${before ? '' : lead}${open}${core}${close}${trail}`
 }
 
 /** @internal */
@@ -480,6 +488,10 @@ function markPiece(mark: Mark, written: string, line: Line): string {
  * start of a line, a block marker, such as `#`, `>`, `-`, `---`, or `1.`, is
  * escaped too.
  *
+ * Whitespace at the start of a line goes. A message does not show it, and no
+ * escape keeps it: before a marker, it lets the marker count, and four spaces
+ * or a tab make a code block.
+ *
  * @internal
  */
 function escapeText(text: string, lineStart: boolean): string {
@@ -496,6 +508,7 @@ function escapeText(text: string, lineStart: boolean): string {
 
 	if (lineStart) {
 		out = out
+			.replace(/^[ \t]+/, '')
 			.replace(/^>|^(#{1,6}|[+-]|-{3,}|=+)(?=\s|$)/, '\\$&')
 			.replace(/^(\d+)([.)])(?=\s|$)/, '$1\\$2')
 	}
