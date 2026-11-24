@@ -39,6 +39,16 @@ describe('the width of a NumberInput (real browser)', () => {
 		expect(frameWidth()).toBeLessThan(360)
 	})
 
+	it('keeps the box of one digit when it is empty and has no placeholder', () => {
+		renderUI(
+			<div style={{ display: 'flex', width: 360 }}>
+				<NumberInput aria-label="Rows" />
+			</div>,
+		)
+
+		expect(screen.getByRole('spinbutton').getBoundingClientRect().width).toBeNear(32, HALF_PIXEL)
+	})
+
 	it('fills a host that gives a width', () => {
 		renderUI(
 			<div style={{ width: 360 }}>
