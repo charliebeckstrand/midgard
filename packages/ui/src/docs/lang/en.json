@@ -1251,6 +1251,10 @@
 		"defaultMessage": "To do",
 		"description": "Text of a demo in the docs, in structure/flex/equal.tsx."
 	},
+	"docs.demo.101f2ff3de22": {
+		"defaultMessage": "Rows",
+		"description": "Text of a demo in the docs as aria-label, in components/number-input/width.tsx."
+	},
 	"docs.demo.10caee1b621b": {
 		"defaultMessage": "Revenue and costs",
 		"description": "Text of a demo in the docs as title, in modules/chart/title-and-subtitle.tsx."
@@ -2505,7 +2509,7 @@
 	},
 	"docs.demo.53aade77cd69": {
 		"defaultMessage": "Columns",
-		"description": "Text of a demo in the docs as aria-label, in components/list/horizontal.tsx."
+		"description": "Text of a demo in the docs as aria-label, in components/list/horizontal.tsx, components/number-input/width.tsx."
 	},
 	"docs.demo.53c8fc0bacc0": {
 		"defaultMessage": "Cancellation",
@@ -7825,7 +7829,7 @@
 	},
 	"docs.prop.width": {
 		"defaultMessage": "Width",
-		"description": "The label of a field of a playground in the docs. The field sets the prop width of CommandPalette, Confirm, DialogPanel, Grid, SheetPanel."
+		"description": "The label of a field of a playground in the docs. The field sets the prop width of CommandPalette, Confirm, CreditCardInput, CurrencyInput, DateInput, DialogPanel, Grid, Input, MaskInput, NumberInput, PasswordInput, SearchInput, SheetPanel, TagInput."
 	},
 	"docs.prop.width.2xl": {
 		"defaultMessage": "2xl",
@@ -7851,9 +7855,13 @@
 		"defaultMessage": "7xl",
 		"description": "An option of the Width field of a playground in the docs. It sets the prop width to '7xl' on CommandPalette, Confirm, DialogPanel, SheetPanel."
 	},
+	"docs.prop.width.auto": {
+		"defaultMessage": "Auto",
+		"description": "An option of the Width field of a playground in the docs. It sets the prop width to 'auto' on CreditCardInput, CurrencyInput, DateInput, Input, MaskInput, NumberInput, PasswordInput, SearchInput, TagInput."
+	},
 	"docs.prop.width.fill": {
 		"defaultMessage": "Fill",
-		"description": "An option of the Width field of a playground in the docs. It sets the prop width to 'fill' on Grid."
+		"description": "An option of the Width field of a playground in the docs. It sets the prop width to 'fill' on CreditCardInput, CurrencyInput, DateInput, Grid, Input, MaskInput, NumberInput, PasswordInput, SearchInput, TagInput."
 	},
 	"docs.prop.width.fit": {
 		"defaultMessage": "Fit",
@@ -9414,6 +9422,10 @@
 	"docs.title.virtualized": {
 		"defaultMessage": "Virtualized",
 		"description": "The title of an example on a page of the docs. It comes from the file name virtualized.tsx."
+	},
+	"docs.title.width": {
+		"defaultMessage": "Width",
+		"description": "The title of an example on a page of the docs. It comes from the file name width.tsx."
 	},
 	"docs.title.with-absolute-time": {
 		"defaultMessage": "With absolute time",

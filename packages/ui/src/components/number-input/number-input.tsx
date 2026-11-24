@@ -42,7 +42,7 @@ const messages = defineMessages({
  */
 export type NumberInputProps = Omit<
 	InputProps,
-	'type' | 'value' | 'defaultValue' | 'onChange' | 'suffix' | 'min' | 'max' | 'step'
+	'type' | 'value' | 'defaultValue' | 'onChange' | 'suffix' | 'min' | 'max' | 'step' | 'width'
 > & {
 	/** Controlled value. `undefined` leaves the field uncontrolled; `null` keeps it controlled and empty (CONVENTIONS §7.3). */
 	value?: number | null
@@ -66,6 +66,16 @@ export type NumberInputProps = Omit<
 	 * @defaultValue true
 	 */
 	round?: boolean
+	/**
+	 * The width of the field. `auto` takes the width of the value or the
+	 * placeholder, and grows with the value, where the layout does not give a
+	 * width: in a flex row, or in a box that fits its content. A block, a
+	 * stretched flex item, and a grid cell give their width, so there the
+	 * field fills. `fill` takes the width of the container in each layout, as
+	 * an {@link Input} does.
+	 * @defaultValue 'auto'
+	 */
+	width?: InputProps['width']
 }
 
 /**
@@ -96,6 +106,7 @@ export function NumberInput({
 	max,
 	step = 1,
 	round: roundOnBlur = true,
+	width = 'auto',
 	disabled,
 	readOnly,
 	size,
@@ -193,6 +204,7 @@ export function NumberInput({
 			disabled={disabled}
 			readOnly={readOnly}
 			size={size}
+			width={width}
 			value={current ?? ''}
 			onChange={handleChange}
 			onBlur={handleBlur}

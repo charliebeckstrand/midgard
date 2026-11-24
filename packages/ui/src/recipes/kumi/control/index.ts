@@ -144,8 +144,22 @@ export const input = defineGroup({
 		],
 		false: [],
 	},
+	/**
+	 * The width of the frame. `fill` takes the width of the container. `auto`
+	 * takes the width that the layout gives a box of `width: auto`: it fills a
+	 * block, a stretched flex item, and a grid cell, and in a flex row or a
+	 * box that fits its content, it takes the width of its field. The field
+	 * then takes the width of its value or its placeholder
+	 * (`field-sizing: content`), and grows with the value. The field keeps
+	 * `flex-auto`, so it fills a frame that the layout makes wider. A browser
+	 * without `field-sizing` gives the field its default width.
+	 */
+	width: { fill: [], auto: 'w-auto' },
 	slots: {
-		field: 'block',
+		field: {
+			base: 'block',
+			width: { fill: [], auto: ['w-auto', 'flex-auto', 'field-sizing-content'] },
+		},
 		/**
 		 * A prefix or a suffix. It has no gap, so two controls in it touch, such
 		 * as a clear button and the calendar button of a date input. Then each
@@ -160,7 +174,7 @@ export const input = defineGroup({
 		prefix: 'has-[>*+*]:[--touch-target-gap-x:0px]',
 		suffix: ['has-[>*+*]:[--touch-target-gap-x:0px]', 'shrink-0'],
 	},
-	defaults: { affixed: false },
+	defaults: { affixed: false, width: 'fill' },
 })
 
 /**

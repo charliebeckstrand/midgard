@@ -158,7 +158,7 @@ function RangeValue({
 				min={limits.lo.min}
 				max={limits.lo.max}
 				disabled={disabled}
-				className="w-full"
+				width="fill"
 				onValueChange={(next) => onValueChange([next ?? '', hi])}
 			/>
 
@@ -173,7 +173,7 @@ function RangeValue({
 				min={limits.hi.min}
 				max={limits.hi.max}
 				disabled={disabled}
-				className="w-full"
+				width="fill"
 				onValueChange={(next) => onValueChange([lo, next ?? ''])}
 			/>
 		</Flex>
