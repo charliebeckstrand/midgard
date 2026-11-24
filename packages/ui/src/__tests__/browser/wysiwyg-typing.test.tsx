@@ -65,6 +65,23 @@ describe('Wysiwyg (real browser)', () => {
 		expect(value()).toBe('A **bold** and *em* word\n\n- one\n- two')
 	})
 
+	it('keeps the emphasis characters of a code span that the reader types as code', async () => {
+		renderUI(<Notes />)
+
+		const field = await editable()
+
+		await userEvent.keyboard('Run `2*3*4` and `a **b**` now')
+
+		expect([...field.querySelectorAll('code')].map((code) => code.textContent)).toEqual([
+			'2*3*4',
+			'a **b**',
+		])
+
+		expect(field.querySelector('em, strong')).toBeNull()
+
+		expect(value()).toBe('Run `2*3*4` and `a **b**` now')
+	})
+
 	it('starts a new block on Shift+Enter when Enter sends, so the shortcuts work', async () => {
 		const onEnter = vi.fn()
 

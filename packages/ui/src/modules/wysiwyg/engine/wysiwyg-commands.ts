@@ -1,13 +1,22 @@
-import { exitCode, lift, setBlockType, toggleMark, wrapIn } from 'prosemirror-commands'
-import type { Mark, MarkType, Node, NodeType, ResolvedPos } from 'prosemirror-model'
+import { exitCode, setBlockType, toggleMark } from 'prosemirror-commands'
+import {
+	type Mark,
+	type MarkType,
+	type Node,
+	NodeRange,
+	type NodeType,
+	type ResolvedPos,
+} from 'prosemirror-model'
 import { liftListItem, wrapInList } from 'prosemirror-schema-list'
 import {
+	AllSelection,
 	type Command,
 	type EditorState,
 	Selection,
 	TextSelection,
 	type Transaction,
 } from 'prosemirror-state'
+import { findWrapping, liftTarget } from 'prosemirror-transform'
 import type { WysiwygToggleAction } from '../types'
 import { schema } from './wysiwyg-schema'
 
@@ -26,14 +35,25 @@ export type WysiwygCommand = {
 
 const { nodes, marks } = schema
 
-/** @internal */
+/**
+ * A mark action. On a range, it adds the mark unless the whole range has it,
+ * and it then removes the mark. Its active test reads the range in the same
+ * way, so a press on an action that is not on adds the mark.
+ *
+ * @internal
+ */
 function markCommand(type: MarkType): WysiwygCommand {
-	return { run: toggleMark(type), active: (state) => isMarkActive(state, type) }
+	return {
+		run: toggleMark(type, null, { removeWhenPresent: false }),
+		active: (state) => isMarkActive(state, type),
+	}
 }
 
 /**
  * Whether a mark is on at the selection: in the stored marks of a caret, or on
- * the whole of a range.
+ * the whole of a range. In a range, only the text that can take the mark
+ * counts, and white space alone does not, as for the toggle of the mark. Thus
+ * the text of a code block does not keep a range that holds it from being on.
  *
  * @internal
  */
@@ -44,19 +64,23 @@ export function isMarkActive(state: EditorState, type: MarkType): boolean {
 
 	let all = true
 
-	let text = false
+	let counted = false
 
-	state.doc.nodesBetween(from, to, (node) => {
+	state.doc.nodesBetween(from, to, (node, pos, parent) => {
 		if (!node.isInline) return true
 
-		text = true
+		const text = node.isText ? node.textBetween(Math.max(0, from - pos), to - pos) : null
 
-		if (!type.isInSet(node.marks)) all = false
+		if (parent?.type.allowsMarkType(type) && (text === null || text.trim() !== '')) {
+			counted = true
+
+			if (!type.isInSet(node.marks)) all = false
+		}
 
 		return false
 	})
 
-	return text && all
+	return counted && all
 }
 
 /**
@@ -115,12 +139,46 @@ function listCommand(type: NodeType): WysiwygCommand {
 	}
 }
 
-/** @internal */
+/**
+ * The quote action. In a quote, the blocks of the quote that the selection
+ * holds leave it. Else the innermost blocks around the selection that a quote
+ * can hold go into a new quote. A quote holds blocks and not the items of a
+ * list, so in a list, the whole list goes into the quote.
+ *
+ * @internal
+ */
 const quote: WysiwygCommand = {
-	run: (state, dispatch) =>
-		ancestor(state, [nodes.blockquote])
-			? lift(state, dispatch)
-			: wrapIn(nodes.blockquote)(state, dispatch),
+	run: (state, dispatch) => {
+		const { $from, $to } = state.selection
+
+		if (ancestor(state, [nodes.blockquote])) {
+			const range = $from.blockRange($to, (node) => node.type === nodes.blockquote)
+
+			const target = range && liftTarget(range)
+
+			if (!range || target === null || target === undefined) return false
+
+			dispatch?.(state.tr.lift(range, target).scrollIntoView())
+
+			return true
+		}
+
+		for (
+			let range = $from.blockRange($to);
+			range;
+			range = range.depth > 0 ? new NodeRange($from, $to, range.depth - 1) : null
+		) {
+			const wrapping = findWrapping(range, nodes.blockquote)
+
+			if (wrapping) {
+				dispatch?.(state.tr.wrap(range, wrapping).scrollIntoView())
+
+				return true
+			}
+		}
+
+		return false
+	},
 	active: (state) => ancestor(state, [nodes.blockquote]) !== null,
 }
 
@@ -225,6 +283,32 @@ export const exitCodeDown: Command = (state, dispatch, view) => {
 }
 
 /**
+ * A block action on the text blocks of the selection. A selection of the whole
+ * doc, as Mod+A makes it, starts and ends outside each block, so no list or
+ * quote holds its start. The action reads it as the text from the first block
+ * to the last block, as a drag over the whole text gives it.
+ *
+ * @internal
+ */
+function inBlocks({ run, active }: WysiwygCommand): WysiwygCommand {
+	return {
+		run: (state, dispatch, view) => run(textSelected(state), dispatch, view),
+		active: (state) => active(textSelected(state)),
+	}
+}
+
+/** The state with a selection of the whole doc as a selection of its text. @internal */
+function textSelected(state: EditorState): EditorState {
+	if (!(state.selection instanceof AllSelection)) return state
+
+	const { doc } = state
+
+	return state.apply(
+		state.tr.setSelection(TextSelection.between(doc.resolve(0), doc.resolve(doc.content.size))),
+	)
+}
+
+/**
  * The command of each toggle action. The link action needs a URL, so the
  * link popover runs {@link setLink}, and {@link isLinkActive} is its active
  * test.
@@ -236,10 +320,10 @@ export const wysiwygCommands: Record<WysiwygToggleAction, WysiwygCommand> = {
 	italic: markCommand(marks.em),
 	strike: markCommand(marks.strike),
 	code: markCommand(marks.code),
-	bulletList: listCommand(nodes.bullet_list),
-	orderedList: listCommand(nodes.ordered_list),
-	quote,
-	codeBlock,
+	bulletList: inBlocks(listCommand(nodes.bullet_list)),
+	orderedList: inBlocks(listCommand(nodes.ordered_list)),
+	quote: inBlocks(quote),
+	codeBlock: inBlocks(codeBlock),
 }
 
 /**

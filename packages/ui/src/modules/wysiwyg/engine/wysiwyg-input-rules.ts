@@ -4,7 +4,7 @@ import {
 	textblockTypeInputRule,
 	wrappingInputRule,
 } from 'prosemirror-inputrules'
-import type { MarkType } from 'prosemirror-model'
+import type { MarkType, ResolvedPos } from 'prosemirror-model'
 import type { Plugin } from 'prosemirror-state'
 import { schema } from './wysiwyg-schema'
 
@@ -14,8 +14,10 @@ const { nodes, marks } = schema
  * A rule that turns a delimited run into a mark as the reader types its
  * closing delimiter, such as `**bold**`. The regular expression has three
  * groups: the character before the opening delimiter (or nothing at the start
- * of the block), the opening delimiter, and the text. The rule does not run in
- * a code span. The next character that the reader types has no mark.
+ * of the block), the opening delimiter, and the text. Only the rule of the
+ * code mark runs in a code span, or after a backtick that opens a code span,
+ * because a code span holds its text as it is, as in Markdown. The next
+ * character that the reader types has no mark.
  *
  * @internal
  */
@@ -23,9 +25,9 @@ function markRule(pattern: RegExp, type: MarkType): InputRule {
 	return new InputRule(pattern, (state, match, start, end) => {
 		const [, before = '', open = '', text = ''] = match
 
-		if (marks.code.isInSet(state.doc.resolve(start).marks()) && type !== marks.code) return null
-
 		const from = start + before.length
+
+		if (type !== marks.code && inCodeSpan(state.doc.resolve(from))) return null
 
 		const textFrom = from + open.length
 
@@ -39,6 +41,28 @@ function markRule(pattern: RegExp, type: MarkType): InputRule {
 			.addMark(from, from + text.length, type.create())
 			.removeStoredMark(type)
 	})
+}
+
+/**
+ * Whether a position is in a code span: in the code mark, or after a backtick
+ * of the plain text of its block that no later backtick closes. Each backtick
+ * that the reader types is plain text until the code rule makes the span, so
+ * an odd count of them opens a span.
+ *
+ * @internal
+ */
+function inCodeSpan($pos: ResolvedPos): boolean {
+	if (marks.code.isInSet($pos.marks())) return true
+
+	let ticks = 0
+
+	$pos.parent.forEach((child, offset) => {
+		if (!child.isText || marks.code.isInSet(child.marks) || offset >= $pos.parentOffset) return
+
+		ticks += (child.text ?? '').slice(0, $pos.parentOffset - offset).split('`').length - 1
+	})
+
+	return ticks % 2 === 1
 }
 
 /**

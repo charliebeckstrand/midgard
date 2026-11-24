@@ -178,6 +178,7 @@
 		"prosemirror-model": "^1.25.13",
 		"prosemirror-schema-list": "^1.6.1",
 		"prosemirror-state": "^1.4.4",
+		"prosemirror-transform": "^1.12.7",
 		"prosemirror-view": "^1.43.0",
 		"shiki": "^4.5.0",
 		"tabbable": "^6.4.0",
