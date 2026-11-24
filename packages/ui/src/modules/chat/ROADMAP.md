@@ -4,7 +4,7 @@
 
 ## Status
 
-The module ships a transcript, a message bubble, a composer, a list of conversations, and two hooks. `ChatTranscript` renders a window over its messages and follows the newest reply. `ChatTranscriptSkeleton` holds the space of a transcript while it loads. `ChatMessage` draws Markdown, pulses while a reply arrives, and says when a reply failed. It takes an `actions` row and a `contextMenu`. `ChatFeedback` rates a reply. `ChatPrompt` is a composer with attachments, a picker, a toolbar above the field, and a send button that turns into a stop button.
+The module ships a transcript, a message bubble, a composer, a list of conversations, and two hooks. `ChatTranscript` renders a window over its messages and follows the newest reply. `ChatTranscriptSkeleton` holds the space of a transcript while it loads. `ChatMessage` draws Markdown, pulses while a reply arrives, and says when a reply failed. Its menu holds Copy and the items of the app. A right-click, a touch long press, or the menu button in its toolbar opens the menu. It also takes an `actions` row for a control that is not a menu item, such as a rating. `ChatFeedback` rates a reply. `ChatPrompt` is a composer with attachments, a picker, a toolbar above the field, and a send button that turns into a stop button.
 
 `useChatSend` holds the transcript and streams each reply through a `ChatTransport` that the caller supplies. The module assumes no endpoint and no wire format. A seed message keeps the id that it carries, so a persisted conversation keeps its addresses after a reload. `useChatDraft` holds the text of the composer and its citations as one state.
 

@@ -1261,7 +1261,7 @@
 	},
 	"docs.demo.11d63ab759c1": {
 		"defaultMessage": "Heading out now. ETA 3:00 PM.",
-		"description": "Text of a demo in the docs as text, in modules/chat/playground.tsx, modules/chat/timestamped.tsx, modules/chat/with-actions.tsx and 1 more."
+		"description": "Text of a demo in the docs, in modules/chat/playground.tsx, modules/chat/timestamped.tsx, modules/chat/with-actions.tsx and 1 more."
 	},
 	"docs.demo.1215ec467ba3": {
 		"defaultMessage": "Your bio is saved.",
@@ -3757,7 +3757,7 @@
 	},
 	"docs.demo.942087cc2d41": {
 		"defaultMessage": "Retry",
-		"description": "Text of a demo in the docs as aria-label, in modules/chat/conversation/conversation.tsx, modules/chat/conversation/failed-reply.tsx, modules/chat/with-actions.tsx."
+		"description": "Text of a demo in the docs as label, in modules/chat/conversation/conversation.tsx, modules/chat/conversation/failed-reply.tsx, modules/chat/with-actions.tsx."
 	},
 	"docs.demo.946884c0bab5": {
 		"defaultMessage": "Select a brand color, or enter a hex value.",
@@ -4973,7 +4973,7 @@
 	},
 	"docs.demo.d175d09d870d": {
 		"defaultMessage": "Got it. The door code is 4421.",
-		"description": "Text of a demo in the docs as text, in modules/chat/timestamped.tsx, modules/chat/with-actions.tsx, modules/chat/with-context-menu.tsx."
+		"description": "Text of a demo in the docs, in modules/chat/timestamped.tsx, modules/chat/with-actions.tsx, modules/chat/with-context-menu.tsx."
 	},
 	"docs.demo.d184cd0ce1db": {
 		"defaultMessage": "Column reorder without handle",
@@ -5321,7 +5321,7 @@
 	},
 	"docs.demo.e21f935f11d7": {
 		"defaultMessage": "Copy",
-		"description": "Text of a demo in the docs as label, in components/context-menu/glass.tsx, components/context-menu/playground.tsx, components/group/item-count.tsx and 3 more."
+		"description": "Text of a demo in the docs as label, in components/context-menu/glass.tsx, components/context-menu/playground.tsx, components/group/item-count.tsx and 2 more."
 	},
 	"docs.demo.e22820fcf5cd": {
 		"defaultMessage": "Topics",
@@ -5762,10 +5762,6 @@
 	"docs.demo.f89bef2f30b1": {
 		"defaultMessage": "Stat description",
 		"description": "Text of a demo in the docs as label, in primitives/skeleton/skeleton-variants.tsx."
-	},
-	"docs.demo.f8d46c2570e7": {
-		"defaultMessage": "More actions",
-		"description": "Text of a demo in the docs as aria-label, in modules/chat/with-actions.tsx."
 	},
 	"docs.demo.f8f4a5eeac9f": {
 		"defaultMessage": "Add a country code, such as +1.",

@@ -1,59 +1,42 @@
-import { Ellipsis, FaceSlightlySmilingPlus, Pencil, RotateCcw, Trash } from 'lucide-react'
+import { FaceSlightlySmilingPlus, Pencil, RotateCcw, Trash } from 'lucide-react'
 import { Button } from 'ui/button'
 import { ChatMessage } from 'ui/chat'
-import { CopyButton } from 'ui/copy-button'
+import type { ContextMenuConfig } from 'ui/context-menu'
 import { Icon } from 'ui/icon'
-import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from 'ui/menu'
 import { Stack } from 'ui/stack'
 
-function MessageActions({ text, own }: { text: string; own: boolean }) {
-	return (
-		<>
-			<Button variant="bare" size="sm" aria-label="Add reaction">
-				<Icon icon={<FaceSlightlySmilingPlus />} />
-			</Button>
-			<CopyButton size="sm" text={text} />
-			{own ? (
-				<Button variant="bare" size="sm" aria-label="Edit">
-					<Icon icon={<Pencil />} />
-				</Button>
-			) : (
-				<Button variant="bare" size="sm" aria-label="Retry">
-					<Icon icon={<RotateCcw />} />
-				</Button>
-			)}
-			<Menu placement="bottom-end">
-				<MenuTrigger>
-					<Button variant="bare" size="sm" aria-label="More actions">
-						<Icon icon={<Ellipsis />} />
-					</Button>
-				</MenuTrigger>
-				<MenuContent>
-					<MenuItem>
-						<Icon icon={<Trash />} />
-						<MenuLabel>Delete</MenuLabel>
-					</MenuItem>
-				</MenuContent>
-			</Menu>
-		</>
-	)
+// The menu holds Copy by default, and each message adds its own actions.
+function menu(own: boolean): ContextMenuConfig {
+	return {
+		items: [
+			own
+				? { key: 'edit', label: 'Edit', icon: <Pencil /> }
+				: { key: 'retry', label: 'Retry', icon: <RotateCcw /> },
+			{ key: 'delete', label: 'Delete', icon: <Trash /> },
+		],
+	}
 }
+
+const reply = menu(false)
+
+const own = menu(true)
+
+// A control that is not a menu action, such as a reaction, shows beside the menu button.
+const react = (
+	<Button variant="bare" size="sm" aria-label="Add reaction">
+		<Icon icon={<FaceSlightlySmilingPlus />} />
+	</Button>
+)
 
 export default function WithActions() {
 	// The toolbar floats above its message, and the box of the example clips it.
 	// The padding keeps room for the toolbar of the first message.
 	return (
 		<Stack gap="xl" className="pt-6">
-			<ChatMessage
-				sender="assistant"
-				actions={<MessageActions text="Heading out now. ETA 3:00 PM." own={false} />}
-			>
+			<ChatMessage sender="assistant" actions={react} contextMenu={reply}>
 				Heading out now. ETA 3:00 PM.
 			</ChatMessage>
-			<ChatMessage
-				sender="user"
-				actions={<MessageActions text="Got it. The door code is 4421." own />}
-			>
+			<ChatMessage sender="user" actions={react} contextMenu={own}>
 				Got it. The door code is 4421.
 			</ChatMessage>
 		</Stack>

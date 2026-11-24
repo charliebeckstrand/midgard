@@ -98,6 +98,7 @@ describe('ChatTranscript', () => {
 			const { container } = renderUI(
 				<ChatTranscript
 					messages={messages}
+					contextMenu={false}
 					actions={(message) =>
 						message.sender === 'assistant' ? <button type="button">Retry</button> : undefined
 					}
@@ -136,17 +137,21 @@ describe('ChatTranscript', () => {
 				<ChatTranscript
 					messages={messages}
 					contextMenu={(message) =>
-						message.sender === 'user' ? [{ key: 'edit', label: 'Edit', onAction }] : undefined
+						message.sender === 'user'
+							? { items: [{ key: 'edit', label: 'Edit', onAction }] }
+							: false
 					}
 				/>,
 			)
 
 			const [own, reply] = allBySlot(container, 'chat-message-bubble')
 
-			// A message with no entries keeps the native menu of the browser.
+			// A message whose callback returns false keeps the native menu of the browser.
 			expect(fireEvent.contextMenu(present(reply, 'reply bubble'))).toBe(true)
 
 			fireEvent.contextMenu(present(own, 'own bubble'))
+
+			expect(screen.getByRole('menuitem', { name: 'Copy' })).toBeInTheDocument()
 
 			fireEvent.click(screen.getByRole('menuitem', { name: 'Edit' }))
 
@@ -174,7 +179,14 @@ describe('ChatTranscript', () => {
 
 			fixed.unmount()
 
-			const bare = renderUI(<ChatTranscript messages={messages} />)
+			// The default menu puts its button in a hover toolbar.
+			const menu = renderUI(<ChatTranscript messages={messages} />)
+
+			expect(first(menu.container)).toContain('pt-8')
+
+			menu.unmount()
+
+			const bare = renderUI(<ChatTranscript messages={messages} contextMenu={false} />)
 
 			expect(first(bare.container)).toBe('py-1')
 		})

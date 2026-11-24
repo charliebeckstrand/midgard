@@ -13,7 +13,7 @@ import {
 	useState,
 } from 'react'
 import { Button } from '../../components/button'
-import type { ContextMenuEntry } from '../../components/context-menu/types'
+import type { ContextMenuConfig } from '../../components/context-menu/types'
 import { Icon } from '../../components/icon'
 import { cn } from '../../core/cn'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
@@ -108,10 +108,10 @@ export type ChatTranscriptProps = Omit<ComponentProps<'div'>, 'children' | 'cont
 	 */
 	editing?: string
 	/**
-	 * Controls that act on one message, such as copy, retry, and edit. The
-	 * transcript calls it for each row that it renders and gives the result to
-	 * the `actions` of that {@link ChatMessage}. Return `undefined` for a message
-	 * with no actions.
+	 * Controls that show beside the menu button of one message, such as the
+	 * rating pair of {@link ChatFeedback}. The transcript calls it for each row
+	 * that it renders and gives the result to the `actions` of that
+	 * {@link ChatMessage}. Return `undefined` for a message with no controls.
 	 */
 	actions?: (message: ChatMessageData) => ReactNode
 	/**
@@ -122,12 +122,14 @@ export type ChatTranscriptProps = Omit<ComponentProps<'div'>, 'children' | 'cont
 	 */
 	trigger?: ChatMessageProps['trigger']
 	/**
-	 * Entries of the menu that a right-click or a touch long press on one
-	 * message opens. The transcript calls it for each row that it renders and
-	 * gives the result to the `contextMenu` of that {@link ChatMessage}. Return
-	 * `undefined` to keep the native menu of the browser on that message.
+	 * The menu of one message, with Copy by default, as the `contextMenu` of
+	 * {@link ChatMessage} tells. The transcript calls it for each row that it
+	 * renders and gives the result to that message. Return `items` for the
+	 * actions of the message, such as Edit and Retry, and `undefined` for the
+	 * default menu alone. Return `false`, or pass `false` here for each
+	 * message, to keep the native menu of the browser.
 	 */
-	contextMenu?: (message: ChatMessageData) => ContextMenuEntry[] | undefined
+	contextMenu?: ((message: ChatMessageData) => ContextMenuConfig | false | undefined) | false
 	/**
 	 * The branches on the path that `messages` holds, by the id of the message
 	 * that shows, as the `branches` of `useChatSend` gives them. A message with
@@ -181,7 +183,7 @@ const ChatTranscriptRow = memo(function ChatTranscriptRow({
 			timestamp={message.timestamp}
 			actions={actions?.(message)}
 			trigger={trigger}
-			contextMenu={contextMenu?.(message)}
+			contextMenu={contextMenu === false ? false : contextMenu?.(message)}
 			branch={branch}
 			onBranchChange={onBranchChange}
 		>
@@ -234,8 +236,9 @@ const ChatTranscriptRow = memo(function ChatTranscriptRow({
  * pins the transcript again. After the press, the focus goes to the
  * transcript, which is a tab stop while it overflows.
  *
- * `actions` and `contextMenu` give each row the controls and the menu of a
- * {@link ChatMessage}. The transcript calls them only for the rows that it
+ * `contextMenu` and `actions` give each row the menu and the controls of a
+ * {@link ChatMessage}. Each message has a menu with Copy unless `contextMenu`
+ * is `false`. The transcript calls the callbacks only for the rows that it
  * renders. Keep their identity stable, as with `useCallback`, so a streamed
  * chunk does not render the settled rows again. A `'hover'` toolbar floats
  * above its message, so the first row then keeps room above it, on a device
@@ -525,8 +528,9 @@ export function ChatTranscript({
 
 	const slots = k()
 
-	// A hover toolbar rises above its message, and the scroll clips it above the first row.
-	const roomy = actions !== undefined && trigger !== 'static'
+	// A hover toolbar rises above its message, and the scroll clips it above the
+	// first row. The toolbar holds the menu button of a message with a menu.
+	const roomy = (actions !== undefined || contextMenu !== false) && trigger !== 'static'
 
 	// The first row makes room for that toolbar.
 	const firstRow = roomy ? slots.roomy : slots.first

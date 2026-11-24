@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { ChatMessage } from '../../modules/chat'
-import { bySlot, fireEvent, renderUI, screen } from '../helpers'
+import { bySlot, fireEvent, getSlot, renderUI, screen, stubClipboard } from '../helpers'
 
 // The streaming look the bubble projects onto its Markdown child, and the
 // standing dim that replaces the pulse under `prefers-reduced-motion`.
@@ -214,39 +214,96 @@ describe('ChatMessage', () => {
 		expect(copy).toHaveFocus()
 	})
 
-	it('opens the context menu on a right-click on the bubble', () => {
-		const onAction = vi.fn()
+	it('opens a menu with Copy on a right-click on the bubble', () => {
+		const writeText = vi.fn(() => Promise.resolve())
 
-		const { container } = renderUI(
-			<ChatMessage contextMenu={[{ key: 'copy', label: 'Copy', onAction }]}>content</ChatMessage>,
-		)
+		stubClipboard({ writeText })
+
+		const { container } = renderUI(<ChatMessage>Some **bold** text</ChatMessage>)
 
 		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
 
-		const bubble = bySlot(container, 'chat-message-bubble')
-
-		if (!bubble) throw new Error('no bubble')
-
-		fireEvent.contextMenu(bubble)
+		fireEvent.contextMenu(getSlot(container, 'chat-message-bubble'))
 
 		expect(screen.getByRole('menu', { name: 'Message actions' })).toBeInTheDocument()
 
 		fireEvent.click(screen.getByRole('menuitem', { name: 'Copy' }))
 
+		// The Copy item writes the plain-text projection of the content.
+		expect(writeText).toHaveBeenCalledWith('Some **bold** text')
+	})
+
+	it('adds the items of the caller after Copy', () => {
+		const onAction = vi.fn()
+
+		const { container } = renderUI(
+			<ChatMessage contextMenu={{ items: [{ key: 'edit', label: 'Edit', onAction }] }}>
+				content
+			</ChatMessage>,
+		)
+
+		fireEvent.contextMenu(getSlot(container, 'chat-message-bubble'))
+
+		const rows = screen.getAllByRole('menuitem').map((item) => item.textContent)
+
+		expect(rows).toEqual(['Copy', 'Edit'])
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Edit' }))
+
 		expect(onAction).toHaveBeenCalledOnce()
 	})
 
-	it('keeps the native menu of a bubble with no context menu', () => {
-		const { container } = renderUI(<ChatMessage>content</ChatMessage>)
+	it('opens the same menu from the menu button in the toolbar', () => {
+		const { container } = renderUI(
+			<ChatMessage contextMenu={{ items: [{ key: 'edit', label: 'Edit' }] }}>content</ChatMessage>,
+		)
 
-		const bubble = bySlot(container, 'chat-message-bubble')
+		const button = screen.getByRole('button', { name: 'Message actions' })
 
-		if (!bubble) throw new Error('no bubble')
+		expect(getSlot(container, 'chat-message-actions')).toContainElement(button)
+
+		fireEvent.click(button)
+
+		expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual([
+			'Copy',
+			'Edit',
+		])
+	})
+
+	it('turns Copy off while the message has no text', () => {
+		const { container } = renderUI(<ChatMessage streaming>{''}</ChatMessage>)
+
+		fireEvent.contextMenu(getSlot(container, 'chat-message-bubble'))
+
+		expect(screen.getByRole('menuitem', { name: 'Copy' })).toHaveAttribute('aria-disabled', 'true')
+	})
+
+	it.each([
+		['false', false],
+		['a menu with no item', { defaultItems: false }],
+	] as const)('keeps the native menu and shows no menu button for %s', (_, contextMenu) => {
+		const { container } = renderUI(<ChatMessage contextMenu={contextMenu}>content</ChatMessage>)
 
 		// fireEvent returns false when a handler cancels the event.
-		expect(fireEvent.contextMenu(bubble)).toBe(true)
+		expect(fireEvent.contextMenu(getSlot(container, 'chat-message-bubble'))).toBe(true)
 
 		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+
+		expect(screen.queryByRole('button', { name: 'Message actions' })).not.toBeInTheDocument()
+
+		expect(bySlot(container, 'chat-message-actions')).not.toBeInTheDocument()
+	})
+
+	it('hides the menu button of a hover toolbar on a device with no hover until it has the focus', () => {
+		const { container } = renderUI(<ChatMessage>content</ChatMessage>)
+
+		expect(getSlot(container, 'chat-message-menu-button')).toHaveClass(
+			'[@media(hover:none)]:not-focus-within:not-has-aria-expanded:sr-only',
+		)
+
+		const fixed = renderUI(<ChatMessage trigger="static">content</ChatMessage>)
+
+		expect(getSlot(fixed.container, 'chat-message-menu-button').className).not.toContain('sr-only')
 	})
 
 	it('renders settled content as Markdown', () => {

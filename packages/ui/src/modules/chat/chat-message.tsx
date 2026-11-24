@@ -1,5 +1,5 @@
 import { type ComponentProps, memo, type ReactNode } from 'react'
-import type { ContextMenuEntry } from '../../components/context-menu/types'
+import type { ContextMenuConfig } from '../../components/context-menu/types'
 import { LoadingDots } from '../../components/loading'
 import { Markdown } from '../../components/markdown'
 import { StatusDot } from '../../components/status'
@@ -12,7 +12,7 @@ import { ChatCitedText } from './chat-cited-text'
 import { MESSAGE_HEADING_OFFSET } from './chat-constants'
 import { ChatEmbed } from './chat-embed'
 import { ChatMessageBranch } from './chat-message-branch'
-import { ChatMessageMenu } from './chat-message-menu'
+import { ChatMessageMenu, ChatMessageMenuButton } from './chat-message-menu'
 import { ChatTool } from './chat-tool'
 import { replyFailed } from './engine/chat-announcements'
 import type { ChatBranch } from './engine/chat-branch/types'
@@ -79,6 +79,20 @@ function ChatMessageBlock({ part, className }: { part: ChatPart; className?: str
 }
 
 /**
+ * Whether the menu of a message has an item. It has one unless the caller
+ * removes the menu, or removes the defaults and adds no item. A menu with no
+ * item does not open, so the bubble keeps the native menu, and the message
+ * shows no menu button.
+ *
+ * @internal
+ */
+function hasMenuItems(contextMenu: ContextMenuConfig | false | undefined): boolean {
+	if (contextMenu === false) return false
+
+	return contextMenu?.defaultItems !== false || (contextMenu.items?.length ?? 0) > 0
+}
+
+/**
  * Props for {@link ChatMessage}. The root `<div>` takes the rest. The message
  * gives `children` and `contextMenu` types of their own.
  */
@@ -105,14 +119,22 @@ export type ChatMessageProps = ChatMessageVariants &
 		 * @defaultValue false
 		 */
 		failed?: boolean
-		/** Controls that act on the message, such as copy, retry, and edit. `trigger` sets when they show. */
+		/**
+		 * Controls that show beside the menu button, such as the rating pair of
+		 * {@link ChatFeedback}. `trigger` sets when they show. Put an action in
+		 * `contextMenu` instead, so that the message shows no row of icons.
+		 */
 		actions?: ReactNode
 		/**
-		 * Entries of a menu that a right-click or a touch long press on the bubble
-		 * opens: an item, a separator, or a submenu ({@link ContextMenuEntry}).
-		 * Without entries, the bubble keeps the native menu of the browser.
+		 * The menu of the message. A right-click or a touch long press on the
+		 * bubble opens it, and so does the menu button in the toolbar of the
+		 * message. Its default item is Copy, with the key `'copy'`, which copies
+		 * the text of the message. `items` adds the actions of the app, such as
+		 * Edit and Retry, after a separator ({@link ContextMenuConfig}). `false`
+		 * removes the menu and its button, and the bubble keeps the native menu
+		 * of the browser.
 		 */
-		contextMenu?: ContextMenuEntry[]
+		contextMenu?: ContextMenuConfig | false
 		/**
 		 * The branches at the place of the message. A retry and an edit each add
 		 * one. With more than one, a switcher below the bubble shows the position,
@@ -134,8 +156,8 @@ export type ChatMessageProps = ChatMessageVariants &
 /**
  * Conversational message bubble sided and colored by `sender`: `user`,
  * `assistant`, or `system`, defaulting to `assistant`. It takes an optional
- * `timestamp`, `actions` as a row or a hover toolbar, a `contextMenu`, and a
- * `streaming` pulse over its content.
+ * `timestamp`, a `contextMenu` with Copy by default, `actions` beside its menu
+ * button, and a `streaming` pulse over its content.
  *
  * @remarks
  * Side and color alone convey the speaker visually, so a visually hidden author
@@ -188,13 +210,21 @@ export type ChatMessageProps = ChatMessageVariants &
  * The pulse rides each drawn {@link Markdown}, so a streaming reply that has
  * already landed a chart pulses its prose and leaves the chart steady.
  *
+ * The menu opens in four ways: a right-click on the bubble, a touch long press
+ * on it, the context-menu key or Shift+F10 from a focused control in it, and the
+ * menu button. The menu button ends the toolbar of the message and holds the
+ * same items, so a keyboard reader and a reader who does not know the
+ * right-click reach each action. The Copy item copies the plain text of the
+ * message ({@link chatContentText}), and it is off while the message has no
+ * text.
+ *
  * A `'hover'` toolbar floats above the message by most of its own height. A
  * host that clips its overflow, such as a scroll container, keeps that space
  * free above its first message. The toolbar stays in the Tab order while it is
- * hidden, so a keyboard reader reaches each action, and focus shows it. The
- * context menu of `contextMenu` is a pointer shortcut: a keyboard reader
- * opens it only from a focused control in the bubble. Give the same actions in
- * `actions` too, so that each reader reaches them.
+ * hidden, so a keyboard reader reaches each control, and focus shows it. On a
+ * device with no hover, the `actions` are a row below the bubble. The menu
+ * button there is visually hidden until it has the focus, because a long press
+ * opens the same menu. Assistive technology still reaches the button.
  *
  * Memoized on its (shallow-equal) props, so a transcript's settled bubbles skip
  * re-rendering, and re-lexing their Markdown. Only the streaming bubble's
@@ -218,6 +248,10 @@ export const ChatMessage = memo(function ChatMessage({
 	const resolvedSender = sender ?? 'assistant'
 
 	const slots = k({ sender, streaming, editing, trigger })
+
+	const menu = contextMenu === false ? undefined : contextMenu
+
+	const hasMenu = hasMenuItems(contextMenu)
 
 	// A reply with nothing in it yet shows the dots, and not an empty bubble. The
 	// dots are an `<output>`, a live region. The transcript announces the wait
@@ -263,10 +297,12 @@ export const ChatMessage = memo(function ChatMessage({
 			data-editing={dataAttr(editing)}
 			className={cn(slots.base, className)}
 		>
-			{contextMenu === undefined ? (
+			{contextMenu === false ? (
 				bubble
 			) : (
-				<ChatMessageMenu entries={contextMenu}>{bubble}</ChatMessageMenu>
+				<ChatMessageMenu config={menu} content={children}>
+					{bubble}
+				</ChatMessageMenu>
 			)}
 			{branch !== undefined && branch.ids.length > 1 && (
 				<ChatMessageBranch branch={branch} onBranchChange={onBranchChange} />
@@ -276,9 +312,12 @@ export const ChatMessage = memo(function ChatMessage({
 					{timestamp}
 				</div>
 			)}
-			{actions !== undefined && (
+			{(actions !== undefined || hasMenu) && (
 				<div data-slot="chat-message-actions" className={slots.actions}>
 					{actions}
+					{hasMenu && (
+						<ChatMessageMenuButton config={menu} content={children} className={slots.menu} />
+					)}
 				</div>
 			)}
 		</div>

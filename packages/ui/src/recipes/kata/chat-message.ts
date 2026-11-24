@@ -120,6 +120,9 @@ export const k = defineKata({
 					'[@media(hover:none)]:p-0 [@media(hover:none)]:backdrop-blur-none',
 					'[@media(hover:none)]:bg-transparent [@media(hover:none)]:ring-0',
 					'[@media(hover:none)]:forced-colors:outline-none',
+					// A row that holds only the menu button has no visible control there
+					// (see `menu`), so it takes no room below the bubble.
+					'[@media(hover:none)]:has-[>[data-slot=chat-message-menu-button]:only-child]:mt-0',
 				],
 			},
 			compound: [
@@ -127,6 +130,20 @@ export const k = defineKata({
 				{ trigger: 'hover', sender: 'assistant', class: 'start-2' },
 				{ trigger: 'hover', sender: 'system', class: 'inset-x-0 mx-auto' },
 			],
+		},
+		/**
+		 * The wrapper of the menu button, the last control of the actions. A
+		 * device with no hover opens the menu with a long press on the bubble, so
+		 * there the button of a `hover` trigger is visually hidden. It shows while
+		 * it has the focus or its menu is open, so a keyboard reader sees it.
+		 * Assistive technology reaches it either way.
+		 */
+		menu: {
+			base: 'flex',
+			trigger: {
+				static: '',
+				hover: '[@media(hover:none)]:not-focus-within:not-has-aria-expanded:sr-only',
+			},
 		},
 		// A citation: a phrase of the prose that selects in a view beside the chat.
 		// Piece 0 is a span with the button role, so it wraps with the prose. The
