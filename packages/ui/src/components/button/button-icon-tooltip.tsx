@@ -1,6 +1,6 @@
 'use client'
 
-import { Children, type ComponentProps, type ReactElement } from 'react'
+import { Children, type ComponentProps, type ReactElement, type ReactNode } from 'react'
 import { ariaAttr } from '../../core/aria-attr'
 import { dataAttr } from '../../core/data-attr'
 import type { FloatingPlacement } from '../../hooks/use-floating-panel'
@@ -27,11 +27,12 @@ type ButtonIconTooltipProps = {
 	 */
 	disabled: boolean
 	/**
-	 * Tooltip text where it carries more than the label, such as the zoom buttons of the
-	 * PDF viewer, which name the level they step to.
+	 * Tooltip content where it carries more than the label, such as the zoom buttons of
+	 * the PDF viewer, which name the level they step to, or the format buttons of a
+	 * Wysiwyg toolbar, which show their shortcut.
 	 * @defaultValue the `label`.
 	 */
-	tooltip?: string
+	tooltip?: ReactNode
 	/**
 	 * The side of the tooltip. A group of these buttons puts it across the axis
 	 * that the group runs along. A hover tooltip takes the pointer (WCAG 2.2

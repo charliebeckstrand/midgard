@@ -20,7 +20,7 @@ import { __resetLastInput } from '../../utilities/last-input'
  * needs a measurement before it gains a seam. A proposed seam for the
  * media-query registries turned out to guard nothing: a registry drops itself
  * when its last subscriber unsubscribes, and cleanup unmounts every subscriber.
- * The five below are the ones with a mechanism rather than a suspicion. The
+ * The resets below are the ones with a mechanism rather than a suspicion. The
  * counter in `use-scroll-lock` and the holds in `use-drag-cursor` balance on unmount,
  * the `document-listener` registries and the time-ago ticker drop themselves
  * like the media-query ones, and the PDF viewer's `sharedWorker` is bound once
@@ -65,5 +65,15 @@ export function installSingletonResets(): void {
 		)
 
 		resetDocumentCache()
+	})
+
+	// A page loads the editor of a Wysiwyg one time. A case that loads it leaves
+	// it loaded, so the field of a later file shows the editor at once and not
+	// its source. The hook imports the module when it runs, for the reason
+	// above.
+	afterEach(async () => {
+		const { __resetWysiwygEngine } = await import('../../modules/wysiwyg/use-wysiwyg-editor')
+
+		__resetWysiwygEngine()
 	})
 }

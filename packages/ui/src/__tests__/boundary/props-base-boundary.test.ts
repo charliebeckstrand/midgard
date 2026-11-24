@@ -168,6 +168,10 @@ const NO_BASE_EXEMPT = new Map<string, string>([
 		'its root is a `Control`, and its `ref` and its name already go to the textarea',
 	],
 	[
+		'modules/wysiwyg/wysiwyg.tsx → WysiwygProps',
+		'the editor owns its editable element, so the field takes only the props that the editor writes, and its `ref` gets a handle',
+	],
+	[
 		'modules/map/map-geofence.tsx → MapGeofenceProps',
 		'it renders a fragment of SVG marks, with a selection halo that comes and goes, so no one element is its root',
 	],

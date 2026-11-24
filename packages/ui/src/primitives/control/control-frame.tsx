@@ -4,8 +4,14 @@ import type { DensityStep } from '../../core/density/steps'
 import { useHeadless } from '../../primitives/headless/context'
 import { PolymorphicStatic } from '../polymorphic'
 
-/** Props for {@link ControlFrame}: the density step and the standard `span` attributes. */
+/** Props for {@link ControlFrame}: the element, the density step, and the standard `span` attributes. */
 export type ControlFrameProps = ComponentProps<'span'> & {
+	/**
+	 * The element of the frame. A `<span>` takes phrasing content only, so a
+	 * frame that holds blocks, such as the paragraphs of a Wysiwyg, is a `<div>`.
+	 * @defaultValue 'span'
+	 */
+	as?: 'span' | 'div'
 	/**
 	 * The density step. Omit it to take the step of the nearest density scope.
 	 * A step makes the frame a density scope.
@@ -27,12 +33,18 @@ export type ControlFrameProps = ComponentProps<'span'> & {
  * Under `<HeadlessProvider>`, the frame renders its children alone, with no
  * element, so a headless control is its bare field.
  */
-export function ControlFrame({ className, density, children, ...props }: ControlFrameProps) {
+export function ControlFrame({
+	as = 'span',
+	className,
+	density,
+	children,
+	...props
+}: ControlFrameProps) {
 	if (useHeadless()) return children
 
 	return (
 		<PolymorphicStatic
-			as="span"
+			as={as}
 			density={density}
 			className={cn(className)}
 			{...props}
