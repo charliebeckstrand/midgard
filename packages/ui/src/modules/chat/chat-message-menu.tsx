@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, useMemo } from 'react'
+import { type ReactNode, useMemo, useRef } from 'react'
 import { Button } from '../../components/button'
 import { ContextMenu, ContextMenuList } from '../../components/context-menu'
 import { resolveContextMenuEntries } from '../../components/context-menu/context-menu-merge'
@@ -170,6 +170,54 @@ function loneItem(entries: ContextMenuEntry[]): ContextMenuItem | undefined {
 }
 
 /**
+ * The copy button in the toolbar, for a menu that holds Copy alone. It shows a
+ * check while the copied state holds, and a live region says "Copied". The
+ * check holds the toolbar open (`has-data-copied` in the kata), so the reader
+ * sees it also after the pointer leaves the message.
+ *
+ * When the check goes, the focus goes to the bubble, as after the Copy item of
+ * the menu. The next Tab thus goes into the toolbar again. The focus moves at
+ * the end of the copy, and not at the press, so the button that the reader
+ * pressed keeps the focus while it shows the result. A copy that fails shows
+ * no check, so the focus moves at once. The focus moves only while it is still
+ * on the button, so a reader who moved on keeps the focus.
+ *
+ * @internal
+ */
+function ToolbarCopy({
+	text,
+	label,
+	disabled,
+	onDone,
+}: {
+	text: string
+	label: string
+	disabled: boolean | undefined
+	onDone: () => void
+}) {
+	const ref = useRef<HTMLButtonElement>(null)
+
+	const done = () => {
+		if (document.activeElement === ref.current) onDone()
+	}
+
+	return (
+		<CopyButton
+			ref={ref}
+			size="sm"
+			icon={<Copy />}
+			text={text}
+			disabled={disabled}
+			aria-label={label}
+			onCopiedChange={(copied) => {
+				if (!copied) done()
+			}}
+			onCopyError={done}
+		/>
+	)
+}
+
+/**
  * The button in the toolbar of a chat message. A menu of more than one item
  * opens as a dropdown from an ellipsis button, with the same entries as the
  * context menu of a touch screen. Thus a reader with a pointer or a keyboard
@@ -193,19 +241,9 @@ export function ChatMessageMenuButton({
 
 	const action = loneItem(entries)
 
-	// Copy alone is a copy button, which shows a check after the copy. The focus
-	// goes to the bubble, as after the Copy item of the menu.
+	// Copy alone is a copy button, which shows a check after the copy.
 	if (action === copyItem) {
-		return (
-			<CopyButton
-				size="sm"
-				icon={<Copy />}
-				text={text}
-				disabled={action.disabled}
-				aria-label={copy}
-				onClick={focusBubble}
-			/>
-		)
+		return <ToolbarCopy text={text} label={copy} disabled={action.disabled} onDone={focusBubble} />
 	}
 
 	// An item with no icon has nothing to draw in the toolbar, so it keeps the menu.

@@ -132,6 +132,9 @@ export const k = defineKata({
 				// The menu portals out of the message, so neither hover nor focus can
 				// hold the toolbar while it is open. The expanded button holds it.
 				'has-aria-expanded:pointer-events-auto has-aria-expanded:opacity-100',
+				// The check of a copy holds the toolbar until it goes, so the reader sees
+				// it after the pointer leaves.
+				'has-data-copied:pointer-events-auto has-data-copied:opacity-100',
 			],
 			sender: {
 				user: 'end-2',

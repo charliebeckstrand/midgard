@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, vi } from 'vitest'
 import { ChatMessage } from '../../modules/chat'
 import { NO_HOVER_QUERY } from '../../utilities/media-query'
 import {
@@ -10,6 +10,7 @@ import {
 	stubClipboard,
 	stubMatchMedia,
 } from '../helpers'
+import { it } from '../helpers/fake-clock'
 
 // The streaming look the bubble projects onto its Markdown child, and the
 // standing dim that replaces the pulse under `prefers-reduced-motion`.
@@ -278,7 +279,7 @@ describe('ChatMessage', () => {
 		])
 	})
 
-	it('shows Copy alone as a copy button, which shows a check after the copy', async () => {
+	it('shows Copy alone as a copy button, which shows a check after the copy', async ({ clock }) => {
 		const writeText = vi.fn(() => Promise.resolve())
 
 		stubClipboard({ writeText })
@@ -287,19 +288,72 @@ describe('ChatMessage', () => {
 
 		expect(screen.queryByRole('button', { name: 'Message actions' })).not.toBeInTheDocument()
 
-		fireEvent.click(screen.getByRole('button', { name: 'Copy' }))
+		const button = screen.getByRole('button', { name: 'Copy' })
 
-		// The copied state names the button "Copied" and draws the check.
-		const copied = await screen.findByRole('button', { name: 'Copied' })
+		await clock.user.click(button)
 
-		expect(copied).toHaveAttribute('data-copied')
+		// The clipboard write resolves.
+		await clock.advance(0)
 
 		expect(writeText).toHaveBeenCalledWith('Some text')
 
-		// The focus goes to the bubble, as after the Copy item of the menu.
+		// The copied state names the button "Copied", draws the check, and holds
+		// the toolbar open. The button keeps the focus while it shows the result.
+		expect(button).toHaveAccessibleName('Copied')
+
+		expect(button).toHaveAttribute('data-copied')
+
+		expect(getSlot(container, 'chat-message-toolbar')).toHaveClass('has-data-copied:opacity-100')
+
+		expect(button).toHaveFocus()
+
+		// When the check goes, the focus goes to the bubble.
+		await clock.advance(1999)
+
+		expect(button).toHaveFocus()
+
+		await clock.advance(1)
+
+		expect(button).not.toHaveAttribute('data-copied')
+
 		expect(getSlot(container, 'chat-message-bubble')).toHaveFocus()
 
 		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+	})
+
+	it('keeps the focus where the reader moved it during the check', async ({ clock }) => {
+		stubClipboard({ writeText: vi.fn(() => Promise.resolve()) })
+
+		renderUI(
+			<>
+				<ChatMessage>Some text</ChatMessage>
+				<input aria-label="Elsewhere" />
+			</>,
+		)
+
+		await clock.user.click(screen.getByRole('button', { name: 'Copy' }))
+
+		const elsewhere = screen.getByRole('textbox', { name: 'Elsewhere' })
+
+		elsewhere.focus()
+
+		await clock.advance(2000)
+
+		expect(elsewhere).toHaveFocus()
+	})
+
+	it('moves the focus to the bubble at once when the copy fails', async ({ clock }) => {
+		stubClipboard({ writeText: vi.fn(() => Promise.reject(new Error('denied'))) })
+
+		const { container } = renderUI(<ChatMessage>Some text</ChatMessage>)
+
+		const button = screen.getByRole('button', { name: 'Copy' })
+
+		await clock.user.click(button)
+
+		expect(button).not.toHaveAttribute('data-copied')
+
+		expect(getSlot(container, 'chat-message-bubble')).toHaveFocus()
 	})
 
 	it('shows a lone item of the caller with an icon as its own button', () => {

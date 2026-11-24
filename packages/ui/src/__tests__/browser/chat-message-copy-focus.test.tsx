@@ -2,6 +2,10 @@ import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { ChatMessage } from '../../modules/chat'
 import { frames, getSlot, renderUI, screen, stubClipboard } from '../helpers'
+import { budget } from './helpers/wall-clock'
+
+/** The time that the check of a copy holds, with room for a slow machine. */
+const CHECK = { timeout: budget(4000) }
 
 /** A menu with an item after Copy, so the toolbar shows the menu button. */
 const MENU = { items: [{ key: 'edit', label: 'Edit' }] }
@@ -9,11 +13,13 @@ const MENU = { items: [{ key: 'edit', label: 'Edit' }] }
 /**
  * Copy moves the focus to the bubble. The hover toolbar thus goes when the
  * pointer leaves, and the next Tab goes to the button in the toolbar again.
+ * The Copy button of the toolbar shows a check first: the check holds the
+ * toolbar, and the focus moves when the check goes.
  *
  * Rides the real browser because jsdom has no `:focus-visible` and no hover.
  */
 describe('the focus after a copy from a chat message (real browser)', () => {
-	it('goes to the bubble from the Copy button, so the toolbar goes when the pointer leaves', async () => {
+	it('holds the toolbar while the Copy button shows its check, then goes to the bubble', async () => {
 		stubClipboard({ writeText: vi.fn(() => Promise.resolve()) })
 
 		// The padding keeps room for the toolbar above the bubble.
@@ -33,14 +39,23 @@ describe('the focus after a copy from a chat message (real browser)', () => {
 
 		await userEvent.click(copy)
 
+		await expect.poll(() => copy.hasAttribute('data-copied')).toBe(true)
+
+		// The check holds the toolbar after the pointer leaves, and the button
+		// keeps the focus while it shows the result.
+		await userEvent.unhover(bubble)
+
 		await frames()
 
-		// The focus that the pointer gave shows no ring.
-		expect(document.activeElement).toBe(bubble)
+		expect(getComputedStyle(toolbar).opacity).toBe('1')
+
+		expect(document.activeElement).toBe(copy)
+
+		// When the check goes, the focus goes to the bubble, with no ring for the
+		// focus that the pointer gave, and the toolbar goes.
+		await expect.poll(() => document.activeElement, CHECK).toBe(bubble)
 
 		expect(bubble.matches(':focus-visible')).toBe(false)
-
-		await userEvent.unhover(bubble)
 
 		await expect.poll(() => getComputedStyle(toolbar).opacity).toBe('0')
 
@@ -87,7 +102,7 @@ describe('the focus after a copy from a chat message (real browser)', () => {
 		expect(document.activeElement).toBe(button)
 	})
 
-	it('goes to the bubble with a ring after a copy from the keyboard', async () => {
+	it('goes to the bubble with a ring after a copy from the keyboard ends', async () => {
 		stubClipboard({ writeText: vi.fn(() => Promise.resolve()) })
 
 		const { container } = renderUI(
@@ -104,9 +119,7 @@ describe('the focus after a copy from a chat message (real browser)', () => {
 
 		await userEvent.keyboard('{Enter}')
 
-		await frames()
-
-		expect(document.activeElement).toBe(bubble)
+		await expect.poll(() => document.activeElement, CHECK).toBe(bubble)
 
 		expect(bubble.matches(':focus-visible')).toBe(true)
 
