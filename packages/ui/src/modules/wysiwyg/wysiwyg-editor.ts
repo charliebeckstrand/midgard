@@ -8,6 +8,7 @@ import { type Command, EditorState, type Transaction } from 'prosemirror-state'
 import { EditorView } from 'prosemirror-view'
 import type { MarkdownRange } from '../../components/markdown/markdown-ranges'
 import { isComposing } from '../../utilities/is-composing'
+import { caretBlock, replaceInBlock } from './engine/wysiwyg-block'
 import {
 	exitCodeDown,
 	exitCodeOnEmptyLine,
@@ -19,7 +20,7 @@ import { parseMarkdown } from './engine/wysiwyg-markdown/parse'
 import { serializeMarkdown, serializeMarkdownRanges } from './engine/wysiwyg-markdown/serialize'
 import { SET_VALUE, wysiwygRanges } from './engine/wysiwyg-ranges'
 import { isEmptyDoc, schema } from './engine/wysiwyg-schema'
-import type { WysiwygAction } from './types'
+import type { WysiwygAction, WysiwygBlock, WysiwygBlockRange } from './types'
 import { type WysiwygShortcut, wysiwygActions } from './wysiwyg-actions'
 
 /**
@@ -36,7 +37,10 @@ export type WysiwygEditorProps = {
 	editable: boolean
 	/** Fires with the Markdown of the doc and its ranges after each change of the doc. */
 	onChange: (markdown: string, ranges: MarkdownRange[]) => void
-	/** Fires after each new state, so the toolbar can read the active actions. */
+	/**
+	 * Fires after each new state, so the toolbar can read the active actions,
+	 * and when the field takes or loses the focus.
+	 */
 	onUpdate: () => void
 	/**
 	 * Enter calls it, and Shift+Enter then does what Enter does without it.
@@ -63,6 +67,12 @@ export type WysiwygEditorProps = {
  */
 export type WysiwygEditor = {
 	view: EditorView
+	/**
+	 * Moves the focus to the field. A field that takes no edit takes the focus
+	 * too, as on its tab stop, though the view of ProseMirror focuses only an
+	 * editable field.
+	 */
+	focus: () => void
 	/** Gives the editor new settings. */
 	update: (props: WysiwygEditorProps) => void
 	/** Replaces the doc with a Markdown source and its ranges, out of the undo history. */
@@ -75,6 +85,10 @@ export type WysiwygEditor = {
 	link: (href: string) => void
 	/** The URL of the link at the selection, or an empty string. */
 	linkHref: () => string
+	/** The text block that holds a collapsed caret, or `null`. */
+	block: () => WysiwygBlock | null
+	/** Replaces a span of that block, and marks `range` in the new text. */
+	replace: (from: number, to: number, text: string, range?: WysiwygBlockRange) => void
 	destroy: () => void
 }
 
@@ -176,6 +190,28 @@ export function createWysiwygEditor(
 			// itself, but only in a view that takes edits. A read-only field leaves
 			// the press to the browser, so the reader can select its text.
 			mousedown: () => !props.editable,
+			// ProseMirror cancels each Escape, though it does nothing with it, so a
+			// dialog or a popup over the field would not close on it. The field runs
+			// the key handlers of an Escape, as for any key, and leaves the rest to
+			// the page.
+			keydown: (view, event) => {
+				if (event.key !== 'Escape' || !view.editable) return false
+
+				if (view.someProp('handleKeyDown', (handle) => handle(view, event))) event.preventDefault()
+
+				return true
+			},
+			// A reader of the caret, such as a picker, follows the focus too.
+			focus: () => {
+				props.onUpdate()
+
+				return false
+			},
+			blur: () => {
+				props.onUpdate()
+
+				return false
+			},
 			// The edit menu of iOS and the format keys of some keyboards send these.
 			beforeinput: (_, event) => {
 				const action = formatAction((event as InputEvent).inputType)
@@ -226,6 +262,10 @@ export function createWysiwygEditor(
 
 			view.setProps({})
 		},
+		focus: () => {
+			if (view.editable) view.focus()
+			else view.dom.focus({ preventScroll: true })
+		},
 		setValue: (markdown, next) => {
 			const doc = parseMarkdown(markdown, next)
 
@@ -254,6 +294,12 @@ export function createWysiwygEditor(
 				schema.marks.link.isInSet($from.nodeAfter?.marks ?? [])
 
 			return mark?.attrs.href ?? ''
+		},
+		block: () => caretBlock(view.state),
+		replace: (from, to, text, range) => {
+			const tr = replaceInBlock(view.state, from, to, text, range)
+
+			if (tr) view.dispatch(tr)
 		},
 		destroy: () => view.destroy(),
 	}

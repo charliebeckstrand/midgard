@@ -28,6 +28,9 @@ type WysiwygFieldOptions = {
 	'aria-label'?: string
 	'aria-labelledby'?: string
 	'aria-describedby'?: string
+	'aria-autocomplete'?: string
+	'aria-haspopup'?: string
+	'aria-controls'?: string
 	/** Whether the frame has a row above or below the field. */
 	rows: boolean
 	/** Whether a toolbar is above the field and no row of actions is below it. */
@@ -115,6 +118,9 @@ export function useWysiwygField(options: WysiwygFieldOptions) {
 		'aria-label': options['aria-label'],
 		'aria-labelledby': options['aria-labelledby'] ?? labelId,
 		'aria-describedby': shared['aria-describedby'],
+		'aria-autocomplete': options['aria-autocomplete'],
+		'aria-haspopup': options['aria-haspopup'],
+		'aria-controls': options['aria-controls'],
 		'aria-placeholder': options.placeholder,
 		'aria-required': shared.required,
 		'aria-readonly': readOnly,

@@ -1,6 +1,6 @@
 'use client'
 
-import { type KeyboardEvent, type RefObject, useCallback, useEffect } from 'react'
+import { type RefObject, useCallback, useEffect } from 'react'
 import {
 	crossAxisDelta,
 	type NavigationConfig,
@@ -12,6 +12,16 @@ import { hasBrowserModifier } from '../../utilities/modifier-keys'
 import { scrollWithin } from '../../utilities/scroll-within'
 import { logicalArrowKey } from './logical-arrow'
 import { isTypeaheadKey, useTypeahead } from './use-typeahead'
+
+/**
+ * The parts of a key press that roving reads. A React key event and a DOM key
+ * event both have them, so a field whose keys come from the DOM, such as a
+ * ProseMirror editor, can rove too.
+ */
+export type RovingKeyEvent = Pick<
+	KeyboardEvent,
+	'key' | 'shiftKey' | 'ctrlKey' | 'metaKey' | 'altKey' | 'target' | 'preventDefault'
+>
 
 /**
  * Pluggable index-based item source for windowed roving. It lets
@@ -898,7 +908,7 @@ function moveTo(index: number, context: RovingKeyContext): void {
  * @internal
  */
 function processRowContext(
-	event: KeyboardEvent,
+	event: RovingKeyEvent,
 	key: string,
 	container: HTMLElement | null,
 	active: HTMLElement | null,
@@ -945,7 +955,7 @@ function processRowContext(
  * `currentTarget` is null. Thus the keys come from the fields of the event.
  * @internal
  */
-function clickWithKeyModifiers(item: HTMLElement | null | undefined, event: KeyboardEvent): void {
+function clickWithKeyModifiers(item: HTMLElement | null | undefined, event: RovingKeyEvent): void {
 	item?.dispatchEvent(
 		new MouseEvent('click', {
 			bubbles: true,
@@ -967,7 +977,7 @@ function clickWithKeyModifiers(item: HTMLElement | null | undefined, event: Keyb
  * @internal
  */
 function handleActivationKey(
-	event: KeyboardEvent,
+	event: RovingKeyEvent,
 	context: RovingKeyContext,
 	currentIndex: number,
 	activationKey: string | readonly string[] | null,
@@ -1008,7 +1018,7 @@ function handleActivationKey(
  * @internal
  */
 function handleTypeahead(
-	event: KeyboardEvent,
+	event: RovingKeyEvent,
 	context: RovingKeyContext,
 	currentIndex: number,
 	matchers: ReturnType<typeof useTypeahead>,
@@ -1082,7 +1092,7 @@ function takesKey(enabled: boolean, target: EventTarget | null, container: HTMLE
  * @internal
  */
 function handleEscapeBlur(
-	event: KeyboardEvent,
+	event: RovingKeyEvent,
 	container: HTMLElement | null,
 	escapeBlurs: boolean,
 	mode: 'focus' | 'virtual',
@@ -1107,7 +1117,7 @@ function handleEscapeBlur(
  * @internal
  */
 function handleTabTrap(
-	event: KeyboardEvent,
+	event: RovingKeyEvent,
 	context: RovingKeyContext,
 	currentIndex: number,
 	trapTab: boolean,
@@ -1139,7 +1149,7 @@ function handleTabTrap(
  * @internal
  */
 function handleMainAxisNav(
-	event: KeyboardEvent,
+	event: RovingKeyEvent,
 	key: string,
 	currentIndex: number,
 	context: RovingKeyContext,
@@ -1453,7 +1463,7 @@ export function useA11yRoving(
 	])
 
 	return useCallback(
-		(event: KeyboardEvent) => {
+		(event: RovingKeyEvent) => {
 			if (!takesKey(enabled, event.target, containerRef.current)) return
 
 			if (handleEscapeBlur(event, containerRef.current, escapeBlurs, mode)) return

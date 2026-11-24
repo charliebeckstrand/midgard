@@ -1,18 +1,11 @@
 'use client'
 
-import {
-	type KeyboardEvent,
-	type RefObject,
-	useCallback,
-	useId,
-	useLayoutEffect,
-	useRef,
-	useState,
-} from 'react'
+import { type RefObject, useCallback, useId, useLayoutEffect, useRef, useState } from 'react'
 import { announce } from '../../core/announcer'
 import { useA11yAnnouncements } from '../../hooks/a11y/use-a11y-announcements'
 import {
 	clearVirtualActive,
+	type RovingKeyEvent,
 	seedVirtualTopMatch,
 	useA11yRoving,
 } from '../../hooks/a11y/use-a11y-roving'
@@ -30,6 +23,7 @@ import {
 	activeTrigger,
 	chooseInTrigger,
 	type TriggerAnchor,
+	type TriggerChoice,
 	type TriggerMatch,
 } from './engine/chat-draft/trigger'
 import type { ChatPromptItem, ChatPromptSource } from './types'
@@ -79,15 +73,52 @@ type PickerResults = {
 /** The trigger offset and the draft at a dismissal of the picker. @internal */
 type Dismissal = { start: number; value: string }
 
+/** The trigger of a citation that a Backspace dissolves, and the draft before the key. @internal */
+type PendingAnchor = { anchor: TriggerAnchor; value: string }
+
 const NO_RESULTS: PickerResults = { trigger: '', status: 'ready', items: [] }
+
+/**
+ * The text that the picker reads, and the caret in it. The offsets of the
+ * citations and of the caret are offsets of `value`.
+ *
+ * @internal
+ */
+export type PickerDraft = {
+	value: string
+	citations: readonly ChatCitation[]
+	/** The offset of the collapsed selection. */
+	caret: number
+}
+
+/**
+ * The field of a picker: the textarea of the composer, or its formatted field.
+ *
+ * @internal
+ */
+export type PickerField = {
+	/** The text at the caret, or `null` while the field has no focus or no collapsed selection. */
+	draft: PickerDraft | null
+	/** The element that has the focus. The options are its active descendant. */
+	elementRef: RefObject<HTMLElement | null>
+	/** Puts a choice in the field, in place of the word of the trigger. */
+	write: (choice: TriggerChoice) => void
+}
+
+/** The parts of a key press that the picker reads, from a React or a DOM event. @internal */
+export type PickerKeyEvent = RovingKeyEvent & Parameters<typeof isComposing>[0]
 
 /** Options for {@link useChatPromptPicker}. @internal */
 export type ChatPromptPickerOptions = {
 	sources: readonly ChatPromptSource[] | undefined
-	value: string
-	citations: readonly ChatCitation[]
-	textareaRef: RefObject<HTMLTextAreaElement | null>
-	onValueChange: (value: string, citations: readonly ChatCitation[]) => void
+	field: PickerField
+}
+
+/** The draft of a field with no caret, which opens no picker. @internal */
+const NO_DRAFT: Omit<PickerDraft, 'caret'> & { caret: null } = {
+	value: '',
+	citations: [],
+	caret: null,
 }
 
 /**
@@ -105,39 +136,29 @@ export type ChatPromptPickerOptions = {
  * label. It ends where any query ends: at a space after the words of the
  * label, or with the caret before the trigger.
  *
- * The textarea keeps the focus. The options are its active descendant, through
+ * The field keeps the focus. The options are its active descendant, through
  * the virtual mode of `useA11yRoving`, as the options of a combobox are. A
- * `<textarea>` cannot take the `combobox` role, so it keeps its textbox role,
- * with `aria-autocomplete`, `aria-haspopup`, and `aria-controls`.
+ * textbox cannot take the `combobox` role, so it keeps its role, with
+ * `aria-autocomplete`, `aria-haspopup`, and `aria-controls`.
  *
- * A choice goes in through `execCommand('insertText')`, so it is on the undo
- * stack of the browser. Where the command does nothing, the draft takes the
- * choice from `onValueChange` alone.
+ * The picker reads the text of the field and writes a choice through a
+ * {@link PickerField}, so it works on each field of the composer.
  *
  * @internal
  */
-export function useChatPromptPicker({
-	sources,
-	value,
-	citations,
-	textareaRef,
-	onValueChange,
-}: ChatPromptPickerOptions) {
+export function useChatPromptPicker({ sources, field }: ChatPromptPickerOptions) {
 	const intl = useIntl()
 
 	const listId = useId()
 
-	// The offset of a collapsed selection while the textarea has the focus.
-	const [caret, setCaret] = useState<number | null>(null)
+	const { draft, elementRef } = field
+
+	const { value, citations, caret } = draft ?? NO_DRAFT
 
 	// The trigger and the draft at a dismissal.
 	const [dismissed, setDismissed] = useState<Dismissal | null>(null)
 
-	// The trigger of a citation that a Backspace dissolved. The keydown records
-	// it, and the change that the key makes sets it.
-	const [anchor, setAnchor] = useState<TriggerAnchor | null>(null)
-
-	const pendingAnchor = useRef<TriggerAnchor | null>(null)
+	const { anchor, setAnchor, recordKey } = useDissolvedAnchor(draft)
 
 	const { match, anchored } = findTrigger(value, caret, sources, citations, anchor)
 
@@ -216,7 +237,7 @@ export function useChatPromptPicker({
 	const rove = useA11yRoving(listRef, {
 		mode: 'virtual',
 		itemSelector: PICKER_OPTION,
-		activeDescendantRef: textareaRef,
+		activeDescendantRef: elementRef,
 		activationKey: null,
 		enabled: open,
 	})
@@ -235,11 +256,15 @@ export function useChatPromptPicker({
 
 	const { setReference } = floating.refs
 
+	// The element of a field can come after the mount, such as the element of an
+	// editor that loads, so the reference updates at each open.
 	useLayoutEffect(() => {
-		const textarea = textareaRef.current
+		const element = elementRef.current
 
-		setReference(textarea?.closest<HTMLElement>('[data-slot="control-frame"]') ?? textarea)
-	}, [setReference, textareaRef])
+		if (!open || !element) return
+
+		setReference(element.closest<HTMLElement>('[data-slot="control-frame"]') ?? element)
+	}, [setReference, elementRef, open])
 
 	const items = results.trigger === matchTrigger ? results.items : []
 
@@ -257,56 +282,28 @@ export function useChatPromptPicker({
 	// chooses what the reader sees first.
 	useLayoutEffect(() => {
 		if (!open) {
-			clearVirtualActive(textareaRef)
+			clearVirtualActive(elementRef)
 
 			return
 		}
 
 		if (items.length === 0) return
 
-		seedVirtualTopMatch(listRef.current, PICKER_OPTION, null, activeIndexRef, textareaRef)
-	}, [open, items, textareaRef])
-
-	// The caret after a choice. The draft takes the choice in the next render,
-	// so the caret goes there after it.
-	const pendingCaret = useRef<number | null>(null)
-
-	useLayoutEffect(() => {
-		const textarea = textareaRef.current
-
-		const next = pendingCaret.current
-
-		if (!textarea || next === null || textarea.value !== value) return
-
-		pendingCaret.current = null
-
-		textarea.setSelectionRange(next, next)
-
-		setCaret(next)
-	}, [value, textareaRef])
+		seedVirtualTopMatch(listRef.current, PICKER_OPTION, null, activeIndexRef, elementRef)
+	}, [open, items, elementRef])
 
 	const choose = useStableEvent((item: ChatPromptItem) => {
-		const textarea = textareaRef.current
-
 		const source = match && sources?.[match.index]
 
-		if (!textarea || !match || !source) return
+		if (!match || !source) return
 
-		const choice = chooseInTrigger(value, citations, match, source.trigger, item.label, {
-			id: randomId(),
-			target: source.target,
-			selector: item.selector,
-		})
-
-		// The command puts the text on the undo stack. Its input event reaches the
-		// composer first, and the call after it adds the citation.
-		textarea.setSelectionRange(match.start, choice.tail)
-
-		insertText(choice.text)
-
-		onValueChange(choice.value, choice.citations)
-
-		pendingCaret.current = choice.caret
+		field.write(
+			chooseInTrigger(value, citations, match, source.trigger, item.label, {
+				id: randomId(),
+				target: source.target,
+				selector: item.selector,
+			}),
+		)
 
 		announce(intl.formatMessage(messages.added, { label: item.label, source: source.label }))
 	})
@@ -319,12 +316,12 @@ export function useChatPromptPicker({
 	}, [items])
 
 	/**
-	 * Handles a key of the textarea while the picker is open. It gives `true`
-	 * for a key that the picker took, and the composer then does nothing more.
+	 * Handles a key of the field. It gives `true` for a key that the open picker
+	 * took, and the composer then does nothing more.
 	 */
 	const onKeyDown = useCallback(
-		(event: KeyboardEvent<HTMLTextAreaElement>): boolean => {
-			pendingAnchor.current = dissolvedTrigger(event, citations)
+		(event: PickerKeyEvent): boolean => {
+			recordKey(event)
 
 			if (!open || isComposing(event) || hasBrowserModifier(event) || event.shiftKey) return false
 
@@ -347,31 +344,8 @@ export function useChatPromptPicker({
 
 			return false
 		},
-		[open, rove, activeItem, choose, citations, status],
+		[open, rove, activeItem, choose, recordKey, status],
 	)
-
-	const hasSources = sources !== undefined && sources.length > 0
-
-	/**
-	 * Records the caret of the textarea. Call it on a change, a selection, and a
-	 * focus. A composer with no source holds no caret, because nothing reads it.
-	 */
-	const trackCaret = useCallback(
-		(textarea: HTMLTextAreaElement) => {
-			if (!hasSources) return
-
-			if (pendingAnchor.current !== null) {
-				setAnchor(pendingAnchor.current)
-
-				pendingAnchor.current = null
-			}
-
-			setCaret(textarea.selectionStart === textarea.selectionEnd ? textarea.selectionEnd : null)
-		},
-		[hasSources],
-	)
-
-	const forgetCaret = useCallback(() => setCaret(null), [])
 
 	const source = match ? sources?.[match.index] : undefined
 
@@ -386,9 +360,37 @@ export function useChatPromptPicker({
 		floating,
 		choose,
 		onKeyDown,
-		trackCaret,
-		forgetCaret,
 	}
+}
+
+/**
+ * The trigger of a citation that a Backspace at its end dissolved. The keydown
+ * records it with `recordKey`, and the change of the draft that the key makes
+ * sets it. The caller clears it with `setAnchor` when no trigger is at it.
+ *
+ * @internal
+ */
+function useDissolvedAnchor(draft: PickerDraft | null) {
+	const [anchor, setAnchor] = useState<TriggerAnchor | null>(null)
+
+	const [pending, setPending] = useState<PendingAnchor | null>(null)
+
+	if (pending !== null && draft !== null && draft.value !== pending.value) {
+		setAnchor(pending.anchor)
+
+		setPending(null)
+	}
+
+	const recordKey = useCallback(
+		(event: PickerKeyEvent) => {
+			const dissolved = draft && dissolvedTrigger(event, draft)
+
+			setPending(dissolved ? { anchor: dissolved, value: draft.value } : null)
+		},
+		[draft],
+	)
+
+	return { anchor, setAnchor, recordKey }
 }
 
 /**
@@ -439,45 +441,22 @@ function findTrigger(
  *
  * @internal
  */
-function dissolvedTrigger(
-	event: KeyboardEvent<HTMLTextAreaElement>,
-	citations: readonly ChatCitation[],
-): TriggerAnchor | null {
+function dissolvedTrigger(event: PickerKeyEvent, draft: PickerDraft): TriggerAnchor | null {
 	if (event.key !== 'Backspace' || hasBrowserModifier(event) || isComposing(event)) return null
 
-	const { selectionStart, selectionEnd } = event.currentTarget
-
-	if (selectionStart !== selectionEnd) return null
-
-	const citation = citations.find((c) => c.end === selectionStart)
+	const citation = draft.citations.find((c) => c.end === draft.caret)
 
 	return citation ? { start: citation.start, quote: citation.quote } : null
 }
 
 /**
- * Inserts `text` at the selection of the focused field, through the command
- * that puts the change on the undo stack. A browser that has no such command,
- * such as jsdom, changes nothing, and the draft takes the change from the
- * caller.
- *
- * @internal
- */
-function insertText(text: string): void {
-	try {
-		document.execCommand?.('insertText', false, text)
-	} catch {
-		// The draft takes the change from `onValueChange`.
-	}
-}
-
-/**
  * Takes a key for the picker when `taken`: cancels its default and runs `run`.
- * A key that the picker does not take stays with the textarea.
+ * A key that the picker does not take stays with the field.
  *
  * @internal
  * @returns Whether the picker took the key.
  */
-function takeKey<E extends KeyboardEvent<HTMLTextAreaElement>>(
+function takeKey<E extends PickerKeyEvent>(
 	event: E,
 	taken: boolean,
 	run: (event: E) => void,
