@@ -493,6 +493,34 @@ describe('HeatmapChart', () => {
 		expect(high).toBeLessThan(low)
 	})
 
+	it('keeps the readout closed after Escape until the pointer reads another cell', () => {
+		const { container } = renderUI(
+			<HeatmapChart aria-label="Commits" data={ROWS} series={SERIES} width={400} />,
+		)
+
+		const hit = hitLayer(container)
+
+		// The top-right cell, Mon at 10.
+		fireEvent.pointerMove(hit, { clientX: 330, clientY: 70 })
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Mon')
+
+		// Escape closes the readout wherever the focus is (WCAG 1.4.13).
+		fireEvent.keyDown(document.body, { key: 'Escape' })
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+
+		// A move inside the same cell keeps it closed.
+		fireEvent.pointerMove(hit, { clientX: 334, clientY: 74 })
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+
+		// The bottom-right cell, Tue at 10.
+		fireEvent.pointerMove(hit, { clientX: 330, clientY: 200 })
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Tue')
+	})
+
 	it('pins the pointed cell on click under trigger click, ignoring hover', () => {
 		const { container } = renderUI(
 			<HeatmapChart
