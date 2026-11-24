@@ -98,12 +98,12 @@ export const k = defineKata({
 		// is, and its digits keep one width, so `9 of 10` does not move its buttons.
 		branch: [...controls, 'mt-1 tabular-nums', size.xs, ...text.muted],
 		/**
-		 * The toolbar of the menu button: it floats over the outer top corner of
-		 * the bubble. That is the corner on the side of the speaker. It sits at
-		 * the top of the message, in the `menu` room. The toolbar is 34px high,
-		 * because its button has a fixed size, so it overlaps the bubble by 10px:
-		 * the padding of the bubble, and not its text. It is never a row of icons
-		 * below the bubble.
+		 * The frame of the toolbar of the message actions: it floats over the
+		 * outer top corner of the bubble. That is the corner on the side of the
+		 * speaker. It sits at the top of the message, in the `menu` room. The
+		 * toolbar is 34px high, because its buttons have a fixed size, so it
+		 * overlaps the bubble by 10px: the padding of the bubble, and not its
+		 * text. It is never a row of icons below the bubble.
 		 */
 		toolbar: {
 			base: [

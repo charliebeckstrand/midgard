@@ -169,11 +169,15 @@
 	},
 	"ui.chat.messageActions": {
 		"defaultMessage": "Message actions",
-		"description": "The name of the menu of a chat message, and of the button that opens it. On a touch screen, a long press on the message also opens the menu. It holds the actions of that message."
+		"description": "The name of the menu of a chat message, of its toolbar, and of the button that opens the menu when the toolbar shows no action buttons. On a touch screen, a long press on the message also opens the menu. It holds the actions of that message."
 	},
 	"ui.chat.missing": {
 		"defaultMessage": "This chat cannot show a “{name}” block.",
 		"description": "Shown in place of a block of a chat reply that the app cannot draw. The name is the name of the block."
+	},
+	"ui.chat.moreActions": {
+		"defaultMessage": "More actions",
+		"description": "The name of the button in the toolbar of a chat message that opens a menu of the actions that do not fit in the toolbar. The toolbar shows the first actions as icon buttons before it."
 	},
 	"ui.chat.newest": {
 		"defaultMessage": "Go to the newest message",
