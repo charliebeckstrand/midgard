@@ -6,6 +6,7 @@ import {
 	describeDragEnd,
 	describeDragMove,
 	describeDragStart,
+	describeStackAtStart,
 	describeStackCancel,
 	describeStackEnd,
 	describeStackMove,
@@ -93,9 +94,15 @@ describe('stack announcements', () => {
 	const place = { position: 2, total: 5 }
 
 	it('names the place of the tile in reading order', () => {
-		expect(describeStackStart(intlEn, 'Revenue', place)).toBe('Picked up Revenue, position 2 of 5.')
+		expect(describeStackStart(intlEn, 'Revenue', place)).toBe(
+			'Picked up Revenue, position 2 of 5. Use the arrow keys to move it. Press Space to drop it, or Escape to cancel.',
+		)
 
 		expect(describeStackMove(intlEn, 'Revenue', place)).toBe('Revenue moved to position 2 of 5.')
+
+		expect(describeStackAtStart(intlEn, 'Revenue', place)).toBe(
+			'Revenue is over its start place, position 2 of 5. A drop now changes nothing.',
+		)
 
 		expect(describeStackEnd(intlEn, 'Revenue', place)).toBe('Dropped Revenue, position 2 of 5.')
 
