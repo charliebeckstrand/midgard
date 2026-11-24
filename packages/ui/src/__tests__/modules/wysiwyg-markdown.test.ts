@@ -121,6 +121,16 @@ describe('wysiwyg markdown', () => {
 		expect(parseMarkdown(serializeMarkdown(doc)).textContent).toBe(text.trimStart())
 	})
 
+	it('drops a mark of whitespace alone at the start of a line', () => {
+		const strong = schema.marks.strong.create()
+
+		const doc = schema.node('doc', null, [
+			schema.node('paragraph', null, [schema.text('  ', [strong]), schema.text('  # a')]),
+		])
+
+		expect(serializeMarkdown(doc)).toBe('\\# a')
+	})
+
 	it('moves the whitespace at the ends of a mark outside its delimiters', () => {
 		const strong = schema.marks.strong.create()
 
