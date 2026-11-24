@@ -167,7 +167,8 @@ export function Wysiwyg({
 
 	const hasToolbar = children != null && children !== false
 
-	const field = useWysiwygField({
+	// The reset ref apart, so the rest of the field reads as values in the render.
+	const { resetRef, ...field } = useWysiwygField({
 		...options,
 		defaultValue: options.defaultValue ?? '',
 		placeholder,
@@ -220,15 +221,8 @@ export function Wysiwyg({
 		else element()?.focus()
 	}
 
-	useImperativeHandle(ref, () => ({
-		focus,
-		get value() {
-			return value
-		},
-		get element() {
-			return element()
-		},
-	}))
+	// The handle is made again at each commit, so it holds the current value and element.
+	useImperativeHandle(ref, () => ({ focus, value, element: element() }))
 
 	useWysiwygLabelFocus(field.disabled ? undefined : field.labelId, focus)
 
@@ -290,7 +284,7 @@ export function Wysiwyg({
 						{actions}
 					</ControlActions>
 				)}
-				{!field.controlled && <input type="hidden" ref={field.resetRef} />}
+				{!field.controlled && <input type="hidden" ref={resetRef} />}
 			</ControlFrame>
 		</WysiwygContext>
 	)
