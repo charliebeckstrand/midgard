@@ -118,7 +118,7 @@ export const k = defineKata(
 			title: [space.panel.x, space.panel.top, 'in-data-[slot=sheet-header]:p-0'],
 			description: [space.panel.x, 'in-data-[slot=sheet-header]:px-0'],
 			footer: [space.panel.x, space.panel.bottom],
-			body: ['flex-1', space.panel.x, space.panel.first.sheet, space.panel.last.sheet],
+			body: ['flex-1', space.panel.mx, space.panel.first.sheet, space.panel.last.sheet],
 			/**
 			 * The optional wrapper around the body and the footer. A sheet on a side has
 			 * the height of the screen. The wrapper fills that height, so the body can

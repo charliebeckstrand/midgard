@@ -9,7 +9,7 @@ import { findSteps } from '../helpers/class-stops'
 //
 // On a phone, a dropdown menu opens as a drawer. The heading of the drawer takes
 // the panel inset. A row takes the gutter of the body plus its own inline
-// padding. The gutter is the inset less the padding of a row, so the row text
+// padding. The gutter is a margin, as the inset of a drawer body is. The gutter is the inset less the padding of a row, so the row text
 // lines up with the heading at each step. If the inset or the padding of a row
 // changes, the case fails and names the step.
 
@@ -18,11 +18,18 @@ describe('Menu sheet gutter', () => {
 
 	const row = findSteps([dan.space.menu.item.x], 'density-px-')
 
-	const gutter = findSteps([menu.sheet.body], 'density-px-')
+	const gutter = findSteps([menu.sheet.body], 'density-mx-')
+
+	// The inset of a drawer body is a margin, and the gutter replaces it.
+	const bodyInset = findSteps([dan.space.panel.mx], 'density-mx-')
 
 	for (const step of densitySteps) {
 		it(`lines the rows up with the heading at ${step}`, () => {
 			expect(Number(gutter[step]) + Number(row[step])).toBe(Number(inset[step]))
+		})
+
+		it(`gives a drawer body the panel inset at ${step}`, () => {
+			expect(bodyInset[step]).toBe(inset[step])
 		})
 	}
 })

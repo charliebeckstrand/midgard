@@ -121,8 +121,9 @@ export const k = defineKata(
 			// The drawer body of the sheet. The rows carry their own inset, so the body
 			// keeps a gutter that lines the row text up with the heading. The gutter is
 			// the panel inset less the inline padding of a row, which at each step is the
-			// padding of a row again. `menu-sheet-gutter.test.ts` holds it.
-			body: dan.space.menu.item.x,
+			// padding of a row again. It is a margin, as the inset of a drawer body is.
+			// `menu-sheet-gutter.test.ts` holds it.
+			body: dan.space.menu.item.mx,
 		},
 		sub: {
 			// A `MenuSub` parent keeps its wash while the panel is open (`data-open`),

@@ -115,6 +115,13 @@ export const space = {
 		/** The inset at the left edge and at the right edge, on the panel or on each slot. */
 		x: scale.px.xl,
 		/**
+		 * The inset at the left edge and at the right edge of a body that is as wide
+		 * as its panel: a drawer body and a sheet body. It is a margin, because the
+		 * focus ring of a body that scrolls goes outside the body. In the padding of
+		 * the body, the panel clipped the ring at the sides.
+		 */
+		mx: 'density-mx-[3,4.5,6,7.5,9]',
+		/**
 		 * The negative bottom margin that cancels the slot gap of a panel
 		 * (`gap.scale.lg`) under a child that is the edge of the panel, not one of
 		 * its slots: a drag handle above the header. The ramp is the negative of
@@ -380,6 +387,8 @@ export const space = {
 		item: {
 			/** The inline padding of a menu item. */
 			x: itemX,
+			/** The inline padding of a menu item, as a margin. */
+			mx: 'density-mx-[1.5,2.25,3,3.75,4.5]',
 		},
 		separator: {
 			/**
