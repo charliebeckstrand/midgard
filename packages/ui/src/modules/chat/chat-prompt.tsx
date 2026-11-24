@@ -27,7 +27,9 @@ import { k } from '../../recipes/kata/chat-prompt'
 import { isComposing } from '../../utilities/is-composing'
 import { keyByOccurrence } from '../../utilities/key-by-occurrence'
 import { hasBrowserModifier } from '../../utilities/modifier-keys'
+import type { WysiwygHandle } from '../wysiwyg/types'
 import { ChatPromptPicker } from './chat-prompt-picker'
+import { ChatPromptWysiwyg, type ChatPromptWysiwygOptions } from './chat-prompt-wysiwyg'
 import type { ChatCitation } from './engine/chat-content/types'
 import { canSubmitDraft } from './engine/chat-draft/content'
 import {
@@ -94,6 +96,9 @@ export type ChatPromptProps = {
 	 * with the rest of the label as the query. No change of the text makes a
 	 * citation, so a pasted or typed `@name` is prose. An undo or a redo of the
 	 * browser brings back the citations of the draft that it goes to.
+	 *
+	 * While {@link ChatPromptProps.wysiwyg} is on, an edit dissolves each
+	 * citation into prose, and `onValueChange` gives no citations.
 	 * @defaultValue []
 	 */
 	citations?: readonly ChatCitation[]
@@ -117,6 +122,8 @@ export type ChatPromptProps = {
 	 * focus, and the options are its active descendant.
 	 *
 	 * Hoist the list out of the render, as a module constant or a `useMemo`.
+	 *
+	 * While {@link ChatPromptProps.wysiwyg} is on, the field opens no picker.
 	 */
 	sources?: readonly ChatPromptSource[]
 	/** Fires when the user submits (Enter without Shift, or the send button). */
@@ -143,6 +150,21 @@ export type ChatPromptProps = {
 	 * @defaultValue 2
 	 */
 	rows?: number
+	/**
+	 * Shows the formatting of the draft in the field, in place of its Markdown
+	 * syntax, with a formatting toolbar above the field. `true` shows each
+	 * action, and `{ actions }` picks them. The value stays a Markdown string.
+	 *
+	 * @remarks The field is a {@link Wysiwyg}. Enter sends, and Shift+Enter
+	 * starts a new block, continues a list, or adds a line to a code block. A press
+	 * on a toolbar button keeps the focus in the field. The editor loads after
+	 * the mount, and until then the field shows the draft as text.
+	 *
+	 * While it is on, the field opens no picker for `sources`, and an edit
+	 * dissolves each citation into prose.
+	 * @defaultValue false
+	 */
+	wysiwyg?: boolean | ChatPromptWysiwygOptions
 	/**
 	 * A row above the field, such as a status that says that the draft edits a
 	 * sent message, or that a reply streams, with its controls. Render it only
@@ -188,8 +210,11 @@ export type ChatPromptProps = {
 	 */
 	actions?: ReactNode
 	className?: string
-	/** Ref to the underlying textarea (e.g. to focus the composer imperatively). */
-	ref?: Ref<HTMLTextAreaElement>
+	/**
+	 * Ref to the field, such as to focus the composer imperatively: the
+	 * textarea, or the {@link WysiwygHandle} while `wysiwyg` is on.
+	 */
+	ref?: Ref<HTMLTextAreaElement | WysiwygHandle>
 	/**
 	 * Accessible name for the composer. A placeholder is not an accessible name;
 	 * the textarea defaults to `"Message"` when neither this nor
@@ -208,8 +233,9 @@ export type ChatPromptProps = {
 }
 
 /**
- * Auto-resizing chat composer built on Textarea and wrapped in a `<Control>` so
- * the textarea carries an inherent, stable id. Submits on Enter (Shift+Enter for
+ * Auto-resizing chat composer built on Textarea, or on Wysiwyg with
+ * `wysiwyg`, and wrapped in a `<Control>` so the field carries an inherent,
+ * stable id. Submits on Enter (Shift+Enter for
  * newlines), and toggles its send button to a stop control while `streaming`.
  * While `streaming`, Enter does nothing, and the draft stays. A reader who
  * presses Enter asks to send, so the key does not stop a reply that the
@@ -238,6 +264,7 @@ export function ChatPrompt({
 	onEscape,
 	placeholder,
 	rows = 2,
+	wysiwyg = false,
 	disabled,
 	onAttach,
 	accept,
@@ -266,9 +293,14 @@ export function ChatPrompt({
 		historyRef.current = recordDraft(historyRef.current, { value, citations })
 	}, [value, citations])
 
-	const setTextareaRefs = useComposedRefs(textareaRef, ref)
+	// The field that has the focus calls: the textarea, or the handle of the Wysiwyg.
+	const fieldRef = useRef<HTMLTextAreaElement | WysiwygHandle>(null)
 
-	const focusField = useCallback(() => textareaRef.current?.focus(), [])
+	const setTextareaRefs = useComposedRefs(textareaRef, fieldRef, ref)
+
+	const setWysiwygRefs = useComposedRefs(fieldRef, ref)
+
+	const focusField = useCallback(() => fieldRef.current?.focus(), [])
 
 	// The composer always gets an accessible name (WCAG 3.3.2 / 4.1.2):
 	// aria-labelledby wins over aria-label; falls back to 'Message'.
@@ -279,6 +311,11 @@ export function ChatPrompt({
 	const picker = useChatPromptPicker({ sources, value, citations, textareaRef, onValueChange })
 
 	const { onKeyDown: pickerKeyDown } = picker
+
+	// While a reply streams, Enter keeps the draft for after the reply.
+	const send = useCallback(() => {
+		if (!streaming && canSubmit) onSubmit()
+	}, [streaming, canSubmit, onSubmit])
 
 	const handleKeyDown = useCallback(
 		(event: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -302,10 +339,9 @@ export function ChatPrompt({
 
 			event.preventDefault()
 
-			// While a reply streams, Enter keeps the draft for after the reply.
-			if (!streaming && canSubmit) onSubmit()
+			send()
 		},
-		[streaming, canSubmit, onSubmit, pickerKeyDown, citations, picker.open, onEscape],
+		[send, pickerKeyDown, citations, picker.open, onEscape],
 	)
 
 	// A textbox cannot take the `combobox` role, so it names its popup with the attributes that a textbox takes.
@@ -317,94 +353,114 @@ export function ChatPrompt({
 			}
 		: undefined
 
+	// The row below the field: the extra actions, the paperclip, and send or stop.
+	const actionRow = (
+		<>
+			{actions}
+			{onAttach && (
+				<>
+					{/* Sibling of the button, not nested inside it: a focusable
+						    `<input>` inside an interactive control produces
+						    nested-interactive markup. The Button is the one control.
+						    The input is `hidden`, so browse mode does not read a
+						    second "Add attachment", and `click()` still opens the picker. */}
+					<input
+						ref={inputRef}
+						type="file"
+						accept={accept}
+						multiple
+						onChange={handleChange}
+						hidden
+					/>
+					<Button
+						type="button"
+						variant="plain"
+						aria-label={intl.formatMessage(messages.attach)}
+						onClick={openPicker}
+					>
+						<Icon icon={<Paperclip />} />
+					</Button>
+				</>
+			)}
+			{streaming ? (
+				<Button
+					type="button"
+					color="blue"
+					aria-label={intl.formatMessage(messages.stop)}
+					onClick={() => onStop?.()}
+				>
+					<Icon icon={<Square />} />
+				</Button>
+			) : (
+				// One node holds the stop and the send button, so the button that has the
+				// focus turns into send when the stream ends. A native `disabled` drops
+				// the focus to the body, so send is `aria-disabled` and ignores the press.
+				<Button
+					type="button"
+					color="blue"
+					aria-label={intl.formatMessage(messages.send)}
+					aria-disabled={ariaAttr(!canSubmit)}
+					data-disabled={dataAttr(!canSubmit)}
+					onClick={() => canSubmit && onSubmit()}
+				>
+					<Icon icon={<ArrowUp />} />
+				</Button>
+			)}
+		</>
+	)
+
 	return (
-		// Control supplies the stable id the textarea resolves through useControlProps.
+		// Control supplies the stable id the field resolves through useControlProps.
 		<Control className={className}>
 			{/* `editing && …` gives `false`, which renders nothing, so it is no toolbar. */}
 			{toolbar != null && typeof toolbar !== 'boolean' && (
 				<ChatPromptToolbar onUnmountWithFocus={focusField}>{toolbar}</ChatPromptToolbar>
 			)}
-			<Textarea
-				ref={setTextareaRefs}
-				data-slot="chat-prompt"
-				value={value}
-				onChange={(event) => {
-					const next = event.target.value
+			{wysiwyg ? (
+				<ChatPromptWysiwyg
+					ref={setWysiwygRefs}
+					config={wysiwyg}
+					value={value}
+					// The rich field holds no citation, so an edit dissolves each one.
+					onValueChange={(next) => onValueChange(next, [])}
+					onEnter={send}
+					onEscape={onEscape}
+					rows={rows}
+					placeholder={placeholder ?? intl.formatMessage(messages.placeholder)}
+					{...labelProps}
+					aria-describedby={ariaDescribedBy}
+					actions={actionRow}
+				/>
+			) : (
+				<Textarea
+					ref={setTextareaRefs}
+					data-slot="chat-prompt"
+					value={value}
+					onChange={(event) => {
+						const next = event.target.value
 
-					onValueChange(
-						next,
-						recallOnHistory(event, historyRef) ??
-							rebaseCitations(value, next, citations, event.target.selectionEnd),
-					)
+						onValueChange(
+							next,
+							recallOnHistory(event, historyRef) ??
+								rebaseCitations(value, next, citations, event.target.selectionEnd),
+						)
 
-					picker.trackCaret(event.target)
-				}}
-				onSelect={(event) => picker.trackCaret(event.currentTarget)}
-				onFocus={(event) => picker.trackCaret(event.currentTarget)}
-				onBlur={picker.forgetCaret}
-				onKeyDown={handleKeyDown}
-				{...pickerProps}
-				autoResize
-				rows={rows}
-				placeholder={placeholder ?? intl.formatMessage(messages.placeholder)}
-				{...labelProps}
-				aria-describedby={ariaDescribedBy}
-				className="max-h-64"
-				actions={
-					<>
-						{actions}
-						{onAttach && (
-							<>
-								{/* Sibling of the button, not nested inside it: a focusable
-								    `<input>` inside an interactive control produces
-								    nested-interactive markup. The Button is the one control.
-								    The input is `hidden`, so browse mode does not read a
-								    second "Add attachment", and `click()` still opens the picker. */}
-								<input
-									ref={inputRef}
-									type="file"
-									accept={accept}
-									multiple
-									onChange={handleChange}
-									hidden
-								/>
-								<Button
-									type="button"
-									variant="plain"
-									aria-label={intl.formatMessage(messages.attach)}
-									onClick={openPicker}
-								>
-									<Icon icon={<Paperclip />} />
-								</Button>
-							</>
-						)}
-						{streaming ? (
-							<Button
-								type="button"
-								color="blue"
-								aria-label={intl.formatMessage(messages.stop)}
-								onClick={() => onStop?.()}
-							>
-								<Icon icon={<Square />} />
-							</Button>
-						) : (
-							// One node holds the stop and the send button, so the button that has the
-							// focus turns into send when the stream ends. A native `disabled` drops
-							// the focus to the body, so send is `aria-disabled` and ignores the press.
-							<Button
-								type="button"
-								color="blue"
-								aria-label={intl.formatMessage(messages.send)}
-								aria-disabled={ariaAttr(!canSubmit)}
-								data-disabled={dataAttr(!canSubmit)}
-								onClick={() => canSubmit && onSubmit()}
-							>
-								<Icon icon={<ArrowUp />} />
-							</Button>
-						)}
-					</>
-				}
-			/>
+						picker.trackCaret(event.target)
+					}}
+					onSelect={(event) => picker.trackCaret(event.currentTarget)}
+					onFocus={(event) => picker.trackCaret(event.currentTarget)}
+					onBlur={picker.forgetCaret}
+					onKeyDown={handleKeyDown}
+					{...pickerProps}
+					autoResize
+					rows={rows}
+					placeholder={placeholder ?? intl.formatMessage(messages.placeholder)}
+					{...labelProps}
+					aria-describedby={ariaDescribedBy}
+					className="max-h-64"
+					actions={actionRow}
+				/>
+			)}
 			{attachments && attachments.length > 0 && (
 				// The row wraps. The remove buttons of two rows are the `gap-1` of the
 				// row and the `py-ring-1` pad of two chips apart, so the row caps the
@@ -435,8 +491,8 @@ export function ChatPrompt({
 										(() => {
 											onRemoveAttachment(index)
 
-											// Returns focus to the textarea after chip removal (WCAG 2.4.3).
-											textareaRef.current?.focus()
+											// Returns focus to the field after chip removal (WCAG 2.4.3).
+											focusField()
 										})
 									}
 								/>
@@ -445,7 +501,7 @@ export function ChatPrompt({
 					})}
 				</ul>
 			)}
-			{sources && (
+			{sources && !wysiwyg && (
 				<ChatPromptPicker
 					open={picker.open}
 					listId={picker.listId}

@@ -4,7 +4,7 @@
 
 ## Status
 
-The module ships a transcript, a message bubble, a composer, a list of conversations, and two hooks. `ChatTranscript` renders a window over its messages and follows the newest reply. `ChatTranscriptSkeleton` holds the space of a transcript while it loads. `ChatMessage` draws Markdown, pulses while a reply arrives, and says when a reply failed. Its menu holds each action of the message: Copy, and the items of the app. On a device that hovers, the menu button over the corner of the bubble opens the menu, or a right-click on the bubble with `trigger="contextmenu"`. On a touch screen, a long press on the bubble opens it. The message shows no row of icons. `ChatPrompt` is a composer with attachments, a picker, a toolbar above the field, and a send button that turns into a stop button.
+The module ships a transcript, a message bubble, a composer, a list of conversations, and two hooks. `ChatTranscript` renders a window over its messages and follows the newest reply. `ChatTranscriptSkeleton` holds the space of a transcript while it loads. `ChatMessage` draws Markdown, pulses while a reply arrives, and says when a reply failed. Its menu holds each action of the message: Copy, and the items of the app. On a device that hovers, the menu button over the corner of the bubble opens the menu, or a right-click on the bubble with `trigger="contextmenu"`. On a touch screen, a long press on the bubble opens it. The message shows no row of icons. `ChatPrompt` is a composer with attachments, a picker, a toolbar above the field, and a send button that turns into a stop button. With `wysiwyg`, the field is a [`Wysiwyg`](../wysiwyg/ROADMAP.md) with a formatting toolbar. It shows the formatting of the draft in place of the Markdown syntax, and the value stays Markdown. The editor loads after the mount, so a composer without `wysiwyg` loads no editor.
 
 `useChatSend` holds the transcript and streams each reply through a `ChatTransport` that the caller supplies. The module assumes no endpoint and no wire format. A seed message keeps the id that it carries, so a persisted conversation keeps its addresses after a reload. `useChatDraft` holds the text of the composer and its citations as one state.
 
@@ -47,6 +47,8 @@ No rule reads a clock or a random source. The shell mints each id and gives it t
 
 4. **The branch context of a transport call (*P2*).** The transport gets the content, the signal, and the parts of one message. After `edit` or `retry`, it cannot tell a new turn from a replacement, and it gets no earlier turn of the shown path. A server that holds its own thread thus answers an edit as if the old branch still stood. Add a field to `ChatTransportMessage`: the shown path before the message, or the id of the message that it replaces. The `useChat` hook of the Vercel AI SDK sends the whole path for this reason. This changes the contract of the transport, so agree the approach first ([`CLAUDE.md`](../../../../../CLAUDE.md) §3.1).
 
+5. **Citations in the formatted field (*P2*).** While `wysiwyg` is on, the field opens no picker for `sources`, and an edit dissolves each citation into prose, because the editor holds no citation. Hold a citation as a mark of the editor, with its source and its payload, and map the marks to offsets in the Markdown source when the value goes out. The picker then anchors to the caret of the editor and keeps the active descendant on the editable element. A `chat-prompt.test.tsx` case that picks a source in the formatted field and reads the citation in `onValueChange` proves it.
+
 ## Performance
 
 1. **The draft rules on each keystroke (*P3*).** Each change of the composer runs `rebaseCitations`, `recordDraft`, and `activeTrigger`, and an undo runs `stepDraft` over a history of up to `DRAFT_HISTORY_LIMIT` drafts. These rules are on the input path, so their cost counts toward INP. [`chat-compute.bench.ts`](../../__benchmarks__/chat-compute.bench.ts) measures none of them. Add cases for a long draft with many citations and a full history. Change a rule only when the bench shows a cost near a frame.
@@ -78,8 +80,6 @@ No rule reads a clock or a random source. The shell mints each id and gives it t
 - **A selection that the chat holds.** The selection belongs to the view. `ChatCitationProvider` is controlled, so a dashboard does not read its own state out of a chat context.
 
 - **A token type for the composer.** A mention such as `@dataset` is a constructed phrase with an address and a payload, which is a citation. A second type would copy the offsets, the quote guard, and the renderer.
-
-- **A contenteditable composer.** It needs an editor library, and it loses the native IME, undo, and mobile input of a `<textarea>`. The draft holds its citations as offsets.
 
 - **A picker over `CommandPalette`.** The palette is a modal dialog that owns its input. The picker composes `useA11yRoving` in virtual mode on the textarea, which the palette also composes.
 
