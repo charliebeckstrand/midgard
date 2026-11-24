@@ -1,4 +1,4 @@
-import { type ComponentProps, memo, type ReactNode } from 'react'
+import { type ComponentProps, memo, type ReactNode, useId } from 'react'
 import type { ContextMenuConfig } from '../../components/context-menu/types'
 import { LoadingDots } from '../../components/loading'
 import { Markdown } from '../../components/markdown'
@@ -215,13 +215,19 @@ export type ChatMessageProps = ChatMessageVariants &
  * The menu button sits in a toolbar over the outer top corner of the bubble.
  * A menu of one item with an icon, such as Copy alone, has no menu button:
  * the toolbar shows the button of that item, which runs its action at once.
- * The toolbar shows while the pointer is over the bubble, while focus is in
- * it, or while its menu is open. A device with no hover thus shows it only to
- * a keyboard or a screen reader. The button stays in the Tab order while it
- * is hidden, so a keyboard reader reaches the menu. A message with a menu
- * keeps 24px of room above its bubble for the toolbar. The toolbar thus stays
- * in the box of the message, and a host that clips its overflow does not cut
- * it.
+ * The toolbar shows while the pointer is over the bubble or the toolbar, while
+ * a keyboard focus is in the message, or while its menu is open. A press also
+ * focuses a control, but that focus does not show the toolbar. A device with
+ * no hover thus shows it only to a keyboard or a screen reader, and a long
+ * press opens the menu there. The button stays in the Tab order while it is
+ * hidden, so a keyboard reader reaches the menu. A message with a menu keeps
+ * 24px of room above its bubble for the toolbar. The toolbar thus stays in the
+ * box of the message, and a host that clips its overflow does not cut it.
+ *
+ * After a copy, the focus goes to the bubble, and not back to the button in the
+ * toolbar. The next Tab thus goes into the controls of the message again. The
+ * bubble shows a focus ring only for a keyboard focus, so a copy with the
+ * pointer moves the focus silently. Tab does not stop on the bubble.
  *
  * Memoized on its (shallow-equal) props, so a transcript's settled bubbles skip
  * re-rendering, and re-lexing their Markdown. Only the streaming bubble's
@@ -248,6 +254,9 @@ export const ChatMessage = memo(function ChatMessage({
 
 	const slots = k({ sender, streaming, editing, menu: hasMenu })
 
+	// The id of the bubble. The Copy item moves the focus to the bubble.
+	const bubbleId = useId()
+
 	// A reply with nothing in it yet shows the dots, and not an empty bubble. The
 	// dots are an `<output>`, a live region. The transcript announces the wait
 	// on its one channel, so the dots stay out of the accessibility tree.
@@ -267,7 +276,9 @@ export const ChatMessage = memo(function ChatMessage({
 		)
 
 	const bubble = (
-		<div data-slot="chat-message-bubble" className={slots.bubble}>
+		// Tab does not stop on the bubble, but the Copy item of the menu moves the
+		// focus to it.
+		<div id={bubbleId} tabIndex={-1} data-slot="chat-message-bubble" className={slots.bubble}>
 			<span data-slot="chat-message-author" className="sr-only">
 				<IntlMessage message={AUTHOR[resolvedSender]} />:{' '}
 			</span>
@@ -295,7 +306,7 @@ export const ChatMessage = memo(function ChatMessage({
 			{contextMenu === false ? (
 				bubble
 			) : (
-				<ChatMessageMenu config={menu} content={children}>
+				<ChatMessageMenu config={menu} content={children} bubble={bubbleId}>
 					{bubble}
 				</ChatMessageMenu>
 			)}
@@ -309,7 +320,12 @@ export const ChatMessage = memo(function ChatMessage({
 			)}
 			{hasMenu && (
 				<div data-slot="chat-message-toolbar" className={slots.toolbar}>
-					<ChatMessageMenuButton config={menu} content={children} sender={resolvedSender} />
+					<ChatMessageMenuButton
+						config={menu}
+						content={children}
+						bubble={bubbleId}
+						sender={resolvedSender}
+					/>
 				</div>
 			)}
 		</div>

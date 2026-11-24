@@ -15,6 +15,9 @@ const bubble = {
 	base: [
 		// The width cap, the padding, and the radius of the skeleton bubble.
 		...kokkaku.chat.bubble,
+		// The Copy item of the menu moves the focus to the bubble. The ring shows
+		// for a keyboard focus only, so a press of the pointer shows no ring.
+		focus.ring,
 		size.md,
 		// `anywhere`, not `break-word`: a long word, such as a URL, then does not set
 		// the min-content width. In a flex or grid host, the message would
@@ -104,9 +107,11 @@ export const k = defineKata({
 				'absolute top-0 z-10 w-fit p-1',
 				rounded.lg,
 				omote.popover,
-				// Hidden, but in the Tab order: focus on the button shows the toolbar,
-				// as the pointer does. The toolbar takes no press while it is hidden,
-				// so it does not cover the message above it.
+				// Hidden, but in the Tab order: a keyboard focus on the button shows the
+				// toolbar, as the pointer does. A press also focuses the button, but that
+				// focus does not show the toolbar, so the toolbar goes when the pointer
+				// leaves. The toolbar takes no press while it is hidden, so it does not
+				// cover the message above it.
 				'pointer-events-none opacity-0',
 				// A hover on the bubble shows the toolbar, and not a hover on the empty
 				// side of the message row. The toolbar overlaps the bubble, so the
@@ -116,7 +121,7 @@ export const k = defineKata({
 				'[@media(hover:hover)]:group-has-[[data-slot=chat-message-bubble]:hover]/chat-message:pointer-events-auto',
 				'[@media(hover:hover)]:group-has-[[data-slot=chat-message-bubble]:hover]/chat-message:opacity-100',
 				'hover:pointer-events-auto hover:opacity-100',
-				'group-focus-within/chat-message:pointer-events-auto group-focus-within/chat-message:opacity-100',
+				'group-has-focus-visible/chat-message:pointer-events-auto group-has-focus-visible/chat-message:opacity-100',
 				// The menu portals out of the message, so neither hover nor focus can
 				// hold the toolbar while it is open. The expanded button holds it.
 				'has-aria-expanded:pointer-events-auto has-aria-expanded:opacity-100',
