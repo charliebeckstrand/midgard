@@ -28,12 +28,12 @@ function anchor({ index }: MarkdownRangePiece, children: ReactNode): ReactNode {
 }
 
 /**
- * An anchor on a range that crosses bold. The range draws as four pieces, and
- * only the first is a control, so the range is one tab stop. The bold stays the
- * element that holds its text.
+ * An anchor on a range that holds each bold that it touches whole. The range
+ * draws as one piece around the bold, so the control holds the whole phrase,
+ * and its focus ring goes around all of it.
  */
 describe('Markdown: an anchor on a range', () => {
-	it('gives the range one tab stop, before the link of the next paragraph', async () => {
+	it('gives the range one tab stop around the whole phrase, before the link of the next paragraph', async () => {
 		const { container } = renderUI(
 			<Markdown ranges={[RANGE]} renderRange={anchor}>
 				{SOURCE}
@@ -44,13 +44,15 @@ describe('Markdown: an anchor on a range', () => {
 
 		expect(document.activeElement?.getAttribute('data-testid')).toBe('anchor')
 
-		expect(document.activeElement?.textContent).toBe('from ')
+		expect(document.activeElement?.textContent).toBe('from 4 to 14')
+
+		expect(document.activeElement?.querySelectorAll('strong')).toHaveLength(2)
 
 		await userEvent.keyboard('{Tab}')
 
 		expect(document.activeElement?.tagName).toBe('A')
 
-		expect(container.querySelectorAll('strong > [data-testid="piece"]')).toHaveLength(2)
+		expect(container.querySelectorAll('[data-testid="piece"]')).toHaveLength(0)
 
 		expect(container.querySelector('p')?.textContent).toBe(
 			'Late stops rose from 4 to 14 this week.',

@@ -15,7 +15,9 @@ import { toCitationMode } from '../../modules/chat/use-chat-citation-trigger'
 import { __resetLastInput } from '../../utilities/last-input'
 import { act, allBySlot, bySlot, renderUI, screen, stubMatchMedia, userEvent } from '../helpers'
 
-const SOURCE = 'Twelve stops are late, most of them on **Tuesday**.'
+// A citation that ends inside the bold draws as pieces: one for the text
+// before the bold, and one in the bold.
+const SOURCE = 'Twelve stops are late, most of them on **Tuesday morning**.'
 
 /** A citation over the first occurrence of `quote` in {@link SOURCE}. */
 function cite(id: string, quote: string, target = 'late-by-day'): ChatCitation {
@@ -136,7 +138,7 @@ describe('ChatCitationProvider', () => {
 
 		renderUI(
 			<Cited
-				citations={[cite('c1', 'Twelve stops are late'), cite('c2', 'on **Tuesday**')]}
+				citations={[cite('c1', 'Twelve stops are late'), cite('c2', 'on **Tuesday')]}
 				onCitedChange={onCitedChange}
 			/>,
 		)
@@ -196,9 +198,7 @@ describe('ChatCitationProvider', () => {
 	it('draws one control for a citation that crosses bold, and marks each piece pressed', async () => {
 		const user = userEvent.setup()
 
-		const { container } = renderUI(
-			<Cited citations={[cite('c1', 'most of them on **Tuesday**')]} />,
-		)
+		const { container } = renderUI(<Cited citations={[cite('c1', 'most of them on **Tuesday')]} />)
 
 		expect(screen.getAllByRole('button')).toHaveLength(1)
 
@@ -219,16 +219,45 @@ describe('ChatCitationProvider', () => {
 		expect(piece).toHaveAttribute('data-pressed')
 	})
 
+	it('draws a citation that holds whole bold as one control, with the bold in it', async () => {
+		const source = 'Late stops rose from **4** to **14** this week.'
+
+		const quote = '**4** to **14**'
+
+		const start = source.indexOf(quote)
+
+		const citation = { ...cite('c1', 'Twelve'), start, end: start + quote.length, quote }
+
+		const user = userEvent.setup()
+
+		const { container } = renderUI(
+			<ChatCitationProvider targets={targets} cited={null} onCitedChange={() => {}}>
+				<ChatMessage sender="assistant" contextMenu={false}>
+					{[{ kind: 'text', id: 't1', text: source, citations: [citation] }]}
+				</ChatMessage>
+			</ChatCitationProvider>,
+		)
+
+		const anchor = screen.getByRole('button', { name: '4 to 14' })
+
+		expect(anchor).toHaveTextContent(/^4 to 14$/)
+
+		expect(anchor.querySelectorAll('strong')).toHaveLength(2)
+
+		expect(allBySlot(container, 'chat-citation-piece')).toEqual([])
+
+		await user.tab()
+
+		expect(anchor).toHaveFocus()
+	})
+
 	it('presses a citation that crosses bold on a click of its bold piece', async () => {
 		const user = userEvent.setup()
 
 		const onCitedChange = vi.fn()
 
 		const { container } = renderUI(
-			<Cited
-				citations={[cite('c1', 'most of them on **Tuesday**')]}
-				onCitedChange={onCitedChange}
-			/>,
+			<Cited citations={[cite('c1', 'most of them on **Tuesday')]} onCitedChange={onCitedChange} />,
 		)
 
 		const [piece] = allBySlot(container, 'chat-citation-piece')
@@ -257,14 +286,14 @@ describe('ChatCitationProvider', () => {
 		expect(bySlot(container, 'chat-citation-static')?.textContent).toBe('Twelve stops are late')
 
 		expect(bySlot(container, 'markdown')?.textContent).toBe(
-			'Twelve stops are late, most of them on Tuesday.',
+			'Twelve stops are late, most of them on Tuesday morning.',
 		)
 	})
 
 	it('draws each piece of a citation with no provider as static text, with no control', () => {
 		const { container } = renderUI(
 			<ChatMessage sender="user" contextMenu={false}>
-				{reply([cite('c1', 'most of them on **Tuesday**')])}
+				{reply([cite('c1', 'most of them on **Tuesday')])}
 			</ChatMessage>,
 		)
 
@@ -310,7 +339,7 @@ describe('ChatCitationProvider', () => {
 describe('ChatCitationProvider trigger', () => {
 	const late = cite('late', 'Twelve stops are late')
 
-	const tuesday = cite('tue', 'on **Tuesday**')
+	const tuesday = cite('tue', 'on **Tuesday')
 
 	beforeEach(() => __resetLastInput())
 
@@ -700,7 +729,7 @@ describe('ChatCitationProvider trigger', () => {
 describe('ChatCitationProvider isMarked', () => {
 	const late = cite('late', 'Twelve stops are late')
 
-	const tuesday = cite('tue', 'on **Tuesday**')
+	const tuesday = cite('tue', 'on **Tuesday')
 
 	const isTuesday = (citation: ChatCitation) => citation.id === 'tue'
 
@@ -799,7 +828,7 @@ describe('ChatCitationProvider isMarked', () => {
 describe('ChatCitationProvider render', () => {
 	const late = cite('late', 'Twelve stops are late', 'late-trend')
 
-	const tuesday = cite('tue', 'on **Tuesday**', 'late-trend')
+	const tuesday = cite('tue', 'on **Tuesday', 'late-trend')
 
 	const render = vi.fn((citation: ChatCitation) => (
 		<p data-testid="view">{`View of ${citation.id}`}</p>
@@ -988,7 +1017,7 @@ describe('ChatCitationProvider render', () => {
 			<ChatCitationProvider targets={targets} cited={null} onCitedChange={onCitedChange}>
 				<ChatCitationProvider targets={panels}>
 					<ChatMessage sender="assistant" contextMenu={false}>
-						{reply([late, cite('tue', 'on **Tuesday**')])}
+						{reply([late, cite('tue', 'on **Tuesday')])}
 					</ChatMessage>
 				</ChatCitationProvider>
 			</ChatCitationProvider>,
@@ -1081,7 +1110,7 @@ describe('ChatCitationPiece server markup', () => {
 		const html = renderToString(
 			<ChatCitationProvider targets={targets} cited={null} onCitedChange={() => {}}>
 				<ChatMessage sender="assistant" contextMenu={false}>
-					{reply([cite('c1', 'most of them on **Tuesday**')])}
+					{reply([cite('c1', 'most of them on **Tuesday')])}
 				</ChatMessage>
 			</ChatCitationProvider>,
 		)

@@ -84,8 +84,10 @@ function inCitation(node: EventTarget | null, id: string): boolean {
 
 /**
  * One piece of a citation. Piece 0 is a toggle button whose name is the text
- * of the whole citation and whose description names the view. A citation that crosses bold
- * draws more pieces. They are visible text with the look of the citation. A
+ * of the whole citation and whose description names the view. A citation
+ * that holds each bold that it touches whole, such as `**4** to **14**`, is
+ * one piece with the bold in it. A citation that ends inside bold, or crosses
+ * a block boundary, draws more pieces. They are visible text with the look of the citation. A
  * click on one presses the citation, but no key reaches it, so that one
  * citation is one tab stop. These pieces are hidden from a screen reader,
  * because the name of piece 0 already holds their text. Browse mode thus
@@ -126,8 +128,8 @@ export function ChatCitationPiece({ piece: { range, index }, children }: ChatCit
 
 	const description = useId()
 
-	// Piece 0 holds only its own text. A citation that crosses bold draws more
-	// pieces, so the button takes the text of all of them as its name.
+	// Piece 0 can hold only its own text. A citation that ends inside bold draws
+	// more pieces, so the button takes the text of all of them as its name.
 	const name = useMarkdownRangeText(range)
 
 	const { id } = range

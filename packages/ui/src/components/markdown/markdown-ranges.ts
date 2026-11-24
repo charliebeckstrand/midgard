@@ -1,3 +1,4 @@
+import type { Token } from 'marked'
 import { REFERENCE } from './markdown-entities'
 
 /**
@@ -24,9 +25,11 @@ export type MarkdownRange = {
 }
 
 /**
- * One piece of a {@link MarkdownRange}, as `renderRange` gets it. A range
- * that crosses inline formatting or a block boundary draws as more than one
- * piece.
+ * One piece of a {@link MarkdownRange}, as `renderRange` gets it. A range in
+ * one block that holds each inline element that it touches whole, such as
+ * `**4** to **14**`, draws as one piece around those elements. A range that
+ * crosses a block boundary, ends inside an inline element, or holds a link
+ * draws as more than one piece.
  */
 export type MarkdownRangePiece<R extends MarkdownRange = MarkdownRange> = {
 	/** The range that the caller gave, as the same object. */
@@ -192,7 +195,7 @@ export function atomRange(walk: RangeWalk, length: number): number | undefined {
  *
  * @internal
  */
-function snapCut(line: string, cut: number, outward: -1 | 1): number {
+export function snapCut(line: string, cut: number, outward: -1 | 1): number {
 	for (const match of line.matchAll(REFERENCE)) {
 		const start = match.index
 
@@ -314,4 +317,205 @@ export function textLines(walk: RangeWalk, raw: string): TextPiece[][] {
 
 		return pieces
 	})
+}
+
+/**
+ * The inline tokens that one piece can hold whole. A link is not one, because
+ * a piece in a link would put a second control in the link.
+ */
+const WRAPPABLE = new Set(['text', 'strong', 'em', 'del', 'codespan', 'escape', 'br'])
+
+/** The inline tokens that a block holds, the link and the image included. */
+const INLINE = new Set([...WRAPPABLE, 'link', 'image'])
+
+/**
+ * Whether one piece can hold a token whole: the token and each token in it
+ * are {@link WRAPPABLE}, so that no link in a bold goes into the piece.
+ */
+function isWrappable(token: Token): boolean {
+	return (
+		WRAPPABLE.has(token.type) && (!('tokens' in token) || (token.tokens ?? []).every(isWrappable))
+	)
+}
+
+/** Whether a token is plain text with no child tokens, which a cut can split. */
+function isPlainText(token: Token): boolean {
+	return token.type === 'text' && !('tokens' in token && token.tokens?.length)
+}
+
+/** Whether a token is inline. A `text` token with child tokens holds a block of a list item. */
+function isInline(token: Token): boolean {
+	return INLINE.has(token.type) && (token.type !== 'text' || isPlainText(token))
+}
+
+/**
+ * A run of the inline tokens of one block that one range holds, as one piece.
+ * The first and the last token can be parts of a text token that the edges of
+ * the range cut.
+ *
+ * @internal
+ */
+export type RangeGroup = { range: number; tokens: Token[] }
+
+/**
+ * Whether an item of {@link groupInline} is a group. A token always has a
+ * `type`, and a group has none.
+ *
+ * @internal
+ */
+export function isRangeGroup(item: Token | RangeGroup): item is RangeGroup {
+	return !('type' in item)
+}
+
+/**
+ * The text token `token` at source offset `at`, cut at source offset `cut`
+ * into the part before and the part after. Returns `undefined` when the raw
+ * text of the token is not the source at `at`, or when the cut is in an entity
+ * reference, so that the cut cannot keep the text whole.
+ */
+function cutText(
+	walk: RangeWalk,
+	token: Token,
+	at: number,
+	cut: number,
+): [Token, Token] | undefined {
+	const { raw } = token
+
+	const offset = cut - at
+
+	if (walk.source.slice(at, at + raw.length) !== raw) return undefined
+
+	if (snapCut(raw, offset, -1) !== offset) return undefined
+
+	const part = (text: string) => ({ ...token, raw: text, text }) as Token
+
+	return [part(raw.slice(0, offset)), part(raw.slice(offset))]
+}
+
+/**
+ * The source span of each token from the cursor, or `undefined` when the
+ * source does not hold one. The cursor of the walk does not move.
+ */
+function locateAll(walk: RangeWalk, tokens: Token[]): [number, number][] | undefined {
+	const cursor = walk.cursor
+
+	const spans: [number, number][] = []
+
+	for (const token of tokens) {
+		const span = locate(walk, token.raw)
+
+		if (!span) break
+
+		spans.push(span)
+
+		walk.cursor = span[1]
+	}
+
+	walk.cursor = cursor
+
+	return spans.length === tokens.length ? spans : undefined
+}
+
+/**
+ * The parts of a token at its source span, cut at source offset `at`: the
+ * part before and the part after. A cut at an edge of the span gives the token
+ * whole on one side. A cut inside the span needs plain text, and gives
+ * `undefined` for any other token.
+ */
+function cutAt(
+	walk: RangeWalk,
+	token: Token,
+	[start, end]: [number, number],
+	at: number,
+): [Token | undefined, Token | undefined] | undefined {
+	if (at === start) return [undefined, token]
+
+	if (at === end) return [token, undefined]
+
+	return isPlainText(token) ? cutText(walk, token, start, at) : undefined
+}
+
+/** A range that groups: the tokens that it takes, and its group with the cut parts beside it. */
+type Grouping = { head: number; tail: number; items: (Token | RangeGroup)[] }
+
+/**
+ * The grouping of the range at `index` in the walk, or `undefined` when the
+ * range does not group in `tokens`. The range must start at or after the token
+ * `from`, hold more than one token, hold only tokens that a piece can hold, and
+ * have edges that are token edges or cuts in plain text.
+ */
+function groupRange(
+	walk: RangeWalk,
+	tokens: Token[],
+	spans: [number, number][],
+	index: number,
+	from: number,
+): Grouping | undefined {
+	const range = walk.ranges[index] as MarkdownRange
+
+	const head = spans.findIndex(([start, end]) => range.start >= start && range.start < end)
+
+	const tail = spans.findIndex(([start, end]) => range.end > start && range.end <= end)
+
+	if (head < from || tail <= head) return undefined
+
+	if (!tokens.slice(head, tail + 1).every(isWrappable)) return undefined
+
+	const opening = cutAt(walk, tokens[head] as Token, spans[head] as [number, number], range.start)
+
+	const closing = cutAt(walk, tokens[tail] as Token, spans[tail] as [number, number], range.end)
+
+	if (!opening || !closing) return undefined
+
+	const group: RangeGroup = {
+		range: index,
+		tokens: [opening[1] as Token, ...tokens.slice(head + 1, tail), closing[0] as Token],
+	}
+
+	const items = [opening[0], group, closing[1]].filter((item) => item !== undefined)
+
+	return { head, tail, items }
+}
+
+/**
+ * The inline tokens of one block, with each range that holds a run of more
+ * than one of them whole as a {@link RangeGroup}. A text token at an edge of
+ * such a range is cut, and the part in the range goes into the group. The
+ * renderer draws a group as one piece around its tokens, so one piece holds
+ * `**4** to **14**`, and the bold stays inside it.
+ *
+ * A range that ends inside a token other than plain text, holds a link, or
+ * shares a cut text token with a group before it does not group. It draws as
+ * pieces of text. A block token list does not group, so a piece never holds a
+ * block.
+ *
+ * The cursor of the walk does not move.
+ *
+ * @internal
+ */
+export function groupInline(walk: RangeWalk, tokens: Token[]): (Token | RangeGroup)[] {
+	if (tokens.length < 2 || !tokens.every(isInline)) return tokens
+
+	const spans = locateAll(walk, tokens)
+
+	if (!spans) return tokens
+
+	const output: (Token | RangeGroup)[] = []
+
+	// The index of the next token that `output` does not hold yet.
+	let next = 0
+
+	for (const index of overlapping(walk, spans[0]?.[0] ?? 0, spans.at(-1)?.[1] ?? 0)) {
+		const grouping = groupRange(walk, tokens, spans, index, next)
+
+		if (!grouping) continue
+
+		output.push(...tokens.slice(next, grouping.head), ...grouping.items)
+
+		next = grouping.tail + 1
+	}
+
+	output.push(...tokens.slice(next))
+
+	return output
 }
