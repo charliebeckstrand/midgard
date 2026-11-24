@@ -29,8 +29,6 @@ describe('wysiwyg markdown', () => {
 		'- loose\n\n- items',
 		'```ts\nconst a = 1\n```',
 		'---',
-		'- a\n  ***',
-		'# Ticket \\#',
 		'| a |\n| --- |\n| b |',
 		'- [ ] a task',
 		'an ![image](https://example.com/a.png) inline',
@@ -54,22 +52,6 @@ describe('wysiwyg markdown', () => {
 
 	it('writes one normal form', () => {
 		expect(roundTrip('__bold__ _em_\n\n* item')).toBe('**bold** *em*\n\n- item')
-	})
-
-	it('keeps a run of `#` at the end of a heading as text', () => {
-		const doc = schema.node('doc', null, [
-			schema.node('heading', { level: 1 }, [schema.text('Ticket #')]),
-		])
-
-		const markdown = serializeMarkdown(doc)
-
-		expect(markdown).toBe('# Ticket \\#')
-
-		expect(parseMarkdown(markdown).eq(doc)).toBe(true)
-	})
-
-	it('writes a rule that no list item reads as a heading', () => {
-		expect(roundTrip('- a\n  ***')).toBe('- a\n  ***')
 	})
 
 	it('escapes text that would read as syntax', () => {

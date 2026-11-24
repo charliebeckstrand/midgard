@@ -275,10 +275,6 @@ patchedDependencies:
 importers:
 
   .:
-    dependencies:
-      hlidskjalf:
-        specifier: ^0.4.5
-        version: 0.4.5(@types/react@19.3.0)
     devDependencies:
       '@biomejs/biome':
         specifier: 'catalog:'
@@ -289,6 +285,9 @@ importers:
       '@commitlint/config-conventional':
         specifier: ^21.0.2
         version: 21.2.4
+      hlidskjalf:
+        specifier: ^0.4.5
+        version: 0.4.5(@types/react@19.3.0)
       knip:
         specifier: ^6.26.0
         version: 6.47.0
