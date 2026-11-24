@@ -3,6 +3,7 @@ import type { Mark, Node } from 'prosemirror-model'
 import { decodeEntities } from '../../../../components/markdown/markdown-entities'
 import { lex } from '../../../../components/markdown/markdown-lex'
 import {
+	atomRange,
 	type MarkdownRange,
 	overlapping,
 	type RangeWalk,
@@ -159,20 +160,17 @@ function toInline(
 }
 
 /**
- * The marks of the text that the walk is at, with the mark of the range that
- * overlaps the source from the cursor to `end`. A text that the walk does not
- * hold keeps `marks`.
+ * The marks of the atom that the walk is at, such as an escape, with the mark
+ * of the range that overlaps its source ({@link atomRange}). The source of the
+ * atom goes from the cursor to the limit of the walk. An atom that the walk
+ * does not hold keeps `marks`.
  *
  * @internal
  */
-function atomMarks(
-	walk: RangeWalk | undefined,
-	end: number,
-	marks: readonly Mark[],
-): readonly Mark[] {
+function atomMarks(walk: RangeWalk | undefined, marks: readonly Mark[]): readonly Mark[] {
 	if (!walk) return marks
 
-	return withRange(walk, overlapping(walk, walk.cursor, end)[0], marks)
+	return withRange(walk, atomRange(walk, walk.limit - walk.cursor), marks)
 }
 
 /** The marks with the mark of the range at `index` in the walk, if any. @internal */
@@ -223,13 +221,11 @@ function textNodes(text: string, marks: readonly Mark[]): Node[] {
 
 /** The inline nodes of one token. @internal */
 function inlineToken(token: Token, marks: readonly Mark[], walk: RangeWalk | undefined): Node[] {
-	const end = walk ? walk.limit : 0
-
 	switch (token.type) {
 		case 'text':
 			return token.tokens ? toInline(token.tokens, marks, walk) : plainText(token.raw, marks, walk)
 		case 'escape':
-			return textNodes(token.text, atomMarks(walk, end, marks))
+			return textNodes(token.text, atomMarks(walk, marks))
 		case 'strong':
 			return toInline(token.tokens ?? [], schema.marks.strong.create().addToSet(marks), walk)
 		case 'em':
@@ -237,7 +233,7 @@ function inlineToken(token: Token, marks: readonly Mark[], walk: RangeWalk | und
 		case 'del':
 			return toInline(token.tokens ?? [], schema.marks.strike.create().addToSet(marks), walk)
 		case 'codespan':
-			return textNodes(token.text, atomMarks(walk, end, schema.marks.code.create().addToSet(marks)))
+			return textNodes(token.text, atomMarks(walk, schema.marks.code.create().addToSet(marks)))
 		case 'link': {
 			const link = schema.marks.link.create({
 				href: decodeEntities(token.href),
@@ -245,11 +241,11 @@ function inlineToken(token: Token, marks: readonly Mark[], walk: RangeWalk | und
 			})
 
 			// The text of a link is one atom, as a message names it.
-			return toInline(token.tokens ?? [], atomMarks(walk, end, link.addToSet(marks)), undefined)
+			return toInline(token.tokens ?? [], atomMarks(walk, link.addToSet(marks)), undefined)
 		}
 		case 'br':
-			return [schema.node('hard_break', null, undefined, atomMarks(walk, end, []))]
+			return [schema.node('hard_break', null, undefined, atomMarks(walk, []))]
 		default:
-			return [schema.node('raw_inline', { source: token.raw }, undefined, atomMarks(walk, end, []))]
+			return [schema.node('raw_inline', { source: token.raw }, undefined, atomMarks(walk, []))]
 	}
 }

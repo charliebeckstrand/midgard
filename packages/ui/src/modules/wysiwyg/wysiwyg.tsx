@@ -18,13 +18,13 @@ import { useStableEvent } from '../../hooks/use-stable-event'
 import { ControlActions, ControlFrame } from '../../primitives/control'
 import { k as markdown } from '../../recipes/kata/markdown'
 import type { scale } from '../../recipes/kata/wysiwyg'
+import { noopSubscribe } from '../../utilities/noop'
 import { WysiwygContext, type WysiwygContextValue } from './context'
 import type { WysiwygBlock, WysiwygHandle, WysiwygToggleAction } from './types'
 import { useWysiwygEditor } from './use-wysiwyg-editor'
 import { useWysiwygField } from './use-wysiwyg-field'
 import { useWysiwygLabelFocus } from './use-wysiwyg-label-focus'
 import { useWysiwygSelection } from './use-wysiwyg-selection'
-import type { WysiwygEditor } from './wysiwyg-editor'
 
 /** Props for {@link Wysiwyg}. */
 export type WysiwygProps<R extends MarkdownRange = MarkdownRange> = {
@@ -153,27 +153,6 @@ export type WysiwygProps<R extends MarkdownRange = MarkdownRange> = {
 	'aria-controls'?: string
 	/** Gets the {@link WysiwygHandle} of the field. */
 	ref?: Ref<WysiwygHandle<R>>
-}
-
-/** The subscription of a locked field, which takes no update. @internal */
-function ignoreUpdates(): () => void {
-	return () => undefined
-}
-
-/**
- * How the toolbar follows the selection. A locked field is inert: the toolbar
- * does not follow the selection, and it shows no action as on.
- *
- * @internal
- */
-function selection(
-	editor: WysiwygEditor | null,
-	subscribe: WysiwygContextValue['subscribe'],
-	locked: boolean,
-): Pick<WysiwygContextValue, 'subscribe' | 'isActive'> {
-	if (locked) return { subscribe: ignoreUpdates, isActive: () => false }
-
-	return { subscribe, isActive: (action) => editor?.isActive(action) ?? false }
 }
 
 /**
@@ -345,7 +324,7 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 		props: {
 			attributes: field.attributes,
 			editable: !locked,
-			onSubmit: onEnter,
+			onEnter,
 			onKeyDown,
 			onLink: openLink,
 		},
@@ -382,7 +361,10 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 		ready: editor !== null,
 		locked,
 		toolbarClassName: cn(slots.toolbar),
-		...selection(editor, subscribe, locked),
+		// A locked field is inert: the toolbar does not follow the selection, and
+		// it shows no action as on.
+		subscribe: locked ? noopSubscribe : subscribe,
+		isActive: (action) => !locked && (editor?.isActive(action) ?? false),
 		run: (action: WysiwygToggleAction) => {
 			editor?.run(action)
 		},
