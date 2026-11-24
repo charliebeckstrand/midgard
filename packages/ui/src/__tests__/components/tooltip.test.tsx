@@ -431,6 +431,34 @@ describe('the reopen of a re-enabled trigger', () => {
 	)
 })
 
+describe('TooltipTrigger', () => {
+	it.each([
+		[
+			'an element child',
+			<button key="b" type="button">
+				Save
+			</button>,
+		],
+		['text', 'Save'],
+	])('stamps data-tooltip-open on %s only while the panel is open', (_, child) => {
+		const render = (open: boolean) => (
+			<Shared value={makeContext({ open })}>
+				<TooltipTrigger>{child}</TooltipTrigger>
+			</Shared>
+		)
+
+		const { container, rerender } = renderUI(render(false))
+
+		const trigger = getSlot(container, 'tooltip-trigger')
+
+		expect(trigger).not.toHaveAttribute('data-tooltip-open')
+
+		rerender(render(true))
+
+		expect(trigger).toHaveAttribute('data-tooltip-open')
+	})
+})
+
 describe('TooltipContent', () => {
 	it('renders the floating panel when the tooltip context reports open=true', () => {
 		const { container } = renderUI(

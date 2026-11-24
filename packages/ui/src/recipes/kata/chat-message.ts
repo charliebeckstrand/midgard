@@ -139,6 +139,11 @@ export const k = defineKata({
 				// The check of a copy holds the toolbar until it goes, so the reader sees
 				// it after the pointer leaves.
 				'has-data-copied:pointer-events-auto has-data-copied:opacity-100',
+				// The tooltip of a button portals out of the message, so a hover on it is
+				// no hover on the message. The open tooltip holds the toolbar. A reader
+				// who moves onto the tooltip keeps both, and both go when the pointer
+				// leaves them.
+				'has-data-tooltip-open:pointer-events-auto has-data-tooltip-open:opacity-100',
 			],
 			sender: {
 				user: 'end-2',

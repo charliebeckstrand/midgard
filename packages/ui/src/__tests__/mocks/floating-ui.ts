@@ -144,8 +144,9 @@ function mergeProps(list: (MockProps | undefined)[]): MockProps {
  *     that composes the interactions without a position engine (`Overlay`).
  *   - `useClick` / `useFocus` return reference handlers that *open* the panel
  *     (open-only, not toggle): `userEvent.click` fires focus then click, and a
- *     toggling click would immediately re-close what focus opened. Dismissal flows
- *     through other paths (overlay signal, outside-press).
+ *     toggling click would immediately re-close what focus opened. `useFocus`
+ *     also closes the panel on a blur, as the real hook does. Other dismissals
+ *     flow through other paths (overlay signal, outside-press).
  *   - `useRole` is additive but gated on `enabled`: it emits the tooltip
  *     `aria-describedby` (reference, while open) + panel `id`/`role` (floating)
  *     only when `enabled !== false`. Every consumer that passes `role: null`
@@ -214,7 +215,14 @@ const floatingUIMock = {
 	useFocus: (context: MockContext, options?: MockEnabled): MockInteraction =>
 		options?.enabled === false
 			? {}
-			: { reference: { onFocus: () => context?.onOpenChange?.(true) } },
+			: {
+					reference: {
+						onFocus: () => context?.onOpenChange?.(true),
+						// The real `useFocus` closes on a blur, so a tooltip that a focus opened
+						// does not stay open after the focus moves on.
+						onBlur: () => context?.onOpenChange?.(false),
+					},
+				},
 	useHover: (): MockInteraction => ({}),
 	useMergeRefs,
 	useFloatingRootContext: useMockContext,
