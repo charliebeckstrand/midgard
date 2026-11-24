@@ -75,16 +75,26 @@ describe('createTooltipGroup', () => {
 		expect(group.warm()).toBe(true)
 	})
 
-	it('stops the grace period on dispose', () => {
+	it('turns cold at once on dispose, in the grace period or with a tooltip open', () => {
 		const group = createTooltipGroup(() => 300)
 
 		group.open(vi.fn())()
 
 		group.dispose()
 
-		vi.advanceTimersByTime(1000)
+		expect(group.warm()).toBe(false)
 
-		// No timer ran, so the group did not turn cold.
-		expect(group.warm()).toBe(true)
+		const handover = vi.fn()
+
+		group.open(handover)
+
+		group.dispose()
+
+		expect(group.warm()).toBe(false)
+
+		// The next open after a dispose hands over from no tooltip.
+		group.open(vi.fn())
+
+		expect(handover).not.toHaveBeenCalled()
 	})
 })

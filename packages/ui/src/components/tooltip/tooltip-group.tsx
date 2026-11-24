@@ -26,7 +26,11 @@ export type TooltipGroupStore = {
 	 * grace period then starts.
 	 */
 	open: (handover: () => void) => () => void
-	/** Stops the timer of the grace period. */
+	/**
+	 * Stops the grace period and turns the group cold. A hidden `<Activity>`
+	 * runs this cleanup and keeps the store, so the group must not stay warm
+	 * until its next open.
+	 */
 	dispose: () => void
 }
 
@@ -83,7 +87,13 @@ export function createTooltipGroup(readTimeout: () => number): TooltipGroupStore
 				timer = setTimeout(() => setWarm(false), readTimeout())
 			}
 		},
-		dispose: () => clearTimeout(timer),
+		dispose: () => {
+			clearTimeout(timer)
+
+			current = null
+
+			setWarm(false)
+		},
 	}
 }
 
