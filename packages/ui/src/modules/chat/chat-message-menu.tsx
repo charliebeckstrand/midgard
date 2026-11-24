@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactElement, type ReactNode, useMemo, useRef, useState } from 'react'
+import { type ReactElement, type ReactNode, useMemo, useRef } from 'react'
 import { Button } from '../../components/button'
 import { ContextMenu, ContextMenuList } from '../../components/context-menu'
 import { resolveContextMenuEntries } from '../../components/context-menu/context-menu-merge'
@@ -10,7 +10,6 @@ import type {
 	ContextMenuItem,
 } from '../../components/context-menu/types'
 import { CopyButton } from '../../components/copy-button'
-import { copyButtonMessages } from '../../components/copy-button/copy-button-messages'
 import { Icon } from '../../components/icon'
 import { Menu, MenuContent, MenuTrigger } from '../../components/menu'
 import { Toolbar } from '../../components/toolbar'
@@ -215,9 +214,10 @@ function splitToolbarEntries(entries: ContextMenuEntry[]): {
 
 /**
  * The copy button in the toolbar. It shows a check while the copied state
- * holds, and a live region says "Copied". Its tooltip says "Copied" for that
- * time too. The check holds the toolbar open (`has-data-copied` in the kata),
- * so the reader sees it also after the pointer leaves the message.
+ * holds, and a live region says "Copied". The tooltip names the action, so it
+ * says the label of the item also in that time: the check is the visual
+ * confirmation. The check holds the toolbar open (`has-data-copied` in the
+ * kata), so the reader sees it also after the pointer leaves the message.
  *
  * When the check goes, the focus goes to the bubble, as after the Copy item of
  * the menu. The next Tab thus goes into the toolbar again. The focus moves at
@@ -239,11 +239,7 @@ function ToolbarCopy({
 	disabled: boolean | undefined
 	onDone: () => void
 }) {
-	const intl = useIntl()
-
 	const ref = useRef<HTMLButtonElement>(null)
-
-	const [copied, setCopied] = useState(false)
 
 	const done = () => {
 		if (document.activeElement === ref.current) onDone()
@@ -262,17 +258,13 @@ function ToolbarCopy({
 					text={text}
 					disabled={disabled}
 					aria-label={label}
-					onCopiedChange={(next) => {
-						setCopied(next)
-
-						if (!next) done()
+					onCopiedChange={(copied) => {
+						if (!copied) done()
 					}}
 					onCopyError={done}
 				/>
 			</TooltipTrigger>
-			<TooltipContent>
-				{copied ? intl.formatMessage(copyButtonMessages.copied) : label}
-			</TooltipContent>
+			<TooltipContent>{label}</TooltipContent>
 		</Tooltip>
 	)
 }
