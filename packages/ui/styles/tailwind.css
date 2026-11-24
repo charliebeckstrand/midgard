@@ -21,6 +21,7 @@
 @plugin '../src/core/motion/variants.ts';
 @plugin '../src/core/sidebar/variants.ts';
 @plugin '../src/core/surfaces/variants.ts';
+@plugin '../src/core/text-trim/variants.ts';
 @plugin '../src/core/scroll/fade.ts';
 @plugin '../src/core/panel/base.ts';
 
@@ -104,18 +105,6 @@
 @custom-variant icons-only (
 	&:has(> [data-slot='icon']):not(:has(> :not([data-slot='icon'], .sr-only)))
 );
-
-/*
- * `text-trim` applies a class only in a browser that reads
- * `text-box: trim-both cap alphabetic`, which trims a text box to the cap
- * height and the baseline. Chrome 133, Safari 18.2, and Firefox 154 read it. A
- * browser that does not read it keeps the classes with no variant. An inline
- * mark takes it, so the space above its text and the space below its text are
- * equal. The query cannot see if the browser trims an inline box: Safari 18.2
- * to 26.4 trims only a block container, so an inline Code there gets the
- * larger padding with no trim.
- */
-@custom-variant text-trim (@supports (text-box: trim-both cap alphabetic));
 
 /*
  * `baseline-strut` gives a box with no text the baseline of a line of text: an

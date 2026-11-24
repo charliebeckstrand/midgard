@@ -527,13 +527,13 @@ export const space = {
 		/** The block padding of an inline code mark. A key has the same steps in `kbd.y`. */
 		y: scale.py.xs,
 		/**
-		 * The block padding of an inline code mark in a browser that trims its
-		 * text box (`text-trim`): `y` and a quarter of the text size. The trim
+		 * The block padding of an inline code mark in a browser that trims an
+		 * inline box (`inline-trim`): `y` and a quarter of the text size. The trim
 		 * removes the space above the cap height and below the baseline. Thus the
 		 * space above the text and the space below it are equal, and the mark keeps
 		 * about the height that it has with no trim.
 		 */
-		trim: 'text-trim:density-py-[1.125,1.5,1.875,2.25,2.625]',
+		trim: 'inline-trim:density-py-[1.125,1.5,1.875,2.25,2.625]',
 	},
 	kbd: {
 		/**

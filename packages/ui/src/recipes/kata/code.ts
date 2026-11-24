@@ -37,13 +37,13 @@ export const k = defineKata({
 	//
 	// The box of inline text is the ascent and the descent of the font. Text
 	// with no descender, such as `v2`, thus has more space below it than above
-	// it. Where the browser can, the mark trims its text box to the cap height
-	// and the baseline, and a larger padding (`mark.trim`) gives the same space
-	// on the two sides.
+	// it. Where the browser trims an inline box (`inline-trim`), the mark trims
+	// its text box to the cap height and the baseline, and a larger padding
+	// (`mark.trim`) gives the same space on the two sides.
 	base: [
 		...mark.base,
 		...mark.density,
-		'text-trim:[text-box:trim-both_cap_alphabetic]',
+		'inline-trim:[text-box:trim-both_cap_alphabetic]',
 		dan.space.mark.trim,
 	],
 	slots: {

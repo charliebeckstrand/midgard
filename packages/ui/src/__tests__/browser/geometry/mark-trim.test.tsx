@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { Button } from '../../../components/button'
 import { Code } from '../../../components/code'
 import { Kbd } from '../../../components/kbd'
-import { renderUI } from '../../helpers'
+import { markInlineTrim, ROOT_NO_INLINE_TRIM_CLASS } from '../../../core/text-trim/root'
+import { bySlot, present, renderUI } from '../../helpers'
 import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
 
 /** Whether the browser trims a text box to the cap height and the baseline (`text-trim`). */
@@ -78,6 +79,42 @@ describe.skipIf(!TRIMS)('the space around the text of an inline mark (real brows
 			expect(above).toBeGreaterThan(0)
 
 			expect(above).toBeNear(below, HALF_PIXEL)
+		}
+	})
+
+	it('trims an inline box here, so the probe adds no class to the root', () => {
+		const root = document.documentElement
+
+		markInlineTrim(root)
+
+		expect(root.classList.contains(ROOT_NO_INLINE_TRIM_CLASS)).toBe(false)
+	})
+
+	it('keeps the padding with no trim while the root has the class', () => {
+		const root = document.documentElement
+
+		root.classList.add(ROOT_NO_INLINE_TRIM_CLASS)
+
+		try {
+			const { container } = renderUI(
+				<p data-density="md">
+					<Code>v2</Code> <Kbd>⌘K</Kbd>
+				</p>,
+			)
+
+			const code = present(bySlot(container, 'code'), 'code')
+
+			const kbd = present(bySlot(container, 'kbd'), 'kbd')
+
+			// The class turns off the trim of the inline mark only. A key is a block
+			// container, so it still trims.
+			expect(getComputedStyle(code).paddingTop).toBe('4px')
+
+			expect(getComputedStyle(code).textBoxTrim).toBe('none')
+
+			expect(getComputedStyle(kbd).textBoxTrim).toBe('trim-both')
+		} finally {
+			root.classList.remove(ROOT_NO_INLINE_TRIM_CLASS)
 		}
 	})
 })
