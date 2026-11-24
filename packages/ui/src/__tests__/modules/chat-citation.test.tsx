@@ -13,7 +13,7 @@ import {
 } from '../../modules/chat'
 import { toCitationMode } from '../../modules/chat/use-chat-citation-trigger'
 import { __resetLastInput } from '../../utilities/last-input'
-import { act, allBySlot, bySlot, renderUI, screen, userEvent } from '../helpers'
+import { act, allBySlot, bySlot, renderUI, screen, stubMatchMedia, userEvent } from '../helpers'
 
 const SOURCE = 'Twelve stops are late, most of them on **Tuesday**.'
 
@@ -793,6 +793,216 @@ describe('ChatCitationProvider isMarked', () => {
 		expect(
 			allBySlot(container, 'chat-citation').map((anchor) => anchor.hasAttribute('data-marked')),
 		).toEqual([true, false])
+	})
+})
+
+describe('ChatCitationProvider render', () => {
+	const late = cite('late', 'Twelve stops are late', 'late-trend')
+
+	const tuesday = cite('tue', 'on **Tuesday**', 'late-trend')
+
+	const render = vi.fn((citation: ChatCitation) => (
+		<p data-testid="view">{`View of ${citation.id}`}</p>
+	))
+
+	const panels = { 'late-trend': { label: 'Late stops this week', render } }
+
+	beforeEach(() => {
+		render.mockClear()
+	})
+
+	function Panels({ citations }: { citations: ChatCitation[] }) {
+		return (
+			<ChatCitationProvider targets={panels}>
+				<ChatMessage sender="assistant" contextMenu={false}>
+					{reply(citations)}
+				</ChatMessage>
+			</ChatCitationProvider>
+		)
+	}
+
+	it('draws a citation as a button that opens a dialog, described by its view', () => {
+		renderUI(<Panels citations={[late]} />)
+
+		const anchor = screen.getByRole('button', { name: 'Twelve stops are late' })
+
+		expect(anchor).toHaveAttribute('aria-haspopup', 'dialog')
+
+		expect(anchor).toHaveAttribute('aria-expanded', 'false')
+
+		// It opens a view and selects in none, so it is not a toggle.
+		expect(anchor).not.toHaveAttribute('aria-pressed')
+
+		expect(anchor).toHaveAccessibleDescription('Shows Late stops this week')
+
+		// The panel mounts at the first open, so a closed chat draws no view.
+		expect(render).not.toHaveBeenCalled()
+	})
+
+	it('opens a panel titled by the label, with the view of the citation, on a click', async () => {
+		const user = userEvent.setup()
+
+		renderUI(<Panels citations={[late]} />)
+
+		const anchor = screen.getByRole('button', { name: 'Twelve stops are late' })
+
+		await user.click(anchor)
+
+		const dialog = await screen.findByRole('dialog', { name: 'Late stops this week' })
+
+		expect(dialog).toContainElement(screen.getByTestId('view'))
+
+		expect(screen.getByTestId('view')).toHaveTextContent('View of late')
+
+		expect(render).toHaveBeenLastCalledWith(expect.objectContaining({ id: 'late' }))
+
+		expect(anchor).toHaveAttribute('aria-expanded', 'true')
+	})
+
+	it('opens from Enter and Space, and gives the focus back to the citation on Escape', async () => {
+		const user = userEvent.setup()
+
+		renderUI(<Panels citations={[late]} />)
+
+		const anchor = screen.getByRole('button', { name: 'Twelve stops are late' })
+
+		await user.tab()
+
+		expect(anchor).toHaveFocus()
+
+		await user.keyboard('{Enter}')
+
+		expect(await screen.findByRole('dialog')).toBeInTheDocument()
+
+		await user.keyboard('{Escape}')
+
+		await vi.waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+
+		expect(anchor).toHaveFocus()
+
+		expect(anchor).toHaveAttribute('aria-expanded', 'false')
+
+		await user.keyboard(' ')
+
+		expect(await screen.findByRole('dialog')).toBeInTheDocument()
+	})
+
+	it('opens on a click of a bold piece, and gives the focus to the citation', async () => {
+		const user = userEvent.setup()
+
+		const { container } = renderUI(<Panels citations={[tuesday]} />)
+
+		const piece = bySlot(container, 'chat-citation-piece')
+
+		expect(piece).toHaveAttribute('aria-hidden', 'true')
+
+		await user.click(piece as HTMLElement)
+
+		expect(await screen.findByRole('dialog')).toBeInTheDocument()
+
+		expect(screen.getByTestId('view')).toHaveTextContent('View of tue')
+
+		// The panel gives the focus back to the citation, and not to the page.
+		await user.keyboard('{Escape}')
+
+		await vi.waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+
+		expect(screen.getByRole('button', { name: 'on Tuesday' })).toHaveFocus()
+	})
+
+	it('does not preview on a hover, and Escape on the citation goes on', async () => {
+		const onPreviewChange = vi.fn()
+
+		const onCitedChange = vi.fn()
+
+		const onKeyDown = vi.fn((event: KeyboardEvent) => event.defaultPrevented)
+
+		const user = userEvent.setup()
+
+		renderUI(
+			// biome-ignore lint/a11y/noStaticElementInteractions: the wrapper stands in for a dialog that reads Escape.
+			<div onKeyDown={(event) => onKeyDown(event.nativeEvent)}>
+				<ChatCitationProvider
+					targets={{ ...targets, ...panels }}
+					trigger={['hover', 'click']}
+					cited={null}
+					onCitedChange={onCitedChange}
+					onPreviewChange={onPreviewChange}
+				>
+					<ChatMessage sender="assistant" contextMenu={false}>
+						{reply([late])}
+					</ChatMessage>
+				</ChatCitationProvider>
+			</div>,
+		)
+
+		const anchor = screen.getByRole('button', { name: 'Twelve stops are late' })
+
+		await user.hover(anchor)
+
+		await user.tab()
+
+		await user.keyboard('{Escape}')
+
+		expect(onPreviewChange).not.toHaveBeenCalled()
+
+		expect(onCitedChange).not.toHaveBeenCalled()
+
+		expect(onKeyDown).toHaveLastReturnedWith(false)
+	})
+
+	it('opens a Dialog', async () => {
+		const user = userEvent.setup()
+
+		renderUI(<Panels citations={[late]} />)
+
+		await user.click(screen.getByRole('button', { name: 'Twelve stops are late' }))
+
+		expect(bySlot(document.body, 'dialog')).toHaveRole('dialog')
+
+		expect(bySlot(document.body, 'drawer')).toBeNull()
+	})
+
+	it('opens a Drawer on a phone', async () => {
+		stubMatchMedia((query) => query.startsWith('(hover: none)'))
+
+		const user = userEvent.setup()
+
+		renderUI(<Panels citations={[late]} />)
+
+		await user.click(screen.getByRole('button', { name: 'Twelve stops are late' }))
+
+		expect(await screen.findByRole('dialog', { name: 'Late stops this week' })).toBe(
+			bySlot(document.body, 'drawer'),
+		)
+
+		expect(screen.getByTestId('view')).toHaveTextContent('View of late')
+	})
+
+	it('keeps the selection of the outer provider under a provider that only adds panels', async () => {
+		const onCitedChange = vi.fn()
+
+		const user = userEvent.setup()
+
+		renderUI(
+			<ChatCitationProvider targets={targets} cited={null} onCitedChange={onCitedChange}>
+				<ChatCitationProvider targets={panels}>
+					<ChatMessage sender="assistant" contextMenu={false}>
+						{reply([late, cite('tue', 'on **Tuesday**')])}
+					</ChatMessage>
+				</ChatCitationProvider>
+			</ChatCitationProvider>,
+		)
+
+		await user.click(screen.getByRole('button', { name: 'on Tuesday' }))
+
+		expect(onCitedChange).toHaveBeenLastCalledWith(expect.objectContaining({ id: 'tue' }))
+
+		await user.click(screen.getByRole('button', { name: 'Twelve stops are late' }))
+
+		expect(await screen.findByRole('dialog', { name: 'Late stops this week' })).toBeInTheDocument()
+
+		expect(onCitedChange).toHaveBeenCalledTimes(1)
 	})
 })
 

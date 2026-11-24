@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import type { Mount } from '../../primitives/mount'
-import type { ChatEmbedPart } from './engine/chat-content/types'
+import type { ChatCitation, ChatEmbedPart } from './engine/chat-content/types'
 
 /**
  * Draws one {@link ChatEmbedPart}. The part reaches the renderer whole, so a
@@ -62,12 +62,39 @@ export type ChatEmbedRegistry = {
 }
 
 /**
- * The views that a citation can select in, by `target`. `label` names the
- * view for a reader, such as `Late stops by day`. A screen reader reads it as
- * the description of the anchor. The `target` itself is an address and is
- * never read.
+ * One view that a citation can show: a view beside the chat that the citation
+ * selects in, or a view that the chat shows in a panel.
  */
-export type ChatCitationTargets = Readonly<Record<string, { label: string }>>
+export type ChatCitationTarget = {
+	/**
+	 * Names the view for a reader, such as `Late stops by day`. A screen reader
+	 * reads it as the description of the anchor. A panel shows it as its title.
+	 */
+	label: string
+	/**
+	 * Draws the view in a panel that the chat opens over the page, such as a
+	 * chart of the data that supports the phrase. A press on the citation opens
+	 * the panel: a Dialog, or a Drawer on a phone. Without it, the citation
+	 * selects in a view beside the chat through `cited`.
+	 *
+	 * @remarks
+	 * The citation reaches the function whole, so the function reads `selector`
+	 * as its own shape. The cast belongs here, as it does for a
+	 * {@link ChatEmbedRenderer}. The chat thus imports no chart and no map. A
+	 * panel citation selects in no view, so it is never cited, previewed, or
+	 * marked.
+	 *
+	 * @example
+	 *   render: (citation) => <BarChart data={(citation.selector as LateStops).days} />
+	 */
+	render?: (citation: ChatCitation) => ReactNode
+}
+
+/**
+ * The views that a citation can show, by `target`. The `target` itself is an
+ * address and is never read.
+ */
+export type ChatCitationTargets = Readonly<Record<string, ChatCitationTarget>>
 
 /**
  * One choice of a {@link ChatPromptSource}: a dataset, a command, or anything
