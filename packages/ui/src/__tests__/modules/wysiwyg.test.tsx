@@ -337,6 +337,24 @@ describe('WysiwygToolbar', () => {
 		expect(within(toolbar).getAllByRole('separator')).toHaveLength(1)
 	})
 
+	it('groups inline code with the code block, after the blocks, by default', () => {
+		renderUI(
+			<Wysiwyg aria-label="Notes">
+				<WysiwygToolbar />
+			</Wysiwyg>,
+		)
+
+		const groups = within(screen.getByRole('toolbar')).getAllByRole('group')
+
+		expect(groups.map((group) => group.ariaLabel)).toEqual(['Text', 'Blocks', 'Code'])
+
+		expect(
+			within(groups[2] as HTMLElement)
+				.getAllByRole('button')
+				.map((button) => button.ariaLabel),
+		).toEqual(['Code', 'Code block'])
+	})
+
 	it('shows the pressed state of each action at the selection', async () => {
 		renderUI(
 			<Wysiwyg aria-label="Notes" defaultValue="**Bold**">

@@ -2411,6 +2411,10 @@
 		"defaultMessage": "Code block",
 		"description": "The name of the toolbar button that makes the current block a block of code."
 	},
+	"ui.wysiwyg.codeGroup": {
+		"defaultMessage": "Code",
+		"description": "The name of the group of toolbar buttons that show text as code, such as Code block."
+	},
 	"ui.wysiwyg.italic": {
 		"defaultMessage": "Italic",
 		"description": "The name of the toolbar button that makes the selected text italic."

@@ -33,6 +33,12 @@ export const wysiwygMessages = defineMessages({
 		description:
 			'The name of the group of toolbar buttons that change the current block, such as Quote.',
 	},
+	codeGroup: {
+		id: 'ui.wysiwyg.codeGroup',
+		defaultMessage: 'Code',
+		description:
+			'The name of the group of toolbar buttons that show text as code, such as Code block.',
+	},
 	linkUrl: {
 		id: 'ui.wysiwyg.linkUrl',
 		defaultMessage: 'URL',
@@ -104,6 +110,25 @@ export const wysiwygMessages = defineMessages({
 export type WysiwygShortcut = { shift?: boolean; alt?: boolean; key: string }
 
 /**
+ * A group of the toolbar. The value is the key of its name in
+ * {@link wysiwygGroupMessages}.
+ *
+ * @internal
+ */
+export type WysiwygActionGroup = 'text' | 'blocks' | 'code'
+
+/**
+ * The name of each group of the toolbar.
+ *
+ * @internal
+ */
+export const wysiwygGroupMessages: Record<WysiwygActionGroup, MessageDescriptor> = {
+	text: wysiwygMessages.text,
+	blocks: wysiwygMessages.blocks,
+	code: wysiwygMessages.codeGroup,
+}
+
+/**
  * What the toolbar shows for an action, and its shortcut. The engine holds
  * the command of each action (`engine/wysiwyg-commands.ts`), so the toolbar
  * loads without the editor. Both are keyed by {@link WysiwygAction}, so each
@@ -112,8 +137,11 @@ export type WysiwygShortcut = { shift?: boolean; alt?: boolean; key: string }
  * @internal
  */
 export type WysiwygActionEntry = {
-	/** `mark` and `link` change text; `block` changes the block of the caret. */
-	kind: 'mark' | 'link' | 'block'
+	/**
+	 * The group of the action in the toolbar: `text` changes the selected text,
+	 * `blocks` changes the block of the caret, and `code` shows text as code.
+	 */
+	group: WysiwygActionGroup
 	message: MessageDescriptor
 	icon: ComponentType
 	shortcut: WysiwygShortcut
@@ -125,36 +153,36 @@ export type WysiwygActionEntry = {
  * @internal
  */
 export const wysiwygActions: Record<WysiwygAction, WysiwygActionEntry> = {
-	bold: { kind: 'mark', message: wysiwygMessages.bold, icon: LetterB, shortcut: { key: 'B' } },
-	italic: { kind: 'mark', message: wysiwygMessages.italic, icon: Italic, shortcut: { key: 'I' } },
+	bold: { group: 'text', message: wysiwygMessages.bold, icon: LetterB, shortcut: { key: 'B' } },
+	italic: { group: 'text', message: wysiwygMessages.italic, icon: Italic, shortcut: { key: 'I' } },
 	strike: {
-		kind: 'mark',
+		group: 'text',
 		message: wysiwygMessages.strike,
 		icon: Strikethrough,
 		shortcut: { shift: true, key: 'X' },
 	},
-	code: { kind: 'mark', message: wysiwygMessages.code, icon: Code, shortcut: { key: 'E' } },
-	link: { kind: 'link', message: wysiwygMessages.link, icon: Link, shortcut: { key: 'K' } },
+	link: { group: 'text', message: wysiwygMessages.link, icon: Link, shortcut: { key: 'K' } },
 	bulletList: {
-		kind: 'block',
+		group: 'blocks',
 		message: wysiwygMessages.bulletList,
 		icon: List,
 		shortcut: { shift: true, key: '8' },
 	},
 	orderedList: {
-		kind: 'block',
+		group: 'blocks',
 		message: wysiwygMessages.orderedList,
 		icon: ListOrdered,
 		shortcut: { shift: true, key: '7' },
 	},
 	quote: {
-		kind: 'block',
+		group: 'blocks',
 		message: wysiwygMessages.quote,
 		icon: TextQuote,
 		shortcut: { shift: true, key: '9' },
 	},
+	code: { group: 'code', message: wysiwygMessages.code, icon: Code, shortcut: { key: 'E' } },
 	codeBlock: {
-		kind: 'block',
+		group: 'code',
 		message: wysiwygMessages.codeBlock,
 		icon: SquareCode,
 		shortcut: { alt: true, key: 'C' },
