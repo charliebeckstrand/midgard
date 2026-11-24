@@ -439,6 +439,11 @@ describe('ChatMessage', () => {
 
 		expect(button).toHaveFocus()
 
+		// The tooltip names the action, so it stays "Copy". The check confirms the copy.
+		expect(screen.getByRole('tooltip')).toHaveTextContent('Copy')
+
+		expect(screen.getByRole('tooltip')).not.toHaveTextContent('Copied')
+
 		// When the check goes, the focus goes to the bubble.
 		await clock.advance(1999)
 
