@@ -122,12 +122,54 @@ const quote: WysiwygCommand = {
 	active: (state) => ancestorDepth(state, nodes.blockquote) >= 0,
 }
 
-/** @internal */
+/**
+ * Makes the blocks of the selection a code block, or a code block a paragraph.
+ * A code block holds text only, so each inline atom in the selection, such as
+ * an image, becomes its source as text, and no text goes. A line break becomes
+ * a newline of the code, through the `linebreakReplacement` of the schema.
+ *
+ * @internal
+ */
 const codeBlock: WysiwygCommand = {
-	run: (state, dispatch) =>
-		state.selection.$from.parent.type === nodes.code_block
-			? setBlockType(nodes.paragraph)(state, dispatch)
-			: setBlockType(nodes.code_block)(state, dispatch),
+	run: (state, dispatch) => {
+		if (state.selection.$from.parent.type === nodes.code_block) {
+			return setBlockType(nodes.paragraph)(state, dispatch)
+		}
+
+		if (!setBlockType(nodes.code_block)(state)) return false
+
+		if (!dispatch) return true
+
+		const { from, to } = state.selection
+
+		const tr = state.tr
+
+		const atoms: { pos: number; source: string }[] = []
+
+		// Each textblock that the selection touches changes as a whole.
+		state.doc.nodesBetween(from, to, (node, pos) => {
+			if (!node.isTextblock) return true
+
+			node.forEach((child, offset) => {
+				if (child.type === nodes.raw_inline) {
+					atoms.push({ pos: pos + 1 + offset, source: child.attrs.source })
+				}
+			})
+
+			return false
+		})
+
+		// The last atom first, so the positions of the others stay.
+		for (const { pos, source } of atoms.reverse()) {
+			tr.replaceWith(pos, pos + 1, schema.text(source))
+		}
+
+		tr.setBlockType(tr.mapping.map(from), tr.mapping.map(to), nodes.code_block)
+
+		dispatch(tr.scrollIntoView())
+
+		return true
+	},
 	active: (state) => state.selection.$from.parent.type === nodes.code_block,
 }
 

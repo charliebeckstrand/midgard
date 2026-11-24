@@ -126,10 +126,15 @@ const nodes = {
 		],
 	},
 	text: { group: 'inline' },
+	/**
+	 * A line break. A change to or from a code block turns it into a newline
+	 * of the code, or a newline into it, so no line goes.
+	 */
 	hard_break: {
 		group: 'inline',
 		inline: true,
 		selectable: false,
+		linebreakReplacement: true,
 		parseDOM: [{ tag: 'br' }],
 		toDOM: (): DOMOutputSpec => ['br'],
 	},

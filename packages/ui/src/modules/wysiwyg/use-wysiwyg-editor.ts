@@ -1,6 +1,6 @@
 'use client'
 
-import { type RefObject, useLayoutEffect, useRef, useState } from 'react'
+import { type RefObject, useLayoutEffect, useReducer, useRef, useState } from 'react'
 import { useIdlePreload } from '../../hooks/use-idle-preload'
 import { useLazyModule } from '../../hooks/use-lazy-module'
 import { useStableEvent } from '../../hooks/use-stable-event'
@@ -47,7 +47,8 @@ type WysiwygEditorOptions = {
  * The editor of a Wysiwyg field. It loads the engine in idle time, or at once
  * while `wanted` is true, and then makes the editor in `host`. It gives each
  * render the new settings, and it replaces the doc when `value` differs from
- * the source of the doc, such as on a clear after a send.
+ * the source of the doc, such as on a clear after a send, or on an edit that
+ * a controlled parent refuses.
  *
  * @returns The editor, or `null` until it loads, and the subscription to each
  *   new state of the editor.
@@ -69,10 +70,16 @@ export function useWysiwygEditor({ host, value, wanted, props, onChange }: Wysiw
 	// value that the editor emitted or that the field set.
 	const source = useRef(value)
 
+	// A render after each edit, so the sync below compares the doc with the
+	// value even when the parent refuses the edit and does not render.
+	const [, checkValue] = useReducer((count: number) => count + 1, 0)
+
 	const handleChange = useStableEvent((markdown: string) => {
 		source.current = markdown
 
 		onChange(markdown)
+
+		checkValue()
 	})
 
 	const editorProps: WysiwygEditorProps = {
@@ -116,13 +123,15 @@ export function useWysiwygEditor({ host, value, wanted, props, onChange }: Wysiw
 		editor?.update(editorProps)
 	})
 
+	// The doc shows the value after each commit, as a controlled `<textarea>`
+	// does. A parent that refuses an edit thus takes the edit out of the doc.
 	useLayoutEffect(() => {
 		if (!editor || value === source.current) return
 
 		source.current = value
 
 		editor.setValue(value)
-	}, [editor, value])
+	})
 
 	return { editor, subscribe: updates.subscribe }
 }

@@ -80,6 +80,29 @@ describe('Wysiwyg (real browser)', () => {
 		expect(onEnter).toHaveBeenCalledTimes(1)
 	})
 
+	it('keeps the controlled value when the parent refuses an edit', async () => {
+		function Limited() {
+			const [value, setValue] = useState('Hello')
+
+			// The parent takes at most five characters.
+			return (
+				<Wysiwyg
+					aria-label="Notes"
+					value={value}
+					onValueChange={(next) => setValue(next.slice(0, 5))}
+				/>
+			)
+		}
+
+		renderUI(<Limited />)
+
+		const field = await editable()
+
+		await userEvent.keyboard('{End} world')
+
+		expect(field).toHaveTextContent(/^Hello$/)
+	})
+
 	it('formats the selection from the toolbar and keeps the focus in the field', async () => {
 		renderUI(<Notes initial="Ship it" />)
 
