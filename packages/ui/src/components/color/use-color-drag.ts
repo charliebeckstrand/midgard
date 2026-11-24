@@ -85,7 +85,10 @@ function holdPress(event: ReactMouseEvent<HTMLElement>): void {
  * primary-button press doubles as the keyboard-focus path (WAI-ARIA slider). It
  * fires `onPosition` immediately on press, before any move. `preventScroll` stops
  * a scroll into view. A scroll moves the rect of `ref` below the pointer, so the
- * press position is off by the scroll distance. Tracking persists
+ * press position is off by the scroll distance. `focusVisible: false` stops the
+ * focus ring: a script focus shows the ring when the last focus came from a key
+ * or when no focus came before it, as at the load of the page, and this focus
+ * comes from a pointer. Tracking persists
  * past the element's bounds via pointer capture; `lostpointercapture` is the
  * authoritative reset, covering normal release, browser-claimed gestures
  * (`pointercancel`), and node removal mid-drag. Non-primary buttons are ignored.
@@ -124,7 +127,7 @@ export function useColorDrag(
 
 			event.preventDefault()
 
-			ref.current?.focus({ preventScroll: true })
+			ref.current?.focus({ preventScroll: true, focusVisible: false })
 			event.currentTarget.setPointerCapture(event.pointerId)
 
 			cursorHold.start()

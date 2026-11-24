@@ -460,7 +460,11 @@ export function ExampleFrame(
 						// drag area takes no focus, so the press prevents it.
 						event.preventDefault()
 
-						widthSplitter.current?.focus({ preventScroll: true })
+						// A script focus shows the focus ring when the last focus came from
+						// a key or when no focus came before it, as at the load of the page.
+						// This focus comes from a press, so it shows no ring, as a press on
+						// the height splitter does.
+						widthSplitter.current?.focus({ preventScroll: true, focusVisible: false })
 
 						resize.handleProps.onPointerDown(event)
 					}}
