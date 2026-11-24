@@ -38,10 +38,18 @@ export type ResizableHandleProps = Omit<ComponentProps<'hr'>, 'children' | 'role
 /** The drag and the keys are the activation of the handle, so a consumer cannot cancel them. @internal */
 const alwaysResize = { checkForDefaultPrevented: false }
 
+/** How far one arrow press moves the handle, in percent of the group. @internal */
+const STEP = 5
+
+/** How far a Shift+arrow, PageUp, or PageDown press moves the handle, in percent of the group. @internal */
+const LARGE_STEP = 10
+
 /**
  * Resize delta for a key press: arrows move by `step` along the panel axis,
- * Home / End jump to the bounds. Returns 0 for keys that don't resize. A
- * horizontal arrow comes in the reading order, after `logicalArrowKey`.
+ * PageUp and PageDown grow and shrink the panel before the handle by
+ * {@link LARGE_STEP}, and Home / End jump to the bounds. Returns 0 for keys
+ * that don't resize. A horizontal arrow comes in the reading order, after
+ * `logicalArrowKey`.
  *
  * @internal
  */
@@ -52,6 +60,10 @@ function resizeDeltaForKey(key: string, isHorizontal: boolean, step: number): nu
 	if (key === increase) return step
 
 	if (key === decrease) return -step
+
+	if (key === 'PageUp') return LARGE_STEP
+
+	if (key === 'PageDown') return -LARGE_STEP
 
 	if (key === 'Home') return -100
 
@@ -64,7 +76,9 @@ function resizeDeltaForKey(key: string, isHorizontal: boolean, step: number): nu
  * Draggable divider between two {@link ResizablePanel}s. Renders a focusable
  * `<hr>`, a separator whose `aria-orientation` is perpendicular to the group
  * axis. A drag or the arrow keys adjust the adjacent panel within its min and
- * max bounds. Shift takes a larger step, and Home/End reach the extremes. A key
+ * max bounds. Shift+arrow, PageUp, and PageDown take a larger step: PageUp
+ * grows the panel before the handle, and PageDown shrinks it. Home/End reach
+ * the extremes. A key
  * with Ctrl, Meta, or Alt is for the browser, so it keeps its default.
  * A double-click moves the handle back to where the default sizes of its two
  * panels put it, so two panels of `defaultSize={50}` go back to half each. A
@@ -106,7 +120,7 @@ export function ResizableHandle({
 		(event: KeyboardEvent) => {
 			if (hasBrowserModifier(event)) return
 
-			const step = event.shiftKey ? 10 : 5
+			const step = event.shiftKey ? LARGE_STEP : STEP
 
 			// In a right-to-left group the first panel is on the right, so the
 			// horizontal arrows swap: ArrowLeft grows it.

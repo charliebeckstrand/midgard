@@ -295,6 +295,9 @@ export function useResizablePanel({
 
 		const clamped = clampPair(next, leftIndex, panelConfigs)
 
+		// A step at a bound, or a reset at the defaults, changes nothing, so it reports nothing.
+		if (clamped.every((size, index) => size === prev[index])) return
+
 		// Side effects run here, not inside the setSizes updater: StrictMode
 		// double-invokes the updater, firing onSizesChange twice per keypress.
 		setSizes(clamped)
