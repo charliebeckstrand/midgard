@@ -55,6 +55,17 @@ function rangeText<T>(
 	})
 }
 
+/** A block of cells as the clipboard takes it: TSV text and an HTML table. @internal */
+export type GridCopyBlock = { text: string; html: string }
+
+/**
+ * The copy of the cell menu at a row key and a column id: the range when the
+ * cell is in it, else the one cell. Each cell reads through
+ * `columnAccessor` and takes the formula guard, as a copy with the keys does.
+ * `null` for a cell that the grid does not show. @internal
+ */
+export type GridCopyAt = (rowKey: string, columnId: string) => GridCopyBlock | null
+
 /**
  * The active cell as a range of one cell, or `null` when the cursor is on no
  * data cell. `active` is the public cursor, which names a data row. Copy and
@@ -305,8 +316,32 @@ export function useGridCursorNav<T>({
 		onActiveCellChange(cell)
 	})
 
+	// The copy of the cell menu: the range when the cell is in it, else the cell,
+	// as a copy event writes them. `null` for a cell that the cursor does not
+	// show.
+	const copyAt = useStableEvent((rowKey: string, columnId: string): GridCopyBlock | null => {
+		const row = rowKeysRef.current.findIndex((key) => String(key) === rowKey)
+
+		const col = cursorColumnsRef.current.findIndex((column) => String(column.id) === columnId)
+
+		if (row === -1 || col === -1) return null
+
+		const range = readRange()
+
+		const cells =
+			range?.rows.includes(row) && range.cols.includes(col)
+				? range
+				: { rows: [row], cols: [col], from: { row, col }, to: { row, col } }
+
+		const block = rangeText(cells, rowsRef.current, cursorColumnsRef.current)
+
+		return { text: toTsv(block), html: toHtmlTable(block) }
+	})
+
 	return {
 		nav,
+		/** The copy of the cell menu (see {@link GridCopyAt}). */
+		copyAt,
 		/** Whether the cursor holds a range, which copies and, when the grid edits, pastes and fills. */
 		copies,
 		/** Whether {@link copies} holds and the cursor is on a cell. */

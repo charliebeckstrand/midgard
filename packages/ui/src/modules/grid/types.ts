@@ -722,7 +722,13 @@ export type GridCellMenuContext<T> = {
 	column: GridColumn<T>
 	/** The column's {@link GridColumn.value} for the row, else its rendered text. */
 	value: unknown
-	/** Copies the cell value to the clipboard. */
+	/**
+	 * Copies to the clipboard what Ctrl+C copies: the cell range when it holds
+	 * this cell, else this cell. Each cell reads through
+	 * {@link GridColumn.value}, else the row field named by the column id, and
+	 * takes the formula guard of the TSV. The HTML form of the block goes with
+	 * the text where the clipboard takes it.
+	 */
 	copy: () => void
 	/** One action per configured export type (see {@link GridProps.exportable}); empty when export is off, or held back from the menus by its {@link GridToolSurfaces.contextMenu} switch. */
 	exportActions: GridExportAction[]
