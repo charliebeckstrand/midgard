@@ -135,9 +135,10 @@ export default function EditAMessage() {
 		editing !== undefined &&
 		!sameDraft(editing.from, { text: draft.value, citations: draft.citations })
 
-	// Each end of an edit that drops a changed draft asks first: a cancel, a
-	// switch to another message, and a switch of branch that takes the message away. The focus goes back to the composer, also when
-	// the question came from the menu of a message.
+	// Each end of an edit that drops a changed draft asks first. These ends are
+	// a cancel, a switch to another message, and a switch of branch that takes
+	// the message away. The focus goes back to the composer, also when the
+	// question came from the menu of a message.
 	const discard = async () =>
 		!changed ||
 		confirm({
