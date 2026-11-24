@@ -2011,6 +2011,25 @@ describe('Dashboard gesture owner', () => {
 		await drop(grip)
 	})
 
+	it('narrates the keys when a drag in the re-pack lifts a tile', async () => {
+		// A minimum width wider than the canvas puts the board in the re-pack.
+		renderUI(
+			<Dashboard aria-label="Sales" editing layout={{ defaultValue: GRID }}>
+				<DashboardTile id="a" title="Revenue" minWidth={2000} />
+				<DashboardTile id="b" title="Traffic" />
+				<DashboardTile id="c" title="Orders" />
+			</Dashboard>,
+		)
+
+		const grip = await lift('Move Revenue')
+
+		expect(dragNarration()).toBe(
+			'Picked up Revenue, position 1 of 3. Use the arrow keys to move it. Press Space to drop it, or Escape to cancel.',
+		)
+
+		await drop(grip)
+	})
+
 	it('narrates Escape after a preview, and ends the drag once as canceled', async () => {
 		const { onLayout, onDragStart, onDragEnd } = renderGrid()
 
