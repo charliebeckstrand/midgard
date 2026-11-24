@@ -96,6 +96,20 @@ describe('Markdown ranges', () => {
 		expect(container.querySelector('[data-slot="markdown-range"] a')).toBeNull()
 	})
 
+	it('splits a range that holds a link in a bold, so that no piece holds the link', () => {
+		const md = 'See from **the [late](https://example.com/late) stops** today.'
+
+		const { container } = renderUI(
+			<Markdown ranges={[findRange(md, 'from **the [late](https://example.com/late) stops**')]}>
+				{md}
+			</Markdown>,
+		)
+
+		expect(text(container)).toEqual(['from ', 'the ', ' stops'])
+
+		expect(container.querySelector('[data-slot="markdown-range"] a')).toBeNull()
+	})
+
 	it('groups two ranges in one block, and splits a range that starts in a text that a group cut', () => {
 		const md = 'A **b** c d **e** f.'
 

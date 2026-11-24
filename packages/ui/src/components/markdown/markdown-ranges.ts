@@ -328,6 +328,16 @@ const WRAPPABLE = new Set(['text', 'strong', 'em', 'del', 'codespan', 'escape', 
 /** The inline tokens that a block holds, the link and the image included. */
 const INLINE = new Set([...WRAPPABLE, 'link', 'image'])
 
+/**
+ * Whether one piece can hold a token whole: the token and each token in it
+ * are {@link WRAPPABLE}, so that no link in a bold goes into the piece.
+ */
+function isWrappable(token: Token): boolean {
+	return (
+		WRAPPABLE.has(token.type) && (!('tokens' in token) || (token.tokens ?? []).every(isWrappable))
+	)
+}
+
 /** Whether a token is plain text with no child tokens, which a cut can split. */
 function isPlainText(token: Token): boolean {
 	return token.type === 'text' && !('tokens' in token && token.tokens?.length)
@@ -449,7 +459,7 @@ function groupRange(
 
 	if (head < from || tail <= head) return undefined
 
-	if (!tokens.slice(head, tail + 1).every((token) => WRAPPABLE.has(token.type))) return undefined
+	if (!tokens.slice(head, tail + 1).every(isWrappable)) return undefined
 
 	const opening = cutAt(walk, tokens[head] as Token, spans[head] as [number, number], range.start)
 
