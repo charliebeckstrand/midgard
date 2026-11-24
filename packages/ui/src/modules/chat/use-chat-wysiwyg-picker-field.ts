@@ -44,7 +44,8 @@ function blockDraft(block: WysiwygBlock, citations: readonly ChatCitation[]): Pi
  * one step of the undo history of the editor. The field then gives the
  * citation back through `onValueChange`, with the offsets of the Markdown.
  *
- * @returns The field, and `onSelectionChange` for the Wysiwyg.
+ * @returns The field, `onSelectionChange` for the Wysiwyg, and `keyDraft`, the
+ *   draft at the caret for a key handler.
  * @internal
  */
 export function useWysiwygPickerField({ citations, handleRef }: WysiwygPickerFieldOptions) {
@@ -54,11 +55,23 @@ export function useWysiwygPickerField({ citations, handleRef }: WysiwygPickerFie
 	// the element is the element of the editor.
 	const elementRef = useRef<HTMLElement | null>(null)
 
+	// The last block that the field reported. The editor reads the selection of
+	// the page and reports it before each key reaches a handler, so a key reads
+	// the block of its own caret here. The state above takes it in a later render.
+	const lastBlock = useRef<WysiwygBlock | null>(null)
+
 	const onSelectionChange = useStableEvent((next: WysiwygBlock | null) => {
 		elementRef.current = handleRef.current?.element ?? null
 
+		lastBlock.current = next
+
 		setBlock(next)
 	})
+
+	// The draft at the caret now, for a key handler.
+	const keyDraft = useStableEvent(
+		(): PickerDraft | null => lastBlock.current && blockDraft(lastBlock.current, citations),
+	)
 
 	const write = useStableEvent((choice: TriggerChoice) => {
 		handleRef.current?.replace(choice.start, choice.tail, choice.text, choice.citation)
@@ -70,5 +83,5 @@ export function useWysiwygPickerField({ citations, handleRef }: WysiwygPickerFie
 		write,
 	}
 
-	return { field, onSelectionChange }
+	return { field, onSelectionChange, keyDraft }
 }

@@ -97,7 +97,7 @@ describe('chooseInTrigger', () => {
 		expect(choice.caret).toBe(17)
 	})
 
-	it('replaces the rest of the word, and adds no space before whitespace', () => {
+	it('replaces the rest of the word, and keeps the space after it', () => {
 		const choice = chooseInTrigger(
 			'@lat by day',
 			[],
@@ -109,9 +109,29 @@ describe('chooseInTrigger', () => {
 
 		expect(choice.value).toBe('@Late stops by day')
 
-		expect(choice.tail).toBe(4)
+		// The region takes in the space, so the caret after the text is after the space.
+		expect(choice.tail).toBe(5)
+
+		expect(choice.text).toBe('@Late stops ')
 
 		expect(choice.caret).toBe(12)
+	})
+
+	it('adds no space before a line break, and puts the caret at the end of the quote', () => {
+		const choice = chooseInTrigger(
+			'@lat\nby day',
+			[],
+			{ index: 0, start: 0, query: 'la' },
+			'@',
+			'Late stops',
+			citation,
+		)
+
+		expect(choice.value).toBe('@Late stops\nby day')
+
+		expect(choice.text).toBe('@Late stops')
+
+		expect(choice.caret).toBe(11)
 	})
 
 	it('moves a citation after the trigger and keeps one before it', () => {

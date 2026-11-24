@@ -302,12 +302,36 @@ function run(items: readonly Item[], line: Line): string {
 
 		const inner = items.slice(index, end).map((each) => ({ ...each, marks: each.marks.slice(1) }))
 
-		out += span(mark, inner, line)
+		const written = span(mark, inner, line)
+
+		// A `!` directly before the text of a link would make the link an image.
+		if (mark.type === schema.marks.link && written.startsWith('[')) {
+			const bang = lastBang(out, line.ranges)
+
+			if (bang >= 0) out = `${out.slice(0, bang)}\\${out.slice(bang)}`
+		}
+
+		out += written
 
 		index = end
 	}
 
 	return out
+}
+
+/**
+ * The offset of a `!` at the end of `out`, past the edge marks of the ranges
+ * after it, or `-1`. The edge marks go before the Markdown is read, so the
+ * `!` is then next to the text that follows the marks.
+ *
+ * @internal
+ */
+function lastBang(out: string, ranges: RangeMarks | undefined): number {
+	let at = out.length - 1
+
+	while (at >= 0 && ranges && (out[at] === ranges.open || out[at] === ranges.close)) at--
+
+	return out[at] === '!' ? at : -1
 }
 
 /** @internal */
@@ -374,13 +398,15 @@ function span(mark: Mark, inner: readonly Item[], line: Line): string {
 
 	const { lead, core, trail } = splitSpace(content)
 
+	// Whitespace alone at the start of a line goes, and the line still starts after it.
 	if (core === '') {
-		line.start = before && content === ''
+		line.start = before
 
-		return content
+		return before ? '' : content
 	}
 
-	return `${lead}${open}${core}${close}${trail}`
+	// Whitespace at the start of a line is not text in Markdown (see `escapeText`).
+	return `${before ? '' : lead}${open}${core}${close}${trail}`
 }
 
 /** The white space at the start and at the end of a text, and the text between. @internal */
@@ -487,6 +513,10 @@ function markPiece(mark: Mark, written: string, line: Line): string {
  * start of a line, a block marker, such as `#`, `>`, `-`, `---`, or `1.`, is
  * escaped too.
  *
+ * Whitespace at the start of a line goes. A message does not show it, and no
+ * escape keeps it: before a marker, it lets the marker count, and four spaces
+ * or a tab make a code block.
+ *
  * @internal
  */
 function escapeText(text: string, lineStart: boolean): string {
@@ -503,6 +533,7 @@ function escapeText(text: string, lineStart: boolean): string {
 
 	if (lineStart) {
 		out = out
+			.replace(/^[ \t]+/, '')
 			.replace(/^>|^(#{1,6}|[+-]|-{3,}|=+)(?=\s|$)/, '\\$&')
 			.replace(/^(\d+)([.)])(?=\s|$)/, '$1\\$2')
 	}

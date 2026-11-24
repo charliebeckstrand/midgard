@@ -26,6 +26,11 @@ const block = code({ canvas: 'dark' }).block
  */
 const codeBlockClass = cn(block.base, block.content, block.fallback, 'block')
 
+/** The attributes of a `raw` or a `raw_inline` atom from its element: its text is the source. */
+function rawSource(dom: HTMLElement) {
+	return { source: dom.textContent ?? '' }
+}
+
 /**
  * The block nodes of a draft: the Markdown blocks that a chat message renders.
  * A block that the schema does not hold, such as a table or raw HTML, is a
@@ -117,16 +122,18 @@ const nodes = {
 	/**
 	 * A block that the schema does not hold, as its Markdown source. It shows the
 	 * source as code, and the source goes back out byte for byte, so no draft
-	 * loses text.
+	 * loses text. Its parse rule comes before the rule of a code block, so a copy
+	 * and a paste, or a drag, keeps it a `raw` block.
 	 */
 	raw: {
 		group: 'block',
 		atom: true,
 		selectable: true,
 		attrs: { source: { validate: 'string' } },
+		parseDOM: [{ tag: 'pre[data-raw]', priority: 60, getAttrs: rawSource }],
 		toDOM: (node): DOMOutputSpec => [
 			'pre',
-			{ class: codeBlockClass, dir: 'ltr' },
+			{ class: codeBlockClass, dir: 'ltr', 'data-raw': '' },
 			['code', node.attrs.source],
 		],
 	},
@@ -143,13 +150,22 @@ const nodes = {
 		parseDOM: [{ tag: 'br' }],
 		toDOM: (): DOMOutputSpec => ['br'],
 	},
-	/** An inline construct that the schema does not hold, such as an image, as its source. */
+	/**
+	 * An inline construct that the schema does not hold, such as an image, as its
+	 * source. Its parse rule comes before the rule of the code mark, as the rule
+	 * of `raw` does.
+	 */
 	raw_inline: {
 		group: 'inline',
 		inline: true,
 		atom: true,
 		attrs: { source: { validate: 'string' } },
-		toDOM: (node): DOMOutputSpec => ['code', { class: code().base, dir: 'ltr' }, node.attrs.source],
+		parseDOM: [{ tag: 'code[data-raw]', priority: 60, getAttrs: rawSource }],
+		toDOM: (node): DOMOutputSpec => [
+			'code',
+			{ class: code().base, dir: 'ltr', 'data-raw': '' },
+			node.attrs.source,
+		],
 	},
 } satisfies Record<string, NodeSpec>
 

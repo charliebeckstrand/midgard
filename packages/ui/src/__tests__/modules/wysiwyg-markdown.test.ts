@@ -28,6 +28,9 @@ describe('wysiwyg markdown', () => {
 		'3. starts at three',
 		'- loose\n\n- items',
 		'```ts\nconst a = 1\n```',
+		'```\na\n\n```',
+		'```\n\n\n```',
+		'    a\n\n    b\n',
 		'---',
 		'- a\n  ***',
 		'- a\n\n* ---',
@@ -91,6 +94,43 @@ describe('wysiwyg markdown', () => {
 		expect(parseMarkdown(markdown).eq(doc)).toBe(true)
 	})
 
+	it('keeps a bang before a link as text, so the link is not an image', () => {
+		const link = schema.marks.link.create({ href: 'https://example.com' })
+
+		const doc = schema.node('doc', null, [
+			schema.node('paragraph', null, [schema.text('Look!'), schema.text('here', [link])]),
+		])
+
+		const markdown = serializeMarkdown(doc)
+
+		expect(markdown).toBe('Look\\![here](https://example.com)')
+
+		expect(parseMarkdown(markdown).eq(doc)).toBe(true)
+	})
+
+	it.each([
+		['a space before a heading marker', ' # no heading'],
+		['three spaces before a quote marker', '   > no quote'],
+		['four spaces', '    no code'],
+		['a tab', '\tno code'],
+	])('writes a paragraph that starts with %s as a paragraph', (_, text) => {
+		const doc = schema.node('doc', null, [schema.node('paragraph', null, [schema.text(text)])])
+
+		expect(parseMarkdown(serializeMarkdown(doc)).firstChild?.type).toBe(schema.nodes.paragraph)
+
+		expect(parseMarkdown(serializeMarkdown(doc)).textContent).toBe(text.trimStart())
+	})
+
+	it('drops a mark of whitespace alone at the start of a line', () => {
+		const strong = schema.marks.strong.create()
+
+		const doc = schema.node('doc', null, [
+			schema.node('paragraph', null, [schema.text('  ', [strong]), schema.text('  # a')]),
+		])
+
+		expect(serializeMarkdown(doc)).toBe('\\# a')
+	})
+
 	it('moves the whitespace at the ends of a mark outside its delimiters', () => {
 		const strong = schema.marks.strong.create()
 
@@ -115,6 +155,15 @@ describe('wysiwyg markdown', () => {
 		])
 
 		expect(parseMarkdown(serializeMarkdown(doc)).eq(doc)).toBe(true)
+	})
+
+	it.each([
+		['a blank last line', '```\na\n\n```', 'a\n'],
+		['one blank line', '```\n\n```', ''],
+		['two blank lines', '```\n\n\n```', '\n'],
+		['an indented block', '    a\n\n    b\n', 'a\n\nb'],
+	])('holds the lines of a code block with %s', (_, source, code) => {
+		expect(parseMarkdown(source).firstChild?.textContent).toBe(code)
 	})
 
 	it('drops a line break at the end of a paragraph', () => {

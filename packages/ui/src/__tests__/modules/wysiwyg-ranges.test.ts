@@ -54,6 +54,20 @@ function type(state: EditorState, pos: number, text: string): EditorState {
 }
 
 describe('wysiwyg ranges in the markdown bridge', () => {
+	it('escapes a bang at the end of a range before a link', () => {
+		const range = schema.marks.range.create({ id: 'c1' })
+
+		const link = schema.marks.link.create({ href: 'https://example.com' })
+
+		const doc = schema.node('doc', null, [
+			schema.node('paragraph', null, [schema.text('Yahoo!', [range]), schema.text('here', [link])]),
+		])
+
+		const { markdown } = serializeMarkdownRanges(doc)
+
+		expect(markdown).toBe('Yahoo\\![here](https://example.com)')
+	})
+
 	it('marks the text of a range', () => {
 		const source = 'Ask about @Sales today'
 
