@@ -130,7 +130,9 @@ export type PlacePhotosFieldProps = {
  * photos button under the list, as the other add buttons of the forms are. A
  * pick adds its files to the end of the list, and takes as many as the list has
  * room for. The field names each file that a pick refuses and why, until a
- * later pick refuses none.
+ * later pick refuses none. A pick into the empty field and the removal of the
+ * last photo swap the file field and the button. The focus then moves to the
+ * control that comes.
  */
 export function PlacePhotosField({ progress }: PlacePhotosFieldProps) {
 	const { value: photos = [], setValue } = useFormValue<PhotoEntry[]>('photos', {})
@@ -146,6 +148,29 @@ export function PlacePhotosField({ progress }: PlacePhotosFieldProps) {
 	useEffect(() => {
 		refusing.current = false
 	})
+
+	// The root of the file field or of the Add photos button. Only one of the
+	// two shows at a time.
+	const pickerRef = useRef<HTMLDivElement>(null)
+
+	const empty = photos.length === 0
+
+	// The `empty` state that a pick or a removal makes when it swaps the file
+	// field and the Add photos button while the focus is on the control that
+	// leaves, else `null`. The swap then gives the focus to the control that
+	// comes (WCAG 2.4.3).
+	const refocus = useRef<boolean | null>(null)
+
+	useEffect(() => {
+		const expected = refocus.current
+
+		refocus.current = null
+
+		if (expected !== empty) return
+
+		// The file input moves the focus that it gets to its visible trigger.
+		pickerRef.current?.querySelector<HTMLInputElement>('input[type="file"]')?.focus()
+	}, [empty])
 
 	// A reorder while a save runs would not reach the save, which has read the
 	// order already.
@@ -181,6 +206,9 @@ export function PlacePhotosField({ progress }: PlacePhotosFieldProps) {
 		onAccept: (files: File[]) => {
 			if (!refusing.current) setRejected([])
 
+			// The native picker gives the focus back to the file field.
+			if (empty && pickerRef.current?.contains(document.activeElement)) refocus.current = false
+
 			setValue([...photos, ...files.map(newPhoto)])
 		},
 	}
@@ -190,7 +218,7 @@ export function PlacePhotosField({ progress }: PlacePhotosFieldProps) {
 			<Label>Photos</Label>
 
 			{photos.length === 0 ? (
-				<FileUploadInput {...picker} placeholder="Add photos" />
+				<FileUploadInput {...picker} ref={pickerRef} placeholder="Add photos" />
 			) : (
 				<>
 					<Lightbox
@@ -224,7 +252,12 @@ export function PlacePhotosField({ progress }: PlacePhotosFieldProps) {
 												type="button"
 												variant="bare"
 												aria-label={`Remove photo ${position}`}
-												onClick={() => setValue(photos.filter((held) => held.key !== photo.key))}
+												onClick={() => {
+													// The removal of the last photo removes this button.
+													if (photos.length === 1) refocus.current = true
+
+													setValue(photos.filter((held) => held.key !== photo.key))
+												}}
 											>
 												<Icon icon={<Trash />} />
 											</Button>
@@ -257,7 +290,12 @@ export function PlacePhotosField({ progress }: PlacePhotosFieldProps) {
 						</List>
 					</Lightbox>
 
-					<FileUploadButton {...picker} variant="plain" className="w-fit max-w-full">
+					<FileUploadButton
+						{...picker}
+						ref={pickerRef}
+						variant="plain"
+						className="w-fit max-w-full"
+					>
 						Add photos
 					</FileUploadButton>
 				</>

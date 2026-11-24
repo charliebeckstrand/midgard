@@ -25,7 +25,9 @@ async function pick(...names: string[]) {
 
 	if (input === null) throw new Error('The field has no file input.')
 
-	const files = names.map((name) => new File(['x'], name, { type: 'image/gif' }))
+	const files = names.map(
+		(name) => new File(['x'], name, { type: name.endsWith('.png') ? 'image/png' : 'image/gif' }),
+	)
 
 	await act(async () => {
 		fireEvent.change(input, { target: { files } })
@@ -76,5 +78,35 @@ describe('PlacePhotosField', () => {
 		await pick('a.gif')
 
 		expect(document.body.textContent).toContain('a.gif is not a JPEG, PNG, or WebP image.')
+	})
+
+	// The first pick swaps the file field for the Add photos button. The focus
+	// was on the file field, so it goes to the button, not to the page.
+	it('moves the focus to the Add photos button after the first pick', async () => {
+		renderField()
+
+		const field = screen.getByRole('button', { name: /Add photos/ })
+
+		field.focus()
+
+		await pick('a.png')
+
+		expect(document.activeElement).toBe(screen.getByRole('button', { name: /Add photos/ }))
+	})
+
+	it('moves the focus to the file field after the removal of the last photo', async () => {
+		renderField()
+
+		await pick('a.png')
+
+		const remove = screen.getByRole('button', { name: 'Remove photo 1' })
+
+		remove.focus()
+
+		await act(async () => {
+			fireEvent.click(remove)
+		})
+
+		expect(document.activeElement).toBe(document.querySelector('[data-slot="file-upload-field"]'))
 	})
 })
