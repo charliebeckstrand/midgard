@@ -1,3 +1,10 @@
+/**
+ * A log of component events. A header button opens it in a sheet, and Pin
+ * docks the sheet as a panel at the edge of the page.
+ *
+ * @packageDocumentation
+ */
+
 export { postReport } from './engine/events-post'
 export {
 	isEventsOn,

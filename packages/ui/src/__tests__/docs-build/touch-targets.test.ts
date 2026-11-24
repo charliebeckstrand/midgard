@@ -64,6 +64,7 @@ const KNOWN: readonly { finding: string; paths: readonly string[]; reason: strin
 			'/modules/dashboard',
 			'/modules/form/filters',
 			'/modules/query',
+			'/modules/wysiwyg',
 			'/number-input',
 			'/odometer',
 			'/progress',
@@ -189,11 +190,6 @@ const KNOWN: readonly { finding: string; paths: readonly string[]; reason: strin
 		reason: 'The eyedropper of the color panel is 38 px wide, beside the copy button.',
 	},
 	{
-		finding: 'crowded rating/rating-star',
-		paths: ['/rating'],
-		reason: 'A star of Rating is 20 px, and the stars touch.',
-	},
-	{
 		finding: 'crowded rating-star/rating-half',
 		paths: ['/rating'],
 		reason: 'A half of a star of Rating is 10 × 20 px, against the other half.',
@@ -271,6 +267,16 @@ const KNOWN: readonly { finding: string; paths: readonly string[]; reason: strin
 		finding: 'crowded popover/pdf-viewer-search-trigger',
 		paths: ['/pdf-viewer'],
 		reason: 'The search button of PdfViewer is 42 × 42 px, beside the zoom buttons.',
+	},
+	{
+		finding: 'crowded toolbar-group/wysiwyg-action',
+		paths: ['/modules/chat/prompt', '/modules/wysiwyg'],
+		reason: 'A button of a Wysiwyg toolbar is 34 × 35 px, and the buttons touch.',
+	},
+	{
+		finding: 'crowded popover/wysiwyg-action',
+		paths: ['/modules/chat/prompt', '/modules/wysiwyg'],
+		reason: 'The link button of a Wysiwyg toolbar is 34 × 35 px, beside the other buttons.',
 	},
 	{
 		finding: 'crowded menu/button',
@@ -358,17 +364,6 @@ const KNOWN: readonly { finding: string; paths: readonly string[]; reason: strin
 		finding: 'crowded chart-header-actions/chart-view-data',
 		paths: ['/modules/dashboard'],
 		reason: 'The view data button of a chart is 26 px wide, against the expand button.',
-	},
-	// Chat.
-	{
-		finding: 'overlap chat-message-actions/button | chat-message-actions/copy-button',
-		paths: ['/modules/chat'],
-		reason: 'The actions of a message have no touch gap, so their hit areas overlap.',
-	},
-	{
-		finding: 'overlap chat-message-actions/button | menu/button',
-		paths: ['/modules/chat'],
-		reason: 'The actions of a message have no touch gap, so their hit areas overlap.',
 	},
 	// PdfViewer.
 	{

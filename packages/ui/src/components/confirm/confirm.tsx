@@ -154,9 +154,10 @@ export type ConfirmProps = Pick<
 }
 
 /**
- * Confirmation dialog built on {@link Dialog} with `role="alertdialog"`. Pairs a cancel
- * and a confirm action whose labels, colors, and disabled state are configurable. The
- * confirm action also takes a loading state, which keeps its focus.
+ * A dialog that asks the reader to confirm an action. It is a {@link Dialog}
+ * with `role="alertdialog"`. Pairs a cancel and a confirm action whose labels,
+ * colors, and disabled state are configurable. The confirm action also takes a
+ * loading state, which keeps its focus.
  *
  * @remarks
  * Controlled-only: `open`/`onOpenChange` are required, and `onConfirm` leaves the dialog

@@ -3,27 +3,12 @@
 import type { CSSProperties, Ref } from 'react'
 import { ariaAttr } from '../../core/aria-attr'
 import { cn } from '../../core/cn'
-import { defineMessages, intlMessages } from '../../primitives/intl/intl-messages'
-import { useIntl } from '../../primitives/intl/use-intl'
 import { Option, OptionDescription, OptionLabel, OptionText } from '../../primitives/option'
 import { PopoverPanel } from '../../primitives/popover'
 import { Portal } from '../../primitives/portal'
 import { k } from '../../recipes/kata/chat-prompt'
 import type { ChatPromptItem, ChatPromptSource } from './types'
 import type { PickerStatus } from './use-chat-prompt-picker'
-
-const messages = defineMessages({
-	loading: {
-		id: 'ui.chat.pickerLoading',
-		defaultMessage: 'Loading',
-		description: 'The status of the picker of the chat composer while it loads its choices.',
-	},
-	failed: {
-		id: 'ui.chat.pickerFailed',
-		defaultMessage: 'Could not load the choices',
-		description: 'The status of the picker of the chat composer when its choices failed to load.',
-	},
-})
 
 /** Props for {@link ChatPromptPicker}. @internal */
 export type ChatPromptPickerProps = {
@@ -33,6 +18,8 @@ export type ChatPromptPickerProps = {
 	source: ChatPromptSource | undefined
 	items: readonly ChatPromptItem[]
 	status: PickerStatus
+	/** The status line: that the list loads, that it holds no item, or that it failed. */
+	statusText: string
 	floatingStyles: CSSProperties
 	setFloating: (node: HTMLElement | null) => void
 	getFloatingProps: () => Record<string, unknown>
@@ -44,9 +31,12 @@ export type ChatPromptPickerProps = {
  * source, and a status line. The textarea keeps the focus, so each option
  * keeps the press of the pointer off itself.
  *
- * The status line is a live `<output>`. It says that the list loads, that it
- * holds no item, or that it failed. A list that holds items has no status, and
- * its options carry the count to a screen reader.
+ * The status line says that the list loads, that it holds no item, or that it
+ * failed. A list that holds items has no status, and its options carry the
+ * count to a screen reader. The line is not live. The panel mounts with each
+ * open, and a screen reader does not speak the text that a new live region
+ * holds. Thus `useChatPromptPicker` speaks the status through the shared
+ * announcer.
  *
  * @internal
  */
@@ -57,22 +47,13 @@ export function ChatPromptPicker({
 	source,
 	items,
 	status,
+	statusText,
 	floatingStyles,
 	setFloating,
 	getFloatingProps,
 	onChoose,
 }: ChatPromptPickerProps) {
-	const intl = useIntl()
-
 	const slots = k()
-
-	// A failure always shows. Else the status shows only while the list is empty.
-	let statusText = ''
-
-	if (status === 'failed') statusText = intl.formatMessage(messages.failed)
-	else if (items.length === 0 && status === 'loading')
-		statusText = intl.formatMessage(messages.loading)
-	else if (items.length === 0) statusText = intl.formatMessage(intlMessages.noResults)
 
 	return (
 		<Portal open={open}>
@@ -114,12 +95,12 @@ export function ChatPromptPicker({
 							</Option>
 						))}
 					</div>
-					<output
+					<p
 						data-slot="chat-prompt-picker-status"
 						className={cn(slots.status, !statusText && 'hidden')}
 					>
 						{statusText}
-					</output>
+					</p>
 				</PopoverPanel>
 			</div>
 		</Portal>

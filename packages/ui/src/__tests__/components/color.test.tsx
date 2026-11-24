@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { ColorPanel, ColorPicker } from '../../components/color'
 import { ColorPanelView } from '../../components/color/color-panel'
 import {
+	colorHueName,
 	hexToHsva,
 	hexToRgba,
 	hsvaToCss,
@@ -154,6 +155,40 @@ describe('color conversions', () => {
 		expect(hsvaToCss({ h: 0, s: 100, v: 100, a: 0.5 })).toBe('rgba(255, 0, 0, 1)')
 
 		expect(hsvaToCss({ h: 0, s: 100, v: 100, a: 0.5 }, true)).toBe('rgba(255, 0, 0, 0.5)')
+	})
+})
+
+describe('colorHueName', () => {
+	it.each([
+		['#ef4444', 'red'],
+		['#f43f5e', 'red'],
+		['#f97316', 'orange'],
+		['#f59e0b', 'orange'],
+		['#eab308', 'yellow'],
+		['#84cc16', 'green'],
+		['#10b981', 'green'],
+		['#14b8a6', 'cyan'],
+		['#06b6d4', 'cyan'],
+		['#3b82f6', 'blue'],
+		['#6366f1', 'blue'],
+		['#8b5cf6', 'purple'],
+		['#d946ef', 'pink'],
+		['#ec4899', 'pink'],
+		['#ffffff', 'white'],
+		['#a1a1aa', 'gray'],
+		['#52525b', 'gray'],
+		['#000000', 'black'],
+		['#1a0000', 'black'],
+	] as const)('names %s as %s', (hex, name) => {
+		const hsva = hexToHsva(hex)
+
+		if (!hsva) throw new Error(`${hex} does not parse`)
+
+		expect(colorHueName(hsva)).toBe(name)
+	})
+
+	it('reads a hue past 360 degrees as the same hue, and ignores the alpha', () => {
+		expect(colorHueName({ h: 360 + 220, s: 80, v: 80, a: 0.2 })).toBe('blue')
 	})
 })
 
@@ -340,11 +375,18 @@ describe('ColorPanel', () => {
 		// A repeated color checks its first chip only.
 		expect(radios.map((radio) => (radio as HTMLInputElement).checked)).toEqual([true, false, false])
 
-		fireEvent.click(screen.getByRole('radio', { name: '#000000' }))
+		// Each chip is named by a coarse name of its color and its hex code.
+		expect(radios.map((radio) => radio.getAttribute('aria-label'))).toEqual([
+			'White, #FFFFFF',
+			'Black, #000000',
+			'White, #FFFFFF',
+		])
+
+		fireEvent.click(screen.getByRole('radio', { name: 'Black, #000000' }))
 
 		expect(onValueChange).toHaveBeenLastCalledWith('#000000')
 
-		expect(screen.getByRole('radio', { name: '#000000' })).toBeChecked()
+		expect(screen.getByRole('radio', { name: 'Black, #000000' })).toBeChecked()
 
 		expect(inside(group).queryAllByRole('button')).toHaveLength(0)
 	})
@@ -365,7 +407,7 @@ describe('ColorPanel', () => {
 			</form>,
 		)
 
-		expect(screen.getByRole('radio', { name: '#ffffff' })).toBeChecked()
+		expect(screen.getByRole('radio', { name: 'White, #FFFFFF' })).toBeChecked()
 
 		const form = present<HTMLFormElement>(container.querySelector('form'), 'the native form')
 
@@ -581,8 +623,10 @@ describe('ColorPicker', () => {
 
 			expect(button).not.toBeDisabled()
 
-			// A button does not take aria-readonly, so the trigger is aria-disabled.
-			expect(button).toHaveAttribute('aria-disabled', 'true')
+			// The trigger is a combobox, which takes aria-readonly.
+			expect(button).toHaveAttribute('aria-readonly', 'true')
+
+			expect(button).not.toHaveAttribute('aria-disabled')
 
 			expect(button).toHaveAttribute('data-readonly')
 
@@ -642,7 +686,7 @@ describe('ColorPicker', () => {
 		expect(getSlot(container, 'color-picker-button')).toBeDisabled()
 	})
 
-	it('puts no aria-required on the trigger, a button that does not take it', () => {
+	it('puts the required state of a Control on the trigger, a combobox', () => {
 		const { container } = renderUI(
 			<Control required>
 				<ColorPicker defaultValue="#ef4444" />
@@ -651,9 +695,49 @@ describe('ColorPicker', () => {
 
 		const button = getSlot(container, 'color-picker-button')
 
-		expect(button).not.toHaveAttribute('role')
+		expect(button).toHaveAttribute('role', 'combobox')
 
-		expect(button).not.toHaveAttribute('aria-required')
+		expect(button).toHaveAttribute('aria-required', 'true')
+	})
+
+	// A select-only combobox takes its value from its content, so the hex code
+	// is the value after the name of the Field label.
+	it('takes its name from a Field label and its value from the hex code', () => {
+		renderUI(
+			<Field>
+				<Label>Brand color</Label>
+				<ColorPicker defaultValue="#ef4444" />
+			</Field>,
+		)
+
+		const trigger = screen.getByRole('combobox', { name: 'Brand color' })
+
+		expect(trigger).not.toHaveAttribute('aria-label')
+
+		expect(trigger).toHaveTextContent('#EF4444')
+	})
+
+	it('takes its name from a Field label over its aria-label, as DatePicker does', async () => {
+		renderUI(
+			<Field>
+				<Label>Brand color</Label>
+				<ColorPicker defaultValue="#ef4444" aria-label="Accent" />
+			</Field>,
+		)
+
+		const trigger = await screen.findByRole('combobox', { name: 'Brand color' })
+
+		expect(trigger).not.toHaveAttribute('aria-label')
+	})
+
+	it('names a trigger with no Field label from its aria-label, or as Color', () => {
+		const { rerender } = renderUI(<ColorPicker defaultValue="#ef4444" />)
+
+		expect(screen.getByRole('combobox', { name: 'Color' })).toBeInTheDocument()
+
+		rerender(<ColorPicker defaultValue="#ef4444" aria-label="Accent" />)
+
+		expect(screen.getByRole('combobox', { name: 'Accent' })).toBeInTheDocument()
 	})
 
 	// §7.3: an owner clears a controlled picker with `null`. The picker stays

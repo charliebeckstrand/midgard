@@ -13,6 +13,7 @@ import {
 	act,
 	bySlot,
 	fireEvent,
+	getSlot,
 	noop,
 	present,
 	readDensityStep,
@@ -124,6 +125,18 @@ describe('SidebarLayout', () => {
 		fireEvent.click(trigger)
 
 		expect(trigger).toHaveAttribute('aria-expanded', 'true')
+	})
+
+	it('names the drawer that holds the navigation', () => {
+		renderUI(
+			<SidebarLayout sidebar={<div>drawer-sidebar</div>}>
+				<SidebarLayoutBody>body</SidebarLayoutBody>
+			</SidebarLayout>,
+		)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Open navigation' }))
+
+		expect(screen.getByRole('dialog', { name: 'Navigation' })).toBeInTheDocument()
 	})
 
 	it('reports the mobile drawer opening, and not the floating peek', () => {
@@ -590,6 +603,46 @@ describe('SidebarLayout shortcut', () => {
 		})
 
 		expect(readChoice(SIDEBAR)).toBe('locked')
+	})
+
+	it('moves the focus from the inline panel to the main landmark when the sidebar goes offcanvas', () => {
+		const { container } = renderUI(
+			<SidebarLayout sidebar={<a href="/item">item</a>}>
+				<SidebarLayoutBody>body</SidebarLayoutBody>
+			</SidebarLayout>,
+		)
+
+		const item = present(getSlot(container, 'sidebar-panel').querySelector('a'), 'the sidebar item')
+
+		item.focus()
+
+		act(() => {
+			press(item)
+		})
+
+		expect(readChoice(SIDEBAR)).toBe('offcanvas')
+
+		expect(screen.getByRole('main')).toHaveFocus()
+	})
+
+	it('leaves a focus outside the inline panel where it is when the sidebar goes offcanvas', () => {
+		renderUI(
+			<SidebarLayout sidebar={<a href="/item">item</a>}>
+				<SidebarLayoutBody>
+					<button type="button">action</button>
+				</SidebarLayoutBody>
+			</SidebarLayout>,
+		)
+
+		const action = screen.getByRole('button', { name: 'action' })
+
+		action.focus()
+
+		act(() => {
+			press(action)
+		})
+
+		expect(action).toHaveFocus()
 	})
 
 	it('ignores the auto-repeat of a held chord', () => {

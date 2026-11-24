@@ -43,6 +43,9 @@ export function OfficeSwitch({ items, value }: { items: readonly OfficeItem[]; v
 	return (
 		<Segment
 			value={value}
+			// A pick writes the address and shows a different view, so an arrow key
+			// moves only the focus, and Enter or Space picks.
+			activation="manual"
 			onValueChange={(next) => {
 				const item = items.find((entry) => entry.value === next)
 

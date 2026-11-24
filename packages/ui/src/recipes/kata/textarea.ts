@@ -1,30 +1,16 @@
 import { defineKata, type VariantProps } from '../../core/recipe'
-import { dan, kokkaku, narabi, sen } from '../kiso'
-import { control, framed } from '../kumi/control'
+import { kokkaku, sen } from '../kiso'
+import { multiline } from '../kumi/control'
 
 export { scale } from '../kumi/control'
 
 const { textarea } = kokkaku
-const { flex } = narabi
-const { border } = sen
 
 export const k = defineKata(
 	{
-		extends: control,
-		/**
-		 * The frame when an actions row is present: it draws the border, and
-		 * it stacks the field above the actions row.
-		 */
-		actions: { true: [...border.default, 'flex-col items-stretch'], false: [] },
+		extends: multiline,
 		slots: {
 			field: {
-				base: 'block',
-				/**
-				 * The floor gives a field of one row the height of a framed Input.
-				 * A `bare` field has no inset, as a `bare` Input has none, so it
-				 * takes no floor, and a row is one line of text.
-				 */
-				variant: framed(dan.size.control.floor),
 				/**
 				 * Where the primary pointer is coarse, the grip slot replaces the native
 				 * grip. Safari on iOS and iPadOS draws no native grip.
@@ -34,8 +20,6 @@ export const k = defineKata(
 					vertical: 'resize-y pointer-coarse:resize-none',
 					horizontal: 'resize-x pointer-coarse:resize-none',
 				},
-				/** Strips the chrome of the field when the frame holds an actions row. */
-				actions: { true: ['border-0', 'rounded-none', 'focus:outline-hidden'], false: [] },
 			},
 			/**
 			 * The touch grip: a bar on the edge that the drag moves, the bottom edge
@@ -60,13 +44,8 @@ export const k = defineKata(
 					],
 				},
 			},
-			/**
-			 * The actions row beneath the textarea, at the inline end. Its gap also caps the
-			 * hit areas of the actions (`TouchTarget`), so they do not overlap.
-			 */
-			actions: [flex.row, 'justify-end mt-auto', dan.gap.scale.sm, 'pe-2 pb-2', dan.gap.touch.x.sm],
 		},
-		defaults: { resize: 'none', actions: false },
+		defaults: { resize: 'none' },
 	},
 	{ skeleton: textarea },
 )

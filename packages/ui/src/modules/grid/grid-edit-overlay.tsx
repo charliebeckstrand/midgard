@@ -467,6 +467,7 @@ function GridEditOverlayField<T>({
 			ariaLabel: label,
 			required: column.required ?? false,
 			entered: false,
+			errorId: error === null ? undefined : errorId,
 		})
 	) : (
 		<GridEditInputs

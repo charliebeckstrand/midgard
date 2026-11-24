@@ -264,7 +264,7 @@ export const k = defineKata({
 					'opacity-50',
 					'after:pointer-events-none after:absolute after:inset-0 after:ring-inset',
 					'group-focus-visible/thumb:after:ring-4',
-					'group-focus-visible/thumb:after:ring-blue-600',
+					'group-focus-visible/thumb:after:ring-blue-600 dark:group-focus-visible/thumb:after:ring-blue-500',
 					// Forced colors remove the ring, which is a box-shadow, and the thumbnail
 					// sets `outline-none`. This inset outline marks the focused page there.
 					'forced-colors:group-focus-visible/thumb:after:outline-solid forced-colors:group-focus-visible/thumb:after:outline-2',

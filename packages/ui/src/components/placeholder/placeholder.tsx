@@ -21,7 +21,7 @@ export type PlaceholderProps = {
 } & ComponentProps<'div'>
 
 /**
- * Skeleton shape that pulses while content loads. Renders a line by default;
+ * A skeleton shape that pulses while content loads. Renders a line by default;
  * pass `className` for other shapes, and `pulse={false}` for a still one.
  * @remarks Static leaf: renders in React Server Components.
  * @remarks To join adjacent placeholders like grouped controls, render them

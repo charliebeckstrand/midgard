@@ -1,5 +1,5 @@
 import { defineKata } from '../../core/recipe'
-import { dan, kasane, kokkaku, narabi, omote, sen } from '../kiso'
+import { dan, kasane, narabi, omote, sen } from '../kiso'
 import { picker } from '../kumi/control'
 
 export { scale } from '../kumi/control'
@@ -32,7 +32,6 @@ export const k = defineKata(
 	{
 		value,
 		swatch,
-		skeleton: kokkaku.colorPicker,
 		content: {
 			...picker.extras.content,
 			scroll: fit.scroll,

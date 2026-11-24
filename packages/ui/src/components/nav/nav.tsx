@@ -18,7 +18,8 @@ export type NavProps = Omit<ComponentProps<'nav'>, 'onChange' | 'defaultValue'> 
 }
 
 /**
- * Navigation landmark that broadcasts the active `value` to descendants via the current-item context.
+ * A navigation landmark that marks the item of its active `value` as current.
+ * It broadcasts the `value` to descendants via the current-item context.
  *
  * @remarks
  * A {@link NavContents} child renders after the `<nav>`, not in it. The panels

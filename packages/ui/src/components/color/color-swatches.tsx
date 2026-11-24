@@ -6,7 +6,7 @@ import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/color-panel'
 import { keyByOccurrence } from '../../utilities/key-by-occurrence'
 import { colorMessages } from './color-messages'
-import { hexToHsva, hsvaToHex } from './color-utilities'
+import { colorHueName, hexToHsva, hsvaToHex } from './color-utilities'
 import { useColorPanelContext } from './context'
 
 type ColorSwatchesProps = {
@@ -92,8 +92,17 @@ export function ColorSwatches({ swatches }: ColorSwatchesProps) {
 						form=""
 						name={name}
 						value={swatch}
-						// The name is the hex code, which a translation keeps as it is.
-						aria-label={swatch}
+						// The name is a coarse name of the color and the hex code. A preset
+						// that is not hex has no color to name, so its name is the preset. A
+						// translation keeps the hex code as it is.
+						aria-label={
+							parsed
+								? intl.formatMessage(colorMessages.swatch, {
+										hue: colorHueName(parsed),
+										hex: swatch.toUpperCase(),
+									})
+								: swatch
+						}
 						translate="no"
 						checked={key === checkedKey}
 						disabled={disabled}

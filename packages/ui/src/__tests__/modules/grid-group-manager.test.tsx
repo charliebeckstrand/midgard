@@ -334,7 +334,7 @@ describe('Grid column-group editor', () => {
 	}
 
 	const band = (root: HTMLElement) =>
-		root.querySelector<HTMLTableCellElement>('thead th[scope="colgroup"]')
+		root.querySelector<HTMLTableCellElement>('thead th[data-group-band]')
 
 	/** Makes a new group and moves the First column into it through the move menu. */
 	const groupFirst = () => {
@@ -474,9 +474,11 @@ describe('Grid column-group editor', () => {
 		// A controlled binding carries its groups in `value`, not `defaultValue`;
 		// the collapse seed must read the effective initial groups so the band
 		// mounts collapsed (offering to expand), not expanded.
-		expect(screen.getByRole('button', { name: 'Expand Identity' })).toBeInTheDocument()
+		expect(
+			screen.getByRole('button', { name: 'Identity columns', expanded: false }),
+		).toBeInTheDocument()
 
-		expect(screen.queryByRole('button', { name: 'Collapse Identity' })).toBeNull()
+		expect(screen.queryByRole('button', { name: 'Identity columns', expanded: true })).toBeNull()
 	})
 
 	it('removes a column from its group through the move menu', () => {

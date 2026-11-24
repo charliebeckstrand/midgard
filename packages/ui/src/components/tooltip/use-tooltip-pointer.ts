@@ -1,14 +1,26 @@
 'use client'
 
 import { type ClientRectObject, type Placement, useInteractions } from '@floating-ui/react'
-import { type RefObject, useLayoutEffect, useMemo, useRef } from 'react'
+import { type RefObject, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useEscapeLayer } from '../../hooks/use-escape-layer'
 import { useFloatingPanel } from '../../hooks/use-floating-panel'
 import type { TooltipContextValue } from './context'
 
 /** Options for {@link useTooltipPointer}. @internal */
 export type TooltipPointerOptions = {
-	/** Whether the readout shows; the caller derives it from its own hover state. */
+	/**
+	 * Whether the readout shows; the caller derives it from its own hover state.
+	 * An Escape press closes the readout until this goes false or
+	 * {@link target} changes.
+	 */
 	open: boolean
+	/**
+	 * The identity of what the readout reads, such as a band index, a cell
+	 * index, or a map target. An Escape press closes the readout for this target
+	 * only, so the next target opens it again while `open` stays true. Compared
+	 * with `Object.is`. Omitted, only the end of the hover opens it again.
+	 */
+	target?: unknown
 	/**
 	 * Coordinates to anchor at, or `null` while nothing is pointed. Without
 	 * {@link originRef}, they are client coordinates. With it, they are in the
@@ -154,21 +166,41 @@ function createPointAnchor(
  * chain). The anchor keeps its identity and reads the newest point, so a move
  * places the panel again through `update` and sets no new reference: a pointer
  * step takes one commit for the point and one for the position. It composes no
- * interaction (no role, dismiss, or overlay-signal), so nothing stamps
+ * interaction (no role or overlay-signal), so nothing stamps
  * `role="tooltip"`/`aria-describedby`; the readout is a pointer enhancement
- * that the consumer marks `aria-hidden`. `track` defaults to `'auto'` (parity
- * with `autoUpdate`); every current caller opts into `'point'`.
+ * that the consumer marks `aria-hidden`. Escape closes the readout wherever the
+ * focus is (WCAG 1.4.13), as it closes a `Tooltip`. The readout stays closed
+ * until the caller's `open` goes false or its `target` changes. `track`
+ * defaults to `'auto'` (parity with `autoUpdate`); every current caller opts
+ * into `'point'`.
  * @internal
  * @see {@link useFloatingPanel}
  */
 export function useTooltipPointer({
-	open,
+	open: requested,
 	point,
 	placement = 'top',
 	offset = 12,
 	track = 'auto',
 	originRef,
+	target,
 }: TooltipPointerOptions): TooltipContextValue {
+	// The target that an Escape press closed the readout on, boxed so that a
+	// `null` target can be dismissed too. Adjusted during render: the readout
+	// opens again when the hover ends, or on the next target, such as a click
+	// that pins another band.
+	const [dismissed, setDismissed] = useState<{ target: unknown } | null>(null)
+
+	if (dismissed !== null && (!requested || !Object.is(dismissed.target, target))) {
+		setDismissed(null)
+	}
+
+	const open = requested && dismissed === null
+
+	// Out of the dismiss stack, as a `Tooltip`: any Escape closes the readout,
+	// and the layer below, such as a Dialog, still gets the press.
+	useEscapeLayer({ open, layered: false, onDismiss: () => setDismissed({ target }) })
+
 	const { refs, floatingStyles, update } = useFloatingPanel({
 		placement,
 		open,
@@ -207,7 +239,8 @@ export function useTooltipPointer({
 		setPositionReference(next)
 	}, [originRef, x, y, refs, setPositionReference, update])
 
-	// No interaction hook: the caller drives the point and the open state.
+	// No interaction hook: the caller drives the point and the open state, and
+	// only Escape (above) closes the readout early.
 	const { getReferenceProps, getFloatingProps } = useInteractions([])
 
 	return useMemo(

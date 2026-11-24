@@ -7,6 +7,7 @@ import {
 	useCallback,
 	useEffect,
 	useLayoutEffect,
+	useMemo,
 	useRef,
 } from 'react'
 import { useVirtualWindow } from '../../hooks/use-virtual-window'
@@ -15,6 +16,7 @@ import { windowItemEstimate } from './engine/grid-items/items'
 import { useGridFitRenderedRows } from './use-grid-fit-rendered-rows'
 import type { GridScrollRowIntoView } from './use-grid-navigation'
 import { REVEAL_PROPERTY } from './use-grid-reveal-hold'
+import { useGridWindowKeep } from './use-grid-window-keep'
 import { useGridWindowOffsets } from './use-grid-window-offsets'
 
 /**
@@ -90,7 +92,12 @@ export function gridWindowView(
 ): GridWindowView {
 	const top = (scroller?.scrollTop ?? 0) + record.paddingStart
 
-	const first = record.virtualItems[0]?.index ?? -1
+	// The first rendered item that ends below the top edge. An item outside the
+	// window before it is above the view. A kept row above the window ends above
+	// the edge, so the rows between it and the window are above the view too.
+	const first =
+		(record.virtualItems.find((virtualItem) => virtualItem.end > top) ?? record.virtualItems[0])
+			?.index ?? -1
 
 	let rendered: Map<string, VirtualItem> | null = null
 
@@ -142,6 +149,11 @@ export function gridWindowView(
  * An insert or a removal above the first row in view does not move that row.
  * The start anchor of `useVirtualWindow` holds it still.
  *
+ * The window keeps the row of the cursor and the row that holds focus mounted
+ * out of view (see {@link useGridWindowKeep}). The body names each item by its
+ * key, and each row carries its index as `data-index`. The body passes the
+ * returned `onFocus` and `onBlur` to its `<tbody>`.
+ *
  * The scroller of a windowed master-detail or grouped body has
  * `overflow-anchor: none` (see `k.sticky.wrapper.windowed`), so the start anchor is
  * the only correction. The native scroll anchoring of the browser can keep a
@@ -172,6 +184,17 @@ export function useGridItemWindow<I extends WindowItem>(
 		[items, estimateSize],
 	)
 
+	const indexByKey = useMemo(
+		() => new Map<string | number, number>(items.map((item, index) => [item.key, index])),
+		[items],
+	)
+
+	const { keep, onFocus, onBlur } = useGridWindowKeep({
+		indexAttribute: 'data-index',
+		toKey: (index) => items[index]?.key,
+		findIndex: (key) => indexByKey.get(key) ?? -1,
+	})
+
 	const virtualWindow = useVirtualWindow({
 		count: items.length,
 		getScrollElement,
@@ -180,6 +203,7 @@ export function useGridItemWindow<I extends WindowItem>(
 		...offsets,
 		getItemKey,
 		initialRect: FIRST_WINDOW_RECT,
+		keep,
 	})
 
 	// The autosizer fits the columns again once the window's rows render.
@@ -234,5 +258,5 @@ export function useGridItemWindow<I extends WindowItem>(
 		}
 	}, [scrollIntoViewRef, scrollToIndex, recordRef])
 
-	return { bodyRef, closingEndItem, ...virtualWindow }
+	return { bodyRef, closingEndItem, onFocus, onBlur, ...virtualWindow }
 }

@@ -133,6 +133,14 @@ describe('PdfViewer', () => {
 		expect(thumbnails[1]).toHaveAttribute('data-current')
 	})
 
+	it('gives the thumbnail rail one Tab stop, on the current page', async () => {
+		const { container } = renderUI(<PdfViewer pages={pages} defaultPage={2} />)
+
+		const thumbnails = allBySlot(container, 'pdf-viewer-thumbnail')
+
+		await waitFor(() => expect(thumbnails.map((el) => el.tabIndex)).toEqual([-1, 0, -1]))
+	})
+
 	it('changes pages when a thumbnail is clicked', () => {
 		const onPageChange = vi.fn()
 
@@ -226,10 +234,13 @@ describe('PdfViewer', () => {
 		expect(iframe.src).toContain('/sample.pdf')
 	})
 
-	it('renders an empty state when there are no pages', () => {
+	// A document with no page has nothing to control, so the viewer shows only the message.
+	it('renders an empty state with no toolbar when there are no pages', () => {
 		const { container } = renderUI(<PdfViewer pages={[]} />)
 
 		expect(bySlot(container, 'pdf-viewer-pane')).toHaveTextContent('No pages to display')
+
+		expect(screen.queryByRole('toolbar', { name: 'PDF controls' })).toBeNull()
 	})
 
 	/*
@@ -293,7 +304,9 @@ describe('PdfViewer', () => {
 
 		const frame = present(markup.querySelector('div[data-slot="pdf-viewer-page-frame"]'), 'frame')
 
-		expect(frame.style.width).toMatch(/^calc\(min\(100cqw, ?100cqh/)
+		// The CSSOM simplifies the `calc()`: the width is the smaller of the container width and
+		// the container height times the page ratio.
+		expect(frame.style.width).toMatch(/^min\(100cqw, [\d.]+cqh\)$/)
 
 		const img = present<HTMLImageElement>(frame.querySelector('img'), 'img')
 
@@ -408,6 +421,48 @@ describe('PdfViewer', () => {
 
 			return () => act(async () => finish())
 		}
+
+		// A load that fails, and a load that opens a document with no page, leave nothing to
+		// control. The viewer shows only the message of the pane, and no toolbar.
+		it('shows no toolbar when the load fails', async () => {
+			ensureDocumentLoad('/broken.pdf', () => Promise.reject(new Error('network down')))
+
+			renderUI(<PdfViewer src="/broken.pdf" />)
+
+			await act(async () => {})
+
+			expect(screen.getByRole('alert')).toHaveTextContent('Failed to load PDF: network down')
+
+			expect(screen.queryByRole('toolbar', { name: 'PDF controls' })).toBeNull()
+		})
+
+		it('shows no toolbar when the document opens with no page', async () => {
+			ensureDocumentLoad('/blank.pdf', (report) => {
+				report.open([])
+
+				return Promise.resolve()
+			})
+
+			const { container } = renderUI(<PdfViewer src="/blank.pdf" />)
+
+			await act(async () => {})
+
+			expect(bySlot(container, 'pdf-viewer-pane')).toHaveTextContent('No pages to display')
+
+			expect(screen.queryByRole('toolbar', { name: 'PDF controls' })).toBeNull()
+		})
+
+		// While the document opens, the bar keeps its place, so the page does not shift when
+		// the document lands. Its controls wait for the page count.
+		it('shows the toolbar, with its controls disabled, while the document opens', () => {
+			ensureDocumentLoad('/slow.pdf', () => new Promise<void>(() => {}))
+
+			renderUI(<PdfViewer src="/slow.pdf" />)
+
+			expect(screen.getByRole('toolbar', { name: 'PDF controls' })).toBeInTheDocument()
+
+			expect(screen.getByLabelText('Rotate')).toHaveAttribute('aria-disabled', 'true')
+		})
 
 		it('shows the first page and every control while later pages still render', async () => {
 			const finish = openPartial('/partial.pdf')
@@ -820,6 +875,13 @@ describe('PdfViewer', () => {
 		resize(true)
 
 		expect(screen.queryByRole('dialog', { name: 'Pages' })).toBeNull()
+
+		// The button that opened the sheet is gone on desktop, so the sheet gives
+		// the focus to the nearest control of the viewer at its unmount: the
+		// toggle of the rail. The tooltip of the toggle then opens.
+		await act(async () => {})
+
+		expect(screen.getByLabelText('Hide thumbnails')).toHaveFocus()
 
 		resize(false)
 

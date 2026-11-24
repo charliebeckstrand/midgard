@@ -6,9 +6,9 @@ import FailedReply from './failed-reply.tsx'
 export default function ConversationTab() {
 	return (
 		<>
-			<Example of={Conversation} surface />
-			<Example of={EditAMessage} surface />
-			<Example of={FailedReply} surface />
+			<Example of={Conversation} box="surface" />
+			<Example of={EditAMessage} box="surface" />
+			<Example of={FailedReply} box="surface" />
 		</>
 	)
 }

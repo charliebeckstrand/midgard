@@ -28,14 +28,14 @@ describe('stepEditableColumn', () => {
 		expect(stepEditableColumn(columns, 2, -1)).toBe(0)
 	})
 
-	it('wraps at both edges of the row', () => {
-		expect(stepEditableColumn(columns, 2, 1)).toBe(0)
+	it('stops at both edges of the row', () => {
+		expect(stepEditableColumn(columns, 2, 1)).toBe(-1)
 
-		expect(stepEditableColumn(columns, 0, -1)).toBe(2)
+		expect(stepEditableColumn(columns, 0, -1)).toBe(-1)
 	})
 
-	it('returns the start when no other column is editable, and -1 when none is', () => {
-		expect(stepEditableColumn([{ field: 'a' }, {}], 0, 1)).toBe(0)
+	it('returns -1 when no other column is editable', () => {
+		expect(stepEditableColumn([{ field: 'a' }, {}], 0, 1)).toBe(-1)
 
 		expect(stepEditableColumn([{}, { readOnly: true, field: 'b' }], 0, 1)).toBe(-1)
 	})

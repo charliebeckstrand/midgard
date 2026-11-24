@@ -406,6 +406,59 @@ describe('Toast: useToast behavior', () => {
 		expect(screen.getByText('Sticky')).toBeInTheDocument()
 	})
 
+	it('keeps a toast with actions past the duration when it sets no time', async ({ clock }) => {
+		const api = renderToasts({ duration: 500 })
+
+		act(() => {
+			api.toast({ title: 'Deleted', actions: <button type="button">Undo</button> })
+		})
+
+		await clock.advance(1500)
+
+		expect(screen.getByText('Deleted')).toBeInTheDocument()
+	})
+
+	it.for([
+		['false', false],
+		['an empty string', ''],
+		['an empty array', []],
+	] as const)(
+		'counts down a toast whose actions are %s, as it shows no actions',
+		async ([, actions], { clock }) => {
+			const api = renderToasts({ duration: 500 })
+
+			act(() => {
+				api.toast({ title: 'No actions', actions })
+			})
+
+			await clock.advance(1500)
+
+			expect(screen.queryByText('No actions')).not.toBeInTheDocument()
+		},
+	)
+
+	it('counts down a toast with actions that sets a duration or persist: false', async ({
+		clock,
+	}) => {
+		const api = renderToasts({ duration: 500 })
+
+		act(() => {
+			api.toast({ title: 'Timed', duration: 200, actions: <button type="button">Undo</button> })
+
+			api.toast({
+				title: 'Opted out',
+				persist: false,
+				actions: <button type="button">Undo</button>,
+			})
+		})
+
+		await clock.advance(1500)
+
+		expect(screen.queryByText('Timed')).not.toBeInTheDocument()
+
+		expect(screen.queryByText('Opted out')).not.toBeInTheDocument()
+	})
+
 	it('uses a per-toast duration override', async ({ clock }) => {
 		const api = renderToasts({ duration: 100000 })
 

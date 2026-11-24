@@ -193,6 +193,18 @@ describe('PdfViewer rail resize handle', () => {
 		expect(handle).toHaveAttribute('aria-valuenow', '240')
 	})
 
+	it('keeps a drag that the second press of a double-click makes', () => {
+		const { handle } = renderRail()
+
+		fireEvent.pointerDown(handle, { pointerId: 1, isPrimary: true, button: 0, clientX: 240 })
+
+		fireEvent.pointerMove(handle, { pointerId: 1, clientX: 300 })
+
+		fireEvent.doubleClick(handle)
+
+		expect(handle).toHaveAttribute('aria-valuenow', '300')
+	})
+
 	it('keeps the width when the rail collapses and opens again', () => {
 		const { rail, handle } = renderRail()
 

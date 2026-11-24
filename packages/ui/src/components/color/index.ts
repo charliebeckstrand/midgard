@@ -1,5 +1,10 @@
+/**
+ * Color pickers: a swatch that opens a color panel, and the panel on its own.
+ *
+ * @packageDocumentation
+ */
+
 export { ColorPanel, type ColorPanelProps } from './color-panel'
 export { ColorPanelSkeleton, type ColorPanelSkeletonProps } from './color-panel-skeleton'
 export { ColorPicker, type ColorPickerProps } from './color-picker'
-export { ColorPickerSkeleton, type ColorPickerSkeletonProps } from './color-picker-skeleton'
 export type { ColorFormat, Hsv, Hsva, Rgb, Rgba } from './types'

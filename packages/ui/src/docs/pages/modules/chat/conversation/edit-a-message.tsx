@@ -10,9 +10,8 @@ import {
 	useChatDraft,
 	useChatSend,
 } from 'ui/chat'
-import type { ContextMenuEntry } from 'ui/context-menu'
+import type { ContextMenuConfig } from 'ui/context-menu'
 import { Flex } from 'ui/flex'
-import { Icon } from 'ui/icon'
 import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
 import { renderers } from '../embeds/renderers.tsx'
@@ -146,22 +145,12 @@ export default function EditAMessage() {
 	// `edit` does nothing while a reply streams, so the controls hide until it settles.
 	const editable = (message: ChatMessageData) => message.sender === 'user' && !chat.streaming
 
-	const actions = (message: ChatMessageData) =>
-		editable(message) ? (
-			<Button
-				variant="bare"
-				size="sm"
-				aria-label="Edit"
-				aria-pressed={message.id === editing}
-				onClick={() => (message.id === editing ? end() : start(message))}
-			>
-				<Icon icon={<Pencil />} />
-			</Button>
-		) : undefined
-
-	const contextMenu = (message: ChatMessageData): ContextMenuEntry[] | undefined =>
+	// The menu of each message holds Copy by default. A user message adds Edit.
+	const contextMenu = (message: ChatMessageData): ContextMenuConfig | undefined =>
 		editable(message)
-			? [{ key: 'edit', label: 'Edit', icon: <Pencil />, onAction: () => start(message) }]
+			? {
+					items: [{ key: 'edit', label: 'Edit', icon: <Pencil />, onAction: () => start(message) }],
+				}
 			: undefined
 
 	return (
@@ -171,7 +160,6 @@ export default function EditAMessage() {
 					messages={chat.messages}
 					streaming={chat.streaming}
 					editing={editing}
-					actions={actions}
 					contextMenu={contextMenu}
 					branches={chat.branches}
 					onBranchChange={chat.showBranch}

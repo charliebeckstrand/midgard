@@ -30,6 +30,10 @@ export type PasswordConfirmRepeatProps = Omit<PasswordInputProps, 'onChange' | '
  * caller, takes precedence. On unmount it clears the coordinator so a removed
  * field stops reporting a stale mismatch. Must render within a
  * {@link PasswordConfirm}.
+ *
+ * The field sets `autoComplete="new-password"`, as {@link PasswordConfirmNew}
+ * does. An `autoComplete` prop overrides it. The default also wins over an
+ * `autoComplete` on an enclosing `Control`.
  */
 export function PasswordConfirmRepeat({
 	onChange,
@@ -53,6 +57,7 @@ export function PasswordConfirmRepeat({
 
 	return (
 		<PasswordInput
+			autoComplete="new-password"
 			data-warning={dataAttr(showWarning)}
 			// Otherwise only the visual `data-warning` signals a mismatch; surface
 			// it programmatically too. A caller-supplied `invalid` still wins.

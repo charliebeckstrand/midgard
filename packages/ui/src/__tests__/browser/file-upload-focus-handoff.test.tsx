@@ -9,7 +9,7 @@ import { getSlot, present, renderUI, userEvent, waitFor } from '../helpers'
  * picker does, because a test cannot drive the picker.
  */
 describe('FileUploadDrop focus handoff (real browser)', () => {
-	it('keeps keyboard focus in the zone across a pick and a Reset', async () => {
+	it('keeps keyboard focus in the zone across a pick and a clear', async () => {
 		const user = userEvent.setup()
 
 		const { container } = renderUI(<FileUploadDrop />)
@@ -37,7 +37,7 @@ describe('FileUploadDrop focus handoff (real browser)', () => {
 
 		await user.tab()
 
-		expect(document.activeElement?.textContent).toBe('Reset')
+		expect(document.activeElement?.textContent).toBe('Clear selected file')
 
 		await user.keyboard('{Enter}')
 

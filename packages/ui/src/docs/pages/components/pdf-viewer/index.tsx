@@ -12,14 +12,19 @@ import Search from './search.tsx'
 export default function PdfViewerPage() {
 	return (
 		<>
-			<Playground of={PdfViewerPlayground} api={api} omit={['highlightUnit', 'search']} ratio />
-			<Example of={Highlights} ratio />
-			<Example of={DrivenFromAList} ratio />
-			<Example of={FitToWidth} surface />
-			<Example of={Magnifier} ratio />
-			<Example of={MagnifierSettings} ratio />
-			<Example of={Search} ratio />
-			<Example of={Empty} surface />
+			<Playground
+				of={PdfViewerPlayground}
+				api={api}
+				omit={['highlightUnit', 'search']}
+				box="ratio"
+			/>
+			<Example of={Highlights} box="ratio" />
+			<Example of={DrivenFromAList} box="ratio" />
+			<Example of={FitToWidth} box="surface" />
+			<Example of={Magnifier} box="ratio" />
+			<Example of={MagnifierSettings} box="ratio" />
+			<Example of={Search} box="ratio" />
+			<Example of={Empty} box="surface" />
 			<ApiTable api={api} />
 		</>
 	)

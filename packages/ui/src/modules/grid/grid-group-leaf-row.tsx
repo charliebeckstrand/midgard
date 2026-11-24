@@ -21,9 +21,11 @@ import {
 } from './engine/grid-row/cell'
 import {
 	cellRovingAttrs,
+	type GridTreePlace,
 	type GridWindowRowProps,
 	rowClickableClass,
 	rowShellProps,
+	treeRowProps,
 } from './engine/grid-row/shell'
 import { fitCellProps } from './engine/grid-sizing/fit-styles'
 import type { GridColumnPinning } from './engine/grid-table/pinning-view'
@@ -74,22 +76,24 @@ type GridGroupLeafRowProps<T> = {
 	 */
 	enter?: boolean
 	/**
-	 * The row's level in a treegrid. A client-grouped body sets it, and a
-	 * treegrid exposes it as `aria-level`. Manual grouping leaves it unset.
+	 * The row's level in a treegrid, which the treegrid exposes as `aria-level`.
+	 * A leaf under a group header is at level 2. A leaf of a headerless leading
+	 * run of a manual grouping is at level 1.
 	 */
 	level?: number
-} & Pick<
-	GridRowsProps<T>,
-	| 'onRowClick'
-	| 'onCellClick'
-	| 'onRowDoubleClick'
-	| 'onCellDoubleClick'
-	| 'rowRoving'
-	| 'cellRoving'
-	| 'cellActivate'
-	| 'truncate'
-	| 'pinning'
-> &
+} & GridTreePlace &
+	Pick<
+		GridRowsProps<T>,
+		| 'onRowClick'
+		| 'onCellClick'
+		| 'onRowDoubleClick'
+		| 'onCellDoubleClick'
+		| 'rowRoving'
+		| 'cellRoving'
+		| 'cellActivate'
+		| 'truncate'
+		| 'pinning'
+	> &
 	GridWindowRowProps
 
 /** Resolves a leaf cell's inner content: an inert grip, the checkbox, the actions, or the rendered value. @internal */
@@ -284,12 +288,15 @@ function GridGroupLeafRowImpl<T>({
 	color,
 	enter = false,
 	level,
+	place,
+	setSize,
 	...windowRow
 }: GridGroupLeafRowProps<T>) {
 	const pad = k.row.group.reveal.pad
 
-	// The cursor makes a client-grouped grid a treegrid, which reads the level.
-	const tree = useGridNavContext().enabled
+	// A keyboard model makes a grouped grid a treegrid, which reads the level:
+	// the cursor over a client grouping, or roving over a manual grouping.
+	const tree = useGridNavContext().enabled || rowRoving || cellRoving
 
 	// Rests the row once its reveal has shrunk to nothing, so a collapsed group's
 	// leaves stop riding the visible commit. A windowed leaf that enters mounts
@@ -321,7 +328,7 @@ function GridGroupLeafRowImpl<T>({
 				// These cover the collapse from its first frame; the hold above covers
 				// its cost from the last one, once the reveal has finished shrinking.
 				aria-hidden={ariaAttr(!expanded)}
-				aria-level={tree ? level : undefined}
+				{...treeRowProps(tree, level, { place, setSize })}
 				data-row-index={rowIndex}
 				inert={!expanded}
 				onTransitionEnd={reveal.onTransitionEnd}
@@ -379,9 +386,9 @@ export function leafRowProps<T>(
 	args: {
 		expanded: boolean
 		color?: PaletteColor
-		/** The leaf's treegrid level; the client-grouped body sets it. */
+		/** The leaf's treegrid level. */
 		level?: number
-	},
+	} & GridTreePlace,
 ): ComponentProps<typeof GridGroupLeafRowImpl<T>> {
 	return {
 		expanded: args.expanded,
@@ -406,5 +413,7 @@ export function leafRowProps<T>(
 		pinning: props.pinning,
 		color: args.color,
 		level: args.level,
+		place: args.place,
+		setSize: args.setSize,
 	}
 }

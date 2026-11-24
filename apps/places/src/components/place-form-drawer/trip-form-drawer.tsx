@@ -88,7 +88,7 @@ export function TripFormDrawer({ target, onOpenChange, onSubmit, places }: TripF
 			<Field>
 				<Label>Dates</Label>
 
-				<DatePicker name="days" range className="w-full" />
+				<DatePicker name="days" range />
 
 				<Message name="days" />
 			</Field>

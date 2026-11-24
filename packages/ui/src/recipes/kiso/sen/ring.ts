@@ -16,6 +16,7 @@
  *   - `thumb`: the rings of the native range thumb, in the WebKit and the Gecko
  *     form. Under forced colors the range shows its native thumb in system
  *     colors, and the outline of the input marks the focus.
+ *   - `track`: the inset ring of the native range track, in the two forms.
  *
  * Layer: kiso · Concern: rings
  */
@@ -48,7 +49,10 @@ const line = {
 } as const
 
 /**
- * The rings of the native range thumb. Tailwind reads only literal class names,
+ * The rings of the native range thumb. The ring is the edge of the white thumb,
+ * so it keeps a 3:1 contrast against the page in each mode (WCAG 1.4.11). At
+ * the minimum value the track has no fill, and the ring then marks the thumb.
+ * Tailwind reads only literal class names,
  * so each pseudo-element writes its own rings. Under forced colors the range is
  * native (`forced.control`), so the thumb takes system colors, and the outline
  * of the input marks the focus and the invalid state.
@@ -60,14 +64,8 @@ const thumb = [
 
 	'[&::-webkit-slider-thumb]:ring-1',
 	...mode(
-		[
-			'[&::-webkit-slider-thumb]:ring-zinc-950/20',
-			'contrast-more:[&::-webkit-slider-thumb]:ring-zinc-950/50',
-		],
-		[
-			'dark:[&::-webkit-slider-thumb]:ring-white/20',
-			'dark:contrast-more:[&::-webkit-slider-thumb]:ring-white/50',
-		],
+		'[&::-webkit-slider-thumb]:ring-zinc-950/50',
+		'dark:[&::-webkit-slider-thumb]:ring-white/50',
 	),
 	// An invalid range rings its thumb in red, as an invalid checkbox rings its box.
 	'data-invalid:[&::-webkit-slider-thumb]:ring-2',
@@ -76,26 +74,38 @@ const thumb = [
 		'dark:data-invalid:[&::-webkit-slider-thumb]:ring-red-500',
 	),
 	'focus-visible:[&::-webkit-slider-thumb]:ring-4',
-	'focus-visible:[&::-webkit-slider-thumb]:ring-blue-600',
+	...mode(
+		'focus-visible:[&::-webkit-slider-thumb]:ring-blue-600',
+		'dark:focus-visible:[&::-webkit-slider-thumb]:ring-blue-500',
+	),
 
 	'[&::-moz-range-thumb]:ring-1',
-	...mode(
-		[
-			'[&::-moz-range-thumb]:ring-zinc-950/20',
-			'contrast-more:[&::-moz-range-thumb]:ring-zinc-950/50',
-		],
-		[
-			'dark:[&::-moz-range-thumb]:ring-white/20',
-			'dark:contrast-more:[&::-moz-range-thumb]:ring-white/50',
-		],
-	),
+	...mode('[&::-moz-range-thumb]:ring-zinc-950/50', 'dark:[&::-moz-range-thumb]:ring-white/50'),
 	'data-invalid:[&::-moz-range-thumb]:ring-2',
 	...mode(
 		'data-invalid:[&::-moz-range-thumb]:ring-red-600',
 		'dark:data-invalid:[&::-moz-range-thumb]:ring-red-500',
 	),
 	'focus-visible:[&::-moz-range-thumb]:ring-4',
-	'focus-visible:[&::-moz-range-thumb]:ring-blue-600',
+	...mode(
+		'focus-visible:[&::-moz-range-thumb]:ring-blue-600',
+		'dark:focus-visible:[&::-moz-range-thumb]:ring-blue-500',
+	),
+]
+
+/**
+ * The inset ring of the native range track, in the WebKit and the Gecko form.
+ * The slider group sets its color in `--slider-track-ring`. Under forced colors
+ * the range is native (`forced.control` in {@link thumb}), so the track takes
+ * system colors.
+ */
+const track = [
+	'[&::-webkit-slider-runnable-track]:ring-1',
+	'[&::-webkit-slider-runnable-track]:ring-inset',
+	'[&::-webkit-slider-runnable-track]:ring-(--slider-track-ring)',
+	'[&::-moz-range-track]:ring-1',
+	'[&::-moz-range-track]:ring-inset',
+	'[&::-moz-range-track]:ring-(--slider-track-ring)',
 ]
 
 export const ring = {
@@ -106,4 +116,6 @@ export const ring = {
 	line,
 	/** The rings of the native range thumb, with the native range under forced colors. */
 	thumb,
+	/** The inset ring of the native range track. */
+	track,
 } as const

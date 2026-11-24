@@ -6,9 +6,9 @@ import SmoothInterpolation from './smooth-interpolation.tsx'
 export default function AreaTab() {
 	return (
 		<>
-			<Example of={SingleSeries} ratio />
-			<Example of={SmoothInterpolation} ratio />
-			<Example of={Animated} ratio />
+			<Example of={SingleSeries} box="ratio" />
+			<Example of={SmoothInterpolation} box="ratio" />
+			<Example of={Animated} box="ratio" />
 		</>
 	)
 }

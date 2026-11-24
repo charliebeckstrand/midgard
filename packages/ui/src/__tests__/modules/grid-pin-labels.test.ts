@@ -45,8 +45,8 @@ describe('pin labels', () => {
 		expect(describePin(intlEn, 'Name', false, true)).toBe('Unpinned Name')
 	})
 
-	// The across fill goes to the inline end, so it names the left edge in RTL.
-	it('names the physical edge of the across fill', () => {
+	// The across fills go to the inline end and start, so they swap names in RTL.
+	it('names the physical edge of the across fills', () => {
 		const fill = () => () => {}
 
 		const labels = (rtl: boolean) =>
@@ -54,12 +54,16 @@ describe('pin labels', () => {
 
 		expect(labels(false)).toEqual([
 			['fill-down', 'Fill down'],
+			['fill-up', 'Fill up'],
 			['fill-right', 'Fill right'],
+			['fill-left', 'Fill left'],
 		])
 
 		expect(labels(true)).toEqual([
 			['fill-down', 'Fill down'],
+			['fill-up', 'Fill up'],
 			['fill-right', 'Fill left'],
+			['fill-left', 'Fill right'],
 		])
 	})
 })

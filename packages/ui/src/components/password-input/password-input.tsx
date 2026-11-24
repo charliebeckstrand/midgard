@@ -15,12 +15,8 @@ const messages = defineMessages({
 	show: {
 		id: 'ui.passwordInput.show',
 		defaultMessage: 'Show password',
-		description: 'The name of the button that shows the text of a password field.',
-	},
-	hide: {
-		id: 'ui.passwordInput.hide',
-		defaultMessage: 'Hide password',
-		description: 'The name of the button that hides the text of a password field.',
+		description:
+			'The fixed name and tooltip of the toggle button that shows or hides the text of a password field. The pressed state tells if the text shows.',
 	},
 })
 
@@ -43,8 +39,7 @@ export type PasswordInputProps = Omit<InputProps, 'type' | 'suffix'> & {
 type ToggleProps = {
 	visible: boolean
 	onToggle: () => void
-	showLabel: string
-	hideLabel: string
+	label: string
 	disabled?: boolean
 }
 
@@ -52,25 +47,24 @@ type ToggleProps = {
  * Suffix button for {@link PasswordInput} that toggles plaintext visibility.
  *
  * @remarks
- * Keeps a fixed `aria-label` (the show label) and signals state via
- * `aria-pressed`, per the APG toggle-button pattern. Screen readers don't
- * reliably announce a name swap on the same control. The visible tooltip text
- * still swaps between show/hide.
+ * Keeps a fixed `aria-label` and signals the state through `aria-pressed`, as
+ * the APG toggle-button pattern tells. Screen readers do not reliably announce
+ * a name change on the same control. The tooltip is the visible label of the
+ * icon button, so it shows the same fixed text (WCAG 2.5.3). The icon shows
+ * the state.
  * @internal
  */
-function VisibilityToggle({ visible, onToggle, showLabel, hideLabel, disabled }: ToggleProps) {
-	const text = visible ? hideLabel : showLabel
-
+function VisibilityToggle({ visible, onToggle, label, disabled }: ToggleProps) {
 	return (
 		<Tooltip>
 			<TooltipTrigger>
-				{/* Fixed accessible name + aria-pressed (the APG toggle pattern):
-				    screen readers do not reliably announce a name swap on the same
-				    control. The visible tooltip still swaps. */}
+				{/* Fixed accessible name and aria-pressed (the APG toggle pattern).
+				    The tooltip shows the same text, so the visible label and the
+				    name agree. */}
 				<Button
 					type="button"
 					variant="bare"
-					aria-label={showLabel}
+					aria-label={label}
 					aria-pressed={visible}
 					disabled={disabled}
 					onClick={onToggle}
@@ -78,12 +72,15 @@ function VisibilityToggle({ visible, onToggle, showLabel, hideLabel, disabled }:
 					<Icon icon={visible ? <EyeOff /> : <Eye />} />
 				</Button>
 			</TooltipTrigger>
-			<TooltipContent>{text}</TooltipContent>
+			<TooltipContent>{label}</TooltipContent>
 		</Tooltip>
 	)
 }
 
-/** Masked Input with a tooltip-labeled suffix button that toggles plaintext visibility; suppress it via `showToggle={false}`. */
+/**
+ * A password field with a button that shows or hides the password. A tooltip
+ * labels the button. Suppress the button via `showToggle={false}`.
+ */
 export function PasswordInput({
 	showToggle = true,
 	onVisibleChange,
@@ -117,8 +114,7 @@ export function PasswordInput({
 					<VisibilityToggle
 						visible={revealed}
 						onToggle={() => setVisible((prev) => !prev)}
-						showLabel={intl.formatMessage(messages.show)}
-						hideLabel={intl.formatMessage(messages.hide)}
+						label={intl.formatMessage(messages.show)}
 						disabled={disabled}
 					/>
 				) : undefined

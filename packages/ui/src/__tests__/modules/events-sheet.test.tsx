@@ -87,7 +87,7 @@ describe('EventsButton', () => {
 			fireEvent.click(trigger)
 		})
 
-		expect(screen.getByRole('tab', { name: 'Events', selected: true })).toBeDefined()
+		expect(screen.getByRole('radio', { name: 'Events', checked: true })).toBeDefined()
 	})
 
 	it('stamps aria-expanded and data-open on the trigger while the sheet is open', async () => {
@@ -334,7 +334,7 @@ describe('EventsSheet Bugs', () => {
 
 		sheet.open()
 
-		expect(screen.getByRole('tab', { name: 'Bugs 1' })).toBeDefined()
+		expect(screen.getByRole('radio', { name: 'Bugs 1' })).toBeDefined()
 
 		fireEvent.click(screen.getByText('caught boom'))
 
@@ -368,7 +368,7 @@ describe('EventsSheet Bugs', () => {
 
 		sheet.open()
 
-		fireEvent.click(screen.getByRole('tab', { name: 'Bugs 2' }))
+		fireEvent.click(screen.getByRole('radio', { name: 'Bugs 2' }))
 
 		const list = screen.getByRole('list', { name: 'Bugs' })
 

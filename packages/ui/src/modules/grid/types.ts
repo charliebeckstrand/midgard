@@ -170,7 +170,11 @@ export type GridColumn<T> = {
 	 * Validates an edited cell value in an {@link GridProps.editable | editable}
 	 * grid. Receives the pending value and its row. Return an error message to
 	 * reject it, or `null` to accept it. The editor shows the message inline while
-	 * editing, and the cell is dropped (not emitted) when the row saves.
+	 * editing. In a grid-owned session, a save from the editor holds back while
+	 * the column refuses the value: the editor stays open, and the grid speaks
+	 * the message. A cell that closes with a refused value, as on a leave, drops
+	 * and does not go to `onCommit`, and the grid announces that it did not
+	 * save.
 	 */
 	validate?: (value: unknown, row: T) => string | null
 	/**
@@ -719,8 +723,9 @@ export type GridCellMenuContext<T> = {
 /**
  * Body-cell context-menu config: `true` for the default items, or a builder
  * that receives the {@link GridCellMenuContext} and the defaults. The builder
- * returns the final item list. The defaults are Copy, then Fill down and Fill
- * right when a cell {@link GridProps.range | range} can fill, then the Export
+ * returns the final item list. The defaults are Copy, then Fill down, Fill
+ * up, Fill right, and Fill left when a cell {@link GridProps.range | range}
+ * can fill, then the Export
  * menu when {@link GridProps.exportable} is on.
  *
  * @typeParam T - Shape of a single row.

@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest'
 import { colors, extendedColors, type PaletteColor } from '../../core/recipe'
 import { k as button } from '../../recipes/kata/button'
 import { k as commandPalette } from '../../recipes/kata/command-palette'
+import { k as grid } from '../../recipes/kata/grid'
 import { k as input } from '../../recipes/kata/input'
 import { k as kanban } from '../../recipes/kata/kanban'
 import { k as list } from '../../recipes/kata/list'
@@ -425,5 +426,26 @@ describe('Kanban empty column message', () => {
 
 		for (const ink of inks[mode])
 			expect(getContrast(ink, WASH[mode]), ink).toBeGreaterThanOrEqual(TEXT_AA)
+	})
+})
+
+/**
+ * The validation message of a grid cell is white text on a solid red fill. The
+ * fill is the surface of the text, so the test measures the text against each
+ * fill of the recipe, in each mode.
+ */
+describe('Grid cell validation message', () => {
+	const fills = classNames([grid.edit.error.base]).filter((className) =>
+		/^(?:dark:)?bg-red-\d+$/.test(className),
+	)
+
+	it('clears text AA on each fill', () => {
+		expect(fills).not.toEqual([])
+
+		for (const fill of fills) {
+			const surface = tinted(fill.replace('dark:', ''), SURFACE.light)
+
+			expect(getContrast('text-white', surface), fill).toBeGreaterThanOrEqual(TEXT_AA)
+		}
 	})
 })

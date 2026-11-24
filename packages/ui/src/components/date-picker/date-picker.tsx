@@ -216,7 +216,11 @@ export type DatePickerBaseProps = {
 	defaultOpen?: boolean
 	/** Fires when the calendar opens or closes (trigger, dismiss, Escape, selection). */
 	onOpenChange?: (open: boolean) => void
-	/** Accessible name for the trigger when no Field/Label wraps the picker. */
+	/**
+	 * The name of the trigger when no label names it. A Label of the enclosing
+	 * Field wins over it.
+	 * @defaultValue `'Date'`, in the language of the reader.
+	 */
 	'aria-label'?: string
 }
 
@@ -230,35 +234,46 @@ export type DatePickerProps = DatePickerBaseProps &
 	(DatePickerSingleProps | DatePickerRangeProps | DatePickerRelativeProps)
 
 /**
- * Popover date picker. It switches between single and range calendar selection
- * on the `range` prop, or a relative-range picker on the `relative` prop. The
- * relative picker is single-select by default, and multi-select with
- * `multiple: true`. It supports controlled or uncontrolled `value`. The picker takes
- * the step of the nearest density scope, and an explicit `size` opens a scope. With `input`, a
- * typed DateInput replaces the trigger and the calendar opens from its suffix
- * button. A `clearable` clear button replaces the calendar icon once a value is
- * set, mirroring Listbox/Combobox, which default it off as well.
+ * A date field that opens a calendar in a popover. It switches between single
+ * and range calendar selection on the `range` prop, or a relative-range picker
+ * on the `relative` prop. The relative picker is single-select by default, and
+ * multi-select with `multiple: true`. It supports controlled or uncontrolled
+ * `value`. The picker takes the step of the nearest density scope, and an
+ * explicit `size` opens a scope. With `input`, a typed DateInput replaces the
+ * trigger and the calendar opens from its suffix button. A `clearable` clear
+ * button replaces the calendar icon once a value is set, mirroring
+ * Listbox/Combobox, which default it off as well.
  *
- * The trigger is as wide as its value and its calendar icon. It does not fill
- * its parent, and it does not get wider than its parent. Pass a `className`
- * such as `w-full` to make it fill the parent. With `input`, the DateInput
- * fills its parent, as an Input does.
+ * The trigger fills its parent, as each other control does. The parent, such
+ * as a form column, sets the width. With `input`, the DateInput also fills its
+ * parent.
  *
  * @remarks
- * In the calendar variants, keyboard navigation runs on a virtual highlight
- * rather than DOM focus. The open dialog itself holds focus, and routes
- * arrow/Page keys to the active zone. The `input` mode instead keeps DOM focus
- * on the editable DateInput on open. It drives the grid through the input's
- * `aria-activedescendant`, the active-descendant pattern, as on Combobox. A
- * keyboard user therefore never loses the field. It also keeps the reference
- * group out of the modal trap's `aria-hidden` marking, and closes its own Tab
- * cycle. The `relative` variant's preset list uses real focusable toggle
+ * The calendar variants follow the WAI-ARIA APG date picker dialog. The open
+ * moves DOM focus to a day: the selected day (the start of a range), else
+ * today, else the first enabled day of the month. The calendar owns the keys,
+ * as a standalone `Calendar` does. The arrow keys, Home, End, PageUp,
+ * PageDown, and Shift with a Page key move the focus. Enter and Space select
+ * the focused day. Escape closes the dialog and returns focus to the trigger.
+ * After the first day of a range, a screen reader hears the start day and that
+ * the next day sets the end.
+ *
+ * The `input` mode instead keeps DOM focus on the editable DateInput on open.
+ * It drives the grid through the input's `aria-activedescendant`, the
+ * active-descendant pattern, as on Combobox. ArrowUp and ArrowDown move the
+ * highlight into the grid. ArrowLeft, ArrowRight, and Shift with ArrowUp or
+ * ArrowDown stay with the text until a day is highlighted. A keyboard user
+ * therefore never loses the field. It also keeps the reference group out of
+ * the modal trap's `aria-hidden` marking, and closes its own Tab cycle. On a
+ * phone, the sheet covers the field, so the sheet takes the focus as the
+ * calendar variants do. The `relative` variant's preset list uses real focusable toggle
  * buttons, shown as chips in the trigger. It swaps to Start/End `input`-mode
  * date fields for a custom range.
  *
  * The trigger is a select-only combobox with a dialog popup, as on Listbox. Its
  * content is its value, so a screen reader announces the selected date after
- * the name from `aria-label` or a Field label.
+ * the name from `aria-label` or a Field label. With neither, the trigger takes
+ * the name "Date", in the language of the reader, as `DateInput` does.
  *
  * The trigger and the dialog stamp `data-open` while the dialog is open, and the
  * trigger stamps `data-disabled` while it is disabled.

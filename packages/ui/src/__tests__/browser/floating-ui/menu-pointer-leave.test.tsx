@@ -65,7 +65,7 @@ describe('the pointer leaves a menu (real browser)', () => {
 		await frames()
 	}
 
-	it('clears the active row of a dropdown, and ArrowDown starts at the first row', async () => {
+	it('moves focus to the panel of a dropdown, and ArrowDown starts at the first row', async () => {
 		renderUI(
 			<>
 				<Menu placement="bottom-start">
@@ -78,9 +78,7 @@ describe('the pointer leaves a menu (real browser)', () => {
 			</>,
 		)
 
-		const trigger = screen.getByRole('button', { name: 'Open' })
-
-		await userEvent.click(trigger)
+		await userEvent.click(screen.getByRole('button', { name: 'Open' }))
 
 		await waitFor(() => expect(row('Second')).toBeVisible())
 
@@ -88,21 +86,15 @@ describe('the pointer leaves a menu (real browser)', () => {
 
 		await userEvent.hover(row('Second'))
 
-		await waitFor(() => expect(row('Second')).toHaveAttribute('data-active'))
+		await waitFor(() => expect(row('Second')).toHaveFocus())
 
 		await leave()
 
-		expect(screen.getByRole('menu').querySelector('[data-active]')).toBeNull()
-
-		expect(trigger).not.toHaveAttribute('aria-activedescendant')
-
-		expect(trigger).toHaveFocus()
+		expect(screen.getByRole('menu')).toHaveFocus()
 
 		await userEvent.keyboard('{ArrowDown}')
 
-		expect(row('First')).toHaveAttribute('data-active')
-
-		expect(trigger).toHaveAttribute('aria-activedescendant', row('First').id)
+		expect(row('First')).toHaveFocus()
 	})
 
 	it('moves focus to the panel of a context menu, and ArrowDown starts at the first row', async () => {

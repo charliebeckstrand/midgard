@@ -1,6 +1,6 @@
 'use client'
 
-import type { CSSProperties, KeyboardEvent, PointerEvent, RefObject } from 'react'
+import type { CSSProperties, PointerEvent, RefObject } from 'react'
 import { createContext } from '../../core/create-context'
 import type { ScaleStep } from '../../core/density/scale'
 import type { scale } from '../../recipes/kata/menu'
@@ -10,9 +10,10 @@ type MenuStateValue = {
 	/** Id of the menu panel; the trigger's `aria-controls` points at it. */
 	menuId: string
 	/**
-	 * True for a placement-driven dropdown, where a {@link MenuTrigger} keeps focus
-	 * while open. False for a right-click context menu, which has no persistent
-	 * trigger and so pulls focus into its panel on open.
+	 * True for a placement-driven dropdown, which a {@link MenuTrigger} opens. Tab
+	 * in its panel closes it, and the focus goes on from the trigger. False for a
+	 * right-click context menu, which has no persistent trigger and so holds Tab
+	 * in its panel.
 	 */
 	isDropdown: boolean
 	/**
@@ -37,20 +38,13 @@ type MenuActionsValue = {
 	/**
 	 * Dismisses the menu as a Tab-out. It closes the menu with a `'focus-out'`
 	 * reason. Focus is then left where Tab is carrying it, rather than snapped
-	 * back to the trigger. {@link MenuTrigger} calls this on Tab while the menu is open.
+	 * back to the trigger. {@link MenuContent} calls this on Tab in a dropdown.
 	 */
 	dismissToTab: (event: Event) => void
 	/**
-	 * Virtual-roving key handler for the trigger. Arrow / Home / End / type-ahead
-	 * move the dropdown's `aria-activedescendant` cursor over the menu items,
-	 * while focus stays on the trigger. Enter activates the active row. No-ops while
-	 * the panel is unmounted. The panel stays mounted through its exit, so
-	 * {@link MenuTrigger} calls it only while the menu is open.
-	 */
-	rovingKeyDown: (event: KeyboardEvent) => void
-	/**
 	 * Whether a key opened the menu that is open now. A dropdown then opens on
-	 * its first row. {@link MenuSheet} reads it to choose its first focus.
+	 * its first row. {@link MenuContent} and {@link MenuSheet} read it to choose
+	 * the first focus.
 	 */
 	openedByKey: () => boolean
 	static: boolean
@@ -122,10 +116,9 @@ export type MenuPointerValue = {
 	/** Closes `subKey`, if it is the one open. */
 	closeSubmenu: (subKey: string) => void
 	/**
-	 * Seats the level's roving cursor on `row`, in whichever model the level roves
-	 * by. That is real focus on the row, or, for a dropdown, focus on the owner and
-	 * the owner's `aria-activedescendant` on the row. A submenu that the keyboard
-	 * closes hands the cursor back to its parent row through this.
+	 * Seats the level's roving cursor on `row`: the focus goes to the row. A
+	 * submenu that the keyboard closes hands the cursor back to its parent row
+	 * through this.
 	 */
 	moveCursor: (row: HTMLElement) => void
 	/**

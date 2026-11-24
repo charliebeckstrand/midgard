@@ -14,17 +14,25 @@ import {
 } from '../../primitives/form/context'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
+import type { HeadingLevel } from '../../recipes/kata/heading'
 import { k as linkK } from '../../recipes/kata/link'
 import { summarizeErrors } from './engine/form-error-summary'
-import { focusControl } from './form-focus'
+import { focusControl, sortByDocumentOrder } from './form-focus'
 
-/** Props for {@link FormErrorSummary}: the `title` of the summary, atop the native attributes of its `<div>`. */
+/** Props for {@link FormErrorSummary}: the `title` of the summary and its heading level, atop the native attributes of its `<div>`. */
 export type FormErrorSummaryProps = Omit<ComponentProps<'div'>, 'title' | 'color' | 'children'> & {
 	/**
 	 * The heading of the summary.
 	 * @defaultValue `'There is a problem'`, in the language of the reader.
 	 */
 	title?: ReactNode
+	/**
+	 * The level of the heading element that holds the title, `h1` to `h6`. Set it
+	 * one level below the heading above the form on the page. The level does not
+	 * change the style of the title.
+	 * @defaultValue 2
+	 */
+	titleLevel?: HeadingLevel
 }
 
 const messages = defineMessages({
@@ -59,12 +67,16 @@ const messages = defineMessages({
  * as a control with only an `aria-label` or a native `<label>`, gives a row with
  * only the issue. Thus write each issue so that it is clear without its field.
  *
+ * The title is a heading, `h2` by default, so a reader who lists the headings
+ * of the page finds the summary.
+ *
  * The summary is an error `Alert`, so it announces itself. It also takes the
  * focus after each failure, so the reader starts from it. An `onInvalidSubmit`
  * that moves the focus runs after it, and wins.
  */
 export function FormErrorSummary({
 	title: titleProp,
+	titleLevel = 2,
 	ref,
 	className,
 	...props
@@ -133,11 +145,25 @@ export function FormErrorSummary({
 
 	if (!visible) return null
 
+	// An empty title renders no heading, so the summary has no empty `h2`.
+	const hasTitle = title != null && typeof title !== 'boolean' && title !== ''
+
+	const TitleHeading = `h${titleLevel}` as const
+
+	// The rows follow the order of the controls in the document, as the focus of
+	// a refused submit does. A row with no control in the document comes last,
+	// in the order of the map.
+	const rows = sortByDocumentOrder(items, ({ name }) => {
+		const target = targets[name]
+
+		return target && document.getElementById(target.id)
+	})
+
 	return (
 		<Alert
 			data-slot="form-error-summary"
 			severity="error"
-			title={title}
+			title={hasTitle ? <TitleHeading>{title}</TitleHeading> : undefined}
 			className={className}
 			{...props}
 			ref={setRoot}
@@ -146,7 +172,7 @@ export function FormErrorSummary({
 			<ul className="flex flex-col gap-2">
 				{/* The issue of the whole form has no field, so it has no link. */}
 				{formError !== null && <li data-slot="form-error-summary-form">{formError}</li>}
-				{items.map(({ name, issue }) => {
+				{rows.map(({ name, issue }) => {
 					const target = targets[name]
 
 					if (target === undefined) return <li key={name}>{issue}</li>

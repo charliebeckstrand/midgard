@@ -8,6 +8,7 @@ import { ChevronsUpDown } from '../../primitives/icons/icons'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/offcanvas'
 import { Flex } from '../../structure/flex'
+import { isApplePlatform } from '../../utilities/apple-platform'
 import { appearanceMessages } from './appearance-messages'
 import { ChoiceListbox } from './choice-listbox'
 import { useAppearance } from './context'
@@ -18,7 +19,7 @@ import { sidebarModes } from './modes'
 // renders only in the dialog, which renders only in the client, so the label
 // never renders on the server.
 function sidebarShortcut() {
-	return /Mac|iPod|iPhone|iPad/.test(navigator.platform) ? '⌘B' : '⌃B'
+	return isApplePlatform() ? '⌘B' : '⌃B'
 }
 
 // The suffix of the sidebar picker: the key of the shortcut, then the chevron

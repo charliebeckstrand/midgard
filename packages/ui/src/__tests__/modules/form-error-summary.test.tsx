@@ -1,4 +1,4 @@
-import { act } from '@testing-library/react'
+import { act, screen } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Checkbox } from '../../components/checkbox'
@@ -154,7 +154,7 @@ describe('FormErrorSummary', () => {
 		expect(email).toHaveFocus()
 	})
 
-	it('links a file upload with no bound Message to its hidden input', async () => {
+	it('links a file upload with no bound Message to its hidden input, which gives the focus to its trigger', async () => {
 		const { container } = renderUI(
 			<Form defaultValues={{ files: [] }} validate={{ files: () => 'Attach a file.' }}>
 				<FormErrorSummary />
@@ -173,7 +173,8 @@ describe('FormErrorSummary', () => {
 
 		fireEvent.click(link)
 
-		expect(container.querySelector('#files-control')).toHaveFocus()
+		// Nothing shows the hidden input, so it passes the focus to the trigger.
+		expect(screen.getByRole('button', { name: 'Files Upload' })).toHaveFocus()
 	})
 
 	it('shows the issue of a field with no registered control as text', async () => {
@@ -471,6 +472,104 @@ describe('FormErrorSummary', () => {
 		expect(
 			within(getSlot(container, 'form-error-summary')).getByText('Check the form'),
 		).toBeInTheDocument()
+	})
+
+	it('renders the title as an h2 heading by default', async () => {
+		const { container } = renderSignup()
+
+		await submit(container)
+
+		const heading = within(getSlot(container, 'form-error-summary')).getByRole('heading', {
+			name: 'There is a problem',
+		})
+
+		expect(heading.tagName).toBe('H2')
+	})
+
+	it('renders the title at the titleLevel', async () => {
+		const { container } = renderUI(
+			<Form defaultValues={{ name: '' }} validate={{ name: () => 'Enter a name.' }}>
+				<FormErrorSummary titleLevel={3} />
+			</Form>,
+		)
+
+		await submit(container)
+
+		expect(
+			within(getSlot(container, 'form-error-summary')).getByRole('heading', { level: 3 }),
+		).toHaveTextContent('There is a problem')
+	})
+
+	it('renders no heading when the title is null', async () => {
+		const { container } = renderUI(
+			<Form defaultValues={{ name: '' }} validate={{ name: () => 'Enter a name.' }}>
+				<FormErrorSummary title={null} />
+			</Form>,
+		)
+
+		await submit(container)
+
+		expect(within(getSlot(container, 'form-error-summary')).queryByRole('heading')).toBeNull()
+	})
+
+	it('orders the rows by the position of each control in the document', async () => {
+		const { container } = renderUI(
+			<Form<Values>
+				defaultValues={{ name: '', email: '' }}
+				onSubmit={() => ({ fieldErrors: { email: 'Enter an email address.', name: 'Taken.' } })}
+			>
+				<FormErrorSummary />
+				<Field>
+					<Label>Name</Label>
+					<Input name="name" />
+				</Field>
+				<Field>
+					<Label>Email</Label>
+					<Input name="email" />
+				</Field>
+			</Form>,
+		)
+
+		await submit(container)
+
+		const items = within(getSlot(container, 'form-error-summary')).getAllByRole('listitem')
+
+		// The map has `email` first, but `name` comes first in the document.
+		expect(items.map((item) => item.textContent)).toEqual([
+			'Name Taken.',
+			'Email Enter an email address.',
+		])
+	})
+
+	it('puts a row with no control after the rows with a control, in the order of the map', async () => {
+		const { container } = renderUI(
+			<Form
+				defaultValues={{ code: '', name: '', email: '' }}
+				onSubmit={() => ({
+					fieldErrors: { code: 'Bad code.', email: 'Enter an email address.', name: 'Taken.' },
+				})}
+			>
+				<FormErrorSummary />
+				<Field>
+					<Label>Name</Label>
+					<Input name="name" />
+				</Field>
+				<Field>
+					<Label>Email</Label>
+					<Input name="email" />
+				</Field>
+			</Form>,
+		)
+
+		await submit(container)
+
+		const items = within(getSlot(container, 'form-error-summary')).getAllByRole('listitem')
+
+		expect(items.map((item) => item.textContent)).toEqual([
+			'Name Taken.',
+			'Email Enter an email address.',
+			'Bad code.',
+		])
 	})
 
 	it('renders nothing outside a Form', () => {

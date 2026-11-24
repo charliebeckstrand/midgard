@@ -50,7 +50,7 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 | `useA11yControl` | Field a11y scaffolding: `useA11yScope` specialized for a labeled control (label/description/error slots). |
 | `useA11yPanel` | Modal-panel labeling scope: `useA11yScope` for dialog roots, setting role + `aria-modal` and title/desc ids. |
 | `useA11yDisclosure` | Non-modal trigger↔panel pairing: reciprocal `aria-controls`/`aria-labelledby` (+ optional `aria-expanded`). |
-| `useA11yRoving` | Arrow, Home, and End roving over container items, in focus or virtual mode, with one Tab stop. Horizontal arrows swap in RTL. An arrow, Home, or End with Ctrl, Cmd, or Alt stays with the browser. A key skips an item under an `inert` ancestor. Optional type-ahead matches the typed text to the start of the name of an item. The name is its `aria-label`, else its `aria-labelledby` text, else its own text. |
+| `useA11yRoving` | Arrow, Home, and End roving over container items, in focus or virtual mode, with one Tab stop. Horizontal arrows swap in RTL. An arrow, Home, or End with Ctrl, Cmd, or Alt stays with the browser. A key skips an item under an `inert` ancestor. A key whose target is in a nearer roving container, such as a `Segment` in a `Toolbar`, is for that container only. Optional type-ahead matches the typed text to the start of the name of an item. The name is its `aria-label`, else its `aria-labelledby` text, else its own text. |
 | `useA11yAutoFocus` | Moves focus to a node from a callback ref when `when` becomes true. The focus scrolls nothing. |
 | `useA11yHasTabbable` | Whether a node holds a tab-order descendant, measured again when its subtree changes. |
 | `useA11yLiveRegion` | Props for a consumer-filled live region: status/alert landmark with matching `aria-live`/`aria-atomic`. |
@@ -69,7 +69,7 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 | `useResponsiveValue` | The value of a `Responsive<T>` prop at the viewport, as its classes give it. In a breakpoint frame, such as the frame of an example in the docs, the value at the width of the frame. During SSR, the value of the largest breakpoint. |
 | `useTruncation` | Callback ref plus a flag that is true while the single-line element clips its content. The first hover or focus starts the measure. |
 | `useScrollRegion` | Callback ref that makes a scroll container a tab stop while its content overflows. A `label` also makes it a named `region`. |
-| `useVirtualWindow` | Drives a vertical windowed list from a `@tanstack/virtual-core` virtualizer, over uniform or measured rows. It gives the visible items and the spacer heights. |
+| `useVirtualWindow` | Drives a vertical windowed list from a `@tanstack/virtual-core` virtualizer, over uniform or measured rows. It gives the visible items and the spacer heights. It can keep items mounted out of view, such as the row that holds focus. |
 
 ## Drag & drop
 

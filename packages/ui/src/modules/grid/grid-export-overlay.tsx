@@ -1,6 +1,8 @@
 'use client'
 
+import { useEffect, useEffectEvent } from 'react'
 import { LoadingSpinner } from '../../components/loading'
+import { announce } from '../../core/announcer'
 import { cn } from '../../core/cn'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/grid'
@@ -27,25 +29,32 @@ import { gridMessages } from './engine/grid-messages'
  * a focused control under it. The lockout is bounded: a failed export
  * settles its promise too, so the overlay always lifts.
  *
- * The spinner's own `<output>` is the live region that announces the wait. The
- * visible text beside it is therefore `aria-hidden`: sighted users read it once,
- * assistive tech hears it once.
+ * The shared announcer speaks the wait as the overlay shows (WCAG 4.1.3). A
+ * live region that mounts with its text is often not spoken, so the spinner's
+ * own `<output>` cannot do it, and it is `aria-hidden`. The visible text stays
+ * in the accessibility tree as plain text.
  *
  * @internal
  */
 export function GridExportOverlay({ active }: { active: boolean }) {
 	const intl = useIntl()
 
-	if (!active) return null
-
 	const label = intl.formatMessage(gridMessages.exporting)
+
+	const announceWait = useEffectEvent(() => announce(label))
+
+	useEffect(() => {
+		if (active) announceWait()
+	}, [active])
+
+	if (!active) return null
 
 	return (
 		<div data-slot="grid-export-overlay" className={cn(k.exporting.scrim)}>
 			<div className={cn(k.exporting.label)}>
-				<LoadingSpinner size="sm" label={label} />
+				<LoadingSpinner size="sm" aria-hidden="true" />
 
-				<span aria-hidden="true">{label}</span>
+				<span>{label}</span>
 			</div>
 		</div>
 	)

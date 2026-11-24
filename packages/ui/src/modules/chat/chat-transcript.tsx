@@ -4,7 +4,6 @@ import { useComposedRefs } from 'motion/react'
 import {
 	type ComponentProps,
 	memo,
-	type ReactNode,
 	type UIEvent,
 	useCallback,
 	useEffect,
@@ -13,7 +12,7 @@ import {
 	useState,
 } from 'react'
 import { Button } from '../../components/button'
-import type { ContextMenuEntry } from '../../components/context-menu/types'
+import type { ContextMenuConfig } from '../../components/context-menu/types'
 import { Icon } from '../../components/icon'
 import { cn } from '../../core/cn'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
@@ -26,7 +25,7 @@ import { ArrowDown } from '../../primitives/icons/icons'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/chat-transcript'
-import { ChatMessage, type ChatMessageProps } from './chat-message'
+import { ChatMessage } from './chat-message'
 import { ChatRowContext } from './context'
 import { describeTranscript } from './engine/chat-announcements'
 import type { ChatBranch } from './engine/chat-branch/types'
@@ -35,6 +34,12 @@ import { useChatTranscriptItemKey } from './use-chat-transcript-item-key'
 import { useChatTranscriptStatus } from './use-chat-transcript-status'
 
 const labels = defineMessages({
+	conversation: {
+		id: 'ui.chat.conversation',
+		defaultMessage: 'Conversation',
+		description:
+			'The name of the scrolling list of the messages of a chat. A screen reader reads it when the focus goes to the list.',
+	},
 	newest: {
 		id: 'ui.chat.newest',
 		defaultMessage: 'Go to the newest message',
@@ -97,31 +102,19 @@ export type ChatTranscriptProps = Omit<ComponentProps<'div'>, 'children' | 'cont
 	 */
 	streaming?: boolean
 	/**
-	 * The id of the message that the composer edits. That message dims, as the
-	 * `editing` of {@link ChatMessage} tells.
+	 * The id of the message that the composer edits. A ring marks that message,
+	 * as the `editing` of {@link ChatMessage} tells.
 	 */
 	editing?: string
 	/**
-	 * Controls that act on one message, such as copy, retry, and edit. The
-	 * transcript calls it for each row that it renders and gives the result to
-	 * the `actions` of that {@link ChatMessage}. Return `undefined` for a message
-	 * with no actions.
+	 * The menu of one message, with Copy by default, as the `contextMenu` of
+	 * {@link ChatMessage} tells. The transcript calls it for each row that it
+	 * renders and gives the result to that message. Return `items` for the
+	 * actions of the message, such as Edit and Retry, and `undefined` for the
+	 * default menu alone. Return `false`, or pass `false` here for each
+	 * message, to keep the native menu of the browser.
 	 */
-	actions?: (message: ChatMessageData) => ReactNode
-	/**
-	 * When `actions` show, as on {@link ChatMessage}: `'hover'` is a toolbar
-	 * over the top corner of the bubble, and `'static'` is a row below it.
-	 * @defaultValue 'hover'
-	 * @media hover
-	 */
-	trigger?: ChatMessageProps['trigger']
-	/**
-	 * Entries of the menu that a right-click or a touch long press on one
-	 * message opens. The transcript calls it for each row that it renders and
-	 * gives the result to the `contextMenu` of that {@link ChatMessage}. Return
-	 * `undefined` to keep the native menu of the browser on that message.
-	 */
-	contextMenu?: (message: ChatMessageData) => ContextMenuEntry[] | undefined
+	contextMenu?: ((message: ChatMessageData) => ContextMenuConfig | false | undefined) | false
 	/**
 	 * The branches on the path that `messages` holds, by the id of the message
 	 * that shows, as the `branches` of `useChatSend` gives them. A message with
@@ -138,44 +131,50 @@ export type ChatTranscriptProps = Omit<ComponentProps<'div'>, 'children' | 'cont
 }
 
 /** Props for {@link ChatTranscriptRow}. @internal */
-type ChatTranscriptRowProps = Pick<
-	ChatTranscriptProps,
-	'actions' | 'trigger' | 'contextMenu' | 'onBranchChange'
-> & {
+type ChatTranscriptRowProps = Pick<ChatTranscriptProps, 'contextMenu' | 'onBranchChange'> & {
 	message: ChatMessageData
+	/** The position of the message, which the window reads from `data-index`. */
+	index: number
+	/** The measure ref of the window. It keeps its identity. */
+	ref: (node: Element | null) => void
+	/** The gap above the message. */
+	className: string
 	streaming: boolean
 	editing: boolean
 	branch: ChatBranch | undefined
 }
 
 /**
- * The message of one row. It calls the row callbacks of the transcript, and it
- * is memoized on its props. A chunk keeps the object of each settled message,
- * so a settled row skips its render, also when it has actions. That holds
- * while the callbacks keep their identity.
+ * The message of one row. The message is the row: the window measures its
+ * root, so no box wraps it. It calls the row callbacks of the transcript, and
+ * it is memoized on its props. A chunk keeps the object of each settled
+ * message, so a settled row skips its render, also when it has a menu. That
+ * holds while the callbacks keep their identity.
  *
  * @internal
  */
 const ChatTranscriptRow = memo(function ChatTranscriptRow({
 	message,
+	index,
+	ref,
+	className,
 	streaming,
 	editing,
-	actions,
-	trigger,
 	contextMenu,
 	branch,
 	onBranchChange,
 }: ChatTranscriptRowProps) {
 	return (
 		<ChatMessage
+			ref={ref}
+			data-index={index}
+			className={className}
 			sender={message.sender}
 			streaming={streaming}
 			editing={editing}
 			failed={message.failed}
 			timestamp={message.timestamp}
-			actions={actions?.(message)}
-			trigger={trigger}
-			contextMenu={contextMenu?.(message)}
+			contextMenu={contextMenu === false ? false : contextMenu?.(message)}
 			branch={branch}
 			onBranchChange={onBranchChange}
 		>
@@ -228,12 +227,11 @@ const ChatTranscriptRow = memo(function ChatTranscriptRow({
  * pins the transcript again. After the press, the focus goes to the
  * transcript, which is a tab stop while it overflows.
  *
- * `actions` and `contextMenu` give each row the controls and the menu of a
- * {@link ChatMessage}. The transcript calls them only for the rows that it
- * renders. Keep their identity stable, as with `useCallback`, so a streamed
- * chunk does not render the settled rows again. A `'hover'` toolbar floats
- * above its message, so the first row then keeps room above it, on a device
- * that hovers.
+ * `contextMenu` gives each row the menu of a {@link ChatMessage}. Each message
+ * has a menu with Copy unless `contextMenu` is `false`. The transcript calls
+ * the callback only for the rows that it renders. Keep its identity stable, as
+ * with `useCallback`, so a streamed chunk does not render the settled rows
+ * again.
  *
  * `branches` gives a message the switcher of {@link ChatMessage}. The row of a
  * message with branches takes the key of its oldest branch, so a switch keeps
@@ -255,7 +253,12 @@ const ChatTranscriptRow = memo(function ChatTranscriptRow({
  * read, because a chart ships its own hidden data table and the readout belongs
  * there.
  *
- * The transcript is a `log`, and its `aria-live` is deliberately `off`. The role
+ * The transcript is a `log` named "Conversation", in the language of the
+ * reader. It is a tab stop while it overflows, so a screen reader reads that
+ * name when the focus goes to it. Pass `aria-label` or `aria-labelledby` to
+ * give another name.
+ *
+ * The `aria-live` of the `log` is deliberately `off`. The role
  * says what the region is, so a reader can find it and knows entries arrive in
  * order. Leaving it live as well would put a second channel over one reply and
  * read it twice, once per streamed rewrite and once settled.
@@ -279,8 +282,6 @@ export function ChatTranscript({
 	messages,
 	streaming,
 	editing,
-	actions,
-	trigger,
 	contextMenu,
 	branches,
 	onBranchChange,
@@ -292,7 +293,8 @@ export function ChatTranscript({
 	const containerRef = useRef<HTMLDivElement>(null)
 
 	// Safari does not focus a scroller, so the hook gives the transcript a tab
-	// stop while it overflows. With no label, the `log` role stays.
+	// stop while it overflows. The hook takes no label, so the `log` role stays.
+	// The element carries its name itself.
 	const scrollRegionRef = useScrollRegion()
 
 	// The window reads `containerRef`, so a consumer `ref` joins it.
@@ -513,12 +515,6 @@ export function ChatTranscript({
 
 	const slots = k()
 
-	// A hover toolbar rises above its message, and the scroll clips it above the first row.
-	const roomy = actions !== undefined && trigger !== 'static'
-
-	// The first row makes room for that toolbar.
-	const firstRow = roomy ? slots.first : undefined
-
 	useA11yAnnouncements(status)
 
 	const measured = virtualItems.length > 0
@@ -544,6 +540,8 @@ export function ChatTranscript({
 	return (
 		<div
 			data-slot="chat-transcript"
+			// A tab stop while it overflows, so it has a name. A consumer name replaces it.
+			aria-label={intl.formatMessage(labels.conversation)}
 			{...props}
 			ref={setContainer}
 			onScroll={composeEventHandlers(onScroll, trackPin)}
@@ -563,28 +561,21 @@ export function ChatTranscript({
 					const branch = message.id ? branches?.[message.id] : undefined
 
 					return (
-						<div
-							key={key}
-							ref={measureRef}
-							data-index={index}
-							data-slot="chat-transcript-row"
-							className={index > 0 ? slots.row : firstRow}
-						>
-							<ChatRowContext value={key}>
-								<ChatTranscriptRow
-									message={message}
-									streaming={
-										streaming === true && message.sender === 'assistant' && index === count - 1
-									}
-									editing={editing !== undefined && message.id === editing}
-									actions={actions}
-									trigger={trigger}
-									contextMenu={contextMenu}
-									branch={branch}
-									onBranchChange={branch && branchChange}
-								/>
-							</ChatRowContext>
-						</div>
+						<ChatRowContext key={key} value={key}>
+							<ChatTranscriptRow
+								ref={measureRef}
+								index={index}
+								className={slots.row}
+								message={message}
+								streaming={
+									streaming === true && message.sender === 'assistant' && index === count - 1
+								}
+								editing={editing !== undefined && message.id === editing}
+								contextMenu={contextMenu}
+								branch={branch}
+								onBranchChange={branch && branchChange}
+							/>
+						</ChatRowContext>
 					)
 				})}
 				{measured && bottomSpacer > 0 && (

@@ -1,9 +1,9 @@
 import { act, renderHook } from '@testing-library/react'
 import { describe, expect, vi } from 'vitest'
-import type { CalendarHandle } from '../../components/calendar'
 import { useDatePickerRangeState } from '../../components/date-picker/use-date-picker-range-state'
-import { attach, makeKeyEvent } from '../helpers'
+import { makeKeyEvent } from '../helpers'
 import { it } from '../helpers/fake-clock'
+import { expectAnnouncement } from '../helpers/live-region'
 
 const Jan1 = new Date(2025, 0, 1)
 
@@ -15,28 +15,6 @@ const Jan20 = new Date(2025, 0, 20)
 
 const Jan31 = new Date(2025, 0, 31)
 
-// A Calendar handle whose grid entry is `date`. The Calendar owns the entry rule.
-function entering(date: Date | null): CalendarHandle {
-	return {
-		prevMonth: vi.fn(),
-		nextMonth: vi.fn(),
-		openPicker: vi.fn(),
-		footerKeyDown: vi.fn(),
-		getEntryDate: () => date,
-	}
-}
-
-// Local midnight on a day of January in year 1. The `Date` constructor reads year 1 as 1901.
-function yearOneJanuary(date: number): Date {
-	const value = new Date(0)
-
-	value.setFullYear(1, 0, date)
-
-	value.setHours(0, 0, 0, 0)
-
-	return value
-}
-
 type RangeOptions = Parameters<typeof useDatePickerRangeState>[0]
 
 // Renders the range state with `options`, and opens the calendar.
@@ -46,20 +24,6 @@ function openRange(options: Omit<RangeOptions, 'range'> = {}) {
 	act(() => result.current.onOpenChange(true))
 
 	return result
-}
-
-// An arrow key or a Page key from a focused day button of the grid. The button has
-// its date in `data-date`, and the key gets to the handler on the dialog.
-function keyFromDay(key: string, date: string) {
-	const dialog = attach(document.createElement('div'))
-
-	const day = document.createElement('button')
-
-	day.dataset.date = date
-
-	dialog.append(day)
-
-	return makeKeyEvent<HTMLElement>(key, { target: day, currentTarget: dialog })
 }
 
 describe('useDatePickerRangeState', () => {
@@ -261,263 +225,51 @@ describe('useDatePickerRangeState', () => {
 
 			expect(onChange).toHaveBeenCalledWith([Jan15, Jan20])
 		})
-
-		it('keeps the keyboard cursor inside min/max and commits the clamped range', async ({
-			clock,
-		}) => {
-			// Today is min, so the cursor starts on min.
-			clock.set(new Date(2025, 0, 10, 13, 30))
-
-			const onChange = vi.fn()
-
-			const result = openRange({ min: Jan10, max: Jan20, onValueChange: onChange })
-
-			// With no value and no range in progress, the cursor starts on today.
-			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowRight')))
-
-			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: Jan10 })
-
-			// A step back from min stays on min.
-			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowLeft')))
-
-			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: Jan10 })
-
-			act(() => result.current.onTriggerKeyDown(makeKeyEvent('Enter')))
-
-			// A month forward from the pinned start stops on max, and the hover
-			// preview follows the cursor.
-			act(() => result.current.onTriggerKeyDown(makeKeyEvent('PageDown')))
-
-			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: Jan20 })
-
-			expect(result.current.calendar.hoverDate).toEqual(Jan20)
-
-			act(() => result.current.onTriggerKeyDown(makeKeyEvent('Enter')))
-
-			expect(onChange).toHaveBeenCalledWith([Jan10, Jan20])
-		})
-
-		it('clamps a Shift+PageUp year jump from the grid cursor to min', () => {
-			const result = openRange({ defaultValue: [Jan15, Jan20], min: Jan10 })
-
-			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowRight')))
-
-			act(() => result.current.onTriggerKeyDown(makeKeyEvent('PageUp', { shiftKey: true })))
-
-			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: Jan10 })
-
-			// No range is in progress, so the move gives no hover preview.
-			expect(result.current.calendar.hoverDate).toBeNull()
-		})
-
-		it('starts the cursor on today when there is no value and no min', async ({ clock }) => {
-			clock.set(new Date(2025, 5, 15, 13, 30))
-
-			const result = openRange()
-
-			act(() => result.current.onTriggerKeyDown(makeKeyEvent('PageDown')))
-
-			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: new Date(2025, 6, 15) })
-		})
-
-		// A past `min` bounds the cursor. It is not the start point.
-		it('starts the cursor on today when there is no value and today is inside min/max', async ({
-			clock,
-		}) => {
-			clock.set(new Date(2025, 5, 15, 13, 30))
-
-			const result = openRange({ min: Jan15 })
-
-			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowRight')))
-
-			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: new Date(2025, 5, 15) })
-		})
-
-		it('pins today as the start on Enter when there is no value and today is inside min/max', async ({
-			clock,
-		}) => {
-			clock.set(new Date(2025, 5, 15, 13, 30))
-
-			const result = openRange({ min: Jan15 })
-
-			act(() => result.current.onTriggerKeyDown(makeKeyEvent('Enter')))
-
-			expect(result.current.calendar.rangeStart).toEqual(new Date(2025, 5, 15))
-		})
 	})
 
-	describe('grid entry from the header and the footer', () => {
-		// Not an endpoint and not today, so only the Calendar can give it.
-		const Mar5 = new Date(2025, 2, 5)
-
-		it('enters the grid from the header on the entry day of the Calendar', () => {
-			const result = openRange({ defaultValue: [Jan10, Jan20] })
-
-			result.current.calendar.calendarRef.current = entering(Mar5)
-
-			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowUp', { shiftKey: true })))
+	describe('keyboard', () => {
+		it('opens from the closed trigger on ArrowDown and on Enter', () => {
+			const { result } = renderHook(() => useDatePickerRangeState({ range: true }))
 
 			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowDown')))
 
-			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: Mar5 })
-		})
+			expect(result.current.open).toBe(true)
 
-		it('enters the grid from the footer on the entry day of the Calendar', () => {
-			const result = openRange({ defaultValue: [Jan10, Jan20] })
-
-			result.current.calendar.calendarRef.current = entering(Mar5)
-
-			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowDown', { shiftKey: true })))
-
-			expect(result.current.calendar.active).toEqual({ zone: 'footer', index: 0 })
-
-			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowUp')))
-
-			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: Mar5 })
-		})
-
-		// B01-C06: the first arrow with no highlight enters the shown month. Q5: with no
-		// enabled day in the shown month, the arrow enters on the range start.
-		it.each<[string, Date | null, Date]>([
-			['the entry day of the Calendar', Mar5, Mar5],
-			['the range start when the Calendar gives no entry day', null, Jan10],
-		])('enters the grid on the first arrow on %s', (_name, entry, expected) => {
-			const result = openRange({ defaultValue: [Jan10, Jan20] })
-
-			result.current.calendar.calendarRef.current = entering(entry)
-
-			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowRight')))
-
-			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: expected })
-		})
-
-		it('keeps the highlight in the header when the Calendar gives no entry day', () => {
-			const result = openRange({ defaultValue: [Jan10, Jan20] })
-
-			result.current.calendar.calendarRef.current = entering(null)
-
-			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowUp', { shiftKey: true })))
-
-			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowDown')))
-
-			expect(result.current.calendar.active).toEqual({ zone: 'header', index: 1 })
-		})
-
-		it('enters on the range start when no Calendar is mounted', () => {
-			const result = openRange({ defaultValue: [Jan10, Jan20] })
-
-			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowUp', { shiftKey: true })))
-
-			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowDown')))
-
-			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: Jan10 })
-		})
-	})
-
-	describe('year limits', () => {
-		it('keeps the cursor and the hover on 1 January of year 1 when a step goes back', () => {
-			const result = openRange({ defaultValue: [yearOneJanuary(1), yearOneJanuary(5)] })
-
-			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowRight')))
+			act(() => result.current.onOpenChange(false))
 
 			act(() => result.current.onTriggerKeyDown(makeKeyEvent('Enter')))
 
-			expect(result.current.calendar.rangeStart).toEqual(yearOneJanuary(1))
-
-			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowLeft')))
-
-			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: yearOneJanuary(1) })
-
-			expect(result.current.calendar.hoverDate).toEqual(yearOneJanuary(1))
-
-			act(() => result.current.onTriggerKeyDown(makeKeyEvent('PageUp')))
-
-			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: yearOneJanuary(1) })
-
-			expect(result.current.calendar.hoverDate).toEqual(yearOneJanuary(1))
-		})
-	})
-
-	describe('keyboard navigation', () => {
-		it('materializes the grid cursor on the first arrow press after opening', () => {
-			const result = openRange({ defaultValue: [Jan10, Jan20] })
-
-			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowRight')))
-
-			// getInitialActiveDate falls back to value[0] when no range is in progress.
-			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: Jan10 })
+			expect(result.current.open).toBe(true)
 		})
 
-		it('previews the hovered endpoint as the grid cursor moves during selection', () => {
+		it('leaves the keys of the open dialog to the calendar', () => {
+			const result = openRange({ defaultValue: [Jan1, Jan31] })
+
+			const event = makeKeyEvent<HTMLElement>('ArrowRight')
+
+			act(() => result.current.onTriggerKeyDown(event))
+
+			expect(event.preventDefault).not.toHaveBeenCalled()
+
+			expect(result.current.open).toBe(true)
+		})
+
+		it('previews the end of the range from the day that the focus reports', () => {
 			const result = openRange()
 
 			act(() => result.current.calendar.onDayClick(Jan10))
 
-			// First arrow materializes the cursor on the start date.
-			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowRight')))
+			act(() => result.current.calendar.onHoverDateChange(Jan15))
 
-			// Second arrow moves the cursor and drives the hover preview (range in progress).
-			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowRight')))
-
-			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: new Date(2025, 0, 11) })
-
-			expect(result.current.calendar.hoverDate).toEqual(new Date(2025, 0, 11))
+			expect(result.current.calendar.hoverDate).toEqual(Jan15)
 		})
 
-		it('does not emit a hover preview when moving the cursor with no range in progress', () => {
-			const result = openRange({ defaultValue: [Jan10, Jan20] })
-
-			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowRight')))
-
-			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowRight')))
-
-			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: new Date(2025, 0, 11) })
-
-			expect(result.current.calendar.hoverDate).toBeNull()
-		})
-
-		// B01-C12, Q8: the step starts on the focused day, and the hover preview follows it.
-		it('steps the cursor and the hover from a focused day button', () => {
+		it('announces the start and asks for the end after the first press', async () => {
 			const result = openRange()
 
 			act(() => result.current.calendar.onDayClick(Jan10))
 
-			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowRight')))
-
-			act(() => result.current.onTriggerKeyDown(keyFromDay('ArrowRight', '2025-01-20')))
-
-			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: new Date(2025, 0, 21) })
-
-			expect(result.current.calendar.hoverDate).toEqual(new Date(2025, 0, 21))
-		})
-
-		// B01-C12, Q11: a Page key from a focused day steps a month from that day.
-		it('pages the cursor and the hover from a focused day button', () => {
-			const result = openRange()
-
-			act(() => result.current.calendar.onDayClick(Jan10))
-
-			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowRight')))
-
-			act(() => result.current.onTriggerKeyDown(keyFromDay('PageDown', '2025-01-20')))
-
-			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: new Date(2025, 1, 20) })
-
-			expect(result.current.calendar.hoverDate).toEqual(new Date(2025, 1, 20))
-		})
-
-		it('activates the clear footer button via Shift+ArrowDown then Enter', () => {
-			const onChange = vi.fn()
-
-			const result = openRange({ defaultValue: [Jan1, Jan31], onValueChange: onChange })
-
-			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowDown', { shiftKey: true })))
-
-			act(() => result.current.onTriggerKeyDown(makeKeyEvent('Enter')))
-
-			expect(result.current.open).toBe(false)
-
-			expect(onChange).toHaveBeenCalledWith(null)
+			await expectAnnouncement('Start date Friday, January 10, 2025. Select the end date.')
 		})
 	})
 

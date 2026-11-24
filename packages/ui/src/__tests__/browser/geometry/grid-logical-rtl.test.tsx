@@ -174,7 +174,7 @@ describe('grid disclosure chevrons in a right-to-left grid (real browser)', () =
 			</div>,
 		)
 
-		const [toggle] = getAllByRole('button', { name: /^Expand details for/ })
+		const [toggle] = getAllByRole('button', { name: /^Details for/, expanded: false })
 
 		if (!toggle) throw new Error('no detail toggle')
 

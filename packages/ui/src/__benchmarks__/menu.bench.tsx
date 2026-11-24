@@ -340,13 +340,25 @@ function sweepTo(row: HTMLElement, step: number) {
 	)
 }
 
-/** One `keydown` on `target`, the press the trigger's roving handler reads. */
+/** One `keydown` on `target`, the press the roving handler of the panel reads. */
 function pressKey(target: HTMLElement, key: string) {
 	target.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key }))
 }
 
-/** One open menu, held for the run: the trigger keys arrive on, and the rows a sweep visits. */
-type Probe = { trigger: HTMLElement; rows: HTMLElement[] }
+/** One open menu, held for the run: its panel, and the rows that keys and a sweep visit. */
+type Probe = { panel: HTMLElement; rows: HTMLElement[] }
+
+/**
+ * The element that takes a key of the open menu of `probe`: the row that has
+ * the focus, or else the first row. The panel roves its rows by real focus.
+ */
+function keyTarget({ panel, rows }: Probe): HTMLElement {
+	const active = document.activeElement
+
+	if (active instanceof HTMLElement && panel.contains(active)) return active
+
+	return rows[0] ?? panel
+}
 
 /**
  * Mounts one open menu for the whole run. A dropdown's panel portals out of the
@@ -354,11 +366,11 @@ type Probe = { trigger: HTMLElement; rows: HTMLElement[] }
  * Every driven scenario shares these mounts, because each surplus menu leaves
  * its rows and its dismiss listeners in the one document the others measure in.
  */
-function openMenu(count: number, model: 'virtual' | 'focus'): Probe {
+function openMenu(count: number, model: 'dropdown' | 'static'): Probe {
 	const panel = `menu-bench-${model}-${count}`
 
-	const container = sharedTree(
-		model === 'virtual' ? (
+	sharedTree(
+		model === 'dropdown' ? (
 			<Dropdown open className={panel}>
 				<Rows count={count} />
 			</Dropdown>
@@ -372,37 +384,27 @@ function openMenu(count: number, model: 'virtual' | 'focus'): Probe {
 	)
 
 	return {
-		trigger: container.querySelector<HTMLElement>('[data-slot="menu-trigger"]') as HTMLElement,
+		panel: document.querySelector<HTMLElement>(`.${panel}`) as HTMLElement,
 		rows: [...document.querySelectorAll<HTMLElement>(`.${panel} [role="menuitem"]`)],
 	}
 }
 
-/** The dropdown probes, shared by the sweep, the rove, and the typeahead scenarios. */
-const virtualProbes = new Map(MENU_ROWS.map((count) => [count, openMenu(count, 'virtual')]))
+/** The dropdown probes, shared by the rove and the typeahead scenarios. */
+const dropdownProbes = new Map(MENU_ROWS.map((count) => [count, openMenu(count, 'dropdown')]))
 
-const focusProbes = new Map(MENU_ROWS.map((count) => [count, openMenu(count, 'focus')]))
+/** The static probes, which the sweep drives. */
+const staticProbes = new Map(MENU_ROWS.map((count) => [count, openMenu(count, 'static')]))
 
 /** The probe for `count`, which the maps above always hold. */
 function probeAt(probes: Map<number, Probe>, count: number): Probe {
 	return probes.get(count) as Probe
 }
 
-compareBenches('Menu · pointer sweep · virtual cursor (dropdown)', (bench) => {
-	// A dropdown keeps focus on its trigger, so an arrival stamps the
-	// `data-active` cursor rather than moving focus.
-	for (const count of MENU_ROWS) {
-		const { rows } = probeAt(virtualProbes, count)
-
-		bench(`${count} rows · one pass`, () => {
-			rows.forEach(sweepTo)
-		})
-	}
-})
-
 compareBenches('Menu · pointer sweep · real focus (static)', (bench) => {
-	// Every other mode roves by real focus, so an arrival moves focus instead.
+	// Each mode roves by real focus, so an arrival moves the focus. A dropdown
+	// runs the same level, so this one sweep prices both.
 	for (const count of MENU_ROWS) {
-		const { rows } = probeAt(focusProbes, count)
+		const { rows } = probeAt(staticProbes, count)
 
 		bench(`${count} rows · one pass`, () => {
 			rows.forEach(sweepTo)
@@ -410,20 +412,20 @@ compareBenches('Menu · pointer sweep · real focus (static)', (bench) => {
 	}
 })
 
-compareBenches('Menu · keyboard rove (dropdown, focus on trigger)', (bench) => {
-	// Arrow presses arrive on the trigger and move the `aria-activedescendant`
-	// cursor. One pass walks the cursor down the whole panel. This is the one
-	// scenario that still re-reads the panel's item list per event.
+compareBenches('Menu · keyboard rove (dropdown)', (bench) => {
+	// Arrow presses arrive on the row that has the focus and move the focus. One
+	// pass walks the focus down the whole panel. This is the one scenario that
+	// still re-reads the panel's item list per event.
 	for (const count of MENU_ROWS) {
-		const { trigger } = probeAt(virtualProbes, count)
+		const probe = probeAt(dropdownProbes, count)
 
 		bench(`${count} rows · ArrowDown ×${count}`, () => {
-			for (let step = 0; step < count; step++) pressKey(trigger, 'ArrowDown')
+			for (let step = 0; step < count; step++) pressKey(keyTarget(probe), 'ArrowDown')
 		})
 	}
 })
 
-compareBenches('Menu · typeahead (dropdown, focus on trigger)', (bench) => {
+compareBenches('Menu · typeahead (dropdown)', (bench) => {
 	// A printable key extends the type-ahead buffer and scans the rows for a
 	// match. It reads the same mounted menus the rove scenario drives. Every label
 	// starts with the letter, so the scan stops at its first candidate wherever
@@ -444,10 +446,10 @@ compareBenches('Menu · typeahead (dropdown, focus on trigger)', (bench) => {
 	}
 
 	for (const count of MENU_ROWS) {
-		const { trigger } = probeAt(virtualProbes, count)
+		const probe = probeAt(dropdownProbes, count)
 
 		bench(`${count} rows · one letter`, fakeClock, () => {
-			pressKey(trigger, 'o')
+			pressKey(keyTarget(probe), 'o')
 
 			vi.runOnlyPendingTimers()
 		})

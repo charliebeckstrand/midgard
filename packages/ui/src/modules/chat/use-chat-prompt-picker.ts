@@ -10,6 +10,7 @@ import {
 	useState,
 } from 'react'
 import { announce } from '../../core/announcer'
+import { useA11yAnnouncements } from '../../hooks/a11y/use-a11y-announcements'
 import {
 	clearVirtualActive,
 	seedVirtualTopMatch,
@@ -17,7 +18,8 @@ import {
 } from '../../hooks/a11y/use-a11y-roving'
 import { useFloatingUI } from '../../hooks/use-floating-ui'
 import { useStableEvent } from '../../hooks/use-stable-event'
-import { defineMessages } from '../../primitives/intl/intl-messages'
+import { defineMessages, intlMessages } from '../../primitives/intl/intl-messages'
+import type { IntlShape } from '../../primitives/intl/types'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { isComposing } from '../../utilities/is-composing'
 import { hasBrowserModifier } from '../../utilities/modifier-keys'
@@ -32,7 +34,21 @@ import {
 } from './engine/chat-draft/trigger'
 import type { ChatPromptItem, ChatPromptSource } from './types'
 
-const messages = defineMessages<{ added: { label: string; source: string } }>({
+const messages = defineMessages<{
+	added: { label: string; source: string }
+	loading: Record<never, never>
+	failed: Record<never, never>
+}>({
+	loading: {
+		id: 'ui.chat.pickerLoading',
+		defaultMessage: 'Loading',
+		description: 'The status of the picker of the chat composer while it loads its choices.',
+	},
+	failed: {
+		id: 'ui.chat.pickerFailed',
+		defaultMessage: 'Could not load the choices',
+		description: 'The status of the picker of the chat composer when its choices failed to load.',
+	},
 	added: {
 		id: 'ui.chat.pickerAdded',
 		defaultMessage: 'Added {label}, {source}',
@@ -230,6 +246,13 @@ export function useChatPromptPicker({
 	// A trigger that has no result yet loads.
 	const status: PickerStatus = results.trigger === matchTrigger ? results.status : 'loading'
 
+	const statusText = open ? pickerStatusText(intl, status, items) : ''
+
+	// The panel mounts with each open, and a screen reader does not speak the text
+	// of a new live region. The shared announcer stays mounted, so it speaks each
+	// change of the status.
+	useA11yAnnouncements(statusText)
+
 	// The top match takes the highlight each time the items change, so Enter
 	// chooses what the reader sees first.
 	useLayoutEffect(() => {
@@ -359,12 +382,32 @@ export function useChatPromptPicker({
 		source,
 		items,
 		status,
+		statusText,
 		floating,
 		choose,
 		onKeyDown,
 		trackCaret,
 		forgetCaret,
 	}
+}
+
+/**
+ * The status line of the open picker: that the list loads, that it holds no
+ * item, or that it failed. A failure always shows. Else the status shows only
+ * while the list is empty.
+ *
+ * @internal
+ */
+function pickerStatusText(
+	intl: IntlShape,
+	status: PickerStatus,
+	items: readonly ChatPromptItem[],
+): string {
+	if (status === 'failed') return intl.formatMessage(messages.failed)
+
+	if (items.length > 0) return ''
+
+	return intl.formatMessage(status === 'loading' ? messages.loading : intlMessages.noResults)
 }
 
 /**

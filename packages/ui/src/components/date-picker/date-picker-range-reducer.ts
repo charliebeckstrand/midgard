@@ -1,9 +1,8 @@
-import type { CalendarActive } from '../calendar'
 import { sameDayOrEmpty } from '../calendar/calendar-utilities'
 
 /**
- * In-progress range selection: the pinned first endpoint, the hovered/keyboard
- * second endpoint that previews the span, and the virtual-highlight position.
+ * In-progress range selection: the pinned first endpoint, and the hovered or
+ * focused second endpoint that previews the span.
  * The committed `[Date, Date]` lives in the Form field, not here.
  *
  * @internal
@@ -11,7 +10,6 @@ import { sameDayOrEmpty } from '../calendar/calendar-utilities'
 export type DatePickerRangeState = {
 	rangeStart: Date | null
 	hoverDate: Date | null
-	active: CalendarActive | null
 }
 
 /**
@@ -27,7 +25,6 @@ type DatePickerRangeAction =
 	| { type: 'startRange'; date: Date }
 	| { type: 'pinEndpoint'; date: Date }
 	| { type: 'hover'; date: Date | null }
-	| { type: 'setActive'; active: CalendarActive | null }
 
 /** Advances the {@link DatePickerRangeState} for a selection action. @internal */
 export function datePickerRangeReducer(
@@ -48,14 +45,11 @@ export function datePickerRangeReducer(
 			if (state.rangeStart === null || sameDayOrEmpty(state.hoverDate, action.date)) return state
 
 			return { ...state, hoverDate: action.date }
-		case 'setActive':
-			return { ...state, active: action.active }
 	}
 }
 
-/** Empty selection: no pinned start, no preview, no highlight. @internal */
+/** Empty selection: no pinned start and no preview. @internal */
 export const initialDatePickerRangeState: DatePickerRangeState = {
 	rangeStart: null,
 	hoverDate: null,
-	active: null,
 }

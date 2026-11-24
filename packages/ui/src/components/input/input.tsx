@@ -61,14 +61,12 @@ export type InputProps = Omit<InputVariants, 'size' | 'variant'> & {
 } & Omit<ComponentProps<'input'>, 'size' | 'prefix' | 'value'>
 
 /**
- * Text input with optional `prefix`/`suffix` affixes and an optional clear
- * button.
- * Resolves variant and invalid state from enclosing Control, Form, and
- * GlassProvider context. Under headless context, the input and its affixes
- * render bare, with no frame and no classes.
- * The size takes the step of the nearest density scope through stepped
- * classes. An explicit `size` writes that scope on the frame. Plain text in
- * an affix has the text size of the input at each step.
+ * A text field with an optional `prefix`, `suffix`, and clear button. Resolves
+ * variant and invalid state from enclosing Control, Form, and GlassProvider
+ * context. Under headless context, the input and its affixes render bare, with
+ * no frame and no classes. The size takes the step of the nearest density scope
+ * through stepped classes. An explicit `size` writes that scope on the frame.
+ * Plain text in an affix has the text size of the input at each step.
  *
  * @remarks Follows the §7.3 value contract and the resolution order
  * (explicit prop > bound field > internal state) owned by {@link useInputValue}.

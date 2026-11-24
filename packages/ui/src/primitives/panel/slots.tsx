@@ -1,7 +1,9 @@
 'use client'
 
+import { useComposedRefs } from 'motion/react'
 import { type ReactNode, useEffect } from 'react'
 import { cn } from '../../core/cn'
+import { useScrollRegion } from '../../hooks/use-scroll-region'
 import { k as heading } from '../../recipes/kata/heading'
 import { k } from '../../recipes/kata/panel'
 import { usePanelA11y } from './context'
@@ -95,12 +97,20 @@ export function createPanel(slotPrefix: string, slots?: PanelSlots) {
 		)
 	}
 
-	function Body({ className, ...props }: PanelBodyProps) {
+	function Body({ className, ref, ...props }: PanelBodyProps) {
+		// The body scrolls when its content is taller than the panel. While it
+		// scrolls, it is a tab stop, so a keyboard user can scroll text that has
+		// no control in it (WCAG 2.1.1).
+		const scrollRegionRef = useScrollRegion()
+
+		const setBody = useComposedRefs(scrollRegionRef, ref)
+
 		return (
 			<div
 				data-scroll-region
 				className={cn(bodyClass, className)}
 				{...props}
+				ref={setBody}
 				// After the spread: the resize floor of a sheet or a drawer selects the
 				// body by this anchor (CONVENTIONS.md §3.9).
 				data-slot={`${slotPrefix}-body`}

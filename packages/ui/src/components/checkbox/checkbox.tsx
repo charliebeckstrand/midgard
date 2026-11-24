@@ -9,8 +9,10 @@ import { useFormToggle } from '../../primitives/form/use-form-toggle'
 import { Check, Minus } from '../../primitives/icons/icons'
 import { TouchTarget } from '../../primitives/touch-target'
 import { type CheckboxVariants, k } from '../../recipes/kata/checkbox'
+import { useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
 import { useControlScope } from '../control/use-control-scope'
+import { useCheckboxGroup } from './context'
 
 /** Props for {@link Checkbox}. */
 export type CheckboxProps = CheckboxVariants & {
@@ -31,15 +33,16 @@ export type CheckboxProps = CheckboxVariants & {
 } & Omit<ComponentProps<'input'>, 'type' | 'size' | 'readOnly'>
 
 /**
- * Labeled checkbox with an `indeterminate` tri-state. Binds to enclosing Form
- * and Control context for `name` and validation. The box takes the step of the
- * nearest density scope, and an explicit `size` opens a scope on the label. An explicit
- * `checked` prop wins over the bound field; `onChange` fires in either mode.
- * `defaultChecked` reaches the element only while the checkbox is uncontrolled,
- * so a bound checkbox ignores it (§7.2). `className`, `style`, and `hidden` go
- * to the visible box, and the other native attributes go to the input. The hit
- * area floors at the minimums of `TouchTarget`, 24 px on a fine pointer and 44
- * px on a coarse pointer, and the box keeps its size.
+ * A checkbox with its label. It can also show an `indeterminate` state. Binds
+ * to enclosing Form and Control context for `name` and validation. The box
+ * takes the step of the nearest density scope, and an explicit `size` opens a
+ * scope on the label. An explicit `checked` prop wins over the bound field;
+ * `onChange` fires in either mode. `defaultChecked` reaches the element only
+ * while the checkbox is uncontrolled, so a bound checkbox ignores it (§7.2).
+ * `className`, `style`, and `hidden` go to the visible box, and the other
+ * native attributes go to the input. The hit area floors at the minimums of
+ * `TouchTarget`, 24 px on a fine pointer and 44 px on a coarse pointer, and the
+ * box keeps its size.
  */
 export function Checkbox({
 	className,
@@ -66,21 +69,36 @@ export function Checkbox({
 		invalid,
 	} = useFormToggle({ name, checked, onChange })
 
+	const group = useCheckboxGroup()
+
+	// A bare checkbox of a group in a `<Field>` sees the Control of the Field. The
+	// id and the description of that Control are for the group, so the checkbox
+	// keeps only its own, as a radio of a RadioGroup does. In a group, the
+	// `required` state of a Control is for the group, so only the prop of the
+	// checkbox makes it required.
+	const controlId = useControl()?.id
+
+	const groupField = controlId !== undefined && controlId === group?.fieldId
+
 	const {
-		id: resolvedId,
+		id: controlledId,
 		disabled: resolvedDisabled,
 		required: resolvedRequired,
 		readOnly: resolvedReadOnly,
 		validation,
-		'aria-describedby': resolvedDescribedBy,
+		'aria-describedby': controlledDescribedBy,
 	} = useControlProps({
-		id,
+		id: groupField ? undefined : id,
 		disabled,
-		required,
+		required: group ? required === true : required,
 		readOnly,
 		'aria-describedby': ariaDescribedBy,
 		invalid,
 	})
+
+	const resolvedId = groupField ? id : controlledId
+
+	const resolvedDescribedBy = groupField ? ariaDescribedBy : controlledDescribedBy
 
 	const scope = useControlScope(name, resolvedId)
 

@@ -11,14 +11,16 @@ import {
 	useRef,
 	useState,
 } from 'react'
+import { announce } from '../../core/announcer'
 import { useControllable } from '../../hooks/use-controllable'
 import { useMediaQuery } from '../../hooks/use-media-query'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { useIntl } from '../../primitives/intl/use-intl'
 import { PHONE_QUERY } from '../../utilities/media-query'
 import type { GridEditingSession, GridNewRowSession, GridSettleControls } from './context'
-import type { GridPasteOutcome } from './engine/grid-announcements'
+import { describeHeld, type GridPasteOutcome } from './engine/grid-announcements'
 import { EMPTY_SET } from './engine/grid-constants'
-import type { GridFillCell, GridPasteCell } from './engine/grid-edit/commit'
+import { findRefusal, type GridFillCell, type GridPasteCell } from './engine/grid-edit/commit'
 import { columnInUse, firstEditorCell } from './engine/grid-edit/focus'
 import type { GridHistoryStep } from './engine/grid-edit/history'
 import { createActiveEditStore } from './engine/grid-edit/store'
@@ -380,6 +382,8 @@ export function useGridEditing<T>({
 
 		activeEditRef.current = activeEdit
 	})
+
+	const intl = useIntl()
 
 	// The sinks, read as stable events, so a new callback does not run the sweep
 	// again. Whether `onCommit` is present stays in the deps: a sink that went
@@ -746,11 +750,41 @@ export function useGridEditing<T>({
 		[controlled, requestCell, discardDrafts, setEditableRows, writeActiveCell, returnFocus],
 	)
 
+	// Whether a save of the open cells of `rowKey` holds back, because
+	// `validate` refuses one of them. The sweep would drop that cell, so the
+	// session stays open with the editor and its message, as Save of the phone
+	// overlay does (WCAG 3.3.1). The press gets no visible response, so the
+	// error of the cell is spoken. A leave cannot hold focus in the editor, so
+	// it does not ask: the sweep speaks the cell that did not save.
+	const holdsSave = useStableEvent((rowKey: string | number) => {
+		const open = [...(drafts.readRow(rowKey) ?? [])].filter(
+			([columnId, draft]) =>
+				draft.status === 'staged' &&
+				isCellEditing({
+					rowKey,
+					columnId,
+					editableRows: editableRowsRef.current,
+					activeEdit: activeEditRef.current,
+				}),
+		)
+
+		const refusal = findRefusal(editSourceRef.current, rowKey, open)
+
+		if (refusal) announce(describeHeld(intl, refusal.label, refusal.error), { assertive: true })
+
+		return refusal !== null
+	})
+
 	// The session's own exit, from its keys, its settle controls, and a slot's
-	// `commit`. Each reseats focus on the tab stop.
+	// `commit`. Each reseats focus on the tab stop. A save holds back while
+	// `validate` refuses a cell that it closes (see `holdsSave`).
 	const endSession = useCallback(
-		(rowKey: string | number, outcome: 'save' | 'discard') => exitSession(rowKey, outcome, true),
-		[exitSession],
+		(rowKey: string | number, outcome: 'save' | 'discard') => {
+			if (outcome === 'save' && holdsSave(rowKey)) return
+
+			exitSession(rowKey, outcome, true)
+		},
+		[exitSession, holdsSave],
 	)
 
 	// The commit sweep, its async batches, and the saves of the overlay that
@@ -820,6 +854,7 @@ export function useGridEditing<T>({
 		isPending,
 		enterEdit,
 		endSession,
+		holdsSave,
 		newRowKeys: newRow.keys,
 	})
 

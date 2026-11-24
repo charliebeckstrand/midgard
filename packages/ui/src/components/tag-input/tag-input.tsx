@@ -1,13 +1,22 @@
 'use client'
 
 import { useComposedRefs } from 'motion/react'
-import { type FocusEvent, type MouseEvent, useCallback, useEffect, useRef, useState } from 'react'
+import {
+	type FocusEvent,
+	type MouseEvent,
+	type ReactNode,
+	useCallback,
+	useEffect,
+	useRef,
+	useState,
+} from 'react'
 import { ariaAttr } from '../../core/aria-attr'
 import { cn } from '../../core/cn'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { CornerLeftDown } from '../../primitives/icons/icons'
 import { defineMessages } from '../../primitives/intl/intl-messages'
+import type { IntlShape } from '../../primitives/intl/types'
 import { useIntl } from '../../primitives/intl/use-intl'
 import type { Color } from '../../recipes'
 import { k } from '../../recipes/kata/tag-input'
@@ -18,9 +27,15 @@ import { Button } from '../button'
 import { useControlFallbackLabel } from '../control/use-control-fallback-label'
 import { useControlProps } from '../control/use-control-props'
 import { useControlScope } from '../control/use-control-scope'
+import { useControlTypedVerdict } from '../control/use-control-typed-verdict'
 import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
-import { hasSeparator, splitTokens, type TokenRejection } from './tag-input-utilities'
+import {
+	describeRejection,
+	hasSeparator,
+	splitTokens,
+	type TokenRejection,
+} from './tag-input-utilities'
 import { useTagInput } from './use-tag-input'
 import { useTagInputKeyboard } from './use-tag-input-keyboard'
 import { useTagInputRowScroll } from './use-tag-input-row-scroll'
@@ -56,6 +71,19 @@ const messages = defineMessages({
 const REMOVE_PROPS = {
 	onMouseDown: (event: MouseEvent<HTMLButtonElement>) => event.preventDefault(),
 	onClick: (event: MouseEvent<HTMLButtonElement>) => event.stopPropagation(),
+}
+
+/**
+ * The text of the error Message of a refused draft. Only an absent
+ * `invalidMessage` takes the default, which names the refused tokens in the
+ * draft. `null` and `false` suppress the Message.
+ */
+function resolveInvalidMessage(
+	intl: IntlShape,
+	invalidMessage: ReactNode,
+	draft: string,
+): ReactNode {
+	return invalidMessage === undefined ? describeRejection(intl, splitTokens(draft)) : invalidMessage
 }
 
 /**
@@ -109,13 +137,25 @@ export type TagInputProps = Omit<
 	 * already held, and how many had no room.
 	 *
 	 * Every commit splits four ways, and `onValueChange` reports one part of it.
-	 * The other three reach the live region and stop there, which no caller can
-	 * read. Use this callback to explain a refusal in the caller's own words, or to
-	 * count what a paste dropped. `rejected` is also what the field puts back in the
-	 * draft; `duplicates` and `overLimit` are not, because the field already shows
-	 * both.
+	 * The live region announces the other three, and this callback gives them to
+	 * the caller, for example to count what a paste dropped. It does not change
+	 * the announcement or the message. To give the text of a refusal in your own
+	 * words, use `invalidMessage`. `rejected` is also what the field puts back in
+	 * the draft; `duplicates` and `overLimit` are not, because the field already
+	 * shows both.
 	 */
 	onReject?: (rejected: TokenRejection) => void
+	/**
+	 * Error message shown while the draft holds tokens that `validate` refused,
+	 * as an error `<Message>` with an id of its own, wired into the
+	 * `aria-describedby` of the input, also outside a Field. While it shows, the
+	 * live region does not also announce the refusal. Give your own text here to
+	 * explain a refusal. Pass `null` (or `false`) to show no message; the live
+	 * region then announces the refusal.
+	 *
+	 * @defaultValue The refused tag and `'is not a valid tag.'`, or the count and `'tags are not valid.'` for more than one, in the language of the reader.
+	 */
+	invalidMessage?: ReactNode
 	/**
 	 * Requires at least one tag. The typed draft does not count.
 	 *
@@ -132,10 +172,11 @@ export type TagInputProps = Omit<
 }
 
 /**
- * Token-entry field rendering its tags as removable badges in the `<Input>`
- * prefix. It is controlled or uncontrolled via `value`/`defaultValue`. It
- * commits on Enter, comma, blur, the Add button or a paste. Backspace removes
- * the trailing tag, and `validate` and `max` gate the additions.
+ * A field for a list of tags. It shows its tags as removable badges in the
+ * `<Input>` prefix. It is controlled or uncontrolled via
+ * `value`/`defaultValue`. It commits on Enter, comma, blur, the Add button or a
+ * paste. Backspace removes the trailing tag, and `validate` and `max` gate the
+ * additions.
  *
  * @remarks
  * Binds to an enclosing `<Form>` field by `name` (the inner text input stays
@@ -161,9 +202,10 @@ export type TagInputProps = Omit<
  * draft stops a native submit only while the list is empty. A `<Form>` sets
  * `noValidate`, so its validators decide there.
  *
- * Tokens `validate` refuses stay in the draft and mark the field invalid. A
- * mistyped code in a list of forty is thus visible and directly editable, not
- * announced once and lost.
+ * Tokens `validate` refuses stay in the draft, mark the field invalid, and show
+ * the `invalidMessage` below the field until the next keystroke. A mistyped
+ * code in a list of forty is thus visible and directly editable, not announced
+ * once and lost (WCAG 3.3.1).
  */
 export function TagInput({
 	name,
@@ -178,9 +220,11 @@ export function TagInput({
 	max,
 	validate,
 	onReject,
+	invalidMessage: invalidMessageProp,
 	ref,
 	className,
 	'aria-label': ariaLabel,
+	'aria-describedby': ariaDescribedBy,
 	onKeyDown,
 	onPaste,
 	onBlur,
@@ -208,9 +252,16 @@ export function TagInput({
 	const [inputValue, setInputValue] = useState('')
 
 	// Set when a commit refused tokens, and cleared on the next keystroke. The
-	// field gets `invalid` only from a bound Form field, so this mark is the
-	// visible sign of a refused draft.
-	const [refused, setRefused] = useState(false)
+	// field gets `invalid` only from a bound Form field, so this verdict and its
+	// Message are the visible sign of a refused draft. While the verdict holds,
+	// the draft is the refused tokens joined by a space, so the Message reads
+	// them back from the draft.
+	const verdict = useControlTypedVerdict({
+		describedBy: ariaDescribedBy,
+		message: resolveInvalidMessage(intl, invalidMessageProp, inputValue),
+	})
+
+	const setRefused = verdict.setInvalid
 
 	// The draft and the refused mark are the partial entry of the field, so a
 	// reset drops them with the tags. Otherwise a later blur commits the old
@@ -230,6 +281,9 @@ export function TagInput({
 		validate,
 		onReject,
 		onReset: dropDraft,
+		// The error Message is an alert, so the live region does not say the
+		// refusal again while the Message shows it.
+		announceRejected: invalidMessageProp !== undefined && !invalidMessageProp,
 	})
 
 	const setRefs = useComposedRefs(inputRef, resetRef, ref)
@@ -262,7 +316,7 @@ export function TagInput({
 
 			setRefused(rejected.length > 0)
 		},
-		[addTags, locked],
+		[addTags, locked, setRefused],
 	)
 
 	const keyboard = useTagInputKeyboard({
@@ -412,48 +466,53 @@ export function TagInput({
 	)
 
 	return (
-		<Input
-			{...props}
-			id={scope.id}
-			ref={setRefs}
-			size={size}
-			disabled={disabled}
-			// `false` keeps an ambient `required` off the draft too. The custom
-			// validity above enforces it on the tag list.
-			required={false}
-			aria-required={ariaAttr(ambient.required)}
-			// At the cap the field is read-only, not disabled: a disabled child trips
-			// the frame's has-[>:disabled] chrome and grays the whole control, so
-			// read-only blocks new entries while existing tags stay removable.
-			readOnly={atMax || undefined}
-			// Field error forces invalid; otherwise the Input inherits ambient
-			// Control/Field state. The inner Input is intentionally nameless.
-			invalid={invalid || refused || undefined}
-			placeholder={tags.length === 0 ? placeholder : undefined}
-			// Yields to a wrapping `<Field>`/`<Label>`: an own name shadows it, and a
-			// placeholder is not a programmatic name. Names the field only when
-			// nothing else does.
-			aria-label={ariaLabel ?? fallbackLabel}
-			value={inputValue}
-			onChange={(event) => {
-				setInputValue(event.target.value)
+		<>
+			<Input
+				{...props}
+				id={scope.id}
+				aria-describedby={verdict.describedBy}
+				ref={setRefs}
+				size={size}
+				disabled={disabled}
+				// `false` keeps an ambient `required` off the draft too. The custom
+				// validity above enforces it on the tag list.
+				required={false}
+				aria-required={ariaAttr(ambient.required)}
+				// At the cap the field is read-only, not disabled: a disabled child trips
+				// the frame's has-[>:disabled] chrome and grays the whole control, so
+				// read-only blocks new entries while existing tags stay removable.
+				readOnly={atMax || undefined}
+				// Field error forces invalid; otherwise the Input inherits ambient
+				// Control/Field state. The inner Input is intentionally nameless.
+				invalid={invalid || verdict.invalid || undefined}
+				placeholder={tags.length === 0 ? placeholder : undefined}
+				// Yields to a wrapping `<Field>`/`<Label>`: an own name shadows it, and a
+				// placeholder is not a programmatic name. Names the field only when
+				// nothing else does.
+				aria-label={ariaLabel ?? fallbackLabel}
+				value={inputValue}
+				onChange={(event) => {
+					setInputValue(event.target.value)
 
-				setRefused(false)
-			}}
-			onKeyDown={handleKeyDown}
-			onPaste={handlePaste}
-			onBlur={handleBlur}
-			prefix={badges}
-			suffix={
-				// With `wrap`, the button sits in a box with the height of one row of
-				// tags, so it aligns with the first row. The boxes are always there and
-				// only their classes change, so the first tag does not remount the
-				// button and take its focus.
-				<span className={cn(addBox && k().add.row)}>
-					<span className={cn(addBox && k().add.chip)}>{addButton}</span>
-				</span>
-			}
-			className={cn(k().input, className, atMax && 'cursor-not-allowed')}
-		/>
+					setRefused(false)
+				}}
+				onKeyDown={handleKeyDown}
+				onPaste={handlePaste}
+				onBlur={handleBlur}
+				prefix={badges}
+				suffix={
+					// With `wrap`, the button sits in a box with the height of one row of
+					// tags, so it aligns with the first row. The boxes are always there and
+					// only their classes change, so the first tag does not remount the
+					// button and take its focus.
+					<span className={cn(addBox && k().add.row)}>
+						<span className={cn(addBox && k().add.chip)}>{addButton}</span>
+					</span>
+				}
+				className={cn(k().input, className, atMax && 'cursor-not-allowed')}
+			/>
+
+			{verdict.message}
+		</>
 	)
 }

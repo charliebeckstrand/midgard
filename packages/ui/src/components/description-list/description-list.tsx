@@ -26,11 +26,12 @@ export type DescriptionListVariants = {
 export type DescriptionListProps = DescriptionListVariants & ComponentProps<'dl'>
 
 /**
- * Semantic description list (`<dl>`) pairing `<DescriptionTerm>` with `<DescriptionDetails>`.
- * Lays out `horizontal` (terms beside details) or `vertical` (terms above
- * details). By default it is vertical below the `sm` breakpoint and horizontal
- * from it. It owns every orientation-varying style, and projects it onto direct
- * `dt` / `dd` children, so term and details stay context-free.
+ * A list of terms, each with its details. It renders a `<dl>` of
+ * `<DescriptionTerm>` and `<DescriptionDetails>` pairs. Lays out `horizontal`
+ * (terms beside details) or `vertical` (terms above details). By default it is
+ * vertical below the `sm` breakpoint and horizontal from it. It owns every
+ * orientation-varying style, and projects it onto direct `dt` / `dd` children,
+ * so term and details stay context-free.
  *
  * The text and the block padding of each cell take the step of the nearest
  * density scope. At `md` the text is `text-sm`, each pair after the first has

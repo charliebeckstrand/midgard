@@ -90,7 +90,10 @@ export default function AskAboutAChart() {
 			<Stack gap="sm">
 				{/* The chart starts at half of the column, so it is not too tall. The
 				    handle at its end edge sets the width, from 30% to the full column,
-				    and a double-click on the handle gives the half again. */}
+				    and a double-click on the handle gives the half again. At phone
+				    width, half of the column is too narrow to read, so the handle and
+				    the empty panel show from the `sm` breakpoint up. Below it, the chart
+				    takes the full width. */}
 				<ResizableGroup>
 					<ResizablePanel defaultSize={50} minSize={30}>
 						<BarChart
@@ -99,8 +102,8 @@ export default function AskAboutAChart() {
 							series={[{ xKey: 'day', yKey: 'late', yName: 'Late stops' }]}
 						/>
 					</ResizablePanel>
-					<ResizableHandle aria-label="Resize the chart" />
-					<ResizablePanel defaultSize={50} />
+					<ResizableHandle aria-label="Resize the chart" className="hidden sm:flex" />
+					<ResizablePanel defaultSize={50} className="hidden sm:block" />
 				</ResizableGroup>
 				<Button variant="outline" className="self-start" onClick={ask}>
 					Ask about this chart

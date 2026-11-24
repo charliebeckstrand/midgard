@@ -1,9 +1,10 @@
 import pages from 'virtual:docs/pages'
 import { PanelLeft, PanelLeftDashed } from 'lucide-react'
-import { type ReactNode, useEffect } from 'react'
-import { Links, Meta, Outlet, Scripts, useLocation, useMatches, useNavigate } from 'react-router'
+import { type ReactNode, useEffect, useRef } from 'react'
+import { Links, Meta, Outlet, Scripts, useLocation, useNavigate } from 'react-router'
 import { Button } from 'ui/button'
 import { loadShiki } from 'ui/code'
+import { announce } from 'ui/core'
 import { EventsAside, EventsButton, EventsSwitch } from 'ui/events'
 import { Flex } from 'ui/flex'
 import { Heading } from 'ui/heading'
@@ -22,6 +23,7 @@ import { UIProvider } from 'ui/providers/ui'
 import { Stack } from 'ui/stack'
 import { useHydrated } from '../../hooks/use-hydrated.ts'
 import { noop } from '../../utilities/noop.ts'
+import { PageTitle } from '../kit/page-title.tsx'
 import { useIdle } from '../kit/use-idle.ts'
 import appCss from './app.css?url'
 import { catalogs } from './catalogs.ts'
@@ -33,6 +35,7 @@ import { RouterLink } from './router-link.tsx'
 import { DocsSearch, SearchPaletteHost } from './search.tsx'
 import { DocsSidebar } from './sidebar.tsx'
 import { StaleBuildScript } from './stale-build.tsx'
+import { useMatchedPage } from './use-matched-page.ts'
 import { useNavigationScroll } from './use-navigation-scroll.ts'
 
 /**
@@ -121,12 +124,12 @@ const messages = defineMessages({
 	},
 })
 
-// The title of the browser tab on a page: the name of the page, then the name of the docs.
-const pageTitleMessage = defineMessage<{ page: string }>({
-	id: 'docs.app.pageTitle',
-	defaultMessage: '{page} · Docs',
+// The title and the heading of a path that has no page.
+const notFoundMessage = defineMessage({
+	id: 'docs.notFound.title',
+	defaultMessage: 'Page not found',
 	description:
-		'The title of the browser tab on a page of the docs. The page is the name of the page, such as Button, or the path of the address when no page is at it.',
+		'The title and the heading of the page that shows for a path that has no page of the docs.',
 })
 
 // The locales that the reader can choose in the settings. With one locale, the
@@ -163,16 +166,13 @@ function Shell() {
 
 	const { sidebar, setSidebar } = useAppearance()
 
-	const matches = useMatches()
-
 	const intl = useIntl()
 
-	// The page of the matched route. A path that only starts with the path of a
-	// page, such as `/button/foo`, matches the not-found route, so it has no page.
-	const page = pages.find((link) => matches.some((match) => match.id === link.path))
+	const page = useMatchedPage()
 
-	// A path with no page takes the path as its title, such as `/button/foo`.
-	const title = page?.name ?? pathname
+	// A path with no page, such as `/button/foo`, takes the title of the
+	// not-found page.
+	const title = page?.name ?? intl.formatMessage(notFoundMessage)
 
 	useIdle(warmShiki)
 
@@ -188,11 +188,27 @@ function Shell() {
 		document.documentElement.lang = intl.locale
 	}, [intl.locale])
 
+	// A move to a new page changes the title and the content, but the focus stays
+	// on the link in the sidebar, so nothing tells a screen reader that the page
+	// changed. A polite message gives the title of the new page. The first page
+	// and a change of the tab or the hash give no message: the reader asked for
+	// the first page, and a tab announces itself.
+	const announcedPath = useRef(path)
+
+	useEffect(() => {
+		if (announcedPath.current === path) return
+
+		announcedPath.current = path
+
+		announce(title)
+	}, [path, title])
+
 	return (
 		// The links match the path of the page, so the item of a page is current
 		// on each tab of the page, and no item is current on the not-found page.
 		<UIProvider link={RouterLink} pathname={path}>
-			<title>{intl.formatMessage(pageTitleMessage, { page: title })}</title>
+			{/* A page with tabs puts the name of the tab in the title (`PageTabs`). */}
+			{!page?.tabs.length && <PageTitle page={title} />}
 			<Stylesheet />
 			<DocsSearch>
 				<div ref={scroller} className={SCROLLER}>

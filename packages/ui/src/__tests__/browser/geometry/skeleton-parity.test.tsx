@@ -25,11 +25,10 @@ import {
 	type ColorPanelProps,
 	ColorPanelSkeleton,
 	ColorPicker,
-	ColorPickerSkeleton,
 } from '../../../components/color'
 import { DEFAULT_SWATCHES } from '../../../components/color/color-constants'
 import { ControlSkeleton } from '../../../components/control'
-import { DatePicker, DatePickerSkeleton } from '../../../components/date-picker'
+import { DatePicker } from '../../../components/date-picker'
 import {
 	DescriptionDetails,
 	DescriptionList,
@@ -95,7 +94,7 @@ import { ToggleIconButton, ToggleIconButtonSkeleton } from '../../../components/
 import { Tree, TreeItem, TreeSkeleton } from '../../../components/tree'
 import { type DensityStep, densitySteps } from '../../../core/density'
 import { BarChart, ChartSkeleton, PieChart } from '../../../modules/chart'
-import { ChatMessage, ChatTranscriptSkeleton } from '../../../modules/chat'
+import { type ChatMessageData, ChatTranscript, ChatTranscriptSkeleton } from '../../../modules/chat'
 import {
 	FormFilters,
 	FormFiltersBar,
@@ -353,73 +352,31 @@ describe('skeleton parity (real browser)', () => {
 		})
 	})
 
-	it.each([
-		['sm', false],
-		['md', false],
-		['lg', false],
-		['sm', true],
-		['md', true],
-		['lg', true],
-	] as const)('ColorPickerSkeleton has the box of a %s picker, alpha %s', (size, alpha) => {
-		const real = box(
-			renderUI(
-				<ColorPicker
-					aria-label="Color"
+	it.each(['sm', 'md', 'lg'] as const)(
+		'ControlSkeleton has the box of a %s DatePicker and ColorPicker',
+		(size) => {
+			const skeleton = placeholder(renderUI(<ControlSkeleton size={size} />).container)
+
+			for (const picker of [
+				<DatePicker
+					key="date"
+					aria-label="Date"
 					size={size}
-					alpha={alpha}
-					defaultValue={alpha ? '#3b82f680' : '#3b82f6'}
+					defaultValue={new Date(2026, 5, 22)}
 				/>,
-			).container.querySelector('[data-slot="control-frame"]'),
-			'color picker',
-		)
+				<ColorPicker key="color" aria-label="Color" size={size} defaultValue="#3b82f6" />,
+			]) {
+				const real = box(
+					renderUI(picker).container.querySelector('[data-slot="control-frame"]'),
+					'picker',
+				)
 
-		const skeleton = placeholder(
-			renderUI(<ColorPickerSkeleton size={size} alpha={alpha} />).container,
-		)
+				expect(skeleton.width).toBeNear(real.width, PIXEL)
 
-		expect(skeleton.width).toBeNear(real.width, PIXEL)
-
-		expect(skeleton.height).toBeNear(real.height, PIXEL)
-	})
-
-	it.each([
-		['sm', false],
-		['md', false],
-		['lg', false],
-		['sm', true],
-		['md', true],
-		['lg', true],
-	] as const)('DatePickerSkeleton has the box of a %s picker, range %s', (size, range) => {
-		const trigger = (start: Date, end: Date) =>
-			box(
-				renderUI(
-					range ? (
-						<DatePicker aria-label="Dates" size={size} range defaultValue={[start, end]} />
-					) : (
-						<DatePicker aria-label="Date" size={size} defaultValue={end} />
-					),
-				).container.querySelector('[data-slot="control-frame"]'),
-				'date picker',
-			)
-
-		// The digits of a date do not have the same width, so the trigger width
-		// changes with the value. The skeleton is between the trigger with short
-		// dates and the trigger with long dates. A single picker shows the second
-		// date.
-		const short = trigger(new Date(2026, 0, 1), new Date(2026, 0, 8))
-
-		const long = trigger(new Date(2026, 11, 1), new Date(2026, 11, 28))
-
-		const skeleton = placeholder(
-			renderUI(<DatePickerSkeleton size={size} range={range} />).container,
-		)
-
-		expect(skeleton.width).toBeGreaterThan(short.width)
-
-		expect(skeleton.width).toBeLessThan(long.width)
-
-		expect(skeleton.height).toBeNear(short.height, PIXEL)
-	})
+				expect(skeleton.height).toBeNear(real.height, PIXEL)
+			}
+		},
+	)
 
 	it.for(densitySteps.flatMap((size) => [1, 2, 3].map((rows) => [size, rows] as const)))(
 		'TextareaSkeleton has the box and the radius of a %s textarea at %i rows',
@@ -865,7 +822,7 @@ describe('skeleton parity (real browser)', () => {
 		)
 
 		expect(placeholder(renderUI(<SegmentSkeleton />).container).height).toBe(
-			height(container.querySelector('[role="tablist"]'), 'segment control'),
+			height(container.querySelector('[role="radiogroup"]'), 'segment control'),
 		)
 	})
 
@@ -1011,19 +968,25 @@ describe('skeleton parity (real browser)', () => {
 
 	// A transcript has no fixed height, so this compares one bubble of each side. The real
 	// bubble holds as many lines as the skeleton bubble of its side: one for the user, and two for
-	// the assistant. The column is fixed, so the bubbles of both sides align to the same edges.
+	// the assistant. The column is fixed, so the bubbles of both sides align to the same edges. The
+	// real bubble is in a transcript, because the rows of a transcript keep room on each side.
+	const conversation: ChatMessageData[] = [
+		{ id: 'q', sender: 'user', content: 'Where are the stops?' },
+		{ id: 'a', sender: 'assistant', content: 'Here are the stops.\nTwo of them run late.' },
+	]
+
 	it.each([
-		['user', 0, 'right', 'Where are the stops?'],
-		['assistant', 1, 'left', 'Here are the stops.\nTwo of them run late.'],
+		['user', 0, 'right'],
+		['assistant', 1, 'left'],
 	] as const)(
 		'ChatTranscriptSkeleton has the %s bubble of a transcript',
-		(sender, index, edge, text) => {
+		(_sender, index, edge) => {
 			const real = present(
 				renderUI(
-					<div className="w-120">
-						<ChatMessage sender={sender}>{text}</ChatMessage>
+					<div className="flex h-120 w-120 flex-col">
+						<ChatTranscript messages={conversation} />
 					</div>,
-				).container.querySelector('[data-slot="chat-message-bubble"]'),
+				).container.querySelectorAll('[data-slot="chat-message-bubble"]')[index],
 				'bubble',
 			).getBoundingClientRect()
 

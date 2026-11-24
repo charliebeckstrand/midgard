@@ -11,6 +11,7 @@ import {
 	useRef,
 	useState,
 } from 'react'
+import { useA11yAnnouncements } from '../../hooks/a11y/use-a11y-announcements'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { resolveFormat } from '../../utilities/format'
 import { calendarMessages } from './calendar-messages'
@@ -163,12 +164,17 @@ export function useCalendarPicker({
 
 	let viewConfig: CalendarPickerViewConfig
 
+	// The year or the decade that the view shows, as its center button writes it.
+	let centerLabel: string
+
 	if (view === 'months') {
+		centerLabel = formatYear(pickerYear)
+
 		viewConfig = {
-			gridLabel: intl.formatMessage(calendarMessages.selectMonth),
+			gridLabel: intl.formatMessage(calendarMessages.selectMonth, { year: centerLabel }),
 			prevLabel: intl.formatMessage(calendarMessages.previousYear),
 			nextLabel: intl.formatMessage(calendarMessages.nextYear),
-			centerLabel: formatYear(pickerYear),
+			centerLabel,
 			onPrev: () => dispatch({ type: 'stepYear', delta: -1 }),
 			onNext: () => dispatch({ type: 'stepYear', delta: 1 }),
 			onCenter: () => {
@@ -192,14 +198,16 @@ export function useCalendarPicker({
 	} else {
 		const decadeStart = Math.floor(decadeYear / 10) * 10
 
+		// The label names only the years that the calendar can show.
+		centerLabel = [Math.max(decadeStart, MIN_YEAR), Math.min(decadeStart + 9, MAX_YEAR)]
+			.map(formatYear)
+			.join('–')
+
 		viewConfig = {
-			gridLabel: intl.formatMessage(calendarMessages.selectYear),
+			gridLabel: intl.formatMessage(calendarMessages.selectYear, { decade: centerLabel }),
 			prevLabel: intl.formatMessage(calendarMessages.previousDecade),
 			nextLabel: intl.formatMessage(calendarMessages.nextDecade),
-			// The label names only the years that the calendar can show.
-			centerLabel: [Math.max(decadeStart, MIN_YEAR), Math.min(decadeStart + 9, MAX_YEAR)]
-				.map(formatYear)
-				.join('–'),
+			centerLabel,
 			onPrev: () => dispatch({ type: 'stepDecade', delta: -10 }),
 			onNext: () => dispatch({ type: 'stepDecade', delta: 10 }),
 			onCenter: () => {
@@ -229,6 +237,12 @@ export function useCalendarPicker({
 			cellBlock: false,
 		}
 	}
+
+	// A year step or a decade step changes only the text of the center button,
+	// and the focus stays on the step button. The new year or decade is thus
+	// announced (WCAG 4.1.3), as the calendar announces a new month. A change of
+	// view announces its span too. Each grid also names its year or decade.
+	useA11yAnnouncements(open ? centerLabel : null)
 
 	return {
 		headerRef,

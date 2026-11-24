@@ -30,7 +30,6 @@ export const SIZE_AXES = {
 	ColorPanel: ['xs', 'sm', 'md', 'lg', 'xl'],
 	ColorPanelSkeleton: ['xs', 'sm', 'md', 'lg', 'xl'],
 	ColorPicker: ['xs', 'sm', 'md', 'lg', 'xl'],
-	ColorPickerSkeleton: ['xs', 'sm', 'md', 'lg', 'xl'],
 	Combobox: ['xs', 'sm', 'md', 'lg', 'xl'],
 	CommandPaletteClose: ['xs', 'sm', 'md', 'lg', 'xl'],
 	CommandPaletteShortcut: ['xs', 'sm', 'md', 'lg', 'xl'],
@@ -43,7 +42,6 @@ export const SIZE_AXES = {
 	CurrencyInput: ['xs', 'sm', 'md', 'lg', 'xl'],
 	DateInput: ['xs', 'sm', 'md', 'lg', 'xl'],
 	DatePicker: ['xs', 'sm', 'md', 'lg', 'xl'],
-	DatePickerSkeleton: ['xs', 'sm', 'md', 'lg', 'xl'],
 	DrawerPanel: ['xs', 'sm', 'md', 'lg', 'xl'],
 	FileUploadButton: ['xs', 'sm', 'md', 'lg', 'xl'],
 	FileUploadInput: ['xs', 'sm', 'md', 'lg', 'xl'],
@@ -111,6 +109,8 @@ export const SIZE_AXES = {
 	TooltipContent: ['xs', 'sm', 'md', 'lg', 'xl'],
 	Tree: ['xs', 'sm', 'md', 'lg', 'xl'],
 	TreeSkeleton: ['xs', 'sm', 'md', 'lg', 'xl'],
+	Wysiwyg: ['xs', 'sm', 'md', 'lg', 'xl'],
+	WysiwygSkeleton: ['xs', 'sm', 'md', 'lg', 'xl'],
 } as const satisfies Record<string, readonly DensityStep[]>
 
 /** The name of a component with a `size` axis. */

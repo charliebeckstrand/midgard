@@ -62,6 +62,10 @@ export type ChatToolProps = {
  * panel mounts lazily and is then held. A step nobody opens therefore costs no
  * Markdown lex, and one closed after opening keeps what it drew.
  *
+ * A closed step fits its head, and not the width of the bubble. An open step
+ * fills the bubble, so its detail has room. The detail adds nothing to the
+ * width of the bubble, so the prose around the step does not reflow.
+ *
  * A step with no detail draws as a plain line. There is nothing behind it, and
  * a disclosure that opens onto nothing is a control lying about having
  * something to show.

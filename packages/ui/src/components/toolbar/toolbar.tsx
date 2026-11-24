@@ -18,10 +18,10 @@ export type ToolbarProps = AccessibleName &
 	Omit<ComponentProps<'div'>, 'aria-label' | 'aria-labelledby'>
 
 /**
- * ARIA toolbar grouping related controls with roving-tabindex arrow-key
+ * A toolbar that groups related controls. It has roving-tabindex arrow-key
  * navigation along its `orientation`. Requires `aria-label`/`aria-labelledby`;
- * the group is never an unnamed `toolbar`. A consumer `ref` reaches the
- * toolbar element.
+ * the group is never an unnamed `toolbar`. A consumer `ref` reaches the toolbar
+ * element.
  *
  * @remarks
  * A horizontal toolbar wraps onto more rows when it is narrow. A

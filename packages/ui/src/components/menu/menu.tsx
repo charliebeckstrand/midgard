@@ -85,15 +85,15 @@ export type MenuProps = {
 }
 
 /**
- * Composition root for menus; provides open state and actions to its trigger
- * and items via context. A `placement` makes it a floating dropdown. Without
- * one the wrapper opens as a right-click context menu, or renders as a static
- * inline menu when `defaultOpen` is set. A context menu also opens on a touch
- * long press, because iOS Safari fires no `contextmenu` event for one. A long
- * press on a map does nothing.
- * A context menu that a key opens (the ContextMenu key or Shift+F10) returns
- * focus to the element that held it when the menu closes. A context menu that
- * the pointer opens leaves focus where it falls.
+ * A menu of actions, as a dropdown, a context menu, or an inline list. It
+ * provides open state and actions to its trigger and items via context. A
+ * `placement` makes it a floating dropdown. Without one the wrapper opens as a
+ * right-click context menu, or renders as a static inline menu when
+ * `defaultOpen` is set. A context menu also opens on a touch long press,
+ * because iOS Safari fires no `contextmenu` event for one. A long press on a
+ * map does nothing. A context menu that a key opens (the ContextMenu key or
+ * Shift+F10) returns focus to the element that held it when the menu closes. A
+ * context menu that the pointer opens leaves focus where it falls.
  *
  * @remarks
  * The mode comes from prop presence by design. The three modes take one prop
@@ -145,12 +145,9 @@ export function Menu({
 		<MenuActionsContext value={actions}>
 			<MenuCappedContext value={capped}>
 				<MenuStateContext value={state}>
-					{/* The menu's own pointer level, spanning the trigger as well as the
-				panel. A dropdown's trigger keeps focus while open, so it is where an
-				open submenu's arrow keys arrive. A dropdown roves by
-				`aria-activedescendant` from there, so the pointer marks `data-active`;
-				every other mode roves by real focus and the pointer moves it. */}
-					<MenuPointerLevel virtual={state.isDropdown && !state.isSheet} owner={actions.triggerRef}>
+					{/* The menu's own pointer level. Each mode roves by real focus, and
+				the pointer moves it. */}
+					<MenuPointerLevel>
 						<Root
 							data-slot="menu"
 							// contents: this wrapper must not participate in layout, or it

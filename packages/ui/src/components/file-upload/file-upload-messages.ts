@@ -5,7 +5,6 @@ import type { MessageSet } from '../../primitives/intl/types'
 type FileUploadValues = {
 	upload: Record<never, never>
 	uploadFile: Record<never, never>
-	reset: Record<never, never>
 	dropClick: Record<never, never>
 	dropTap: Record<never, never>
 	selectDifferent: Record<never, never>
@@ -14,9 +13,9 @@ type FileUploadValues = {
 	browse: Record<never, never>
 	selected: { count: number }
 	announced: { count: number; names: string }
-	refusedType: { count: number; names: string }
-	refusedSize: { count: number; names: string }
-	refusedCount: { count: number; names: string }
+	refusedType: { count: number; names: string; accept: string }
+	refusedSize: { count: number; names: string; limit: string }
+	refusedCount: { count: number; names: string; max: number }
 }
 
 /**
@@ -36,11 +35,6 @@ export const fileUploadMessages: MessageSet<FileUploadValues> = defineMessages<F
 		id: 'ui.fileUpload.uploadFile',
 		defaultMessage: 'Upload file',
 		description: 'The name of the file input of a drop zone.',
-	},
-	reset: {
-		id: 'ui.fileUpload.reset',
-		defaultMessage: 'Reset',
-		description: 'The label of the button that clears the selected files.',
 	},
 	dropClick: {
 		id: 'ui.fileUpload.dropClick',
@@ -87,21 +81,22 @@ export const fileUploadMessages: MessageSet<FileUploadValues> = defineMessages<F
 	refusedType: {
 		id: 'ui.fileUpload.refusedType',
 		defaultMessage:
-			'{count, plural, one {{names} is not an accepted file type} other {{names} are not accepted file types}}',
+			'{count, plural, one {{names} is not an accepted file type} other {{names} are not accepted file types}}. Accepted types: {accept}',
 		description:
-			'Spoken when the field refuses files because their type is not accepted. The names are the file names, joined by commas.',
+			'Spoken when the field refuses files because their type is not accepted. The names are the file names, joined by commas. The accepted types are the file types and extensions that the field takes, such as "image/png, .pdf".',
 	},
 	refusedSize: {
 		id: 'ui.fileUpload.refusedSize',
-		defaultMessage: '{count, plural, one {{names} is too large} other {{names} are too large}}',
+		defaultMessage:
+			'{count, plural, one {{names} is too large} other {{names} are too large}}. The limit is {limit}',
 		description:
-			'Spoken when the field refuses files because they are larger than the limit. The names are the file names, joined by commas.',
+			'Spoken when the field refuses files because they are larger than the limit. The names are the file names, joined by commas. The limit is a size, such as "1 MB".',
 	},
 	refusedCount: {
 		id: 'ui.fileUpload.refusedCount',
 		defaultMessage:
-			'{count, plural, one {{names} is over the file limit} other {{names} are over the file limit}}',
+			'{count, plural, one {{names} is over the file limit} other {{names} are over the file limit}}. The limit is {max, plural, one {# file} other {# files}}',
 		description:
-			'Spoken when the field refuses files because it takes no more files. The names are the file names, joined by commas.',
+			'Spoken when the field refuses files because it takes no more files. The names are the file names, joined by commas. The limit is the number of files that the field takes.',
 	},
 })

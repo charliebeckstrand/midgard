@@ -17,15 +17,17 @@ Components split into a **static** (server-renderable) tier and a **client** tie
 
 For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcodeMask` preset.
 
+> Each framed control fills its container. This includes the triggers of `Listbox`, `Combobox`, `DatePicker`, and `ColorPicker`. `ControlSkeleton` is the silhouette of each of them. The page or the form sets the width, for example with a column of `max-w-sm`.
+
 > A `clearable` `input`, `search-input`, `date-input`, `address-input`, `signature-pad`, `listbox`, `combobox`, or `date-picker` shows a clear button while it holds a value.
 
 > An uncontrolled control follows a native form reset. A `Form` cancels the native reset and resets its bound fields. Either reset drops a partial entry, such as typed text that the control did not commit. A control that puts no value in a native form does not follow the native reset: `RangeSlider`, `Listbox`, `Calendar`, the `DatePicker` family, `ColorPicker`, and `SignaturePad`.
 
 > `CheckboxGroup` and `RadioGroup` require their own name: give `aria-label` or `aria-labelledby`. The `<legend>` of an enclosing `<fieldset>` does not name the group.
 
-> `Checkbox`, `Radio`, and `Switch` floor their hit area with `TouchTarget` ([`PRIMITIVES.md`](PRIMITIVES.md)). A container that puts bare controls closer than the floor sets `--touch-target-gap-x` or `--touch-target-gap-y` to its gap, or uses a `touch-gap-*` utility for the two. A toggle group sets them already. Controls that touch in a grid go in a container with the `touch-pitch` utility. On a coarse pointer, each control keeps its size in a cell of at least 44px. Its hit area fills the cell, as in the month picker of `Calendar`. A scroll box with no padding of its own, such as the content box of a dashboard tile, uses the `touch-scroll` utility. On a coarse pointer, a hit area at its bottom edge then stays in the box. On a coarse pointer, the days of `Calendar` fill square cells of 40, 44, or 48 px at `sm`, `md`, and `lg`. The `sm` cell is under the floor.
+> `Checkbox`, `Radio`, `Switch`, and each star of an interactive `Rating` floor their hit area with `TouchTarget` ([`PRIMITIVES.md`](PRIMITIVES.md)). A `Rating` puts each star in a column of at least the floor. At a half step, each half of a star is 24 px wide on each pointer. A container that puts bare controls closer than the floor sets `--touch-target-gap-x` or `--touch-target-gap-y` to its gap, or uses a `touch-gap-*` utility for the two. A toggle group sets them already. Controls that touch in a grid go in a container with the `touch-pitch` utility. On a coarse pointer, each control keeps its size in a cell of at least 44px. Its hit area fills the cell, as in the month picker of `Calendar`. A scroll box with no padding of its own, such as the content box of a dashboard tile, uses the `touch-scroll` utility. On a coarse pointer, a hit area at its bottom edge then stays in the box. On a coarse pointer, the days of `Calendar` fill square cells of 40, 44, or 48 px at `sm`, `md`, and `lg`. The `sm` cell is under the floor.
 
-> A `RadioGroup` in a `Field` takes the description of the `Field`. A bare `Radio` in the group does not take the id of the `Field`. Wrap each `Radio` in a `RadioField` to give it an id and a `Label`.
+> A `RadioGroup` or a `CheckboxGroup` in a `Field` takes the description and the error message of the `Field`. A bare `Radio` or `Checkbox` in the group does not take the id of the `Field`. Wrap each `Radio` in a `RadioField`, or each `Checkbox` in a `CheckboxField`, to give it an id and a `Label`. A checkbox in a `CheckboxGroup` does not take the `required` state of a `Control`, because that state is for the group.
 
 > A `readOnly` or `disabled` `rating` renders one image. Its name is the name of the consumer or the `Field` label.
 
@@ -33,13 +35,19 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > On a phone (`PHONE_QUERY`, [`UTILITIES.md`](UTILITIES.md)), a dropdown `Menu` and a `DatePicker` open as a bottom sheet in place of the popover. Set `sheet={false}` to keep the popover.
 
+> The dialog of a `DatePicker` follows the WAI-ARIA APG date picker dialog. The open moves DOM focus to the selected day, else today, else the first enabled day, and the `Calendar` keyboard moves the focus. The `input` mode keeps the focus in the text field and points its `aria-activedescendant` at the id of the highlighted day. A `Calendar` with a `listboxId` gives each day the id `<listboxId>-<YYYY-MM-DD>`. `CalendarRange` selects each day of the committed range.
+
 > The date text of `Intl` in `calendar` and `date-picker` waits for hydration, as in `date-time`. The server render and the hydration render show a skeleton of the month label, of the weekday row, and of the value in the trigger. The skeleton holds English text, without `Intl`, so it has about the size of the label. A `date-picker` with a pinned `format` writes its value without `Intl`, so it shows the value in the server render.
 
 > A `required` `tag-input` needs at least one tag. An enclosing `Control` can also make it required. A native form submit stops while the list is empty, and the typed draft does not count as a tag.
 
+> A `tag-input` keeps the tokens that `validate` refuses in the draft and shows its `invalidMessage` below the field until the next keystroke. Give `invalidMessage={null}` to show no message. The live region then announces the refusal.
+
 > The tags of a `tag-input` stay on one row and scroll on the inline axis. With `wrap`, they wrap onto more rows, and the add button stays at the end of the first row. The affixes of each other input stay on one row with the input.
 
-> `checkbox`, `switch`, `RadioGroup`, and `ColorPicker` take `readOnly` from their own prop or from an enclosing `Control`.
+> `checkbox`, `switch`, `RadioGroup`, and `ColorPicker` take `readOnly` from their own prop or from an enclosing `Control`. `Rating` and `SwitchChoice` set `aria-required` from their own `required` prop or from an enclosing `Control`. The `ColorPicker` and `DatePicker` triggers set it from an enclosing `Control`.
+
+> The `ColorPicker` trigger is a `combobox`, as the `DatePicker` trigger is. Its value is the hex code that it shows. Each preset swatch has a coarse color name and its hex code as its name, such as "Red, #EF4444".
 
 > A read-only control shows the default cursor, not the pointer: on the control, on its `Field` label, and on the affix of a picker trigger. A control that is also disabled shows `not-allowed`. The shared `hannou.cursor` reads `aria-readonly="true"`, `data-readonly`, or the native `readonly` on the element or a descendant.
 
@@ -49,6 +57,10 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > `Control` broadcasts the state of a `Field` to one control-aware descendant. Its `variant` sets the surface of that control, also of a `Listbox`, `Combobox`, `DatePicker`, or `ColorPicker` trigger. A `soft` control has no border and a translucent wash, so it reads on a glass panel. A `bare` control draws no frame and no focus ring, for a host that draws them, such as a `Grid` cell around its editor. `Form` and its filter bar are parts of the `form` module ([`MODULES.md`](MODULES.md)).
 
+> A disabled `Fieldset` disables the Control cascade in it. Thus a control that is not form-associated, such as a `SignaturePad` or the track of a `RangeSlider`, is disabled too. `Fieldset` is a client component.
+
+> Only a `Message` with no form binding is a live region: an `error` message is `role="alert"`, and a `warning` or `success` message is `role="status"`. A polite message that mounts after its `Field` also sends its text to the shared announcer. A form-bound `Message` is not a live region. It stays in the `aria-describedby` of the control, and the focus move of a refused submit speaks it.
+
 ## Buttons & actions
 
 `button` · `copy-button` · `hold-button` · `toggle-icon-button`
@@ -56,6 +68,8 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 > For a copy control with a text label, use `useCopyButtonState` from `copy-button`.
 
 > A `Button` in a locked Control scope, such as a `Form` while a submit runs, is `aria-disabled` and cancels its click. It stays in the tab order. A `HoldButton` there starts no hold, and a lock that comes during a hold cancels it. Pass `lockable={false}` to keep either live. A library button that writes no field, such as a `Tab`, a `CopyButton`, or a `ToggleIconButton`, stays live. So does the standard close button of an overlay, and the Cancel button of `Confirm`, also when the overlay opens from inside a locked `Form`. A field in the overlay locks with the form. A `Tab` or a `SegmentItem` that writes a value, such as the AND/OR segment of a query group, takes `lockable` and locks.
+
+> A `HoldButton` has the built-in description "Press and hold to confirm". Assistive technology can send a click with no pointer press and no key press, and such a click cannot start a hold. It arms a confirm step, and a second such click in the next five seconds completes the action.
 
 ## Navigation
 
@@ -67,13 +81,13 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > A hover `Tooltip` stays open while the pointer moves onto its content. The reader can thus rest on the text (WCAG 2.2 SC 1.4.13). Escape closes it. `interactive` only lets the content hold controls.
 
-> `useConfirm()` asks a question in the one `Confirm` that `UIProvider` mounts. Use `Confirm` for a message with custom children.
+> `useConfirm()` asks a question in the one `Confirm` that `UIProvider` mounts. Use `Confirm` for a message with custom children. When the dialog closes, the focus goes back to the control that asked. When that control is gone, as after a delete of its row, the focus goes into its nearest ancestor that is still in the page. Set `returnFocusTo` to choose the target.
 
 > `UIProvider` mounts one `ToastProvider` and its viewport, so `useToast()` works anywhere under it with no setup. A `toast()` call with the `id` of a live toast replaces that toast in place, and its countdown starts again. A screen reader speaks the new text.
 
-> While a toast shows, the `Toast` viewport is a `region` landmark with the name "Notifications". F8 moves focus to the first control of the newest toast that has one, and that focus pauses auto-dismiss.
+> While a toast shows, the `Toast` viewport is a `region` landmark with the name "Notifications". F8 moves focus to the first control of the newest toast that has one, and that focus pauses auto-dismiss. A toast with `actions` and no `duration` stays until the reader closes it (WCAG 2.2.1). A modal overlay does not hide the viewport from a screen reader, so a toast that comes while a `Dialog` is open is spoken.
 
-> `dialog`, `drawer`, and `sheet` have the root-and-parts shape of `popover`: a root such as `Dialog`, a `DialogTrigger`, and a `DialogPanel`.
+> `dialog`, `drawer`, and `sheet` have the root-and-parts shape of `popover`: a root such as `Dialog`, a `DialogTrigger`, and a `DialogPanel`. A panel with a `container` seals only that element and has no `aria-modal`. A `Body` that scrolls is a tab stop.
 
 > A `DialogPanel`, a `DrawerPanel`, or a `SheetPanel` has no `glass` prop. It follows the Surfaces setting of the reader: flat by default, glass when the reader picks Glass in `AppearanceSettings`. A `<GlassProvider>` does not change it. `CommandPalette`, `Confirm`, and the phone sheet of a `Menu` follow the same setting.
 
@@ -94,6 +108,10 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 ## Layout & surfaces
 
 `group` · `card` · `divider` · `aspect-ratio` · `resizable` · `collapse` · `accordion` · `segment` · `placeholder`
+
+> A double-click on a `ResizableHandle` moves it back to where the default sizes of its two panels put it. When the second press of the double-click drags, the drag stays.
+
+> A `Segment` with no `TabContents` and no `TabContent` picks a value, so it is a `radiogroup` of `radio` items. An arrow key moves the focus and selects the item. A `Segment` with panels keeps the tab roles. A `Segment` with `activation="manual"` also keeps the tab roles: an arrow key moves only the focus, and Enter or Space selects the item. Use it when a pick shows a different view or writes the address.
 
 > For a custom trigger or panel in an `AccordionItem`, use `useAccordionItem` from `accordion`. It gives the open state, `toggle`, and the ARIA props of the trigger and the panel. A custom trigger that spreads `triggerProps` takes part in the arrow keys of the accordion.
 
@@ -121,13 +139,15 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > `PdfViewer` searches the OCR text that `data` gives, as `PdfViewerTextItem` runs. The toolbar then has a Search control. `search` turns it off, or sets the color of the matches and the page turn, through `PdfViewerSearchOptions`.
 
-> The thumbnail rail of `PdfViewer` opens 240px wide. A splitter on its end edge resizes it from 160px to 320px, by a drag or by the arrow keys. A double-click sets 240px again. A `src` document renders each thumbnail for the widest rail, so a thumbnail is sharp at each width.
+> `PdfViewer` shows its toolbar while a `src` opens and after the document opens with a page. A load that failed and a document with no page show the message of the pane and no toolbar.
+
+> The thumbnail rail of `PdfViewer` opens 240px wide. A splitter on its end edge resizes it from 160px to 320px, by a drag or by the arrow keys. A double-click sets 240px again, unless its second press dragged. The rail is one Tab stop on the current page, and the arrow keys move between the pages. A `src` document renders each thumbnail for the widest rail, so a thumbnail is sharp at each width.
 
 ## Loading skeletons
 
 A unit that can load late exports a `<Name>Skeleton` from its own entry point. The skeleton is a static leaf, so a Suspense fallback or a `loading.tsx` can render it on the server. It has the box of the real component and takes the same `size`, `level`, or `orientation`. `ColorPanelSkeleton` also takes the `alpha` and the `swatches` of its panel.
 
-`AccordionSkeleton` · `AvatarSkeleton` · `BadgeSkeleton` · `BreadcrumbSkeleton` · `ButtonSkeleton` · `CalendarSkeleton` · `CheckboxSkeleton` · `ColorPanelSkeleton` · `ColorPickerSkeleton` · `ControlSkeleton` · `DatePickerSkeleton` · `DescriptionListSkeleton` · `HeadingSkeleton` · `ListSkeleton` · `NavSkeleton` · `PaginationSkeleton` · `ProgressBarSkeleton` · `ProgressGaugeSkeleton` · `RadioSkeleton` · `RatingSkeleton` · `SegmentSkeleton` · `ShinyTextSkeleton` · `SidebarSkeleton` · `SliderSkeleton` · `SparklineSkeleton` · `StatDeltaSkeleton` · `StatDescriptionSkeleton` · `StatLabelSkeleton` · `StatSkeleton` · `StatValueSkeleton` · `StepperSkeleton` · `SwitchSkeleton` · `TabListSkeleton` · `TextareaSkeleton` · `TextSkeleton` · `TimelineSkeleton` · `ToggleIconButtonSkeleton` · `TreeSkeleton`
+`AccordionSkeleton` · `AvatarSkeleton` · `BadgeSkeleton` · `BreadcrumbSkeleton` · `ButtonSkeleton` · `CalendarSkeleton` · `CheckboxSkeleton` · `ColorPanelSkeleton` · `ControlSkeleton` · `DescriptionListSkeleton` · `HeadingSkeleton` · `ListSkeleton` · `NavSkeleton` · `PaginationSkeleton` · `ProgressBarSkeleton` · `ProgressGaugeSkeleton` · `RadioSkeleton` · `RatingSkeleton` · `SegmentSkeleton` · `ShinyTextSkeleton` · `SidebarSkeleton` · `SliderSkeleton` · `SparklineSkeleton` · `StatDeltaSkeleton` · `StatDescriptionSkeleton` · `StatLabelSkeleton` · `StatSkeleton` · `StatValueSkeleton` · `StepperSkeleton` · `SwitchSkeleton` · `TabListSkeleton` · `TextareaSkeleton` · `TextSkeleton` · `TimelineSkeleton` · `ToggleIconButtonSkeleton` · `TreeSkeleton`
 
 > `ControlSkeleton` stands in for each control in a `ControlFrame`, such as `input`, `select`, and `combobox`. Pair a skeleton with `ReadyReveal` ([`PRIMITIVES.md`](PRIMITIVES.md)). The `chart`, `chat`, `form`, `kanban`, and `map` modules export `ChartSkeleton`, `ChatTranscriptSkeleton`, `FormFiltersSkeleton`, `KanbanCardSkeleton`, and `MapSkeleton` ([`MODULES.md`](MODULES.md)).
 

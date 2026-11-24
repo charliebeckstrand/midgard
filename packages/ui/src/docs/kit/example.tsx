@@ -1,5 +1,12 @@
 import { useComposedRefs } from 'motion/react'
-import { type ComponentType, type ReactNode, useEffect, useState } from 'react'
+import {
+	type ComponentType,
+	type FocusEvent,
+	type ReactNode,
+	useLayoutEffect,
+	useRef,
+	useState,
+} from 'react'
 import { CodeBlock, primeCodeBlock } from 'ui/code'
 import { Collapse, CollapsePanel, CollapseTrigger } from 'ui/collapse'
 import { cn, createContext } from 'ui/core'
@@ -11,6 +18,7 @@ import { ToastHost } from '../../components/toast/toast-host.tsx'
 import { useIsRtl } from '../../hooks/use-is-rtl.ts'
 import { usePanelResize } from '../../hooks/use-panel-resize.ts'
 import { BreakpointFrame } from '../../primitives/breakpoint-frame/breakpoint-frame.tsx'
+import { Splitter } from '../../primitives/splitter/splitter.tsx'
 import { sen } from '../../recipes/kiso/index.ts'
 import { getOrCompute } from '../../utilities/get-or-compute.ts'
 import { createLazyModule, type LazyModule } from '../../utilities/lazy-module.ts'
@@ -32,6 +40,18 @@ const messages = defineMessages({
 		description:
 			'The label of the button under an example that hides the source code of the example.',
 	},
+	resizeWidth: {
+		id: 'docs.example.resizeWidth',
+		defaultMessage: 'Resize example width',
+		description:
+			'The name of the handle on the end border of an example that changes the width of the example, by a drag or by the arrow keys.',
+	},
+	resizeHeight: {
+		id: 'docs.example.resizeHeight',
+		defaultMessage: 'Resize example height',
+		description:
+			'The name of the handle on the bottom border of an example that changes the height of the example, by a drag or by the arrow keys.',
+	},
 })
 
 // The size of the instance area in pixels, such as "640 × 480".
@@ -40,6 +60,15 @@ const sizeMessage = defineMessage<{ width: number; height: number }>({
 	defaultMessage: '{width} × {height}',
 	description:
 		'The size of an example in pixels, which shows while the reader resizes the example, such as "640 × 480".',
+})
+
+// One side of an example in pixels, which a screen reader speaks as the value
+// of a resize handle, such as "640 pixels".
+const pixelsMessage = defineMessage<{ pixels: number }>({
+	id: 'docs.example.pixels',
+	defaultMessage: '{pixels} pixels',
+	description:
+		'The width or the height of an example in pixels, which a screen reader speaks as the value of the handle that resizes the example, such as "640 pixels".',
 })
 
 function isExample(component: object): component is ExampleMeta {
@@ -93,20 +122,23 @@ function Code({
 	)
 }
 
+type Size = { width: number; height: number }
+
 /**
- * The width and the height of `target` in pixels, in the top end corner of the
- * frame. It shows only while `active`, and it measures only then, so the size
- * of an idle frame renders nothing.
+ * The width and the height of `target` in pixels, while `active`, and `null`
+ * otherwise. It measures only while `active`, so an idle frame does no work.
+ * The first size is measured before the paint, so a splitter that takes the
+ * focus has its value text at once.
  */
-function FrameSize({ target, active }: { target: HTMLElement | null; active: boolean }) {
-	const intl = useIntl()
+function useFrameSize(target: HTMLElement | null, active: boolean): Size | null {
+	const [size, setSize] = useState<Size | null>(null)
 
-	const [size, setSize] = useState<{ width: number; height: number } | null>(null)
-
-	useEffect(() => {
+	useLayoutEffect(() => {
 		if (!active || target === null) return
 
-		// The observer reports the size at once, and then each change.
+		setSize({ width: target.clientWidth, height: target.clientHeight })
+
+		// The observer reports each change of the size.
 		const observer = new ResizeObserver(([entry]) => {
 			if (!entry) return
 
@@ -125,7 +157,12 @@ function FrameSize({ target, active }: { target: HTMLElement | null; active: boo
 		}
 	}, [active, target])
 
-	if (!active || size === null) return null
+	return size
+}
+
+/** The size of the instance area, in the top end corner of the frame. */
+function FrameSize({ size }: { size: Size }) {
+	const intl = useIntl()
 
 	return (
 		<span
@@ -159,15 +196,26 @@ function viewportCeiling(viewport: HTMLElement): number {
 	return Math.max(window.innerHeight, viewportFloor(viewport))
 }
 
+/**
+ * The width of the instance box.
+ *
+ * - `content`: as wide as the instance, and at least 24rem.
+ * - `column`: a form column of 24rem, or the width of a narrower frame, for
+ *   fields that fill their container.
+ * - `surface`: the width of the frame, for a surface of a page.
+ * - `ratio`: the width of the frame, and the frame starts at half the column,
+ *   for a surface that keeps an aspect ratio.
+ */
+export type FrameBox = 'content' | 'column' | 'surface' | 'ratio'
+
 /** The props of an example frame that set the box of the instance. */
 export type FrameOptions = {
-	/** Makes the instance box fill the frame, for a surface of a page. */
-	surface?: boolean
 	/**
-	 * Makes the instance box fill the frame, and starts the frame at half the
-	 * column, for a surface that keeps an aspect ratio.
+	 * Sets the width of the instance box.
+	 *
+	 * @defaultValue 'content'
 	 */
-	ratio?: boolean
+	box?: FrameBox
 	/**
 	 * Makes the instance area a viewport of 32rem in height, for an instance that
 	 * opens an overlay, a popover, or a toast. The surfaces stay in the area. A
@@ -204,17 +252,27 @@ export function FrameDefaults({ children, ...options }: FrameOptions & { childre
 	return <FrameDefaultsContext value={options}>{children}</FrameDefaultsContext>
 }
 
+// The classes of the instance box for each width. A box that is not the width
+// of the frame puts phrasing children on a row that wraps.
+const boxClasses: Record<FrameBox, string> = {
+	content:
+		'w-max min-w-[min(24rem,100%)] max-w-full phrasing:flex-row phrasing:flex-wrap phrasing:items-center',
+	column: 'w-sm max-w-full phrasing:flex-row phrasing:flex-wrap phrasing:items-center',
+	surface: 'w-full',
+	ratio: 'w-full',
+}
+
 /**
  * The box of the instance. A `page` is the page of the viewport, with no
- * padding. Each other instance is in a padded flex box, which fills the area
- * with `fill`, and is as wide as the instance otherwise.
+ * padding. Each other instance is in a padded flex box, with the width that
+ * `box` sets.
  */
 function InstanceBox({
-	fill,
+	box,
 	page,
 	children,
 }: {
-	fill: boolean
+	box: FrameBox
 	page: boolean
 	children: ReactNode
 }) {
@@ -222,15 +280,7 @@ function InstanceBox({
 
 	return (
 		<div className="p-4">
-			<Stack
-				data-slot="example-instance"
-				gap="lg"
-				className={
-					fill
-						? 'w-full'
-						: 'w-max min-w-[min(24rem,100%)] max-w-full phrasing:flex-row phrasing:flex-wrap phrasing:items-center'
-				}
-			>
+			<Stack data-slot="example-instance" gap="lg" className={boxClasses[box]}>
 				{children}
 			</Stack>
 		</div>
@@ -243,9 +293,10 @@ function InstanceBox({
  * The title is a link to the frame. Its id is the file name of the example,
  * such as `with-icon`, so a reader can share the address of one example.
  *
- * The instance box is as wide as the instance, and at least 24rem, as a form
- * column on a page. When each child of the box is phrasing content, such as a
- * button or a badge, the children make a row that wraps. Otherwise they stack.
+ * By default, the instance box is as wide as the instance, and at least 24rem,
+ * as a form column on a page. When each child of the box is phrasing content,
+ * such as a button or a badge, the children make a row that wraps. Otherwise
+ * they stack.
  * The box is a flex box, and its gap spaces the children. A margin does not
  * cross a wrapper that has `display: contents`, such as the wrapper of a menu,
  * but the gap does.
@@ -280,15 +331,22 @@ function InstanceBox({
  *
  * A surface of a page, such as a chart, a map, or a document viewer, takes the
  * width of its container and has no width of its own. In a box that is as
- * wide as its content, it gets only the 24rem minimum. With `surface`, the
- * box fills the frame.
+ * wide as its content, it gets only the 24rem minimum. With `box="surface"`,
+ * the box fills the frame.
  *
  * A surface that keeps an aspect ratio, such as a chart, a map, a document
  * viewer, or a grid of photos, gets taller as it gets wider. In the full column,
- * it can be taller than the screen. With `ratio`, the box fills the frame, and
- * the frame starts at half the column but not narrower than 32rem. The frame
- * does not become wider than the column. A drag sets the width as for each
+ * it can be taller than the screen. With `box="ratio"`, the box fills the
+ * frame, and the frame starts at half the column but not narrower than 32rem.
+ * The frame does not become wider than the column. A drag sets the width as for each
  * other frame.
+ *
+ * A field fills its container, and the page or the form sets the width. In a
+ * box that is as wide as its content, a long message or a row of tags makes
+ * the box and thus the field wider. With `box="column"`, the box is a form
+ * column of 24rem, and the full width of a narrower frame, so each field of a
+ * page has the same width. A page of fields gives `box="column"` to each of
+ * its frames with {@link FrameDefaults}.
  *
  * A {@link FrameDefaults} around the frame gives the options that the frame
  * does not set.
@@ -307,8 +365,7 @@ export function ExampleFrame(
 		meta,
 		actions,
 		print,
-		surface = false,
-		ratio = false,
+		box = 'content',
 		viewport = false,
 		page = false,
 		children,
@@ -360,6 +417,24 @@ export function ExampleFrame(
 		resize.handleProps['data-dragging'] !== undefined ||
 		heightResize.handleProps['data-dragging'] !== undefined
 
+	// A splitter that has the keyboard focus. The size shows while it has the
+	// focus, as it shows during a drag, so a keyboard reader sees the size too.
+	const [keyFocus, setKeyFocus] = useState(false)
+
+	const size = useFrameSize(area, dragging || keyFocus)
+
+	// The width splitter comes after the box, and the pointer goes through it to
+	// the drag area. A press on the drag area moves the focus to the splitter,
+	// as a press on the height splitter does, so the arrow keys resize the
+	// frame after a drag.
+	const widthSplitter = useRef<HTMLHRElement>(null)
+
+	const splitterFocus = {
+		onFocus: (event: FocusEvent<HTMLElement>) =>
+			setKeyFocus(event.currentTarget.matches(':focus-visible')),
+		onBlur: () => setKeyFocus(false),
+	}
+
 	return (
 		<Stack gap="sm" data-slot="example">
 			<Flex gap="md" direction="col" align="start">
@@ -372,14 +447,27 @@ export function ExampleFrame(
 				ref={resize.ref}
 				style={resize.size === null ? undefined : { width: resize.size }}
 				className={
-					ratio ? 'relative w-[max(50%,32rem)] min-w-40 max-w-full' : 'relative min-w-40 max-w-full'
+					box === 'ratio'
+						? 'relative w-[max(50%,32rem)] min-w-40 max-w-full'
+						: 'relative min-w-40 max-w-full'
 				}
 			>
 				{/* The drag area comes before the box, so the box can show the border as active. */}
 				<div
-					aria-hidden
 					data-slot="example-resize"
-					onPointerDown={resize.handleProps.onPointerDown}
+					onPointerDown={(event) => {
+						// The default of the press would move the focus to the body, as the
+						// drag area takes no focus, so the press prevents it.
+						event.preventDefault()
+
+						// A script focus shows the focus ring when the last focus came from
+						// a key or when no focus came before it, as at the load of the page.
+						// This focus comes from a press, so it shows no ring, as a press on
+						// the height splitter does.
+						widthSplitter.current?.focus({ preventScroll: true, focusVisible: false })
+
+						resize.handleProps.onPointerDown(event)
+					}}
 					data-dragging={resize.handleProps['data-dragging']}
 					className="peer absolute inset-y-0 -end-3 z-10 w-6 cursor-ew-resize touch-pan-y select-none pointer-coarse:pointer-events-none"
 				>
@@ -407,12 +495,12 @@ export function ExampleFrame(
 								// `useToast` in the instance uses a queue of the frame, so its
 								// toasts show in the frame and not at the edge of the window.
 								<ToastHost>
-									<InstanceBox fill={surface || ratio} page={page}>
+									<InstanceBox box={box} page={page}>
 										{children}
 									</InstanceBox>
 								</ToastHost>
 							) : (
-								<InstanceBox fill={surface || ratio} page={false}>
+								<InstanceBox box={box} page={false}>
 									{children}
 								</InstanceBox>
 							)}
@@ -421,12 +509,24 @@ export function ExampleFrame(
 							// The drag area sits across the bottom border of the area, as the
 							// drag area of the width sits across the end border.
 							<div
-								aria-hidden
 								data-slot="example-resize-height"
 								onPointerDown={heightResize.handleProps.onPointerDown}
 								data-dragging={heightResize.handleProps['data-dragging']}
 								className="group absolute inset-x-0 -bottom-3 z-10 h-6 cursor-ns-resize touch-pan-x select-none pointer-coarse:pointer-events-none"
 							>
+								<Splitter
+									label={intl.formatMessage(messages.resizeHeight)}
+									orientation="horizontal"
+									value={heightResize.covers}
+									min={0}
+									max={100}
+									valueText={
+										size ? intl.formatMessage(pixelsMessage, { pixels: size.height }) : undefined
+									}
+									onKeyDown={heightResize.handleProps.onKeyDown}
+									{...splitterFocus}
+									className={cn('absolute inset-0 m-0', sen.focus.ring)}
+								/>
 								<div className="absolute inset-x-0 top-1/2 h-px group-hover:bg-zinc-400 group-data-dragging:bg-zinc-400 pointer-coarse:hidden dark:group-hover:bg-zinc-600 dark:group-data-dragging:bg-zinc-600" />
 								{/* The bar has an odd height, so it centers on the 1px border at whole pixels. */}
 								<div
@@ -442,7 +542,7 @@ export function ExampleFrame(
 					<Collapse animate="slide" open={open} onOpenChange={(next) => change(() => next)}>
 						<div className="border-t border-zinc-200 dark:border-zinc-800">
 							<CollapseTrigger
-								className="flex px-4 py-2 text-sm focus-visible:-outline-offset-2"
+								className="flex px-4 py-2 text-sm focus-visible:-outline-offset-2 not-aria-expanded:rounded-es-[calc(var(--radius-lg)-1px)]"
 								onPointerEnter={warm}
 								onPointerDown={warm}
 								onFocus={warm}
@@ -455,7 +555,25 @@ export function ExampleFrame(
 						</CollapsePanel>
 					</Collapse>
 				</div>
-				<FrameSize target={area} active={dragging} />
+				{/* A window splitter on the end border, over the drag area. It is the tab
+				    stop, and the arrow keys resize the frame, so a keyboard reader can
+				    resize it too (WCAG 2.1.1). It comes after the box, so the Tab order
+				    reaches it after the content that it sizes. The pointer goes through it
+				    to the drag area, which comes first, so the box can show its border as
+				    active. */}
+				<Splitter
+					ref={widthSplitter}
+					label={intl.formatMessage(messages.resizeWidth)}
+					orientation="vertical"
+					value={resize.covers}
+					min={0}
+					max={100}
+					valueText={size ? intl.formatMessage(pixelsMessage, { pixels: size.width }) : undefined}
+					onKeyDown={resize.handleProps.onKeyDown}
+					{...splitterFocus}
+					className={cn('pointer-events-none absolute inset-y-0 -end-3 m-0 w-6', sen.focus.ring)}
+				/>
+				{size && <FrameSize size={size} />}
 			</div>
 		</Stack>
 	)

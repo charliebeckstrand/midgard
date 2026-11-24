@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react'
+import { MemoryRouter } from 'react-router'
 import { describe, expect, it } from 'vitest'
 import NotFound from '../app/routes/not-found.tsx'
 
@@ -7,9 +8,13 @@ import NotFound from '../app/routes/not-found.tsx'
 
 describe('the not-found page', () => {
 	it('states that no page is at the path, with no link', () => {
-		render(<NotFound />)
+		render(
+			<MemoryRouter initialEntries={['/button/foo']}>
+				<NotFound />
+			</MemoryRouter>,
+		)
 
-		expect(screen.queryByText('Page not found')).not.toBeNull()
+		expect(screen.queryByText('No page of the docs is at /button/foo.')).not.toBeNull()
 
 		expect(screen.queryByRole('link')).toBeNull()
 	})

@@ -25,15 +25,15 @@ export type RadioProps = RadioVariants & {
 } & Omit<ComponentProps<'input'>, 'type' | 'size' | 'readOnly'>
 
 /**
- * Single radio control wrapped in its label; id, disabled, required, readOnly,
- * and invalid state resolve from the enclosing Control. A read-only
+ * A radio button with its label. Its id, disabled, required, readOnly, and
+ * invalid state resolve from the enclosing Control. A read-only
  * {@link RadioGroup} also makes the radio read-only. In a RadioGroup, the radio
  * does not adopt the id or the description of a `<Field>` or `<Control>` that
- * holds the group. Wrap it in a {@link RadioField} to give it an id. The
- * circle takes the step of the nearest density scope, and an explicit `size`
- * opens a scope on the label. The hit area floors at the minimums of
- * `TouchTarget`, 24 px on a fine pointer and 44 px on a coarse pointer, and the
- * box keeps its size.
+ * holds the group. Wrap it in a {@link RadioField} to give it an id. The circle
+ * takes the step of the nearest density scope, and an explicit `size` opens a
+ * scope on the label. The hit area floors at the minimums of `TouchTarget`, 24
+ * px on a fine pointer and 44 px on a coarse pointer, and the box keeps its
+ * size.
  *
  * @remarks Unlike {@link Checkbox} and {@link Switch}, this binds no Form
  * field. It has no internal checked state, and stays a native input controlled

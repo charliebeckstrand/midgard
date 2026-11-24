@@ -74,10 +74,10 @@ export type ToastProps = {
 }
 
 /**
- * The viewport of the toast queue from the surrounding `<ToastProvider>`, which
- * renders into a portal at the configured viewport position. Drop one anywhere
- * inside the provider's subtree (e.g. the app shell); it need not sit next to
- * `useToast()` callers.
+ * The area that shows the toast messages of the surrounding `<ToastProvider>`.
+ * It renders into a portal at the configured viewport position. Drop one
+ * anywhere inside the provider's subtree (e.g. the app shell); it need not sit
+ * next to `useToast()` callers.
  *
  * @remarks The viewport is not itself a live region. Each toast maps its
  * severity to politeness via its own `role`. `warning` and `error` interrupt as
@@ -183,6 +183,9 @@ export function Toast({ position = TOAST_POSITION }: ToastProps) {
 			<section
 				ref={viewportRef}
 				data-slot="toast-viewport"
+				// A modal overlay keeps a live layer in the accessibility tree, so a
+				// toast that comes while a Dialog is open is spoken (`core/live-layer.ts`).
+				data-live-layer=""
 				// Named only while it holds a toast: an empty stack is no landmark, and
 				// two empty stacks on one page do not give two of the same name.
 				aria-label={hasToasts ? intl.formatMessage(messages.notifications) : undefined}

@@ -180,15 +180,16 @@ export type ListboxProps<T> = ListboxBaseProps & {
 } & SelectionValueProps<T>
 
 /**
- * Select-style dropdown over arbitrary `<ListboxOption>` values: single or
- * `multiple` selection, controlled or uncontrolled, with an optional clear
- * control and a portaled panel. Binds to an enclosing Form field by `name`;
- * an explicit `value` wins over the bound field. The trigger and the panel
- * take the step of the nearest density scope, and an explicit `size` opens a
- * scope on each. Enter, Space, ArrowDown, or ArrowUp on the closed trigger
- * opens the panel. A printable key opens it and moves to the first option that
- * matches. The trigger and the panel stamp `data-open` while the panel is open,
- * and the trigger stamps `data-disabled` while it is disabled.
+ * A dropdown whose options can hold a value of any type, as `<ListboxOption>`
+ * children. It takes single or `multiple` selection, controlled or
+ * uncontrolled, with an optional clear control and a portaled panel. Binds to
+ * an enclosing Form field by `name`; an explicit `value` wins over the bound
+ * field. The trigger and the panel take the step of the nearest density scope,
+ * and an explicit `size` opens a scope on each. Enter, Space, ArrowDown, or
+ * ArrowUp on the closed trigger opens the panel. A printable key opens it and
+ * moves to the first option that matches. The trigger and the panel stamp
+ * `data-open` while the panel is open, and the trigger stamps `data-disabled`
+ * while it is disabled.
  */
 export function Listbox<T>({
 	name,

@@ -24,7 +24,12 @@ import { noopSubscribe } from '../../utilities/noop'
 import { createPressOwner, isPrimaryPress, type PressOwner } from '../../utilities/primary-press'
 import { sameElements } from '../../utilities/same-elements'
 import type { GridNavStore } from './context'
-import { focusFirstControl, ownerCell, SORT_CONTROL } from './engine/grid-cell-controls'
+import {
+	focusFirstControl,
+	focusOwnCell,
+	ownerCell,
+	SORT_CONTROL,
+} from './engine/grid-cell-controls'
 import { NAV_PAGE_STEP } from './engine/grid-constants'
 import { readKeyPress, shortcutLetter } from './engine/grid-edit/utilities'
 import {
@@ -145,6 +150,7 @@ const INERT_STORE: GridNavStore = {
 	isInRange: () => false,
 	fillHandle: null,
 	isStopActive: () => false,
+	activeKey: () => null,
 	stopId: (key) => key,
 	seatStop: () => {},
 	cellId: () => '',
@@ -289,26 +295,23 @@ function keyTarget(
 }
 
 /**
- * The cell a focus into the grid seats the cursor on. That is the first cell
- * of the body, or the last one for a focus from after the grid. With an empty
- * body, it is a cell of the header row. It is `null` when the grid has no
- * column. @internal
+ * The cell a first focus into the grid seats the cursor on: the first cell of
+ * the body, from either side, as the one tab stop of an APG grid. With an
+ * empty body, it is the first cell of the header row. It is `null` when the
+ * grid has no column. @internal
  */
-function seedCoord(
-	fromAfter: boolean,
-	order: { count: number; slot: GridNewRowPosition; colCount: number },
-): Coord | null {
+function seedCoord(order: {
+	count: number
+	slot: GridNewRowPosition
+	colCount: number
+}): Coord | null {
 	const { count, slot, colCount } = order
-
-	const body = bodySpan(count, slot)
 
 	if (colCount === 0) return null
 
-	const col = fromAfter ? colCount - 1 : 0
+	if (bodySpan(count, slot) === 0) return { row: HEADER_ROW_INDEX, col: 0 }
 
-	if (body === 0) return { row: HEADER_ROW_INDEX, col }
-
-	return { row: fromPosition(fromAfter ? body : 1, count, slot), col }
+	return { row: fromPosition(1, count, slot), col: 0 }
 }
 
 /**
@@ -989,27 +992,39 @@ export function useGridNavigation({
 		setAnchor(null)
 	}, [setActive, setAnchor])
 
+	// Makes the range over the data cells of the columns from `left` to `right`,
+	// from the first data row to the last. The cursor goes to the last cell, and
+	// the window scrolls to it. Returns whether the grid has such a data cell.
+	const selectColumns = useCallback(
+		(left: number, right: number): boolean => {
+			const places = orderRef.current ? orderIndexRef.current.rows.length : rowsRef.current.length
+
+			const first = rowAtPlace(0)
+
+			const last = rowAtPlace(places - 1)
+
+			const colCount = colCountRef.current
+
+			if (!range || first === undefined || last === undefined) return false
+
+			if (left < 0 || right >= colCount || left > right) return false
+
+			setAnchor({ row: toCursorRow(first), col: left })
+
+			// The move that extends holds the anchor that is set above.
+			moveToCursor({ row: toCursorRow(last), col: right }, true)
+
+			return true
+		},
+		[range, rowsRef, rowAtPlace, colCountRef, setAnchor, toCursorRow, moveToCursor],
+	)
+
 	// Makes the range from the first data cell to the last, as Shift with
-	// Ctrl/Cmd+End does from the first cell. The cursor goes to the last cell,
-	// and the window scrolls to it. Returns whether the grid has a data cell.
-	const selectAll = useCallback((): boolean => {
-		const places = orderRef.current ? orderIndexRef.current.rows.length : rowsRef.current.length
-
-		const first = rowAtPlace(0)
-
-		const last = rowAtPlace(places - 1)
-
-		const colCount = colCountRef.current
-
-		if (!range || first === undefined || last === undefined || colCount === 0) return false
-
-		setAnchor({ row: toCursorRow(first), col: 0 })
-
-		// The move that extends holds the anchor that is set above.
-		moveToCursor({ row: toCursorRow(last), col: colCount - 1 }, true)
-
-		return true
-	}, [range, rowsRef, rowAtPlace, colCountRef, setAnchor, toCursorRow, moveToCursor])
+	// Ctrl/Cmd+End does from the first cell.
+	const selectAll = useCallback(
+		(): boolean => selectColumns(0, colCountRef.current - 1),
+		[selectColumns, colCountRef],
+	)
 
 	// With the range on, Ctrl/Cmd+A selects each data cell, and the grid takes the
 	// key. With the range off, or with no data cell, the key stays the
@@ -1238,6 +1253,15 @@ export function useGridNavigation({
 
 			return current !== null && stopAt(current.row)?.key === key
 		},
+		activeKey: () => {
+			const current = readActive()
+
+			if (current === null || chromeRow(current.row)) return null
+
+			const order = orderRef.current
+
+			return order ? (order[current.row]?.key ?? null) : current.row
+		},
 		stopId,
 		seatStop,
 		cellId,
@@ -1248,6 +1272,42 @@ export function useGridNavigation({
 
 	// The row keys and the data column ids that the cursor last saw.
 	const layoutRef = useRef<CursorLayout | null>(null)
+
+	// The cell that the cursor left when it last unseated, and the layout of
+	// that moment. The next entry seats the cursor there again (APG grid).
+	const leftRef = useRef<{ coord: Coord; layout: CursorLayout | null } | null>(null)
+
+	// Unseats the cursor, and keeps the cell that it leaves.
+	const unseat = useCallback(() => {
+		const from = readActive()
+
+		if (from) leftRef.current = { coord: from, layout: layoutRef.current }
+
+		setActive(null)
+	}, [readActive, setActive])
+
+	// The cell that the cursor left, followed into the layout of now and clamped
+	// to its bounds, as `reconcile` follows a seated cursor. It is `null` while
+	// the cursor is seated, when it has not unseated, and when the grid has no
+	// cell now.
+	const resumeCoord = useCallback((): Coord | null => {
+		const left = leftRef.current
+
+		if (!left || readActive()) return null
+
+		const now = layoutRef.current
+
+		const coord =
+			left.layout && now && layoutMoved(left.layout, now)
+				? followCell(left.coord, left.layout, now, orderRef.current === null)
+				: left.coord
+
+		return clampCoord(coord, coord, {
+			rows: count(),
+			cols: colCountRef.current,
+			slot: newRowRef.current,
+		})
+	}, [readActive, count, colCountRef, newRowRef])
 
 	// Follows the active cell into a new layout of the grid, and clamps it to the
 	// new bounds. A sort, a filter, a page, or a column change can move the cell.
@@ -1374,27 +1434,33 @@ export function useGridNavigation({
 	// Enter and F2 move focus into the active cell, to its first control. Escape
 	// from a control gives focus back to the grid (see `escapeFromCell`). On a
 	// header cell, Enter presses its sort control instead, when the column
-	// sorts. A cell that opens an editor keeps both keys for the editing layer,
+	// sorts. Shift+Enter there adds the column to the sort, as a Shift-click
+	// does. A cell that opens an editor keeps both keys for the editing layer,
 	// and a cell with no control keeps Enter for its activation. Returns whether
 	// it took the key.
 	const onEntryKey = useCallback(
 		(event: KeyboardEvent<HTMLTableElement>, active: Coord): boolean => {
-			if (!isEntryKey(event)) return false
+			const header = active.row === HEADER_ROW_INDEX
+
+			const sortKey = header && event.key === 'Enter' && !hasBrowserModifier(event)
+
+			if (!sortKey && !isEntryKey(event)) return false
 
 			const row = toDataRow(active.row)
-
-			const header = active.row === HEADER_ROW_INDEX
 
 			if (!header && editsAt(row, active.col)) return false
 
 			const cell = document.getElementById(cellId(row, active.col))
 
-			const sort =
-				header && event.key === 'Enter' ? cell?.querySelector<HTMLElement>(SORT_CONTROL) : null
+			const sort = sortKey ? cell?.querySelector<HTMLElement>(SORT_CONTROL) : null
 
-			sort?.click()
+			// The click carries Shift, so that the sort control adds the column.
+			sort?.dispatchEvent(
+				new MouseEvent('click', { bubbles: true, cancelable: true, shiftKey: event.shiftKey }),
+			)
 
-			const took = sort ? true : focusFirstControl(cell)
+			// Shift+Enter on a header with no sort control does not enter the cell.
+			const took = sort ? true : !event.shiftKey && focusFirstControl(cell)
 
 			if (took) event.preventDefault()
 
@@ -1403,12 +1469,29 @@ export function useGridNavigation({
 		[toDataRow, cellId, editsAt],
 	)
 
+	// A header that drags by its whole cell tells the reader to press Space to
+	// pick it up. Its drag keys listen on the cell, so Space moves focus there,
+	// and the next Space lifts the column. Returns whether it took the key.
+	const onHeaderSpace = useCallback(
+		(event: KeyboardEvent<HTMLTableElement>, active: Coord): boolean => {
+			if (event.key !== ' ' || active.row !== HEADER_ROW_INDEX) return false
+
+			const took = focusOwnCell(document.getElementById(cellId(HEADER_ROW_INDEX, active.col)))
+
+			if (took) event.preventDefault()
+
+			return took
+		},
+		[cellId],
+	)
+
 	// The keys of the active cell. Enter and F2 first move focus into the cell
-	// (see `onEntryKey`). Else Enter and Space act on the cell, and Escape
+	// (see `onEntryKey`), and so does Space on a header that drags by its cell
+	// (see `onHeaderSpace`). Else Enter and Space act on the cell, and Escape
 	// unseats the cursor. A header cell has no row to act on.
 	const onCellKey = useCallback(
 		(event: KeyboardEvent<HTMLTableElement>, base: Coord) => {
-			if (onEntryKey(event, base)) return
+			if (onEntryKey(event, base) || onHeaderSpace(event, base)) return
 
 			const cellKey = isActivationKey(event.key)
 
@@ -1419,10 +1502,52 @@ export function useGridNavigation({
 
 				// The first Escape ends the range, and the next one clears the cursor.
 				if (activeCursor.getAnchor()) setAnchor(null)
-				else setActive(null)
+				else unseat()
 			}
 		},
-		[onEntryKey, activateOrSelectRow, toDataRow, readActive, activeCursor, setActive, setAnchor],
+		[
+			onEntryKey,
+			onHeaderSpace,
+			activateOrSelectRow,
+			toDataRow,
+			readActive,
+			activeCursor,
+			unseat,
+			setAnchor,
+		],
+	)
+
+	// Moves the cursor from `base` by a movement key. A key that names no cell,
+	// such as Enter or Escape, goes to the active cell (see `onCellKey`).
+	const onMoveKey = useCallback(
+		(
+			event: KeyboardEvent<HTMLTableElement>,
+			key: string,
+			base: Coord,
+			order: { count: number; slot: GridNewRowPosition; colCount: number },
+		) => {
+			// `event.currentTarget` is the `<table>`; the page step is viewport-relative
+			// (a no-op layout read for non-page keys, see `resolvePageStep`).
+			const target = keyTarget(
+				key,
+				base,
+				order,
+				event.metaKey || event.ctrlKey,
+				resolvePageStep(event.key, scrollContainerRef.current, event.currentTarget),
+			)
+
+			if (!target) {
+				onCellKey(event, base)
+
+				return
+			}
+
+			event.preventDefault()
+
+			// Shift with a movement key extends the range, when the range is on.
+			moveToCursor(target, event.shiftKey)
+		},
+		[moveToCursor, onCellKey, scrollContainerRef],
 	)
 
 	const onKeyDown = useCallback(
@@ -1449,7 +1574,7 @@ export function useGridNavigation({
 
 			// A grid with no cell takes no key. The cursor seeds at the first cell when
 			// a key arrives before focus has.
-			const first = seedCoord(false, order)
+			const first = seedCoord(order)
 
 			if (!first) return
 
@@ -1459,7 +1584,12 @@ export function useGridNavigation({
 			// the cursor. Enter or Space on a cell the reader cannot see does nothing.
 			if (!active && !MOVEMENT_KEYS.has(event.key)) return
 
-			const base = active ?? first
+			// A cursor that left a cell seats there again. The key does not move it,
+			// so the reader sees the same cell. With no such cell, the key seeds the
+			// first cell and moves from it.
+			const resume = resumeCoord()
+
+			const base = active ?? resume ?? first
 
 			// In a right-to-left grid, the columns run from right to left. ArrowLeft
 			// then moves to the next column (WAI-ARIA APG grid pattern), and the group
@@ -1468,37 +1598,17 @@ export function useGridNavigation({
 
 			if (onStopKey(event, key, base, !active)) return
 
-			// `event.currentTarget` is the `<table>`; the page step is viewport-relative
-			// (a no-op layout read for non-page keys, see `resolvePageStep`).
-			const target = keyTarget(
-				key,
-				base,
-				order,
-				event.metaKey || event.ctrlKey,
-				resolvePageStep(event.key, scrollContainerRef.current, event.currentTarget),
-			)
-
-			if (!target) {
-				onCellKey(event, base)
+			if (!resume) {
+				onMoveKey(event, key, base, order)
 
 				return
 			}
 
 			event.preventDefault()
 
-			// Shift with a movement key extends the range, when the range is on.
-			moveToCursor(target, event.shiftKey)
+			moveToCursor(resume)
 		},
-		[
-			moveToCursor,
-			onCellKey,
-			count,
-			colCountRef,
-			scrollContainerRef,
-			newRowRef,
-			onStopKey,
-			readActive,
-		],
+		[moveToCursor, onMoveKey, count, colCountRef, newRowRef, onStopKey, readActive, resumeCoord],
 	)
 
 	// Set by a pointer press in the table, and read by the focus that the press
@@ -1563,23 +1673,18 @@ export function useGridNavigation({
 			// unseated rather than seeding the last cell behind the dismissed menu.
 			if (closestFloatingPortal(from)) return
 
-			// Entering backwards (Shift+Tab from after the grid) lands on the last cell;
-			// forwards lands on the first. The new-row slot counts as a row of the order.
-			const cameFromAfter =
-				from instanceof Node &&
-				!!(event.currentTarget.compareDocumentPosition(from) & Node.DOCUMENT_POSITION_FOLLOWING)
-
-			const seed = seedCoord(cameFromAfter, {
-				count: count(),
-				slot: newRowRef.current,
-				colCount: colCountRef.current,
-			})
+			// An entry from either side lands on the cell that the cursor left, else on
+			// the first cell. A Shift+Tab entry thus does not scroll a windowed grid to
+			// its end, where an infinite scroll can start a load.
+			const seed =
+				resumeCoord() ??
+				seedCoord({ count: count(), slot: newRowRef.current, colCount: colCountRef.current })
 
 			// Through `moveToCursor`, so a windowed body brings the row in first and
 			// `aria-activedescendant` names a cell that is mounted.
 			if (seed) moveToCursor(seed)
 		},
-		[count, colCountRef, newRowRef, readActive, moveToCursor, followFocus],
+		[count, colCountRef, newRowRef, readActive, moveToCursor, followFocus, resumeCoord],
 	)
 
 	const onBlur = useCallback(
@@ -1602,11 +1707,11 @@ export function useGridNavigation({
 			// window or the tab), so the reader comes back to the same cell.
 			if (next === null && !document.hasFocus()) return
 
-			setActive(null)
+			unseat()
 
 			setAnchor(null)
 		},
-		[setActive, setAnchor],
+		[unseat, setAnchor],
 	)
 
 	// The grid writes the row map during its render, after this hook. Under a
@@ -1646,14 +1751,38 @@ export function useGridNavigation({
 		return row === active.row ? active : { row, col: active.col }
 	}, [active, activeStop, view])
 
-	// The select-all key goes ahead of the cursor keys, on the tab stop alone.
+	// With the range on, Ctrl+Space selects the column of the cursor (APG grid).
+	// With the range off, the key toggles the row, as Space does. Returns
+	// whether it took the key.
+	const onSelectColumnKey = useCallback(
+		(event: KeyboardEvent<HTMLTableElement>): boolean => {
+			// Ctrl alone takes the key. A chord with Meta, Alt, or Shift is not this key.
+			const ctrlAlone = event.ctrlKey && !event.metaKey && !event.altKey && !event.shiftKey
+
+			if (event.key !== ' ' || !ctrlAlone) return false
+
+			const active = readActive()
+
+			if (!active || !selectColumns(active.col, active.col)) return false
+
+			event.preventDefault()
+
+			return true
+		},
+		[readActive, selectColumns],
+	)
+
+	// The select-all and select-column keys go ahead of the cursor keys, on the
+	// tab stop alone.
 	const onTableKeyDown = useCallback(
 		(event: KeyboardEvent<HTMLTableElement>) => {
-			if (event.target === event.currentTarget && onSelectAllKey(event)) return
+			if (event.target === event.currentTarget) {
+				if (onSelectAllKey(event) || onSelectColumnKey(event)) return
+			}
 
 			onKeyDown(event)
 		},
-		[onSelectAllKey, onKeyDown],
+		[onSelectAllKey, onSelectColumnKey, onKeyDown],
 	)
 
 	const navTableProps: GridNavTableProps | undefined = enabled

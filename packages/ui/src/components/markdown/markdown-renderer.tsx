@@ -9,14 +9,13 @@ import { decodeEntities } from './markdown-entities'
 import { MarkdownRangeTextProvider } from './markdown-range-text-provider'
 import {
 	atomRange,
-	find,
-	locate,
 	type MarkdownRange,
 	type MarkdownRangePiece,
 	overlapping,
 	type RangeWalk,
 	rangeWalk,
-	segmentLine,
+	textLines,
+	within,
 } from './markdown-ranges'
 import { MarkdownTableScroll } from './markdown-table-scroll'
 
@@ -230,40 +229,6 @@ function renderToken(
 }
 
 /**
- * Runs `render` with the cursor of the walk at the start of `raw` in the
- * source, then moves the cursor past the end of `raw`. While `render` runs,
- * the limit of the walk is the end of `raw`, so a child token is found only in
- * the source of its parent.
- *
- * @internal
- */
-function within(
-	draw: Draw | undefined,
-	raw: string,
-	render: (draw: Draw | undefined) => ReactNode,
-): ReactNode {
-	if (!draw) return render(undefined)
-
-	const span = locate(draw, raw)
-
-	if (!span) return render(undefined)
-
-	const limit = draw.limit
-
-	draw.cursor = span[0]
-
-	draw.limit = span[1]
-
-	const node = render(draw)
-
-	draw.limit = limit
-
-	draw.cursor = Math.max(draw.cursor, span[1])
-
-	return node
-}
-
-/**
  * Draws one piece of the range at `range` in the walk.
  *
  * @internal
@@ -327,47 +292,26 @@ function nameAtom(draw: Draw, start: number, end: number, text: string): void {
 
 /**
  * The text of a text token, with each range that it overlaps drawn as a
- * piece. Each line is found in the source on its own, because a token in a
- * list item or a blockquote has no indentation. After a line that the source
- * does not hold, the rest of the token renders with no ranges.
+ * piece. After a line that the source does not hold, the rest of the token
+ * renders with no ranges.
  *
  * @internal
  */
 function markText(draw: Draw, raw: string, key: number): ReactNode {
 	const nodes: ReactNode[] = []
 
-	let found = true
-
-	raw.split('\n').forEach((line, row) => {
+	textLines(draw, raw).forEach((pieces, row) => {
 		if (row > 0) nodes.push('\n')
 
-		const at = found && line !== '' ? find(draw, line, draw.cursor) : -1
-
-		if (at === -1) {
-			if (line !== '') found = false
-
-			nodes.push(decodeEntities(line))
-
-			return
-		}
-
-		let start = at
-
-		for (const segment of segmentLine(draw, line, at)) {
-			const text = decodeEntities(segment.text)
-
-			const end = start + segment.text.length
+		for (const piece of pieces) {
+			const text = decodeEntities(piece.text)
 
 			nodes.push(
-				segment.range === undefined
+				piece.range === undefined
 					? text
-					: drawPiece(draw, segment.range, nodes.length, text, start, end),
+					: drawPiece(draw, piece.range, nodes.length, text, piece.start, piece.end),
 			)
-
-			start = end
 		}
-
-		draw.cursor = at + line.length
 	})
 
 	return <Fragment key={key}>{nodes}</Fragment>

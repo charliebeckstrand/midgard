@@ -19,6 +19,10 @@ import { budget } from './helpers/wall-clock'
 
 const HEIGHT = 300
 
+/** The user agent of Safari on an iPhone, which turns on the iOS path of the virtualizer. */
+const IOS_USER_AGENT =
+	'Mozilla/5.0 (iPhone; CPU iPhone OS 26_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Mobile/15E148 Safari/604.1'
+
 /**
  * The budget of a wait for a smooth follow to land.
  *
@@ -68,7 +72,7 @@ function getTranscript(container: HTMLElement) {
 }
 
 const getRows = (container: HTMLElement) =>
-	Array.from(container.querySelectorAll<HTMLElement>('[data-slot="chat-transcript-row"]'))
+	Array.from(container.querySelectorAll<HTMLElement>('[data-slot="chat-message"]'))
 
 /** How far the transcript sits above its own end, in pixels. */
 function distanceFromEnd(transcript: HTMLElement) {
@@ -446,9 +450,7 @@ describe('the transcript window', () => {
 	// A row that grows during the follow of a new row then leaves the end below
 	// the view, and the virtualizer does not see the transcript at its end again.
 	it('keeps the pin while a reply streams on iOS', async () => {
-		vi.spyOn(navigator, 'userAgent', 'get').mockReturnValue(
-			'Mozilla/5.0 (iPhone; CPU iPhone OS 26_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Mobile/15E148 Safari/604.1',
-		)
+		vi.spyOn(navigator, 'userAgent', 'get').mockReturnValue(IOS_USER_AGENT)
 
 		_resetIOSDetectionForTests()
 
@@ -475,6 +477,88 @@ describe('the transcript window', () => {
 		}
 
 		await waitFor(() => atEnd(transcript, 'Reply.'), { timeout: FOLLOW })
+	})
+
+	// On iOS, the virtualizer holds back its corrections while a touch controls
+	// the scroller, and it renders the rows shifted by the held move. A step that
+	// a tap opens or closes changes the height of its row. A transcript that does
+	// not scroll has no offset to move to, so its rows must stay still.
+	it('keeps the rows still while a tap opens and closes a step on iOS', async () => {
+		vi.spyOn(navigator, 'userAgent', 'get').mockReturnValue(IOS_USER_AGENT)
+
+		_resetIOSDetectionForTests()
+
+		onTestFinished(_resetIOSDetectionForTests)
+
+		const messages: ChatMessageData[] = [
+			{ id: 'question', sender: 'user', content: 'Which shipments are late?' },
+			{
+				id: 'answer',
+				sender: 'assistant',
+				content: [
+					{
+						kind: 'tool',
+						id: 'step',
+						label: 'Filter shipments',
+						status: 'done',
+						detail:
+							'Matched **12** of 240 shipments.\n\n- Route 12: 5\n- Route 30: 4\n- Route 41: 3',
+					},
+					{ kind: 'text', id: 'text', text: 'Twelve are late.' },
+				],
+			},
+		]
+
+		// No height, so the transcript grows with its rows and does not scroll.
+		const { container } = renderUI(
+			<div className="flex flex-col" style={{ width: 480 }}>
+				<ChatTranscript messages={messages} />
+			</div>,
+		)
+
+		const transcript = getTranscript(container)
+
+		await waitFor(() => expect(getRows(transcript)).toHaveLength(2))
+
+		const trigger = transcript.querySelector<HTMLElement>('[data-slot="collapse-trigger"]')
+
+		if (!trigger) throw new Error('step trigger not found')
+
+		// The distance from the top of the transcript to its first row.
+		const shift = () =>
+			(getRows(transcript)[0]?.getBoundingClientRect().top ?? Number.NaN) -
+			transcript.getBoundingClientRect().top
+
+		const shifts: number[] = []
+
+		// The touch stays down until the row is at rest, so the virtualizer holds
+		// each correction of the toggle. Each frame records where the first row is.
+		const tap = async () => {
+			transcript.dispatchEvent(new TouchEvent('touchstart', { bubbles: true }))
+
+			trigger.click()
+
+			await settledValue(
+				() => {
+					shifts.push(shift())
+
+					return getRows(transcript)[1]?.offsetHeight
+				},
+				{ frames: 10 },
+			)
+
+			transcript.dispatchEvent(new TouchEvent('touchend', { bubbles: true }))
+		}
+
+		await tap()
+
+		expect(trigger).toHaveAttribute('aria-expanded', 'true')
+
+		await tap()
+
+		expect(trigger).toHaveAttribute('aria-expanded', 'false')
+
+		expect(Math.max(...shifts.map(Math.abs))).toBeLessThanOrEqual(1)
 	})
 
 	// A shorter viewport moves the end down, and the browser sends no `scroll`

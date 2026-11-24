@@ -6,9 +6,9 @@ import Majority from './majority.tsx'
 export default function SeatTab() {
 	return (
 		<>
-			<Example of={Basic} ratio />
-			<Example of={Majority} ratio />
-			<Example of={CenterContent} ratio />
+			<Example of={Basic} box="ratio" />
+			<Example of={Majority} box="ratio" />
+			<Example of={CenterContent} box="ratio" />
 		</>
 	)
 }

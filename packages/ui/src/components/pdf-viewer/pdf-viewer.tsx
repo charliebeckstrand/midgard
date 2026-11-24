@@ -249,13 +249,17 @@ export type PdfViewerProps = Omit<ComponentProps<'section'>, 'children' | 'onLoa
 }
 
 /**
- * PDF document viewer: renders pages from `pages` or via pdf.js from `src`. Toolbar
- * controls cover zoom, rotation, download, and print, and an optional overlay draws
- * highlighted regions over the page. With OCR `data`, the toolbar also searches the text.
+ * A viewer for a PDF document. It renders the pages from `pages`, or from `src`
+ * through pdf.js. Toolbar controls cover zoom, rotation, download, and print,
+ * and an optional overlay draws highlighted regions over the page. With OCR
+ * `data`, the toolbar also searches the text.
  *
  * @remarks The viewer fills the width of its host. In a host that sizes to its content (for
  * example `w-max`), the page area takes the width of the page at 100%: 96 px for each inch of
  * the page, or US Letter before the page size is known.
+ *
+ * The toolbar shows while a `src` opens, so the layout does not change when the document lands.
+ * A load that failed and a document with no page show the message of the pane and no toolbar.
  *
  * `highlights` is a controlled projection, and the viewer never changes it. The search reads
  * the OCR `data` that the consumer gives, not a text layer of the document. The viewer has no

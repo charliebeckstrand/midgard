@@ -33,12 +33,12 @@ export type CardProps = BoxProps<
 }
 
 /**
- * Outlined, padded surface built on Box. Renders in React Server Components,
- * because the card never reads context. The frame, the header, and the footer
- * write each step in a stepped `density-*` utility, so they take the step of the
- * nearest density scope. An explicit `size` makes the card a density scope
- * through Box `density`. Its sections, its static leaves, and its size-aware
- * client children (Button, Input, …) then take that step.
+ * A surface with an outline and padding. It is built on Box. Renders in React
+ * Server Components, because the card never reads context. The frame, the
+ * header, and the footer write each step in a stepped `density-*` utility, so
+ * they take the step of the nearest density scope. An explicit `size` makes the
+ * card a density scope through Box `density`. Its sections, its static leaves,
+ * and its size-aware client children (Button, Input, …) then take that step.
  *
  * The frame owns the outer padding for every child, bare or structural. A
  * section pads only an inner edge that it shares with a sibling (header below,

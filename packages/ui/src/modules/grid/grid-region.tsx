@@ -1,11 +1,13 @@
 'use client'
 
+import { useComposedRefs } from 'motion/react'
 import type { CSSProperties, ReactNode, RefObject } from 'react'
 import { TableScrollsContext } from '../../components/table/context'
 import { cn } from '../../core/cn'
 import { createContext } from '../../core/create-context'
 import type { DensityStep } from '../../core/density/steps'
 import { useLazyModule } from '../../hooks/use-lazy-module'
+import { useScrollRegion } from '../../hooks/use-scroll-region'
 import { Density } from '../../primitives/density'
 import { k } from '../../recipes/kata/grid'
 import { createLazyModule } from '../../utilities/lazy-module'
@@ -77,8 +79,15 @@ export function GridRegion<T>({
 
 	if (!contextMenu) return reordered
 
+	// The menu moves of the columns stand down with the header drag that they
+	// stand in for. The row moves are empty while the rows do not reorder.
 	return (
-		<GridContextMenu config={contextMenu} enabled={contextMenuEnabled} {...menu}>
+		<GridContextMenu
+			config={contextMenu}
+			enabled={contextMenuEnabled}
+			{...menu}
+			columnMoves={canReorder ? menu.columnMoves : null}
+		>
 			{reordered}
 		</GridContextMenu>
 	)
@@ -166,6 +175,13 @@ type GridScrollRegionProps = {
 	grouped: boolean
 	/** Whether the body is a window. A flat master-detail or grouped body clears the native scroll anchor after a clamp (see {@link useGridClampAnchor}). A windowed one turns the native scroll anchor off (see `k.sticky.wrapper.windowed`). */
 	virtualized: boolean
+	/**
+	 * Whether the wrapper is a tab stop while it overflows ({@link useScrollRegion}).
+	 * It is `true` when no keyboard cursor and no row or cell roving moves through
+	 * the rows. Without them, a keyboard user has no other way to scroll to the
+	 * rows below the first window (WCAG 2.1.1).
+	 */
+	keyboardScroll: boolean
 	children: ReactNode
 }
 
@@ -185,6 +201,7 @@ export function GridScrollRegion({
 	expandable,
 	grouped,
 	virtualized,
+	keyboardScroll,
 	children,
 }: GridScrollRegionProps) {
 	// A master-detail or grouped body anchors its rows with the native scroll
@@ -193,16 +210,26 @@ export function GridScrollRegion({
 
 	useGridClampAnchor(scrollRef, active && itemBody && !virtualized)
 
+	// The table inside has the name of the grid, so the wrapper takes no name of
+	// its own. A screen reader reads the table when the wrapper has the focus.
+	const scrollRegionRef = useScrollRegion()
+
+	const composedRef = useComposedRefs<HTMLDivElement>(
+		scrollRef,
+		keyboardScroll ? scrollRegionRef : undefined,
+	)
+
 	if (!active) return children
 
 	const fillHeight = maxHeight === 'fill'
 
 	return (
 		<div
-			ref={scrollRef}
+			ref={composedRef}
 			data-slot="grid-scroll"
 			className={cn(
 				k.sticky.wrapper.base,
+				keyboardScroll && k.sticky.wrapper.focus,
 				itemBody && virtualized && k.sticky.wrapper.windowed,
 				fillHeight && k.sticky.wrapper.fill,
 			)}

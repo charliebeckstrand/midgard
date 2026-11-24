@@ -30,10 +30,14 @@ import { PdfViewerZoomControls } from './pdf-viewer-zoom-controls'
  * there are regions, the magnifier control when the consumer asked for a
  * loupe, and the search control when the consumer gave OCR `data`.
  *
- * Reads everything from {@link PdfViewerContext}. The controls disable only when the document
- * has no page. They work while the pages render, because the open gives every page slot. The
- * thumbnail control also works while the document loads, because the rail shows then. The
- * page navigation is there while the document loads, and is disabled until the count arrives.
+ * Reads everything from {@link PdfViewerContext}. The bar shows while the document opens and
+ * after it opens with a page. A load that failed, or a document with no page, has nothing to
+ * control, so the bar does not render and the pane shows only its message. The thumbnail rail
+ * follows the same rule.
+ *
+ * While the document opens, the controls are disabled, except the thumbnail control, because
+ * the rail shows then. The page navigation is disabled until the count arrives. The controls
+ * work while the pages render, because the open gives every page slot.
  *
  * The magnifier control is one of two, and {@link PdfViewerMagnifierMode} says which: a
  * toggle, or the button that opens {@link PdfViewerMagnifierSettings}.
@@ -62,14 +66,12 @@ export function PdfViewerToolbar() {
 
 	const intl = useIntl()
 
-	const empty = total === 0
-
-	// The page count is whole when the document opens, so every control works while the
-	// pages render.
-	const controlsDisabled = empty
-
 	// `pending` is the render before the load starts, which is also the server render.
 	const opening = loading || pending
+
+	// The page count is whole when the document opens, so every control works while the
+	// pages render. Before the open, the count is 0.
+	const controlsDisabled = total === 0
 
 	const highlightsToggleLabel = intl.formatMessage(
 		highlightsVisible ? pdfViewerMessages.hideHighlights : pdfViewerMessages.showHighlights,
@@ -80,6 +82,10 @@ export function PdfViewerToolbar() {
 		magnifierOn ? pdfViewerMessages.magnifierOff : pdfViewerMessages.magnifierOn,
 	)
 
+	// A failed load and a document with no page have no controls to offer. The bar keeps its
+	// place while the document opens, so the page does not shift when the document lands.
+	if (total === 0 && !opening) return null
+
 	return (
 		<div className={k().toolbar.frame}>
 			<Toolbar
@@ -87,14 +93,8 @@ export function PdfViewerToolbar() {
 				className={k().toolbar.base}
 			>
 				<div className={k().toolbar.section}>
-					{/* The toggle and the page navigation are there while the document opens, so the bar
-					    does not change when the document lands. */}
-					{(total > 0 || opening) && (
-						<>
-							<ThumbnailsToggle />
-							<PdfViewerPageNavigation pages={pages} page={targetPage} goToPage={goToPage} />
-						</>
-					)}
+					<ThumbnailsToggle />
+					<PdfViewerPageNavigation pages={pages} page={targetPage} goToPage={goToPage} />
 				</div>
 
 				<div className={k().toolbar.section}>

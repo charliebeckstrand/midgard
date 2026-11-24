@@ -8,8 +8,19 @@ import { Input } from '../../components/input'
 import { Listbox } from '../../components/listbox'
 import { Rating } from '../../components/rating'
 import { Select } from '../../components/select'
+import { SignaturePad } from '../../components/signature-pad'
+import { RangeSlider } from '../../components/slider'
 import { Form } from '../../modules/form'
-import { bySlot, fireEvent, getSlot, renderUI, screen } from '../helpers'
+import {
+	bySlot,
+	expectAnnouncement,
+	fireEvent,
+	flushAnnouncer,
+	getSlot,
+	liveRegion,
+	renderUI,
+	screen,
+} from '../helpers'
 
 type SetErrors = { setErrors: (errors: Record<string, string | string[]>) => void }
 
@@ -56,6 +67,69 @@ describe('Fieldset', () => {
 		const el = bySlot(container, 'fieldset')
 
 		expect(el).toHaveAttribute('id', 'test')
+	})
+
+	it('disables the Control cascade, also for a control that is not form-associated', () => {
+		const { container } = renderUI(
+			<Fieldset disabled>
+				<Field>
+					<Label>Signature</Label>
+					<SignaturePad />
+				</Field>
+				<RangeSlider />
+			</Fieldset>,
+		)
+
+		expect(getSlot(container, 'field')).toHaveAttribute('data-disabled')
+
+		expect(getSlot(container, 'signature-pad-canvas')).toHaveAttribute('aria-disabled', 'true')
+
+		expect(getSlot(container, 'slider-range')).toHaveAttribute('data-disabled')
+	})
+
+	it('disables a bare control even when the control passes disabled={false}', () => {
+		const { container } = renderUI(
+			<Fieldset disabled>
+				<RangeSlider disabled={false} />
+			</Fieldset>,
+		)
+
+		expect(getSlot(container, 'slider-range')).toHaveAttribute('data-disabled')
+	})
+
+	it('keeps a nested Fieldset disabled inside a disabled Fieldset, as in HTML', () => {
+		const { container } = renderUI(
+			<Fieldset disabled>
+				<Fieldset disabled={false}>
+					<SignaturePad />
+				</Fieldset>
+			</Fieldset>,
+		)
+
+		expect(getSlot(container, 'signature-pad-canvas')).toHaveAttribute('aria-disabled', 'true')
+	})
+
+	it('disables the controls of a disabled Form', () => {
+		const { container } = renderUI(
+			<Form defaultValues={{ sig: null }} disabled>
+				<SignaturePad name="sig" />
+				<RangeSlider />
+			</Form>,
+		)
+
+		expect(getSlot(container, 'signature-pad-canvas')).toHaveAttribute('aria-disabled', 'true')
+
+		expect(getSlot(container, 'slider-range')).toHaveAttribute('data-disabled')
+	})
+
+	it('leaves the controls of an enabled Fieldset enabled', () => {
+		const { container } = renderUI(
+			<Fieldset>
+				<SignaturePad />
+			</Fieldset>,
+		)
+
+		expect(getSlot(container, 'signature-pad-canvas')).not.toHaveAttribute('aria-disabled')
 	})
 })
 
@@ -372,11 +446,11 @@ describe('Message', () => {
 			</Message>,
 		)
 
-		// ARIA in HTML does not allow a live-region role on a `<ul>`, so the
-		// role sits on a `<div>` and a plain list sits inside it.
+		// The `<div>` holds the id, and a plain list sits inside it. A form-bound
+		// message is not a live region.
 		expect(message.tagName).toBe('DIV')
 
-		expect(message).toHaveAttribute('role', 'alert')
+		expect(message).not.toHaveAttribute('role')
 
 		const list = message.querySelector('ul')
 
@@ -417,18 +491,96 @@ describe('Message', () => {
 		expect(message).toHaveAttribute('data-testid', 'errors')
 	})
 
-	it('keeps the alert role on the multi-error list when a consumer supplies one', async () => {
+	it('keeps a consumer role off the multi-error list', async () => {
 		const message = await submitWithErrors(
 			['Too short', 'Required'],
-			<Message name="name" all role="note">
+			<Message name="name" all role="alert">
 				fallback
 			</Message>,
 		)
 
 		expect(message.tagName).toBe('DIV')
 
-		// §3.9: `role` is load-bearing, so the assertive live region survives.
-		expect(message).toHaveAttribute('role', 'alert')
+		// §3.9: `role` is load-bearing, so a form-bound message stays out of the
+		// live regions.
+		expect(message).not.toHaveAttribute('role')
+	})
+
+	it('renders a form-bound error with no live role, as a description of the control', async () => {
+		const message = await submitWithErrors(
+			'Required',
+			<Field>
+				<Input name="name" />
+				<Message name="name" />
+			</Field>,
+		)
+
+		// The focus move of the refused submit speaks the error, so the message
+		// does not also start an alert.
+		expect(message).not.toHaveAttribute('role')
+
+		const input = getSlot(document.body, 'input')
+
+		expect(input).toHaveAttribute('aria-invalid', 'true')
+
+		expect(input.getAttribute('aria-describedby')).toBe(message.id)
+	})
+
+	it.each(['warning', 'success'] as const)(
+		'announces an unbound %s Message that mounts after its Field',
+		async (severity) => {
+			const { rerender } = renderUI(
+				<Field>
+					<Input />
+				</Field>,
+			)
+
+			await flushAnnouncer()
+
+			expect(liveRegion()?.textContent ?? '').toBe('')
+
+			rerender(
+				<Field>
+					<Input />
+					<Message severity={severity}>Did you mean example.com?</Message>
+				</Field>,
+			)
+
+			await expectAnnouncement('Did you mean example.com?')
+		},
+	)
+
+	it('stays silent for a polite Message that mounts with its Field', async () => {
+		renderUI(
+			<Field>
+				<Input />
+				<Message severity="warning">Double-check this value</Message>
+			</Field>,
+		)
+
+		await flushAnnouncer()
+
+		expect(liveRegion()?.textContent ?? '').toBe('')
+	})
+
+	it('does not route an unbound error Message through the announcer', async () => {
+		const { rerender } = renderUI(
+			<Field>
+				<Input />
+			</Field>,
+		)
+
+		rerender(
+			<Field>
+				<Input />
+				<Message>Required</Message>
+			</Field>,
+		)
+
+		await flushAnnouncer()
+
+		// `role="alert"` announces on insertion.
+		expect(liveRegion()?.textContent ?? '').toBe('')
 	})
 
 	it('keeps the alert role when a consumer supplies one', () => {

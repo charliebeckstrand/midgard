@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { ReducedMotionContext } from '../../primitives/reduced-motion/context'
-import { renderUI, screen } from '../helpers'
+import { fireEvent, renderUI, screen } from '../helpers'
 
 describe('Grid client sorting', () => {
 	type Row = { id: number; name: string }
@@ -313,15 +313,19 @@ describe('Grid multi-column sort', () => {
 			/>,
 		)
 
-		// Name is priority 1, Group priority 2: the digit shows visually and the
-		// priority rides in the button's accessible name (the visible badge is aria-hidden).
+		// Name is priority 1, Group priority 2: the badge paints the digit as its
+		// `::after` content, and the priority rides in the button's accessible
+		// name. The digit is not a text node, so the visible text of the button is
+		// the title alone, and it is in the name (WCAG 2.5.3).
 		const name = screen.getByRole('button', { name: 'Sort by Name, sort priority 1' })
 
 		const group = screen.getByRole('button', { name: 'Sort by Group, sort priority 2' })
 
-		expect(name.textContent).toContain('1')
+		expect(name.querySelector('[data-priority]')).toHaveAttribute('data-priority', '1')
 
-		expect(group.textContent).toContain('2')
+		expect(group.querySelector('[data-priority]')).toHaveAttribute('data-priority', '2')
+
+		expect(name.textContent).toBe('Name')
 	})
 
 	it('omits the priority badge under a single-column sort', () => {
@@ -336,6 +340,52 @@ describe('Grid multi-column sort', () => {
 
 		// One sort column needs no ranking, so no digit appears in the header.
 		expect(screen.getByRole('button', { name: 'Sort by Name' }).textContent).not.toMatch(/\d/)
+	})
+
+	it('adds the column to the sort on Shift+Enter on its header cell', () => {
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} navigable />)
+
+		const grid = screen.getByRole('grid')
+
+		fireEvent.mouseDown(screen.getByRole('gridcell', { name: 'Zoe' }))
+
+		// The cursor goes to the header of Group, which sorts, and then to Name.
+		fireEvent.keyDown(grid, { key: 'ArrowUp' })
+
+		fireEvent.keyDown(grid, { key: 'ArrowLeft' })
+
+		fireEvent.keyDown(grid, { key: 'Enter' })
+
+		fireEvent.keyDown(grid, { key: 'ArrowRight' })
+
+		fireEvent.keyDown(grid, { key: 'Enter', shiftKey: true })
+
+		expect(screen.getByRole('button', { name: 'Sort by Group, sort priority 1' })).toBeVisible()
+
+		expect(screen.getByRole('button', { name: 'Sort by Name, sort priority 2' })).toBeVisible()
+
+		// The cursor stays on the header cell.
+		expect(grid).toHaveFocus()
+	})
+
+	it('does nothing on Shift+Enter on the header cell of a column that does not sort', () => {
+		const fixed = columns.map((column) => ({ ...column, sortable: false }))
+
+		renderUI(<Grid columns={fixed} rows={rows} getKey={getKey} navigable />)
+
+		const grid = screen.getByRole('grid')
+
+		fireEvent.mouseDown(screen.getByRole('gridcell', { name: 'Zoe' }))
+
+		fireEvent.keyDown(grid, { key: 'ArrowUp' })
+
+		fireEvent.keyDown(grid, { key: 'Enter', shiftKey: true })
+
+		expect(
+			screen.getAllByRole('columnheader').map((header) => header.getAttribute('aria-sort')),
+		).toEqual([null, null])
+
+		expect(grid).toHaveFocus()
 	})
 })
 

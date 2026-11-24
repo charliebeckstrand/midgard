@@ -29,9 +29,9 @@ const messages = defineMessages<{
 	},
 	rejected: {
 		id: 'ui.tagInput.rejected',
-		defaultMessage: '{count, plural, one {{tag} is not a valid tag} other {# not valid}}',
+		defaultMessage: '{count, plural, one {{tag} is not a valid tag} other {# tags are not valid}}',
 		description:
-			'Spoken when typed or pasted tags fail the validation. With one tag, it names the tag.',
+			'Spoken, and shown below the field as an error, when typed or pasted tags fail the validation. With one tag, it names the tag.',
 	},
 	removed: {
 		id: 'ui.tagInput.removed',
@@ -183,6 +183,19 @@ export function describeBatch(
 	part(messages.rejected, rejected)
 
 	return said.length === 0 ? '' : `${said.join('. ')}.`
+}
+
+/**
+ * The text of the error Message of {@link TagInput} for the tokens that
+ * `validate` refused, or `''` when it refused none. It is the same text as the
+ * rejection part of {@link describeBatch}.
+ *
+ * @internal
+ */
+export function describeRejection(intl: IntlShape, rejected: readonly string[]): string {
+	if (rejected.length === 0) return ''
+
+	return `${intl.formatMessage(messages.rejected, { count: rejected.length, tag: rejected[0] ?? '' })}.`
 }
 
 /**

@@ -136,6 +136,7 @@ export function ConfirmHost({ children }: { children: ReactNode }) {
 					confirm={{ ...options?.confirm, loading }}
 					cancel={{ ...options?.cancel, disabled: loading }}
 					dismissOnBackdrop={!loading}
+					returnFocusTo={options?.returnFocusTo}
 				/>
 			)}
 		</ConfirmContext>

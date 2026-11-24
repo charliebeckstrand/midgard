@@ -15,3 +15,18 @@ import { createContext } from '../../core/create-context'
 export const [ControlLockContext, useControlLock] = createContext<boolean>('ControlLock', {
 	default: false,
 })
+
+/**
+ * Whether an enclosing `Fieldset` is disabled. A native `<fieldset disabled>`
+ * disables only the form-associated elements in it. This flag carries the state
+ * to each control of the Control cascade, such as a canvas or a slider track.
+ *
+ * @returns `true` in a disabled Fieldset, or `false` outside one.
+ * @remarks A Fieldset ORs its own `disabled` with this flag. Thus a Fieldset in
+ * a disabled Fieldset cannot enable its controls, as in HTML.
+ * @internal
+ */
+export const [ControlDisabledContext, useControlDisabled] = createContext<boolean>(
+	'ControlDisabled',
+	{ default: false },
+)

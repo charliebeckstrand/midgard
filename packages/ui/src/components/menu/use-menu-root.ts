@@ -8,18 +8,11 @@ import {
 	useCallback,
 	useEffect,
 	useId,
-	useLayoutEffect,
 	useMemo,
 	useRef,
 	useState,
 } from 'react'
 import type { ScaleStep } from '../../core/density/scale'
-import {
-	clearVirtualActive,
-	queryItems,
-	setVirtualActive,
-	useA11yRoving,
-} from '../../hooks/a11y/use-a11y-roving'
 import { useFloatingDisclosure } from '../../hooks/use-floating-disclosure'
 import type { FloatingPlacement } from '../../hooks/use-floating-panel'
 import { useMediaQuery } from '../../hooks/use-media-query'
@@ -30,14 +23,6 @@ import { snapMenuHeight } from './menu-viewport-utilities'
 
 /** Navigable menu items: `role="menuitem"`, excluding disabled rows. @internal */
 export const MENUITEM_SELECTOR = '[role="menuitem"]:not([data-disabled])'
-
-/**
- * Keys that activate the active menu item. Space joins Enter (APG menu pattern):
- * the trigger is a button, not a text input, so Space selects rather than types.
- * Module-level for a stable reference so the roving handler stays memoized.
- * @internal
- */
-const MENU_ACTIVATION_KEYS = ['Enter', ' '] as const
 
 type MenuStateOptions = {
 	open?: boolean
@@ -206,11 +191,11 @@ export function useMenuRoot({
 		if (suppressed && open) setOpen(false)
 	}
 
-	// Tab off the trigger closes the menu (focus stays on the trigger while it is
-	// open). Routing through `context.onOpenChange` with `'focus-out'` records the
-	// reason so the disclosure's focus-return effect leaves focus where the Tab is
-	// carrying it (forward to the next tabbable, back with Shift+Tab) instead of
-	// snapping it back to the trigger and swallowing the keystroke.
+	// Tab in a dropdown closes the menu and goes on from the trigger
+	// (`MenuContent`). Routing through `context.onOpenChange` with `'focus-out'`
+	// records the reason so the disclosure's focus-return effect leaves focus where
+	// the Tab is carrying it (forward to the next tabbable, back with Shift+Tab)
+	// instead of snapping it back to the trigger and swallowing the keystroke.
 	//
 	// The handler, not `context`: floating-ui rebuilds the context
 	// object on every reposition, and this callback feeds the `actions` memo that
@@ -226,31 +211,9 @@ export function useMenuRoot({
 		[changeOpen],
 	)
 
-	// A dropdown keeps focus on its trigger, so its items rove by
-	// `aria-activedescendant`, not real focus: arrow / Home / End / type-ahead move
-	// a `data-active` cursor over the panel's items (`refs.floating` holds them) and
-	// point the trigger's `aria-activedescendant` at the active row; Enter clicks it.
-	// `manageAriaSelected: false`: `aria-selected` is not a `menuitem` state. The
-	// handler is spread onto the trigger (below); it no-ops while the panel is
-	// unmounted, so a closed menu ignores arrows.
-	const rovingKeyDown = useA11yRoving(refs.floating, {
-		mode: 'virtual',
-		itemSelector: MENUITEM_SELECTOR,
-		activeDescendantRef: triggerRef,
-		typeahead: true,
-		activationKey: MENU_ACTIVATION_KEYS,
-		manageAriaSelected: false,
-	})
-
-	// Clear the trigger's `aria-activedescendant` once closed: the panel (and the
-	// ids it pointed at) unmounts after its exit animation, so the attribute would
-	// otherwise dangle. The next open seats its own cursor: the first row after a
-	// key, else none (the first arrow then picks the first row).
-	//
 	// A context menu has no trigger. `openAt` lends `triggerRef` the element that
 	// held focus at a keyboard open, and the focus restore of the disclosure reads
-	// it in an earlier effect. Release it here, and do not touch its own
-	// `aria-activedescendant`: the grid keeps its cursor in that attribute.
+	// it in an earlier effect. Release it here.
 	//
 	// The effect also drops the record of the event that opened the menu. A
 	// row and the Close button of a sheet close the menu through `close`, which
@@ -262,29 +225,12 @@ export function useMenuRoot({
 		dataRef.current.openEvent = undefined
 
 		if (isContextMenu) triggerRef.current = null
-		else clearVirtualActive(triggerRef)
 	}, [open, isContextMenu, triggerRef, dataRef])
 
-	// A key opens a dropdown on its first row, as the menu button pattern of the
-	// APG tells. The trigger keeps the focus, so the cursor goes on the row, and
-	// the next Enter runs it. A press of the pointer opens the menu with no
-	// active row. The sheet moves real focus, so it seats its own first row
-	// ({@link MenuSheet}).
-	//
-	// The panel can mount in a later commit than the open, so the effect waits
-	// for the floating element. Floating UI keeps it as state, and the node
-	// keeps one identity while it is mounted.
+	// Whether a key opened the menu. A key opens a dropdown on its first row,
+	// as the menu button pattern of the APG tells (`MenuContent`). A press of the
+	// pointer opens it with the focus on the panel and no active row.
 	const openedByKey = useCallback(() => isKeyOpen(dataRef.current.openEvent), [dataRef])
-
-	const floating = context.elements.floating
-
-	useLayoutEffect(() => {
-		if (!open || !isDropdown || isSheet || !openedByKey()) return
-
-		setVirtualActive(queryItems(floating, MENUITEM_SELECTOR), 0, triggerRef, {
-			ariaSelected: false,
-		})
-	}, [open, isDropdown, isSheet, openedByKey, floating, triggerRef])
 
 	// Toggling the menu is floating-ui's, not the trigger's: `useClick` supplies
 	// the keyboard activation a cloned non-button child never gets from the
@@ -380,7 +326,6 @@ export function useMenuRoot({
 			setOpen,
 			close,
 			dismissToTab,
-			rovingKeyDown,
 			openedByKey,
 			static: isStatic,
 			triggerRef,
@@ -392,7 +337,6 @@ export function useMenuRoot({
 			setOpen,
 			close,
 			dismissToTab,
-			rovingKeyDown,
 			openedByKey,
 			isStatic,
 			triggerRef,

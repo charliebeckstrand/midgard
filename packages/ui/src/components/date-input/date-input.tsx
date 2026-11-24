@@ -116,20 +116,21 @@ export type DateInputProps = Omit<
 }
 
 /**
- * Text Input that masks typed digits into a date pattern (`format`, defaulting
- * to the ambient locale's field order). Emits a `Date` via `onValueChange` once the text is a
- * complete, real, in-range date. Marks itself invalid, and renders the
- * `invalidMessage`, in three cases. A complete entry does not parse, it falls
- * outside `min`/`max`, or blur leaves a partial entry behind. Controlled
- * or uncontrolled via `value`/`defaultValue`, and bound to an enclosing Form
- * field by `name` (the stored value is the `Date`).
+ * A text field that formats the typed digits as a date. The pattern is
+ * `format`, or else the field order of the ambient locale. Emits a `Date` via
+ * `onValueChange` once the text is a complete, real, in-range date. Marks
+ * itself invalid, and renders the `invalidMessage`, in three cases. A complete
+ * entry does not parse, it falls outside `min`/`max`, or blur leaves a partial
+ * entry behind. Controlled or uncontrolled via `value`/`defaultValue`, and
+ * bound to an enclosing Form field by `name` (the stored value is the `Date`).
  *
  * @remarks
  * Falls back to an `aria-label` of `'Date'` only when nothing names it. It
  * yields to a Field `<Label>` from the first render, and to a native `<label>`
  * after each commit. The `placeholder` is not a programmatic name (WCAG 3.3.2 /
  * 4.1.2).
- * Enter blurs the input, committing or renormalizing the current entry.
+ * Enter commits or renormalizes the current entry, as a blur does. The focus
+ * stays in the input, and Enter still submits an enclosing form.
  * A reset of the bound Form drops the typed text and its verdict, also when
  * the value stays the same. A controlled value that is set again to the same
  * instant does not, also as a new `Date`: remount the field with a new `key` to
@@ -282,6 +283,24 @@ export function DateInput({
 		return parsed
 	}
 
+	// Closes the typed entry: on blur, and on Enter. It commits the text and marks
+	// the field touched.
+	const closeEntry = () => {
+		if (editingText !== null) {
+			const parsed = commit(editingText)
+
+			// A parsed entry renormalizes to the canonical zero-padded text; a
+			// partial one stays as typed and reads invalid.
+			if (parsed || editingText === '') setEditingText(null)
+
+			// The close ends the entry, so a partial one is refused here where a
+			// keystroke would have left it growing.
+			settle(parsed, editingText !== '')
+		}
+
+		setTouched()
+	}
+
 	return (
 		<>
 			<Input
@@ -324,28 +343,12 @@ export function DateInput({
 				}}
 				// The commit and the touched mark run whatever the caller does
 				// (CONVENTIONS.md §3.9).
-				onBlur={composeEventHandlers(
-					onBlur,
-					() => {
-						if (editingText !== null) {
-							const parsed = commit(editingText)
-
-							// A parsed entry renormalizes to the canonical zero-padded text; a
-							// partial one stays as typed and reads invalid.
-							if (parsed || editingText === '') setEditingText(null)
-
-							// Blur closes the entry, so a partial one is refused here where a
-							// keystroke would have left it growing.
-							settle(parsed, editingText !== '')
-						}
-
-						setTouched()
-					},
-					{ checkForDefaultPrevented: false },
-				)}
+				onBlur={composeEventHandlers(onBlur, closeEntry, { checkForDefaultPrevented: false })}
 				onKeyDown={composeEventHandlers(onKeyDown, (event) => {
-					// Enter that confirms an input-method candidate must not blur the field.
-					if (event.key === 'Enter' && !isComposing(event)) event.currentTarget.blur()
+					// Enter closes the entry as a blur does, and the focus stays in the
+					// field. The default of Enter stays, so Enter submits an enclosing
+					// form. Enter that confirms an input-method candidate closes nothing.
+					if (event.key === 'Enter' && !isComposing(event)) closeEntry()
 				})}
 				{...props}
 				aria-describedby={verdict.describedBy}

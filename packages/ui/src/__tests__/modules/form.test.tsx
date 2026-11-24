@@ -1989,6 +1989,44 @@ describe('Form focus during a submit', () => {
 	})
 })
 
+describe('Form native lock: read-only state', () => {
+	it('marks each bare text field aria-readonly while a submit runs, and restores it after', async () => {
+		const pending = deferred<void>()
+
+		const { container } = renderUI(
+			<Form defaultValues={{}} onSubmit={() => pending.promise}>
+				<input aria-label="Text" />
+				<textarea aria-label="Notes" />
+				<input aria-label="Code" aria-readonly="false" />
+				<input type="checkbox" aria-label="Terms" />
+			</Form>,
+		)
+
+		const field = (name: string) => container.querySelector(`[aria-label="${name}"]`)
+
+		await submit(container)
+
+		expect(field('Text')).toHaveAttribute('aria-readonly', 'true')
+
+		expect(field('Notes')).toHaveAttribute('aria-readonly', 'true')
+
+		expect(field('Code')).toHaveAttribute('aria-readonly', 'true')
+
+		// A check box is not a text field: the lock cancels its click instead.
+		expect(field('Terms')).not.toHaveAttribute('aria-readonly')
+
+		await act(async () => {
+			pending.resolve()
+		})
+
+		expect(field('Text')).not.toHaveAttribute('aria-readonly')
+
+		expect(field('Notes')).not.toHaveAttribute('aria-readonly')
+
+		expect(field('Code')).toHaveAttribute('aria-readonly', 'false')
+	})
+})
+
 describe('Form focus on a refused submit', () => {
 	const required = (value: unknown) => (value ? undefined : 'required')
 

@@ -213,54 +213,6 @@ function applyVirtualActiveDom(
 }
 
 /**
- * Element-addressed counterpart to {@link setVirtualActive}, for a caller that
- * already holds the row. It marks `row` active inside `container` and repoints
- * the owner's `aria-activedescendant`.
- *
- * @remarks
- * {@link setVirtualActive} takes an index into a list. A pointer arrival has to
- * build that list and search it for its own row. The callee then scans the list
- * again for the row that was active. This one takes the row, so the build and
- * the search go. It reads the previous row off `container` in one engine-side
- * query.
- *
- * `itemSelector` holds that query to the rows, as the list holds
- * {@link setVirtualActive}. An element inside a row can carry its own
- * `data-active`, and this leaves it alone.
- *
- * `row` must carry an `id`, because that is what `aria-activedescendant` points
- * at. A row without one, or a row outside `container`, leaves the highlight
- * where it is.
- *
- * @internal
- */
-export function setVirtualActiveElement(
-	container: HTMLElement | null,
-	row: HTMLElement,
-	itemSelector: string,
-	activeDescendantRef?: RefObject<HTMLElement | null>,
-	{ ariaSelected = true }: { ariaSelected?: boolean } = {},
-): void {
-	if (!row.id || !container?.contains(row)) return
-
-	for (const prev of container.querySelectorAll<HTMLElement>('[data-active]')) {
-		if (prev === row || !prev.matches(itemSelector)) continue
-
-		prev.removeAttribute('data-active')
-
-		if (ariaSelected) prev.setAttribute('aria-selected', 'false')
-	}
-
-	if (row.dataset.active === undefined) {
-		row.setAttribute('data-active', '')
-
-		if (ariaSelected) row.setAttribute('aria-selected', 'true')
-	}
-
-	activeDescendantRef?.current?.setAttribute('aria-activedescendant', row.id)
-}
-
-/**
  * The in-flight mount watcher per container. Each navigation owns at most one.
  * {@link setVirtualActiveIndexed} disconnects the previous one up front, so a
  * superseded watcher doesn't linger (or stack) waiting for a mutation that
@@ -1090,6 +1042,39 @@ function handleTypeahead(
 }
 
 /**
+ * The mark that each live roving container carries. A container that holds
+ * another roving container reads it to find the nearest one.
+ */
+const ROVING_ROOT = 'data-roving-root'
+
+/**
+ * Whether a nearer roving container inside `container` holds the target of the
+ * key. That container moves the focus for the key, so `container` does not
+ * move it again. Without this rule, a Segment in a Toolbar moves two items for
+ * each arrow key. A target outside `container`, such as the input that holds
+ * the focus in virtual mode, belongs to no nearer container.
+ *
+ * @internal
+ */
+function ownedByNearerRoving(target: EventTarget | null, container: HTMLElement | null): boolean {
+	if (!container || !(target instanceof Element)) return false
+
+	const nearest = target.closest(`[${ROVING_ROOT}]`)
+
+	return nearest !== null && nearest !== container && container.contains(nearest)
+}
+
+/**
+ * Whether the hook takes a key: it navigates, and no nearer roving container
+ * holds the target of the key ({@link ownedByNearerRoving}).
+ *
+ * @internal
+ */
+function takesKey(enabled: boolean, target: EventTarget | null, container: HTMLElement | null) {
+	return enabled && !ownedByNearerRoving(target, container)
+}
+
+/**
  * Focus-mode `Escape`: drops focus from the item inside `container`. Virtual
  * mode is out of scope, because its focus sits on an owning input.
  *
@@ -1325,6 +1310,10 @@ export type RovingOptions = NavigationConfig & {
  * the browser, which reads such a chord for its history or its page. The
  * activation key keeps its modifier keys.
  *
+ * A key whose target is inside a nearer roving container, such as a Segment in
+ * a Toolbar, is for that container, so this hook ignores it. Each live container
+ * carries the `data-roving-root` mark for this rule.
+ *
  * A key skips each item under an `inert` ancestor: an arrow, Home, End,
  * type-ahead, the Tab trap, and the activation key. An exiting group is inert
  * until it unmounts, so focus does not move to a row that then goes. A
@@ -1370,6 +1359,20 @@ export function useA11yRoving(
 	const actionSelector = row?.actionSelector
 
 	const typeaheadMatchers = useTypeahead()
+
+	// Marks the container while the hook navigates, so a roving container around
+	// it leaves the keys of its items to it (`ownedByNearerRoving`).
+	useEffect(() => {
+		if (!enabled) return
+
+		const container = containerRef.current
+
+		if (!container) return
+
+		container.setAttribute(ROVING_ROOT, '')
+
+		return () => container.removeAttribute(ROVING_ROOT)
+	}, [containerRef, enabled])
 
 	// Focus-mode single-tab-stop ownership. Seats exactly one matched item at
 	// `tabIndex=0` and demotes the rest to `-1`, re-running as the subtree mutates
@@ -1451,7 +1454,7 @@ export function useA11yRoving(
 
 	return useCallback(
 		(event: KeyboardEvent) => {
-			if (!enabled) return
+			if (!takesKey(enabled, event.target, containerRef.current)) return
 
 			if (handleEscapeBlur(event, containerRef.current, escapeBlurs, mode)) return
 

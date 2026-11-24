@@ -1,7 +1,9 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import {
+	describeSelection,
 	formatFileNames,
+	formatFileSize,
 	matchesAccept,
 	partitionFiles,
 	selectionSummary,
@@ -159,5 +161,43 @@ describe('matchesAccept', () => {
 
 	it('rejects a file that no token matches', () => {
 		expect(matchesAccept(png, 'video/*,application/pdf,.jpg')).toBe(false)
+	})
+})
+
+describe('formatFileSize', () => {
+	it.for([
+		[1, '1 byte'],
+		[999, '999 byte'],
+		[1_000, '1 kB'],
+		[1_500_000, '1.5 MB'],
+		[1_000_000, '1 MB'],
+		[2_000_000_000, '2 GB'],
+	] as const)('formats %d bytes as %s', ([bytes, text]) => {
+		expect(formatFileSize(intlEn, bytes)).toBe(text)
+	})
+})
+
+describe('describeSelection', () => {
+	it('gives the limit that each refusal enforces', () => {
+		const text = describeSelection(
+			intlEn,
+			{
+				accepted: [],
+				rejected: [
+					{ file: new File(['x'], 'scan.tiff'), reason: 'type' },
+					{ file: fileOfSize('photo.png', 3), reason: 'size' },
+					{ file: new File(['x'], 'extra.png'), reason: 'count' },
+				],
+			},
+			{ accept: 'image/png, .jpg', maxSize: 2_000_000, maxCount: 2 },
+		)
+
+		expect(text).toBe(
+			[
+				'scan.tiff is not an accepted file type. Accepted types: image/png, .jpg',
+				'photo.png is too large. The limit is 2 MB',
+				'extra.png is over the file limit. The limit is 2 files',
+			].join('. '),
+		)
 	})
 })

@@ -105,16 +105,30 @@ describe('DatePicker on a phone', () => {
 		await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
 	})
 
-	// The sheet covers the field, so focus goes into the sheet, not back to
-	// the typed input as in the popover.
+	it('moves focus to the selected day of the sheet', async () => {
+		const { user } = renderPhonePicker({ defaultValue: new Date(2025, 5, 15) })
+
+		await user.click(screen.getByRole('combobox', { name: 'Due date' }))
+
+		const sheet = screen.getByRole('dialog', { name: 'Select a date' })
+
+		await waitFor(() => expect(day(sheet, 15)).toHaveFocus())
+
+		await user.keyboard('{ArrowRight}')
+
+		expect(day(sheet, 16)).toHaveFocus()
+	})
+
+	// The sheet covers the field, so focus goes to a day of the sheet, not back
+	// to the typed input as in the popover.
 	it('moves focus into the sheet in input mode', async () => {
-		const { user } = renderPhonePicker({ input: true })
+		const { user } = renderPhonePicker({ input: true, defaultValue: new Date(2025, 5, 15) })
 
 		await user.click(screen.getByRole('button', { name: 'Open calendar' }))
 
 		const sheet = screen.getByRole('dialog', { name: 'Select a date' })
 
-		await waitFor(() => expect(sheet).toHaveFocus())
+		await waitFor(() => expect(day(sheet, 15)).toHaveFocus())
 	})
 
 	it('picks a range in the sheet', async () => {

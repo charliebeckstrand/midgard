@@ -2,17 +2,18 @@
 
 import type { DateDuration } from '@internationalized/date'
 import { useComposedRefs } from 'motion/react'
-import { useCallback, useId, useMemo, useRef, useState } from 'react'
+import { type KeyboardEvent, useCallback, useId, useMemo, useRef, useState } from 'react'
 
 import { useHydrated } from '../../hooks/use-hydrated'
 import { useLocale } from '../../providers/locale/context'
 import type { CalendarActive, CalendarHandle } from '../calendar'
+import { dayOptionId } from '../calendar/calendar-utilities'
 import { useControlPickerField } from '../control/use-control-picker-field'
 import { useControlPickerPopover } from '../control/use-control-picker-popover'
 import { formatDateValue } from '../date-input/date-input-utilities'
 import type { DatePickerBaseProps, DatePickerSingleProps } from './date-picker'
 import { clampDate, formatDate, standDate, startOfDay, stepDate } from './date-picker-utilities'
-import { useDatePickerGridEntry } from './use-date-picker-grid-entry'
+import { useDatePickerGridEntry, useDatePickerGridEntryFocus } from './use-date-picker-grid-entry'
 import { type FooterButton, useDatePickerKeyboard } from './use-date-picker-keyboard'
 
 /**
@@ -39,15 +40,19 @@ function dateLabel(
 
 /**
  * Single-date state for {@link DatePicker}: Form/Control binding, popover
- * open/active wiring, the virtual-highlight keyboard handler, and the
- * clear/today footer.
+ * open/active wiring, the keyboard handler, and the clear/today footer.
+ *
+ * The keyboard handler drives a highlight of the grid (`active`) only in
+ * `input` mode, where DOM focus stays in the text field. Without `input`, the
+ * open moves DOM focus to the day of `entryFocusRef`, and the calendar owns
+ * the keys of the dialog. The trigger then takes only the keys that open it.
  *
  * @returns Trigger props (`triggerId`, `dialogId`, `displayValue`, `disabled`,
  * `readOnly`, `invalid`, …) and popover plumbing (`open`, `onOpenChange`,
  * `setReference`, `setFloating`, `floatingStyles`, floating-ui prop getters,
  * `context`). It also returns the keyboard handler `onTriggerKeyDown`, the
- * `calendar`/`footer` prop bundles for the open dialog, and `setTouched`, which
- * marks the bound field touched.
+ * `calendar`/`footer` prop bundles for the open dialog, `entryFocusRef`, and
+ * `setTouched`, which marks the bound field touched.
  * @internal
  */
 export function useDatePickerState({
@@ -71,14 +76,12 @@ export function useDatePickerState({
 	// Calendar beside it.
 	const ambient = useLocale()
 
-	// `input` mode keeps DOM focus on the DateInput and drives the calendar via
-	// the active-descendant pattern: the input's `aria-controls` points at the
-	// day listbox and its `aria-activedescendant` at the roved cell (whose id is
-	// stamped by the grid). Generated unconditionally; only the input path reads
-	// them.
+	// The id of the day listbox. Each day takes an id from it. `input` mode keeps
+	// DOM focus on the DateInput and drives the calendar via the
+	// active-descendant pattern: the input's `aria-controls` points at the day
+	// listbox and its `aria-activedescendant` at the id of the highlighted day.
+	// Without `input`, the open finds the day to focus by its id.
 	const listboxId = useId()
-
-	const activeDescendantId = useId()
 
 	// Binds the selected date to an enclosing Form field by `name`, and resolves
 	// the Control cascade. `setValue` writes nothing while readOnly is on.
@@ -130,6 +133,10 @@ export function useDatePickerState({
 	})
 
 	const calendarRef = useRef<CalendarHandle>(null)
+
+	const footerRef = useRef<HTMLDivElement>(null)
+
+	const entryFocusRef = useDatePickerGridEntryFocus(listboxId, calendarRef)
 
 	// With no value, the cursor starts on today. A `min` or a `max` only bounds it.
 	const { getInitialActiveDate, getViewEntryDate } = useDatePickerGridEntry(
@@ -247,18 +254,19 @@ export function useDatePickerState({
 		onOpenChange,
 		onTriggerKeyDown,
 		listboxId,
-		activeDescendantId,
+		entryFocusRef,
 		// Active-descendant wiring for the DateInput while `input` mode keeps focus
 		// on it: `aria-controls` names the day listbox once open, and
-		// `aria-activedescendant` follows the roved grid cell (the only zone whose
-		// element carries `activeDescendantId`); both drop when there is no grid
-		// highlight, so the header/footer zones and the closed state clear it.
+		// `aria-activedescendant` names the id of the highlighted day, so each move
+		// changes the attribute. It drops when there is no grid highlight, so the
+		// header/footer zones and the closed state clear it.
 		// A text edit drops the highlight, so Enter commits the typed date and not
 		// the highlighted day. The keydown handler stays outside the bundle,
 		// because the dialog also composes it.
 		inputProps: {
 			'aria-controls': open ? listboxId : undefined,
-			'aria-activedescendant': active?.zone === 'grid' ? activeDescendantId : undefined,
+			'aria-activedescendant':
+				active?.zone === 'grid' ? dayOptionId(listboxId, active.date) : undefined,
 			onInput: clearActive,
 		},
 		setReference,
@@ -277,12 +285,15 @@ export function useDatePickerState({
 			onDayClick: handleSelect,
 			active: open ? active : null,
 			calendarRef,
+			footerRef,
 		},
 		footer: {
 			active,
 			footerButtons,
 			onClear: handleClear,
 			onToday: handleSelectToday,
+			footerRef,
+			onKeyDown: (event: KeyboardEvent<HTMLElement>) => calendarRef.current?.footerKeyDown(event),
 		},
 	}
 }

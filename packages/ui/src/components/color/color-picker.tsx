@@ -61,12 +61,18 @@ type ColorPickerBaseProps = {
 	 * Blocks the open of the panel, so the color cannot change. An explicit value
 	 * wins over the `readOnly` of an enclosing Control. The trigger stays
 	 * focusable and keeps its tab stop, so a keyboard or a screen reader can read
-	 * the color. A press, Enter, or Space does not open the panel. A button does
-	 * not take `aria-readonly`, so the trigger sets `aria-disabled` while the panel
-	 * is closed. A panel that is open when `readOnly` turns on can still close.
+	 * the color. A press, Enter, or Space does not open the panel. The trigger
+	 * sets `aria-readonly`. A panel that is open when `readOnly` turns on can
+	 * still close.
 	 * @defaultValue `false`, or the state of the enclosing Control.
 	 */
 	readOnly?: boolean
+	/**
+	 * The name of the trigger when no Field label names it. A Label of the
+	 * enclosing Field wins over it.
+	 * @defaultValue `'Color'`, in the language of the reader.
+	 */
+	'aria-label'?: string
 	className?: string
 }
 
@@ -84,12 +90,16 @@ export type ColorPickerProps = ColorPickerBaseProps & ColorValueProps
  * native form reset does not change its color. The reset of a `<Form>` sets a
  * bound picker back to the default of its field.
  *
- * The trigger is as wide as its swatch and its color value. It does not fill
- * its parent, and it does not get wider than its parent. Pass a `className`
- * such as `w-full` to make it fill the parent.
+ * The trigger fills its parent, as each other control does. The parent, such
+ * as a form column, sets the width.
  *
  * The trigger and the dialog stamp `data-open` while the dialog is open, and the
  * trigger stamps `data-disabled` while it is disabled.
+ *
+ * The trigger has `role="combobox"`, as the trigger of `DatePicker` has. Its
+ * value is the hex code that it shows, so a screen reader announces the color
+ * after the name. It sets `aria-required` from the enclosing Control, and
+ * `aria-readonly` from its prop or from the enclosing Control.
  *
  * @see {@link ColorPanel} for the inline variant.
  */
@@ -102,6 +112,7 @@ export function ColorPicker(props: ColorPickerProps) {
 		size,
 		disabled,
 		readOnly,
+		'aria-label': ariaLabel,
 		className,
 	} = props
 
@@ -143,6 +154,8 @@ export function ColorPicker(props: ColorPickerProps) {
 				size={size}
 				disabled={state.disabled}
 				readOnly={state.readOnly}
+				required={state.required}
+				aria-label={ariaLabel}
 				validation={state.validation}
 				className={className}
 			/>

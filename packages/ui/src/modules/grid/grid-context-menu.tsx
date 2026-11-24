@@ -12,12 +12,17 @@ import {
 import { ContextMenuList } from '../../components/context-menu'
 import { Menu, MenuContent } from '../../components/menu'
 import { useMenuActions } from '../../components/menu/context'
+import { announce } from '../../core/announcer'
 import { isRtl } from '../../hooks/a11y/logical-arrow'
+import { useStableEvent } from '../../hooks/use-stable-event'
+import { useTimeout } from '../../hooks/use-timeout'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { copyText } from '../../utilities/export-output'
 import { isDataColumn } from '../../utilities/is-data-column'
 import { isNativeContextMenuRequest } from '../../utilities/native-context-menu'
+import { describeResize } from './engine/grid-announcements'
 import { columnLabel } from './engine/grid-column/label'
+import { COLUMN_RESIZE_PAGE_STEP, GRID_STATUS_DEBOUNCE_MS } from './engine/grid-constants'
 import { cellText } from './engine/grid-export/accessor'
 import {
 	type GridMenuResolution,
@@ -30,12 +35,19 @@ import {
 import { gridMessages } from './engine/grid-messages'
 import { frozenSide, normalizeFreeze } from './engine/grid-pin/overrides'
 import type { GridRangeFill } from './engine/grid-range/fill'
+import type { GridItemMoves } from './engine/grid-reorder-move'
 import type { GridColumnFilter } from './engine/grid-table/filter-view'
+import type { GridColumnResize } from './engine/grid-table/resize-view'
 import {
+	COLUMN_MOVES,
 	type ColumnMenuArgs,
+	type ColumnMenuMove,
+	type ColumnMenuWidth,
 	cellMenuItems,
 	columnMenuItems,
 	fillItems,
+	ROW_MOVES,
+	rowMoveItems,
 } from './grid-context-menu-utilities'
 import type {
 	GridCellMenuContext,
@@ -94,6 +106,21 @@ export type GridContextMenuProps<T> = Pick<
 	 * menu's "Filter …" item under the `'menu'` filter affordance.
 	 */
 	columnFilter: GridColumnFilter | null
+	/**
+	 * The menu moves of the columns, or `null` while the header does not
+	 * reorder. Backs the column menu's Move items.
+	 */
+	columnMoves: GridItemMoves | null
+	/**
+	 * The menu moves of the rows. Backs the cell menu's "Move up" and "Move
+	 * down" items. They offer no move while the rows do not reorder.
+	 */
+	rowMoves: GridItemMoves
+	/**
+	 * The column-resize controls, or `null` when the grid is not resizable.
+	 * Backs the column menu's Width items.
+	 */
+	resize: GridColumnResize | null
 	children: ReactNode
 }
 
@@ -129,6 +156,9 @@ export function GridContextMenu<T>({
 	rowGroupMenu,
 	columnGroupMenu,
 	columnFilter,
+	columnMoves,
+	rowMoves,
+	resize,
 	children,
 }: GridContextMenuProps<T>) {
 	// The builders, read apart from the config: a call through `config` would make
@@ -166,6 +196,56 @@ export function GridContextMenu<T>({
 		[columns],
 	)
 
+	// A width step lands in a later commit than the click, so the timer calls a
+	// stable event, which reads the width of the newest commit. The announcement
+	// is the one that the resize handle speaks after a key (WCAG 4.1.3).
+	const announceWidth = useStableEvent((id: string | number, label: string) => {
+		if (resize) announce(describeResize(intl, label, resize.getSize(id)))
+	})
+
+	const announceTimer = useTimeout()
+
+	const columnWidth = useCallback(
+		(column: GridColumn<T>): ColumnMenuWidth | null => {
+			if (!resize?.canResize(column.id)) return null
+
+			const size = resize.getSize(column.id)
+
+			const { min, max } = resize.bounds(column.id)
+
+			const { nudge } = resize.actions
+
+			return {
+				canIncrease: size < max,
+				canDecrease: size > min,
+				step: (direction) => {
+					nudge(column.id, direction * COLUMN_RESIZE_PAGE_STEP)
+
+					announceTimer.set(
+						() => announceWidth(column.id, columnLabel(column)),
+						GRID_STATUS_DEBOUNCE_MS,
+					)
+				},
+			}
+		},
+		[resize, announceTimer, announceWidth],
+	)
+
+	const columnMove = useCallback(
+		(column: GridColumn<T>): ColumnMenuMove | null => {
+			if (!columnMoves) return null
+
+			const id = String(column.id)
+
+			const targets = columnMoves.targets(id, COLUMN_MOVES)
+
+			if (targets.length === 0) return null
+
+			return { targets, run: (target) => columnMoves.move(id, target) }
+		},
+		[columnMoves],
+	)
+
 	const resolveColumnItems = useCallback(
 		(columnId: string, rtl: boolean): GridMenuResolution | null => {
 			if (!columnMenu) return null
@@ -200,6 +280,8 @@ export function GridContextMenu<T>({
 				manageLabel,
 				exportActions,
 				filter,
+				move: columnMove(column),
+				width: columnWidth(column),
 				rtl,
 			})
 
@@ -245,6 +327,8 @@ export function GridContextMenu<T>({
 			manageLabel,
 			exportActions,
 			columnFilter,
+			columnMove,
+			columnWidth,
 			intl,
 		],
 	)
@@ -265,7 +349,11 @@ export function GridContextMenu<T>({
 
 			const copy = () => copyText(cellText(value))
 
-			const defaults = cellMenuItems(intl, copy, exportActions, fillItems(intl, fill, rtl))
+			const moves = rowMoveItems(intl, rowMoves.targets(rowKey, ROW_MOVES), (target) =>
+				rowMoves.move(rowKey, target),
+			)
+
+			const defaults = cellMenuItems(intl, copy, exportActions, fillItems(intl, fill, rtl), moves)
 
 			const name = intl.formatMessage(gridMessages.cellMenu)
 
@@ -283,7 +371,7 @@ export function GridContextMenu<T>({
 
 			return { items: cellMenu(context, defaults), name }
 		},
-		[cellMenu, columnById, rows, rowKeys, exportActions, fill, intl],
+		[cellMenu, columnById, rows, rowKeys, exportActions, fill, rowMoves, intl],
 	)
 
 	// `enabled` gates every resolver (a `null` resolution leaves the native menu

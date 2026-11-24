@@ -24,10 +24,10 @@ export type PasswordConfirmProps = ComponentProps<'div'> & {
 }
 
 /**
- * Coordinator for a password and its confirmation field. Tracks match status
- * across a {@link PasswordConfirmNew} and a {@link PasswordConfirmRepeat},
- * and surfaces a `warning` until they agree, suppressed while the password has
- * a form error.
+ * A new password field and a confirmation field that must match. Tracks match
+ * status across a {@link PasswordConfirmNew} and a
+ * {@link PasswordConfirmRepeat}, and surfaces a `warning` until they agree,
+ * suppressed while the password has a form error.
  *
  * @remarks
  * The two parts report the values that they show, so a form reset, a seeded

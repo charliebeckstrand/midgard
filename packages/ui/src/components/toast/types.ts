@@ -67,7 +67,11 @@ export type ToastData = {
 	 * Keep the toast until the reader closes it, `dismiss(id)` removes it, or the
 	 * `maxToasts` cap pushes it out. The toast then has no timer, and `duration`
 	 * has no effect.
-	 * @defaultValue false
+	 *
+	 * A toast with `actions` and no `duration` stays by default, because a timer
+	 * on an action such as Undo is a time limit on input (WCAG 2.2.1). Set
+	 * `persist: false` or a `duration` to give it a timer.
+	 * @defaultValue true when `actions` holds content and `duration` is not set, else false
 	 */
 	persist?: boolean
 	/** True from the time the toast starts to leave. The provider sets it. */

@@ -31,6 +31,7 @@ import { k } from '../../recipes/kata/menu'
 import { hasBrowserModifier } from '../../utilities/modifier-keys'
 import { Icon } from '../icon'
 import { useMenuOpenSub, useMenuPointer, useMenuState } from './context'
+import { isHeldActivation } from './menu-item-utilities'
 import { MenuPointerLevel } from './menu-pointer-level'
 import { MenuViewport } from './menu-viewport'
 import { snapMenuHeight } from './menu-viewport-utilities'
@@ -161,10 +162,7 @@ export type MenuSubProps = {
  * pointer reads its course against that one panel, and the row's own panel
  * provides the next level down. Tab is held inside the open panel, cycling its
  * rows. The panel portals out of the enclosing {@link MenuContent}, so its
- * height-capped, scrolling viewport can't clip it. A dropdown keeps focus on
- * its trigger and roves by `aria-activedescendant`, so the arrows for a submenu
- * open under one arrive there instead. {@link MenuTrigger} hands them over the
- * same way.
+ * height-capped, scrolling viewport can't clip it.
  *
  * In the bottom sheet of a phone dropdown (the `sheet` prop of {@link Menu}),
  * there is no space for a panel at the side. There the row is a disclosure
@@ -219,6 +217,14 @@ function MenuSubSheet({
 
 	const handleTriggerKeyDown = useStableEvent((event: KeyboardEvent<HTMLButtonElement>) => {
 		if (disabled || hasBrowserModifier(event)) return
+
+		// The key that opened the menu can come here as a repeat, and it does not
+		// toggle the row.
+		if (isHeldActivation(event)) {
+			event.preventDefault()
+
+			return
+		}
 
 		const key = logicalArrowKey(event.key, event.currentTarget)
 
@@ -427,10 +433,7 @@ function MenuSubFloating({
 	)
 
 	/**
-	 * Collapses the submenu and hands the cursor back to its parent row, in the
-	 * model of the enclosing level. In a dropdown, focus goes back to the trigger,
-	 * which keeps it while the menu is open, and the row becomes its active
-	 * descendant.
+	 * Collapses the submenu and gives the focus back to its parent row.
 	 */
 	const collapse = useCallback(() => {
 		closeSubmenu(subKey)
@@ -442,6 +445,14 @@ function MenuSubFloating({
 	// stable event and not a closure that render passes to a function.
 	const handleTriggerKeyDown = useStableEvent((event: KeyboardEvent<HTMLButtonElement>) => {
 		if (disabled) return
+
+		// The key that opened the menu can come here as a repeat, and it does not
+		// open the submenu.
+		if (isHeldActivation(event)) {
+			event.preventDefault()
+
+			return
+		}
 
 		if (opensSubmenu(event, event.currentTarget)) {
 			event.preventDefault()
@@ -530,10 +541,9 @@ function MenuSubFloating({
 	// one panel rather than a flash per row.
 	const handlePointerMove = useMenuRowPointer(disabled, subKey)
 
-	// A click with no pointer behind it is a key: a dropdown clicks its active
-	// row on Enter / Space, and on ArrowRight when the row carries a submenu. A
-	// screen reader press, also a TalkBack double tap, has no pointer behind it
-	// too (`isVirtualClick`), as for the root menu. It goes into the panel as the
+	// A click with no pointer behind it is a key, such as Enter or Space on the
+	// focused row. A screen reader press, also a TalkBack double tap, has no
+	// pointer behind it too (`isVirtualClick`), as for the root menu. It goes into the panel as the
 	// keys do here. A pointer click opens the submenu and keeps the cursor on
 	// this row.
 	const handleClick = useStableEvent((event: MouseEvent<HTMLButtonElement>) => {

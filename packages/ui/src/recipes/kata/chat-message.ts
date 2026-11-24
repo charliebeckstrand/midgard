@@ -1,20 +1,23 @@
 import { defineKata, mode, type VariantProps } from '../../core/recipe'
-import { dan, iro, ji, kasane, kokkaku, narabi, omote, sen } from '../kiso'
+import { dan, iro, ji, kasane, kokkaku, narabi, omote, sen, ugoki } from '../kiso'
 
 const { palette, text } = iro
 const { rounded } = kasane
 const { size } = ji
 const { flex } = narabi
-const { focus, forced } = sen
+const { focus, forced, ring } = sen
+const { css } = ugoki
 
-// A row of controls: the actions of a message, and the rating pair of
-// `ChatFeedback` in them, which sits as close as the other actions do.
+// A row of controls, such as the branch switcher.
 const controls = [flex.row, 'gap-0.5']
 
 const bubble = {
 	base: [
 		// The width cap, the padding, and the radius of the skeleton bubble.
 		...kokkaku.chat.bubble,
+		// The Copy item of the menu moves the focus to the bubble. The ring shows
+		// for a keyboard focus only, so a press of the pointer shows no ring.
+		focus.ring,
 		size.md,
 		// `anywhere`, not `break-word`: a long word, such as a URL, then does not set
 		// the min-content width. In a flex or grid host, the message would
@@ -42,39 +45,46 @@ const bubble = {
 	// whole streaming look. The classes are written out, because Tailwind scans
 	// the source for whole class names and never sees an assembled one. The gate
 	// is the one of `ugoki.css.pulse`. For the reduced-motion reader a standing
-	// dim stands in, never both, since the pulse already troughs to that opacity.
-	// The pointer affordance alone would leave a keyboard reader nothing.
+	// dim stands in, never both. The reader can read the reply while it streams,
+	// for many seconds, so the dim keeps the text at 4.5:1 (WCAG 1.4.3): 60% gives
+	// 5.1:1 on the assistant fill, and 50% gives only 3.6:1. The pointer
+	// affordance alone would leave a keyboard reader nothing.
 	streaming: {
 		true: [
 			'cursor-progress',
 			'[&>[data-slot=markdown]]:motion-safe:animate-pulse',
-			'[&>[data-slot=markdown]]:motion-reduce:opacity-50',
+			'[&>[data-slot=markdown]]:motion-reduce:opacity-60',
 		],
 		false: '',
 	},
-	// The message that the composer edits. A send replaces it, so it dims, as a
-	// reply that streams dims for the reduced-motion reader. It does not pulse:
-	// the pulse tells that a reply arrives. The change of opacity eases, except
-	// for the reduced-motion reader.
+	// The message that the composer edits. A send replaces it, so a ring marks
+	// it: the resting ring of `focus.virtual`, a 2px outline with a 2px gap. It
+	// reads against the blue fill of the user bubble and against the page. A
+	// dim would lower the text of the bubble below 4.5:1, and the ring keeps
+	// the text at full contrast. Forced colors keep an outline.
 	editing: {
-		true: ['opacity-50', 'motion-safe:transition-opacity'],
-		false: 'motion-safe:transition-opacity',
+		true: focus.virtual,
+		false: '',
 	},
 }
 
 export const k = defineKata({
-	base: flex.col,
+	// The toolbar is placed against the message, so the message is its
+	// containing block. The named group lets the toolbar show while the bubble
+	// is hovered, or while focus is in the message.
+	base: [flex.col, 'group/chat-message relative'],
 	sender: {
 		user: 'items-end',
 		assistant: 'items-start',
 		system: 'items-center',
 	},
-	// A hover toolbar is placed against the message, so the message is its
-	// containing block. The named group lets the toolbar show while the pointer
-	// is anywhere over the message, or while focus is in it.
-	trigger: {
-		hover: 'group/chat-message relative',
-		static: '',
+	// A message with a menu keeps 24px of room above its bubble for the toolbar.
+	// The toolbar stays in the box of the message, so a host that clips its
+	// overflow, such as a card or a scroll, does not cut it. The room is the
+	// gap of a transcript row, so a message in a transcript adds none.
+	menu: {
+		true: kokkaku.chat.row,
+		false: '',
 	},
 	slots: {
 		bubble,
@@ -84,45 +94,53 @@ export const k = defineKata({
 		// is, and its digits keep one width, so `9 of 10` does not move its buttons.
 		branch: [...controls, 'mt-1 tabular-nums', size.xs, ...text.muted],
 		/**
-		 * The actions of the message: a toolbar that floats over the outer top
-		 * corner of the bubble. That is the corner on the side of the speaker. A
-		 * toolbar wider than the bubble thus grows into the transcript and not off
-		 * its edge. It rises by its own height less `--spacing(2.5)`, so it overlaps the
-		 * padding of the bubble and not its text. A `static` trigger is a row below
-		 * the bubble.
+		 * The toolbar of the menu button: it floats over the outer top corner of
+		 * the bubble. That is the corner on the side of the speaker. It sits at
+		 * the top of the message, in the `menu` room. The toolbar is 34px high,
+		 * because its button has a fixed size, so it overlaps the bubble by 10px:
+		 * the padding of the bubble, and not its text. It is never a row of icons
+		 * below the bubble.
 		 */
-		actions: {
-			base: controls,
-			trigger: {
-				static: 'mt-1',
-				hover: [
-					'absolute z-10 bottom-[calc(100%-(--spacing(2.5)))] w-fit p-1',
-					rounded.lg,
-					omote.popover,
-					// Hidden, but in the Tab order: focus on a control shows the toolbar,
-					// as the pointer does. The toolbar takes no press while it is hidden,
-					// so it does not cover the message above it.
-					'pointer-events-none opacity-0',
-					'group-hover/chat-message:pointer-events-auto group-hover/chat-message:opacity-100',
-					'group-focus-within/chat-message:pointer-events-auto group-focus-within/chat-message:opacity-100',
-					// A menu that a control of the toolbar opens portals out of the
-					// message, so neither hover nor focus can hold the toolbar while it is
-					// open. The expanded trigger holds it.
-					'has-aria-expanded:pointer-events-auto has-aria-expanded:opacity-100',
-					// A device with no hover cannot show the toolbar, so there it is the
-					// row below the bubble that always shows, with no surface of its own.
-					'[@media(hover:none)]:static [@media(hover:none)]:mt-1',
-					'[@media(hover:none)]:pointer-events-auto [@media(hover:none)]:opacity-100',
-					'[@media(hover:none)]:p-0 [@media(hover:none)]:backdrop-blur-none',
-					'[@media(hover:none)]:bg-transparent [@media(hover:none)]:ring-0',
-					'[@media(hover:none)]:forced-colors:outline-none',
-				],
-			},
-			compound: [
-				{ trigger: 'hover', sender: 'user', class: 'end-2' },
-				{ trigger: 'hover', sender: 'assistant', class: 'start-2' },
-				{ trigger: 'hover', sender: 'system', class: 'inset-x-0 mx-auto' },
+		toolbar: {
+			base: [
+				flex.row,
+				'absolute top-0 z-10 w-fit p-1',
+				rounded.lg,
+				// The fill is opaque and the ring is inside the toolbar, so the edge has
+				// one tone over the page and over the bubble. A translucent fill and an
+				// outer ring let the bubble show through the lower part of the
+				// toolbar. The toolbar sits at the top edge of the message, so an outer
+				// ring would also go past the edge of a host that clips its overflow.
+				'[--popover-alpha:100%]',
+				omote.bg.popover,
+				ring.inset,
+				// Hidden, but in the Tab order: a keyboard focus on the button shows the
+				// toolbar, as the pointer does. A press also focuses the button, but that
+				// focus does not show the toolbar, so the toolbar goes when the pointer
+				// leaves. The toolbar takes no press while it is hidden, so it does not
+				// cover the message above it.
+				'pointer-events-none opacity-0',
+				// A hover on the bubble shows the toolbar, and not a hover on the empty
+				// side of the message row. The toolbar overlaps the bubble, so the
+				// pointer goes onto it with no gap, and its own hover holds it. A hover
+				// counts only on a device that hovers: a tap on a touch screen leaves
+				// `:hover` behind, and a long press opens the menu there.
+				'[@media(hover:hover)]:group-has-[[data-slot=chat-message-bubble]:hover]/chat-message:pointer-events-auto',
+				'[@media(hover:hover)]:group-has-[[data-slot=chat-message-bubble]:hover]/chat-message:opacity-100',
+				'hover:pointer-events-auto hover:opacity-100',
+				'group-has-focus-visible/chat-message:pointer-events-auto group-has-focus-visible/chat-message:opacity-100',
+				// The menu portals out of the message, so neither hover nor focus can
+				// hold the toolbar while it is open. The expanded button holds it.
+				'has-aria-expanded:pointer-events-auto has-aria-expanded:opacity-100',
+				// The check of a copy holds the toolbar until it goes, so the reader sees
+				// it after the pointer leaves.
+				'has-data-copied:pointer-events-auto has-data-copied:opacity-100',
 			],
+			sender: {
+				user: 'end-2',
+				assistant: 'start-2',
+				system: 'inset-x-0 mx-auto',
+			},
 		},
 		// A citation: a phrase of the prose that selects in a view beside the chat.
 		// Piece 0 is a span with the button role, so it wraps with the prose. The
@@ -156,8 +174,6 @@ export const k = defineKata({
 			'dark:in-data-[sender=assistant]:bg-blue-400/20 dark:in-data-[sender=assistant]:text-blue-300',
 			forced.outline,
 		],
-		// The rating pair of `ChatFeedback`: one control of the actions.
-		feedback: controls,
 		// The line of a failed reply. It inherits the foreground of the bubble, as
 		// the step line does, and the red dot beside it marks the failure. The gap
 		// above it is the `part` gap when the reply landed content first.
@@ -201,7 +217,24 @@ export const k = defineKata({
 		 * summary de-emphasizes by weight instead.
 		 */
 		tool: {
-			base: ['rounded-xl border border-current/20 px-3 py-2'],
+			// A closed step fits its head. A head wider than the bubble wraps at the
+			// width of the bubble. An open step fills the bubble, so its detail has
+			// room for a code block or a table. The panel of the collapse adds nothing
+			// to the intrinsic width, so the bubble keeps its width and its prose does
+			// not reflow. The width eases in the tempo of the panel height.
+			// `interpolate-size` lets the width move between `fit-content` and a
+			// length. An engine without it changes the width in one step.
+			//
+			// The minimum keeps the head on its line while the width moves. A width
+			// between `fit-content` and `100%` resolves its percentage against zero
+			// in the intrinsic width of the bubble. Without the minimum, the bubble
+			// then narrows to its prose, and the summary wraps under the label.
+			base: [
+				'w-fit min-w-fit max-w-full rounded-xl border border-current/20 px-3 py-2',
+				'has-[>[data-slot=collapse][data-open]]:w-full',
+				'[interpolate-size:allow-keywords] motion-safe:transition-[width]',
+				css.collapse,
+			],
 			slots: {
 				// The head wraps. A summary that does not fit beside the label goes to a
 				// line of its own and shows in full. The summary says what the step did,
@@ -226,28 +259,19 @@ export const k = defineKata({
 			},
 		},
 	},
-	defaults: { sender: 'assistant', streaming: false, editing: false, trigger: 'hover' },
+	defaults: { sender: 'assistant', streaming: false, editing: false, menu: false },
 })
 
 /**
- * Recipe variant props for {@link ChatMessage}: the styling axes its kata
- * exposes (`sender` and `trigger`), for consumers composing custom slots. The
- * `streaming` and `editing` axes of the bubble are props of the message, each
- * with its own description.
+ * Recipe variant props for {@link ChatMessage}: the styling axis its kata
+ * exposes (`sender`), for consumers composing custom slots. The `streaming`
+ * and `editing` axes of the bubble are props of the message, each with its own
+ * description.
  */
 export type ChatMessageVariants = Omit<
 	VariantProps<typeof k>,
-	'sender' | 'streaming' | 'editing' | 'trigger'
+	'sender' | 'streaming' | 'editing' | 'menu'
 > & {
 	/** The author of the message, which sets the side that the message aligns to. @defaultValue 'assistant' */
 	sender?: VariantProps<typeof k>['sender']
-	/**
-	 * When `actions` show. `'hover'` is a toolbar over the top corner of the
-	 * bubble that shows while the pointer is over the message or focus is in it.
-	 * A device with no hover shows it as a row below the bubble. `'static'` is
-	 * that row on every device.
-	 * @defaultValue 'hover'
-	 * @media hover
-	 */
-	trigger?: VariantProps<typeof k>['trigger']
 }

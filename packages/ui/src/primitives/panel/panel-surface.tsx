@@ -11,6 +11,7 @@ import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { useReaderSurface } from '../../primitives/glass/context'
 import { k } from '../../recipes/kata/panel'
 import { Overlay } from '../overlay'
+import { useOverlayContainer } from '../overlay/use-overlay-container'
 import * as m from '../reduced-motion/reduced-motion-elements'
 import { PanelA11yContext, usePanelState } from './context'
 import type { PanelOverlayProps } from './types'
@@ -45,7 +46,9 @@ export type PanelSurfaceProps<P extends PanelMotion> = PanelOverlayProps &
  * of the root. A panel gives its own props to the surface as they are, so one
  * rule holds across the family:
  *
- * - `modal` is `true` unless the consumer sets `false`.
+ * - `modal` is `true` unless the consumer sets `false`. A modal panel in a
+ *   container seals only the container, so it has no `aria-modal`. The page
+ *   outside the container stays live.
  * - The slide moves `transform`, which `MotionConfig` does not hold still, so
  *   the panel reads the reduced-motion setting itself (WCAG 2.3.3).
  * - A registered title supplies `aria-labelledby` and replaces the `aria-label`
@@ -104,7 +107,13 @@ export function PanelSurface<P extends PanelMotion>({
 
 	const { onAnimationComplete } = useOpenComplete(open, preset.animate, onOpenComplete)
 
-	const { ariaProps, a11y } = useA11yPanel(role, modal)
+	// An overlay in a container seals only the container, and Tab goes on into
+	// the page outside it. `aria-modal` would hide that page from assistive
+	// technology while the keyboard still gets to it, so the panel states it
+	// only when it covers the viewport (WCAG 4.1.2).
+	const scoped = useOverlayContainer(container) != null
+
+	const { ariaProps, a11y } = useA11yPanel(role, modal && !scoped)
 
 	const panel = (
 		<m.div

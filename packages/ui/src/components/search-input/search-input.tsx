@@ -73,9 +73,9 @@ export type SearchInputProps = Omit<
 const SEARCH_PREFIX = <Icon icon={<Search />} />
 
 /**
- * Search-type {@link Input} with a leading search icon. Shows a {@link LoadingSpinner}
- * while `loading` and a clear button once non-empty, binding to an enclosing
- * `<Form>` field by `name`.
+ * A search field with a search icon at the start. It is an {@link Input} of the
+ * search type. Shows a {@link LoadingSpinner} while `loading` and a clear
+ * button once non-empty, binding to an enclosing `<Form>` field by `name`.
  *
  * @remarks
  * Clearing drives a native `input` event, so controlled and uncontrolled

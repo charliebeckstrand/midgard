@@ -10,8 +10,8 @@ type ControlTypedVerdictOptions = {
 	describedBy: string | undefined
 	/** The text of the built-in Message. A falsy value shows no Message. */
 	message: ReactNode
-	/** Reports the verdict that a {@link ControlTypedVerdict.clear} leaves behind. Runs in an effect. */
-	reportCleared: () => void
+	/** Reports the verdict that a {@link ControlTypedVerdict.clear} leaves behind. Runs in an effect. A field that does not call `clear` can omit it. */
+	reportCleared?: () => void
 }
 
 type ControlTypedVerdict = {
@@ -27,8 +27,8 @@ type ControlTypedVerdict = {
 }
 
 /**
- * The verdict of a masked field on its typed text, for `DateInput` and
- * `CreditCardInputExpiry`.
+ * The verdict of a field on its typed text, for `DateInput`,
+ * `CreditCardInputExpiry`, and the refused draft of `TagInput`.
  *
  * @remarks
  * The built-in Message always takes an id of its own, so it never shares the
@@ -52,7 +52,7 @@ export function useControlTypedVerdict({
 
 	const [clears, setClears] = useState(0)
 
-	const report = useEffectEvent(reportCleared)
+	const report = useEffectEvent(() => reportCleared?.())
 
 	useEffect(() => {
 		if (clears > 0) report()

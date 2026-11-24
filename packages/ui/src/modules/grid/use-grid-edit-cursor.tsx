@@ -565,12 +565,17 @@ export function useGridEditCursor<T>({
 		},
 	)
 
-	// The fill of the range from its top row down, or from its first column
-	// right, bound to the range as it is now.
+	// The fill of the range in `direction` from its leading lines, bound to the
+	// range as it is now.
 	const planFill = useStableEvent((direction: GridRangeFillDirection) => {
 		const cells = readRange()
 
-		const plan = cells && rangeFillSource(cells, direction)
+		const rows = rowsRef.current
+
+		const columns = cursorColumnsRef.current
+
+		const plan =
+			cells && rangeFillSource(cells, direction, (row, col) => fillValue(rows[row], columns[col]))
 
 		if (!fillCells || !plan) return null
 

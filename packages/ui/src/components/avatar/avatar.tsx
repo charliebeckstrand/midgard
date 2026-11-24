@@ -129,9 +129,9 @@ export type AvatarProps = AvatarVariants & {
 } & Omit<ComponentProps<'span'>, 'children'>
 
 /**
- * User image, initials, or fallback in a sized circle. Pair with `status` to
- * overlay a corner StatusDot. Static leaf: renders in React Server Components.
- * Compose `<AvatarSkeleton>` in the loading tree.
+ * A circle that shows the image, the initials, or a fallback for a user. Pair
+ * with `status` to overlay a corner StatusDot. Static leaf: renders in React
+ * Server Components. Compose `<AvatarSkeleton>` in the loading tree.
  *
  * @remarks
  * An inner `role="img"` node carries `alt` as the name, so the image and the

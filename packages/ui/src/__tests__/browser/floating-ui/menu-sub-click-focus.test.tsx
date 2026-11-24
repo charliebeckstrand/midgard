@@ -142,7 +142,7 @@ describe('a click on a submenu row (real browser)', () => {
 		await waitFor(() => expect(nested()).toHaveFocus())
 	})
 
-	it('keeps focus on the dropdown trigger, with the row active, on a click', async () => {
+	it('keeps focus on the row of a dropdown on a click', async () => {
 		renderUI(
 			<Menu placement="bottom-start">
 				<MenuTrigger>
@@ -167,14 +167,12 @@ describe('a click on a submenu row (real browser)', () => {
 
 		await waitFor(() => expect(nested()).toBeVisible())
 
-		expect(trigger).toHaveFocus()
-
-		expect(row()).toHaveAttribute('data-active')
+		expect(row()).toHaveFocus()
 	})
 
-	// The key arrives on the trigger, which keeps focus and roves by
-	// `aria-activedescendant`. It opens the submenu of the active row.
-	it('opens the submenu of the active row of a dropdown on ArrowRight', async () => {
+	// The rows of a dropdown rove by real focus, so the key arrives on the row.
+	// ArrowLeft gives the focus back to the row.
+	it('opens the submenu of the focused row of a dropdown on ArrowRight', async () => {
 		renderUI(
 			<Menu placement="bottom-start">
 				<MenuTrigger>
@@ -199,7 +197,7 @@ describe('a click on a submenu row (real browser)', () => {
 
 		await userEvent.keyboard('{ArrowDown}{ArrowDown}')
 
-		await waitFor(() => expect(row()).toHaveAttribute('data-active'))
+		await waitFor(() => expect(row()).toHaveFocus())
 
 		await userEvent.keyboard('{ArrowRight}')
 
@@ -209,6 +207,6 @@ describe('a click on a submenu row (real browser)', () => {
 
 		await waitFor(() => expect(row()).toHaveAttribute('aria-expanded', 'false'))
 
-		expect(trigger).toHaveFocus()
+		expect(row()).toHaveFocus()
 	})
 })

@@ -5,6 +5,7 @@ import type { SortableListOptions } from '../../hooks/use-sortable-list'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { rowName } from './engine/grid-row/cell'
 import type { GridRowReorder } from './grid-data-types'
+import { useGridItemMoves } from './use-grid-item-moves'
 
 /** A row paired with its stable key: the shape the vertical row sortable orders. @internal */
 export type GridRowItem<T> = { row: T; key: string | number }
@@ -44,8 +45,14 @@ type GridRowReorderOptions<T> = {
  * context's a11y nodes must not join. A drop commits the reordered rows through
  * the binding's `onReorder` and narrates the move.
  *
- * @returns `active` (whether reordering is live: the render gate) and the
- * `sortable` options of `@dnd-kit`'s vertical sortable.
+ * The cell menu moves the same rows with no drag (WCAG 2.5.7). Its `moves`
+ * commit through the same `onReorder` that a drop calls, and announce the new
+ * place with the same name that a drag step reads. A move from the menu is
+ * not a drag, so it fires no `onReorderStart` or `onReorderEnd`.
+ *
+ * @returns `active` (whether reordering is live: the render gate), the
+ * `sortable` options of `@dnd-kit`'s vertical sortable, and the menu `moves`
+ * of the rows.
  * @internal
  */
 export function useGridRowReorder<T>({
@@ -88,6 +95,14 @@ export function useGridRowReorder<T>({
 		[onReorderEnd],
 	)
 
+	// Each drag step is announced by the row's name; the drag gives no visible text cue (WCAG 4.1.3).
+	const describe = useCallback(
+		(item: GridRowItem<T>) => rowName(intl, rowLabel?.(item.row), item.key),
+		[intl, rowLabel],
+	)
+
+	const moves = useGridItemMoves({ items, getKey: rowItemKey, commit: handleReorder, describe })
+
 	const sortable: SortableListOptions<GridRowItem<T>> = {
 		items,
 		getKey: rowItemKey,
@@ -95,8 +110,7 @@ export function useGridRowReorder<T>({
 		orientation: 'vertical',
 		onDragStart: onReorderStart ? handleDragStart : undefined,
 		onDragEnd: onReorderEnd ? handleDragEnd : undefined,
-		// Each drag step is announced by the row's name; the drag gives no visible text cue (WCAG 4.1.3).
-		describe: (item) => rowName(intl, rowLabel?.(item.row), item.key),
+		describe,
 	}
 
 	return {
@@ -104,5 +118,7 @@ export function useGridRowReorder<T>({
 		active: canReorder,
 		/** The options of the vertical sortable, for the drag and drop module. */
 		sortable,
+		/** The menu moves of the rows: none while reordering is not live. */
+		moves,
 	}
 }

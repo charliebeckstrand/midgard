@@ -16,7 +16,7 @@
  * the 24-row and 64-row uncapped panels have one, so only the 8-row pair
  * prices the fruitless walk.
  *
- * `dispatch only` is the floor to subtract: the same event on the same trigger,
+ * `dispatch only` is the floor to subtract: the same event on the same row,
  * carrying a key no handler acts on. What remains above it is the rove. It
  * takes a menu of its own, so the rove rungs keep their own cursor.
  */
@@ -24,7 +24,7 @@
 import { type Bench, vi } from 'vitest'
 import { compareBenches } from '../compare'
 import { WINDOW } from './harness'
-import { MENU_ROWS, openDropdown, type Probe, pressKey } from './menu-probe'
+import { keyTarget, MENU_ROWS, openDropdown, type Probe, pressKey } from './menu-probe'
 
 /** One row count, mounted both ways, so the pair prices the walk at that size. */
 type Rung = { count: number; uncapped: Probe; capped: Probe }
@@ -47,7 +47,7 @@ const floor = await openDropdown(FLOOR_ROWS, false, 'menu-key-floor')
 function pressBenches(bench: Bench, pick: (rung: Rung) => Probe, key: string, label: string) {
 	for (const rung of rungs) {
 		bench(`${rung.count} rows · ${label}`, () => {
-			pressKey(pick(rung).trigger, key)
+			pressKey(keyTarget(pick(rung)), key)
 		})
 	}
 }
@@ -55,10 +55,10 @@ function pressBenches(bench: Bench, pick: (rung: Rung) => Probe, key: string, la
 compareBenches(
 	'menu · keystroke floor',
 	(bench) => {
-		// A key the trigger's handler reads and passes over: React's own dispatch,
+		// A key the panel's handler reads and passes over: React's own dispatch,
 		// the composed handlers, and nothing else.
 		bench(`${FLOOR_ROWS} rows · dispatch only`, () => {
-			pressKey(floor.trigger, 'F9')
+			pressKey(keyTarget(floor), 'F9')
 		})
 	},
 	WINDOW.settled,
@@ -104,7 +104,7 @@ compareBenches(
 		// empty buffer.
 		for (const rung of rungs) {
 			bench(`${rung.count} rows · one letter`, FAKE_CLOCK, () => {
-				pressKey(rung.uncapped.trigger, 'o')
+				pressKey(keyTarget(rung.uncapped), 'o')
 
 				vi.runOnlyPendingTimers()
 			})

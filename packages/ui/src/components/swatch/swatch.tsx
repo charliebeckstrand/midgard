@@ -68,15 +68,14 @@ export type SwatchProps = SwatchVariants & {
 } & Omit<ComponentProps<'span'>, 'color'>
 
 /**
- * The color key that stands in for a mark: a `square` box, a `circle` dot, or
- * a `line` bar. A line runs `horizontal` or `vertical`, and a vertical line
- * takes the width of a horizontal one, so the labels after them line up.
- * `color` inks it `solid`-filled, `soft`-tinted, `outline`-framed, or `dashed`,
- * at any `size` from `xs` to `xl`. Without `size`, the swatch
- * takes the step of the nearest density scope. A `dashed` swatch draws a dashed
- * run on a `line` and a dashed border on a `square` or `circle`, for a dashed
- * reference rule. A static leaf with no client hooks, so it renders in React
- * Server Components.
+ * A color key that stands in for a mark of a chart: a `square`, a `circle`, or
+ * a `line`. A line runs `horizontal` or `vertical`, and a vertical line takes
+ * the width of a horizontal one, so the labels after them line up. `color` inks
+ * it `solid`-filled, `soft`-tinted, `outline`-framed, or `dashed`, at any
+ * `size` from `xs` to `xl`. Without `size`, the swatch takes the step of the
+ * nearest density scope. A `dashed` swatch draws a dashed run on a `line` and a
+ * dashed border on a `square` or `circle`, for a dashed reference rule. A
+ * static leaf with no client hooks, so it renders in React Server Components.
  *
  * @remarks
  * The fill rides on `currentColor`, which `color` sets three ways:

@@ -13,18 +13,16 @@ const { focus, forced } = sen
 // the reader pan it sideways.
 export const k = defineKata(
 	{
-		base: ['flex-1 overflow-y-auto overflow-x-hidden min-h-0', focus.inset],
+		base: ['flex-1 overflow-y-auto overflow-x-hidden min-h-0', kokkaku.chat.room, focus.inset],
 		slots: {
-			// The window measures each row as a whole box. A flex `gap` sits outside
-			// every box, so no row would count it, and the spacers would drift by it.
-			// The gap is each row's own top padding instead. Every row after the first
-			// carries it, because the first sits flush.
-			row: 'pt-6',
-			// The first row when the rows have a hover toolbar. The toolbar rises
-			// above its message, and the scroll clips what sits above the first row,
-			// so this keeps room for it. A device with no hover shows the actions as
-			// a row below the bubble, so there the first row sits flush again.
-			first: 'pt-8 [@media(hover:none)]:pt-0',
+			// Each message is a row, and each row has the 24px gap above it, the first
+			// row too. The window measures each row as a whole box. A flex `gap` sits
+			// outside every box, so no row would count it, and the spacers would drift
+			// by it. The gap is thus the padding of the row. It is also the room of
+			// the toolbar of the menu button, which rises 24px above the bubble, and
+			// of the ring of a bubble that the composer edits. Thus no row needs a
+			// rule of its own.
+			row: kokkaku.chat.row,
 			// The holder of the button that goes to the newest message. It sticks to
 			// the bottom edge of the scroll and has no height, so it moves no row and
 			// the end that the window measures stays the end of the rows. The button

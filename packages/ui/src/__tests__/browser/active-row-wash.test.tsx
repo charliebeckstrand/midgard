@@ -8,10 +8,11 @@ import { getSlot, noop, renderUI, screen, waitFor } from '../helpers'
 import { emulateForcedColors, systemColor } from './helpers/forced-colors'
 
 /**
- * The wash of a roved row (real paint). A command palette and a dropdown menu
- * rove by `data-active`, and the row never takes focus. `hannou.active` is the
- * only rule that marks the roved row, so it must have the glass form and the
- * forced-colors form that the hover and focus washes have. jsdom compiles no
+ * The wash of a roved row (real paint). A command palette roves by
+ * `data-active`, and the row never takes focus. `hannou.active` is the only
+ * rule that marks that row, so it must have the glass form and the
+ * forced-colors form that the hover and focus washes have. A dropdown menu
+ * roves by real focus, and the focus wash marks its row. jsdom compiles no
  * Tailwind and paints nothing, so only a real browser reads the fill back off
  * the row.
  */
@@ -64,10 +65,10 @@ const rovedPaletteRow = vi.defineHelper(async (glass: boolean): Promise<HTMLElem
 })
 
 /**
- * The row of an open dropdown menu, roved by the pointer. A dropdown keeps
- * focus on its trigger, so the row takes `data-active` and not focus. The
- * pointer stays on the row. `sheet={false}` keeps the panel next to its
- * trigger at the narrow viewport of the suite, where a sheet roves by focus.
+ * The row of an open dropdown menu, roved by the pointer. The rows rove by real
+ * focus, so the row takes the focus. The pointer stays on the row.
+ * `sheet={false}` keeps the panel next to its trigger at the narrow viewport of
+ * the suite.
  */
 const rovedMenuRow = vi.defineHelper(async (glass: boolean): Promise<HTMLElement> => {
 	renderUI(
@@ -87,9 +88,7 @@ const rovedMenuRow = vi.defineHelper(async (glass: boolean): Promise<HTMLElement
 
 	await userEvent.hover(row)
 
-	await waitFor(() => expect(row).toHaveAttribute('data-active'))
-
-	expect(row).not.toHaveFocus()
+	await waitFor(() => expect(row).toHaveFocus())
 
 	return row
 })
@@ -126,7 +125,7 @@ describe('roved row wash in a glass parent (real browser)', () => {
 
 		expect(row.matches(':hover')).toBe(false)
 
-		expect(row).toHaveAttribute('data-active')
+		expect(row).toHaveFocus()
 
 		expect(readWash(row)).toBeCloseTo(GLASS_ACTIVE, 3)
 	})

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { CodeBlock, type CodeBlockProps, primeCodeBlock } from '../../components/code'
+import { Dialog, DialogBody, DialogPanel } from '../../components/dialog'
 import { PdfViewer } from '../../components/pdf-viewer'
 import {
 	Table,
@@ -11,6 +12,7 @@ import {
 	TableRow,
 } from '../../components/table'
 import { useScrollRegion } from '../../hooks/use-scroll-region'
+import { Grid, type GridColumn } from '../../modules/grid'
 import { frames, present, renderUI, screen, waitFor } from '../helpers'
 
 /**
@@ -324,5 +326,94 @@ describe('PdfViewer viewport', () => {
 		expect(viewport.getAttribute('role')).toBe('region')
 
 		expect(viewport.getAttribute('aria-label')).toBe('Page')
+	})
+})
+
+describe('panel body', () => {
+	/** The body of the open dialog. */
+	function body(): HTMLElement {
+		return present(
+			document.querySelector<HTMLElement>('[data-slot="dialog-body"]'),
+			'the dialog body',
+		)
+	}
+
+	it('is a tab stop while its content overflows', async () => {
+		renderUI(
+			<Dialog open onOpenChange={() => {}}>
+				<DialogPanel aria-label="Terms">
+					<DialogBody style={{ maxHeight: 100 }}>
+						<div style={{ height: 500 }} />
+					</DialogBody>
+				</DialogPanel>
+			</Dialog>,
+		)
+
+		await waitFor(() => expect(body().getAttribute('tabindex')).toBe('0'))
+	})
+
+	it('adds no tab stop while its content fits', async () => {
+		renderUI(
+			<Dialog open onOpenChange={() => {}}>
+				<DialogPanel aria-label="Terms">
+					<DialogBody>
+						<div style={{ height: 20 }} />
+					</DialogBody>
+				</DialogPanel>
+			</Dialog>,
+		)
+
+		await frames()
+
+		expect(body().hasAttribute('tabindex')).toBe(false)
+	})
+})
+
+describe('Grid scroll container', () => {
+	type Row = { id: number; name: string }
+
+	const columns: GridColumn<Row>[] = [{ id: 'name', title: 'Name', cell: (row) => row.name }]
+
+	const rows: Row[] = Array.from({ length: 200 }, (_, index) => ({
+		id: index + 1,
+		name: `Name ${index + 1}`,
+	}))
+
+	/** A windowed grid of 200 rows, and its scroller once the first row shows. */
+	async function renderWindow({ navigable }: { navigable: boolean }) {
+		const view = renderUI(
+			<Grid
+				navigable={navigable}
+				virtualize={{ estimateSize: 36 }}
+				maxHeight="180px"
+				columns={columns}
+				rows={rows}
+				getKey={(row) => row.id}
+			/>,
+		)
+
+		await waitFor(() => expect(screen.queryByText('Name 1')).not.toBeNull())
+
+		return present(
+			view.container.querySelector<HTMLElement>('[data-slot="grid-scroll"]'),
+			'the scroller',
+		)
+	}
+
+	it('is a tab stop with no cursor, so a keyboard user can scroll the window', async () => {
+		const scroll = await renderWindow({ navigable: false })
+
+		await waitFor(() => expect(scroll.getAttribute('tabindex')).toBe('0'))
+
+		// The table inside has the name of the grid, so the scroller is no landmark.
+		expect(scroll.hasAttribute('role')).toBe(false)
+	})
+
+	it('adds no tab stop under the cursor, which is the one tab stop of the grid', async () => {
+		const scroll = await renderWindow({ navigable: true })
+
+		await frames()
+
+		expect(scroll.hasAttribute('tabindex')).toBe(false)
 	})
 })

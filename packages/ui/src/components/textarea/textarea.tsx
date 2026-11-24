@@ -1,11 +1,10 @@
 'use client'
 
 import { useComposedRefs } from 'motion/react'
-import { type ComponentProps, type MouseEvent, type ReactNode, useRef } from 'react'
+import { type ComponentProps, type ReactNode, useRef } from 'react'
 import { cn } from '../../core/cn'
 import type { ScaleStep } from '../../core/density/scale'
-import { ControlFrame } from '../../primitives/control'
-import { HeadlessShell } from '../../primitives/headless/headless-shell'
+import { ControlActions, ControlFrame } from '../../primitives/control'
 import { useHeadlessSlots } from '../../primitives/headless/use-headless-slots'
 import type { scale } from '../../recipes/kata/textarea'
 import { k, type TextareaVariants } from '../../recipes/kata/textarea'
@@ -36,8 +35,8 @@ export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
 	/**
 	 * Control slot rendered as a right-justified row below the field; its
 	 * presence pins `resize: none`. `null` and `false` count as absent. A press
-	 * on a button in the row does not move the focus, and the button still
-	 * gets the click. Under `<HeadlessProvider>`, there is no row, so a press
+	 * on a button in the row, or on the empty part of the row, does not move
+	 * the focus, and the button still gets the click. Under `<HeadlessProvider>`, there is no row, so a press
 	 * moves the focus as usual.
 	 */
 	actions?: ReactNode
@@ -56,11 +55,11 @@ export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
 } & Omit<ComponentProps<'textarea'>, 'size' | 'value' | 'rows'>
 
 /**
- * Multi-line text control with optional `autoResize` and an `actions` slot.
- * Resolves variant and binding from enclosing `<Form>`, `<Control>`, and
- * `<GlassProvider>` contexts, and takes the step of the nearest density scope.
- * Under headless context, the textarea and its actions render bare, with no
- * frame and no classes.
+ * A text field for many lines. It can grow with its content (`autoResize`) and
+ * show `actions`. Resolves variant and binding from enclosing `<Form>`,
+ * `<Control>`, and `<GlassProvider>` contexts, and takes the step of the
+ * nearest density scope. Under headless context, the textarea and its actions
+ * render bare, with no frame and no classes.
  *
  * @remarks Shares the control setup of Input through {@link useInputControl},
  * including the §7.3 value contract that `useInputValue` owns. `defaultValue`
@@ -71,13 +70,10 @@ export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
  * because that property ignores `rows` and is not in each browser at the
  * floor. With `actions`, the frame stacks the field above a right-justified
  * actions row.
- * A press on a button in the actions row cancels the default of its
- * `mousedown`, so the focus stays where it was. Thus a press does not show the
- * focus ring of the frame, and it does not take the focus from the field.
- * The Tab key still moves the focus to the buttons. Under
- * `<HeadlessProvider>`, the row renders no element to hold this guard. The
- * consumer owns the structure there, so it cancels the `mousedown` on its
- * own buttons if it needs to.
+ * The actions row is a {@link ControlActions}: a press on a button in the
+ * row, or on the empty part of the row, does not move the focus. Thus a press
+ * does not show the focus ring of the frame, and it does not take the focus
+ * from the field.
  * With `resize`, a touch device gets a grip of its own on the edge that the
  * drag moves, because Safari on iOS and iPadOS draws no native grip.
  * A set `size` opens a density scope. The actions row gets the affix size, one
@@ -158,30 +154,11 @@ export function Textarea({
 		<ControlFrame density={size} className={cn(slots.base)}>
 			{textarea}
 			{axis !== 'none' && <TextareaGrip field={fieldRef} axis={axis} className={cn(slots.grip)} />}
-			{/* The ControlFrame is a `<span>`, so the actions row is a `<span>` too. */}
 			{hasActions && (
-				<HeadlessShell
-					data-slot="textarea-actions"
-					data-density="slot"
-					className={cn(slots.actions)}
-					onMouseDown={keepFocusOnPress}
-				>
+				<ControlActions data-slot="textarea-actions" className={cn(slots.actions)}>
 					{actions}
-				</HeadlessShell>
+				</ControlActions>
 			)}
 		</ControlFrame>
 	)
-}
-
-/**
- * Cancels the focus move of a press on a button in the actions row. The click
- * still fires. A press on another control, such as a `<select>`, keeps its
- * default, because that control opens or takes text on the press.
- */
-function keepFocusOnPress(event: MouseEvent<HTMLElement>) {
-	if (!(event.target instanceof Element)) return
-
-	const button = event.target.closest('button, [role="button"]')
-
-	if (button && event.currentTarget.contains(button)) event.preventDefault()
 }

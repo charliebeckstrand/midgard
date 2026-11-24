@@ -1,8 +1,9 @@
 'use client'
 
-import { type ComponentProps, type ReactNode, useRef } from 'react'
+import { type ComponentProps, type ReactNode, useId, useRef } from 'react'
 import { cn } from '../../core/cn'
 import type { ScaleStep } from '../../core/density/scale'
+import { invalidAttrs } from '../../core/invalid-attrs'
 import { Upload } from '../../primitives/icons/icons'
 import { useIntl } from '../../primitives/intl/use-intl'
 import type { scale as buttonScale } from '../../recipes/kata/button'
@@ -48,9 +49,14 @@ export type FileUploadButtonProps = Omit<ComponentProps<'div'>, 'defaultValue' |
  *
  * @remarks
  * Shares every internal with {@link FileUploadDrop}. Once a selection exists a
- * `Reset` button joins the trigger, so another file can be selected or the
- * selection cleared without the trigger swapping out. `Reset` gives focus back
- * to the trigger.
+ * clear button joins the trigger, so another file can be selected or the
+ * selection cleared without the trigger swapping out. The clear button gives
+ * focus back to the trigger.
+ *
+ * The trigger takes the `aria-describedby` of the enclosing `<Control>` /
+ * `<Field>`, so its Description and its error Message reach the focus. In a
+ * Field with a Label, the name of the trigger is the Label and then its own
+ * text, through `aria-labelledby`.
  *
  * @see {@link FileUploadDrop} · {@link FileUploadInput}
  */
@@ -63,7 +69,7 @@ export function FileUploadButton(allProps: FileUploadButtonProps) {
 
 	const state = useFileUploadState(shared)
 
-	const { disabled, readOnly, hasFiles, openPicker, clearFiles } = state
+	const { control, disabled, readOnly, invalid, files, hasFiles, openPicker, clearFiles } = state
 
 	// A read-only field keeps the focus on each of its buttons, and they open
 	// no picker and clear nothing.
@@ -71,14 +77,18 @@ export function FileUploadButton(allProps: FileUploadButtonProps) {
 
 	const triggerRef = useRef<HTMLButtonElement>(null)
 
-	const handleReset = () => {
+	const triggerId = useId()
+
+	const focusTrigger = () => triggerRef.current?.focus()
+
+	const handleClear = () => {
 		clearFiles()
 
-		// Moves focus to the trigger once `Reset` unmounts (WCAG 2.4.3).
-		triggerRef.current?.focus()
+		// Moves focus to the trigger once the clear button unmounts (WCAG 2.4.3).
+		focusTrigger()
 	}
 
-	// The upload trigger always stays; a selection adds `Reset` beside it, so a
+	// The upload trigger always stays; a selection adds a clear button beside it, so a
 	// different file can be picked (or the selection cleared) without the
 	// trigger swapping out.
 	return (
@@ -86,9 +96,15 @@ export function FileUploadButton(allProps: FileUploadButtonProps) {
 			<FileUploadHiddenInput
 				{...state.hiddenInput}
 				ariaLabel={triggerLabel(children, intl.formatMessage(fileUploadMessages.upload))}
+				forwardFocus={focusTrigger}
 			/>
 			<Button
 				ref={triggerRef}
+				id={triggerId}
+				// The self-reference adds the text of the trigger to the Field Label.
+				aria-labelledby={control?.labelledBy ? `${control.labelledBy} ${triggerId}` : undefined}
+				aria-describedby={control?.describedBy}
+				{...invalidAttrs(invalid)}
 				type="button"
 				size={size}
 				color={color}
@@ -107,10 +123,10 @@ export function FileUploadButton(allProps: FileUploadButtonProps) {
 					variant="soft"
 					color="red"
 					disabled={disabled}
-					onClick={handleReset}
+					onClick={handleClear}
 					{...inert}
 				>
-					{intl.formatMessage(fileUploadMessages.reset)}
+					{intl.formatMessage(fileUploadMessages.clear, { count: files.length })}
 				</Button>
 			)}
 		</div>

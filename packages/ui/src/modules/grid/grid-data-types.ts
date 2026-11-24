@@ -474,7 +474,9 @@ export type GridReorder = {
 	 * takes the grab cursor, grabbing while lifted, plus the pointer and keyboard
 	 * activator, and no grip renders. A sortable column's sort control keeps its
 	 * pointer cursor: set on the control itself, it out-resolves the header's
-	 * inherited grab cursor on that child.
+	 * inherited grab cursor on that child. In a navigable grid, Space on the
+	 * header under the cursor moves focus to the header cell, and the next
+	 * Space lifts the column.
 	 * @defaultValue true
 	 */
 	handle?: boolean
@@ -1020,7 +1022,7 @@ export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'>
 	 * container.
 	 *
 	 * The first user width change takes width control. That is a drag, a keyboard nudge,
-	 * or an action in the header menu's Auto-size submenu. Every column then holds where it
+	 * or an action in the header menu's Auto-size or Width submenu. Every column then holds where it
 	 * sits, so a change to one never reflows the others. The table then grows or shrinks
 	 * freely, into trailing space or a horizontal scroll, rather than re-fitting. A press on
 	 * the handle that moves nothing takes no control.
@@ -1031,7 +1033,10 @@ export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'>
 	 * "Auto-size this column" (also a double-click, a double tap, or Enter on the handle)
 	 * sets one column to its content width. "Auto-size all columns" gives each column the
 	 * width that "Auto-size this column" gives it. "Reset column widths" gives the widths
-	 * back to the automatic fit, as on a fresh mount. Widths persist through {@link GridDataProps.columnSizing}.
+	 * back to the automatic fit, as on a fresh mount. The Width submenu of the
+	 * header menu gives "Increase width" and "Decrease width", which step the
+	 * width as PageUp and PageDown on the handle do. They are the path to a width
+	 * of your choice with no drag (WCAG 2.5.7). Widths persist through {@link GridDataProps.columnSizing}.
 	 * Set `false` to drop the handles (columns still auto-size).
 	 * @defaultValue true
 	 */
@@ -1102,9 +1107,12 @@ export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'>
 
 	/**
 	 * Right-click context menus. A `column` menu on headers carries Manage columns,
-	 * then Filter (under the `'menu'` affordance), Sort, Pin, Group by, Auto-size,
-	 * and Export. A
-	 * `cell` menu on body cells carries Copy, then the Export menu. Related actions
+	 * then Filter (under the `'menu'` affordance), Sort, Pin, Move (under
+	 * {@link GridDataProps.reorder | reorder}), Group by, Auto-size, Width (under
+	 * {@link GridDataProps.resizable | resizable}), and Export. A `cell` menu on
+	 * body cells carries Copy, the Fill items of a cell range, "Move up" and "Move
+	 * down" (under {@link GridDataProps.rowReorder | rowReorder}), then the
+	 * Export menu. Related actions
 	 * are consolidated into hover-opened submenus, so the menu opens one row per
 	 * concern. On by default; pass `false` to disable. Each side takes the
 	 * defaults (`true`) or a builder that reshapes them. "Manage columns" opens
@@ -1194,6 +1202,16 @@ export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'>
 	 * `true` prefixes each reorderable header with a grip handle. Pass a
 	 * {@link GridReorder} object with `handle: false` to drop that grip, which
 	 * makes the whole header the drag handle instead.
+	 *
+	 * The column menu gives the same moves with no drag (WCAG 2.5.7): "Move
+	 * left", "Move right", "Move to start", and "Move to end". "Move left" and
+	 * "Move right" name the side on the screen, so a right-to-left grid swaps
+	 * them. The column manager gives "Move up", "Move down", "Move to top", and
+	 * "Move to bottom" on each row. Its group editor gives the same moves on each
+	 * row in a group or in the ungrouped pool, and on each group. A move from a
+	 * menu commits through `columnOrder` (and `columnGroups` in the group editor),
+	 * and the live region announces the new place, as a drop does.
+	 * It is not a drag, so it fires no `onReorderStart` or `onReorderEnd`.
 	 * @defaultValue false
 	 * @see {@link GridReorder}
 	 */
@@ -1227,6 +1245,10 @@ export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'>
 	 * new order back onto your `rows`. The consumer owns the data, so the grid
 	 * reports the reordered set rather than mutating it. Each row's grip
 	 * drags by pointer or keyboard (`@dnd-kit`), moving the row within the set.
+	 * The cell menu gives "Move up" and "Move down" for the same move with no
+	 * drag (WCAG 2.5.7). A move from the menu commits through `onReorder` and the
+	 * live region announces the new place. It fires no `onReorderStart` or
+	 * `onReorderEnd`.
 	 *
 	 * Reordering is a manual ordering of the natural row order, so the grid stands
 	 * it down whenever that order isn't what's shown. The handles then turn inert.
@@ -1260,8 +1282,9 @@ export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'>
 	 * editors and then its actions, as through a form. Escape gives focus back
 	 * to the grid, and the cursor stays on the cell. Focus that goes to a
 	 * control by other means, such as a press, moves the cursor to its cell. On
-	 * a header cell, Enter sorts the column, and F2 moves focus to the controls
-	 * of the header, such as the sort button and the resize handle.
+	 * a header cell, Enter sorts the column, Shift+Enter adds the column to the
+	 * sort, and F2 moves focus to the controls of the header, such as the sort
+	 * button and the resize handle.
 	 *
 	 * Space on a data cell, and Enter on a data cell with no controls, activate
 	 * the active cell's {@link GridDataProps.onCellClick} and the active row's
@@ -1273,8 +1296,11 @@ export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'>
 	 * focus, its own focus ring shows, and the ring of the cell does not.
 	 *
 	 * A client-grouped grid is a `treegrid`. Each group header row carries
-	 * `aria-level` 1 and `aria-expanded`, and each leaf and total carries
-	 * `aria-level` 2. A group header, a group total, and an open detail panel
+	 * `aria-level` 1, `aria-expanded`, and its place among all the groups
+	 * (`aria-posinset`, `aria-setsize`). Each leaf carries `aria-level` 2 and its
+	 * place among the leaves of its group. A window renders only some rows, so
+	 * the places come from the full set. A group total is not a member of the
+	 * set, so it carries no level. A group header, a group total, and an open detail panel
 	 * are one stop each. The cursor keeps its column across a stop. On a group header, Enter
 	 * or Space toggles the group, ArrowRight opens it or steps into it, and
 	 * ArrowLeft closes it. On a detail panel, Enter or F2 moves focus to the
@@ -1290,7 +1316,12 @@ export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'>
 	 * carries the cursor too, so Enter or Space fires the handler. Manual
 	 * grouping ({@link GridGroupBy.manual}) stands the cursor down. A clickable
 	 * grid there roves its rows or data cells instead, and Tab from the roved
-	 * item moves through the controls of its row.
+	 * item moves through the controls of its row. The roving grid is also a
+	 * `treegrid`. Each group header row carries `aria-level` 1 and
+	 * `aria-expanded`, and each leaf carries `aria-level` 2. A leaf of a leading
+	 * run with no group header carries `aria-level` 1.
+	 *
+	 * A `grid` or a `treegrid` that cannot edit carries `aria-readonly`.
 	 *
 	 * Off by default, so a static table keeps the browser/screen-reader's native
 	 * table navigation; opt in for a spreadsheet-style read-only grid.
@@ -1312,6 +1343,9 @@ export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'>
 	 * - Ctrl/Cmd+A on the grid makes the range from the first data cell to the
 	 *   last, and the cursor goes to the last cell. A group header, a group total,
 	 *   and a detail panel are not cells of the range.
+	 * - Ctrl+Space makes the range over the column of the cursor, from the first
+	 *   data row to the last (WAI-ARIA APG grid). Without the range, Ctrl+Space
+	 *   toggles the row, as Space does.
 	 * - Ctrl/Cmd+C on the grid writes the range as TSV, or the active cell with no
 	 *   range. A cell reads as export reads it, with the export's formula guard.
 	 *   The copy also writes the cells as an HTML table, so a paste into a
@@ -1334,12 +1368,16 @@ export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'>
 	 *   Ctrl/Cmd+C does, and then clears. A clear is a paste of empty text: a
 	 *   text cell takes `''`, and a number cell or a yes/no cell takes
 	 *   `undefined`, unless {@link GridColumn.parse} reads the text.
-	 * - Ctrl/Cmd+D fills the range down from its top row, and Ctrl/Cmd+R fills
-	 *   it right from its first column, under `editable.session: 'managed'`.
-	 *   The cell menu of {@link GridDataProps.contextMenu} gives the same fills
-	 *   as Fill down and Fill right. A key stays the browser's when the range is
-	 *   one cell deep in its direction. A press of another mouse button in the
-	 *   range, such as the one that opens the menu, keeps the range.
+	 * - Ctrl/Cmd+D fills the range down from its top rows, and Ctrl/Cmd+R fills
+	 *   it right from its first columns, under `editable.session: 'managed'`.
+	 *   The cell menu of {@link GridDataProps.contextMenu} gives these fills as
+	 *   Fill down and Fill right, and also Fill up and Fill left. The source of
+	 *   a key or a menu fill is the lines of the range before its first blank
+	 *   line, or the first line when no line is blank. Thus a key or a menu item
+	 *   continues a series, as a drag of the fill handle does. A key stays the
+	 *   browser's when the range is one cell deep in its direction. A press of
+	 *   another mouse button in the range, such as the one that opens the menu,
+	 *   keeps the range.
 	 * - The active cell shows a fill handle on its bottom end corner, under
 	 *   `editable.session: 'managed'`. A drag from it grows the range from the
 	 *   range, or from the active cell, along the axis of the larger travel. The

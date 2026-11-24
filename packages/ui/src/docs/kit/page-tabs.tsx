@@ -11,6 +11,7 @@ import { defineMessage, useIntl } from 'ui/primitives/intl'
 import { Stack } from 'ui/stack'
 import { Tab, TabContent, TabContents, TabList, Tabs } from 'ui/tabs'
 import { tabName, toSlug } from './names.ts'
+import { PageTitle } from './page-title.tsx'
 
 const sectionsMessage = defineMessage({
 	id: 'docs.tabs.sections',
@@ -55,7 +56,9 @@ export function PageTabs({ tabs, children }: { tabs: readonly string[]; children
 	// tab with no folder, or a folder with no tab, fails the build.
 	const slugs = others.map(toSlug).toSorted()
 
-	const folders = pages.find((link) => link.path === page)?.tabs ?? []
+	const link = pages.find((entry) => entry.path === page)
+
+	const folders = link?.tabs ?? []
 
 	if (slugs.join() !== folders.join()) {
 		throw new Error(
@@ -69,6 +72,8 @@ export function PageTabs({ tabs, children }: { tabs: readonly string[]; children
 
 	const intl = useIntl()
 
+	const currentName = tabs.find((tab) => toSlug(tab) === current) ?? first
+
 	return (
 		<Tabs
 			value={current}
@@ -78,6 +83,7 @@ export function PageTabs({ tabs, children }: { tabs: readonly string[]; children
 				navigate(tab === home ? '.' : tab)
 			}}
 		>
+			<PageTitle page={link?.name ?? page} tab={tabName(intl, current, currentName)} />
 			<TabList aria-label={intl.formatMessage(sectionsMessage)}>
 				{tabs.map((tab) => {
 					const slug = toSlug(tab)

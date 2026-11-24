@@ -20,6 +20,30 @@ const BUTTON_TYPES = new Set(['button', 'submit', 'reset', 'image', 'hidden'])
 /** The input types whose click toggles the field or opens a picker. */
 const CLICK_TYPES = new Set(['checkbox', 'radio', 'file'])
 
+/** The input types that take the native `readonly`: the text fields, whose edit the lock cancels. */
+const TEXT_TYPES = new Set([
+	'text',
+	'search',
+	'url',
+	'tel',
+	'email',
+	'password',
+	'number',
+	'date',
+	'month',
+	'week',
+	'time',
+	'datetime-local',
+])
+
+/** Whether the field is a text field, which tells a screen reader that it is read-only. */
+function isTextField(field: NativeField): field is HTMLInputElement | HTMLTextAreaElement {
+	return (
+		field instanceof HTMLTextAreaElement ||
+		(field instanceof HTMLInputElement && TEXT_TYPES.has(field.type))
+	)
+}
+
 function isNativeField(element: Element): element is NativeField {
 	if (element instanceof HTMLSelectElement || element instanceof HTMLTextAreaElement) return true
 
@@ -127,6 +151,10 @@ function restoreField(states: ReadonlyMap<EventTarget, NativeFieldState>, field:
  * The cancel also stops the event, so no handler of the app or of React sees
  * an edit that does not occur.
  *
+ * Each recorded text field also takes `aria-readonly="true"` while the submit
+ * runs, so a screen reader tells why an edit does nothing, as for a bound
+ * control. The lock puts back the earlier value of the attribute when it ends.
+ *
  * @param formRef - The `<form>` element of the form.
  * @param locked - Whether a submit runs.
  * @remarks The lock reads the DOM tree, not the React tree. A native field in
@@ -148,9 +176,18 @@ export function useFormNativeLock(
 
 		const states = new Map<EventTarget, NativeFieldState>()
 
+		// The earlier `aria-readonly` of each text field, or `null` when it had none.
+		const readOnlyMarks = new Map<HTMLElement, string | null>()
+
 		for (const element of Array.from(form.elements)) {
 			if (isNativeField(element) && inFormScope(form, element)) {
 				states.set(element, readState(element))
+
+				if (isTextField(element)) {
+					readOnlyMarks.set(element, element.getAttribute('aria-readonly'))
+
+					element.setAttribute('aria-readonly', 'true')
+				}
 			}
 		}
 
@@ -192,6 +229,11 @@ export function useFormNativeLock(
 			form.removeEventListener('input', restore, true)
 
 			form.removeEventListener('change', restore, true)
+
+			for (const [field, previous] of readOnlyMarks) {
+				if (previous === null) field.removeAttribute('aria-readonly')
+				else field.setAttribute('aria-readonly', previous)
+			}
 		}
 	}, [formRef, locked])
 }

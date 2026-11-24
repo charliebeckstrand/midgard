@@ -15,6 +15,7 @@ import {
 	useState,
 } from 'react'
 import type { ScaleStep } from '../../core/density/scale'
+import { useA11yAnnouncements } from '../../hooks/a11y/use-a11y-announcements'
 import {
 	clearVirtualActive,
 	clearVirtualActiveIndexed,
@@ -29,6 +30,7 @@ import {
 	type VirtualItemSource,
 	virtualTopMatchIndex,
 } from '../../hooks/a11y/use-a11y-roving'
+import { useEmptyResults } from '../../hooks/use-empty-results'
 import type { FloatingPlacement } from '../../hooks/use-floating-panel'
 import { useFloatingUI } from '../../hooks/use-floating-ui'
 import { useKeyboardSettled } from '../../hooks/use-keyboard-settled'
@@ -37,7 +39,7 @@ import { useStableEvent } from '../../hooks/use-stable-event'
 import { useFormValue } from '../../primitives/form/use-form-value'
 import { useGlass } from '../../primitives/glass/context'
 import { ChevronsUpDown } from '../../primitives/icons/icons'
-import { defineMessages } from '../../primitives/intl/intl-messages'
+import { defineMessages, intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { hasSelection, useOptionSelection } from '../../primitives/option/use-option-selection'
 import { DeferredQueryContext, QueryContext } from '../../primitives/query/context'
@@ -403,24 +405,24 @@ function warnOnMixedSource(
 export type ComboboxProps<T> = ComboboxBaseProps<T> & SelectionValueProps<T>
 
 /**
- * Type-ahead select pairing a text input with a floating option panel.
- * Supports single or `multiple` selection, controlled or uncontrolled `value`,
- * and `clearable`/`nullable` affordances. Resolves `autoComplete`, `disabled`,
- * `readOnly`, and `required` against an enclosing `<Control>`, takes the step
- * of the nearest density scope (an explicit `size` opens a scope on the
- * trigger and the panel), and
- * registers with `<Form>` under `name`. Tracks the highlight as a virtual
+ * A select with a text field that filters its options as the reader types. The
+ * options show in a floating panel. Supports single or `multiple` selection,
+ * controlled or uncontrolled `value`, and `clearable`/`nullable` affordances.
+ * Resolves `autoComplete`, `disabled`, `readOnly`, and `required` against an
+ * enclosing `<Control>`, takes the step of the nearest density scope (an
+ * explicit `size` opens a scope on the trigger and the panel), and registers
+ * with `<Form>` under `name`. Tracks the highlight as a virtual
  * active-descendant (APG editable combobox) with DOM focus held on the input,
  * re-anchoring across filter and async option changes. Filtering is
  * consumer-driven: `children` read the live and deferred query via
  * {@link useComboboxQuery} and render matching {@link ComboboxOption}s,
- * supporting both synchronous lists and async option sources. Wrap the
- * options in `VirtualOptions` with `getOptionId` for large lists. Arrow and
- * type-ahead then navigate the full option set by index, reaching options
- * outside the rendered window instead of stopping at its edge. Each option
- * must then be one of the `items` of `VirtualOptions`. Put a create row into
- * the items, not after the wrapper. Arrow and type-ahead do not reach an
- * option outside the items, and a development warning tells you so.
+ * supporting both synchronous lists and async option sources. Wrap the options
+ * in `VirtualOptions` with `getOptionId` for large lists. Arrow and type-ahead
+ * then navigate the full option set by index, reaching options outside the
+ * rendered window instead of stopping at its edge. Each option must then be one
+ * of the `items` of `VirtualOptions`. Put a create row into the items, not
+ * after the wrapper. Arrow and type-ahead do not reach an option outside the
+ * items, and a development warning tells you so.
  *
  * @remarks
  * Supply `aria-label` when no `<Field>`/`<Label>` wraps the combobox; the
@@ -429,6 +431,10 @@ export type ComboboxProps<T> = ComboboxBaseProps<T> & SelectionValueProps<T>
  * moves the highlight to the top match, so Enter picks it. On a device with no
  * hover, such as a phone, a filter change clears the highlight, and only an
  * arrow key sets it.
+ *
+ * While the open list holds no option, the panel shows "No results", and the
+ * shared announcer speaks it. The panel mounts with each open, so a live
+ * region in it would not speak.
  *
  * The input and the panel stamp `data-open` while the panel is open, and the
  * input stamps `data-disabled` while it is disabled.
@@ -601,6 +607,14 @@ export function Combobox<T>({
 		onQueryChange,
 		setValue,
 	})
+
+	// The panel mounts with each open, and its "No results" line only changes
+	// its display. A screen reader speaks neither the text of a new live region
+	// nor a change of display. The shared announcer stays mounted, so it speaks
+	// the status each time the open list empties (WCAG 4.1.3).
+	const empty = useEmptyResults(optionsNode)
+
+	useA11yAnnouncements(open && empty ? intl.formatMessage(intlMessages.noResults) : '')
 
 	// A read-only or a disabled combobox does not open and does not commit. The
 	// guard blocks each open path (input focus and typing, the suffix toggle,

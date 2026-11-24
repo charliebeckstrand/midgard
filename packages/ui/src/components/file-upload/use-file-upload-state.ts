@@ -31,9 +31,9 @@ export type FileUploadRenderState = ReturnType<typeof useFileUploadHandlers> & {
 	showTooltip: boolean
 	/**
 	 * The props of the hidden input, less the accessible name that each
-	 * component draws from its own trigger.
+	 * component draws from its own trigger, and the focus forward to that trigger.
 	 */
-	hiddenInput: Omit<FileUploadHiddenInputProps, 'ariaLabel'>
+	hiddenInput: Omit<FileUploadHiddenInputProps, 'ariaLabel' | 'forwardFocus'>
 }
 
 /**

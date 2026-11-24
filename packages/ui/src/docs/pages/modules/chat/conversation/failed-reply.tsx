@@ -1,8 +1,7 @@
 import { RotateCcw } from 'lucide-react'
 import { useCallback } from 'react'
-import { Button } from 'ui/button'
 import { ChatEmbedProvider, type ChatMessageData, ChatTranscript, useChatSend } from 'ui/chat'
-import { Icon } from 'ui/icon'
+import type { ContextMenuConfig } from 'ui/context-menu'
 import { renderers } from '../embeds/renderers.tsx'
 import { transport } from './reply.ts'
 
@@ -21,13 +20,16 @@ export default function FailedReply() {
 
 	const { retry, streaming } = chat
 
-	const actions = useCallback(
-		(message: ChatMessageData) =>
-			message.failed && !streaming ? (
-				<Button variant="bare" size="sm" aria-label="Retry" onClick={() => void retry()}>
-					<Icon icon={<RotateCcw />} />
-				</Button>
-			) : undefined,
+	// The menu of each message holds Copy by default. The failed reply adds Retry.
+	const contextMenu = useCallback(
+		(message: ChatMessageData): ContextMenuConfig | undefined =>
+			message.failed && !streaming
+				? {
+						items: [
+							{ key: 'retry', label: 'Retry', icon: <RotateCcw />, onAction: () => void retry() },
+						],
+					}
+				: undefined,
 		[retry, streaming],
 	)
 
@@ -36,8 +38,7 @@ export default function FailedReply() {
 			<ChatTranscript
 				messages={chat.messages}
 				streaming={streaming}
-				actions={actions}
-				trigger="static"
+				contextMenu={contextMenu}
 				className="h-72"
 			/>
 		</ChatEmbedProvider>

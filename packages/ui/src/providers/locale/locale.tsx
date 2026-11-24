@@ -68,11 +68,12 @@ export type LocaleProviderProps = LocaleConfig & {
 }
 
 /**
- * The provider of the `Intl` formatting defaults (locale tag, currency, number and
- * date options, time zone) of format-aware components. Explicit props on individual components
- * still win. The default number formats of charts, maps, PivotTable, grid
- * aggregates, and Odometer take its `locale`. The controls of ui also show
- * their text in the language of the `locale`.
+ * A provider of the locale and the `Intl` format defaults for the components
+ * inside it. The defaults are the locale tag, the currency, the number and date
+ * options, and the time zone. Explicit props on individual components still
+ * win. The default number formats of charts, maps, PivotTable, grid aggregates,
+ * and Odometer take its `locale`. The controls of ui also show their text in
+ * the language of the `locale`.
  *
  * @remarks
  * The provider also gives the intl of its locale to the controls

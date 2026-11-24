@@ -261,7 +261,7 @@ export function MapTooltip(props: MapTooltipProps) {
 	// here because the map tooltip has no click-pinned mode that would need
 	// autoUpdate across a scroll.
 	return (
-		<TooltipPointer open={open} point={point} track="point" size="sm">
+		<TooltipPointer open={open} point={point} target={target} track="point" size="sm">
 			{card && (
 				// One column, so the block of each part of a shared summary stands apart.
 				<div className="flex flex-col gap-2">

@@ -5,8 +5,8 @@ import WithMarkers from './with-markers.tsx'
 export default function RouteTab() {
 	return (
 		<>
-			<Example of={Basic} ratio />
-			<Example of={WithMarkers} ratio />
+			<Example of={Basic} box="ratio" />
+			<Example of={WithMarkers} box="ratio" />
 		</>
 	)
 }

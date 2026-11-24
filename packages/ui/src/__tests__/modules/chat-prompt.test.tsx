@@ -382,7 +382,7 @@ describe('ChatPrompt', () => {
 		expect(onStop).toHaveBeenCalledOnce()
 	})
 
-	it('Enter while streaming calls onStop instead of onSubmit', async () => {
+	it('Enter while streaming neither stops nor submits, and keeps the draft', async () => {
 		const onSubmit = vi.fn()
 
 		const onStop = vi.fn()
@@ -401,7 +401,7 @@ describe('ChatPrompt', () => {
 
 		expect(onSubmit).not.toHaveBeenCalled()
 
-		expect(onStop).toHaveBeenCalledOnce()
+		expect(onStop).not.toHaveBeenCalled()
 	})
 
 	it('renders actions before the send button', () => {

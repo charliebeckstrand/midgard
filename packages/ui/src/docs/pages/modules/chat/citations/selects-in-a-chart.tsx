@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import { BarChart } from 'ui/chart'
 import {
 	type ChatCitation,
@@ -10,6 +10,7 @@ import {
 import { ResizableGroup, ResizableHandle, ResizablePanel } from 'ui/resizable'
 import { Stack } from 'ui/stack'
 import { dayNames as day } from '../../../../data/calendar.ts'
+import { Pane } from './pane.tsx'
 
 const DAYS = [
 	{ day: day.mon, late: 1 },
@@ -50,27 +51,46 @@ const targets = { 'late-by-day': { label: 'Late stops by day' } }
 export default function SelectsInAChart() {
 	const [cited, setCited] = useState<ChatCitation | null>(null)
 
+	// A hover previews a citation over the cited one, and a click cites it.
+	const [previewed, setPreviewed] = useState<ChatCitation | null>(null)
+
+	const shown = previewed ?? cited
+
+	const clear = useCallback(() => setCited(null), [])
+
 	return (
 		<Stack gap="lg">
-			<ChatCitationProvider targets={targets} cited={cited} onCitedChange={setCited}>
+			<ChatCitationProvider
+				targets={targets}
+				trigger={['hover', 'click']}
+				cited={cited}
+				onCitedChange={setCited}
+				onPreviewChange={setPreviewed}
+			>
 				<ChatTranscript messages={messages} />
 			</ChatCitationProvider>
 			{/* The chart starts at half of the column, so it is not too tall. The
 			    handle at its end edge sets the width, from 30% to the full column,
-			    and a double-click on the handle gives the half again. */}
+			    and a double-click on the handle gives the half again. At phone
+			    width, half of the column is too narrow to read, so the handle and
+			    the empty panel show from the `sm` breakpoint up. Below it, the chart
+			    takes the full width. */}
 			<ResizableGroup>
 				<ResizablePanel defaultSize={50} minSize={30}>
-					<BarChart
-						aria-label="Late stops by day"
-						data={DAYS}
-						series={[{ xKey: 'day', yKey: 'late', yName: 'Late stops' }]}
-						selectedCategories={
-							cited?.target === 'late-by-day' ? toCategorySelection(cited.selector) : undefined
-						}
-					/>
+					{/* The Clear control reads `cited` alone, so a preview does not show it. */}
+					<Pane title="Late stops by day" onClear={cited === null ? undefined : clear}>
+						<BarChart
+							aria-label="Late stops by day"
+							data={DAYS}
+							series={[{ xKey: 'day', yKey: 'late', yName: 'Late stops' }]}
+							selectedCategories={
+								shown?.target === 'late-by-day' ? toCategorySelection(shown.selector) : undefined
+							}
+						/>
+					</Pane>
 				</ResizablePanel>
-				<ResizableHandle aria-label="Resize the chart" />
-				<ResizablePanel defaultSize={50} />
+				<ResizableHandle aria-label="Resize the chart" className="hidden sm:flex" />
+				<ResizablePanel defaultSize={50} className="hidden sm:block" />
 			</ResizableGroup>
 		</Stack>
 	)

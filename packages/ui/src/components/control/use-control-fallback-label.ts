@@ -22,7 +22,8 @@ import { useControl } from './context'
  * hydration pass keep the fallback, and the attribute changes after hydration.
  *
  * @param fallback - The default name.
- * @param element - Optional ref to the labelable element that takes the name.
+ * @param element - Optional ref to the labelable element that takes the name:
+ * an input, or a button such as the trigger of a picker.
  * Without it, a native label outside a control does not turn off the fallback.
  * @returns The fallback, or `undefined` when a field Label or, with `element`,
  * a native label can name the field.
@@ -30,7 +31,7 @@ import { useControl } from './context'
  */
 export function useControlFallbackLabel(
 	fallback: string | undefined,
-	element?: RefObject<HTMLInputElement | null>,
+	element?: RefObject<HTMLInputElement | HTMLButtonElement | null>,
 ): string | undefined {
 	const control = useControl()
 

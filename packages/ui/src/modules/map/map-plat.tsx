@@ -299,6 +299,23 @@ type MapPlatBaseProps = AccessibleName &
 		 */
 		zoomControls?: boolean | MapZoomControlsPlacement
 		/**
+		 * Shows the overview inset of a zooming map while the view is zoomed in: a
+		 * thumbnail of the whole geography in a bottom corner of the plot, with a
+		 * frame on the part the view shows. A press on the thumbnail centers the
+		 * view there, and a drag on it moves the view along. It gives the pointer
+		 * a single-pointer path to all of the ground (WCAG 2.2 SC 2.5.7), and it
+		 * tells the reader where the view is. It sits on the side of the zoom
+		 * buttons, or at the right where there are none.
+		 *
+		 * The inset is for the pointer alone, and takes no focus. The arrow keys
+		 * already pan the view. While the plot holds the keyboard focus, the inset
+		 * fades out, so it never covers the focused mark. At the fit, and on a map with no `zoom`, it
+		 * does not show.
+		 *
+		 * @defaultValue false
+		 */
+		zoomOverview?: boolean
+		/**
 		 * Fires when the view transform changes, with that transform: `x` and `y` pan
 		 * the fitted geography in frame units, `k` scales it.
 		 *
@@ -980,6 +997,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		nameRegions = false,
 		zoom: zoomInput,
 		zoomControls = true,
+		zoomOverview = false,
 		onViewChange,
 		regionPointer,
 		animate: animation = false,
@@ -1802,6 +1820,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 					shape={shape}
 					aside={aside}
 					controls={controlsPlacement}
+					overview={zoomOverview}
 					keyboard={{
 						enabled: navigable,
 						activate: activateTarget,

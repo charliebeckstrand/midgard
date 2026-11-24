@@ -16,6 +16,7 @@ import {
 	ArrowRightToLine as LucideArrowRightToLine,
 	ArrowUp as LucideArrowUp,
 	ArrowUpDown as LucideArrowUpDown,
+	ArrowUpToLine as LucideArrowUpToLine,
 	Ban as LucideBan,
 	Calendar as LucideCalendar,
 	Check as LucideCheck,
@@ -28,6 +29,7 @@ import {
 	CircleCheckBig as LucideCircleCheckBig,
 	CircleX as LucideCircleX,
 	Clipboard as LucideClipboard,
+	Code as LucideCode,
 	Columns3 as LucideColumns3,
 	Copy as LucideCopy,
 	CopyPlus as LucideCopyPlus,
@@ -45,8 +47,13 @@ import {
 	Highlighter as LucideHighlighter,
 	Image as LucideImage,
 	Info as LucideInfo,
+	Italic as LucideItalic,
+	LetterB as LucideLetterB,
+	Link as LucideLink,
+	List as LucideList,
 	ListFilter as LucideListFilter,
 	ListFilterPlus as LucideListFilterPlus,
+	ListOrdered as LucideListOrdered,
 	ListTree as LucideListTree,
 	ListX as LucideListX,
 	Lock as LucideLock,
@@ -73,9 +80,12 @@ import {
 	Settings2 as LucideSettings2,
 	SlidersHorizontal as LucideSlidersHorizontal,
 	Square as LucideSquare,
+	SquareCode as LucideSquareCode,
 	Star as LucideStar,
 	StretchHorizontal as LucideStretchHorizontal,
+	Strikethrough as LucideStrikethrough,
 	Table2 as LucideTable2,
+	TextQuote as LucideTextQuote,
 	ThumbsDown as LucideThumbsDown,
 	ThumbsUp as LucideThumbsUp,
 	Trash as LucideTrash,
@@ -104,6 +114,8 @@ export const ArrowUp = /* @__PURE__ */ createIcon(LucideArrowUp)
 
 export const ArrowUpDown = /* @__PURE__ */ createIcon(LucideArrowUpDown)
 
+export const ArrowUpToLine = /* @__PURE__ */ createIcon(LucideArrowUpToLine)
+
 export const Ban = /* @__PURE__ */ createIcon(LucideBan)
 
 export const Calendar = /* @__PURE__ */ createIcon(LucideCalendar)
@@ -127,6 +139,8 @@ export const CircleCheckBig = /* @__PURE__ */ createIcon(LucideCircleCheckBig)
 export const CircleX = /* @__PURE__ */ createIcon(LucideCircleX)
 
 export const Clipboard = /* @__PURE__ */ createIcon(LucideClipboard)
+
+export const Code = /* @__PURE__ */ createIcon(LucideCode)
 
 export const Columns3 = /* @__PURE__ */ createIcon(LucideColumns3)
 
@@ -162,9 +176,19 @@ export const Image = /* @__PURE__ */ createIcon(LucideImage)
 
 export const Info = /* @__PURE__ */ createIcon(LucideInfo)
 
+export const Italic = /* @__PURE__ */ createIcon(LucideItalic)
+
+export const LetterB = /* @__PURE__ */ createIcon(LucideLetterB)
+
+export const Link = /* @__PURE__ */ createIcon(LucideLink)
+
+export const List = /* @__PURE__ */ createIcon(LucideList)
+
 export const ListFilter = /* @__PURE__ */ createIcon(LucideListFilter)
 
 export const ListFilterPlus = /* @__PURE__ */ createIcon(LucideListFilterPlus)
+
+export const ListOrdered = /* @__PURE__ */ createIcon(LucideListOrdered)
 
 export const ListTree = /* @__PURE__ */ createIcon(LucideListTree)
 
@@ -218,11 +242,17 @@ export const SlidersHorizontal = /* @__PURE__ */ createIcon(LucideSlidersHorizon
 
 export const Square = /* @__PURE__ */ createIcon(LucideSquare)
 
+export const SquareCode = /* @__PURE__ */ createIcon(LucideSquareCode)
+
 export const Star = /* @__PURE__ */ createIcon(LucideStar)
 
 export const StretchHorizontal = /* @__PURE__ */ createIcon(LucideStretchHorizontal)
 
+export const Strikethrough = /* @__PURE__ */ createIcon(LucideStrikethrough)
+
 export const Table2 = /* @__PURE__ */ createIcon(LucideTable2)
+
+export const TextQuote = /* @__PURE__ */ createIcon(LucideTextQuote)
 
 export const ThumbsDown = /* @__PURE__ */ createIcon(LucideThumbsDown)
 

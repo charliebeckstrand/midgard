@@ -45,7 +45,7 @@
 	},
 	"docs.app.pageTitle": {
 		"defaultMessage": "{page} · Docs",
-		"description": "The title of the browser tab on a page of the docs. The page is the name of the page, such as Button, or the path of the address when no page is at it."
+		"description": "The title of the browser tab on a page of the docs that has no tabs. The page is the name of the page, such as Button, or the text that says that no page is at the address."
 	},
 	"docs.app.section.components": {
 		"defaultMessage": "Components",
@@ -66,6 +66,10 @@
 	"docs.app.section.structure": {
 		"defaultMessage": "Structure",
 		"description": "The name of the section of the sidebar that lists the layout parts, such as a stack or a split."
+	},
+	"docs.app.tabTitle": {
+		"defaultMessage": "{tab} · {page} · Docs",
+		"description": "The title of the browser tab on a tab of a page of the docs. The tab is the name of the tab, such as Sorting, and the page is the name of the page, such as Grid."
 	},
 	"docs.app.toggleSidebar": {
 		"defaultMessage": "Toggle sidebar",
@@ -979,6 +983,18 @@
 		"defaultMessage": "Wed",
 		"description": "A word of the demo data in the docs: the word for \"wed\" in the domain \"weekday\", in data/calendar.ts."
 	},
+	"docs.data.wysiwyg-draft.guide": {
+		"defaultMessage": "Run `pnpm check` before each push.\n\n```sh\npnpm check\n```",
+		"description": "A word of the demo data in the docs: the word for \"guide\" in the domain \"wysiwyg-draft\", in modules/wysiwyg/drafts.ts."
+	},
+	"docs.data.wysiwyg-draft.notes": {
+		"defaultMessage": "**Launch** is on *Friday*.\n\n- Freeze the build on Wednesday\n- Ship the `v2` flag\n\n'>' Ask the design team before the copy changes.",
+		"description": "A word of the demo data in the docs: the word for \"notes\" in the domain \"wysiwyg-draft\", in modules/wysiwyg/drafts.ts."
+	},
+	"docs.data.wysiwyg-draft.summary": {
+		"defaultMessage": "The new search ships with **filters** and *saved queries*.",
+		"description": "A word of the demo data in the docs: the word for \"summary\" in the domain \"wysiwyg-draft\", in modules/wysiwyg/drafts.ts."
+	},
 	"docs.demo.002474e36821": {
 		"defaultMessage": "Badge",
 		"description": "Text of a demo in the docs as label, in primitives/skeleton/skeleton-variants.tsx."
@@ -1014,10 +1030,6 @@
 	"docs.demo.0146643c33a2": {
 		"defaultMessage": "Press and hold a group header and select Manage rows",
 		"description": "Text of a demo in the docs as touchText, in modules/grid/groups/row-manager.tsx."
-	},
-	"docs.demo.0156a26b09b5": {
-		"defaultMessage": "Sign to accept the agreement.",
-		"description": "Text of a demo in the docs as validate, in components/signature-pad/in-a-form.tsx."
 	},
 	"docs.demo.02165c3b623b": {
 		"defaultMessage": "Most of the rise sits on the north routes.",
@@ -1185,7 +1197,7 @@
 	},
 	"docs.demo.0c9428622b47": {
 		"defaultMessage": "Late stops by day",
-		"description": "Text of a demo in the docs as aria-label, label, title, in modules/chat/citations/previews-on-hover.tsx, modules/chat/citations/selects-in-a-chart.tsx, modules/chat/citations/selects-in-a-map-and-a-chart.tsx and 1 more."
+		"description": "Text of a demo in the docs as aria-label, label, title, in modules/chat/citations/selects-in-a-chart.tsx, modules/chat/citations/selects-in-a-map-and-a-chart.tsx, modules/chat/scope/ask-about-a-chart.tsx."
 	},
 	"docs.demo.0d269385dc9a": {
 		"defaultMessage": "Description list",
@@ -1261,7 +1273,7 @@
 	},
 	"docs.demo.11d63ab759c1": {
 		"defaultMessage": "Heading out now. ETA 3:00 PM.",
-		"description": "Text of a demo in the docs as text, in modules/chat/playground.tsx, modules/chat/timestamped.tsx, modules/chat/with-actions.tsx and 1 more."
+		"description": "Text of a demo in the docs, in modules/chat/playground.tsx, modules/chat/timestamped.tsx, modules/chat/with-context-menu.tsx."
 	},
 	"docs.demo.1215ec467ba3": {
 		"defaultMessage": "Your bio is saved.",
@@ -1273,7 +1285,7 @@
 	},
 	"docs.demo.1254829bd999": {
 		"defaultMessage": "Release notes",
-		"description": "Text of a demo in the docs, in components/textarea/validation.tsx."
+		"description": "Text of a demo in the docs, in components/textarea/validation.tsx, modules/wysiwyg/with-toolbar.tsx."
 	},
 	"docs.demo.125926006a27": {
 		"defaultMessage": "Security code",
@@ -1302,6 +1314,10 @@
 	"docs.demo.14301f7e79d9": {
 		"defaultMessage": "getting started guide",
 		"description": "Text of a demo in the docs, in components/link/inline-with-text.tsx."
+	},
+	"docs.demo.143ec6898223": {
+		"defaultMessage": "Write a message",
+		"description": "Text of a demo in the docs as placeholder, in modules/wysiwyg/playground.tsx."
 	},
 	"docs.demo.1469c0fc8459": {
 		"defaultMessage": "You added your name and a photo.",
@@ -1403,10 +1419,6 @@
 		"defaultMessage": "Level",
 		"description": "Text of a demo in the docs as title, in modules/grid/data.tsx."
 	},
-	"docs.demo.171f2c37fa40": {
-		"defaultMessage": "Color picker",
-		"description": "Text of a demo in the docs as label, in primitives/skeleton/skeleton-variants.tsx."
-	},
 	"docs.demo.177cfe1a1e8c": {
 		"defaultMessage": "Dwell",
 		"description": "Text of a demo in the docs as yName, in modules/chart/bubble/animated.tsx, modules/chart/bubble/size-encoding.tsx, modules/chart/scatter/animated.tsx and 1 more."
@@ -1507,6 +1519,10 @@
 		"defaultMessage": "Project dates",
 		"description": "Text of a demo in the docs as aria-label, in components/date-picker/glass.tsx."
 	},
+	"docs.demo.1dcb7f51bc70": {
+		"defaultMessage": "Or type your full name to sign with the keyboard.",
+		"description": "Text of a demo in the docs, in components/signature-pad/in-a-form.tsx."
+	},
 	"docs.demo.1dd10f244a62": {
 		"defaultMessage": "Animation",
 		"description": "Text of a demo in the docs as aria-label, in components/tabs/animation.tsx."
@@ -1514,6 +1530,10 @@
 	"docs.demo.1dd8352a96f7": {
 		"defaultMessage": "{city} depot",
 		"description": "Text of a demo in the docs as label, in modules/map/point/data.ts. The argument {city} is a value from the code."
+	},
+	"docs.demo.1de3df70ddf4": {
+		"defaultMessage": "Steps",
+		"description": "Text of a demo in the docs, in modules/wysiwyg/validation.tsx."
 	},
 	"docs.demo.1e0d6eb355cf": {
 		"defaultMessage": "Your trial ends in 3 days",
@@ -1597,7 +1617,7 @@
 	},
 	"docs.demo.224a3369a5c9": {
 		"defaultMessage": "Value:",
-		"description": "Text of a demo in the docs, in components/address-input/business-search.tsx, components/address-input/coordinates.tsx, components/calendar/controlled.tsx and 25 more."
+		"description": "Text of a demo in the docs, in components/address-input/business-search.tsx, components/address-input/coordinates.tsx, components/calendar/controlled.tsx and 26 more."
 	},
 	"docs.demo.2269fcf7ca5e": {
 		"defaultMessage": "Last event:",
@@ -1670,6 +1690,10 @@
 	"docs.demo.26c87bb51e69": {
 		"defaultMessage": "Footer",
 		"description": "Text of a demo in the docs as label, in components/nav/nav-bar.tsx."
+	},
+	"docs.demo.272082c2446a": {
+		"defaultMessage": "Add the steps to reproduce.",
+		"description": "Text of a demo in the docs, in modules/wysiwyg/validation.tsx."
 	},
 	"docs.demo.2753b0f7923e": {
 		"defaultMessage": "You confirmed your email address.",
@@ -1821,7 +1845,7 @@
 	},
 	"docs.demo.2e544a292f69": {
 		"defaultMessage": "Shift",
-		"description": "Text of a demo in the docs, in modules/map/point/zoomable.tsx."
+		"description": "Text of a demo in the docs, in modules/map/point/overview-inset.tsx, modules/map/point/zoomable.tsx."
 	},
 	"docs.demo.2ec9f9d45546": {
 		"defaultMessage": "Files to commit",
@@ -1849,7 +1873,7 @@
 	},
 	"docs.demo.2f77668a9dfb": {
 		"defaultMessage": "Message",
-		"description": "Text of a demo in the docs, in components/textarea/with-actions.tsx."
+		"description": "Text of a demo in the docs as aria-label, in components/textarea/with-actions.tsx, modules/wysiwyg/playground.tsx, modules/wysiwyg/with-actions.tsx."
 	},
 	"docs.demo.2f86da1b6fa4": {
 		"defaultMessage": "US time zones, with the states that two zones split",
@@ -2177,7 +2201,7 @@
 	},
 	"docs.demo.44db14fc3f1c": {
 		"defaultMessage": "most of them on Tuesday",
-		"description": "Text of a demo in the docs as detail, label, in modules/chat/citations/previews-on-hover.tsx, modules/chat/citations/selects-in-a-chart.tsx, modules/chat/citations/selects-in-a-map-and-a-chart.tsx."
+		"description": "Text of a demo in the docs as detail, label, in modules/chat/citations/selects-in-a-chart.tsx, modules/chat/citations/selects-in-a-map-and-a-chart.tsx."
 	},
 	"docs.demo.44dedd0f97fe": {
 		"defaultMessage": "New file",
@@ -2225,7 +2249,7 @@
 	},
 	"docs.demo.464c4ffd019e": {
 		"defaultMessage": "Edit",
-		"description": "Text of a demo in the docs as aria-label, label, title, in components/command-palette/commands.tsx, components/context-menu/playground.tsx, components/menu/controlled.tsx and 9 more."
+		"description": "Text of a demo in the docs as aria-label, label, title, in components/command-palette/commands.tsx, components/context-menu/playground.tsx, components/menu/controlled.tsx and 8 more."
 	},
 	"docs.demo.467065a16a2e": {
 		"defaultMessage": "Textarea",
@@ -2341,7 +2365,7 @@
 	},
 	"docs.demo.4aff15de2f31": {
 		"defaultMessage": "Ask anything",
-		"description": "Text of a demo in the docs as placeholder, in components/textarea/with-actions.tsx."
+		"description": "Text of a demo in the docs as placeholder, in components/textarea/with-actions.tsx, modules/wysiwyg/with-actions.tsx."
 	},
 	"docs.demo.4b176df763ad": {
 		"defaultMessage": "Delete the report?",
@@ -2450,6 +2474,10 @@
 	"docs.demo.513740128f95": {
 		"defaultMessage": "GB29 NWBK 6016 1331 9268 19",
 		"description": "Text of a demo in the docs as placeholder, in components/mask-input/custom-format.tsx."
+	},
+	"docs.demo.5241b237058f": {
+		"defaultMessage": "Pinch or use the buttons to zoom in. Then tap or drag the overview in the corner to move the view.",
+		"description": "Text of a demo in the docs as touchText, in modules/map/point/overview-inset.tsx."
 	},
 	"docs.demo.5260f6b2fa9f": {
 		"defaultMessage": "Delete row",
@@ -2645,7 +2673,7 @@
 	},
 	"docs.demo.5ce08b1bc424": {
 		"defaultMessage": "Add notes for the team",
-		"description": "Text of a demo in the docs as placeholder, in components/textarea/max-height.tsx."
+		"description": "Text of a demo in the docs as placeholder, in components/textarea/max-height.tsx, modules/wysiwyg/max-height.tsx."
 	},
 	"docs.demo.5ce8c4387e91": {
 		"defaultMessage": "Since last month",
@@ -2761,7 +2789,7 @@
 	},
 	"docs.demo.653c3e3519f9": {
 		"defaultMessage": "Resize the chart",
-		"description": "Text of a demo in the docs as aria-label, in modules/chat/citations/previews-on-hover.tsx, modules/chat/citations/selects-in-a-chart.tsx, modules/chat/scope/ask-about-a-chart.tsx."
+		"description": "Text of a demo in the docs as aria-label, in modules/chat/citations/selects-in-a-chart.tsx, modules/chat/scope/ask-about-a-chart.tsx."
 	},
 	"docs.demo.65479e3e408a": {
 		"defaultMessage": "Marks",
@@ -2781,7 +2809,7 @@
 	},
 	"docs.demo.65f9b90e5379": {
 		"defaultMessage": "Which days had late stops?",
-		"description": "Text of a demo in the docs as content, in modules/chat/citations/previews-on-hover.tsx, modules/chat/citations/selects-in-a-chart.tsx."
+		"description": "Text of a demo in the docs as content, in modules/chat/citations/selects-in-a-chart.tsx."
 	},
 	"docs.demo.663ea1bfffe5": {
 		"defaultMessage": "to",
@@ -3385,7 +3413,7 @@
 	},
 	"docs.demo.83b12c2216ef": {
 		"defaultMessage": "Clear",
-		"description": "Text of a demo in the docs, in components/signature-pad/imperative-handle.tsx, modules/chat/citations/selects-in-a-map-and-a-chart.tsx, modules/form/controlled-values.tsx and 1 more."
+		"description": "Text of a demo in the docs, in components/signature-pad/imperative-handle.tsx, modules/chat/citations/pane.tsx, modules/form/controlled-values.tsx and 1 more."
 	},
 	"docs.demo.83c46be8fbce": {
 		"defaultMessage": "You own the files that you upload. You let the service store them, copy them for backups, and show them to the people that you share them with.",
@@ -3441,7 +3469,7 @@
 	},
 	"docs.demo.877a8887947e": {
 		"defaultMessage": "Stops",
-		"description": "Text of a demo in the docs as label, in modules/map/point/clustering.tsx, modules/map/point/shapes.tsx, modules/map/point/zoomable.tsx."
+		"description": "Text of a demo in the docs as label, in modules/map/point/clustering.tsx, modules/map/point/overview-inset.tsx, modules/map/point/shapes.tsx and 1 more."
 	},
 	"docs.demo.87b395ffbc2e": {
 		"defaultMessage": "Remit to",
@@ -3501,7 +3529,7 @@
 	},
 	"docs.demo.8a7525b1492f": {
 		"defaultMessage": "Notes",
-		"description": "Text of a demo in the docs as title, in components/textarea/max-height.tsx, modules/grid/editing/editor-types.tsx."
+		"description": "Text of a demo in the docs as title, in components/textarea/max-height.tsx, modules/grid/editing/editor-types.tsx, modules/wysiwyg/controlled.tsx and 1 more."
 	},
 	"docs.demo.8a7e7f1bc563": {
 		"defaultMessage": "Search people",
@@ -3591,6 +3619,10 @@
 		"defaultMessage": "Accept the terms to continue.",
 		"description": "Text of a demo in the docs as validate, in modules/form/checkboxes.tsx, modules/form/error-summary.tsx."
 	},
+	"docs.demo.8dd65d0952ed": {
+		"defaultMessage": "Guide",
+		"description": "Text of a demo in the docs, in modules/wysiwyg/read-only.tsx."
+	},
 	"docs.demo.8dd6857baf02": {
 		"defaultMessage": "Mute",
 		"description": "Text of a demo in the docs as aria-label, in components/toggle-icon-button/mute-toggle.tsx."
@@ -3618,6 +3650,10 @@
 	"docs.demo.8e685d5409b3": {
 		"defaultMessage": "Hold",
 		"description": "Text of a demo in the docs, in modules/map/point/zoomable.tsx."
+	},
+	"docs.demo.8e76a94ac832": {
+		"defaultMessage": "Summary",
+		"description": "Text of a demo in the docs, in modules/wysiwyg/validation.tsx."
 	},
 	"docs.demo.8e8f526b3d3c": {
 		"defaultMessage": "Cell range",
@@ -3739,6 +3775,10 @@
 		"defaultMessage": "Stat delta",
 		"description": "Text of a demo in the docs as label, in primitives/skeleton/skeleton-variants.tsx."
 	},
+	"docs.demo.936003cea58d": {
+		"defaultMessage": "Typed signature",
+		"description": "Text of a demo in the docs, in components/signature-pad/in-a-form.tsx."
+	},
 	"docs.demo.93c91c851e7a": {
 		"defaultMessage": "Price",
 		"description": "Text of a demo in the docs, in components/currency-input/no-fraction-digits.tsx, components/slider/range.tsx."
@@ -3749,7 +3789,7 @@
 	},
 	"docs.demo.942087cc2d41": {
 		"defaultMessage": "Retry",
-		"description": "Text of a demo in the docs as aria-label, in modules/chat/conversation/conversation.tsx, modules/chat/conversation/failed-reply.tsx, modules/chat/with-actions.tsx."
+		"description": "Text of a demo in the docs as label, in modules/chat/conversation/conversation.tsx, modules/chat/conversation/failed-reply.tsx."
 	},
 	"docs.demo.946884c0bab5": {
 		"defaultMessage": "Select a brand color, or enter a hex value.",
@@ -3810,6 +3850,10 @@
 	"docs.demo.96cfa9013743": {
 		"defaultMessage": "Last row click",
 		"description": "Text of a demo in the docs as aria-label, in modules/grid/events/row-click.tsx."
+	},
+	"docs.demo.96e497fa317e": {
+		"defaultMessage": "and the wheel, or the buttons. Then click or drag the overview in the corner to move the view.",
+		"description": "Text of a demo in the docs, in modules/map/point/overview-inset.tsx."
 	},
 	"docs.demo.96f64f836aa3": {
 		"defaultMessage": "Project members",
@@ -3991,6 +4035,10 @@
 		"defaultMessage": "Meeting notes",
 		"description": "Text of a demo in the docs, in components/drawer/resize.tsx."
 	},
+	"docs.demo.9e821ab3fe83": {
+		"defaultMessage": "Archived guide",
+		"description": "Text of a demo in the docs, in modules/wysiwyg/read-only.tsx."
+	},
 	"docs.demo.9e9306c86502": {
 		"defaultMessage": "Reporting periods",
 		"description": "Text of a demo in the docs as aria-label, in components/date-picker/multiple-ranges.tsx, components/date-picker/ranges-as-text.tsx."
@@ -4169,7 +4217,7 @@
 	},
 	"docs.demo.a6fcbf2bb6ea": {
 		"defaultMessage": "{count} stops · {miles} across",
-		"description": "Text of a demo in the docs as clusterDetail, in modules/map/point/clustering.tsx, modules/map/point/zoomable.tsx. The arguments {count} and {miles} are values from the code."
+		"description": "Text of a demo in the docs as clusterDetail, in modules/map/point/clustering.tsx, modules/map/point/overview-inset.tsx, modules/map/point/zoomable.tsx. The arguments {count} and {miles} are values from the code."
 	},
 	"docs.demo.a710c2b90913": {
 		"defaultMessage": "Unsaved changes",
@@ -4525,7 +4573,7 @@
 	},
 	"docs.demo.b8f0388090f0": {
 		"defaultMessage": "Twelve stops are late this week, and {label}.",
-		"description": "Text of a demo in the docs as text, in modules/chat/citations/previews-on-hover.tsx, modules/chat/citations/selects-in-a-chart.tsx. The argument {label} is a value from the code."
+		"description": "Text of a demo in the docs as text, in modules/chat/citations/selects-in-a-chart.tsx. The argument {label} is a value from the code."
 	},
 	"docs.demo.b948ac04b854": {
 		"defaultMessage": "Payment method",
@@ -4771,10 +4819,6 @@
 		"defaultMessage": "Order #1042",
 		"description": "Text of a demo in the docs, in components/drawer/playground.tsx."
 	},
-	"docs.demo.c5eff9e34727": {
-		"defaultMessage": "Date picker",
-		"description": "Text of a demo in the docs as label, in primitives/skeleton/skeleton-variants.tsx."
-	},
 	"docs.demo.c646b55d1fd3": {
 		"defaultMessage": "Hide column",
 		"description": "Text of a demo in the docs as label, in components/context-menu/submenus.tsx."
@@ -4957,7 +5001,7 @@
 	},
 	"docs.demo.d1170c4935b0": {
 		"defaultMessage": "{length} stops",
-		"description": "Text of a demo in the docs as detail, in modules/map/point/clustering.tsx, modules/map/point/zoomable.tsx. The argument {length} is a value from the code."
+		"description": "Text of a demo in the docs as detail, in modules/map/point/clustering.tsx, modules/map/point/overview-inset.tsx, modules/map/point/zoomable.tsx. The argument {length} is a value from the code."
 	},
 	"docs.demo.d12860c21e78": {
 		"defaultMessage": "Link copied",
@@ -4965,7 +5009,7 @@
 	},
 	"docs.demo.d175d09d870d": {
 		"defaultMessage": "Got it. The door code is 4421.",
-		"description": "Text of a demo in the docs as text, in modules/chat/timestamped.tsx, modules/chat/with-actions.tsx, modules/chat/with-context-menu.tsx."
+		"description": "Text of a demo in the docs, in modules/chat/timestamped.tsx, modules/chat/with-context-menu.tsx."
 	},
 	"docs.demo.d184cd0ce1db": {
 		"defaultMessage": "Column reorder without handle",
@@ -5067,6 +5111,10 @@
 		"defaultMessage": "Bank transfer",
 		"description": "Text of a demo in the docs, in components/radio/disabled-option.tsx."
 	},
+	"docs.demo.d6ab7b1db33c": {
+		"defaultMessage": "Your summary is saved.",
+		"description": "Text of a demo in the docs, in modules/wysiwyg/validation.tsx."
+	},
 	"docs.demo.d6bd8c0aeee8": {
 		"defaultMessage": "Document",
 		"description": "Text of a demo in the docs as aria-label, in components/pdf-viewer/empty.tsx."
@@ -5138,10 +5186,6 @@
 	"docs.demo.d93006ec2e43": {
 		"defaultMessage": "Middle",
 		"description": "Text of a demo in the docs, in structure/flex/align-and-justify.tsx."
-	},
-	"docs.demo.d97239a628a7": {
-		"defaultMessage": "Add reaction",
-		"description": "Text of a demo in the docs as aria-label, in modules/chat/with-actions.tsx."
 	},
 	"docs.demo.d9fa921e328d": {
 		"defaultMessage": "Depot handover",
@@ -5299,6 +5343,10 @@
 		"defaultMessage": "Latency",
 		"description": "Text of a demo in the docs as label, in modules/grid/sparkline/in-a-cell.tsx."
 	},
+	"docs.demo.e12385bba787": {
+		"defaultMessage": "List the steps",
+		"description": "Text of a demo in the docs as placeholder, in modules/wysiwyg/validation.tsx."
+	},
 	"docs.demo.e197d407f209": {
 		"defaultMessage": "Selection summary",
 		"description": "Text of a demo in the docs as aria-label, in modules/grid/footer/selection-summary.tsx."
@@ -5313,7 +5361,7 @@
 	},
 	"docs.demo.e21f935f11d7": {
 		"defaultMessage": "Copy",
-		"description": "Text of a demo in the docs as label, in components/context-menu/glass.tsx, components/context-menu/playground.tsx, components/group/item-count.tsx and 3 more."
+		"description": "Text of a demo in the docs as label, in components/context-menu/glass.tsx, components/context-menu/playground.tsx, components/group/item-count.tsx and 2 more."
 	},
 	"docs.demo.e22820fcf5cd": {
 		"defaultMessage": "Topics",
@@ -5329,7 +5377,7 @@
 	},
 	"docs.demo.e2d0a54968ea": {
 		"defaultMessage": "Delete",
-		"description": "Text of a demo in the docs as label, in components/command-palette/commands.tsx, components/confirm/ask-with-a-hook.tsx, components/context-menu/with-actions.tsx and 11 more."
+		"description": "Text of a demo in the docs as label, in components/command-palette/commands.tsx, components/confirm/ask-with-a-hook.tsx, components/context-menu/with-actions.tsx and 10 more."
 	},
 	"docs.demo.e2d0c55ef24b": {
 		"defaultMessage": "Zoom:",
@@ -5374,6 +5422,10 @@
 	"docs.demo.e55c76591fa2": {
 		"defaultMessage": "Align center",
 		"description": "Text of a demo in the docs as label, in components/toolbar/with-groups.tsx."
+	},
+	"docs.demo.e562b906548b": {
+		"defaultMessage": "Zoom in with",
+		"description": "Text of a demo in the docs, in modules/map/point/overview-inset.tsx."
 	},
 	"docs.demo.e575728dbbee": {
 		"defaultMessage": "Ship date",
@@ -5571,6 +5623,10 @@
 		"defaultMessage": "Saved spec",
 		"description": "Text of a demo in the docs as aria-label, in modules/dashboard/build-and-save.tsx."
 	},
+	"docs.demo.ef53485f0121": {
+		"defaultMessage": " Empty",
+		"description": "Text of a demo in the docs, in modules/wysiwyg/controlled.tsx."
+	},
 	"docs.demo.ef55b8a0d974": {
 		"defaultMessage": "US time zones",
 		"description": "Text of a demo in the docs as aria-label, in modules/map/playground.tsx, modules/map/select-a-state.tsx, modules/map/select-several-states.tsx."
@@ -5613,7 +5669,7 @@
 	},
 	"docs.demo.f17bfadbaab1": {
 		"defaultMessage": "Late stops",
-		"description": "Text of a demo in the docs as aria-label, label, title, yName, in modules/chat/citations/previews-on-hover.tsx, modules/chat/citations/selects-in-a-chart.tsx, modules/chat/citations/selects-in-a-map-and-a-chart.tsx and 2 more."
+		"description": "Text of a demo in the docs as aria-label, label, title, yName, in modules/chat/citations/selects-in-a-chart.tsx, modules/chat/citations/selects-in-a-map-and-a-chart.tsx, modules/chat/scope/ask-about-a-chart.tsx and 1 more."
 	},
 	"docs.demo.f18906d65f6d": {
 		"defaultMessage": "You have used 90% of your storage.",
@@ -5713,7 +5769,7 @@
 	},
 	"docs.demo.f6f4688ff23d": {
 		"defaultMessage": "Send",
-		"description": "Text of a demo in the docs as aria-label, in components/textarea/with-actions.tsx."
+		"description": "Text of a demo in the docs as aria-label, in components/textarea/with-actions.tsx, modules/wysiwyg/with-actions.tsx."
 	},
 	"docs.demo.f728553b59c5": {
 		"defaultMessage": "Invite by email",
@@ -5750,10 +5806,6 @@
 	"docs.demo.f89bef2f30b1": {
 		"defaultMessage": "Stat description",
 		"description": "Text of a demo in the docs as label, in primitives/skeleton/skeleton-variants.tsx."
-	},
-	"docs.demo.f8d46c2570e7": {
-		"defaultMessage": "More actions",
-		"description": "Text of a demo in the docs as aria-label, in modules/chat/with-actions.tsx."
 	},
 	"docs.demo.f8f4a5eeac9f": {
 		"defaultMessage": "Add a country code, such as +1.",
@@ -5813,7 +5865,7 @@
 	},
 	"docs.demo.fc2cc2afe911": {
 		"defaultMessage": "Delivery rounds",
-		"description": "Text of a demo in the docs as aria-label, in modules/map/point/clustering.tsx, modules/map/point/zoomable.tsx."
+		"description": "Text of a demo in the docs as aria-label, in modules/map/point/clustering.tsx, modules/map/point/overview-inset.tsx, modules/map/point/zoomable.tsx."
 	},
 	"docs.demo.fc33f73246f4": {
 		"defaultMessage": "City",
@@ -5907,6 +5959,10 @@
 		"defaultMessage": "Newest first",
 		"description": "Text of a demo in the docs as label, in components/listbox/with-prefix.tsx."
 	},
+	"docs.demo.ffbdc981d73e": {
+		"defaultMessage": "Draw your signature or type your full name.",
+		"description": "Text of a demo in the docs as validate, in components/signature-pad/in-a-form.tsx."
+	},
 	"docs.direction.label": {
 		"defaultMessage": "Direction",
 		"description": "The label of the setting that lays out the docs site left to right or right to left."
@@ -5923,6 +5979,10 @@
 		"defaultMessage": "Hide code",
 		"description": "The label of the button under an example that hides the source code of the example."
 	},
+	"docs.example.pixels": {
+		"defaultMessage": "{pixels} pixels",
+		"description": "The width or the height of an example in pixels, which a screen reader speaks as the value of the handle that resizes the example, such as \"640 pixels\"."
+	},
 	"docs.example.playground": {
 		"defaultMessage": "Playground",
 		"description": "The heading of the first example of a page, where the reader changes the props of the component to see the result."
@@ -5930,6 +5990,14 @@
 	"docs.example.reset": {
 		"defaultMessage": "Reset",
 		"description": "The label of the button that puts an example back in its first state, such as after a close or a delete."
+	},
+	"docs.example.resizeHeight": {
+		"defaultMessage": "Resize example height",
+		"description": "The name of the handle on the bottom border of an example that changes the height of the example, by a drag or by the arrow keys."
+	},
+	"docs.example.resizeWidth": {
+		"defaultMessage": "Resize example width",
+		"description": "The name of the handle on the end border of an example that changes the width of the example, by a drag or by the arrow keys."
 	},
 	"docs.example.showCode": {
 		"defaultMessage": "Show code",
@@ -5939,9 +6007,13 @@
 		"defaultMessage": "{width} × {height}",
 		"description": "The size of an example in pixels, which shows while the reader resizes the example, such as \"640 × 480\"."
 	},
-	"docs.notFound.body": {
+	"docs.notFound.path": {
+		"defaultMessage": "No page of the docs is at {path}.",
+		"description": "The text of the page that shows for a path that has no page of the docs. The path is the path of the address, such as /button/foo."
+	},
+	"docs.notFound.title": {
 		"defaultMessage": "Page not found",
-		"description": "The text of the page that shows for a path that has no page of the docs."
+		"description": "The title and the heading of the page that shows for a path that has no page of the docs."
 	},
 	"docs.page.accordion": {
 		"defaultMessage": "Accordion",
@@ -6387,6 +6459,10 @@
 		"defaultMessage": "UI",
 		"description": "The common name of the UI page of the docs, which the search finds. Use the noun that a reader of the language searches for."
 	},
+	"docs.page.wysiwyg": {
+		"defaultMessage": "Wysiwyg",
+		"description": "The common name of the Wysiwyg page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
 	"docs.pageError.body": {
 		"defaultMessage": "Reload the page to try again.",
 		"description": "The text under the heading of a page of the docs that fails to render."
@@ -6398,6 +6474,10 @@
 	"docs.pageError.reload": {
 		"defaultMessage": "Reload",
 		"description": "The label of the button that loads the page again after an error."
+	},
+	"docs.playground.adaptive": {
+		"defaultMessage": "Adaptive",
+		"description": "The option of a field of a playground whose value changes with the width of the screen, such as vertical on a phone and horizontal from a tablet up."
 	},
 	"docs.playground.default": {
 		"defaultMessage": "Default",
@@ -6430,6 +6510,18 @@
 	"docs.playground.sizeClass.medium": {
 		"defaultMessage": "medium",
 		"description": "The name of the medium range of screen widths, as in \"Horizontal from medium\". Write it in lowercase."
+	},
+	"docs.prop.activation": {
+		"defaultMessage": "Activation",
+		"description": "The label of a field of a playground in the docs. The field sets the prop activation of Segment, Tabs."
+	},
+	"docs.prop.activation.automatic": {
+		"defaultMessage": "Automatic",
+		"description": "An option of the Activation field of a playground in the docs. It sets the prop activation to 'automatic' on Segment, Tabs."
+	},
+	"docs.prop.activation.manual": {
+		"defaultMessage": "Manual",
+		"description": "An option of the Activation field of a playground in the docs. It sets the prop activation to 'manual' on Segment, Tabs."
 	},
 	"docs.prop.aggregation": {
 		"defaultMessage": "Aggregation",
@@ -6725,7 +6817,7 @@
 	},
 	"docs.prop.disabled": {
 		"defaultMessage": "Disabled",
-		"description": "The label of a field of a playground in the docs. The field sets the prop disabled of AddressInput, ColorPicker, Combobox, ContextMenu, Control, DatePicker, FileUploadDrop, Form, Kanban, Listbox, QueryBuilder, Rating, Select, ShinyText, SignaturePad, Tooltip."
+		"description": "The label of a field of a playground in the docs. The field sets the prop disabled of AddressInput, ColorPicker, Combobox, ContextMenu, Control, DatePicker, FileUploadDrop, Form, Kanban, Listbox, QueryBuilder, Rating, Select, ShinyText, SignaturePad, Tooltip, Wysiwyg."
 	},
 	"docs.prop.dismissOnBackdrop": {
 		"defaultMessage": "Dismiss on backdrop",
@@ -6742,6 +6834,38 @@
 	"docs.prop.endPoint": {
 		"defaultMessage": "End point",
 		"description": "The label of a field of a playground in the docs. The field sets the prop endPoint of Sparkline."
+	},
+	"docs.prop.enterKeyHint": {
+		"defaultMessage": "Enter key hint",
+		"description": "The label of a field of a playground in the docs. The field sets the prop enterKeyHint of Wysiwyg."
+	},
+	"docs.prop.enterKeyHint.done": {
+		"defaultMessage": "Done",
+		"description": "An option of the Enter key hint field of a playground in the docs. It sets the prop enterKeyHint to 'done' on Wysiwyg."
+	},
+	"docs.prop.enterKeyHint.enter": {
+		"defaultMessage": "Enter",
+		"description": "An option of the Enter key hint field of a playground in the docs. It sets the prop enterKeyHint to 'enter' on Wysiwyg."
+	},
+	"docs.prop.enterKeyHint.go": {
+		"defaultMessage": "Go",
+		"description": "An option of the Enter key hint field of a playground in the docs. It sets the prop enterKeyHint to 'go' on Wysiwyg."
+	},
+	"docs.prop.enterKeyHint.next": {
+		"defaultMessage": "Next",
+		"description": "An option of the Enter key hint field of a playground in the docs. It sets the prop enterKeyHint to 'next' on Wysiwyg."
+	},
+	"docs.prop.enterKeyHint.previous": {
+		"defaultMessage": "Previous",
+		"description": "An option of the Enter key hint field of a playground in the docs. It sets the prop enterKeyHint to 'previous' on Wysiwyg."
+	},
+	"docs.prop.enterKeyHint.search": {
+		"defaultMessage": "Search",
+		"description": "An option of the Enter key hint field of a playground in the docs. It sets the prop enterKeyHint to 'search' on Wysiwyg."
+	},
+	"docs.prop.enterKeyHint.send": {
+		"defaultMessage": "Send",
+		"description": "An option of the Enter key hint field of a playground in the docs. It sets the prop enterKeyHint to 'send' on Wysiwyg."
 	},
 	"docs.prop.failed": {
 		"defaultMessage": "Failed",
@@ -6865,7 +6989,7 @@
 	},
 	"docs.prop.invalid": {
 		"defaultMessage": "Invalid",
-		"description": "The label of a field of a playground in the docs. The field sets the prop invalid of CreditCardInput, CurrencyInput, DateInput, Input, MaskInput, NumberInput, PasswordInput, SearchInput, Textarea."
+		"description": "The label of a field of a playground in the docs. The field sets the prop invalid of CreditCardInput, CurrencyInput, DateInput, Input, MaskInput, NumberInput, PasswordInput, SearchInput, Textarea, Wysiwyg."
 	},
 	"docs.prop.justify": {
 		"defaultMessage": "Justify",
@@ -7241,7 +7365,7 @@
 	},
 	"docs.prop.readOnly": {
 		"defaultMessage": "Read only",
-		"description": "The label of a field of a playground in the docs. The field sets the prop readOnly of AddressInput, Checkbox, ColorPicker, Combobox, Control, DatePicker, Listbox, QueryBuilder, Radio, Rating, Select, SignaturePad, Slider, Switch."
+		"description": "The label of a field of a playground in the docs. The field sets the prop readOnly of AddressInput, Checkbox, ColorPicker, Combobox, Control, DatePicker, Listbox, QueryBuilder, Radio, Rating, Select, SignaturePad, Slider, Switch, Wysiwyg."
 	},
 	"docs.prop.recede": {
 		"defaultMessage": "Recede",
@@ -7261,7 +7385,7 @@
 	},
 	"docs.prop.required": {
 		"defaultMessage": "Required",
-		"description": "The label of a field of a playground in the docs. The field sets the prop required of AddressInput, TagInput."
+		"description": "The label of a field of a playground in the docs. The field sets the prop required of AddressInput, Rating, TagInput, Wysiwyg."
 	},
 	"docs.prop.resize": {
 		"defaultMessage": "Resize",
@@ -7297,7 +7421,7 @@
 	},
 	"docs.prop.rows": {
 		"defaultMessage": "Rows",
-		"description": "The label of a field of a playground in the docs. The field sets the prop rows of Textarea."
+		"description": "The label of a field of a playground in the docs. The field sets the prop rows of Textarea, Wysiwyg."
 	},
 	"docs.prop.sender": {
 		"defaultMessage": "Sender",
@@ -7397,27 +7521,27 @@
 	},
 	"docs.prop.size": {
 		"defaultMessage": "Size",
-		"description": "The label of a field of a playground in the docs. The field sets the prop size of AddressInput, Avatar, Badge, Button, Calendar, Card, Checkbox, Code, ColorPicker, Combobox, Control, CopyButton, CreditCardInput, CurrencyInput, DateInput, DatePicker, DrawerPanel, Grid, Group, Heading, HoldButton, Input, Kbd, Listbox, LoadingDots, LoadingSpinner, MaskInput, Menu, NumberInput, PasswordInput, PivotTable, ProgressBar, ProgressGauge, Radio, Rating, SearchInput, Segment, Select, Slider, Sparkline, StatValue, StatusDot, Swatch, Switch, Table, Tabs, TagInput, Text, Textarea, ToggleIconButton, Tree."
+		"description": "The label of a field of a playground in the docs. The field sets the prop size of AddressInput, Avatar, Badge, Button, Calendar, Card, Checkbox, Code, ColorPicker, Combobox, Control, CopyButton, CreditCardInput, CurrencyInput, DateInput, DatePicker, DrawerPanel, Grid, Group, Heading, HoldButton, Input, Kbd, Listbox, LoadingDots, LoadingSpinner, MaskInput, Menu, NumberInput, PasswordInput, PivotTable, ProgressBar, ProgressGauge, Radio, Rating, SearchInput, Segment, Select, Slider, Sparkline, StatValue, StatusDot, Swatch, Switch, Table, Tabs, TagInput, Text, Textarea, ToggleIconButton, Tree, Wysiwyg."
 	},
 	"docs.prop.size.lg": {
 		"defaultMessage": "Large",
-		"description": "An option of the Size field of a playground in the docs. It sets the prop size to 'lg' on AddressInput, Avatar, Badge, Button, Calendar, Card, Checkbox, Code, ColorPicker, Combobox, Control, CopyButton, CreditCardInput, CurrencyInput, DateInput, DatePicker, DrawerPanel, Grid, Group, Heading, HoldButton, Input, Kbd, Listbox, LoadingDots, LoadingSpinner, MaskInput, Menu, NumberInput, PasswordInput, PivotTable, ProgressBar, ProgressGauge, Radio, Rating, SearchInput, Segment, Select, Slider, Sparkline, StatValue, StatusDot, Swatch, Switch, Table, Tabs, TagInput, Text, Textarea, ToggleIconButton, Tree."
+		"description": "An option of the Size field of a playground in the docs. It sets the prop size to 'lg' on AddressInput, Avatar, Badge, Button, Calendar, Card, Checkbox, Code, ColorPicker, Combobox, Control, CopyButton, CreditCardInput, CurrencyInput, DateInput, DatePicker, DrawerPanel, Grid, Group, Heading, HoldButton, Input, Kbd, Listbox, LoadingDots, LoadingSpinner, MaskInput, Menu, NumberInput, PasswordInput, PivotTable, ProgressBar, ProgressGauge, Radio, Rating, SearchInput, Segment, Select, Slider, Sparkline, StatValue, StatusDot, Swatch, Switch, Table, Tabs, TagInput, Text, Textarea, ToggleIconButton, Tree, Wysiwyg."
 	},
 	"docs.prop.size.md": {
 		"defaultMessage": "Medium",
-		"description": "An option of the Size field of a playground in the docs. It sets the prop size to 'md' on AddressInput, Avatar, Badge, Button, Calendar, Card, Checkbox, Code, ColorPicker, Combobox, Control, CopyButton, CreditCardInput, CurrencyInput, DateInput, DatePicker, DrawerPanel, Grid, Group, Heading, HoldButton, Input, Kbd, Listbox, LoadingDots, LoadingSpinner, MaskInput, Menu, NumberInput, PasswordInput, PivotTable, ProgressBar, ProgressGauge, Radio, Rating, SearchInput, Segment, Select, Slider, Sparkline, StatValue, StatusDot, Swatch, Switch, Table, Tabs, TagInput, Text, Textarea, ToggleIconButton, Tree."
+		"description": "An option of the Size field of a playground in the docs. It sets the prop size to 'md' on AddressInput, Avatar, Badge, Button, Calendar, Card, Checkbox, Code, ColorPicker, Combobox, Control, CopyButton, CreditCardInput, CurrencyInput, DateInput, DatePicker, DrawerPanel, Grid, Group, Heading, HoldButton, Input, Kbd, Listbox, LoadingDots, LoadingSpinner, MaskInput, Menu, NumberInput, PasswordInput, PivotTable, ProgressBar, ProgressGauge, Radio, Rating, SearchInput, Segment, Select, Slider, Sparkline, StatValue, StatusDot, Swatch, Switch, Table, Tabs, TagInput, Text, Textarea, ToggleIconButton, Tree, Wysiwyg."
 	},
 	"docs.prop.size.sm": {
 		"defaultMessage": "Small",
-		"description": "An option of the Size field of a playground in the docs. It sets the prop size to 'sm' on AddressInput, Avatar, Badge, Button, Calendar, Card, Checkbox, Code, ColorPicker, Combobox, Control, CopyButton, CreditCardInput, CurrencyInput, DateInput, DatePicker, DrawerPanel, Grid, Group, Heading, HoldButton, Input, Kbd, Listbox, LoadingDots, LoadingSpinner, MaskInput, Menu, NumberInput, PasswordInput, PivotTable, ProgressBar, ProgressGauge, Radio, Rating, SearchInput, Segment, Select, Slider, Sparkline, StatValue, StatusDot, Swatch, Switch, Table, Tabs, TagInput, Text, Textarea, ToggleIconButton, Tree."
+		"description": "An option of the Size field of a playground in the docs. It sets the prop size to 'sm' on AddressInput, Avatar, Badge, Button, Calendar, Card, Checkbox, Code, ColorPicker, Combobox, Control, CopyButton, CreditCardInput, CurrencyInput, DateInput, DatePicker, DrawerPanel, Grid, Group, Heading, HoldButton, Input, Kbd, Listbox, LoadingDots, LoadingSpinner, MaskInput, Menu, NumberInput, PasswordInput, PivotTable, ProgressBar, ProgressGauge, Radio, Rating, SearchInput, Segment, Select, Slider, Sparkline, StatValue, StatusDot, Swatch, Switch, Table, Tabs, TagInput, Text, Textarea, ToggleIconButton, Tree, Wysiwyg."
 	},
 	"docs.prop.size.xl": {
 		"defaultMessage": "Extra large",
-		"description": "An option of the Size field of a playground in the docs. It sets the prop size to 'xl' on AddressInput, Avatar, Badge, Button, Card, Checkbox, Code, ColorPicker, Combobox, Control, CopyButton, CreditCardInput, CurrencyInput, DateInput, DatePicker, DrawerPanel, Grid, Group, Heading, HoldButton, Input, Kbd, Listbox, LoadingDots, LoadingSpinner, MaskInput, Menu, NumberInput, PasswordInput, PivotTable, ProgressBar, ProgressGauge, Radio, Rating, SearchInput, Segment, Select, Slider, Sparkline, StatValue, StatusDot, Swatch, Switch, Table, Tabs, TagInput, Text, Textarea, ToggleIconButton, Tree."
+		"description": "An option of the Size field of a playground in the docs. It sets the prop size to 'xl' on AddressInput, Avatar, Badge, Button, Card, Checkbox, Code, ColorPicker, Combobox, Control, CopyButton, CreditCardInput, CurrencyInput, DateInput, DatePicker, DrawerPanel, Grid, Group, Heading, HoldButton, Input, Kbd, Listbox, LoadingDots, LoadingSpinner, MaskInput, Menu, NumberInput, PasswordInput, PivotTable, ProgressBar, ProgressGauge, Radio, Rating, SearchInput, Segment, Select, Slider, Sparkline, StatValue, StatusDot, Swatch, Switch, Table, Tabs, TagInput, Text, Textarea, ToggleIconButton, Tree, Wysiwyg."
 	},
 	"docs.prop.size.xs": {
 		"defaultMessage": "Extra small",
-		"description": "An option of the Size field of a playground in the docs. It sets the prop size to 'xs' on AddressInput, Avatar, Badge, Button, Card, Checkbox, Code, ColorPicker, Combobox, Control, CopyButton, CreditCardInput, CurrencyInput, DateInput, DatePicker, DrawerPanel, Grid, Group, Heading, HoldButton, Input, Kbd, Listbox, LoadingDots, LoadingSpinner, MaskInput, Menu, NumberInput, PasswordInput, PivotTable, ProgressBar, ProgressGauge, Radio, Rating, SearchInput, Segment, Select, Slider, Sparkline, StatValue, StatusDot, Swatch, Switch, Table, Tabs, TagInput, Text, Textarea, ToggleIconButton, Tree."
+		"description": "An option of the Size field of a playground in the docs. It sets the prop size to 'xs' on AddressInput, Avatar, Badge, Button, Card, Checkbox, Code, ColorPicker, Combobox, Control, CopyButton, CreditCardInput, CurrencyInput, DateInput, DatePicker, DrawerPanel, Grid, Group, Heading, HoldButton, Input, Kbd, Listbox, LoadingDots, LoadingSpinner, MaskInput, Menu, NumberInput, PasswordInput, PivotTable, ProgressBar, ProgressGauge, Radio, Rating, SearchInput, Segment, Select, Slider, Sparkline, StatValue, StatusDot, Swatch, Switch, Table, Tabs, TagInput, Text, Textarea, ToggleIconButton, Tree, Wysiwyg."
 	},
 	"docs.prop.soft": {
 		"defaultMessage": "Soft",
@@ -7593,15 +7717,19 @@
 	},
 	"docs.prop.trigger": {
 		"defaultMessage": "Trigger",
-		"description": "The label of a field of a playground in the docs. The field sets the prop trigger of Tooltip."
+		"description": "The label of a field of a playground in the docs. The field sets the prop trigger of ChatMessage, Tooltip."
 	},
 	"docs.prop.trigger.click": {
 		"defaultMessage": "Click",
 		"description": "An option of the Trigger field of a playground in the docs. It sets the prop trigger to 'click' on Tooltip."
 	},
+	"docs.prop.trigger.contextmenu": {
+		"defaultMessage": "Contextmenu",
+		"description": "An option of the Trigger field of a playground in the docs. It sets the prop trigger to 'contextmenu' on ChatMessage."
+	},
 	"docs.prop.trigger.hover": {
 		"defaultMessage": "Hover",
-		"description": "An option of the Trigger field of a playground in the docs. It sets the prop trigger to 'hover' on Tooltip."
+		"description": "An option of the Trigger field of a playground in the docs. It sets the prop trigger to 'hover' on ChatMessage, Tooltip."
 	},
 	"docs.prop.truncate": {
 		"defaultMessage": "Truncate",
@@ -7653,11 +7781,11 @@
 	},
 	"docs.prop.variant": {
 		"defaultMessage": "Variant",
-		"description": "The label of a field of a playground in the docs. The field sets the prop variant of Accordion, Alert, Avatar, Badge, Banner, Button, Control, CreditCardInput, CurrencyInput, DateInput, HoldButton, Input, List, MaskInput, NumberInput, PasswordInput, SearchInput, StatusDot, Swatch, Tabs, TagInput, Textarea, Timeline, Toolbar."
+		"description": "The label of a field of a playground in the docs. The field sets the prop variant of Accordion, Alert, Avatar, Badge, Banner, Button, Control, CreditCardInput, CurrencyInput, DateInput, HoldButton, Input, List, MaskInput, NumberInput, PasswordInput, SearchInput, StatusDot, Swatch, Tabs, TagInput, Textarea, Timeline, Toolbar, Wysiwyg."
 	},
 	"docs.prop.variant.bare": {
 		"defaultMessage": "Bare",
-		"description": "An option of the Variant field of a playground in the docs. It sets the prop variant to 'bare' on Button, Control, CreditCardInput, CurrencyInput, DateInput, HoldButton, Input, List, MaskInput, NumberInput, PasswordInput, SearchInput, TagInput, Textarea."
+		"description": "An option of the Variant field of a playground in the docs. It sets the prop variant to 'bare' on Button, Control, CreditCardInput, CurrencyInput, DateInput, HoldButton, Input, List, MaskInput, NumberInput, PasswordInput, SearchInput, TagInput, Textarea, Wysiwyg."
 	},
 	"docs.prop.variant.dashed": {
 		"defaultMessage": "Dashed",
@@ -7665,11 +7793,11 @@
 	},
 	"docs.prop.variant.default": {
 		"defaultMessage": "Default",
-		"description": "An option of the Variant field of a playground in the docs. It sets the prop variant to 'default' on Control, CreditCardInput, CurrencyInput, DateInput, Input, MaskInput, NumberInput, PasswordInput, SearchInput, TagInput, Textarea."
+		"description": "An option of the Variant field of a playground in the docs. It sets the prop variant to 'default' on Control, CreditCardInput, CurrencyInput, DateInput, Input, MaskInput, NumberInput, PasswordInput, SearchInput, TagInput, Textarea, Wysiwyg."
 	},
 	"docs.prop.variant.outline": {
 		"defaultMessage": "Outline",
-		"description": "An option of the Variant field of a playground in the docs. It sets the prop variant to 'outline' on Accordion, Alert, Avatar, Badge, Banner, Button, Control, CreditCardInput, CurrencyInput, DateInput, HoldButton, Input, List, MaskInput, NumberInput, PasswordInput, SearchInput, StatusDot, Swatch, TagInput, Textarea, Timeline, Toolbar."
+		"description": "An option of the Variant field of a playground in the docs. It sets the prop variant to 'outline' on Accordion, Alert, Avatar, Badge, Banner, Button, Control, CreditCardInput, CurrencyInput, DateInput, HoldButton, Input, List, MaskInput, NumberInput, PasswordInput, SearchInput, StatusDot, Swatch, TagInput, Textarea, Timeline, Toolbar, Wysiwyg."
 	},
 	"docs.prop.variant.plain": {
 		"defaultMessage": "Plain",
@@ -7685,7 +7813,7 @@
 	},
 	"docs.prop.variant.soft": {
 		"defaultMessage": "Soft",
-		"description": "An option of the Variant field of a playground in the docs. It sets the prop variant to 'soft' on Alert, Avatar, Badge, Banner, Button, Control, CreditCardInput, CurrencyInput, DateInput, HoldButton, Input, MaskInput, NumberInput, PasswordInput, SearchInput, Swatch, TagInput, Textarea."
+		"description": "An option of the Variant field of a playground in the docs. It sets the prop variant to 'soft' on Alert, Avatar, Badge, Banner, Button, Control, CreditCardInput, CurrencyInput, DateInput, HoldButton, Input, MaskInput, NumberInput, PasswordInput, SearchInput, Swatch, TagInput, Textarea, Wysiwyg."
 	},
 	"docs.prop.variant.solid": {
 		"defaultMessage": "Solid",
@@ -7778,6 +7906,10 @@
 	"docs.prop.zoomControls.top": {
 		"defaultMessage": "Top",
 		"description": "An option of the Zoom controls field of a playground in the docs. It sets the prop zoomControls to 'top' on MapPlat."
+	},
+	"docs.prop.zoomOverview": {
+		"defaultMessage": "Zoom overview",
+		"description": "The label of a field of a playground in the docs. The field sets the prop zoomOverview of MapPlat."
 	},
 	"docs.search.button": {
 		"defaultMessage": "Search",
@@ -8807,6 +8939,10 @@
 		"defaultMessage": "Overflow",
 		"description": "The title of an example on a page of the docs. It comes from the file name overflow.tsx."
 	},
+	"docs.title.overview-inset": {
+		"defaultMessage": "Overview inset",
+		"description": "The title of an example on a page of the docs. It comes from the file name overview-inset.tsx."
+	},
 	"docs.title.past": {
 		"defaultMessage": "Past",
 		"description": "The title of an example on a page of the docs. It comes from the file name past.tsx."
@@ -8850,10 +8986,6 @@
 	"docs.title.preview-and-download": {
 		"defaultMessage": "Preview and download",
 		"description": "The title of an example on a page of the docs. It comes from the file name preview-and-download.tsx."
-	},
-	"docs.title.previews-on-hover": {
-		"defaultMessage": "Previews on hover",
-		"description": "The title of an example on a page of the docs. It comes from the file name previews-on-hover.tsx."
 	},
 	"docs.title.profile-card": {
 		"defaultMessage": "Profile card",
@@ -9391,9 +9523,17 @@
 		"defaultMessage": "With suffix slot",
 		"description": "The title of an example on a page of the docs. It comes from the file name with-suffix-slot.tsx."
 	},
+	"docs.title.with-toolbar": {
+		"defaultMessage": "With toolbar",
+		"description": "The title of an example on a page of the docs. It comes from the file name with-toolbar.tsx."
+	},
 	"docs.title.with-totals": {
 		"defaultMessage": "With totals",
 		"description": "The title of an example on a page of the docs. It comes from the file name with-totals.tsx."
+	},
+	"docs.title.with-wysiwyg": {
+		"defaultMessage": "With wysiwyg",
+		"description": "The title of an example on a page of the docs. It comes from the file name with-wysiwyg.tsx."
 	},
 	"docs.title.without-icons": {
 		"defaultMessage": "Without icons",

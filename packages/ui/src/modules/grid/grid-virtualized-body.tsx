@@ -11,6 +11,7 @@ import { GridWindowBody } from './grid-window-body'
 import { useGridFitRenderedRows } from './use-grid-fit-rendered-rows'
 import { useGridInfiniteScroll } from './use-grid-infinite-scroll'
 import type { GridScrollRowIntoView } from './use-grid-navigation'
+import { useGridWindowKeep } from './use-grid-window-keep'
 import { useGridWindowOffsets } from './use-grid-window-offsets'
 
 /** Props for {@link GridVirtualizedBody}. @internal */
@@ -42,6 +43,10 @@ type GridVirtualizedBodyProps<T> = GridRowsProps<T> & {
  * skeleton straight for data, instead of flashing a rowless table (see
  * {@link GridWindowBody}).
  *
+ * The window keeps the row of the cursor and the row that holds focus mounted
+ * out of view (see {@link useGridWindowKeep}). A flat body names each row by its
+ * index, and each row carries it as `data-row-index`.
+ *
  * @remarks The window reads no row's height: it assumes uniform `estimateSize`
  * row heights, and it requires a scroll container of known height (see
  * {@link GridProps.maxHeight}).
@@ -64,29 +69,37 @@ export function GridVirtualizedBody<T>(props: GridVirtualizedBodyProps<T>) {
 		props.stickyHeader,
 	)
 
-	const { virtualItems, topSpacer, bottomSpacer, scrollToIndex } = useVirtualWindow({
-		count: rows.length,
-		getScrollElement,
-		estimateSize,
-		overscan,
-		scrollMargin,
-		scrollPaddingStart,
-		scrollPaddingEnd,
-		initialRect: FIRST_WINDOW_RECT,
+	const count = rows.length
+
+	const { keep, onFocus, onBlur } = useGridWindowKeep({
+		indexAttribute: 'data-row-index',
+		toKey: (index) => (index >= 0 && index < count ? index : undefined),
+		findIndex: (key) => (typeof key === 'number' && key < count ? key : -1),
 	})
+
+	const { virtualItems, topSpacer, bottomSpacer, gaps, lastIndex, scrollToIndex } =
+		useVirtualWindow({
+			count: rows.length,
+			getScrollElement,
+			estimateSize,
+			overscan,
+			scrollMargin,
+			scrollPaddingStart,
+			scrollPaddingEnd,
+			initialRect: FIRST_WINDOW_RECT,
+			keep,
+		})
 
 	// Fire the infinite-scroll load-more as the last rendered row nears the loaded
 	// end (see `useGridInfiniteScroll`); inert when `infiniteScroll` is null. The
 	// window renders past the viewport by `overscan`, so the last item's index
 	// leads the visible bottom, giving the fetch a head start. The scroll ref
 	// supplies the bounded-window evidence (overflow) and the scroll events that
-	// arm each post-fill fire.
-	const lastItem = virtualItems.at(-1)
-
+	// arm each post-fill fire. A kept row after the window does not count.
 	const { infiniteScroll } = props
 
 	useGridInfiniteScroll({
-		lastRenderedIndex: lastItem ? lastItem.index : -1,
+		lastRenderedIndex: lastIndex,
 		count: rows.length,
 		infiniteScroll,
 		scrollRef,
@@ -116,7 +129,10 @@ export function GridVirtualizedBody<T>(props: GridVirtualizedBodyProps<T>) {
 			topSpacer={topSpacer}
 			bottomSpacer={bottomSpacer}
 			itemCount={rows.length}
-			windowCount={virtualItems.length}
+			virtualItems={virtualItems}
+			gaps={gaps}
+			onFocus={onFocus}
+			onBlur={onBlur}
 			// Trailing row below the last rendered rows for the infinite-scroll
 			// terminal states. A failed load, an in-flight batch (opt-in), or the
 			// reached end, resolved in precedence order (see the trailer).
@@ -126,20 +142,20 @@ export function GridVirtualizedBody<T>(props: GridVirtualizedBodyProps<T>) {
 						infiniteScroll={infiniteScroll}
 						columns={visibleColumns}
 						pinning={pinning}
+						ariaRowIndex={ariaRowIndex(props.rowIndexOffset, rows.length)}
 					/>
 				)
 			}
-		>
-			{/* Global row indices for the windowed rows; see `ariaRowIndex` for the
-			    offset math (a paginated, virtualized window starts past prior pages). */}
-			{virtualItems.map((virtualItem) =>
+			// Global row indices for the windowed rows; see `ariaRowIndex` for the
+			// offset math (a paginated, virtualized window starts past prior pages).
+			renderItem={(virtualItem) =>
 				renderRow(
 					props,
 					rows[virtualItem.index] as T,
 					virtualItem.index,
 					ariaRowIndex(props.rowIndexOffset, virtualItem.index),
-				),
-			)}
-		</GridWindowBody>
+				)
+			}
+		/>
 	)
 }

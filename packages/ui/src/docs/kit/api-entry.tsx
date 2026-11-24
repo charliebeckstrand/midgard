@@ -192,7 +192,9 @@ function PropRow({ component, prop }: { component: string; prop: PropApi }) {
 						prop.deprecated !== undefined && 'line-through decoration-zinc-400',
 					)}
 				>
-					<HashAnchor to={id}>{prop.name}</HashAnchor>
+					<HashAnchor to={id} reveal>
+						{prop.name}
+					</HashAnchor>
 				</span>
 				{prop.required && (
 					<span className="text-red-600 text-sm dark:text-red-500">

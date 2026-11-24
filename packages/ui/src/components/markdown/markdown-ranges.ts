@@ -233,3 +233,85 @@ export function segmentLine(walk: RangeWalk, line: string, at: number): RangeSeg
 
 	return segments
 }
+
+/**
+ * Runs `run` with the cursor of the walk at the start of `raw` in the source,
+ * then moves the cursor past the end of `raw`. While `run` runs, the limit of
+ * the walk is the end of `raw`, so a child token is found only in the source
+ * of its parent. A token that the source does not hold runs with no walk, and
+ * the cursor stays.
+ *
+ * @internal
+ */
+export function within<W extends RangeWalk, T>(
+	walk: W | undefined,
+	raw: string,
+	run: (walk: W | undefined) => T,
+): T {
+	if (!walk) return run(undefined)
+
+	const span = locate(walk, raw)
+
+	if (!span) return run(undefined)
+
+	const limit = walk.limit
+
+	walk.cursor = span[0]
+
+	walk.limit = span[1]
+
+	const result = run(walk)
+
+	walk.limit = limit
+
+	walk.cursor = Math.max(walk.cursor, span[1])
+
+	return result
+}
+
+/**
+ * One part of a line of a text token: source text, its source span, and the
+ * index of its range in `walk.ranges`. A line that the source does not hold
+ * is one piece with no span, at `-1`.
+ *
+ * @internal
+ */
+export type TextPiece = { text: string; start: number; end: number; range?: number }
+
+/**
+ * The lines of a text token, each cut into pieces at the edges of each range
+ * that it overlaps. Each line is found in the source on its own, because a
+ * token in a list item or a blockquote has no indentation. After a line that
+ * the source does not hold, each line is one piece with no range.
+ *
+ * @internal
+ */
+export function textLines(walk: RangeWalk, raw: string): TextPiece[][] {
+	let found = true
+
+	return raw.split('\n').map((line) => {
+		const at = found && line !== '' ? find(walk, line, walk.cursor) : -1
+
+		if (at === -1) {
+			if (line !== '') found = false
+
+			return [{ text: line, start: -1, end: -1 }]
+		}
+
+		let start = at
+
+		const pieces = segmentLine(walk, line, at).map((segment) => {
+			const end = start + segment.text.length
+
+			const piece: TextPiece = { text: segment.text, start, end, range: segment.range }
+
+			start = end
+
+			return piece
+		})
+
+		walk.cursor = at + line.length
+
+		return pieces
+	})
+}

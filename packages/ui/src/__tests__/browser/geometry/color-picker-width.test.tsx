@@ -3,9 +3,8 @@ import { ColorPicker } from '../../../components/color'
 import { bySlot, present, renderUI } from '../../helpers'
 
 /**
- * The trigger of a ColorPicker is as wide as its swatch and its color value.
- * It does not fill a wide parent. In a parent that is narrower than its
- * content, it keeps inside the parent.
+ * The trigger of a ColorPicker fills its parent, as each other control does.
+ * In a parent that is narrower than its content, it keeps inside the parent.
  */
 
 function trigger(container: HTMLElement) {
@@ -15,22 +14,24 @@ function trigger(container: HTMLElement) {
 }
 
 describe('ColorPicker trigger width', () => {
-	it('is as wide as its content in a wide parent', () => {
+	it('fills a wide parent', () => {
 		const { container } = renderUI(
 			<div style={{ width: 600 }}>
 				<ColorPicker aria-label="Color" defaultValue="#8b5cf6" />
 			</div>,
 		)
 
-		const value = present(
-			bySlot(container, 'color-picker-button')?.lastElementChild,
-			'the color value',
-		) as HTMLElement
+		expect(trigger(container)).toBe(600)
+	})
 
-		expect(trigger(container)).toBeLessThan(200)
+	it('fills a flex column', () => {
+		const { container } = renderUI(
+			<div className="flex flex-col" style={{ width: 600 }}>
+				<ColorPicker aria-label="Color" defaultValue="#8b5cf6" />
+			</div>,
+		)
 
-		// The value shows in full, so the trigger does not cut its content.
-		expect(value.scrollWidth).toBeLessThanOrEqual(value.clientWidth)
+		expect(trigger(container)).toBe(600)
 	})
 
 	it('keeps inside a parent that is narrower than its content', () => {
@@ -41,15 +42,5 @@ describe('ColorPicker trigger width', () => {
 		)
 
 		expect(trigger(container)).toBeLessThanOrEqual(60)
-	})
-
-	it('fills the parent with a `w-full` class', () => {
-		const { container } = renderUI(
-			<div style={{ width: 600 }}>
-				<ColorPicker aria-label="Color" defaultValue="#8b5cf6" className="w-full" />
-			</div>,
-		)
-
-		expect(trigger(container)).toBe(600)
 	})
 })

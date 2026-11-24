@@ -36,16 +36,16 @@
 		"description": "The name of the button that shows the year before in the month picker."
 	},
 	"ui.calendar.selectMonth": {
-		"defaultMessage": "Select month",
-		"description": "The name of the grid of months in the month picker."
+		"defaultMessage": "Select month, {year}",
+		"description": "The name of the grid of months in the month picker. {year} is the year of the grid, such as 2025."
 	},
 	"ui.calendar.selectMonthYear": {
 		"defaultMessage": "Select month and year",
 		"description": "The name of the panel that holds the month picker and the year picker."
 	},
 	"ui.calendar.selectYear": {
-		"defaultMessage": "Select year",
-		"description": "The name of the grid of years in the year picker."
+		"defaultMessage": "Select year, {decade}",
+		"description": "The name of the grid of years in the year picker. {decade} is the span of years that the grid shows, such as 2020–2029."
 	},
 	"ui.chart.chart": {
 		"defaultMessage": "Chart",
@@ -143,10 +143,6 @@
 		"defaultMessage": "Add attachment",
 		"description": "The name of the button that opens a file picker to attach files to a chat message."
 	},
-	"ui.chat.badReply": {
-		"defaultMessage": "Bad reply",
-		"description": "The name of the button that rates a reply of the assistant as bad."
-	},
 	"ui.chat.citationMarked": {
 		"defaultMessage": "Selects in {label}. The selection in that view matches it.",
 		"description": "The description of a phrase of a chat reply that selects items in a view beside the chat, while the items that a reader selected in the view match the phrase. The label is the name of the view, such as \"Late stops by day\"."
@@ -154,6 +150,14 @@
 	"ui.chat.citationSelects": {
 		"defaultMessage": "Selects in {label}",
 		"description": "The description of a phrase of a chat reply that selects items in a view beside the chat. The label is the name of the view, such as \"Late stops by day\"."
+	},
+	"ui.chat.conversation": {
+		"defaultMessage": "Conversation",
+		"description": "The name of the scrolling list of the messages of a chat. A screen reader reads it when the focus goes to the list."
+	},
+	"ui.chat.copy": {
+		"defaultMessage": "Copy",
+		"description": "The item of the menu of a chat message that copies the text of the message to the clipboard."
 	},
 	"ui.chat.done": {
 		"defaultMessage": "Done",
@@ -163,13 +167,9 @@
 		"defaultMessage": "Failed",
 		"description": "The status of a step of the assistant that ended with an error."
 	},
-	"ui.chat.goodReply": {
-		"defaultMessage": "Good reply",
-		"description": "The name of the button that rates a reply of the assistant as good."
-	},
 	"ui.chat.messageActions": {
 		"defaultMessage": "Message actions",
-		"description": "The name of the menu that opens on a right-click or a long press on a chat message. It holds the actions of that message."
+		"description": "The name of the menu of a chat message, and of the button that opens it. On a touch screen, a long press on the message also opens the menu. It holds the actions of that message."
 	},
 	"ui.chat.missing": {
 		"defaultMessage": "This chat cannot show a “{name}” block.",
@@ -299,9 +299,17 @@
 		"defaultMessage": "Hue",
 		"description": "The name of the slider that sets the hue of a color."
 	},
+	"ui.color.picker": {
+		"defaultMessage": "Color",
+		"description": "The name of the button that opens a color picker, when no label names it."
+	},
 	"ui.color.select": {
 		"defaultMessage": "Select color",
 		"description": "The name of the dialog of a color picker."
+	},
+	"ui.color.swatch": {
+		"defaultMessage": "{hue, select, red {Red} orange {Orange} yellow {Yellow} green {Green} cyan {Cyan} blue {Blue} purple {Purple} pink {Pink} white {White} black {Black} other {Gray}}, {hex}",
+		"description": "The name of one preset color: a coarse name of the color, then its hexadecimal code, such as \"Red, #EF4444\"."
 	},
 	"ui.color.swatches": {
 		"defaultMessage": "Swatches",
@@ -563,6 +571,10 @@
 		"defaultMessage": "Open calendar",
 		"description": "The name of the button that opens the calendar of a date field."
 	},
+	"ui.datePicker.rangeStartSet": {
+		"defaultMessage": "Start date {date}. Select the end date.",
+		"description": "Spoken by a screen reader after the first press in a range calendar. {date} is the full name of the start day, such as Tuesday, June 10, 2025."
+	},
 	"ui.datePicker.selectDate": {
 		"defaultMessage": "Select a date",
 		"description": "The text of an empty date picker that holds one date, and the name of the panel that holds its calendar."
@@ -716,20 +728,16 @@
 		"description": "The prompt of an empty drop zone on a touch device."
 	},
 	"ui.fileUpload.refusedCount": {
-		"defaultMessage": "{count, plural, one {{names} is over the file limit} other {{names} are over the file limit}}",
-		"description": "Spoken when the field refuses files because it takes no more files. The names are the file names, joined by commas."
+		"defaultMessage": "{count, plural, one {{names} is over the file limit} other {{names} are over the file limit}}. The limit is {max, plural, one {# file} other {# files}}",
+		"description": "Spoken when the field refuses files because it takes no more files. The names are the file names, joined by commas. The limit is the number of files that the field takes."
 	},
 	"ui.fileUpload.refusedSize": {
-		"defaultMessage": "{count, plural, one {{names} is too large} other {{names} are too large}}",
-		"description": "Spoken when the field refuses files because they are larger than the limit. The names are the file names, joined by commas."
+		"defaultMessage": "{count, plural, one {{names} is too large} other {{names} are too large}}. The limit is {limit}",
+		"description": "Spoken when the field refuses files because they are larger than the limit. The names are the file names, joined by commas. The limit is a size, such as \"1 MB\"."
 	},
 	"ui.fileUpload.refusedType": {
-		"defaultMessage": "{count, plural, one {{names} is not an accepted file type} other {{names} are not accepted file types}}",
-		"description": "Spoken when the field refuses files because their type is not accepted. The names are the file names, joined by commas."
-	},
-	"ui.fileUpload.reset": {
-		"defaultMessage": "Reset",
-		"description": "The label of the button that clears the selected files."
+		"defaultMessage": "{count, plural, one {{names} is not an accepted file type} other {{names} are not accepted file types}}. Accepted types: {accept}",
+		"description": "Spoken when the field refuses files because their type is not accepted. The names are the file names, joined by commas. The accepted types are the file types and extensions that the field takes, such as \"image/png, .pdf\"."
 	},
 	"ui.fileUpload.selectDifferent": {
 		"defaultMessage": "Select a different file",
@@ -855,17 +863,9 @@
 		"defaultMessage": "Collapse all groups",
 		"description": "The menu item that closes every row group of a grid."
 	},
-	"ui.grid.collapseDetails": {
-		"defaultMessage": "Collapse details for {row}",
-		"description": "The name of the button that closes the detail panel of a row of a grid."
-	},
 	"ui.grid.collapseGroup": {
 		"defaultMessage": "Collapse group",
 		"description": "The menu item that closes a row group of a grid."
-	},
-	"ui.grid.collapseNamed": {
-		"defaultMessage": "Collapse {group}",
-		"description": "The name of the button that hides the columns of a column group."
 	},
 	"ui.grid.color": {
 		"defaultMessage": "Color",
@@ -911,6 +911,10 @@
 		"defaultMessage": "Data grid",
 		"description": "The name of a grid that the app gives no name."
 	},
+	"ui.grid.decreaseWidth": {
+		"defaultMessage": "Decrease width",
+		"description": "The menu item that makes a grid column narrower by one step."
+	},
 	"ui.grid.detailsColumn": {
 		"defaultMessage": "Details",
 		"description": "The hidden name of the header of the column of the buttons that open the detail panel of each row, when the column has no title."
@@ -947,17 +951,9 @@
 		"defaultMessage": "Expand all groups",
 		"description": "The menu item that opens every row group of a grid."
 	},
-	"ui.grid.expandDetails": {
-		"defaultMessage": "Expand details for {row}",
-		"description": "The name of the button that opens the detail panel of a row of a grid."
-	},
 	"ui.grid.expandGroup": {
 		"defaultMessage": "Expand group",
 		"description": "The menu item that opens a row group of a grid."
-	},
-	"ui.grid.expandNamed": {
-		"defaultMessage": "Expand {group}",
-		"description": "The name of the button that shows the columns of a collapsed column group."
 	},
 	"ui.grid.export": {
 		"defaultMessage": "Export",
@@ -981,15 +977,19 @@
 	},
 	"ui.grid.fillDown": {
 		"defaultMessage": "Fill down",
-		"description": "The menu item that copies the first row of a cell range of a grid down the range."
+		"description": "The menu item that fills a cell range of a grid down from its top rows."
 	},
 	"ui.grid.fillLeft": {
 		"defaultMessage": "Fill left",
-		"description": "The menu item that copies the first column of a cell range of a grid to the left."
+		"description": "The menu item that fills a cell range of a grid to the left edge."
 	},
 	"ui.grid.fillRight": {
 		"defaultMessage": "Fill right",
-		"description": "The menu item that copies the first column of a cell range of a grid to the right."
+		"description": "The menu item that fills a cell range of a grid to the right edge."
+	},
+	"ui.grid.fillUp": {
+		"defaultMessage": "Fill up",
+		"description": "The menu item that fills a cell range of a grid up from its bottom rows."
 	},
 	"ui.grid.filterActive": {
 		"defaultMessage": "Filter {column}, active",
@@ -1019,6 +1019,10 @@
 		"defaultMessage": "Group by “{column}”",
 		"description": "The menu item that groups the rows of a grid by a column. The column is its name."
 	},
+	"ui.grid.groupColumns": {
+		"defaultMessage": "{group} columns",
+		"description": "The name of the button that shows or hides the columns of a column group. The button gives its state through aria-expanded, so the name does not change."
+	},
 	"ui.grid.groupHandle": {
 		"defaultMessage": "Reorder group {group}",
 		"description": "The name of the handle that drags a group to a new place in the list of groups."
@@ -1039,9 +1043,17 @@
 		"defaultMessage": "position {position, number} of {total, number}",
 		"description": "The place of a dragged group in the list of groups, inside an announcement of the group editor."
 	},
+	"ui.grid.held": {
+		"defaultMessage": "{column}: {error}",
+		"description": "Spoken when the reader tries to save an edit of the grid that the column refuses. The edit stays open. The error is the message of the column."
+	},
 	"ui.grid.hid": {
 		"defaultMessage": "Hid {column} column",
 		"description": "Spoken when the reader hides a column of the grid."
+	},
+	"ui.grid.increaseWidth": {
+		"defaultMessage": "Increase width",
+		"description": "The menu item that makes a grid column wider by one step."
 	},
 	"ui.grid.isOver": {
 		"defaultMessage": "{item} is over {place}.",
@@ -1063,9 +1075,49 @@
 		"defaultMessage": "Manage rows",
 		"description": "The menu item that opens the dialog that orders and colors the row groups of a grid."
 	},
+	"ui.grid.move": {
+		"defaultMessage": "Move",
+		"description": "The menu item of a grid column that opens the choices that move the column to a new place."
+	},
+	"ui.grid.moveDown": {
+		"defaultMessage": "Move down",
+		"description": "The menu item that moves a grid row, or a column in the column manager, one place down."
+	},
+	"ui.grid.moveGroupNamed": {
+		"defaultMessage": "Move group {group}",
+		"description": "The name of the button that opens the choices that move a column group to a new place in the list of groups."
+	},
+	"ui.grid.moveLeft": {
+		"defaultMessage": "Move left",
+		"description": "The menu item that moves a grid column one place to the left on the screen."
+	},
+	"ui.grid.moveRight": {
+		"defaultMessage": "Move right",
+		"description": "The menu item that moves a grid column one place to the right on the screen."
+	},
 	"ui.grid.moveTo": {
 		"defaultMessage": "Move to “{group}”",
 		"description": "The menu item that moves a column into a column group of a grid."
+	},
+	"ui.grid.moveToBottom": {
+		"defaultMessage": "Move to bottom",
+		"description": "The menu item that moves a column to the bottom of the list in the column manager."
+	},
+	"ui.grid.moveToEnd": {
+		"defaultMessage": "Move to end",
+		"description": "The menu item that moves a grid column to the last place, after the other columns that move."
+	},
+	"ui.grid.moveToStart": {
+		"defaultMessage": "Move to start",
+		"description": "The menu item that moves a grid column to the first place, before the other columns that move."
+	},
+	"ui.grid.moveToTop": {
+		"defaultMessage": "Move to top",
+		"description": "The menu item that moves a column to the top of the list in the column manager."
+	},
+	"ui.grid.moveUp": {
+		"defaultMessage": "Move up",
+		"description": "The menu item that moves a grid row, or a column in the column manager, one place up."
 	},
 	"ui.grid.newGroup": {
 		"defaultMessage": "New group",
@@ -1239,6 +1291,10 @@
 		"defaultMessage": "{rows, plural, one {# row} other {# rows}}",
 		"description": "The row count in the footer of a grid."
 	},
+	"ui.grid.rowDetails": {
+		"defaultMessage": "Details for {row}",
+		"description": "The name of the button that opens or closes the detail panel of a row of a grid. The button gives its state through aria-expanded, so the name does not change."
+	},
 	"ui.grid.rowGroupName": {
 		"defaultMessage": "group {group}",
 		"description": "The name of a row group in a reorder announcement, such as \"group Active\"."
@@ -1411,6 +1467,10 @@
 		"defaultMessage": "Unpinned {column}",
 		"description": "Spoken when the reader unpins a column of the grid."
 	},
+	"ui.grid.width": {
+		"defaultMessage": "Width",
+		"description": "The menu item of a grid column that opens the choices that make the column wider or narrower."
+	},
 	"ui.grid.withSkipped": {
 		"defaultMessage": "{saved}, {count, plural, other {# skipped}}",
 		"description": "Adds the skipped cells to a paste announcement of the grid, such as \"12 cells pasted, 2 skipped\"."
@@ -1418,6 +1478,14 @@
 	"ui.grid.yes": {
 		"defaultMessage": "Yes",
 		"description": "The true choice of a yes-or-no cell of a grid."
+	},
+	"ui.holdButton.confirm": {
+		"defaultMessage": "Activate again to confirm",
+		"description": "Spoken when assistive technology activates a hold button once. A second activation does the action."
+	},
+	"ui.holdButton.instruction": {
+		"defaultMessage": "Press and hold to confirm",
+		"description": "The description of a button that acts only after the reader presses and holds it."
 	},
 	"ui.jsonTree.items": {
 		"defaultMessage": "{count, plural, one {# item} other {# items}}",
@@ -1563,13 +1631,9 @@
 		"defaultMessage": "Resize panel",
 		"description": "The name of the grab bar that changes the size of a drawer or a sheet, by a drag or by the arrow keys."
 	},
-	"ui.passwordInput.hide": {
-		"defaultMessage": "Hide password",
-		"description": "The name of the button that hides the text of a password field."
-	},
 	"ui.passwordInput.show": {
 		"defaultMessage": "Show password",
-		"description": "The name of the button that shows the text of a password field."
+		"description": "The fixed name and tooltip of the toggle button that shows or hides the text of a password field. The pressed state tells if the text shows."
 	},
 	"ui.passwordStrength.empty": {
 		"defaultMessage": "Empty",
@@ -1610,6 +1674,10 @@
 	"ui.passwordStrength.ruleUppercase": {
 		"defaultMessage": "One uppercase letter",
 		"description": "A password rule: the password has an uppercase letter."
+	},
+	"ui.passwordStrength.status": {
+		"defaultMessage": "Password strength: {level}",
+		"description": "The status message that a screen reader reads when the strength changes. The level is the name of the strength, for example \"Fair\"."
 	},
 	"ui.passwordStrength.strong": {
 		"defaultMessage": "Strong",
@@ -2203,6 +2271,10 @@
 		"defaultMessage": "Sidebar",
 		"description": "The name of the navigation landmark at the side of a page, which a screen reader speaks with its role."
 	},
+	"ui.sidebarLayout.navigation": {
+		"defaultMessage": "Navigation",
+		"description": "The name of the panel that shows the navigation over the page: the drawer of a narrow page, and the sheet that a pointer opens at the edge of a wide page."
+	},
 	"ui.sidebarLayout.navigationBar": {
 		"defaultMessage": "Navigation bar",
 		"description": "The name of the bar at the top of a narrow page that holds the button that opens the navigation."
@@ -2222,6 +2294,10 @@
 	"ui.signaturePad.empty": {
 		"defaultMessage": "{name}, empty",
 		"description": "The name of a signature pad with no signature on it. The name is the name of the pad, such as \"Signature\"."
+	},
+	"ui.signaturePad.emptyState": {
+		"defaultMessage": "empty",
+		"description": "Added to the name of a signature pad with no signature on it, after the label of its field, as in \"Witness signature empty\"."
 	},
 	"ui.signaturePad.label": {
 		"defaultMessage": "Signature",
@@ -2292,8 +2368,8 @@
 		"description": "Spoken when the field holds the most tags that it takes, so a tag is not added."
 	},
 	"ui.tagInput.rejected": {
-		"defaultMessage": "{count, plural, one {{tag} is not a valid tag} other {# not valid}}",
-		"description": "Spoken when typed or pasted tags fail the validation. With one tag, it names the tag."
+		"defaultMessage": "{count, plural, one {{tag} is not a valid tag} other {# tags are not valid}}",
+		"description": "Spoken, and shown below the field as an error, when typed or pasted tags fail the validation. With one tag, it names the tag."
 	},
 	"ui.tagInput.removed": {
 		"defaultMessage": "Removed {tag}",
@@ -2310,5 +2386,65 @@
 	"ui.toast.notifications": {
 		"defaultMessage": "Notifications",
 		"description": "The name of the region that holds the toasts."
+	},
+	"ui.wysiwyg.apply": {
+		"defaultMessage": "Apply",
+		"description": "The button that sets the link of the selected text to the typed web address."
+	},
+	"ui.wysiwyg.blocks": {
+		"defaultMessage": "Blocks",
+		"description": "The name of the group of toolbar buttons that change the current block, such as Quote."
+	},
+	"ui.wysiwyg.bold": {
+		"defaultMessage": "Bold",
+		"description": "The name of the toolbar button that makes the selected text bold."
+	},
+	"ui.wysiwyg.bulletList": {
+		"defaultMessage": "Bulleted list",
+		"description": "The name of the toolbar button that makes the current block a bulleted list."
+	},
+	"ui.wysiwyg.code": {
+		"defaultMessage": "Code",
+		"description": "The name of the toolbar button that shows the selected text as inline code."
+	},
+	"ui.wysiwyg.codeBlock": {
+		"defaultMessage": "Code block",
+		"description": "The name of the toolbar button that makes the current block a block of code."
+	},
+	"ui.wysiwyg.italic": {
+		"defaultMessage": "Italic",
+		"description": "The name of the toolbar button that makes the selected text italic."
+	},
+	"ui.wysiwyg.link": {
+		"defaultMessage": "Link",
+		"description": "The name of the toolbar button that adds or edits a link on the selected text."
+	},
+	"ui.wysiwyg.linkUrl": {
+		"defaultMessage": "URL",
+		"description": "The label of the field that holds the web address of a link."
+	},
+	"ui.wysiwyg.orderedList": {
+		"defaultMessage": "Numbered list",
+		"description": "The name of the toolbar button that makes the current block a numbered list."
+	},
+	"ui.wysiwyg.quote": {
+		"defaultMessage": "Quote",
+		"description": "The name of the toolbar button that makes the current block a quote."
+	},
+	"ui.wysiwyg.removeLink": {
+		"defaultMessage": "Remove link",
+		"description": "The button that removes the link from the selected text."
+	},
+	"ui.wysiwyg.strike": {
+		"defaultMessage": "Strikethrough",
+		"description": "The name of the toolbar button that draws a line through the selected text."
+	},
+	"ui.wysiwyg.text": {
+		"defaultMessage": "Text",
+		"description": "The name of the group of toolbar buttons that format the selected text, such as Bold."
+	},
+	"ui.wysiwyg.toolbar": {
+		"defaultMessage": "Formatting",
+		"description": "The name of the toolbar of buttons that format the text of a rich text field."
 	}
 }

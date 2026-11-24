@@ -1,4 +1,4 @@
-import { defineKata } from '../../core/recipe'
+import { defineKata, mode } from '../../core/recipe'
 import { dan, hannou, ji, kasane, narabi, sen } from '../kiso'
 import { validation } from '../kumi/check'
 
@@ -6,7 +6,7 @@ const { disabled } = hannou
 const { size } = ji
 const { rounded } = kasane
 const { flex } = narabi
-const { border, focus } = sen
+const { border } = sen
 
 // The pad keeps a white surface in both themes, so the ink and the placeholder
 // take the light-theme shades. A `dark:` foreground would paint light on white.
@@ -17,7 +17,14 @@ export const k = defineKata({
 		'bg-white text-zinc-950',
 		border.default,
 		rounded.lg,
-		focus.ring,
+		// The canvas takes the focus, from the clear button or a Form, but it
+		// fills the pad, which clips it. So the pad draws the `sen.focus.ring`
+		// stroke while its canvas has the keyboard focus.
+		'has-[canvas:focus-visible]:outline-2 has-[canvas:focus-visible]:outline-offset-2',
+		...mode(
+			'has-[canvas:focus-visible]:outline-blue-600',
+			'dark:has-[canvas:focus-visible]:outline-blue-500',
+		),
 		// The canvas carries the `data-*` validation state, so the pad paints the ring.
 		...validation,
 		...disabled.base,

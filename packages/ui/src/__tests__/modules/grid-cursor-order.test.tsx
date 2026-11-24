@@ -61,7 +61,7 @@ describe('Grid cursor over grouped rows', () => {
 		<Grid columns={columns} rows={rows} getKey={getKey} groupBy={{ value: 'region' }} navigable />
 	)
 
-	it('makes a grouped grid a treegrid with a level on each row', () => {
+	it('makes a grouped grid a treegrid with a level on each header and leaf', () => {
 		const grid = renderGrouped({ groupTotalRow: true })
 
 		expect(grid).toHaveAccessibleName('Data grid')
@@ -72,7 +72,8 @@ describe('Grid cursor over grouped rows', () => {
 
 		expect(header).toHaveAttribute('aria-expanded', 'true')
 
-		expect(grid.querySelector('tr[data-total-row="group"]')).toHaveAttribute('aria-level', '2')
+		// A total is not a member of the set of the leaves, so it takes no level.
+		expect(grid.querySelector('tr[data-total-row="group"]')).not.toHaveAttribute('aria-level')
 
 		const leaf = screen.getAllByText(/^West$/)[0]?.closest('tr')
 

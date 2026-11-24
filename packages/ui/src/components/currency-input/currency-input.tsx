@@ -50,20 +50,23 @@ export type CurrencyInputProps = Omit<
 }
 
 /**
- * Numeric Input that formats its value as localized currency. Emits a `number`
- * via `onValueChange` while displaying grouped digits and the currency symbol,
- * and binds to an enclosing Form field by `name`. Resolves `currency` and
- * `locale` from props, then `<LocaleProvider>`, then runtime defaults.
+ * A number field that shows its value as currency in the locale of the reader.
+ * Emits a `number` via `onValueChange` while displaying grouped digits and the
+ * currency symbol, and binds to an enclosing Form field by `name`. Resolves
+ * `currency` and `locale` from props, then `<LocaleProvider>`, then runtime
+ * defaults.
  *
  * @remarks Holds a raw editing buffer once typing begins, and falls back to the
- * display formatter once the buffer clears on blur. A value from outside that
+ * display formatter once the buffer clears on blur or `Enter`. A value from outside that
  * differs from the buffer's value also clears the buffer, while the field has
  * focus. The buffer formats digits
  * down to grouped output on every keystroke through {@link useFormattedInput},
  * which restores the caret to the typed character across separator insertion. The symbol
  * renders in the `prefix` or `suffix` slot per the locale's symbol position; a
  * caller-supplied `prefix`/`suffix` wins. The symbol describes the input
- * (`aria-describedby`), so a screen reader reads the currency with the value. `Enter` blurs to commit. Group and
+ * (`aria-describedby`), so a screen reader reads the currency with the value.
+ * `Enter` commits the buffer as blur does, and the field keeps focus. The
+ * default action of `Enter` stays, so it submits an enclosing form. Group and
  * decimal separators are pinned to the resolved locale via Intl and digits to
  * ASCII (`numberingSystem: 'latn'`), so native-digit locales are normalized.
  * See {@link useCurrencyInputFormatting} for the Intl caveats.
@@ -157,6 +160,18 @@ export function CurrencyInput({
 
 	const joinedRef = useComposedRefs(resetRef, ref)
 
+	// Ends the editing buffer: the parsed amount goes to the value, and the field
+	// shows the display text. Blur and Enter both commit.
+	const commitBuffer = () => {
+		if (editingText === null) return
+
+		const parsed = parse(editingText)
+
+		if (parsed !== amount) setAmount(parsed)
+
+		setEditingText(null)
+	}
+
 	// `atEnd: 'jump'`: the formatter pads `.` to `0.`, so a restore at the end would
 	// put the next digit in the integer part (`.5` to `5.`). `text` is the text
 	// before the edit. The format compares the edit with it to find the other
@@ -182,21 +197,17 @@ export function CurrencyInput({
 			name={name}
 			value={text}
 			onKeyDown={composeEventHandlers(onKeyDown, (event) => {
-				// Enter that confirms an input-method candidate must not blur the field.
-				if (event.key === 'Enter' && !isComposing(event)) event.currentTarget.blur()
+				// Enter commits and keeps the focus in the field (WCAG 2.4.3). Its
+				// default action stays, so a form submits as from any other field.
+				// An Enter that confirms an input-method candidate does not commit.
+				if (event.key === 'Enter' && !isComposing(event)) commitBuffer()
 			})}
 			// The commit and the touched mark run whatever the caller does
 			// (CONVENTIONS.md §3.9).
 			onBlur={composeEventHandlers(
 				onBlur,
 				() => {
-					if (editingText !== null) {
-						const parsed = parse(editingText)
-
-						if (parsed !== amount) setAmount(parsed)
-
-						setEditingText(null)
-					}
+					commitBuffer()
 
 					setTouched()
 				},

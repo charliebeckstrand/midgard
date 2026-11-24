@@ -7,6 +7,7 @@ import {
 	type PointerEvent as ReactPointerEvent,
 	use,
 	useCallback,
+	useId,
 	useMemo,
 	useRef,
 } from 'react'
@@ -258,10 +259,15 @@ export const GridColumnHeader = memo(function GridColumnHeader({
 
 	const intl = useIntl()
 
+	const titleId = useId()
+
 	const label = hiddenName ? (
-		<span className="sr-only">{intl.formatMessage(hiddenName)}</span>
+		<span id={titleId} className="sr-only">
+			{intl.formatMessage(hiddenName)}
+		</span>
 	) : (
 		<GridColumnHeaderLabel
+			titleId={titleId}
 			column={column}
 			sorted={sorted}
 			direction={direction}
@@ -279,6 +285,10 @@ export const GridColumnHeader = memo(function GridColumnHeader({
 	return (
 		<TableHeader
 			{...cursor?.props}
+			// The title alone names the header. Without it, the header takes its
+			// name from all of its content: the names of its controls and the
+			// value of its resize separator.
+			aria-labelledby={titleId}
 			aria-colindex={ariaColIndex}
 			aria-sort={ariaSortValue(column.sortable && interactive, sorted, direction)}
 			data-resizable={dataAttr(canResize)}
@@ -400,6 +410,8 @@ export function GridReorderableColumnHeaderView({
 }: GridReorderableColumnHeaderProps & { sortable: GridColumnSortable }) {
 	const intl = useIntl()
 
+	const titleId = useId()
+
 	const { setNodeRef, setActivatorNodeRef, attributes, listeners, x, isDragging, isSorting } =
 		sortable
 
@@ -451,6 +463,8 @@ export function GridReorderableColumnHeaderView({
 		<TableHeader
 			{...cursor?.props}
 			ref={setHeaderNodeRef}
+			// The title alone names the header (see `GridColumnHeader`).
+			aria-labelledby={titleId}
 			aria-colindex={ariaColIndex}
 			aria-sort={ariaSortValue(column.sortable && interactive, sorted, direction)}
 			data-dragging={dataAttr(isDragging)}
@@ -493,6 +507,7 @@ export function GridReorderableColumnHeaderView({
 					/>
 				)}
 				<GridColumnHeaderLabel
+					titleId={titleId}
 					column={column}
 					sorted={sorted}
 					direction={direction}

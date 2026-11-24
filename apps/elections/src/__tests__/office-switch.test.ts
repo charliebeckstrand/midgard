@@ -118,4 +118,28 @@ describe('OfficeSwitch', () => {
 
 		expect(document.activeElement?.getAttribute('aria-selected')).toBe('true')
 	})
+
+	it('moves only the focus on an arrow key, so it writes no address', async () => {
+		window.history.replaceState(null, '', '/e')
+
+		const before = window.history.length
+
+		render(h(Views))
+
+		const overview = tabIn('overview', 'Overview')
+
+		await act(async () => {
+			overview.focus()
+
+			fireEvent.keyDown(overview, { key: 'ArrowRight' })
+		})
+
+		expect(document.activeElement).toBe(tabIn('overview', 'Senate'))
+
+		expect(shows('overview')).toBe(true)
+
+		expect(window.location.pathname).toBe('/e')
+
+		expect(window.history.length).toBe(before)
+	})
 })

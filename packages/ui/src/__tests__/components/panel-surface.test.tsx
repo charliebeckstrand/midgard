@@ -5,7 +5,7 @@ import { Drawer, DrawerPanel } from '../../components/drawer'
 import { Sheet, SheetPanel } from '../../components/sheet'
 import { GlassSurfacesContext } from '../../primitives/glass/context'
 import { k } from '../../recipes/kata/panel'
-import { fireEvent, renderUI, screen } from '../helpers'
+import { attach, fireEvent, renderUI, screen } from '../helpers'
 
 type Family = {
 	name: string
@@ -13,6 +13,7 @@ type Family = {
 	Panel: ComponentType<{
 		'aria-label'?: string
 		modal?: boolean
+		container?: HTMLElement
 		footer?: ReactNode
 		children: ReactNode
 	}>
@@ -30,7 +31,14 @@ const FAMILIES: Family[] = [
  */
 describe.each(FAMILIES)('$name panel surface', ({ Root, Panel }) => {
 	/** Renders the panel. `glass` stands for the Surfaces setting of the reader. */
-	function panel({ glass = false, ...props }: { glass?: boolean; modal?: boolean } = {}) {
+	function panel({
+		glass = false,
+		...props
+	}: {
+		glass?: boolean
+		modal?: boolean
+		container?: HTMLElement
+	} = {}) {
 		renderUI(
 			<GlassSurfacesContext value={glass}>
 				<Root open onOpenChange={() => {}}>
@@ -46,6 +54,12 @@ describe.each(FAMILIES)('$name panel surface', ({ Root, Panel }) => {
 
 	it('is modal unless the consumer sets false', () => {
 		expect(panel()).toHaveAttribute('aria-modal', 'true')
+	})
+
+	it('states no aria-modal when it seals only a container', () => {
+		const container = attach(document.createElement('div'))
+
+		expect(panel({ container })).not.toHaveAttribute('aria-modal')
 	})
 
 	it('takes its own pointer events, also when it is not modal', () => {

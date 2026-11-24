@@ -14,9 +14,12 @@ function tool(overrides: Partial<ChatToolPart> = {}): ChatToolPart {
 	}
 }
 
-/** A bubble holding one step. */
+/**
+ * A bubble holding one step. The message takes no menu, so the one button that
+ * a case finds is the trigger of the step.
+ */
 function renderTool(part: ChatToolPart) {
-	return renderUI(<ChatMessage>{[part]}</ChatMessage>)
+	return renderUI(<ChatMessage contextMenu={false}>{[part]}</ChatMessage>)
 }
 
 describe('ChatTool', () => {

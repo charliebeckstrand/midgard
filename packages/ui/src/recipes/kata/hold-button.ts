@@ -12,6 +12,9 @@ const { forced } = sen
 export const k = defineKata(
 	{
 		slots: {
+			// The clip holds the fill in the box of the button. The button itself
+			// does not clip, because its TouchTarget can go past its box.
+			clip: 'pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit]',
 			// The fill shows the progress of a hold with only its background. Forced
 			// colors remove that background, so the fill paints the `Highlight` of a mark.
 			fill: [
