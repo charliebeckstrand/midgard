@@ -35,21 +35,29 @@ const { focus } = sen
 const color = { current: 'text-current', ...marker }
 
 /**
- * One star's box: the position the clipped fill is measured against. It has
- * the size of the glyph.
- */
-/**
  * The focus ring of a star. It goes around the glyph, not around the wider cell
  * of the hit area. At a half step, the star holds the two radios, so
  * `focus.outline` (`has-focus-visible`) draws it. At a whole step, the radio
  * comes before the star in the cell, so the star reads the radio as a `peer`.
+ * The `peer` ring does the swap of `focus.outline` too: inside a
+ * `[data-scroll-region]`, where `overflow-y-auto` clips an outset outline, it
+ * is a 2 px border.
  */
 const starFocus = [
 	focus.outline,
 	'peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2',
 	...mode('peer-focus-visible:outline-blue-600', 'dark:peer-focus-visible:outline-blue-500'),
+	'[[data-scroll-region]_&]:peer-focus-visible:outline-none [[data-scroll-region]_&]:peer-focus-visible:border-2',
+	...mode(
+		'[[data-scroll-region]_&]:peer-focus-visible:border-blue-600',
+		'dark:[[data-scroll-region]_&]:peer-focus-visible:border-blue-500',
+	),
 ]
 
+/**
+ * One star's box: the position the clipped fill is measured against. It has
+ * the size of the glyph.
+ */
 const star = ['relative', flex.inline, 'shrink-0', starFocus]
 
 /**

@@ -38,4 +38,34 @@ describe('Rating focus ring (real browser)', () => {
 
 		expect(star.getBoundingClientRect().width).toBe(glyph.getBoundingClientRect().width)
 	})
+
+	// `overflow-y-auto` clips an outset outline, so inside a scroll region each
+	// step draws the ring as a 2 px border of the star.
+	it.each([
+		['a whole step', 1],
+		['a half step', 0.5],
+	] as const)('draws a border, not an outline, in a scroll region at %s', async (_name, step) => {
+		renderUI(
+			<div data-scroll-region="" className="overflow-y-auto">
+				<button type="button">Before</button>
+				<Rating defaultValue={2} step={step} size="sm" />
+			</div>,
+		)
+
+		present<HTMLElement>(document.querySelector('button'), 'button').focus()
+
+		await userEvent.keyboard('{Tab}')
+
+		await frames(2)
+
+		const stars = [...document.querySelectorAll<HTMLElement>('[data-slot="rating"] *')]
+
+		expect(stars.filter((element) => getComputedStyle(element).outlineStyle === 'solid')).toEqual(
+			[],
+		)
+
+		expect(
+			stars.filter((element) => getComputedStyle(element).borderTopWidth === '2px'),
+		).toHaveLength(1)
+	})
 })

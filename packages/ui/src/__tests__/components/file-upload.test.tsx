@@ -867,6 +867,28 @@ describe('FileUpload invalidMessage', () => {
 		expect(screen.queryByRole('alert')).toBeNull()
 	})
 
+	// An alert speaks when it comes into the page. The same text again changes
+	// no node, so each refusing batch mounts a new Message.
+	it('mounts a new Message for each refusing batch', () => {
+		const { container } = renderUI(
+			<FileUploadDrop accept="image/*" invalidMessage="Pick an image.">
+				Upload
+			</FileUploadDrop>,
+		)
+
+		selectFiles(container, [notes])
+
+		const first = screen.getByRole('alert')
+
+		selectFiles(container, [new File(['y'], 'more.txt', { type: 'text/plain' })])
+
+		const second = screen.getByRole('alert')
+
+		expect(second).toHaveTextContent('Pick an image.')
+
+		expect(second).not.toBe(first)
+	})
+
 	it('drops the refusal at a clear', () => {
 		const { container } = renderUI(
 			<FileUploadButton multiple maxCount={1}>

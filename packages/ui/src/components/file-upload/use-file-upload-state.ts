@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, useCallback, useState } from 'react'
+import { createElement, Fragment, type ReactNode, useCallback, useState } from 'react'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
@@ -118,6 +118,11 @@ export function useFileUploadState(props: FileUploadSharedProps): FileUploadRend
 	// clear, or reset. The default text gives them back with their reasons.
 	const [refused, setRefused] = useState<readonly FileRejection[]>([])
 
+	// Counts the batches that refuse files. An alert speaks when it comes into
+	// the page, and a Message with the same text as the last one changes no
+	// node. Each refusing batch thus mounts a new Message (WCAG 4.1.3).
+	const [refusals, setRefusals] = useState(0)
+
 	// A single-file component takes one file at most. The picker holds to that,
 	// but a drop can carry many.
 	const limit = multiple ? maxCount : Math.min(maxCount ?? 1, 1)
@@ -144,6 +149,8 @@ export function useFileUploadState(props: FileUploadSharedProps): FileUploadRend
 			setRefused(rejected)
 
 			setInvalid(rejected.length > 0)
+
+			if (rejected.length > 0) setRefusals((count) => count + 1)
 		},
 		[setInvalid],
 	)
@@ -171,7 +178,7 @@ export function useFileUploadState(props: FileUploadSharedProps): FileUploadRend
 		readOnly,
 		invalid,
 		describedBy: verdict.describedBy,
-		refusal: verdict.message,
+		refusal: createElement(Fragment, { key: refusals }, verdict.message),
 		hasFiles,
 		showTooltip: Boolean(multiple && handlers.files.length > 1),
 		hiddenInput: {
