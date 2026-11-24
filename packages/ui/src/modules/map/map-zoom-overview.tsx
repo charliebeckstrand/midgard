@@ -65,12 +65,13 @@ function MapZoomOverviewInset({
 }: MapZoomOverviewProps & { zoom: MapZoom }) {
 	const view = { width: viewWidth, height: viewHeight }
 
-	// The box of the thumbnail while a press holds it, else `null`. It is read
-	// once when the press lands: the press moves the view and not the inset, so
-	// the box holds for the whole drag, and a move does not force a layout after
-	// the transform it just wrote. The SVG fills the inset, so the inset's box is
-	// the SVG's.
-	const box = useRef<MapClientBox | null>(null)
+	// The press that holds the thumbnail, else `null`: its pointer and the box of
+	// the thumbnail. The box is read once when the press lands: the press moves
+	// the view and not the inset, so the box holds for the whole drag, and a move
+	// does not force a layout after the transform it just wrote. The SVG fills the
+	// inset, so the inset's box is the SVG's. Only that pointer aims the view and
+	// ends the press, so a second finger on the inset does neither.
+	const press = useRef<{ pointerId: number; box: MapClientBox } | null>(null)
 
 	// A press drags the view, so it holds the closed hand on the page, as a pan
 	// on the plot does.
@@ -86,9 +87,16 @@ function MapZoomOverviewInset({
 	}
 
 	function aim(event: PointerEvent<HTMLElement>) {
-		const at =
-			box.current &&
-			clientToFrame({ x: event.clientX, y: event.clientY }, box.current, view.width, view.height)
+		const held = press.current
+
+		if (held === null || held.pointerId !== event.pointerId) return
+
+		const at = clientToFrame(
+			{ x: event.clientX, y: event.clientY },
+			held.box,
+			view.width,
+			view.height,
+		)
 
 		if (at) zoom.cursor.center(at)
 	}
@@ -104,7 +112,10 @@ function MapZoomOverviewInset({
 
 		event.currentTarget.setPointerCapture(event.pointerId)
 
-		box.current = event.currentTarget.getBoundingClientRect()
+		press.current = {
+			pointerId: event.pointerId,
+			box: event.currentTarget.getBoundingClientRect(),
+		}
 
 		cursorHold.start()
 
@@ -120,7 +131,9 @@ function MapZoomOverviewInset({
 	function onPointerEnd(event: PointerEvent<HTMLElement>) {
 		event.stopPropagation()
 
-		box.current = null
+		if (press.current?.pointerId !== event.pointerId) return
+
+		press.current = null
 
 		cursorHold.end()
 	}
