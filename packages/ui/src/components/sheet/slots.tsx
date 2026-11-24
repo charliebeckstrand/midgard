@@ -52,7 +52,9 @@ const ClosableHeader = createPanelHeader('sheet', Header)
 export {
 	/**
 	 * The body of a sheet, which scrolls when its content is tall. It is a `<div>`
-	 * that fills the remaining height.
+	 * that fills the remaining height. Its side inset is a margin, so the focus
+	 * ring of the body shows inside the panel. Give `mx-0`, not `px-0`, for a body
+	 * as wide as the panel.
 	 */
 	Body as SheetBody,
 	/**

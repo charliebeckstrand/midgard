@@ -51,6 +51,9 @@ const rowY = 'density-py-[0.5,1,1.5,2,2.5]'
  */
 const itemX = scale.px.md
 
+/** The inline padding of a menu item, as a margin. */
+const itemMx = 'density-mx-[1.5,2.25,3,3.75,4.5]'
+
 /** The bottom padding of a tab and of an accordion body: the `lg` stop of the padding scale. */
 const bottom = 'density-pb-[2,3,4,5,6]'
 
@@ -114,6 +117,13 @@ export const space = {
 	panel: {
 		/** The inset at the left edge and at the right edge, on the panel or on each slot. */
 		x: scale.px.xl,
+		/**
+		 * The inset at the left edge and at the right edge of a body that is as wide
+		 * as its panel: a drawer body and a sheet body. It is a margin, because the
+		 * focus ring of a body that scrolls goes outside the body. In the padding of
+		 * the body, the panel clipped the ring at the sides.
+		 */
+		mx: 'density-mx-[3,4.5,6,7.5,9]',
 		/**
 		 * The negative bottom margin that cancels the slot gap of a panel
 		 * (`gap.scale.lg`) under a child that is the edge of the panel, not one of
@@ -380,13 +390,15 @@ export const space = {
 		item: {
 			/** The inline padding of a menu item. */
 			x: itemX,
+			/** The inline padding of a menu item, as a margin. */
+			mx: itemMx,
 		},
 		separator: {
 			/**
 			 * The inline margin of a menu separator: the inline padding of a menu item.
 			 * The rule starts and ends where the content of a row starts and ends.
 			 */
-			x: 'density-mx-[1.5,2.25,3,3.75,4.5]',
+			x: itemMx,
 			/**
 			 * The block margin of a menu separator, as `--ui-menu-separator`. The space
 			 * between the rule and the content of the row on each side is the same as

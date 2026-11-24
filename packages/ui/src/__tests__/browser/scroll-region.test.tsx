@@ -2,7 +2,9 @@ import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { CodeBlock, type CodeBlockProps, primeCodeBlock } from '../../components/code'
 import { Dialog, DialogBody, DialogPanel } from '../../components/dialog'
+import { Drawer, DrawerBody, DrawerPanel } from '../../components/drawer'
 import { PdfViewer } from '../../components/pdf-viewer'
+import { Sheet, SheetBody, SheetPanel } from '../../components/sheet'
 import {
 	Table,
 	TableBody,
@@ -366,6 +368,61 @@ describe('panel body', () => {
 		await frames()
 
 		expect(body().hasAttribute('tabindex')).toBe(false)
+	})
+})
+
+// A drawer body and a sheet body are as wide as their panel, and the panel
+// clips. Their inset at the sides is a margin, so the focus ring of the body
+// goes in that margin and shows on each side.
+describe('drawer and sheet body focus ring', () => {
+	it.for([
+		[
+			'DrawerBody',
+			'drawer',
+			<Drawer key="drawer" open onOpenChange={() => {}}>
+				<DrawerPanel aria-label="Terms">
+					<DrawerBody style={{ maxHeight: 100 }}>
+						<div style={{ height: 500 }} />
+					</DrawerBody>
+				</DrawerPanel>
+			</Drawer>,
+		],
+		[
+			'SheetBody',
+			'sheet',
+			<Sheet key="sheet" open onOpenChange={() => {}}>
+				<SheetPanel aria-label="Terms">
+					<SheetBody style={{ maxHeight: 100 }}>
+						<div style={{ height: 500 }} />
+					</SheetBody>
+				</SheetPanel>
+			</Sheet>,
+		],
+	] as const)('%s keeps its ring inside the panel', async ([, slot, ui]) => {
+		renderUI(ui)
+
+		const body = present(
+			document.querySelector<HTMLElement>(`[data-slot="${slot}-body"]`),
+			'the body',
+		)
+
+		await waitFor(() => expect(body.getAttribute('tabindex')).toBe('0'))
+
+		const panel = present(document.querySelector<HTMLElement>(`[data-slot="${slot}"]`), 'the panel')
+
+		const style = getComputedStyle(body)
+
+		const reach = Number.parseFloat(style.outlineWidth) + Number.parseFloat(style.outlineOffset)
+
+		const box = body.getBoundingClientRect()
+
+		const frame = panel.getBoundingClientRect()
+
+		expect(reach).toBeGreaterThan(0)
+
+		expect(box.left - reach).toBeGreaterThanOrEqual(frame.left)
+
+		expect(box.right + reach).toBeLessThanOrEqual(frame.right)
 	})
 })
 

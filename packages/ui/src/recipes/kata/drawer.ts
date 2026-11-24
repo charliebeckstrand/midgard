@@ -86,7 +86,7 @@ export const k = defineKata(
 			],
 			description: [space.panel.x, 'in-data-[slot=drawer-header]:px-0'],
 			footer: [space.panel.x, space.panel.bottom],
-			body: ['flex-1', space.panel.x, space.panel.first.drawer, space.panel.last.drawer],
+			body: ['flex-1', space.panel.mx, space.panel.first.drawer, space.panel.last.drawer],
 			/**
 			 * The optional wrapper around the body and the footer. `half` and `full` fix
 			 * the height of the panel. The wrapper fills that height, so the body can

@@ -44,7 +44,11 @@ const Close = createPanelClose('drawer')
 const ClosableHeader = createPanelHeader('drawer', Header)
 
 export {
-	/** `<div>` scroll region for the drawer's main content; fills remaining height and scrolls on overflow. */
+	/**
+	 * `<div>` scroll region for the drawer's main content; fills remaining height and scrolls on overflow.
+	 * Its side inset is a margin, so the focus ring of the body shows inside the
+	 * panel. Give `mx-0`, not `px-0`, for a body as wide as the panel.
+	 */
 	Body as DrawerBody,
 	/**
 	 * `<div>` header of the drawer: the title and the description, or a row such as

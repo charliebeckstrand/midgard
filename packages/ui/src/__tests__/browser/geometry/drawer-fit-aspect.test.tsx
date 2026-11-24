@@ -88,7 +88,7 @@ function Probe({ app }: { app: boolean }) {
 						<DrawerTitle>Texas › Governor</DrawerTitle>
 					</DrawerHeader>
 
-					<DrawerBody className="px-0">
+					<DrawerBody className="mx-0">
 						{app ? (
 							<Container size="lg" padding="lg" className="h-auto">
 								<div className="max-w-[440px]">{content}</div>
