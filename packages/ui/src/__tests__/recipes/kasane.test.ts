@@ -34,9 +34,9 @@ describe('kasane.softLayers', () => {
 		expect(softLayers).toEqual(
 			expect.arrayContaining([
 				'bg-zinc-950/5',
-				'dark:bg-white/10',
+				'dark:bg-white/5',
 				'not-has-[>:disabled]:hover:bg-zinc-950/10',
-				'not-has-[>:disabled]:dark:hover:bg-white/20',
+				'not-has-[>:disabled]:dark:hover:bg-white/10',
 			]),
 		)
 	})

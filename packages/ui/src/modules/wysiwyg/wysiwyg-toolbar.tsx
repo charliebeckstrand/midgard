@@ -4,9 +4,7 @@ import { Fragment } from 'react'
 import { Toolbar, ToolbarGroup, ToolbarSeparator } from '../../components/toolbar'
 import { cn } from '../../core/cn'
 import { keepFocusOnPress } from '../../primitives/control/control-keep-focus-on-press'
-import { useHeadlessSlots } from '../../primitives/headless/use-headless-slots'
 import { useIntl } from '../../primitives/intl/use-intl'
-import { k } from '../../recipes/kata/wysiwyg'
 import { useWysiwyg } from './context'
 import type { WysiwygAction } from './types'
 import { WysiwygActionButton } from './wysiwyg-action-button'
@@ -53,8 +51,8 @@ function actionGroups(actions: readonly WysiwygAction[]) {
 
 /**
  * The formatting toolbar of a {@link Wysiwyg}. Give it as a child of the
- * Wysiwyg, and it renders in the row above the field. `actions` sets which
- * buttons it shows.
+ * Wysiwyg, and it renders in the row above the field, or above the frame with
+ * `separated` on the Wysiwyg. `actions` sets which buttons it shows.
  *
  * Each text and block action is a toggle button with `aria-pressed`, which
  * shows whether the action is on at the selection. Link opens a popover with
@@ -73,11 +71,9 @@ export function WysiwygToolbar({
 	'aria-label': ariaLabel,
 	className,
 }: WysiwygToolbarProps) {
-	const { fieldId } = useWysiwyg()
+	const { fieldId, toolbarClassName } = useWysiwyg()
 
 	const intl = useIntl()
-
-	const slots = useHeadlessSlots(k, {})
 
 	return (
 		<Toolbar
@@ -86,7 +82,7 @@ export function WysiwygToolbar({
 			// The buttons take the affix step, one below the field, as the buttons
 			// of the actions row do.
 			data-density="slot"
-			className={cn(slots.toolbar, className)}
+			className={cn(toolbarClassName, className)}
 			onMouseDown={keepFocusOnPress}
 		>
 			{actionGroups(actions).map((group, index) => (

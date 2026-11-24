@@ -15,6 +15,11 @@ export type WysiwygContextValue = {
 	ready: boolean
 	/** Whether the field takes no edit, because it is disabled or read-only. */
 	locked: boolean
+	/**
+	 * The classes of the toolbar, which the surface of the field and
+	 * `separated` set.
+	 */
+	toolbarClassName: string
 	/** Subscribes to each new state of the editor. */
 	subscribe: (listener: () => void) => () => void
 	/** Whether an action is on at the selection. */

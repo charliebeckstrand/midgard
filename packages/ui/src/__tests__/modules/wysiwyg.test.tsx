@@ -171,6 +171,37 @@ describe('Wysiwyg', () => {
 		expect(screen.getByRole('button', { name: 'Bold' })).toHaveAttribute('aria-disabled', 'true')
 	})
 
+	it('shows no action as on while read-only', async () => {
+		renderUI(
+			<Wysiwyg aria-label="Guide" defaultValue="**Bold**" readOnly>
+				<WysiwygToolbar actions={['bold']} />
+			</Wysiwyg>,
+		)
+
+		await loadEditor()
+
+		// The caret starts in the bold text.
+		expect(screen.getByRole('button', { name: 'Bold' })).toHaveAttribute('aria-pressed', 'false')
+	})
+
+	it('puts a separated toolbar above the frame, out of it', () => {
+		const { container } = renderUI(
+			<Wysiwyg aria-label="Notes" separated>
+				<WysiwygToolbar />
+			</Wysiwyg>,
+		)
+
+		const frame = getSlot(container, 'control-frame')
+
+		const toolbar = screen.getByRole('toolbar')
+
+		expect(frame).not.toContainElement(toolbar)
+
+		expect(frame).toContainElement(screen.getByRole('textbox'))
+
+		expect(getSlot(container, 'wysiwyg-root').firstElementChild).toBe(toolbar)
+	})
+
 	it('dims the frame of a disabled field and drops its tab stop', () => {
 		const { container } = renderUI(<Wysiwyg aria-label="Guide" disabled />)
 

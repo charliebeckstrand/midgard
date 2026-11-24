@@ -11,13 +11,16 @@
  * `--wysiwyg-placeholder` string of the field.
  */
 import { defineKata } from '../../core/recipe'
-import { hannou, kokkaku } from '../kiso'
-import { multiline } from '../kumi/control'
+import { dan, hannou, kokkaku } from '../kiso'
+import { framed, multiline } from '../kumi/control'
 
 export { scale } from '../kumi/control'
 
 const { textarea } = kokkaku
 const { disabled } = hannou
+
+/** The variants that draw a frame, and so give the field and the toolbar an inset. */
+const FRAMED = ['default', 'outline', 'soft', 'glass'] as const
 
 export const k = defineKata(
 	{
@@ -28,6 +31,14 @@ export const k = defineKata(
 		 * textarea does.
 		 */
 		base: disabled.base,
+		/**
+		 * Whether a toolbar is above the field and no row of actions is below it.
+		 * The field is then the last row, and its end padding matches the inset of
+		 * the toolbar.
+		 */
+		toolbar: { true: [], false: [] },
+		/** Whether the toolbar is above the frame, apart from the field. */
+		separated: { true: [], false: [] },
 		slots: {
 			/** The element that holds the field, and the markup of the server render before the editor loads. */
 			host: 'block w-full min-w-0',
@@ -82,13 +93,38 @@ export const k = defineKata(
 						'dark:[&[data-empty]>:first-child]:before:text-zinc-400',
 					],
 				},
+				/**
+				 * The end padding of the last row below a toolbar in a framed field: the
+				 * inline padding of the field, so the text has the inset of the glyphs
+				 * of the toolbar on each side. A bare field has no inset.
+				 */
+				compound: FRAMED.map((variant) => ({
+					variant,
+					toolbar: true,
+					class: dan.space.control.toolbar.bottom,
+				})),
 			},
 			/**
-			 * The toolbar above the field. Its padding mirrors the actions row below
-			 * the field, and the Toolbar sets its gap.
+			 * The toolbar above the field. In a framed field, its padding and the
+			 * padding of a bare button add up to the inline padding of the field, so
+			 * each glyph of the toolbar has the inset of the text on the top, the
+			 * start, and the end. A separated toolbar is above the frame, and it keeps
+			 * only the inline padding, so its glyphs line up with the text. A bare
+			 * field has no inset, so its toolbar has no padding. The Toolbar sets its
+			 * gap.
 			 */
-			toolbar: 'ps-2 pe-2 pt-2',
+			toolbar: {
+				variant: framed(dan.space.control.toolbar.x),
+				compound: FRAMED.map((variant) => ({
+					variant,
+					separated: false,
+					class: dan.space.control.toolbar.top,
+				})),
+			},
+			/** The column of a separated toolbar and the frame below it. */
+			root: ['flex flex-col', dan.gap.scale.sm],
 		},
+		defaults: { toolbar: false, separated: false },
 	},
 	{ skeleton: textarea },
 )

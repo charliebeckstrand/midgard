@@ -10,7 +10,6 @@
  */
 
 import { mode } from '../../../core/recipe'
-import { bg } from '../omote/bg'
 import { forced } from '../sen/forced'
 import { ring } from '../sen/ring'
 
@@ -115,22 +114,23 @@ const disabled = [
 /**
  * The fill of a soft control: a translucent wash in place of the base ring.
  * The wash reads on any surface, a glass panel included, because it tints what
- * is behind it. At rest it is `omote.bg.tint`: 5% zinc on light, 10% white on
- * dark. Hover doubles it, as `hannou.tint.filled` does: 10% zinc on light, 20%
- * white on dark. Each mode darkens or lightens its own ground, so the two modes
- * have the same weight. Hover skips a disabled control, like `hover`.
+ * is behind it. It is no heavier than the fill of a default control: 5% zinc on
+ * light, and 5% white on dark, which is the dark fill of `surface.default`.
+ * Hover doubles it: 10% zinc on light, 10% white on dark. A soft control thus
+ * has the weight of a default control without its ring. Hover skips a disabled
+ * control, like `hover`.
  *
  * Forced colors replace the wash with the page color, so the wash takes the
  * outline of `sen.forced` at the place of the 1 px inset ring that it replaces
  * (CONVENTIONS §5.10).
  */
 const wash = [
-	...bg.tint,
+	...mode('bg-zinc-950/5', 'dark:bg-white/5'),
 	forced.outline,
 	'forced-colors:-outline-offset-1',
 	...mode(
 		'not-has-[>:disabled]:hover:bg-zinc-950/10',
-		'not-has-[>:disabled]:dark:hover:bg-white/20',
+		'not-has-[>:disabled]:dark:hover:bg-white/10',
 	),
 ]
 

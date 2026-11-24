@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Wysiwyg, WysiwygToolbar } from '../../modules/wysiwyg'
-import { renderUI, screen, waitFor } from '../helpers'
+import { present, renderUI, screen, waitFor } from '../helpers'
 
 /** A field that shows its Markdown value. */
 function Notes({ initial = '', onEnter }: { initial?: string; onEnter?: () => void }) {
@@ -123,6 +123,38 @@ describe('Wysiwyg (real browser)', () => {
 		await userEvent.keyboard('{Control>}z{/Control}')
 
 		expect(value()).toBe('Ship it')
+	})
+
+	it('is inert while read-only: a press shows no action as on, and no shortcut edits', async () => {
+		const onValueChange = vi.fn()
+
+		renderUI(
+			<Wysiwyg
+				aria-label="Notes"
+				defaultValue="**Bold** text"
+				readOnly
+				onValueChange={onValueChange}
+			>
+				<WysiwygToolbar />
+			</Wysiwyg>,
+		)
+
+		await userEvent.click(screen.getByRole('textbox'))
+
+		// The editor replaces the field of the server render, and it shows the formatting.
+		await waitFor(() => expect(screen.getByRole('textbox').querySelector('strong')).not.toBeNull())
+
+		const field = screen.getByRole('textbox')
+
+		await userEvent.tripleClick(present(field.querySelector('strong'), 'the bold text'))
+
+		await userEvent.keyboard('{Control>}b{/Control}')
+
+		expect(screen.getByRole('button', { name: 'Bold' })).toHaveAttribute('aria-pressed', 'false')
+
+		expect(field.querySelector('strong')).not.toBeNull()
+
+		expect(onValueChange).not.toHaveBeenCalled()
 	})
 
 	it('grows with its content up to the max height, and then scrolls', async () => {

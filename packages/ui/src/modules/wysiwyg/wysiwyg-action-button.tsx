@@ -64,6 +64,7 @@ export function WysiwygActionButton({
 			data-slot="wysiwyg-action"
 			{...props}
 			data-action={action}
+			variant="bare"
 			aria-pressed={toggle ? active : undefined}
 			aria-keyshortcuts={shortcutAria(shortcut, apple)}
 			label={label}

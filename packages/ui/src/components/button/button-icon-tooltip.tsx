@@ -41,7 +41,15 @@ type ButtonIconTooltipProps = {
 	 */
 	tooltipPlacement?: FloatingPlacement
 	/**
-	 * Held-down treatment: `soft`'s wash while on, `plain` while off.
+	 * The look of the button while it is off: `plain`, or `bare` for a denser
+	 * bar, such as the toolbar of a Wysiwyg.
+	 * @defaultValue 'plain'
+	 */
+	variant?: 'plain' | 'bare'
+	/**
+	 * Held-down treatment: `soft`'s wash while on, `plain` while off. A `bare`
+	 * button keeps its variant while on, and takes the same wash through
+	 * `data-active`, because the padding of `soft` would change its size.
 	 *
 	 * @remarks The quietest fill that still reads as held down. It leaves the button the same
 	 * size, so a bar does not reflow as a control flips. Left on the default zinc, because
@@ -94,6 +102,7 @@ export function ButtonIconTooltip({
 	tooltip,
 	tooltipPlacement,
 	active = false,
+	variant = 'plain',
 	onClick,
 	...props
 }: ButtonIconTooltipProps) {
@@ -106,7 +115,8 @@ export function ButtonIconTooltip({
 					lockable={false}
 					{...props}
 					type="button"
-					variant={active ? 'soft' : 'plain'}
+					variant={active && variant === 'plain' ? 'soft' : variant}
+					data-active={dataAttr(active && variant === 'bare')}
 					aria-label={label}
 					aria-disabled={ariaAttr(disabled)}
 					data-disabled={dataAttr(disabled)}

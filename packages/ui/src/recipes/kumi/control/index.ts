@@ -16,7 +16,7 @@
  */
 
 import { defineGroup } from '../../../core/recipe'
-import { dan, hannou, iro, narabi, omote, sen, sou, ugoki } from '../../kiso'
+import { dan, hannou, iro, narabi, omote, sou, ugoki } from '../../kiso'
 import { affix } from './affix'
 import { density, inset } from './density'
 import { chrome, frame, softChrome, softPlaceholder } from './frame'
@@ -27,7 +27,6 @@ export { scale } from './density'
 
 const { cursor } = hannou
 const { fit, flex } = narabi
-const { border } = sen
 
 /**
  * The classes of a slot under each surface. The framed surfaces take
@@ -81,10 +80,11 @@ export const control = defineGroup({
 export const multiline = defineGroup({
 	extends: control,
 	/**
-	 * The frame when a row of actions is present: it draws the border, and it
-	 * stacks the field above the row.
+	 * The frame when a row of actions is present: it stacks the field above the
+	 * row. The surface of the frame draws its edge, as for a single field, so a
+	 * soft or a bare frame has no border.
 	 */
-	actions: { true: [...border.default, 'flex-col items-stretch'], false: [] },
+	actions: { true: 'flex-col items-stretch', false: [] },
 	slots: {
 		field: {
 			base: 'block',
@@ -99,9 +99,14 @@ export const multiline = defineGroup({
 		},
 		/**
 		 * The row of actions beneath the field, at the inline end. Its gap also caps
-		 * the hit areas of the actions (`TouchTarget`), so they do not overlap.
+		 * the hit areas of the actions (`TouchTarget`), so they do not overlap. A
+		 * framed row has an inset from the edge of the frame. A `bare` row has none,
+		 * as a `bare` field has none.
 		 */
-		actions: [flex.row, 'justify-end mt-auto', dan.gap.scale.sm, 'pe-2 pb-2', dan.gap.touch.x.sm],
+		actions: {
+			base: [flex.row, 'justify-end mt-auto', dan.gap.scale.sm, dan.gap.touch.x.sm],
+			variant: framed('pe-2 pb-2'),
+		},
 	},
 	defaults: { actions: false },
 })

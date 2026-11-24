@@ -53,8 +53,14 @@ export const k = defineKata(
 			plain: focus.inset,
 			// Icon-only floor: a square pad per step keeps an icon-only bare button
 			// even-sided. `not-data-has-label` yields to the base padding once a
-			// label is present.
-			bare: [focus.inset, dan.space.button.bare],
+			// label is present. A held-down bare button (`data-active`) takes a wash
+			// of its text, as the fill of a soft zinc button, and keeps its size.
+			bare: [
+				focus.inset,
+				dan.space.button.bare,
+				'data-active:bg-current/15',
+				'forced-colors:data-active:outline-solid forced-colors:data-active:outline-1',
+			],
 		},
 		// The colors at rest in the standard and the extended hues, and the hover,
 		// from the palette of iro. `inherit` takes the text color around the button.
