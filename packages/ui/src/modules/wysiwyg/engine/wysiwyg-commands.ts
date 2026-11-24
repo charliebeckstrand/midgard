@@ -309,8 +309,9 @@ function relink(tr: Transaction, from: number, to: number, mark: Mark | null): T
 }
 
 /**
- * Replaces a range with the text of a link, with the marks of the start of
- * the range, and selects the text, or puts a caret after it.
+ * Replaces a range with the text of a link. The text takes the marks of the
+ * start of the range. A selection then selects the text, and a caret goes
+ * after it.
  *
  * @internal
  */

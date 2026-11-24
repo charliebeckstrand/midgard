@@ -22,9 +22,9 @@ import { wysiwygActions, wysiwygMessages } from './wysiwyg-actions'
  * no `aria-pressed`. It shows the held-down fill while the caret is in a link.
  * The text field holds the selected text, or the text of the link at a caret.
  * While the popover is open, the field marks that text, or the caret, as the
- * focus is in the popover. Apply sets the text and the link: a selection stays
- * selected, and at a caret outside a link, the text goes in at the caret. With
- * no text, the URL is the text. Apply and Remove link move the focus back to
+ * focus is in the popover. Apply sets the text and the link, and a selection
+ * stays selected. At a caret outside a link, the text goes in at the caret.
+ * With no text, the URL is the text. Apply and Remove link move the focus back to
  * the field. Escape and an outside press close the popover, and the focus goes
  * back to the button.
  * @internal

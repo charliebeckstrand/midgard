@@ -74,8 +74,8 @@ export type WysiwygEditor = {
 	/** The text and the URL of the selection, or of the link at a caret. */
 	linkDraft: () => { text: string; href: string }
 	/**
-	 * Marks the range of the link action while the focus is out of the field,
-	 * such as in the link popover, or removes the mark with `false`.
+	 * Marks the range of the link action while the focus is in the link
+	 * popover. `false` removes the mark.
 	 */
 	hold: (held: boolean) => void
 	destroy: () => void
