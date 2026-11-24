@@ -1,11 +1,10 @@
 'use client'
 
 import { useComposedRefs } from 'motion/react'
-import { type ComponentProps, type MouseEvent, type ReactNode, useRef } from 'react'
+import { type ComponentProps, type ReactNode, useRef } from 'react'
 import { cn } from '../../core/cn'
 import type { ScaleStep } from '../../core/density/scale'
-import { ControlFrame } from '../../primitives/control'
-import { HeadlessShell } from '../../primitives/headless/headless-shell'
+import { ControlActions, ControlFrame } from '../../primitives/control'
 import { useHeadlessSlots } from '../../primitives/headless/use-headless-slots'
 import type { scale } from '../../recipes/kata/textarea'
 import { k, type TextareaVariants } from '../../recipes/kata/textarea'
@@ -71,13 +70,10 @@ export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
  * because that property ignores `rows` and is not in each browser at the
  * floor. With `actions`, the frame stacks the field above a right-justified
  * actions row.
- * A press on a button in the actions row, or on the empty part of the row,
- * cancels the default of its `mousedown`, so the focus stays where it was. Thus a press does not show the
- * focus ring of the frame, and it does not take the focus from the field.
- * The Tab key still moves the focus to the buttons. Under
- * `<HeadlessProvider>`, the row renders no element to hold this guard. The
- * consumer owns the structure there, so it cancels the `mousedown` on its
- * own buttons if it needs to.
+ * The actions row is a {@link ControlActions}: a press on a button in the
+ * row, or on the empty part of the row, does not move the focus. Thus a press
+ * does not show the focus ring of the frame, and it does not take the focus
+ * from the field.
  * With `resize`, a touch device gets a grip of its own on the edge that the
  * drag moves, because Safari on iOS and iPadOS draws no native grip.
  * A set `size` opens a density scope. The actions row gets the affix size, one
@@ -158,38 +154,11 @@ export function Textarea({
 		<ControlFrame density={size} className={cn(slots.base)}>
 			{textarea}
 			{axis !== 'none' && <TextareaGrip field={fieldRef} axis={axis} className={cn(slots.grip)} />}
-			{/* The ControlFrame is a `<span>`, so the actions row is a `<span>` too. */}
 			{hasActions && (
-				<HeadlessShell
-					data-slot="textarea-actions"
-					data-density="slot"
-					className={cn(slots.actions)}
-					onMouseDown={keepFocusOnPress}
-				>
+				<ControlActions data-slot="textarea-actions" className={cn(slots.actions)}>
 					{actions}
-				</HeadlessShell>
+				</ControlActions>
 			)}
 		</ControlFrame>
 	)
-}
-
-/**
- * Cancels the focus move of a press on a button in the actions row, or on the
- * empty part of the row. The frame looks like one field, so the focus stays
- * where it was. The click still fires. A press on another control, such as a
- * `<select>`, keeps its default, because that control opens or takes text on
- * the press.
- */
-function keepFocusOnPress(event: MouseEvent<HTMLElement>) {
-	if (!(event.target instanceof Element)) return
-
-	if (event.target === event.currentTarget) {
-		event.preventDefault()
-
-		return
-	}
-
-	const button = event.target.closest('button, [role="button"]')
-
-	if (button && event.currentTarget.contains(button)) event.preventDefault()
 }
