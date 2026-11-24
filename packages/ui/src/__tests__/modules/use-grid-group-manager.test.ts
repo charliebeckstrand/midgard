@@ -50,8 +50,10 @@ function setup(groups: GridColumnGroup[] = baseGroups) {
 
 	const order = columns.map((c) => c.id)
 
+	const shown = new Set(order.map(String))
+
 	const hook = renderHook(() =>
-		useGridGroupManager({ groups, onGroupsChange, columns, order, onOrderChange }),
+		useGridGroupManager({ groups, onGroupsChange, columns, order, onOrderChange, shown }),
 	)
 
 	return { hook, onGroupsChange, onOrderChange }

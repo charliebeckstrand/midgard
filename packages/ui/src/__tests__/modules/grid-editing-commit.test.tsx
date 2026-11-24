@@ -167,6 +167,46 @@ describe('Grid commitOn', () => {
 		await expectAnnouncement('Name: Required', 'assertive')
 	})
 
+	// A hidden column shows no editor and no message, so its refused cell does
+	// not hold the save. It drops as on a leave, and `onReject` gets it.
+	it('saves the row when the refused cell is in a hidden column', () => {
+		const onCommit = vi.fn()
+
+		const onReject = vi.fn()
+
+		const ui = (hidden: Set<string>) => (
+			<Grid
+				columns={requiredName}
+				rows={sessionRows}
+				getKey={(row) => row.id}
+				editable={{ session: 'managed', scope: 'row', onCommit, onReject }}
+				columnManager={{ hidden }}
+			/>
+		)
+
+		const view = renderUI(ui(new Set()))
+
+		const name = present(view.container.querySelector('td[data-grid-col="name"]'), 'name cell')
+
+		fireEvent.doubleClick(name)
+
+		fireEvent.change(getSlot<HTMLInputElement>(view.container, 'grid-edit-input'), {
+			target: { value: '' },
+		})
+
+		view.rerender(ui(new Set(['name'])))
+
+		const count = getSlot<HTMLInputElement>(view.container, 'grid-edit-number-input')
+
+		moveFocus(count)
+
+		fireEvent.keyDown(count, { key: 'Enter' })
+
+		expect(onReject).toHaveBeenCalledOnce()
+
+		expect(editorsIn(view.container)).toHaveLength(0)
+	})
+
 	for (const scope of scopes) {
 		describe(`under scope '${scope}'`, () => {
 			it("commits nothing when focus leaves the grid under the default 'explicit'", () => {

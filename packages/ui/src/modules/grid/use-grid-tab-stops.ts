@@ -97,6 +97,11 @@ export function useGridTabStops(
 		// nothing in the grid, holds focus.
 		let entered: Element | null = null
 
+		// The element in the grid that holds focus, or that held it last while
+		// focus stays in the grid or in a floating surface of the grid. `null`
+		// once focus leaves the grid.
+		let focused: Element | null = null
+
 		// The walk visits each of `roots` that is in the document, and each element
 		// that a pending record names: a commit can change the rows and move focus
 		// in one task, before the observer runs. The walk writes only the
@@ -112,15 +117,18 @@ export function useGridTabStops(
 			watcher.takeRecords()
 		}
 
-		// A control that held focus and left the document, as in a removed row or
-		// a row that the window unmounts, drops focus to the page. The `<table>`,
-		// the tab stop of the cursor, then takes focus back, so the keys stay in
-		// the grid (WCAG 2.4.3). The cursor stays on its cell, and the focus does
-		// not scroll the window back. Returns whether it took focus back.
-		const regain = (from: EventTarget | null): boolean => {
-			if (unit !== GRID_CELL || !(from instanceof Element)) return false
+		// A control that held focus and left the document, as in a removed row, a
+		// row that the window unmounts, or a control that swaps for another in its
+		// cell, drops focus to the page. The `<table>`, the tab stop of the
+		// cursor, then takes focus back, so the keys stay in the grid (WCAG
+		// 2.4.3). The cursor stays on its cell, and the focus does not scroll the
+		// window back. Both the observer and the blur read the same element, so
+		// the result does not change with the browser. Returns whether it took
+		// focus back.
+		const regain = (): boolean => {
+			if (unit !== GRID_CELL || focused === null) return false
 
-			if (from.isConnected || !focusIsLost()) return false
+			if (focused.isConnected || !focusIsLost()) return false
 
 			table.focus({ preventScroll: true })
 
@@ -130,7 +138,7 @@ export function useGridTabStops(
 		// A browser that sends no blur for a removal leaves the cell open. The
 		// observer then finds it gone.
 		const observer = new MutationObserver((records, self) => {
-			regain(entered)
+			regain()
 
 			normalize(self, changedElements(records))
 		})
@@ -148,18 +156,32 @@ export function useGridTabStops(
 			normalize(observer, [left, next])
 		}
 
-		const onFocusIn = (event: FocusEvent) => follow(event.target)
+		const onFocusIn = (event: FocusEvent) => {
+			const { target } = event
+
+			if (target instanceof Element && table.contains(target)) focused = target
+			else if (scopeFor(target, table, unit) !== undefined) focused = null
+
+			follow(target)
+		}
 
 		// Focus that goes to no element, as a press on the page does, closes the
 		// cell. A switch of the window keeps it, so focus comes back to the same
 		// control. A browser that sends a blur for a removal sends it while the
 		// control is still in the document. The removal ends in the same task, so
-		// a microtask reads its result (see `regain`).
+		// a microtask reads its result (see `regain`). The microtask reads where
+		// focus is then, not the order of the events: a control that took focus
+		// in the same task, as an `autoFocus` control that replaces the one that
+		// left, keeps its cell open.
 		const onFocusOut = (event: FocusEvent) => {
 			if (event.relatedTarget !== null || !document.hasFocus()) return
 
 			queueMicrotask(() => {
-				if (!regain(event.target)) follow(null)
+				if (regain() || table.contains(document.activeElement)) return
+
+				focused = null
+
+				follow(null)
 			})
 		}
 
@@ -173,6 +195,10 @@ export function useGridTabStops(
 			attributes: true,
 			attributeFilter: ['tabindex', 'href', 'disabled', GRID_CELL_ATTR],
 		})
+
+		if (document.activeElement && table.contains(document.activeElement)) {
+			focused = document.activeElement
+		}
 
 		follow(document.activeElement)
 

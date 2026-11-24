@@ -1275,21 +1275,29 @@ export function useGridNavigation({
 
 	// The cell that the cursor left when it last unseated, and the layout of
 	// that moment. The next entry seats the cursor there again (APG grid).
-	const leftRef = useRef<{ coord: Coord; layout: CursorLayout | null } | null>(null)
+	const leftRef = useRef<{
+		coord: Coord
+		layout: CursorLayout | null
+		seated: { key: string; parent: string | undefined } | null
+	} | null>(null)
 
-	// Unseats the cursor, and keeps the cell that it leaves.
+	// Unseats the cursor, and keeps the cell that it leaves, with the key of its
+	// row in a published order.
 	const unseat = useCallback(() => {
 		const from = readActive()
 
-		if (from) leftRef.current = { coord: from, layout: layoutRef.current }
+		if (from) {
+			leftRef.current = { coord: from, layout: layoutRef.current, seated: activeKeyRef.current }
+		}
 
 		setActive(null)
 	}, [readActive, setActive])
 
 	// The cell that the cursor left, followed into the layout of now and clamped
-	// to its bounds, as `reconcile` follows a seated cursor. It is `null` while
-	// the cursor is seated, when it has not unseated, and when the grid has no
-	// cell now.
+	// to its bounds, as `reconcile` follows a seated cursor. In a published
+	// order, its row is found again by key, as `publish` reseats a seated
+	// cursor (see `reseat`). It is `null` while the cursor is seated, when it
+	// has not unseated, and when the grid has no cell now.
 	const resumeCoord = useCallback((): Coord | null => {
 		const left = leftRef.current
 
@@ -1297,10 +1305,14 @@ export function useGridNavigation({
 
 		const now = layoutRef.current
 
-		const coord =
+		const order = orderRef.current
+
+		const followed =
 			left.layout && now && layoutMoved(left.layout, now)
-				? followCell(left.coord, left.layout, now, orderRef.current === null)
+				? followCell(left.coord, left.layout, now, order === null)
 				: left.coord
+
+		const coord = order === null ? followed : (reseat(followed, order, left.seated) ?? followed)
 
 		return clampCoord(coord, coord, {
 			rows: count(),
