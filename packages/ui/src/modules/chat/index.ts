@@ -15,6 +15,7 @@ export { ChatList, type ChatListProps } from './chat-list'
 export { ChatListItem, type ChatListItemProps } from './chat-list-item'
 export { ChatMessage, type ChatMessageProps } from './chat-message'
 export { ChatPrompt, type ChatPromptProps } from './chat-prompt'
+export type { ChatPromptWysiwygOptions } from './chat-prompt-wysiwyg'
 export { ChatTranscript, type ChatTranscriptProps } from './chat-transcript'
 export {
 	ChatTranscriptSkeleton,

@@ -1,12 +1,14 @@
 # Wysiwyg roadmap
 
-> **Goal: one rich text field for each place that writes Markdown.** The field, the toolbar, and the Markdown bridge work. The next work is the `wysiwyg` prop of `ChatPrompt`.
+> **Goal: one rich text field for each place that writes Markdown.** The field, the toolbar, the Markdown bridge, and the `wysiwyg` prop of `ChatPrompt` work. The next work is the citations of a chat draft as marks of the doc.
 
 ## Status
 
 `Wysiwyg` is a `contenteditable` field on ProseMirror. Its value is a Markdown string. The field shows the formatting of the source, and each edit gives the Markdown of the doc. `WysiwygToolbar` runs the actions of [`wysiwyg-actions.ts`](wysiwyg-actions.ts) on the selection. That table holds the message, the glyph, and the shortcut of each action. The engine holds the command of each action in [`engine/wysiwyg-commands.ts`](engine/wysiwyg-commands.ts), so the toolbar loads without the editor.
 
 The frame, the floor, and the actions row are the ones of `Textarea`, through the kumi `multiline` group and `ControlActions`. A `<textarea>` cannot show formatting, so the field grows by CSS and not by the auto-resize script of `Textarea`. A zero-width float of `rows` lines sets its minimum height.
+
+`ChatPrompt` takes `wysiwyg`, and its field is then a Wysiwyg with a toolbar.
 
 The editor loads after the mount, in idle time, or at once on the first focus or press of the field ([`use-wysiwyg-editor.ts`](use-wysiwyg-editor.ts)). Until it loads, the field shows the Markdown source as text, with the same frame and the same floor. The focus goes on to the editor when it loads.
 
@@ -18,7 +20,7 @@ The bridge parses with the `lex()` of `Markdown`, so the field and a rendered me
 
 ## Next
 
-1. The `wysiwyg` prop of `ChatPrompt`: `wysiwyg?: boolean | { actions?: readonly WysiwygAction[] }`. The composer then reads a field interface that the textarea and the Wysiwyg both give, and a citation is a mark of the doc.
+1. A citation of a chat draft as a mark of the doc, so that `ChatPrompt` keeps its citations and its picker with `wysiwyg` ([chat roadmap](../chat/ROADMAP.md), Features 5).
 2. The iPhone checks: the keyboard stays up on a toolbar tap, the Bold item of the edit menu works, autocorrect at the end of a bold word, and Enter with `onEnter`.
 
 ## Not planned
