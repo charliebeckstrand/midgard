@@ -161,7 +161,8 @@ export type ChatPromptProps = {
 	 * action, and `{ actions }` picks them. The value stays a Markdown string.
 	 *
 	 * @remarks The field is a {@link Wysiwyg}. Enter sends, and Shift+Enter
-	 * starts a new block, continues a list, or adds a line to a code block. A press
+	 * starts a new block, continues a list, or adds a line to a code block. On an
+	 * empty last line of a code block, Shift+Enter leaves the block. A press
 	 * on a toolbar button keeps the focus in the field. The editor loads after
 	 * the mount, and until then the field shows the draft as text.
 	 *

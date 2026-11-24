@@ -72,11 +72,12 @@ describe('the direction setting of the docs', () => {
 	// the docs is left to right. A right-to-left language needs a direction
 	// from its locale.
 	it.each(LOCALES)('has a left-to-right language for each locale (%s)', (locale) => {
-		// `textInfo` is in V8, and not yet in the types of TypeScript.
-		const { textInfo } = new Intl.Locale(locale) as Intl.Locale & {
-			textInfo: { direction: 'ltr' | 'rtl' }
+		// On Node 26 (V8 14.6), `Intl.Locale` has `getTextInfo()` and no `textInfo`.
+		// The method is not in the ES2023 types of the `lib` of the tsconfig.
+		const intlLocale = new Intl.Locale(locale) as Intl.Locale & {
+			getTextInfo: () => { direction: 'ltr' | 'rtl' }
 		}
 
-		expect(textInfo.direction).toBe('ltr')
+		expect(intlLocale.getTextInfo().direction).toBe('ltr')
 	})
 })
