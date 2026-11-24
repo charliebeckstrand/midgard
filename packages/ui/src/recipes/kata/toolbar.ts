@@ -8,7 +8,7 @@ import { defineKata, type VariantProps } from '../../core/recipe'
 import { dan, kasane, narabi, omote, sen } from '../kiso'
 
 const { rounded } = kasane
-const { flex } = narabi
+const { flex, touch } = narabi
 const { bg } = omote
 const { border } = sen
 
@@ -17,11 +17,22 @@ export const k = defineKata({
 	 * The toolbar. Its gap also caps the hit areas of its buttons (`TouchTarget`),
 	 * so two adjacent buttons split the gap and do not overlap. A horizontal
 	 * toolbar wraps, so it caps both axes.
+	 *
+	 * Along its axis, the hit areas tile: each one fills half of the gap on each
+	 * side, so the pointer meets no dead space between two buttons, as between
+	 * two tabs. The buttons keep their space. The cross axis keeps the floor, so
+	 * a hit area does not go into the field or the content next to the toolbar.
 	 */
 	base: flex.row,
 	orientation: {
-		horizontal: ['flex-row flex-wrap', dan.gap.scale.xs, dan.gap.touch.x.xs, dan.gap.touch.y.xs],
-		vertical: ['flex-col w-fit', dan.gap.scale.xs, dan.gap.touch.y.xs],
+		horizontal: [
+			'flex-row flex-wrap',
+			dan.gap.scale.xs,
+			dan.gap.touch.x.xs,
+			dan.gap.touch.y.xs,
+			touch.tile.x,
+		],
+		vertical: ['flex-col w-fit', dan.gap.scale.xs, dan.gap.touch.y.xs, touch.tile.y],
 	},
 	variant: {
 		plain: '',
@@ -31,7 +42,8 @@ export const k = defineKata({
 	slots: {
 		/**
 		 * A group of the toolbar. Its gap is below the toolbar gap at each density
-		 * step, and it caps the hit areas of its buttons, as in `base`.
+		 * step, and it caps the hit areas of its buttons, as in `base`. The tile of
+		 * the toolbar inherits, so the hit areas also fill the gap in the group.
 		 */
 		group: {
 			// The group is a `<fieldset>`. `min-w-auto` replaces its min-content floor,

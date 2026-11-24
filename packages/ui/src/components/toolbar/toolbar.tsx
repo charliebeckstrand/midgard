@@ -29,6 +29,12 @@ export type ToolbarProps = AccessibleName &
  * the toolbar hides it. One `ResizeObserver` on the toolbar measures the rows
  * again when the toolbar changes size. A vertical toolbar, or a horizontal
  * toolbar on one row, shows each separator.
+ *
+ * Along its axis, the hit area of each button fills half of the gap on each
+ * side, in the toolbar and in a `<ToolbarGroup>`. The buttons keep their
+ * space, and the pointer meets no dead space between two buttons. The hit
+ * areas do not cross a `<ToolbarSeparator>`, and they do not grow on the cross
+ * axis.
  */
 export function Toolbar({
 	orientation = 'horizontal',

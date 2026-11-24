@@ -3,13 +3,15 @@ import type { ReactNode } from 'react'
 /**
  * The classes of the expansion span. The span holds the floor in a custom
  * property, so the width and the height read one value. Each axis takes the
- * smaller of the floor and the host size plus the gap to a neighbor.
+ * smaller of the floor and the host size plus the gap to a neighbor. On an
+ * axis whose tile property is `1`, the axis takes the host size plus the gap
+ * when that is larger.
  */
 const area = [
 	'absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-auto',
 	'[--touch-target-floor:1.5rem] pointer-coarse:[--touch-target-floor:2.75rem]',
-	'w-[max(100%,min(var(--touch-target-floor),100%_+_var(--touch-target-gap-x,var(--touch-target-floor))))]',
-	'h-[max(100%,min(var(--touch-target-floor),100%_+_var(--touch-target-gap-y,var(--touch-target-floor))))]',
+	'w-[max(100%_+_var(--touch-target-gap-x,0px)_*_var(--touch-target-tile-x,0),min(var(--touch-target-floor),100%_+_var(--touch-target-gap-x,var(--touch-target-floor))))]',
+	'h-[max(100%_+_var(--touch-target-gap-y,0px)_*_var(--touch-target-tile-y,0),min(var(--touch-target-floor),100%_+_var(--touch-target-gap-y,var(--touch-target-floor))))]',
 ].join(' ')
 
 /** Props for {@link TouchTarget}. */
@@ -48,6 +50,16 @@ export type TouchTargetProps = {
  * The properties inherit, so they cap each `TouchTarget` in the container,
  * the controls of a nested input included. A value under the real space is
  * safe, because it only makes the hit areas smaller.
+ *
+ * The floor caps the growth, so a host at the floor or over it keeps its own
+ * box, and the gap to its neighbor is dead space. A row of hosts that a pointer
+ * moves along, such as the buttons of a `Toolbar`, sets `--touch-target-tile-x`
+ * to `1` (`narabi.touch.tile.x`). A stack sets `--touch-target-tile-y` in the
+ * same way. On that axis, each hit area then fills half of the gap on each
+ * side at each host size, and the hit areas tile the row. The hosts keep their
+ * space, and each point between two hosts activates the nearer host, as a
+ * point between two tabs does. The gap property of the axis sets the length,
+ * so an axis with no gap property does not grow.
  *
  * `__tests__/primitives/touch-target.test.tsx` asserts the floor classes under
  * jsdom. `__tests__/browser/geometry/touch-target-geometry.test.tsx` measures the

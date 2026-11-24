@@ -75,6 +75,8 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 `nav` · `sidebar` · `breadcrumb` · `menu` · `context-menu` · `tabs` · `toolbar` · `stepper` · `link` · `command-palette`
 
+> Along the axis of a `Toolbar`, the hit areas of its buttons fill the gap between them, in the toolbar and in a `ToolbarGroup`. The buttons keep their space, and the pointer meets no dead space between two buttons, as between two tabs. The space around a `ToolbarSeparator` is not a hit area.
+
 ## Overlays
 
 `dialog` · `drawer` · `sheet` · `popover` · `tooltip` · `confirm` · `alert` · `banner` · `toast` · `lightbox`
