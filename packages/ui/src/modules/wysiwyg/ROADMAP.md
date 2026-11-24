@@ -1,6 +1,6 @@
 # Wysiwyg roadmap
 
-> **Goal: one rich text field for each place that writes Markdown.** The field, the toolbar, the Markdown bridge, the ranges, and the `wysiwyg` prop of `ChatPrompt` work. The next work is the picker of a chat draft in the field.
+> **Goal: one rich text field for each place that writes Markdown.** The field, the toolbar, the Markdown bridge, the ranges, and the `wysiwyg` prop of `ChatPrompt` with its picker work. The next work is the iPhone checks.
 
 ## Status
 
@@ -9,6 +9,8 @@
 The frame, the floor, and the actions row are the ones of `Textarea`, through the kumi `multiline` group and `ControlActions`. A `<textarea>` cannot show formatting, so the field grows by CSS and not by the auto-resize script of `Textarea`. A zero-width float of `rows` lines sets its minimum height.
 
 `ChatPrompt` takes `wysiwyg`, and its field is then a Wysiwyg with a toolbar.
+
+A completion, such as the picker of `ChatPrompt`, reads the block of the caret from `onSelectionChange`. The block is plain text ([`engine/wysiwyg-block.ts`](engine/wysiwyg-block.ts)), so its offsets hold no Markdown syntax. `replace` of the handle changes a span of that block as one step of the undo history, and it can mark a range in the new text. The `aria-autocomplete`, `aria-haspopup`, and `aria-controls` props name the popup of the completion. ProseMirror cancels each Escape, so the field leaves Escape to the page, and a dialog or a popup over the field closes on it.
 
 The field takes `ranges`, the `MarkdownRange` type of `Markdown`, such as the citations of a chat draft. Each range is a `range` mark of the doc. The parse places the marks with the range walk of the renderer of `Markdown`, so a range covers the same text in the field and in a message. The serializer marks the edges of each piece of a range with two characters that the doc does not hold, and then reads their offsets and removes them. `onValueChange` thus gives each range with the offsets of the new value. The rule in [`engine/wysiwyg-ranges.ts`](engine/wysiwyg-ranges.ts) removes the mark of a range that an edit touches, and the text stays. The mark has no parse rule, so no paste makes a range. [`wysiwyg-ranges.test.ts`](../../__tests__/modules/wysiwyg-ranges.test.ts) holds the bridge and the rule, and [`chat-prompt-wysiwyg-citations.test.tsx`](../../__tests__/browser/chat-prompt-wysiwyg-citations.test.tsx) holds the citations of a composer in Chromium.
 
@@ -22,8 +24,7 @@ The bridge parses with the `lex()` of `Markdown`, so the field and a rendered me
 
 ## Next
 
-1. The picker of a chat draft in the field, so that `ChatPrompt` keeps its picker with `wysiwyg` ([chat roadmap](../chat/ROADMAP.md), Features 5).
-2. The iPhone checks: the keyboard stays up on a toolbar tap, the Bold item of the edit menu works, autocorrect at the end of a bold word, and Enter with `onEnter`.
+1. The iPhone checks: the keyboard stays up on a toolbar tap, the Bold item of the edit menu works, autocorrect at the end of a bold word, and Enter with `onEnter`.
 
 ## Not planned
 

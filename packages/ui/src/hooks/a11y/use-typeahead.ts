@@ -1,6 +1,6 @@
 'use client'
 
-import { type KeyboardEvent, useCallback, useMemo, useRef } from 'react'
+import { useCallback, useMemo, useRef } from 'react'
 import { accessibleName } from '../../core/accessible-name'
 import { hasBrowserModifier } from '../../utilities/modifier-keys'
 import { type Timeout, useTimeout } from '../use-timeout'
@@ -9,7 +9,9 @@ import { type Timeout, useTimeout } from '../use-timeout'
 export const TYPEAHEAD_TIMEOUT_MS = 500
 
 /** Whether a key event must drive type-ahead: a lone printable character. @internal */
-export function isTypeaheadKey(event: KeyboardEvent): boolean {
+export function isTypeaheadKey(
+	event: Pick<KeyboardEvent, 'key' | 'ctrlKey' | 'metaKey' | 'altKey'>,
+): boolean {
 	return event.key.length === 1 && event.key !== ' ' && !hasBrowserModifier(event)
 }
 

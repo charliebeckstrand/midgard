@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { createRef, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
-import { Wysiwyg, WysiwygToolbar } from '../../modules/wysiwyg'
+import type { MarkdownRange } from '../../components/markdown/markdown-ranges'
+import { Wysiwyg, type WysiwygHandle, WysiwygToolbar } from '../../modules/wysiwyg'
 import { getSlot, present, renderUI, screen, waitFor } from '../helpers'
 
 /** A field that shows its Markdown value. */
@@ -306,6 +307,66 @@ describe('Wysiwyg (real browser)', () => {
 		expect(screen.getByRole('textbox')).toHaveFocus()
 
 		expect(document.querySelector('[role=tooltip]')).toBeNull()
+	})
+
+	it('replaces text of the block of the caret from the handle, as one undo step', async () => {
+		type Source = MarkdownRange & { target: string }
+
+		const ref = createRef<WysiwygHandle<Source>>()
+
+		const onValueChange = vi.fn()
+
+		const onSelectionChange = vi.fn()
+
+		renderUI(
+			<Wysiwyg
+				ref={ref}
+				aria-label="Notes"
+				onValueChange={onValueChange}
+				onSelectionChange={onSelectionChange}
+			/>,
+		)
+
+		const field = await editable()
+
+		// The block is plain text: the bold shows no syntax in it.
+		await userEvent.keyboard('Ask **bold** @Sa')
+
+		expect(onSelectionChange).toHaveBeenLastCalledWith({
+			text: 'Ask bold @Sa',
+			caret: 12,
+			ranges: [],
+		})
+
+		ref.current?.replace(9, 12, '@Sales ', {
+			id: 'c1',
+			start: 9,
+			end: 15,
+			quote: '@Sales',
+			target: 'sales',
+		})
+
+		// The value gives the range back with the offsets of the Markdown source.
+		expect(onValueChange).toHaveBeenLastCalledWith('Ask **bold** @Sales ', [
+			{ id: 'c1', start: 13, end: 19, quote: '@Sales', target: 'sales' },
+		])
+
+		expect(onSelectionChange).toHaveBeenLastCalledWith({
+			text: 'Ask bold @Sales ',
+			caret: 16,
+			ranges: [{ id: 'c1', start: 9, end: 15 }],
+		})
+
+		expect(
+			present(field.querySelector('[data-slot="wysiwyg-range"]'), 'the range'),
+		).toHaveTextContent('@Sales')
+
+		// The undo takes back the replace, and not the text typed before it.
+		await userEvent.keyboard('{Control>}z{/Control}')
+
+		expect(field).toHaveTextContent('Ask bold @Sa')
+
+		expect(field.querySelector('[data-slot="wysiwyg-range"]')).toBeNull()
 	})
 
 	it('grows with its content up to the max height, and then scrolls', async () => {

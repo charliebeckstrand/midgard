@@ -118,6 +118,38 @@ describe('Wysiwyg', () => {
 		await waitFor(() => expect(screen.getByRole('textbox')).toHaveFocus())
 	})
 
+	it('moves the focus to a read-only field on a click of the Label', async () => {
+		renderUI(
+			<Field>
+				<Label>Guide</Label>
+				<Wysiwyg defaultValue="Text" readOnly />
+			</Field>,
+		)
+
+		fireEvent.click(screen.getByText('Guide'))
+
+		await waitFor(() => expect(screen.getByRole('textbox')).toHaveClass('ProseMirror'))
+
+		await waitFor(() => expect(screen.getByRole('textbox')).toHaveFocus())
+
+		// A second click finds the editor loaded, and focuses it again.
+		act(() => screen.getByRole('textbox').blur())
+
+		fireEvent.click(screen.getByText('Guide'))
+
+		expect(screen.getByRole('textbox')).toHaveFocus()
+	})
+
+	it('keeps the focus of a read-only field when the editor loads', async () => {
+		renderUI(<Wysiwyg aria-label="Guide" defaultValue="Text" readOnly />)
+
+		act(() => screen.getByRole('textbox').focus())
+
+		await waitFor(() => expect(screen.getByRole('textbox')).toHaveClass('ProseMirror'))
+
+		expect(screen.getByRole('textbox')).toHaveFocus()
+	})
+
 	it('replaces the doc when the controlled value changes', async () => {
 		const { rerender } = renderUI(<Wysiwyg aria-label="Notes" value="First" />)
 
@@ -151,6 +183,33 @@ describe('Wysiwyg', () => {
 		expect(onEnter).toHaveBeenCalledTimes(1)
 
 		expect(onValueChange).not.toHaveBeenCalled()
+	})
+
+	it('leaves Escape to the page, so a dialog or a popup closes on it', async () => {
+		const onKeyDown = vi.fn()
+
+		renderUI(<Wysiwyg aria-label="Notes" defaultValue="Text" onKeyDown={onKeyDown} />)
+
+		const field = await loadEditor()
+
+		// fireEvent gives false for a key that a handler cancels.
+		expect(fireEvent.keyDown(field, { key: 'Escape', keyCode: 27 })).toBe(true)
+
+		expect(onKeyDown).toHaveBeenCalledWith(expect.objectContaining({ key: 'Escape' }))
+	})
+
+	it('cancels an Escape that onKeyDown cancels', async () => {
+		renderUI(
+			<Wysiwyg
+				aria-label="Notes"
+				defaultValue="Text"
+				onKeyDown={(event) => event.preventDefault()}
+			/>,
+		)
+
+		const field = await loadEditor()
+
+		expect(fireEvent.keyDown(field, { key: 'Escape', keyCode: 27 })).toBe(false)
 	})
 
 	it('reads only: no edit, a tab stop, and disabled toolbar buttons', async () => {
@@ -285,6 +344,71 @@ describe('Wysiwyg', () => {
 		expect(field).toHaveTextContent('')
 
 		expect(field).toHaveAttribute('data-empty')
+	})
+
+	it('reports the block of the caret while the field has the focus', async () => {
+		const onSelectionChange = vi.fn()
+
+		renderUI(
+			<>
+				<Wysiwyg
+					aria-label="Notes"
+					defaultValue="Ask **@Sa**"
+					onSelectionChange={onSelectionChange}
+				/>
+				<button type="button">Out</button>
+			</>,
+		)
+
+		const field = await loadEditor()
+
+		act(() => field.focus())
+
+		await waitFor(() =>
+			expect(onSelectionChange).toHaveBeenLastCalledWith({ text: 'Ask @Sa', caret: 0, ranges: [] }),
+		)
+
+		act(() => screen.getByRole('button', { name: 'Out' }).focus())
+
+		expect(onSelectionChange).toHaveBeenLastCalledWith(null)
+	})
+
+	it('reports no block while the field is read-only', async () => {
+		const onSelectionChange = vi.fn()
+
+		renderUI(
+			<Wysiwyg
+				aria-label="Notes"
+				defaultValue="Ask"
+				readOnly
+				onSelectionChange={onSelectionChange}
+			/>,
+		)
+
+		const field = await loadEditor()
+
+		act(() => field.focus())
+
+		expect(onSelectionChange).not.toHaveBeenCalled()
+	})
+
+	it('passes the attributes of a completion to the field', () => {
+		renderUI(
+			<Wysiwyg
+				aria-label="Notes"
+				aria-autocomplete="list"
+				aria-haspopup="listbox"
+				aria-controls="sources"
+			/>,
+		)
+
+		const field = screen.getByRole('textbox')
+
+		expect(field).toHaveAttribute('aria-autocomplete', 'list')
+
+		expect(field).toHaveAttribute('aria-haspopup', 'listbox')
+
+		expect(field).toHaveAttribute('aria-controls', 'sources')
 	})
 
 	it('renders the bare field under HeadlessProvider', () => {

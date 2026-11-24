@@ -134,7 +134,7 @@ export function useWysiwygEditor({
 
 		const next = module.createWysiwygEditor(element, value, ranges, editorProps)
 
-		if (focused) next.view.focus()
+		if (focused) next.focus()
 
 		return next
 	})

@@ -6603,6 +6603,50 @@
 		"defaultMessage": "Slide",
 		"description": "An option of the Animate field of a playground in the docs. It sets the prop animate to 'slide' on Collapse."
 	},
+	"docs.prop.aria-autocomplete": {
+		"defaultMessage": "Aria autocomplete",
+		"description": "The label of a field of a playground in the docs. The field sets the prop aria-autocomplete of Wysiwyg."
+	},
+	"docs.prop.aria-autocomplete.both": {
+		"defaultMessage": "Both",
+		"description": "An option of the Aria autocomplete field of a playground in the docs. It sets the prop aria-autocomplete to 'both' on Wysiwyg."
+	},
+	"docs.prop.aria-autocomplete.inline": {
+		"defaultMessage": "Inline",
+		"description": "An option of the Aria autocomplete field of a playground in the docs. It sets the prop aria-autocomplete to 'inline' on Wysiwyg."
+	},
+	"docs.prop.aria-autocomplete.list": {
+		"defaultMessage": "List",
+		"description": "An option of the Aria autocomplete field of a playground in the docs. It sets the prop aria-autocomplete to 'list' on Wysiwyg."
+	},
+	"docs.prop.aria-autocomplete.none": {
+		"defaultMessage": "None",
+		"description": "An option of the Aria autocomplete field of a playground in the docs. It sets the prop aria-autocomplete to 'none' on Wysiwyg."
+	},
+	"docs.prop.aria-haspopup": {
+		"defaultMessage": "Aria haspopup",
+		"description": "The label of a field of a playground in the docs. The field sets the prop aria-haspopup of Wysiwyg."
+	},
+	"docs.prop.aria-haspopup.dialog": {
+		"defaultMessage": "Dialog",
+		"description": "An option of the Aria haspopup field of a playground in the docs. It sets the prop aria-haspopup to 'dialog' on Wysiwyg."
+	},
+	"docs.prop.aria-haspopup.grid": {
+		"defaultMessage": "Grid",
+		"description": "An option of the Aria haspopup field of a playground in the docs. It sets the prop aria-haspopup to 'grid' on Wysiwyg."
+	},
+	"docs.prop.aria-haspopup.listbox": {
+		"defaultMessage": "Listbox",
+		"description": "An option of the Aria haspopup field of a playground in the docs. It sets the prop aria-haspopup to 'listbox' on Wysiwyg."
+	},
+	"docs.prop.aria-haspopup.menu": {
+		"defaultMessage": "Menu",
+		"description": "An option of the Aria haspopup field of a playground in the docs. It sets the prop aria-haspopup to 'menu' on Wysiwyg."
+	},
+	"docs.prop.aria-haspopup.tree": {
+		"defaultMessage": "Tree",
+		"description": "An option of the Aria haspopup field of a playground in the docs. It sets the prop aria-haspopup to 'tree' on Wysiwyg."
+	},
 	"docs.prop.autoResize": {
 		"defaultMessage": "Auto resize",
 		"description": "The label of a field of a playground in the docs. The field sets the prop autoResize of Textarea."
