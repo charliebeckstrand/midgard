@@ -36,6 +36,8 @@ type ChatMessageMenuProps = {
 	config: ContextMenuConfig | undefined
 	/** The content of the message, which the Copy item copies. */
 	content: string | ChatPart[]
+	/** The id of the bubble of the message, which takes the focus after a copy. */
+	bubble: string
 }
 
 /**
@@ -45,7 +47,7 @@ type ChatMessageMenuProps = {
  *
  * @internal
  */
-function useMenuEntries({ config, content }: ChatMessageMenuProps): {
+function useMenuEntries({ config, content, bubble }: ChatMessageMenuProps): {
 	entries: ContextMenuEntry[]
 	name: string
 } {
@@ -72,12 +74,19 @@ function useMenuEntries({ config, content }: ChatMessageMenuProps): {
 				label: copy,
 				icon: <Copy />,
 				disabled: text === '',
-				onAction: () => copyText(text),
+				// The focus goes to the bubble, and not back to the menu button. The next
+				// Tab thus goes into the controls of the message again. The menu keeps the
+				// focus on an element that an action focused.
+				onAction: () => {
+					copyText(text)
+
+					document.getElementById(bubble)?.focus({ preventScroll: true })
+				},
 			},
 		]
 
 		return resolveContextMenuEntries({ items, defaultItems, insert }, defaults)
-	}, [content, copy, items, defaultItems, insert])
+	}, [content, copy, items, defaultItems, insert, bubble])
 
 	return { entries, name }
 }
@@ -91,9 +100,10 @@ function useMenuEntries({ config, content }: ChatMessageMenuProps): {
 export function ChatMessageMenu({
 	config,
 	content,
+	bubble,
 	children,
 }: ChatMessageMenuProps & { children: ReactNode }) {
-	const { entries, name } = useMenuEntries({ config, content })
+	const { entries, name } = useMenuEntries({ config, content, bubble })
 
 	return (
 		<ContextMenu items={entries} capped={config?.capped} aria-label={name}>
@@ -109,8 +119,8 @@ export function ChatMessageMenu({
  *
  * @internal
  */
-export function ChatMessageMenuButton({ config, content }: ChatMessageMenuProps) {
-	const { entries, name } = useMenuEntries({ config, content })
+export function ChatMessageMenuButton({ config, content, bubble }: ChatMessageMenuProps) {
+	const { entries, name } = useMenuEntries({ config, content, bubble })
 
 	return (
 		<Menu placement="bottom-end" capped={config?.capped}>
