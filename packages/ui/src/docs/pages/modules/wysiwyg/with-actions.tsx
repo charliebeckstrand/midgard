@@ -37,7 +37,7 @@ export default function WithActions() {
 					</Button>
 				}
 			>
-				<WysiwygToolbar actions={['bold', 'italic', 'code', 'link']} />
+				<WysiwygToolbar actions={['bold', 'italic', 'link', 'code']} />
 			</Wysiwyg>
 		</Field>
 	)
