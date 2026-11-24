@@ -83,6 +83,8 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > A hover `Tooltip` stays open while the pointer moves onto its content. The reader can thus rest on the text (WCAG 2.2 SC 1.4.13). Escape closes it. `interactive` only lets the content hold controls.
 
+> A `TooltipGroup` makes its tooltips act as one set. The first tooltip waits for its `delay`. While a tooltip of the group is open, and for 300 ms after it closes, the next tooltip opens at once with no animation, and the open tooltip closes at once. Each `Toolbar` is a group.
+
 > `useConfirm()` asks a question in the one `Confirm` that `UIProvider` mounts. Use `Confirm` for a message with custom children. When the dialog closes, the focus goes back to the control that asked. When that control is gone, as after a delete of its row, the focus goes into its nearest ancestor that is still in the page. Set `returnFocusTo` to choose the target.
 
 > `UIProvider` mounts one `ToastProvider` and its viewport, so `useToast()` works anywhere under it with no setup. A `toast()` call with the `id` of a live toast replaces that toast in place, and its countdown starts again. A screen reader speaks the new text.

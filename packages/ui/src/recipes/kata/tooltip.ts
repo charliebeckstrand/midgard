@@ -84,6 +84,11 @@ export const k = defineKata(
 		motion: tooltip,
 		/** The motion under reduced motion: the fade with no scale. */
 		still: ugoki.still(tooltip),
+		/**
+		 * The motion of a tooltip in a warm `<TooltipGroup>`: the panel shows with
+		 * no entrance, and a panel that a sibling closes goes with no exit.
+		 */
+		instant: { ...tooltip, initial: false, transition: ugoki.instant },
 	},
 )
 

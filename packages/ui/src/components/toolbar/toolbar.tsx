@@ -8,6 +8,7 @@ import { useA11yRoving } from '../../hooks/a11y/use-a11y-roving'
 import { useResizeObserver } from '../../hooks/use-resize-observer'
 import { k, type ToolbarVariants } from '../../recipes/kata/toolbar'
 import type { AccessibleName } from '../../types/accessible-name'
+import { TooltipGroup } from '../tooltip/tooltip-group'
 import { ToolbarContext, type ToolbarContextValue } from './context'
 import { TOOLBAR_ITEM_SELECTOR } from './toolbar-constants'
 import { markRowEdges } from './toolbar-row-edges'
@@ -35,6 +36,10 @@ export type ToolbarProps = AccessibleName &
  * space, and the pointer meets no dead space between two buttons. The hit
  * areas do not cross a `<ToolbarSeparator>`, and they do not grow on the cross
  * axis.
+ *
+ * The toolbar is a `<TooltipGroup>`. The first tooltip of its controls opens
+ * after its delay. While a tooltip is open, and for 300 ms after it closes,
+ * the tooltip of another control opens at once, with no animation.
  */
 export function Toolbar({
 	orientation = 'horizontal',
@@ -79,7 +84,7 @@ export function Toolbar({
 				})}
 				className={cn(k({ orientation, variant }).base, className)}
 			>
-				{children}
+				<TooltipGroup>{children}</TooltipGroup>
 			</div>
 		</ToolbarContext>
 	)
