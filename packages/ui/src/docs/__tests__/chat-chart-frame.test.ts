@@ -9,7 +9,9 @@ import { describe, expect, it } from 'vitest'
 // starts at half of the column and can go down to 30%. The handle at its end
 // edge sets the width up to the full column. The frame of the example stays full width. A
 // chart with `aspectRatio={false}` fills a box of a fixed height, so the rule
-// does not apply to it.
+// does not apply to it. A chart that a citation target draws in its `render`
+// is in the panel of the chat, a Dialog or a Drawer, and not in the column. The
+// panel sets its width, so the rule does not apply to it either.
 
 const CHAT_PAGES = path.resolve(import.meta.dirname, '..', 'pages', 'modules', 'chat')
 
@@ -34,7 +36,17 @@ function findRatioCharts(code: string): { chart: string; before: string }[] {
 	return Array.from(code.matchAll(/<(\w*Chart)\b[\s\S]*?(?:\/>|<\/\1>)/g), (match) => ({
 		chart: match[0],
 		before: code.slice(0, match.index),
-	})).filter(({ chart }) => !/aspectRatio=\{false\}/.test(chart))
+	})).filter(({ chart, before }) => !/aspectRatio=\{false\}/.test(chart) && !inRender(before))
+}
+
+/**
+ * Whether the code before an element leaves the `render` of a citation target
+ * open around it. The chat draws that view in its panel.
+ */
+function inRender(before: string): boolean {
+	const start = before.lastIndexOf('render: (citation')
+
+	return start !== -1 && !before.includes('\n\t\t),\n', start)
 }
 
 /**

@@ -302,7 +302,22 @@ export function GridGroupManager({
 	onOrderChange,
 	reorderable,
 }: GridGroupManagerProps) {
-	const manager = useGridGroupManager({ groups, onGroupsChange, columns, order, onOrderChange })
+	// The filter resolved once, to the ids that pass it, so each zone selects its
+	// rows by lookup rather than re-running the predicate over its own members, and
+	// a drop moves only among them.
+	const visibleColumnIds = useMemo(
+		() => new Set(columns.filter(matches).map((column) => String(column.id))),
+		[columns, matches],
+	)
+
+	const manager = useGridGroupManager({
+		groups,
+		onGroupsChange,
+		columns,
+		order,
+		onOrderChange,
+		shown: visibleColumnIds,
+	})
 
 	const sensors = useSortableSensors({ keyboardCoordinateGetter: groupAwareKeyboardCoordinates })
 
@@ -319,14 +334,6 @@ export function GridGroupManager({
 	const byId = useMemo(
 		() => new Map(columns.map((column) => [String(column.id), column])),
 		[columns],
-	)
-
-	// The filter resolved once, to the ids that pass it, so each zone selects its
-	// rows by lookup rather than re-running the predicate over its own members, and
-	// only this level knows a filter is in play.
-	const visibleColumnIds = useMemo(
-		() => new Set(columns.filter(matches).map((column) => String(column.id))),
-		[columns, matches],
 	)
 
 	const activeItem = manager.activeId ? byId.get(manager.activeId) : undefined

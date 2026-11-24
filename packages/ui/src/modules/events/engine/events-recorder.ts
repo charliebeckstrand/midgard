@@ -41,29 +41,40 @@ let store: EventStore | undefined
 let stop: (() => void) | undefined
 
 /**
- * The store of a tab, kept in `sessionStorage`. CSS shows the dot and the
- * red icon of the header button by the attributes of the root element, which
- * follow the reports and the capture of the store.
+ * Copies the reports and the capture of `target` to the attributes of the
+ * root element. CSS shows the dot and the red icon of the header button by
+ * them.
  */
+function mark(target: EventStore): void {
+	const root = document.documentElement
+
+	root.toggleAttribute(
+		REPORTS_ATTRIBUTE,
+		target.entries.some(({ report }) => report),
+	)
+
+	root.toggleAttribute(CAPTURE_ATTRIBUTE, target.capturing)
+}
+
+/** The store of a tab, kept in `sessionStorage`. The attributes of the root element follow it. */
 function create(): EventStore {
 	const next = new EventStore(getStorage(() => sessionStorage))
 
-	const mark = () => {
-		const root = document.documentElement
+	next.subscribe(() => mark(next))
 
-		root.toggleAttribute(
-			REPORTS_ATTRIBUTE,
-			next.entries.some(({ report }) => report),
-		)
-
-		root.toggleAttribute(CAPTURE_ATTRIBUTE, next.capturing)
-	}
-
-	next.subscribe(mark)
-
-	mark()
+	mark(next)
 
 	return next
+}
+
+/**
+ * Writes the attributes of the store on the root element again. Before the
+ * first {@link start}, there is no store, and this does nothing.
+ *
+ * @internal
+ */
+export function markRoot(): void {
+	if (store) mark(store)
 }
 
 /**

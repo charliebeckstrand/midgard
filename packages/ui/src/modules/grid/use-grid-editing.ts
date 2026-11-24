@@ -757,9 +757,14 @@ export function useGridEditing<T>({
 	// error of the cell is spoken. A leave cannot hold focus in the editor, so
 	// it does not ask: the sweep speaks the cell that did not save.
 	const holdsSave = useStableEvent((rowKey: string | number) => {
+		// A hidden column shows no editor and no message, so the reader cannot
+		// fix its cell. It does not hold the save: it drops as on a leave.
+		const shown = new Set(cursorColumnsRef.current.map((column) => String(column.id)))
+
 		const open = [...(drafts.readRow(rowKey) ?? [])].filter(
 			([columnId, draft]) =>
 				draft.status === 'staged' &&
+				shown.has(String(columnId)) &&
 				isCellEditing({
 					rowKey,
 					columnId,

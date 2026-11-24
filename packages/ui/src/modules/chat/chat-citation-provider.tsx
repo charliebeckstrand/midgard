@@ -1,7 +1,8 @@
 'use client'
 
-import { type ReactNode, useMemo } from 'react'
+import { type ReactNode, useCallback, useMemo, useState } from 'react'
 import { useDevWarning } from '../../hooks/use-dev-warning'
+import { ChatCitationPanel } from './chat-citation-panel'
 import { ChatCitationContext, type ChatCitationScope, useChatCitations } from './context'
 import type { ChatCitation } from './engine/chat-content/types'
 import type { ChatCitationTargets } from './types'
@@ -11,14 +12,12 @@ import {
 	useChatCitationTrigger,
 } from './use-chat-citation-trigger'
 
-/** Props for {@link ChatCitationProvider}. */
-export type ChatCitationProviderProps = {
-	/**
-	 * The views that a citation can select in, by `target`. A citation whose
-	 * `target` is absent here renders as the prose that holds it, with no
-	 * control. Hoist it out of the render, as a module constant or a `useMemo`.
-	 */
-	targets: ChatCitationTargets
+/**
+ * The props of {@link ChatCitationProvider} that select in a view beside the
+ * chat. A provider whose targets all have `render` can leave them out. It then
+ * takes them from the enclosing provider.
+ */
+type ChatCitationSelectProps = {
 	/** The active citation, or `null`. The app holds it, because the selection belongs to the view. */
 	cited: ChatCitation | null
 	/**
@@ -60,6 +59,18 @@ export type ChatCitationProviderProps = {
 	 * @defaultValue `'click'`, or the trigger of the enclosing provider.
 	 */
 	trigger?: ChatCitationTrigger
+}
+
+/** Props for {@link ChatCitationProvider}. */
+export type ChatCitationProviderProps = {
+	/**
+	 * The views that a citation can show, by `target`. A citation whose
+	 * `target` is absent here renders as the prose that holds it, with no
+	 * control. A target with `render` opens its view in a panel. A target
+	 * without it selects in a view beside the chat, through `cited`. Hoist it
+	 * out of the render, as a module constant or a `useMemo`.
+	 */
+	targets: ChatCitationTargets
 	/**
 	 * Tells if the selection of a view matches a citation, such as a bar that
 	 * a reader picked in a chart that the citation also selects in. Each piece
@@ -72,11 +83,11 @@ export type ChatCitationProviderProps = {
 	isMarked?: (citation: ChatCitation) => boolean
 	/** The subtree whose transcripts draw the citations. */
 	children: ReactNode
-}
+} & (ChatCitationSelectProps | { [Key in keyof ChatCitationSelectProps]?: never })
 
 /**
- * The views that a citation in a transcript below it can select in, and the
- * active citation.
+ * The views that a citation in a transcript below it can show, and the active
+ * citation.
  *
  * @remarks
  * A citation is a phrase of a reply, such as "twelve stops are late", that
@@ -87,7 +98,7 @@ export type ChatCitationProviderProps = {
  * the `selector` of the citation for one kind of view.
  *
  * Controlled, because the selection belongs to the dashboard and not to the
- * chat. The provider holds no state but the inputs that hold a preview. The
+ * chat. Of the selection, the provider holds only the inputs that hold a preview. The
  * app holds the preview too, from `onPreviewChange`. The anchor reads `cited` to show whether
  * it is pressed, and it compares the citation by `id`.
  *
@@ -104,10 +115,22 @@ export type ChatCitationProviderProps = {
  * the active citation, and the board then shows the selection of the citation
  * in place of the pick.
  *
+ * A target with `render` is a view that the chat shows. A press on its
+ * citation opens a panel over the page: a Dialog, or a Drawer on a phone. The
+ * label of the target is the title of the panel, and `render` draws the view
+ * from the citation, such as a chart of the data that supports the phrase. The
+ * chat holds the open state, because the panel belongs to the chat. The
+ * citation is a button that opens a dialog, and not a toggle. A hover, a
+ * focus, and Escape do nothing to it, so `cited` and the preview never hold
+ * it. A provider whose targets all have `render` needs no `cited` and no
+ * `onCitedChange`.
+ *
  * Nesting merges `targets`, as {@link ChatEmbedProvider} merges `renderers`.
  * The inner provider wins on a target that both name. Its `cited`,
- * `onCitedChange`, and `onPreviewChange` replace those of the outer provider. Its `isMarked` and its
- * `trigger` replace the outer ones only when it gives them.
+ * `onCitedChange`, `onPreviewChange`, and `trigger` replace those of the outer
+ * provider when it gives `onCitedChange`. Without it, the inner provider keeps
+ * those of the outer provider. Its `isMarked` replaces the outer one only when
+ * it gives it. The nearest provider opens the panel of each citation below it.
  *
  * @example
  *   const targets = { 'late-by-day': { label: 'Late stops by day' } }
@@ -120,37 +143,97 @@ export type ChatCitationProviderProps = {
  *   <BarChart
  *     selectedCategories={cited?.target === 'late-by-day' ? toCategorySelection(cited.selector) : undefined}
  *   />
+ *
+ * @example
+ *   const targets = {
+ *     'late-trend': {
+ *       label: 'Late stops by day',
+ *       render: (citation) => <BarChart data={(citation.selector as Trend).days} series={series} />,
+ *     },
+ *   }
+ *
+ *   <ChatCitationProvider targets={targets}>
+ *     <ChatTranscript messages={messages} />
+ *   </ChatCitationProvider>
  */
 export function ChatCitationProvider({
 	targets,
-	cited,
-	onCitedChange,
-	onPreviewChange,
 	isMarked,
-	trigger,
 	children,
+	...select
 }: ChatCitationProviderProps) {
 	const outer = useChatCitations()
 
+	const { cited = null, onCitedChange, onPreviewChange, trigger } = select
+
+	// A provider that gives `onCitedChange` selects. One that does not keeps the
+	// selection of the outer provider, and adds only its targets.
+	const selects = onCitedChange !== undefined
+
 	const mode = trigger === undefined ? (outer.trigger ?? 'click') : toCitationMode(trigger)
 
-	const actions = useChatCitationTrigger(mode, cited, onCitedChange, onPreviewChange)
+	const own = useChatCitationTrigger(mode, cited, onCitedChange ?? ignore, onPreviewChange)
 
 	useDevWarning(
-		mode !== 'click' && onPreviewChange === undefined,
+		selects && mode !== 'click' && onPreviewChange === undefined,
 		'ChatCitationProvider: a `hover` trigger needs `onPreviewChange`, so a hover shows nothing.',
 	)
+
+	// The citation of the panel stays after the close, so that the panel keeps
+	// its view while it leaves.
+	const [panel, setPanel] = useState<{ citation: ChatCitation; open: boolean } | null>(null)
+
+	const show = useCallback((citation: ChatCitation) => setPanel({ citation, open: true }), [])
+
+	const setOpen = useCallback(
+		(open: boolean) => setPanel((prev) => (prev === null ? null : { ...prev, open })),
+		[],
+	)
+
+	const shown = panel?.open ? panel.citation.id : null
 
 	const value = useMemo<ChatCitationScope>(
 		() => ({
 			targets: { ...outer.targets, ...targets },
-			cited,
+			cited: selects ? cited : outer.cited,
 			isMarked: isMarked ?? outer.isMarked,
-			trigger: mode,
-			actions,
+			trigger: selects ? mode : outer.trigger,
+			actions: selects ? own : outer.actions,
+			show,
+			shown,
 		}),
-		[outer.targets, outer.isMarked, targets, cited, isMarked, mode, actions],
+		[
+			outer.targets,
+			outer.cited,
+			outer.isMarked,
+			outer.trigger,
+			outer.actions,
+			targets,
+			selects,
+			cited,
+			isMarked,
+			mode,
+			own,
+			show,
+			shown,
+		],
 	)
 
-	return <ChatCitationContext value={value}>{children}</ChatCitationContext>
+	return (
+		<ChatCitationContext value={value}>
+			{children}
+			{/* The panel mounts at the first open, so a chat with no panel citation pays for no panel. */}
+			{panel === null ? null : (
+				<ChatCitationPanel
+					open={panel.open}
+					onOpenChange={setOpen}
+					citation={panel.citation}
+					target={value.targets[panel.citation.target]}
+				/>
+			)}
+		</ChatCitationContext>
+	)
 }
+
+/** The `onCitedChange` of a provider that does not select. Its trigger is never used. @internal */
+function ignore() {}

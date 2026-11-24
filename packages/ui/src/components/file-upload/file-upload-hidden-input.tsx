@@ -14,6 +14,8 @@ import { useControlFallbackLabel } from '../control/use-control-fallback-label'
 export type FileUploadHiddenInputProps = {
 	ariaLabel: string
 	control: ControlContextValue | undefined
+	/** The ids of the Control, and the id of the refusal Message outside a Control. */
+	describedBy: string | undefined
 	inputRef: Ref<HTMLInputElement>
 	accept?: string
 	multiple?: boolean
@@ -47,6 +49,7 @@ export type FileUploadHiddenInputProps = {
 export function FileUploadHiddenInput({
 	ariaLabel,
 	control,
+	describedBy,
 	inputRef,
 	accept,
 	multiple,
@@ -68,7 +71,7 @@ export function FileUploadHiddenInput({
 			// Field Label can name the control, from the first render on.
 			aria-labelledby={control?.labelledBy}
 			aria-label={fallbackLabel}
-			aria-describedby={control?.describedBy}
+			aria-describedby={describedBy}
 			accept={accept}
 			multiple={multiple}
 			disabled={disabled}

@@ -69,7 +69,17 @@ export function FileUploadButton(allProps: FileUploadButtonProps) {
 
 	const state = useFileUploadState(shared)
 
-	const { control, disabled, readOnly, invalid, files, hasFiles, openPicker, clearFiles } = state
+	const {
+		control,
+		describedBy,
+		disabled,
+		readOnly,
+		invalid,
+		files,
+		hasFiles,
+		openPicker,
+		clearFiles,
+	} = state
 
 	// A read-only field keeps the focus on each of its buttons, and they open
 	// no picker and clear nothing.
@@ -92,43 +102,46 @@ export function FileUploadButton(allProps: FileUploadButtonProps) {
 	// different file can be picked (or the selection cleared) without the
 	// trigger swapping out.
 	return (
-		<div data-slot="file-upload" {...props} className={cn(k.button, className)}>
-			<FileUploadHiddenInput
-				{...state.hiddenInput}
-				ariaLabel={triggerLabel(children, intl.formatMessage(fileUploadMessages.upload))}
-				forwardFocus={focusTrigger}
-			/>
-			<Button
-				ref={triggerRef}
-				id={triggerId}
-				// The self-reference adds the text of the trigger to the Field Label.
-				aria-labelledby={control?.labelledBy ? `${control.labelledBy} ${triggerId}` : undefined}
-				aria-describedby={control?.describedBy}
-				{...invalidAttrs(invalid)}
-				type="button"
-				size={size}
-				color={color}
-				variant={variant}
-				disabled={disabled}
-				onClick={openPicker}
-				{...inert}
-			>
-				<Icon icon={<Upload />} />
-				{children ?? intl.formatMessage(fileUploadMessages.upload)}
-			</Button>
-			{hasFiles && (
+		<>
+			<div data-slot="file-upload" {...props} className={cn(k.button, className)}>
+				<FileUploadHiddenInput
+					{...state.hiddenInput}
+					ariaLabel={triggerLabel(children, intl.formatMessage(fileUploadMessages.upload))}
+					forwardFocus={focusTrigger}
+				/>
 				<Button
+					ref={triggerRef}
+					id={triggerId}
+					// The self-reference adds the text of the trigger to the Field Label.
+					aria-labelledby={control?.labelledBy ? `${control.labelledBy} ${triggerId}` : undefined}
+					aria-describedby={describedBy}
+					{...invalidAttrs(invalid)}
 					type="button"
 					size={size}
-					variant="soft"
-					color="red"
+					color={color}
+					variant={variant}
 					disabled={disabled}
-					onClick={handleClear}
+					onClick={openPicker}
 					{...inert}
 				>
-					{intl.formatMessage(fileUploadMessages.clear, { count: files.length })}
+					<Icon icon={<Upload />} />
+					{children ?? intl.formatMessage(fileUploadMessages.upload)}
 				</Button>
-			)}
-		</div>
+				{hasFiles && (
+					<Button
+						type="button"
+						size={size}
+						variant="soft"
+						color="red"
+						disabled={disabled}
+						onClick={handleClear}
+						{...inert}
+					>
+						{intl.formatMessage(fileUploadMessages.clear, { count: files.length })}
+					</Button>
+				)}
+			</div>
+			{state.refusal}
+		</>
 	)
 }

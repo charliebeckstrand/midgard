@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
+import { userEvent } from 'vitest/browser'
 import { Dashboard, type DashboardLayoutItem, DashboardTile } from '../../../modules/dashboard'
 import { readingOrder } from '../../../modules/dashboard/engine/dashboard-layout'
 import { renderUI, screen } from '../../helpers'
@@ -80,5 +81,39 @@ describe('dashboard stack reorder (real layout, real Motion)', () => {
 		const saved: DashboardLayoutItem[] = onValueChange.mock.calls[0]?.[0] ?? []
 
 		expect(readingOrder(saved)).toEqual(['c', 'a', 'b'])
+	})
+
+	it('says that a drop changes nothing when a keyboard drag returns to the start place', async () => {
+		renderUI(
+			<div style={{ width: 320 }}>
+				<Dashboard aria-label="Board" editing layout={{ defaultValue: layout }}>
+					<DashboardTile id="a" title="A" minWidth={280} />
+
+					<DashboardTile id="b" title="B" minWidth={280} />
+
+					<DashboardTile id="c" title="C" minWidth={280} />
+				</Dashboard>
+			</div>,
+		)
+
+		const region = () => document.querySelector('[id^="DndLiveRegion"]')?.textContent ?? ''
+
+		screen.getByRole('button', { name: 'Move A' }).focus()
+
+		await userEvent.keyboard(' ')
+
+		await expect.poll(region).toContain('Picked up A, position 1 of 3. Use the arrow keys')
+
+		await userEvent.keyboard('{ArrowDown}')
+
+		await expect.poll(region).toBe('A moved to position 2 of 3.')
+
+		await userEvent.keyboard('{ArrowUp}')
+
+		await expect
+			.poll(region)
+			.toBe('A is over its start place, position 1 of 3. A drop now changes nothing.')
+
+		await userEvent.keyboard('{Escape}')
 	})
 })

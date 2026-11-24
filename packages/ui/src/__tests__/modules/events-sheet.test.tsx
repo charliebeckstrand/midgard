@@ -143,6 +143,28 @@ describe('EventsButton', () => {
 
 		expect(store.entries.at(-1)?.text).toBe('/after-close')
 	})
+
+	it('writes the root attributes again when it mounts, as a render of `<html>` on the client removes them', async () => {
+		restoreEventsOn()
+
+		localStorage.setItem('events:on', '1')
+
+		const store = start()
+
+		act(() => store.startCapture())
+
+		const root = document.documentElement
+
+		// After an error in the hydration, React renders `<html>` again, and
+		// removes each attribute that it does not render.
+		for (const name of ['data-events', 'data-events-capture']) root.removeAttribute(name)
+
+		render(<EventsButton />)
+
+		await vi.waitFor(() => expect(root).toHaveAttribute('data-events-capture'))
+
+		expect(root).toHaveAttribute('data-events')
+	})
 })
 
 describe('loadTools', () => {
@@ -635,6 +657,27 @@ describe('pin', () => {
 		expect(screen.queryByRole('button', { name: 'Unpin' })).toBeNull()
 
 		expect(getEventSink()).toBeUndefined()
+	})
+
+	it('writes the root attributes again when the panel mounts, as a render of `<html>` on the client removes them', async () => {
+		restoreEventsOn()
+
+		localStorage.setItem('events:on', '1')
+
+		localStorage.setItem('events:pinned', '1')
+
+		const root = document.documentElement
+
+		for (const name of ['data-events', 'data-events-pinned']) root.removeAttribute(name)
+
+		render(<EventsAside />)
+
+		expect(root).toHaveAttribute('data-events')
+
+		expect(root).toHaveAttribute('data-events-pinned')
+
+		// The pinned panel loads its content, so the test waits for it.
+		expect(await screen.findByRole('button', { name: 'Unpin' })).toBeDefined()
 	})
 
 	it('mounts the pinned panel when the events turn on, and unmounts it when they turn off', async () => {

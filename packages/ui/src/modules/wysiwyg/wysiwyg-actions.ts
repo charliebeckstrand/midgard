@@ -126,7 +126,7 @@ export type WysiwygShortcut = { shift?: boolean; alt?: boolean; key: string }
  *
  * @internal
  */
-export type WysiwygActionGroup = 'text' | 'references' | 'lists' | 'code'
+export type WysiwygActionGroup = 'text' | 'lists' | 'references' | 'code'
 
 /**
  * The name of each group of the toolbar.
@@ -135,8 +135,8 @@ export type WysiwygActionGroup = 'text' | 'references' | 'lists' | 'code'
  */
 export const wysiwygGroupMessages: Record<WysiwygActionGroup, MessageDescriptor> = {
 	text: wysiwygMessages.text,
-	references: wysiwygMessages.references,
 	lists: wysiwygMessages.lists,
+	references: wysiwygMessages.references,
 	code: wysiwygMessages.codeGroup,
 }
 
@@ -151,7 +151,7 @@ export const wysiwygGroupMessages: Record<WysiwygActionGroup, MessageDescriptor>
 export type WysiwygActionEntry = {
 	/**
 	 * The group of the action in the toolbar: `text` formats the selected
-	 * text, `references` adds a link or a quote, `lists` makes a list, and
+	 * text, `lists` makes a list, `references` adds a link or a quote, and
 	 * `code` shows text as code.
 	 */
 	group: WysiwygActionGroup
@@ -174,13 +174,6 @@ export const wysiwygActions: Record<WysiwygAction, WysiwygActionEntry> = {
 		icon: Strikethrough,
 		shortcut: { shift: true, key: 'X' },
 	},
-	link: { group: 'references', message: wysiwygMessages.link, icon: Link, shortcut: { key: 'K' } },
-	quote: {
-		group: 'references',
-		message: wysiwygMessages.quote,
-		icon: TextQuote,
-		shortcut: { shift: true, key: '9' },
-	},
 	bulletList: {
 		group: 'lists',
 		message: wysiwygMessages.bulletList,
@@ -192,6 +185,13 @@ export const wysiwygActions: Record<WysiwygAction, WysiwygActionEntry> = {
 		message: wysiwygMessages.orderedList,
 		icon: ListOrdered,
 		shortcut: { shift: true, key: '7' },
+	},
+	link: { group: 'references', message: wysiwygMessages.link, icon: Link, shortcut: { key: 'K' } },
+	quote: {
+		group: 'references',
+		message: wysiwygMessages.quote,
+		icon: TextQuote,
+		shortcut: { shift: true, key: '9' },
 	},
 	code: { group: 'code', message: wysiwygMessages.code, icon: Code, shortcut: { key: 'E' } },
 	codeBlock: {

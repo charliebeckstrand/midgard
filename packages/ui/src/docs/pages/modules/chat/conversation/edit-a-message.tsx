@@ -3,7 +3,7 @@ import { useId, useLayoutEffect, useRef, useState } from 'react'
 import { Button } from 'ui/button'
 import {
 	type ChatCitation,
-	ChatEmbedProvider,
+	ChatCitationProvider,
 	type ChatMessageData,
 	ChatPrompt,
 	ChatTranscript,
@@ -14,8 +14,8 @@ import type { ContextMenuConfig } from 'ui/context-menu'
 import { Flex } from 'ui/flex'
 import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
-import { renderers } from '../embeds/renderers.tsx'
 import { transport } from './reply.ts'
+import { targets } from './targets.tsx'
 
 const scope = { quote: '@Late stops by day' }
 
@@ -154,7 +154,7 @@ export default function EditAMessage() {
 			: undefined
 
 	return (
-		<ChatEmbedProvider renderers={renderers}>
+		<ChatCitationProvider targets={targets}>
 			<Stack gap="md" className="h-112">
 				<ChatTranscript
 					messages={chat.messages}
@@ -188,6 +188,6 @@ export default function EditAMessage() {
 					}
 				/>
 			</Stack>
-		</ChatEmbedProvider>
+		</ChatCitationProvider>
 	)
 }

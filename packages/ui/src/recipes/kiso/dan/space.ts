@@ -322,6 +322,12 @@ export const space = {
 			 * the last row. It equals the inline padding of the control.
 			 */
 			bottom: 'density-pb-[1.75,2.25,2.75,3.25,3.75]',
+			/**
+			 * The negative inline margin of the toolbar of a bare field. It cancels the
+			 * padding of a bare icon button (`button.bare`), so the first glyph and the
+			 * text of the field start at the same edge.
+			 */
+			bare: 'density-mx-[-0.75,-1,-1.25,-1.5,-1.75]',
 		},
 	},
 	affix: {

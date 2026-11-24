@@ -2,7 +2,12 @@
 
 import { type PointerEvent, type ReactNode, useCallback, useMemo, useRef, useState } from 'react'
 import { queryItems } from '../../hooks/a11y/use-a11y-roving'
-import { MenuOpenSubContext, MenuPointerContext, type MenuPointerValue } from './context'
+import {
+	type MenuOpenSub,
+	MenuOpenSubContext,
+	MenuPointerContext,
+	type MenuPointerValue,
+} from './context'
 import { MENUITEM_SELECTOR } from './use-menu-root'
 
 /**
@@ -15,6 +20,9 @@ import { MENUITEM_SELECTOR } from './use-menu-root'
 const TRAVEL_SLACK = 12
 
 type Point = { x: number; y: number }
+
+/** A level with no submenu open. */
+const CLOSED: MenuOpenSub = { key: null, from: null }
 
 /**
  * Which end of an open submenu each key seats the cursor on. Down and Home enter
@@ -76,8 +84,8 @@ export type MenuPointerLevelProps = {
 
 /**
  * Owns one menu level's pointer cursor: the {@link MenuPointerValue} its rows
- * report arrivals through, plus the `openKey` naming the submenu those arrivals
- * have opened.
+ * report arrivals through, plus the {@link MenuOpenSub} naming the submenu those
+ * arrivals have opened.
  *
  * @remarks The pointer drives the same cursor the arrow keys do. A menu
  * therefore carries one highlight, rather than a hover wash beside a stale
@@ -96,13 +104,30 @@ export type MenuPointerLevelProps = {
  * are the sweep passing through, not a new destination. Geometry says what a
  * timer would have had to guess, and says it without holding anything up.
  *
+ * A submenu that opens where none was open fades in. A submenu that replaces
+ * an open sibling opens at once, and the sibling closes at once, as in a
+ * native menu. The two panels do not fade across each other, so the page
+ * behind them does not show through. The open submenu records the sibling
+ * that it replaced ({@link MenuOpenSub.from}) for this.
+ *
  * The level provides both halves itself rather than handing them back, so no
- * caller can wire one without the other. `openKey` changes on every sweep. It
+ * caller can wire one without the other. The open submenu changes on every sweep. It
  * re-renders neither the menu nor the row that owns the panel's subtree, only
  * the rows that read it.
  */
 export function MenuPointerLevel({ children }: MenuPointerLevelProps) {
 	const [openKey, setOpenKey] = useState<string | null>(null)
+
+	// The open submenu, and the sibling that it replaced. It follows `openKey` in
+	// the render, so `from` is the submenu that the last render showed. One event
+	// can close a submenu and open its sibling, as a hover does: the blur of the
+	// parent row closes it, and then the level opens the sibling. The
+	// intermediate `null` never renders, so it does not hide the swap.
+	const [openSub, setOpenSub] = useState<MenuOpenSub>(CLOSED)
+
+	if (openSub.key !== openKey) {
+		setOpenSub(openKey === null ? CLOSED : { key: openKey, from: openSub.key })
+	}
 
 	// Read back inside the handlers below, which run between a set and the render
 	// that would refresh a closure over the state.
@@ -235,7 +260,7 @@ export function MenuPointerLevel({ children }: MenuPointerLevelProps) {
 	}, [])
 
 	// Every member is stable, so this identity never changes: a sweep re-renders
-	// only the rows that read `openKey`.
+	// only the rows that read the open submenu.
 	const pointer = useMemo(
 		() => ({
 			hoverRow,
@@ -251,7 +276,7 @@ export function MenuPointerLevel({ children }: MenuPointerLevelProps) {
 
 	return (
 		<MenuPointerContext value={pointer}>
-			<MenuOpenSubContext value={openKey}>{children}</MenuOpenSubContext>
+			<MenuOpenSubContext value={openSub}>{children}</MenuOpenSubContext>
 		</MenuPointerContext>
 	)
 }

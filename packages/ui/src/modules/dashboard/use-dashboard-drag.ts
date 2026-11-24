@@ -23,6 +23,7 @@ import {
 	describeDragEnd,
 	describeDragMove,
 	describeDragStart,
+	describeStackAtStart,
 	describeStackCancel,
 	describeStackEnd,
 	describeStackMove,
@@ -631,7 +632,18 @@ export function useDashboardDrag({
 
 		return {
 			onDragStart: ({ active }) => say(String(active.id), describeStackStart, (s) => s.start),
-			onDragMove: ({ active }) => say(String(active.id), describeStackMove, (s) => s.index),
+			// Over the start place, a drop changes nothing, as on the grid.
+			onDragMove: ({ active }) => {
+				const stack = stackRef.current
+
+				const atStart = stack !== null && stack.index === stack.start
+
+				return say(
+					String(active.id),
+					atStart ? describeStackAtStart : describeStackMove,
+					(s) => s.index,
+				)
+			},
 			onDragOver: () => undefined,
 			// A drop that commits ends in the settle phase, at the place of the preview.
 			onDragEnd: ({ active }) =>

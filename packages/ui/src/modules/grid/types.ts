@@ -40,6 +40,14 @@ export type GridAggCellContext<T> = {
  */
 export type GridColumn<T> = {
 	id: string | number
+	/**
+	 * The header content. The header cell takes its name from it. A column with
+	 * no title is named by its `id`. A title that is not a string must hold
+	 * text: an icon alone gives the header an empty name, so put the name in
+	 * hidden text beside it, such as `<span className="sr-only">Actions</span>`.
+	 * The labels that need a string, such as the sort button, the filter, and
+	 * the export, use a string title, else the `id`.
+	 */
 	title?: ReactNode
 	/** Lets the user sort this data column. Set `false` to opt a column out; sorting flows through the grid's `sort` binding. @defaultValue true */
 	sortable?: boolean

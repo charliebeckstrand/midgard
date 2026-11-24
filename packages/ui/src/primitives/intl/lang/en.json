@@ -151,6 +151,10 @@
 		"defaultMessage": "Selects in {label}",
 		"description": "The description of a phrase of a chat reply that selects items in a view beside the chat. The label is the name of the view, such as \"Late stops by day\"."
 	},
+	"ui.chat.citationShows": {
+		"defaultMessage": "Shows {label}",
+		"description": "The description of a phrase of a chat reply that opens a dialog with a view of the data behind the phrase, such as a chart. The label is the name of the view, such as \"Late stops by day\"."
+	},
 	"ui.chat.conversation": {
 		"defaultMessage": "Conversation",
 		"description": "The name of the scrolling list of the messages of a chat. A screen reader reads it when the focus goes to the list."
@@ -169,11 +173,15 @@
 	},
 	"ui.chat.messageActions": {
 		"defaultMessage": "Message actions",
-		"description": "The name of the menu of a chat message, and of the button that opens it. On a touch screen, a long press on the message also opens the menu. It holds the actions of that message."
+		"description": "The name of the menu of a chat message, of its toolbar, and of the button that opens the menu when the toolbar shows no action buttons. On a touch screen, a long press on the message also opens the menu. It holds the actions of that message."
 	},
 	"ui.chat.missing": {
 		"defaultMessage": "This chat cannot show a “{name}” block.",
 		"description": "Shown in place of a block of a chat reply that the app cannot draw. The name is the name of the block."
+	},
+	"ui.chat.moreActions": {
+		"defaultMessage": "More actions",
+		"description": "The name of the button in the toolbar of a chat message that opens a menu of the actions that do not fit in the toolbar. The toolbar shows the first actions as icon buttons before it."
 	},
 	"ui.chat.newest": {
 		"defaultMessage": "Go to the newest message",
@@ -421,7 +429,7 @@
 	},
 	"ui.dashboard.atStart": {
 		"defaultMessage": "{item} is over its start place, {cell}. A drop now changes nothing.",
-		"description": "Spoken while a dragged tile is over the place where the drag started. The cell is that place."
+		"description": "Spoken while a dragged tile is over the place where the drag started. The cell is that place: a grid cell, such as \"column 3 of 24, row 2, 8 columns wide\", or a place in the stack of a narrow board, such as \"position 2 of 5\"."
 	},
 	"ui.dashboard.canceled": {
 		"defaultMessage": "Canceled. {item} returned to {cell}.",
@@ -443,8 +451,12 @@
 		"defaultMessage": "{count, plural, one {# column} other {# columns}}",
 		"description": "The width of a dashboard tile in columns, which its resize handle speaks."
 	},
+	"ui.dashboard.dragHint": {
+		"defaultMessage": "Use the arrow keys to move it. Press Space to drop it, or Escape to cancel.",
+		"description": "Spoken after the reader picks up a dashboard tile."
+	},
 	"ui.dashboard.dragStart": {
-		"defaultMessage": "Picked up {item} at {cell}. Use the arrow keys to move it. Press Space to drop it, or Escape to cancel.",
+		"defaultMessage": "Picked up {item} at {cell}.",
 		"description": "Spoken when the reader picks up a dashboard tile. The cell is the place of the tile."
 	},
 	"ui.dashboard.droppedAt": {
@@ -478,6 +490,10 @@
 	"ui.dashboard.moves": {
 		"defaultMessage": "{item} moves to {cell}.",
 		"description": "Spoken while a dragged tile is over an empty place."
+	},
+	"ui.dashboard.position": {
+		"defaultMessage": "position {position, number} of {total, number}",
+		"description": "The place of a dashboard tile when the narrow board stacks the tiles: its place in reading order, and the count of tiles."
 	},
 	"ui.dashboard.remove": {
 		"defaultMessage": "Remove {item}",

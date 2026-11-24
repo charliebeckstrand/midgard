@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, useMemo, useRef } from 'react'
+import { type ReactElement, type ReactNode, useMemo, useRef, useState } from 'react'
 import { Button } from '../../components/button'
 import { ContextMenu, ContextMenuList } from '../../components/context-menu'
 import { resolveContextMenuEntries } from '../../components/context-menu/context-menu-merge'
@@ -10,8 +10,11 @@ import type {
 	ContextMenuItem,
 } from '../../components/context-menu/types'
 import { CopyButton } from '../../components/copy-button'
+import { copyButtonMessages } from '../../components/copy-button/copy-button-messages'
 import { Icon } from '../../components/icon'
 import { Menu, MenuContent, MenuTrigger } from '../../components/menu'
+import { Toolbar } from '../../components/toolbar'
+import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { useMediaQuery } from '../../hooks/use-media-query'
 import { Copy, EllipsisVertical } from '../../primitives/icons/icons'
 import { defineMessages } from '../../primitives/intl/intl-messages'
@@ -28,7 +31,13 @@ const messages = defineMessages({
 		id: 'ui.chat.messageActions',
 		defaultMessage: 'Message actions',
 		description:
-			'The name of the menu of a chat message, and of the button that opens it. On a touch screen, a long press on the message also opens the menu. It holds the actions of that message.',
+			'The name of the menu of a chat message, of its toolbar, and of the button that opens the menu when the toolbar shows no action buttons. On a touch screen, a long press on the message also opens the menu. It holds the actions of that message.',
+	},
+	more: {
+		id: 'ui.chat.moreActions',
+		defaultMessage: 'More actions',
+		description:
+			'The name of the button in the toolbar of a chat message that opens a menu of the actions that do not fit in the toolbar. The toolbar shows the first actions as icon buttons before it.',
 	},
 	copy: {
 		id: 'ui.chat.copy',
@@ -38,7 +47,7 @@ const messages = defineMessages({
 	},
 })
 
-/** Props for {@link ChatMessageMenu} and {@link ChatMessageMenuButton}. @internal */
+/** Props for {@link ChatMessageMenu} and {@link ChatMessageToolbar}. @internal */
 type ChatMessageMenuProps = {
 	/** The configuration of the caller. `undefined` shows the default items alone. */
 	config: ContextMenuConfig | undefined
@@ -50,8 +59,8 @@ type ChatMessageMenuProps = {
 
 /**
  * The entries of the menu of a chat message: the default Copy item, merged
- * with the configuration of the caller. The menu over the bubble and the menu
- * button read the same entries.
+ * with the configuration of the caller. The menu over the bubble and the
+ * toolbar read the same entries.
  *
  * @internal
  */
@@ -156,24 +165,59 @@ const MENU_PLACEMENT = {
 } as const satisfies Record<ChatMessageData['sender'], string>
 
 /**
- * The one item of a menu that holds a single item, or `undefined` for any
- * other menu.
+ * The most actions that the toolbar shows as icon buttons. The menu button
+ * holds the other entries.
  *
  * @internal
  */
-function loneItem(entries: ContextMenuEntry[]): ContextMenuItem | undefined {
-	const [only] = entries
+const INLINE_LIMIT = 3
 
-	if (entries.length !== 1 || only === undefined) return undefined
+/** An item that the toolbar shows as an icon button. @internal */
+type InlineItem = ContextMenuItem & { icon: ReactElement }
 
-	return 'separator' in only || 'items' in only ? undefined : only
+/** Whether an entry is an item with an icon, which the toolbar can show. @internal */
+function isInlineItem(entry: ContextMenuEntry): entry is InlineItem {
+	return !('separator' in entry) && !('items' in entry) && entry.icon !== undefined
 }
 
 /**
- * The copy button in the toolbar, for a menu that holds Copy alone. It shows a
- * check while the copied state holds, and a live region says "Copied". The
- * check holds the toolbar open (`has-data-copied` in the kata), so the reader
- * sees it also after the pointer leaves the message.
+ * Splits the entries of a menu between the toolbar and the menu button. The
+ * toolbar takes the first entries, up to {@link INLINE_LIMIT}, while each is an
+ * item with an icon. A separator between two of them goes. A submenu or an item
+ * with no icon has nothing to draw as an icon button, so it and each entry after
+ * it stay in the menu. Thus the order of the entries holds. The menu does not
+ * start with a separator.
+ *
+ * @internal
+ */
+function splitToolbarEntries(entries: ContextMenuEntry[]): {
+	inline: InlineItem[]
+	rest: ContextMenuEntry[]
+} {
+	const inline: InlineItem[] = []
+
+	let index = 0
+
+	for (; index < entries.length && inline.length < INLINE_LIMIT; index++) {
+		const entry = entries[index] as ContextMenuEntry
+
+		if ('separator' in entry) continue
+
+		if (!isInlineItem(entry)) break
+
+		inline.push(entry)
+	}
+
+	while (index < entries.length && 'separator' in (entries[index] as ContextMenuEntry)) index++
+
+	return { inline, rest: entries.slice(index) }
+}
+
+/**
+ * The copy button in the toolbar. It shows a check while the copied state
+ * holds, and a live region says "Copied". Its tooltip says "Copied" for that
+ * time too. The check holds the toolbar open (`has-data-copied` in the kata),
+ * so the reader sees it also after the pointer leaves the message.
  *
  * When the check goes, the focus goes to the bubble, as after the Copy item of
  * the menu. The next Tab thus goes into the toolbar again. The focus moves at
@@ -195,84 +239,141 @@ function ToolbarCopy({
 	disabled: boolean | undefined
 	onDone: () => void
 }) {
+	const intl = useIntl()
+
 	const ref = useRef<HTMLButtonElement>(null)
+
+	const [copied, setCopied] = useState(false)
 
 	const done = () => {
 		if (document.activeElement === ref.current) onDone()
 	}
 
 	return (
-		<CopyButton
-			ref={ref}
-			size="sm"
-			icon={<Copy />}
-			text={text}
-			disabled={disabled}
-			aria-label={label}
-			onCopiedChange={(copied) => {
-				if (!copied) done()
-			}}
-			onCopyError={done}
-		/>
+		<Tooltip>
+			<TooltipTrigger>
+				{/* The tooltip echoes the accessible name, so the trigger takes no
+				    description that repeats it. */}
+				<CopyButton
+					ref={ref}
+					aria-describedby={undefined}
+					size="sm"
+					icon={<Copy />}
+					text={text}
+					disabled={disabled}
+					aria-label={label}
+					onCopiedChange={(next) => {
+						setCopied(next)
+
+						if (!next) done()
+					}}
+					onCopyError={done}
+				/>
+			</TooltipTrigger>
+			<TooltipContent>
+				{copied ? intl.formatMessage(copyButtonMessages.copied) : label}
+			</TooltipContent>
+		</Tooltip>
 	)
 }
 
 /**
- * The button in the toolbar of a chat message. A menu of more than one item
- * opens as a dropdown from an ellipsis button, with the same entries as the
- * context menu of a touch screen. Thus a reader with a pointer or a keyboard
- * gets to each action. A menu of one item with an icon has no ellipsis: the
- * toolbar shows the button of that item, which runs its action at once. Copy
- * alone is a {@link CopyButton}, which shows a check after the copy.
+ * An action of the caller in the toolbar: an icon button with the label of the
+ * item as its name and its tooltip. A press runs the action at once.
  *
  * @internal
  */
-export function ChatMessageMenuButton({
+function ToolbarAction({ item }: { item: InlineItem }) {
+	return (
+		<Tooltip>
+			<TooltipTrigger>
+				{/* The tooltip echoes the accessible name, so the trigger takes no
+				    description that repeats it. */}
+				<Button
+					type="button"
+					variant="bare"
+					size="sm"
+					aria-describedby={undefined}
+					disabled={item.disabled}
+					onClick={item.onAction}
+				>
+					<Icon icon={item.icon} />
+					<span className="sr-only">{item.label}</span>
+				</Button>
+			</TooltipTrigger>
+			<TooltipContent>{item.label}</TooltipContent>
+		</Tooltip>
+	)
+}
+
+/**
+ * The toolbar of a chat message, on a device that hovers. It shows the first
+ * actions of the menu as icon buttons, up to three, each with a tooltip. An
+ * ellipsis button opens a dropdown with the other entries, the same entries
+ * as the context menu of a touch screen has after them. A menu of three items
+ * or fewer, each with an icon, has no ellipsis. Thus a reader with a pointer or
+ * a keyboard gets to each action. Copy is a {@link CopyButton}, which shows a
+ * check after the copy.
+ *
+ * The toolbar is a {@link Toolbar}, so it is one Tab stop, and the arrow keys
+ * move between its buttons. The ellipsis is named "Message actions" when it is
+ * the only button, and "More actions" after icon buttons.
+ *
+ * @internal
+ */
+export function ChatMessageToolbar({
 	config,
 	content,
 	bubble,
 	sender,
 }: ChatMessageMenuProps & { sender: ChatMessageData['sender'] }) {
+	const intl = useIntl()
+
 	const { entries, copyItem, text, focusBubble, copy, name } = useMenuEntries({
 		config,
 		content,
 		bubble,
 	})
 
-	const action = loneItem(entries)
+	const { inline, rest } = useMemo(() => splitToolbarEntries(entries), [entries])
 
-	// Copy alone is a copy button, which shows a check after the copy.
-	if (action === copyItem) {
-		return <ToolbarCopy text={text} label={copy} disabled={action.disabled} onDone={focusBubble} />
-	}
-
-	// An item with no icon has nothing to draw in the toolbar, so it keeps the menu.
-	if (action?.icon) {
-		return (
-			<Button
-				type="button"
-				variant="bare"
-				size="sm"
-				disabled={action.disabled}
-				onClick={action.onAction}
-			>
-				<Icon icon={action.icon} />
-				<span className="sr-only">{action.label}</span>
-			</Button>
-		)
-	}
+	const more = inline.length > 0 ? intl.formatMessage(messages.more) : name
 
 	return (
-		<Menu placement={MENU_PLACEMENT[sender]} capped={config?.capped}>
-			<MenuTrigger>
-				<Button type="button" variant="bare" size="sm" aria-label={name}>
-					<Icon icon={<EllipsisVertical />} />
-				</Button>
-			</MenuTrigger>
+		<Toolbar aria-label={name}>
+			{inline.map((item, index) =>
+				item === copyItem ? (
+					<ToolbarCopy
+						key={item.key}
+						text={text}
+						label={copy}
+						disabled={item.disabled}
+						onDone={focusBubble}
+					/>
+				) : (
+					<ToolbarAction key={item.key ?? index} item={item} />
+				),
+			)}
+			{rest.length > 0 && (
+				<Menu placement={MENU_PLACEMENT[sender]} capped={config?.capped}>
+					<Tooltip>
+						<TooltipTrigger>
+							{/* The tooltip echoes the accessible name, so the trigger takes no
+							    description that repeats it. */}
+							<MenuTrigger aria-describedby={undefined}>
+								<Button type="button" variant="bare" size="sm" aria-label={more}>
+									<Icon icon={<EllipsisVertical />} />
+								</Button>
+							</MenuTrigger>
+						</TooltipTrigger>
+						<TooltipContent>{more}</TooltipContent>
+					</Tooltip>
 
-			<MenuContent>
-				<ContextMenuList entries={entries} />
-			</MenuContent>
-		</Menu>
+					<MenuContent>
+						<ContextMenuList entries={rest} />
+					</MenuContent>
+				</Menu>
+			)}
+		</Toolbar>
 	)
 }

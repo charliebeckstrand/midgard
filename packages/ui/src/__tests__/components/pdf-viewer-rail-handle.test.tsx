@@ -161,6 +161,39 @@ describe('PdfViewer rail resize handle', () => {
 		expect(railWidth(rail)).toBe('320px')
 	})
 
+	it('keeps the drag on its pointer when a second primary pointer presses', () => {
+		const { handle } = renderRail()
+
+		fireEvent.pointerDown(handle, {
+			pointerId: 1,
+			pointerType: 'pen',
+			isPrimary: true,
+			button: 0,
+			clientX: 240,
+		})
+
+		// The first touch of a resting palm is primary too.
+		fireEvent.pointerDown(handle, {
+			pointerId: 2,
+			pointerType: 'touch',
+			isPrimary: true,
+			button: 0,
+			clientX: 400,
+		})
+
+		fireEvent.pointerMove(handle, { pointerId: 2, clientX: 200 })
+
+		expect(handle).toHaveAttribute('aria-valuenow', '240')
+
+		fireEvent.lostPointerCapture(handle, { pointerId: 2 })
+
+		expect(handle).toHaveAttribute('data-dragging')
+
+		fireEvent.pointerMove(handle, { pointerId: 1, clientX: 280 })
+
+		expect(handle).toHaveAttribute('aria-valuenow', '280')
+	})
+
 	it('mirrors the drag in a right-to-left layout', () => {
 		const { handle } = renderRail('rtl')
 
