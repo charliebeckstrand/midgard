@@ -151,14 +151,21 @@ export const input = defineGroup({
 	 * box that fits its content, it takes the width of its field. The field
 	 * then takes the width of its value or its placeholder
 	 * (`field-sizing: content`), and grows with the value. The field keeps
-	 * `flex-auto`, so it fills a frame that the layout makes wider. A browser
+	 * `flex-auto`, so it fills a frame that the layout makes wider. On a coarse
+	 * pointer, the field is at least 64 px wide. A button in an affix, such as
+	 * a stepper of a NumberInput, is narrower than the 44 px touch floor, so
+	 * the center of the field must be 44 px from the center of the button
+	 * (WCAG 2.5.8). Half of 64 px and half of the button give that. A browser
 	 * without `field-sizing` gives the field its default width.
 	 */
 	width: { fill: [], auto: 'w-auto' },
 	slots: {
 		field: {
 			base: 'block',
-			width: { fill: [], auto: ['w-auto', 'flex-auto', 'field-sizing-content'] },
+			width: {
+				fill: [],
+				auto: ['w-auto', 'flex-auto', 'field-sizing-content', 'pointer-coarse:min-w-16'],
+			},
 		},
 		/**
 		 * A prefix or a suffix. It has no gap, so two controls in it touch, such
