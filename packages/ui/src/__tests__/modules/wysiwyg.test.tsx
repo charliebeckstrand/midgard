@@ -527,7 +527,10 @@ describe('WysiwygToolbar', () => {
 
 		const dialog = await screen.findByRole('dialog', { name: 'Link' })
 
-		await waitFor(() => expect(within(dialog).getByRole('textbox', { name: 'URL' })).toHaveFocus())
+		// The caret selects no text, so the text field takes the focus.
+		await waitFor(() => expect(within(dialog).getByRole('textbox', { name: 'Text' })).toHaveFocus())
+
+		expect(within(dialog).getByRole('textbox', { name: 'URL' })).toHaveValue('')
 	})
 })
 
