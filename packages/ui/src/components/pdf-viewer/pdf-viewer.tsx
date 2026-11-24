@@ -258,6 +258,9 @@ export type PdfViewerProps = Omit<ComponentProps<'section'>, 'children' | 'onLoa
  * example `w-max`), the page area takes the width of the page at 100%: 96 px for each inch of
  * the page, or US Letter before the page size is known.
  *
+ * The toolbar shows while a `src` opens, so the layout does not change when the document lands.
+ * A load that failed and a document with no page show the message of the pane and no toolbar.
+ *
  * `highlights` is a controlled projection, and the viewer never changes it. The search reads
  * the OCR `data` that the consumer gives, not a text layer of the document. The viewer has no
  * annotation authoring, no form fields, and no continuous scroll, and it finds no regions of
