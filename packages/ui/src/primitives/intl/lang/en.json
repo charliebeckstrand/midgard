@@ -2391,10 +2391,6 @@
 		"defaultMessage": "Apply",
 		"description": "The button that sets the link of the selected text to the typed web address."
 	},
-	"ui.wysiwyg.blocks": {
-		"defaultMessage": "Blocks",
-		"description": "The name of the group of toolbar buttons that change the current block, such as Quote."
-	},
 	"ui.wysiwyg.bold": {
 		"defaultMessage": "Bold",
 		"description": "The name of the toolbar button that makes the selected text bold."
@@ -2427,6 +2423,10 @@
 		"defaultMessage": "URL",
 		"description": "The label of the field that holds the web address of a link."
 	},
+	"ui.wysiwyg.lists": {
+		"defaultMessage": "Lists",
+		"description": "The name of the group of toolbar buttons that make the current block a list, such as Bulleted list."
+	},
 	"ui.wysiwyg.orderedList": {
 		"defaultMessage": "Numbered list",
 		"description": "The name of the toolbar button that makes the current block a numbered list."
@@ -2434,6 +2434,10 @@
 	"ui.wysiwyg.quote": {
 		"defaultMessage": "Quote",
 		"description": "The name of the toolbar button that makes the current block a quote."
+	},
+	"ui.wysiwyg.references": {
+		"defaultMessage": "References",
+		"description": "The name of the group of toolbar buttons that bring in outside material, such as Link and Quote."
 	},
 	"ui.wysiwyg.removeLink": {
 		"defaultMessage": "Remove link",

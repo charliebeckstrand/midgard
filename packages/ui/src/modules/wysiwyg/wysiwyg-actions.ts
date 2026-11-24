@@ -27,11 +27,17 @@ export const wysiwygMessages = defineMessages({
 		description:
 			'The name of the group of toolbar buttons that format the selected text, such as Bold.',
 	},
-	blocks: {
-		id: 'ui.wysiwyg.blocks',
-		defaultMessage: 'Blocks',
+	references: {
+		id: 'ui.wysiwyg.references',
+		defaultMessage: 'References',
 		description:
-			'The name of the group of toolbar buttons that change the current block, such as Quote.',
+			'The name of the group of toolbar buttons that bring in outside material, such as Link and Quote.',
+	},
+	lists: {
+		id: 'ui.wysiwyg.lists',
+		defaultMessage: 'Lists',
+		description:
+			'The name of the group of toolbar buttons that make the current block a list, such as Bulleted list.',
 	},
 	codeGroup: {
 		id: 'ui.wysiwyg.codeGroup',
@@ -115,7 +121,7 @@ export type WysiwygShortcut = { shift?: boolean; alt?: boolean; key: string }
  *
  * @internal
  */
-export type WysiwygActionGroup = 'text' | 'blocks' | 'code'
+export type WysiwygActionGroup = 'text' | 'references' | 'lists' | 'code'
 
 /**
  * The name of each group of the toolbar.
@@ -124,7 +130,8 @@ export type WysiwygActionGroup = 'text' | 'blocks' | 'code'
  */
 export const wysiwygGroupMessages: Record<WysiwygActionGroup, MessageDescriptor> = {
 	text: wysiwygMessages.text,
-	blocks: wysiwygMessages.blocks,
+	references: wysiwygMessages.references,
+	lists: wysiwygMessages.lists,
 	code: wysiwygMessages.codeGroup,
 }
 
@@ -138,8 +145,9 @@ export const wysiwygGroupMessages: Record<WysiwygActionGroup, MessageDescriptor>
  */
 export type WysiwygActionEntry = {
 	/**
-	 * The group of the action in the toolbar: `text` changes the selected text,
-	 * `blocks` changes the block of the caret, and `code` shows text as code.
+	 * The group of the action in the toolbar: `text` formats the selected
+	 * text, `references` adds a link or a quote, `lists` makes a list, and
+	 * `code` shows text as code.
 	 */
 	group: WysiwygActionGroup
 	message: MessageDescriptor
@@ -161,24 +169,24 @@ export const wysiwygActions: Record<WysiwygAction, WysiwygActionEntry> = {
 		icon: Strikethrough,
 		shortcut: { shift: true, key: 'X' },
 	},
-	link: { group: 'text', message: wysiwygMessages.link, icon: Link, shortcut: { key: 'K' } },
+	link: { group: 'references', message: wysiwygMessages.link, icon: Link, shortcut: { key: 'K' } },
+	quote: {
+		group: 'references',
+		message: wysiwygMessages.quote,
+		icon: TextQuote,
+		shortcut: { shift: true, key: '9' },
+	},
 	bulletList: {
-		group: 'blocks',
+		group: 'lists',
 		message: wysiwygMessages.bulletList,
 		icon: List,
 		shortcut: { shift: true, key: '8' },
 	},
 	orderedList: {
-		group: 'blocks',
+		group: 'lists',
 		message: wysiwygMessages.orderedList,
 		icon: ListOrdered,
 		shortcut: { shift: true, key: '7' },
-	},
-	quote: {
-		group: 'blocks',
-		message: wysiwygMessages.quote,
-		icon: TextQuote,
-		shortcut: { shift: true, key: '9' },
 	},
 	code: { group: 'code', message: wysiwygMessages.code, icon: Code, shortcut: { key: 'E' } },
 	codeBlock: {

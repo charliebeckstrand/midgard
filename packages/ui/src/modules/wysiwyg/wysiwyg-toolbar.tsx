@@ -21,9 +21,10 @@ import { WysiwygLinkButton } from './wysiwyg-link-button'
 export type WysiwygToolbarProps = {
 	/**
 	 * The actions of the toolbar, in the order given. A separator goes where
-	 * the list changes from one group to the next: text actions, block
-	 * actions, and code actions (`code`, `codeBlock`). The default is each
-	 * {@link WysiwygAction}, in that order of groups.
+	 * the list changes from one group to the next: text (`bold`, `italic`,
+	 * `strike`), references (`link`, `quote`), lists (`bulletList`,
+	 * `orderedList`), and code (`code`, `codeBlock`). The default is each
+	 * {@link WysiwygAction}, in that order.
 	 * @defaultValue WYSIWYG_ACTIONS
 	 */
 	actions?: readonly WysiwygAction[]
