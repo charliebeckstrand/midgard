@@ -143,6 +143,8 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > `PdfViewer` searches the OCR text that `data` gives, as `PdfViewerTextItem` runs. The toolbar then has a Search control. `search` turns it off, or sets the color of the matches and the page turn, through `PdfViewerSearchOptions`.
 
+> The page of `PdfViewer` is an image, so the text of the page on screen follows it as visually hidden text, for a screen reader. The text comes from the runs of `data` on that page, else from the text that pdf.js reads off a `src` document. A scan with no `data` has no text.
+
 > `PdfViewer` shows its toolbar while a `src` opens and after the document opens with a page. A load that failed and a document with no page show the message of the pane and no toolbar.
 
 > The thumbnail rail of `PdfViewer` opens 240px wide. A splitter on its end edge resizes it from 160px to 320px, by a drag or by the arrow keys. A double-click sets 240px again, unless its second press dragged. The rail is one Tab stop on the current page, and the arrow keys move between the pages. A `src` document renders each thumbnail for the widest rail, so a thumbnail is sharp at each width.

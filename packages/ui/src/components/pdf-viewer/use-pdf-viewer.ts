@@ -29,6 +29,7 @@ import {
 import { usePdfViewerPageRotation } from './use-pdf-viewer-page-rotation'
 import { type PageScaleResult, usePdfViewerPageScale } from './use-pdf-viewer-page-scale'
 import { usePdfViewerPageSize } from './use-pdf-viewer-page-size'
+import { usePdfViewerPageText } from './use-pdf-viewer-page-text'
 import { usePdfViewerPagination } from './use-pdf-viewer-pagination'
 import { usePdfViewerRasterWidth } from './use-pdf-viewer-raster-width'
 
@@ -137,6 +138,7 @@ type PdfViewerOptions = Pick<
 	| 'magnifier'
 	| 'onHighlightsVisibleChange'
 	| 'onMagnifierChange'
+	| 'data'
 > & {
 	/** Whether the consumer supplied any highlight regions; gates the toolbar's visibility toggle. */
 	hasHighlights?: boolean
@@ -161,6 +163,11 @@ export type PdfViewerResult = {
 	 */
 	targetPage: number
 	goToPage: (page: number) => void
+	/**
+	 * The text of the page that the viewer shows, for assistive technology, or `null` when the
+	 * viewer has none. See {@link usePdfViewerPageText}.
+	 */
+	pageText: string | null
 	zoom: PdfViewerZoom
 	rotate: () => void
 	scale: PageScaleResult
@@ -323,6 +330,7 @@ export function usePdfViewer({
 	magnifier: magnifierProp,
 	onHighlightsVisibleChange,
 	onMagnifierChange,
+	data,
 }: PdfViewerOptions): PdfViewerResult {
 	// The document lifecycle settles outside each call site that this hook runs, so the report
 	// watches the committed snapshot. An effect raises it, through `useEffectEvent`.
@@ -633,6 +641,13 @@ export function usePdfViewer({
 
 	const visible = !!pageSize
 
+	const pageText = usePdfViewerPageText({
+		data,
+		src: shouldLoadFromSrc ? src : undefined,
+		page: safePage,
+		loading,
+	})
+
 	// Memoized; PdfViewerContext value identity stays stable across renders
 	// that don't touch its fields.
 	return useMemo<PdfViewerResult>(
@@ -643,6 +658,7 @@ export function usePdfViewer({
 			safePage,
 			targetPage,
 			goToPage,
+			pageText,
 			zoom,
 			rotate,
 			scale,
@@ -688,6 +704,7 @@ export function usePdfViewer({
 			safePage,
 			targetPage,
 			goToPage,
+			pageText,
 			zoom,
 			rotate,
 			scale,

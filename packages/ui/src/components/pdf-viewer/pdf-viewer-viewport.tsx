@@ -30,7 +30,8 @@ import { PdfViewerSearchHits } from './pdf-viewer-search-hits'
  * and it grows to the height of its message.
  *
  * A visually hidden live region announces "Page X of Y" on
- * navigation. While the page overflows the viewport, the viewport is a tab
+ * navigation. The text of the page follows the image, visually hidden, for a screen reader
+ * (`usePdfViewerPageText`). While the page overflows the viewport, the viewport is a tab
  * stop, so a keyboard user can scroll it. Errors render in a `role="alert"`; loading shows an
  * `aria-label`'d placeholder.
  * @internal
@@ -49,6 +50,7 @@ export function PdfViewerViewport() {
 		visible,
 		fit,
 		onImageLoad,
+		pageText,
 	} = usePdfViewerContext()
 
 	const { setReference, referenceProps } = usePdfViewerMagnifierContext()
@@ -144,6 +146,14 @@ export function PdfViewerViewport() {
 							/>
 						)}
 					</div>
+					{/* The text of the page, after its image in the reading order, so a screen reader
+					    reads the content of the page and not only its name (WCAG 1.1.1). Not live: a
+					    page turn speaks "Page X of Y", and the reader goes on into the text. */}
+					{pageText && (
+						<div data-slot="pdf-viewer-page-text" className="sr-only">
+							{pageText}
+						</div>
+					)}
 				</div>
 			) : (
 				empty

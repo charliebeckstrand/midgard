@@ -283,6 +283,28 @@ async function openSlots(
 }
 
 /**
+ * Joins the text items that pdf.js reads off a page into the text of the page.
+ *
+ * @remarks An item that ends a line takes a space after it, so the last word of a line does
+ * not run into the first word of the next. A marked-content item has no text, and adds nothing.
+ * The whitespace collapses, because a screen reader speaks the text and does not show it.
+ * @internal
+ */
+export function pageText(items: readonly object[]): string {
+	let text = ''
+
+	for (const item of items) {
+		if (!('str' in item) || typeof item.str !== 'string') continue
+
+		text += item.str
+
+		if ('hasEOL' in item && item.hasEOL) text += ' '
+	}
+
+	return text.replace(/\s+/g, ' ').trim()
+}
+
+/**
  * Fetches the PDF at `src`, publishes a slot for each page, and gives the cache the renderer of
  * its pages.
  *
@@ -328,6 +350,16 @@ async function rasterizeDocument(src: string, report: PdfLoadReport): Promise<vo
 
 		// The entry owns the document from here, and the `finally` must not destroy it.
 		opened = null
+
+		report.read(async (index) => {
+			const page = parsed[index]
+
+			if (!page) return ''
+
+			const content = await page.getTextContent()
+
+			return pageText(content.items)
+		})
 
 		report.serve((index, raster, factor = 1) => {
 			const page = parsed[index]
