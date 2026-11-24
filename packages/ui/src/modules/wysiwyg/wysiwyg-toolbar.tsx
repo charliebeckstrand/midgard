@@ -69,12 +69,13 @@ function actionGroups(actions: readonly WysiwygAction[]) {
  * has a tooltip with its name, and its shortcut is in `aria-keyshortcuts`.
  *
  * @remarks The toolbar has `role="toolbar"`, one Tab stop, and arrow keys
- * between its buttons, and `aria-controls` points at the field. A press on a
- * button does not move the focus, so the selection stays in the field and the
- * virtual keyboard stays open. Until the editor loads, the buttons are
- * `aria-disabled` and keep their places in the arrow order. While the field
- * is disabled or read-only, the toolbar is `inert`: it has no Tab stop, it
- * takes no press, and it opens no tooltip.
+ * between its buttons, and `aria-controls` points at the field. Each run of
+ * one group is a `group` with the name of the group, such as "Lists", in the
+ * language of the reader. A press on a button does not move the focus, so the
+ * selection stays in the field and the virtual keyboard stays open. Until the
+ * editor loads, the buttons are `aria-disabled` and keep their places in the
+ * arrow order. While the field is disabled or read-only, the toolbar is
+ * `inert`: it has no Tab stop, it takes no press, and it opens no tooltip.
  */
 export function WysiwygToolbar({
 	actions = WYSIWYG_ACTIONS,

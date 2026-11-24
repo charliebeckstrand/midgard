@@ -29,8 +29,9 @@ type WysiwygActionButtonProps = {
 
 /**
  * A button of a {@link WysiwygToolbar}: the glyph, the name, and the shortcut
- * of its action, from the action table. The tooltip shows the name only. It is on while the action is on at
- * the selection. A press runs the action, unless the caller gives `onClick`.
+ * of its action, from the action table. The tooltip shows the name only. The
+ * button is on while the action is on at the selection. A press runs the
+ * action, unless the caller gives `onClick`.
  *
  * @remarks The pressed state comes from a store of the editor, so a keystroke
  * renders only the buttons whose state changed. The shortcut in
