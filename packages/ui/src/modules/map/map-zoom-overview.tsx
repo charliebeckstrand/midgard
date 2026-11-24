@@ -1,12 +1,12 @@
 'use client'
 
-import { type PointerEvent, useRef } from 'react'
+import { type PointerEvent, useRef, useState } from 'react'
 import { cn } from '../../core/cn'
 import { useDragCursorHold } from '../../hooks/use-drag-cursor'
 import { k } from '../../recipes/kata/map'
 import { getOrCompute } from '../../utilities/get-or-compute'
 import { holdTextSelection } from '../../utilities/hold-text-selection'
-import { isPrimaryPress } from '../../utilities/primary-press'
+import { createPressOwner } from '../../utilities/primary-press'
 import { useMapZoomView } from './context'
 import { MAP_ZOOM_FIT } from './engine/map-constants'
 import { clientToFrame, type MapClientBox } from './engine/map-projection/frame'
@@ -65,11 +65,14 @@ function MapZoomOverviewInset({
 }: MapZoomOverviewProps & { zoom: MapZoom }) {
 	const view = { width: viewWidth, height: viewHeight }
 
-	// The box of the thumbnail while a press holds it, else `null`. It is read
-	// once when the press lands: the press moves the view and not the inset, so
-	// the box holds for the whole drag, and a move does not force a layout after
-	// the transform it just wrote. The SVG fills the inset, so the inset's box is
-	// the SVG's.
+	// The one pointer that holds the thumbnail. Only it aims the view and ends
+	// the press, so a second finger or a resting palm on the inset does neither.
+	const [press] = useState(createPressOwner)
+
+	// The box of the thumbnail while a press holds it. It is read once when the
+	// press lands: the press moves the view and not the inset, so the box holds
+	// for the whole drag, and a move does not force a layout after the transform
+	// it just wrote. The SVG fills the inset, so the inset's box is the SVG's.
 	const box = useRef<MapClientBox | null>(null)
 
 	// A press drags the view, so it holds the closed hand on the page, as a pan
@@ -86,9 +89,14 @@ function MapZoomOverviewInset({
 	}
 
 	function aim(event: PointerEvent<HTMLElement>) {
-		const at =
-			box.current &&
-			clientToFrame({ x: event.clientX, y: event.clientY }, box.current, view.width, view.height)
+		if (!press.owns(event) || box.current === null) return
+
+		const at = clientToFrame(
+			{ x: event.clientX, y: event.clientY },
+			box.current,
+			view.width,
+			view.height,
+		)
 
 		if (at) zoom.cursor.center(at)
 	}
@@ -98,7 +106,7 @@ function MapZoomOverviewInset({
 	function onPointerDown(event: PointerEvent<HTMLElement>) {
 		event.stopPropagation()
 
-		if (!isPrimaryPress(event)) return
+		if (!press.claim(event)) return
 
 		holdTextSelection(event)
 
@@ -119,6 +127,10 @@ function MapZoomOverviewInset({
 
 	function onPointerEnd(event: PointerEvent<HTMLElement>) {
 		event.stopPropagation()
+
+		if (!press.owns(event)) return
+
+		press.release()
 
 		box.current = null
 

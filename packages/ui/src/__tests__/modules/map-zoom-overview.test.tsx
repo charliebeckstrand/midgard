@@ -117,6 +117,106 @@ describe('MapZoomOverview', () => {
 		fireEvent.pointerUp(node, { pointerId: 1 })
 	})
 
+	it('follows only the pointer that pressed it', () => {
+		const { inset, zoomIn, transform, measure, box } = renderOverview()
+
+		zoomIn()
+		zoomIn()
+		zoomIn()
+
+		measure()
+
+		const node = inset() as HTMLElement
+
+		fireEvent.pointerDown(node, {
+			pointerId: 1,
+			button: 0,
+			isPrimary: true,
+			clientX: box.left + box.width / 4,
+			clientY: box.top + box.height / 4,
+		})
+
+		const pressed = transform()
+
+		// A second finger lands on the inset, moves, and lifts.
+		fireEvent.pointerDown(node, {
+			pointerId: 2,
+			button: 0,
+			isPrimary: false,
+			clientX: box.left + (box.width * 3) / 4,
+			clientY: box.top + (box.height * 3) / 4,
+		})
+
+		fireEvent.pointerMove(node, {
+			pointerId: 2,
+			clientX: box.left + (box.width * 3) / 4,
+			clientY: box.top + (box.height * 3) / 4,
+		})
+
+		expect(transform()).toBe(pressed)
+
+		fireEvent.pointerUp(node, { pointerId: 2 })
+
+		// The first finger still holds the inset, so its move still aims the view.
+		fireEvent.pointerMove(node, {
+			pointerId: 1,
+			clientX: box.left + box.width / 2,
+			clientY: box.top + box.height / 2,
+		})
+
+		expect(transform()).not.toBe(pressed)
+
+		fireEvent.pointerUp(node, { pointerId: 1 })
+	})
+
+	it('refuses a second primary press while a pointer holds it', () => {
+		const { inset, zoomIn, transform, measure, box } = renderOverview()
+
+		zoomIn()
+		zoomIn()
+		zoomIn()
+
+		measure()
+
+		const node = inset() as HTMLElement
+
+		fireEvent.pointerDown(node, {
+			pointerId: 1,
+			pointerType: 'pen',
+			button: 0,
+			isPrimary: true,
+			clientX: box.left + box.width / 4,
+			clientY: box.top + box.height / 4,
+		})
+
+		const pressed = transform()
+
+		// A resting palm: the first touch is primary for its own type.
+		fireEvent.pointerDown(node, {
+			pointerId: 2,
+			pointerType: 'touch',
+			button: 0,
+			isPrimary: true,
+			clientX: box.left + (box.width * 3) / 4,
+			clientY: box.top + (box.height * 3) / 4,
+		})
+
+		expect(transform()).toBe(pressed)
+
+		fireEvent.pointerUp(node, { pointerId: 2 })
+
+		// The pen still holds the inset, so its move still aims the view.
+		fireEvent.pointerMove(node, {
+			pointerId: 1,
+			clientX: box.left + box.width / 2,
+			clientY: box.top + box.height / 2,
+		})
+
+		expect(transform()).not.toBe(pressed)
+
+		fireEvent.pointerUp(node, { pointerId: 1 })
+	})
+
 	it('keeps the press from the pan surface under it', () => {
 		const { inset, zoomIn, transform, measure, box } = renderOverview()
 
