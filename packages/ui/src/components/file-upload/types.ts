@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import type { FileRejection } from './file-upload-utilities'
 
 /** What every file-upload component takes: the value binding, the accept and limit rules, and the selection reports. @internal */
@@ -45,12 +46,24 @@ export type FileUploadSharedProps = {
 	 * Fires when `accept`, `multiple`, `maxSize`, or `maxCount` excludes files,
 	 * with each excluded file tagged with its reason.
 	 *
-	 * Without this callback, the component announces the refused files and
-	 * their reasons to a live region. With it, the caller owns the feedback of a
-	 * refusal: show it in a `<Message>`, which is a live region, so that a screen
-	 * reader speaks it too.
+	 * The callback does not change the `invalidMessage`. With the callback and
+	 * `invalidMessage={null}`, the caller owns the feedback of a refusal, and
+	 * the live region does not speak it: show it in a `<Message>`, which is a
+	 * live region, so that a screen reader speaks it too.
 	 */
 	onReject?: (rejected: FileRejection[]) => void
+	/**
+	 * Error message shown after a pick or a drop that refuses files, as an error
+	 * `<Message>` below the component. It has an id of its own, wired into the
+	 * `aria-describedby` of the trigger, also outside a Field. It shows until the
+	 * next pick, drop, or clear. While it shows, the live region does not also
+	 * announce the refusal. Give your own text here to explain a refusal. Pass
+	 * `null` (or `false`) to show no message; the live region then announces the
+	 * refusal, unless `onReject` is set.
+	 *
+	 * @defaultValue The refused files and the reason of each, with the limit that refused them, in the language of the reader.
+	 */
+	invalidMessage?: ReactNode
 	/**
 	 * Fires when the dropzone starts or stops to hold a dragged file.
 	 *
