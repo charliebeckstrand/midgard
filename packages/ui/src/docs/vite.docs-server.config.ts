@@ -10,7 +10,7 @@ export default {
 	build: {
 		ssr: path.join(import.meta.dirname, '..', '..', 'scripts', 'docs', 'server.ts'),
 		outDir: path.join(import.meta.dirname, 'dist', 'docs-server'),
-		target: 'node24',
+		target: 'node26',
 		rolldownOptions: {
 			output: { entryFileNames: 'docs-server.js' },
 			// The barrels of ui hold `'use client'` modules. The server uses none of them.

@@ -8,7 +8,7 @@ export default defineConfig({
 	entry: { 'serve-next': 'src/server/main.ts' },
 	format: ['esm'],
 	platform: 'node',
-	target: 'node24',
+	target: 'node26',
 	outDir: 'dist',
 	clean: true,
 	sourcemap: false,
