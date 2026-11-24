@@ -94,6 +94,17 @@ describe('PlacePhotosField', () => {
 		expect(document.activeElement).toBe(screen.getByRole('button', { name: /Add photos/ }))
 	})
 
+	// A full list disables the Add photos button, which cannot take the focus.
+	it('moves the focus to the last Remove button after a first pick that fills the list', async () => {
+		renderField()
+
+		screen.getByRole('button', { name: /Add photos/ }).focus()
+
+		await pick(...Array.from({ length: 13 }, (_, index) => `${index + 1}.png`))
+
+		expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Remove photo 12' }))
+	})
+
 	it('moves the focus to the file field after the removal of the last photo', async () => {
 		renderField()
 

@@ -132,7 +132,8 @@ export type PlacePhotosFieldProps = {
  * room for. The field names each file that a pick refuses and why, until a
  * later pick refuses none. A pick into the empty field and the removal of the
  * last photo swap the file field and the button. The focus then moves to the
- * control that comes.
+ * control that comes, or to the Remove button of the last photo when a pick
+ * fills the list and disables the button.
  */
 export function PlacePhotosField({ progress }: PlacePhotosFieldProps) {
 	const { value: photos = [], setValue } = useFormValue<PhotoEntry[]>('photos', {})
@@ -153,6 +154,9 @@ export function PlacePhotosField({ progress }: PlacePhotosFieldProps) {
 	// two shows at a time.
 	const pickerRef = useRef<HTMLDivElement>(null)
 
+	// The Remove button of the last photo of the list.
+	const lastRemoveRef = useRef<HTMLButtonElement>(null)
+
 	const empty = photos.length === 0
 
 	// The `empty` state that a pick or a removal makes when it swaps the file
@@ -168,8 +172,13 @@ export function PlacePhotosField({ progress }: PlacePhotosFieldProps) {
 
 		if (expected !== empty) return
 
-		// The file input moves the focus that it gets to its visible trigger.
-		pickerRef.current?.querySelector<HTMLInputElement>('input[type="file"]')?.focus()
+		// The file input moves the focus that it gets to its visible trigger. A
+		// pick that fills the list disables the Add photos button, so the focus
+		// goes to the Remove button of the last photo.
+		const input = pickerRef.current?.querySelector<HTMLInputElement>('input[type="file"]')
+
+		if (input && !input.disabled) input.focus()
+		else lastRemoveRef.current?.focus()
 	}, [empty])
 
 	// A reorder while a save runs would not reach the save, which has read the
@@ -251,6 +260,7 @@ export function PlacePhotosField({ progress }: PlacePhotosFieldProps) {
 											<Button
 												type="button"
 												variant="bare"
+												ref={position === photos.length ? lastRemoveRef : undefined}
 												aria-label={`Remove photo ${position}`}
 												onClick={() => {
 													// The removal of the last photo removes this button.
