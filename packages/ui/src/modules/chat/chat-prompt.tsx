@@ -97,8 +97,10 @@ export type ChatPromptProps = {
 	 * citation, so a pasted or typed `@name` is prose. An undo or a redo of the
 	 * browser brings back the citations of the draft that it goes to.
 	 *
-	 * While {@link ChatPromptProps.wysiwyg} is on, an edit dissolves each
-	 * citation into prose, and `onValueChange` gives no citations.
+	 * While {@link ChatPromptProps.wysiwyg} is on, the field marks each citation,
+	 * and a change that touches one dissolves it, as in the textarea. A
+	 * Backspace or a Delete in a citation then deletes one character, and no
+	 * picker opens.
 	 * @defaultValue []
 	 */
 	citations?: readonly ChatCitation[]
@@ -160,8 +162,8 @@ export type ChatPromptProps = {
 	 * on a toolbar button keeps the focus in the field. The editor loads after
 	 * the mount, and until then the field shows the draft as text.
 	 *
-	 * While it is on, the field opens no picker for `sources`, and an edit
-	 * dissolves each citation into prose.
+	 * While it is on, the field keeps the citations of the draft as marks, and
+	 * opens no picker for `sources`.
 	 * @defaultValue false
 	 */
 	wysiwyg?: boolean | ChatPromptWysiwygOptions
@@ -421,8 +423,8 @@ export function ChatPrompt({
 					ref={setWysiwygRefs}
 					config={wysiwyg}
 					value={value}
-					// The rich field holds no citation, so an edit dissolves each one.
-					onValueChange={(next) => onValueChange(next, [])}
+					ranges={citations}
+					onValueChange={onValueChange}
 					onEnter={send}
 					onEscape={onEscape}
 					rows={rows}

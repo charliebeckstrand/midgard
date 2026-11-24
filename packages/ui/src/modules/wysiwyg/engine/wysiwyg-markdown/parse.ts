@@ -2,6 +2,14 @@ import type { Token, Tokens } from 'marked'
 import type { Mark, Node } from 'prosemirror-model'
 import { decodeEntities } from '../../../../components/markdown/markdown-entities'
 import { lex } from '../../../../components/markdown/markdown-lex'
+import {
+	type MarkdownRange,
+	overlapping,
+	type RangeWalk,
+	rangeWalk,
+	textLines,
+	within,
+} from '../../../../components/markdown/markdown-ranges'
 import { schema } from '../wysiwyg-schema'
 
 /**
@@ -10,20 +18,27 @@ import { schema } from '../wysiwyg-schema'
  * construct that the schema does not hold becomes a `raw` or a `raw_inline`
  * atom that keeps its source, so no text goes.
  *
+ * Each range that can draw on a Markdown is a `range` mark on the text that
+ * it covers. The parse finds the text with the walk of the renderer of
+ * Markdown, so a range covers the same text in the field and in a message. A
+ * range that covers part of an atom, such as an escape, a code span, or a
+ * link, takes all of it. A code block and a `raw` atom hold no mark, so a
+ * range in one of them is not in the doc.
+ *
  * @internal
  */
-export function parseMarkdown(source: string): Node {
-	const blocks = toBlocks(lex(source))
+export function parseMarkdown(source: string, ranges?: readonly MarkdownRange[]): Node {
+	const blocks = toBlocks(lex(source), rangeWalk(source, ranges))
 
 	return schema.node('doc', null, blocks.length > 0 ? blocks : [schema.node('paragraph')])
 }
 
 /** @internal */
-function toBlocks(tokens: readonly Token[]): Node[] {
+function toBlocks(tokens: readonly Token[], walk: RangeWalk | undefined): Node[] {
 	const blocks: Node[] = []
 
 	for (const token of tokens) {
-		const node = toBlock(token)
+		const node = within(walk, token.raw, (found) => toBlock(token, found))
 
 		if (node) blocks.push(node)
 	}
@@ -32,25 +47,31 @@ function toBlocks(tokens: readonly Token[]): Node[] {
 }
 
 /** @internal */
-function toBlock(token: Token): Node | null {
+function toBlock(token: Token, walk: RangeWalk | undefined): Node | null {
 	switch (token.type) {
 		case 'space':
 		case 'def':
 			return null
 		case 'paragraph':
-			return schema.node('paragraph', null, toInline(token.tokens ?? [], []))
+			return schema.node('paragraph', null, toInline(token.tokens ?? [], [], walk))
 		// A loose line of a tight list item, which holds its inline tokens.
 		case 'text':
-			return schema.node('paragraph', null, toInline(token.tokens ?? [token], []))
+			return schema.node(
+				'paragraph',
+				null,
+				token.tokens ? toInline(token.tokens, [], walk) : toInline([token], [], walk),
+			)
 		case 'heading':
 			return schema.node(
 				'heading',
 				{ level: token.depth },
 				// A heading holds no line break.
-				toInline(token.tokens ?? [], []).filter((node) => node.type !== schema.nodes.hard_break),
+				toInline(token.tokens ?? [], [], walk).filter(
+					(node) => node.type !== schema.nodes.hard_break,
+				),
 			)
 		case 'blockquote': {
-			const content = toBlocks(token.tokens ?? [])
+			const content = toBlocks(token.tokens ?? [], walk)
 
 			return schema.node(
 				'blockquote',
@@ -59,7 +80,7 @@ function toBlock(token: Token): Node | null {
 			)
 		}
 		case 'list':
-			return toList(token as Tokens.List)
+			return toList(token as Tokens.List, walk)
 		case 'code':
 			return schema.node(
 				'code_block',
@@ -79,11 +100,11 @@ function toBlock(token: Token): Node | null {
  *
  * @internal
  */
-function toList(token: Tokens.List): Node {
+function toList(token: Tokens.List, walk: RangeWalk | undefined): Node {
 	if (token.items.some((item) => item.task)) return raw(token.raw)
 
 	const items = token.items.map((item) => {
-		const content = toBlocks(item.tokens)
+		const content = within(walk, item.raw, (found) => toBlocks(item.tokens, found))
 
 		// An item opens with a paragraph, as the schema asks.
 		if (content[0]?.type !== schema.nodes.paragraph) content.unshift(schema.node('paragraph'))
@@ -106,68 +127,117 @@ function raw(source: string): Node {
 }
 
 /**
- * The inline nodes of `tokens` under the marks of their parents.
+ * The inline nodes of `tokens` under the marks of their parents. With a walk,
+ * each token is found in the source, and the text of each range gets its mark.
  *
  * @internal
  */
-function toInline(tokens: readonly Token[], marks: readonly Mark[]): Node[] {
+function toInline(
+	tokens: readonly Token[],
+	marks: readonly Mark[],
+	walk: RangeWalk | undefined,
+): Node[] {
 	const nodes: Node[] = []
 
-	const push = (text: string, set: readonly Mark[]) => {
-		if (text) nodes.push(schema.text(text, set))
-	}
-
 	for (const token of tokens) {
-		switch (token.type) {
-			case 'text':
-				if (token.tokens) {
-					nodes.push(...toInline(token.tokens, marks))
-
-					break
-				}
-
-				// A soft break shows as a space in a message, so it is a space here.
-				push(decodeEntities(token.raw).replace(/\n/g, ' '), marks)
-
-				break
-			case 'escape':
-				push(token.text, marks)
-
-				break
-			case 'strong':
-				nodes.push(...toInline(token.tokens ?? [], schema.marks.strong.create().addToSet(marks)))
-
-				break
-			case 'em':
-				nodes.push(...toInline(token.tokens ?? [], schema.marks.em.create().addToSet(marks)))
-
-				break
-			case 'del':
-				nodes.push(...toInline(token.tokens ?? [], schema.marks.strike.create().addToSet(marks)))
-
-				break
-			case 'codespan':
-				push(token.text, schema.marks.code.create().addToSet(marks))
-
-				break
-			case 'link': {
-				const link = schema.marks.link.create({
-					href: decodeEntities(token.href),
-					title: token.title ? decodeEntities(token.title) : null,
-				})
-
-				nodes.push(...toInline(token.tokens ?? [], link.addToSet(marks)))
-
-				break
-			}
-			case 'br':
-				nodes.push(schema.node('hard_break'))
-
-				break
-			default:
-				nodes.push(schema.node('raw_inline', { source: token.raw }))
-		}
+		nodes.push(...within(walk, token.raw, (found) => inlineToken(token, marks, found)))
 	}
 
 	return nodes
+}
+
+/**
+ * The marks of the text that the walk is at, with the mark of the range that
+ * overlaps the source from the cursor to `end`. A text that the walk does not
+ * hold keeps `marks`.
+ *
+ * @internal
+ */
+function atomMarks(
+	walk: RangeWalk | undefined,
+	end: number,
+	marks: readonly Mark[],
+): readonly Mark[] {
+	if (!walk) return marks
+
+	return withRange(walk, overlapping(walk, walk.cursor, end)[0], marks)
+}
+
+/** The marks with the mark of the range at `index` in the walk, if any. @internal */
+function withRange(
+	walk: RangeWalk,
+	index: number | undefined,
+	marks: readonly Mark[],
+): readonly Mark[] {
+	const range = index === undefined ? undefined : walk.ranges[index]
+
+	return range ? schema.marks.range.create({ id: range.id }).addToSet(marks) : marks
+}
+
+/**
+ * The text of a text token with no children. A soft break shows as a space in
+ * a message, so it is a space here, in the range that holds the line break.
+ *
+ * @internal
+ */
+function plainText(raw: string, marks: readonly Mark[], walk: RangeWalk | undefined): Node[] {
+	if (!walk) return textNodes(decodeEntities(raw).replace(/\n/g, ' '), marks)
+
+	const nodes: Node[] = []
+
+	let previous = -1
+
+	textLines(walk, raw).forEach((pieces, row) => {
+		if (row > 0) {
+			const gap = previous === -1 ? undefined : overlapping(walk, previous, previous + 1)[0]
+
+			nodes.push(...textNodes(' ', withRange(walk, gap, marks)))
+		}
+
+		for (const piece of pieces) {
+			nodes.push(...textNodes(decodeEntities(piece.text), withRange(walk, piece.range, marks)))
+		}
+
+		previous = pieces.at(-1)?.end ?? -1
+	})
+
+	return nodes
+}
+
+/** A text node, or none for an empty text. @internal */
+function textNodes(text: string, marks: readonly Mark[]): Node[] {
+	return text ? [schema.text(text, marks)] : []
+}
+
+/** The inline nodes of one token. @internal */
+function inlineToken(token: Token, marks: readonly Mark[], walk: RangeWalk | undefined): Node[] {
+	const end = walk ? walk.limit : 0
+
+	switch (token.type) {
+		case 'text':
+			return token.tokens ? toInline(token.tokens, marks, walk) : plainText(token.raw, marks, walk)
+		case 'escape':
+			return textNodes(token.text, atomMarks(walk, end, marks))
+		case 'strong':
+			return toInline(token.tokens ?? [], schema.marks.strong.create().addToSet(marks), walk)
+		case 'em':
+			return toInline(token.tokens ?? [], schema.marks.em.create().addToSet(marks), walk)
+		case 'del':
+			return toInline(token.tokens ?? [], schema.marks.strike.create().addToSet(marks), walk)
+		case 'codespan':
+			return textNodes(token.text, atomMarks(walk, end, schema.marks.code.create().addToSet(marks)))
+		case 'link': {
+			const link = schema.marks.link.create({
+				href: decodeEntities(token.href),
+				title: token.title ? decodeEntities(token.title) : null,
+			})
+
+			// The text of a link is one atom, as a message names it.
+			return toInline(token.tokens ?? [], atomMarks(walk, end, link.addToSet(marks)), undefined)
+		}
+		case 'br':
+			return [schema.node('hard_break', null, undefined, atomMarks(walk, end, []))]
+		default:
+			return [schema.node('raw_inline', { source: token.raw }, undefined, atomMarks(walk, end, []))]
+	}
 }

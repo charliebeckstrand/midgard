@@ -10,6 +10,7 @@ import {
 	useState,
 } from 'react'
 import type { ControlVariant } from '../../components/control/context'
+import type { MarkdownRange } from '../../components/markdown/markdown-ranges'
 import { cn } from '../../core/cn'
 import { dataAttr } from '../../core/data-attr'
 import type { ScaleStep } from '../../core/density/scale'
@@ -24,13 +25,34 @@ import { useWysiwygField } from './use-wysiwyg-field'
 import { useWysiwygLabelFocus } from './use-wysiwyg-label-focus'
 
 /** Props for {@link Wysiwyg}. */
-export type WysiwygProps = {
+export type WysiwygProps<R extends MarkdownRange = MarkdownRange> = {
 	/** Controlled value, in Markdown. `undefined` leaves the field uncontrolled; `null` keeps it controlled with no current value (CONVENTIONS §7.3). */
 	value?: string | null
 	/** Initial value, in Markdown, when uncontrolled and not form-bound. */
 	defaultValue?: string
-	/** Fires with the Markdown of the field after each edit. */
-	onValueChange?: (value: string) => void
+	/**
+	 * The ranges of the value, such as the citations of a chat draft. The field
+	 * marks the text of each range, as `Markdown` draws it.
+	 *
+	 * @remarks
+	 * A range is constructed and not typed: no edit and no paste makes one. An
+	 * edit in a range, or a split of its block, removes its mark, and its text
+	 * stays as prose. An undo brings the range back. A range draws only while
+	 * its `quote` matches the value. A range in a code block, or in a construct
+	 * that the field shows as its source, is not marked.
+	 *
+	 * Give back the ranges of `onValueChange` at each edit, as with a
+	 * controlled value. A new set of ranges, or a range with other offsets,
+	 * marks the field again.
+	 * @defaultValue []
+	 */
+	ranges?: readonly R[]
+	/**
+	 * Fires with the Markdown of the field after each edit, and the ranges that
+	 * the edit kept. Each range is the object of `ranges` with the `start`,
+	 * `end`, and `quote` of the new value.
+	 */
+	onValueChange?: (value: string, ranges: R[]) => void
 	/**
 	 * The minimum height in lines. The field grows with its content, and a
 	 * `max-height` class sets the maximum height.
@@ -142,6 +164,9 @@ function reactProps(attributes: Record<string, string>): Record<string, string> 
  * that the reader types goes nowhere. The focus goes on to the editor when it
  * loads.
  *
+ * With `ranges`, the field marks the text of each range, such as a citation,
+ * and keeps the ranges across each edit that does not touch them.
+ *
  * The value is the Markdown source. A value with another spelling of a
  * construct, such as `__bold__`, stays as given until the reader edits the
  * field. An edit then gives the one spelling of each construct: `**bold**`,
@@ -152,7 +177,7 @@ function reactProps(attributes: Record<string, string>): Record<string, string> 
  * `Form` field by `name`, or read `value`. A native form reset sets an
  * uncontrolled field back to `defaultValue`.
  */
-export function Wysiwyg({
+export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 	rows = 3,
 	placeholder,
 	actions,
@@ -161,15 +186,27 @@ export function Wysiwyg({
 	onKeyDown,
 	size,
 	ref,
+	ranges = [],
+	onValueChange,
 	...options
-}: WysiwygProps) {
+}: WysiwygProps<R>) {
 	const hasActions = actions != null && actions !== false
 
 	const hasToolbar = children != null && children !== false
 
+	// Each range that the field has held, by its id, so an undo that brings a
+	// range back gives the object of the caller.
+	const known = useRef(new Map<string, R>())
+
+	// The ranges of the last edit, which the change of the value gives.
+	const edited = useRef<R[]>([])
+
+	const emit = useStableEvent((next: string) => onValueChange?.(next, edited.current))
+
 	// The reset ref apart, so the rest of the field reads as values in the render.
 	const { resetRef, ...field } = useWysiwygField({
 		...options,
+		onValueChange: onValueChange && emit,
 		defaultValue: options.defaultValue ?? '',
 		placeholder,
 		rows: hasActions || hasToolbar,
@@ -196,9 +233,22 @@ export function Wysiwyg({
 		return true
 	})
 
+	const handleChange = useStableEvent((markdown: string, spans: MarkdownRange[]) => {
+		for (const range of ranges) known.current.set(range.id, range)
+
+		edited.current = spans.flatMap((span) => {
+			const range = known.current.get(span.id)
+
+			return range ? [{ ...range, ...span }] : []
+		})
+
+		field.setValue(markdown)
+	})
+
 	const { editor, subscribe } = useWysiwygEditor({
 		host,
 		value,
+		ranges,
 		wanted,
 		props: {
 			attributes: field.attributes,
@@ -207,7 +257,7 @@ export function Wysiwyg({
 			onKeyDown,
 			onLink: openLink,
 		},
-		onChange: field.setValue,
+		onChange: handleChange,
 	})
 
 	// The editable element, or the markup before the editor loads.
