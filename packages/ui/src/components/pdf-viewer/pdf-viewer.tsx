@@ -185,10 +185,13 @@ export type PdfViewerProps = Omit<ComponentProps<'section'>, 'children' | 'onLoa
 	magnifier?: boolean | PdfViewerMagnifierOptions
 	/**
 	 * The text of the document, as OCR read it: one {@link PdfViewerTextItem} for each run of
-	 * text, with its page and its box. The search reads it.
+	 * text, with its page and its box. The search reads it, and so does a screen reader: the
+	 * runs of the page on screen follow the page image as visually hidden text.
 	 *
-	 * @remarks The viewer reads no text of its own, from a `src` or from `pages`. Give the runs
-	 * in reading order, because the search joins the runs of a page in the order of `data`.
+	 * @remarks The search reads no text of its own, from a `src` or from `pages`. Give the runs
+	 * in reading order, because the search and the hidden text join the runs of a page in the
+	 * order of `data`. A page with no run in `data`, such as a page that the OCR skipped, takes
+	 * its hidden text from the text of a `src` document, and takes none on the `pages` path.
 	 * Each `rect` is in the unit named by `highlightUnit`, as a highlight is.
 	 *
 	 * Identity need not be stable, but a stable array is cheaper. The search folds the text
@@ -262,9 +265,12 @@ export type PdfViewerProps = Omit<ComponentProps<'section'>, 'children' | 'onLoa
  * A load that failed and a document with no page show the message of the pane and no toolbar.
  *
  * `highlights` is a controlled projection, and the viewer never changes it. The search reads
- * the OCR `data` that the consumer gives, not a text layer of the document. The viewer has no
- * annotation authoring, no form fields, and no continuous scroll, and it finds no regions of
- * its own. A text layer needs the page surface in a component of its own first.
+ * the OCR `data` that the consumer gives, not a text layer of the document. The page is an
+ * image, so the text of the page on screen follows it as visually hidden text, for a screen
+ * reader (WCAG 1.1.1). It comes from `data`, else from the text of a `src` document. A scan
+ * with no `data` has no text. The viewer has no annotation authoring, no form fields, and no
+ * continuous scroll, and it finds no regions of its own. A positioned text layer, for
+ * selection and copy, needs the page surface in a component of its own first.
  */
 export function PdfViewer({
 	pages,
@@ -319,6 +325,7 @@ export function PdfViewer({
 		magnifier,
 		onHighlightsVisibleChange,
 		onMagnifierChange,
+		data,
 	})
 
 	const {

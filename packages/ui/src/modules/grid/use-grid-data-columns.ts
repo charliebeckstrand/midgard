@@ -3,7 +3,7 @@
 import { type RefObject, useCallback, useEffect, useId, useMemo } from 'react'
 import { announce } from '../../core/announcer'
 import { isRtl } from '../../hooks/a11y/logical-arrow'
-import { useControllable } from '../../hooks/use-controllable'
+import { useControllableBinding } from '../../hooks/use-controllable'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useStableValue } from '../../hooks/use-stable-value'
 import { useIntl } from '../../primitives/intl/use-intl'
@@ -33,6 +33,9 @@ import { useGridColumns } from './use-grid-columns'
 import { useGridExpansion } from './use-grid-expansion'
 import { useGridGroup } from './use-grid-group'
 import { useGridRowGrouping } from './use-grid-row-grouping'
+
+/** No runtime pin: the pinning state of a grid with no `pinning` binding. @internal */
+const NO_PINS: GridPinningState = {}
 
 /**
  * Dev-only notice that manual grouping stands an `editable` config down. The
@@ -137,14 +140,7 @@ export function useGridDataColumns<T>({
 	// `pinned` flag whether it came from the definition or the menu. The state
 	// is controllable through the `pinning` binding so consumers can persist it;
 	// unbound, it stays internal exactly as before.
-	const onPinningChange = pinningConfig?.onValueChange
-
-	const [pinningState, setPinningState] = useControllable<GridPinningState>({
-		value: pinningConfig?.value,
-		defaultValue: pinningConfig?.defaultValue,
-		// Coalesced to a concrete object, matching the other bindings' non-nullable callbacks.
-		onValueChange: (next) => onPinningChange?.(next ?? {}),
-	})
+	const [pinningState, setPinningState] = useControllableBinding(pinningConfig, NO_PINS)
 
 	const pinOverrides = useMemo(() => toPinOverrides(pinningState), [pinningState])
 

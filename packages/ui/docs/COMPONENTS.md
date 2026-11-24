@@ -85,6 +85,8 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > A hover `Tooltip` stays open while the pointer moves onto its content. The reader can thus rest on the text (WCAG 2.2 SC 1.4.13). Escape closes it. `interactive` only lets the content hold controls.
 
+> A `TooltipGroup` makes its tooltips act as one set. The first tooltip waits for its `delay`. While a tooltip of the group is open, and for 300 ms after it closes, the next tooltip opens at once with no animation. The open tooltip then closes at once. Each `Toolbar` is a group.
+
 > `useConfirm()` asks a question in the one `Confirm` that `UIProvider` mounts. Use `Confirm` for a message with custom children. When the dialog closes, the focus goes back to the control that asked. When that control is gone, as after a delete of its row, the focus goes into its nearest ancestor that is still in the page. Set `returnFocusTo` to choose the target.
 
 > `UIProvider` mounts one `ToastProvider` and its viewport, so `useToast()` works anywhere under it with no setup. A `toast()` call with the `id` of a live toast replaces that toast in place, and its countdown starts again. A screen reader speaks the new text.
@@ -105,7 +107,7 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > `date-time` uses the `timeZone` of its `format`, else of the provider, else the zone of the reader. It shows a skeleton until hydration, also with a set zone. The date data of the server and of the browser give different text for some formats. The skeleton holds the date in UTC in the shape of English text, without `Intl`, so it has about the size of the date. A page that must paint a date in its first frame writes it on the server with `formatDateText` from `ui/server`. The `DateText` is then the `value` of `date-time`.
 
-> A `list` loads its drag code only when it has `onReorder`. The `bare` variant has no row padding and no dividers, for rows of form controls. A horizontal `list` stays on one row, which scrolls when it is wider than its parent.
+> A `list` loads its drag code only when it has `onReorder`. When the code arrives, the rows mount again. The focus stays on the same control of its row. The `bare` variant has no row padding and no dividers, for rows of form controls. A horizontal `list` stays on one row, which scrolls when it is wider than its parent.
 
 > `CodeBlock` highlights with Shiki in a module worker. A Vite app must set `worker.format` to `'es'`.
 
@@ -142,6 +144,8 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 > `PdfViewer` reserves a page of `pageSize`, in points, until it knows the size of the page. The default is US Letter. The server cannot read the size from the file. A consumer that knows the size of its documents gives it. The first paint then has the box of the opened document.
 
 > `PdfViewer` searches the OCR text that `data` gives, as `PdfViewerTextItem` runs. The toolbar then has a Search control. `search` turns it off, or sets the color of the matches and the page turn, through `PdfViewerSearchOptions`.
+
+> The page of `PdfViewer` is an image, so the text of the page on screen follows it as visually hidden text, for a screen reader. The text comes from the runs of `data` on that page. A page with no run in `data` takes the text that pdf.js reads off a `src` document. A scan with no `data` has no text.
 
 > `PdfViewer` shows its toolbar while a `src` opens and after the document opens with a page. A load that failed and a document with no page show the message of the pane and no toolbar.
 

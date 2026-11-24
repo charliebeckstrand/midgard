@@ -72,7 +72,12 @@ export type GridEditCellContext<T> = {
 	 * An editor that mounts again while its cell is open shows its draft.
 	 */
 	value: unknown
-	/** Stage the next value without committing: call on each keystroke or selection change. */
+	/**
+	 * Stage the next value without committing: call on each keystroke or
+	 * selection change. Stage on each change, not on blur: Enter, Tab, F2, and
+	 * the save controls read the staged value to decide whether
+	 * {@link GridColumn.validate} holds the save, before the editor blurs.
+	 */
 	onValueUpdate: (next: unknown) => void
 	/**
 	 * Stage `next` (when given) as the final value of the cell. Where a

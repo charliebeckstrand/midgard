@@ -14,6 +14,7 @@ import {
 	useCallback,
 	useEffect,
 	useId,
+	useLayoutEffect,
 	useMemo,
 	useRef,
 	useState,
@@ -24,8 +25,8 @@ import type { FloatingPlacement } from '../../hooks/use-floating-panel'
 import { useReportedChange } from '../../hooks/use-reported-change'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { subscribeOverlaySignal } from '../../primitives/overlay/overlay-signal'
-import { noop } from '../../utilities/noop'
-import type { TooltipContextValue } from './context'
+import { noop, noopSubscribe } from '../../utilities/noop'
+import { type TooltipContextValue, useTooltipGroup } from './context'
 import type { TooltipProps } from './tooltip'
 import { isReferenceDisabled, observeReferenceDisabled } from './tooltip-reference-disabled'
 import {
@@ -133,6 +134,10 @@ export type TooltipState = {
  * under a mouse or pen hover once the disabled state clears. Hands the floating
  * root context out as `floatingContext`, which the focus manager of an
  * `interactive` `<TooltipContent>` mounts on.
+ *
+ * In a `<TooltipGroup>`, a tooltip opens with no delay while the group is warm,
+ * and its panel then shows with no entrance. A tooltip that a sibling closes
+ * removes its panel with no exit.
  * @internal
  * @see {@link isReferenceDisabled}
  * @see {@link useFloatingDisclosure}
@@ -171,6 +176,20 @@ export function useTooltipState({
 	// gives the type from before the state loaded.
 	const pointerRef = useRef<string | null>(null)
 
+	// The nearest `<TooltipGroup>`. While a tooltip of the group is open, or for
+	// the grace period after it closes, the group is warm, and a hover opens
+	// this tooltip with no delay. The store tells only a change of `warm`, so a
+	// move from one sibling to the next renders no other tooltip.
+	const group = useTooltipGroup()
+
+	const warm = useSyncExternalStore(
+		group?.subscribe ?? noopSubscribe,
+		() => group?.warm() ?? false,
+		() => false,
+	)
+
+	const openDelay = warm ? 0 : delay
+
 	const { open, setOpen, refs, floatingStyles, context, dismiss, role } = useFloatingDisclosure({
 		role: dialog ? 'dialog' : 'tooltip',
 		placement,
@@ -190,6 +209,25 @@ export function useTooltipState({
 			return reason !== 'hover' || hoverOpens(pointerRef.current)
 		},
 	})
+
+	// Whether the panel shows and goes with no animation. A tooltip that opens
+	// in a warm group shows at once. A tooltip that closes because a sibling
+	// opened goes at once, so the two panels do not overlap. Any other close
+	// plays the exit. A render-time adjustment sets it in the render that
+	// changes `open`, and the exit reads the value of that render.
+	const [instant, setInstant] = useState(false)
+
+	const [handedOver, setHandedOver] = useState(false)
+
+	const [prevOpen, setPrevOpen] = useState(open)
+
+	if (prevOpen !== open) {
+		setPrevOpen(open)
+
+		setInstant(open ? warm : handedOver)
+
+		setHandedOver(false)
+	}
 
 	// Adjusted during render: a tooltip that turns off drops the request, so it
 	// does not open again when it turns on. The open state is already closed in
@@ -336,6 +374,18 @@ export function useTooltipState({
 	 */
 	useReportedChange(open, onOpenChange)
 
+	// A sibling that opens closes this tooltip. A held tooltip stays open, and
+	// only its request drops.
+	const handover = useStableEvent(() => {
+		if (!isTooltipOpen(enabled, held, false, heldDisabled)) setHandedOver(true)
+
+		context.onOpenChange(false)
+	})
+
+	// A layout effect, so the handover closes the sibling before the paint that
+	// shows this panel.
+	useLayoutEffect(() => (open && group ? group.open(handover) : undefined), [open, group, handover])
+
 	// `mouseOnly` reads the `pointerType` of the event, not a media query. A touch
 	// press gives no hover, so a tap does not open a hover tooltip. The
 	// `:focus-visible` gate of `useFocus` stops the focus that a tap gives a
@@ -343,7 +393,7 @@ export function useTooltipState({
 	const hover = useHover(context, {
 		enabled: enabled && trigger === 'hover',
 		mouseOnly: true,
-		delay: { open: delay, close: 100 },
+		delay: { open: openDelay, close: 100 },
 		// Each hover tooltip keeps its panel open while the pointer travels from the
 		// trigger onto it. The pointer can then rest on the content, as under a
 		// screen magnifier (WCAG 2.2 SC 1.4.13). A bare `safePolygon()` takes the
@@ -419,7 +469,7 @@ export function useTooltipState({
 		// The options can change between the record and the replay.
 		const reenabled = intent.reenabled && reopensOnEnable({ enabled, trigger }, intent.pointer)
 
-		return replayIntent({ ...intent, reenabled }, reference, context, setOpen, delay)
+		return replayIntent({ ...intent, reenabled }, reference, context, setOpen, openDelay)
 	})
 
 	const stopReplayRef = useRef<(() => void) | undefined>(undefined)
@@ -442,6 +492,7 @@ export function useTooltipState({
 	const value = useMemo<TooltipContextValue>(
 		() => ({
 			open,
+			instant,
 			interactive,
 			takesPointer: interactive || trigger === 'hover',
 			enabled,
@@ -458,6 +509,7 @@ export function useTooltipState({
 			dialog,
 			generatedTriggerId,
 			open,
+			instant,
 			interactive,
 			trigger,
 			enabled,

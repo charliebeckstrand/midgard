@@ -20,7 +20,7 @@ A provider above the body keeps its value on a row toggle, a sort, or a cursor m
 
 Each cell reads its own range flag from the cursor store, so a range change renders only the cells whose flag flips. [`grid-range-render.test.tsx`](../../__tests__/boundary/grid-range-render.test.tsx) holds the rule. A resize renders no cell that the reader did not visit, and [`grid-resize-drag-render.test.tsx`](../../__tests__/boundary/grid-resize-drag-render.test.tsx) counts those renders.
 
-Each write of a paste or a fill goes through `editable.onCommit`, the sink of an editor save. Thus a paste or a fill is one save and one step of the history. A paste that runs past the last row adds each extra line through the new-row slot (`onRowAdd`), and the history does not hold those rows.
+Each write of a paste or a fill goes through `editable.onCommit`, the sink of an editor save. Thus a paste or a fill is one save and one step of the history. A paste that runs past the last row adds each extra line through the new-row slot (`onRowAdd`), and the history does not hold those rows. It adds rows only at the end of the data: a next page, rows still to load, or a closed group below the last shown row stops the paste there.
 
 ## Engine
 

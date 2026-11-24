@@ -24,7 +24,7 @@ export const GROUP_PREFIX = '\u0000group:'
  *
  * @internal
  */
-export const ZONE_PREFIX = '\u0000zone:'
+const ZONE_PREFIX = '\u0000zone:'
 
 /** The droppable id of a zone. @internal */
 export function zoneDropId(zoneId: string | number): string {
