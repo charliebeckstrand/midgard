@@ -38,6 +38,7 @@ export type {
 } from './engine/chat-content/types'
 export type { ChatMessageData } from './engine/types'
 export type {
+	ChatCitationTarget,
 	ChatCitationTargets,
 	ChatEmbedRegistry,
 	ChatEmbedRenderer,
