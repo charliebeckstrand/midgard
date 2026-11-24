@@ -116,6 +116,11 @@
 			"allowedVersions": "<7"
 		},
 		{
+			"description": "`ui` compiles its source with babel-plugin-react-compiler, through `@babel/core` in react-compiler-skips.test.ts and through @rolldown/plugin-babel in the compiled run. Compiler 1.0.0 calls `isLVal()` on the value of each property in an object pattern. Babel 8 removed AssignmentPattern from the LVal alias, so the compiler skips each component that renames a prop and gives it a default, such as `'data-slot': slot = 'box'`. With Babel 8, the skip gate found 263 skipped functions. Remove this rule when a release of the compiler supports Babel 8.",
+			"matchPackageNames": ["@babel/core"],
+			"allowedVersions": "<8"
+		},
+		{
 			"description": "hlidskjalf is first-party, so the supply-chain cooldown buys nothing.",
 			"matchPackageNames": ["hlidskjalf"],
 			"minimumReleaseAge": null

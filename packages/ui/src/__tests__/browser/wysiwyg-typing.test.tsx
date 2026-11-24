@@ -80,6 +80,54 @@ describe('Wysiwyg (real browser)', () => {
 		expect(onEnter).toHaveBeenCalledTimes(1)
 	})
 
+	it('shows the caret in a new, empty code block from the toolbar', async () => {
+		renderUI(<Notes />)
+
+		const field = await editable()
+
+		await userEvent.click(screen.getByRole('button', { name: 'Code block' }))
+
+		expect(field).toHaveFocus()
+
+		const pre = present(field.querySelector('pre'), 'the code block')
+
+		expect(pre.contains(window.getSelection()?.anchorNode ?? null)).toBe(true)
+
+		// In a flex row, the empty code has no width, and the browser draws no caret.
+		expect(getComputedStyle(pre).display).toBe('block')
+	})
+
+	it.for([
+		{ name: 'Enter', onEnter: undefined, key: '{Enter}' },
+		{ name: 'Shift+Enter when Enter sends', onEnter: vi.fn(), key: '{Shift>}{Enter}{/Shift}' },
+	])('leaves a code block on $name on an empty last line', async ({ onEnter, key }) => {
+		renderUI(<Notes onEnter={onEnter} />)
+
+		const field = await editable()
+
+		await userEvent.keyboard(`\`\`\` x${key}${key}after`)
+
+		expect(field.querySelector('pre')).toHaveTextContent(/^x$/)
+
+		expect(field.querySelector('pre + p')).toHaveTextContent('after')
+
+		expect(value()).toBe('```\nx\n```\n\nafter')
+
+		expect(onEnter ?? vi.fn()).not.toHaveBeenCalled()
+	})
+
+	it('leaves the last code block on ArrowDown from its last line', async () => {
+		renderUI(<Notes />)
+
+		const field = await editable()
+
+		await userEvent.keyboard('``` one{Enter}two{ArrowUp}{ArrowDown}{ArrowDown}after')
+
+		expect(field.querySelector('pre + p')).toHaveTextContent('after')
+
+		expect(value()).toBe('```\none\ntwo\n```\n\nafter')
+	})
+
 	it('keeps the controlled value when the parent refuses an edit', async () => {
 		function Limited() {
 			const [value, setValue] = useState('Hello')

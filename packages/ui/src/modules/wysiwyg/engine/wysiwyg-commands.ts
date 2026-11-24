@@ -1,7 +1,13 @@
-import { lift, setBlockType, toggleMark, wrapIn } from 'prosemirror-commands'
+import { exitCode, lift, setBlockType, toggleMark, wrapIn } from 'prosemirror-commands'
 import type { Mark, MarkType, NodeType } from 'prosemirror-model'
 import { liftListItem, wrapInList } from 'prosemirror-schema-list'
-import { type Command, type EditorState, TextSelection, type Transaction } from 'prosemirror-state'
+import {
+	type Command,
+	type EditorState,
+	Selection,
+	TextSelection,
+	type Transaction,
+} from 'prosemirror-state'
 import type { WysiwygAction } from '../types'
 import { schema } from './wysiwyg-schema'
 
@@ -171,6 +177,55 @@ const codeBlock: WysiwygCommand = {
 		return true
 	},
 	active: (state) => state.selection.$from.parent.type === nodes.code_block,
+}
+
+/**
+ * Leaves a code block on a new line at its end, as a new item leaves a list
+ * when it is empty. With the caret after an empty last line, the command
+ * removes that line and puts a paragraph after the block. An empty code block
+ * becomes a paragraph. Each other new line stays in the code.
+ *
+ * @internal
+ */
+export const exitCodeOnEmptyLine: Command = (state, dispatch) => {
+	const { $head, empty } = state.selection
+
+	const code = $head.parent
+
+	if (!empty || !code.type.spec.code || $head.parentOffset !== code.content.size) return false
+
+	if (code.content.size === 0) return setBlockType(nodes.paragraph)(state, dispatch)
+
+	if (!code.textContent.endsWith('\n')) return false
+
+	if (dispatch) {
+		const tr = state.tr.delete($head.pos - 1, $head.pos)
+
+		const after = tr.mapping.map($head.after())
+
+		tr.insert(after, nodes.paragraph.create())
+
+		dispatch(tr.setSelection(TextSelection.create(tr.doc, after + 1)).scrollIntoView())
+	}
+
+	return true
+}
+
+/**
+ * Leaves a code block on ArrowDown from its last line when no block comes
+ * after it, so the caret has a place below the block. The command puts a
+ * paragraph after the block. ArrowDown elsewhere moves the caret as usual.
+ *
+ * @internal
+ */
+export const exitCodeDown: Command = (state, dispatch, view) => {
+	const { $head, empty } = state.selection
+
+	if (!empty || !$head.parent.type.spec.code || !view?.endOfTextblock('down')) return false
+
+	if (Selection.findFrom(state.doc.resolve($head.after()), 1)) return false
+
+	return exitCode(state, dispatch)
 }
 
 /**

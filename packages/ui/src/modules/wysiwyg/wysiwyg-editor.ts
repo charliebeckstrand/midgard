@@ -8,7 +8,14 @@ import { type Command, EditorState, type Transaction } from 'prosemirror-state'
 import { EditorView } from 'prosemirror-view'
 import type { MarkdownRange } from '../../components/markdown/markdown-ranges'
 import { isComposing } from '../../utilities/is-composing'
-import { linkDraft, linkRange, setLink, wysiwygCommands } from './engine/wysiwyg-commands'
+import {
+	exitCodeDown,
+	exitCodeOnEmptyLine,
+	linkDraft,
+	linkRange,
+	setLink,
+	wysiwygCommands,
+} from './engine/wysiwyg-commands'
 import { HELD, wysiwygHeld } from './engine/wysiwyg-held'
 import { wysiwygInputRules } from './engine/wysiwyg-input-rules'
 import { parseMarkdown } from './engine/wysiwyg-markdown/parse'
@@ -37,7 +44,8 @@ export type WysiwygEditorProps = {
 	/**
 	 * Enter calls it, and Shift+Enter then does what Enter does without it.
 	 * Without it, Enter splits the block, continues a list, or adds a line to a
-	 * code block, and Shift+Enter breaks the line.
+	 * code block, and Shift+Enter breaks the line. A new line on an empty last
+	 * line of a code block leaves the block.
 	 */
 	onSubmit: (() => void) | undefined
 	/** Runs first on each key. A handler that cancels the key stops the editor. */
@@ -120,8 +128,10 @@ export function createWysiwygEditor(
 	}
 
 	// A new block, so a Markdown shortcut such as `- ` works after the key. With
-	// `onSubmit`, Shift+Enter takes this command, as a chat composer does.
+	// `onSubmit`, Shift+Enter takes this command, as a chat composer does. In a
+	// code block, it adds a line, and on an empty last line it leaves the block.
 	const newBlock = chainCommands(
+		exitCodeOnEmptyLine,
 		newlineInCode,
 		splitListItem(schema.nodes.list_item),
 		baseKeymap.Enter as Command,
@@ -151,6 +161,7 @@ export function createWysiwygEditor(
 			keymap({
 				...actionKeys,
 				...enterKeys,
+				ArrowDown: exitCodeDown,
 				'Mod-z': undo,
 				'Mod-Shift-Z': redo,
 				'Mod-y': redo,
