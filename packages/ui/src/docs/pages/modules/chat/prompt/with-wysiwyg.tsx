@@ -11,7 +11,7 @@ export default function WithWysiwyg() {
 			value={value}
 			onValueChange={setValue}
 			onSubmit={() => setValue('')}
-			wysiwyg={{ actions: ['bold', 'italic', 'link', 'bulletList', 'code', 'codeBlock'] }}
+			wysiwyg={{ actions: ['bold', 'italic', 'bulletList', 'link', 'code', 'codeBlock'] }}
 		/>
 	)
 }

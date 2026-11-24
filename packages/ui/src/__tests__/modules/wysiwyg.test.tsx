@@ -461,7 +461,7 @@ describe('WysiwygToolbar', () => {
 		expect(within(toolbar).getAllByRole('separator')).toHaveLength(1)
 	})
 
-	it('shows the text, references, lists, and code groups by default', () => {
+	it('shows the text, lists, references, and code groups by default', () => {
 		renderUI(
 			<Wysiwyg aria-label="Notes">
 				<WysiwygToolbar />
@@ -479,8 +479,8 @@ describe('WysiwygToolbar', () => {
 			]),
 		).toEqual([
 			['Text', ['Bold', 'Italic', 'Strikethrough']],
-			['References', ['Link', 'Quote']],
 			['Lists', ['Bulleted list', 'Numbered list']],
+			['References', ['Link', 'Quote']],
 			['Code', ['Code', 'Code block']],
 		])
 	})
