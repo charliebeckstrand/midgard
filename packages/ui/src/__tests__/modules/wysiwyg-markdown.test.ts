@@ -30,6 +30,7 @@ describe('wysiwyg markdown', () => {
 		'```ts\nconst a = 1\n```',
 		'---',
 		'- a\n  ***',
+		'- a\n\n* ---',
 		'# Ticket \\#',
 		'| a |\n| --- |\n| b |',
 		'- [ ] a task',
@@ -68,8 +69,10 @@ describe('wysiwyg markdown', () => {
 		expect(parseMarkdown(markdown).eq(doc)).toBe(true)
 	})
 
-	it('writes a rule that no list item reads as a heading', () => {
-		expect(roundTrip('- a\n  ***')).toBe('- a\n  ***')
+	it('writes a rule that no list item reads as a heading or as its marker', () => {
+		expect(roundTrip('- a\n  ***')).toBe('- a\n  ___')
+
+		expect(roundTrip('- a\n\n* ---')).toBe('- a\n\n* ___')
 	})
 
 	it('escapes text that would read as syntax', () => {

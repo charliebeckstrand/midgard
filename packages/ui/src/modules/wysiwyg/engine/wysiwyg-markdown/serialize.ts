@@ -71,8 +71,9 @@ function block(node: Node, alternate: boolean): string {
 		case 'code_block':
 			return fenced(node.textContent, node.attrs.lang)
 		case 'horizontal_rule':
-			// Not `---`, which under the line of a tight list item is a setext underline.
-			return '***'
+			// Not `---`, which under the line of a tight list item is a setext
+			// underline, and not `***`, which after a `* ` marker is one rule.
+			return '___'
 		case 'raw':
 			return node.attrs.source
 		default:
