@@ -622,13 +622,16 @@ describe('controls show their state under forced colors (real browser)', () => {
 					{(item) => <ListItem>{item.label}</ListItem>}
 				</List>,
 			)
-			const row = present(container.querySelector<HTMLElement>('[data-slot=list-item]'), 'row')
+			// The rows mount again when the `Reorder` group arrives, so each read
+			// finds the row again.
+			const row = () =>
+				present(container.querySelector<HTMLElement>('[data-slot=list-item]'), 'row')
 			await userEvent.tab()
-			expect(document.activeElement).toBe(row)
-			expect(outline(row)).toBe('solid 2px')
+			expect(document.activeElement).toBe(row())
+			expect(outline(row())).toBe('solid 2px')
 			await userEvent.keyboard(' ')
-			await expect.poll(() => row.hasAttribute('data-lifted')).toBe(true)
-			expect(outline(row)).toBe('solid 4px')
+			await expect.poll(() => row().hasAttribute('data-lifted')).toBe(true)
+			expect(outline(row())).toBe('solid 4px')
 			await userEvent.keyboard('{Escape}')
 		})
 
@@ -638,13 +641,16 @@ describe('controls show their state under forced colors (real browser)', () => {
 					{(item) => <ListItem onClick={() => {}}>{item.label}</ListItem>}
 				</List>,
 			)
-			const row = present(container.querySelector<HTMLElement>('[data-slot=list-item]'), 'row')
+			// The rows mount again when the `Reorder` group arrives, so each read
+			// finds the row again.
+			const row = () =>
+				present(container.querySelector<HTMLElement>('[data-slot=list-item]'), 'row')
 			await userEvent.tab()
-			expect(row.contains(document.activeElement)).toBe(true)
-			expect(getComputedStyle(row).outlineStyle).toBe('none')
+			expect(row().contains(document.activeElement)).toBe(true)
+			expect(getComputedStyle(row()).outlineStyle).toBe('none')
 			await userEvent.keyboard(' ')
-			await expect.poll(() => row.hasAttribute('data-lifted')).toBe(true)
-			expect(outline(row)).toBe('solid 4px')
+			await expect.poll(() => row().hasAttribute('data-lifted')).toBe(true)
+			expect(outline(row())).toBe('solid 4px')
 			await userEvent.keyboard('{Escape}')
 		})
 
