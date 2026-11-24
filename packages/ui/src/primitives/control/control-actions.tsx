@@ -9,10 +9,10 @@ export type ControlActionsProps = ComponentProps<'span'>
 
 /**
  * A row of controls inside the frame of a form control, such as the actions
- * row below a Textarea or the toolbar row above a Wysiwyg field. The frame
- * looks like one field, so a press on a button in the row, or on the empty
- * part of the row, does not move the focus. The button still gets the click,
- * and the Tab key still moves the focus to the buttons.
+ * row below a Textarea. The frame looks like one field, so a press on a
+ * button in the row, or on the empty part of the row, does not move the
+ * focus. The button still gets the click, and the Tab key still moves the
+ * focus to the buttons.
  *
  * @remarks
  * The row cancels the default of such a `mousedown`. A press on another

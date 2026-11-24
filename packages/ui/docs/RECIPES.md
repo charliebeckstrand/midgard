@@ -39,7 +39,7 @@ A group holds slots, axes, and defaults in the shape of a unit. A unit kata that
 
 | Group | Units |
 |---|---|
-| `control` | The `multiline` and `input` groups |
+| `control` | The `multiline`, `input`, and `trigger` groups |
 | `multiline` (extends `control`) | `textarea` |
 | `input` (extends `control`) | `input`, the `input` unit of `file-upload`. NumberInput renders an `Input`, so it gets the group through it. |
 | `trigger` (extends `control`) | The `list` and `picker` groups |
