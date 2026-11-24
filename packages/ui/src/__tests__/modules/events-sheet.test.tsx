@@ -659,7 +659,7 @@ describe('pin', () => {
 		expect(getEventSink()).toBeUndefined()
 	})
 
-	it('writes the root attributes again when the panel mounts, as a render of `<html>` on the client removes them', () => {
+	it('writes the root attributes again when the panel mounts, as a render of `<html>` on the client removes them', async () => {
 		restoreEventsOn()
 
 		localStorage.setItem('events:on', '1')
@@ -675,6 +675,9 @@ describe('pin', () => {
 		expect(root).toHaveAttribute('data-events')
 
 		expect(root).toHaveAttribute('data-events-pinned')
+
+		// The pinned panel loads its content, so the test waits for it.
+		expect(await screen.findByRole('button', { name: 'Unpin' })).toBeDefined()
 	})
 
 	it('mounts the pinned panel when the events turn on, and unmounts it when they turn off', async () => {

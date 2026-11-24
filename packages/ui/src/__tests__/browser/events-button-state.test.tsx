@@ -15,14 +15,22 @@ import { emulateForcedColors } from './helpers/forced-colors'
 
 const ATTRIBUTES = ['data-events', 'data-events-capture', 'data-events-reports']
 
-/** Writes the root attributes that the events setting writes. */
+/**
+ * Turns the events setting on, and writes the root attributes of the store. The
+ * button writes `data-events` again from the setting when it mounts. No store
+ * runs, so the attributes of the store stay as the test writes them.
+ */
 function setRoot(...attributes: string[]) {
+	localStorage.setItem('events:on', '1')
+
 	for (const attribute of ['data-events', ...attributes]) {
 		document.documentElement.setAttribute(attribute, '')
 	}
 }
 
 afterEach(() => {
+	localStorage.removeItem('events:on')
+
 	for (const attribute of ATTRIBUTES) document.documentElement.removeAttribute(attribute)
 })
 
