@@ -1,6 +1,7 @@
 name: Density stress
 
-# The `density` job of ci.yml, many times, on separate runners. In some runs
+# The density instances of the `engines` job of ci.yml, many times, on
+# separate runners. In some runs
 # of that job, two Firefox content processes stopped on signal 11 in the
 # first seconds, before a file reported. Firefox wrote no cause to its
 # stderr. With `isolate: false`, the seed sets the first file of the page. A
@@ -54,8 +55,8 @@ jobs:
         env:
           RUNS: ${{ inputs.runs }}
 
-  # The container, the options, the command, and the environment are those
-  # of the `density` job of ci.yml. The job puts no load on the cores. The two
+  # The container, the options, and the environment are those of the
+  # `engines` job of ci.yml, and the command runs its density instances. The job puts no load on the cores. The two
   # jobs thus run under the same conditions. WebKit runs too, because it ran
   # beside Firefox in each crash.
   density:
@@ -75,7 +76,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      # The reason is in the `density` job of ci.yml.
+      # The reason is in the `engines` job of ci.yml.
       - run: git config --system --add safe.directory "$GITHUB_WORKSPACE"
       - uses: ./.github/actions/setup
       # Playwright starts this Firefox build with no crash reporter variables,
@@ -88,6 +89,6 @@ jobs:
       - run: pnpm --filter ui test:browser --project density-firefox --project density-webkit
         env:
           DEBUG: pw:browser
-          DENSITY_ENGINES: 1
+          ALL_ENGINES: 1
           HOME: /root
           VITEST_SEED: ${{ inputs.seed }}

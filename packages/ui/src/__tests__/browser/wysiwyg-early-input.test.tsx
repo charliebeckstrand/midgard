@@ -1,11 +1,8 @@
-import { useRef, useState } from 'react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { cdp, userEvent } from 'vitest/browser'
-import { Wysiwyg, WysiwygToolbar } from '../../modules/wysiwyg'
-import { __resetWysiwygEngine } from '../../modules/wysiwyg/use-wysiwyg-editor'
+import { describe, expect, it, vi } from 'vitest'
+import { userEvent } from 'vitest/browser'
 import { isApplePlatform } from '../../utilities/apple-platform'
 import { present, renderUI, screen, waitFor } from '../helpers'
-import { pause } from './helpers/wall-clock'
+import { focusAtEnd, holdEditorLoad, load, Notes, value } from './helpers/wysiwyg-early-input'
 
 /**
  * The input of a Wysiwyg before its editor loads. The browser makes each edit
@@ -14,94 +11,10 @@ import { pause } from './helpers/wall-clock'
  * and runs each held input in its order.
  *
  * Each case holds the load of the editor until it lets it go, as a slow page
- * does.
+ * does. `wysiwyg-early-composition.test.tsx` holds the cases of an input
+ * method composition.
  */
-const gate = { wait: Promise.resolve(), open: () => {} }
-
-beforeEach(() => {
-	gate.wait = new Promise((resolve) => {
-		gate.open = resolve
-	})
-
-	const { wait } = gate
-
-	__resetWysiwygEngine(() => wait.then(() => import('../../modules/wysiwyg/wysiwyg-editor')))
-})
-
-afterEach(() => gate.open())
-
-/**
- * A field that shows its Markdown value, and the value at each call of
- * `onEnter`. With `restore`, a Restore button sets that value, as a parent
- * that restores a draft does.
- */
-function Notes({
-	initial = '',
-	onEnter,
-	restore,
-	toolbar = false,
-}: {
-	initial?: string
-	onEnter?: (value: string) => void
-	restore?: string
-	toolbar?: boolean
-}) {
-	const [value, setValue] = useState(initial)
-
-	const current = useRef(value)
-
-	current.current = value
-
-	return (
-		<>
-			<Wysiwyg
-				aria-label="Notes"
-				value={value}
-				onValueChange={setValue}
-				onEnter={onEnter && (() => onEnter(current.current))}
-			>
-				{toolbar && <WysiwygToolbar />}
-			</Wysiwyg>
-			<output data-testid="value">{value}</output>
-			{restore !== undefined && (
-				<button type="button" onClick={() => setValue(restore)}>
-					Restore
-				</button>
-			)}
-		</>
-	)
-}
-
-const value = () => screen.getByTestId('value').textContent
-
-/**
- * The field before the load, with the focus and the caret at the end of its
- * text, as a press after the text puts it.
- */
-function focusAtEnd(): HTMLElement {
-	const field = screen.getByRole('textbox')
-
-	expect(field).not.toHaveClass('ProseMirror')
-
-	field.focus()
-
-	const block = present(field.querySelector('p:last-of-type'), 'a block')
-
-	const text = block.lastChild?.nodeType === Node.TEXT_NODE ? block.lastChild : null
-
-	window.getSelection()?.collapse(text ?? block, text ? (text.nodeValue?.length ?? 0) : 0)
-
-	return field
-}
-
-/** Lets the load go, and gives the editable element of the editor. */
-async function load(): Promise<HTMLElement> {
-	gate.open()
-
-	await waitFor(() => expect(screen.getByRole('textbox')).toHaveClass('ProseMirror'))
-
-	return screen.getByRole('textbox')
-}
+holdEditorLoad()
 
 describe('Wysiwyg input before the editor loads (real browser)', () => {
 	it('shows the typed text at once, and keeps it and the caret when the editor loads', async () => {
@@ -261,40 +174,6 @@ describe('Wysiwyg input before the editor loads (real browser)', () => {
 		expect(editor.querySelector('strong')).toHaveTextContent('this')
 	})
 
-	it('waits for the end of an input method composition before the editor takes over', async () => {
-		renderUI(<Notes />)
-
-		focusAtEnd()
-
-		const session = cdp()
-
-		await session.send('Input.imeSetComposition', {
-			text: 'にほ',
-			selectionStart: 2,
-			selectionEnd: 2,
-		})
-
-		gate.open()
-
-		// The engine loads, and the render of the load commits. The editor waits
-		// while the reader composes.
-		await import('../../modules/wysiwyg/wysiwyg-editor')
-
-		await pause(0)
-
-		expect(screen.getByRole('textbox')).not.toHaveClass('ProseMirror')
-
-		await session.send('Input.insertText', { text: '日本' })
-
-		await waitFor(() => expect(screen.getByRole('textbox')).toHaveClass('ProseMirror'))
-
-		expect(value()).toBe('日本')
-
-		await userEvent.keyboard('語')
-
-		expect(value()).toBe('日本語')
-	})
-
 	it('types at the caret that the reader moved after a held key', async () => {
 		renderUI(<Notes />)
 
@@ -420,54 +299,6 @@ describe('Wysiwyg input before the editor loads (real browser)', () => {
 		await userEvent.keyboard('!')
 
 		await waitFor(() => expect(value()).toMatch(/!/))
-	})
-
-	it('types the text of a composition after a held key', async () => {
-		renderUI(<Notes />)
-
-		focusAtEnd()
-
-		await userEvent.keyboard('a{ControlOrMeta>}b{/ControlOrMeta}')
-
-		const session = cdp()
-
-		await session.send('Input.imeSetComposition', {
-			text: 'にほ',
-			selectionStart: 2,
-			selectionEnd: 2,
-		})
-
-		await session.send('Input.insertText', { text: '日本' })
-
-		await load()
-
-		await waitFor(() => expect(value()).toBe('a**日本**'))
-	})
-
-	it('holds a toolbar press in a composition, and takes the composed text', async () => {
-		renderUI(<Notes toolbar />)
-
-		focusAtEnd()
-
-		const session = cdp()
-
-		await session.send('Input.imeSetComposition', {
-			text: 'にほ',
-			selectionStart: 2,
-			selectionEnd: 2,
-		})
-
-		screen.getByRole('button', { name: 'Bold' }).click()
-
-		await session.send('Input.insertText', { text: '日本' })
-
-		await load()
-
-		await waitFor(() => expect(value()).toBe('日本'))
-
-		await userEvent.keyboard('x')
-
-		expect(value()).toBe('日本**x**')
 	})
 
 	it('runs a toolbar press and the keys after it in order', async () => {

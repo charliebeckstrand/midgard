@@ -365,7 +365,7 @@ jobs:
         run: .github/actions/turbo-cache/prune.sh
 
   # The `playwright` version that packages/ui pins, for the tag of the
-  # container image of `density`. One statement of the version means that the
+  # container image of `engines`. One statement of the version means that the
   # image and the npm package cannot drift: a bump of `playwright` changes the
   # image in the same commit. A job of its own, because `container` resolves
   # before the steps of its job run.
@@ -383,13 +383,15 @@ jobs:
       - id: version
         run: echo "version=$(jq -r '.devDependencies.playwright' packages/ui/package.json)" >> "$GITHUB_OUTPUT"
 
-  # The density files of the browser suite in Firefox and WebKit, the
-  # `density-firefox` and `density-webkit` instances of
-  # packages/ui/vitest.browser.config.ts. A separate job, not a matrix entry
-  # of `browser`: only this job runs the two browsers. The two instances hold
-  # a few files, so one job runs them with no shard. `DENSITY_ENGINES` adds
-  # the two instances, and `--project` runs only them, so the Chromium
-  # instances stay in `browser`.
+  # The files of the browser suite that run in Firefox and WebKit, the
+  # instances of packages/ui/vitest.browser.config.ts that `ALL_ENGINES`
+  # adds: the density files in the two browsers (`density-firefox`,
+  # `density-webkit`), and the Wysiwyg files in WebKit (`wysiwyg-webkit`,
+  # `wysiwyg-floating-ui-webkit`, `wysiwyg-floating-motion-webkit`). A
+  # separate job, not a matrix entry of `browser`: only this job runs the two
+  # browsers. The instances hold a few files, so one job runs them with no
+  # shard. `--project` runs only them, so the Chromium instances stay in
+  # `browser`.
   #
   # The job runs in the Playwright image, which holds Firefox, WebKit, and
   # each system package that they load. `playwright install --with-deps` ran
@@ -405,7 +407,7 @@ jobs:
   # Firefox exchange their data through it. Playwright recommends this option
   # for its image. It did not stop the crash that the `pw:browser` note below
   # gives.
-  density:
+  engines:
     needs: playwright-version
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -423,7 +425,7 @@ jobs:
       - uses: ./.github/actions/setup
       - uses: ./.github/actions/turbo-cache
         with:
-          name: density
+          name: engines
       # Filtered to `ui`, as in `browser`. The container runs as root, and
       # Firefox does not start as root when HOME belongs to another user.
       # GitHub sets HOME to a directory of the runner user.
@@ -437,10 +439,10 @@ jobs:
       # Firefox build 1572, which Playwright 1.65 ships. That build has Mozilla
       # bug 2090055, a crash of this type. Thus packages/ui holds Playwright
       # 1.64.1 (renovate.json).
-      - run: pnpm turbo run test:browser --filter=ui --summarize -- --project density-firefox --project density-webkit
+      - run: pnpm turbo run test:browser --filter=ui --summarize -- --project density-firefox --project density-webkit --project wysiwyg-webkit --project wysiwyg-floating-ui-webkit --project wysiwyg-floating-motion-webkit
         env:
           DEBUG: pw:browser
-          DENSITY_ENGINES: 1
+          ALL_ENGINES: 1
           HOME: /root
       - name: Prune the Turbo cache to this run's tasks
         run: .github/actions/turbo-cache/prune.sh
@@ -537,7 +539,7 @@ jobs:
   # Add each new job to `needs`. The job runs when a needed job fails, and then
   # it fails. A needed job that fails, is cancelled, or is skipped makes it fail.
   ci-ok:
-    needs: [gate, build, test, test-outside-ui, browser, coverage, coverage-upload, bench, playwright-version, density, docs, compiler]
+    needs: [gate, build, test, test-outside-ui, browser, coverage, coverage-upload, bench, playwright-version, engines, docs, compiler]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
