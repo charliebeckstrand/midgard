@@ -25,7 +25,12 @@ import { useResizeObserver } from '../../../hooks/use-resize-observer'
 import { useStableEvent } from '../../../hooks/use-stable-event'
 import { useControlLock } from '../../../primitives/control/context'
 import { IntlMessage } from '../../../primitives/intl'
-import { droppedText, movedText, reorderMessages } from '../../../primitives/intl/intl-reorder'
+import {
+	droppedText,
+	movedText,
+	reorderMessages,
+	returnedText,
+} from '../../../primitives/intl/intl-reorder'
 import { useIntl } from '../../../primitives/intl/use-intl'
 import { k } from '../../../recipes/kata/query-builder'
 import { hasBrowserModifier } from '../../../utilities/modifier-keys'
@@ -261,7 +266,72 @@ export function QueryBuilderSortable({
 		)
 	}
 
+	/**
+	 * Escape on a node that the lift moved puts it back at its place at the lift
+	 * start, in this group or in another one, as a pointer cancel does. It gives
+	 * `false` when the node did not move, so the lift only drops.
+	 */
+	const putBack = (id: string): boolean => {
+		const origin = shared.getOrigin(id)
+
+		const from = origin && findNode(shared.getRoot(), origin.groupId)
+
+		if (!origin || from?.type !== 'group') return false
+
+		const here = from.children.findIndex((child) => child.id === id)
+
+		if (here === origin.index) return false
+
+		setLiftedId(null)
+
+		shared.setOrigin(null)
+
+		if (here === -1) {
+			// The group of the origin focuses the node when it renders it.
+			shared.carry(id, from.id, false)
+
+			moveInto(id, from.id, origin.index)
+		} else move(id, origin.index)
+
+		announce(
+			returnedText(intl, name(id), {
+				position: origin.index + 1,
+				total: from.children.length + (here === -1 ? 1 : 0),
+				container: groupName(from),
+			}),
+			{ assertive: true },
+		)
+
+		if (here !== -1) focusItem(id)
+
+		return true
+	}
+
+	/**
+	 * Space lifts a node that is not lifted, and its place then is where Escape
+	 * puts it back. Gives `true` when Escape put the node back.
+	 */
+	const liftEnd = (id: string, key: string): boolean => {
+		const lifted = liftedId === id
+
+		if (key === ' ' && !lifted && enabled) {
+			shared.setOrigin({
+				id,
+				groupId: group.id,
+				index: children.findIndex((child) => child.id === id),
+			})
+		}
+
+		return key === 'Escape' && lifted && putBack(id)
+	}
+
 	const onKeyDown = useStableEvent((id: string, event: KeyboardEvent) => {
+		if (liftEnd(id, event.key)) {
+			event.preventDefault()
+
+			return
+		}
+
 		const key = logicalArrowKey(event.key, event.currentTarget)
 
 		const outward = key === 'ArrowLeft' ? 'out' : null
@@ -287,11 +357,11 @@ export function QueryBuilderSortable({
 	useLayoutEffect(() => {
 		const carried = shared.take(group.id)
 
-		if (carried === null || !children.some((child) => child.id === carried)) return
+		if (carried === null || !children.some((child) => child.id === carried.id)) return
 
-		setLiftedId(carried)
+		if (carried.lift) setLiftedId(carried.id)
 
-		focusItem(carried)
+		focusItem(carried.id)
 	}, [children, group.id, shared, setLiftedId, focusItem])
 
 	// Whether the live pointer drag is over another group. Then the nodes of

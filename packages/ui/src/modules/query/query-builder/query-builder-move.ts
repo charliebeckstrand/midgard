@@ -24,12 +24,20 @@ export type QueryMove = {
 	 * then holds it lifts it and focuses its grip, so the next arrow key moves it
 	 * on.
 	 */
-	carry: (id: string, groupId: string) => void
+	carry: (id: string, groupId: string, lift?: boolean) => void
 	/**
-	 * Gives the node that a keyboard move carries into the group, or `null`, and
-	 * ends the carry into that group.
+	 * Gives the node that a keyboard move carries into the group, and whether the
+	 * group lifts it, or `null`. It ends the carry into that group. A return on
+	 * Escape focuses the node and does not lift it.
 	 */
-	take: (groupId: string) => string | null
+	take: (groupId: string) => { id: string; lift: boolean } | null
+	/**
+	 * The place of the node at the start of its keyboard lift, or `null`. A carry
+	 * keeps it, so Escape puts the node back across groups too.
+	 */
+	getOrigin: (id: string) => QueryDrop | null
+	/** Sets the place of a node at the start of its keyboard lift, or clears it with `null`. */
+	setOrigin: (origin: (QueryDrop & { id: string }) | null) => void
 }
 
 /**
@@ -41,7 +49,9 @@ export type QueryMove = {
 export function createQueryMove(getRoot: () => QueryGroup): QueryMove {
 	let drop: QueryDrop | null = null
 
-	let carried: { id: string; groupId: string } | null = null
+	let carried: { id: string; groupId: string; lift: boolean } | null = null
+
+	let origin: (QueryDrop & { id: string }) | null = null
 
 	const listeners = new Set<() => void>()
 
@@ -62,17 +72,22 @@ export function createQueryMove(getRoot: () => QueryGroup): QueryMove {
 				listeners.delete(listener)
 			}
 		},
-		carry: (id, groupId) => {
-			carried = { id, groupId }
+		carry: (id, groupId, lift = true) => {
+			carried = { id, groupId, lift }
 		},
 		take: (groupId) => {
 			if (carried?.groupId !== groupId) return null
 
-			const { id } = carried
+			const { id, lift } = carried
 
 			carried = null
 
-			return id
+			return { id, lift }
+		},
+		getOrigin: (id) =>
+			origin?.id === id ? { groupId: origin.groupId, index: origin.index } : null,
+		setOrigin: (next) => {
+			origin = next
 		},
 	}
 }
