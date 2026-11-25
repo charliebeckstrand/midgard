@@ -30,17 +30,27 @@ export function __resetWysiwygEngine(): void {
 	engine = createLazyModule(loadEngine)
 }
 
+/** The load that {@link loadEngineNow} reports, so it reports each load once. @internal */
+let reported: Promise<unknown> | null = null
+
 /**
  * Starts the load of the editor module at once. The fields share the load. A
- * load that fails goes on as an unhandled rejection, so it reaches the error
+ * load that fails goes on as one unhandled rejection, so it reaches the error
  * reporting of the app, and the next call tries again. The rejection is of a
- * promise of this call: the idle load handles the rejection of the shared
- * promise.
+ * promise of its own: the idle load handles the rejection of the shared
+ * promise. One press calls this twice, on the press and on the focus, and the
+ * two calls get the same load, so only the first call reports it.
  *
  * @internal
  */
 function loadEngineNow(): void {
-	engine.load().catch((error: unknown) => {
+	const load = engine.load()
+
+	if (load === reported) return
+
+	reported = load
+
+	load.catch((error: unknown) => {
 		throw error
 	})
 }

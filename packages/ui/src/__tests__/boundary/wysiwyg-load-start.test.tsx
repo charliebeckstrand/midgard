@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Wysiwyg } from '../../modules/wysiwyg'
 import { __resetWysiwygEngine } from '../../modules/wysiwyg/use-wysiwyg-editor'
-import { renderUI, screen, waitFor } from '../helpers'
+import { fireEvent, renderUI, screen, waitFor } from '../helpers'
 
 /**
  * The first focus of a Wysiwyg starts the load of its editor in the focus
@@ -12,10 +12,19 @@ import { renderUI, screen, waitFor } from '../helpers'
  * request of the editor started about 420 ms after the press. A load that
  * starts in the event overlaps that work.
  *
+ * A load that fails reports one rejection for each press, though the press
+ * and its focus both start the load.
+ *
  * The suite spies on each `load` of a lazy module, so the check needs a module
  * mock, and the suite sits in `boundary/`.
  */
-const { load } = vi.hoisted(() => ({ load: vi.fn() }))
+const spies = vi.hoisted(() => ({
+	load: vi.fn(),
+	// A promise that each `load` gives in place of the real load, when set.
+	override: null as Promise<unknown> | null,
+}))
+
+const { load } = spies
 
 vi.mock('../../utilities/lazy-module', async (importActual) => {
 	const actual = await importActual<typeof import('../../utilities/lazy-module')>()
@@ -30,7 +39,7 @@ vi.mock('../../utilities/lazy-module', async (importActual) => {
 				load: () => {
 					load()
 
-					return lazy.load()
+					return (spies.override as Promise<M> | null) ?? lazy.load()
 				},
 			}
 		},
@@ -53,5 +62,34 @@ describe('Wysiwyg load start', () => {
 		await waitFor(() =>
 			expect(screen.getByRole('textbox')).toHaveAttribute('contenteditable', 'true'),
 		)
+	})
+
+	it('reports a load once for a press and its focus', () => {
+		__resetWysiwygEngine()
+
+		// A load in flight. The field reports a failure through a handler on it.
+		const pending = new Promise<unknown>(() => undefined)
+
+		const report = vi.spyOn(pending, 'catch')
+
+		spies.override = pending
+
+		try {
+			renderUI(<Wysiwyg aria-label="Notes" defaultValue="**Launch**" />)
+
+			const field = screen.getByRole('textbox')
+
+			load.mockClear()
+
+			fireEvent.pointerDown(field)
+
+			field.focus()
+
+			expect(load).toHaveBeenCalledTimes(2)
+
+			expect(report).toHaveBeenCalledTimes(1)
+		} finally {
+			spies.override = null
+		}
 	})
 })
