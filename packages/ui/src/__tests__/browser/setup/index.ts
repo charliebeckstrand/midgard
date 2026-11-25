@@ -12,6 +12,7 @@ import '../../setup/geometry'
 import { pageState } from './forensics'
 import '../../../fonts/google-sans-flex-latin.js'
 import './tailwind.css'
+import { settleViewport } from './viewport'
 
 /**
  * Browser-suite setup. Registers the axe, jest-dom, and geometry matchers, sets the
@@ -86,6 +87,11 @@ beforeEach(() => commands.parkPointer())
 // A case starts with the focus in its own document, whatever the case before it
 // tabbed out of. See `focusFrame` in `vitest.browser.config.ts`.
 beforeEach(() => commands.focusFrame())
+
+// A case starts after the browser reports the size of its window, whatever
+// size the file before it or a `beforeAll` of its own set. See
+// `settleViewport` in `viewport.ts`.
+beforeEach(() => settleViewport())
 
 afterEach((ctx) => {
 	// Read before cleanup, so the dump describes the page the failing test left,

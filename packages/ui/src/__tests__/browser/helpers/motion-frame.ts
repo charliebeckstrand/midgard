@@ -1,5 +1,6 @@
 import { cancelFrame, frame } from 'motion'
 import { inject } from 'vitest'
+import { describeRead } from './sample'
 
 /**
  * Reads a value in each frame of the Motion frame loop, after Motion writes its
@@ -32,8 +33,8 @@ import { inject } from 'vitest'
  * @returns The value that `done` accepted.
  * @throws When the deadline passes before `done` accepts a value, or when
  * `read` or `during` throws. The default deadline is the suite budget of
- * `asyncUtilTimeout`. The error of the deadline gives the last read, as in
- * `sampleUntil`.
+ * `asyncUtilTimeout`. The error of the deadline gives the last read, as
+ * {@link describeRead} writes it.
  */
 export async function sampleMotionFrames<T>(
 	read: () => T,
@@ -59,7 +60,7 @@ export async function sampleMotionFrames<T>(
 
 					reject(
 						new Error(
-							`sampleMotionFrames: no accepted value in ${deadline}ms; the last read was ${String(value).slice(0, 200)}`,
+							`sampleMotionFrames: no accepted value in ${deadline}ms; the last read was ${describeRead(value)}`,
 						),
 					)
 				}

@@ -13,6 +13,45 @@ interface SampleOptions {
 	deadline?: number
 }
 
+/** The most characters of a read that the error of a sampler gives. */
+const READ_TEXT_LIMIT = 600
+
+/**
+ * A JSON replacer that keeps `NaN` and the infinities as text. JSON writes
+ * them as `null`, which reads as an absent value.
+ */
+function keepNonFinite(_key: string, value: unknown): unknown {
+	return typeof value === 'number' && !Number.isFinite(value) ? String(value) : value
+}
+
+/**
+ * The text of a read in the error of a sampler.
+ *
+ * `String` gives `[object Object]` for an object, so the error of a sampler
+ * that reads a list of samples told nothing. JSON gives each field. A long
+ * text keeps its start and its end, because the last samples show the state
+ * at the deadline.
+ *
+ * @param value - The last read of the sampler.
+ * @returns The JSON of the value, with `NaN` and the infinities as text, or
+ * `String(value)` when JSON gives no text.
+ */
+export function describeRead(value: unknown): string {
+	let text: string
+
+	try {
+		text = JSON.stringify(value, keepNonFinite) ?? String(value)
+	} catch {
+		text = String(value)
+	}
+
+	if (text.length <= READ_TEXT_LIMIT) return text
+
+	const half = READ_TEXT_LIMIT / 2
+
+	return `${text.slice(0, half)} … (${text.length - READ_TEXT_LIMIT} characters) … ${text.slice(-half)}`
+}
+
 /**
  * Reads a value one time in each animation frame, until `done` accepts it.
  *
@@ -24,7 +63,7 @@ interface SampleOptions {
  * @param done - Accepts the value that ends the wait.
  * @returns The value that `done` accepted.
  * @throws When the deadline passes before `done` accepts a value. The error
- * carries the last value.
+ * gives the last value as {@link describeRead} writes it.
  */
 export async function sampleUntil<T>(
 	read: () => T,
@@ -38,7 +77,7 @@ export async function sampleUntil<T>(
 	while (!done(value)) {
 		if (performance.now() >= end) {
 			throw new Error(
-				`sampleUntil: no accepted value in ${deadline}ms; the last read was ${String(value).slice(0, 200)}`,
+				`sampleUntil: no accepted value in ${deadline}ms; the last read was ${describeRead(value)}`,
 			)
 		}
 
