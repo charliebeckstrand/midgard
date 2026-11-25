@@ -66,6 +66,9 @@ function readBundle(): BundleReport {
  * query, and as a container query for the frame of an example (`app.css`).
  * The ceiling of the total has room for the second copy. The editor of
  * Wysiwyg (ProseMirror) is a lazy chunk of about 50 kB.
+ * Each Lucide icon that two or more lazy chunks use is a chunk of its own
+ * (`Glyph`). Each such chunk adds about 200 bytes of gzip to the total, and
+ * the shell does not load these chunks.
  *
  * The eager sum is the chunks that each page preloads: the router, React, the
  * vendors that the shell uses, and the shell. A stray eager import shows up
@@ -74,7 +77,7 @@ function readBundle(): BundleReport {
 const BUDGETS = [
 	{
 		label: 'total gzip',
-		budgetKb: 5650 + 500 * (LOCALES.length - 1),
+		budgetKb: 5660 + 500 * (LOCALES.length - 1),
 		of: (report: BundleReport) => report.totalGzip,
 	},
 	{ label: 'eager gzip', budgetKb: 290, of: (report: BundleReport) => report.eagerGzip },

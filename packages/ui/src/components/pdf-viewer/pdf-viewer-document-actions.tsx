@@ -1,4 +1,5 @@
-import { Download, Printer } from '../../primitives/icons/icons'
+import { Download, Printer } from 'lucide-react'
+import { Glyph } from '../../primitives/glyph'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { ButtonIconTooltip } from '../button/button-icon-tooltip'
 import { ToolbarGroup } from '../toolbar'
@@ -35,13 +36,13 @@ export function PdfViewerDocumentActions({
 		<ToolbarGroup aria-label={intl.formatMessage(pdfViewerMessages.document)}>
 			<ButtonIconTooltip
 				label={intl.formatMessage(pdfViewerMessages.download)}
-				icon={<Download />}
+				icon={<Glyph icon={Download} />}
 				disabled={disabled}
 				onClick={download}
 			/>
 			<ButtonIconTooltip
 				label={intl.formatMessage(pdfViewerMessages.print)}
-				icon={<Printer />}
+				icon={<Glyph icon={Printer} />}
 				disabled={disabled}
 				onClick={print}
 			/>

@@ -1,9 +1,10 @@
 'use client'
 
+import { Check } from 'lucide-react'
 import type { ComponentProps } from 'react'
 import { cn } from '../../core/cn'
 import { ActiveIndicator } from '../../primitives/active-indicator'
-import { Check } from '../../primitives/icons/icons'
+import { Glyph } from '../../primitives/glyph'
 import { useStepper, useStepperStep } from './context'
 
 /** Props for {@link StepperIndicator}: `className` plus `<span>` attributes. */
@@ -27,7 +28,9 @@ export function StepperIndicator({ className, children, ...props }: StepperIndic
 
 	const content =
 		children ??
-		(state === 'completed' && <Check aria-hidden="true" className={slots.indicator.check} />)
+		(state === 'completed' && (
+			<Glyph icon={Check} aria-hidden="true" className={slots.indicator.check} />
+		))
 
 	return (
 		<span data-slot="stepper-indicator" className={cn(slots.indicator.base, className)} {...props}>

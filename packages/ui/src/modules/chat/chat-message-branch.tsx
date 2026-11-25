@@ -1,10 +1,10 @@
 'use client'
 
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '../../components/button'
 import { lockedProps } from '../../components/button/button-constants'
 import { Icon } from '../../components/icon'
 import { useA11yAnnouncements } from '../../hooks/a11y/use-a11y-announcements'
-import { ChevronLeft, ChevronRight } from '../../primitives/icons/icons'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/chat-message'
@@ -49,10 +49,10 @@ const messages = defineMessages<{
 })
 
 /** The chevron that points to the start of the line, and mirrors in a right-to-left document. @internal */
-const PREVIOUS_ICON = <Icon icon={<ChevronLeft />} className="rtl:-scale-x-100" />
+const PREVIOUS_ICON = <Icon icon={ChevronLeft} className="rtl:-scale-x-100" />
 
 /** The chevron that points to the end of the line, and mirrors in a right-to-left document. @internal */
-const NEXT_ICON = <Icon icon={<ChevronRight />} className="rtl:-scale-x-100" />
+const NEXT_ICON = <Icon icon={ChevronRight} className="rtl:-scale-x-100" />
 
 /**
  * The switcher of a chat message with more than one branch: a previous

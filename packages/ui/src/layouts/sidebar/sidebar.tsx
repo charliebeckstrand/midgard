@@ -1,5 +1,6 @@
 'use client'
 
+import { CornerDownLeft, Menu } from 'lucide-react'
 import { useComposedRefs } from 'motion/react'
 import {
 	type ComponentProps,
@@ -27,7 +28,6 @@ import { useIsRtl } from '../../hooks/use-is-rtl'
 import { useKeybindings } from '../../hooks/use-keybindings'
 import { OFFCANVAS_LAYOUT, type OffcanvasLayout, useOffcanvas } from '../../hooks/use-offcanvas'
 import { useStoredChoice } from '../../hooks/use-stored-choice'
-import { CornerDownLeft, Menu } from '../../primitives/icons/icons'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { Landmark } from '../../primitives/landmark'
@@ -344,7 +344,7 @@ export function SidebarLayout({
 						// the name of the link stays its text.
 						suffix={
 							<Kbd>
-								<Icon icon={<CornerDownLeft />} />
+								<Icon icon={CornerDownLeft} />
 							</Kbd>
 						}
 						className={slots.skip}
@@ -424,7 +424,7 @@ export function SidebarLayout({
 									type="button"
 									variant="bare"
 									aria-label={intl.formatMessage(messages.openNavigation)}
-									prefix={<Icon icon={<Menu />} />}
+									prefix={<Icon icon={Menu} />}
 								/>
 							</DrawerTrigger>
 							{navbar && <div className="min-w-0 flex-1">{navbar}</div>}

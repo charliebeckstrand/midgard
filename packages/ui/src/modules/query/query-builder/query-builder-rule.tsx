@@ -1,5 +1,6 @@
 'use client'
 
+import { Trash } from 'lucide-react'
 import { type KeyboardEvent, memo, useCallback, useMemo } from 'react'
 import { Button } from '../../../components/button'
 import { Icon } from '../../../components/icon'
@@ -7,7 +8,6 @@ import type { JsonValue } from '../../../components/json-tree/types'
 import { ListboxOption } from '../../../components/listbox'
 import { Select } from '../../../components/select'
 import { cn } from '../../../core/cn'
-import { Trash } from '../../../primitives/icons/icons'
 import { useIntl } from '../../../primitives/intl/use-intl'
 import { k } from '../../../recipes/kata/query-builder'
 import { Flex } from '../../../structure/flex'
@@ -236,7 +236,7 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 					onClick={onRemove}
 					onKeyDown={cancelKeyRepeat}
 				>
-					<Icon icon={<Trash />} />
+					<Icon icon={Trash} />
 				</Button>
 			)}
 		</Flex>

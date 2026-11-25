@@ -1,10 +1,10 @@
 'use client'
 
+import { Copy, X } from 'lucide-react'
 import type { RefObject } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { announce } from '../../core/announcer'
-import { Copy, X } from '../../primitives/icons/icons'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { focusGripOrBoard, keepFocusOnBoard } from './dashboard-focus'
 import { dashboardMessages } from './dashboard-messages'
@@ -70,7 +70,7 @@ export function DashboardTileControls({
 						onDuplicate()
 					}}
 				>
-					<Icon icon={<Copy />} />
+					<Icon icon={Copy} />
 				</Button>
 			)}
 
@@ -89,7 +89,7 @@ export function DashboardTileControls({
 						onRemove()
 					}}
 				>
-					<Icon icon={<X />} />
+					<Icon icon={X} />
 				</Button>
 			)}
 		</>

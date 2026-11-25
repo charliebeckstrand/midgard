@@ -1,7 +1,7 @@
 'use client'
 
+import { Calendar as CalendarIcon } from 'lucide-react'
 import { dataAttr } from '../../core/data-attr'
-import { Calendar as CalendarIcon } from '../../primitives/icons/icons'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { Button } from '../button'
 import { Icon } from '../icon'
@@ -47,7 +47,7 @@ export function DatePickerCalendarButton({
 			onMouseDown={(event) => event.preventDefault()}
 			onClick={onActivate}
 		>
-			<Icon icon={<CalendarIcon />} />
+			<Icon icon={CalendarIcon} />
 		</Button>
 	)
 }

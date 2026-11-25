@@ -1,7 +1,7 @@
 'use client'
 
+import { ChevronRight } from 'lucide-react'
 import type { ReactNode } from 'react'
-import { ChevronRight } from '../../primitives/icons/icons'
 import { useIntl } from '../../primitives/intl/use-intl'
 import type { ButtonProps } from '../button'
 import { Icon } from '../icon'
@@ -19,7 +19,7 @@ export type PaginationNextProps = PaginationNavProps<'children' | 'aria-label'> 
 	'aria-label'?: string
 }
 
-const DEFAULT_NEXT_ICON = <Icon icon={<ChevronRight />} className="rtl:-scale-x-100" />
+const DEFAULT_NEXT_ICON = <Icon icon={ChevronRight} className="rtl:-scale-x-100" />
 
 /** Next-page control; defaults to a chevron icon and a "Next page" accessible label in the language of the reader. The default chevron mirrors in a right-to-left document. */
 export function PaginationNext({

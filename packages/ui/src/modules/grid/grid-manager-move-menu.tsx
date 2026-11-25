@@ -1,5 +1,6 @@
 'use client'
 
+import { ArrowDown, ArrowUp, ChevronDown, ChevronUp } from 'lucide-react'
 import { type ReactElement, type ReactNode, useState } from 'react'
 import { Icon } from '../../components/icon'
 import {
@@ -10,7 +11,7 @@ import {
 	MenuSeparator,
 	MenuTrigger,
 } from '../../components/menu'
-import { ArrowDown, ArrowUp, ChevronDown, ChevronUp } from '../../primitives/icons/icons'
+import { Glyph } from '../../primitives/glyph'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { gridMessages } from './engine/grid-messages'
 import type { GridItemMoves, GridMoveTarget } from './engine/grid-reorder-move'
@@ -25,10 +26,10 @@ const MANAGER_MOVES: readonly GridMoveTarget[] = ['previous', 'next', 'first', '
  * @internal
  */
 const MANAGER_MOVE_ITEMS = {
-	previous: { label: gridMessages.moveUp, icon: <ChevronUp /> },
-	next: { label: gridMessages.moveDown, icon: <ChevronDown /> },
-	first: { label: gridMessages.moveToTop, icon: <ArrowUp /> },
-	last: { label: gridMessages.moveToBottom, icon: <ArrowDown /> },
+	previous: { label: gridMessages.moveUp, icon: <Glyph icon={ChevronUp} /> },
+	next: { label: gridMessages.moveDown, icon: <Glyph icon={ChevronDown} /> },
+	first: { label: gridMessages.moveToTop, icon: <Glyph icon={ArrowUp} /> },
+	last: { label: gridMessages.moveToBottom, icon: <Glyph icon={ArrowDown} /> },
 } as const
 
 /** Props for {@link GridManagerMoveMenu}. @internal */

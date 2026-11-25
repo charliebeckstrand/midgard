@@ -17,6 +17,7 @@ import {
 	sortableKeyboardCoordinates,
 	verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
+import { ArrowUpDown, EllipsisVertical, Plus, Trash } from 'lucide-react'
 import {
 	memo,
 	type ReactNode,
@@ -41,7 +42,6 @@ import { useSortableItem } from '../../hooks/use-sortable-item'
 import { useSortableSensors } from '../../hooks/use-sortable-sensors'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useStableValue } from '../../hooks/use-stable-value'
-import { ArrowUpDown, EllipsisVertical, Plus, Trash } from '../../primitives/icons/icons'
 import { IntlMessage } from '../../primitives/intl'
 import { intlMessages } from '../../primitives/intl/intl-messages'
 import { pickedUpText, reorderMessages } from '../../primitives/intl/intl-reorder'
@@ -480,7 +480,7 @@ export function GridGroupManager({
 							onClick={manager.addGroup}
 							className="self-start"
 						>
-							<Icon icon={<Plus />} />
+							<Icon icon={Plus} />
 							{intl.formatMessage(gridMessages.newGroup)}
 						</Button>
 					</div>
@@ -741,7 +741,7 @@ function GridGroupManagerZoneHeader({
 						variant="bare"
 						aria-label={intl.formatMessage(gridMessages.moveGroupNamed, { group: label })}
 					>
-						<Icon icon={<ArrowUpDown />} />
+						<Icon icon={ArrowUpDown} />
 					</Button>
 				</GridManagerMoveMenu>
 			)}
@@ -760,7 +760,7 @@ function GridGroupManagerZoneHeader({
 				aria-label={intl.formatMessage(gridMessages.removeGroupNamed, { group: label })}
 				onClick={() => removeGroup(group.id)}
 			>
-				<Icon icon={<Trash />} />
+				<Icon icon={Trash} />
 			</Button>
 		</div>
 	)
@@ -876,7 +876,7 @@ const GridGroupManagerColumnRow = memo(function GridGroupManagerColumnRow({
 						variant="bare"
 						aria-label={intl.formatMessage(reorderMessages.moveHandle, { item: label })}
 					>
-						<Icon icon={<EllipsisVertical />} />
+						<Icon icon={EllipsisVertical} />
 					</Button>
 				</GridManagerMoveMenu>
 			)}

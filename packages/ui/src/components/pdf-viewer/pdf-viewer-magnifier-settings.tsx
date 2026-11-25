@@ -1,7 +1,8 @@
 'use client'
 
+import { ScanSearch } from 'lucide-react'
 import { useId } from 'react'
-import { ScanSearch } from '../../primitives/icons/icons'
+import { Glyph } from '../../primitives/glyph'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/pdf-viewer'
 import { Stack } from '../../structure/stack'
@@ -78,7 +79,7 @@ export function PdfViewerMagnifierSettings({ disabled }: PdfViewerMagnifierSetti
 			<DialogTrigger>
 				<ButtonIconTooltip
 					label={intl.formatMessage(pdfViewerMessages.magnifierSettings)}
-					icon={<ScanSearch />}
+					icon={<Glyph icon={ScanSearch} />}
 					// Keyed on the loupe rather than on the dialog: the glyph stands for the lens, so
 					// the fill has to report whether the lens is on, not whether its settings are up.
 					active={magnifierOn}
