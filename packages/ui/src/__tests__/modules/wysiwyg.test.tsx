@@ -32,7 +32,7 @@ describe('Wysiwyg', () => {
 		expect(field).toHaveAttribute('data-empty')
 	})
 
-	it('shows the source before the editor loads, and loads it on focus', async () => {
+	it('shows the formatting of the value before the editor loads, and loads it on focus', async () => {
 		renderUI(
 			<Wysiwyg aria-label="Notes" defaultValue="**Launch**">
 				<WysiwygToolbar actions={['bold']} />
@@ -45,7 +45,8 @@ describe('Wysiwyg', () => {
 
 		expect(field).toHaveAttribute('tabindex', '0')
 
-		expect(field).toHaveTextContent('**Launch**')
+		// The markup before the load draws the formatting, as the editor does.
+		expect(within(field).getByText('Launch').tagName).toBe('STRONG')
 
 		const bold = screen.getByRole('button', { name: 'Bold' })
 
@@ -68,6 +69,25 @@ describe('Wysiwyg', () => {
 		expect(editor).toHaveTextContent('Launch')
 
 		expect(bold).not.toHaveAttribute('aria-disabled')
+	})
+
+	it('draws a link before the editor loads that a press does not follow', () => {
+		renderUI(
+			<Wysiwyg aria-label="Notes" defaultValue="Read the [guide](https://example.com/guide)" />,
+		)
+
+		const link = within(screen.getByRole('textbox', { name: 'Notes' })).getByText('guide')
+
+		expect(link).toHaveAttribute('href', 'https://example.com/guide')
+
+		expect(link).toHaveAttribute('tabindex', '-1')
+
+		// `dispatchEvent` gives false for a canceled event.
+		expect(fireEvent.click(link)).toBe(false)
+
+		expect(
+			fireEvent(link, new MouseEvent('auxclick', { bubbles: true, cancelable: true, button: 1 })),
+		).toBe(false)
 	})
 
 	it('shows the formatting of the source once the editor loads', async () => {

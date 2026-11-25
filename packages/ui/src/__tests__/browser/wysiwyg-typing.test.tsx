@@ -428,6 +428,51 @@ describe('Wysiwyg (real browser)', () => {
 		expect(field.querySelector('[data-slot="wysiwyg-range"]')).toBeNull()
 	})
 
+	it('paints the formatting and the layout of the editor before the editor loads', async () => {
+		const source = [
+			'## Plan',
+			'A **bold**, *em*, ~~old~~, `code`, and [link](https://example.com) line\\\nwith a break and @Sales.',
+			'- one\n- two',
+			'3. three\n4. four',
+			'> a quote',
+			'```ts\nconst a = 1\n\n```',
+			'___',
+			'| a |\n| --- |\n| b |',
+			'An ![image](https://example.com/a.png) inline',
+		].join('\n\n')
+
+		const sales = {
+			id: 'sales',
+			start: source.indexOf('@Sales'),
+			end: source.indexOf('@Sales') + 6,
+			quote: '@Sales',
+		}
+
+		renderUI(<Wysiwyg aria-label="Notes" defaultValue={source} ranges={[sales]} />)
+
+		const field = screen.getByRole('textbox')
+
+		// The markup of the first paint, before the editor loads.
+		expect(field).not.toHaveAttribute('contenteditable')
+
+		const layout = (element: HTMLElement) =>
+			[...element.children].map((block) => {
+				const { top, height } = block.getBoundingClientRect()
+
+				return [block.tagName, top, height, block.textContent]
+			})
+
+		const before = layout(field)
+
+		expect(field.querySelector('strong')).toHaveTextContent('bold')
+
+		expect(field.querySelector('[data-slot="wysiwyg-range"]')).toHaveTextContent('@Sales')
+
+		const editor = await editable()
+
+		expect(layout(editor)).toEqual(before)
+	})
+
 	it('grows with its content up to the max height, and then scrolls', async () => {
 		renderUI(<Notes />)
 

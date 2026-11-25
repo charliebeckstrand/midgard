@@ -5,13 +5,16 @@ import { runtimeFiles, runtimePathsTo } from '../helpers/import-graph'
 import { parseImports } from '../helpers/source-imports'
 import { srcDir, srcRelative } from '../helpers/walk-source'
 
-// A Wysiwyg loads its editor (`wysiwyg-editor.ts`, the engine, and ProseMirror)
+// A Wysiwyg loads its editor (`wysiwyg-editor.ts`, and with it ProseMirror)
 // only through an `import()`, after the field mounts (`use-wysiwyg-editor.ts`).
-// Until then, the field shows its source as text. A bundler keeps each static
-// import, so one runtime import of the editor from the barrel of the module, or
-// from `ChatPrompt`, loads ProseMirror on each page that shows the field or the
-// composer. This test walks the static module graph of the two barrels
-// (CONVENTIONS.md §9.4).
+// Until then, the field draws its doc with the plain parse and the plain markup
+// of the engine (`engine/wysiwyg-markdown/doc.ts`, `engine/wysiwyg-dom.ts`),
+// which import no ProseMirror. A bundler keeps each static import, so one
+// runtime import of the editor or of ProseMirror from the barrel of the module,
+// or from `ChatPrompt`, loads ProseMirror on each page that shows the field or
+// the composer. This test walks the static module graph of the two barrels
+// (CONVENTIONS.md §9.4). The walk goes into each engine file that a barrel
+// reaches, so an engine file that imports ProseMirror fails it.
 
 const wysiwyg = join(srcDir, 'modules', 'wysiwyg')
 
@@ -19,9 +22,7 @@ const ENTRIES = [join(wysiwyg, 'index.ts'), join(srcDir, 'modules', 'chat', 'ind
 
 /** Whether `file` loads only through an `import()`. */
 function isLazy(file: string): boolean {
-	const rel = srcRelative(file)
-
-	return rel === 'modules/wysiwyg/wysiwyg-editor.ts' || rel.startsWith('modules/wysiwyg/engine/')
+	return srcRelative(file) === 'modules/wysiwyg/wysiwyg-editor.ts'
 }
 
 /** Each runtime import of ProseMirror in the files that `entry` reaches before the lazy files. */
@@ -55,10 +56,13 @@ describe('wysiwyg lazy boundary', () => {
 	}
 
 	it('detects a static import of the editor', () => {
-		// The control: the editor imports the engine and ProseMirror statically.
+		// The control: the editor imports the schema and ProseMirror statically.
 		const editor = join(wysiwyg, 'wysiwyg-editor.ts')
 
-		expect(runtimePathsTo(editor, isLazy)).not.toEqual([])
+		const isSchema = (file: string) =>
+			srcRelative(file) === 'modules/wysiwyg/engine/wysiwyg-schema.ts'
+
+		expect(runtimePathsTo(editor, isSchema)).not.toEqual([])
 
 		expect(proseMirrorImports(editor)).not.toEqual([])
 	})
