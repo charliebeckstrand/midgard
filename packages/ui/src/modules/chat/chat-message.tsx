@@ -205,7 +205,8 @@ export type ChatMessageProps = ChatMessageVariants &
 		 * The menu of the message, which holds each action of the message. On a
 		 * device that hovers, the toolbar over the corner of the bubble shows the
 		 * first three as icon buttons, and an ellipsis button opens the rest. On a
-		 * device with no hover, a long press on the bubble opens the menu. Its
+		 * device with no hover, a long press on the bubble opens the menu, and the
+		 * bubble is a tab stop that a keyboard opens the menu from. Its
 		 * default item is Copy, with the key `'copy'`, which copies the text of
 		 * the message. `items` adds the actions of the app, such as
 		 * Edit and Retry, after a separator ({@link ContextMenuConfig}). `false`
@@ -329,17 +330,20 @@ export type ChatMessageProps = ChatMessageVariants &
  * toolbar is one Tab stop, and the arrow keys move between its buttons.
  * The toolbar shows while the pointer is over the bubble or the toolbar, while
  * a keyboard focus is in the message, or while its menu is open. A press also
- * focuses a control, but that focus does not show the toolbar. The toolbar
- * stays in the Tab order while it is hidden, so a keyboard reader reaches the
- * menu. A message with a menu keeps 24px of room above its bubble for the
- * toolbar. The toolbar thus stays in the box of the message, and a host that
- * clips its overflow does not cut it. A device with no hover has no toolbar
- * and keeps no room: a long press on the bubble opens the menu there.
+ * focuses a control, but that focus does not show the toolbar. On a device
+ * that hovers, the toolbar stays in the Tab order while it is hidden, so a
+ * keyboard reader reaches the menu. A message with a menu keeps 24px of room
+ * above its bubble for the toolbar. The toolbar thus stays in the box of the
+ * message, and a host that clips its overflow does not cut it. A device with
+ * no hover has no toolbar and keeps no room: a long press on the bubble opens
+ * the menu there. The bubble is then a tab stop, so a keyboard opens the menu
+ * with the ContextMenu key or Shift+F10, as with `trigger` `'contextmenu'`.
  *
  * After a copy, the focus goes to the bubble, and not back to the button in the
  * toolbar. The next Tab thus goes into the controls of the message again. The
  * bubble shows a focus ring only for a keyboard focus, so a copy with the
- * pointer moves the focus silently. Tab does not stop on the bubble.
+ * pointer moves the focus silently. Tab does not stop on the bubble where the
+ * toolbar holds the menu.
  *
  * Memoized on its (shallow-equal) props, so a transcript's settled bubbles skip
  * re-rendering, and re-lexing their Markdown. Only the streaming bubble's
@@ -404,15 +408,9 @@ export const ChatMessage = memo(function ChatMessage({
 
 	const bubble = (
 		// Tab does not stop on the bubble, but the Copy item of the menu moves the
-		// focus to it.
-		<div
-			id={bubbleId}
-			// A right-click menu has no button, so the bubble is the tab stop that a
-			// keyboard opens it from.
-			tabIndex={rightClick ? 0 : -1}
-			data-slot="chat-message-bubble"
-			className={slots.bubble}
-		>
+		// focus to it. Where the menu opens over the bubble, the menu makes the
+		// bubble a tab stop, so a keyboard opens the menu from it.
+		<div id={bubbleId} tabIndex={-1} data-slot="chat-message-bubble" className={slots.bubble}>
 			<span data-slot="chat-message-author" className="sr-only">
 				<IntlMessage message={AUTHOR[resolvedSender]} />:{' '}
 			</span>
