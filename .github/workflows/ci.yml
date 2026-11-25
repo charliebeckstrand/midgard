@@ -298,9 +298,10 @@ jobs:
   # code of the repository or of its dependencies. The report of main is the
   # base of the comparison, so deploy.yml gives the token to its call of CI.
   #
-  # The coverage is a report, not a gate. `continue-on-error` gives the job a
-  # success result for `ci-ok` and deploy.yml when a step fails, so a fault at
-  # Codecov or in the download cannot stop a merge or a deploy. A pull
+  # The coverage is a report, not a gate. Thus `ci-ok` does not need this job
+  # or `coverage`. `continue-on-error` gives the job a success result for
+  # deploy.yml when a step fails, so a fault at Codecov or in the download
+  # cannot stop a deploy. A pull
   # request from a fork or from Dependabot gets no repository secret, and
   # Codecov then takes the upload without a token or refuses it.
   coverage-upload:
@@ -534,8 +535,13 @@ jobs:
   #
   # Add each new job to `needs`. The job runs when a needed job fails, and then
   # it fails. A needed job that fails, is cancelled, or is skipped makes it fail.
+  #
+  # The two coverage jobs are not in `needs`. The coverage is a report, not a
+  # gate, and the two jobs start only after the `test` and `browser` shards
+  # end. With them in `needs`, the check passed 26 to 72 s after the last test
+  # job. Codecov still reports on the pull request.
   ci-ok:
-    needs: [gate, build, test, test-outside-ui, browser, coverage, coverage-upload, bench, playwright-version, engines, docs, compiler]
+    needs: [gate, build, test, test-outside-ui, browser, bench, playwright-version, engines, docs, compiler]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
