@@ -116,8 +116,9 @@ const AXES: ReadonlyArray<readonly [string, Record<string, string>]> = unitAxes(
 const MIN_BREAKPOINTS = Object.keys(BREAKPOINT_WIDTHS) as MinBreakpoint[]
 
 /**
- * The candidates that the scanner of an app finds in the source of `ui`. An app
- * scans `ui/src` with no tests, benchmarks, or docs (`shared/src/globals.css`).
+ * The candidates that the scanner of an app finds in the source of `ui`. In
+ * `next dev`, an app scans `ui/src` with no tests, benchmarks, or docs, and in
+ * `next build`, the part of it that the app imports (`shared/scripts/css-sources.ts`).
  */
 function sourceCandidates(): Set<string> {
 	const src = join(uiRoot, 'src')

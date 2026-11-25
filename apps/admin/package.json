@@ -4,8 +4,8 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"dev": "next dev --port 3000 --turbopack",
-		"build": "next build",
+		"dev": "node ../../packages/shared/scripts/css-sources.ts --full && next dev --port 3000 --turbopack",
+		"build": "node ../../packages/shared/scripts/css-sources.ts && next build",
 		"start": "next start --port 3000",
 		"check-types": "tsc --noEmit",
 		"test": "LANG=en-US vitest run",

@@ -1,13 +1,5 @@
 @import 'ui/tailwind.css';
 
-/* The classes of `shared` and `ui`. Each path is from this file. Tests, benchmarks, and the ui docs never ship with an app, so their classes stay out of its CSS. */
-@source './';
-@source '../../ui/src';
-@source not './__tests__';
-@source not '../../ui/src/__tests__';
-@source not '../../ui/src/__benchmarks__';
-@source not '../../ui/src/docs';
-
 /* The `dark` variant follows the `.dark` class on the root element, which `AppearanceProvider` from `ui` sets. Before hydration, the server of the app writes `.dark` or `.light` on the root for a theme that the reader chose (`src/server`). With neither class, the variant follows the OS, so the theme `system` paints at once. */
 @custom-variant dark {
 	&:where(.dark, .dark *) {

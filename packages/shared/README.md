@@ -23,7 +23,7 @@ The apps compile this package from its source, as they do `ui`. The one build st
 | `shared/pages` | `ErrorPage` and `NotFoundPage`, which the `app/error.tsx` and `app/not-found.tsx` of each app re-export as their default exports, and `notFoundMetadata`, which `app/not-found.tsx` re-exports as its `metadata`. `appTitle` gives the `title` of the root layout of each app: the name of the app on the home page, and `Users | Admin` on each other page (`formatTitle`). |
 | `shared/globals.css` | Global stylesheet: `ui/tailwind.css`, which gives the font (except its latin face) and `--font-sans`, the root styles, and a `dark` variant that follows the `.dark` class, else the OS while the root has no `.light` class. `AppearanceProvider` from `ui/providers/appearance` sets the classes, and it adds the latin face. |
 
-`shared/globals.css` names `shared` and `ui` as Tailwind sources, so an app that imports it gets the classes of both. The app names only its own sources.
+`shared/globals.css` names no Tailwind sources. Each app imports its `app/sources.css` after it, and names its own sources. `scripts/css-sources.ts` writes that file before `next build` and `next dev`, and git does not keep it. For `next build`, the file names each file of `shared/src` and `ui/src` that the app imports, so the CSS of the app holds no class of a module that the app does not use. For `next dev`, it names all of `shared/src` and `ui/src`, so a new import gets its classes with no new run. `css-sources-boundary.test.ts` of ui holds the list of each app to its import graph.
 
 ## 2. The server of the app images
 
@@ -37,6 +37,7 @@ The apps compile this package from its source, as they do `ui`. The one build st
 | Build the server of the app images | `pnpm --filter shared build` |
 | Generate the Mimir types | `pnpm --filter shared openapi` |
 | Write the English message catalog, `src/locale/lang/en.json` | `pnpm --filter shared intl` |
+| Write the Tailwind sources of an app, `app/sources.css` (`--full` for all of `shared/src` and `ui/src`) | `node ../../packages/shared/scripts/css-sources.ts`, from the folder of the app |
 
 ## 4. Consumers
 
