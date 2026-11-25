@@ -107,6 +107,16 @@ describe('matchQueryRule', () => {
 		}
 	})
 
+	it('does not put a date before or after itself', () => {
+		expect(matchQueryRule('before', '2026-01-15', '2026-01-15')).toBe(false)
+
+		expect(matchQueryRule('after', '2026-01-15', '2026-01-15')).toBe(false)
+
+		expect(matchQueryRule('before', '2026-01-14', '2026-01-15')).toBe(true)
+
+		expect(matchQueryRule('after', '2026-01-16', '2026-01-15')).toBe(true)
+	})
+
 	it('handles noValue and unknown operators', () => {
 		expect(matchQueryRule('isEmpty', '', undefined)).toBe(true)
 

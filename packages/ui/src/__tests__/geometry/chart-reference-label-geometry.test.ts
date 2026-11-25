@@ -347,6 +347,52 @@ describe('referenceLabels', () => {
 		expect(goal?.box.x0).toBeGreaterThanOrEqual(120 + LABEL_ROOM)
 	})
 
+	it('cuts a centered label to keep its center, short of the rule on each side', () => {
+		const cut = (room: number) => (room >= 21 ? Math.min(160, Math.floor(room / 7) * 7) : null)
+
+		// The label fits the plot only when it centers on its rule, and each
+		// centered spot crosses the rules at 60 and 140.
+		const [middle] = referenceLabels(
+			[
+				{ at: 100, width: 160, cut },
+				{ at: 60, width: 0, unlabeled: true },
+				{ at: 140, width: 0, unlabeled: true },
+			],
+			'horizontal',
+			PLOT,
+		)
+
+		expect([middle?.anchor, middle?.cut]).toEqual(['middle', true])
+
+		expect(middle ? (middle.box.x0 + middle.box.x1) / 2 : null).toBe(100)
+
+		expect(middle?.box.x0).toBeGreaterThanOrEqual(60 + LABEL_ROOM)
+
+		expect(middle?.box.x1).toBeLessThanOrEqual(140 - LABEL_ROOM)
+	})
+
+	it('cuts an end label short of the nearest rule before its end, not before its center', () => {
+		const cut = (room: number) => (room >= 21 ? Math.min(140, Math.floor(room / 7) * 7) : null)
+
+		// The whole label at each end crosses the category rule at 100, and the end
+		// label also crosses the one at 150, between its center and its end.
+		const [goal] = referenceLabels(
+			[
+				{ at: 50, width: 140, cut },
+				{ at: 100, width: 0, unlabeled: true, orientation: 'horizontal' },
+				{ at: 150, width: 0, unlabeled: true, orientation: 'horizontal' },
+			],
+			'vertical',
+			PLOT,
+		)
+
+		expect([goal?.anchor, goal?.x, goal?.cut]).toEqual(['end', PLOT.x + PLOT.width, true])
+
+		expect(goal?.box.x1).toBe(PLOT.x + PLOT.width)
+
+		expect(goal?.box.x0).toBeGreaterThanOrEqual(150 + LABEL_ROOM)
+	})
+
 	it('places nothing for a rule that draws nothing, and keeps the slots aligned', () => {
 		const labels = referenceLabels(
 			[

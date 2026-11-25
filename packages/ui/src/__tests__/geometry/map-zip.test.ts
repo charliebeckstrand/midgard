@@ -467,29 +467,21 @@ describe('coverage framing', () => {
 		expect([...coverageGroups(regions, index, raw, defaultRegionGroup)]).toEqual(['17'])
 	})
 
-	it('places a code on its box where no region holds its centroid', () => {
-		// A ring around ground the regions leave out: a lakefront code whose middle
-		// is open water. The centroid names no region, and the box still names one.
-		const ringed: MapFeature = {
-			type: 'Feature',
-			id: '60611',
-			geometry: {
-				type: 'Polygon',
-				coordinates: [
-					[
-						[2.6, 0.2],
-						[2.6, 1.8],
-						[3.8, 1.8],
-						[3.8, 0.2],
-						[2.6, 0.2],
-					],
-				],
-			},
-		}
+	it('places a code on its box where its centroid lands on water', () => {
+		// The atlas leaves the lake between longitude 2 and 3 out, as it leaves
+		// Lake Michigan out. A lakefront code such as 60611 centers on that water,
+		// so its centroid names no region. Its box meets state 17's counties alone.
+		const lakefront = rewindFeatures([
+			square('17001', 0, 0, 2),
+			square('17002', 3, 0, 2),
+			square('18001', 6, 0, 2),
+		])
 
-		// The code sits between the two states' counties, which stop at longitude 4
-		// and resume there; its own box meets state 17's counties alone.
-		expect([...coverageGroups(regions, index, [ringed], defaultRegionGroup)]).toEqual(['17'])
+		const shore = [square('60611', 1.5, 0.5, 2)]
+
+		expect([
+			...coverageGroups(lakefront, buildRegionIndex(lakefront), shore, defaultRegionGroup),
+		]).toEqual(['17'])
 	})
 
 	it('places nothing for a code with no coordinates at all', () => {

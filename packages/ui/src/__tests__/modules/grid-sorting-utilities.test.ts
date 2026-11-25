@@ -10,6 +10,7 @@ import {
 	type SmartSortField,
 	sortRowsSmart,
 } from '../../modules/grid/engine/grid-sort/utilities'
+import { mirrorSignature, sortSignature } from '../../modules/grid/engine/grid-table/client-view'
 
 const collator = naturalCollator('en-US')
 
@@ -423,6 +424,32 @@ describe('cachedSortOrder · properties', () => {
 		expect(cachedSortOrder(rows, columns, 'desc', fields(true), 'asc', 'en-US')).toEqual(
 			computeSortOrder(rows, fields(true), collator),
 		)
+	})
+})
+
+describe('mirrorSignature', () => {
+	// The key that a flip reads its cached order under, so a flip of one column
+	// sorts nothing.
+	it('names the sort of the one column in the other direction', () => {
+		expect(mirrorSignature([{ column: 'a', direction: 'asc' }])).toBe(
+			sortSignature([{ column: 'a', direction: 'desc' }]),
+		)
+
+		expect(mirrorSignature([{ column: 'a', direction: 'desc' }])).toBe(
+			sortSignature([{ column: 'a', direction: 'asc' }]),
+		)
+	})
+
+	// The tie-break of the second column is not in the order of the first.
+	it('names no mirror for a sort of two columns that starts with the same column', () => {
+		expect(
+			mirrorSignature([
+				{ column: 'a', direction: 'asc' },
+				{ column: 'b', direction: 'asc' },
+			]),
+		).toBeUndefined()
+
+		expect(mirrorSignature([])).toBeUndefined()
 	})
 })
 
