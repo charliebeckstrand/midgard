@@ -980,7 +980,7 @@ describe('ChatCitationProvider render', () => {
 		expect(onKeyDown).toHaveLastReturnedWith(false)
 	})
 
-	it('opens a Dialog', async () => {
+	it('opens a Dialog that is wide enough for a chart or a map', async () => {
 		const user = userEvent.setup()
 
 		renderUI(<Panels citations={[late]} />)
@@ -988,6 +988,8 @@ describe('ChatCitationProvider render', () => {
 		await user.click(screen.getByRole('button', { name: 'Twelve stops are late' }))
 
 		expect(bySlot(document.body, 'dialog')).toHaveRole('dialog')
+
+		expect(bySlot(document.body, 'dialog')).toHaveClass('sm:max-w-4xl')
 
 		expect(bySlot(document.body, 'drawer')).toBeNull()
 	})

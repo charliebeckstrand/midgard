@@ -71,10 +71,9 @@ const bubble = {
 }
 
 export const k = defineKata({
-	// The toolbar is placed against the message, so the message is its
-	// containing block. The named group lets the toolbar show while the bubble
-	// is hovered, or while focus is in the message.
-	base: [flex.col, 'group/chat-message relative'],
+	// The named group lets the toolbar show while the bubble is hovered, or
+	// while focus is in the message.
+	base: [flex.col, 'group/chat-message'],
 	sender: {
 		user: 'items-end',
 		assistant: 'items-start',
@@ -96,9 +95,11 @@ export const k = defineKata({
 		// The bubble and the row below it. The frame has the width of the skeleton
 		// bubble, so the row is as wide as the bubble, and its start is the start
 		// of the bubble. A row wider than a short bubble makes the frame wider, and
-		// the bubble stays on the side of the speaker.
+		// the bubble stays on the side of the speaker. The toolbar is placed
+		// against the frame, so it follows the bubble, also when the bubble is in
+		// the center of the row.
 		frame: {
-			base: [flex.col, kokkaku.chat.width],
+			base: [flex.col, 'relative', kokkaku.chat.width],
 			sender: {
 				user: 'items-end',
 				assistant: 'items-start',
@@ -132,15 +133,22 @@ export const k = defineKata({
 		/**
 		 * The frame of the toolbar of the message actions: it floats over the
 		 * outer top corner of the bubble. That is the corner on the side of the
-		 * speaker. It sits at the top of the message, in the `menu` room. The
-		 * toolbar is 34px high, because its buttons have a fixed size, so it
-		 * overlaps the bubble by 10px: the padding of the bubble, and not its
-		 * text. It is never a row of icons below the bubble.
+		 * speaker. A system line has no side, so the toolbar takes its start
+		 * corner. The toolbar is never in the center, where it would cover the
+		 * text that it acts on. On a device that hovers, the toolbar rises into
+		 * the `menu` room, 24px above the frame. On a device with no hover, it
+		 * covers the top corner of the bubble. The toolbar is 34px high, because
+		 * its buttons have a fixed size, so it overlaps the bubble by 10px: the
+		 * padding of the bubble, and not its text. It is never a row of icons
+		 * below the bubble.
+		 *
+		 * The frame can be narrower than the toolbar, so the toolbar takes its
+		 * own full width. It does not wrap to the width of a short bubble.
 		 */
 		toolbar: {
 			base: [
 				flex.row,
-				'absolute top-0 z-10 w-fit p-1',
+				'absolute top-0 z-10 w-max p-1 [@media(hover:hover)]:-top-6',
 				rounded.lg,
 				// The fill is opaque and the ring is inside the toolbar, so the edge has
 				// one tone over the page and over the bubble. A translucent fill and an
@@ -180,25 +188,40 @@ export const k = defineKata({
 			sender: {
 				user: 'end-2',
 				assistant: 'start-2',
-				system: 'inset-x-0 mx-auto',
+				system: 'start-0',
 			},
 		},
 		// A citation: a phrase of the prose that selects in a view beside the chat.
 		// Piece 0 is a span with the button role, so it wraps with the prose. The
 		// pieces after it are spans with the same look. It keeps the font and the foreground of the prose, so it reads on
-		// each bubble. A dotted underline marks it at rest. A solid underline of
+		// each bubble. A dotted line under it marks it at rest. A solid line of
 		// full ink and double weight marks it while it is active: while it is
 		// pressed, or while the selection of its view matches it. The two states
 		// have one look, because in each the view shows the selection of the
 		// citation. `aria-pressed` and the description tell them apart. A fill
 		// would change the background of the text, and on the user bubble that
-		// lowers the contrast below 4.5:1. Forced colors keep a text decoration.
+		// lowers the contrast below 4.5:1.
+		//
+		// The line is a background image and not a text decoration. A browser
+		// starts the dots of a text decoration again at each element in the
+		// citation, so in `**4** to **14**` two dots touch and show as a dash
+		// where a bold starts or stops. A background is one row of dots on each
+		// line of the citation. `round` fits a whole number of dots on the line,
+		// and the row starts 1 px in, so that each end of the line is half a gap.
+		// Forced colors remove a background image, so there the line is a text
+		// decoration.
 		citation: [
 			'cursor-pointer rounded-sm text-inherit box-decoration-clone',
-			'underline decoration-dotted decoration-current/60 underline-offset-2',
-			'hover:decoration-solid',
-			'data-pressed:decoration-current data-pressed:decoration-solid data-pressed:decoration-2',
-			'data-marked:decoration-current data-marked:decoration-solid data-marked:decoration-2',
+			// biome-ignore lint/plugin/no-physical-side: the row of dots is the same in each direction
+			'bg-linear-to-r from-current/60 from-50% to-transparent to-50%',
+			'bg-size-[4px_1px] bg-position-[1px_calc(100%-0.2em)] [background-repeat:round_no-repeat]',
+			'hover:to-current/60',
+			'data-pressed:from-current data-pressed:to-current data-pressed:bg-size-[4px_2px]',
+			'data-marked:from-current data-marked:to-current data-marked:bg-size-[4px_2px]',
+			'forced-colors:underline forced-colors:decoration-dotted forced-colors:underline-offset-2',
+			'forced-colors:hover:decoration-solid',
+			'forced-colors:data-pressed:decoration-solid forced-colors:data-pressed:decoration-2',
+			'forced-colors:data-marked:decoration-solid forced-colors:data-marked:decoration-2',
 			focus.ring,
 		],
 		// A citation that selects in no view, such as a dataset that scopes a

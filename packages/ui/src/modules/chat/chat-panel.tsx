@@ -8,6 +8,7 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogPanel,
+	type DialogPanelProps,
 	DialogTitle,
 } from '../../components/dialog'
 import {
@@ -37,6 +38,13 @@ export type ChatPanelProps = {
 	/** The title of the panel. It names the panel. */
 	title: ReactNode
 	/**
+	 * The width of the Dialog. A Drawer on a phone takes the width of the
+	 * screen. A citation passes `4xl`, because a chart or a map takes its height
+	 * from its width. At `4xl`, a map of the US with the title and the footer
+	 * fits a screen of 1280 by 720 with no scroll.
+	 */
+	width?: DialogPanelProps['width']
+	/**
 	 * The parts of the panel: a {@link ChatPanelBody}, and a
 	 * {@link ChatPanelFooter} where the panel needs its own actions. A panel
 	 * with no footer shows the standard Close button.
@@ -56,7 +64,7 @@ export type ChatPanelProps = {
  *
  * @internal
  */
-export function ChatPanel({ open, onOpenChange, title, children }: ChatPanelProps) {
+export function ChatPanel({ open, onOpenChange, title, width, children }: ChatPanelProps) {
 	const phone = useMediaQuery(PHONE_QUERY)
 
 	return (
@@ -72,7 +80,7 @@ export function ChatPanel({ open, onOpenChange, title, children }: ChatPanelProp
 				</Drawer>
 			) : (
 				<Dialog open={open} onOpenChange={onOpenChange}>
-					<DialogPanel>
+					<DialogPanel width={width}>
 						<DialogHeader>
 							<DialogTitle>{title}</DialogTitle>
 						</DialogHeader>
