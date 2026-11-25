@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
-import { cleanup, render } from '@testing-library/react'
+import { render } from '@testing-library/react'
 import { createElement as h } from 'react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { RaceCard } from '../components/race-card'
 import { RaceSummary } from '../components/race-summary'
 import { findContest, findElection } from '../elections/registry'
@@ -14,8 +14,6 @@ vi.mock('next/navigation', () => ({
 	usePathname: () => '/2026/us/midterms',
 	useSearchParams: () => new URLSearchParams(),
 }))
-
-afterEach(cleanup)
 
 const election = findElection('2026', 'us', 'midterms')
 

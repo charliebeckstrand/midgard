@@ -1,9 +1,9 @@
 // @vitest-environment jsdom
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { createElement as h } from 'react'
 import { seed } from 'shared/queries'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { ElectionDrawer } from '../components/election-drawer'
 import { ElectionRacesProvider } from '../components/election-drawer/context'
 import {
@@ -37,22 +37,6 @@ vi.mock('../api/county-api', () => ({ fetchCountyShapes: vi.fn(() => new Promise
 vi.mock('../components/race-detail/load-county-map', () => ({
 	loadCountyMap: () => new Promise(() => {}),
 }))
-
-afterEach(cleanup)
-
-// jsdom has no `ResizeObserver` and no layout, and the panel and the trail measure themselves.
-beforeEach(() => {
-	Range.prototype.getBoundingClientRect = () => new DOMRect()
-
-	vi.stubGlobal(
-		'ResizeObserver',
-		class {
-			observe() {}
-			unobserve() {}
-			disconnect() {}
-		},
-	)
-})
 
 const midterms = findElection('2026', 'us', 'midterms')
 

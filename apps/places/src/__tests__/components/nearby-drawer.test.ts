@@ -1,28 +1,11 @@
 // @vitest-environment jsdom
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import { createElement as h } from 'react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { NearbyDrawer, type NearbyDrawerProps } from '../../components/nearby-drawer'
 import type { Place } from '../../types'
 import { PANEL_START } from '../../utilities/places-url'
 import { place } from '../fixtures'
-
-afterEach(cleanup)
-
-// jsdom has no `ResizeObserver`, and the panel measures itself with one. It
-// has no layout either, and the trail measures the text of its crumbs.
-beforeEach(() => {
-	Range.prototype.getBoundingClientRect = () => new DOMRect()
-
-	vi.stubGlobal(
-		'ResizeObserver',
-		class {
-			observe() {}
-			unobserve() {}
-			disconnect() {}
-		},
-	)
-})
 
 const a = place('a')
 

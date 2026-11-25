@@ -1,10 +1,8 @@
 // @vitest-environment jsdom
-import { act, cleanup, renderHook } from '@testing-library/react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { act, renderHook } from '@testing-library/react'
+import { describe, expect, it, vi } from 'vitest'
 import { useGame } from '../hooks/use-game'
 import { createGame, SLOTS } from '../utilities/game'
-
-afterEach(cleanup)
 
 /** The deck of the seed `charlie`. */
 const deck = createGame('charlie').deck

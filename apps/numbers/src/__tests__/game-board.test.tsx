@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { User } from 'auth'
 import { Activity } from 'react'
 import { writeCookie } from 'ui/core'
@@ -17,8 +17,6 @@ const address = vi.hoisted(() => ({ pathname: '/charlie' }))
 vi.mock('next/navigation', () => ({ usePathname: () => address.pathname }))
 
 vi.mock('../api/stats-api', () => ({ readStats: vi.fn(), recordResult: vi.fn() }))
-
-afterEach(cleanup)
 
 /** Renders the board of the seed `charlie` at its address, with Auto-draw on by default, as the page does. */
 function renderBoard(autoDraw = true, { seed = 'charlie' }: { seed?: string } = {}) {

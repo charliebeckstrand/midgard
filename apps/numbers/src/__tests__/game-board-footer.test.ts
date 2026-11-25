@@ -2,11 +2,9 @@
 import { cleanup, render, screen } from '@testing-library/react'
 import { createElement as h, type ReactNode } from 'react'
 import { UIProvider } from 'ui/providers/ui'
-import { afterEach, describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { GameBoardFooter } from '../components/game-board/game-board-footer'
 import { createGame, playCpu, SLOTS } from '../utilities/game'
-
-afterEach(cleanup)
 
 /** The share menu of the bar uses the toasts of `UIProvider`. */
 const wrapper = ({ children }: { children: ReactNode }) => h(UIProvider, null, children)

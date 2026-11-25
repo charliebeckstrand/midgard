@@ -44,16 +44,6 @@ function renderMenu(user?: User, route: Route = 'solo') {
 }
 
 beforeEach(() => {
-	// jsdom has no `ResizeObserver`, and the open menu watches its parts with one.
-	vi.stubGlobal(
-		'ResizeObserver',
-		class {
-			observe() {}
-			unobserve() {}
-			disconnect() {}
-		},
-	)
-
 	vi.mocked(readBoard).mockResolvedValue({ players: 0, entries: [] })
 
 	vi.useFakeTimers({ toFake: ['Date'] })

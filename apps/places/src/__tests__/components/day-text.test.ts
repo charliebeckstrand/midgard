@@ -1,15 +1,13 @@
 // @vitest-environment jsdom
-import { act, cleanup } from '@testing-library/react'
+import { act } from '@testing-library/react'
 import { createElement as h } from 'react'
 import { hydrateRoot, type Root } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
-import { afterEach, describe, expect, it, onTestFinished, vi } from 'vitest'
+import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { DayText, DayTextProvider } from '../../components/day-text'
 import { DaySpan } from '../../components/summary-drawer'
 import { dayTexts } from '../../utilities/day-text'
 import { placeOn, trip } from '../fixtures'
-
-afterEach(cleanup)
 
 const texts = dayTexts([placeOn('a', '2026-08-15')], [trip('t')])
 

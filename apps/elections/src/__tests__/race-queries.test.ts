@@ -1,9 +1,9 @@
 // @vitest-environment jsdom
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { cleanup, renderHook, waitFor } from '@testing-library/react'
+import { renderHook, waitFor } from '@testing-library/react'
 import { createElement as h, type ReactNode } from 'react'
 import type { Seed } from 'shared/queries'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { fetchRace } from '../api/race-api'
 import { useRace } from '../queries/race-queries'
 import { readRace } from '../server/civic-race'
@@ -34,8 +34,6 @@ beforeEach(() => {
 
 	vi.mocked(fetchRace).mockReset()
 })
-
-afterEach(cleanup)
 
 describe('useRace', () => {
 	it('shows the seed of the page with no read', () => {

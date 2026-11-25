@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, render, screen } from '@testing-library/react'
 import { createElement as h } from 'react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { ElectionsHeader } from '../components/elections-header'
 import { type Election, findElection } from '../elections/registry'
 import { electionCrumbs } from '../utilities/trail'
@@ -13,22 +13,6 @@ vi.mock('next/navigation', () => ({
 	usePathname: () => pathname,
 	useRouter: () => ({ push: () => {}, prefetch: () => {} }),
 }))
-
-afterEach(cleanup)
-
-// jsdom has no `ResizeObserver` and no layout, and the trail measures its crumbs.
-beforeEach(() => {
-	Range.prototype.getBoundingClientRect = () => new DOMRect()
-
-	vi.stubGlobal(
-		'ResizeObserver',
-		class {
-			observe() {}
-			unobserve() {}
-			disconnect() {}
-		},
-	)
-})
 
 const midterms = findElection('2026', 'us', 'midterms')
 
