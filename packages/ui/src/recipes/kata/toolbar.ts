@@ -22,6 +22,9 @@ export const k = defineKata({
 	 * side, so the pointer meets no dead space between two buttons, as between
 	 * two tabs. The buttons keep their space. The cross axis keeps the floor, so
 	 * a hit area does not go into the field or the content next to the toolbar.
+	 *
+	 * In a horizontal toolbar, the item after a separator that starts a wrapped
+	 * row moves back over the box of the separator and the gap.
 	 */
 	base: flex.row,
 	orientation: {
@@ -31,6 +34,7 @@ export const k = defineKata({
 			dan.gap.touch.x.xs,
 			dan.gap.touch.y.xs,
 			touch.tile.x,
+			dan.space.toolbar.rowStart,
 		],
 		vertical: ['flex-col w-fit', dan.gap.scale.xs, dan.gap.touch.y.xs, touch.tile.y],
 	},
@@ -57,12 +61,10 @@ export const k = defineKata({
 		/**
 		 * A separator of the toolbar. Its margin is the toolbar gap at each density
 		 * step, so the space on each side of the rule is the space between two groups.
-		 * In a horizontal toolbar, the item after a separator that starts a wrapped
-		 * row moves back over the box of the separator and the gap.
 		 */
 		separator: {
 			orientation: {
-				horizontal: [dan.space.toolbar.separator.x, dan.space.toolbar.separator.rowStart],
+				horizontal: dan.space.toolbar.separator.x,
 				vertical: dan.space.toolbar.separator.y,
 			},
 		},

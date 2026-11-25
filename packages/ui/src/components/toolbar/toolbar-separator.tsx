@@ -20,9 +20,9 @@ export type ToolbarSeparatorProps = Omit<ComponentProps<'hr'>, 'role'>
  * When a horizontal `<Toolbar>` wraps, a separator that ends or starts a row
  * gets `data-row-edge` and becomes invisible. It keeps its box, so its row does
  * not change, and `visibility: hidden` also removes it from the accessibility
- * tree. The item after a separator that starts a row moves back over that box,
- * so the row starts at the edge of the toolbar, as the first row does. Only a
- * separator that is a direct child of the toolbar gets the mark.
+ * tree. The toolbar moves the item after a separator that starts a row back
+ * over that box, so the row starts at the edge of the toolbar, as the first row
+ * does. Only a separator that is a direct child of the toolbar gets the mark.
  */
 export function ToolbarSeparator({ className, ...props }: ToolbarSeparatorProps) {
 	const { orientation } = useToolbarContext()
