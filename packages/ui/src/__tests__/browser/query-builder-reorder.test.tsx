@@ -405,6 +405,30 @@ describe('QueryBuilder keyboard move across groups (real browser)', () => {
 		expect(grip('Name contains a')).not.toHaveAttribute('data-dragging')
 	})
 
+	it('puts a rule back at its start index on Escape after a step in its group', async () => {
+		const onValueChange = vi.fn()
+
+		renderUI(<Harness onValueChange={onValueChange} />)
+
+		await lift('Name contains a')
+
+		fireEvent.keyDown(grip('Name contains a'), { key: 'ArrowUp' })
+
+		await waitFor(() => expect(onValueChange).toHaveBeenCalledTimes(1))
+
+		expect(ids(onValueChange.mock.calls[0]?.[0].children)).toEqual(['a', 'g'])
+
+		await waitFor(() => expect(document.activeElement).toBe(grip('Name contains a')))
+
+		fireEvent.keyDown(grip('Name contains a'), { key: 'Escape' })
+
+		await waitFor(() => expect(onValueChange).toHaveBeenCalledTimes(2))
+
+		expect(ids(onValueChange.mock.calls[1]?.[0].children)).toEqual(['g', 'a'])
+
+		await waitFor(() => expect(grip('Name contains a')).not.toHaveAttribute('data-dragging'))
+	})
+
 	it('only drops on Escape when the lift moved nothing', async () => {
 		const onValueChange = vi.fn()
 
