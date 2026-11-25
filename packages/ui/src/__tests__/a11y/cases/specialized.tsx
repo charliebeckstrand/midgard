@@ -1,3 +1,4 @@
+import { Field, Label } from '../../../components/fieldset'
 import { Input } from '../../../components/input'
 import { PdfViewer, type PdfViewerPage } from '../../../components/pdf-viewer'
 import {
@@ -9,6 +10,7 @@ import {
 	ChatTranscript,
 	ChatTranscriptSkeleton,
 } from '../../../modules/chat'
+import { Wysiwyg, WysiwygSkeleton, WysiwygToolbar } from '../../../modules/wysiwyg'
 import { HeadlessProvider } from '../../../providers/headless'
 import { noop } from '../../helpers'
 import type { Case } from './types'
@@ -232,6 +234,21 @@ export const specializedCases: readonly Case[] = [
 				onRemoveAttachment={noop}
 			/>
 		),
+	},
+	{
+		// The rich text field before its editor loads, as the server renders it:
+		// a named, multiline textbox with its placeholder, under a toolbar of
+		// named groups whose buttons wait for the editor.
+		name: 'wysiwyg in field',
+		element: (
+			<Field key="w">
+				<Label>Notes</Label>
+				<Wysiwyg placeholder="Add a note">
+					<WysiwygToolbar />
+				</Wysiwyg>
+			</Field>
+		),
+		skeleton: [{ element: <WysiwygSkeleton />, absentSlot: 'wysiwyg' }],
 	},
 	{
 		// Escape hatch: renders its single child untouched, suppressing default

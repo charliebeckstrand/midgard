@@ -148,7 +148,7 @@ export const wysiwygGroupMessages: Record<WysiwygActionGroup, MessageDescriptor>
  *
  * @internal
  */
-export type WysiwygActionEntry = {
+type WysiwygActionEntry = {
 	/**
 	 * The group of the action in the toolbar: `text` formats the selected
 	 * text, `lists` makes a list, `references` adds a link or a quote, and

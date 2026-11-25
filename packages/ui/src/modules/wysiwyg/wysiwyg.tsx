@@ -19,13 +19,13 @@ import { useStableEvent } from '../../hooks/use-stable-event'
 import { ControlActions, ControlFrame } from '../../primitives/control'
 import { k as markdown } from '../../recipes/kata/markdown'
 import type { scale } from '../../recipes/kata/wysiwyg'
+import { noopSubscribe } from '../../utilities/noop'
 import { WysiwygContext, type WysiwygContextValue } from './context'
 import type { WysiwygBlock, WysiwygHandle, WysiwygToggleAction } from './types'
 import { useWysiwygEditor } from './use-wysiwyg-editor'
 import { useWysiwygField } from './use-wysiwyg-field'
 import { useWysiwygLabelFocus } from './use-wysiwyg-label-focus'
 import { useWysiwygSelection } from './use-wysiwyg-selection'
-import type { WysiwygEditor } from './wysiwyg-editor'
 
 /** Props for {@link Wysiwyg}. */
 export type WysiwygProps<R extends MarkdownRange = MarkdownRange> = {
@@ -65,7 +65,7 @@ export type WysiwygProps<R extends MarkdownRange = MarkdownRange> = {
 	 * @minimum 1
 	 */
 	rows?: number
-	/** The text that the empty field shows. */
+	/** The text that the empty field shows. A screen reader gets it through `aria-placeholder`. */
 	placeholder?: string
 	/**
 	 * Control slot rendered as a right-justified row below the field, as on
@@ -154,27 +154,6 @@ export type WysiwygProps<R extends MarkdownRange = MarkdownRange> = {
 	'aria-controls'?: string
 	/** Gets the {@link WysiwygHandle} of the field. */
 	ref?: Ref<WysiwygHandle<R>>
-}
-
-/** The subscription of a locked field, which takes no update. @internal */
-function ignoreUpdates(): () => void {
-	return () => undefined
-}
-
-/**
- * How the toolbar follows the selection. A locked field is inert: the toolbar
- * does not follow the selection, and it shows no action as on.
- *
- * @internal
- */
-function selection(
-	editor: WysiwygEditor | null,
-	subscribe: WysiwygContextValue['subscribe'],
-	locked: boolean,
-): Pick<WysiwygContextValue, 'subscribe' | 'isActive'> {
-	if (locked) return { subscribe: ignoreUpdates, isActive: () => false }
-
-	return { subscribe, isActive: (action) => editor?.isActive(action) ?? false }
 }
 
 /**
@@ -357,7 +336,7 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 		props: {
 			attributes: attributes,
 			editable: !locked,
-			onSubmit: onEnter,
+			onEnter,
 			onKeyDown,
 			onLink: openLink,
 		},
@@ -391,6 +370,9 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 
 	const toolbarClassName = cn(slots.toolbar)
 
+	// One identity for the mount, so the memo below does not list it.
+	const focusField = useStableEvent(focus)
+
 	// The value keeps its identity while its inputs do. A keystroke renders the
 	// field, and the toolbar then renders only the buttons whose state changed.
 	// The effects of the link button, which run on `registerLink` and
@@ -401,7 +383,10 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 			ready: editor !== null,
 			locked,
 			toolbarClassName,
-			...selection(editor, subscribe, locked),
+			// A locked field is inert: the toolbar does not follow the selection, and
+			// it shows no action as on.
+			subscribe: locked ? noopSubscribe : subscribe,
+			isActive: (action) => !locked && (editor?.isActive(action) ?? false),
 			run: (action: WysiwygToggleAction) => {
 				editor?.run(action)
 			},
@@ -417,8 +402,10 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 			linkDraft: () => editor?.linkDraft() ?? { text: '', href: '' },
 			setLink: (href: string, text: string) => editor?.link(href, text),
 			holdSelection: (held: boolean) => editor?.hold(held),
+			fieldFocused: () => editor?.view.hasFocus() ?? false,
+			focusField,
 		}),
-		[fieldId, editor, locked, toolbarClassName, subscribe, linkOpen],
+		[fieldId, editor, locked, toolbarClassName, subscribe, linkOpen, focusField],
 	)
 
 	// The field is touched when the focus leaves the field and its rows, and not
