@@ -3,6 +3,7 @@
 import {
 	type CSSProperties,
 	type FocusEvent,
+	type MouseEvent,
 	type ReactNode,
 	type Ref,
 	useImperativeHandle,
@@ -18,7 +19,9 @@ import type { ScaleStep } from '../../core/density/scale'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { ControlActions, ControlFrame } from '../../primitives/control'
 import type { scale } from '../../recipes/kata/wysiwyg'
+import { clamp } from '../../utilities/clamp'
 import { noopSubscribe } from '../../utilities/noop'
+import { isPrimaryPress } from '../../utilities/primary-press'
 import { WysiwygContext, type WysiwygContextValue } from './context'
 import type { WysiwygBlock, WysiwygHandle, WysiwygToggleAction } from './types'
 import { useWysiwygEditor } from './use-wysiwyg-editor'
@@ -276,12 +279,10 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 		stacked: hasActions || inside,
 		toolbar: inside && !hasActions,
 		separated,
+		top: inside,
 	})
 
 	const host = useRef<HTMLDivElement>(null)
-
-	// The first focus or press of the field loads the editor at once.
-	const [wanted, setWanted] = useState(false)
 
 	const [linkOpen, setLinkOpen] = useState(false)
 
@@ -311,11 +312,10 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 		edited.current = undefined
 	})
 
-	const { editor, subscribe, loadedAtMount } = useWysiwygEditor({
+	const { editor, subscribe, loadedAtMount, load } = useWysiwygEditor({
 		host,
 		value,
 		ranges,
-		wanted,
 		props: {
 			attributes: attributes,
 			editable: !locked,
@@ -331,7 +331,7 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 		editor ? editor.view.dom : (host.current?.firstElementChild as HTMLElement | null)
 
 	const focus = () => {
-		setWanted(true)
+		load()
 
 		if (editor) editor.focus()
 		else element()?.focus()
@@ -397,6 +397,21 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 		if (!event.currentTarget.contains(event.relatedTarget)) setTouched()
 	}
 
+	// Below a toolbar, the space above the text is a margin of the field, so the
+	// host gets a press in that space and not the field. The press puts the
+	// caret in the first visible row of text, as a press on the field does.
+	function handleHostPress(event: MouseEvent<HTMLDivElement>) {
+		if (event.target !== event.currentTarget || disabled || !isPrimaryPress(event)) return
+
+		event.preventDefault()
+
+		const box = editor?.view.dom.getBoundingClientRect()
+
+		if (editor && box) {
+			editor.focusAt(event.clientX, clamp(event.clientY, box.top + 1, box.bottom - 1))
+		} else focus()
+	}
+
 	// The root keeps one shape for each layout, so a change of `separated` does
 	// not mount the host again, which holds the element of the editor.
 	return (
@@ -416,11 +431,13 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 					className={cn(slots.base)}
 				>
 					{inside && children}
+					{/* biome-ignore lint/a11y/noStaticElementInteractions: a press surface around the field, not a control. The field takes the focus and the keys. */}
 					<div
 						ref={host}
 						data-slot="wysiwyg"
 						className={cn(slots.host)}
 						style={fieldStyle(rows, placeholder)}
+						onMouseDown={handleHostPress}
 					>
 						{/* With the engine at the mount, the editor comes before the first paint. */}
 						{!editor && !loadedAtMount && (
@@ -429,7 +446,7 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 								value={value}
 								ranges={ranges}
 								focusable={!disabled}
-								onWant={() => setWanted(true)}
+								onWant={load}
 							/>
 						)}
 					</div>
