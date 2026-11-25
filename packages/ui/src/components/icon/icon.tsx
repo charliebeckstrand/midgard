@@ -1,17 +1,23 @@
-import { type CSSProperties, cloneElement, type ReactElement } from 'react'
+import type { LucideIcon } from 'lucide-react'
+import { type CSSProperties, cloneElement, isValidElement, type ReactElement } from 'react'
 import { cn } from '../../core/cn'
 import type { ScaleStep } from '../../core/density/scale'
+import { Glyph } from '../../primitives/glyph'
 import { k, type scale } from '../../recipes/kata/icon'
 
-/** Props for {@link Icon}: the `icon` element to clone, plus `size` and an optional accessible `label`. */
+/** Props for {@link Icon}: the `icon` to draw, plus `size` and an optional accessible `label`. */
 export type IconProps = {
 	/**
-	 * The element to clone. Its component must forward unknown props to the element
-	 * it renders, because `className` and `data-slot` are injected here. A wrapper
-	 * component that declares no props swallows both, and the glyph falls back to
-	 * its library's own size.
+	 * A Lucide icon, such as `X` from `lucide-react`, or an element to clone. A
+	 * Lucide icon draws through `Glyph`, so the icon that `<UIProvider icons>`
+	 * registers for its name replaces it.
+	 *
+	 * The component of an element must forward unknown props to the element
+	 * that it renders, because `className` and `data-slot` are injected here. A
+	 * wrapper component that declares no props swallows both, and the glyph
+	 * falls back to its library's own size.
 	 */
-	icon: ReactElement
+	icon: LucideIcon | ReactElement
 	/**
 	 * A density step, or a size in pixels. Omit it to take the step of the
 	 * nearest density scope. A step makes the icon a density scope.
@@ -37,9 +43,9 @@ export type IconProps = {
 }
 
 /**
- * A wrapper that sizes an icon and makes it accessible. It clones a
- * Lucide-style `icon` element. The element must forward the props cloned onto
- * it (see {@link IconProps.icon}).
+ * A wrapper that sizes an icon and makes it accessible. It draws a Lucide
+ * `icon` through `Glyph`, or clones an `icon` element. The element must
+ * forward the props cloned onto it (see {@link IconProps.icon}).
  *
  * @remarks
  * Static leaf: renders in React Server Components. A `label` exposes the icon
@@ -53,19 +59,21 @@ export function Icon({ icon, size, className, label }: IconProps) {
 		? { role: 'img', 'aria-label': label, 'aria-hidden': undefined }
 		: { 'aria-hidden': 'true' }
 
-	return cloneElement(icon as ReactElement<Record<string, unknown>>, {
+	const element = isValidElement(icon) ? icon : <Glyph icon={icon} />
+
+	return cloneElement(element as ReactElement<Record<string, unknown>>, {
 		...a11yProps,
 		'data-slot': 'icon',
 		'data-density': numeric ? undefined : size,
 		className: cn(
 			'shrink-0',
 			!numeric && k().base,
-			(icon.props as { className?: string }).className,
+			(element.props as { className?: string }).className,
 			className,
 		),
 		...(numeric && {
 			style: {
-				...(icon.props as { style?: CSSProperties }).style,
+				...(element.props as { style?: CSSProperties }).style,
 				width: size,
 				height: size,
 			},

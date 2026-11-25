@@ -1,5 +1,6 @@
 'use client'
 
+import { ChevronDown, CopyPlus, Plus } from 'lucide-react'
 import { memo, useId, useMemo } from 'react'
 import { Alert } from '../../../components/alert'
 import { Button } from '../../../components/button'
@@ -10,7 +11,6 @@ import { Segment, SegmentControl, SegmentItem } from '../../../components/segmen
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
 import { cn } from '../../../core/cn'
 import { dataAttr } from '../../../core/data-attr'
-import { ChevronDown, CopyPlus, Plus } from '../../../primitives/icons/icons'
 import { useIntl } from '../../../primitives/intl/use-intl'
 import { k } from '../../../recipes/kata/query-builder'
 import { Flex } from '../../../structure/flex'
@@ -219,7 +219,7 @@ function QueryBuilderGroupImpl({
 							type="button"
 							ref={addRuleRef}
 							variant="bare"
-							suffix={<Icon icon={<ChevronDown />} />}
+							suffix={<Icon icon={ChevronDown} />}
 							disabled={disabled}
 						>
 							{intl.formatMessage(queryBuilderMessages.add)}
@@ -227,12 +227,12 @@ function QueryBuilderGroupImpl({
 					</MenuTrigger>
 					<MenuContent>
 						<MenuItem disabled={disabled} onAction={() => addRule(group.id)}>
-							<Icon icon={<Plus />} />
+							<Icon icon={Plus} />
 							{intl.formatMessage(queryBuilderMessages.addRule)}
 						</MenuItem>
 						{allowGroups && (
 							<MenuItem disabled={disabled} onAction={() => addGroup(group.id)}>
-								<Icon icon={<CopyPlus />} />
+								<Icon icon={CopyPlus} />
 								{intl.formatMessage(queryBuilderMessages.addGroup)}
 							</MenuItem>
 						)}

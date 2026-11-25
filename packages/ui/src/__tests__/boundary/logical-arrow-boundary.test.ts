@@ -1,3 +1,4 @@
+import { transformWithOxc } from 'vite'
 import { describe, expect, it } from 'vitest'
 import {
 	docsSites,
@@ -45,9 +46,14 @@ const HORIZONTAL_ARROW = /(['"`]Arrow(?:Left|Right)['"`]|^\s*Arrow(?:Left|Right)
 
 const IMPORTS_RULE = /from '(?:\.\.?\/)+(?:hooks\/)?a11y\/logical-arrow'|from '\.\/logical-arrow'/
 
-/** Every source file that spells a horizontal arrow in code, and whether it imports the rule. */
-function arrowFiles(): Map<string, boolean> {
-	const files = new Map<string, boolean>()
+/**
+ * Every source file that spells a horizontal arrow in its runtime code, and
+ * whether it imports the rule. A type, such as the union of the icon names of
+ * `primitives/glyph/types.ts`, handles no key, so the scan reads each file with
+ * its types removed.
+ */
+async function arrowFiles(): Promise<Map<string, boolean>> {
+	const candidates: [path: string, rel: string, source: string][] = []
 
 	walkSource(
 		srcDir,
@@ -59,18 +65,28 @@ function arrowFiles(): Map<string, boolean> {
 			if (rel === HOME) return
 
 			// Prose that names the key is not a use of it.
-			if (HORIZONTAL_ARROW.test(stripSourceComments(source)))
-				files.set(rel, IMPORTS_RULE.test(source))
+			if (HORIZONTAL_ARROW.test(stripSourceComments(source))) candidates.push([path, rel, source])
 		},
 		docsSites,
 	)
+
+	const files = new Map<string, boolean>()
+
+	for (const [path, rel, source] of candidates) {
+		const { code } = await transformWithOxc(source, path, {
+			lang: path.endsWith('x') ? 'tsx' : 'ts',
+			jsx: 'preserve',
+		})
+
+		if (HORIZONTAL_ARROW.test(stripSourceComments(code))) files.set(rel, IMPORTS_RULE.test(source))
+	}
 
 	return files
 }
 
 describe('logical-arrow boundary', () => {
-	it('routes every reading-order arrow through the rule', () => {
-		const violations = [...arrowFiles()]
+	it('routes every reading-order arrow through the rule', async () => {
+		const violations = [...(await arrowFiles())]
 			.filter(([rel, imports]) => !imports && !(rel in PHYSICAL))
 			.map(([rel]) => rel)
 
@@ -80,8 +96,8 @@ describe('logical-arrow boundary', () => {
 		).toEqual([])
 	})
 
-	it('lists only files that still read a physical arrow', () => {
-		const files = arrowFiles()
+	it('lists only files that still read a physical arrow', async () => {
+		const files = await arrowFiles()
 
 		const stale = Object.keys(PHYSICAL).filter((rel) => files.get(rel) !== false)
 

@@ -1,11 +1,11 @@
 'use client'
 
+import { Search } from 'lucide-react'
 import { useComposedRefs } from 'motion/react'
 import { type ChangeEvent, type KeyboardEvent, type ReactNode, useMemo } from 'react'
 import { cn } from '../../core/cn'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { useFormValue } from '../../primitives/form/use-form-value'
-import { Search } from '../../primitives/icons/icons'
 import { defineMessages, intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { clearNativeInput } from '../../utilities/clear-native-input'
@@ -70,7 +70,7 @@ export type SearchInputProps = Omit<
 	suffix?: ReactNode
 }
 
-const SEARCH_PREFIX = <Icon icon={<Search />} />
+const SEARCH_PREFIX = <Icon icon={Search} />
 
 /**
  * A search field with a search icon at the start. It is an {@link Input} of the

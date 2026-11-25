@@ -1,12 +1,12 @@
 'use client'
 
+import { Minus, Plus } from 'lucide-react'
 import { useComposedRefs } from 'motion/react'
 import type { ChangeEvent } from 'react'
 import { announce } from '../../core/announcer'
 import { cn } from '../../core/cn'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { useFormValue } from '../../primitives/form/use-form-value'
-import { Minus, Plus } from '../../primitives/icons/icons'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/number-input'
@@ -230,7 +230,7 @@ export function NumberInput({
 						onMouseDown={(event) => event.preventDefault()}
 						onClick={decrease}
 					>
-						<Icon icon={<Minus />} />
+						<Icon icon={Minus} />
 					</Button>
 					<Button
 						type="button"
@@ -241,7 +241,7 @@ export function NumberInput({
 						onMouseDown={(event) => event.preventDefault()}
 						onClick={increase}
 					>
-						<Icon icon={<Plus />} />
+						<Icon icon={Plus} />
 					</Button>
 				</span>
 			}

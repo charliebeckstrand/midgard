@@ -1,5 +1,6 @@
 'use client'
 
+import { Activity } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
@@ -7,7 +8,6 @@ import { dataAttr } from '../../core/data-attr'
 import { useFail } from '../../hooks/use-fail'
 import { useLazyModule } from '../../hooks/use-lazy-module'
 import { useSidebarLayoutPlacement } from '../../layouts/sidebar/context'
-import { Activity } from '../../primitives/icons/icons'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/events'
 import { createLazyModule } from '../../utilities/lazy-module'
@@ -107,7 +107,7 @@ export function EventsButton() {
 				onPointerEnter={preload}
 				onFocus={preload}
 			>
-				<Icon icon={<Activity />} className="[:root[data-events-capture]_&]:text-red-600" />
+				<Icon icon={Activity} className="[:root[data-events-capture]_&]:text-red-600" />
 				<span aria-hidden className={slots.dot} />
 				<span aria-hidden className={slots.ring} />
 				<span className="sr-only">

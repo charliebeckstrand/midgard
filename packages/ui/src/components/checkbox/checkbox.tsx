@@ -1,12 +1,13 @@
 'use client'
 
+import { Check, Minus } from 'lucide-react'
 import { useComposedRefs } from 'motion/react'
 import { type ChangeEventHandler, type ComponentProps, useLayoutEffect, useRef } from 'react'
 import { ariaAttr } from '../../core/aria-attr'
 import { cn } from '../../core/cn'
 import { dataAttr } from '../../core/data-attr'
 import { useFormToggle } from '../../primitives/form/use-form-toggle'
-import { Check, Minus } from '../../primitives/icons/icons'
+import { Glyph } from '../../primitives/glyph'
 import { TouchTarget } from '../../primitives/touch-target'
 import { type CheckboxVariants, k } from '../../recipes/kata/checkbox'
 import { useControl } from '../control/context'
@@ -177,7 +178,8 @@ export function Checkbox({
 					{...validation}
 					className={slots.input}
 				/>
-				<Mark
+				<Glyph
+					icon={Mark}
 					data-slot="checkbox-check"
 					aria-hidden="true"
 					className={slots.mark}

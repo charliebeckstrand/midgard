@@ -1,5 +1,6 @@
 'use client'
 
+import { ChevronLeft } from 'lucide-react'
 import { type KeyboardEvent, type Ref, useRef, useSyncExternalStore } from 'react'
 import { ButtonIconTooltip } from '../../components/button/button-icon-tooltip'
 import { Segment, SegmentControl, SegmentItem } from '../../components/segment'
@@ -7,7 +8,7 @@ import { Toolbar } from '../../components/toolbar'
 import { dataAttr } from '../../core/data-attr'
 import { useHydrated } from '../../hooks/use-hydrated'
 import { keepFocusOnPress } from '../../primitives/control/control-keep-focus-on-press'
-import { ChevronLeft } from '../../primitives/icons/icons'
+import { Glyph } from '../../primitives/glyph'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { isApplePlatform } from '../../utilities/apple-platform'
 import { useWysiwyg } from './context'
@@ -101,7 +102,7 @@ export function WysiwygHeadingRail({ open, onClose, ref }: WysiwygHeadingRailPro
 				data-slot="wysiwyg-heading-back"
 				variant="bare"
 				label={intl.formatMessage(wysiwygMessages.back)}
-				icon={<ChevronLeft className="rtl:-scale-x-100" />}
+				icon={<Glyph icon={ChevronLeft} className="rtl:-scale-x-100" />}
 				disabled={false}
 				onClick={onClose}
 			/>
