@@ -3,6 +3,7 @@ import { page } from 'vitest/browser'
 import { Toolbar, ToolbarGroup, ToolbarSeparator } from '../../components/toolbar'
 import type { Orientation } from '../../types/orientation'
 import { renderUI, waitFor } from '../helpers'
+import { resizeObserverLoopErrors } from './helpers/resize-observer-loop'
 
 /**
  * A wrapped `Toolbar` hides a separator at the start or the end of a row (V61),
@@ -144,6 +145,39 @@ describe('Toolbar separator on a wrapped row (real browser)', () => {
 		await waitFor(() => expect(visibility(container)).toEqual(['visible', 'hidden']))
 
 		expect(groupStarts(container)[2]).toBe(0)
+	})
+
+	/** Waits for `count` animation frames. */
+	async function frames(count: number) {
+		for (let index = 0; index < count; index++)
+			await new Promise((resolve) => requestAnimationFrame(resolve))
+	}
+
+	it('marks the rows again on a resize that changes them, with no ResizeObserver loop error', async () => {
+		const errors = resizeObserverLoopErrors()
+
+		const { container, rerender } = renderUI(<Probe width={200} />)
+
+		await waitFor(() => expect(visibility(container)).toEqual(['visible', 'hidden']))
+
+		// The observer attaches in an effect after the paint, so the resize comes
+		// after its first delivery.
+		await frames(2)
+
+		// At 90px, the marks take the toolbar from five rows to three, so the
+		// marks change the height of the toolbar that the observer watches.
+		rerender(<Probe width={90} />)
+
+		await waitFor(() => expect(groupStarts(container)).toEqual([0, 0, 0]))
+
+		rerender(<Probe width={200} />)
+
+		await waitFor(() => expect(visibility(container)).toEqual(['visible', 'hidden']))
+
+		// Two more frames, so that each held notification has its frame.
+		await frames(2)
+
+		expect(errors).toEqual([])
 	})
 
 	it('keeps the rows when it hides a separator', async () => {

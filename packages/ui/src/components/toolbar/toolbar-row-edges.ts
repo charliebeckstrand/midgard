@@ -36,22 +36,38 @@ const SEPARATOR_SELECTOR = '[data-slot="toolbar-separator"]'
  * A vertical toolbar does not wrap, and a horizontal toolbar on one row has no
  * row edge. In these two cases, the function stops before it reads each item.
  *
+ * @returns True when the start marks changed, so the rows and the size of the
+ * toolbar can change. The edge marks do not change the layout.
+ *
  * @internal
  */
-export function markRowEdges(toolbar: HTMLElement | null, orientation: Orientation): void {
-	if (!toolbar) return
+export function markRowEdges(toolbar: HTMLElement | null, orientation: Orientation): boolean {
+	if (!toolbar) return false
 
 	const separators = toolbar.querySelectorAll(`:scope > ${SEPARATOR_SELECTOR}`)
 
-	if (separators.length === 0) return
+	if (separators.length === 0) return false
+
+	const before = rowStarts(toolbar)
 
 	for (const separator of separators) separator.removeAttribute(ROW_EDGE_ATTRIBUTE)
 
-	for (const item of toolbar.querySelectorAll(`:scope > [${ROW_START_ATTRIBUTE}]`))
-		item.removeAttribute(ROW_START_ATTRIBUTE)
+	for (const item of before) item.removeAttribute(ROW_START_ATTRIBUTE)
 
-	if (orientation !== 'horizontal') return
+	if (orientation === 'horizontal') markRows(toolbar)
 
+	const after = rowStarts(toolbar)
+
+	return after.length !== before.length || after.some((item, index) => item !== before[index])
+}
+
+/** The items of `toolbar` that have a start mark, in document order. @internal */
+function rowStarts(toolbar: HTMLElement): Element[] {
+	return Array.from(toolbar.querySelectorAll(`:scope > [${ROW_START_ATTRIBUTE}]`))
+}
+
+/** Writes the marks of a horizontal `toolbar` that has no mark, in document order. @internal */
+function markRows(toolbar: HTMLElement): void {
 	const items = Array.from(toolbar.children).filter((el) => el.getClientRects().length > 0)
 
 	if (!wraps(items)) return
