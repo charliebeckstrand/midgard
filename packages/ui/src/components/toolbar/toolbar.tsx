@@ -1,11 +1,10 @@
 'use client'
 
 import { useComposedRefs } from 'motion/react'
-import { type ComponentProps, useLayoutEffect, useMemo, useRef } from 'react'
+import { type ComponentProps, useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import { cn } from '../../core/cn'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { useA11yRoving } from '../../hooks/a11y/use-a11y-roving'
-import { useResizeObserver } from '../../hooks/use-resize-observer'
 import { k, type ToolbarVariants } from '../../recipes/kata/toolbar'
 import type { AccessibleName } from '../../types/accessible-name'
 import { TooltipGroup } from '../tooltip'
@@ -27,9 +26,10 @@ export type ToolbarProps = AccessibleName &
  * @remarks
  * A horizontal toolbar wraps onto more rows when it is narrow. A
  * `<ToolbarSeparator>` that then ends or starts a row separates nothing, so
- * the toolbar hides it. One `ResizeObserver` on the toolbar measures the rows
- * again when the toolbar changes size. A vertical toolbar, or a horizontal
- * toolbar on one row, shows each separator.
+ * the toolbar hides it, and each row starts at the edge of the toolbar. One
+ * `ResizeObserver` on the toolbar measures the rows again when the toolbar
+ * changes size. A vertical toolbar, or a horizontal toolbar on one row, shows
+ * each separator.
  *
  * Along its axis, the hit area of each button fills half of the gap on each
  * side, in the toolbar and in a `<ToolbarGroup>`. The buttons keep their
@@ -64,9 +64,40 @@ export function Toolbar({
 
 	// The rows change only when the toolbar changes size or axis. The layout
 	// effect marks the rows before the first paint, and the observer runs after it.
-	useResizeObserver(ref, () => markRowEdges(ref.current, orientation))
+	useLayoutEffect(() => {
+		markRowEdges(ref.current, orientation)
+	}, [orientation])
 
-	useLayoutEffect(() => markRowEdges(ref.current, orientation), [orientation])
+	useEffect(() => {
+		const toolbar = ref.current
+
+		if (!toolbar) return
+
+		let frame = 0
+
+		// A start mark can change the rows, and so the size of the toolbar in the
+		// callback of its own observer. The browser then holds that notification
+		// for the next frame, and fires "ResizeObserver loop completed with
+		// undelivered notifications" on `window`. Thus a change of the start marks
+		// stops the observation for the rest of the delivery, and observes again
+		// in the next frame. The new observation reports the size that it finds,
+		// so no resize is lost, and it marks the same rows, so it stops there.
+		const observer = new ResizeObserver(() => {
+			if (!markRowEdges(toolbar, orientation)) return
+
+			observer.disconnect()
+
+			frame = requestAnimationFrame(() => observer.observe(toolbar))
+		})
+
+		observer.observe(toolbar)
+
+		return () => {
+			cancelAnimationFrame(frame)
+
+			observer.disconnect()
+		}
+	}, [orientation])
 
 	const context = useMemo<ToolbarContextValue>(() => ({ orientation }), [orientation])
 

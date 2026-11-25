@@ -22,6 +22,9 @@ export const k = defineKata({
 	 * side, so the pointer meets no dead space between two buttons, as between
 	 * two tabs. The buttons keep their space. The cross axis keeps the floor, so
 	 * a hit area does not go into the field or the content next to the toolbar.
+	 *
+	 * In a horizontal toolbar, the item after a separator that starts a wrapped
+	 * row moves back over the box of the separator and the gap.
 	 */
 	base: flex.row,
 	orientation: {
@@ -31,6 +34,7 @@ export const k = defineKata({
 			dan.gap.touch.x.xs,
 			dan.gap.touch.y.xs,
 			touch.tile.x,
+			dan.space.toolbar.rowStart,
 		],
 		vertical: ['flex-col w-fit', dan.gap.scale.xs, dan.gap.touch.y.xs, touch.tile.y],
 	},

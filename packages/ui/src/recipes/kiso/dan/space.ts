@@ -620,5 +620,17 @@ export const space = {
 			/** The block margin of a toolbar separator: the toolbar gap (`gap.scale.xs`). */
 			y: 'density-my-[0.5,0.75,1,1.25,1.5]',
 		},
+		/**
+		 * The inline-start margin of the item after a separator that starts a
+		 * wrapped row (`data-row-start`). It is minus the box of the separator
+		 * (the 1 px rule and the two margins of `separator.x`) and the toolbar gap,
+		 * so the item starts the row at the edge of the toolbar. A stepped margin
+		 * cannot subtract the rule, so the steps go through `--ui-toolbar-row-start`.
+		 * The toolbar marks the item itself and the selector has no sibling
+		 * combinator: with `*` after a sibling combinator, Chromium restyles each
+		 * descendant of an element when the children of its parent change.
+		 */
+		rowStart:
+			'[&>[data-row-start]]:density-set-[-1.5,-2.25,-3,-3.75,-4.5]/[--ui-toolbar-row-start] [&>[data-row-start]]:ms-[calc(var(--ui-toolbar-row-start)-1px)]',
 	},
 } as const
