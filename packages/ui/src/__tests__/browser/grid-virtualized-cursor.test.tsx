@@ -296,8 +296,13 @@ describe('grid virtualized cursor over item bodies (real browser)', () => {
 
 		await jumpToEnd(grid)
 
+		// The cursor goes to the total of the last group. The window keeps the row
+		// of the cursor, so the total mounts in the commit of the key. The rows
+		// above it mount only when the window moves, a task later. Thus the case
+		// waits for the leaf that it reads, not only for the cell of the cursor.
+		//
 		// The last leaf of the last group is the 20th of 20.
-		const leaf = screen.getByText('Name 200').closest('tr')
+		const leaf = (await screen.findByText('Name 200')).closest('tr')
 
 		expect(leaf).toHaveAttribute('aria-posinset', '20')
 
