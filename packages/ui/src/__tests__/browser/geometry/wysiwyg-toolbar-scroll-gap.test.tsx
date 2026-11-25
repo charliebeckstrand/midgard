@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { userEvent } from 'vitest/browser'
 import { Button } from '../../../components/button'
 import { densitySteps } from '../../../core/density'
 import { Wysiwyg, WysiwygToolbar } from '../../../modules/wysiwyg'
-import { frames, present, renderUI, screen, waitFor } from '../../helpers'
+import { frames, present, renderUI } from '../../helpers'
 import { LAYOUT_UNIT } from '../../helpers/geometry/tolerance'
+import { editable } from '../helpers/wysiwyg'
 
 /** Ten paragraphs, more than the cap of the field holds. */
 const LONG = Array.from({ length: 10 }, (_, index) => `Line ${index + 1}`).join('\n\n')
@@ -40,16 +40,7 @@ describe('Wysiwyg toolbar scroll gap (real browser)', () => {
 				</>,
 			)
 
-			// A press loads the editor at once, and the editor puts its own element
-			// in place of the markup before it loads.
-			await userEvent.click(screen.getByRole('textbox', { name: 'Notes' }))
-
-			await waitFor(() =>
-				expect(screen.getByRole('textbox', { name: 'Notes' })).toHaveAttribute(
-					'contenteditable',
-					'true',
-				),
-			)
+			await editable('Notes')
 
 			await frames()
 

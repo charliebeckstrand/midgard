@@ -2,7 +2,7 @@ import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { ChatPrompt } from '../../modules/chat'
 import type { WysiwygHandle } from '../../modules/wysiwyg'
-import { fireEvent, noop, renderUI, screen, waitFor, within } from '../helpers'
+import { fireEvent, getSlot, noop, renderUI, screen, waitFor, within } from '../helpers'
 
 /** Loads the editor through the first focus of the field, and gives its editable element. */
 async function loadEditor(): Promise<HTMLElement> {
@@ -16,6 +16,40 @@ async function loadEditor(): Promise<HTMLElement> {
 const SOURCES = [{ trigger: '@', target: 'datasets', label: 'Datasets', search: () => [] }]
 
 describe('ChatPrompt with wysiwyg', () => {
+	it.for([false, true])(
+		'gives the field the props of the composer and the row of actions (wysiwyg %s)',
+		(wysiwyg) => {
+			const { container } = renderUI(
+				<ChatPrompt
+					value=""
+					onValueChange={noop}
+					onSubmit={noop}
+					placeholder="Ask"
+					rows={3}
+					actions={<button type="button">Extra</button>}
+					aria-describedby="status"
+					wysiwyg={wysiwyg}
+				/>,
+			)
+
+			const field = screen.getByRole('textbox', { name: 'Message' })
+
+			expect(field.getAttribute(wysiwyg ? 'aria-placeholder' : 'placeholder')).toBe('Ask')
+
+			if (wysiwyg) {
+				const host = getSlot(container, 'wysiwyg')
+
+				expect(host.style.getPropertyValue('--wysiwyg-rows')).toBe('3')
+			} else expect(field).toHaveAttribute('rows', '3')
+
+			expect(field).toHaveAttribute('aria-describedby', 'status')
+
+			expect(screen.getByRole('button', { name: 'Extra' })).toBeInTheDocument()
+
+			expect(screen.getByRole('button', { name: 'Send message' })).toBeInTheDocument()
+		},
+	)
+
 	it('shows each action of the toolbar for `true`', () => {
 		renderUI(<ChatPrompt value="" onValueChange={noop} onSubmit={noop} wysiwyg />)
 

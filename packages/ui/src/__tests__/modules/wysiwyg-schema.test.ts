@@ -25,6 +25,19 @@ describe('wysiwyg schema', () => {
 		expect(throughDOM(markdown)).toBe(markdown)
 	})
 
+	it('reads a Google Docs paste as its own bold, not as bold in whole', () => {
+		// Google Docs wraps the HTML of a copy in a `b` that is not bold, and marks
+		// each run with its own weight.
+		const host = document.createElement('div')
+
+		host.innerHTML =
+			'<b style="font-weight:normal;" id="docs-internal-guid-1"><p dir="ltr">' +
+			'<span style="font-weight:400;">plain </span><span style="font-weight:700;">bold</span>' +
+			'</p></b>'
+
+		expect(serializeMarkdown(DOMParser.fromSchema(schema).parse(host))).toBe('plain **bold**')
+	})
+
 	it('has the markup and the mark order of the markup before the editor loads', () => {
 		const types = Object.values(schema.nodes).filter((type) => type.name !== 'doc' && !type.isText)
 
