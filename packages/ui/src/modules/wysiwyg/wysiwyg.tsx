@@ -6,6 +6,7 @@ import {
 	type ReactNode,
 	type Ref,
 	useImperativeHandle,
+	useMemo,
 	useRef,
 	useState,
 } from 'react'
@@ -253,8 +254,21 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 		onValueChange?.(next, edited.current ?? drawable(next, ranges, initialRanges)),
 	)
 
-	// The reset ref apart, so the rest of the field reads as values in the render.
-	const { resetRef, ...field } = useWysiwygField({
+	// Each part of the field apart, so the render reads values and not one
+	// object, and the compiler can keep the memo of the context below.
+	const {
+		resetRef,
+		value,
+		controlled,
+		setValue,
+		setTouched,
+		fieldId,
+		disabled,
+		locked,
+		labelId,
+		slots,
+		attributes,
+	} = useWysiwygField({
 		...options,
 		onValueChange: onValueChange && emit,
 		defaultValue: options.defaultValue ?? '',
@@ -263,8 +277,6 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 		toolbar: inside && !hasActions,
 		separated,
 	})
-
-	const { value, slots, locked } = field
 
 	const host = useRef<HTMLDivElement>(null)
 
@@ -294,7 +306,7 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 			return range ? [{ ...range, ...span }] : []
 		})
 
-		field.setValue(markdown)
+		setValue(markdown)
 
 		edited.current = undefined
 	})
@@ -305,7 +317,7 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 		ranges,
 		wanted,
 		props: {
-			attributes: field.attributes,
+			attributes: attributes,
 			editable: !locked,
 			onEnter,
 			onKeyDown,
@@ -337,40 +349,52 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 
 	useWysiwygSelection(editor, subscribe, locked, onSelectionChange)
 
-	useWysiwygLabelFocus(field.disabled ? undefined : field.labelId, focus)
+	useWysiwygLabelFocus(disabled ? undefined : labelId, focus)
 
-	const context: WysiwygContextValue = {
-		fieldId: field.fieldId,
-		ready: editor !== null,
-		locked,
-		toolbarClassName: cn(slots.toolbar),
-		// A locked field is inert: the toolbar does not follow the selection, and
-		// it shows no action as on.
-		subscribe: locked ? noopSubscribe : subscribe,
-		isActive: (action) => !locked && (editor?.isActive(action) ?? false),
-		run: (action: WysiwygToggleAction) => {
-			editor?.run(action)
-		},
-		linkOpen,
-		setLinkOpen,
-		registerLink: () => {
-			linkButtons.current++
+	const toolbarClassName = cn(slots.toolbar)
 
-			return () => {
-				linkButtons.current--
-			}
-		},
-		linkDraft: () => editor?.linkDraft() ?? { text: '', href: '' },
-		setLink: (href: string, text: string) => editor?.link(href, text),
-		holdSelection: (held: boolean) => editor?.hold(held),
-		fieldFocused: () => editor?.view.hasFocus() ?? false,
-		focusField: focus,
-	}
+	// One identity for the mount, so the memo below does not list it.
+	const focusField = useStableEvent(focus)
+
+	// The value keeps its identity while its inputs do. A keystroke renders the
+	// field, and the toolbar then renders only the buttons whose state changed.
+	// The effects of the link button, which run on `registerLink` and
+	// `holdSelection`, also run only when the editor changes.
+	const context = useMemo<WysiwygContextValue>(
+		() => ({
+			fieldId,
+			ready: editor !== null,
+			locked,
+			toolbarClassName,
+			// A locked field is inert: the toolbar does not follow the selection, and
+			// it shows no action as on.
+			subscribe: locked ? noopSubscribe : subscribe,
+			isActive: (action) => !locked && (editor?.isActive(action) ?? false),
+			run: (action: WysiwygToggleAction) => {
+				editor?.run(action)
+			},
+			linkOpen,
+			setLinkOpen,
+			registerLink: () => {
+				linkButtons.current++
+
+				return () => {
+					linkButtons.current--
+				}
+			},
+			linkDraft: () => editor?.linkDraft() ?? { text: '', href: '' },
+			setLink: (href: string, text: string) => editor?.link(href, text),
+			holdSelection: (held: boolean) => editor?.hold(held),
+			fieldFocused: () => editor?.view.hasFocus() ?? false,
+			focusField,
+		}),
+		[fieldId, editor, locked, toolbarClassName, subscribe, linkOpen, focusField],
+	)
 
 	// The field is touched when the focus leaves the field and its rows, and not
 	// when it moves to a part of them, such as a toolbar button.
 	function handleBlur(event: FocusEvent<HTMLElement>) {
-		if (!event.currentTarget.contains(event.relatedTarget)) field.setTouched()
+		if (!event.currentTarget.contains(event.relatedTarget)) setTouched()
 	}
 
 	// The root keeps one shape for each layout, so a change of `separated` does
@@ -380,7 +404,7 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 			{/* biome-ignore lint/a11y/noStaticElementInteractions: a focus-out surface for the toolbar and the field, not a control. The field marks itself touched when the focus leaves both. */}
 			<div
 				data-slot="wysiwyg-root"
-				data-disabled={dataAttr(field.disabled)}
+				data-disabled={dataAttr(disabled)}
 				className={cn(slots.root)}
 				onBlur={handleBlur}
 			>
@@ -388,7 +412,7 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 				<ControlFrame
 					as="div"
 					density={size}
-					data-disabled={dataAttr(field.disabled)}
+					data-disabled={dataAttr(disabled)}
 					className={cn(slots.base)}
 				>
 					{inside && children}
@@ -400,10 +424,10 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 					>
 						{!editor && (
 							<WysiwygStatic
-								attributes={field.attributes}
+								attributes={attributes}
 								value={value}
 								ranges={ranges}
-								focusable={!field.disabled}
+								focusable={!disabled}
 								onWant={() => setWanted(true)}
 							/>
 						)}
@@ -413,7 +437,7 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 							{actions}
 						</ControlActions>
 					)}
-					{!field.controlled && <input type="hidden" ref={resetRef} />}
+					{!controlled && <input type="hidden" ref={resetRef} />}
 				</ControlFrame>
 			</div>
 		</WysiwygContext>

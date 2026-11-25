@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { createRef, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Field, Label } from '../../components/fieldset'
-import { Wysiwyg, WysiwygSkeleton, WysiwygToolbar } from '../../modules/wysiwyg'
+import { Wysiwyg, type WysiwygHandle, WysiwygSkeleton, WysiwygToolbar } from '../../modules/wysiwyg'
+import { useWysiwyg } from '../../modules/wysiwyg/context'
 import { HeadlessProvider } from '../../providers/headless'
 import { act, fireEvent, getSlot, renderUI, screen, waitFor, within } from '../helpers'
 
@@ -551,6 +552,35 @@ describe('WysiwygToolbar', () => {
 		await waitFor(() => expect(within(dialog).getByRole('textbox', { name: 'Text' })).toHaveFocus())
 
 		expect(within(dialog).getByRole('textbox', { name: 'URL' })).toHaveValue('')
+	})
+
+	it('keeps the value of its context across an edit, so the toolbar does not render again', async () => {
+		const handle = createRef<WysiwygHandle>()
+
+		const values = new Set<unknown>()
+
+		// A part of the field, as a toolbar button is, that records each value of the context.
+		function Part() {
+			values.add(useWysiwyg())
+
+			return null
+		}
+
+		renderUI(
+			<Wysiwyg ref={handle} aria-label="Notes" defaultValue="Text">
+				<Part />
+			</Wysiwyg>,
+		)
+
+		await loadEditor()
+
+		values.clear()
+
+		act(() => handle.current?.replace(0, 0, 'New '))
+
+		expect(screen.getByRole('textbox')).toHaveTextContent('New Text')
+
+		expect(values.size).toBe(0)
 	})
 })
 

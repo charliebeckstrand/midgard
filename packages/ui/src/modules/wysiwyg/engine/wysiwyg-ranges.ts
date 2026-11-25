@@ -66,6 +66,9 @@ export function wysiwygRanges(): Plugin {
 
 			const previous = rangeSpans(before.doc)
 
+			// An edit removes a mark only from a range that the doc held before it.
+			if (previous.size === 0) return null
+
 			let tr: Transaction | null = null
 
 			for (const [id, span] of rangeSpans(after.doc)) {

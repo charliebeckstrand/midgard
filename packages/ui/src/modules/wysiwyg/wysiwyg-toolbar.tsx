@@ -1,6 +1,6 @@
 'use client'
 
-import { Fragment } from 'react'
+import { Fragment, memo } from 'react'
 import { Toolbar, ToolbarGroup, ToolbarSeparator } from '../../components/toolbar'
 import { cn } from '../../core/cn'
 import { keepFocusOnPress } from '../../primitives/control/control-keep-focus-on-press'
@@ -76,8 +76,11 @@ function actionGroups(actions: readonly WysiwygAction[]) {
  * editor loads, the buttons are `aria-disabled` and keep their places in the
  * arrow order. While the field is disabled or read-only, the toolbar is
  * `inert`: it has no Tab stop, it takes no press, and it opens no tooltip.
+ * The toolbar is memoized: it renders again when its props change, or when
+ * the state of the field that it shows changes. An edit in a controlled field
+ * thus does not render each button again.
  */
-export function WysiwygToolbar({
+export const WysiwygToolbar = memo(function WysiwygToolbar({
 	actions = WYSIWYG_ACTIONS,
 	'aria-label': ariaLabel,
 	className,
@@ -113,4 +116,4 @@ export function WysiwygToolbar({
 			))}
 		</Toolbar>
 	)
-}
+})
