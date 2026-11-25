@@ -133,6 +133,18 @@ describe('Wysiwyg input before the editor loads (real browser)', () => {
 		expect(value()).toBe('Launch the big day')
 	})
 
+	it('takes a Home key just after the editor takes the focus from the markup', async () => {
+		renderUI(<Notes initial="day" />)
+
+		focusAtEnd()
+
+		await load()
+
+		await userEvent.keyboard('{Home}Launch ')
+
+		expect(value()).toBe('Launch day')
+	})
+
 	it('turns a Markdown shortcut typed before the load into formatting', async () => {
 		renderUI(<Notes />)
 

@@ -130,6 +130,22 @@ export type WysiwygEditor = {
  *
  * @internal
  */
+/**
+ * Moves the focus to the view. The view writes its selection to the DOM in
+ * the focus, so the browser does not then reset the selection. ProseMirror
+ * reads each focus as one that a reset of the browser can follow: for 200 ms,
+ * it changes a caret at the start of the doc back to its own selection. A
+ * Home key just after the focus then does nothing. Thus this clears the
+ * record of the focus, which ProseMirror keeps as an internal value.
+ */
+function focusView(view: EditorView): void {
+	view.focus()
+
+	const { input } = view as unknown as { input?: { lastFocus?: number } }
+
+	if (input?.lastFocus !== undefined) input.lastFocus = 0
+}
+
 function keyName({ shift, alt, key }: WysiwygShortcut): string {
 	return `Mod-${shift ? 'Shift-' : ''}${alt ? 'Alt-' : ''}${shift ? key : key.toLowerCase()}`
 }
@@ -305,7 +321,7 @@ export function createWysiwygEditor(
 			if (redraw) view.setProps({})
 		},
 		focus: () => {
-			if (view.editable) view.focus()
+			if (view.editable) focusView(view)
 			else view.dom.focus({ preventScroll: true })
 		},
 		focusAt: (left, top) => {
@@ -317,7 +333,7 @@ export function createWysiwygEditor(
 				view.dispatch(view.state.tr.setSelection(TextSelection.near($pos)))
 			}
 
-			if (view.editable) view.focus()
+			if (view.editable) focusView(view)
 			else view.dom.focus({ preventScroll: true })
 		},
 		setValue: (markdown, next) => {
@@ -340,7 +356,7 @@ export function createWysiwygEditor(
 		link: (href, text) => {
 			setLink(href, text)(view.state, view.dispatch, view)
 
-			view.focus()
+			focusView(view)
 		},
 		linkDraft: () => linkDraft(view.state),
 		hold: (held) => {
