@@ -81,7 +81,7 @@ function readBundle(): BundleReport {
 const BUDGETS = [
 	{
 		label: 'total gzip',
-		budgetKb: 5660 + 500 * (LOCALES.length - 1),
+		budgetKb: 5650 + 500 * (LOCALES.length - 1),
 		of: (report: BundleReport) => report.totalGzip,
 	},
 	{ label: 'eager gzip', budgetKb: 290, of: (report: BundleReport) => report.eagerGzip },
