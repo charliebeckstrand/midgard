@@ -40,11 +40,13 @@ jobs:
       #
       # A Biome finding does not stop this step, so one run shows the type
       # errors and the Knip findings too. The step still runs only after a
-      # good setup: when the setup fails, `biome` does not run. Turbo stops each
+      # good setup: when the setup fails, `biome` does not run. The runner
+      # reads the condition again when a run is cancelled, so `!cancelled()`
+      # stops the step of a run that a later push replaces. Turbo stops each
       # task at the first failure by default. With
       # `--continue=dependencies-successful`, the type check of each package
       # runs to its end, and the log shows each package that fails.
-      - if: success() || steps.biome.outcome == 'failure'
+      - if: success() || (!cancelled() && steps.biome.outcome == 'failure')
         run: pnpm turbo run check-types knip --summarize --continue=dependencies-successful
       - name: Prune the Turbo cache to this run's tasks
         run: .github/actions/turbo-cache/prune.sh
@@ -193,7 +195,7 @@ jobs:
       # edit outside ui keeps the cache of the ui suite (packages/ui/turbo.json).
       # One shard runs them whole. A failure of the ui suite does not stop
       # this step, so one run shows the findings of these gates too.
-      - if: matrix.shard == 1 && (success() || steps.ui.outcome == 'failure')
+      - if: matrix.shard == 1 && (success() || (!cancelled() && steps.ui.outcome == 'failure'))
         run: pnpm turbo run test:workspace --filter=ui --summarize
       - name: Prune the Turbo cache to this run's tasks
         run: .github/actions/turbo-cache/prune.sh
