@@ -375,6 +375,32 @@ describe('Wysiwyg input before the editor loads (real browser)', () => {
 		expect(copy.defaultPrevented).toBe(false)
 	})
 
+	it('links the selected text to a URL pasted before the load', async () => {
+		renderUI(<Notes initial="Ship it" />)
+
+		const field = screen.getByRole('textbox')
+
+		field.focus()
+
+		const text = present(field.querySelector('p'), 'the block').firstChild
+
+		if (!text) throw new Error('The block has no text.')
+
+		window.getSelection()?.setBaseAndExtent(text, 5, text, 7)
+
+		const data = new DataTransfer()
+
+		data.setData('text/plain', 'https://a.dev')
+
+		field.dispatchEvent(
+			new ClipboardEvent('paste', { clipboardData: data, bubbles: true, cancelable: true }),
+		)
+
+		await load()
+
+		await waitFor(() => expect(value()).toBe('Ship [it](https://a.dev)'))
+	})
+
 	it('pastes plain text in a code block', async () => {
 		renderUI(<Notes initial={'```\ncode\n```'} />)
 

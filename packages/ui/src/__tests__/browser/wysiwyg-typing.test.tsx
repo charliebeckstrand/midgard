@@ -307,6 +307,33 @@ describe('Wysiwyg (real browser)', () => {
 		expect(field.querySelector('[data-slot=wysiwyg-held]')).toBeNull()
 	})
 
+	it('links the selected text to a pasted URL, as one undo step', async () => {
+		renderUI(<Notes />)
+
+		const field = await editable()
+
+		// The paste comes before the typing ends a group of the undo history.
+		await userEvent.keyboard('Ship it{Shift>}{ArrowLeft}{ArrowLeft}{/Shift}')
+
+		const data = new DataTransfer()
+
+		data.setData('text/plain', 'https://a.dev')
+
+		data.setData('text/html', '<a href="https://a.dev">https://a.dev</a>')
+
+		field.dispatchEvent(
+			new ClipboardEvent('paste', { clipboardData: data, bubbles: true, cancelable: true }),
+		)
+
+		await waitFor(() => expect(value()).toBe('Ship [it](https://a.dev)'))
+
+		expect(window.getSelection()?.toString()).toBe('it')
+
+		await userEvent.keyboard('{Control>}z{/Control}')
+
+		expect(value()).toBe('Ship it')
+	})
+
 	it('links new text in place of the whole doc after Mod+A', async () => {
 		renderUI(<Notes initial="hello" />)
 
