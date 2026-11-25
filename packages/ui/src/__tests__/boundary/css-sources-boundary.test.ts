@@ -2,7 +2,6 @@ import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSy
 import { createRequire } from 'node:module'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve, sep } from 'node:path'
-import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import {
 	appEntries,
@@ -10,16 +9,21 @@ import {
 	SOURCE_DIRS,
 	SOURCES_FILE,
 	sourcesText,
-} from '../../scripts/css-sources'
+} from '../../../../shared/scripts/css-sources'
+import { workspaceRoot } from '../helpers/walk-source'
 
-// `scripts/css-sources.ts` writes the Tailwind sources of `shared` and `ui` for
-// each app: each file of the import graph of the app, from esbuild. A file that
-// the list does not have loses its classes in production only, because
-// `next dev` scans all of `ui/src`. This test walks the graph again with no
-// bundler: it reads each import of each module and resolves it as Node does.
-// The list in `app/sources.css` must hold the same files as that walk.
+// CSS sources boundary.
+//
+// `shared/scripts/css-sources.ts` writes the Tailwind sources of `shared` and
+// `ui` for each app: each file of the import graph of the app, from esbuild. A
+// file that the list does not have loses its classes in production only,
+// because `next dev` scans all of `ui/src`. This test walks the graph again
+// with no bundler: it reads each import of each module and resolves it as Node
+// does. The list in `app/sources.css` must hold the same files as that walk.
+// The test reads the apps, so it runs in the `workspace` project, whose inputs
+// hold them.
 
-const APPS_DIR = fileURLToPath(new URL('../../../../apps', import.meta.url))
+const APPS_DIR = join(workspaceRoot, 'apps')
 
 const APPS = readdirSync(APPS_DIR).filter((name) =>
 	existsSync(join(APPS_DIR, name, 'package.json')),
@@ -31,8 +35,8 @@ const COMMENT = /\/\*[\s\S]*?\*\/|(?<![:'"`\\])\/\/.*$/gm
 /** A static import or re-export of values, with its specifier. A type-only one is erased. */
 const STATIC_IMPORT = /^\s*(?:import|export)\s+(?!type\b)(?:[^'"`;]*?\bfrom\s*)?(['"])([^'"]+)\1/gm
 
-/** A dynamic import with a literal path. */
-const DYNAMIC_IMPORT = /\bimport\(\s*(['"])([^'"]+)\1\s*\)/g
+/** A dynamic import with a literal path: a string, or a template with no substitution. */
+const DYNAMIC_IMPORT = /\bimport\(\s*(['"`])([^'"`$]+)\1\s*\)/g
 
 /** A source module that a worker or an asset URL names. */
 const URL_REFERENCE =
@@ -117,15 +121,25 @@ describe('css sources of each app', () => {
 		},
 	)
 
-	it('stops on a dynamic import that the graph cannot follow', async () => {
-		const appDir = mkdtempSync(join(tmpdir(), 'css-sources-'))
+	it.each([
+		['a path in a variable', 'export const load = (name: string) => import(name)\n', 'import(name'],
+		[
+			'a template with a substitution',
+			`export const load = (name: string) => import(\`ui/modules/\${name}\`)\n`,
+			`import(\`ui/modules/\${name}\``,
+		],
+	])(
+		'stops on a dynamic import with %s, which the graph cannot follow',
+		async (_case, text, call) => {
+			const appDir = mkdtempSync(join(tmpdir(), 'css-sources-'))
 
-		try {
-			writeFileSync(join(appDir, 'page.ts'), 'export const load = (name: string) => import(name)\n')
+			try {
+				writeFileSync(join(appDir, 'page.ts'), text)
 
-			await expect(graphSources(appDir)).rejects.toThrow('import(name')
-		} finally {
-			rmSync(appDir, { recursive: true })
-		}
-	})
+				await expect(graphSources(appDir)).rejects.toThrow(call)
+			} finally {
+				rmSync(appDir, { recursive: true })
+			}
+		},
+	)
 })

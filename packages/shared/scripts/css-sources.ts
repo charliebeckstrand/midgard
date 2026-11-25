@@ -15,7 +15,7 @@
  * a `new URL(…, import.meta.url)` names, such as a worker. Each other package is
  * external, because its classes are not in the CSS of the app. A dynamic import
  * that the graph cannot follow stops the run, because its classes would be lost
- * in production only. `css-sources.test.ts` compares the list with the graph.
+ * in production only. `css-sources-boundary.test.ts` of ui compares the list with the graph.
  */
 
 import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
@@ -45,8 +45,13 @@ const SKIPPED_DIR = new Set(['__tests__', 'node_modules', '.next'])
 /** A specifier of a package that the graph follows. */
 const FOLLOWED = /^(?:shared|ui)(?:\/|$)/
 
-/** A dynamic import in the output whose path is not a literal, so esbuild did not follow it. */
-const UNFOLLOWED_IMPORT = /\b(?:import|require)\(\s*(?!['"`])[^)]{0,80}/g
+/**
+ * A dynamic import in the output whose path is not a literal, so esbuild did not
+ * follow it: a variable, or a template with a substitution. esbuild follows a
+ * relative template as a glob, and it writes a literal in place of a template
+ * with no substitution.
+ */
+const UNFOLLOWED_IMPORT = /\b(?:import|require)\(\s*(?:(?!['"`])|`[^`]*\$\{)[^)]{0,80}/g
 
 /** A `new URL('…', import.meta.url)` with a relative literal path. */
 const URL_REFERENCE = /new URL\(\s*(['"`])(\.{1,2}\/[^'"`]+)\1\s*,\s*import\.meta\.url\s*\)/g
