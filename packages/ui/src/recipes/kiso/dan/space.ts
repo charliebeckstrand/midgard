@@ -328,6 +328,12 @@ export const space = {
 			/** The top padding of the toolbar. */
 			top: 'density-pt-[1.5,1.75,2,2.25,2.5]',
 			/**
+			 * The top margin of the field below the toolbar, in place of its top
+			 * padding (`y`). The space is thus out of the scroll of the field, and
+			 * text that scrolls up stops below the space, not at the buttons.
+			 */
+			gap: 'density-mt-[0.75,1.25,1.75,2.25,2.75]',
+			/**
 			 * The bottom padding of the field below the toolbar, when the field is
 			 * the last row. It equals the inline padding of the control.
 			 */
