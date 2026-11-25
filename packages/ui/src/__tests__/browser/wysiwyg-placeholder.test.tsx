@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { cdp, userEvent } from 'vitest/browser'
+import { cdp } from 'vitest/browser'
 import { Wysiwyg } from '../../modules/wysiwyg'
-import { renderUI, screen, waitFor } from '../helpers'
+import { renderUI } from '../helpers'
+import { editable } from './helpers/wysiwyg'
 
 /** A node of the accessibility tree of Chromium. */
 type AXNode = {
@@ -56,11 +57,7 @@ describe('Wysiwyg placeholder (real browser)', () => {
 	it('shows the placeholder, and gives it to readers only as the placeholder', async () => {
 		renderUI(<Wysiwyg aria-label="Notes" placeholder="Write a note" />)
 
-		await userEvent.click(screen.getByRole('textbox'))
-
-		await waitFor(() => expect(screen.getByRole('textbox')).toHaveClass('ProseMirror'))
-
-		const field = screen.getByRole('textbox')
+		const field = await editable()
 
 		expect(field).toHaveAttribute('aria-placeholder', 'Write a note')
 

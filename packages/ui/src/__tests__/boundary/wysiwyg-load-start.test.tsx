@@ -1,6 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Wysiwyg } from '../../modules/wysiwyg'
-import { __resetWysiwygEngine } from '../../modules/wysiwyg/use-wysiwyg-editor'
 import { fireEvent, renderUI, screen, waitFor } from '../helpers'
 
 /**
@@ -48,8 +47,6 @@ vi.mock('../../utilities/lazy-module', async (importActual) => {
 
 describe('Wysiwyg load start', () => {
 	it('starts the load of the editor in the first focus', async () => {
-		__resetWysiwygEngine()
-
 		renderUI(<Wysiwyg aria-label="Notes" defaultValue="**Launch**" />)
 
 		load.mockClear()
@@ -63,8 +60,6 @@ describe('Wysiwyg load start', () => {
 	})
 
 	it('reports a load once for a hover and its focus', () => {
-		__resetWysiwygEngine()
-
 		// A load in flight. The field reports a failure through a handler on it.
 		const pending = new Promise<unknown>(() => undefined)
 
