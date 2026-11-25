@@ -101,53 +101,87 @@ jobs:
           HOME: /root
           VITEST_SEED: ${{ inputs.seed }}
 
-  # TEMPORARY: the crash occurs in the container and not on the runner. Each
-  # variant changes one condition of the container. Remove before merge.
-  density-bisect:
-    name: density-bisect (${{ matrix.variant }} ${{ matrix.run }})
+  # TEMPORARY: the crash occurs in the container and not on the runner. This job
+  # starts the container from the runner, so that systemd-coredump on the
+  # runner keeps a core of each crash, and gdb shows where the process stopped.
+  # Remove before merge.
+  density-coredump:
+    name: density-coredump (${{ matrix.run }})
     needs: plan
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-    container:
-      image: mcr.microsoft.com/playwright:v${{ needs.plan.outputs.version }}-resolute
-      options: --ipc=host ${{ matrix.variant == 'seccomp-off' && '--security-opt seccomp=unconfined' || '' }}
+    timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
-        variant: [base, seccomp-off, shstk-off, sandbox-off]
-        run: [1, 2, 3, 4, 5, 6, 7, 8]
+        run: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    env:
+      IMAGE: mcr.microsoft.com/playwright:v${{ needs.plan.outputs.version }}-resolute
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+      - name: Show the CPU and the core settings
+        run: |
+          grep -m1 'model name' /proc/cpuinfo
+          cat /proc/sys/kernel/core_pattern
+          sudo sysctl -w fs.suid_dumpable=2
+          systemd-analyze cat-config systemd/coredump.conf | grep -v '^#' | grep . || true
+      - run: docker pull "$IMAGE"
+      - run: |
+          docker run --rm --ipc=host --ulimit core=-1 \
+            -v "$GITHUB_WORKSPACE:$GITHUB_WORKSPACE" -w "$GITHUB_WORKSPACE/packages/ui" \
+            -e CI=1 -e HOME=/root -e DEBUG=pw:browser -e ALL_ENGINES=1 \
+            -e NODE_PATH="$GITHUB_WORKSPACE/node_modules/.pnpm/node_modules" \
+            "$IMAGE" \
+            node node_modules/vitest/vitest.mjs run --config vitest.browser.config.ts \
+            --project density-firefox --project density-webkit --project wysiwyg-webkit --project wysiwyg-floating-ui-webkit --project wysiwyg-floating-motion-webkit
+      - name: Show where each core stopped
+        if: always()
+        run: |
+          coredumpctl list --no-pager || exit 0
+          sudo apt-get install -y gdb > /dev/null
+          mkdir -p /tmp/rootfs
+          docker export "$(docker create "$IMAGE")" | tar -x -C /tmp/rootfs
+          for pid in $(coredumpctl list --no-pager --no-legend -o json | jq -r '.[].pid'); do
+            echo "::group::core of pid $pid"
+            coredumpctl info "$pid" --no-pager | head -80
+            exe=$(coredumpctl info "$pid" --no-pager | awk '/Executable:/ { print $2 }')
+            sudo coredumpctl dump "$pid" -o "/tmp/core.$pid" > /dev/null
+            sudo gdb -batch -nx -ex 'set sysroot /tmp/rootfs' "/tmp/rootfs$exe" "/tmp/core.$pid" \
+              -ex 'p $_siginfo.si_code' -ex 'p $_siginfo._sifields._sigfault.si_addr' \
+              -ex 'info symbol $pc' -ex 'x/8i $pc' -ex 'bt 40' -ex 'info registers' 2>&1 | grep -v -e '^warning' -e '^\[New LWP' | head -200
+            echo "::endgroup::"
+          done
+
+  # TEMPORARY: the container with each system package of the image brought up
+  # to date. Remove before merge.
+  density-upgraded:
+    name: density-upgraded (${{ matrix.run }})
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    container:
+      image: mcr.microsoft.com/playwright:v${{ needs.plan.outputs.version }}-resolute
+      options: --ipc=host
+    strategy:
+      fail-fast: false
+      matrix:
+        run: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
     steps:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
       - run: git config --system --add safe.directory "$GITHUB_WORKSPACE"
-      - uses: ./.github/actions/setup
-      - name: Show the CPU, its flags, the kernel, and the seccomp mode
+      - name: Bring the system packages up to date
         run: |
           grep -m1 'model name' /proc/cpuinfo
-          grep -m1 '^flags' /proc/cpuinfo | tr ' ' '\n' | grep -E -x 'user_shstk|shstk|ibt|avx512f|erms|fsrm' | tr '\n' ' '; echo
-          uname -r
-          grep -E '^(Seccomp|Seccomp_filters|x86_Thread_features|CapEff)' /proc/self/status
-      - run: |
-          case "$VARIANT" in
-            shstk-off) export GLIBC_TUNABLES=glibc.cpu.x86_shstk=off ;;
-            sandbox-off) export MOZ_DISABLE_CONTENT_SANDBOX=1 ;;
-          esac
-          # The shadow stack state of each Firefox process, while the tests run.
-          (
-            for _ in $(seq 1 12); do
-              sleep 2
-              for status in /proc/[0-9]*/status; do
-                name=$(awk '/^Name:/ { print $2 }' "$status" 2> /dev/null)
-                case "$name" in
-                  firefox*|Isolated*|Web*|Socket*|RDD*|Utility*|GeckoMain*) echo "$name $(grep -E '^x86_Thread_features:' "$status" 2> /dev/null | tr -s '\t ' ' ')" ;;
-                esac
-              done
-            done | sort | uniq -c | sed 's/^/[shstk] /'
-          ) &
-          pnpm --filter ui test:browser --project density-firefox --project density-webkit --project wysiwyg-webkit --project wysiwyg-floating-ui-webkit --project wysiwyg-floating-motion-webkit
+          apt-get update > /dev/null
+          apt list --upgradable 2> /dev/null | sed 1d
+          DEBIAN_FRONTEND=noninteractive apt-get -y dist-upgrade > /dev/null
+      - uses: ./.github/actions/setup
+      - run: pnpm --filter ui test:browser --project density-firefox --project density-webkit --project wysiwyg-webkit --project wysiwyg-floating-ui-webkit --project wysiwyg-floating-motion-webkit
         env:
-          VARIANT: ${{ matrix.variant }}
           DEBUG: pw:browser
           ALL_ENGINES: 1
           HOME: /root
