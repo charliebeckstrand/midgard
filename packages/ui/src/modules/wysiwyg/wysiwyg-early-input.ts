@@ -294,59 +294,45 @@ export function createEarlyInput(): WysiwygEarlyInput {
 
 	let copy: WysiwygEarlyField | null = null
 
-	// The moves of the reader in the copy, and the selection of the last one.
+	// The moves of the reader in the copy.
 	const moves: WysiwygEarlySelection[] = []
-
-	let moved: WysiwygEarlySelection | null = null
 
 	// An input method composed text in the markup while the queue held a task.
 	// The markup then differs from the copy, so the field records no more moves.
 	let drifted = false
 
-	// A held task came during a composition, so the copy waits for its end.
-	let copyAtEnd = false
-
 	let composing = false
 
-	// The composition started while the queue held a task, so its text waits too.
-	let composingHeld = false
-
-	// The move of the reader at the start of that composition.
+	// The move of the reader at the start of a composition while the queue holds a task.
 	let composedMove: number | null = null
 
 	let edited: WysiwygSource | null = null
 
 	const changes = createEmitter()
 
-	const takeCopy = (field: Element) => {
-		const markup = readMarkup(field)
-
-		moved = markup
-
-		copy = { ...markup, moves }
-	}
-
 	// The index of the move of the reader since the last held task, or `null`.
 	const readMove = (field: Element | null): number | null => {
-		if (!copy || !moved || !field || drifted) return null
+		if (!copy || !field || drifted) return null
 
 		const selection = readSelection(field)
 
-		if (sameSelection(selection, moved)) return null
-
-		moved = selection
+		if (sameSelection(selection, moves.at(-1) ?? copy)) return null
 
 		return moves.push(selection) - 1
 	}
 
+	// Before the editor takes the markup, the queue only grows, and the field
+	// takes the copy at the first held task, or at the end of the composition
+	// of that task. So a queue that holds a task with no copy waits for the end
+	// of a composition, and a copy at the start of a composition is a copy of a
+	// held task.
 	return {
 		held: () => queue.length > 0,
 		hold: (task, field, source) => {
-			if (queue.length === 0 && copy === null && field) {
+			if (queue.length === 0 && field) {
 				edited ??= source
 
-				if (composing) copyAtEnd = true
-				else takeCopy(field)
+				if (!composing) copy = { ...readMarkup(field), moves }
 
 				queue.push({ task, move: null })
 
@@ -381,27 +367,20 @@ export function createEarlyInput(): WysiwygEarlyInput {
 		compositionStart: (field) => {
 			composing = true
 
-			composingHeld = queue.length > 0 && !copyAtEnd
-
 			// The composed text goes at the caret where the composition starts.
-			composedMove = composingHeld ? readMove(field) : null
+			composedMove = readMove(field)
 
-			drifted ||= composingHeld
+			drifted ||= copy !== null
 
 			changes.emit()
 		},
 		compositionEnd: (field, text) => {
 			composing = false
 
-			if (copyAtEnd) {
-				copyAtEnd = false
-
-				takeCopy(field)
-			} else if (composingHeld && text) {
+			if (!copy && queue.length > 0) copy = { ...readMarkup(field), moves }
+			else if (copy && text) {
 				queue.push({ task: (editor) => editor.replay({ type: 'text', text }), move: composedMove })
 			}
-
-			composingHeld = false
 
 			changes.emit()
 		},

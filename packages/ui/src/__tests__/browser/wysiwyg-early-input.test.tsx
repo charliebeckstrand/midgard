@@ -400,6 +400,54 @@ describe('Wysiwyg input before the editor loads (real browser)', () => {
 		await waitFor(() => expect(value()).toMatch(/!/))
 	})
 
+	it('types the text of a composition after a held key', async () => {
+		renderUI(<Notes />)
+
+		focusAtEnd()
+
+		await userEvent.keyboard('a{ControlOrMeta>}b{/ControlOrMeta}')
+
+		const session = cdp()
+
+		await session.send('Input.imeSetComposition', {
+			text: 'にほ',
+			selectionStart: 2,
+			selectionEnd: 2,
+		})
+
+		await session.send('Input.insertText', { text: '日本' })
+
+		await load()
+
+		await waitFor(() => expect(value()).toBe('a**日本**'))
+	})
+
+	it('holds a toolbar press in a composition, and takes the composed text', async () => {
+		renderUI(<Notes toolbar />)
+
+		focusAtEnd()
+
+		const session = cdp()
+
+		await session.send('Input.imeSetComposition', {
+			text: 'にほ',
+			selectionStart: 2,
+			selectionEnd: 2,
+		})
+
+		screen.getByRole('button', { name: 'Bold' }).click()
+
+		await session.send('Input.insertText', { text: '日本' })
+
+		await load()
+
+		await waitFor(() => expect(value()).toBe('日本'))
+
+		await userEvent.keyboard('x')
+
+		expect(value()).toBe('日本**x**')
+	})
+
 	it('runs a toolbar press and the keys after it in order', async () => {
 		renderUI(<Notes toolbar />)
 
