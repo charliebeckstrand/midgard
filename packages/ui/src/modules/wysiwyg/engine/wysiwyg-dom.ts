@@ -1,6 +1,6 @@
-import { cn } from '../../core/cn'
-import { k as code } from '../../recipes/kata/code'
-import { k as markdown } from '../../recipes/kata/markdown'
+import { cn } from '../../../core/cn'
+import { k as code } from '../../../recipes/kata/code'
+import { k as markdown } from '../../../recipes/kata/markdown'
 
 /**
  * A DOM output spec: a tag name, its attributes, and its children, where `0`

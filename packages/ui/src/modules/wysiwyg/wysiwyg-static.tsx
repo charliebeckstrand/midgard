@@ -1,13 +1,13 @@
 import { createElement, type ReactNode } from 'react'
 import type { MarkdownRange } from '../../components/markdown/markdown-ranges'
 import { dataAttr } from '../../core/data-attr'
-import { markDOM, nodeDOM, textblockTypes, type WysiwygSpec } from './wysiwyg-dom'
+import { markDOM, nodeDOM, textblockTypes, type WysiwygSpec } from './engine/wysiwyg-dom'
 import {
 	isEmptyDocJSON,
 	markdownDoc,
 	type WysiwygDocMark,
 	type WysiwygDocNode,
-} from './wysiwyg-markdown-doc'
+} from './engine/wysiwyg-markdown/doc'
 
 /** The attributes of a spec as React props: `class` is `className`, and a `null` drops out. @internal */
 function specProps(attrs: Record<string, unknown>, key: number): Record<string, unknown> {

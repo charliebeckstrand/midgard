@@ -5,7 +5,7 @@ import {
 	type Node as ProseMirrorNode,
 	Schema,
 } from 'prosemirror-model'
-import { markDOM, nodeDOM } from '../wysiwyg-dom'
+import { markDOM, nodeDOM } from './wysiwyg-dom'
 
 /** The attributes of a `raw` or a `raw_inline` atom from its element: its text is the source. */
 function rawSource(dom: HTMLElement) {

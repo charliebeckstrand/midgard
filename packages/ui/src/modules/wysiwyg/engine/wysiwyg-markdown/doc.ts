@@ -1,15 +1,16 @@
 import type { Token, Tokens } from 'marked'
-import { decodeEntities } from '../../components/markdown/markdown-entities'
-import { lex } from '../../components/markdown/markdown-lex'
+import { decodeEntities } from '../../../../components/markdown/markdown-entities'
+import { lex } from '../../../../components/markdown/markdown-lex'
 import {
+	atomRange,
 	type MarkdownRange,
 	overlapping,
 	type RangeWalk,
 	rangeWalk,
 	textLines,
 	within,
-} from '../../components/markdown/markdown-ranges'
-import { markDOM } from './wysiwyg-dom'
+} from '../../../../components/markdown/markdown-ranges'
+import { markDOM } from '../wysiwyg-dom'
 
 /**
  * A mark of a {@link WysiwygDocNode}, in the JSON form of a ProseMirror mark.
@@ -223,16 +224,17 @@ function toInline(
 }
 
 /**
- * The marks of the text that the walk is at, with the mark of the range that
- * overlaps the source from the cursor to `end`. A text that the walk does not
- * hold keeps `marks`.
+ * The marks of the atom that the walk is at, such as an escape, with the mark
+ * of the range that overlaps its source ({@link atomRange}). The source of the
+ * atom goes from the cursor to the limit of the walk. An atom that the walk
+ * does not hold keeps `marks`.
  *
  * @internal
  */
-function atomMarks(walk: RangeWalk | undefined, end: number, marks: Marks): Marks {
+function atomMarks(walk: RangeWalk | undefined, marks: Marks): Marks {
 	if (!walk) return marks
 
-	return withRange(walk, overlapping(walk, walk.cursor, end)[0], marks)
+	return withRange(walk, atomRange(walk, walk.limit - walk.cursor), marks)
 }
 
 /** The marks with the mark of the range at `index` in the walk, if any. @internal */
@@ -279,13 +281,11 @@ function textNodes(text: string, marks: Marks): WysiwygDocNode[] {
 
 /** The inline nodes of one token. @internal */
 function inlineToken(token: Token, marks: Marks, walk: RangeWalk | undefined): WysiwygDocNode[] {
-	const end = walk ? walk.limit : 0
-
 	switch (token.type) {
 		case 'text':
 			return token.tokens ? toInline(token.tokens, marks, walk) : plainText(token.raw, marks, walk)
 		case 'escape':
-			return textNodes(token.text, atomMarks(walk, end, marks))
+			return textNodes(token.text, atomMarks(walk, marks))
 		case 'strong':
 			return toInline(token.tokens ?? [], addMark(marks, { type: 'strong' }), walk)
 		case 'em':
@@ -293,7 +293,7 @@ function inlineToken(token: Token, marks: Marks, walk: RangeWalk | undefined): W
 		case 'del':
 			return toInline(token.tokens ?? [], addMark(marks, { type: 'strike' }), walk)
 		case 'codespan':
-			return textNodes(token.text, atomMarks(walk, end, addMark(marks, { type: 'code' })))
+			return textNodes(token.text, atomMarks(walk, addMark(marks, { type: 'code' })))
 		case 'link': {
 			const link = {
 				type: 'link',
@@ -304,11 +304,11 @@ function inlineToken(token: Token, marks: Marks, walk: RangeWalk | undefined): W
 			}
 
 			// The text of a link is one atom, as a message names it.
-			return toInline(token.tokens ?? [], atomMarks(walk, end, addMark(marks, link)), undefined)
+			return toInline(token.tokens ?? [], atomMarks(walk, addMark(marks, link)), undefined)
 		}
 		case 'br':
-			return [node('hard_break', undefined, undefined, atomMarks(walk, end, []))]
+			return [node('hard_break', undefined, undefined, atomMarks(walk, []))]
 		default:
-			return [node('raw_inline', { source: token.raw }, undefined, atomMarks(walk, end, []))]
+			return [node('raw_inline', { source: token.raw }, undefined, atomMarks(walk, []))]
 	}
 }

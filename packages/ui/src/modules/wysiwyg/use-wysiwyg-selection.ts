@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { sameFieldElements } from '../../utilities/same-elements'
 import type { WysiwygBlock } from './types'
 import type { WysiwygEditor } from './wysiwyg-editor'
 
@@ -9,21 +10,7 @@ import type { WysiwygEditor } from './wysiwyg-editor'
 function sameBlock(a: WysiwygBlock | null, b: WysiwygBlock | null): boolean {
 	if (a === null || b === null) return a === b
 
-	return (
-		a.text === b.text &&
-		a.caret === b.caret &&
-		a.ranges.length === b.ranges.length &&
-		a.ranges.every((range, index) => {
-			const other = b.ranges[index]
-
-			return (
-				other !== undefined &&
-				range.id === other.id &&
-				range.start === other.start &&
-				range.end === other.end
-			)
-		})
-	)
+	return a.text === b.text && a.caret === b.caret && sameFieldElements(a.ranges, b.ranges)
 }
 
 /**

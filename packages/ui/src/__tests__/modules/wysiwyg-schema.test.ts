@@ -1,9 +1,9 @@
 import { DOMParser, DOMSerializer } from 'prosemirror-model'
 import { describe, expect, it } from 'vitest'
+import { markDOM, nodeDOM, textblockTypes } from '../../modules/wysiwyg/engine/wysiwyg-dom'
 import { parseMarkdown } from '../../modules/wysiwyg/engine/wysiwyg-markdown/parse'
 import { serializeMarkdown } from '../../modules/wysiwyg/engine/wysiwyg-markdown/serialize'
 import { schema } from '../../modules/wysiwyg/engine/wysiwyg-schema'
-import { markDOM, nodeDOM, textblockTypes } from '../../modules/wysiwyg/wysiwyg-dom'
 
 /**
  * The doc after a trip through the DOM, as a copy and a paste, or a drag, in
