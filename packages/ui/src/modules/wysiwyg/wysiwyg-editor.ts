@@ -33,7 +33,12 @@ import { serializeMarkdown, serializeMarkdownRanges } from './engine/wysiwyg-mar
 import { holdsRange, wysiwygRanges } from './engine/wysiwyg-ranges'
 import { isEmptyDoc, schema } from './engine/wysiwyg-schema'
 import type { WysiwygAction, WysiwygBlock, WysiwygBlockRange, WysiwygToggleAction } from './types'
-import { WYSIWYG_ACTIONS, type WysiwygShortcut, wysiwygActions } from './wysiwyg-actions'
+import {
+	formatAction,
+	WYSIWYG_ACTIONS,
+	type WysiwygShortcut,
+	wysiwygActions,
+} from './wysiwyg-actions'
 import type { WysiwygEarlyField, WysiwygEarlyItem } from './wysiwyg-early-input'
 
 /**
@@ -135,12 +140,6 @@ export type WysiwygEditor = {
 }
 
 /**
- * The ProseMirror key name of a shortcut. A letter with Shift is upper case,
- * as the key of the event is.
- *
- * @internal
- */
-/**
  * Moves the focus to the view. The view writes its selection to the DOM in
  * the focus, so the browser does not then reset the selection. ProseMirror
  * reads each focus as one that a reset of the browser can follow: for 200 ms,
@@ -156,6 +155,12 @@ function focusView(view: EditorView): void {
 	if (input?.lastFocus !== undefined) input.lastFocus = 0
 }
 
+/**
+ * The ProseMirror key name of a shortcut. A letter with Shift is upper case,
+ * as the key of the event is.
+ *
+ * @internal
+ */
 function keyName({ shift, alt, key }: WysiwygShortcut): string {
 	return `Mod-${shift ? 'Shift-' : ''}${alt ? 'Alt-' : ''}${shift ? key : key.toLowerCase()}`
 }
@@ -386,24 +391,5 @@ export function createWysiwygEditor(
 		replay: (item) => replayEarlyInput(view, item),
 		select: (move) => selectEarlyMove(view, move),
 		destroy: () => view.destroy(),
-	}
-}
-
-/**
- * The action of a format input, such as the Bold item of the edit menu of iOS.
- * Markdown has no underline, so `formatUnderline` has none.
- *
- * @internal
- */
-function formatAction(inputType: string): WysiwygToggleAction | undefined {
-	switch (inputType) {
-		case 'formatBold':
-			return 'bold'
-		case 'formatItalic':
-			return 'italic'
-		case 'formatStrikeThrough':
-			return 'strike'
-		default:
-			return undefined
 	}
 }

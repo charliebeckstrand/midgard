@@ -14,7 +14,11 @@ import { useLazyModule } from '../../hooks/use-lazy-module'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { createEmitter } from '../../utilities/emitter'
 import { createLazyModule } from '../../utilities/lazy-module'
-import { createEarlyInput, type WysiwygEarlyInput } from './wysiwyg-early-input'
+import {
+	createEarlyInput,
+	type WysiwygSource as Source,
+	type WysiwygEarlyInput,
+} from './wysiwyg-early-input'
 import type * as Engine from './wysiwyg-editor'
 import type { WysiwygEditor, WysiwygEditorProps } from './wysiwyg-editor'
 
@@ -79,9 +83,6 @@ type WysiwygEditorOptions = {
 	/** Fires when the doc takes `value` and `ranges` in place of its source, which starts a new undo history. */
 	onSet: () => void
 }
-
-/** A Markdown source and its ranges. @internal */
-type Source = { value: string; ranges: readonly MarkdownRange[] }
 
 /**
  * Whether two sources are one source. A range is the same range when its id,
@@ -276,7 +277,7 @@ export function useWysiwygEditor({
 	// editor has the settings and the value of the commit. A render then runs
 	// the task after it.
 	useLayoutEffect(() => {
-		if (editor && early.held() && early.next(editor)) runNext()
+		if (editor && early.next(editor)) runNext()
 	})
 
 	return {
