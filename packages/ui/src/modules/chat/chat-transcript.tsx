@@ -603,7 +603,7 @@ export function ChatTranscript({
 							<ChatTranscriptRow
 								ref={measureRef}
 								index={index}
-								className={slots.row}
+								className={index === 0 ? cn(slots.row, slots.first) : slots.row}
 								message={message}
 								streaming={
 									streaming === true && message.sender === 'assistant' && index === count - 1

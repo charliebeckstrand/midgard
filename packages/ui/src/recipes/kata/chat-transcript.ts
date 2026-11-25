@@ -20,9 +20,13 @@ export const k = defineKata(
 			// outside every box, so no row would count it, and the spacers would drift
 			// by it. The gap is thus the padding of the row. It is also the room of
 			// the toolbar of the menu button, which rises 24px above the bubble, and
-			// of the ring of a bubble that the composer edits. Thus no row needs a
-			// rule of its own.
+			// of the ring of a bubble that the composer edits. A device with no hover
+			// has no toolbar, so there the first row keeps only the room of the ring
+			// above it (`first`). The transcript adds it by the index of the row, and
+			// not by its place among the children: the window does not always draw
+			// the first row first.
 			row: kokkaku.chat.row,
+			first: kokkaku.chat.first,
 			// The holder of the button that goes to the newest message. It sticks to
 			// the bottom edge of the scroll and has no height, so it moves no row and
 			// the end that the window measures stays the end of the rows. The button
