@@ -24,7 +24,7 @@ type WysiwygActionButtonProps = { action: WysiwygAction } & Omit<
  * button is on while the action is on at the selection.
  *
  * A toggle action has `aria-pressed`, and a press runs it. The link button
- * opens a popover, so it is no toggle, and its trigger handles the press. It
+ * opens a dialog, so it is no toggle, and its trigger handles the press. It
  * is on while the selection is in a link.
  *
  * The button looks and works the same before the editor loads. A press then

@@ -310,7 +310,7 @@ function textSelected(state: EditorState): EditorState {
 
 /**
  * The command of each toggle action. The link action needs a URL, so the
- * link popover runs {@link setLink}, and {@link isLinkActive} is its active
+ * link dialog runs {@link setLink}, and {@link isLinkActive} is its active
  * test.
  *
  * @internal
@@ -394,7 +394,7 @@ export function linkRange(state: EditorState): { from: number; to: number } {
 
 /**
  * The text and the URL of the range of the link action, for the fields of the
- * link popover. The blocks of a range join with a space, as the text field has
+ * link dialog. The blocks of a range join with a space, as the text field has
  * one line.
  *
  * @internal

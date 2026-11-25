@@ -33,7 +33,7 @@ export type WysiwygContextValue = {
 	 */
 	whenReady: (task: () => void) => void
 	/**
-	 * Adds the opener of a link popover while its button is mounted. The link
+	 * Adds the opener of a link dialog while its button is mounted. The link
 	 * shortcut calls the opener of the last button that mounted, and goes on
 	 * as a key with no button.
 	 *
@@ -48,14 +48,10 @@ export type WysiwygContextValue = {
 	 */
 	setLink: (href: string, text: string) => void
 	/**
-	 * Marks the selection while the focus is in the link popover, or removes
+	 * Marks the selection while the focus is in the link dialog, or removes
 	 * the mark with `false`.
 	 */
 	holdSelection: (held: boolean) => void
-	/** Whether the field has the focus. */
-	fieldFocused: () => boolean
-	/** Moves the focus to the field, which shows its selection again. */
-	focusField: () => void
 }
 
 export const [WysiwygContext, useWysiwyg] = createContext<WysiwygContextValue>('Wysiwyg')

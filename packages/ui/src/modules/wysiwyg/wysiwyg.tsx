@@ -310,8 +310,8 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 
 	const host = useRef<HTMLDivElement>(null)
 
-	// The openers of the link popovers of the toolbars of the field. The link
-	// shortcut opens the popover of the last one, and goes on as a key with none.
+	// The openers of the link dialogs of the toolbars of the field. The link
+	// shortcut opens the dialog of the last one, and goes on as a key with none.
 	const linkOpeners = useRef(new Set<() => void>())
 
 	const openLink = useStableEvent(() => {
@@ -385,14 +385,11 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 
 	const toolbarClassName = cn(slots.toolbar)
 
-	// One identity for the mount, so the memo below does not list it.
-	const focusField = useStableEvent(focus)
-
 	// The value keeps its identity while its inputs do. A keystroke renders the
 	// field, and the toolbar then renders only the buttons whose state changed.
 	// The effects of the link button, which run on `registerLink` and
 	// `holdSelection`, thus do not run again on an edit or on an open of the
-	// popover.
+	// dialog.
 	const context = useMemo<WysiwygContextValue>(
 		() => ({
 			fieldId,
@@ -416,10 +413,8 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 			linkDraft: () => editor?.linkDraft() ?? { text: '', href: '' },
 			setLink: (href: string, text: string) => editor?.link(href, text),
 			holdSelection: (held: boolean) => editor?.hold(held),
-			fieldFocused: () => editor?.view.hasFocus() ?? false,
-			focusField,
 		}),
-		[fieldId, editor, locked, toolbarClassName, subscribe, whenReady, focusField],
+		[fieldId, editor, locked, toolbarClassName, subscribe, whenReady],
 	)
 
 	// The field is touched when the focus leaves the field and its rows, and not

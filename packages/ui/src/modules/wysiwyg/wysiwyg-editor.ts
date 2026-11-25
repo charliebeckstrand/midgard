@@ -70,7 +70,7 @@ export type WysiwygEditorProps = {
 	/** Runs first on each key. A handler that cancels the key stops the editor. */
 	onKeyDown: ((event: KeyboardEvent) => void) | undefined
 	/**
-	 * Runs on the link shortcut, and opens the link popover. It gives `false`
+	 * Runs on the link shortcut, and opens the link dialog. It gives `false`
 	 * when no toolbar has a link button, and the key then goes on.
 	 */
 	onLink: () => boolean
@@ -117,7 +117,7 @@ export type WysiwygEditor = {
 	linkDraft: () => { text: string; href: string }
 	/**
 	 * Marks the range of the link action while the focus is in the link
-	 * popover. `false` removes the mark.
+	 * dialog. `false` removes the mark.
 	 */
 	hold: (held: boolean) => void
 	/** The text block that holds a collapsed caret, or `null`. */
@@ -376,7 +376,7 @@ export function createWysiwygEditor(
 		},
 		linkDraft: () => linkDraft(view.state),
 		hold: (held) => {
-			// The field can go before the popover does.
+			// The field can go before the dialog does.
 			if (view.isDestroyed) return
 
 			view.dispatch(view.state.tr.setMeta(HELD, held ? linkRange(view.state) : null))
