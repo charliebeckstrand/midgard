@@ -4,6 +4,11 @@ import { UIProvider } from 'ui/providers/ui'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { HowToPlay } from '../components/how-to-play'
 
+// The button loads the dialog on the first press. This import loads that module
+// before the cases run, so a case waits for the dialog to open, not for the
+// first transform of the module (CONVENTIONS.md §10.14).
+import '../components/how-to-play/how-to-play-dialog'
+
 beforeEach(() => {
 	// jsdom has no `ResizeObserver`, and the body of the dialog watches its size with one.
 	vi.stubGlobal(

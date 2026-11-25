@@ -1,6 +1,6 @@
+import { MapPinned, Phone } from 'lucide-react'
 import type { ReactNode } from 'react'
 import type { FormattedInputOptions } from '../../hooks/use-formatted-input'
-import { MapPinned, Phone } from '../../primitives/icons/icons'
 import { digitsOnly } from '../../utilities/digits-only'
 import { Icon } from '../icon'
 import type { InputProps } from '../input'
@@ -178,7 +178,7 @@ export function phoneMask(country: PhoneMaskCountry = 'US'): MaskInputPreset {
 		type: 'tel',
 		inputMode: 'tel',
 		autoComplete: 'tel',
-		prefix: <Icon icon={<Phone />} />,
+		prefix: <Icon icon={Phone} />,
 	}
 }
 
@@ -202,6 +202,6 @@ export function zipcodeMask(country: ZipcodeMaskCountry = 'US'): MaskInputPreset
 		inputMode: zipcodeInputModes[country],
 		autoComplete: 'postal-code',
 		placeholder: zipcodePlaceholders[country],
-		prefix: <Icon icon={<MapPinned />} />,
+		prefix: <Icon icon={MapPinned} />,
 	}
 }

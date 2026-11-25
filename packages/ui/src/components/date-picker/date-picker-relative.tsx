@@ -1,9 +1,9 @@
 'use client'
 
+import { ArrowLeft, ChevronRight } from 'lucide-react'
 import { useRef } from 'react'
 import { flushSync } from 'react-dom'
 import { cn } from '../../core/cn'
-import { ArrowLeft, ChevronRight } from '../../primitives/icons/icons'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/date-picker'
 import { Badge } from '../badge'
@@ -159,7 +159,7 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 							onClick={showCustom}
 						>
 							{customRange}
-							<Icon icon={<ChevronRight />} className="rtl:-scale-x-100" />
+							<Icon icon={ChevronRight} className="rtl:-scale-x-100" />
 						</Button>
 					</div>
 				) : (
@@ -170,7 +170,7 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 							className={cn(k.relative.custom.back)}
 							onClick={showList}
 						>
-							<Icon icon={<ArrowLeft />} className="rtl:-scale-x-100" />
+							<Icon icon={ArrowLeft} className="rtl:-scale-x-100" />
 							{intl.formatMessage(datePickerMessages.backToPresets)}
 						</Button>
 						{/* Each field is a single-date picker in `input` mode: a typed

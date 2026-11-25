@@ -1,6 +1,7 @@
 'use client'
 
-import { type ReactElement, type ReactNode, useMemo, useRef } from 'react'
+import { Copy, EllipsisVertical } from 'lucide-react'
+import { cloneElement, type ReactElement, useMemo, useRef } from 'react'
 import { Button } from '../../components/button'
 import { ContextMenu, ContextMenuList } from '../../components/context-menu'
 import { resolveContextMenuEntries } from '../../components/context-menu/context-menu-merge'
@@ -15,7 +16,7 @@ import { Menu, MenuContent, MenuTrigger } from '../../components/menu'
 import { Toolbar } from '../../components/toolbar'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { useMediaQuery } from '../../hooks/use-media-query'
-import { Copy, EllipsisVertical } from '../../primitives/icons/icons'
+import { Glyph } from '../../primitives/glyph'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { copyText } from '../../utilities/export-output'
@@ -100,7 +101,7 @@ function useMenuEntries({ config, content, bubble }: ChatMessageMenuProps): {
 		const copyItem: ContextMenuItem = {
 			key: 'copy',
 			label: copy,
-			icon: <Copy />,
+			icon: <Glyph icon={Copy} />,
 			disabled: text === '',
 			onAction: () => {
 				copyText(text)
@@ -123,6 +124,11 @@ function useMenuEntries({ config, content, bubble }: ChatMessageMenuProps): {
  * on a hover of the bubble, so there a right-click keeps the native menu of
  * the browser, unless `rightClick` opens the menu there too.
  *
+ * Where the menu opens over the bubble, the bubble is a tab stop, so a keyboard
+ * opens the menu with the ContextMenu key or Shift+F10. That is the only path
+ * of a keyboard to the menu on a device with no hover, which has no toolbar.
+ * Elsewhere the bubble keeps the `tabIndex` of the caller.
+ *
  * @internal
  */
 export function ChatMessageMenu({
@@ -131,21 +137,21 @@ export function ChatMessageMenu({
 	bubble,
 	rightClick,
 	children,
-}: ChatMessageMenuProps & { rightClick: boolean; children: ReactNode }) {
+}: ChatMessageMenuProps & {
+	rightClick: boolean
+	children: ReactElement<{ tabIndex?: number }>
+}) {
 	const { entries, name } = useMenuEntries({ config, content, bubble })
 
 	// The wrapper stays when the menu turns off, so the bubble does not mount
 	// again when the query settles after hydration.
 	const touch = useMediaQuery(NO_HOVER_QUERY)
 
+	const on = touch || rightClick
+
 	return (
-		<ContextMenu
-			items={entries}
-			capped={config?.capped}
-			disabled={!touch && !rightClick}
-			aria-label={name}
-		>
-			{children}
+		<ContextMenu items={entries} capped={config?.capped} disabled={!on} aria-label={name}>
+			{on && entries.length > 0 ? cloneElement(children, { tabIndex: 0 }) : children}
 		</ContextMenu>
 	)
 }
@@ -254,7 +260,7 @@ function ToolbarCopy({
 					ref={ref}
 					aria-describedby={undefined}
 					size="sm"
-					icon={<Copy />}
+					icon={<Glyph icon={Copy} />}
 					text={text}
 					disabled={disabled}
 					aria-label={label}
@@ -354,7 +360,7 @@ export function ChatMessageToolbar({
 							    description that repeats it. */}
 							<MenuTrigger aria-describedby={undefined}>
 								<Button type="button" variant="bare" size="sm" aria-label={more}>
-									<Icon icon={<EllipsisVertical />} />
+									<Icon icon={EllipsisVertical} />
 								</Button>
 							</MenuTrigger>
 						</TooltipTrigger>

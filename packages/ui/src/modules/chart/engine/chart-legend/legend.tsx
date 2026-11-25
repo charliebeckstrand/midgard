@@ -1,5 +1,6 @@
 'use client'
 
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import {
 	type ComponentProps,
 	memo,
@@ -21,7 +22,6 @@ import { isRtl } from '../../../../hooks/a11y/logical-arrow'
 import { useA11yRoving } from '../../../../hooks/a11y/use-a11y-roving'
 import { useReportedChange } from '../../../../hooks/use-reported-change'
 import { useStableEvent } from '../../../../hooks/use-stable-event'
-import { ChevronLeft, ChevronRight } from '../../../../primitives/icons/icons'
 import { useIntl } from '../../../../primitives/intl/use-intl'
 import type { ChartColorSlot } from '../../../../recipes/kata/chart'
 import type { Orientation } from '../../../../types/orientation'
@@ -1479,7 +1479,7 @@ function LegendPagination({ page, pageCount, onPage }: LegendPaginationProps) {
 					if (!firstPage) onPage(page - 1)
 				}}
 			>
-				<Icon icon={<ChevronLeft />} className="rtl:-scale-x-100" />
+				<Icon icon={ChevronLeft} className="rtl:-scale-x-100" />
 			</Button>
 
 			{/* A screen reader reads "Page 2 of 3", not "2 slash 3", in the language of the reader. */}
@@ -1504,7 +1504,7 @@ function LegendPagination({ page, pageCount, onPage }: LegendPaginationProps) {
 					if (!lastPage) onPage(page + 1)
 				}}
 			>
-				<Icon icon={<ChevronRight />} className="rtl:-scale-x-100" />
+				<Icon icon={ChevronRight} className="rtl:-scale-x-100" />
 			</Button>
 		</div>
 	)

@@ -1,6 +1,6 @@
+import { ChevronRight } from 'lucide-react'
 import type { ComponentProps, ReactNode } from 'react'
 import { cn } from '../../core/cn'
-import { ChevronRight } from '../../primitives/icons/icons'
 import { k } from '../../recipes/kata/breadcrumb'
 import { Icon } from '../icon'
 
@@ -14,7 +14,7 @@ export type BreadcrumbSeparatorProps = Omit<ComponentProps<'li'>, 'children'> & 
 }
 
 const DEFAULT_SEPARATOR = (
-	<Icon icon={<ChevronRight />} aria-hidden="true" className="rtl:-scale-x-100" />
+	<Icon icon={ChevronRight} aria-hidden="true" className="rtl:-scale-x-100" />
 )
 
 /**

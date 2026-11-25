@@ -1,4 +1,5 @@
 import type { JsonValue } from '../../../components/json-tree/types'
+import { isRecord } from '../../../utilities/is-record'
 import { getOperators } from './query-operators'
 import type {
 	QueryCombinator,
@@ -96,11 +97,6 @@ function defaultValueFor(field?: QueryField): JsonValue {
  * @internal
  */
 export const MAX_DEPTH = 32
-
-/** Whether a value is a plain object, which JSON gives for `{}`. The dashboard spec parse reads it too. @internal */
-export function isRecord(value: unknown): value is Record<string, unknown> {
-	return typeof value === 'object' && value !== null && !Array.isArray(value)
-}
 
 /** {@link isQueryNode} for a node that sits `depth` groups below the root. @internal */
 function isNodeAt(value: unknown, depth: number): boolean {

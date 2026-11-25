@@ -97,6 +97,11 @@ then Stats and Sign out. The item of the route of the
 page is extra bold (`aria-current`): Vs CPU on a run against the CPU, and
 Standard else.
 
+The code of the Leaderboard dialog and the How to play dialog is not in the
+first code of a run page. It loads in idle time after the hydration, or sooner
+when the menu opens or on a pointer or a focus on the How to play button. A
+press before the load opens the dialog when the code arrives.
+
 A segment in the settings switches two tabs: "UI" has the
 appearance pickers of `ui`, and "Game" has the settings of the game (see
 below). Each segment of the app (in the settings, Stats, and Leaderboard)

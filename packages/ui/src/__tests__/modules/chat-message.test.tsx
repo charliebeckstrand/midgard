@@ -240,10 +240,41 @@ describe('ChatMessage', () => {
 
 		// A hover on the bubble shows it, and a hover on the rest of the row does not.
 		expect(toolbar).toHaveClass(
-			'[@media(hover:hover)]:group-has-[[data-slot=chat-message-bubble]:hover]/chat-message:opacity-100',
+			'group-has-[[data-slot=chat-message-bubble]:hover]/chat-message:opacity-100',
 		)
 
 		expect(toolbar.className).not.toContain('group-hover/chat-message')
+	})
+
+	it('has no toolbar on a device with no hover', () => {
+		const { container } = renderUI(<ChatMessage>content</ChatMessage>)
+
+		// A long press opens the menu there. The toolbar is out of the layout, so
+		// no hover, focus, or open state that it holds can show it.
+		expect(getSlot(container, 'chat-message-toolbar')).toHaveClass('[@media(hover:none)]:hidden')
+
+		// On a device that hovers, the toolbar holds the keyboard path, and Tab
+		// does not stop on the bubble.
+		expect(getSlot(container, 'chat-message-bubble')).toHaveAttribute('tabindex', '-1')
+	})
+
+	it('makes the bubble the tab stop of the menu on a device with no hover', () => {
+		stubTouch()
+
+		const { container } = renderUI(<ChatMessage>content</ChatMessage>)
+
+		const bubble = getSlot(container, 'chat-message-bubble')
+
+		// The toolbar is hidden there, so a keyboard opens the menu from the bubble.
+		expect(bubble).toHaveAttribute('tabindex', '0')
+
+		bubble.focus()
+
+		fireEvent.keyDown(bubble, { key: 'F10', shiftKey: true })
+
+		fireEvent.contextMenu(bubble)
+
+		expect(screen.getByRole('menuitem', { name: 'Copy' })).toBeInTheDocument()
 	})
 
 	it('keeps room for the toolbar above the bubble on a device that hovers', () => {
@@ -642,6 +673,9 @@ describe('ChatMessage', () => {
 		expect(screen.queryByRole('button')).not.toBeInTheDocument()
 
 		expect(bySlot(container, 'chat-message-toolbar')).not.toBeInTheDocument()
+
+		// With no menu, Tab does not stop on the bubble.
+		expect(getSlot(container, 'chat-message-bubble')).toHaveAttribute('tabindex', '-1')
 	})
 
 	it('renders settled content as Markdown', () => {

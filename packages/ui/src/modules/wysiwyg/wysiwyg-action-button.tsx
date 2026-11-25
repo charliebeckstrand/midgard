@@ -3,6 +3,7 @@
 import { type ComponentProps, useSyncExternalStore } from 'react'
 import { ButtonIconTooltip } from '../../components/button/button-icon-tooltip'
 import { useHydrated } from '../../hooks/use-hydrated'
+import { Glyph } from '../../primitives/glyph'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { isApplePlatform } from '../../utilities/apple-platform'
 import { useWysiwyg } from './context'
@@ -49,7 +50,7 @@ export function WysiwygActionButton({ action, onClick, ...props }: WysiwygAction
 
 	const active = useSyncExternalStore(subscribe, () => isActive(action), serverInactive)
 
-	const { message, shortcut, icon: Glyph } = wysiwygActions[action]
+	const { message, shortcut, icon } = wysiwygActions[action]
 
 	const label = intl.formatMessage(message)
 
@@ -66,7 +67,7 @@ export function WysiwygActionButton({ action, onClick, ...props }: WysiwygAction
 			aria-pressed={toggle ? active : undefined}
 			aria-keyshortcuts={shortcut && shortcutAria(shortcut, apple)}
 			label={label}
-			icon={<Glyph />}
+			icon={<Glyph icon={icon} />}
 			active={active}
 			disabled={locked}
 			onClick={toggle ? () => run(action) : onClick}

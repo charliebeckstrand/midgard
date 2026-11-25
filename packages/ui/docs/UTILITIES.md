@@ -233,6 +233,7 @@ Import these from `utilities/overlay-layers`. They tell whether an open overlay 
 | `toggleItem` | Returns a copy of `set` with `item` toggled (removed if present, added otherwise); no mutation. |
 | `moveItem` | Returns a copy of `items` with the item at `from` moved to index `to`. No mutation. |
 | `toggleListItem` | Returns a copy of `list` with `item` toggled: removed if present, else added at the end. No mutation. |
+| `isRecord` | Whether a value is a plain object, which JSON gives for `{}`. A parse of untrusted JSON reads it before it reads a key. Import it from `utilities/is-record`. |
 | `sameElements` | Whether two lists hold the same items in the same order, by reference. `undefined` matches only `undefined`. |
 | `sameMembers` | Whether two sets hold the same members, in any order. |
 | `sameFields` | Whether two plain objects hold the same own fields, each the same by reference. A field set to `undefined` and a field that is absent differ. |

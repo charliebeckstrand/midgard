@@ -1,10 +1,11 @@
 'use client'
 
+import { ChevronDown, ChevronRight } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { cn } from '../../core/cn'
-import { ChevronDown, ChevronRight } from '../../primitives/icons/icons'
+import { Glyph } from '../../primitives/glyph'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/grid'
 import { groupValueLabel } from './engine/grid-column/label'
@@ -57,7 +58,7 @@ export function GridGroupDisclosure({
 			className="p-0"
 			suffix={
 				<Icon
-					icon={expanded ? <ChevronDown /> : <ChevronRight />}
+					icon={expanded ? <Glyph icon={ChevronDown} /> : <Glyph icon={ChevronRight} />}
 					className={cn(k.row.group.chevron)}
 				/>
 			}

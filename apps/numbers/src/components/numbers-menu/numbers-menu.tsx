@@ -5,7 +5,7 @@ import { Bot, ChartColumn, LogIn, Menu as MenuIcon, Numbers, Trophy } from 'luci
 import { useState } from 'react'
 import { SignOutMenuItem, VerifyEmailMenuItem } from 'shared/auth'
 import { Button } from 'ui/button'
-import { useIdleLoad } from 'ui/hooks'
+import { useIdleLoad, useIntentLoad } from 'ui/hooks'
 import { Icon } from 'ui/icon'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator, MenuTrigger } from 'ui/menu'
 import { useNewRunClick } from '../../hooks/use-new-run-click'
@@ -13,10 +13,12 @@ import { usePrefetchBoards } from '../../queries/leaderboard-queries'
 import { usePrefetchStats } from '../../queries/stats-queries'
 import { dayKey } from '../../utilities/day'
 import { ROUTE_LABELS, type Route, VS_SEGMENT } from '../../utilities/seed'
-import { LeaderboardDialog } from '../leaderboard-dialog'
 
 /** The code of the Stats dialog and its bar chart, which only a signed-in reader opens. */
 const loadStatsDialog = () => import('../stats-dialog')
+
+/** The code of the Leaderboard dialog, with the tabs and the table of ui. */
+const loadLeaderboardDialog = () => import('../leaderboard-dialog')
 
 /**
  * The props of the item of `route`, when it is the route of the page: it is
@@ -62,6 +64,12 @@ export type NumbersMenuProps = {
  * only for a signed-in reader (`useIdleLoad`). Thus the chart is not in the
  * first code of a run page, and a reader with no session never loads it. A
  * press on Stats before the load opens the dialog when its code arrives.
+ *
+ * The Leaderboard dialog also loads in idle time after the mount, for each
+ * reader, or sooner when the menu opens (`useIntentLoad`). A press on
+ * Leaderboard before the load opens the dialog when its code arrives. The menu
+ * itself is not lazy: the share menu of the score bar keeps the menu code of
+ * ui in the first code of a run page.
  */
 export function NumbersMenu({ user, route }: NumbersMenuProps) {
 	const [statsOpen, setStatsOpen] = useState(false)
@@ -69,6 +77,8 @@ export function NumbersMenu({ user, route }: NumbersMenuProps) {
 	const statsDialog = useIdleLoad(user ? loadStatsDialog : null)
 
 	const [leaderboardOpen, setLeaderboardOpen] = useState(false)
+
+	const leaderboard = useIntentLoad(loadLeaderboardDialog)
 
 	const prefetchBoards = usePrefetchBoards(user?.id ?? null)
 
@@ -84,6 +94,8 @@ export function NumbersMenu({ user, route }: NumbersMenuProps) {
 				placement="bottom-end"
 				onOpenChange={(open) => {
 					if (!open) return
+
+					leaderboard.preload()
 
 					prefetchBoards(dayKey(new Date()))
 
@@ -109,7 +121,7 @@ export function NumbersMenu({ user, route }: NumbersMenuProps) {
 
 					<MenuSeparator />
 
-					<MenuItem onAction={() => setLeaderboardOpen(true)}>
+					<MenuItem onAction={() => leaderboard.request(() => setLeaderboardOpen(true))}>
 						<Icon icon={<Trophy />} />
 						<MenuLabel>Leaderboard</MenuLabel>
 					</MenuItem>
@@ -140,7 +152,13 @@ export function NumbersMenu({ user, route }: NumbersMenuProps) {
 				<statsDialog.StatsDialog open={statsOpen} onOpenChange={setStatsOpen} user={user} />
 			)}
 
-			<LeaderboardDialog open={leaderboardOpen} onOpenChange={setLeaderboardOpen} user={user} />
+			{leaderboard.module && (
+				<leaderboard.module.LeaderboardDialog
+					open={leaderboardOpen}
+					onOpenChange={setLeaderboardOpen}
+					user={user}
+				/>
+			)}
 		</>
 	)
 }

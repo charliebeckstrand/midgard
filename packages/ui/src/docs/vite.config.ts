@@ -4,6 +4,7 @@ import tailwindcss from '@tailwindcss/vite'
 import { defineConfig } from 'vite'
 import { serverAssetUrls, serverStylesheetUrl } from './plugin/asset-urls.ts'
 import { reactDocs } from './plugin/index.ts'
+import { precompileMessages } from './plugin/messages.ts'
 import { docsTarget } from './plugin/target.ts'
 
 // The docs of ui: `pnpm --filter ui dev` serves them, and `docs:build`
@@ -17,6 +18,7 @@ export default defineConfig({
 	base,
 	plugins: [
 		reactDocs({ clientDir }),
+		precompileMessages(),
 		serverAssetUrls(),
 		serverStylesheetUrl(path.join(import.meta.dirname, 'app', 'app.css'), clientDir),
 		tailwindcss(),

@@ -1,7 +1,7 @@
 'use client'
 
+import { GripVertical } from 'lucide-react'
 import { Icon } from '../../components/icon'
-import { GripVertical } from '../../primitives/icons/icons'
 import {
 	SortableGrip,
 	type SortableGripBindings,
@@ -26,7 +26,7 @@ export function GridManagerGrip({
 	if (!sortable) {
 		return (
 			<span data-dragging="" className={k().manager.row.grip}>
-				<Icon icon={<GripVertical />} />
+				<Icon icon={GripVertical} />
 			</span>
 		)
 	}

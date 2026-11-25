@@ -83,10 +83,8 @@ export const k = defineKata({
 	// its bubble for the toolbar. The toolbar stays in the box of the message,
 	// so a host that clips its overflow, such as a card or a scroll, does not
 	// cut it. The room is the gap of a transcript row (`kokkaku.chat.row`), so a
-	// message in a transcript adds none. A device with no hover never shows the
-	// toolbar on a touch, so the message keeps no room there. The toolbar shows
-	// there only for a keyboard focus or an open menu, and then it covers the
-	// top corner of the bubble.
+	// message in a transcript adds none. A device with no hover has no toolbar,
+	// so the message keeps no room there.
 	menu: {
 		true: '[@media(hover:hover)]:pt-6',
 		false: '',
@@ -135,12 +133,15 @@ export const k = defineKata({
 		 * outer top corner of the bubble. That is the corner on the side of the
 		 * speaker. A system line has no side, so the toolbar takes its start
 		 * corner. The toolbar is never in the center, where it would cover the
-		 * text that it acts on. On a device that hovers, the toolbar rises into
-		 * the `menu` room, 24px above the frame. On a device with no hover, it
-		 * covers the top corner of the bubble. The toolbar is 34px high, because
-		 * its buttons have a fixed size, so it overlaps the bubble by 10px: the
-		 * padding of the bubble, and not its text. It is never a row of icons
-		 * below the bubble.
+		 * text that it acts on. The toolbar rises into the `menu` room, 24px
+		 * above the frame. The toolbar is 34px high, because its buttons have a
+		 * fixed size, so it overlaps the bubble by 10px: the padding of the
+		 * bubble, and not its text. It is never a row of icons below the bubble.
+		 *
+		 * A device with no hover has no toolbar: a long press on the bubble opens
+		 * the menu there. The toolbar is not in the layout there, so no state that
+		 * shows it, such as a focus or an open tooltip, can show it on a touch
+		 * screen.
 		 *
 		 * The frame can be narrower than the toolbar, so the toolbar takes its
 		 * own full width. It does not wrap to the width of a short bubble.
@@ -148,7 +149,10 @@ export const k = defineKata({
 		toolbar: {
 			base: [
 				flex.row,
-				'absolute top-0 z-10 w-max p-1 [@media(hover:hover)]:-top-6',
+				'absolute -top-6 z-10 w-max p-1',
+				// A device with no hover opens the menu with a long press, and never
+				// shows the toolbar.
+				'[@media(hover:none)]:hidden',
 				rounded.lg,
 				// The fill is opaque and the ring is inside the toolbar, so the edge has
 				// one tone over the page and over the bubble. A translucent fill and an
@@ -166,11 +170,9 @@ export const k = defineKata({
 				'pointer-events-none opacity-0',
 				// A hover on the bubble shows the toolbar, and not a hover on the empty
 				// side of the message row. The toolbar overlaps the bubble, so the
-				// pointer goes onto it with no gap, and its own hover holds it. A hover
-				// counts only on a device that hovers: a tap on a touch screen leaves
-				// `:hover` behind, and a long press opens the menu there.
-				'[@media(hover:hover)]:group-has-[[data-slot=chat-message-bubble]:hover]/chat-message:pointer-events-auto',
-				'[@media(hover:hover)]:group-has-[[data-slot=chat-message-bubble]:hover]/chat-message:opacity-100',
+				// pointer goes onto it with no gap, and its own hover holds it.
+				'group-has-[[data-slot=chat-message-bubble]:hover]/chat-message:pointer-events-auto',
+				'group-has-[[data-slot=chat-message-bubble]:hover]/chat-message:opacity-100',
 				'hover:pointer-events-auto hover:opacity-100',
 				'group-has-focus-visible/chat-message:pointer-events-auto group-has-focus-visible/chat-message:opacity-100',
 				// The menu portals out of the message, so neither hover nor focus can
