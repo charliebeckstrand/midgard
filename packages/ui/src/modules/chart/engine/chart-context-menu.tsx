@@ -17,13 +17,11 @@ import type { ContextMenuConfig, ContextMenuItem } from '../../../components/con
 import { Dialog, DialogClose, DialogFooter, DialogPanel } from '../../../components/dialog'
 import { downloadBlob } from '../../../core/download-blob'
 import { useStableEvent } from '../../../hooks/use-stable-event'
-import {
-	Clipboard,
-	Download,
-	Image as ImageIcon,
-	Maximize2,
-	Table2,
-} from '../../../primitives/icons/icons'
+import { Clipboard } from '../../../primitives/icons/glyphs/glyph-clipboard'
+import { Download } from '../../../primitives/icons/glyphs/glyph-download'
+import { Image as ImageIcon } from '../../../primitives/icons/glyphs/glyph-image'
+import { Maximize2 } from '../../../primitives/icons/glyphs/glyph-maximize2'
+import { Table2 } from '../../../primitives/icons/glyphs/glyph-table2'
 import { intlMessages } from '../../../primitives/intl/intl-messages'
 import { useIntl } from '../../../primitives/intl/use-intl'
 import { copyText, downloadCsv } from '../../../utilities/export-output'

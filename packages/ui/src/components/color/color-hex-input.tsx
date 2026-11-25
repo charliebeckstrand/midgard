@@ -2,7 +2,7 @@
 
 import type { ChangeEvent, FocusEvent } from 'react'
 import { useIdScope } from '../../hooks/use-id-scope'
-import { Copy } from '../../primitives/icons/icons'
+import { Copy } from '../../primitives/icons/glyphs/glyph-copy'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { ControlContext, useControl } from '../control/context'
 import { CopyButton } from '../copy-button'

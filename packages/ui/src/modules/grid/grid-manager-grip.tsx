@@ -1,7 +1,7 @@
 'use client'
 
 import { Icon } from '../../components/icon'
-import { GripVertical } from '../../primitives/icons/icons'
+import { GripVertical } from '../../primitives/icons/glyphs/glyph-grip-vertical'
 import {
 	SortableGrip,
 	type SortableGripBindings,

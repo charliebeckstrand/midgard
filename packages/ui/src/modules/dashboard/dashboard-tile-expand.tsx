@@ -15,7 +15,7 @@ import {
 } from '../../components/dialog'
 import { Icon } from '../../components/icon'
 import { HeaderActions } from '../../primitives/header-actions'
-import { Maximize2 } from '../../primitives/icons/icons'
+import { Maximize2 } from '../../primitives/icons/glyphs/glyph-maximize2'
 import { IntlMessage } from '../../primitives/intl'
 import { intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'

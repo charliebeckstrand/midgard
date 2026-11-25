@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import type { FormattedInputOptions } from '../../hooks/use-formatted-input'
-import { MapPinned, Phone } from '../../primitives/icons/icons'
+import { MapPinned } from '../../primitives/icons/glyphs/glyph-map-pinned'
+import { Phone } from '../../primitives/icons/glyphs/glyph-phone'
 import { digitsOnly } from '../../utilities/digits-only'
 import { Icon } from '../icon'
 import type { InputProps } from '../input'

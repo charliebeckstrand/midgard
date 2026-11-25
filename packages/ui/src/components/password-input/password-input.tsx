@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { useReportedChange } from '../../hooks/use-reported-change'
-import { Eye, EyeOff } from '../../primitives/icons/icons'
+import { Eye } from '../../primitives/icons/glyphs/glyph-eye'
+import { EyeOff } from '../../primitives/icons/glyphs/glyph-eye-off'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { Button } from '../button'

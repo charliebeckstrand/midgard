@@ -1,7 +1,7 @@
 'use client'
 
 import { dataAttr } from '../../core/data-attr'
-import { Calendar as CalendarIcon } from '../../primitives/icons/icons'
+import { Calendar as CalendarIcon } from '../../primitives/icons/glyphs/glyph-calendar'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { Button } from '../button'
 import { Icon } from '../icon'

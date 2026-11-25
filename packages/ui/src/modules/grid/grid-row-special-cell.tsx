@@ -5,7 +5,7 @@ import { type ChangeEventHandler, type CSSProperties, memo, type ReactNode, useI
 import { Checkbox } from '../../components/checkbox'
 import { Icon } from '../../components/icon'
 import { cn } from '../../core/cn'
-import { GripVertical } from '../../primitives/icons/icons'
+import { GripVertical } from '../../primitives/icons/glyphs/glyph-grip-vertical'
 import { reorderMessages } from '../../primitives/intl/intl-reorder'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { SortableGrip } from '../../primitives/sortable-grip/sortable-grip'

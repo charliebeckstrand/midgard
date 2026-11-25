@@ -9,7 +9,7 @@ import {
 	type Ref,
 } from 'react'
 import { cn } from '../../core/cn'
-import { X } from '../../primitives/icons/icons'
+import { X } from '../../primitives/icons/glyphs/glyph-x'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { type BadgeVariants, k } from '../../recipes/kata/badge'

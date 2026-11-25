@@ -13,7 +13,7 @@ import {
 	MenuTrigger,
 } from '../../components/menu'
 import { colors, extendedColors, type PaletteColor } from '../../core/recipe/colors'
-import { Ban } from '../../primitives/icons/icons'
+import { Ban } from '../../primitives/icons/glyphs/glyph-ban'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { gridMessages } from './engine/grid-messages'
 

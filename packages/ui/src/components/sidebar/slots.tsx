@@ -3,7 +3,7 @@
 import { type ComponentProps, use } from 'react'
 import { cn } from '../../core/cn'
 import { createSlot } from '../../core/create-slot'
-import { X } from '../../primitives/icons/icons'
+import { X } from '../../primitives/icons/glyphs/glyph-x'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { OffcanvasContext } from '../../primitives/offcanvas/context'

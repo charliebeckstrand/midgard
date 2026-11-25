@@ -11,7 +11,7 @@ import { k } from '../../recipes/kata/option'
 import { capitalizeFirst } from '../../utilities/capitalize-first'
 import { isActivationKey } from '../../utilities/keyboard-navigation'
 import type { KeyedStore } from '../../utilities/keyed-store'
-import { Check } from '../icons/icons'
+import { Check } from '../icons/glyphs/glyph-check'
 
 /**
  * Props for {@link Option}: selection state (`selected`, `disabled`), the

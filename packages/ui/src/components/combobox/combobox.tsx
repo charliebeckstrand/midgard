@@ -38,7 +38,7 @@ import { useSelectableValueChange } from '../../hooks/use-selectable-value-chang
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useFormValue } from '../../primitives/form/use-form-value'
 import { useGlass } from '../../primitives/glass/context'
-import { ChevronsUpDown } from '../../primitives/icons/icons'
+import { ChevronsUpDown } from '../../primitives/icons/glyphs/glyph-chevrons-up-down'
 import { defineMessages, intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { hasSelection, useOptionSelection } from '../../primitives/option/use-option-selection'

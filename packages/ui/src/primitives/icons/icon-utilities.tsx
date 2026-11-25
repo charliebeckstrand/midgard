@@ -31,7 +31,7 @@ export function createIcon(fallback: LucideIcon): IconGlyph {
 	const Fallback = fallback
 
 	// Lucide names each icon by its own name, the key of `Icons`. A test checks
-	// that each export of `icons.ts` has that name.
+	// that each glyph of `glyphs` has that name.
 	const name = fallback.displayName as IconName
 
 	function Glyph(props: LucideProps): ReactElement {

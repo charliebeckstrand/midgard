@@ -11,7 +11,7 @@ import {
 } from '../../components/drawer'
 import { Icon } from '../../components/icon'
 import { OFFCANVAS_LAYOUT, type OffcanvasLayout, useOffcanvas } from '../../hooks/use-offcanvas'
-import { SlidersHorizontal } from '../../primitives/icons/icons'
+import { SlidersHorizontal } from '../../primitives/icons/glyphs/glyph-sliders-horizontal'
 import { intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { Landmark } from '../../primitives/landmark'

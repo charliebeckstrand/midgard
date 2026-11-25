@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactElement } from 'react'
-import type * as glyphs from './icons'
+import type * as glyphs from './glyphs'
 
 /**
  * The name of an icon that ui draws: the own name of its Lucide glyph, such

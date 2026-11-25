@@ -7,7 +7,7 @@ import { dataAttr } from '../../core/data-attr'
 import type { ScaleStep } from '../../core/density/scale'
 import { k, type scale } from '../../recipes/kata/icon'
 import { useControlLock } from '../control/context'
-import { GripVertical } from '../icons/icons'
+import { GripVertical } from '../icons/glyphs/glyph-grip-vertical'
 
 /**
  * The drag bindings that a {@link SortableGrip} carries. A dnd-kit sortable

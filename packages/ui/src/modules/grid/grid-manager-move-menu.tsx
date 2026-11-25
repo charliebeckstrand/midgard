@@ -10,7 +10,10 @@ import {
 	MenuSeparator,
 	MenuTrigger,
 } from '../../components/menu'
-import { ArrowDown, ArrowUp, ChevronDown, ChevronUp } from '../../primitives/icons/icons'
+import { ArrowDown } from '../../primitives/icons/glyphs/glyph-arrow-down'
+import { ArrowUp } from '../../primitives/icons/glyphs/glyph-arrow-up'
+import { ChevronDown } from '../../primitives/icons/glyphs/glyph-chevron-down'
+import { ChevronUp } from '../../primitives/icons/glyphs/glyph-chevron-up'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { gridMessages } from './engine/grid-messages'
 import type { GridItemMoves, GridMoveTarget } from './engine/grid-reorder-move'

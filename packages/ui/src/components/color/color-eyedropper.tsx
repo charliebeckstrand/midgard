@@ -1,7 +1,7 @@
 'use client'
 
 import { useHydrated } from '../../hooks/use-hydrated'
-import { Pipette } from '../../primitives/icons/icons'
+import { Pipette } from '../../primitives/icons/glyphs/glyph-pipette'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { Button } from '../button'
 import { Icon } from '../icon'

@@ -1,7 +1,7 @@
 'use client'
 
 import type { MouseEventHandler, Ref } from 'react'
-import { X } from '../../primitives/icons/icons'
+import { X } from '../../primitives/icons/glyphs/glyph-x'
 import { intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { Button } from '../button'

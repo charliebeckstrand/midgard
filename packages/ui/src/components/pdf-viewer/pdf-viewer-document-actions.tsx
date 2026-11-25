@@ -1,4 +1,5 @@
-import { Download, Printer } from '../../primitives/icons/icons'
+import { Download } from '../../primitives/icons/glyphs/glyph-download'
+import { Printer } from '../../primitives/icons/glyphs/glyph-printer'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { ButtonIconTooltip } from '../button/button-icon-tooltip'
 import { ToolbarGroup } from '../toolbar'

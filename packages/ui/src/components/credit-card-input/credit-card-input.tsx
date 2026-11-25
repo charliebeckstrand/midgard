@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import { CreditCard } from '../../primitives/icons/icons'
+import { CreditCard } from '../../primitives/icons/glyphs/glyph-credit-card'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { digitsOnly } from '../../utilities/digits-only'
 import { Icon } from '../icon'

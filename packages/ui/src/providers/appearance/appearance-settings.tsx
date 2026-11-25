@@ -6,7 +6,7 @@ import { Icon } from '../../components/icon'
 import type { TabContentsProps } from '../../components/tabs'
 import { useFail } from '../../hooks/use-fail'
 import { useIntentLoad } from '../../hooks/use-intent-load'
-import { Settings2 } from '../../primitives/icons/icons'
+import { Settings2 } from '../../primitives/icons/glyphs/glyph-settings2'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { appearanceMessages } from './appearance-messages'
 

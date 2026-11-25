@@ -12,7 +12,7 @@ import {
 // Icon home boundary.
 //
 // An app can replace each icon that ui draws, through `<UIProvider icons>`
-// (CONVENTIONS §5.13). The glyphs of `primitives/icons/icons.ts` read that map,
+// (CONVENTIONS §5.13). The glyphs of `primitives/icons/glyphs` read that map,
 // and they are the only path from ui to lucide. A component that imports a
 // glyph from `lucide-react` draws the Lucide icon in each app, and the icon of
 // the app does not reach it. So no file of ui outside `primitives/icons`
@@ -40,7 +40,7 @@ describe('icon home boundary', () => {
 		// A walk that read no file would pass the case below with an empty list.
 		expect(files.size).toBeGreaterThan(500)
 
-		expect(files.has(`${HOME}icons.ts`)).toBe(true)
+		expect(files.has(`${HOME}glyphs/index.ts`)).toBe(true)
 	})
 
 	it('imports lucide-react only in the home of the glyphs', () => {
@@ -50,7 +50,7 @@ describe('icon home boundary', () => {
 
 		expect(
 			violations,
-			`import each glyph from \`${HOME}icons\`, not from lucide-react:\n  ${violations.join('\n  ')}`,
+			`import each glyph from its file in \`${HOME}glyphs\`, not from lucide-react:\n  ${violations.join('\n  ')}`,
 		).toEqual([])
 	})
 
@@ -61,7 +61,7 @@ describe('icon home boundary', () => {
 				`import type { LucideIcon } from "lucide-react"`,
 				`const icons = import('lucide-react')`,
 				`export { X } from 'lucide-react'`,
-				`import { X } from '../../primitives/icons/icons'`,
+				`import { X } from '../../primitives/icons/glyphs/glyph-x'`,
 			].map((code) => LUCIDE_IMPORT.test(code)),
 		).toEqual([true, true, true, true, false])
 	})

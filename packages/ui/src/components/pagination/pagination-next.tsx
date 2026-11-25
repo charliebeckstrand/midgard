@@ -1,7 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { ChevronRight } from '../../primitives/icons/icons'
+import { ChevronRight } from '../../primitives/icons/glyphs/glyph-chevron-right'
 import { useIntl } from '../../primitives/intl/use-intl'
 import type { ButtonProps } from '../button'
 import { Icon } from '../icon'

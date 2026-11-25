@@ -1,6 +1,6 @@
 import type { ComponentProps, ReactNode } from 'react'
 import { cn } from '../../core/cn'
-import { ChevronRight } from '../../primitives/icons/icons'
+import { ChevronRight } from '../../primitives/icons/glyphs/glyph-chevron-right'
 import { k } from '../../recipes/kata/breadcrumb'
 import { Icon } from '../icon'
 

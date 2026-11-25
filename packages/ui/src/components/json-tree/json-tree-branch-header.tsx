@@ -1,6 +1,6 @@
 import { type KeyboardEvent, useId } from 'react'
 import { dataAttr } from '../../core/data-attr'
-import { ChevronRight } from '../../primitives/icons/icons'
+import { ChevronRight } from '../../primitives/icons/glyphs/glyph-chevron-right'
 import { defineMessage } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/json-tree'

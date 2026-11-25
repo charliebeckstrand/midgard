@@ -1,5 +1,7 @@
 import { useMemo } from 'react'
-import { Maximize2, ZoomIn, ZoomOut } from '../../primitives/icons/icons'
+import { Maximize2 } from '../../primitives/icons/glyphs/glyph-maximize2'
+import { ZoomIn } from '../../primitives/icons/glyphs/glyph-zoom-in'
+import { ZoomOut } from '../../primitives/icons/glyphs/glyph-zoom-out'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { ButtonIconTooltip } from '../button/button-icon-tooltip'
 import { ToolbarGroup } from '../toolbar'

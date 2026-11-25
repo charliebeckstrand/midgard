@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { cn } from '../../core/cn'
 import { useFormField } from '../../primitives/form/context'
-import { MapPin } from '../../primitives/icons/icons'
+import { MapPin } from '../../primitives/icons/glyphs/glyph-map-pin'
 import { defineMessages, intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { keyByOccurrence } from '../../utilities/key-by-occurrence'

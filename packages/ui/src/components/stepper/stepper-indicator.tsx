@@ -3,7 +3,7 @@
 import type { ComponentProps } from 'react'
 import { cn } from '../../core/cn'
 import { ActiveIndicator } from '../../primitives/active-indicator'
-import { Check } from '../../primitives/icons/icons'
+import { Check } from '../../primitives/icons/glyphs/glyph-check'
 import { useStepper, useStepperStep } from './context'
 
 /** Props for {@link StepperIndicator}: `className` plus `<span>` attributes. */

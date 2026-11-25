@@ -8,7 +8,7 @@ import {
 } from 'tinykeys'
 import { useControllableFlag } from '../../hooks/use-controllable'
 import { useKeybindings } from '../../hooks/use-keybindings'
-import { Search } from '../../primitives/icons/icons'
+import { Search } from '../../primitives/icons/glyphs/glyph-search'
 import { defineMessages, intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { DeferredQueryContext, QueryContext } from '../../primitives/query/context'

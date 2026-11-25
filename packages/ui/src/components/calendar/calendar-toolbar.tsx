@@ -1,5 +1,6 @@
 import type { KeyboardEventHandler, ReactNode, RefObject } from 'react'
-import { ChevronLeft, ChevronRight } from '../../primitives/icons/icons'
+import { ChevronLeft } from '../../primitives/icons/glyphs/glyph-chevron-left'
+import { ChevronRight } from '../../primitives/icons/glyphs/glyph-chevron-right'
 import { k } from '../../recipes/kata/calendar'
 import { Button } from '../button'
 import { Icon } from '../icon'

@@ -1,16 +1,14 @@
 import type { ComponentType } from 'react'
-import {
-	Code,
-	Italic,
-	LetterB,
-	LetterH,
-	Link,
-	List,
-	ListOrdered,
-	SquareCode,
-	Strikethrough,
-	TextQuote,
-} from '../../primitives/icons/icons'
+import { Code } from '../../primitives/icons/glyphs/glyph-code'
+import { Italic } from '../../primitives/icons/glyphs/glyph-italic'
+import { LetterB } from '../../primitives/icons/glyphs/glyph-letter-b'
+import { LetterH } from '../../primitives/icons/glyphs/glyph-letter-h'
+import { Link } from '../../primitives/icons/glyphs/glyph-link'
+import { List } from '../../primitives/icons/glyphs/glyph-list'
+import { ListOrdered } from '../../primitives/icons/glyphs/glyph-list-ordered'
+import { SquareCode } from '../../primitives/icons/glyphs/glyph-square-code'
+import { Strikethrough } from '../../primitives/icons/glyphs/glyph-strikethrough'
+import { TextQuote } from '../../primitives/icons/glyphs/glyph-text-quote'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import type { MessageDescriptor } from '../../primitives/intl/types'
 import type { WysiwygAction, WysiwygHeadingLevel, WysiwygToggleAction } from './types'

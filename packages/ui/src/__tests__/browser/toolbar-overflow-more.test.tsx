@@ -3,7 +3,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { ButtonIconTooltip } from '../../components/button/button-icon-tooltip'
 import { Toolbar, ToolbarGroup, ToolbarSeparator } from '../../components/toolbar'
-import { Square } from '../../primitives/icons/icons'
+import { Square } from '../../primitives/icons/glyphs/glyph-square'
 import { act, renderUI, screen, waitFor, within } from '../helpers'
 import { resizeObserverLoopErrors } from './helpers/resize-observer-loop'
 

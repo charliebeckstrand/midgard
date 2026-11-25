@@ -12,13 +12,11 @@ import {
 import { cn } from '../../core/cn'
 import { useAnnounceOnAppear } from '../../hooks/a11y/use-announce-on-appear'
 import { useControllableFlag } from '../../hooks/use-controllable'
-import {
-	CircleCheckBig,
-	CircleX,
-	Info,
-	TriangleExclamationPoint,
-	X,
-} from '../../primitives/icons/icons'
+import { CircleCheckBig } from '../../primitives/icons/glyphs/glyph-circle-check-big'
+import { CircleX } from '../../primitives/icons/glyphs/glyph-circle-x'
+import { Info } from '../../primitives/icons/glyphs/glyph-info'
+import { TriangleExclamationPoint } from '../../primitives/icons/glyphs/glyph-triangle-exclamation-point'
+import { X } from '../../primitives/icons/glyphs/glyph-x'
 import { intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { type AlertVariants, k } from '../../recipes/kata/alert'

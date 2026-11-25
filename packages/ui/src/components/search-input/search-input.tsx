@@ -5,7 +5,7 @@ import { type ChangeEvent, type KeyboardEvent, type ReactNode, useMemo } from 'r
 import { cn } from '../../core/cn'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { useFormValue } from '../../primitives/form/use-form-value'
-import { Search } from '../../primitives/icons/icons'
+import { Search } from '../../primitives/icons/glyphs/glyph-search'
 import { defineMessages, intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { clearNativeInput } from '../../utilities/clear-native-input'

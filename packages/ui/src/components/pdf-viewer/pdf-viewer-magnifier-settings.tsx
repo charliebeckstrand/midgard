@@ -1,7 +1,7 @@
 'use client'
 
 import { useId } from 'react'
-import { ScanSearch } from '../../primitives/icons/icons'
+import { ScanSearch } from '../../primitives/icons/glyphs/glyph-scan-search'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/pdf-viewer'
 import { Stack } from '../../structure/stack'

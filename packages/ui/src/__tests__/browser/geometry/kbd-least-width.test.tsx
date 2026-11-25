@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { Button } from '../../../components/button'
 import { Icon } from '../../../components/icon'
 import { Kbd } from '../../../components/kbd'
-import { ArrowUp } from '../../../primitives/icons/icons'
+import { ArrowUp } from '../../../primitives/icons/glyphs/glyph-arrow-up'
 import { renderUI } from '../../helpers'
 import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
 

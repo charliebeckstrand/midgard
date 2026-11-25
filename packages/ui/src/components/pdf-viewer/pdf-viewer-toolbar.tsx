@@ -1,13 +1,11 @@
 'use client'
 
 import { cn } from '../../core/cn'
-import {
-	Highlighter,
-	PanelLeft,
-	PanelLeftDashed,
-	RotateCw,
-	ScanSearch,
-} from '../../primitives/icons/icons'
+import { Highlighter } from '../../primitives/icons/glyphs/glyph-highlighter'
+import { PanelLeft } from '../../primitives/icons/glyphs/glyph-panel-left'
+import { PanelLeftDashed } from '../../primitives/icons/glyphs/glyph-panel-left-dashed'
+import { RotateCw } from '../../primitives/icons/glyphs/glyph-rotate-cw'
+import { ScanSearch } from '../../primitives/icons/glyphs/glyph-scan-search'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/pdf-viewer'
 import { ButtonIconTooltip } from '../button/button-icon-tooltip'

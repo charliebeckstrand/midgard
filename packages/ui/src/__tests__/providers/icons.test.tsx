@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { BreadcrumbSeparator } from '../../components/breadcrumb'
 import { Icon } from '../../components/icon'
-import * as glyphs from '../../primitives/icons/icons'
+import * as glyphs from '../../primitives/icons/glyphs'
 import { UIProvider } from '../../providers/ui'
 import { renderUI } from '../helpers'
 

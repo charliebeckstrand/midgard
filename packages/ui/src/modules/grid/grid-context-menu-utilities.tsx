@@ -3,38 +3,36 @@
 import type { ReactElement, ReactNode } from 'react'
 import { mergeContextMenuItems } from '../../components/context-menu/context-menu-merge'
 import type { PaletteColor } from '../../core/recipe/colors'
-import {
-	ArrowDown,
-	ArrowDownToLine,
-	ArrowLeftToLine,
-	ArrowRightToLine,
-	ArrowUp,
-	ArrowUpDown,
-	ArrowUpToLine,
-	Ban,
-	ChevronDown,
-	ChevronLeft,
-	ChevronRight,
-	ChevronsDownUp,
-	ChevronsUpDown,
-	ChevronUp,
-	Columns3,
-	Copy,
-	Download,
-	GripVertical,
-	Group,
-	ListFilter,
-	ListTree,
-	Minus,
-	MoveHorizontal,
-	Pin,
-	PinOff,
-	Plus,
-	Printer,
-	RotateCcw,
-	StretchHorizontal,
-	Ungroup,
-} from '../../primitives/icons/icons'
+import { ArrowDown } from '../../primitives/icons/glyphs/glyph-arrow-down'
+import { ArrowDownToLine } from '../../primitives/icons/glyphs/glyph-arrow-down-to-line'
+import { ArrowLeftToLine } from '../../primitives/icons/glyphs/glyph-arrow-left-to-line'
+import { ArrowRightToLine } from '../../primitives/icons/glyphs/glyph-arrow-right-to-line'
+import { ArrowUp } from '../../primitives/icons/glyphs/glyph-arrow-up'
+import { ArrowUpDown } from '../../primitives/icons/glyphs/glyph-arrow-up-down'
+import { ArrowUpToLine } from '../../primitives/icons/glyphs/glyph-arrow-up-to-line'
+import { Ban } from '../../primitives/icons/glyphs/glyph-ban'
+import { ChevronDown } from '../../primitives/icons/glyphs/glyph-chevron-down'
+import { ChevronLeft } from '../../primitives/icons/glyphs/glyph-chevron-left'
+import { ChevronRight } from '../../primitives/icons/glyphs/glyph-chevron-right'
+import { ChevronUp } from '../../primitives/icons/glyphs/glyph-chevron-up'
+import { ChevronsDownUp } from '../../primitives/icons/glyphs/glyph-chevrons-down-up'
+import { ChevronsUpDown } from '../../primitives/icons/glyphs/glyph-chevrons-up-down'
+import { Columns3 } from '../../primitives/icons/glyphs/glyph-columns3'
+import { Copy } from '../../primitives/icons/glyphs/glyph-copy'
+import { Download } from '../../primitives/icons/glyphs/glyph-download'
+import { GripVertical } from '../../primitives/icons/glyphs/glyph-grip-vertical'
+import { Group } from '../../primitives/icons/glyphs/glyph-group'
+import { ListFilter } from '../../primitives/icons/glyphs/glyph-list-filter'
+import { ListTree } from '../../primitives/icons/glyphs/glyph-list-tree'
+import { Minus } from '../../primitives/icons/glyphs/glyph-minus'
+import { MoveHorizontal } from '../../primitives/icons/glyphs/glyph-move-horizontal'
+import { Pin } from '../../primitives/icons/glyphs/glyph-pin'
+import { PinOff } from '../../primitives/icons/glyphs/glyph-pin-off'
+import { Plus } from '../../primitives/icons/glyphs/glyph-plus'
+import { Printer } from '../../primitives/icons/glyphs/glyph-printer'
+import { RotateCcw } from '../../primitives/icons/glyphs/glyph-rotate-ccw'
+import { StretchHorizontal } from '../../primitives/icons/glyphs/glyph-stretch-horizontal'
+import { Ungroup } from '../../primitives/icons/glyphs/glyph-ungroup'
 import type { IntlShape } from '../../primitives/intl/types'
 import { isDataColumn } from '../../utilities/is-data-column'
 import type { GridSortState } from './context'
