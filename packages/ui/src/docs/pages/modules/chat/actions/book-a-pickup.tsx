@@ -1,5 +1,12 @@
-import { type ChatActionPart, type ChatMessageData, ChatTranscript, useChatSend } from 'ui/chat'
-import { revisingTransport } from './reply.ts'
+import { useEffect, useRef, useState } from 'react'
+import {
+	type ChatActionPart,
+	type ChatActionResult,
+	type ChatMessageData,
+	ChatTranscript,
+	useChatSend,
+} from 'ui/chat'
+import { agentTransport } from './reply.ts'
 
 // The line that stays, and the line that the answer makes stale.
 const status = {
@@ -53,18 +60,22 @@ const initialMessages: ChatMessageData[] = [
 
 // The agent strikes the line that the answer makes stale, and writes the
 // booking after it.
-const transport = revisingTransport(({ result }) => [
-	{
-		kind: 'text',
-		id: 'status',
-		text: `${status.ready} ~~${status.stale}~~ Booked for Thursday ${
-			result?.window === 'morning' ? 'morning' : 'afternoon'
-		}. The driver calls ${result?.contact} on arrival.`,
-	},
-])
+const revise = ({ result }: { result: ChatActionResult }) => ({
+	id: 'status',
+	text: `${status.ready} ~~${status.stale}~~ Booked for Thursday ${
+		result.window === 'morning' ? 'morning' : 'afternoon'
+	}. The driver calls ${result.contact} on arrival.`,
+})
 
 export default function BookAPickup() {
+	// The shown path, for the agent to revise an earlier message.
+	const shown = useRef<readonly ChatMessageData[]>(initialMessages)
+	const [transport] = useState(() => agentTransport(revise, () => shown.current))
 	const chat = useChatSend({ transport, initialMessages })
+
+	useEffect(() => {
+		shown.current = chat.messages
+	}, [chat.messages])
 
 	return (
 		<ChatTranscript

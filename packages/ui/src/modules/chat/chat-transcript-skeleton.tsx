@@ -35,7 +35,7 @@ export type ChatTranscriptSkeletonProps = {
 export function ChatTranscriptSkeleton({ messages = 4, className }: ChatTranscriptSkeletonProps) {
 	const messageKeys = rangeKeys(messages, 'message')
 
-	const { row } = k()
+	const { row, first } = k()
 
 	return (
 		<div aria-hidden="true" className={cn(k.skeleton.root, className)}>
@@ -43,7 +43,10 @@ export function ChatTranscriptSkeleton({ messages = 4, className }: ChatTranscri
 				const sender = index % 2 === 0 ? 'user' : 'assistant'
 
 				return (
-					<div key={messageKey} className={cn(kMessage({ sender }).base, row)}>
+					<div
+						key={messageKey}
+						className={cn(kMessage({ sender }).base, row, index === 0 && first)}
+					>
 						<div className={cn(k.skeleton.bubble, k.skeleton.tail[sender])}>
 							{k.skeleton.lines[sender].map((width) => (
 								<Placeholder key={width} className={cn(k.skeleton.line, width)} />
