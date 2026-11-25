@@ -12,7 +12,7 @@ import {
 } from '../../primitives/icons/icons'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import type { MessageDescriptor } from '../../primitives/intl/types'
-import type { WysiwygAction } from './types'
+import type { WysiwygAction, WysiwygToggleAction } from './types'
 
 /** @internal */
 export const wysiwygMessages = defineMessages({
@@ -217,4 +217,23 @@ export const WYSIWYG_ACTIONS = Object.keys(wysiwygActions) as WysiwygAction[]
  */
 export function shortcutAria({ shift, alt, key }: WysiwygShortcut, apple: boolean): string {
 	return [apple ? 'Meta' : 'Control', alt && 'Alt', shift && 'Shift', key].filter(Boolean).join('+')
+}
+
+/**
+ * The action of a format input, such as the Bold item of the edit menu of iOS.
+ * Markdown has no underline, so `formatUnderline` has none.
+ *
+ * @internal
+ */
+export function formatAction(inputType: string): WysiwygToggleAction | undefined {
+	switch (inputType) {
+		case 'formatBold':
+			return 'bold'
+		case 'formatItalic':
+			return 'italic'
+		case 'formatStrikeThrough':
+			return 'strike'
+		default:
+			return undefined
+	}
 }
