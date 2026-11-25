@@ -1,4 +1,5 @@
 import { beforeEach, onTestFinished } from 'vitest'
+import { describeValue } from './describe-value'
 
 /**
  * Fails a test that writes to `console.error` or `console.warn` and does not
@@ -28,9 +29,16 @@ const messages: string[] = []
 /** Marks a console method that already carries the guard. */
 const GUARDED = Symbol.for('midgard.console-guard')
 
-/** One argument of a console call, as text. */
+/**
+ * One argument of a console call, as text: a string as it is, an error with its
+ * stack, and another value as {@link describeValue} writes it. `String` gave
+ * `[object Object]` for an object, such as the list of issues of a repaired
+ * query.
+ */
 function show(arg: unknown): string {
-	return arg instanceof Error ? (arg.stack ?? arg.message) : String(arg)
+	if (typeof arg === 'string') return arg
+
+	return arg instanceof Error ? (arg.stack ?? arg.message) : describeValue(arg)
 }
 
 /**

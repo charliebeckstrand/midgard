@@ -3,7 +3,7 @@ import { describeNode } from '../../helpers/describe-node'
 /**
  * The shared page's state, for a failure message to carry.
  *
- * Both instances run `isolate: false`, so one page serves every file an
+ * Each instance runs `isolate: false`, so one page serves every file an
  * instance runs and a test inherits whatever the run left in it. When a failure
  * is intermittent, the assertion message describes the last line and none of
  * that inheritance: a received 0 where 1 was expected says the handler did not

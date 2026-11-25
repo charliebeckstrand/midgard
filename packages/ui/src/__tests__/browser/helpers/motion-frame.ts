@@ -1,6 +1,7 @@
 import { cancelFrame, frame } from 'motion'
 import { inject } from 'vitest'
-import { describeRead } from './sample'
+import { describeValue } from '../../helpers/describe-value'
+import { describeAnimation } from './signals'
 
 /**
  * Reads a value in each frame of the Motion frame loop, after Motion writes its
@@ -34,7 +35,7 @@ import { describeRead } from './sample'
  * @throws When the deadline passes before `done` accepts a value, or when
  * `read` or `during` throws. The default deadline is the suite budget of
  * `asyncUtilTimeout`. The error of the deadline gives the last read, as
- * {@link describeRead} writes it.
+ * {@link describeValue} writes it.
  */
 export async function sampleMotionFrames<T>(
 	read: () => T,
@@ -60,7 +61,7 @@ export async function sampleMotionFrames<T>(
 
 					reject(
 						new Error(
-							`sampleMotionFrames: no accepted value in ${deadline}ms; the last read was ${describeRead(value)}`,
+							`sampleMotionFrames: no accepted value in ${deadline}ms; the last read was ${describeValue(value)}`,
 						),
 					)
 				}
@@ -102,11 +103,15 @@ export async function sampleMotionFrames<T>(
  * @param animations - Gives the tweens to wait for, such as
  * `element.getAnimations({ subtree: true })`.
  * @throws When a tween still runs at the deadline of {@link sampleMotionFrames}.
+ * The error names each tween that still runs, as {@link describeAnimation}
+ * names it.
  */
 export async function waitForNoTween(animations: () => readonly Animation[]): Promise<void> {
+	// The read names each tween, so the error of a deadline tells which tween
+	// still runs, on which element, and how far it is.
 	await sampleMotionFrames(
-		() => animations().length,
-		(count) => count === 0,
+		() => ({ tweens: animations().map(describeAnimation) }),
+		(read) => read.tweens.length === 0,
 	)
 }
 

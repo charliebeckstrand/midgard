@@ -101,7 +101,12 @@ export async function drag(
 
 		// The wait reads the page rather than holding 50ms of wall clock, so a
 		// green run pays only the poll that finds the listener gone.
-		await waitFor(() => expect(swallowsClicks()).toBe(false))
+		await waitFor(() =>
+			expect(
+				swallowsClicks(),
+				'the drag still holds its capture listener after the release, so it drops every click the page takes next',
+			).toBe(false),
+		)
 	}
 
 	// A case that fails or times out before its own release still lets go here.
