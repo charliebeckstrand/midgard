@@ -1,6 +1,6 @@
 'use client'
 
-import { Fragment, memo, useLayoutEffect, useRef, useState } from 'react'
+import { type ComponentProps, Fragment, memo, useLayoutEffect, useRef, useState } from 'react'
 import { Toolbar, ToolbarGroup, ToolbarSeparator } from '../../components/toolbar'
 import { cn } from '../../core/cn'
 import { dataAttr } from '../../core/data-attr'
@@ -19,8 +19,11 @@ import {
 import { WysiwygHeadingRail } from './wysiwyg-heading-rail'
 import { WysiwygLinkButton } from './wysiwyg-link-button'
 
-/** Props for {@link WysiwygToolbar}. */
-export type WysiwygToolbarProps = {
+/**
+ * Props for {@link WysiwygToolbar}. The native props go to the row of the
+ * toolbar, which holds the toolbar and the heading rail.
+ */
+export type WysiwygToolbarProps = Omit<ComponentProps<'div'>, 'aria-label'> & {
 	/**
 	 * The actions of the toolbar, in the order given. A separator goes where
 	 * the list changes from one group to the next: heading (`heading`), text
@@ -31,12 +34,10 @@ export type WysiwygToolbarProps = {
 	 */
 	actions?: readonly WysiwygAction[]
 	/**
-	 * Names the toolbar.
+	 * Names the toolbar, and not the row that holds it.
 	 * @defaultValue `'Formatting'`, in the language of the reader.
 	 */
 	'aria-label'?: string
-	/** Classes for the row of the toolbar. */
-	className?: string
 }
 
 /**
@@ -97,6 +98,7 @@ export const WysiwygToolbar = memo(function WysiwygToolbar({
 	actions = WYSIWYG_ACTIONS,
 	'aria-label': ariaLabel,
 	className,
+	...props
 }: WysiwygToolbarProps) {
 	const { fieldId, locked, toolbarClassName } = useWysiwyg()
 
@@ -152,6 +154,7 @@ export const WysiwygToolbar = memo(function WysiwygToolbar({
 
 	return (
 		<div
+			{...props}
 			data-slot="wysiwyg-toolbar"
 			// The row and the rail take the affix step, one below the field, as the
 			// buttons of the actions row do. The margin of a bare toolbar takes the
