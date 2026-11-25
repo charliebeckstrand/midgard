@@ -290,8 +290,8 @@ const releasePointer: BrowserCommand<[selector?: string]> = async (context, sele
  *
  * The instances in Firefox and WebKit exist only when `ALL_ENGINES` is set,
  * because a dev machine often holds only Chromium. The `engines` job of
- * `ci.yml` sets it. `pnpm test:browser` runs the six Chromium instances, and
- * all eleven with `ALL_ENGINES=1`. `--project <name>` scopes to one.
+ * `ci.yml` sets it. `pnpm test:browser` runs the Chromium instances, and each
+ * instance with `ALL_ENGINES=1`. `--project <name>` scopes to one.
  *
  * Instance-level `setupFiles` merge additively onto project-level ones
  * (project's run first), so `index.ts`/`act-environment.ts` (shared by both
