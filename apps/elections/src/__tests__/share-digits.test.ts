@@ -27,45 +27,42 @@ const [race] = readEntries(contest, readNationalRace(87528, senate))
 
 if (race === undefined) throw new Error('The fixture has no race.')
 
-/** A candidate with a share of a total of votes. */
-function candidate(name: string, party: string, slot: Candidate['slot'], votes: number) {
-	const total = 163_065 + 162_741 + 391
-
-	return {
-		name,
-		party,
-		slot,
-		votes,
-		percent: (votes / total) * 100,
-		winner: false,
-		incumbent: false,
-	}
-}
-
 // The Minnesota 1st District: one decimal shows the leader at 50.0% and the runner-up at 49.9%.
-const candidates: Candidate[] = [
-	candidate('Jake Johnson', 'Democratic', 'blue', 163_065),
-	candidate('Brad Finstad', 'Republican', 'red', 162_741),
-	candidate('Write-in', 'Nonpartisan', 'zinc', 391),
+const votes: [name: string, party: string, slot: Candidate['slot'], votes: number][] = [
+	['Jake Johnson', 'Democratic', 'blue', 163_065],
+	['Brad Finstad', 'Republican', 'red', 162_741],
+	['Write-in', 'Nonpartisan', 'zinc', 391],
 ]
+
+const total = votes.reduce((sum, [, , , count]) => sum + count, 0)
+
+const candidates: Candidate[] = votes.map(([name, party, slot, count]) => ({
+	name,
+	party,
+	slot,
+	votes: count,
+	percent: (count / total) * 100,
+	winner: false,
+	incumbent: false,
+}))
 
 const entry: RaceEntry = { ...race, candidates, called: false, reporting: 99.9 }
 
 // A race card and its summary in the Drawer show the same share of each candidate.
 describe('share digits', () => {
-	it('shows the same shares on the race card and in the race summary', () => {
-		const card = render(h(RaceCard, { entry, onPick: () => {} }))
+	it('shows the shares to two decimals on the race card', () => {
+		const view = render(h(RaceCard, { entry, onPick: () => {} }))
 
-		expect(card.queryAllByText('49.99%')).not.toHaveLength(0)
-		expect(card.queryAllByText('49.89%')).not.toHaveLength(0)
+		expect(view.getAllByText('49.99%')).toBeTruthy()
+		expect(view.getAllByText('49.89%')).toBeTruthy()
+	})
 
-		cleanup()
-
-		const summary = render(
+	it('shows the shares to two decimals in the race summary', () => {
+		const view = render(
 			h(RaceSummary, { candidates, reporting: 99.9, called: false, detail: true }),
 		)
 
-		expect(summary.queryAllByText('49.99%')).not.toHaveLength(0)
-		expect(summary.queryAllByText('49.89%')).not.toHaveLength(0)
+		expect(view.getAllByText('49.99%')).toBeTruthy()
+		expect(view.getAllByText('49.89%')).toBeTruthy()
 	})
 })
