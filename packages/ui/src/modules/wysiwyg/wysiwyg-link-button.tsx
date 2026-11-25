@@ -17,13 +17,15 @@ import { wysiwygActions, wysiwygMessages } from './wysiwyg-actions'
  * The link button of a {@link WysiwygToolbar}, and the popover that it opens.
  * The popover has a text field, a URL field, Apply, and Remove link while the
  * selection is in a link. The link shortcut of the field opens the same
- * popover.
+ * popover. Each link button has its own popover, and with more than one, the
+ * shortcut opens the popover of the last one that mounted.
  *
  * @remarks The button opens a popover, so it has `aria-haspopup="dialog"` and
  * no `aria-pressed`. It shows the held-down fill while the caret is in a link.
  * The text field holds the selected text, or the text of the link at a caret.
  * While the popover is open, the field marks that text, or the caret, as the
- * focus is in the popover. Apply sets the text and the link, and a selection
+ * focus is in the popover. The mark goes at the close, before the exit
+ * animation of the panel ends. Apply sets the text and the link, and a selection
  * stays selected. At a caret outside a link, the text goes in at the caret.
  * With no text, the URL is the text. Apply and Remove link move the focus back
  * to the field. Escape closes the popover. After the link shortcut or a press
@@ -33,19 +35,38 @@ import { wysiwygActions, wysiwygMessages } from './wysiwyg-actions'
  * @internal
  */
 export function WysiwygLinkButton() {
-	const { linkOpen, setLinkOpen, registerLink } = useWysiwyg()
+	const { whenReady, registerLink, holdSelection } = useWysiwyg()
 
 	const intl = useIntl()
 
-	useEffect(registerLink, [registerLink])
+	const [open, setOpen] = useState(false)
+
+	useEffect(() => registerLink(() => setOpen(true)), [registerLink])
+
+	// The field marks the selection while the popover is open. The panel stays
+	// for its exit animation, but the mark goes at the close, as the focus goes
+	// back to the field.
+	useEffect(() => {
+		if (!open) return
+
+		holdSelection(true)
+
+		return () => holdSelection(false)
+	}, [open, holdSelection])
+
+	// The popover opens on the editor, so its form holds the selection.
+	function handleOpenChange(next: boolean) {
+		if (next) whenReady(() => setOpen(true))
+		else setOpen(false)
+	}
 
 	return (
-		<Popover placement="bottom-start" open={linkOpen} onOpenChange={setLinkOpen}>
+		<Popover placement="bottom-start" open={open} onOpenChange={handleOpenChange}>
 			<PopoverTrigger>
 				<WysiwygActionButton action="link" />
 			</PopoverTrigger>
 			<PopoverContent aria-label={intl.formatMessage(wysiwygActions.link.message)}>
-				<WysiwygLinkForm />
+				<WysiwygLinkForm close={() => setOpen(false)} />
 			</PopoverContent>
 		</Popover>
 	)
@@ -54,14 +75,13 @@ export function WysiwygLinkButton() {
 /**
  * The form of the link popover. It mounts as the popover opens, so its fields
  * hold the text and the URL of the selection. The text field takes the focus
- * when it is empty, and the URL field takes it else. The field marks the
- * selection while the form is mounted. Escape gives the focus back to the
- * field when the field had it as the popover opened.
+ * when it is empty, and the URL field takes it else. Escape gives the focus
+ * back to the field when the field had it as the popover opened.
  *
  * @internal
  */
-function WysiwygLinkForm() {
-	const { linkDraft, setLink, setLinkOpen, holdSelection, fieldFocused, focusField } = useWysiwyg()
+function WysiwygLinkForm({ close }: { close: () => void }) {
+	const { linkDraft, setLink, fieldFocused, focusField } = useWysiwyg()
 
 	const intl = useIntl()
 
@@ -78,12 +98,6 @@ function WysiwygLinkForm() {
 
 	const hrefInput = useRef<HTMLInputElement>(null)
 
-	useEffect(() => {
-		holdSelection(true)
-
-		return () => holdSelection(false)
-	}, [holdSelection])
-
 	// The panel is placed after it mounts, so the focus scrolls nothing.
 	useEffect(() => {
 		const input = draft.text === '' ? textInput : hrefInput
@@ -98,10 +112,12 @@ function WysiwygLinkForm() {
 
 		const href = String(data.get('href') ?? '').trim()
 
-		// An empty URL on a selection with no link changes nothing.
+		// An empty URL on a selection with no link changes nothing, and the focus
+		// goes back to the field, as after a change.
 		if (href !== '' || draft.href !== '') setLink(href, String(data.get('text') ?? ''))
+		else focusField()
 
-		setLinkOpen(false)
+		close()
 	}
 
 	// Escape closes the popover. When the field had the focus, it goes back to
@@ -121,7 +137,7 @@ function WysiwygLinkForm() {
 	function remove() {
 		setLink('', draft.text)
 
-		setLinkOpen(false)
+		close()
 	}
 
 	return (

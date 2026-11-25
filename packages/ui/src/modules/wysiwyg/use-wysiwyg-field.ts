@@ -1,44 +1,42 @@
 'use client'
 
-import { type ControlVariant, useControl } from '../../components/control/context'
+import { useControl } from '../../components/control/context'
 import { useControlProps } from '../../components/control/use-control-props'
 import { useControlScope } from '../../components/control/use-control-scope'
 import { useControlVariant } from '../../components/control/use-control-variant'
 import { cn } from '../../core/cn'
 import { invalidAttrs } from '../../core/invalid-attrs'
+import type { VariantProps } from '../../core/recipe/engine/types'
 import { useFormValue } from '../../primitives/form/use-form-value'
 import { useHeadlessSlots } from '../../primitives/headless/use-headless-slots'
 import { k } from '../../recipes/kata/wysiwyg'
+import type { WysiwygProps } from './wysiwyg'
 
 /** The props of a Wysiwyg that {@link useWysiwygField} resolves. @internal */
-type WysiwygFieldOptions = {
-	value?: string | null
+type WysiwygFieldOptions = Pick<
+	WysiwygProps,
+	| 'value'
+	| 'name'
+	| 'id'
+	| 'disabled'
+	| 'readOnly'
+	| 'required'
+	| 'invalid'
+	| 'variant'
+	| 'placeholder'
+	| 'enterKeyHint'
+	| 'className'
+	| 'aria-label'
+	| 'aria-labelledby'
+	| 'aria-describedby'
+	| 'aria-autocomplete'
+	| 'aria-haspopup'
+	| 'aria-controls'
+> & {
 	defaultValue: string
 	onValueChange?: (value: string) => void
-	name?: string
-	id?: string
-	disabled?: boolean
-	readOnly?: boolean
-	required?: boolean
-	invalid?: boolean
-	variant?: ControlVariant
-	placeholder?: string
-	enterKeyHint?: string
-	className?: string
-	'aria-label'?: string
-	'aria-labelledby'?: string
-	'aria-describedby'?: string
-	'aria-autocomplete'?: string
-	'aria-haspopup'?: string
-	'aria-controls'?: string
-	/** Whether the frame stacks the field with a row above or below it. */
-	stacked: boolean
-	/** Whether a toolbar is above the field and no row of actions is below it. */
-	toolbar: boolean
-	/** Whether the toolbar is above the frame, apart from the field. */
-	separated: boolean
-	/** Whether the toolbar is the top row of the frame, above the field. */
-	top: boolean
+	/** The layout axes of the kata: where the toolbar and the actions row are. */
+	layout: Pick<VariantProps<typeof k>, 'actions' | 'toolbar' | 'separated' | 'top'>
 }
 
 /**
@@ -99,13 +97,7 @@ export function useWysiwygField(options: WysiwygFieldOptions) {
 
 	const variant = useControlVariant(options.variant)
 
-	const slots = useHeadlessSlots(k, {
-		variant,
-		actions: options.stacked,
-		toolbar: options.toolbar,
-		separated: options.separated,
-		top: options.top,
-	})
+	const slots = useHeadlessSlots(k, { variant, ...options.layout })
 
 	const named = options['aria-labelledby'] !== undefined || options['aria-label'] !== undefined
 

@@ -298,26 +298,28 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 		onValueChange: onValueChange && emit,
 		defaultValue: options.defaultValue ?? '',
 		placeholder,
-		stacked: hasActions || inside,
-		toolbar: inside && !hasActions,
-		separated,
-		top: inside,
+		// The frame stacks the field with a row above or below it. With a toolbar
+		// in the frame and no actions row, the field is the last row.
+		layout: {
+			actions: hasActions || inside,
+			toolbar: inside && !hasActions,
+			separated,
+			top: inside,
+		},
 	})
 
 	const host = useRef<HTMLDivElement>(null)
 
-	const [linkOpen, setLinkOpen] = useState(false)
-
-	// The link buttons of the toolbars of the field. The link shortcut opens the
-	// popover only when there is one.
-	const linkButtons = useRef(0)
+	// The openers of the link popovers of the toolbars of the field. The link
+	// shortcut opens the popover of the last one, and goes on as a key with none.
+	const linkOpeners = useRef(new Set<() => void>())
 
 	const openLink = useStableEvent(() => {
-		if (linkButtons.current === 0) return false
+		const open = [...linkOpeners.current].at(-1)
 
-		setLinkOpen(true)
+		open?.()
 
-		return true
+		return open !== undefined
 	})
 
 	const handleChange = useStableEvent((markdown: string, spans: MarkdownRange[]) => {
@@ -389,7 +391,8 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 	// The value keeps its identity while its inputs do. A keystroke renders the
 	// field, and the toolbar then renders only the buttons whose state changed.
 	// The effects of the link button, which run on `registerLink` and
-	// `holdSelection`, also run only when the editor changes.
+	// `holdSelection`, thus do not run again on an edit or on an open of the
+	// popover.
 	const context = useMemo<WysiwygContextValue>(
 		() => ({
 			fieldId,
@@ -402,15 +405,12 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 			// A press before the editor loads starts the load, and the action runs
 			// when the editor comes.
 			run: (action: WysiwygToggleAction) => whenReady((ready) => ready.run(action)),
-			linkOpen,
-			// The popover opens on the editor, so its form holds the selection.
-			setLinkOpen: (open: boolean) =>
-				open ? whenReady(() => setLinkOpen(true)) : setLinkOpen(false),
-			registerLink: () => {
-				linkButtons.current++
+			whenReady,
+			registerLink: (open: () => void) => {
+				linkOpeners.current.add(open)
 
 				return () => {
-					linkButtons.current--
+					linkOpeners.current.delete(open)
 				}
 			},
 			linkDraft: () => editor?.linkDraft() ?? { text: '', href: '' },
@@ -419,7 +419,7 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 			fieldFocused: () => editor?.view.hasFocus() ?? false,
 			focusField,
 		}),
-		[fieldId, editor, locked, toolbarClassName, subscribe, whenReady, linkOpen, focusField],
+		[fieldId, editor, locked, toolbarClassName, subscribe, whenReady, focusField],
 	)
 
 	// The field is touched when the focus leaves the field and its rows, and not
