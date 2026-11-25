@@ -2,10 +2,10 @@
 
 import type { ChangeEventHandler, ComponentProps, FocusEventHandler } from 'react'
 import { invalidAttrs } from '../../core/invalid-attrs'
-import { useGlass } from '../../primitives/glass/context'
-import { type ControlVariant, useControl } from '../control/context'
+import type { ControlVariant } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
 import { useControlScope } from '../control/use-control-scope'
+import { useControlVariant } from '../control/use-control-variant'
 import { useInputValue } from './use-input-value'
 
 /**
@@ -38,8 +38,7 @@ export type InputControlOptions<E extends HTMLInputElement | HTMLTextAreaElement
  *
  * @param options - The text-control props of the caller.
  * @returns `attrs` to spread on the `<input>` or the `<textarea>`; the surface
- * `variant`, which is the prop, else the Control variant, else glass in a
- * GlassProvider.
+ * `variant` of {@link useControlVariant}.
  * @remarks `defaultValue` reaches the element only while the control is
  * uncontrolled. An explicit `invalid` sets the validation state on or off.
  * When `invalid` is omitted, the state comes from the bound field and the
@@ -61,10 +60,6 @@ export function useInputControl<E extends HTMLInputElement | HTMLTextAreaElement
 	onBlur,
 	'aria-describedby': ariaDescribedBy,
 }: InputControlOptions<E>) {
-	const control = useControl()
-
-	const glass = useGlass()
-
 	const valueState = useInputValue<E>({ name, value, onChange, onBlur })
 
 	const shared = useControlProps({
@@ -94,6 +89,6 @@ export function useInputControl<E extends HTMLInputElement | HTMLTextAreaElement
 			'aria-describedby': shared['aria-describedby'],
 			...(invalid === undefined ? shared.validation : invalidAttrs(invalid)),
 		},
-		variant: variant ?? control?.variant ?? (glass ? ('glass' as const) : undefined),
+		variant: useControlVariant(variant),
 	}
 }

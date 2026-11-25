@@ -4,7 +4,6 @@ import { type ComponentProps, useId, useRef } from 'react'
 import { cn } from '../../core/cn'
 import type { ScaleStep } from '../../core/density/scale'
 import { invalidAttrs } from '../../core/invalid-attrs'
-import { useGlass } from '../../primitives/glass/context'
 import { useHeadlessSlots } from '../../primitives/headless/use-headless-slots'
 import { Upload } from '../../primitives/icons/icons'
 import { useIntl } from '../../primitives/intl/use-intl'
@@ -12,6 +11,7 @@ import type { scale as controlScale } from '../../recipes/kata/control'
 import { k } from '../../recipes/kata/file-upload'
 import { Button } from '../button'
 import { lockedProps } from '../button/button-constants'
+import { useControlVariant } from '../control/use-control-variant'
 import { Icon } from '../icon'
 import { InputClearButton } from '../input/input-clear-button'
 import { InputFrame } from '../input/input-frame'
@@ -94,8 +94,6 @@ export function FileUploadInput(allProps: FileUploadInputProps) {
 	// no picker and clear nothing.
 	const inert = readOnly && lockedProps
 
-	const glass = useGlass()
-
 	const label = selectionSummary(intl, files, multiple)
 
 	const valueId = useId()
@@ -119,10 +117,8 @@ export function FileUploadInput(allProps: FileUploadInputProps) {
 		openPicker()
 	}
 
-	const variant = control?.variant ?? (glass ? 'glass' : undefined)
-
 	// The suffix always holds the clear or the browse button, so the frame is affixed.
-	const slots = useHeadlessSlots(k.input, { variant, affixed: true })
+	const slots = useHeadlessSlots(k.input, { variant: useControlVariant(), affixed: true })
 
 	// The display button is not the control, so it takes no Field id or
 	// `required`. It shows the state of the Field through its own props. The
