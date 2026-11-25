@@ -30,6 +30,21 @@ export function __resetWysiwygEngine(): void {
 	engine = createLazyModule(loadEngine)
 }
 
+/**
+ * Starts the load of the editor module at once. The fields share the load. A
+ * load that fails goes on as an unhandled rejection, so it reaches the error
+ * reporting of the app, and the next call tries again. The rejection is of a
+ * promise of this call: the idle load handles the rejection of the shared
+ * promise.
+ *
+ * @internal
+ */
+function loadEngineNow(): void {
+	engine.load().catch((error: unknown) => {
+		throw error
+	})
+}
+
 /** @internal */
 type WysiwygEditorOptions = {
 	/** The element that holds the field. The editable element of the editor goes in it. */
@@ -38,8 +53,6 @@ type WysiwygEditorOptions = {
 	value: string
 	/** The ranges of `value`. */
 	ranges: readonly MarkdownRange[]
-	/** Loads the editor at once, such as on the first focus or press. Without it, the editor loads in idle time. */
-	wanted: boolean
 	/** The settings of the editor, but the two events that this hook owns. */
 	props: Omit<WysiwygEditorProps, 'onChange' | 'onUpdate'>
 	/** Fires with the Markdown of the doc and its ranges after each edit. */
@@ -76,29 +89,24 @@ function sameSource(a: Source, b: Source): boolean {
 
 /**
  * The editor of a Wysiwyg field. It loads the engine in idle time, or at once
- * while `wanted` is true, and then makes the editor in `host`. It gives each
+ * on a call of `load`, and then makes the editor in `host`. It gives each
  * render the new settings, and it replaces the doc when `value` or `ranges`
  * differ from the source of the doc, such as on a clear after a send, or on an
  * edit that a controlled parent refuses.
  *
- * @returns The editor, or `null` until it loads, and the subscription to each
- *   new state of the editor.
+ * @returns The editor, or `null` until it loads, the subscription to each new
+ *   state of the editor, and `load`, which starts the load of the engine at
+ *   once. Call it in the event that wants the editor, such as the first focus
+ *   or press, so the load does not wait for a render and its effects.
  * @remarks The editor is the source of the doc while it lives. It holds the
  * last Markdown that it emitted, so the value that comes back after an edit
  * does not replace the doc again.
  * @internal
  */
-export function useWysiwygEditor({
-	host,
-	value,
-	ranges,
-	wanted,
-	props,
-	onChange,
-}: WysiwygEditorOptions) {
+export function useWysiwygEditor({ host, value, ranges, props, onChange }: WysiwygEditorOptions) {
 	useIdlePreload(engine)
 
-	const loaded = useLazyModule(engine, wanted)
+	const loaded = useLazyModule(engine, false)
 
 	const [editor, setEditor] = useState<WysiwygEditor | null>(null)
 
@@ -173,5 +181,5 @@ export function useWysiwygEditor({
 		editor.setValue(value, ranges)
 	})
 
-	return { editor, subscribe: updates.subscribe }
+	return { editor, subscribe: updates.subscribe, load: loadEngineNow }
 }

@@ -280,9 +280,6 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 
 	const host = useRef<HTMLDivElement>(null)
 
-	// The first focus or press of the field loads the editor at once.
-	const [wanted, setWanted] = useState(false)
-
 	const [linkOpen, setLinkOpen] = useState(false)
 
 	// The link buttons of the toolbars of the field. The link shortcut opens the
@@ -311,11 +308,10 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 		edited.current = undefined
 	})
 
-	const { editor, subscribe } = useWysiwygEditor({
+	const { editor, subscribe, load } = useWysiwygEditor({
 		host,
 		value,
 		ranges,
-		wanted,
 		props: {
 			attributes: attributes,
 			editable: !locked,
@@ -331,7 +327,7 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 		editor ? editor.view.dom : (host.current?.firstElementChild as HTMLElement | null)
 
 	const focus = () => {
-		setWanted(true)
+		load()
 
 		if (editor) editor.focus()
 		else element()?.focus()
@@ -428,7 +424,7 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 								value={value}
 								ranges={ranges}
 								focusable={!disabled}
-								onWant={() => setWanted(true)}
+								onWant={load}
 							/>
 						)}
 					</div>
