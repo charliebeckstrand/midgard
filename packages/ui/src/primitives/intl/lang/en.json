@@ -2411,6 +2411,14 @@
 		"defaultMessage": "Notifications",
 		"description": "The name of the region that holds the toasts."
 	},
+	"ui.toolbar.back": {
+		"defaultMessage": "Back",
+		"description": "The name of the button at the start of a toolbar row that shows the first controls of the toolbar again."
+	},
+	"ui.toolbar.more": {
+		"defaultMessage": "More",
+		"description": "The name of the button at the end of a toolbar row that shows the controls that the row cannot hold."
+	},
 	"ui.wysiwyg.apply": {
 		"defaultMessage": "Apply",
 		"description": "The button that sets the text and the web address of a link."

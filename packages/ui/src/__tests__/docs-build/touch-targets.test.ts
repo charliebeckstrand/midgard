@@ -274,6 +274,11 @@ const KNOWN: readonly { finding: string; paths: readonly string[]; reason: strin
 		reason: 'A button of a Wysiwyg toolbar is 34 × 35 px, and the buttons touch.',
 	},
 	{
+		finding: 'crowded toolbar-more/button',
+		paths: ['/modules/wysiwyg'],
+		reason: 'The More button of a Wysiwyg toolbar is 29 × 29 px, beside the last button.',
+	},
+	{
 		finding: 'crowded menu/button',
 		paths: ['/modules/grid/toolbar', '/sidebar'],
 		reason: 'A menu button is 42 × 42 px, beside a toolbar button or a sidebar row.',

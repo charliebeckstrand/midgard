@@ -635,9 +635,11 @@ describe('WysiwygToolbar', () => {
 
 		const toolbar = screen.getByRole('toolbar')
 
+		// More is inert while each action is on the row.
 		expect(
 			within(toolbar)
 				.getAllByRole('button')
+				.filter((button) => !button.closest('[inert]'))
 				.map((button) => button.ariaLabel),
 		).toEqual(['Italic', 'Bold', 'Quote'])
 

@@ -94,4 +94,43 @@ describe('Wysiwyg link dialog focus (real floating-ui)', () => {
 
 		await waitFor(() => expect(link).toHaveFocus())
 	})
+
+	it('closes the dialog on Escape from the second page of a narrow toolbar, and keeps the page', async () => {
+		// At this width, Link waits behind More, as on an iPhone SE.
+		renderUI(
+			<div style={{ width: 280 }}>
+				<Wysiwyg aria-label="Notes" defaultValue="Ship it">
+					<WysiwygToolbar />
+				</Wysiwyg>
+			</div>,
+		)
+
+		await editable()
+
+		const more = await waitFor(() => {
+			const button = document.querySelector<HTMLElement>('[data-slot="toolbar-more"] > button')
+
+			expect(button?.closest('[inert]')).toBeNull()
+
+			return button as HTMLElement
+		})
+
+		await userEvent.click(more)
+
+		const back = await screen.findByRole('button', { name: 'Back' })
+
+		await userEvent.click(screen.getByRole('button', { name: 'Link' }))
+
+		const dialog = await screen.findByRole('dialog')
+
+		await waitFor(() => expect(dialog.contains(document.activeElement)).toBe(true))
+
+		// The dialog portals, but its keys go through the React tree of the
+		// toolbar. The Escape closes the dialog, and does not change the page.
+		await userEvent.keyboard('{Escape}')
+
+		await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+
+		expect(back).toBeVisible()
+	})
 })

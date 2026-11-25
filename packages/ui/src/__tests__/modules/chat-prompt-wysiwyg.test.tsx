@@ -55,7 +55,12 @@ describe('ChatPrompt with wysiwyg', () => {
 
 		const toolbar = screen.getByRole('toolbar', { name: 'Formatting' })
 
-		expect(within(toolbar).getAllByRole('button')).toHaveLength(9)
+		// More is inert while each action is on the row.
+		expect(
+			within(toolbar)
+				.getAllByRole('button')
+				.filter((button) => !button.closest('[inert]')),
+		).toHaveLength(9)
 
 		expect(within(toolbar).queryByRole('button', { name: 'Heading' })).toBeNull()
 
@@ -75,6 +80,7 @@ describe('ChatPrompt with wysiwyg', () => {
 		expect(
 			within(screen.getByRole('toolbar'))
 				.getAllByRole('button')
+				.filter((button) => !button.closest('[inert]'))
 				.map((button) => button.ariaLabel),
 		).toEqual(['Code', 'Bold'])
 	})
