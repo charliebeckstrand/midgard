@@ -44,7 +44,12 @@ describe('Wysiwyg toolbar scroll gap (real browser)', () => {
 
 			await frames()
 
-			const toolbar = present(container.querySelector('[role="toolbar"]'), 'the toolbar')
+			// The toolbar row is one grid cell with the heading rail, and the cell
+			// centers the shorter row. So the cell, and not the row, is above the gap.
+			const toolbar = present(
+				container.querySelector('[data-slot="wysiwyg-toolbar"]'),
+				'the toolbar',
+			)
 
 			const [field, plain] = container.querySelectorAll<HTMLElement>('[role="textbox"]')
 

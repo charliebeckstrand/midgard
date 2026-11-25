@@ -4,6 +4,7 @@ import { useComposedRefs } from 'motion/react'
 import {
 	type ComponentProps,
 	type KeyboardEvent,
+	type MouseEvent,
 	useEffect,
 	useLayoutEffect,
 	useMemo,
@@ -48,8 +49,11 @@ export type ToolbarProps = AccessibleName &
 		  }
 	)
 
-/** Where the focus goes after a page change of a toolbar with More. @internal */
-type PageFocus = 'page' | 'more' | null
+/**
+ * The page of a toolbar with More: the number of items of the caller before
+ * it, and where the focus goes when it shows. @internal
+ */
+type ToolbarPage = { paged: number; focus: 'page' | 'more' | null }
 
 /**
  * A toolbar that groups related controls. It has roving-tabindex arrow-key
@@ -112,10 +116,8 @@ export function Toolbar({
 
 	const more = overflow === 'more' && orientation === 'horizontal'
 
-	// The number of items of the caller before the current page.
-	const [paged, setPaged] = useState(0)
-
-	const pageFocus = useRef<PageFocus>(null)
+	// A new page is a new object, so the focus moves once for each page change.
+	const [view, setView] = useState<ToolbarPage>({ paged: 0, focus: null })
 
 	// Roving and the row marks read `ref`, so a consumer `ref` joins it.
 	const setRoot = useComposedRefs(ref, consumerRef)
@@ -135,26 +137,24 @@ export function Toolbar({
 
 	// A toolbar with More marks its page, its row edges, and its row after each
 	// render, before the paint, because a new page or new items change the row
-	// while the size of the toolbar stays. Then the focus goes where the page
-	// change sends it.
+	// while the size of the toolbar stays.
 	useLayoutEffect(() => {
 		if (!more) return
 
 		const toolbar = ref.current
 
-		markPaged(toolbar, paged)
+		markPaged(toolbar, view.paged)
 
 		markRowEdges(toolbar, orientation)
 
 		markOverflow(toolbar)
-
-		const focus = pageFocus.current
-
-		pageFocus.current = null
-
-		if (focus === 'more') moreButton(toolbar)?.focus()
-		else if (focus === 'page') pageItem(toolbar)?.focus()
 	})
+
+	// After the marks, the focus goes where the page change sends it.
+	useLayoutEffect(() => {
+		if (view.focus === 'more') moreButton(ref.current)?.focus()
+		else if (view.focus === 'page') pageItem(ref.current)?.focus()
+	}, [view])
 
 	useEffect(() => {
 		const toolbar = ref.current
@@ -193,33 +193,35 @@ export function Toolbar({
 
 	const context = useMemo<ToolbarContextValue>(() => ({ orientation }), [orientation])
 
-	/** Shows the page that starts at `next`, and keeps the focus in the toolbar if it is there. */
-	function page(next: number, focus: Exclude<PageFocus, null>) {
-		const toolbar = ref.current
+	/**
+	 * Shows the page that starts at `paged`. The focus moves with the page only
+	 * if it is in the toolbar of `from`. The toolbar comes from the event, and
+	 * not from `ref`, so that no ref goes into a handler that render composes.
+	 */
+	function page(from: Element, paged: number, focus: 'page' | 'more') {
+		const toolbar = from.closest('[role="toolbar"]')
 
-		if (toolbar?.contains(toolbar.ownerDocument.activeElement)) pageFocus.current = focus
+		const inside = toolbar?.contains(from.ownerDocument.activeElement) ?? false
 
-		setPaged(next)
+		setView({ paged, focus: inside ? focus : null })
 	}
 
-	function showMore() {
-		const toolbar = ref.current
+	function showMore(event: MouseEvent<HTMLElement>) {
+		const toolbar = event.currentTarget.closest<HTMLElement>('[role="toolbar"]')
 
-		if (!toolbar) return
+		const next = toolbar ? nextPage(toolbar) : -1
 
-		const next = nextPage(toolbar)
-
-		if (next !== -1) page(next, 'page')
+		if (next !== -1) page(event.currentTarget, next, 'page')
 	}
 
 	function handleEscape(event: KeyboardEvent<HTMLDivElement>) {
-		if (!more || paged === 0 || event.key !== 'Escape') return
+		if (!more || view.paged === 0 || event.key !== 'Escape') return
 
 		event.preventDefault()
 
 		event.stopPropagation()
 
-		page(0, 'more')
+		page(event.currentTarget, 0, 'more')
 	}
 
 	const styles = k({ orientation, variant, overflow: more ? 'more' : 'wrap' })
@@ -245,14 +247,14 @@ export function Toolbar({
 				className={cn(styles.base, className)}
 			>
 				<TooltipGroup>
-					{more && paged > 0 && (
+					{more && view.paged > 0 && (
 						<ButtonIconTooltip
 							data-slot="toolbar-back"
 							variant="bare"
 							label={intl.formatMessage(toolbarMessages.back)}
 							icon={<ChevronLeft className="rtl:-scale-x-100" />}
 							disabled={false}
-							onClick={() => page(0, 'more')}
+							onClick={(event) => page(event.currentTarget, 0, 'more')}
 						/>
 					)}
 					{children}
