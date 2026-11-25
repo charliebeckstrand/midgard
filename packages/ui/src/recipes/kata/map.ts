@@ -234,14 +234,6 @@ export const k = {
 		 */
 		pointed: mode('brightness-90', 'dark:brightness-110'),
 		/**
-		 * The outline on each region that a legend emphasis holds lit. The dim
-		 * fades the other regions toward the surface, which is one end of a
-		 * sequential ramp. A lit region at that end therefore has the color of the
-		 * dimmed ones, and only the outline tells it apart. On a categorical
-		 * slot's class fill, the outline takes the {@link k.selected} ink. A slot
-		 * is a mid tone in both modes, so that ink parts from it.
-		 */
-		/**
 		 * The outline of the region under the keyboard cursor, shown only while
 		 * the plot has the keyboard focus (WCAG 2.2 SC 2.4.7). The recede emphasis
 		 * lights only a region with data, and only when the layer recedes, so it
@@ -260,6 +252,14 @@ export const k = {
 				'forced-colors:stroke-[Highlight]',
 			],
 		},
+		/**
+		 * The outline on each region that a legend emphasis holds lit. The dim
+		 * fades the other regions toward the surface, which is one end of a
+		 * sequential ramp. A lit region at that end therefore has the color of the
+		 * dimmed ones, and only the outline tells it apart. On a categorical
+		 * slot's class fill, the outline takes the {@link k.selected} ink. A slot
+		 * is a mid tone in both modes, so that ink parts from it.
+		 */
 		emphasized: {
 			/**
 			 * On a numeric bin's fill, the outline takes the pole that contrasts
