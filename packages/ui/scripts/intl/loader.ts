@@ -1,18 +1,19 @@
 /**
- * The message loader of the Next build of each app. The `turbopack.rules` of
- * `appConfig` in `auth` run it on each module that defines messages and on
- * each translation in a `lang` folder. It precompiles each message to the
- * syntax tree of FormatJS, so that the app bundle can replace the message
- * parser with its `no-parser` entry (the `turbopack.resolveAlias` of
- * `appConfig`).
+ * The message loader of the Next build of each app and of the docs build. The
+ * `turbopack.rules` of `appConfig` in `auth` and the docs plugin
+ * `precompileMessages` (`src/docs/plugin/messages.ts`) run it on each module
+ * that defines messages and on each translation in a `lang` folder. It
+ * precompiles each message to the syntax tree of FormatJS, so that the bundle
+ * can replace the message parser with its `no-parser` entry (the
+ * `turbopack.resolveAlias` of `appConfig`, and the alias of the plugin).
  *
  * In a module, the loader changes each descriptor of a `defineMessage` or a
  * `defineMessages` call: the `defaultMessage` becomes its syntax tree, and the
  * `description` goes away, because only the translators read it. In a
  * translation, each message becomes its syntax tree.
  *
- * The source, the tests, and the docs app keep the message text and the
- * parser. FormatJS takes a message as text or as a syntax tree, and the two
+ * The source and the tests keep the message text and the parser. FormatJS
+ * takes a message as text or as a syntax tree, and the two
  * give the same output.
  */
 

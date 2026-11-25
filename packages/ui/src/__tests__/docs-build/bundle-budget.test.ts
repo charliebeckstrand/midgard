@@ -29,6 +29,10 @@ const SHELL_PAGE = path.join(CLIENT_DIR, '__spa-fallback.html')
 // A `modulepreload` link to a chunk of the build.
 const MODULE_PRELOAD = /<link rel="modulepreload" href="\/assets\/([^"]+)"/g
 
+// A string that only the parser of `@formatjs/icu-messageformat-parser` holds,
+// not its `no-parser` entry.
+const PARSER_MARK = 'EXPECT_ARGUMENT_CLOSING_BRACE'
+
 type BundleReport = {
 	/** The sum of the gzip sizes of the assets of the build. */
 	totalGzip: number
@@ -100,6 +104,23 @@ describe('the bundle of the docs app', () => {
 			).toBeLessThanOrEqual(budgetKb * 1024)
 		})
 	}
+
+	// The docs plugin `precompileMessages` precompiles each message and gives
+	// the `no-parser` entry in place of the message parser. When its alias does
+	// not match, the parser comes back at about 8.7 kB, under the eager ceiling.
+	// The name of an error kind of the parser is a value that only `parse`
+	// reads, so no chunk holds it when the parser is out.
+	it('holds no message parser', () => {
+		const chunks = fs
+			.readdirSync(ASSETS_DIR)
+			.filter(
+				(file) =>
+					file.endsWith('.js') &&
+					fs.readFileSync(path.join(ASSETS_DIR, file), 'utf8').includes(PARSER_MARK),
+			)
+
+		expect(chunks, 'chunks with the message parser (see `src/docs/plugin/messages.ts`)').toEqual([])
+	})
 
 	// The first paint waits for the script of the latin face, so the browser
 	// requests it before the modules (`FontScript`).
