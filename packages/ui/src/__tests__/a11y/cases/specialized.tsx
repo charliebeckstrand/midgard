@@ -113,7 +113,7 @@ const actions: ChatMessageData[] = [
 				result: { contact: 'Dana Ortiz' },
 			},
 		],
-		versions: ['Waiting on a contact.'],
+		revised: true,
 	},
 ]
 

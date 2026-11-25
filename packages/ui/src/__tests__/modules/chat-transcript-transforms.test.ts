@@ -519,10 +519,10 @@ describe('resolveAction', () => {
 		])
 	})
 
-	it('makes no version, because an answer is not a revision', () => {
+	it('does not mark the message revised, because an answer is not a revision', () => {
 		const [message] = resolveAction([offer()], 'r1', 'a1', { carrier: 'atlas' })
 
-		expect(message?.versions).toBeUndefined()
+		expect(message?.revised).toBeUndefined()
 	})
 
 	it('returns the transcript by reference for an action that is not open', () => {
@@ -533,10 +533,8 @@ describe('resolveAction', () => {
 })
 
 describe('reviseMessage', () => {
-	it('merges the parts by id, and keeps the content that they replace as a version', () => {
-		const before = offer()
-
-		const [message] = reviseMessage([before], {
+	it('merges the parts by id, and marks the message revised', () => {
+		const [message] = reviseMessage([offer()], {
 			revise: 'r1',
 			parts: [{ kind: 'text', id: 't1', text: '~~Two carriers can take it.~~ Atlas takes it.' }],
 		})
@@ -546,24 +544,7 @@ describe('reviseMessage', () => {
 			ask,
 		])
 
-		expect(message?.versions).toEqual([before.content])
-	})
-
-	it('adds each revision to the end of the versions, oldest first', () => {
-		const first = reviseMessage([offer()], {
-			revise: 'r1',
-			parts: [{ kind: 'text', id: 't1', text: 'Second.' }],
-		})
-
-		const [message] = reviseMessage(first, {
-			revise: 'r1',
-			parts: [{ kind: 'text', id: 't1', text: 'Third.' }],
-		})
-
-		expect(message?.versions?.map((version) => (version as ChatPart[])[0])).toEqual([
-			{ kind: 'text', id: 't1', text: 'Two carriers can take it.' },
-			{ kind: 'text', id: 't1', text: 'Second.' },
-		])
+		expect(message?.revised).toBe(true)
 	})
 
 	it('leaves every other message alone', () => {
@@ -582,7 +563,7 @@ describe('applyReplyChunk with a revision', () => {
 			parts: [{ kind: 'text', id: 't1', text: 'Atlas takes it.' }],
 		})
 
-		expect(messages[0]?.versions).toHaveLength(1)
+		expect(messages[0]?.revised).toBe(true)
 		expect(messages[1]).toEqual(assistant('r2', ''))
 	})
 })

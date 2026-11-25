@@ -259,8 +259,8 @@ export type ChatActionProps = {
  *
  * Where the message takes no answer, the block draws inside a locked scope.
  * Each control is then read-only and each button inert, with no rule of its
- * own. An earlier version of a revised message takes no answer, so its asks
- * show as they were.
+ * own. A transcript gives no answer while a reply streams, because the send
+ * takes no answer then.
  *
  * @internal
  */

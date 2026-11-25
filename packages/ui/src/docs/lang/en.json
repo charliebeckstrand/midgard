@@ -1615,10 +1615,6 @@
 		"defaultMessage": "Next",
 		"description": "Text of a demo in the docs, in components/group/item-count.tsx, components/stepper/with-content-panels.tsx, components/tabs/controlled.tsx and 1 more."
 	},
-	"docs.demo.2062cda4e1d4": {
-		"defaultMessage": "The Denver order is ready at Dock 4. ~~I can book it once the carrier has a contact.~~ Booked for Thursday afternoon. The driver calls Dana Ortiz on arrival.",
-		"description": "Text of a demo in the docs as text, in modules/chat/actions/a-revised-message.tsx."
-	},
 	"docs.demo.2086c4ff0d7f": {
 		"defaultMessage": "Value: {labelOfState} ({zone} time)",
 		"description": "Text of a demo in the docs, in modules/map/select-a-state.tsx. The arguments {labelOfState} and {zone} are values from the code."
@@ -3233,7 +3229,7 @@
 	},
 	"docs.demo.78056f135b20": {
 		"defaultMessage": "Add details",
-		"description": "Text of a demo in the docs as label, in modules/chat/actions/a-revised-message.tsx, modules/chat/actions/book-a-pickup.tsx."
+		"description": "Text of a demo in the docs as label, in modules/chat/actions/book-a-pickup.tsx."
 	},
 	"docs.demo.7848033c7159": {
 		"defaultMessage": "Opens after one second",
@@ -4827,10 +4823,6 @@
 		"defaultMessage": "In progress",
 		"description": "Text of a demo in the docs as label, in components/list/horizontal.tsx, structure/flex/equal.tsx."
 	},
-	"docs.demo.c2100c4c5928": {
-		"defaultMessage": "The Denver order is ready at Dock 4. I can book it once the carrier has a contact.",
-		"description": "Text of a demo in the docs as text, in modules/chat/actions/a-revised-message.tsx."
-	},
 	"docs.demo.c21ead0614e7": {
 		"defaultMessage": "Closed",
 		"description": "Text of a demo in the docs, in components/menu/controlled.tsx."
@@ -5069,7 +5061,7 @@
 	},
 	"docs.demo.cfd3012a04d2": {
 		"defaultMessage": "Book a pickup for the Denver order.",
-		"description": "Text of a demo in the docs as content, in modules/chat/actions/a-revised-message.tsx, modules/chat/actions/book-a-pickup.tsx."
+		"description": "Text of a demo in the docs as content, in modules/chat/actions/book-a-pickup.tsx."
 	},
 	"docs.demo.d00a994d3394": {
 		"defaultMessage": "Track the tasks of the project. Upgrade to the Pro plan to open reports.",
@@ -5317,7 +5309,7 @@
 	},
 	"docs.demo.dbebda550bfb": {
 		"defaultMessage": "Delivery details",
-		"description": "Text of a demo in the docs as title, in modules/chat/actions/a-revised-message.tsx, modules/chat/actions/book-a-pickup.tsx."
+		"description": "Text of a demo in the docs as title, in modules/chat/actions/book-a-pickup.tsx."
 	},
 	"docs.demo.dbf362d4f210": {
 		"defaultMessage": "Copy link",
@@ -5381,7 +5373,7 @@
 	},
 	"docs.demo.ddec0fc313b4": {
 		"defaultMessage": "Contact name",
-		"description": "Text of a demo in the docs as label, in modules/chat/actions/a-revised-message.tsx, modules/chat/actions/book-a-pickup.tsx."
+		"description": "Text of a demo in the docs as label, in modules/chat/actions/book-a-pickup.tsx."
 	},
 	"docs.demo.de0a9d8401ac": {
 		"defaultMessage": "Configure your project name, description, and visibility.",
@@ -7535,6 +7527,10 @@
 		"defaultMessage": "Vertical",
 		"description": "An option of the Resize field of a playground in the docs. It sets the prop resize to 'vertical' on Textarea."
 	},
+	"docs.prop.revised": {
+		"defaultMessage": "Revised",
+		"description": "The label of a field of a playground in the docs. The field sets the prop revised of ChatMessage."
+	},
 	"docs.prop.role": {
 		"defaultMessage": "Role",
 		"description": "The label of a field of a playground in the docs. The field sets the prop role of DialogPanel."
@@ -8294,10 +8290,6 @@
 	"docs.tabs.sections": {
 		"defaultMessage": "Sections",
 		"description": "The name of the list of tabs at the top of a page of the docs. Each tab shows one part of the page."
-	},
-	"docs.title.a-revised-message": {
-		"defaultMessage": "A revised message",
-		"description": "The title of an example on a page of the docs. It comes from the file name a-revised-message.tsx."
 	},
 	"docs.title.a-step-behind-the-answer": {
 		"defaultMessage": "A step behind the answer",

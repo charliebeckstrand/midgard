@@ -1225,13 +1225,7 @@ describe('useChatSend submitAction', () => {
 			{ ...ask, result: { carrier: 'atlas' } },
 		])
 
-		// The version is the content when the revision landed: the answered ask.
-		expect(revised?.versions).toEqual([
-			[
-				{ kind: 'text', id: 't1', text: 'Two carriers can take it.' },
-				{ ...ask, result: { carrier: 'atlas' } },
-			],
-		])
+		expect(revised?.revised).toBe(true)
 	})
 
 	it('answers an ask once', async () => {

@@ -76,8 +76,8 @@ export function applyReplyChunk(
 
 /**
  * The transcript with a revision folded into the message that it names. The
- * parts merge by id, as a part-list chunk merges into a reply, and the content
- * that they replace joins the `versions` of the message.
+ * parts merge by id, as a part-list chunk merges into a reply, and the message
+ * takes `revised`.
  *
  * @internal
  */
@@ -90,7 +90,7 @@ export function reviseMessage(
 			? {
 					...message,
 					content: applyChunk(message.content, parts),
-					versions: [...(message.versions ?? []), message.content],
+					revised: true,
 				}
 			: message,
 	)

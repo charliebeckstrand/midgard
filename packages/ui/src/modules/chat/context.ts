@@ -107,8 +107,7 @@ export const [ChatCitationContext, useChatCitations] = createContext<ChatCitatio
 /**
  * Answers the action that `partId` names in the message that holds it, or
  * `undefined` where the message takes no answer. An action with no answer
- * draws its controls read-only. Thus an earlier version of a revised message,
- * which provides none, shows its asks as they were, and no control in it acts.
+ * draws its controls read-only, such as while a reply streams.
  *
  * @internal
  */

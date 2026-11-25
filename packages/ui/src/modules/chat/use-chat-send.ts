@@ -101,8 +101,8 @@ function useDuplicateSeedIdWarning(seed: ChatMessageData[] | undefined): void {
  * from running to done reports itself.
  *
  * Each yielded `ChatRevision` merges its parts into the earlier message
- * that it names, by the same rule, and the message keeps the content that the
- * revision replaced as a version. That is how the agent keeps no stale text in
+ * that it names, by the same rule, and the message takes `revised`. That is
+ * how the agent keeps no stale text in
  * a message after the reader acts, such as a sentence that asks for details
  * that the reader just gave. A stream that yields only revisions opens no
  * bubble of its own, because an empty reply goes when the stream ends.

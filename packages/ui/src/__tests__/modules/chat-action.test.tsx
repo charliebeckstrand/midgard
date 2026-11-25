@@ -120,46 +120,38 @@ describe('ChatAction', () => {
 
 		expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 	})
-})
 
-describe('ChatMessage versions', () => {
-	it('shows no "(revised)" button for a message with no versions', () => {
-		renderUI(<ChatMessage contextMenu={false}>Booked.</ChatMessage>)
-
-		expect(screen.queryByRole('button', { name: /Revised/ })).not.toBeInTheDocument()
-	})
-
-	it('opens the earlier versions, oldest first, with each ask read-only', async () => {
+	it('picks no option of a choice where the message takes no answer', async () => {
 		const user = setupUser()
 
-		const onActionSubmit = vi.fn()
+		renderAction(choice)
 
+		await user.click(screen.getByRole('radio', { name: 'Atlas Haulage' }))
+
+		expect(screen.getByRole('radio', { name: 'Atlas Haulage' })).not.toBeChecked()
+	})
+})
+
+describe('ChatMessage revised', () => {
+	it('shows a quiet "(revised)" label below a revised message', () => {
 		renderUI(
-			<ChatMessage
-				contextMenu={false}
-				onActionSubmit={onActionSubmit}
-				versions={[[{ kind: 'text', id: 't1', text: 'First.' }, choice], 'Second.']}
-			>
-				Third.
+			<ChatMessage contextMenu={false} revised>
+				Booked.
 			</ChatMessage>,
 		)
 
-		await user.click(screen.getByRole('button', { name: 'Revised, show earlier versions' }))
+		expect(screen.getByText('(revised)')).toBeInTheDocument()
+	})
 
-		const dialog = await screen.findByRole('dialog', { name: 'Earlier versions' })
+	it('shows one label, and an edit wins, because an edit makes a new message', () => {
+		renderUI(
+			<ChatMessage contextMenu={false} edited revised>
+				Booked.
+			</ChatMessage>,
+		)
 
-		const headings = within(dialog).getAllByRole('heading', { level: 3 })
+		expect(screen.getByText('(edited)')).toBeInTheDocument()
 
-		expect(headings.map((heading) => heading.textContent)).toEqual([
-			'Version 1',
-			'Which carrier should take it?',
-			'Version 2',
-		])
-
-		await user.click(within(dialog).getByRole('radio', { name: 'Atlas Haulage' }))
-
-		expect(within(dialog).getByRole('radio', { name: 'Atlas Haulage' })).not.toBeChecked()
-
-		expect(onActionSubmit).not.toHaveBeenCalled()
+		expect(screen.queryByText('(revised)')).not.toBeInTheDocument()
 	})
 })

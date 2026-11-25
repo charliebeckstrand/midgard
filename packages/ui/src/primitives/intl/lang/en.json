@@ -249,19 +249,7 @@
 	},
 	"ui.chat.revised": {
 		"defaultMessage": "(revised)",
-		"description": "The quiet button below a chat message that the assistant revised after it sent the message. It opens the earlier versions."
-	},
-	"ui.chat.revisedOpen": {
-		"defaultMessage": "Revised, show earlier versions",
-		"description": "The name of the \"(revised)\" button below a chat message that the assistant revised, for a screen reader. It starts with the visible text of the button."
-	},
-	"ui.chat.revision": {
-		"defaultMessage": "Version {index, number}",
-		"description": "The heading of one earlier version of a revised chat message, such as \"Version 1\". The index counts from 1, and version 1 is the first that the assistant sent."
-	},
-	"ui.chat.revisionsTitle": {
-		"defaultMessage": "Earlier versions",
-		"description": "The title of the panel that shows the earlier versions of a revised chat message."
+		"description": "The quiet label below a chat message that the assistant revised in place after it sent the message, such as after the reader answered a question in it."
 	},
 	"ui.chat.running": {
 		"defaultMessage": "Running",
