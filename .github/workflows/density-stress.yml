@@ -135,7 +135,7 @@ jobs:
           esac
           # The shadow stack state of each Firefox process, while the tests run.
           (
-            for i in $(seq 1 12); do
+            for _ in $(seq 1 12); do
               sleep 2
               for status in /proc/[0-9]*/status; do
                 name=$(awk '/^Name:/ { print $2 }' "$status" 2> /dev/null)
