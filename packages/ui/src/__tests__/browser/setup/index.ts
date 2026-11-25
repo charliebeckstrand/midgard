@@ -34,6 +34,8 @@ declare module 'vitest/browser' {
 	interface BrowserCommands {
 		/** Moves the real mouse off the tester iframe. `vitest.browser.config.ts` defines it. */
 		parkPointer: () => Promise<void>
+		/** Puts the focus of the page in the tester iframe. `vitest.browser.config.ts` defines it. */
+		focusFrame: () => Promise<void>
 		/** Holds the real primary button down over the element that `selector` matches, at its center or at the fraction `at` of its box. `vitest.browser.config.ts` defines it. */
 		pressPointer: (selector: string, at?: { x: number; y: number }) => Promise<void>
 		/** Releases the real primary button, over the element that `selector` matches when one is given. `vitest.browser.config.ts` defines it. */
@@ -80,6 +82,10 @@ installSingletonResets()
 // hovered. See `parkPointer` in `vitest.browser.config.ts`. It runs before the
 // case renders, so a case that failed or timed out still hands on a clean page.
 beforeEach(() => commands.parkPointer())
+
+// A case starts with the focus in its own document, whatever the case before it
+// tabbed out of. See `focusFrame` in `vitest.browser.config.ts`.
+beforeEach(() => commands.focusFrame())
 
 afterEach((ctx) => {
 	// Read before cleanup, so the dump describes the page the failing test left,
