@@ -64,7 +64,7 @@ describe('useKeyboardLifted', () => {
 		expect(result.current.liftedId).toBeNull()
 
 		expect(announce.mock.calls.map(([message]) => message)).toEqual([
-			'Picked up Alpha, position 1 of 2. Use the arrow keys to move it, then press Space or Enter to drop it.',
+			'Picked up Alpha, position 1 of 2. Use the arrow keys to move it, then press Space or Enter to drop it, or Escape to put it back.',
 			'Dropped Alpha, position 1 of 2.',
 		])
 	})

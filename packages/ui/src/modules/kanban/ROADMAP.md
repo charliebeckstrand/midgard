@@ -16,7 +16,7 @@ On drag-over, a card moves into the column under the pointer, and `onReorder` fi
 
 A board that turns disabled or read-only during a pointer drag makes the drop a cancel. [`kanban-drop-target.test.tsx`](../../__tests__/browser/kanban-drop-target.test.tsx) holds this, and the highlight of the drop column.
 
-The keyboard follows the APG pattern for a grabbed element. Space lifts and drops a card. A lifted card steps in its column on Up and Down, and across the board on Left and Right. A card that is not lifted moves the focus. Each step commits through `onReorder`, so Escape and Enter only drop the lift. Left and Right swap in a right-to-left layout through `logicalArrowKey`, which [`logical-arrow-boundary.test.ts`](../../__tests__/boundary/logical-arrow-boundary.test.ts) holds. The right-to-left cases of `kanban.test.tsx` read the result.
+The keyboard follows the APG pattern for a grabbed element. Space lifts and drops a card. A lifted card steps in its column on Up and Down, and across the board on Left and Right. A card that is not lifted moves the focus. Each step commits through `onReorder`. Enter and a blur keep the moves. Escape cancels: it reports the columns from the lift start, as a pointer cancel does, and announces the return. A lift with no move only drops. Left and Right swap in a right-to-left layout through `logicalArrowKey`, which [`logical-arrow-boundary.test.ts`](../../__tests__/boundary/logical-arrow-boundary.test.ts) holds. The right-to-left cases of `kanban.test.tsx` read the result.
 
 A move renders only the columns that it touches. The board splits its context in two: the cards read a value that holds still through a drag, and the columns read the drag state. Each card reads its own lift from a keyed store. [`keyboard-lift-render.test.tsx`](../../__tests__/boundary/keyboard-lift-render.test.tsx) counts the renders of a lift and of a move.
 
@@ -54,7 +54,7 @@ No open items.
 
 ## Accessibility and testing
 
-1. **Escape keeps the keyboard moves (*P3*).** A lifted card commits each step, so Escape only drops it. A pointer cancel puts the card back, and the Dashboard keyboard sensor cancels on Escape too. A reader who lifts by mistake has no undo. Fix: let Escape report the columns from the lift start, as `handleDragCancel` does. Open question: `useKeyboardLifted` serves `List` too, so the change crosses units and needs assent ([CLAUDE.md](../../../../../CLAUDE.md) §3.1). Proof: a case in `use-kanban-keyboard.test.ts`, and a new sentence from `returnedText` in the announcements.
+No open items.
 
 ## Not planned
 

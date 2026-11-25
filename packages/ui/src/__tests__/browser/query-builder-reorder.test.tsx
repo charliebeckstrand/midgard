@@ -360,4 +360,86 @@ describe('QueryBuilder keyboard move across groups (real browser)', () => {
 
 		fireEvent.keyDown(grip('Name contains x'), { key: 'Escape' })
 	})
+
+	// Escape puts the rule back where its lift started, across groups too, as a
+	// pointer cancel does.
+	it('puts a carried rule back in its group on Escape', async () => {
+		const onValueChange = vi.fn()
+
+		renderUI(<Harness onValueChange={onValueChange} />)
+
+		await lift('Name contains a')
+
+		// Up past g, then into g, as its first node.
+		fireEvent.keyDown(grip('Name contains a'), { key: 'ArrowUp' })
+
+		await waitFor(() => expect(onValueChange).toHaveBeenCalledTimes(1))
+
+		await waitFor(() => expect(document.activeElement).toBe(grip('Name contains a')))
+
+		fireEvent.keyDown(grip('Name contains a'), { key: 'ArrowRight' })
+
+		await waitFor(() => expect(onValueChange).toHaveBeenCalledTimes(2))
+
+		await waitFor(() => expect(document.activeElement).toBe(grip('Name contains a')))
+
+		fireEvent.keyDown(grip('Name contains a'), { key: 'Escape' })
+
+		await waitFor(() => expect(onValueChange).toHaveBeenCalledTimes(3))
+
+		const back: QueryGroup = onValueChange.mock.calls[2]?.[0]
+
+		expect(ids(back.children)).toEqual(['g', 'a'])
+
+		expect(ids((back.children[0] as QueryGroup).children)).toEqual(['x', 'y'])
+
+		await waitFor(() =>
+			expect(
+				screen.getByText('Returned Name contains a to position 2 of 2 in the query.'),
+			).toBeInTheDocument(),
+		)
+
+		// The rule keeps the focus, and the lift ends.
+		await waitFor(() => expect(document.activeElement).toBe(grip('Name contains a')))
+
+		expect(grip('Name contains a')).not.toHaveAttribute('data-dragging')
+	})
+
+	it('puts a rule back at its start index on Escape after a step in its group', async () => {
+		const onValueChange = vi.fn()
+
+		renderUI(<Harness onValueChange={onValueChange} />)
+
+		await lift('Name contains a')
+
+		fireEvent.keyDown(grip('Name contains a'), { key: 'ArrowUp' })
+
+		await waitFor(() => expect(onValueChange).toHaveBeenCalledTimes(1))
+
+		expect(ids(onValueChange.mock.calls[0]?.[0].children)).toEqual(['a', 'g'])
+
+		await waitFor(() => expect(document.activeElement).toBe(grip('Name contains a')))
+
+		fireEvent.keyDown(grip('Name contains a'), { key: 'Escape' })
+
+		await waitFor(() => expect(onValueChange).toHaveBeenCalledTimes(2))
+
+		expect(ids(onValueChange.mock.calls[1]?.[0].children)).toEqual(['g', 'a'])
+
+		await waitFor(() => expect(grip('Name contains a')).not.toHaveAttribute('data-dragging'))
+	})
+
+	it('only drops on Escape when the lift moved nothing', async () => {
+		const onValueChange = vi.fn()
+
+		renderUI(<Harness onValueChange={onValueChange} />)
+
+		await lift('Name contains a')
+
+		fireEvent.keyDown(grip('Name contains a'), { key: 'Escape' })
+
+		await waitFor(() => expect(grip('Name contains a')).not.toHaveAttribute('data-dragging'))
+
+		expect(onValueChange).not.toHaveBeenCalled()
+	})
 })
