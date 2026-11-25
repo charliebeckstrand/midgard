@@ -37,6 +37,7 @@ const PURE_ENGINES = [
 	'kanban',
 	'map',
 	'query',
+	'wysiwyg',
 ] as const
 
 const enginePath = (module: string) => join(srcDir, 'modules', module, 'engine')

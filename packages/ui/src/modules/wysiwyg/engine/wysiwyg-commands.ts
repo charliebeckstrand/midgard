@@ -18,7 +18,7 @@ import { schema } from './wysiwyg-schema'
  *
  * @internal
  */
-export type WysiwygCommand = {
+type WysiwygCommand = {
 	run: Command
 	/** Whether the action is on at the selection, for `aria-pressed`. */
 	active: (state: EditorState) => boolean
@@ -37,7 +37,7 @@ function markCommand(type: MarkType): WysiwygCommand {
  *
  * @internal
  */
-export function isMarkActive(state: EditorState, type: MarkType): boolean {
+function isMarkActive(state: EditorState, type: MarkType): boolean {
 	const { from, to, empty, $from } = state.selection
 
 	if (empty) return Boolean(type.isInSet(state.storedMarks ?? $from.marks()))
