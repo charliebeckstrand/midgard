@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, vi } from 'vitest'
 
 import { DatePicker, type DatePickerRelativeValue } from '../../components/date-picker'
 import { LocaleProvider } from '../../providers/locale'
 import { allBySlot, bySlot, getSlot, renderUI, screen, setupUser, within } from '../helpers'
+import { it } from '../helpers/fake-clock'
 
 // Controlled relative picker: the parent holds the (always-array) value so a
 // toggle round-trips back into the trigger. `multiple` opts into multi-select;
@@ -562,8 +563,10 @@ describe('DatePicker (relative)', () => {
 
 	// The prop's own TSDoc says the relative variant reports from the custom-range
 	// grid, which is the only grid it ever shows.
-	it('forwards onMonthChange to the custom range fields', async () => {
-		const user = setupUser()
+	it('forwards onMonthChange to the custom range fields', async ({ clock }) => {
+		clock.set(new Date(2025, 5, 20, 9))
+
+		const user = clock.user
 
 		const onMonthChange = vi.fn()
 
@@ -579,7 +582,7 @@ describe('DatePicker (relative)', () => {
 
 		await user.click(screen.getByLabelText('Next month'))
 
-		expect(onMonthChange).toHaveBeenCalled()
+		expect(onMonthChange).toHaveBeenLastCalledWith(new Date(2025, 6, 1))
 	})
 })
 

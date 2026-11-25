@@ -59,14 +59,16 @@ describe('grid virtualized cursor (real browser)', () => {
 		// Jump to the last row, far below the rendered window.
 		fireEvent.keyDown(grid, { key: 'End', ctrlKey: true })
 
-		// The cursor scrolled it into the window: the active descendant resolves to a
-		// real cell rather than dangling at an unmounted row.
+		// The cursor scrolled it into the window: the active descendant resolves to
+		// the cell of the last row rather than dangling at an unmounted row.
 		await waitFor(() => {
 			const active = grid.getAttribute('aria-activedescendant')
 
 			expect(active).toBeTruthy()
 
-			expect(document.getElementById(active as string)).not.toBeNull()
+			expect(document.getElementById(active as string)).toBe(
+				screen.getByText('Name 200').closest('td'),
+			)
 		})
 
 		expect(screen.queryByText('Name 200')).not.toBeNull()
@@ -176,7 +178,9 @@ describe('grid virtualized cursor (real browser)', () => {
 
 		const grid = screen.getByRole('grid')
 
-		expect(document.getElementById(grid.getAttribute('aria-activedescendant') ?? '')).not.toBeNull()
+		expect(document.getElementById(grid.getAttribute('aria-activedescendant') ?? '')).toBe(
+			edit.closest('td'),
+		)
 	})
 
 	it('seats a mounted cell when focus enters a scrolled window', async () => {
@@ -188,12 +192,16 @@ describe('grid virtualized cursor (real browser)', () => {
 
 		grid.focus()
 
+		// A keyboard entry seats the first cell, and the window brings its row back
+		// in, so the active descendant names that mounted cell.
 		await waitFor(() => {
 			const active = grid.getAttribute('aria-activedescendant')
 
 			expect(active).toBeTruthy()
 
-			expect(document.getElementById(active as string)).not.toBeNull()
+			expect(document.getElementById(active as string)).toBe(
+				screen.getByText('Name 1').closest('td'),
+			)
 		})
 	})
 })

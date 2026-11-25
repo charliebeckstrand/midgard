@@ -514,7 +514,7 @@ describe('FormFiltersClear', () => {
 
 		expect(childClick).toHaveBeenCalled()
 
-		expect(onChange).toHaveBeenCalled()
+		expect(onChange).toHaveBeenLastCalledWith({})
 	})
 
 	it('merges the FormFiltersClear className into the child element', () => {
@@ -657,7 +657,7 @@ describe('FormFiltersClear', () => {
 		// Button instead of throwing through `Children.only`.
 		await user.click(screen.getByRole('button', { name: 'Clear all' }))
 
-		expect(onChange).toHaveBeenCalled()
+		expect(onChange).toHaveBeenLastCalledWith({})
 	})
 })
 
@@ -920,7 +920,7 @@ describe('FormFilters native props', () => {
 
 		expect(onClick).toHaveBeenCalledOnce()
 
-		expect(onValueChange).toHaveBeenCalled()
+		expect(onValueChange).toHaveBeenLastCalledWith({})
 	})
 
 	it('clears on a consumer onClick that calls preventDefault, as the cloned child does', async () => {
@@ -934,6 +934,6 @@ describe('FormFilters native props', () => {
 
 		await setupUser().click(screen.getByRole('button', { name: 'Clear' }))
 
-		expect(onValueChange).toHaveBeenCalled()
+		expect(onValueChange).toHaveBeenLastCalledWith({})
 	})
 })

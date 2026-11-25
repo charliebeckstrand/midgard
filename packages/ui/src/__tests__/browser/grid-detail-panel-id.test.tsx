@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { renderUI, waitFor } from '../helpers'
+import { present, renderUI, waitFor } from '../helpers'
 
 type Row = { id: string; name: string }
 
@@ -41,7 +41,12 @@ describe('Grid detail panel id in a windowed body (real browser)', () => {
 
 		const closed = toggle('Details for row r 1')
 
-		expect(document.getElementById(open?.getAttribute('aria-controls') ?? '')).not.toBeNull()
+		const panel = present(
+			container.querySelector('tr[data-detail-row="r 0"] section'),
+			'the panel of row r 0',
+		)
+
+		expect(document.getElementById(open?.getAttribute('aria-controls') ?? '')).toBe(panel)
 
 		expect(closed?.hasAttribute('aria-controls')).toBe(false)
 	})

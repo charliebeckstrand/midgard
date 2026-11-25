@@ -169,7 +169,7 @@ describe('Grid search', () => {
 
 		expect(screen.getByText('Bob')).toBeInTheDocument()
 
-		expect(onValueChange).toHaveBeenCalled()
+		expect(onValueChange).toHaveBeenLastCalledWith('Alice')
 	})
 
 	it('searches only columns that declare a value accessor', async ({ clock }) => {

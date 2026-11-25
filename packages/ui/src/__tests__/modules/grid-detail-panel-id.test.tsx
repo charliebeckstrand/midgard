@@ -1,7 +1,7 @@
 import '../setup/grid-modules'
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { renderUI } from '../helpers'
+import { present, renderUI } from '../helpers'
 
 type Row = { id: string; name: string }
 
@@ -46,10 +46,27 @@ describe('Grid detail panel id', () => {
 		// Two grids of two rows: four toggles, four distinct ids.
 		expect(new Set(ids).size).toBe(4)
 
-		for (const id of ids) {
-			expect(id).not.toMatch(/\s/)
+		for (const id of ids) expect(id).not.toMatch(/\s/)
 
-			expect(document.getElementById(id)).not.toBeNull()
+		// Each toggle names the panel of its own row, in its own grid.
+		const tables = container.querySelectorAll('table')
+
+		expect(tables).toHaveLength(2)
+
+		for (const table of tables) {
+			for (const row of rows) {
+				const toggle = present(
+					table.querySelector(`[aria-label="Details for row ${row.id}"]`),
+					`the toggle of row ${row.id}`,
+				)
+
+				const panel = present(
+					table.querySelector(`tr[data-detail-row="${row.id}"] section`),
+					`the panel of row ${row.id}`,
+				)
+
+				expect(document.getElementById(toggle.getAttribute('aria-controls') ?? '')).toBe(panel)
+			}
 		}
 	})
 })
