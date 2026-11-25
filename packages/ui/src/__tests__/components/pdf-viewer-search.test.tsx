@@ -215,6 +215,22 @@ describe('PdfViewer search', () => {
 		expect(badges()).toHaveLength(0)
 	})
 
+	it('gives the badge of a thumbnail the color of the matches', async () => {
+		renderSearch({ search: { highlight: { color: 'blue' } } })
+
+		const { user, field } = await openSearch()
+
+		await user.type(field, 'due')
+
+		const [badge] = screen
+			.getAllByRole('button', { name: /^Go to Page/ })
+			.flatMap((tile) => [...tile.querySelectorAll('[data-slot="badge"]')])
+
+		expect(badge?.className).toMatch(/\bbg-blue-/)
+
+		expect(badge?.className).not.toMatch(/amber/)
+	})
+
 	it('adds no search mark and no description to the tiles of a viewer with no search', () => {
 		renderSearch({ search: false })
 
