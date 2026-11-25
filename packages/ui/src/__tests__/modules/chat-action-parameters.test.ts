@@ -69,6 +69,33 @@ describe('parseChatAction', () => {
 		['a choice with no options', withInput(form, { kind: 'choice', name: 'x', options: [] })],
 		['a form with no fields', withInput(form, { fields: [] })],
 		[
+			'two options under one value',
+			withInput(form, {
+				kind: 'choice',
+				name: 'carrier',
+				options: [
+					{ value: 'a', label: 'North' },
+					{ value: 'a', label: 'South' },
+				],
+			}),
+		],
+		[
+			'a choice field with two options under one value',
+			withInput(form, {
+				fields: [
+					{
+						kind: 'choice',
+						name: 'time',
+						label: 'Time',
+						options: [
+							{ value: 'am', label: 'Morning' },
+							{ value: 'am', label: 'Noon' },
+						],
+					},
+				],
+			}),
+		],
+		[
 			'two fields under one name',
 			withInput(form, {
 				fields: [

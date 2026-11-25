@@ -154,13 +154,17 @@ function toOption(value: unknown): ChatActionOption | undefined {
 		: { value: optionValue, label, description: value.description }
 }
 
-/** A list of one or more options, or `undefined` when an item is wrong. @internal */
+/** A list of one or more options, or `undefined` when an item is wrong or two share a value. @internal */
 function toOptions(value: unknown): ChatActionOption[] | undefined {
 	if (!Array.isArray(value) || value.length === 0) return undefined
 
 	const list = value.map(toOption)
 
-	return list.every((item) => item !== undefined) ? list : undefined
+	if (!list.every((item) => item !== undefined)) return undefined
+
+	// A value is the result of a pick, so two options under one value would
+	// give one result.
+	return new Set(list.map((item) => item.value)).size === list.length ? list : undefined
 }
 
 /** One field, or `undefined` when its shape is wrong. @internal */
@@ -241,7 +245,7 @@ function toInput(value: unknown): ChatActionInput | undefined {
  * {@link chatActionParameters}. The part keeps only the keys of that shape, so
  * an extra key of an agent never gets to the message. The result is
  * `undefined` when the text is not JSON or its shape is wrong, such as a form
- * with no fields, or two fields under one name.
+ * with no fields, two fields under one name, or two options under one value.
  *
  * @internal
  */
