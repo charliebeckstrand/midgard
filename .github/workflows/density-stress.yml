@@ -100,3 +100,57 @@ jobs:
           ALL_ENGINES: 1
           HOME: /root
           VITEST_SEED: ${{ inputs.seed }}
+
+  # TEMPORARY: the same command on the runner, with no container, so that each
+  # crash keeps a core and gdb shows where the content process stopped. Remove
+  # before merge.
+  density-host:
+    name: density-host (run ${{ matrix.run }})
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        run: ${{ fromJSON(needs.plan.outputs.runs) }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+      - run: pnpm --filter ui exec playwright install --with-deps firefox webkit
+      - name: Show the CPU, its flags, the kernel, and glibc
+        run: |
+          grep -m1 'model name' /proc/cpuinfo
+          grep -m1 '^flags' /proc/cpuinfo | tr ' ' '\n' | grep -E -x 'user_shstk|shstk|ibt|avx512f|erms|fsrm|la57|pku|ospke' | tr '\n' ' '; echo
+          uname -r
+          ldd --version | head -1
+          cat /proc/sys/kernel/core_pattern
+      - name: Keep a core of each crash
+        run: |
+          sudo mkdir -p /tmp/cores
+          sudo chmod 1777 /tmp/cores
+          echo '/tmp/cores/core.%e.%p.%s' | sudo tee /proc/sys/kernel/core_pattern
+          sudo sysctl -w fs.suid_dumpable=2
+      - run: |
+          ulimit -c unlimited
+          pnpm --filter ui test:browser --project density-firefox --project density-webkit --project wysiwyg-webkit --project wysiwyg-floating-ui-webkit --project wysiwyg-floating-motion-webkit
+        env:
+          DEBUG: pw:browser
+          ALL_ENGINES: 1
+      - name: Show where each core stopped
+        if: always()
+        run: |
+          shopt -s nullglob
+          cores=(/tmp/cores/core.*)
+          echo "${#cores[@]} cores"
+          [ ${#cores[@]} -eq 0 ] && exit 0
+          sudo apt-get install -y gdb > /dev/null
+          exe=$(find ~/.cache/ms-playwright -path '*firefox*' -name firefox -type f | head -1)
+          for core in "${cores[@]}"; do
+            echo "::group::$core"
+            sudo gdb -batch -nx "$exe" "$core" \
+              -ex 'p $_siginfo.si_signo' -ex 'p $_siginfo.si_code' -ex 'p $_siginfo._sifields._sigfault.si_addr' \
+              -ex 'info symbol $pc' -ex 'x/8i $pc' -ex 'bt 30' -ex 'info registers' 2>&1 | grep -v '^warning' | head -250
+            echo "::endgroup::"
+          done
