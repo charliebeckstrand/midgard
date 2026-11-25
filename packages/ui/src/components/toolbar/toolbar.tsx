@@ -217,6 +217,10 @@ export function Toolbar({
 	function handleEscape(event: KeyboardEvent<HTMLDivElement>) {
 		if (!more || view.paged === 0 || event.key !== 'Escape') return
 
+		// A portal in the toolbar, such as a Dialog of an item, sends its keys
+		// through the React tree of the toolbar. Its Escape is its own.
+		if (!event.currentTarget.contains(event.target as Node)) return
+
 		event.preventDefault()
 
 		event.stopPropagation()
