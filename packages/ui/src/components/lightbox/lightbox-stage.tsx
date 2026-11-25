@@ -1,5 +1,6 @@
 'use client'
 
+import { ChevronLeft, ChevronRight, ExternalLink, X } from 'lucide-react'
 import { PresenceContext, useComposedRefs, usePresence } from 'motion/react'
 import {
 	type CSSProperties,
@@ -15,7 +16,6 @@ import {
 import { ariaAttr } from '../../core/aria-attr'
 import { dataAttr } from '../../core/data-attr'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
-import { ChevronLeft, ChevronRight, ExternalLink, X } from '../../primitives/icons/icons'
 import { defineMessage } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
@@ -524,7 +524,7 @@ export function LightboxStage({
 						onClick={handleClose}
 						className={slots.close}
 					>
-						<Icon icon={<X />} />
+						<Icon icon={X} />
 					</Button>
 					{aimed?.original && (
 						<Button
@@ -535,7 +535,7 @@ export function LightboxStage({
 							aria-label={labels.original}
 							className={slots.original}
 						>
-							<Icon icon={<ExternalLink />} />
+							<Icon icon={ExternalLink} />
 						</Button>
 					)}
 					{bar && (
@@ -578,7 +578,7 @@ export function LightboxStage({
 										disabled={at === 0}
 										onClick={() => stepBy(-1)}
 									>
-										<Icon icon={<ChevronLeft />} className="rtl:-scale-x-100" />
+										<Icon icon={ChevronLeft} className="rtl:-scale-x-100" />
 									</Button>
 									<span aria-hidden="true" className={slots.count}>
 										{intl.formatNumber(at + 1)} / {intl.formatNumber(count)}
@@ -594,7 +594,7 @@ export function LightboxStage({
 										disabled={at === count - 1}
 										onClick={() => stepBy(1)}
 									>
-										<Icon icon={<ChevronRight />} className="rtl:-scale-x-100" />
+										<Icon icon={ChevronRight} className="rtl:-scale-x-100" />
 									</Button>
 								</div>
 							)}

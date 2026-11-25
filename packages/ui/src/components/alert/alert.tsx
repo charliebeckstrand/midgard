@@ -1,5 +1,6 @@
 'use client'
 
+import { CircleCheckBig, CircleX, Info, TriangleExclamationPoint, X } from 'lucide-react'
 import { useComposedRefs } from 'motion/react'
 import {
 	type ComponentProps,
@@ -12,13 +13,7 @@ import {
 import { cn } from '../../core/cn'
 import { useAnnounceOnAppear } from '../../hooks/a11y/use-announce-on-appear'
 import { useControllableFlag } from '../../hooks/use-controllable'
-import {
-	CircleCheckBig,
-	CircleX,
-	Info,
-	TriangleExclamationPoint,
-	X,
-} from '../../primitives/icons/icons'
+import { Glyph } from '../../primitives/glyph'
 import { intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { type AlertVariants, k } from '../../recipes/kata/alert'
@@ -41,10 +36,10 @@ const severityColors = {
 } satisfies Record<AlertSeverity, AlertColor>
 
 const severityIcons = {
-	info: <Info />,
-	success: <CircleCheckBig />,
-	warning: <TriangleExclamationPoint />,
-	error: <CircleX />,
+	info: <Glyph icon={Info} />,
+	success: <Glyph icon={CircleCheckBig} />,
+	warning: <Glyph icon={TriangleExclamationPoint} />,
+	error: <Glyph icon={CircleX} />,
 } satisfies Record<AlertSeverity, ReactElement>
 
 /** Wraps loose children in {@link AlertBody}; renders nothing for an empty child. @internal */
@@ -334,7 +329,7 @@ export function Alert({
 							setOpen(false)
 						}}
 					>
-						<Icon icon={<X />} />
+						<Icon icon={X} />
 					</Button>
 				</div>
 			)}

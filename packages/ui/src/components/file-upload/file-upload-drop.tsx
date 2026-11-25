@@ -1,5 +1,6 @@
 'use client'
 
+import { Upload } from 'lucide-react'
 import {
 	type ChangeEvent,
 	type DragEvent,
@@ -17,7 +18,6 @@ import { invalidAttrs } from '../../core/invalid-attrs'
 import { joinAriaIds } from '../../hooks/use-aria-ids'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useTruncation } from '../../hooks/use-truncation'
-import { Upload } from '../../primitives/icons/icons'
 import { IntlMessage } from '../../primitives/intl'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/file-upload'
@@ -58,7 +58,7 @@ function dropPrompt(children: ReactNode) {
 	return (
 		children ?? (
 			<>
-				<Icon icon={<Upload />} size="lg" className={k.icon} />
+				<Icon icon={Upload} size="lg" className={k.icon} />
 				<span className={cn('block pointer-coarse:hidden', k.label)}>
 					<IntlMessage message={fileUploadMessages.dropClick} />
 				</span>

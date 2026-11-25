@@ -1,5 +1,6 @@
 'use client'
 
+import { Copy, EllipsisVertical } from 'lucide-react'
 import { cloneElement, type ReactElement, useMemo, useRef } from 'react'
 import { Button } from '../../components/button'
 import { ContextMenu, ContextMenuList } from '../../components/context-menu'
@@ -15,7 +16,7 @@ import { Menu, MenuContent, MenuTrigger } from '../../components/menu'
 import { Toolbar } from '../../components/toolbar'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { useMediaQuery } from '../../hooks/use-media-query'
-import { Copy, EllipsisVertical } from '../../primitives/icons/icons'
+import { Glyph } from '../../primitives/glyph'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { copyText } from '../../utilities/export-output'
@@ -100,7 +101,7 @@ function useMenuEntries({ config, content, bubble }: ChatMessageMenuProps): {
 		const copyItem: ContextMenuItem = {
 			key: 'copy',
 			label: copy,
-			icon: <Copy />,
+			icon: <Glyph icon={Copy} />,
 			disabled: text === '',
 			onAction: () => {
 				copyText(text)
@@ -259,7 +260,7 @@ function ToolbarCopy({
 					ref={ref}
 					aria-describedby={undefined}
 					size="sm"
-					icon={<Copy />}
+					icon={<Glyph icon={Copy} />}
 					text={text}
 					disabled={disabled}
 					aria-label={label}
@@ -359,7 +360,7 @@ export function ChatMessageToolbar({
 							    description that repeats it. */}
 							<MenuTrigger aria-describedby={undefined}>
 								<Button type="button" variant="bare" size="sm" aria-label={more}>
-									<Icon icon={<EllipsisVertical />} />
+									<Icon icon={EllipsisVertical} />
 								</Button>
 							</MenuTrigger>
 						</TooltipTrigger>

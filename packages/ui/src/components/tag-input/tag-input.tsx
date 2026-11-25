@@ -1,5 +1,6 @@
 'use client'
 
+import { CornerLeftDown } from 'lucide-react'
 import { useComposedRefs } from 'motion/react'
 import {
 	type FocusEvent,
@@ -14,7 +15,6 @@ import { ariaAttr } from '../../core/aria-attr'
 import { cn } from '../../core/cn'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { useStableEvent } from '../../hooks/use-stable-event'
-import { CornerLeftDown } from '../../primitives/icons/icons'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import type { IntlShape } from '../../primitives/intl/types'
 import { useIntl } from '../../primitives/intl/use-intl'
@@ -461,7 +461,7 @@ export function TagInput({
 			onClick={handleSubmit}
 			onBlur={handleAddBlur}
 		>
-			<Icon icon={<CornerLeftDown />} className="rtl:-scale-x-100" />
+			<Icon icon={CornerLeftDown} className="rtl:-scale-x-100" />
 		</Button>
 	)
 

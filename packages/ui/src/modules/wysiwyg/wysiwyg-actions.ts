@@ -1,4 +1,3 @@
-import type { ComponentType } from 'react'
 import {
 	Code,
 	Italic,
@@ -7,10 +6,11 @@ import {
 	Link,
 	List,
 	ListOrdered,
+	type LucideIcon,
 	SquareCode,
 	Strikethrough,
 	TextQuote,
-} from '../../primitives/icons/icons'
+} from 'lucide-react'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import type { MessageDescriptor } from '../../primitives/intl/types'
 import type { WysiwygAction, WysiwygHeadingLevel, WysiwygToggleAction } from './types'
@@ -212,7 +212,7 @@ type WysiwygActionEntry = {
 	 */
 	group: WysiwygActionGroup
 	message: MessageDescriptor
-	icon: ComponentType
+	icon: LucideIcon
 	/** The shortcut of the action. Heading has none: each level has its own. */
 	shortcut?: WysiwygShortcut
 }

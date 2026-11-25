@@ -1,8 +1,5 @@
 'use client'
 
-import type { ReactElement, ReactNode } from 'react'
-import { mergeContextMenuItems } from '../../components/context-menu/context-menu-merge'
-import type { PaletteColor } from '../../core/recipe/colors'
 import {
 	ArrowDown,
 	ArrowDownToLine,
@@ -34,7 +31,11 @@ import {
 	RotateCcw,
 	StretchHorizontal,
 	Ungroup,
-} from '../../primitives/icons/icons'
+} from 'lucide-react'
+import type { ReactElement, ReactNode } from 'react'
+import { mergeContextMenuItems } from '../../components/context-menu/context-menu-merge'
+import type { PaletteColor } from '../../core/recipe/colors'
+import { Glyph } from '../../primitives/glyph'
 import type { IntlShape } from '../../primitives/intl/types'
 import { isDataColumn } from '../../utilities/is-data-column'
 import type { GridSortState } from './context'
@@ -56,7 +57,7 @@ import type { GridColumn, GridMenuItem } from './types'
 
 /** Menu-item icon for an export action: a printer for `print`, a download glyph otherwise. @internal */
 function exportIcon(type: GridExportAction['type']): ReactElement {
-	return type === 'print' ? <Printer /> : <Download />
+	return type === 'print' ? <Glyph icon={Printer} /> : <Glyph icon={Download} />
 }
 
 /**
@@ -132,7 +133,7 @@ function sortMenuItems<T>(args: {
 		items.push({
 			key: 'sort-asc',
 			label: intl.formatMessage(gridMessages.sortAscending),
-			icon: <ArrowUp />,
+			icon: <Glyph icon={ArrowUp} />,
 			onAction: () => sortColumn(column.id, 'asc'),
 		})
 	}
@@ -141,7 +142,7 @@ function sortMenuItems<T>(args: {
 		items.push({
 			key: 'sort-desc',
 			label: intl.formatMessage(gridMessages.sortDescending),
-			icon: <ArrowDown />,
+			icon: <Glyph icon={ArrowDown} />,
 			onAction: () => sortColumn(column.id, 'desc'),
 		})
 	}
@@ -150,7 +151,7 @@ function sortMenuItems<T>(args: {
 		items.push({
 			key: 'clear-sort',
 			label: intl.formatMessage(gridMessages.clearSort),
-			icon: <ArrowUpDown />,
+			icon: <Glyph icon={ArrowUpDown} />,
 			onAction: clearSort,
 		})
 	}
@@ -183,7 +184,7 @@ function autoSizeMenuItems<T>(args: {
 		items.push({
 			key: 'auto-size-column',
 			label: intl.formatMessage(gridMessages.autoSizeColumn),
-			icon: <MoveHorizontal />,
+			icon: <Glyph icon={MoveHorizontal} />,
 			onAction: () => autoSizeColumn(column.id),
 		})
 	}
@@ -192,7 +193,7 @@ function autoSizeMenuItems<T>(args: {
 		items.push({
 			key: 'auto-size',
 			label: intl.formatMessage(gridMessages.autoSizeAll),
-			icon: <StretchHorizontal />,
+			icon: <Glyph icon={StretchHorizontal} />,
 			onAction: autoSizeColumns,
 		})
 	}
@@ -201,7 +202,7 @@ function autoSizeMenuItems<T>(args: {
 		items.push({
 			key: 'reset-widths',
 			label: intl.formatMessage(gridMessages.resetWidths),
-			icon: <RotateCcw />,
+			icon: <Glyph icon={RotateCcw} />,
 			onAction: resetColumnWidths,
 		})
 	}
@@ -239,7 +240,9 @@ export type GridGroupByMenu = {
 function manageColumnsItems(label: ReactNode, chooseColumns: (() => void) | null): GridMenuItem[] {
 	if (!chooseColumns) return []
 
-	return [{ key: 'choose-columns', label, icon: <Columns3 />, onAction: chooseColumns }]
+	return [
+		{ key: 'choose-columns', label, icon: <Glyph icon={Columns3} />, onAction: chooseColumns },
+	]
 }
 
 /**
@@ -353,7 +356,7 @@ function filterMenuItems<T>(
 		{
 			key: 'filter-column',
 			label: intl.formatMessage(gridMessages.filterColumn, { column: columnLabel(column) }),
-			icon: <ListFilter />,
+			icon: <Glyph icon={ListFilter} />,
 			onAction: filter.openFilter,
 		},
 	]
@@ -381,7 +384,7 @@ function groupMenuItems<T>(
 			{
 				key: 'ungroup',
 				label: intl.formatMessage(gridMessages.ungroup),
-				icon: <Ungroup />,
+				icon: <Glyph icon={Ungroup} />,
 				onAction: () => groupBy.setGrouping(null),
 			},
 		]
@@ -391,7 +394,7 @@ function groupMenuItems<T>(
 		{
 			key: 'group-by',
 			label: intl.formatMessage(gridMessages.groupBy, { column: columnLabel(column) }),
-			icon: <Group />,
+			icon: <Glyph icon={Group} />,
 			onAction: () => groupBy.setGrouping(column.id),
 		},
 	]
@@ -430,9 +433,13 @@ function pinMenuItems<T>(
  * @internal
  */
 export function pinChoiceIcon(target: PinMenuChoice['target'], rtl = false): ReactElement {
-	if (target === false) return <PinOff />
+	if (target === false) return <Glyph icon={PinOff} />
 
-	return physicalSide(target, rtl) === 'left' ? <ArrowLeftToLine /> : <ArrowRightToLine />
+	return physicalSide(target, rtl) === 'left' ? (
+		<Glyph icon={ArrowLeftToLine} />
+	) : (
+		<Glyph icon={ArrowRightToLine} />
+	)
 }
 
 /**
@@ -453,19 +460,19 @@ export const COLUMN_MOVES: readonly GridMoveTarget[] = ['previous', 'next', 'fir
 function moveMenuItems(intl: IntlShape, move: ColumnMenuMove | null, rtl: boolean): GridMenuItem[] {
 	if (!move) return []
 
-	const left = { label: gridMessages.moveLeft, icon: <ChevronLeft /> }
+	const left = { label: gridMessages.moveLeft, icon: <Glyph icon={ChevronLeft} /> }
 
-	const right = { label: gridMessages.moveRight, icon: <ChevronRight /> }
+	const right = { label: gridMessages.moveRight, icon: <Glyph icon={ChevronRight} /> }
 
-	const start = { label: gridMessages.moveToStart, icon: <ArrowLeftToLine /> }
+	const start = { label: gridMessages.moveToStart, icon: <Glyph icon={ArrowLeftToLine} /> }
 
-	const end = { label: gridMessages.moveToEnd, icon: <ArrowRightToLine /> }
+	const end = { label: gridMessages.moveToEnd, icon: <Glyph icon={ArrowRightToLine} /> }
 
 	const choices = {
 		previous: rtl ? right : left,
 		next: rtl ? left : right,
-		first: rtl ? { ...start, icon: <ArrowRightToLine /> } : start,
-		last: rtl ? { ...end, icon: <ArrowLeftToLine /> } : end,
+		first: rtl ? { ...start, icon: <Glyph icon={ArrowRightToLine} /> } : start,
+		last: rtl ? { ...end, icon: <Glyph icon={ArrowLeftToLine} /> } : end,
 	}
 
 	return move.targets.map((target) => ({
@@ -494,7 +501,7 @@ function widthMenuItems(intl: IntlShape, width: ColumnMenuWidth | null): GridMen
 		items.push({
 			key: 'increase-width',
 			label: intl.formatMessage(gridMessages.increaseWidth),
-			icon: <Plus />,
+			icon: <Glyph icon={Plus} />,
 			onAction: () => width.step(1),
 		})
 	}
@@ -503,7 +510,7 @@ function widthMenuItems(intl: IntlShape, width: ColumnMenuWidth | null): GridMen
 		items.push({
 			key: 'decrease-width',
 			label: intl.formatMessage(gridMessages.decreaseWidth),
-			icon: <Minus />,
+			icon: <Glyph icon={Minus} />,
 			onAction: () => width.step(-1),
 		})
 	}
@@ -532,7 +539,7 @@ export function rowMoveItems(
 		return {
 			key: up ? 'move-row-up' : 'move-row-down',
 			label: intl.formatMessage(up ? gridMessages.moveUp : gridMessages.moveDown),
-			icon: up ? <ChevronUp /> : <ChevronDown />,
+			icon: up ? <Glyph icon={ChevronUp} /> : <Glyph icon={ChevronDown} />,
 			onAction: () => run(target),
 		}
 	})
@@ -596,26 +603,26 @@ export function columnMenuItems<T>(args: ColumnMenuArgs<T>): GridMenuItem[] {
 		...submenuItems({
 			key: 'sort',
 			label: intl.formatMessage(gridMessages.sort),
-			icon: <ArrowUpDown />,
+			icon: <Glyph icon={ArrowUpDown} />,
 			items: sortMenuItems({ intl, column, sort, sortDirection, sortColumn, clearSort }),
 		}),
 		...submenuItems({
 			key: 'pin',
 			label: intl.formatMessage(gridMessages.pin),
-			icon: <Pin />,
+			icon: <Glyph icon={Pin} />,
 			items: pinMenuItems(intl, column, pinColumn, rtl),
 		}),
 		...submenuItems({
 			key: 'move',
 			label: intl.formatMessage(gridMessages.move),
-			icon: <GripVertical />,
+			icon: <Glyph icon={GripVertical} />,
 			items: moveMenuItems(intl, move, rtl),
 		}),
 		...groupMenuItems(intl, column, groupBy),
 		...submenuItems({
 			key: 'auto-size-menu',
 			label: intl.formatMessage(gridMessages.autoSize),
-			icon: <StretchHorizontal />,
+			icon: <Glyph icon={StretchHorizontal} />,
 			items: autoSizeMenuItems({
 				intl,
 				column,
@@ -627,13 +634,13 @@ export function columnMenuItems<T>(args: ColumnMenuArgs<T>): GridMenuItem[] {
 		...submenuItems({
 			key: 'width',
 			label: intl.formatMessage(gridMessages.width),
-			icon: <MoveHorizontal />,
+			icon: <Glyph icon={MoveHorizontal} />,
 			items: widthMenuItems(intl, width),
 		}),
 		...submenuItems({
 			key: 'export',
 			label: intl.formatMessage(gridMessages.export),
-			icon: <Download />,
+			icon: <Glyph icon={Download} />,
 			items: exportMenuItems(exportActions),
 		}),
 	]
@@ -657,16 +664,16 @@ export function fillItems(
 	rtl = false,
 ): GridMenuItem[] {
 	const end = rtl
-		? { message: gridMessages.fillLeft, icon: <ArrowLeftToLine /> }
-		: { message: gridMessages.fillRight, icon: <ArrowRightToLine /> }
+		? { message: gridMessages.fillLeft, icon: <Glyph icon={ArrowLeftToLine} /> }
+		: { message: gridMessages.fillRight, icon: <Glyph icon={ArrowRightToLine} /> }
 
 	const start = rtl
-		? { message: gridMessages.fillRight, icon: <ArrowRightToLine /> }
-		: { message: gridMessages.fillLeft, icon: <ArrowLeftToLine /> }
+		? { message: gridMessages.fillRight, icon: <Glyph icon={ArrowRightToLine} /> }
+		: { message: gridMessages.fillLeft, icon: <Glyph icon={ArrowLeftToLine} /> }
 
 	const choices = [
-		{ direction: 'down', message: gridMessages.fillDown, icon: <ArrowDownToLine /> },
-		{ direction: 'up', message: gridMessages.fillUp, icon: <ArrowUpToLine /> },
+		{ direction: 'down', message: gridMessages.fillDown, icon: <Glyph icon={ArrowDownToLine} /> },
+		{ direction: 'up', message: gridMessages.fillUp, icon: <Glyph icon={ArrowUpToLine} /> },
 		{ direction: 'right', ...end },
 		{ direction: 'left', ...start },
 	] as const
@@ -698,13 +705,18 @@ export function cellMenuItems(
 	move: GridMenuItem[] = [],
 ): GridMenuItem[] {
 	return [
-		{ key: 'copy', label: intl.formatMessage(gridMessages.copy), icon: <Copy />, onAction: copy },
+		{
+			key: 'copy',
+			label: intl.formatMessage(gridMessages.copy),
+			icon: <Glyph icon={Copy} />,
+			onAction: copy,
+		},
 		...fill,
 		...move,
 		...submenuItems({
 			key: 'export',
 			label: intl.formatMessage(gridMessages.export),
-			icon: <Download />,
+			icon: <Glyph icon={Download} />,
 			items: exportMenuItems(exportActions),
 		}),
 	]
@@ -733,7 +745,7 @@ export function columnGroupMenuItems(args: {
 					{
 						key: 'manage-columns',
 						label: args.manageLabel,
-						icon: <Columns3 />,
+						icon: <Glyph icon={Columns3} />,
 						onAction: args.chooseColumns,
 					},
 				]
@@ -758,7 +770,7 @@ function clearColorItems(
 				{
 					key: 'clear-color',
 					label: intl.formatMessage(gridMessages.clearColor),
-					icon: <Ban />,
+					icon: <Glyph icon={Ban} />,
 					onAction: onClear,
 				},
 			]
@@ -798,26 +810,33 @@ type GridRowGroupMenuArgs = {
  */
 export function rowGroupMenuItems(args: GridRowGroupMenuArgs): GridMenuItem[] {
 	return mergeContextMenuItems([
-		[{ key: 'manage-rows', label: args.manageLabel, icon: <ListTree />, onAction: args.onManage }],
+		[
+			{
+				key: 'manage-rows',
+				label: args.manageLabel,
+				icon: <Glyph icon={ListTree} />,
+				onAction: args.onManage,
+			},
+		],
 		[
 			{
 				key: 'toggle-group',
 				label: args.intl.formatMessage(
 					args.expanded ? gridMessages.collapseGroup : gridMessages.expandGroup,
 				),
-				icon: args.expanded ? <ChevronsDownUp /> : <ChevronsUpDown />,
+				icon: args.expanded ? <Glyph icon={ChevronsDownUp} /> : <Glyph icon={ChevronsUpDown} />,
 				onAction: args.onToggle,
 			},
 			{
 				key: 'expand-all',
 				label: args.intl.formatMessage(gridMessages.expandAllGroups),
-				icon: <ChevronsUpDown />,
+				icon: <Glyph icon={ChevronsUpDown} />,
 				onAction: args.onExpandAll,
 			},
 			{
 				key: 'collapse-all',
 				label: args.intl.formatMessage(gridMessages.collapseAllGroups),
-				icon: <ChevronsDownUp />,
+				icon: <Glyph icon={ChevronsDownUp} />,
 				onAction: args.onCollapseAll,
 			},
 		],

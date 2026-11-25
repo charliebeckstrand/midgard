@@ -1,7 +1,7 @@
 'use client'
 
+import { X } from 'lucide-react'
 import type { MouseEventHandler, Ref } from 'react'
-import { X } from '../../primitives/icons/icons'
 import { intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { Button } from '../button'
@@ -51,7 +51,7 @@ export function InputClearButton({
 			onClick={onClick}
 			{...(locked && lockedProps)}
 		>
-			<Icon icon={<X />} />
+			<Icon icon={X} />
 		</Button>
 	)
 }

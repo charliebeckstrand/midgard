@@ -1,5 +1,5 @@
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import type { KeyboardEventHandler, ReactNode, RefObject } from 'react'
-import { ChevronLeft, ChevronRight } from '../../primitives/icons/icons'
 import { k } from '../../recipes/kata/calendar'
 import { Button } from '../button'
 import { Icon } from '../icon'
@@ -60,7 +60,7 @@ export function CalendarToolbar({
 				variant="plain"
 				onClick={onPrev}
 				aria-label={prevLabel}
-				prefix={<Icon icon={<ChevronLeft />} className="rtl:-scale-x-100" />}
+				prefix={<Icon icon={ChevronLeft} className="rtl:-scale-x-100" />}
 				className={prevClassName}
 				data-index={prevIndex}
 			/>
@@ -70,7 +70,7 @@ export function CalendarToolbar({
 				variant="plain"
 				onClick={onNext}
 				aria-label={nextLabel}
-				prefix={<Icon icon={<ChevronRight />} className="rtl:-scale-x-100" />}
+				prefix={<Icon icon={ChevronRight} className="rtl:-scale-x-100" />}
 				className={nextClassName}
 				data-index={nextIndex}
 			/>

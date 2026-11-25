@@ -1,7 +1,8 @@
+import { Check, TriangleExclamationPoint as Triangle, X } from 'lucide-react'
 import { describe, expect, it } from 'vitest'
 import { BreadcrumbSeparator } from '../../components/breadcrumb'
 import { Icon } from '../../components/icon'
-import * as glyphs from '../../primitives/icons/icons'
+import { Glyph } from '../../primitives/glyph'
 import { UIProvider } from '../../providers/ui'
 import { renderUI } from '../helpers'
 
@@ -11,17 +12,8 @@ function Replacement({ glyph, ...props }: { glyph: string; className?: string })
 }
 
 describe('UIProvider icons', () => {
-	it('gives each glyph its own Lucide name', () => {
-		const exports = Object.entries(glyphs)
-
-		// A read that found no glyph would pass the case below with an empty list.
-		expect(exports.length).toBeGreaterThan(50)
-
-		expect(exports.filter(([name, glyph]) => glyph.displayName !== name)).toEqual([])
-	})
-
 	it('draws the Lucide default with no provider', () => {
-		const { container } = renderUI(<glyphs.X />)
+		const { container } = renderUI(<Glyph icon={X} />)
 
 		expect(container.querySelector('svg')).toHaveClass('lucide-x')
 	})
@@ -52,10 +44,20 @@ describe('UIProvider icons', () => {
 		expect(icon).toHaveClass('replacement-class', 'shrink-0', 'rtl:-scale-x-100')
 	})
 
+	it('reads the own Lucide name of an icon that ui imports under another name', () => {
+		const { container } = renderUI(
+			<UIProvider icons={{ TriangleExclamationPoint: <Replacement glyph="triangle" /> }}>
+				<Glyph icon={Triangle} />
+			</UIProvider>,
+		)
+
+		expect(container.querySelector('svg')).toHaveAttribute('data-replacement', 'triangle')
+	})
+
 	it('merges the style of a pixel size over the style of the replacement', () => {
 		const { container } = renderUI(
 			<UIProvider icons={{ X: <svg style={{ color: 'red', width: 1 }} /> }}>
-				<Icon icon={<glyphs.X />} size={20} />
+				<Icon icon={X} size={20} />
 			</UIProvider>,
 		)
 
@@ -72,12 +74,12 @@ describe('UIProvider icons', () => {
 				icons={{ X: <Replacement glyph="outer-x" />, Check: <Replacement glyph="outer-check" /> }}
 			>
 				<span data-scope="outer">
-					<glyphs.Check />
+					<Glyph icon={Check} />
 				</span>
 				<UIProvider icons={{ Check: <Replacement glyph="inner-check" /> }}>
 					<span data-scope="inner">
-						<glyphs.X />
-						<glyphs.Check />
+						<Glyph icon={X} />
+						<Glyph icon={Check} />
 					</span>
 				</UIProvider>
 			</UIProvider>,

@@ -1,6 +1,7 @@
 'use client'
 
 import { useInteractions } from '@floating-ui/react'
+import { Check, X } from 'lucide-react'
 import { useComposedRefs } from 'motion/react'
 import {
 	type MouseEvent,
@@ -23,7 +24,7 @@ import { createContext } from '../../core/create-context'
 import { dataAttr } from '../../core/data-attr'
 import { useFloatingPanel } from '../../hooks/use-floating-panel'
 import { FloatingSurface } from '../../primitives/floating-surface'
-import { Check, X } from '../../primitives/icons/icons'
+import { Glyph } from '../../primitives/glyph'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/grid'
 import type { GridEditingSession, GridSettleControls as SettleControls } from './context'
@@ -94,8 +95,8 @@ type GridCellEditorProps<T> = {
 
 /** The two ways a cell-scoped session ends, as the controls that end it. @internal */
 const SETTLE_ACTIONS = [
-	{ outcome: 'save', name: gridMessages.saveCell, color: 'green', icon: <Check /> },
-	{ outcome: 'discard', name: gridMessages.discardCell, color: 'red', icon: <X /> },
+	{ outcome: 'save', name: gridMessages.saveCell, color: 'green', icon: <Glyph icon={Check} /> },
+	{ outcome: 'discard', name: gridMessages.discardCell, color: 'red', icon: <Glyph icon={X} /> },
 ] as const
 
 /**

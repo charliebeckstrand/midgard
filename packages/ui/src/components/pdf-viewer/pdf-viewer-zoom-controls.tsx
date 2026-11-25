@@ -1,5 +1,6 @@
+import { Maximize2, ZoomIn, ZoomOut } from 'lucide-react'
 import { useMemo } from 'react'
-import { Maximize2, ZoomIn, ZoomOut } from '../../primitives/icons/icons'
+import { Glyph } from '../../primitives/glyph'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { ButtonIconTooltip } from '../button/button-icon-tooltip'
 import { ToolbarGroup } from '../toolbar'
@@ -44,20 +45,20 @@ export function PdfViewerZoomControls({ zoom, disabled }: PdfViewerZoomControlsP
 				tooltip={intl.formatMessage(pdfViewerMessages.zoomOutTo, {
 					percent: percent(nextLevelDown),
 				})}
-				icon={<ZoomOut />}
+				icon={<Glyph icon={ZoomOut} />}
 				disabled={disabled || zoom.value <= minZoom}
 				onClick={zoomOut}
 			/>
 			<ButtonIconTooltip
 				label={intl.formatMessage(pdfViewerMessages.zoomIn)}
 				tooltip={intl.formatMessage(pdfViewerMessages.zoomInTo, { percent: percent(nextLevelUp) })}
-				icon={<ZoomIn />}
+				icon={<Glyph icon={ZoomIn} />}
 				disabled={disabled || zoom.value >= maxZoom}
 				onClick={zoomIn}
 			/>
 			<ButtonIconTooltip
 				label={intl.formatMessage(pdfViewerMessages.resetZoom)}
-				icon={<Maximize2 />}
+				icon={<Glyph icon={Maximize2} />}
 				disabled={disabled || zoom.value === 1}
 				onClick={resetZoom}
 			/>

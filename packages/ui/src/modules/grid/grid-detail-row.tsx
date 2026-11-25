@@ -1,12 +1,13 @@
 'use client'
 
+import { ChevronRight } from 'lucide-react'
 import { memo, type ReactNode } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { ariaAttr } from '../../core/aria-attr'
 import { cn } from '../../core/cn'
 import { dataAttr } from '../../core/data-attr'
-import { ChevronRight } from '../../primitives/icons/icons'
+import { Glyph } from '../../primitives/glyph'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { MountHold } from '../../primitives/mount'
 import { k } from '../../recipes/kata/grid'
@@ -78,7 +79,7 @@ function GridExpandToggleImpl({
 			    `data-slot="icon"`, so the Button reads the control as icon-only and
 			    holds its square floor. */}
 			<Icon
-				icon={<ChevronRight data-open={dataAttr(expanded)} />}
+				icon={<Glyph icon={ChevronRight} data-open={dataAttr(expanded)} />}
 				className={cn(k.detail.chevron)}
 			/>
 		</Button>
