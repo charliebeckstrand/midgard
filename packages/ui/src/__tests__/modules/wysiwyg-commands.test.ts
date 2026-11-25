@@ -136,13 +136,20 @@ function selectText(source: string, from: number, to = from): EditorState {
 	return state.apply(state.tr.setSelection(TextSelection.create(state.doc, from + 1, to + 1)))
 }
 
-/** Runs the link of the popover on a state, and gives the Markdown and the selected text. */
-function link(state: EditorState, href: string, text: string) {
+/** Runs the link of the popover on a state, and gives the next state. */
+function applyLink(state: EditorState, href: string, text: string): EditorState {
 	let next = state
 
 	setLink(href, text)(state, (tr: Transaction) => {
 		next = next.apply(tr)
 	})
+
+	return next
+}
+
+/** Runs the link of the popover on a state, and gives the Markdown and the selected text. */
+function link(state: EditorState, href: string, text: string) {
+	const next = applyLink(state, href, text)
 
 	const { from, to } = next.selection
 
@@ -196,6 +203,30 @@ describe('the link of the popover', () => {
 	it('removes the link with an empty URL, and the text stays', () => {
 		expect(link(selectText('Read [the docs](https://a.dev) now', 7), '', 'the docs').markdown).toBe(
 			'Read the docs now',
+		)
+	})
+
+	it('reads a selection of the whole doc as its text', () => {
+		expect(linkDraft(selectAll('[Read](https://a.dev) the docs'))).toEqual({
+			text: 'Read the docs',
+			href: 'https://a.dev',
+		})
+
+		for (const source of ['hello', 'a\n\nb']) {
+			const next = applyLink(selectAll(source), 'https://a.dev', 'hi')
+
+			const { from, to, $from, $to } = next.selection
+
+			expect(serializeMarkdown(next.doc)).toBe('[hi](https://a.dev)')
+
+			expect(next.doc.textBetween(from, to)).toBe('hi')
+
+			// A text selection has its ends in text, not in the doc.
+			expect($from.parent.inlineContent && $to.parent.inlineContent).toBe(true)
+		}
+
+		expect(link(selectAll('a\n\nb'), 'https://a.dev', 'a b').markdown).toBe(
+			'[a](https://a.dev)\n\n[b](https://a.dev)',
 		)
 	})
 
