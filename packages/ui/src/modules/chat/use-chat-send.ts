@@ -150,10 +150,10 @@ export type ChatTransportMessage = {
 	 * The action that the reader submitted, with its `result`, and the id of
 	 * the message that holds it. Present only for {@link ChatSend.submitAction}.
 	 * The reply can revise that message through a {@link ChatRevision}. Under
-	 * AG-UI, the `id` of the part is the id of the tool call, and `result` is
-	 * the tool result of the next run.
+	 * AG-UI, the `id` of the part is the id of the tool call, and
+	 * `toAgUiToolMessage` gives `result` to the next run as the tool message.
 	 */
-	action?: { messageId: string; part: ChatActionPart }
+	action?: { messageId: string; part: ChatActionPart & { result: ChatActionResult } }
 }
 
 /** Options for {@link useChatSend}. */

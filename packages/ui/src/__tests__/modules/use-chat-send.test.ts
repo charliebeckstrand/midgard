@@ -2,11 +2,14 @@ import { act, renderHook, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import {
 	type ChatActionPart,
+	type ChatAgUiEvent,
 	type ChatCitation,
 	type ChatMessageData,
 	type ChatPart,
 	type ChatToolPart,
 	type ChatTransport,
+	fromAgUiEvents,
+	toAgUiToolMessage,
 	useChatSend,
 } from '../../modules/chat'
 import { deferred } from '../helpers'
@@ -1283,5 +1286,105 @@ describe('useChatSend submitAction', () => {
 		})
 
 		expect(result.current.messages[1]?.content).toEqual(initialMessages[1]?.content)
+	})
+})
+
+describe('useChatSend with an AG-UI agent', () => {
+	const args = JSON.stringify({
+		prompt: 'Which carrier?',
+		title: 'Carrier',
+		success: 'Carrier picked',
+		input: { kind: 'choice', name: 'carrier', options: [{ value: 'atlas', label: 'Atlas' }] },
+	})
+
+	// The two runs of a recorded agent: an ask, and then a revision of the line
+	// that the answer makes stale.
+	const runs: ChatAgUiEvent[][] = [
+		[
+			{ type: 'RUN_STARTED', threadId: 't1', runId: 'run1' },
+			{ type: 'TEXT_MESSAGE_START', messageId: 'm1', role: 'assistant' },
+			{ type: 'TEXT_MESSAGE_CONTENT', messageId: 'm1', delta: 'Two carriers can take it.' },
+			{ type: 'TEXT_MESSAGE_END', messageId: 'm1' },
+			{
+				type: 'TOOL_CALL_START',
+				toolCallId: 'c1',
+				toolCallName: 'ask_reader',
+				parentMessageId: 'm1',
+			},
+			{ type: 'TOOL_CALL_ARGS', toolCallId: 'c1', delta: args.slice(0, 20) },
+			{ type: 'TOOL_CALL_ARGS', toolCallId: 'c1', delta: args.slice(20) },
+			{ type: 'TOOL_CALL_END', toolCallId: 'c1' },
+			{ type: 'RUN_FINISHED', threadId: 't1', runId: 'run1' },
+		],
+		[
+			{ type: 'RUN_STARTED', threadId: 't1', runId: 'run2' },
+			{
+				type: 'MESSAGES_SNAPSHOT',
+				messages: [
+					{ id: 'u1', role: 'user', content: 'Who can take it?' },
+					{ id: 'm1', role: 'assistant', content: 'Atlas takes it on Thursday.' },
+					{ id: 'tool-1', role: 'tool', toolCallId: 'c1', content: '{"carrier":"atlas"}' },
+				],
+			},
+			{ type: 'RUN_FINISHED', threadId: 't1', runId: 'run2' },
+		],
+	]
+
+	it('draws the ask of a run, and gives the answer to the next run as a tool message', async () => {
+		// The messages of the agent, as the client sends them in each run.
+		const history: unknown[] = []
+		const shown: { current: ChatMessageData[] } = { current: [] }
+		const queue = [...runs]
+
+		const transport: ChatTransport = (content, _signal, message) => {
+			history.push(
+				message.action
+					? toAgUiToolMessage(message.action.part, 'tool-1')
+					: { id: 'u1', role: 'user', content },
+			)
+
+			const events = (async function* () {
+				yield* queue.shift() ?? []
+			})()
+
+			return fromAgUiEvents(events, { tool: 'ask_reader', messages: shown.current })
+		}
+
+		const { result } = renderHook(() => useChatSend({ transport }))
+
+		await act(async () => {
+			await result.current.send('Who can take it?')
+		})
+
+		const reply = result.current.messages[1]
+
+		expect(reply?.content).toEqual([
+			{ kind: 'text', id: 'm1', text: 'Two carriers can take it.' },
+			{ kind: 'action', id: 'c1', ...JSON.parse(args) },
+		])
+
+		shown.current = result.current.messages
+
+		await act(async () => {
+			await result.current.submitAction(reply?.id ?? '', 'c1', { carrier: 'atlas' })
+		})
+
+		expect(history[1]).toEqual({
+			id: 'tool-1',
+			role: 'tool',
+			toolCallId: 'c1',
+			content: '{"carrier":"atlas"}',
+		})
+
+		expect(result.current.messages).toHaveLength(2)
+
+		expect(result.current.messages[1]).toMatchObject({
+			id: reply?.id,
+			revised: true,
+			content: [
+				{ kind: 'text', id: 'm1', text: 'Atlas takes it on Thursday.' },
+				{ kind: 'action', id: 'c1', result: { carrier: 'atlas' } },
+			],
+		})
 	})
 })

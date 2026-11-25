@@ -20,6 +20,14 @@ export {
 	ChatTranscriptSkeleton,
 	type ChatTranscriptSkeletonProps,
 } from './chat-transcript-skeleton'
+export { chatActionParameters } from './engine/chat-action-parameters'
+export {
+	type ChatAgUiEvent,
+	type ChatAgUiOptions,
+	type ChatAgUiToolMessage,
+	fromAgUiEvents,
+	toAgUiToolMessage,
+} from './engine/chat-ag-ui'
 export type { ChatBranch } from './engine/chat-branch/types'
 export {
 	type ChatStopSelection,

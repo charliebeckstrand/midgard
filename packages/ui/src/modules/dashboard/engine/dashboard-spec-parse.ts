@@ -8,7 +8,8 @@
  * what to do with the report. The parse of a selection value works the same way.
  */
 
-import { isQueryGroup, isRecord, MAX_DEPTH } from '../../query/engine/query-node'
+import { isRecord } from '../../../utilities/is-record'
+import { isQueryGroup, MAX_DEPTH } from '../../query/engine/query-node'
 import type { DashboardLayoutItem } from './dashboard-layout'
 import type { DashboardSelection } from './dashboard-scope'
 import type { DashboardSpec, DashboardSpecTile } from './dashboard-spec'
