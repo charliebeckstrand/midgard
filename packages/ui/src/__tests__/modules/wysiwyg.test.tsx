@@ -71,6 +71,25 @@ describe('Wysiwyg', () => {
 		expect(bold).not.toHaveAttribute('aria-disabled')
 	})
 
+	it('draws a link before the editor loads that a press does not follow', () => {
+		renderUI(
+			<Wysiwyg aria-label="Notes" defaultValue="Read the [guide](https://example.com/guide)" />,
+		)
+
+		const link = within(screen.getByRole('textbox', { name: 'Notes' })).getByText('guide')
+
+		expect(link).toHaveAttribute('href', 'https://example.com/guide')
+
+		expect(link).toHaveAttribute('tabindex', '-1')
+
+		// `dispatchEvent` gives false for a canceled event.
+		expect(fireEvent.click(link)).toBe(false)
+
+		expect(
+			fireEvent(link, new MouseEvent('auxclick', { bubbles: true, cancelable: true, button: 1 })),
+		).toBe(false)
+	})
+
 	it('shows the formatting of the source once the editor loads', async () => {
 		renderUI(<Wysiwyg aria-label="Notes" defaultValue={'**Launch** is on *Friday*.\n\n- One'} />)
 

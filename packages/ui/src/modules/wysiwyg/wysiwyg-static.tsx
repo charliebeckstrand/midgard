@@ -1,7 +1,13 @@
 import { createElement, type ReactNode } from 'react'
 import type { MarkdownRange } from '../../components/markdown/markdown-ranges'
 import { dataAttr } from '../../core/data-attr'
-import { markDOM, nodeDOM, textblockTypes, type WysiwygSpec } from './engine/wysiwyg-dom'
+import {
+	cancelLink,
+	markDOM,
+	nodeDOM,
+	textblockTypes,
+	type WysiwygSpec,
+} from './engine/wysiwyg-dom'
 import {
 	isEmptyDocJSON,
 	markdownDoc,
@@ -9,14 +15,27 @@ import {
 	type WysiwygDocNode,
 } from './engine/wysiwyg-markdown/doc'
 
-/** The attributes of a spec as React props: `class` is `className`, and a `null` drops out. @internal */
-function specProps(attrs: Record<string, unknown>, key: number): Record<string, unknown> {
-	const props: Record<string, unknown> = { key }
+/** The React name of each HTML attribute that the editor or a spec gives with another name. @internal */
+const REACT_NAMES: Readonly<Record<string, string>> = {
+	class: 'className',
+	tabindex: 'tabIndex',
+	enterkeyhint: 'enterKeyHint',
+}
+
+/**
+ * HTML attributes as React props. The editor and the specs give them by their
+ * HTML names, and a `null` or an `undefined` attribute drops out, as in the
+ * `DOMSerializer` of ProseMirror.
+ *
+ * @internal
+ */
+function reactProps(attrs: Readonly<Record<string, unknown>>): Record<string, unknown> {
+	const props: Record<string, unknown> = {}
 
 	for (const [name, value] of Object.entries(attrs)) {
 		if (value === null || value === undefined) continue
 
-		props[name === 'class' ? 'className' : name] = value
+		props[REACT_NAMES[name] ?? name] = value
 	}
 
 	return props
@@ -37,7 +56,7 @@ function fromSpec(spec: WysiwygSpec, content: ReactNode, key: number): ReactNode
 
 	return createElement(
 		tag,
-		specProps(hasAttrs ? (second as Record<string, unknown>) : {}, key),
+		{ key, ...reactProps(hasAttrs ? (second as Record<string, unknown>) : {}) },
 		...children.map((child, index) => {
 			if (child === 0) return content
 
@@ -154,23 +173,6 @@ type WysiwygStaticProps = {
 }
 
 /**
- * The HTML attributes of the field as React props. The editor takes them by
- * their HTML names.
- *
- * @internal
- */
-function reactProps(attributes: Record<string, string>): Record<string, string> {
-	const { class: className = '', tabindex, enterkeyhint, ...rest } = attributes
-
-	return {
-		...rest,
-		className,
-		...(tabindex === undefined ? {} : { tabIndex: tabindex }),
-		...(enterkeyhint === undefined ? {} : { enterKeyHint: enterkeyhint }),
-	}
-}
-
-/**
  * The field before the editor loads, and the markup of the server render: the
  * doc of the value, drawn with the markup of the schema, as the editor draws
  * it. The first paint thus shows the formatting and the layout of the field.
@@ -192,6 +194,7 @@ export function WysiwygStatic({
 
 	return (
 		// biome-ignore lint/a11y/useSemanticElements: the field holds the blocks of the editor, which a <textarea> cannot hold.
+		// biome-ignore lint/a11y/useKeyWithClickEvents: the click handler only stops a link from navigating, and a key does not press a link here: the links are out of the Tab order.
 		<div
 			{...reactProps(attributes)}
 			role="textbox"
@@ -199,6 +202,8 @@ export function WysiwygStatic({
 			data-empty={dataAttr(isEmptyDocJSON(doc))}
 			onFocus={onWant}
 			onPointerDown={onWant}
+			onClick={cancelLink}
+			onAuxClick={cancelLink}
 		>
 			{(doc.content ?? []).map((block, index) => nodeElement(block, index))}
 		</div>

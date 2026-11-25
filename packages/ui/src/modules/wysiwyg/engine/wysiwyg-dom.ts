@@ -1,3 +1,4 @@
+import { safeUrl } from '../../../components/markdown/markdown-safe-url'
 import { cn } from '../../../core/cn'
 import { k as code } from '../../../recipes/kata/code'
 import { k as markdown } from '../../../recipes/kata/markdown'
@@ -95,12 +96,38 @@ export const textblockTypes: ReadonlySet<string> = new Set(['paragraph', 'headin
  * @internal
  */
 export const markDOM = domSpecs({
-	// The link does not navigate in the field, so it has no `href`. A press puts
-	// the caret in its text, as in each other editor.
-	link: (attrs) => ['a', { class: prose.link, title: attrs.title, 'data-href': attrs.href }, 0],
+	// The link has its `href`, so a screen reader reads it as a link with its
+	// URL. It has the URL guard of `Markdown`, so a URL that can run script
+	// draws no `href`. The editor and the markup before it load cancel a press
+	// on it, which puts the caret in its text, as in each other editor. It is
+	// out of the Tab order of a read-only field, and a drag in it selects text.
+	link: (attrs) => [
+		'a',
+		{
+			class: prose.link,
+			href: safeUrl(attrs.href as string),
+			title: attrs.title,
+			tabindex: '-1',
+			draggable: 'false',
+		},
+		0,
+	],
 	strong: () => ['strong', { class: prose.strong }, 0],
 	em: () => ['em', { class: prose.em }, 0],
 	strike: () => ['del', { class: prose.del }, 0],
 	code: () => ['code', { class: code().base, dir: 'ltr' }, 0],
 	range: (attrs) => ['span', { 'data-slot': 'wysiwyg-range', 'data-range': attrs.id }, 0],
 })
+
+/**
+ * Cancels the navigation of a press on a link of the field. The field then
+ * handles the press as on any text. The editor and the markup before it loads
+ * both call it.
+ *
+ * @internal
+ */
+export function cancelLink(event: Pick<Event, 'target' | 'preventDefault'>): false {
+	if (event.target instanceof Element && event.target.closest('a[href]')) event.preventDefault()
+
+	return false
+}

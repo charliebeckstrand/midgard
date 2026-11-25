@@ -18,6 +18,7 @@ import {
 	setLink,
 	wysiwygCommands,
 } from './engine/wysiwyg-commands'
+import { cancelLink } from './engine/wysiwyg-dom'
 import { HELD, wysiwygHeld } from './engine/wysiwyg-held'
 import { wysiwygInputRules } from './engine/wysiwyg-input-rules'
 import { parseMarkdown } from './engine/wysiwyg-markdown/parse'
@@ -214,6 +215,10 @@ export function createWysiwygEditor(
 
 				return true
 			},
+			// A link in the field does not navigate. A press puts the caret in its
+			// text, or selects in a read-only field.
+			click: (_, event) => cancelLink(event),
+			auxclick: (_, event) => cancelLink(event),
 			// A reader of the caret, such as a picker, follows the focus too.
 			focus: () => {
 				props.onUpdate()

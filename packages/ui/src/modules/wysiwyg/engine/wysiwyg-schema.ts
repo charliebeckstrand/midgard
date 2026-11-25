@@ -142,8 +142,6 @@ const marks = {
 				}),
 			},
 		],
-		// The link does not navigate in the field, so it has no `href`. A press puts
-		// the caret in its text, as in each other editor.
 		toDOM: (mark): DOMOutputSpec => markDOM.link(mark.attrs),
 	},
 	strong: {
