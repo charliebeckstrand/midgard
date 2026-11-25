@@ -1,3 +1,4 @@
+import '../setup/grid-modules'
 import { act } from '@testing-library/react'
 import type { ChangeEvent, FocusEvent, ReactElement } from 'react'
 import { createPortal } from 'react-dom'

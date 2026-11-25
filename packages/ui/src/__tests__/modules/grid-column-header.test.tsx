@@ -1,3 +1,4 @@
+import '../setup/grid-modules'
 import type { DraggableSyntheticListeners } from '@dnd-kit/core'
 import { fireEvent } from '@testing-library/react'
 import { createPortal } from 'react-dom'

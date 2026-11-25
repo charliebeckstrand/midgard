@@ -1,3 +1,4 @@
+import '../setup/grid-modules'
 import { Profiler } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridCellClickContext, type GridColumn } from '../../modules/grid'

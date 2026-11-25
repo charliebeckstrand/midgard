@@ -1,3 +1,4 @@
+import '../setup/grid-modules'
 import { type ReactNode, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Input } from '../../components/input'

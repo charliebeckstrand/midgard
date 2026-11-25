@@ -1,3 +1,4 @@
+import '../setup/grid-modules'
 import type { Active, ClientRect, DroppableContainer, Over, UniqueIdentifier } from '@dnd-kit/core'
 import { useState } from 'react'
 import { describe, expect, it } from 'vitest'

@@ -1,3 +1,4 @@
+import '../setup/grid-modules'
 import { describe, expect, vi } from 'vitest'
 import { MULTI_TAP_WINDOW, TAP_THRESHOLD } from '../../hooks/use-touch-tap'
 import { Grid, type GridColumn, type GridEditableConfig } from '../../modules/grid'

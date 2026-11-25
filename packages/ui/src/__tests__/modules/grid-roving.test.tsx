@@ -1,3 +1,4 @@
+import '../setup/grid-modules'
 import { act, type ComponentProps, createRef, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'

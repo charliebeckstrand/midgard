@@ -1,3 +1,4 @@
+import '../setup/grid-modules'
 import { describe, it } from 'vitest'
 import { Button } from '../../components/button'
 import { Dialog, DialogBody, DialogPanel } from '../../components/dialog'

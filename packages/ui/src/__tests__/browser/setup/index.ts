@@ -113,7 +113,7 @@ beforeAll(() => loadListReorder())
 // longer than the budget of a `findByRole` that waits for a dialog, so the
 // first case on a page to open one failed at random. The load before each file
 // gives each case the state of a page that already loaded them, as
-// `setup/grid-modules.ts` does for the jsdom suite.
+// `setup/grid-modules.ts` does for the jsdom suites.
 beforeAll(() => loadGridDataDialogs())
 
 // An editable grid renders from a chunk of its own, and suspends until the chunk

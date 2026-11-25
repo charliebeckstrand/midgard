@@ -1,3 +1,4 @@
+import '../setup/grid-modules'
 import { describe, expect, it } from 'vitest'
 import { Badge } from '../../components/badge'
 import { Button } from '../../components/button'

@@ -1,3 +1,4 @@
+import '../setup/grid-modules'
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn, type GridSortState } from '../../modules/grid'
 import { createGroup, createRule, type QueryField } from '../../modules/query'

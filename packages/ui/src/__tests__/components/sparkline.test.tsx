@@ -1,3 +1,4 @@
+import '../setup/grid-modules'
 import { describe, expect, it } from 'vitest'
 import { Sparkline, SparklineSkeleton } from '../../components/sparkline'
 import { Grid, type GridColumn } from '../../modules/grid'

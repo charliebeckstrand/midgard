@@ -5,9 +5,9 @@ import { sequence } from './vitest.base.ts'
 import {
 	cachePlugins,
 	docsGroupOrder,
+	docsSetupFiles,
 	nodeFiles,
 	projectDefaults,
-	unitSetupFiles,
 } from './vitest.config.ts'
 
 /**
@@ -37,7 +37,7 @@ export default defineConfig({
 	test: {
 		...projectDefaults,
 		name: 'docs',
-		setupFiles: [...unitSetupFiles, './src/docs/__tests__/setup-catalogs.ts'],
+		setupFiles: [...docsSetupFiles, './src/docs/__tests__/setup-catalogs.ts'],
 		pool: 'threads',
 		// As in the `unit` project. `test-isolation-boundary.test.ts` reads this line.
 		isolate: false,

@@ -1,3 +1,4 @@
+import '../setup/grid-modules'
 import { describe, expect, it } from 'vitest'
 import { gridCases } from '../a11y/cases/grids'
 import { rows } from '../a11y/cases/rows'

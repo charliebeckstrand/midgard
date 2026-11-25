@@ -1,3 +1,4 @@
+import '../setup/grid-modules'
 import { useLayoutEffect } from 'react'
 import { describe, expect, vi } from 'vitest'
 import { Button } from '../../components/button'
