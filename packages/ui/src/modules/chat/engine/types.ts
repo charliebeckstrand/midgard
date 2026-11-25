@@ -36,4 +36,39 @@ export type ChatMessageData = {
 	 * `useChatSend` sets it on the new message.
 	 */
 	edited?: boolean
+	/**
+	 * Marks a message that its sender revised in place, after it sent the
+	 * message. The message shows a "(revised)" label below its bubble. A
+	 * {@link ChatRevision} that a transport yields sets it.
+	 */
+	revised?: boolean
 }
+
+/**
+ * A chunk of a reply that revises an earlier message, such as an assistant
+ * message whose text an action made stale.
+ *
+ * @remarks
+ * `parts` merges into the message that `revise` names, by part id, as a part
+ * list merges into a reply. A part under an id that the message holds replaces
+ * that block, so the agent can strike or replace a sentence by sending its text
+ * part again. A part under a new id joins the end. The message takes
+ * `revised`. Send a revision whole, and not in pieces.
+ *
+ * An id that names no message on the shown path changes nothing.
+ *
+ * @example
+ *   yield { revise: 'm2', parts: [{ kind: 'text', id: 't1', text: '~~Needs a contact.~~ Booked.' }] }
+ */
+export type ChatRevision = {
+	/** The id of the message that the revision changes. */
+	revise: string
+	/** The blocks that change, by id. */
+	parts: ChatPart[]
+}
+
+/**
+ * One chunk that a transport yields: the prose of the reply so far, the blocks
+ * of the reply that changed, or a revision of an earlier message.
+ */
+export type ChatReplyChunk = string | ChatPart[] | ChatRevision

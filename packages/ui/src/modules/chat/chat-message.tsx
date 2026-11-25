@@ -8,6 +8,7 @@ import { dataAttr } from '../../core/data-attr'
 import { IntlMessage } from '../../primitives/intl'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { type ChatMessageVariants, k } from '../../recipes/kata/chat-message'
+import { ChatAction, ChatActionScope } from './chat-action'
 import { ChatCitedText } from './chat-cited-text'
 import { MESSAGE_HEADING_OFFSET } from './chat-constants'
 import { ChatEmbed } from './chat-embed'
@@ -17,7 +18,7 @@ import { ChatTool } from './chat-tool'
 import { replyFailed } from './engine/chat-announcements'
 import type { ChatBranch } from './engine/chat-branch/types'
 import { isEmptyContent } from './engine/chat-content/normalize'
-import type { ChatPart } from './engine/chat-content/types'
+import type { ChatActionResult, ChatPart } from './engine/chat-content/types'
 import type { ChatMessageData } from './engine/types'
 
 /**
@@ -48,13 +49,19 @@ const AUTHOR = defineMessages({
 	},
 } satisfies Record<ChatMessageData['sender'], unknown>)
 
-/** The label below the bubble of a message that an edit sent. @internal */
-const EDITED = defineMessages({
-	label: {
+/** The labels below the bubble of a message that changed after it was sent. @internal */
+const CHANGED = defineMessages({
+	edited: {
 		id: 'ui.chat.edited',
 		defaultMessage: '(edited)',
 		description:
 			'The quiet label below a chat message that the reader edited. The edit sent the message in place of an earlier one.',
+	},
+	revised: {
+		id: 'ui.chat.revised',
+		defaultMessage: '(revised)',
+		description:
+			'The quiet label below a chat message that the assistant revised in place after it sent the message, such as after the reader answered a question in it.',
 	},
 })
 
@@ -85,6 +92,8 @@ function ChatMessageBlock({ part, className }: { part: ChatPart; className?: str
 			return <ChatEmbed part={part} className={className} />
 		case 'tool':
 			return <ChatTool part={part} className={className} />
+		case 'action':
+			return <ChatAction part={part} className={className} />
 	}
 }
 
@@ -103,31 +112,36 @@ function hasMenuItems(contextMenu: ContextMenuConfig | false | undefined): boole
 }
 
 /**
- * The row below the bubble: the "(edited)" label at its start, and the branch
- * switcher of a message with more than one branch. A message with neither
- * has no row.
+ * The row below the bubble: the "(edited)" or "(revised)" label at its start,
+ * and the branch switcher of a message with more than one branch. A message
+ * with neither has no row.
  *
  * @internal
  */
 function ChatMessageFooter({
 	edited,
+	revised,
 	branch,
 	onBranchChange,
 	className,
 	labelClassName,
-}: Pick<ChatMessageProps, 'edited' | 'branch' | 'onBranchChange'> & {
+}: Pick<ChatMessageProps, 'edited' | 'revised' | 'branch' | 'onBranchChange'> & {
 	className: string
 	labelClassName: string
 }) {
 	const branched = branch !== undefined && branch.ids.length > 1
 
-	if (!edited && !branched) return null
+	// A reader's edit makes a new message, and a revision changes one in place,
+	// so a message takes one of the two labels, and an edit wins.
+	const changed = (edited && CHANGED.edited) || (revised && CHANGED.revised)
+
+	if (!changed && !branched) return null
 
 	return (
 		<div data-slot="chat-message-footer" className={className}>
-			{edited && (
+			{changed && (
 				<span data-slot="chat-message-edited" className={labelClassName}>
-					<IntlMessage message={EDITED.label} />
+					<IntlMessage message={changed} />
 				</span>
 			)}
 			{branched && <ChatMessageBranch branch={branch} onBranchChange={onBranchChange} />}
@@ -164,6 +178,23 @@ export type ChatMessageProps = ChatMessageVariants &
 		 * @defaultValue false
 		 */
 		edited?: boolean
+		/**
+		 * Marks a message that its sender revised in place, such as after the
+		 * reader answered an ask in it. A quiet "(revised)" label shows below the
+		 * bubble, at its start. A {@link ChatRevision} that the transport of
+		 * `useChatSend` yields marks the message, and {@link ChatTranscript} passes
+		 * the mark on.
+		 * @defaultValue false
+		 */
+		revised?: boolean
+		/**
+		 * Answers an `action` block of the message: it fires with the id of the
+		 * block and the result that the reader submitted, as the `submitAction` of
+		 * `useChatSend` takes them after the id of the message. Without it, each
+		 * action of the message draws read-only. {@link ChatTranscript} binds it
+		 * to the id of each message.
+		 */
+		onActionSubmit?: (partId: string, result: ChatActionResult) => void
 		/**
 		 * Marks a reply that failed. The bubble keeps its content and ends with a
 		 * line that says that the reply failed.
@@ -242,7 +273,9 @@ export type ChatMessageProps = ChatMessageVariants &
  * A part list draws one block per part, each keyed by the part's own id. A text
  * block is its own {@link Markdown}. An `embed` block is the renderer that
  * {@link ChatEmbedProvider} registered under its name. A `tool` block is a step
- * line that {@link ChatTool} draws. The string arm draws exactly one
+ * line that {@link ChatTool} draws. An `action` block is an ask of the
+ * assistant that `onActionSubmit` answers: a choice of radios, or a button
+ * that opens a form in a panel. The string arm draws exactly one
  * {@link Markdown} over the string itself. A transcript of prose therefore
  * allocates nothing per render and lexes once.
  *
@@ -263,6 +296,10 @@ export type ChatMessageProps = ChatMessageVariants &
  * start of the bubble. The label and the branch switcher share one row, which
  * is as wide as the bubble, and the switcher stays on the side of the speaker.
  * The label follows the bubble, so a screen reader reads it after the message.
+ *
+ * A `revised` message shows a quiet "(revised)" label in the same place. An
+ * edit by the reader makes a new message, and a revision by the agent changes
+ * the message in place, so the two labels differ.
  *
  * A message with more than one `branch` shows a switcher below its bubble. The
  * switcher is a group named "Versions", in the language of the reader. Each
@@ -316,6 +353,8 @@ export const ChatMessage = memo(function ChatMessage({
 	streaming,
 	editing,
 	edited,
+	revised,
+	onActionSubmit,
 	failed,
 	contextMenu,
 	trigger = 'hover',
@@ -347,18 +386,23 @@ export const ChatMessage = memo(function ChatMessage({
 	// on its one channel, so the dots stay out of the accessibility tree.
 	const pending = streaming === true && !failed && isEmptyContent(children)
 
-	const content =
-		typeof children === 'string' ? (
-			<Markdown headingOffset={MESSAGE_HEADING_OFFSET}>{children}</Markdown>
-		) : (
-			children.map((part, index) => (
-				<ChatMessageBlock
-					key={part.id}
-					part={part}
-					className={index === 0 ? undefined : slots.part}
-				/>
-			))
-		)
+	// The scope wraps the content on each render, so an answer that turns on or
+	// off keeps the state of each ask in the message.
+	const content = (
+		<ChatActionScope onSubmit={onActionSubmit}>
+			{typeof children === 'string' ? (
+				<Markdown headingOffset={MESSAGE_HEADING_OFFSET}>{children}</Markdown>
+			) : (
+				children.map((part, index) => (
+					<ChatMessageBlock
+						key={part.id}
+						part={part}
+						className={index === 0 ? undefined : slots.part}
+					/>
+				))
+			)}
+		</ChatActionScope>
+	)
 
 	const bubble = (
 		// Tab does not stop on the bubble, but the Copy item of the menu moves the
@@ -410,6 +454,7 @@ export const ChatMessage = memo(function ChatMessage({
 				)}
 				<ChatMessageFooter
 					edited={edited}
+					revised={revised}
 					branch={branch}
 					onBranchChange={onBranchChange}
 					className={slots.footer}

@@ -1,7 +1,7 @@
 import { defineKata, mode, type VariantProps } from '../../core/recipe'
 import { dan, iro, ji, kasane, kokkaku, narabi, omote, sen, ugoki } from '../kiso'
 
-const { palette, text } = iro
+const { on, palette, text } = iro
 const { rounded } = kasane
 const { size } = ji
 const { flex } = narabi
@@ -118,9 +118,14 @@ export const k = defineKata({
 				system: 'justify-center',
 			},
 		},
-		// The label of a message that an edit sent. It takes the start of the row,
-		// so the switcher stays on the side of the speaker.
+		// The label of a message that an edit sent or a revision changed. It takes
+		// the start of the row, so the switcher stays on the side of the speaker.
 		edited: 'me-auto',
+		// The second line of an option of a choice ask. The description of a field
+		// is `text.muted`, which is right on the page and wrong in a bubble:
+		// zinc-500 on the assistant fill is 4.4:1. The wash rung clears 4.5:1 on
+		// the fill in both modes, and keeps the step below the label.
+		actionDescription: on.wash.muted,
 		timestamp: [size.xs, 'mt-1', ...text.muted],
 		// The switcher of a message with more than one branch. Its digits keep one
 		// width, so `9 of 10` does not move its buttons.

@@ -152,6 +152,110 @@ export type ChatToolPart = {
 	detail?: string
 }
 
+/** One option of a `choice` ask, or of a `choice` field of a `form` ask. */
+export type ChatActionOption = {
+	/** What the result holds when the reader picks the option. */
+	value: string
+	/** The words of the option. */
+	label: string
+	/** A second line under the label, such as `8 AM to 12 PM`. */
+	description?: string
+}
+
+/**
+ * One field of a `form` ask. `kind` names the control that draws it, and the
+ * kinds are closed for the reason that the kinds of a part are.
+ */
+export type ChatActionField = {
+	/** The key of the value in the result. It is unique in its form. */
+	name: string
+	/** The label of the control. */
+	label: string
+	/** Refuses a submit while the field is empty. */
+	required?: boolean
+} & (
+	| {
+			/** A line of text, or a block of text when `multiline` is set. */
+			kind: 'text'
+			/** The kind of text. It sets the keyboard of a phone and its autofill. @defaultValue 'text' */
+			type?: 'text' | 'email' | 'tel' | 'url'
+			/** Draws a textarea in place of an input. */
+			multiline?: boolean
+	  }
+	| {
+			/** One option of a list. */
+			kind: 'choice'
+			options: ChatActionOption[]
+	  }
+	| {
+			/** One yes or no, such as a consent. */
+			kind: 'checkbox'
+	  }
+)
+
+/**
+ * What an {@link ChatActionPart} asks for. `kind` names the ask.
+ *
+ * - `choice` asks for one option. The message draws the options as radios with
+ *   a Submit button.
+ * - `form` asks for the values of fields. The message draws a button, and the
+ *   button opens the fields in a panel: a Dialog, or a Drawer on a phone.
+ */
+export type ChatActionInput =
+	| {
+			kind: 'choice'
+			/** The key of the picked value in the result. */
+			name: string
+			options: ChatActionOption[]
+	  }
+	| {
+			kind: 'form'
+			/** The words of the button that opens the panel, such as `Add details`. */
+			label: string
+			fields: ChatActionField[]
+	  }
+
+/**
+ * The values that a reader submitted to an {@link ChatActionPart}, by the
+ * name of each field. A text field gives a string, a choice gives the value of
+ * its option, and a checkbox gives a boolean.
+ */
+export type ChatActionResult = Readonly<Record<string, string | boolean>>
+
+/**
+ * One thing that the assistant asks the reader to do: pick an option, or fill
+ * in details. The block flows in the bubble as a heading and its controls.
+ * After a submit, it draws a success alert, and the alert opens the values for
+ * review.
+ *
+ * @remarks
+ * The block is JSON, with no function and no node. An agent can thus send it as
+ * the arguments of a tool call, and a store can keep it. Under AG-UI, `id` is
+ * the id of that tool call, and the next run gets `result` as the tool result.
+ *
+ * `result` is the state of the block. It is absent while the ask is open.
+ * `submitAction` of `useChatSend` writes it, and the merge by id that a stream
+ * uses puts it on the block. A block with a result is never open again.
+ */
+export type ChatActionPart = {
+	kind: 'action'
+	/** Names this block in its own message, as {@link ChatTextPart.id} does. */
+	id: string
+	/** The ask, as the heading in the message: `Delivery details needed`. */
+	prompt: string
+	/**
+	 * What the values are, as the title of the panel: `Delivery details`. The
+	 * panel of a form and the review of a result both show it.
+	 */
+	title: string
+	/** What the block asks for. */
+	input: ChatActionInput
+	/** The title of the alert after a submit: `Details sent`. */
+	success: string
+	/** The values that the reader submitted. Absent while the ask is open. */
+	result?: ChatActionResult
+}
+
 /**
  * One block of a chat message. `kind` names the block, and it reaches the
  * fields that block holds. Each kind carries its own payload under its own
@@ -168,4 +272,4 @@ export type ChatToolPart = {
  * `name` field is the open axis. A renderer registers under a name, which is a
  * field and not the discriminant.
  */
-export type ChatPart = ChatTextPart | ChatEmbedPart | ChatToolPart
+export type ChatPart = ChatTextPart | ChatEmbedPart | ChatToolPart | ChatActionPart

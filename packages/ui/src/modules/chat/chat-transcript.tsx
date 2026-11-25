@@ -8,6 +8,7 @@ import {
 	useCallback,
 	useEffect,
 	useLayoutEffect,
+	useMemo,
 	useRef,
 	useState,
 } from 'react'
@@ -29,6 +30,7 @@ import { ChatMessage } from './chat-message'
 import { ChatRowContext } from './context'
 import { describeTranscript } from './engine/chat-announcements'
 import type { ChatBranch } from './engine/chat-branch/types'
+import type { ChatActionResult } from './engine/chat-content/types'
 import type { ChatMessageData } from './engine/types'
 import { useChatTranscriptItemKey } from './use-chat-transcript-item-key'
 import { useChatTranscriptStatus } from './use-chat-transcript-status'
@@ -128,10 +130,20 @@ export type ChatTranscriptProps = Omit<ComponentProps<'div'>, 'children' | 'cont
 	 * off while `streaming`.
 	 */
 	onBranchChange?: (id: string) => void
+	/**
+	 * Fires with the id of a message, the id of an `action` block in it, and
+	 * the result that the reader submitted, as the `submitAction` of
+	 * `useChatSend` takes them. Without it, and while `streaming`, each action
+	 * draws read-only.
+	 */
+	onActionSubmit?: (messageId: string, partId: string, result: ChatActionResult) => void
 }
 
 /** Props for {@link ChatTranscriptRow}. @internal */
-type ChatTranscriptRowProps = Pick<ChatTranscriptProps, 'contextMenu' | 'onBranchChange'> & {
+type ChatTranscriptRowProps = Pick<
+	ChatTranscriptProps,
+	'contextMenu' | 'onBranchChange' | 'onActionSubmit'
+> & {
 	message: ChatMessageData
 	/** The position of the message, which the window reads from `data-index`. */
 	index: number
@@ -163,7 +175,20 @@ const ChatTranscriptRow = memo(function ChatTranscriptRow({
 	contextMenu,
 	branch,
 	onBranchChange,
+	onActionSubmit,
 }: ChatTranscriptRowProps) {
+	const { id } = message
+
+	// Bound to the id of the message, so the bubble keeps one answer while the
+	// id and the answer of the transcript stay the same.
+	const actionSubmit = useMemo(
+		() =>
+			id && onActionSubmit
+				? (partId: string, result: ChatActionResult) => onActionSubmit(id, partId, result)
+				: undefined,
+		[id, onActionSubmit],
+	)
+
 	return (
 		<ChatMessage
 			ref={ref}
@@ -173,6 +198,8 @@ const ChatTranscriptRow = memo(function ChatTranscriptRow({
 			streaming={streaming}
 			editing={editing}
 			edited={message.edited}
+			revised={message.revised}
+			onActionSubmit={actionSubmit}
 			failed={message.failed}
 			timestamp={message.timestamp}
 			contextMenu={contextMenu === false ? false : contextMenu?.(message)}
@@ -286,6 +313,7 @@ export function ChatTranscript({
 	contextMenu,
 	branches,
 	onBranchChange,
+	onActionSubmit,
 	className,
 	ref,
 	onScroll,
@@ -324,6 +352,15 @@ export function ChatTranscript({
 	// The switchers are off while a reply streams, because `useChatSend` ignores a
 	// switch then. A button that looks live and does nothing would mislead.
 	const branchChange = streaming === true || !onBranchChange ? undefined : switchBranch
+
+	const submitAction = useStableEvent(
+		(messageId: string, partId: string, result: ChatActionResult) =>
+			onActionSubmit?.(messageId, partId, result),
+	)
+
+	// The asks are read-only while a reply streams, as the switchers are off,
+	// because `useChatSend` ignores a submit then.
+	const actionSubmit = streaming === true || !onActionSubmit ? undefined : submitAction
 
 	const getScrollElement = useCallback(() => containerRef.current, [])
 
@@ -575,6 +612,7 @@ export function ChatTranscript({
 								contextMenu={contextMenu}
 								branch={branch}
 								onBranchChange={branch && branchChange}
+								onActionSubmit={actionSubmit}
 							/>
 						</ChatRowContext>
 					)

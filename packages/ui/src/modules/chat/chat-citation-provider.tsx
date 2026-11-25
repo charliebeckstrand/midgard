@@ -2,7 +2,7 @@
 
 import { type ReactNode, useCallback, useMemo, useState } from 'react'
 import { useDevWarning } from '../../hooks/use-dev-warning'
-import { ChatCitationPanel } from './chat-citation-panel'
+import { ChatPanel, ChatPanelBody } from './chat-panel'
 import { ChatCitationContext, type ChatCitationScope, useChatCitations } from './context'
 import type { ChatCitation } from './engine/chat-content/types'
 import type { ChatCitationTargets } from './types'
@@ -116,7 +116,7 @@ export type ChatCitationProviderProps = {
  * in place of the pick.
  *
  * A target with `render` is a view that the chat shows. A press on its
- * citation opens a panel over the page: a Dialog, or a Drawer on a phone. The
+ * citation opens a panel over the page: a wide Dialog, or a Drawer on a phone. The
  * label of the target is the title of the panel, and `render` draws the view
  * from the citation, such as a chart of the data that supports the phrase. The
  * chat holds the open state, because the panel belongs to the chat. The
@@ -224,12 +224,19 @@ export function ChatCitationProvider({
 			{children}
 			{/* The panel mounts at the first open, so a chat with no panel citation pays for no panel. */}
 			{panel === null ? null : (
-				<ChatCitationPanel
+				// The label of the target names the panel, and the view is its body. The
+				// citation stays after the close, so the panel keeps its view while it
+				// leaves.
+				<ChatPanel
 					open={panel.open}
 					onOpenChange={setOpen}
-					citation={panel.citation}
-					target={value.targets[panel.citation.target]}
-				/>
+					title={value.targets[panel.citation.target]?.label}
+					width="4xl"
+				>
+					<ChatPanelBody>
+						{value.targets[panel.citation.target]?.render?.(panel.citation)}
+					</ChatPanelBody>
+				</ChatPanel>
 			)}
 		</ChatCitationContext>
 	)
