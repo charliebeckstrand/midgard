@@ -27,6 +27,9 @@ type WysiwygActionButtonProps = { action: WysiwygAction } & Omit<
  * opens a popover, so it is no toggle, and its trigger handles the press. It
  * is on while the selection is in a link.
  *
+ * The button looks and works the same before the editor loads. A press then
+ * starts the load, and the action runs when the editor comes.
+ *
  * @remarks The pressed state comes from a store of the editor, so a keystroke
  * renders only the buttons whose state changed. The shortcut in
  * `aria-keyshortcuts` names Command on Apple platforms and Control elsewhere.
@@ -34,7 +37,7 @@ type WysiwygActionButtonProps = { action: WysiwygAction } & Omit<
  * @internal
  */
 export function WysiwygActionButton({ action, onClick, ...props }: WysiwygActionButtonProps) {
-	const { ready, locked, subscribe, isActive, run } = useWysiwyg()
+	const { locked, subscribe, isActive, run } = useWysiwyg()
 
 	const intl = useIntl()
 
@@ -59,7 +62,7 @@ export function WysiwygActionButton({ action, onClick, ...props }: WysiwygAction
 			label={label}
 			icon={<Glyph />}
 			active={active}
-			disabled={!ready || locked}
+			disabled={locked}
 			onClick={action === 'link' ? onClick : () => run(action)}
 		/>
 	)

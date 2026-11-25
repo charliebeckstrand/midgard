@@ -52,9 +52,10 @@ describe('Wysiwyg', () => {
 		// The markup before the load draws the formatting, as the editor does.
 		expect(within(field).getByText('Launch').tagName).toBe('STRONG')
 
+		// The toolbar is ready from the first paint.
 		const bold = screen.getByRole('button', { name: 'Bold' })
 
-		expect(bold).toHaveAttribute('aria-disabled', 'true')
+		expect(bold).not.toHaveAttribute('aria-disabled')
 
 		expect(bold).toHaveAttribute('aria-pressed', 'false')
 
@@ -70,7 +71,47 @@ describe('Wysiwyg', () => {
 
 		expect(editor).toHaveTextContent('Launch')
 
-		expect(bold).not.toHaveAttribute('aria-disabled')
+		// The caret starts in the bold text.
+		await waitFor(() => expect(bold).toHaveAttribute('aria-pressed', 'true'))
+	})
+
+	it('runs a press of a toolbar button before the load when the editor comes', async () => {
+		const onValueChange = vi.fn()
+
+		renderUI(
+			<Wysiwyg aria-label="Notes" defaultValue="Text" onValueChange={onValueChange}>
+				<WysiwygToolbar actions={['quote', 'codeBlock']} />
+			</Wysiwyg>,
+		)
+
+		expect(screen.getByRole('textbox')).not.toHaveClass('ProseMirror')
+
+		// Two presses before the load start it, and wait for the editor in their order.
+		fireEvent.click(screen.getByRole('button', { name: 'Quote' }))
+
+		fireEvent.click(screen.getByRole('button', { name: 'Code block' }))
+
+		await waitFor(() => expect(screen.getByRole('textbox')).toHaveClass('ProseMirror'))
+
+		expect(onValueChange).toHaveBeenLastCalledWith('> ```\n> Text\n> ```', [])
+
+		expect(screen.getByRole('button', { name: 'Quote' })).toHaveAttribute('aria-pressed', 'true')
+	})
+
+	it('opens the link popover from a press before the load when the editor comes', async () => {
+		renderUI(
+			<Wysiwyg aria-label="Notes" defaultValue="Text">
+				<WysiwygToolbar actions={['link']} />
+			</Wysiwyg>,
+		)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Link' }))
+
+		const dialog = await screen.findByRole('dialog', { name: 'Link' })
+
+		expect(screen.getByRole('textbox', { name: 'Notes' })).toHaveClass('ProseMirror')
+
+		await waitFor(() => expect(within(dialog).getByRole('textbox', { name: 'Text' })).toHaveFocus())
 	})
 
 	it('draws a link before the editor loads that a press does not follow', () => {
@@ -546,10 +587,8 @@ describe('WysiwygToolbar', () => {
 
 		await loadEditor()
 
-		await waitFor(() => expect(bold).not.toHaveAttribute('aria-disabled'))
-
 		// The caret starts in the bold text.
-		expect(bold).toHaveAttribute('aria-pressed', 'true')
+		await waitFor(() => expect(bold).toHaveAttribute('aria-pressed', 'true'))
 
 		expect(screen.getByRole('button', { name: 'Italic' })).toHaveAttribute('aria-pressed', 'false')
 	})
@@ -564,8 +603,6 @@ describe('WysiwygToolbar', () => {
 		await loadEditor()
 
 		const link = screen.getByRole('button', { name: 'Link' })
-
-		await waitFor(() => expect(link).not.toHaveAttribute('aria-disabled'))
 
 		expect(link).toHaveAttribute('aria-haspopup', 'dialog')
 

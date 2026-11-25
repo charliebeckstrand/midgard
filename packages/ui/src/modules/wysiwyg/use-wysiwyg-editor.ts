@@ -14,7 +14,7 @@ import { useLazyModule } from '../../hooks/use-lazy-module'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { createEmitter } from '../../utilities/emitter'
 import { createLazyModule } from '../../utilities/lazy-module'
-import { createEarlyInput } from './wysiwyg-early-input'
+import { createEarlyInput, type WysiwygEarlyInput } from './wysiwyg-early-input'
 import type * as Engine from './wysiwyg-editor'
 import type { WysiwygEditor, WysiwygEditorProps } from './wysiwyg-editor'
 
@@ -110,16 +110,24 @@ function sameSource(a: Source, b: Source): boolean {
 
 /**
  * The editor of a Wysiwyg field. It loads the engine in idle time, or at once
- * on a call of `load`, and then makes the editor in `host`. It gives each
- * render the new settings, and it replaces the doc when `value` or `ranges`
- * differ from the source of the doc, such as on a clear after a send, or on an
- * edit that a controlled parent refuses.
+ * on a call of `load` or `whenReady`, and then makes the editor in `host`. The
+ * editor takes the edits that the reader made in the markup before the load
+ * ({@link WysiwygEarlyInput}). The hook gives each render the new settings,
+ * and it replaces the doc when `value` or `ranges` differ from the source of
+ * the doc, such as on a clear after a send, or on an edit that a controlled
+ * parent refuses.
  *
  * @returns The editor, or `null` until it loads, the subscription to each new
  *   state of the editor, whether the engine was loaded at the first render,
- *   and `load`, which starts the load of the engine at once. Call it in the
- *   event that wants the editor, such as the first focus or press, so the load
- *   does not wait for a render and its effects.
+ *   `load`, which starts the load of the engine at once, `whenReady`, which
+ *   runs a task on the editor, and `early`, the input before the load. Call
+ *   `load` in the event that wants the editor, such as the first focus or
+ *   hover, so the load does not wait for a render and its effects. `whenReady`
+ *   runs its task at once on an editor. Before the editor, it starts the load,
+ *   and the task waits. The tasks then run in the order of their calls, after
+ *   the editor takes the focus. Each task runs in its own commit, after the
+ *   commit of the task before it, as each input of the reader does, so a task
+ *   such as a send reads the value of the edits before it.
  * @remarks The editor is the source of the doc while it lives. It holds the
  * last Markdown that it emitted, so the value that comes back after an edit
  * does not replace the doc again.
@@ -174,7 +182,8 @@ export function useWysiwygEditor({
 
 	const composing = useSyncExternalStore(early.subscribe, early.composing, early.composing)
 
-	// The editor from its creation, before the render that puts it in `editor`.
+	// The editor from its creation to its destruction. The state above comes a
+	// render later.
 	const live = useRef<WysiwygEditor | null>(null)
 
 	// A render that runs the next task of the queue, so each task runs after

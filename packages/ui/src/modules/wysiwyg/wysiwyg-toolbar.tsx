@@ -72,9 +72,10 @@ function actionGroups(actions: readonly WysiwygAction[]) {
  * between its buttons, and `aria-controls` points at the field. Each run of
  * one group is a `group` with the name of the group, such as "Lists", in the
  * language of the reader. A press on a button does not move the focus, so the
- * selection stays in the field and the virtual keyboard stays open. Until the
- * editor loads, the buttons are `aria-disabled` and keep their places in the
- * arrow order. While the field is disabled or read-only, the toolbar is
+ * selection stays in the field and the virtual keyboard stays open. The
+ * buttons are ready from the first paint. A press before the editor loads
+ * starts the load, and the action runs when the editor comes: a toggle action
+ * runs on the selection, and the link popover opens. While the field is disabled or read-only, the toolbar is
  * `inert`: it has no Tab stop, it takes no press, and it opens no tooltip.
  * The toolbar is memoized: it renders again when its props change, or when
  * the state of the field that it shows changes. An edit in a controlled field

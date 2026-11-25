@@ -119,7 +119,7 @@ describe('Wysiwyg input before the editor loads (real browser)', () => {
 
 		field.focus()
 
-		const text = present(field.querySelector('p')?.firstChild, 'the text')
+		const text = present(field.querySelector('p'), 'the block').firstChild
 
 		window.getSelection()?.collapse(text, 6)
 
@@ -265,5 +265,21 @@ describe('Wysiwyg input before the editor loads (real browser)', () => {
 		await userEvent.keyboard('語')
 
 		expect(value()).toBe('日本語')
+	})
+
+	it('runs a toolbar press and the keys after it in order', async () => {
+		renderUI(<Notes toolbar />)
+
+		focusAtEnd()
+
+		await userEvent.keyboard('a')
+
+		await userEvent.click(screen.getByRole('button', { name: 'Bold' }))
+
+		await userEvent.keyboard('b')
+
+		await load()
+
+		await waitFor(() => expect(value()).toBe('a**b**'))
 	})
 })
