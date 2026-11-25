@@ -637,9 +637,10 @@ function codeSpan(inner: readonly Item[], line: Line): string {
 function codeLine(inner: readonly Item[], line: Line): string {
 	const code = inner.map((each) => each.node.text ?? each.node.attrs.source ?? '').join('')
 
-	line.start = false
-
+	// No code writes no text, so the line still starts after it.
 	if (code === '') return ''
+
+	line.start = false
 
 	const ticks = '`'.repeat(longestRun(code, '`') + 1)
 

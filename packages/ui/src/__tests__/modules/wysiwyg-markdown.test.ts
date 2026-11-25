@@ -293,16 +293,21 @@ describe('wysiwyg markdown', () => {
 			expect(read.firstChild?.child(2).marks).toEqual([code])
 		})
 
-		it('drops a span that holds only the break', () => {
+		it.each([
+			['the break alone', [], 'foo\\\n\\# bar'],
+			['code and the break', [code], '`foo`\\\n\\# bar'],
+		])('escapes a block marker after the code mark ends on the break: %s', (_, marks, markdown) => {
 			const doc = schema.node('doc', null, [
 				schema.node('paragraph', null, [
-					schema.text('foo'),
+					schema.text('foo', marks),
 					schema.node('hard_break', null, undefined, [code]),
-					schema.text('bar'),
+					schema.text('# bar'),
 				]),
 			])
 
-			expect(serializeMarkdown(doc)).toBe('foo\\\nbar')
+			expect(serializeMarkdown(doc)).toBe(markdown)
+
+			expect(parseMarkdown(markdown).childCount).toBe(1)
 		})
 	})
 
