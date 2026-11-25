@@ -71,7 +71,7 @@ The gateway rate-limits sign-in and register by client address. On App Platform,
 
 ## 6. Deploy
 
-Each push to `main` runs [`deploy.yml`](.github/workflows/deploy.yml). It runs CI, then applies the App Platform spec in [`.do/app.yaml`](.do/app.yaml). The spec holds one app, `midgard`, with one component for each subdomain:
+Each push to `main` runs [`deploy.yml`](.github/workflows/deploy.yml). It runs CI, then moves the `production` branch to the commit that CI checked, and applies the App Platform spec in [`.do/app.yaml`](.do/app.yaml). Each component builds the `production` branch, so App Platform builds the commit that passed CI, and not a later head of `main`. The move is a fast-forward only. When `production` already holds a later commit, the run does not deploy. The spec holds one app, `midgard`, with one component for each subdomain:
 
 | Subdomain | Component | Build |
 |---|---|---|
