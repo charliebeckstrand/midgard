@@ -4,10 +4,6 @@ on:
   push:
     branches: [main]
 
-concurrency:
-  group: deploy-production
-  cancel-in-progress: false
-
 permissions:
   contents: read
 
@@ -25,7 +21,18 @@ jobs:
     needs: ci
     runs-on: ubuntu-latest
     environment: production
-    # A stuck deploy holds the concurrency group, and the next push waits on it.
+    # One deploy at a time. The group is on this job, not on the workflow, so
+    # the CI of a push runs at once, and only the deploy waits for the deploy
+    # before it. A group on the workflow held CI too: a push during a deploy
+    # waited for that deploy before its CI started. A third push then replaced
+    # the waiting run, and the commit between got no CI on main. A newer
+    # waiting deploy replaces an older one, and the `production` step skips a
+    # deploy of a commit older than the one that `production` holds.
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+    # A stuck deploy holds the concurrency group, and the next deploy waits on
+    # it.
     timeout-minutes: 45
     # The `production` step below moves the branch that App Platform builds.
     permissions:

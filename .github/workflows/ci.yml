@@ -9,8 +9,14 @@ on:
       CODECOV_TOKEN:
         required: false
 
+# A newer push to a pull request cancels the run before it. On main, each
+# commit gets a group of its own, so each commit runs CI at once and to the
+# end. A called workflow keeps its own group. With one group for the ref of
+# main, each push would wait for the CI of the push before it, and a third
+# push would replace the waiting run. The deploy job of deploy.yml has its own
+# group.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref == 'refs/heads/main' && github.sha || github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 # The jobs read the repository and nothing else.
