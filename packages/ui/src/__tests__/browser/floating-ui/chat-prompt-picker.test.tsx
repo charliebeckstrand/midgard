@@ -9,6 +9,7 @@ import {
 	type ChatPromptSource,
 } from '../../../modules/chat'
 import { getSlot, renderUI, screen, waitFor } from '../../helpers'
+import { editable } from '../helpers/wysiwyg'
 
 const ITEMS: ChatPromptItem[] = [
 	{ key: 'late', label: 'Late stops', selector: { dataset: 'late' } },
@@ -194,45 +195,46 @@ describe('the picker of a chat prompt (real browser)', () => {
 		expect(textarea()).toHaveFocus()
 	})
 
-	it('sits above the composer, as wide as its field', async () => {
-		renderUI(
-			<div style={{ paddingTop: 400, width: 480 }}>
-				<Composer />
-			</div>,
-		)
+	it.for([
+		[
+			'the textarea',
+			false,
+			async () => {
+				await userEvent.click(textarea())
 
-		await userEvent.click(textarea())
+				return textarea()
+			},
+		],
+		['the formatted field', true, () => editable()],
+	] as const)(
+		'sits above the composer, as wide as its frame, in %s',
+		async ([, wysiwyg, focus]) => {
+			renderUI(
+				<div style={{ paddingTop: 400, width: 480 }}>
+					<Composer wysiwyg={wysiwyg} />
+				</div>,
+			)
 
-		await userEvent.keyboard('@')
+			const field = await focus()
 
-		const panel = getSlot(document.body, 'chat-prompt-picker')
+			await userEvent.keyboard('@')
 
-		const frame = textarea().closest('[data-slot="control-frame"]')
+			const panel = getSlot(document.body, 'chat-prompt-picker')
 
-		await waitFor(() => {
-			const panelBox = panel.getBoundingClientRect()
+			const frame = field.closest('[data-slot="control-frame"]')
 
-			const frameBox = frame?.getBoundingClientRect()
+			await waitFor(() => {
+				const panelBox = panel.getBoundingClientRect()
 
-			expect(panelBox.bottom).toBeLessThanOrEqual(frameBox?.top ?? 0)
+				const frameBox = frame?.getBoundingClientRect()
 
-			expect(Math.round(panelBox.width)).toBe(Math.round(frameBox?.width ?? 0))
-		})
-	})
+				expect(panelBox.bottom).toBeLessThanOrEqual(frameBox?.top ?? 0)
+
+				expect(Math.round(panelBox.width)).toBe(Math.round(frameBox?.width ?? 0))
+			})
+		},
+	)
 })
-
-/** The editable element of the formatted field, once its editor loads and has the focus. */
-async function editable(): Promise<HTMLElement> {
-	await userEvent.click(screen.getByRole('textbox'))
-
-	await waitFor(() => expect(screen.getByRole('textbox')).toHaveClass('ProseMirror'))
-
-	const field = screen.getByRole('textbox')
-
-	await waitFor(() => expect(field).toHaveFocus())
-
-	return field
-}
 
 const value = () => screen.getByTestId('value').textContent
 
@@ -288,6 +290,25 @@ describe('the picker of a chat prompt in the formatted field (real browser)', ()
 		await userEvent.keyboard('today')
 
 		expect(value()).toBe('Ask **now** @Routes today')
+	})
+
+	it('puts the caret after the space that follows a choice', async () => {
+		renderUI(<Composer wysiwyg />)
+
+		const field = await editable()
+
+		await userEvent.keyboard('@ro by day')
+
+		// The caret goes back to the end of the trigger word, and the picker opens again.
+		await userEvent.keyboard(
+			'{ArrowLeft}{ArrowLeft}{ArrowLeft}{ArrowLeft}{ArrowLeft}{ArrowLeft}{ArrowLeft}',
+		)
+
+		await waitFor(() => expect(screen.getByRole('listbox')).toBeInTheDocument())
+
+		await userEvent.keyboard('{Enter}x')
+
+		await waitFor(() => expect(field).toHaveTextContent(/^@Routes xby day$/))
 	})
 
 	it('takes the choice back on an undo, and brings it back on a redo', async () => {
@@ -386,31 +407,5 @@ describe('the picker of a chat prompt in the formatted field (real browser)', ()
 		await userEvent.keyboard('{Escape}')
 
 		expect(onOpenChange).toHaveBeenCalledWith(false)
-	})
-
-	it('sits above the composer, as wide as its frame', async () => {
-		renderUI(
-			<div style={{ paddingTop: 400, width: 480 }}>
-				<Composer wysiwyg />
-			</div>,
-		)
-
-		const field = await editable()
-
-		await userEvent.keyboard('@')
-
-		const panel = getSlot(document.body, 'chat-prompt-picker')
-
-		const frame = field.closest('[data-slot="control-frame"]')
-
-		await waitFor(() => {
-			const panelBox = panel.getBoundingClientRect()
-
-			const frameBox = frame?.getBoundingClientRect()
-
-			expect(panelBox.bottom).toBeLessThanOrEqual(frameBox?.top ?? 0)
-
-			expect(Math.round(panelBox.width)).toBe(Math.round(frameBox?.width ?? 0))
-		})
 	})
 })

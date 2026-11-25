@@ -1,7 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { cdp, userEvent } from 'vitest/browser'
 import { Wysiwyg } from '../../modules/wysiwyg'
-import { renderUI, screen, waitFor } from '../helpers'
+import { renderUI, screen } from '../helpers'
+import { editable } from './helpers/wysiwyg'
 
 /** A node of the accessibility tree of Chromium. */
 type AXNode = {
@@ -56,15 +57,6 @@ afterEach(() => {
 	window.removeEventListener('auxclick', record)
 })
 
-/** Loads the editor of the field through a press. */
-async function load(): Promise<HTMLElement> {
-	await userEvent.click(screen.getByRole('textbox'))
-
-	await waitFor(() => expect(screen.getByRole('textbox').querySelector('a')).not.toBeNull())
-
-	return screen.getByRole('textbox')
-}
-
 /**
  * A link in a Wysiwyg reads as a link with its URL (WCAG 1.3.1), and a press
  * on it does not navigate. The accessibility tree and the press need a real
@@ -74,7 +66,7 @@ describe('Wysiwyg links (real browser)', () => {
 	it('gives a link its role and URL, and a press on it places the caret', async () => {
 		renderUI(<Wysiwyg aria-label="Notes" defaultValue="Read [the docs](https://a.dev) first" />)
 
-		const field = await load()
+		const field = await editable()
 
 		expect(await links()).toEqual([{ name: 'the docs', url: 'https://a.dev/' }])
 
@@ -92,7 +84,7 @@ describe('Wysiwyg links (real browser)', () => {
 			<Wysiwyg aria-label="Notes" defaultValue="Read [the docs](https://a.dev) first" readOnly />,
 		)
 
-		await load()
+		await editable()
 
 		const link = screen.getByRole('link', { name: 'the docs' })
 
@@ -111,7 +103,7 @@ describe('Wysiwyg links (real browser)', () => {
 	it('draws no href for a URL that can run script', async () => {
 		renderUI(<Wysiwyg aria-label="Notes" defaultValue="A [trap](javascript:alert(1)) here" />)
 
-		const field = await load()
+		const field = await editable()
 
 		expect(field.querySelector('a')).not.toHaveAttribute('href')
 	})

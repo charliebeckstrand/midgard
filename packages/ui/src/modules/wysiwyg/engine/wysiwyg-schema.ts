@@ -164,7 +164,11 @@ const marks = {
 	strong: {
 		parseDOM: [
 			{ tag: 'strong' },
-			{ tag: 'b' },
+			// Google Docs wraps the HTML of a copy in a `b` that is not bold.
+			{
+				tag: 'b',
+				getAttrs: (dom) => (dom as HTMLElement).style.fontWeight !== 'normal' && null,
+			},
 			{ style: 'font-weight=bold' },
 			{
 				style: 'font-weight',

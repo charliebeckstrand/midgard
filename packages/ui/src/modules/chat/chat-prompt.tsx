@@ -252,11 +252,6 @@ export type ChatPromptProps = {
 	'aria-describedby'?: string
 }
 
-/** The buttons of the formatting toolbar of a `wysiwyg` prop that is on. @internal */
-function toolbarActions(wysiwyg: true | ChatPromptWysiwygOptions) {
-	return wysiwyg === true ? undefined : wysiwyg.actions
-}
-
 /**
  * Auto-resizing chat composer built on Textarea, or on Wysiwyg with
  * `wysiwyg`, and wrapped in a `<Control>` so the field carries an inherent,
@@ -358,7 +353,7 @@ export function ChatPrompt({
 
 	const picker = useChatPromptPicker({
 		sources,
-		field: wysiwyg ? wysiwygField.field : textareaField.field,
+		field: formatted ? wysiwygField.field : textareaField.field,
 	})
 
 	const { onKeyDown: pickerKeyDown } = picker
@@ -429,6 +424,18 @@ export function ChatPrompt({
 		</>
 	)
 
+	// The props that both fields take. Each field sets only what differs.
+	const fieldProps = {
+		value,
+		...pickerProps,
+		rows,
+		placeholder: placeholder ?? intl.formatMessage(messages.placeholder),
+		...labelProps,
+		'aria-describedby': ariaDescribedBy,
+		className: 'max-h-64',
+		actions: actionRow,
+	}
+
 	return (
 		// Control supplies the stable id the field resolves through useControlProps.
 		<Control className={className}>
@@ -436,31 +443,24 @@ export function ChatPrompt({
 			{toolbar != null && typeof toolbar !== 'boolean' && (
 				<ChatPromptToolbar onUnmountWithFocus={focusField}>{toolbar}</ChatPromptToolbar>
 			)}
-			{wysiwyg ? (
+			{formatted ? (
 				<Wysiwyg
 					ref={setWysiwygRefs}
-					value={value}
+					{...fieldProps}
 					ranges={citations}
 					onValueChange={onValueChange}
 					onEnter={send}
 					onKeyDown={handleWysiwygKeyDown}
 					onSelectionChange={wysiwygField.onSelectionChange}
-					{...pickerProps}
-					rows={rows}
-					placeholder={placeholder ?? intl.formatMessage(messages.placeholder)}
-					{...labelProps}
-					aria-describedby={ariaDescribedBy}
 					enterKeyHint="send"
-					className="max-h-64"
-					actions={actionRow}
 				>
-					<WysiwygToolbar actions={toolbarActions(wysiwyg)} />
+					<WysiwygToolbar actions={typeof wysiwyg === 'object' ? wysiwyg.actions : undefined} />
 				</Wysiwyg>
 			) : (
 				<Textarea
 					ref={setTextareaRefs}
 					data-slot="chat-prompt"
-					value={value}
+					{...fieldProps}
 					onChange={(event) => {
 						const next = event.target.value
 
@@ -476,14 +476,7 @@ export function ChatPrompt({
 					onFocus={(event) => textareaField.track(event.currentTarget)}
 					onBlur={textareaField.forget}
 					onKeyDown={handleKeyDown}
-					{...pickerProps}
 					autoResize
-					rows={rows}
-					placeholder={placeholder ?? intl.formatMessage(messages.placeholder)}
-					{...labelProps}
-					aria-describedby={ariaDescribedBy}
-					className="max-h-64"
-					actions={actionRow}
 				/>
 			)}
 			{attachments && attachments.length > 0 && (
