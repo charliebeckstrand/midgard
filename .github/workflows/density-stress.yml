@@ -55,7 +55,7 @@ jobs:
           echo "runs=$(jq -nc --argjson n "$RUNS" '[range(1; $n + 1)]')" >> "$GITHUB_OUTPUT"
           echo "version=$(jq -r '.devDependencies.playwright' packages/ui/package.json)" >> "$GITHUB_OUTPUT"
         env:
-          RUNS: ${{ inputs.runs || '20' }}
+          RUNS: ${{ inputs.runs || '40' }}
 
   # The container, the options, and the environment are those of the
   # `engines` job of ci.yml, and the command runs each instance of that job.
@@ -100,92 +100,3 @@ jobs:
           ALL_ENGINES: 1
           HOME: /root
           VITEST_SEED: ${{ inputs.seed }}
-
-  # TEMPORARY: the crash occurs in the container and not on the runner. This job
-  # starts the container from the runner, so that systemd-coredump on the
-  # runner keeps a core of each crash, and gdb shows where the process stopped.
-  # Remove before merge.
-  density-coredump:
-    name: density-coredump (${{ matrix.run }})
-    needs: plan
-    runs-on: ubuntu-latest
-    timeout-minutes: 25
-    strategy:
-      fail-fast: false
-      matrix:
-        run: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
-    env:
-      IMAGE: mcr.microsoft.com/playwright:v${{ needs.plan.outputs.version }}-resolute
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-      - uses: ./.github/actions/setup
-      - name: Show the CPU and the core settings
-        run: |
-          grep -m1 'model name' /proc/cpuinfo
-          cat /proc/sys/kernel/core_pattern
-          sudo sysctl -w fs.suid_dumpable=2
-          systemd-analyze cat-config systemd/coredump.conf | grep -v '^#' | grep . || true
-      - run: docker pull "$IMAGE"
-      - run: |
-          docker run --rm --ipc=host --ulimit core=-1 \
-            -v "$GITHUB_WORKSPACE:$GITHUB_WORKSPACE" -w "$GITHUB_WORKSPACE/packages/ui" \
-            -e CI=1 -e HOME=/root -e DEBUG=pw:browser -e ALL_ENGINES=1 \
-            -e NODE_PATH="$GITHUB_WORKSPACE/node_modules/.pnpm/node_modules" \
-            "$IMAGE" \
-            node node_modules/vitest/vitest.mjs run --config vitest.browser.config.ts \
-            --project density-firefox --project density-webkit --project wysiwyg-webkit --project wysiwyg-floating-ui-webkit --project wysiwyg-floating-motion-webkit
-      - name: Show where each core stopped
-        if: always()
-        run: |
-          sudo coredumpctl list --no-pager || exit 0
-          sudo apt-get install -y gdb > /dev/null
-          mkdir -p /tmp/rootfs
-          docker export "$(docker create "$IMAGE")" | tar -x -C /tmp/rootfs
-          for pid in $(sudo coredumpctl list --no-pager --json=short | jq -r '.[].pid'); do
-            echo "::group::core of pid $pid"
-            sudo coredumpctl info "$pid" --no-pager | head -80
-            exe=$(sudo coredumpctl info "$pid" --no-pager | awk '/Executable:/ { print $2 }')
-            sudo coredumpctl dump "$pid" -o "/tmp/core.$pid" > /dev/null
-            # A MOZ_CRASH writes its line number through a null pointer, and
-            # keeps its message in gMozCrashReason.
-            sudo gdb -batch -nx -ex 'set sysroot /tmp/rootfs' "/tmp/rootfs$exe" "/tmp/core.$pid" \
-              -ex 'p $_siginfo._sifields._sigfault.si_addr' -ex 'x/4i $pc' \
-              -ex 'info registers rax rcx rip' \
-              -ex 'p (char *) *(void **) &gMozCrashReason' \
-              -ex 'info sharedlibrary libxul' -ex 'bt 40' 2>&1 | grep -v -e '^warning' -e '^\[New LWP' -e '^ *$' | head -120
-            echo "::endgroup::"
-          done
-
-  # TEMPORARY: the container with each system package of the image brought up
-  # to date. Remove before merge.
-  density-upgraded:
-    name: density-upgraded (${{ matrix.run }})
-    needs: plan
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    container:
-      image: mcr.microsoft.com/playwright:v${{ needs.plan.outputs.version }}-resolute
-      options: --ipc=host
-    strategy:
-      fail-fast: false
-      matrix:
-        run: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-      - run: git config --system --add safe.directory "$GITHUB_WORKSPACE"
-      - name: Bring the system packages up to date
-        run: |
-          grep -m1 'model name' /proc/cpuinfo
-          apt-get update > /dev/null
-          apt list --upgradable 2> /dev/null | sed 1d
-          DEBIAN_FRONTEND=noninteractive apt-get -y dist-upgrade > /dev/null
-      - uses: ./.github/actions/setup
-      - run: pnpm --filter ui test:browser --project density-firefox --project density-webkit --project wysiwyg-webkit --project wysiwyg-floating-ui-webkit --project wysiwyg-floating-motion-webkit
-        env:
-          DEBUG: pw:browser
-          ALL_ENGINES: 1
-          HOME: /root
