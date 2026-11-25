@@ -18,6 +18,7 @@ import { Textarea } from '../../components/textarea'
 import { ControlLockContext } from '../../primitives/control/context'
 import { defineMessages, intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
+import { k } from '../../recipes/kata/chat-message'
 import { Stack } from '../../structure/stack'
 import { Form, FormSubmit } from '../form'
 import type { Validators } from '../form/engine/types'
@@ -215,7 +216,9 @@ function ChatActionChoice({
 							onChange={() => setPicked(option.value)}
 						/>
 						<Label>{option.label}</Label>
-						{option.description !== undefined && <Description>{option.description}</Description>}
+						{option.description !== undefined && (
+							<Description className={k().actionDescription}>{option.description}</Description>
+						)}
 					</RadioField>
 				))}
 			</RadioGroup>

@@ -1,7 +1,7 @@
 import { defineKata, mode, type VariantProps } from '../../core/recipe'
 import { dan, iro, ji, kasane, kokkaku, narabi, omote, sen, ugoki } from '../kiso'
 
-const { palette, text } = iro
+const { on, palette, text } = iro
 const { rounded } = kasane
 const { size } = ji
 const { flex } = narabi
@@ -124,6 +124,11 @@ export const k = defineKata({
 		// place and the weight of the "(edited)" label. Its wash on hover shows
 		// that it is a button.
 		revised: 'me-auto font-normal',
+		// The second line of an option of a choice ask. The description of a field
+		// is `text.muted`, which is right on the page and wrong in a bubble:
+		// zinc-500 on the assistant fill is 4.4:1. The wash rung clears 4.5:1 on
+		// the fill in both modes, and keeps the step below the label.
+		actionDescription: on.wash.muted,
 		// The heading of an earlier version of a revised message, in the history
 		// panel. It is quiet, as the row below a bubble is, so the title of the
 		// panel stays the strongest text.
