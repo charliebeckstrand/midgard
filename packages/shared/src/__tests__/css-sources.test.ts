@@ -97,14 +97,25 @@ function listedFiles(appDir: string, text: string): string[] {
 	return [...text.matchAll(/^@source '([^']+)';$/gm)].map((match) => resolve(from, match[1] ?? ''))
 }
 
-describe('css sources of each app', () => {
-	it.each(APPS)('%s lists each module of shared and ui that it imports', async (app) => {
+// The graph and the walk of each app run at collection, which has no budget
+// (CONVENTIONS.md §10.14). esbuild and the walk read some thousand files.
+const lists = await Promise.all(
+	APPS.map(async (app) => {
 		const appDir = join(APPS_DIR, app)
 
 		const text = sourcesText(appDir, await graphSources(appDir))
 
-		expect(listedFiles(appDir, text)).toEqual(walkGraph(appDir))
-	})
+		return [app, listedFiles(appDir, text), walkGraph(appDir)] as const
+	}),
+)
+
+describe('css sources of each app', () => {
+	it.each(lists)(
+		'%s lists each module of shared and ui that it imports',
+		(_app, listed, walked) => {
+			expect(listed).toEqual(walked)
+		},
+	)
 
 	it('stops on a dynamic import that the graph cannot follow', async () => {
 		const appDir = mkdtempSync(join(tmpdir(), 'css-sources-'))
