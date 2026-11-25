@@ -105,9 +105,10 @@ function sameSource(a: Source, b: Source): boolean {
  * edit that a controlled parent refuses.
  *
  * @returns The editor, or `null` until it loads, the subscription to each new
- *   state of the editor, and `load`, which starts the load of the engine at
- *   once. Call it in the event that wants the editor, such as the first focus
- *   or press, so the load does not wait for a render and its effects.
+ *   state of the editor, whether the engine was loaded at the first render,
+ *   and `load`, which starts the load of the engine at once. Call it in the
+ *   event that wants the editor, such as the first focus or press, so the load
+ *   does not wait for a render and its effects.
  * @remarks The editor is the source of the doc while it lives. It holds the
  * last Markdown that it emitted, so the value that comes back after an edit
  * does not replace the doc again.
@@ -117,6 +118,12 @@ export function useWysiwygEditor({ host, value, ranges, props, onChange }: Wysiw
 	useIdlePreload(engine)
 
 	const loaded = useLazyModule(engine, false)
+
+	// Whether the engine was loaded at the first render, such as for the second
+	// field of a page. The editor then replaces nothing, so the field draws no
+	// markup before it. The hydration render reads no engine, so the server
+	// markup stays.
+	const [loadedAtMount] = useState(loaded !== null)
 
 	const [editor, setEditor] = useState<WysiwygEditor | null>(null)
 
@@ -191,5 +198,5 @@ export function useWysiwygEditor({ host, value, ranges, props, onChange }: Wysiw
 		editor.setValue(value, ranges)
 	})
 
-	return { editor, subscribe: updates.subscribe, load: loadEngineNow }
+	return { editor, subscribe: updates.subscribe, loadedAtMount, load: loadEngineNow }
 }

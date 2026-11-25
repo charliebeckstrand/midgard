@@ -312,7 +312,7 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 		edited.current = undefined
 	})
 
-	const { editor, subscribe, load } = useWysiwygEditor({
+	const { editor, subscribe, loadedAtMount, load } = useWysiwygEditor({
 		host,
 		value,
 		ranges,
@@ -439,7 +439,8 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 						style={fieldStyle(rows, placeholder)}
 						onMouseDown={handleHostPress}
 					>
-						{!editor && (
+						{/* With the engine at the mount, the editor comes before the first paint. */}
+						{!editor && !loadedAtMount && (
 							<WysiwygStatic
 								attributes={attributes}
 								value={value}

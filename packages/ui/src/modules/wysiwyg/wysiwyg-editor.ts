@@ -24,7 +24,7 @@ import { HELD, wysiwygHeld } from './engine/wysiwyg-held'
 import { wysiwygInputRules } from './engine/wysiwyg-input-rules'
 import { parseMarkdown } from './engine/wysiwyg-markdown/parse'
 import { serializeMarkdown, serializeMarkdownRanges } from './engine/wysiwyg-markdown/serialize'
-import { SET_VALUE, wysiwygRanges } from './engine/wysiwyg-ranges'
+import { holdsRange, SET_VALUE, wysiwygRanges } from './engine/wysiwyg-ranges'
 import { isEmptyDoc, schema } from './engine/wysiwyg-schema'
 import type { WysiwygAction, WysiwygBlock, WysiwygBlockRange, WysiwygToggleAction } from './types'
 import { WYSIWYG_ACTIONS, type WysiwygShortcut, wysiwygActions } from './wysiwyg-actions'
@@ -271,7 +271,7 @@ export function createWysiwygEditor(
 			view.updateState(next)
 
 			if (tr.docChanged) {
-				const out = serializeMarkdownRanges(next.doc)
+				const out = serializeMarkdownRanges(next.doc, holdsRange(next))
 
 				props.onChange(out.markdown, out.ranges)
 			}
