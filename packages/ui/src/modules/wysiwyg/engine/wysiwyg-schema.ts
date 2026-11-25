@@ -5,6 +5,7 @@ import {
 	type Node as ProseMirrorNode,
 	Schema,
 } from 'prosemirror-model'
+import { safeUrl } from '../../../components/markdown/markdown-safe-url'
 import { cn } from '../../../core/cn'
 import { k as code } from '../../../recipes/kata/code'
 import { k as markdown } from '../../../recipes/kata/markdown'
@@ -185,11 +186,20 @@ const marks = {
 				}),
 			},
 		],
-		// The link does not navigate in the field, so it has no `href`. A press puts
-		// the caret in its text, as in each other editor.
+		// The link has its `href`, so a screen reader reads it as a link with its
+		// URL. It has the URL guard of `Markdown`, so a URL that can run script
+		// draws no `href`. The editor cancels a press on it, which puts the caret
+		// in its text, as in each other editor. It is out of the Tab order of a
+		// read-only field, and a drag in it selects text.
 		toDOM: (mark): DOMOutputSpec => [
 			'a',
-			{ class: prose.link, title: mark.attrs.title, 'data-href': mark.attrs.href },
+			{
+				class: prose.link,
+				href: safeUrl(mark.attrs.href),
+				title: mark.attrs.title,
+				tabindex: '-1',
+				draggable: 'false',
+			},
 			0,
 		],
 	},

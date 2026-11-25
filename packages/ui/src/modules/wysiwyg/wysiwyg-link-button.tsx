@@ -1,6 +1,6 @@
 'use client'
 
-import { type FormEvent, useEffect, useRef, useState } from 'react'
+import { type FormEvent, type KeyboardEvent, useEffect, useRef, useState } from 'react'
 import { Button } from '../../components/button'
 import { Field, Label } from '../../components/fieldset'
 import { Input } from '../../components/input'
@@ -8,6 +8,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '../../components/popove
 import { useIntl } from '../../primitives/intl/use-intl'
 import { Flex } from '../../structure/flex'
 import { Stack } from '../../structure/stack'
+import { isComposing } from '../../utilities/is-composing'
 import { useWysiwyg } from './context'
 import { WysiwygActionButton } from './wysiwyg-action-button'
 import { wysiwygActions, wysiwygMessages } from './wysiwyg-actions'
@@ -25,8 +26,10 @@ import { wysiwygActions, wysiwygMessages } from './wysiwyg-actions'
  * focus is in the popover. Apply sets the text and the link, and a selection
  * stays selected. At a caret outside a link, the text goes in at the caret.
  * With no text, the URL is the text. Apply and Remove link move the focus back
- * to the field. Escape and an outside press close the popover, and the focus
- * goes back to the button.
+ * to the field. Escape closes the popover. After the link shortcut or a press
+ * of the button, the focus goes back to the field and its selection. After a
+ * key on the button, it goes back to the button. An outside press closes the
+ * popover, and the focus stays where the press put it.
  * @internal
  */
 export function WysiwygLinkButton() {
@@ -52,18 +55,24 @@ export function WysiwygLinkButton() {
  * The form of the link popover. It mounts as the popover opens, so its fields
  * hold the text and the URL of the selection. The text field takes the focus
  * when it is empty, and the URL field takes it else. The field marks the
- * selection while the form is mounted.
+ * selection while the form is mounted. Escape gives the focus back to the
+ * field when the field had it as the popover opened.
  *
  * @internal
  */
 function WysiwygLinkForm() {
-	const { linkDraft, setLink, setLinkOpen, holdSelection } = useWysiwyg()
+	const { linkDraft, setLink, setLinkOpen, holdSelection, fieldFocused, focusField } = useWysiwyg()
 
 	const intl = useIntl()
 
 	// The draft of the selection as the popover opens. The selection cannot
 	// change while the focus is in the popover.
 	const [draft] = useState(linkDraft)
+
+	// Whether the focus was in the field as the popover opened. The link
+	// shortcut and a press of the button keep it there, and a key on the button
+	// opens the popover with the focus on the button.
+	const [fromField] = useState(fieldFocused)
 
 	const textInput = useRef<HTMLInputElement>(null)
 
@@ -95,6 +104,20 @@ function WysiwygLinkForm() {
 		setLinkOpen(false)
 	}
 
+	// Escape closes the popover. When the field had the focus, it goes back to
+	// the field first, as on Apply, so the reader goes on typing at the
+	// selection. The popover gives the focus back to the button only from the
+	// popover or the body, so it then leaves the focus in the field. An Escape
+	// that an input method takes, or that a handler cancels, does not close the
+	// popover, so the focus stays.
+	function handleKeyDown(event: KeyboardEvent<HTMLFormElement>) {
+		if (event.key !== 'Escape' || !fromField) return
+
+		if (event.defaultPrevented || isComposing(event)) return
+
+		focusField()
+	}
+
 	function remove() {
 		setLink('', draft.text)
 
@@ -102,7 +125,7 @@ function WysiwygLinkForm() {
 	}
 
 	return (
-		<form data-slot="wysiwyg-link-form" onSubmit={apply}>
+		<form data-slot="wysiwyg-link-form" onSubmit={apply} onKeyDown={handleKeyDown}>
 			<Stack gap="md">
 				<Field>
 					<Label>{intl.formatMessage(wysiwygMessages.linkText)}</Label>
