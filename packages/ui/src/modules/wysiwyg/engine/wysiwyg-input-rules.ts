@@ -6,28 +6,28 @@ import {
 } from 'prosemirror-inputrules'
 import type { Mark, MarkType, Node as ProseMirrorNode } from 'prosemirror-model'
 import type { Plugin } from 'prosemirror-state'
+import { DELIMITERS } from './wysiwyg-markdown/serialize'
 import { schema } from './wysiwyg-schema'
 
 const { nodes, marks } = schema
 
 /**
  * A rule that turns a delimited run into a mark as the reader types its
- * closing delimiter, such as `**bold**`. The regular expression has three
- * groups: the character before the opening delimiter (or nothing at the start
- * of the block), the opening delimiter, and the text. The rule does not run in
- * a code span. The next character that the reader types has no mark.
+ * closing delimiter, such as `**bold**`. The regular expression has two
+ * groups: the opening delimiter and the text. A lookbehind tests the
+ * character before the opening delimiter, so the match starts at it. The rule
+ * does not run on an opening delimiter in a code span. The next character
+ * that the reader types has no mark.
  *
  * @internal
  */
 function markRule(pattern: RegExp, type: MarkType): InputRule {
 	return new InputRule(pattern, (state, match, start, end) => {
-		const [, before = '', open = '', text = ''] = match
+		const [, open = '', text = ''] = match
 
-		if (marks.code.isInSet(state.doc.resolve(start).marks()) && type !== marks.code) return null
+		if (marks.code.isInSet(state.doc.nodeAt(start)?.marks ?? [])) return null
 
-		const from = start + before.length
-
-		const textFrom = from + open.length
+		const textFrom = start + open.length
 
 		const textTo = textFrom + text.length
 
@@ -47,18 +47,11 @@ function markRule(pattern: RegExp, type: MarkType): InputRule {
 		// not yet in the doc, so the doc holds the closing delimiter up to `end`.
 		return tr
 			.delete(textFrom + length, tr.mapping.map(end))
-			.delete(from, textFrom)
-			.addMark(from, from + length, type.create())
+			.delete(start, textFrom)
+			.addMark(start, start + length, type.create())
 			.removeStoredMark(type)
 	})
 }
-
-/** The delimiter that the serializer writes for each emphasis mark, in the order of the schema. */
-const DELIMITERS: ReadonlyMap<MarkType, string> = new Map([
-	[marks.strong, '**'],
-	[marks.em, '*'],
-	[marks.strike, '~~'],
-])
 
 /**
  * The text from `from` to `to` in one textblock, with each emphasis mark that
@@ -127,12 +120,12 @@ function typedSource(doc: ProseMirrorNode, from: number, to: number): ProseMirro
 export function wysiwygInputRules(): Plugin {
 	return inputRules({
 		rules: [
-			markRule(/(^|[^*])(\*\*)([^*\s](?:[^*]*[^*\s])?)\*\*$/, marks.strong),
-			markRule(/(^|[^\w_])(__)([^_\s](?:[^_]*[^_\s])?)__$/, marks.strong),
-			markRule(/(^|[^*])(\*)([^*\s](?:[^*]*[^*\s])?)\*$/, marks.em),
-			markRule(/(^|[^\w_])(_)([^_\s](?:[^_]*[^_\s])?)_$/, marks.em),
-			markRule(/(^|[^~])(~~)([^~\s](?:[^~]*[^~\s])?)~~$/, marks.strike),
-			markRule(/(^|[^`])(`)([^`]+)`$/, marks.code),
+			markRule(/(?<!\*)(\*\*)([^*\s](?:[^*]*[^*\s])?)\*\*$/, marks.strong),
+			markRule(/(?<!\w)(__)([^_\s](?:[^_]*[^_\s])?)__$/, marks.strong),
+			markRule(/(?<!\*)(\*)([^*\s](?:[^*]*[^*\s])?)\*$/, marks.em),
+			markRule(/(?<!\w)(_)([^_\s](?:[^_]*[^_\s])?)_$/, marks.em),
+			markRule(/(?<!~)(~~)([^~\s](?:[^~]*[^~\s])?)~~$/, marks.strike),
+			markRule(/(?<!`)(`)([^`]+)`$/, marks.code),
 			wrappingInputRule(/^\s*([-+*])\s$/, nodes.bullet_list),
 			wrappingInputRule(
 				/^(\d+)\.\s$/,

@@ -47,17 +47,12 @@ function spanText(doc: Node, { from, to }: RangeSpan): string {
 }
 
 /**
- * The key of the plugin of the ranges. Its state is whether the doc holds a
- * range mark.
+ * The key of the plugin of the ranges. Its state is the span of each range of
+ * the doc, by its id.
  *
  * @internal
  */
-const rangesKey = new PluginKey<boolean>('wysiwygRanges')
-
-/** Whether a doc holds a range mark. @internal */
-function docHoldsRange(doc: Node): boolean {
-	return doc.rangeHasMark(0, doc.content.size, schema.marks.range)
-}
+const rangesKey = new PluginKey<ReadonlyMap<string, RangeSpan>>('wysiwygRanges')
 
 /** Whether a slice holds a range mark. @internal */
 function sliceHoldsRange(slice: Slice): boolean {
@@ -99,7 +94,7 @@ function addsRange(step: Step): boolean {
  * @internal
  */
 export function holdsRange(state: EditorState): boolean {
-	return rangesKey.getState(state) ?? docHoldsRange(state.doc)
+	return (rangesKey.getState(state) ?? rangeSpans(state.doc)).size > 0
 }
 
 /**
@@ -111,31 +106,27 @@ export function holdsRange(state: EditorState): boolean {
  *
  * @internal
  */
-export function wysiwygRanges(): Plugin<boolean> {
-	return new Plugin<boolean>({
+export function wysiwygRanges(): Plugin<ReadonlyMap<string, RangeSpan>> {
+	return new Plugin<ReadonlyMap<string, RangeSpan>>({
 		key: rangesKey,
-		// Whether the doc holds a range mark. A doc with no range gets one only from
-		// a step that adds one, so an edit of such a doc reads its steps and not the
-		// whole doc. A doc with ranges is read again after each change.
+		// A doc with no range gets one only from a step that adds one, so an edit
+		// of such a doc reads its steps and not the whole doc.
 		state: {
-			init: (_, state) => docHoldsRange(state.doc),
-			apply: (tr, held, _, state) => {
-				if (!tr.docChanged) return held
-
-				return held ? docHoldsRange(state.doc) : tr.steps.some(addsRange)
-			},
+			init: (_, state) => rangeSpans(state.doc),
+			apply: (tr, spans) =>
+				!tr.docChanged || (spans.size === 0 && !tr.steps.some(addsRange))
+					? spans
+					: rangeSpans(tr.doc),
 		},
 		appendTransaction: (transactions, before, after) => {
-			if (!transactions.some((tr) => tr.docChanged)) return null
+			const previous = rangesKey.getState(before)
 
 			// An edit removes a mark only from a range that the doc held before it.
-			if (!holdsRange(before)) return null
-
-			const previous = rangeSpans(before.doc)
+			if (!previous?.size || !transactions.some((tr) => tr.docChanged)) return null
 
 			let tr: Transaction | null = null
 
-			for (const [id, span] of rangeSpans(after.doc)) {
+			for (const [id, span] of rangesKey.getState(after) ?? []) {
 				const old = previous.get(id)
 
 				if (!old || spanText(before.doc, old) === spanText(after.doc, span)) continue
