@@ -17,9 +17,9 @@
 import { addBranch } from './chat-branch/tree'
 import type { ChatTree } from './chat-branch/types'
 import { isEmptyContent } from './chat-content/normalize'
-import type { ChatPart } from './chat-content/types'
+import type { ChatActionPart, ChatActionResult, ChatPart } from './chat-content/types'
 import { applyChunk, failRunningTools } from './chat-stream'
-import type { ChatMessageData } from './types'
+import type { ChatMessageData, ChatReplyChunk, ChatRevision } from './types'
 
 /** The index of the last user message, or `-1` when the transcript holds none. */
 function findLastUserIndex(messages: ChatMessageData[]): number {
@@ -51,12 +51,13 @@ export function openReply(messages: ChatMessageData[], id: string): ChatMessageD
 }
 
 /**
- * The transcript with one transport chunk folded into the reply `id` names. An
- * id that names no message changes nothing.
+ * The transcript with one transport chunk folded in. A string or a part list
+ * folds into the reply `id` names, and a {@link ChatRevision} folds into the
+ * message that it names. An id that names no message changes nothing.
  *
  * The fold itself is [`applyChunk`](chat-stream.ts). A string is the full reply
  * so far and replaces the running text. A part list carries the blocks that
- * changed and merges by id. This rule only finds the reply the chunk belongs
+ * changed and merges by id. This rule only finds the message the chunk belongs
  * to; what a chunk means to the content it lands in belongs to one place.
  *
  * @internal
@@ -64,11 +65,75 @@ export function openReply(messages: ChatMessageData[], id: string): ChatMessageD
 export function applyReplyChunk(
 	messages: ChatMessageData[],
 	id: string,
-	chunk: string | ChatPart[],
+	chunk: ChatReplyChunk,
 ): ChatMessageData[] {
+	if (typeof chunk !== 'string' && !Array.isArray(chunk)) return reviseMessage(messages, chunk)
+
 	return messages.map((message) =>
 		message.id === id ? { ...message, content: applyChunk(message.content, chunk) } : message,
 	)
+}
+
+/**
+ * The transcript with a revision folded into the message that it names. The
+ * parts merge by id, as a part-list chunk merges into a reply, and the message
+ * takes `revised`.
+ *
+ * @internal
+ */
+export function reviseMessage(
+	messages: ChatMessageData[],
+	{ revise, parts }: ChatRevision,
+): ChatMessageData[] {
+	return messages.map((message) =>
+		message.id === revise
+			? {
+					...message,
+					content: applyChunk(message.content, parts),
+					revised: true,
+				}
+			: message,
+	)
+}
+
+/**
+ * The open action that `partId` names in the message that `messageId` names,
+ * or `undefined`. An action with a result is not open: an ask is answered once.
+ *
+ * @internal
+ */
+export function findOpenAction(
+	messages: ChatMessageData[],
+	messageId: string,
+	partId: string,
+): ChatActionPart | undefined {
+	const content = messages.find((message) => message.id === messageId)?.content
+
+	if (typeof content !== 'object') return undefined
+
+	const part = content.find((candidate) => candidate.id === partId)
+
+	return part?.kind === 'action' && part.result === undefined ? part : undefined
+}
+
+/**
+ * The transcript with `result` on the open action that `partId` names. The
+ * result merges into the message by part id, through the fold that a stream
+ * takes. A part that is not an open action changes nothing.
+ *
+ * @internal
+ */
+export function resolveAction(
+	messages: ChatMessageData[],
+	messageId: string,
+	partId: string,
+	result: ChatActionResult,
+): ChatMessageData[] {
+	const part = findOpenAction(messages, messageId, partId)
+
+	if (!part) return messages
+
+	return applyReplyChunk(messages, messageId, [{ ...part, result }])
 }
 
 /**

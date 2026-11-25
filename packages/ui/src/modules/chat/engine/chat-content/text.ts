@@ -31,6 +31,10 @@ function partText(part: ChatPart): string {
 		// behind a disclosure the reader has not opened.
 		case 'tool':
 			return part.summary ? `${part.label}: ${part.summary}` : part.label
+		// An ask is prose too: its prompt while it is open, and the title of its
+		// alert after a submit. The values stay out, as the detail of a step does.
+		case 'action':
+			return part.result === undefined ? part.prompt : part.success
 	}
 }
 

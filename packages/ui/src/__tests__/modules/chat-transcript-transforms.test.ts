@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import { chatBranches, toChatTree } from '../../modules/chat/engine/chat-branch/tree'
-import type { ChatPart } from '../../modules/chat/engine/chat-content/types'
+import type { ChatActionPart, ChatPart } from '../../modules/chat/engine/chat-content/types'
 import {
 	appendUserMessage,
 	applyReplyChunk,
@@ -12,8 +12,11 @@ import {
 	failReply,
 	failReplyTools,
 	findLastUserMessage,
+	findOpenAction,
 	findUserMessage,
 	openReply,
+	resolveAction,
+	reviseMessage,
 	seedMessages,
 } from '../../modules/chat/engine/chat-transcript'
 import type { ChatMessageData } from '../../modules/chat/engine/types'
@@ -464,5 +467,103 @@ describe('duplicateMessageIds', () => {
 		]
 
 		expect(duplicateMessageIds(messages)).toEqual([])
+	})
+})
+
+const ask: ChatActionPart = {
+	kind: 'action',
+	id: 'a1',
+	prompt: 'Which carrier?',
+	title: 'Carrier',
+	success: 'Carrier picked',
+	input: {
+		kind: 'choice',
+		name: 'carrier',
+		options: [{ value: 'atlas', label: 'Atlas Haulage' }],
+	},
+}
+
+const offer = (): ChatMessageData => ({
+	id: 'r1',
+	sender: 'assistant',
+	content: [{ kind: 'text', id: 't1', text: 'Two carriers can take it.' }, ask],
+})
+
+describe('findOpenAction', () => {
+	it('finds the action that the ids name', () => {
+		expect(findOpenAction([offer()], 'r1', 'a1')).toBe(ask)
+	})
+
+	it('finds nothing for an action with a result, because an ask is answered once', () => {
+		const answered = resolveAction([offer()], 'r1', 'a1', { carrier: 'atlas' })
+
+		expect(findOpenAction(answered, 'r1', 'a1')).toBeUndefined()
+	})
+
+	it('finds nothing for a part of another kind, another message, or prose', () => {
+		const messages = [offer(), assistant('r2', 'prose')]
+
+		expect(findOpenAction(messages, 'r1', 't1')).toBeUndefined()
+		expect(findOpenAction(messages, 'r2', 'a1')).toBeUndefined()
+		expect(findOpenAction(messages, 'missing', 'a1')).toBeUndefined()
+	})
+})
+
+describe('resolveAction', () => {
+	it('writes the result on the action, in place, and keeps the other parts', () => {
+		const [message] = resolveAction([offer()], 'r1', 'a1', { carrier: 'atlas' })
+
+		expect(message?.content).toEqual([
+			{ kind: 'text', id: 't1', text: 'Two carriers can take it.' },
+			{ ...ask, result: { carrier: 'atlas' } },
+		])
+	})
+
+	it('does not mark the message revised, because an answer is not a revision', () => {
+		const [message] = resolveAction([offer()], 'r1', 'a1', { carrier: 'atlas' })
+
+		expect(message?.revised).toBeUndefined()
+	})
+
+	it('returns the transcript by reference for an action that is not open', () => {
+		const messages = resolveAction([offer()], 'r1', 'a1', { carrier: 'atlas' })
+
+		expect(resolveAction(messages, 'r1', 'a1', { carrier: 'other' })).toBe(messages)
+	})
+})
+
+describe('reviseMessage', () => {
+	it('merges the parts by id, and marks the message revised', () => {
+		const [message] = reviseMessage([offer()], {
+			revise: 'r1',
+			parts: [{ kind: 'text', id: 't1', text: '~~Two carriers can take it.~~ Atlas takes it.' }],
+		})
+
+		expect(message?.content).toEqual([
+			{ kind: 'text', id: 't1', text: '~~Two carriers can take it.~~ Atlas takes it.' },
+			ask,
+		])
+
+		expect(message?.revised).toBe(true)
+	})
+
+	it('leaves every other message alone', () => {
+		const other = user('u1', 'hi')
+
+		const [kept] = reviseMessage([other, offer()], { revise: 'r1', parts: [] })
+
+		expect(kept).toBe(other)
+	})
+})
+
+describe('applyReplyChunk with a revision', () => {
+	it('folds the revision into the message that it names, and not into the reply', () => {
+		const messages = applyReplyChunk([offer(), assistant('r2', '')], 'r2', {
+			revise: 'r1',
+			parts: [{ kind: 'text', id: 't1', text: 'Atlas takes it.' }],
+		})
+
+		expect(messages[0]?.revised).toBe(true)
+		expect(messages[1]).toEqual(assistant('r2', ''))
 	})
 })

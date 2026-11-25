@@ -1119,6 +1119,10 @@
 		"defaultMessage": "Reviewers",
 		"description": "Text of a demo in the docs, in components/combobox/custom-summary.tsx."
 	},
+	"docs.demo.06961bc1bcd8": {
+		"defaultMessage": "Pickup window",
+		"description": "Text of a demo in the docs as label, in modules/chat/actions/book-a-pickup.tsx."
+	},
 	"docs.demo.06b3bb71ed67": {
 		"defaultMessage": "Standard shipping takes three to five business days.",
 		"description": "Text of a demo in the docs, in components/collapse/default-open.tsx."
@@ -1715,6 +1719,10 @@
 		"defaultMessage": "Footer",
 		"description": "Text of a demo in the docs as label, in components/nav/nav-bar.tsx."
 	},
+	"docs.demo.271c535631ff": {
+		"defaultMessage": "Carrier",
+		"description": "Text of a demo in the docs as title, in modules/chat/actions/pick-a-carrier.tsx."
+	},
 	"docs.demo.272082c2446a": {
 		"defaultMessage": "Add the steps to reproduce.",
 		"description": "Text of a demo in the docs, in modules/wysiwyg/validation.tsx."
@@ -2039,6 +2047,10 @@
 		"defaultMessage": "Send announcement",
 		"description": "Text of a demo in the docs, in components/listbox/in-a-form.tsx."
 	},
+	"docs.demo.386ba2d3e0db": {
+		"defaultMessage": "Pickup at 3 PM, $380",
+		"description": "Text of a demo in the docs as description, in modules/chat/actions/pick-a-carrier.tsx."
+	},
 	"docs.demo.38a81e87e796": {
 		"defaultMessage": "person",
 		"description": "Text of a demo in the docs, in modules/grid/selection/batch-actions.tsx."
@@ -2142,6 +2154,10 @@
 	"docs.demo.3d5e22114f72": {
 		"defaultMessage": "Animal taxonomy",
 		"description": "Text of a demo in the docs as aria-label, in components/tree/without-icons.tsx."
+	},
+	"docs.demo.3d7f2af8cde0": {
+		"defaultMessage": "Pickup at 1 PM, $420",
+		"description": "Text of a demo in the docs as description, in modules/chat/actions/pick-a-carrier.tsx."
 	},
 	"docs.demo.3de100106dd4": {
 		"defaultMessage": "Save draft",
@@ -2346,6 +2362,10 @@
 	"docs.demo.48f0d3d397d4": {
 		"defaultMessage": "Sign out",
 		"description": "Text of a demo in the docs, in components/menu/title-and-description.tsx, components/sidebar/sections-divider-and-spacer.tsx."
+	},
+	"docs.demo.49345c3fb162": {
+		"defaultMessage": "Who can take the Denver order on Thursday?",
+		"description": "Text of a demo in the docs as content, in modules/chat/actions/pick-a-carrier.tsx."
 	},
 	"docs.demo.4938576bb32b": {
 		"defaultMessage": "Search or add a person",
@@ -2739,6 +2759,10 @@
 		"defaultMessage": "Select a plan.",
 		"description": "Text of a demo in the docs as validate, in modules/form/error-summary.tsx."
 	},
+	"docs.demo.5ebfd1f520ff": {
+		"defaultMessage": "{label} takes the Denver order on Thursday. {description}.",
+		"description": "Text of a demo in the docs as text, in modules/chat/actions/pick-a-carrier.tsx. The arguments {label} and {description} are values from the code."
+	},
 	"docs.demo.5f2c8067cc3f": {
 		"defaultMessage": "New version available",
 		"description": "Text of a demo in the docs as title, in components/banner/closable.tsx, components/banner/playground.tsx, components/banner/with-actions.tsx."
@@ -2793,7 +2817,7 @@
 	},
 	"docs.demo.63dceb8800b2": {
 		"defaultMessage": "Phone",
-		"description": "Text of a demo in the docs as aria-label, title, in components/input/validation.tsx, components/mask-input/disabled.tsx, components/mask-input/international-phone.tsx and 2 more."
+		"description": "Text of a demo in the docs as aria-label, label, title, in components/input/validation.tsx, components/mask-input/disabled.tsx, components/mask-input/international-phone.tsx and 3 more."
 	},
 	"docs.demo.6466e450a16b": {
 		"defaultMessage": "report.pdf",
@@ -3203,6 +3227,10 @@
 		"defaultMessage": "Units sold by month",
 		"description": "Text of a demo in the docs as aria-label, in modules/dashboard/widgets.tsx."
 	},
+	"docs.demo.78056f135b20": {
+		"defaultMessage": "Add details",
+		"description": "Text of a demo in the docs as label, in modules/chat/actions/book-a-pickup.tsx."
+	},
 	"docs.demo.7848033c7159": {
 		"defaultMessage": "Opens after one second",
 		"description": "Text of a demo in the docs, in components/tooltip/delay.tsx."
@@ -3546,6 +3574,10 @@
 	"docs.demo.89dbb4ff9ab0": {
 		"defaultMessage": "Shipping country",
 		"description": "Text of a demo in the docs, in components/select/validation.tsx."
+	},
+	"docs.demo.89e05ef129cd": {
+		"defaultMessage": "Two carriers can take the Denver order on Thursday.",
+		"description": "Text of a demo in the docs as text, in modules/chat/actions/pick-a-carrier.tsx."
 	},
 	"docs.demo.89e7dc3b9ebf": {
 		"defaultMessage": "Birds",
@@ -3914,6 +3946,10 @@
 	"docs.demo.982c5bc5ba13": {
 		"defaultMessage": "Arrives in 5 to 7 business days.",
 		"description": "Text of a demo in the docs as description, in components/radio/with-description.tsx."
+	},
+	"docs.demo.982ff274e0ab": {
+		"defaultMessage": "Thursday afternoon",
+		"description": "Text of a demo in the docs as label, in modules/chat/actions/book-a-pickup.tsx."
 	},
 	"docs.demo.9846111eeef1": {
 		"defaultMessage": "vacation.jpg",
@@ -5023,6 +5059,10 @@
 		"defaultMessage": "Move the message out of the inbox",
 		"description": "Text of a demo in the docs, in components/tooltip/in-a-group.tsx."
 	},
+	"docs.demo.cfd3012a04d2": {
+		"defaultMessage": "Book a pickup for the Denver order.",
+		"description": "Text of a demo in the docs as content, in modules/chat/actions/book-a-pickup.tsx."
+	},
 	"docs.demo.d00a994d3394": {
 		"defaultMessage": "Track the tasks of the project. Upgrade to the Pro plan to open reports.",
 		"description": "Text of a demo in the docs, in components/tabs/disabled-tab.tsx."
@@ -5267,6 +5307,10 @@
 		"defaultMessage": "Progress gauge",
 		"description": "Text of a demo in the docs as label, in primitives/skeleton/skeleton-variants.tsx."
 	},
+	"docs.demo.dbebda550bfb": {
+		"defaultMessage": "Delivery details",
+		"description": "Text of a demo in the docs as title, in modules/chat/actions/book-a-pickup.tsx."
+	},
 	"docs.demo.dbf362d4f210": {
 		"defaultMessage": "Copy link",
 		"description": "Text of a demo in the docs, in components/menu/submenus.tsx, components/menu/with-descriptions.tsx, components/toast/with-id.tsx."
@@ -5326,6 +5370,10 @@
 	"docs.demo.dde07654d9fb": {
 		"defaultMessage": "KC → {abbreviation}",
 		"description": "Text of a demo in the docs as label, in modules/map/route/with-markers.tsx. The argument {abbreviation} is a value from the code."
+	},
+	"docs.demo.ddec0fc313b4": {
+		"defaultMessage": "Contact name",
+		"description": "Text of a demo in the docs as label, in modules/chat/actions/book-a-pickup.tsx."
 	},
 	"docs.demo.de0a9d8401ac": {
 		"defaultMessage": "Configure your project name, description, and visibility.",
@@ -5426,6 +5474,10 @@
 	"docs.demo.e2de0d4297b0": {
 		"defaultMessage": "Last six months",
 		"description": "Text of a demo in the docs as subtitle, in modules/chart/title-and-subtitle.tsx."
+	},
+	"docs.demo.e2e825d63dd9": {
+		"defaultMessage": "Thursday morning",
+		"description": "Text of a demo in the docs as label, in modules/chat/actions/book-a-pickup.tsx."
 	},
 	"docs.demo.e35ca189c399": {
 		"defaultMessage": "Add dark mode",
@@ -5635,6 +5687,10 @@
 		"defaultMessage": "Open",
 		"description": "Text of a demo in the docs, in components/kbd/inside-a-button.tsx, components/menu/controlled.tsx."
 	},
+	"docs.demo.ed4bf072542c": {
+		"defaultMessage": "Atlas Haulage",
+		"description": "Text of a demo in the docs as label, in modules/chat/actions/pick-a-carrier.tsx."
+	},
 	"docs.demo.edcf44965d9c": {
 		"defaultMessage": "Invoices go out on the first business day of each month.",
 		"description": "Text of a demo in the docs, in components/text/playground.tsx."
@@ -5658,6 +5714,10 @@
 	"docs.demo.eee675902bc6": {
 		"defaultMessage": "No invoices in",
 		"description": "Text of a demo in the docs, in components/tabs/overflow.tsx."
+	},
+	"docs.demo.ef2733ca2610": {
+		"defaultMessage": "Northline Freight",
+		"description": "Text of a demo in the docs as label, in modules/chat/actions/pick-a-carrier.tsx."
 	},
 	"docs.demo.ef4c05efaf50": {
 		"defaultMessage": "Product updates",
@@ -5787,6 +5847,10 @@
 		"defaultMessage": "End",
 		"description": "Text of a demo in the docs as labels, in components/slider/clamped-range.tsx, structure/flex/align-and-justify.tsx."
 	},
+	"docs.demo.f50fb4e31e11": {
+		"defaultMessage": "Notes for the driver",
+		"description": "Text of a demo in the docs as label, in modules/chat/actions/book-a-pickup.tsx."
+	},
 	"docs.demo.f514c310bd9e": {
 		"defaultMessage": "Visits",
 		"description": "Text of a demo in the docs as yName, in modules/chart/donut/animated.tsx, modules/chart/donut/basic.tsx, modules/chart/donut/center-content.tsx and 6 more."
@@ -5826,6 +5890,10 @@
 	"docs.demo.f728553b59c5": {
 		"defaultMessage": "Invite by email",
 		"description": "Text of a demo in the docs, in components/menu/submenus.tsx."
+	},
+	"docs.demo.f72c5664d899": {
+		"defaultMessage": "Needs a liftgate",
+		"description": "Text of a demo in the docs as label, in modules/chat/actions/book-a-pickup.tsx."
 	},
 	"docs.demo.f77caee8b10d": {
 		"defaultMessage": "Grouped window",
@@ -7459,6 +7527,10 @@
 		"defaultMessage": "Vertical",
 		"description": "An option of the Resize field of a playground in the docs. It sets the prop resize to 'vertical' on Textarea."
 	},
+	"docs.prop.revised": {
+		"defaultMessage": "Revised",
+		"description": "The label of a field of a playground in the docs. The field sets the prop revised of ChatMessage."
+	},
 	"docs.prop.role": {
 		"defaultMessage": "Role",
 		"description": "The label of a field of a playground in the docs. The field sets the prop role of DialogPanel."
@@ -8007,6 +8079,10 @@
 		"defaultMessage": "Search",
 		"description": "The placeholder of the search field of the docs, and its name. Props and events are the inputs of a component."
 	},
+	"docs.tab.actions": {
+		"defaultMessage": "Actions",
+		"description": "The name of a tab on the Chat page of the docs. The tab shows one part of the page."
+	},
 	"docs.tab.area": {
 		"defaultMessage": "Area",
 		"description": "The name of a tab on the Chart page of the docs. The tab shows one part of the page."
@@ -8282,6 +8358,10 @@
 	"docs.title.between-groups": {
 		"defaultMessage": "Between groups",
 		"description": "The title of an example on a page of the docs. It comes from the file name between-groups.tsx."
+	},
+	"docs.title.book-a-pickup": {
+		"defaultMessage": "Book a pickup",
+		"description": "The title of an example on a page of the docs. It comes from the file name book-a-pickup.tsx."
 	},
 	"docs.title.brand-detection": {
 		"defaultMessage": "Brand detection",
@@ -9030,6 +9110,10 @@
 	"docs.title.persist": {
 		"defaultMessage": "Persist",
 		"description": "The title of an example on a page of the docs. It comes from the file name persist.tsx."
+	},
+	"docs.title.pick-a-carrier": {
+		"defaultMessage": "Pick a carrier",
+		"description": "The title of an example on a page of the docs. It comes from the file name pick-a-carrier.tsx."
 	},
 	"docs.title.pinned-columns": {
 		"defaultMessage": "Pinned columns",

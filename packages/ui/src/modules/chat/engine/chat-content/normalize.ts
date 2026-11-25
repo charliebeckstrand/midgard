@@ -53,6 +53,9 @@ function isEmptyPart(part: ChatPart): boolean {
 		// empty reply: it is a reply that shows the query it was running.
 		case 'tool':
 			return false
+		// An ask holds its prompt the moment it arrives.
+		case 'action':
+			return false
 	}
 }
 

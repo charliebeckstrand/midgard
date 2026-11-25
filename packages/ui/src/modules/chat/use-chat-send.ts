@@ -23,8 +23,13 @@ import {
 } from './engine/chat-branch/tree'
 import type { ChatBranch } from './engine/chat-branch/types'
 import { toChatParts } from './engine/chat-content/normalize'
-import { chatContentText } from './engine/chat-content/text'
-import type { ChatCitation, ChatPart } from './engine/chat-content/types'
+import { chatPartsText } from './engine/chat-content/text'
+import type {
+	ChatActionPart,
+	ChatActionResult,
+	ChatCitation,
+	ChatPart,
+} from './engine/chat-content/types'
 import { draftCitations, draftContent, userContent } from './engine/chat-draft/content'
 import {
 	appendUserMessage,
@@ -36,11 +41,13 @@ import {
 	failReply,
 	failReplyTools,
 	findLastUserMessage,
+	findOpenAction,
 	findUserMessage,
 	openReply,
+	resolveAction,
 	seedMessages,
 } from './engine/chat-transcript'
-import type { ChatMessageData } from './engine/types'
+import type { ChatMessageData, ChatReplyChunk } from './engine/types'
 
 /**
  * Fails loud in dev (once per mount) when two seed messages share an id.
@@ -93,6 +100,13 @@ function useDuplicateSeedIdWarning(seed: ChatMessageData[] | undefined): void {
  * already holds replaces that block whole. That is how a tool call that turns
  * from running to done reports itself.
  *
+ * Each yielded `ChatRevision` merges its parts into the earlier message
+ * that it names, by the same rule, and the message takes `revised`. That is
+ * how the agent keeps no stale text in
+ * a message after the reader acts, such as a sentence that asks for details
+ * that the reader just gave. A stream that yields only revisions opens no
+ * bubble of its own, because an empty reply goes when the stream ends.
+ *
  * Throwing (or rejecting) marks the reply `failed` and triggers
  * {@link ChatSendOptions.onError}. The reply keeps what it already landed. A
  * reply that had not opened yet is added empty, so the transcript says that the
@@ -111,24 +125,35 @@ function useDuplicateSeedIdWarning(seed: ChatMessageData[] | undefined): void {
  * cannot hold one. The client builds the message, so the server must still
  * authorize each `selector` that it gets.
  *
- * @param content - The trimmed user message being sent, as plain text.
+ * @param content - The trimmed user message being sent, as plain text. An
+ * action submit sends no message, so its content is empty.
  * @param signal - Aborts when the send is stopped.
- * @param message - The user message being sent, as parts. See {@link ChatTransportMessage}.
+ * @param message - The user message being sent, as parts, or the action that
+ * the reader submitted. See {@link ChatTransportMessage}.
  * @returns An async iterable of reply chunks.
  */
 export type ChatTransport = (
 	content: string,
 	signal: AbortSignal,
 	message: ChatTransportMessage,
-) => AsyncIterable<string | ChatPart[]> | Promise<AsyncIterable<string | ChatPart[]>>
+) => AsyncIterable<ChatReplyChunk> | Promise<AsyncIterable<ChatReplyChunk>>
 
-/** The user message that a {@link ChatTransport} streams a reply to. */
+/** What a {@link ChatTransport} streams a reply to: a user message, or an action submit. */
 export type ChatTransportMessage = {
 	/**
 	 * The parts of the message. A send of text alone gives one text part. A
-	 * send with citations gives one text part with those citations on it.
+	 * send with citations gives one text part with those citations on it. An
+	 * action submit gives none.
 	 */
 	parts: ChatPart[]
+	/**
+	 * The action that the reader submitted, with its `result`, and the id of
+	 * the message that holds it. Present only for {@link ChatSend.submitAction}.
+	 * The reply can revise that message through a {@link ChatRevision}. Under
+	 * AG-UI, the `id` of the part is the id of the tool call, and `result` is
+	 * the tool result of the next run.
+	 */
+	action?: { messageId: string; part: ChatActionPart }
 }
 
 /** Options for {@link useChatSend}. */
@@ -159,7 +184,8 @@ export type ChatSendOptions = {
 	 * This reports the completed send, not the submit gesture. The gesture is
 	 * `useChatDraft`'s `onSubmit`, which fires when the composer submits; this
 	 * fires after the transport's last chunk lands. A stop or a transport
-	 * failure skips it.
+	 * failure skips it. A {@link ChatSend.submitAction} sends no message of the
+	 * reader, so its reply skips it too.
 	 */
 	onSent?: (content: string) => void
 	/** Fires when the transport throws or the stream fails, after the reply is marked `failed`. */
@@ -220,6 +246,16 @@ export type ChatSend = {
 	 */
 	edit: (id: string, content: string, citations?: readonly ChatCitation[]) => Promise<void>
 	/**
+	 * Answers the open action that `partId` names in the message `messageId`
+	 * names, and streams the reply of the agent. The action takes `result` at
+	 * once, so it draws its success alert while the reply streams. The
+	 * transport gets the action, with its result, and no user message. No-ops
+	 * when the part is not an open action, or while a send is in flight. It keeps
+	 * one identity for the mount. Give it to the `onActionSubmit` of
+	 * {@link ChatTranscript}.
+	 */
+	submitAction: (messageId: string, partId: string, result: ChatActionResult) => Promise<void>
+	/**
 	 * Shows the branch that `id` names: a sibling of a message on the shown
 	 * path. Each turn below the branch shows as the reader left it. No-ops for
 	 * an id that names no such branch, or while a send is in flight. It keeps
@@ -250,7 +286,7 @@ type ReplySteps = {
 	/** Opens the empty reply bubble, after the transport gives its stream. */
 	open: () => void
 	/** Folds one chunk into the reply. */
-	fold: (chunk: string | ChatPart[]) => void
+	fold: (chunk: ChatReplyChunk) => void
 	/** Reports a stream that ended without a stop. */
 	sent: () => void
 	/** Reports a failure that is not a stop. */
@@ -303,7 +339,6 @@ function untilStopped<T>(
  */
 async function streamReply(
 	transport: ChatTransport,
-	text: string,
 	message: ChatTransportMessage,
 	signal: AbortSignal,
 	steps: ReplySteps,
@@ -311,6 +346,8 @@ async function streamReply(
 	const stopped = whenStopped(signal)
 
 	try {
+		const text = chatPartsText(message.parts)
+
 		const stream = await untilStopped(Promise.resolve(transport(text, signal, message)), stopped)
 
 		if (stream === STOPPED) return
@@ -401,11 +438,11 @@ export function useChatSend({
 	// The in-flight send's controller, so `stop` can reach it; null between sends.
 	const controllerRef = useRef<AbortController | null>(null)
 
-	// Streams a reply for `content` onto whatever history send/retry/edit
-	// already committed via setTree: the one path all three share.
+	// Streams a reply to `message` onto whatever history send, retry, edit, or
+	// submitAction already committed via setTree: the one path all four share.
 	const runTransport = useCallback(
-		async (content: string | ChatPart[]) => {
-			const text = chatContentText(content)
+		async (message: ChatTransportMessage) => {
+			const text = chatPartsText(message.parts)
 
 			setStreaming(true)
 
@@ -416,10 +453,11 @@ export function useChatSend({
 			// Minted before the stream, so a failure can name this send's own bubble.
 			const replyId = randomId()
 
-			await streamReply(transport, text, { parts: toChatParts(content) }, controller.signal, {
+			await streamReply(transport, message, controller.signal, {
 				open: () => setPath((prev) => openReply(prev, replyId)),
 				fold: (chunk) => setPath((prev) => applyReplyChunk(prev, replyId, chunk)),
-				sent: () => onSent?.(text),
+				// An action submit sends no message of the reader, so it reports none.
+				sent: message.action ? noop : () => onSent?.(text),
 				fail: (error) => {
 					setPath((prev) => failReply(prev, replyId))
 
@@ -471,7 +509,7 @@ export function useChatSend({
 
 			setPath((prev) => appendUserMessage(prev, userId, message))
 
-			await runTransport(message)
+			await runTransport({ parts: toChatParts(message) })
 		},
 		[runTransport, setPath],
 	)
@@ -488,7 +526,7 @@ export function useChatSend({
 		setTree(branchLastReply)
 
 		// The content and not its text, so the citations of the question go again.
-		await runTransport(lastUser.content)
+		await runTransport({ parts: toChatParts(lastUser.content) })
 	})
 
 	const edit = useStableEvent(
@@ -508,7 +546,21 @@ export function useChatSend({
 
 			setTree((prev) => branchEditedMessage(prev, id, branchId, message))
 
-			await runTransport(message)
+			await runTransport({ parts: toChatParts(message) })
+		},
+	)
+
+	const submitAction = useStableEvent(
+		async (messageId: string, partId: string, result: ChatActionResult) => {
+			if (controllerRef.current) return
+
+			const action = findOpenAction(messages, messageId, partId)
+
+			if (!action) return
+
+			setPath((prev) => resolveAction(prev, messageId, partId, result))
+
+			await runTransport({ parts: [], action: { messageId, part: { ...action, result } } })
 		},
 	)
 
@@ -533,5 +585,16 @@ export function useChatSend({
 		[],
 	)
 
-	return { messages, branches, streaming, send, retry, edit, showBranch, stop, setMessages }
+	return {
+		messages,
+		branches,
+		streaming,
+		send,
+		retry,
+		edit,
+		submitAction,
+		showBranch,
+		stop,
+		setMessages,
+	}
 }
