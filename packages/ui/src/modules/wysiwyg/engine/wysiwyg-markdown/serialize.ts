@@ -673,8 +673,9 @@ function markPiece(mark: Mark, written: string, line: Line): string {
 
 /**
  * Plain text with each character that would read as Markdown escaped. At the
- * start of a line, a block marker, such as `#`, `>`, `-`, `---`, or `1.`, is
- * escaped too.
+ * start of a line, a block marker, such as `#`, `>`, `-`, or `1.`, is escaped
+ * too. So is a run of `-` or `=`, because after a line break it can underline
+ * the line before it as a heading, or make a rule.
  *
  * Whitespace at the start of a line goes. A message does not show it, and no
  * escape keeps it: before a marker, it lets the marker count, and four spaces
@@ -697,7 +698,7 @@ function escapeText(text: string, lineStart: boolean): string {
 	if (lineStart) {
 		out = out
 			.replace(/^[ \t]+/, '')
-			.replace(/^>|^(#{1,6}|[+-]|-{3,}|=+)(?=\s|$)/, '\\$&')
+			.replace(/^>|^(#{1,6}|\+|-+|=+)(?=\s|$)/, '\\$&')
 			.replace(/^(\d+)([.)])(?=\s|$)/, '$1\\$2')
 	}
 
