@@ -95,6 +95,23 @@ describe('ChatTranscript', () => {
 		expect(present(edited[0], 'edited message')).toHaveTextContent('Hi there')
 	})
 
+	it('labels only the message that an edit sent', () => {
+		const { container } = renderUI(
+			<ChatTranscript
+				messages={[
+					{ id: '1', sender: 'user', content: 'Hi there', edited: true },
+					{ id: '2', sender: 'assistant', content: 'Hello!' },
+				]}
+			/>,
+		)
+
+		const labels = allBySlot(container, 'chat-message-edited')
+
+		expect(labels).toHaveLength(1)
+
+		expect(labels[0]?.closest('[data-slot=chat-message]')).toHaveTextContent('Hi there')
+	})
+
 	describe('the row callbacks', () => {
 		it('opens the context menu that the callback returns for a message', () => {
 			const onAction = vi.fn()

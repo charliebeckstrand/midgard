@@ -7,8 +7,8 @@
  * and `row` is the gap above each row. The real transcript and the skeleton
  * read both. `bubble` has the
  * width cap, the padding, and the radius of the real bubble, and `tail` holds the corner of
- * each side. The real bubble reads `bubble` and `tail` too, so the two cannot
- * drift apart. Each line has the 6-unit line height of the `md` text of the
+ * each side. `bubble` is `width` and `box` together. The real message reads
+ * `width`, `box`, and `tail`, so the two cannot drift apart. Each line has the 6-unit line height of the `md` text of the
  * bubble: a 4-unit bar with a 1-unit margin above and below. `lines` holds the
  * line widths of each side. The widths are defaults, and the lines do not go
  * wider than the bubble. `embed` is the shape in place of an embed that waits
@@ -26,6 +26,10 @@
  */
 const room = 'px-1 pb-1'
 
+const width = 'w-fit max-w-[min(100%,max(85%,--spacing(48)))]'
+
+const box = ['px-4 py-3', 'rounded-2xl'] as const
+
 export const chat = {
 	root: ['min-h-0 flex-1 overflow-hidden', room],
 	room,
@@ -34,16 +38,18 @@ export const chat = {
 	 * the toolbar of the menu button, which rises 24px above the bubble.
 	 */
 	row: 'pt-6',
-	bubble: [
-		// The cap is 85% of the message, with a floor of 12rem, and never more than
-		// the full message. A shrink-to-fit parent (an inline-flex box, an auto grid
-		// column, a popover) takes its width from the bubble's text, and 85% of that
-		// is narrower than the text. Without the floor, a short bubble then breaks
-		// inside a word.
-		'w-fit max-w-[min(100%,max(85%,--spacing(48)))]',
-		'px-4 py-3',
-		'rounded-2xl',
-	],
+	/**
+	 * The width of the bubble. The cap is 85% of the message, with a floor of
+	 * 12rem, and never more than the full message. A shrink-to-fit parent (an
+	 * inline-flex box, an auto grid column, a popover) takes its width from the
+	 * bubble's text, and 85% of that is narrower than the text. Without the
+	 * floor, a short bubble then breaks inside a word. The real message sets
+	 * it on the frame around its bubble and the row below the bubble.
+	 */
+	width,
+	/** The padding and the radius of the bubble. */
+	box,
+	bubble: [width, ...box],
 	tail: {
 		user: 'rounded-ee-md',
 		assistant: 'rounded-es-md',

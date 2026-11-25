@@ -92,6 +92,46 @@ describe('ChatMessage', () => {
 		expect(bySlot(container, 'chat-message-failure')).toBeNull()
 	})
 
+	it('shows an "(edited)" label below an edited bubble, and none by default', () => {
+		const { container, rerender } = renderUI(<ChatMessage sender="user">Late stops</ChatMessage>)
+
+		expect(bySlot(container, 'chat-message-edited')).toBeNull()
+
+		expect(bySlot(container, 'chat-message-footer')).toBeNull()
+
+		rerender(
+			<ChatMessage sender="user" edited>
+				Late stops
+			</ChatMessage>,
+		)
+
+		const label = bySlot(container, 'chat-message-edited')
+
+		expect(label).toHaveTextContent('(edited)')
+
+		// The label is out of the bubble, in the row below it, so a screen reader
+		// reads it after the message.
+		expect(bySlot(container, 'chat-message-bubble')).not.toContainElement(label)
+
+		expect(bySlot(container, 'chat-message-footer')?.firstElementChild).toBe(label)
+	})
+
+	it('puts the "(edited)" label before the branch switcher, in one row', () => {
+		const { container } = renderUI(
+			<ChatMessage sender="user" edited branch={{ index: 1, ids: ['u1', 'u2'] }}>
+				Late stops
+			</ChatMessage>,
+		)
+
+		const footer = bySlot(container, 'chat-message-footer')
+
+		expect(footer?.children).toHaveLength(2)
+
+		expect(footer?.firstElementChild).toBe(bySlot(container, 'chat-message-edited'))
+
+		expect(footer?.lastElementChild).toBe(bySlot(container, 'chat-message-branch'))
+	})
+
 	it('renders the timestamp slot when provided', () => {
 		const { container } = renderUI(<ChatMessage timestamp="11:12 AM">content</ChatMessage>)
 

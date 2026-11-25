@@ -249,10 +249,10 @@ export function findUserMessage(
 
 /**
  * The transcript with `content` as a new user message beside the message `id`
- * names, under the id `branchId` that the caller mints. The new message shows,
- * and the reply that `edit` streams follows it. The old message, its reply,
- * and every turn after it hide as a branch. An id that names no message
- * changes nothing.
+ * names, under the id `branchId` that the caller mints. The new message is
+ * `edited`. It shows, and the reply that `edit` streams follows it. The old
+ * message, its reply, and every turn after it hide as a branch. An id that
+ * names no message changes nothing.
  *
  * @internal
  */
@@ -264,5 +264,7 @@ export function branchEditedMessage(
 ): ChatTree {
 	const index = tree.path.findIndex((message) => message.id === id)
 
-	return index === -1 ? tree : addBranch(tree, index, { id: branchId, sender: 'user', content })
+	return index === -1
+		? tree
+		: addBranch(tree, index, { id: branchId, sender: 'user', content, edited: true })
 }

@@ -6879,6 +6879,10 @@
 		"defaultMessage": "Duration",
 		"description": "The label of a field of a playground in the docs. The field sets the prop duration of HoldButton, Odometer."
 	},
+	"docs.prop.edited": {
+		"defaultMessage": "Edited",
+		"description": "The label of a field of a playground in the docs. The field sets the prop edited of ChatMessage."
+	},
 	"docs.prop.editing": {
 		"defaultMessage": "Editing",
 		"description": "The label of a field of a playground in the docs. The field sets the prop editing of ChatMessage, Dashboard."
