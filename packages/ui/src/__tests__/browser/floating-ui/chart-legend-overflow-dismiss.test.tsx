@@ -2,6 +2,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { BarChart } from '../../../modules/chart/bar-chart'
 import { allBySlot, frames, present, renderUI, waitFor } from '../../helpers'
+import { CHART_RECEDE } from '../../helpers/recede'
 
 /**
  * A switch in the `+N` overflow popover emphasizes its series while the pointer
@@ -42,7 +43,7 @@ describe('chart legend overflow dismiss (real browser)', () => {
 
 	const dimmedBars = (container: HTMLElement) =>
 		allBySlot(container, 'chart-bar').filter((bar) =>
-			(bar.getAttribute('class') ?? '').includes('opacity-25'),
+			(bar.getAttribute('class') ?? '').includes(CHART_RECEDE),
 		).length
 
 	it('clears the emphasis of a pointed overflow switch when Escape closes the popover', async () => {

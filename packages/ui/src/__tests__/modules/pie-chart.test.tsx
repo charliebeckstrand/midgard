@@ -3,6 +3,7 @@ import { ChartFullscreenContext } from '../../modules/chart/engine/context'
 import { PieChart } from '../../modules/chart/pie-chart'
 import { LocaleProvider } from '../../providers/locale'
 import { act, allBySlot, bySlot, fireEvent, getSlot, renderUI } from '../helpers'
+import { CHART_RECEDE } from '../helpers/recede'
 
 const DATA = [
 	{ source: 'Search', visits: 60 },
@@ -97,7 +98,7 @@ describe('PieChart', () => {
 		expect(slices).toHaveLength(2)
 
 		for (const slice of slices) {
-			expect(slice.parentElement?.getAttribute('class') ?? '').not.toContain('opacity-25')
+			expect(slice.parentElement?.getAttribute('class') ?? '').not.toContain(CHART_RECEDE)
 		}
 	})
 
@@ -105,7 +106,7 @@ describe('PieChart', () => {
 		const { container } = renderUI(chart({ selectedCategories: ['Direct'] }))
 
 		const dimmed = allBySlot(container, 'chart-slice').map((slice) =>
-			slice.closest('g')?.getAttribute('class')?.includes('opacity-25'),
+			slice.closest('g')?.getAttribute('class')?.includes(CHART_RECEDE),
 		)
 
 		expect(dimmed).toEqual([true, false, true])
@@ -118,7 +119,7 @@ describe('PieChart', () => {
 			)
 
 			const classes = allBySlot(container, 'chart-slice').map((slice) =>
-				slice.closest('g')?.getAttribute('class')?.includes('opacity-25'),
+				slice.closest('g')?.getAttribute('class')?.includes(CHART_RECEDE),
 			)
 
 			unmount()
@@ -152,7 +153,7 @@ describe('PieChart', () => {
 
 		const receded = () =>
 			allBySlot(container, 'chart-slice').map(
-				(slice) => slice.parentElement?.getAttribute('class')?.includes('opacity-25') ?? false,
+				(slice) => slice.parentElement?.getAttribute('class')?.includes(CHART_RECEDE) ?? false,
 			)
 
 		// The pointer enters Referral, the third row, and the other slices recede.
@@ -185,7 +186,7 @@ describe('PieChart', () => {
 
 		const receded = () =>
 			allBySlot(container, 'chart-slice').map(
-				(slice) => slice.parentElement?.getAttribute('class')?.includes('opacity-25') ?? false,
+				(slice) => slice.parentElement?.getAttribute('class')?.includes(CHART_RECEDE) ?? false,
 			)
 
 		// The first arrow enters on the first slice, so the other slices recede.

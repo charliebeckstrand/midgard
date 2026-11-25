@@ -5,6 +5,7 @@ import { litOverlay } from '../../modules/chart/engine/chart-marks/bar'
 import { selectedIndices } from '../../modules/chart/engine/chart-series'
 import { chartMarkEmphasis } from '../../modules/chart/engine/context'
 import { sliceGroupClass } from '../../modules/chart/sector-chart/sector-chart-marks'
+import { CHART_RECEDE } from '../helpers/recede'
 
 describe('selectedIndices', () => {
 	it('resolves the selected categories to data indices, as text', () => {
@@ -100,21 +101,21 @@ describe('sliceGroupClass', () => {
 	it('dims the slices outside the selection', () => {
 		const selected = new Set([1])
 
-		expect(sliceGroupClass(null, 0, selected)).toContain('opacity-25')
+		expect(sliceGroupClass(null, 0, selected)).toContain(CHART_RECEDE)
 
-		expect(sliceGroupClass(null, 1, selected)).not.toContain('opacity-25')
+		expect(sliceGroupClass(null, 1, selected)).not.toContain(CHART_RECEDE)
 	})
 
 	it('holds the selection over a hover or legend emphasis', () => {
-		expect(sliceGroupClass(0, 1, new Set([1]))).not.toContain('opacity-25')
+		expect(sliceGroupClass(0, 1, new Set([1]))).not.toContain(CHART_RECEDE)
 
-		expect(sliceGroupClass(0, 0, new Set([1]))).toContain('opacity-25')
+		expect(sliceGroupClass(0, 0, new Set([1]))).toContain(CHART_RECEDE)
 	})
 
 	it('lets the emphasized slice light alone when nothing is selected', () => {
-		expect(sliceGroupClass(0, 1, null)).toContain('opacity-25')
+		expect(sliceGroupClass(0, 1, null)).toContain(CHART_RECEDE)
 
-		expect(sliceGroupClass(0, 0, null)).not.toContain('opacity-25')
+		expect(sliceGroupClass(0, 0, null)).not.toContain(CHART_RECEDE)
 	})
 })
 

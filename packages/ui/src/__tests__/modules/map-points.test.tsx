@@ -7,6 +7,7 @@ import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 import { renderNavigable } from '../helpers/map-navigable'
 import { overlayPlat } from '../helpers/map-plat'
 import { CLICK, KEY } from '../helpers/press'
+import { MAP_RECEDE } from '../helpers/recede'
 
 /** The fixture spans lon 0–30, lat 0–10, so these project inside the frame. */
 const DEPOT: [number, number] = [5, 5]
@@ -267,7 +268,7 @@ describe('MapPoints', () => {
 
 		const group = bySlot(container, 'map-points')
 
-		expect(group?.getAttribute('class') ?? '').not.toContain('opacity-25')
+		expect(group?.getAttribute('class') ?? '').not.toContain(MAP_RECEDE)
 
 		expect(allBySlot(container, 'map-points-dot')).toHaveLength(3)
 	})

@@ -17,6 +17,7 @@ import {
 } from '../helpers'
 import { it } from '../helpers/fake-clock'
 import { CLICK, KEY } from '../helpers/press'
+import { CHART_RECEDE } from '../helpers/recede'
 
 type Row = { day: string; hour: string; commits: number }
 
@@ -38,7 +39,7 @@ const cellRects = (container: HTMLElement) =>
 
 /** How many cells the probe dims. */
 const dimmedCount = (container: HTMLElement) =>
-	cellRects(container).filter((rect) => rect.getAttribute('class')?.includes('opacity-25')).length
+	cellRects(container).filter((rect) => rect.getAttribute('class')?.includes(CHART_RECEDE)).length
 
 /**
  * A screen rect for the plot. jsdom reports a zero box, so the pointer math
@@ -888,7 +889,7 @@ describe('the range legend under quantile binning', () => {
 		fireEvent.pointerMove(track, { clientY: 97 })
 
 		const dimmed = cellRects(container).map(
-			(cell) => cell.getAttribute('class')?.includes('opacity-25') ?? false,
+			(cell) => cell.getAttribute('class')?.includes(CHART_RECEDE) ?? false,
 		)
 
 		expect(dimmed).toEqual([true, true, false, false])

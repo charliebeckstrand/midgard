@@ -16,6 +16,7 @@ import {
 	setupUser,
 	waitFor,
 } from '../helpers'
+import { CHART_RECEDE, RECEDE_SELECTOR } from '../helpers/recede'
 
 const DATA = [
 	{ month: 'Jan', revenue: 40 },
@@ -155,20 +156,20 @@ describe('reference lines', () => {
 
 		pointAt(container, x, y - 17)
 
-		expect(marks()).not.toContain('opacity-25')
+		expect(marks()).not.toContain(CHART_RECEDE)
 
 		pointAt(container, x, y - 16)
 
-		expect(marks()).toContain('opacity-25')
+		expect(marks()).toContain(CHART_RECEDE)
 
 		// The held rule keeps the pointer 2 px past the edge of the catch.
 		pointAt(container, x, y - 17.5)
 
-		expect(marks()).toContain('opacity-25')
+		expect(marks()).toContain(CHART_RECEDE)
 
 		pointAt(container, x, y - 18.5)
 
-		expect(marks()).not.toContain('opacity-25')
+		expect(marks()).not.toContain(CHART_RECEDE)
 	})
 
 	it('lights each line and rule in reach together, and recedes the rest', async () => {
@@ -195,7 +196,7 @@ describe('reference lines', () => {
 		)
 
 		const receded = (element: Element | undefined) =>
-			(element?.getAttribute('class') ?? '').includes('opacity-25')
+			(element?.getAttribute('class') ?? '').includes(CHART_RECEDE)
 
 		const series = () => allBySlot(container, 'chart-line-series').map(receded)
 
@@ -470,16 +471,16 @@ describe('reference lines', () => {
 
 		const marks = () => bySlot(container, 'chart-marks')?.getAttribute('class') ?? ''
 
-		expect(marks()).not.toContain('opacity-25')
+		expect(marks()).not.toContain(CHART_RECEDE)
 
 		pointRule(container, 0)
 
 		// The marks dim to the rule while it is pointed.
-		expect(marks()).toContain('opacity-25')
+		expect(marks()).toContain(CHART_RECEDE)
 
 		leavePlot(container)
 
-		expect(marks()).not.toContain('opacity-25')
+		expect(marks()).not.toContain(CHART_RECEDE)
 	})
 
 	it('recedes nothing under a touch, as the marks do', () => {
@@ -493,11 +494,11 @@ describe('reference lines', () => {
 		// A tap or a hold: the touch move is not a point.
 		pointRule(container, 0, { pointerType: 'touch' })
 
-		expect(container.querySelector('svg [class*="opacity-25"]')).toBeNull()
+		expect(container.querySelector(`svg ${RECEDE_SELECTOR}`)).toBeNull()
 
 		leavePlot(container, { pointerType: 'touch' })
 
-		expect(container.querySelector('svg [class*="opacity-25"]')).toBeNull()
+		expect(container.querySelector(`svg ${RECEDE_SELECTOR}`)).toBeNull()
 	})
 
 	it('recedes the sibling rules while one is hovered', () => {
@@ -514,20 +515,20 @@ describe('reference lines', () => {
 
 		const [floor, ceiling] = rules()
 
-		expect(readClass(floor)).not.toContain('opacity-25')
+		expect(readClass(floor)).not.toContain(CHART_RECEDE)
 
-		expect(readClass(ceiling)).not.toContain('opacity-25')
+		expect(readClass(ceiling)).not.toContain(CHART_RECEDE)
 
 		pointRule(container, 0)
 
 		// The pointed rule stays lit; its sibling recedes to it.
-		expect(readClass(rules()[0])).not.toContain('opacity-25')
+		expect(readClass(rules()[0])).not.toContain(CHART_RECEDE)
 
-		expect(readClass(rules()[1])).toContain('opacity-25')
+		expect(readClass(rules()[1])).toContain(CHART_RECEDE)
 
 		leavePlot(container)
 
-		expect(readClass(rules()[1])).not.toContain('opacity-25')
+		expect(readClass(rules()[1])).not.toContain(CHART_RECEDE)
 	})
 
 	it('threads through the line chart too', () => {
@@ -721,7 +722,7 @@ describe('reference line pointer', () => {
 		// What the pointer lights: no line, one line alone, or both together. The
 		// profit line, far off, recedes whenever a line is lit.
 		const state = () => {
-			const lit = groups.map((group) => !(group.getAttribute('class') ?? '').includes('opacity-25'))
+			const lit = groups.map((group) => !(group.getAttribute('class') ?? '').includes(CHART_RECEDE))
 
 			if (lit.every(Boolean)) return 'off'
 
@@ -776,7 +777,7 @@ describe('reference line pointer', () => {
 		expect(
 			allBySlot(container, 'chart-tooltip-row').map((row) => [
 				row.textContent?.replace(/[\d.]+/g, ''),
-				(row.getAttribute('class') ?? '').includes('opacity-25'),
+				(row.getAttribute('class') ?? '').includes(CHART_RECEDE),
 			]),
 		).toEqual([
 			['Profit', true],
@@ -807,7 +808,7 @@ describe('reference line keyboard navigation', () => {
 		// tooltip floats yet.
 		fireEvent.keyDown(plot, { key: 'ArrowRight' })
 
-		expect(marksClass(container)).not.toContain('opacity-25')
+		expect(marksClass(container)).not.toContain(CHART_RECEDE)
 
 		expect(referenceTooltip()).toBeNull()
 
@@ -816,7 +817,7 @@ describe('reference line keyboard navigation', () => {
 		// exactly like hovering.
 		fireEvent.keyDown(plot, { key: 'ArrowDown' })
 
-		expect(marksClass(container)).toContain('opacity-25')
+		expect(marksClass(container)).toContain(CHART_RECEDE)
 
 		expect(bySlot(container, 'chart-reference-line')?.getAttribute('data-focused')).toBe('')
 
@@ -847,7 +848,7 @@ describe('reference line keyboard navigation', () => {
 		// The value rule keeps its hover, which reads the whole label.
 		pointRule(container, 0)
 
-		expect(marksClass(container)).toContain('opacity-25')
+		expect(marksClass(container)).toContain(CHART_RECEDE)
 	})
 
 	it('keeps the stop and the tooltip of a labeled rule whose value reads on hover', async () => {
@@ -866,7 +867,7 @@ describe('reference line keyboard navigation', () => {
 		// The rule keeps its hover.
 		pointRule(container, 0)
 
-		expect(marksClass(container)).toContain('opacity-25')
+		expect(marksClass(container)).toContain(CHART_RECEDE)
 
 		leavePlot(container)
 
@@ -896,13 +897,13 @@ describe('reference line keyboard navigation', () => {
 
 		await waitFor(() => expect(referenceTooltip()).not.toBeNull())
 
-		expect(marksClass(container)).toContain('opacity-25')
+		expect(marksClass(container)).toContain(CHART_RECEDE)
 
 		// One more step leaves the rule for the next series point: the marks light back
 		// up and the rule surrenders its focus, closing the tooltip with it.
 		fireEvent.keyDown(plot, { key: 'ArrowDown' })
 
-		expect(marksClass(container)).not.toContain('opacity-25')
+		expect(marksClass(container)).not.toContain(CHART_RECEDE)
 
 		expect(bySlot(container, 'chart-reference-line')?.getAttribute('data-focused')).toBeNull()
 	})
@@ -918,11 +919,11 @@ describe('reference line keyboard navigation', () => {
 
 		await waitFor(() => expect(referenceTooltip()).not.toBeNull())
 
-		expect(marksClass(container)).toContain('opacity-25')
+		expect(marksClass(container)).toContain(CHART_RECEDE)
 
 		fireEvent.keyDown(plot, { key: 'Escape' })
 
-		expect(marksClass(container)).not.toContain('opacity-25')
+		expect(marksClass(container)).not.toContain(CHART_RECEDE)
 
 		expect(bySlot(container, 'chart-reference-line')?.getAttribute('data-focused')).toBeNull()
 	})
@@ -938,13 +939,13 @@ describe('reference line keyboard navigation', () => {
 
 		fireEvent.keyDown(plot, { key: 'ArrowDown' })
 
-		expect(marksClass(container)).toContain('opacity-25')
+		expect(marksClass(container)).toContain(CHART_RECEDE)
 
 		// The rule goes, so the cursor falls back to its bar. The marks light up
 		// again, and the readout returns to the bar.
 		rerender(chart())
 
-		expect(marksClass(container)).not.toContain('opacity-25')
+		expect(marksClass(container)).not.toContain(CHART_RECEDE)
 
 		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Jan')
 
@@ -965,7 +966,7 @@ describe('reference line keyboard navigation', () => {
 
 		fireEvent.keyDown(plot, { key: 'ArrowDown' })
 
-		expect(marksClass(container)).not.toContain('opacity-25')
+		expect(marksClass(container)).not.toContain(CHART_RECEDE)
 
 		expect(referenceTooltip()).toBeNull()
 
@@ -973,7 +974,7 @@ describe('reference line keyboard navigation', () => {
 		// floats.
 		fireEvent.keyDown(plot, { key: 'ArrowRight' })
 
-		expect(marksClass(container)).toContain('opacity-25')
+		expect(marksClass(container)).toContain(CHART_RECEDE)
 
 		await waitFor(() => expect(referenceTooltip()).not.toBeNull())
 	})
@@ -1149,16 +1150,16 @@ describe('reference lines in the legend', () => {
 
 		const marks = () => bySlot(container, 'chart-marks')?.getAttribute('class') ?? ''
 
-		expect(marks()).not.toContain('opacity-25')
+		expect(marks()).not.toContain(CHART_RECEDE)
 
 		fireEvent.pointerEnter(chip as Element)
 
 		// Pointing the chip recedes the marks to the rule, the same as pointing the rule.
-		expect(marks()).toContain('opacity-25')
+		expect(marks()).toContain(CHART_RECEDE)
 
 		fireEvent.pointerLeave(chip as Element)
 
-		expect(marks()).not.toContain('opacity-25')
+		expect(marks()).not.toContain(CHART_RECEDE)
 	})
 
 	it('toggles its rule off when the chip is clicked, and back on again', async () => {
@@ -1241,14 +1242,14 @@ describe('reference lines in the legend', () => {
 
 		fireEvent.pointerEnter(stretch as Element)
 
-		expect(getSlot(container, 'chart-marks').getAttribute('class')).not.toContain('opacity-25')
+		expect(getSlot(container, 'chart-marks').getAttribute('class')).not.toContain(CHART_RECEDE)
 
 		fireEvent.pointerLeave(stretch as Element)
 
 		// The chip of a drawn rule still recedes the marks to it.
 		fireEvent.pointerEnter(target as Element)
 
-		expect(getSlot(container, 'chart-marks').getAttribute('class')).toContain('opacity-25')
+		expect(getSlot(container, 'chart-marks').getAttribute('class')).toContain(CHART_RECEDE)
 	})
 
 	it('keeps a toggled-off labeled rule off when its value changes', async () => {
@@ -1325,7 +1326,7 @@ describe('reference lines in the legend', () => {
 		// longer draws.
 		fireEvent.pointerEnter(chip)
 
-		expect(marks()).not.toContain('opacity-25')
+		expect(marks()).not.toContain(CHART_RECEDE)
 	})
 
 	it('recedes the sibling rules from a chip, keyed to the rule not the chip position', () => {
@@ -1355,13 +1356,13 @@ describe('reference lines in the legend', () => {
 		fireEvent.pointerEnter(chips[1] as Element)
 
 		// The Ceiling chip lights its own rule and recedes the Floor, not the reverse.
-		expect(readClass(rules()[0])).toContain('opacity-25')
+		expect(readClass(rules()[0])).toContain(CHART_RECEDE)
 
-		expect(readClass(rules()[1])).not.toContain('opacity-25')
+		expect(readClass(rules()[1])).not.toContain(CHART_RECEDE)
 
 		fireEvent.pointerLeave(chips[1] as Element)
 
-		expect(readClass(rules()[0])).not.toContain('opacity-25')
+		expect(readClass(rules()[0])).not.toContain(CHART_RECEDE)
 	})
 
 	it('paints a slot chip through its class and a raw color inline', () => {
@@ -1623,7 +1624,7 @@ describe('reference value labels', () => {
 
 		fireEvent.keyDown(plot, { key: 'ArrowDown' })
 
-		expect(marks()).not.toContain('opacity-25')
+		expect(marks()).not.toContain(CHART_RECEDE)
 
 		expect(bySlot(container, 'chart-reference-line')?.getAttribute('data-focused')).toBeNull()
 	})
@@ -1801,15 +1802,15 @@ describe('reference lines that the legend names', () => {
 		// A touch on a note is a tap, not a point.
 		fireEvent.pointerEnter(note, { pointerType: 'touch' })
 
-		expect(marks()).not.toContain('opacity-25')
+		expect(marks()).not.toContain(CHART_RECEDE)
 
 		fireEvent.pointerEnter(note, { pointerType: 'mouse' })
 
-		expect(marks()).toContain('opacity-25')
+		expect(marks()).toContain(CHART_RECEDE)
 
 		fireEvent.pointerLeave(note)
 
-		expect(marks()).not.toContain('opacity-25')
+		expect(marks()).not.toContain(CHART_RECEDE)
 	})
 
 	it('toggles its rule off when the note is clicked, and back on again', async () => {
@@ -1909,7 +1910,7 @@ describe('reference lines that the legend names', () => {
 
 		fireEvent.pointerEnter(note(), { pointerType: 'mouse' })
 
-		expect(marks()).toContain('opacity-25')
+		expect(marks()).toContain(CHART_RECEDE)
 
 		fireEvent.pointerLeave(note())
 

@@ -3,6 +3,7 @@ import type { MapOverlaySelection } from '../../modules/map'
 import { MapMarker, MapPoint, MapPoints, MapRoute } from '../../modules/map'
 import { allBySlot, bySlot, fireEvent, renderUI, tableRows } from '../helpers'
 import { overlayPlat } from '../helpers/map-plat'
+import { MAP_RECEDE } from '../helpers/recede'
 
 /** The fixture spans lon 0–30, lat 0–10; these all project inside the frame. */
 const DEPOT: [number, number] = [5, 5]
@@ -103,7 +104,7 @@ describe('MapPlat selected overlay', () => {
 
 		const dimmed = bySlot(container, 'map-point')?.parentElement
 
-		expect(dimmed?.getAttribute('class')).toContain('opacity-25')
+		expect(dimmed?.getAttribute('class')).toContain(MAP_RECEDE)
 
 		expect(dimmed?.contains(halo)).toBe(false)
 

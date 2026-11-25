@@ -4,6 +4,7 @@ import { allBySlot, bySlot, fireEvent, getSlot, liveRegion, renderUI, waitFor } 
 import { renderNavigable } from '../helpers/map-navigable'
 import { overlayPlat } from '../helpers/map-plat'
 import { CLICK, KEY } from '../helpers/press'
+import { MAP_RECEDE } from '../helpers/recede'
 
 /**
  * Two point sets on the fixture frame, 30 degrees over 400px. Each depot stands
@@ -161,10 +162,10 @@ describe('two point sets on one place', () => {
 
 		expect(shared).not.toBeNull()
 
-		expect(shared?.getAttribute('class') ?? '').not.toContain('opacity-25')
+		expect(shared?.getAttribute('class') ?? '').not.toContain(MAP_RECEDE)
 
 		// The group of the depots, which hold no dot of their own here, dims.
-		expect(allBySlot(container, 'map-points')[1]?.getAttribute('class')).toContain('opacity-25')
+		expect(allBySlot(container, 'map-points')[1]?.getAttribute('class')).toContain(MAP_RECEDE)
 	})
 
 	it.each([
