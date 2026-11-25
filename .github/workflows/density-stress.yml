@@ -148,9 +148,13 @@ jobs:
             sudo coredumpctl info "$pid" --no-pager | head -80
             exe=$(sudo coredumpctl info "$pid" --no-pager | awk '/Executable:/ { print $2 }')
             sudo coredumpctl dump "$pid" -o "/tmp/core.$pid" > /dev/null
+            # A MOZ_CRASH writes its line number through a null pointer, and
+            # keeps its message in gMozCrashReason.
             sudo gdb -batch -nx -ex 'set sysroot /tmp/rootfs' "/tmp/rootfs$exe" "/tmp/core.$pid" \
-              -ex 'p $_siginfo.si_code' -ex 'p $_siginfo._sifields._sigfault.si_addr' \
-              -ex 'info symbol $pc' -ex 'x/8i $pc' -ex 'bt 40' -ex 'info registers' 2>&1 | grep -v -e '^warning' -e '^\[New LWP' | head -200
+              -ex 'p $_siginfo._sifields._sigfault.si_addr' -ex 'x/4i $pc' \
+              -ex 'info registers rax rcx rip' \
+              -ex 'p (char *) *(void **) &gMozCrashReason' \
+              -ex 'info sharedlibrary libxul' -ex 'bt 40' 2>&1 | grep -v -e '^warning' -e '^\[New LWP' -e '^ *$' | head -120
             echo "::endgroup::"
           done
 
