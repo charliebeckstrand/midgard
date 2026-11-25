@@ -26,6 +26,7 @@ export type WysiwygEarlyItem =
 			type: 'key'
 			key: string
 			code: string
+			keyCode: number
 			shiftKey: boolean
 			altKey: boolean
 			ctrlKey: boolean
@@ -511,6 +512,7 @@ function readHeldInput(event: InputEvent): WysiwygEarlyItem | null {
 				type: 'key',
 				key: 'Enter',
 				code: 'Enter',
+				keyCode: 13,
 				shiftKey: type === 'insertLineBreak',
 				altKey: false,
 				ctrlKey: false,
@@ -551,10 +553,16 @@ function isEditorShortcut(event: KeyboardEvent): boolean {
 
 	if (!event.altKey && (key === 'z' || redo)) return true
 
+	// The key of a physical key, as the keymap of the editor reads it when the
+	// key with Shift or Alt is another character, such as `*` for Shift+8.
+	const physical = /^(?:Key|Digit)(.)$/.exec(event.code)?.[1]?.toLowerCase()
+
 	return WYSIWYG_ACTIONS.some((action) => {
 		const { shift = false, alt = false, key: bound } = wysiwygActions[action].shortcut
 
-		return shift === event.shiftKey && alt === event.altKey && bound.toLowerCase() === key
+		const match = bound.toLowerCase()
+
+		return shift === event.shiftKey && alt === event.altKey && (match === key || match === physical)
 	})
 }
 
@@ -564,6 +572,7 @@ function keyItem(event: KeyboardEvent): WysiwygEarlyItem {
 		type: 'key',
 		key: event.key,
 		code: event.code,
+		keyCode: event.keyCode,
 		shiftKey: event.shiftKey,
 		altKey: event.altKey,
 		ctrlKey: event.ctrlKey,

@@ -340,6 +340,66 @@ describe('Wysiwyg input before the editor loads (real browser)', () => {
 		expect(value()).toBe('Draft B')
 	})
 
+	it('runs a list shortcut with Shift and a digit', async () => {
+		renderUI(<Notes />)
+
+		focusAtEnd()
+
+		// On a US layout, the key of Shift+8 is `*`.
+		await userEvent.keyboard('Item{ControlOrMeta>}{Shift>}{Digit8}{/Shift}{/ControlOrMeta}')
+
+		await load()
+
+		await waitFor(() => expect(value()).toBe('- Item'))
+	})
+
+	it('pastes plain text in a code block', async () => {
+		renderUI(<Notes initial={'```\ncode\n```'} />)
+
+		const field = screen.getByRole('textbox')
+
+		field.focus()
+
+		const text = present(field.querySelector('code'), 'the code').firstChild
+
+		window.getSelection()?.collapse(text, 4)
+
+		const data = new DataTransfer()
+
+		data.setData('text/plain', ' **plain**')
+
+		data.setData('text/html', '<b>rich</b>')
+
+		field.dispatchEvent(
+			new ClipboardEvent('paste', { clipboardData: data, bubbles: true, cancelable: true }),
+		)
+
+		await load()
+
+		await waitFor(() => expect(value()).toBe('```\ncode **plain**\n```'))
+	})
+
+	it('takes no point from a block with a line break that the reader did not type', async () => {
+		renderUI(<Notes initial="**bold**" />)
+
+		const field = focusAtEnd()
+
+		const strong = present(field.querySelector('strong'), 'the bold text')
+
+		// Some browsers put a line break in a mark at the end of a block.
+		strong.append(document.createElement('br'), document.createElement('br'))
+
+		window.getSelection()?.collapse(strong, strong.childNodes.length)
+
+		await load()
+
+		expect(value()).toBe('**bold**')
+
+		await userEvent.keyboard('!')
+
+		await waitFor(() => expect(value()).toMatch(/!/))
+	})
+
 	it('runs a toolbar press and the keys after it in order', async () => {
 		renderUI(<Notes toolbar />)
 
