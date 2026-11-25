@@ -128,6 +128,9 @@ describe('ChatAction', () => {
 
 		expect(screen.getByText('Delivery details sent')).toBeInTheDocument()
 
+		// The success color with no icon.
+		expect(document.querySelector('[data-slot=chat-action] [data-slot=icon]')).toBeNull()
+
 		await user.click(screen.getByRole('button', { name: 'Review details' }))
 
 		const dialog = await screen.findByRole('dialog', { name: 'Delivery details' })

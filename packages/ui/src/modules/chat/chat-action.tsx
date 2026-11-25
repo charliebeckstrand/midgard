@@ -331,6 +331,9 @@ export function ChatAction({ part, className }: ChatActionProps) {
 					<Alert
 						data-slot="chat-action"
 						severity="success"
+						// The color says the ask is done, and the alert takes no icon, so it
+						// sits quietly in the prose of the message.
+						icon={false}
 						title={part.success}
 						actions={
 							// A review changes nothing, so it opens in a locked scope too.
