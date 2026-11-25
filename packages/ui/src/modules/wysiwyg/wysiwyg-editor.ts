@@ -20,6 +20,7 @@ import {
 	wysiwygCommands,
 } from './engine/wysiwyg-commands'
 import { cancelLink } from './engine/wysiwyg-dom'
+import { adoptEarlyInput, replayEarlyInput } from './engine/wysiwyg-early'
 import { HELD, wysiwygHeld } from './engine/wysiwyg-held'
 import { wysiwygInputRules } from './engine/wysiwyg-input-rules'
 import { parseMarkdown } from './engine/wysiwyg-markdown/parse'
@@ -28,6 +29,7 @@ import { holdsRange, wysiwygRanges } from './engine/wysiwyg-ranges'
 import { isEmptyDoc, schema } from './engine/wysiwyg-schema'
 import type { WysiwygAction, WysiwygBlock, WysiwygBlockRange, WysiwygToggleAction } from './types'
 import { WYSIWYG_ACTIONS, type WysiwygShortcut, wysiwygActions } from './wysiwyg-actions'
+import type { WysiwygEarlyField, WysiwygEarlyItem } from './wysiwyg-early-input'
 
 /**
  * The settings of an editor that the field can change while it lives.
@@ -112,6 +114,13 @@ export type WysiwygEditor = {
 	block: () => WysiwygBlock | null
 	/** Replaces a span of that block, and marks `range` in the new text. */
 	replace: (from: number, to: number, text: string, range?: WysiwygBlockRange) => void
+	/**
+	 * Takes the text and the selection of the markup before the load, which
+	 * the reader edited. The doc must be the doc that the markup drew.
+	 */
+	adopt: (field: WysiwygEarlyField) => void
+	/** Runs an input that the field held before the load. */
+	replay: (item: WysiwygEarlyItem) => void
 	destroy: () => void
 }
 
@@ -346,6 +355,8 @@ export function createWysiwygEditor(
 
 			if (tr) view.dispatch(tr)
 		},
+		adopt: (field) => adoptEarlyInput(view, field),
+		replay: (item) => replayEarlyInput(view, item),
 		destroy: () => view.destroy(),
 	}
 }

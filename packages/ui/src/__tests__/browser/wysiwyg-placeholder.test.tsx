@@ -58,9 +58,7 @@ describe('Wysiwyg placeholder (real browser)', () => {
 
 		await userEvent.click(screen.getByRole('textbox'))
 
-		await waitFor(() =>
-			expect(screen.getByRole('textbox')).toHaveAttribute('contenteditable', 'true'),
-		)
+		await waitFor(() => expect(screen.getByRole('textbox')).toHaveClass('ProseMirror'))
 
 		const field = screen.getByRole('textbox')
 

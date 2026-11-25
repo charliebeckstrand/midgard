@@ -42,7 +42,10 @@ describe('Wysiwyg', () => {
 
 		const field = screen.getByRole('textbox', { name: 'Notes' })
 
-		expect(field).not.toHaveAttribute('contenteditable')
+		// The markup takes input before the load: the browser makes the edits of its text.
+		expect(field).not.toHaveClass('ProseMirror')
+
+		expect(field).toHaveAttribute('contenteditable', 'true')
 
 		expect(field).toHaveAttribute('tabindex', '0')
 
@@ -58,9 +61,7 @@ describe('Wysiwyg', () => {
 		// The focus of the markup loads the editor at once.
 		act(() => field.focus())
 
-		await waitFor(() =>
-			expect(screen.getByRole('textbox')).toHaveAttribute('contenteditable', 'true'),
-		)
+		await waitFor(() => expect(screen.getByRole('textbox')).toHaveClass('ProseMirror'))
 
 		const editor = screen.getByRole('textbox')
 

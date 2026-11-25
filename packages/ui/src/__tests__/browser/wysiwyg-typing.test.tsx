@@ -30,9 +30,7 @@ function Notes({ initial = '', onEnter }: { initial?: string; onEnter?: () => vo
 async function editable(): Promise<HTMLElement> {
 	await userEvent.click(screen.getByRole('textbox'))
 
-	await waitFor(() =>
-		expect(screen.getByRole('textbox')).toHaveAttribute('contenteditable', 'true'),
-	)
+	await waitFor(() => expect(screen.getByRole('textbox')).toHaveClass('ProseMirror'))
 
 	const field = screen.getByRole('textbox')
 
@@ -543,7 +541,7 @@ describe('Wysiwyg (real browser)', () => {
 		const field = screen.getByRole('textbox')
 
 		// The markup of the first paint, before the editor loads.
-		expect(field).not.toHaveAttribute('contenteditable')
+		expect(field).not.toHaveClass('ProseMirror')
 
 		const layout = (element: HTMLElement) =>
 			[...element.children].map((block) => {

@@ -59,12 +59,10 @@ describe('Wysiwyg load start', () => {
 
 		expect(load).toHaveBeenCalled()
 
-		await waitFor(() =>
-			expect(screen.getByRole('textbox')).toHaveAttribute('contenteditable', 'true'),
-		)
+		await waitFor(() => expect(screen.getByRole('textbox')).toHaveClass('ProseMirror'))
 	})
 
-	it('reports a load once for a press and its focus', () => {
+	it('reports a load once for a hover and its focus', () => {
 		__resetWysiwygEngine()
 
 		// A load in flight. The field reports a failure through a handler on it.
@@ -81,7 +79,7 @@ describe('Wysiwyg load start', () => {
 
 			load.mockClear()
 
-			fireEvent.pointerDown(field)
+			fireEvent.pointerEnter(field)
 
 			field.focus()
 

@@ -25,9 +25,7 @@ describe('Wysiwyg toolbar gap press (real browser)', () => {
 
 		await pressGap(container)
 
-		await waitFor(() =>
-			expect(screen.getByRole('textbox')).toHaveAttribute('contenteditable', 'true'),
-		)
+		await waitFor(() => expect(screen.getByRole('textbox')).toHaveClass('ProseMirror'))
 
 		await waitFor(() => expect(screen.getByRole('textbox')).toHaveFocus())
 	})
@@ -43,9 +41,7 @@ describe('Wysiwyg toolbar gap press (real browser)', () => {
 
 		// The editor replaces the markup of the field when it loads, so the query
 		// runs again until it finds the element of the editor.
-		await waitFor(() =>
-			expect(screen.getByRole('textbox')).toHaveAttribute('contenteditable', 'true'),
-		)
+		await waitFor(() => expect(screen.getByRole('textbox')).toHaveClass('ProseMirror'))
 
 		await userEvent.keyboard('{Control>}{End}{/Control}')
 

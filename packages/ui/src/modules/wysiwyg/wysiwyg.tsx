@@ -28,6 +28,7 @@ import { useWysiwygEditor } from './use-wysiwyg-editor'
 import { useWysiwygField } from './use-wysiwyg-field'
 import { useWysiwygLabelFocus } from './use-wysiwyg-label-focus'
 import { useWysiwygSelection } from './use-wysiwyg-selection'
+import type { WysiwygEarlyItem } from './wysiwyg-early-input'
 import { WysiwygStatic } from './wysiwyg-static'
 
 /** Props for {@link Wysiwyg}. */
@@ -321,7 +322,7 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 
 	const forgetRanges = useStableEvent(() => known.current.clear())
 
-	const { editor, subscribe, loadedAtMount, load } = useWysiwygEditor({
+	const { editor, subscribe, loadedAtMount, load, whenReady, early } = useWysiwygEditor({
 		host,
 		value,
 		ranges,
@@ -335,6 +336,11 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 		onChange: handleChange,
 		onSet: forgetRanges,
 	})
+
+	// An input before the load, which the editor runs when it loads.
+	const holdInput = useStableEvent((item: WysiwygEarlyItem) =>
+		whenReady((ready) => ready.replay(item)),
+	)
 
 	// The editable element, or the markup before the editor loads.
 	const element = () =>
@@ -432,6 +438,8 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 				data-disabled={dataAttr(disabled)}
 				className={cn(slots.root)}
 				onBlur={handleBlur}
+				onPointerEnter={load}
+				onFocus={load}
 			>
 				{apart && children}
 				<ControlFrame
@@ -456,7 +464,9 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 								value={value}
 								ranges={ranges}
 								focusable={!disabled}
-								onWant={load}
+								editable={!locked}
+								early={early}
+								hold={holdInput}
 							/>
 						)}
 					</div>
