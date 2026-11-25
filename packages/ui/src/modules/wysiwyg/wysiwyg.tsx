@@ -321,7 +321,7 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 
 	const forgetRanges = useStableEvent(() => known.current.clear())
 
-	const { editor, subscribe, loadedAtMount, load } = useWysiwygEditor({
+	const { editor, subscribe, loadedAtMount, load, whenReady } = useWysiwygEditor({
 		host,
 		value,
 		ranges,
@@ -373,18 +373,19 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 	const context = useMemo<WysiwygContextValue>(
 		() => ({
 			fieldId,
-			ready: editor !== null,
 			locked,
 			toolbarClassName,
 			// A locked field is inert: the toolbar does not follow the selection, and
 			// it shows no action as on.
 			subscribe: locked ? noopSubscribe : subscribe,
 			isActive: (action) => !locked && (editor?.isActive(action) ?? false),
-			run: (action: WysiwygToggleAction) => {
-				editor?.run(action)
-			},
+			// A press before the editor loads starts the load, and the action runs
+			// when the editor comes.
+			run: (action: WysiwygToggleAction) => whenReady((ready) => ready.run(action)),
 			linkOpen,
-			setLinkOpen,
+			// The popover opens on the editor, so its form holds the selection.
+			setLinkOpen: (open: boolean) =>
+				open ? whenReady(() => setLinkOpen(true)) : setLinkOpen(false),
 			registerLink: () => {
 				linkButtons.current++
 
@@ -398,7 +399,7 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 			fieldFocused: () => editor?.view.hasFocus() ?? false,
 			focusField,
 		}),
-		[fieldId, editor, locked, toolbarClassName, subscribe, linkOpen, focusField],
+		[fieldId, editor, locked, toolbarClassName, subscribe, whenReady, linkOpen, focusField],
 	)
 
 	// The field is touched when the focus leaves the field and its rows, and not

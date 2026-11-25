@@ -11,8 +11,6 @@ import type { WysiwygAction, WysiwygToggleAction } from './types'
 export type WysiwygContextValue = {
 	/** The id of the editable field, which the toolbar controls. */
 	fieldId: string
-	/** Whether the editor has loaded. Before it loads, no action runs. */
-	ready: boolean
 	/** Whether the field takes no edit, because it is disabled or read-only. */
 	locked: boolean
 	/**
@@ -24,10 +22,17 @@ export type WysiwygContextValue = {
 	subscribe: (listener: () => void) => () => void
 	/** Whether an action is on at the selection. */
 	isActive: (action: WysiwygAction) => boolean
-	/** Runs a toggle action on the selection. */
+	/**
+	 * Runs a toggle action on the selection. Before the editor loads, it starts
+	 * the load, and the action runs when the editor comes.
+	 */
 	run: (action: WysiwygToggleAction) => void
 	/** Whether the link popover is open. */
 	linkOpen: boolean
+	/**
+	 * Opens or closes the link popover. Before the editor loads, an open starts
+	 * the load, and the popover opens when the editor comes.
+	 */
 	setLinkOpen: (open: boolean) => void
 	/**
 	 * Counts a link button of a toolbar while it is mounted. The link shortcut

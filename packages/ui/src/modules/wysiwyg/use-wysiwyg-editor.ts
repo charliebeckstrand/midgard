@@ -101,16 +101,20 @@ function sameSource(a: Source, b: Source): boolean {
 
 /**
  * The editor of a Wysiwyg field. It loads the engine in idle time, or at once
- * on a call of `load`, and then makes the editor in `host`. It gives each
+ * on a call of `load` or `whenReady`, and then makes the editor in `host`. It gives each
  * render the new settings, and it replaces the doc when `value` or `ranges`
  * differ from the source of the doc, such as on a clear after a send, or on an
  * edit that a controlled parent refuses.
  *
  * @returns The editor, or `null` until it loads, the subscription to each new
  *   state of the editor, whether the engine was loaded at the first render,
- *   and `load`, which starts the load of the engine at once. Call it in the
- *   event that wants the editor, such as the first focus or press, so the load
- *   does not wait for a render and its effects.
+ *   `load`, which starts the load of the engine at once, and `whenReady`,
+ *   which runs a task on the editor. Call `load` in the event that wants the
+ *   editor, such as the first focus or press, so the load does not wait for a
+ *   render and its effects. `whenReady` runs its task at once on an editor.
+ *   Before the editor, it starts the load, and the task waits. The tasks then
+ *   run in the order of their calls, after the editor takes the focus, and
+ *   before the paint.
  * @remarks The editor is the source of the doc while it lives. It holds the
  * last Markdown that it emitted, so the value that comes back after an edit
  * does not replace the doc again.
@@ -137,6 +141,21 @@ export function useWysiwygEditor({
 	const [editor, setEditor] = useState<WysiwygEditor | null>(null)
 
 	const [updates] = useState(createEmitter)
+
+	// The editor from its creation to its destruction. The state above comes a
+	// render later.
+	const live = useRef<WysiwygEditor | null>(null)
+
+	// The tasks that wait for the editor, in the order of their calls.
+	const waiting = useRef<((editor: WysiwygEditor) => void)[]>([])
+
+	const whenReady = useStableEvent((task: (editor: WysiwygEditor) => void) => {
+		if (live.current) return task(live.current)
+
+		waiting.current.push(task)
+
+		loadEngineNow()
+	})
 
 	// The Markdown source of the doc and its ranges: the value at the creation,
 	// then the last value that the editor emitted or that the field set.
@@ -181,9 +200,16 @@ export function useWysiwygEditor({
 
 		const next = create(loaded, element)
 
+		live.current = next
+
 		setEditor(next)
 
+		// The tasks that waited run on the new editor, after it takes the focus.
+		for (const task of waiting.current.splice(0)) task(next)
+
 		return () => {
+			live.current = null
+
 			next.destroy()
 
 			setEditor(null)
@@ -209,5 +235,5 @@ export function useWysiwygEditor({
 		onSet()
 	})
 
-	return { editor, subscribe: updates.subscribe, loadedAtMount, load: loadEngineNow }
+	return { editor, subscribe: updates.subscribe, loadedAtMount, load: loadEngineNow, whenReady }
 }
