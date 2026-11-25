@@ -1,7 +1,7 @@
 'use client'
 
+import { Pipette } from 'lucide-react'
 import { useHydrated } from '../../hooks/use-hydrated'
-import { Pipette } from '../../primitives/icons/glyphs/glyph-pipette'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { Button } from '../button'
 import { Icon } from '../icon'
@@ -66,7 +66,7 @@ export function ColorEyedropper({ className }: { className?: string }) {
 			onClick={handlePick}
 			className={className}
 		>
-			<Icon icon={<Pipette />} />
+			<Icon icon={Pipette} />
 		</Button>
 	)
 }

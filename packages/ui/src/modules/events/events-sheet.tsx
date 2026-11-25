@@ -1,5 +1,6 @@
 'use client'
 
+import { Pin } from 'lucide-react'
 import { useLayoutEffect, useSyncExternalStore } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
@@ -12,7 +13,6 @@ import {
 	SheetTitle,
 } from '../../components/sheet'
 import { useSidebarLayoutPlacement } from '../../layouts/sidebar/context'
-import { Pin } from '../../primitives/icons/glyphs/glyph-pin'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/events'
 import { Flex } from '../../structure/flex'
@@ -83,7 +83,7 @@ export function EventsSheet({ open, onOpenChange }: EventsSheetProps) {
 								onOpenChange(false)
 							}}
 						>
-							<Icon icon={<Pin />} />
+							<Icon icon={Pin} />
 						</Button>
 					)}
 				</Flex>

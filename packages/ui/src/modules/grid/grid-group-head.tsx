@@ -1,5 +1,6 @@
 'use client'
 
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { type ReactNode, useId } from 'react'
 import { Badge } from '../../components/badge'
 import { Button } from '../../components/button'
@@ -7,8 +8,7 @@ import { Icon } from '../../components/icon'
 import { TableHeader, TableRow } from '../../components/table'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { cn } from '../../core/cn'
-import { ChevronLeft } from '../../primitives/icons/glyphs/glyph-chevron-left'
-import { ChevronRight } from '../../primitives/icons/glyphs/glyph-chevron-right'
+import { Glyph } from '../../primitives/glyph'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k as gridK } from '../../recipes/kata/grid'
 import { k } from '../../recipes/kata/grid-group'
@@ -261,7 +261,10 @@ function GridGroupBand({
 				{/* A column group folds horizontally: a caret to the inline start while
 				    collapsed, and to the inline end once expanded (where its columns show).
 				    The caret mirrors in a right-to-left grid. */}
-				<Icon icon={collapsed ? <ChevronLeft /> : <ChevronRight />} className={k().band.caret} />
+				<Icon
+					icon={collapsed ? <Glyph icon={ChevronLeft} /> : <Glyph icon={ChevronRight} />}
+					className={k().band.caret}
+				/>
 			</Button>
 
 			{collapsed && hiddenCount > 0 && (

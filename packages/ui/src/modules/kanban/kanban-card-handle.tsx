@@ -1,11 +1,11 @@
 'use client'
 
+import { GripVertical } from 'lucide-react'
 import { type HTMLAttributes, type ReactNode, useEffect, useId } from 'react'
 import { Icon } from '../../components/icon'
 import { cn } from '../../core/cn'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { dataAttr } from '../../core/data-attr'
-import { GripVertical } from '../../primitives/icons/glyphs/glyph-grip-vertical'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { SortableGrip } from '../../primitives/sortable-grip/sortable-grip'
@@ -77,7 +77,7 @@ export function KanbanCardHandle({
 
 	useEffect(() => registerHandle?.(), [registerHandle])
 
-	const content = children ?? <Icon icon={<GripVertical />} size="sm" />
+	const content = children ?? <Icon icon={GripVertical} size="sm" />
 
 	// A board that cannot reorder shows no grip. A disabled board keeps a muted one.
 	if (card && !interactive && !disabled) return null

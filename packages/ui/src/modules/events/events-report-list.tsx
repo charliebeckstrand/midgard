@@ -1,13 +1,13 @@
 'use client'
 
+import { Copy, Trash } from 'lucide-react'
 import { Button } from '../../components/button'
 import { CopyButton } from '../../components/copy-button'
 import { Icon } from '../../components/icon'
 import { List, ListItem } from '../../components/list'
 import { Text } from '../../components/text'
 import { cn } from '../../core/cn'
-import { Copy } from '../../primitives/icons/glyphs/glyph-copy'
-import { Trash } from '../../primitives/icons/glyphs/glyph-trash'
+import { Glyph } from '../../primitives/glyph'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/events'
 import { Flex } from '../../structure/flex'
@@ -48,14 +48,14 @@ function ReportLine({
 			onClick={onView}
 			suffix={
 				<Flex align="center" gap="sm">
-					<CopyButton size="sm" icon={<Copy />} text={() => formatMarkdown(entry)} />
+					<CopyButton size="sm" icon={<Glyph icon={Copy} />} text={() => formatMarkdown(entry)} />
 					<Button
 						variant="bare"
 						size="sm"
 						aria-label={intl.formatMessage(eventsMessages.delete)}
 						onClick={onDelete}
 					>
-						<Icon icon={<Trash />} />
+						<Icon icon={Trash} />
 					</Button>
 				</Flex>
 			}

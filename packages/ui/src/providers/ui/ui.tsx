@@ -8,12 +8,12 @@ import { createContext } from '../../core/create-context'
 // LinkContext / PortalContext / PathnameContext / IconsContext live in the
 // primitives layer: the `polymorphic` primitive consumes `useLink`; the
 // `overlay` / `floating-surface` primitives consume `usePortalContainer`; the
-// nav items consume `useCurrentPathMatch`; the glyphs of `primitives/icons`
-// read the icons. This provider fans out to all four.
+// nav items consume `useCurrentPathMatch`; each `Glyph` of `primitives/glyph`
+// reads the icons. This provider fans out to all four.
 import { PathnameContext } from '../../primitives/current/context'
 import { useCurrentPathStore } from '../../primitives/current/use-current-path-store'
-import { IconsContext } from '../../primitives/icons/context'
-import type { Icons } from '../../primitives/icons/types'
+import { IconsContext } from '../../primitives/glyph/context'
+import type { Icons } from '../../primitives/glyph/types'
 import {
 	type LinkComponent,
 	LinkContext,

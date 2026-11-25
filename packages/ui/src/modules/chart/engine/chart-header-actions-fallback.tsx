@@ -1,12 +1,11 @@
 'use client'
 
+import { EllipsisVertical, Table2 } from 'lucide-react'
 import type { ComponentProps, ReactElement, ReactNode } from 'react'
 import { Button } from '../../../components/button'
 import { Icon } from '../../../components/icon'
 import { cn } from '../../../core/cn'
 import { dataAttr } from '../../../core/data-attr'
-import { EllipsisVertical } from '../../../primitives/icons/glyphs/glyph-ellipsis-vertical'
-import { Table2 } from '../../../primitives/icons/glyphs/glyph-table2'
 import { useIntl } from '../../../primitives/intl/use-intl'
 import { noop } from '../../../utilities/noop'
 import type { ChartContextMenuConfig } from './chart-context-menu'
@@ -43,7 +42,7 @@ export function ChartViewDataButton({ title, ...props }: ChartViewDataButtonProp
 					: intl.formatMessage(chartMessages.viewData)
 			}
 		>
-			<Icon icon={<Table2 />} />
+			<Icon icon={Table2} />
 		</Button>
 	)
 }
@@ -98,7 +97,7 @@ export function ChartMenuTriggerButton({ title, ...props }: ChartMenuTriggerButt
 
 	return (
 		<Button {...props} type="button" variant="bare" aria-label={chartMenuName(intl, title)}>
-			<Icon icon={<EllipsisVertical />} />
+			<Icon icon={EllipsisVertical} />
 		</Button>
 	)
 }

@@ -1,10 +1,10 @@
 'use client'
 
+import { EllipsisVertical } from 'lucide-react'
 import { type ComponentProps, useId, useState } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from '../../components/menu'
-import { EllipsisVertical } from '../../primitives/icons/glyphs/glyph-ellipsis-vertical'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import type { MessageSet } from '../../primitives/intl/types'
 import { useIntl } from '../../primitives/intl/use-intl'
@@ -103,7 +103,7 @@ export function KanbanCardMenu({
 	// so a closed menu renders no item.
 	const [moves, setMoves] = useState<KanbanCardMoves | null>(null)
 
-	const content = children ?? <Icon icon={<EllipsisVertical />} size="sm" />
+	const content = children ?? <Icon icon={EllipsisVertical} size="sm" />
 
 	// The drag overlay has no card context. It copies the button with no menu, so
 	// the clone keeps the box of the card. A disabled board keeps the same inert

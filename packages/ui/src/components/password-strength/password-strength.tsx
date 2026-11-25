@@ -1,11 +1,11 @@
 'use client'
 
+import { Check, Dot } from 'lucide-react'
 import type { ComponentProps } from 'react'
 import { cn } from '../../core/cn'
 import { dataAttr } from '../../core/data-attr'
 import { useA11yLiveRegion } from '../../hooks/a11y/use-a11y-live-region'
-import { Check } from '../../primitives/icons/glyphs/glyph-check'
-import { Dot } from '../../primitives/icons/glyphs/glyph-dot'
+import { Glyph } from '../../primitives/glyph'
 import { IntlMessage } from '../../primitives/intl'
 import { defineMessage, defineMessages } from '../../primitives/intl/intl-messages'
 import type { MessageDescriptor } from '../../primitives/intl/types'
@@ -220,7 +220,10 @@ export function PasswordStrength({
 							data-passed={dataAttr(passed)}
 							className={k().rule.base}
 						>
-							<Icon icon={passed ? <Check /> : <Dot />} className={k({ passed }).rule.icon} />
+							<Icon
+								icon={passed ? <Glyph icon={Check} /> : <Glyph icon={Dot} />}
+								className={k({ passed }).rule.icon}
+							/>
 							<span className={k({ passed }).rule.text}>{rule.label}</span>
 							{/* Otherwise only the (decorative) icon and color convey pass/fail. */}
 							<span className="sr-only">

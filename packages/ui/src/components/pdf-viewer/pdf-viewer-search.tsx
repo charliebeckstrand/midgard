@@ -1,11 +1,10 @@
 'use client'
 
+import { ChevronDown, ChevronUp, Search } from 'lucide-react'
 import { type KeyboardEvent, useState } from 'react'
 import { useA11yAutoFocus } from '../../hooks/a11y/use-a11y-auto-focus'
 import { useA11yLiveRegion } from '../../hooks/a11y/use-a11y-live-region'
-import { ChevronDown } from '../../primitives/icons/glyphs/glyph-chevron-down'
-import { ChevronUp } from '../../primitives/icons/glyphs/glyph-chevron-up'
-import { Search } from '../../primitives/icons/glyphs/glyph-search'
+import { Glyph } from '../../primitives/glyph'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/pdf-viewer'
 import { isComposing } from '../../utilities/is-composing'
@@ -78,7 +77,7 @@ export function PdfViewerSearch({ disabled }: PdfViewerSearchProps) {
 			<PopoverTrigger>
 				<ButtonIconTooltip
 					label={intl.formatMessage(pdfViewerMessages.search)}
-					icon={<Search />}
+					icon={<Glyph icon={Search} />}
 					active={query !== ''}
 					data-slot="pdf-viewer-search-trigger"
 					disabled={disabled}
@@ -104,13 +103,13 @@ export function PdfViewerSearch({ disabled }: PdfViewerSearchProps) {
 					</span>
 					<ButtonIconTooltip
 						label={intl.formatMessage(pdfViewerMessages.previousMatch)}
-						icon={<ChevronUp />}
+						icon={<Glyph icon={ChevronUp} />}
 						disabled={noMatch}
 						onClick={previous}
 					/>
 					<ButtonIconTooltip
 						label={intl.formatMessage(pdfViewerMessages.nextMatch)}
-						icon={<ChevronDown />}
+						icon={<Glyph icon={ChevronDown} />}
 						disabled={noMatch}
 						onClick={next}
 					/>

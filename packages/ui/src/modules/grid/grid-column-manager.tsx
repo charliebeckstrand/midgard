@@ -1,5 +1,6 @@
 'use client'
 
+import { ArrowUpDown, EllipsisVertical, Lock, Pin } from 'lucide-react'
 import { type ReactElement, type ReactNode, useCallback, useMemo, useState } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
@@ -7,10 +8,7 @@ import { List, ListItem } from '../../components/list'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from '../../components/menu'
 import { SearchInput } from '../../components/search-input'
 import { useDirectionScope } from '../../primitives/direction/context'
-import { ArrowUpDown } from '../../primitives/icons/glyphs/glyph-arrow-up-down'
-import { EllipsisVertical } from '../../primitives/icons/glyphs/glyph-ellipsis-vertical'
-import { Lock } from '../../primitives/icons/glyphs/glyph-lock'
-import { Pin } from '../../primitives/icons/glyphs/glyph-pin'
+import { Glyph } from '../../primitives/glyph'
 import { intlMessages } from '../../primitives/intl/intl-messages'
 import { reorderMessages } from '../../primitives/intl/intl-reorder'
 import { useIntl } from '../../primitives/intl/use-intl'
@@ -168,7 +166,7 @@ function GridColumnPinControl({
 					className={k().pin}
 					aria-label={intl.formatMessage(gridMessages.pinColumn, { column: columnLabel(item) })}
 				>
-					<Icon icon={side ? <Pin /> : <EllipsisVertical />} />
+					<Icon icon={side ? <Glyph icon={Pin} /> : <Glyph icon={EllipsisVertical} />} />
 				</button>
 			</MenuTrigger>
 			<MenuContent>
@@ -206,7 +204,7 @@ function GridColumnMoveControl({ item, moves }: GridColumnMoveControlProps) {
 				className={k().pin}
 				aria-label={intl.formatMessage(reorderMessages.moveHandle, { item: columnLabel(item) })}
 			>
-				<Icon icon={<ArrowUpDown />} />
+				<Icon icon={ArrowUpDown} />
 			</button>
 		</GridManagerMoveMenu>
 	)
@@ -224,7 +222,7 @@ function GridColumnMoveControl({ item, moves }: GridColumnMoveControlProps) {
  * @internal
  */
 function frozenLeading(item: GridColumnManagerItem, onPinChange: PinColumn | undefined): ReactNode {
-	if (item.locked) return <GridColumnStaticLead icon={<Lock />} />
+	if (item.locked) return <GridColumnStaticLead icon={<Glyph icon={Lock} />} />
 
 	if (onPinChange) {
 		return (
@@ -238,7 +236,7 @@ function frozenLeading(item: GridColumnManagerItem, onPinChange: PinColumn | und
 		)
 	}
 
-	return <GridColumnStaticLead icon={<Pin />} />
+	return <GridColumnStaticLead icon={<Glyph icon={Pin} />} />
 }
 
 /**

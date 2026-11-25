@@ -2,6 +2,7 @@
 
 import { autoPlacement, type Middleware, offset, shift } from '@floating-ui/react'
 import { isVirtualClick } from '@floating-ui/react/utils'
+import { ChevronDown, ChevronRight } from 'lucide-react'
 import {
 	type FocusEvent,
 	type KeyboardEvent,
@@ -25,8 +26,6 @@ import { useReportedChange } from '../../hooks/use-reported-change'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { FloatingSurface } from '../../primitives/floating-surface'
 import { useGlass } from '../../primitives/glass/context'
-import { ChevronDown } from '../../primitives/icons/glyphs/glyph-chevron-down'
-import { ChevronRight } from '../../primitives/icons/glyphs/glyph-chevron-right'
 import { PopoverPanel } from '../../primitives/popover'
 import { k } from '../../recipes/kata/menu'
 import { hasBrowserModifier } from '../../utilities/modifier-keys'
@@ -287,7 +286,7 @@ function MenuSubSheet({
 
 				<MenuLabel>{label}</MenuLabel>
 
-				<Icon icon={<ChevronDown />} className={cn(k.sub.chevron)} />
+				<Icon icon={ChevronDown} className={cn(k.sub.chevron)} />
 			</button>
 
 			{open ? (
@@ -609,7 +608,7 @@ function MenuSubFloating({
 
 				<MenuLabel>{label}</MenuLabel>
 
-				<Icon icon={<ChevronRight />} className="ms-auto rtl:-scale-x-100" />
+				<Icon icon={ChevronRight} className="ms-auto rtl:-scale-x-100" />
 			</button>
 
 			{/* The level this row's own panel opens, wrapping the surface rather than

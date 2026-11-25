@@ -1,11 +1,11 @@
 'use client'
 
+import { Upload } from 'lucide-react'
 import { type ComponentProps, useId, useRef } from 'react'
 import { cn } from '../../core/cn'
 import type { ScaleStep } from '../../core/density/scale'
 import { invalidAttrs } from '../../core/invalid-attrs'
 import { useHeadlessSlots } from '../../primitives/headless/use-headless-slots'
-import { Upload } from '../../primitives/icons/glyphs/glyph-upload'
 import { useIntl } from '../../primitives/intl/use-intl'
 import type { scale as controlScale } from '../../recipes/kata/control'
 import { k } from '../../recipes/kata/file-upload'
@@ -177,7 +177,7 @@ export function FileUploadInput(allProps: FileUploadInputProps) {
 								onClick={handleBrowse}
 								{...inert}
 							>
-								<Icon icon={<Upload />} />
+								<Icon icon={Upload} />
 							</Button>
 						)
 					}

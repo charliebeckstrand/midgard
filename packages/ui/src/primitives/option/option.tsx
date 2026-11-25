@@ -1,5 +1,6 @@
 'use client'
 
+import { Check } from 'lucide-react'
 import { type ComponentProps, memo, use, useCallback, useId } from 'react'
 import { ariaAttr } from '../../core/aria-attr'
 import { cn } from '../../core/cn'
@@ -11,7 +12,7 @@ import { k } from '../../recipes/kata/option'
 import { capitalizeFirst } from '../../utilities/capitalize-first'
 import { isActivationKey } from '../../utilities/keyboard-navigation'
 import type { KeyedStore } from '../../utilities/keyed-store'
-import { Check } from '../icons/glyphs/glyph-check'
+import { Glyph } from '../glyph'
 
 /**
  * Props for {@link Option}: selection state (`selected`, `disabled`), the
@@ -89,9 +90,11 @@ function OptionImpl({
 	// Only mint an id for active-descendant lists; an explicit id always wins.
 	const optionId = id ?? (activeDescendant ? autoId : undefined)
 
-	// A bare `<Check>` sized from the recipe's icon scale: this primitive
+	// A bare `<Glyph icon={Check}>` sized from the recipe's icon scale: this primitive
 	// never imports `<Icon>` from `components/`.
-	const checkIcon = <Check aria-hidden="true" data-slot="icon" className={cn(slots.check)} />
+	const checkIcon = (
+		<Glyph icon={Check} aria-hidden="true" data-slot="icon" className={cn(slots.check)} />
+	)
 
 	return (
 		<div

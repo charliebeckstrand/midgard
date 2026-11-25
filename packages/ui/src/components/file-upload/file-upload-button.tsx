@@ -1,10 +1,10 @@
 'use client'
 
+import { Upload } from 'lucide-react'
 import { type ComponentProps, type ReactNode, useId, useRef } from 'react'
 import { cn } from '../../core/cn'
 import type { ScaleStep } from '../../core/density/scale'
 import { invalidAttrs } from '../../core/invalid-attrs'
-import { Upload } from '../../primitives/icons/glyphs/glyph-upload'
 import { useIntl } from '../../primitives/intl/use-intl'
 import type { scale as buttonScale } from '../../recipes/kata/button'
 import { k } from '../../recipes/kata/file-upload'
@@ -124,7 +124,7 @@ export function FileUploadButton(allProps: FileUploadButtonProps) {
 					onClick={openPicker}
 					{...inert}
 				>
-					<Icon icon={<Upload />} />
+					<Icon icon={Upload} />
 					{children ?? intl.formatMessage(fileUploadMessages.upload)}
 				</Button>
 				{hasFiles && (

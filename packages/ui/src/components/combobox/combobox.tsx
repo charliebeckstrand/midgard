@@ -1,5 +1,6 @@
 'use client'
 
+import { ChevronsUpDown } from 'lucide-react'
 import { useComposedRefs } from 'motion/react'
 import {
 	type ClipboardEventHandler,
@@ -38,7 +39,6 @@ import { useSelectableValueChange } from '../../hooks/use-selectable-value-chang
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useFormValue } from '../../primitives/form/use-form-value'
 import { useGlass } from '../../primitives/glass/context'
-import { ChevronsUpDown } from '../../primitives/icons/glyphs/glyph-chevrons-up-down'
 import { defineMessages, intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { hasSelection, useOptionSelection } from '../../primitives/option/use-option-selection'
@@ -889,7 +889,7 @@ export function Combobox<T>({
 							onMouseDown: onFrameMouseDown,
 						}}
 						prefix={prefix}
-						suffix={suffix || clearSuffix || <Icon icon={<ChevronsUpDown />} />}
+						suffix={suffix || clearSuffix || <Icon icon={ChevronsUpDown} />}
 						suffixProps={{
 							// Mouse-only toggle affordance; the input carries combobox
 							// semantics. Only the default chevron is decorative enough to

@@ -1,11 +1,10 @@
 'use client'
 
+import { Maximize2, ZoomIn, ZoomOut } from 'lucide-react'
 import { ButtonIconTooltip } from '../../components/button/button-icon-tooltip'
 import { announce } from '../../core/announcer'
 import { cn } from '../../core/cn'
-import { Maximize2 } from '../../primitives/icons/glyphs/glyph-maximize2'
-import { ZoomIn } from '../../primitives/icons/glyphs/glyph-zoom-in'
-import { ZoomOut } from '../../primitives/icons/glyphs/glyph-zoom-out'
+import { Glyph } from '../../primitives/glyph'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/map'
 import { MAP_ZOOM_FIT } from './engine/map-constants'
@@ -65,21 +64,21 @@ export function MapZoomControls({
 			<ButtonIconTooltip
 				label={intl.formatMessage(mapMessages.zoomIn)}
 				tooltipPlacement={placement}
-				icon={<ZoomIn />}
+				icon={<Glyph icon={ZoomIn} />}
 				disabled={transform.k >= max}
 				onClick={() => step('in')}
 			/>
 			<ButtonIconTooltip
 				label={intl.formatMessage(mapMessages.zoomOut)}
 				tooltipPlacement={placement}
-				icon={<ZoomOut />}
+				icon={<Glyph icon={ZoomOut} />}
 				disabled={transform.k <= MAP_ZOOM_FIT}
 				onClick={() => step('out')}
 			/>
 			<ButtonIconTooltip
 				label={intl.formatMessage(mapMessages.zoomFit)}
 				tooltipPlacement={placement}
-				icon={<Maximize2 />}
+				icon={<Glyph icon={Maximize2} />}
 				disabled={sameTransform(transform, MAP_FIT_TRANSFORM)}
 				onClick={fit}
 			/>

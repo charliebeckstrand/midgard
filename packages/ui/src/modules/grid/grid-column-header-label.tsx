@@ -1,13 +1,11 @@
 'use client'
 
+import { ArrowDown, ArrowUp, Pin } from 'lucide-react'
 import { type ReactElement, type ReactNode, useRef } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { cn } from '../../core/cn'
-import { ArrowDown } from '../../primitives/icons/glyphs/glyph-arrow-down'
-import { ArrowUp } from '../../primitives/icons/glyphs/glyph-arrow-up'
-import { Pin } from '../../primitives/icons/glyphs/glyph-pin'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/grid'
@@ -27,9 +25,9 @@ function sortDirectionIcon(
 
 	const className = cn(k.sort.icon)
 
-	if (direction === 'asc') return <Icon icon={<ArrowUp />} className={className} />
+	if (direction === 'asc') return <Icon icon={ArrowUp} className={className} />
 
-	if (direction === 'desc') return <Icon icon={<ArrowDown />} className={className} />
+	if (direction === 'desc') return <Icon icon={ArrowDown} className={className} />
 
 	return null
 }
@@ -209,7 +207,7 @@ export function GridPinnedHeaderLabel({
 				aria-label={intl.formatMessage(gridMessages.unpinColumn, { column: columnLabel(column) })}
 				onClick={() => pinColumn(column.id, false)}
 			>
-				<Icon icon={<Pin />} />
+				<Icon icon={Pin} />
 			</button>
 			{label}
 		</span>

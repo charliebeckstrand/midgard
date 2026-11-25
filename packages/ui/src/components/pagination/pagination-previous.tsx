@@ -1,7 +1,7 @@
 'use client'
 
+import { ChevronLeft } from 'lucide-react'
 import type { ReactNode } from 'react'
-import { ChevronLeft } from '../../primitives/icons/glyphs/glyph-chevron-left'
 import { useIntl } from '../../primitives/intl/use-intl'
 import type { ButtonProps } from '../button'
 import { Icon } from '../icon'
@@ -19,7 +19,7 @@ export type PaginationPreviousProps = PaginationNavProps<'children' | 'aria-labe
 	'aria-label'?: string
 }
 
-const DEFAULT_PREVIOUS_ICON = <Icon icon={<ChevronLeft />} className="rtl:-scale-x-100" />
+const DEFAULT_PREVIOUS_ICON = <Icon icon={ChevronLeft} className="rtl:-scale-x-100" />
 
 /** Previous-page control; defaults to a chevron icon and a "Previous page" accessible label in the language of the reader. The default chevron mirrors in a right-to-left document. */
 export function PaginationPrevious({

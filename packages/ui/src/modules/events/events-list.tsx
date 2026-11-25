@@ -1,5 +1,6 @@
 'use client'
 
+import { ChevronRight } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Collapse, CollapsePanel, CollapseTrigger } from '../../components/collapse'
 import { Icon } from '../../components/icon'
@@ -7,7 +8,6 @@ import { JsonTree } from '../../components/json-tree'
 import { List, ListItem } from '../../components/list'
 import { cn } from '../../core/cn'
 import { dataAttr } from '../../core/data-attr'
-import { ChevronRight } from '../../primitives/icons/glyphs/glyph-chevron-right'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/events'
 import { Flex } from '../../structure/flex'
@@ -69,7 +69,7 @@ function EventLine({
 	// scrolls on the inline axis.
 	const slot = (
 		<span data-open={dataAttr(panel !== undefined && open)} className={slots.chevron}>
-			{(panel !== undefined || entry.report) && <Icon icon={<ChevronRight />} size={12} />}
+			{(panel !== undefined || entry.report) && <Icon icon={ChevronRight} size={12} />}
 		</span>
 	)
 

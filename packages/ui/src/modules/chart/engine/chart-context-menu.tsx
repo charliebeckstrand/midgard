@@ -1,5 +1,6 @@
 'use client'
 
+import { Clipboard, Download, Image as ImageIcon, Maximize2, Table2 } from 'lucide-react'
 import {
 	cloneElement,
 	isValidElement,
@@ -17,11 +18,7 @@ import type { ContextMenuConfig, ContextMenuItem } from '../../../components/con
 import { Dialog, DialogClose, DialogFooter, DialogPanel } from '../../../components/dialog'
 import { downloadBlob } from '../../../core/download-blob'
 import { useStableEvent } from '../../../hooks/use-stable-event'
-import { Clipboard } from '../../../primitives/icons/glyphs/glyph-clipboard'
-import { Download } from '../../../primitives/icons/glyphs/glyph-download'
-import { Image as ImageIcon } from '../../../primitives/icons/glyphs/glyph-image'
-import { Maximize2 } from '../../../primitives/icons/glyphs/glyph-maximize2'
-import { Table2 } from '../../../primitives/icons/glyphs/glyph-table2'
+import { Glyph } from '../../../primitives/glyph'
 import { intlMessages } from '../../../primitives/intl/intl-messages'
 import { useIntl } from '../../../primitives/intl/use-intl'
 import { copyText, downloadCsv } from '../../../utilities/export-output'
@@ -373,37 +370,37 @@ export function ChartContextMenu({
 			fullscreen: {
 				key: 'fullscreen',
 				label: intl.formatMessage(chartMessages.fullscreen),
-				icon: <Maximize2 />,
+				icon: <Glyph icon={Maximize2} />,
 				onAction: () => handleFullscreenChange(true),
 			},
 			'view-data': {
 				key: 'view-data',
 				label: intl.formatMessage(chartMessages.viewData),
-				icon: <Table2 />,
+				icon: <Glyph icon={Table2} />,
 				onAction: () => setDataOpen(true),
 			},
 			'copy-data': {
 				key: 'copy-data',
 				label: intl.formatMessage(chartMessages.copyData),
-				icon: <Clipboard />,
+				icon: <Glyph icon={Clipboard} />,
 				onAction: () => copyText(exportCsv(readout)),
 			},
 			'download-png': {
 				key: 'download-png',
 				label: intl.formatMessage(chartMessages.downloadPng),
-				icon: <ImageIcon />,
+				icon: <Glyph icon={ImageIcon} />,
 				onAction: () => void exportImage('image/png', 'png'),
 			},
 			'download-jpg': {
 				key: 'download-jpg',
 				label: intl.formatMessage(chartMessages.downloadJpg),
-				icon: <ImageIcon />,
+				icon: <Glyph icon={ImageIcon} />,
 				onAction: () => void exportImage('image/jpeg', 'jpg'),
 			},
 			'download-csv': {
 				key: 'download-csv',
 				label: intl.formatMessage(chartMessages.downloadCsv),
-				icon: <Download />,
+				icon: <Glyph icon={Download} />,
 				onAction: () => downloadCsv(chartFileName(title, 'csv'), exportCsv(readout)),
 			},
 		}

@@ -1,6 +1,6 @@
+import { X } from 'lucide-react'
 import type { ComponentType, MouseEventHandler } from 'react'
 import { cn } from '../../core/cn'
-import { X } from '../../primitives/icons/glyphs/glyph-x'
 import { IntlMessage } from '../../primitives/intl'
 import { intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
@@ -46,7 +46,7 @@ export function ButtonCloseX({ slot, onClick }: { slot: string; onClick?: MouseE
 			aria-label={intl.formatMessage(intlMessages.close)}
 			onClick={onClick}
 		>
-			<Icon icon={<X />} />
+			<Icon icon={X} />
 		</Button>
 	)
 }

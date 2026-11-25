@@ -1,5 +1,6 @@
 'use client'
 
+import { Calendar as CalendarIcon } from 'lucide-react'
 import { type KeyboardEvent, type ReactNode, useRef } from 'react'
 import { ariaAttr } from '../../core/aria-attr'
 import { cn } from '../../core/cn'
@@ -7,7 +8,6 @@ import { dataAttr } from '../../core/data-attr'
 import type { ScaleStep } from '../../core/density/scale'
 import type { ValidationAttrs } from '../../core/validation-attrs'
 import { useTruncation } from '../../hooks/use-truncation'
-import { Calendar as CalendarIcon } from '../../primitives/icons/glyphs/glyph-calendar'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { SelectTrigger } from '../../primitives/select-trigger'
 import { HeadlessProvider } from '../../providers/headless'
@@ -216,7 +216,7 @@ export function DatePickerTrigger({
 					{!showClear && (
 						// A slot scope, so the icon is one step below the trigger.
 						<span data-density="slot" className={cn(k.icon)}>
-							<Icon icon={<CalendarIcon />} />
+							<Icon icon={CalendarIcon} />
 						</span>
 					)}
 				</Button>

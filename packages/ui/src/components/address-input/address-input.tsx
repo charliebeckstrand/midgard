@@ -1,9 +1,9 @@
 'use client'
 
+import { MapPin } from 'lucide-react'
 import { useState } from 'react'
 import { cn } from '../../core/cn'
 import { useFormField } from '../../primitives/form/context'
-import { MapPin } from '../../primitives/icons/glyphs/glyph-map-pin'
 import { defineMessages, intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { keyByOccurrence } from '../../utilities/key-by-occurrence'
@@ -195,7 +195,7 @@ export function AddressInput({
 
 	const showPin = selected === undefined || disabled || readOnly || !clearable
 
-	const pin = showPin ? <Icon icon={<MapPin />} /> : undefined
+	const pin = showPin ? <Icon icon={MapPin} /> : undefined
 
 	const suffix = loading ? <LoadingSpinner label={intl.formatMessage(intlMessages.loading)} /> : pin
 

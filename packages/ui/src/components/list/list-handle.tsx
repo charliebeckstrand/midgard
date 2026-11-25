@@ -1,11 +1,11 @@
 'use client'
 
+import { GripVertical } from 'lucide-react'
 import type { ComponentProps, PointerEvent } from 'react'
 import { cn } from '../../core/cn'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { dataAttr } from '../../core/data-attr'
 import { useControlLock } from '../../primitives/control/context'
-import { GripVertical } from '../../primitives/icons/glyphs/glyph-grip-vertical'
 import { k } from '../../recipes/kata/list'
 import { holdTextSelection } from '../../utilities/hold-text-selection'
 import { isPrimaryPress } from '../../utilities/primary-press'
@@ -60,7 +60,7 @@ export function ListHandle({ children, className, onPointerDown, ...props }: Lis
 					: onPointerDown
 			}
 		>
-			{children ?? <Icon icon={<GripVertical />} />}
+			{children ?? <Icon icon={GripVertical} />}
 		</span>
 	)
 }

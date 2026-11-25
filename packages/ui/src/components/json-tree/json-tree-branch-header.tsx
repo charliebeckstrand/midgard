@@ -1,6 +1,6 @@
+import { ChevronRight } from 'lucide-react'
 import { type KeyboardEvent, useId } from 'react'
 import { dataAttr } from '../../core/data-attr'
-import { ChevronRight } from '../../primitives/icons/glyphs/glyph-chevron-right'
 import { defineMessage } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/json-tree'
@@ -147,7 +147,7 @@ export function JsonTreeBranchHeader({
 				onKeyDown={handleKeyDown}
 			>
 				<span data-open={dataAttr(open)} className={k().chevron.base} aria-hidden="true">
-					<Icon icon={<ChevronRight />} size="sm" />
+					<Icon icon={ChevronRight} size="sm" />
 				</span>
 				{content}
 			</button>

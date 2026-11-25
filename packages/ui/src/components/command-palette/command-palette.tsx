@@ -1,5 +1,6 @@
 'use client'
 
+import { Search } from 'lucide-react'
 import { type ComponentProps, type ReactNode, useMemo } from 'react'
 import {
 	defaultKeybindingsHandlerIgnore,
@@ -8,7 +9,6 @@ import {
 } from 'tinykeys'
 import { useControllableFlag } from '../../hooks/use-controllable'
 import { useKeybindings } from '../../hooks/use-keybindings'
-import { Search } from '../../primitives/icons/glyphs/glyph-search'
 import { defineMessages, intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { DeferredQueryContext, QueryContext } from '../../primitives/query/context'
@@ -280,7 +280,7 @@ export function CommandPalette({
 							<div className={results.field}>
 								<Input
 									ref={inputRef}
-									prefix={<Icon icon={<Search />} />}
+									prefix={<Icon icon={Search} />}
 									role="combobox"
 									aria-label={placeholder}
 									// The listbox collapses on zero results, so the combobox reports it

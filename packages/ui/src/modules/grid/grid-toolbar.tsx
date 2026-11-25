@@ -1,5 +1,6 @@
 'use client'
 
+import { Download, SlidersHorizontal } from 'lucide-react'
 import { type ReactElement, type ReactNode, useRef, useState } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
@@ -11,8 +12,6 @@ import { ariaAttr } from '../../core/aria-attr'
 import { cn } from '../../core/cn'
 import { dataAttr } from '../../core/data-attr'
 import { useStableEvent } from '../../hooks/use-stable-event'
-import { Download } from '../../primitives/icons/glyphs/glyph-download'
-import { SlidersHorizontal } from '../../primitives/icons/glyphs/glyph-sliders-horizontal'
 import { intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/grid'
@@ -150,7 +149,7 @@ function GridExportMenu({ exportActions, exportButton, exporting }: GridExportMe
 							exporting ? (
 								<LoadingSpinner label={intl.formatMessage(intlMessages.loading)} />
 							) : (
-								<Icon icon={<Download />} />
+								<Icon icon={Download} />
 							)
 						}
 						aria-disabled={ariaAttr(exporting)}
@@ -313,7 +312,7 @@ export function GridToolbar({
 										onPointerEnter={preloadDataDialogs}
 										onFocus={preloadDataDialogs}
 									>
-										<Icon icon={<SlidersHorizontal />} />
+										<Icon icon={SlidersHorizontal} />
 										{toolLabel(columnManagerLabel, columnManagerButton)}
 									</Button>
 								</GridToolTooltip>

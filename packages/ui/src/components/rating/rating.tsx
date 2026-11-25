@@ -1,5 +1,6 @@
 'use client'
 
+import { Star } from 'lucide-react'
 import {
 	type ComponentProps,
 	type MouseEvent,
@@ -16,7 +17,7 @@ import type { ScaleStep } from '../../core/density/scale'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useControlLock } from '../../primitives/control/context'
 import { useFormValue } from '../../primitives/form/use-form-value'
-import { Star } from '../../primitives/icons/glyphs/glyph-star'
+import { Glyph } from '../../primitives/glyph'
 import { defineMessage, defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { TouchTarget } from '../../primitives/touch-target'
@@ -367,7 +368,7 @@ export function Rating({
 
 		return (
 			<>
-				<Star aria-hidden="true" className={cn(k().glyph, k().track)} />
+				<Glyph icon={Star} aria-hidden="true" className={cn(k().glyph, k().track)} />
 
 				{fill > 0 && (
 					<span
@@ -375,7 +376,7 @@ export function Rating({
 						className={k({ clearing }).clip}
 						style={{ width: `${fill * 100}%` }}
 					>
-						<Star aria-hidden="true" fill="currentColor" className={k().glyph} />
+						<Glyph icon={Star} aria-hidden="true" fill="currentColor" className={k().glyph} />
 					</span>
 				)}
 			</>
@@ -443,7 +444,8 @@ export function Rating({
 					// these, and the stack is most of their elements.
 					if (fill === 1) {
 						return (
-							<Star
+							<Glyph
+								icon={Star}
 								key={key}
 								data-slot="rating-star"
 								aria-hidden="true"
@@ -455,7 +457,8 @@ export function Rating({
 
 					if (fill === 0) {
 						return (
-							<Star
+							<Glyph
+								icon={Star}
 								key={key}
 								data-slot="rating-star"
 								aria-hidden="true"

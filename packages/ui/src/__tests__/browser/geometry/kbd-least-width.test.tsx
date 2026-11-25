@@ -1,8 +1,8 @@
+import { ArrowUp } from 'lucide-react'
 import { describe, expect, it } from 'vitest'
 import { Button } from '../../../components/button'
 import { Icon } from '../../../components/icon'
 import { Kbd } from '../../../components/kbd'
-import { ArrowUp } from '../../../primitives/icons/glyphs/glyph-arrow-up'
 import { renderUI } from '../../helpers'
 import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
 
@@ -15,7 +15,7 @@ const keys = (
 	<>
 		<Kbd>K</Kbd>{' '}
 		<Kbd>
-			<Icon icon={<ArrowUp />} />
+			<Icon icon={ArrowUp} />
 		</Kbd>{' '}
 		<Kbd>Esc</Kbd>
 	</>
@@ -64,12 +64,12 @@ describe('the width of a Kbd (real browser)', () => {
 			<p>
 				<Kbd>K</Kbd>{' '}
 				<Kbd>
-					<Icon icon={<ArrowUp />} />
+					<Icon icon={ArrowUp} />
 					<span className="sr-only">Up</span>
 				</Kbd>{' '}
 				<Kbd>
-					<Icon icon={<ArrowUp />} />
-					<Icon icon={<ArrowUp />} />
+					<Icon icon={ArrowUp} />
+					<Icon icon={ArrowUp} />
 				</Kbd>
 			</p>,
 		)

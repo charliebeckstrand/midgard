@@ -1,12 +1,11 @@
 'use client'
 
+import { Check, ChevronRight, Minus } from 'lucide-react'
 import { type KeyboardEvent, type MouseEvent, useId } from 'react'
 import { ariaAttr } from '../../core/aria-attr'
 import { cn } from '../../core/cn'
 import { dataAttr } from '../../core/data-attr'
-import { Check } from '../../primitives/icons/glyphs/glyph-check'
-import { ChevronRight } from '../../primitives/icons/glyphs/glyph-chevron-right'
-import { Minus } from '../../primitives/icons/glyphs/glyph-minus'
+import { Glyph } from '../../primitives/glyph'
 import { k } from '../../recipes/kata/tree'
 import { isActivationKey } from '../../utilities/keyboard-navigation'
 import { Icon } from '../icon'
@@ -141,7 +140,7 @@ export function TreeItemContent({
 		>
 			{/* The column turns, not the icon: the transition of the recipe is on the column. */}
 			<span data-open={dataAttr(open)} className={slots.chevron} aria-hidden="true">
-				{hasChildren && <Icon icon={<ChevronRight />} />}
+				{hasChildren && <Icon icon={ChevronRight} />}
 			</span>
 			{checkable && (
 				<span
@@ -151,9 +150,9 @@ export function TreeItemContent({
 					className={slots.check.base}
 				>
 					{checked === 'mixed' ? (
-						<Minus className={slots.check.mark} strokeWidth={2} />
+						<Glyph icon={Minus} className={slots.check.mark} strokeWidth={2} />
 					) : (
-						checked && <Check className={slots.check.mark} strokeWidth={2} />
+						checked && <Glyph icon={Check} className={slots.check.mark} strokeWidth={2} />
 					)}
 				</span>
 			)}

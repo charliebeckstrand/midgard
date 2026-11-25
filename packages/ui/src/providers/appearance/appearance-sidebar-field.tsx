@@ -1,10 +1,10 @@
 'use client'
 
+import { ChevronsUpDown } from 'lucide-react'
 import { Field, Label } from '../../components/fieldset'
 import { Icon } from '../../components/icon'
 import { Kbd } from '../../components/kbd'
 import { useSidebarLayoutPlacement } from '../../layouts/sidebar/context'
-import { ChevronsUpDown } from '../../primitives/icons/glyphs/glyph-chevrons-up-down'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/offcanvas'
 import { Flex } from '../../structure/flex'
@@ -30,7 +30,7 @@ function SidebarSuffix() {
 	return (
 		<Flex align="center" gap="sm" onMouseDown={(event) => event.preventDefault()}>
 			<Kbd>{sidebarShortcut()}</Kbd>
-			<Icon icon={<ChevronsUpDown />} />
+			<Icon icon={ChevronsUpDown} />
 		</Flex>
 	)
 }

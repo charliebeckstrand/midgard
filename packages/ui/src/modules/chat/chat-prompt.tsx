@@ -1,5 +1,6 @@
 'use client'
 
+import { ArrowUp, Paperclip, Square } from 'lucide-react'
 import { useComposedRefs } from 'motion/react'
 import {
 	type ChangeEvent,
@@ -22,9 +23,6 @@ import { Textarea } from '../../components/textarea'
 import { ariaAttr } from '../../core/aria-attr'
 import { dataAttr } from '../../core/data-attr'
 import { useStableEvent } from '../../hooks/use-stable-event'
-import { ArrowUp } from '../../primitives/icons/glyphs/glyph-arrow-up'
-import { Paperclip } from '../../primitives/icons/glyphs/glyph-paperclip'
-import { Square } from '../../primitives/icons/glyphs/glyph-square'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/chat-prompt'
@@ -582,7 +580,7 @@ const ChatPromptAttach = memo(function ChatPromptAttach({
 				aria-label={intl.formatMessage(messages.attach)}
 				onClick={openPicker}
 			>
-				<Icon icon={<Paperclip />} />
+				<Icon icon={Paperclip} />
 			</Button>
 		</>
 	)
@@ -618,7 +616,7 @@ const ChatPromptSend = memo(function ChatPromptSend({
 			aria-label={intl.formatMessage(messages.stop)}
 			onClick={onStop}
 		>
-			<Icon icon={<Square />} />
+			<Icon icon={Square} />
 		</Button>
 	) : (
 		// One node holds the stop and the send button, so the button that has the
@@ -632,7 +630,7 @@ const ChatPromptSend = memo(function ChatPromptSend({
 			data-disabled={dataAttr(!canSubmit)}
 			onClick={() => canSubmit && onSubmit()}
 		>
-			<Icon icon={<ArrowUp />} />
+			<Icon icon={ArrowUp} />
 		</Button>
 	)
 })

@@ -1,5 +1,6 @@
 'use client'
 
+import { ListFilter, ListFilterPlus } from 'lucide-react'
 import {
 	lazy,
 	Suspense,
@@ -15,8 +16,6 @@ import { Icon } from '../../components/icon'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from '../../components/menu'
 import { cn } from '../../core/cn'
 import { dataAttr } from '../../core/data-attr'
-import { ListFilter } from '../../primitives/icons/glyphs/glyph-list-filter'
-import { ListFilterPlus } from '../../primitives/icons/glyphs/glyph-list-filter-plus'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/grid'
 import { isQueryActive } from '../query/engine/query-active'
@@ -317,7 +316,7 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 						>
 							{/* The active icon adds a "+" so the applied state reads by shape,
 							    not the accent color alone (WCAG 1.4.1). */}
-							<Icon icon={<ListFilterPlus />} />
+							<Icon icon={ListFilterPlus} />
 						</Button>
 					</MenuTrigger>
 
@@ -348,7 +347,7 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 					className={cn(k.filter.button.base, k.filter.button.idle)}
 					onClick={() => handleOpenChange(true)}
 				>
-					<Icon icon={<ListFilter />} />
+					<Icon icon={ListFilter} />
 				</Button>
 			) : null}
 

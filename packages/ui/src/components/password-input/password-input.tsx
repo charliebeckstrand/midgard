@@ -1,9 +1,9 @@
 'use client'
 
+import { Eye, EyeOff } from 'lucide-react'
 import { useState } from 'react'
 import { useReportedChange } from '../../hooks/use-reported-change'
-import { Eye } from '../../primitives/icons/glyphs/glyph-eye'
-import { EyeOff } from '../../primitives/icons/glyphs/glyph-eye-off'
+import { Glyph } from '../../primitives/glyph'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { Button } from '../button'
@@ -70,7 +70,7 @@ function VisibilityToggle({ visible, onToggle, label, disabled }: ToggleProps) {
 					disabled={disabled}
 					onClick={onToggle}
 				>
-					<Icon icon={visible ? <EyeOff /> : <Eye />} />
+					<Icon icon={visible ? <Glyph icon={EyeOff} /> : <Glyph icon={Eye} />} />
 				</Button>
 			</TooltipTrigger>
 			<TooltipContent>{label}</TooltipContent>

@@ -1,11 +1,8 @@
 'use client'
 
+import { Highlighter, PanelLeft, PanelLeftDashed, RotateCw, ScanSearch } from 'lucide-react'
 import { cn } from '../../core/cn'
-import { Highlighter } from '../../primitives/icons/glyphs/glyph-highlighter'
-import { PanelLeft } from '../../primitives/icons/glyphs/glyph-panel-left'
-import { PanelLeftDashed } from '../../primitives/icons/glyphs/glyph-panel-left-dashed'
-import { RotateCw } from '../../primitives/icons/glyphs/glyph-rotate-cw'
-import { ScanSearch } from '../../primitives/icons/glyphs/glyph-scan-search'
+import { Glyph } from '../../primitives/glyph'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/pdf-viewer'
 import { ButtonIconTooltip } from '../button/button-icon-tooltip'
@@ -102,7 +99,7 @@ export function PdfViewerToolbar() {
 					<ToolbarGroup aria-label={intl.formatMessage(pdfViewerMessages.view)}>
 						<ButtonIconTooltip
 							label={intl.formatMessage(pdfViewerMessages.rotate)}
-							icon={<RotateCw />}
+							icon={<Glyph icon={RotateCw} />}
 							disabled={controlsDisabled}
 							onClick={rotate}
 						/>
@@ -111,7 +108,7 @@ export function PdfViewerToolbar() {
 						{hasHighlights && (
 							<ButtonIconTooltip
 								label={highlightsToggleLabel}
-								icon={<Highlighter />}
+								icon={<Glyph icon={Highlighter} />}
 								active={highlightsVisible}
 								aria-pressed={highlightsVisible}
 								disabled={controlsDisabled}
@@ -126,7 +123,7 @@ export function PdfViewerToolbar() {
 						{magnifierMode === 'simple' && (
 							<ButtonIconTooltip
 								label={magnifierToggleLabel}
-								icon={<ScanSearch />}
+								icon={<Glyph icon={ScanSearch} />}
 								active={magnifierOn}
 								aria-pressed={magnifierOn}
 								disabled={controlsDisabled}
@@ -177,11 +174,15 @@ function ThumbnailsToggle() {
 			icon={
 				sidebarOpen ? (
 					[
-						<PanelLeftDashed key="rail" className={cn('rtl:-scale-x-100', glyph.rail)} />,
-						<PanelLeft key="sheet" className={cn('rtl:-scale-x-100', glyph.sheet)} />,
+						<Glyph
+							icon={PanelLeftDashed}
+							key="rail"
+							className={cn('rtl:-scale-x-100', glyph.rail)}
+						/>,
+						<Glyph icon={PanelLeft} key="sheet" className={cn('rtl:-scale-x-100', glyph.sheet)} />,
 					]
 				) : (
-					<PanelLeft className="rtl:-scale-x-100" />
+					<Glyph icon={PanelLeft} className="rtl:-scale-x-100" />
 				)
 			}
 			aria-expanded={railed ? sidebarOpen : undefined}

@@ -1,11 +1,11 @@
 'use client'
 
 import type { DraggableAttributes, DraggableSyntheticListeners } from '@dnd-kit/core'
+import { GripVertical } from 'lucide-react'
 import { type ChangeEventHandler, type CSSProperties, memo, type ReactNode, useId } from 'react'
 import { Checkbox } from '../../components/checkbox'
 import { Icon } from '../../components/icon'
 import { cn } from '../../core/cn'
-import { GripVertical } from '../../primitives/icons/glyphs/glyph-grip-vertical'
 import { reorderMessages } from '../../primitives/intl/intl-reorder'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { SortableGrip } from '../../primitives/sortable-grip/sortable-grip'
@@ -64,7 +64,7 @@ function GridRowDragHandle({ sortable, rowLabel, rowKey }: GridRowDragHandleProp
 				aria-label={label}
 				className={cn(k.row.reorder.handle.disabled)}
 			>
-				<Icon icon={<GripVertical />} />
+				<Icon icon={GripVertical} />
 			</button>
 		)
 	}

@@ -1,7 +1,7 @@
 'use client'
 
+import { CreditCard } from 'lucide-react'
 import { useMemo } from 'react'
-import { CreditCard } from '../../primitives/icons/glyphs/glyph-credit-card'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { digitsOnly } from '../../utilities/digits-only'
 import { Icon } from '../icon'
@@ -113,7 +113,7 @@ export function CreditCardInput({
 			autoComplete="cc-number"
 			aria-label={label}
 			placeholder={placeholder ?? '1234 1234 1234 1234'}
-			prefix={prefix ?? <Icon icon={<CreditCard />} />}
+			prefix={prefix ?? <Icon icon={CreditCard} />}
 			suffix={brandAffix.node}
 			aria-describedby={brandAffix.describedBy}
 			name={name}

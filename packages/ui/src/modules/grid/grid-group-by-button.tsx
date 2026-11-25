@@ -1,12 +1,12 @@
 'use client'
 
+import { Group, Ungroup } from 'lucide-react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { cn } from '../../core/cn'
 import { dataAttr } from '../../core/data-attr'
-import { Group } from '../../primitives/icons/glyphs/glyph-group'
-import { Ungroup } from '../../primitives/icons/glyphs/glyph-ungroup'
+import { Glyph } from '../../primitives/glyph'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/grid'
 import { useGridGroupByButton } from './context'
@@ -63,7 +63,7 @@ export function GridGroupByButton({
 					className={cn(k.group.base, !grouped && k.group.idle)}
 					onClick={() => context.setGrouping(grouped ? null : column.id)}
 				>
-					<Icon icon={grouped ? <Ungroup /> : <Group />} />
+					<Icon icon={grouped ? <Glyph icon={Ungroup} /> : <Glyph icon={Group} />} />
 				</Button>
 			</TooltipTrigger>
 
