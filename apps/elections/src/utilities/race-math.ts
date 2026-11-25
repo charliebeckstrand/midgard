@@ -135,6 +135,12 @@ export function initials(name: string): string {
 	return `${first}${last}`.toUpperCase()
 }
 
+/**
+ * The decimals of the share of a candidate on each screen. Two decimals show
+ * the gap of a close race, where one decimal can show two equal shares.
+ */
+export const SHARE_DIGITS = 2
+
 /** A share from 0 to 100 as text in the locale of the app (`en`), such as `59.0%`. */
 export function percentText(
 	format: IntlShape['formatNumber'],
