@@ -14,7 +14,7 @@ type PdfViewerThumbnailMatchesProps = {
 }
 
 /**
- * The mark of a thumbnail tile with a search match: a small amber Badge after the page number
+ * The mark of a thumbnail tile with a search match: a small soft amber Badge after the page number
  * that gives the number of matches, such as "2 matches".
  *
  * @remarks A leaf of its own. It is the only part of the rail that reads the search. A key that
@@ -37,7 +37,7 @@ export function PdfViewerThumbnailMatches({ pageNumber, id }: PdfViewerThumbnail
 	if (count === 0) return <span id={id} hidden />
 
 	return (
-		<Badge id={id} size="sm" color="amber">
+		<Badge id={id} variant="soft" size="xs" color="amber">
 			{intl.formatMessage(pdfViewerMessages.pageMatches, { count })}
 		</Badge>
 	)

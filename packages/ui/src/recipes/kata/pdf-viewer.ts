@@ -287,12 +287,12 @@ export const k = defineKata({
 				},
 				/**
 				 * The row under the frame: the page number, and the mark after it. A rail with marks
-				 * gives each row the height of the mark, an `sm` Badge, so a mark that comes or goes as
+				 * gives each row the height of the mark, an `xs` Badge, so a mark that comes or goes as
 				 * the reader types does not move the tiles below it.
 				 */
 				caption: {
-					base: [flex.row, 'items-center', dan.gap.scale.xs],
-					marked: { true: 'min-h-7', false: '' },
+					base: [flex.row, 'items-center', dan.gap.scale.sm],
+					marked: { true: 'min-h-6.5', false: '' },
 				},
 				label: [
 					size.sm,
