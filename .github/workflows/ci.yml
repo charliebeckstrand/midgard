@@ -398,7 +398,10 @@ jobs:
   # separate job, not a matrix entry of `browser`: only this job runs the two
   # browsers. The instances hold a few files, so one job runs them with no
   # shard. `--project` runs only them, so the Chromium instances stay in
-  # `browser`.
+  # `browser`. The patterns select each instance by the end of its name: each
+  # Firefox instance ends in `-firefox`, each WebKit instance in `-webkit`, and
+  # no Chromium instance does. A new instance in one of the two browsers thus
+  # runs here, and in density-stress.yml, with no edit to a list.
   #
   # The job runs in the Playwright image, which holds Firefox, WebKit, and
   # each system package that they load. `playwright install --with-deps` ran
@@ -442,7 +445,7 @@ jobs:
       # stops a content process on signal 11 and writes no message to stderr.
       # `FIREFOX_PREFS` in packages/ui/vitest.browser.config.ts gives the
       # cause of one such crash.
-      - run: pnpm turbo run test:browser --filter=ui --summarize -- --project density-firefox --project density-webkit --project wysiwyg-webkit --project wysiwyg-floating-ui-webkit --project wysiwyg-floating-motion-webkit
+      - run: pnpm turbo run test:browser --filter=ui --summarize -- --project '*-firefox' --project '*-webkit'
         env:
           DEBUG: pw:browser
           ALL_ENGINES: 1

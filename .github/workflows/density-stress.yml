@@ -92,7 +92,7 @@ jobs:
           uname -r
       # Not through turbo: a cache hit would skip the run that this workflow
       # exists for.
-      - run: pnpm --filter ui test:browser --project density-firefox --project density-webkit --project wysiwyg-webkit --project wysiwyg-floating-ui-webkit --project wysiwyg-floating-motion-webkit
+      - run: pnpm --filter ui test:browser --project '*-firefox' --project '*-webkit'
         env:
           DEBUG: pw:browser
           ALL_ENGINES: 1
