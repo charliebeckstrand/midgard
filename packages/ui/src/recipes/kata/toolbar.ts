@@ -57,10 +57,12 @@ export const k = defineKata({
 		/**
 		 * A separator of the toolbar. Its margin is the toolbar gap at each density
 		 * step, so the space on each side of the rule is the space between two groups.
+		 * In a horizontal toolbar, the item after a separator that starts a wrapped
+		 * row moves back over the box of the separator and the gap.
 		 */
 		separator: {
 			orientation: {
-				horizontal: dan.space.toolbar.separator.x,
+				horizontal: [dan.space.toolbar.separator.x, dan.space.toolbar.separator.rowStart],
 				vertical: dan.space.toolbar.separator.y,
 			},
 		},

@@ -27,9 +27,10 @@ export type ToolbarProps = AccessibleName &
  * @remarks
  * A horizontal toolbar wraps onto more rows when it is narrow. A
  * `<ToolbarSeparator>` that then ends or starts a row separates nothing, so
- * the toolbar hides it. One `ResizeObserver` on the toolbar measures the rows
- * again when the toolbar changes size. A vertical toolbar, or a horizontal
- * toolbar on one row, shows each separator.
+ * the toolbar hides it, and each row starts at the edge of the toolbar. One
+ * `ResizeObserver` on the toolbar measures the rows again when the toolbar
+ * changes size. A vertical toolbar, or a horizontal toolbar on one row, shows
+ * each separator.
  *
  * Along its axis, the hit area of each button fills half of the gap on each
  * side, in the toolbar and in a `<ToolbarGroup>`. The buttons keep their
