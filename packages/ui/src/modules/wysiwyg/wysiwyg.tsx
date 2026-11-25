@@ -3,6 +3,7 @@
 import {
 	type CSSProperties,
 	type FocusEvent,
+	type MouseEvent,
 	type ReactNode,
 	type Ref,
 	useImperativeHandle,
@@ -18,6 +19,8 @@ import { useStableEvent } from '../../hooks/use-stable-event'
 import { ControlActions, ControlFrame } from '../../primitives/control'
 import { k as markdown } from '../../recipes/kata/markdown'
 import type { scale } from '../../recipes/kata/wysiwyg'
+import { clamp } from '../../utilities/clamp'
+import { isPrimaryPress } from '../../utilities/primary-press'
 import { WysiwygContext, type WysiwygContextValue } from './context'
 import type { WysiwygBlock, WysiwygHandle, WysiwygToggleAction } from './types'
 import { useWysiwygEditor } from './use-wysiwyg-editor'
@@ -407,6 +410,21 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 		if (!event.currentTarget.contains(event.relatedTarget)) field.setTouched()
 	}
 
+	// Below a toolbar, the space above the text is a margin of the field, so the
+	// host gets a press in that space and not the field. The press puts the
+	// caret in the first visible row of text, as a press on the field does.
+	function handleHostPress(event: MouseEvent<HTMLDivElement>) {
+		if (event.target !== event.currentTarget || field.disabled || !isPrimaryPress(event)) return
+
+		event.preventDefault()
+
+		const box = editor?.view.dom.getBoundingClientRect()
+
+		if (editor && box) {
+			editor.focusAt(event.clientX, clamp(event.clientY, box.top + 1, box.bottom - 1))
+		} else focus()
+	}
+
 	// The root keeps one shape for each layout, so a change of `separated` does
 	// not mount the host again, which holds the element of the editor.
 	return (
@@ -426,11 +444,13 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 					className={cn(slots.base)}
 				>
 					{inside && children}
+					{/* biome-ignore lint/a11y/noStaticElementInteractions: a press surface around the field, not a control. The field takes the focus and the keys. */}
 					<div
 						ref={host}
 						data-slot="wysiwyg"
 						className={cn(slots.host)}
 						style={fieldStyle(rows, placeholder)}
+						onMouseDown={handleHostPress}
 					>
 						{!editor && (
 							<WysiwygStatic

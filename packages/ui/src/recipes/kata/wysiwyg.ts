@@ -58,7 +58,7 @@ export const k = defineKata(
 		top: { true: [], false: [] },
 		slots: {
 			/** The element that holds the field, and the markup of the server render before the editor loads. */
-			host: 'block w-full min-w-0',
+			host: 'block w-full min-w-0 cursor-text',
 			field: {
 				base: [
 					'flow-root cursor-text',
