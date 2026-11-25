@@ -4,6 +4,7 @@ import tailwindcss from '@tailwindcss/vite'
 import { defineConfig } from 'vite'
 import { serverAssetUrls, serverStylesheetUrl } from './plugin/asset-urls.ts'
 import { reactDocs } from './plugin/index.ts'
+import { shikiSet } from './plugin/shiki-set.ts'
 import { docsTarget } from './plugin/target.ts'
 
 // The docs of ui: `pnpm --filter ui dev` serves them, and `docs:build`
@@ -78,7 +79,9 @@ export default defineConfig({
 		},
 	},
 	// The Shiki worker of `CodeBlock` needs the `es` format (see `CodeBlock`).
-	worker: { format: 'es' },
+	// The worker bundles only the grammars and the themes of the docs
+	// (`plugin/shiki-set.ts`).
+	worker: { format: 'es', plugins: () => [shikiSet()] },
 	// Tailwind runs through its Vite plugin. The `postcss.config.mjs` of the
 	// repository is for the Next.js apps, so Vite does not look for one.
 	css: { postcss: { plugins: [] } },
