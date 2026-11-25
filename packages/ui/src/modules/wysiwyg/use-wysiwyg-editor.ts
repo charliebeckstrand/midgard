@@ -81,8 +81,8 @@ function sameSource(a: Source, b: Source): boolean {
  * differ from the source of the doc, such as on a clear after a send, or on an
  * edit that a controlled parent refuses.
  *
- * @returns The editor, or `null` until it loads, and the subscription to each
- *   new state of the editor.
+ * @returns The editor, or `null` until it loads, the subscription to each new
+ *   state of the editor, and whether the engine was loaded at the first render.
  * @remarks The editor is the source of the doc while it lives. It holds the
  * last Markdown that it emitted, so the value that comes back after an edit
  * does not replace the doc again.
@@ -99,6 +99,12 @@ export function useWysiwygEditor({
 	useIdlePreload(engine)
 
 	const loaded = useLazyModule(engine, wanted)
+
+	// Whether the engine was loaded at the first render, such as for the second
+	// field of a page. The editor then replaces nothing, so the field draws no
+	// markup before it. The hydration render reads no engine, so the server
+	// markup stays.
+	const [loadedAtMount] = useState(loaded !== null)
 
 	const [editor, setEditor] = useState<WysiwygEditor | null>(null)
 
@@ -173,5 +179,5 @@ export function useWysiwygEditor({
 		editor.setValue(value, ranges)
 	})
 
-	return { editor, subscribe: updates.subscribe }
+	return { editor, subscribe: updates.subscribe, loadedAtMount }
 }
