@@ -3,6 +3,7 @@ import { BarChart } from '../../modules/chart/bar-chart'
 import { LineChart } from '../../modules/chart/line-chart'
 import { ScatterChart } from '../../modules/chart/scatter-chart'
 import { act, allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
+import { CHART_RECEDE } from '../helpers/recede'
 
 /**
  * A hover renders only the animated marks whose emphasis changed.
@@ -85,7 +86,7 @@ describe('animated chart mark renders', () => {
 
 		const receded = () =>
 			allBySlot(container, 'chart-line-series').map((group) =>
-				group.getAttribute('class')?.includes('opacity-25'),
+				group.getAttribute('class')?.includes(CHART_RECEDE),
 			)
 
 		move(container, 200, 'chart-point', a)

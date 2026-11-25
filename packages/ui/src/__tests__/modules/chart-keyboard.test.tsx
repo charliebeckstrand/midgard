@@ -30,6 +30,7 @@ import {
 } from '../helpers'
 import { it, onFakeClock } from '../helpers/fake-clock'
 import { KEY } from '../helpers/press'
+import { CHART_RECEDE } from '../helpers/recede'
 import { sizeHitLayer } from '../helpers/size-hit-layer'
 
 // Category 0 carries two coincident points (a chart whose series overlap on the
@@ -625,27 +626,27 @@ describe('LineChart keyboard navigation', () => {
 
 		const marks = allBySlot(container, 'chart-line-series')
 
-		expect(marks[0]?.getAttribute('class')).not.toContain('opacity-25')
+		expect(marks[0]?.getAttribute('class')).not.toContain(CHART_RECEDE)
 
-		expect(marks[1]?.getAttribute('class')).toContain('opacity-25')
+		expect(marks[1]?.getAttribute('class')).toContain(CHART_RECEDE)
 
 		// The tooltip dims B's row against A's, mirroring the marks.
 		const rows = allBySlot(container, 'chart-tooltip-row')
 
 		expect(rows).toHaveLength(2)
 
-		expect(rows[0]?.getAttribute('class')).not.toContain('opacity-25')
+		expect(rows[0]?.getAttribute('class')).not.toContain(CHART_RECEDE)
 
-		expect(rows[1]?.getAttribute('class')).toContain('opacity-25')
+		expect(rows[1]?.getAttribute('class')).toContain(CHART_RECEDE)
 
 		// Cycling the value axis onto B carries the emphasis with the cursor.
 		fireEvent.keyDown(plot, { key: 'ArrowDown' })
 
 		const stepped = allBySlot(container, 'chart-line-series')
 
-		expect(stepped[0]?.getAttribute('class')).toContain('opacity-25')
+		expect(stepped[0]?.getAttribute('class')).toContain(CHART_RECEDE)
 
-		expect(stepped[1]?.getAttribute('class')).not.toContain('opacity-25')
+		expect(stepped[1]?.getAttribute('class')).not.toContain(CHART_RECEDE)
 
 		// Escape drops the emphasis with the readout: every series reads at full strength.
 		fireEvent.keyDown(plot, { key: 'Escape' })
@@ -655,7 +656,7 @@ describe('LineChart keyboard navigation', () => {
 		expect(settled).toHaveLength(2)
 
 		for (const mark of settled) {
-			expect(mark.getAttribute('class')).not.toContain('opacity-25')
+			expect(mark.getAttribute('class')).not.toContain(CHART_RECEDE)
 		}
 	})
 
@@ -689,9 +690,9 @@ describe('LineChart keyboard navigation', () => {
 		const marks = allBySlot(container, 'chart-line-series')
 
 		// B (index 1) reads as active; A (index 0) recedes: the series map held its line.
-		expect(marks[0]?.getAttribute('class')).toContain('opacity-25')
+		expect(marks[0]?.getAttribute('class')).toContain(CHART_RECEDE)
 
-		expect(marks[1]?.getAttribute('class')).not.toContain('opacity-25')
+		expect(marks[1]?.getAttribute('class')).not.toContain(CHART_RECEDE)
 	})
 
 	it('holds the emphasis on its series across a gap in an earlier series', () => {
@@ -720,7 +721,7 @@ describe('LineChart keyboard navigation', () => {
 		/** The index of each series mark that reads at full strength. */
 		const lit = () =>
 			allBySlot(container, 'chart-line-series').flatMap((mark, index) =>
-				mark.getAttribute('class')?.includes('opacity-25') ? [] : [index],
+				mark.getAttribute('class')?.includes(CHART_RECEDE) ? [] : [index],
 			)
 
 		// Enter on A at W1, and step down onto B.
@@ -802,7 +803,7 @@ describe('LineChart keyboard cursor under a pointer', () => {
 		const plot = getSlot(container, 'chart-plot')
 
 		const receded = () =>
-			getSlot(container, 'chart-marks').getAttribute('class')?.includes('opacity-25') ?? false
+			getSlot(container, 'chart-marks').getAttribute('class')?.includes(CHART_RECEDE) ?? false
 
 		// Up the screen from A at 10, the rule at 50 is the next stop. The cursor
 		// parks on it, and the marks recede.
@@ -957,7 +958,7 @@ describe('LineChart keyboard cursor after a data change', () => {
 		fireEvent.keyDown(plot, { key: 'End' })
 
 		const lit = () =>
-			allBySlot(container, 'chart-tooltip-row').find((row) => !row.className.includes('opacity-25'))
+			allBySlot(container, 'chart-tooltip-row').find((row) => !row.className.includes(CHART_RECEDE))
 				?.textContent
 
 		expect(lit()).toContain('A')

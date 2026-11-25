@@ -5,6 +5,7 @@ import { HeatmapChart } from '../../modules/chart/heatmap-chart'
 import { LineChart } from '../../modules/chart/line-chart'
 import { ScatterChart } from '../../modules/chart/scatter-chart'
 import { allBySlot, bySlot, getSlot, renderUI, waitFor } from '../helpers'
+import { CHART_RECEDE } from '../helpers/recede'
 
 /**
  * A sparkline is non-interactive. At the spark tier a chart draws bare marks and
@@ -199,7 +200,7 @@ describe('spark tier is non-interactive (real browser)', () => {
 
 	/** The lift, as the marks draw it: the series path dims and the pointed bar re-draws lit over it. */
 	const lifted = (container: HTMLElement) =>
-		(bySlot(container, 'chart-bar')?.getAttribute('class') ?? '').includes('opacity-25') &&
+		(bySlot(container, 'chart-bar')?.getAttribute('class') ?? '').includes(CHART_RECEDE) &&
 		allBySlot(container, 'chart-bar-spot').length === 1
 
 	it('a spark bar takes no hover styling — the drawing is pointer-inert', async () => {
@@ -300,7 +301,7 @@ describe('spark tier is non-interactive (real browser)', () => {
 		// pointer-enter drives that emphasis (and the tooltip), never mounted.
 		const marks = getSlot(container, 'chart-marks')
 
-		expect(marks.classList.contains('opacity-25')).toBe(false)
+		expect(marks.classList.contains(CHART_RECEDE)).toBe(false)
 	})
 
 	it('a framed reference rule keeps its hover and emphasis', async () => {
@@ -334,7 +335,7 @@ describe('spark tier is non-interactive (real browser)', () => {
 		})
 
 		await waitFor(() =>
-			expect(getSlot(container, 'chart-marks').classList.contains('opacity-25')).toBe(true),
+			expect(getSlot(container, 'chart-marks').classList.contains(CHART_RECEDE)).toBe(true),
 		)
 	})
 

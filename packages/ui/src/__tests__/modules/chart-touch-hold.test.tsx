@@ -7,6 +7,7 @@ import { MapPlat } from '../../modules/map'
 import { bySlot, fireEvent, getSlot, renderUI, screen } from '../helpers'
 import { type FakeClock, it, onFakeClock } from '../helpers/fake-clock'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
+import { RECEDE_SELECTOR } from '../helpers/recede'
 
 /**
  * A touch hold on a chart opens its context menu, and no readout.
@@ -207,6 +208,6 @@ describe('a touch hold on a chart', () => {
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 
-		expect(container.querySelector('.opacity-25')).toBeNull()
+		expect(container.querySelector(RECEDE_SELECTOR)).toBeNull()
 	})
 })

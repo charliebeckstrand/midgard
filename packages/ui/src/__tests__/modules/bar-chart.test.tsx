@@ -7,6 +7,7 @@ import { axisValues } from '../helpers/axis-labels'
 import { it } from '../helpers/fake-clock'
 import { subpathCount } from '../helpers/geometry/svg-path'
 import { TAP } from '../helpers/press'
+import { CHART_RECEDE } from '../helpers/recede'
 import { sizeHitLayer } from '../helpers/size-hit-layer'
 
 /**
@@ -583,7 +584,7 @@ describe('BarChart', () => {
 
 		const dimmed = (container: HTMLElement) =>
 			allBySlot(container, 'chart-bar').every((bar) =>
-				bar.getAttribute('class')?.includes('opacity-25'),
+				bar.getAttribute('class')?.includes(CHART_RECEDE),
 			)
 
 		// Isolation mirrors the snapped readout: every series path recedes and the
@@ -888,7 +889,7 @@ describe('BarChart', () => {
 		const { container } = renderUI(chart({ selectedCategories: ['Q2'] }))
 
 		for (const series of allBySlot(container, 'chart-bar')) {
-			expect(series.getAttribute('class')).toContain('opacity-25')
+			expect(series.getAttribute('class')).toContain(CHART_RECEDE)
 		}
 
 		// One lit bar re-draws over each dimmed series: Q2 of revenue and of costs.
@@ -903,7 +904,7 @@ describe('BarChart', () => {
 		rerender(chart({ selectedCategories: [] }))
 
 		for (const series of allBySlot(container, 'chart-bar')) {
-			expect(series.getAttribute('class')).not.toContain('opacity-25')
+			expect(series.getAttribute('class')).not.toContain(CHART_RECEDE)
 		}
 
 		// The Q2 bars stay drawn over the lift and hide when the fade ends.
@@ -933,7 +934,7 @@ describe('BarChart', () => {
 	it('selects nothing for an empty list', () => {
 		const { container } = renderUI(chart({ selectedCategories: [] }))
 
-		expect(allBySlot(container, 'chart-bar')[0]?.getAttribute('class')).not.toContain('opacity-25')
+		expect(allBySlot(container, 'chart-bar')[0]?.getAttribute('class')).not.toContain(CHART_RECEDE)
 
 		expect(spots(container)).toHaveLength(0)
 	})
@@ -948,13 +949,13 @@ describe('BarChart', () => {
 		const bars = allBySlot(container, 'chart-bar')
 
 		// Revenue path (first series) dims; the costs path stays full.
-		expect(bars[0]?.getAttribute('class')).toContain('opacity-25')
+		expect(bars[0]?.getAttribute('class')).toContain(CHART_RECEDE)
 
-		expect(bars[1]?.getAttribute('class')).not.toContain('opacity-25')
+		expect(bars[1]?.getAttribute('class')).not.toContain(CHART_RECEDE)
 
 		fireEvent.pointerLeave(costs)
 
-		expect(allBySlot(container, 'chart-bar')[0]?.getAttribute('class')).not.toContain('opacity-25')
+		expect(allBySlot(container, 'chart-bar')[0]?.getAttribute('class')).not.toContain(CHART_RECEDE)
 	})
 
 	it('toggles a series off and strikes its legend entry through', () => {
