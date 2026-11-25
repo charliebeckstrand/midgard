@@ -184,7 +184,8 @@ export type ChatSendOptions = {
 	 * This reports the completed send, not the submit gesture. The gesture is
 	 * `useChatDraft`'s `onSubmit`, which fires when the composer submits; this
 	 * fires after the transport's last chunk lands. A stop or a transport
-	 * failure skips it.
+	 * failure skips it. A {@link ChatSend.submitAction} sends no message of the
+	 * reader, so its reply skips it too.
 	 */
 	onSent?: (content: string) => void
 	/** Fires when the transport throws or the stream fails, after the reply is marked `failed`. */
@@ -455,7 +456,8 @@ export function useChatSend({
 			await streamReply(transport, message, controller.signal, {
 				open: () => setPath((prev) => openReply(prev, replyId)),
 				fold: (chunk) => setPath((prev) => applyReplyChunk(prev, replyId, chunk)),
-				sent: () => onSent?.(text),
+				// An action submit sends no message of the reader, so it reports none.
+				sent: message.action ? noop : () => onSent?.(text),
 				fail: (error) => {
 					setPath((prev) => failReply(prev, replyId))
 

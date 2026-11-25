@@ -1228,6 +1228,22 @@ describe('useChatSend submitAction', () => {
 		expect(revised?.revised).toBe(true)
 	})
 
+	it('does not call onSent, because an answer sends no message of the reader', async () => {
+		const onSent = vi.fn()
+
+		const { result } = renderHook(() =>
+			useChatSend({ transport: makeStream('Booked.'), initialMessages, onSent }),
+		)
+
+		await act(async () => {
+			await result.current.submitAction('r1', 'a1', { carrier: 'atlas' })
+		})
+
+		expect(result.current.messages).toHaveLength(3)
+
+		expect(onSent).not.toHaveBeenCalled()
+	})
+
 	it('answers an ask once', async () => {
 		const transport = vi.fn(makeStream())
 
