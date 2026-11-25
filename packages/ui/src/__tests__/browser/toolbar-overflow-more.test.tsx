@@ -1,9 +1,10 @@
+import { Square } from 'lucide-react'
 import { renderToString } from 'react-dom/server'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { ButtonIconTooltip } from '../../components/button/button-icon-tooltip'
 import { Toolbar, ToolbarGroup, ToolbarSeparator } from '../../components/toolbar'
-import { Square } from '../../primitives/icons/icons'
+import { Glyph } from '../../primitives/glyph'
 import { act, renderUI, screen, waitFor, within } from '../helpers'
 import { resizeObserverLoopErrors } from './helpers/resize-observer-loop'
 
@@ -33,7 +34,7 @@ describe('Toolbar with More (real browser)', () => {
 									key={index}
 									variant="bare"
 									label={`${group}${index}`}
-									icon={<Square />}
+									icon={<Glyph icon={Square} />}
 									disabled={false}
 								/>
 							))}

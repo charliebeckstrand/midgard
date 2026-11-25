@@ -1,5 +1,6 @@
 'use client'
 
+import { ChevronLeft, Ellipsis } from 'lucide-react'
 import { useComposedRefs } from 'motion/react'
 import {
 	type ComponentProps,
@@ -14,7 +15,7 @@ import {
 import { cn } from '../../core/cn'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { useA11yRoving } from '../../hooks/a11y/use-a11y-roving'
-import { ChevronLeft, Ellipsis } from '../../primitives/icons/icons'
+import { Glyph } from '../../primitives/glyph'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k, type ToolbarVariants } from '../../recipes/kata/toolbar'
 import type { AccessibleName } from '../../types/accessible-name'
@@ -256,7 +257,7 @@ export function Toolbar({
 							data-slot="toolbar-back"
 							variant="bare"
 							label={intl.formatMessage(toolbarMessages.back)}
-							icon={<ChevronLeft className="rtl:-scale-x-100" />}
+							icon={<Glyph icon={ChevronLeft} className="rtl:-scale-x-100" />}
 							disabled={false}
 							onClick={(event) => page(event.currentTarget, 0, 'more')}
 						/>
@@ -270,7 +271,7 @@ export function Toolbar({
 							<ButtonIconTooltip
 								variant="bare"
 								label={intl.formatMessage(toolbarMessages.more)}
-								icon={<Ellipsis />}
+								icon={<Glyph icon={Ellipsis} />}
 								disabled={false}
 								onClick={showMore}
 							/>

@@ -1,5 +1,6 @@
 'use client'
 
+import { ArrowDown } from 'lucide-react'
 import { useComposedRefs } from 'motion/react'
 import {
 	type ComponentProps,
@@ -22,7 +23,6 @@ import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { useScrollRegion } from '../../hooks/use-scroll-region'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useVirtualWindow } from '../../hooks/use-virtual-window'
-import { ArrowDown } from '../../primitives/icons/icons'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/chat-transcript'
@@ -631,7 +631,7 @@ export function ChatTranscript({
 						className={slots.newest.button}
 						onClick={goToNewest}
 					>
-						<Icon icon={<ArrowDown />} />
+						<Icon icon={ArrowDown} />
 					</Button>
 				</div>
 			)}

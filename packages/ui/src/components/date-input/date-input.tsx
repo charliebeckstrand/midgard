@@ -1,11 +1,11 @@
 'use client'
 
+import { Calendar as CalendarIcon } from 'lucide-react'
 import { useComposedRefs } from 'motion/react'
 import { type ReactNode, useState } from 'react'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { useFormattedInput } from '../../hooks/use-formatted-input'
 import { useFormValue } from '../../primitives/form/use-form-value'
-import { Calendar as CalendarIcon } from '../../primitives/icons/icons'
 import { formatDatePattern } from '../../primitives/intl/intl-date-pattern'
 import type { IntlShape } from '../../primitives/intl/types'
 import { useIntl } from '../../primitives/intl/use-intl'
@@ -318,7 +318,7 @@ export function DateInput({
 				// The default calendar icon gives way to the clear button, so the
 				// trailing glyph holds its place. A suffix of the consumer, such as the
 				// calendar button of a DatePicker in `input` mode, stays beside it.
-				suffix={clearShown ? suffix : (suffix ?? <Icon icon={<CalendarIcon />} />)}
+				suffix={clearShown ? suffix : (suffix ?? <Icon icon={CalendarIcon} />)}
 				invalid={invalid ?? (verdict.invalid || undefined)}
 				name={name}
 				value={text}

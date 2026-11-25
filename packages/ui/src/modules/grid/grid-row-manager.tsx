@@ -2,6 +2,7 @@
 
 import { DndContext } from '@dnd-kit/core'
 import { SortableContext } from '@dnd-kit/sortable'
+import { ArrowUpDown } from 'lucide-react'
 import { useCallback } from 'react'
 import { Button } from '../../components/button'
 import { Card } from '../../components/card'
@@ -10,7 +11,6 @@ import { Menu } from '../../components/menu'
 import { dataAttr } from '../../core/data-attr'
 import type { PaletteColor } from '../../core/recipe/colors'
 import { restrictToVerticalAxis, useSortableList } from '../../hooks/use-sortable-list'
-import { ArrowUpDown } from '../../primitives/icons/icons'
 import { reorderMessages } from '../../primitives/intl/intl-reorder'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k as groupK } from '../../recipes/kata/grid-group'
@@ -157,7 +157,7 @@ function GridRowManagerZone({ group, onRecolor, moves }: GridRowManagerZoneProps
 									variant="bare"
 									aria-label={intl.formatMessage(reorderMessages.moveHandle, { item: label })}
 								>
-									<Icon icon={<ArrowUpDown />} />
+									<Icon icon={ArrowUpDown} />
 								</Button>
 							</GridManagerMoveMenu>
 						)}
