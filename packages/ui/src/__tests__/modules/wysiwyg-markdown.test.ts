@@ -135,9 +135,24 @@ describe('wysiwyg markdown', () => {
 			['a period at its end', paragraph(schema.text(`${url}.`, [link(`${url}.`)]))],
 			['a question mark at its end', paragraph(schema.text(`${url}?`, [link(`${url}?`)]))],
 			['a parenthesis at its end', paragraph(schema.text(`${url})`, [link(`${url})`)]))],
+			['a web address before it', paragraph(schema.text('www.'), schema.text(url, [link(url)]))],
 			['a reference in it', paragraph(schema.text(`${url}/?a&amp;b`, [link(`${url}/?a&amp;b`)]))],
 		])('keeps its link with %s', (_, doc) => {
 			expect(parseMarkdown(serializeMarkdown(doc)).eq(doc)).toBe(true)
+		})
+
+		// The text of an email address reads as a link of its own. That is not
+		// this rule, so only the link of the URL counts.
+		it('keeps its link with an email address before it', () => {
+			const doc = paragraph(schema.text('a@b.c'), schema.text(url, [link(url)]))
+
+			const hrefs: string[] = []
+
+			parseMarkdown(serializeMarkdown(doc)).descendants((node) => {
+				if (node.text === url) hrefs.push(...node.marks.map((mark) => mark.attrs.href))
+			})
+
+			expect(hrefs).toEqual([url])
 		})
 
 		it('stays bare where it reads back as the same link', () => {

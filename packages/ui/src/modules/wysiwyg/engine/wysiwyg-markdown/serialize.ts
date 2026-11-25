@@ -327,14 +327,14 @@ function inline(textblock: Node, ranges: RangeMarks | undefined): string {
 
 	let out = run(items, line)
 
-	// The text after a bare URL can join it, or the reader can cut its last
-	// characters, such as a period. The text after it is known only after the
+	// The text on either side of a bare URL can join it, or the reader can cut
+	// its last characters, such as a period. That text is known only after the
 	// walk, so the URL then takes angle brackets where the reader would not
 	// read it back. The last URL goes first, so the offsets of the others stay.
 	for (const { at, url } of line.urls.reverse()) {
 		const end = at + url.length
 
-		if (!readsAsLink(url + following(out.slice(end), ranges), url)) {
+		if (!holdsLink(word(out.slice(0, at), url, out.slice(end), ranges), url)) {
 			out = `${out.slice(0, at)}<${url}>${out.slice(end)}`
 		}
 	}
@@ -343,31 +343,40 @@ function inline(textblock: Node, ranges: RangeMarks | undefined): string {
 }
 
 /**
- * The text after a bare URL up to the first white space, which ends a URL,
- * without the edge marks of the ranges, which go before the Markdown is read.
+ * The word of a bare URL: the URL with the text before it back to the last
+ * white space and the text after it up to the first white space, because
+ * white space ends a URL. The edge marks of the ranges go, because they go
+ * before the Markdown is read.
  *
  * @internal
  */
-function following(text: string, ranges: RangeMarks | undefined): string {
-	const plain = ranges ? text.replaceAll(ranges.open, '').replaceAll(ranges.close, '') : text
+function word(before: string, url: string, after: string, ranges: RangeMarks | undefined): string {
+	const plain = (text: string) =>
+		ranges ? text.replaceAll(ranges.open, '').replaceAll(ranges.close, '') : text
 
-	return plain.match(/^\S*/)?.[0] ?? ''
+	const head = plain(before).match(/\S*$/)?.[0] ?? ''
+
+	const tail = plain(after).match(/^\S*/)?.[0] ?? ''
+
+	return head + url + tail
 }
 
 /**
- * Whether a source starts with the text of `url` as a link to `url` with no
- * title, as the parser reads it.
+ * Whether the parser reads a text of `url` as a link to `url` with no title
+ * in a source.
  *
  * @internal
  */
-function readsAsLink(source: string, url: string): boolean {
-	const first = markdownDoc(source).content?.[0]?.content?.[0]
+function holdsLink(source: string, url: string): boolean {
+	const content = markdownDoc(source).content?.[0]?.content ?? []
 
-	const mark = first?.marks?.length === 1 ? first.marks[0] : undefined
+	return content.some((node) => {
+		const mark = node.marks?.length === 1 ? node.marks[0] : undefined
 
-	return (
-		first?.text === url && mark?.type === 'link' && mark.attrs?.href === url && !mark.attrs.title
-	)
+		return (
+			node.text === url && mark?.type === 'link' && mark.attrs?.href === url && !mark.attrs.title
+		)
+	})
 }
 
 /** Whether a node is text of white space alone. @internal */
@@ -533,7 +542,7 @@ function bareUrl(mark: Mark, inner: readonly Item[]): string | undefined {
 				each.node.isText && each.marks.every((inside) => inside.type === schema.marks.range),
 		) &&
 		inner.map((each) => each.node.text).join('') === url &&
-		readsAsLink(`<${url}>`, url)
+		holdsLink(`<${url}>`, url)
 
 	return bare ? url : undefined
 }
