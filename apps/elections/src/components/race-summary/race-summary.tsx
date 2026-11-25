@@ -9,7 +9,7 @@ import { Flex } from 'ui/structure/flex'
 import { Stack } from 'ui/structure/stack'
 import { Swatch } from 'ui/swatch'
 import type { Candidate } from '../../types'
-import { barColor, initials, percentText } from '../../utilities/race-math'
+import { barColor, initials, percentText, SHARE_DIGITS } from '../../utilities/race-math'
 import { PercentOdometer } from '../percent-odometer'
 import { IncumbentMark, ReportingRow, WinnerMark } from './reporting-row'
 
@@ -40,7 +40,7 @@ export type RaceSummaryProps = {
 function CandidateRow({ candidate, detail }: { candidate: Candidate; detail: boolean }) {
 	const intl = useIntl()
 
-	const share = percentText(intl.formatNumber, candidate.percent, 1)
+	const share = percentText(intl.formatNumber, candidate.percent, SHARE_DIGITS)
 
 	return (
 		<Stack gap="sm" role="listitem">
@@ -76,7 +76,11 @@ function CandidateRow({ candidate, detail }: { candidate: Candidate; detail: boo
 
 				{/* The votes sit under the share, as the party sits under the name. */}
 				<Stack gap="xs" align="end" className="shrink-0">
-					<PercentOdometer value={candidate.percent} digits={1} className="font-semibold" />
+					<PercentOdometer
+						value={candidate.percent}
+						digits={SHARE_DIGITS}
+						className="font-semibold"
+					/>
 
 					{detail ? (
 						<Odometer
