@@ -1,3 +1,5 @@
+import { frame } from '../../helpers/frames'
+
 /** The size of the tester window, as `resize` reports it. */
 function windowSize(): string {
 	return `${innerWidth}x${innerHeight}`
@@ -38,9 +40,7 @@ export async function settleViewport(): Promise<void> {
 
 	if (size === delivered) return
 
-	await new Promise<void>((resolve) => {
-		requestAnimationFrame(() => resolve())
-	})
+	await frame()
 
 	delivered = size
 }

@@ -17,6 +17,14 @@ interface SampleOptions {
 const READ_TEXT_LIMIT = 600
 
 /**
+ * A JSON replacer that keeps `NaN` and the infinities as text. JSON writes
+ * them as `null`, which reads as an absent value.
+ */
+function keepNonFinite(_key: string, value: unknown): unknown {
+	return typeof value === 'number' && !Number.isFinite(value) ? String(value) : value
+}
+
+/**
  * The text of a read in the error of a sampler.
  *
  * `String` gives `[object Object]` for an object, so the error of a sampler
@@ -25,13 +33,14 @@ const READ_TEXT_LIMIT = 600
  * at the deadline.
  *
  * @param value - The last read of the sampler.
- * @returns The JSON of the value, or `String(value)` when JSON gives no text.
+ * @returns The JSON of the value, with `NaN` and the infinities as text, or
+ * `String(value)` when JSON gives no text.
  */
 export function describeRead(value: unknown): string {
 	let text: string
 
 	try {
-		text = JSON.stringify(value) ?? String(value)
+		text = JSON.stringify(value, keepNonFinite) ?? String(value)
 	} catch {
 		text = String(value)
 	}
