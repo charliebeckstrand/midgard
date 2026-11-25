@@ -405,8 +405,7 @@ jobs:
   # `--ipc=host` gives the container the shared memory of the runner.
   # Docker gives a container a /dev/shm of 64 MB, and the processes of
   # Firefox exchange their data through it. Playwright recommends this option
-  # for its image. It did not stop the crash that the `pw:browser` note below
-  # gives.
+  # for its image.
   engines:
     needs: playwright-version
     runs-on: ubuntu-latest
@@ -426,24 +425,16 @@ jobs:
       - uses: ./.github/actions/turbo-cache
         with:
           name: engines
-      # The CPU and the kernel of the runner, for the Firefox crash that the
-      # `pw:browser` note below gives.
-      - name: Show the CPU and the kernel of the runner
-        run: |
-          grep -m1 'model name' /proc/cpuinfo
-          uname -r
       # Filtered to `ui`, as in `browser`. The container runs as root, and
       # Firefox does not start as root when HOME belongs to another user.
       # GitHub sets HOME to a directory of the runner user.
       #
       # `pw:browser` writes the stdout and stderr of each browser to the log.
-      # On some runs, Playwright reports only "The firefox page crashed" in
-      # the first seconds. The log of one such run showed two Firefox content
-      # processes that stopped on signal 11. Firefox wrote no cause: no
-      # sandbox violation and no `MOZ_CRASH`. Signal 11 is not the signal of
-      # the OOM killer (9) or of a full /dev/shm (7). The crash occurs with
-      # Firefox build 1555 (Playwright 1.64) and with build 1572 (Playwright
-      # 1.65), so the version of Playwright is not the cause.
+      # If Playwright reports only "The firefox page crashed", that log shows
+      # the signal of each process that stopped. A Firefox release assertion
+      # stops a content process on signal 11 and writes no message to stderr.
+      # `FIREFOX_PREFS` in packages/ui/vitest.browser.config.ts gives the
+      # cause of one such crash.
       - run: pnpm turbo run test:browser --filter=ui --summarize -- --project density-firefox --project density-webkit --project wysiwyg-webkit --project wysiwyg-floating-ui-webkit --project wysiwyg-floating-motion-webkit
         env:
           DEBUG: pw:browser
