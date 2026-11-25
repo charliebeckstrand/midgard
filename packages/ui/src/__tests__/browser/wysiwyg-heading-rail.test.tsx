@@ -6,8 +6,8 @@ import { editable } from './helpers/wysiwyg'
 
 /**
  * The heading rail swaps in for the toolbar row. The swap keeps the size of
- * the toolbar, also where the row wraps to two lines, so the field does not
- * move. A press on Heading and on a level keeps the focus in the field, so the
+ * the toolbar, also where the row holds only some groups and shows More, so
+ * the field does not move. A press on Heading and on a level keeps the focus in the field, so the
  * virtual keyboard stays open.
  *
  * Rides the real browser because jsdom lays nothing out, and its press does

@@ -38,6 +38,7 @@ import {
 	CreditCard as LucideCreditCard,
 	Dot as LucideDot,
 	Download as LucideDownload,
+	Ellipsis as LucideEllipsis,
 	EllipsisVertical as LucideEllipsisVertical,
 	ExternalLink as LucideExternalLink,
 	Eye as LucideEye,
@@ -158,6 +159,8 @@ export const CreditCard = /* @__PURE__ */ createIcon(LucideCreditCard)
 export const Dot = /* @__PURE__ */ createIcon(LucideDot)
 
 export const Download = /* @__PURE__ */ createIcon(LucideDownload)
+
+export const Ellipsis = /* @__PURE__ */ createIcon(LucideEllipsis)
 
 export const EllipsisVertical = /* @__PURE__ */ createIcon(LucideEllipsisVertical)
 

@@ -167,6 +167,10 @@
 		"defaultMessage": "Done",
 		"description": "The status of a step of the assistant that ended well."
 	},
+	"ui.chat.edited": {
+		"defaultMessage": "(edited)",
+		"description": "The quiet label below a chat message that the reader edited. The edit sent the message in place of an earlier one."
+	},
 	"ui.chat.failed": {
 		"defaultMessage": "Failed",
 		"description": "The status of a step of the assistant that ended with an error."
@@ -2410,6 +2414,14 @@
 	"ui.toast.notifications": {
 		"defaultMessage": "Notifications",
 		"description": "The name of the region that holds the toasts."
+	},
+	"ui.toolbar.back": {
+		"defaultMessage": "Back",
+		"description": "The name of the button at the start of a toolbar row that shows the first controls of the toolbar again."
+	},
+	"ui.toolbar.more": {
+		"defaultMessage": "More",
+		"description": "The name of the button at the end of a toolbar row that shows the controls that the row cannot hold."
 	},
 	"ui.wysiwyg.apply": {
 		"defaultMessage": "Apply",

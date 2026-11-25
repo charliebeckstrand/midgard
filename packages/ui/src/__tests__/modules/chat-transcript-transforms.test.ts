@@ -329,11 +329,11 @@ describe('branchEditedMessage', () => {
 		assistant('r2', 'x'),
 	]
 
-	it('shows the new content under the new id, with no turn after it', () => {
+	it('shows the new content under the new id, marked edited, with no turn after it', () => {
 		expect(branchEditedMessage(toChatTree(messages), 'u2', 'u2b', 'edited').path).toEqual([
 			user('u1', 'hi'),
 			assistant('r1', 'first'),
-			user('u2b', 'edited'),
+			{ ...user('u2b', 'edited'), edited: true },
 		])
 	})
 

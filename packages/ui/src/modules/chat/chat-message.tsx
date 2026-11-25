@@ -48,6 +48,16 @@ const AUTHOR = defineMessages({
 	},
 } satisfies Record<ChatMessageData['sender'], unknown>)
 
+/** The label below the bubble of a message that an edit sent. @internal */
+const EDITED = defineMessages({
+	label: {
+		id: 'ui.chat.edited',
+		defaultMessage: '(edited)',
+		description:
+			'The quiet label below a chat message that the reader edited. The edit sent the message in place of an earlier one.',
+	},
+})
+
 /**
  * One block of a message. The switch holds every kind, so a kind added later
  * cannot reach the bubble undrawn. The compiler asks for its arm, as it does
@@ -93,6 +103,39 @@ function hasMenuItems(contextMenu: ContextMenuConfig | false | undefined): boole
 }
 
 /**
+ * The row below the bubble: the "(edited)" label at its start, and the branch
+ * switcher of a message with more than one branch. A message with neither
+ * has no row.
+ *
+ * @internal
+ */
+function ChatMessageFooter({
+	edited,
+	branch,
+	onBranchChange,
+	className,
+	labelClassName,
+}: Pick<ChatMessageProps, 'edited' | 'branch' | 'onBranchChange'> & {
+	className: string
+	labelClassName: string
+}) {
+	const branched = branch !== undefined && branch.ids.length > 1
+
+	if (!edited && !branched) return null
+
+	return (
+		<div data-slot="chat-message-footer" className={className}>
+			{edited && (
+				<span data-slot="chat-message-edited" className={labelClassName}>
+					<IntlMessage message={EDITED.label} />
+				</span>
+			)}
+			{branched && <ChatMessageBranch branch={branch} onBranchChange={onBranchChange} />}
+		</div>
+	)
+}
+
+/**
  * Props for {@link ChatMessage}. The root `<div>` takes the rest. The message
  * gives `children` and `contextMenu` types of their own.
  */
@@ -113,6 +156,14 @@ export type ChatMessageProps = ChatMessageVariants &
 		 * @defaultValue false
 		 */
 		editing?: boolean
+		/**
+		 * Marks a message that an edit sent in place of an earlier message. A quiet
+		 * "(edited)" label shows below the bubble, at its start. The `edit` of
+		 * `useChatSend` marks the message, and {@link ChatTranscript} passes the
+		 * mark on.
+		 * @defaultValue false
+		 */
+		edited?: boolean
 		/**
 		 * Marks a reply that failed. The bubble keeps its content and ends with a
 		 * line that says that the reply failed.
@@ -208,6 +259,11 @@ export type ChatMessageProps = ChatMessageVariants &
  * A `failed` reply ends with a line that says so, after what it landed. The
  * line inherits the foreground of the bubble, and a red dot marks it.
  *
+ * An `edited` message shows a quiet "(edited)" label below its bubble, at the
+ * start of the bubble. The label and the branch switcher share one row, which
+ * is as wide as the bubble, and the switcher stays on the side of the speaker.
+ * The label follows the bubble, so a screen reader reads it after the message.
+ *
  * A message with more than one `branch` shows a switcher below its bubble. The
  * switcher is a group named "Versions", in the language of the reader. Each
  * button names the branch that it shows, and the text between them gives the
@@ -258,6 +314,7 @@ export const ChatMessage = memo(function ChatMessage({
 	timestamp,
 	streaming,
 	editing,
+	edited,
 	failed,
 	contextMenu,
 	trigger = 'hover',
@@ -337,16 +394,27 @@ export const ChatMessage = memo(function ChatMessage({
 			data-editing={dataAttr(editing)}
 			className={cn(slots.base, className)}
 		>
-			{contextMenu === false ? (
-				bubble
-			) : (
-				<ChatMessageMenu config={menu} content={children} bubble={bubbleId} rightClick={rightClick}>
-					{bubble}
-				</ChatMessageMenu>
-			)}
-			{branch !== undefined && branch.ids.length > 1 && (
-				<ChatMessageBranch branch={branch} onBranchChange={onBranchChange} />
-			)}
+			<div data-slot="chat-message-frame" className={slots.frame}>
+				{contextMenu === false ? (
+					bubble
+				) : (
+					<ChatMessageMenu
+						config={menu}
+						content={children}
+						bubble={bubbleId}
+						rightClick={rightClick}
+					>
+						{bubble}
+					</ChatMessageMenu>
+				)}
+				<ChatMessageFooter
+					edited={edited}
+					branch={branch}
+					onBranchChange={onBranchChange}
+					className={slots.footer}
+					labelClassName={slots.edited}
+				/>
+			</div>
 			{timestamp !== undefined && (
 				<div data-slot="chat-message-timestamp" className={slots.timestamp}>
 					{timestamp}
