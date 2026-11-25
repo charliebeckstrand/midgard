@@ -1,31 +1,24 @@
 'use client'
 
 import type { User } from 'auth'
-import { Bot, ChartColumn, LogIn, Menu as MenuIcon, Numbers, Trophy } from 'lucide-react'
-import { useState } from 'react'
-import { SignOutMenuItem, VerifyEmailMenuItem } from 'shared/auth'
+import { Menu as MenuIcon } from 'lucide-react'
+import { type MouseEvent, useState } from 'react'
 import { Button } from 'ui/button'
-import { useIdleLoad } from 'ui/hooks'
+import { useIntentLoad } from 'ui/hooks'
 import { Icon } from 'ui/icon'
-import { Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator, MenuTrigger } from 'ui/menu'
-import { useNewRunClick } from '../../hooks/use-new-run-click'
 import { usePrefetchBoards } from '../../queries/leaderboard-queries'
 import { usePrefetchStats } from '../../queries/stats-queries'
 import { dayKey } from '../../utilities/day'
-import { ROUTE_LABELS, type Route, VS_SEGMENT } from '../../utilities/seed'
-import { LeaderboardDialog } from '../leaderboard-dialog'
-
-/** The code of the Stats dialog and its bar chart, which only a signed-in reader opens. */
-const loadStatsDialog = () => import('../stats-dialog')
+import type { Route } from '../../utilities/seed'
+import type { NumbersMenuPanel } from './numbers-menu-panel'
 
 /**
- * The props of the item of `route`, when it is the route of the page: it is
- * the current item, and its label is extra bold (800). The token is `true`, not `page`,
- * because the link of the item opens another page: a new seed.
+ * Loads the module of the menu, which carries the menu code of ui and the
+ * Leaderboard dialog. The page loads it in idle time after the hydration. Thus
+ * a run page does not load that code before it hydrates, and the first press
+ * does not wait for it.
  */
-function currentProps(route: Route, current: Route) {
-	return route === current ? ({ 'aria-current': 'true', className: 'font-extrabold' } as const) : {}
-}
+const loadMenu = () => import('./numbers-menu-panel')
 
 /** Props for {@link NumbersMenu}. */
 export type NumbersMenuProps = {
@@ -36,21 +29,7 @@ export type NumbersMenuProps = {
 }
 
 /**
- * The menu at the right of the header. Standard starts the solo run of a new
- * seed, and Vs CPU starts the run of a new seed against the CPU. A divider sets
- * these routes apart from Leaderboard, which opens the boards of each day. Each reader gets it, so it
- * is above the second divider. Under the second divider are the items of the
- * account: a reader with no session gets Sign in, and a
- * signed-in reader gets Verify email (until the email is verified), Stats,
- * which opens the stats of the reader, and Sign out.
- *
- * A plain click on Standard or Vs CPU goes to the address of a new seed at
- * once, with no redirect (`useNewRunClick`). The address of each item, `/` or
- * `/vs`, is for a new tab.
- *
- * The item of the route of the page is bold, and it is the current item
- * (`aria-current`). The route comes from the props of the page, not from the
- * address after the hydration, so the item is marked at the first open.
+ * The menu at the right of the header (`NumbersMenuPanel` gives its items).
  *
  * When the menu opens, it reads the boards of today for the reader, so
  * Leaderboard opens with its rows. Today is the date of the reader at the open,
@@ -58,89 +37,62 @@ export type NumbersMenuProps = {
  * signed-in reader with a verified email, the menu also reads the stats, so
  * Stats opens with its stats. The stats of any other reader are not read.
  *
- * The Stats dialog and its bar chart load in idle time after the mount, and
- * only for a signed-in reader (`useIdleLoad`). Thus the chart is not in the
- * first code of a run page, and a reader with no session never loads it. A
- * press on Stats before the load opens the dialog when its code arrives.
+ * @remarks The menu loads in idle time after the hydration. A pointer on the
+ * button or a focus on it starts the load sooner. Until the first press, this
+ * is the button of the menu alone. A press opens the menu, with its trigger in
+ * place of the button. When the module is there, the menu opens in the render
+ * of the press. Before that, it opens when the module arrives. A press from the
+ * keyboard leaves the focus on the trigger, as the menu does.
+ *
+ * The trigger replaces the button only on a press, not in idle time. A swap in
+ * idle time can come between the pointer down and the click of a press, and
+ * the press is then lost. A swap under a keyboard focus moves the focus to a
+ * new element.
  */
-export function NumbersMenu({ user, route }: NumbersMenuProps) {
-	const [statsOpen, setStatsOpen] = useState(false)
+export function NumbersMenu(props: NumbersMenuProps) {
+	const { user } = props
 
-	const statsDialog = useIdleLoad(user ? loadStatsDialog : null)
+	const [menu, setMenu] = useState<{
+		module: { NumbersMenuPanel: typeof NumbersMenuPanel }
+		focus: boolean
+	} | null>(null)
 
-	const [leaderboardOpen, setLeaderboardOpen] = useState(false)
+	const { request, preload } = useIntentLoad(loadMenu)
 
 	const prefetchBoards = usePrefetchBoards(user?.id ?? null)
 
 	const prefetchStats = usePrefetchStats()
 
-	const startSolo = useNewRunClick(false)
+	const prefetch = () => {
+		prefetchBoards(dayKey(new Date()))
 
-	const startVsCpu = useNewRunClick(true)
+		if (user?.is_verified) prefetchStats()
+	}
+
+	if (menu !== null) {
+		return <menu.module.NumbersMenuPanel {...props} focus={menu.focus} onOpen={prefetch} />
+	}
+
+	const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
+		const focus = event.currentTarget === document.activeElement
+
+		prefetch()
+
+		request((module) => setMenu({ module, focus }))
+	}
 
 	return (
-		<>
-			<Menu
-				placement="bottom-end"
-				onOpenChange={(open) => {
-					if (!open) return
-
-					prefetchBoards(dayKey(new Date()))
-
-					if (user?.is_verified) prefetchStats()
-				}}
-			>
-				<MenuTrigger>
-					<Button variant="plain" aria-label="Menu">
-						<Icon icon={<MenuIcon />} />
-					</Button>
-				</MenuTrigger>
-
-				<MenuContent aria-label="Menu">
-					<MenuItem href="/" onClick={startSolo} {...currentProps('solo', route)}>
-						<Icon icon={<Numbers />} />
-						<MenuLabel>{ROUTE_LABELS.solo}</MenuLabel>
-					</MenuItem>
-
-					<MenuItem href={`/${VS_SEGMENT}`} onClick={startVsCpu} {...currentProps('vsCpu', route)}>
-						<Icon icon={<Bot />} />
-						<MenuLabel>{ROUTE_LABELS.vsCpu}</MenuLabel>
-					</MenuItem>
-
-					<MenuSeparator />
-
-					<MenuItem onAction={() => setLeaderboardOpen(true)}>
-						<Icon icon={<Trophy />} />
-						<MenuLabel>Leaderboard</MenuLabel>
-					</MenuItem>
-
-					<MenuSeparator />
-
-					{user ? (
-						<>
-							<VerifyEmailMenuItem user={user} />
-
-							<MenuItem onAction={() => setStatsOpen(true)}>
-								<Icon icon={<ChartColumn />} />
-								<MenuLabel>Stats</MenuLabel>
-							</MenuItem>
-
-							<SignOutMenuItem />
-						</>
-					) : (
-						<MenuItem href="/login">
-							<Icon icon={<LogIn />} />
-							<MenuLabel>Sign in</MenuLabel>
-						</MenuItem>
-					)}
-				</MenuContent>
-			</Menu>
-
-			{user && statsDialog && (
-				<statsDialog.StatsDialog open={statsOpen} onOpenChange={setStatsOpen} user={user} />
-			)}
-
-			<LeaderboardDialog open={leaderboardOpen} onOpenChange={setLeaderboardOpen} user={user} />
-		</>
+		<Button
+			variant="plain"
+			aria-label="Menu"
+			aria-haspopup="menu"
+			aria-expanded={false}
+			onPointerEnter={preload}
+			onPointerDown={preload}
+			onFocus={preload}
+			onClick={handleClick}
+		>
+			<Icon icon={<MenuIcon />} />
+		</Button>
 	)
 }

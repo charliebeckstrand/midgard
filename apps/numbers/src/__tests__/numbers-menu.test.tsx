@@ -10,11 +10,13 @@ import { NumbersMenu } from '../components/numbers-menu/numbers-menu'
 import { RunPreloadProvider } from '../components/run-preload'
 import type { Route } from '../utilities/seed'
 
-// The menu loads the Stats dialog and its bar chart in idle time (`useIdleLoad`).
-// This import loads that module before the cases run. Thus a case waits for the
+// The menu loads its panel on the first press, and the panel loads the Stats
+// dialog and its bar chart in idle time (`useIdleLoad`). These imports load
+// those modules before the cases run. Thus a case waits for the menu or the
 // dialog to open, not for the first transform of the module. On a slow machine,
 // that transform took longer than the budget of `findByRole` (CONVENTIONS.md
 // §10.14).
+import '../components/numbers-menu/numbers-menu-panel'
 import '../components/stats-dialog'
 
 vi.mock('../api/stats-api', () => ({ readStats: vi.fn() }))
@@ -70,6 +72,47 @@ afterEach(() => {
 })
 
 describe('NumbersMenu', () => {
+	it('is the button alone until the first press, which opens the menu in its place', async () => {
+		renderMenu()
+
+		const button = screen.getByRole('button', { name: 'Menu' })
+
+		expect(button.getAttribute('aria-expanded')).toBe('false')
+
+		expect(screen.queryByRole('menu')).toBeNull()
+
+		fireEvent.click(button)
+
+		expect(await screen.findByRole('menu')).toBeTruthy()
+
+		expect(screen.getByRole('button', { name: 'Menu' }).getAttribute('aria-expanded')).toBe('true')
+	})
+
+	it('gives the focus back to the trigger on a close, after a press from the keyboard', async () => {
+		renderMenu()
+
+		const button = screen.getByRole('button', { name: 'Menu' })
+
+		button.focus()
+
+		fireEvent.click(button)
+
+		const menu = await screen.findByRole('menu')
+
+		// The trigger is a new element in place of the button.
+		const trigger = screen.getByRole('button', { name: 'Menu' })
+
+		expect(trigger).not.toBe(button)
+
+		await waitFor(() => expect(document.activeElement).toBe(menu))
+
+		fireEvent.keyDown(menu, { key: 'Escape' })
+
+		await waitFor(() => expect(screen.queryByRole('menu')).toBeNull())
+
+		expect(document.activeElement).toBe(trigger)
+	})
+
 	it('lists the modes in order, Standard then Vs CPU, with Leaderboard between two dividers', async () => {
 		renderMenu()
 

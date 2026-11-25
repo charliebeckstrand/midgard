@@ -2,77 +2,46 @@
 
 import { QuestionMark } from 'lucide-react'
 import { useState } from 'react'
-import { Accordion, AccordionItem, AccordionPanel, AccordionTrigger } from 'ui/accordion'
 import { Button } from 'ui/button'
-import { Dialog, DialogBody, DialogHeader, DialogPanel, DialogTitle } from 'ui/dialog'
+import { useIntentLoad } from 'ui/hooks'
 import { Icon } from 'ui/icon'
-import { Stack } from 'ui/structure/stack'
-import { MAX, SLOTS } from '../../utilities/game'
 
-/** One section of the dialog: the key of its item, its heading, and its paragraphs. */
-type Part = { value: string; heading: string; paragraphs: readonly string[] }
-
-/** The rules of the game, from `utilities/game.ts`, in the order of a run. */
-const PARTS: readonly Part[] = [
-	{
-		value: 'rules',
-		heading: 'Rules',
-		paragraphs: [
-			`Each run draws ${SLOTS} numbers between 1 and ${MAX}, one at a time. Place each number in a slot so that the column always runs from smallest at the top to largest at the bottom.`,
-			`The run ends when a number has nowhere to go. Your score is the number of slots you fill, and a full column of ${SLOTS} wins.`,
-			'A seed always draws the same numbers in the same order, so only your first run of a seed counts toward your stats and the leaderboards.',
-		],
-	},
-	{
-		value: 'vs-cpu',
-		heading: 'Vs CPU',
-		paragraphs: [
-			'The CPU gets the same draws in the same order and places each one after you do. Whoever fills more slots wins.',
-			'You can change its difficulty in Settings.',
-		],
-	},
-]
+/**
+ * Loads the module of the dialog, which carries the dialog and the accordion
+ * code of ui. The page loads it in idle time after the hydration. Thus a run
+ * page does not load that code before it hydrates, and the first open does not
+ * wait for it.
+ */
+const loadDialog = () => import('./how-to-play-dialog')
 
 /**
  * The question mark button of the header, which opens the "How to play"
- * dialog. An accordion in the dialog holds the Rules of a run, then the rules
- * of Vs CPU. Rules is open when the dialog opens, and
- * one section is open at a time.
+ * dialog (`HowToPlayDialog`).
+ *
+ * @remarks The dialog loads in idle time after the hydration, and then renders
+ * closed, so the first open is the same as a later open. A pointer on the
+ * button or a focus on it starts the load sooner. A press before the load
+ * opens the dialog when the module arrives.
  */
 export function HowToPlay() {
 	const [open, setOpen] = useState(false)
 
+	const { module: dialog, request, preload } = useIntentLoad(loadDialog)
+
 	return (
 		<>
-			<Button variant="plain" aria-label="How to play" onClick={() => setOpen(true)}>
+			<Button
+				variant="plain"
+				aria-label="How to play"
+				onPointerEnter={preload}
+				onPointerDown={preload}
+				onFocus={preload}
+				onClick={() => request(() => setOpen(true))}
+			>
 				<Icon icon={<QuestionMark />} />
 			</Button>
 
-			<Dialog open={open} onOpenChange={setOpen}>
-				<DialogPanel width="sm">
-					<DialogHeader>
-						<DialogTitle>How to play</DialogTitle>
-					</DialogHeader>
-
-					<DialogBody>
-						<Accordion defaultValue="rules">
-							{PARTS.map(({ value, heading, paragraphs }) => (
-								<AccordionItem key={value} value={value}>
-									<AccordionTrigger>{heading}</AccordionTrigger>
-
-									<AccordionPanel>
-										<Stack gap="sm">
-											{paragraphs.map((paragraph) => (
-												<p key={paragraph}>{paragraph}</p>
-											))}
-										</Stack>
-									</AccordionPanel>
-								</AccordionItem>
-							))}
-						</Accordion>
-					</DialogBody>
-				</DialogPanel>
-			</Dialog>
+			{dialog && <dialog.HowToPlayDialog open={open} onOpenChange={setOpen} />}
 		</>
 	)
 }

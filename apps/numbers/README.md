@@ -97,6 +97,11 @@ then Stats and Sign out. The item of the route of the
 page is extra bold (`aria-current`): Vs CPU on a run against the CPU, and
 Standard else.
 
+The code of the menu, the Leaderboard dialog, and the How to play dialog is
+not in the first code of a run page. It loads in idle time after the hydration,
+or sooner on a pointer or a focus on its button. A press before the load opens
+the menu or the dialog when the code arrives.
+
 A segment in the settings switches two tabs: "UI" has the
 appearance pickers of `ui`, and "Game" has the settings of the game (see
 below). Each segment of the app (in the settings, Stats, and Leaderboard)
@@ -222,8 +227,8 @@ average score, and a bar chart of the runs on each score from 1 to 20. The
 first number always has an empty slot, so no run scores 0. A switch of tab
 slides to the next mode. Mimir, in asgard, keeps the stats
 (`/api/games/numbers/*`, `src/api/stats-api.ts`). The dialog and its bar chart
-load in idle time after the page, and only for a signed-in reader, so the chart
-is not in the first code of a run page.
+load in idle time after the first open of the menu, and only for a signed-in
+reader, so the chart is not in the first code of a run page.
 
 Vs CPU also shows Win %, the share of the vs CPU runs that beat the CPU
 (`winRate`). Only a run that sends
