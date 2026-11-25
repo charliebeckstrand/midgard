@@ -595,6 +595,10 @@
 		"defaultMessage": "Product designer. I work on design systems and typography.",
 		"description": "A word of the demo data in the docs: the word for \"bio\" in the domain \"textarea-draft\", in components/textarea/drafts.ts."
 	},
+	"docs.data.textarea-draft.notes": {
+		"defaultMessage": "Launch is on Friday.\n\nBefore the launch:\n- Freeze the build on Wednesday\n- Ship the v2 flag to 10% of users\n- Watch the error rate each hour\n\nAfter the launch:\n- Send the release notes\n- Ask the design team before the copy changes\n- Plan the review for Monday",
+		"description": "A word of the demo data in the docs: the word for \"notes\" in the domain \"textarea-draft\", in components/textarea/drafts.ts."
+	},
 	"docs.data.textarea-draft.releaseNotes": {
 		"defaultMessage": "Fixes a crash on launch.",
 		"description": "A word of the demo data in the docs: the word for \"releaseNotes\" in the domain \"textarea-draft\", in components/textarea/drafts.ts."
@@ -990,6 +994,10 @@
 	"docs.data.wysiwyg-draft.notes": {
 		"defaultMessage": "**Launch** is on *Friday*.\n\n- Freeze the build on Wednesday\n- Ship the `v2` flag\n\n'>' Ask the design team before the copy changes.",
 		"description": "A word of the demo data in the docs: the word for \"notes\" in the domain \"wysiwyg-draft\", in modules/wysiwyg/drafts.ts."
+	},
+	"docs.data.wysiwyg-draft.plan": {
+		"defaultMessage": "**Launch** is on *Friday*.\n\nBefore the launch:\n\n- Freeze the build on Wednesday\n- Ship the `v2` flag to 10% of users\n- Watch the error rate each hour\n\nAfter the launch:\n\n- Send the release notes\n- Plan the review for Monday\n\n'>' Ask the design team before the copy changes.",
+		"description": "A word of the demo data in the docs: the word for \"plan\" in the domain \"wysiwyg-draft\", in modules/wysiwyg/drafts.ts."
 	},
 	"docs.data.wysiwyg-draft.summary": {
 		"defaultMessage": "The new search ships with **filters** and *saved queries*.",
@@ -2694,10 +2702,6 @@
 	"docs.demo.5ccb8caacdc5": {
 		"defaultMessage": "Draft saved",
 		"description": "Text of a demo in the docs as title, in components/toast/severity.tsx, components/tooltip/interactive-content.tsx."
-	},
-	"docs.demo.5ce08b1bc424": {
-		"defaultMessage": "Add notes for the team",
-		"description": "Text of a demo in the docs as placeholder, in components/textarea/max-height.tsx, modules/wysiwyg/max-height.tsx."
 	},
 	"docs.demo.5ce8c4387e91": {
 		"defaultMessage": "Since last month",
