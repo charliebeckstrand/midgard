@@ -94,6 +94,22 @@ function reachableItems(container: HTMLElement | null, selector: string): HTMLEl
 }
 
 /**
+ * The `items` of `container` that no `inert` inside it holds: each item with no
+ * `inert` on itself or on an ancestor below `container`. An `inert` on
+ * `container` or above it holds each item alike, so it does not count, and the
+ * Tab stop is in place when the layer goes live.
+ *
+ * @internal
+ */
+function liveItems(container: HTMLElement, items: HTMLElement[]): HTMLElement[] {
+	return items.filter((item) => {
+		const inert = item.closest('[inert]')
+
+		return !inert || inert === container || !container.contains(inert)
+	})
+}
+
+/**
  * Move the virtual-mode active marker to `items[index]`: shifts `data-active`
  * and, when `activeDescendantRef` is given, points `aria-activedescendant` on
  * the owner at the active item. By default it also mirrors `aria-selected`
@@ -1406,7 +1422,7 @@ export function useA11yRoving(
 
 	// Focus-mode single-tab-stop ownership. Seats exactly one matched item at
 	// `tabIndex=0` and demotes the rest to `-1`, re-running as the subtree mutates
-	// (items added/removed, disabled toggled, current item moved) and carrying the
+	// (items added/removed, disabled or inert toggled, current item moved) and carrying the
 	// stop to whatever item takes focus. Writes only on divergence; the observer
 	// fires on its own tabindex edits.
 	useEffect(() => {
@@ -1426,19 +1442,24 @@ export function useA11yRoving(
 		}
 
 		// When `aria-current` changes while focus is outside the container, the
-		// stop moves to the new match, also from a stop where the user roved.
+		// stop moves to the new match, also from a stop where the user roved. The
+		// stop does not rest on an item that an `inert` in the container holds:
+		// Tab skips that item, so a stop there takes the container out of the Tab
+		// order.
 		const normalize = (records?: MutationRecord[]) => {
 			const items = ownItems(queryItems(container, itemSelector), container)
 
+			const live = liveItems(container, items)
+
 			if (actionSelector) pinRowActions(container, actionSelector)
 
-			if (!items.length) return
+			if (!live.length) return
 
 			const followCurrent =
 				!!records?.some((record) => record.attributeName === 'aria-current') &&
 				!container.contains(container.ownerDocument.activeElement)
 
-			seat(items, resolveRestingStop(items, activeSelector, followCurrent, seated))
+			seat(items, resolveRestingStop(live, activeSelector, followCurrent, seated))
 		}
 
 		normalize()
@@ -1463,7 +1484,7 @@ export function useA11yRoving(
 			childList: true,
 			subtree: true,
 			attributes: true,
-			attributeFilter: ['tabindex', 'disabled', 'aria-current'],
+			attributeFilter: ['tabindex', 'disabled', 'aria-current', 'inert'],
 		})
 
 		return () => {

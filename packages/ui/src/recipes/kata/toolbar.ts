@@ -1,8 +1,10 @@
 /**
  * Toolbar kata: the unit of `<Toolbar>` and its button groups. The root slot
- * has the `orientation` and `variant` (plain / outline / solid) axes. The
- * `group` slot clusters related controls, and the `separator` slot spaces a
- * rule between two groups. Both have an `orientation` axis.
+ * has the `orientation`, `variant` (plain / outline / solid), and `overflow`
+ * (wrap / more) axes. The `group` slot clusters related controls, and the
+ * `separator` slot spaces a rule between two groups. Both have an
+ * `orientation` axis. The `more` slot anchors the More button of a toolbar
+ * that fits its row with More.
  */
 import { defineKata, type VariantProps } from '../../core/recipe'
 import { dan, kasane, narabi, omote, sen } from '../kiso'
@@ -30,7 +32,7 @@ export const k = defineKata({
 	orientation: {
 		horizontal: [
 			'flex-row flex-wrap',
-			dan.gap.scale.xs,
+			dan.gap.x.xs,
 			dan.gap.touch.x.xs,
 			dan.gap.touch.y.xs,
 			touch.tile.x,
@@ -43,6 +45,42 @@ export const k = defineKata({
 		outline: [...border.default, rounded.lg, 'p-1'],
 		solid: [...bg.tint, 'border border-transparent', rounded.lg, 'p-1'],
 	},
+	/**
+	 * What a horizontal toolbar does with the items that its row cannot hold:
+	 * they wrap onto more rows, or they wait behind More.
+	 */
+	overflow: { wrap: '', more: '' },
+	compound: [
+		{ orientation: 'horizontal', overflow: 'wrap', class: dan.gap.y.xs },
+		/**
+		 * A toolbar that fits its row with More is one row, and CSS fits it with no
+		 * measure, so the server paints the fit, as in a collapsing `Breadcrumb`.
+		 * The items wrap as usual, but the toolbar shows only its first row. Each
+		 * item after the first has a negative bottom margin that is more than its
+		 * height, so a wrapped row takes no height, and each wrapped item sits at
+		 * the same place below the clip. The first item gives the row its height,
+		 * so the items of the row have one height, as icon buttons do. A
+		 * separator has no height of its own and stretches to its row, so it needs
+		 * no margin. `h-fit` keeps the height of the first row in a grid or a flex
+		 * parent that would stretch the toolbar.
+		 *
+		 * The end of the row keeps room for the More button. The last item takes
+		 * the room back while it is on the row, so a toolbar that fits paints as
+		 * it would without the room. An item that a script pages out (`data-paged`)
+		 * has no box.
+		 */
+		{
+			orientation: 'horizontal',
+			overflow: 'more',
+			class: [
+				'relative h-fit items-start overflow-y-clip',
+				dan.space.toolbar.more,
+				'pe-(--ui-toolbar-more) [&>:nth-last-child(2)]:-me-(--ui-toolbar-more)',
+				'[&>:not(:first-child):not([data-slot=toolbar-separator])]:-mb-[100vh]',
+				'[&>[data-paged]]:hidden',
+			],
+		},
+	],
 	slots: {
 		/**
 		 * A group of the toolbar. Its gap is below the toolbar gap at each density
@@ -62,6 +100,18 @@ export const k = defineKata({
 		 * A separator of the toolbar. Its margin is the toolbar gap at each density
 		 * step, so the space on each side of the rule is the space between two groups.
 		 */
+		/**
+		 * The anchor of the More button: the last item of a toolbar that fits its
+		 * row with More. It has no width, and it gives back the gap before it, so
+		 * it is on the row while the last item is. Its button is out of the flow,
+		 * at the end of the toolbar and one row above the anchor. While the last
+		 * item is on the row, the button is thus above the clip. While the last
+		 * item has wrapped, the anchor is on a wrapped row, and the button is at
+		 * the end of the first row, in the room that the toolbar keeps for it.
+		 */
+		more: {
+			base: ['flex w-0 -ms-(--ui-toolbar-gap)', '*:absolute *:end-0 *:-translate-y-full'],
+		},
 		separator: {
 			orientation: {
 				horizontal: dan.space.toolbar.separator.x,
@@ -69,11 +119,14 @@ export const k = defineKata({
 			},
 		},
 	},
-	defaults: { orientation: 'horizontal', variant: 'plain' },
+	defaults: { orientation: 'horizontal', variant: 'plain', overflow: 'wrap' },
 })
 
 /** Recipe variant props for {@link Toolbar}: the styling axes its kata exposes (`orientation`, `variant`), for consumers composing custom slots. */
-export type ToolbarVariants = Omit<VariantProps<typeof k>, 'orientation' | 'variant'> & {
+export type ToolbarVariants = Omit<
+	VariantProps<typeof k>,
+	'orientation' | 'variant' | 'overflow'
+> & {
 	/** The layout axis of the toolbar, and the axis of its arrow-key navigation. @defaultValue 'horizontal' */
 	orientation?: VariantProps<typeof k>['orientation']
 	/** The frame of the toolbar: no frame, a border, or a tinted fill. @defaultValue 'plain' */

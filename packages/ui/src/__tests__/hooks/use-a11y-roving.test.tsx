@@ -849,6 +849,26 @@ describe('useA11yRoving: inert items', () => {
 		expect(clickSpy).not.toHaveBeenCalled()
 	})
 
+	it('moves the resting stop off an item that turns inert in the container, and not back', async () => {
+		// A toolbar with More makes the items that leave its row inert. Tab skips
+		// an inert item, so the stop must leave it.
+		const { container, options } = makeOptions(['0', '1', '2'])
+
+		renderRoving(container, { manageTabIndex: true })
+
+		expect(options.map((option) => option.tabIndex)).toEqual([0, -1, -1])
+
+		options[0]?.setAttribute('inert', '')
+
+		await waitFor(() => expect(options.map((option) => option.tabIndex)).toEqual([-1, 0, -1]))
+
+		options[0]?.removeAttribute('inert')
+
+		await Promise.resolve()
+
+		expect(options.map((option) => option.tabIndex)).toEqual([-1, 0, -1])
+	})
+
 	it('seats the resting stop when the container mounts under an inert ancestor', () => {
 		// A widget can mount inside an inert layer, such as a ReadyReveal that is
 		// not ready. Its Tab stop must be in place when the layer goes live.
