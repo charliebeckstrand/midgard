@@ -74,8 +74,8 @@ export type ChatCitationTarget = {
 	/**
 	 * Draws the view in a panel that the chat opens over the page, such as a
 	 * chart of the data that supports the phrase. A press on the citation opens
-	 * the panel: a Dialog, or a Drawer on a phone. Without it, the citation
-	 * selects in a view beside the chat through `cited`.
+	 * the panel: a wide Dialog (`4xl`), or a Drawer on a phone. Without it, the
+	 * citation selects in a view beside the chat through `cited`.
 	 *
 	 * @remarks
 	 * The citation reaches the function whole, so the function reads `selector`

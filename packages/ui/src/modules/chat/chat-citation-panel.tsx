@@ -29,6 +29,10 @@ export type ChatCitationPanelProps = {
  * label of the target is the title of the panel and names it. The view is the
  * body, and the footer holds the standard Close button.
  *
+ * The Dialog is `4xl` wide, because the view is a chart or a map, which takes
+ * its height from its width. At `4xl`, a map of the US with the title and the
+ * footer fits a screen of 1280 by 720 with no scroll.
+ *
  * @remarks
  * The panel is modal, so the focus goes into it, and it goes back to the
  * citation on the close.
@@ -61,7 +65,7 @@ export function ChatCitationPanel({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogPanel>
+			<DialogPanel width="4xl">
 				<DialogHeader>
 					<DialogTitle>{target?.label}</DialogTitle>
 				</DialogHeader>
