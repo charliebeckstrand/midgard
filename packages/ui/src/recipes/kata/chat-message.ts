@@ -11,6 +11,14 @@ const { css } = ugoki
 // A row of controls, such as the branch switcher.
 const controls = [flex.row, 'gap-0.5']
 
+// The fill of an assistant bubble, and of an earlier version of it.
+const assistantFill = mode('bg-zinc-100 text-zinc-950', 'dark:bg-white/10 dark:text-white')
+
+// The text of a bubble. `anywhere`, not `break-word`: a long word, such as a
+// URL, then does not set the min-content width. In a flex or grid host, the
+// message would otherwise grow to the full word.
+const bubbleText = [size.md, 'whitespace-pre-wrap wrap-anywhere']
+
 const bubble = {
 	base: [
 		// The padding and the radius of the skeleton bubble. The frame holds the
@@ -20,21 +28,13 @@ const bubble = {
 		// The Copy item of the menu moves the focus to the bubble. The ring shows
 		// for a keyboard focus only, so a press of the pointer shows no ring.
 		focus.ring,
-		size.md,
-		// `anywhere`, not `break-word`: a long word, such as a URL, then does not set
-		// the min-content width. In a flex or grid host, the message would
-		// otherwise grow to the full word.
-		'whitespace-pre-wrap wrap-anywhere',
+		...bubbleText,
 	],
 	// Forced colors replace the fill, so a filled bubble keeps its edge as an
 	// outline. The system line has no fill to lose.
 	sender: {
 		user: [palette.solid.blue, kokkaku.chat.tail.user, forced.outline],
-		assistant: [
-			...mode('bg-zinc-100 text-zinc-950', 'dark:bg-white/10 dark:text-white'),
-			kokkaku.chat.tail.assistant,
-			forced.outline,
-		],
+		assistant: [...assistantFill, kokkaku.chat.tail.assistant, forced.outline],
 		system: [...text.muted, 'bg-transparent px-0'],
 	},
 	// One state, one place. The pointer reports the wait the pulse reports to the
@@ -120,6 +120,17 @@ export const k = defineKata({
 		// The label of a message that an edit sent. It takes the start of the row,
 		// so the switcher stays on the side of the speaker.
 		edited: 'me-auto',
+		// The "(revised)" button of a message that its sender revised. It takes the
+		// place and the weight of the "(edited)" label. Its wash on hover shows
+		// that it is a button.
+		revised: 'me-auto font-normal',
+		// The heading of an earlier version of a revised message, in the history
+		// panel. It is quiet, as the row below a bubble is, so the title of the
+		// panel stays the strongest text.
+		versionHeading: [size.xs, 'font-medium', ...text.muted],
+		// An earlier version: the box and the fill of the assistant bubble, with no
+		// tail, because the bubble of the message holds the tail.
+		version: [...kokkaku.chat.box, ...assistantFill, ...bubbleText, 'mt-1'],
 		timestamp: [size.xs, 'mt-1', ...text.muted],
 		// The switcher of a message with more than one branch. Its digits keep one
 		// width, so `9 of 10` does not move its buttons.

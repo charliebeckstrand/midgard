@@ -1,7 +1,9 @@
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import {
+	type ChatActionPart,
 	type ChatCitation,
+	type ChatMessageData,
 	type ChatPart,
 	type ChatToolPart,
 	type ChatTransport,
@@ -1158,5 +1160,118 @@ describe('useChatSend with citations', () => {
 		expect(transport).toHaveBeenLastCalledWith(`${QUOTE} by day`, expect.any(AbortSignal), {
 			parts: [part],
 		})
+	})
+})
+
+describe('useChatSend submitAction', () => {
+	const ask: ChatActionPart = {
+		kind: 'action',
+		id: 'a1',
+		prompt: 'Which carrier?',
+		title: 'Carrier',
+		success: 'Carrier picked',
+		input: { kind: 'choice', name: 'carrier', options: [{ value: 'atlas', label: 'Atlas' }] },
+	}
+
+	const initialMessages: ChatMessageData[] = [
+		{ id: 'u1', sender: 'user', content: 'Who can take it?' },
+		{
+			id: 'r1',
+			sender: 'assistant',
+			content: [{ kind: 'text', id: 't1', text: 'Two carriers can take it.' }, ask],
+		},
+	]
+
+	it('answers the action, and gives the transport the action with its message', async () => {
+		const transport = vi.fn(makeStream())
+
+		const { result } = renderHook(() => useChatSend({ transport, initialMessages }))
+
+		await act(async () => {
+			await result.current.submitAction('r1', 'a1', { carrier: 'atlas' })
+		})
+
+		const answered = { ...ask, result: { carrier: 'atlas' } }
+
+		expect(transport).toHaveBeenCalledWith('', expect.anything(), {
+			parts: [],
+			action: { messageId: 'r1', part: answered },
+		})
+
+		expect(result.current.messages[1]?.content).toEqual([
+			{ kind: 'text', id: 't1', text: 'Two carriers can take it.' },
+			answered,
+		])
+	})
+
+	it('revises the message in place, and opens no bubble for a reply of revisions only', async () => {
+		const transport: ChatTransport = () =>
+			(async function* () {
+				yield { revise: 'r1', parts: [{ kind: 'text', id: 't1', text: 'Atlas takes it.' }] }
+			})()
+
+		const { result } = renderHook(() => useChatSend({ transport, initialMessages }))
+
+		await act(async () => {
+			await result.current.submitAction('r1', 'a1', { carrier: 'atlas' })
+		})
+
+		expect(result.current.messages).toHaveLength(2)
+
+		const [, revised] = result.current.messages
+
+		expect(revised?.content).toEqual([
+			{ kind: 'text', id: 't1', text: 'Atlas takes it.' },
+			{ ...ask, result: { carrier: 'atlas' } },
+		])
+
+		// The version is the content when the revision landed: the answered ask.
+		expect(revised?.versions).toEqual([
+			[
+				{ kind: 'text', id: 't1', text: 'Two carriers can take it.' },
+				{ ...ask, result: { carrier: 'atlas' } },
+			],
+		])
+	})
+
+	it('answers an ask once', async () => {
+		const transport = vi.fn(makeStream())
+
+		const { result } = renderHook(() => useChatSend({ transport, initialMessages }))
+
+		await act(async () => {
+			await result.current.submitAction('r1', 'a1', { carrier: 'atlas' })
+		})
+
+		await act(async () => {
+			await result.current.submitAction('r1', 'a1', { carrier: 'other' })
+		})
+
+		expect(transport).toHaveBeenCalledTimes(1)
+	})
+
+	it('does nothing while a send is in flight', async () => {
+		const { transport, gate } = gatedStream(['Hel'], ['Hello'])
+
+		const { result } = renderHook(() => useChatSend({ transport, initialMessages }))
+
+		let sending: Promise<void> | undefined
+
+		act(() => {
+			sending = result.current.send('hi')
+		})
+
+		await act(async () => {
+			await result.current.submitAction('r1', 'a1', { carrier: 'atlas' })
+		})
+
+		expect(transport).toHaveBeenCalledTimes(1)
+
+		await act(async () => {
+			gate.resolve()
+			await sending
+		})
+
+		expect(result.current.messages[1]?.content).toEqual(initialMessages[1]?.content)
 	})
 })

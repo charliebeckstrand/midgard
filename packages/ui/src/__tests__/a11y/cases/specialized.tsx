@@ -58,6 +58,65 @@ const toolSteps: ChatMessageData[] = [
 	},
 ]
 
+// An open choice, an open form, and an answered ask in a revised message: the
+// radios and the buttons on the assistant fill, and the success alert in it.
+const actions: ChatMessageData[] = [
+	{
+		id: 'a1',
+		sender: 'assistant',
+		content: [
+			{
+				kind: 'action',
+				id: 'c1',
+				prompt: 'Which carrier should take it?',
+				title: 'Carrier',
+				success: 'Carrier picked',
+				input: {
+					kind: 'choice',
+					name: 'carrier',
+					options: [
+						{ value: 'northline', label: 'Northline Freight', description: 'Pickup at 1 PM' },
+						{ value: 'atlas', label: 'Atlas Haulage' },
+					],
+				},
+			},
+			{
+				kind: 'action',
+				id: 'f1',
+				prompt: 'Delivery details needed',
+				title: 'Delivery details',
+				success: 'Delivery details sent',
+				input: {
+					kind: 'form',
+					label: 'Add details',
+					fields: [{ kind: 'text', name: 'contact', label: 'Contact name' }],
+				},
+			},
+		],
+	},
+	{
+		id: 'a2',
+		sender: 'assistant',
+		content: [
+			{ kind: 'text', id: 't1', text: '~~Waiting on a contact.~~ Booked for Thursday.' },
+			{
+				kind: 'action',
+				id: 'f2',
+				prompt: 'Delivery details needed',
+				title: 'Delivery details',
+				success: 'Delivery details sent',
+				input: {
+					kind: 'form',
+					label: 'Add details',
+					fields: [{ kind: 'text', name: 'contact', label: 'Contact name' }],
+				},
+				result: { contact: 'Dana Ortiz' },
+			},
+		],
+		versions: ['Waiting on a contact.'],
+	},
+]
+
 const unclaimedEmbed: ChatMessageData[] = [
 	{
 		id: 'a1',
@@ -211,6 +270,11 @@ export const specializedCases: readonly Case[] = [
 		// carries the word as its accessible name.
 		name: 'chat transcript with steps',
 		element: <ChatTranscript key="cts" messages={toolSteps} />,
+	},
+	{
+		// The asks take an answer, so their controls are live.
+		name: 'chat transcript with actions',
+		element: <ChatTranscript key="cta" messages={actions} onActionSubmit={noop} />,
 	},
 	{
 		// Controlled prompt composer; the textarea is the labeled control.

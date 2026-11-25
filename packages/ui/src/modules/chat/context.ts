@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext } from '../../core/create-context'
-import type { ChatCitation } from './engine/chat-content/types'
+import type { ChatActionResult, ChatCitation } from './engine/chat-content/types'
 import type { ChatCitationTargets, ChatEmbedRegistry } from './types'
 import type { ChatCitationActions, ChatCitationMode } from './use-chat-citation-trigger'
 
@@ -103,3 +103,15 @@ export const [ChatCitationContext, useChatCitations] = createContext<ChatCitatio
 	'ChatCitationProvider',
 	{ default: NO_CITATIONS },
 )
+
+/**
+ * Answers the action that `partId` names in the message that holds it, or
+ * `undefined` where the message takes no answer. An action with no answer
+ * draws its controls read-only. Thus an earlier version of a revised message,
+ * which provides none, shows its asks as they were, and no control in it acts.
+ *
+ * @internal
+ */
+export const [ChatActionContext, useChatAction] = createContext<
+	((partId: string, result: ChatActionResult) => void) | undefined
+>('ChatAction', { default: undefined })

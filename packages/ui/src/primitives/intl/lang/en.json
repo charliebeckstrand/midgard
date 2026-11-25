@@ -135,6 +135,26 @@
 		"defaultMessage": "View data for {title}",
 		"description": "The name of the button that opens a dialog with the values of a chart as a table. The title is the title of the chart."
 	},
+	"ui.chat.action.no": {
+		"defaultMessage": "No",
+		"description": "The value of a clear checkbox in the review of an answered ask."
+	},
+	"ui.chat.action.required": {
+		"defaultMessage": "Fill in this field.",
+		"description": "The issue of a required field that the reader left empty."
+	},
+	"ui.chat.action.review": {
+		"defaultMessage": "Review details",
+		"description": "The button in the success alert of an answered ask. It opens the values that the reader sent."
+	},
+	"ui.chat.action.submit": {
+		"defaultMessage": "Submit",
+		"description": "The button that sends the answer to an ask of the assistant in a chat."
+	},
+	"ui.chat.action.yes": {
+		"defaultMessage": "Yes",
+		"description": "The value of a checked checkbox in the review of an answered ask."
+	},
 	"ui.chat.assistant": {
 		"defaultMessage": "Assistant said",
 		"description": "The hidden label before a chat message from the assistant. A screen reader reads it before the message."
@@ -226,6 +246,22 @@
 	"ui.chat.replying": {
 		"defaultMessage": "Assistant is replying",
 		"description": "Spoken while a reply of the assistant arrives in a chat."
+	},
+	"ui.chat.revised": {
+		"defaultMessage": "(revised)",
+		"description": "The quiet button below a chat message that the assistant revised after it sent the message. It opens the earlier versions."
+	},
+	"ui.chat.revisedOpen": {
+		"defaultMessage": "Revised, show earlier versions",
+		"description": "The name of the \"(revised)\" button below a chat message that the assistant revised, for a screen reader. It starts with the visible text of the button."
+	},
+	"ui.chat.revision": {
+		"defaultMessage": "Version {index, number}",
+		"description": "The heading of one earlier version of a revised chat message, such as \"Version 1\". The index counts from 1, and version 1 is the first that the assistant sent."
+	},
+	"ui.chat.revisionsTitle": {
+		"defaultMessage": "Earlier versions",
+		"description": "The title of the panel that shows the earlier versions of a revised chat message."
 	},
 	"ui.chat.running": {
 		"defaultMessage": "Running",

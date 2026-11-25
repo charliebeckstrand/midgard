@@ -36,4 +36,45 @@ export type ChatMessageData = {
 	 * `useChatSend` sets it on the new message.
 	 */
 	edited?: boolean
+	/**
+	 * The earlier contents of a message that the assistant revised, oldest
+	 * first. The content of the message is the newest version, and it is not in
+	 * the list. A message with versions shows a "(revised)" button below its
+	 * bubble, and the button opens them, read-only.
+	 *
+	 * A {@link ChatRevision} that a transport yields adds the content that it
+	 * replaces. Store the list with the message, so that a reload keeps the
+	 * history.
+	 */
+	versions?: (string | ChatPart[])[]
 }
+
+/**
+ * A chunk of a reply that revises an earlier message, such as an assistant
+ * message whose text an action made stale.
+ *
+ * @remarks
+ * `parts` merges into the message that `revise` names, by part id, as a part
+ * list merges into a reply. A part under an id that the message holds replaces
+ * that block, so the agent can strike or replace a sentence by sending its text
+ * part again. A part under a new id joins the end. The content that the
+ * revision replaces joins `versions`, so each revision is one version. Send a
+ * revision whole, and not in pieces.
+ *
+ * An id that names no message on the shown path changes nothing.
+ *
+ * @example
+ *   yield { revise: 'm2', parts: [{ kind: 'text', id: 't1', text: '~~Needs a contact.~~ Booked.' }] }
+ */
+export type ChatRevision = {
+	/** The id of the message that the revision changes. */
+	revise: string
+	/** The blocks that change, by id. */
+	parts: ChatPart[]
+}
+
+/**
+ * One chunk that a transport yields: the prose of the reply so far, the blocks
+ * of the reply that changed, or a revision of an earlier message.
+ */
+export type ChatReplyChunk = string | ChatPart[] | ChatRevision

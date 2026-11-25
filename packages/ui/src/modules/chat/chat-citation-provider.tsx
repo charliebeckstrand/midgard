@@ -2,7 +2,7 @@
 
 import { type ReactNode, useCallback, useMemo, useState } from 'react'
 import { useDevWarning } from '../../hooks/use-dev-warning'
-import { ChatCitationPanel } from './chat-citation-panel'
+import { ChatPanel, ChatPanelBody } from './chat-panel'
 import { ChatCitationContext, type ChatCitationScope, useChatCitations } from './context'
 import type { ChatCitation } from './engine/chat-content/types'
 import type { ChatCitationTargets } from './types'
@@ -224,12 +224,18 @@ export function ChatCitationProvider({
 			{children}
 			{/* The panel mounts at the first open, so a chat with no panel citation pays for no panel. */}
 			{panel === null ? null : (
-				<ChatCitationPanel
+				// The label of the target names the panel, and the view is its body. The
+				// citation stays after the close, so the panel keeps its view while it
+				// leaves.
+				<ChatPanel
 					open={panel.open}
 					onOpenChange={setOpen}
-					citation={panel.citation}
-					target={value.targets[panel.citation.target]}
-				/>
+					title={value.targets[panel.citation.target]?.label}
+				>
+					<ChatPanelBody>
+						{value.targets[panel.citation.target]?.render?.(panel.citation)}
+					</ChatPanelBody>
+				</ChatPanel>
 			)}
 		</ChatCitationContext>
 	)

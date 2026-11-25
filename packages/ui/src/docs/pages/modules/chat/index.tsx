@@ -13,6 +13,7 @@ const TABS = [
 	'Citations',
 	'Scope',
 	'Steps',
+	'Actions',
 	'List',
 	'Prompt',
 ]

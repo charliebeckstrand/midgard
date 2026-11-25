@@ -1,23 +1,21 @@
 import { type ComponentProps, memo, type ReactNode, useId } from 'react'
 import type { ContextMenuConfig } from '../../components/context-menu/types'
 import { LoadingDots } from '../../components/loading'
-import { Markdown } from '../../components/markdown'
 import { StatusDot } from '../../components/status'
 import { cn } from '../../core/cn'
 import { dataAttr } from '../../core/data-attr'
 import { IntlMessage } from '../../primitives/intl'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { type ChatMessageVariants, k } from '../../recipes/kata/chat-message'
-import { ChatCitedText } from './chat-cited-text'
-import { MESSAGE_HEADING_OFFSET } from './chat-constants'
-import { ChatEmbed } from './chat-embed'
+import { ChatActionScope } from './chat-action'
 import { ChatMessageBranch } from './chat-message-branch'
+import { ChatMessageContent } from './chat-message-content'
+import { ChatMessageHistory } from './chat-message-history'
 import { ChatMessageMenu, ChatMessageToolbar } from './chat-message-menu'
-import { ChatTool } from './chat-tool'
 import { replyFailed } from './engine/chat-announcements'
 import type { ChatBranch } from './engine/chat-branch/types'
 import { isEmptyContent } from './engine/chat-content/normalize'
-import type { ChatPart } from './engine/chat-content/types'
+import type { ChatActionResult, ChatPart } from './engine/chat-content/types'
 import type { ChatMessageData } from './engine/types'
 
 /**
@@ -59,36 +57,6 @@ const EDITED = defineMessages({
 })
 
 /**
- * One block of a message. The switch holds every kind, so a kind added later
- * cannot reach the bubble undrawn. The compiler asks for its arm, as it does
- * for the projection and the emptiness rule.
- *
- * A text block lexes on its own rather than joined to its neighbors. Each
- * `Markdown` is then memoized on its own string, so a settled block above a
- * streaming one skips its re-lex on every chunk.
- *
- * @internal
- */
-function ChatMessageBlock({ part, className }: { part: ChatPart; className?: string }) {
-	switch (part.kind) {
-		// A block with citations draws through a client leaf, which reads the
-		// provider. A block with none stays a static Markdown.
-		case 'text':
-			return part.citations?.length ? (
-				<ChatCitedText part={part} className={className} />
-			) : (
-				<Markdown className={className} headingOffset={MESSAGE_HEADING_OFFSET}>
-					{part.text}
-				</Markdown>
-			)
-		case 'embed':
-			return <ChatEmbed part={part} className={className} />
-		case 'tool':
-			return <ChatTool part={part} className={className} />
-	}
-}
-
-/**
  * Whether the menu of a message has an item. It has one unless the caller
  * removes the menu, or removes the defaults and adds no item. A menu with no
  * item does not open, so the bubble keeps the native menu, and the message
@@ -103,33 +71,35 @@ function hasMenuItems(contextMenu: ContextMenuConfig | false | undefined): boole
 }
 
 /**
- * The row below the bubble: the "(edited)" label at its start, and the branch
- * switcher of a message with more than one branch. A message with neither
- * has no row.
+ * The row below the bubble: the "(edited)" label or the "(revised)" button at
+ * its start, and the branch switcher of a message with more than one branch.
+ * A message with none of them has no row.
  *
  * @internal
  */
 function ChatMessageFooter({
 	edited,
+	versions,
 	branch,
 	onBranchChange,
-	className,
-	labelClassName,
-}: Pick<ChatMessageProps, 'edited' | 'branch' | 'onBranchChange'> & {
-	className: string
-	labelClassName: string
+	slots,
+}: Pick<ChatMessageProps, 'edited' | 'versions' | 'branch' | 'onBranchChange'> & {
+	slots: Pick<ReturnType<typeof k>, 'footer' | 'edited' | 'revised'>
 }) {
 	const branched = branch !== undefined && branch.ids.length > 1
 
-	if (!edited && !branched) return null
+	const revised = versions !== undefined && versions.length > 0
+
+	if (!edited && !revised && !branched) return null
 
 	return (
-		<div data-slot="chat-message-footer" className={className}>
+		<div data-slot="chat-message-footer" className={slots.footer}>
 			{edited && (
-				<span data-slot="chat-message-edited" className={labelClassName}>
+				<span data-slot="chat-message-edited" className={slots.edited}>
 					<IntlMessage message={EDITED.label} />
 				</span>
 			)}
+			{revised && <ChatMessageHistory versions={versions} className={slots.revised} />}
 			{branched && <ChatMessageBranch branch={branch} onBranchChange={onBranchChange} />}
 		</div>
 	)
@@ -164,6 +134,21 @@ export type ChatMessageProps = ChatMessageVariants &
 		 * @defaultValue false
 		 */
 		edited?: boolean
+		/**
+		 * The earlier versions of a message that its sender revised, oldest
+		 * first, as `versions` of {@link ChatMessageData} holds them. With one or
+		 * more, a quiet "(revised)" button shows below the bubble, at its start.
+		 * It opens the versions in a panel, where each action draws read-only.
+		 */
+		versions?: readonly (string | ChatPart[])[]
+		/**
+		 * Answers an `action` block of the message: it fires with the id of the
+		 * block and the result that the reader submitted, as the `submitAction` of
+		 * `useChatSend` takes them after the id of the message. Without it, each
+		 * action of the message draws read-only. {@link ChatTranscript} binds it
+		 * to the id of each message.
+		 */
+		onActionSubmit?: (partId: string, result: ChatActionResult) => void
 		/**
 		 * Marks a reply that failed. The bubble keeps its content and ends with a
 		 * line that says that the reply failed.
@@ -242,7 +227,9 @@ export type ChatMessageProps = ChatMessageVariants &
  * A part list draws one block per part, each keyed by the part's own id. A text
  * block is its own {@link Markdown}. An `embed` block is the renderer that
  * {@link ChatEmbedProvider} registered under its name. A `tool` block is a step
- * line that {@link ChatTool} draws. The string arm draws exactly one
+ * line that {@link ChatTool} draws. An `action` block is an ask of the
+ * assistant that `onActionSubmit` answers: a choice of radios, or a button
+ * that opens a form in a panel. The string arm draws exactly one
  * {@link Markdown} over the string itself. A transcript of prose therefore
  * allocates nothing per render and lexes once.
  *
@@ -263,6 +250,11 @@ export type ChatMessageProps = ChatMessageVariants &
  * start of the bubble. The label and the branch switcher share one row, which
  * is as wide as the bubble, and the switcher stays on the side of the speaker.
  * The label follows the bubble, so a screen reader reads it after the message.
+ *
+ * A message with `versions` shows a quiet "(revised)" button in place of that
+ * label. The button opens the earlier versions, oldest first, in a panel: a
+ * Dialog, or a Drawer on a phone. The panel provides no `onActionSubmit`, so an
+ * ask in an earlier version draws read-only.
  *
  * A message with more than one `branch` shows a switcher below its bubble. The
  * switcher is a group named "Versions", in the language of the reader. Each
@@ -315,6 +307,8 @@ export const ChatMessage = memo(function ChatMessage({
 	streaming,
 	editing,
 	edited,
+	versions,
+	onActionSubmit,
 	failed,
 	contextMenu,
 	trigger = 'hover',
@@ -346,18 +340,13 @@ export const ChatMessage = memo(function ChatMessage({
 	// on its one channel, so the dots stay out of the accessibility tree.
 	const pending = streaming === true && !failed && isEmptyContent(children)
 
-	const content =
-		typeof children === 'string' ? (
-			<Markdown headingOffset={MESSAGE_HEADING_OFFSET}>{children}</Markdown>
-		) : (
-			children.map((part, index) => (
-				<ChatMessageBlock
-					key={part.id}
-					part={part}
-					className={index === 0 ? undefined : slots.part}
-				/>
-			))
-		)
+	// The scope wraps the content on each render, so an answer that turns on or
+	// off keeps the state of each ask in the message.
+	const content = (
+		<ChatActionScope onSubmit={onActionSubmit}>
+			<ChatMessageContent content={children} partClassName={slots.part} />
+		</ChatActionScope>
+	)
 
 	const bubble = (
 		// Tab does not stop on the bubble, but the Copy item of the menu moves the
@@ -409,10 +398,10 @@ export const ChatMessage = memo(function ChatMessage({
 				)}
 				<ChatMessageFooter
 					edited={edited}
+					versions={versions}
 					branch={branch}
 					onBranchChange={onBranchChange}
-					className={slots.footer}
-					labelClassName={slots.edited}
+					slots={slots}
 				/>
 			</div>
 			{timestamp !== undefined && (

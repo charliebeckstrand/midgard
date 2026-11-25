@@ -29,6 +29,11 @@ export {
 } from './engine/chat-citation'
 export { chatContentText } from './engine/chat-content/text'
 export type {
+	ChatActionField,
+	ChatActionInput,
+	ChatActionOption,
+	ChatActionPart,
+	ChatActionResult,
 	ChatCitation,
 	ChatEmbedPart,
 	ChatPart,
@@ -36,7 +41,7 @@ export type {
 	ChatToolPart,
 	ChatToolStatus,
 } from './engine/chat-content/types'
-export type { ChatMessageData } from './engine/types'
+export type { ChatMessageData, ChatReplyChunk, ChatRevision } from './engine/types'
 export type {
 	ChatCitationTarget,
 	ChatCitationTargets,
