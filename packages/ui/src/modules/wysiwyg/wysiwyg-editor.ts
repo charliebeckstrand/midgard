@@ -8,6 +8,7 @@ import { type Command, EditorState, TextSelection, type Transaction } from 'pros
 import { EditorView } from 'prosemirror-view'
 import type { MarkdownRange } from '../../components/markdown/markdown-ranges'
 import { isComposing } from '../../utilities/is-composing'
+import { sameFields } from '../../utilities/same-elements'
 import { caretBlock, replaceInBlock } from './engine/wysiwyg-block'
 import {
 	exitCodeDown,
@@ -282,9 +283,14 @@ export function createWysiwygEditor(
 	return {
 		view,
 		update: (next) => {
+			// The view draws only the attributes and the editable state. The other
+			// settings are read at each event, so a change of them needs no redraw.
+			const redraw =
+				next.editable !== props.editable || !sameFields(next.attributes, props.attributes)
+
 			props = next
 
-			view.setProps({})
+			if (redraw) view.setProps({})
 		},
 		focus: () => {
 			if (view.editable) view.focus()

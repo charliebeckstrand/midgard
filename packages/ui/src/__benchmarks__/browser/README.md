@@ -855,7 +855,9 @@ The `always` rows have a wide spread (±11% and ±19%), so read the ratio as abo
 
 ### Methodology
 
-[`wysiwyg-typing.bench.tsx`](wysiwyg-typing.bench.tsx) times one edit and one mount of a `Wysiwyg` with its toolbar. An edit is one transaction that inserts or deletes one character at the end of the doc, under `flushSync`. A sample thus holds the work of ProseMirror, the Markdown bridge, and the React commit, but not the read of the DOM change. The edit rungs are an uncontrolled field, a field that a parent controls, and the ChatPrompt with `wysiwyg`. The doc rungs give a controlled field of 2,000, 20,000, and 100,000 characters. The bench logs the renders of one edit for each field.
+[`wysiwyg-typing.bench.tsx`](wysiwyg-typing.bench.tsx) times the edits and the mount of a `Wysiwyg` with its toolbar. An edit is one transaction that inserts or deletes one character at the end of the doc, under `flushSync`. An edit thus holds the work of ProseMirror, the Markdown bridge, and the React commit, but not the read of the DOM change. A sample of an edit group is ten edits, because the timer of the page counts in steps of 0.1 ms. The edit rungs are an uncontrolled field, a field that a parent controls, the ChatPrompt with `wysiwyg`, and the ChatPrompt with `wysiwyg`, a source of the picker, and attachments (`chat-full`). The doc rungs give a controlled field of 2,000, 20,000, and 100,000 characters. The bench logs the renders of one edit for each field.
+
+An edit reads the selection of the page, and the browser then lays out the page, so a large doc on the page adds its layout to each edit of each field. The fields of each edit group thus mount when the group starts, and the small fields run before the large docs mount. The doc rungs share one page, so the 2,000 rung holds the layout of the larger docs.
 
 ### Findings (2026-11-24, this container)
 
@@ -873,6 +875,19 @@ The mean ms of one edit, over two interleaved pairs of runs:
 Before the change, each edit rendered the toolbar and each of its buttons again, and wrote the Markdown of the whole doc again. The fix keeps the context value of the field, memoizes the toolbar, and keeps the Markdown of each block by its node. After it, an edit renders only the field. Most of the 3.0 ms at 100,000 characters is the view update of ProseMirror.
 
 The mount of a large doc costs mostly the browser layout of its content: at 100,000 characters, about 135 ms of a 220 ms mount. The markup before the editor loads pays the same layout.
+
+### Findings (2026-11-25, this container)
+
+The figures of 2026-11-24 for the small doc came from a page that also held the large docs, so they hold the layout of those docs. With each group on its own page, the mean ms of one edit, over two interleaved pairs of runs (each sample is ten edits):
+
+| Field | Before | After |
+| --- | ---: | ---: |
+| uncontrolled, small doc | 0.095 | 0.088 |
+| controlled, small doc | 0.075 | 0.078 |
+| ChatPrompt `wysiwyg` | 0.22 | 0.12 |
+| ChatPrompt `wysiwyg`, a source and attachments | 0.27 | 0.10 |
+
+Before the change, each key in the composer ran the floating panel of the picker, also with no source or a closed picker, and rendered the send button, the paperclip button, and the panel again. The fix gives the placement of the panel to `ChatPromptPicker`, which is memoized, and makes the send and the paperclip button memoized parts with stable events. After it, an edit renders the composer and the field, and no button. The field also gives new settings to ProseMirror only when it draws them: its attributes or its editable state. A plain field is even, because ProseMirror and the React commit of the field are most of its edit.
 
 ## PDF viewer
 

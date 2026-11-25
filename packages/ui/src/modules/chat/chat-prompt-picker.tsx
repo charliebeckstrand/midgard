@@ -1,8 +1,9 @@
 'use client'
 
-import type { CSSProperties, Ref } from 'react'
+import { memo, type Ref, type RefObject, useLayoutEffect } from 'react'
 import { ariaAttr } from '../../core/aria-attr'
 import { cn } from '../../core/cn'
+import { useFloatingUI } from '../../hooks/use-floating-ui'
 import { Option, OptionDescription, OptionLabel, OptionText } from '../../primitives/option'
 import { PopoverPanel } from '../../primitives/popover'
 import { Portal } from '../../primitives/portal'
@@ -20,9 +21,10 @@ export type ChatPromptPickerProps = {
 	status: PickerStatus
 	/** The status line: that the list loads, that it holds no item, or that it failed. */
 	statusText: string
-	floatingStyles: CSSProperties
-	setFloating: (node: HTMLElement | null) => void
-	getFloatingProps: () => Record<string, unknown>
+	/** The element of the field. The panel sits over its control frame. */
+	elementRef: RefObject<HTMLElement | null>
+	/** Fires when the reader dismisses the open panel, such as with a press outside it. */
+	onDismiss: () => void
 	onChoose: (item: ChatPromptItem) => void
 }
 
@@ -38,9 +40,13 @@ export type ChatPromptPickerProps = {
  * holds. Thus `useChatPromptPicker` speaks the status through the shared
  * announcer.
  *
+ * The panel sits over the composer, and not over the caret. It is memoized,
+ * so a key in the field renders it only when a prop changes, such as the
+ * query of an open picker.
+ *
  * @internal
  */
-export function ChatPromptPicker({
+export const ChatPromptPicker = memo(function ChatPromptPicker({
 	open,
 	listId,
 	listRef,
@@ -48,12 +54,17 @@ export function ChatPromptPicker({
 	items,
 	status,
 	statusText,
-	floatingStyles,
-	setFloating,
-	getFloatingProps,
+	elementRef,
+	onDismiss,
 	onChoose,
 }: ChatPromptPickerProps) {
 	const slots = k()
+
+	const { floatingStyles, setFloating, getFloatingProps } = usePickerPlacement(
+		open,
+		elementRef,
+		onDismiss,
+	)
 
 	return (
 		<Portal open={open}>
@@ -105,4 +116,46 @@ export function ChatPromptPicker({
 			</div>
 		</Portal>
 	)
+})
+
+/**
+ * The placement of the panel of the picker: over the control frame of the
+ * field, and not over the caret. A press outside the open panel calls
+ * `onDismiss`.
+ *
+ * @internal
+ */
+function usePickerPlacement(
+	open: boolean,
+	elementRef: RefObject<HTMLElement | null>,
+	onDismiss: () => void,
+) {
+	const floating = useFloatingUI({
+		open,
+		onOpenChange: (next) => {
+			if (!next) onDismiss()
+		},
+		placement: 'top-start',
+		matchReferenceWidth: true,
+		fitHeight: true,
+		role: null,
+	})
+
+	const { setReference, setFloating } = floating.refs
+
+	// The element of a field can come after the mount, such as the element of an
+	// editor that loads, so the reference updates at each open.
+	useLayoutEffect(() => {
+		const element = elementRef.current
+
+		if (!open || !element) return
+
+		setReference(element.closest<HTMLElement>('[data-slot="control-frame"]') ?? element)
+	}, [setReference, elementRef, open])
+
+	return {
+		floatingStyles: floating.floatingStyles,
+		setFloating,
+		getFloatingProps: floating.getFloatingProps,
+	}
 }
