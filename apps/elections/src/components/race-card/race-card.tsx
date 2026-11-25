@@ -8,7 +8,7 @@ import { Stack } from 'ui/structure/stack'
 import { Swatch } from 'ui/swatch'
 import { Text } from 'ui/text'
 import type { Candidate } from '../../types'
-import { barColor, leaders } from '../../utilities/race-math'
+import { barColor, leaders, SHARE_DIGITS } from '../../utilities/race-math'
 import { entryName, type RaceEntry } from '../../utilities/results'
 import { CardButton } from '../card-button'
 import { PercentOdometer } from '../percent-odometer'
@@ -24,7 +24,7 @@ export type RaceCardProps = {
 }
 
 /**
- * One leader of a head-to-head, with the share to two decimals. The winner mark
+ * One leader of a head-to-head, with the share to `SHARE_DIGITS` decimals. The winner mark
  * follows the name, as in the race summary.
  */
 function LeaderRow({ candidate }: { candidate: Candidate }) {
@@ -38,7 +38,7 @@ function LeaderRow({ candidate }: { candidate: Candidate }) {
 				{candidate.winner ? <WinnerMark /> : null}
 			</Flex>
 
-			<PercentOdometer value={candidate.percent} digits={2} className="font-semibold" />
+			<PercentOdometer value={candidate.percent} digits={SHARE_DIGITS} className="font-semibold" />
 		</Flex>
 	)
 }
@@ -67,7 +67,7 @@ function HeadToHead({ leader, runnerUp }: { leader: Candidate; runnerUp: Candida
 
 /**
  * A card of one race: the race, with its office under it in a list of many
- * offices, the two leaders to two decimals, a head-to-head bar with a mark at
+ * offices, the two leaders to `SHARE_DIGITS` decimals, a head-to-head bar with a mark at
  * 50% when the race has a runner-up, and the percent reporting with the call
  * dot.
  */
