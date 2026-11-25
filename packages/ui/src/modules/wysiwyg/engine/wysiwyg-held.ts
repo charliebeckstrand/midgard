@@ -10,8 +10,8 @@ import { Decoration, DecorationSet } from 'prosemirror-view'
 export const HELD = new PluginKey<DecorationSet>('wysiwygHeld')
 
 /**
- * The mark of a range that a popover of the field acts on, such as the link
- * popover. The focus is then in the popover, and the browser draws no
+ * The mark of a range that a dialog of the field acts on, such as the link
+ * dialog. The focus is then in the dialog, and the browser draws no
  * selection in the field. A range is `data-slot="wysiwyg-held"` text, and a
  * caret is an empty `data-slot="wysiwyg-held-caret"` element. Each edit moves
  * the mark with its text.

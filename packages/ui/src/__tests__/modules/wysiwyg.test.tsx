@@ -98,7 +98,7 @@ describe('Wysiwyg', () => {
 		expect(screen.getByRole('button', { name: 'Quote' })).toHaveAttribute('aria-pressed', 'true')
 	})
 
-	it('opens the link popover from a press before the load when the editor comes', async () => {
+	it('opens the link dialog from a press before the load when the editor comes', async () => {
 		renderUI(
 			<Wysiwyg aria-label="Notes" defaultValue="Text">
 				<WysiwygToolbar actions={['link']} />
@@ -564,7 +564,7 @@ describe('WysiwygToolbar', () => {
 		expect(screen.getByRole('button', { name: 'Italic' })).toHaveAttribute('aria-pressed', 'false')
 	})
 
-	it('opens the link popover from the link button', async () => {
+	it('opens the link dialog from the link button', async () => {
 		renderUI(
 			<Wysiwyg aria-label="Notes" defaultValue="Text">
 				<WysiwygToolbar actions={['link']} />
