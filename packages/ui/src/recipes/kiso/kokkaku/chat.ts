@@ -4,8 +4,9 @@
  *
  * `root` fills the flex parent of the transcript, as the real transcript
  * does, and clips in place of a scroll. `room` is the room around the rows,
- * and `row` is the gap above each row. The real transcript and the skeleton
- * read both. `bubble` has the
+ * `row` is the gap above each row, and `first` replaces that gap above the
+ * first row on a device with no hover. The real transcript and the skeleton
+ * read all three. `bubble` has the
  * width cap, the padding, and the radius of the real bubble, and `tail` holds the corner of
  * each side. `bubble` is `width` and `box` together. The real message reads
  * `width`, `box`, and `tail`, so the two cannot drift apart. Each line has the 6-unit line height of the `md` text of the
@@ -38,6 +39,13 @@ export const chat = {
 	 * the toolbar of the menu button, which rises 24px above the bubble.
 	 */
 	row: 'pt-6',
+	/**
+	 * The room above the first row of a transcript on a device with no hover.
+	 * Such a device has no toolbar, so above the first row only the ring of an
+	 * edit needs room: 4px, as on the other sides. Between two rows, the gap
+	 * of `row` stays on each device. Add it after `row`.
+	 */
+	first: '[@media(hover:none)]:pt-1',
 	/**
 	 * The width of the bubble. The cap is 85% of the message, with a floor of
 	 * 12rem, and never more than the full message. A shrink-to-fit parent (an

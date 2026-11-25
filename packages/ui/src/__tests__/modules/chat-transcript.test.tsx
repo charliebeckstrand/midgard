@@ -144,7 +144,7 @@ describe('ChatTranscript', () => {
 			expect(onAction).toHaveBeenCalledOnce()
 		})
 
-		it('makes each message a row, with the same gap above each, the first too', () => {
+		it('makes each message a row, with the same gap above each, the first too on a device that hovers', () => {
 			const { container } = renderUI(<ChatTranscript messages={messages} />)
 
 			const rows = allBySlot(container, 'chat-message')
@@ -154,6 +154,12 @@ describe('ChatTranscript', () => {
 
 			// The gap holds the toolbar of the menu button above each bubble.
 			for (const row of rows) expect(row).toHaveClass('pt-6')
+
+			// A device with no hover has no toolbar, so the first row keeps only the
+			// room of the ring of an edit above it. The gap between rows stays.
+			expect(rows[0]).toHaveClass('[@media(hover:none)]:pt-1')
+
+			expect(rows[1]?.className).not.toContain('hover:none')
 		})
 
 		it('does not render a settled row again when a chunk lands', () => {
