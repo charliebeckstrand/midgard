@@ -248,7 +248,7 @@ export function useWysiwygEditor({
 			return
 		}
 
-		early.hold(task, host.current?.firstElementChild ?? null)
+		early.hold(task, host.current?.firstElementChild ?? null, { value, ranges })
 
 		if (!ready) loadEngineNow()
 	})

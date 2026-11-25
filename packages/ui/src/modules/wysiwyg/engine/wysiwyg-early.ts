@@ -1,6 +1,6 @@
 import { redo, undo } from 'prosemirror-history'
 import type { Node } from 'prosemirror-model'
-import { TextSelection, type Transaction } from 'prosemirror-state'
+import { Plugin, PluginKey, TextSelection, type Transaction } from 'prosemirror-state'
 import type { EditorView } from 'prosemirror-view'
 import type { WysiwygEarlyField, WysiwygEarlyItem, WysiwygEarlyPoint } from '../wysiwyg-early-input'
 import { wysiwygCommands } from './wysiwyg-commands'
@@ -225,26 +225,32 @@ type BlockChange = { block: EarlyBlock; change: TextChange; text: string }
 /** A point of the selection in a block of the markup, and the change of that block. @internal */
 type BlockPoint = { block: EarlyBlock; change: TextChange | null; offset: number }
 
+/** The anchor and the head of a selection in the blocks of the markup. @internal */
+type BlockSelection = { anchor: BlockPoint | null; head: BlockPoint | null }
+
+/** The edits of the reader in the markup. @internal */
+type EarlyEdits = BlockSelection & { changes: BlockChange[]; moves: BlockSelection[] }
+
 /**
  * Reads the edits of the reader in the markup: the change of the text of each
- * block, and the anchor and the head of the selection.
+ * block, the anchor and the head of the selection, and each move of the
+ * reader.
  *
  * @internal
  */
-function readEdits(
-	doc: Node,
-	field: WysiwygEarlyField,
-): { changes: BlockChange[]; anchor: BlockPoint | null; head: BlockPoint | null } {
+function readEdits(doc: Node, field: WysiwygEarlyField): EarlyEdits {
 	const blocks: EarlyBlock[] = []
 
 	pairBlocks(doc, field.root, 0, blocks)
 
 	const changes: BlockChange[] = []
 
-	const found: (BlockPoint | null)[] = [null, null]
+	const points = [field, ...field.moves].flatMap(({ anchor, head }) => [anchor, head])
+
+	const found: (BlockPoint | null)[] = points.map(() => null)
 
 	for (const block of blocks) {
-		const read = readBlock(block.content, [field.anchor, field.head])
+		const read = readBlock(block.content, points)
 
 		const caret = read.offsets[1] ?? read.offsets[0] ?? null
 
@@ -262,9 +268,20 @@ function readEdits(
 		})
 	}
 
-	const [anchor = null, head = anchor] = found.filter((point) => point !== null)
+	// A selection with one point in a block is a caret at that point.
+	const selection = (index: number): BlockSelection => {
+		const anchor = found[index] ?? null
 
-	return { changes, anchor, head }
+		const head = found[index + 1] ?? null
+
+		return { anchor: anchor ?? head, head: head ?? anchor }
+	}
+
+	return {
+		changes,
+		...selection(0),
+		moves: field.moves.map((_, index) => selection(2 * index + 2)),
+	}
 }
 
 /** The position in the changed doc of a point of the markup. @internal */
@@ -284,7 +301,7 @@ function mapPoint(tr: Transaction, { block, change, offset }: BlockPoint): numbe
  *
  * @internal
  */
-function typedAtCaret({ changes, anchor, head }: ReturnType<typeof readEdits>): BlockChange | null {
+function typedAtCaret({ changes, anchor, head }: EarlyEdits): BlockChange | null {
 	const [only] = changes
 
 	if (changes.length !== 1 || !only || only.change.endA !== only.change.start) return null
@@ -293,6 +310,130 @@ function typedAtCaret({ changes, anchor, head }: ReturnType<typeof readEdits>): 
 		point?.block === only.block && point.offset === only.change.endB
 
 	return after(anchor) && after(head) ? only : null
+}
+
+/**
+ * The key of the moves of the reader before the load, and the meta of a
+ * transaction that sets the positions of some of them. The state holds the
+ * anchor and the head of each move, as positions of the doc. Each change
+ * maps them, and a position stays before text that comes at it, as the
+ * reader did not see that text.
+ *
+ * @internal
+ */
+const MOVES = new PluginKey<readonly (number | null)[]>('wysiwygEarlyMoves')
+
+/** A position of the anchor (an even index) or the head (an odd index) of a move. @internal */
+type MoveSet = { index: number; pos: number }
+
+/**
+ * The moves of the reader before the load, as {@link MOVES} keeps them.
+ *
+ * @internal
+ */
+export function wysiwygEarlyMoves(): Plugin<readonly (number | null)[]> {
+	return new Plugin<readonly (number | null)[]>({
+		key: MOVES,
+		state: {
+			init: () => [],
+			apply: (tr, points) => {
+				const mapped = tr.docChanged
+					? points.map((pos) => (pos === null ? null : tr.mapping.map(pos, -1)))
+					: [...points]
+
+				for (const { index, pos } of (tr.getMeta(MOVES) as MoveSet[] | undefined) ?? []) {
+					while (mapped.length <= index) mapped.push(null)
+
+					mapped[index] = pos
+				}
+
+				return mapped
+			},
+		},
+	})
+}
+
+/**
+ * Puts the selection at a move of the reader before the load, as each change
+ * since the load maps it. A move that the editor did not take does nothing.
+ *
+ * @internal
+ */
+export function selectEarlyMove(view: EditorView, move: number): void {
+	const points = MOVES.getState(view.state) ?? []
+
+	const anchor = points[2 * move]
+
+	const head = points[2 * move + 1]
+
+	if (anchor == null || head == null) return
+
+	const { doc } = view.state
+
+	view.dispatch(
+		view.state.tr.setSelection(TextSelection.between(doc.resolve(anchor), doc.resolve(head))),
+	)
+}
+
+/** Each point of the moves of the reader, by its index in the state of {@link MOVES}. @internal */
+function movePoints(moves: readonly BlockSelection[]): { index: number; point: BlockPoint }[] {
+	return moves.flatMap(({ anchor, head }, move) =>
+		[anchor, head].flatMap((point, side) => (point ? [{ index: 2 * move + side, point }] : [])),
+	)
+}
+
+/**
+ * Types text that the reader typed at one place again, and sets the position
+ * of each move. A point in the typed text takes the caret after the text
+ * before it, so each later change maps it, as an input rule does.
+ *
+ * @internal
+ */
+function typeAgain(view: EditorView, typed: BlockChange, moves: readonly BlockSelection[]): void {
+	const { start, endB } = typed.change
+
+	const points = movePoints(moves)
+
+	const inTyped = ({ point }: { point: BlockPoint }) =>
+		point.block === typed.block && point.offset > start && point.offset <= endB
+
+	const tr = view.state.tr.setSelection(
+		TextSelection.create(view.state.doc, typed.block.start + start),
+	)
+
+	const before = points.filter((at) => !inTyped(at))
+
+	view.dispatch(
+		tr.setMeta(
+			MOVES,
+			before.map(({ index, point }) => ({ index, pos: mapPoint(tr, point) })),
+		),
+	)
+
+	let waiting = points.filter(inTyped)
+
+	let count = 0
+
+	for (const char of typed.text) {
+		typeText(view, char)
+
+		count += char.length
+
+		const reached = waiting.filter(({ point }) => point.offset - start <= count)
+
+		if (reached.length === 0) continue
+
+		waiting = waiting.filter((at) => !reached.includes(at))
+
+		const pos = view.state.selection.head
+
+		view.dispatch(
+			view.state.tr.setMeta(
+				MOVES,
+				reached.map(({ index }) => ({ index, pos })),
+			),
+		)
+	}
 }
 
 /**
@@ -313,11 +454,7 @@ export function adoptEarlyInput(view: EditorView, field: WysiwygEarlyField): voi
 	const typed = typedAtCaret(edits)
 
 	if (typed) {
-		const at = typed.block.start + typed.change.start
-
-		view.dispatch(view.state.tr.setSelection(TextSelection.create(view.state.doc, at)))
-
-		for (const char of typed.text) typeText(view, char)
+		typeAgain(view, typed, edits.moves)
 
 		return
 	}
@@ -337,7 +474,16 @@ export function adoptEarlyInput(view: EditorView, field: WysiwygEarlyField): voi
 		tr.setSelection(TextSelection.between($anchor, tr.doc.resolve(mapPoint(tr, head))))
 	}
 
-	if (tr.docChanged || tr.selectionSet) view.dispatch(tr)
+	const moves = movePoints(edits.moves)
+
+	if (moves.length > 0) {
+		tr.setMeta(
+			MOVES,
+			moves.map(({ index, point }) => ({ index, pos: mapPoint(tr, point) })),
+		)
+	}
+
+	if (tr.docChanged || tr.selectionSet || moves.length > 0) view.dispatch(tr)
 }
 
 /** The graphemes of a text. The bounds of a grapheme do not change with the locale, so the root locale serves each reader. */

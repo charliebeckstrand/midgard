@@ -29,14 +29,20 @@ beforeEach(() => {
 
 afterEach(() => gate.open())
 
-/** A field that shows its Markdown value, and the value at each call of `onEnter`. */
+/**
+ * A field that shows its Markdown value, and the value at each call of
+ * `onEnter`. With `restore`, a Restore button sets that value, as a parent
+ * that restores a draft does.
+ */
 function Notes({
 	initial = '',
 	onEnter,
+	restore,
 	toolbar = false,
 }: {
 	initial?: string
 	onEnter?: (value: string) => void
+	restore?: string
 	toolbar?: boolean
 }) {
 	const [value, setValue] = useState(initial)
@@ -56,6 +62,11 @@ function Notes({
 				{toolbar && <WysiwygToolbar />}
 			</Wysiwyg>
 			<output data-testid="value">{value}</output>
+			{restore !== undefined && (
+				<button type="button" onClick={() => setValue(restore)}>
+					Restore
+				</button>
+			)}
 		</>
 	)
 }
@@ -281,6 +292,52 @@ describe('Wysiwyg input before the editor loads (real browser)', () => {
 		await userEvent.keyboard('語')
 
 		expect(value()).toBe('日本語')
+	})
+
+	it('types at the caret that the reader moved after a held key', async () => {
+		renderUI(<Notes />)
+
+		focusAtEnd()
+
+		await userEvent.keyboard('hello{ControlOrMeta>}b{/ControlOrMeta}{Home}X')
+
+		await load()
+
+		await waitFor(() => expect(value()).toBe('Xhello'))
+	})
+
+	it('types in the text typed before the load at the caret that the reader moved there', async () => {
+		renderUI(<Notes />)
+
+		const field = focusAtEnd()
+
+		await userEvent.keyboard('hello{ControlOrMeta>}b{/ControlOrMeta}')
+
+		const text = present(field.querySelector('p'), 'the block').firstChild
+
+		window.getSelection()?.collapse(text, 2)
+
+		await userEvent.keyboard('X')
+
+		await load()
+
+		await waitFor(() => expect(value()).toBe('heXllo'))
+	})
+
+	it('keeps a value that the parent sets after a held press', async () => {
+		renderUI(<Notes initial="Draft A" restore="Draft B" toolbar />)
+
+		focusAtEnd()
+
+		await userEvent.click(screen.getByRole('button', { name: 'Bold' }))
+
+		await userEvent.click(screen.getByRole('button', { name: 'Restore' }))
+
+		await load()
+
+		await waitFor(() => expect(screen.getByRole('textbox')).toHaveTextContent('Draft B'))
+
+		expect(value()).toBe('Draft B')
 	})
 
 	it('runs a toolbar press and the keys after it in order', async () => {

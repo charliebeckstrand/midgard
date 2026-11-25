@@ -217,7 +217,9 @@ function drawable<R extends MarkdownRange>(
  * two blocks, and a press of the toolbar. From the first held input, the field
  * holds each input after it too. When the editor loads, it takes the text and
  * the caret of the field, and then runs each held input in its order, as if
- * the reader gave it then. Thus a held Enter with `onEnter` sends the text
+ * the reader gave it then. A held input runs at the caret where the reader
+ * gave it. A value that the parent sets after the first input wins over the
+ * input in the field. Thus a held Enter with `onEnter` sends the text
  * before it, and a Markdown shortcut that the reader typed turns into
  * formatting. An input method composition goes on to its end before the editor
  * takes over. A drop before the load does nothing. The focus goes on to the

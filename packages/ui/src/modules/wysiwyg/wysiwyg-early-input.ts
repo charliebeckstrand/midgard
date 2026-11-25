@@ -39,16 +39,24 @@ export type WysiwygEarlyItem =
 /** A point of a DOM selection: a node, and an offset in it. @internal */
 export type WysiwygEarlyPoint = { node: Node; offset: number }
 
+/** The anchor and the head of a selection in the markup. @internal */
+export type WysiwygEarlySelection = {
+	anchor: WysiwygEarlyPoint | null
+	head: WysiwygEarlyPoint | null
+}
+
 /**
  * The markup of the field before the editor loads, as the editor takes it:
- * the element, and the selection of the reader in it.
+ * the element, and the selection of the reader in it. Each move is a
+ * selection that the reader made after the first held input, in the same
+ * markup. A held input that comes after a move runs at that move
+ * ({@link WysiwygEarlyInput}).
  *
  * @internal
  */
-export type WysiwygEarlyField = {
+export type WysiwygEarlyField = WysiwygEarlySelection & {
 	root: Element
-	anchor: WysiwygEarlyPoint | null
-	head: WysiwygEarlyPoint | null
+	moves: readonly WysiwygEarlySelection[]
 }
 
 /** A Markdown source and its ranges. @internal */
@@ -88,7 +96,7 @@ function nodeAt(root: Node, path: readonly number[]): Node | null {
 }
 
 /** The anchor and the head of the DOM selection, where `root` holds them. @internal */
-function selectionIn(root: Element): Pick<WysiwygEarlyField, 'anchor' | 'head'> {
+function selectionIn(root: Element): WysiwygEarlySelection {
 	const selection = root.ownerDocument.getSelection()
 
 	const point = (node: Node | null | undefined, offset: number) =>
@@ -100,27 +108,44 @@ function selectionIn(root: Element): Pick<WysiwygEarlyField, 'anchor' | 'head'> 
 	}
 }
 
-/**
- * A copy of the markup of the field and of the selection in it, as at the
- * moment of the copy. Each later change of the markup does not change it.
- *
- * @internal
- */
-function snapshot(root: Element): WysiwygEarlyField {
+/** The anchor and the head of a selection as paths from the root. @internal */
+type PathSelection = { anchor: PathPoint | null; head: PathPoint | null }
+
+/** The DOM selection in `root` as paths from `root`. @internal */
+function selectionPaths(root: Element): PathSelection {
 	const { anchor, head } = selectionIn(root)
 
-	const copy = root.cloneNode(true) as Element
+	const path = (at: WysiwygEarlyPoint | null): PathPoint | null =>
+		at && { path: findPath(root, at.node) ?? [], offset: at.offset }
 
-	const point = (at: WysiwygEarlyPoint | null) => {
-		const path: PathPoint | null = at && { path: findPath(root, at.node) ?? [], offset: at.offset }
+	return { anchor: path(anchor), head: path(head) }
+}
 
-		const node = path && nodeAt(copy, path.path)
+/** The points of `copy` at the paths of a selection. @internal */
+function selectionAt(copy: Element, { anchor, head }: PathSelection): WysiwygEarlySelection {
+	const point = (at: PathPoint | null) => {
+		const node = at && nodeAt(copy, at.path)
 
-		return node && path ? { node, offset: path.offset } : null
+		return node && at ? { node, offset: at.offset } : null
 	}
 
-	return { root: copy, anchor: point(anchor), head: point(head) }
+	return { anchor: point(anchor), head: point(head) }
 }
+
+/** Whether two points are at the same place. @internal */
+function samePoint(a: PathPoint | null, b: PathPoint | null): boolean {
+	if (!a || !b) return a === b
+
+	return a.offset === b.offset && a.path.join() === b.path.join()
+}
+
+/** Whether two selections are at the same place. @internal */
+function sameSelection(a: PathSelection, b: PathSelection): boolean {
+	return samePoint(a.anchor, b.anchor) && samePoint(a.head, b.head)
+}
+
+/** A held task, and the index of the move of the reader that it runs at, or `null`. @internal */
+type HeldTask = { task: (editor: WysiwygEditor) => void; move: number | null }
 
 /**
  * The input of a field before its editor loads. The browser makes each edit
@@ -141,13 +166,19 @@ export type WysiwygEarlyInput = {
 	held: () => boolean
 	/**
 	 * Puts a task in the queue. The first task copies `field`, the markup of the
-	 * field. An input method composition puts off the copy to its end, so the
-	 * copy holds the composed text.
+	 * field, which drew `source`. An input method composition puts off the copy
+	 * to its end, so the copy holds the composed text. A later task records the
+	 * selection of the reader in `field` when the reader moved it. The markup
+	 * takes no edit while the queue holds a task, so the selection is a
+	 * selection of the copy.
 	 */
-	hold: (task: (editor: WysiwygEditor) => void, field: Element | null) => void
+	hold: (task: (editor: WysiwygEditor) => void, field: Element | null, source: Source) => void
 	/** Whether an input method composes in the field. The editor waits for the end. */
 	composing: () => boolean
-	/** The source that the markup drew at the first edit of the browser, or `null`. */
+	/**
+	 * The source that the markup drew at the first input of the reader, or
+	 * `null`. The input is an edit of the browser, or the first held task.
+	 */
 	edited: () => Source | null
 	/** Records the first edit of the browser in the markup, which drew `source`. */
 	edit: (source: Source) => void
@@ -156,10 +187,13 @@ export type WysiwygEarlyInput = {
 	 * held task, or else `field` and the selection in it.
 	 */
 	take: (field: Element) => WysiwygEarlyField
-	/** Runs the first task of the queue on `editor`. Gives whether tasks remain. */
+	/**
+	 * Runs the first task of the queue on `editor`, at the move of the reader
+	 * that it records. Gives whether tasks remain.
+	 */
 	next: (editor: WysiwygEditor) => boolean
-	/** Starts a composition. */
-	compositionStart: () => void
+	/** Starts a composition in `field`. */
+	compositionStart: (field: Element) => void
 	/** Ends a composition in `field`, which composed `text`. */
 	compositionEnd: (field: Element, text: string) => void
 	/** Calls `listener` at the start and the end of each composition. Gives the cleanup. */
@@ -168,9 +202,18 @@ export type WysiwygEarlyInput = {
 
 /** @internal */
 export function createEarlyInput(): WysiwygEarlyInput {
-	const queue: ((editor: WysiwygEditor) => void)[] = []
+	const queue: HeldTask[] = []
 
 	let copy: WysiwygEarlyField | null = null
+
+	// The moves of the reader in the copy, and the selection of the last one.
+	const moves: WysiwygEarlySelection[] = []
+
+	let moved: PathSelection | null = null
+
+	// An input method composed text in the markup while the queue held a task.
+	// The markup then differs from the copy, so the field records no more moves.
+	let drifted = false
 
 	// A held task came during a composition, so the copy waits for its end.
 	let copyAtEnd = false
@@ -180,19 +223,49 @@ export function createEarlyInput(): WysiwygEarlyInput {
 	// The composition started while the queue held a task, so its text waits too.
 	let composingHeld = false
 
+	// The move of the reader at the start of that composition.
+	let composedMove: number | null = null
+
 	let edited: Source | null = null
 
 	const listeners = new Set<() => void>()
 
+	const takeCopy = (field: Element) => {
+		moved = selectionPaths(field)
+
+		const root = field.cloneNode(true) as Element
+
+		copy = { root, moves, ...selectionAt(root, moved) }
+	}
+
+	// The index of the move of the reader since the last held task, or `null`.
+	const readMove = (field: Element | null): number | null => {
+		if (!copy || !moved || !field || drifted) return null
+
+		const selection = selectionPaths(field)
+
+		if (sameSelection(selection, moved)) return null
+
+		moved = selection
+
+		return moves.push(selectionAt(copy.root, selection)) - 1
+	}
+
 	return {
 		held: () => queue.length > 0,
-		hold: (task, field) => {
+		hold: (task, field, source) => {
 			if (queue.length === 0 && copy === null && field) {
+				edited ??= source
+
 				if (composing) copyAtEnd = true
-				else copy = snapshot(field)
+				else takeCopy(field)
+
+				queue.push({ task, move: null })
+
+				return
 			}
 
-			queue.push(task)
+			queue.push({ task, move: readMove(field) })
 		},
 		composing: () => composing,
 		edited: () => edited,
@@ -200,21 +273,32 @@ export function createEarlyInput(): WysiwygEarlyInput {
 			edited ??= source
 		},
 		take: (field) => {
-			const taken = copy ?? { root: field, ...selectionIn(field) }
+			const taken = copy ?? { root: field, moves: [], ...selectionIn(field) }
 
 			copy = null
 
 			return taken
 		},
 		next: (editor) => {
-			queue.shift()?.(editor)
+			const held = queue.shift()
+
+			if (held) {
+				if (held.move !== null) editor.select(held.move)
+
+				held.task(editor)
+			}
 
 			return queue.length > 0
 		},
-		compositionStart: () => {
+		compositionStart: (field) => {
 			composing = true
 
 			composingHeld = queue.length > 0 && !copyAtEnd
+
+			// The composed text goes at the caret where the composition starts.
+			composedMove = composingHeld ? readMove(field) : null
+
+			drifted ||= composingHeld
 
 			for (const listener of listeners) listener()
 		},
@@ -224,9 +308,9 @@ export function createEarlyInput(): WysiwygEarlyInput {
 			if (copyAtEnd) {
 				copyAtEnd = false
 
-				copy = snapshot(field)
+				takeCopy(field)
 			} else if (composingHeld && text) {
-				queue.push((editor) => editor.replay({ type: 'text', text }))
+				queue.push({ task: (editor) => editor.replay({ type: 'text', text }), move: composedMove })
 			}
 
 			composingHeld = false
@@ -494,7 +578,7 @@ export function captureEarlyInput(
 	const compositionStart = () => {
 		onEdit()
 
-		early.compositionStart()
+		early.compositionStart(root)
 	}
 
 	const compositionEnd = (event: CompositionEvent) => early.compositionEnd(root, event.data)

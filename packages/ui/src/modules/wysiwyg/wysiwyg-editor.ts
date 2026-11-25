@@ -20,7 +20,12 @@ import {
 	wysiwygCommands,
 } from './engine/wysiwyg-commands'
 import { cancelLink } from './engine/wysiwyg-dom'
-import { adoptEarlyInput, replayEarlyInput } from './engine/wysiwyg-early'
+import {
+	adoptEarlyInput,
+	replayEarlyInput,
+	selectEarlyMove,
+	wysiwygEarlyMoves,
+} from './engine/wysiwyg-early'
 import { HELD, wysiwygHeld } from './engine/wysiwyg-held'
 import { wysiwygInputRules } from './engine/wysiwyg-input-rules'
 import { parseMarkdown } from './engine/wysiwyg-markdown/parse'
@@ -121,6 +126,11 @@ export type WysiwygEditor = {
 	adopt: (field: WysiwygEarlyField) => void
 	/** Runs an input that the field held before the load. */
 	replay: (item: WysiwygEarlyItem) => void
+	/**
+	 * Puts the selection where the reader moved it before the load, at the
+	 * move of index `move` of the markup that the editor took.
+	 */
+	select: (move: number) => void
 	destroy: () => void
 }
 
@@ -207,6 +217,7 @@ export function createWysiwygEditor(
 		plugins: [
 			wysiwygRanges(),
 			wysiwygHeld(),
+			wysiwygEarlyMoves(),
 			wysiwygInputRules(),
 			history(),
 			keymap({
@@ -373,6 +384,7 @@ export function createWysiwygEditor(
 		},
 		adopt: (field) => adoptEarlyInput(view, field),
 		replay: (item) => replayEarlyInput(view, item),
+		select: (move) => selectEarlyMove(view, move),
 		destroy: () => view.destroy(),
 	}
 }
