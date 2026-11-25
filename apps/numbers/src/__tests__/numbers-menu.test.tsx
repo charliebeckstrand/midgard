@@ -10,11 +10,13 @@ import { NumbersMenu } from '../components/numbers-menu/numbers-menu'
 import { RunPreloadProvider } from '../components/run-preload'
 import type { Route } from '../utilities/seed'
 
-// The menu loads the Stats dialog and its bar chart in idle time (`useIdleLoad`).
-// This import loads that module before the cases run. Thus a case waits for the
-// dialog to open, not for the first transform of the module. On a slow machine,
+// The menu loads the Leaderboard dialog, and the Stats dialog and its bar chart,
+// in idle time (`useIntentLoad`, `useIdleLoad`). These imports load those
+// modules before the cases run. Thus a case waits for the dialog to open, not
+// for the first transform of the module. On a slow machine,
 // that transform took longer than the budget of `findByRole` (CONVENTIONS.md
 // §10.14).
+import '../components/leaderboard-dialog'
 import '../components/stats-dialog'
 
 vi.mock('../api/stats-api', () => ({ readStats: vi.fn() }))
@@ -70,6 +72,27 @@ afterEach(() => {
 })
 
 describe('NumbersMenu', () => {
+	it('opens from the keyboard with the focus on the first row', async () => {
+		renderMenu()
+
+		// Enter and Space on a button give a click with no pointer (`detail` 0).
+		fireEvent.click(screen.getByRole('button', { name: 'Menu' }), { detail: 0 })
+
+		const standard = await screen.findByRole('menuitem', { name: 'Standard' })
+
+		await waitFor(() => expect(document.activeElement).toBe(standard))
+	})
+
+	it('opens Leaderboard, whose code loads on use', async () => {
+		renderMenu()
+
+		fireEvent.click(screen.getByRole('button', { name: 'Menu' }))
+
+		fireEvent.click(await screen.findByRole('menuitem', { name: 'Leaderboard' }))
+
+		expect(await screen.findByRole('dialog', { name: 'Leaderboard' })).toBeTruthy()
+	})
+
 	it('lists the modes in order, Standard then Vs CPU, with Leaderboard between two dividers', async () => {
 		renderMenu()
 
