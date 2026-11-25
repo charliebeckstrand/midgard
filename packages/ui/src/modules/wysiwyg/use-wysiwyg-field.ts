@@ -37,6 +37,8 @@ type WysiwygFieldOptions = {
 	toolbar: boolean
 	/** Whether the toolbar is above the frame, apart from the field. */
 	separated: boolean
+	/** Whether the toolbar is the top row of the frame, above the field. */
+	top: boolean
 }
 
 /**
@@ -104,6 +106,7 @@ export function useWysiwygField(options: WysiwygFieldOptions) {
 		actions: options.stacked,
 		toolbar: options.toolbar,
 		separated: options.separated,
+		top: options.top,
 	})
 
 	const named = options['aria-labelledby'] !== undefined || options['aria-label'] !== undefined

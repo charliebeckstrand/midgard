@@ -4,7 +4,7 @@ import { undoInputRule } from 'prosemirror-inputrules'
 import { keymap } from 'prosemirror-keymap'
 import { Fragment, Slice } from 'prosemirror-model'
 import { splitListItem } from 'prosemirror-schema-list'
-import { type Command, EditorState, type Transaction } from 'prosemirror-state'
+import { type Command, EditorState, TextSelection, type Transaction } from 'prosemirror-state'
 import { EditorView } from 'prosemirror-view'
 import type { MarkdownRange } from '../../components/markdown/markdown-ranges'
 import { isComposing } from '../../utilities/is-composing'
@@ -78,6 +78,12 @@ export type WysiwygEditor = {
 	 * editable field.
 	 */
 	focus: () => void
+	/**
+	 * Puts the caret at the text nearest to a point of the viewport, and moves
+	 * the focus to the field, as a press at that point does. A field that takes
+	 * no edit only takes the focus.
+	 */
+	focusAt: (left: number, top: number) => void
 	/** Gives the editor new settings. */
 	update: (props: WysiwygEditorProps) => void
 	/** Replaces the doc with a Markdown source and its ranges, out of the undo history. */
@@ -281,6 +287,18 @@ export function createWysiwygEditor(
 			view.setProps({})
 		},
 		focus: () => {
+			if (view.editable) view.focus()
+			else view.dom.focus({ preventScroll: true })
+		},
+		focusAt: (left, top) => {
+			const hit = view.editable ? view.posAtCoords({ left, top }) : null
+
+			if (hit) {
+				const $pos = view.state.doc.resolve(hit.pos)
+
+				view.dispatch(view.state.tr.setSelection(TextSelection.near($pos)))
+			}
+
 			if (view.editable) view.focus()
 			else view.dom.focus({ preventScroll: true })
 		},
