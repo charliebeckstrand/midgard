@@ -41,9 +41,11 @@ describe('Wysiwyg toolbar gap press (real browser)', () => {
 
 		await userEvent.click(screen.getByRole('textbox'))
 
-		const field = screen.getByRole('textbox')
-
-		await waitFor(() => expect(field).toHaveAttribute('contenteditable', 'true'))
+		// The editor replaces the markup of the field when it loads, so the query
+		// runs again until it finds the element of the editor.
+		await waitFor(() =>
+			expect(screen.getByRole('textbox')).toHaveAttribute('contenteditable', 'true'),
+		)
 
 		await userEvent.keyboard('{Control>}{End}{/Control}')
 
