@@ -23,7 +23,7 @@ function renderRail(dir?: 'rtl') {
 
 	const rail = getSlot(container, 'pdf-viewer-sidebar')
 
-	const handle = screen.getByRole('separator', { name: 'Resize pages' })
+	const handle = screen.getByRole('separator', { name: 'Resize thumbnails' })
 
 	return { container, rail, handle }
 }

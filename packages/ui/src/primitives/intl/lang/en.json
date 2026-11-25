@@ -1591,6 +1591,14 @@
 		"defaultMessage": "{name}, selected",
 		"description": "The name of a row of the data table of a map for a region or a mark that the map holds selected, such as \"Ohio, selected\"."
 	},
+	"ui.map.selectedStop": {
+		"defaultMessage": "{readout}, selected",
+		"description": "What a screen reader hears for a region or a mark of a map that the map holds selected, as the keyboard cursor moves onto it or a pick selects it, such as \"Ohio, 12 stores, selected\"."
+	},
+	"ui.map.unselectedStop": {
+		"defaultMessage": "{readout}, not selected",
+		"description": "What a screen reader hears after a pick on a map removes a region or a mark from the selection, such as \"Ohio, 12 stores, not selected\"."
+	},
 	"ui.map.zoom": {
 		"defaultMessage": "Zoom {scale, number, percent}",
 		"description": "Spoken when a key or a zoom button zooms a map in or out, with the zoom as a percent of the fit, such as \"Zoom 150%\"."
@@ -1847,8 +1855,8 @@
 		"defaultMessage": "Reset zoom",
 		"description": "The button that sets the zoom of a PDF back to 100%."
 	},
-	"ui.pdfViewer.resizePages": {
-		"defaultMessage": "Resize pages",
+	"ui.pdfViewer.resizeThumbnails": {
+		"defaultMessage": "Resize thumbnails",
 		"description": "The name of the bar on the edge of the panel with the small images of the pages of a PDF. A drag or the arrow keys change the width of the panel."
 	},
 	"ui.pdfViewer.rotate": {

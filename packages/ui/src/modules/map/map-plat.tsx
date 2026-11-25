@@ -46,7 +46,7 @@ import { createStopMoves, entryTarget, mapStops } from './engine/map-keyboard/st
 import { groupLegendId, legendItems, overlaySwatchClass } from './engine/map-legend/items'
 import { planLegend } from './engine/map-legend/plan'
 import { type MapOverlayAnchor, sameAnchors } from './engine/map-overlay/entry'
-import { samePicks, targetParts } from './engine/map-overlay/selection'
+import { pickedStops, samePicks, targetParts } from './engine/map-overlay/selection'
 import { overlaySlotColors } from './engine/map-overlay/slots'
 import { createSpareStore } from './engine/map-overlay/spare'
 import { activeCategory } from './engine/map-region/category'
@@ -69,7 +69,7 @@ import type {
 import { MapChrome } from './map-chrome'
 import { MapFrame, MapPlotRegion } from './map-frame'
 import { MapLegendRegion } from './map-legend-region'
-import { mapMessages } from './map-messages'
+import { mapMessages, mapSelectedStopMessage } from './map-messages'
 import { MapRegions } from './map-regions'
 import { MapTable } from './map-table'
 import {
@@ -478,7 +478,10 @@ type MapPlatBaseProps = AccessibleName &
 		 * stood, and it would fight the hover and the legend emphasis. Overlay
 		 * children still draw over the outlines, as they do over every region. The
 		 * row of each selected region in the data table reads as selected, so the
-		 * selection is in the accessible readout, not the pixels alone.
+		 * selection is in the accessible readout, not the pixels alone. The
+		 * keyboard cursor says "selected" too, on a step onto a selected region.
+		 * After Enter or Space, a change of the set for the region under the cursor
+		 * speaks the new state, "selected" or "not selected".
 		 *
 		 * A pick that opens a Dialog or a Drawer over the map changes the set in
 		 * the same commit. The outlines then keep their last value until the
@@ -525,7 +528,9 @@ type MapPlatBaseProps = AccessibleName &
 		 * it, so the color of the mark reads through, as an outlined region keeps
 		 * its fill. The row of each picked stop in the data table reads as
 		 * selected, so the selection is in the accessible readout and not the pixels
-		 * alone. Picks that land in one summary halo that summary one time.
+		 * alone. The keyboard cursor speaks the selected state of a stop as it does
+		 * for a {@link selectedRegions} region. Picks that land in one summary halo
+		 * that summary one time.
 		 *
 		 * A pick that opens a Dialog or a Drawer over the map waits for its backdrop,
 		 * as a {@link selectedRegions} outline does.
@@ -1618,7 +1623,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// holds off) still speaks its name where Enter picks it: the reader must hear
 	// what a pick would report. A disabled region reports no pick, so it stays
 	// silent like a region of a map that picks nothing.
-	const describeTarget = useCallback(
+	const describeStop = useCallback(
 		(target: MapHoverTarget) => {
 			if (!readable) return nameMapTarget(target, tooltipProps)
 
@@ -1632,6 +1637,41 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 				: readout
 		},
 		[readable, picksRegions, regionDisabled, tooltipProps],
+	)
+
+	const selectedIndices = useMemo(() => new Set(selected), [selected])
+
+	// Whether the map holds the stop selected. The ring and the halo show it, and
+	// the SVG is `aria-hidden`, so the cursor must say it (WCAG 2.2 SC 4.1.2). An
+	// overlay stop is selected where a pick names one of its parts, by the same
+	// resolution that the halo and the table row read.
+	const isStopSelected = useCallback(
+		(target: MapHoverTarget) => {
+			if (target.kind === 'region') return selectedIndices.has(target.index)
+
+			const entry = tooltipEntries.get(target.id)
+
+			if (entry === undefined || markSelection.length === 0) return false
+
+			return targetParts(target, entry).some(({ id, stop }) => {
+				const owner = tooltipEntries.get(id)
+
+				return owner !== undefined && pickedStops(markSelection, id, owner.getStop).includes(stop)
+			})
+		},
+		[selectedIndices, tooltipEntries, markSelection],
+	)
+
+	// The readout of the stop, with its selected state.
+	const describeTarget = useCallback(
+		(target: MapHoverTarget) => {
+			const readout = describeStop(target)
+
+			return readout !== null && isStopSelected(target)
+				? intl.formatMessage(mapSelectedStopMessage, { readout })
+				: readout
+		},
+		[describeStop, isStopSelected, intl],
 	)
 
 	// The cursor earns a tab stop from either of its two outputs. Gating on the
@@ -1826,6 +1866,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 						activate: activateTarget,
 						relocate: relocateTarget,
 						describe: describeTarget,
+						selected: isStopSelected,
 						resolveStops,
 						moves,
 						view: { width: shape.viewWidth, height: shape.viewHeight },

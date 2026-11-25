@@ -241,6 +241,25 @@ export const k = {
 		 * slot's class fill, the outline takes the {@link k.selected} ink. A slot
 		 * is a mid tone in both modes, so that ink parts from it.
 		 */
+		/**
+		 * The outline of the region under the keyboard cursor, shown only while
+		 * the plot has the keyboard focus (WCAG 2.2 SC 2.4.7). The recede emphasis
+		 * lights only a region with data, and only when the layer recedes, so it
+		 * cannot be the cursor indicator. A focus-ink ring sits on a halo in the
+		 * surface ink. The halo shows on each side of the ring, so the ring holds
+		 * its contrast over a fill of any hue, a blue fill too.
+		 */
+		cursor: {
+			/** The halo under the ring. */
+			halo: ['invisible', 'in-[[data-slot=map-plot]:focus-visible]:visible', ...ink.surface],
+			/** The ring, in the focus ink. Under forced colors it takes `Highlight`. */
+			ring: [
+				'invisible',
+				'in-[[data-slot=map-plot]:focus-visible]:visible',
+				...mode('stroke-blue-600', 'dark:stroke-blue-500'),
+				'forced-colors:stroke-[Highlight]',
+			],
+		},
 		emphasized: {
 			/**
 			 * On a numeric bin's fill, the outline takes the pole that contrasts

@@ -27,7 +27,7 @@ import { frameToClient } from './engine/map-projection/frame'
 import { type MapZoomKey, mapZoomKey, zoomKeyFactor } from './engine/map-zoom/gesture'
 import { applyTransform, MAP_FIT_TRANSFORM, type MapTransform } from './engine/map-zoom/transform'
 import type { MapPoint2D } from './engine/types'
-import { describeZoom, mapMessages } from './map-messages'
+import { describeZoom, mapMessages, mapUnselectedStopMessage } from './map-messages'
 import type { MapZoomCursor } from './use-map-zoom'
 
 /**
@@ -128,6 +128,14 @@ export type MapKeyboardOptions = {
 	 */
 	describe?: (target: MapHoverTarget) => string | null
 	/**
+	 * Whether the map holds a stop selected. After Enter or Space picks the stop
+	 * under the cursor, a change of this answer for that stop speaks the new
+	 * state: the readout, which then says "selected", or the readout with
+	 * "not selected". A pick that the caller does not echo into the selection
+	 * speaks nothing. Absent, a pick speaks nothing.
+	 */
+	selected?: (target: MapHoverTarget) => boolean
+	/**
 	 * The view the zoom layer draws through, or `null` on a map that does not
 	 * zoom. The cursor reads it to anchor its readout where the map draws the
 	 * stop, and drives it two ways. `+`, `-`, and `0` step and reset the scale.
@@ -194,6 +202,7 @@ export function useMapKeyboard({
 	activate,
 	relocate,
 	describe,
+	selected,
 	zoom,
 }: MapKeyboardOptions): MapKeyboardProps | null {
 	const { set, get: hovered } = useMapHoverActions()
@@ -303,6 +312,37 @@ export function useMapKeyboard({
 
 		if (text) announce(text)
 	}
+
+	// The stop of the last pick and its selected state before the pick. The
+	// caller echoes a pick into the selection in its own render, so the change
+	// shows up in a later render, not in the key handler.
+	const pick = useRef<{ key: string; was: boolean } | null>(null)
+
+	const heldKey = held === null ? null : stopKey(held)
+
+	useEffect(() => {
+		const last = pick.current
+
+		if (last === null) return
+
+		if (held === null || heldKey !== last.key || selected === undefined) {
+			pick.current = null
+
+			return
+		}
+
+		const now = selected(held)
+
+		if (now === last.was) return
+
+		pick.current = null
+
+		const readout = describe?.(held)
+
+		if (!readout) return
+
+		announce(now ? readout : intl.formatMessage(mapUnselectedStopMessage, { readout }))
+	})
 
 	const { leave, onBlur: exit } = usePlotTabStop(cursor !== null, () => show(null))
 
@@ -424,6 +464,8 @@ export function useMapKeyboard({
 			if (held === null) return
 
 			event.preventDefault()
+
+			pick.current = { key: stopKey(held), was: selected?.(held) ?? false }
 
 			activate(held, KEY_PRESS)
 
