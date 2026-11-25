@@ -1,6 +1,7 @@
 import { createRef, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Field, Label } from '../../components/fieldset'
+import type { MarkdownRange } from '../../components/markdown/markdown-ranges'
 import { Wysiwyg, type WysiwygHandle, WysiwygSkeleton, WysiwygToolbar } from '../../modules/wysiwyg'
 import { useWysiwyg } from '../../modules/wysiwyg/context'
 import { HeadlessProvider } from '../../providers/headless'
@@ -481,6 +482,126 @@ describe('Wysiwyg', () => {
 		expect(container.querySelector('[data-slot="control-frame"]')).toBeNull()
 
 		expect(screen.getByRole('textbox')).toBeInTheDocument()
+	})
+})
+
+describe('Wysiwyg ranges', () => {
+	type Report = [string, MarkdownRange[]]
+
+	/** A controlled field of `Ask Sales` with no range, which records each report and gives it back. */
+	function renderRanged(initial: MarkdownRange[] = []) {
+		const handle = createRef<WysiwygHandle>()
+
+		const reports: Report[] = []
+
+		function Parent() {
+			const [state, setState] = useState({ value: 'Ask Sales', ranges: initial })
+
+			return (
+				<Wysiwyg
+					ref={handle}
+					aria-label="Notes"
+					value={state.value}
+					ranges={state.ranges}
+					onValueChange={(value, ranges) => {
+						reports.push([value, ranges])
+
+						setState({ value, ranges })
+					}}
+				/>
+			)
+		}
+
+		renderUI(<Parent />)
+
+		return { handle, reports }
+	}
+
+	const sales = { id: 'c1', start: 4, end: 9, quote: 'Sales' }
+
+	const marked = (field: HTMLElement) =>
+		field.querySelector('[data-slot="wysiwyg-range"]')?.textContent ?? null
+
+	it('reports an edit that marks text of the value, and keeps the range', async () => {
+		const { handle, reports } = renderRanged()
+
+		const field = await loadEditor()
+
+		act(() => handle.current?.replace(4, 9, 'Sales', sales))
+
+		expect(reports).toEqual([['Ask Sales', [sales]]])
+
+		expect(marked(field)).toBe('Sales')
+	})
+
+	it('reports an edit that keeps the text and takes a range out', async () => {
+		const { handle, reports } = renderRanged([sales])
+
+		const field = await loadEditor()
+
+		expect(marked(field)).toBe('Sales')
+
+		// The new text from the space before the range has no mark, so the text of the range changes.
+		act(() => handle.current?.replace(3, 5, ' S'))
+
+		expect(reports).toEqual([['Ask Sales', []]])
+
+		expect(marked(field)).toBeNull()
+	})
+
+	it('gives a reset no range that overlaps a range that it keeps', async () => {
+		const handle = createRef<WysiwygHandle>()
+
+		const reports: Report[] = []
+
+		const other = { ...sales, id: 'c2' }
+
+		function Reset() {
+			const [ranges, setRanges] = useState<MarkdownRange[]>([sales])
+
+			return (
+				<form>
+					<Wysiwyg
+						ref={handle}
+						aria-label="Notes"
+						defaultValue="Ask Sales"
+						ranges={ranges}
+						onValueChange={(value, kept) => {
+							reports.push([value, kept])
+
+							setRanges(kept)
+						}}
+					/>
+					<button type="button" onClick={() => setRanges([other])}>
+						Cite
+					</button>
+				</form>
+			)
+		}
+
+		renderUI(<Reset />)
+
+		const field = await loadEditor()
+
+		act(() => handle.current?.replace(9, 9, '!'))
+
+		// The parent gives the same text another range.
+		fireEvent.click(screen.getByRole('button', { name: 'Cite' }))
+
+		act(() => field.closest('form')?.reset())
+
+		// The range of the parent wins over the range of the default value at the same text.
+		await waitFor(() => expect(reports.at(-1)).toEqual(['Ask Sales', [other]]))
+	})
+
+	it('reports no edit that keeps the text and the ranges', async () => {
+		const { handle, reports } = renderRanged()
+
+		await loadEditor()
+
+		act(() => handle.current?.replace(0, 1, 'A'))
+
+		expect(reports).toEqual([])
 	})
 })
 

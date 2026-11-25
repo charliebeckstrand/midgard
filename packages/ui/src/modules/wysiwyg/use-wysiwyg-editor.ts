@@ -78,8 +78,12 @@ type WysiwygEditorOptions = {
 	ranges: readonly MarkdownRange[]
 	/** The settings of the editor, but the two events that this hook owns. */
 	props: Omit<WysiwygEditorProps, 'onChange' | 'onUpdate'>
-	/** Fires with the Markdown of the doc and its ranges after each edit. */
-	onChange: (markdown: string, ranges: MarkdownRange[]) => void
+	/**
+	 * Fires with the Markdown of the doc and its ranges after each edit that
+	 * changes one of them. `text` is `false` when the edit keeps the Markdown
+	 * and changes only the ranges.
+	 */
+	onChange: (markdown: string, ranges: MarkdownRange[], text: boolean) => void
 	/** Fires when the doc takes `value` and `ranges` in place of its source, which starts a new undo history. */
 	onSet: () => void
 }
@@ -165,9 +169,11 @@ export function useWysiwygEditor({
 	const [, checkValue] = useReducer((count: number) => count + 1, 0)
 
 	const handleChange = useStableEvent((markdown: string, next: MarkdownRange[]) => {
+		const before = source.current
+
 		source.current = { value: markdown, ranges: next }
 
-		onChange(markdown, next)
+		if (!sameSource(before, source.current)) onChange(markdown, next, markdown !== before.value)
 
 		checkValue()
 	})
