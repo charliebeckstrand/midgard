@@ -307,6 +307,30 @@ describe('Wysiwyg (real browser)', () => {
 		expect(field.querySelector('[data-slot=wysiwyg-held]')).toBeNull()
 	})
 
+	it('links new text in place of the whole doc after Mod+A', async () => {
+		renderUI(<Notes initial="hello" />)
+
+		const field = await editable()
+
+		await userEvent.keyboard('{Control>}a{/Control}{Control>}k{/Control}')
+
+		const url = await screen.findByRole('textbox', { name: 'URL' })
+
+		await waitFor(() => expect(url).toHaveFocus())
+
+		await userEvent.fill(screen.getByRole('textbox', { name: 'Text' }), 'hi')
+
+		await userEvent.fill(url, 'https://a.dev')
+
+		await userEvent.keyboard('{Enter}')
+
+		expect(value()).toBe('[hi](https://a.dev)')
+
+		await waitFor(() => expect(field).toHaveFocus())
+
+		expect(window.getSelection()?.toString()).toBe('hi')
+	})
+
 	it('puts the text and the link in at the caret from the link popover', async () => {
 		renderUI(<Notes initial="Ship " />)
 
