@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Wysiwyg, WysiwygToolbar } from '../../modules/wysiwyg'
 import { getSlot, present, renderUI, screen, waitFor } from '../helpers'
+import { editable } from './helpers/wysiwyg'
 
 /** Presses the space between the toolbar and the text, near its start. */
 async function pressGap(container: HTMLElement) {
@@ -37,11 +38,7 @@ describe('Wysiwyg toolbar gap press (real browser)', () => {
 			</Wysiwyg>,
 		)
 
-		await userEvent.click(screen.getByRole('textbox'))
-
-		// The editor replaces the markup of the field when it loads, so the query
-		// runs again until it finds the element of the editor.
-		await waitFor(() => expect(screen.getByRole('textbox')).toHaveClass('ProseMirror'))
+		await editable()
 
 		await userEvent.keyboard('{Control>}{End}{/Control}')
 

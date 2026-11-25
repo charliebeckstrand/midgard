@@ -382,14 +382,19 @@ function linkAtCaret(state: EditorState): { from: number; to: number; href: stri
 }
 
 /**
- * The range of a link action: the selection, or the link around a caret.
+ * The range of a link action: the selection, or the link around a caret. A
+ * selection of the whole doc starts and ends outside each block, where no
+ * text or link can go, so the action reads it as its text, as a block action
+ * does.
  *
  * @internal
  */
 export function linkRange(state: EditorState): { from: number; to: number } {
-	const { from, to, empty } = state.selection
+	const text = textSelected(state)
 
-	return empty ? (linkAtCaret(state) ?? { from, to }) : { from, to }
+	const { from, to, empty } = text.selection
+
+	return empty ? (linkAtCaret(text) ?? { from, to }) : { from, to }
 }
 
 /**
@@ -402,7 +407,7 @@ export function linkRange(state: EditorState): { from: number; to: number } {
 export function linkDraft(state: EditorState): { text: string; href: string } {
 	const { from, to } = linkRange(state)
 
-	const mark = linkMark(state.selection.$from)
+	const mark = linkMark(state.doc.resolve(from))
 
 	return { text: state.doc.textBetween(from, to, ' '), href: mark?.attrs.href ?? '' }
 }

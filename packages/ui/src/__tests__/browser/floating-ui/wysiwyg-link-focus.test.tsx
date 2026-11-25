@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Wysiwyg, WysiwygToolbar } from '../../../modules/wysiwyg'
 import { renderUI, screen, waitFor } from '../../helpers'
+import { editable } from '../helpers/wysiwyg'
 
 /** Loads the editor through a press of the field, and selects the last word. */
 async function selectLastWord(): Promise<HTMLElement> {
@@ -11,13 +12,7 @@ async function selectLastWord(): Promise<HTMLElement> {
 		</Wysiwyg>,
 	)
 
-	await userEvent.click(screen.getByRole('textbox'))
-
-	await waitFor(() => expect(screen.getByRole('textbox')).toHaveClass('ProseMirror'))
-
-	const field = screen.getByRole('textbox')
-
-	await waitFor(() => expect(field).toHaveFocus())
+	const field = await editable()
 
 	await userEvent.keyboard('{End}{Shift>}{ArrowLeft}{ArrowLeft}{/Shift}')
 
@@ -30,29 +25,17 @@ async function selectLastWord(): Promise<HTMLElement> {
  * and its focus manager runs, so these ride the real floating engine.
  */
 describe('Wysiwyg link dialog focus (real floating-ui)', () => {
-	it('gives the focus and the selection back to the field after the link shortcut', async () => {
-		const field = await selectLastWord()
-
-		await userEvent.keyboard('{Control>}k{/Control}')
-
-		const url = await screen.findByRole('textbox', { name: 'URL' })
-
-		await waitFor(() => expect(url).toHaveFocus())
-
-		await userEvent.keyboard('{Escape}')
-
-		await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
-
-		expect(field).toHaveFocus()
-
-		expect(window.getSelection()?.toString()).toBe('it')
-	})
-
-	it('gives the focus back to the field after a press of the link button', async () => {
-		const field = await selectLastWord()
-
+	it.for([
+		['the link shortcut', () => userEvent.keyboard('{Control>}k{/Control}')],
 		// A press on a toolbar button keeps the focus in the field.
-		await userEvent.click(screen.getByRole('button', { name: 'Link' }))
+		[
+			'a press of the link button',
+			() => userEvent.click(screen.getByRole('button', { name: 'Link' })),
+		],
+	] as const)('gives the focus and the selection back to the field after %s', async ([, open]) => {
+		const field = await selectLastWord()
+
+		await open()
 
 		const url = await screen.findByRole('textbox', { name: 'URL' })
 
