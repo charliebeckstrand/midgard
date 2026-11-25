@@ -10,6 +10,9 @@ name: Density stress
 # No pull request, push, or schedule starts it. Start a run from the Actions
 # tab, or with `gh workflow run density-stress.yml -f seed=<seed>`.
 on:
+  # TEMPORARY: runs on each push of this branch, to measure the crash rate. Remove before merge.
+  push:
+    branches: [claude/project-thread-8kmt0n]
   workflow_dispatch:
     inputs:
       seed:
@@ -52,7 +55,7 @@ jobs:
           echo "runs=$(jq -nc --argjson n "$RUNS" '[range(1; $n + 1)]')" >> "$GITHUB_OUTPUT"
           echo "version=$(jq -r '.devDependencies.playwright' packages/ui/package.json)" >> "$GITHUB_OUTPUT"
         env:
-          RUNS: ${{ inputs.runs }}
+          RUNS: ${{ inputs.runs || '20' }}
 
   # The container, the options, and the environment are those of the
   # `engines` job of ci.yml, and the command runs each instance of that job.
