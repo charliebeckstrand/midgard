@@ -86,6 +86,7 @@ describe('wysiwyg ranges in the markdown bridge', () => {
 		['a code span', 'Run `npm test` now', '`npm test`'],
 		['an escape', 'Cost \\*total\\* now', '\\*total\\*'],
 		['a bare URL', 'see https://example.com now', 'https://example.com'],
+		['an angle autolink', 'see <https://example.com>x now', '<https://example.com>'],
 		['a link', 'see [the docs](https://example.com) now', 'the docs'],
 	])('gives back the range of %s', (_, source, quote) => {
 		const given = range(source, quote)
