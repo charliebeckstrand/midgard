@@ -70,7 +70,7 @@ describe('FormDrawer', () => {
 			fireEvent.click(screen.getByRole('button', { name: 'Save' }))
 		})
 
-		expect(screen.getByText('The list is full.')).toBeTruthy()
+		expect(screen.getByText('The list is full.')).toBeInTheDocument()
 	})
 
 	// `Form` reads an empty issue as no issue, so a failure with no message
@@ -96,7 +96,7 @@ describe('FormDrawer', () => {
 
 		expect(onOpenChange).not.toHaveBeenCalled()
 
-		expect(screen.getByText('The write did not complete. Try again.')).toBeTruthy()
+		expect(screen.getByText('The write did not complete. Try again.')).toBeInTheDocument()
 	})
 
 	// A slow save of one record that lands after the reader opened another

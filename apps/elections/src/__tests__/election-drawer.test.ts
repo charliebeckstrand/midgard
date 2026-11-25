@@ -254,7 +254,7 @@ describe('ElectionDrawer', () => {
 
 		// Detailed shows the party of each candidate, as the overview of the race does.
 		expect(selected('Detailed')).toBe('true')
-		expect(screen.getByText('Republican')).toBeTruthy()
+		expect(screen.getByText('Republican')).toBeInTheDocument()
 
 		fireEvent.click(screen.getByRole('radio', { name: 'Condensed' }))
 
@@ -286,7 +286,7 @@ describe('ElectionDrawer', () => {
 
 		render(drawer(new QueryClient()))
 
-		expect(screen.getByRole('link', { name: 'Georgia' })).toBeTruthy()
+		expect(screen.getByRole('link', { name: 'Georgia' })).toBeInTheDocument()
 
 		expect(screen.queryByRole('link', { name: 'Senate' })).toBeNull()
 	})
@@ -331,7 +331,7 @@ describe('ElectionDrawer', () => {
 
 		expect(shape()).toEqual(before)
 		expect(before.terms).toEqual(['Total votes', 'Polls closed', 'Called'])
-		expect(screen.getByText('Unknown')).toBeTruthy()
+		expect(screen.getByText('Unknown')).toBeInTheDocument()
 		// A general election has no line of its kind.
 		expect(screen.queryByText('General election')).toBeNull()
 	})

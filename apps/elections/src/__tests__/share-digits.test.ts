@@ -51,8 +51,8 @@ describe('share digits', () => {
 	it('shows the shares to two decimals on the race card', () => {
 		const view = render(h(RaceCard, { entry, onPick: () => {} }))
 
-		expect(view.getAllByText('49.99%')).toBeTruthy()
-		expect(view.getAllByText('49.89%')).toBeTruthy()
+		expect(view.container).toHaveTextContent('49.99%')
+		expect(view.container).toHaveTextContent('49.89%')
 	})
 
 	it('shows the shares to two decimals in the race summary', () => {
@@ -60,7 +60,7 @@ describe('share digits', () => {
 			h(RaceSummary, { candidates, reporting: 99.9, called: false, detail: true }),
 		)
 
-		expect(view.getAllByText('49.99%')).toBeTruthy()
-		expect(view.getAllByText('49.89%')).toBeTruthy()
+		expect(view.container).toHaveTextContent('49.99%')
+		expect(view.container).toHaveTextContent('49.89%')
 	})
 })

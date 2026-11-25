@@ -85,10 +85,10 @@ describe('the build watch of the footer', () => {
 
 		await minute()
 
-		expect(screen.getByText(/New build available/)).not.toBeNull()
+		expect(screen.getByText(/New build available/)).toBeInTheDocument()
 
 		// The one button reloads the page for the new build.
-		expect(screen.getByRole('button', { name: 'Refresh' })).not.toBeNull()
+		expect(screen.getByRole('button', { name: 'Refresh' })).toBeInTheDocument()
 
 		expect(refresh).not.toHaveBeenCalled()
 	})

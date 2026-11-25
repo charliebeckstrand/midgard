@@ -55,6 +55,6 @@ describe('TripsIndex', () => {
 		})
 
 		// The body of a tooltip loads on its first click, and then opens.
-		expect(await screen.findByText('Time Out Market')).toBeTruthy()
+		expect(await screen.findByText('Time Out Market')).toBeInTheDocument()
 	})
 })

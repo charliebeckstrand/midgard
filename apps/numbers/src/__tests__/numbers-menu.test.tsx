@@ -80,7 +80,7 @@ describe('NumbersMenu', () => {
 
 		fireEvent.click(await screen.findByRole('menuitem', { name: 'Leaderboard' }))
 
-		expect(await screen.findByRole('dialog', { name: 'Leaderboard' })).toBeTruthy()
+		expect(await screen.findByRole('dialog', { name: 'Leaderboard' })).toBeInTheDocument()
 	})
 
 	it('lists the modes in order, Standard then Vs CPU, with Leaderboard between two dividers', async () => {
@@ -166,7 +166,7 @@ describe('NumbersMenu', () => {
 
 		fireEvent.click(await screen.findByRole('menuitem', { name: 'Stats' }))
 
-		expect(await screen.findByRole('dialog', { name: 'Stats' })).toBeTruthy()
+		expect(await screen.findByRole('dialog', { name: 'Stats' })).toBeInTheDocument()
 	})
 
 	it.each([

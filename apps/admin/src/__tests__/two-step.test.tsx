@@ -50,7 +50,7 @@ describe('TwoStep', () => {
 		// from a pointer or a key lets React remove the form first.
 		fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
 
-		expect(await screen.findByRole('button', { name: 'Add' })).toBeTruthy()
+		expect(await screen.findByRole('button', { name: 'Add' })).toBeInTheDocument()
 		expect(startTotpSetup).toHaveBeenCalledOnce()
 		expect(confirmTotp).not.toHaveBeenCalled()
 	})
@@ -58,12 +58,12 @@ describe('TwoStep', () => {
 	it('gives the count of one recovery code in the singular', () => {
 		renderTwoStep(factors({ enabled: true, recovery_codes: 1 }))
 
-		expect(screen.getByText('You have 1 unused recovery code.')).toBeTruthy()
+		expect(screen.getByText('You have 1 unused recovery code.')).toBeInTheDocument()
 	})
 
 	it('gives the count of more recovery codes in the plural', () => {
 		renderTwoStep(factors({ enabled: true, recovery_codes: 8 }))
 
-		expect(screen.getByText('You have 8 unused recovery codes.')).toBeTruthy()
+		expect(screen.getByText('You have 8 unused recovery codes.')).toBeInTheDocument()
 	})
 })

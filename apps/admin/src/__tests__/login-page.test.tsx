@@ -125,7 +125,7 @@ describe('LoginPage with the second step', () => {
 			)
 		})
 
-		expect(screen.getByText('Confirm that it is you')).toBeTruthy()
+		expect(screen.getByText('Confirm that it is you')).toBeInTheDocument()
 
 		// The form of the second step is a chunk of its own, so it can show after the heading.
 		await vi.waitFor(() => expect(router.push).toHaveBeenCalledExactlyOnceWith('/'))
@@ -140,9 +140,11 @@ describe('LoginPage with the second step', () => {
 			render(<LoginPage secondStep methods={['passkey']} />)
 		})
 
-		expect(await screen.findByText('The passkey check did not complete. Try again.')).toBeTruthy()
+		expect(
+			await screen.findByText('The passkey check did not complete. Try again.'),
+		).toBeInTheDocument()
 		expect(startAuthentication).toHaveBeenCalledTimes(1)
-		expect(screen.getByRole('button', { name: 'Use a passkey' })).toBeTruthy()
+		expect(screen.getByRole('button', { name: 'Use a passkey' })).toBeInTheDocument()
 		expect(router.push).not.toHaveBeenCalled()
 	})
 
