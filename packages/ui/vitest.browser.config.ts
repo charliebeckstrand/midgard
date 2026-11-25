@@ -167,6 +167,32 @@ const parkPointer: BrowserCommand<[]> = async (context) => {
 }
 
 /**
+ * Puts the focus of the page in the tester iframe.
+ *
+ * The focused frame is page state too. A Tab from the last stop of the tester
+ * document moves the focus out of the iframe: to the document of the runner, or
+ * out of the page. The focus stays there in each later case and file, and a
+ * later `userEvent.tab` or `userEvent.keyboard` then goes to the runner and not
+ * to the case. `forced-colors-indicators` read `body` as the focus after
+ * `grid-roving-group-header` tabbed past its grid.
+ *
+ * The focus of the iframe element moves the focus into its document. When the
+ * focus left the page, the iframe is still the active element of the runner,
+ * and a focus of the active element does nothing. Thus the iframe gets a blur
+ * first. When the tester document has the focus, the command changes nothing,
+ * so a case gets no focus or blur event of the window.
+ */
+const focusFrame: BrowserCommand<[]> = async (context) => {
+	await context.iframe.owner().evaluate((frame: HTMLIFrameElement) => {
+		if (frame.contentDocument?.hasFocus()) return
+
+		frame.blur()
+
+		frame.focus()
+	})
+}
+
+/**
  * Moves the real mouse to the center of the element that `selector` matches in the tester
  * iframe, and holds the primary button down there. An `at` moves the mouse to that fraction of
  * the box of the element instead, from its top-left corner: `{ x: 0.95, y: 0.5 }` is near the
@@ -437,8 +463,8 @@ export default defineConfig({
 		],
 		browser: {
 			enabled: true,
-			// `browser/setup/index.ts` calls it before every case.
-			commands: { parkPointer, pressPointer, releasePointer, tapPointer },
+			// `browser/setup/index.ts` calls `parkPointer` and `focusFrame` before every case.
+			commands: { focusFrame, parkPointer, pressPointer, releasePointer, tapPointer },
 			provider: playwright(),
 			headless: true,
 			screenshotFailures: false,
