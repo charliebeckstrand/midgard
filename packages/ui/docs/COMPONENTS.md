@@ -117,7 +117,7 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > A double-click on a `ResizableHandle` moves it back to where the default sizes of its two panels put it. When the second press of the double-click drags, the drag stays.
 
-> A `Segment` with no `TabContents` and no `TabContent` picks a value, so it is a `radiogroup` of `radio` items. An arrow key moves the focus and selects the item. A `Segment` with panels keeps the tab roles. A `Segment` with `activation="manual"` also keeps the tab roles: an arrow key moves only the focus, and Enter or Space selects the item. Use it when a pick shows a different view or writes the address.
+> A `Segment` with no `TabContents` and no `TabContent` picks a value, so it is a `radiogroup` of `radio` items. An arrow key moves the focus and selects the item. A `Segment` with panels keeps the tab roles. A `Segment` with `activation="manual"` also keeps the tab roles: an arrow key moves only the focus, and Enter or Space selects the item. Use it when a pick shows a different view or writes the address. A `SegmentItem` takes `aria-label` where its visible label is short, such as "H1" for "Heading 1". A `Segment` in a `Toolbar` keeps its own Tab stop and its own arrow keys. An arrow key from a control before it moves the focus into it.
 
 > For a custom trigger or panel in an `AccordionItem`, use `useAccordionItem` from `accordion`. It gives the open state, `toggle`, and the ARIA props of the trigger and the panel. A custom trigger that spreads `triggerProps` takes part in the arrow keys of the accordion.
 

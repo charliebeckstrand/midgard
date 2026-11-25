@@ -23,7 +23,7 @@ import { clamp } from '../../utilities/clamp'
 import { noopSubscribe } from '../../utilities/noop'
 import { isPrimaryPress } from '../../utilities/primary-press'
 import { WysiwygContext, type WysiwygContextValue } from './context'
-import type { WysiwygBlock, WysiwygHandle, WysiwygToggleAction } from './types'
+import type { WysiwygBlock, WysiwygHandle, WysiwygHeadingLevel, WysiwygToggleAction } from './types'
 import { useWysiwygEditor } from './use-wysiwyg-editor'
 import { useWysiwygField } from './use-wysiwyg-field'
 import { useWysiwygLabelFocus } from './use-wysiwyg-label-focus'
@@ -428,6 +428,11 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 			// A press before the editor loads starts the load, and the action runs
 			// when the editor comes.
 			run: (action: WysiwygToggleAction) => whenReady((ready) => ready.run(action)),
+			setHeading: (level: WysiwygHeadingLevel) => whenReady((ready) => ready.setHeading(level)),
+			headingLevel: () => (locked ? null : (editor?.headingLevel() ?? null)),
+			// Before the editor loads, each level is open, so a press starts the load.
+			canSetHeading: (level: WysiwygHeadingLevel) =>
+				!editor || editor.headingLevel() === level || editor.canSetHeading(level),
 			whenReady,
 			registerLink,
 			linkDraft: () => editor?.linkDraft() ?? { text: '', href: '' },

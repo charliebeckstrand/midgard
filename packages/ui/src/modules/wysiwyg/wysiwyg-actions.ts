@@ -3,6 +3,7 @@ import {
 	Code,
 	Italic,
 	LetterB,
+	LetterH,
 	Link,
 	List,
 	ListOrdered,
@@ -12,7 +13,7 @@ import {
 } from '../../primitives/icons/icons'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import type { MessageDescriptor } from '../../primitives/intl/types'
-import type { WysiwygAction, WysiwygToggleAction } from './types'
+import type { WysiwygAction, WysiwygHeadingLevel, WysiwygToggleAction } from './types'
 
 /** @internal */
 export const wysiwygMessages = defineMessages({
@@ -64,6 +65,60 @@ export const wysiwygMessages = defineMessages({
 		id: 'ui.wysiwyg.removeLink',
 		defaultMessage: 'Remove link',
 		description: 'The button that removes the link from the selected text.',
+	},
+	heading: {
+		id: 'ui.wysiwyg.heading',
+		defaultMessage: 'Heading',
+		description:
+			'The name of the toolbar button that opens the heading levels of the current block, and the name of the row of those levels.',
+	},
+	headingLevel: {
+		id: 'ui.wysiwyg.headingLevel',
+		defaultMessage: 'Heading level',
+		description:
+			'The name of the group of choices that set the heading level of the current block: Text, H1, H2, and H3.',
+	},
+	back: {
+		id: 'ui.wysiwyg.back',
+		defaultMessage: 'Back',
+		description:
+			'The name of the button that closes the row of heading levels and shows the formatting buttons again.',
+	},
+	paragraph: {
+		id: 'ui.wysiwyg.paragraph',
+		defaultMessage: 'Text',
+		description:
+			'The heading level choice that makes the current block plain body text, and not a heading.',
+	},
+	heading1: {
+		id: 'ui.wysiwyg.heading1',
+		defaultMessage: 'Heading 1',
+		description: 'The name of the choice that makes the current block a heading of level 1.',
+	},
+	heading2: {
+		id: 'ui.wysiwyg.heading2',
+		defaultMessage: 'Heading 2',
+		description: 'The name of the choice that makes the current block a heading of level 2.',
+	},
+	heading3: {
+		id: 'ui.wysiwyg.heading3',
+		defaultMessage: 'Heading 3',
+		description: 'The name of the choice that makes the current block a heading of level 3.',
+	},
+	heading1Short: {
+		id: 'ui.wysiwyg.heading1Short',
+		defaultMessage: 'H1',
+		description: 'The short visible label of the choice for a heading of level 1.',
+	},
+	heading2Short: {
+		id: 'ui.wysiwyg.heading2Short',
+		defaultMessage: 'H2',
+		description: 'The short visible label of the choice for a heading of level 2.',
+	},
+	heading3Short: {
+		id: 'ui.wysiwyg.heading3Short',
+		defaultMessage: 'H3',
+		description: 'The short visible label of the choice for a heading of level 3.',
 	},
 	bold: {
 		id: 'ui.wysiwyg.bold',
@@ -126,7 +181,7 @@ export type WysiwygShortcut = { shift?: boolean; alt?: boolean; key: string }
  *
  * @internal
  */
-export type WysiwygActionGroup = 'text' | 'lists' | 'references' | 'code'
+export type WysiwygActionGroup = 'heading' | 'text' | 'lists' | 'references' | 'code'
 
 /**
  * The name of each group of the toolbar.
@@ -134,6 +189,7 @@ export type WysiwygActionGroup = 'text' | 'lists' | 'references' | 'code'
  * @internal
  */
 export const wysiwygGroupMessages: Record<WysiwygActionGroup, MessageDescriptor> = {
+	heading: wysiwygMessages.heading,
 	text: wysiwygMessages.text,
 	lists: wysiwygMessages.lists,
 	references: wysiwygMessages.references,
@@ -150,14 +206,15 @@ export const wysiwygGroupMessages: Record<WysiwygActionGroup, MessageDescriptor>
  */
 type WysiwygActionEntry = {
 	/**
-	 * The group of the action in the toolbar: `text` formats the selected
-	 * text, `lists` makes a list, `references` adds a link or a quote, and
-	 * `code` shows text as code.
+	 * The group of the action in the toolbar: `heading` sets the heading level,
+	 * `text` formats the selected text, `lists` makes a list, `references`
+	 * adds a link or a quote, and `code` shows text as code.
 	 */
 	group: WysiwygActionGroup
 	message: MessageDescriptor
 	icon: ComponentType
-	shortcut: WysiwygShortcut
+	/** The shortcut of the action. Heading has none: each level has its own. */
+	shortcut?: WysiwygShortcut
 }
 
 /**
@@ -166,6 +223,7 @@ type WysiwygActionEntry = {
  * @internal
  */
 export const wysiwygActions: Record<WysiwygAction, WysiwygActionEntry> = {
+	heading: { group: 'heading', message: wysiwygMessages.heading, icon: LetterH },
 	bold: { group: 'text', message: wysiwygMessages.bold, icon: LetterB, shortcut: { key: 'B' } },
 	italic: { group: 'text', message: wysiwygMessages.italic, icon: Italic, shortcut: { key: 'I' } },
 	strike: {
@@ -208,6 +266,56 @@ export const wysiwygActions: Record<WysiwygAction, WysiwygActionEntry> = {
  * @internal
  */
 export const WYSIWYG_ACTIONS = Object.keys(wysiwygActions) as WysiwygAction[]
+
+/**
+ * The level choices of the heading rail, in order: the name, the visible
+ * label, and the shortcut of each. The shortcut of a level is `$mod+Alt` and
+ * the number of the level, as in Google Docs and Notion, and `0` makes text.
+ *
+ * @internal
+ */
+export const wysiwygHeadingLevels: readonly {
+	level: WysiwygHeadingLevel
+	message: MessageDescriptor
+	label: MessageDescriptor
+	shortcut: WysiwygShortcut
+}[] = [
+	{
+		level: 0,
+		message: wysiwygMessages.paragraph,
+		label: wysiwygMessages.paragraph,
+		shortcut: { alt: true, key: '0' },
+	},
+	{
+		level: 1,
+		message: wysiwygMessages.heading1,
+		label: wysiwygMessages.heading1Short,
+		shortcut: { alt: true, key: '1' },
+	},
+	{
+		level: 2,
+		message: wysiwygMessages.heading2,
+		label: wysiwygMessages.heading2Short,
+		shortcut: { alt: true, key: '2' },
+	},
+	{
+		level: 3,
+		message: wysiwygMessages.heading3,
+		label: wysiwygMessages.heading3Short,
+		shortcut: { alt: true, key: '3' },
+	},
+]
+
+/**
+ * Each shortcut of the editor: the shortcut of each action, and of each
+ * heading level. A key before the editor loads is held when it is one of them.
+ *
+ * @internal
+ */
+export const WYSIWYG_SHORTCUTS: readonly WysiwygShortcut[] = [
+	...WYSIWYG_ACTIONS.flatMap((action) => wysiwygActions[action].shortcut ?? []),
+	...wysiwygHeadingLevels.map((entry) => entry.shortcut),
+]
 
 /**
  * The `aria-keyshortcuts` value of a shortcut, such as `Meta+B` on Apple

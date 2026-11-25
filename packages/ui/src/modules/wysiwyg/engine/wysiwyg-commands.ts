@@ -17,7 +17,7 @@ import {
 	type Transaction,
 } from 'prosemirror-state'
 import { findWrapping, liftTarget } from 'prosemirror-transform'
-import type { WysiwygToggleAction } from '../types'
+import type { WysiwygHeadingLevel, WysiwygToggleAction } from '../types'
 import { schema } from './wysiwyg-schema'
 
 /**
@@ -306,6 +306,87 @@ function textSelected(state: EditorState): EditorState {
 	return state.apply(
 		state.tr.setSelection(TextSelection.between(doc.resolve(0), doc.resolve(doc.content.size))),
 	)
+}
+
+/**
+ * The level of each text block of the selection: `0` for a paragraph, the
+ * level of a heading, or `null` for another block, such as a code block.
+ *
+ * @internal
+ */
+function blockLevels(state: EditorState): (number | null)[] {
+	const { from, to } = textSelected(state).selection
+
+	const levels: (number | null)[] = []
+
+	state.doc.nodesBetween(from, to, (node) => {
+		if (!node.isTextblock) return true
+
+		if (node.type === nodes.paragraph) levels.push(0)
+		else if (node.type === nodes.heading) levels.push(node.attrs.level)
+		else levels.push(null)
+
+		return false
+	})
+
+	return levels
+}
+
+/**
+ * The level of the rail that the text blocks of the selection have, or `null`
+ * when they have no level of the rail or not all the same level. A heading of
+ * level 4 to 6, which a paste or `#### ` makes, has no level of the rail.
+ *
+ * @internal
+ */
+export function headingLevel(state: EditorState): WysiwygHeadingLevel | null {
+	const [first, ...rest] = blockLevels(state)
+
+	if (first === undefined || first === null || first > 3) return null
+
+	return rest.every((level) => level === first) ? (first as WysiwygHeadingLevel) : null
+}
+
+/**
+ * Whether each text block of the selection is a heading, of any level. The
+ * Heading button of the toolbar is then on.
+ *
+ * @internal
+ */
+export function isHeadingActive(state: EditorState): boolean {
+	const levels = blockLevels(state)
+
+	return levels.length > 0 && levels.every((level) => level !== null && level > 0)
+}
+
+/**
+ * Gives the text blocks of the selection a level of the rail: `0` makes each
+ * one a paragraph, and `1` to `3` make each one a heading of that level. The
+ * command gives `false` where a block cannot take the level, such as the first
+ * block of a list item, which must be a paragraph.
+ *
+ * @internal
+ */
+export function setHeadingLevel(level: WysiwygHeadingLevel): Command {
+	const command =
+		level === 0 ? setBlockType(nodes.paragraph) : setBlockType(nodes.heading, { level })
+
+	return (state, dispatch, view) => command(textSelected(state), dispatch, view)
+}
+
+/**
+ * Makes a heading a paragraph on Backspace at its start, as Notion and Linear
+ * do. A second Backspace then joins the paragraph to the block before it, as
+ * usual.
+ *
+ * @internal
+ */
+export const headingToParagraph: Command = (state, dispatch) => {
+	const { $cursor } = state.selection as TextSelection
+
+	if (!$cursor || $cursor.parentOffset > 0 || $cursor.parent.type !== nodes.heading) return false
+
+	return setBlockType(nodes.paragraph)(state, dispatch)
 }
 
 /**

@@ -24,8 +24,10 @@ type WysiwygActionButtonProps = { action: WysiwygAction } & Omit<
  * button is on while the action is on at the selection.
  *
  * A toggle action has `aria-pressed`, and a press runs it. The link button
- * opens a dialog, so it is no toggle, and the `onClick` of the caller handles
- * the press. It is on while the selection is in a link.
+ * opens a dialog, and the heading button opens the rail of the levels, so
+ * neither is a toggle, and the `onClick` of the caller handles the press. Link
+ * is on while the selection is in a link, and Heading is on while each text
+ * block of the selection is a heading. Heading has no shortcut of its own.
  *
  * The button looks and works the same before the editor loads. A press then
  * starts the load, and the action runs when the editor comes.
@@ -51,19 +53,23 @@ export function WysiwygActionButton({ action, onClick, ...props }: WysiwygAction
 
 	const label = intl.formatMessage(message)
 
+	// Link opens a dialog, and Heading opens the rail of the levels, so neither
+	// is a toggle, and the `onClick` of the caller handles the press.
+	const toggle = action !== 'link' && action !== 'heading'
+
 	return (
 		<ButtonIconTooltip
 			data-slot="wysiwyg-action"
 			{...props}
 			data-action={action}
 			variant="bare"
-			aria-pressed={action === 'link' ? undefined : active}
-			aria-keyshortcuts={shortcutAria(shortcut, apple)}
+			aria-pressed={toggle ? active : undefined}
+			aria-keyshortcuts={shortcut && shortcutAria(shortcut, apple)}
 			label={label}
 			icon={<Glyph />}
 			active={active}
 			disabled={locked}
-			onClick={action === 'link' ? onClick : () => run(action)}
+			onClick={toggle ? () => run(action) : onClick}
 		/>
 	)
 }

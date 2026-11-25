@@ -476,6 +476,50 @@ describe('useA11yRoving: nested containers', () => {
 
 		expect(document.activeElement).toBe(a)
 	})
+
+	// The inner container keeps its own Tab stop. When the outer container also
+	// wrote it, the two observers wrote it again with no end, and the page
+	// stopped (a Segment after a button in a Toolbar).
+	it('leaves the Tab stop of an item in a nearer roving container to that container', async () => {
+		const outer = attach(document.createElement('div'))
+
+		outer.innerHTML =
+			'<button>Back</button><div data-inner><button tabindex="-1">A</button><button tabindex="-1">B</button></div>'
+
+		const inner = present(outer.querySelector<HTMLElement>('[data-inner]'), 'the inner container')
+
+		const buttons = Array.from(outer.querySelectorAll('button'))
+
+		const back = present(buttons[0], 'Back')
+
+		const a = present(buttons[1], 'A')
+
+		const b = present(buttons[2], 'B')
+
+		renderRoving(inner, { itemSelector: 'button' })
+
+		const outerHandler = renderRoving(outer, {
+			itemSelector: 'button',
+			manageTabIndex: true,
+		}).current
+
+		// A write of the inner container comes after the outer seat.
+		a.tabIndex = 0
+
+		await Promise.resolve()
+
+		expect([back.tabIndex, a.tabIndex, b.tabIndex]).toEqual([0, 0, -1])
+
+		// An arrow key into the inner container moves the focus, and the outer
+		// stop stays on its own item.
+		back.focus()
+
+		outerHandler(makeKeyEvent('ArrowDown', { target: back }))
+
+		expect(document.activeElement).toBe(a)
+
+		expect(back.tabIndex).toBe(0)
+	})
 })
 
 describe('useA11yRoving: manageTabIndex', () => {

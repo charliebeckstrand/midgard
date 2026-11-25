@@ -82,6 +82,7 @@ const WYSIWYG_WEBKIT = [
 			'src/__tests__/browser/wysiwyg-typing.test.tsx',
 			'src/__tests__/browser/wysiwyg-early-input.test.tsx',
 			'src/__tests__/browser/wysiwyg-toolbar-gap-press.test.tsx',
+			'src/__tests__/browser/wysiwyg-heading-rail.test.tsx',
 			'src/__tests__/browser/chat-prompt-wysiwyg-citations.test.tsx',
 		],
 	},

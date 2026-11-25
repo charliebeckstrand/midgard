@@ -999,6 +999,10 @@
 		"defaultMessage": "**Launch** is on *Friday*.\n\nBefore the launch:\n\n- Freeze the build on Wednesday\n- Ship the `v2` flag to 10% of users\n- Watch the error rate each hour\n\nAfter the launch:\n\n- Send the release notes\n- Plan the review for Monday\n\n'>' Ask the design team before the copy changes.",
 		"description": "A word of the demo data in the docs: the word for \"plan\" in the domain \"wysiwyg-draft\", in modules/wysiwyg/drafts.ts."
 	},
+	"docs.data.wysiwyg-draft.release": {
+		"defaultMessage": "## Search\n\nThe new search ships with **filters** and *saved queries*.\n\n### Next\n\n- Share a saved query with the team",
+		"description": "A word of the demo data in the docs: the word for \"release\" in the domain \"wysiwyg-draft\", in modules/wysiwyg/drafts.ts."
+	},
 	"docs.data.wysiwyg-draft.summary": {
 		"defaultMessage": "The new search ships with **filters** and *saved queries*.",
 		"description": "A word of the demo data in the docs: the word for \"summary\" in the domain \"wysiwyg-draft\", in modules/wysiwyg/drafts.ts."
@@ -1297,7 +1301,7 @@
 	},
 	"docs.demo.1254829bd999": {
 		"defaultMessage": "Release notes",
-		"description": "Text of a demo in the docs, in components/textarea/validation.tsx, modules/wysiwyg/separated.tsx, modules/wysiwyg/with-toolbar.tsx."
+		"description": "Text of a demo in the docs, in components/textarea/validation.tsx, modules/wysiwyg/separated.tsx, modules/wysiwyg/with-headings.tsx and 1 more."
 	},
 	"docs.demo.125926006a27": {
 		"defaultMessage": "Security code",
@@ -9550,6 +9554,10 @@
 	"docs.title.with-header-and-footer": {
 		"defaultMessage": "With header and footer",
 		"description": "The title of an example on a page of the docs. It comes from the file name with-header-and-footer.tsx."
+	},
+	"docs.title.with-headings": {
+		"defaultMessage": "With headings",
+		"description": "The title of an example on a page of the docs. It comes from the file name with-headings.tsx."
 	},
 	"docs.title.with-icon": {
 		"defaultMessage": "With icon",

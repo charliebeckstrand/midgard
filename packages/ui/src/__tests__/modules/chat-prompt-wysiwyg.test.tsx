@@ -50,12 +50,16 @@ describe('ChatPrompt with wysiwyg', () => {
 		},
 	)
 
-	it('shows each action of the toolbar for `true`', () => {
+	it('shows each action of the toolbar but Heading for `true`', () => {
 		renderUI(<ChatPrompt value="" onValueChange={noop} onSubmit={noop} wysiwyg />)
 
 		const toolbar = screen.getByRole('toolbar', { name: 'Formatting' })
 
 		expect(within(toolbar).getAllByRole('button')).toHaveLength(9)
+
+		expect(within(toolbar).queryByRole('button', { name: 'Heading' })).toBeNull()
+
+		expect(screen.queryByRole('toolbar', { name: 'Heading' })).toBeNull()
 	})
 
 	it('shows the actions that `{ actions }` gives, in that order', () => {
