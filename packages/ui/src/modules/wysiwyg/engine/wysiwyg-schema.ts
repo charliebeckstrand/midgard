@@ -37,7 +37,6 @@ const nodes = {
 		group: 'block',
 		attrs: { level: { default: 1, validate: 'number' } },
 		content: '(text | raw_inline)*',
-		marks: '_',
 		defining: true,
 		parseDOM: [1, 2, 3, 4, 5, 6].map((level) => ({ tag: `h${level}`, attrs: { level } })),
 		toDOM: (node): DOMOutputSpec => nodeDOM.heading(node.attrs),
@@ -110,7 +109,6 @@ const nodes = {
 	raw: {
 		group: 'block',
 		atom: true,
-		selectable: true,
 		attrs: { source: { validate: 'string' } },
 		parseDOM: [{ tag: 'pre[data-raw]', priority: 60, getAttrs: rawSource }],
 		toDOM: (node): DOMOutputSpec => nodeDOM.raw(node.attrs),
@@ -169,7 +167,6 @@ const marks = {
 				tag: 'b',
 				getAttrs: (dom) => (dom as HTMLElement).style.fontWeight !== 'normal' && null,
 			},
-			{ style: 'font-weight=bold' },
 			{
 				style: 'font-weight',
 				getAttrs: (value) => /^(bold(er)?|[5-9]\d{2,})$/.test(value) && null,

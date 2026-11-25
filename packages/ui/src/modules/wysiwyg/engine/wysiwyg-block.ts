@@ -1,11 +1,12 @@
 import { closeHistory } from 'prosemirror-history'
 import { type EditorState, TextSelection, type Transaction } from 'prosemirror-state'
 import type { WysiwygBlock, WysiwygBlockRange } from '../types'
+import { LEAF } from './wysiwyg-dom'
 import { schema } from './wysiwyg-schema'
 
 /** The text of an inline leaf: a newline for a line break, and U+FFFC for an atom. @internal */
 function leafText(leaf: { type: unknown }): string {
-	return leaf.type === schema.nodes.hard_break ? '\n' : '￼'
+	return leaf.type === schema.nodes.hard_break ? '\n' : LEAF
 }
 
 /**

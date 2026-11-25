@@ -2,7 +2,7 @@ import { baseKeymap, chainCommands, exitCode, newlineInCode } from 'prosemirror-
 import { history, redo, undo } from 'prosemirror-history'
 import { undoInputRule } from 'prosemirror-inputrules'
 import { keymap } from 'prosemirror-keymap'
-import { Fragment, Slice } from 'prosemirror-model'
+import { Slice } from 'prosemirror-model'
 import { splitListItem } from 'prosemirror-schema-list'
 import { type Command, EditorState, TextSelection, type Transaction } from 'prosemirror-state'
 import { EditorView } from 'prosemirror-view'
@@ -140,14 +140,23 @@ export type WysiwygEditor = {
 }
 
 /**
- * Moves the focus to the view. The view writes its selection to the DOM in
- * the focus, so the browser does not then reset the selection. ProseMirror
- * reads each focus as one that a reset of the browser can follow: for 200 ms,
- * it changes a caret at the start of the doc back to its own selection. A
- * Home key just after the focus then does nothing. Thus this clears the
- * record of the focus, which ProseMirror keeps as an internal value.
+ * Moves the focus to the view. A view that takes no edit takes the focus too,
+ * as on its tab stop, though ProseMirror focuses only an editable view.
+ *
+ * An editable view writes its selection to the DOM in the focus, so the
+ * browser does not then reset the selection. ProseMirror reads each focus as
+ * one that a reset of the browser can follow: for 200 ms, it changes a caret
+ * at the start of the doc back to its own selection. A Home key just after
+ * the focus then does nothing. Thus this clears the record of the focus,
+ * which ProseMirror keeps as an internal value.
  */
 function focusView(view: EditorView): void {
+	if (!view.editable) {
+		view.dom.focus({ preventScroll: true })
+
+		return
+	}
+
 	view.focus()
 
 	const { input } = view as unknown as { input?: { lastFocus?: number } }
@@ -217,6 +226,14 @@ export function createWysiwygEditor(
 				: chainCommands(exitCode, breakLine)(state, dispatch, view),
 	}
 
+	// The field reports each new state, and a reader of the caret, such as a
+	// picker, follows the focus too.
+	const report = () => {
+		props.onUpdate()
+
+		return false
+	}
+
 	const state = EditorState.create({
 		doc: parseMarkdown(value, ranges),
 		plugins: [
@@ -270,17 +287,8 @@ export function createWysiwygEditor(
 			// text, or selects in a read-only field.
 			click: (_, event) => cancelLink(event),
 			auxclick: (_, event) => cancelLink(event),
-			// A reader of the caret, such as a picker, follows the focus too.
-			focus: () => {
-				props.onUpdate()
-
-				return false
-			},
-			blur: () => {
-				props.onUpdate()
-
-				return false
-			},
+			focus: report,
+			blur: report,
 			// The edit menu of iOS and the format keys of some keyboards send these.
 			beforeinput: (_, event) => {
 				const action = formatAction((event as InputEvent).inputType)
@@ -294,16 +302,9 @@ export function createWysiwygEditor(
 				return true
 			},
 		},
-		// Plain text that the reader pastes is Markdown, except in a code block.
-		clipboardTextParser: (text, $context) => {
-			if ($context.parent.type.spec.code) {
-				return text ? new Slice(Fragment.from(schema.text(text)), 0, 0) : Slice.empty
-			}
-
-			const doc = parseMarkdown(text)
-
-			return Slice.maxOpen(doc.content)
-		},
+		// Plain text that the reader pastes is Markdown. ProseMirror pastes text in
+		// a code block as it is, and does not call this parser for it.
+		clipboardTextParser: (text) => Slice.maxOpen(parseMarkdown(text).content),
 		clipboardTextSerializer: (slice) => {
 			const doc = schema.topNodeType.createAndFill(null, slice.content)
 
@@ -336,10 +337,7 @@ export function createWysiwygEditor(
 
 			if (redraw) view.setProps({})
 		},
-		focus: () => {
-			if (view.editable) focusView(view)
-			else view.dom.focus({ preventScroll: true })
-		},
+		focus: () => focusView(view),
 		focusAt: (left, top) => {
 			const hit = view.editable ? view.posAtCoords({ left, top }) : null
 
@@ -349,8 +347,7 @@ export function createWysiwygEditor(
 				view.dispatch(view.state.tr.setSelection(TextSelection.near($pos)))
 			}
 
-			if (view.editable) focusView(view)
-			else view.dom.focus({ preventScroll: true })
+			focusView(view)
 		},
 		setValue: (markdown, next) => {
 			const doc = parseMarkdown(markdown, next)

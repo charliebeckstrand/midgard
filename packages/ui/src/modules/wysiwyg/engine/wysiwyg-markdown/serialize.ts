@@ -1,4 +1,4 @@
-import type { Mark, Node } from 'prosemirror-model'
+import type { Mark, MarkType, Node } from 'prosemirror-model'
 import type { MarkdownRange } from '../../../../components/markdown/markdown-ranges'
 import { schema } from '../wysiwyg-schema'
 import { markdownDoc } from './doc'
@@ -115,38 +115,31 @@ function rangeMarks(doc: Node): RangeMarks | undefined {
 }
 
 /**
- * The Markdown of each block without the edge marks of ranges, by its node and
- * then by its `alternate`. A node does not change, and an edit keeps each node
- * that it does not touch, so an edit writes only the blocks that it changes.
+ * The Markdown of each block without the edge marks of ranges, by its node. A
+ * node does not change, and an edit keeps each node that it does not touch,
+ * so an edit writes only the blocks that it changes.
  *
  * @internal
  */
-const written = new WeakMap<Node, Map<boolean, string>>()
+const written = new WeakMap<Node, string>()
 
 /**
  * The Markdown of a block, from {@link written} when the walk writes no edge
- * marks. The edge marks of a doc depend on all of its text, so a block with
- * them is written each time.
+ * marks and the block takes its usual marker. The edge marks of a doc depend
+ * on all of its text, so a block with them is written each time. A list with
+ * the other marker is rare, and the blocks in it still come from the cache.
  *
  * @internal
  */
 function cachedBlock(node: Node, alternate: boolean, ranges: RangeMarks | undefined): string {
-	if (ranges) return block(node, alternate, ranges)
+	if (ranges || alternate) return block(node, alternate, ranges)
 
-	let byAlternate = written.get(node)
-
-	if (!byAlternate) {
-		byAlternate = new Map()
-
-		written.set(node, byAlternate)
-	}
-
-	let text = byAlternate.get(alternate)
+	let text = written.get(node)
 
 	if (text === undefined) {
-		text = block(node, alternate, undefined)
+		text = block(node, false, undefined)
 
-		byAlternate.set(alternate, text)
+		written.set(node, text)
 	}
 
 	return text
@@ -498,9 +491,7 @@ function span(mark: Mark, inner: readonly Item[], line: Line): string {
 
 	if (mark.type === schema.marks.range) return rangeSpan(mark, inner, line)
 
-	const open = delimiter(mark, 'open')
-
-	const close = delimiter(mark, 'close')
+	const [open, close] = delimiters(mark)
 
 	const before = line.start
 
@@ -556,27 +547,32 @@ function splitSpace(text: string): { lead: string; core: string; trail: string }
 	return { lead, core: text.slice(lead.length, text.length - trail.length), trail }
 }
 
-/** @internal */
-function delimiter(mark: Mark, side: 'open' | 'close'): string {
-	switch (mark.type.name) {
-		case 'strong':
-			return '**'
-		case 'em':
-			return '*'
-		case 'strike':
-			return '~~'
-		case 'link': {
-			if (side === 'open') return '['
+/**
+ * The delimiter that the serializer writes for each emphasis mark, in the
+ * order of the schema. The input rules give it back to text that a code span
+ * takes in, as the reader typed it.
+ *
+ * @internal
+ */
+export const DELIMITERS: ReadonlyMap<MarkType, string> = new Map([
+	[schema.marks.strong, '**'],
+	[schema.marks.em, '*'],
+	[schema.marks.strike, '~~'],
+])
 
-			const title = mark.attrs.title
-				? ` "${keepReferences(mark.attrs.title).replace(/[\\"]/g, '\\$&')}"`
-				: ''
+/** The opening and the closing delimiter of a mark. @internal */
+function delimiters(mark: Mark): readonly [string, string] {
+	if (mark.type !== schema.marks.link) {
+		const delimiter = DELIMITERS.get(mark.type) ?? ''
 
-			return `](${destination(mark.attrs.href)}${title})`
-		}
-		default:
-			return ''
+		return [delimiter, delimiter]
 	}
+
+	const title = mark.attrs.title
+		? ` "${keepReferences(mark.attrs.title).replace(/[\\"]/g, '\\$&')}"`
+		: ''
+
+	return ['[', `](${destination(mark.attrs.href)}${title})`]
 }
 
 /**

@@ -156,7 +156,7 @@ const quote: WysiwygCommand = {
 
 			const target = range && liftTarget(range)
 
-			if (!range || target === null || target === undefined) return false
+			if (!range || target === null) return false
 
 			dispatch?.(state.tr.lift(range, target).scrollIntoView())
 
@@ -353,7 +353,7 @@ function linkMark($pos: ResolvedPos): Mark | undefined {
  *
  * @internal
  */
-function linkAtCaret(state: EditorState): { from: number; to: number; href: string } | null {
+function linkAtCaret(state: EditorState): { from: number; to: number } | null {
 	const { $from, empty } = state.selection
 
 	if (!empty) return null
@@ -378,7 +378,7 @@ function linkAtCaret(state: EditorState): { from: number; to: number; href: stri
 
 	const run = runs.find((each) => each.from <= $from.pos && $from.pos <= each.to)
 
-	return run ? { ...run, href: mark.attrs.href } : null
+	return run ?? null
 }
 
 /**
