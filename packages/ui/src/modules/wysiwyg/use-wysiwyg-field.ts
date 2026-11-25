@@ -3,10 +3,10 @@
 import { type ControlVariant, useControl } from '../../components/control/context'
 import { useControlProps } from '../../components/control/use-control-props'
 import { useControlScope } from '../../components/control/use-control-scope'
+import { useControlVariant } from '../../components/control/use-control-variant'
 import { cn } from '../../core/cn'
 import { invalidAttrs } from '../../core/invalid-attrs'
 import { useFormValue } from '../../primitives/form/use-form-value'
-import { useGlass } from '../../primitives/glass/context'
 import { useHeadlessSlots } from '../../primitives/headless/use-headless-slots'
 import { k } from '../../recipes/kata/wysiwyg'
 
@@ -74,8 +74,6 @@ function stringAttributes(
 export function useWysiwygField(options: WysiwygFieldOptions) {
 	const control = useControl()
 
-	const glass = useGlass()
-
 	const { onValueChange } = options
 
 	const form = useFormValue<string>(options.name, {
@@ -99,7 +97,7 @@ export function useWysiwygField(options: WysiwygFieldOptions) {
 
 	const readOnly = Boolean(shared.readOnly) && !disabled
 
-	const variant = options.variant ?? control?.variant ?? (glass ? 'glass' : undefined)
+	const variant = useControlVariant(options.variant)
 
 	const slots = useHeadlessSlots(k, {
 		variant,
