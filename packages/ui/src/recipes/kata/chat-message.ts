@@ -71,10 +71,9 @@ const bubble = {
 }
 
 export const k = defineKata({
-	// The toolbar is placed against the message, so the message is its
-	// containing block. The named group lets the toolbar show while the bubble
-	// is hovered, or while focus is in the message.
-	base: [flex.col, 'group/chat-message relative'],
+	// The named group lets the toolbar show while the bubble is hovered, or
+	// while focus is in the message.
+	base: [flex.col, 'group/chat-message'],
 	sender: {
 		user: 'items-end',
 		assistant: 'items-start',
@@ -96,9 +95,11 @@ export const k = defineKata({
 		// The bubble and the row below it. The frame has the width of the skeleton
 		// bubble, so the row is as wide as the bubble, and its start is the start
 		// of the bubble. A row wider than a short bubble makes the frame wider, and
-		// the bubble stays on the side of the speaker.
+		// the bubble stays on the side of the speaker. The toolbar is placed
+		// against the frame, so it follows the bubble, also when the bubble is in
+		// the center of the row.
 		frame: {
-			base: [flex.col, kokkaku.chat.width],
+			base: [flex.col, 'relative', kokkaku.chat.width],
 			sender: {
 				user: 'items-end',
 				assistant: 'items-start',
@@ -127,15 +128,22 @@ export const k = defineKata({
 		/**
 		 * The frame of the toolbar of the message actions: it floats over the
 		 * outer top corner of the bubble. That is the corner on the side of the
-		 * speaker. It sits at the top of the message, in the `menu` room. The
-		 * toolbar is 34px high, because its buttons have a fixed size, so it
-		 * overlaps the bubble by 10px: the padding of the bubble, and not its
-		 * text. It is never a row of icons below the bubble.
+		 * speaker. A system line has no side, so the toolbar takes its start
+		 * corner. The toolbar is never in the center, where it would cover the
+		 * text that it acts on. On a device that hovers, the toolbar rises into
+		 * the `menu` room, 24px above the frame. On a device with no hover, it
+		 * covers the top corner of the bubble. The toolbar is 34px high, because
+		 * its buttons have a fixed size, so it overlaps the bubble by 10px: the
+		 * padding of the bubble, and not its text. It is never a row of icons
+		 * below the bubble.
+		 *
+		 * The frame can be narrower than the toolbar, so the toolbar takes its
+		 * own full width. It does not wrap to the width of a short bubble.
 		 */
 		toolbar: {
 			base: [
 				flex.row,
-				'absolute top-0 z-10 w-fit p-1',
+				'absolute top-0 z-10 w-max p-1 [@media(hover:hover)]:-top-6',
 				rounded.lg,
 				// The fill is opaque and the ring is inside the toolbar, so the edge has
 				// one tone over the page and over the bubble. A translucent fill and an
@@ -175,7 +183,7 @@ export const k = defineKata({
 			sender: {
 				user: 'end-2',
 				assistant: 'start-2',
-				system: 'inset-x-0 mx-auto',
+				system: 'start-0',
 			},
 		},
 		// A citation: a phrase of the prose that selects in a view beside the chat.

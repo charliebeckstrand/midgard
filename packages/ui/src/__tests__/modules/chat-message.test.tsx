@@ -213,6 +213,9 @@ describe('ChatMessage', () => {
 	it.each([
 		['user', 'end-2'],
 		['assistant', 'start-2'],
+		// A system line has no side, so the toolbar takes its start corner, and
+		// not the center over its text.
+		['system', 'start-0'],
 	] as const)('floats the menu button over the outer top corner of a %s bubble', (sender, side) => {
 		const { container } = renderUI(<ChatMessage sender={sender}>content</ChatMessage>)
 
@@ -222,8 +225,15 @@ describe('ChatMessage', () => {
 
 		expect(toolbar).toHaveClass('absolute', 'opacity-0', side)
 
-		// The message is the containing block and the group that shows the toolbar.
-		expect(bySlot(container, 'chat-message')).toHaveClass('relative', 'group/chat-message')
+		// The frame of the bubble is the containing block, so the toolbar follows
+		// the bubble. The message is the group that shows the toolbar.
+		expect(bySlot(container, 'chat-message-frame')).toHaveClass('relative')
+
+		expect(bySlot(container, 'chat-message-frame')).toContainElement(toolbar)
+
+		expect(bySlot(container, 'chat-message')).toHaveClass('group/chat-message')
+
+		expect(toolbar.className).not.toContain('mx-auto')
 
 		// No rule turns the toolbar into a row below the bubble.
 		expect(toolbar.className).not.toContain('static')
