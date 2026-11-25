@@ -7,7 +7,8 @@ import { type ControlVariant, useControl } from './context'
  * The surface of a control: the variant of the enclosing Control. Without one,
  * a control in a glass overlay paints no fill, so it takes `outline`, and any
  * other takes `default`. The triggers of Listbox, Combobox, DatePicker, and
- * ColorPicker read it.
+ * ColorPicker read it. A field that draws its own frame reads
+ * {@link useControlVariant}, which takes `glass` in a GlassProvider.
  *
  * @internal
  */
