@@ -285,13 +285,15 @@ export const k = defineKata({
 					base: ['block w-full h-full', bg.skeleton.base],
 					pulse: { true: css.pulse, false: '' },
 				},
-				/** The row under the frame: the page number, and the search glyph after it. */
-				caption: [flex.row, 'items-center', dan.gap.scale.xs],
 				/**
-				 * The search glyph of a page with a match, in the color of the page number. The tooltip
-				 * of the tile gives the number of matches.
+				 * The row under the frame: the page number, and the mark after it. A rail with marks
+				 * gives each row the height of the mark, an `xs` Badge, so a mark that comes or goes as
+				 * the reader types does not move the tiles below it.
 				 */
-				matches: ['inline-flex items-center'],
+				caption: {
+					base: [flex.row, 'items-center', dan.gap.scale.sm],
+					marked: { true: 'min-h-6.5', false: '' },
+				},
 				label: [
 					size.sm,
 					text.muted,

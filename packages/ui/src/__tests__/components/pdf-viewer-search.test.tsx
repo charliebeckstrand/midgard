@@ -6,16 +6,7 @@ import {
 	type PdfViewerTextItem,
 } from '../../components/pdf-viewer'
 import { BREAKPOINT_WIDTHS } from '../../utilities/responsive'
-import {
-	act,
-	allBySlot,
-	bySlot,
-	renderUI,
-	screen,
-	setupUser,
-	stubMatchMedia,
-	waitFor,
-} from '../helpers'
+import { bySlot, renderUI, screen, setupUser, stubMatchMedia, waitFor } from '../helpers'
 
 beforeEach(() => {
 	stubMatchMedia((query) => query === `(min-width: ${BREAKPOINT_WIDTHS.lg})`)
@@ -184,25 +175,23 @@ describe('PdfViewer search', () => {
 		expect(bySlot(container, 'pdf-viewer-search-hits')).not.toBeInTheDocument()
 	})
 
-	it('marks each thumbnail of a page with a match with a search glyph', async () => {
-		const { container } = renderSearch()
+	it('marks each thumbnail of a page with a match with a badge of the number', async () => {
+		renderSearch()
 
-		// No query, no marks.
-		expect(allBySlot(container, 'pdf-viewer-thumbnail-matches')).toHaveLength(0)
+		const badges = () =>
+			screen
+				.getAllByRole('button', { name: /^Go to Page/ })
+				.flatMap((tile) => [...tile.querySelectorAll('[data-slot="badge"]')])
+
+		// No query, no badges.
+		expect(badges()).toHaveLength(0)
 
 		const { user, field } = await openSearch()
 
 		await user.type(field, 't')
 
 		// "Invoice" has no "t", "Total due" has two, and the last "Total" has two.
-		const marks = allBySlot(container, 'pdf-viewer-thumbnail-matches')
-
-		expect(marks).toHaveLength(2)
-
-		// A glyph and no number: the tooltip gives the number.
-		expect(marks.every((mark) => mark.querySelector('svg.lucide-search'))).toBe(true)
-
-		expect(marks.every((mark) => mark.textContent === '')).toBe(true)
+		expect(badges().map((badge) => badge.textContent)).toEqual(['2 matches', '2 matches'])
 
 		const tiles = screen.getAllByRole('button', { name: /^Go to Page/ })
 
@@ -212,9 +201,34 @@ describe('PdfViewer search', () => {
 
 		expect(tiles[2]).toHaveAccessibleDescription('2 matches')
 
+		// One match takes the singular.
 		await user.clear(field)
 
-		expect(allBySlot(container, 'pdf-viewer-thumbnail-matches')).toHaveLength(0)
+		await user.type(field, 'due')
+
+		expect(badges().map((badge) => badge.textContent)).toEqual(['1 match'])
+
+		expect(tiles[1]).toHaveAccessibleDescription('1 match')
+
+		await user.clear(field)
+
+		expect(badges()).toHaveLength(0)
+	})
+
+	it('gives the badge of a thumbnail the color of the matches', async () => {
+		renderSearch({ search: { highlight: { color: 'blue' } } })
+
+		const { user, field } = await openSearch()
+
+		await user.type(field, 'due')
+
+		const [badge] = screen
+			.getAllByRole('button', { name: /^Go to Page/ })
+			.flatMap((tile) => [...tile.querySelectorAll('[data-slot="badge"]')])
+
+		expect(badge?.className).toMatch(/\bbg-blue-/)
+
+		expect(badge?.className).not.toMatch(/amber/)
 	})
 
 	it('adds no search mark and no description to the tiles of a viewer with no search', () => {
@@ -223,40 +237,6 @@ describe('PdfViewer search', () => {
 		for (const tile of screen.getAllByRole('button', { name: /^Go to Page/ })) {
 			expect(tile).not.toHaveAttribute('aria-describedby')
 		}
-	})
-
-	it('gives the number of matches in the tooltip of the tile, and none on a tile with no match', async () => {
-		renderSearch()
-
-		const { user, field } = await openSearch()
-
-		await user.type(field, 't')
-
-		// Close the panel. The focus goes back to the Search control, and its own tooltip can
-		// open, so the checks read the tooltips of the tiles alone.
-		await user.click(screen.getByRole('button', { name: 'Search' }))
-
-		const matchTooltips = () =>
-			screen.queryAllByRole('tooltip').filter((tooltip) => tooltip.textContent?.includes('match'))
-
-		const tiles = screen.getAllByRole('button', { name: /^Go to Page/ })
-
-		// A tile with no match opens no tooltip of its own.
-		act(() => tiles[0]?.focus())
-
-		expect(tiles[0]).toHaveFocus()
-
-		// The focus closed the tooltip of the Search control, and its tooltip group
-		// turns cold in this wait, so the wait runs in `act`.
-		await act(() => new Promise((resolve) => setTimeout(resolve, 300)))
-
-		expect(matchTooltips()).toHaveLength(0)
-
-		act(() => tiles[1]?.focus())
-
-		await waitFor(() => expect(matchTooltips()).toHaveLength(1))
-
-		expect(matchTooltips()[0]).toHaveTextContent('2 matches')
 	})
 
 	it('clears the query on the first Escape, and closes the panel on the next', async () => {

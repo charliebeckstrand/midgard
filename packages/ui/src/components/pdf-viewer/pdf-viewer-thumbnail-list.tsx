@@ -1,15 +1,6 @@
 'use client'
 
-import {
-	type ReactElement,
-	type ReactNode,
-	type Ref,
-	type RefObject,
-	useEffect,
-	useId,
-	useRef,
-	useState,
-} from 'react'
+import { type ReactNode, type Ref, type RefObject, useEffect, useId, useRef, useState } from 'react'
 import { ariaAttr } from '../../core/aria-attr'
 import { dataAttr } from '../../core/data-attr'
 import { useIntl } from '../../primitives/intl/use-intl'
@@ -55,21 +46,16 @@ type PdfViewerThumbnailListProps = {
 	 */
 	layout?: PdfViewerVariants['layout']
 	/**
-	 * Renders the mark of a tile after its page number, such as the search glyph of a page with
-	 * a match. The button of the tile names `descriptionId` in `aria-describedby`, so the mark
-	 * gives the element with that id.
+	 * Renders the mark of a tile after its page number, such as the badge with the number of
+	 * search matches on a page. The button of the tile names `descriptionId` in
+	 * `aria-describedby`, so the mark gives the element with that id. The caption of each tile
+	 * then keeps the height of the mark, so a mark that comes or goes does not move the rail.
 	 *
 	 * @remarks A render function rather than a read of the search here. The mark reads the
 	 * search in a leaf of its own, so a key that the reader types renders the marks and not the
 	 * rail.
 	 */
 	marker?: (pageNumber: number, descriptionId: string) => ReactNode
-	/**
-	 * Wraps the button of a tile, such as in the tooltip that gives the number of search
-	 * matches. The function must return the button in the same tree for each render, so the
-	 * button keeps its node and its focus.
-	 */
-	wrapTile?: (pageNumber: number, tile: ReactElement) => ReactNode
 }
 
 /**
@@ -162,7 +148,6 @@ export function PdfViewerThumbnailList({
 	onVisibleChange,
 	layout = 'list',
 	marker,
-	wrapTile,
 }: PdfViewerThumbnailListProps) {
 	const listRef = useRef<HTMLUListElement>(null)
 
@@ -208,54 +193,52 @@ export function PdfViewerThumbnailList({
 
 				const descriptionId = `${scope}-${item.pageNumber}`
 
-				const tile = (
-					<button
-						ref={isCurrent ? scrollCurrentIntoView : undefined}
-						type="button"
-						data-slot="pdf-viewer-thumbnail"
-						data-current={dataAttr(isCurrent)}
-						aria-label={intl.formatMessage(pdfViewerMessages.goTo, { page: item.label })}
-						aria-current={isCurrent ? 'page' : undefined}
-						aria-describedby={marker ? descriptionId : undefined}
-						className={k().thumbnail.base}
-						onClick={() => {
-							goToPage(item.pageNumber)
-
-							onSelect?.()
-						}}
-					>
-						<span
-							className={k().thumbnail.frame}
-							style={{ aspectRatio: item.ratio ?? defaultRatio }}
-						>
-							{item.thumbnail ? (
-								<img
-									src={item.thumbnail}
-									alt=""
-									// A tile in the view of the rail loads now. The browser decides a lazy load
-									// from the place of the image in the viewport, and the Sheet moves that
-									// place while it slides in. The observer of the rail is inside the Sheet,
-									// so the slide does not change what it sees.
-									loading={visible.includes(item.pageNumber - 1) ? 'eager' : 'lazy'}
-									className={k().thumbnail.image}
-								/>
-							) : (
-								<span
-									data-slot="pdf-viewer-thumbnail-skeleton"
-									className={k({ pulse: visible.includes(item.pageNumber - 1) }).thumbnail.skeleton}
-								/>
-							)}
-						</span>
-						<span className={k().thumbnail.caption}>
-							<span className={k().thumbnail.label}>{intl.formatNumber(item.pageNumber)}</span>
-							{marker?.(item.pageNumber, descriptionId)}
-						</span>
-					</button>
-				)
-
 				return (
 					<li key={item.key} data-index={item.pageNumber - 1}>
-						{wrapTile ? wrapTile(item.pageNumber, tile) : tile}
+						<button
+							ref={isCurrent ? scrollCurrentIntoView : undefined}
+							type="button"
+							data-slot="pdf-viewer-thumbnail"
+							data-current={dataAttr(isCurrent)}
+							aria-label={intl.formatMessage(pdfViewerMessages.goTo, { page: item.label })}
+							aria-current={isCurrent ? 'page' : undefined}
+							aria-describedby={marker ? descriptionId : undefined}
+							className={k().thumbnail.base}
+							onClick={() => {
+								goToPage(item.pageNumber)
+
+								onSelect?.()
+							}}
+						>
+							<span
+								className={k().thumbnail.frame}
+								style={{ aspectRatio: item.ratio ?? defaultRatio }}
+							>
+								{item.thumbnail ? (
+									<img
+										src={item.thumbnail}
+										alt=""
+										// A tile in the view of the rail loads now. The browser decides a lazy load
+										// from the place of the image in the viewport, and the Sheet moves that
+										// place while it slides in. The observer of the rail is inside the Sheet,
+										// so the slide does not change what it sees.
+										loading={visible.includes(item.pageNumber - 1) ? 'eager' : 'lazy'}
+										className={k().thumbnail.image}
+									/>
+								) : (
+									<span
+										data-slot="pdf-viewer-thumbnail-skeleton"
+										className={
+											k({ pulse: visible.includes(item.pageNumber - 1) }).thumbnail.skeleton
+										}
+									/>
+								)}
+							</span>
+							<span className={k({ marked: marker !== undefined }).thumbnail.caption}>
+								<span className={k().thumbnail.label}>{intl.formatNumber(item.pageNumber)}</span>
+								{marker?.(item.pageNumber, descriptionId)}
+							</span>
+						</button>
 					</li>
 				)
 			})}
