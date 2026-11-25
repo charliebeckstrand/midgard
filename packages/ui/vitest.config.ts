@@ -8,7 +8,16 @@ import {
 	walkSource,
 } from './src/__tests__/helpers/walk-source.ts'
 import { splitSequencer } from './src/__tests__/setup/split-sequencer.ts'
-import { assertions, budgets, CI, cleanup, coverage, env, sequence } from './vitest.base.ts'
+import {
+	assertions,
+	budgets,
+	CI,
+	cleanup,
+	coverage,
+	env,
+	reporters,
+	sequence,
+} from './vitest.base.ts'
 
 // The test files that open with `// @vitest-environment node`: the `pure`
 // project runs exactly these, and `unit` and `docs` exclude them. The scan skips
@@ -387,7 +396,8 @@ export default defineConfig({
 		// replace the resolved sequence rather than extend it, losing `shuffle`
 		// and `seed`.
 		//
-		// Replay a red run with `VITEST_SEED=<seed> pnpm test`, never with
+		// Replay a red run with the command that it prints (`reporters` below),
+		// or with `VITEST_SEED=<seed> pnpm test` and its shard, never with
 		// `--sequence.seed`: a CLI override is shallow-merged over each project's
 		// `test` block, so it replaces the resolved sequence object and drops
 		// `groupOrder` with it, which reorders the very queue the failure came
@@ -396,6 +406,9 @@ export default defineConfig({
 		// their paths (`split-sequencer.ts`). It shuffles as `RandomSequencer`
 		// does, so `seed` still replays a run.
 		sequence: { ...sequence, sequencer: splitSequencer([]) },
+		// A run that does not pass prints the command that replays it
+		// (`replayReporter` in `vitest.base.ts`).
+		reporters,
 		// The source that a run with `--coverage` measures (`coverage` in
 		// `vitest.base.ts`). Each shard writes a JSON report, and
 		// `scripts/coverage/merge.ts` merges the reports with the reports of the
