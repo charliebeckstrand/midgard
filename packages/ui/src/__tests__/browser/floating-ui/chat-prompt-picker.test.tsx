@@ -225,9 +225,7 @@ describe('the picker of a chat prompt (real browser)', () => {
 async function editable(): Promise<HTMLElement> {
 	await userEvent.click(screen.getByRole('textbox'))
 
-	await waitFor(() =>
-		expect(screen.getByRole('textbox')).toHaveAttribute('contenteditable', 'true'),
-	)
+	await waitFor(() => expect(screen.getByRole('textbox')).toHaveClass('ProseMirror'))
 
 	const field = screen.getByRole('textbox')
 

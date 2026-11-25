@@ -12,8 +12,8 @@ import { fireEvent, renderUI, screen, waitFor } from '../helpers'
  * request of the editor started about 420 ms after the press. A load that
  * starts in the event overlaps that work.
  *
- * A load that fails reports one rejection for each press, though the press
- * and its focus both start the load.
+ * A load that fails reports one rejection for each hover, though the hover
+ * and the focus that follows both start the load.
  *
  * The suite spies on each `load` of a lazy module, so the check needs a module
  * mock, and the suite sits in `boundary/`.
@@ -59,12 +59,10 @@ describe('Wysiwyg load start', () => {
 
 		expect(load).toHaveBeenCalled()
 
-		await waitFor(() =>
-			expect(screen.getByRole('textbox')).toHaveAttribute('contenteditable', 'true'),
-		)
+		await waitFor(() => expect(screen.getByRole('textbox')).toHaveClass('ProseMirror'))
 	})
 
-	it('reports a load once for a press and its focus', () => {
+	it('reports a load once for a hover and its focus', () => {
 		__resetWysiwygEngine()
 
 		// A load in flight. The field reports a failure through a handler on it.
@@ -81,7 +79,7 @@ describe('Wysiwyg load start', () => {
 
 			load.mockClear()
 
-			fireEvent.pointerDown(field)
+			fireEvent.pointerEnter(field)
 
 			field.focus()
 

@@ -1,12 +1,20 @@
 'use client'
 
-import { type RefObject, useLayoutEffect, useReducer, useRef, useState } from 'react'
+import {
+	type RefObject,
+	useLayoutEffect,
+	useReducer,
+	useRef,
+	useState,
+	useSyncExternalStore,
+} from 'react'
 import type { MarkdownRange } from '../../components/markdown/markdown-ranges'
 import { useIdlePreload } from '../../hooks/use-idle-preload'
 import { useLazyModule } from '../../hooks/use-lazy-module'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { createEmitter } from '../../utilities/emitter'
 import { createLazyModule } from '../../utilities/lazy-module'
+import { createEarlyInput, type WysiwygEarlyInput } from './wysiwyg-early-input'
 import type * as Engine from './wysiwyg-editor'
 import type { WysiwygEditor, WysiwygEditorProps } from './wysiwyg-editor'
 
@@ -22,12 +30,13 @@ let engine = createLazyModule(loadEngine)
 
 /**
  * Test-only: forgets the load of the editor module, so the next case starts as
- * a page before the load.
+ * a page before the load. A case can give its own `importer`, such as one that
+ * holds the load as a slow page does.
  *
  * @internal
  */
-export function __resetWysiwygEngine(): void {
-	engine = createLazyModule(loadEngine)
+export function __resetWysiwygEngine(importer: () => Promise<typeof Engine> = loadEngine): void {
+	engine = createLazyModule(importer)
 }
 
 /** The load that {@link loadEngineNow} reports, so it reports each load once. @internal */
@@ -38,7 +47,7 @@ let reported: Promise<unknown> | null = null
  * load that fails goes on as one unhandled rejection, so it reaches the error
  * reporting of the app, and the next call tries again. The rejection is of a
  * promise of its own: the idle load handles the rejection of the shared
- * promise. One press calls this twice, on the press and on the focus, and the
+ * promise. A hover and the focus after it call this twice, and the
  * two calls get the same load, so only the first call reports it.
  *
  * @internal
@@ -101,20 +110,24 @@ function sameSource(a: Source, b: Source): boolean {
 
 /**
  * The editor of a Wysiwyg field. It loads the engine in idle time, or at once
- * on a call of `load` or `whenReady`, and then makes the editor in `host`. It gives each
- * render the new settings, and it replaces the doc when `value` or `ranges`
- * differ from the source of the doc, such as on a clear after a send, or on an
- * edit that a controlled parent refuses.
+ * on a call of `load` or `whenReady`, and then makes the editor in `host`. The
+ * editor takes the edits that the reader made in the markup before the load
+ * ({@link WysiwygEarlyInput}). The hook gives each render the new settings,
+ * and it replaces the doc when `value` or `ranges` differ from the source of
+ * the doc, such as on a clear after a send, or on an edit that a controlled
+ * parent refuses.
  *
  * @returns The editor, or `null` until it loads, the subscription to each new
  *   state of the editor, whether the engine was loaded at the first render,
- *   `load`, which starts the load of the engine at once, and `whenReady`,
- *   which runs a task on the editor. Call `load` in the event that wants the
- *   editor, such as the first focus or press, so the load does not wait for a
- *   render and its effects. `whenReady` runs its task at once on an editor.
- *   Before the editor, it starts the load, and the task waits. The tasks then
- *   run in the order of their calls, after the editor takes the focus, and
- *   before the paint.
+ *   `load`, which starts the load of the engine at once, `whenReady`, which
+ *   runs a task on the editor, and `early`, the input before the load. Call
+ *   `load` in the event that wants the editor, such as the first focus or
+ *   hover, so the load does not wait for a render and its effects. `whenReady`
+ *   runs its task at once on an editor. Before the editor, it starts the load,
+ *   and the task waits. The tasks then run in the order of their calls, after
+ *   the editor takes the focus. Each task runs in its own commit, as each
+ *   input of the reader does. Thus a task such as a send reads the value of
+ *   the edits before it.
  * @remarks The editor is the source of the doc while it lives. It holds the
  * last Markdown that it emitted, so the value that comes back after an edit
  * does not replace the doc again.
@@ -142,21 +155,6 @@ export function useWysiwygEditor({
 
 	const [updates] = useState(createEmitter)
 
-	// The editor from its creation to its destruction. The state above comes a
-	// render later.
-	const live = useRef<WysiwygEditor | null>(null)
-
-	// The tasks that wait for the editor, in the order of their calls.
-	const waiting = useRef<((editor: WysiwygEditor) => void)[]>([])
-
-	const whenReady = useStableEvent((task: (editor: WysiwygEditor) => void) => {
-		if (live.current) return task(live.current)
-
-		waiting.current.push(task)
-
-		loadEngineNow()
-	})
-
 	// The Markdown source of the doc and its ranges: the value at the creation,
 	// then the last value that the editor emitted or that the field set.
 	const source = useRef<Source>({ value, ranges })
@@ -179,42 +177,81 @@ export function useWysiwygEditor({
 		onUpdate: updates.emit,
 	}
 
+	// The input before the load, which the editor takes when it loads.
+	const [early] = useState(createEarlyInput)
+
+	const composing = useSyncExternalStore(early.subscribe, early.composing, early.composing)
+
+	// The editor from its creation to its destruction. The state above comes a
+	// render later.
+	const live = useRef<WysiwygEditor | null>(null)
+
+	// A render that runs the next task of the queue, so each task runs after
+	// the commit of the one before it, as each input of the reader does.
+	const [, runNext] = useReducer((count: number) => count + 1, 0)
+
 	const create = useStableEvent((module: typeof Engine, element: HTMLElement) => {
 		// The markup before the load can have the focus. The editor then takes it.
 		const focused = element.contains(element.ownerDocument.activeElement)
 
+		const field = element.firstElementChild
+
 		source.current = { value, ranges }
 
-		const next = module.createWysiwygEditor(element, value, ranges, editorProps)
+		const created = module.createWysiwygEditor(element, value, ranges, editorProps)
 
-		if (focused) next.focus()
+		// The editor takes the edits of the reader in the markup, which drew the
+		// value that the editor has. A value that a parent set after the first
+		// edit wins, as a set wins over the doc of the editor.
+		const edited = early.edited()
 
-		return next
+		if (field && (edited === null || sameSource(edited, source.current))) {
+			created.adopt(early.take(field))
+		}
+
+		if (focused) created.focus()
+
+		return created
 	})
 
-	// A layout effect, so the editor replaces the markup before the paint.
+	// A layout effect, so the editor replaces the markup before the paint. An
+	// input method composition in the markup goes on to its end first, so the
+	// reader keeps the composition.
 	useLayoutEffect(() => {
 		const element = host.current
 
-		if (!loaded || !element) return
+		if (!loaded || !element || composing) return
 
-		const next = create(loaded, element)
+		const created = create(loaded, element)
 
-		live.current = next
+		live.current = created
 
-		setEditor(next)
-
-		// The tasks that waited run on the new editor, after it takes the focus.
-		for (const task of waiting.current.splice(0)) task(next)
+		setEditor(created)
 
 		return () => {
 			live.current = null
 
-			next.destroy()
+			created.destroy()
 
 			setEditor(null)
 		}
-	}, [loaded, host, create])
+	}, [loaded, host, create, composing])
+
+	// Runs a task on the editor: now, or when the editor loads and the tasks
+	// before it ran. A task that waits starts the load.
+	const whenReady = useStableEvent((task: (ready: WysiwygEditor) => void) => {
+		const ready = live.current
+
+		if (ready && !early.held()) {
+			task(ready)
+
+			return
+		}
+
+		early.hold(task, host.current?.firstElementChild ?? null, { value, ranges })
+
+		if (!ready) loadEngineNow()
+	})
 
 	// Each render gives the editor its new settings.
 	useLayoutEffect(() => {
@@ -235,5 +272,19 @@ export function useWysiwygEditor({
 		onSet()
 	})
 
-	return { editor, subscribe: updates.subscribe, loadedAtMount, load: loadEngineNow, whenReady }
+	// Each commit with the editor runs the next task of the queue, after the
+	// editor has the settings and the value of the commit. A render then runs
+	// the task after it.
+	useLayoutEffect(() => {
+		if (editor && early.held() && early.next(editor)) runNext()
+	})
+
+	return {
+		editor,
+		subscribe: updates.subscribe,
+		loadedAtMount,
+		load: loadEngineNow,
+		whenReady,
+		early,
+	}
 }

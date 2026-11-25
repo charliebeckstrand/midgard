@@ -54,9 +54,7 @@ const citations = (): ChatCitation[] => JSON.parse(screen.getByTestId('draft').t
 async function editable(): Promise<HTMLElement> {
 	await userEvent.click(screen.getByRole('textbox'))
 
-	await waitFor(() =>
-		expect(screen.getByRole('textbox')).toHaveAttribute('contenteditable', 'true'),
-	)
+	await waitFor(() => expect(screen.getByRole('textbox')).toHaveClass('ProseMirror'))
 
 	const field = screen.getByRole('textbox')
 

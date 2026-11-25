@@ -20,6 +20,12 @@ import {
 	wysiwygCommands,
 } from './engine/wysiwyg-commands'
 import { cancelLink } from './engine/wysiwyg-dom'
+import {
+	adoptEarlyInput,
+	replayEarlyInput,
+	selectEarlyMove,
+	wysiwygEarlyMoves,
+} from './engine/wysiwyg-early'
 import { HELD, wysiwygHeld } from './engine/wysiwyg-held'
 import { wysiwygInputRules } from './engine/wysiwyg-input-rules'
 import { parseMarkdown } from './engine/wysiwyg-markdown/parse'
@@ -28,6 +34,7 @@ import { holdsRange, wysiwygRanges } from './engine/wysiwyg-ranges'
 import { isEmptyDoc, schema } from './engine/wysiwyg-schema'
 import type { WysiwygAction, WysiwygBlock, WysiwygBlockRange, WysiwygToggleAction } from './types'
 import { WYSIWYG_ACTIONS, type WysiwygShortcut, wysiwygActions } from './wysiwyg-actions'
+import type { WysiwygEarlyField, WysiwygEarlyItem } from './wysiwyg-early-input'
 
 /**
  * The settings of an editor that the field can change while it lives.
@@ -112,6 +119,18 @@ export type WysiwygEditor = {
 	block: () => WysiwygBlock | null
 	/** Replaces a span of that block, and marks `range` in the new text. */
 	replace: (from: number, to: number, text: string, range?: WysiwygBlockRange) => void
+	/**
+	 * Takes the text and the selection of the markup before the load, which
+	 * the reader edited. The doc must be the doc that the markup drew.
+	 */
+	adopt: (field: WysiwygEarlyField) => void
+	/** Runs an input that the field held before the load. */
+	replay: (item: WysiwygEarlyItem) => void
+	/**
+	 * Puts the selection where the reader moved it before the load, at the
+	 * move of index `move` of the markup that the editor took.
+	 */
+	select: (move: number) => void
 	destroy: () => void
 }
 
@@ -121,6 +140,22 @@ export type WysiwygEditor = {
  *
  * @internal
  */
+/**
+ * Moves the focus to the view. The view writes its selection to the DOM in
+ * the focus, so the browser does not then reset the selection. ProseMirror
+ * reads each focus as one that a reset of the browser can follow: for 200 ms,
+ * it changes a caret at the start of the doc back to its own selection. A
+ * Home key just after the focus then does nothing. Thus this clears the
+ * record of the focus, which ProseMirror keeps as an internal value.
+ */
+function focusView(view: EditorView): void {
+	view.focus()
+
+	const { input } = view as unknown as { input?: { lastFocus?: number } }
+
+	if (input?.lastFocus !== undefined) input.lastFocus = 0
+}
+
 function keyName({ shift, alt, key }: WysiwygShortcut): string {
 	return `Mod-${shift ? 'Shift-' : ''}${alt ? 'Alt-' : ''}${shift ? key : key.toLowerCase()}`
 }
@@ -182,6 +217,7 @@ export function createWysiwygEditor(
 		plugins: [
 			wysiwygRanges(),
 			wysiwygHeld(),
+			wysiwygEarlyMoves(),
 			wysiwygInputRules(),
 			history(),
 			keymap({
@@ -296,7 +332,7 @@ export function createWysiwygEditor(
 			if (redraw) view.setProps({})
 		},
 		focus: () => {
-			if (view.editable) view.focus()
+			if (view.editable) focusView(view)
 			else view.dom.focus({ preventScroll: true })
 		},
 		focusAt: (left, top) => {
@@ -308,7 +344,7 @@ export function createWysiwygEditor(
 				view.dispatch(view.state.tr.setSelection(TextSelection.near($pos)))
 			}
 
-			if (view.editable) view.focus()
+			if (view.editable) focusView(view)
 			else view.dom.focus({ preventScroll: true })
 		},
 		setValue: (markdown, next) => {
@@ -331,7 +367,7 @@ export function createWysiwygEditor(
 		link: (href, text) => {
 			setLink(href, text)(view.state, view.dispatch, view)
 
-			view.focus()
+			focusView(view)
 		},
 		linkDraft: () => linkDraft(view.state),
 		hold: (held) => {
@@ -346,6 +382,9 @@ export function createWysiwygEditor(
 
 			if (tr) view.dispatch(tr)
 		},
+		adopt: (field) => adoptEarlyInput(view, field),
+		replay: (item) => replayEarlyInput(view, item),
+		select: (move) => selectEarlyMove(view, move),
 		destroy: () => view.destroy(),
 	}
 }

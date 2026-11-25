@@ -28,6 +28,7 @@ import { useWysiwygEditor } from './use-wysiwyg-editor'
 import { useWysiwygField } from './use-wysiwyg-field'
 import { useWysiwygLabelFocus } from './use-wysiwyg-label-focus'
 import { useWysiwygSelection } from './use-wysiwyg-selection'
+import type { WysiwygEarlyItem } from './wysiwyg-early-input'
 import { WysiwygStatic } from './wysiwyg-static'
 
 /** Props for {@link Wysiwyg}. */
@@ -204,11 +205,25 @@ function drawable<R extends MarkdownRange>(
  *
  * @remarks The field is a `contenteditable` element with `role="textbox"` and
  * `aria-multiline`, because a `<textarea>` cannot show formatting. The editor
- * is ProseMirror. It loads after the mount, in idle time, or at once on the
- * first focus or press of the field. Until then, and in the server render, the
- * field shows the formatting of the value as the editor draws it, so the first
- * paint has the layout of the field, but a key that the reader types goes
- * nowhere. The focus goes on to the editor when it loads.
+ * is ProseMirror. It loads after the mount, in idle time, or at once when the
+ * pointer comes over the field or its toolbar, or when one of them gets the
+ * focus. Until then, and in the server render, the field shows the formatting
+ * of the value as the editor draws it, so the first paint has the layout of
+ * the field.
+ *
+ * After hydration, the field takes input before the editor loads. The browser
+ * shows each key that edits the text of a block at once. The field holds each
+ * other input: Enter, a format shortcut, an undo, a paste, a delete that joins
+ * two blocks, and a press of the toolbar. From the first held input, the field
+ * holds each input after it too. When the editor loads, it takes the text and
+ * the caret of the field, and then runs each held input in its order, as if
+ * the reader gave it then. A held input runs at the caret where the reader
+ * gave it. A value that the parent sets after the first input wins over the
+ * input in the field. Thus a held Enter with `onEnter` sends the text
+ * before it, and a Markdown shortcut that the reader typed turns into
+ * formatting. An input method composition goes on to its end before the editor
+ * takes over. A drop before the load does nothing. The focus goes on to the
+ * editor when it loads.
  *
  * With `ranges`, the field marks the text of each range, such as a citation,
  * and keeps the ranges across each edit that does not touch them.
@@ -321,7 +336,7 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 
 	const forgetRanges = useStableEvent(() => known.current.clear())
 
-	const { editor, subscribe, loadedAtMount, load, whenReady } = useWysiwygEditor({
+	const { editor, subscribe, loadedAtMount, load, whenReady, early } = useWysiwygEditor({
 		host,
 		value,
 		ranges,
@@ -335,6 +350,11 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 		onChange: handleChange,
 		onSet: forgetRanges,
 	})
+
+	// An input before the load, which the editor runs when it loads.
+	const holdInput = useStableEvent((item: WysiwygEarlyItem) =>
+		whenReady((ready) => ready.replay(item)),
+	)
 
 	// The editable element, or the markup before the editor loads.
 	const element = () =>
@@ -433,6 +453,8 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 				data-disabled={dataAttr(disabled)}
 				className={cn(slots.root)}
 				onBlur={handleBlur}
+				onPointerEnter={load}
+				onFocus={load}
 			>
 				{apart && children}
 				<ControlFrame
@@ -457,7 +479,9 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 								value={value}
 								ranges={ranges}
 								focusable={!disabled}
-								onWant={load}
+								editable={!locked}
+								early={early}
+								hold={holdInput}
 							/>
 						)}
 					</div>
