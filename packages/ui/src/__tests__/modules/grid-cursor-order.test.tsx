@@ -1,3 +1,4 @@
+import '../setup/grid-modules'
 import { useLayoutEffect, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'

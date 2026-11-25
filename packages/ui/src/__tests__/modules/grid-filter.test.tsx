@@ -1,3 +1,4 @@
+import '../setup/grid-modules'
 import { describe, expect, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { GRID_SEARCH_DEBOUNCE_MS } from '../../modules/grid/engine/grid-constants'

@@ -1,3 +1,4 @@
+import '../setup/grid-modules'
 import { describe, expect, it, vi } from 'vitest'
 import { Grid } from '../../modules/grid'
 import { DensityProvider } from '../../providers/density'

@@ -1,3 +1,4 @@
+import '../setup/grid-modules'
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn, useGridExportActions } from '../../modules/grid'
 import { rowsToCsv } from '../../modules/grid/engine/grid-export/csv'

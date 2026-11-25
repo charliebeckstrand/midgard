@@ -1,3 +1,4 @@
+import '../setup/grid-modules'
 import { describe, expect } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 import {

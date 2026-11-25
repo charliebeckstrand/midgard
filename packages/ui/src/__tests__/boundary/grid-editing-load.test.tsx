@@ -3,9 +3,10 @@ import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 
 // The editing layer of the grid is in a chunk of its own, and only an editable
-// grid loads it. The `unit` project loads the chunk before each file (see
-// `setup/grid-modules.ts`), so this suite needs a cold module registry. It sits
-// in `boundary/`, which the `integration` project runs on forks.
+// grid loads it. In the `unit` project, each file that reaches the grid loads
+// the chunk first (see `setup/grid-modules.ts`), so this suite needs a cold
+// module registry. It sits in `boundary/`, which the `integration` project
+// runs on forks.
 //
 // The mock gives the real module, counts each load of it, and holds the load
 // until the case releases it.

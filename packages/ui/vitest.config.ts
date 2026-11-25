@@ -158,10 +158,19 @@ const setupFiles = [
 ]
 
 /**
- * The setup files of the `unit` and `docs` projects. The grid modules load
- * before each file of these projects only (see `setup/grid-modules.ts`).
+ * The setup files of the `docs` project: the jsdom setup files, and the load of
+ * the grid modules (`setup/grid-modules.ts`).
+ *
+ * @remarks
+ * The `unit` project does not load the grid modules in its setup. Vitest runs
+ * each test file of a project when the import graph of a setup file reaches a
+ * changed file, and the grid modules reach about half of the source. Thus each
+ * file of `unit` whose imports reach a grid loader imports
+ * `setup/grid-modules.ts` itself (`grid-preload-boundary.test.ts`). The pages of
+ * the docs load through an `import()`, which the static walk of that boundary
+ * does not follow, so the `docs` project keeps the load in its setup.
  */
-export const unitSetupFiles = [...setupFiles, './src/__tests__/setup/grid-modules.ts']
+export const docsSetupFiles = [...setupFiles, './src/__tests__/setup/grid-modules.ts']
 
 /**
  * The test options of each project. The inline projects below inherit them
@@ -214,7 +223,7 @@ const projects = [
 		// run in the `docs` project (`vitest.docs.config.ts`) with these settings.
 		test: {
 			name: 'unit',
-			setupFiles: unitSetupFiles,
+			setupFiles,
 			pool: 'threads',
 			// `isolate: false` keeps the evaluated module graph across a
 			// worker's files, and does not rebuild it for each one. That

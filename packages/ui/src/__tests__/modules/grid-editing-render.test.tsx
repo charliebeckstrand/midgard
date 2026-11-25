@@ -1,3 +1,4 @@
+import '../setup/grid-modules'
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { allBySlot, renderUI } from '../helpers'

@@ -1,3 +1,4 @@
+import '../setup/grid-modules'
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { describe, expect, it, vi } from 'vitest'
