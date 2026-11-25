@@ -61,6 +61,21 @@ const DENSITY_FILES = [
 ]
 
 /**
+ * The Firefox preferences of `density-firefox`. Vitest sets
+ * `dom.multiple_import_maps.enabled` to `true`, but Firefox 157 ships with the
+ * value `false`. With `true`, the import map probe of the Vitest orchestrator
+ * page makes Firefox reset the module preloads of that page. If a preloaded
+ * module is linked at that time, a release assertion stops the content process
+ * (`MOZ_RELEASE_ASSERT(!ModuleIsLinked(module))` in `JS::ResetPreloadedModule`,
+ * signal 11). The order of the preload and of the import sets if the module is
+ * linked, so the crash occurs only in some runs. With `false`, Firefox rejects
+ * the late import map and does not reset the preloads. The suite does not use
+ * the import map: Vitest mocks a module with an import map only when `isolate`
+ * is `true`.
+ */
+const FIREFOX_PREFS = { 'dom.multiple_import_maps.enabled': false }
+
+/**
  * The instances in WebKit for the files of Wysiwyg and of the formatted field of
  * ChatPrompt: the typing, the input before the load, the citations, the
  * picker, and the link dialog. A contenteditable field, its selection, and its
@@ -541,11 +556,15 @@ export default defineConfig({
 					include: ['src/__tests__/browser/floating-motion/**/*.test.{ts,tsx}'],
 				},
 				...(ALL_ENGINES
-					? (['firefox', 'webkit'] as const).map((browser) => ({
-							browser,
-							name: `density-${browser}`,
-							include: DENSITY_FILES,
-						}))
+					? [
+							{
+								browser: 'firefox' as const,
+								name: 'density-firefox',
+								provider: playwright({ launchOptions: { firefoxUserPrefs: FIREFOX_PREFS } }),
+								include: DENSITY_FILES,
+							},
+							{ browser: 'webkit' as const, name: 'density-webkit', include: DENSITY_FILES },
+						]
 					: []),
 				...(ALL_ENGINES
 					? WYSIWYG_WEBKIT.map(({ name, mocks, include }) => ({
