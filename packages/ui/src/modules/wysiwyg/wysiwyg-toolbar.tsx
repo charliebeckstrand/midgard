@@ -63,7 +63,7 @@ function actionGroups(actions: readonly WysiwygAction[]) {
  * `separated` on the Wysiwyg. `actions` sets which buttons it shows.
  *
  * Each text and block action is a toggle button with `aria-pressed`, which
- * shows whether the action is on at the selection. Link opens a popover with
+ * shows whether the action is on at the selection. Link opens a dialog with
  * a text field and a URL field. The text field holds the selected text, and
  * Apply links it, or puts the text and the link in at the caret. Each button
  * has a tooltip with its name, and its shortcut is in `aria-keyshortcuts`.
@@ -75,7 +75,7 @@ function actionGroups(actions: readonly WysiwygAction[]) {
  * selection stays in the field and the virtual keyboard stays open. The
  * buttons are ready from the first paint. A press before the editor loads
  * starts the load, and the action runs when the editor comes: a toggle action
- * runs on the selection, and the link popover opens. While the field is disabled or read-only, the toolbar is
+ * runs on the selection, and the link dialog opens. While the field is disabled or read-only, the toolbar is
  * `inert`: it has no Tab stop, it takes no press, and it opens no tooltip.
  * The toolbar is memoized: it renders again when its props change, or when
  * the state of the field that it shows changes. An edit in a controlled field

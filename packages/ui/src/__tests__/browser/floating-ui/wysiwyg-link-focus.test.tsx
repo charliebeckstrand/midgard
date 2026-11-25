@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Wysiwyg, WysiwygToolbar } from '../../../modules/wysiwyg'
 import { renderUI, screen, waitFor } from '../../helpers'
+import { editable } from '../helpers/wysiwyg'
 
 /** Loads the editor through a press of the field, and selects the last word. */
 async function selectLastWord(): Promise<HTMLElement> {
@@ -11,13 +12,7 @@ async function selectLastWord(): Promise<HTMLElement> {
 		</Wysiwyg>,
 	)
 
-	await userEvent.click(screen.getByRole('textbox'))
-
-	await waitFor(() => expect(screen.getByRole('textbox')).toHaveClass('ProseMirror'))
-
-	const field = screen.getByRole('textbox')
-
-	await waitFor(() => expect(field).toHaveFocus())
+	const field = await editable()
 
 	await userEvent.keyboard('{End}{Shift>}{ArrowLeft}{ArrowLeft}{/Shift}')
 
@@ -25,34 +20,22 @@ async function selectLastWord(): Promise<HTMLElement> {
 }
 
 /**
- * The focus when Escape closes the link popover of a Wysiwyg. The focus goes
- * back to where it was as the popover opened (WCAG 2.4.3). The popover
- * portals and its focus manager runs, so these ride the real floating engine.
+ * The focus when Escape closes the link dialog of a Wysiwyg. The focus goes
+ * back to where it was as the dialog opened (WCAG 2.4.3). The dialog portals
+ * and its focus manager runs, so these ride the real floating engine.
  */
-describe('Wysiwyg link popover focus (real floating-ui)', () => {
-	it('gives the focus and the selection back to the field after the link shortcut', async () => {
-		const field = await selectLastWord()
-
-		await userEvent.keyboard('{Control>}k{/Control}')
-
-		const url = await screen.findByRole('textbox', { name: 'URL' })
-
-		await waitFor(() => expect(url).toHaveFocus())
-
-		await userEvent.keyboard('{Escape}')
-
-		await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
-
-		expect(field).toHaveFocus()
-
-		expect(window.getSelection()?.toString()).toBe('it')
-	})
-
-	it('gives the focus back to the field after a press of the link button', async () => {
-		const field = await selectLastWord()
-
+describe('Wysiwyg link dialog focus (real floating-ui)', () => {
+	it.for([
+		['the link shortcut', () => userEvent.keyboard('{Control>}k{/Control}')],
 		// A press on a toolbar button keeps the focus in the field.
-		await userEvent.click(screen.getByRole('button', { name: 'Link' }))
+		[
+			'a press of the link button',
+			() => userEvent.click(screen.getByRole('button', { name: 'Link' })),
+		],
+	] as const)('gives the focus and the selection back to the field after %s', async ([, open]) => {
+		const field = await selectLastWord()
+
+		await open()
 
 		const url = await screen.findByRole('textbox', { name: 'URL' })
 
@@ -67,7 +50,7 @@ describe('Wysiwyg link popover focus (real floating-ui)', () => {
 		expect(window.getSelection()?.toString()).toBe('it')
 	})
 
-	it('keeps the focus in the popover on an Escape that cancels an input method candidate', async () => {
+	it('keeps the focus in the dialog on an Escape that cancels an input method candidate', async () => {
 		await selectLastWord()
 
 		await userEvent.keyboard('{Control>}k{/Control}')
@@ -77,7 +60,7 @@ describe('Wysiwyg link popover focus (real floating-ui)', () => {
 		await waitFor(() => expect(url).toHaveFocus())
 
 		// The input method composes, so its Escape cancels the candidate, and the
-		// popover stays open.
+		// dialog stays open.
 		url.dispatchEvent(new CompositionEvent('compositionstart', { bubbles: true }))
 
 		url.dispatchEvent(

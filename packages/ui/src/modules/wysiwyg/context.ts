@@ -27,20 +27,19 @@ export type WysiwygContextValue = {
 	 * the load, and the action runs when the editor comes.
 	 */
 	run: (action: WysiwygToggleAction) => void
-	/** Whether the link popover is open. */
-	linkOpen: boolean
 	/**
-	 * Opens or closes the link popover. Before the editor loads, an open starts
-	 * the load, and the popover opens when the editor comes.
+	 * Runs a task now, or, before the editor loads, starts the load and runs
+	 * the task when the editor comes.
 	 */
-	setLinkOpen: (open: boolean) => void
+	whenReady: (task: () => void) => void
 	/**
-	 * Counts a link button of a toolbar while it is mounted. The link shortcut
-	 * opens the popover only while the field has one.
+	 * Adds the opener of a link dialog while its button is mounted. The link
+	 * shortcut calls the opener of the last button that mounted, and goes on
+	 * as a key with no button.
 	 *
-	 * @returns The release of the count.
+	 * @returns The release of the opener.
 	 */
-	registerLink: () => () => void
+	registerLink: (open: () => void) => () => void
 	/** The text and the URL of the selection, or of the link at a caret. */
 	linkDraft: () => { text: string; href: string }
 	/**
@@ -49,13 +48,16 @@ export type WysiwygContextValue = {
 	 */
 	setLink: (href: string, text: string) => void
 	/**
-	 * Marks the selection while the focus is in the link popover, or removes
+	 * Marks the selection while the focus is in the link dialog, or removes
 	 * the mark with `false`.
 	 */
 	holdSelection: (held: boolean) => void
 	/** Whether the field has the focus. */
 	fieldFocused: () => boolean
-	/** Moves the focus to the field, which shows its selection again. */
+	/**
+	 * Moves the focus to the field, and draws its selection at once. A plain
+	 * focus of the element draws the selection of the editor some time later.
+	 */
 	focusField: () => void
 }
 

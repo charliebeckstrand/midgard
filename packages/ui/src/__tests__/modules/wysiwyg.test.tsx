@@ -99,7 +99,7 @@ describe('Wysiwyg', () => {
 		expect(screen.getByRole('button', { name: 'Quote' })).toHaveAttribute('aria-pressed', 'true')
 	})
 
-	it('opens the link popover from a press before the load when the editor comes', async () => {
+	it('opens the link dialog from a press before the load when the editor comes', async () => {
 		renderUI(
 			<Wysiwyg aria-label="Notes" defaultValue="Text">
 				<WysiwygToolbar actions={['link']} />
@@ -193,11 +193,14 @@ describe('Wysiwyg', () => {
 		expect(field.getAttribute('aria-describedby')).toContain('hint')
 	})
 
-	it('moves the focus to the field on a click of the Label', async () => {
+	it.for([
+		['an editable', {}],
+		['a read-only', { readOnly: true }],
+	] as const)('moves the focus to %s field on a click of the Label', async ([, lock]) => {
 		renderUI(
 			<Field>
 				<Label>Notes</Label>
-				<Wysiwyg />
+				<Wysiwyg defaultValue="Text" {...lock} />
 			</Field>,
 		)
 
@@ -206,26 +209,11 @@ describe('Wysiwyg', () => {
 		await waitFor(() => expect(screen.getByRole('textbox')).toHaveClass('ProseMirror'))
 
 		await waitFor(() => expect(screen.getByRole('textbox')).toHaveFocus())
-	})
-
-	it('moves the focus to a read-only field on a click of the Label', async () => {
-		renderUI(
-			<Field>
-				<Label>Guide</Label>
-				<Wysiwyg defaultValue="Text" readOnly />
-			</Field>,
-		)
-
-		fireEvent.click(screen.getByText('Guide'))
-
-		await waitFor(() => expect(screen.getByRole('textbox')).toHaveClass('ProseMirror'))
-
-		await waitFor(() => expect(screen.getByRole('textbox')).toHaveFocus())
 
 		// A second click finds the editor loaded, and focuses it again.
 		act(() => screen.getByRole('textbox').blur())
 
-		fireEvent.click(screen.getByText('Guide'))
+		fireEvent.click(screen.getByText('Notes'))
 
 		expect(screen.getByRole('textbox')).toHaveFocus()
 	})
@@ -275,36 +263,27 @@ describe('Wysiwyg', () => {
 		expect(onValueChange).not.toHaveBeenCalled()
 	})
 
-	it('leaves Escape to the page, so a dialog or a popup closes on it', async () => {
-		const onKeyDown = vi.fn()
+	it.for([false, true])(
+		'leaves Escape to the page, so a dialog or a popup closes on it, unless onKeyDown cancels it (%s)',
+		async (cancel) => {
+			const onKeyDown = vi.fn((event: KeyboardEvent) => {
+				if (cancel) event.preventDefault()
+			})
 
-		renderUI(<Wysiwyg aria-label="Notes" defaultValue="Text" onKeyDown={onKeyDown} />)
+			renderUI(<Wysiwyg aria-label="Notes" defaultValue="Text" onKeyDown={onKeyDown} />)
 
-		const field = await loadEditor()
+			const field = await loadEditor()
 
-		// fireEvent gives false for a key that a handler cancels.
-		expect(fireEvent.keyDown(field, { key: 'Escape', keyCode: 27 })).toBe(true)
+			// fireEvent gives false for a key that a handler cancels.
+			expect(fireEvent.keyDown(field, { key: 'Escape', keyCode: 27 })).toBe(!cancel)
 
-		expect(onKeyDown).toHaveBeenCalledWith(expect.objectContaining({ key: 'Escape' }))
-	})
+			expect(onKeyDown).toHaveBeenCalledWith(expect.objectContaining({ key: 'Escape' }))
+		},
+	)
 
-	it('cancels an Escape that onKeyDown cancels', async () => {
+	it('reads only: no edit, a tab stop, and disabled toolbar buttons that show no action as on', async () => {
 		renderUI(
-			<Wysiwyg
-				aria-label="Notes"
-				defaultValue="Text"
-				onKeyDown={(event) => event.preventDefault()}
-			/>,
-		)
-
-		const field = await loadEditor()
-
-		expect(fireEvent.keyDown(field, { key: 'Escape', keyCode: 27 })).toBe(false)
-	})
-
-	it('reads only: no edit, a tab stop, and disabled toolbar buttons', async () => {
-		renderUI(
-			<Wysiwyg aria-label="Guide" defaultValue="Text" readOnly>
+			<Wysiwyg aria-label="Guide" defaultValue="**Bold**" readOnly>
 				<WysiwygToolbar actions={['bold']} />
 			</Wysiwyg>,
 		)
@@ -317,7 +296,12 @@ describe('Wysiwyg', () => {
 
 		expect(field).toHaveAttribute('aria-readonly', 'true')
 
-		expect(screen.getByRole('button', { name: 'Bold' })).toHaveAttribute('aria-disabled', 'true')
+		const bold = screen.getByRole('button', { name: 'Bold' })
+
+		expect(bold).toHaveAttribute('aria-disabled', 'true')
+
+		// The caret starts in the bold text.
+		expect(bold).toHaveAttribute('aria-pressed', 'false')
 	})
 
 	it.for([
@@ -335,19 +319,6 @@ describe('Wysiwyg', () => {
 			expect(screen.getByRole('toolbar', { hidden: true })).toHaveAttribute('inert')
 		},
 	)
-
-	it('shows no action as on while read-only', async () => {
-		renderUI(
-			<Wysiwyg aria-label="Guide" defaultValue="**Bold**" readOnly>
-				<WysiwygToolbar actions={['bold']} />
-			</Wysiwyg>,
-		)
-
-		await loadEditor()
-
-		// The caret starts in the bold text.
-		expect(screen.getByRole('button', { name: 'Bold' })).toHaveAttribute('aria-pressed', 'false')
-	})
 
 	it('puts a separated toolbar above the frame, out of it', () => {
 		const { container } = renderUI(
@@ -714,7 +685,7 @@ describe('WysiwygToolbar', () => {
 		expect(screen.getByRole('button', { name: 'Italic' })).toHaveAttribute('aria-pressed', 'false')
 	})
 
-	it('opens the link popover from the link button', async () => {
+	it('opens the link dialog from the link button', async () => {
 		renderUI(
 			<Wysiwyg aria-label="Notes" defaultValue="Text">
 				<WysiwygToolbar actions={['link']} />

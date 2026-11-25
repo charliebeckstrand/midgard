@@ -18,7 +18,7 @@ export type WysiwygAction =
 
 /**
  * An action that a toolbar button toggles at the selection: each
- * {@link WysiwygAction} but `link`, which opens a popover and has no command.
+ * {@link WysiwygAction} but `link`, which opens a dialog and has no command.
  *
  * @internal
  */
