@@ -183,6 +183,65 @@ describe('Wysiwyg (real browser)', () => {
 		expect(field).toHaveTextContent(/^Hello$/)
 	})
 
+	it('starts a new undo history when the parent refuses an edit', async () => {
+		function Capped() {
+			const [value, setValue] = useState('')
+
+			// The parent takes at most ten characters.
+			return (
+				<Wysiwyg
+					aria-label="Notes"
+					value={value}
+					onValueChange={(next) => setValue(next.slice(0, 10))}
+				/>
+			)
+		}
+
+		renderUI(<Capped />)
+
+		const field = await editable()
+
+		await userEvent.keyboard('Helloabcdef')
+
+		// The parent refused the last key and set its value. The edits before it
+		// are out of the new history, so an undo leaves the value as it is.
+		await userEvent.keyboard('{Control>}z{/Control}')
+
+		expect(field).toHaveTextContent(/^Helloabcde$/)
+	})
+
+	it('starts a new undo history when the parent sets the value', async () => {
+		function Loader() {
+			const [value, setValue] = useState('')
+
+			return (
+				<>
+					<Wysiwyg aria-label="Notes" value={value} onValueChange={setValue} />
+					<button type="button" onClick={() => setValue('Fresh')}>
+						Load
+					</button>
+					<output data-testid="value">{value}</output>
+				</>
+			)
+		}
+
+		renderUI(<Loader />)
+
+		const field = await editable()
+
+		await userEvent.keyboard('First{Enter}Second{Control>}a{/Control}{Backspace}')
+
+		await userEvent.click(screen.getByRole('button', { name: 'Load' }))
+
+		await userEvent.click(field)
+
+		await userEvent.keyboard('{Control>}z{/Control}{Control>}z{/Control}')
+
+		expect(field).toHaveTextContent(/^Fresh$/)
+
+		expect(value()).toBe('Fresh')
+	})
+
 	it('gives the ranges of the default value on a form reset, and not those of the last edit', async () => {
 		const source = 'Ask @Sales'
 

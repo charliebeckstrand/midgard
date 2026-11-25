@@ -9,15 +9,6 @@ import {
 } from 'prosemirror-transform'
 import { schema } from './wysiwyg-schema'
 
-/**
- * The meta key of a transaction that sets the value of the field. The rule
- * of the ranges does not run on it, because the caller gives the ranges of
- * the new value.
- *
- * @internal
- */
-export const SET_VALUE = 'wysiwygSetValue'
-
 /** The span of a range in a doc: from its first piece to the end of its last piece. @internal */
 type RangeSpan = { from: number; to: number }
 
@@ -136,8 +127,6 @@ export function wysiwygRanges(): Plugin<boolean> {
 		},
 		appendTransaction: (transactions, before, after) => {
 			if (!transactions.some((tr) => tr.docChanged)) return null
-
-			if (transactions.some((tr) => tr.getMeta(SET_VALUE))) return null
 
 			// An edit removes a mark only from a range that the doc held before it.
 			if (!holdsRange(before)) return null

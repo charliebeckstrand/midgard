@@ -67,6 +67,8 @@ type WysiwygEditorOptions = {
 	props: Omit<WysiwygEditorProps, 'onChange' | 'onUpdate'>
 	/** Fires with the Markdown of the doc and its ranges after each edit. */
 	onChange: (markdown: string, ranges: MarkdownRange[]) => void
+	/** Fires when the doc takes `value` and `ranges` in place of its source, which starts a new undo history. */
+	onSet: () => void
 }
 
 /** A Markdown source and its ranges. @internal */
@@ -114,7 +116,14 @@ function sameSource(a: Source, b: Source): boolean {
  * does not replace the doc again.
  * @internal
  */
-export function useWysiwygEditor({ host, value, ranges, props, onChange }: WysiwygEditorOptions) {
+export function useWysiwygEditor({
+	host,
+	value,
+	ranges,
+	props,
+	onChange,
+	onSet,
+}: WysiwygEditorOptions) {
 	useIdlePreload(engine)
 
 	const loaded = useLazyModule(engine, false)
@@ -196,6 +205,8 @@ export function useWysiwygEditor({ host, value, ranges, props, onChange }: Wysiw
 		source.current = current
 
 		editor.setValue(value, ranges)
+
+		onSet()
 	})
 
 	return { editor, subscribe: updates.subscribe, loadedAtMount, load: loadEngineNow }
