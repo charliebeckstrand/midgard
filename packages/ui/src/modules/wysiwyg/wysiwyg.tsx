@@ -99,9 +99,10 @@ export type WysiwygProps<R extends MarkdownRange = MarkdownRange> = {
 	 * Enter calls it, and Shift+Enter then does what Enter does without it, so a
 	 * Markdown shortcut such as `- ` works on the new line. Without it, Enter
 	 * starts a new block, continues a list, or adds a line to a code block, and
-	 * Shift+Enter breaks the line. A new line on an empty last line of a code
-	 * block leaves the block, and ArrowDown on the last line of the last code
-	 * block adds a paragraph after it.
+	 * Shift+Enter breaks the line. Enter after a fence at the start of a block,
+	 * such as ```` ```js ````, makes a code block and does not call it. A new
+	 * line on an empty last line of a code block leaves the block, and ArrowDown
+	 * on the last line of the last code block adds a paragraph after it.
 	 */
 	onEnter?: () => void
 	/** Runs first on each key in the field. A handler that cancels the key stops the editor. */
