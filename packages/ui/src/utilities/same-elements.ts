@@ -29,7 +29,7 @@ export function sameMembers<T>(a: ReadonlySet<T>, b: ReadonlySet<T>): boolean {
  * Whether two plain objects hold the same own fields, each the same by
  * reference. A field set to `undefined` and a field that is absent differ.
  */
-function sameFields(a: object, b: object | undefined): boolean {
+export function sameFields(a: object, b: object | undefined): boolean {
 	if (a === b) return true
 
 	if (b === undefined) return false

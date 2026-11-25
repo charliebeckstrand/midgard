@@ -4,6 +4,7 @@ import { useComposedRefs } from 'motion/react'
 import {
 	type ChangeEvent,
 	type KeyboardEvent,
+	memo,
 	type ReactNode,
 	type Ref,
 	type RefObject,
@@ -20,6 +21,7 @@ import { Icon } from '../../components/icon'
 import { Textarea } from '../../components/textarea'
 import { ariaAttr } from '../../core/aria-attr'
 import { dataAttr } from '../../core/data-attr'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import { ArrowUp, Paperclip, Square } from '../../primitives/icons/icons'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
@@ -304,7 +306,11 @@ export function ChatPrompt({
 
 	const canSubmit = !disabled && canSubmitDraft(value)
 
-	const { inputRef, openPicker, handleChange } = useFileUploadHandlers({ onAccept: onAttach })
+	const attach = useStableEvent((files: File[]) => onAttach?.(files))
+
+	const submit = useStableEvent(() => onSubmit())
+
+	const stop = useStableEvent(() => onStop?.())
 
 	const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -408,58 +414,13 @@ export function ChatPrompt({
 		: undefined
 
 	// The row below the field: the extra actions, the paperclip, and send or stop.
+	// The paperclip and send are memoized, and they take stable events, so a key
+	// in the field does not render them again.
 	const actionRow = (
 		<>
 			{actions}
-			{onAttach && (
-				<>
-					{/* Sibling of the button, not nested inside it: a focusable
-						    `<input>` inside an interactive control produces
-						    nested-interactive markup. The Button is the one control.
-						    The input is `hidden`, so browse mode does not read a
-						    second "Add attachment", and `click()` still opens the picker. */}
-					<input
-						ref={inputRef}
-						type="file"
-						accept={accept}
-						multiple
-						onChange={handleChange}
-						hidden
-					/>
-					<Button
-						type="button"
-						variant="plain"
-						aria-label={intl.formatMessage(messages.attach)}
-						onClick={openPicker}
-					>
-						<Icon icon={<Paperclip />} />
-					</Button>
-				</>
-			)}
-			{streaming ? (
-				<Button
-					type="button"
-					color="blue"
-					aria-label={intl.formatMessage(messages.stop)}
-					onClick={() => onStop?.()}
-				>
-					<Icon icon={<Square />} />
-				</Button>
-			) : (
-				// One node holds the stop and the send button, so the button that has the
-				// focus turns into send when the stream ends. A native `disabled` drops
-				// the focus to the body, so send is `aria-disabled` and ignores the press.
-				<Button
-					type="button"
-					color="blue"
-					aria-label={intl.formatMessage(messages.send)}
-					aria-disabled={ariaAttr(!canSubmit)}
-					data-disabled={dataAttr(!canSubmit)}
-					onClick={() => canSubmit && onSubmit()}
-				>
-					<Icon icon={<ArrowUp />} />
-				</Button>
-			)}
+			{onAttach && <ChatPromptAttach accept={accept} onAttach={attach} />}
+			<ChatPromptSend streaming={streaming} canSubmit={canSubmit} onSubmit={submit} onStop={stop} />
 		</>
 	)
 
@@ -569,15 +530,103 @@ export function ChatPrompt({
 					items={picker.items}
 					status={picker.status}
 					statusText={picker.statusText}
-					floatingStyles={picker.floating.floatingStyles}
-					setFloating={picker.floating.refs.setFloating}
-					getFloatingProps={picker.floating.getFloatingProps}
+					elementRef={picker.elementRef}
+					onDismiss={picker.dismiss}
 					onChoose={picker.choose}
 				/>
 			)}
 		</Control>
 	)
 }
+
+/** Props for {@link ChatPromptAttach}. @internal */
+type ChatPromptAttachProps = {
+	accept: string | undefined
+	onAttach: (files: File[]) => void
+}
+
+/**
+ * The paperclip button of {@link ChatPrompt} and its file input. It is
+ * memoized, so a key in the field does not render it again.
+ *
+ * @internal
+ */
+const ChatPromptAttach = memo(function ChatPromptAttach({
+	accept,
+	onAttach,
+}: ChatPromptAttachProps) {
+	const intl = useIntl()
+
+	const { inputRef, openPicker, handleChange } = useFileUploadHandlers({ onAccept: onAttach })
+
+	return (
+		<>
+			{/* Sibling of the button, not nested inside it: a focusable
+			    `<input>` inside an interactive control produces
+			    nested-interactive markup. The Button is the one control.
+			    The input is `hidden`, so browse mode does not read a
+			    second "Add attachment", and `click()` still opens the picker. */}
+			<input ref={inputRef} type="file" accept={accept} multiple onChange={handleChange} hidden />
+			<Button
+				type="button"
+				variant="plain"
+				aria-label={intl.formatMessage(messages.attach)}
+				onClick={openPicker}
+			>
+				<Icon icon={<Paperclip />} />
+			</Button>
+		</>
+	)
+})
+
+/** Props for {@link ChatPromptSend}. @internal */
+type ChatPromptSendProps = {
+	streaming: boolean
+	canSubmit: boolean
+	onSubmit: () => void
+	onStop: () => void
+}
+
+/**
+ * The send button of {@link ChatPrompt}, or its stop button while a reply
+ * streams. It is memoized, so a key in the field renders it again only when
+ * the draft becomes empty or not empty.
+ *
+ * @internal
+ */
+const ChatPromptSend = memo(function ChatPromptSend({
+	streaming,
+	canSubmit,
+	onSubmit,
+	onStop,
+}: ChatPromptSendProps) {
+	const intl = useIntl()
+
+	return streaming ? (
+		<Button
+			type="button"
+			color="blue"
+			aria-label={intl.formatMessage(messages.stop)}
+			onClick={onStop}
+		>
+			<Icon icon={<Square />} />
+		</Button>
+	) : (
+		// One node holds the stop and the send button, so the button that has the
+		// focus turns into send when the stream ends. A native `disabled` drops
+		// the focus to the body, so send is `aria-disabled` and ignores the press.
+		<Button
+			type="button"
+			color="blue"
+			aria-label={intl.formatMessage(messages.send)}
+			aria-disabled={ariaAttr(!canSubmit)}
+			data-disabled={dataAttr(!canSubmit)}
+			onClick={() => canSubmit && onSubmit()}
+		>
+			<Icon icon={<ArrowUp />} />
+		</Button>
+	)
+})
 
 /**
  * The row of the `toolbar` of {@link ChatPrompt}. The cleanup of a layout
