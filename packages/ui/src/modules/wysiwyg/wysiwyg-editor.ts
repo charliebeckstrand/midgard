@@ -16,6 +16,7 @@ import {
 	isLinkActive,
 	linkDraft,
 	linkRange,
+	pasteLink,
 	setLink,
 	wysiwygCommands,
 } from './engine/wysiwyg-commands'
@@ -308,6 +309,9 @@ export function createWysiwygEditor(
 				return true
 			},
 		},
+		// A URL pasted over selected text links the text.
+		handlePaste: (view, event) =>
+			pasteLink(event.clipboardData?.getData('text/plain') ?? '')(view.state, view.dispatch),
 		// Plain text that the reader pastes is Markdown. ProseMirror pastes text in
 		// a code block as it is, and does not call this parser for it.
 		clipboardTextParser: (text) => Slice.maxOpen(parseMarkdown(text).content),

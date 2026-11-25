@@ -449,6 +449,39 @@ export function setLink(href: string, text: string): Command {
 	}
 }
 
+/**
+ * Links the selected text to a pasted URL, as a chat composer does. It
+ * applies when the plain text of the clipboard is one web URL, the selection
+ * is not empty, and a link can go on its text, so not in a code block. Only
+ * the link changes, as in the link dialog, so the text, its other marks, and
+ * the selection stay. Else the paste replaces the selection, as usual.
+ *
+ * @internal
+ */
+export function pasteLink(text: string): Command {
+	return (state, dispatch) => {
+		const href = text.trim()
+
+		if (state.selection.empty || !/^https?:\/\/\S+$/i.test(href)) return false
+
+		const { from, to } = linkRange(state)
+
+		let linkable = false
+
+		state.doc.nodesBetween(from, to, (node, _, parent) => {
+			linkable ||= node.isText && Boolean(parent?.type.allowsMarkType(marks.link))
+
+			return !linkable
+		})
+
+		if (!linkable) return false
+
+		dispatch?.(relink(state.tr, from, to, marks.link.create({ href })).scrollIntoView())
+
+		return true
+	}
+}
+
 /** Sets the link of a range, or removes it with no mark. Each other mark stays. @internal */
 function relink(tr: Transaction, from: number, to: number, mark: Mark | null): Transaction {
 	tr.removeMark(from, to, marks.link)

@@ -301,6 +301,20 @@ describe('Wysiwyg (real browser)', () => {
 		expect(value()).toBe('Ship it')
 	})
 
+	it('keeps a line break in the code that the toolbar makes of two lines', async () => {
+		renderUI(<Notes />)
+
+		const field = await editable()
+
+		await userEvent.keyboard('foo{Shift>}{Enter}{/Shift}bar{Control>}a{/Control}')
+
+		await userEvent.click(screen.getByRole('button', { name: 'Code' }))
+
+		expect(field.querySelector('br')).not.toBeNull()
+
+		expect(value()).toBe('`foo`\\\n`bar`')
+	})
+
 	it('links the selected text from the link dialog, and keeps it selected', async () => {
 		renderUI(<Notes initial="Ship it" />)
 
@@ -332,6 +346,33 @@ describe('Wysiwyg (real browser)', () => {
 		expect(window.getSelection()?.toString()).toBe('it')
 
 		expect(field.querySelector('[data-slot=wysiwyg-held]')).toBeNull()
+	})
+
+	it('links the selected text to a pasted URL, as one undo step', async () => {
+		renderUI(<Notes />)
+
+		const field = await editable()
+
+		// The paste comes before the typing ends a group of the undo history.
+		await userEvent.keyboard('Ship it{Shift>}{ArrowLeft}{ArrowLeft}{/Shift}')
+
+		const data = new DataTransfer()
+
+		data.setData('text/plain', 'https://a.dev')
+
+		data.setData('text/html', '<a href="https://a.dev">https://a.dev</a>')
+
+		field.dispatchEvent(
+			new ClipboardEvent('paste', { clipboardData: data, bubbles: true, cancelable: true }),
+		)
+
+		await waitFor(() => expect(value()).toBe('Ship [it](https://a.dev)'))
+
+		expect(window.getSelection()?.toString()).toBe('it')
+
+		await userEvent.keyboard('{Control>}z{/Control}')
+
+		expect(value()).toBe('Ship it')
 	})
 
 	it('links new text in place of the whole doc after Mod+A', async () => {

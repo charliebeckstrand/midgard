@@ -605,18 +605,42 @@ function keepReferences(text: string): string {
 }
 
 /**
- * A code span. Its backtick run is longer than each run in the code. A space
+ * The code spans of the items of a code mark. A code span holds no line
+ * break, so each line break ends a span, and the code after it starts the
+ * next span.
+ *
+ * @internal
+ */
+function codeSpan(inner: readonly Item[], line: Line): string {
+	let out = ''
+
+	let start = 0
+
+	inner.forEach((each, index) => {
+		if (each.node.type !== schema.nodes.hard_break) return
+
+		out += codeLine(inner.slice(start, index), line) + run([each], line)
+
+		start = index + 1
+	})
+
+	return out + codeLine(inner.slice(start), line)
+}
+
+/**
+ * One code span. Its backtick run is longer than each run in the code. A space
  * pads the code when it starts or ends with a backtick, or when it starts and
  * ends with a space, because a span strips one space from each end.
  *
  * @internal
  */
-function codeSpan(inner: readonly Item[], line: Line): string {
+function codeLine(inner: readonly Item[], line: Line): string {
 	const code = inner.map((each) => each.node.text ?? each.node.attrs.source ?? '').join('')
 
-	line.start = false
-
+	// No code writes no text, so the line still starts after it.
 	if (code === '') return ''
+
+	line.start = false
 
 	const ticks = '`'.repeat(longestRun(code, '`') + 1)
 
@@ -673,8 +697,9 @@ function markPiece(mark: Mark, written: string, line: Line): string {
 
 /**
  * Plain text with each character that would read as Markdown escaped. At the
- * start of a line, a block marker, such as `#`, `>`, `-`, `---`, or `1.`, is
- * escaped too.
+ * start of a line, a block marker, such as `#`, `>`, `-`, or `1.`, is escaped
+ * too. So is a run of `-` or `=`, because after a line break it can underline
+ * the line before it as a heading, or make a rule.
  *
  * Whitespace at the start of a line goes. A message does not show it, and no
  * escape keeps it: before a marker, it lets the marker count, and four spaces
@@ -697,7 +722,7 @@ function escapeText(text: string, lineStart: boolean): string {
 	if (lineStart) {
 		out = out
 			.replace(/^[ \t]+/, '')
-			.replace(/^>|^(#{1,6}|[+-]|-{3,}|=+)(?=\s|$)/, '\\$&')
+			.replace(/^>|^(#{1,6}|\+|-+|=+)(?=\s|$)/, '\\$&')
 			.replace(/^(\d+)([.)])(?=\s|$)/, '$1\\$2')
 	}
 
