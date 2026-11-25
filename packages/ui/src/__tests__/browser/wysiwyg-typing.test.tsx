@@ -134,6 +134,33 @@ describe('Wysiwyg (real browser)', () => {
 		expect(onEnter ?? vi.fn()).not.toHaveBeenCalled()
 	})
 
+	it.for([
+		{ name: 'Enter', onEnter: undefined, key: '{Enter}' },
+		{ name: 'Enter when Enter sends', onEnter: vi.fn(), key: '{Enter}' },
+		{ name: 'Shift+Enter when Enter sends', onEnter: vi.fn(), key: '{Shift>}{Enter}{/Shift}' },
+	])(
+		'makes a code block from a fence line on $name, and does not send',
+		async ({ onEnter, key }) => {
+			renderUI(<Notes onEnter={onEnter} />)
+
+			const field = await editable()
+
+			await userEvent.keyboard(`\`\`\`js${key}const a = 1`)
+
+			const pre = present(field.querySelector('pre'), 'the code block')
+
+			expect(pre).toHaveTextContent(/^const a = 1$/)
+
+			expect(pre).toHaveAttribute('data-lang', 'js')
+
+			expect(field).not.toHaveTextContent('`')
+
+			expect(value()).toBe('```js\nconst a = 1\n```')
+
+			expect(onEnter ?? vi.fn()).not.toHaveBeenCalled()
+		},
+	)
+
 	it('leaves the last code block on ArrowDown from its last line', async () => {
 		renderUI(<Notes />)
 

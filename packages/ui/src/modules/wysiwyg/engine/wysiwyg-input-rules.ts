@@ -5,7 +5,13 @@ import {
 	wrappingInputRule,
 } from 'prosemirror-inputrules'
 import type { Mark, MarkType, Node as ProseMirrorNode } from 'prosemirror-model'
-import type { Plugin } from 'prosemirror-state'
+import {
+	type Command,
+	type EditorState,
+	type Plugin,
+	TextSelection,
+	type Transaction,
+} from 'prosemirror-state'
 import { DELIMITERS } from './wysiwyg-markdown/serialize'
 import { schema } from './wysiwyg-schema'
 
@@ -109,11 +115,70 @@ function typedSource(doc: ProseMirrorNode, from: number, to: number): ProseMirro
 }
 
 /**
+ * A fence at the start of a block, such as ```` ```js ````, and the white space
+ * that ends it. The group is the language.
+ *
+ * @internal
+ */
+const FENCE = /^```([a-z0-9+#-]*)\s$/i
+
+/**
+ * Makes the block of a fence a code block with the language of the fence, and
+ * deletes the fence from `start` to `end`. The text after the fence stays, as
+ * the code. A block where a code block cannot go, such as the first block of a
+ * list item, stays as it is.
+ *
+ * @internal
+ */
+function fenceToCodeBlock(
+	state: EditorState,
+	match: RegExpMatchArray,
+	start: number,
+	end: number,
+): Transaction | null {
+	const $start = state.doc.resolve(start)
+
+	if (!$start.node(-1).canReplaceWith($start.index(-1), $start.indexAfter(-1), nodes.code_block)) {
+		return null
+	}
+
+	return state.tr
+		.delete(start, end)
+		.setBlockType(start, start, nodes.code_block, { lang: match[1] ?? '' })
+}
+
+/**
+ * The fence rule on Enter. Enter ends a fence as a space does, so a block that
+ * holds ```` ```js ```` before the caret becomes a code block, and the key does
+ * nothing more. The command does not run in a code block, as the input rules do
+ * not.
+ *
+ * @internal
+ */
+export const fenceOnEnter: Command = (state, dispatch) => {
+	const $cursor = state.selection instanceof TextSelection ? state.selection.$cursor : null
+
+	if (!$cursor || $cursor.parent.type.spec.code) return false
+
+	const text = $cursor.parent.textBetween(0, $cursor.parentOffset, null, '\ufffc')
+
+	const match = FENCE.exec(`${text}\n`)
+
+	const tr = match && fenceToCodeBlock(state, match, $cursor.start(), $cursor.pos)
+
+	if (!tr) return false
+
+	dispatch?.(tr.scrollIntoView())
+
+	return true
+}
+
+/**
  * The live Markdown shortcuts of a Wysiwyg. A delimited run becomes its mark
  * when the closing delimiter is typed. A marker and a space at the start of a
  * block, such as `- `, `1. `, `> `, or `# `, make the block, and a fence makes a
- * code block. A Backspace right after a rule undoes it, through
- * `undoInputRule` in the keymap.
+ * code block. {@link fenceOnEnter} runs the fence rule on Enter. A Backspace
+ * right after a typed rule undoes it, through `undoInputRule` in the keymap.
  *
  * @internal
  */
@@ -134,9 +199,7 @@ export function wysiwygInputRules(): Plugin {
 				(match, node) => node.childCount + node.attrs.start === Number(match[1]),
 			),
 			wrappingInputRule(/^>\s$/, nodes.blockquote),
-			textblockTypeInputRule(/^```([a-z0-9+#-]*)\s$/i, nodes.code_block, (match) => ({
-				lang: match[1] ?? '',
-			})),
+			new InputRule(FENCE, fenceToCodeBlock),
 			textblockTypeInputRule(/^(#{1,6})\s$/, nodes.heading, (match) => ({
 				level: match[1]?.length ?? 1,
 			})),

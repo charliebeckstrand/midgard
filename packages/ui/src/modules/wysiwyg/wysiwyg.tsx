@@ -99,9 +99,10 @@ export type WysiwygProps<R extends MarkdownRange = MarkdownRange> = {
 	 * Enter calls it, and Shift+Enter then does what Enter does without it, so a
 	 * Markdown shortcut such as `- ` works on the new line. Without it, Enter
 	 * starts a new block, continues a list, or adds a line to a code block, and
-	 * Shift+Enter breaks the line. A new line on an empty last line of a code
-	 * block leaves the block, and ArrowDown on the last line of the last code
-	 * block adds a paragraph after it.
+	 * Shift+Enter breaks the line. Enter after a fence at the start of a block,
+	 * such as ```` ```js ````, makes a code block and does not call it. A new
+	 * line on an empty last line of a code block leaves the block, and ArrowDown
+	 * on the last line of the last code block adds a paragraph after it.
 	 */
 	onEnter?: () => void
 	/** Runs first on each key in the field. A handler that cancels the key stops the editor. */
@@ -201,9 +202,10 @@ function drawable<R extends MarkdownRange>(
  * `max-height` class sets the maximum height. Markdown shortcuts work as the
  * reader types: `**text**`, `*text*`, `` `text` ``, `~~text~~`, `- `, `1. `,
  * `> `, `# `, and a code fence. Backspace right after a shortcut undoes it.
- * Plain text that the reader pastes is read as Markdown. A web URL that the
- * reader pastes over selected text links the text, as one undo step, and the
- * text stays.
+ * Enter after a fence also makes a code block, and Mod+Z undoes that. Plain
+ * text that the reader pastes is read as Markdown. A web URL that the reader
+ * pastes over selected text links the text, as one undo step, and the text
+ * stays.
  *
  * Resolves `id`, `disabled`, `readOnly`, `required`, and `invalid` from an
  * enclosing `<Control>` or `<Field>`, and binds to an enclosing Form field by
