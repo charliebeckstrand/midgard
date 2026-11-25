@@ -1,16 +1,10 @@
 'use client'
 
-import {
-	ChevronUpDownIcon,
-	KeyIcon,
-	ShieldExclamationIcon,
-	UsersIcon,
-} from '@heroicons/react/20/solid'
+import { ChevronUpDownIcon, ShieldExclamationIcon, UsersIcon } from '@heroicons/react/20/solid'
 import type { User } from 'auth'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { type ReactNode, use } from 'react'
-import { SignOutMenuItem } from 'shared/auth'
 import { Avatar } from 'ui/avatar'
 import { Button } from 'ui/button'
 import {
@@ -21,7 +15,6 @@ import {
 	StackedLayoutHeader,
 } from 'ui/layouts'
 import { Link } from 'ui/link'
-import { Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator, MenuTrigger } from 'ui/menu'
 import { NavBar } from 'ui/nav'
 import { OffcanvasContext } from 'ui/primitives/offcanvas'
 import { AppearanceSettings, AppearanceSidebarField } from 'ui/providers/appearance'
@@ -39,6 +32,7 @@ import { Container } from 'ui/structure/container'
 import { Flex } from 'ui/structure/flex'
 import { Spacer } from 'ui/structure/spacer'
 import { Text } from 'ui/text'
+import { UserMenu } from './user-menu'
 
 // The box that scrolls the pages of an admin. It has the height of the
 // viewport, so the document is never taller than the screen. Chrome on iOS
@@ -131,13 +125,16 @@ function SidebarShell({ user, children }: { user: User; children: ReactNode }) {
 						    the desktop sidebar and in the mobile drawer. */}
 								<Flex align="center" gap="sm">
 									<div className="min-w-0 flex-1">
-										<UserMenu placement="top-start">
-											<SidebarItem current={pathname.startsWith('/account')}>
-												<UserAvatar user={user} />
-												<SidebarLabel>{user.email}</SidebarLabel>
-												<ChevronUpDownIcon />
-											</SidebarItem>
-										</UserMenu>
+										<UserMenu
+											placement="top-start"
+											trigger={(props) => (
+												<SidebarItem {...props} current={pathname.startsWith('/account')}>
+													<UserAvatar user={user} />
+													<SidebarLabel>{user.email}</SidebarLabel>
+													<ChevronUpDownIcon />
+												</SidebarItem>
+											)}
+										/>
 									</div>
 									<AppearanceSettings>
 										<AppearanceSidebarField />
@@ -173,11 +170,14 @@ function HeaderShell({ user, children }: { user: User; children: ReactNode }) {
 						</Link>
 						<Spacer />
 						<AppearanceSettings />
-						<UserMenu placement="bottom-end">
-							<Button variant="plain" aria-label="User menu">
-								<UserAvatar user={user} />
-							</Button>
-						</UserMenu>
+						<UserMenu
+							placement="bottom-end"
+							trigger={(props) => (
+								<Button {...props} variant="plain" aria-label="User menu">
+									<UserAvatar user={user} />
+								</Button>
+							)}
+						/>
 					</Flex>
 				</Container>
 			</StackedLayoutHeader>
@@ -234,33 +234,5 @@ function UserAvatar({ user }: { user: User }) {
 			// The avatar does not shrink beside a long email, so it stays a circle.
 			className="shrink-0 bg-zinc-900 text-white dark:bg-white dark:text-zinc-900"
 		/>
-	)
-}
-
-type UserMenuProps = {
-	placement: 'top-start' | 'bottom-end'
-	/** The trigger. */
-	children: ReactNode
-}
-
-/**
- * User menu: the account link, and sign-out.
- *
- * @internal
- * @remarks Sign-out is `SignOutMenuItem` from `shared/auth`.
- */
-function UserMenu({ placement, children }: UserMenuProps) {
-	return (
-		<Menu placement={placement}>
-			<MenuTrigger>{children}</MenuTrigger>
-			<MenuContent>
-				<MenuItem href="/account">
-					<KeyIcon />
-					<MenuLabel>Account</MenuLabel>
-				</MenuItem>
-				<MenuSeparator />
-				<SignOutMenuItem />
-			</MenuContent>
-		</Menu>
 	)
 }
