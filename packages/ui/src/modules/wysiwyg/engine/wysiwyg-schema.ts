@@ -5,26 +5,7 @@ import {
 	type Node as ProseMirrorNode,
 	Schema,
 } from 'prosemirror-model'
-import { cn } from '../../../core/cn'
-import { k as code } from '../../../recipes/kata/code'
-import { k as markdown } from '../../../recipes/kata/markdown'
-
-/**
- * The classes of the prose. They are the slots of the Markdown kata, so a
- * draft looks as the message that it sends.
- */
-const prose = markdown()
-
-const block = code({ canvas: 'dark' }).block
-
-/**
- * The classes of the `pre` of a code block: the frame and the scroll box of
- * the code kata in one box, with no copy button. The frame of the kata is a
- * flex row for its copy button. Here the box is a block, and the code is
- * inline in it. In a flex row, the code is a flex item as wide as its text,
- * so an empty code has no width, and the browser draws no caret in it.
- */
-const codeBlockClass = cn(block.base, block.content, block.fallback, 'block')
+import { markDOM, nodeDOM } from './wysiwyg-dom'
 
 /** The attributes of a `raw` or a `raw_inline` atom from its element: its text is the source. */
 function rawSource(dom: HTMLElement) {
@@ -42,7 +23,7 @@ const nodes = {
 		group: 'block',
 		content: 'inline*',
 		parseDOM: [{ tag: 'p' }],
-		toDOM: (): DOMOutputSpec => ['p', { class: prose.paragraph }, 0],
+		toDOM: (node): DOMOutputSpec => nodeDOM.paragraph(node.attrs),
 	},
 	heading: {
 		group: 'block',
@@ -51,29 +32,21 @@ const nodes = {
 		marks: '_',
 		defining: true,
 		parseDOM: [1, 2, 3, 4, 5, 6].map((level) => ({ tag: `h${level}`, attrs: { level } })),
-		toDOM: (node): DOMOutputSpec => [
-			`h${node.attrs.level}`,
-			{ class: markdown({ level: node.attrs.level }).heading },
-			0,
-		],
+		toDOM: (node): DOMOutputSpec => nodeDOM.heading(node.attrs),
 	},
 	blockquote: {
 		group: 'block',
 		content: 'block+',
 		defining: true,
 		parseDOM: [{ tag: 'blockquote' }],
-		toDOM: (): DOMOutputSpec => ['blockquote', { class: prose.blockquote }, 0],
+		toDOM: (node): DOMOutputSpec => nodeDOM.blockquote(node.attrs),
 	},
 	bullet_list: {
 		group: 'block',
 		content: 'list_item+',
 		attrs: { tight: { default: true, validate: 'boolean' } },
 		parseDOM: [{ tag: 'ul' }],
-		toDOM: (node): DOMOutputSpec => [
-			'ul',
-			{ class: prose.ul, 'data-tight': node.attrs.tight ? '' : null },
-			0,
-		],
+		toDOM: (node): DOMOutputSpec => nodeDOM.bullet_list(node.attrs),
 	},
 	ordered_list: {
 		group: 'block',
@@ -88,21 +61,13 @@ const nodes = {
 				getAttrs: (dom) => ({ start: Number((dom as HTMLElement).getAttribute('start') ?? 1) }),
 			},
 		],
-		toDOM: (node): DOMOutputSpec => [
-			'ol',
-			{
-				class: prose.ol,
-				start: node.attrs.start === 1 ? null : node.attrs.start,
-				'data-tight': node.attrs.tight ? '' : null,
-			},
-			0,
-		],
+		toDOM: (node): DOMOutputSpec => nodeDOM.ordered_list(node.attrs),
 	},
 	list_item: {
 		content: 'paragraph block*',
 		defining: true,
 		parseDOM: [{ tag: 'li' }],
-		toDOM: (): DOMOutputSpec => ['li', { class: prose.li }, 0],
+		toDOM: (node): DOMOutputSpec => nodeDOM.list_item(node.attrs),
 	},
 	code_block: {
 		group: 'block',
@@ -112,12 +77,12 @@ const nodes = {
 		defining: true,
 		attrs: { lang: { default: '', validate: 'string' } },
 		parseDOM: [{ tag: 'pre', preserveWhitespace: 'full' }],
-		toDOM: (): DOMOutputSpec => ['pre', { class: codeBlockClass, dir: 'ltr' }, ['code', 0]],
+		toDOM: (node): DOMOutputSpec => nodeDOM.code_block(node.attrs),
 	},
 	horizontal_rule: {
 		group: 'block',
 		parseDOM: [{ tag: 'hr' }],
-		toDOM: (): DOMOutputSpec => ['hr', { class: prose.hr }],
+		toDOM: (node): DOMOutputSpec => nodeDOM.horizontal_rule(node.attrs),
 	},
 	/**
 	 * A block that the schema does not hold, as its Markdown source. It shows the
@@ -131,11 +96,7 @@ const nodes = {
 		selectable: true,
 		attrs: { source: { validate: 'string' } },
 		parseDOM: [{ tag: 'pre[data-raw]', priority: 60, getAttrs: rawSource }],
-		toDOM: (node): DOMOutputSpec => [
-			'pre',
-			{ class: codeBlockClass, dir: 'ltr', 'data-raw': '' },
-			['code', node.attrs.source],
-		],
+		toDOM: (node): DOMOutputSpec => nodeDOM.raw(node.attrs),
 	},
 	text: { group: 'inline' },
 	/**
@@ -148,7 +109,7 @@ const nodes = {
 		selectable: false,
 		linebreakReplacement: true,
 		parseDOM: [{ tag: 'br' }],
-		toDOM: (): DOMOutputSpec => ['br'],
+		toDOM: (node): DOMOutputSpec => nodeDOM.hard_break(node.attrs),
 	},
 	/**
 	 * An inline construct that the schema does not hold, such as an image, as its
@@ -161,11 +122,7 @@ const nodes = {
 		atom: true,
 		attrs: { source: { validate: 'string' } },
 		parseDOM: [{ tag: 'code[data-raw]', priority: 60, getAttrs: rawSource }],
-		toDOM: (node): DOMOutputSpec => [
-			'code',
-			{ class: code().base, dir: 'ltr', 'data-raw': '' },
-			node.attrs.source,
-		],
+		toDOM: (node): DOMOutputSpec => nodeDOM.raw_inline(node.attrs),
 	},
 } satisfies Record<string, NodeSpec>
 
@@ -185,13 +142,7 @@ const marks = {
 				}),
 			},
 		],
-		// The link does not navigate in the field, so it has no `href`. A press puts
-		// the caret in its text, as in each other editor.
-		toDOM: (mark): DOMOutputSpec => [
-			'a',
-			{ class: prose.link, title: mark.attrs.title, 'data-href': mark.attrs.href },
-			0,
-		],
+		toDOM: (mark): DOMOutputSpec => markDOM.link(mark.attrs),
 	},
 	strong: {
 		parseDOM: [
@@ -203,20 +154,20 @@ const marks = {
 				getAttrs: (value) => /^(bold(er)?|[5-9]\d{2,})$/.test(value) && null,
 			},
 		],
-		toDOM: (): DOMOutputSpec => ['strong', { class: prose.strong }, 0],
+		toDOM: (mark): DOMOutputSpec => markDOM.strong(mark.attrs),
 	},
 	em: {
 		parseDOM: [{ tag: 'em' }, { tag: 'i' }, { style: 'font-style=italic' }],
-		toDOM: (): DOMOutputSpec => ['em', { class: prose.em }, 0],
+		toDOM: (mark): DOMOutputSpec => markDOM.em(mark.attrs),
 	},
 	strike: {
 		parseDOM: [{ tag: 'del' }, { tag: 's' }, { style: 'text-decoration=line-through' }],
-		toDOM: (): DOMOutputSpec => ['del', { class: prose.del }, 0],
+		toDOM: (mark): DOMOutputSpec => markDOM.strike(mark.attrs),
 	},
 	code: {
 		code: true,
 		parseDOM: [{ tag: 'code' }],
-		toDOM: (): DOMOutputSpec => ['code', { class: code().base, dir: 'ltr' }, 0],
+		toDOM: (mark): DOMOutputSpec => markDOM.code(mark.attrs),
 	},
 	/**
 	 * A range of the value, such as a citation of a chat draft. The caller
@@ -227,11 +178,7 @@ const marks = {
 	range: {
 		attrs: { id: { validate: 'string' } },
 		inclusive: false,
-		toDOM: (mark): DOMOutputSpec => [
-			'span',
-			{ 'data-slot': 'wysiwyg-range', 'data-range': mark.attrs.id },
-			0,
-		],
+		toDOM: (mark): DOMOutputSpec => markDOM.range(mark.attrs),
 	},
 } satisfies Record<string, MarkSpec>
 

@@ -1,6 +1,6 @@
 // @vitest-environment node
 
-import { EditorState, TextSelection, type Transaction } from 'prosemirror-state'
+import { AllSelection, EditorState, TextSelection, type Transaction } from 'prosemirror-state'
 import { describe, expect, it } from 'vitest'
 import {
 	exitCodeOnEmptyLine,
@@ -40,6 +40,89 @@ describe('the Code block action', () => {
 		expect(toggleCodeBlock('See ![chart](chart.png) here')).toBe(
 			'```\nSee ![chart](chart.png) here\n```',
 		)
+	})
+})
+
+describe('a mark action on a range', () => {
+	it('adds the mark to a range that has it in part, as its off state says, and then removes it', () => {
+		// A partly bold paragraph, and a code block whose text cannot be bold.
+		let state = EditorState.create({ doc: parseMarkdown('a **b** c\n\n```\ncode\n```') })
+
+		state = state.apply(
+			state.tr.setSelection(TextSelection.create(state.doc, 1, state.doc.content.size - 1)),
+		)
+
+		const bold = wysiwygCommands.bold
+
+		const press = () =>
+			bold.run(state, (tr: Transaction) => {
+				state = state.apply(tr)
+			})
+
+		expect(bold.active(state)).toBe(false)
+
+		press()
+
+		expect(serializeMarkdown(state.doc)).toBe('**a b c**\n\n```\ncode\n```')
+
+		expect(bold.active(state)).toBe(true)
+
+		press()
+
+		expect(serializeMarkdown(state.doc)).toBe('a b c\n\n```\ncode\n```')
+	})
+})
+
+/** Runs a block action on a state, and gives the Markdown and whether the action is then on. */
+function runBlock(state: EditorState, action: 'bulletList' | 'quote') {
+	let next = state
+
+	const ran = wysiwygCommands[action].run(state, (tr: Transaction) => {
+		next = next.apply(tr)
+	})
+
+	return {
+		ran,
+		markdown: serializeMarkdown(next.doc),
+		active: wysiwygCommands[action].active(next),
+	}
+}
+
+/** A state of a source with all of the doc selected, as Mod+A selects it. */
+function selectAll(source: string): EditorState {
+	const state = EditorState.create({ doc: parseMarkdown(source) })
+
+	return state.apply(state.tr.setSelection(new AllSelection(state.doc)))
+}
+
+describe('a block action', () => {
+	it('reads a selection of the whole doc as its text, so a list or a quote turns off', () => {
+		expect(wysiwygCommands.bulletList.active(selectAll('- a\n- b'))).toBe(true)
+
+		expect(runBlock(selectAll('- a\n- b'), 'bulletList')).toEqual({
+			ran: true,
+			markdown: 'a\n\nb',
+			active: false,
+		})
+
+		expect(runBlock(selectAll('> a\n>\n> b'), 'quote')).toEqual({
+			ran: true,
+			markdown: 'a\n\nb',
+			active: false,
+		})
+	})
+
+	it('quotes the whole list from a list item, and takes the list out of the quote again', () => {
+		// The caret in the text of the first item.
+		const quoted = runBlock(selectText('- a\n- b', 2), 'quote')
+
+		expect(quoted).toEqual({ ran: true, markdown: '> - a\n> - b', active: true })
+
+		const state = EditorState.create({ doc: parseMarkdown(quoted.markdown) })
+
+		const caret = state.apply(state.tr.setSelection(TextSelection.create(state.doc, 4)))
+
+		expect(runBlock(caret, 'quote')).toEqual({ ran: true, markdown: '- a\n- b', active: false })
 	})
 })
 

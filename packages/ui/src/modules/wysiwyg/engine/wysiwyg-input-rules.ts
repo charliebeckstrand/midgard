@@ -4,7 +4,7 @@ import {
 	textblockTypeInputRule,
 	wrappingInputRule,
 } from 'prosemirror-inputrules'
-import type { MarkType } from 'prosemirror-model'
+import type { Mark, MarkType, Node as ProseMirrorNode } from 'prosemirror-model'
 import type { Plugin } from 'prosemirror-state'
 import { schema } from './wysiwyg-schema'
 
@@ -31,14 +31,88 @@ function markRule(pattern: RegExp, type: MarkType): InputRule {
 
 		const textTo = textFrom + text.length
 
+		const tr = state.tr
+
+		// In Markdown, a code span binds tighter than emphasis, and a backtick
+		// opens a span only when a later backtick closes it. Thus the code rule
+		// gives back the delimiters of each emphasis that the reader made in the
+		// span before it closed, such as the `*` of `2*3*4`.
+		const source = type === marks.code ? typedSource(state.doc, textFrom, textTo) : null
+
+		if (source) tr.replaceWith(textFrom, textTo, source)
+
+		const length = tr.mapping.map(textTo) - textFrom
+
 		// The last character of the closing delimiter is the typed one, which is
 		// not yet in the doc, so the doc holds the closing delimiter up to `end`.
-		return state.tr
-			.delete(textTo, end)
+		return tr
+			.delete(textFrom + length, tr.mapping.map(end))
 			.delete(from, textFrom)
-			.addMark(from, from + text.length, type.create())
+			.addMark(from, from + length, type.create())
 			.removeStoredMark(type)
 	})
+}
+
+/** The delimiter that the serializer writes for each emphasis mark, in the order of the schema. */
+const DELIMITERS: ReadonlyMap<MarkType, string> = new Map([
+	[marks.strong, '**'],
+	[marks.em, '*'],
+	[marks.strike, '~~'],
+])
+
+/**
+ * The text from `from` to `to` in one textblock, with each emphasis mark that
+ * not all of it has written back as its delimiters, as the reader typed it.
+ * The text keeps the marks that all of it has. A span that holds a node that
+ * is not text, such as a line break, has none, and keeps its nodes.
+ *
+ * @internal
+ */
+function typedSource(doc: ProseMirrorNode, from: number, to: number): ProseMirrorNode | null {
+	const runs: { text: string; marks: readonly Mark[] }[] = []
+
+	let plain = true
+
+	doc.nodesBetween(from, to, (node, pos) => {
+		if (node.isInline && !node.isText) plain = false
+
+		if (!node.isText) return
+
+		const text = (node.text ?? '').slice(Math.max(0, from - pos), to - pos)
+
+		if (text) runs.push({ text, marks: node.marks })
+	})
+
+	if (!plain || runs.length === 0) return null
+
+	const shared = runs.reduce<readonly Mark[]>(
+		(set, run) => set.filter((mark) => mark.isInSet(run.marks)),
+		runs[0]?.marks ?? [],
+	)
+
+	const delimited = [...DELIMITERS.keys()].filter((type) => !type.isInSet(shared))
+
+	let source = ''
+
+	let open: MarkType[] = []
+
+	for (const run of [...runs, { text: '', marks: [] }]) {
+		const active = delimited.filter((type) => type.isInSet(run.marks))
+
+		let keep = 0
+
+		while (keep < open.length && open[keep] === active[keep]) keep++
+
+		for (const type of open.slice(keep).reverse()) source += DELIMITERS.get(type)
+
+		for (const type of active.slice(keep)) source += DELIMITERS.get(type)
+
+		source += run.text
+
+		open = active
+	}
+
+	return schema.text(source, shared)
 }
 
 /**

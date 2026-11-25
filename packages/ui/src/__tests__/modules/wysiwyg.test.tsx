@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { createRef, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Field, Label } from '../../components/fieldset'
-import { Wysiwyg, WysiwygSkeleton, WysiwygToolbar } from '../../modules/wysiwyg'
+import { Wysiwyg, type WysiwygHandle, WysiwygSkeleton, WysiwygToolbar } from '../../modules/wysiwyg'
+import { useWysiwyg } from '../../modules/wysiwyg/context'
 import { HeadlessProvider } from '../../providers/headless'
 import { act, fireEvent, getSlot, renderUI, screen, waitFor, within } from '../helpers'
 
@@ -32,7 +33,7 @@ describe('Wysiwyg', () => {
 		expect(field).toHaveAttribute('data-empty')
 	})
 
-	it('shows the source before the editor loads, and loads it on focus', async () => {
+	it('shows the formatting of the value before the editor loads, and loads it on focus', async () => {
 		renderUI(
 			<Wysiwyg aria-label="Notes" defaultValue="**Launch**">
 				<WysiwygToolbar actions={['bold']} />
@@ -45,7 +46,8 @@ describe('Wysiwyg', () => {
 
 		expect(field).toHaveAttribute('tabindex', '0')
 
-		expect(field).toHaveTextContent('**Launch**')
+		// The markup before the load draws the formatting, as the editor does.
+		expect(within(field).getByText('Launch').tagName).toBe('STRONG')
 
 		const bold = screen.getByRole('button', { name: 'Bold' })
 
@@ -68,6 +70,25 @@ describe('Wysiwyg', () => {
 		expect(editor).toHaveTextContent('Launch')
 
 		expect(bold).not.toHaveAttribute('aria-disabled')
+	})
+
+	it('draws a link before the editor loads that a press does not follow', () => {
+		renderUI(
+			<Wysiwyg aria-label="Notes" defaultValue="Read the [guide](https://example.com/guide)" />,
+		)
+
+		const link = within(screen.getByRole('textbox', { name: 'Notes' })).getByText('guide')
+
+		expect(link).toHaveAttribute('href', 'https://example.com/guide')
+
+		expect(link).toHaveAttribute('tabindex', '-1')
+
+		// `dispatchEvent` gives false for a canceled event.
+		expect(fireEvent.click(link)).toBe(false)
+
+		expect(
+			fireEvent(link, new MouseEvent('auxclick', { bubbles: true, cancelable: true, button: 1 })),
+		).toBe(false)
 	})
 
 	it('shows the formatting of the source once the editor loads', async () => {
@@ -531,6 +552,35 @@ describe('WysiwygToolbar', () => {
 		await waitFor(() => expect(within(dialog).getByRole('textbox', { name: 'Text' })).toHaveFocus())
 
 		expect(within(dialog).getByRole('textbox', { name: 'URL' })).toHaveValue('')
+	})
+
+	it('keeps the value of its context across an edit, so the toolbar does not render again', async () => {
+		const handle = createRef<WysiwygHandle>()
+
+		const values = new Set<unknown>()
+
+		// A part of the field, as a toolbar button is, that records each value of the context.
+		function Part() {
+			values.add(useWysiwyg())
+
+			return null
+		}
+
+		renderUI(
+			<Wysiwyg ref={handle} aria-label="Notes" defaultValue="Text">
+				<Part />
+			</Wysiwyg>,
+		)
+
+		await loadEditor()
+
+		values.clear()
+
+		act(() => handle.current?.replace(0, 0, 'New '))
+
+		expect(screen.getByRole('textbox')).toHaveTextContent('New Text')
+
+		expect(values.size).toBe(0)
 	})
 })
 

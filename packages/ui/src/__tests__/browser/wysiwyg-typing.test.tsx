@@ -65,6 +65,37 @@ describe('Wysiwyg (real browser)', () => {
 		expect(value()).toBe('A **bold** and *em* word\n\n- one\n- two')
 	})
 
+	it('keeps the emphasis characters of a code span that the reader types as code', async () => {
+		renderUI(<Notes />)
+
+		const field = await editable()
+
+		await userEvent.keyboard('Run `2*3*4` and `a **b**` now')
+
+		expect([...field.querySelectorAll('code')].map((code) => code.textContent)).toEqual([
+			'2*3*4',
+			'a **b**',
+		])
+
+		expect(field.querySelector('em, strong')).toBeNull()
+
+		expect(value()).toBe('Run `2*3*4` and `a **b**` now')
+	})
+
+	it('makes emphasis after a backtick that no later backtick closes', async () => {
+		renderUI(<Notes />)
+
+		const field = await editable()
+
+		await userEvent.keyboard('Press the ` key to **open** it')
+
+		expect(field.querySelector('strong')).toHaveTextContent('open')
+
+		expect(field.querySelector('code')).toBeNull()
+
+		expect(value()).toBe('Press the \\` key to **open** it')
+	})
+
 	it('starts a new block on Shift+Enter when Enter sends, so the shortcuts work', async () => {
 		const onEnter = vi.fn()
 
@@ -426,6 +457,51 @@ describe('Wysiwyg (real browser)', () => {
 		expect(field).toHaveTextContent('Ask bold @Sa')
 
 		expect(field.querySelector('[data-slot="wysiwyg-range"]')).toBeNull()
+	})
+
+	it('paints the formatting and the layout of the editor before the editor loads', async () => {
+		const source = [
+			'## Plan',
+			'A **bold**, *em*, ~~old~~, `code`, and [link](https://example.com) line\\\nwith a break and @Sales.',
+			'- one\n- two',
+			'3. three\n4. four',
+			'> a quote',
+			'```ts\nconst a = 1\n\n```',
+			'___',
+			'| a |\n| --- |\n| b |',
+			'An ![image](https://example.com/a.png) inline',
+		].join('\n\n')
+
+		const sales = {
+			id: 'sales',
+			start: source.indexOf('@Sales'),
+			end: source.indexOf('@Sales') + 6,
+			quote: '@Sales',
+		}
+
+		renderUI(<Wysiwyg aria-label="Notes" defaultValue={source} ranges={[sales]} />)
+
+		const field = screen.getByRole('textbox')
+
+		// The markup of the first paint, before the editor loads.
+		expect(field).not.toHaveAttribute('contenteditable')
+
+		const layout = (element: HTMLElement) =>
+			[...element.children].map((block) => {
+				const { top, height } = block.getBoundingClientRect()
+
+				return [block.tagName, top, height, block.textContent]
+			})
+
+		const before = layout(field)
+
+		expect(field.querySelector('strong')).toHaveTextContent('bold')
+
+		expect(field.querySelector('[data-slot="wysiwyg-range"]')).toHaveTextContent('@Sales')
+
+		const editor = await editable()
+
+		expect(layout(editor)).toEqual(before)
 	})
 
 	it('grows with its content up to the max height, and then scrolls', async () => {

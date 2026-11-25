@@ -1,5 +1,6 @@
 // @vitest-environment node
 
+import { Node } from 'prosemirror-model'
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
@@ -169,6 +170,47 @@ describe('wysiwyg markdown', () => {
 	it('drops a line break at the end of a paragraph', () => {
 		const doc = schema.node('doc', null, [
 			schema.node('paragraph', null, [schema.text('a'), schema.node('hard_break')]),
+		])
+
+		expect(serializeMarkdown(doc)).toBe('a')
+	})
+
+	it('writes a list that two docs share with the marker of its place in each', () => {
+		const item = (text: string) =>
+			schema.node('list_item', null, [schema.node('paragraph', null, [schema.text(text)])])
+
+		const shared = schema.node('bullet_list', null, [item('b')])
+
+		expect(serializeMarkdown(schema.node('doc', null, [shared]))).toBe('- b')
+
+		const after = schema.node('doc', null, [schema.node('bullet_list', null, [item('a')]), shared])
+
+		expect(serializeMarkdown(after)).toBe('- a\n\n* b')
+	})
+
+	it('writes the doc of an edit as it writes a copy of the doc', () => {
+		const doc = parseMarkdown(sources.join('\n\n'))
+
+		serializeMarkdown(doc)
+
+		// An edit in the first block. The doc after it keeps each other block.
+		const edited = doc.replace(1, 1, doc.slice(1, 3))
+
+		// A copy has new nodes, so it shares no block with the docs above.
+		const copy = Node.fromJSON(schema, edited.toJSON())
+
+		expect(serializeMarkdown(edited)).toBe(serializeMarkdown(copy))
+	})
+
+	it('drops a line break that only white space follows, so no backslash ends the paragraph', () => {
+		const doc = schema.node('doc', null, [
+			schema.node('paragraph', null, [
+				schema.text('a'),
+				schema.node('hard_break'),
+				schema.text(' \t'),
+				schema.node('hard_break'),
+				schema.text(' ', [schema.marks.strong.create()]),
+			]),
 		])
 
 		expect(serializeMarkdown(doc)).toBe('a')

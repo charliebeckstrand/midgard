@@ -25,7 +25,8 @@ const FRAMED = ['default', 'outline', 'soft', 'glass'] as const
 /**
  * The colors of the placeholder, which is the `::before` of the first block of
  * an empty field: the placeholder colors of the control reset, and of a `soft`
- * field (`kumi/control/frame.ts`).
+ * field (`kumi/control/frame.ts`). As in the control group, the field takes the
+ * reset colors, and a `soft` field puts its own colors over them.
  */
 const placeholder = mode(
 	'[&[data-empty]>:first-child]:before:text-zinc-500',
@@ -74,9 +75,15 @@ export const k = defineKata(
 					// The strut of the minimum height.
 					"before:float-start before:h-[calc(var(--wysiwyg-rows,1)*1lh)] before:w-0 before:content-['']",
 					// The placeholder.
+					...placeholder,
 					'[&[data-empty]>:first-child]:before:pointer-events-none',
 					'[&[data-empty]>:first-child]:before:absolute',
 					'[&[data-empty]>:first-child]:before:content-(--wysiwyg-placeholder)',
+					// The field gives the placeholder to a screen reader through
+					// `aria-placeholder`. The empty alternative text keeps the generated text
+					// out of the value that a screen reader reads. A browser that has no
+					// alternative text for `content` reads the text.
+					"supports-[content:'a'_/_'']:[&[data-empty]>:first-child]:before:content-[var(--wysiwyg-placeholder)_/_'']",
 					// The marks of the editor: its selected node, its hidden selection, and
 					// the separator image that it puts beside an inline node.
 					'[&_.ProseMirror-selectednode]:outline-2 [&_.ProseMirror-selectednode]:outline-blue-500',
@@ -98,13 +105,7 @@ export const k = defineKata(
 					'dark:[&_[data-slot=wysiwyg-range]]:bg-blue-400/20 dark:[&_[data-slot=wysiwyg-range]]:text-blue-300',
 					'forced-colors:[&_[data-slot=wysiwyg-range]]:outline-solid forced-colors:[&_[data-slot=wysiwyg-range]]:outline-1',
 				],
-				variant: {
-					default: placeholder,
-					outline: placeholder,
-					soft: softPlaceholder,
-					glass: placeholder,
-					bare: placeholder,
-				},
+				variant: { soft: softPlaceholder },
 				/**
 				 * The end padding of the last row below a toolbar in a framed field: the
 				 * inline padding of the field, so the text has the inset of the glyphs

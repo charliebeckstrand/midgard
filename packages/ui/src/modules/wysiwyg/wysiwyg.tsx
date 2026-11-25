@@ -7,6 +7,7 @@ import {
 	type ReactNode,
 	type Ref,
 	useImperativeHandle,
+	useMemo,
 	useRef,
 	useState,
 } from 'react'
@@ -17,9 +18,9 @@ import { dataAttr } from '../../core/data-attr'
 import type { ScaleStep } from '../../core/density/scale'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { ControlActions, ControlFrame } from '../../primitives/control'
-import { k as markdown } from '../../recipes/kata/markdown'
 import type { scale } from '../../recipes/kata/wysiwyg'
 import { clamp } from '../../utilities/clamp'
+import { noopSubscribe } from '../../utilities/noop'
 import { isPrimaryPress } from '../../utilities/primary-press'
 import { WysiwygContext, type WysiwygContextValue } from './context'
 import type { WysiwygBlock, WysiwygHandle, WysiwygToggleAction } from './types'
@@ -27,7 +28,7 @@ import { useWysiwygEditor } from './use-wysiwyg-editor'
 import { useWysiwygField } from './use-wysiwyg-field'
 import { useWysiwygLabelFocus } from './use-wysiwyg-label-focus'
 import { useWysiwygSelection } from './use-wysiwyg-selection'
-import type { WysiwygEditor } from './wysiwyg-editor'
+import { WysiwygStatic } from './wysiwyg-static'
 
 /** Props for {@link Wysiwyg}. */
 export type WysiwygProps<R extends MarkdownRange = MarkdownRange> = {
@@ -67,7 +68,7 @@ export type WysiwygProps<R extends MarkdownRange = MarkdownRange> = {
 	 * @minimum 1
 	 */
 	rows?: number
-	/** The text that the empty field shows. */
+	/** The text that the empty field shows. A screen reader gets it through `aria-placeholder`. */
 	placeholder?: string
 	/**
 	 * Control slot rendered as a right-justified row below the field, as on
@@ -158,27 +159,6 @@ export type WysiwygProps<R extends MarkdownRange = MarkdownRange> = {
 	ref?: Ref<WysiwygHandle<R>>
 }
 
-/** The subscription of a locked field, which takes no update. @internal */
-function ignoreUpdates(): () => void {
-	return () => undefined
-}
-
-/**
- * How the toolbar follows the selection. A locked field is inert: the toolbar
- * does not follow the selection, and it shows no action as on.
- *
- * @internal
- */
-function selection(
-	editor: WysiwygEditor | null,
-	subscribe: WysiwygContextValue['subscribe'],
-	locked: boolean,
-): Pick<WysiwygContextValue, 'subscribe' | 'isActive'> {
-	if (locked) return { subscribe: ignoreUpdates, isActive: () => false }
-
-	return { subscribe, isActive: (action) => editor?.isActive(action) ?? false }
-}
-
 /**
  * The ranges that can draw on `value`: each range of `ranges` that can, then
  * each range of `fallback` with another id that can.
@@ -197,23 +177,6 @@ function drawable<R extends MarkdownRange>(
 	const rest = fallback.filter((range) => !ids.has(range.id))
 
 	return [...kept, ...(rangeWalk(value, rest)?.ranges ?? [])]
-}
-
-/**
- * The HTML attributes of the field as React props, for the markup before the
- * editor loads. The editor takes them by their HTML names.
- *
- * @internal
- */
-function reactProps(attributes: Record<string, string>): Record<string, string> {
-	const { class: className = '', tabindex, enterkeyhint, ...rest } = attributes
-
-	return {
-		...rest,
-		className,
-		...(tabindex === undefined ? {} : { tabIndex: tabindex }),
-		...(enterkeyhint === undefined ? {} : { enterKeyHint: enterkeyhint }),
-	}
 }
 
 /**
@@ -236,10 +199,10 @@ function reactProps(attributes: Record<string, string>): Record<string, string> 
  * @remarks The field is a `contenteditable` element with `role="textbox"` and
  * `aria-multiline`, because a `<textarea>` cannot show formatting. The editor
  * is ProseMirror. It loads after the mount, in idle time, or at once on the
- * first focus or press of the field. Until then, the field shows the Markdown
- * source as text, with the same frame and the same minimum height, and a key
- * that the reader types goes nowhere. The focus goes on to the editor when it
- * loads.
+ * first focus or press of the field. Until then, and in the server render, the
+ * field shows the formatting of the value as the editor draws it, so the first
+ * paint has the layout of the field, but a key that the reader types goes
+ * nowhere. The focus goes on to the editor when it loads.
  *
  * With `ranges`, the field marks the text of each range, such as a citation,
  * and keeps the ranges across each edit that does not touch them.
@@ -294,8 +257,21 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 		onValueChange?.(next, edited.current ?? drawable(next, ranges, initialRanges)),
 	)
 
-	// The reset ref apart, so the rest of the field reads as values in the render.
-	const { resetRef, ...field } = useWysiwygField({
+	// Each part of the field apart, so the render reads values and not one
+	// object, and the compiler can keep the memo of the context below.
+	const {
+		resetRef,
+		value,
+		controlled,
+		setValue,
+		setTouched,
+		fieldId,
+		disabled,
+		locked,
+		labelId,
+		slots,
+		attributes,
+	} = useWysiwygField({
 		...options,
 		onValueChange: onValueChange && emit,
 		defaultValue: options.defaultValue ?? '',
@@ -305,8 +281,6 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 		separated,
 		top: inside,
 	})
-
-	const { value, slots, locked } = field
 
 	const host = useRef<HTMLDivElement>(null)
 
@@ -336,7 +310,7 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 			return range ? [{ ...range, ...span }] : []
 		})
 
-		field.setValue(markdown)
+		setValue(markdown)
 
 		edited.current = undefined
 	})
@@ -347,9 +321,9 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 		ranges,
 		wanted,
 		props: {
-			attributes: field.attributes,
+			attributes: attributes,
 			editable: !locked,
-			onSubmit: onEnter,
+			onEnter,
 			onKeyDown,
 			onLink: openLink,
 		},
@@ -379,42 +353,59 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 
 	useWysiwygSelection(editor, subscribe, locked, onSelectionChange)
 
-	useWysiwygLabelFocus(field.disabled ? undefined : field.labelId, focus)
+	useWysiwygLabelFocus(disabled ? undefined : labelId, focus)
 
-	const context: WysiwygContextValue = {
-		fieldId: field.fieldId,
-		ready: editor !== null,
-		locked,
-		toolbarClassName: cn(slots.toolbar),
-		...selection(editor, subscribe, locked),
-		run: (action: WysiwygToggleAction) => {
-			editor?.run(action)
-		},
-		linkOpen,
-		setLinkOpen,
-		registerLink: () => {
-			linkButtons.current++
+	const toolbarClassName = cn(slots.toolbar)
 
-			return () => {
-				linkButtons.current--
-			}
-		},
-		linkDraft: () => editor?.linkDraft() ?? { text: '', href: '' },
-		setLink: (href: string, text: string) => editor?.link(href, text),
-		holdSelection: (held: boolean) => editor?.hold(held),
-	}
+	// One identity for the mount, so the memo below does not list it.
+	const focusField = useStableEvent(focus)
+
+	// The value keeps its identity while its inputs do. A keystroke renders the
+	// field, and the toolbar then renders only the buttons whose state changed.
+	// The effects of the link button, which run on `registerLink` and
+	// `holdSelection`, also run only when the editor changes.
+	const context = useMemo<WysiwygContextValue>(
+		() => ({
+			fieldId,
+			ready: editor !== null,
+			locked,
+			toolbarClassName,
+			// A locked field is inert: the toolbar does not follow the selection, and
+			// it shows no action as on.
+			subscribe: locked ? noopSubscribe : subscribe,
+			isActive: (action) => !locked && (editor?.isActive(action) ?? false),
+			run: (action: WysiwygToggleAction) => {
+				editor?.run(action)
+			},
+			linkOpen,
+			setLinkOpen,
+			registerLink: () => {
+				linkButtons.current++
+
+				return () => {
+					linkButtons.current--
+				}
+			},
+			linkDraft: () => editor?.linkDraft() ?? { text: '', href: '' },
+			setLink: (href: string, text: string) => editor?.link(href, text),
+			holdSelection: (held: boolean) => editor?.hold(held),
+			fieldFocused: () => editor?.view.hasFocus() ?? false,
+			focusField,
+		}),
+		[fieldId, editor, locked, toolbarClassName, subscribe, linkOpen, focusField],
+	)
 
 	// The field is touched when the focus leaves the field and its rows, and not
 	// when it moves to a part of them, such as a toolbar button.
 	function handleBlur(event: FocusEvent<HTMLElement>) {
-		if (!event.currentTarget.contains(event.relatedTarget)) field.setTouched()
+		if (!event.currentTarget.contains(event.relatedTarget)) setTouched()
 	}
 
 	// Below a toolbar, the space above the text is a margin of the field, so the
 	// host gets a press in that space and not the field. The press puts the
 	// caret in the first visible row of text, as a press on the field does.
 	function handleHostPress(event: MouseEvent<HTMLDivElement>) {
-		if (event.target !== event.currentTarget || field.disabled || !isPrimaryPress(event)) return
+		if (event.target !== event.currentTarget || disabled || !isPrimaryPress(event)) return
 
 		event.preventDefault()
 
@@ -432,7 +423,7 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 			{/* biome-ignore lint/a11y/noStaticElementInteractions: a focus-out surface for the toolbar and the field, not a control. The field marks itself touched when the focus leaves both. */}
 			<div
 				data-slot="wysiwyg-root"
-				data-disabled={dataAttr(field.disabled)}
+				data-disabled={dataAttr(disabled)}
 				className={cn(slots.root)}
 				onBlur={handleBlur}
 			>
@@ -440,7 +431,7 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 				<ControlFrame
 					as="div"
 					density={size}
-					data-disabled={dataAttr(field.disabled)}
+					data-disabled={dataAttr(disabled)}
 					className={cn(slots.base)}
 				>
 					{inside && children}
@@ -454,9 +445,10 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 					>
 						{!editor && (
 							<WysiwygStatic
-								attributes={field.attributes}
+								attributes={attributes}
 								value={value}
-								focusable={!field.disabled}
+								ranges={ranges}
+								focusable={!disabled}
 								onWant={() => setWanted(true)}
 							/>
 						)}
@@ -466,7 +458,7 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 							{actions}
 						</ControlActions>
 					)}
-					{!field.controlled && <input type="hidden" ref={resetRef} />}
+					{!controlled && <input type="hidden" ref={resetRef} />}
 				</ControlFrame>
 			</div>
 		</WysiwygContext>
@@ -479,36 +471,4 @@ function fieldStyle(rows: number, placeholder: string | undefined) {
 		'--wysiwyg-rows': rows,
 		...(placeholder === undefined ? {} : { '--wysiwyg-placeholder': JSON.stringify(placeholder) }),
 	} as CSSProperties
-}
-
-/** Props for {@link WysiwygStatic}. @internal */
-type WysiwygStaticProps = {
-	attributes: Record<string, string>
-	value: string
-	focusable: boolean
-	/** Fires on the first focus or press, which loads the editor at once. */
-	onWant: () => void
-}
-
-/**
- * The field before the editor loads, and the markup of the server render: the
- * Markdown source as text, with the attributes of the field. The editor puts
- * its own element beside it, and this one then goes.
- *
- * @internal
- */
-function WysiwygStatic({ attributes, value, focusable, onWant }: WysiwygStaticProps) {
-	return (
-		// biome-ignore lint/a11y/useSemanticElements: the field holds the blocks of the editor, which a <textarea> cannot hold.
-		<div
-			{...reactProps(attributes)}
-			role="textbox"
-			tabIndex={focusable ? 0 : undefined}
-			data-empty={dataAttr(value.trim() === '')}
-			onFocus={onWant}
-			onPointerDown={onWant}
-		>
-			<p className={markdown().paragraph}>{value === '' ? <br /> : value}</p>
-		</div>
-	)
 }

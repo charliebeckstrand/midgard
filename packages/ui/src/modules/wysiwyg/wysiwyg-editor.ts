@@ -18,6 +18,7 @@ import {
 	setLink,
 	wysiwygCommands,
 } from './engine/wysiwyg-commands'
+import { cancelLink } from './engine/wysiwyg-dom'
 import { HELD, wysiwygHeld } from './engine/wysiwyg-held'
 import { wysiwygInputRules } from './engine/wysiwyg-input-rules'
 import { parseMarkdown } from './engine/wysiwyg-markdown/parse'
@@ -52,7 +53,7 @@ export type WysiwygEditorProps = {
 	 * code block, and Shift+Enter breaks the line. A new line on an empty last
 	 * line of a code block leaves the block.
 	 */
-	onSubmit: (() => void) | undefined
+	onEnter: (() => void) | undefined
 	/** Runs first on each key. A handler that cancels the key stops the editor. */
 	onKeyDown: ((event: KeyboardEvent) => void) | undefined
 	/**
@@ -149,7 +150,7 @@ export function createWysiwygEditor(
 	}
 
 	// A new block, so a Markdown shortcut such as `- ` works after the key. With
-	// `onSubmit`, Shift+Enter takes this command, as a chat composer does. In a
+	// `onEnter`, Shift+Enter takes this command, as a chat composer does. In a
 	// code block, it adds a line, and on an empty last line it leaves the block.
 	const newBlock = chainCommands(
 		exitCodeOnEmptyLine,
@@ -160,14 +161,14 @@ export function createWysiwygEditor(
 
 	const enterKeys: Record<string, Command> = {
 		Enter: (state, dispatch, view) => {
-			if (!props.onSubmit) return newBlock(state, dispatch, view)
+			if (!props.onEnter) return newBlock(state, dispatch, view)
 
-			props.onSubmit()
+			props.onEnter()
 
 			return true
 		},
 		'Shift-Enter': (state, dispatch, view) =>
-			props.onSubmit
+			props.onEnter
 				? newBlock(state, dispatch, view)
 				: chainCommands(exitCode, breakLine)(state, dispatch, view),
 	}
@@ -220,6 +221,10 @@ export function createWysiwygEditor(
 
 				return true
 			},
+			// A link in the field does not navigate. A press puts the caret in its
+			// text, or selects in a read-only field.
+			click: (_, event) => cancelLink(event),
+			auxclick: (_, event) => cancelLink(event),
 			// A reader of the caret, such as a picker, follows the focus too.
 			focus: () => {
 				props.onUpdate()
