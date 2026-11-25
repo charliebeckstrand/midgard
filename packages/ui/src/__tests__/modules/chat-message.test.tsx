@@ -503,7 +503,13 @@ describe('ChatMessage', () => {
 
 		const button = screen.getByRole('button', { name: 'Copy' })
 
-		await clock.user.click(button)
+		// A press of Enter on a keyboard focus. The focus opens the tooltip of the
+		// button, as a hover does in a browser.
+		await clock.user.tab()
+
+		expect(button).toHaveFocus()
+
+		await clock.user.keyboard('{Enter}')
 
 		// The clipboard write resolves.
 		await clock.advance(0)
