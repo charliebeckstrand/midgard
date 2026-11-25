@@ -1,5 +1,6 @@
 import type { IntlShape } from 'ui/primitives/intl'
 import { defineMessages } from '../../primitives/intl/intl-messages.ts'
+import type { MessageDescriptor } from '../../primitives/intl/types.ts'
 import type { Literal } from '../plugin/api.ts'
 import { humanize } from './humanize.ts'
 
@@ -79,8 +80,12 @@ function formatName(intl: IntlShape, id: string, name: string): string {
 	}
 
 	// A variable, not an inline object: the extraction reads each inline
-	// descriptor, and this one has no literal id.
-	const descriptor = { id, defaultMessage: name }
+	// descriptor, and this one has no literal id. The default is the syntax
+	// tree of one literal element (type 0) that holds the name, because the
+	// docs build has no message parser (`plugin/messages.ts`). Thus a character
+	// of the message syntax in a name, such as `{` or `'`, shows as it is. The
+	// type of the descriptor checks the form of the element.
+	const descriptor: MessageDescriptor = { id, defaultMessage: [{ type: 0, value: name }] }
 
 	return intl.formatMessage(descriptor)
 }

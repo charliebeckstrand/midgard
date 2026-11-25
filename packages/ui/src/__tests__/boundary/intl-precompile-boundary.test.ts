@@ -3,7 +3,6 @@ import { parse } from '@formatjs/icu-messageformat-parser'
 import { describe, expect, it } from 'vitest'
 import { compileDescriptors, compileTranslation } from '../../../scripts/intl/loader'
 import {
-	docsSites,
 	isSourceFile,
 	srcDir,
 	walkSource,
@@ -13,17 +12,18 @@ import {
 
 // Precompiled messages (`scripts/intl/loader.ts`).
 //
-// The Next build of each app runs the message loader on each module that
-// defines messages, and it gives the bundle no message parser. A message that
-// reaches FormatJS as text then shows as its raw text, such as
-// "{count, plural, one {# row} other {# rows}}". So the loader stops the build
-// when it cannot precompile a descriptor. This gate runs the loader on each
-// module that an app can import, so that such a module fails here first.
+// The Next build of each app and the build of the docs run the message loader
+// on each module that defines messages, and they give the bundle no message
+// parser. A message that reaches FormatJS as text then shows as its raw text,
+// such as "{count, plural, one {# row} other {# rows}}". So the loader stops
+// the build when it cannot precompile a descriptor. This gate runs the loader
+// on each module that a build can bundle, so that such a module fails here
+// first.
 
-// The trees that an app bundles: ui (without the docs site), `shared`, and the
+// The trees that a build bundles: ui with the docs site, `shared`, and the
 // apps.
 const SCAN_ROOTS: readonly [string, ReadonlySet<string> | undefined][] = [
-	[srcDir, docsSites],
+	[srcDir, undefined],
 	[join(workspaceRoot, 'packages', 'shared', 'src'), undefined],
 	[join(workspaceRoot, 'apps'), undefined],
 ]
@@ -84,7 +84,7 @@ describe('intl precompile boundary', () => {
 		expect(JSON.parse(output)).toEqual({ a: parse('Cerrar'), b: parse('Fila {index, number}') })
 	})
 
-	it('precompiles each module that an app bundles', () => {
+	it('precompiles each module that a build bundles', () => {
 		const failures: string[] = []
 
 		let compiled = 0
