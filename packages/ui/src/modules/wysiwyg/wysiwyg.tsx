@@ -314,6 +314,16 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 	// shortcut opens the dialog of the last one, and goes on as a key with none.
 	const linkOpeners = useRef(new Set<() => void>())
 
+	// One identity for the mount, so each link button registers once, and the
+	// set keeps the order of the mounts.
+	const registerLink = useStableEvent((open: () => void) => {
+		linkOpeners.current.add(open)
+
+		return () => {
+			linkOpeners.current.delete(open)
+		}
+	})
+
 	const openLink = useStableEvent(() => {
 		const open = [...linkOpeners.current].at(-1)
 
@@ -390,6 +400,9 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 	// The effects of the link button, which run on `registerLink` and
 	// `holdSelection`, thus do not run again on an edit or on an open of the
 	// dialog.
+	// One identity for the mount, so the memo below does not list it.
+	const focusField = useStableEvent(focus)
+
 	const context = useMemo<WysiwygContextValue>(
 		() => ({
 			fieldId,
@@ -403,18 +416,14 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 			// when the editor comes.
 			run: (action: WysiwygToggleAction) => whenReady((ready) => ready.run(action)),
 			whenReady,
-			registerLink: (open: () => void) => {
-				linkOpeners.current.add(open)
-
-				return () => {
-					linkOpeners.current.delete(open)
-				}
-			},
+			registerLink,
 			linkDraft: () => editor?.linkDraft() ?? { text: '', href: '' },
 			setLink: (href: string, text: string) => editor?.link(href, text),
 			holdSelection: (held: boolean) => editor?.hold(held),
+			fieldFocused: () => editor?.view.hasFocus() ?? false,
+			focusField,
 		}),
-		[fieldId, editor, locked, toolbarClassName, subscribe, whenReady],
+		[fieldId, editor, locked, toolbarClassName, subscribe, whenReady, registerLink, focusField],
 	)
 
 	// The field is touched when the focus leaves the field and its rows, and not

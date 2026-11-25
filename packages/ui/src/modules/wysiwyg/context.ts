@@ -52,6 +52,13 @@ export type WysiwygContextValue = {
 	 * the mark with `false`.
 	 */
 	holdSelection: (held: boolean) => void
+	/** Whether the field has the focus. */
+	fieldFocused: () => boolean
+	/**
+	 * Moves the focus to the field, and draws its selection at once. A plain
+	 * focus of the element draws the selection of the editor some time later.
+	 */
+	focusField: () => void
 }
 
 export const [WysiwygContext, useWysiwyg] = createContext<WysiwygContextValue>('Wysiwyg')

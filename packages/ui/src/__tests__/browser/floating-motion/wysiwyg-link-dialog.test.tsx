@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Wysiwyg, WysiwygToolbar } from '../../../modules/wysiwyg'
-import { renderUI, screen, waitFor } from '../../helpers'
+import { present, renderUI, screen, waitFor } from '../../helpers'
 
 /** A field with a toolbar. */
 function Notes({ initial }: { initial: string }) {
@@ -89,8 +89,7 @@ describe('Wysiwyg link dialog (real Motion)', () => {
 
 		await waitFor(() => expect(field).toHaveFocus())
 
-		// The field draws its selection again after the focus.
-		await waitFor(() => expect(window.getSelection()?.toString()).toBe('it'))
+		expect(window.getSelection()?.toString()).toBe('it')
 	})
 
 	it('opens from the link shortcut, and Escape gives the focus back to the field', async () => {
@@ -112,7 +111,7 @@ describe('Wysiwyg link dialog (real Motion)', () => {
 
 		await waitFor(() => expect(field).toHaveFocus())
 
-		await waitFor(() => expect(window.getSelection()?.toString()).toBe('it'))
+		expect(window.getSelection()?.toString()).toBe('it')
 
 		expect(field.querySelector('[data-slot=wysiwyg-held]')).toBeNull()
 
@@ -156,5 +155,52 @@ describe('Wysiwyg link dialog (real Motion)', () => {
 		expect(field.querySelector('a')).toBeNull()
 
 		expect(field).toHaveTextContent('Read the docs')
+	})
+
+	it('opens one dialog for each link button, and the shortcut opens the last one that mounted', async () => {
+		function Two({ second }: { second: boolean }) {
+			return (
+				<Wysiwyg aria-label="Notes" defaultValue="Ship it">
+					{second && <WysiwygToolbar aria-label="Second" />}
+					<WysiwygToolbar aria-label="First" />
+				</Wysiwyg>
+			)
+		}
+
+		const { rerender } = renderUI(<Two second={false} />)
+
+		// The second toolbar mounts last, above the first. The load of the editor
+		// after it does not change the order of the mounts.
+		rerender(<Two second />)
+
+		const field = await editable()
+
+		const [second, first] = screen.getAllByRole('button', { name: 'Link' })
+
+		await userEvent.click(present(first, 'the first link button'))
+
+		await waitFor(() => expect(screen.getByRole('textbox', { name: 'Text' })).toHaveFocus())
+
+		expect(screen.getAllByRole('dialog', { name: 'Link' })).toHaveLength(1)
+
+		expect(first).toHaveAttribute('aria-expanded', 'true')
+
+		expect(second).toHaveAttribute('aria-expanded', 'false')
+
+		await userEvent.keyboard('{Escape}')
+
+		await waitFor(() => expect(panel()).toBeNull())
+
+		await waitFor(() => expect(field).toHaveFocus())
+
+		await userEvent.keyboard('{ControlOrMeta>}k{/ControlOrMeta}')
+
+		await waitFor(() => expect(screen.getByRole('textbox', { name: 'Text' })).toHaveFocus())
+
+		expect(screen.getAllByRole('dialog', { name: 'Link' })).toHaveLength(1)
+
+		expect(second).toHaveAttribute('aria-expanded', 'true')
+
+		expect(first).toHaveAttribute('aria-expanded', 'false')
 	})
 })

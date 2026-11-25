@@ -43,7 +43,16 @@ import { wysiwygActions, wysiwygMessages } from './wysiwyg-actions'
  * @internal
  */
 export function WysiwygLinkButton() {
-	const { fieldId, whenReady, registerLink, linkDraft, setLink, holdSelection } = useWysiwyg()
+	const {
+		fieldId,
+		whenReady,
+		registerLink,
+		linkDraft,
+		setLink,
+		holdSelection,
+		fieldFocused,
+		focusField,
+	} = useWysiwyg()
 
 	const intl = useIntl()
 
@@ -57,13 +66,20 @@ export function WysiwygLinkButton() {
 
 	const hrefInput = useRef<HTMLInputElement>(null)
 
-	// The focus goes back to the field after a change, and else where it was
-	// as the dialog opened.
+	// Whether the field had the focus as the dialog opened. The link shortcut
+	// and a press of the button keep it there, and a key on the button opens
+	// the dialog with the focus on the button.
+	const fromField = useRef(false)
+
+	// The field, when the focus goes back to it at the close. Else the dialog
+	// gives the focus back to the element that had it as the dialog opened.
 	const returnFocus = useRef<HTMLElement | null>(null)
 
 	// The dialog opens on the editor, so the draft holds the selection.
 	const show = useStableEvent(() => {
 		setDraft(linkDraft())
+
+		fromField.current = fieldFocused()
 
 		returnFocus.current = null
 
@@ -81,13 +97,30 @@ export function WysiwygLinkButton() {
 		return () => holdSelection(false)
 	}, [open, holdSelection])
 
-	// Applies a change, and closes the dialog with the focus on the field.
+	// Closes the dialog. The focus goes back to the field after a change, or
+	// when the field had it as the dialog opened. The field takes it at once,
+	// with its selection, so the reader goes on typing at the selection.
+	function close(changed: boolean) {
+		if (changed || fromField.current) {
+			focusField()
+
+			returnFocus.current = document.getElementById(fieldId)
+		}
+
+		setOpen(false)
+	}
+
+	// The button opens the dialog, so the dialog asks only to close: on
+	// Escape, Cancel, or a press on the backdrop.
+	function handleOpenChange(next: boolean) {
+		if (!next) close(false)
+	}
+
+	// Sets the text and the link, and closes the dialog.
 	function change(href: string, text: string) {
 		setLink(href, text)
 
-		returnFocus.current = document.getElementById(fieldId)
-
-		setOpen(false)
+		close(true)
 	}
 
 	function apply(event: FormEvent<HTMLFormElement>) {
@@ -99,7 +132,7 @@ export function WysiwygLinkButton() {
 
 		// An empty URL on a selection with no link changes nothing.
 		if (href !== '' || draft.href !== '') change(href, String(data.get('text') ?? ''))
-		else setOpen(false)
+		else close(true)
 	}
 
 	return (
@@ -110,7 +143,7 @@ export function WysiwygLinkButton() {
 				aria-expanded={open}
 				onClick={() => whenReady(show)}
 			/>
-			<Dialog open={open} onOpenChange={setOpen}>
+			<Dialog open={open} onOpenChange={handleOpenChange}>
 				<DialogPanel
 					width="sm"
 					initialFocus={draft.text === '' ? textInput : hrefInput}
