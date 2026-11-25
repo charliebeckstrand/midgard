@@ -8,6 +8,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '../../components/popove
 import { useIntl } from '../../primitives/intl/use-intl'
 import { Flex } from '../../structure/flex'
 import { Stack } from '../../structure/stack'
+import { isComposing } from '../../utilities/is-composing'
 import { useWysiwyg } from './context'
 import { WysiwygActionButton } from './wysiwyg-action-button'
 import { wysiwygActions, wysiwygMessages } from './wysiwyg-actions'
@@ -106,9 +107,15 @@ function WysiwygLinkForm() {
 	// Escape closes the popover. When the field had the focus, it goes back to
 	// the field first, as on Apply, so the reader goes on typing at the
 	// selection. The popover gives the focus back to the button only from the
-	// popover or the body, so it then leaves the focus in the field.
+	// popover or the body, so it then leaves the focus in the field. An Escape
+	// that an input method takes, or that a handler cancels, does not close the
+	// popover, so the focus stays.
 	function handleKeyDown(event: KeyboardEvent<HTMLFormElement>) {
-		if (event.key === 'Escape' && fromField) focusField()
+		if (event.key !== 'Escape' || !fromField) return
+
+		if (event.defaultPrevented || isComposing(event)) return
+
+		focusField()
 	}
 
 	function remove() {

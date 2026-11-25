@@ -69,6 +69,28 @@ describe('Wysiwyg link popover focus (real floating-ui)', () => {
 		expect(window.getSelection()?.toString()).toBe('it')
 	})
 
+	it('keeps the focus in the popover on an Escape that cancels an input method candidate', async () => {
+		await selectLastWord()
+
+		await userEvent.keyboard('{Control>}k{/Control}')
+
+		const url = await screen.findByRole('textbox', { name: 'URL' })
+
+		await waitFor(() => expect(url).toHaveFocus())
+
+		// The input method composes, so its Escape cancels the candidate, and the
+		// popover stays open.
+		url.dispatchEvent(new CompositionEvent('compositionstart', { bubbles: true }))
+
+		url.dispatchEvent(
+			new KeyboardEvent('keydown', { key: 'Escape', isComposing: true, bubbles: true }),
+		)
+
+		expect(url).toHaveFocus()
+
+		expect(screen.getByRole('dialog', { name: 'Link' })).toBeVisible()
+	})
+
 	it('gives the focus back to the link button after a key on it', async () => {
 		await selectLastWord()
 
