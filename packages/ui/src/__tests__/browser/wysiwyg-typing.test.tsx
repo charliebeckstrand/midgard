@@ -4,6 +4,7 @@ import { userEvent } from 'vitest/browser'
 import type { MarkdownRange } from '../../components/markdown/markdown-ranges'
 import { Wysiwyg, type WysiwygHandle, WysiwygToolbar } from '../../modules/wysiwyg'
 import { getSlot, present, renderUI, screen, waitFor } from '../helpers'
+import { editable } from './helpers/wysiwyg'
 
 /** A field that shows its Markdown value. */
 function Notes({ initial = '', onEnter }: { initial?: string; onEnter?: () => void }) {
@@ -24,19 +25,6 @@ function Notes({ initial = '', onEnter }: { initial?: string; onEnter?: () => vo
 			<output data-testid="value">{value}</output>
 		</>
 	)
-}
-
-/** Loads the editor through a press of the field, and gives its editable element. */
-async function editable(): Promise<HTMLElement> {
-	await userEvent.click(screen.getByRole('textbox'))
-
-	await waitFor(() => expect(screen.getByRole('textbox')).toHaveClass('ProseMirror'))
-
-	const field = screen.getByRole('textbox')
-
-	await waitFor(() => expect(field).toHaveFocus())
-
-	return field
 }
 
 const value = () => screen.getByTestId('value').textContent
@@ -158,30 +146,7 @@ describe('Wysiwyg (real browser)', () => {
 		expect(value()).toBe('```\none\ntwo\n```\n\nafter')
 	})
 
-	it('keeps the controlled value when the parent refuses an edit', async () => {
-		function Limited() {
-			const [value, setValue] = useState('Hello')
-
-			// The parent takes at most five characters.
-			return (
-				<Wysiwyg
-					aria-label="Notes"
-					value={value}
-					onValueChange={(next) => setValue(next.slice(0, 5))}
-				/>
-			)
-		}
-
-		renderUI(<Limited />)
-
-		const field = await editable()
-
-		await userEvent.keyboard('{End} world')
-
-		expect(field).toHaveTextContent(/^Hello$/)
-	})
-
-	it('starts a new undo history when the parent refuses an edit', async () => {
+	it('keeps the controlled value, and starts a new undo history, when the parent refuses an edit', async () => {
 		function Capped() {
 			const [value, setValue] = useState('')
 
@@ -200,6 +165,8 @@ describe('Wysiwyg (real browser)', () => {
 		const field = await editable()
 
 		await userEvent.keyboard('Helloabcdef')
+
+		expect(field).toHaveTextContent(/^Helloabcde$/)
 
 		// The parent refused the last key and set its value. The edits before it
 		// are out of the new history, so an undo leaves the value as it is.
@@ -380,12 +347,7 @@ describe('Wysiwyg (real browser)', () => {
 			</Wysiwyg>,
 		)
 
-		await userEvent.click(screen.getByRole('textbox'))
-
-		// The editor replaces the field of the server render, and it shows the formatting.
-		await waitFor(() => expect(screen.getByRole('textbox').querySelector('strong')).not.toBeNull())
-
-		const field = screen.getByRole('textbox')
+		const field = await editable()
 
 		await userEvent.tripleClick(present(field.querySelector('strong'), 'the bold text'))
 
@@ -401,11 +363,7 @@ describe('Wysiwyg (real browser)', () => {
 	it('lets the reader select the text of a read-only field with the pointer', async () => {
 		renderUI(<Wysiwyg aria-label="Notes" defaultValue="Some **bold** and *italic* text" readOnly />)
 
-		await userEvent.click(screen.getByRole('textbox'))
-
-		await waitFor(() => expect(screen.getByRole('textbox').querySelector('strong')).not.toBeNull())
-
-		const field = screen.getByRole('textbox')
+		const field = await editable()
 
 		await userEvent.dragAndDrop(
 			present(field.querySelector('strong'), 'the bold text'),

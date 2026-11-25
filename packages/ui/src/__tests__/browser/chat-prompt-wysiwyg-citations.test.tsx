@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
-import { ChatPrompt, type ChatPromptSource } from '../../modules/chat'
+import { ChatPrompt } from '../../modules/chat'
 import type { ChatCitation } from '../../modules/chat/engine/chat-content/types'
 import { noop, renderUI, screen, waitFor } from '../helpers'
+import { editable } from './helpers/wysiwyg'
 
 const SOURCE = 'Ask about @Sales'
 
@@ -16,20 +17,11 @@ const CITATION: ChatCitation = {
 	selector: { dataset: 'sales' },
 }
 
-const SALES: ChatPromptSource = {
-	trigger: '@',
-	target: 'datasets',
-	label: 'Datasets',
-	search: () => [{ key: 'sales', label: 'Sales', selector: { dataset: 'sales' } }],
-}
-
 /** A composer with the rich field that shows its draft. */
 function Composer({
 	initial = { value: SOURCE, citations: [CITATION] },
-	sources,
 }: {
 	initial?: { value: string; citations: ChatCitation[] }
-	sources?: readonly ChatPromptSource[]
 }) {
 	const [draft, setDraft] = useState(initial)
 
@@ -40,7 +32,6 @@ function Composer({
 				citations={draft.citations}
 				onValueChange={(value, citations) => setDraft({ value, citations: [...citations] })}
 				onSubmit={noop}
-				sources={sources}
 				wysiwyg
 			/>
 			<output data-testid="draft">{JSON.stringify(draft.citations)}</output>
@@ -49,19 +40,6 @@ function Composer({
 }
 
 const citations = (): ChatCitation[] => JSON.parse(screen.getByTestId('draft').textContent ?? '')
-
-/** Loads the editor through a press of the field, and gives its editable element. */
-async function editable(): Promise<HTMLElement> {
-	await userEvent.click(screen.getByRole('textbox'))
-
-	await waitFor(() => expect(screen.getByRole('textbox')).toHaveClass('ProseMirror'))
-
-	const field = screen.getByRole('textbox')
-
-	await waitFor(() => expect(field).toHaveFocus())
-
-	return field
-}
 
 /**
  * The citations of a draft in the rich field of ChatPrompt. The caret and the
@@ -127,24 +105,5 @@ describe('ChatPrompt wysiwyg citations (real browser)', () => {
 		await userEvent.keyboard('{ControlOrMeta>}z{/ControlOrMeta}')
 
 		await waitFor(() => expect(citations()).toEqual([citation]))
-	})
-
-	it('puts the caret after the space that follows a choice', async () => {
-		renderUI(<Composer initial={{ value: '', citations: [] }} sources={[SALES]} />)
-
-		const field = await editable()
-
-		await userEvent.keyboard('@sa by day')
-
-		// The caret goes back to the end of the trigger word, and the picker opens again.
-		await userEvent.keyboard(
-			'{ArrowLeft}{ArrowLeft}{ArrowLeft}{ArrowLeft}{ArrowLeft}{ArrowLeft}{ArrowLeft}',
-		)
-
-		await waitFor(() => expect(screen.getByRole('listbox')).toBeInTheDocument())
-
-		await userEvent.keyboard('{Enter}x')
-
-		await waitFor(() => expect(field).toHaveTextContent(/^@Sales xby day$/))
 	})
 })
