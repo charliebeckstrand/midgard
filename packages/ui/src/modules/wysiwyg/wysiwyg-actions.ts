@@ -1,9 +1,9 @@
 import type { ComponentType } from 'react'
 import {
 	Code,
-	Heading,
 	Italic,
 	LetterB,
+	LetterH,
 	Link,
 	List,
 	ListOrdered,
@@ -223,7 +223,7 @@ type WysiwygActionEntry = {
  * @internal
  */
 export const wysiwygActions: Record<WysiwygAction, WysiwygActionEntry> = {
-	heading: { group: 'heading', message: wysiwygMessages.heading, icon: Heading },
+	heading: { group: 'heading', message: wysiwygMessages.heading, icon: LetterH },
 	bold: { group: 'text', message: wysiwygMessages.bold, icon: LetterB, shortcut: { key: 'B' } },
 	italic: { group: 'text', message: wysiwygMessages.italic, icon: Italic, shortcut: { key: 'I' } },
 	strike: {

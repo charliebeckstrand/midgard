@@ -44,12 +44,12 @@ import {
 	EyeOff as LucideEyeOff,
 	GripVertical as LucideGripVertical,
 	Group as LucideGroup,
-	Heading as LucideHeading,
 	Highlighter as LucideHighlighter,
 	Image as LucideImage,
 	Info as LucideInfo,
 	Italic as LucideItalic,
 	LetterB as LucideLetterB,
+	LetterH as LucideLetterH,
 	Link as LucideLink,
 	List as LucideList,
 	ListFilter as LucideListFilter,
@@ -171,8 +171,6 @@ export const GripVertical = /* @__PURE__ */ createIcon(LucideGripVertical)
 
 export const Group = /* @__PURE__ */ createIcon(LucideGroup)
 
-export const Heading = /* @__PURE__ */ createIcon(LucideHeading)
-
 export const Highlighter = /* @__PURE__ */ createIcon(LucideHighlighter)
 
 export const Image = /* @__PURE__ */ createIcon(LucideImage)
@@ -182,6 +180,8 @@ export const Info = /* @__PURE__ */ createIcon(LucideInfo)
 export const Italic = /* @__PURE__ */ createIcon(LucideItalic)
 
 export const LetterB = /* @__PURE__ */ createIcon(LucideLetterB)
+
+export const LetterH = /* @__PURE__ */ createIcon(LucideLetterH)
 
 export const Link = /* @__PURE__ */ createIcon(LucideLink)
 
