@@ -274,7 +274,7 @@ describe('Wysiwyg (real browser)', () => {
 		expect(value()).toBe('Ship it')
 	})
 
-	it('links the selected text from the link popover, and keeps it selected', async () => {
+	it('links the selected text from the link dialog, and keeps it selected', async () => {
 		renderUI(<Notes initial="Ship it" />)
 
 		const field = await editable()
@@ -291,7 +291,7 @@ describe('Wysiwyg (real browser)', () => {
 
 		expect(screen.getByRole('textbox', { name: 'Text' })).toHaveValue('it')
 
-		// The field marks the selection while the focus is in the popover.
+		// The field marks the selection while the focus is in the dialog.
 		expect(field.querySelector('[data-slot=wysiwyg-held]')).toHaveTextContent('it')
 
 		expect(dialog).toBeVisible()
@@ -331,7 +331,7 @@ describe('Wysiwyg (real browser)', () => {
 		expect(window.getSelection()?.toString()).toBe('hi')
 	})
 
-	it('puts the text and the link in at the caret from the link popover', async () => {
+	it('puts the text and the link in at the caret from the link dialog', async () => {
 		renderUI(<Notes initial="Ship " />)
 
 		const field = await editable()

@@ -1,6 +1,7 @@
 import type { Mark, MarkType, Node } from 'prosemirror-model'
 import type { MarkdownRange } from '../../../../components/markdown/markdown-ranges'
 import { schema } from '../wysiwyg-schema'
+import { markdownDoc } from './doc'
 
 /**
  * The Markdown of a doc, in one normal form: `**strong**`, `*em*`,
@@ -278,11 +279,16 @@ type Item = { node: Node; marks: readonly Mark[] }
 
 /**
  * The state of the walk over a textblock: whether the next text starts a
- * line, where a block marker would count, and the edge marks of the ranges.
+ * line, where a block marker would count, the edge marks of the ranges, and
+ * each bare URL that the walk wrote, by its offset in the output.
  *
  * @internal
  */
-type Line = { start: boolean; ranges: RangeMarks | undefined }
+type Line = {
+	start: boolean
+	ranges: RangeMarks | undefined
+	urls: { at: number; url: string }[]
+}
 
 /**
  * The inline content of a textblock. A line break at the end of the block
@@ -310,7 +316,60 @@ function inline(textblock: Node, ranges: RangeMarks | undefined): string {
 		items.length = last
 	}
 
-	return run(items, { start: true, ranges })
+	const line: Line = { start: true, ranges, urls: [] }
+
+	let out = run(items, line)
+
+	// The text on either side of a bare URL can join it, or the reader can cut
+	// its last characters, such as a period. That text is known only after the
+	// walk, so the URL then takes angle brackets where the reader would not
+	// read it back. The last URL goes first, so the offsets of the others stay.
+	for (const { at, url } of line.urls.reverse()) {
+		const end = at + url.length
+
+		if (!holdsLink(word(out.slice(0, at), url, out.slice(end), ranges), url)) {
+			out = `${out.slice(0, at)}<${url}>${out.slice(end)}`
+		}
+	}
+
+	return out
+}
+
+/**
+ * The word of a bare URL: the URL with the text before it back to the last
+ * white space and the text after it up to the first white space, because
+ * white space ends a URL. The edge marks of the ranges go, because they go
+ * before the Markdown is read.
+ *
+ * @internal
+ */
+function word(before: string, url: string, after: string, ranges: RangeMarks | undefined): string {
+	const plain = (text: string) =>
+		ranges ? text.replaceAll(ranges.open, '').replaceAll(ranges.close, '') : text
+
+	const head = plain(before).match(/\S*$/)?.[0] ?? ''
+
+	const tail = plain(after).match(/^\S*/)?.[0] ?? ''
+
+	return head + url + tail
+}
+
+/**
+ * Whether the parser reads a text of `url` as a link to `url` with no title
+ * in a source.
+ *
+ * @internal
+ */
+function holdsLink(source: string, url: string): boolean {
+	const content = markdownDoc(source).content?.[0]?.content ?? []
+
+	return content.some((node) => {
+		const mark = node.marks?.length === 1 ? node.marks[0] : undefined
+
+		return (
+			node.text === url && mark?.type === 'link' && mark.attrs?.href === url && !mark.attrs.title
+		)
+	})
 }
 
 /** Whether a node is text of white space alone. @internal */
@@ -347,6 +406,25 @@ function run(items: readonly Item[], line: Line): string {
 		while (end < items.length && items[end]?.marks[0]?.eq(mark)) end++
 
 		const inner = items.slice(index, end).map((each) => ({ ...each, marks: each.marks.slice(1) }))
+
+		const url = bareUrl(mark, inner)
+
+		if (url !== undefined) {
+			line.start = false
+
+			// A link is one atom.
+			const written = atomPiece(inner, url, line)
+
+			// A link is the outermost mark, so this walk is the walk of the whole
+			// textblock, and the offset is in its output.
+			line.urls.push({ at: out.length + written.indexOf(url), url })
+
+			out += written
+
+			index = end
+
+			continue
+		}
 
 		const written = span(mark, inner, line)
 
@@ -413,25 +491,6 @@ function span(mark: Mark, inner: readonly Item[], line: Line): string {
 
 	if (mark.type === schema.marks.range) return rangeSpan(mark, inner, line)
 
-	const plain = inner.map((each) => each.node.text ?? '').join('')
-
-	// A bare URL stays bare. A range on it is not a format, so it does not count.
-	if (
-		mark.type === schema.marks.link &&
-		plain === mark.attrs.href &&
-		!mark.attrs.title &&
-		inner.every(
-			(each) =>
-				each.node.isText && each.marks.every((inside) => inside.type === schema.marks.range),
-		) &&
-		/^https?:\/\/[^\s<>]+$/.test(plain)
-	) {
-		line.start = false
-
-		// A link is one atom.
-		return atomPiece(inner, plain, line)
-	}
-
 	const [open, close] = delimiters(mark)
 
 	const before = line.start
@@ -451,6 +510,32 @@ function span(mark: Mark, inner: readonly Item[], line: Line): string {
 
 	// Whitespace at the start of a line is not text in Markdown (see `escapeText`).
 	return `${before ? '' : lead}${open}${core}${close}${trail}`
+}
+
+/**
+ * The URL of a link that the serializer writes bare: a web URL that is the
+ * text of the link, with no title and no format. A range on it is not a
+ * format, so it does not count. The URL must read back as the link in angle
+ * brackets, the form that it takes where the text after it would join it
+ * (see {@link inline}). Else, it is `undefined`.
+ *
+ * @internal
+ */
+function bareUrl(mark: Mark, inner: readonly Item[]): string | undefined {
+	if (mark.type !== schema.marks.link || mark.attrs.title) return undefined
+
+	const url: string = mark.attrs.href
+
+	const bare =
+		/^https?:\/\/[^\s<>]+$/.test(url) &&
+		inner.every(
+			(each) =>
+				each.node.isText && each.marks.every((inside) => inside.type === schema.marks.range),
+		) &&
+		inner.map((each) => each.node.text).join('') === url &&
+		holdsLink(`<${url}>`, url)
+
+	return bare ? url : undefined
 }
 
 /** The white space at the start and at the end of a text, and the text between. @internal */
@@ -483,11 +568,40 @@ function delimiters(mark: Mark): readonly [string, string] {
 		return [delimiter, delimiter]
 	}
 
-	const href = /[\s()<>]/.test(mark.attrs.href) ? `<${mark.attrs.href}>` : mark.attrs.href
+	const title = mark.attrs.title
+		? ` "${keepReferences(mark.attrs.title).replace(/[\\"]/g, '\\$&')}"`
+		: ''
 
-	const title = mark.attrs.title ? ` "${mark.attrs.title.replace(/"/g, '\\"')}"` : ''
+	return ['[', `](${destination(mark.attrs.href)}${title})`]
+}
 
-	return ['[', `](${href}${title})`]
+/**
+ * The destination of a link. The reader removes the backslash before each
+ * punctuation character of a destination or a title, and then decodes its
+ * references, so each backslash takes an escape, and so does each `&` that
+ * starts a reference. A destination with white space, a parenthesis, or an
+ * angle bracket goes in angle brackets, where an angle bracket takes an
+ * escape too.
+ *
+ * @internal
+ */
+function destination(href: string): string {
+	const text = keepReferences(href)
+
+	return /[\s()<>]/.test(text)
+		? `<${text.replace(/[\\<>]/g, '\\$&')}>`
+		: text.replace(/\\/g, '\\\\')
+}
+
+/**
+ * A text with each `&` that starts a reference as `&amp;`, so the reader
+ * decodes it to the `&`. A backslash does not keep a reference in a
+ * destination or a title, because the reader removes it first.
+ *
+ * @internal
+ */
+function keepReferences(text: string): string {
+	return text.replace(/&(?=#?\w+;)/g, '&amp;')
 }
 
 /**

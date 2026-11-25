@@ -136,7 +136,7 @@ function selectText(source: string, from: number, to = from): EditorState {
 	return state.apply(state.tr.setSelection(TextSelection.create(state.doc, from + 1, to + 1)))
 }
 
-/** Runs the link of the popover on a state, and gives the next state. */
+/** Runs the link of the dialog on a state, and gives the next state. */
 function applyLink(state: EditorState, href: string, text: string): EditorState {
 	let next = state
 
@@ -147,7 +147,7 @@ function applyLink(state: EditorState, href: string, text: string): EditorState 
 	return next
 }
 
-/** Runs the link of the popover on a state, and gives the Markdown and the selected text. */
+/** Runs the link of the dialog on a state, and gives the Markdown and the selected text. */
 function link(state: EditorState, href: string, text: string) {
 	const next = applyLink(state, href, text)
 
@@ -156,7 +156,7 @@ function link(state: EditorState, href: string, text: string) {
 	return { markdown: serializeMarkdown(next.doc), selected: next.doc.textBetween(from, to) }
 }
 
-describe('the link of the popover', () => {
+describe('the link of the dialog', () => {
 	it('gives the selected text, and the text and the URL of a link at the caret', () => {
 		expect(linkDraft(selectText('Read the docs', 5, 8))).toEqual({ text: 'the', href: '' })
 

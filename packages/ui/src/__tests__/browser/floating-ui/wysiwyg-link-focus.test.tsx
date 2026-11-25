@@ -20,11 +20,11 @@ async function selectLastWord(): Promise<HTMLElement> {
 }
 
 /**
- * The focus when Escape closes the link popover of a Wysiwyg. The focus goes
- * back to where it was as the popover opened (WCAG 2.4.3). The popover
- * portals and its focus manager runs, so these ride the real floating engine.
+ * The focus when Escape closes the link dialog of a Wysiwyg. The focus goes
+ * back to where it was as the dialog opened (WCAG 2.4.3). The dialog portals
+ * and its focus manager runs, so these ride the real floating engine.
  */
-describe('Wysiwyg link popover focus (real floating-ui)', () => {
+describe('Wysiwyg link dialog focus (real floating-ui)', () => {
 	it.for([
 		['the link shortcut', () => userEvent.keyboard('{Control>}k{/Control}')],
 		// A press on a toolbar button keeps the focus in the field.
@@ -50,7 +50,7 @@ describe('Wysiwyg link popover focus (real floating-ui)', () => {
 		expect(window.getSelection()?.toString()).toBe('it')
 	})
 
-	it('keeps the focus in the popover on an Escape that cancels an input method candidate', async () => {
+	it('keeps the focus in the dialog on an Escape that cancels an input method candidate', async () => {
 		await selectLastWord()
 
 		await userEvent.keyboard('{Control>}k{/Control}')
@@ -60,7 +60,7 @@ describe('Wysiwyg link popover focus (real floating-ui)', () => {
 		await waitFor(() => expect(url).toHaveFocus())
 
 		// The input method composes, so its Escape cancels the candidate, and the
-		// popover stays open.
+		// dialog stays open.
 		url.dispatchEvent(new CompositionEvent('compositionstart', { bubbles: true }))
 
 		url.dispatchEvent(
