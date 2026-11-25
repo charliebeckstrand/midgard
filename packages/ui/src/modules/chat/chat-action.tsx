@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, useId, useMemo, useState } from 'react'
+import { type ReactNode, useId, useMemo, useRef, useState } from 'react'
 import { Alert } from '../../components/alert'
 import { Button } from '../../components/button'
 import { Checkbox, CheckboxField } from '../../components/checkbox'
@@ -276,10 +276,32 @@ export function ChatAction({ part, className }: ChatActionProps) {
 
 	const show = (target: PanelState['show']) => setPanel({ open: true, show: target })
 
+	// The ask in the message. A choice submits from inside it.
+	const askRef = useRef<HTMLDivElement>(null)
+
+	// Set when the answer replaces an ask that holds the focus. The ask then
+	// unmounts, so the review button of the alert takes the focus, and the focus
+	// does not fall to the body (WCAG 2.4.3). A form submits from its panel, and
+	// the panel gives the focus back when it closes.
+	const focusReview = useRef(false)
+
 	const respond = (result: ChatActionResult) => {
 		setPanel((prev) => (prev === null ? prev : { ...prev, open: false }))
 
-		answer?.(part.id, result)
+		if (answer === undefined) return
+
+		focusReview.current = askRef.current?.contains(document.activeElement) ?? false
+
+		answer(part.id, result)
+	}
+
+	// Runs when the review button mounts, which is the commit that drew the alert.
+	const reviewRef = (node: HTMLButtonElement | null) => {
+		if (node === null || !focusReview.current) return
+
+		focusReview.current = false
+
+		node.focus()
 	}
 
 	const { input, result } = part
@@ -290,7 +312,7 @@ export function ChatAction({ part, className }: ChatActionProps) {
 		<>
 			<ControlLockContext value={answer === undefined}>
 				{result === undefined ? (
-					<Stack data-slot="chat-action" gap="md" align="start" className={className}>
+					<Stack ref={askRef} data-slot="chat-action" gap="md" align="start" className={className}>
 						<Heading id={headingId} level={ACTION_HEADING_LEVEL}>
 							{part.prompt}
 						</Heading>
@@ -312,7 +334,7 @@ export function ChatAction({ part, className }: ChatActionProps) {
 						title={part.success}
 						actions={
 							// A review changes nothing, so it opens in a locked scope too.
-							<Button lockable={false} onClick={() => show('review')}>
+							<Button ref={reviewRef} lockable={false} onClick={() => show('review')}>
 								{intl.formatMessage(messages.review)}
 							</Button>
 						}

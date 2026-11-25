@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { ChatMessage, type ChatMessageProps } from '../../modules/chat'
 import type { ChatActionPart } from '../../modules/chat/engine/chat-content/types'
@@ -62,6 +63,31 @@ describe('ChatAction', () => {
 		await user.click(submit)
 
 		expect(onActionSubmit).toHaveBeenCalledWith('carrier', { carrier: 'atlas' })
+	})
+
+	it('moves the focus to Review details when a choice submit draws the alert', async () => {
+		const user = setupUser()
+
+		function Answered() {
+			const [part, setPart] = useState(choice)
+
+			return (
+				<ChatMessage
+					contextMenu={false}
+					onActionSubmit={(_, result) => setPart((prev) => ({ ...prev, result }))}
+				>
+					{[part]}
+				</ChatMessage>
+			)
+		}
+
+		renderUI(<Answered />)
+
+		await user.click(screen.getByRole('radio', { name: 'Atlas Haulage' }))
+
+		await user.click(screen.getByRole('button', { name: 'Submit' }))
+
+		expect(screen.getByRole('button', { name: 'Review details' })).toHaveFocus()
 	})
 
 	it('opens a form in a panel, refuses an empty required field, and submits the values', async () => {
