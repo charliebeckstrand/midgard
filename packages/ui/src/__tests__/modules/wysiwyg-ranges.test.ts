@@ -9,7 +9,7 @@ import {
 	serializeMarkdown,
 	serializeMarkdownRanges,
 } from '../../modules/wysiwyg/engine/wysiwyg-markdown/serialize'
-import { wysiwygRanges } from '../../modules/wysiwyg/engine/wysiwyg-ranges'
+import { holdsRange, wysiwygRanges } from '../../modules/wysiwyg/engine/wysiwyg-ranges'
 import { schema } from '../../modules/wysiwyg/engine/wysiwyg-schema'
 
 /** The range of the first `quote` in `source`, from `after`. */
@@ -218,5 +218,42 @@ describe('the rule of the wysiwyg ranges', () => {
 		})
 
 		expect(serializeMarkdownRanges(state.doc)).toEqual({ markdown: source, ranges: [given] })
+	})
+
+	it('keeps whether the doc holds a range across each edit', () => {
+		let state = editor(source, [])
+
+		expect(holdsRange(state)).toBe(false)
+
+		state = type(state, inFirst(0), 'Please ')
+
+		expect(holdsRange(state)).toBe(false)
+
+		const mark = schema.marks.range.create({ id: 'r' })
+
+		state = state.apply(state.tr.addMark(inFirst(0), inFirst(6), mark))
+
+		expect(holdsRange(state)).toBe(true)
+
+		state = type(state, inFirst(2), 'x')
+
+		expect(holdsRange(state)).toBe(false)
+	})
+
+	it('removes a range that an undo brought back on the next edit in it', () => {
+		let state = type(editor(source, [given]), inFirst(given.start + 2), 'x')
+
+		undo(state, (tr: Transaction) => {
+			state = state.apply(tr)
+		})
+
+		expect(holdsRange(state)).toBe(true)
+
+		state = type(state, inFirst(given.start + 3), 'y')
+
+		expect(serializeMarkdownRanges(state.doc, holdsRange(state))).toEqual({
+			markdown: 'Ask about @Sayles today',
+			ranges: [],
+		})
 	})
 })

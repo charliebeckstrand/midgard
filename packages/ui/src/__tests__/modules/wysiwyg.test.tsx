@@ -107,6 +107,32 @@ describe('Wysiwyg', () => {
 		expect(field).not.toHaveAttribute('data-empty')
 	})
 
+	it('draws no markup before the editor when the engine loaded before the mount', async () => {
+		const first = renderUI(<Wysiwyg aria-label="First" defaultValue="One" />)
+
+		await loadEditor()
+
+		first.unmount()
+
+		const observer = new MutationObserver(() => undefined)
+
+		observer.observe(document.body, { childList: true, subtree: true })
+
+		renderUI(<Wysiwyg aria-label="Second" defaultValue="**Two**" />)
+
+		// The markup before the editor would go when the editor replaces it.
+		const removed = observer
+			.takeRecords()
+			.flatMap((record) => [...record.removedNodes])
+			.filter((node) => node instanceof HTMLElement && node.getAttribute('role') === 'textbox')
+
+		observer.disconnect()
+
+		expect(removed).toEqual([])
+
+		expect(screen.getByRole('textbox', { name: 'Second' })).toHaveClass('ProseMirror')
+	})
+
 	it('keeps the name, the description, and the validation state on the editor', async () => {
 		renderUI(
 			<Field severity="error">

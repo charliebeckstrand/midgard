@@ -33,13 +33,18 @@ type RangeMarks = { open: string; close: string; ids: string[] }
  * that the doc does not hold, and then reads their offsets and removes them.
  * The marks thus move with each change that the serializer makes to a line,
  * such as the `> ` of a quote or the indent of a list item.
+ * @param ranged - Whether the doc holds a `range` mark. A caller that keeps
+ *   this state gives it, so the serializer does not read the whole doc for it.
  * @internal
  */
-export function serializeMarkdownRanges(doc: Node): {
+export function serializeMarkdownRanges(
+	doc: Node,
+	ranged = doc.rangeHasMark(0, doc.content.size, schema.marks.range),
+): {
 	markdown: string
 	ranges: MarkdownRange[]
 } {
-	const marks = rangeMarks(doc)
+	const marks = ranged ? rangeMarks(doc) : undefined
 
 	if (!marks) return { markdown: serializeMarkdown(doc), ranges: [] }
 
@@ -76,15 +81,13 @@ export function serializeMarkdownRanges(doc: Node): {
 }
 
 /**
- * The edge marks of a doc that holds a range, or `undefined` when it holds
- * none. Each mark is a character of the private use area that no text and no
- * attribute of the doc holds.
+ * The edge marks of a doc that holds a range. Each mark is a character of the
+ * private use area that no text and no attribute of the doc holds, or
+ * `undefined` when the doc holds each of them.
  *
  * @internal
  */
 function rangeMarks(doc: Node): RangeMarks | undefined {
-	if (!doc.rangeHasMark(0, doc.content.size, schema.marks.range)) return undefined
-
 	const used = new Set<string>()
 
 	doc.descendants((node) => {

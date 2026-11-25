@@ -1,5 +1,12 @@
-import type { Node } from 'prosemirror-model'
-import { Plugin, type Transaction } from 'prosemirror-state'
+import type { Node, Slice } from 'prosemirror-model'
+import { type EditorState, Plugin, PluginKey, type Transaction } from 'prosemirror-state'
+import {
+	AddMarkStep,
+	AddNodeMarkStep,
+	ReplaceAroundStep,
+	ReplaceStep,
+	type Step,
+} from 'prosemirror-transform'
 import { schema } from './wysiwyg-schema'
 
 /** The span of a range in a doc: from its first piece to the end of its last piece. @internal */
@@ -40,6 +47,62 @@ function spanText(doc: Node, { from, to }: RangeSpan): string {
 }
 
 /**
+ * The key of the plugin of the ranges. Its state is whether the doc holds a
+ * range mark.
+ *
+ * @internal
+ */
+const rangesKey = new PluginKey<boolean>('wysiwygRanges')
+
+/** Whether a doc holds a range mark. @internal */
+function docHoldsRange(doc: Node): boolean {
+	return doc.rangeHasMark(0, doc.content.size, schema.marks.range)
+}
+
+/** Whether a slice holds a range mark. @internal */
+function sliceHoldsRange(slice: Slice): boolean {
+	let found = false
+
+	slice.content.descendants((node) => {
+		if (found) return false
+
+		if (schema.marks.range.isInSet(node.marks)) found = true
+
+		return !found
+	})
+
+	return found
+}
+
+/**
+ * Whether a step can add a range mark: a replace that inserts one, or an add of
+ * one. No other step adds a mark.
+ *
+ * @internal
+ */
+function addsRange(step: Step): boolean {
+	if (step instanceof ReplaceStep || step instanceof ReplaceAroundStep) {
+		return sliceHoldsRange(step.slice)
+	}
+
+	if (step instanceof AddMarkStep || step instanceof AddNodeMarkStep) {
+		return step.mark.type === schema.marks.range
+	}
+
+	return false
+}
+
+/**
+ * Whether the doc of a state holds a range mark, as the plugin of the ranges
+ * keeps it. A state with no such plugin reads its doc.
+ *
+ * @internal
+ */
+export function holdsRange(state: EditorState): boolean {
+	return rangesKey.getState(state) ?? docHoldsRange(state.doc)
+}
+
+/**
  * The rule of the ranges of a field, as a composer holds its citations. A
  * change that touches a range removes its mark, and its text stays as prose.
  * A range is touched when the text from its first piece to the end of its last
@@ -48,15 +111,27 @@ function spanText(doc: Node, { from, to }: RangeSpan): string {
  *
  * @internal
  */
-export function wysiwygRanges(): Plugin {
-	return new Plugin({
+export function wysiwygRanges(): Plugin<boolean> {
+	return new Plugin<boolean>({
+		key: rangesKey,
+		// Whether the doc holds a range mark. A doc with no range gets one only from
+		// a step that adds one, so an edit of such a doc reads its steps and not the
+		// whole doc. A doc with ranges is read again after each change.
+		state: {
+			init: (_, state) => docHoldsRange(state.doc),
+			apply: (tr, held, _, state) => {
+				if (!tr.docChanged) return held
+
+				return held ? docHoldsRange(state.doc) : tr.steps.some(addsRange)
+			},
+		},
 		appendTransaction: (transactions, before, after) => {
 			if (!transactions.some((tr) => tr.docChanged)) return null
 
-			const previous = rangeSpans(before.doc)
-
 			// An edit removes a mark only from a range that the doc held before it.
-			if (previous.size === 0) return null
+			if (!holdsRange(before)) return null
+
+			const previous = rangeSpans(before.doc)
 
 			let tr: Transaction | null = null
 

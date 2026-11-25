@@ -8,6 +8,7 @@ import { type Command, EditorState, TextSelection, type Transaction } from 'pros
 import { EditorView } from 'prosemirror-view'
 import type { MarkdownRange } from '../../components/markdown/markdown-ranges'
 import { isComposing } from '../../utilities/is-composing'
+import { sameFields } from '../../utilities/same-elements'
 import { caretBlock, replaceInBlock } from './engine/wysiwyg-block'
 import {
 	exitCodeDown,
@@ -23,7 +24,7 @@ import { HELD, wysiwygHeld } from './engine/wysiwyg-held'
 import { wysiwygInputRules } from './engine/wysiwyg-input-rules'
 import { parseMarkdown } from './engine/wysiwyg-markdown/parse'
 import { serializeMarkdown, serializeMarkdownRanges } from './engine/wysiwyg-markdown/serialize'
-import { wysiwygRanges } from './engine/wysiwyg-ranges'
+import { holdsRange, wysiwygRanges } from './engine/wysiwyg-ranges'
 import { isEmptyDoc, schema } from './engine/wysiwyg-schema'
 import type { WysiwygAction, WysiwygBlock, WysiwygBlockRange, WysiwygToggleAction } from './types'
 import { WYSIWYG_ACTIONS, type WysiwygShortcut, wysiwygActions } from './wysiwyg-actions'
@@ -273,7 +274,7 @@ export function createWysiwygEditor(
 			view.updateState(next)
 
 			if (tr.docChanged) {
-				const out = serializeMarkdownRanges(next.doc)
+				const out = serializeMarkdownRanges(next.doc, holdsRange(next))
 
 				props.onChange(out.markdown, out.ranges)
 			}
@@ -285,9 +286,14 @@ export function createWysiwygEditor(
 	return {
 		view,
 		update: (next) => {
+			// The view draws only the attributes and the editable state. The other
+			// settings are read at each event, so a change of them needs no redraw.
+			const redraw =
+				next.editable !== props.editable || !sameFields(next.attributes, props.attributes)
+
 			props = next
 
-			view.setProps({})
+			if (redraw) view.setProps({})
 		},
 		focus: () => {
 			if (view.editable) view.focus()

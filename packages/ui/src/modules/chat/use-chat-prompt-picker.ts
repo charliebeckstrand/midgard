@@ -9,7 +9,6 @@ import {
 	seedVirtualTopMatch,
 	useA11yRoving,
 } from '../../hooks/a11y/use-a11y-roving'
-import { useFloatingUI } from '../../hooks/use-floating-ui'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { defineMessages, intlMessages } from '../../primitives/intl/intl-messages'
 import type { IntlShape } from '../../primitives/intl/types'
@@ -76,7 +75,10 @@ type Dismissal = { start: number; value: string }
 /** The trigger of a citation that a Backspace dissolves, and the draft before the key. @internal */
 type PendingAnchor = { anchor: TriggerAnchor; value: string }
 
-const NO_RESULTS: PickerResults = { trigger: '', status: 'ready', items: [] }
+/** The items of a trigger with no result. @internal */
+const NO_ITEMS: readonly ChatPromptItem[] = []
+
+const NO_RESULTS: PickerResults = { trigger: '', status: 'ready', items: NO_ITEMS }
 
 /**
  * The text that the picker reads, and the caret in it. The offsets of the
@@ -143,6 +145,10 @@ const NO_DRAFT: Omit<PickerDraft, 'caret'> & { caret: null } = {
  *
  * The picker reads the text of the field and writes a choice through a
  * {@link PickerField}, so it works on each field of the composer.
+ *
+ * The panel (`ChatPromptPicker`) places itself, and it calls `dismiss` on a
+ * press outside it. Thus a key in the field while the picker is closed does no
+ * work of placement.
  *
  * @internal
  */
@@ -242,31 +248,14 @@ export function useChatPromptPicker({ sources, field }: ChatPromptPickerOptions)
 		enabled: open,
 	})
 
-	// The panel sits over the composer, and not over the caret.
-	const floating = useFloatingUI({
-		open,
-		onOpenChange: (next) => {
-			if (!next && match) setDismissed({ start: match.start, value })
-		},
-		placement: 'top-start',
-		matchReferenceWidth: true,
-		fitHeight: true,
-		role: null,
+	// A dismissal of the panel, such as a press outside it, holds the trigger closed.
+	const dismiss = useStableEvent(() => {
+		if (match) setDismissed({ start: match.start, value })
 	})
 
-	const { setReference } = floating.refs
-
-	// The element of a field can come after the mount, such as the element of an
-	// editor that loads, so the reference updates at each open.
-	useLayoutEffect(() => {
-		const element = elementRef.current
-
-		if (!open || !element) return
-
-		setReference(element.closest<HTMLElement>('[data-slot="control-frame"]') ?? element)
-	}, [setReference, elementRef, open])
-
-	const items = results.trigger === matchTrigger ? results.items : []
+	// One empty list for each render with no items of the trigger, so the panel,
+	// which is memoized, does not render again for a new empty list.
+	const items = results.trigger === matchTrigger ? results.items : NO_ITEMS
 
 	// A trigger that has no result yet loads.
 	const status: PickerStatus = results.trigger === matchTrigger ? results.status : 'loading'
@@ -357,7 +346,8 @@ export function useChatPromptPicker({ sources, field }: ChatPromptPickerOptions)
 		items,
 		status,
 		statusText,
-		floating,
+		elementRef,
+		dismiss,
 		choose,
 		onKeyDown,
 	}
