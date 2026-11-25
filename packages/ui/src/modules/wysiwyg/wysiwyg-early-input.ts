@@ -1,8 +1,9 @@
 import type { MarkdownRange } from '../../components/markdown/markdown-ranges'
 import { isApplePlatform } from '../../utilities/apple-platform'
+import { createEmitter } from '../../utilities/emitter'
 import { isComposing } from '../../utilities/is-composing'
 import type { WysiwygToggleAction } from './types'
-import { WYSIWYG_ACTIONS, wysiwygActions } from './wysiwyg-actions'
+import { formatAction, WYSIWYG_ACTIONS, wysiwygActions } from './wysiwyg-actions'
 import type { WysiwygEditor } from './wysiwyg-editor'
 
 /**
@@ -36,8 +37,13 @@ export type WysiwygEarlyItem =
 	| { type: 'format'; action: WysiwygToggleAction }
 	| { type: 'history'; redo: boolean }
 
-/** A point of a DOM selection: a node, and an offset in it. @internal */
-export type WysiwygEarlyPoint = { node: Node; offset: number }
+/**
+ * A point of the markup: the index of its text block in the order of the
+ * markup, and its offset in the text of the block ({@link readBlock}).
+ *
+ * @internal
+ */
+export type WysiwygEarlyPoint = { block: number; offset: number }
 
 /** The anchor and the head of a selection in the markup. @internal */
 export type WysiwygEarlySelection = {
@@ -47,60 +53,158 @@ export type WysiwygEarlySelection = {
 
 /**
  * The markup of the field before the editor loads, as the editor takes it:
- * the element, and the selection of the reader in it. Each move is a
- * selection that the reader made after the first held input, in the same
- * markup. A held input that comes after a move runs at that move
+ * the text of each text block in its order, and the selection of the reader.
+ * Each move is a selection that the reader made after the first held input,
+ * in the same markup. A held input that comes after a move runs at that move
  * ({@link WysiwygEarlyInput}).
  *
  * @internal
  */
 export type WysiwygEarlyField = WysiwygEarlySelection & {
-	root: Element
+	blocks: readonly string[]
 	moves: readonly WysiwygEarlySelection[]
 }
 
 /** A Markdown source and its ranges. @internal */
-type Source = { value: string; ranges: readonly MarkdownRange[] }
+export type WysiwygSource = { value: string; ranges: readonly MarkdownRange[] }
 
-/** A point as the child indexes from the root to its node, so it can find the same node in a copy. @internal */
-type PathPoint = { path: number[]; offset: number }
+/** A point of a DOM selection: a node, and an offset in it. @internal */
+type DomPoint = { node: Node; offset: number }
 
-/** The child indexes from `root` to `node`, or `null` when `root` does not hold `node`. @internal */
-function findPath(root: Node, node: Node): number[] | null {
-	const path: number[] = []
+/**
+ * The text of an inline leaf, such as a line break or an atom: one character,
+ * as its size in the doc. The browser makes no such character.
+ *
+ * @internal
+ */
+export const LEAF = '\uFFFC'
 
-	for (let at: Node = node; at !== root; ) {
-		const parent = at.parentNode
+/**
+ * The content element of each text block of the markup: a paragraph, a
+ * heading, and the code of a code block.
+ */
+const TEXT_BLOCK = 'p, h1, h2, h3, h4, h5, h6, pre:not([data-raw]) > code'
 
-		if (!parent) return null
-
-		path.unshift(Array.prototype.indexOf.call(parent.childNodes, at))
-
-		at = parent
-	}
-
-	return path
+/** The content element of each text block of `root`, in its order. @internal */
+function textBlocks(root: Element): Element[] {
+	return [...root.querySelectorAll(TEXT_BLOCK)].filter((block) => !block.closest('[data-raw]'))
 }
 
-/** The node at the end of a path from `root`, or `null`. @internal */
-function nodeAt(root: Node, path: readonly number[]): Node | null {
-	let at: Node | undefined = root
+/**
+ * The content element of the text block of the markup that holds `node`, or
+ * `null` when no text block of `root` holds it, or an atom does, such as an
+ * inline source. The browser cannot edit an atom, as the editor does not.
+ *
+ * @internal
+ */
+function findTextBlock(root: Element, node: Node): Element | null {
+	const element = node instanceof Element ? node : node.parentElement
 
-	for (const index of path) {
-		at = at.childNodes[index]
+	if (!element || element.closest('[data-raw]')) return null
 
-		if (!at) return null
-	}
+	const block = element.closest(TEXT_BLOCK)
 
-	return at
+	return block && root.contains(block) ? block : null
 }
 
-/** The anchor and the head of the DOM selection, where `root` holds them. @internal */
-function selectionIn(root: Element): WysiwygEarlySelection {
+/** The state of {@link readBlock}: the text so far, and the offset of each point that it found. @internal */
+type BlockRead = {
+	content: Element
+	points: readonly DomPoint[]
+	text: string
+	offsets: (number | null)[]
+}
+
+/**
+ * The text of the content element of a block, as the editor gives the text
+ * of its node, and the offset in it of each point that it holds. A line break
+ * and an inline atom are one {@link LEAF}. A last line break is the one that
+ * keeps the height of the last line, as in the view of ProseMirror, so it is
+ * no text.
+ *
+ * @internal
+ */
+function readBlock(
+	content: Element,
+	points: readonly DomPoint[] = [],
+): { text: string; offsets: (number | null)[] } {
+	const read: BlockRead = { content, points, text: '', offsets: points.map(() => null) }
+
+	readChildren(read, content)
+
+	return { text: read.text, offsets: read.offsets }
+}
+
+/** Sets the offset of each point not yet found that `findOffset` places. @internal */
+function placePoints(read: BlockRead, findOffset: (point: DomPoint) => number | null): void {
+	read.points.forEach((point, index) => {
+		if (read.offsets[index] !== null) return
+
+		const offset = findOffset(point)
+
+		if (offset !== null) read.offsets[index] = offset
+	})
+}
+
+/** Reads the children of `node`, and each point between them. @internal */
+function readChildren(read: BlockRead, node: Node): void {
+	node.childNodes.forEach((child, index) => {
+		placePoints(read, (point) =>
+			point.node === node && point.offset === index ? read.text.length : null,
+		)
+
+		readChild(read, node, child)
+	})
+
+	placePoints(read, (point) =>
+		point.node === node && point.offset >= node.childNodes.length ? read.text.length : null,
+	)
+}
+
+/** Reads one child of `parent`: a text, a line break, an atom, or an element of marks. @internal */
+function readChild(read: BlockRead, parent: Node, child: Node): void {
+	if (child.nodeType === child.TEXT_NODE) {
+		placePoints(read, (point) => (point.node === child ? read.text.length + point.offset : null))
+
+		read.text += child.nodeValue ?? ''
+
+		return
+	}
+
+	if (!(child instanceof Element)) return
+
+	if (child.localName === 'br') {
+		if (parent !== read.content || child !== read.content.lastChild) read.text += LEAF
+
+		return
+	}
+
+	if (child.hasAttribute('data-raw')) {
+		placePoints(read, (point) => (child.contains(point.node) ? read.text.length : null))
+
+		read.text += LEAF
+
+		return
+	}
+
+	readChildren(read, child)
+}
+
+/** The DOM selection in `root` as points of its text blocks ({@link WysiwygEarlyPoint}). @internal */
+function readSelection(root: Element, blocks = textBlocks(root)): WysiwygEarlySelection {
 	const selection = root.ownerDocument.getSelection()
 
-	const point = (node: Node | null | undefined, offset: number) =>
-		node && root.contains(node) ? { node, offset } : null
+	const point = (node: Node | null | undefined, offset: number): WysiwygEarlyPoint | null => {
+		if (!node || !root.contains(node)) return null
+
+		const content = (node instanceof Element ? node : node.parentElement)?.closest(TEXT_BLOCK)
+
+		const block = content ? blocks.indexOf(content) : -1
+
+		const at = content && block >= 0 ? readBlock(content, [{ node, offset }]).offsets[0] : null
+
+		return at == null ? null : { block, offset: at }
+	}
 
 	return {
 		anchor: point(selection?.anchorNode, selection?.anchorOffset ?? 0),
@@ -108,40 +212,19 @@ function selectionIn(root: Element): WysiwygEarlySelection {
 	}
 }
 
-/** The anchor and the head of a selection as paths from the root. @internal */
-type PathSelection = { anchor: PathPoint | null; head: PathPoint | null }
+/** The text of each text block of `root`, and the selection in it. @internal */
+function readMarkup(root: Element): Omit<WysiwygEarlyField, 'moves'> {
+	const blocks = textBlocks(root)
 
-/** The DOM selection in `root` as paths from `root`. @internal */
-function selectionPaths(root: Element): PathSelection {
-	const { anchor, head } = selectionIn(root)
-
-	const path = (at: WysiwygEarlyPoint | null): PathPoint | null =>
-		at && { path: findPath(root, at.node) ?? [], offset: at.offset }
-
-	return { anchor: path(anchor), head: path(head) }
-}
-
-/** The points of `copy` at the paths of a selection. @internal */
-function selectionAt(copy: Element, { anchor, head }: PathSelection): WysiwygEarlySelection {
-	const point = (at: PathPoint | null) => {
-		const node = at && nodeAt(copy, at.path)
-
-		return node && at ? { node, offset: at.offset } : null
-	}
-
-	return { anchor: point(anchor), head: point(head) }
-}
-
-/** Whether two points are at the same place. @internal */
-function samePoint(a: PathPoint | null, b: PathPoint | null): boolean {
-	if (!a || !b) return a === b
-
-	return a.offset === b.offset && a.path.join() === b.path.join()
+	return { blocks: blocks.map((block) => readBlock(block).text), ...readSelection(root, blocks) }
 }
 
 /** Whether two selections are at the same place. @internal */
-function sameSelection(a: PathSelection, b: PathSelection): boolean {
-	return samePoint(a.anchor, b.anchor) && samePoint(a.head, b.head)
+function sameSelection(a: WysiwygEarlySelection, b: WysiwygEarlySelection): boolean {
+	const same = (x: WysiwygEarlyPoint | null, y: WysiwygEarlyPoint | null) =>
+		x?.block === y?.block && x?.offset === y?.offset
+
+	return same(a.anchor, b.anchor) && same(a.head, b.head)
 }
 
 /** A held task, and the index of the move of the reader that it runs at, or `null`. @internal */
@@ -172,19 +255,23 @@ export type WysiwygEarlyInput = {
 	 * takes no edit while the queue holds a task, so the selection is a
 	 * selection of the copy.
 	 */
-	hold: (task: (editor: WysiwygEditor) => void, field: Element | null, source: Source) => void
+	hold: (
+		task: (editor: WysiwygEditor) => void,
+		field: Element | null,
+		source: WysiwygSource,
+	) => void
 	/** Whether an input method composes in the field. The editor waits for the end. */
 	composing: () => boolean
 	/**
 	 * The source that the markup drew at the first input of the reader, or
 	 * `null`. The input is an edit of the browser, or the first held task.
 	 */
-	edited: () => Source | null
+	edited: () => WysiwygSource | null
 	/** Records the first edit of the browser in the markup, which drew `source`. */
-	edit: (source: Source) => void
+	edit: (source: WysiwygSource) => void
 	/**
 	 * The markup of the field as the editor takes it: the copy of the first
-	 * held task, or else `field` and the selection in it.
+	 * held task, or else the text and the selection of `field`.
 	 */
 	take: (field: Element) => WysiwygEarlyField
 	/**
@@ -209,7 +296,7 @@ export function createEarlyInput(): WysiwygEarlyInput {
 	// The moves of the reader in the copy, and the selection of the last one.
 	const moves: WysiwygEarlySelection[] = []
 
-	let moved: PathSelection | null = null
+	let moved: WysiwygEarlySelection | null = null
 
 	// An input method composed text in the markup while the queue held a task.
 	// The markup then differs from the copy, so the field records no more moves.
@@ -226,29 +313,29 @@ export function createEarlyInput(): WysiwygEarlyInput {
 	// The move of the reader at the start of that composition.
 	let composedMove: number | null = null
 
-	let edited: Source | null = null
+	let edited: WysiwygSource | null = null
 
-	const listeners = new Set<() => void>()
+	const changes = createEmitter()
 
 	const takeCopy = (field: Element) => {
-		moved = selectionPaths(field)
+		const markup = readMarkup(field)
 
-		const root = field.cloneNode(true) as Element
+		moved = markup
 
-		copy = { root, moves, ...selectionAt(root, moved) }
+		copy = { ...markup, moves }
 	}
 
 	// The index of the move of the reader since the last held task, or `null`.
 	const readMove = (field: Element | null): number | null => {
 		if (!copy || !moved || !field || drifted) return null
 
-		const selection = selectionPaths(field)
+		const selection = readSelection(field)
 
 		if (sameSelection(selection, moved)) return null
 
 		moved = selection
 
-		return moves.push(selectionAt(copy.root, selection)) - 1
+		return moves.push(selection) - 1
 	}
 
 	return {
@@ -273,7 +360,7 @@ export function createEarlyInput(): WysiwygEarlyInput {
 			edited ??= source
 		},
 		take: (field) => {
-			const taken = copy ?? { root: field, moves: [], ...selectionIn(field) }
+			const taken = copy ?? { ...readMarkup(field), moves: [] }
 
 			copy = null
 
@@ -300,7 +387,7 @@ export function createEarlyInput(): WysiwygEarlyInput {
 
 			drifted ||= composingHeld
 
-			for (const listener of listeners) listener()
+			changes.emit()
 		},
 		compositionEnd: (field, text) => {
 			composing = false
@@ -315,43 +402,14 @@ export function createEarlyInput(): WysiwygEarlyInput {
 
 			composingHeld = false
 
-			for (const listener of listeners) listener()
+			changes.emit()
 		},
-		subscribe: (listener) => {
-			listeners.add(listener)
-
-			return () => {
-				listeners.delete(listener)
-			}
-		},
+		subscribe: changes.subscribe,
 	}
 }
 
-/**
- * The content element of each text block of the markup: a paragraph, a
- * heading, and the code of a code block.
- */
-const TEXT_BLOCK = 'p, h1, h2, h3, h4, h5, h6, pre:not([data-raw]) > code'
-
-/**
- * The content element of the text block of the markup that holds `node`, or
- * `null` when no text block of `root` holds it, or an atom does, such as an
- * inline source. The browser cannot edit an atom, as the editor does not.
- *
- * @internal
- */
-function findTextBlock(root: Element, node: Node): Element | null {
-	const element = node instanceof Element ? node : node.parentElement
-
-	if (!element || element.closest('[data-raw]')) return null
-
-	const block = element.closest(TEXT_BLOCK)
-
-	return block && root.contains(block) ? block : null
-}
-
 /** Whether the text of `block` before (or after, with `forward`) a point is empty. @internal */
-function atEdge(block: Element, point: WysiwygEarlyPoint, forward: boolean): boolean {
+function atEdge(block: Element, point: DomPoint, forward: boolean): boolean {
 	const range = block.ownerDocument.createRange()
 
 	range.selectNodeContents(block)
@@ -458,16 +516,14 @@ function readHeldInput(event: InputEvent): WysiwygEarlyItem | null {
 				ctrlKey: false,
 				metaKey: false,
 			}
-		case 'formatBold':
-			return { type: 'format', action: 'bold' }
-		case 'formatItalic':
-			return { type: 'format', action: 'italic' }
-		case 'formatStrikeThrough':
-			return { type: 'format', action: 'strike' }
 		case 'historyUndo':
 		case 'historyRedo':
 			return { type: 'history', redo: type === 'historyRedo' }
 	}
+
+	const action = formatAction(type)
+
+	if (action) return { type: 'format', action }
 
 	if (!type.startsWith('delete')) return null
 

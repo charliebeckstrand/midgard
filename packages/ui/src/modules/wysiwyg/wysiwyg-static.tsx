@@ -19,6 +19,7 @@ import {
 	captureEarlyInput,
 	type WysiwygEarlyInput,
 	type WysiwygEarlyItem,
+	type WysiwygSource,
 } from './wysiwyg-early-input'
 
 /** The React name of each HTML attribute that the editor or a spec gives with another name. @internal */
@@ -229,9 +230,7 @@ export function WysiwygStatic({
 
 	// The source at the first edit of the browser. The markup keeps drawing it,
 	// so React changes no node that the browser edited.
-	const [edited, setEdited] = useState<{ value: string; ranges: readonly MarkdownRange[] } | null>(
-		null,
-	)
+	const [edited, setEdited] = useState<WysiwygSource | null>(null)
 
 	// Whether the markup is empty after an edit of the browser, for the placeholder.
 	const [emptied, setEmptied] = useState<boolean | null>(null)

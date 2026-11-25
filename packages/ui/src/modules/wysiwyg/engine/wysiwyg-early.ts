@@ -1,143 +1,32 @@
+import { deleteSelection } from 'prosemirror-commands'
 import { redo, undo } from 'prosemirror-history'
 import type { Node } from 'prosemirror-model'
 import { Plugin, PluginKey, TextSelection, type Transaction } from 'prosemirror-state'
 import type { EditorView } from 'prosemirror-view'
-import type { WysiwygEarlyField, WysiwygEarlyItem, WysiwygEarlyPoint } from '../wysiwyg-early-input'
+import { LEAF, type WysiwygEarlyField, type WysiwygEarlyItem } from '../wysiwyg-early-input'
 import { wysiwygCommands } from './wysiwyg-commands'
-import { nodeDOM } from './wysiwyg-dom'
-
-/** The text of an inline leaf, such as a line break or an atom: one character, as its size in the doc. */
-const LEAF = '￼'
 
 /** The text of the content of a text block, where each character is one position of the doc. @internal */
 function blockText(node: Node): string {
 	return node.textBetween(0, node.content.size, undefined, () => LEAF)
 }
 
-/**
- * A text block of the doc, and the element of the markup before the load
- * that holds its content.
- *
- * @internal
- */
-type EarlyBlock = { node: Node; start: number; content: Element }
+/** A text block of the doc, and the position of the start of its content. @internal */
+type EarlyBlock = { node: Node; start: number }
 
-/**
- * Pairs each text block in `parent` with the element of the markup that draws
- * its content. The markup draws each node with the spec of the schema, so an
- * element child of `dom` is the node of the same index. A child that does not
- * match, which the field does not draw, pairs with no block.
- *
- * @internal
- */
-function pairBlocks(parent: Node, dom: Element, start: number, out: EarlyBlock[]): void {
-	const elements = dom.children
+/** The text blocks of `doc`, in their order, as the markup draws them. @internal */
+function docBlocks(doc: Node): EarlyBlock[] {
+	const blocks: EarlyBlock[] = []
 
-	if (elements.length !== parent.childCount) return
+	doc.descendants((node, pos) => {
+		if (!node.isTextblock) return true
 
-	parent.forEach((node, offset, index) => {
-		const element = elements[index] as Element
+		blocks.push({ node, start: pos + 1 })
 
-		const spec = nodeDOM[node.type.name as keyof typeof nodeDOM]
-
-		if (!spec || element.localName !== spec(node.attrs)[0]) return
-
-		const pos = start + offset
-
-		if (node.isTextblock) {
-			const content = node.type.spec.code ? element.firstElementChild : element
-
-			if (content && (!node.type.spec.code || content.localName === 'code')) {
-				out.push({ node, start: pos + 1, content })
-			}
-		} else if (!node.isLeaf) pairBlocks(node, element, pos + 1, out)
-	})
-}
-
-/**
- * The text of the content element of a block, as {@link blockText} gives the
- * text of its node, and the offset in it of each point that it holds. A line
- * break and an inline atom are one character. A last line break is the one
- * that keeps the height of the last line, as in the view of ProseMirror, so
- * it is no text.
- *
- * @internal
- */
-function readBlock(
-	content: Element,
-	points: readonly (WysiwygEarlyPoint | null)[],
-): { text: string; offsets: (number | null)[] } {
-	const read: BlockRead = { content, points, text: '', offsets: points.map(() => null) }
-
-	readChildren(read, content)
-
-	return { text: read.text, offsets: read.offsets }
-}
-
-/** The state of {@link readBlock}: the text so far, and the offset of each point that it found. @internal */
-type BlockRead = {
-	content: Element
-	points: readonly (WysiwygEarlyPoint | null)[]
-	text: string
-	offsets: (number | null)[]
-}
-
-/** Sets the offset of each point not yet found that `findOffset` places. @internal */
-function placePoints(
-	read: BlockRead,
-	findOffset: (point: WysiwygEarlyPoint) => number | null,
-): void {
-	read.points.forEach((point, index) => {
-		if (!point || read.offsets[index] !== null) return
-
-		const offset = findOffset(point)
-
-		if (offset !== null) read.offsets[index] = offset
-	})
-}
-
-/** Reads the children of `node`, and each point between them. @internal */
-function readChildren(read: BlockRead, node: globalThis.Node): void {
-	node.childNodes.forEach((child, index) => {
-		placePoints(read, (point) =>
-			point.node === node && point.offset === index ? read.text.length : null,
-		)
-
-		readChild(read, node, child)
+		return false
 	})
 
-	placePoints(read, (point) =>
-		point.node === node && point.offset >= node.childNodes.length ? read.text.length : null,
-	)
-}
-
-/** Reads one child of `parent`: a text, a line break, an atom, or an element of marks. @internal */
-function readChild(read: BlockRead, parent: globalThis.Node, child: globalThis.Node): void {
-	if (child.nodeType === child.TEXT_NODE) {
-		placePoints(read, (point) => (point.node === child ? read.text.length + point.offset : null))
-
-		read.text += child.nodeValue ?? ''
-
-		return
-	}
-
-	if (!(child instanceof Element)) return
-
-	if (child.localName === 'br') {
-		if (parent !== read.content || child !== read.content.lastChild) read.text += LEAF
-
-		return
-	}
-
-	if (child.hasAttribute('data-raw')) {
-		placePoints(read, (point) => (child.contains(point.node) ? read.text.length : null))
-
-		read.text += LEAF
-
-		return
-	}
-
-	readChildren(read, child)
+	return blocks
 }
 
 /** A change of the text of a block: `before` from `start` to `endA` is now `after` from `start` to `endB`. @internal */
@@ -194,7 +83,7 @@ function textChange(before: string, after: string, caret: number | null): TextCh
  *
  * @internal
  */
-export function typeText(view: EditorView, text: string): void {
+function typeText(view: EditorView, text: string): void {
 	const { from, to } = view.state.selection
 
 	const typed = () => view.state.tr.insertText(text, from, to)
@@ -202,21 +91,6 @@ export function typeText(view: EditorView, text: string): void {
 	if (!view.someProp('handleTextInput', (handle) => handle(view, from, to, text, typed))) {
 		view.dispatch(typed().scrollIntoView())
 	}
-}
-
-/** Replaces a span of a text block with text that takes the marks of the span, as a typed key does. @internal */
-function replaceText(tr: Transaction, from: number, to: number, text: string): void {
-	if (!text) {
-		tr.delete(from, to)
-
-		return
-	}
-
-	const $from = tr.doc.resolve(from)
-
-	const marks = from === to ? $from.marks() : $from.marksAcross(tr.doc.resolve(to))
-
-	tr.replaceWith(from, to, tr.doc.type.schema.text(text, marks ?? []))
 }
 
 /** The change of the text of one block of the markup. @internal */
@@ -239,34 +113,43 @@ type EarlyEdits = BlockSelection & { changes: BlockChange[]; moves: BlockSelecti
  * @internal
  */
 function readEdits(doc: Node, field: WysiwygEarlyField): EarlyEdits {
-	const blocks: EarlyBlock[] = []
+	const points = [field, ...field.moves].flatMap(({ anchor, head }) => [anchor, head])
 
-	pairBlocks(doc, field.root, 0, blocks)
+	const blocks = docBlocks(doc)
+
+	// The markup draws each text block of the doc. Another count is a markup
+	// that the editor cannot read, so it takes nothing from it.
+	const read = blocks.length === field.blocks.length
 
 	const changes: BlockChange[] = []
 
-	const points = [field, ...field.moves].flatMap(({ anchor, head }) => [anchor, head])
-
 	const found: (BlockPoint | null)[] = points.map(() => null)
 
-	for (const block of blocks) {
-		const read = readBlock(block.content, points)
+	blocks.forEach((block, index) => {
+		const after = field.blocks[index]
 
-		const caret = read.offsets[1] ?? read.offsets[0] ?? null
+		if (!read || after === undefined) return
 
-		const diff = textChange(blockText(block.node), read.text, caret)
+		const offsetIn = (point: (typeof points)[number] | undefined) =>
+			point?.block === index ? point.offset : null
 
-		const text = diff ? read.text.slice(diff.start, diff.endB) : ''
+		const caret = offsetIn(points[1]) ?? offsetIn(points[0])
 
-		// The browser makes no line break and no atom, so a change that holds one is not an edit of the reader.
-		const change = diff && !text.includes(LEAF) ? diff : null
+		const diff = textChange(blockText(block.node), after, caret)
 
-		if (change) changes.push({ block, change, text })
+		const text = diff ? after.slice(diff.start, diff.endB) : ''
 
-		read.offsets.forEach((offset, index) => {
-			if (offset !== null) found[index] = { block, change, offset }
+		// The browser makes no line break and no atom, so a change that holds one
+		// is not an edit of the reader, and the points of the block are not points
+		// of the doc.
+		if (diff && text.includes(LEAF)) return
+
+		if (diff) changes.push({ block, change: diff, text })
+
+		points.forEach((point, at) => {
+			if (point?.block === index) found[at] = { block, change: diff, offset: point.offset }
 		})
-	}
+	})
 
 	// A selection with one point in a block is a caret at that point.
 	const selection = (index: number): BlockSelection => {
@@ -337,9 +220,7 @@ export function wysiwygEarlyMoves(): Plugin<readonly (number | null)[]> {
 		state: {
 			init: () => [],
 			apply: (tr, points) => {
-				const mapped = tr.docChanged
-					? points.map((pos) => (pos === null ? null : tr.mapping.map(pos, -1)))
-					: [...points]
+				const mapped = points.map((pos) => (pos === null ? null : tr.mapping.map(pos, -1)))
 
 				for (const { index, pos } of (tr.getMeta(MOVES) as MoveSet[] | undefined) ?? []) {
 					while (mapped.length <= index) mapped.push(null)
@@ -463,7 +344,13 @@ export function adoptEarlyInput(view: EditorView, field: WysiwygEarlyField): voi
 
 	// From the last change to the first, so each change keeps the positions of the ones before it.
 	for (const { block, change, text } of edits.changes.toReversed()) {
-		replaceText(tr, block.start + change.start, block.start + change.endA, text)
+		const from = block.start + change.start
+
+		const to = block.start + change.endA
+
+		// A typed key takes the marks of the span, as `insertText` gives them.
+		if (text) tr.insertText(text, from, to)
+		else tr.delete(from, to)
 	}
 
 	const { anchor, head } = edits
@@ -534,8 +421,10 @@ export function replayEarlyInput(view: EditorView, item: WysiwygEarlyItem): void
 
 			return
 		case 'paste':
-			if (item.html) view.pasteHTML(item.html)
-			else view.pasteText(item.text)
+			// A paste in a code block takes the plain text, as the clipboard parser of the editor does.
+			if (item.html && !(item.text && view.state.selection.$from.parent.type.spec.code)) {
+				view.pasteHTML(item.html)
+			} else view.pasteText(item.text)
 
 			return
 		case 'format':
@@ -547,18 +436,12 @@ export function replayEarlyInput(view: EditorView, item: WysiwygEarlyItem): void
 
 			return
 		case 'delete': {
-			const { selection } = view.state
-
-			if (!selection.empty) {
-				view.dispatch(view.state.tr.deleteSelection().scrollIntoView())
-
-				return
-			}
+			if (deleteSelection(view.state, view.dispatch)) return
 
 			// A delete at the edge of a block, such as a join, is a command of the editor.
 			if (key({ key: item.forward ? 'Delete' : 'Backspace' })) return
 
-			const { $from, from } = selection
+			const { $from, from } = view.state.selection
 
 			const size = unitSize(blockText($from.parent), $from.parentOffset, item.forward, item.unit)
 
