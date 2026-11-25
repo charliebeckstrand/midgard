@@ -282,7 +282,8 @@ export type ChatMessageProps = ChatMessageVariants &
  * copies the plain text of the message ({@link chatContentText}), and it is off
  * while the message has no text.
  *
- * The toolbar sits over the outer top corner of the bubble. It shows the first
+ * The toolbar sits over the outer top corner of the bubble, on the side of the
+ * speaker. A `system` line takes its start corner. It shows the first
  * three items of the menu as icon buttons, each with a tooltip, and a press
  * runs the action at once. An ellipsis button, "More actions", opens a dropdown
  * with the other entries. A menu of three items or fewer, each with an icon,
@@ -414,20 +415,20 @@ export const ChatMessage = memo(function ChatMessage({
 					className={slots.footer}
 					labelClassName={slots.edited}
 				/>
+				{toolbar && (
+					<div data-slot="chat-message-toolbar" className={slots.toolbar}>
+						<ChatMessageToolbar
+							config={menu}
+							content={children}
+							bubble={bubbleId}
+							sender={resolvedSender}
+						/>
+					</div>
+				)}
 			</div>
 			{timestamp !== undefined && (
 				<div data-slot="chat-message-timestamp" className={slots.timestamp}>
 					{timestamp}
-				</div>
-			)}
-			{toolbar && (
-				<div data-slot="chat-message-toolbar" className={slots.toolbar}>
-					<ChatMessageToolbar
-						config={menu}
-						content={children}
-						bubble={bubbleId}
-						sender={resolvedSender}
-					/>
 				</div>
 			)}
 		</div>
