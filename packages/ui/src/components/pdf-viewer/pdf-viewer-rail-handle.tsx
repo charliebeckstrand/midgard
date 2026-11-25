@@ -172,7 +172,7 @@ export function PdfViewerRailHandle({ controls }: PdfViewerRailHandleProps) {
 			ref={ref}
 			data-slot="pdf-viewer-rail-handle"
 			data-dragging={dataAttr(dragging)}
-			label={intl.formatMessage(pdfViewerMessages.resizePages)}
+			label={intl.formatMessage(pdfViewerMessages.resizeThumbnails)}
 			orientation="vertical"
 			value={width}
 			valueText={intl.formatMessage(pdfViewerMessages.railWidth, { width })}

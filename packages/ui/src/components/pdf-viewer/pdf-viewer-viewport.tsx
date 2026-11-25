@@ -3,6 +3,7 @@
 import { useComposedRefs } from 'motion/react'
 import { useA11yLiveRegion } from '../../hooks/a11y/use-a11y-live-region'
 import { useScrollRegion } from '../../hooks/use-scroll-region'
+import type { IntlShape } from '../../primitives/intl/types'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/pdf-viewer'
 import { usePdfViewerContext, usePdfViewerMagnifierContext } from './context'
@@ -12,6 +13,19 @@ import { PdfViewerMagnifier } from './pdf-viewer-magnifier'
 import { pageLabel, pdfViewerMessages } from './pdf-viewer-messages'
 import { PdfViewerPageImage } from './pdf-viewer-page-image'
 import { PdfViewerSearchHits } from './pdf-viewer-search-hits'
+
+/**
+ * The text of the status live region: "Page X of Y" once the document has a page, else
+ * "Loading PDF" while it opens, else nothing.
+ */
+function statusText(
+	intl: IntlShape,
+	{ page, total, opening }: { page: number; total: number; opening: boolean },
+): string | null {
+	if (total > 0) return intl.formatMessage(pdfViewerMessages.pageOfTotal, { page, total })
+
+	return opening ? intl.formatMessage(pdfViewerMessages.loading) : null
+}
 
 /**
  * Renders the pane of the viewer. With a page frame, the pane holds the scroll
@@ -29,8 +43,8 @@ import { PdfViewerSearchHits } from './pdf-viewer-search-hits'
  * read the container units of the frame. Without a frame, the pane is not a size container,
  * and it grows to the height of its message.
  *
- * A visually hidden live region announces "Page X of Y" on
- * navigation. The text of the page follows the image, visually hidden, for a screen reader
+ * A visually hidden live region announces "Loading PDF" while a document loads, and
+ * "Page X of Y" when it is ready and on navigation. The text of the page follows the image, visually hidden, for a screen reader
  * (`usePdfViewerPageText`). While the page overflows the viewport, the viewport is a tab
  * stop, so a keyboard user can scroll it. Errors render in a `role="alert"`; loading shows an
  * `aria-label`'d placeholder.
@@ -60,6 +74,12 @@ export function PdfViewerViewport() {
 	const intl = useIntl()
 
 	const pageStatus = useA11yLiveRegion({ srOnly: true })
+
+	const status = statusText(intl, {
+		page: safePage,
+		total,
+		opening: (loading || pending) && !error,
+	})
 
 	// A zoomed page overflows the viewport. It is then a tab stop and a region
 	// with the name "Page". The name is static, because the status text above
@@ -108,12 +128,12 @@ export function PdfViewerViewport() {
 			// its content cannot give it one.
 			style={{ aspectRatio, width: naturalWidth }}
 		>
-			{/* Live region announces "Page X of Y" on page navigation. */}
-			{total > 0 && (
-				<div data-slot="pdf-viewer-page-status" {...pageStatus}>
-					{intl.formatMessage(pdfViewerMessages.pageOfTotal, { page: safePage, total })}
-				</div>
-			)}
+			{/* The live region says "Loading PDF" while a document loads, and "Page X of Y" when it
+			    is ready and on each page turn (WCAG 4.1.3). It stays mounted, so the change from
+			    the one text to the other is spoken. A failed load speaks through its alert. */}
+			<div data-slot="pdf-viewer-page-status" {...pageStatus}>
+				{status}
+			</div>
 			{framed ? (
 				<div ref={composedViewportRef} data-slot="pdf-viewer-viewport" className={viewport.base}>
 					<div

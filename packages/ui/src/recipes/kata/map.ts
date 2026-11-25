@@ -234,6 +234,25 @@ export const k = {
 		 */
 		pointed: mode('brightness-90', 'dark:brightness-110'),
 		/**
+		 * The outline of the region under the keyboard cursor, shown only while
+		 * the plot has the keyboard focus (WCAG 2.2 SC 2.4.7). The recede emphasis
+		 * lights only a region with data, and only when the layer recedes, so it
+		 * cannot be the cursor indicator. A focus-ink ring sits on a halo in the
+		 * surface ink. The halo shows on each side of the ring, so the ring holds
+		 * its contrast over a fill of any hue, a blue fill too.
+		 */
+		cursor: {
+			/** The halo under the ring. */
+			halo: ['invisible', 'in-[[data-slot=map-plot]:focus-visible]:visible', ...ink.surface],
+			/** The ring, in the focus ink. Under forced colors it takes `Highlight`. */
+			ring: [
+				'invisible',
+				'in-[[data-slot=map-plot]:focus-visible]:visible',
+				...mode('stroke-blue-600', 'dark:stroke-blue-500'),
+				'forced-colors:stroke-[Highlight]',
+			],
+		},
+		/**
 		 * The outline on each region that a legend emphasis holds lit. The dim
 		 * fades the other regions toward the surface, which is one end of a
 		 * sequential ramp. A lit region at that end therefore has the color of the

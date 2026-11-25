@@ -9,7 +9,7 @@ type PdfViewerValues = {
 	showThumbnails: Record<never, never>
 	hideThumbnails: Record<never, never>
 	pages: Record<never, never>
-	resizePages: Record<never, never>
+	resizeThumbnails: Record<never, never>
 	railWidth: { width: number }
 	showHighlights: Record<never, never>
 	hideHighlights: Record<never, never>
@@ -91,9 +91,9 @@ export const pdfViewerMessages: MessageSet<PdfViewerValues> = defineMessages<Pdf
 		defaultMessage: 'Pages',
 		description: 'The title of the panel with the small images of the pages of a PDF.',
 	},
-	resizePages: {
-		id: 'ui.pdfViewer.resizePages',
-		defaultMessage: 'Resize pages',
+	resizeThumbnails: {
+		id: 'ui.pdfViewer.resizeThumbnails',
+		defaultMessage: 'Resize thumbnails',
 		description:
 			'The name of the bar on the edge of the panel with the small images of the pages of a PDF. A drag or the arrow keys change the width of the panel.',
 	},

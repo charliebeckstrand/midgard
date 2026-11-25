@@ -26,6 +26,13 @@ export const STRIPE_TILE = 6
 export const REGION_SELECTED_STROKE_WIDTH = 2.5
 
 /**
+ * The width of the keyboard cursor ring on a region, and of the halo under it.
+ * The halo shows 1.5 px on each side of the ring.
+ * @internal
+ */
+export const REGION_CURSOR_STROKE_WIDTH = { ring: 2, halo: 5 } as const
+
+/**
  * The outline width of a region that a legend emphasis holds lit. It is a step
  * under the selection ring, so a standing pick still reads apart from a passing
  * emphasis that includes it.

@@ -22,11 +22,13 @@ import { useChartSweep, type WashDelay } from '../chart/engine/use-chart-sweep'
 import {
 	MapZoomScaleContext,
 	useMapHoverActions,
+	useMapHoverState,
 	useMapPlat,
 	useMapPointed,
 	useMapZoomScale,
 } from './context'
 import {
+	REGION_CURSOR_STROKE_WIDTH,
 	REGION_SELECTED_STROKE_WIDTH,
 	REGION_STROKE_WIDTH,
 	STRIPE_TILE,
@@ -464,6 +466,7 @@ export const MapRegions = memo(function MapRegions({
 			/>
 
 			{selectedPath !== null && <MapRegionSelected d={selectedPath} />}
+			<MapRegionCursor paths={paths} />
 		</MapRegionsGroup>
 	)
 })
@@ -656,5 +659,42 @@ function MapRegionSelected({ d }: { d: string }) {
 			// sole hit target, the discipline the lit copies keep.
 			className={cn('pointer-events-none', ...k.selected)}
 		/>
+	)
+}
+
+/**
+ * The outline of the region under the keyboard cursor. The class keeps it
+ * invisible until the plot has the keyboard focus ({@link k.region.cursor}).
+ *
+ * It reads the hover target, not the gated pointed mark. A region with no
+ * data takes no emphasis, but the cursor can stop on it, and the user must see
+ * where the cursor is (WCAG 2.2 SC 2.4.7). Its own component, like
+ * {@link MapRegionSelected}: the hover state and the zoom scale change often,
+ * and here a change re-renders two paths, not the atlas.
+ *
+ * @internal
+ */
+function MapRegionCursor({ paths }: { paths: readonly (string | null)[] }) {
+	const { target } = useMapHoverState()
+
+	const unitsPerPixel = useMapZoomScale()
+
+	const d = target?.kind === 'region' ? paths[target.index] : null
+
+	if (!d) return null
+
+	return (
+		<g data-slot="map-region-cursor" fill="none" className="pointer-events-none">
+			<path
+				d={d}
+				strokeWidth={REGION_CURSOR_STROKE_WIDTH.halo * unitsPerPixel}
+				className={cn(...k.region.cursor.halo)}
+			/>
+			<path
+				d={d}
+				strokeWidth={REGION_CURSOR_STROKE_WIDTH.ring * unitsPerPixel}
+				className={cn(...k.region.cursor.ring)}
+			/>
+		</g>
 	)
 }

@@ -113,3 +113,35 @@ export const mapSelectedRowMessage: TypedMessageDescriptor<{ name: string }> = d
 	description:
 		'The name of a row of the data table of a map for a region or a mark that the map holds selected, such as "Ohio, selected".',
 })
+
+/**
+ * The readout of a keyboard cursor stop that the map holds selected, such as
+ * "Ohio, 12 stores, selected". The cursor speaks it on a step onto the stop,
+ * and after a pick selects the stop. It takes the `readout` of the stop.
+ *
+ * @internal
+ */
+export const mapSelectedStopMessage: TypedMessageDescriptor<{ readout: string }> = defineMessage<{
+	readout: string
+}>({
+	id: 'ui.map.selectedStop',
+	defaultMessage: '{readout}, selected',
+	description:
+		'What a screen reader hears for a region or a mark of a map that the map holds selected, as the keyboard cursor moves onto it or a pick selects it, such as "Ohio, 12 stores, selected".',
+})
+
+/**
+ * What the keyboard cursor speaks after a pick removes the stop from the
+ * selection, such as "Ohio, 12 stores, not selected". It takes the `readout` of
+ * the stop.
+ *
+ * @internal
+ */
+export const mapUnselectedStopMessage: TypedMessageDescriptor<{ readout: string }> = defineMessage<{
+	readout: string
+}>({
+	id: 'ui.map.unselectedStop',
+	defaultMessage: '{readout}, not selected',
+	description:
+		'What a screen reader hears after a pick on a map removes a region or a mark from the selection, such as "Ohio, 12 stores, not selected".',
+})
