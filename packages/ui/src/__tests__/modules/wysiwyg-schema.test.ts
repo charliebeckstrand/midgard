@@ -25,6 +25,25 @@ describe('wysiwyg schema', () => {
 		expect(throughDOM(markdown)).toBe(markdown)
 	})
 
+	it.each([
+		['a tight bullet list', '- a\n- b'],
+		['a loose bullet list', '- a\n\n- b'],
+		['a tight ordered list', '3. a\n4. b'],
+		['a loose ordered list', '3. a\n\n4. b'],
+		['a code block with a language', '```ts\nconst a = 1\n```'],
+		['a code block with no language', '```\nconst a = 1\n```'],
+	])('keeps %s across the DOM', (_, markdown) => {
+		expect(throughDOM(markdown)).toBe(markdown)
+	})
+
+	it('reads a list from outside the field as tight', () => {
+		const host = document.createElement('div')
+
+		host.innerHTML = '<ul><li><p>a</p></li><li><p>b</p></li></ul>'
+
+		expect(serializeMarkdown(DOMParser.fromSchema(schema).parse(host))).toBe('- a\n- b')
+	})
+
 	it('has the markup and the mark order of the markup before the editor loads', () => {
 		const types = Object.values(schema.nodes).filter((type) => type.name !== 'doc' && !type.isText)
 

@@ -68,18 +68,24 @@ export const nodeDOM = domSpecs({
 		0,
 	],
 	blockquote: () => ['blockquote', { class: prose.blockquote }, 0],
-	bullet_list: (attrs) => ['ul', { class: prose.ul, 'data-tight': attrs.tight ? '' : null }, 0],
+	// A loose list has the mark, so a list from outside the field, which has
+	// no mark, is tight, as the default of the schema.
+	bullet_list: (attrs) => ['ul', { class: prose.ul, 'data-loose': attrs.tight ? null : '' }, 0],
 	ordered_list: (attrs) => [
 		'ol',
 		{
 			class: prose.ol,
 			start: attrs.start === 1 ? null : attrs.start,
-			'data-tight': attrs.tight ? '' : null,
+			'data-loose': attrs.tight ? null : '',
 		},
 		0,
 	],
 	list_item: () => ['li', { class: prose.li }, 0],
-	code_block: () => ['pre', { class: codeBlockClass, dir: 'ltr' }, ['code', 0]],
+	code_block: (attrs) => [
+		'pre',
+		{ class: codeBlockClass, dir: 'ltr', 'data-lang': attrs.lang || null },
+		['code', 0],
+	],
 	horizontal_rule: () => ['hr', { class: prose.hr }],
 	raw: (attrs) => [
 		'pre',

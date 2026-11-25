@@ -13,6 +13,14 @@ function rawSource(dom: HTMLElement) {
 }
 
 /**
+ * Whether a list from its element is tight. The markup writes `data-loose` on
+ * a loose list only, so a copy and a paste keeps the attribute.
+ */
+function tightList(dom: HTMLElement) {
+	return !dom.hasAttribute('data-loose')
+}
+
+/**
  * The block nodes of a draft: the Markdown blocks that a chat message renders.
  * A block that the schema does not hold, such as a table or raw HTML, is a
  * `raw` atom that keeps its source.
@@ -45,7 +53,7 @@ const nodes = {
 		group: 'block',
 		content: 'list_item+',
 		attrs: { tight: { default: true, validate: 'boolean' } },
-		parseDOM: [{ tag: 'ul' }],
+		parseDOM: [{ tag: 'ul', getAttrs: (dom) => ({ tight: tightList(dom) }) }],
 		toDOM: (node): DOMOutputSpec => nodeDOM.bullet_list(node.attrs),
 	},
 	ordered_list: {
@@ -58,7 +66,10 @@ const nodes = {
 		parseDOM: [
 			{
 				tag: 'ol',
-				getAttrs: (dom) => ({ start: Number((dom as HTMLElement).getAttribute('start') ?? 1) }),
+				getAttrs: (dom) => ({
+					start: Number(dom.getAttribute('start') ?? 1),
+					tight: tightList(dom),
+				}),
 			},
 		],
 		toDOM: (node): DOMOutputSpec => nodeDOM.ordered_list(node.attrs),
@@ -76,7 +87,13 @@ const nodes = {
 		code: true,
 		defining: true,
 		attrs: { lang: { default: '', validate: 'string' } },
-		parseDOM: [{ tag: 'pre', preserveWhitespace: 'full' }],
+		parseDOM: [
+			{
+				tag: 'pre',
+				preserveWhitespace: 'full',
+				getAttrs: (dom) => ({ lang: dom.getAttribute('data-lang') ?? '' }),
+			},
+		],
 		toDOM: (node): DOMOutputSpec => nodeDOM.code_block(node.attrs),
 	},
 	horizontal_rule: {
