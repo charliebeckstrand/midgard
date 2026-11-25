@@ -101,56 +101,53 @@ jobs:
           HOME: /root
           VITEST_SEED: ${{ inputs.seed }}
 
-  # TEMPORARY: the same command on the runner, with no container, so that each
-  # crash keeps a core and gdb shows where the content process stopped. Remove
-  # before merge.
-  density-host:
-    name: density-host (run ${{ matrix.run }})
+  # TEMPORARY: the crash occurs in the container and not on the runner. Each
+  # variant changes one condition of the container. Remove before merge.
+  density-bisect:
+    name: density-bisect (${{ matrix.variant }} ${{ matrix.run }})
     needs: plan
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 15
+    container:
+      image: mcr.microsoft.com/playwright:v${{ needs.plan.outputs.version }}-resolute
+      options: --ipc=host ${{ matrix.variant == 'seccomp-off' && '--security-opt seccomp=unconfined' || '' }}
     strategy:
       fail-fast: false
       matrix:
-        run: ${{ fromJSON(needs.plan.outputs.runs) }}
+        variant: [base, seccomp-off, shstk-off, sandbox-off]
+        run: [1, 2, 3, 4, 5, 6, 7, 8]
     steps:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
+      - run: git config --system --add safe.directory "$GITHUB_WORKSPACE"
       - uses: ./.github/actions/setup
-      - run: pnpm --filter ui exec playwright install --with-deps firefox webkit
-      - name: Show the CPU, its flags, the kernel, and glibc
+      - name: Show the CPU, its flags, the kernel, and the seccomp mode
         run: |
           grep -m1 'model name' /proc/cpuinfo
-          grep -m1 '^flags' /proc/cpuinfo | tr ' ' '\n' | grep -E -x 'user_shstk|shstk|ibt|avx512f|erms|fsrm|la57|pku|ospke' | tr '\n' ' '; echo
+          grep -m1 '^flags' /proc/cpuinfo | tr ' ' '\n' | grep -E -x 'user_shstk|shstk|ibt|avx512f|erms|fsrm' | tr '\n' ' '; echo
           uname -r
-          ldd --version | head -1
-          cat /proc/sys/kernel/core_pattern
-      - name: Keep a core of each crash
-        run: |
-          sudo mkdir -p /tmp/cores
-          sudo chmod 1777 /tmp/cores
-          echo '/tmp/cores/core.%e.%p.%s' | sudo tee /proc/sys/kernel/core_pattern
-          sudo sysctl -w fs.suid_dumpable=2
+          grep -E '^(Seccomp|Seccomp_filters|x86_Thread_features|CapEff)' /proc/self/status
       - run: |
-          ulimit -c unlimited
+          case "$VARIANT" in
+            shstk-off) export GLIBC_TUNABLES=glibc.cpu.x86_shstk=off ;;
+            sandbox-off) export MOZ_DISABLE_CONTENT_SANDBOX=1 ;;
+          esac
+          # The shadow stack state of each Firefox process, while the tests run.
+          (
+            for i in $(seq 1 12); do
+              sleep 2
+              for status in /proc/[0-9]*/status; do
+                name=$(awk '/^Name:/ { print $2 }' "$status" 2> /dev/null)
+                case "$name" in
+                  firefox*|Isolated*|Web*|Socket*|RDD*|Utility*|GeckoMain*) echo "$name $(grep -E '^x86_Thread_features:' "$status" 2> /dev/null | tr -s '\t ' ' ')" ;;
+                esac
+              done
+            done | sort | uniq -c | sed 's/^/[shstk] /'
+          ) &
           pnpm --filter ui test:browser --project density-firefox --project density-webkit --project wysiwyg-webkit --project wysiwyg-floating-ui-webkit --project wysiwyg-floating-motion-webkit
         env:
+          VARIANT: ${{ matrix.variant }}
           DEBUG: pw:browser
           ALL_ENGINES: 1
-      - name: Show where each core stopped
-        if: always()
-        run: |
-          shopt -s nullglob
-          cores=(/tmp/cores/core.*)
-          echo "${#cores[@]} cores"
-          [ ${#cores[@]} -eq 0 ] && exit 0
-          sudo apt-get install -y gdb > /dev/null
-          exe=$(find ~/.cache/ms-playwright -path '*firefox*' -name firefox -type f | head -1)
-          for core in "${cores[@]}"; do
-            echo "::group::$core"
-            sudo gdb -batch -nx "$exe" "$core" \
-              -ex 'p $_siginfo.si_signo' -ex 'p $_siginfo.si_code' -ex 'p $_siginfo._sifields._sigfault.si_addr' \
-              -ex 'info symbol $pc' -ex 'x/8i $pc' -ex 'bt 30' -ex 'info registers' 2>&1 | grep -v '^warning' | head -250
-            echo "::endgroup::"
-          done
+          HOME: /root
