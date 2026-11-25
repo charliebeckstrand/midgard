@@ -22,6 +22,7 @@ import { it } from '../helpers/fake-clock'
 import { FIXTURE_GEOJSON, FIXTURE_TOPOLOGY } from '../helpers/map-geography'
 import { categoricalPlat } from '../helpers/map-plat'
 import { CLICK } from '../helpers/press'
+import { MAP_RECEDE } from '../helpers/recede'
 
 describe('MapPlat', () => {
 	it('draws one region per feature under a labeled role="img" plot', () => {
@@ -495,7 +496,7 @@ describe('MapPlat', () => {
 
 		// The layer recedes as one group and the focused category redraws lit
 		// above it: the chart marks' isolation pattern.
-		expect(bySlot(container, 'map-regions-recede')?.getAttribute('class')).toContain('opacity-25')
+		expect(bySlot(container, 'map-regions-recede')?.getAttribute('class')).toContain(MAP_RECEDE)
 
 		const lit = bySlot(container, 'map-regions-lit')
 
@@ -505,9 +506,7 @@ describe('MapPlat', () => {
 
 		fireEvent.pointerLeave(east as HTMLButtonElement)
 
-		expect(bySlot(container, 'map-regions-recede')?.getAttribute('class')).not.toContain(
-			'opacity-25',
-		)
+		expect(bySlot(container, 'map-regions-recede')?.getAttribute('class')).not.toContain(MAP_RECEDE)
 
 		// The lit copy stays over the lift and hides when the fade ends.
 		expect(bySlot(container, 'map-regions-lit')?.querySelectorAll('path')).toHaveLength(1)
@@ -544,7 +543,7 @@ describe('MapPlat', () => {
 			// The pointer still reads the region.
 			expect(bySlot(container, 'tooltip-content')).not.toBeNull()
 
-			for (const classes of recedeClasses(container)) expect(classes).not.toContain('opacity-25')
+			for (const classes of recedeClasses(container)) expect(classes).not.toContain(MAP_RECEDE)
 
 			expect(bySlot(container, 'map-regions-lit')).toBeNull()
 		})
@@ -557,7 +556,7 @@ describe('MapPlat', () => {
 			fireEvent.pointerEnter(east as HTMLButtonElement)
 
 			expect(bySlot(container, 'map-regions-recede')?.getAttribute('class')).not.toContain(
-				'opacity-25',
+				MAP_RECEDE,
 			)
 
 			expect(bySlot(container, 'map-regions-lit')).toBeNull()
@@ -582,7 +581,7 @@ describe('MapPlat', () => {
 
 			pointRegion(container)
 
-			expect(recedeClasses(container).some((classes) => classes.includes('opacity-25'))).toBe(true)
+			expect(recedeClasses(container).some((classes) => classes.includes(MAP_RECEDE))).toBe(true)
 		})
 	})
 
@@ -611,7 +610,7 @@ describe('MapPlat', () => {
 		// A click focuses the entry without a ring, so it emphasizes nothing.
 		act(() => east?.focus())
 
-		expect(recede()).not.toContain('opacity-25')
+		expect(recede()).not.toContain(MAP_RECEDE)
 
 		act(() => east?.blur())
 
@@ -620,7 +619,7 @@ describe('MapPlat', () => {
 
 		act(() => east?.focus())
 
-		expect(recede()).toContain('opacity-25')
+		expect(recede()).toContain(MAP_RECEDE)
 
 		// The pointer leaves another entry, and the emphasis goes back to the focused one.
 		const west = allBySlot(container, 'map-legend-item')[1] as HTMLButtonElement
@@ -629,14 +628,14 @@ describe('MapPlat', () => {
 
 		fireEvent.pointerLeave(west)
 
-		expect(recede()).toContain('opacity-25')
+		expect(recede()).toContain(MAP_RECEDE)
 
 		// Escape drops the focus, and the emphasis with it.
 		fireEvent.keyDown(east as HTMLButtonElement, { key: 'Escape' })
 
 		expect(document.activeElement).not.toBe(east)
 
-		expect(recede()).not.toContain('opacity-25')
+		expect(recede()).not.toContain(MAP_RECEDE)
 	})
 
 	it('names the legend toolbar', () => {
@@ -677,7 +676,7 @@ describe('MapPlat', () => {
 
 		expect(shownLayer(container, 'map-regions-lit')).toBeNull()
 
-		expect(recede()).not.toContain('opacity-25')
+		expect(recede()).not.toContain(MAP_RECEDE)
 
 		await clock.advance(REGION_FADE.duration * 1000)
 
@@ -685,7 +684,7 @@ describe('MapPlat', () => {
 		// category that has finished arriving.
 		expect(lit()?.querySelectorAll('path')).toHaveLength(1)
 
-		expect(recede()).toContain('opacity-25')
+		expect(recede()).toContain(MAP_RECEDE)
 	})
 
 	/** Toggles a category off and straight back on with the pointer held on its chip. */
@@ -755,7 +754,7 @@ describe('MapPlat', () => {
 
 		// The layer recedes behind the pointed region's lit copy: identical
 		// geometry, so the opaque copy covers its dimmed original exactly.
-		expect(bySlot(container, 'map-regions-recede')?.getAttribute('class')).toContain('opacity-25')
+		expect(bySlot(container, 'map-regions-recede')?.getAttribute('class')).toContain(MAP_RECEDE)
 
 		const copy = bySlot(container, 'map-regions-lit')?.querySelector('path')
 
@@ -765,9 +764,7 @@ describe('MapPlat', () => {
 
 		fireEvent.pointerLeave(bySlot(container, 'map-regions') as Element)
 
-		expect(bySlot(container, 'map-regions-recede')?.getAttribute('class')).not.toContain(
-			'opacity-25',
-		)
+		expect(bySlot(container, 'map-regions-recede')?.getAttribute('class')).not.toContain(MAP_RECEDE)
 
 		expect(shownLayer(container, 'map-regions-lit')).toBeNull()
 	})
@@ -816,7 +813,7 @@ describe('MapPlat', () => {
 
 		const lit = () =>
 			!(bySlot(container, 'map-regions-recede')?.getAttribute('class') ?? '').includes(
-				'opacity-25',
+				MAP_RECEDE,
 			) && bySlot(container, 'map-regions-lit') === null
 
 		const [alpha, , gamma] = allRegions(container)
@@ -1204,7 +1201,7 @@ describe('MapPlat choropleth mode', () => {
 
 		// The layer recedes as one group; the snapped bin's regions redraw lit.
 		const receded = () =>
-			(bySlot(container, 'map-regions-recede')?.getAttribute('class') ?? '').includes('opacity-25')
+			(bySlot(container, 'map-regions-recede')?.getAttribute('class') ?? '').includes(MAP_RECEDE)
 
 		// Nothing dims until the bar is pointed.
 		expect(receded()).toBe(false)
@@ -1646,7 +1643,7 @@ describe('MapPlat controlled emphasis', () => {
 
 		expect(bySlot(container, 'map-legend')).toBeNull()
 
-		expect(bySlot(container, 'map-regions-recede')?.getAttribute('class')).toContain('opacity-25')
+		expect(bySlot(container, 'map-regions-recede')?.getAttribute('class')).toContain(MAP_RECEDE)
 
 		// Alpha is the East region: its lit copy holds at full strength above the
 		// receded layer.
@@ -1662,9 +1659,7 @@ describe('MapPlat controlled emphasis', () => {
 	it('treats a controlled null as "no emphasis", not as uncontrolled', () => {
 		const { container } = renderUI(categoricalPlat({ legend: false, emphasis: null }))
 
-		expect(bySlot(container, 'map-regions-recede')?.getAttribute('class')).not.toContain(
-			'opacity-25',
-		)
+		expect(bySlot(container, 'map-regions-recede')?.getAttribute('class')).not.toContain(MAP_RECEDE)
 
 		expect(bySlot(container, 'map-regions-lit')).toBeNull()
 	})
@@ -1674,9 +1669,7 @@ describe('MapPlat controlled emphasis', () => {
 		// never produced; dimming the whole map against nothing would read as broken.
 		const { container } = renderUI(categoricalPlat({ legend: false, emphasis: 'category:Nowhere' }))
 
-		expect(bySlot(container, 'map-regions-recede')?.getAttribute('class')).not.toContain(
-			'opacity-25',
-		)
+		expect(bySlot(container, 'map-regions-recede')?.getAttribute('class')).not.toContain(MAP_RECEDE)
 	})
 })
 

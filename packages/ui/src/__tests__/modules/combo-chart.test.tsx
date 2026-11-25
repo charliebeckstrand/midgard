@@ -3,6 +3,7 @@ import { ComboChart } from '../../modules/chart/combo-chart'
 import { dan } from '../../recipes/kiso/dan'
 import { allBySlot, bySlot, fireEvent, getSlot, present, renderUI } from '../helpers'
 import { subpathCount } from '../helpers/geometry/svg-path'
+import { CHART_RECEDE } from '../helpers/recede'
 
 /** Bars in a combo draw as one path per series; each bar is an `M`-opened subfigure. */
 function barCount(container: HTMLElement): number {
@@ -205,22 +206,22 @@ describe('ComboChart', () => {
 		// the line and bars recede.
 		fireEvent.pointerMove(hit, { clientX: areaDot.x - plotX, clientY: areaDot.y - plotY })
 
-		expect(areaGroup.getAttribute('class')).not.toContain('opacity-25')
+		expect(areaGroup.getAttribute('class')).not.toContain(CHART_RECEDE)
 
-		expect(lineGroup.getAttribute('class')).toContain('opacity-25')
+		expect(lineGroup.getAttribute('class')).toContain(CHART_RECEDE)
 
 		const bars = allBySlot(container, 'chart-bar')
 
 		expect(bars).toHaveLength(1)
 
-		expect(bars.every((bar) => bar.getAttribute('class')?.includes('opacity-25'))).toBe(true)
+		expect(bars.every((bar) => bar.getAttribute('class')?.includes(CHART_RECEDE))).toBe(true)
 
 		// And on the line's dot the resolution flips.
 		fireEvent.pointerMove(hit, { clientX: lineDot.x - plotX, clientY: lineDot.y - plotY })
 
-		expect(lineGroup.getAttribute('class')).not.toContain('opacity-25')
+		expect(lineGroup.getAttribute('class')).not.toContain(CHART_RECEDE)
 
-		expect(areaGroup.getAttribute('class')).toContain('opacity-25')
+		expect(areaGroup.getAttribute('class')).toContain(CHART_RECEDE)
 	})
 })
 

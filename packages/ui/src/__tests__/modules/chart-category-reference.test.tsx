@@ -12,6 +12,7 @@ import {
 	waitFor,
 } from '../helpers'
 import { axisLabels } from '../helpers/axis-labels'
+import { CHART_RECEDE } from '../helpers/recede'
 
 const DATA = [
 	{ month: 'Jan', revenue: 40 },
@@ -253,7 +254,7 @@ describe('a category reference', () => {
 		}
 
 		const receded = (element: Element | null | undefined) =>
-			(element?.getAttribute('class') ?? '').includes('opacity-25')
+			(element?.getAttribute('class') ?? '').includes(CHART_RECEDE)
 
 		// On the category rule, near the top of the plot and far from the value rule:
 		// the marks and the value rule recede, and the category rule stays lit.

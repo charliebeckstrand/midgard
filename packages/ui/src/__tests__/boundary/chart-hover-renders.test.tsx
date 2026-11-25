@@ -14,6 +14,7 @@ import {
 } from '../../modules/chart/sector-chart/sector-chart-marks'
 import { act, allBySlot, allRegions, bySlot, fireEvent, getSlot, renderUI } from '../helpers'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
+import { CHART_RECEDE } from '../helpers/recede'
 
 // Each count reads the renders of one part of a chart:
 //
@@ -250,7 +251,7 @@ describe('Chart hover renders', () => {
 
 		// The marks recede to the rule, and the legend, which writes the same
 		// emphasis, does not render for it.
-		expect(getSlot(container, 'chart-marks').getAttribute('class')).toContain('opacity-25')
+		expect(getSlot(container, 'chart-marks').getAttribute('class')).toContain(CHART_RECEDE)
 
 		act(() => {
 			fireEvent.pointerLeave(hit)

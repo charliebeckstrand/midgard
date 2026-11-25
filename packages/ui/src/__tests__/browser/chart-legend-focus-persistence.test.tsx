@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { BarChart, type BarChartProps } from '../../modules/chart/bar-chart'
 import { allBySlot, frames, present, renderUI, waitFor } from '../helpers'
+import { CHART_RECEDE } from '../helpers/recede'
 
 /**
  * The legend emphasizes a series (dimming every other) while an entry is
@@ -30,7 +31,7 @@ describe('chart legend focus persistence (real browser)', () => {
 	const otherSeriesBar = (container: HTMLElement) => allBySlot(container, 'chart-bar')[1]
 
 	const dimmed = (el: Element | undefined) =>
-		(el?.getAttribute('class') ?? '').includes('opacity-25')
+		(el?.getAttribute('class') ?? '').includes(CHART_RECEDE)
 
 	// React commits the emphasis state after the focus event; settle two frames
 	// before reading the marks so an absent dim reflects state, not timing.
@@ -112,7 +113,7 @@ describe('chart legend focus persistence (real browser)', () => {
 	// whole-marks recede (referenceActive), not the per-series dim, so it reads on
 	// the marks group, which recedes as one to the rule.
 	const marksReceded = (container: HTMLElement) =>
-		(allBySlot(container, 'chart-marks')[0]?.getAttribute('class') ?? '').includes('opacity-25')
+		(allBySlot(container, 'chart-marks')[0]?.getAttribute('class') ?? '').includes(CHART_RECEDE)
 
 	/**
 	 * Tabs from `before` until `target` holds the focus. The row of reference chips

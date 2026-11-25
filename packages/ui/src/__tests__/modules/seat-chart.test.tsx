@@ -3,6 +3,7 @@ import { MARK_GAP } from '../../modules/chart/engine/chart-constants'
 import { seatExtent, seatFit, seatLayout } from '../../modules/chart/engine/chart-geometry/seat'
 import { SeatChart, type SeatChartProps } from '../../modules/chart/seat-chart'
 import { allBySlot, bySlot, fireEvent, getSlot, present, renderUI } from '../helpers'
+import { CHART_RECEDE } from '../helpers/recede'
 
 const GROUPS: SeatChartProps['groups'] = [
 	{ seats: 47, color: 'blue', label: 'Democrats' },
@@ -27,7 +28,7 @@ function chart(extra?: Partial<SeatChartProps>) {
 /** Whether each group of seats recedes behind an emphasis. */
 function receded(container: HTMLElement): boolean[] {
 	return allBySlot(container, 'chart-seat-group').map(
-		(path) => path.parentElement?.getAttribute('class')?.includes('opacity-25') ?? false,
+		(path) => path.parentElement?.getAttribute('class')?.includes(CHART_RECEDE) ?? false,
 	)
 }
 
@@ -191,7 +192,7 @@ describe('SeatChart', () => {
 
 		expect(row.textContent).toContain('47')
 
-		expect(row.getAttribute('class')).not.toContain('opacity-25')
+		expect(row.getAttribute('class')).not.toContain(CHART_RECEDE)
 	})
 
 	it('draws an empty chamber with no seats and no hit layer', () => {

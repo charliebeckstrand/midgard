@@ -3,6 +3,7 @@ import { BarChart } from '../../modules/chart/bar-chart'
 import { MapPlat, MapPoint } from '../../modules/map'
 import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
+import { RECEDE_SELECTOR } from '../helpers/recede'
 
 /**
  * A tap on a legend entry toggles it. The tap fires `pointerenter` before its
@@ -44,7 +45,7 @@ function bar(axes?: { y: { max: number } }) {
 
 /** Whether any part of the drawing has receded behind an emphasis. */
 function receded(container: HTMLElement) {
-	return container.querySelector('svg [class*="opacity-25"]') !== null
+	return container.querySelector(`svg ${RECEDE_SELECTOR}`) !== null
 }
 
 describe('a legend entry', () => {

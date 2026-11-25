@@ -10,6 +10,7 @@ import {
 	toCategorySelection,
 } from '../../modules/chat'
 import { renderUI } from '../helpers'
+import { CHART_RECEDE } from '../helpers/recede'
 
 const SOURCE =
 	'Late stops rose from **4** to **14**, most on Tuesday. See [the log](https://example.com).'
@@ -87,7 +88,7 @@ describe('Chat: a citation selects in a chart', () => {
 
 		const bars = () => container.querySelector('[data-slot="chart-bar"]')
 
-		expect(bars()?.getAttribute('class')).not.toContain('opacity-25')
+		expect(bars()?.getAttribute('class')).not.toContain(CHART_RECEDE)
 
 		await userEvent.keyboard('{Tab}')
 
@@ -100,7 +101,7 @@ describe('Chat: a citation selects in a chart', () => {
 
 		expect(document.activeElement).toHaveAttribute('aria-pressed', 'true')
 
-		expect(bars()?.getAttribute('class')).toContain('opacity-25')
+		expect(bars()?.getAttribute('class')).toContain(CHART_RECEDE)
 
 		await userEvent.keyboard('{Tab}')
 
@@ -122,7 +123,7 @@ describe('Chat: a citation selects in a chart', () => {
 
 		await userEvent.hover(anchor)
 
-		expect(bars()?.getAttribute('class')).toContain('opacity-25')
+		expect(bars()?.getAttribute('class')).toContain(CHART_RECEDE)
 
 		// The pointer that moves through the bold pieces stays on the citation.
 		for (const piece of pieces) await userEvent.hover(piece)
@@ -133,7 +134,7 @@ describe('Chat: a citation selects in a chart', () => {
 
 		expect(onPreviewChange).toHaveBeenLastCalledWith(null)
 
-		expect(bars()?.getAttribute('class')).not.toContain('opacity-25')
+		expect(bars()?.getAttribute('class')).not.toContain(CHART_RECEDE)
 
 		await userEvent.click(anchor)
 
@@ -141,6 +142,6 @@ describe('Chat: a citation selects in a chart', () => {
 
 		await expect.element(anchor).toHaveAttribute('aria-pressed', 'true')
 
-		expect(bars()?.getAttribute('class')).toContain('opacity-25')
+		expect(bars()?.getAttribute('class')).toContain(CHART_RECEDE)
 	})
 })

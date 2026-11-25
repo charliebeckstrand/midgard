@@ -4,6 +4,7 @@ import { POINT_HIT_RADIUS, POINT_RADIUS } from '../../modules/map/engine/map-con
 import { allBySlot, allRegions, bySlot, fireEvent, renderUI } from '../helpers'
 import { FIXTURE_GEOJSON, FIXTURE_ROWS } from '../helpers/map-geography'
 import { overlayPlat } from '../helpers/map-plat'
+import { MAP_RECEDE } from '../helpers/recede'
 
 describe('MapPoint', () => {
 	it('draws a solid dot at the projected position with a wide hit circle', () => {
@@ -105,7 +106,7 @@ describe('MapPoint', () => {
 		const { container, rerender } = renderUI(plat(true))
 
 		const receded = () =>
-			(bySlot(container, 'map-regions-recede')?.getAttribute('class') ?? '').includes('opacity-25')
+			(bySlot(container, 'map-regions-recede')?.getAttribute('class') ?? '').includes(MAP_RECEDE)
 
 		fireEvent.pointerEnter(allBySlot(container, 'map-point-hit')[0] as Element, {
 			clientX: 200,
@@ -120,7 +121,7 @@ describe('MapPoint', () => {
 		expect(receded()).toBe(false)
 
 		expect(bySlot(container, 'map-point')?.parentElement?.getAttribute('class')).not.toContain(
-			'opacity-25',
+			MAP_RECEDE,
 		)
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
@@ -159,7 +160,7 @@ describe('MapPoint', () => {
 
 		// The region layer recedes as one group; the pointed region redraws lit.
 		const receded = () =>
-			(bySlot(container, 'map-regions-recede')?.getAttribute('class') ?? '').includes('opacity-25')
+			(bySlot(container, 'map-regions-recede')?.getAttribute('class') ?? '').includes(MAP_RECEDE)
 
 		// Pointing the dot isolates it: every region recedes behind it.
 		fireEvent.pointerEnter(bySlot(container, 'map-point-hit') as Element, {
@@ -167,7 +168,7 @@ describe('MapPoint', () => {
 			clientY: 30,
 		})
 
-		expect(dotGroup()).not.toContain('opacity-25')
+		expect(dotGroup()).not.toContain(MAP_RECEDE)
 
 		expect(receded()).toBe(true)
 
@@ -182,11 +183,11 @@ describe('MapPoint', () => {
 			alpha?.getAttribute('d'),
 		)
 
-		expect(dotGroup()).toContain('opacity-25')
+		expect(dotGroup()).toContain(MAP_RECEDE)
 
 		fireEvent.pointerLeave(bySlot(container, 'map-regions') as Element)
 
-		expect(dotGroup()).not.toContain('opacity-25')
+		expect(dotGroup()).not.toContain(MAP_RECEDE)
 
 		expect(receded()).toBe(false)
 	})

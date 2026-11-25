@@ -5,11 +5,12 @@ import { ChartFullscreenContext } from '../../modules/chart/engine/context'
 import { allBySlot, bySlot, fireEvent, present, renderUI } from '../helpers'
 import { it } from '../helpers/fake-clock'
 import { TAP } from '../helpers/press'
+import { CHART_RECEDE } from '../helpers/recede'
 
 /** Whether each slice recedes behind an emphasis. */
 function receded(slices: Element[]): boolean[] {
 	return slices.map(
-		(slice) => slice.parentElement?.getAttribute('class')?.includes('opacity-25') ?? false,
+		(slice) => slice.parentElement?.getAttribute('class')?.includes(CHART_RECEDE) ?? false,
 	)
 }
 
