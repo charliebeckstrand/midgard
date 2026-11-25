@@ -4,7 +4,7 @@ import {
 	textblockTypeInputRule,
 	wrappingInputRule,
 } from 'prosemirror-inputrules'
-import type { MarkType, ResolvedPos } from 'prosemirror-model'
+import type { Mark, MarkType, Node as ProseMirrorNode } from 'prosemirror-model'
 import type { Plugin } from 'prosemirror-state'
 import { schema } from './wysiwyg-schema'
 
@@ -14,10 +14,8 @@ const { nodes, marks } = schema
  * A rule that turns a delimited run into a mark as the reader types its
  * closing delimiter, such as `**bold**`. The regular expression has three
  * groups: the character before the opening delimiter (or nothing at the start
- * of the block), the opening delimiter, and the text. Only the rule of the
- * code mark runs in a code span, or after a backtick that opens a code span,
- * because a code span holds its text as it is, as in Markdown. The next
- * character that the reader types has no mark.
+ * of the block), the opening delimiter, and the text. The rule does not run in
+ * a code span. The next character that the reader types has no mark.
  *
  * @internal
  */
@@ -25,44 +23,96 @@ function markRule(pattern: RegExp, type: MarkType): InputRule {
 	return new InputRule(pattern, (state, match, start, end) => {
 		const [, before = '', open = '', text = ''] = match
 
-		const from = start + before.length
+		if (marks.code.isInSet(state.doc.resolve(start).marks()) && type !== marks.code) return null
 
-		if (type !== marks.code && inCodeSpan(state.doc.resolve(from))) return null
+		const from = start + before.length
 
 		const textFrom = from + open.length
 
 		const textTo = textFrom + text.length
 
+		const tr = state.tr
+
+		// In Markdown, a code span binds tighter than emphasis, and a backtick
+		// opens a span only when a later backtick closes it. Thus the code rule
+		// gives back the delimiters of each emphasis that the reader made in the
+		// span before it closed, such as the `*` of `2*3*4`.
+		const source = type === marks.code ? typedSource(state.doc, textFrom, textTo) : null
+
+		if (source) tr.replaceWith(textFrom, textTo, source)
+
+		const length = tr.mapping.map(textTo) - textFrom
+
 		// The last character of the closing delimiter is the typed one, which is
 		// not yet in the doc, so the doc holds the closing delimiter up to `end`.
-		return state.tr
-			.delete(textTo, end)
+		return tr
+			.delete(textFrom + length, tr.mapping.map(end))
 			.delete(from, textFrom)
-			.addMark(from, from + text.length, type.create())
+			.addMark(from, from + length, type.create())
 			.removeStoredMark(type)
 	})
 }
 
+/** The delimiter that the serializer writes for each emphasis mark, in the order of the schema. */
+const DELIMITERS: ReadonlyMap<MarkType, string> = new Map([
+	[marks.strong, '**'],
+	[marks.em, '*'],
+	[marks.strike, '~~'],
+])
+
 /**
- * Whether a position is in a code span: in the code mark, or after a backtick
- * of the plain text of its block that no later backtick closes. Each backtick
- * that the reader types is plain text until the code rule makes the span, so
- * an odd count of them opens a span.
+ * The text from `from` to `to` in one textblock, with each emphasis mark that
+ * not all of it has written back as its delimiters, as the reader typed it.
+ * The text keeps the marks that all of it has. A span that holds a node that
+ * is not text, such as a line break, has none, and keeps its nodes.
  *
  * @internal
  */
-function inCodeSpan($pos: ResolvedPos): boolean {
-	if (marks.code.isInSet($pos.marks())) return true
+function typedSource(doc: ProseMirrorNode, from: number, to: number): ProseMirrorNode | null {
+	const runs: { text: string; marks: readonly Mark[] }[] = []
 
-	let ticks = 0
+	let plain = true
 
-	$pos.parent.forEach((child, offset) => {
-		if (!child.isText || marks.code.isInSet(child.marks) || offset >= $pos.parentOffset) return
+	doc.nodesBetween(from, to, (node, pos) => {
+		if (node.isInline && !node.isText) plain = false
 
-		ticks += (child.text ?? '').slice(0, $pos.parentOffset - offset).split('`').length - 1
+		if (!node.isText) return
+
+		const text = (node.text ?? '').slice(Math.max(0, from - pos), to - pos)
+
+		if (text) runs.push({ text, marks: node.marks })
 	})
 
-	return ticks % 2 === 1
+	if (!plain || runs.length === 0) return null
+
+	const shared = runs.reduce<readonly Mark[]>(
+		(set, run) => set.filter((mark) => mark.isInSet(run.marks)),
+		runs[0]?.marks ?? [],
+	)
+
+	const delimited = [...DELIMITERS.keys()].filter((type) => !type.isInSet(shared))
+
+	let source = ''
+
+	let open: MarkType[] = []
+
+	for (const run of [...runs, { text: '', marks: [] }]) {
+		const active = delimited.filter((type) => type.isInSet(run.marks))
+
+		let keep = 0
+
+		while (keep < open.length && open[keep] === active[keep]) keep++
+
+		for (const type of open.slice(keep).reverse()) source += DELIMITERS.get(type)
+
+		for (const type of active.slice(keep)) source += DELIMITERS.get(type)
+
+		source += run.text
+
+		open = active
+	}
+
+	return schema.text(source, shared)
 }
 
 /**

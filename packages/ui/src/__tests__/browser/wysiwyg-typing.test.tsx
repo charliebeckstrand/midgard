@@ -82,6 +82,20 @@ describe('Wysiwyg (real browser)', () => {
 		expect(value()).toBe('Run `2*3*4` and `a **b**` now')
 	})
 
+	it('makes emphasis after a backtick that no later backtick closes', async () => {
+		renderUI(<Notes />)
+
+		const field = await editable()
+
+		await userEvent.keyboard('Press the ` key to **open** it')
+
+		expect(field.querySelector('strong')).toHaveTextContent('open')
+
+		expect(field.querySelector('code')).toBeNull()
+
+		expect(value()).toBe('Press the \\` key to **open** it')
+	})
+
 	it('starts a new block on Shift+Enter when Enter sends, so the shortcuts work', async () => {
 		const onEnter = vi.fn()
 
