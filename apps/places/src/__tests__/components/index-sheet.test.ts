@@ -1,25 +1,10 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import { createElement as h } from 'react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { IndexSheet, type IndexSheetProps } from '../../components/index-sheet'
 import type { Place } from '../../types'
 import { place } from '../fixtures'
-
-afterEach(cleanup)
-
-// jsdom has no `ResizeObserver`, and the panel and the grid measure themselves
-// with one.
-beforeEach(() => {
-	vi.stubGlobal(
-		'ResizeObserver',
-		class {
-			observe() {}
-			unobserve() {}
-			disconnect() {}
-		},
-	)
-})
 
 const a = place('a')
 

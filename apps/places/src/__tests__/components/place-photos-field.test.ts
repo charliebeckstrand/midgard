@@ -1,23 +1,9 @@
 // @vitest-environment jsdom
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import { createElement as h } from 'react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { FormDrawer } from '../../components/place-form-drawer/form-drawer'
 import { PlacePhotosField } from '../../components/place-form-drawer/place-photos-field'
-
-afterEach(cleanup)
-
-// jsdom has no `ResizeObserver`, and the panel measures itself with one.
-beforeEach(() => {
-	vi.stubGlobal(
-		'ResizeObserver',
-		class {
-			observe() {}
-			unobserve() {}
-			disconnect() {}
-		},
-	)
-})
 
 /** Picks the files on the file input of the photo field. */
 async function pick(...names: string[]) {

@@ -1,11 +1,9 @@
 // @vitest-environment jsdom
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import { createElement as h } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { TripsIndex } from '../../components/trips-index'
 import { place, trip } from '../fixtures'
-
-afterEach(cleanup)
 
 // jsdom has no layout, so each box measures 0 and the grid, which virtualizes
 // its rows, renders none. Each box measures 800 × 600 here. The virtualizer
@@ -32,19 +30,6 @@ afterEach(() => {
 		if (descriptor !== undefined) Object.defineProperty(HTMLElement.prototype, key, descriptor)
 		else Reflect.deleteProperty(HTMLElement.prototype, key)
 	}
-})
-
-// jsdom has no `ResizeObserver`, and the panel and the grid measure themselves
-// with one.
-beforeEach(() => {
-	vi.stubGlobal(
-		'ResizeObserver',
-		class {
-			observe() {}
-			unobserve() {}
-			disconnect() {}
-		},
-	)
 })
 
 const lisbon = trip('lisbon', { name: 'Lisbon' })

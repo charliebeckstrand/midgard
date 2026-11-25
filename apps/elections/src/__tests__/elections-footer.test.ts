@@ -1,11 +1,9 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import { createElement as h } from 'react'
-import { afterEach, describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { ElectionsFooter } from '../components/elections-footer'
 import { ReportingRow } from '../components/race-summary'
-
-afterEach(cleanup)
 
 /** The class of the status dot in a render. */
 function dotClass(container: HTMLElement): string | null {

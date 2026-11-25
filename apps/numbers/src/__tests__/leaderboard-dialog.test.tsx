@@ -32,16 +32,6 @@ function renderDialog(user?: User) {
 }
 
 beforeEach(() => {
-	// jsdom has no `ResizeObserver`, and the Segment and the dialog watch their parts with one.
-	vi.stubGlobal(
-		'ResizeObserver',
-		class {
-			observe() {}
-			unobserve() {}
-			disconnect() {}
-		},
-	)
-
 	vi.useFakeTimers({ toFake: ['Date'] })
 
 	vi.setSystemTime(new Date(2026, 10, 16, 12))
@@ -51,8 +41,6 @@ afterEach(() => {
 	cleanup()
 
 	vi.useRealTimers()
-
-	vi.unstubAllGlobals()
 
 	vi.resetAllMocks()
 })

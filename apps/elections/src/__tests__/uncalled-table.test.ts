@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import { createElement as h } from 'react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { UncalledTable } from '../components/uncalled-table'
 import { ELECTIONS } from '../elections/registry'
 
@@ -9,8 +9,6 @@ vi.mock('next/navigation', () => ({
 	usePathname: () => '/2026/us/midterms',
 	useSearchParams: () => new URLSearchParams(),
 }))
-
-afterEach(cleanup)
 
 const [election] = ELECTIONS
 

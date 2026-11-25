@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { createElement as h } from 'react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ElectionViews } from '../components/election-views'
 import { OfficeSwitch } from '../components/office-switch'
 import type { OfficeItem } from '../utilities/trail'
@@ -14,18 +14,6 @@ afterEach(() => {
 	cleanup()
 
 	window.history.replaceState(null, '', '/e')
-})
-
-// jsdom has no `ResizeObserver`, and the tab list watches its tabs with one.
-beforeEach(() => {
-	vi.stubGlobal(
-		'ResizeObserver',
-		class {
-			observe() {}
-			unobserve() {}
-			disconnect() {}
-		},
-	)
 })
 
 const items: OfficeItem[] = [

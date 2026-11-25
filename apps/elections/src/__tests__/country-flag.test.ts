@@ -1,10 +1,8 @@
 // @vitest-environment jsdom
-import { cleanup, render } from '@testing-library/react'
+import { render } from '@testing-library/react'
 import { createElement as h } from 'react'
-import { afterEach, describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { CountryFlag } from '../components/country-flag'
-
-afterEach(cleanup)
 
 describe('CountryFlag', () => {
 	// The SVG of a flag has no size of its own. Safari before 17.2 and Chrome

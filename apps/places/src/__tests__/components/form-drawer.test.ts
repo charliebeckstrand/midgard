@@ -1,22 +1,8 @@
 // @vitest-environment jsdom
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import { createElement as h } from 'react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { FormDrawer, type FormDrawerProps } from '../../components/place-form-drawer/form-drawer'
-
-afterEach(cleanup)
-
-// jsdom has no `ResizeObserver`, and the panel measures itself with one.
-beforeEach(() => {
-	vi.stubGlobal(
-		'ResizeObserver',
-		class {
-			observe() {}
-			unobserve() {}
-			disconnect() {}
-		},
-	)
-})
 
 type Values = { name: string }
 

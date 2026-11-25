@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
-import { cleanup, render } from '@testing-library/react'
+import { render } from '@testing-library/react'
 import { createElement as h, type ReactNode } from 'react'
 import type { ChartPress } from 'ui/chart'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { PlacesMap, type PlacesMapProps } from '../../components/places-map/places-map'
 import { WORLD } from '../../utilities/places-view'
 import { place } from '../fixtures'
@@ -28,8 +28,6 @@ vi.mock('ui/modules/map', async (original) => ({
 		return null
 	},
 }))
-
-afterEach(cleanup)
 
 const TAP: ChartPress = { pointerType: 'touch', count: 1 }
 

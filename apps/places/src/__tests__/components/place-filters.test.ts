@@ -1,23 +1,9 @@
 // @vitest-environment jsdom
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import { createElement as h } from 'react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { PlaceFilters } from '../../components/place-filters'
 import type { PlaceFilterValue } from '../../utilities/places-filter'
-
-afterEach(cleanup)
-
-// jsdom has no `ResizeObserver`, and the bar measures itself with one.
-beforeEach(() => {
-	vi.stubGlobal(
-		'ResizeObserver',
-		class {
-			observe() {}
-			unobserve() {}
-			disconnect() {}
-		},
-	)
-})
 
 /** Whether the bar over `value` shows Clear. */
 function showsClear(value: PlaceFilterValue, hasTrips: boolean): boolean {

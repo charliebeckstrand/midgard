@@ -2,7 +2,7 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import type { User } from 'auth'
 import { UIProvider } from 'ui/providers/ui'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { ModeStats, NumbersStats } from '../api/stats-api'
 import { StatsDialog } from '../components/stats-dialog/stats-dialog'
 
@@ -38,22 +38,8 @@ function renderDialog() {
 	)
 }
 
-beforeEach(() => {
-	// jsdom has no `ResizeObserver`, and the Segment and the dialog watch their parts with one.
-	vi.stubGlobal(
-		'ResizeObserver',
-		class {
-			observe() {}
-			unobserve() {}
-			disconnect() {}
-		},
-	)
-})
-
 afterEach(() => {
 	cleanup()
-
-	vi.unstubAllGlobals()
 
 	vi.resetAllMocks()
 })
