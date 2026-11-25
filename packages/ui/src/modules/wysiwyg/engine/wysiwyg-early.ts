@@ -340,6 +340,9 @@ export function adoptEarlyInput(view: EditorView, field: WysiwygEarlyField): voi
 	if (tr.docChanged || tr.selectionSet) view.dispatch(tr)
 }
 
+/** The graphemes of a text. The bounds of a grapheme do not change with the locale, so the root locale serves each reader. */
+const GRAPHEMES = new Intl.Segmenter('und', { granularity: 'grapheme' })
+
 /** The size of the grapheme, the word, or the line before (or after, with `forward`) `at` in `text`. @internal */
 function unitSize(
 	text: string,
@@ -354,7 +357,7 @@ function unitSize(
 	if (unit === 'word')
 		return (forward ? /^(\s*\S+|\s+)/u : /(\S+\s*|\s+)$/u).exec(side)?.[0].length ?? 0
 
-	const graphemes = [...new Intl.Segmenter(undefined, { granularity: 'grapheme' }).segment(side)]
+	const graphemes = [...GRAPHEMES.segment(side)]
 
 	return (forward ? graphemes[0] : graphemes.at(-1))?.segment.length ?? 0
 }
