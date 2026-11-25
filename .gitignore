@@ -4,6 +4,8 @@ package-lock.json
 
 # next.js
 .next/
+# the Tailwind sources of each app, which `shared/scripts/css-sources.ts` writes
+apps/*/app/sources.css
 .react-router/
 out/
 next-env.d.ts

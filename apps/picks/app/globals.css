@@ -1,8 +1,11 @@
 @import 'tailwindcss';
 @import 'shared/globals.css';
 
+/* The sources of `shared` and `ui` that the app uses. `scripts/css-sources.ts` of shared writes this file before `next dev` and `next build`. */
+@import './sources.css';
+
 @source './';
 @source '../src';
 
-/* Tests never ship with the app, so their classes stay out of its CSS. `shared/globals.css` names the sources of `shared` and `ui`. */
+/* Tests never ship with the app, so their classes stay out of its CSS. */
 @source not '../src/__tests__';
