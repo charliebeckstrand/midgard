@@ -139,14 +139,14 @@ jobs:
       - name: Show where each core stopped
         if: always()
         run: |
-          coredumpctl list --no-pager || exit 0
+          sudo coredumpctl list --no-pager || exit 0
           sudo apt-get install -y gdb > /dev/null
           mkdir -p /tmp/rootfs
           docker export "$(docker create "$IMAGE")" | tar -x -C /tmp/rootfs
-          for pid in $(coredumpctl list --no-pager --no-legend -o json | jq -r '.[].pid'); do
+          for pid in $(sudo coredumpctl list --no-pager --json=short | jq -r '.[].pid'); do
             echo "::group::core of pid $pid"
-            coredumpctl info "$pid" --no-pager | head -80
-            exe=$(coredumpctl info "$pid" --no-pager | awk '/Executable:/ { print $2 }')
+            sudo coredumpctl info "$pid" --no-pager | head -80
+            exe=$(sudo coredumpctl info "$pid" --no-pager | awk '/Executable:/ { print $2 }')
             sudo coredumpctl dump "$pid" -o "/tmp/core.$pid" > /dev/null
             sudo gdb -batch -nx -ex 'set sysroot /tmp/rootfs' "/tmp/rootfs$exe" "/tmp/core.$pid" \
               -ex 'p $_siginfo.si_code' -ex 'p $_siginfo._sifields._sigfault.si_addr' \
