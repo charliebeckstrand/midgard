@@ -267,10 +267,16 @@ jobs:
   # Each shard measures only the source that its own tests execute. Thus
   # Codecov gets one merged report, not one report for each shard, and a line
   # is covered when a test of either suite runs it.
+  #
+  # The coverage is a report, not a gate, so `ci-ok` does not need this job.
+  # `continue-on-error` gives the job a success result for deploy.yml when a
+  # step fails. Without it, a pull request that breaks the merge merges with a
+  # green `ci-ok`, and then each deploy of main fails at `ci`.
   coverage:
     runs-on: ubuntu-latest
     needs: [test, browser]
     timeout-minutes: 10
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v7
         with:
@@ -298,9 +304,9 @@ jobs:
   # code of the repository or of its dependencies. The report of main is the
   # base of the comparison, so deploy.yml gives the token to its call of CI.
   #
-  # The coverage is a report, not a gate. Thus `ci-ok` does not need this job
-  # or `coverage`. `continue-on-error` gives the job a success result for
-  # deploy.yml when a step fails, so a fault at Codecov or in the download
+  # The coverage is a report, not a gate. Thus `ci-ok` does not need this job,
+  # and `continue-on-error` gives it a success result for deploy.yml when a
+  # step fails, as in `coverage`. A fault at Codecov or in the download thus
   # cannot stop a deploy. A pull
   # request from a fork or from Dependabot gets no repository secret, and
   # Codecov then takes the upload without a token or refuses it.
