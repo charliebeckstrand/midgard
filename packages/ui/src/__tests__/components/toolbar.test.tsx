@@ -266,6 +266,20 @@ describe('Toolbar', () => {
 	})
 })
 
+describe('Toolbar with More', () => {
+	it('keeps the inert of an item of the caller', () => {
+		renderUI(
+			<Toolbar aria-label="Editor" overflow="more">
+				<ToolbarGroup aria-label="Locked" inert>
+					<button type="button">Bold</button>
+				</ToolbarGroup>
+			</Toolbar>,
+		)
+
+		expect(screen.getByRole('group', { name: 'Locked', hidden: true })).toHaveAttribute('inert')
+	})
+})
+
 describe('Toolbar with a Segment', () => {
 	// The toolbar and the segment each wrote the Tab stop of a radio, and their
 	// observers wrote it again with no end, so the page stopped.

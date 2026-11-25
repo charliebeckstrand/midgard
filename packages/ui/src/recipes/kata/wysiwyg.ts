@@ -142,10 +142,11 @@ export const k = defineKata(
 			 * The row holds the toolbar and the heading rail in one grid cell. The row
 			 * that is not shown has `data-hidden`, and it keeps its box, so the row
 			 * has the size of the larger of the two, and a swap does not move the
-			 * field.
+			 * field. The toolbar keeps the height of its first row, so the cell
+			 * centers it.
 			 */
 			toolbar: {
-				base: ['grid *:col-start-1 *:row-start-1', '*:data-hidden:invisible'],
+				base: ['grid items-center *:col-start-1 *:row-start-1', '*:data-hidden:invisible'],
 				variant: { ...framed(dan.space.control.toolbar.x), bare: dan.space.control.toolbar.bare },
 				compound: FRAMED.map((variant) => ({
 					variant,

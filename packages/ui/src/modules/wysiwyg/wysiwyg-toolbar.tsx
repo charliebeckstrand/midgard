@@ -81,6 +81,13 @@ function actionGroups(actions: readonly WysiwygAction[]) {
  * With the focus in the row, the focus goes to the selected level when the
  * rail opens, and back to Heading when it closes.
  *
+ * The toolbar is always one row (`Toolbar` with `overflow="more"`). The groups
+ * that the row cannot hold wait behind a More button at the end of the row,
+ * from the last group back, so the order of `actions` is their priority. A
+ * press on More shows them after a Back button, in the same row, so the field
+ * does not move. A press on one of them runs it and keeps that page. Back and
+ * Escape show the first page again.
+ *
  * @remarks The toolbar has `role="toolbar"`, one Tab stop, and arrow keys
  * between its buttons, and `aria-controls` points at the field. Each run of
  * one group is a `group` with the name of the group, such as "Lists", in the
@@ -167,6 +174,7 @@ export const WysiwygToolbar = memo(function WysiwygToolbar({
 				data-hidden={dataAttr(rail)}
 				aria-label={ariaLabel ?? intl.formatMessage(wysiwygMessages.toolbar)}
 				aria-controls={fieldId}
+				overflow="more"
 				inert={locked || rail}
 				onMouseDown={keepFocusOnPress}
 			>

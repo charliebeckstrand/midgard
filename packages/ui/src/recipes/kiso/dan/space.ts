@@ -632,5 +632,13 @@ export const space = {
 		 */
 		rowStart:
 			'[&>[data-row-start]]:density-set-[-1.5,-2.25,-3,-3.75,-4.5]/[--ui-toolbar-row-start] [&>[data-row-start]]:ms-[calc(var(--ui-toolbar-row-start)-1px)]',
+		/**
+		 * The room for the More button at the end of a toolbar that fits its row
+		 * with More (`overflow="more"`), as `--ui-toolbar-more`. It is the side of a
+		 * bare icon button (`size.icon.base` and two times `button.bare`) and the
+		 * toolbar gap (`gap.x.xs`). `--ui-toolbar-gap` holds the toolbar gap, so the
+		 * anchor of the More button can give it back.
+		 */
+		more: 'density-set-[6,7.25,8.5,9.75,11]/[--ui-toolbar-more] density-set-[0.5,0.75,1,1.25,1.5]/[--ui-toolbar-gap]',
 	},
 } as const
