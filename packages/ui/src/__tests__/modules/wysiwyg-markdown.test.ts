@@ -45,6 +45,10 @@ describe('wysiwyg markdown', () => {
 		'1. not a list',
 		'`` code with ` tick ``',
 		'a &amp; b',
+		'see https://example.com. And (https://example.com/a_(b)), https://example.com?',
+		'<https://example.com>x and <https://example.com.>',
+		'<https://example.com>\\\nline two',
+		'[a](<x\\>y>) and [b](x\\\\y "ends in \\\\") and [c](x&amp;amp;y "&amp;amp; \\"q\\"")',
 	]
 
 	it.each(sources)('renders %j as the source does', (source) => {
@@ -107,6 +111,80 @@ describe('wysiwyg markdown', () => {
 		expect(markdown).toBe('Look\\![here](https://example.com)')
 
 		expect(parseMarkdown(markdown).eq(doc)).toBe(true)
+	})
+
+	describe('a bare URL', () => {
+		const url = 'https://example.com'
+
+		const link = (href: string) => schema.marks.link.create({ href })
+
+		const paragraph = (...content: Node[]) =>
+			schema.node('doc', null, [schema.node('paragraph', null, content)])
+
+		it.each([
+			['a letter after it', paragraph(schema.text(url, [link(url)]), schema.text('x'))],
+			['a backslash after it', paragraph(schema.text(url, [link(url)]), schema.text('\\'))],
+			[
+				'a line break after it',
+				paragraph(schema.text(url, [link(url)]), schema.node('hard_break'), schema.text('b')),
+			],
+			[
+				'a code span after it',
+				paragraph(schema.text(url, [link(url)]), schema.text(' x', [schema.marks.code.create()])),
+			],
+			['a period at its end', paragraph(schema.text(`${url}.`, [link(`${url}.`)]))],
+			['a question mark at its end', paragraph(schema.text(`${url}?`, [link(`${url}?`)]))],
+			['a parenthesis at its end', paragraph(schema.text(`${url})`, [link(`${url})`)]))],
+			['a web address before it', paragraph(schema.text('www.'), schema.text(url, [link(url)]))],
+			['a reference in it', paragraph(schema.text(`${url}/?a&amp;b`, [link(`${url}/?a&amp;b`)]))],
+		])('keeps its link with %s', (_, doc) => {
+			expect(parseMarkdown(serializeMarkdown(doc)).eq(doc)).toBe(true)
+		})
+
+		// The text of an email address reads as a link of its own. That is not
+		// this rule, so only the link of the URL counts.
+		it('keeps its link with an email address before it', () => {
+			const doc = paragraph(schema.text('a@b.c'), schema.text(url, [link(url)]))
+
+			const hrefs: string[] = []
+
+			parseMarkdown(serializeMarkdown(doc)).descendants((node) => {
+				if (node.text === url) hrefs.push(...node.marks.map((mark) => mark.attrs.href))
+			})
+
+			expect(hrefs).toEqual([url])
+		})
+
+		it('stays bare where it reads back as the same link', () => {
+			const source = `see ${url}. Or ${url}, ${url}! Or (${url})`
+
+			expect(roundTrip(source)).toBe(source)
+		})
+
+		it('takes angle brackets where the text after it would join it', () => {
+			expect(serializeMarkdown(paragraph(schema.text(url, [link(url)]), schema.text('x')))).toBe(
+				`<${url}>x`,
+			)
+		})
+	})
+
+	it.each([
+		['an angle bracket in the destination', 'a>b', null],
+		['an opening angle bracket in the destination', 'a<b', null],
+		['a backslash in the destination', 'a\\*b', null],
+		['a backslash and a space in the destination', 'a b\\', null],
+		['a reference in the destination', 'a&amp;b', null],
+		['a backslash at the end of the title', 'a', 'b\\'],
+		['quotes in the title', 'a', 'say "hi"'],
+		['a reference in the title', 'a', 'a &amp; b'],
+	])('keeps a link with %s', (_, href, title) => {
+		const doc = schema.node('doc', null, [
+			schema.node('paragraph', null, [
+				schema.text('x', [schema.marks.link.create({ href, title })]),
+			]),
+		])
+
+		expect(parseMarkdown(serializeMarkdown(doc)).eq(doc)).toBe(true)
 	})
 
 	it.each([
