@@ -4,7 +4,9 @@ import { Card, CardBody, CardHeader, CardTitle } from 'ui/card'
 import { Flex } from 'ui/flex'
 
 // A pane beside the chat: a card with a title, a Clear control while a
-// selection applies, and a surface under them.
+// selection applies, and a surface under them. The card is as tall as its
+// surface. A panel of a resizable group stretches to the tallest panel, so a
+// card that fills its panel grows when the pane beside it grows.
 export function Pane({
 	title,
 	onClear,
@@ -15,7 +17,7 @@ export function Pane({
 	children: ReactNode
 }) {
 	return (
-		<Card className="flex h-full flex-col">
+		<Card>
 			<CardHeader>
 				<Flex align="center" justify="between" gap="sm">
 					<CardTitle>{title}</CardTitle>
@@ -25,7 +27,7 @@ export function Pane({
 					</Button>
 				</Flex>
 			</CardHeader>
-			<CardBody className="min-h-0 flex-1">{children}</CardBody>
+			<CardBody>{children}</CardBody>
 		</Card>
 	)
 }
