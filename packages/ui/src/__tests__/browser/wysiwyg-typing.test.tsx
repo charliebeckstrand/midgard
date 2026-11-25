@@ -183,6 +183,33 @@ describe('Wysiwyg (real browser)', () => {
 		expect(field).toHaveTextContent(/^Hello$/)
 	})
 
+	it('starts a new undo history when the parent refuses an edit', async () => {
+		function Capped() {
+			const [value, setValue] = useState('')
+
+			// The parent takes at most ten characters.
+			return (
+				<Wysiwyg
+					aria-label="Notes"
+					value={value}
+					onValueChange={(next) => setValue(next.slice(0, 10))}
+				/>
+			)
+		}
+
+		renderUI(<Capped />)
+
+		const field = await editable()
+
+		await userEvent.keyboard('Helloabcdef')
+
+		// The parent refused the last key and set its value. The edits before it
+		// are out of the new history, so an undo leaves the value as it is.
+		await userEvent.keyboard('{Control>}z{/Control}')
+
+		expect(field).toHaveTextContent(/^Helloabcde$/)
+	})
+
 	it('starts a new undo history when the parent sets the value', async () => {
 		function Loader() {
 			const [value, setValue] = useState('')

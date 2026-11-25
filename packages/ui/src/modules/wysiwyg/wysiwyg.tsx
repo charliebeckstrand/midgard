@@ -35,8 +35,8 @@ export type WysiwygProps<R extends MarkdownRange = MarkdownRange> = {
 	/**
 	 * Controlled value, in Markdown. `undefined` leaves the field uncontrolled; `null` keeps it controlled with no current value (CONVENTIONS §7.3).
 	 *
-	 * @remarks A clear after a send, or another value that is not the last edit,
-	 * replaces the doc. It starts a new undo history, so an undo does not bring
+	 * @remarks A clear after a send, a value that refuses an edit, or another
+	 * value that is not the last edit replaces the doc. It starts a new undo history, so an undo does not bring
 	 * back text or ranges from before it.
 	 */
 	value?: string | null
