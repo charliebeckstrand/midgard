@@ -22,6 +22,8 @@ describe('wysiwyg markdown', () => {
 		'***both*** and **a *b* c**',
 		'[link](https://example.com "Title") and https://example.com',
 		'line one\\\nline two',
+		'> a\\\n> \\--',
+		'- a\\\n  \\==',
 		'# Heading\n\nText',
 		'> a quote\n>\n> two',
 		'- one\n- two\n  - nested',
@@ -98,6 +100,27 @@ describe('wysiwyg markdown', () => {
 
 		expect(parseMarkdown(markdown).eq(doc)).toBe(true)
 	})
+
+	// A line of `=` or `-` after a line of a paragraph makes a setext heading of
+	// it, and three of `-`, `*`, or `_` make a rule.
+	it.each(['-', '--', '---', '=', '==', '***', '___', '- - -', '-- a', '+'])(
+		'keeps the line %j after a line break as text',
+		(text) => {
+			const doc = schema.node('doc', null, [
+				schema.node('paragraph', null, [
+					schema.text('a'),
+					schema.node('hard_break'),
+					schema.text(text),
+				]),
+			])
+
+			const markdown = serializeMarkdown(doc)
+
+			expect(parseMarkdown(markdown).eq(doc)).toBe(true)
+
+			expect(shape(markdown)).toContain(`<p class="my-3">a<br/>${text}</p>`)
+		},
+	)
 
 	it('keeps a bang before a link as text, so the link is not an image', () => {
 		const link = schema.marks.link.create({ href: 'https://example.com' })
