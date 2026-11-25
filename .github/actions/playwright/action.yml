@@ -6,7 +6,7 @@ description: Restore Playwright Chromium from the cache, and install it on a mis
 # browser-stress.yml. One copy keeps the cache key the same in each job, so
 # those jobs share one cache entry.
 #
-# The `density` job does not use this action. It runs Firefox and WebKit in
+# The `engines` job does not use this action. It runs Firefox and WebKit in
 # the Playwright container image, which holds the browsers and their system
 # packages (ci.yml).
 #

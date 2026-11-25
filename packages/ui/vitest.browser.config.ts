@@ -10,7 +10,7 @@ import { assertions, budgets, CI, cleanup, coverage, sequence } from './vitest.b
 /**
  * Whether the run measures coverage (`COVERAGE`). Turn coverage on with this
  * variable, not with `--coverage`, so that the budgets below scale with it.
- * V8 coverage needs Chromium, so do not set it with `DENSITY_ENGINES`.
+ * V8 coverage needs Chromium, so do not set it with `ALL_ENGINES`.
  */
 const COVERAGE = Boolean(process.env.COVERAGE)
 
@@ -36,10 +36,11 @@ const BUDGET_FACTOR = (CI ? 2 : 1) * COVERAGE_FACTOR
 const ASYNC_UTIL_TIMEOUT = budgets.provide.asyncUtilTimeout * COVERAGE_FACTOR
 
 /**
- * Whether the browser suite adds the `density-firefox` and `density-webkit`
- * instances. Playwright must have Firefox and WebKit installed.
+ * Whether the browser suite adds the instances in Firefox and WebKit: the
+ * density instances (`DENSITY_FILES`) and the Wysiwyg instances
+ * (`WYSIWYG_WEBKIT`). Playwright must have Firefox and WebKit installed.
  */
-const DENSITY_ENGINES = Boolean(process.env.DENSITY_ENGINES)
+const ALL_ENGINES = Boolean(process.env.ALL_ENGINES)
 
 /**
  * The files whose subject is the density mechanism: the step of a scope, a
@@ -57,6 +58,46 @@ const DENSITY_FILES = [
 	'src/__tests__/browser/geometry/*-density.test.tsx',
 	'src/__tests__/browser/geometry/size-steps.test.tsx',
 	'src/__tests__/browser/geometry/drawer-fit-aspect.test.tsx',
+]
+
+/**
+ * The instances in WebKit for the files of Wysiwyg and of the formatted field of
+ * ChatPrompt: the typing, the input before the load, the citations, the
+ * picker, and the link dialog. A contenteditable field, its selection, and its
+ * input events differ between Blink and WebKit, and iOS Safari uses WebKit.
+ * Playwright WebKit is not iOS Safari, but it shows a WebKit difference
+ * before a check on a phone does.
+ *
+ * Each instance loads the module mocks of the Chromium instance whose folder
+ * holds its files, so a file runs with the same doubles in the two engines.
+ * The files that read the accessibility tree of Chromium or drive an input
+ * method composition use CDP, which WebKit does not have, so no instance here
+ * runs them.
+ */
+const WYSIWYG_WEBKIT = [
+	{
+		name: 'wysiwyg-webkit',
+		mocks: 'src/__tests__/browser/setup/module-mocks.ts',
+		include: [
+			'src/__tests__/browser/wysiwyg-typing.test.tsx',
+			'src/__tests__/browser/wysiwyg-early-input.test.tsx',
+			'src/__tests__/browser/wysiwyg-toolbar-gap-press.test.tsx',
+			'src/__tests__/browser/chat-prompt-wysiwyg-citations.test.tsx',
+		],
+	},
+	{
+		name: 'wysiwyg-floating-ui-webkit',
+		mocks: 'src/__tests__/browser/floating-ui/setup/module-mocks.ts',
+		include: [
+			'src/__tests__/browser/floating-ui/wysiwyg-link-focus.test.tsx',
+			'src/__tests__/browser/floating-ui/chat-prompt-picker.test.tsx',
+		],
+	},
+	{
+		name: 'wysiwyg-floating-motion-webkit',
+		mocks: 'src/__tests__/browser/floating-motion/setup/module-mocks.ts',
+		include: ['src/__tests__/browser/floating-motion/wysiwyg-link-dialog.test.tsx'],
+	},
 ]
 
 /** The CSS of this package, and not the CSS of a dependency. */
@@ -193,7 +234,7 @@ const releasePointer: BrowserCommand<[selector?: string]> = async (context, sele
 
 /**
  * Real-browser test suite (Vitest browser mode, Playwright: Chromium, and
- * Firefox and WebKit for the density files), split
+ * Firefox and WebKit for the density and Wysiwyg files), split
  * into instances along the `@floating-ui/react` mock boundary (the mock is a
  * setup-file `vi.mock`, so it can only toggle per instance, not per file)
  * along the scrollbar mode of the browser, and along the geometry category:
@@ -239,14 +280,18 @@ const releasePointer: BrowserCommand<[selector?: string]> = async (context, sele
  * - `density-firefox` and `density-webkit`: the files whose subject is the
  *   density mechanism (`DENSITY_FILES`), in Firefox and in WebKit. A stepped
  *   value is a computed `calc()` of custom properties, and each engine can
- *   resolve it differently. These instances exist only when `DENSITY_ENGINES`
- *   is set, because a dev machine often holds only Chromium. The `density` job
- *   of `ci.yml` sets it. A case that does not apply to an engine, such as a
- *   case that reads a WebKit-only pseudo-element, calls `ctx.skip` with the
+ *   resolve it differently. A case that does not apply to an engine, such as
+ *   a case that reads a WebKit-only pseudo-element, calls `ctx.skip` with the
  *   reason when `server.browser` names that engine. They load no module mock.
  *
- * `pnpm test:browser` runs the six Chromium instances, and all eight with
- * `DENSITY_ENGINES=1`. `--project <name>` scopes to one.
+ * - `wysiwyg-webkit`, `wysiwyg-floating-ui-webkit`, and
+ *   `wysiwyg-floating-motion-webkit`: the Wysiwyg files of `browser`,
+ *   `floating-ui`, and `floating-motion`, in WebKit (`WYSIWYG_WEBKIT`).
+ *
+ * The instances in Firefox and WebKit exist only when `ALL_ENGINES` is set,
+ * because a dev machine often holds only Chromium. The `engines` job of
+ * `ci.yml` sets it. `pnpm test:browser` runs the Chromium instances, and each
+ * instance with `ALL_ENGINES=1`. `--project <name>` scopes to one.
  *
  * Instance-level `setupFiles` merge additively onto project-level ones
  * (project's run first), so `index.ts`/`act-environment.ts` (shared by both
@@ -467,11 +512,19 @@ export default defineConfig({
 					],
 					include: ['src/__tests__/browser/floating-motion/**/*.test.{ts,tsx}'],
 				},
-				...(DENSITY_ENGINES
+				...(ALL_ENGINES
 					? (['firefox', 'webkit'] as const).map((browser) => ({
 							browser,
 							name: `density-${browser}`,
 							include: DENSITY_FILES,
+						}))
+					: []),
+				...(ALL_ENGINES
+					? WYSIWYG_WEBKIT.map(({ name, mocks, include }) => ({
+							browser: 'webkit' as const,
+							name,
+							setupFiles: [resolve(import.meta.dirname, mocks)],
+							include,
 						}))
 					: []),
 			],

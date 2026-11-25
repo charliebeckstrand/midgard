@@ -9,7 +9,7 @@
 # their hashes.
 set -euo pipefail
 
-# Node, not jq: the Playwright image of the `density` job holds no jq.
+# Node, not jq: the Playwright image of the `engines` job holds no jq.
 keep=$(node -e 'for (const file of process.argv.slice(1)) for (const task of require(require("node:path").resolve(file)).tasks) console.log(task.hash)' .turbo/runs/*.json | sort -u)
 
 for entry in .turbo/cache/*; do

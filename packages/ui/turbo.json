@@ -42,7 +42,7 @@
 		},
 		"test:browser": {
 			"dependsOn": ["^build"],
-			"env": ["DENSITY_ENGINES", "COVERAGE"],
+			"env": ["ALL_ENGINES", "COVERAGE"],
 			"passThroughEnv": ["DEBUG", "PLAYWRIGHT_BROWSERS_PATH"],
 			"inputs": [
 				"src/**",
