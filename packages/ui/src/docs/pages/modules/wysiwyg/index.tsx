@@ -7,6 +7,7 @@ import ReadOnly from './read-only.tsx'
 import Separated from './separated.tsx'
 import Validation from './validation.tsx'
 import WithActions from './with-actions.tsx'
+import WithHeadings from './with-headings.tsx'
 import WithToolbar from './with-toolbar.tsx'
 
 export default function WysiwygPage() {
@@ -14,6 +15,7 @@ export default function WysiwygPage() {
 		<FrameDefaults box="column">
 			<Playground of={WysiwygPlayground} api={api} omit={['aria-autocomplete', 'aria-haspopup']} />
 			<Example of={WithToolbar} />
+			<Example of={WithHeadings} />
 			<Example of={Separated} />
 			<Example of={Controlled} />
 			<Example of={WithActions} />

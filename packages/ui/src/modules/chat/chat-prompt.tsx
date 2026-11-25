@@ -31,6 +31,7 @@ import { keyByOccurrence } from '../../utilities/key-by-occurrence'
 import { hasBrowserModifier } from '../../utilities/modifier-keys'
 import { Wysiwyg, WysiwygToolbar } from '../wysiwyg'
 import type { WysiwygAction, WysiwygHandle } from '../wysiwyg/types'
+import { WYSIWYG_ACTIONS } from '../wysiwyg/wysiwyg-actions'
 import { ChatPromptPicker } from './chat-prompt-picker'
 import type { ChatCitation } from './engine/chat-content/types'
 import { canSubmitDraft } from './engine/chat-draft/content'
@@ -80,11 +81,16 @@ const messages = defineMessages({
 	},
 })
 
+/** The default actions of the toolbar of a ChatPrompt: each action but `heading`. @internal */
+const CHAT_WYSIWYG_ACTIONS = WYSIWYG_ACTIONS.filter((action) => action !== 'heading')
+
 /** The object form of the `wysiwyg` prop of a ChatPrompt. */
 export type ChatPromptWysiwygOptions = {
 	/**
-	 * The buttons of the formatting toolbar, in the order given.
-	 * @defaultValue Each {@link WysiwygAction}, as on `WysiwygToolbar`.
+	 * The buttons of the formatting toolbar, in the order given. A chat message
+	 * rarely has a heading, so the default has no `heading`. Add it to the list
+	 * to show the heading rail.
+	 * @defaultValue Each {@link WysiwygAction} but `heading`, in the order of `WysiwygToolbar`.
 	 */
 	actions?: readonly WysiwygAction[]
 }
@@ -173,7 +179,8 @@ export type ChatPromptProps = {
 	/**
 	 * Shows the formatting of the draft in the field, in place of its Markdown
 	 * syntax, with a formatting toolbar above the field. `true` shows each
-	 * action, and `{ actions }` picks them. The value stays a Markdown string.
+	 * action but `heading`, and `{ actions }` picks them. The value stays a
+	 * Markdown string.
 	 *
 	 * @remarks The field is a {@link Wysiwyg}. Enter sends, and Shift+Enter
 	 * starts a new block, continues a list, or adds a line to a code block. On an
@@ -454,7 +461,9 @@ export function ChatPrompt({
 					onSelectionChange={wysiwygField.onSelectionChange}
 					enterKeyHint="send"
 				>
-					<WysiwygToolbar actions={typeof wysiwyg === 'object' ? wysiwyg.actions : undefined} />
+					<WysiwygToolbar
+						actions={(typeof wysiwyg === 'object' && wysiwyg.actions) || CHAT_WYSIWYG_ACTIONS}
+					/>
 				</Wysiwyg>
 			) : (
 				<Textarea

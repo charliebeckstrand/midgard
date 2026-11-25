@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext } from '../../core/create-context'
-import type { WysiwygAction, WysiwygToggleAction } from './types'
+import type { WysiwygAction, WysiwygHeadingLevel, WysiwygToggleAction } from './types'
 
 /**
  * What a {@link Wysiwyg} gives its parts, such as {@link WysiwygToolbar}.
@@ -27,6 +27,19 @@ export type WysiwygContextValue = {
 	 * the load, and the action runs when the editor comes.
 	 */
 	run: (action: WysiwygToggleAction) => void
+	/**
+	 * Gives the text blocks of the selection a level of the heading rail.
+	 * Before the editor loads, it starts the load, and the level is set when
+	 * the editor comes.
+	 */
+	setHeading: (level: WysiwygHeadingLevel) => void
+	/** The level of the heading rail that the selection has, or `null`. */
+	headingLevel: () => WysiwygHeadingLevel | null
+	/**
+	 * Whether a level of the heading rail can apply to the selection: the
+	 * selection has the level, or the text blocks of the selection can take it.
+	 */
+	canSetHeading: (level: WysiwygHeadingLevel) => boolean
 	/**
 	 * Runs a task now, or, before the editor loads, starts the load and runs
 	 * the task when the editor comes.

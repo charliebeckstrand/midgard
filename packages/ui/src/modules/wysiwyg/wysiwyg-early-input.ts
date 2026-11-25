@@ -4,7 +4,7 @@ import { createEmitter } from '../../utilities/emitter'
 import { isComposing } from '../../utilities/is-composing'
 import { LEAF } from './engine/wysiwyg-dom'
 import type { WysiwygToggleAction } from './types'
-import { formatAction, WYSIWYG_ACTIONS, wysiwygActions } from './wysiwyg-actions'
+import { formatAction, WYSIWYG_SHORTCUTS } from './wysiwyg-actions'
 import type { WysiwygEditor } from './wysiwyg-editor'
 
 /**
@@ -539,9 +539,7 @@ function isEditorShortcut(event: KeyboardEvent): boolean {
 
 	const fallback = base !== key ? base : undefined
 
-	return WYSIWYG_ACTIONS.some((action) => {
-		const { shift = false, alt = false, key: bound } = wysiwygActions[action].shortcut
-
+	return WYSIWYG_SHORTCUTS.some(({ shift = false, alt = false, key: bound }) => {
 		const match = bound.toLowerCase()
 
 		return shift === event.shiftKey && alt === event.altKey && (match === key || match === fallback)

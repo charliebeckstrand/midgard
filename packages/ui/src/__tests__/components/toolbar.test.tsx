@@ -1,5 +1,6 @@
 import { createRef, useState } from 'react'
 import { describe, expect, it } from 'vitest'
+import { Segment, SegmentControl, SegmentItem } from '../../components/segment'
 import { Toolbar, ToolbarGroup, ToolbarSeparator } from '../../components/toolbar'
 import { TOOLBAR_ITEM_SELECTOR } from '../../components/toolbar/toolbar-constants'
 import { bySlot, fireEvent, getSlot, renderUI, screen, userEvent, waitFor } from '../helpers'
@@ -262,6 +263,40 @@ describe('Toolbar', () => {
 		)
 
 		expect(matched).toContain(custom)
+	})
+})
+
+describe('Toolbar with a Segment', () => {
+	// The toolbar and the segment each wrote the Tab stop of a radio, and their
+	// observers wrote it again with no end, so the page stopped.
+	it('leaves the Tab stop of the segment to the segment, and moves into it on an arrow key', async () => {
+		renderUI(
+			<Toolbar aria-label="Editor">
+				<button type="button">Back</button>
+				<Segment value="b">
+					<SegmentControl aria-label="Level">
+						<SegmentItem value="a">A</SegmentItem>
+						<SegmentItem value="b">B</SegmentItem>
+					</SegmentControl>
+				</Segment>
+			</Toolbar>,
+		)
+
+		const back = screen.getByRole('button', { name: 'Back' })
+
+		const [a, b] = screen.getAllByRole('radio')
+
+		const stops = () => [back.tabIndex, a?.tabIndex, b?.tabIndex]
+
+		await waitFor(() => expect(stops()).toEqual([0, -1, 0]))
+
+		back.focus()
+
+		fireEvent.keyDown(back, { key: 'ArrowRight' })
+
+		expect(a).toHaveFocus()
+
+		expect(back.tabIndex).toBe(0)
 	})
 })
 

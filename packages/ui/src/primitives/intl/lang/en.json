@@ -2415,6 +2415,10 @@
 		"defaultMessage": "Apply",
 		"description": "The button that sets the text and the web address of a link."
 	},
+	"ui.wysiwyg.back": {
+		"defaultMessage": "Back",
+		"description": "The name of the button that closes the row of heading levels and shows the formatting buttons again."
+	},
 	"ui.wysiwyg.bold": {
 		"defaultMessage": "Bold",
 		"description": "The name of the toolbar button that makes the selected text bold."
@@ -2434,6 +2438,38 @@
 	"ui.wysiwyg.codeGroup": {
 		"defaultMessage": "Code",
 		"description": "The name of the group of toolbar buttons that show text as code, such as Code block."
+	},
+	"ui.wysiwyg.heading": {
+		"defaultMessage": "Heading",
+		"description": "The name of the toolbar button that opens the heading levels of the current block, and the name of the row of those levels."
+	},
+	"ui.wysiwyg.heading1": {
+		"defaultMessage": "Heading 1",
+		"description": "The name of the choice that makes the current block a heading of level 1."
+	},
+	"ui.wysiwyg.heading1Short": {
+		"defaultMessage": "H1",
+		"description": "The short visible label of the choice for a heading of level 1."
+	},
+	"ui.wysiwyg.heading2": {
+		"defaultMessage": "Heading 2",
+		"description": "The name of the choice that makes the current block a heading of level 2."
+	},
+	"ui.wysiwyg.heading2Short": {
+		"defaultMessage": "H2",
+		"description": "The short visible label of the choice for a heading of level 2."
+	},
+	"ui.wysiwyg.heading3": {
+		"defaultMessage": "Heading 3",
+		"description": "The name of the choice that makes the current block a heading of level 3."
+	},
+	"ui.wysiwyg.heading3Short": {
+		"defaultMessage": "H3",
+		"description": "The short visible label of the choice for a heading of level 3."
+	},
+	"ui.wysiwyg.headingLevel": {
+		"defaultMessage": "Heading level",
+		"description": "The name of the group of choices that set the heading level of the current block: Text, H1, H2, and H3."
 	},
 	"ui.wysiwyg.italic": {
 		"defaultMessage": "Italic",
@@ -2458,6 +2494,10 @@
 	"ui.wysiwyg.orderedList": {
 		"defaultMessage": "Numbered list",
 		"description": "The name of the toolbar button that makes the current block a numbered list."
+	},
+	"ui.wysiwyg.paragraph": {
+		"defaultMessage": "Text",
+		"description": "The heading level choice that makes the current block plain body text, and not a heading."
 	},
 	"ui.wysiwyg.quote": {
 		"defaultMessage": "Quote",

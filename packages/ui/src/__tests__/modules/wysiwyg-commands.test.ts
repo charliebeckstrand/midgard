@@ -4,8 +4,12 @@ import { AllSelection, EditorState, TextSelection, type Transaction } from 'pros
 import { describe, expect, it } from 'vitest'
 import {
 	exitCodeOnEmptyLine,
+	headingLevel,
+	headingToParagraph,
+	isHeadingActive,
 	linkDraft,
 	pasteLink,
+	setHeadingLevel,
 	setLink,
 	wysiwygCommands,
 } from '../../modules/wysiwyg/engine/wysiwyg-commands'
@@ -340,5 +344,83 @@ describe('a new line at the end of a code block', () => {
 
 	it('makes an empty code block a paragraph', () => {
 		expect(newLineAtCodeEnd('')).toEqual({ markdown: '', caretIn: 'paragraph' })
+	})
+})
+
+describe('the heading levels', () => {
+	/** A state of `source` with the selection from `from` to `to`, or all of the doc. */
+	function buildState(source: string, from?: number, to = from): EditorState {
+		const state = EditorState.create({ doc: parseMarkdown(source) })
+
+		const selection =
+			from === undefined
+				? new AllSelection(state.doc)
+				: TextSelection.create(state.doc, from, to ?? from)
+
+		return state.apply(state.tr.setSelection(selection))
+	}
+
+	/** Runs a command, and gives whether it ran and the Markdown after it. */
+	function run(state: EditorState, command: typeof headingToParagraph) {
+		let next = state
+
+		const ran = command(state, (tr: Transaction) => {
+			next = state.apply(tr)
+		})
+
+		return { ran, markdown: serializeMarkdown(next.doc) }
+	}
+
+	it('reads the level of the blocks of the selection, or none for mixed or deep levels', () => {
+		expect(headingLevel(buildState('Text', 1))).toBe(0)
+
+		expect(headingLevel(buildState('## Title', 1))).toBe(2)
+
+		// A level below 3 has no choice on the rail.
+		expect(headingLevel(buildState('#### Deep', 1))).toBeNull()
+
+		expect(headingLevel(buildState('```\ncode\n```', 1))).toBeNull()
+
+		// The blocks of a whole selection have different levels.
+		expect(headingLevel(buildState('## Title\n\nText'))).toBeNull()
+
+		expect(headingLevel(buildState('## One\n\n## Two'))).toBe(2)
+	})
+
+	it('turns Heading on only while each block of the selection is a heading', () => {
+		expect(isHeadingActive(buildState('#### Deep', 1))).toBe(true)
+
+		expect(isHeadingActive(buildState('## Title\n\nText'))).toBe(false)
+
+		expect(isHeadingActive(buildState('Text', 1))).toBe(false)
+	})
+
+	it('sets the level of each block of the selection, and text again', () => {
+		expect(run(buildState('One\n\nTwo'), setHeadingLevel(2)).markdown).toBe('## One\n\n## Two')
+
+		expect(run(buildState('### Title', 1), setHeadingLevel(1)).markdown).toBe('# Title')
+
+		expect(run(buildState('### Title', 1), setHeadingLevel(0)).markdown).toBe('Title')
+	})
+
+	it('cannot make a heading of the first block of a list item, or set the level a block has', () => {
+		// The first block of an item must be a paragraph.
+		expect(run(buildState('- item', 3), setHeadingLevel(1)).ran).toBe(false)
+
+		expect(run(buildState('## Title', 1), setHeadingLevel(2)).ran).toBe(false)
+	})
+
+	it('makes a heading text on Backspace at its start, and only there', () => {
+		expect(run(buildState('## Title', 1), headingToParagraph)).toEqual({
+			ran: true,
+			markdown: 'Title',
+		})
+
+		expect(run(buildState('## Title', 3), headingToParagraph).ran).toBe(false)
+
+		expect(run(buildState('Text', 1), headingToParagraph).ran).toBe(false)
+
+		// A selection is a delete, not a change of the block.
+		expect(run(buildState('## Title', 1, 3), headingToParagraph).ran).toBe(false)
 	})
 })

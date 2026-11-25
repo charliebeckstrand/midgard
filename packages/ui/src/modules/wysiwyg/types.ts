@@ -1,11 +1,12 @@
 import type { MarkdownRange } from '../../components/markdown/markdown-ranges'
 
 /**
- * A formatting action of a {@link WysiwygToolbar}: a mark (`bold`, `italic`,
- * `strike`, `code`), a link, or a block (`bulletList`, `orderedList`, `quote`,
- * `codeBlock`).
+ * A formatting action of a {@link WysiwygToolbar}: the heading level of the
+ * blocks (`heading`), a mark (`bold`, `italic`, `strike`, `code`), a link, or a
+ * block (`bulletList`, `orderedList`, `quote`, `codeBlock`).
  */
 export type WysiwygAction =
+	| 'heading'
 	| 'bold'
 	| 'italic'
 	| 'strike'
@@ -18,11 +19,21 @@ export type WysiwygAction =
 
 /**
  * An action that a toolbar button toggles at the selection: each
- * {@link WysiwygAction} but `link`, which opens a dialog and has no command.
+ * {@link WysiwygAction} but `link`, which opens a dialog, and `heading`, which
+ * opens the rail of the levels. Neither has one command.
  *
  * @internal
  */
-export type WysiwygToggleAction = Exclude<WysiwygAction, 'link'>
+export type WysiwygToggleAction = Exclude<WysiwygAction, 'link' | 'heading'>
+
+/**
+ * A level of the heading rail: `0` is a paragraph, and `1` to `3` are the
+ * heading levels. A message draws each level below 3 at the size of the body
+ * text, so the rail has no level below 3.
+ *
+ * @internal
+ */
+export type WysiwygHeadingLevel = 0 | 1 | 2 | 3
 
 /** A range in a {@link WysiwygBlock}: its id, and its span in the text of the block. */
 export type WysiwygBlockRange = {

@@ -13,10 +13,14 @@ import { caretBlock, replaceInBlock } from './engine/wysiwyg-block'
 import {
 	exitCodeDown,
 	exitCodeOnEmptyLine,
+	headingLevel,
+	headingToParagraph,
+	isHeadingActive,
 	isLinkActive,
 	linkDraft,
 	linkRange,
 	pasteLink,
+	setHeadingLevel,
 	setLink,
 	wysiwygCommands,
 } from './engine/wysiwyg-commands'
@@ -33,12 +37,19 @@ import { parseMarkdown } from './engine/wysiwyg-markdown/parse'
 import { serializeMarkdown, serializeMarkdownRanges } from './engine/wysiwyg-markdown/serialize'
 import { holdsRange, wysiwygRanges } from './engine/wysiwyg-ranges'
 import { isEmptyDoc, schema } from './engine/wysiwyg-schema'
-import type { WysiwygAction, WysiwygBlock, WysiwygBlockRange, WysiwygToggleAction } from './types'
+import type {
+	WysiwygAction,
+	WysiwygBlock,
+	WysiwygBlockRange,
+	WysiwygHeadingLevel,
+	WysiwygToggleAction,
+} from './types'
 import {
 	formatAction,
 	WYSIWYG_ACTIONS,
 	type WysiwygShortcut,
 	wysiwygActions,
+	wysiwygHeadingLevels,
 } from './wysiwyg-actions'
 import type { WysiwygEarlyField, WysiwygEarlyItem } from './wysiwyg-early-input'
 
@@ -109,6 +120,12 @@ export type WysiwygEditor = {
 	run: (action: WysiwygToggleAction) => boolean
 	/** Whether an action is on at the selection. */
 	isActive: (action: WysiwygAction) => boolean
+	/** Gives the text blocks of the selection a level of the heading rail. */
+	setHeading: (level: WysiwygHeadingLevel) => boolean
+	/** The level of the heading rail that the selection has, or `null`. */
+	headingLevel: () => WysiwygHeadingLevel | null
+	/** Whether the text blocks of the selection can take a level of the heading rail. */
+	canSetHeading: (level: WysiwygHeadingLevel) => boolean
 	/**
 	 * Sets the text and the link of the selection, or of the link at a caret,
 	 * and moves the focus back to the field. An empty URL removes the link.
@@ -198,9 +215,17 @@ export function createWysiwygEditor(
 	const actionKeys: Record<string, Command> = {}
 
 	for (const action of WYSIWYG_ACTIONS) {
-		const key = keyName(wysiwygActions[action].shortcut)
+		const { shortcut } = wysiwygActions[action]
 
-		actionKeys[key] = action === 'link' ? () => props.onLink() : wysiwygCommands[action].run
+		// Heading has no key: each level has its own.
+		if (!shortcut || action === 'heading') continue
+
+		actionKeys[keyName(shortcut)] =
+			action === 'link' ? () => props.onLink() : wysiwygCommands[action].run
+	}
+
+	for (const { level, shortcut } of wysiwygHeadingLevels) {
+		actionKeys[keyName(shortcut)] = setHeadingLevel(level)
 	}
 
 	// A new block, so a Markdown shortcut such as `- ` works after the key. With
@@ -250,7 +275,7 @@ export function createWysiwygEditor(
 				'Mod-z': undo,
 				'Mod-Shift-Z': redo,
 				'Mod-y': redo,
-				Backspace: undoInputRule,
+				Backspace: chainCommands(undoInputRule, headingToParagraph),
 			}),
 			keymap(baseKeymap),
 		],
@@ -368,8 +393,16 @@ export function createWysiwygEditor(
 			props.onUpdate()
 		},
 		run: (action) => wysiwygCommands[action].run(view.state, view.dispatch, view),
-		isActive: (action) =>
-			action === 'link' ? isLinkActive(view.state) : wysiwygCommands[action].active(view.state),
+		isActive: (action) => {
+			if (action === 'link') return isLinkActive(view.state)
+
+			if (action === 'heading') return isHeadingActive(view.state)
+
+			return wysiwygCommands[action].active(view.state)
+		},
+		setHeading: (level) => setHeadingLevel(level)(view.state, view.dispatch, view),
+		headingLevel: () => headingLevel(view.state),
+		canSetHeading: (level) => setHeadingLevel(level)(view.state),
 		link: (href, text) => {
 			setLink(href, text)(view.state, view.dispatch, view)
 

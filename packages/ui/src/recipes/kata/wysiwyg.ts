@@ -138,8 +138,14 @@ export const k = defineKata(
 			 * field has no inset, so its toolbar has no padding, and a negative
 			 * inline margin cancels the padding of the buttons. The first glyph then
 			 * starts at the edge of the text. The Toolbar sets its gap.
+			 *
+			 * The row holds the toolbar and the heading rail in one grid cell. The row
+			 * that is not shown has `data-hidden`, and it keeps its box, so the row
+			 * has the size of the larger of the two, and a swap does not move the
+			 * field.
 			 */
 			toolbar: {
+				base: ['grid *:col-start-1 *:row-start-1', '*:data-hidden:invisible'],
 				variant: { ...framed(dan.space.control.toolbar.x), bare: dan.space.control.toolbar.bare },
 				compound: FRAMED.map((variant) => ({
 					variant,

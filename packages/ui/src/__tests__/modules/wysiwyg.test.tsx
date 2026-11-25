@@ -316,7 +316,10 @@ describe('Wysiwyg', () => {
 				</Wysiwyg>,
 			)
 
-			expect(screen.getByRole('toolbar', { hidden: true })).toHaveAttribute('inert')
+			// The heading rail is inert too.
+			for (const toolbar of screen.getAllByRole('toolbar', { hidden: true })) {
+				expect(toolbar).toHaveAttribute('inert')
+			}
 		},
 	)
 
@@ -329,13 +332,18 @@ describe('Wysiwyg', () => {
 
 		const frame = getSlot(container, 'control-frame')
 
-		const toolbar = screen.getByRole('toolbar')
+		const toolbar = screen.getByRole('toolbar', { name: 'Formatting' })
 
 		expect(frame).not.toContainElement(toolbar)
 
 		expect(frame).toContainElement(screen.getByRole('textbox'))
 
-		expect(getSlot(container, 'wysiwyg-root').firstElementChild).toBe(toolbar)
+		// The row of the toolbar holds the toolbar and the heading rail.
+		const row = getSlot(container, 'wysiwyg-toolbar')
+
+		expect(getSlot(container, 'wysiwyg-root').firstElementChild).toBe(row)
+
+		expect(row).toContainElement(toolbar)
 	})
 
 	it('keeps the editor when `separated` changes', async () => {
@@ -642,14 +650,14 @@ describe('WysiwygToolbar', () => {
 		expect(within(toolbar).getAllByRole('separator')).toHaveLength(1)
 	})
 
-	it('shows the text, lists, references, and code groups by default', () => {
+	it('shows the heading, text, lists, references, and code groups by default', () => {
 		renderUI(
 			<Wysiwyg aria-label="Notes">
 				<WysiwygToolbar />
 			</Wysiwyg>,
 		)
 
-		const groups = within(screen.getByRole('toolbar')).getAllByRole('group')
+		const groups = within(screen.getByRole('toolbar', { name: 'Formatting' })).getAllByRole('group')
 
 		expect(
 			groups.map((group) => [
@@ -659,6 +667,7 @@ describe('WysiwygToolbar', () => {
 					.map((button) => button.ariaLabel),
 			]),
 		).toEqual([
+			['Heading', ['Heading']],
 			['Text', ['Bold', 'Italic', 'Strikethrough']],
 			['Lists', ['Bulleted list', 'Numbered list']],
 			['References', ['Link', 'Quote']],
@@ -708,6 +717,166 @@ describe('WysiwygToolbar', () => {
 		await waitFor(() => expect(within(dialog).getByRole('textbox', { name: 'Text' })).toHaveFocus())
 
 		expect(within(dialog).getByRole('textbox', { name: 'URL' })).toHaveValue('')
+	})
+
+	describe('the heading rail', () => {
+		/** Renders a field with Heading and Bold, loads the editor, and gives the parts. */
+		async function renderRail(defaultValue: string) {
+			const onValueChange = vi.fn()
+
+			renderUI(
+				<Wysiwyg aria-label="Notes" defaultValue={defaultValue} onValueChange={onValueChange}>
+					<WysiwygToolbar actions={['heading', 'bold']} />
+				</Wysiwyg>,
+			)
+
+			const field = await loadEditor()
+
+			return {
+				field,
+				onValueChange,
+				row: screen.getByRole('toolbar', { name: 'Formatting' }),
+				rail: screen.getByRole('toolbar', { name: 'Heading', hidden: true }),
+				heading: screen.getByRole('button', { name: 'Heading' }),
+			}
+		}
+
+		it('swaps the row for the levels, sets a level on a press, and swaps back', async () => {
+			const { row, rail, heading, onValueChange } = await renderRail('Title')
+
+			// Heading opens the rail, so it is no toggle.
+			expect(heading).not.toHaveAttribute('aria-pressed')
+
+			expect(rail).toHaveAttribute('data-hidden')
+
+			expect(rail).toHaveAttribute('inert')
+
+			fireEvent.click(heading)
+
+			expect(row).toHaveAttribute('data-hidden')
+
+			expect(row).toHaveAttribute('inert')
+
+			expect(rail).not.toHaveAttribute('inert')
+
+			const levels = within(rail).getByRole('radiogroup', { name: 'Heading level' })
+
+			expect(
+				within(levels)
+					.getAllByRole('radio')
+					.map((radio) => radio.ariaLabel ?? radio.textContent),
+			).toEqual(['Text', 'Heading 1', 'Heading 2', 'Heading 3'])
+
+			expect(within(levels).getByRole('radio', { name: 'Text' })).toBeChecked()
+
+			const h2 = within(levels).getByRole('radio', { name: 'Heading 2' })
+
+			expect(h2).toHaveTextContent('H2')
+
+			expect(h2).toHaveAttribute('aria-keyshortcuts', 'Control+Alt+2')
+
+			fireEvent.pointerDown(h2)
+
+			fireEvent.click(h2)
+
+			await waitFor(() => expect(onValueChange).toHaveBeenLastCalledWith('## Title', []))
+
+			expect(rail).toHaveAttribute('data-hidden')
+
+			expect(row).not.toHaveAttribute('data-hidden')
+		})
+
+		it('closes the rail with no change on Back', async () => {
+			const { row, rail, heading, onValueChange } = await renderRail('Title')
+
+			fireEvent.click(heading)
+
+			fireEvent.click(within(rail).getByRole('button', { name: 'Back' }))
+
+			expect(rail).toHaveAttribute('data-hidden')
+
+			expect(row).not.toHaveAttribute('data-hidden')
+
+			expect(onValueChange).not.toHaveBeenCalled()
+		})
+
+		it('moves the focus to the selected level and back to Heading, for a keyboard', async () => {
+			const { rail, heading, onValueChange } = await renderRail('Title')
+
+			// A pick by a press first, so the pick of a key below follows a press.
+			fireEvent.click(heading)
+
+			const h1 = within(rail).getByRole('radio', { name: 'Heading 1' })
+
+			fireEvent.pointerDown(h1)
+
+			fireEvent.click(h1)
+
+			await waitFor(() => expect(onValueChange).toHaveBeenLastCalledWith('# Title', []))
+
+			act(() => heading.focus())
+
+			fireEvent.click(heading)
+
+			expect(h1).toHaveFocus()
+
+			// An arrow key picks the level and keeps the rail open.
+			fireEvent.keyDown(h1, { key: 'ArrowRight' })
+
+			await waitFor(() => expect(onValueChange).toHaveBeenLastCalledWith('## Title', []))
+
+			expect(rail).not.toHaveAttribute('data-hidden')
+
+			expect(within(rail).getByRole('radio', { name: 'Heading 2' })).toHaveFocus()
+
+			fireEvent.keyDown(document.activeElement ?? h1, { key: 'Escape' })
+
+			expect(rail).toHaveAttribute('data-hidden')
+
+			expect(heading).toHaveFocus()
+
+			// The focus from a key shows the tooltip of Heading.
+			expect(await screen.findByRole('tooltip')).toHaveTextContent('Heading')
+		})
+
+		it('disables a level that the block cannot take', async () => {
+			const { rail, heading } = await renderRail('- item')
+
+			fireEvent.click(heading)
+
+			// The first block of a list item must be a paragraph.
+			expect(within(rail).getByRole('radio', { name: 'Heading 1' })).toBeDisabled()
+
+			expect(within(rail).getByRole('radio', { name: 'Text' })).toBeEnabled()
+		})
+
+		it('sets a level from its key, with no rail', async () => {
+			const onValueChange = vi.fn()
+
+			renderUI(<Wysiwyg aria-label="Notes" defaultValue="Title" onValueChange={onValueChange} />)
+
+			const field = await loadEditor()
+
+			fireEvent.keyDown(field, {
+				key: '1',
+				code: 'Digit1',
+				keyCode: 49,
+				ctrlKey: true,
+				altKey: true,
+			})
+
+			await waitFor(() => expect(onValueChange).toHaveBeenLastCalledWith('# Title', []))
+
+			fireEvent.keyDown(field, {
+				key: '0',
+				code: 'Digit0',
+				keyCode: 48,
+				ctrlKey: true,
+				altKey: true,
+			})
+
+			await waitFor(() => expect(onValueChange).toHaveBeenLastCalledWith('Title', []))
+		})
 	})
 
 	it('keeps the value of its context across an edit, so the toolbar does not render again', async () => {

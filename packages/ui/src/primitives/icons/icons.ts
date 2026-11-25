@@ -44,6 +44,7 @@ import {
 	EyeOff as LucideEyeOff,
 	GripVertical as LucideGripVertical,
 	Group as LucideGroup,
+	Heading as LucideHeading,
 	Highlighter as LucideHighlighter,
 	Image as LucideImage,
 	Info as LucideInfo,
@@ -169,6 +170,8 @@ export const EyeOff = /* @__PURE__ */ createIcon(LucideEyeOff)
 export const GripVertical = /* @__PURE__ */ createIcon(LucideGripVertical)
 
 export const Group = /* @__PURE__ */ createIcon(LucideGroup)
+
+export const Heading = /* @__PURE__ */ createIcon(LucideHeading)
 
 export const Highlighter = /* @__PURE__ */ createIcon(LucideHighlighter)
 

@@ -870,8 +870,11 @@ function moveTo(index: number, context: RovingKeyContext): void {
 		if (!next) return
 
 		// Carry the resting stop to the newly focused item; leaving and
-		// re-Tabbing into the widget returns to this item.
-		if (context.manageTabIndex) seatTabStop(context.items, next)
+		// re-Tabbing into the widget returns to this item. An item of a nearer
+		// roving container has the stop of that container, so the stop stays.
+		if (context.manageTabIndex && !ownedByNearerRoving(next, context.container)) {
+			seatTabStop(ownItems(context.items, context.container), next)
+		}
 
 		next.focus()
 
@@ -1077,6 +1080,19 @@ function ownedByNearerRoving(target: EventTarget | null, container: HTMLElement 
 }
 
 /**
+ * The items of `container` that no nearer roving container holds. The Tab
+ * stop of an item in a nearer container belongs to that container, as its
+ * keys do ({@link ownedByNearerRoving}). Without this rule, the two containers
+ * each write the `tabIndex` of the item, and their observers write it again
+ * with no end: a Segment after a button in a Toolbar stops the page.
+ *
+ * @internal
+ */
+function ownItems(items: HTMLElement[], container: HTMLElement | null): HTMLElement[] {
+	return items.filter((item) => !ownedByNearerRoving(item, container))
+}
+
+/**
  * Whether the hook takes a key: it navigates, and no nearer roving container
  * holds the target of the key ({@link ownedByNearerRoving}).
  *
@@ -1249,7 +1265,9 @@ export type RovingOptions = NavigationConfig & {
 	 * item) and `-1` on the rest. It keeps that invariant as the subtree mutates,
 	 * and moves the `0` with focus on each arrow press. Leave off for widgets whose
 	 * items already drive their own `tabIndex` (e.g. `Tab`'s `tabIndex={current?0:-1}`)
-	 * or that must stay individually Tab-focusable (plain site-nav links).
+	 * or that must stay individually Tab-focusable (plain site-nav links). An
+	 * item in a nearer roving container, such as a Segment in a Toolbar, keeps
+	 * the Tab stop of that container, so the nearer container is a second stop.
 	 * @defaultValue false
 	 */
 	manageTabIndex?: boolean
@@ -1410,7 +1428,7 @@ export function useA11yRoving(
 		// When `aria-current` changes while focus is outside the container, the
 		// stop moves to the new match, also from a stop where the user roved.
 		const normalize = (records?: MutationRecord[]) => {
-			const items = queryItems(container, itemSelector)
+			const items = ownItems(queryItems(container, itemSelector), container)
 
 			if (actionSelector) pinRowActions(container, actionSelector)
 
@@ -1429,7 +1447,7 @@ export function useA11yRoving(
 		// arrow roving already seats it in `moveTo`. `focusin` bubbles where `focus`
 		// doesn't; one container listener covers every item.
 		const onFocusIn = (event: FocusEvent) => {
-			const items = queryItems(container, itemSelector)
+			const items = ownItems(queryItems(container, itemSelector), container)
 
 			const stop =
 				items.find((item) => item === event.target) ?? rowAnchor(event.target, items, rowSelector)
