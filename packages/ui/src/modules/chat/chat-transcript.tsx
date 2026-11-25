@@ -172,6 +172,7 @@ const ChatTranscriptRow = memo(function ChatTranscriptRow({
 			sender={message.sender}
 			streaming={streaming}
 			editing={editing}
+			edited={message.edited}
 			failed={message.failed}
 			timestamp={message.timestamp}
 			contextMenu={contextMenu === false ? false : contextMenu?.(message)}

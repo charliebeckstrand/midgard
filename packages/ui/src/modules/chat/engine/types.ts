@@ -30,4 +30,10 @@ export type ChatMessageData = {
 	 * transport throws, and `retry` replaces the reply.
 	 */
 	failed?: boolean
+	/**
+	 * Marks a user message that an edit sent in place of an earlier message. The
+	 * message shows an "(edited)" label below its bubble. `edit` of
+	 * `useChatSend` sets it on the new message.
+	 */
+	edited?: boolean
 }

@@ -13,8 +13,10 @@ const controls = [flex.row, 'gap-0.5']
 
 const bubble = {
 	base: [
-		// The width cap, the padding, and the radius of the skeleton bubble.
-		...kokkaku.chat.bubble,
+		// The padding and the radius of the skeleton bubble. The frame holds the
+		// width cap, and the bubble fits in the frame.
+		...kokkaku.chat.box,
+		'w-fit max-w-full',
 		// The Copy item of the menu moves the focus to the bubble. The ring shows
 		// for a keyboard focus only, so a press of the pointer shows no ring.
 		focus.ring,
@@ -91,12 +93,37 @@ export const k = defineKata({
 		false: '',
 	},
 	slots: {
+		// The bubble and the row below it. The frame has the width of the skeleton
+		// bubble, so the row is as wide as the bubble, and its start is the start
+		// of the bubble. A row wider than a short bubble makes the frame wider, and
+		// the bubble stays on the side of the speaker.
+		frame: {
+			base: [flex.col, kokkaku.chat.width],
+			sender: {
+				user: 'items-end',
+				assistant: 'items-start',
+				system: 'items-center',
+			},
+		},
 		bubble,
+		// The row below the bubble: the "(edited)" label at the start, and the
+		// branch switcher on the side of the speaker. It is quiet, as the
+		// timestamp is.
+		footer: {
+			base: [flex.row, 'mt-1 gap-2 self-stretch', size.xs, ...text.muted],
+			sender: {
+				user: 'justify-end',
+				assistant: 'justify-start',
+				system: 'justify-center',
+			},
+		},
+		// The label of a message that an edit sent. It takes the start of the row,
+		// so the switcher stays on the side of the speaker.
+		edited: 'me-auto',
 		timestamp: [size.xs, 'mt-1', ...text.muted],
-		// The switcher of a message with more than one branch: a row below the
-		// bubble, on the side of the speaker. It is a quiet label, as the timestamp
-		// is, and its digits keep one width, so `9 of 10` does not move its buttons.
-		branch: [...controls, 'mt-1 tabular-nums', size.xs, ...text.muted],
+		// The switcher of a message with more than one branch. Its digits keep one
+		// width, so `9 of 10` does not move its buttons.
+		branch: [...controls, 'tabular-nums'],
 		/**
 		 * The frame of the toolbar of the message actions: it floats over the
 		 * outer top corner of the bubble. That is the corner on the side of the
