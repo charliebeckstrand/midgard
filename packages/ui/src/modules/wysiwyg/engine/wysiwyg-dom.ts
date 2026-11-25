@@ -4,6 +4,14 @@ import { k as code } from '../../../recipes/kata/code'
 import { k as markdown } from '../../../recipes/kata/markdown'
 
 /**
+ * The text of an inline leaf, such as a line break or an atom: one character,
+ * as its size in the doc. The browser makes no such character.
+ *
+ * @internal
+ */
+export const LEAF = '\uFFFC'
+
+/**
  * A DOM output spec: a tag name, its attributes, and its children, where `0`
  * is the hole of the content. It is the `DOMOutputSpec` form of ProseMirror,
  * so the schema gives it from `toDOM`, and the markup before the editor loads

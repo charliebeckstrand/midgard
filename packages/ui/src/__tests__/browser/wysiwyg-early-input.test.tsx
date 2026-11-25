@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cdp, userEvent } from 'vitest/browser'
 import { Wysiwyg, WysiwygToolbar } from '../../modules/wysiwyg'
 import { __resetWysiwygEngine } from '../../modules/wysiwyg/use-wysiwyg-editor'
+import { isApplePlatform } from '../../utilities/apple-platform'
 import { present, renderUI, screen, waitFor } from '../helpers'
 import { pause } from './helpers/wall-clock'
 
@@ -338,6 +339,135 @@ describe('Wysiwyg input before the editor loads (real browser)', () => {
 		await waitFor(() => expect(screen.getByRole('textbox')).toHaveTextContent('Draft B'))
 
 		expect(value()).toBe('Draft B')
+	})
+
+	it('runs a list shortcut with Shift and a digit', async () => {
+		renderUI(<Notes />)
+
+		focusAtEnd()
+
+		// On a US layout, the key of Shift+8 is `*`.
+		await userEvent.keyboard('Item{ControlOrMeta>}{Shift>}{Digit8}{/Shift}{/ControlOrMeta}')
+
+		await load()
+
+		await waitFor(() => expect(value()).toBe('- Item'))
+	})
+
+	it('leaves a copy shortcut to the browser on a layout that moves the letters', async () => {
+		renderUI(<Notes initial="Launch" />)
+
+		const field = focusAtEnd()
+
+		// On Dvorak, C is at the place of the I of QWERTY.
+		const copy = new KeyboardEvent('keydown', {
+			key: 'c',
+			code: 'KeyI',
+			keyCode: 67,
+			ctrlKey: !isApplePlatform(),
+			metaKey: isApplePlatform(),
+			bubbles: true,
+			cancelable: true,
+		})
+
+		field.dispatchEvent(copy)
+
+		expect(copy.defaultPrevented).toBe(false)
+	})
+
+	it('pastes plain text in a code block', async () => {
+		renderUI(<Notes initial={'```\ncode\n```'} />)
+
+		const field = screen.getByRole('textbox')
+
+		field.focus()
+
+		const text = present(field.querySelector('code'), 'the code').firstChild
+
+		window.getSelection()?.collapse(text, 4)
+
+		const data = new DataTransfer()
+
+		data.setData('text/plain', ' **plain**')
+
+		data.setData('text/html', '<b>rich</b>')
+
+		field.dispatchEvent(
+			new ClipboardEvent('paste', { clipboardData: data, bubbles: true, cancelable: true }),
+		)
+
+		await load()
+
+		await waitFor(() => expect(value()).toBe('```\ncode **plain**\n```'))
+	})
+
+	it('takes no point from a block with a line break that the reader did not type', async () => {
+		renderUI(<Notes initial="**bold**" />)
+
+		const field = focusAtEnd()
+
+		const strong = present(field.querySelector('strong'), 'the bold text')
+
+		// Some browsers put a line break in a mark at the end of a block.
+		strong.append(document.createElement('br'), document.createElement('br'))
+
+		window.getSelection()?.collapse(strong, strong.childNodes.length)
+
+		await load()
+
+		expect(value()).toBe('**bold**')
+
+		await userEvent.keyboard('!')
+
+		await waitFor(() => expect(value()).toMatch(/!/))
+	})
+
+	it('types the text of a composition after a held key', async () => {
+		renderUI(<Notes />)
+
+		focusAtEnd()
+
+		await userEvent.keyboard('a{ControlOrMeta>}b{/ControlOrMeta}')
+
+		const session = cdp()
+
+		await session.send('Input.imeSetComposition', {
+			text: 'にほ',
+			selectionStart: 2,
+			selectionEnd: 2,
+		})
+
+		await session.send('Input.insertText', { text: '日本' })
+
+		await load()
+
+		await waitFor(() => expect(value()).toBe('a**日本**'))
+	})
+
+	it('holds a toolbar press in a composition, and takes the composed text', async () => {
+		renderUI(<Notes toolbar />)
+
+		focusAtEnd()
+
+		const session = cdp()
+
+		await session.send('Input.imeSetComposition', {
+			text: 'にほ',
+			selectionStart: 2,
+			selectionEnd: 2,
+		})
+
+		screen.getByRole('button', { name: 'Bold' }).click()
+
+		await session.send('Input.insertText', { text: '日本' })
+
+		await load()
+
+		await waitFor(() => expect(value()).toBe('日本'))
+
+		await userEvent.keyboard('x')
+
+		expect(value()).toBe('日本**x**')
 	})
 
 	it('runs a toolbar press and the keys after it in order', async () => {
