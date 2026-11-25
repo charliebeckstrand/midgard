@@ -511,6 +511,13 @@ function deleteUnit(type: string): 'character' | 'word' | 'line' {
 	return type.includes('Line') ? 'line' : 'character'
 }
 
+/** The letter or the digit of a key code, as the keymap of the editor reads it, or `undefined`. @internal */
+function baseKey(keyCode: number): string | undefined {
+	if (keyCode >= 65 && keyCode <= 90) return String.fromCharCode(keyCode + 32)
+
+	return keyCode >= 48 && keyCode <= 57 ? String.fromCharCode(keyCode) : undefined
+}
+
 /** Whether a key is a shortcut of the editor: an action, an undo, or a redo. @internal */
 function isEditorShortcut(event: KeyboardEvent): boolean {
 	const apple = isApplePlatform()
@@ -525,16 +532,19 @@ function isEditorShortcut(event: KeyboardEvent): boolean {
 
 	if (!event.altKey && (key === 'z' || redo)) return true
 
-	// The key of a physical key, as the keymap of the editor reads it when the
-	// key with Shift or Alt is another character, such as `*` for Shift+8.
-	const physical = /^(?:Key|Digit)(.)$/.exec(event.code)?.[1]?.toLowerCase()
+	// The keymap of the editor reads the base key of the key code when the key
+	// is another character, such as `*` for Shift+8 or a letter of another
+	// script. A Latin letter at another place, as on Dvorak, stays its letter.
+	const base = baseKey(event.keyCode)
+
+	const fallback = base !== key ? base : undefined
 
 	return WYSIWYG_ACTIONS.some((action) => {
 		const { shift = false, alt = false, key: bound } = wysiwygActions[action].shortcut
 
 		const match = bound.toLowerCase()
 
-		return shift === event.shiftKey && alt === event.altKey && (match === key || match === physical)
+		return shift === event.shiftKey && alt === event.altKey && (match === key || match === fallback)
 	})
 }
 

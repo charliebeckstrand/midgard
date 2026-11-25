@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cdp, userEvent } from 'vitest/browser'
 import { Wysiwyg, WysiwygToolbar } from '../../modules/wysiwyg'
 import { __resetWysiwygEngine } from '../../modules/wysiwyg/use-wysiwyg-editor'
+import { isApplePlatform } from '../../utilities/apple-platform'
 import { present, renderUI, screen, waitFor } from '../helpers'
 import { pause } from './helpers/wall-clock'
 
@@ -351,6 +352,27 @@ describe('Wysiwyg input before the editor loads (real browser)', () => {
 		await load()
 
 		await waitFor(() => expect(value()).toBe('- Item'))
+	})
+
+	it('leaves a copy shortcut to the browser on a layout that moves the letters', async () => {
+		renderUI(<Notes initial="Launch" />)
+
+		const field = focusAtEnd()
+
+		// On Dvorak, C is at the place of the I of QWERTY.
+		const copy = new KeyboardEvent('keydown', {
+			key: 'c',
+			code: 'KeyI',
+			keyCode: 67,
+			ctrlKey: !isApplePlatform(),
+			metaKey: isApplePlatform(),
+			bubbles: true,
+			cancelable: true,
+		})
+
+		field.dispatchEvent(copy)
+
+		expect(copy.defaultPrevented).toBe(false)
 	})
 
 	it('pastes plain text in a code block', async () => {
