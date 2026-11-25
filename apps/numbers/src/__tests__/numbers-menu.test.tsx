@@ -10,13 +10,13 @@ import { NumbersMenu } from '../components/numbers-menu/numbers-menu'
 import { RunPreloadProvider } from '../components/run-preload'
 import type { Route } from '../utilities/seed'
 
-// The menu loads its panel on the first press, and the panel loads the Stats
-// dialog and its bar chart in idle time (`useIdleLoad`). These imports load
-// those modules before the cases run. Thus a case waits for the menu or the
-// dialog to open, not for the first transform of the module. On a slow machine,
+// The menu loads the Leaderboard dialog, and the Stats dialog and its bar chart,
+// in idle time (`useIntentLoad`, `useIdleLoad`). These imports load those
+// modules before the cases run. Thus a case waits for the dialog to open, not
+// for the first transform of the module. On a slow machine,
 // that transform took longer than the budget of `findByRole` (CONVENTIONS.md
 // §10.14).
-import '../components/numbers-menu/numbers-menu-panel'
+import '../components/leaderboard-dialog'
 import '../components/stats-dialog'
 
 vi.mock('../api/stats-api', () => ({ readStats: vi.fn() }))
@@ -72,45 +72,25 @@ afterEach(() => {
 })
 
 describe('NumbersMenu', () => {
-	it('is the button alone until the first press, which opens the menu in its place', async () => {
+	it('opens from the keyboard with the focus on the first row', async () => {
 		renderMenu()
 
-		const button = screen.getByRole('button', { name: 'Menu' })
+		// Enter and Space on a button give a click with no pointer (`detail` 0).
+		fireEvent.click(screen.getByRole('button', { name: 'Menu' }), { detail: 0 })
 
-		expect(button.getAttribute('aria-expanded')).toBe('false')
+		const standard = await screen.findByRole('menuitem', { name: 'Standard' })
 
-		expect(screen.queryByRole('menu')).toBeNull()
-
-		fireEvent.click(button)
-
-		expect(await screen.findByRole('menu')).toBeTruthy()
-
-		expect(screen.getByRole('button', { name: 'Menu' }).getAttribute('aria-expanded')).toBe('true')
+		await waitFor(() => expect(document.activeElement).toBe(standard))
 	})
 
-	it('gives the focus back to the trigger on a close, after a press from the keyboard', async () => {
+	it('opens Leaderboard, whose code loads on use', async () => {
 		renderMenu()
 
-		const button = screen.getByRole('button', { name: 'Menu' })
+		fireEvent.click(screen.getByRole('button', { name: 'Menu' }))
 
-		button.focus()
+		fireEvent.click(await screen.findByRole('menuitem', { name: 'Leaderboard' }))
 
-		fireEvent.click(button)
-
-		const menu = await screen.findByRole('menu')
-
-		// The trigger is a new element in place of the button.
-		const trigger = screen.getByRole('button', { name: 'Menu' })
-
-		expect(trigger).not.toBe(button)
-
-		await waitFor(() => expect(document.activeElement).toBe(menu))
-
-		fireEvent.keyDown(menu, { key: 'Escape' })
-
-		await waitFor(() => expect(screen.queryByRole('menu')).toBeNull())
-
-		expect(document.activeElement).toBe(trigger)
+		expect(await screen.findByRole('dialog', { name: 'Leaderboard' })).toBeTruthy()
 	})
 
 	it('lists the modes in order, Standard then Vs CPU, with Leaderboard between two dividers', async () => {
