@@ -12,7 +12,7 @@ type PdfViewerSearchProviderProps = PdfViewerSearchInput & { children: ReactNode
  *
  * @remarks A component rather than a call inside `PdfViewer`, because the query lives here. A
  * key that the reader types renders this provider and its consumers again: the toolbar control,
- * the layer of matches, and the mark and the tooltip of each thumbnail tile. The `children`
+ * the layer of matches, and the mark of each thumbnail tile. The `children`
  * keep their identity, so React skips the rest of the toolbar, the thumbnail rail, and the
  * page.
  * @internal

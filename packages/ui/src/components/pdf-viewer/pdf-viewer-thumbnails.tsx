@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactElement, useId, useMemo, useRef } from 'react'
+import { useId, useMemo, useRef } from 'react'
 import { useA11yRoving } from '../../hooks/a11y/use-a11y-roving'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { MountHold } from '../../primitives/mount'
@@ -12,14 +12,11 @@ import { usePdfViewerContext } from './context'
 import { pageLabel, pdfViewerMessages } from './pdf-viewer-messages'
 import { PdfViewerRailHandle } from './pdf-viewer-rail-handle'
 import { PdfViewerThumbnailList } from './pdf-viewer-thumbnail-list'
-import {
-	PdfViewerThumbnailMatches,
-	PdfViewerThumbnailTooltip,
-} from './pdf-viewer-thumbnail-matches'
+import { PdfViewerThumbnailMatches } from './pdf-viewer-thumbnail-matches'
 
 /**
- * The mark of each tile: a search glyph on a page with a match. A module function, so the prop
- * keeps one identity and the rail does not render again for it.
+ * The mark of each tile: a badge with the number of search matches on a page with a match. A
+ * module function, so the prop keeps one identity and the rail does not render again for it.
  *
  * @internal
  */
@@ -28,21 +25,11 @@ function matchMarker(pageNumber: number, descriptionId: string) {
 }
 
 /**
- * The tooltip of each tile: the number of search matches on its page. A module function, for
- * the reason that {@link matchMarker} is one.
- *
- * @internal
- */
-function matchTooltip(pageNumber: number, tile: ReactElement) {
-	return <PdfViewerThumbnailTooltip pageNumber={pageNumber}>{tile}</PdfViewerThumbnailTooltip>
-}
-
-/**
  * Page thumbnail navigation: a collapsible sidebar on desktop, a left-side Sheet
  * on mobile. Both render {@link PdfViewerThumbnailList}; the sidebar adds roving
  * arrow-key focus across tiles, and a {@link PdfViewerRailHandle} on its end edge
- * that resizes it. A tile with a search match shows a search glyph, and its
- * tooltip gives the number of matches.
+ * that resizes it. A tile with a search match shows a badge with the number of
+ * matches after its page number.
  *
  * @remarks Renders nothing when there are no pages and no load is in progress
  * or about to start. On the server and before the load, the rail shows its
@@ -162,7 +149,6 @@ export function PdfViewerThumbnails() {
 							scrollCurrentIntoView={scrollWithin}
 							onVisibleChange={showThumbnails}
 							marker={searchOffered ? matchMarker : undefined}
-							wrapTile={searchOffered ? matchTooltip : undefined}
 						/>
 					</MountHold>
 
@@ -194,7 +180,6 @@ export function PdfViewerThumbnails() {
 							onSelect={() => setThumbsOpen(false)}
 							onVisibleChange={showThumbnails}
 							marker={searchOffered ? matchMarker : undefined}
-							wrapTile={searchOffered ? matchTooltip : undefined}
 							layout="grid"
 						/>
 					</SheetBody>
