@@ -23,7 +23,7 @@ import { HELD, wysiwygHeld } from './engine/wysiwyg-held'
 import { wysiwygInputRules } from './engine/wysiwyg-input-rules'
 import { parseMarkdown } from './engine/wysiwyg-markdown/parse'
 import { serializeMarkdown, serializeMarkdownRanges } from './engine/wysiwyg-markdown/serialize'
-import { SET_VALUE, wysiwygRanges } from './engine/wysiwyg-ranges'
+import { wysiwygRanges } from './engine/wysiwyg-ranges'
 import { isEmptyDoc, schema } from './engine/wysiwyg-schema'
 import type { WysiwygAction, WysiwygBlock, WysiwygBlockRange, WysiwygToggleAction } from './types'
 import { WYSIWYG_ACTIONS, type WysiwygShortcut, wysiwygActions } from './wysiwyg-actions'
@@ -80,7 +80,10 @@ export type WysiwygEditor = {
 	focus: () => void
 	/** Gives the editor new settings. */
 	update: (props: WysiwygEditorProps) => void
-	/** Replaces the doc with a Markdown source and its ranges, out of the undo history. */
+	/**
+	 * Replaces the doc with a Markdown source and its ranges, and starts a new
+	 * undo history.
+	 */
 	setValue: (markdown: string, ranges: readonly MarkdownRange[]) => void
 	/** Runs a toggle action on the selection. */
 	run: (action: WysiwygToggleAction) => boolean
@@ -287,12 +290,14 @@ export function createWysiwygEditor(
 		setValue: (markdown, next) => {
 			const doc = parseMarkdown(markdown, next)
 
-			const tr = view.state.tr
-				.replaceWith(0, view.state.doc.content.size, doc.content)
-				.setMeta('addToHistory', false)
-				.setMeta(SET_VALUE, true)
+			const tr = view.state.tr.replaceWith(0, view.state.doc.content.size, doc.content)
 
-			view.updateState(view.state.apply(tr))
+			// A new state, so the set starts a new undo history. An undo then does
+			// not bring back the text and the ranges of the doc before the set, and
+			// the old history does not stay in memory.
+			view.updateState(
+				EditorState.create({ doc: tr.doc, selection: tr.selection, plugins: view.state.plugins }),
+			)
 
 			props.onUpdate()
 		},

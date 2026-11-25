@@ -44,6 +44,8 @@ type WysiwygEditorOptions = {
 	props: Omit<WysiwygEditorProps, 'onChange' | 'onUpdate'>
 	/** Fires with the Markdown of the doc and its ranges after each edit. */
 	onChange: (markdown: string, ranges: MarkdownRange[]) => void
+	/** Fires when the doc takes `value` and `ranges` in place of its source, which starts a new undo history. */
+	onSet: () => void
 }
 
 /** A Markdown source and its ranges. @internal */
@@ -95,6 +97,7 @@ export function useWysiwygEditor({
 	wanted,
 	props,
 	onChange,
+	onSet,
 }: WysiwygEditorOptions) {
 	useIdlePreload(engine)
 
@@ -171,6 +174,8 @@ export function useWysiwygEditor({
 		source.current = current
 
 		editor.setValue(value, ranges)
+
+		onSet()
 	})
 
 	return { editor, subscribe: updates.subscribe }

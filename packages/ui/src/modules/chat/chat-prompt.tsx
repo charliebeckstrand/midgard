@@ -308,13 +308,18 @@ export function ChatPrompt({
 
 	const textareaRef = useRef<HTMLTextAreaElement>(null)
 
-	// Each draft that the composer showed, in order, so that an undo or a redo of
-	// the browser brings back the citations of the draft that it goes to.
+	// Each draft that the textarea showed, in order, so that an undo or a redo of
+	// the browser brings back the citations of the draft that it goes to. The
+	// Wysiwyg keeps the citations in its own undo history, so it records none.
 	const historyRef = useRef<DraftHistory>(EMPTY_HISTORY)
 
+	const formatted = wysiwyg !== false
+
 	useLayoutEffect(() => {
-		historyRef.current = recordDraft(historyRef.current, { value, citations })
-	}, [value, citations])
+		historyRef.current = formatted
+			? EMPTY_HISTORY
+			: recordDraft(historyRef.current, { value, citations })
+	}, [formatted, value, citations])
 
 	// The field that has the focus calls: the textarea, or the handle of the Wysiwyg.
 	const fieldRef = useRef<HTMLTextAreaElement | WysiwygHandle<ChatCitation>>(null)

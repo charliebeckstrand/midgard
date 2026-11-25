@@ -29,7 +29,13 @@ import { WysiwygStatic } from './wysiwyg-static'
 
 /** Props for {@link Wysiwyg}. */
 export type WysiwygProps<R extends MarkdownRange = MarkdownRange> = {
-	/** Controlled value, in Markdown. `undefined` leaves the field uncontrolled; `null` keeps it controlled with no current value (CONVENTIONS §7.3). */
+	/**
+	 * Controlled value, in Markdown. `undefined` leaves the field uncontrolled; `null` keeps it controlled with no current value (CONVENTIONS §7.3).
+	 *
+	 * @remarks A clear after a send, or another value that is not the last edit,
+	 * replaces the doc. It starts a new undo history, so an undo does not bring
+	 * back text or ranges from before it.
+	 */
 	value?: string | null
 	/** Initial value, in Markdown, when uncontrolled and not form-bound. */
 	defaultValue?: string
@@ -238,8 +244,9 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 
 	const apart = hasToolbar && separated
 
-	// Each range that the field has held, by its id, so an undo that brings a
-	// range back gives the object of the caller.
+	// Each range that the field has held since the doc last took a value, by its
+	// id, so an undo that brings a range back gives the object of the caller. A
+	// set of the value starts a new undo history, so it empties the map.
 	const known = useRef(new Map<string, R>())
 
 	// The ranges of the first render, which are the ranges of the default value.
@@ -311,6 +318,8 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 		edited.current = undefined
 	})
 
+	const forgetRanges = useStableEvent(() => known.current.clear())
+
 	const { editor, subscribe } = useWysiwygEditor({
 		host,
 		value,
@@ -324,6 +333,7 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 			onLink: openLink,
 		},
 		onChange: handleChange,
+		onSet: forgetRanges,
 	})
 
 	// The editable element, or the markup before the editor loads.
