@@ -421,13 +421,23 @@ export function replayEarlyInput(view: EditorView, item: WysiwygEarlyItem): void
 			typeText(view, item.text)
 
 			return
-		case 'paste':
+		case 'paste': {
+			// The paste handlers of the editor read the clipboard of the event.
+			const clipboardData = new DataTransfer()
+
+			clipboardData.setData('text/plain', item.text)
+
+			clipboardData.setData('text/html', item.html)
+
+			const event = new ClipboardEvent('paste', { clipboardData })
+
 			// A paste in a code block takes the plain text, as the clipboard parser of the editor does.
 			if (item.html && !(item.text && view.state.selection.$from.parent.type.spec.code)) {
-				view.pasteHTML(item.html)
-			} else view.pasteText(item.text)
+				view.pasteHTML(item.html, event)
+			} else view.pasteText(item.text, event)
 
 			return
+		}
 		case 'format':
 			wysiwygCommands[item.action].run(view.state, view.dispatch)
 

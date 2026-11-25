@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest'
 import {
 	exitCodeOnEmptyLine,
 	linkDraft,
+	pasteLink,
 	setLink,
 	wysiwygCommands,
 } from '../../modules/wysiwyg/engine/wysiwyg-commands'
@@ -234,6 +235,64 @@ describe('the link of the dialog', () => {
 		expect(link(selectText('```\ncode\n```', 2), 'https://a.dev', 'x').markdown).toBe(
 			'```\ncoxde\n```',
 		)
+	})
+})
+
+/** Runs a paste of `text` on a state, and gives the Markdown and the selected text, or `null` when the paste does not link. */
+function paste(state: EditorState, text: string) {
+	let next = state
+
+	const ran = pasteLink(text)(state, (tr: Transaction) => {
+		next = next.apply(tr)
+	})
+
+	if (!ran) return null
+
+	const { from, to } = next.selection
+
+	return { markdown: serializeMarkdown(next.doc), selected: next.doc.textBetween(from, to) }
+}
+
+describe('a URL pasted over a selection', () => {
+	it('links the selected text, keeps its marks, and keeps it selected', () => {
+		expect(paste(selectText('Read **the** docs', 5, 8), 'https://a.dev')).toEqual({
+			markdown: 'Read [**the**](https://a.dev) docs',
+			selected: 'the',
+		})
+	})
+
+	it('takes the URL as the clipboard has it, without the white space around it', () => {
+		expect(paste(selectText('Read the docs', 9, 13), ' https://a.dev/*x*_y_\n')?.markdown).toBe(
+			'Read the [docs](https://a.dev/*x*_y_)',
+		)
+	})
+
+	it('changes the URL of a selected link', () => {
+		expect(
+			paste(selectText('Read [the docs](https://a.dev) now', 5, 13), 'https://b.dev')?.markdown,
+		).toBe('Read [the docs](https://b.dev) now')
+	})
+
+	it('links the text of each block of a selection of the whole doc', () => {
+		expect(paste(selectAll('a\n\nb'), 'https://a.dev')?.markdown).toBe(
+			'[a](https://a.dev)\n\n[b](https://a.dev)',
+		)
+	})
+
+	it('leaves the paste to the editor at a caret, in a code block, and for text that is not one web URL', () => {
+		expect(paste(selectText('Read', 4), 'https://a.dev')).toBeNull()
+
+		expect(paste(selectText('```\ncode\n```', 0, 4), 'https://a.dev')).toBeNull()
+
+		for (const text of [
+			'see https://a.dev',
+			'https://a.dev https://b.dev',
+			'a.dev',
+			'javascript:alert(1)',
+			'',
+		]) {
+			expect(paste(selectText('Read the docs', 5, 8), text)).toBeNull()
+		}
 	})
 })
 

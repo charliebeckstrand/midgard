@@ -201,7 +201,9 @@ function drawable<R extends MarkdownRange>(
  * `max-height` class sets the maximum height. Markdown shortcuts work as the
  * reader types: `**text**`, `*text*`, `` `text` ``, `~~text~~`, `- `, `1. `,
  * `> `, `# `, and a code fence. Backspace right after a shortcut undoes it.
- * Plain text that the reader pastes is read as Markdown.
+ * Plain text that the reader pastes is read as Markdown. A web URL that the
+ * reader pastes over selected text links the text, as one undo step, and the
+ * text stays.
  *
  * Resolves `id`, `disabled`, `readOnly`, `required`, and `invalid` from an
  * enclosing `<Control>` or `<Field>`, and binds to an enclosing Form field by
