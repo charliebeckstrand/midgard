@@ -2148,12 +2148,12 @@
 		"description": "Spoken when the reader drops a moved item. The subject is the item, with its place when it has one."
 	},
 	"ui.reorder.liftHint": {
-		"defaultMessage": "Use the arrow keys to move it, then press Space or Enter to drop it.",
+		"defaultMessage": "Use the arrow keys to move it, then press Space or Enter to drop it, or Escape to put it back.",
 		"description": "Spoken after the pick-up of an item with the keyboard."
 	},
 	"ui.reorder.liftInstructions": {
-		"defaultMessage": "To pick up an item, press Space. Use the arrow keys to move it, then press Space or Enter to drop it.",
-		"description": "The description of a reorder handle whose keyboard lifts an item with Space and drops it with Space or Enter."
+		"defaultMessage": "To pick up an item, press Space. Use the arrow keys to move it, then press Space or Enter to drop it, or Escape to put it back.",
+		"description": "The description of a reorder handle whose keyboard lifts an item with Space, drops it with Space or Enter, and puts it back with Escape."
 	},
 	"ui.reorder.moveHandle": {
 		"defaultMessage": "Move {item}",

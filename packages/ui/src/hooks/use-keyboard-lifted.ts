@@ -11,6 +11,11 @@ import { useAnimationFrame } from './use-animation-frame'
  * id; blur drops it. `refocus` restores focus on the frame after a reorder
  * re-renders the DOM; blurs it causes keep the lifted state.
  *
+ * Each step of a lift commits, so Enter, Space, and a blur keep the moves.
+ * Escape cancels (APG grabbed-element pattern): a lift holds the order of the
+ * surface at its start, `O`, and `takeOrigin` gives it back after a move. The
+ * surface then reports that order, as a pointer drag cancel does.
+ *
  * @param focus - Moves DOM focus to the item with the given id; invoked by
  * `refocus` on the next animation frame. A later `refocus` replaces a pending
  * frame, and an unmount cancels it.
@@ -23,23 +28,34 @@ import { useAnimationFrame } from './use-animation-frame'
  * - `readLifted`: the lifted item of the last write. A second key in the same
  *   tick reads the lift of the first. It keeps its identity.
  * - `setLiftedId`: sets the lift. It writes `readLifted` before the commit.
- * - `toggleLift(id, describe)`: lifts `id`, or drops it when it is lifted. It
- *   announces "Picked up" or "Dropped" with the text that `describe` gives, in
- *   the language of the reader. A surface with this lift model describes its
+ * - `toggleLift(id, describe, origin)`: lifts `id`, or drops it when it is
+ *   lifted. It announces "Picked up" or "Dropped" with the text that `describe`
+ *   gives, in the language of the reader. A lift holds `origin`, the order of
+ *   the surface before the lift. Without it, Escape only drops. A surface with this lift model describes its
  *   handles with `reorderMessages.liftInstructions`.
+ * - `markMoved()`: records that a step of the lift committed a move.
+ * - `takeOrigin()`: the `origin` of the lift when a step moved the item, else
+ *   `null`. It drops the lift and announces nothing, so the caller reports the
+ *   origin and announces the return. With `null`, the caller drops.
  * - `drop(describe)`: drops the lift and announces "Dropped".
  * - `refocus(id)`: refocuses after a reorder and keeps the lift through the blur.
  * - `onBlur`: clears the lift unless a reorder is in flight.
  */
-export function useKeyboardLifted(focus: (id: string) => void, enabled: boolean) {
+export function useKeyboardLifted<O>(focus: (id: string) => void, enabled: boolean) {
 	const intl = useIntl()
 
 	const [liftedId, setLiftedState] = useState<string | null>(null)
 
 	const liftedRef = useRef<string | null>(null)
 
+	// The order of the surface at the start of the lift, and whether a step has
+	// moved the item since. A new lift or a drop replaces it.
+	const originRef = useRef<{ value: O; moved: boolean } | null>(null)
+
 	const setLiftedId = useCallback((id: string | null) => {
 		liftedRef.current = id
+
+		originRef.current = null
 
 		setLiftedState(id)
 	}, [])
@@ -52,10 +68,12 @@ export function useKeyboardLifted(focus: (id: string) => void, enabled: boolean)
 	}, [enabled, setLiftedId])
 
 	const toggleLift = useCallback(
-		(id: string, describe: () => string) => {
+		(id: string, describe: () => string, origin?: O) => {
 			const lifting = liftedRef.current !== id
 
 			setLiftedId(lifting ? id : null)
+
+			if (lifting && origin !== undefined) originRef.current = { value: origin, moved: false }
 
 			const subject = describe()
 
@@ -79,6 +97,20 @@ export function useKeyboardLifted(focus: (id: string) => void, enabled: boolean)
 		},
 		[setLiftedId, intl],
 	)
+
+	const markMoved = useCallback(() => {
+		if (originRef.current) originRef.current.moved = true
+	}, [])
+
+	const takeOrigin = useCallback((): O | null => {
+		const origin = originRef.current
+
+		if (!origin?.moved) return null
+
+		setLiftedId(null)
+
+		return origin.value
+	}, [setLiftedId])
 
 	const movingRef = useRef(false)
 
@@ -105,5 +137,15 @@ export function useKeyboardLifted(focus: (id: string) => void, enabled: boolean)
 		setLiftedId(null)
 	}, [setLiftedId])
 
-	return { liftedId, readLifted, setLiftedId, toggleLift, drop, refocus, onBlur }
+	return {
+		liftedId,
+		readLifted,
+		setLiftedId,
+		toggleLift,
+		drop,
+		markMoved,
+		takeOrigin,
+		refocus,
+		onBlur,
+	}
 }

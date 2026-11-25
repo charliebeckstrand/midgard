@@ -41,7 +41,8 @@ function listStep(key: string, orientation: Orientation, container: HTMLElement 
 
 /**
  * Keyboard reordering for flat sortable lists. Space toggles "lifted" state,
- * arrow keys focus neighbors (or move the lifted item), Escape/Enter drops.
+ * arrow keys focus neighbors (or move the lifted item), Enter drops, and Escape
+ * reports the order of the lift start.
  * Pairs with `useReorderDrag`, which owns the pointer drag; mirrors
  * `useKanbanKeyboard`. The model is
  * `useKeyboardReorder`, with a step of one along the list's axis.

@@ -93,15 +93,16 @@ export const reorderMessages: MessageSet<ReorderValues> = defineMessages<Reorder
 	},
 	liftHint: {
 		id: 'ui.reorder.liftHint',
-		defaultMessage: 'Use the arrow keys to move it, then press Space or Enter to drop it.',
+		defaultMessage:
+			'Use the arrow keys to move it, then press Space or Enter to drop it, or Escape to put it back.',
 		description: 'Spoken after the pick-up of an item with the keyboard.',
 	},
 	liftInstructions: {
 		id: 'ui.reorder.liftInstructions',
 		defaultMessage:
-			'To pick up an item, press Space. Use the arrow keys to move it, then press Space or Enter to drop it.',
+			'To pick up an item, press Space. Use the arrow keys to move it, then press Space or Enter to drop it, or Escape to put it back.',
 		description:
-			'The description of a reorder handle whose keyboard lifts an item with Space and drops it with Space or Enter.',
+			'The description of a reorder handle whose keyboard lifts an item with Space, drops it with Space or Enter, and puts it back with Escape.',
 	},
 	sensorInstructions: {
 		id: 'ui.reorder.sensorInstructions',

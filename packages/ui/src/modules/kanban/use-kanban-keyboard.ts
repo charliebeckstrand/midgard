@@ -9,7 +9,7 @@ import { useStableEvent } from '../../hooks/use-stable-event'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { hasBrowserModifier } from '../../utilities/modifier-keys'
 import type { KanbanCardMoves, KanbanCardTarget } from './context'
-import { describeCard, describeMove } from './engine/kanban-announcements'
+import { describeCard, describeMove, describeReturn } from './engine/kanban-announcements'
 import { indexBoard, type KanbanBoard, type KanbanColumnBase } from './engine/kanban-board'
 import {
 	type KanbanMove,
@@ -53,12 +53,13 @@ function focusNeighbor<T, C extends KanbanColumnBase<T>>(
  */
 type KanbanLiftedActions<C> = {
 	drop: () => void
+	cancel: () => void
 	commit: ((move: KanbanMove<C>) => void) | undefined
 }
 
 /**
- * Lifted: Escape or Enter drops the card, and an arrow steps it in the column
- * or across the board.
+ * Lifted: Enter drops the card, Escape cancels the lift, and an arrow steps it
+ * in the column or across the board.
  *
  * @internal
  */
@@ -67,12 +68,13 @@ function carryCard<T, C extends KanbanColumnBase<T>>(
 	cardId: string,
 	key: string,
 	event: KeyboardEvent,
-	{ drop, commit }: KanbanLiftedActions<C>,
+	{ drop, cancel, commit }: KanbanLiftedActions<C>,
 ) {
 	if (key === 'Escape' || key === 'Enter') {
 		event.preventDefault()
 
-		drop()
+		if (key === 'Escape') cancel()
+		else drop()
 
 		return
 	}
@@ -95,7 +97,8 @@ function carryCard<T, C extends KanbanColumnBase<T>>(
 /**
  * Keyboard reordering and an accessible drag alternative for the {@link Kanban}
  * board (APG grabbed-element pattern). Space lifts a card or drops it, and a
- * live region announces each step. While a card is lifted, the arrow keys move
+ * live region announces each step. Each step commits through `onReorder`.
+ * Enter keeps the moves, and Escape reports the columns of the lift start. While a card is lifted, the arrow keys move
  * it in its column and across columns. While no card is lifted, the arrow keys,
  * Home, and End move the focus between cards. Emits the next columns
  * through `onReorder`. Returns the lifted-card state and the card
@@ -133,9 +136,11 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 		setLiftedId: setLiftedCardId,
 		toggleLift,
 		drop,
+		markMoved,
+		takeOrigin,
 		refocus: refocusCard,
 		onBlur: onCardBlur,
-	} = useKeyboardLifted(focusCard, enabled)
+	} = useKeyboardLifted<C[]>(focusCard, enabled)
 
 	// A stable event, so that the key handler keeps one identity. With `columns`
 	// in its dependencies, the handler, and through it the board context, took a
@@ -158,7 +163,7 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 
 			// A surface that takes no lift, such as a locked board, ignores Space.
 			// The arrows still move the focus between the cards.
-			if (enabled) toggleLift(cardId, describe)
+			if (enabled) toggleLift(cardId, describe, columns)
 
 			return
 		}
@@ -176,10 +181,31 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 
 		carryCard(board, cardId, key, event, {
 			drop: () => drop(describe),
+			// Escape puts the board back as it was at the lift, as a pointer cancel
+			// does. A lift with no move only drops.
+			cancel: () => {
+				const origin = takeOrigin()
+
+				if (origin === null || !onReorder) {
+					drop(describe)
+
+					return
+				}
+
+				onReorder(origin)
+
+				const slot = currentSlot(indexBoard(origin, getKey), cardId)
+
+				announce(describeReturn(intl, names, cardId, slot), { assertive: true })
+
+				refocusCard(cardId)
+			},
 			commit:
 				onReorder &&
 				((move) => {
 					onReorder(move.columns)
+
+					markMoved()
 
 					announce(describeMove(intl, names, cardId, move.slot), { assertive: true })
 

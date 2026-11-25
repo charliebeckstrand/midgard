@@ -107,7 +107,7 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > `date-time` uses the `timeZone` of its `format`, else of the provider, else the zone of the reader. It shows a skeleton until hydration, also with a set zone. The date data of the server and of the browser give different text for some formats. The skeleton holds the date in UTC in the shape of English text, without `Intl`, so it has about the size of the date. A page that must paint a date in its first frame writes it on the server with `formatDateText` from `ui/server`. The `DateText` is then the `value` of `date-time`.
 
-> A `list` loads its drag code only when it has `onReorder`. When the code arrives, the rows mount again. The focus stays on the same control of its row. The `bare` variant has no row padding and no dividers, for rows of form controls. A horizontal `list` stays on one row, which scrolls when it is wider than its parent.
+> A `list` loads its drag code only when it has `onReorder`. When the code arrives, the rows mount again. The focus stays on the same control of its row. Each step of a keyboard lift calls `onReorder`, and Enter keeps the moves. Escape puts the item back: it calls `onReorder` with the order from the start of the lift. The `bare` variant has no row padding and no dividers, for rows of form controls. A horizontal `list` stays on one row, which scrolls when it is wider than its parent.
 
 > `CodeBlock` highlights with Shiki in a module worker. A Vite app must set `worker.format` to `'es'`.
 
