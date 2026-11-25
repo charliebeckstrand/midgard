@@ -62,10 +62,11 @@ export type WysiwygProps<R extends MarkdownRange = MarkdownRange> = {
 	ranges?: readonly R[]
 	/**
 	 * Fires with the Markdown of the field after each edit, and the ranges that
-	 * the edit kept. Each range is the object of `ranges` with the `start`,
-	 * `end`, and `quote` of the new value. A native reset of an uncontrolled
-	 * field gives the ranges of the first render that can draw on its default
-	 * value.
+	 * the edit kept. An edit that changes only the ranges, such as a `replace`
+	 * that marks text of the value, also fires it. Each range is the object of
+	 * `ranges` with the `start`, `end`, and `quote` of the new value. A native
+	 * reset of an uncontrolled field gives the ranges of the first render that
+	 * can draw on its default value.
 	 */
 	onValueChange?: (value: string, ranges: R[]) => void
 	/**
@@ -167,8 +168,9 @@ export type WysiwygProps<R extends MarkdownRange = MarkdownRange> = {
 }
 
 /**
- * The ranges that can draw on `value`: each range of `ranges` that can, then
- * each range of `fallback` with another id that can.
+ * The ranges that can draw on `value`, in the order of their text: each range
+ * of `ranges` that can, then each range of `fallback` with another id that can
+ * and that does not overlap a range of `ranges`.
  *
  * @internal
  */
@@ -181,9 +183,12 @@ function drawable<R extends MarkdownRange>(
 
 	const ids = new Set(kept.map((range) => range.id))
 
-	const rest = fallback.filter((range) => !ids.has(range.id))
+	const free = (range: R) =>
+		!ids.has(range.id) && kept.every((own) => range.end <= own.start || range.start >= own.end)
 
-	return [...kept, ...(rangeWalk(value, rest)?.ranges ?? [])]
+	const rest = rangeWalk(value, fallback.filter(free))?.ranges ?? []
+
+	return [...kept, ...rest].sort((a, b) => a.start - b.start)
 }
 
 /**
@@ -320,7 +325,7 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 		return true
 	})
 
-	const handleChange = useStableEvent((markdown: string, spans: MarkdownRange[]) => {
+	const handleChange = useStableEvent((markdown: string, spans: MarkdownRange[], text: boolean) => {
 		for (const range of ranges) known.current.set(range.id, range)
 
 		edited.current = spans.flatMap((span) => {
@@ -329,7 +334,11 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 			return range ? [{ ...range, ...span }] : []
 		})
 
-		setValue(markdown)
+		// A set of the value reports only a change of the text. An edit that
+		// changes only the ranges thus reports by itself, as there is no new
+		// value to keep.
+		if (text) setValue(markdown)
+		else onValueChange?.(markdown, edited.current)
 
 		edited.current = undefined
 	})
