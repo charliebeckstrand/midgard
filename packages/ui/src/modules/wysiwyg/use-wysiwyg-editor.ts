@@ -47,7 +47,7 @@ let reported: Promise<unknown> | null = null
  * load that fails goes on as one unhandled rejection, so it reaches the error
  * reporting of the app, and the next call tries again. The rejection is of a
  * promise of its own: the idle load handles the rejection of the shared
- * promise. One press calls this twice, on the press and on the focus, and the
+ * promise. A hover and the focus after it call this twice, and the
  * two calls get the same load, so only the first call reports it.
  *
  * @internal
@@ -125,9 +125,9 @@ function sameSource(a: Source, b: Source): boolean {
  *   hover, so the load does not wait for a render and its effects. `whenReady`
  *   runs its task at once on an editor. Before the editor, it starts the load,
  *   and the task waits. The tasks then run in the order of their calls, after
- *   the editor takes the focus. Each task runs in its own commit, after the
- *   commit of the task before it, as each input of the reader does, so a task
- *   such as a send reads the value of the edits before it.
+ *   the editor takes the focus. Each task runs in its own commit, as each
+ *   input of the reader does. Thus a task such as a send reads the value of
+ *   the edits before it.
  * @remarks The editor is the source of the doc while it lives. It holds the
  * last Markdown that it emitted, so the value that comes back after an edit
  * does not replace the doc again.

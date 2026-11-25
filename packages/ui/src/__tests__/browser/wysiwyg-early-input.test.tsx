@@ -4,6 +4,7 @@ import { cdp, userEvent } from 'vitest/browser'
 import { Wysiwyg, WysiwygToolbar } from '../../modules/wysiwyg'
 import { __resetWysiwygEngine } from '../../modules/wysiwyg/use-wysiwyg-editor'
 import { present, renderUI, screen, waitFor } from '../helpers'
+import { pause } from './helpers/wall-clock'
 
 /**
  * The input of a Wysiwyg before its editor loads. The browser makes each edit
@@ -251,8 +252,11 @@ describe('Wysiwyg input before the editor loads (real browser)', () => {
 
 		gate.open()
 
-		// The editor waits while the reader composes.
-		await new Promise((resolve) => setTimeout(resolve, 100))
+		// The engine loads, and the render of the load commits. The editor waits
+		// while the reader composes.
+		await import('../../modules/wysiwyg/wysiwyg-editor')
+
+		await pause(0)
 
 		expect(screen.getByRole('textbox')).not.toHaveClass('ProseMirror')
 

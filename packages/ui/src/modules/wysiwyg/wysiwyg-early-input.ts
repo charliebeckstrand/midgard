@@ -124,14 +124,15 @@ function snapshot(root: Element): WysiwygEarlyField {
 
 /**
  * The input of a field before its editor loads. The browser makes each edit
- * of the text in a text block, such as a typed key, a delete, an input method
- * composition, or an autocorrect, in the markup of the field, so the reader
- * sees it at once. The editor takes the text of the markup when it loads.
+ * of the text in a text block in the markup of the field, so the reader sees
+ * it at once. Such an edit is a typed key, a delete, an input method
+ * composition, or an autocorrect. The editor takes the text of the markup
+ * when it loads.
  *
- * Each other input waits for the editor in one queue, in its order: a key
- * that the editor binds, a paste, an edit that crosses a block, and a press
- * of the toolbar. The first one takes a copy of the markup. From then on, the
- * field holds each input, so the editor runs them in the order of the reader.
+ * Each other input waits for the editor in one queue, in its order. It is a
+ * key that the editor binds, a paste, an edit that crosses a block, or a
+ * press of the toolbar. The first one takes a copy of the markup. From then
+ * on, the field holds each input, so the editor runs them in their order.
  *
  * @internal
  */
@@ -317,9 +318,9 @@ function changedRanges(root: Element, event: InputEvent): readonly AbstractRange
 }
 
 /**
- * Whether the browser can make an input in the markup: the queue is empty,
- * the input is in {@link IN_PLACE}, and each range that it changes is in one
- * text block. A delete at the edge of a block joins two blocks, so it waits.
+ * Whether the browser can make an input in the markup. The input is in
+ * {@link IN_PLACE}, and each range that it changes is in one text block. A
+ * delete at the edge of a block joins two blocks, so it waits.
  *
  * @internal
  */
@@ -442,9 +443,9 @@ type EarlyCaptureOptions = {
 }
 
 /**
- * Listens to the input of the markup of a field before the editor loads: it
- * lets the browser make each edit of the text in a text block, and holds each
- * other input (see {@link WysiwygEarlyInput}).
+ * Listens to the input of the markup of a field before the editor loads. The
+ * browser makes each edit of the text in a text block, and the field holds
+ * each other input ({@link WysiwygEarlyInput}).
  *
  * @returns The cleanup.
  * @internal
