@@ -2,6 +2,7 @@ import type { MarkdownRange } from '../../components/markdown/markdown-ranges'
 import { isApplePlatform } from '../../utilities/apple-platform'
 import { createEmitter } from '../../utilities/emitter'
 import { isComposing } from '../../utilities/is-composing'
+import { LEAF } from './engine/wysiwyg-dom'
 import type { WysiwygToggleAction } from './types'
 import { formatAction, WYSIWYG_ACTIONS, wysiwygActions } from './wysiwyg-actions'
 import type { WysiwygEditor } from './wysiwyg-editor'
@@ -71,14 +72,6 @@ export type WysiwygSource = { value: string; ranges: readonly MarkdownRange[] }
 
 /** A point of a DOM selection: a node, and an offset in it. @internal */
 type DomPoint = { node: Node; offset: number }
-
-/**
- * The text of an inline leaf, such as a line break or an atom: one character,
- * as its size in the doc. The browser makes no such character.
- *
- * @internal
- */
-export const LEAF = '\uFFFC'
 
 /**
  * The content element of each text block of the markup: a paragraph, a

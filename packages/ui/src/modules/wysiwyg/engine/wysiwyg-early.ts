@@ -3,8 +3,9 @@ import { redo, undo } from 'prosemirror-history'
 import type { Node } from 'prosemirror-model'
 import { Plugin, PluginKey, TextSelection, type Transaction } from 'prosemirror-state'
 import type { EditorView } from 'prosemirror-view'
-import { LEAF, type WysiwygEarlyField, type WysiwygEarlyItem } from '../wysiwyg-early-input'
+import type { WysiwygEarlyField, WysiwygEarlyItem } from '../wysiwyg-early-input'
 import { wysiwygCommands } from './wysiwyg-commands'
+import { LEAF } from './wysiwyg-dom'
 
 /** The text of the content of a text block, where each character is one position of the doc. @internal */
 function blockText(node: Node): string {
