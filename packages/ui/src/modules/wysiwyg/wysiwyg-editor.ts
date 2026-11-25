@@ -18,6 +18,7 @@ import {
 	setLink,
 	wysiwygCommands,
 } from './engine/wysiwyg-commands'
+import { cancelLink } from './engine/wysiwyg-dom'
 import { HELD, wysiwygHeld } from './engine/wysiwyg-held'
 import { wysiwygInputRules } from './engine/wysiwyg-input-rules'
 import { parseMarkdown } from './engine/wysiwyg-markdown/parse'
@@ -318,18 +319,6 @@ export function createWysiwygEditor(
 		},
 		destroy: () => view.destroy(),
 	}
-}
-
-/**
- * Cancels the navigation of a press on a link of the field. The editor then
- * handles the press as on any text.
- *
- * @internal
- */
-function cancelLink(event: MouseEvent): false {
-	if (event.target instanceof Element && event.target.closest('a[href]')) event.preventDefault()
-
-	return false
 }
 
 /**

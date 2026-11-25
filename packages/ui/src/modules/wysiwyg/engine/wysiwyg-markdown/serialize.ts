@@ -290,7 +290,10 @@ type Line = { start: boolean; ranges: RangeMarks | undefined }
 
 /**
  * The inline content of a textblock. A line break at the end of the block
- * shows nothing in a message, so it goes.
+ * shows nothing in a message, so it goes. White space after a line break is
+ * at the start of a line, and it goes too (see `escapeText`), so a line break
+ * that only white space follows is at the end of the block. Else the
+ * backslash of the break would end the block, and a message would show it.
  *
  * @internal
  */
@@ -301,9 +304,22 @@ function inline(textblock: Node, ranges: RangeMarks | undefined): string {
 		items.push({ node, marks: node.marks })
 	})
 
-	while (items.at(-1)?.node.type === schema.nodes.hard_break) items.pop()
+	for (;;) {
+		let last = items.length - 1
+
+		while (last >= 0 && isBlank(items[last]?.node)) last--
+
+		if (items[last]?.node.type !== schema.nodes.hard_break) break
+
+		items.length = last
+	}
 
 	return run(items, { start: true, ranges })
+}
+
+/** Whether a node is text of white space alone. @internal */
+function isBlank(node: Node | undefined): boolean {
+	return node?.isText === true && (node.text ?? '').trim() === ''
 }
 
 /**

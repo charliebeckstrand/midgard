@@ -201,4 +201,18 @@ describe('wysiwyg markdown', () => {
 
 		expect(serializeMarkdown(edited)).toBe(serializeMarkdown(copy))
 	})
+
+	it('drops a line break that only white space follows, so no backslash ends the paragraph', () => {
+		const doc = schema.node('doc', null, [
+			schema.node('paragraph', null, [
+				schema.text('a'),
+				schema.node('hard_break'),
+				schema.text(' \t'),
+				schema.node('hard_break'),
+				schema.text(' ', [schema.marks.strong.create()]),
+			]),
+		])
+
+		expect(serializeMarkdown(doc)).toBe('a')
+	})
 })
