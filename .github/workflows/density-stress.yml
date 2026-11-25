@@ -1,8 +1,7 @@
 name: Density stress
 
-# The density instances of the `engines` job of ci.yml, many times, on
-# separate runners. In some runs
-# of that job, two Firefox content processes stopped on signal 11 in the
+# The Firefox and WebKit instances of the `engines` job of ci.yml, many
+# times, on separate runners. In some runs of that job, two Firefox content processes stopped on signal 11 in the
 # first seconds, before a file reported. Firefox wrote no cause to its
 # stderr. With `isolate: false`, the seed sets the first file of the page. A
 # crash that repeats with one seed thus points to a file. A crash that does
@@ -56,9 +55,9 @@ jobs:
           RUNS: ${{ inputs.runs }}
 
   # The container, the options, and the environment are those of the
-  # `engines` job of ci.yml, and the command runs its density instances. The job puts no load on the cores. The two
-  # jobs thus run under the same conditions. WebKit runs too, because it ran
-  # beside Firefox in each crash.
+  # `engines` job of ci.yml, and the command runs each instance of that job.
+  # The two jobs thus run under the same conditions. The Wysiwyg instances in
+  # WebKit run too, because they run beside Firefox in `engines`.
   density:
     name: density (run ${{ matrix.run }})
     needs: plan
@@ -84,9 +83,15 @@ jobs:
       # reporter that a later change can turn on.
       - name: List the crash reporter files of Firefox
         run: find /ms-playwright -maxdepth 3 -path '*firefox*' \( -iname '*crash*' -o -iname '*minidump*' \) -print | grep . || echo 'The Firefox build holds no crash reporter file.'
+      # The CPU and the kernel of the runner. A crash that occurs only on one
+      # CPU model points to the hardware, not to the tests.
+      - name: Show the CPU and the kernel of the runner
+        run: |
+          grep -m1 'model name' /proc/cpuinfo
+          uname -r
       # Not through turbo: a cache hit would skip the run that this workflow
       # exists for.
-      - run: pnpm --filter ui test:browser --project density-firefox --project density-webkit
+      - run: pnpm --filter ui test:browser --project density-firefox --project density-webkit --project wysiwyg-webkit --project wysiwyg-floating-ui-webkit --project wysiwyg-floating-motion-webkit
         env:
           DEBUG: pw:browser
           ALL_ENGINES: 1

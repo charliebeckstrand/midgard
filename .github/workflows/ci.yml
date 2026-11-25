@@ -426,6 +426,12 @@ jobs:
       - uses: ./.github/actions/turbo-cache
         with:
           name: engines
+      # The CPU and the kernel of the runner, for the Firefox crash that the
+      # `pw:browser` note below gives.
+      - name: Show the CPU and the kernel of the runner
+        run: |
+          grep -m1 'model name' /proc/cpuinfo
+          uname -r
       # Filtered to `ui`, as in `browser`. The container runs as root, and
       # Firefox does not start as root when HOME belongs to another user.
       # GitHub sets HOME to a directory of the runner user.
