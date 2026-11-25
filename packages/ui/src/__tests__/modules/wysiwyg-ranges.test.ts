@@ -119,6 +119,23 @@ describe('wysiwyg ranges in the markdown bridge', () => {
 		expect(ranges.map((each) => each.quote)).toEqual(['`npm test`'])
 	})
 
+	it('gives one range for a code span that a line break ends', () => {
+		const marks = [schema.marks.code.create(), schema.marks.range.create({ id: 'r' })]
+
+		const doc = schema.node('doc', null, [
+			schema.node('paragraph', null, [
+				schema.text('foo', marks),
+				schema.node('hard_break', null, undefined, marks),
+				schema.text('bar', marks),
+			]),
+		])
+
+		const { markdown, ranges } = serializeMarkdownRanges(doc)
+
+		expect(markdown).toBe('`foo`\\\n`bar`')
+		expect(ranges.map((each) => each.quote)).toEqual(['`foo`\\\n`bar`'])
+	})
+
 	it('keeps a soft break in a range as a space of the range', () => {
 		const source = 'Ask about\n@Sales today'
 
