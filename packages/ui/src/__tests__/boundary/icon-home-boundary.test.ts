@@ -43,6 +43,26 @@ describe('icon home boundary', () => {
 		expect(files.has(`${HOME}glyphs/index.ts`)).toBe(true)
 	})
 
+	it('exports each glyph file from the barrel of the glyphs', () => {
+		// The barrel gives the names of the `Icons` map. A glyph file that the
+		// barrel does not export draws an icon that an app cannot type a
+		// replacement for.
+		const glyphs = [...files.keys()]
+			.filter((file) => /^primitives\/icons\/glyphs\/glyph-[\w-]+\.ts$/.test(file))
+			.map((file) => `./${file.slice(`${HOME}glyphs/`.length, -'.ts'.length)}`)
+			.sort()
+
+		const barrel = files.get(`${HOME}glyphs/index.ts`) ?? ''
+
+		const exported = [...barrel.matchAll(/export\s*\{[^}]*\}\s*from\s*'(\.\/glyph-[\w-]+)'/g)]
+			.map((match) => match[1])
+			.sort()
+
+		expect(glyphs.length).toBeGreaterThan(50)
+
+		expect(exported).toEqual(glyphs)
+	})
+
 	it('imports lucide-react only in the home of the glyphs', () => {
 		const violations = [...files]
 			.filter(([file, code]) => !file.startsWith(HOME) && LUCIDE_IMPORT.test(code))
