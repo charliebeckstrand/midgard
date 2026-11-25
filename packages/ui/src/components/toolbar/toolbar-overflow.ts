@@ -24,6 +24,13 @@ function callerItems(toolbar: HTMLElement): Element[] {
 }
 
 /**
+ * The items whose `inert` the marks wrote. The marks remove only that `inert`,
+ * so an item that the caller makes `inert` stays `inert`.
+ * @internal
+ */
+const markedInert = new WeakSet<Element>()
+
+/**
  * Writes or removes `mark` on `item`, and `inert` with it. An item with
  * either mark is `inert`.
  * @internal
@@ -31,10 +38,15 @@ function callerItems(toolbar: HTMLElement): Element[] {
 function setMark(item: Element, mark: string, on: boolean): void {
 	item.toggleAttribute(mark, on)
 
-	item.toggleAttribute(
-		'inert',
-		item.hasAttribute(OVERFLOW_ATTRIBUTE) || item.hasAttribute(PAGED_ATTRIBUTE),
-	)
+	const marked = item.hasAttribute(OVERFLOW_ATTRIBUTE) || item.hasAttribute(PAGED_ATTRIBUTE)
+
+	if (marked && !item.hasAttribute('inert')) {
+		item.setAttribute('inert', '')
+
+		markedInert.add(item)
+	} else if (!marked && markedInert.delete(item)) {
+		item.removeAttribute('inert')
+	}
 }
 
 /**

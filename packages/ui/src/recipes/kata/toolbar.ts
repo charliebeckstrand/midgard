@@ -100,6 +100,12 @@ export const k = defineKata({
 		 * A separator of the toolbar. Its margin is the toolbar gap at each density
 		 * step, so the space on each side of the rule is the space between two groups.
 		 */
+		separator: {
+			orientation: {
+				horizontal: dan.space.toolbar.separator.x,
+				vertical: dan.space.toolbar.separator.y,
+			},
+		},
 		/**
 		 * The anchor of the More button: the last item of a toolbar that fits its
 		 * row with More. It has no width, and it gives back the gap before it, so
@@ -111,12 +117,6 @@ export const k = defineKata({
 		 */
 		more: {
 			base: ['flex w-0 -ms-(--ui-toolbar-gap)', '*:absolute *:end-0 *:-translate-y-full'],
-		},
-		separator: {
-			orientation: {
-				horizontal: dan.space.toolbar.separator.x,
-				vertical: dan.space.toolbar.separator.y,
-			},
 		},
 	},
 	defaults: { orientation: 'horizontal', variant: 'plain', overflow: 'wrap' },
