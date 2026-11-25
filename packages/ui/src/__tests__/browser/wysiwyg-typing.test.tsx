@@ -274,6 +274,20 @@ describe('Wysiwyg (real browser)', () => {
 		expect(value()).toBe('Ship it')
 	})
 
+	it('keeps a line break in the code that the toolbar makes of two lines', async () => {
+		renderUI(<Notes />)
+
+		const field = await editable()
+
+		await userEvent.keyboard('foo{Shift>}{Enter}{/Shift}bar{Control>}a{/Control}')
+
+		await userEvent.click(screen.getByRole('button', { name: 'Code' }))
+
+		expect(field.querySelector('br')).not.toBeNull()
+
+		expect(value()).toBe('`foo`\\\n`bar`')
+	})
+
 	it('links the selected text from the link dialog, and keeps it selected', async () => {
 		renderUI(<Notes initial="Ship it" />)
 

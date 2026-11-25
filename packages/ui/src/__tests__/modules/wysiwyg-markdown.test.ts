@@ -44,6 +44,7 @@ describe('wysiwyg markdown', () => {
 		'# not a heading',
 		'1. not a list',
 		'`` code with ` tick ``',
+		'`foo`\\\n`bar`',
 		'a &amp; b',
 		'see https://example.com. And (https://example.com/a_(b)), https://example.com?',
 		'<https://example.com>x and <https://example.com.>',
@@ -251,6 +252,58 @@ describe('wysiwyg markdown', () => {
 		])
 
 		expect(serializeMarkdown(doc)).toBe('a')
+	})
+
+	describe('a line break in a code span', () => {
+		const code = schema.marks.code.create()
+
+		const strong = schema.marks.strong.create()
+
+		it.each([
+			['code alone', [code], '`foo`\\\n`bar`'],
+			['code in bold', [strong, code], '**`foo`\\\n`bar`**'],
+		])('ends the span, so the line stays: %s', (_, marks, markdown) => {
+			const doc = schema.node('doc', null, [
+				schema.node('paragraph', null, [
+					schema.text('foo', marks),
+					schema.node('hard_break', null, undefined, marks),
+					schema.text('bar', marks),
+				]),
+			])
+
+			expect(serializeMarkdown(doc)).toBe(markdown)
+
+			expect(shape(serializeMarkdown(doc))).toContain('<br/>')
+		})
+
+		it('reads back as the code on each line', () => {
+			const doc = schema.node('doc', null, [
+				schema.node('paragraph', null, [
+					schema.text('foo', [code]),
+					schema.node('hard_break', null, undefined, [code]),
+					schema.text('bar', [code]),
+				]),
+			])
+
+			const read = parseMarkdown(serializeMarkdown(doc))
+
+			expect(read.firstChild?.childCount).toBe(3)
+			expect(read.firstChild?.child(0).marks).toEqual([code])
+			expect(read.firstChild?.child(1).type).toBe(schema.nodes.hard_break)
+			expect(read.firstChild?.child(2).marks).toEqual([code])
+		})
+
+		it('drops a span that holds only the break', () => {
+			const doc = schema.node('doc', null, [
+				schema.node('paragraph', null, [
+					schema.text('foo'),
+					schema.node('hard_break', null, undefined, [code]),
+					schema.text('bar'),
+				]),
+			])
+
+			expect(serializeMarkdown(doc)).toBe('foo\\\nbar')
+		})
 	})
 
 	it('writes a list that two docs share with the marker of its place in each', () => {
