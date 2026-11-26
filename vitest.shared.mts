@@ -6,8 +6,11 @@
  * spreads `sharedTest` into its `test` field, and adds only what differs. The
  * configs of ui (`packages/ui/vitest.base.ts`) take the parts one by one,
  * because each of its projects sets its own `include` and environment. The
- * file imports nothing, because the root workspace does not install Vitest.
+ * file imports only a module of Node, because the root workspace does not
+ * install Vitest.
  */
+
+import { readFileSync } from 'node:fs'
 
 /** Whether the run is on CI, where the budgets scale up. */
 export const CI = Boolean(process.env.CI)
@@ -78,6 +81,42 @@ export const budgets = {
  * the process starts. The `test` scripts export `LANG` before Node starts.
  */
 process.env.TZ = 'UTC'
+
+/**
+ * The major version of Node that the repository pins in `.node-version`. CI,
+ * the Dockerfiles, and the setup script of the cloud environment read the same
+ * file.
+ *
+ * @remarks
+ * The tests also pass on another major of Node, so a difference does not stop
+ * the run. It writes one warning when the config loads. Thus a result that is
+ * not the same as on CI has a cause that you can see.
+ */
+const PINNED_NODE = readFileSync(new URL('./.node-version', import.meta.url), 'utf8')
+	.trim()
+	.replace(/^v/, '')
+
+/**
+ * Marks the process that wrote the warning. A run can load more than one
+ * config, and each bundles its own copy of this file: ui loads
+ * `vitest.config.ts` and then the config of a project. A flag in module scope
+ * would thus write the warning one time for each config.
+ */
+const NODE_WARNED = Symbol.for('midgard.vitest.node-pin-warned')
+
+const warned = globalThis as { [NODE_WARNED]?: true }
+
+if (
+	process.versions.node.split('.')[0] !== PINNED_NODE.split('.')[0] &&
+	!warned[NODE_WARNED]
+) {
+	warned[NODE_WARNED] = true
+
+	console.warn(
+		`This run uses Node ${process.versions.node}; the repository pins Node ${PINNED_NODE} ` +
+			'(.node-version), and CI runs that version.',
+	)
+}
 
 const SEED = process.env.VITEST_SEED
 
