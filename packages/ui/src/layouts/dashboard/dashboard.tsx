@@ -80,9 +80,9 @@ export type DashboardLayoutProps = ComponentProps<'div'> & {
  * drawer. In the drawer layout, the inline copy is in a hidden `<Activity>`. It
  * keeps its DOM and its state, and its effects do not run. The drawer copy
  * mounts only while the drawer is open. Thus only the copy on screen runs
- * effects. The server and the hydration render read the inline layout, so the
- * server markup holds the inline copy, and the CSS hides it in the drawer
- * layout until the render after hydration hides it.
+ * effects. The server reads the layout at the widest breakpoint. When that
+ * layout is inline, the server markup holds the inline copy. In the drawer
+ * layout, the CSS hides the copy until the render after hydration hides it.
  *
  * The rail and the main column sit in a row in the inline layout, where the
  * rail shows. In the drawer layout the rail is hidden and the column is the
