@@ -13,7 +13,7 @@ declare module 'virtual:docs/pages' {
 }
 
 declare module 'virtual:docs/search' {
-	const entries: readonly import('./plugin/search.ts').SearchEntry[]
+	const entries: readonly import('./search/types.ts').SearchEntry[]
 
 	export default entries
 }

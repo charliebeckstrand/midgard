@@ -1,5 +1,5 @@
-import { foldText } from '../../utilities/fold-text'
-import type { SearchEntry, SearchKind } from '../plugin/search.ts'
+import { foldText } from '../../../utilities/fold-text'
+import type { SearchEntry, SearchKind } from '../types.ts'
 
 /** The order of the kinds in the results, for entries that match equally well. */
 const KINDS: readonly SearchKind[] = ['page', 'tab', 'component', 'example', 'prop', 'event']

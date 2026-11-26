@@ -4,7 +4,8 @@
 
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
-import { DocsSearch, SearchButton } from '../../docs/app/search.tsx'
+import { SearchButton } from '../../docs/search/ui/search-button.tsx'
+import { DocsSearch } from '../../docs/search/ui/search-provider.tsx'
 import { FailBoundary } from '../helpers/fail-boundary.tsx'
 
 // The palette of the docs search is in a chunk of its own. When the load that
@@ -16,7 +17,7 @@ import { FailBoundary } from '../helpers/fail-boundary.tsx'
 // a mock of its own in a file (see `test-isolation-boundary.test.ts`), so this
 // suite sits in `boundary/`, which the `integration` project runs on forks.
 
-vi.mock('../../docs/app/search-palette.tsx', () => {
+vi.mock('../../docs/search/ui/search-palette.tsx', () => {
 	throw new Error('the chunk of the palette did not load')
 })
 

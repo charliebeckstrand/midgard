@@ -14,6 +14,8 @@ import { TRANSLATIONS_MODULE } from '../../../scripts/intl/catalog.ts'
 import type { ShikiHighlight } from '../../components/code/code-shiki-highlighter.ts'
 import { getOrCompute } from '../../utilities/get-or-compute.ts'
 import { rootRedirect } from '../app/root-redirect.ts'
+import { collectEntries } from '../search/build/index.ts'
+import type { SearchEntry } from '../search/types.ts'
 import { type BarrelApi, createApiWorker, TASKS_AHEAD } from './api.ts'
 import { readClientManifest } from './asset-urls.ts'
 import { labelPage } from './component-events.ts'
@@ -32,7 +34,6 @@ import {
 } from './examples.ts'
 import type { HighlightTask } from './highlight-worker.ts'
 import { findPages, type Page, type PageLink } from './pages.ts'
-import { type SearchEntry, searchEntries } from './search.ts'
 
 const VIRTUAL = 'virtual:docs/'
 
@@ -78,7 +79,7 @@ function data(value: unknown): string {
  * - `virtual:docs/api/<barrel>`: the API data of a barrel, such as `components/button` ({@link createApiWorker}).
  * - `virtual:docs/pages`: the link of each page ({@link findPages}).
  * - `virtual:docs/code/<folder>`: the code of each example in a folder of `pages/`, highlighted ({@link loadCodes}).
- * - `virtual:docs/search`: the entries of the search of the docs ({@link searchEntries}).
+ * - `virtual:docs/search`: the entries of the search of the docs ({@link collectEntries}).
  *
  * It transforms each module of `pages/`. It adds the title and the code module
  * to the default export of each example ({@link attachMeta}), and it sends
@@ -290,7 +291,7 @@ export function reactDocs({ clientDir }: { clientDir?: string } = {}): Plugin {
 				}
 
 				if (name === SEARCH) {
-					search ??= searchEntries(docs, this.parse.bind(this), readApi)
+					search ??= collectEntries(docs, this.parse.bind(this), readApi)
 
 					return data(await search)
 				}

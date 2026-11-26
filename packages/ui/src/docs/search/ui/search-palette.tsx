@@ -1,4 +1,3 @@
-import pages from 'virtual:docs/pages'
 import entries from 'virtual:docs/search'
 import { useEffect, useMemo, useState } from 'react'
 import { PrefetchPageLinks } from 'react-router'
@@ -11,22 +10,16 @@ import {
 	useCommandPaletteDeferredQuery,
 } from 'ui/command-palette'
 import { useTimeout } from 'ui/hooks'
-import {
-	defineMessage,
-	defineMessages,
-	type IntlShape,
-	type MessageDescriptor,
-	useIntl,
-} from 'ui/primitives/intl'
+import { defineMessage, defineMessages, type MessageDescriptor, useIntl } from 'ui/primitives/intl'
 import { VirtualOptions } from 'ui/primitives/virtual-options'
-import { exampleTitle, pageName, tabName } from '../kit/names.ts'
-import type { SearchKind } from '../plugin/search.ts'
-import { sectionLabel } from './app-messages.ts'
-import { type Matchable, matchEntries } from './search-match.ts'
+import { createSearchIndex, type Matchable } from '../engine/index.ts'
+import type { SearchKind } from '../types.ts'
+import { localizeEntry } from './localize.ts'
 
 // The palette of the search, with the entries in it. The shell loads this
-// module in idle time after the hydration (`search.tsx`), so the entries do
-// not delay the first paint, and the first open does not wait for them.
+// module in idle time after the hydration (`search-provider.tsx`), so the
+// entries do not delay the first paint, and the first open does not wait for
+// them.
 
 const placeholderMessage = defineMessage({
 	id: 'docs.search.placeholder',
@@ -73,12 +66,6 @@ const KIND_LABELS: Readonly<Record<SearchKind, MessageDescriptor>> = defineMessa
 	},
 })
 
-// The section of each page, by its path. The result of a page shows the name
-// of its section in the language of the reader.
-const sectionByPath: ReadonlyMap<string, string> = new Map(
-	pages.map((page) => [page.path, page.category]),
-)
-
 /** An entry with the id of its option, the common name of a page, and the shown place. */
 type Option = Matchable & { id: string }
 
@@ -123,55 +110,6 @@ function PrefetchResults({ matches }: { matches: readonly Option[] }) {
 	return pages.map((page) => <PrefetchPageLinks key={page} page={page} />)
 }
 
-/** The slug of the tab of a path, the last part before the hash: `/grid/sorting#basic` gives `sorting`. */
-function slugOfHref(href: string): string {
-	return href.split('#')[0]?.split('/').at(-1) ?? ''
-}
-
-/**
- * The entry with its label in the language of the reader. A page keeps its
- * name, and takes its common name as `alias` when the two are not the same.
- */
-function localizeLabel(intl: IntlShape, option: Option): Option {
-	if (option.kind === 'example') {
-		return { ...option, label: exampleTitle(intl, option.href.split('#')[1] ?? '', option.label) }
-	}
-
-	if (option.kind === 'page') {
-		const alias = pageName(intl, option.href, option.label)
-
-		return alias.toLowerCase() === option.label.toLowerCase() ? option : { ...option, alias }
-	}
-
-	if (option.kind === 'tab') {
-		return { ...option, label: tabName(intl, slugOfHref(option.href), option.label) }
-	}
-
-	return option
-}
-
-/**
- * Where the entry is. The section of a page and the name of a tab, as in
- * "Grid › Sorting", show in the language of the reader. The names from the
- * code stay as they are. A page shows its common name before its section,
- * when the name is not the same as the label.
- */
-function formatContext(intl: IntlShape, option: Option): string {
-	const section = option.kind === 'page' ? sectionByPath.get(option.href) : undefined
-
-	if (section !== undefined) {
-		const label = sectionLabel(intl, section)
-
-		return option.alias ? `${option.alias} · ${label}` : label
-	}
-
-	const [page, tab] = option.context.split(' › ')
-
-	return tab === undefined
-		? option.context
-		: `${page} › ${tabName(intl, slugOfHref(option.href), tab)}`
-}
-
 function Results({ onPick }: { onPick: () => void }) {
 	const query = useCommandPaletteDeferredQuery()
 
@@ -183,17 +121,12 @@ function Results({ onPick }: { onPick: () => void }) {
 	// name, such as "Botón" for Button. The query also matches the English
 	// place, so an English word, such as "sorting", finds the same entries in
 	// each language.
-	const localized = useMemo(
-		() =>
-			options.map((option) => {
-				const named = localizeLabel(intl, option)
-
-				return { ...named, place: formatContext(intl, named) }
-			}),
+	const index = useMemo(
+		() => createSearchIndex(options.map((option) => localizeEntry(intl, option))),
 		[intl],
 	)
 
-	const matches = useMemo(() => matchEntries(localized, query), [localized, query])
+	const matches = useMemo(() => index.search(query), [index, query])
 
 	return (
 		<>

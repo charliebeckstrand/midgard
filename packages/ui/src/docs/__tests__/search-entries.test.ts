@@ -3,7 +3,8 @@ import path from 'node:path'
 import { parseAst } from 'vite'
 import { describe, expect, it } from 'vitest'
 import type { BarrelApi } from '../plugin/api.ts'
-import { type SearchEntry, searchEntries } from '../plugin/search.ts'
+import { collectEntries } from '../search/build/index.ts'
+import type { SearchEntry } from '../search/types.ts'
 
 // The entries of the search of the docs, as the plugin makes them from the
 // pages. The API data is a stub, so the test runs no TypeScript server.
@@ -26,12 +27,12 @@ async function stubApi(barrel: string): Promise<BarrelApi> {
 let loaded: Promise<SearchEntry[]> | undefined
 
 function entries(): Promise<SearchEntry[]> {
-	loaded ??= searchEntries(DOCS, (code) => parseAst(code, { lang: 'tsx' }), stubApi)
+	loaded ??= collectEntries(DOCS, (code) => parseAst(code, { lang: 'tsx' }), stubApi)
 
 	return loaded
 }
 
-describe('searchEntries', () => {
+describe('collectEntries', () => {
 	it('gives the page, its examples, and its API reference, each with the anchor of its route', async () => {
 		const button = (await entries()).filter((entry) => entry.href.startsWith('/button'))
 
