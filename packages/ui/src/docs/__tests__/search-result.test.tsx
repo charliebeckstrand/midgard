@@ -5,8 +5,9 @@ import type { SearchEntry } from '../search/types.ts'
 import { localizeEntry } from '../search/ui/localize.ts'
 import { ResultLabel, ResultSubtitle } from '../search/ui/search-result.tsx'
 
-// Each row of the results shows the name of its entry, and the section of the
-// entry below the name.
+// Each row of the results shows the name of its entry. Below the name, a page
+// or a tab shows its section, and the API reference of a component shows
+// "API reference".
 
 function Row({ entry }: { entry: SearchEntry }) {
 	const option = localizeEntry(useIntl(), entry)
@@ -35,7 +36,7 @@ describe('a row of the results', () => {
 		expect(screen.getByTestId('subtitle').textContent).toBe('Tab, Modules')
 	})
 
-	it('shows the section below the API reference of a component', () => {
+	it('shows "API reference" below the API reference of a component', () => {
 		render(
 			<Row
 				entry={{
@@ -48,6 +49,6 @@ describe('a row of the results', () => {
 		)
 
 		expect(screen.getByTestId('label').textContent).toBe('<Field />')
-		expect(screen.getByTestId('subtitle').textContent).toBe('API reference, Components')
+		expect(screen.getByTestId('subtitle').textContent).toBe('API reference')
 	})
 })
