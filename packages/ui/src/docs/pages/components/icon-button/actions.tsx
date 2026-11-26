@@ -8,7 +8,7 @@ export default function Actions() {
 		<Toolbar aria-label="Document">
 			<IconButton icon={<Pencil />} aria-label="Edit" tooltip />
 			<IconButton icon={<Share2 />} aria-label="Share" tooltip />
-			<IconButton icon={<Trash />} aria-label="Delete" color="red" tooltip />
+			<IconButton icon={<Trash />} aria-label="Delete" tooltip />
 		</Toolbar>
 	)
 }

@@ -212,6 +212,27 @@ describe('IconButton', () => {
 		},
 	)
 
+	// Only `bare` and `plain` have a wash. A toggle with no `pressedIcon` on another
+	// variant would look the same pressed and unpressed, so the type refuses it.
+	it('takes another variant on a toggle only with a pressedIcon', () => {
+		const { container } = renderUI(
+			<>
+				{/* @ts-expect-error A held toggle takes only `bare` or `plain`. */}
+				<IconButton defaultPressed icon={icon} aria-label="A" variant="outline" />
+				<IconButton
+					defaultPressed
+					icon={icon}
+					pressedIcon={pressedIcon}
+					aria-label="B"
+					variant="outline"
+				/>
+				<IconButton icon={icon} aria-label="C" variant="outline" />
+			</>,
+		)
+
+		expect(container.querySelectorAll('[data-slot=icon-button]')).toHaveLength(3)
+	})
+
 	it('gives no wash to an unpressed toggle or to a toggle with a pressedIcon', () => {
 		const { container } = renderUI(
 			<>

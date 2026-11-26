@@ -14,7 +14,13 @@ export default function HeldToggle() {
 				defaultPressed={false}
 				tooltip
 			/>
-			<IconButton icon={<Underline />} aria-label="Underline" defaultPressed={false} tooltip />
+			<IconButton
+				icon={<Underline />}
+				aria-label="Underline"
+				variant="plain"
+				defaultPressed={false}
+				tooltip
+			/>
 		</Toolbar>
 	)
 }

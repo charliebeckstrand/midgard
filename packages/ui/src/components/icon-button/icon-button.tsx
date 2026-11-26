@@ -49,12 +49,6 @@ type IconButtonName =
 type IconButtonOwnProps = {
 	/** The icon. It is a Lucide icon or an element, as {@link Icon} takes. */
 	icon: IconProps['icon']
-	/**
-	 * The fill style of the button. `bare` is the only variant with the square
-	 * icon floor, so it suits a button in a field, a row, or a bar.
-	 * @defaultValue 'bare'
-	 */
-	variant?: ButtonVariants['variant']
 	/** The palette color of the button. @defaultValue 'zinc' */
 	color?: ButtonVariants['color']
 	/** The density step of the button. Omit it to take the step of the nearest density scope. */
@@ -82,8 +76,47 @@ type IconButtonOwnProps = {
 	className?: string
 }
 
+/**
+ * The fill style of the button. `bare` is the only variant with the square
+ * icon floor, so it suits a button in a field, a row, or a bar.
+ * @defaultValue 'bare'
+ */
+type IconButtonVariant = ButtonVariants['variant']
+
+/**
+ * How a toggle shows its pressed state. With `pressedIcon`, the icon shows it,
+ * so each variant is available. Without it, the held-down wash shows it. Only
+ * `bare` and `plain` have a wash, so the type takes only these two.
+ */
+type IconButtonToggleLook =
+	| {
+			/**
+			 * The icon of the pressed state. Without it, the button shows the pressed
+			 * state with the held-down wash of its variant: `data-active` on `bare`,
+			 * and the `soft` fill on `plain`. Only these two variants have a wash.
+			 */
+			pressedIcon: IconProps['icon']
+			/**
+			 * Cross-fades between `icon` and `pressedIcon`. Set false for an instant swap.
+			 * @defaultValue true
+			 */
+			animate?: boolean
+			/** {@inheritDoc IconButtonVariant} */
+			variant?: IconButtonVariant
+	  }
+	| {
+			pressedIcon?: never
+			animate?: never
+			/**
+			 * The fill style of the button. A toggle with no `pressedIcon` shows its
+			 * state with the held-down wash, which only `bare` and `plain` have.
+			 * @defaultValue 'bare'
+			 */
+			variant?: 'bare' | 'plain'
+	  }
+
 /** The props of a toggle: the pressed state and the icon of that state. */
-type IconButtonToggleProps = {
+type IconButtonToggleProps = IconButtonToggleLook & {
 	/**
 	 * Controlled pressed state, reflected as `aria-pressed`. Pair it with
 	 * `onPressedChange`. Each of `pressed`, `defaultPressed`, and
@@ -98,16 +131,6 @@ type IconButtonToggleProps = {
 	defaultPressed?: boolean
 	/** Fires when the button is activated, with the next pressed state. */
 	onPressedChange?: (pressed: boolean) => void
-	/**
-	 * The icon of the pressed state. Without it, the button shows the pressed
-	 * state with the held-down wash of its variant.
-	 */
-	pressedIcon?: IconProps['icon']
-	/**
-	 * Cross-fades between `icon` and `pressedIcon`. Set false for an instant swap.
-	 * @defaultValue true
-	 */
-	animate?: boolean
 	/** A toggle is a button, not a link. */
 	href?: never
 	/**
@@ -125,6 +148,8 @@ type IconButtonActionProps = {
 	onPressedChange?: never
 	pressedIcon?: never
 	animate?: never
+	/** {@inheritDoc IconButtonVariant} */
+	variant?: IconButtonVariant
 } & (
 	| ({
 			href?: never
@@ -286,7 +311,12 @@ export function IconButton(props: IconButtonProps) {
 		onClick: onClickProp,
 		...rest
 	} = props as IconButtonOwnProps &
-		Omit<IconButtonToggleProps, 'href'> & { tooltip?: ReactNode } & IconButtonRest
+		Omit<IconButtonToggleProps, 'href' | keyof IconButtonToggleLook> & {
+			pressedIcon?: IconProps['icon']
+			animate?: boolean
+			variant?: IconButtonVariant
+			tooltip?: ReactNode
+		} & IconButtonRest
 
 	const { toggle, pressed, onClick } = usePress({
 		pressed: pressedProp,
