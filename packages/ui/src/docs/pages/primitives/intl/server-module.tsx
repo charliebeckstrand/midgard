@@ -9,7 +9,7 @@ import es from './lang/es.json'
 // `'use client'` either, so the module defines its own messages.
 const messages = defineMessages({
 	empty: {
-		id: 'docs.demo.intl.empty',
+		id: 'invoices.empty',
 		defaultMessage: 'No invoices yet.',
 		description: 'The text of the invoice list when the list is empty.',
 	},

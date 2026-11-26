@@ -6251,18 +6251,6 @@
 		"defaultMessage": "Draw your signature or type your full name.",
 		"description": "Text of a demo in the docs as validate, in components/signature-pad/in-a-form.tsx."
 	},
-	"docs.demo.intl.empty": {
-		"defaultMessage": "No invoices yet.",
-		"description": "The text of the invoice list when the list is empty."
-	},
-	"docs.demo.intl.greeting": {
-		"defaultMessage": "Welcome back, {name}.",
-		"description": "The greeting at the top of the inbox. The value is the first name of the reader."
-	},
-	"docs.demo.intl.unread": {
-		"defaultMessage": "{count, plural, one {# unread message} other {# unread messages}}",
-		"description": "The count of the messages that the reader has not opened."
-	},
 	"docs.direction.label": {
 		"defaultMessage": "Direction",
 		"description": "The label of the setting that lays out the docs site left to right or right to left."

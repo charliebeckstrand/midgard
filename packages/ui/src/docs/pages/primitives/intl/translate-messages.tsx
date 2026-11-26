@@ -13,12 +13,12 @@ import es from './lang/es.json'
 // package.
 const messages = defineMessages<{ greeting: { name: string }; unread: { count: number } }>({
 	greeting: {
-		id: 'docs.demo.intl.greeting',
+		id: 'inbox.greeting',
 		defaultMessage: 'Welcome back, {name}.',
 		description: 'The greeting at the top of the inbox. The value is the first name of the reader.',
 	},
 	unread: {
-		id: 'docs.demo.intl.unread',
+		id: 'inbox.unread',
 		defaultMessage: '{count, plural, one {# unread message} other {# unread messages}}',
 		description: 'The count of the messages that the reader has not opened.',
 	},
