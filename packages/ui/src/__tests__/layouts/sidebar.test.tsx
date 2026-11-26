@@ -137,6 +137,38 @@ describe('SidebarLayout', () => {
 		expect(mounted).toHaveBeenCalledTimes(1)
 	})
 
+	it('runs the effects of the aside only in the inline layout', () => {
+		const mounted = vi.fn()
+
+		function Probe() {
+			useEffect(() => {
+				mounted()
+			}, [])
+
+			return <div>aside-probe</div>
+		}
+
+		const drawer = renderUI(
+			<SidebarLayout sidebar={<div>sidebar</div>} aside={<Probe />}>
+				<SidebarLayoutBody>body</SidebarLayoutBody>
+			</SidebarLayout>,
+		)
+
+		expect(screen.getByText('aside-probe')).toBeInTheDocument()
+
+		expect(mounted).not.toHaveBeenCalled()
+
+		drawer.unmount()
+
+		renderUI(
+			<SidebarLayout layout="inline" sidebar={<div>sidebar</div>} aside={<Probe />}>
+				<SidebarLayoutBody>body</SidebarLayoutBody>
+			</SidebarLayout>,
+		)
+
+		expect(mounted).toHaveBeenCalledTimes(1)
+	})
+
 	it('runs the effects of the inline panel in the inline layout while locked', () => {
 		const mounted = vi.fn()
 

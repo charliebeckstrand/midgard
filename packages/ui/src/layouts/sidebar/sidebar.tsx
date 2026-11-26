@@ -190,7 +190,8 @@ export type SidebarLayoutProps = ComponentProps<'div'> & {
  * The panel, the drawer, and the floating sheet each hold a copy of `sidebar`.
  * While the panel does not show, its copy rests in a hidden `Activity`: it
  * stays in the DOM and keeps its state, but it runs no effects. Thus only the
- * copy that shows acts, and a store that the copies share stays in step.
+ * copy that shows acts, and a store that the copies share stays in step. The
+ * `aside` rests in a hidden `Activity` in the drawer layout in the same way.
  *
  * The sidebar sits on the start edge of the reading direction. In a
  * right-to-left page, the panel, the floating sheet, and its hover strip are
@@ -308,6 +309,11 @@ export function SidebarLayout({
 	// render read the inline layout and the locked mode, so the panel shows there
 	// and the markup holds it for the first paint.
 	const panelHold = useMountHold(inline && mode !== 'offcanvas', 'always')
+
+	// The aside shows in the inline layout only, and CSS hides it in the drawer
+	// layout. There it rests in a hidden Activity too, so content such as a pinned
+	// panel of the events does not run while no one sees it.
+	const asideHold = useMountHold(inline, 'always')
 
 	// A change to offcanvas hides the inline panel. If the panel holds the focus,
 	// as after ⌘B on a sidebar item, the browser drops the focus to `<body>` at the
@@ -468,7 +474,9 @@ export function SidebarLayout({
 				{/* Inline aside: on the end edge, after the content. */}
 				{aside && (
 					<div data-slot="sidebar-aside" className={slots.aside}>
-						{aside}
+						<MountHold hold={asideHold} name="sidebar-aside">
+							{aside}
+						</MountHold>
 					</div>
 				)}
 			</div>
