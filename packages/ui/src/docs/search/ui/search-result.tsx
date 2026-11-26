@@ -2,9 +2,9 @@ import {
 	Blocks,
 	Braces,
 	GapHorizontal,
-	Layers,
-	LayoutTemplate,
+	LayoutDashboard,
 	type LucideIcon,
+	Network,
 	PanelTop,
 	Shapes,
 	SquareDashed,
@@ -65,10 +65,10 @@ const KIND_ICON: Readonly<Record<Exclude<SearchKind, 'page'>, LucideIcon>> = {
 const SECTION_ICON: Readonly<Record<string, LucideIcon>> = {
 	components: Shapes,
 	modules: Blocks,
-	layouts: LayoutTemplate,
+	layouts: LayoutDashboard,
 	structure: SquareDashed,
 	primitives: GapHorizontal,
-	providers: Layers,
+	providers: Network,
 }
 
 /**
