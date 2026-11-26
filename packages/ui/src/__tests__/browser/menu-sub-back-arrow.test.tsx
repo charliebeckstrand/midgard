@@ -47,11 +47,11 @@ describe('submenu arrows (real browser)', () => {
 			// The forward arrow on a row with no submenu leaves the submenu open.
 			await userEvent.keyboard(away)
 
-			expect(trigger).toHaveAttribute('aria-expanded', 'true')
+			expect(trigger).toBeExpanded()
 
 			await userEvent.keyboard(back)
 
-			await waitFor(() => expect(trigger).toHaveAttribute('aria-expanded', 'false'))
+			await waitFor(() => expect(trigger).toBeCollapsed())
 
 			expect(document.activeElement).toBe(trigger)
 

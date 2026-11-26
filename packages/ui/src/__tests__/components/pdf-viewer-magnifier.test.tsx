@@ -255,7 +255,7 @@ describe('PdfViewer magnifier controls', () => {
 
 		const control = screen.getByRole('button', { name: 'Turn magnifier off' })
 
-		expect(control).toHaveAttribute('aria-pressed', 'true')
+		expect(control).toBePressed()
 
 		expect(control).not.toHaveAttribute('aria-haspopup')
 	})
@@ -270,7 +270,7 @@ describe('PdfViewer magnifier controls', () => {
 		const control = screen.getByRole('button', { name: 'Magnifier settings' })
 
 		expect(control).toHaveAttribute('aria-haspopup', 'dialog')
-		expect(control).toHaveAttribute('aria-expanded', 'false')
+		expect(control).toBeCollapsed()
 
 		expect(control).not.toHaveAttribute('aria-pressed')
 

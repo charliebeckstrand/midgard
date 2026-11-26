@@ -226,7 +226,7 @@ describe('Tooltip role (real browser)', () => {
 
 		expect(trigger).toHaveAttribute('aria-haspopup', 'dialog')
 
-		expect(trigger).toHaveAttribute('aria-expanded', 'true')
+		expect(trigger).toBeExpanded()
 
 		expect(trigger).toControl(panel)
 

@@ -165,11 +165,11 @@ describe('DashboardTile actions', () => {
 
 		expect(expand).toHaveAttribute('aria-haspopup', 'dialog')
 
-		expect(expand).toHaveAttribute('aria-expanded', 'false')
+		expect(expand).toBeCollapsed()
 
 		fireEvent.click(expand)
 
-		expect(expand).toHaveAttribute('aria-expanded', 'true')
+		expect(expand).toBeExpanded()
 
 		const dialog = screen.getByRole('dialog', { name: 'Tile b' })
 

@@ -1,6 +1,4 @@
 import '../setup/grid-modules'
-import type { ReactElement } from 'react'
-import { renderToString } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 import {
@@ -8,6 +6,7 @@ import {
 	DEFAULT_MIN_COLUMN_SIZE,
 } from '../../modules/grid/engine/grid-constants'
 import { fireEvent, renderUI, screen, setupUser } from '../helpers'
+import { serverMarkup } from '../helpers/hydrate'
 
 /**
  * A grid whose widths the browser sizes keeps the automatic table layout, with no
@@ -30,12 +29,8 @@ describe('grid automatic layout', () => {
 
 	const getKey = (row: Row) => row.id
 
-	/** The server markup of `grid`, parsed. */
-	const serverDocument = (grid: ReactElement) =>
-		new DOMParser().parseFromString(renderToString(grid), 'text/html')
-
 	it('renders the automatic layout and the rows on the server', () => {
-		const doc = serverDocument(<Grid columns={columns} rows={rows} getKey={getKey} />)
+		const doc = serverMarkup(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
 		const table = doc.querySelector('table')
 
@@ -57,7 +52,7 @@ describe('grid automatic layout', () => {
 	})
 
 	it('gives a column its minWidth as its least width', () => {
-		const doc = serverDocument(<Grid columns={columns} rows={rows} getKey={getKey} />)
+		const doc = serverMarkup(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
 		const name = doc.querySelector<HTMLElement>('th[data-grid-col="name"]')
 
@@ -65,7 +60,7 @@ describe('grid automatic layout', () => {
 	})
 
 	it('writes the default floor and cap of a column on the table', () => {
-		const doc = serverDocument(<Grid columns={columns} rows={rows} getKey={getKey} />)
+		const doc = serverMarkup(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
 		const table = doc.querySelector<HTMLElement>('table')
 
@@ -82,7 +77,7 @@ describe('grid automatic layout', () => {
 	it('keeps a width seed', () => {
 		const seeded: GridColumn<Row>[] = [{ ...(columns[0] as GridColumn<Row>), width: 200 }]
 
-		const doc = serverDocument(<Grid columns={seeded} rows={rows} getKey={getKey} />)
+		const doc = serverMarkup(<Grid columns={seeded} rows={rows} getKey={getKey} />)
 
 		expect(doc.querySelector<HTMLElement>('colgroup col')?.style.width).toBe('200px')
 
@@ -93,13 +88,13 @@ describe('grid automatic layout', () => {
 	})
 
 	it('takes the content mode for a grid of width fit', () => {
-		const doc = serverDocument(<Grid columns={columns} rows={rows} getKey={getKey} width="fit" />)
+		const doc = serverMarkup(<Grid columns={columns} rows={rows} getKey={getKey} width="fit" />)
 
 		expect(doc.querySelector('table')?.getAttribute('data-grid-fit-layout')).toBe('content')
 	})
 
 	it('renders saved widths in the fixed layout on the server', () => {
-		const doc = serverDocument(
+		const doc = serverMarkup(
 			<Grid
 				columns={columns}
 				rows={rows}
@@ -110,7 +105,7 @@ describe('grid automatic layout', () => {
 
 		const table = doc.querySelector<HTMLElement>('table')
 
-		expect(table?.hasAttribute('data-grid-fit-layout')).toBe(false)
+		expect(table).not.toHaveAttribute('data-grid-fit-layout')
 
 		expect(doc.querySelector<HTMLElement>('colgroup col')?.style.width).toBe('160px')
 	})
@@ -122,7 +117,7 @@ describe('grid automatic layout', () => {
 			role: 'Developer',
 		}))
 
-		const doc = serverDocument(
+		const doc = serverMarkup(
 			<Grid columns={columns} rows={many} getKey={getKey} virtualize maxHeight="320px" />,
 		)
 
@@ -142,11 +137,11 @@ describe('grid automatic layout', () => {
 	})
 
 	it('renders no automatic layout for a grid that it never sizes', () => {
-		const doc = serverDocument(
+		const doc = serverMarkup(
 			<Grid columns={columns} rows={rows} getKey={getKey} resizable={false} />,
 		)
 
-		expect(doc.querySelector('table')?.hasAttribute('data-grid-fit-layout')).toBe(false)
+		expect(doc.querySelector('table')).not.toHaveAttribute('data-grid-fit-layout')
 	})
 
 	// jsdom has no layout, so no pass can read a width. The automatic layout stays, and

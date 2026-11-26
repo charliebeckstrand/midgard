@@ -88,19 +88,19 @@ describe.each(FAMILIES)('$name trigger', ({ Root, Panel, Trigger, Close }) => {
 
 		expect(trigger).toHaveAttribute('aria-haspopup', 'dialog')
 
-		expect(trigger).toHaveAttribute('aria-expanded', 'false')
+		expect(trigger).toBeCollapsed()
 
 		expect(trigger).not.toHaveAttribute('aria-controls')
 
 		await user.click(trigger)
 
-		expect(trigger).toHaveAttribute('aria-expanded', 'true')
+		expect(trigger).toBeExpanded()
 
 		expect(trigger).toControl(screen.getByRole('dialog'))
 
 		await user.click(screen.getByRole('button', { name: 'Done' }))
 
-		expect(trigger).toHaveAttribute('aria-expanded', 'false')
+		expect(trigger).toBeCollapsed()
 
 		expect(trigger).not.toHaveAttribute('aria-controls')
 	})
@@ -215,10 +215,7 @@ describe.each(FAMILIES)('$name trigger', ({ Root, Panel, Trigger, Close }) => {
 
 		expect(screen.getByRole('dialog')).toBeInTheDocument()
 
-		expect(screen.getByRole('button', { name: 'Open', hidden: true })).toHaveAttribute(
-			'aria-expanded',
-			'true',
-		)
+		expect(screen.getByRole('button', { name: 'Open', hidden: true })).toBeExpanded()
 	})
 
 	it('drives a controlled panel through the owner state', async () => {

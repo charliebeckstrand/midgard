@@ -114,7 +114,7 @@ describe('a chart reference chip that brings its rule back', () => {
 			fireEvent.click(reference)
 		}
 
-		expect(reference).toHaveAttribute('aria-pressed', 'true')
+		expect(reference).toBePressed()
 
 		expect(receded(container)).toBe(false)
 	})
@@ -132,7 +132,7 @@ describe('a chart reference chip that brings its rule back', () => {
 
 		fireEvent.click(reference)
 
-		expect(reference).toHaveAttribute('aria-pressed', 'true')
+		expect(reference).toBePressed()
 
 		expect(receded(container)).toBe(true)
 	})
@@ -150,7 +150,7 @@ describe('a chart reference chip that brings its rule back', () => {
 
 		fireEvent.click(reference)
 
-		expect(reference).toHaveAttribute('aria-pressed', 'true')
+		expect(reference).toBePressed()
 
 		expect(receded(container)).toBe(false)
 	})

@@ -122,7 +122,7 @@ describe('Alert', () => {
 		expect(withSeverity?.className).toBe(reference?.className)
 
 		// The severity keeps its role.
-		expect(withSeverity).toHaveAttribute('role', 'alert')
+		expect(withSeverity).toHaveRole('alert')
 	})
 
 	it('keeps the variant and color that a button in its actions gives', () => {

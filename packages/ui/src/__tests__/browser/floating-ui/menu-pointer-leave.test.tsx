@@ -135,7 +135,7 @@ describe('the pointer leaves a menu (real browser)', () => {
 
 		expect(submenu).toHaveFocus()
 
-		expect(row(/More/)).toHaveAttribute('aria-expanded', 'true')
+		expect(row(/More/)).toBeExpanded()
 
 		await userEvent.keyboard('{ArrowDown}')
 
@@ -145,6 +145,6 @@ describe('the pointer leaves a menu (real browser)', () => {
 
 		await waitFor(() => expect(row('First')).toHaveFocus())
 
-		expect(row(/More/)).toHaveAttribute('aria-expanded', 'false')
+		expect(row(/More/)).toBeCollapsed()
 	})
 })

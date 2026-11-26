@@ -468,7 +468,7 @@ describe('Grid per-column filters', () => {
 
 		fireEvent.click(funnel)
 
-		expect(funnel).toHaveAttribute('aria-expanded', 'true')
+		expect(funnel).toBeExpanded()
 
 		expect(funnel).toHaveAttribute('data-open')
 	})

@@ -43,6 +43,6 @@ describe('Grid detail panel id in a windowed body (real browser)', () => {
 
 		expect(open).toControl(container.querySelector('tr[data-detail-row="r 0"] section'))
 
-		expect(closed?.hasAttribute('aria-controls')).toBe(false)
+		expect(closed).not.toHaveAttribute('aria-controls')
 	})
 })

@@ -82,7 +82,7 @@ describe('ChatCitationProvider', () => {
 
 		const anchor = screen.getByRole('button', { name: 'Twelve stops are late' })
 
-		expect(anchor).toHaveAttribute('aria-pressed', 'false')
+		expect(anchor).not.toBePressed()
 
 		expect(anchor).toHaveAccessibleDescription('Selects in Late stops by day')
 	})
@@ -102,13 +102,13 @@ describe('ChatCitationProvider', () => {
 
 		expect(onCitedChange).toHaveBeenLastCalledWith(expect.objectContaining({ id: 'c1' }))
 
-		expect(anchor).toHaveAttribute('aria-pressed', 'true')
+		expect(anchor).toBePressed()
 
 		await user.click(anchor)
 
 		expect(onCitedChange).toHaveBeenLastCalledWith(null)
 
-		expect(anchor).toHaveAttribute('aria-pressed', 'false')
+		expect(anchor).not.toBePressed()
 	})
 
 	it('presses from the keyboard as a native button does', async () => {
@@ -131,11 +131,11 @@ describe('ChatCitationProvider', () => {
 
 		await user.keyboard('{Enter}')
 
-		expect(anchor).toHaveAttribute('aria-pressed', 'true')
+		expect(anchor).toBePressed()
 
 		await user.keyboard(' ')
 
-		expect(anchor).toHaveAttribute('aria-pressed', 'false')
+		expect(anchor).not.toBePressed()
 
 		expect(onCitedChange).toHaveBeenCalledTimes(2)
 	})
@@ -167,7 +167,7 @@ describe('ChatCitationProvider', () => {
 
 		expect(onCitedChange).toHaveBeenLastCalledWith(null)
 
-		expect(late).toHaveAttribute('aria-pressed', 'false')
+		expect(late).not.toBePressed()
 
 		expect(tuesday).toHaveFocus()
 	})
@@ -277,7 +277,7 @@ describe('ChatCitationProvider', () => {
 
 		expect(onCitedChange).toHaveBeenLastCalledWith(expect.objectContaining({ id: 'c1' }))
 
-		expect(screen.getByRole('button')).toHaveAttribute('aria-pressed', 'true')
+		expect(screen.getByRole('button')).toBePressed()
 
 		// A second click releases it, as a second press of piece 0 does.
 		await user.click(piece)
@@ -392,7 +392,7 @@ describe('ChatCitationProvider trigger', () => {
 
 		expect(previews()).toEqual(['late'])
 
-		expect(anchor('Twelve stops are late')).toHaveAttribute('aria-pressed', 'false')
+		expect(anchor('Twelve stops are late')).not.toBePressed()
 
 		await user.unhover(anchor('Twelve stops are late'))
 
@@ -418,13 +418,13 @@ describe('ChatCitationProvider trigger', () => {
 
 		expect(onCitedChange).toHaveBeenLastCalledWith(expect.objectContaining({ id: 'late' }))
 
-		expect(anchor('Twelve stops are late')).toHaveAttribute('aria-pressed', 'true')
+		expect(anchor('Twelve stops are late')).toBePressed()
 
 		await user.keyboard(' ')
 
 		expect(onCitedChange).toHaveBeenLastCalledWith(null)
 
-		expect(anchor('Twelve stops are late')).toHaveAttribute('aria-pressed', 'false')
+		expect(anchor('Twelve stops are late')).not.toBePressed()
 	})
 
 	it('previews on a keyboard focus, and ends the preview on blur and on Escape', async () => {
@@ -454,7 +454,7 @@ describe('ChatCitationProvider trigger', () => {
 
 		expect(onPreviewChange).not.toHaveBeenCalled()
 
-		expect(anchor('Twelve stops are late')).toHaveAttribute('aria-pressed', 'true')
+		expect(anchor('Twelve stops are late')).toBePressed()
 	})
 
 	it('toggles a hover citation on a click from assistive technology, as it cannot hover', async () => {
@@ -480,13 +480,13 @@ describe('ChatCitationProvider trigger', () => {
 
 		await user.hover(anchor('Twelve stops are late'))
 
-		expect(anchor('Twelve stops are late')).toHaveAttribute('aria-pressed', 'false')
+		expect(anchor('Twelve stops are late')).not.toBePressed()
 
 		await user.click(anchor('Twelve stops are late'))
 
 		expect(onCitedChange).toHaveBeenLastCalledWith(expect.objectContaining({ id: 'late' }))
 
-		expect(anchor('Twelve stops are late')).toHaveAttribute('aria-pressed', 'true')
+		expect(anchor('Twelve stops are late')).toBePressed()
 
 		await user.unhover(anchor('Twelve stops are late'))
 
@@ -516,7 +516,7 @@ describe('ChatCitationProvider trigger', () => {
 
 		expect(onCitedChange).toHaveBeenCalledTimes(1)
 
-		expect(anchor('Twelve stops are late')).toHaveAttribute('aria-pressed', 'true')
+		expect(anchor('Twelve stops are late')).toBePressed()
 	})
 
 	it('previews the next citation when the pointer moves from one to the next before a render', () => {
@@ -636,7 +636,7 @@ describe('ChatCitationProvider trigger', () => {
 
 		await user.keyboard('{Enter}')
 
-		expect(anchor('Twelve stops are late')).toHaveAttribute('aria-pressed', 'true')
+		expect(anchor('Twelve stops are late')).toBePressed()
 
 		await user.keyboard('{Escape}')
 
@@ -644,7 +644,7 @@ describe('ChatCitationProvider trigger', () => {
 
 		expect(onCitedChange).toHaveBeenLastCalledWith(null)
 
-		expect(anchor('Twelve stops are late')).toHaveAttribute('aria-pressed', 'false')
+		expect(anchor('Twelve stops are late')).not.toBePressed()
 
 		// The blur after Escape sends nothing, because no preview is open.
 		await user.tab()
@@ -663,7 +663,7 @@ describe('ChatCitationProvider trigger', () => {
 
 		expect(onCitedChange).toHaveBeenCalledTimes(1)
 
-		expect(anchor('Twelve stops are late')).toHaveAttribute('aria-pressed', 'true')
+		expect(anchor('Twelve stops are late')).toBePressed()
 	})
 
 	it.each([
@@ -761,7 +761,7 @@ describe('ChatCitationProvider isMarked', () => {
 		expect(anchor).toHaveAttribute('data-marked')
 
 		// A marked citation is not pressed: a press makes it the active citation.
-		expect(anchor).toHaveAttribute('aria-pressed', 'false')
+		expect(anchor).not.toBePressed()
 
 		expect(bySlot(container, 'chat-citation-piece')).toHaveAttribute('data-marked')
 
@@ -866,7 +866,7 @@ describe('ChatCitationProvider render', () => {
 
 		expect(anchor).toHaveAttribute('aria-haspopup', 'dialog')
 
-		expect(anchor).toHaveAttribute('aria-expanded', 'false')
+		expect(anchor).toBeCollapsed()
 
 		// It opens a view and selects in none, so it is not a toggle.
 		expect(anchor).not.toHaveAttribute('aria-pressed')
@@ -894,7 +894,7 @@ describe('ChatCitationProvider render', () => {
 
 		expect(render).toHaveBeenLastCalledWith(expect.objectContaining({ id: 'late' }))
 
-		expect(anchor).toHaveAttribute('aria-expanded', 'true')
+		expect(anchor).toBeExpanded()
 	})
 
 	it('opens from Enter and Space, and gives the focus back to the citation on Escape', async () => {
@@ -918,7 +918,7 @@ describe('ChatCitationProvider render', () => {
 
 		expect(anchor).toHaveFocus()
 
-		expect(anchor).toHaveAttribute('aria-expanded', 'false')
+		expect(anchor).toBeCollapsed()
 
 		await user.keyboard(' ')
 

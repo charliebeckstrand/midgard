@@ -148,7 +148,7 @@ describe('TimelineItem marker', () => {
 
 		const dot = bySlot(container, 'status-dot')
 
-		expect(dot).toHaveAttribute('role', 'img')
+		expect(dot).toHaveRole('img')
 
 		expect(dot).toHaveAccessibleName('Error')
 	})

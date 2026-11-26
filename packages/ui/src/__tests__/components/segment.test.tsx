@@ -22,7 +22,7 @@ describe('Segment', () => {
 
 		const list = bySlot(container, 'tab-list')
 
-		expect(list).toHaveAttribute('role', 'radiogroup')
+		expect(list).toHaveRole('radiogroup')
 
 		expect(list).toHaveAttribute('aria-label', 'View mode')
 
@@ -33,7 +33,7 @@ describe('Segment', () => {
 		expect(items).toHaveLength(2)
 
 		for (const item of items) {
-			expect(item).toHaveAttribute('role', 'radio')
+			expect(item).toHaveRole('radio')
 
 			expect(item).not.toHaveAttribute('aria-selected')
 
@@ -55,11 +55,11 @@ describe('Segment', () => {
 			</Segment>,
 		)
 
-		expect(bySlot(container, 'tab-list')).toHaveAttribute('role', 'tablist')
+		expect(bySlot(container, 'tab-list')).toHaveRole('tablist')
 
 		const [first, second] = allBySlot(container, 'tab')
 
-		expect(first).toHaveAttribute('role', 'tab')
+		expect(first).toHaveRole('tab')
 
 		expect(first).toHaveAttribute('aria-selected', 'true')
 
@@ -80,13 +80,13 @@ describe('Segment', () => {
 
 		const [first, second] = allBySlot(container, 'tab')
 
-		expect(first).toHaveAttribute('aria-checked', 'false')
+		expect(first).not.toBeChecked()
 
 		expect(first).not.toHaveAttribute('data-current')
 
 		expect(first).toHaveAttribute('tabindex', '-1')
 
-		expect(second).toHaveAttribute('aria-checked', 'true')
+		expect(second).toBeChecked()
 
 		expect(second).toHaveAttribute('data-current', '')
 
@@ -147,7 +147,7 @@ describe('Segment', () => {
 
 		const items = allBySlot(container, 'tab')
 
-		expect(items[0]).toHaveAttribute('aria-checked', 'true')
+		expect(items[0]).toBeChecked()
 
 		fireEvent.click(items[1] as HTMLElement)
 
@@ -205,7 +205,7 @@ describe('Segment keyboard navigation', () => {
 
 		expect(item('B')).toHaveFocus()
 
-		expect(item('B')).toHaveAttribute('aria-checked', 'true')
+		expect(item('B')).toBeChecked()
 
 		expect(item('B')).toHaveAttribute('tabindex', '0')
 

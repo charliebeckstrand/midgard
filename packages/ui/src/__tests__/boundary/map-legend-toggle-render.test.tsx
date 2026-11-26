@@ -51,13 +51,13 @@ describe('map legend toggle renders', () => {
 
 		expect(toggleEntry(container, 1)).toEqual(['West'])
 
-		expect(allBySlot(container, 'map-legend-item')[1]).toHaveAttribute('aria-pressed', 'false')
+		expect(allBySlot(container, 'map-legend-item')[1]).not.toBePressed()
 
 		// The second toggle reads the hidden set of the first, through the same
 		// handler, and shows the entry again.
 		expect(toggleEntry(container, 1)).toEqual(['West'])
 
-		expect(allBySlot(container, 'map-legend-item')[1]).toHaveAttribute('aria-pressed', 'true')
+		expect(allBySlot(container, 'map-legend-item')[1]).toBePressed()
 
 		expect(toggleEntry(container, 0)).toEqual(['East'])
 	})

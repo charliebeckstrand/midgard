@@ -137,11 +137,11 @@ describe('DatePicker (relative)', () => {
 
 		const today = screen.getByRole('button', { name: 'Today' })
 
-		expect(today).toHaveAttribute('aria-pressed', 'false')
+		expect(today).not.toBePressed()
 
 		await user.click(today)
 
-		expect(screen.getByRole('button', { name: 'Today' })).toHaveAttribute('aria-pressed', 'true')
+		expect(screen.getByRole('button', { name: 'Today' })).toBePressed()
 
 		await user.click(screen.getByRole('button', { name: 'Today' }))
 
@@ -183,9 +183,9 @@ describe('DatePicker (relative)', () => {
 		// Chip + row highlight follow the pick, not the list order.
 		expect(bySlot(container, 'datepicker-button')).toHaveTextContent('Beta')
 
-		expect(screen.getByRole('button', { name: 'Beta' })).toHaveAttribute('aria-pressed', 'true')
+		expect(screen.getByRole('button', { name: 'Beta' })).toBePressed()
 
-		expect(screen.getByRole('button', { name: 'Alpha' })).toHaveAttribute('aria-pressed', 'false')
+		expect(screen.getByRole('button', { name: 'Alpha' })).not.toBePressed()
 	})
 
 	it('renders only the supplied presets when overridden', async () => {
@@ -441,10 +441,7 @@ describe('DatePicker (relative)', () => {
 			initial: [{ from: new Date(2020, 0, 1), to: new Date(2020, 0, 5) }],
 		})
 
-		expect(screen.getByRole('button', { name: 'Custom range' })).toHaveAttribute(
-			'aria-pressed',
-			'true',
-		)
+		expect(screen.getByRole('button', { name: 'Custom range' })).toBePressed()
 
 		await user.click(screen.getByRole('button', { name: 'Today' }))
 

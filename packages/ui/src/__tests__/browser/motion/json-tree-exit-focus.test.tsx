@@ -52,7 +52,7 @@ describe('JsonTree exiting group (real Motion)', () => {
 
 			pressKey('ArrowLeft')
 
-			expect(branch).toHaveAttribute('aria-expanded', 'false')
+			expect(branch).toBeCollapsed()
 
 			// The group stays for its exit, and its rows stay with it.
 			expect(group).toBeInTheDocument()

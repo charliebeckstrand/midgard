@@ -14,7 +14,7 @@ describe('Select', () => {
 
 		expect(button).toBeInTheDocument()
 
-		expect(button).toHaveAttribute('role', 'combobox')
+		expect(button).toHaveRole('combobox')
 	})
 
 	it('shows placeholder text by default', () => {
@@ -40,7 +40,7 @@ describe('Select', () => {
 
 		const event = fireEvent.keyDown(trigger, { key })
 
-		expect(trigger).toHaveAttribute('aria-expanded', 'true')
+		expect(trigger).toBeExpanded()
 
 		// The key opens the menu and does not scroll the page.
 		expect(event).toBe(false)
@@ -57,6 +57,6 @@ describe('Select', () => {
 
 		fireEvent.keyDown(trigger, { key: 'ArrowDown' })
 
-		expect(trigger).toHaveAttribute('aria-expanded', 'false')
+		expect(trigger).toBeCollapsed()
 	})
 })

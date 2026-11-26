@@ -292,7 +292,7 @@ describe('Wysiwyg (real browser)', () => {
 
 		expect(field).toHaveFocus()
 
-		expect(bold).toHaveAttribute('aria-pressed', 'true')
+		expect(bold).toBePressed()
 
 		expect(value()).toBe('**Ship it**')
 
@@ -445,7 +445,7 @@ describe('Wysiwyg (real browser)', () => {
 
 		await userEvent.keyboard('{Control>}b{/Control}')
 
-		expect(screen.getByRole('button', { name: 'Bold' })).toHaveAttribute('aria-pressed', 'false')
+		expect(screen.getByRole('button', { name: 'Bold' })).not.toBePressed()
 
 		expect(field.querySelector('strong')).not.toBeNull()
 

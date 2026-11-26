@@ -533,7 +533,7 @@ describe('ContextMenuList submenus', () => {
 
 		expect(trigger).toHaveAttribute('aria-haspopup', 'menu')
 
-		expect(trigger).toHaveAttribute('aria-expanded', 'false')
+		expect(trigger).toBeCollapsed()
 
 		expect(screen.queryByRole('menuitem', { name: 'Pin left' })).not.toBeInTheDocument()
 	})

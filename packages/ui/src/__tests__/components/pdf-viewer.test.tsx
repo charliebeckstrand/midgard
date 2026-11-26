@@ -735,7 +735,7 @@ describe('PdfViewer', () => {
 
 		const toggle = screen.getByLabelText('Hide thumbnails')
 
-		expect(toggle).toHaveAttribute('aria-expanded', 'true')
+		expect(toggle).toBeExpanded()
 
 		const user = setupUser()
 
@@ -743,7 +743,7 @@ describe('PdfViewer', () => {
 
 		const collapsedToggle = screen.getByLabelText('Show thumbnails')
 
-		expect(collapsedToggle).toHaveAttribute('aria-expanded', 'false')
+		expect(collapsedToggle).toBeCollapsed()
 
 		expect(bySlot(container, 'pdf-viewer-sidebar')).toHaveAttribute('inert')
 	})
@@ -758,7 +758,7 @@ describe('PdfViewer', () => {
 	it('opens with the thumbnail sidebar open on a single-page document', () => {
 		renderUI(<PdfViewer pages={pages.slice(0, 1)} />)
 
-		expect(screen.getByLabelText('Hide thumbnails')).toHaveAttribute('aria-expanded', 'true')
+		expect(screen.getByLabelText('Hide thumbnails')).toBeExpanded()
 	})
 
 	// The press of the reader holds, and a new document does not open the rail again.
@@ -769,7 +769,7 @@ describe('PdfViewer', () => {
 
 		rerender(<PdfViewer pages={pages} />)
 
-		expect(screen.getByLabelText('Show thumbnails')).toHaveAttribute('aria-expanded', 'false')
+		expect(screen.getByLabelText('Show thumbnails')).toBeCollapsed()
 	})
 
 	/*
@@ -801,7 +801,7 @@ describe('PdfViewer', () => {
 
 		expect(opener).toHaveAttribute('aria-haspopup', 'dialog')
 
-		expect(opener).toHaveAttribute('aria-expanded', 'false')
+		expect(opener).toBeCollapsed()
 
 		const user = setupUser()
 
@@ -809,7 +809,7 @@ describe('PdfViewer', () => {
 
 		expect(screen.getByLabelText('Show thumbnails')).toHaveAttribute('aria-haspopup', 'dialog')
 
-		expect(screen.getByLabelText('Show thumbnails')).toHaveAttribute('aria-expanded', 'true')
+		expect(screen.getByLabelText('Show thumbnails')).toBeExpanded()
 	})
 
 	it('opens the thumbnails in a sheet at a wide viewport when `thumbnails` is a sheet', () => {
@@ -887,7 +887,7 @@ describe('PdfViewer', () => {
 
 		expect(screen.queryByRole('dialog', { name: 'Pages' })).toBeNull()
 
-		expect(screen.getByLabelText('Show thumbnails')).toHaveAttribute('aria-expanded', 'false')
+		expect(screen.getByLabelText('Show thumbnails')).toBeCollapsed()
 	})
 
 	it('exposes the aria-label on the root', () => {

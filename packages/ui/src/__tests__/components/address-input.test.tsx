@@ -54,7 +54,7 @@ describe('AddressInput', () => {
 
 		expect(input).toBeInTheDocument()
 
-		expect(input).toHaveAttribute('role', 'combobox')
+		expect(input).toHaveRole('combobox')
 	})
 
 	it('uses the default placeholder', () => {

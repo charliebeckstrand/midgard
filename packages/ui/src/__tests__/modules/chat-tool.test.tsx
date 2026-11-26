@@ -85,10 +85,7 @@ describe('ChatTool', () => {
 
 			expect(bySlot(container, 'chat-tool-detail')).not.toBeInTheDocument()
 
-			expect(present(screen.getByRole('button'), 'trigger')).toHaveAttribute(
-				'aria-expanded',
-				'false',
-			)
+			expect(present(screen.getByRole('button'), 'trigger')).toBeCollapsed()
 		})
 
 		it('lexes the detail only once the step is opened', async () => {

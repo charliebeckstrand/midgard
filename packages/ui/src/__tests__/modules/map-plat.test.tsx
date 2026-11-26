@@ -30,7 +30,7 @@ describe('MapPlat', () => {
 
 		expect(allRegions(container)).toHaveLength(3)
 
-		expect(bySlot(container, 'map-plot')).toHaveAttribute('role', 'img')
+		expect(bySlot(container, 'map-plot')).toHaveRole('img')
 
 		expect(bySlot(container, 'map-plot')).toHaveAttribute('aria-label', 'Zones')
 
@@ -433,7 +433,7 @@ describe('MapPlat', () => {
 
 		fireEvent.click(east as HTMLButtonElement)
 
-		expect(east).toHaveAttribute('aria-pressed', 'false')
+		expect(east).not.toBePressed()
 
 		const [alpha] = allRegions(container)
 
@@ -1475,7 +1475,7 @@ describe('MapPlat region click', () => {
 		// The keyboard and assistive path is a control the consumer supplies beside
 		// the map; the paths stay presentational, so nothing focusable hides in the
 		// sr-only readout.
-		expect(bySlot(container, 'map-plot')).toHaveAttribute('role', 'img')
+		expect(bySlot(container, 'map-plot')).toHaveRole('img')
 
 		expect(container.querySelector('svg')).toHaveAttribute('aria-hidden', 'true')
 

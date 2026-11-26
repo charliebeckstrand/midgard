@@ -596,13 +596,13 @@ describe('ColorPicker', () => {
 
 		fireEvent.click(button)
 
-		expect(button).toHaveAttribute('aria-expanded', 'true')
+		expect(button).toBeExpanded()
 
 		rerender(<ColorPicker defaultValue="#ef4444" readOnly />)
 
 		fireEvent.click(button)
 
-		expect(button).toHaveAttribute('aria-expanded', 'false')
+		expect(button).toBeCollapsed()
 	})
 
 	it.each([
@@ -639,7 +639,7 @@ describe('ColorPicker', () => {
 
 			fireEvent.click(button)
 
-			expect(button).toHaveAttribute('aria-expanded', 'false')
+			expect(button).toBeCollapsed()
 
 			expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 		},
@@ -664,7 +664,7 @@ describe('ColorPicker', () => {
 
 		expect(button).toHaveFocus()
 
-		expect(button).toHaveAttribute('aria-expanded', 'false')
+		expect(button).toBeCollapsed()
 
 		expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 	})
@@ -696,7 +696,7 @@ describe('ColorPicker', () => {
 
 		const button = getSlot(container, 'color-picker-button')
 
-		expect(button).toHaveAttribute('role', 'combobox')
+		expect(button).toHaveRole('combobox')
 
 		expect(button).toHaveAttribute('aria-required', 'true')
 	})
@@ -844,7 +844,7 @@ describe('ColorPicker', () => {
 
 		expect(button).toHaveAttribute('aria-haspopup', 'dialog')
 
-		expect(button).toHaveAttribute('aria-expanded', 'false')
+		expect(button).toBeCollapsed()
 
 		expect(bySlot(container, 'color-picker-swatch')).toBeInTheDocument()
 	})
@@ -858,7 +858,7 @@ describe('ColorPicker', () => {
 
 		fireEvent.click(button)
 
-		expect(ariaTarget(button, 'aria-controls')).toHaveAttribute('role', 'dialog')
+		expect(ariaTarget(button, 'aria-controls')).toHaveRole('dialog')
 	})
 
 	it('keeps the hex label of the trigger left to right under a right-to-left ancestor', () => {

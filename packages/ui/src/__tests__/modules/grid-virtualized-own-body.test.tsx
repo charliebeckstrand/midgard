@@ -42,7 +42,7 @@ describe('Grid virtualize on a self-rendering body', () => {
 
 		const table = container.querySelector('table')
 
-		expect(table).toHaveAttribute('role', 'table')
+		expect(table).toHaveRole('table')
 
 		// The header row, 3 group headers, 30 leaves, and 3 totals.
 		expect(table).toHaveAttribute('aria-rowcount', String(1 + 3 + 30 + 3))
@@ -72,7 +72,7 @@ describe('Grid virtualize on a self-rendering body', () => {
 
 		const table = container.querySelector('table')
 
-		expect(table).toHaveAttribute('role', 'table')
+		expect(table).toHaveRole('table')
 
 		expect(table).toHaveAttribute('aria-rowcount', String(1 + 30 + 2))
 

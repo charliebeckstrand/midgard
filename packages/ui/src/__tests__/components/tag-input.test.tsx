@@ -335,7 +335,7 @@ describe('TagInput', () => {
 
 		const list = getSlot(container, 'tags')
 
-		expect(list).toHaveAttribute('role', 'list')
+		expect(list).toHaveRole('list')
 
 		expect(list).toHaveAttribute('aria-label', 'Tags')
 

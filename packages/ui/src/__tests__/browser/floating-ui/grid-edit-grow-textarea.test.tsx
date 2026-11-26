@@ -104,7 +104,7 @@ describe('grid text area editor grow (real floating engine)', () => {
 			'the name input',
 		)
 
-		expect(getSlot(cell).hasAttribute('data-grown')).toBe(false)
+		expect(getSlot(cell)).not.toHaveAttribute('data-grown')
 
 		expect(textarea.getBoundingClientRect().height).toBeNear(
 			input.getBoundingClientRect().height,
@@ -125,7 +125,7 @@ describe('grid text area editor grow (real floating engine)', () => {
 
 		const slot = getSlot(cell)
 
-		await waitFor(() => expect(slot.hasAttribute('data-grown')).toBe(true))
+		await waitFor(() => expect(slot).toHaveAttribute('data-grown'))
 
 		const box = slot.getBoundingClientRect()
 
@@ -165,11 +165,11 @@ describe('grid text area editor grow (real floating engine)', () => {
 
 		const slot = getSlot(cell)
 
-		expect(slot.hasAttribute('data-grown')).toBe(false)
+		expect(slot).not.toHaveAttribute('data-grown')
 
 		await userEvent.keyboard('{End}{Enter}More')
 
-		await waitFor(() => expect(slot.hasAttribute('data-grown')).toBe(true))
+		await waitFor(() => expect(slot).toHaveAttribute('data-grown'))
 
 		expect(textarea.value).toBe('Short\nMore')
 
@@ -218,7 +218,7 @@ describe('grid text area editor grow (real floating engine)', () => {
 
 		const slot = getSlot(cell)
 
-		await waitFor(() => expect(slot.hasAttribute('data-grown')).toBe(true))
+		await waitFor(() => expect(slot).toHaveAttribute('data-grown'))
 
 		const head = present(container.querySelector('thead'), 'the head')
 
@@ -297,7 +297,7 @@ describe('grid text area editor grow in the frame of a scroll (real floating eng
 
 		write(textarea, text)
 
-		await waitFor(() => expect(slot.hasAttribute('data-grown')).toBe(true))
+		await waitFor(() => expect(slot).toHaveAttribute('data-grown'))
 
 		await frames(2)
 

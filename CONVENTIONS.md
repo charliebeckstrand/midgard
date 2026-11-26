@@ -344,6 +344,8 @@ Do not load a module early when the case tests that load. An example is a gate t
 
 10.15 A check of an ARIA id reference names the element, not the id. Use `toControl`, `toHaveActiveDescendant`, `toBeLabelledBy`, and `toBeDescribedBy` (`helpers/aria-references.ts`). Each matcher refuses a target that is not an element, so a query that finds nothing does not make the check pass. Each id must name one element only. To read the element that a reference names, use `ariaTarget` or `ariaTargets`. A literal id that a case gives as a prop stays a `toHaveAttribute` check, because there the contract is the value that passes through.
 
+10.16 A check of ARIA state uses the matcher of that state. For `aria-expanded`, use `toBeExpanded` or `toBeCollapsed` (`helpers/aria-state.ts`), and `not.toHaveAttribute('aria-expanded')` for an element that is no disclosure. These two matchers refuse `not`, so an absent attribute cannot pass as a closed disclosure. For `aria-pressed`, `aria-checked`, and `role`, use the jest-dom matchers `toBePressed`, `toBeChecked`, and `toHaveRole`. Assert an attribute with `toHaveAttribute`, not with `hasAttribute(...)` and `toBe`, because then a failure shows the element.
+
 ## 11. Environment
 
 11.1 [`NEXT_PUBLIC_*`](https://nextjs.org/docs/pages/guides/environment-variables) is client, else server-only. Confine raw `process.env` reads to a config edge. Today two files read it. `env.ts` in the `auth` package reads `BIFROST_URL` and `CLIENT_IP_SECRET`. `server/env.ts` in `shared` reads `PORT`, `HOSTNAME`, and `KEEP_ALIVE_TIMEOUT` for the server of each app image. Other code reaches env through them. Biome's `noProcessEnv` pins it in `apps`, `auth`, and `shared`; `ui` keeps its `NODE_ENV` checks for development warnings.

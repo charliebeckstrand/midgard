@@ -101,7 +101,7 @@ describe('Chat: a pick in a chart marks the citation that it matches', () => {
 
 		expect(anchor()).toHaveAttribute('data-marked')
 
-		expect(anchor()).toHaveAttribute('aria-pressed', 'false')
+		expect(anchor()).not.toBePressed()
 
 		// A pick of Mon does not match, so the mark goes.
 		await userEvent.keyboard('{ArrowLeft}{Enter}')
@@ -115,7 +115,7 @@ describe('Chat: a pick in a chart marks the citation that it matches', () => {
 
 		await userEvent.click(anchor() as HTMLElement)
 
-		expect(anchor()).toHaveAttribute('aria-pressed', 'true')
+		expect(anchor()).toBePressed()
 
 		expect(anchor()).not.toHaveAttribute('data-marked')
 	})

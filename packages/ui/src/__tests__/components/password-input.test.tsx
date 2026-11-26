@@ -23,13 +23,13 @@ describe('PasswordInput', () => {
 
 		// APG toggle pattern: aria-pressed conveys the state while the
 		// accessible name stays fixed.
-		expect(toggle).toHaveAttribute('aria-pressed', 'false')
+		expect(toggle).not.toBePressed()
 
 		await user.click(toggle)
 
 		expect(bySlot(container, 'password-input')).toHaveAttribute('type', 'text')
 
-		expect(toggle).toHaveAttribute('aria-pressed', 'true')
+		expect(toggle).toBePressed()
 
 		expect(toggle).toHaveAccessibleName('Show password')
 	})
@@ -53,7 +53,7 @@ describe('PasswordInput', () => {
 
 		await user.keyboard('{Enter}')
 
-		expect(toggle).toHaveAttribute('aria-pressed', 'true')
+		expect(toggle).toBePressed()
 
 		expect(await screen.findByRole('tooltip')).toHaveTextContent('Show password')
 
@@ -106,10 +106,7 @@ describe('PasswordInput', () => {
 
 		expect(input).toHaveAttribute('type', 'password')
 
-		expect(screen.getByRole('button', { name: 'Show password' })).toHaveAttribute(
-			'aria-pressed',
-			'false',
-		)
+		expect(screen.getByRole('button', { name: 'Show password' })).not.toBePressed()
 
 		rerender(<PasswordInput />)
 

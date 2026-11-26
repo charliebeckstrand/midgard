@@ -619,24 +619,24 @@ describe('Grid roving group headers under manual grouping', () => {
 
 		fireEvent.keyDown(table, { key: 'ArrowLeft' })
 
-		expect(header).toHaveAttribute('aria-expanded', 'false')
+		expect(header).toBeCollapsed()
 
 		// ArrowLeft on a closed group does nothing.
 		fireEvent.keyDown(table, { key: 'ArrowLeft' })
 
-		expect(header).toHaveAttribute('aria-expanded', 'false')
+		expect(header).toBeCollapsed()
 
 		fireEvent.keyDown(table, { key: 'ArrowRight' })
 
-		expect(header).toHaveAttribute('aria-expanded', 'true')
+		expect(header).toBeExpanded()
 
 		fireEvent.keyDown(table, { key: 'Enter' })
 
-		expect(header).toHaveAttribute('aria-expanded', 'false')
+		expect(header).toBeCollapsed()
 
 		fireEvent.keyDown(table, { key: ' ' })
 
-		expect(header).toHaveAttribute('aria-expanded', 'true')
+		expect(header).toBeExpanded()
 
 		expect(headerItem(table)).toHaveFocus()
 	})
@@ -763,7 +763,7 @@ describe('Grid roving semantics under manual grouping', () => {
 
 		expect(header).toHaveAttribute('aria-level', '1')
 
-		expect(header).toHaveAttribute('aria-expanded', 'true')
+		expect(header).toBeExpanded()
 
 		expect(bodyRows(table).map((row) => row.getAttribute('aria-level'))).toEqual(['2', '2', '2'])
 	})
