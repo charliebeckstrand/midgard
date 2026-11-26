@@ -35,10 +35,19 @@ export function useSectionsOpen(sections: readonly string[], page: PageLink | un
 
 	const hydrated = useHydrated()
 
-	// The page on which the reader closed the section of the page.
-	const [released, setReleased] = useState<string | undefined>(undefined)
+	// Whether the reader closed the section of the current page. A navigation
+	// clears it, also a navigation back to the same page.
+	const [released, setReleased] = useState(false)
 
-	const current = page && released !== page.path ? page.category : undefined
+	const [shownPage, setShownPage] = useState(page)
+
+	if (shownPage !== page) {
+		setShownPage(page)
+
+		setReleased(false)
+	}
+
+	const current = released ? undefined : page?.category
 
 	const closedSet = new Set(closed.split(' '))
 
@@ -69,7 +78,7 @@ export function useSectionsOpen(sections: readonly string[], page: PageLink | un
 	const setOpen = (section: string, open: boolean) => {
 		writeChoice(sectionChoice(section), open ? 'open' : 'closed')
 
-		if (!open && page?.category === section) setReleased(page.path)
+		if (!open && page?.category === section) setReleased(true)
 	}
 
 	return { current, isOpen, isLive: (section: string) => live.has(section), setOpen }

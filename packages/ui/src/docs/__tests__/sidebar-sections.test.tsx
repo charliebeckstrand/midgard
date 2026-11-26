@@ -128,6 +128,20 @@ describe('DocsSidebar sections', () => {
 		expect(isOpen('Components')).toBe(true)
 	})
 
+	it('opens the released section on a navigation back to its page', () => {
+		const { rerender } = render(sidebar('/button'))
+
+		fireEvent.click(title('Components'))
+
+		rerender(sidebar('/modules/grid'))
+
+		expect(isOpen('Components')).toBe(false)
+
+		rerender(sidebar('/button'))
+
+		expect(isOpen('Components')).toBe(true)
+	})
+
 	it('hides the letter rail while the components are closed', () => {
 		const { container } = render(sidebar('/modules/grid'))
 
