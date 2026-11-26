@@ -33,7 +33,10 @@ export type WysiwygContextValue = {
 	 * the editor comes.
 	 */
 	setHeading: (level: WysiwygHeadingLevel) => void
-	/** The level of the heading rail that the selection has, or `null`. */
+	/**
+	 * The level of the heading rail that the selection has, or `null`. Before
+	 * the editor loads, the markup of the field gives it.
+	 */
 	headingLevel: () => WysiwygHeadingLevel | null
 	/**
 	 * Whether a level of the heading rail can apply to the selection: the

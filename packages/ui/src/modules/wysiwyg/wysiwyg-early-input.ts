@@ -3,7 +3,7 @@ import { isApplePlatform } from '../../utilities/apple-platform'
 import { createEmitter } from '../../utilities/emitter'
 import { isComposing } from '../../utilities/is-composing'
 import { LEAF } from './engine/wysiwyg-dom'
-import type { WysiwygToggleAction } from './types'
+import type { WysiwygHeadingLevel, WysiwygToggleAction } from './types'
 import { formatAction, WYSIWYG_SHORTCUTS } from './wysiwyg-actions'
 import type { WysiwygEditor } from './wysiwyg-editor'
 
@@ -99,6 +99,41 @@ function findTextBlock(root: Element, node: Node): Element | null {
 	const block = element.closest(TEXT_BLOCK)
 
 	return block && root.contains(block) ? block : null
+}
+
+/**
+ * The level of the rail that the text blocks of the selection in the markup
+ * have, as `headingLevel` of the engine gives it for the doc. When the
+ * selection is not in the markup, the first text block gives the level, as
+ * the editor puts its selection at the start of the doc. A paragraph is `0`,
+ * a heading of level 1 to 3 is its level, and each other text block gives
+ * `null`, as do blocks that do not all have the same level.
+ *
+ * @internal
+ */
+export function staticHeadingLevel(root: Element): WysiwygHeadingLevel | null {
+	const blocks = textBlocks(root)
+
+	const selection = root.ownerDocument.getSelection()
+
+	const range = selection?.rangeCount ? selection.getRangeAt(0) : null
+
+	const selected =
+		range && root.contains(range.commonAncestorContainer)
+			? blocks.filter((block) => range.intersectsNode(block))
+			: []
+
+	const [first = 0, ...rest] = (selected.length > 0 ? selected : blocks.slice(0, 1)).map(
+		(block) => {
+			if (block.tagName === 'P') return 0
+
+			const level = /^H([1-3])$/.exec(block.tagName)?.[1]
+
+			return level === undefined ? null : (Number(level) as WysiwygHeadingLevel)
+		},
+	)
+
+	return first !== null && rest.every((level) => level === first) ? first : null
 }
 
 /** The state of {@link readBlock}: the text so far, and the offset of each point that it found. @internal */

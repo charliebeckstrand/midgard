@@ -33,8 +33,9 @@ type WysiwygActionButtonProps = { action: WysiwygAction } & Omit<
  * is on while the selection is in a link, and Heading is on while each text
  * block of the selection is a heading. Heading has no shortcut of its own,
  * and it shows the glyph of the level of the selection: Text, H1, H2, or H3.
- * It shows the glyph of Text while the blocks have different levels, a level
- * below 3, or before the editor loads.
+ * It shows the glyph of Text while the blocks have different levels or a
+ * level below 3. Before the editor loads, the markup of the field gives the
+ * level. The server render shows the glyph of Text.
  *
  * The button looks and works the same before the editor loads. A press then
  * starts the load, and the action runs when the editor comes.

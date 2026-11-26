@@ -28,7 +28,7 @@ import { useWysiwygEditor } from './use-wysiwyg-editor'
 import { useWysiwygField } from './use-wysiwyg-field'
 import { useWysiwygLabelFocus } from './use-wysiwyg-label-focus'
 import { useWysiwygSelection } from './use-wysiwyg-selection'
-import type { WysiwygEarlyItem } from './wysiwyg-early-input'
+import { staticHeadingLevel, type WysiwygEarlyItem } from './wysiwyg-early-input'
 import { WysiwygStatic } from './wysiwyg-static'
 
 /** Props for {@link Wysiwyg}. */
@@ -429,7 +429,17 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 			// when the editor comes.
 			run: (action: WysiwygToggleAction) => whenReady((ready) => ready.run(action)),
 			setHeading: (level: WysiwygHeadingLevel) => whenReady((ready) => ready.setHeading(level)),
-			headingLevel: () => (locked ? null : (editor?.headingLevel() ?? null)),
+			// Before the editor loads, the markup gives the level, so the rail that a
+			// press opens shows it at once.
+			headingLevel: () => {
+				if (locked) return null
+
+				if (editor) return editor.headingLevel()
+
+				const markup = host.current?.firstElementChild
+
+				return markup ? staticHeadingLevel(markup) : null
+			},
 			// Before the editor loads, each level is open, so a press starts the load.
 			canSetHeading: (level: WysiwygHeadingLevel) =>
 				!editor || editor.headingLevel() === level || editor.canSetHeading(level),
