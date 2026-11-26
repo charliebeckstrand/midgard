@@ -538,7 +538,7 @@ async function run(browser: Browser, origin: string): Promise<Sample> {
 
 		await tap(page, cdp, openNavigation)
 
-		await tap(page, cdp, page.getByRole('button', { name: 'Search docs' }))
+		await tap(page, cdp, page.getByRole('button', { name: 'Search', exact: true }))
 
 		await page.getByRole('combobox').waitFor()
 
