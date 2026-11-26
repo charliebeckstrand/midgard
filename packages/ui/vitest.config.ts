@@ -8,16 +8,7 @@ import {
 	walkSource,
 } from './src/__tests__/helpers/walk-source.ts'
 import { splitSequencer } from './src/__tests__/setup/split-sequencer.ts'
-import {
-	assertions,
-	budgets,
-	CI,
-	cleanup,
-	coverage,
-	env,
-	reporters,
-	sequence,
-} from './vitest.base.ts'
+import { assertions, budgets, CI, cleanup, coverage, reporters, sequence } from './vitest.base.ts'
 
 // The test files that open with `// @vitest-environment node`: the `pure`
 // project runs exactly these, and `unit` and `docs` exclude them. The scan skips
@@ -213,8 +204,6 @@ export const projectDefaults = {
 	// gives to Testing Library. The hooks of ui get a longer budget on CI too.
 	...budgets,
 	hookTimeout: CI ? 15_000 : 10_000,
-	// The pinned zone of `vitest.shared.mts`.
-	env,
 	// Vitest processes no CSS, and it gives each CSS import an empty module.
 	// An import with `?url` does not want the CSS but its URL, so it goes to
 	// Vite, which gives the path of the file, as the dev server does. Without
