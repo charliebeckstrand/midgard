@@ -71,7 +71,7 @@ describe('LeaderboardDialog', () => {
 
 		expect(rows[3]?.getAttribute('aria-current')).toBe('true')
 
-		expect(screen.getByText('3 players')).toBeTruthy()
+		expect(screen.getByText('3 players')).toBeInTheDocument()
 	})
 
 	it('reads the board of an earlier day, and goes no later than today', async () => {
@@ -83,7 +83,7 @@ describe('LeaderboardDialog', () => {
 
 		expect(later.hasAttribute('disabled')).toBe(true)
 
-		expect(await screen.findByText('No one is on this board yet.')).toBeTruthy()
+		expect(await screen.findByText('No one is on this board yet.')).toBeInTheDocument()
 
 		fireEvent.click(screen.getByRole('button', { name: 'Earlier day' }))
 
@@ -111,7 +111,7 @@ describe('LeaderboardDialog', () => {
 
 		fireEvent.click(screen.getByRole('tab', { name: 'Vs CPU' }))
 
-		expect(await screen.findByText('Top vsCpu')).toBeTruthy()
+		expect(await screen.findByText('Top vsCpu')).toBeInTheDocument()
 	})
 
 	it('keeps the rows of the last day, dimmed, until the rows of the new day arrive', async () => {
@@ -136,11 +136,11 @@ describe('LeaderboardDialog', () => {
 
 		await waitFor(() => expect(table.closest('[aria-busy="true"]')).toBeTruthy())
 
-		expect(within(table).getByText('Ada')).toBeTruthy()
+		expect(within(table).getByText('Ada')).toBeInTheDocument()
 
 		arrive.get('solo')?.(board(1, [{ rank: 1, name: 'Grace', score: 9, you: false }]))
 
-		expect(await within(table).findByText('Grace')).toBeTruthy()
+		expect(await within(table).findByText('Grace')).toBeInTheDocument()
 
 		expect(table.closest('[aria-busy="true"]')).toBeNull()
 	})
@@ -152,7 +152,7 @@ describe('LeaderboardDialog', () => {
 
 		expect(
 			await screen.findByText(/no name, so the leaderboard shows you as Anonymous/),
-		).toBeTruthy()
+		).toBeInTheDocument()
 
 		unmount()
 
@@ -172,9 +172,11 @@ describe('LeaderboardDialog', () => {
 
 		const table = await screen.findByRole('table')
 
-		expect(await within(table).findByText('Ada')).toBeTruthy()
+		expect(await within(table).findByText('Ada')).toBeInTheDocument()
 
-		expect(screen.getByText(/Verify your email to participate in the leaderboard/)).toBeTruthy()
+		expect(
+			screen.getByText(/Verify your email to participate in the leaderboard/),
+		).toBeInTheDocument()
 	})
 
 	it('shows the board to a reader with no session, and asks them to sign in', async () => {
@@ -186,11 +188,11 @@ describe('LeaderboardDialog', () => {
 
 		const table = await screen.findByRole('table')
 
-		expect(await within(table).findByText('Ada')).toBeTruthy()
+		expect(await within(table).findByText('Ada')).toBeInTheDocument()
 
 		expect(screen.getByRole('link', { name: 'Sign in' }).getAttribute('href')).toBe('/login')
 
-		expect(screen.getByText(/to participate in the leaderboard\./)).toBeTruthy()
+		expect(screen.getByText(/to participate in the leaderboard\./)).toBeInTheDocument()
 	})
 
 	it('reads the boards again for a reader who signs in, so the board shows their row', async () => {
@@ -228,7 +230,7 @@ describe('LeaderboardDialog', () => {
 
 		view.rerender(dialog(makeUser(true)))
 
-		expect(await screen.findByText('You')).toBeTruthy()
+		expect(await screen.findByText('You')).toBeInTheDocument()
 
 		expect(vi.mocked(readBoard).mock.calls.length).toBeGreaterThan(reads)
 	})

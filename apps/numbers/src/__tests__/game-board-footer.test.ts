@@ -17,7 +17,7 @@ describe('GameBoardFooter', () => {
 			wrapper,
 		})
 
-		expect(screen.getByText('CPU (Hard)')).toBeTruthy()
+		expect(screen.getByText('CPU (Hard)')).toBeInTheDocument()
 		// No side has won, so no label has a check.
 		expect(document.querySelector('.lucide-circle-check')).toBeNull()
 	})
@@ -29,7 +29,7 @@ describe('GameBoardFooter', () => {
 			wrapper,
 		})
 
-		expect(screen.getByText('CPU')).toBeTruthy()
+		expect(screen.getByText('CPU')).toBeInTheDocument()
 	})
 
 	it('marks the winner with a check, and keeps its label', () => {
@@ -47,7 +47,7 @@ describe('GameBoardFooter', () => {
 			{ wrapper },
 		)
 
-		expect(screen.getByText('CPU (Easy)')).toBeTruthy()
+		expect(screen.getByText('CPU (Easy)')).toBeInTheDocument()
 		expect(screen.getAllByRole('img', { name: 'Winner' })).toHaveLength(1)
 		// The score of the winner is green, and the score of the loser is amber.
 		expect(document.querySelectorAll('.text-green-700')).toHaveLength(1)
@@ -62,7 +62,7 @@ describe('GameBoardFooter', () => {
 
 		render(h(GameBoardFooter, { game: won, showScore: true, difficulty: 'normal' }), { wrapper })
 
-		expect(screen.getByRole('img', { name: 'Winner' })).toBeTruthy()
+		expect(screen.getByRole('img', { name: 'Winner' })).toBeInTheDocument()
 
 		cleanup()
 
@@ -121,8 +121,8 @@ describe('GameBoardFooter', () => {
 			{ wrapper },
 		)
 
-		expect(screen.getByText('You')).toBeTruthy()
-		expect(screen.getByText('CPU (Hard)')).toBeTruthy()
+		expect(screen.getByText('You')).toBeInTheDocument()
+		expect(screen.getByText('CPU (Hard)')).toBeInTheDocument()
 		expect(document.querySelector('.lucide-circle-check')).toBeNull()
 	})
 })

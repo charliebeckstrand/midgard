@@ -1,3 +1,7 @@
+// This import adds the DOM matchers of jest-dom, such as `toBeInTheDocument`. A
+// file in the node environment loads it too, and a matcher reads the DOM only
+// when a case calls it.
+import '@testing-library/jest-dom/vitest'
 import { cleanup, configure } from '@testing-library/react'
 import { afterEach, inject } from 'vitest'
 

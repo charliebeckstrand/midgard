@@ -39,8 +39,8 @@ describe('party swatch', () => {
 	it('names the party of each leader of a race card', () => {
 		const view = render(h(RaceCard, { entry, onPick: () => {} }))
 
-		expect(view.getByRole('img', { name: winner.party })).toBeTruthy()
-		expect(view.getByRole('img', { name: runnerUp.party })).toBeTruthy()
+		expect(view.getByRole('img', { name: winner.party })).toBeInTheDocument()
+		expect(view.getByRole('img', { name: runnerUp.party })).toBeInTheDocument()
 	})
 
 	it('names the party of each candidate of a race summary', () => {
@@ -48,7 +48,7 @@ describe('party swatch', () => {
 			h(RaceSummary, { candidates: entry.candidates, reporting: 100, called: true }),
 		)
 
-		expect(view.getByRole('img', { name: winner.party })).toBeTruthy()
+		expect(view.getByRole('img', { name: winner.party })).toBeInTheDocument()
 	})
 
 	it('names the party of the winner of a latest call', () => {
@@ -58,6 +58,6 @@ describe('party swatch', () => {
 
 		const list = view.getByRole('list', { name: 'Latest calls' })
 
-		expect(within(list).getByRole('img', { name: winner.party })).toBeTruthy()
+		expect(within(list).getByRole('img', { name: winner.party })).toBeInTheDocument()
 	})
 })

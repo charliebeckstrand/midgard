@@ -74,7 +74,7 @@ describe('GameBoard Reset', () => {
 		await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull())
 
 		expect(window.location.pathname).toBe('/charlie')
-		expect(screen.getByRole('button', { name: /^Slot 10, / })).toBeTruthy()
+		expect(screen.getByRole('button', { name: /^Slot 10, / })).toBeInTheDocument()
 	})
 
 	it('starts a new run when the reader confirms', async () => {
@@ -450,7 +450,7 @@ describe('GameBoard Auto-draw', () => {
 	it('draws when the setting comes on during a run, and not again when it goes off', () => {
 		const setter = renderWithSwitch()
 
-		expect(screen.getByRole('button', { name: 'Draw' })).toBeTruthy()
+		expect(screen.getByRole('button', { name: 'Draw' })).toBeInTheDocument()
 
 		act(() => setter.set(true))
 
