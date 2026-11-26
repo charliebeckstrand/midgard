@@ -5,6 +5,7 @@ import { rank } from './rank.ts'
 import { processTerm, tokenizeQuery, tokenizeText } from './tokenize.ts'
 
 export { findMember } from './member.ts'
+export { toPathQueries } from './path-query.ts'
 export { normalize } from './tokenize.ts'
 
 // The engine of the search: pure code, with no React and no DOM. MiniSearch

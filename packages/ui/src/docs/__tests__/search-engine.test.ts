@@ -1,6 +1,11 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { createSearchIndex, findMember, type Matchable } from '../search/engine/index.ts'
+import {
+	createSearchIndex,
+	findMember,
+	type Matchable,
+	toPathQueries,
+} from '../search/engine/index.ts'
 import { tokenizeText } from '../search/engine/tokenize.ts'
 
 // The matches of the search of the docs, and their order.
@@ -146,5 +151,17 @@ describe('findMember', () => {
 		expect(findMember(button, 'onsizechange')).toBe('onSizeChange')
 
 		expect(findMember(button, 'button vari')).toBeUndefined()
+	})
+})
+
+describe('toPathQueries', () => {
+	it('gives the words of each part of the path, with no section folder', () => {
+		const sections = new Set(['components', 'modules'])
+
+		expect(toPathQueries('/components/button', sections)).toEqual(['button'])
+
+		expect(toPathQueries('/Date-Picker/foo', sections)).toEqual(['date picker', 'foo'])
+
+		expect(toPathQueries('/modules', sections)).toEqual([])
 	})
 })

@@ -18,7 +18,16 @@ const loadPalette = () => import('./search-palette.tsx')
  * and the palette is in the main column, so the state is above both.
  */
 export function DocsSearch({ children }: { children: ReactNode }) {
-	const [open, setOpen] = useState(false)
+	const [open, setOpenState] = useState(false)
+
+	const [query, setQuery] = useState('')
+
+	// The palette opens with an empty query, unless a request gives one.
+	const setOpen = useStableEvent((next: boolean) => {
+		setOpenState(next)
+
+		if (!next) setQuery('')
+	})
 
 	const { request: load, preload } = useIntentLoad(loadPalette)
 
@@ -28,11 +37,17 @@ export function DocsSearch({ children }: { children: ReactNode }) {
 
 	// A failure goes to the error boundary, which offers a reload, as for each
 	// load that the reader asks for.
-	const request = useStableEvent((onPick?: () => void) => {
-		onPickRef.current = onPick
+	const request = useStableEvent(
+		({ query: text = '', onPick }: { query?: string; onPick?: () => void } = {}) => {
+			onPickRef.current = onPick
 
-		load(() => setOpen(true), fail)
-	})
+			load(() => {
+				setQuery(text)
+
+				setOpenState(true)
+			}, fail)
+		},
+	)
 
 	const pick = useStableEvent(() => onPickRef.current?.())
 
@@ -40,8 +55,8 @@ export function DocsSearch({ children }: { children: ReactNode }) {
 	// not change it. A new value reaches each Suspense boundary of the page that
 	// did not hydrate yet, and React then hydrates each one at once.
 	const state = useMemo(
-		() => ({ open, setOpen, request, preload, pick }),
-		[open, request, preload, pick],
+		() => ({ open, setOpen, query, setQuery, request, preload, pick }),
+		[open, setOpen, query, request, preload, pick],
 	)
 
 	return <SearchContext value={state}>{children}</SearchContext>
@@ -52,11 +67,19 @@ export function DocsSearch({ children }: { children: ReactNode }) {
  * mounted while the mobile sidebar is closed, so the key opens it.
  */
 export function SearchPaletteHost() {
-	const { open, setOpen, pick } = useSearch()
+	const { open, setOpen, query, setQuery, pick } = useSearch()
 
 	const palette = useIdleLoad(loadPalette)
 
 	if (!palette) return null
 
-	return <palette.SearchPalette open={open} onOpenChange={setOpen} onPick={pick} />
+	return (
+		<palette.SearchPalette
+			open={open}
+			onOpenChange={setOpen}
+			query={query}
+			onQueryChange={setQuery}
+			onPick={pick}
+		/>
+	)
 }

@@ -126,10 +126,15 @@ function Results({ onPick }: { onPick: () => void }) {
 export function SearchPalette({
 	open,
 	onOpenChange,
+	query,
+	onQueryChange,
 	onPick,
 }: {
 	open: boolean
 	onOpenChange: (open: boolean) => void
+	/** The text in the search field. The palette clears it through `onOpenChange` on a close. */
+	query: string
+	onQueryChange: (query: string) => void
 	/** Runs after a pick, as the palette closes. */
 	onPick: () => void
 }) {
@@ -139,6 +144,8 @@ export function SearchPalette({
 		<CommandPalette
 			open={open}
 			onOpenChange={onOpenChange}
+			query={query}
+			onQueryChange={onQueryChange}
 			placeholder={intl.formatMessage(placeholderMessage)}
 		>
 			<Results onPick={onPick} />
