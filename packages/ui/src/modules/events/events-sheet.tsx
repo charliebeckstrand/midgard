@@ -2,8 +2,7 @@
 
 import { Pin } from 'lucide-react'
 import { useLayoutEffect, useSyncExternalStore } from 'react'
-import { Button } from '../../components/button'
-import { Icon } from '../../components/icon'
+import { IconButton } from '../../components/icon-button'
 import {
 	Sheet,
 	SheetBody,
@@ -72,19 +71,17 @@ export function EventsSheet({ open, onOpenChange }: EventsSheetProps) {
 					{actions}
 					{/* A pinned panel shows in the inline layout only. */}
 					{dockable && (
-						<Button
-							variant="bare"
+						<IconButton
 							size="sm"
 							aria-label={intl.formatMessage(eventsMessages.pin)}
+							icon={Pin}
 							className={slots.pin}
 							onClick={() => {
 								setEventsPinned(true)
 
 								onOpenChange(false)
 							}}
-						>
-							<Icon icon={Pin} />
-						</Button>
+						/>
 					)}
 				</Flex>
 				<SheetBody className="min-h-0 flex-1 overflow-auto">{body}</SheetBody>

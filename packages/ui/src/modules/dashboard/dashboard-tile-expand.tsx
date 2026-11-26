@@ -14,7 +14,7 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from '../../components/dialog'
-import { Icon } from '../../components/icon'
+import { IconButton } from '../../components/icon-button'
 import { HeaderActions } from '../../primitives/header-actions'
 import { IntlMessage } from '../../primitives/intl'
 import { intlMessages } from '../../primitives/intl/intl-messages'
@@ -107,14 +107,11 @@ export function DashboardTileExpand({
 	return (
 		<Dialog open={open} onOpenChange={handleOpenChange}>
 			<DialogTrigger>
-				<Button
-					type="button"
-					variant="bare"
+				<IconButton
 					data-slot="dashboard-tile-expand"
 					aria-label={intl.formatMessage(dashboardMessages.expand, { label })}
-				>
-					<Icon icon={Maximize2} />
-				</Button>
+					icon={Maximize2}
+				/>
 			</DialogTrigger>
 
 			{seen && (

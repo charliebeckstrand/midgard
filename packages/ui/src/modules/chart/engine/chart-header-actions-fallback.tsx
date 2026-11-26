@@ -2,8 +2,7 @@
 
 import { EllipsisVertical, Table2 } from 'lucide-react'
 import type { ComponentProps, ReactElement, ReactNode } from 'react'
-import { Button } from '../../../components/button'
-import { Icon } from '../../../components/icon'
+import { IconButton } from '../../../components/icon-button'
 import { cn } from '../../../core/cn'
 import { dataAttr } from '../../../core/data-attr'
 import { useIntl } from '../../../primitives/intl/use-intl'
@@ -31,19 +30,16 @@ export function ChartViewDataButton({ title, ...props }: ChartViewDataButtonProp
 	const intl = useIntl()
 
 	return (
-		<Button
+		<IconButton
 			{...props}
-			type="button"
-			variant="bare"
 			data-slot="chart-view-data"
 			aria-label={
 				title
 					? intl.formatMessage(chartMessages.viewDataFor, { title })
 					: intl.formatMessage(chartMessages.viewData)
 			}
-		>
-			<Icon icon={Table2} />
-		</Button>
+			icon={Table2}
+		/>
 	)
 }
 
@@ -81,7 +77,7 @@ export function ChartMenuButtonBox({ place, children }: ChartMenuButtonBoxProps)
 /** Props for {@link ChartMenuTriggerButton}. @internal */
 type ChartMenuTriggerButtonProps = Omit<
 	ComponentProps<'button'>,
-	'type' | 'aria-label' | 'children' | 'color'
+	'type' | 'aria-label' | 'children' | 'color' | 'prefix'
 > & {
 	/** The chart title, which names the button. */
 	title?: string
@@ -95,11 +91,7 @@ type ChartMenuTriggerButtonProps = Omit<
 export function ChartMenuTriggerButton({ title, ...props }: ChartMenuTriggerButtonProps) {
 	const intl = useIntl()
 
-	return (
-		<Button {...props} type="button" variant="bare" aria-label={chartMenuName(intl, title)}>
-			<Icon icon={EllipsisVertical} />
-		</Button>
-	)
+	return <IconButton {...props} aria-label={chartMenuName(intl, title)} icon={EllipsisVertical} />
 }
 
 /** The props of a chart that decide its buttons in the header row. @internal */

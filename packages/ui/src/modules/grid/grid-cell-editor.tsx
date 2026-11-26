@@ -16,9 +16,8 @@ import {
 	useState,
 	useSyncExternalStore,
 } from 'react'
-import { Button } from '../../components/button'
 import { Control } from '../../components/control'
-import { Icon } from '../../components/icon'
+import { IconButton } from '../../components/icon-button'
 import { cn } from '../../core/cn'
 import { createContext } from '../../core/create-context'
 import { dataAttr } from '../../core/data-attr'
@@ -199,18 +198,15 @@ function GridSettleControls({
 	return (
 		<span className={cn(k.edit.settle)}>
 			{actions.map((action) => (
-				<Button
+				<IconButton
 					key={action.outcome}
-					type="button"
-					variant="bare"
 					color={action.color}
 					aria-label={intl.formatMessage(action.name, { cell: label })}
+					icon={action.icon}
 					tabIndex={-1}
 					onMouseDown={keepFocus}
 					onClick={() => settle(action.outcome)}
-				>
-					<Icon icon={action.icon} />
-				</Button>
+				/>
 			))}
 		</span>
 	)

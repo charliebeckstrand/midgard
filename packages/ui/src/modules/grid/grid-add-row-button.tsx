@@ -1,8 +1,7 @@
 'use client'
 
 import { Plus } from 'lucide-react'
-import { Button } from '../../components/button'
-import { Icon } from '../../components/icon'
+import { IconButton } from '../../components/icon-button'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { gridMessages } from './engine/grid-messages'
 import { keepFocus } from './grid-cell-editor'
@@ -20,16 +19,13 @@ export function GridAddRowButton({ addRow }: { addRow: () => void }) {
 	const intl = useIntl()
 
 	return (
-		<Button
-			type="button"
-			variant="bare"
+		<IconButton
 			color="green"
 			aria-label={intl.formatMessage(gridMessages.addRow)}
+			icon={Plus}
 			data-slot="grid-new-row-add"
 			onMouseDown={keepFocus}
 			onClick={addRow}
-		>
-			<Icon icon={Plus} />
-		</Button>
+		/>
 	)
 }

@@ -13,6 +13,7 @@ import {
 } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
+import { IconButton } from '../../components/icon-button'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from '../../components/menu'
 import { cn } from '../../core/cn'
 import { dataAttr } from '../../core/data-attr'
@@ -335,20 +336,17 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 			) : null}
 
 			{!active && showRestingFunnel ? (
-				<Button
+				<IconButton
 					ref={triggerRef}
-					type="button"
-					variant="bare"
 					aria-label={intl.formatMessage(gridMessages.filterNamed, { column: label })}
 					aria-haspopup="dialog"
 					aria-expanded={open}
+					icon={ListFilter}
 					data-open={dataAttr(open)}
 					// The resting muted tint, dropped once a filter accents the button.
 					className={cn(k.filter.button.base, k.filter.button.idle)}
 					onClick={() => handleOpenChange(true)}
-				>
-					<Icon icon={ListFilter} />
-				</Button>
+				/>
 			) : null}
 
 			{/* The sheet suspends on its first open, while its code loads. The

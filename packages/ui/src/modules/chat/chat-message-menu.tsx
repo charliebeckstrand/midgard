@@ -12,6 +12,7 @@ import type {
 } from '../../components/context-menu/types'
 import { CopyButton } from '../../components/copy-button'
 import { Icon } from '../../components/icon'
+import { IconButton } from '../../components/icon-button'
 import { Menu, MenuContent, MenuTrigger } from '../../components/menu'
 import { Toolbar } from '../../components/toolbar'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
@@ -359,9 +360,7 @@ export function ChatMessageToolbar({
 							{/* The tooltip echoes the accessible name, so the trigger takes no
 							    description that repeats it. */}
 							<MenuTrigger aria-describedby={undefined}>
-								<Button type="button" variant="bare" size="sm" aria-label={more}>
-									<Icon icon={EllipsisVertical} />
-								</Button>
+								<IconButton size="sm" aria-label={more} icon={EllipsisVertical} />
 							</MenuTrigger>
 						</TooltipTrigger>
 						<TooltipContent>{more}</TooltipContent>

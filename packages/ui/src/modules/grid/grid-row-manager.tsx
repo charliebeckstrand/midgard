@@ -4,9 +4,8 @@ import { DndContext } from '@dnd-kit/core'
 import { SortableContext } from '@dnd-kit/sortable'
 import { ArrowUpDown } from 'lucide-react'
 import { useCallback } from 'react'
-import { Button } from '../../components/button'
 import { Card } from '../../components/card'
-import { Icon } from '../../components/icon'
+import { IconButton } from '../../components/icon-button'
 import { Menu } from '../../components/menu'
 import { dataAttr } from '../../core/data-attr'
 import type { PaletteColor } from '../../core/recipe/colors'
@@ -152,13 +151,10 @@ function GridRowManagerZone({ group, onRecolor, moves }: GridRowManagerZoneProps
 					<div className={k().zone.actions}>
 						{moves && (
 							<GridManagerMoveMenu itemKey={String(group.key)} moves={moves}>
-								<Button
-									type="button"
-									variant="bare"
+								<IconButton
 									aria-label={intl.formatMessage(reorderMessages.moveHandle, { item: label })}
-								>
-									<Icon icon={ArrowUpDown} />
-								</Button>
+									icon={ArrowUpDown}
+								/>
 							</GridManagerMoveMenu>
 						)}
 

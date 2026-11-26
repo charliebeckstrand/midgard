@@ -2,8 +2,8 @@
 
 import { Settings2 } from 'lucide-react'
 import { type ReactNode, useState } from 'react'
-import { Button, type ButtonProps } from '../../components/button'
-import { Icon } from '../../components/icon'
+import type { ButtonProps } from '../../components/button'
+import { IconButton } from '../../components/icon-button'
 import type { TabContentsProps } from '../../components/tabs'
 import { useFail } from '../../hooks/use-fail'
 import { useIntentLoad } from '../../hooks/use-intent-load'
@@ -106,16 +106,15 @@ export function AppearanceSettings({
 
 	return (
 		<>
-			<Button
+			<IconButton
 				variant={variant}
 				aria-label={intl.formatMessage(appearanceMessages.settings)}
+				icon={Settings2}
 				onPointerEnter={preload}
 				onPointerDown={preload}
 				onFocus={preload}
 				onClick={show}
-			>
-				<Icon icon={Settings2} />
-			</Button>
+			/>
 			{dialog && (
 				<dialog.AppearanceSettingsDialog
 					open={open}
