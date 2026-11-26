@@ -162,12 +162,10 @@ export type WysiwygEditor = {
  * Moves the focus to the view. A view that takes no edit takes the focus too,
  * as on its tab stop, though ProseMirror focuses only an editable view.
  *
- * An editable view writes its selection to the DOM in the focus, so the
- * browser does not then reset the selection. ProseMirror reads each focus as
- * one that a reset of the browser can follow: for 200 ms, it changes a caret
- * at the start of the doc back to its own selection. A Home key just after
- * the focus then does nothing. Thus this clears the record of the focus,
- * which ProseMirror keeps as an internal value.
+ * @remarks ProseMirror reads a caret that goes back to the start of the doc
+ * just after a focus as a reset of the browser, and it puts back its own
+ * selection. The patch of `prosemirror-view` stops that read at the first key
+ * after the focus, so a Home key just after this call moves the caret.
  */
 function focusView(view: EditorView): void {
 	if (!view.editable) {
@@ -177,10 +175,6 @@ function focusView(view: EditorView): void {
 	}
 
 	view.focus()
-
-	const { input } = view as unknown as { input?: { lastFocus?: number } }
-
-	if (input?.lastFocus !== undefined) input.lastFocus = 0
 }
 
 /**

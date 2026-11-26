@@ -1,0 +1,68 @@
+diff --git a/dist/index.cjs b/dist/index.cjs
+index d01e986706fcf0f2440e484fa3ce32b08530a4d8..d18a41d5de57b2b96e2047281338b69c35d25440 100644
+--- a/dist/index.cjs
++++ b/dist/index.cjs
+@@ -3133,12 +3133,14 @@ function dispatchKey(view, event) {
+     return f(view, event);
+   });
+ }
++var modifierKeys = ["Shift", "Control", "Alt", "Meta", "AltGraph"];
+ editHandlers.keydown = function (view, _event) {
+   var event = _event;
+   view.input.shiftKey = event.keyCode == 16 || event.shiftKey;
+   view.input.lastKeyCode = event.keyCode;
+   view.input.lastKeyCodeTime = Date.now();
+   view.input.lastKeyDispatched = false;
++  if (modifierKeys.indexOf(event.key) < 0) view.input.lastFocus = 0;
+   if (android && chrome && event.keyCode == 13) return;
+   if (ios && event.keyCode == 13 && !event.ctrlKey && !event.altKey && !event.metaKey) {
+     var now = Date.now();
+@@ -3875,10 +3877,11 @@ handlers.focus = function (view) {
+     view.focused = true;
+     view.domSel.read();
+     if (!view.domSel.synced) {
+-      var startSel = view.domSel.range;
++      var startSel = view.domSel.range,
++        focusTime = view.input.lastFocus;
+       setTimeout(function () {
+         var curSel = view.domSel.readRange();
+-        if (curSel && startSel.eq(curSel)) view.domSel.sync();
++        if (curSel && startSel.eq(curSel) && view.input.lastFocus == focusTime) view.domSel.sync();
+       }, 20);
+     }
+   }
+diff --git a/dist/index.js b/dist/index.js
+index 2d9187e8940bdd6f91fecd0b81bfad9f7bacc390..04965ec6db1b2308bccd50c1b1381cc6ff386570 100644
+--- a/dist/index.js
++++ b/dist/index.js
+@@ -3284,12 +3284,17 @@ function dispatchKey(view, event) {
+         event = keyEvent(event == "Backspace" ? 8 : 13, event);
+     return view.someProp("handleKeyDown", f => f(view, event));
+ }
++const modifierKeys = ["Shift", "Control", "Alt", "Meta", "AltGraph"];
+ editHandlers.keydown = (view, _event) => {
+     let event = _event;
+     view.input.shiftKey = event.keyCode == 16 || event.shiftKey;
+     view.input.lastKeyCode = event.keyCode;
+     view.input.lastKeyCodeTime = Date.now();
+     view.input.lastKeyDispatched = false;
++    // A key other than a modifier is the user's. A selection change
++    // after it is not a reset of the browser after the focus.
++    if (!modifierKeys.includes(event.key))
++        view.input.lastFocus = 0;
+     // Suppress enter key events on Chrome Android, because those tend
+     // to be part of a confused sequence of composition events fired,
+     // and handling them eagerly tends to corrupt the input.
+@@ -4101,10 +4106,10 @@ handlers.focus = view => {
+         view.focused = true;
+         view.domSel.read();
+         if (!view.domSel.synced) {
+-            let startSel = view.domSel.range;
++            let startSel = view.domSel.range, focusTime = view.input.lastFocus;
+             setTimeout(() => {
+                 let curSel = view.domSel.readRange();
+-                if (curSel && startSel.eq(curSel))
++                if (curSel && startSel.eq(curSel) && view.input.lastFocus == focusTime)
+                     view.domSel.sync();
+             }, 20);
+         }

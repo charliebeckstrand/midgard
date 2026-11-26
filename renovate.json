@@ -72,6 +72,7 @@
 			"matchPackageNames": [
 				"@floating-ui/react",
 				"next",
+				"prosemirror-view",
 				"react",
 				"react-dom",
 				"react-router",
@@ -88,6 +89,11 @@
 			"description": "A group of its own for a patched package (see the rule above). The nextjs monorepo preset of config:recommended would also hold any @next/* package that joins the repository.",
 			"matchPackageNames": ["next"],
 			"groupName": "next"
+		},
+		{
+			"description": "A group of its own for a patched package (see the rule above).",
+			"matchPackageNames": ["prosemirror-view"],
+			"groupName": "prosemirror-view"
 		},
 		{
 			"description": "A group of its own for the patched react-dom and for react, which must have its version (see the rule above). The react monorepo preset of config:recommended matches the source repository, so it also holds babel-plugin-react-compiler, which then would wait for approval too.",
