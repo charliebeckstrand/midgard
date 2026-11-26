@@ -111,12 +111,12 @@
 				"tsconfig.json",
 				"$TURBO_ROOT$/tsconfig.base.json"
 			],
-			"outputs": ["src/docs/dist/**"]
+			"outputs": ["dist/docs/**"]
 		},
 		"test:docs-build": {
 			"dependsOn": ["docs:build"],
 			"inputs": [
-				"src/docs/dist/**",
+				"dist/docs/**",
 				"src/__tests__/docs-build/**",
 				"src/__tests__/setup/split-sequencer.ts",
 				"scripts/docs/server.ts",

@@ -9,7 +9,7 @@ import type { UserConfig } from 'vite'
 export default {
 	build: {
 		ssr: path.join(import.meta.dirname, '..', '..', 'scripts', 'docs', 'server.ts'),
-		outDir: path.join(import.meta.dirname, 'dist', 'docs-server'),
+		outDir: path.join(import.meta.dirname, '..', '..', 'dist', 'docs-server'),
 		target: 'node26',
 		rolldownOptions: {
 			output: { entryFileNames: 'docs-server.js' },
