@@ -1,7 +1,7 @@
 'use client'
 
 import { type ComponentProps, useSyncExternalStore } from 'react'
-import { ButtonIconTooltip } from '../../components/button/button-icon-tooltip'
+import { IconButton } from '../../components/icon-button'
 import { useHydrated } from '../../hooks/use-hydrated'
 import { Glyph } from '../../primitives/glyph'
 import { useIntl } from '../../primitives/intl/use-intl'
@@ -18,9 +18,9 @@ const serverLevel = () => null
 
 /** Props for {@link WysiwygActionButton}. @internal */
 type WysiwygActionButtonProps = { action: WysiwygAction } & Omit<
-	ComponentProps<typeof ButtonIconTooltip>,
-	'label' | 'tooltip' | 'icon' | 'active' | 'disabled'
->
+	ComponentProps<'button'>,
+	'aria-label' | 'aria-pressed' | 'children' | 'color' | 'disabled' | 'prefix' | 'type'
+> & { 'data-slot'?: string }
 
 /**
  * A button of a {@link WysiwygToolbar}: the glyph, the name, and the shortcut
@@ -72,23 +72,26 @@ export function WysiwygActionButton({ action, onClick, ...props }: WysiwygAction
 
 	const label = intl.formatMessage(message)
 
-	// Link opens a dialog, and Heading opens the rail of the levels, so neither
-	// is a toggle, and the `onClick` of the caller handles the press.
-	const toggle = action !== 'link' && action !== 'heading'
+	const shared = {
+		'data-slot': 'wysiwyg-action',
+		...props,
+		'data-action': action,
+		variant: 'bare',
+		lockable: false,
+		tooltip: true,
+		'aria-keyshortcuts': shortcut && shortcutAria(shortcut, apple),
+		'aria-label': label,
+		icon: <Glyph icon={icon} />,
+		disabled: locked,
+	} as const
 
-	return (
-		<ButtonIconTooltip
-			data-slot="wysiwyg-action"
-			{...props}
-			data-action={action}
-			variant="bare"
-			aria-pressed={toggle ? active : undefined}
-			aria-keyshortcuts={shortcut && shortcutAria(shortcut, apple)}
-			label={label}
-			icon={<Glyph icon={icon} />}
-			active={active}
-			disabled={locked}
-			onClick={toggle ? () => run(action) : onClick}
-		/>
-	)
+	// Link opens a dialog, and Heading opens the rail of the levels, so neither
+	// is a toggle, and the `onClick` of the caller handles the press. Each shows
+	// the held-down wash while its target is on.
+	if (action === 'link' || action === 'heading') {
+		return <IconButton {...shared} active={active} onClick={onClick} />
+	}
+
+	// The editor holds the state, so the toggle is controlled, and a press runs the action.
+	return <IconButton {...shared} pressed={active} onClick={() => run(action)} />
 }

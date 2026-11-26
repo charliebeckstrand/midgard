@@ -2,7 +2,7 @@
 
 import { ChevronLeft } from 'lucide-react'
 import { type KeyboardEvent, type Ref, useSyncExternalStore } from 'react'
-import { ButtonIconTooltip } from '../../components/button/button-icon-tooltip'
+import { IconButton } from '../../components/icon-button'
 import { Toolbar, ToolbarGroup } from '../../components/toolbar'
 import { dataAttr } from '../../core/data-attr'
 import { useHydrated } from '../../hooks/use-hydrated'
@@ -81,12 +81,12 @@ export function WysiwygHeadingRail({ open, onClose, ref }: WysiwygHeadingRailPro
 			onMouseDown={keepFocusOnPress}
 			onKeyDown={handleKeyDown}
 		>
-			<ButtonIconTooltip
+			<IconButton
 				data-slot="wysiwyg-heading-back"
-				variant="bare"
-				label={intl.formatMessage(wysiwygMessages.back)}
+				lockable={false}
+				tooltip
+				aria-label={intl.formatMessage(wysiwygMessages.back)}
 				icon={<Glyph icon={ChevronLeft} className="rtl:-scale-x-100" />}
-				disabled={false}
 				onClick={onClose}
 			/>
 			<ToolbarGroup aria-label={intl.formatMessage(wysiwygMessages.headingLevel)}>
@@ -130,14 +130,13 @@ function WysiwygHeadingLevelButton({
 	const enabled = useSyncExternalStore(subscribe, () => canSetHeading(entry.level), serverOpen)
 
 	return (
-		<ButtonIconTooltip
+		<IconButton
 			data-slot="wysiwyg-heading-level"
-			variant="bare"
-			aria-pressed={pressed}
+			tooltip
 			aria-keyshortcuts={shortcutAria(entry.shortcut, apple)}
-			label={intl.formatMessage(entry.message)}
+			aria-label={intl.formatMessage(entry.message)}
 			icon={<Glyph icon={entry.icon} />}
-			active={pressed}
+			pressed={pressed}
 			disabled={!enabled}
 			onClick={() => onPick(entry.level)}
 		/>

@@ -5,7 +5,7 @@ import { cn } from '../../core/cn'
 import { Glyph } from '../../primitives/glyph'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/pdf-viewer'
-import { ButtonIconTooltip } from '../button/button-icon-tooltip'
+import { IconButton } from '../icon-button'
 import { SheetTrigger } from '../sheet'
 import { Toolbar, ToolbarGroup, ToolbarSeparator } from '../toolbar'
 import { usePdfViewerContext } from './context'
@@ -68,15 +68,6 @@ export function PdfViewerToolbar() {
 	// pages render. Before the open, the count is 0.
 	const controlsDisabled = total === 0
 
-	const highlightsToggleLabel = intl.formatMessage(
-		highlightsVisible ? pdfViewerMessages.hideHighlights : pdfViewerMessages.showHighlights,
-	)
-
-	// Names the action rather than the state, matching the toggles above it.
-	const magnifierToggleLabel = intl.formatMessage(
-		magnifierOn ? pdfViewerMessages.magnifierOff : pdfViewerMessages.magnifierOn,
-	)
-
 	// A failed load and a document with no page have no controls to offer. The bar keeps its
 	// place while the document opens, so the page does not shift when the document lands.
 	if (total === 0 && !opening) return null
@@ -97,22 +88,27 @@ export function PdfViewerToolbar() {
 					<PdfViewerSearch disabled={controlsDisabled} />
 					<PdfViewerZoomControls zoom={zoom} disabled={controlsDisabled} />
 					<ToolbarGroup aria-label={intl.formatMessage(pdfViewerMessages.view)}>
-						<ButtonIconTooltip
-							label={intl.formatMessage(pdfViewerMessages.rotate)}
+						<IconButton
+							variant="plain"
+							lockable={false}
+							tooltip
+							aria-label={intl.formatMessage(pdfViewerMessages.rotate)}
 							icon={<Glyph icon={RotateCw} />}
 							disabled={controlsDisabled}
 							onClick={rotate}
 						/>
-						{/* Only offered when there is something to hide. `active` carries the two-state
-					    treatment and the argument for it. */}
+						{/* Only offered when there is something to hide. The toggle keeps its glyph and
+						    its name, so `aria-pressed` and the held-down wash give its state. */}
 						{hasHighlights && (
-							<ButtonIconTooltip
-								label={highlightsToggleLabel}
+							<IconButton
+								variant="plain"
+								lockable={false}
+								tooltip
+								aria-label={intl.formatMessage(pdfViewerMessages.highlights)}
 								icon={<Glyph icon={Highlighter} />}
-								active={highlightsVisible}
-								aria-pressed={highlightsVisible}
+								pressed={highlightsVisible}
+								onPressedChange={setHighlightsVisible}
 								disabled={controlsDisabled}
-								onClick={() => setHighlightsVisible(!highlightsVisible)}
 							/>
 						)}
 						{/* The two magnifier controls, and `magnifierMode` says which: `null` where the
@@ -121,13 +117,15 @@ export function PdfViewerToolbar() {
 					    `'config'` mode the press opens the dialog, and the switch it took the place
 					    of is in there. */}
 						{magnifierMode === 'simple' && (
-							<ButtonIconTooltip
-								label={magnifierToggleLabel}
+							<IconButton
+								variant="plain"
+								lockable={false}
+								tooltip
+								aria-label={intl.formatMessage(pdfViewerMessages.magnifierToggle)}
 								icon={<Glyph icon={ScanSearch} />}
-								active={magnifierOn}
-								aria-pressed={magnifierOn}
+								pressed={magnifierOn}
+								onPressedChange={setMagnifierOn}
 								disabled={controlsDisabled}
-								onClick={() => setMagnifierOn(!magnifierOn)}
 							/>
 						)}
 						{magnifierMode === 'config' && (
@@ -167,8 +165,11 @@ function ThumbnailsToggle() {
 	// server renders the pinned layout at each width, so the CSS picks the glyph of the open
 	// rail. The rail sits at the inline start, so the glyph mirrors in RTL.
 	const toggle = (
-		<ButtonIconTooltip
-			label={intl.formatMessage(
+		<IconButton
+			variant="plain"
+			lockable={false}
+			tooltip
+			aria-label={intl.formatMessage(
 				railed && sidebarOpen ? pdfViewerMessages.hideThumbnails : pdfViewerMessages.showThumbnails,
 			)}
 			icon={
@@ -186,7 +187,6 @@ function ThumbnailsToggle() {
 				)
 			}
 			aria-expanded={railed ? sidebarOpen : undefined}
-			disabled={false}
 			onClick={railed ? () => setSidebarOpen(!sidebarOpen) : undefined}
 		/>
 	)

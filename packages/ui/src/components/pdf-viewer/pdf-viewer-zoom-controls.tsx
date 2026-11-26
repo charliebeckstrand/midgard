@@ -2,7 +2,7 @@ import { Maximize2, ZoomIn, ZoomOut } from 'lucide-react'
 import { useMemo } from 'react'
 import { Glyph } from '../../primitives/glyph'
 import { useIntl } from '../../primitives/intl/use-intl'
-import { ButtonIconTooltip } from '../button/button-icon-tooltip'
+import { IconButton } from '../icon-button'
 import { ToolbarGroup } from '../toolbar'
 import { pdfViewerMessages } from './pdf-viewer-messages'
 import type { PdfViewerZoom } from './types'
@@ -40,8 +40,10 @@ export function PdfViewerZoomControls({ zoom, disabled }: PdfViewerZoomControlsP
 
 	return (
 		<ToolbarGroup aria-label={intl.formatMessage(pdfViewerMessages.zoom)}>
-			<ButtonIconTooltip
-				label={intl.formatMessage(pdfViewerMessages.zoomOut)}
+			<IconButton
+				variant="plain"
+				lockable={false}
+				aria-label={intl.formatMessage(pdfViewerMessages.zoomOut)}
 				tooltip={intl.formatMessage(pdfViewerMessages.zoomOutTo, {
 					percent: percent(nextLevelDown),
 				})}
@@ -49,15 +51,20 @@ export function PdfViewerZoomControls({ zoom, disabled }: PdfViewerZoomControlsP
 				disabled={disabled || zoom.value <= minZoom}
 				onClick={zoomOut}
 			/>
-			<ButtonIconTooltip
-				label={intl.formatMessage(pdfViewerMessages.zoomIn)}
+			<IconButton
+				variant="plain"
+				lockable={false}
+				aria-label={intl.formatMessage(pdfViewerMessages.zoomIn)}
 				tooltip={intl.formatMessage(pdfViewerMessages.zoomInTo, { percent: percent(nextLevelUp) })}
 				icon={<Glyph icon={ZoomIn} />}
 				disabled={disabled || zoom.value >= maxZoom}
 				onClick={zoomIn}
 			/>
-			<ButtonIconTooltip
-				label={intl.formatMessage(pdfViewerMessages.resetZoom)}
+			<IconButton
+				variant="plain"
+				lockable={false}
+				tooltip
+				aria-label={intl.formatMessage(pdfViewerMessages.resetZoom)}
 				icon={<Glyph icon={Maximize2} />}
 				disabled={disabled || zoom.value === 1}
 				onClick={resetZoom}

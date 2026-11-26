@@ -161,7 +161,7 @@ const NAMES = [
 	'WysiwygToolbar',
 	'WysiwygActionButton',
 	'WysiwygLinkButton',
-	'ButtonIconTooltip',
+	'IconButton',
 	'ChatPrompt',
 	'ChatPromptPicker',
 	'Button',

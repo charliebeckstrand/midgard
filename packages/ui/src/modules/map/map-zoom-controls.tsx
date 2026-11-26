@@ -1,7 +1,7 @@
 'use client'
 
 import { Maximize2, ZoomIn, ZoomOut } from 'lucide-react'
-import { ButtonIconTooltip } from '../../components/button/button-icon-tooltip'
+import { IconButton } from '../../components/icon-button'
 import { announce } from '../../core/announcer'
 import { cn } from '../../core/cn'
 import { Glyph } from '../../primitives/glyph'
@@ -61,22 +61,31 @@ export function MapZoomControls({
 				horizontal(placement) ? k.zoomControls.row : k.zoomControls.stack,
 			)}
 		>
-			<ButtonIconTooltip
-				label={intl.formatMessage(mapMessages.zoomIn)}
+			<IconButton
+				variant="plain"
+				lockable={false}
+				tooltip
+				aria-label={intl.formatMessage(mapMessages.zoomIn)}
 				tooltipPlacement={placement}
 				icon={<Glyph icon={ZoomIn} />}
 				disabled={transform.k >= max}
 				onClick={() => step('in')}
 			/>
-			<ButtonIconTooltip
-				label={intl.formatMessage(mapMessages.zoomOut)}
+			<IconButton
+				variant="plain"
+				lockable={false}
+				tooltip
+				aria-label={intl.formatMessage(mapMessages.zoomOut)}
 				tooltipPlacement={placement}
 				icon={<Glyph icon={ZoomOut} />}
 				disabled={transform.k <= MAP_ZOOM_FIT}
 				onClick={() => step('out')}
 			/>
-			<ButtonIconTooltip
-				label={intl.formatMessage(mapMessages.zoomFit)}
+			<IconButton
+				variant="plain"
+				lockable={false}
+				tooltip
+				aria-label={intl.formatMessage(mapMessages.zoomFit)}
 				tooltipPlacement={placement}
 				icon={<Glyph icon={Maximize2} />}
 				disabled={sameTransform(transform, MAP_FIT_TRANSFORM)}

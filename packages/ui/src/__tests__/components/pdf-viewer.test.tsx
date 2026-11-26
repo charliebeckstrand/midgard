@@ -1548,11 +1548,11 @@ describe('PdfViewer highlights', () => {
 
 		fireEvent.mouseDown(screen.getByLabelText('Total charges'))
 
-		fireEvent.click(screen.getByLabelText('Hide highlights'))
+		fireEvent.click(screen.getByLabelText('Highlights'))
 
 		expect(highlightLabel()).not.toBeInTheDocument()
 
-		fireEvent.click(screen.getByLabelText('Show highlights'))
+		fireEvent.click(screen.getByLabelText('Highlights'))
 
 		expect(highlightLabel()).toHaveTextContent('Total charges')
 	})
@@ -1576,7 +1576,7 @@ describe('PdfViewer highlights', () => {
 	it('offers the visibility toggle only when there are regions', () => {
 		renderUI(<PdfViewer pages={sizedPages} />)
 
-		expect(screen.queryByLabelText('Hide highlights')).not.toBeInTheDocument()
+		expect(screen.queryByLabelText('Highlights')).not.toBeInTheDocument()
 	})
 
 	it('hides the layer without discarding the selection', () => {
@@ -1584,11 +1584,11 @@ describe('PdfViewer highlights', () => {
 
 		fireEvent.click(screen.getByLabelText('Total charges'))
 
-		fireEvent.click(screen.getByLabelText('Hide highlights'))
+		fireEvent.click(screen.getByLabelText('Highlights'))
 
 		expect(bySlot(container, 'pdf-viewer-highlights')).toHaveAttribute('hidden')
 
-		fireEvent.click(screen.getByLabelText('Show highlights'))
+		fireEvent.click(screen.getByLabelText('Highlights'))
 
 		expect(bySlot(container, 'pdf-viewer-highlights')).not.toHaveAttribute('hidden')
 
@@ -1709,7 +1709,7 @@ describe('PdfViewer highlights', () => {
 
 		fireEvent.mouseDown(screen.getByLabelText('Total charges'))
 
-		fireEvent.click(screen.getByLabelText('Hide highlights'))
+		fireEvent.click(screen.getByLabelText('Highlights'))
 
 		fireEvent.mouseDown(getSlot(container, 'pdf-viewer-viewport'))
 
@@ -1830,13 +1830,13 @@ describe('PdfViewer chrome events', () => {
 
 		renderHighlights({ onHighlightsVisibleChange })
 
-		// Shown to begin with, so the control offers to hide, which is what a consumer
+		// Shown to begin with, so the first press hides, which is what a consumer
 		// mirroring this seeds its own state from.
-		fireEvent.click(screen.getByLabelText('Hide highlights'))
+		fireEvent.click(screen.getByLabelText('Highlights'))
 
 		expect(onHighlightsVisibleChange).toHaveBeenCalledExactlyOnceWith(false)
 
-		fireEvent.click(screen.getByLabelText('Show highlights'))
+		fireEvent.click(screen.getByLabelText('Highlights'))
 
 		expect(onHighlightsVisibleChange).toHaveBeenLastCalledWith(true)
 	})
@@ -1852,7 +1852,7 @@ describe('PdfViewer chrome events', () => {
 
 		renderUI(<PdfViewer pages={sizedPages} magnifier onMagnifierChange={onMagnifierChange} />)
 
-		fireEvent.click(screen.getByLabelText('Turn magnifier off'))
+		fireEvent.click(screen.getByLabelText('Magnifier'))
 
 		expect(onMagnifierChange).toHaveBeenCalledExactlyOnceWith({
 			enabled: false,
@@ -1861,7 +1861,7 @@ describe('PdfViewer chrome events', () => {
 			delay: 'default',
 		})
 
-		fireEvent.click(screen.getByLabelText('Turn magnifier on'))
+		fireEvent.click(screen.getByLabelText('Magnifier'))
 
 		expect(onMagnifierChange).toHaveBeenLastCalledWith({
 			enabled: true,
@@ -1883,7 +1883,7 @@ describe('PdfViewer chrome events', () => {
 			/>,
 		)
 
-		fireEvent.click(screen.getByLabelText('Turn magnifier off'))
+		fireEvent.click(screen.getByLabelText('Magnifier'))
 
 		expect(onMagnifierChange).toHaveBeenCalledExactlyOnceWith({
 			enabled: false,
@@ -1894,14 +1894,13 @@ describe('PdfViewer chrome events', () => {
 	})
 
 	/**
-	 * Both switches keep their glyph and name the *action* rather than the state, so
-	 * `aria-pressed` was the only thing separating on from off, and no recipe targets it. The
-	 * fill is what a pointer user reads.
+	 * Both toggles keep their glyph and their name, so `aria-pressed` gives the state to a
+	 * screen reader, and the fill gives it to a pointer user.
 	 */
 	it.each([
-		{ control: 'highlight overlay', on: 'Hide highlights', off: 'Show highlights' },
-		{ control: 'magnifier', on: 'Turn magnifier off', off: 'Turn magnifier on' },
-	])('fills the $control toggle while it is on, and not once it is off', ({ on, off }) => {
+		{ control: 'highlight overlay', name: 'Highlights' },
+		{ control: 'magnifier', name: 'Magnifier' },
+	])('fills the $control toggle while it is on, and not once it is off', ({ name }) => {
 		renderUI(
 			<PdfViewer
 				pages={sizedPages}
@@ -1911,12 +1910,18 @@ describe('PdfViewer chrome events', () => {
 			/>,
 		)
 
-		// Both start on, so each control offers to switch its subject *off*.
-		expect(screen.getByLabelText(on)).toHaveAttribute('data-variant', 'soft')
+		const toggle = screen.getByRole('button', { name })
 
-		fireEvent.click(screen.getByLabelText(on))
+		// Both start on.
+		expect(toggle).toBePressed()
 
-		expect(screen.getByLabelText(off)).toHaveAttribute('data-variant', 'plain')
+		expect(toggle).toHaveAttribute('data-variant', 'soft')
+
+		fireEvent.click(toggle)
+
+		expect(toggle).toBeUnpressed()
+
+		expect(toggle).toHaveAttribute('data-variant', 'plain')
 	})
 })
 

@@ -253,7 +253,7 @@ describe('PdfViewer magnifier controls', () => {
 	it('puts a switch in the toolbar in simple mode', () => {
 		renderUI(<PdfViewer pages={pages} magnifier />)
 
-		const control = screen.getByRole('button', { name: 'Turn magnifier off' })
+		const control = screen.getByRole('button', { name: 'Magnifier' })
 
 		expect(control).toBePressed()
 
@@ -274,7 +274,7 @@ describe('PdfViewer magnifier controls', () => {
 
 		expect(control).not.toHaveAttribute('aria-pressed')
 
-		expect(screen.queryByRole('button', { name: 'Turn magnifier off' })).not.toBeInTheDocument()
+		expect(screen.queryByRole('button', { name: 'Magnifier' })).not.toBeInTheDocument()
 	})
 
 	it('opens the dialog on the press, showing the settings the viewer is on', () => {
@@ -371,7 +371,7 @@ describe('PdfViewer magnifier controls', () => {
 		renderUI(<PdfViewer pages={pages} />)
 
 		expect(screen.queryByRole('button', { name: 'Magnifier settings' })).not.toBeInTheDocument()
-		expect(screen.queryByRole('button', { name: 'Turn magnifier off' })).not.toBeInTheDocument()
+		expect(screen.queryByRole('button', { name: 'Magnifier' })).not.toBeInTheDocument()
 	})
 })
 

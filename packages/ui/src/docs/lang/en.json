@@ -6875,6 +6875,10 @@
 		"defaultMessage": "Manual",
 		"description": "An option of the Activation field of a playground in the docs. It sets the prop activation to 'manual' on Segment."
 	},
+	"docs.prop.active": {
+		"defaultMessage": "Active",
+		"description": "The label of a field of a playground in the docs. The field sets the prop active of IconButton."
+	},
 	"docs.prop.aggregation": {
 		"defaultMessage": "Aggregation",
 		"description": "The label of a field of a playground in the docs. The field sets the prop aggregation of PivotTable."
