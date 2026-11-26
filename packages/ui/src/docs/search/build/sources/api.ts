@@ -21,37 +21,23 @@ async function readBarrels(folder: string): Promise<string[]> {
 }
 
 /**
- * The entry of each component of the API reference of the route, and of each
- * prop and event of the component, with the id of its anchor
- * (`kit/anchors.ts`).
+ * The entry of each component of the API reference of the route, with the id
+ * of its anchor (`kit/anchors.ts`) and the names of its props and events. A
+ * prop has no entry of its own, so a common prop, such as `className`, does
+ * not fill the results.
  */
 export const apiSource: SearchSource = async ({ folder, href, context }, { readApi }) => {
 	const apis = await Promise.all((await readBarrels(folder)).map(readApi))
 
 	return apis.flatMap((api) =>
-		Object.values(api).flatMap((component): SearchEntry[] => [
-			{
+		Object.values(api).map(
+			(component): SearchEntry => ({
 				kind: 'component',
 				label: `<${component.name} />`,
 				href: `${href}#${toApiId(component.name)}`,
 				context,
-			},
-			...component.props.map(
-				(prop): SearchEntry => ({
-					kind: 'prop',
-					label: prop.name,
-					href: `${href}#${toApiId(component.name, prop.name)}`,
-					context: `<${component.name} />`,
-				}),
-			),
-			...component.events.map(
-				(event): SearchEntry => ({
-					kind: 'event',
-					label: event.name,
-					href: `${href}#${toApiId(component.name, event.name)}`,
-					context: `<${component.name} />`,
-				}),
-			),
-		]),
+				members: [...component.props, ...component.events].map((member) => member.name),
+			}),
+		),
 	)
 }

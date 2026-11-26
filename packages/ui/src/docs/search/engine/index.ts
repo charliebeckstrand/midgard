@@ -4,6 +4,7 @@ import { FIELD_BOOST, KIND_BOOST, type SearchField } from './config.ts'
 import { rank } from './rank.ts'
 import { processTerm, tokenizeQuery, tokenizeText } from './tokenize.ts'
 
+export { findMember } from './member.ts'
 export { normalize } from './tokenize.ts'
 
 // The engine of the search: pure code, with no React and no DOM. MiniSearch
@@ -45,7 +46,7 @@ export function createSearchIndex<T extends Matchable>(entries: readonly T[]): S
 			prefix: true,
 			combineWith: 'AND',
 			boost: FIELD_BOOST,
-			boostDocument: (id: number) => KIND_BOOST[entries[id]?.kind ?? 'prop'],
+			boostDocument: (id: number) => KIND_BOOST[entries[id]?.kind ?? 'component'],
 		},
 	})
 

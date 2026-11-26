@@ -5,7 +5,8 @@ import { CommandPalette, useCommandPaletteDeferredQuery } from 'ui/command-palet
 import { useTimeout } from 'ui/hooks'
 import { defineMessage, useIntl } from 'ui/primitives/intl'
 import { VirtualOptions } from 'ui/primitives/virtual-options'
-import { createSearchIndex } from '../engine/index.ts'
+import { componentOfHash, toApiId } from '../../kit/anchors.ts'
+import { createSearchIndex, findMember } from '../engine/index.ts'
 import { localizeEntry } from './localize.ts'
 import { type SearchOption, SearchResult } from './search-result.tsx'
 
@@ -62,6 +63,23 @@ function PrefetchResults({ matches }: { matches: readonly SearchOption[] }) {
 	return pages.map((page) => <PrefetchPageLinks key={page} page={page} />)
 }
 
+/**
+ * The option with a link to the row of its prop or its event, when a word of
+ * `query` is the name of one: `button variant` goes to the `variant` row of
+ * `<Button />`. Any other option keeps its link.
+ */
+function toMemberLink(option: SearchOption, query: string): SearchOption {
+	const member = findMember(option, query)
+
+	const [path, hash = ''] = option.href.split('#')
+
+	const component = componentOfHash(`#${hash}`)
+
+	if (member === undefined || component === undefined) return option
+
+	return { ...option, href: `${path}#${toApiId(component, member)}` }
+}
+
 function Results({ onPick }: { onPick: () => void }) {
 	const query = useCommandPaletteDeferredQuery()
 
@@ -76,7 +94,10 @@ function Results({ onPick }: { onPick: () => void }) {
 		[intl],
 	)
 
-	const matches = useMemo(() => index.search(query), [index, query])
+	const matches = useMemo(
+		() => index.search(query).map((option) => toMemberLink(option, query)),
+		[index, query],
+	)
 
 	return (
 		<>
@@ -97,8 +118,9 @@ function Results({ onPick }: { onPick: () => void }) {
 }
 
 /**
- * The search of the docs: a command palette over each page, tab, component,
- * prop, and event. A pick goes to the page of the entry and to its
+ * The search of the docs: a command palette over each page, tab, and API
+ * reference of a component. A prop or an event finds the API reference of its
+ * component. A pick goes to the page of the entry and to its
  * anchor. `⌘K`, or `Ctrl+K` elsewhere, opens it and closes it.
  */
 export function SearchPalette({

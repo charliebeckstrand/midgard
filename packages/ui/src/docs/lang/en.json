@@ -8271,17 +8271,9 @@
 		"defaultMessage": "API reference",
 		"description": "The kind of a search result that is the API reference of a component: its props and its events."
 	},
-	"docs.search.kind.event": {
-		"defaultMessage": "Event",
-		"description": "The kind of a search result that is an event prop of a component, such as onChange."
-	},
 	"docs.search.kind.page": {
 		"defaultMessage": "Page",
 		"description": "The kind of a search result that is a page of the docs, such as Button."
-	},
-	"docs.search.kind.prop": {
-		"defaultMessage": "Prop",
-		"description": "The kind of a search result that is a prop of a component: an input of the component."
 	},
 	"docs.search.kind.tab": {
 		"defaultMessage": "Tab",

@@ -7,9 +7,7 @@ import {
 	type LucideIcon,
 	PanelTop,
 	Shapes,
-	SlidersHorizontal,
 	SquareDashed,
-	Zap,
 } from 'lucide-react'
 import {
 	CommandPaletteDescription,
@@ -53,18 +51,6 @@ const KIND_LABELS: Readonly<Record<SearchKind, MessageDescriptor>> = defineMessa
 		description:
 			'The kind of a search result that is the API reference of a component: its props and its events.',
 	},
-	prop: {
-		id: 'docs.search.kind.prop',
-		defaultMessage: 'Prop',
-		description:
-			'The kind of a search result that is a prop of a component: an input of the component.',
-	},
-	event: {
-		id: 'docs.search.kind.event',
-		defaultMessage: 'Event',
-		description:
-			'The kind of a search result that is an event prop of a component, such as onChange.',
-	},
 })
 
 const pageApiMessage = defineMessage<{ page: string }>({
@@ -79,16 +65,12 @@ const KIND_TINT: Readonly<Record<SearchKind, string>> = {
 	page: 'bg-blue-500/12 text-blue-600 dark:bg-blue-400/15 dark:text-blue-300',
 	tab: 'bg-sky-500/12 text-sky-600 dark:bg-sky-400/15 dark:text-sky-300',
 	component: 'bg-violet-500/12 text-violet-600 dark:bg-violet-400/15 dark:text-violet-300',
-	prop: 'bg-amber-500/15 text-amber-700 dark:bg-amber-400/15 dark:text-amber-300',
-	event: 'bg-rose-500/12 text-rose-600 dark:bg-rose-400/15 dark:text-rose-300',
 }
 
 /** The icon of each kind other than a page. A page shows the icon of its section. */
 const KIND_ICON: Readonly<Record<Exclude<SearchKind, 'page'>, LucideIcon>> = {
 	tab: PanelTop,
 	component: Braces,
-	prop: SlidersHorizontal,
-	event: Zap,
 }
 
 /** The icon of each section of the docs, by its folder. */
@@ -108,8 +90,8 @@ function getIcon(option: Matchable): LucideIcon {
 }
 
 /**
- * The line below the label: the section of a page, the page of a tab, the
- * component of a prop or an event, and "API reference" for a component. A
+ * The line below the label: the section of a page, the page of a tab, and
+ * "API reference" for a component. A
  * component on a page with another name, such as `<Field />` on the Fieldset
  * page, names the page.
  */

@@ -44,18 +44,7 @@ describe('collectEntries', () => {
 					label: '<Stubbutton />',
 					href: '/button#api-Stubbutton',
 					context: 'Button',
-				},
-				{
-					kind: 'prop',
-					label: 'size',
-					href: '/button#api-Stubbutton-size',
-					context: '<Stubbutton />',
-				},
-				{
-					kind: 'event',
-					label: 'onSizeChange',
-					href: '/button#api-Stubbutton-onSizeChange',
-					context: '<Stubbutton />',
+					members: ['size', 'onSizeChange'],
 				},
 			]),
 		)
@@ -87,7 +76,7 @@ describe('collectEntries', () => {
 			all.filter((entry) => entry.href.startsWith(`${route}#api-`)).map((entry) => entry.href)
 
 		// The Gauge tab imports the API data of its page only for its Playground.
-		expect(api('/progress')).toContain('/progress#api-Stubprogress-size')
+		expect(api('/progress')).toContain('/progress#api-Stubprogress')
 
 		expect(api('/progress/gauge')).toEqual([])
 	})

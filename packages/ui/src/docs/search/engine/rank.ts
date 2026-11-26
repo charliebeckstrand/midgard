@@ -14,7 +14,7 @@ function getNames(entry: Matchable): string[] {
  * The results with each entry whose name is the query first, in the order of
  * the weights of their kinds: `button` puts the Button page and `<Button />`
  * before CopyButton, and `modal` puts each page with the keyword before each
- * `modal` prop. Each other entry keeps the order of its score.
+ * component with a `modal` prop. Each other entry keeps the order of its score.
  */
 export function rank<T extends Matchable>(results: readonly T[], query: string): T[] {
 	const text = normalize(query)
