@@ -1,0 +1,5 @@
+{
+	"invoices.empty": "Todavía no hay facturas.",
+	"inbox.greeting": "Hola de nuevo, {name}.",
+	"inbox.unread": "{count, plural, one {# mensaje sin leer} other {# mensajes sin leer}}"
+}
