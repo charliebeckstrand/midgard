@@ -44,7 +44,7 @@ describe('the direction setting of the docs', () => {
 
 		pick('System')
 
-		expect(document.documentElement.hasAttribute('dir')).toBe(false)
+		expect(document.documentElement).not.toHaveAttribute('dir')
 	})
 
 	it('stores no choice, so a reload starts at "System"', () => {

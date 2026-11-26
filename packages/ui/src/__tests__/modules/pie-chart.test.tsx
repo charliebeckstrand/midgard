@@ -579,13 +579,13 @@ describe('PieChart', () => {
 
 		expect(item.tagName).toBe('BUTTON')
 
-		expect(item).toHaveAttribute('aria-pressed', 'true')
+		expect(item).toBePressed()
 
 		expect(allBySlot(container, 'chart-slice')).toHaveLength(1)
 
 		fireEvent.click(item)
 
-		expect(item).toHaveAttribute('aria-pressed', 'false')
+		expect(item).toBeUnpressed()
 
 		expect(allBySlot(container, 'chart-slice')).toHaveLength(0)
 

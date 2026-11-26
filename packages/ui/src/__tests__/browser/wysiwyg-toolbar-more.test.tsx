@@ -84,12 +84,7 @@ describe('Wysiwyg toolbar More (real browser)', () => {
 
 		await userEvent.click(within(row).getByRole('button', { name: 'Code' }))
 
-		await waitFor(() =>
-			expect(within(row).getByRole('button', { name: 'Code' })).toHaveAttribute(
-				'aria-pressed',
-				'true',
-			),
-		)
+		await waitFor(() => expect(within(row).getByRole('button', { name: 'Code' })).toBePressed())
 
 		expect(field).toHaveFocus()
 

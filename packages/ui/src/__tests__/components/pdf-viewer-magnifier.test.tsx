@@ -255,7 +255,7 @@ describe('PdfViewer magnifier controls', () => {
 
 		const control = screen.getByRole('button', { name: 'Turn magnifier off' })
 
-		expect(control).toHaveAttribute('aria-pressed', 'true')
+		expect(control).toBePressed()
 
 		expect(control).not.toHaveAttribute('aria-haspopup')
 	})
@@ -270,7 +270,7 @@ describe('PdfViewer magnifier controls', () => {
 		const control = screen.getByRole('button', { name: 'Magnifier settings' })
 
 		expect(control).toHaveAttribute('aria-haspopup', 'dialog')
-		expect(control).toHaveAttribute('aria-expanded', 'false')
+		expect(control).toBeCollapsed()
 
 		expect(control).not.toHaveAttribute('aria-pressed')
 
@@ -290,7 +290,7 @@ describe('PdfViewer magnifier controls', () => {
 
 		// The consumer asked for the large lens, so that is the option standing selected.
 		expect(screen.getByRole('radio', { name: 'Large' })).toBeChecked()
-		expect(screen.getByRole('radio', { name: 'Medium' })).not.toBeChecked()
+		expect(screen.getByRole('radio', { name: 'Medium' })).toBeUnchecked()
 
 		// The two the consumer left alone open on the middle step and the default dwell.
 		expect(screen.getByRole('radio', { name: '2.5×' })).toBeChecked()

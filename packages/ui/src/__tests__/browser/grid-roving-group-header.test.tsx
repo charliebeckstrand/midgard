@@ -68,11 +68,11 @@ describe('grid roving group header (real browser)', () => {
 
 		await userEvent.keyboard('{ArrowLeft}')
 
-		expect(header).toHaveAttribute('aria-expanded', 'false')
+		expect(header).toBeCollapsed()
 
 		await userEvent.keyboard('{ArrowRight}')
 
-		expect(header).toHaveAttribute('aria-expanded', 'true')
+		expect(header).toBeExpanded()
 
 		await userEvent.keyboard('{ArrowRight}')
 

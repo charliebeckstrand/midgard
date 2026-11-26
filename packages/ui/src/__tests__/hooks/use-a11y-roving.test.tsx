@@ -53,7 +53,7 @@ describe('setVirtualActive', () => {
 
 		setVirtualActive(items, 0, { current: owner })
 
-		expect(items[0]?.hasAttribute('data-active')).toBe(true)
+		expect(items[0]).toHaveAttribute('data-active')
 
 		expect(items[0]?.getAttribute('aria-selected')).toBe('true')
 
@@ -61,7 +61,7 @@ describe('setVirtualActive', () => {
 
 		setVirtualActive(items, 1, { current: owner })
 
-		expect(items[0]?.hasAttribute('data-active')).toBe(false)
+		expect(items[0]).not.toHaveAttribute('data-active')
 
 		expect(items[0]?.getAttribute('aria-selected')).toBe('false')
 
@@ -81,7 +81,7 @@ describe('setVirtualActive', () => {
 
 		expect(items[1]?.getAttribute('aria-selected')).toBe('false')
 
-		expect(owner.hasAttribute('aria-activedescendant')).toBe(false)
+		expect(owner).not.toHaveAttribute('aria-activedescendant')
 	})
 
 	it('only toggles data-active when no owner ref is given', () => {
@@ -89,9 +89,9 @@ describe('setVirtualActive', () => {
 
 		setVirtualActive(items, 0)
 
-		expect(items[0]?.hasAttribute('data-active')).toBe(true)
+		expect(items[0]).toHaveAttribute('data-active')
 
-		expect(items[0]?.hasAttribute('aria-selected')).toBe(false)
+		expect(items[0]).not.toHaveAttribute('aria-selected')
 	})
 })
 
@@ -103,7 +103,7 @@ describe('clearVirtualActive', () => {
 
 		clearVirtualActive({ current: owner })
 
-		expect(owner.hasAttribute('aria-activedescendant')).toBe(false)
+		expect(owner).not.toHaveAttribute('aria-activedescendant')
 	})
 })
 
@@ -273,7 +273,7 @@ describe('useA11yRoving', () => {
 
 		const items = container.querySelectorAll('button')
 
-		expect(items[0]?.hasAttribute('data-active')).toBe(true)
+		expect(items[0]).toHaveAttribute('data-active')
 	})
 
 	it('virtual mode: moves the active marker between items', () => {
@@ -287,9 +287,9 @@ describe('useA11yRoving', () => {
 
 		result.current(makeKeyEvent('ArrowDown'))
 
-		expect(items[0]?.hasAttribute('data-active')).toBe(false)
+		expect(items[0]).not.toHaveAttribute('data-active')
 
-		expect(items[1]?.hasAttribute('data-active')).toBe(true)
+		expect(items[1]).toHaveAttribute('data-active')
 	})
 
 	it.each<[string, Partial<RovingOptions>, string]>([
@@ -358,7 +358,7 @@ describe('useA11yRoving', () => {
 
 		result.current(makeKeyEvent('ArrowDown'))
 
-		expect(items[0]?.hasAttribute('aria-selected')).toBe(false)
+		expect(items[0]).not.toHaveAttribute('aria-selected')
 	})
 
 	it('virtual mode: activation key is a no-op when nothing is active', () => {
@@ -1122,7 +1122,7 @@ describe('useA11yRoving: itemSource (indexed navigation over a windowed list)', 
 
 		// The old active row is cleared immediately; the new one isn't mounted
 		// yet, so nothing carries `data-active` for a moment.
-		expect(container.querySelector('#opt-2')?.hasAttribute('data-active')).toBe(false)
+		expect(container.querySelector('#opt-2')).not.toHaveAttribute('data-active')
 
 		expect(container.querySelector('[data-active]')).toBeNull()
 
@@ -1130,7 +1130,7 @@ describe('useA11yRoving: itemSource (indexed navigation over a windowed list)', 
 		mountOption(container, 'opt-3')
 
 		await waitFor(() => {
-			expect(container.querySelector('#opt-3')?.hasAttribute('data-active')).toBe(true)
+			expect(container.querySelector('#opt-3')).toHaveAttribute('data-active')
 		})
 	})
 
@@ -1382,7 +1382,7 @@ describe('setVirtualActiveIndexed', () => {
 
 		expect(source.scrollToIndex).toHaveBeenCalledWith(2, { align: 'auto' })
 
-		expect(row.hasAttribute('data-active')).toBe(true)
+		expect(row).toHaveAttribute('data-active')
 
 		expect(owner.getAttribute('aria-activedescendant')).toBe('opt-2')
 	})
@@ -1428,9 +1428,9 @@ describe('clearVirtualActiveIndexed', () => {
 
 		expect(activeIndexRef.current).toBe(-1)
 
-		expect(owner.hasAttribute('aria-activedescendant')).toBe(false)
+		expect(owner).not.toHaveAttribute('aria-activedescendant')
 
-		expect(row.hasAttribute('data-active')).toBe(false)
+		expect(row).not.toHaveAttribute('data-active')
 	})
 })
 
@@ -1462,7 +1462,7 @@ describe('seedVirtualTopMatch', () => {
 
 		expect(owner.getAttribute('aria-activedescendant')).toBe('opt-0')
 
-		expect(container.querySelector('#opt-0')?.hasAttribute('data-active')).toBe(true)
+		expect(container.querySelector('#opt-0')).toHaveAttribute('data-active')
 	})
 
 	it.each([
@@ -1481,7 +1481,7 @@ describe('seedVirtualTopMatch', () => {
 
 		seedVirtualTopMatch(container, '[role="option"]', source, activeIndexRef, { current: owner })
 
-		expect(owner.hasAttribute('aria-activedescendant')).toBe(false)
+		expect(owner).not.toHaveAttribute('aria-activedescendant')
 
 		expect(container.querySelector('[data-active]')).toBeNull()
 
@@ -1509,7 +1509,7 @@ describe('seedVirtualTopMatch', () => {
 
 		expect(owner.getAttribute('aria-activedescendant')).toBe('opt-1')
 
-		expect(container.querySelector('#opt-0')?.hasAttribute('data-active')).toBe(false)
+		expect(container.querySelector('#opt-0')).not.toHaveAttribute('data-active')
 
 		expect(disabledTop.scrollToIndex).toHaveBeenCalledWith(1, { align: 'auto' })
 	})
@@ -1531,7 +1531,7 @@ describe('seedVirtualTopMatch', () => {
 
 		expect(activeIndexRef.current).toBe(-1)
 
-		expect(owner.hasAttribute('aria-activedescendant')).toBe(false)
+		expect(owner).not.toHaveAttribute('aria-activedescendant')
 	})
 
 	// The indexed branch scrolls through `scrollToIndex`. Without a scroll on the
@@ -1671,7 +1671,7 @@ describe('setVirtualActiveIndexed: mount-catch-up watcher', () => {
 
 		const row = mountOption(container, 'watch-opt-3')
 
-		await waitFor(() => expect(row.hasAttribute('data-active')).toBe(true))
+		await waitFor(() => expect(row).toHaveAttribute('data-active'))
 	})
 
 	it('a stale watcher declines to apply once a newer move supersedes it', async () => {
@@ -1695,8 +1695,8 @@ describe('setVirtualActiveIndexed: mount-catch-up watcher', () => {
 
 		const freshRow = mountOption(container, 'stale-opt-1')
 
-		await waitFor(() => expect(freshRow.hasAttribute('data-active')).toBe(true))
+		await waitFor(() => expect(freshRow).toHaveAttribute('data-active'))
 
-		expect(staleRow.hasAttribute('data-active')).toBe(false)
+		expect(staleRow).not.toHaveAttribute('data-active')
 	})
 })

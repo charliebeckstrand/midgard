@@ -232,11 +232,11 @@ describe('phone scroll cues (real browser, 375px)', () => {
 
 			screen.getByTestId('toggle').click()
 
-			await waitFor(() => expect(row.hasAttribute('tabindex')).toBe(false))
+			await waitFor(() => expect(row).not.toHaveAttribute('tabindex'))
 
-			expect(row.hasAttribute('role')).toBe(false)
+			expect(row).not.toHaveAttribute('role')
 
-			expect(row.hasAttribute('aria-label')).toBe(false)
+			expect(row).not.toHaveAttribute('aria-label')
 
 			expect(screen.queryByRole('region')).toBeNull()
 		})
@@ -269,9 +269,9 @@ describe('phone scroll cues (real browser, 375px)', () => {
 
 			await frames()
 
-			expect(row.hasAttribute('tabindex')).toBe(false)
+			expect(row).not.toHaveAttribute('tabindex')
 
-			expect(row.hasAttribute('role')).toBe(false)
+			expect(row).not.toHaveAttribute('role')
 
 			expect(getComputedStyle(row).maskImage).toBe('none')
 		})
@@ -289,7 +289,7 @@ describe('phone scroll cues (real browser, 375px)', () => {
 
 			screen.getByTestId('toggle').click()
 
-			await waitFor(() => expect(root.hasAttribute('tabindex')).toBe(false))
+			await waitFor(() => expect(root).not.toHaveAttribute('tabindex'))
 
 			expect(screen.getByRole('list', { name: 'Release history' })).toBe(root)
 		})
@@ -309,7 +309,7 @@ describe('phone scroll cues (real browser, 375px)', () => {
 
 			await frames()
 
-			expect(root.hasAttribute('tabindex')).toBe(false)
+			expect(root).not.toHaveAttribute('tabindex')
 
 			expect(getComputedStyle(root).maskImage).toBe('none')
 		})

@@ -201,7 +201,7 @@ describe('grid column resizing (real browser)', () => {
 
 		held.move(40)
 
-		await waitFor(() => expect(wrapper.hasAttribute('data-resizing')).toBe(true))
+		await waitFor(() => expect(wrapper).toHaveAttribute('data-resizing'))
 
 		// Both grips stay visible (always-on); the dragged column's reads accent (its
 		// own `data-resizing`) while the idle column keeps its muted rest color.
@@ -213,7 +213,7 @@ describe('grid column resizing (real browser)', () => {
 
 		held.release()
 
-		await waitFor(() => expect(wrapper.hasAttribute('data-resizing')).toBe(false))
+		await waitFor(() => expect(wrapper).not.toHaveAttribute('data-resizing'))
 	})
 })
 

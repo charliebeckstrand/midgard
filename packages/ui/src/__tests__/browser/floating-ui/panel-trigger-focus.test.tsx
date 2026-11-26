@@ -96,7 +96,7 @@ describe.each(FAMILIES)('$name trigger (real focus manager)', ({ Root, Panel, Tr
 
 		await waitFor(() => expect(panel).toContainElement(document.activeElement as HTMLElement))
 
-		expect(trigger).toHaveAttribute('aria-expanded', 'true')
+		expect(trigger).toBeExpanded()
 
 		return trigger
 	})
@@ -109,7 +109,7 @@ describe.each(FAMILIES)('$name trigger (real focus manager)', ({ Root, Panel, Tr
 			expect(trigger).toHaveFocus()
 		})
 
-		expect(trigger).toHaveAttribute('aria-expanded', 'false')
+		expect(trigger).toBeCollapsed()
 	})
 
 	it('gives focus back to the trigger after Escape', async () => {

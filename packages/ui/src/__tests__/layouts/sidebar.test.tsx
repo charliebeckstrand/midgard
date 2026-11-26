@@ -120,11 +120,11 @@ describe('SidebarLayout', () => {
 
 		expect(trigger).toHaveAttribute('aria-haspopup', 'dialog')
 
-		expect(trigger).toHaveAttribute('aria-expanded', 'false')
+		expect(trigger).toBeCollapsed()
 
 		fireEvent.click(trigger)
 
-		expect(trigger).toHaveAttribute('aria-expanded', 'true')
+		expect(trigger).toBeExpanded()
 	})
 
 	it('names the drawer that holds the navigation', () => {

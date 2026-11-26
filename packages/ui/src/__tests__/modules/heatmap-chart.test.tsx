@@ -187,7 +187,7 @@ describe('HeatmapChart', () => {
 			/>,
 		)
 
-		expect(bySlot(container, 'chart-plot')?.hasAttribute('data-stray')).toBe(false)
+		expect(bySlot(container, 'chart-plot')).not.toHaveAttribute('data-stray')
 	})
 
 	it('names the plot and renders the range legend by default', () => {

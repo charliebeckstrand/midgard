@@ -1391,7 +1391,7 @@ describe('Grid async commit', () => {
 
 		const message = ariaTarget(nameEditor, 'aria-describedby')
 
-		expect(message).toHaveAttribute('role', 'alert')
+		expect(message).toHaveRole('alert')
 
 		expect(message).toHaveTextContent('Name taken')
 

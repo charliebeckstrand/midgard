@@ -9,7 +9,7 @@ describe('ProgressBar', () => {
 
 		const el = bySlot(container, 'progress-bar')
 
-		expect(el).toHaveAttribute('role', 'progressbar')
+		expect(el).toHaveRole('progressbar')
 
 		expect(el).toHaveAttribute('aria-valuenow', '50')
 
@@ -191,7 +191,7 @@ describe('ProgressGauge', () => {
 
 		const el = bySlot(container, 'progress-gauge')
 
-		expect(el).toHaveAttribute('role', 'progressbar')
+		expect(el).toHaveRole('progressbar')
 
 		expect(el).toHaveAttribute('aria-valuenow', '75')
 

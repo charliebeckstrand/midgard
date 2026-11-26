@@ -480,7 +480,7 @@ describe('DateInput', () => {
 
 		expect(message).toBeInTheDocument()
 
-		expect(message).toHaveAttribute('role', 'alert')
+		expect(message).toHaveRole('alert')
 
 		expect(message).toHaveTextContent('Enter a valid date (MM/DD/YYYY).')
 	})

@@ -70,11 +70,11 @@ describe('horizontal arrow keys in RTL (real browser)', () => {
 
 				await userEvent.keyboard(forward)
 
-				expect(branch).toHaveAttribute('aria-expanded', 'true')
+				expect(branch).toBeExpanded()
 
 				await userEvent.keyboard(back)
 
-				expect(branch).toHaveAttribute('aria-expanded', 'false')
+				expect(branch).toBeCollapsed()
 			})
 
 			it('steps to the next day with the forward arrow', async () => {

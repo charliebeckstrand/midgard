@@ -37,7 +37,7 @@ describe('Menu ARIA roles (real browser)', () => {
 
 		// The trigger's `aria-controls` resolves to that single menu panel, not the
 		// positioning wrapper.
-		expect(trigger).toHaveAttribute('aria-expanded', 'true')
+		expect(trigger).toBeExpanded()
 
 		expect(trigger.getAttribute('aria-controls')).toBe(menu.id)
 

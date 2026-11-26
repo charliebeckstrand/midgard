@@ -41,7 +41,7 @@ describe('a typeable trigger keeps Space (real floating engine)', () => {
 
 		expect(trigger).toHaveValue(' ')
 
-		expect(trigger).toHaveAttribute('aria-expanded', 'false')
+		expect(trigger).toBeCollapsed()
 
 		expect(screen.queryByText('Panel')).not.toBeInTheDocument()
 	})
@@ -58,7 +58,7 @@ describe('a typeable trigger keeps Space (real floating engine)', () => {
 
 		expect(trigger).toHaveValue(' ')
 
-		expect(trigger).toHaveAttribute('aria-expanded', 'false')
+		expect(trigger).toBeCollapsed()
 
 		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
 	})

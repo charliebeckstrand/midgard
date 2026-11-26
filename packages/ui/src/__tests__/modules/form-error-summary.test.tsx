@@ -80,7 +80,7 @@ describe('FormErrorSummary', () => {
 
 		const summary = getSlot(container, 'form-error-summary')
 
-		expect(summary).toHaveAttribute('role', 'alert')
+		expect(summary).toHaveRole('alert')
 
 		expect(within(summary).getByText('There is a problem')).toBeInTheDocument()
 

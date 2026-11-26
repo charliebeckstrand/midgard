@@ -51,7 +51,7 @@ describe('Grid master-detail', () => {
 
 		const toggle = screen.getByRole('button', { name: 'Details for row 1', expanded: false })
 
-		expect(toggle).toHaveAttribute('aria-expanded', 'false')
+		expect(toggle).toBeCollapsed()
 
 		// The chevron `<svg>` carries `data-open` so its CSS rotate fires when the
 		// panel opens. It is the toggle's `data-slot="icon"` element (the lucide glyph
@@ -67,9 +67,7 @@ describe('Grid master-detail', () => {
 		).toHaveAttribute('data-open')
 
 		// The panel opens: aria-expanded flips, the detail row leaves the hidden state.
-		expect(
-			screen.getByRole('button', { name: 'Details for row 1', expanded: true }),
-		).toHaveAttribute('aria-expanded', 'true')
+		expect(screen.getByRole('button', { name: 'Details for row 1', expanded: true })).toBeExpanded()
 
 		expect(detailRow(container, 1)).not.toHaveAttribute('aria-hidden')
 

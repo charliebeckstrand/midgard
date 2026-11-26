@@ -552,11 +552,11 @@ describe('the transcript window', () => {
 
 		await tap()
 
-		expect(trigger).toHaveAttribute('aria-expanded', 'true')
+		expect(trigger).toBeExpanded()
 
 		await tap()
 
-		expect(trigger).toHaveAttribute('aria-expanded', 'false')
+		expect(trigger).toBeCollapsed()
 
 		expect(Math.max(...shifts.map(Math.abs))).toBeLessThanOrEqual(1)
 	})

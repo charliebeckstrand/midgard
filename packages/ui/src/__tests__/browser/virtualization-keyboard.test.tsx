@@ -84,7 +84,7 @@ describe('Combobox + VirtualOptions: arrow reaches an option outside the window'
 
 			expect(active).not.toBeNull()
 
-			expect(active?.hasAttribute('data-active')).toBe(true)
+			expect(active).toHaveAttribute('data-active')
 		})
 
 		await userEvent.keyboard('{Enter}')
@@ -178,7 +178,7 @@ describe('CommandPalette + VirtualOptions: arrow reaches an item outside the win
 
 			expect(active).not.toBeNull()
 
-			expect(active?.hasAttribute('data-active')).toBe(true)
+			expect(active).toHaveAttribute('data-active')
 		})
 
 		await userEvent.keyboard('{Enter}')

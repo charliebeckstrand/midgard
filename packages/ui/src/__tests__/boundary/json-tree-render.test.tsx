@@ -80,7 +80,7 @@ describe('JsonTree row renders', () => {
 			fireEvent.click(extraToggle())
 		})
 
-		expect(extraToggle()).toHaveAttribute('aria-expanded', 'true')
+		expect(extraToggle()).toBeExpanded()
 
 		// The `extra` header, and the one leaf that it opens.
 		expect(vi.mocked(JsonTreeBranchHeader)).toHaveBeenCalledTimes(1)

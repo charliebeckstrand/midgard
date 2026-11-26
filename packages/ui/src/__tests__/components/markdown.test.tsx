@@ -128,7 +128,7 @@ describe('Markdown', () => {
 	it('names the checkbox of a task item without its nested list', () => {
 		renderUI(<Markdown>{'- [ ] Parent\n  - [x] Child'}</Markdown>)
 
-		expect(screen.getByRole('checkbox', { name: 'Parent' })).not.toBeChecked()
+		expect(screen.getByRole('checkbox', { name: 'Parent' })).toBeUnchecked()
 
 		expect(screen.getByRole('checkbox', { name: 'Child' })).toBeChecked()
 	})
@@ -255,7 +255,7 @@ describe('Markdown', () => {
 	it('names a task item from the plain alt of an image', () => {
 		renderUI(<Markdown>{'- [ ] ![**Logo** \\_v2\\_](logo.png)'}</Markdown>)
 
-		expect(screen.getByRole('checkbox', { name: 'Logo _v2_' })).not.toBeChecked()
+		expect(screen.getByRole('checkbox', { name: 'Logo _v2_' })).toBeUnchecked()
 	})
 
 	it('decodes a reference to code point zero to U+FFFD, and keeps a name outside the known set', () => {

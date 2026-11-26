@@ -318,7 +318,7 @@ describe('JsonTree under virtualize: the horizontal arrows', () => {
 		// An open branch: ArrowLeft closes it, then ArrowLeft moves to the root.
 		await userEvent.keyboard('{ArrowLeft}')
 
-		await waitFor(() => expect(document.activeElement).toHaveAttribute('aria-expanded', 'false'))
+		await waitFor(() => expect(document.activeElement).toBeCollapsed())
 
 		await userEvent.keyboard('{ArrowLeft}')
 

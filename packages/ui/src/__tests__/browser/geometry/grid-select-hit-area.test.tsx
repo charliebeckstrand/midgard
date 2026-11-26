@@ -143,6 +143,6 @@ describe('grid selection hit area (real browser)', () => {
 
 		await waitFor(() => expect(second).toBeChecked())
 
-		expect(first).not.toBeChecked()
+		expect(first).toBeUnchecked()
 	})
 })

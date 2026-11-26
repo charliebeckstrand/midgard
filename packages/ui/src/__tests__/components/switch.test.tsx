@@ -12,9 +12,9 @@ describe('Switch', () => {
 		const input = present<HTMLInputElement>(container.querySelector('input'), 'input')
 
 		// Internal wiring wins over a consumer spread.
-		expect(input).toHaveAttribute('role', 'switch')
+		expect(input).toHaveRole('switch')
 
-		expect(input).toHaveAttribute('aria-checked', 'true')
+		expect(input).toBeChecked()
 	})
 
 	it('renders a checkbox input with data-slot="switch" and a thumb element', () => {
@@ -47,7 +47,7 @@ describe('Switch', () => {
 
 		fireEvent.click(input)
 
-		expect(input).toHaveAttribute('aria-checked', 'true')
+		expect(input).toBeChecked()
 
 		fireEvent.click(screen.getByRole('button', { name: 'Reset' }))
 
@@ -55,9 +55,9 @@ describe('Switch', () => {
 		// on the next frame.
 		await act(() => new Promise(requestAnimationFrame))
 
-		expect(input).not.toBeChecked()
+		expect(input).toBeUnchecked()
 
-		expect(input).toHaveAttribute('aria-checked', 'false')
+		expect(input).toBeUnchecked()
 	})
 
 	it('forwards checked and onChange', () => {
@@ -94,7 +94,7 @@ describe('Switch in a Form', () => {
 
 		expect(input.checked).toBe(true)
 
-		expect(input).toHaveAttribute('aria-checked', 'true')
+		expect(input).toBeChecked()
 
 		expect(getFieldProbe('dark').textContent).toBe('true')
 
@@ -144,7 +144,7 @@ describe('Switch readOnly', () => {
 
 		expect(input.checked).toBe(false)
 
-		expect(input).toHaveAttribute('aria-checked', 'false')
+		expect(input).toBeUnchecked()
 
 		expect(onChange).not.toHaveBeenCalled()
 
@@ -202,7 +202,7 @@ describe('Switch readOnly', () => {
 
 		expect(input.checked).toBe(true)
 
-		expect(input).toHaveAttribute('aria-checked', 'true')
+		expect(input).toBeChecked()
 
 		expect(onChange).toHaveBeenCalledOnce()
 	})

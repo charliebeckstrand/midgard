@@ -49,7 +49,7 @@ describe('Listbox focus (real browser)', () => {
 		// Focus settles on the selected option, marked by the presence boolean
 		// `data-selected` (`dataAttr` renders it value-less, not `"true"`); poll
 		// for it rather than assert synchronously (CONVENTIONS §10.3).
-		await waitFor(() => expect(document.activeElement?.hasAttribute('data-selected')).toBe(true))
+		await waitFor(() => expect(document.activeElement).toHaveAttribute('data-selected'))
 	})
 
 	// APG select-only combobox: a printable key on the closed trigger opens the
@@ -84,7 +84,7 @@ describe('Listbox focus (real browser)', () => {
 
 		await userEvent.keyboard('c')
 
-		await waitFor(() => expect(trigger).toHaveAttribute('aria-expanded', 'true'))
+		await waitFor(() => expect(trigger).toBeExpanded())
 
 		await waitFor(() => expect(document.activeElement).toHaveTextContent('Cantaloupe'))
 
@@ -109,7 +109,7 @@ describe('Listbox focus (real browser)', () => {
 
 		await userEvent.keyboard('a')
 
-		expect(trigger).toHaveAttribute('aria-expanded', 'false')
+		expect(trigger).toBeCollapsed()
 
 		expect(trigger).toHaveFocus()
 	})

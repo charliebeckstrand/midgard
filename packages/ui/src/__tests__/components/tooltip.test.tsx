@@ -268,7 +268,7 @@ describe('Tooltip', () => {
 
 		// The description relationship is anchored on the focusable trigger itself,
 		// pointing at the role="tooltip" panel.
-		expect(panel).toHaveAttribute('role', 'tooltip')
+		expect(panel).toHaveRole('tooltip')
 
 		expect(trigger.getAttribute('aria-describedby')).toBe(panel.getAttribute('id'))
 	})

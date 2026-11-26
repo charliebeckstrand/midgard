@@ -86,15 +86,15 @@ describe('grid cursor keys in a right-to-left grid (real browser)', () => {
 
 		const header = () => present(activeCell(grid).closest('tr'), 'the header row')
 
-		expect(header()).toHaveAttribute('aria-expanded', 'true')
+		expect(header()).toBeExpanded()
 
 		fireEvent.keyDown(grid, { key: 'ArrowRight' })
 
-		await waitFor(() => expect(header()).toHaveAttribute('aria-expanded', 'false'))
+		await waitFor(() => expect(header()).toBeCollapsed())
 
 		fireEvent.keyDown(grid, { key: 'ArrowLeft' })
 
-		await waitFor(() => expect(header()).toHaveAttribute('aria-expanded', 'true'))
+		await waitFor(() => expect(header()).toBeExpanded())
 
 		// On an open group, ArrowLeft steps into its first leaf.
 		fireEvent.keyDown(grid, { key: 'ArrowLeft' })

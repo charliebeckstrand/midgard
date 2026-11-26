@@ -11,7 +11,7 @@ describe('Sparkline', () => {
 
 		const el = bySlot(container, 'sparkline')
 
-		expect(el).toHaveAttribute('role', 'img')
+		expect(el).toHaveRole('img')
 
 		expect(el).toHaveAttribute('aria-label', 'Revenue trend')
 
@@ -72,7 +72,7 @@ describe('Sparkline', () => {
 			<Sparkline data={[1, 4, 2, 8, 5]} animate fill endPoint aria-label="Animated line" />,
 		)
 
-		expect(bySlot(line.container, 'sparkline')).toHaveAttribute('role', 'img')
+		expect(bySlot(line.container, 'sparkline')).toHaveRole('img')
 
 		// Area path + line path draw, and the end-point circle mounts.
 		expect(line.container.querySelectorAll('path')).toHaveLength(2)

@@ -65,7 +65,7 @@ describe('Listbox', () => {
 
 		expect(button?.tagName).toBe('BUTTON')
 
-		expect(button).toHaveAttribute('role', 'combobox')
+		expect(button).toHaveRole('combobox')
 
 		expect(button).not.toBeDisabled()
 	})
@@ -110,7 +110,7 @@ describe('Listbox', () => {
 
 		fireEvent.click(button)
 
-		expect(button).toHaveAttribute('aria-expanded', 'true')
+		expect(button).toBeExpanded()
 
 		expect(button).toHaveAttribute('aria-controls')
 
@@ -519,7 +519,7 @@ describe('Listbox readOnly', () => {
 
 		fireEvent.click(button)
 
-		expect(button).toHaveAttribute('aria-expanded', 'false')
+		expect(button).toBeCollapsed()
 
 		expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
 	})
@@ -582,7 +582,7 @@ describe('Listbox disabled', () => {
 
 		fireEvent.click(getSlot(container, 'control-frame'))
 
-		expect(getSlot(container, 'listbox-button')).toHaveAttribute('aria-expanded', 'false')
+		expect(getSlot(container, 'listbox-button')).toBeCollapsed()
 
 		expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
 	})
@@ -626,7 +626,7 @@ describe('Listbox in a disabled fieldset', () => {
 
 		fireEvent.click(getSlot(container, 'control-frame'))
 
-		expect(getSlot(container, 'listbox-button')).toHaveAttribute('aria-expanded', 'false')
+		expect(getSlot(container, 'listbox-button')).toBeCollapsed()
 
 		expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
 	})

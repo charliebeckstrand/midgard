@@ -117,7 +117,7 @@ describe('Grid selection span and rowSelectable', () => {
 
 		const all = screen.getByRole('checkbox', { name: /Select all/ })
 
-		expect(all).not.toBeChecked()
+		expect(all).toBeUnchecked()
 
 		expect(all).not.toBePartiallyChecked()
 	})

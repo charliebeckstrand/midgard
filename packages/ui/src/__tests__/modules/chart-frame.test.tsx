@@ -39,7 +39,7 @@ describe('ChartFrame', () => {
 
 		const plot = bySlot(container, 'chart-plot')
 
-		expect(plot).toHaveAttribute('role', 'img')
+		expect(plot).toHaveRole('img')
 
 		expect(plot).toHaveAttribute('aria-label', 'Revenue by quarter')
 

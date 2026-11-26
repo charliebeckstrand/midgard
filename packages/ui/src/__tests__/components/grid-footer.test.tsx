@@ -39,7 +39,7 @@ describe('Grid footer', () => {
 
 		const region = present(bySlot(container, 'grid-footer-status'), 'the count region')
 
-		expect(region).toHaveAttribute('role', 'status')
+		expect(region).toHaveRole('status')
 
 		expect(region).toBeEmptyDOMElement()
 

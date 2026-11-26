@@ -14,7 +14,7 @@ describe('JsonTree', () => {
 
 		expect(el).toBeInTheDocument()
 
-		expect(el).toHaveAttribute('role', 'tree')
+		expect(el).toHaveRole('tree')
 	})
 
 	it('renders primitive leaves with their values', () => {
@@ -260,11 +260,11 @@ describe('JsonTree', () => {
 
 		press(toggle)
 
-		expect(toggle).toHaveAttribute('aria-expanded', 'false')
+		expect(toggle).toBeCollapsed()
 
 		rerender(<JsonTree data={data} search={{ value: '', filter: true }} />)
 
-		expect(screen.getByText('"tags"').closest('button')).toHaveAttribute('aria-expanded', 'false')
+		expect(screen.getByText('"tags"').closest('button')).toBeCollapsed()
 
 		expect(screen.queryByText('"engineer"')).not.toBeInTheDocument()
 	})
@@ -600,7 +600,7 @@ describe('JsonTreeNodeRow', () => {
 
 		const toggle = bySlot(container, 'json-node-toggle')
 
-		expect(toggle).toHaveAttribute('aria-expanded', 'false')
+		expect(toggle).toBeCollapsed()
 
 		expect(screen.getByText('3 items')).toBeInTheDocument()
 
@@ -783,7 +783,7 @@ describe('JsonTree tree semantics', () => {
 	it('groups nested treeitems under role="group"', () => {
 		const { container } = renderUI(<JsonTree data={{ outer: 1 }} defaultExpandDepth={5} />)
 
-		expect(container.querySelector('[data-slot="json-group"]')).toHaveAttribute('role', 'group')
+		expect(container.querySelector('[data-slot="json-group"]')).toHaveRole('group')
 	})
 
 	it('hides the closing-bracket row from assistive tech', () => {
@@ -849,7 +849,7 @@ describe('JsonTree group ownership', () => {
 
 		const group = ariaTarget(row, 'aria-owns')
 
-		expect(group).toHaveAttribute('role', 'group')
+		expect(group).toHaveRole('group')
 
 		expect(group.parentElement).toBe(row.closest('[data-slot="json-node"]'))
 
@@ -871,7 +871,7 @@ describe('JsonTree group ownership', () => {
 
 		fireEvent.click(toggle)
 
-		expect(toggle).toHaveAttribute('aria-expanded', 'false')
+		expect(toggle).toBeCollapsed()
 
 		expect(toggle).not.toHaveAttribute('aria-owns')
 	})
@@ -951,7 +951,7 @@ describe('JsonTree horizontal arrows', () => {
 		// A closed branch: ArrowRight opens it, and focus stays.
 		key(container, 'ArrowRight')
 
-		expect(document.activeElement).toHaveAttribute('aria-expanded', 'true')
+		expect(document.activeElement).toBeExpanded()
 
 		expect(document.activeElement).toHaveTextContent('outer')
 
@@ -968,7 +968,7 @@ describe('JsonTree horizontal arrows', () => {
 		// An open branch: ArrowLeft closes it, and focus stays.
 		key(container, 'ArrowLeft')
 
-		expect(document.activeElement).toHaveAttribute('aria-expanded', 'false')
+		expect(document.activeElement).toBeCollapsed()
 
 		// A closed branch: ArrowLeft moves to its parent.
 		key(container, 'ArrowLeft')
@@ -1033,14 +1033,14 @@ describe('JsonTree: a consumer onKeyDown', () => {
 		// A closed branch: ArrowRight opens it, and focus stays.
 		key('ArrowRight')
 
-		expect(outer).toHaveAttribute('aria-expanded', 'true')
+		expect(outer).toBeExpanded()
 
 		expect(document.activeElement).toBe(outer)
 
 		// An open branch: ArrowLeft closes it, and focus stays.
 		key('ArrowLeft')
 
-		expect(outer).toHaveAttribute('aria-expanded', 'false')
+		expect(outer).toBeCollapsed()
 
 		expect(document.activeElement).toBe(outer)
 

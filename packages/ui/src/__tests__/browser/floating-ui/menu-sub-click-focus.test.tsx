@@ -97,7 +97,7 @@ describe('a click on a submenu row (real browser)', () => {
 
 		expect(row()).toHaveFocus()
 
-		expect(row()).toHaveAttribute('aria-expanded', 'true')
+		expect(row()).toBeExpanded()
 
 		// A second click changes nothing: a click only opens.
 		await userEvent.click(row())
@@ -106,7 +106,7 @@ describe('a click on a submenu row (real browser)', () => {
 
 		expect(row()).toHaveFocus()
 
-		expect(row()).toHaveAttribute('aria-expanded', 'true')
+		expect(row()).toBeExpanded()
 	})
 
 	it('moves focus to the first row of the submenu on Enter', async () => {
@@ -205,7 +205,7 @@ describe('a click on a submenu row (real browser)', () => {
 
 		await userEvent.keyboard('{ArrowLeft}')
 
-		await waitFor(() => expect(row()).toHaveAttribute('aria-expanded', 'false'))
+		await waitFor(() => expect(row()).toBeCollapsed())
 
 		expect(row()).toHaveFocus()
 	})
