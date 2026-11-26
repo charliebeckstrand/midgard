@@ -20,7 +20,7 @@
  *
  * An HTML file also takes the stored settings of the reader on its root
  * element: the theme, the density, the motion, and the sidebar of the
- * appearance, and the events. The cookies of the request hold them
+ * appearance, the events, and the closed sections of the sidebar of the docs. The cookies of the request hold them
  * ({@link rootMarks}). Thus the first paint shows the settings with no script.
  *
  * ```sh
@@ -47,6 +47,7 @@ import { promisify } from 'node:util'
 import { brotliCompress, constants, gzip } from 'node:zlib'
 import { localeFile, requestLocale } from '../../src/docs/app/language.ts'
 import { rootRedirect } from '../../src/docs/app/root-redirect.ts'
+import { sectionRootClasses } from '../../src/docs/app/section-marks.ts'
 import { markRoot, type RootMarks, rootMarks } from '../../src/server/root-marks.ts'
 import { getOrCompute } from '../../src/utilities/get-or-compute.ts'
 
@@ -156,6 +157,16 @@ async function readContent(file: string, marks: RootMarks): Promise<Buffer> {
 
 /** No marks on the root element. */
 const NO_MARKS = rootMarks()
+
+/**
+ * The marks of the root element for `cookies`: the marks of `ui`, and a class
+ * for each closed section of the sidebar ({@link sectionRootClasses}).
+ */
+function docsMarks(cookies?: string): RootMarks {
+	const { classes, attributes } = rootMarks(cookies)
+
+	return { classes: [...classes, ...sectionRootClasses(cookies)], attributes }
+}
 
 /**
  * The body of `file` in `encoding`, or as it is on the disk with no coding,
@@ -328,7 +339,7 @@ async function respond(request: IncomingMessage, response: ServerResponse): Prom
 
 	const file = await resolveFile(CLIENT_DIR, request.url ?? '/', locale)
 
-	const marks = file?.endsWith('.html') ? rootMarks(request.headers.cookie) : NO_MARKS
+	const marks = file?.endsWith('.html') ? docsMarks(request.headers.cookie) : NO_MARKS
 
 	if (file === undefined) {
 		response.writeHead(400).end()
