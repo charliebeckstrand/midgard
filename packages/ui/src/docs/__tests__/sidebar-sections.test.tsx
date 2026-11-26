@@ -2,10 +2,10 @@ import { act, fireEvent, render, screen } from '@testing-library/react'
 import { renderToString } from 'react-dom/server'
 import { afterEach, describe, expect, it } from 'vitest'
 import { UIProvider } from '../../providers/ui'
-import { DocsSearch } from '../app/search.tsx'
 import { sectionRootClasses, sectionRules } from '../app/section-marks.ts'
 import { DocsSidebar } from '../app/sidebar.tsx'
 import type { PageLink } from '../plugin/pages.ts'
+import { DocsSearch } from '../search/ui/search-provider.tsx'
 
 // The title of each section of the docs sidebar opens and closes the section.
 // Each section starts open. The state of each section persists in

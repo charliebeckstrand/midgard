@@ -17,9 +17,9 @@ import {
 	SidebarSection,
 } from 'ui/sidebar'
 import type { PageLink } from '../plugin/pages.ts'
+import { SearchButton } from '../search/ui/search-button.tsx'
 import { appMessages, sectionLabel } from './app-messages.ts'
 import { getInitial, LetterRail } from './letter-rail.tsx'
-import { SearchButton } from './search.tsx'
 import { sectionRules } from './section-marks.ts'
 import { useCurrentPage } from './use-current-page.ts'
 import { useSectionsOpen } from './use-sections-open.ts'

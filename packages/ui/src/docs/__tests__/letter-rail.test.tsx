@@ -6,9 +6,9 @@ import { stubResizeObserver } from '../../__tests__/helpers/stub-resize-observer
 import { UIProvider } from '../../providers/ui'
 import { clamp } from '../../utilities/clamp.ts'
 import { getLetters, getMarks, HOLD_DELAY, letterAt } from '../app/letter-rail.tsx'
-import { DocsSearch } from '../app/search.tsx'
 import { DocsSidebar } from '../app/sidebar.tsx'
 import type { PageLink } from '../plugin/pages.ts'
+import { DocsSearch } from '../search/ui/search-provider.tsx'
 
 // The letter rail of the docs sidebar. Each letter has an equal band of the
 // rail, so a press selects exactly one letter, and a slide moves from letter to

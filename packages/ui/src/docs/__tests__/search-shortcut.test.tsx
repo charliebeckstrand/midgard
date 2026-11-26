@@ -3,7 +3,8 @@
 
 import { describe, expect, it } from 'vitest'
 import { hydrateOnPlatform } from '../../__tests__/helpers/hydrate.tsx'
-import { DocsSearch, SearchButton } from '../app/search.tsx'
+import { SearchButton } from '../search/ui/search-button.tsx'
+import { DocsSearch } from '../search/ui/search-provider.tsx'
 
 // The key of the search button is in the HTML of the build, so it is in the
 // first paint. The build cannot know the platform, so it writes ⌘K and ⌃K and

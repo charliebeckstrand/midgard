@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { matchEntries } from '../app/search-match.ts'
-import type { SearchEntry } from '../plugin/search.ts'
+import { matchEntries } from '../search/engine/match.ts'
+import type { SearchEntry } from '../search/types.ts'
 
 // The order of the results of the search of the docs.
 
