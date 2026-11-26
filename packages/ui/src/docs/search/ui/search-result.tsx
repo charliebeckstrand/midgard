@@ -72,11 +72,17 @@ const SECTION_ICON: Readonly<Record<string, LucideIcon>> = {
 }
 
 /**
- * The tint of the icon of a page in a section with its own color. A page in
- * another section has the tint of its kind.
+ * The tint of the icon of a page, by the folder of its section. Each section
+ * has its own color, and no section has the color of a tab or of an API
+ * reference.
  */
 const SECTION_TINT: Readonly<Record<string, string>> = {
+	components: 'bg-blue-500/12 text-blue-600 dark:bg-blue-400/15 dark:text-blue-300',
 	modules: 'bg-emerald-500/12 text-emerald-600 dark:bg-emerald-400/15 dark:text-emerald-300',
+	layouts: 'bg-amber-500/15 text-amber-700 dark:bg-amber-400/15 dark:text-amber-300',
+	structure: 'bg-rose-500/12 text-rose-600 dark:bg-rose-400/15 dark:text-rose-300',
+	primitives: 'bg-lime-500/15 text-lime-700 dark:bg-lime-400/15 dark:text-lime-300',
+	providers: 'bg-fuchsia-500/12 text-fuchsia-600 dark:bg-fuchsia-400/15 dark:text-fuchsia-300',
 }
 
 function getTint(option: Matchable): string {
