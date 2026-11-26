@@ -5,12 +5,18 @@ import { pageName, tabName } from '../../kit/names.ts'
 import { type Matchable, normalize } from '../engine/index.ts'
 
 /**
- * The section of each page, such as `components`, by its path. The result of
- * a page shows the name of its section and the icon of its section.
+ * The section of the page of an entry, such as `modules` for
+ * `/modules/grid/sorting` or `components` for `/button#api-Button`. Each
+ * result shows the name of its section, and a page shows the icon of its
+ * section.
  */
-export const sectionByPath: ReadonlyMap<string, string> = new Map(
-	pages.map((page) => [page.path, page.category]),
-)
+export function findSection(href: string): string {
+	const path = href.split('#')[0] ?? href
+
+	const page = pages.find((link) => path === link.path || path.startsWith(`${link.path}/`))
+
+	return page?.category ?? ''
+}
 
 /** The slug of the tab of a path, the last part before the hash: `/grid/sorting#basic` gives `sorting`. */
 function slugOfHref(href: string): string {
@@ -40,13 +46,14 @@ function localizeLabel<T extends Matchable>(intl: IntlShape, option: T): T {
 
 /**
  * Where the entry is, in the language of the reader: the section of a page,
- * and the name of a tab, as in "Grid › Sorting". The names from the code stay
+ * the page and the name of a tab, as in "Grid › Sorting", and the page of a
+ * component. The names from the code stay
  * as they are.
  */
 function formatPlace(intl: IntlShape, option: Matchable): string {
-	const section = option.kind === 'page' ? sectionByPath.get(option.href) : undefined
+	if (option.kind === 'page') return sectionLabel(intl, findSection(option.href))
 
-	if (section !== undefined) return sectionLabel(intl, section)
+	if (option.kind === 'tab') return `${option.context} › ${option.label}`
 
 	const [page, tab] = option.context.split(' › ')
 
