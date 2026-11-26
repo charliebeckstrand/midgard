@@ -98,20 +98,20 @@ const PINNED_NODE = readFileSync(join(import.meta.dirname, '.node-version'), 'ut
 	.replace(/^v/, '')
 
 /**
- * Marks the process that wrote the warning. A run can load more than one
- * config, and each bundles its own copy of this file: ui loads
- * `vitest.config.ts` and then the config of a project. A flag in module scope
- * would thus write the warning one time for each config.
+ * Marks the run that wrote the warning. A run can load more than one config,
+ * and each bundles its own copy of this file: ui loads `vitest.config.ts` and
+ * then the config of a project. The test files that import `vitest.base.ts`
+ * also load the file again in each worker. A worker thread and a fork copy
+ * `process.env` when they start, after the config loads, so they get the mark.
+ * A flag in module scope or on `globalThis` does not reach them.
  */
-const NODE_WARNED = Symbol.for('midgard.vitest.node-pin-warned')
-
-const warned = globalThis as { [NODE_WARNED]?: true }
+const NODE_WARNED = 'MIDGARD_NODE_PIN_WARNED'
 
 if (
 	process.versions.node.split('.')[0] !== PINNED_NODE.split('.')[0] &&
-	!warned[NODE_WARNED]
+	process.env[NODE_WARNED] === undefined
 ) {
-	warned[NODE_WARNED] = true
+	process.env[NODE_WARNED] = '1'
 
 	console.warn(
 		`This run uses Node ${process.versions.node}; the repository pins Node ${PINNED_NODE} ` +
