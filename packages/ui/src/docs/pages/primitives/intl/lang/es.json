@@ -1,0 +1,5 @@
+{
+	"docs.demo.intl.empty": "Todavía no hay facturas.",
+	"docs.demo.intl.greeting": "Hola de nuevo, {name}.",
+	"docs.demo.intl.unread": "{count, plural, one {# mensaje sin leer} other {# mensajes sin leer}}"
+}

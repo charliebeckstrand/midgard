@@ -46,7 +46,9 @@ import type { Parser } from './examples.ts'
 // A word of the demo data, such as a status, is the value of a property in a
 // call of `words` (`data/words.ts`). Its message id holds the domain and the
 // key of the word, not a hash of the text, so the same English word can have
-// another translation in another domain. Each other literal is code.
+// another translation in another domain. A call of `defineMessages` or of
+// `defineMessage` holds no demo text, because the catalog reads each of its
+// descriptors by its id. Each other literal is code.
 
 /** The start of the message id of a demo text. The rest is a hash of the English text. */
 export const DEMO_ID = 'docs.demo.'
@@ -287,6 +289,9 @@ const MESSAGE_NAMES: ReadonlySet<string> = new Set(['error', 'summarize', 'formE
  * each field, such as `validate` of a Form.
  */
 const MESSAGE_MAPS: ReadonlySet<string> = new Set(['fieldErrors', 'validate'])
+
+/** The functions that define message descriptors, which `pnpm intl` reads by their ids. */
+const DESCRIPTOR_CALLS: ReadonlySet<string> = new Set(['defineMessage', 'defineMessages'])
 
 /** Tells if the value of an attribute or a property named `name` is demo text. */
 function carriesText(name: string): boolean {
@@ -560,16 +565,28 @@ export function findDemoText(program: ESTree.Program, code: string, file: string
 		},
 	}
 
+	// A call of `defineMessages` or of `defineMessage` gives message
+	// descriptors. Each descriptor is in the catalog by its own id, so none of
+	// its properties is demo text.
+	const descriptors: (readonly [number, number])[] = []
+
+	const inDescriptor = (node: ESTree.Node) =>
+		descriptors.some(([start, end]) => node.start >= start && node.end <= end)
+
 	new Visitor({
 		CallExpression(node) {
-			if (node.callee.type === 'Identifier' && node.callee.name === wordsName) {
-				findWords(node, file, finder)
-			}
+			if (node.callee.type !== 'Identifier') return
+
+			if (node.callee.name === wordsName) findWords(node, file, finder)
+
+			if (DESCRIPTOR_CALLS.has(node.callee.name)) descriptors.push([node.start, node.end])
 		},
 		JSXElement: (node) => findChildren(node, finder),
 		JSXFragment: (node) => findChildren(node, finder),
 		JSXAttribute: (node) => findAttribute(node, finder),
-		Property: (node) => findProperty(node, finder),
+		Property: (node) => {
+			if (!inDescriptor(node)) findProperty(node, finder)
+		},
 		FunctionDeclaration: (node) => findReturns(node, finder),
 	}).visit(program)
 

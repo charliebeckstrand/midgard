@@ -5007,6 +5007,10 @@
 		"defaultMessage": "South routes",
 		"description": "Text of a demo in the docs as yName, in modules/chat/conversation/targets.tsx."
 	},
+	"docs.demo.c5702a5a6a26": {
+		"defaultMessage": "Add a message",
+		"description": "Text of a demo in the docs, in primitives/intl/translate-messages.tsx."
+	},
 	"docs.demo.c5a9dd0c5e20": {
 		"defaultMessage": "{label} trend, last 12 periods",
 		"description": "Text of a demo in the docs as aria-label, in modules/grid/sparkline/in-a-cell.tsx. The argument {label} is a value from the code."
@@ -6247,6 +6251,18 @@
 		"defaultMessage": "Draw your signature or type your full name.",
 		"description": "Text of a demo in the docs as validate, in components/signature-pad/in-a-form.tsx."
 	},
+	"docs.demo.intl.empty": {
+		"defaultMessage": "No invoices yet.",
+		"description": "The text of the invoice list when the list is empty."
+	},
+	"docs.demo.intl.greeting": {
+		"defaultMessage": "Welcome back, {name}.",
+		"description": "The greeting at the top of the inbox. The value is the first name of the reader."
+	},
+	"docs.demo.intl.unread": {
+		"defaultMessage": "{count, plural, one {# unread message} other {# unread messages}}",
+		"description": "The count of the messages that the reader has not opened."
+	},
 	"docs.direction.label": {
 		"defaultMessage": "Direction",
 		"description": "The label of the setting that lays out the docs site left to right or right to left."
@@ -6502,6 +6518,10 @@
 	"docs.page.input": {
 		"defaultMessage": "Input",
 		"description": "The common name of the Input page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.intl": {
+		"defaultMessage": "Intl",
+		"description": "The common name of the Intl page of the docs, which the search finds. Use the noun that a reader of the language searches for."
 	},
 	"docs.page.json-tree": {
 		"defaultMessage": "JSON tree",
@@ -9579,6 +9599,10 @@
 		"defaultMessage": "Server infinite scroll",
 		"description": "The title of an example on a page of the docs. It comes from the file name server-infinite-scroll.tsx."
 	},
+	"docs.title.server-module": {
+		"defaultMessage": "Server module",
+		"description": "The title of an example on a page of the docs. It comes from the file name server-module.tsx."
+	},
 	"docs.title.server-pagination": {
 		"defaultMessage": "Server pagination",
 		"description": "The title of an example on a page of the docs. It comes from the file name server-pagination.tsx."
@@ -9750,6 +9774,10 @@
 	"docs.title.transcript": {
 		"defaultMessage": "Transcript",
 		"description": "The title of an example on a page of the docs. It comes from the file name transcript.tsx."
+	},
+	"docs.title.translate-messages": {
+		"defaultMessage": "Translate messages",
+		"description": "The title of an example on a page of the docs. It comes from the file name translate-messages.tsx."
 	},
 	"docs.title.trend": {
 		"defaultMessage": "Trend",
