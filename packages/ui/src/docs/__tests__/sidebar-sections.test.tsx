@@ -142,6 +142,32 @@ describe('DocsSidebar sections', () => {
 		expect(isOpen('Components')).toBe(true)
 	})
 
+	it('closes the section of the current page in each copy of the sidebar', () => {
+		const { container } = render(
+			<UIProvider pathname="/button">
+				<DocsSearch>
+					<DocsSidebar pages={PAGES} />
+					<DocsSidebar pages={PAGES} />
+				</DocsSearch>
+			</UIProvider>,
+		)
+
+		const titles = () =>
+			[
+				...container.querySelectorAll(
+					'[data-docs-section="components"] [data-slot="collapse-trigger"]',
+				),
+			].map((trigger) => trigger.getAttribute('aria-expanded'))
+
+		expect(titles()).toEqual(['true', 'true'])
+
+		fireEvent.click(screen.getAllByRole('button', { name: 'Components' })[1] as HTMLElement)
+
+		expect(titles()).toEqual(['false', 'false'])
+
+		expect(localStorage.getItem('docs-section-components')).toBe('closed')
+	})
+
 	it('hides the letter rail while the components are closed', () => {
 		const { container } = render(sidebar('/modules/grid'))
 
