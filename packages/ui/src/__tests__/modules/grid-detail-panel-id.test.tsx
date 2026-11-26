@@ -1,7 +1,9 @@
 import '../setup/grid-modules'
+import { renderToString } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { renderUI } from '../helpers'
+import { hydrateServerRender } from '../helpers/hydrate'
 
 type Row = { id: string; name: string }
 
@@ -59,6 +61,44 @@ describe('Grid detail panel id', () => {
 					table.querySelector(`tr[data-detail-row="${row.id}"] section`),
 				)
 			}
+		}
+	})
+
+	/** The id that each expander names, in the order of the rows, under `root`. */
+	function controls(root: ParentNode) {
+		return rows.map((row) =>
+			root.querySelector(`[aria-label="Details for row ${row.id}"]`)?.getAttribute('aria-controls'),
+		)
+	}
+
+	// A closed panel rests in a hidden Activity, which the server does not render.
+	it('names no closed panel in the server markup', () => {
+		const html = renderToString(<ExpandableGrid />)
+
+		const template = document.createElement('template')
+
+		template.innerHTML = html
+
+		const [open, closed] = controls(template.content)
+
+		expect(open).toBeTruthy()
+
+		expect(template.content.getElementById(open ?? '')).not.toBeNull()
+
+		expect(closed).toBeNull()
+	})
+
+	it('names the closed panel after hydration, with no mismatch', () => {
+		const { container, onRecoverableError } = hydrateServerRender(<ExpandableGrid />)
+
+		expect(onRecoverableError).not.toHaveBeenCalled()
+
+		const table = container.querySelector('table')
+
+		for (const row of rows) {
+			expect(table?.querySelector(`[aria-label="Details for row ${row.id}"]`)).toControl(
+				table?.querySelector(`tr[data-detail-row="${row.id}"] section`),
+			)
 		}
 	})
 })

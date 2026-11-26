@@ -152,6 +152,11 @@ export function renderRow<T>(
 
 	const expanded = props.expansion ? detailOpen(row, key, props.expansion) : false
 
+	// The expander names a panel only when the DOM holds it. An open panel is
+	// always there. A plain body holds a closed one in a hidden Activity, which
+	// is not in the server markup, and a windowed body does not mount it.
+	const panelInDom = expanded || (!windowRow && props.expansion?.closedPanelsMounted === true)
+
 	const rowProps = {
 		columns: props.visibleColumns,
 		row,
@@ -179,10 +184,7 @@ export function renderRow<T>(
 		expanded,
 		rowExpandable: expandable,
 		toggleExpand: props.expansion?.toggle,
-		// A plain body keeps each panel mounted, and a windowed body mounts one only
-		// while it is open, so the expander names a panel only when one is there.
-		detailPanelId:
-			props.expansion && (!windowRow || expanded) ? props.expansion.panelId(key) : undefined,
+		detailPanelId: props.expansion && panelInDom ? props.expansion.panelId(key) : undefined,
 		...windowRow,
 	} satisfies GridRowProps<T>
 

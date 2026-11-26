@@ -38,6 +38,13 @@ export type GridDetailExpansion<T> = {
 	 * of a page counts the rows of the pages before it, and those hold no panel.
 	 */
 	indexed: boolean
+	/**
+	 * Whether the DOM holds the panel of a closed row in a plain body. A closed
+	 * panel rests in a hidden `<Activity>`, which the server does not render. So
+	 * this is `false` on the server and in the hydration render, and `true` after
+	 * hydration (`useMountsEveryPanel`).
+	 */
+	closedPanelsMounted: boolean
 }
 
 /** The group-header model {@link GridHead} renders from: the resolved spans and the collapse controls. @internal */
@@ -282,7 +289,9 @@ export function resolveGroupingGates<E>(args: {
  * That is whether it's active, plus the body wiring the flat rows read. The
  * wiring is the expanded set, the per-row predicate, the toggle, and the detail
  * renderer. Grouping renders its own body, so expansion stands down under it.
- * `idScope` is the grid's own id, the prefix of each panel id. Under
+ * `idScope` is the grid's own id, the prefix of each panel id.
+ * `closedPanelsMounted` says whether the DOM holds a closed panel (see
+ * `GridDetailExpansion.closedPanelsMounted`). Under
  * pagination an open panel takes no row index (see `GridDetailExpansion.indexed`). The result is
  * `null` when inactive. Kept off {@link GridData}'s complexity
  * budget.
@@ -294,6 +303,7 @@ export function resolveDetailExpansion<T>(
 	groupingActive: boolean,
 	idScope: string,
 	paginated: boolean,
+	closedPanelsMounted: boolean,
 ): { active: boolean; body: GridDetailExpansion<T> | null } {
 	const active = expansion.active && !groupingActive
 
@@ -308,6 +318,7 @@ export function resolveDetailExpansion<T>(
 			render: expansion.render,
 			panelId: (rowKey) => detailPanelId(idScope, rowKey),
 			indexed: !paginated,
+			closedPanelsMounted,
 		},
 	}
 }
