@@ -11,11 +11,11 @@ import { LocaleProvider } from 'ui/providers/locale'
 import { UIProvider } from 'ui/providers/ui'
 import { Sidebar } from 'ui/sidebar'
 import { describe, expect, it, vi } from 'vitest'
-import { CI } from '../../../vitest.base.ts'
-import { getOrCompute } from '../../utilities/get-or-compute.ts'
-import { catalogs } from '../app/catalogs.ts'
-import { LOCALES } from '../app/language.ts'
-import { findPages, type Page } from '../plugin/pages.ts'
+import { CI } from '../../../../vitest.base.ts'
+import { getOrCompute } from '../../../utilities/get-or-compute.ts'
+import { catalogs } from '../../app/catalogs.ts'
+import { LOCALES } from '../../app/language.ts'
+import { findPages, type Page } from '../../plugin/pages.ts'
 import { loadCopy } from './copy.tsx'
 import { restoreRootAfterCase } from './restore-root.ts'
 import { findSameText, readTexts, recordIntl } from './same-text.ts'
@@ -68,7 +68,7 @@ import { findSameText, readTexts, recordIntl } from './same-text.ts'
 
 /** The English module of each page and each tab, keyed by module path. */
 const englishModules = import.meta.glob<ComponentType>(
-	['../pages/*/*/index.tsx', '../pages/*/*/*/index.tsx'],
+	['../../pages/*/*/index.tsx', '../../pages/*/*/*/index.tsx'],
 	{ import: 'default' },
 )
 
@@ -102,11 +102,11 @@ function translatedModules(locale: string): Modules {
  * to `pages/`, such as `modules/grid/sorting`.
  */
 export function toPath(folder: string): string {
-	return `../pages/${folder}/index.tsx`
+	return `../../pages/${folder}/index.tsx`
 }
 
 /** Each page of the docs, in the order of the sidebar. */
-export const docsPages: readonly Page[] = findPages(join(import.meta.dirname, '..'))
+export const docsPages: readonly Page[] = findPages(join(import.meta.dirname, '../..'))
 
 /** The pages of `modules/`. */
 const modulePages = docsPages.filter(({ folder }) => folder.startsWith('modules/'))

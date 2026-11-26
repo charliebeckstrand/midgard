@@ -1,5 +1,5 @@
 import { onTestFinished } from 'vitest'
-import { readRootDensity, writeRootDensity } from '../../core/density/steps.ts'
+import { readRootDensity, writeRootDensity } from '../../../core/density/steps.ts'
 
 /** The stylesheet links that React puts in the head for a `precedence`. */
 const HOISTED_STYLESHEET = 'link[rel="stylesheet"][data-precedence]'

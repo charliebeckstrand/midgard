@@ -3,7 +3,7 @@ import { act, screen } from '@testing-library/react'
 import { Outlet, type RouteObject } from 'react-router'
 import { describe, expect, it } from 'vitest'
 import routes from '../app/routes.ts'
-import { renderShell } from './render-shell.tsx'
+import { renderShell } from './helpers/render-shell.tsx'
 
 // The shell takes the page from the matched route, not from the start of the
 // path. A path in a different case, or a path under a page with no route,

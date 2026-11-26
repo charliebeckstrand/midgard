@@ -19,8 +19,8 @@ function directoryNames(dir: string): string[] {
  * no other check tells you.
  *
  * The layouts and the primitives have no pages yet, so this test does not ask
- * for them. The page smoke test (`docs/__tests__/page-smoke.tsx`) asks that
- * each page shows an example.
+ * for them. The page smoke test (`docs/__tests__/helpers/page-smoke.tsx`) asks
+ * that each page shows an example.
  */
 describe('page coverage', () => {
 	it.each(['components', 'structure', 'modules', 'providers'])(

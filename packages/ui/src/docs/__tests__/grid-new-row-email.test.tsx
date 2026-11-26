@@ -3,7 +3,7 @@ import { fireEvent, screen } from '@testing-library/react'
 import { describe, expect } from 'vitest'
 import { it } from '../../__tests__/helpers/fake-clock'
 import NewRow from '../pages/modules/grid/editing/new-row.tsx'
-import { renderInLocale } from './copy.tsx'
+import { renderInLocale } from './helpers/copy.tsx'
 
 // The mock server of the New row demo refuses an email that a person has. It
 // trims the new email before the check, so it must store each email trimmed.

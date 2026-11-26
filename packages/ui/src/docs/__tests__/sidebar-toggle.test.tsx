@@ -1,7 +1,7 @@
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
-import { renderShell } from './render-shell.tsx'
+import { renderShell } from './helpers/render-shell.tsx'
 
 // At `lg` and up, the button in the header shows or hides the sidebar. It is a
 // disclosure, so it tells a screen reader if the sidebar shows.

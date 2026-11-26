@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from 'vitest'
-import { attach } from '../../__tests__/helpers/attach.ts'
+import { attach } from '../../../__tests__/helpers/attach.ts'
 import { readTexts, recordIntl } from './same-text.ts'
 
 // The page smoke test finds the text that a translated page shows as the

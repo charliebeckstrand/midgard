@@ -3,7 +3,7 @@ import { describe, expect } from 'vitest'
 import { barrels } from '../../__tests__/helpers/public-barrels.ts'
 import { isDensityStep } from '../../core/density/steps.ts'
 import type { ApiExtractor, PropApi } from '../plugin/api.ts'
-import { it } from './extractor.ts'
+import { it } from './helpers/extractor.ts'
 
 // The playground shows what a component renders when a prop is omitted. It
 // reads the `@defaultValue` tag of each prop whose type is a union of

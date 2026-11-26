@@ -1,9 +1,9 @@
 import { type RenderResult, render } from '@testing-library/react'
 import type { ComponentType, ReactNode } from 'react'
 import { LocaleProvider } from 'ui/providers/locale'
-import { CI } from '../../../vitest.base.ts'
-import { catalogs } from '../app/catalogs.ts'
-import { LOCALES } from '../app/language.ts'
+import { CI } from '../../../../vitest.base.ts'
+import { catalogs } from '../../app/catalogs.ts'
+import { LOCALES } from '../../app/language.ts'
 
 /**
  * The time limit of a case that loads a copy ({@link loadCopy}). The first
@@ -18,7 +18,7 @@ export const COPY_TIMEOUT = CI ? 180_000 : 60_000
  * English it is the module itself. The query of the copy is not a literal, so
  * the copy loads through `import`.
  *
- * @param path - The module path, relative to this folder, such as `../pages/modules/grid/data.tsx`.
+ * @param path - The module path, relative to this folder, such as `../../pages/modules/grid/data.tsx`.
  * @param locale - The locale of the copy.
  * @returns The module. Without a type argument, a module whose default export is a component.
  */

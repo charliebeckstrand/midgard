@@ -1,6 +1,6 @@
-import { extendChain, loadMessages, uiChain } from '../../primitives/intl/intl-catalog.ts'
-import { catalogs } from '../app/catalogs.ts'
-import { LOCALES } from '../app/language.ts'
+import { extendChain, loadMessages, uiChain } from '../../../primitives/intl/intl-catalog.ts'
+import { catalogs } from '../../app/catalogs.ts'
+import { LOCALES } from '../../app/language.ts'
 
 // Each translation of the docs loads when a provider first shows its language,
 // as the translations of ui do (`src/__tests__/setup/catalogs.ts`). The load

@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { it as clockIt, type FakeClock } from '../../__tests__/helpers/fake-clock'
 import { FIRST_WRITE_DELAY_MS } from '../../core/announcer.ts'
 import { PageTabs } from '../kit/page-tabs.tsx'
-import { renderShell } from './render-shell.tsx'
+import { renderShell } from './helpers/render-shell.tsx'
 
 // Each tab of a page has its own address, so each tab has its own title
 // (WCAG 2.4.2). A move to a new page announces the title of the new page,
