@@ -1,4 +1,55 @@
 import { inject } from 'vitest'
+import { describeNode } from '../../helpers/describe-node'
+
+/** The keys of a keyframe that are not a property that the frame moves. */
+const KEYFRAME_META = new Set(['offset', 'computedOffset', 'easing', 'composite'])
+
+/** What an animation moves: its CSS name, or the properties of its keyframes. */
+function animatedProperty(animation: Animation, effect: KeyframeEffect | null): string {
+	if (animation instanceof CSSAnimation) return `animation ${animation.animationName}`
+
+	if (animation instanceof CSSTransition) return animation.transitionProperty
+
+	const keys = (effect?.getKeyframes() ?? []).flatMap((frame) =>
+		Object.keys(frame).filter((key) => !KEYFRAME_META.has(key)),
+	)
+
+	return [...new Set(keys)].join(', ') || 'no property'
+}
+
+/**
+ * Names an animation for a failure message: what it moves, the element that
+ * it moves, its play state, and its time.
+ *
+ * A CSS animation gives its name, and a CSS transition gives its property.
+ * Another animation, such as a tween of Motion, gives the properties of its
+ * keyframes.
+ *
+ * @param animation - The animation, such as an entry of
+ * `element.getAnimations({ subtree: true })`.
+ * @returns A text such as `opacity on div[data-slot="panel"] (running, 120ms)`.
+ */
+export function describeAnimation(animation: Animation): string {
+	const effect = animation.effect instanceof KeyframeEffect ? animation.effect : null
+
+	const moves = animatedProperty(animation, effect)
+
+	const time =
+		animation.currentTime === null ? 'no time' : `${Math.round(Number(animation.currentTime))}ms`
+
+	return `${moves} on ${describeNode(effect?.target ?? null)} (${animation.playState}, ${time})`
+}
+
+/** Names an event target for a failure message. */
+function describeTarget(target: EventTarget): string {
+	if (target instanceof Element) return describeNode(target)
+
+	if (target instanceof Document) return 'document'
+
+	if (target instanceof Window) return 'window'
+
+	return target.constructor.name
+}
 
 /**
  * Waits for the next event of `type` on `target`.
@@ -29,7 +80,7 @@ export function once(
 		const timer = setTimeout(() => {
 			target.removeEventListener(type, listener)
 
-			reject(new Error(`once: no ${type} event in ${deadline}ms`))
+			reject(new Error(`once: no ${type} event on ${describeTarget(target)} in ${deadline}ms`))
 		}, deadline)
 
 		target.addEventListener(type, listener, { once: true })
@@ -47,7 +98,8 @@ export function once(
  * @param root - The element that holds the animations.
  * @param deadline - The wall-clock time, in milliseconds, after which it throws.
  * Give it through `budget()`, because an animation runs slower under load.
- * @throws When an animation still runs at the deadline.
+ * @throws When an animation still runs at the deadline. The error names each
+ * one, as {@link describeAnimation} names it.
  */
 export async function animationsDone(root: Element, deadline: number): Promise<void> {
 	const end = performance.now() + deadline
@@ -62,7 +114,9 @@ export async function animationsDone(root: Element, deadline: number): Promise<v
 		const left = end - performance.now()
 
 		if (left <= 0) {
-			throw new Error(`animationsDone: ${running.length} animations still run after ${deadline}ms`)
+			throw new Error(
+				`animationsDone: ${running.length} animations still run after ${deadline}ms: ${running.map(describeAnimation).join('; ')}`,
+			)
 		}
 
 		let timer: ReturnType<typeof setTimeout> | undefined
