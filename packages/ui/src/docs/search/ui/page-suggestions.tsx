@@ -6,6 +6,7 @@ import { Button } from 'ui/button'
 import { Icon } from 'ui/icon'
 import { List, ListDescription, ListItem, ListLabel } from 'ui/list'
 import { defineMessages, IntlMessage, useIntl } from 'ui/primitives/intl'
+import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
 import { sectionLabel } from '../../app/app-messages.ts'
 import {
@@ -105,31 +106,37 @@ function groupBySection(entries: readonly Matchable[]) {
 }
 
 /**
- * The suggestions of one section, under the name of the section. A page shows
- * no line below its name, because the section is above it. A tab shows its
- * page.
+ * The suggestions of one section, under the name of the section. The name
+ * shows only when the suggestions are in more than one section. Without it, the
+ * element at `labelledBy` names the list. A page shows no line below its name,
+ * because the section is its place. A tab shows its page.
  */
 function SectionSuggestions({
 	section,
 	entries: group,
+	labelledBy,
 }: {
 	section: string
 	entries: readonly Matchable[]
+	/** The id of the element that names the list, or `undefined` to show the name of the section. */
+	labelledBy: string | undefined
 }) {
 	const intl = useIntl()
 
 	const headingId = useId()
 
 	return (
-		<div className="w-full max-w-md">
-			<Text id={headingId} className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
-				{sectionLabel(intl, section)}
-			</Text>
+		<Stack gap="md" className="w-full max-w-md">
+			{labelledBy === undefined && (
+				<Text id={headingId} className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
+					{sectionLabel(intl, section)}
+				</Text>
+			)}
 			<List
 				variant="plain"
 				items={group}
 				getKey={(entry) => entry.href}
-				aria-labelledby={headingId}
+				aria-labelledby={labelledBy ?? headingId}
 			>
 				{(entry) => (
 					<ListItem href={entry.href} rounded prefix={<ResultIcon option={entry} />}>
@@ -144,7 +151,7 @@ function SectionSuggestions({
 					</ListItem>
 				)}
 			</List>
-		</div>
+		</Stack>
 	)
 }
 
@@ -153,6 +160,8 @@ export function PageSuggestions({ path }: { path: string }) {
 	const intl = useIntl()
 
 	const { request } = useSearch()
+
+	const introId = useId()
 
 	const shown = useMemo(
 		() => new Map(PLACES.map((entry) => [entry.href, localizeEntry<Matchable>(intl, entry)])),
@@ -169,12 +178,17 @@ export function PageSuggestions({ path }: { path: string }) {
 	return (
 		<>
 			{groups.length > 0 && (
-				<Text>
+				<Text id={introId}>
 					<IntlMessage message={messages.suggestions} />
 				</Text>
 			)}
 			{groups.map(({ section, entries: group }) => (
-				<SectionSuggestions key={section} section={section} entries={group} />
+				<SectionSuggestions
+					key={section}
+					section={section}
+					entries={group}
+					labelledBy={groups.length === 1 ? introId : undefined}
+				/>
 			))}
 			<div>
 				<Button

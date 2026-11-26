@@ -36,12 +36,22 @@ describe('the not-found page', () => {
 		expect(suggestions()[0]).toBe('/button')
 	})
 
-	it('lists the suggestions under the name of their section, with no section on each row', () => {
+	it('names the list with the question when the suggestions are in one section', () => {
 		renderAt('/components/button')
 
-		const list = screen.getByRole('list', { name: 'Components' })
+		const list = screen.getByRole('list', { name: 'Did you mean?' })
 
 		expect(list.textContent).not.toContain('Components')
+		expect(screen.queryByText('Components')).toBeNull()
+	})
+
+	it('lists the suggestions under the name of each section when they are in more than one', () => {
+		renderAt('/grid/button')
+
+		const components = screen.getByRole('list', { name: 'Components' })
+
+		expect(screen.getByRole('list', { name: 'Modules' })).not.toBeNull()
+		expect(components.textContent).not.toContain('Components')
 	})
 
 	it('suggests the page whose path starts the path first', () => {
