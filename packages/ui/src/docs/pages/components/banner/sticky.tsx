@@ -14,13 +14,20 @@ const updates = [
 // A sticky banner stays at the top of its scroll container.
 export default function Sticky() {
 	return (
-		<div className="h-64 overflow-y-auto rounded-lg border border-zinc-200 dark:border-zinc-800">
+		<section
+			aria-label="Release notes"
+			// A scroll container with no control in it takes a Tab stop, so a
+			// keyboard can scroll it (WCAG 2.1.1).
+			// biome-ignore lint/a11y/noNoninteractiveTabindex: the Tab stop scrolls the region.
+			tabIndex={0}
+			className="h-64 overflow-y-auto rounded-lg border border-zinc-200 dark:border-zinc-800"
+		>
 			<Banner sticky severity="info" title="Release notes" closable={false} />
 			<Stack gap="md" className="p-4">
 				{updates.map((update) => (
 					<Text key={update}>{update}</Text>
 				))}
 			</Stack>
-		</div>
+		</section>
 	)
 }
