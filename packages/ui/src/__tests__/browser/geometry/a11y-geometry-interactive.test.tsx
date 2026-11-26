@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { userEvent as browserUser } from 'vitest/browser'
 import { interactive, roved, rows } from '../../a11y/cases'
 import { present, renderUI, userEvent } from '../../helpers'
 import { axeGeometry } from './helpers/axe-geometry'
@@ -23,6 +24,12 @@ describe('a11y geometry (axe): interactive', () => {
 			const user = userEvent.setup()
 
 			renderUI(element)
+
+			// A real key press first. The tooltip case opens on a keyboard focus,
+			// and the script focus of a simulated Tab matches `:focus-visible` only
+			// when the last real input of the page was not a pointer. An earlier
+			// file can leave a pointer input.
+			await browserUser.keyboard('{Shift}')
 
 			await open(user)
 
