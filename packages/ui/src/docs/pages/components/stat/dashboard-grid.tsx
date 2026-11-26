@@ -18,7 +18,7 @@ const metrics = [
 	},
 	{ label: 'Active users', value: 8421, format: {}, change: 0.031, trend: 'up' },
 	{
-		label: 'Churn',
+		label: 'Conversion rate',
 		value: 0.024,
 		format: { style: 'percent', maximumFractionDigits: 1 },
 		change: -0.008,

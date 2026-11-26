@@ -15,6 +15,10 @@ import { useTextareaAutoResize } from './use-textarea-auto-resize'
 
 /** Props for {@link Textarea}: density `size`, `variant`, `autoResize`, an `actions` slot, an `invalid` override, and the remaining `<textarea>` surface. */
 export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
+	/**
+	 * The density step. Omit it to take the step of the nearest density scope.
+	 * A step makes the textarea a density scope.
+	 */
 	size?: ScaleStep<typeof scale>
 	/**
 	 * The surface of the control: `default` fills it, `outline` draws a border
@@ -23,7 +27,7 @@ export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
 	 * prop is unset, the textarea takes the variant of the enclosing Control.
 	 * Without one, it takes the glass surface in a GlassProvider. A `bare`
 	 * field has no inset, so a field of one row is one line of text.
-	 * @defaultValue 'default'
+	 * @defaultValue `'default'`, or the variant of the enclosing Control.
 	 */
 	variant?: ControlVariant
 	/**

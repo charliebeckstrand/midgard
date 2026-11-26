@@ -8,6 +8,7 @@ import { capitalizeFirst } from '../../utilities/capitalize-first.ts'
 const WORDS: Readonly<Record<string, string>> = {
 	alertdialog: 'alertdialog',
 	api: 'API',
+	contextmenu: 'contextmenu',
 	csv: 'CSV',
 	div: 'div',
 	dvh: 'dvh',
@@ -34,6 +35,7 @@ const WORDS: Readonly<Record<string, string>> = {
 	unionpay: 'UnionPay',
 	url: 'URL',
 	usa: 'USA',
+	wysiwyg: 'WYSIWYG',
 }
 
 /**

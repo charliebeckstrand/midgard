@@ -6,7 +6,7 @@ import { PointerHint } from '../../../kit/pointer-hint.tsx'
 
 // On a device that hovers, the toolbar shows the first three actions of the
 // menu as icon buttons. The reply has Copy and Retry, so it shows both. The
-// message of the reader has five, so the ellipsis opens Delete. This example
+// message of the reader has four, so the ellipsis opens Delete. This example
 // has no transcript, so the actions do nothing.
 const reply: ContextMenuConfig = {
 	items: [{ key: 'retry', label: 'Retry', icon: <RotateCcw /> }],

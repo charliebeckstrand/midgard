@@ -62,7 +62,9 @@ export type AddressInputProps = Omit<
 	 * control invalid.
 	 */
 	name?: string
+	/** Controlled selection. `undefined` leaves the input uncontrolled; `null` keeps it controlled with no selection (CONVENTIONS §7.3). */
 	value?: AddressSuggestion | null
+	/** Initial selection when uncontrolled and not form-bound. */
 	defaultValue?: AddressSuggestion
 	/** Fires when the selection changes, with the new {@link AddressSuggestion}, or `null` when it is cleared. */
 	onValueChange?: (value: AddressSuggestion | null) => void

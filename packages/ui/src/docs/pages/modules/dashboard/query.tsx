@@ -30,7 +30,7 @@ const getLabel = (name: string) => fields.find((field) => field.name === name)?.
 const startFilter: QueryGroup = {
 	id: 'filter',
 	type: 'group',
-	children: [{ id: 'revenue', type: 'rule', field: 'revenue', operator: 'gte', value: '200' }],
+	children: [{ id: 'revenue', type: 'rule', field: 'revenue', operator: 'gte', value: 200 }],
 }
 
 // The tiles take no state of the example, so each render gives the same
