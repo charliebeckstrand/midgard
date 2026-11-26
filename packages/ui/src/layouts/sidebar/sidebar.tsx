@@ -32,6 +32,8 @@ import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { Landmark } from '../../primitives/landmark'
 import { useLandmark } from '../../primitives/landmark/use-landmark'
+import { MountHold } from '../../primitives/mount'
+import { useMountHold } from '../../primitives/mount/use-mount'
 import { OffcanvasContext } from '../../primitives/offcanvas/context'
 import { Portal } from '../../primitives/portal'
 import { SIDEBAR } from '../../providers/appearance/appearance-storage'
@@ -185,6 +187,12 @@ export type SidebarLayoutProps = ComponentProps<'div'> & {
  * the layout at the viewport becomes the drawer. The drawer and the floating
  * sheet have the name "Navigation".
  *
+ * The panel, the drawer, and the floating sheet each hold a copy of `sidebar`.
+ * While the panel does not show, its copy rests in a hidden `Activity`: it
+ * stays in the DOM and keeps its state, but it runs no effects. Thus only the
+ * copy that shows acts, and a store that the copies share stays in step. The
+ * `aside` rests in a hidden `Activity` in the drawer layout in the same way.
+ *
  * The sidebar sits on the start edge of the reading direction. In a
  * right-to-left page, the panel, the floating sheet, and its hover strip are
  * on the right. The `aside` sits on the end edge.
@@ -294,6 +302,19 @@ export function SidebarLayout({
 	// The inline panel of the sidebar.
 	const panelRef = useRef<HTMLDivElement>(null)
 
+	// The inline panel shows in the inline layout while the sidebar is locked.
+	// Else CSS hides it, and the drawer or the floating sheet can hold a second
+	// copy of the sidebar. The hidden copy rests in a hidden Activity, so it runs
+	// no effects and only the copy that shows acts. The server and the hydration
+	// render read the inline layout and the locked mode, so the panel shows there
+	// and the markup holds it for the first paint.
+	const panelHold = useMountHold(inline && mode !== 'offcanvas', 'always')
+
+	// The aside shows in the inline layout only, and CSS hides it in the drawer
+	// layout. There it rests in a hidden Activity too, so content such as a pinned
+	// panel of the events does not run while no one sees it.
+	const asideHold = useMountHold(inline, 'always')
+
 	// A change to offcanvas hides the inline panel. If the panel holds the focus,
 	// as after ⌘B on a sidebar item, the browser drops the focus to `<body>` at the
 	// next render, and the next Tab starts at the top of the page (WCAG 2.4.3).
@@ -355,7 +376,9 @@ export function SidebarLayout({
 
 				{/* Inline sidebar when locked. It hides while offcanvas. */}
 				<div ref={panelRef} data-slot="sidebar-panel" className={slots.panel}>
-					{sidebar}
+					<MountHold hold={panelHold} name="sidebar-panel">
+						{sidebar}
+					</MountHold>
 				</div>
 
 				{/* Inline sidebar: sheet when offcanvas. Non-modal so the hover-revealed
@@ -451,7 +474,9 @@ export function SidebarLayout({
 				{/* Inline aside: on the end edge, after the content. */}
 				{aside && (
 					<div data-slot="sidebar-aside" className={slots.aside}>
-						{aside}
+						<MountHold hold={asideHold} name="sidebar-aside">
+							{aside}
+						</MountHold>
 					</div>
 				)}
 			</div>
