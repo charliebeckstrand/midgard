@@ -168,6 +168,31 @@ describe('DocsSidebar sections', () => {
 		expect(localStorage.getItem('docs-section-components')).toBe('closed')
 	})
 
+	it('keeps a closed current section closed in a copy that mounts later, as in a drawer', () => {
+		const shell = (drawer: boolean) => (
+			<UIProvider pathname="/button">
+				<DocsSearch>
+					<DocsSidebar pages={PAGES} />
+					{drawer && <DocsSidebar pages={PAGES} />}
+				</DocsSearch>
+			</UIProvider>
+		)
+
+		const { rerender } = render(shell(true))
+
+		fireEvent.click(screen.getAllByRole('button', { name: 'Components' })[1] as HTMLElement)
+
+		rerender(shell(false))
+
+		rerender(shell(true))
+
+		expect(
+			screen.getAllByRole('button', { name: 'Components' }).map((title) => title.ariaExpanded),
+		).toEqual(['false', 'false'])
+
+		expect(localStorage.getItem('docs-section-components')).toBe('closed')
+	})
+
 	it('hides the letter rail while the components are closed', () => {
 		const { container } = render(sidebar('/modules/grid'))
 

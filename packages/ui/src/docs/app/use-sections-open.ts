@@ -1,5 +1,6 @@
-import { useEffect, useState, useSyncExternalStore } from 'react'
+import { use, useEffect, useState, useSyncExternalStore } from 'react'
 import { useHydrated } from 'ui/hooks'
+import { PathnameContext } from '../../primitives/current/context.ts'
 import {
 	readChoice,
 	restoreChoiceCookie,
@@ -13,6 +14,15 @@ import { sectionChoice } from './section-marks.ts'
 function readClosed(sections: readonly string[]): string {
 	return sections.filter((section) => readChoice(sectionChoice(section)) === 'closed').join(' ')
 }
+
+// The path of the last page that each `UIProvider` arrived at, by its path
+// store, which keeps one identity for the life of the provider. Each copy of
+// the sidebar reads the same store, so the copies share one arrival. A copy
+// that mounts later, as in a drawer that opens, is not an arrival.
+const arrivals = new WeakMap<object, string>()
+
+// The scope of the arrivals outside a provider that has a path. There, no page is current.
+const NO_PROVIDER = {}
 
 /**
  * The open state of each section in `sections`. The server render and the
@@ -36,18 +46,25 @@ export function useSectionsOpen(sections: readonly string[], page: PageLink | un
 
 	const hydrated = useHydrated()
 
-	// The page whose section stays open until the open is in storage. A
-	// navigation, and the mount, set it. The section is thus open in the render
-	// after hydration, before the effect below stores the open. Then storage alone
-	// decides, so a close in one copy of the sidebar applies to each copy.
-	const [pinned, setPinned] = useState(page)
+	const scope = use(PathnameContext) ?? NO_PROVIDER
+
+	// A page is new until a copy of the sidebar stores the open of its section.
+	const isNew = (target: PageLink | undefined) =>
+		target !== undefined && arrivals.get(scope) !== target.path
+
+	// The page whose section stays open until the open is in storage. The load
+	// and a navigation set it. The section is thus open in the render after
+	// hydration, before the effect below stores the open. Then storage alone
+	// decides, so a close in one copy of the sidebar applies to each copy, and a
+	// copy that mounts later shows the close.
+	const [pinned, setPinned] = useState(() => (isNew(page) ? page : undefined))
 
 	const [shownPage, setShownPage] = useState(page)
 
 	if (shownPage !== page) {
 		setShownPage(page)
 
-		setPinned(page)
+		setPinned(isNew(page) ? page : undefined)
 	}
 
 	const closedSet = new Set(closed.split(' '))
@@ -69,16 +86,21 @@ export function useSectionsOpen(sections: readonly string[], page: PageLink | un
 		for (const section of sections) restoreChoiceCookie(sectionChoice(section))
 	}, [sections])
 
-	// The section of a new page opens in storage too. The effect reads storage
-	// and not the snapshot, so it runs only for a new page. A close of the
-	// section after the navigation stays.
+	// The section of a new page opens in storage too. The first copy that gets
+	// to the page stores the open and the arrival. A close of the section after
+	// the arrival stays until the next navigation, also in a copy that mounts
+	// later.
 	useEffect(() => {
-		const choice = page && sectionChoice(page.category)
+		if (arrivals.get(scope) !== (page?.path ?? '')) {
+			arrivals.set(scope, page?.path ?? '')
 
-		if (choice && readChoice(choice) === 'closed') writeChoice(choice, 'open')
+			const choice = page && sectionChoice(page.category)
+
+			if (choice && readChoice(choice) === 'closed') writeChoice(choice, 'open')
+		}
 
 		setPinned(undefined)
-	}, [page])
+	}, [page, scope])
 
 	const setOpen = (section: string, open: boolean) => {
 		writeChoice(sectionChoice(section), open ? 'open' : 'closed')
