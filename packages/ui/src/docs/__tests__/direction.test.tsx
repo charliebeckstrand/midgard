@@ -75,11 +75,11 @@ describe('the direction setting of the docs', () => {
 	// the docs is left to right. A right-to-left language needs a direction
 	// from its locale.
 	it.each(LOCALES)('has a left-to-right language for each locale (%s)', (locale) => {
-		// The text info of a locale gives its direction. Node 26 (V8 14.6) has the
-		// `getTextInfo()` method and no `textInfo` accessor. Node 22 and Node 24
-		// have only the accessor. The test reads the form that the runtime has, so
-		// the result does not change with the version of Node. Neither form is in
-		// the ES2023 types of the `lib` of the tsconfig.
+		// The text info of a locale gives its direction. Node 22 has only the
+		// `textInfo` accessor. Node 24 has the accessor and the `getTextInfo()`
+		// method. Node 26 (V8 14.6) has only the method. The test reads the form
+		// that the runtime has, so the result does not change with the version of
+		// Node. Neither form is in the ES2023 types of the `lib` of the tsconfig.
 		const intlLocale = new Intl.Locale(locale) as Intl.Locale & {
 			getTextInfo?: () => TextInfo
 			textInfo?: TextInfo
