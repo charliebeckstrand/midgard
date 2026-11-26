@@ -1931,6 +1931,10 @@
 		"defaultMessage": "Sales overview",
 		"description": "Text of a demo in the docs as label, in modules/dashboard/build-and-save.tsx."
 	},
+	"docs.demo.2f343666aaa8": {
+		"defaultMessage": "Format",
+		"description": "Text of a demo in the docs as aria-label, in components/icon-button/held-toggle.tsx."
+	},
 	"docs.demo.2f58be0dd909": {
 		"defaultMessage": "Changes to these terms",
 		"description": "Text of a demo in the docs as title, in components/dialog/long-content.tsx."
@@ -5381,7 +5385,7 @@
 	},
 	"docs.demo.d6bd8c0aeee8": {
 		"defaultMessage": "Document",
-		"description": "Text of a demo in the docs as aria-label, in components/pdf-viewer/empty.tsx."
+		"description": "Text of a demo in the docs as aria-label, in components/icon-button/actions.tsx, components/pdf-viewer/empty.tsx."
 	},
 	"docs.demo.d6e4e25c73a2": {
 		"defaultMessage": "Your trial ends in 7 days.",
