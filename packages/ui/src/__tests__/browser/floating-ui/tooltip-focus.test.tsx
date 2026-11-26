@@ -228,11 +228,11 @@ describe('Tooltip role (real browser)', () => {
 
 		expect(trigger).toHaveAttribute('aria-expanded', 'true')
 
-		expect(trigger).toHaveAttribute('aria-controls', panel.id)
+		expect(trigger).toControl(panel)
 
 		expect(trigger).not.toHaveAttribute('aria-describedby')
 
-		expect(panel).toHaveAttribute('aria-labelledby', trigger.id)
+		expect(panel).toBeLabelledBy(trigger)
 	})
 
 	it('names the dialog through the trigger id that the consumer gives', async () => {
@@ -276,7 +276,7 @@ describe('Tooltip role (real browser)', () => {
 
 		expect(screen.queryByRole('dialog')).toBeNull()
 
-		expect(trigger).toHaveAttribute('aria-describedby', panel.id)
+		expect(trigger).toBeDescribedBy(panel)
 
 		expect(trigger).not.toHaveAttribute('aria-haspopup')
 	})

@@ -4,10 +4,10 @@ import { Tab, TabContent, TabContents, TabList, Tabs } from '../../components/ta
 import { DensityProvider } from '../../providers/density'
 import {
 	act,
+	ariaTarget,
 	bySlot,
 	fireEvent,
 	getSlot,
-	present,
 	renderUI,
 	screen,
 	setupUser,
@@ -351,7 +351,7 @@ describe('Tab', () => {
 
 		expect(panel).toHaveTextContent('Panel A')
 
-		expect(tab).toHaveAttribute('aria-controls', panel.id)
+		expect(tab).toControl(panel)
 	})
 
 	it('sets no aria-controls on a segment item with no TabContents', () => {
@@ -388,9 +388,9 @@ describe('Tab', () => {
 
 		const panels = screen.getAllByRole('tabpanel', { hidden: true })
 
-		expect(tabA).toHaveAttribute('aria-controls', panels[0]?.id)
+		expect(tabA).toControl(panels[0])
 
-		expect(tabB).toHaveAttribute('aria-controls', panels[1]?.id)
+		expect(tabB).toControl(panels[1])
 	})
 
 	it('wires every tab to its TabContent when the panels have no TabContents', () => {
@@ -414,7 +414,7 @@ describe('Tab', () => {
 		const panelB = screen.getByText('Panel B')
 
 		// The inactive tab points at its panel, which is in the DOM.
-		expect(tabB).toHaveAttribute('aria-controls', panelB.id)
+		expect(tabB).toControl(panelB)
 
 		rerender(<Group withPanels={false} />)
 
@@ -569,7 +569,7 @@ describe('TabContent (idiomatic)', () => {
 
 		expect(panel?.id).not.toBe('mine')
 
-		expect(screen.getByRole('tab')).toHaveAttribute('aria-controls', panel?.id)
+		expect(screen.getByRole('tab')).toControl(panel)
 	})
 
 	it('auto-wires each panel as a tabpanel reciprocally linked to its tab', () => {
@@ -577,17 +577,13 @@ describe('TabContent (idiomatic)', () => {
 
 		const tab = screen.getByRole('tab', { name: 'A' })
 
-		const panelId = tab.getAttribute('aria-controls')
-
-		expect(panelId).toBeTruthy()
-
-		const panel = document.getElementById(panelId as string)
+		const panel = ariaTarget(tab, 'aria-controls')
 
 		expect(panel).toHaveAttribute('role', 'tabpanel')
 
 		// The panel points back at the tab, so the pairing round-trips without the
 		// consumer hand-threading ids.
-		expect(panel).toHaveAttribute('aria-labelledby', tab.id)
+		expect(panel).toBeLabelledBy(tab)
 	})
 
 	it('makes a content-only panel keyboard-reachable (tabIndex 0)', () => {
@@ -595,7 +591,7 @@ describe('TabContent (idiomatic)', () => {
 
 		const tab = screen.getByRole('tab', { name: 'A' })
 
-		const panel = document.getElementById(tab.getAttribute('aria-controls') as string)
+		const panel = ariaTarget(tab, 'aria-controls')
 
 		expect(panel).toHaveAttribute('tabindex', '0')
 	})
@@ -605,7 +601,7 @@ describe('TabContent (idiomatic)', () => {
 
 		const tab = screen.getByRole('tab', { name: 'A' })
 
-		const panel = document.getElementById(tab.getAttribute('aria-controls') as string)
+		const panel = ariaTarget(tab, 'aria-controls')
 
 		await waitFor(() => expect(panel).not.toHaveAttribute('tabindex'))
 	})
@@ -638,9 +634,9 @@ describe('TabContent (idiomatic)', () => {
 
 		const tab = screen.getByRole('tab', { name: 'A' })
 
-		const panel = document.getElementById(tab.getAttribute('aria-controls') as string)
+		const panel = ariaTarget(tab, 'aria-controls')
 
-		expect(panel?.className).toContain('focus-visible:outline-blue-600')
+		expect(panel.className).toContain('focus-visible:outline-blue-600')
 	})
 })
 
@@ -688,13 +684,7 @@ describe('TabContents mount policy', () => {
 		// panelsMounted is registered, so the inactive tab still points at its panel.
 		const inactive = container.querySelectorAll('[role="tab"]')[1] as HTMLElement
 
-		const controls = inactive.getAttribute('aria-controls')
-
-		expect(controls).toBeTruthy()
-
-		expect(document.getElementById(controls as string)).toBe(
-			present(panelB.closest('[role="tabpanel"]'), 'the tabpanel of B'),
-		)
+		expect(inactive).toControl(panelB.closest('[role="tabpanel"]'))
 	})
 
 	it('mount="lazy" leaves never-visited panels unmounted, without a tab aria-controls', () => {

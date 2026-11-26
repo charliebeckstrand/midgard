@@ -13,6 +13,7 @@ import {
 import {
 	act,
 	applyChanges,
+	ariaTarget,
 	bySlot,
 	deferred,
 	expectAnnouncement,
@@ -1388,10 +1389,7 @@ describe('Grid async commit', () => {
 
 		expect(nameEditor).toHaveAttribute('aria-invalid', 'true')
 
-		const message = present(
-			document.getElementById(nameEditor.getAttribute('aria-describedby') ?? ''),
-			'the error message',
-		)
+		const message = ariaTarget(nameEditor, 'aria-describedby')
 
 		expect(message).toHaveAttribute('role', 'alert')
 

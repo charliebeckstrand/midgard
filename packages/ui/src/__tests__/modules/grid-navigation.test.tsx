@@ -133,7 +133,7 @@ describe('Grid navigable cursor', () => {
 		// The column saw the press before the grid took focus.
 		expect(sawGridFocus).toEqual([false])
 
-		expect(grid).toHaveAttribute('aria-activedescendant', cells[ROW1_ROLE]?.id)
+		expect(grid).toHaveActiveDescendant(cells[ROW1_ROLE])
 
 		expect(grid).toHaveFocus()
 	})
@@ -149,11 +149,11 @@ describe('Grid navigable cursor', () => {
 
 		fireEvent.keyDown(grid, { key: 'ArrowDown' })
 
-		expect(grid).toHaveAttribute('aria-activedescendant', cells[ROW1_NAME]?.id)
+		expect(grid).toHaveActiveDescendant(cells[ROW1_NAME])
 
 		fireEvent.keyDown(grid, { key: 'ArrowRight' })
 
-		expect(grid).toHaveAttribute('aria-activedescendant', cells[ROW1_ROLE]?.id)
+		expect(grid).toHaveActiveDescendant(cells[ROW1_ROLE])
 	})
 
 	it('clamps movement at the grid edges', () => {
@@ -168,7 +168,7 @@ describe('Grid navigable cursor', () => {
 		// Left from the first column stays put.
 		fireEvent.keyDown(grid, { key: 'ArrowLeft' })
 
-		expect(grid).toHaveAttribute('aria-activedescendant', cells[NAME]?.id)
+		expect(grid).toHaveActiveDescendant(cells[NAME])
 
 		// Up from the first row reaches the header row, and stops there.
 		fireEvent.keyDown(grid, { key: 'ArrowUp' })
@@ -179,7 +179,7 @@ describe('Grid navigable cursor', () => {
 
 		const header = screen.getAllByRole('columnheader')[0] as HTMLElement
 
-		expect(grid).toHaveAttribute('aria-activedescendant', header.id)
+		expect(grid).toHaveActiveDescendant(header)
 
 		expect(header).toHaveAttribute('data-active')
 	})
@@ -195,21 +195,21 @@ describe('Grid navigable cursor', () => {
 
 		fireEvent.keyDown(grid, { key: 'End' })
 
-		expect(grid).toHaveAttribute('aria-activedescendant', cells[ROW1_ROLE]?.id)
+		expect(grid).toHaveActiveDescendant(cells[ROW1_ROLE])
 
 		fireEvent.keyDown(grid, { key: 'Home' })
 
-		expect(grid).toHaveAttribute('aria-activedescendant', cells[ROW1_NAME]?.id)
+		expect(grid).toHaveActiveDescendant(cells[ROW1_NAME])
 
 		// Ctrl+End → last cell of the last row.
 		fireEvent.keyDown(grid, { key: 'End', ctrlKey: true })
 
-		expect(grid).toHaveAttribute('aria-activedescendant', cells[ROW2_ROLE]?.id)
+		expect(grid).toHaveActiveDescendant(cells[ROW2_ROLE])
 
 		// Ctrl+Home → first cell of the first row.
 		fireEvent.keyDown(grid, { key: 'Home', ctrlKey: true })
 
-		expect(grid).toHaveAttribute('aria-activedescendant', cells[NAME]?.id)
+		expect(grid).toHaveActiveDescendant(cells[NAME])
 	})
 
 	it('seeds the cursor at the first cell when a key arrives before focus', () => {
@@ -222,7 +222,7 @@ describe('Grid navigable cursor', () => {
 		// No prior cursor; ArrowRight seeds at (0,0) then steps to (0,1).
 		fireEvent.keyDown(grid, { key: 'ArrowRight' })
 
-		expect(grid).toHaveAttribute('aria-activedescendant', cells[ROLE]?.id)
+		expect(grid).toHaveActiveDescendant(cells[ROLE])
 	})
 
 	// A press seats the cursor where it lands. A press on header chrome lands on no
@@ -248,7 +248,7 @@ describe('Grid navigable cursor', () => {
 
 		fireEvent.keyDown(grid, { key: 'ArrowDown' })
 
-		expect(grid).toHaveAttribute('aria-activedescendant', cells[ROW1_NAME]?.id)
+		expect(grid).toHaveActiveDescendant(cells[ROW1_NAME])
 
 		fireEvent.blur(grid)
 
@@ -356,7 +356,7 @@ describe('Grid navigable cursor', () => {
 			// `fireEvent` returns false for an event whose default was prevented.
 			expect(fireEvent.mouseDown(button)).toBe(true)
 
-			expect(grid).toHaveAttribute('aria-activedescendant', button.closest('td')?.id)
+			expect(grid).toHaveActiveDescendant(button.closest('td'))
 
 			expect(grid).not.toHaveFocus()
 		},
@@ -370,18 +370,14 @@ describe('Grid navigable cursor', () => {
 		// Seat the cursor on the last cell (Ctrl+End).
 		fireEvent.keyDown(grid, { key: 'End', ctrlKey: true })
 
-		const seated = grid.getAttribute('aria-activedescendant')
-
-		expect(document.getElementById(seated ?? '')).toBe(screen.getAllByRole('gridcell')[ROW2_ROLE])
+		expect(grid).toHaveActiveDescendant(screen.getAllByRole('gridcell')[ROW2_ROLE])
 
 		// Shrink to a single row; the old coordinate now points past the end.
 		rerender(<Grid columns={columns} rows={rows.slice(0, 1)} getKey={getKey} navigable />)
 
-		const clamped = grid.getAttribute('aria-activedescendant')
-
-		// The active descendant resolves to the last cell of the one row left: it
-		// was re-clamped, not left dangling at the removed row.
-		expect(document.getElementById(clamped ?? '')).toBe(screen.getAllByRole('gridcell')[ROLE])
+		// The active descendant names the last cell of the one row left: it was
+		// re-clamped, not left dangling at the removed row.
+		expect(grid).toHaveActiveDescendant(screen.getAllByRole('gridcell')[ROLE])
 	})
 })
 
@@ -680,7 +676,7 @@ describe('Grid cursor edges', () => {
 		// Shift+Tab back from after the grid.
 		fireEvent.focus(grid, { relatedTarget: after })
 
-		expect(grid).toHaveAttribute('aria-activedescendant', cells[ROW1_ROLE]?.id)
+		expect(grid).toHaveActiveDescendant(cells[ROW1_ROLE])
 	})
 
 	it('seeds the first cell on a first Shift+Tab entry', () => {
@@ -695,7 +691,7 @@ describe('Grid cursor edges', () => {
 
 		fireEvent.focus(grid, { relatedTarget: screen.getByRole('button', { name: 'After' }) })
 
-		expect(grid).toHaveAttribute('aria-activedescendant', screen.getAllByRole('gridcell')[NAME]?.id)
+		expect(grid).toHaveActiveDescendant(screen.getAllByRole('gridcell')[NAME])
 	})
 
 	it('seats the cursor again on the same cell, with no step, at the first key after Escape', () => {
@@ -713,12 +709,12 @@ describe('Grid cursor edges', () => {
 
 		expect(fireEvent.keyDown(grid, { key: 'ArrowDown' })).toBe(false)
 
-		expect(grid).toHaveAttribute('aria-activedescendant', cells[ROW1_ROLE]?.id)
+		expect(grid).toHaveActiveDescendant(cells[ROW1_ROLE])
 
 		// The next key moves as usual.
 		fireEvent.keyDown(grid, { key: 'ArrowDown' })
 
-		expect(grid).toHaveAttribute('aria-activedescendant', cells[ROW2_ROLE]?.id)
+		expect(grid).toHaveActiveDescendant(cells[ROW2_ROLE])
 	})
 
 	// A grouped body publishes an order of group headers and leaves. A row that
@@ -746,10 +742,7 @@ describe('Grid cursor edges', () => {
 
 		fireEvent.keyDown(grid, { key: 'ArrowLeft' })
 
-		expect(grid).toHaveAttribute(
-			'aria-activedescendant',
-			screen.getByRole('gridcell', { name: 'Carol' }).id,
-		)
+		expect(grid).toHaveActiveDescendant(screen.getByRole('gridcell', { name: 'Carol' }))
 	})
 
 	it('follows the cell that it left into new rows, and clamps it', () => {
@@ -768,10 +761,7 @@ describe('Grid cursor edges', () => {
 
 		fireEvent.keyDown(grid, { key: 'ArrowLeft' })
 
-		expect(grid).toHaveAttribute(
-			'aria-activedescendant',
-			screen.getByRole('gridcell', { name: 'Bob' }).id,
-		)
+		expect(grid).toHaveActiveDescendant(screen.getByRole('gridcell', { name: 'Bob' }))
 
 		fireEvent.keyDown(grid, { key: 'ArrowDown' })
 
@@ -784,10 +774,7 @@ describe('Grid cursor edges', () => {
 
 		fireEvent.keyDown(grid, { key: 'ArrowLeft' })
 
-		expect(grid).toHaveAttribute(
-			'aria-activedescendant',
-			screen.getByRole('gridcell', { name: 'Bob' }).id,
-		)
+		expect(grid).toHaveActiveDescendant(screen.getByRole('gridcell', { name: 'Bob' }))
 	})
 
 	it('leaves a browser shortcut to the browser', () => {
@@ -806,12 +793,12 @@ describe('Grid cursor edges', () => {
 
 		expect(fireEvent.keyDown(grid, { key: 'PageDown', ctrlKey: true })).toBe(true)
 
-		expect(grid).toHaveAttribute('aria-activedescendant', cells[NAME]?.id)
+		expect(grid).toHaveActiveDescendant(cells[NAME])
 
 		// Ctrl+End stays the grid's.
 		expect(fireEvent.keyDown(grid, { key: 'End', ctrlKey: true })).toBe(false)
 
-		expect(grid).toHaveAttribute('aria-activedescendant', cells[ROW2_ROLE]?.id)
+		expect(grid).toHaveActiveDescendant(cells[ROW2_ROLE])
 	})
 
 	it('keeps the cursor when the whole window loses focus', () => {
@@ -828,7 +815,7 @@ describe('Grid cursor edges', () => {
 		// A switch of the window blurs with no next target.
 		fireEvent.blur(grid, { relatedTarget: null })
 
-		expect(grid).toHaveAttribute('aria-activedescendant', cells[ROW1_ROLE]?.id)
+		expect(grid).toHaveActiveDescendant(cells[ROW1_ROLE])
 	})
 
 	it('commits no render for a move that stays put', () => {

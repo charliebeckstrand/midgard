@@ -6,7 +6,16 @@ import {
 	type GridColumnGroup,
 	type GridEditableConfig,
 } from '../../../modules/grid'
-import { deferred, fireEvent, frames, present, renderUI, screen, waitFor } from '../../helpers'
+import {
+	ariaTarget,
+	deferred,
+	fireEvent,
+	frames,
+	present,
+	renderUI,
+	screen,
+	waitFor,
+} from '../../helpers'
 import { HALF_PIXEL, PIXEL } from '../../helpers/geometry/tolerance'
 
 /**
@@ -158,11 +167,7 @@ describe('grid new row (real browser)', () => {
 	})
 
 	/** The cell that the cursor names through `aria-activedescendant`. */
-	const activeCell = () => {
-		const id = screen.getByRole('grid').getAttribute('aria-activedescendant')
-
-		return present(id ? document.getElementById(id) : null, 'the active cell')
-	}
+	const activeCell = () => ariaTarget(screen.getByRole('grid'), 'aria-activedescendant')
 
 	// A virtualized body scrolls a row into its window by the virtualizer's own
 	// offsets. The cursor's scroll margin is what keeps a cell in view in a body

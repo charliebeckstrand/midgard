@@ -342,6 +342,8 @@ A light module does not need an early load, and neither does a module whose impo
 
 Do not load a module early when the case tests that load. An example is a gate that loads a module only for an editable grid. A suite that resets the modules before each case (`vi.resetModules()`) loads them again in each case. There, an import at collection still pays the transform one time. An app test reaches another package only through its public entry (§1.1), so it cannot load an internal module of that package early.
 
+10.15 A check of an ARIA id reference names the element, not the id. Use `toControl`, `toHaveActiveDescendant`, `toBeLabelledBy`, and `toBeDescribedBy` (`helpers/aria-references.ts`). Each matcher refuses a target that is not an element, so a query that finds nothing does not make the check pass. Each id must name one element only. To read the element that a reference names, use `ariaTarget` or `ariaTargets`. A literal id that a case gives as a prop stays a `toHaveAttribute` check, because there the contract is the value that passes through.
+
 ## 11. Environment
 
 11.1 [`NEXT_PUBLIC_*`](https://nextjs.org/docs/pages/guides/environment-variables) is client, else server-only. Confine raw `process.env` reads to a config edge. Today two files read it. `env.ts` in the `auth` package reads `BIFROST_URL` and `CLIENT_IP_SECRET`. `server/env.ts` in `shared` reads `PORT`, `HOSTNAME`, and `KEEP_ALIVE_TIMEOUT` for the server of each app image. Other code reaches env through them. Biome's `noProcessEnv` pins it in `apps`, `auth`, and `shared`; `ui` keeps its `NODE_ENV` checks for development warnings.

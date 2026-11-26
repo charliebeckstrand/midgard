@@ -260,9 +260,9 @@ describe('the picker of a chat prompt in the formatted field (real browser)', ()
 		// The field keeps the focus, and the highlight is its active descendant.
 		expect(field).toHaveFocus()
 
-		expect(field).toHaveAttribute('aria-controls', screen.getByRole('listbox').id)
+		expect(field).toControl(screen.getByRole('listbox'))
 
-		await waitFor(() => expect(field).toHaveAttribute('aria-activedescendant', option.id))
+		await waitFor(() => expect(field).toHaveActiveDescendant(option))
 
 		await userEvent.keyboard('{Enter}')
 

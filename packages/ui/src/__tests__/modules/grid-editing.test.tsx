@@ -211,13 +211,13 @@ describe('Grid per-row editing', () => {
 
 		expect(fireEvent.mouseDown(listbox)).toBe(true)
 
-		expect(grid).toHaveAttribute('aria-activedescendant', listbox.closest('td')?.id)
+		expect(grid).toHaveActiveDescendant(listbox.closest('td'))
 
 		const input = getSlot(view.container, 'grid-edit-input')
 
 		expect(fireEvent.mouseDown(input)).toBe(true)
 
-		expect(grid).toHaveAttribute('aria-activedescendant', input.closest('td')?.id)
+		expect(grid).toHaveActiveDescendant(input.closest('td'))
 
 		expect(grid).not.toHaveFocus()
 	})
@@ -323,7 +323,7 @@ describe('Grid per-row editing', () => {
 
 		expect(alert.id).toBeTruthy()
 
-		expect(input).toHaveAttribute('aria-describedby', alert.id)
+		expect(input).toBeDescribedBy(alert)
 	})
 
 	it('marks a control-aware editCell slot invalid while its validate refuses', () => {
@@ -388,7 +388,7 @@ describe('Grid per-row editing', () => {
 
 		expect(alert).toHaveTextContent('Required')
 
-		expect(input).toHaveAttribute('aria-describedby', alert.id)
+		expect(input).toBeDescribedBy(alert)
 	})
 
 	it('links the yes/no editor to its validation error for assistive tech', () => {
@@ -1245,7 +1245,7 @@ describe("Grid cell-scoped editing (scope: 'cell')", () => {
 
 		// Enter commits and moves down, so the session re-enters the same column
 		// one row below rather than handing focus back to the grid.
-		expect(getByRole('grid')).toHaveAttribute('aria-activedescendant', cell('name', 1).id)
+		expect(getByRole('grid')).toHaveActiveDescendant(cell('name', 1))
 
 		await expectAnnouncement('Name updated for row 1')
 	})
@@ -1691,7 +1691,7 @@ describe("Grid cell-scoped editing (scope: 'cell')", () => {
 		// Its ring is the only mark of the cursor in the grid (WCAG 2.4.7).
 		fireEvent.focus(getByRole('grid'), { relatedTarget: outside })
 
-		expect(getByRole('grid')).toHaveAttribute('aria-activedescendant', cell('name').id)
+		expect(getByRole('grid')).toHaveActiveDescendant(cell('name'))
 
 		expect(cell('name')).toHaveAttribute('data-active')
 
@@ -2823,7 +2823,7 @@ describe('Grid active-cell binding', () => {
 
 		expect(grid).toHaveFocus()
 
-		expect(grid).toHaveAttribute('aria-activedescendant', view.cell('name', 1).id)
+		expect(grid).toHaveActiveDescendant(view.cell('name', 1))
 	})
 
 	it('re-renders only the two cells a controlled move along the row touches', () => {

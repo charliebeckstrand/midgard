@@ -42,7 +42,7 @@ describe('DatePicker on a phone', () => {
 
 		expect(within(sheet).getByRole('listbox')).toBeInTheDocument()
 
-		expect(trigger).toHaveAttribute('aria-controls', bySlot(sheet, 'datepicker-sheet')?.id)
+		expect(trigger).toControl(bySlot(sheet, 'datepicker-sheet'))
 
 		expect(bySlot(document.body, 'datepicker-content')).toBeNull()
 	})

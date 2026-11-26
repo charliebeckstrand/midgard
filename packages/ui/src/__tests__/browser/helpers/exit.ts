@@ -1,5 +1,5 @@
 import { expect, vi } from 'vitest'
-import { fireEvent, present, waitFor } from '../../helpers'
+import { ariaTarget, fireEvent, present, waitFor } from '../../helpers'
 import { getCenter } from '../../helpers/geometry/box'
 
 /**
@@ -47,7 +47,7 @@ export const gone = (element: HTMLElement) => waitFor(() => expect(element).not.
 
 /** The group that a branch row of a tree owns through `aria-owns`. */
 export function getGroup(branch: HTMLElement): HTMLElement {
-	return present(document.getElementById(branch.getAttribute('aria-owns') ?? ''), 'group')
+	return ariaTarget(branch, 'aria-owns')
 }
 
 /**

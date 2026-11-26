@@ -623,7 +623,7 @@ describe('WysiwygToolbar', () => {
 
 		const toolbar = screen.getByRole('toolbar', { name: 'Formatting' })
 
-		expect(toolbar).toHaveAttribute('aria-controls', screen.getByRole('textbox').id)
+		expect(toolbar).toControl(screen.getByRole('textbox'))
 	})
 
 	it('shows the actions in the order given, with a separator between groups', () => {

@@ -2,7 +2,7 @@ import '../setup/grid-modules'
 import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { renderUI, screen, setupUser, stubMatchMedia, within } from '../helpers'
+import { ariaTarget, renderUI, screen, setupUser, stubMatchMedia, within } from '../helpers'
 
 type Person = { id: number; name: string; role: string }
 
@@ -97,9 +97,7 @@ describe('Grid master-detail', () => {
 		// The id carries the grid's own scope, so it is unique in the document.
 		expect(panelId).toMatch(/-detail-1$/)
 
-		const panel = document.getElementById(panelId)
-
-		expect(panel).not.toBeNull()
+		const panel = ariaTarget(toggle, 'aria-controls')
 
 		expect(detailRow(container, 1)?.contains(panel)).toBe(true)
 	})

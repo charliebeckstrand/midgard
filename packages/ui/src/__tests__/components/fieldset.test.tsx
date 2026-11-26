@@ -334,7 +334,7 @@ describe('Label', () => {
 
 		expect(label).not.toHaveAttribute('for')
 
-		expect(bySlot(container, 'rating')).toHaveAttribute('aria-labelledby', label.id)
+		expect(bySlot(container, 'rating')).toBeLabelledBy(label)
 	})
 })
 
@@ -619,7 +619,7 @@ describe('Field aria-describedby', () => {
 
 		expect(description.id).toBeTruthy()
 
-		expect(input).toHaveAttribute('aria-describedby', description.id)
+		expect(input).toBeDescribedBy(description)
 	})
 
 	it('references both the Description and the error Message, description first', () => {
@@ -680,7 +680,7 @@ describe('Field aria-describedby', () => {
 
 		const message = getSlot(container, 'message')
 
-		expect(bySlot(container, 'input')).toHaveAttribute('aria-describedby', message.id)
+		expect(bySlot(container, 'input')).toBeDescribedBy(message)
 	})
 
 	it('references a warning Message by its explicit id', () => {
@@ -764,7 +764,7 @@ describe('Field aria-describedby: composite triggers', () => {
 
 			expect(description.id).toBeTruthy()
 
-			expect(trigger).toHaveAttribute('aria-describedby', description.id)
+			expect(trigger).toBeDescribedBy(description)
 		})
 	}
 })

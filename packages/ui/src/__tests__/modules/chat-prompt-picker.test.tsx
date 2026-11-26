@@ -108,12 +108,12 @@ describe('ChatPrompt picker', () => {
 
 		await typeInto(container, '@')
 
-		expect(textarea).toHaveAttribute('aria-controls', screen.getByRole('listbox').id)
+		expect(textarea).toControl(screen.getByRole('listbox'))
 
 		expect(textarea).toHaveFocus()
 
 		// The top match has the highlight, so Enter chooses what the reader sees first.
-		expect(textarea).toHaveAttribute('aria-activedescendant', screen.getAllByRole('option')[0]?.id)
+		expect(textarea).toHaveActiveDescendant(screen.getAllByRole('option')[0])
 	})
 
 	it('filters by the query between the trigger and the caret', async () => {

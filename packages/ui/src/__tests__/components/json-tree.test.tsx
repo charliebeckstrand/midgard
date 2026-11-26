@@ -4,7 +4,7 @@ import { JsonTree } from '../../components/json-tree'
 import { flatTreeMoveTarget } from '../../components/json-tree/json-tree-keyboard'
 import { JsonTreeNodeRow } from '../../components/json-tree/json-tree-node-row'
 import { type FlatNode, flattenTree } from '../../components/json-tree/json-tree-utilities'
-import { bySlot, fireEvent, getSlot, present, renderUI, screen } from '../helpers'
+import { ariaTarget, bySlot, fireEvent, getSlot, present, renderUI, screen } from '../helpers'
 
 describe('JsonTree', () => {
 	it('renders with data-slot="json-tree" and role="tree"', () => {
@@ -847,20 +847,13 @@ describe('JsonTree group ownership', () => {
 
 		const row = present(root, 'root row')
 
-		const groupId = row.getAttribute('aria-owns')
-
-		expect(groupId).toBeTruthy()
-
-		const group = present(document.getElementById(groupId ?? ''), 'owned group')
+		const group = ariaTarget(row, 'aria-owns')
 
 		expect(group).toHaveAttribute('role', 'group')
 
 		expect(group.parentElement).toBe(row.closest('[data-slot="json-node"]'))
 
-		const label = present(
-			document.getElementById(row.getAttribute('aria-labelledby') ?? ''),
-			'row label',
-		)
+		const label = ariaTarget(row, 'aria-labelledby')
 
 		expect(row).toHaveAccessibleName(label.textContent ?? '')
 
@@ -1268,10 +1261,7 @@ describe('JsonTree exiting group', () => {
 
 		if (!branch || !last) throw new Error('expected five rows')
 
-		const group = present(
-			document.getElementById(branch.getAttribute('aria-owns') ?? ''),
-			'group of a',
-		)
+		const group = ariaTarget(branch, 'aria-owns')
 
 		group.setAttribute('inert', '')
 

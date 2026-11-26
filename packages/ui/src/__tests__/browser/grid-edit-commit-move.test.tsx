@@ -74,7 +74,7 @@ describe('grid commit-and-move keys (real browser)', () => {
 
 		expect(next.value).toBe('Bob')
 
-		expect(screen.getByRole('grid')).toHaveAttribute('aria-activedescendant', cell('name', 1).id)
+		expect(screen.getByRole('grid')).toHaveActiveDescendant(cell('name', 1))
 	})
 
 	it('types into a cell from the tab stop, keeping each character it types', async () => {

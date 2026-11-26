@@ -248,7 +248,7 @@ describe('RadioField aria-describedby', () => {
 
 		expect(description.id).toBeTruthy()
 
-		expect(input).toHaveAttribute('aria-describedby', description.id)
+		expect(input).toBeDescribedBy(description)
 	})
 })
 
@@ -278,7 +278,7 @@ describe('RadioGroup in a Field', () => {
 			expect(radio).toBeDisabled()
 		}
 
-		expect(screen.getByRole('radiogroup')).toHaveAttribute('aria-describedby', description.id)
+		expect(screen.getByRole('radiogroup')).toBeDescribedBy(description)
 	})
 
 	it('keeps the id of each RadioField in the group', () => {

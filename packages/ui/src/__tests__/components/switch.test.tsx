@@ -241,6 +241,6 @@ describe('SwitchField aria-describedby', () => {
 
 		expect(description.id).toBeTruthy()
 
-		expect(input).toHaveAttribute('aria-describedby', description.id)
+		expect(input).toBeDescribedBy(description)
 	})
 })

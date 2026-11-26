@@ -47,7 +47,7 @@ describe('PdfViewer rail resize handle', () => {
 
 		expect(handle).toHaveAttribute('aria-valuetext', '240 pixels')
 
-		expect(handle).toHaveAttribute('aria-controls', rail.id)
+		expect(handle).toControl(rail)
 
 		expect(railWidth(rail)).toBe('240px')
 	})

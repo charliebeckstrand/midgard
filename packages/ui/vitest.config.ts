@@ -157,7 +157,8 @@ const exportsCache: Plugin = {
 export const cachePlugins = [globCache, exportsCache]
 
 // Setup files for the jsdom projects (unit, docs, integration). The first one
-// also gives `expect` the geometry matchers (`setup/geometry.ts`).
+// also gives `expect` the ARIA and geometry matchers (`setup/aria.ts`,
+// `setup/geometry.ts`).
 const setupFiles = [
 	'./src/__tests__/setup/index.ts',
 	'./src/__tests__/setup/console-guard.ts',
@@ -284,6 +285,7 @@ const projects = [
 			isolate: false,
 			setupFiles: [
 				'./src/__tests__/setup/locale-guard.ts',
+				'./src/__tests__/setup/aria.ts',
 				'./src/__tests__/setup/geometry.ts',
 				'./src/__tests__/setup/restore.ts',
 				'./src/__tests__/setup/console-guard.ts',
@@ -363,6 +365,7 @@ const projects = [
 			isolate: false,
 			setupFiles: [
 				'./src/__tests__/setup/locale-guard.ts',
+				'./src/__tests__/setup/aria.ts',
 				'./src/__tests__/setup/geometry.ts',
 				'./src/__tests__/setup/restore.ts',
 				'./src/__tests__/setup/console-guard.ts',

@@ -1636,10 +1636,7 @@ describe('Menu on a phone', () => {
 
 		expect(sheet).toContainElement(menu)
 
-		expect(screen.getByRole('button', { name: 'Add tile' })).toHaveAttribute(
-			'aria-controls',
-			menu.id,
-		)
+		expect(screen.getByRole('button', { name: 'Add tile' })).toControl(menu)
 	})
 
 	it('takes the title of the content as its heading', async () => {
@@ -1798,7 +1795,7 @@ describe('Menu on a phone', () => {
 
 		expect(row).toHaveAttribute('aria-expanded', 'true')
 
-		expect(row).toHaveAttribute('aria-controls', group.id)
+		expect(row).toControl(group)
 
 		// In the sheet, not in a floating panel of its own.
 		expect(screen.getByRole('menu')).toContainElement(group)

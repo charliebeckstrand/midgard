@@ -70,7 +70,7 @@ describe('grid choice editor on entry (real floating engine)', () => {
 
 		await waitFor(() => expect(grid).toHaveFocus())
 
-		expect(grid).toHaveAttribute('aria-activedescendant', getCell(container, 'done').id)
+		expect(grid).toHaveActiveDescendant(getCell(container, 'done'))
 	})
 
 	it('ends the edit with no change on a press outside the panel', async () => {

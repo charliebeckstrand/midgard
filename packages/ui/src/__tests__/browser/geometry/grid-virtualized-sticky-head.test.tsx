@@ -1,7 +1,16 @@
 import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Grid, type GridColumn } from '../../../modules/grid'
-import { fireEvent, frames, getSlot, present, renderUI, screen, waitFor } from '../../helpers'
+import {
+	ariaTarget,
+	fireEvent,
+	frames,
+	getSlot,
+	present,
+	renderUI,
+	screen,
+	waitFor,
+} from '../../helpers'
 import { measureBox } from '../../helpers/geometry/box'
 import { PIXEL } from '../../helpers/geometry/tolerance'
 
@@ -68,11 +77,7 @@ describe('grid virtualized cursor under a sticky header (real browser)', () => {
 	}
 
 	/** The cell that the cursor names through `aria-activedescendant`. */
-	const activeCell = () => {
-		const id = screen.getByRole('grid').getAttribute('aria-activedescendant')
-
-		return present(id ? document.getElementById(id) : null, 'the active cell')
-	}
+	const activeCell = () => ariaTarget(screen.getByRole('grid'), 'aria-activedescendant')
 
 	/**
 	 * The part of the scroll container that no sticky chrome covers: below the

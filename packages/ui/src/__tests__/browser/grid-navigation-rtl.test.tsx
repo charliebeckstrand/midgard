@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { fireEvent, present, renderUI, screen, waitFor } from '../helpers'
+import { ariaTarget, fireEvent, present, renderUI, screen, waitFor } from '../helpers'
 
 /**
  * In a right-to-left grid, the columns run from right to left. `ArrowLeft`
@@ -25,11 +25,7 @@ describe('grid cursor keys in a right-to-left grid (real browser)', () => {
 	]
 
 	/** The cell that `aria-activedescendant` names. */
-	const activeCell = (grid: HTMLElement) =>
-		present(
-			document.getElementById(grid.getAttribute('aria-activedescendant') ?? ''),
-			'the active cell',
-		)
+	const activeCell = (grid: HTMLElement) => ariaTarget(grid, 'aria-activedescendant')
 
 	it('moves to the next column on ArrowLeft and back on ArrowRight', async () => {
 		renderUI(
