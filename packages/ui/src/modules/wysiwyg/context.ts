@@ -18,7 +18,10 @@ export type WysiwygContextValue = {
 	 * `separated` set.
 	 */
 	toolbarClassName: string
-	/** Subscribes to each new state of the editor. */
+	/**
+	 * Subscribes to each new state of the editor. Before the editor loads, it
+	 * subscribes to each change of the selection of the document.
+	 */
 	subscribe: (listener: () => void) => () => void
 	/** Whether an action is on at the selection. */
 	isActive: (action: WysiwygAction) => boolean
@@ -33,7 +36,10 @@ export type WysiwygContextValue = {
 	 * the editor comes.
 	 */
 	setHeading: (level: WysiwygHeadingLevel) => void
-	/** The level of the heading rail that the selection has, or `null`. */
+	/**
+	 * The level of the heading rail that the selection has, or `null`. Before
+	 * the editor loads, the markup of the field gives it.
+	 */
 	headingLevel: () => WysiwygHeadingLevel | null
 	/**
 	 * Whether a level of the heading rail can apply to the selection: the
