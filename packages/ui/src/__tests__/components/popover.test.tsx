@@ -48,13 +48,13 @@ describe('Popover', () => {
 
 		expect(trigger?.tagName).toBe('BUTTON')
 
-		expect(trigger).toHaveAttribute('aria-expanded', 'false')
+		expect(trigger).toBeCollapsed()
 
 		expect(trigger).toContainElement(screen.getByTestId('icon'))
 
 		fireEvent.click(screen.getByRole('button', { name: 'Open' }))
 
-		expect(trigger).toHaveAttribute('aria-expanded', 'true')
+		expect(trigger).toBeExpanded()
 
 		expect(popoverContent()).not.toBeNull()
 	})
@@ -188,7 +188,7 @@ describe('Popover open/close control', () => {
 		// disclosure's state reaches the trigger's aria-expanded.
 		expect(popoverContent()).not.toBeNull()
 
-		expect(document.querySelector('button')).toHaveAttribute('aria-expanded', 'true')
+		expect(document.querySelector('button')).toBeExpanded()
 	})
 })
 
@@ -258,7 +258,7 @@ describe('Popover non-modal semantics', () => {
 			</Popover>,
 		)
 
-		expect(popoverContent()).toHaveAttribute('role', 'dialog')
+		expect(popoverContent()).toHaveRole('dialog')
 
 		expect(popoverContent()).toHaveAccessibleName('Details')
 

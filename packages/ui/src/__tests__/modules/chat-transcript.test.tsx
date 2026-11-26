@@ -290,7 +290,7 @@ describe('ChatTranscript', () => {
 
 			const transcript = getSlot(container, 'chat-transcript')
 
-			expect(transcript).toHaveAttribute('role', 'log')
+			expect(transcript).toHaveRole('log')
 
 			expect(transcript).toHaveAttribute('aria-live', 'off')
 		})

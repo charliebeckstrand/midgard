@@ -122,7 +122,7 @@ describe('Grid announcements', () => {
 		// range is announced on navigation without duplicating the text off-screen.
 		const status = screen.getByText(/1.5 of 12/)
 
-		expect(status).toHaveAttribute('role', 'status')
+		expect(status).toHaveRole('status')
 
 		await user.click(screen.getByRole('button', { name: 'Next page' }))
 

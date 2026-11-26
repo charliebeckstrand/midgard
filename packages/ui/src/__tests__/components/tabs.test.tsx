@@ -60,7 +60,7 @@ describe('TabList', () => {
 
 		const list = bySlot(container, 'tab-list')
 
-		expect(list).toHaveAttribute('role', 'tablist')
+		expect(list).toHaveRole('tablist')
 
 		expect(list).toHaveAttribute('aria-orientation', 'horizontal')
 
@@ -579,7 +579,7 @@ describe('TabContent (idiomatic)', () => {
 
 		const panel = ariaTarget(tab, 'aria-controls')
 
-		expect(panel).toHaveAttribute('role', 'tabpanel')
+		expect(panel).toHaveRole('tabpanel')
 
 		// The panel points back at the tab, so the pairing round-trips without the
 		// consumer hand-threading ids.

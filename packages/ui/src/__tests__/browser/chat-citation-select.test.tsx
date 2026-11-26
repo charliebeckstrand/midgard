@@ -99,7 +99,7 @@ describe('Chat: a citation selects in a chart', () => {
 
 		await userEvent.keyboard('{Enter}')
 
-		expect(document.activeElement).toHaveAttribute('aria-pressed', 'true')
+		expect(document.activeElement).toBePressed()
 
 		expect(bars()?.getAttribute('class')).toContain(CHART_RECEDE)
 
@@ -140,7 +140,7 @@ describe('Chat: a citation selects in a chart', () => {
 
 		await userEvent.hover(page.getByRole('link'))
 
-		await expect.element(anchor).toHaveAttribute('aria-pressed', 'true')
+		await expect.element(anchor).toBePressed()
 
 		expect(bars()?.getAttribute('class')).toContain(CHART_RECEDE)
 	})

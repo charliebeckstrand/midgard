@@ -84,12 +84,7 @@ describe('Wysiwyg toolbar More (real browser)', () => {
 
 		await userEvent.click(within(row).getByRole('button', { name: 'Code' }))
 
-		await waitFor(() =>
-			expect(within(row).getByRole('button', { name: 'Code' })).toHaveAttribute(
-				'aria-pressed',
-				'true',
-			),
-		)
+		await waitFor(() => expect(within(row).getByRole('button', { name: 'Code' })).toBePressed())
 
 		expect(field).toHaveFocus()
 
@@ -117,5 +112,21 @@ describe('Wysiwyg toolbar More (real browser)', () => {
 		expect(toolbar.getBoundingClientRect().height).toBe(before)
 
 		expect(field).toHaveFocus()
+	})
+
+	it('keeps the row and More in the toolbar on a field narrower than the heading rail', async () => {
+		const { container } = renderField(140)
+
+		await editable()
+
+		const toolbar = getSlot(container, 'wysiwyg-toolbar').getBoundingClientRect()
+
+		const row = getRow()
+
+		await waitFor(() => expect(getMore(row).closest('[inert]')).toBeNull())
+
+		expect(row.getBoundingClientRect().right).toBeLessThanOrEqual(toolbar.right)
+
+		expect(getMore(row).getBoundingClientRect().right).toBeLessThanOrEqual(toolbar.right)
 	})
 })

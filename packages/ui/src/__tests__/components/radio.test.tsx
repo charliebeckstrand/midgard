@@ -342,6 +342,6 @@ describe('Radio native form reset', () => {
 
 		expect(screen.getByRole('radio', { name: 'Free' })).toBeChecked()
 
-		expect(screen.getByRole('radio', { name: 'Pro' })).not.toBeChecked()
+		expect(screen.getByRole('radio', { name: 'Pro' })).toBeUnchecked()
 	})
 })

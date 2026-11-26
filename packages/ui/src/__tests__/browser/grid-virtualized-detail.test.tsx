@@ -178,7 +178,7 @@ describe('grid virtualized master-detail body (real browser)', () => {
 
 		const table = present(body.closest('table'), 'table')
 
-		expect(table).toHaveAttribute('role', 'table')
+		expect(table).toHaveRole('table')
 
 		expect(table).toHaveAttribute('aria-rowcount', String(rows.length + 1))
 

@@ -273,7 +273,7 @@ describe('grid virtualized grouped body (real browser)', () => {
 
 		const table = present(body.closest('table'), 'table')
 
-		expect(table).toHaveAttribute('role', 'table')
+		expect(table).toHaveRole('table')
 
 		// The column header row is row 1.
 		expect(table).toHaveAttribute('aria-rowcount', String(ITEMS + 1))

@@ -58,7 +58,7 @@ describe('Wysiwyg', () => {
 
 		expect(bold).not.toHaveAttribute('aria-disabled')
 
-		expect(bold).toHaveAttribute('aria-pressed', 'false')
+		expect(bold).toBeUnpressed()
 
 		// The focus of the markup loads the editor at once.
 		act(() => field.focus())
@@ -73,7 +73,7 @@ describe('Wysiwyg', () => {
 		expect(editor).toHaveTextContent('Launch')
 
 		// The caret starts in the bold text.
-		await waitFor(() => expect(bold).toHaveAttribute('aria-pressed', 'true'))
+		await waitFor(() => expect(bold).toBePressed())
 	})
 
 	it('runs a press of a toolbar button before the load when the editor comes', async () => {
@@ -96,7 +96,7 @@ describe('Wysiwyg', () => {
 
 		expect(onValueChange).toHaveBeenLastCalledWith('> ```\n> Text\n> ```', [])
 
-		expect(screen.getByRole('button', { name: 'Quote' })).toHaveAttribute('aria-pressed', 'true')
+		expect(screen.getByRole('button', { name: 'Quote' })).toBePressed()
 	})
 
 	it('opens the link dialog from a press before the load when the editor comes', async () => {
@@ -301,7 +301,7 @@ describe('Wysiwyg', () => {
 		expect(bold).toHaveAttribute('aria-disabled', 'true')
 
 		// The caret starts in the bold text.
-		expect(bold).toHaveAttribute('aria-pressed', 'false')
+		expect(bold).toBeUnpressed()
 	})
 
 	it.for([
@@ -691,9 +691,9 @@ describe('WysiwygToolbar', () => {
 		await loadEditor()
 
 		// The caret starts in the bold text.
-		await waitFor(() => expect(bold).toHaveAttribute('aria-pressed', 'true'))
+		await waitFor(() => expect(bold).toBePressed())
 
-		expect(screen.getByRole('button', { name: 'Italic' })).toHaveAttribute('aria-pressed', 'false')
+		expect(screen.getByRole('button', { name: 'Italic' })).toBeUnpressed()
 	})
 
 	it('opens the link dialog from the link button', async () => {
@@ -761,23 +761,24 @@ describe('WysiwygToolbar', () => {
 
 			expect(rail).not.toHaveAttribute('inert')
 
-			const levels = within(rail).getByRole('radiogroup', { name: 'Heading level' })
+			const levels = within(rail).getByRole('group', { name: 'Heading level' })
 
 			expect(
 				within(levels)
-					.getAllByRole('radio')
-					.map((radio) => radio.ariaLabel ?? radio.textContent),
+					.getAllByRole('button')
+					.map((button) => button.getAttribute('aria-label')),
 			).toEqual(['Text', 'Heading 1', 'Heading 2', 'Heading 3'])
 
-			expect(within(levels).getByRole('radio', { name: 'Text' })).toBeChecked()
+			expect(within(levels).getByRole('button', { name: 'Text' })).toHaveAttribute(
+				'aria-pressed',
+				'true',
+			)
 
-			const h2 = within(levels).getByRole('radio', { name: 'Heading 2' })
+			const h2 = within(levels).getByRole('button', { name: 'Heading 2' })
 
-			expect(h2).toHaveTextContent('H2')
+			expect(h2).toHaveAttribute('aria-pressed', 'false')
 
 			expect(h2).toHaveAttribute('aria-keyshortcuts', 'Control+Alt+2')
-
-			fireEvent.pointerDown(h2)
 
 			fireEvent.click(h2)
 
@@ -786,6 +787,20 @@ describe('WysiwygToolbar', () => {
 			expect(rail).toHaveAttribute('data-hidden')
 
 			expect(row).not.toHaveAttribute('data-hidden')
+		})
+
+		it('shows the glyph of the level of the selection on Heading', async () => {
+			const { heading } = await renderRail('Title')
+
+			const glyph = () => heading.querySelector('svg')?.getAttribute('class') ?? ''
+
+			expect(glyph()).toContain('lucide-type')
+
+			fireEvent.click(heading)
+
+			fireEvent.click(screen.getByRole('button', { name: 'Heading 2' }))
+
+			await waitFor(() => expect(glyph()).toContain('lucide-heading-2'))
 		})
 
 		it('closes the rail with no change on Back', async () => {
@@ -808,9 +823,7 @@ describe('WysiwygToolbar', () => {
 			// A pick by a press first, so the pick of a key below follows a press.
 			fireEvent.click(heading)
 
-			const h1 = within(rail).getByRole('radio', { name: 'Heading 1' })
-
-			fireEvent.pointerDown(h1)
+			const h1 = within(rail).getByRole('button', { name: 'Heading 1' })
 
 			fireEvent.click(h1)
 
@@ -822,14 +835,12 @@ describe('WysiwygToolbar', () => {
 
 			expect(h1).toHaveFocus()
 
-			// An arrow key picks the level and keeps the rail open.
+			// An arrow key moves to the next level, and picks nothing.
 			fireEvent.keyDown(h1, { key: 'ArrowRight' })
 
-			await waitFor(() => expect(onValueChange).toHaveBeenLastCalledWith('## Title', []))
+			expect(within(rail).getByRole('button', { name: 'Heading 2' })).toHaveFocus()
 
 			expect(rail).not.toHaveAttribute('data-hidden')
-
-			expect(within(rail).getByRole('radio', { name: 'Heading 2' })).toHaveFocus()
 
 			fireEvent.keyDown(document.activeElement ?? h1, { key: 'Escape' })
 
@@ -847,9 +858,14 @@ describe('WysiwygToolbar', () => {
 			fireEvent.click(heading)
 
 			// The first block of a list item must be a paragraph.
-			expect(within(rail).getByRole('radio', { name: 'Heading 1' })).toBeDisabled()
+			expect(within(rail).getByRole('button', { name: 'Heading 1' })).toHaveAttribute(
+				'aria-disabled',
+				'true',
+			)
 
-			expect(within(rail).getByRole('radio', { name: 'Text' })).toBeEnabled()
+			expect(within(rail).getByRole('button', { name: 'Text' })).not.toHaveAttribute(
+				'aria-disabled',
+			)
 		})
 
 		it('sets a level from its key, with no rail', async () => {

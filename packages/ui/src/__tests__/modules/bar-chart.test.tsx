@@ -374,21 +374,21 @@ describe('BarChart', () => {
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 
-		expect(hit.hasAttribute('data-hit')).toBe(true)
+		expect(hit).toHaveAttribute('data-hit')
 
 		// The kata gives the attribute the pointer cursor.
 		expect(hit.getAttribute('class')).toContain('data-hit:cursor-pointer')
 
 		fireEvent.pointerMove(hit, { clientX: 280, clientY: 20 })
 
-		expect(hit.hasAttribute('data-hit')).toBe(false)
+		expect(hit).not.toHaveAttribute('data-hit')
 
 		// A pointer that leaves on a mark takes the attribute with it.
 		fireEvent.pointerMove(hit, { clientX: 280, clientY: 100 })
 
 		fireEvent.pointerLeave(hit)
 
-		expect(hit.hasAttribute('data-hit')).toBe(false)
+		expect(hit).not.toHaveAttribute('data-hit')
 
 		// A click on Q3's bar pins its readout.
 		fireEvent.click(hit, { clientX: 280, clientY: 100 })
@@ -819,7 +819,7 @@ describe('BarChart', () => {
 
 		expect(item?.tagName).toBe('BUTTON')
 
-		expect(item).toHaveAttribute('aria-pressed', 'true')
+		expect(item).toBePressed()
 
 		expect(item?.className).toContain('cursor-pointer')
 	})
@@ -838,17 +838,17 @@ describe('BarChart', () => {
 
 		expect(item.tagName).toBe('BUTTON')
 
-		expect(item).toHaveAttribute('aria-pressed', 'true')
+		expect(item).toBePressed()
 
 		expect(item.tabIndex).toBe(0)
 
-		expect(bySlot(container, 'chart-legend')).toHaveAttribute('role', 'toolbar')
+		expect(bySlot(container, 'chart-legend')).toHaveRole('toolbar')
 
 		expect(barCount(container)).toBe(3)
 
 		fireEvent.click(item)
 
-		expect(item).toHaveAttribute('aria-pressed', 'false')
+		expect(item).toBeUnpressed()
 
 		expect(item.querySelector('.line-through')).not.toBeNull()
 
@@ -967,7 +967,7 @@ describe('BarChart', () => {
 
 		expect(barCount(container)).toBe(3)
 
-		expect(costs).toHaveAttribute('aria-pressed', 'false')
+		expect(costs).toBeUnpressed()
 
 		expect(costs.querySelector('.line-through')).not.toBeNull()
 

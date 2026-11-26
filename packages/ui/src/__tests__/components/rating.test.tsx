@@ -56,7 +56,7 @@ describe('Rating', () => {
 
 		rerender(<Rating aria-label="Score" readOnly value={3} ref={ref} data-testid="score" />)
 
-		expect(bySlot(container, 'rating')).toHaveAttribute('role', 'img')
+		expect(bySlot(container, 'rating')).toHaveRole('img')
 
 		expect(bySlot(container, 'rating')).toHaveAttribute('data-testid', 'score')
 	})
@@ -66,7 +66,7 @@ describe('Rating', () => {
 
 		const group = bySlot(container, 'rating')
 
-		expect(group).toHaveAttribute('role', 'radiogroup')
+		expect(group).toHaveRole('radiogroup')
 
 		expect(group).toHaveAttribute('aria-label', 'Score')
 
@@ -477,7 +477,7 @@ describe('Rating', () => {
 
 			const group = bySlot(container, 'rating')
 
-			expect(group).toHaveAttribute('role', 'img')
+			expect(group).toHaveRole('img')
 
 			expect(group).toHaveAttribute('aria-label', '4 out of 5 stars')
 

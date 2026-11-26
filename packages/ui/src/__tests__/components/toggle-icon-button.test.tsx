@@ -41,7 +41,7 @@ describe('ToggleIconButton', () => {
 
 		const el = bySlot(container, 'toggle-icon-button')
 
-		expect(el).toHaveAttribute('aria-pressed', 'true')
+		expect(el).toBePressed()
 	})
 
 	// The toggle is the activation the button exists to perform, so a consumer's
@@ -68,7 +68,7 @@ describe('ToggleIconButton', () => {
 
 		expect(calls).toEqual(['consumer', 'pressed true'])
 
-		expect(button).toHaveAttribute('aria-pressed', 'true')
+		expect(button).toBePressed()
 	})
 
 	it.each([
@@ -145,13 +145,13 @@ describe('ToggleIconButton', () => {
 
 		const button = screen.getByRole('button', { name: 'Favorite' })
 
-		expect(button).toHaveAttribute('aria-pressed', 'true')
+		expect(button).toBePressed()
 
 		await user.click(button)
 
 		expect(onPressedChange).toHaveBeenCalledWith(false)
 
-		expect(button).toHaveAttribute('aria-pressed', 'false')
+		expect(button).toBeUnpressed()
 	})
 
 	// Button gives the inline box and the stepped radius. A plain utility in the className comes

@@ -72,9 +72,10 @@ function actionGroups(actions: readonly WysiwygAction[]) {
  * has a tooltip with its name, and its shortcut is in `aria-keyshortcuts`.
  *
  * Heading shows the heading rail in place of the toolbar row: a Back button
- * and the levels Text, H1, H2, and H3. A press on a level sets the level of
- * the text blocks of the selection and shows the toolbar row again. Heading
- * is on while each text block of the selection is a heading. The keys
+ * and an icon button for each of the levels Text, H1, H2, and H3. A press on
+ * a level sets the level of the text blocks of the selection and shows the
+ * toolbar row again. Heading shows the glyph of the level of the selection,
+ * and it is on while each text block of the selection is a heading. The keys
  * `$mod+Alt+1` to `$mod+Alt+3` make a heading of that level, and
  * `$mod+Alt+0` makes text, with or without the button. The rail and the row
  * are in one grid cell, so the swap does not change the size of the toolbar.
@@ -86,7 +87,7 @@ function actionGroups(actions: readonly WysiwygAction[]) {
  * from the last group back, so the order of `actions` is their priority. A
  * press on More shows them after a Back button, in the same row, so the field
  * does not move. A press on one of them runs it and keeps that page. Back and
- * Escape show the first page again.
+ * Escape show the page before.
  *
  * @remarks The toolbar has `role="toolbar"`, one Tab stop, and arrow keys
  * between its buttons, and `aria-controls` points at the field. Each run of
@@ -145,8 +146,12 @@ export const WysiwygToolbar = memo(function WysiwygToolbar({
 		const levels = railRef.current
 
 		const level =
-			levels?.querySelector<HTMLElement>('[role="radio"][aria-checked="true"]') ??
-			levels?.querySelector<HTMLElement>('[role="radio"]:not(:disabled)')
+			levels?.querySelector<HTMLElement>(
+				'[data-slot="wysiwyg-heading-level"][aria-pressed="true"]',
+			) ??
+			levels?.querySelector<HTMLElement>(
+				'[data-slot="wysiwyg-heading-level"]:not([aria-disabled="true"])',
+			)
 
 		level?.focus()
 	}, [rail])

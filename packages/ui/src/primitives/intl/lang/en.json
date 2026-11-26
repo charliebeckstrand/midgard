@@ -2483,25 +2483,13 @@
 		"defaultMessage": "Heading 1",
 		"description": "The name of the choice that makes the current block a heading of level 1."
 	},
-	"ui.wysiwyg.heading1Short": {
-		"defaultMessage": "H1",
-		"description": "The short visible label of the choice for a heading of level 1."
-	},
 	"ui.wysiwyg.heading2": {
 		"defaultMessage": "Heading 2",
 		"description": "The name of the choice that makes the current block a heading of level 2."
 	},
-	"ui.wysiwyg.heading2Short": {
-		"defaultMessage": "H2",
-		"description": "The short visible label of the choice for a heading of level 2."
-	},
 	"ui.wysiwyg.heading3": {
 		"defaultMessage": "Heading 3",
 		"description": "The name of the choice that makes the current block a heading of level 3."
-	},
-	"ui.wysiwyg.heading3Short": {
-		"defaultMessage": "H3",
-		"description": "The short visible label of the choice for a heading of level 3."
 	},
 	"ui.wysiwyg.headingLevel": {
 		"defaultMessage": "Heading level",

@@ -68,9 +68,7 @@ describe('Toolbar with More (real browser)', () => {
 
 	/**
 	 * Whether `element` starts on the row, and not in the clip above or below
-	 * it. The checks read a button and not its group, and the top and not the
-	 * bottom: the test double of the portal draws an open tooltip in the group,
-	 * which makes the group taller.
+	 * it.
 	 */
 	function onRow(toolbar: HTMLElement, element: Element): boolean {
 		const row = toolbar.getBoundingClientRect()
@@ -189,7 +187,7 @@ describe('Toolbar with More (real browser)', () => {
 		expect(onRow(toolbar, getMore(container))).toBe(true)
 	})
 
-	it('pages again when the next page does not fit', async () => {
+	it('pages again when the next page does not fit, and Back goes one page back', async () => {
 		const { container } = renderUI(<Probe width={140} />)
 
 		const toolbar = getToolbar(container)
@@ -214,6 +212,57 @@ describe('Toolbar with More (real browser)', () => {
 		expect(screen.queryByRole('group', { name: 'b' })).toBeNull()
 
 		expect(toolbar.getBoundingClientRect().height).toBe(rowHeight(container))
+
+		// Back goes one page back each time, and not to the first page.
+		const back = () => screen.getByRole('button', { name: 'Back' })
+
+		act(() => back().click())
+
+		await waitFor(() =>
+			expect(onRow(toolbar, screen.getByRole('button', { name: 'b1' }))).toBe(true),
+		)
+
+		expect(screen.queryByRole('group', { name: 'a' })).toBeNull()
+
+		act(() => back().click())
+
+		await waitFor(() =>
+			expect(onRow(toolbar, screen.getByRole('button', { name: 'a1' }))).toBe(true),
+		)
+
+		expect(screen.queryByRole('button', { name: 'Back' })).toBeNull()
+	})
+
+	it('steps one page back on Escape, with the focus on the More of that page', async () => {
+		const { container } = renderUI(<Probe width={140} />)
+
+		const toolbar = getToolbar(container)
+
+		within(toolbar).getByRole('button', { name: 'a1' }).focus()
+
+		await userEvent.keyboard('{End}{Enter}')
+
+		await waitFor(() => expect(within(toolbar).getByRole('button', { name: 'b1' })).toHaveFocus())
+
+		await userEvent.keyboard('{End}{Enter}')
+
+		await waitFor(() => expect(within(toolbar).getByRole('button', { name: 'c1' })).toHaveFocus())
+
+		await userEvent.keyboard('{Escape}')
+
+		await waitFor(() => expect(getMore(container)).toHaveFocus())
+
+		expect(onRow(toolbar, screen.getByRole('button', { name: 'b1' }))).toBe(true)
+
+		expect(screen.getByRole('button', { name: 'Back' })).toBeInTheDocument()
+
+		await userEvent.keyboard('{Escape}')
+
+		await waitFor(() => expect(screen.queryByRole('button', { name: 'Back' })).toBeNull())
+
+		expect(getMore(container)).toHaveFocus()
+
+		expect(onRow(toolbar, screen.getByRole('button', { name: 'a1' }))).toBe(true)
 	})
 
 	it('moves the focus with the page when the focus is in the toolbar', async () => {

@@ -512,7 +512,7 @@ describe('grid fill handle (real browser)', () => {
 
 		expect(document.querySelectorAll('td[data-in-range]')).toHaveLength(1)
 
-		expect(cell(2, 'name').hasAttribute('data-in-range')).toBe(true)
+		expect(cell(2, 'name')).toHaveAttribute('data-in-range')
 
 		await commands.releasePointer()
 

@@ -19,7 +19,7 @@ describe('StatusDot', () => {
 
 		const el = bySlot(container, 'status-dot')
 
-		expect(el).toHaveAttribute('role', 'img')
+		expect(el).toHaveRole('img')
 
 		expect(el).toHaveAccessibleName('Error')
 	})

@@ -301,7 +301,7 @@ describe('CreditCardInputExpiry', () => {
 
 		expect(message).toBeInTheDocument()
 
-		expect(message).toHaveAttribute('role', 'alert')
+		expect(message).toHaveRole('alert')
 
 		expect(message).toHaveTextContent('Enter a valid expiration date (MM/YY).')
 	})

@@ -13,7 +13,7 @@ describe('Toolbar', () => {
 			</Toolbar>,
 		)
 
-		expect(bySlot(container, 'toolbar')).toHaveAttribute('role', 'toolbar')
+		expect(bySlot(container, 'toolbar')).toHaveRole('toolbar')
 
 		expect(screen.getByRole('button', { name: 'Action' })).toBeInTheDocument()
 	})

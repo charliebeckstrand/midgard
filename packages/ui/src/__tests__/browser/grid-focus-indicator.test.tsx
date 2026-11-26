@@ -40,7 +40,7 @@ describe('grid focus indicator (real browser)', () => {
 
 		const grid = screen.getByRole('grid')
 
-		await waitFor(() => expect(grid.hasAttribute('aria-activedescendant')).toBe(true))
+		await waitFor(() => expect(grid).toHaveAttribute('aria-activedescendant'))
 
 		await frames()
 
@@ -49,7 +49,7 @@ describe('grid focus indicator (real browser)', () => {
 
 		await userEvent.keyboard('{Escape}')
 
-		await waitFor(() => expect(grid.hasAttribute('aria-activedescendant')).toBe(false))
+		await waitFor(() => expect(grid).not.toHaveAttribute('aria-activedescendant'))
 
 		expect(document.activeElement).toBe(grid)
 

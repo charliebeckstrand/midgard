@@ -56,7 +56,7 @@ describe('useScrollRegion against a real scroller', () => {
 
 		await frames()
 
-		expect(scroller().hasAttribute('tabindex')).toBe(false)
+		expect(scroller()).not.toHaveAttribute('tabindex')
 	})
 
 	it('adds the tab stop while the content overflows, and removes it on a fit', async () => {
@@ -69,11 +69,11 @@ describe('useScrollRegion against a real scroller', () => {
 		await waitFor(() => expect(scroller().getAttribute('tabindex')).toBe('0'))
 
 		// No name, so no landmark.
-		expect(scroller().hasAttribute('role')).toBe(false)
+		expect(scroller()).not.toHaveAttribute('role')
 
 		screen.getByTestId('toggle').click()
 
-		await waitFor(() => expect(scroller().hasAttribute('tabindex')).toBe(false))
+		await waitFor(() => expect(scroller()).not.toHaveAttribute('tabindex'))
 	})
 
 	it('names the region only while it overflows', async () => {
@@ -81,9 +81,9 @@ describe('useScrollRegion against a real scroller', () => {
 
 		await frames()
 
-		expect(scroller().hasAttribute('role')).toBe(false)
+		expect(scroller()).not.toHaveAttribute('role')
 
-		expect(scroller().hasAttribute('aria-label')).toBe(false)
+		expect(scroller()).not.toHaveAttribute('aria-label')
 
 		screen.getByTestId('toggle').click()
 
@@ -93,9 +93,9 @@ describe('useScrollRegion against a real scroller', () => {
 
 		screen.getByTestId('toggle').click()
 
-		await waitFor(() => expect(scroller().hasAttribute('role')).toBe(false))
+		await waitFor(() => expect(scroller()).not.toHaveAttribute('role'))
 
-		expect(scroller().hasAttribute('aria-label')).toBe(false)
+		expect(scroller()).not.toHaveAttribute('aria-label')
 	})
 })
 
@@ -118,7 +118,7 @@ describe('useScrollRegion on a box that does not scroll', () => {
 		// The content passes the edge, but the box does not scroll.
 		expect(scroller().scrollWidth).toBeGreaterThan(scroller().clientWidth)
 
-		expect(scroller().hasAttribute('tabindex')).toBe(false)
+		expect(scroller()).not.toHaveAttribute('tabindex')
 	})
 })
 
@@ -174,9 +174,9 @@ describe('Table scroll container', () => {
 
 		await frames()
 
-		expect(container().hasAttribute('tabindex')).toBe(false)
+		expect(container()).not.toHaveAttribute('tabindex')
 
-		expect(container().hasAttribute('role')).toBe(false)
+		expect(container()).not.toHaveAttribute('role')
 	})
 
 	it.each([
@@ -205,7 +205,7 @@ describe('Table scroll container', () => {
 
 		expect(container().getAttribute('aria-label')).toBe('Orders')
 
-		expect(container().hasAttribute('aria-labelledby')).toBe(false)
+		expect(container()).not.toHaveAttribute('aria-labelledby')
 	})
 })
 
@@ -289,9 +289,9 @@ describe('CodeBlock scroll container', () => {
 		// The block paints the cached markup, not the plain fallback.
 		expect(content().querySelector('pre.shiki')?.textContent).toBe(narrow)
 
-		await waitFor(() => expect(content().hasAttribute('tabindex')).toBe(false))
+		await waitFor(() => expect(content()).not.toHaveAttribute('tabindex'))
 
-		expect(content().hasAttribute('role')).toBe(false)
+		expect(content()).not.toHaveAttribute('role')
 
 		rerender(block(wide))
 
@@ -367,7 +367,7 @@ describe('panel body', () => {
 
 		await frames()
 
-		expect(body().hasAttribute('tabindex')).toBe(false)
+		expect(body()).not.toHaveAttribute('tabindex')
 	})
 })
 
@@ -463,7 +463,7 @@ describe('Grid scroll container', () => {
 		await waitFor(() => expect(scroll.getAttribute('tabindex')).toBe('0'))
 
 		// The table inside has the name of the grid, so the scroller is no landmark.
-		expect(scroll.hasAttribute('role')).toBe(false)
+		expect(scroll).not.toHaveAttribute('role')
 	})
 
 	it('adds no tab stop under the cursor, which is the one tab stop of the grid', async () => {
@@ -471,6 +471,6 @@ describe('Grid scroll container', () => {
 
 		await frames()
 
-		expect(scroll.hasAttribute('tabindex')).toBe(false)
+		expect(scroll).not.toHaveAttribute('tabindex')
 	})
 })

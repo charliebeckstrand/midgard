@@ -1958,7 +1958,7 @@ describe('Grid commit-and-move keys', () => {
 
 			// The entry opens the panel. Under cell scope a close of the panel
 			// commits the cell, so the Tab comes from the open panel.
-			expect(trigger).toHaveAttribute('aria-expanded', 'true')
+			expect(trigger).toBeExpanded()
 
 			const option = present(
 				document.querySelector<HTMLElement>('[role="option"][aria-selected="true"]'),

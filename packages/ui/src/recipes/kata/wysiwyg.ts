@@ -143,10 +143,15 @@ export const k = defineKata(
 			 * that is not shown has `data-hidden`, and it keeps its box, so the row
 			 * has the size of the larger of the two, and a swap does not move the
 			 * field. The toolbar keeps the height of its first row, so the cell
-			 * centers it.
+			 * centers it. The column has no floor: an auto column is as wide as the
+			 * widest row at its least, so the hidden rail made the toolbar row wider
+			 * than a narrow field, and More went past the frame.
 			 */
 			toolbar: {
-				base: ['grid items-center *:col-start-1 *:row-start-1', '*:data-hidden:invisible'],
+				base: [
+					'grid grid-cols-[minmax(0,1fr)] items-center *:col-start-1 *:row-start-1',
+					'*:data-hidden:invisible',
+				],
 				variant: { ...framed(dan.space.control.toolbar.x), bare: dan.space.control.toolbar.bare },
 				compound: FRAMED.map((variant) => ({
 					variant,

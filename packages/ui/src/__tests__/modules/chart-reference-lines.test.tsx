@@ -1034,7 +1034,7 @@ describe('reference lines in the legend', () => {
 
 		const row = getSlot(container, 'chart-legend-references')
 
-		expect(row.hasAttribute('inert')).toBe(true)
+		expect(row).toHaveAttribute('inert')
 
 		expect(row.getAttribute('role')).toBeNull()
 	})
@@ -1789,7 +1789,7 @@ describe('reference lines that the legend names', () => {
 
 		expect(note.getAttribute('aria-pressed')).toBe('true')
 
-		expect(note.hasAttribute('aria-labelledby')).toBe(false)
+		expect(note).not.toHaveAttribute('aria-labelledby')
 
 		expect(note.textContent).toBe('Target55Set in January')
 
@@ -1938,7 +1938,7 @@ describe('reference lines that the legend names', () => {
 		// the flag themselves.
 		const box = getSlot(container, 'chart-legend-notes').parentElement
 
-		expect(box?.hasAttribute('inert')).toBe(true)
+		expect(box).toHaveAttribute('inert')
 
 		expect(box?.getAttribute('role')).toBeNull()
 	})

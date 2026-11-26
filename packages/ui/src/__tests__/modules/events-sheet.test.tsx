@@ -97,7 +97,7 @@ describe('EventsButton', () => {
 
 		expect(trigger).toHaveAttribute('aria-haspopup', 'dialog')
 
-		expect(trigger).toHaveAttribute('aria-expanded', 'false')
+		expect(trigger).toBeCollapsed()
 
 		expect(trigger).not.toHaveAttribute('data-open')
 
@@ -105,7 +105,7 @@ describe('EventsButton', () => {
 
 		const close = await screen.findByRole('button', { name: 'Close' })
 
-		expect(trigger).toHaveAttribute('aria-expanded', 'true')
+		expect(trigger).toBeExpanded()
 
 		expect(trigger).toHaveAttribute('data-open')
 
@@ -113,7 +113,7 @@ describe('EventsButton', () => {
 			fireEvent.click(close)
 		})
 
-		expect(trigger).toHaveAttribute('aria-expanded', 'false')
+		expect(trigger).toBeCollapsed()
 
 		expect(trigger).not.toHaveAttribute('data-open')
 	})
@@ -620,7 +620,7 @@ describe('pin', () => {
 
 		expect(isEventsPinned()).toBe(true)
 
-		expect(document.documentElement.hasAttribute('data-events-pinned')).toBe(true)
+		expect(document.documentElement).toHaveAttribute('data-events-pinned')
 
 		expect(onOpenChange).toHaveBeenCalledWith(false)
 
@@ -629,7 +629,7 @@ describe('pin', () => {
 
 		expect(isEventsPinned()).toBe(false)
 
-		expect(document.documentElement.hasAttribute('data-events-pinned')).toBe(false)
+		expect(document.documentElement).not.toHaveAttribute('data-events-pinned')
 	})
 
 	it('does not show Pin on a page with no pinned panel, and shows it when a panel mounts', () => {
@@ -770,7 +770,7 @@ describe('EventsSwitch', () => {
 
 		const toggle = screen.getByRole('switch', { name: 'Debug' })
 
-		expect(toggle).not.toBeChecked()
+		expect(toggle).toBeUnchecked()
 
 		fireEvent.click(toggle)
 
@@ -778,13 +778,13 @@ describe('EventsSwitch', () => {
 
 		expect(localStorage.getItem('events:on')).toBe('1')
 
-		expect(document.documentElement.hasAttribute('data-events')).toBe(true)
+		expect(document.documentElement).toHaveAttribute('data-events')
 
 		fireEvent.click(toggle)
 
 		expect(localStorage.getItem('events:on')).toBeNull()
 
-		expect(document.documentElement.hasAttribute('data-events')).toBe(false)
+		expect(document.documentElement).not.toHaveAttribute('data-events')
 	})
 })
 
@@ -806,9 +806,9 @@ describe('startEvents', () => {
 
 		await startEvents()
 
-		expect(root.hasAttribute('data-events')).toBe(false)
+		expect(root).not.toHaveAttribute('data-events')
 
-		expect(root.hasAttribute('data-events-pinned')).toBe(false)
+		expect(root).not.toHaveAttribute('data-events-pinned')
 	})
 })
 

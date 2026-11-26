@@ -799,7 +799,7 @@ describe('Grid export', () => {
 
 		expect(screen.queryByRole('menuitem', { name: 'Export to CSV' })).toBeNull()
 
-		expect(trigger).toHaveAttribute('aria-expanded', 'false')
+		expect(trigger).toBeCollapsed()
 
 		server.resolve(allRows)
 

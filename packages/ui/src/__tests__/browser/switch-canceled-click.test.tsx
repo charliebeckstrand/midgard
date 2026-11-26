@@ -29,7 +29,7 @@ describe('Switch canceled click (real browser)', () => {
 
 		expect(input.checked).toBe(false)
 
-		expect(input).toHaveAttribute('aria-checked', 'false')
+		expect(input).toBeUnchecked()
 
 		expect(onChange).not.toHaveBeenCalled()
 
@@ -39,7 +39,7 @@ describe('Switch canceled click (real browser)', () => {
 
 		expect(input.checked).toBe(true)
 
-		expect(input).toHaveAttribute('aria-checked', 'true')
+		expect(input).toBeChecked()
 
 		expect(onChange).toHaveBeenCalledOnce()
 	})
@@ -58,7 +58,7 @@ describe('Switch canceled click (real browser)', () => {
 
 		expect(input.checked).toBe(false)
 
-		expect(input).toHaveAttribute('aria-checked', 'false')
+		expect(input).toBeUnchecked()
 
 		expect(getFieldProbe('dark').textContent).toBe('false')
 	})

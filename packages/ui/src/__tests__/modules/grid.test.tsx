@@ -987,7 +987,7 @@ describe('Grid', () => {
 			// A windowed but non-navigable grid stays role="table" (no keyboard cursor
 			// backs role="grid"); aria-rowcount/colcount/colindex are valid on table
 			// and convey the full extent despite the DOM holding only the window.
-			expect(table).toHaveAttribute('role', 'table')
+			expect(table).toHaveRole('table')
 
 			expect(table).toHaveAttribute('aria-colcount', String(columns.length))
 
@@ -1008,7 +1008,7 @@ describe('Grid', () => {
 			// A navigable grid is role="grid" even fully rendered, so it carries the
 			// counts and per-cell indices the role implies (KEYB-07), not only when
 			// windowed by virtualization or pagination.
-			expect(table).toHaveAttribute('role', 'grid')
+			expect(table).toHaveRole('grid')
 
 			expect(table).toHaveAttribute('aria-rowcount', String(rows.length + 1))
 
@@ -1073,7 +1073,7 @@ describe('Grid', () => {
 			// `virtualize` were set: infinite scroll implied it.
 			expect(bySlot(container, 'grid-scroll')).toBeInTheDocument()
 
-			expect(container.querySelector('table')).toHaveAttribute('role', 'table')
+			expect(container.querySelector('table')).toHaveRole('table')
 		})
 
 		it('throws when combined with pagination', () => {

@@ -71,7 +71,7 @@ describe('Grid cursor over grouped rows', () => {
 
 		expect(header).toHaveAttribute('aria-level', '1')
 
-		expect(header).toHaveAttribute('aria-expanded', 'true')
+		expect(header).toBeExpanded()
 
 		// A total is not a member of the set of the leaves, so it takes no level.
 		expect(grid.querySelector('tr[data-total-row="group"]')).not.toHaveAttribute('aria-level')
@@ -88,7 +88,7 @@ describe('Grid cursor over grouped rows', () => {
 
 		press(grid, 'Enter')
 
-		expect(grid.querySelector('tr[data-group-row]')).toHaveAttribute('aria-expanded', 'false')
+		expect(grid.querySelector('tr[data-group-row]')).toBeCollapsed()
 	})
 
 	it('seats the cursor on a group header that is pressed', () => {
@@ -113,7 +113,7 @@ describe('Grid cursor over grouped rows', () => {
 
 		expect(cell?.closest('tr')).toHaveAttribute('data-group-row')
 
-		expect(cell).toHaveAttribute('role', 'gridcell')
+		expect(cell).toHaveRole('gridcell')
 
 		expect(cell).toHaveAttribute('data-active')
 	})
@@ -191,7 +191,7 @@ describe('Grid cursor over grouped rows', () => {
 
 		press(grid, 'ArrowLeft')
 
-		expect(header).toHaveAttribute('aria-expanded', 'false')
+		expect(header).toBeCollapsed()
 
 		expect(activeCell(grid)?.closest('tr')).toBe(header)
 
@@ -200,7 +200,7 @@ describe('Grid cursor over grouped rows', () => {
 
 		press(grid, 'ArrowRight')
 
-		expect(header).toHaveAttribute('aria-expanded', 'true')
+		expect(header).toBeExpanded()
 
 		expect(activeCell(grid)?.closest('tr')).toBe(header)
 	})
@@ -219,7 +219,7 @@ describe('Grid cursor over grouped rows', () => {
 		// The group is closed, so ArrowLeft does not change it. It seats the cursor.
 		press(grid, 'ArrowLeft')
 
-		expect(header).toHaveAttribute('aria-expanded', 'false')
+		expect(header).toBeCollapsed()
 
 		expect(activeCell(grid)?.closest('tr')).toBe(header)
 	})

@@ -18,7 +18,7 @@ describe('ToggleGroup', () => {
 
 		const group = bySlot(container, 'control')
 
-		expect(group).toHaveAttribute('role', 'radiogroup')
+		expect(group).toHaveRole('radiogroup')
 	})
 })
 

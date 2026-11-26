@@ -34,7 +34,7 @@ describe('DatePicker dialog focus (real browser)', () => {
 
 		await waitFor(() => expect(trigger).toHaveFocus())
 
-		expect(trigger).toHaveAttribute('aria-expanded', 'false')
+		expect(trigger).toBeCollapsed()
 	})
 
 	it('moves DOM focus to the start of a range when the range dialog opens', async () => {
