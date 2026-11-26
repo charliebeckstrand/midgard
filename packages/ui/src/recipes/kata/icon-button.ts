@@ -16,5 +16,5 @@ export const k = defineKata(
 			},
 		},
 	},
-	{ skeleton: kokkaku.toggleIconButton },
+	{ skeleton: kokkaku.iconButton },
 )

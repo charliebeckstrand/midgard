@@ -65,11 +65,13 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 ## Buttons & actions
 
-`button` · `copy-button` · `hold-button` · `toggle-icon-button`
+`button` · `copy-button` · `hold-button` · `icon-button`
 
 > For a copy control with a text label, use `useCopyButtonState` from `copy-button`.
 
-> A `Button` in a locked Control scope, such as a `Form` while a submit runs, is `aria-disabled` and cancels its click. It stays in the tab order. A `HoldButton` there starts no hold, and a lock that comes during a hold cancels it. Pass `lockable={false}` to keep either live. A library button that writes no field, such as a `Tab`, a `CopyButton`, or a `ToggleIconButton`, stays live. So does the standard close button of an overlay, and the Cancel button of `Confirm`, also when the overlay opens from inside a locked `Form`. A field in the overlay locks with the form. A `Tab` or a `SegmentItem` that writes a value, such as the AND/OR segment of a query group, takes `lockable` and locks.
+> `IconButton` is the one icon-only control: an action, a toggle with `pressed`, `defaultPressed`, or `onPressedChange`, or a link with `href`. A toggle with no `pressedIcon` shows its state with the held-down wash of its variant. Its `disabled` keeps the focus: the button is `aria-disabled` and drops each press. `tooltip` adds a tooltip, and `true` shows the `aria-label`.
+
+> A `Button` in a locked Control scope, such as a `Form` while a submit runs, is `aria-disabled` and cancels its click. It stays in the tab order. A `HoldButton` there starts no hold, and a lock that comes during a hold cancels it. Pass `lockable={false}` to keep either live. A library button that writes no field, such as a `Tab`, a `CopyButton`, or a toggle `IconButton`, stays live. So does the standard close button of an overlay, and the Cancel button of `Confirm`, also when the overlay opens from inside a locked `Form`. A field in the overlay locks with the form. A `Tab` or a `SegmentItem` that writes a value, such as the AND/OR segment of a query group, takes `lockable` and locks.
 
 > A `HoldButton` has the built-in description "Press and hold to confirm". Assistive technology can send a click with no pointer press and no key press, and such a click cannot start a hold. It arms a confirm step, and a second such click in the next five seconds completes the action.
 
@@ -155,7 +157,7 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 A unit that can load late exports a `<Name>Skeleton` from its own entry point. The skeleton is a static leaf, so a Suspense fallback or a `loading.tsx` can render it on the server. It has the box of the real component and takes the same `size`, `level`, or `orientation`. `ColorPanelSkeleton` also takes the `alpha` and the `swatches` of its panel.
 
-`AccordionSkeleton` · `AvatarSkeleton` · `BadgeSkeleton` · `BreadcrumbSkeleton` · `ButtonSkeleton` · `CalendarSkeleton` · `CheckboxSkeleton` · `ColorPanelSkeleton` · `ControlSkeleton` · `DescriptionListSkeleton` · `HeadingSkeleton` · `ListSkeleton` · `NavSkeleton` · `PaginationSkeleton` · `ProgressBarSkeleton` · `ProgressGaugeSkeleton` · `RadioSkeleton` · `RatingSkeleton` · `SegmentSkeleton` · `ShinyTextSkeleton` · `SidebarSkeleton` · `SliderSkeleton` · `SparklineSkeleton` · `StatDeltaSkeleton` · `StatDescriptionSkeleton` · `StatLabelSkeleton` · `StatSkeleton` · `StatValueSkeleton` · `StepperSkeleton` · `SwitchSkeleton` · `TabListSkeleton` · `TextareaSkeleton` · `TextSkeleton` · `TimelineSkeleton` · `ToggleIconButtonSkeleton` · `TreeSkeleton`
+`AccordionSkeleton` · `AvatarSkeleton` · `BadgeSkeleton` · `BreadcrumbSkeleton` · `ButtonSkeleton` · `CalendarSkeleton` · `CheckboxSkeleton` · `ColorPanelSkeleton` · `ControlSkeleton` · `DescriptionListSkeleton` · `HeadingSkeleton` · `IconButtonSkeleton` · `ListSkeleton` · `NavSkeleton` · `PaginationSkeleton` · `ProgressBarSkeleton` · `ProgressGaugeSkeleton` · `RadioSkeleton` · `RatingSkeleton` · `SegmentSkeleton` · `ShinyTextSkeleton` · `SidebarSkeleton` · `SliderSkeleton` · `SparklineSkeleton` · `StatDeltaSkeleton` · `StatDescriptionSkeleton` · `StatLabelSkeleton` · `StatSkeleton` · `StatValueSkeleton` · `StepperSkeleton` · `SwitchSkeleton` · `TabListSkeleton` · `TextareaSkeleton` · `TextSkeleton` · `TimelineSkeleton` · `TreeSkeleton`
 
 > `ControlSkeleton` stands in for each control in a `ControlFrame`, such as `input`, `select`, and `combobox`. Pair a skeleton with `ReadyReveal` ([`PRIMITIVES.md`](PRIMITIVES.md)). The `chart`, `chat`, `form`, `kanban`, and `map` modules export `ChartSkeleton`, `ChatTranscriptSkeleton`, `FormFiltersSkeleton`, `KanbanCardSkeleton`, and `MapSkeleton` ([`MODULES.md`](MODULES.md)).
 

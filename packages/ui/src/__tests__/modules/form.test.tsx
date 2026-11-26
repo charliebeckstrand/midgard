@@ -9,12 +9,12 @@ import { CopyButton } from '../../components/copy-button'
 import { Dialog, DialogPanel } from '../../components/dialog'
 import { Drawer, DrawerPanel } from '../../components/drawer'
 import { Field, Label } from '../../components/fieldset'
+import { IconButton } from '../../components/icon-button'
 import { Input } from '../../components/input'
 import { useInputValue } from '../../components/input/use-input-value'
 import { Popover, PopoverClose, PopoverContent, PopoverTrigger } from '../../components/popover'
 import { Sheet, SheetPanel } from '../../components/sheet'
 import { Tab, TabList, Tabs } from '../../components/tabs'
-import { ToggleIconButton } from '../../components/toggle-icon-button'
 import {
 	Form,
 	FormErrorSummary,
@@ -507,7 +507,7 @@ describe('Form', () => {
 						</TabList>
 					</Tabs>
 					<CopyButton text="token" aria-label="Copy token" />
-					<ToggleIconButton icon={<svg />} aria-label="Pin" onPressedChange={onPressedChange} />
+					<IconButton icon={<svg />} aria-label="Pin" onPressedChange={onPressedChange} />
 					<Button type="button">Preview</Button>
 					<SubmittingProbe />
 				</Form>,

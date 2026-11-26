@@ -113,7 +113,7 @@ const LOAD_BEARING =
 
 // Hosts that put a real `<button>` in the DOM, where a stray `type` submits
 // the enclosing form.
-const BUTTON_HOST = /^(?:button|Button|ToggleIconButton|Element|Polymorphic\w*)$/
+const BUTTON_HOST = /^(?:button|Button|IconButton|Element|Polymorphic\w*)$/
 
 /**
  * One JSX attribute beside the consumer spread. `value` is the text of a string

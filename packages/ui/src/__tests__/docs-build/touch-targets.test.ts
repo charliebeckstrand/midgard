@@ -254,6 +254,12 @@ const KNOWN: readonly { finding: string; paths: readonly string[]; reason: strin
 		reason: 'A toolbar button is 42 × 42 px, and the buttons touch.',
 	},
 	{
+		finding: 'crowded toolbar/icon-button',
+		paths: ['/icon-button'],
+		reason:
+			'A bare icon button of a toolbar is 34 × 34 px, and a plain one is 42 × 42 px. The buttons touch.',
+	},
+	{
 		finding: 'crowded toolbar-group/button',
 		paths: ['/pdf-viewer', '/toolbar'],
 		reason: 'A button of a toolbar group is 41 × 42 px, and the buttons touch.',

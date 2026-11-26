@@ -9,6 +9,7 @@ import type { CopyButton } from '../../components/copy-button'
 import type { DatePicker } from '../../components/date-picker'
 import type { FileUploadButton, FileUploadInput } from '../../components/file-upload'
 import type { Group } from '../../components/group'
+import type { IconButton } from '../../components/icon-button'
 import type { Input } from '../../components/input'
 import type { Listbox } from '../../components/listbox'
 import type { NumberInput } from '../../components/number-input'
@@ -20,7 +21,6 @@ import type { RangeSlider, Slider } from '../../components/slider'
 import type { Switch, SwitchSkeleton } from '../../components/switch'
 import type { TagInput } from '../../components/tag-input'
 import type { Textarea, TextareaSkeleton } from '../../components/textarea'
-import type { ToggleIconButton } from '../../components/toggle-icon-button'
 import type { DensityStep } from '../../core/density'
 import type { ControlFrame } from '../../primitives/control'
 import type { SelectTrigger } from '../../primitives/select-trigger'
@@ -37,7 +37,7 @@ describe('the size of a button', () => {
 		expectTypeOf<ComponentProps<typeof Button>['size']>().toEqualTypeOf<Size>()
 		expectTypeOf<ComponentProps<typeof ButtonSkeleton>['size']>().toEqualTypeOf<Size>()
 		expectTypeOf<ComponentProps<typeof CopyButton>['size']>().toEqualTypeOf<Size>()
-		expectTypeOf<ComponentProps<typeof ToggleIconButton>['size']>().toEqualTypeOf<Size>()
+		expectTypeOf<ComponentProps<typeof IconButton>['size']>().toEqualTypeOf<Size>()
 		expectTypeOf<ComponentProps<typeof FileUploadButton>['size']>().toEqualTypeOf<Size>()
 		expectTypeOf<ComponentProps<typeof Group>['size']>().toEqualTypeOf<Size>()
 	})
