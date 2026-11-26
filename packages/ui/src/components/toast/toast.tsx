@@ -6,7 +6,7 @@ import { createPortal } from 'react-dom'
 import { useHydrated } from '../../hooks/use-hydrated'
 import { useIsRtl } from '../../hooks/use-is-rtl'
 import { useResponsiveValueIn } from '../../hooks/use-responsive-value'
-import { findFrame, useBreakpointFrame } from '../../primitives/breakpoint-frame/context'
+import { findFrame, useMountedBreakpointFrame } from '../../primitives/breakpoint-frame/context'
 import { useDirectionScope } from '../../primitives/direction/context'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
@@ -133,7 +133,7 @@ export function Toast({ position = TOAST_POSITION }: ToastProps) {
 
 	// The stack portals out of the place that renders it, so its breakpoints
 	// read the box that holds the portal, as its CSS does.
-	const frame = findFrame(useBreakpointFrame(), portalContainer)
+	const frame = findFrame(useMountedBreakpointFrame(), portalContainer)
 
 	// The order, the motion, and the gap of the stack follow the edge that the
 	// stack is on at the viewport.
