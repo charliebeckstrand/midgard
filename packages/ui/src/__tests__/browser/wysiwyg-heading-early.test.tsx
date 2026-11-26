@@ -76,6 +76,32 @@ describe('Wysiwyg heading level before the load (real browser)', () => {
 		await waitFor(() => expect(pressedLevel()).toBe('Heading 2'))
 	})
 
+	it('shows no level for a heading below level 3', async () => {
+		renderField('#### Deep\n\nBody')
+
+		await userEvent.click(screen.getByRole('button', { name: 'Heading' }))
+
+		expect(pressedLevel()).toBeNull()
+	})
+
+	it('shows no level for a selection of blocks with different levels', async () => {
+		renderField('Title\n\n## Sub')
+
+		const field = screen.getByRole('textbox')
+
+		field.focus()
+
+		const p = present(field.querySelector('p'), 'the paragraph')
+
+		const h2 = present(field.querySelector('h2'), 'the heading')
+
+		window.getSelection()?.setBaseAndExtent(p.firstChild ?? p, 0, h2.firstChild ?? h2, 1)
+
+		await userEvent.click(screen.getByRole('button', { name: 'Heading' }))
+
+		expect(pressedLevel()).toBeNull()
+	})
+
 	it('shows Text for a paragraph', async () => {
 		renderField('Body')
 
