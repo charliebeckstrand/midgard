@@ -62,13 +62,22 @@ export const budgets = {
 }
 
 /**
- * The time zone of each run. A test that makes a local-time date
- * (`new Date(y, m, d)`) then gives the same day on each machine. The runtime
- * locale cannot be pinned here: Node reads the default of ICU when the process
- * starts, and `test.env` comes into the worker after that. The `test` scripts
- * of ui export `LANG` before Node starts.
+ * The time zone of each run is UTC. A test that makes a local-time date
+ * (`new Date(y, m, d)`) then gives the same day on each machine.
+ *
+ * @remarks
+ * The assignment occurs when the config loads, in the main process. Node
+ * applies a change of `TZ` to the whole process, so each worker thread gets the
+ * zone. A fork and the browser of the browser suite get the zone through the
+ * environment that they start with. A `test.env` value does not do this: it
+ * comes into a worker thread after the thread starts, and the thread keeps the
+ * zone of the main process. Thus a `test.env` pin passed only on a machine that
+ * was already on UTC. `setup/locale-guard.ts` of ui fails a run in another zone.
+ *
+ * The runtime locale cannot be pinned here: Node reads the default of ICU when
+ * the process starts. The `test` scripts export `LANG` before Node starts.
  */
-export const env = { TZ: 'UTC' }
+process.env.TZ = 'UTC'
 
 const SEED = process.env.VITEST_SEED
 
@@ -103,7 +112,6 @@ export const sequence = { shuffle: true, ...(SEED ? { seed: Number(SEED) } : {})
  */
 export const sharedTest = {
 	include: ['src/__tests__/**/*.test.{ts,tsx}'],
-	env,
 	...cleanup,
 	expect: assertions,
 	fsModuleCache: true,
