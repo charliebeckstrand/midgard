@@ -1,5 +1,6 @@
 'use client'
 
+import { useLayoutEffect, useReducer } from 'react'
 import { createContext } from '../../core/create-context'
 import type { MinBreakpoint } from '../../utilities/responsive'
 
@@ -10,8 +11,11 @@ import type { MinBreakpoint } from '../../utilities/responsive'
  * @internal
  */
 export type BreakpointFrameContextValue = {
-	/** The element of the frame. A portal into this element stays in the frame. */
-	element: HTMLElement
+	/**
+	 * The element of the frame, or `null` before it mounts. A portal into this
+	 * element stays in the frame.
+	 */
+	element: HTMLElement | null
 	/** Calls `callback` when the width of the frame changes, and gives the unsubscribe. */
 	subscribe: (callback: () => void) => () => void
 	/** Whether the frame is at least as wide as `breakpoint`. */
@@ -33,6 +37,29 @@ export const [BreakpointFrameContext, useBreakpointFrame] =
 	createContext<BreakpointFrameContextValue | null>('BreakpointFrame', { default: null })
 
 /**
+ * The nearest breakpoint frame, for a component that reads its element. The
+ * value of a frame does not change when its box mounts. A component that
+ * mounts in the same commit as the box thus renders again once the box
+ * exists, before the paint.
+ *
+ * @returns The frame, or `null` outside each frame.
+ *
+ * @internal
+ */
+export function useMountedBreakpointFrame(): BreakpointFrameContextValue | null {
+	const frame = useBreakpointFrame()
+
+	const [, update] = useReducer((count: number) => count + 1, 0)
+
+	// React attaches the ref of the box after the layout effects of its content.
+	useLayoutEffect(() => {
+		if (frame?.element === null) update()
+	}, [frame])
+
+	return frame
+}
+
+/**
  * The frame that holds `node`: `frame` when `node` is in its element, else
  * `null`. A surface that a portal moves out of the frame reads the viewport,
  * as its CSS does.
@@ -47,5 +74,5 @@ export function findFrame(
 	frame: BreakpointFrameContextValue | null,
 	node: Node | null,
 ): BreakpointFrameContextValue | null {
-	return frame !== null && node !== null && frame.element.contains(node) ? frame : null
+	return node !== null && frame?.element?.contains(node) ? frame : null
 }

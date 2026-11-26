@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useResponsiveValue } from '../../hooks/use-responsive-value'
 import { BreakpointFrame } from '../../primitives/breakpoint-frame/breakpoint-frame'
+import { useBreakpointFrame } from '../../primitives/breakpoint-frame/context'
 import { Overlay } from '../../primitives/overlay'
 import { Portal } from '../../primitives/portal'
 import { act, renderUI, screen, stubMatchMedia } from '../helpers'
@@ -48,6 +49,26 @@ describe('BreakpointFrame', () => {
 		)
 
 		expect(screen.getByTestId('in')).toHaveTextContent('narrow')
+	})
+
+	// A new value above a Suspense boundary that is not hydrated makes React
+	// hydrate that boundary before it can continue.
+	it('keeps one value when its box mounts', () => {
+		const values = new Set<unknown>()
+
+		function Spy() {
+			values.add(useBreakpointFrame())
+
+			return null
+		}
+
+		renderUI(
+			<BreakpointFrame>
+				<Spy />
+			</BreakpointFrame>,
+		)
+
+		expect(values.size).toBe(1)
 	})
 
 	it('renders the content again when the width crosses a breakpoint', () => {

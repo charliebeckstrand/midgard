@@ -1,6 +1,6 @@
 'use client'
 
-import { useBreakpointFrame } from '../breakpoint-frame/context'
+import { useMountedBreakpointFrame } from '../breakpoint-frame/context'
 
 /**
  * The container of an overlay: `container` when it is given, else the
@@ -14,7 +14,7 @@ import { useBreakpointFrame } from '../breakpoint-frame/context'
  * @internal
  */
 export function useOverlayContainer(container: HTMLElement | null | undefined) {
-	const frame = useBreakpointFrame()
+	const frame = useMountedBreakpointFrame()
 
-	return container ?? (frame?.viewport ? frame.element : undefined)
+	return container ?? (frame?.viewport ? (frame.element ?? undefined) : undefined)
 }

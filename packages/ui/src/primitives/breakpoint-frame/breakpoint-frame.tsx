@@ -1,8 +1,10 @@
 'use client'
 
 import { useComposedRefs } from 'motion/react'
-import { type ComponentProps, useMemo, useState } from 'react'
+import { type ComponentProps, useMemo, useRef, useState } from 'react'
 import { cn } from '../../core/cn'
+import { matchesMediaQuery } from '../../utilities/media-query'
+import { noop } from '../../utilities/noop'
 import { BREAKPOINT_WIDTHS, type MinBreakpoint } from '../../utilities/responsive'
 import { PortalContext } from '../portal/context'
 import { BreakpointFrameContext, type BreakpointFrameContextValue } from './context'
@@ -14,19 +16,39 @@ function breakpointPixels(breakpoint: MinBreakpoint): number {
 	return Number.parseFloat(BREAKPOINT_WIDTHS[breakpoint]) * root
 }
 
-/** The frame value of `element`. @internal */
-function createFrame(element: HTMLElement, viewport: boolean): BreakpointFrameContextValue {
+/**
+ * The frame value of the box that `read` gives. Each call reads the box again,
+ * so the value works before the box exists. Until then, the frame reads the
+ * viewport. @internal
+ */
+function createFrame(
+	read: () => HTMLElement | null,
+	viewport: boolean,
+): BreakpointFrameContextValue {
 	return {
-		element,
+		get element() {
+			return read()
+		},
 		viewport,
 		subscribe: (callback) => {
+			const element = read()
+
+			// React subscribes after the commit, when the box exists.
+			if (element === null) return noop
+
 			const observer = new ResizeObserver(callback)
 
 			observer.observe(element)
 
 			return () => observer.disconnect()
 		},
-		matches: (breakpoint) => element.getBoundingClientRect().width >= breakpointPixels(breakpoint),
+		matches: (breakpoint) => {
+			const element = read()
+
+			return element === null
+				? matchesMediaQuery(`(min-width: ${BREAKPOINT_WIDTHS[breakpoint]})`)
+				: element.getBoundingClientRect().width >= breakpointPixels(breakpoint)
+		},
 	}
 }
 
@@ -64,8 +86,8 @@ export type BreakpointFrameProps = ComponentProps<'div'> & {
  * `100cqh` in the content is the height of the frame, as `100svh` is the
  * height of a window. A layout, such as `SidebarLayout`, thus fills the frame.
  *
- * Before hydration, the content reads the viewport. The frame starts after the
- * first commit, when the box exists.
+ * Before the box exists, the content reads the viewport. The content reads the
+ * box after the first commit.
  *
  * @internal
  */
@@ -76,13 +98,19 @@ export function BreakpointFrame({
 	ref,
 	...props
 }: BreakpointFrameProps) {
-	// State, not a ref, so the frame starts once the box exists.
+	const box = useRef<HTMLDivElement | null>(null)
+
+	// A viewport frame keeps the box in state, so its value changes once the
+	// box exists, and its portals and overlays move into the box. Each other
+	// frame keeps one value. A change of the value re-renders all of the
+	// content, and React must hydrate each Suspense boundary in the content
+	// before it can continue.
 	const [element, setElement] = useState<HTMLDivElement | null>(null)
 
-	const composedRef = useComposedRefs(setElement, ref)
+	const composedRef = useComposedRefs(box, viewport ? setElement : undefined, ref)
 
 	const frame = useMemo(
-		() => (element === null ? null : createFrame(element, viewport)),
+		() => createFrame(viewport ? () => element : () => box.current, viewport),
 		[element, viewport],
 	)
 

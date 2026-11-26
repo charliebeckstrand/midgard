@@ -1,6 +1,6 @@
 import pages from 'virtual:docs/pages'
 import { PanelLeft, PanelLeftDashed } from 'lucide-react'
-import { type ReactNode, useEffect, useRef } from 'react'
+import { type ReactNode, startTransition, useEffect, useRef, useState } from 'react'
 import { Links, Meta, Outlet, Scripts, useLocation, useNavigate } from 'react-router'
 import { Button } from 'ui/button'
 import { loadShiki } from 'ui/code'
@@ -21,7 +21,6 @@ import {
 import { LocaleProvider } from 'ui/providers/locale'
 import { UIProvider } from 'ui/providers/ui'
 import { Stack } from 'ui/stack'
-import { useHydrated } from '../../hooks/use-hydrated.ts'
 import { noop } from '../../utilities/noop.ts'
 import { PageTitle } from '../kit/page-title.tsx'
 import { useIdle } from '../kit/use-idle.ts'
@@ -69,15 +68,18 @@ export function Layout({ children }: { children: ReactNode }) {
 }
 
 // The full stylesheet. Each prerendered page holds its own critical CSS, so
-// the full sheet loads after hydration and does not delay the first paint. A
-// navigation is a transition, so React holds the next page until the sheet
-// is ready. The dev server has no critical CSS, so the sheet loads at once.
+// the full sheet loads after hydration and does not delay the first paint.
+// React holds a commit until each new stylesheet in it is ready. The sheet
+// thus comes in a transition: in an urgent update, it would hold each urgent
+// commit of the page until the sheet loads. A navigation is a transition, so
+// React holds the next page until the sheet is ready. The dev server has no
+// critical CSS, so the sheet loads at once.
 function Stylesheet() {
-	const hydrated = useHydrated()
+	const [load, setLoad] = useState(import.meta.env.DEV)
 
-	return hydrated || import.meta.env.DEV ? (
-		<link rel="stylesheet" href={appCss} precedence="default" />
-	) : null
+	useEffect(() => startTransition(() => setLoad(true)), [])
+
+	return load ? <link rel="stylesheet" href={appCss} precedence="default" /> : null
 }
 
 // Shiki loads its grammar and theme in idle time, so the first "Show code"

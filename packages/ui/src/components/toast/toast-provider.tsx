@@ -181,16 +181,20 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 		[toast, dismiss],
 	)
 
-	// Viewport value recomputes every render (toasts array); only the viewport
-	// consumes it and re-renders on each push.
-	const viewportValue: ToastViewportContextValue = {
-		toasts: toasts.toReversed(),
-		dismiss,
-		pause,
-		resume,
-		reset: resetToast,
-		handleExitComplete,
-	}
+	// The value changes only with the toasts. A new value at each render of the
+	// provider changes the context above all of the app, and React must then
+	// hydrate each Suspense boundary of the app before it can continue.
+	const viewportValue = useMemo<ToastViewportContextValue>(
+		() => ({
+			toasts: toasts.toReversed(),
+			dismiss,
+			pause,
+			resume,
+			reset: resetToast,
+			handleExitComplete,
+		}),
+		[toasts, dismiss, pause, resume, resetToast, handleExitComplete],
+	)
 
 	return (
 		<ToastContext value={publicValue}>

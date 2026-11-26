@@ -4,7 +4,11 @@ import { FloatingPortal } from '@floating-ui/react'
 import { AnimatePresence } from 'motion/react'
 import { type ReactNode, useEffectEvent, useId, useLayoutEffect, useState } from 'react'
 import { useHydrated } from '../../hooks/use-hydrated'
-import { BreakpointFrameContext, findFrame, useBreakpointFrame } from '../breakpoint-frame/context'
+import {
+	BreakpointFrameContext,
+	findFrame,
+	useMountedBreakpointFrame,
+} from '../breakpoint-frame/context'
 import { useDensityScope } from '../density/context'
 import { useDirectionScope } from '../direction/context'
 import { ReducedMotion } from '../reduced-motion'
@@ -134,7 +138,7 @@ export function Portal({
 
 	const dir = useDirectionScope()
 
-	const ambient = useBreakpointFrame()
+	const ambient = useMountedBreakpointFrame()
 
 	const nested = usePortalScope() !== null
 
