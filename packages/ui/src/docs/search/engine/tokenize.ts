@@ -16,16 +16,16 @@ export function tokenizeQuery(text: string): string[] {
 }
 
 /**
- * The terms of the text of an entry: each word, and each part of a camelCase
- * word. `onSizeChange` gives `onSizeChange`, `on`, `Size`, and `Change`, so a
- * query finds the entry from the start of the word or from the start of a
- * part, such as `change`.
+ * The terms of the text of an entry: each word, and the rest of a camelCase
+ * word from the start of each part. `onSizeChange` gives `onSizeChange`,
+ * `SizeChange`, and `Change`, so a query finds the entry from the start of the
+ * word or from the start of a part, such as `size` or `sizeChange`.
  */
 export function tokenizeText(text: string): string[] {
 	return tokenizeQuery(text).flatMap((word) => {
 		const parts = word.split(PART)
 
-		return parts.length > 1 ? [word, ...parts] : [word]
+		return parts.map((_, index) => parts.slice(index).join(''))
 	})
 }
 

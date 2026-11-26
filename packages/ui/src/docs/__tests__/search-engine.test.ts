@@ -35,12 +35,12 @@ function search(query: string, entries: readonly Matchable[] = ENTRIES): string[
 }
 
 describe('tokenizeText', () => {
-	it('gives each word, and each part of a camelCase word', () => {
-		expect(tokenizeText('<DialogPanel />')).toEqual(['DialogPanel', 'Dialog', 'Panel'])
+	it('gives each word, and the rest of a camelCase word from each part', () => {
+		expect(tokenizeText('<DialogPanel />')).toEqual(['DialogPanel', 'Panel'])
 
-		expect(tokenizeText('onSizeChange')).toEqual(['onSizeChange', 'on', 'Size', 'Change'])
+		expect(tokenizeText('onSizeChange')).toEqual(['onSizeChange', 'SizeChange', 'Change'])
 
-		expect(tokenizeText('HTMLInput')).toEqual(['HTMLInput', 'HTML', 'Input'])
+		expect(tokenizeText('HTMLInput')).toEqual(['HTMLInput', 'Input'])
 	})
 })
 
@@ -59,6 +59,8 @@ describe('createSearchIndex', () => {
 
 	it('matches the start of a word and of each part of a camelCase word, not the middle', () => {
 		expect(search('change')).toEqual(['/button#api-Button-onSizeChange'])
+
+		expect(search('sizeChange')).toEqual(['/button#api-Button-onSizeChange'])
 
 		expect(search('copyb')).toEqual(['/copy-button'])
 
