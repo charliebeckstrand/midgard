@@ -1327,10 +1327,6 @@
 		"defaultMessage": "What's new",
 		"description": "Text of a demo in the docs, in components/dialog/playground.tsx."
 	},
-	"docs.demo.13812a1fa01c": {
-		"defaultMessage": "No stage opened",
-		"description": "Text of a demo in the docs, in components/list/interactive-rows.tsx."
-	},
 	"docs.demo.143ec6898223": {
 		"defaultMessage": "Write a message",
 		"description": "Text of a demo in the docs as placeholder, in modules/wysiwyg/playground.tsx."
@@ -2558,10 +2554,6 @@
 	"docs.demo.53c8fc0bacc0": {
 		"defaultMessage": "Cancellation",
 		"description": "Text of a demo in the docs as title, in components/dialog/long-content.tsx."
-	},
-	"docs.demo.53ccd9798a96": {
-		"defaultMessage": "Opened {label}",
-		"description": "Text of a demo in the docs, in components/list/interactive-rows.tsx. The argument {label} is a value from the code."
 	},
 	"docs.demo.545e559792ed": {
 		"defaultMessage": "Your country sets the shipping cost and the taxes.",

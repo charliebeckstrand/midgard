@@ -38,7 +38,7 @@ export type RangeSliderProps = {
 	id?: string
 	/** Binds the range to an enclosing Form field. Seed `Form.defaultValues` with a `[number, number]`. */
 	name?: string
-	/** Controlled `[start, end]` range. Without it, the slider holds its own range. */
+	/** Controlled `[start, end]` range. Without it, the slider takes the bound field, or holds its own range. */
 	value?: [number, number]
 	/** Initial `[start, end]` range when uncontrolled and not form-bound. */
 	defaultValue?: [number, number]
