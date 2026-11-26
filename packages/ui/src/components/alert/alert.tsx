@@ -18,9 +18,9 @@ import { intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { type AlertVariants, k } from '../../recipes/kata/alert'
 import { hasContent } from '../../utilities/children'
-import { Button } from '../button'
 import { type ButtonDefaults, ButtonDefaultsProvider } from '../button/context'
 import { Icon } from '../icon'
+import { IconButton } from '../icon-button'
 import { AlertBody } from './alert-body'
 
 /** Semantic kind of an alert; selects its default color, icon, and ARIA live role. */
@@ -314,23 +314,21 @@ export function Alert({
 
 			{closable && (
 				<div className={cn(k().close)}>
-					<Button
+					<IconButton
 						// A dismissal writes no field, so a locked scope, such as a
 						// submitting form, leaves it live.
 						lockable={false}
-						type="button"
 						variant="plain"
 						color={variant === 'solid' ? 'inherit' : resolvedColor}
 						data-slot="alert-close"
 						aria-label={intl.formatMessage(intlMessages.close)}
+						icon={X}
 						onClick={() => {
 							closePressedRef.current = true
 
 							setOpen(false)
 						}}
-					>
-						<Icon icon={X} />
-					</Button>
+					/>
 				</div>
 			)}
 		</div>

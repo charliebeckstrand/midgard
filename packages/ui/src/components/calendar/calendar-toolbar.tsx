@@ -1,8 +1,8 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import type { KeyboardEventHandler, ReactNode, RefObject } from 'react'
+import { Glyph } from '../../primitives/glyph'
 import { k } from '../../recipes/kata/calendar'
-import { Button } from '../button'
-import { Icon } from '../icon'
+import { IconButton } from '../icon-button'
 
 type CalendarToolbarProps = {
 	toolbarRef: RefObject<HTMLDivElement | null>
@@ -55,22 +55,20 @@ export function CalendarToolbar({
 	return (
 		// biome-ignore lint/a11y/noStaticElementInteractions: a keydown delegation surface for the buttons in the row, not an interactive control. Each button is a Tab stop.
 		<div ref={toolbarRef} data-slot={slot} onKeyDown={onKeyDown} className={k().header}>
-			<Button
-				type="button"
+			<IconButton
 				variant="plain"
 				onClick={onPrev}
 				aria-label={prevLabel}
-				prefix={<Icon icon={ChevronLeft} className="rtl:-scale-x-100" />}
+				icon={<Glyph icon={ChevronLeft} className="rtl:-scale-x-100" />}
 				className={prevClassName}
 				data-index={prevIndex}
 			/>
 			{children}
-			<Button
-				type="button"
+			<IconButton
 				variant="plain"
 				onClick={onNext}
 				aria-label={nextLabel}
-				prefix={<Icon icon={ChevronRight} className="rtl:-scale-x-100" />}
+				icon={<Glyph icon={ChevronRight} className="rtl:-scale-x-100" />}
 				className={nextClassName}
 				data-index={nextIndex}
 			/>

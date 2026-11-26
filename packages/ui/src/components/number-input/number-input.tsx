@@ -11,9 +11,8 @@ import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/number-input'
 import { clamp } from '../../utilities/clamp'
-import { Button } from '../button'
 import { useControlProps } from '../control/use-control-props'
-import { Icon } from '../icon'
+import { IconButton } from '../icon-button'
 import { Input, type InputProps } from '../input'
 
 const messages = defineMessages({
@@ -221,28 +220,22 @@ export function NumberInput({
 				// The gap also caps the hit areas (`TouchTarget`), so the two buttons
 				// split it and do not overlap, and neither reaches over the input.
 				<span className="pointer-events-auto flex items-center touch-gap-x-0.5">
-					<Button
-						type="button"
-						variant="bare"
+					<IconButton
 						tabIndex={-1}
 						disabled={locked || atMin}
 						aria-label={intl.formatMessage(messages.decrease)}
+						icon={Minus}
 						onMouseDown={(event) => event.preventDefault()}
 						onClick={decrease}
-					>
-						<Icon icon={Minus} />
-					</Button>
-					<Button
-						type="button"
-						variant="bare"
+					/>
+					<IconButton
 						tabIndex={-1}
 						disabled={locked || atMax}
 						aria-label={intl.formatMessage(messages.increase)}
+						icon={Plus}
 						onMouseDown={(event) => event.preventDefault()}
 						onClick={increase}
-					>
-						<Icon icon={Plus} />
-					</Button>
+					/>
 				</span>
 			}
 			{...props}

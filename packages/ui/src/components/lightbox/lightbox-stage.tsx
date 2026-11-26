@@ -16,14 +16,14 @@ import {
 import { ariaAttr } from '../../core/aria-attr'
 import { dataAttr } from '../../core/data-attr'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
+import { Glyph } from '../../primitives/glyph'
 import { defineMessage } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { k } from '../../recipes/kata/lightbox'
 import { hasBrowserModifier } from '../../utilities/modifier-keys'
 import { scrollNodeWithin } from '../../utilities/scroll-within'
-import { Button } from '../button'
-import { Icon } from '../icon'
+import { IconButton } from '../icon-button'
 import { useLightboxContext } from './context'
 import {
 	getThumbnail,
@@ -515,28 +515,27 @@ export function LightboxStage({
 					{/* With no `closable`, the button shows only when it has the
 					    keyboard focus, so a screen reader and a keyboard always have a
 					    way out. */}
-					<Button
+					<IconButton
 						// The controls of the stage write no field, so a locked scope, such as a
 						// submitting form, leaves them live.
 						lockable={false}
-						type="button"
+						variant="solid"
 						aria-label={labels.close}
+						icon={X}
 						onClick={handleClose}
 						className={slots.close}
-					>
-						<Icon icon={X} />
-					</Button>
+					/>
 					{aimed?.original && (
-						<Button
+						<IconButton
 							lockable={false}
+							variant="solid"
 							href={aimed.original}
 							target="_blank"
 							rel="noopener noreferrer"
 							aria-label={labels.original}
+							icon={ExternalLink}
 							className={slots.original}
-						>
-							<Icon icon={ExternalLink} />
-						</Button>
+						/>
 					)}
 					{bar && (
 						<div className={slots.bar}>
@@ -567,35 +566,31 @@ export function LightboxStage({
 									className={slots.pill}
 									{...(swipeControls ? track.controlHandlers : undefined)}
 								>
-									<Button
+									<IconButton
 										lockable={false}
-										type="button"
 										ref={previousRef}
 										variant="plain"
 										color="inherit"
 										className={k({ ended: at === 0 }).step}
 										aria-label={labels.previous}
+										icon={<Glyph icon={ChevronLeft} className="rtl:-scale-x-100" />}
 										disabled={at === 0}
 										onClick={() => stepBy(-1)}
-									>
-										<Icon icon={ChevronLeft} className="rtl:-scale-x-100" />
-									</Button>
+									/>
 									<span aria-hidden="true" className={slots.count}>
 										{intl.formatNumber(at + 1)} / {intl.formatNumber(count)}
 									</span>
-									<Button
+									<IconButton
 										lockable={false}
-										type="button"
 										ref={nextRef}
 										variant="plain"
 										color="inherit"
 										className={k({ ended: at === count - 1 }).step}
 										aria-label={labels.next}
+										icon={<Glyph icon={ChevronRight} className="rtl:-scale-x-100" />}
 										disabled={at === count - 1}
 										onClick={() => stepBy(1)}
-									>
-										<Icon icon={ChevronRight} className="rtl:-scale-x-100" />
-									</Button>
+									/>
 								</div>
 							)}
 						</div>
