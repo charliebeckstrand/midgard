@@ -79,6 +79,17 @@ describe('createSearchIndex', () => {
 		expect(search('grid sortng')).toEqual(['/modules/grid/sorting'])
 	})
 
+	it('does not correct a word that matches, so a near word stays out', () => {
+		const entries: Matchable[] = [
+			{ kind: 'page', label: 'Table', href: '/table', context: 'Components' },
+			{ kind: 'page', label: 'Cable', href: '/cable', context: 'Components' },
+		]
+
+		expect(search('table', entries)).toEqual(['/table'])
+
+		expect(search('tablr', entries)).toEqual(['/table'])
+	})
+
 	it('matches each word in the label or the context', () => {
 		expect(search('grid sort')).toEqual(['/modules/grid/sorting'])
 
