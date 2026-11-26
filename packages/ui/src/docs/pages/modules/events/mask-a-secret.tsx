@@ -1,6 +1,5 @@
 import { Field, Label } from 'ui/fieldset'
 import { Input } from 'ui/input'
-import { PasswordInput } from 'ui/password-input'
 import { Stack } from 'ui/stack'
 
 // Turn on Debug in the settings, type in each field, and open the Events
@@ -12,7 +11,7 @@ export default function MaskASecret() {
 		<Stack gap="md">
 			<Field>
 				<Label>Password</Label>
-				<PasswordInput autoComplete="current-password" />
+				<Input type="password" autoComplete="current-password" />
 			</Field>
 			<Field>
 				<Label>One-time code</Label>
