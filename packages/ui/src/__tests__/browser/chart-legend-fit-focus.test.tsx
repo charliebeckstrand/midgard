@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { BarChart } from '../../modules/chart/bar-chart'
 import { allBySlot, frames, present, renderUI, waitFor } from '../helpers'
+import { CHART_RECEDE } from '../helpers/recede'
 
 /**
  * A resize that lowers the fit of a capped legend folds the last switches into
@@ -33,7 +34,7 @@ describe('chart legend fit focus (real browser)', () => {
 
 	const dimmedBars = (container: HTMLElement) =>
 		allBySlot(container, 'chart-bar').filter((bar) =>
-			(bar.getAttribute('class') ?? '').includes('opacity-25'),
+			(bar.getAttribute('class') ?? '').includes(CHART_RECEDE),
 		).length
 
 	it('keeps the focus in the row when a resize folds or unfolds the focused control', async () => {

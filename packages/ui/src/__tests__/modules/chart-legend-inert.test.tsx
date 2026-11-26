@@ -4,6 +4,7 @@ import { BarChart, DonutChart, LineChart, ScatterChart } from '../../modules/cha
 import { findReseatTarget } from '../../modules/chart/engine/chart-legend/legend'
 import { resolveLegend } from '../../modules/chart/engine/chart-legend/schema'
 import { act, allBySlot, bySlot, fireEvent, present, renderUI } from '../helpers'
+import { RECEDE_SELECTOR } from '../helpers/recede'
 
 const DATA = [
 	{ quarter: 'Q1', revenue: 40, costs: 24 },
@@ -403,7 +404,7 @@ describe('chart legend fit after a label change', () => {
 
 	/** Whether any part of the drawing has receded behind an emphasis. */
 	const recedes = (container: HTMLElement) =>
-		container.querySelector('svg [class*="opacity-25"]') !== null
+		container.querySelector(`svg ${RECEDE_SELECTOR}`) !== null
 
 	it('clears the emphasis of a pointed switch when the overflow popover closes', async () => {
 		const { container } = renderUI(lines(['Aa', 'Bb', 'Cc', LONG]))

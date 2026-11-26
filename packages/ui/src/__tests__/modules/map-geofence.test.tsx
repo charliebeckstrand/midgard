@@ -10,6 +10,7 @@ import { allBySlot, bySlot, fireEvent, getSlot, renderUI } from '../helpers'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 import { overlayPlat } from '../helpers/map-plat'
 import { CLICK } from '../helpers/press'
+import { MAP_RECEDE } from '../helpers/recede'
 
 /** A ring over the fixture geography, wide enough to hold a mark inside it. */
 const ZONE: LngLat[] = [
@@ -207,11 +208,11 @@ describe('MapGeofence', () => {
 		fireEvent.pointerEnter(zoneItem as HTMLButtonElement)
 
 		expect(bySlot(container, 'map-geofence')?.parentElement?.getAttribute('class')).not.toContain(
-			'opacity-25',
+			MAP_RECEDE,
 		)
 
 		expect(bySlot(container, 'map-point')?.parentElement?.getAttribute('class')).toContain(
-			'opacity-25',
+			MAP_RECEDE,
 		)
 	})
 
@@ -399,12 +400,12 @@ describe('MapGeofence group', () => {
 		fireEvent.pointerEnter(dallas as HTMLButtonElement)
 
 		const dimmed = allBySlot(container, 'map-point').map((point) =>
-			point.parentElement?.getAttribute('class')?.includes('opacity-25'),
+			point.parentElement?.getAttribute('class')?.includes(MAP_RECEDE),
 		)
 
 		// Both halves of the group hold; the ungrouped mark recedes.
 		expect(bySlot(container, 'map-geofence')?.parentElement?.getAttribute('class')).not.toContain(
-			'opacity-25',
+			MAP_RECEDE,
 		)
 
 		expect(dimmed).toEqual([false, true])

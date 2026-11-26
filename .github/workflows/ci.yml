@@ -39,10 +39,21 @@ jobs:
       # in each package missed the files at the root, such as turbo.json and
       # knip.json. `biome ci` also writes its findings as annotations on the
       # pull request.
-      - run: pnpm biome ci .
+      - id: biome
+        run: pnpm biome ci .
       # The tests run in the `test` job below, the builds in the `build` job,
       # and the docs build and its budget in the `browser` job.
-      - run: pnpm turbo run check-types knip --summarize
+      #
+      # A Biome finding does not stop this step, so one run shows the type
+      # errors and the Knip findings too. The step still runs only after a
+      # good setup: when the setup fails, `biome` does not run. The runner
+      # reads the condition again when a run is cancelled, so `!cancelled()`
+      # stops the step of a run that a later push replaces. Turbo stops each
+      # task at the first failure by default. With
+      # `--continue=dependencies-successful`, the type check of each package
+      # runs to its end, and the log shows each package that fails.
+      - if: success() || (!cancelled() && steps.biome.outcome == 'failure')
+        run: pnpm turbo run check-types knip --summarize --continue=dependencies-successful
       - name: Prune the Turbo cache to this run's tasks
         run: .github/actions/turbo-cache/prune.sh
 
@@ -92,11 +103,16 @@ jobs:
       # so the bad entry does not go. Thus a failed build runs one more time
       # with no cache before the step fails. When that build passes, the run
       # saves a clean cache for the next runs.
+      #
+      # `--continue=dependencies-successful` lets each app build to its end
+      # when another app fails, so the log shows each app that fails. The
+      # builds that pass go into the Turbo cache, so the second run replays
+      # them.
       - run: |
-          pnpm turbo run build --summarize || {
+          pnpm turbo run build --summarize --continue=dependencies-successful || {
             echo "::warning::The build failed with the restored Next cache. It runs again with no cache."
             rm -rf apps/*/.next/cache
-            pnpm turbo run build --summarize
+            pnpm turbo run build --summarize --continue=dependencies-successful
           }
         env:
           # Placeholder: only used to construct rewrite/fetch URLs, not reached at build time.
@@ -171,7 +187,8 @@ jobs:
           key: ${{ runner.os }}-vitest-cache-${{ matrix.shard }}-${{ steps.ui-deps.outputs.hash }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/vitest.base.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/src/__tests__/setup/split-sequencer.ts', 'vitest.shared.mts') }}-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-vitest-cache-${{ matrix.shard }}-${{ steps.ui-deps.outputs.hash }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/vitest.base.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/src/__tests__/setup/split-sequencer.ts', 'vitest.shared.mts') }}-
-      - run: pnpm turbo run test --filter=ui --summarize -- --shard=${{ matrix.shard }}/3 --coverage
+      - id: ui
+        run: pnpm turbo run test --filter=ui --summarize -- --shard=${{ matrix.shard }}/3 --coverage
       # The coverage of this shard, for the `coverage` job. A Turbo cache hit
       # restores the report too (`outputs` in packages/ui/turbo.json).
       - uses: actions/upload-artifact@v7
@@ -182,8 +199,9 @@ jobs:
           retention-days: 1
       # The ui suites that read files outside ui, apart from `test` so that an
       # edit outside ui keeps the cache of the ui suite (packages/ui/turbo.json).
-      # One shard runs them whole.
-      - if: matrix.shard == 1
+      # One shard runs them whole. A failure of the ui suite does not stop
+      # this step, so one run shows the findings of these gates too.
+      - if: matrix.shard == 1 && (success() || (!cancelled() && steps.ui.outcome == 'failure'))
         run: pnpm turbo run test:workspace --filter=ui --summarize
       - name: Prune the Turbo cache to this run's tasks
         run: .github/actions/turbo-cache/prune.sh
@@ -221,7 +239,11 @@ jobs:
           key: ${{ runner.os }}-vitest-apps-cache-${{ steps.deps.outputs.hash }}-${{ hashFiles('apps/*/vitest.config.ts', 'packages/auth/vitest.config.ts', 'packages/shared/vitest.config.ts', 'vitest.shared.mts') }}-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-vitest-apps-cache-${{ steps.deps.outputs.hash }}-${{ hashFiles('apps/*/vitest.config.ts', 'packages/auth/vitest.config.ts', 'packages/shared/vitest.config.ts', 'vitest.shared.mts') }}-
-      - run: pnpm turbo run test --filter='!ui' --summarize
+      # Turbo stops each task at the first failure by default. A failed test
+      # of one package then stopped the tests of four apps before they gave a
+      # result. With `--continue=dependencies-successful`, the tests of each
+      # package run to their end, and the log shows each package that fails.
+      - run: pnpm turbo run test --filter='!ui' --summarize --continue=dependencies-successful
       - name: Prune the Turbo cache to this run's tasks
         run: .github/actions/turbo-cache/prune.sh
 
@@ -404,7 +426,10 @@ jobs:
   # separate job, not a matrix entry of `browser`: only this job runs the two
   # browsers. The instances hold a few files, so one job runs them with no
   # shard. `--project` runs only them, so the Chromium instances stay in
-  # `browser`.
+  # `browser`. The patterns select each instance by the end of its name: each
+  # Firefox instance ends in `-firefox`, each WebKit instance in `-webkit`, and
+  # no Chromium instance does. A new instance in one of the two browsers thus
+  # runs here, and in density-stress.yml, with no edit to a list.
   #
   # The job runs in the Playwright image, which holds Firefox, WebKit, and
   # each system package that they load. `playwright install --with-deps` ran
@@ -448,7 +473,7 @@ jobs:
       # stops a content process on signal 11 and writes no message to stderr.
       # `FIREFOX_PREFS` in packages/ui/vitest.browser.config.ts gives the
       # cause of one such crash.
-      - run: pnpm turbo run test:browser --filter=ui --summarize -- --project density-firefox --project density-webkit --project wysiwyg-webkit --project wysiwyg-floating-ui-webkit --project wysiwyg-floating-motion-webkit
+      - run: pnpm turbo run test:browser --filter=ui --summarize -- --project '*-firefox' --project '*-webkit'
         env:
           DEBUG: pw:browser
           ALL_ENGINES: 1

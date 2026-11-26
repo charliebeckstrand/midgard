@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { HeatmapChart, type HeatmapChartSeries } from '../../modules/chart'
 import { frames, getSlot, present, renderUI, waitFor } from '../helpers'
+import { CHART_RECEDE } from '../helpers/recede'
 
 /**
  * The range bar emphasizes a class while the pointer probes it, or while the bar
@@ -33,7 +34,7 @@ describe('range legend focus (real browser)', () => {
 
 	const dimmed = (container: HTMLElement) =>
 		[...container.querySelectorAll('[data-slot="heatmap-cells"] rect')].filter((rect) =>
-			(rect.getAttribute('class') ?? '').includes('opacity-25'),
+			(rect.getAttribute('class') ?? '').includes(CHART_RECEDE),
 		).length
 
 	const renderHeatmap = () =>

@@ -13,6 +13,7 @@ import {
 } from '../helpers'
 import { axisLabels } from '../helpers/axis-labels'
 import { CLICK } from '../helpers/press'
+import { CHART_RECEDE } from '../helpers/recede'
 
 type Stop = { distance: unknown; dwell: unknown; weight?: unknown }
 
@@ -245,7 +246,7 @@ describe('ScatterChart', () => {
 
 		const receded = () =>
 			allBySlot(container, 'chart-scatter-discs').map(
-				(discs) => discs.getAttribute('class')?.includes('opacity-25') ?? false,
+				(discs) => discs.getAttribute('class')?.includes(CHART_RECEDE) ?? false,
 			)
 
 		act(() => plot.focus())
@@ -285,7 +286,7 @@ describe('ScatterChart', () => {
 		fireEvent.pointerOut(hit, at)
 
 		expect(getSlot(container, 'chart-scatter-discs').getAttribute('class')).not.toContain(
-			'opacity-25',
+			CHART_RECEDE,
 		)
 
 		// The disc stays drawn over the lift and hides when the fade ends.
@@ -400,9 +401,9 @@ describe('ScatterChart', () => {
 		expect(rows).toHaveLength(2)
 
 		// The emphasized series' row stays lit; the other dims, mirroring the discs.
-		expect(rows[0]?.getAttribute('class') ?? '').not.toContain('opacity-25')
+		expect(rows[0]?.getAttribute('class') ?? '').not.toContain(CHART_RECEDE)
 
-		expect(rows[1]?.getAttribute('class') ?? '').toContain('opacity-25')
+		expect(rows[1]?.getAttribute('class') ?? '').toContain(CHART_RECEDE)
 	})
 })
 

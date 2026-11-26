@@ -3,6 +3,7 @@ import { LINE_STROKE_WIDTH } from '../../modules/chart/engine/chart-constants'
 import { seriesValues } from '../../modules/chart/engine/chart-series'
 import { LineChart } from '../../modules/chart/line-chart'
 import { act, allBySlot, bySlot, fireEvent, getSlot, renderUI } from '../helpers'
+import { CHART_RECEDE } from '../helpers/recede'
 
 const DATA = [
 	{ week: 'W1', signups: 12, churn: 3 },
@@ -259,9 +260,9 @@ describe('LineChart', () => {
 
 		fireEvent.pointerMove(hit, { clientX: top.x - plotX, clientY: top.y + gap / 3 - plotY })
 
-		expect(groups[0]?.getAttribute('class')).not.toContain('opacity-25')
+		expect(groups[0]?.getAttribute('class')).not.toContain(CHART_RECEDE)
 
-		expect(groups[1]?.getAttribute('class')).toContain('opacity-25')
+		expect(groups[1]?.getAttribute('class')).toContain(CHART_RECEDE)
 
 		// Past the midpoint between the stops, both the emphasis and the tooltip
 		// anchor hand over to the other series' point: the tooltip re-anchors
@@ -271,9 +272,9 @@ describe('LineChart', () => {
 			clientY: top.y + gap * 0.55 - plotY,
 		})
 
-		expect(groups[1]?.getAttribute('class')).not.toContain('opacity-25')
+		expect(groups[1]?.getAttribute('class')).not.toContain(CHART_RECEDE)
 
-		expect(groups[0]?.getAttribute('class')).toContain('opacity-25')
+		expect(groups[0]?.getAttribute('class')).toContain(CHART_RECEDE)
 	})
 
 	it('keeps the isolation on the strokes when the readout does not snap', () => {
@@ -301,9 +302,9 @@ describe('LineChart', () => {
 		// nothing here, so nothing isolates either; the two stay in step.
 		fireEvent.pointerMove(hit, { clientX: top.x - plotX, clientY: top.y + 50 - plotY })
 
-		expect(groups[0]?.getAttribute('class')).not.toContain('opacity-25')
+		expect(groups[0]?.getAttribute('class')).not.toContain(CHART_RECEDE)
 
-		expect(groups[1]?.getAttribute('class')).not.toContain('opacity-25')
+		expect(groups[1]?.getAttribute('class')).not.toContain(CHART_RECEDE)
 	})
 
 	it('still gates the tooltip on a mark when the crosshair does not snap', () => {

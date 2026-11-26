@@ -4,6 +4,7 @@ import { MapRoute } from '../../modules/map'
 import { ROUTE_HIT_WIDTH, ROUTE_STROKE_WIDTH } from '../../modules/map/engine/map-constants'
 import { allBySlot, bySlot, fireEvent, getSlot, renderUI } from '../helpers'
 import { overlayPlat } from '../helpers/map-plat'
+import { MAP_RECEDE } from '../helpers/recede'
 
 const STOPS: LngLat[] = [
 	[2, 2],
@@ -125,9 +126,9 @@ describe('MapRoute', () => {
 			(el) => el.parentElement?.getAttribute('class') ?? '',
 		)
 
-		expect(groups[0]).not.toContain('opacity-25')
+		expect(groups[0]).not.toContain(MAP_RECEDE)
 
-		expect(groups[1]).toContain('opacity-25')
+		expect(groups[1]).toContain(MAP_RECEDE)
 	})
 
 	it('clears emphasis when a focused route unmounts, so the map does not stay dimmed', () => {
@@ -137,7 +138,7 @@ describe('MapRoute', () => {
 
 		// The region layer recedes as one group.
 		const anyDimmed = () =>
-			(bySlot(container, 'map-regions-recede')?.getAttribute('class') ?? '').includes('opacity-25')
+			(bySlot(container, 'map-regions-recede')?.getAttribute('class') ?? '').includes(MAP_RECEDE)
 
 		fireEvent.pointerEnter(getSlot<HTMLButtonElement>(container, 'map-legend-item'))
 
