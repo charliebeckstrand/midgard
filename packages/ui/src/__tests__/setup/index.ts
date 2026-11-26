@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom/vitest'
 import { cleanup, configure } from '@testing-library/react'
-import { afterEach, beforeAll, inject } from 'vitest'
+import { afterAll, afterEach, beforeAll, inject, vi } from 'vitest'
 import { loadListReorder } from '../../components/list/use-list-reorder'
 import { tooltipBody } from '../../components/tooltip/tooltip-body-loader'
 import { DEFAULT_FOOTER_SELECTOR } from '../../core/panel/base'
@@ -61,6 +61,15 @@ beforeAll(() => tooltipBody.load())
 // then depend on the order of the cases. The load before each file gives each
 // case the state of a page that already loaded the parts.
 beforeAll(() => loadListReorder())
+
+// Vitest keeps the doubles of `module-mocks.ts` in a registry for each file. It
+// clears the registry when a file ends, and the setup of the next file fills it
+// again. A module that loads between the two binds the real module, not the
+// double, and keeps that binding for each later file of the worker. A load that
+// a case starts and does not wait for can land there. An example is the filter
+// sheet of a grid, which loads on its first open. The wait at the end of each
+// file keeps each load in the file that started it.
+afterAll(() => vi.dynamicImportSettled())
 
 // jsdom loads no Tailwind, but a panel needs one base style of `ui/tailwind.css`
 // to hide its default footer when it has its own. Without the style, each panel
