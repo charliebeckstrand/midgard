@@ -1,14 +1,7 @@
-import {
-	type FocusEvent,
-	type ReactNode,
-	type RefObject,
-	useEffect,
-	useLayoutEffect,
-	useRef,
-	useState,
-} from 'react'
+import { type FocusEvent, type ReactNode, type RefObject, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { vi } from 'vitest'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import { noop } from '../helpers/noop'
 
 // Passed through unmocked: ref merging is pure React wiring with no floating
@@ -61,23 +54,17 @@ function createMockEvents(): MockEvents {
 /**
  * The context that `useFloating` and `useFloatingRootContext` give: one emitter
  * for the mount, and an `onOpenChange` that emits `openchange` before it calls
- * the option, as the real context does. The `onOpenChange` keeps one identity
- * for the mount and calls the newest option, as the effect event of the real
- * context does (CONVENTIONS §10.7).
+ * the option, as the real context does. The `onOpenChange` is a stable event:
+ * it keeps one identity for the mount and calls the newest option, as the
+ * effect event of the real context does (CONVENTIONS §10.7).
  */
 function useMockContext(options: MockContext): MockContext {
 	const [events] = useState(createMockEvents)
 
-	const latest = useRef(options)
-
-	useLayoutEffect(() => {
-		latest.current = options
-	})
-
-	const [onOpenChange] = useState(() => (open: boolean, ...rest: unknown[]) => {
+	const onOpenChange = useStableEvent((open: boolean, ...rest: unknown[]) => {
 		events.emit('openchange', { open })
 
-		latest.current?.onOpenChange?.(open, ...rest)
+		options?.onOpenChange?.(open, ...rest)
 	})
 
 	return {
