@@ -2,8 +2,7 @@
 
 import { Copy, X } from 'lucide-react'
 import type { RefObject } from 'react'
-import { Button } from '../../components/button'
-import { Icon } from '../../components/icon'
+import { IconButton } from '../../components/icon-button'
 import { announce } from '../../core/announcer'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { focusGripOrBoard, keepFocusOnBoard } from './dashboard-focus'
@@ -58,29 +57,25 @@ export function DashboardTileControls({
 	return (
 		<>
 			{onDuplicate && (
-				<Button
-					type="button"
-					variant="bare"
+				<IconButton
 					ref={keepFocusOnBoard}
 					data-slot="dashboard-tile-duplicate"
 					aria-label={intl.formatMessage(dashboardMessages.duplicate, { item: label })}
+					icon={Copy}
 					onClick={() => {
 						announce(describeDuplicate(intl, label))
 
 						onDuplicate()
 					}}
-				>
-					<Icon icon={Copy} />
-				</Button>
+				/>
 			)}
 
 			{onRemove && (
-				<Button
-					type="button"
-					variant="bare"
+				<IconButton
 					ref={keepFocusOnBoard}
 					data-slot="dashboard-tile-remove"
 					aria-label={intl.formatMessage(dashboardMessages.remove, { item: label })}
+					icon={X}
 					onClick={() => {
 						handOffFocus(shell.current)
 
@@ -88,9 +83,7 @@ export function DashboardTileControls({
 
 						onRemove()
 					}}
-				>
-					<Icon icon={X} />
-				</Button>
+				/>
 			)}
 		</>
 	)

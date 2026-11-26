@@ -99,7 +99,7 @@ function buttons(root: ParentNode): string[] {
 	].map((node) => {
 		const button = node instanceof HTMLButtonElement ? node : node.querySelector('button')
 
-		return `${node.getAttribute('data-slot')}${button?.disabled ? ' (disabled)' : ''}`
+		return `${node.getAttribute('data-slot')}${button?.getAttribute('aria-disabled') === 'true' ? ' (disabled)' : ''}`
 	})
 }
 

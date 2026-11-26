@@ -2,8 +2,7 @@
 
 import { Trash } from 'lucide-react'
 import { type KeyboardEvent, memo, useCallback, useMemo } from 'react'
-import { Button } from '../../../components/button'
-import { Icon } from '../../../components/icon'
+import { IconButton } from '../../../components/icon-button'
 import type { JsonValue } from '../../../components/json-tree/types'
 import { ListboxOption } from '../../../components/listbox'
 import { Select } from '../../../components/select'
@@ -225,19 +224,16 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 			</Flex>
 
 			{removable && (
-				<Button
-					type="button"
+				<IconButton
 					ref={removeRef}
-					variant="bare"
 					color="red"
 					aria-label={intl.formatMessage(queryBuilderMessages.removeRule)}
+					icon={Trash}
 					disabled={disabled}
 					className={slots.remove}
 					onClick={onRemove}
 					onKeyDown={cancelKeyRepeat}
-				>
-					<Icon icon={Trash} />
-				</Button>
+				/>
 			)}
 		</Flex>
 	)

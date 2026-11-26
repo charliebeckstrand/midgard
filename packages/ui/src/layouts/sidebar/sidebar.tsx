@@ -20,6 +20,7 @@ import { defaultKeybindingsHandlerIgnore, type KeybindingFilter } from 'tinykeys
 import { Button } from '../../components/button'
 import { Drawer, DrawerPanel, DrawerTrigger } from '../../components/drawer'
 import { Icon } from '../../components/icon'
+import { IconButton } from '../../components/icon-button'
 import { Kbd } from '../../components/kbd'
 import { Sheet, SheetPanel } from '../../components/sheet'
 import { cn } from '../../core/cn'
@@ -443,12 +444,7 @@ export function SidebarLayout({
 					>
 						<Flex align="center">
 							<DrawerTrigger>
-								<Button
-									type="button"
-									variant="bare"
-									aria-label={intl.formatMessage(messages.openNavigation)}
-									prefix={<Icon icon={Menu} />}
-								/>
+								<IconButton aria-label={intl.formatMessage(messages.openNavigation)} icon={Menu} />
 							</DrawerTrigger>
 							{navbar && <div className="min-w-0 flex-1">{navbar}</div>}
 							{actions && <div className={cn(slots.actions, 'ms-auto')}>{actions}</div>}

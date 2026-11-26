@@ -11,7 +11,7 @@ import {
 	useState,
 } from 'react'
 import { Button } from '../../../../components/button'
-import { Icon } from '../../../../components/icon'
+import { IconButton } from '../../../../components/icon-button'
 import { Popover, PopoverContent, PopoverTrigger } from '../../../../components/popover'
 import { Swatch } from '../../../../components/swatch'
 import { Text } from '../../../../components/text'
@@ -22,6 +22,7 @@ import { isRtl } from '../../../../hooks/a11y/logical-arrow'
 import { useA11yRoving } from '../../../../hooks/a11y/use-a11y-roving'
 import { useReportedChange } from '../../../../hooks/use-reported-change'
 import { useStableEvent } from '../../../../hooks/use-stable-event'
+import { Glyph } from '../../../../primitives/glyph'
 import { useIntl } from '../../../../primitives/intl/use-intl'
 import type { ChartColorSlot } from '../../../../recipes/kata/chart'
 import type { Orientation } from '../../../../types/orientation'
@@ -1467,20 +1468,18 @@ function LegendPagination({ page, pageCount, onPage }: LegendPaginationProps) {
 		>
 			{/* A button at the end of the range announces `aria-disabled` and ignores
 			    the press. A native `disabled` drops the focus to the body. */}
-			<Button
-				type="button"
+			<IconButton
 				size="sm"
 				variant="plain"
 				data-slot="chart-legend-page"
 				aria-label={intl.formatMessage(chartMessages.previousEntries)}
 				aria-disabled={ariaAttr(firstPage)}
+				icon={<Glyph icon={ChevronLeft} className="rtl:-scale-x-100" />}
 				data-disabled={dataAttr(firstPage)}
 				onClick={() => {
 					if (!firstPage) onPage(page - 1)
 				}}
-			>
-				<Icon icon={ChevronLeft} className="rtl:-scale-x-100" />
-			</Button>
+			/>
 
 			{/* A screen reader reads "Page 2 of 3", not "2 slash 3", in the language of the reader. */}
 			<Text as="span" tone="muted" size="sm" className="tabular-nums">
@@ -1492,20 +1491,18 @@ function LegendPagination({ page, pageCount, onPage }: LegendPaginationProps) {
 				</span>
 			</Text>
 
-			<Button
-				type="button"
+			<IconButton
 				size="sm"
 				variant="plain"
 				data-slot="chart-legend-page"
 				aria-label={intl.formatMessage(chartMessages.nextEntries)}
 				aria-disabled={ariaAttr(lastPage)}
+				icon={<Glyph icon={ChevronRight} className="rtl:-scale-x-100" />}
 				data-disabled={dataAttr(lastPage)}
 				onClick={() => {
 					if (!lastPage) onPage(page + 1)
 				}}
-			>
-				<Icon icon={ChevronRight} className="rtl:-scale-x-100" />
-			</Button>
+			/>
 		</div>
 	)
 }

@@ -14,11 +14,10 @@ import {
 	useRef,
 } from 'react'
 import { BadgeRemovable } from '../../components/badge/badge-removable'
-import { Button } from '../../components/button'
 import { Control } from '../../components/control'
 import { ControlContext } from '../../components/control/context'
 import { useFileUploadHandlers } from '../../components/file-upload/use-file-upload-handlers'
-import { Icon } from '../../components/icon'
+import { IconButton } from '../../components/icon-button'
 import { Textarea } from '../../components/textarea'
 import { ariaAttr } from '../../core/aria-attr'
 import { dataAttr } from '../../core/data-attr'
@@ -574,14 +573,12 @@ const ChatPromptAttach = memo(function ChatPromptAttach({
 			    The input is `hidden`, so browse mode does not read a
 			    second "Add attachment", and `click()` still opens the picker. */}
 			<input ref={inputRef} type="file" accept={accept} multiple onChange={handleChange} hidden />
-			<Button
-				type="button"
+			<IconButton
 				variant="plain"
 				aria-label={intl.formatMessage(messages.attach)}
+				icon={Paperclip}
 				onClick={openPicker}
-			>
-				<Icon icon={Paperclip} />
-			</Button>
+			/>
 		</>
 	)
 })
@@ -610,28 +607,26 @@ const ChatPromptSend = memo(function ChatPromptSend({
 	const intl = useIntl()
 
 	return streaming ? (
-		<Button
-			type="button"
+		<IconButton
+			variant="solid"
 			color="blue"
 			aria-label={intl.formatMessage(messages.stop)}
+			icon={Square}
 			onClick={onStop}
-		>
-			<Icon icon={Square} />
-		</Button>
+		/>
 	) : (
 		// One node holds the stop and the send button, so the button that has the
 		// focus turns into send when the stream ends. A native `disabled` drops
 		// the focus to the body, so send is `aria-disabled` and ignores the press.
-		<Button
-			type="button"
+		<IconButton
+			variant="solid"
 			color="blue"
 			aria-label={intl.formatMessage(messages.send)}
 			aria-disabled={ariaAttr(!canSubmit)}
+			icon={ArrowUp}
 			data-disabled={dataAttr(!canSubmit)}
 			onClick={() => canSubmit && onSubmit()}
-		>
-			<Icon icon={ArrowUp} />
-		</Button>
+		/>
 	)
 })
 

@@ -31,6 +31,7 @@ import {
 import { Button } from '../../components/button'
 import { Card, CardBody, CardHeader } from '../../components/card'
 import { Icon } from '../../components/icon'
+import { IconButton } from '../../components/icon-button'
 import { Input } from '../../components/input'
 import { MenuItem, MenuLabel } from '../../components/menu'
 import { cn } from '../../core/cn'
@@ -736,13 +737,10 @@ function GridGroupManagerZoneHeader({
 
 			{moves && (
 				<GridManagerMoveMenu itemKey={String(group.id)} moves={moves}>
-					<Button
-						type="button"
-						variant="bare"
+					<IconButton
 						aria-label={intl.formatMessage(gridMessages.moveGroupNamed, { group: label })}
-					>
-						<Icon icon={ArrowUpDown} />
-					</Button>
+						icon={ArrowUpDown}
+					/>
 				</GridManagerMoveMenu>
 			)}
 
@@ -753,15 +751,12 @@ function GridGroupManagerZoneHeader({
 				onRecolor={(color) => recolorGroup(group.id, color)}
 			/>
 
-			<Button
-				type="button"
-				variant="bare"
+			<IconButton
 				color="red"
 				aria-label={intl.formatMessage(gridMessages.removeGroupNamed, { group: label })}
+				icon={Trash}
 				onClick={() => removeGroup(group.id)}
-			>
-				<Icon icon={Trash} />
-			</Button>
+			/>
 		</div>
 	)
 }
@@ -870,14 +865,11 @@ const GridGroupManagerColumnRow = memo(function GridGroupManagerColumnRow({
 						)
 					}
 				>
-					<Button
+					<IconButton
 						ref={moveRef}
-						type="button"
-						variant="bare"
 						aria-label={intl.formatMessage(reorderMessages.moveHandle, { item: label })}
-					>
-						<Icon icon={EllipsisVertical} />
-					</Button>
+						icon={EllipsisVertical}
+					/>
 				</GridManagerMoveMenu>
 			)}
 		</li>

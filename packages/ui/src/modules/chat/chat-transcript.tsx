@@ -13,9 +13,8 @@ import {
 	useRef,
 	useState,
 } from 'react'
-import { Button } from '../../components/button'
 import type { ContextMenuConfig } from '../../components/context-menu/types'
-import { Icon } from '../../components/icon'
+import { IconButton } from '../../components/icon-button'
 import { cn } from '../../core/cn'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { useA11yAnnouncements } from '../../hooks/a11y/use-a11y-announcements'
@@ -623,16 +622,14 @@ export function ChatTranscript({
 			</div>
 			{!pinned && (
 				<div data-slot="chat-transcript-newest" className={slots.newest.base}>
-					<Button
-						type="button"
+					<IconButton
 						variant="plain"
 						size="sm"
 						aria-label={intl.formatMessage(labels.newest)}
+						icon={ArrowDown}
 						className={slots.newest.button}
 						onClick={goToNewest}
-					>
-						<Icon icon={ArrowDown} />
-					</Button>
+					/>
 				</div>
 			)}
 		</div>
