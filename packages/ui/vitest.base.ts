@@ -134,9 +134,9 @@ function packageScript(root: string, name: string | undefined): string | undefin
 }
 
 /**
- * Prints the replay command of a run that does not pass. On GitHub Actions, it
- * also writes the command as a notice, so the page of the run shows it next to
- * the annotations of the failures.
+ * Prints the replay command of a run that does not pass, in run mode only. On
+ * GitHub Actions, it also writes the command as a notice, so the page of the
+ * run shows it next to the annotations of the failures.
  */
 export function replayReporter(): Reporter {
 	let vitest: Vitest | undefined
@@ -146,7 +146,10 @@ export function replayReporter(): Reporter {
 			vitest = ctx
 		},
 		onTestRunEnd(_modules, _errors, reason: TestRunEndReason) {
-			if (!vitest || reason === 'passed') return
+			// A rerun of watch mode runs the files that a change reaches, and a
+			// filter from the prompt is not in the arguments. Thus no command
+			// replays it.
+			if (!vitest || vitest.config.watch || reason === 'passed') return
 
 			const { shuffle, seed } = vitest.config.sequence
 
