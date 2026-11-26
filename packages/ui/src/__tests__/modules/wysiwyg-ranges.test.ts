@@ -139,7 +139,13 @@ describe('wysiwyg ranges in the markdown bridge', () => {
 	it('keeps a soft break in a range as a space of the range', () => {
 		const source = 'Ask about\n@Sales today'
 
-		const { markdown, ranges } = roundTrip(source, [range(source, 'about\n@Sales')])
+		const given = [range(source, 'about\n@Sales')]
+
+		// The serialization joins the parts of one range, so its quote holds the
+		// space even when the mark of the range is not on the space.
+		expect(markedText(editor(source, given))).toBe('about @Sales')
+
+		const { markdown, ranges } = roundTrip(source, given)
 
 		expect(markdown).toBe('Ask about @Sales today')
 		expect(ranges).toEqual([range(markdown, 'about @Sales')])
