@@ -76,6 +76,15 @@ const DENSITY_FILES = [
 const FIREFOX_PREFS = { 'dom.multiple_import_maps.enabled': false }
 
 /**
+ * The locale and the time zone of each page, the same as in the jsdom suite.
+ * Without them, the browser takes the zone and the locale of the process that
+ * starts it. An instance that sets its own `provider` replaces the provider of
+ * the suite, so each `playwright()` call gives this value.
+ * `setup/locale-guard.ts` fails a page that does not get it.
+ */
+const CONTEXT_OPTIONS = { locale: 'en-US', timezoneId: 'UTC' }
+
+/**
  * The instances in WebKit for the files of Wysiwyg and of the formatted field of
  * ChatPrompt: the typing, the input before the load, the citations, the
  * picker, and the link dialog. A contenteditable field, its selection, and its
@@ -466,6 +475,7 @@ export default defineConfig({
 		// shuffles the files of the shard only.
 		reporters,
 		setupFiles: [
+			'./src/__tests__/setup/locale-guard.ts',
 			'./src/__tests__/browser/setup/index.ts',
 			'./src/__tests__/setup/console-guard.ts',
 			'./src/__tests__/setup/catalogs.ts',
@@ -484,7 +494,7 @@ export default defineConfig({
 			enabled: true,
 			// `browser/setup/index.ts` calls `parkPointer` and `focusFrame` before every case.
 			commands: { focusFrame, parkPointer, pressPointer, releasePointer, tapPointer },
-			provider: playwright(),
+			provider: playwright({ contextOptions: CONTEXT_OPTIONS }),
 			headless: true,
 			screenshotFailures: false,
 			// The size every file arrives at. Vitest resets the iframe to this value
@@ -528,7 +538,10 @@ export default defineConfig({
 				{
 					browser: 'chromium',
 					name: 'scrollbars',
-					provider: playwright({ launchOptions: { ignoreDefaultArgs: ['--hide-scrollbars'] } }),
+					provider: playwright({
+						contextOptions: CONTEXT_OPTIONS,
+						launchOptions: { ignoreDefaultArgs: ['--hide-scrollbars'] },
+					}),
 					setupFiles: [resolve(import.meta.dirname, 'src/__tests__/browser/setup/module-mocks.ts')],
 					include: ['src/__tests__/browser/scrollbars/**/*.test.{ts,tsx}'],
 				},
@@ -564,7 +577,10 @@ export default defineConfig({
 							{
 								browser: 'firefox' as const,
 								name: 'density-firefox',
-								provider: playwright({ launchOptions: { firefoxUserPrefs: FIREFOX_PREFS } }),
+								provider: playwright({
+									contextOptions: CONTEXT_OPTIONS,
+									launchOptions: { firefoxUserPrefs: FIREFOX_PREFS },
+								}),
 								include: DENSITY_FILES,
 							},
 							{ browser: 'webkit' as const, name: 'density-webkit', include: DENSITY_FILES },

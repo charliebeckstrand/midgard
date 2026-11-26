@@ -13,7 +13,7 @@ import { join } from 'node:path'
 import { configDefaults } from 'vitest/config'
 import type { CoverageOptions, Reporter, TestRunEndReason, Vitest } from 'vitest/node'
 
-export { assertions, budgets, CI, cleanup, env, sequence } from '../../vitest.shared.mts'
+export { assertions, budgets, CI, cleanup, sequence } from '../../vitest.shared.mts'
 
 /**
  * The source that a run with coverage measures, in the jsdom suite and in the
