@@ -2,7 +2,7 @@ import { Square } from 'lucide-react'
 import { renderToString } from 'react-dom/server'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
-import { ButtonIconTooltip } from '../../components/button/button-icon-tooltip'
+import { IconButton } from '../../components/icon-button'
 import { Toolbar, ToolbarGroup, ToolbarSeparator } from '../../components/toolbar'
 import { Glyph } from '../../primitives/glyph'
 import { act, renderUI, screen, waitFor, within } from '../helpers'
@@ -30,12 +30,11 @@ describe('Toolbar with More (real browser)', () => {
 						...(index > 0 ? [<ToolbarSeparator key={`separator-${group}`} />] : []),
 						<ToolbarGroup key={group} aria-label={group}>
 							{[1, 2].map((index) => (
-								<ButtonIconTooltip
+								<IconButton
 									key={index}
-									variant="bare"
-									label={`${group}${index}`}
+									tooltip
+									aria-label={`${group}${index}`}
 									icon={<Glyph icon={Square} />}
-									disabled={false}
 								/>
 							))}
 						</ToolbarGroup>,

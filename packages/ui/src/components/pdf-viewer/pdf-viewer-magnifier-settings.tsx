@@ -6,7 +6,6 @@ import { Glyph } from '../../primitives/glyph'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/pdf-viewer'
 import { Stack } from '../../structure/stack'
-import { ButtonIconTooltip } from '../button/button-icon-tooltip'
 import {
 	Dialog,
 	DialogBody,
@@ -16,6 +15,7 @@ import {
 	DialogTrigger,
 } from '../dialog'
 import { Fieldset, Label, Legend } from '../fieldset'
+import { IconButton } from '../icon-button'
 import { Radio, RadioField, RadioGroup } from '../radio'
 import { Switch, SwitchField } from '../switch'
 import { usePdfViewerContext } from './context'
@@ -77,8 +77,11 @@ export function PdfViewerMagnifierSettings({ disabled }: PdfViewerMagnifierSetti
 	return (
 		<Dialog>
 			<DialogTrigger>
-				<ButtonIconTooltip
-					label={intl.formatMessage(pdfViewerMessages.magnifierSettings)}
+				<IconButton
+					variant="plain"
+					lockable={false}
+					tooltip
+					aria-label={intl.formatMessage(pdfViewerMessages.magnifierSettings)}
 					icon={<Glyph icon={ScanSearch} />}
 					// Keyed on the loupe rather than on the dialog: the glyph stands for the lens, so
 					// the fill has to report whether the lens is on, not whether its settings are up.

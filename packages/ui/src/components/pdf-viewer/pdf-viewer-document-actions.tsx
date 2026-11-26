@@ -1,7 +1,7 @@
 import { Download, Printer } from 'lucide-react'
 import { Glyph } from '../../primitives/glyph'
 import { useIntl } from '../../primitives/intl/use-intl'
-import { ButtonIconTooltip } from '../button/button-icon-tooltip'
+import { IconButton } from '../icon-button'
 import { ToolbarGroup } from '../toolbar'
 import { pdfViewerMessages } from './pdf-viewer-messages'
 import { downloadPdf, printPdf } from './pdf-viewer-utilities'
@@ -34,14 +34,20 @@ export function PdfViewerDocumentActions({
 
 	return (
 		<ToolbarGroup aria-label={intl.formatMessage(pdfViewerMessages.document)}>
-			<ButtonIconTooltip
-				label={intl.formatMessage(pdfViewerMessages.download)}
+			<IconButton
+				variant="plain"
+				lockable={false}
+				tooltip
+				aria-label={intl.formatMessage(pdfViewerMessages.download)}
 				icon={<Glyph icon={Download} />}
 				disabled={disabled}
 				onClick={download}
 			/>
-			<ButtonIconTooltip
-				label={intl.formatMessage(pdfViewerMessages.print)}
+			<IconButton
+				variant="plain"
+				lockable={false}
+				tooltip
+				aria-label={intl.formatMessage(pdfViewerMessages.print)}
 				icon={<Glyph icon={Printer} />}
 				disabled={disabled}
 				onClick={print}

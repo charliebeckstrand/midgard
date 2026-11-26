@@ -1,6 +1,12 @@
 'use client'
 
-import type { ComponentProps, MouseEventHandler, ReactElement, ReactNode } from 'react'
+import {
+	Children,
+	type ComponentProps,
+	type MouseEventHandler,
+	type ReactElement,
+	type ReactNode,
+} from 'react'
 import { ariaAttr } from '../../core/aria-attr'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { dataAttr } from '../../core/data-attr'
@@ -47,8 +53,12 @@ type IconButtonName =
 
 /** The props that each IconButton takes, a toggle or an action. */
 type IconButtonOwnProps = {
-	/** The icon. It is a Lucide icon or an element, as {@link Icon} takes. */
-	icon: IconProps['icon']
+	/**
+	 * The icon. It is a Lucide icon or an element, as {@link Icon} takes. A list
+	 * of elements gives icons that the CSS shows one at a time, such as one icon
+	 * for each layout. A toggle with a `pressedIcon` takes one icon.
+	 */
+	icon: IconProps['icon'] | readonly ReactElement[]
 	/** The palette color of the button. @defaultValue 'zinc' */
 	color?: ButtonVariants['color']
 	/** The density step of the button. Omit it to take the step of the nearest density scope. */
@@ -96,6 +106,7 @@ type IconButtonToggleLook =
 			 * and the `soft` fill on `plain`. Only these two variants have a wash.
 			 */
 			pressedIcon: IconProps['icon']
+			icon: IconProps['icon']
 			/**
 			 * Cross-fades between `icon` and `pressedIcon`. Set false for an instant swap.
 			 * @defaultValue true
@@ -141,35 +152,59 @@ type IconButtonToggleProps = IconButtonToggleLook & {
 	disabled?: boolean
 } & Omit<ComponentProps<'button'>, OwnedAttributes | 'className'>
 
+/**
+ * How an action shows that its target is on. An action has no pressed state,
+ * but `active` gives it the held-down wash, which only `bare` and `plain` have.
+ */
+type IconButtonActionLook =
+	| {
+			active?: never
+			/** {@inheritDoc IconButtonVariant} */
+			variant?: IconButtonVariant
+	  }
+	| {
+			/**
+			 * Shows the held-down wash, with no `aria-pressed`. Use it on an action
+			 * whose target is on, such as the trigger of a search while a query is
+			 * set. A press of such a button opens a panel or runs a command, so it is
+			 * not a toggle.
+			 */
+			active: boolean
+			/**
+			 * The fill style of the button. An `active` action shows its state with
+			 * the held-down wash, which only `bare` and `plain` have.
+			 * @defaultValue 'bare'
+			 */
+			variant?: 'bare' | 'plain'
+	  }
+
 /** The props of an action: a button, or a link with `href`. An action has no pressed state. */
-type IconButtonActionProps = {
+type IconButtonActionProps = IconButtonActionLook & {
 	pressed?: never
 	defaultPressed?: never
 	onPressedChange?: never
 	pressedIcon?: never
 	animate?: never
-	/** {@inheritDoc IconButtonVariant} */
-	variant?: IconButtonVariant
 } & (
-	| ({
-			href?: never
-			/**
-			 * Disables the button but keeps it focusable. It is `aria-disabled`, stays
-			 * in the tab order, and drops each press.
-			 *
-			 * @remarks Not the native `disabled`. A press can disable its own button,
-			 * such as a zoom step at the last level, and a native `disabled` then drops
-			 * the focus to the page (WCAG 2.4.3).
-			 * @defaultValue false
-			 */
-			disabled?: boolean
-	  } & Omit<ComponentProps<'button'>, OwnedAttributes | 'className'>)
-	| ({
-			/** The link target. With it, the button is the registered link. */
-			href: string
-			disabled?: never
-	  } & Omit<LinkProps, OwnedAttributes | 'className' | 'href'>)
-)
+		| ({
+				href?: never
+				/**
+				 * Disables the button but keeps it focusable. It is `aria-disabled`, stays
+				 * in the tab order, and drops each press.
+				 *
+				 * @remarks Not the native `disabled`. A press can disable its own button,
+				 * such as a zoom step at the last level, and a native `disabled` then drops
+				 * the focus to the page (WCAG 2.4.3).
+				 * @defaultValue false
+				 */
+				disabled?: boolean
+		  } & Omit<ComponentProps<'button'>, OwnedAttributes | 'className'>)
+		| ({
+				/** The link target. With it, the button is the registered link. */
+				href: string
+				disabled?: never
+		  } & Omit<LinkProps, OwnedAttributes | 'className' | 'href'>)
+	)
 
 /**
  * Props for {@link IconButton}. `AccessibleName` is required: `aria-label` or
@@ -230,11 +265,14 @@ function usePress({
  * @internal
  */
 function iconButtonContent(
-	icon: IconProps['icon'],
+	icon: IconButtonOwnProps['icon'],
 	pressedIcon: IconProps['icon'] | undefined,
 	pressed: boolean,
 	animate: boolean,
 ): { prefix?: ReactNode; children?: ReactNode } {
+	// A list of icons is never a swap: the type gives a pressed icon only one icon.
+	if (isIconList(icon)) return { children: Children.map(icon, (each) => <Icon icon={each} />) }
+
 	if (pressedIcon === undefined) return { children: <Icon icon={icon} /> }
 
 	if (animate) {
@@ -242,6 +280,11 @@ function iconButtonContent(
 	}
 
 	return { children: <Icon icon={pressed ? pressedIcon : icon} /> }
+}
+
+/** Whether `icon` is a list of icons. @internal */
+function isIconList(icon: IconButtonOwnProps['icon']): icon is readonly ReactElement[] {
+	return Array.isArray(icon)
 }
 
 /** Puts the tooltip of an IconButton around it, or gives the button alone. @internal */
@@ -277,6 +320,8 @@ function IconButtonTooltip({
  *   on `bare`, and the `soft` fill on `plain`. The wash keeps the size of the
  *   button, so a bar does not reflow when a toggle flips.
  * - A link takes `href`.
+ * - An action with `active` takes the held-down wash with no `aria-pressed`,
+ *   for a button whose target is on, such as a search trigger with a query.
  *
  * `tooltip` adds a tooltip. `disabled` keeps the focus: the button is
  * `aria-disabled`, stays in the tab order, and drops each press.
@@ -308,10 +353,12 @@ export function IconButton(props: IconButtonProps) {
 		tooltipPlacement,
 		disabled = false,
 		lockable,
+		active = false,
 		onClick: onClickProp,
 		...rest
 	} = props as IconButtonOwnProps &
 		Omit<IconButtonToggleProps, 'href' | keyof IconButtonToggleLook> & {
+			active?: boolean
 			pressedIcon?: IconProps['icon']
 			animate?: boolean
 			variant?: IconButtonVariant
@@ -327,10 +374,10 @@ export function IconButton(props: IconButtonProps) {
 	})
 
 	// A toggle with a pressed icon shows its state by the icon. A toggle with one
-	// icon shows it by the held-down wash.
+	// icon shows it by the held-down wash, as an `active` action does.
 	const swapIcon = toggle ? pressedIcon : undefined
 
-	const held = toggle && pressed && swapIcon === undefined
+	const held = toggle ? pressed && swapIcon === undefined : active
 
 	const { prefix, children } = iconButtonContent(icon, swapIcon, pressed, animate)
 

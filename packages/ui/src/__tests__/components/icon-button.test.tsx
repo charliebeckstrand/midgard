@@ -219,6 +219,8 @@ describe('IconButton', () => {
 			<>
 				{/* @ts-expect-error A held toggle takes only `bare` or `plain`. */}
 				<IconButton defaultPressed icon={icon} aria-label="A" variant="outline" />
+				{/* @ts-expect-error An active action takes only `bare` or `plain`. */}
+				<IconButton active icon={icon} aria-label="D" variant="outline" />
 				<IconButton
 					defaultPressed
 					icon={icon}
@@ -230,7 +232,42 @@ describe('IconButton', () => {
 			</>,
 		)
 
-		expect(container.querySelectorAll('[data-slot=icon-button]')).toHaveLength(3)
+		expect(container.querySelectorAll('[data-slot=icon-button]')).toHaveLength(4)
+	})
+
+	// An action whose target is on, such as a search trigger with a query, takes
+	// the wash with no `aria-pressed`, because a press of it is not a toggle.
+	it.each([
+		['bare', 'bare', true],
+		['plain', 'soft', false],
+	] as const)(
+		'gives an active %s action the held-down wash, with no aria-pressed',
+		(variant, rendered, marked) => {
+			const { container } = renderUI(
+				<IconButton active icon={icon} aria-label="Search" variant={variant} />,
+			)
+
+			const el = getSlot(container, 'icon-button')
+
+			expect(el).toHaveAttribute('data-variant', rendered)
+
+			expect(el.hasAttribute('data-active')).toBe(marked)
+
+			expect(el).not.toHaveAttribute('aria-pressed')
+		},
+	)
+
+	it('renders each icon of a list as a direct child of the button', () => {
+		const { container } = renderUI(
+			<IconButton
+				icon={[<svg key="a" data-testid="a" />, <svg key="b" data-testid="b" />]}
+				aria-label="Panel"
+			/>,
+		)
+
+		const el = getSlot(container, 'icon-button')
+
+		expect(el.querySelectorAll(':scope > [data-slot=icon]')).toHaveLength(2)
 	})
 
 	it('gives no wash to an unpressed toggle or to a toggle with a pressedIcon', () => {

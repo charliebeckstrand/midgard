@@ -11,10 +11,8 @@ type PdfViewerValues = {
 	pages: Record<never, never>
 	resizeThumbnails: Record<never, never>
 	railWidth: { width: number }
-	showHighlights: Record<never, never>
-	hideHighlights: Record<never, never>
-	magnifierOn: Record<never, never>
-	magnifierOff: Record<never, never>
+	highlights: Record<never, never>
+	magnifierToggle: Record<never, never>
 	pageNavigation: Record<never, never>
 	currentPage: Record<never, never>
 	page: { page: string }
@@ -103,25 +101,17 @@ export const pdfViewerMessages: MessageSet<PdfViewerValues> = defineMessages<Pdf
 		description:
 			'The width of the panel with the small images of the pages of a PDF, read by its resize bar.',
 	},
-	showHighlights: {
-		id: 'ui.pdfViewer.showHighlights',
-		defaultMessage: 'Show highlights',
-		description: 'The button that shows the highlighted regions on the pages of a PDF.',
+	highlights: {
+		id: 'ui.pdfViewer.highlights',
+		defaultMessage: 'Highlights',
+		description:
+			'The toggle button that shows or hides the highlighted regions on the pages of a PDF. The name stays the same, and the button reports its state as pressed or not pressed.',
 	},
-	hideHighlights: {
-		id: 'ui.pdfViewer.hideHighlights',
-		defaultMessage: 'Hide highlights',
-		description: 'The button that hides the highlighted regions on the pages of a PDF.',
-	},
-	magnifierOn: {
-		id: 'ui.pdfViewer.magnifierOn',
-		defaultMessage: 'Turn magnifier on',
-		description: 'The button that turns on the lens that magnifies the page of a PDF.',
-	},
-	magnifierOff: {
-		id: 'ui.pdfViewer.magnifierOff',
-		defaultMessage: 'Turn magnifier off',
-		description: 'The button that turns off the lens that magnifies the page of a PDF.',
+	magnifierToggle: {
+		id: 'ui.pdfViewer.magnifierToggle',
+		defaultMessage: 'Magnifier',
+		description:
+			'The toggle button that turns the lens that magnifies the page of a PDF on or off. The name stays the same, and the button reports its state as pressed or not pressed.',
 	},
 	pageNavigation: {
 		id: 'ui.pdfViewer.pageNavigation',

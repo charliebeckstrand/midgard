@@ -8,7 +8,7 @@ import { Glyph } from '../../primitives/glyph'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/pdf-viewer'
 import { isComposing } from '../../utilities/is-composing'
-import { ButtonIconTooltip } from '../button/button-icon-tooltip'
+import { IconButton } from '../icon-button'
 import { Popover, PopoverContent, PopoverTrigger } from '../popover'
 import { SearchInput } from '../search-input'
 import { usePdfViewerSearchContext } from './context'
@@ -75,8 +75,11 @@ export function PdfViewerSearch({ disabled }: PdfViewerSearchProps) {
 			onOpenChange={(nextOpen) => setOpen(nextOpen && !disabled)}
 		>
 			<PopoverTrigger>
-				<ButtonIconTooltip
-					label={intl.formatMessage(pdfViewerMessages.search)}
+				<IconButton
+					variant="plain"
+					lockable={false}
+					tooltip
+					aria-label={intl.formatMessage(pdfViewerMessages.search)}
 					icon={<Glyph icon={Search} />}
 					active={query !== ''}
 					data-slot="pdf-viewer-search-trigger"
@@ -101,14 +104,20 @@ export function PdfViewerSearch({ disabled }: PdfViewerSearchProps) {
 					<span data-slot="pdf-viewer-search-status" {...status}>
 						{query === '' ? null : statusText}
 					</span>
-					<ButtonIconTooltip
-						label={intl.formatMessage(pdfViewerMessages.previousMatch)}
+					<IconButton
+						variant="plain"
+						lockable={false}
+						tooltip
+						aria-label={intl.formatMessage(pdfViewerMessages.previousMatch)}
 						icon={<Glyph icon={ChevronUp} />}
 						disabled={noMatch}
 						onClick={previous}
 					/>
-					<ButtonIconTooltip
-						label={intl.formatMessage(pdfViewerMessages.nextMatch)}
+					<IconButton
+						variant="plain"
+						lockable={false}
+						tooltip
+						aria-label={intl.formatMessage(pdfViewerMessages.nextMatch)}
 						icon={<Glyph icon={ChevronDown} />}
 						disabled={noMatch}
 						onClick={next}

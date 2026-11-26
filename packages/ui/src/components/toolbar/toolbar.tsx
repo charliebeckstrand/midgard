@@ -19,7 +19,7 @@ import { Glyph } from '../../primitives/glyph'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k, type ToolbarVariants } from '../../recipes/kata/toolbar'
 import type { AccessibleName } from '../../types/accessible-name'
-import { ButtonIconTooltip } from '../button/button-icon-tooltip'
+import { IconButton } from '../icon-button'
 import { TooltipGroup } from '../tooltip'
 import { ToolbarContext, type ToolbarContextValue } from './context'
 import { TOOLBAR_ITEM_SELECTOR } from './toolbar-constants'
@@ -266,12 +266,12 @@ export function Toolbar({
 			>
 				<TooltipGroup>
 					{more && view.paged > 0 && (
-						<ButtonIconTooltip
+						<IconButton
 							data-slot="toolbar-back"
-							variant="bare"
-							label={intl.formatMessage(toolbarMessages.back)}
+							lockable={false}
+							tooltip
+							aria-label={intl.formatMessage(toolbarMessages.back)}
 							icon={<Glyph icon={ChevronLeft} className="rtl:-scale-x-100" />}
-							disabled={false}
 							onClick={(event) => showBack(event.currentTarget)}
 						/>
 					)}
@@ -281,11 +281,11 @@ export function Toolbar({
 						// the row, so the server markup and a toolbar that fits have no
 						// More in the arrow order or the tree.
 						<span data-slot="toolbar-more" inert className={styles.more}>
-							<ButtonIconTooltip
-								variant="bare"
-								label={intl.formatMessage(toolbarMessages.more)}
+							<IconButton
+								lockable={false}
+								tooltip
+								aria-label={intl.formatMessage(toolbarMessages.more)}
 								icon={<Glyph icon={ChevronRight} className="rtl:-scale-x-100" />}
-								disabled={false}
 								onClick={showMore}
 							/>
 						</span>
