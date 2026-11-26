@@ -11,6 +11,12 @@ export const appMessages = defineMessages({
 		defaultMessage: 'UI Docs',
 		description: 'The name of the documentation site. It shows at the top of the sidebar.',
 	},
+	pages: {
+		id: 'docs.app.pages',
+		defaultMessage: 'Pages',
+		description:
+			'The name of the navigation in the sidebar, for a screen reader. It lists the pages of the docs.',
+	},
 })
 
 // The name of each section of the pages, by the folder of the section in
