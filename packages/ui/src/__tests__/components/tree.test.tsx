@@ -224,7 +224,7 @@ describe('Tree', () => {
 
 		expect(el).toBeInTheDocument()
 
-		expect(el).toHaveAttribute('role', 'tree')
+		expect(el).toHaveRole('tree')
 
 		expect(screen.getByRole('tree')).toHaveAccessibleName('Files')
 	})
@@ -281,11 +281,11 @@ describe('TreeItem', () => {
 
 		const row = bySlot(container, 'tree-item-content')
 
-		expect(row).toHaveAttribute('aria-expanded', 'false')
+		expect(row).toBeCollapsed()
 
 		fireEvent.click(screen.getByText('pre'))
 
-		expect(row).toHaveAttribute('aria-expanded', 'true')
+		expect(row).toBeExpanded()
 	})
 
 	it('toggles when clicking the label', () => {
@@ -301,7 +301,7 @@ describe('TreeItem', () => {
 
 		fireEvent.click(screen.getByText('Parent'))
 
-		expect(row).toHaveAttribute('aria-expanded', 'true')
+		expect(row).toBeExpanded()
 	})
 
 	// A Fragment adds no level, so its contents decide leaf or branch.
@@ -410,7 +410,7 @@ describe('TreeItem', () => {
 		// A closed branch: ArrowRight opens it, and focus stays.
 		key('ArrowRight')
 
-		expect(row('lib')).toHaveAttribute('aria-expanded', 'true')
+		expect(row('lib')).toBeExpanded()
 
 		expect(row('lib')).toHaveFocus()
 
@@ -426,7 +426,7 @@ describe('TreeItem', () => {
 		// An open branch: ArrowLeft closes it, and focus stays.
 		key('ArrowLeft')
 
-		expect(row('lib')).toHaveAttribute('aria-expanded', 'false')
+		expect(row('lib')).toBeCollapsed()
 
 		expect(row('lib')).toHaveFocus()
 
@@ -440,7 +440,7 @@ describe('TreeItem', () => {
 
 		key('ArrowLeft')
 
-		expect(row('src')).toHaveAttribute('aria-expanded', 'false')
+		expect(row('src')).toBeCollapsed()
 
 		expect(row('src')).toHaveFocus()
 	})
@@ -473,9 +473,9 @@ describe('TreeItem', () => {
 
 		expect(row(from)).toHaveFocus()
 
-		expect(row('src')).toHaveAttribute('aria-expanded', 'true')
+		expect(row('src')).toBeExpanded()
 
-		expect(row('lib')).toHaveAttribute('aria-expanded', 'false')
+		expect(row('lib')).toBeCollapsed()
 	})
 
 	describe('type-ahead', () => {
@@ -577,7 +577,7 @@ describe('TreeItem', () => {
 
 		fireEvent.keyDown(label, { key: 'Enter' })
 
-		expect(row).toHaveAttribute('aria-expanded', 'false')
+		expect(row).toBeCollapsed()
 	})
 
 	it('moves the roving tabIndex onto the focused tree-item', () => {
@@ -710,7 +710,7 @@ describe('TreeItem', () => {
 
 		const row = getSlot(container, 'tree-item-content')
 
-		expect(row).toHaveAttribute('aria-expanded', 'true')
+		expect(row).toBeExpanded()
 	})
 
 	it('fires onOpenChange when controlled, without changing the row state', () => {
@@ -731,7 +731,7 @@ describe('TreeItem', () => {
 		expect(onOpenChange).toHaveBeenCalledWith(true)
 
 		// Controlled: open stays false until the parent flips the prop.
-		expect(row).toHaveAttribute('aria-expanded', 'false')
+		expect(row).toBeCollapsed()
 	})
 })
 
@@ -751,7 +751,7 @@ describe('TreeItem group ownership', () => {
 
 		const group = ariaTarget(row, 'aria-owns')
 
-		expect(group).toHaveAttribute('role', 'group')
+		expect(group).toHaveRole('group')
 
 		expect(group).toBe(getSlot(container, 'tree-group'))
 
@@ -774,7 +774,7 @@ describe('TreeItem group ownership', () => {
 
 		fireEvent.click(row)
 
-		expect(ariaTarget(row, 'aria-owns')).toHaveAttribute('role', 'group')
+		expect(ariaTarget(row, 'aria-owns')).toHaveRole('group')
 
 		expect(screen.getByRole('treeitem', { name: 'README' })).not.toHaveAttribute('aria-owns')
 	})
@@ -904,19 +904,19 @@ describe('TreeItem checked', () => {
 
 		fireEvent.keyDown(row(container), { key: ' ' })
 
-		expect(row(container)).toHaveAttribute('aria-checked', 'true')
+		expect(row(container)).toBeChecked()
 
 		fireEvent.click(getSlot(container, 'tree-item-check'))
 
-		expect(row(container)).toHaveAttribute('aria-checked', 'false')
+		expect(row(container)).toBeUnchecked()
 
 		fireEvent.click(screen.getByText('a.ts'))
 
-		expect(row(container)).toHaveAttribute('aria-checked', 'true')
+		expect(row(container)).toBeChecked()
 
 		fireEvent.keyDown(row(container), { key: 'Enter' })
 
-		expect(row(container)).toHaveAttribute('aria-checked', 'false')
+		expect(row(container)).toBeUnchecked()
 
 		expect(onCheckedChange.mock.calls).toEqual([[true], [false], [true], [false]])
 	})
@@ -951,15 +951,15 @@ describe('TreeItem checked', () => {
 
 		fireEvent.keyDown(row(container), { key: 'Enter' })
 
-		expect(row(container)).toHaveAttribute('aria-expanded', 'true')
+		expect(row(container)).toBeExpanded()
 
-		expect(row(container)).toHaveAttribute('aria-checked', 'false')
+		expect(row(container)).toBeUnchecked()
 
 		fireEvent.keyDown(row(container), { key: ' ' })
 
-		expect(row(container)).toHaveAttribute('aria-expanded', 'true')
+		expect(row(container)).toBeExpanded()
 
-		expect(row(container)).toHaveAttribute('aria-checked', 'true')
+		expect(row(container)).toBeChecked()
 	})
 
 	it('has no axe violations', async () => {

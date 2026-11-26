@@ -29,7 +29,7 @@ describe('Swatch', () => {
 
 		const el = bySlot(container, 'swatch')
 
-		expect(el).toHaveAttribute('role', 'img')
+		expect(el).toHaveRole('img')
 
 		expect(el).toHaveAccessibleName('Revenue')
 	})

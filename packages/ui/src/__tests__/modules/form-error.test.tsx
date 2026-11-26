@@ -61,7 +61,7 @@ describe('FormError', () => {
 
 		expect(alert).toHaveTextContent('Invalid credentials')
 
-		expect(alert).toHaveAttribute('role', 'alert')
+		expect(alert).toHaveRole('alert')
 
 		// An issue of the whole form is no success.
 		expect(onSettled).not.toHaveBeenCalled()

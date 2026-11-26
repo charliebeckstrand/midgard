@@ -48,10 +48,7 @@ describe('accordion item renders', () => {
 
 		expect(click('section-3')).toBe(1)
 
-		expect(screen.getByRole('button', { name: 'section-3' })).toHaveAttribute(
-			'aria-expanded',
-			'true',
-		)
+		expect(screen.getByRole('button', { name: 'section-3' })).toBeExpanded()
 
 		// Single mode: one item closes and another opens.
 		expect(click('section-7')).toBe(2)

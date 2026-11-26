@@ -292,7 +292,7 @@ describe('DatePicker', () => {
 
 		await user.click(trigger)
 
-		expect(ariaTarget(trigger, 'aria-controls')).toHaveAttribute('role', 'dialog')
+		expect(ariaTarget(trigger, 'aria-controls')).toHaveRole('dialog')
 	})
 
 	it('passes axe with read-only and required state', async () => {
@@ -313,11 +313,11 @@ describe('DatePicker', () => {
 
 		expect(bySlot(container, 'datepicker-content')).toBeInTheDocument()
 
-		expect(button).toHaveAttribute('aria-expanded', 'true')
+		expect(button).toBeExpanded()
 
 		await user.click(button)
 
-		expect(button).toHaveAttribute('aria-expanded', 'false')
+		expect(button).toBeCollapsed()
 	})
 
 	it('selects a date and calls onValueChange', async () => {
@@ -393,7 +393,7 @@ describe('DatePicker', () => {
 
 		await user.keyboard('{Escape}')
 
-		expect(button).toHaveAttribute('aria-expanded', 'false')
+		expect(button).toBeCollapsed()
 
 		expect(button).toHaveFocus()
 	})
@@ -407,7 +407,7 @@ describe('DatePicker', () => {
 
 		await user.click(day)
 
-		expect(button).toHaveAttribute('aria-expanded', 'false')
+		expect(button).toBeCollapsed()
 
 		expect(button).toHaveFocus()
 	})
@@ -586,7 +586,7 @@ describe('DatePicker open state', () => {
 
 		await user.click(screen.getByRole('option', { name: /\b12\b/ }))
 
-		expect(button).toHaveAttribute('aria-expanded', 'false')
+		expect(button).toBeCollapsed()
 	})
 
 	it('readOnly blocks opening but keeps the trigger focusable', async () => {
@@ -727,7 +727,7 @@ describe('DatePicker keyboard', () => {
 
 			expect(bySlot(container, 'datepicker-content')).toBeInTheDocument()
 
-			expect(button).toHaveAttribute('aria-expanded', 'true')
+			expect(button).toBeExpanded()
 		},
 	)
 
@@ -767,7 +767,7 @@ describe('DatePicker keyboard', () => {
 
 		expect(findDay(20)).toHaveFocus()
 
-		expect(button).toHaveAttribute('aria-expanded', 'true')
+		expect(button).toBeExpanded()
 	})
 
 	it('focuses the first enabled day when today is outside min and max', async ({ clock }) => {
@@ -883,7 +883,7 @@ describe('DatePicker keyboard', () => {
 
 		expect(onChange).toHaveBeenCalledExactlyOnceWith(new Date(2025, 5, 22))
 
-		expect(button).toHaveAttribute('aria-expanded', 'false')
+		expect(button).toBeCollapsed()
 
 		expect(button).toHaveFocus()
 	})
@@ -893,7 +893,7 @@ describe('DatePicker keyboard', () => {
 
 		await user.keyboard('{ArrowRight}{Escape}')
 
-		expect(button).toHaveAttribute('aria-expanded', 'false')
+		expect(button).toBeCollapsed()
 
 		expect(button).toHaveFocus()
 	})
@@ -1002,7 +1002,7 @@ describe('DatePicker input', () => {
 
 		expect(container.querySelector('[data-slot=suffix]')).toContainElement(calendar)
 
-		expect(calendar).toHaveAttribute('aria-expanded', 'false')
+		expect(calendar).toBeCollapsed()
 	})
 
 	it('renders the value through the format', () => {
@@ -1042,7 +1042,7 @@ describe('DatePicker input', () => {
 
 		expect(bySlot(container, 'datepicker-content')).toBeInTheDocument()
 
-		expect(calendar).toHaveAttribute('aria-expanded', 'true')
+		expect(calendar).toBeExpanded()
 	})
 
 	// B01-C03: a blur from the calendar button would refuse a partial entry.
@@ -1588,7 +1588,7 @@ describe('DatePicker input', () => {
 		await user.keyboard('{ArrowDown}') // open
 
 		// Open: aria-controls names the day listbox the cursor moves through.
-		expect(ariaTarget(input, 'aria-controls')).toHaveAttribute('role', 'listbox')
+		expect(ariaTarget(input, 'aria-controls')).toHaveRole('listbox')
 
 		await user.keyboard('{ArrowDown}') // materialize the highlight on the 15th
 

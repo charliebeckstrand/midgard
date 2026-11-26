@@ -425,7 +425,7 @@ describe('Grid column-group editor', () => {
 
 		expect(checkbox).toBeDisabled()
 
-		expect(screen.getByRole('checkbox', { name: 'Show Last' })).not.toBeChecked()
+		expect(screen.getByRole('checkbox', { name: 'Show Last' })).toBeUnchecked()
 
 		const heads = Array.from(container.querySelectorAll('thead th')).map((th) => th.textContent)
 

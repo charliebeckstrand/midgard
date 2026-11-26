@@ -65,7 +65,7 @@ const openAndFill = vi.defineHelper(async (cell: HTMLElement, text: string) => {
 
 	const slot = getSlot(cell)
 
-	await waitFor(() => expect(slot.hasAttribute('data-grown')).toBe(true))
+	await waitFor(() => expect(slot).toHaveAttribute('data-grown'))
 
 	return { input, slot }
 })
@@ -113,7 +113,7 @@ describe('grid editor grow (real floating engine)', () => {
 		)
 
 		// The value fits, so the editor stays in the cell.
-		expect(getSlot(cell).hasAttribute('data-grown')).toBe(false)
+		expect(getSlot(cell)).not.toHaveAttribute('data-grown')
 
 		const textStart = input.getBoundingClientRect().left
 
@@ -174,7 +174,7 @@ describe('grid editor grow (real floating engine)', () => {
 
 		// The value fits, so the editor does not grow, and the settle pair stays
 		// where it is as focus leaves.
-		expect(slot.hasAttribute('data-grown')).toBe(false)
+		expect(slot).not.toHaveAttribute('data-grown')
 
 		expect(input.scrollWidth).toBeLessThanOrEqual(input.clientWidth)
 
@@ -187,7 +187,7 @@ describe('grid editor grow (real floating engine)', () => {
 
 		await userEvent.keyboard('{End}x')
 
-		await waitFor(() => expect(slot.hasAttribute('data-grown')).toBe(true))
+		await waitFor(() => expect(slot).toHaveAttribute('data-grown'))
 
 		expect(input.scrollWidth).toBeLessThanOrEqual(input.clientWidth)
 	})
@@ -221,11 +221,11 @@ describe('grid editor grow (real floating engine)', () => {
 
 		const slot = getSlot(email)
 
-		await waitFor(() => expect(slot.hasAttribute('data-grown')).toBe(true))
+		await waitFor(() => expect(slot).toHaveAttribute('data-grown'))
 
 		await userEvent.click(present(gridCell(container, 'name').querySelector('input'), 'name'))
 
-		await waitFor(() => expect(slot.hasAttribute('data-grown')).toBe(false))
+		await waitFor(() => expect(slot).not.toHaveAttribute('data-grown'))
 
 		expect(slot.style.width).toBe('')
 
@@ -247,7 +247,7 @@ describe('grid editor grow (real floating engine)', () => {
 
 		const slot = getSlot(email)
 
-		await waitFor(() => expect(slot.hasAttribute('data-grown')).toBe(true))
+		await waitFor(() => expect(slot).toHaveAttribute('data-grown'))
 
 		await userEvent.keyboard('{Escape}')
 
@@ -255,7 +255,7 @@ describe('grid editor grow (real floating engine)', () => {
 
 		expect(document.activeElement).toBe(input)
 
-		await waitFor(() => expect(slot.hasAttribute('data-grown')).toBe(false))
+		await waitFor(() => expect(slot).not.toHaveAttribute('data-grown'))
 	})
 
 	it('moves toward the start at the end edge of the scroll area', async () => {

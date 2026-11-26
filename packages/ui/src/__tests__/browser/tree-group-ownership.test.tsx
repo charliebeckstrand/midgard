@@ -22,9 +22,7 @@ describe('tree group ownership (real browser)', () => {
 			</Tree>,
 		)
 
-		await expect
-			.element(page.getByRole('treeitem', { name: 'src', exact: true }))
-			.toHaveAttribute('aria-expanded', 'true')
+		await expect.element(page.getByRole('treeitem', { name: 'src', exact: true })).toBeExpanded()
 
 		await expect.element(page.getByRole('treeitem', { name: 'a.ts', exact: true })).toBeVisible()
 	})

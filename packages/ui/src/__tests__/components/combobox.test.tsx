@@ -56,7 +56,7 @@ describe('Combobox', () => {
 
 		expect(input).toBeInTheDocument()
 
-		expect(input).toHaveAttribute('role', 'combobox')
+		expect(input).toHaveRole('combobox')
 	})
 
 	it('renders placeholder text', () => {
@@ -322,7 +322,7 @@ describe('Combobox', () => {
 		// stops the press there, so the menu stays shut.
 		fireEvent.mouseDown(clear)
 
-		expect(getSlot(container, 'combobox-input')).toHaveAttribute('aria-expanded', 'false')
+		expect(getSlot(container, 'combobox-input')).toBeCollapsed()
 
 		fireEvent.click(clear)
 
@@ -370,7 +370,7 @@ describe('Combobox', () => {
 
 		expect(document.activeElement).not.toBe(input)
 
-		expect(input).toHaveAttribute('aria-expanded', 'false')
+		expect(input).toBeCollapsed()
 
 		expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
 	})
@@ -463,7 +463,7 @@ describe('Combobox active-descendant keyboard model', () => {
 
 		const active = activeId ? document.getElementById(activeId) : null
 
-		expect(active).toHaveAttribute('role', 'option')
+		expect(active).toHaveRole('option')
 
 		expect(active).toHaveAttribute('data-active')
 	})
@@ -509,7 +509,7 @@ describe('Combobox active-descendant keyboard model', () => {
 
 			const active = document.getElementById(activeId as string)
 
-			expect(active).toHaveAttribute('role', 'option')
+			expect(active).toHaveRole('option')
 
 			expect(active).toHaveAttribute('data-active')
 		})

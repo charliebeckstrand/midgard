@@ -157,7 +157,7 @@ describe('ChatAction', () => {
 
 		await user.click(screen.getByRole('radio', { name: 'Atlas Haulage' }))
 
-		expect(screen.getByRole('radio', { name: 'Atlas Haulage' })).not.toBeChecked()
+		expect(screen.getByRole('radio', { name: 'Atlas Haulage' })).toBeUnchecked()
 	})
 })
 

@@ -32,7 +32,7 @@ describe('Icon', () => {
 
 		const el = bySlot(container, 'icon')
 
-		expect(el).toHaveAttribute('role', 'img')
+		expect(el).toHaveRole('img')
 
 		expect(el).toHaveAttribute('aria-label', 'Search')
 
@@ -44,7 +44,7 @@ describe('Icon', () => {
 
 		const el = bySlot(container, 'icon')
 
-		expect(el).toHaveAttribute('role', 'img')
+		expect(el).toHaveRole('img')
 
 		expect(el).not.toHaveAttribute('aria-hidden')
 	})

@@ -149,7 +149,7 @@ describe('SignaturePad', () => {
 
 		// role="img" on canvas: a bare <canvas> has no implicit role, so aria-label
 		// requires an explicit role to be honored by assistive tech.
-		expect(canvas).toHaveAttribute('role', 'img')
+		expect(canvas).toHaveRole('img')
 
 		expect(canvas).toHaveAttribute('aria-label', 'Customer signature, empty')
 	})

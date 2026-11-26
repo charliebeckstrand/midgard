@@ -39,7 +39,7 @@ describe('accordion width (real browser)', () => {
 
 		await userEvent.click(header)
 
-		expect(header).toHaveAttribute('aria-expanded', 'true')
+		expect(header).toBeExpanded()
 
 		expect(root.getBoundingClientRect().width).toBeNear(closed, HALF_PIXEL)
 	})

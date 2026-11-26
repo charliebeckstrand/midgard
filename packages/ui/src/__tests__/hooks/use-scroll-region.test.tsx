@@ -65,7 +65,7 @@ describe('useScrollRegion', () => {
 
 		expect(node.getAttribute('tabindex')).toBe('-1')
 
-		expect(node.hasAttribute('role')).toBe(false)
+		expect(node).not.toHaveAttribute('role')
 	})
 
 	it('prefers labelledBy over label', () => {
@@ -77,7 +77,7 @@ describe('useScrollRegion', () => {
 
 		expect(node.getAttribute('aria-labelledby')).toBe('title')
 
-		expect(node.hasAttribute('aria-label')).toBe(false)
+		expect(node).not.toHaveAttribute('aria-label')
 	})
 
 	it('removes its attributes on detach', () => {
@@ -93,10 +93,10 @@ describe('useScrollRegion', () => {
 
 		if (typeof cleanup === 'function') cleanup()
 
-		expect(node.hasAttribute('tabindex')).toBe(false)
+		expect(node).not.toHaveAttribute('tabindex')
 
-		expect(node.hasAttribute('role')).toBe(false)
+		expect(node).not.toHaveAttribute('role')
 
-		expect(node.hasAttribute('aria-label')).toBe(false)
+		expect(node).not.toHaveAttribute('aria-label')
 	})
 })

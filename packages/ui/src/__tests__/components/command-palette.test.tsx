@@ -84,7 +84,7 @@ describe('CommandPalette', () => {
 
 		expect(list).toBeInTheDocument()
 
-		expect(list).toHaveAttribute('role', 'listbox')
+		expect(list).toHaveRole('listbox')
 
 		// The X close sits on the line of the search field, and no footer row shows.
 		expect(bySlot(document.body, 'command-palette-search')).toContainElement(
@@ -404,13 +404,13 @@ describe('CommandPalette results that change under an unchanged query', () => {
 
 		const input = screen.getByRole('combobox')
 
-		await waitFor(() => expect(input).toHaveAttribute('aria-expanded', 'false'))
+		await waitFor(() => expect(input).toBeCollapsed())
 
 		rerender(<FilteredPalette labels={['Alpha']} />)
 
 		// The emptiness probe reads the same mutation, so this waits for the
 		// observer of the listbox.
-		await waitFor(() => expect(input).toHaveAttribute('aria-expanded', 'true'))
+		await waitFor(() => expect(input).toBeExpanded())
 
 		expect(input).not.toHaveAttribute('aria-activedescendant')
 
@@ -705,17 +705,17 @@ describe('CommandPalette no results', () => {
 
 		const input = screen.getByRole('combobox')
 
-		expect(input).toHaveAttribute('aria-expanded', 'true')
+		expect(input).toBeExpanded()
 
 		const user = setupUser()
 
 		await user.type(input, 'zzz')
 
-		await waitFor(() => expect(input).toHaveAttribute('aria-expanded', 'false'))
+		await waitFor(() => expect(input).toBeCollapsed())
 
 		await user.clear(input)
 
-		await waitFor(() => expect(input).toHaveAttribute('aria-expanded', 'true'))
+		await waitFor(() => expect(input).toBeExpanded())
 	})
 
 	// A close detaches the listbox and resets the query. The next open must show
@@ -744,7 +744,7 @@ describe('CommandPalette no results', () => {
 		// No wait: the layout effect measures the listbox before the paint.
 		expect(getSlot(document.body, 'command-palette-no-results').textContent).toBe('')
 
-		expect(screen.getByRole('combobox')).toHaveAttribute('aria-expanded', 'true')
+		expect(screen.getByRole('combobox')).toBeExpanded()
 	})
 
 	it('reads emptiness from a virtual list, not from its rendered rows', async () => {
@@ -761,7 +761,7 @@ describe('CommandPalette no results', () => {
 		// No row is rendered, but the list holds items outside its window.
 		expect(screen.queryAllByRole('option')).toHaveLength(0)
 
-		expect(input).toHaveAttribute('aria-expanded', 'true')
+		expect(input).toBeExpanded()
 
 		expect(status.textContent).toBe('')
 
@@ -773,7 +773,7 @@ describe('CommandPalette no results', () => {
 			</CommandPalette>,
 		)
 
-		await waitFor(() => expect(input).toHaveAttribute('aria-expanded', 'false'))
+		await waitFor(() => expect(input).toBeCollapsed())
 
 		expect(status).toHaveTextContent('No results')
 	})
@@ -791,7 +791,7 @@ describe('CommandPalette no results', () => {
 
 		const status = getSlot(document.body, 'command-palette-no-results')
 
-		expect(input).toHaveAttribute('aria-expanded', 'false')
+		expect(input).toBeCollapsed()
 
 		expect(status.textContent).toBe('')
 
@@ -826,7 +826,7 @@ describe('CommandPaletteGroup', () => {
 
 		const group = bySlot(container, 'command-palette-group')
 
-		expect(group).toHaveAttribute('role', 'group')
+		expect(group).toHaveRole('group')
 
 		expect(group).toBeLabelledBy(title)
 	})
@@ -850,7 +850,7 @@ describe('CommandPaletteGroup', () => {
 			</CommandPaletteGroup>,
 		)
 
-		expect(bySlot(container, 'command-palette-group')).toHaveAttribute('role', 'group')
+		expect(bySlot(container, 'command-palette-group')).toHaveRole('group')
 	})
 
 	it('applies a custom className to the group', () => {
@@ -876,7 +876,7 @@ describe('CommandPaletteItem', () => {
 
 		expect(item?.tagName).toBe('BUTTON')
 
-		expect(item).toHaveAttribute('role', 'option')
+		expect(item).toHaveRole('option')
 	})
 
 	it('keeps type="button" when a consumer passes another type', () => {
@@ -1050,7 +1050,7 @@ describe('CommandPaletteItem', () => {
 
 		expect(item).not.toHaveAttribute('href')
 
-		expect(item).toHaveAttribute('role', 'option')
+		expect(item).toHaveRole('option')
 
 		expect(item).toHaveAttribute('aria-disabled', 'true')
 

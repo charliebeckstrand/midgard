@@ -178,7 +178,7 @@ describe('RangeSlider', () => {
 
 		const root = container.querySelector('[data-slot="slider-range"]')
 
-		expect(root).toHaveAttribute('role', 'group')
+		expect(root).toHaveRole('group')
 
 		expect(root).toHaveAccessibleName('Price')
 

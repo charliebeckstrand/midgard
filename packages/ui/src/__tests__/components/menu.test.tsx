@@ -135,7 +135,7 @@ describe('MenuTrigger', () => {
 
 		expect(trigger).toHaveAttribute('aria-haspopup', 'menu')
 
-		expect(trigger).toHaveAttribute('aria-expanded', 'false')
+		expect(trigger).toBeCollapsed()
 	})
 
 	it('keeps its type and menu wiring when a consumer supplies competing props', () => {
@@ -156,7 +156,7 @@ describe('MenuTrigger', () => {
 
 		expect(trigger).toHaveAttribute('aria-haspopup', 'menu')
 
-		expect(trigger).toHaveAttribute('aria-expanded', 'false')
+		expect(trigger).toBeCollapsed()
 	})
 
 	it('forwards its own props to a cloned child', () => {
@@ -185,7 +185,7 @@ describe('MenuTrigger', () => {
 
 		expect(triggerOnClick).toHaveBeenCalledTimes(1)
 
-		expect(trigger).toHaveAttribute('aria-expanded', 'true')
+		expect(trigger).toBeExpanded()
 	})
 
 	it('keeps the anchor of a component child', () => {
@@ -258,13 +258,13 @@ describe('MenuTrigger', () => {
 
 		const trigger = screen.getByRole('button', { name: 'Open' })
 
-		expect(trigger).toHaveAttribute('aria-expanded', 'false')
+		expect(trigger).toBeCollapsed()
 
 		fireEvent.click(trigger)
 
 		expect(onClick).toHaveBeenCalled()
 
-		expect(trigger).toHaveAttribute('aria-expanded', 'true')
+		expect(trigger).toBeExpanded()
 	})
 
 	// ArrowDown opens a closed menu, as Enter and Space do. The browser suite
@@ -277,7 +277,7 @@ describe('MenuTrigger', () => {
 
 		expect(fireEvent.keyDown(trigger, { key: 'ArrowDown' })).toBe(false)
 
-		expect(trigger).toHaveAttribute('aria-expanded', 'true')
+		expect(trigger).toBeExpanded()
 	})
 
 	it('keeps the menu closed on an ArrowDown that a consumer cancels', () => {
@@ -291,7 +291,7 @@ describe('MenuTrigger', () => {
 
 		fireEvent.keyDown(trigger, { key: 'ArrowDown' })
 
-		expect(trigger).toHaveAttribute('aria-expanded', 'false')
+		expect(trigger).toBeCollapsed()
 	})
 })
 
@@ -751,7 +751,7 @@ describe('MenuItem', () => {
 
 		expect(item?.tagName).toBe('BUTTON')
 
-		expect(item).toHaveAttribute('role', 'menuitem')
+		expect(item).toHaveRole('menuitem')
 	})
 
 	it('keeps the menu open after onAction when closeOnAction is false', () => {
@@ -1119,7 +1119,7 @@ describe('MenuSub', () => {
 
 		fireEvent.keyDown(nested, { key })
 
-		expect(row).toHaveAttribute('aria-expanded', 'false')
+		expect(row).toBeCollapsed()
 
 		expect(row).toHaveFocus()
 	})
@@ -1135,7 +1135,7 @@ describe('MenuSub', () => {
 
 		expect(fireEvent.keyDown(row, { key: ' ', repeat: true })).toBe(false)
 
-		expect(row).toHaveAttribute('aria-expanded', 'false')
+		expect(row).toBeCollapsed()
 	})
 
 	it('does not toggle a submenu of a sheet on a repeat Enter or Space on its row', async () => {
@@ -1161,12 +1161,12 @@ describe('MenuSub', () => {
 		for (const key of ['Enter', ' ']) {
 			expect(fireEvent.keyDown(row, { key, repeat: true })).toBe(false)
 
-			expect(row).toHaveAttribute('aria-expanded', 'false')
+			expect(row).toBeCollapsed()
 		}
 
 		fireEvent.keyDown(row, { key: 'Enter' })
 
-		expect(row).toHaveAttribute('aria-expanded', 'true')
+		expect(row).toBeExpanded()
 	})
 
 	// Alt+ArrowLeft and Cmd+ArrowLeft are the browser's Back. The panel lets the
@@ -1187,7 +1187,7 @@ describe('MenuSub', () => {
 
 		expect(allowed).toBe(true)
 
-		expect(row).toHaveAttribute('aria-expanded', 'true')
+		expect(row).toBeExpanded()
 	})
 
 	// Focus that leaves the parent row for anywhere in the open panel is the open
@@ -1210,7 +1210,7 @@ describe('MenuSub', () => {
 
 		fireEvent.blur(row, { relatedTarget: target(panel) })
 
-		expect(row).toHaveAttribute('aria-expanded', 'true')
+		expect(row).toBeExpanded()
 	})
 
 	// A click only opens, as in a native menu, and the cursor stays on the row.
@@ -1225,13 +1225,13 @@ describe('MenuSub', () => {
 
 		fireEvent.click(row, { detail: 1 })
 
-		expect(row).toHaveAttribute('aria-expanded', 'true')
+		expect(row).toBeExpanded()
 
 		expect(row).toHaveFocus()
 
 		fireEvent.click(row, { detail: 1 })
 
-		expect(row).toHaveAttribute('aria-expanded', 'true')
+		expect(row).toBeExpanded()
 
 		expect(row).toHaveFocus()
 	})
@@ -1243,11 +1243,11 @@ describe('MenuSub', () => {
 
 		fireEvent.pointerMove(row, { pointerType: 'mouse' })
 
-		expect(row).toHaveAttribute('aria-expanded', 'true')
+		expect(row).toBeExpanded()
 
 		fireEvent.click(row, { detail: 1 })
 
-		expect(row).toHaveAttribute('aria-expanded', 'true')
+		expect(row).toBeExpanded()
 
 		expect(row).toHaveFocus()
 	})
@@ -1359,13 +1359,13 @@ describe('Menu pointer leave', () => {
 
 		fireEvent.pointerMove(row(/More/), mouse)
 
-		expect(row(/More/)).toHaveAttribute('aria-expanded', 'true')
+		expect(row(/More/)).toBeExpanded()
 
 		fireEvent.pointerLeave(getRows(rootPanel()), mouse)
 
 		expect(row(/More/)).toHaveFocus()
 
-		expect(row(/More/)).toHaveAttribute('aria-expanded', 'true')
+		expect(row(/More/)).toBeExpanded()
 	})
 
 	// The submenu panel is a level of its own, so its leave clears its own rows
@@ -1385,7 +1385,7 @@ describe('Menu pointer leave', () => {
 
 		expect(submenu).toHaveFocus()
 
-		expect(row(/More/)).toHaveAttribute('aria-expanded', 'true')
+		expect(row(/More/)).toBeExpanded()
 
 		fireEvent.keyDown(submenu, { key: 'ArrowDown' })
 
@@ -1783,7 +1783,7 @@ describe('Menu on a phone', () => {
 
 		const row = screen.getByRole('menuitem', { name: 'Charts' })
 
-		expect(row).toHaveAttribute('aria-expanded', 'false')
+		expect(row).toBeCollapsed()
 
 		expect(row).not.toHaveAttribute('aria-haspopup')
 
@@ -1793,7 +1793,7 @@ describe('Menu on a phone', () => {
 
 		const group = screen.getByRole('group', { name: 'Charts' })
 
-		expect(row).toHaveAttribute('aria-expanded', 'true')
+		expect(row).toBeExpanded()
 
 		expect(row).toControl(group)
 
@@ -1846,13 +1846,13 @@ describe('Menu on a phone', () => {
 
 		expect(fireEvent.keyDown(row, { key: 'ArrowRight', altKey: true })).toBe(true)
 
-		expect(row).toHaveAttribute('aria-expanded', 'false')
+		expect(row).toBeCollapsed()
 
 		await user.click(row)
 
 		expect(fireEvent.keyDown(row, { key: 'ArrowLeft', altKey: true })).toBe(true)
 
-		expect(row).toHaveAttribute('aria-expanded', 'true')
+		expect(row).toBeExpanded()
 
 		const line = screen.getByRole('menuitem', { name: 'Line' })
 
@@ -1876,7 +1876,7 @@ describe('Menu controlled', () => {
 	it('reflects a controlled open prop on the trigger', () => {
 		renderUI(dropdown({ open: true }))
 
-		expect(screen.getByText('Open')).toHaveAttribute('aria-expanded', 'true')
+		expect(screen.getByText('Open')).toBeExpanded()
 	})
 
 	it('reports open requests through onOpenChange without self-opening while controlled', () => {
@@ -1892,6 +1892,6 @@ describe('Menu controlled', () => {
 		// the menu stays closed until `open` flips.
 		expect(onOpenChange).toHaveBeenCalledWith(true)
 
-		expect(trigger).toHaveAttribute('aria-expanded', 'false')
+		expect(trigger).toBeCollapsed()
 	})
 })

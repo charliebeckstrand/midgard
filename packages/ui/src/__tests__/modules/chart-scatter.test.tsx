@@ -663,7 +663,7 @@ describe('BubbleChart', () => {
 
 		expect(plot?.getAttribute('aria-label')).toBe('Dwell against distance, sized by weight')
 
-		expect(plot?.hasAttribute('data-stray')).toBe(false)
+		expect(plot).not.toHaveAttribute('data-stray')
 
 		expect(error.mock.calls.flat().join(' ')).not.toContain('texture')
 	})

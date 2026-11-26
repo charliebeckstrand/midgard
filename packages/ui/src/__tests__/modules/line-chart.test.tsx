@@ -501,9 +501,9 @@ describe('LineChart', () => {
 		// 'High' (the series it names, keyed by its own index) and leave 'Low' on.
 		fireEvent.click(high as HTMLButtonElement)
 
-		expect(high).toHaveAttribute('aria-pressed', 'false')
+		expect(high).toBeUnpressed()
 
-		expect(low).toHaveAttribute('aria-pressed', 'true')
+		expect(low).toBePressed()
 
 		expect(allBySlot(container, 'chart-line')).toHaveLength(1)
 	})

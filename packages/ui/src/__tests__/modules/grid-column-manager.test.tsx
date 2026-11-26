@@ -292,7 +292,7 @@ describe('GridColumnManager', () => {
 
 		expect(checkbox).toBeDisabled()
 
-		expect(screen.getByRole('checkbox', { name: 'Show Role' })).not.toBeChecked()
+		expect(screen.getByRole('checkbox', { name: 'Show Role' })).toBeUnchecked()
 	})
 
 	it('uses controlled order when provided', () => {

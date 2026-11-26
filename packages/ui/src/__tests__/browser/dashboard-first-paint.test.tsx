@@ -125,7 +125,7 @@ describe('dashboard first paint (real browser)', () => {
 			}
 
 			// The rules of the first paint stand down, and the inline cells of the store hold.
-			expect(getSlot(container, 'dashboard-canvas').hasAttribute('data-measured')).toBe(true)
+			expect(getSlot(container, 'dashboard-canvas')).toHaveAttribute('data-measured')
 		},
 	)
 })

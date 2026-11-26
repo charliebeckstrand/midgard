@@ -37,7 +37,7 @@ describe('PdfViewer load status', () => {
 
 		const region = status(container)
 
-		expect(region).toHaveAttribute('role', 'status')
+		expect(region).toHaveRole('status')
 
 		expect(region).toHaveTextContent('Loading PDF')
 

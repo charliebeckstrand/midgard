@@ -167,7 +167,7 @@ describe('Field', () => {
 
 		expect(message).toHaveAttribute('data-severity', 'error')
 
-		expect(message).toHaveAttribute('role', 'alert')
+		expect(message).toHaveRole('alert')
 
 		expect(message?.textContent).toBe('Enter a valid email')
 
@@ -191,7 +191,7 @@ describe('Field', () => {
 
 		expect(message).toHaveAttribute('data-severity', 'warning')
 
-		expect(message).toHaveAttribute('role', 'status')
+		expect(message).toHaveRole('status')
 
 		const input = bySlot(container, 'input')
 
@@ -215,7 +215,7 @@ describe('Field', () => {
 
 		expect(message).toHaveAttribute('data-severity', 'success')
 
-		expect(message).toHaveAttribute('role', 'status')
+		expect(message).toHaveRole('status')
 
 		const input = bySlot(container, 'input')
 
@@ -238,7 +238,7 @@ describe('Field', () => {
 
 			expect(message).toHaveAttribute('data-severity', severity)
 
-			expect(message).toHaveAttribute('role', 'status')
+			expect(message).toHaveRole('status')
 		},
 	)
 
@@ -376,7 +376,7 @@ describe('Message', () => {
 
 		expect(el).toHaveAttribute('data-severity', 'warning')
 
-		expect(el).toHaveAttribute('role', 'status')
+		expect(el).toHaveRole('status')
 
 		expect(screen.getByText('Heads up')).toBeInTheDocument()
 	})
@@ -587,7 +587,7 @@ describe('Message', () => {
 		const { container } = renderUI(<Message role="note">Required</Message>)
 
 		// §3.9: `role` is load-bearing, so the assertive live region survives.
-		expect(bySlot(container, 'message')).toHaveAttribute('role', 'alert')
+		expect(bySlot(container, 'message')).toHaveRole('alert')
 	})
 
 	it('renders verbatim children for the success variant inside a form', () => {

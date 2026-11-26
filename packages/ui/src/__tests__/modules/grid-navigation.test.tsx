@@ -640,7 +640,7 @@ describe('Grid cursor edges', () => {
 
 		fireEvent.keyDown(grid, { key: 'Enter' })
 
-		expect(screen.getByRole('checkbox', { name: 'Select row 1' })).not.toBeChecked()
+		expect(screen.getByRole('checkbox', { name: 'Select row 1' })).toBeUnchecked()
 
 		expect(onRowClick).not.toHaveBeenCalled()
 

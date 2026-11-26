@@ -183,9 +183,9 @@ describe('Wysiwyg link dialog (real Motion)', () => {
 
 		expect(screen.getAllByRole('dialog', { name: 'Link' })).toHaveLength(1)
 
-		expect(first).toHaveAttribute('aria-expanded', 'true')
+		expect(first).toBeExpanded()
 
-		expect(second).toHaveAttribute('aria-expanded', 'false')
+		expect(second).toBeCollapsed()
 
 		await userEvent.keyboard('{Escape}')
 
@@ -199,8 +199,8 @@ describe('Wysiwyg link dialog (real Motion)', () => {
 
 		expect(screen.getAllByRole('dialog', { name: 'Link' })).toHaveLength(1)
 
-		expect(second).toHaveAttribute('aria-expanded', 'true')
+		expect(second).toBeExpanded()
 
-		expect(first).toHaveAttribute('aria-expanded', 'false')
+		expect(first).toBeCollapsed()
 	})
 })

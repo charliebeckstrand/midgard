@@ -707,21 +707,21 @@ describe('start', () => {
 
 		const store = start()
 
-		expect(root.hasAttribute('data-events-reports')).toBe(false)
+		expect(root).not.toHaveAttribute('data-events-reports')
 
 		reportBug(new Error('boom'))
 
-		expect(root.hasAttribute('data-events-reports')).toBe(true)
+		expect(root).toHaveAttribute('data-events-reports')
 
 		store.startCapture()
 
-		expect(root.hasAttribute('data-events-capture')).toBe(true)
+		expect(root).toHaveAttribute('data-events-capture')
 
 		halt()
 
-		expect(root.hasAttribute('data-events-reports')).toBe(false)
+		expect(root).not.toHaveAttribute('data-events-reports')
 
-		expect(root.hasAttribute('data-events-capture')).toBe(false)
+		expect(root).not.toHaveAttribute('data-events-capture')
 
 		expect(getEventSink()).toBeUndefined()
 	})
