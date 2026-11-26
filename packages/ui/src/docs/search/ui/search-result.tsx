@@ -24,7 +24,7 @@ import type { SearchKind } from '../types.ts'
 import { findSection } from './localize.ts'
 
 // One row of the results of the search: a tinted icon of the kind of the
-// entry, its label, and the section of the entry below it.
+// entry, its label, and one short line below it.
 
 // The kind of each entry. A screen reader reads it before the section, because
 // the icon has no text.
@@ -118,11 +118,14 @@ export function ResultLabel({ option }: { option: Matchable }) {
 }
 
 /**
- * The section of an entry, the line below its label. A screen reader reads
- * the kind of the entry before it, because the icon has no text.
+ * The line below the label: "API reference" for the API reference of a
+ * component, and the section for each other entry. A screen reader reads the
+ * kind of a page or a tab before its section, because the icon has no text.
  */
 export function ResultSubtitle({ option }: { option: Matchable }) {
 	const intl = useIntl()
+
+	if (option.kind === 'component') return intl.formatMessage(KIND_LABELS.component)
 
 	return (
 		<>

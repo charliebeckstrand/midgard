@@ -35,7 +35,7 @@ describe('a row of the results', () => {
 		expect(screen.getByTestId('subtitle').textContent).toBe('Tab, Modules')
 	})
 
-	it('shows the section below the API reference of a component', () => {
+	it('shows "API reference" below the API reference of a component', () => {
 		render(
 			<Row
 				entry={{
@@ -48,6 +48,6 @@ describe('a row of the results', () => {
 		)
 
 		expect(screen.getByTestId('label').textContent).toBe('<Field />')
-		expect(screen.getByTestId('subtitle').textContent).toBe('API reference, Components')
+		expect(screen.getByTestId('subtitle').textContent).toBe('API reference')
 	})
 })
