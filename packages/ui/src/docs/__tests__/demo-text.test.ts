@@ -202,6 +202,18 @@ describe('findDemoText', () => {
 		expect(texts(code)).toEqual(['Use another password.', 'Fine'])
 	})
 
+	it('leaves the descriptors of a call of defineMessages, which the catalog reads by id', () => {
+		const code = `
+			const messages = defineMessages({
+				empty: { id: 'docs.demo.empty', defaultMessage: 'No rows', description: 'The text of an empty list.' },
+			})
+			const one = defineMessage({ id: 'docs.demo.one', defaultMessage: 'One', description: 'A count of one.' })
+			const options = [{ value: 'a', label: 'First option' }]
+		`
+
+		expect(texts(code)).toEqual(['First option'])
+	})
+
 	it('fails on a character reference in JSX text', () => {
 		expect(() => texts('export default () => <p>Fish &amp; chips</p>')).toThrow(
 			/character reference/,

@@ -57,8 +57,16 @@ export const DOCS_LANG_DIR = join(DOCS_DIR, 'lang')
 /** The source catalog of the docs app, in English. */
 export const DOCS_SOURCE_CATALOG = join(DOCS_LANG_DIR, 'en.json')
 
-/** The source of the catalog of the docs app. The tests hold no message of the docs. */
-export const DOCS_CATALOG_SOURCE: CatalogSource = { srcDir: DOCS_DIR, skipped: ['__tests__'] }
+/**
+ * The source of the catalog of the docs app. The tests hold no message of the
+ * docs. A demo in `pages/` that defines messages is an app of its own: it
+ * gives their translations in a `lang` folder beside it, so they are not
+ * messages of the docs.
+ */
+export const DOCS_CATALOG_SOURCE: CatalogSource = {
+	srcDir: DOCS_DIR,
+	skipped: ['__tests__', 'pages'],
+}
 
 /**
  * The catalog of the docs app: the message descriptors of its source, the
