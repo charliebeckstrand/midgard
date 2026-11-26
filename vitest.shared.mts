@@ -6,11 +6,12 @@
  * spreads `sharedTest` into its `test` field, and adds only what differs. The
  * configs of ui (`packages/ui/vitest.base.ts`) take the parts one by one,
  * because each of its projects sets its own `include` and environment. The
- * file imports only a module of Node, because the root workspace does not
+ * file imports only the modules of Node, because the root workspace does not
  * install Vitest.
  */
 
 import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 
 /** Whether the run is on CI, where the budgets scale up. */
 export const CI = Boolean(process.env.CI)
@@ -92,7 +93,7 @@ process.env.TZ = 'UTC'
  * the run. It writes one warning when the config loads. Thus a result that is
  * not the same as on CI has a cause that you can see.
  */
-const PINNED_NODE = readFileSync(new URL('./.node-version', import.meta.url), 'utf8')
+const PINNED_NODE = readFileSync(join(import.meta.dirname, '.node-version'), 'utf8')
 	.trim()
 	.replace(/^v/, '')
 
