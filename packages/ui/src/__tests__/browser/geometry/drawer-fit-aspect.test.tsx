@@ -16,8 +16,8 @@ import { sampleUntil, settledValue } from '../helpers/sample'
 import { budget, pause } from '../helpers/wall-clock'
 
 /**
- * PROBE: a `fit` drawer must grow to hold a box whose height comes from its
- * width, such as a map frame. This runs in each engine.
+ * A `fit` drawer must grow to hold a box whose height comes from its width,
+ * such as a map frame. This runs in each engine.
  */
 
 const square = {
@@ -43,10 +43,10 @@ const square = {
 	],
 }
 
-function ProbeMap({ shapes }: { shapes: boolean }) {
+function StageMap({ shapes }: { shapes: boolean }) {
 	return (
 		<MapPlat
-			aria-label="Probe"
+			aria-label="Race map"
 			geography={shapes ? square : null}
 			projection="identity"
 			regionKey="id"
@@ -61,13 +61,13 @@ function ProbeMap({ shapes }: { shapes: boolean }) {
 const STAGES: ReactNode[] = [
 	<div key="overview" style={{ height: 600 }} />,
 	<div key="placeholder" style={{ height: 16 }} />,
-	<ProbeMap key="map" shapes={false} />,
-	<ProbeMap key="map" shapes />,
+	<StageMap key="map" shapes={false} />,
+	<StageMap key="map" shapes />,
 ]
 
 let goTo: (stage: number) => void = () => {}
 
-function Probe({ app }: { app: boolean }) {
+function FitDrawer({ app }: { app: boolean }) {
 	const [stage, setStage] = useState(0)
 
 	goTo = setStage
@@ -83,7 +83,7 @@ function Probe({ app }: { app: boolean }) {
 	return (
 		<GlassSurfacesContext value={app}>
 			<Drawer open onOpenChange={() => {}}>
-				<DrawerPanel height="fit" footer={null} aria-label="Probe">
+				<DrawerPanel height="fit" footer={null} aria-label="Race">
 					<DrawerHeader className="px-0">
 						<DrawerTitle>Texas › Governor</DrawerTitle>
 					</DrawerHeader>
@@ -125,57 +125,85 @@ function landed(): boolean {
 	return getSlot(document.body, 'drawer-body').querySelector('[data-region-index]') !== null
 }
 
-const CASES: [string, boolean, number[]][] = [
-	['at once', false, [0, 0, 0]],
-	['mid travel', false, [60, 120, 200]],
-	['after travels', false, [700, 700, 700]],
-	['app tree, at once', true, [0, 0, 0]],
-	['app tree, mid travel', true, [60, 120, 200]],
-	['app tree, after travels', true, [700, 700, 700]],
-	['app tree, as the app loads', true, [300, 840, 0]],
-	['app tree, slow shapes', true, [300, 300, 1500]],
-	['app tree, fast chunk', true, [20, 300, 600]],
+/**
+ * The time in milliseconds that the drawer holds each step after the overview:
+ * the placeholder, the map with no shapes, and the map.
+ */
+type Holds = [number, number, number]
+
+/** The holds that each tree runs: steps that land at once, during the travel of the height, and after it. */
+const TRAVEL_CASES: [string, Holds][] = [
+	['each step lands at once', [0, 0, 0]],
+	['each step lands mid travel', [60, 120, 200]],
+	['each step lands after the travel ends', [700, 700, 700]],
 ]
 
-describe('fit drawer switched to a map (PROBE)', () => {
+/** The holds of an app that loads the map chunk and then fetches the shapes. */
+const LOAD_CASES: [string, Holds][] = [
+	['the chunk takes 300 ms and the shapes take 840 ms', [300, 840, 0]],
+	['the chunk and the shapes take 300 ms each and the map holds for 1.5 s', [300, 300, 1500]],
+	['the chunk takes 20 ms', [20, 300, 600]],
+]
+
+/**
+ * Shows each step after the overview for its hold. Returns the stage log and the
+ * overflow of the body in pixels after the drawer settles on the map.
+ */
+async function switchToMap(app: boolean, holds: Holds): Promise<{ log: string; overflow: number }> {
+	renderUI(<FitDrawer app={app} />)
+
+	// The first stage starts from a drawer at rest. Wait until its boxes, its pin,
+	// and its place stay the same for five frames, and not for a fixed time.
+	await settledValue(rest, { frames: 5, deadline: budget(3_000) })
+
+	const log: string[] = [`start ${read()}`]
+
+	for (const [index, hold] of holds.entries()) {
+		goTo(index + 1)
+
+		await pause(hold)
+
+		log.push(`stage ${index + 1} ${read()}`)
+	}
+
+	// Wait for the end state, with a deadline, and not for a fixed time: under
+	// load the settle can take longer than a hold. The body of an earlier
+	// stage can fit too, so a fit alone is not the signal. First the last
+	// stage lands. Then the drawer settles: its boxes and its pin stay the
+	// same for five frames, which spans the frame in which a resize starts
+	// the travel of the height. A drawer that stays pinned too short
+	// settles with an overflow, or the wait fails at its deadline.
+	await sampleUntil(landed, Boolean, { deadline: budget(3_000) })
+
+	const reading = await settledValue(read, { frames: 5, deadline: budget(3_000) })
+
+	log.push(`end ${reading}`)
+
+	const [, client, scroll] = /body=(\d+)\/(\d+)/.exec(reading) ?? []
+
+	return { log: log.join('\n'), overflow: Number(scroll) - Number(client) }
+}
+
+describe('a fit Drawer that switches to a map (real browser)', () => {
 	beforeAll(() => page.viewport(390, 844))
 
-	for (const [name, app, delays] of CASES) {
-		it(name, async () => {
-			renderUI(<Probe app={app} />)
+	describe('in a bare body', () => {
+		for (const [name, holds] of TRAVEL_CASES) {
+			it(`ends with no overflow when ${name}`, async () => {
+				const { log, overflow } = await switchToMap(false, holds)
 
-			// The first stage starts from a drawer at rest. Wait until its boxes, its pin,
-			// and its place stay the same for five frames, and not for a fixed time.
-			await settledValue(rest, { frames: 5, deadline: budget(3_000) })
+				expect(overflow, log).toBeLessThanOrEqual(1)
+			})
+		}
+	})
 
-			const log: string[] = [`start ${read()}`]
+	describe('in the app tree', () => {
+		for (const [name, holds] of [...TRAVEL_CASES, ...LOAD_CASES]) {
+			it(`ends with no overflow when ${name}`, async () => {
+				const { log, overflow } = await switchToMap(true, holds)
 
-			for (const [index, delay] of delays.entries()) {
-				goTo(index + 1)
-
-				await pause(delay)
-
-				log.push(`stage ${index + 1} ${read()}`)
-			}
-
-			// Wait for the end state, with a deadline, and not for a fixed time: under
-			// load the settle can take longer than a hold. The body of an earlier
-			// stage can fit too, so a fit alone is not the signal. First the last
-			// stage lands. Then the drawer settles: its boxes and its pin stay the
-			// same for five frames, which spans the frame in which a resize starts
-			// the travel of the height. A drawer that stays pinned too short
-			// settles with an overflow, or the wait fails at its deadline.
-			await sampleUntil(landed, Boolean, { deadline: budget(3_000) })
-
-			const reading = await settledValue(read, { frames: 5, deadline: budget(3_000) })
-
-			log.push(`end ${reading}`)
-
-			console.log(`[probe] ${name}\n${log.join('\n')}`)
-
-			const [, client, scroll] = /body=(\d+)\/(\d+)/.exec(reading) ?? []
-
-			expect(Number(scroll) - Number(client), log.join('\n')).toBeLessThanOrEqual(1)
-		})
-	}
+				expect(overflow, log).toBeLessThanOrEqual(1)
+			})
+		}
+	})
 })
