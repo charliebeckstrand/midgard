@@ -917,7 +917,9 @@ export function useGridNavigation({
 	/** The one-stop entry at a cursor row, or `undefined` for a data row or the new-row slot. */
 	const stopAt = useCallback((row: number) => stopIn(orderRef.current, row), [])
 
-	const stopId = useCallback((key: string) => sub(`stop-${key}`), [sub])
+	// The key is escaped, so a key with a space is still one id token for
+	// `aria-activedescendant`, as in `detailPanelId`.
+	const stopId = useCallback((key: string) => sub(`stop-${encodeURIComponent(key)}`), [sub])
 
 	useLayoutEffect(() => activeCursor.set(active, anchor), [active, anchor, activeCursor])
 
