@@ -111,7 +111,7 @@ export function ResultIcon({ option }: { option: Matchable }) {
 
 /**
  * The label of an entry. A tab names its page first, as in "Grid › Sorting",
- * so the line below each label can be the section.
+ * so the line below the label of a tab can be the section.
  */
 export function ResultLabel({ option }: { option: Matchable }) {
 	return <bdi>{option.kind === 'tab' ? (option.place ?? option.label) : option.label}</bdi>
