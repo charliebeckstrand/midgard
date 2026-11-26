@@ -15,6 +15,7 @@ export const KEYWORDS: Readonly<Record<string, readonly string[]>> = {
 	overlay: ['/dialog', '/sheet', '/drawer', '/popover'],
 	notification: ['/toast', '/alert', '/banner'],
 	snackbar: ['/toast'],
+	'toggle button': ['/icon-button'],
 	spinner: ['/loading'],
 	loader: ['/loading'],
 	'empty state': ['/placeholder'],
