@@ -1,8 +1,11 @@
 import {
+	CaseUpper,
 	Code,
+	Heading1,
+	Heading2,
+	Heading3,
 	Italic,
 	LetterB,
-	LetterH,
 	Link,
 	List,
 	ListOrdered,
@@ -104,21 +107,6 @@ export const wysiwygMessages = defineMessages({
 		id: 'ui.wysiwyg.heading3',
 		defaultMessage: 'Heading 3',
 		description: 'The name of the choice that makes the current block a heading of level 3.',
-	},
-	heading1Short: {
-		id: 'ui.wysiwyg.heading1Short',
-		defaultMessage: 'H1',
-		description: 'The short visible label of the choice for a heading of level 1.',
-	},
-	heading2Short: {
-		id: 'ui.wysiwyg.heading2Short',
-		defaultMessage: 'H2',
-		description: 'The short visible label of the choice for a heading of level 2.',
-	},
-	heading3Short: {
-		id: 'ui.wysiwyg.heading3Short',
-		defaultMessage: 'H3',
-		description: 'The short visible label of the choice for a heading of level 3.',
 	},
 	bold: {
 		id: 'ui.wysiwyg.bold',
@@ -223,7 +211,7 @@ type WysiwygActionEntry = {
  * @internal
  */
 export const wysiwygActions: Record<WysiwygAction, WysiwygActionEntry> = {
-	heading: { group: 'heading', message: wysiwygMessages.heading, icon: LetterH },
+	heading: { group: 'heading', message: wysiwygMessages.heading, icon: CaseUpper },
 	bold: { group: 'text', message: wysiwygMessages.bold, icon: LetterB, shortcut: { key: 'B' } },
 	italic: { group: 'text', message: wysiwygMessages.italic, icon: Italic, shortcut: { key: 'I' } },
 	strike: {
@@ -268,40 +256,41 @@ export const wysiwygActions: Record<WysiwygAction, WysiwygActionEntry> = {
 export const WYSIWYG_ACTIONS = Object.keys(wysiwygActions) as WysiwygAction[]
 
 /**
- * The level choices of the heading rail, in order: the name, the visible
- * label, and the shortcut of each. The shortcut of a level is `$mod+Alt` and
- * the number of the level, as in Google Docs and Notion, and `0` makes text.
+ * The level choices of the heading rail, in order: the name, the glyph, and
+ * the shortcut of each. The shortcut of a level is `$mod+Alt` and the number
+ * of the level, as in Google Docs and Notion, and `0` makes text. The Heading
+ * button shows the glyph of the level of the selection.
  *
  * @internal
  */
 export const wysiwygHeadingLevels: readonly {
 	level: WysiwygHeadingLevel
 	message: MessageDescriptor
-	label: MessageDescriptor
+	icon: LucideIcon
 	shortcut: WysiwygShortcut
 }[] = [
 	{
 		level: 0,
 		message: wysiwygMessages.paragraph,
-		label: wysiwygMessages.paragraph,
+		icon: CaseUpper,
 		shortcut: { alt: true, key: '0' },
 	},
 	{
 		level: 1,
 		message: wysiwygMessages.heading1,
-		label: wysiwygMessages.heading1Short,
+		icon: Heading1,
 		shortcut: { alt: true, key: '1' },
 	},
 	{
 		level: 2,
 		message: wysiwygMessages.heading2,
-		label: wysiwygMessages.heading2Short,
+		icon: Heading2,
 		shortcut: { alt: true, key: '2' },
 	},
 	{
 		level: 3,
 		message: wysiwygMessages.heading3,
-		label: wysiwygMessages.heading3Short,
+		icon: Heading3,
 		shortcut: { alt: true, key: '3' },
 	},
 ]

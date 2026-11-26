@@ -42,7 +42,7 @@ describe('Wysiwyg heading rail (real browser)', () => {
 
 			expect(field).toHaveFocus()
 
-			await userEvent.click(within(rail).getByRole('radio', { name: 'Heading 1' }))
+			await userEvent.click(within(rail).getByRole('button', { name: 'Heading 1' }))
 
 			await waitFor(() => expect(field.querySelector('h1')).toHaveTextContent('Title'))
 
