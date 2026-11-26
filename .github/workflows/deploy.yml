@@ -25,9 +25,13 @@ jobs:
     # the CI of a push runs at once, and only the deploy waits for the deploy
     # before it. A group on the workflow held CI too: a push during a deploy
     # waited for that deploy before its CI started. A third push then replaced
-    # the waiting run, and the commit between got no CI on main. A newer
-    # waiting deploy replaces an older one, and the `production` step skips a
-    # deploy of a commit older than the one that `production` holds.
+    # the waiting run, and the commit between got no CI on main.
+    #
+    # The deploys can start in an order other than the order of the pushes,
+    # because a deploy joins the group when its CI ends, and a waiting deploy
+    # replaces the one that waited before it. The order has no effect: App
+    # Platform builds the newest commit of main (`--update-sources` below),
+    # whatever commit the run is for, so the last deploy ships the head.
     concurrency:
       group: deploy-production
       cancel-in-progress: false
