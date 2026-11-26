@@ -18,7 +18,10 @@ export type WysiwygContextValue = {
 	 * `separated` set.
 	 */
 	toolbarClassName: string
-	/** Subscribes to each new state of the editor. */
+	/**
+	 * Subscribes to each new state of the editor. Before the editor loads, it
+	 * subscribes to each change of the selection of the document.
+	 */
 	subscribe: (listener: () => void) => () => void
 	/** Whether an action is on at the selection. */
 	isActive: (action: WysiwygAction) => boolean

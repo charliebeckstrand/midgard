@@ -31,6 +31,28 @@ import { useWysiwygSelection } from './use-wysiwyg-selection'
 import { staticHeadingLevel, type WysiwygEarlyItem } from './wysiwyg-early-input'
 import { WysiwygStatic } from './wysiwyg-static'
 
+/**
+ * Subscribes `listener` to `subscribe` and to each change of the selection
+ * of `doc`. Gives the function that ends both.
+ *
+ * @internal
+ */
+function withSelectionChange(
+	subscribe: (listener: () => void) => () => void,
+	doc: Document | undefined,
+	listener: () => void,
+): () => void {
+	const unsubscribe = subscribe(listener)
+
+	doc?.addEventListener('selectionchange', listener)
+
+	return () => {
+		unsubscribe()
+
+		doc?.removeEventListener('selectionchange', listener)
+	}
+}
+
 /** Props for {@link Wysiwyg}. */
 export type WysiwygProps<R extends MarkdownRange = MarkdownRange> = {
 	/**
@@ -416,6 +438,17 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 	// One identity for the mount, so the memo below does not list it.
 	const focusField = useStableEvent(focus)
 
+	// Before the editor loads, the toolbar reads the markup, so a move of the
+	// caret in it also tells the toolbar.
+	const followSelection = useMemo(
+		() =>
+			editor
+				? subscribe
+				: (listener: () => void) =>
+						withSelectionChange(subscribe, host.current?.ownerDocument, listener),
+		[editor, subscribe],
+	)
+
 	const context = useMemo<WysiwygContextValue>(
 		() => ({
 			fieldId,
@@ -423,7 +456,7 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 			toolbarClassName,
 			// A locked field is inert: the toolbar does not follow the selection, and
 			// it shows no action as on.
-			subscribe: locked ? noopSubscribe : subscribe,
+			subscribe: locked ? noopSubscribe : followSelection,
 			isActive: (action) => !locked && (editor?.isActive(action) ?? false),
 			// A press before the editor loads starts the load, and the action runs
 			// when the editor comes.
@@ -451,7 +484,16 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 			fieldFocused: () => editor?.view.hasFocus() ?? false,
 			focusField,
 		}),
-		[fieldId, editor, locked, toolbarClassName, subscribe, whenReady, registerLink, focusField],
+		[
+			fieldId,
+			editor,
+			locked,
+			toolbarClassName,
+			followSelection,
+			whenReady,
+			registerLink,
+			focusField,
+		],
 	)
 
 	// The field is touched when the focus leaves the field and its rows, and not

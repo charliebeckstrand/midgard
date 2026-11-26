@@ -76,6 +76,26 @@ describe('Wysiwyg heading level before the load (real browser)', () => {
 		await waitFor(() => expect(pressedLevel()).toBe('Heading 2'))
 	})
 
+	it('shows on Heading the level of the block that the caret moves to', async () => {
+		renderField('# Title\n\nBody')
+
+		const field = screen.getByRole('textbox')
+
+		const heading = screen.getByRole('button', { name: 'Heading' })
+
+		expect(heading.querySelector('svg')).toHaveClass('lucide-heading-1')
+
+		field.focus()
+
+		const p = present(field.querySelector('p'), 'the paragraph')
+
+		window.getSelection()?.collapse(p.firstChild ?? p, 1)
+
+		await waitFor(() => expect(heading.querySelector('svg')).toHaveClass('lucide-type'))
+
+		expect(field).not.toHaveClass('ProseMirror')
+	})
+
 	it('shows no level for a heading below level 3', async () => {
 		renderField('#### Deep\n\nBody')
 
