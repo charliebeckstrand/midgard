@@ -2,7 +2,7 @@ import { render } from '@testing-library/react'
 import { createMemoryRouter, type RouteObject, RouterProvider } from 'react-router'
 import { AppearanceProvider } from 'ui/providers/appearance'
 import { onTestFinished } from 'vitest'
-import App, { ErrorBoundary } from '../app/root.tsx'
+import App, { ErrorBoundary } from '../../app/root.tsx'
 import { restoreRootAfterCase } from './restore-root.ts'
 
 /**

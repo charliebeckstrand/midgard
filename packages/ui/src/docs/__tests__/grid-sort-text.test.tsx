@@ -3,7 +3,7 @@ import type { GridColumn } from 'ui/grid'
 import { describe, expect, it } from 'vitest'
 import { columnAccessor } from '../../modules/grid/engine/grid-column/accessor.ts'
 import { LOCALES } from '../app/language.ts'
-import { COPY_TIMEOUT, loadCopy } from './copy.tsx'
+import { COPY_TIMEOUT, loadCopy } from './helpers/copy.tsx'
 
 // A column of a grid demo sorts by the text that its cell shows. The client
 // sort reads the `value` of a column, or else the row field of its id. A cell
@@ -18,8 +18,8 @@ type PeopleModule = typeof import('../pages/modules/grid/editing/people.tsx')
 /** The grid data of the demos and the editing columns, in `locale`. */
 function loadGridData(locale: string): Promise<[DataModule, PeopleModule]> {
 	return Promise.all([
-		loadCopy<DataModule>('../pages/modules/grid/data.tsx', locale),
-		loadCopy<PeopleModule>('../pages/modules/grid/editing/people.tsx', locale),
+		loadCopy<DataModule>('../../pages/modules/grid/data.tsx', locale),
+		loadCopy<PeopleModule>('../../pages/modules/grid/editing/people.tsx', locale),
 	])
 }
 

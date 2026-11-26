@@ -4,7 +4,7 @@ import { barrels } from '../../__tests__/helpers/public-barrels.ts'
 import { SIZE_AXES } from '../../__tests__/helpers/size-axes.ts'
 import { type DensityStep, densitySteps, isDensityStep } from '../../core/density/steps.ts'
 import type { ApiExtractor, PropApi } from '../plugin/api.ts'
-import { it } from './extractor.ts'
+import { it } from './helpers/extractor.ts'
 
 // The distinct-steps gate renders each step of each `size` axis in
 // `SIZE_AXES`. This test holds that list equal to the API data that the docs

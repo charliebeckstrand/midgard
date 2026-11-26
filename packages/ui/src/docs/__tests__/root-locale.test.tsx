@@ -2,7 +2,7 @@ import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useLocale } from 'ui/providers/locale'
 import { describe, expect, it } from 'vitest'
-import { renderShell } from './render-shell.tsx'
+import { renderShell } from './helpers/render-shell.tsx'
 
 // A press on Settings loads the settings dialog of ui
 // (`appearance-settings.tsx`). This import loads it at collection, so a case

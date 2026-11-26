@@ -2,7 +2,7 @@
 import { afterAll, describe, expect } from 'vitest'
 import { uiRoot } from '../../__tests__/helpers/walk-source.ts'
 import { createApiWorker } from '../plugin/api.ts'
-import { it } from './extractor.ts'
+import { it } from './helpers/extractor.ts'
 
 // The docs plugin reads the API data in a worker thread (`createApiWorker`).
 // The thread must give the same data as the extractor on the main thread.

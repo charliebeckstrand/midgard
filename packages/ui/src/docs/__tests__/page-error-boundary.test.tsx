@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { ErrorBoundary as RootErrorBoundary } from '../app/root.tsx'
 import Page, { ErrorBoundary as PageErrorBoundary } from '../app/routes/page.tsx'
 import routes from '../app/routes.ts'
-import { renderShell } from './render-shell.tsx'
+import { renderShell } from './helpers/render-shell.tsx'
 
 // A page that fails to render shows the error in place of the page only. The
 // shell, with the sidebar and the header, stays, so the reader can open

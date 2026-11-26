@@ -1,8 +1,8 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { vi } from 'vitest'
-import { getOrCompute } from '../../utilities/get-or-compute.ts'
-import { namedTexts } from '../kit/proper-names.ts'
+import { getOrCompute } from '../../../utilities/get-or-compute.ts'
+import { namedTexts } from '../../kit/proper-names.ts'
 
 // The page smoke test renders each page in each translated language and in
 // English. A text that shows in a translated render and in the English render
@@ -105,7 +105,7 @@ function readCatalog<Catalog>(folder: string, language: string): Catalog {
 }
 
 /** The folders of the catalogs that a page of the docs shows: the catalog of ui and of the docs. */
-const CATALOG_FOLDERS = ['../../primitives/intl/lang', '../lang']
+const CATALOG_FOLDERS = ['../../../primitives/intl/lang', '../../lang']
 
 /** The messages that are the same in `language` and in English, by language. */
 const sameByLanguage = new Map<string, readonly string[]>()

@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect } from 'vitest'
 import type { ApiExtractor, BarrelApi } from '../plugin/api.ts'
-import { it } from './extractor.ts'
+import { it } from './helpers/extractor.ts'
 
 // The API data that the docs plugin makes for some components whose props
 // have a union, an inherited tag, a default that is a sentence, an

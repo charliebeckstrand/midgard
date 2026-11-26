@@ -18,7 +18,7 @@ import {
 	extractDocsCatalog,
 } from '../../../scripts/intl/extract.ts'
 import { catalogs } from '../app/catalogs.ts'
-import { it } from './extractor.ts'
+import { it } from './helpers/extractor.ts'
 
 // The source catalog holds the English default of each message of the docs,
 // and each translation maps the same ids to the text of its language. The

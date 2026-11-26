@@ -1,7 +1,7 @@
 import { test } from 'vitest'
-import { uiRoot } from '../../__tests__/helpers/walk-source.ts'
-import { getOrCompute } from '../../utilities/get-or-compute.ts'
-import { type ApiExtractor, type BarrelApi, createApiExtractor } from '../plugin/api.ts'
+import { uiRoot } from '../../../__tests__/helpers/walk-source.ts'
+import { getOrCompute } from '../../../utilities/get-or-compute.ts'
+import { type ApiExtractor, type BarrelApi, createApiExtractor } from '../../plugin/api.ts'
 
 /** Freezes `value` and each object in it, so that a write to it throws. */
 function deepFreeze<T>(value: T): T {
