@@ -1,4 +1,4 @@
-import { createRef } from 'react'
+import { createRef, useEffect } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import {
 	SidebarLayout,
@@ -107,6 +107,54 @@ describe('SidebarLayout', () => {
 		fireEvent.click(screen.getByRole('button', { name: 'Open navigation' }))
 
 		expect(screen.getAllByText('drawer-sidebar')).toHaveLength(before + 1)
+	})
+
+	it('runs the effects of the copy of the sidebar that shows, and not of the hidden copy', () => {
+		const mounted = vi.fn()
+
+		function Probe() {
+			useEffect(() => {
+				mounted()
+			}, [])
+
+			return <div>probe</div>
+		}
+
+		const { container } = renderUI(
+			<SidebarLayout sidebar={<Probe />}>
+				<SidebarLayoutBody>body</SidebarLayoutBody>
+			</SidebarLayout>,
+		)
+
+		// The drawer layout hides the inline panel, so its copy rests in a hidden
+		// Activity: in the DOM, with no effect.
+		expect(container.querySelector(DESKTOP_PANEL)).toHaveTextContent('probe')
+
+		expect(mounted).not.toHaveBeenCalled()
+
+		fireEvent.click(screen.getByRole('button', { name: 'Open navigation' }))
+
+		expect(mounted).toHaveBeenCalledTimes(1)
+	})
+
+	it('runs the effects of the inline panel in the inline layout while locked', () => {
+		const mounted = vi.fn()
+
+		function Probe() {
+			useEffect(() => {
+				mounted()
+			}, [])
+
+			return <div>probe</div>
+		}
+
+		renderUI(
+			<SidebarLayout layout="inline" sidebar={<Probe />}>
+				<SidebarLayoutBody>body</SidebarLayoutBody>
+			</SidebarLayout>,
+		)
+
+		expect(mounted).toHaveBeenCalledTimes(1)
 	})
 
 	it('tells assistive technology that the navbar button opens a dialog, and its state', () => {
@@ -607,7 +655,7 @@ describe('SidebarLayout shortcut', () => {
 
 	it('moves the focus from the inline panel to the main landmark when the sidebar goes offcanvas', () => {
 		const { container } = renderUI(
-			<SidebarLayout sidebar={<a href="/item">item</a>}>
+			<SidebarLayout layout="inline" sidebar={<a href="/item">item</a>}>
 				<SidebarLayoutBody>body</SidebarLayoutBody>
 			</SidebarLayout>,
 		)

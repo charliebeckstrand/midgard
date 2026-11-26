@@ -2,6 +2,7 @@ import { render } from '@testing-library/react'
 import { createMemoryRouter, type RouteObject, RouterProvider } from 'react-router'
 import { AppearanceProvider } from 'ui/providers/appearance'
 import { onTestFinished } from 'vitest'
+import { stubMatchMedia } from '../../../__tests__/helpers/stub-match-media.ts'
 import App, { ErrorBoundary } from '../../app/root.tsx'
 import { restoreRootAfterCase } from './restore-root.ts'
 
@@ -9,7 +10,9 @@ import { restoreRootAfterCase } from './restore-root.ts'
  * Renders the shell of the docs (`app/root.tsx`) at `path`, with `children`
  * as the routes under the root route. The root route takes the error boundary
  * of the module, as in the app. The shell reads the matched routes, so
- * it needs a data router, as the app has.
+ * it needs a data router, as the app has. The viewport is a desktop, so the
+ * sidebar is the inline panel, as on a desktop. In the drawer layout, the
+ * panel copy of the sidebar rests in a hidden Activity (`SidebarLayout`).
  *
  * @returns The router, so a case can navigate.
  */
@@ -18,6 +21,8 @@ export function renderShell(
 	{ children }: { children: RouteObject[] },
 ): ReturnType<typeof createMemoryRouter> {
 	restoreRootAfterCase()
+
+	stubMatchMedia((query) => query.includes('min-width'))
 
 	const router = createMemoryRouter([{ path: '/', Component: App, ErrorBoundary, children }], {
 		initialEntries: [path],
