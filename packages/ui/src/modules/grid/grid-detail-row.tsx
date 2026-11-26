@@ -155,7 +155,7 @@ function GridDetailRowImpl<T>({
 				data-detail-row={String(rowKey)}
 				aria-hidden={ariaAttr(!expanded)}
 				inert={!expanded}
-				onTransitionEnd={reveal.onTransitionEnd}
+				{...reveal.landing}
 			>
 				<td {...stopProps} colSpan={colSpan} style={NO_PADDING}>
 					<div className={cn(k.detail.reveal.track)} data-open={dataAttr(reveal.open)}>

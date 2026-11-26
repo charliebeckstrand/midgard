@@ -1,16 +1,14 @@
 'use client'
 
-import { useInView } from 'motion/react'
 import { useEffect, useRef } from 'react'
 import { Placeholder } from '../../components/placeholder'
 import { cn } from '../../core/cn'
 import { dataAttr } from '../../core/data-attr'
-import { useHydrated } from '../../hooks/use-hydrated'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import type { Mount } from '../../primitives/mount'
 import { MountHold } from '../../primitives/mount'
-import { useMountHold } from '../../primitives/mount/use-mount'
+import { useViewportHold } from '../../primitives/mount/use-mount-viewport-hold'
 import { k } from '../../recipes/kata/chat-message'
 import { useChatEmbeds, useChatRowKey } from './context'
 import type { ChatEmbedPart } from './engine/chat-content/types'
@@ -135,31 +133,19 @@ type HeldChatEmbedProps = ChatEmbedProps & {
 }
 
 /**
- * Draws one `embed` block behind the viewport gate. `lazy` mounts it near the
- * viewport and keeps it. `active` also unmounts it when it scrolls away.
- *
- * @remarks
- * The server and the hydration render show a placeholder in the reserved
- * space. An observer cannot run on the server, and the client must hydrate
- * the same markup. The gate therefore opens only after hydration.
+ * Draws one `embed` block behind the viewport gate (`useViewportHold`). A
+ * placeholder holds the reserved space while the block is held back.
  *
  * @internal
  */
 function HeldChatEmbed({ part, className, mount, render, address, reached }: HeldChatEmbedProps) {
 	const ref = useRef<HTMLDivElement>(null)
 
-	// `active` must see a block leave the viewport, so its observer stays
-	// connected. `lazy` needs only the first sight. The margin prepares a block
-	// just before the reader reaches it.
-	const inView = useInView(ref, { margin: '200px', once: mount !== 'active' })
-
 	// Under `lazy`, a block the reader reached before is active on its first
 	// render. Its row left the window and came back, and it must not defer again.
 	const returning = mount === 'lazy' && address !== undefined && reached?.has(address) === true
 
-	const hydrated = useHydrated()
-
-	const hold = useMountHold(hydrated && (inView || returning), mount)
+	const { hold, inView } = useViewportHold(ref, mount, { seen: returning })
 
 	const slots = k().embed
 

@@ -236,7 +236,7 @@ export function GridVirtualizedGroupedBody<T>({
 
 	const getColor = (group: GridGroup<T>) => presentation?.color(getGroupKey(group))
 
-	const onTransitionEnd = (event: TransitionEvent<HTMLTableSectionElement>) => {
+	const onRevealLand = (event: TransitionEvent<HTMLTableSectionElement>) => {
 		const item = closingEndItem(event)
 
 		if (item) release(item.reactKey)
@@ -258,7 +258,7 @@ export function GridVirtualizedGroupedBody<T>({
 			itemCount={items.length}
 			virtualItems={virtualItems}
 			gaps={gaps}
-			onTransitionEnd={onTransitionEnd}
+			onRevealLand={onRevealLand}
 			onFocus={onFocus}
 			onBlur={onBlur}
 			renderItem={(virtualItem) => {

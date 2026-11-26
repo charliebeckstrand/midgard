@@ -1,6 +1,6 @@
 'use client'
 
-import { useId, useMemo, useRef } from 'react'
+import { type TransitionEvent, useId, useMemo, useRef } from 'react'
 import { useA11yRoving } from '../../hooks/a11y/use-a11y-roving'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { MountHold } from '../../primitives/mount'
@@ -70,6 +70,14 @@ export function PdfViewerThumbnails() {
 	// traveling fires no `transitionend`, so a deferred hold would wait forever.
 	const sidebarHold = useMountHold(sidebarOpen, 'always', { defer: sidebarAnimates })
 
+	// The native event names the property. React builds a `transitioncancel` as
+	// a plain synthetic event, which has no `propertyName`.
+	const landSlide = (event: TransitionEvent<HTMLElement>) => {
+		const property = event.nativeEvent.propertyName
+
+		if (property === 'margin-left' || property === 'margin-right') sidebarHold.rest()
+	}
+
 	const sidebarRef = useRef<HTMLElement>(null)
 
 	// One Tab stop for the rail, with arrows between pages: each tile as a stop
@@ -129,12 +137,12 @@ export function PdfViewerThumbnails() {
 					// element's own `transitionend` rather than an animation callback.
 					// Hiding on the toggle instead would blank the rail before it left,
 					// since `display: none` can't slide. The event names the physical
-					// margin, which is the right one in a right-to-left layout.
-					onTransitionEnd={(event) => {
-						if (event.propertyName === 'margin-left' || event.propertyName === 'margin-right') {
-							sidebarHold.rest()
-						}
-					}}
+					// margin, which is the right one in a right-to-left layout. A slide
+					// that an ancestor's `display: none` interrupts sends a
+					// `transitioncancel` instead, and no slide runs when the ancestor
+					// shows again, so the cancel lands the slide too.
+					onTransitionEnd={landSlide}
+					onTransitionCancel={landSlide}
 				>
 					<MountHold hold={sidebarHold} name="pdf-viewer-sidebar">
 						<div id={sidebarTitleId} className={k().sidebar.header}>

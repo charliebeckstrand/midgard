@@ -1,16 +1,14 @@
 'use client'
 
-import { useInView } from 'motion/react'
 import { type ReactNode, Suspense, useRef } from 'react'
 import { dataAttr } from '../../core/data-attr'
-import { useHydrated } from '../../hooks/use-hydrated'
 import {
 	ContentHeightContext,
 	type ContentHeightHost,
 } from '../../primitives/content-height/context'
 import type { Mount } from '../../primitives/mount'
 import { MountHold } from '../../primitives/mount'
-import { useMountHold } from '../../primitives/mount/use-mount'
+import { useViewportHold } from '../../primitives/mount/use-mount-viewport-hold'
 import { k } from '../../recipes/kata/dashboard'
 import { DashboardTileContext } from './context'
 import { DashboardTileBoundary, type DashboardTileBoundaryProps } from './dashboard-tile-boundary'
@@ -89,14 +87,8 @@ type HeldDashboardTileContentProps = {
 }
 
 /**
- * The content box behind the viewport gate. `lazy` mounts the content when the
- * tile comes near the viewport, and keeps it. `active` also unmounts it when the
- * tile leaves. The cell holds the space, so nothing shifts when the content comes.
- *
- * @remarks
- * The server and the hydration render show the fallback. An observer cannot run
- * on the server, and the client must hydrate the same markup. The gate therefore
- * opens only after hydration.
+ * The content box behind the viewport gate (`useViewportHold`). The cell holds
+ * the space, so nothing shifts when the content comes.
  *
  * @internal
  */
@@ -108,13 +100,7 @@ function HeldDashboardTileContent({
 }: HeldDashboardTileContentProps) {
 	const ref = useRef<HTMLDivElement>(null)
 
-	// `active` must see the tile leave the viewport, so its observer stays connected.
-	// The margin prepares a tile just before the reader reaches it.
-	const inView = useInView(ref, { margin: '200px', once: mount !== 'active' })
-
-	const hydrated = useHydrated()
-
-	const hold = useMountHold(hydrated && inView, mount)
+	const { hold } = useViewportHold(ref, mount)
 
 	return (
 		<div

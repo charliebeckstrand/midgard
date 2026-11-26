@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo } from 'react'
 import { useControllableBinding } from '../../hooks/use-controllable'
+import { useMountsEveryPanel } from '../../primitives/mount/use-mount'
 import { toggleItem } from '../../utilities/toggle-item'
 import { resolveDetailExpansion } from './engine/grid-group/resolve'
 import type { GridExpandable } from './grid-data-types'
@@ -45,6 +46,14 @@ export function useGridExpansion<T>(
 	const render = config?.render ?? null
 	const rowExpandable = config?.rowExpandable ?? ALWAYS_EXPANDABLE
 
+	// A plain body holds each closed panel under `always` (see `GridDetailRow`).
+	// The answer changes after hydration, which renders the grid again. Only a
+	// grid whose expansion is active reads it, so the others ask under `active`,
+	// whose answer does not change.
+	const closedPanelsMounted = useMountsEveryPanel(
+		active && render !== null && !groupingActive ? 'always' : 'active',
+	)
+
 	return useMemo(
 		() =>
 			resolveDetailExpansion(
@@ -52,7 +61,18 @@ export function useGridExpansion<T>(
 				groupingActive,
 				idScope,
 				paginated,
+				closedPanelsMounted,
 			),
-		[active, expanded, toggle, render, rowExpandable, groupingActive, idScope, paginated],
+		[
+			active,
+			expanded,
+			toggle,
+			render,
+			rowExpandable,
+			groupingActive,
+			idScope,
+			paginated,
+			closedPanelsMounted,
+		],
 	)
 }
