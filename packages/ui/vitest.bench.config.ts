@@ -1,13 +1,12 @@
 import { defineConfig } from 'vitest/config'
 import { splitSequencer } from './src/__tests__/setup/split-sequencer.ts'
-import { env } from './vitest.base.ts'
+// The import pins the time zone of the run (`vitest.shared.mts`).
+import './vitest.base.ts'
 
 export default defineConfig({
 	test: {
 		environment: 'jsdom',
 		globals: true,
-		// The pinned zone of `vitest.shared.mts`.
-		env,
 		setupFiles: ['./src/__benchmarks__/setup.ts'],
 		// A mount bench of the largest kanban board or query tree reaches the
 		// default heap limit of a worker before the garbage of its earlier
