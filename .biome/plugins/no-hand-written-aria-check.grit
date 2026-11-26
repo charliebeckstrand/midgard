@@ -1,0 +1,74 @@
+language js
+
+// A test checks ARIA through the matcher of what it proves (CONVENTIONS
+// §10.15, §10.16), so each check reads the same and none can pass by accident.
+//
+// - An id reference names an element: `toControl`, `toHaveActiveDescendant`,
+//   `toBeLabelledBy`, and `toBeDescribedBy`, or `ariaTarget` to read the
+//   element. `toHaveAttribute(name, x?.id)` with an `x` that is not there
+//   checks only that the attribute exists. A literal id stays a string check.
+// - `aria-expanded` goes through `toBeExpanded` or `toBeCollapsed`, and
+//   `aria-pressed` and `aria-checked` through `toBePressed` and `toBeChecked`,
+//   or `toBeUnpressed` and `toBeUnchecked` for the off state. jest-dom passes
+//   `not.toBePressed` and `not.toBeChecked` when the attribute is absent, so
+//   the off state never goes through `not`. A mixed state stays a string
+//   check, because jest-dom reads it on a few roles only.
+// - A role goes through `toHaveRole`. Under `not`, a role check stays a
+//   `toHaveAttribute` check, because `toHaveRole` also reads the implicit
+//   role. So does `none` or `presentation`, which removes a role.
+// - `expect(x.hasAttribute(name)).toBe(flag)` goes through `toHaveAttribute`,
+//   so that a failure shows the element. A test that folds many elements, as
+//   in `rows.every(...)`, or that polls, passes.
+//
+// Reach is the `includes` beside this plugin in `biome.json`: the tests of
+// `ui`, whose setup gives `expect` these matchers.
+or {
+	`$subject.toHaveAttribute($name, $value)` as $check where {
+		or {
+			and {
+				$name <: r"['\"]aria-(?:controls|activedescendant|labelledby|describedby|owns)['\"]",
+				$value <: or { `$_.id`, `$_?.id` }
+			},
+			and {
+				$name <: r"['\"]aria-(?:expanded|pressed|checked)['\"]",
+				$value <: r"['\"](?:true|false)['\"]"
+			},
+			and {
+				$name <: r"['\"]role['\"]",
+				$value <: not r"['\"](?:none|presentation)['\"]",
+				$subject <: not `$_.not`
+			}
+		},
+		register_diagnostic(
+			span = $check,
+			message = "check ARIA through its matcher: toControl, toHaveActiveDescendant, toBeLabelledBy, toBeDescribedBy, toBeExpanded, toBeCollapsed, toBePressed, toBeChecked, or toHaveRole"
+		)
+	},
+	or {
+		`$_.not.toBePressed()`,
+		`$_.not.toBeChecked()`
+	} as $check where {
+		register_diagnostic(
+			span = $check,
+			message = "assert the off state with toBeUnpressed or toBeUnchecked: not.toBePressed and not.toBeChecked pass when the attribute is absent"
+		)
+	},
+	`document.getElementById($id)` as $lookup where {
+		$id <: contains `$_.getAttribute($name)`,
+		$name <: r"['\"]aria-(?:controls|activedescendant|labelledby|describedby|owns)['\"]",
+		register_diagnostic(
+			span = $lookup,
+			message = "read the element that an ARIA id reference names with ariaTarget, which fails when the id names no element or more than one"
+		)
+	},
+	or {
+		`expect($element.hasAttribute($name)).toBe($flag)`,
+		`expect($element?.hasAttribute($name)).toBe($flag)`
+	} as $check where {
+		$flag <: or { `true`, `false` },
+		register_diagnostic(
+			span = $check,
+			message = "assert an attribute with toHaveAttribute, so that a failure shows the element"
+		)
+	}
+}

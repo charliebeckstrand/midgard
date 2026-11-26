@@ -197,6 +197,35 @@ export const d = text.normalize()
 `,
 		},
 	],
+	'no-hand-written-aria-check': [
+		{
+			file: 'aria.test.ts',
+			source: `declare const expect: (value: unknown) => any
+declare const tab: Element
+declare const panel: Element | undefined
+declare const rows: Element[]
+expect(tab).toHaveAttribute('aria-controls', panel?.id) // flag
+expect(tab).toHaveAttribute('aria-labelledby', tab.id) // flag
+expect(tab).toHaveAttribute('aria-expanded', 'true') // flag
+expect(tab).not.toHaveAttribute('aria-pressed', 'false') // flag
+expect(tab).toHaveAttribute('role', 'tab') // flag
+expect(document.getElementById(tab.getAttribute('aria-controls') ?? '')).toBe(panel) // flag
+expect(tab.hasAttribute('data-open')).toBe(true) // flag
+expect(panel?.hasAttribute('hidden')).toBe(false) // flag
+expect(tab).not.toBePressed() // flag
+expect(tab).not.toBeChecked() // flag
+expect(tab).toBeUnpressed()
+expect(tab).toBeUnchecked()
+expect(tab).toHaveAttribute('aria-controls', 'settings-panel')
+expect(tab).toHaveAttribute('aria-checked', 'mixed')
+expect(tab).not.toHaveAttribute('role', 'button')
+expect(tab).toHaveAttribute('role', 'none')
+expect(tab).toControl(panel)
+expect(document.getElementById('field')).toBe(panel)
+expect(rows.every((row) => row.hasAttribute('data-open'))).toBe(true)
+`,
+		},
+	],
 	'no-hand-written-bool-attr': [
 		{
 			file: 'attr.tsx',
@@ -540,6 +569,10 @@ const SCOPE: Record<string, { in: string; out: string }> = {
 		out: 'packages/ui/src/primitives/reduced-motion/reduced-motion-elements.ts',
 	},
 	'no-hand-composed-handler': { in: 'packages/shared/src', out: 'apps/places/src' },
+	'no-hand-written-aria-check': {
+		in: 'packages/ui/src/__tests__/components',
+		out: 'packages/ui/src/components',
+	},
 	'no-hand-written-bool-attr': { in: 'packages/ui/src/components', out: 'apps/places/src' },
 	'no-hand-written-clamp': {
 		in: 'packages/ui/src/hooks',

@@ -399,6 +399,10 @@
 			}
 		},
 		{
+			"includes": ["packages/ui/src/**/__tests__/**"],
+			"plugins": ["./.biome/plugins/no-hand-written-aria-check.grit"]
+		},
+		{
 			"includes": ["packages/ui/src/__tests__/mocks/**"],
 			"linter": {
 				"rules": {
