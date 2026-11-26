@@ -118,4 +118,20 @@ describe('Wysiwyg toolbar More (real browser)', () => {
 
 		expect(field).toHaveFocus()
 	})
+
+	it('keeps the row and More in the toolbar on a field narrower than the heading rail', async () => {
+		const { container } = renderField(140)
+
+		await editable()
+
+		const toolbar = getSlot(container, 'wysiwyg-toolbar').getBoundingClientRect()
+
+		const row = getRow()
+
+		await waitFor(() => expect(getMore(row).closest('[inert]')).toBeNull())
+
+		expect(row.getBoundingClientRect().right).toBeLessThanOrEqual(toolbar.right)
+
+		expect(getMore(row).getBoundingClientRect().right).toBeLessThanOrEqual(toolbar.right)
+	})
 })
