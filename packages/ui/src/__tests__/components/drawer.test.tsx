@@ -310,7 +310,7 @@ describe('Drawer drag handle', () => {
 
 		expect(panel?.id).toBeTruthy()
 
-		expect(handle).toHaveAttribute('aria-controls', panel?.id)
+		expect(handle).toControl(panel)
 	})
 
 	it.each(['auto', 'fit'] as const)(

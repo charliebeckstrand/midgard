@@ -96,7 +96,7 @@ describe.each(FAMILIES)('$name trigger', ({ Root, Panel, Trigger, Close }) => {
 
 		expect(trigger).toHaveAttribute('aria-expanded', 'true')
 
-		expect(trigger).toHaveAttribute('aria-controls', screen.getByRole('dialog').id)
+		expect(trigger).toControl(screen.getByRole('dialog'))
 
 		await user.click(screen.getByRole('button', { name: 'Done' }))
 

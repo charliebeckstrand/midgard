@@ -6,7 +6,7 @@ import {
 	PasswordConfirmRepeat,
 } from '../../components/password-confirm'
 import { Form } from '../../modules/form'
-import { act, fireEvent, frame, renderUI, screen } from '../helpers'
+import { act, ariaTargets, fireEvent, frame, renderUI, screen } from '../helpers'
 
 /** The password input and the confirm input, in document order. */
 function passwordInputs() {
@@ -89,11 +89,7 @@ describe('PasswordConfirmRepeat', () => {
 
 		// The warning id joins the input's aria-describedby, so focusing the
 		// invalid field announces the reason, not a bare "invalid".
-		const describedBy = confirm.getAttribute('aria-describedby')
-
-		expect(describedBy).toBeTruthy()
-
-		const warning = document.getElementById((describedBy as string).split(' ').at(-1) as string)
+		const warning = ariaTargets(confirm, 'aria-describedby').at(-1)
 
 		expect(warning).toHaveTextContent('Passwords do not match')
 

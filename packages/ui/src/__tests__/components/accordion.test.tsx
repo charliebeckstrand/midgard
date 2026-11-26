@@ -11,7 +11,17 @@ import {
 } from '../../components/accordion'
 import { useAccordionItem } from '../../components/accordion/context'
 import type { Mount } from '../../primitives/mount'
-import { act, allBySlot, bySlot, fireEvent, getSlot, renderUI, screen, setupUser } from '../helpers'
+import {
+	act,
+	allBySlot,
+	ariaTarget,
+	bySlot,
+	fireEvent,
+	getSlot,
+	renderUI,
+	screen,
+	setupUser,
+} from '../helpers'
 import { hydrateServerRender, serverMarkup } from '../helpers/hydrate'
 
 /**
@@ -121,11 +131,7 @@ describe('AccordionTrigger', () => {
 
 		fireEvent.click(trigger)
 
-		const controls = trigger.getAttribute('aria-controls')
-
-		expect(controls).toBeTruthy()
-
-		expect(document.getElementById(controls as string)).toBe(screen.getByRole('region'))
+		expect(trigger).toControl(screen.getByRole('region'))
 	})
 
 	it('keeps the panels out of the landmarks with region={false}, and keeps aria-controls', () => {
@@ -141,7 +147,7 @@ describe('AccordionTrigger', () => {
 
 		expect(panel).not.toHaveAttribute('aria-labelledby')
 
-		expect(trigger).toHaveAttribute('aria-controls', panel?.id)
+		expect(trigger).toControl(panel)
 	})
 
 	it('keeps type="button" when a consumer supplies a type', () => {
@@ -465,9 +471,7 @@ describe('useAccordionItem in trigger children', () => {
 
 		fireEvent.click(header)
 
-		expect(document.getElementById(header.getAttribute('aria-controls') ?? '')).toBe(
-			bySlot(document.body, 'accordion-panel'),
-		)
+		expect(header).toControl(bySlot(document.body, 'accordion-panel'))
 	})
 })
 
@@ -709,13 +713,9 @@ describe('Accordion mount policy', () => {
 		renderUI(<Panels mount="always" />)
 
 		// Every panel is present, so each closed header can point at its panel.
-		const controls = screen.getByRole('button', { name: 'Second' }).getAttribute('aria-controls')
+		const header = screen.getByRole('button', { name: 'Second' })
 
-		expect(controls).toBeTruthy()
-
-		expect(document.getElementById(controls as string)).toContainElement(
-			screen.getByText('Second body'),
-		)
+		expect(ariaTarget(header, 'aria-controls')).toContainElement(screen.getByText('Second body'))
 	})
 
 	// The server renders nothing for a hidden Activity, so a closed panel is not
@@ -729,7 +729,7 @@ describe('Accordion mount policy', () => {
 
 		expect(allBySlot(markup, 'accordion-panel')).toHaveLength(1)
 
-		expect(headers[0]).toHaveAttribute('aria-controls', getSlot(markup, 'accordion-panel').id)
+		expect(headers[0]).toControl(getSlot(markup, 'accordion-panel'))
 
 		expect(headers[1]).not.toHaveAttribute('aria-controls')
 	})
@@ -741,13 +741,9 @@ describe('Accordion mount policy', () => {
 
 		expect(consoleError).not.toHaveBeenCalled()
 
-		const controls = screen.getByRole('button', { name: 'Second' }).getAttribute('aria-controls')
+		const header = screen.getByRole('button', { name: 'Second' })
 
-		expect(controls).toBeTruthy()
-
-		expect(document.getElementById(controls as string)).toContainElement(
-			screen.getByText('Second body'),
-		)
+		expect(ariaTarget(header, 'aria-controls')).toContainElement(screen.getByText('Second body'))
 	})
 
 	it('mount="lazy" drops aria-controls from a closed header', async () => {

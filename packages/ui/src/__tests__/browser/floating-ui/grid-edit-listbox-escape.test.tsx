@@ -85,7 +85,7 @@ describe('grid edit session Escape vs an open listbox (real floating engine)', (
 
 		await waitFor(() => expect(grid).toHaveFocus())
 
-		expect(grid).toHaveAttribute('aria-activedescendant', gridCell(view.container, 'done').id)
+		expect(grid).toHaveActiveDescendant(gridCell(view.container, 'done'))
 	})
 
 	it('closes the open panel first under a consumer-owned session, then reverts the cell', async () => {

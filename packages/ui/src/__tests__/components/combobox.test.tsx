@@ -543,7 +543,7 @@ describe('Combobox active-descendant keyboard model', () => {
 
 		const apple = screen.getByRole('option', { name: 'Apple' })
 
-		await waitFor(() => expect(input).toHaveAttribute('aria-activedescendant', apple.id))
+		await waitFor(() => expect(input).toHaveActiveDescendant(apple))
 
 		expect(apple).toHaveAttribute('data-active')
 	})
@@ -573,14 +573,14 @@ describe('Combobox active-descendant keyboard model', () => {
 
 		const apricot = screen.getByRole('option', { name: 'Apricot' })
 
-		expect(input).toHaveAttribute('aria-activedescendant', apricot.id)
+		expect(input).toHaveActiveDescendant(apricot)
 
 		rerender(fruits(['Ape', 'Apple', 'Apricot']))
 
 		// The observer runs in a microtask after the commit.
 		await act(async () => {})
 
-		expect(input).toHaveAttribute('aria-activedescendant', apricot.id)
+		expect(input).toHaveActiveDescendant(apricot)
 
 		expect(apricot).toHaveAttribute('data-active')
 	})
@@ -598,7 +598,7 @@ describe('Combobox active-descendant keyboard model', () => {
 
 		expect(first).toHaveAttribute('data-active')
 
-		expect(input).toHaveAttribute('aria-activedescendant', first?.id)
+		expect(input).toHaveActiveDescendant(first)
 	})
 
 	// A phone has no hover. The reader taps an option there, so a highlight on the
@@ -623,7 +623,7 @@ describe('Combobox active-descendant keyboard model', () => {
 		// An arrow key still sets the highlight, on the first option.
 		await user.keyboard('{ArrowDown}')
 
-		expect(input).toHaveAttribute('aria-activedescendant', options[0]?.id)
+		expect(input).toHaveActiveDescendant(options[0])
 	})
 
 	it('clears aria-activedescendant when the menu closes', async () => {
@@ -1043,7 +1043,7 @@ describe('followOptions', () => {
 
 		reanchor(node, input, { origin: 'seeded' })
 
-		expect(input).toHaveAttribute('aria-activedescendant', rows[0]?.id)
+		expect(input).toHaveActiveDescendant(rows[0])
 
 		expect(rows[0]).toHaveAttribute('data-active')
 	})
@@ -1068,7 +1068,7 @@ describe('followOptions', () => {
 
 		reanchor(node, input, { origin: 'seeded' })
 
-		expect(input).toHaveAttribute('aria-activedescendant', apple?.id)
+		expect(input).toHaveActiveDescendant(apple)
 
 		expect(apple).toHaveAttribute('data-active')
 
@@ -1100,7 +1100,7 @@ describe('followOptions', () => {
 
 		followOptions(node, { current: null }, { current: -1 }, { current: input }, originRef)
 
-		expect(input).toHaveAttribute('aria-activedescendant', next.id)
+		expect(input).toHaveActiveDescendant(next)
 	})
 
 	it('keeps a highlight that the user moved while its row stays', () => {
@@ -1110,7 +1110,7 @@ describe('followOptions', () => {
 
 		const { originRef } = reanchor(node, input, { origin: 'moved' })
 
-		expect(input).toHaveAttribute('aria-activedescendant', rows[1]?.id)
+		expect(input).toHaveActiveDescendant(rows[1])
 
 		expect(rows[0]).not.toHaveAttribute('data-active')
 

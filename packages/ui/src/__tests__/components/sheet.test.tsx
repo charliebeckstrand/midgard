@@ -350,7 +350,7 @@ describe('Sheet handle', () => {
 
 		expect(panel?.id).toBeTruthy()
 
-		expect(handle).toHaveAttribute('aria-controls', panel?.id)
+		expect(handle).toControl(panel)
 	})
 
 	it('grows a panel away from the edge it is docked to, whichever edge that is', async () => {

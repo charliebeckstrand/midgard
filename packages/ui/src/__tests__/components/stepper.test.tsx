@@ -15,6 +15,7 @@ import type { Mount } from '../../primitives/mount'
 import {
 	act,
 	allBySlot,
+	ariaTarget,
 	bySlot,
 	fireEvent,
 	getSlot,
@@ -682,13 +683,9 @@ describe('Stepper keyboard navigation', () => {
 
 			expect(panels).toHaveLength(2)
 
-			for (const [index, name] of ['One', 'Two'].entries()) {
-				const controls = step(name).getAttribute('aria-controls')
+			expect(step('One')).toControl(panels[0])
 
-				expect(controls).toBeTruthy()
-
-				expect(document.getElementById(controls as string)).toBe(panels[index])
-			}
+			expect(step('Two')).toControl(panels[1])
 		})
 
 		// The server renders nothing for a hidden Activity, so the panel of an
@@ -703,7 +700,7 @@ describe('Stepper keyboard navigation', () => {
 
 			expect(allBySlot(markup, 'stepper-panel')).toHaveLength(1)
 
-			expect(steps[0]).toHaveAttribute('aria-controls', getSlot(markup, 'stepper-panel').id)
+			expect(steps[0]).toControl(getSlot(markup, 'stepper-panel'))
 
 			expect(steps[1]).not.toHaveAttribute('aria-controls')
 		})
@@ -715,11 +712,7 @@ describe('Stepper keyboard navigation', () => {
 
 			expect(consoleError).not.toHaveBeenCalled()
 
-			const controls = step('Two').getAttribute('aria-controls')
-
-			expect(controls).toBeTruthy()
-
-			expect(document.getElementById(controls as string)).toHaveTextContent('Second panel')
+			expect(ariaTarget(step('Two'), 'aria-controls')).toHaveTextContent('Second panel')
 		})
 
 		it('mount="lazy" leaves an unvisited step without a dangling reference', () => {

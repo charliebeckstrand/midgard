@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { DatePicker } from '../../../components/date-picker'
-import { renderUI, screen, waitFor } from '../../helpers'
+import { ariaTarget, renderUI, screen, waitFor } from '../../helpers'
 
 /**
  * `input`-mode open focus (real floating engine). Opening the calendar used to
@@ -34,11 +34,7 @@ describe('a11y open focus (real browser): date picker input mode', () => {
 		expect(dialog.contains(document.activeElement)).toBe(false)
 
 		// The input owns aria-controls over the day listbox it roves.
-		const controls = input.getAttribute('aria-controls')
-
-		expect(controls).toBeTruthy()
-
-		expect(document.getElementById(controls as string)).toHaveAttribute('role', 'listbox')
+		expect(ariaTarget(input, 'aria-controls')).toHaveAttribute('role', 'listbox')
 	})
 
 	it('focuses the input when the calendar opens from a click', async () => {
@@ -79,19 +75,15 @@ describe('a11y open focus (real browser): date picker input mode', () => {
 
 		expect(input).toHaveFocus()
 
-		const active = input.getAttribute('aria-activedescendant')
-
-		expect(active).toBeTruthy()
-
-		// The referenced element is the roved day cell, announced without focus
+		// The active descendant is the roved day cell, announced without focus
 		// ever entering the dialog.
-		expect(document.getElementById(active as string)).toBe(
+		expect(input).toHaveActiveDescendant(
 			screen.getByRole('option', { name: 'Sunday, June 15, 2025' }),
 		)
 
 		await userEvent.keyboard('{ArrowDown}') // one week forward → the 22nd
 
-		expect(document.getElementById(input.getAttribute('aria-activedescendant') as string)).toBe(
+		expect(input).toHaveActiveDescendant(
 			screen.getByRole('option', { name: 'Sunday, June 22, 2025' }),
 		)
 

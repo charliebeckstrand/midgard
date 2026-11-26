@@ -9,6 +9,7 @@ import { Form } from '../../modules/form'
 import { LocaleProvider } from '../../providers/locale'
 import {
 	act,
+	ariaTarget,
 	bySlot,
 	createEvent,
 	fireEvent,
@@ -70,11 +71,6 @@ async function openInputPicker(
 	await user.click(screen.getByRole('button', { name: 'Open calendar' }))
 
 	return { ...view, user, input }
-}
-
-// The element that the `aria-activedescendant` of `input` names.
-function activeDescendant(input: HTMLElement) {
-	return document.getElementById(input.getAttribute('aria-activedescendant') as string)
 }
 
 type DatePickerApi = ReturnType<typeof useDatePickerState>
@@ -296,9 +292,7 @@ describe('DatePicker', () => {
 
 		await user.click(trigger)
 
-		const controls = trigger.getAttribute('aria-controls')
-
-		expect(document.getElementById(controls as string)).toHaveAttribute('role', 'dialog')
+		expect(ariaTarget(trigger, 'aria-controls')).toHaveAttribute('role', 'dialog')
 	})
 
 	it('passes axe with read-only and required state', async () => {
@@ -1399,7 +1393,7 @@ describe('DatePicker input', () => {
 
 		expect(screen.getByRole('button', { name: /July 2025/ })).toBeInTheDocument()
 
-		expect(activeDescendant(input)).toBe(findDay(1))
+		expect(input).toHaveActiveDescendant(findDay(1))
 	})
 
 	// B01-C12, Q8: a Tab-focused day acts as the grid zone of the model at its date.
@@ -1414,7 +1408,7 @@ describe('DatePicker input', () => {
 
 		expect(input).toHaveFocus()
 
-		expect(activeDescendant(input)).toBe(findDay(21))
+		expect(input).toHaveActiveDescendant(findDay(21))
 	})
 
 	// B01-C12, Q11: a Page key from a focused day steps a month from that day.
@@ -1431,7 +1425,7 @@ describe('DatePicker input', () => {
 
 		expect(screen.getByRole('button', { name: /August 2025/ })).toBeInTheDocument()
 
-		expect(activeDescendant(input)).toBe(findDay(20))
+		expect(input).toHaveActiveDescendant(findDay(20))
 	})
 
 	// B01-C12, Q8: ArrowUp on the top row steps a week back from the focused day.
@@ -1446,7 +1440,7 @@ describe('DatePicker input', () => {
 
 		expect(screen.getByRole('button', { name: /May 2025/ })).toBeInTheDocument()
 
-		expect(activeDescendant(input)).toBe(findDay(26))
+		expect(input).toHaveActiveDescendant(findDay(26))
 	})
 
 	// B01-C09, Q10: a Tab from a focused header button does not move the highlight to that button.
@@ -1594,27 +1588,21 @@ describe('DatePicker input', () => {
 		await user.keyboard('{ArrowDown}') // open
 
 		// Open: aria-controls names the day listbox the cursor moves through.
-		const controls = input.getAttribute('aria-controls')
-
-		expect(controls).toBeTruthy()
-
-		expect(document.getElementById(controls as string)).toHaveAttribute('role', 'listbox')
+		expect(ariaTarget(input, 'aria-controls')).toHaveAttribute('role', 'listbox')
 
 		await user.keyboard('{ArrowDown}') // materialize the highlight on the 15th
 
 		expect(input).toHaveFocus()
 
-		const active15 = input.getAttribute('aria-activedescendant')
-
-		expect(active15).toBeTruthy()
-
-		// The referenced id resolves to the roved cell, so screen readers announce
+		// The active descendant names the roved cell, so screen readers announce
 		// the highlighted day without focus ever leaving the input.
-		expect(document.getElementById(active15 as string)).toBe(findDay(15))
+		expect(input).toHaveActiveDescendant(findDay(15))
+
+		const active15 = input.getAttribute('aria-activedescendant')
 
 		await user.keyboard('{ArrowDown}') // one week forward → the 22nd
 
-		expect(activeDescendant(input)).toBe(findDay(22))
+		expect(input).toHaveActiveDescendant(findDay(22))
 
 		// Each day has its own id, so each move changes the attribute, and the
 		// id of a day does not move to another cell.
@@ -1659,12 +1647,12 @@ describe('DatePicker input', () => {
 		// ArrowDown still enters the grid.
 		await user.keyboard('{ArrowDown}')
 
-		expect(activeDescendant(input)).toBe(findDay(15))
+		expect(input).toHaveActiveDescendant(findDay(15))
 
 		// With a day highlighted, ArrowRight moves the highlight.
 		await user.keyboard('{ArrowRight}')
 
-		expect(activeDescendant(input)).toBe(findDay(16))
+		expect(input).toHaveActiveDescendant(findDay(16))
 	})
 
 	it('commits the highlighted day on Enter without leaving the input', async () => {

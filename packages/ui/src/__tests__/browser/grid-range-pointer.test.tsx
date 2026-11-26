@@ -96,7 +96,7 @@ describe('grid range pointer and clipboard (real browser)', () => {
 
 		await commands.releasePointer()
 
-		expect(screen.getByRole('grid')).toHaveAttribute('aria-activedescendant', cell(2, 'role').id)
+		expect(screen.getByRole('grid')).toHaveActiveDescendant(cell(2, 'role'))
 	})
 
 	// On macOS a Ctrl-click is the secondary click. It opens a context menu, which can take the

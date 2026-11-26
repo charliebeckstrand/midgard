@@ -64,7 +64,7 @@ describe('Grid tab stops', () => {
 
 		const header = screen.getByRole('columnheader', { name: /Name/ })
 
-		expect(grid).toHaveAttribute('aria-activedescendant', header.id)
+		expect(grid).toHaveActiveDescendant(header)
 
 		expect(header).toHaveAttribute('data-active')
 	})
@@ -112,7 +112,7 @@ describe('Grid tab stops', () => {
 
 		const cell = edit.closest('td') as HTMLElement
 
-		expect(grid).toHaveAttribute('aria-activedescendant', cell.id)
+		expect(grid).toHaveActiveDescendant(cell)
 
 		act(() => {
 			fireEvent.keyDown(grid, { key: 'Enter' })
@@ -137,7 +137,7 @@ describe('Grid tab stops', () => {
 
 		expect(grid).toHaveFocus()
 
-		expect(grid).toHaveAttribute('aria-activedescendant', edit.closest('td')?.id)
+		expect(grid).toHaveActiveDescendant(edit.closest('td'))
 
 		expect(tabbable(grid)).toEqual([])
 	})
@@ -149,7 +149,7 @@ describe('Grid tab stops', () => {
 
 		act(() => del.focus())
 
-		expect(grid).toHaveAttribute('aria-activedescendant', del.closest('td')?.id)
+		expect(grid).toHaveActiveDescendant(del.closest('td'))
 	})
 
 	it('closes the cell when focus leaves the grid', () => {
@@ -268,9 +268,8 @@ describe('Grid tab stops', () => {
 		expect(grid).toHaveFocus()
 
 		// The cursor clamps to the cell that is left.
-		expect(grid).toHaveAttribute(
-			'aria-activedescendant',
-			screen.getByRole('button', { name: 'Delete Alice' }).closest('td')?.id,
+		expect(grid).toHaveActiveDescendant(
+			screen.getByRole('button', { name: 'Delete Alice' }).closest('td'),
 		)
 	})
 

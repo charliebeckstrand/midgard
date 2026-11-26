@@ -208,7 +208,7 @@ describe('CommandPalette active descendant', () => {
 
 		expect(options[0]?.id).toBeTruthy()
 
-		expect(input).toHaveAttribute('aria-activedescendant', options[0]?.id)
+		expect(input).toHaveActiveDescendant(options[0])
 	})
 
 	it('reserves End for the input caret instead of jumping the highlight to the last option', async () => {
@@ -227,13 +227,13 @@ describe('CommandPalette active descendant', () => {
 
 		const options = screen.getAllByRole('option')
 
-		expect(input).toHaveAttribute('aria-activedescendant', options[0]?.id)
+		expect(input).toHaveActiveDescendant(options[0])
 
 		await user.keyboard('{End}')
 
 		// End belongs to the textbox caret; routed to roving it would move the
 		// highlight to the last option (Beta). The guard keeps it on Alpha.
-		expect(input).toHaveAttribute('aria-activedescendant', options[0]?.id)
+		expect(input).toHaveActiveDescendant(options[0])
 	})
 
 	it('moves the active item to the top result when the filter changes', async () => {
@@ -254,7 +254,7 @@ describe('CommandPalette active descendant', () => {
 
 		expect(options[0]).toHaveAttribute('aria-selected', 'true')
 
-		expect(screen.getByRole('combobox')).toHaveAttribute('aria-activedescendant', options[0]?.id)
+		expect(screen.getByRole('combobox')).toHaveActiveDescendant(options[0])
 	})
 
 	it('clears the active item when the filter matches nothing', async () => {
@@ -309,7 +309,7 @@ describe('CommandPalette active descendant', () => {
 		// An arrow key still sets the highlight, on the first option.
 		await user.keyboard('{ArrowDown}')
 
-		expect(input).toHaveAttribute('aria-activedescendant', options[0]?.id)
+		expect(input).toHaveActiveDescendant(options[0])
 	})
 })
 
@@ -370,7 +370,7 @@ describe('CommandPalette results that change under an unchanged query', () => {
 
 		const [top] = screen.getAllByRole('option')
 
-		await waitFor(() => expect(input).toHaveAttribute('aria-activedescendant', top?.id))
+		await waitFor(() => expect(input).toHaveActiveDescendant(top))
 
 		expect(top).toHaveAttribute('data-active')
 
@@ -384,13 +384,13 @@ describe('CommandPalette results that change under an unchanged query', () => {
 
 		await setupUser().type(input, 'a')
 
-		expect(input).toHaveAttribute('aria-activedescendant', screen.getByRole('option').id)
+		expect(input).toHaveActiveDescendant(screen.getByRole('option'))
 
 		rerender(<FilteredPalette labels={['Alpha', 'Beta']} />)
 
 		const [alpha, beta] = screen.getAllByRole('option')
 
-		await waitFor(() => expect(input).toHaveAttribute('aria-activedescendant', alpha?.id))
+		await waitFor(() => expect(input).toHaveActiveDescendant(alpha))
 
 		expect(alpha).toHaveAttribute('data-active')
 
@@ -430,14 +430,14 @@ describe('CommandPalette results that change under an unchanged query', () => {
 
 		const gamma = screen.getByRole('option', { name: 'Gamma' })
 
-		expect(input).toHaveAttribute('aria-activedescendant', gamma.id)
+		expect(input).toHaveActiveDescendant(gamma)
 
 		rerender(<FilteredPalette labels={['Alpha', 'Beta', 'Gamma']} />)
 
 		// Lets the observer of the listbox report the mutation.
 		await act(async () => {})
 
-		expect(input).toHaveAttribute('aria-activedescendant', gamma.id)
+		expect(input).toHaveActiveDescendant(gamma)
 
 		expect(screen.getByRole('option', { name: 'Alpha' })).not.toHaveAttribute('data-active')
 	})
@@ -455,16 +455,13 @@ describe('CommandPalette results that change under an unchanged query', () => {
 
 		await user.keyboard('{ArrowDown}')
 
-		expect(input).toHaveAttribute(
-			'aria-activedescendant',
-			screen.getByRole('option', { name: 'Gamma' }).id,
-		)
+		expect(input).toHaveActiveDescendant(screen.getByRole('option', { name: 'Gamma' }))
 
 		rerender(<FilteredPalette labels={['Beta']} />)
 
 		const beta = screen.getByRole('option', { name: 'Beta' })
 
-		await waitFor(() => expect(input).toHaveAttribute('aria-activedescendant', beta.id))
+		await waitFor(() => expect(input).toHaveActiveDescendant(beta))
 
 		expect(beta).toHaveAttribute('data-active')
 	})
@@ -831,7 +828,7 @@ describe('CommandPaletteGroup', () => {
 
 		expect(group).toHaveAttribute('role', 'group')
 
-		expect(group).toHaveAttribute('aria-labelledby', title?.id)
+		expect(group).toBeLabelledBy(title)
 	})
 
 	it('leaves the group unnamed when no heading is nested', () => {
@@ -1455,7 +1452,7 @@ describe('CommandPalette open/close transitions', () => {
 
 		const top = screen.getAllByRole('option')[0]
 
-		expect(input).toHaveAttribute('aria-activedescendant', top?.id)
+		expect(input).toHaveActiveDescendant(top)
 
 		await setupUser().type(input, '{Enter}')
 

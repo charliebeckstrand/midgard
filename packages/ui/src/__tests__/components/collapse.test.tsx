@@ -41,13 +41,7 @@ describe('Collapse', () => {
 
 		fireEvent.click(trigger)
 
-		const controls = trigger.getAttribute('aria-controls')
-
-		expect(controls).toBeTruthy()
-
-		expect(document.getElementById(controls as string)).toBe(
-			getSlot(document.body, 'collapse-panel'),
-		)
+		expect(trigger).toControl(getSlot(document.body, 'collapse-panel'))
 	})
 
 	it.each([

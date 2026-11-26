@@ -290,7 +290,7 @@ describe('Popover non-modal semantics', () => {
 
 		expect(panel?.id).toBeTruthy()
 
-		expect(trigger).toHaveAttribute('aria-controls', panel?.id)
+		expect(trigger).toControl(panel)
 	})
 
 	// The trigger announces a dialog popup only when the panel is a dialog, and an

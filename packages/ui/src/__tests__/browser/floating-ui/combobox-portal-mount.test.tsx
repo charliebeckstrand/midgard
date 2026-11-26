@@ -108,13 +108,9 @@ describe('Combobox portal node (real browser)', () => {
 
 		await userEvent.keyboard('{ArrowDown}')
 
-		await waitFor(() => {
-			const activeId = input.getAttribute('aria-activedescendant')
-
-			expect(document.getElementById(activeId ?? '')).toBe(
-				screen.getByRole('option', { name: 'Apricot' }),
-			)
-		})
+		await waitFor(() =>
+			expect(input).toHaveActiveDescendant(screen.getByRole('option', { name: 'Apricot' })),
+		)
 	})
 
 	it('re-anchors the highlight when the options swap on the first open', async () => {
@@ -140,10 +136,8 @@ describe('Combobox portal node (real browser)', () => {
 
 		rerender(tree('apricot'))
 
-		await waitFor(() => {
-			const active = document.getElementById(input.getAttribute('aria-activedescendant') ?? '')
-
-			expect(active).toBe(screen.getByRole('option', { name: /apricot/i }))
-		})
+		await waitFor(() =>
+			expect(input).toHaveActiveDescendant(screen.getByRole('option', { name: /apricot/i })),
+		)
 	})
 })

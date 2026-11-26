@@ -428,10 +428,7 @@ describe('Grid new row', () => {
 			expect(view.slotEditor('name').value).toBe('')
 
 			// The cursor sits on the cell of the control: the Add column is a column of the cursor.
-			expect(view.grid()).toHaveAttribute(
-				'aria-activedescendant',
-				add.closest('td')?.getAttribute('id') ?? '',
-			)
+			expect(view.grid()).toHaveActiveDescendant(add.closest('td'))
 		})
 
 		it('keeps the column out of export and out of a saved preset', async () => {
@@ -856,7 +853,7 @@ describe('Grid new row', () => {
 
 		expect(view.grid()).toHaveFocus()
 
-		expect(view.grid()).toHaveAttribute('aria-activedescendant', view.slotCell('name').id)
+		expect(view.grid()).toHaveActiveDescendant(view.slotCell('name'))
 
 		view.press('name', 'Enter')
 

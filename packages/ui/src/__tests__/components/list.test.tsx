@@ -15,6 +15,7 @@ import { reorderMessages } from '../../primitives/intl/intl-reorder'
 import { DensityProvider } from '../../providers/density'
 import {
 	allBySlot,
+	ariaTarget,
 	bySlot,
 	expectAnnouncement,
 	fireEvent,
@@ -600,7 +601,7 @@ describe('List keyboard reordering', () => {
 
 		const row = getSlot(container, 'list-item')
 
-		const instructions = document.getElementById(row.getAttribute('aria-describedby') ?? '')
+		const instructions = ariaTarget(row, 'aria-describedby')
 
 		expect(instructions).toHaveTextContent(intlEn.formatMessage(reorderMessages.liftInstructions))
 	})

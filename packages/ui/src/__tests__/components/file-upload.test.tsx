@@ -860,7 +860,7 @@ describe('FileUpload invalidMessage', () => {
 
 		expect(trigger).toHaveAccessibleDescription(message.textContent ?? '')
 
-		expect(fileInput(container)).toHaveAttribute('aria-describedby', message.id)
+		expect(fileInput(container)).toBeDescribedBy(message)
 
 		selectFiles(container, [new File(['x'], 'a.png', { type: 'image/png' })])
 

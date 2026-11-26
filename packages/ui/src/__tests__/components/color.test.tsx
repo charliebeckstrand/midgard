@@ -21,6 +21,7 @@ import { Field, Label, Message } from '../../components/fieldset'
 import { Form, useFormActions } from '../../modules/form'
 import {
 	allBySlot,
+	ariaTarget,
 	attach,
 	bySlot,
 	fireEvent,
@@ -857,9 +858,7 @@ describe('ColorPicker', () => {
 
 		fireEvent.click(button)
 
-		const controls = button.getAttribute('aria-controls')
-
-		expect(document.getElementById(controls as string)).toHaveAttribute('role', 'dialog')
+		expect(ariaTarget(button, 'aria-controls')).toHaveAttribute('role', 'dialog')
 	})
 
 	it('keeps the hex label of the trigger left to right under a right-to-left ancestor', () => {

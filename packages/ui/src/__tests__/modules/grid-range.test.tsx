@@ -103,7 +103,7 @@ describe('Grid range', () => {
 		])
 
 		// The cursor is the far corner of the range.
-		expect(grid).toHaveAttribute('aria-activedescendant', cell(1, 1).id)
+		expect(grid).toHaveActiveDescendant(cell(1, 1))
 	})
 
 	it('ends the range on a move without Shift', () => {
@@ -146,7 +146,7 @@ describe('Grid range', () => {
 		expect(inRange()).toHaveLength(rows.length * columns.length)
 
 		// The cursor is the last cell, the far corner from the first cell.
-		expect(grid).toHaveAttribute('aria-activedescendant', cell(2, 2).id)
+		expect(grid).toHaveActiveDescendant(cell(2, 2))
 
 		fireEvent.mouseDown(cell(0, 0))
 
@@ -214,7 +214,7 @@ describe('Grid range', () => {
 			[2, 1],
 		])
 
-		expect(grid).toHaveAttribute('aria-activedescendant', cell(2, 1).id)
+		expect(grid).toHaveActiveDescendant(cell(2, 1))
 	})
 
 	it('leaves Ctrl+Space to the row without the range', () => {
@@ -262,13 +262,13 @@ describe('Grid range', () => {
 
 		fireEvent.mouseDown(cell(2, 1))
 
-		expect(grid).toHaveAttribute('aria-activedescendant', cell(0, 0).id)
+		expect(grid).toHaveActiveDescendant(cell(0, 0))
 
 		fireEvent.mouseUp(cell(0, 0))
 
 		fireEvent.mouseDown(cell(2, 1))
 
-		expect(grid).toHaveAttribute('aria-activedescendant', cell(2, 1).id)
+		expect(grid).toHaveActiveDescendant(cell(2, 1))
 	})
 
 	it('owns the press on a cell, so the browser starts no text selection', () => {
@@ -288,7 +288,7 @@ describe('Grid range', () => {
 
 		expect(inRange()).toEqual([])
 
-		expect(grid).toHaveAttribute('aria-activedescendant', cell(1, 0).id)
+		expect(grid).toHaveActiveDescendant(cell(1, 0))
 
 		fireEvent.keyDown(grid, { key: 'Escape' })
 
@@ -732,7 +732,7 @@ describe('Grid range binding', () => {
 			[2, 2],
 		])
 
-		expect(screen.getByRole('grid')).toHaveAttribute('aria-activedescendant', cell(2, 2).id)
+		expect(screen.getByRole('grid')).toHaveActiveDescendant(cell(2, 2))
 
 		expect(onValueChange).not.toHaveBeenCalled()
 	})
@@ -766,14 +766,14 @@ describe('Grid range binding', () => {
 			[2, 2],
 		])
 
-		expect(grid).toHaveAttribute('aria-activedescendant', cell(1, 2).id)
+		expect(grid).toHaveActiveDescendant(cell(1, 2))
 
 		fireEvent.click(screen.getByRole('button', { name: 'Clear' }))
 
 		expect(inRange()).toEqual([])
 
 		// The cursor stays where the range left it.
-		expect(grid).toHaveAttribute('aria-activedescendant', cell(1, 2).id)
+		expect(grid).toHaveActiveDescendant(cell(1, 2))
 
 		// A value from the owner is not a change to report.
 		expect(onValueChange).not.toHaveBeenCalled()

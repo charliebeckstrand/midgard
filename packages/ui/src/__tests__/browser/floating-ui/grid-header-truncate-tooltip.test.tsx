@@ -121,7 +121,7 @@ describe('grid header truncation tooltip (real browser)', () => {
 
 		expect(tip).toHaveTextContent(longTitle)
 
-		expect(sort).toHaveAttribute('aria-describedby', tip.id)
+		expect(sort).toBeDescribedBy(tip)
 	})
 
 	it('suppresses the tooltip while a column drag-resize is in flight', async () => {

@@ -8,6 +8,7 @@ import { installSingletonResets } from '../helpers/reset-singletons'
 import { installResidueGuard } from '../helpers/residue'
 import { restoreTestState } from '../helpers/restore-test-state'
 
+import './aria'
 import './geometry'
 import './jsdom-stubs'
 import './locale-guard'

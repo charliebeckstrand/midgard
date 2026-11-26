@@ -13,7 +13,16 @@ import {
 } from '../../modules/chat'
 import { toCitationMode } from '../../modules/chat/use-chat-citation-trigger'
 import { __resetLastInput } from '../../utilities/last-input'
-import { act, allBySlot, bySlot, renderUI, screen, stubMatchMedia, userEvent } from '../helpers'
+import {
+	act,
+	allBySlot,
+	ariaTarget,
+	bySlot,
+	renderUI,
+	screen,
+	stubMatchMedia,
+	userEvent,
+} from '../helpers'
 
 // A citation that ends inside the bold draws as pieces: one for the text
 // before the bold, and one in the bold.
@@ -310,7 +319,7 @@ describe('ChatCitationProvider', () => {
 
 		const anchor = screen.getByRole('button', { name: 'Twelve stops are late' })
 
-		const description = document.getElementById(anchor.getAttribute('aria-describedby') ?? '')
+		const description = ariaTarget(anchor, 'aria-describedby')
 
 		expect(description).toHaveAttribute('hidden')
 

@@ -7,6 +7,7 @@
 export { act, createEvent, fireEvent, screen, waitFor, within } from '@testing-library/react'
 export { default as userEvent } from '@testing-library/user-event'
 export { applyChanges } from './apply-changes'
+export { ariaTarget, ariaTargets } from './aria-references'
 export { attach } from './attach'
 export { clearCookies } from './clear-cookies'
 export { deferred } from './deferred'

@@ -108,7 +108,7 @@ describe('Grid undo and redo (history)', () => {
 
 		expect(view.cell('count')).toHaveTextContent('2')
 
-		expect(view.grid).toHaveAttribute('aria-activedescendant', view.cell('count').id)
+		expect(view.grid).toHaveActiveDescendant(view.cell('count'))
 
 		await expectAnnouncement('Count undone for Alice')
 	})

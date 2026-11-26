@@ -1,7 +1,7 @@
 import '../setup/grid-modules'
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { present, renderUI } from '../helpers'
+import { renderUI } from '../helpers'
 
 type Row = { id: string; name: string }
 
@@ -55,17 +55,9 @@ describe('Grid detail panel id', () => {
 
 		for (const table of tables) {
 			for (const row of rows) {
-				const toggle = present(
-					table.querySelector(`[aria-label="Details for row ${row.id}"]`),
-					`the toggle of row ${row.id}`,
-				)
-
-				const panel = present(
+				expect(table.querySelector(`[aria-label="Details for row ${row.id}"]`)).toControl(
 					table.querySelector(`tr[data-detail-row="${row.id}"] section`),
-					`the panel of row ${row.id}`,
 				)
-
-				expect(document.getElementById(toggle.getAttribute('aria-controls') ?? '')).toBe(panel)
 			}
 		}
 	})

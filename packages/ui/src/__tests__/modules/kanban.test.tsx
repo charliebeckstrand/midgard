@@ -16,6 +16,7 @@ import { intlEn } from '../../primitives/intl/intl-catalog'
 import { reorderMessages } from '../../primitives/intl/intl-reorder'
 import {
 	allBySlot,
+	ariaTarget,
 	bySlot,
 	expectAnnouncement,
 	fireEvent,
@@ -809,7 +810,7 @@ describe('Kanban drag instructions', () => {
 
 		const handle = getHandle(container, 'a')
 
-		const instructions = document.getElementById(handle.getAttribute('aria-describedby') ?? '')
+		const instructions = ariaTarget(handle, 'aria-describedby')
 
 		expect(instructions).toHaveTextContent(intlEn.formatMessage(reorderMessages.liftInstructions))
 	})
@@ -932,10 +933,7 @@ describe('KanbanColumn naming', () => {
 
 		expect(heading).toHaveAttribute('data-lane', 'todo')
 
-		expect(screen.getByRole('group', { name: 'Todo' })).toHaveAttribute(
-			'aria-labelledby',
-			heading.id,
-		)
+		expect(screen.getByRole('group', { name: 'Todo' })).toBeLabelledBy(heading)
 	})
 
 	it('omits aria-labelledby when no title is rendered, so it never dangles', () => {
