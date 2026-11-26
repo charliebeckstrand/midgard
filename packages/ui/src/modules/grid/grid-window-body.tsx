@@ -24,7 +24,12 @@ type GridWindowBodyProps<T> = {
 	gaps: readonly number[]
 	/** Renders the keyed row of one item. */
 	renderItem: (virtualItem: VirtualItem) => ReactNode
-	onTransitionEnd?: TransitionEventHandler<HTMLTableSectionElement>
+	/**
+	 * Called when the reveal of a row lands. That is a `transitionend` or a
+	 * `transitioncancel`, which a row sends when an ancestor's `display: none`
+	 * interrupts its collapse.
+	 */
+	onRevealLand?: TransitionEventHandler<HTMLTableSectionElement>
 	onFocus?: FocusEventHandler<HTMLTableSectionElement>
 	onBlur?: FocusEventHandler<HTMLTableSectionElement>
 	/** A row after the bottom spacer, such as the infinite-scroll trailer. */
@@ -83,7 +88,7 @@ export function GridWindowBody<T>({
 	virtualItems,
 	gaps,
 	renderItem,
-	onTransitionEnd,
+	onRevealLand,
 	onFocus,
 	onBlur,
 	trailer,
@@ -108,7 +113,13 @@ export function GridWindowBody<T>({
 	})
 
 	return (
-		<TableBody ref={bodyRef} onTransitionEnd={onTransitionEnd} onFocus={onFocus} onBlur={onBlur}>
+		<TableBody
+			ref={bodyRef}
+			onTransitionEnd={onRevealLand}
+			onTransitionCancel={onRevealLand}
+			onFocus={onFocus}
+			onBlur={onBlur}
+		>
 			<GridWindowSpacer height={topSpacer} colSpan={columns.length} />
 			{warming ? <GridSkeletonRows columns={columns} pinning={pinning} /> : rows}
 			{!warming && <GridWindowSpacer height={bottomSpacer} colSpan={columns.length} />}

@@ -167,7 +167,7 @@ export function GridVirtualizedDetailBody<T>(props: GridVirtualizedDetailBodyPro
 
 	useGridCursorOrder(cursorOrder)
 
-	const onTransitionEnd = (event: TransitionEvent<HTMLTableSectionElement>) => {
+	const onRevealLand = (event: TransitionEvent<HTMLTableSectionElement>) => {
 		const item = closingEndItem(event)
 
 		if (item) release(rowKeys[item.dataIndex] as string | number)
@@ -186,7 +186,7 @@ export function GridVirtualizedDetailBody<T>(props: GridVirtualizedDetailBodyPro
 			itemCount={items.length}
 			virtualItems={virtualItems}
 			gaps={gaps}
-			onTransitionEnd={onTransitionEnd}
+			onRevealLand={onRevealLand}
 			onFocus={onFocus}
 			onBlur={onBlur}
 			renderItem={(virtualItem) => {

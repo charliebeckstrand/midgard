@@ -104,4 +104,51 @@ describe('grid reveal transition (real browser)', () => {
 
 		await waitFor(() => expect(runs).toContain(REVEAL))
 	})
+
+	// An ancestor's `display: none` cancels the collapse, and no transition runs
+	// when it shows again, because the track is already closed. The cancel must
+	// rest the row, or it stays live until its next toggle.
+	it('rests a detail panel whose collapse an ancestor interrupts', async () => {
+		const user = userEvent.setup()
+
+		const columns: GridColumn<Person>[] = [
+			{ id: 'expand', expander: true },
+			{ id: 'name', title: 'Name', cell: (row) => row.name },
+		]
+
+		const { container } = renderUI(
+			<div data-testid="host">
+				<Grid
+					columns={columns}
+					rows={people}
+					getKey={getKey}
+					expandable={{
+						defaultValue: new Set([1]),
+						render: (row) => <div style={{ height: 80 }}>Detail for {row.name}</div>,
+					}}
+				/>
+			</div>,
+		)
+
+		const host = screen.getByTestId('host')
+
+		const panel = container.querySelector<HTMLElement>('tr[data-detail-row="1"]')
+
+		if (!panel) throw new Error('detail row did not render')
+
+		const runs = watchTransitions(container)
+
+		await user.click(screen.getByRole('button', { name: 'Details for row 1', expanded: true }))
+
+		await waitFor(() => expect(runs).toContain(REVEAL))
+
+		host.style.display = 'none'
+
+		// A style read applies the hide, which cancels the collapse in flight.
+		getComputedStyle(panel).display
+
+		host.style.display = ''
+
+		await waitFor(() => expect(getComputedStyle(panel).display).toBe('none'))
+	})
 })

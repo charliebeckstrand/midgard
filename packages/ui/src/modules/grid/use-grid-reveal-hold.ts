@@ -18,8 +18,14 @@ export type GridRevealHold = {
 	 * this and the row's semantics (`aria-hidden`, `inert`) from `expanded`.
 	 */
 	open: boolean
-	/** Attach to the row; `transitionend` bubbles up from the cells that animate. */
-	onTransitionEnd: (event: TransitionEvent<HTMLElement>) => void
+	/**
+	 * Spread onto the row. The landing of the reveal bubbles up from the cells
+	 * that animate, as a `transitionend` or as a `transitioncancel`.
+	 */
+	landing: {
+		onTransitionEnd: (event: TransitionEvent<HTMLElement>) => void
+		onTransitionCancel: (event: TransitionEvent<HTMLElement>) => void
+	}
 }
 
 /**
@@ -37,7 +43,10 @@ export type GridRevealHold = {
  * `grid-template-rows`. A hide on the toggle would snap a collapsing row away
  * instead of letting it shrink. The landing arrives as a `transitionend`
  * bubbling from the cells that animate: one per cell, but resting is
- * idempotent. Under `prefers-reduced-motion` the recipe drops the transition
+ * idempotent. A collapse that an ancestor's `display: none` interrupts sends a
+ * `transitioncancel` instead. When the ancestor shows again, the track is
+ * already closed, so no transition runs. The cancel is therefore a landing too,
+ * or the row would stay live until its next toggle. Under `prefers-reduced-motion` the recipe drops the transition
  * (`motion-reduce:transition-none`), so no event is coming. The row rests on
  * the toggle itself, which is what an instant collapse wants anyway. That is
  * read live rather than through motion's `useReducedMotion`, which samples the
@@ -101,11 +110,11 @@ export function useGridRevealHold(expanded: boolean, enter = false): GridRevealH
 		setOpen(true)
 	}, [opening])
 
-	return {
-		hold,
-		open,
-		onTransitionEnd: (event) => {
-			if (event.propertyName === REVEAL_PROPERTY) hold.rest()
-		},
+	// The native event names the property. React builds a `transitioncancel` as
+	// a plain synthetic event, which has no `propertyName`.
+	const land = (event: TransitionEvent<HTMLElement>) => {
+		if (event.nativeEvent.propertyName === REVEAL_PROPERTY) hold.rest()
 	}
+
+	return { hold, open, landing: { onTransitionEnd: land, onTransitionCancel: land } }
 }

@@ -219,13 +219,15 @@ export function useGridItemWindow<I extends WindowItem>(
 		}
 	})
 
-	// A reveal that lands bubbles a `transitionend` to the body. The row that
-	// sent it is a direct child of the body, which a nested table in a detail
-	// panel is not. Only a closing row has work to do when its reveal lands: the
+	// A reveal that lands bubbles a `transitionend` to the body, or a
+	// `transitioncancel` when an ancestor's `display: none` interrupts it. The
+	// row that sent it is a direct child of the body, which a nested table in a
+	// detail panel is not. Only a closing row has work to do when its reveal lands: the
 	// body releases it.
 	const closingEndItem = useCallback(
 		(event: TransitionEvent<HTMLElement>): I | undefined => {
-			if (event.propertyName !== REVEAL_PROPERTY) return undefined
+			// React builds a `transitioncancel` with no `propertyName` of its own.
+			if (event.nativeEvent.propertyName !== REVEAL_PROPERTY) return undefined
 
 			const row = (event.target as Element).closest('tr')
 

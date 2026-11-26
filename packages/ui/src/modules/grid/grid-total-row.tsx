@@ -325,7 +325,7 @@ function GridGroupTotalRow<T>({
 				data-total-row="group"
 				aria-hidden={ariaAttr(!expanded)}
 				inert={!expanded}
-				onTransitionEnd={reveal.onTransitionEnd}
+				{...reveal.landing}
 			>
 				<GroupRevealCell
 					open={reveal.open}

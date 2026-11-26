@@ -337,7 +337,7 @@ function GridGroupLeafRowImpl<T>({
 				{...treeRowProps(tree, level, { place, setSize })}
 				data-row-index={rowIndex}
 				inert={!expanded}
-				onTransitionEnd={reveal.onTransitionEnd}
+				{...reveal.landing}
 				// As on a flat row (see `GridRow`).
 				className={cn(
 					loading && k.row.loading,
