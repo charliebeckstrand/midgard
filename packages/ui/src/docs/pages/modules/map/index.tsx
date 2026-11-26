@@ -1,5 +1,6 @@
 import api from 'virtual:docs/api/modules/map'
 import { ApiTable, Example, PageTabs, Playground } from '../../../kit/index.ts'
+import CustomersByState from './customers-by-state.tsx'
 import MapPlayground from './playground.tsx'
 import SelectAState from './select-a-state.tsx'
 import SelectSeveralStates from './select-several-states.tsx'
@@ -15,6 +16,7 @@ export default function MapPage() {
 				<Example of={SelectAState} box="ratio" />
 				<Example of={SelectSeveralStates} box="ratio" />
 				<Example of={SplitTimeZones} box="ratio" />
+				<Example of={CustomersByState} box="ratio" />
 			</PageTabs>
 			<ApiTable api={api} />
 		</>

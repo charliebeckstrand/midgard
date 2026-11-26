@@ -1427,6 +1427,10 @@
 		"defaultMessage": "6 Elm Row",
 		"description": "Text of a demo in the docs as label, in components/address-input/places.ts."
 	},
+	"docs.demo.16f0ee47f993": {
+		"defaultMessage": "API key",
+		"description": "Text of a demo in the docs, in modules/events/mask-a-secret.tsx."
+	},
 	"docs.demo.16f7475c455e": {
 		"defaultMessage": "This username is taken.",
 		"description": "Text of a demo in the docs, in components/fieldset/severity.tsx."
@@ -1494,6 +1498,10 @@
 	"docs.demo.1b2e98dcc845": {
 		"defaultMessage": "Notify the team",
 		"description": "Text of a demo in the docs, in components/timeline/item-status.tsx."
+	},
+	"docs.demo.1b774f3cfe6a": {
+		"defaultMessage": "One-time code",
+		"description": "Text of a demo in the docs, in modules/events/mask-a-secret.tsx."
 	},
 	"docs.demo.1bdc71183f4f": {
 		"defaultMessage": "Archive the project?",
@@ -1699,6 +1707,10 @@
 		"defaultMessage": "Deliveries run from June 1 to August 31, 2026.",
 		"description": "Text of a demo in the docs, in components/date-input/min-and-max.tsx."
 	},
+	"docs.demo.25ec2bb688ff": {
+		"defaultMessage": "Context menu items",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/events/context-menu-items.tsx."
+	},
 	"docs.demo.25f7b3721119": {
 		"defaultMessage": "Collapse all",
 		"description": "Text of a demo in the docs, in components/json-tree/expand-all-levels.tsx."
@@ -1738,6 +1750,10 @@
 	"docs.demo.27815c9bab94": {
 		"defaultMessage": "Overall score",
 		"description": "Text of a demo in the docs, in components/rating/star-count.tsx."
+	},
+	"docs.demo.2788ac03ddd1": {
+		"defaultMessage": "Find a member by name or by the status of the account.",
+		"description": "Text of a demo in the docs, in modules/form/filters/search-and-status.tsx."
 	},
 	"docs.demo.27bf0f2d3f3f": {
 		"defaultMessage": "Invite people",
@@ -1817,7 +1833,7 @@
 	},
 	"docs.demo.2acc2c47a0c2": {
 		"defaultMessage": "Revenue by month",
-		"description": "Text of a demo in the docs as aria-label, title, in modules/chart/area/single-series.tsx, modules/chart/line/category-dividers.tsx, modules/chart/line/single-series.tsx and 3 more."
+		"description": "Text of a demo in the docs as aria-label, title, in modules/chart/area/single-series.tsx, modules/chart/context-menu-items.tsx, modules/chart/line/category-dividers.tsx and 5 more."
 	},
 	"docs.demo.2b065bde2ddb": {
 		"defaultMessage": "Select a PNG or JPEG image.",
@@ -1838,6 +1854,10 @@
 	"docs.demo.2b6a38b89f9c": {
 		"defaultMessage": "Next day",
 		"description": "Text of a demo in the docs as detail, in modules/map/geofence/circle.tsx."
+	},
+	"docs.demo.2b7f6a84de91": {
+		"defaultMessage": "Display name",
+		"description": "Text of a demo in the docs, in modules/events/mask-a-secret.tsx."
 	},
 	"docs.demo.2bb15fee5a84": {
 		"defaultMessage": "Row manager",
@@ -2021,7 +2041,7 @@
 	},
 	"docs.demo.3664895579f0": {
 		"defaultMessage": "Export",
-		"description": "Text of a demo in the docs as aria-label, label, in components/context-menu/submenus.tsx, components/menu/submenus.tsx, modules/grid/export/export.tsx."
+		"description": "Text of a demo in the docs as aria-label, label, in components/context-menu/submenus.tsx, components/menu/submenus.tsx, modules/grid/export/export.tsx and 1 more."
 	},
 	"docs.demo.36770a67e7fa": {
 		"defaultMessage": "See the visits and the conversions of the last 30 days.",
@@ -2081,7 +2101,7 @@
 	},
 	"docs.demo.39b7370f30a3": {
 		"defaultMessage": "Age",
-		"description": "Text of a demo in the docs as label, in modules/query/data.ts."
+		"description": "Text of a demo in the docs as label, in modules/query/data.ts, modules/query/filter-rows.tsx."
 	},
 	"docs.demo.39e5e0b26060": {
 		"defaultMessage": "March 2026",
@@ -2418,6 +2438,10 @@
 	"docs.demo.4aff15de2f31": {
 		"defaultMessage": "Ask anything",
 		"description": "Text of a demo in the docs as placeholder, in components/textarea/with-actions.tsx, modules/wysiwyg/with-actions.tsx."
+	},
+	"docs.demo.4b03eba62818": {
+		"defaultMessage": "Last email:",
+		"description": "Text of a demo in the docs, in modules/grid/events/context-menu-items.tsx."
 	},
 	"docs.demo.4b176df763ad": {
 		"defaultMessage": "Delete the report?",
@@ -3303,6 +3327,10 @@
 		"defaultMessage": "design-team",
 		"description": "Text of a demo in the docs as placeholder, in components/input/with-prefix.tsx."
 	},
+	"docs.demo.7ac59609c085": {
+		"defaultMessage": "Email {name}",
+		"description": "Text of a demo in the docs as label, in modules/grid/events/context-menu-items.tsx. The argument {name} is a value from the code."
+	},
 	"docs.demo.7ae495396324": {
 		"defaultMessage": "Async commit help",
 		"description": "Text of a demo in the docs as label, in modules/grid/editing/async-commit.tsx."
@@ -3354,6 +3382,10 @@
 	"docs.demo.7d339dd6cbb7": {
 		"defaultMessage": "Main content (2/3)",
 		"description": "Text of a demo in the docs, in structure/split/sidebar-layout.tsx."
+	},
+	"docs.demo.7db20897053b": {
+		"defaultMessage": "People",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/export/page-header-menu.tsx."
 	},
 	"docs.demo.7e1b0d5641f2": {
 		"defaultMessage": "Account",
@@ -3813,7 +3845,7 @@
 	},
 	"docs.demo.920e413c7d41": {
 		"defaultMessage": "Status",
-		"description": "Text of a demo in the docs as aria-label, label, title, in components/segment/filter.tsx, modules/form/filters/playground.tsx, modules/form/filters/search-and-status.tsx and 5 more."
+		"description": "Text of a demo in the docs as aria-label, label, title, in components/segment/filter.tsx, modules/form/filters/playground.tsx, modules/form/filters/search-and-status.tsx and 6 more."
 	},
 	"docs.demo.92340695899b": {
 		"defaultMessage": "Active",
@@ -3906,6 +3938,10 @@
 	"docs.demo.969ccbd3cf63": {
 		"defaultMessage": "Email",
 		"description": "Text of a demo in the docs as aria-label, placeholder, title, in components/control/playground.tsx, components/description-list/playground.tsx, components/fieldset/playground.tsx and 16 more."
+	},
+	"docs.demo.96c348cb309f": {
+		"defaultMessage": "Flag {label}",
+		"description": "Text of a demo in the docs as label, in modules/chart/context-menu-items.tsx. The argument {label} is a value from the code."
 	},
 	"docs.demo.96cfa9013743": {
 		"defaultMessage": "Last row click",
@@ -4341,7 +4377,7 @@
 	},
 	"docs.demo.aabe76f1f4ec": {
 		"defaultMessage": "Customers",
-		"description": "Text of a demo in the docs as colorName, label, in modules/chart/choropleth/heatmap.tsx, providers/density/playground.tsx."
+		"description": "Text of a demo in the docs as colorName, label, in modules/chart/choropleth/heatmap.tsx, modules/map/customers-by-state.tsx, providers/density/playground.tsx."
 	},
 	"docs.demo.ab3e1b9d1993": {
 		"defaultMessage": "Your profile is up to date.",
@@ -4865,7 +4901,7 @@
 	},
 	"docs.demo.c4b7330bd91e": {
 		"defaultMessage": "Revenue",
-		"description": "Text of a demo in the docs as label, title, yName, in components/stat/dashboard-grid.tsx, components/stat/playground.tsx, modules/chart/animated.tsx and 25 more."
+		"description": "Text of a demo in the docs as label, title, yName, in components/stat/dashboard-grid.tsx, components/stat/playground.tsx, modules/chart/animated.tsx and 27 more."
 	},
 	"docs.demo.c4d6bb200f4c": {
 		"defaultMessage": "Folders",
@@ -4915,9 +4951,17 @@
 		"defaultMessage": "\n# Release notes\n\nVersion 2.4 adds **search in attachments**. Run `app update` to get it, or\nread the _full list_ of [changes](https://example.com).\n\n## Changes\n\n- Search finds the text in attachments\n- Shared folders show who changed each file\n  - The list shows the last ten changes\n- The dark theme follows the setting of your system\n\n'>' Back up your files before you update.\n\n```ts\nexport function isLatest(version: string) '{'\n\treturn version === ''2.4''\n'}'\n```\n",
 		"description": "Text of a demo in the docs, in components/markdown/playground.tsx."
 	},
+	"docs.demo.c73410c97ab4": {
+		"defaultMessage": "Selected: {join}",
+		"description": "Text of a demo in the docs as subtitle, in modules/chart/select-a-category.tsx. The argument {join} is a value from the code."
+	},
 	"docs.demo.c7c641427c0d": {
 		"defaultMessage": "People, server pages",
 		"description": "Text of a demo in the docs as aria-label, in modules/grid/pagination/server-pagination.tsx."
+	},
+	"docs.demo.c7da43daa50b": {
+		"defaultMessage": "No month flagged",
+		"description": "Text of a demo in the docs as subtitle, in modules/chart/context-menu-items.tsx."
 	},
 	"docs.demo.c85a8d1cf19c": {
 		"defaultMessage": "Text formatting",
@@ -5337,7 +5381,7 @@
 	},
 	"docs.demo.dc937b598926": {
 		"defaultMessage": "None",
-		"description": "Text of a demo in the docs, in components/command-palette/with-actions.tsx, components/context-menu/with-actions.tsx, components/hold-button/lifecycle-callbacks.tsx and 7 more."
+		"description": "Text of a demo in the docs, in components/command-palette/with-actions.tsx, components/context-menu/with-actions.tsx, components/hold-button/lifecycle-callbacks.tsx and 8 more."
 	},
 	"docs.demo.dcbbc656768e": {
 		"defaultMessage": "Accept agreement",
@@ -5353,7 +5397,7 @@
 	},
 	"docs.demo.dcd1d5223f73": {
 		"defaultMessage": "Name",
-		"description": "Text of a demo in the docs as label, title, in components/description-list/playground.tsx, components/listbox/with-prefix.tsx, components/menu/sections.tsx and 12 more."
+		"description": "Text of a demo in the docs as label, title, in components/description-list/playground.tsx, components/listbox/with-prefix.tsx, components/menu/sections.tsx and 13 more."
 	},
 	"docs.demo.dcdc3e0b3362": {
 		"defaultMessage": "index.ts",
@@ -5577,7 +5621,7 @@
 	},
 	"docs.demo.e7cf3ef4f17c": {
 		"defaultMessage": "Password",
-		"description": "Text of a demo in the docs as aria-label, placeholder, in components/password-confirm/in-a-form.tsx, components/password-confirm/playground.tsx, components/password-confirm/with-strength-meter.tsx and 11 more."
+		"description": "Text of a demo in the docs as aria-label, placeholder, in components/password-confirm/in-a-form.tsx, components/password-confirm/playground.tsx, components/password-confirm/with-strength-meter.tsx and 12 more."
 	},
 	"docs.demo.e7d3e769f3f5": {
 		"defaultMessage": "Administrator",
@@ -5593,7 +5637,7 @@
 	},
 	"docs.demo.e83a7e6c9e3c": {
 		"defaultMessage": "Customers by state",
-		"description": "Text of a demo in the docs as aria-label, in modules/chart/choropleth/heatmap.tsx."
+		"description": "Text of a demo in the docs as aria-label, in modules/chart/choropleth/heatmap.tsx, modules/map/customers-by-state.tsx."
 	},
 	"docs.demo.e8a86c29736a": {
 		"defaultMessage": "Depots",
@@ -5654,6 +5698,10 @@
 	"docs.demo.ec0653b994fd": {
 		"defaultMessage": "The server is busy. Try again in a minute.",
 		"description": "Text of a demo in the docs as description, in modules/form/success-and-failure.tsx."
+	},
+	"docs.demo.ec09ed66060d": {
+		"defaultMessage": "No month selected",
+		"description": "Text of a demo in the docs as subtitle, in modules/chart/select-a-category.tsx."
 	},
 	"docs.demo.ec0c21885e3f": {
 		"defaultMessage": "Promo code",
@@ -5846,6 +5894,10 @@
 	"docs.demo.f4db1e48476f": {
 		"defaultMessage": "End",
 		"description": "Text of a demo in the docs as labels, in components/slider/clamped-range.tsx, structure/flex/align-and-justify.tsx."
+	},
+	"docs.demo.f4ec8eb7b90a": {
+		"defaultMessage": "Flagged: {flagged}",
+		"description": "Text of a demo in the docs as subtitle, in modules/chart/context-menu-items.tsx. The argument {flagged} is a value from the code."
 	},
 	"docs.demo.f50fb4e31e11": {
 		"defaultMessage": "Notes for the driver",
@@ -8527,6 +8579,10 @@
 		"defaultMessage": "Compound API",
 		"description": "The title of an example on a page of the docs. It comes from the file name compound-api.tsx."
 	},
+	"docs.title.context-menu-items": {
+		"defaultMessage": "Context menu items",
+		"description": "The title of an example on a page of the docs. It comes from the file name context-menu-items.tsx."
+	},
 	"docs.title.controlled": {
 		"defaultMessage": "Controlled",
 		"description": "The title of an example on a page of the docs. It comes from the file name controlled.tsx."
@@ -8610,6 +8666,10 @@
 	"docs.title.custom-swatches": {
 		"defaultMessage": "Custom swatches",
 		"description": "The title of an example on a page of the docs. It comes from the file name custom-swatches.tsx."
+	},
+	"docs.title.customers-by-state": {
+		"defaultMessage": "Customers by state",
+		"description": "The title of an example on a page of the docs. It comes from the file name customers-by-state.tsx."
 	},
 	"docs.title.dashboard-grid": {
 		"defaultMessage": "Dashboard grid",
@@ -8758,6 +8818,10 @@
 	"docs.title.filter": {
 		"defaultMessage": "Filter",
 		"description": "The title of an example on a page of the docs. It comes from the file name filter.tsx."
+	},
+	"docs.title.filter-rows": {
+		"defaultMessage": "Filter rows",
+		"description": "The title of an example on a page of the docs. It comes from the file name filter-rows.tsx."
 	},
 	"docs.title.fit-content": {
 		"defaultMessage": "Fit content",
@@ -8983,6 +9047,10 @@
 		"defaultMessage": "Majority",
 		"description": "The title of an example on a page of the docs. It comes from the file name majority.tsx."
 	},
+	"docs.title.mask-a-secret": {
+		"defaultMessage": "Mask a secret",
+		"description": "The title of an example on a page of the docs. It comes from the file name mask-a-secret.tsx."
+	},
 	"docs.title.master-detail-window": {
 		"defaultMessage": "Master detail window",
 		"description": "The title of an example on a page of the docs. It comes from the file name master-detail-window.tsx."
@@ -9094,6 +9162,10 @@
 	"docs.title.overview-inset": {
 		"defaultMessage": "Overview inset",
 		"description": "The title of an example on a page of the docs. It comes from the file name overview-inset.tsx."
+	},
+	"docs.title.page-header-menu": {
+		"defaultMessage": "Page header menu",
+		"description": "The title of an example on a page of the docs. It comes from the file name page-header-menu.tsx."
 	},
 	"docs.title.past": {
 		"defaultMessage": "Past",
@@ -9291,6 +9363,10 @@
 		"defaultMessage": "Row total",
 		"description": "The title of an example on a page of the docs. It comes from the file name row-total.tsx."
 	},
+	"docs.title.save-in-the-address": {
+		"defaultMessage": "Save in the address",
+		"description": "The title of an example on a page of the docs. It comes from the file name save-in-the-address.tsx."
+	},
 	"docs.title.search": {
 		"defaultMessage": "Search",
 		"description": "The title of an example on a page of the docs. It comes from the file name search.tsx."
@@ -9322,6 +9398,10 @@
 	"docs.title.segments": {
 		"defaultMessage": "Segments",
 		"description": "The title of an example on a page of the docs. It comes from the file name segments.tsx."
+	},
+	"docs.title.select-a-category": {
+		"defaultMessage": "Select a category",
+		"description": "The title of an example on a page of the docs. It comes from the file name select-a-category.tsx."
 	},
 	"docs.title.select-a-state": {
 		"defaultMessage": "Select a state",

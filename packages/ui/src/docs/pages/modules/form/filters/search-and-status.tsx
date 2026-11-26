@@ -4,11 +4,13 @@ import {
 	FormFilters,
 	FormFiltersBar,
 	FormFiltersField,
+	FormFiltersPrefix,
 	FormFiltersRow,
 	FormFiltersSuffix,
 } from 'ui/form'
 import { Input } from 'ui/input'
 import { Select, SelectLabel, SelectOption } from 'ui/select'
+import { Text } from 'ui/text'
 import { FiltersReset, FilterValue } from './parts.tsx'
 
 const statuses = [
@@ -37,6 +39,9 @@ export default function SearchAndStatus() {
 			onValueChange={setFilters}
 			onClear={() => setExpanded(new Set())}
 		>
+			<FormFiltersPrefix>
+				<Text tone="muted">Find a member by name or by the status of the account.</Text>
+			</FormFiltersPrefix>
 			<FormFiltersBar>
 				<FormFiltersRow>
 					<FormFiltersField name="search">
