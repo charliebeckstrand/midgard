@@ -762,7 +762,7 @@ describe('Grid', () => {
 
 			await user.click(screen.getByRole('checkbox', { name: 'Show Age' }))
 
-			expect(onHiddenChange).toHaveBeenCalled()
+			expect(onHiddenChange).toHaveBeenLastCalledWith(new Set(['age']))
 		})
 	})
 

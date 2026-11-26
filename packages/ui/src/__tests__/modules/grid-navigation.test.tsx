@@ -372,16 +372,16 @@ describe('Grid navigable cursor', () => {
 
 		const seated = grid.getAttribute('aria-activedescendant')
 
-		expect(seated && document.getElementById(seated)).toBeInTheDocument()
+		expect(document.getElementById(seated ?? '')).toBe(screen.getAllByRole('gridcell')[ROW2_ROLE])
 
 		// Shrink to a single row; the old coordinate now points past the end.
 		rerender(<Grid columns={columns} rows={rows.slice(0, 1)} getKey={getKey} navigable />)
 
 		const clamped = grid.getAttribute('aria-activedescendant')
 
-		// The active descendant still resolves to a real cell: it was re-clamped,
-		// not left dangling at the removed row.
-		expect(clamped && document.getElementById(clamped)).toBeInTheDocument()
+		// The active descendant resolves to the last cell of the one row left: it
+		// was re-clamped, not left dangling at the removed row.
+		expect(document.getElementById(clamped ?? '')).toBe(screen.getAllByRole('gridcell')[ROLE])
 	})
 })
 

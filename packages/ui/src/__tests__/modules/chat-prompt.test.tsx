@@ -94,7 +94,7 @@ describe('ChatPrompt', () => {
 
 		await user.type(el, 'a')
 
-		expect(onValueChange).toHaveBeenCalled()
+		expect(onValueChange).toHaveBeenLastCalledWith('a', [])
 	})
 
 	describe('citations', () => {

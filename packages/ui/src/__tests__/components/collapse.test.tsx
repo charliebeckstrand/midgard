@@ -45,7 +45,9 @@ describe('Collapse', () => {
 
 		expect(controls).toBeTruthy()
 
-		expect(document.getElementById(controls as string)).not.toBeNull()
+		expect(document.getElementById(controls as string)).toBe(
+			getSlot(document.body, 'collapse-panel'),
+		)
 	})
 
 	it.each([

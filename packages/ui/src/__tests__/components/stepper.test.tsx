@@ -678,12 +678,16 @@ describe('Stepper keyboard navigation', () => {
 
 			// Every panel is in the DOM, so aria-controls resolves off the current
 			// step too, which it cannot under `active` or `lazy`.
-			for (const name of ['One', 'Two']) {
+			const panels = allBySlot(document.body, 'stepper-panel')
+
+			expect(panels).toHaveLength(2)
+
+			for (const [index, name] of ['One', 'Two'].entries()) {
 				const controls = step(name).getAttribute('aria-controls')
 
 				expect(controls).toBeTruthy()
 
-				expect(document.getElementById(controls as string)).not.toBeNull()
+				expect(document.getElementById(controls as string)).toBe(panels[index])
 			}
 		})
 

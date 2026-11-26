@@ -116,7 +116,11 @@ describe('grid column resizing (real browser)', () => {
 			expect(nameHeader(container).getBoundingClientRect().width).toBeGreaterThan(startWidth + 40),
 		)
 
-		expect(onValueChange).toHaveBeenCalled()
+		// The consumer gets the width that the column now has.
+		expect(onValueChange.mock.lastCall?.[0].name).toBeNear(
+			nameHeader(container).getBoundingClientRect().width,
+			PIXEL,
+		)
 	})
 
 	it('does not fire onValueChange for the content auto-fit (no user resize)', async () => {

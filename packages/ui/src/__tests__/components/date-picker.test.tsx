@@ -380,18 +380,16 @@ describe('DatePicker', () => {
 		expect(button).toHaveTextContent('Select a date')
 	})
 
-	it('selects today via the footer Today button', async () => {
+	it('selects today via the footer Today button', async ({ clock }) => {
+		clock.set(new Date(2025, 5, 20, 9))
+
 		const onChange = vi.fn()
 
 		const { user } = await openPicker({ onValueChange: onChange })
 
 		await user.click(screen.getByRole('button', { name: 'Today' }))
 
-		expect(onChange).toHaveBeenCalled()
-
-		const arg = onChange.mock.calls[0]?.[0] as Date
-
-		expect(arg).toBeInstanceOf(Date)
+		expect(onChange).toHaveBeenCalledExactlyOnceWith(new Date(2025, 5, 20))
 	})
 
 	it('refocuses the trigger when closed with Escape', async () => {

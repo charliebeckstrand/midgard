@@ -7,6 +7,7 @@ import {
 	bySlot,
 	fireEvent,
 	getSlot,
+	present,
 	renderUI,
 	screen,
 	setupUser,
@@ -691,7 +692,9 @@ describe('TabContents mount policy', () => {
 
 		expect(controls).toBeTruthy()
 
-		expect(document.getElementById(controls as string)).not.toBeNull()
+		expect(document.getElementById(controls as string)).toBe(
+			present(panelB.closest('[role="tabpanel"]'), 'the tabpanel of B'),
+		)
 	})
 
 	it('mount="lazy" leaves never-visited panels unmounted, without a tab aria-controls', () => {
