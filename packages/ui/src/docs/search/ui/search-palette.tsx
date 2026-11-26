@@ -1,20 +1,14 @@
 import entries from 'virtual:docs/search'
 import { useEffect, useMemo, useState } from 'react'
 import { PrefetchPageLinks } from 'react-router'
-import {
-	CommandPalette,
-	CommandPaletteDescription,
-	CommandPaletteItem,
-	CommandPaletteLabel,
-	CommandPaletteText,
-	useCommandPaletteDeferredQuery,
-} from 'ui/command-palette'
+import { CommandPalette, useCommandPaletteDeferredQuery } from 'ui/command-palette'
 import { useTimeout } from 'ui/hooks'
-import { defineMessage, defineMessages, type MessageDescriptor, useIntl } from 'ui/primitives/intl'
+import { defineMessage, useIntl } from 'ui/primitives/intl'
 import { VirtualOptions } from 'ui/primitives/virtual-options'
-import { createSearchIndex, type Matchable } from '../engine/index.ts'
-import type { SearchKind } from '../types.ts'
+import { componentOfHash, toApiId } from '../../kit/anchors.ts'
+import { createSearchIndex, findMember } from '../engine/index.ts'
 import { localizeEntry } from './localize.ts'
+import { type SearchOption, SearchResult } from './search-result.tsx'
 
 // The palette of the search, with the entries in it. The shell loads this
 // module in idle time after the hydration (`search-provider.tsx`), so the
@@ -28,48 +22,7 @@ const placeholderMessage = defineMessage({
 		'The placeholder of the search field of the docs, and its name. Props and events are the inputs of a component.',
 })
 
-// The kind of each entry, which its result shows before the place of the entry.
-const KIND_LABELS: Readonly<Record<SearchKind, MessageDescriptor>> = defineMessages({
-	page: {
-		id: 'docs.search.kind.page',
-		defaultMessage: 'Page',
-		description: 'The kind of a search result that is a page of the docs, such as Button.',
-	},
-	tab: {
-		id: 'docs.search.kind.tab',
-		defaultMessage: 'Tab',
-		description:
-			'The kind of a search result that is a tab of a page of the docs, such as Sorting.',
-	},
-	example: {
-		id: 'docs.search.kind.example',
-		defaultMessage: 'Example',
-		description: 'The kind of a search result that is an example on a page of the docs.',
-	},
-	component: {
-		id: 'docs.search.kind.component',
-		defaultMessage: 'API reference',
-		description:
-			'The kind of a search result that is the API reference of a component: its props and its events.',
-	},
-	prop: {
-		id: 'docs.search.kind.prop',
-		defaultMessage: 'Prop',
-		description:
-			'The kind of a search result that is a prop of a component: an input of the component.',
-	},
-	event: {
-		id: 'docs.search.kind.event',
-		defaultMessage: 'Event',
-		description:
-			'The kind of a search result that is an event prop of a component, such as onChange.',
-	},
-})
-
-/** An entry with the id of its option, the common name of a page, and the shown place. */
-type Option = Matchable & { id: string }
-
-const options: readonly Option[] = entries.map((entry, index) => ({
+const options: readonly SearchOption[] = entries.map((entry, index) => ({
 	...entry,
 	id: `search-${index}`,
 }))
@@ -92,7 +45,7 @@ const PREFETCH_SETTLE = 300
  * a hover. A pick then does not wait for the network. An empty query has no
  * results, so it loads nothing.
  */
-function PrefetchResults({ matches }: { matches: readonly Option[] }) {
+function PrefetchResults({ matches }: { matches: readonly SearchOption[] }) {
 	const [pages, setPages] = useState<readonly string[]>([])
 
 	const timeout = useTimeout()
@@ -110,23 +63,41 @@ function PrefetchResults({ matches }: { matches: readonly Option[] }) {
 	return pages.map((page) => <PrefetchPageLinks key={page} page={page} />)
 }
 
+/**
+ * The option with a link to the row of its prop or its event, when a word of
+ * `query` is the name of one: `button variant` goes to the `variant` row of
+ * `<Button />`. Any other option keeps its link.
+ */
+function toMemberLink(option: SearchOption, query: string): SearchOption {
+	const member = findMember(option, query)
+
+	const [path, hash = ''] = option.href.split('#')
+
+	const component = componentOfHash(`#${hash}`)
+
+	if (member === undefined || component === undefined) return option
+
+	return { ...option, href: `${path}#${toApiId(component, member)}` }
+}
+
 function Results({ onPick }: { onPick: () => void }) {
 	const query = useCommandPaletteDeferredQuery()
 
 	const intl = useIntl()
 
-	// The title of an example, the name of a tab, and the place of an entry
-	// show in the language of the reader, and the query matches that text. A
-	// page keeps its name from the code, and the query also matches its common
-	// name, such as "Botón" for Button. The query also matches the English
-	// place, so an English word, such as "sorting", finds the same entries in
-	// each language.
+	// The name of a tab and the place of an entry show in the language of the
+	// reader, and the query matches that text (`localize.ts`). A page keeps its
+	// name from the code, and the query also matches its common name, such as
+	// "Botón" for Button.
 	const index = useMemo(
 		() => createSearchIndex(options.map((option) => localizeEntry(intl, option))),
 		[intl],
 	)
 
-	const matches = useMemo(() => index.search(query), [index, query])
+	const matches = useMemo(
+		() => index.search(query).map((option) => toMemberLink(option, query)),
+		[index, query],
+	)
 
 	return (
 		<>
@@ -139,28 +110,7 @@ function Results({ onPick }: { onPick: () => void }) {
 			 */}
 			<VirtualOptions items={matches} getOptionId={(option) => option.id}>
 				{(option, _index, meta) => (
-					<CommandPaletteItem
-						key={option.id}
-						id={option.id}
-						href={option.href}
-						onAction={onPick}
-						{...meta}
-					>
-						{/*
-						 * A name from the code, such as <Grid />, keeps its order on a
-						 * right-to-left page in its own bdi. The description slot is a
-						 * flex box, so one bdi holds all of the description and keeps
-						 * the space before "·".
-						 */}
-						<CommandPaletteText>
-							<CommandPaletteLabel>
-								<bdi>{option.label}</bdi>
-							</CommandPaletteLabel>
-							<CommandPaletteDescription>
-								<bdi>{`${intl.formatMessage(KIND_LABELS[option.kind])} · ${option.place}`}</bdi>
-							</CommandPaletteDescription>
-						</CommandPaletteText>
-					</CommandPaletteItem>
+					<SearchResult key={option.id} option={option} meta={meta} onPick={onPick} />
 				)}
 			</VirtualOptions>
 		</>
@@ -168,8 +118,9 @@ function Results({ onPick }: { onPick: () => void }) {
 }
 
 /**
- * The search of the docs: a command palette over each page, tab, example,
- * component, and prop. A pick goes to the page of the entry and to its
+ * The search of the docs: a command palette over each page, tab, and API
+ * reference of a component. A prop or an event finds the API reference of its
+ * component. A pick goes to the page of the entry and to its
  * anchor. `⌘K`, or `Ctrl+K` elsewhere, opens it and closes it.
  */
 export function SearchPalette({
