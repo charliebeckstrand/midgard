@@ -1,17 +1,11 @@
-import { useSyncExternalStore } from 'react'
 import { cn } from '../../core/cn.ts'
-import { noopSubscribe } from '../../utilities/noop.ts'
+import { useShortcutPlatform } from './use-shortcut-platform.ts'
 
 /** Props for {@link ShortcutHint}. */
 export type ShortcutHintProps = {
 	/** The key after the modifier, such as "J" for a `$mod+KeyJ` binding. */
 	keyName: string
 }
-
-const isApple = () => /Mac|iPod|iPhone|iPad/.test(navigator.platform)
-
-// The build cannot know the platform of the reader, so each page shows ⌘.
-const serverIsApple = () => true
 
 /**
  * The key of a `$mod` shortcut: ⌘ and the key on Apple platforms, ⌃ (Control)
@@ -23,7 +17,7 @@ const serverIsApple = () => true
  * (CONVENTIONS §3.13). Put it in a `Kbd`.
  */
 export function ShortcutHint({ keyName }: ShortcutHintProps) {
-	const apple = useSyncExternalStore(noopSubscribe, isApple, serverIsApple)
+	const apple = useShortcutPlatform()
 
 	return (
 		<span className="inline-grid justify-items-center">

@@ -38,7 +38,9 @@ function nativeRangeValue(value: number, min: number, max: number, step: number)
 }
 
 type SliderBaseProps = SliderVariants & {
+	/** Controlled value. Without it, the slider takes the bound field, or holds its own value. */
 	value?: number
+	/** Initial value when uncontrolled and not form-bound. */
 	defaultValue?: number
 	/** Fires when the value changes. */
 	onValueChange?: (value: number) => void

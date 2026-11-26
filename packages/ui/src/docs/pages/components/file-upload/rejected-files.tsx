@@ -22,6 +22,7 @@ export default function RejectedFiles() {
 			<Description>A PNG or JPEG image, up to 1 MB.</Description>
 			<FileUploadInput
 				accept="image/png,image/jpeg"
+				invalidMessage={null}
 				maxSize={1_000_000}
 				onAccept={() => setReason(undefined)}
 				onReject={([rejection]) => setReason(rejection?.reason)}

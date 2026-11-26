@@ -25,6 +25,7 @@ import { useHydrated } from '../../hooks/use-hydrated.ts'
 import { noop } from '../../utilities/noop.ts'
 import { PageTitle } from '../kit/page-title.tsx'
 import { useIdle } from '../kit/use-idle.ts'
+import { useShortcutPlatformKeys } from '../kit/use-shortcut-platform.ts'
 import appCss from './app.css?url'
 import { catalogs } from './catalogs.ts'
 import { NavigateContext, useDocumentLocale } from './context.ts'
@@ -168,6 +169,9 @@ function Shell() {
 
 	const intl = useIntl()
 
+	// The layout binds `$mod+B` to the sidebar (`SidebarLayout`).
+	const sidebarKeys = useShortcutPlatformKeys('B')
+
 	const page = useMatchedPage()
 
 	// A path with no page, such as `/button/foo`, takes the title of the
@@ -225,6 +229,7 @@ function Shell() {
 									className="hidden lg:inline-flex"
 									aria-label={intl.formatMessage(messages.toggleSidebar)}
 									aria-expanded={sidebar === 'locked'}
+									aria-keyshortcuts={sidebarKeys}
 									onClick={() => setSidebar(sidebar === 'offcanvas' ? 'locked' : 'offcanvas')}
 								>
 									{/* The class of the root selects the icon, so the first paint shows the stored mode. */}
@@ -248,9 +253,14 @@ function Shell() {
 }
 
 /**
- * Shows in place of the shell when the shell fails to render. An error in a
- * page stays in the error boundary of the pages (`routes/page.tsx`).
+ * Shows in place of the shell when the shell fails to render, in the main
+ * landmark. An error in a page stays in the error boundary of the pages
+ * (`routes/page.tsx`).
  */
 export function ErrorBoundary() {
-	return <PageError level={1} />
+	return (
+		<main>
+			<PageError level={1} />
+		</main>
+	)
 }

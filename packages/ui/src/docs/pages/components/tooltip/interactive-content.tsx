@@ -10,13 +10,13 @@ export default function InteractiveContent() {
 	return (
 		<Tooltip interactive trigger={trigger}>
 			<TooltipTrigger>
-				<Button variant="outline">Save draft</Button>
+				<Button variant="outline">Share</Button>
 			</TooltipTrigger>
 			<TooltipContent>
 				<Flex align="center" gap="sm">
-					Draft saved
+					Anyone with the link can view
 					<Button size="sm" variant="outline">
-						Undo
+						Copy link
 					</Button>
 				</Flex>
 			</TooltipContent>

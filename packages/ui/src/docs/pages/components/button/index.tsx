@@ -1,5 +1,6 @@
 import api from 'virtual:docs/api/components/button'
 import { ApiTable, Example, Playground } from '../../../kit/index.ts'
+import AsLink from './as-link.tsx'
 import Disabled from './disabled.tsx'
 import IconOnly from './icon-only.tsx'
 import ButtonPlayground from './playground.tsx'
@@ -12,6 +13,7 @@ export default function ButtonPage() {
 			<Example of={WithIcon} />
 			<Example of={IconOnly} />
 			<Example of={Disabled} />
+			<Example of={AsLink} />
 			<ApiTable api={api} />
 		</>
 	)

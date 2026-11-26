@@ -56,7 +56,7 @@ export const DocsSidebar = memo(function DocsSidebar({ pages }: { pages: readonl
 	const components = sections[0]?.links ?? []
 
 	return (
-		<Sidebar>
+		<Sidebar aria-label={intl.formatMessage(appMessages.pages)}>
 			<SidebarHeader>
 				<Heading level={2}>
 					<IntlMessage message={appMessages.docs} />

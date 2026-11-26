@@ -55,15 +55,7 @@ const brotli = promisify(brotliCompress)
 const gzipAsync = promisify(gzip)
 
 /** The client directory of the docs build. */
-export const CLIENT_DIR = path.resolve(
-	import.meta.dirname,
-	'..',
-	'..',
-	'src',
-	'docs',
-	'dist',
-	'client',
-)
+export const CLIENT_DIR = path.resolve(import.meta.dirname, '..', '..', 'dist', 'docs', 'client')
 
 /**
  * The path of each prerendered page in the client directory `root`, in order,

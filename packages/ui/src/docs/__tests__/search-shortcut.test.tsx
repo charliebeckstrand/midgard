@@ -31,3 +31,27 @@ describe('the key of the docs search button', () => {
 		expect(hydrateOnPlatform(button, 'Win32', readKey)).toEqual({ before: '⌘K', after: '⌃K' })
 	})
 })
+
+// The key is in `aria-keyshortcuts`, and the `Kbd` is hidden from the
+// accessibility tree, so the name of the button is only its label.
+const readKeys = (container: Element) => {
+	const search = container.querySelector('button')
+
+	return `${search?.getAttribute('aria-keyshortcuts')} ${search?.querySelector('kbd')?.getAttribute('aria-hidden')}`
+}
+
+describe('the shortcut of the docs search button for a screen reader', () => {
+	it('is Meta+K on Apple platforms, with the key hidden', () => {
+		expect(hydrateOnPlatform(button, 'MacIntel', readKeys)).toEqual({
+			before: 'Meta+K true',
+			after: 'Meta+K true',
+		})
+	})
+
+	it('is Control+K after the hydration on other platforms', () => {
+		expect(hydrateOnPlatform(button, 'Win32', readKeys)).toEqual({
+			before: 'Meta+K true',
+			after: 'Control+K true',
+		})
+	})
+})

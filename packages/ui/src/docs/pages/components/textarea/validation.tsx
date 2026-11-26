@@ -5,6 +5,11 @@ import { drafts } from './drafts.ts'
 export default function Validation() {
 	return (
 		<>
+			<Field severity="error">
+				<Label>Summary</Label>
+				<Textarea />
+				<Message>Enter a summary of the change.</Message>
+			</Field>
 			<Field severity="success">
 				<Label>Bio</Label>
 				<Textarea defaultValue={drafts.bio} />

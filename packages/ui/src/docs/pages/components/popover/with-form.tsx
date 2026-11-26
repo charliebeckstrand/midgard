@@ -3,7 +3,7 @@ import { Button } from 'ui/button'
 import { Field, Label } from 'ui/fieldset'
 import { Flex } from 'ui/flex'
 import { Input } from 'ui/input'
-import { Popover, PopoverContent, PopoverTrigger } from 'ui/popover'
+import { Popover, PopoverClose, PopoverContent, PopoverTrigger } from 'ui/popover'
 import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
 import { files } from './files.ts'
@@ -34,7 +34,12 @@ export default function WithForm() {
 								<Label>Name</Label>
 								<Input name="name" defaultValue={name} required />
 							</Field>
-							<Flex justify="end">
+							<Flex justify="end" gap="sm">
+								<PopoverClose>
+									<Button type="button" variant="plain">
+										Cancel
+									</Button>
+								</PopoverClose>
 								<Button type="submit">Save</Button>
 							</Flex>
 						</Stack>

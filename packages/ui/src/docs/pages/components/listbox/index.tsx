@@ -3,6 +3,7 @@ import { ApiTable, Example, FrameDefaults, Playground } from '../../../kit/index
 import Controlled from './controlled.tsx'
 import InAForm from './in-a-form.tsx'
 import ListboxPlayground from './playground.tsx'
+import WithDescriptions from './with-descriptions.tsx'
 import WithPrefix from './with-prefix.tsx'
 
 export default function ListboxPage() {
@@ -10,6 +11,7 @@ export default function ListboxPage() {
 		<FrameDefaults box="column">
 			<Playground of={ListboxPlayground} api={api} omit={['open', 'required']} />
 			<Example of={WithPrefix} />
+			<Example of={WithDescriptions} />
 			<Example of={Controlled} />
 			<Example of={InAForm} />
 			<ApiTable api={api} />

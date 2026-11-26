@@ -3,8 +3,8 @@ import { Wysiwyg, WysiwygToolbar } from 'ui/wysiwyg'
 import { drafts } from './drafts.ts'
 
 export default function ReadOnly() {
-	// A read-only field stays in the tab order, and the buttons of its toolbar
-	// are disabled. A disabled field leaves the tab order.
+	// A read-only field stays in the tab order, and its toolbar is inert: its
+	// buttons take no focus and no press. A disabled field leaves the tab order.
 	return (
 		<>
 			<Field>

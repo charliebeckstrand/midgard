@@ -27,10 +27,10 @@ export type ButtonProps = ButtonBaseProps & PolymorphicProps<'button', 'prefix'>
 /**
  * A button that starts an action. It renders a `<button>`, or a `<Link>` anchor
  * when `href` is set. Without `size`, it takes the step of the nearest density
- * scope through stepped classes, and reads no context. An explicit `size` makes
+ * scope through stepped classes, and reads no density context. An explicit `size` makes
  * the button its own scope. It swaps in a `<LoadingSpinner>` while `loading`.
  * It collapses to a square hit area when icon-only, and degrades to headless
- * output under that provider. Compose `<ButtonSkeleton>` in loading trees. A
+ * output under a HeadlessProvider. Compose `<ButtonSkeleton>` in loading trees. A
  * button with no `variant` or `color` takes the one of the surface around it,
  * such as the soft color of an alert for its actions. The defaults of a surface
  * stop at a portal, such as a dialog that an action opens.

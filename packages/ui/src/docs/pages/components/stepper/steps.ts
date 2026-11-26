@@ -11,3 +11,11 @@ export const instructions = Object.values(
 		confirm: 'Check your details.',
 	}),
 )
+
+export const summaries = Object.values(
+	words('signup-summary', {
+		account: 'Email and password',
+		profile: 'Name and photo',
+		confirm: 'Review and finish',
+	}),
+)

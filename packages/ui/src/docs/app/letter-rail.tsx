@@ -11,7 +11,8 @@ import type { PageLink } from '../plugin/pages.ts'
 // The letter rail at the side of the sidebar body. A press on a letter scrolls
 // the body to the first page with that letter, and a slide along the rail
 // follows the finger from letter to letter. The rail shows the letter of the
-// page at the top of the body, and mutes the other letters. A page of the
+// page at the top of the body, and mutes the other letters. A muted letter
+// keeps 4.5:1 on the sidebar, because each letter is a target. A page of the
 // rail has a letter, and a page after the pages of the rail has none, so when
 // the pages of the rail are above the top, the rail shows no letter.
 //
@@ -367,7 +368,7 @@ export function LetterRail({
 							// A dot has no letter, and its position is fixed for each count of marks.
 							key={letter ?? `dot-${mark}`}
 							data-active={dataAttr(mark === activeMark)}
-							className="flex h-6 min-h-3.5 w-7 shrink items-center justify-center font-medium text-xs/none text-zinc-400 transition-colors not-data-active:hover:text-zinc-600 data-active:font-semibold data-active:text-zinc-950 motion-reduce:transition-none dark:text-zinc-500 dark:data-active:text-white dark:not-data-active:hover:text-zinc-300"
+							className="flex h-6 min-h-3.5 w-7 shrink items-center justify-center font-medium text-xs/none text-zinc-600 transition-colors not-data-active:hover:text-zinc-800 data-active:font-semibold data-active:text-zinc-950 motion-reduce:transition-none dark:text-zinc-400 dark:data-active:text-white dark:not-data-active:hover:text-zinc-200"
 						>
 							{letter ?? '•'}
 						</span>

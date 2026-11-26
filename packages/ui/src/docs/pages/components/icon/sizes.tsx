@@ -4,7 +4,7 @@ import { Flex } from 'ui/flex'
 import { Icon } from 'ui/icon'
 import { Stack } from 'ui/stack'
 
-const sizes = ['xs', 'sm', 'md', 'lg'] as const
+const sizes = ['xs', 'sm', 'md', 'lg', 'xl'] as const
 
 export default function Sizes() {
 	return (

@@ -40,7 +40,10 @@ export default defineConfig({
 			'../components/code/code-shiki-worker.ts',
 		],
 	},
-	build: { target: 'esnext' },
+	// The build folder is out of the root (`plugin/target.ts`), so neither React
+	// Router nor Vite empties it by default. Each build starts from an empty
+	// folder, so no file of an earlier build stays in the output.
+	build: { target: 'esnext', emptyOutDir: true },
 	// The client build puts React and the router in one chunk, the shell with
 	// each module that it imports in one more chunk, and the kit with each
 	// module that it imports in a third. The shell chunk also holds the
