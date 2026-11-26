@@ -480,7 +480,7 @@ describe('grid infinite scroll (real browser)', () => {
  * width instead of reflowing the columns. Only observable over the real
  * virtualizer + layout (jsdom neither windows rows nor measures widths).
  */
-describe('grid infinite scroll — stable column widths (real browser)', () => {
+describe('grid infinite scroll: stable column widths (real browser)', () => {
 	type WideRow = { id: number; label: string }
 
 	const wideColumns: GridColumn<WideRow>[] = [

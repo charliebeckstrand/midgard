@@ -157,7 +157,7 @@ describe('engine purity boundary', () => {
 
 			expect(
 				violations,
-				`\`modules/${module}/engine\` is a pure core — see the module ROADMAP §Engine:\n  ${violations.join('\n  ')}`,
+				`\`modules/${module}/engine\` is a pure core (see the module ROADMAP §Engine):\n  ${violations.join('\n  ')}`,
 			).toEqual([])
 		})
 

@@ -44,7 +44,7 @@ describe('useGridRowManager', () => {
 	const render = (config: GridRowGroup[] | undefined) =>
 		renderHook(() => useGridRowManager({ config, naturalGroups: groups }))
 
-	it('is a no-op overlay by default — natural order, no colors, no manual order', () => {
+	it('is a no-op overlay by default: natural order, no colors, no manual order', () => {
 		const { result } = render(undefined)
 
 		expect(result.current.managerGroups.map((g) => g.key)).toEqual(['a', 'b', 'c'])

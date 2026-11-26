@@ -71,7 +71,7 @@ describe('chart data-change transition', () => {
 		expect(generation(container)).toBe(before)
 	})
 
-	it('holds the generation across a resize — same values, new width', () => {
+	it('holds the generation across a resize (same values, new width)', () => {
 		const { container, rerender } = renderUI(bars(DATA, { width: 400 }))
 
 		const before = generation(container)

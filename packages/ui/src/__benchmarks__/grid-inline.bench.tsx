@@ -38,7 +38,7 @@ compareBenches('Grid · inline mount (small)', (bench) => {
 	)
 })
 
-compareBenches('Grid · inline mount — truncate on/off', (bench) => {
+compareBenches('Grid · inline mount, truncate on/off', (bench) => {
 	// `truncate` defaults true, so each data cell mounts a `GridCellContent`: a
 	// truncating span with an overflow observer. The tooltip mounts only on the
 	// first contact with a clipped cell. Toggling it off isolates that per-cell

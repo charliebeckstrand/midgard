@@ -138,7 +138,7 @@ describe('sortRowsSmart', () => {
 		expect(order(rows, [field('group'), field('amount', true)])).toEqual(['a', 'b', 'c'])
 	})
 
-	it('is stable — equal rows hold their original order', () => {
+	it('is stable: equal rows hold their original order', () => {
 		const rows: Row[] = [
 			{ id: 'a', group: 'same' },
 			{ id: 'b', group: 'same' },

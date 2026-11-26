@@ -346,7 +346,7 @@ describe('mapFrameSizing', () => {
 			sizing: { mode: 'aspect', ratio: 4 / 3 },
 		},
 		{
-			name: "fills the container only when free-form — 'auto' never falls through",
+			name: "fills the container only when free-form, so 'auto' never falls through",
 			height: undefined,
 			ratio: false,
 			aspect: 3,

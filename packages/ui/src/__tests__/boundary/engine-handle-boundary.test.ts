@@ -383,7 +383,7 @@ function scanSource(server: TypeScriptServer): Scan {
 function lines(violations: Violation[]): string[] {
 	return violations.map(
 		(violation) =>
-			`${violation.file}:${violation.line} ${violation.fn}: ${violation.reason} — ${violation.text}`,
+			`${violation.file}:${violation.line} ${violation.fn}: ${violation.reason}: ${violation.text}`,
 	)
 }
 

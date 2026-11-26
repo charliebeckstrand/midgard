@@ -1469,7 +1469,7 @@ describe('MapPlat region click', () => {
 		expect(bySlot(container, 'map-regions')?.getAttribute('class')).not.toContain('cursor-pointer')
 	})
 
-	it('leaves the plot a role="img" leaf — the click is a pointer enhancement', () => {
+	it('leaves the plot a role="img" leaf, because the click is a pointer enhancement', () => {
 		const { container } = renderUI(categoricalPlat({ onRegionClick: () => {} }))
 
 		// The keyboard and assistive path is a control the consumer supplies beside

@@ -60,7 +60,7 @@ describe('component filename boundary', () => {
 	it('every component file matches the filename convention', () => {
 		expect(
 			newViolations,
-			`filename violation(s) in packages/ui/src/{components,structure,primitives} — see CONVENTIONS.md §3.3:\n${newViolations
+			`filename violation(s) in packages/ui/src/{components,structure,primitives} (see CONVENTIONS.md §3.3):\n${newViolations
 				.map((violation) => `  ${violation.path}\n    ${violation.reason}`)
 				.join('\n')}`,
 		).toEqual([])
@@ -69,7 +69,7 @@ describe('component filename boundary', () => {
 	it('the allowlist does not contain stale entries', () => {
 		expect(
 			staleEntries,
-			`stale allowlist entry/ies (file no longer exists or no longer violates) — remove them from ALLOWLIST:\n${staleEntries
+			`stale allowlist entry/ies (file no longer exists or no longer violates). Remove them from ALLOWLIST:\n${staleEntries
 				.map((path) => `  ${path}`)
 				.join('\n')}`,
 		).toEqual([])

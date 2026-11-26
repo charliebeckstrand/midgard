@@ -123,7 +123,7 @@ describe('quantileThresholds', () => {
 		expect(quantileThresholds([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 5)).toEqual([2, 4, 6, 8])
 	})
 
-	it('returns no edges for a flat domain or fewer than two buckets — a single bin', () => {
+	it('returns no edges for a flat domain or fewer than two buckets (a single bin)', () => {
 		expect(quantileThresholds([7, 7, 7], 5)).toEqual([])
 
 		expect(quantileThresholds([1, 2, 3], 1)).toEqual([])
@@ -137,7 +137,7 @@ describe('quantileThresholds', () => {
 })
 
 describe('quantileBinIndex', () => {
-	it('counts the thresholds a value meets or exceeds — an edge reads into the upper bin', () => {
+	it('counts the thresholds a value meets or exceeds, so an edge reads into the upper bin', () => {
 		const thresholds = [2, 4, 6, 8]
 
 		expect(quantileBinIndex(1, thresholds)).toBe(0)

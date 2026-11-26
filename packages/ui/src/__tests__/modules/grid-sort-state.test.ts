@@ -89,7 +89,7 @@ describe('nextSort', () => {
 			expect(nextSort(base, 'b', true)).toEqual([{ column: 'a', direction: 'asc' }])
 		})
 
-		it("keeps additive semantics — including the drop — under cycle: 'toggle'", () => {
+		it("keeps additive semantics (the drop included) under cycle: 'toggle'", () => {
 			const base: GridSortState[] = [{ column: 'a', direction: 'asc' }]
 
 			expect(nextSort(base, 'b', true, 'toggle')).toEqual([

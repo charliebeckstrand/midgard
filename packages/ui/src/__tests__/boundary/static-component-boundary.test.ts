@@ -222,7 +222,7 @@ describe('static component boundary', () => {
 
 		expect(
 			missing,
-			`static list entry/ies point to files that no longer exist — remove them:\n${missing
+			`static list entry/ies point to files that no longer exist. Remove them:\n${missing
 				.map((file) => `  ${file}`)
 				.join('\n')}`,
 		).toEqual([])

@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { resolveAriaRowCount, resolveInfiniteScroll } from '../../modules/grid/grid-data-resolvers'
 import { resolveLoadMore } from '../../modules/grid/use-grid-infinite-scroll'
 
-describe('resolveLoadMore — overflowing (scroll-driven) regime', () => {
+describe('resolveLoadMore: overflowing (scroll-driven) regime', () => {
 	// Base case: 50 loaded rows in an overflowing 600px window, the last rendered
 	// row at index 45, threshold 5, exactly at the loaded end's threshold zone
 	// (45 >= 50 - 1 - 5 = 44), with a scroll interaction since the last fire.
@@ -81,7 +81,7 @@ describe('resolveLoadMore — overflowing (scroll-driven) regime', () => {
 	})
 })
 
-describe('resolveLoadMore — viewport-fill regime', () => {
+describe('resolveLoadMore: viewport-fill regime', () => {
 	// 10 loaded rows that don't yet overflow the 600px viewport: every row
 	// renders, the loaded end is within any threshold, and no scroll can happen.
 	// The cap didn't resolve to a fixed length, so the growth check applies.
@@ -228,7 +228,7 @@ describe('resolveInfiniteScroll', () => {
 	})
 })
 
-describe('resolveAriaRowCount — under infinite scroll', () => {
+describe('resolveAriaRowCount: under infinite scroll', () => {
 	it('reports the loaded count + 1 when no more rows remain to load', () => {
 		// Unpaginated: rendered 50 + the header row.
 		expect(resolveAriaRowCount(null, 50, 0, { hasMore: false, totalRows: null })).toBe(51)

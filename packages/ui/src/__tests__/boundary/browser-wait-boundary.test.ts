@@ -71,7 +71,7 @@ describe('browser wait boundary', () => {
 
 		expect(
 			text,
-			`a number literal as a deadline does not scale on CI — give it through \`budget(ms)\` from \`browser/helpers/wall-clock.ts\`:\n  ${text}`,
+			`a number literal as a deadline does not scale on CI. Give it through \`budget(ms)\` from \`browser/helpers/wall-clock.ts\`:\n  ${text}`,
 		).toBe('')
 	})
 
@@ -80,7 +80,7 @@ describe('browser wait boundary', () => {
 
 		expect(
 			text,
-			`a hand-made hold — wait for a signal (\`waitFor\`, \`once\`, \`sampleUntil\`, \`frames\`), or use \`pause()\` from \`browser/helpers/wall-clock.ts\` where no signal exists:\n  ${text}`,
+			`a hand-made hold. Wait for a signal (\`waitFor\`, \`once\`, \`sampleUntil\`, \`frames\`), or use \`pause()\` from \`browser/helpers/wall-clock.ts\` where no signal exists:\n  ${text}`,
 		).toBe('')
 	})
 
@@ -89,7 +89,7 @@ describe('browser wait boundary', () => {
 
 		expect(
 			text,
-			`a wait that can pass the time limit of its case fails as an opaque timeout — set \`{ timeout: budget(ms) }\` on the case, above the wait:\n  ${text}`,
+			`a wait that can pass the time limit of its case fails as an opaque timeout. Set \`{ timeout: budget(ms) }\` on the case, above the wait:\n  ${text}`,
 		).toBe('')
 	})
 

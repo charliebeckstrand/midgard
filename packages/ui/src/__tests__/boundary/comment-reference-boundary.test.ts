@@ -504,14 +504,14 @@ describe('comment reference boundary', () => {
 	it('every test or benchmark file a comment names in full exists', () => {
 		expect(
 			citations,
-			`comments naming a test or benchmark file that does not exist — cite the rule's current home, or drop the citation:\n${citations.join('\n')}`,
+			`comments naming a test or benchmark file that does not exist. Cite the rule's current home, or drop the citation:\n${citations.join('\n')}`,
 		).toEqual([])
 	})
 
 	it('every {@link} target names a symbol the package or the platform declares', () => {
 		expect(
 			links,
-			`\`{@link}\` targets naming a symbol no file here and no TypeScript library declares — repoint or drop each one (CONVENTIONS.md §12.1):\n${links.join('\n')}`,
+			`\`{@link}\` targets naming a symbol no file here and no TypeScript library declares. Repoint or drop each one (CONVENTIONS.md §12.1):\n${links.join('\n')}`,
 		).toEqual([])
 	})
 })

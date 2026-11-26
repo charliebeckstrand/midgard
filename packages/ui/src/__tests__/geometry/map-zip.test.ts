@@ -164,7 +164,7 @@ describe('zipMatcher', () => {
 			expected: ['60601'],
 		},
 		{
-			name: 'holds every code under a prefix — the ZIP3 a broker states a region by',
+			name: 'holds every code under a prefix (the ZIP3 a broker states a region by)',
 			selection: '606',
 			codes: ['60599', '60600', '60650', '60699', '60700'],
 			expected: ['60600', '60650', '60699'],

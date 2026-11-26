@@ -61,7 +61,7 @@ describe('the selected region', () => {
 })
 
 describe('every other region while one is selected', () => {
-	it('loses its color — both halves of every pair', () => {
+	it('loses its color in both halves of every pair', () => {
 		expect(dimmed).not.toContain('bg-amber-500/15')
 		expect(dimmed).not.toContain('ring-amber-500')
 		expect(dimmed).not.toContain('dark:ring-amber-600')

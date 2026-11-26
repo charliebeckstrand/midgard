@@ -253,7 +253,7 @@ describe('secondary y-axis', () => {
 		expect(bySlot(container, 'chart-reference-list')?.textContent).toContain('Ceiling: 40%')
 	})
 
-	it('keeps a mixed-axis stack on one scale — the left, when its series disagree', () => {
+	it('keeps a mixed-axis stack on one scale (the left) when its series disagree', () => {
 		const { container } = renderUI(
 			<BarChart
 				aria-label="Disagreeing stacked axes"

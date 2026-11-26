@@ -956,7 +956,7 @@ describe('Grid export', () => {
 		await waitFor(() => expect(overlay()).toBeNull())
 	})
 
-	it('leaves a synchronous export uncovered — there is no wait to report', () => {
+	it('leaves a synchronous export uncovered, because there is no wait to report', () => {
 		const download = captureDownload()
 
 		renderUI(<Grid exportable={['csv']} columns={columns} rows={rows} getKey={getKey} />)
@@ -1171,7 +1171,7 @@ describe('useGridExportActions', () => {
 		expect(onExport).toHaveBeenCalledWith(expect.objectContaining({ rows, columns }))
 	})
 
-	it('stays settled through a synchronous export — there is nothing to wait on', () => {
+	it('stays settled through a synchronous export, because there is nothing to wait on', () => {
 		renderUI(<Probe exportRows={() => rows} onExport={() => {}} />)
 
 		fireEvent.click(screen.getByRole('button', { name: 'Export to CSV' }))

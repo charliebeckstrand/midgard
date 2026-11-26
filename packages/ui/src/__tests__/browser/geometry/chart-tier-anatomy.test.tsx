@@ -76,7 +76,7 @@ describe('chart intrinsic tiers (real browser)', () => {
 		expect(bySlot(expanded.container, 'chart')).toHaveAttribute('data-tier', 'expanded')
 	})
 
-	it('strips a spark frame to bare marks — no axes, no gridlines', () => {
+	it('strips a spark frame to bare marks (no axes, no gridlines)', () => {
 		const { container } = renderUI(chart(140, 100))
 
 		expect(allBySlot(container, 'chart-bar').length).toBeGreaterThan(0)
