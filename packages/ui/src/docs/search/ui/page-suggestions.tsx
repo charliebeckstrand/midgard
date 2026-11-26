@@ -4,7 +4,7 @@ import { Search } from 'lucide-react'
 import { useId, useMemo } from 'react'
 import { Button } from 'ui/button'
 import { Icon } from 'ui/icon'
-import { List, ListDescription, ListItem, ListLabel } from 'ui/list'
+import { List, ListItem, ListLabel } from 'ui/list'
 import { defineMessages, IntlMessage, useIntl } from 'ui/primitives/intl'
 import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
@@ -16,8 +16,8 @@ import {
 	toPathQueries,
 } from '../engine/index.ts'
 import { useSearch } from './context.ts'
-import { localizeEntry } from './localize.ts'
-import { ResultIcon, ResultSubtitle } from './search-result.tsx'
+import { findSection, localizeEntry } from './localize.ts'
+import { ResultIcon, ResultLabel } from './search-result.tsx'
 
 // The help of the not-found page: the pages that the path most likely names,
 // in the rows of the search, and a button that opens the search with the
@@ -82,13 +82,6 @@ function findSuggestions(index: SearchIndex<Matchable>, path: string): string[] 
 	return [...new Set([...prefix, ...found, ...section])].slice(0, LIMIT)
 }
 
-/** The section of the page of a path, such as `modules` for `/modules/grid/sorting`. */
-function findSection(href: string): string {
-	const page = pages.find((link) => href === link.path || href.startsWith(`${link.path}/`))
-
-	return page?.category ?? ''
-}
-
 /**
  * The suggestions in groups by section. The groups go in the order of their
  * best suggestion, and each group keeps the order of its suggestions.
@@ -108,8 +101,8 @@ function groupBySection(entries: readonly Matchable[]) {
 /**
  * The suggestions of one section, under the name of the section. The name
  * shows only when the suggestions are in more than one section. Without it, the
- * element at `labelledBy` names the list. A page shows no line below its name,
- * because the section is its place. A tab shows its page.
+ * element at `labelledBy` names the list. A row shows no line below its name,
+ * because the line below the name of a result is its section.
  */
 function SectionSuggestions({
 	section,
@@ -141,13 +134,8 @@ function SectionSuggestions({
 				{(entry) => (
 					<ListItem href={entry.href} rounded prefix={<ResultIcon option={entry} />}>
 						<ListLabel>
-							<bdi>{entry.label}</bdi>
+							<ResultLabel option={entry} />
 						</ListLabel>
-						{entry.kind !== 'page' && (
-							<ListDescription>
-								<ResultSubtitle option={entry} />
-							</ListDescription>
-						)}
 					</ListItem>
 				)}
 			</List>

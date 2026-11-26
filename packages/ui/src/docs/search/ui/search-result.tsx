@@ -16,23 +16,18 @@ import {
 	CommandPaletteText,
 } from 'ui/command-palette'
 import { Icon } from 'ui/icon'
-import {
-	defineMessage,
-	defineMessages,
-	type IntlShape,
-	type MessageDescriptor,
-	useIntl,
-} from 'ui/primitives/intl'
+import { defineMessages, type MessageDescriptor, useIntl } from 'ui/primitives/intl'
 import type { VirtualOptionMeta } from 'ui/primitives/virtual-options'
+import { sectionLabel } from '../../app/app-messages.ts'
 import type { Matchable } from '../engine/index.ts'
 import type { SearchKind } from '../types.ts'
-import { sectionByPath } from './localize.ts'
+import { findSection } from './localize.ts'
 
 // One row of the results of the search: a tinted icon of the kind of the
-// entry, its label, and one short line below it.
+// entry, its label, and the section of the entry below it.
 
-// The kind of each entry. A screen reader reads it before the line below the
-// label, because the icon has no text.
+// The kind of each entry. A screen reader reads it before the section, because
+// the icon has no text.
 const KIND_LABELS: Readonly<Record<SearchKind, MessageDescriptor>> = defineMessages({
 	page: {
 		id: 'docs.search.kind.page',
@@ -51,13 +46,6 @@ const KIND_LABELS: Readonly<Record<SearchKind, MessageDescriptor>> = defineMessa
 		description:
 			'The kind of a search result that is the API reference of a component: its props and its events.',
 	},
-})
-
-const pageApiMessage = defineMessage<{ page: string }>({
-	id: 'docs.search.page-api',
-	defaultMessage: '{page} API reference',
-	description:
-		'The line below a search result that is the API reference of a component on a page with another name, such as "Fieldset API reference" for <Field />.',
 })
 
 /** The tint of the icon of each kind, in the light theme and the dark theme. */
@@ -94,29 +82,13 @@ const SECTION_TINT: Readonly<Record<string, string>> = {
 function getTint(option: Matchable): string {
 	if (option.kind !== 'page') return KIND_TINT[option.kind]
 
-	return SECTION_TINT[sectionByPath.get(option.href) ?? ''] ?? KIND_TINT.page
+	return SECTION_TINT[findSection(option.href)] ?? KIND_TINT.page
 }
 
 function getIcon(option: Matchable): LucideIcon {
 	if (option.kind !== 'page') return KIND_ICON[option.kind]
 
-	return SECTION_ICON[sectionByPath.get(option.href) ?? ''] ?? Shapes
-}
-
-/**
- * The line below the label: the section of a page, the page of a tab, and
- * "API reference" for a component. A
- * component on a page with another name, such as `<Field />` on the Fieldset
- * page, names the page.
- */
-function formatSubtitle(intl: IntlShape, option: Matchable): string {
-	if (option.kind !== 'component') return option.place ?? option.context
-
-	const page = option.context.split(' › ')[0] ?? option.context
-
-	return option.label.slice(1).startsWith(page)
-		? intl.formatMessage(KIND_LABELS.component)
-		: intl.formatMessage(pageApiMessage, { page })
+	return SECTION_ICON[findSection(option.href)] ?? Shapes
 }
 
 /** The tinted icon of the kind of an entry, or of the section of a page. */
@@ -132,18 +104,24 @@ export function ResultIcon({ option }: { option: Matchable }) {
 }
 
 /**
- * The line below the label of an entry. A screen reader reads the kind of the
- * entry before it, because the icon has no text.
+ * The label of an entry. A tab names its page first, as in "Grid › Sorting",
+ * so the line below each label can be the section.
+ */
+export function ResultLabel({ option }: { option: Matchable }) {
+	return <bdi>{option.kind === 'tab' ? (option.place ?? option.label) : option.label}</bdi>
+}
+
+/**
+ * The section of an entry, the line below its label. A screen reader reads
+ * the kind of the entry before it, because the icon has no text.
  */
 export function ResultSubtitle({ option }: { option: Matchable }) {
 	const intl = useIntl()
 
 	return (
 		<>
-			{option.kind !== 'component' && (
-				<span className="sr-only">{`${intl.formatMessage(KIND_LABELS[option.kind])}, `}</span>
-			)}
-			<bdi>{formatSubtitle(intl, option)}</bdi>
+			<span className="sr-only">{`${intl.formatMessage(KIND_LABELS[option.kind])}, `}</span>
+			{sectionLabel(intl, findSection(option.href))}
 		</>
 	)
 }
@@ -170,7 +148,7 @@ export function SearchResult({
 			 */}
 			<CommandPaletteText>
 				<CommandPaletteLabel>
-					<bdi>{option.label}</bdi>
+					<ResultLabel option={option} />
 				</CommandPaletteLabel>
 				<CommandPaletteDescription>
 					<ResultSubtitle option={option} />

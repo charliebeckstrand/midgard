@@ -8283,10 +8283,6 @@
 		"defaultMessage": "Tab",
 		"description": "The kind of a search result that is a tab of a page of the docs, such as Sorting."
 	},
-	"docs.search.page-api": {
-		"defaultMessage": "{page} API reference",
-		"description": "The line below a search result that is the API reference of a component on a page with another name, such as \"Fieldset API reference\" for <Field />."
-	},
 	"docs.search.placeholder": {
 		"defaultMessage": "Search",
 		"description": "The placeholder of the search field of the docs, and its name. Props and events are the inputs of a component."
