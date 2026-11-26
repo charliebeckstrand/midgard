@@ -277,6 +277,36 @@ const stampsOpen = vi.defineHelper(({ render, parts }: DisclosureSubject) => {
 	}
 })
 
+/**
+ * The disclosure sweep, controls leg: the trigger names its panel with
+ * `aria-controls` while the panel is mounted, and names nothing while it is
+ * not (WAI-ARIA: the reference must resolve).
+ */
+const controlsPanel = vi.defineHelper(({ render, controls }: DisclosureSubject) => {
+	if (!controls) throw new Error('expected a subject with controls')
+
+	for (const open of [false, true]) {
+		const view = renderUI(render({ open }))
+
+		const panel = controls.panel(view.baseElement)
+
+		// A trigger that mounts with its panel, such as the input of a command
+		// palette, is absent while closed.
+		const trigger =
+			open || panel
+				? getSlot(view.baseElement, controls.trigger)
+				: bySlot(view.baseElement, controls.trigger)
+
+		if (open) expect(panel, 'the panel while open').not.toBeNull()
+
+		if (panel) expect(trigger, `open: ${open}`).toControl(panel)
+		else if (trigger) expect(trigger, `open: ${open}`).not.toHaveAttribute('aria-controls')
+		else expect(open).toBe(false)
+
+		view.unmount()
+	}
+})
+
 /** The disclosure sweep, disabled leg: each part that can be disabled stamps `data-disabled`. */
 const stampsDisabled = vi.defineHelper(({ render, disabledParts = [] }: DisclosureSubject) => {
 	const enabled = renderUI(render({ open: false }))
@@ -441,10 +471,17 @@ describe('component disclosure state', () => {
 			it(`${subject.component} stamps data-disabled on each part while disabled`, () =>
 				stampsDisabled(subject))
 		}
+
+		if (subject.controls) {
+			it(`${subject.component} names its panel with aria-controls only while it is mounted`, () =>
+				controlsPanel(subject))
+		}
 	}
 
 	it('has subjects to sweep', () => {
 		expect(disclosures).not.toHaveLength(0)
+
+		expect(disclosures.filter((subject) => subject.controls)).not.toHaveLength(0)
 	})
 })
 

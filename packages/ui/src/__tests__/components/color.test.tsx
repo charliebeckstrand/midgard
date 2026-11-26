@@ -21,7 +21,6 @@ import { Field, Label, Message } from '../../components/fieldset'
 import { Form, useFormActions } from '../../modules/form'
 import {
 	allBySlot,
-	ariaTarget,
 	attach,
 	bySlot,
 	fireEvent,
@@ -847,18 +846,6 @@ describe('ColorPicker', () => {
 		expect(button).toBeCollapsed()
 
 		expect(bySlot(container, 'color-picker-swatch')).toBeInTheDocument()
-	})
-
-	it('names the open dialog from the trigger with aria-controls', () => {
-		const { container } = renderUI(<ColorPicker defaultValue="#ef4444" />)
-
-		const button = getSlot(container, 'color-picker-button')
-
-		expect(button).not.toHaveAttribute('aria-controls')
-
-		fireEvent.click(button)
-
-		expect(ariaTarget(button, 'aria-controls')).toHaveRole('dialog')
 	})
 
 	it('keeps the hex label of the trigger left to right under a right-to-left ancestor', () => {

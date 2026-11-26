@@ -121,19 +121,6 @@ describe('AccordionTrigger', () => {
 		expect(bySlot(container, 'renamed')).toBeNull()
 	})
 
-	it('only references the panel via aria-controls while it is mounted', () => {
-		renderUI(oneItem())
-
-		const trigger = screen.getByRole('button', { name: 'Toggle' })
-
-		// Closed: the panel is unmounted, so the reference would dangle.
-		expect(trigger).not.toHaveAttribute('aria-controls')
-
-		fireEvent.click(trigger)
-
-		expect(trigger).toControl(screen.getByRole('region'))
-	})
-
 	it('keeps the panels out of the landmarks with region={false}, and keeps aria-controls', () => {
 		renderUI(oneItem({ region: false }))
 

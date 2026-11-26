@@ -69,6 +69,7 @@ import {
 } from '../../../modules/chart'
 import { Grid, type GridColumn } from '../../../modules/grid'
 import { MapPlat, MapPoint, MapRoute } from '../../../modules/map'
+import { bySlot } from '../../helpers'
 import { FIXTURE_GEOJSON, FIXTURE_ROWS } from '../../helpers/map-geography'
 import type { Case } from './types'
 
@@ -188,6 +189,10 @@ export const dataDisplayCases: readonly Case[] = [
 					</Accordion>
 				),
 				parts: ['accordion-item', 'accordion-trigger', 'accordion-panel'],
+				controls: {
+					trigger: 'accordion-trigger',
+					panel: (root) => bySlot(root, 'accordion-panel'),
+				},
 				disabledParts: ['accordion-item', 'accordion-trigger'],
 			},
 		],
@@ -717,6 +722,7 @@ export const dataDisplayCases: readonly Case[] = [
 					</Collapse>
 				),
 				parts: ['collapse', 'collapse-trigger', 'collapse-panel'],
+				controls: { trigger: 'collapse-trigger', panel: (root) => bySlot(root, 'collapse-panel') },
 			},
 		],
 	},
