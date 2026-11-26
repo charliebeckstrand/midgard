@@ -13,7 +13,7 @@ const trail = ['Home', 'Projects', 'Website redesign', 'Design', 'Components', '
 // the row cannot hold them. Make the frame narrower to see more crumbs go.
 export default function Collapse() {
 	return (
-		<div className="w-full max-w-md">
+		<div className="max-w-sm">
 			<Breadcrumb collapse aria-label="Project path">
 				<BreadcrumbList>
 					{trail.slice(0, -1).map((crumb) => (
