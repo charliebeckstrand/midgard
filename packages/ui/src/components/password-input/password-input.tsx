@@ -3,14 +3,11 @@
 import { Eye, EyeOff } from 'lucide-react'
 import { useState } from 'react'
 import { useReportedChange } from '../../hooks/use-reported-change'
-import { Glyph } from '../../primitives/glyph'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
-import { Button } from '../button'
 import { useControlProps } from '../control/use-control-props'
-import { Icon } from '../icon'
+import { IconButton } from '../icon-button'
 import { Input, type InputProps } from '../input'
-import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 
 const messages = defineMessages({
 	show: {
@@ -57,24 +54,18 @@ type ToggleProps = {
  */
 function VisibilityToggle({ visible, onToggle, label, disabled }: ToggleProps) {
 	return (
-		<Tooltip>
-			<TooltipTrigger>
-				{/* Fixed accessible name and aria-pressed (the APG toggle pattern).
-				    The tooltip shows the same text, so the visible label and the
-				    name agree. */}
-				<Button
-					type="button"
-					variant="bare"
-					aria-label={label}
-					aria-pressed={visible}
-					disabled={disabled}
-					onClick={onToggle}
-				>
-					<Icon icon={visible ? <Glyph icon={EyeOff} /> : <Glyph icon={Eye} />} />
-				</Button>
-			</TooltipTrigger>
-			<TooltipContent>{label}</TooltipContent>
-		</Tooltip>
+		<IconButton
+			aria-label={label}
+			tooltip
+			icon={Eye}
+			pressedIcon={EyeOff}
+			animate={false}
+			pressed={visible}
+			onPressedChange={onToggle}
+			// A locked scope, such as a submitting form, locks the reveal with the field.
+			lockable
+			disabled={disabled}
+		/>
 	)
 }
 

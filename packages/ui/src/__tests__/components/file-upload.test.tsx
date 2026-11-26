@@ -518,7 +518,8 @@ describe('FileUpload + Control', () => {
 
 		expect(hidden).toBeDisabled()
 
-		for (const trigger of screen.getAllByRole('button')) expect(trigger).toBeDisabled()
+		for (const trigger of screen.getAllByRole('button'))
+			expect(trigger.matches(':disabled, [aria-disabled="true"]')).toBe(true)
 	})
 
 	it('ignores dropped files under a disabled Control', () => {

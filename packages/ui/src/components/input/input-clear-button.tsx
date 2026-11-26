@@ -4,9 +4,8 @@ import { X } from 'lucide-react'
 import type { MouseEventHandler, Ref } from 'react'
 import { intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
-import { Button } from '../button'
 import { lockedProps } from '../button/button-constants'
-import { Icon } from '../icon'
+import { IconButton } from '../icon-button'
 
 type InputClearButtonProps = {
 	/** The accessible name, such as "Clear search". */
@@ -40,19 +39,16 @@ export function InputClearButton({
 	ref,
 }: InputClearButtonProps) {
 	return (
-		<Button
+		<IconButton
 			ref={ref}
-			type="button"
-			variant="bare"
 			className="pointer-events-auto"
 			aria-label={label}
+			icon={X}
 			disabled={disabled}
 			onMouseDown={onMouseDown}
 			onClick={onClick}
 			{...(locked && lockedProps)}
-		>
-			<Icon icon={X} />
-		</Button>
+		/>
 	)
 }
 

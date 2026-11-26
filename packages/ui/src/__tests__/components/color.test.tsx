@@ -547,8 +547,8 @@ describe('ColorPanel', () => {
 
 			const button = getSlot(container, 'color-eyedropper')
 
-			if (api) expect(button).toBeEnabled()
-			else expect(button).toBeDisabled()
+			if (api) expect(button).not.toHaveAttribute('aria-disabled')
+			else expect(button).toHaveAttribute('aria-disabled', 'true')
 		})
 	})
 

@@ -14,8 +14,7 @@ import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { type BadgeVariants, k } from '../../recipes/kata/badge'
 import { isActivationKey } from '../../utilities/keyboard-navigation'
-import { Button } from '../button'
-import { Icon } from '../icon'
+import { IconButton } from '../icon-button'
 import { Badge } from './badge'
 
 const messages = defineMessages<{ remove: { label: string } }>({
@@ -118,7 +117,8 @@ function BadgeRemovableImpl<V = undefined>({
 			return
 		}
 
-		if (!removes) return
+		// A disabled button can hold the focus, so a removal key does nothing then.
+		if (!removes || disabled) return
 
 		event.preventDefault()
 
@@ -134,12 +134,11 @@ function BadgeRemovableImpl<V = undefined>({
 			className={cn('max-w-full', k.removable, className)}
 			suffix={
 				onRemove && (
-					<Button
+					<IconButton
 						{...removeProps}
 						ref={removeRef}
-						type="button"
-						variant="bare"
 						aria-label={intl.formatMessage(messages.remove, { label })}
+						icon={X}
 						disabled={disabled}
 						onClick={(event) => {
 							removeProps?.onClick?.(event)
@@ -147,9 +146,7 @@ function BadgeRemovableImpl<V = undefined>({
 							onRemove(value as V)
 						}}
 						onKeyDown={handleKeyDown}
-					>
-						<Icon icon={X} />
-					</Button>
+					/>
 				)
 			}
 		>

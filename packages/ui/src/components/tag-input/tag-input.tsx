@@ -15,6 +15,7 @@ import { ariaAttr } from '../../core/aria-attr'
 import { cn } from '../../core/cn'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { Glyph } from '../../primitives/glyph'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import type { IntlShape } from '../../primitives/intl/types'
 import { useIntl } from '../../primitives/intl/use-intl'
@@ -23,12 +24,11 @@ import { k } from '../../recipes/kata/tag-input'
 import { Flex } from '../../structure/flex'
 import { keyByOccurrence } from '../../utilities/key-by-occurrence'
 import { BadgeRemovable } from '../badge/badge-removable'
-import { Button } from '../button'
 import { useControlFallbackLabel } from '../control/use-control-fallback-label'
 import { useControlProps } from '../control/use-control-props'
 import { useControlScope } from '../control/use-control-scope'
 import { useControlTypedVerdict } from '../control/use-control-typed-verdict'
-import { Icon } from '../icon'
+import { IconButton } from '../icon-button'
 import { Input, type InputProps } from '../input'
 import {
 	describeRejection,
@@ -451,18 +451,15 @@ export function TagInput({
 	const addBox = wrap && tags.length > 0
 
 	const addButton = (
-		<Button
-			type="button"
+		<IconButton
 			ref={addRef}
 			aria-label={intl.formatMessage(messages.addTag)}
-			variant="bare"
+			icon={<Glyph icon={CornerLeftDown} className="rtl:-scale-x-100" />}
 			disabled={locked || atMax || inputValue.trim() === ''}
 			onMouseDown={(event) => event.preventDefault()}
 			onClick={handleSubmit}
 			onBlur={handleAddBlur}
-		>
-			<Icon icon={CornerLeftDown} className="rtl:-scale-x-100" />
-		</Button>
+		/>
 	)
 
 	return (

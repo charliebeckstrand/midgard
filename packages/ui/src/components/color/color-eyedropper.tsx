@@ -3,8 +3,7 @@
 import { Pipette } from 'lucide-react'
 import { useHydrated } from '../../hooks/use-hydrated'
 import { useIntl } from '../../primitives/intl/use-intl'
-import { Button } from '../button'
-import { Icon } from '../icon'
+import { IconButton } from '../icon-button'
 import { colorMessages } from './color-messages'
 import { hexToHsva } from './color-utilities'
 import { useColorPanelContext } from './context'
@@ -57,16 +56,13 @@ export function ColorEyedropper({ className }: { className?: string }) {
 	}
 
 	return (
-		<Button
-			type="button"
-			variant="bare"
+		<IconButton
 			data-slot="color-eyedropper"
 			aria-label={intl.formatMessage(colorMessages.eyedropper)}
+			icon={Pipette}
 			disabled={!supported}
 			onClick={handlePick}
 			className={className}
-		>
-			<Icon icon={Pipette} />
-		</Button>
+		/>
 	)
 }

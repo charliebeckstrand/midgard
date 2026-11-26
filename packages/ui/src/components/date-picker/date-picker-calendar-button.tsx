@@ -3,8 +3,7 @@
 import { Calendar as CalendarIcon } from 'lucide-react'
 import { dataAttr } from '../../core/data-attr'
 import { useIntl } from '../../primitives/intl/use-intl'
-import { Button } from '../button'
-import { Icon } from '../icon'
+import { IconButton } from '../icon-button'
 import { datePickerMessages } from './date-picker-messages'
 
 /** Props for {@link DatePickerCalendarButton}. @internal */
@@ -33,21 +32,17 @@ export function DatePickerCalendarButton({
 	)
 
 	return (
-		<Button
-			type="button"
-			variant="bare"
+		<IconButton
 			aria-label={label}
+			icon={CalendarIcon}
 			aria-haspopup="dialog"
 			aria-expanded={open}
 			disabled={disabled}
 			data-open={dataAttr(open)}
-			data-disabled={dataAttr(disabled)}
 			// Keep focus on the input: a blur here would run the field's
 			// commit-on-blur over a partial entry before the calendar opens.
 			onMouseDown={(event) => event.preventDefault()}
 			onClick={onActivate}
-		>
-			<Icon icon={CalendarIcon} />
-		</Button>
+		/>
 	)
 }

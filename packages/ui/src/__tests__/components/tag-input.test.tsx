@@ -285,7 +285,7 @@ describe('TagInput', () => {
 			'button',
 		)
 
-		expect(addButton).toBeDisabled()
+		expect(addButton).toHaveAttribute('aria-disabled', 'true')
 
 		const user = setupUser()
 
@@ -849,7 +849,7 @@ describe('TagInput ambient state', () => {
 
 		expect(badgeLabels(container)).toEqual(['react'])
 
-		expect(screen.getByRole('button', { name: 'Add tag' })).toBeDisabled()
+		expect(screen.getByRole('button', { name: 'Add tag' })).toHaveAttribute('aria-disabled', 'true')
 	})
 })
 
