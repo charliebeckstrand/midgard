@@ -56,7 +56,7 @@ const IDLE_LIMIT = 20_000
 const KNOWN: readonly { finding: string; paths: readonly string[]; reason: string }[] = [
 	// Steppers and buttons in the end of a field.
 	{
-		finding: 'crowded suffix/button',
+		finding: 'crowded suffix/icon-button',
 		paths: [
 			'/address-input',
 			'/copy-button',
@@ -112,32 +112,32 @@ const KNOWN: readonly { finding: string; paths: readonly string[]; reason: strin
 		reason: 'The hit area of the copy button grows into the input.',
 	},
 	{
-		finding: 'overlap control-frame/combobox-input | suffix/button',
+		finding: 'overlap control-frame/combobox-input | suffix/icon-button',
 		paths: ['/address-input'],
 		reason: 'The hit area of the clear button grows into the input.',
 	},
 	{
-		finding: 'overlap control-frame/date-input | suffix/button',
+		finding: 'overlap control-frame/date-input | suffix/icon-button',
 		paths: ['/date-input'],
 		reason: 'The hit area of the clear button grows into the input.',
 	},
 	{
-		finding: 'overlap control-frame/datepicker-input | suffix/button',
+		finding: 'overlap control-frame/datepicker-input | suffix/icon-button',
 		paths: ['/date-picker', '/modules/grid/editing'],
 		reason: 'The hit area of the calendar button grows into the input.',
 	},
 	{
-		finding: 'overlap control-frame/file-upload-field | suffix/button',
+		finding: 'overlap control-frame/file-upload-field | suffix/icon-button',
 		paths: ['/file-upload'],
 		reason: 'The hit area of the browse button grows into the field.',
 	},
 	{
-		finding: 'overlap control-frame/input | suffix/button',
+		finding: 'overlap control-frame/input | suffix/icon-button',
 		paths: ['/input', '/tag-input'],
 		reason: 'The hit area of a suffix button grows into the input.',
 	},
 	{
-		finding: 'overlap control-frame/password-input | suffix/button',
+		finding: 'overlap control-frame/password-input | suffix/icon-button',
 		paths: ['/modules/form', '/password-confirm', '/password-input', '/password-strength'],
 		reason: 'The hit area of the reveal button grows into the input.',
 	},
@@ -196,7 +196,7 @@ const KNOWN: readonly { finding: string; paths: readonly string[]; reason: strin
 	},
 	// Chips and tags.
 	{
-		finding: 'crowded badge/button',
+		finding: 'crowded badge/icon-button',
 		paths: ['/tag-input'],
 		reason: 'The remove button of a tag is 38 × 35 px, against the input.',
 	},
@@ -206,12 +206,12 @@ const KNOWN: readonly { finding: string; paths: readonly string[]; reason: strin
 		reason: 'The input of TagInput is 38 px tall, against the remove button of a tag.',
 	},
 	{
-		finding: 'overlap badge/button | control-frame/input',
+		finding: 'overlap badge/icon-button | control-frame/input',
 		paths: ['/tag-input'],
 		reason: 'The hit area of the remove button of a tag grows into the input.',
 	},
 	{
-		finding: 'overlap badge/button | suffix/button',
+		finding: 'overlap badge/icon-button | suffix/icon-button',
 		paths: ['/tag-input'],
 		reason: 'The hit areas of the remove button of a tag and of the add button overlap.',
 	},
