@@ -36,7 +36,6 @@ export type IconName =
 	| 'CreditCard'
 	| 'Dot'
 	| 'Download'
-	| 'Ellipsis'
 	| 'EllipsisVertical'
 	| 'ExternalLink'
 	| 'Eye'
