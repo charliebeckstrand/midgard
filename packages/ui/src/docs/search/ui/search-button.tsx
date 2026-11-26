@@ -39,7 +39,7 @@ export function SearchButton() {
 			aria-keyshortcuts={keys}
 			onPointerEnter={preload}
 			onFocus={preload}
-			onClick={() => request(offcanvas?.close)}
+			onClick={() => request({ onPick: offcanvas?.close })}
 		>
 			<Icon icon={<Search />} />
 			<span className="flex-1 text-start">

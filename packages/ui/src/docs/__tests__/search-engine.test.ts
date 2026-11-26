@@ -1,6 +1,11 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { createSearchIndex, findMember, type Matchable } from '../search/engine/index.ts'
+import {
+	createSearchIndex,
+	findMember,
+	type Matchable,
+	toPathQuery,
+} from '../search/engine/index.ts'
 import { tokenizeText } from '../search/engine/tokenize.ts'
 
 // The matches of the search of the docs, and their order.
@@ -90,6 +95,14 @@ describe('createSearchIndex', () => {
 		expect(search('tablr', entries)).toEqual(['/table'])
 	})
 
+	it('finds an entry that one word matches, when the match is any', () => {
+		expect(createSearchIndex(ENTRIES).search('grid nope', { match: 'any' })[0]?.href).toBe(
+			'/modules/grid',
+		)
+
+		expect(search('grid nope')).toEqual([])
+	})
+
 	it('matches each word in the label or the context', () => {
 		expect(search('grid sort')).toEqual(['/modules/grid/sorting'])
 
@@ -146,5 +159,17 @@ describe('findMember', () => {
 		expect(findMember(button, 'onsizechange')).toBe('onSizeChange')
 
 		expect(findMember(button, 'button vari')).toBeUndefined()
+	})
+})
+
+describe('toPathQuery', () => {
+	it('gives the words of the path, with no section folder', () => {
+		const sections = new Set(['components', 'modules'])
+
+		expect(toPathQuery('/components/button', sections)).toBe('button')
+
+		expect(toPathQuery('/Date-Picker/foo', sections)).toBe('date picker foo')
+
+		expect(toPathQuery('/modules', sections)).toBe('')
 	})
 })
