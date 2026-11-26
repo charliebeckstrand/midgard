@@ -36,6 +36,14 @@ describe('the not-found page', () => {
 		expect(suggestions()[0]).toBe('/button')
 	})
 
+	it('lists the suggestions under the name of their section, with no section on each row', () => {
+		renderAt('/components/button')
+
+		const list = screen.getByRole('list', { name: 'Components' })
+
+		expect(list.textContent).not.toContain('Components')
+	})
+
 	it('suggests the page whose path starts the path first', () => {
 		renderAt('/modules/grid/nope')
 

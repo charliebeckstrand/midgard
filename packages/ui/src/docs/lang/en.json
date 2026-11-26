@@ -6329,7 +6329,7 @@
 	},
 	"docs.notFound.suggestions": {
 		"defaultMessage": "Did you mean?",
-		"description": "The text above the list of pages of the docs that a path with no page most likely names, and the name of the list."
+		"description": "The text above the lists of pages of the docs that a path with no page most likely names. Each list is under the name of its section."
 	},
 	"docs.notFound.title": {
 		"defaultMessage": "Page not found",

@@ -7,6 +7,7 @@ import { Icon } from 'ui/icon'
 import { List, ListDescription, ListItem, ListLabel } from 'ui/list'
 import { defineMessages, IntlMessage, useIntl } from 'ui/primitives/intl'
 import { Text } from 'ui/text'
+import { sectionLabel } from '../../app/app-messages.ts'
 import {
 	createSearchIndex,
 	type Matchable,
@@ -26,7 +27,7 @@ const messages = defineMessages({
 		id: 'docs.notFound.suggestions',
 		defaultMessage: 'Did you mean?',
 		description:
-			'The text above the list of pages of the docs that a path with no page most likely names, and the name of the list.',
+			'The text above the lists of pages of the docs that a path with no page most likely names. Each list is under the name of its section.',
 	},
 	search: {
 		id: 'docs.notFound.search',
@@ -80,13 +81,78 @@ function findSuggestions(index: SearchIndex<Matchable>, path: string): string[] 
 	return [...new Set([...prefix, ...found, ...section])].slice(0, LIMIT)
 }
 
+/** The section of the page of a path, such as `modules` for `/modules/grid/sorting`. */
+function findSection(href: string): string {
+	const page = pages.find((link) => href === link.path || href.startsWith(`${link.path}/`))
+
+	return page?.category ?? ''
+}
+
+/**
+ * The suggestions in groups by section. The groups go in the order of their
+ * best suggestion, and each group keeps the order of its suggestions.
+ */
+function groupBySection(entries: readonly Matchable[]) {
+	const groups = new Map<string, Matchable[]>()
+
+	for (const entry of entries) {
+		const section = findSection(entry.href)
+
+		groups.set(section, [...(groups.get(section) ?? []), entry])
+	}
+
+	return [...groups].map(([section, group]) => ({ section, entries: group }))
+}
+
+/**
+ * The suggestions of one section, under the name of the section. A page shows
+ * no line below its name, because the section is above it. A tab shows its
+ * page.
+ */
+function SectionSuggestions({
+	section,
+	entries: group,
+}: {
+	section: string
+	entries: readonly Matchable[]
+}) {
+	const intl = useIntl()
+
+	const headingId = useId()
+
+	return (
+		<div className="w-full max-w-md">
+			<Text id={headingId} className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
+				{sectionLabel(intl, section)}
+			</Text>
+			<List
+				variant="plain"
+				items={group}
+				getKey={(entry) => entry.href}
+				aria-labelledby={headingId}
+			>
+				{(entry) => (
+					<ListItem href={entry.href} rounded prefix={<ResultIcon option={entry} />}>
+						<ListLabel>
+							<bdi>{entry.label}</bdi>
+						</ListLabel>
+						{entry.kind !== 'page' && (
+							<ListDescription>
+								<ResultSubtitle option={entry} />
+							</ListDescription>
+						)}
+					</ListItem>
+				)}
+			</List>
+		</div>
+	)
+}
+
 /** The pages that the path most likely names, and a button that opens the search with its words. */
 export function PageSuggestions({ path }: { path: string }) {
 	const intl = useIntl()
 
 	const { request } = useSearch()
-
-	const headingId = useId()
 
 	const shown = useMemo(
 		() => new Map(PLACES.map((entry) => [entry.href, localizeEntry<Matchable>(intl, entry)])),
@@ -95,38 +161,21 @@ export function PageSuggestions({ path }: { path: string }) {
 
 	const index = useMemo(() => createSearchIndex([...shown.values()]), [shown])
 
-	const suggestions = useMemo(
-		() => findSuggestions(index, path).flatMap((href) => shown.get(href) ?? []),
+	const groups = useMemo(
+		() => groupBySection(findSuggestions(index, path).flatMap((href) => shown.get(href) ?? [])),
 		[index, path, shown],
 	)
 
 	return (
 		<>
-			{suggestions.length > 0 && (
-				<>
-					<Text id={headingId}>
-						<IntlMessage message={messages.suggestions} />
-					</Text>
-					<List
-						variant="plain"
-						className="w-full max-w-md"
-						items={suggestions}
-						getKey={(entry) => entry.href}
-						aria-labelledby={headingId}
-					>
-						{(entry) => (
-							<ListItem href={entry.href} rounded prefix={<ResultIcon option={entry} />}>
-								<ListLabel>
-									<bdi>{entry.label}</bdi>
-								</ListLabel>
-								<ListDescription>
-									<ResultSubtitle option={entry} />
-								</ListDescription>
-							</ListItem>
-						)}
-					</List>
-				</>
+			{groups.length > 0 && (
+				<Text>
+					<IntlMessage message={messages.suggestions} />
+				</Text>
 			)}
+			{groups.map(({ section, entries: group }) => (
+				<SectionSuggestions key={section} section={section} entries={group} />
+			))}
 			<div>
 				<Button
 					variant="plain"
