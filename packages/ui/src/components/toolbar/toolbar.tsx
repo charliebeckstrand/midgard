@@ -1,6 +1,6 @@
 'use client'
 
-import { ChevronLeft, Ellipsis } from 'lucide-react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useComposedRefs } from 'motion/react'
 import {
 	type ComponentProps,
@@ -52,9 +52,10 @@ export type ToolbarProps = AccessibleName &
 
 /**
  * The page of a toolbar with More: the number of items of the caller before
- * it, and where the focus goes when it shows. @internal
+ * it, the same number for each page before it, and where the focus goes when
+ * it shows. @internal
  */
-type ToolbarPage = { paged: number; focus: 'page' | 'more' | null }
+type ToolbarPage = { paged: number; back: readonly number[]; focus: 'page' | 'more' | null }
 
 /**
  * A toolbar that groups related controls. It has roving-tabindex arrow-key
@@ -89,7 +90,8 @@ type ToolbarPage = { paged: number; focus: 'page' | 'more' | null }
  * after it leaves too, so the order of the items is their priority. A More
  * button then shows at the end of the row. A press on More shows the next
  * page: Back, and the items that left the row. If they do not fit, the page
- * has its own More. Back shows the first page again, and so does Escape. CSS
+ * has its own More. Back shows the page before, and so does Escape. More and
+ * Back are a right and a left chevron, so they read as a pair. CSS
  * fits the row, so the server paints the fit and the toolbar keeps the height
  * of one row on each page. Give the items one height, as icon buttons have.
  *
@@ -97,7 +99,7 @@ type ToolbarPage = { paged: number; focus: 'page' | 'more' | null }
  * not on the row, so the arrow keys and the Tab key skip it, and a screen
  * reader does not read it. More and Back are in the arrow order. When the
  * focus is in the toolbar, a press on More moves it to the first item of the
- * next page, and Back moves it to More. A press that keeps the focus out of
+ * next page, and Back moves it to More on the page before. A press that keeps the focus out of
  * the toolbar, such as in the toolbar of a Wysiwyg, moves no focus. Back and
  * More are named in the language of the reader.
  */
@@ -118,7 +120,7 @@ export function Toolbar({
 	const more = overflow === 'more' && orientation === 'horizontal'
 
 	// A new page is a new object, so the focus moves once for each page change.
-	const [view, setView] = useState<ToolbarPage>({ paged: 0, focus: null })
+	const [view, setView] = useState<ToolbarPage>({ paged: 0, back: [], focus: null })
 
 	// Roving and the row marks read `ref`, so a consumer `ref` joins it.
 	const setRoot = useComposedRefs(ref, consumerRef)
@@ -195,16 +197,12 @@ export function Toolbar({
 	const context = useMemo<ToolbarContextValue>(() => ({ orientation }), [orientation])
 
 	/**
-	 * Shows the page that starts at `paged`. The focus moves with the page only
-	 * if it is in the toolbar of `from`. The toolbar comes from the event, and
-	 * not from `ref`, so that no ref goes into a handler that render composes.
+	 * Whether the focus is in the toolbar of `from`, so that it moves with the
+	 * page. The toolbar comes from the event, and not from `ref`, so that no ref
+	 * goes into a handler that render composes.
 	 */
-	function page(from: Element, paged: number, focus: 'page' | 'more') {
-		const toolbar = from.closest('[role="toolbar"]')
-
-		const inside = toolbar?.contains(from.ownerDocument.activeElement) ?? false
-
-		setView({ paged, focus: inside ? focus : null })
+	function focusInside(from: Element): boolean {
+		return from.closest('[role="toolbar"]')?.contains(from.ownerDocument.activeElement) ?? false
 	}
 
 	function showMore(event: MouseEvent<HTMLElement>) {
@@ -212,7 +210,22 @@ export function Toolbar({
 
 		const next = toolbar ? nextPage(toolbar) : -1
 
-		if (next !== -1) page(event.currentTarget, next, 'page')
+		if (next === -1) return
+
+		setView({
+			paged: next,
+			back: [...view.back, view.paged],
+			focus: focusInside(event.currentTarget) ? 'page' : null,
+		})
+	}
+
+	/** Shows the page before the current page. */
+	function showBack(from: Element) {
+		setView({
+			paged: view.back.at(-1) ?? 0,
+			back: view.back.slice(0, -1),
+			focus: focusInside(from) ? 'more' : null,
+		})
 	}
 
 	function handleEscape(event: KeyboardEvent<HTMLDivElement>) {
@@ -226,7 +239,7 @@ export function Toolbar({
 
 		event.stopPropagation()
 
-		page(event.currentTarget, 0, 'more')
+		showBack(event.currentTarget)
 	}
 
 	const styles = k({ orientation, variant, overflow: more ? 'more' : 'wrap' })
@@ -259,7 +272,7 @@ export function Toolbar({
 							label={intl.formatMessage(toolbarMessages.back)}
 							icon={<Glyph icon={ChevronLeft} className="rtl:-scale-x-100" />}
 							disabled={false}
-							onClick={(event) => page(event.currentTarget, 0, 'more')}
+							onClick={(event) => showBack(event.currentTarget)}
 						/>
 					)}
 					{children}
@@ -271,7 +284,7 @@ export function Toolbar({
 							<ButtonIconTooltip
 								variant="bare"
 								label={intl.formatMessage(toolbarMessages.more)}
-								icon={<Glyph icon={Ellipsis} />}
+								icon={<Glyph icon={ChevronRight} className="rtl:-scale-x-100" />}
 								disabled={false}
 								onClick={showMore}
 							/>

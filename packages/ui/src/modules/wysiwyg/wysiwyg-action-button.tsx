@@ -8,10 +8,13 @@ import { useIntl } from '../../primitives/intl/use-intl'
 import { isApplePlatform } from '../../utilities/apple-platform'
 import { useWysiwyg } from './context'
 import type { WysiwygAction } from './types'
-import { shortcutAria, wysiwygActions } from './wysiwyg-actions'
+import { shortcutAria, wysiwygActions, wysiwygHeadingLevels } from './wysiwyg-actions'
 
 /** The server render has no editor, so no action is on. @internal */
 const serverInactive = () => false
+
+/** The server render has no editor, so Heading shows the glyph of text. @internal */
+const serverLevel = () => null
 
 /** Props for {@link WysiwygActionButton}. @internal */
 type WysiwygActionButtonProps = { action: WysiwygAction } & Omit<
@@ -28,7 +31,10 @@ type WysiwygActionButtonProps = { action: WysiwygAction } & Omit<
  * opens a dialog, and the heading button opens the rail of the levels, so
  * neither is a toggle, and the `onClick` of the caller handles the press. Link
  * is on while the selection is in a link, and Heading is on while each text
- * block of the selection is a heading. Heading has no shortcut of its own.
+ * block of the selection is a heading. Heading has no shortcut of its own,
+ * and it shows the glyph of the level of the selection: Text, H1, H2, or H3.
+ * It shows the glyph of Text while the blocks have different levels, a level
+ * below 3, or before the editor loads.
  *
  * The button looks and works the same before the editor loads. A press then
  * starts the load, and the action runs when the editor comes.
@@ -40,7 +46,7 @@ type WysiwygActionButtonProps = { action: WysiwygAction } & Omit<
  * @internal
  */
 export function WysiwygActionButton({ action, onClick, ...props }: WysiwygActionButtonProps) {
-	const { locked, subscribe, isActive, run } = useWysiwyg()
+	const { locked, subscribe, isActive, run, headingLevel } = useWysiwyg()
 
 	const intl = useIntl()
 
@@ -50,7 +56,18 @@ export function WysiwygActionButton({ action, onClick, ...props }: WysiwygAction
 
 	const active = useSyncExternalStore(subscribe, () => isActive(action), serverInactive)
 
-	const { message, shortcut, icon } = wysiwygActions[action]
+	// Only Heading reads the level, so a change of level renders no other button.
+	const level = useSyncExternalStore(
+		subscribe,
+		() => (action === 'heading' ? headingLevel() : null),
+		serverLevel,
+	)
+
+	const { message, shortcut } = wysiwygActions[action]
+
+	const icon =
+		(level !== null && wysiwygHeadingLevels.find((entry) => entry.level === level)?.icon) ||
+		wysiwygActions[action].icon
 
 	const label = intl.formatMessage(message)
 

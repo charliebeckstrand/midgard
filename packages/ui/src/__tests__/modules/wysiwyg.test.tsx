@@ -761,23 +761,24 @@ describe('WysiwygToolbar', () => {
 
 			expect(rail).not.toHaveAttribute('inert')
 
-			const levels = within(rail).getByRole('radiogroup', { name: 'Heading level' })
+			const levels = within(rail).getByRole('group', { name: 'Heading level' })
 
 			expect(
 				within(levels)
-					.getAllByRole('radio')
-					.map((radio) => radio.ariaLabel ?? radio.textContent),
+					.getAllByRole('button')
+					.map((button) => button.getAttribute('aria-label')),
 			).toEqual(['Text', 'Heading 1', 'Heading 2', 'Heading 3'])
 
-			expect(within(levels).getByRole('radio', { name: 'Text' })).toBeChecked()
+			expect(within(levels).getByRole('button', { name: 'Text' })).toHaveAttribute(
+				'aria-pressed',
+				'true',
+			)
 
-			const h2 = within(levels).getByRole('radio', { name: 'Heading 2' })
+			const h2 = within(levels).getByRole('button', { name: 'Heading 2' })
 
-			expect(h2).toHaveTextContent('H2')
+			expect(h2).toHaveAttribute('aria-pressed', 'false')
 
 			expect(h2).toHaveAttribute('aria-keyshortcuts', 'Control+Alt+2')
-
-			fireEvent.pointerDown(h2)
 
 			fireEvent.click(h2)
 
@@ -786,6 +787,20 @@ describe('WysiwygToolbar', () => {
 			expect(rail).toHaveAttribute('data-hidden')
 
 			expect(row).not.toHaveAttribute('data-hidden')
+		})
+
+		it('shows the glyph of the level of the selection on Heading', async () => {
+			const { heading } = await renderRail('Title')
+
+			const glyph = () => heading.querySelector('svg')?.getAttribute('class') ?? ''
+
+			expect(glyph()).toContain('lucide-type')
+
+			fireEvent.click(heading)
+
+			fireEvent.click(screen.getByRole('button', { name: 'Heading 2' }))
+
+			await waitFor(() => expect(glyph()).toContain('lucide-heading-2'))
 		})
 
 		it('closes the rail with no change on Back', async () => {
@@ -808,9 +823,7 @@ describe('WysiwygToolbar', () => {
 			// A pick by a press first, so the pick of a key below follows a press.
 			fireEvent.click(heading)
 
-			const h1 = within(rail).getByRole('radio', { name: 'Heading 1' })
-
-			fireEvent.pointerDown(h1)
+			const h1 = within(rail).getByRole('button', { name: 'Heading 1' })
 
 			fireEvent.click(h1)
 
@@ -822,14 +835,12 @@ describe('WysiwygToolbar', () => {
 
 			expect(h1).toHaveFocus()
 
-			// An arrow key picks the level and keeps the rail open.
+			// An arrow key moves to the next level, and picks nothing.
 			fireEvent.keyDown(h1, { key: 'ArrowRight' })
 
-			await waitFor(() => expect(onValueChange).toHaveBeenLastCalledWith('## Title', []))
+			expect(within(rail).getByRole('button', { name: 'Heading 2' })).toHaveFocus()
 
 			expect(rail).not.toHaveAttribute('data-hidden')
-
-			expect(within(rail).getByRole('radio', { name: 'Heading 2' })).toHaveFocus()
 
 			fireEvent.keyDown(document.activeElement ?? h1, { key: 'Escape' })
 
@@ -847,9 +858,14 @@ describe('WysiwygToolbar', () => {
 			fireEvent.click(heading)
 
 			// The first block of a list item must be a paragraph.
-			expect(within(rail).getByRole('radio', { name: 'Heading 1' })).toBeDisabled()
+			expect(within(rail).getByRole('button', { name: 'Heading 1' })).toHaveAttribute(
+				'aria-disabled',
+				'true',
+			)
 
-			expect(within(rail).getByRole('radio', { name: 'Text' })).toBeEnabled()
+			expect(within(rail).getByRole('button', { name: 'Text' })).not.toHaveAttribute(
+				'aria-disabled',
+			)
 		})
 
 		it('sets a level from its key, with no rail', async () => {
