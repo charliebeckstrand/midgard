@@ -1,5 +1,6 @@
 import api from 'virtual:docs/api/components/nav'
 import { ApiTable, Example, Playground } from '../../../kit/index.ts'
+import Links from './links.tsx'
 import NavBarExample from './nav-bar.tsx'
 import NavPlayground from './playground.tsx'
 import WithContent from './with-content.tsx'
@@ -10,6 +11,7 @@ export default function NavPage() {
 		<>
 			<Playground of={NavPlayground} api={api} />
 			<Example of={WithIcons} />
+			<Example of={Links} />
 			<Example of={NavBarExample} />
 			<Example of={WithContent} />
 			<ApiTable api={api} />

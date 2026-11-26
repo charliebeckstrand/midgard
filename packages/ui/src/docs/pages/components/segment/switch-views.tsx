@@ -6,12 +6,14 @@ import { Segment, SegmentControl, SegmentItem } from 'ui/segment'
 import { Stack } from 'ui/stack'
 import { campaigns } from './campaigns.ts'
 
+// Each pick shows another view, so an arrow key moves only the focus, and
+// Enter or Space selects the item.
 export default function SwitchViews() {
 	const [view, setView] = useState('list')
 
 	return (
 		<Stack gap="lg">
-			<Segment value={view} onValueChange={(value) => setView(value ?? 'list')}>
+			<Segment activation="manual" value={view} onValueChange={(value) => setView(value ?? 'list')}>
 				<SegmentControl aria-label="View">
 					<SegmentItem value="list">List</SegmentItem>
 					<SegmentItem value="cards">Cards</SegmentItem>

@@ -3,6 +3,7 @@ import { ApiTable, Example, Playground } from '../../../kit/index.ts'
 import StepperPlayground from './playground.tsx'
 import ReadOnly from './read-only.tsx'
 import WithContentPanels from './with-content-panels.tsx'
+import WithDescriptions from './with-descriptions.tsx'
 
 export default function StepperPage() {
 	return (
@@ -10,6 +11,7 @@ export default function StepperPage() {
 			<Playground of={StepperPlayground} api={api} omit={['mount']} />
 			<Example of={WithContentPanels} />
 			<Example of={ReadOnly} />
+			<Example of={WithDescriptions} />
 			<ApiTable api={api} />
 		</>
 	)

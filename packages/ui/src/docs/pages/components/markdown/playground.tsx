@@ -18,6 +18,14 @@ read the _full list_ of [changes](https://example.com).
 
 > Back up your files before you update.
 
+| Plan | Seats | Price |
+| --- | --- | --- |
+| Team | 10 | $12 |
+| Business | 50 | $20 |
+
+- [x] Read the release notes
+- [ ] Update the app
+
 \`\`\`ts
 export function isLatest(version: string) {
 	return version === '2.4'
