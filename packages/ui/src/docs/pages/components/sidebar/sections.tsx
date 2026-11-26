@@ -25,14 +25,11 @@ const main = [
 const projects = [
 	{ value: 'midgard', label: 'Midgard' },
 	{ value: 'asgard', label: 'Asgard' },
-	{ value: 'vanaheim', label: 'Vanaheim' },
 ]
 
 const chats = [
 	{ value: 'general', label: 'General' },
-	{ value: 'random', label: 'Random' },
 	{ value: 'design', label: 'Design' },
-	{ value: 'development', label: 'Development' },
 ]
 
 export default function Sections() {

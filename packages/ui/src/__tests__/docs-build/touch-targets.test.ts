@@ -305,11 +305,6 @@ const KNOWN: readonly { finding: string; paths: readonly string[]; reason: strin
 		reason: 'A row of Sidebar is 42 px tall, and the rows touch.',
 	},
 	{
-		finding: 'overlap sidebar-item/sidebar-item-inner | sidebar-item/sidebar-item-inner',
-		paths: ['/sidebar'],
-		reason: 'The rows of the Sidebar examples overlap.',
-	},
-	{
 		finding: 'crowded flex/button',
 		paths: ['/sidebar'],
 		reason: 'The new project button of the Sidebar example is 34 px tall, against a row.',
@@ -374,13 +369,8 @@ const KNOWN: readonly { finding: string; paths: readonly string[]; reason: strin
 	// The docs.
 	{
 		finding: 'crowded collapse/collapse-trigger',
-		paths: ['/modules/grid/virtualization', '/sidebar'],
+		paths: ['/modules/grid/virtualization'],
 		reason: 'The show code button of an example is 36 px tall, against the example.',
-	},
-	{
-		finding: 'overlap collapse/collapse-trigger | sidebar-item/sidebar-item-inner',
-		paths: ['/sidebar'],
-		reason: 'The hit area of the show code button grows into the example.',
 	},
 	{
 		finding: 'overlap collapse/collapse-trigger | table-cell/button',
