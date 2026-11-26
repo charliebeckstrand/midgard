@@ -6,10 +6,10 @@ import { Group } from 'ui/group'
 import { LocaleProvider } from 'ui/providers/locale'
 
 const presets = [
-	{ label: 'United States', locale: 'en-US', currency: 'USD' },
-	{ label: 'United Kingdom', locale: 'en-GB', currency: 'GBP' },
-	{ label: 'Japan', locale: 'ja-JP', currency: 'JPY' },
-	{ label: 'India', locale: 'en-IN', currency: 'INR' },
+	{ locale: 'en-US', currency: 'USD' },
+	{ locale: 'en-GB', currency: 'GBP' },
+	{ locale: 'ja-JP', currency: 'JPY' },
+	{ locale: 'en-IN', currency: 'INR' },
 ] as const
 
 export default function LocaleProviderPresets() {
@@ -27,7 +27,7 @@ export default function LocaleProviderPresets() {
 						aria-pressed={option === preset}
 						onClick={() => setPreset(option)}
 					>
-						{option.label}
+						{option.locale}
 					</Button>
 				))}
 			</Group>

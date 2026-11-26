@@ -105,15 +105,23 @@ const SIZE_CLASS_NAMES: Readonly<Record<string, MessageDescriptor>> = defineMess
 })
 
 /**
- * A row of controls that stays on one line, and scrolls when the controls do
- * not fit. While it overflows, the edge with more controls behind it fades,
- * and the row is a tab stop with the name `label`.
+ * A row of controls. Below the `sm` breakpoint, the row stays on one line, and
+ * scrolls when the controls do not fit. While it overflows, the edge with more
+ * controls behind it fades, and the row is a tab stop with the name `label`.
+ * From `sm` up, the row wraps, so each control shows. A mouse wheel moves on
+ * the vertical axis, and a row that scrolls on the horizontal axis can thus
+ * hide controls from a desktop reader. A wrapped row does not overflow, so it
+ * is not a tab stop.
  */
 function Rail({ label, children }: { label: string; children: ReactNode }) {
 	const regionRef = useScrollRegion({ label })
 
 	return (
-		<Flex ref={regionRef} gap="sm" className={cn('max-w-full whitespace-nowrap', omote.rail)}>
+		<Flex
+			ref={regionRef}
+			gap="sm"
+			className={cn('max-w-full whitespace-nowrap sm:flex-wrap', omote.rail)}
+		>
 			{children}
 		</Flex>
 	)

@@ -99,6 +99,11 @@ function withNode(text: string, node: ReactNode): ReactNode {
  */
 const TSDOC = { lang: 'en', dir: 'ltr' } as const
 
+// The width of a block of prose. A line of more than about 75 characters is
+// hard to follow back to the start of the next line, and the column of the
+// docs is much wider on a wide screen.
+const PROSE = 'max-w-prose'
+
 const CHIP = 'rounded px-1.5 py-0.5 font-mono text-[0.8125rem]/5'
 
 const OPTION = cn(
@@ -217,7 +222,11 @@ function PropRow({ component, prop }: { component: string; prop: PropApi }) {
 				)}
 			</Flex>
 			<PropFacts prop={prop} />
-			{prop.description && <Markdown {...TSDOC}>{prop.description}</Markdown>}
+			{prop.description && (
+				<Markdown {...TSDOC} className={PROSE}>
+					{prop.description}
+				</Markdown>
+			)}
 		</Stack>
 	)
 }
@@ -280,7 +289,11 @@ function ElementsNote({ elements }: { elements: readonly string[] }) {
 export function ApiEntry({ component }: { component: ComponentApi }) {
 	return (
 		<Stack gap="lg">
-			{component.description && <Markdown {...TSDOC}>{component.description}</Markdown>}
+			{component.description && (
+				<Markdown {...TSDOC} className={PROSE}>
+					{component.description}
+				</Markdown>
+			)}
 			{component.props.length + component.events.length > 0 ? (
 				<Stack gap="xl">
 					<PropSection

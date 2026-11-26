@@ -9,16 +9,20 @@ import WithActions from './with-actions.tsx'
 import WithHeaderAndFooter from './with-header-and-footer.tsx'
 import WithSuffixSlot from './with-suffix-slot.tsx'
 
+// The heights of a frame that has the height of a layout, so a footer or a
+// spacer has room. Each height lets all the content of its example show with
+// space left for the spacer, so the example does not scroll.
+const HEIGHTS = { tall: 'h-108', taller: 'h-168' } as const
+
 // An app gives a sidebar the edge and the height of its layout. The page gives
-// each example a frame for them, so the code of the example has no frame. A
-// `tall` frame has the height of a layout, so a footer or a spacer has room.
-function SidebarExample({ of: Of, tall = false }: { of: ComponentType; tall?: boolean }) {
+// each example a frame for them, so the code of the example has no frame.
+function SidebarExample({ of: Of, height }: { of: ComponentType; height?: keyof typeof HEIGHTS }) {
 	return (
 		<ExampleFrame meta={getMeta(Of)}>
 			<div
 				className={cn(
 					'overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-800',
-					tall && 'h-108',
+					height && HEIGHTS[height],
 				)}
 			>
 				<Of />
@@ -32,8 +36,8 @@ export default function SidebarPage() {
 		<>
 			<Playground of={SidebarPlayground} api={api} />
 			<SidebarExample of={ItemSize} />
-			<SidebarExample of={WithHeaderAndFooter} tall />
-			<SidebarExample of={Sections} tall />
+			<SidebarExample of={WithHeaderAndFooter} height="tall" />
+			<SidebarExample of={Sections} height="taller" />
 			<SidebarExample of={WithSuffixSlot} />
 			<SidebarExample of={WithActions} />
 			<ApiTable api={api} />

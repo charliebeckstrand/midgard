@@ -1183,10 +1183,6 @@
 		"defaultMessage": "You can cancel your plan at any time from the billing page. Your files stay available until the end of the period that you paid for.",
 		"description": "Text of a demo in the docs as text, in components/dialog/long-content.tsx."
 	},
-	"docs.demo.0951d99a2fa9": {
-		"defaultMessage": "Vanaheim",
-		"description": "Text of a demo in the docs as label, in components/sidebar/sections.tsx."
-	},
 	"docs.demo.09555815237e": {
 		"defaultMessage": "Move each package to its latest minor version.",
 		"description": "Text of a demo in the docs as description, in data/tasks.ts."
@@ -1658,10 +1654,6 @@
 	"docs.demo.21b111cbfe6e": {
 		"defaultMessage": "Default",
 		"description": "Text of a demo in the docs, in components/hold-button/durations.tsx."
-	},
-	"docs.demo.21b6a798321a": {
-		"defaultMessage": "Development",
-		"description": "Text of a demo in the docs as label, in components/sidebar/sections.tsx."
 	},
 	"docs.demo.223051cc8c7a": {
 		"defaultMessage": "Undo help",
@@ -2433,7 +2425,7 @@
 	},
 	"docs.demo.49dca65f362f": {
 		"defaultMessage": "United States",
-		"description": "Text of a demo in the docs as label, in components/select/countries.ts, providers/locale/locale-provider.tsx."
+		"description": "Text of a demo in the docs as label, in components/select/countries.ts."
 	},
 	"docs.demo.49e96d7cdf58": {
 		"defaultMessage": "Amount",
@@ -2905,7 +2897,7 @@
 	},
 	"docs.demo.647294383b2c": {
 		"defaultMessage": "Japan",
-		"description": "Text of a demo in the docs as label, in components/select/countries.ts, providers/locale/locale-provider.tsx."
+		"description": "Text of a demo in the docs as label, in components/select/countries.ts."
 	},
 	"docs.demo.649474af418c": {
 		"defaultMessage": "Step 2",
@@ -3002,10 +2994,6 @@
 	"docs.demo.6786f87960fa": {
 		"defaultMessage": "Order filters",
 		"description": "Text of a demo in the docs as aria-label, in providers/density/playground.tsx."
-	},
-	"docs.demo.67bc484430fe": {
-		"defaultMessage": "Random",
-		"description": "Text of a demo in the docs as label, in components/sidebar/sections.tsx."
 	},
 	"docs.demo.683173e8384f": {
 		"defaultMessage": "last month",
@@ -3761,7 +3749,7 @@
 	},
 	"docs.demo.8d23a6e37e0a": {
 		"defaultMessage": "United Kingdom",
-		"description": "Text of a demo in the docs as label, in components/select/countries.ts, providers/locale/locale-provider.tsx."
+		"description": "Text of a demo in the docs as label, in components/select/countries.ts."
 	},
 	"docs.demo.8d525e5f158b": {
 		"defaultMessage": "Copied",
@@ -4502,10 +4490,6 @@
 	"docs.demo.abccc78cc93c": {
 		"defaultMessage": "Permissions",
 		"description": "Text of a demo in the docs as aria-label, in components/checkbox/disabled.tsx."
-	},
-	"docs.demo.abd149214539": {
-		"defaultMessage": "India",
-		"description": "Text of a demo in the docs as label, in providers/locale/locale-provider.tsx."
 	},
 	"docs.demo.abd29118631e": {
 		"defaultMessage": "Update your payment method and download your invoices.",
