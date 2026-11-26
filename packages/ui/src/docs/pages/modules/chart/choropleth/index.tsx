@@ -1,6 +1,6 @@
 import { Example } from '../../../../kit/index.ts'
-import Heatmap from './heatmap.tsx'
+import Basic from './basic.tsx'
 
 export default function ChoroplethTab() {
-	return <Example of={Heatmap} box="ratio" />
+	return <Example of={Basic} box="ratio" />
 }

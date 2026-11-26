@@ -35,7 +35,7 @@ const chats = [
 	{ value: 'development', label: 'Development' },
 ]
 
-export default function SectionsDividerAndSpacer() {
+export default function Sections() {
 	const [active, setActive] = useState('home')
 
 	return (

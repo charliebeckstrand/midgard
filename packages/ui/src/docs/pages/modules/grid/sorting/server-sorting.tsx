@@ -32,7 +32,7 @@ function sortPeople(sort: GridSortState[], locale: string): Person[] {
 	})
 }
 
-export default function ServerSideSorting() {
+export default function ServerSorting() {
 	const { locale } = useIntl()
 
 	const [sort, setSort] = useState<GridSortState[]>([{ column: 'name', direction: 'asc' }])
@@ -51,7 +51,7 @@ export default function ServerSideSorting() {
 
 	return (
 		<Grid
-			tableProps={{ 'aria-label': 'Server side sorting' }}
+			tableProps={{ 'aria-label': 'Server sorting' }}
 			columns={columns}
 			rows={rows}
 			getKey={(row) => row.id}

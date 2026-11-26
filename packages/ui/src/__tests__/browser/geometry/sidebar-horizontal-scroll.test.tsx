@@ -16,9 +16,9 @@ import { getSlot, renderUI } from '../../helpers'
 /**
  * A sidebar never scrolls on the horizontal axis.
  *
- * On a phone, the body of the docs "Sections divider and spacer" demo scrolled
- * a few pixels to the side. The 44px hit area of the small add button at the
- * end of a section row went past the edge of the body, and the vertical
+ * On a phone, the body of the docs "Sections" demo scrolled a few pixels to
+ * the side. The 44px hit area of the small add button at the end of a section
+ * row went past the edge of the body, and the vertical
  * scroller of the body also scrolled that overflow. The nav and the body now
  * clip the horizontal axis, and a long label truncates.
  *

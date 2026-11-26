@@ -4,7 +4,7 @@ import { cn } from 'ui/core'
 import { ApiTable, ExampleFrame, getMeta, Playground } from '../../../kit/index.ts'
 import ItemSize from './item-size.tsx'
 import SidebarPlayground from './playground.tsx'
-import SectionsDividerAndSpacer from './sections-divider-and-spacer.tsx'
+import Sections from './sections.tsx'
 import WithActions from './with-actions.tsx'
 import WithHeaderAndFooter from './with-header-and-footer.tsx'
 import WithSuffixSlot from './with-suffix-slot.tsx'
@@ -33,7 +33,7 @@ export default function SidebarPage() {
 			<Playground of={SidebarPlayground} api={api} />
 			<SidebarExample of={ItemSize} />
 			<SidebarExample of={WithHeaderAndFooter} tall />
-			<SidebarExample of={SectionsDividerAndSpacer} tall />
+			<SidebarExample of={Sections} tall />
 			<SidebarExample of={WithSuffixSlot} />
 			<SidebarExample of={WithActions} />
 			<ApiTable api={api} />

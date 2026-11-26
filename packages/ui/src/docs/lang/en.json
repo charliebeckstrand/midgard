@@ -1033,7 +1033,7 @@
 	},
 	"docs.demo.0072e6b93494": {
 		"defaultMessage": "Design",
-		"description": "Text of a demo in the docs as label, in components/listbox/teams.ts, components/sidebar/sections-divider-and-spacer.tsx, modules/form/filters/with-date-picker.tsx and 2 more."
+		"description": "Text of a demo in the docs as label, in components/listbox/teams.ts, components/sidebar/sections.tsx, modules/form/filters/with-date-picker.tsx and 2 more."
 	},
 	"docs.demo.00a990c1638a": {
 		"defaultMessage": "Last result:",
@@ -1109,7 +1109,7 @@
 	},
 	"docs.demo.04e2a9728af7": {
 		"defaultMessage": "Projects",
-		"description": "Text of a demo in the docs as aria-label, in components/sidebar/sections-divider-and-spacer.tsx."
+		"description": "Text of a demo in the docs as aria-label, in components/sidebar/sections.tsx."
 	},
 	"docs.demo.0571b253afb9": {
 		"defaultMessage": ", size",
@@ -1177,7 +1177,7 @@
 	},
 	"docs.demo.0951d99a2fa9": {
 		"defaultMessage": "Vanaheim",
-		"description": "Text of a demo in the docs as label, in components/sidebar/sections-divider-and-spacer.tsx."
+		"description": "Text of a demo in the docs as label, in components/sidebar/sections.tsx."
 	},
 	"docs.demo.09555815237e": {
 		"defaultMessage": "Move each package to its latest minor version.",
@@ -1411,10 +1411,6 @@
 		"defaultMessage": "Item deleted",
 		"description": "Text of a demo in the docs, in components/hold-button/destructive.tsx."
 	},
-	"docs.demo.160ae80b9fe3": {
-		"defaultMessage": "Server side sorting",
-		"description": "Text of a demo in the docs as aria-label, in modules/grid/sorting/server-side-sorting.tsx."
-	},
 	"docs.demo.1655dee9f071": {
 		"defaultMessage": "Pinned selection",
 		"description": "Text of a demo in the docs as aria-label, in modules/grid/pinning/pinned-selection.tsx."
@@ -1481,7 +1477,7 @@
 	},
 	"docs.demo.18fe6798720f": {
 		"defaultMessage": "Midgard",
-		"description": "Text of a demo in the docs as label, in components/sidebar/sections-divider-and-spacer.tsx."
+		"description": "Text of a demo in the docs as label, in components/sidebar/sections.tsx."
 	},
 	"docs.demo.194535a5e1d9": {
 		"defaultMessage": "Stat",
@@ -1509,7 +1505,7 @@
 	},
 	"docs.demo.1af77ee273cb": {
 		"defaultMessage": "Show details",
-		"description": "Text of a demo in the docs, in components/collapse/compound-api.tsx, components/collapse/controlled.tsx, components/collapse/playground.tsx and 1 more."
+		"description": "Text of a demo in the docs, in components/collapse/controlled.tsx, components/collapse/playground.tsx, components/collapse/trigger-label.tsx and 1 more."
 	},
 	"docs.demo.1af851907331": {
 		"defaultMessage": "Size",
@@ -1530,10 +1526,6 @@
 	"docs.demo.1bea65e5e9cc": {
 		"defaultMessage": "Sign with a mouse, a finger, or a stylus.",
 		"description": "Text of a demo in the docs, in components/signature-pad/in-a-form.tsx."
-	},
-	"docs.demo.1c1b7fa253db": {
-		"defaultMessage": "Server side grouping",
-		"description": "Text of a demo in the docs as aria-label, in modules/grid/groups/server-side-grouping.tsx."
 	},
 	"docs.demo.1c6225ec7092": {
 		"defaultMessage": "Budget",
@@ -1605,7 +1597,7 @@
 	},
 	"docs.demo.1ea442a134b2": {
 		"defaultMessage": "No",
-		"description": "Text of a demo in the docs, in modules/grid/editing/editor-types.tsx, modules/grid/filters/date-number-and-boolean-filters.tsx."
+		"description": "Text of a demo in the docs, in modules/grid/editing/editor-types.tsx, modules/grid/filters/filter-types.tsx."
 	},
 	"docs.demo.1eb74bbfd4f9": {
 		"defaultMessage": "Select one image.",
@@ -1661,7 +1653,7 @@
 	},
 	"docs.demo.21b6a798321a": {
 		"defaultMessage": "Development",
-		"description": "Text of a demo in the docs as label, in components/sidebar/sections-divider-and-spacer.tsx."
+		"description": "Text of a demo in the docs as label, in components/sidebar/sections.tsx."
 	},
 	"docs.demo.223051cc8c7a": {
 		"defaultMessage": "Undo help",
@@ -1941,7 +1933,7 @@
 	},
 	"docs.demo.2f6ff78a913a": {
 		"defaultMessage": "Asgard",
-		"description": "Text of a demo in the docs as label, in components/sidebar/sections-divider-and-spacer.tsx."
+		"description": "Text of a demo in the docs as label, in components/sidebar/sections.tsx."
 	},
 	"docs.demo.2f7414493776": {
 		"defaultMessage": "Get an email when someone mentions you or replies to your comment.",
@@ -1997,7 +1989,7 @@
 	},
 	"docs.demo.32a6245cdb94": {
 		"defaultMessage": "Returns are free within 30 days of delivery. Print the prepaid label from your order page.",
-		"description": "Text of a demo in the docs, in components/collapse/compound-api.tsx."
+		"description": "Text of a demo in the docs, in components/collapse/trigger-label.tsx."
 	},
 	"docs.demo.32d7e8208247": {
 		"defaultMessage": "Control",
@@ -2377,7 +2369,7 @@
 	},
 	"docs.demo.4852dd4b95ff": {
 		"defaultMessage": "Kansas City distribution network",
-		"description": "Text of a demo in the docs as aria-label, in modules/map/route/with-markers.tsx."
+		"description": "Text of a demo in the docs as aria-label, in modules/map/marker/routed-markers.tsx."
 	},
 	"docs.demo.486f6390960b": {
 		"defaultMessage": "Wade Cooper",
@@ -2405,7 +2397,7 @@
 	},
 	"docs.demo.48f0d3d397d4": {
 		"defaultMessage": "Sign out",
-		"description": "Text of a demo in the docs, in components/menu/title-and-description.tsx, components/sidebar/sections-divider-and-spacer.tsx."
+		"description": "Text of a demo in the docs, in components/menu/title-and-description.tsx, components/sidebar/sections.tsx."
 	},
 	"docs.demo.49345c3fb162": {
 		"defaultMessage": "Who can take the Denver order on Thursday?",
@@ -2578,6 +2570,10 @@
 	"docs.demo.50c8b81faf51": {
 		"defaultMessage": "Mark as read",
 		"description": "Text of a demo in the docs, in components/sidebar/with-actions.tsx."
+	},
+	"docs.demo.50de57268f09": {
+		"defaultMessage": "Server grouping",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/groups/server-grouping.tsx."
 	},
 	"docs.demo.513740128f95": {
 		"defaultMessage": "GB29 NWBK 6016 1331 9268 19",
@@ -2769,7 +2765,7 @@
 	},
 	"docs.demo.5be3c2c8354e": {
 		"defaultMessage": "Resolved",
-		"description": "Text of a demo in the docs as title, in modules/grid/filters/date-number-and-boolean-filters.tsx."
+		"description": "Text of a demo in the docs as title, in modules/grid/filters/filter-types.tsx."
 	},
 	"docs.demo.5be552fe879f": {
 		"defaultMessage": "Email digest",
@@ -2993,7 +2989,7 @@
 	},
 	"docs.demo.67bc484430fe": {
 		"defaultMessage": "Random",
-		"description": "Text of a demo in the docs as label, in components/sidebar/sections-divider-and-spacer.tsx."
+		"description": "Text of a demo in the docs as label, in components/sidebar/sections.tsx."
 	},
 	"docs.demo.683173e8384f": {
 		"defaultMessage": "last month",
@@ -3073,7 +3069,7 @@
 	},
 	"docs.demo.6cfba92fc401": {
 		"defaultMessage": "Estimate (hours)",
-		"description": "Text of a demo in the docs as title, in modules/grid/filters/date-number-and-boolean-filters.tsx."
+		"description": "Text of a demo in the docs as title, in modules/grid/filters/filter-types.tsx."
 	},
 	"docs.demo.6d707960429c": {
 		"defaultMessage": "The system will be offline on Sunday from 2:00 AM to 4:00 AM.",
@@ -3141,7 +3137,7 @@
 	},
 	"docs.demo.701d021d08c5": {
 		"defaultMessage": "Country",
-		"description": "Text of a demo in the docs as title, in components/select/controlled.tsx, components/select/in-a-field.tsx, modules/grid/groups/server-side-grouping.tsx."
+		"description": "Text of a demo in the docs as title, in components/select/controlled.tsx, components/select/in-a-field.tsx, modules/grid/groups/server-grouping.tsx."
 	},
 	"docs.demo.702ef921ed1d": {
 		"defaultMessage": "First name",
@@ -3433,7 +3429,7 @@
 	},
 	"docs.demo.7e1b0d5641f2": {
 		"defaultMessage": "Account",
-		"description": "Text of a demo in the docs as aria-label, label, in components/menu/title-and-description.tsx, components/nav/with-content.tsx, components/sidebar/sections-divider-and-spacer.tsx and 1 more."
+		"description": "Text of a demo in the docs as aria-label, label, in components/menu/title-and-description.tsx, components/nav/with-content.tsx, components/sidebar/sections.tsx and 1 more."
 	},
 	"docs.demo.7e345c3ba789": {
 		"defaultMessage": "IBAN",
@@ -3453,7 +3449,7 @@
 	},
 	"docs.demo.7e8cd2056da7": {
 		"defaultMessage": "Title",
-		"description": "Text of a demo in the docs as title, in modules/grid/editing/editor-types.tsx, modules/grid/filters/date-number-and-boolean-filters.tsx."
+		"description": "Text of a demo in the docs as title, in modules/grid/editing/editor-types.tsx, modules/grid/filters/filter-types.tsx."
 	},
 	"docs.demo.7e9040413aec": {
 		"defaultMessage": "Anyone with the link can view",
@@ -3581,7 +3577,7 @@
 	},
 	"docs.demo.85a39ab345d6": {
 		"defaultMessage": "Yes",
-		"description": "Text of a demo in the docs, in modules/grid/editing/editor-types.tsx, modules/grid/filters/date-number-and-boolean-filters.tsx."
+		"description": "Text of a demo in the docs, in modules/grid/editing/editor-types.tsx, modules/grid/filters/filter-types.tsx."
 	},
 	"docs.demo.85c3f9fa6f30": {
 		"defaultMessage": "Animals",
@@ -3613,7 +3609,7 @@
 	},
 	"docs.demo.87bb59ba2f92": {
 		"defaultMessage": "Workspace",
-		"description": "Text of a demo in the docs as aria-label, in components/sidebar/sections-divider-and-spacer.tsx."
+		"description": "Text of a demo in the docs as aria-label, in components/sidebar/sections.tsx."
 	},
 	"docs.demo.87d1b7f7669d": {
 		"defaultMessage": "Last cell double-click",
@@ -3841,7 +3837,7 @@
 	},
 	"docs.demo.9071738f1459": {
 		"defaultMessage": "Due",
-		"description": "Text of a demo in the docs as title, in modules/grid/editing/editor-types.tsx, modules/grid/filters/date-number-and-boolean-filters.tsx."
+		"description": "Text of a demo in the docs as title, in modules/grid/editing/editor-types.tsx, modules/grid/filters/filter-types.tsx."
 	},
 	"docs.demo.908c0aa7a994": {
 		"defaultMessage": "Clear the conversation",
@@ -3945,7 +3941,7 @@
 	},
 	"docs.demo.94835ea2fcf7": {
 		"defaultMessage": "Inbox",
-		"description": "Text of a demo in the docs as label, in components/sidebar/playground.tsx, components/sidebar/sections-divider-and-spacer.tsx, components/sidebar/with-actions.tsx and 3 more."
+		"description": "Text of a demo in the docs as label, in components/sidebar/playground.tsx, components/sidebar/sections.tsx, components/sidebar/with-actions.tsx and 3 more."
 	},
 	"docs.demo.94a72c074cfe": {
 		"defaultMessage": "Two",
@@ -4313,7 +4309,7 @@
 	},
 	"docs.demo.a41eb2bf7245": {
 		"defaultMessage": "New project",
-		"description": "Text of a demo in the docs as aria-label, in components/sidebar/sections-divider-and-spacer.tsx."
+		"description": "Text of a demo in the docs as aria-label, in components/sidebar/sections.tsx."
 	},
 	"docs.demo.a47f38d2ff9a": {
 		"defaultMessage": "Create an account with your work email.",
@@ -4457,7 +4453,7 @@
 	},
 	"docs.demo.aabe76f1f4ec": {
 		"defaultMessage": "Customers",
-		"description": "Text of a demo in the docs as colorName, label, in modules/chart/choropleth/heatmap.tsx, modules/map/quantile-bins.tsx, providers/density/playground.tsx."
+		"description": "Text of a demo in the docs as colorName, label, in modules/chart/choropleth/basic.tsx, modules/map/quantile-bins.tsx, providers/density/playground.tsx."
 	},
 	"docs.demo.ab3e1b9d1993": {
 		"defaultMessage": "Your profile is up to date.",
@@ -4845,7 +4841,7 @@
 	},
 	"docs.demo.bdb2d1e60398": {
 		"defaultMessage": "Revenue, costs, and margin by month",
-		"description": "Text of a demo in the docs as aria-label, in modules/chart/combo/animated.tsx, modules/chart/combo/bar-area-and-line.tsx."
+		"description": "Text of a demo in the docs as aria-label, in modules/chart/combo/animated.tsx, modules/chart/combo/with-an-area.tsx."
 	},
 	"docs.demo.bdb86505f806": {
 		"defaultMessage": "Archived",
@@ -4901,7 +4897,7 @@
 	},
 	"docs.demo.bf3763383aaf": {
 		"defaultMessage": "Customer",
-		"description": "Text of a demo in the docs as title, in components/table/caption-and-totals.tsx, modules/grid/groups/server-side-grouping.tsx, providers/density/playground.tsx."
+		"description": "Text of a demo in the docs as title, in components/table/caption-and-totals.tsx, modules/grid/groups/server-grouping.tsx, providers/density/playground.tsx."
 	},
 	"docs.demo.bfd402b2f6f3": {
 		"defaultMessage": "Sign in",
@@ -5085,7 +5081,7 @@
 	},
 	"docs.demo.c910d474dcd7": {
 		"defaultMessage": "General",
-		"description": "Text of a demo in the docs as label, in components/sidebar/sections-divider-and-spacer.tsx."
+		"description": "Text of a demo in the docs as label, in components/sidebar/sections.tsx."
 	},
 	"docs.demo.c9129025bd3f": {
 		"defaultMessage": "Sort by",
@@ -5097,7 +5093,7 @@
 	},
 	"docs.demo.c9722a7a962a": {
 		"defaultMessage": "Hide details",
-		"description": "Text of a demo in the docs, in components/collapse/compound-api.tsx, components/collapse/controlled.tsx."
+		"description": "Text of a demo in the docs, in components/collapse/controlled.tsx, components/collapse/trigger-label.tsx."
 	},
 	"docs.demo.c9b3c38247f7": {
 		"defaultMessage": "Total",
@@ -5210,6 +5206,10 @@
 	"docs.demo.cfd3012a04d2": {
 		"defaultMessage": "Book a pickup for the Denver order.",
 		"description": "Text of a demo in the docs as content, in modules/chat/actions/book-a-pickup.tsx."
+	},
+	"docs.demo.cfedc4b0cb22": {
+		"defaultMessage": "Filter types",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/filters/filter-types.tsx."
 	},
 	"docs.demo.d00a994d3394": {
 		"defaultMessage": "Track the tasks of the project. Upgrade to the Pro plan to open reports.",
@@ -5445,7 +5445,7 @@
 	},
 	"docs.demo.db18382a249e": {
 		"defaultMessage": "New chat",
-		"description": "Text of a demo in the docs as aria-label, in components/sidebar/sections-divider-and-spacer.tsx."
+		"description": "Text of a demo in the docs as aria-label, in components/sidebar/sections.tsx."
 	},
 	"docs.demo.db2a02d8dacc": {
 		"defaultMessage": "Invalid email or password.",
@@ -5499,10 +5499,6 @@
 		"defaultMessage": "View",
 		"description": "Text of a demo in the docs as aria-label, in components/menu/sections.tsx, components/segment/disabled-item.tsx, components/segment/playground.tsx and 1 more."
 	},
-	"docs.demo.dcd0bfefd528": {
-		"defaultMessage": "Date number and boolean filters",
-		"description": "Text of a demo in the docs as aria-label, in modules/grid/filters/date-number-and-boolean-filters.tsx."
-	},
 	"docs.demo.dcd1d5223f73": {
 		"defaultMessage": "Name",
 		"description": "Text of a demo in the docs as label, title, in components/description-list/playground.tsx, components/listbox/with-prefix.tsx, components/menu/sections.tsx and 13 more."
@@ -5525,7 +5521,7 @@
 	},
 	"docs.demo.dde07654d9fb": {
 		"defaultMessage": "KC → {abbreviation}",
-		"description": "Text of a demo in the docs as label, in modules/map/route/with-markers.tsx. The argument {abbreviation} is a value from the code."
+		"description": "Text of a demo in the docs as label, in modules/map/marker/routed-markers.tsx. The argument {abbreviation} is a value from the code."
 	},
 	"docs.demo.ddec0fc313b4": {
 		"defaultMessage": "Contact name",
@@ -5757,7 +5753,7 @@
 	},
 	"docs.demo.e83a7e6c9e3c": {
 		"defaultMessage": "Customers by state",
-		"description": "Text of a demo in the docs as aria-label, in modules/chart/choropleth/heatmap.tsx, modules/map/quantile-bins.tsx."
+		"description": "Text of a demo in the docs as aria-label, in modules/chart/choropleth/basic.tsx, modules/map/quantile-bins.tsx."
 	},
 	"docs.demo.e8a86c29736a": {
 		"defaultMessage": "Depots",
@@ -5801,7 +5797,7 @@
 	},
 	"docs.demo.eb814be3ca3b": {
 		"defaultMessage": "Main",
-		"description": "Text of a demo in the docs as aria-label, label, in components/nav/nav-bar.tsx, components/sidebar/playground.tsx, components/sidebar/sections-divider-and-spacer.tsx and 3 more."
+		"description": "Text of a demo in the docs as aria-label, label, in components/nav/nav-bar.tsx, components/sidebar/playground.tsx, components/sidebar/sections.tsx and 3 more."
 	},
 	"docs.demo.ebaaeb1d788b": {
 		"defaultMessage": "Async commit",
@@ -5905,7 +5901,7 @@
 	},
 	"docs.demo.ef5b4049bb36": {
 		"defaultMessage": "Chats",
-		"description": "Text of a demo in the docs as aria-label, in components/sidebar/sections-divider-and-spacer.tsx."
+		"description": "Text of a demo in the docs as aria-label, in components/sidebar/sections.tsx."
 	},
 	"docs.demo.ef6691545d2c": {
 		"defaultMessage": "Standard",
@@ -6114,6 +6110,10 @@
 	"docs.demo.f9e5e77abef0": {
 		"defaultMessage": "Move with",
 		"description": "Text of a demo in the docs, in components/kbd/icon-keys.tsx."
+	},
+	"docs.demo.f9f3bae97cc3": {
+		"defaultMessage": "Server sorting",
+		"description": "Text of a demo in the docs as aria-label, in modules/grid/sorting/server-sorting.tsx."
 	},
 	"docs.demo.fa2b2f4397d0": {
 		"defaultMessage": "Type the street, the city, and the state.",
@@ -8511,10 +8511,6 @@
 		"defaultMessage": "Bar and line",
 		"description": "The title of an example on a page of the docs. It comes from the file name bar-and-line.tsx."
 	},
-	"docs.title.bar-area-and-line": {
-		"defaultMessage": "Bar area and line",
-		"description": "The title of an example on a page of the docs. It comes from the file name bar-area-and-line.tsx."
-	},
 	"docs.title.basic": {
 		"defaultMessage": "Basic",
 		"description": "The title of an example on a page of the docs. It comes from the file name basic.tsx."
@@ -8695,10 +8691,6 @@
 		"defaultMessage": "Column reorder without handle",
 		"description": "The title of an example on a page of the docs. It comes from the file name column-reorder-without-handle.tsx."
 	},
-	"docs.title.compound-api": {
-		"defaultMessage": "Compound API",
-		"description": "The title of an example on a page of the docs. It comes from the file name compound-api.tsx."
-	},
 	"docs.title.context-menu-items": {
 		"defaultMessage": "Context menu items",
 		"description": "The title of an example on a page of the docs. It comes from the file name context-menu-items.tsx."
@@ -8798,10 +8790,6 @@
 	"docs.title.date-labels": {
 		"defaultMessage": "Date labels",
 		"description": "The title of an example on a page of the docs. It comes from the file name date-labels.tsx."
-	},
-	"docs.title.date-number-and-boolean-filters": {
-		"defaultMessage": "Date number and boolean filters",
-		"description": "The title of an example on a page of the docs. It comes from the file name date-number-and-boolean-filters.tsx."
 	},
 	"docs.title.decimal-step": {
 		"defaultMessage": "Decimal step",
@@ -8939,6 +8927,10 @@
 		"defaultMessage": "Filter rows",
 		"description": "The title of an example on a page of the docs. It comes from the file name filter-rows.tsx."
 	},
+	"docs.title.filter-types": {
+		"defaultMessage": "Filter types",
+		"description": "The title of an example on a page of the docs. It comes from the file name filter-types.tsx."
+	},
 	"docs.title.fit-content": {
 		"defaultMessage": "Fit content",
 		"description": "The title of an example on a page of the docs. It comes from the file name fit-content.tsx."
@@ -8990,10 +8982,6 @@
 	"docs.title.handle-at-the-end": {
 		"defaultMessage": "Handle at the end",
 		"description": "The title of an example on a page of the docs. It comes from the file name handle-at-the-end.tsx."
-	},
-	"docs.title.heatmap": {
-		"defaultMessage": "Heatmap",
-		"description": "The title of an example on a page of the docs. It comes from the file name heatmap.tsx."
 	},
 	"docs.title.held-open": {
 		"defaultMessage": "Held open",
@@ -9467,6 +9455,10 @@
 		"defaultMessage": "Right click",
 		"description": "The title of an example on a page of the docs. It comes from the file name right-click.tsx."
 	},
+	"docs.title.routed-markers": {
+		"defaultMessage": "Routed markers",
+		"description": "The title of an example on a page of the docs. It comes from the file name routed-markers.tsx."
+	},
 	"docs.title.row": {
 		"defaultMessage": "Row",
 		"description": "The title of an example on a page of the docs. It comes from the file name row.tsx."
@@ -9518,10 +9510,6 @@
 	"docs.title.sections": {
 		"defaultMessage": "Sections",
 		"description": "The title of an example on a page of the docs. It comes from the file name sections.tsx."
-	},
-	"docs.title.sections-divider-and-spacer": {
-		"defaultMessage": "Sections divider and spacer",
-		"description": "The title of an example on a page of the docs. It comes from the file name sections-divider-and-spacer.tsx."
 	},
 	"docs.title.segment-labels": {
 		"defaultMessage": "Segment labels",
@@ -9575,6 +9563,10 @@
 		"defaultMessage": "Server errors",
 		"description": "The title of an example on a page of the docs. It comes from the file name server-errors.tsx."
 	},
+	"docs.title.server-grouping": {
+		"defaultMessage": "Server grouping",
+		"description": "The title of an example on a page of the docs. It comes from the file name server-grouping.tsx."
+	},
 	"docs.title.server-infinite-scroll": {
 		"defaultMessage": "Server infinite scroll",
 		"description": "The title of an example on a page of the docs. It comes from the file name server-infinite-scroll.tsx."
@@ -9583,13 +9575,9 @@
 		"defaultMessage": "Server pagination",
 		"description": "The title of an example on a page of the docs. It comes from the file name server-pagination.tsx."
 	},
-	"docs.title.server-side-grouping": {
-		"defaultMessage": "Server side grouping",
-		"description": "The title of an example on a page of the docs. It comes from the file name server-side-grouping.tsx."
-	},
-	"docs.title.server-side-sorting": {
-		"defaultMessage": "Server side sorting",
-		"description": "The title of an example on a page of the docs. It comes from the file name server-side-sorting.tsx."
+	"docs.title.server-sorting": {
+		"defaultMessage": "Server sorting",
+		"description": "The title of an example on a page of the docs. It comes from the file name server-sorting.tsx."
 	},
 	"docs.title.settings-button": {
 		"defaultMessage": "Settings button",
@@ -9755,6 +9743,10 @@
 		"defaultMessage": "Trend",
 		"description": "The title of an example on a page of the docs. It comes from the file name trend.tsx."
 	},
+	"docs.title.trigger-label": {
+		"defaultMessage": "Trigger label",
+		"description": "The title of an example on a page of the docs. It comes from the file name trigger-label.tsx."
+	},
 	"docs.title.typed-input": {
 		"defaultMessage": "Typed input",
 		"description": "The title of an example on a page of the docs. It comes from the file name typed-input.tsx."
@@ -9806,6 +9798,10 @@
 	"docs.title.with-actions": {
 		"defaultMessage": "With actions",
 		"description": "The title of an example on a page of the docs. It comes from the file name with-actions.tsx."
+	},
+	"docs.title.with-an-area": {
+		"defaultMessage": "With an area",
+		"description": "The title of an example on a page of the docs. It comes from the file name with-an-area.tsx."
 	},
 	"docs.title.with-attachments": {
 		"defaultMessage": "With attachments",
@@ -9886,10 +9882,6 @@
 	"docs.title.with-language": {
 		"defaultMessage": "With language",
 		"description": "The title of an example on a page of the docs. It comes from the file name with-language.tsx."
-	},
-	"docs.title.with-markers": {
-		"defaultMessage": "With markers",
-		"description": "The title of an example on a page of the docs. It comes from the file name with-markers.tsx."
 	},
 	"docs.title.with-more": {
 		"defaultMessage": "With more",
