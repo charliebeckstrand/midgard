@@ -171,7 +171,7 @@ Do not declare a key again when the base gives it. `Omit<ComponentProps<'div'>, 
 
 5.6 An app, the docs app of `ui`, and `shared` write no `gap-*` or `space-*` class. A layout with a gap is a structure unit (Flex, Stack, Columns, or Split), and its `gap` prop steps with density. A class has the same length at each step. `app-gap-boundary.test.ts` holds the rule.
 
-5.7 In Places, an icon-only `Button` uses `variant="bare"`, so each icon button of the app has the same look. The [`require-bare-icon-button`](.biome/plugins/require-bare-icon-button.grit) Biome plugin holds the rule.
+5.7 In Places, an icon-only `Button` uses `variant="bare"`, so each icon button of the app has the same look. An `IconButton` there takes `variant="bare"` or no `variant`. The [`require-bare-icon-button`](.biome/plugins/require-bare-icon-button.grit) Biome plugin holds the rule.
 
 An icon-only control in `ui` is an `IconButton`. A `pressed`, `defaultPressed`, or `onPressedChange` prop makes it a toggle, which sets `aria-pressed`. Without one of them, it is an action, such as Close or Remove, and it sets no `aria-pressed`. A toggle keeps one accessible name, and `aria-pressed` gives its state.
 

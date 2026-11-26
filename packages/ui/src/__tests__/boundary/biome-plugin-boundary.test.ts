@@ -514,6 +514,14 @@ export const f = <Button variant="bare" aria-label="F" prefix={<Icon icon={<X />
 export const g = <Button variant="plain" prefix={<Icon icon={<X />} />}>Add</Button>
 export const h = <Button variant="plain"><Icon icon={<X />} />Add</Button>
 export const i = <Button variant="plain"><Icon icon={<X />} /><Badge /></Button>
+export const j = <IconButton variant="solid" icon={<X />} aria-label="J" /> // flag
+export const k = <IconButton // flag
+	variant="plain"
+	icon={<X />}
+	aria-label="K"
+/>
+export const l = <IconButton icon={<X />} aria-label="L" />
+export const m = <IconButton variant="bare" icon={<X />} aria-label="M" />
 `,
 		},
 	],
