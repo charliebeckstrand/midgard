@@ -68,9 +68,7 @@ describe('Toolbar with More (real browser)', () => {
 
 	/**
 	 * Whether `element` starts on the row, and not in the clip above or below
-	 * it. The checks read a button and not its group, and the top and not the
-	 * bottom: the test double of the portal draws an open tooltip in the group,
-	 * which makes the group taller.
+	 * it.
 	 */
 	function onRow(toolbar: HTMLElement, element: Element): boolean {
 		const row = toolbar.getBoundingClientRect()

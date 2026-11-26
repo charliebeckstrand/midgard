@@ -173,8 +173,12 @@ function mergeProps(list: (MockProps | undefined)[]): MockProps {
  *     stamped with a duplicate role.
  *   - `useInteractions` merges interaction reference/floating prop bags (and
  *     any user-supplied props) via `mergeProps`, chaining handlers.
+ *   - `floatingStyles` puts the panel at the top left of its containing block,
+ *     out of the flow, as the real hook does before its first position. An
+ *     open panel thus does not change the layout that it floats over, such as
+ *     a focus tooltip in the row of a toolbar with More.
  *
- * Everything else (positioning, hover, dismiss, portals) is a noop or identity
+ * Everything else (the position engine, hover, dismiss, portals) is a noop or identity
  * passthrough. Applied globally: see setup/module-mocks.ts.
  */
 const floatingUIMock = {
@@ -257,7 +261,7 @@ const floatingUIMock = {
 			floating: { current: null },
 			domReference: { current: null },
 		},
-		floatingStyles: {},
+		floatingStyles: { position: 'absolute', left: 0, top: 0 },
 		context: useMockContext(options),
 		x: 0,
 		y: 0,
