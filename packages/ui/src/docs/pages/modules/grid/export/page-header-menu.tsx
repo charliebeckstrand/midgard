@@ -6,18 +6,22 @@ import { Heading } from 'ui/heading'
 import { Icon } from 'ui/icon'
 import { Menu, MenuContent, MenuItem, MenuTrigger } from 'ui/menu'
 import { Stack } from 'ui/stack'
-import { filterableColumns, people } from '../data.tsx'
+import { columns, people } from '../data.tsx'
 
 // The export menu sits in the header of the page, outside the grid.
 // `useGridExportActions` gives the same Export items as the grid, and
 // `exportable={false}` keeps the items of the grid out. The page gives the
 // rows to export, because the hook sees no view of the grid.
-// The page holds the full list, so the export reads it as it is.
+// This grid does not sort or filter, so the rows of the page are the view,
+// and the export reads them as they are. A grid that sorts or filters needs
+// the page to hold that state and to export the rows that it shows.
+const viewColumns = columns.map((column) => ({ ...column, sortable: false }))
+
 const exportPeople = () => [...people]
 
 export default function PageHeaderMenu() {
 	const { actions, pending } = useGridExportActions({
-		columns: filterableColumns,
+		columns: viewColumns,
 		exportRows: exportPeople,
 	})
 
@@ -43,7 +47,7 @@ export default function PageHeaderMenu() {
 			<Grid
 				tableProps={{ 'aria-label': 'People' }}
 				exportable={false}
-				columns={filterableColumns}
+				columns={viewColumns}
 				rows={people}
 				getKey={(row) => row.id}
 			/>

@@ -7,7 +7,7 @@ import { stateName, states } from './data.ts'
 // A `valueKey` in place of a `categoryKey` colors each state by a number. The
 // quantile binning puts the same count of states in each of the five bins, so the few large
 // states do not take the whole scale.
-export default function CustomersByState() {
+export default function QuantileBins() {
 	const { formatNumber } = useIntl()
 
 	return (
