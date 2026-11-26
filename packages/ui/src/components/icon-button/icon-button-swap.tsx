@@ -7,6 +7,12 @@ type IconButtonSwapProps = {
 	pressedIcon: IconProps['icon']
 	/** Which of the two icons shows. */
 	pressed: boolean
+	/**
+	 * Mirrors both icons in a right-to-left layout. The recipe writes the mirror with
+	 * the scale step of each icon, so the mirror does not replace that step.
+	 * @defaultValue false
+	 */
+	mirror?: boolean
 }
 
 /**
@@ -19,13 +25,18 @@ type IconButtonSwapProps = {
  *
  * @internal
  */
-export function IconButtonSwap({ icon, pressedIcon, pressed }: IconButtonSwapProps) {
+export function IconButtonSwap({
+	icon,
+	pressedIcon,
+	pressed,
+	mirror = false,
+}: IconButtonSwapProps) {
 	return (
 		<>
-			<Icon icon={icon} className={k({ active: !pressed }).icon} />
+			<Icon icon={icon} className={k({ active: !pressed, mirror }).icon} />
 			<Icon
 				icon={pressedIcon}
-				className={cn('absolute inset-0 m-auto', k({ active: pressed }).icon)}
+				className={cn('absolute inset-0 m-auto', k({ active: pressed, mirror }).icon)}
 			/>
 		</>
 	)

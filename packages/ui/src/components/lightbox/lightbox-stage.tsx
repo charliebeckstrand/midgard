@@ -16,7 +16,6 @@ import {
 import { ariaAttr } from '../../core/aria-attr'
 import { dataAttr } from '../../core/data-attr'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
-import { Glyph } from '../../primitives/glyph'
 import { defineMessage } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
@@ -573,7 +572,8 @@ export function LightboxStage({
 										color="inherit"
 										className={k({ ended: at === 0 }).step}
 										aria-label={labels.previous}
-										icon={<Glyph icon={ChevronLeft} className="rtl:-scale-x-100" />}
+										icon={ChevronLeft}
+										mirror
 										disabled={at === 0}
 										onClick={() => stepBy(-1)}
 									/>
@@ -587,7 +587,8 @@ export function LightboxStage({
 										color="inherit"
 										className={k({ ended: at === count - 1 }).step}
 										aria-label={labels.next}
-										icon={<Glyph icon={ChevronRight} className="rtl:-scale-x-100" />}
+										icon={ChevronRight}
+										mirror
 										disabled={at === count - 1}
 										onClick={() => stepBy(1)}
 									/>

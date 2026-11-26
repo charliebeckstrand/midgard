@@ -22,7 +22,6 @@ import { isRtl } from '../../../../hooks/a11y/logical-arrow'
 import { useA11yRoving } from '../../../../hooks/a11y/use-a11y-roving'
 import { useReportedChange } from '../../../../hooks/use-reported-change'
 import { useStableEvent } from '../../../../hooks/use-stable-event'
-import { Glyph } from '../../../../primitives/glyph'
 import { useIntl } from '../../../../primitives/intl/use-intl'
 import type { ChartColorSlot } from '../../../../recipes/kata/chart'
 import type { Orientation } from '../../../../types/orientation'
@@ -1474,7 +1473,8 @@ function LegendPagination({ page, pageCount, onPage }: LegendPaginationProps) {
 				data-slot="chart-legend-page"
 				aria-label={intl.formatMessage(chartMessages.previousEntries)}
 				aria-disabled={ariaAttr(firstPage)}
-				icon={<Glyph icon={ChevronLeft} className="rtl:-scale-x-100" />}
+				icon={ChevronLeft}
+				mirror
 				data-disabled={dataAttr(firstPage)}
 				onClick={() => {
 					if (!firstPage) onPage(page - 1)
@@ -1497,7 +1497,8 @@ function LegendPagination({ page, pageCount, onPage }: LegendPaginationProps) {
 				data-slot="chart-legend-page"
 				aria-label={intl.formatMessage(chartMessages.nextEntries)}
 				aria-disabled={ariaAttr(lastPage)}
-				icon={<Glyph icon={ChevronRight} className="rtl:-scale-x-100" />}
+				icon={ChevronRight}
+				mirror
 				data-disabled={dataAttr(lastPage)}
 				onClick={() => {
 					if (!lastPage) onPage(page + 1)

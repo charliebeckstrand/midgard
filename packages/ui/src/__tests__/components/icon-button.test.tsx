@@ -325,6 +325,38 @@ describe('IconButton', () => {
 		expect(onPressedChange).not.toHaveBeenCalled()
 	})
 
+	it('passes mirror to each of its icons', () => {
+		const { container } = renderUI(
+			<>
+				<IconButton icon={icon} aria-label="Next" mirror />
+				<IconButton icon={[<svg key="a" />, <svg key="b" />]} aria-label="Panel" mirror />
+				<IconButton
+					icon={icon}
+					pressedIcon={icon}
+					aria-label="Swap"
+					defaultPressed={false}
+					mirror
+				/>
+			</>,
+		)
+
+		const icons = container.querySelectorAll('[data-slot="icon"]')
+
+		expect(icons).toHaveLength(5)
+
+		for (const each of Array.from(icons).slice(0, 3)) {
+			expect(each.getAttribute('class')).toContain('rtl:-scale-x-100')
+		}
+
+		// The swap mirrors each icon at its own scale step, so the mirror does not
+		// replace the x step of the hidden icon.
+		const [shown, hidden] = [icons[3], icons[4]]
+
+		expect(shown?.getAttribute('class')).toContain('rtl:-scale-x-100')
+		expect(hidden?.getAttribute('class')).toContain('rtl:-scale-x-25')
+		expect(hidden?.getAttribute('class')).not.toContain('rtl:-scale-x-100')
+	})
+
 	it('takes a disabled button out of the tab order, as native disabled does', async () => {
 		const user = setupUser()
 

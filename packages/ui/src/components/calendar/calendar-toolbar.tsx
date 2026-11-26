@@ -1,6 +1,5 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import type { KeyboardEventHandler, ReactNode, RefObject } from 'react'
-import { Glyph } from '../../primitives/glyph'
 import { k } from '../../recipes/kata/calendar'
 import { IconButton } from '../icon-button'
 
@@ -59,7 +58,8 @@ export function CalendarToolbar({
 				variant="plain"
 				onClick={onPrev}
 				aria-label={prevLabel}
-				icon={<Glyph icon={ChevronLeft} className="rtl:-scale-x-100" />}
+				icon={ChevronLeft}
+				mirror
 				className={prevClassName}
 				data-index={prevIndex}
 			/>
@@ -68,7 +68,8 @@ export function CalendarToolbar({
 				variant="plain"
 				onClick={onNext}
 				aria-label={nextLabel}
-				icon={<Glyph icon={ChevronRight} className="rtl:-scale-x-100" />}
+				icon={ChevronRight}
+				mirror
 				className={nextClassName}
 				data-index={nextIndex}
 			/>

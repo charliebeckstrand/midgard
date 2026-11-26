@@ -15,7 +15,6 @@ import {
 import { cn } from '../../core/cn'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { useA11yRoving } from '../../hooks/a11y/use-a11y-roving'
-import { Glyph } from '../../primitives/glyph'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k, type ToolbarVariants } from '../../recipes/kata/toolbar'
 import type { AccessibleName } from '../../types/accessible-name'
@@ -271,7 +270,8 @@ export function Toolbar({
 							lockable={false}
 							tooltip
 							aria-label={intl.formatMessage(toolbarMessages.back)}
-							icon={<Glyph icon={ChevronLeft} className="rtl:-scale-x-100" />}
+							icon={ChevronLeft}
+							mirror
 							onClick={(event) => showBack(event.currentTarget)}
 						/>
 					)}
@@ -285,7 +285,8 @@ export function Toolbar({
 								lockable={false}
 								tooltip
 								aria-label={intl.formatMessage(toolbarMessages.more)}
-								icon={<Glyph icon={ChevronRight} className="rtl:-scale-x-100" />}
+								icon={ChevronRight}
+								mirror
 								onClick={showMore}
 							/>
 						</span>

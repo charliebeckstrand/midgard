@@ -1,7 +1,6 @@
 'use client'
 
 import { Highlighter, PanelLeft, PanelLeftDashed, RotateCw, ScanSearch } from 'lucide-react'
-import { cn } from '../../core/cn'
 import { Glyph } from '../../primitives/glyph'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/pdf-viewer'
@@ -172,21 +171,16 @@ function ThumbnailsToggle() {
 			aria-label={intl.formatMessage(
 				railed && sidebarOpen ? pdfViewerMessages.hideThumbnails : pdfViewerMessages.showThumbnails,
 			)}
-			icon={
-				sidebarOpen ? (
-					[
-						<Glyph
-							icon={PanelLeftDashed}
-							key="rail"
-							className={cn('rtl:-scale-x-100', glyph.rail)}
-						/>,
-						<Glyph icon={PanelLeft} key="sheet" className={cn('rtl:-scale-x-100', glyph.sheet)} />,
-					]
-				) : (
-					<Glyph icon={PanelLeft} className="rtl:-scale-x-100" />
-				)
-			}
 			aria-expanded={railed ? sidebarOpen : undefined}
+			icon={
+				sidebarOpen
+					? [
+							<Glyph icon={PanelLeftDashed} key="rail" className={glyph.rail} />,
+							<Glyph icon={PanelLeft} key="sheet" className={glyph.sheet} />,
+						]
+					: PanelLeft
+			}
+			mirror
 			onClick={railed ? () => setSidebarOpen(!sidebarOpen) : undefined}
 		/>
 	)

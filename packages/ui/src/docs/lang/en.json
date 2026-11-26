@@ -7439,6 +7439,10 @@
 		"defaultMessage": "Mini",
 		"description": "The label of a field of a playground in the docs. The field sets the prop mini of Sidebar."
 	},
+	"docs.prop.mirror": {
+		"defaultMessage": "Mirror",
+		"description": "The label of a field of a playground in the docs. The field sets the prop mirror of Icon, IconButton."
+	},
 	"docs.prop.modal": {
 		"defaultMessage": "Modal",
 		"description": "The label of a field of a playground in the docs. The field sets the prop modal of DialogPanel, DrawerPanel, SheetPanel."

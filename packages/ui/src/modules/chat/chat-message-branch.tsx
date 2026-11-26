@@ -49,10 +49,10 @@ const messages = defineMessages<{
 })
 
 /** The chevron that points to the start of the line, and mirrors in a right-to-left document. @internal */
-const PREVIOUS_ICON = <Icon icon={ChevronLeft} className="rtl:-scale-x-100" />
+const PREVIOUS_ICON = <Icon icon={ChevronLeft} mirror />
 
 /** The chevron that points to the end of the line, and mirrors in a right-to-left document. @internal */
-const NEXT_ICON = <Icon icon={ChevronRight} className="rtl:-scale-x-100" />
+const NEXT_ICON = <Icon icon={ChevronRight} mirror />
 
 /**
  * The switcher of a chat message with more than one branch: a previous

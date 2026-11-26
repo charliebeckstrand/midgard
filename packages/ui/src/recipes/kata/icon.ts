@@ -8,5 +8,11 @@ import { dan } from '../kiso'
 // children of a host with the same scale.
 export const k = defineKata({ base: dan.size.icon.base })
 
+/**
+ * The mirror of an icon in a right-to-left layout, for a glyph that points
+ * along the line, such as a chevron or an arrow.
+ */
+export const mirror = 'rtl:-scale-x-100'
+
 /** The size scale of {@link Icon}: the steps of the icon ramp. */
 export const scale = defineScale(dan.size.icon.base)

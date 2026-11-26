@@ -129,6 +129,8 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 `heading` · `text` · `shiny-text` · `icon` · `markdown`
 
+> An `Icon` with `mirror` flips in a right-to-left layout. Set it on a glyph that points along the line, such as a next or previous chevron. `IconButton` takes `mirror` too, and passes it to each of its icons.
+
 > `Markdown` takes `ranges` and `renderRange` to draw a slot over a range of its source, such as an anchor on a phrase. A range gives two offsets into the source and the `quote` between them. It draws only while the quote matches, so a range stays correct while its text streams in. A range in one block that holds each bold that it touches whole, such as `**4** to **14**`, draws as one piece around the bold. A range that ends inside bold, holds a link, or crosses a block boundary draws as more than one piece. A piece does not go into a link or a fenced code block. `useMarkdownRangeText` gives the text of all the pieces of a range, and the text of each link in the range. Call it in a component that `renderRange` draws. A control on piece 0 then takes the whole phrase as its name.
 
 ## Feedback

@@ -58,6 +58,8 @@ type IconButtonOwnProps = {
 	 * for each layout. A toggle with a `pressedIcon` takes one icon.
 	 */
 	icon: IconProps['icon'] | readonly ReactElement[]
+	/** Mirrors each icon in a right-to-left layout, as {@link IconProps.mirror} does. @defaultValue false */
+	mirror?: boolean
 	/** The palette color of the button. @defaultValue 'zinc' */
 	color?: ButtonVariants['color']
 	/** The density step of the button. Omit it to take the step of the nearest density scope. */
@@ -271,17 +273,24 @@ function iconButtonContent(
 	pressedIcon: IconProps['icon'] | undefined,
 	pressed: boolean,
 	animate: boolean,
+	mirror: boolean,
 ): { prefix?: ReactNode; children?: ReactNode } {
 	// A list of icons is never a swap: the type gives a pressed icon only one icon.
-	if (isIconList(icon)) return { children: Children.map(icon, (each) => <Icon icon={each} />) }
-
-	if (pressedIcon === undefined) return { children: <Icon icon={icon} /> }
-
-	if (animate) {
-		return { prefix: <IconButtonSwap icon={icon} pressedIcon={pressedIcon} pressed={pressed} /> }
+	if (isIconList(icon)) {
+		return { children: Children.map(icon, (each) => <Icon icon={each} mirror={mirror} />) }
 	}
 
-	return { children: <Icon icon={pressed ? pressedIcon : icon} /> }
+	if (pressedIcon === undefined) return { children: <Icon icon={icon} mirror={mirror} /> }
+
+	if (animate) {
+		return {
+			prefix: (
+				<IconButtonSwap icon={icon} pressedIcon={pressedIcon} pressed={pressed} mirror={mirror} />
+			),
+		}
+	}
+
+	return { children: <Icon icon={pressed ? pressedIcon : icon} mirror={mirror} /> }
 }
 
 /** Whether `icon` is a list of icons. @internal */
@@ -350,6 +359,7 @@ export function IconButton(props: IconButtonProps) {
 		defaultPressed,
 		onPressedChange,
 		animate = true,
+		mirror = false,
 		variant = 'bare',
 		tooltip,
 		tooltipPlacement,
@@ -381,7 +391,7 @@ export function IconButton(props: IconButtonProps) {
 
 	const held = toggle ? pressed && swapIcon === undefined : active
 
-	const { prefix, children } = iconButtonContent(icon, swapIcon, pressed, animate)
+	const { prefix, children } = iconButtonContent(icon, swapIcon, pressed, animate, mirror)
 
 	// A tooltip of `true` echoes the accessible name, so its description would
 	// say the name a second time. An explicit key wins over the description of
