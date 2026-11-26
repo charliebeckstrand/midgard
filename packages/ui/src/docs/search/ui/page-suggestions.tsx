@@ -168,7 +168,15 @@ export function PageSuggestions({ path }: { path: string }) {
 		[intl],
 	)
 
-	const index = useMemo(() => createSearchIndex([...shown.values()]), [shown])
+	// An entry matches a part of the path by its own name, not by its place, so
+	// the part `grid` does not find each tab of the Grid page.
+	const index = useMemo(
+		() =>
+			createSearchIndex(
+				[...shown.values()].map((entry) => ({ ...entry, context: '', place: undefined })),
+			),
+		[shown],
+	)
 
 	const groups = useMemo(
 		() => groupBySection(findSuggestions(index, path).flatMap((href) => shown.get(href) ?? [])),

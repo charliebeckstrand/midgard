@@ -54,6 +54,14 @@ describe('the not-found page', () => {
 		expect(components.textContent).not.toContain('Components')
 	})
 
+	it('suggests no tab of a page for the name of the page', () => {
+		renderAt('/grid/button')
+
+		expect(suggestions().filter((href) => href?.startsWith('/modules/grid'))).toEqual([
+			'/modules/grid',
+		])
+	})
+
 	it('suggests the page whose path starts the path first', () => {
 		renderAt('/modules/grid/nope')
 
