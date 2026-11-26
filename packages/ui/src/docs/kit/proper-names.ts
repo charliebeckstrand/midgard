@@ -3,7 +3,7 @@
 // way `words` marks a word that a translation changes. The page smoke test
 // reads the names that it marked. A text that a translated page shows as the
 // English page does fails the test, unless it is a name or comes from another
-// recorded source (`__tests__/same-text.ts`).
+// recorded source (`__tests__/helpers/same-text.ts`).
 
 /** Each text that {@link names} marked as a name. */
 export const namedTexts = new Set<string>()
