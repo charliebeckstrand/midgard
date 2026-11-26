@@ -248,7 +248,8 @@ describe('QueryChips', () => {
 	it('disables each control when disabled', () => {
 		renderUI(<QueryChips fields={fields} defaultValue={tree(statusRule(), ageRule(30))} disabled />)
 
-		for (const button of screen.getAllByRole('button')) expect(button).toBeDisabled()
+		for (const button of screen.getAllByRole('button'))
+			expect(button.matches(':disabled, [aria-disabled="true"]')).toBe(true)
 
 		expect(screen.getByRole('toolbar')).toHaveAttribute('data-disabled')
 	})

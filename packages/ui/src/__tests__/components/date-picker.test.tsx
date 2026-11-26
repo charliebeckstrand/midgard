@@ -1103,12 +1103,17 @@ describe('DatePicker input', () => {
 			</Control>,
 		)
 
-		expect(screen.getByRole('button', { name: 'Open calendar' })).toBeDisabled()
+		expect(screen.getByRole('button', { name: 'Open calendar' })).toHaveAttribute(
+			'aria-disabled',
+			'true',
+		)
 
 		// A controlled `open` still shows the calendar, so the button can close it.
 		rerender(<DatePicker input readOnly open aria-label="Due date" />)
 
-		expect(screen.getByRole('button', { name: 'Close calendar' })).toBeEnabled()
+		expect(screen.getByRole('button', { name: 'Close calendar' })).not.toHaveAttribute(
+			'aria-disabled',
+		)
 	})
 
 	// The Calendar and the trigger label follow the ambient locale, so the typed
@@ -1254,7 +1259,10 @@ describe('DatePicker input', () => {
 
 		expect(bySlot(container, 'datepicker-input')).toBeDisabled()
 
-		expect(screen.getByRole('button', { name: 'Open calendar' })).toBeDisabled()
+		expect(screen.getByRole('button', { name: 'Open calendar' })).toHaveAttribute(
+			'aria-disabled',
+			'true',
+		)
 	})
 
 	it('passes min and max through to the typed date', async () => {

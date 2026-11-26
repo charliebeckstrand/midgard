@@ -63,7 +63,10 @@ describe('PasswordInput', () => {
 	it('disables the toggle when the input is disabled', () => {
 		renderUI(<PasswordInput disabled />)
 
-		expect(screen.getByRole('button', { name: 'Show password' })).toBeDisabled()
+		expect(screen.getByRole('button', { name: 'Show password' })).toHaveAttribute(
+			'aria-disabled',
+			'true',
+		)
 	})
 
 	it('disables the toggle when disabled comes from Control context', () => {
@@ -73,7 +76,10 @@ describe('PasswordInput', () => {
 			</Control>,
 		)
 
-		expect(screen.getByRole('button', { name: 'Show password' })).toBeDisabled()
+		expect(screen.getByRole('button', { name: 'Show password' })).toHaveAttribute(
+			'aria-disabled',
+			'true',
+		)
 	})
 
 	it('keeps the toggle enabled when the input is read-only', async () => {
@@ -83,7 +89,7 @@ describe('PasswordInput', () => {
 
 		const toggle = screen.getByRole('button', { name: 'Show password' })
 
-		expect(toggle).toBeEnabled()
+		expect(toggle).not.toHaveAttribute('aria-disabled')
 
 		// readOnly means viewable-but-not-editable; revealing still works.
 		await user.click(toggle)

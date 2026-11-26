@@ -134,7 +134,10 @@ describe('Lightbox reopened during the return (real browser)', () => {
 		await expect.poll(liveCount).toBe('1 of 5')
 
 		// The first photo hides its previous button, so the role query does not find it.
-		expect(document.querySelector('button[aria-label="Previous photo"]')).toBeDisabled()
+		expect(document.querySelector('button[aria-label="Previous photo"]')).toHaveAttribute(
+			'aria-disabled',
+			'true',
+		)
 	})
 
 	it('raises the same photo from where it paints, not from its thumbnail', async () => {

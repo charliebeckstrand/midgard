@@ -96,13 +96,13 @@ describe('NumberInput', () => {
 	it('disables decrease button at min value', () => {
 		renderUI(<NumberInput value={0} min={0} />)
 
-		expect(screen.getByLabelText('Decrease')).toBeDisabled()
+		expect(screen.getByLabelText('Decrease')).toHaveAttribute('aria-disabled', 'true')
 	})
 
 	it('disables increase button at max value', () => {
 		renderUI(<NumberInput value={10} max={10} />)
 
-		expect(screen.getByLabelText('Increase')).toBeDisabled()
+		expect(screen.getByLabelText('Increase')).toHaveAttribute('aria-disabled', 'true')
 	})
 
 	it('disables all controls when disabled', () => {
@@ -110,9 +110,9 @@ describe('NumberInput', () => {
 
 		expect(screen.getByRole('spinbutton')).toBeDisabled()
 
-		expect(screen.getByLabelText('Decrease')).toBeDisabled()
+		expect(screen.getByLabelText('Decrease')).toHaveAttribute('aria-disabled', 'true')
 
-		expect(screen.getByLabelText('Increase')).toBeDisabled()
+		expect(screen.getByLabelText('Increase')).toHaveAttribute('aria-disabled', 'true')
 	})
 
 	it('disables the steppers when readOnly', () => {
@@ -120,9 +120,9 @@ describe('NumberInput', () => {
 
 		expect(screen.getByRole('spinbutton')).toHaveAttribute('readonly')
 
-		expect(screen.getByLabelText('Decrease')).toBeDisabled()
+		expect(screen.getByLabelText('Decrease')).toHaveAttribute('aria-disabled', 'true')
 
-		expect(screen.getByLabelText('Increase')).toBeDisabled()
+		expect(screen.getByLabelText('Increase')).toHaveAttribute('aria-disabled', 'true')
 	})
 
 	it('disables the steppers under a readOnly Control', () => {
@@ -132,9 +132,9 @@ describe('NumberInput', () => {
 			</Control>,
 		)
 
-		expect(screen.getByLabelText('Decrease')).toBeDisabled()
+		expect(screen.getByLabelText('Decrease')).toHaveAttribute('aria-disabled', 'true')
 
-		expect(screen.getByLabelText('Increase')).toBeDisabled()
+		expect(screen.getByLabelText('Increase')).toHaveAttribute('aria-disabled', 'true')
 	})
 
 	it('disables the steppers in a locked scope', () => {
@@ -146,9 +146,9 @@ describe('NumberInput', () => {
 
 		expect(screen.getByRole('spinbutton')).toHaveAttribute('readonly')
 
-		expect(screen.getByLabelText('Decrease')).toBeDisabled()
+		expect(screen.getByLabelText('Decrease')).toHaveAttribute('aria-disabled', 'true')
 
-		expect(screen.getByLabelText('Increase')).toBeDisabled()
+		expect(screen.getByLabelText('Increase')).toHaveAttribute('aria-disabled', 'true')
 	})
 
 	it('disables the steppers under a disabled Field', () => {
@@ -158,9 +158,9 @@ describe('NumberInput', () => {
 			</Field>,
 		)
 
-		expect(screen.getByLabelText('Decrease')).toBeDisabled()
+		expect(screen.getByLabelText('Decrease')).toHaveAttribute('aria-disabled', 'true')
 
-		expect(screen.getByLabelText('Increase')).toBeDisabled()
+		expect(screen.getByLabelText('Increase')).toHaveAttribute('aria-disabled', 'true')
 	})
 
 	// Each row renders a NumberInput, clicks a stepper button, and asserts the

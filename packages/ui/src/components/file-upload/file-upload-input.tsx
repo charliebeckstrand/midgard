@@ -9,10 +9,9 @@ import { useHeadlessSlots } from '../../primitives/headless/use-headless-slots'
 import { useIntl } from '../../primitives/intl/use-intl'
 import type { scale as controlScale } from '../../recipes/kata/control'
 import { k } from '../../recipes/kata/file-upload'
-import { Button } from '../button'
 import { lockedProps } from '../button/button-constants'
 import { useControlVariant } from '../control/use-control-variant'
-import { Icon } from '../icon'
+import { IconButton } from '../icon-button'
 import { InputClearButton } from '../input/input-clear-button'
 import { InputFrame } from '../input/input-frame'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
@@ -168,17 +167,14 @@ export function FileUploadInput(allProps: FileUploadInputProps) {
 								onClick={handleClear}
 							/>
 						) : (
-							<Button
-								type="button"
-								variant="bare"
+							<IconButton
 								className="pointer-events-auto"
 								aria-label={intl.formatMessage(fileUploadMessages.browse)}
+								icon={Upload}
 								disabled={disabled}
 								onClick={handleBrowse}
 								{...inert}
-							>
-								<Icon icon={Upload} />
-							</Button>
+							/>
 						)
 					}
 					slots={slots}

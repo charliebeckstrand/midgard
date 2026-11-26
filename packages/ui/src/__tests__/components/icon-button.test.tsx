@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Dialog, DialogPanel, DialogTrigger } from '../../components/dialog'
 import { IconButton } from '../../components/icon-button'
@@ -322,6 +323,50 @@ describe('IconButton', () => {
 		expect(onClick).not.toHaveBeenCalled()
 
 		expect(onPressedChange).not.toHaveBeenCalled()
+	})
+
+	it('takes a disabled button out of the tab order, as native disabled does', async () => {
+		const user = setupUser()
+
+		renderUI(
+			<>
+				<IconButton icon={icon} aria-label="Before" />
+				<IconButton icon={icon} aria-label="Off" disabled tabIndex={0} />
+				<IconButton icon={icon} aria-label="After" />
+			</>,
+		)
+
+		expect(screen.getByRole('button', { name: 'Off' })).toHaveAttribute('tabindex', '-1')
+
+		await user.tab()
+
+		expect(screen.getByRole('button', { name: 'Before' })).toHaveFocus()
+
+		await user.tab()
+
+		expect(screen.getByRole('button', { name: 'After' })).toHaveFocus()
+	})
+
+	it('keeps the focus on a button that its own press disables', async () => {
+		const user = setupUser()
+
+		function Stepper() {
+			const [at, setAt] = useState(0)
+
+			return (
+				<IconButton icon={icon} aria-label="Next" disabled={at === 1} onClick={() => setAt(1)} />
+			)
+		}
+
+		renderUI(<Stepper />)
+
+		const button = screen.getByRole('button', { name: 'Next' })
+
+		await user.click(button)
+
+		expect(button).toHaveAttribute('aria-disabled', 'true')
+
+		expect(button).toHaveFocus()
 	})
 
 	it('opens nothing from a trigger around it while disabled', () => {

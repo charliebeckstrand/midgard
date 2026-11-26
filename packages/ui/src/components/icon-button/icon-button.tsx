@@ -7,7 +7,6 @@ import {
 	type ReactElement,
 	type ReactNode,
 } from 'react'
-import { ariaAttr } from '../../core/aria-attr'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { dataAttr } from '../../core/data-attr'
 import { useControllableFlag } from '../../hooks/use-controllable'
@@ -145,8 +144,8 @@ type IconButtonToggleProps = IconButtonToggleLook & {
 	/** A toggle is a button, not a link. */
 	href?: never
 	/**
-	 * Disables the button but keeps it focusable. It is `aria-disabled`, stays in
-	 * the tab order, and drops each press.
+	 * Disables the button but keeps the focus that it has. It is `aria-disabled`,
+	 * leaves the tab order, and drops each press.
 	 * @defaultValue false
 	 */
 	disabled?: boolean
@@ -189,8 +188,8 @@ type IconButtonActionProps = IconButtonActionLook & {
 		| ({
 				href?: never
 				/**
-				 * Disables the button but keeps it focusable. It is `aria-disabled`, stays
-				 * in the tab order, and drops each press.
+				 * Disables the button but keeps the focus that it has. It is
+				 * `aria-disabled`, leaves the tab order, and drops each press.
 				 *
 				 * @remarks Not the native `disabled`. A press can disable its own button,
 				 * such as a zoom step at the last level, and a native `disabled` then drops
@@ -224,6 +223,9 @@ type IconButtonRest = Omit<
 	href?: string
 	'data-slot'?: string
 }
+
+/** The props of a disabled IconButton. @internal */
+const disabledProps = { 'aria-disabled': true, 'data-disabled': true, tabIndex: -1 } as const
 
 /** The pressed state of a toggle, and the click that the button takes. @internal */
 function usePress({
@@ -323,8 +325,8 @@ function IconButtonTooltip({
  * - An action with `active` takes the held-down wash with no `aria-pressed`,
  *   for a button whose target is on, such as a search trigger with a query.
  *
- * `tooltip` adds a tooltip. `disabled` keeps the focus: the button is
- * `aria-disabled`, stays in the tab order, and drops each press.
+ * `tooltip` adds a tooltip. `disabled` keeps the focus that the button has: the
+ * button is `aria-disabled`, leaves the tab order, and drops each press.
  *
  * @remarks
  * A toggle keeps one accessible name, and `aria-pressed` gives its state. Do not
@@ -396,8 +398,10 @@ export function IconButton(props: IconButtonProps) {
 				variant={held && variant === 'plain' ? 'soft' : variant}
 				data-active={dataAttr(held && variant === 'bare')}
 				aria-pressed={toggle ? pressed : undefined}
-				aria-disabled={ariaAttr(disabled)}
-				data-disabled={dataAttr(disabled)}
+				// A disabled button keeps the focus that it has, but Tab goes past it, as
+				// it goes past a native disabled button. Only `disabled` writes these
+				// props, so the props of a lock that the caller spreads stay.
+				{...(disabled && disabledProps)}
 				{...(echo && { 'aria-describedby': undefined })}
 				// One handler serves the button and the link.
 				onClick={onClick as MouseEventHandler<HTMLElement> | undefined}

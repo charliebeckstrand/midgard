@@ -163,7 +163,7 @@ describe('Lightbox', () => {
 
 		const previous = screen.getByRole('button', { name: 'Previous photo' })
 
-		expect(previous).toBeEnabled()
+		expect(previous).not.toHaveAttribute('aria-disabled')
 
 		expect(previous).not.toHaveClass('invisible')
 	})
@@ -410,7 +410,10 @@ describe('Lightbox', () => {
 
 		expect(screen.getByText('2 / 2')).toBeInTheDocument()
 
-		expect(screen.getByRole('button', { name: 'Next photo' })).toBeDisabled()
+		expect(screen.getByRole('button', { name: 'Next photo' })).toHaveAttribute(
+			'aria-disabled',
+			'true',
+		)
 	})
 
 	it('keeps the controls on the aimed photo when a thumbnail before it does not load during a slide', async () => {
@@ -607,7 +610,7 @@ describe('Lightbox', () => {
 
 		const previous = screen.getByRole('button', { name: 'Previous photo' })
 
-		expect(previous).toBeDisabled()
+		expect(previous).toHaveAttribute('aria-disabled', 'true')
 
 		expect(previous).toHaveClass('invisible')
 
@@ -636,7 +639,7 @@ describe('Lightbox', () => {
 
 		const previous = screen.getByRole('button', { name: 'Previous photo' })
 
-		expect(previous).toBeEnabled()
+		expect(previous).not.toHaveAttribute('aria-disabled')
 
 		expect(previous).not.toHaveClass('invisible')
 	})
@@ -682,7 +685,10 @@ describe('Lightbox', () => {
 
 			renderUI(<Gallery defaultIndex={0} onIndexChange={onIndexChange} />)
 
-			expect(screen.getByRole('button', { name: 'Previous photo' })).toBeDisabled()
+			expect(screen.getByRole('button', { name: 'Previous photo' })).toHaveAttribute(
+				'aria-disabled',
+				'true',
+			)
 
 			fireEvent.keyDown(screen.getByRole('dialog'), { key: 'ArrowRight' })
 
@@ -692,7 +698,10 @@ describe('Lightbox', () => {
 
 			expect(centerPhoto()).toHaveAttribute('alt', 'Field of poppies')
 
-			expect(screen.getByRole('button', { name: 'Next photo' })).toBeDisabled()
+			expect(screen.getByRole('button', { name: 'Next photo' })).toHaveAttribute(
+				'aria-disabled',
+				'true',
+			)
 
 			// Past the last photo, a step does nothing.
 			fireEvent.keyDown(screen.getByRole('dialog'), { key: 'ArrowRight' })
@@ -766,7 +775,10 @@ describe('Lightbox', () => {
 
 			await user.click(screen.getByRole('button', { name: 'Next photo' }))
 
-			expect(screen.getByRole('button', { name: 'Next photo' })).toBeDisabled()
+			expect(screen.getByRole('button', { name: 'Next photo' })).toHaveAttribute(
+				'aria-disabled',
+				'true',
+			)
 
 			expect(screen.getByRole('button', { name: 'Previous photo' })).toHaveFocus()
 		})

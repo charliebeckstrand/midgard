@@ -7,7 +7,7 @@ import { useIntl } from '../../primitives/intl/use-intl'
 import { PanelClose, type PanelCloseProps } from '../../primitives/panel'
 import type { PanelHeaderProps } from '../../primitives/panel/types'
 import { k } from '../../recipes/kata/panel'
-import { Icon } from '../icon'
+import { IconButton } from '../icon-button'
 import { Button } from './button'
 
 /**
@@ -38,16 +38,13 @@ export function ButtonCloseX({ slot, onClick }: { slot: string; onClick?: MouseE
 	const intl = useIntl()
 
 	return (
-		<Button
+		<IconButton
 			lockable={false}
-			type="button"
-			variant="bare"
 			data-slot={slot}
 			aria-label={intl.formatMessage(intlMessages.close)}
+			icon={X}
 			onClick={onClick}
-		>
-			<Icon icon={X} />
-		</Button>
+		/>
 	)
 }
 

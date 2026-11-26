@@ -8,8 +8,7 @@ import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { OffcanvasContext } from '../../primitives/offcanvas/context'
 import { k } from '../../recipes/kata/sidebar'
-import { Button } from '../button'
-import { Icon } from '../icon'
+import { IconButton } from '../icon-button'
 
 const messages = defineMessages({
 	closeNavigation: {
@@ -42,15 +41,13 @@ export function SidebarHeader({ className, children, ...props }: SidebarHeaderPr
 		<div data-slot="sidebar-header" className={cn(k().header, className)} {...props}>
 			{children}
 			{offcanvas && (
-				<Button
+				<IconButton
 					// A close writes no field, so a locked scope, such as a submitting
 					// form, leaves it live.
 					lockable={false}
-					type="button"
-					variant="bare"
 					aria-label={intl.formatMessage(messages.closeNavigation)}
 					className="ms-auto"
-					prefix={<Icon icon={X} />}
+					icon={X}
 					onClick={offcanvas.close}
 				/>
 			)}
