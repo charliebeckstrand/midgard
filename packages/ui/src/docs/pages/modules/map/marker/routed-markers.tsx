@@ -23,7 +23,7 @@ function RoutedMarker({ label, start, end }: { label: string; start: LngLat; end
 	)
 }
 
-export default function WithMarkers() {
+export default function RoutedMarkers() {
 	return (
 		<MapPlat
 			aria-label="Kansas City distribution network"

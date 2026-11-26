@@ -99,7 +99,7 @@ const orderColumns: GridColumn<Order>[] = [
 const groupRow = (row: Order): GridGroupHeaderRow | null =>
 	row.group ? { key: row.group.key, value: row.country, count: row.group.count } : null
 
-export default function ServerSideGrouping() {
+export default function ServerGrouping() {
 	const [rows, setRows] = useState<Order[]>([])
 
 	const [groupedBy, setGroupedBy] = useState<string | number | null>('country')
@@ -176,7 +176,7 @@ export default function ServerSideGrouping() {
 	// and the rows of each group that opened.
 	return (
 		<Grid
-			tableProps={{ 'aria-label': 'Server side grouping' }}
+			tableProps={{ 'aria-label': 'Server grouping' }}
 			columns={orderColumns}
 			rows={rows}
 			getKey={(row) => row.id}

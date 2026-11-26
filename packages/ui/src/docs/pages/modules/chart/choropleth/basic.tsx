@@ -5,7 +5,7 @@ import states from 'us-atlas/states-10m.json'
 import { stateLabel } from '../../../../data/us-states.ts'
 import { customersByState, heat } from '../data.ts'
 
-export default function Heatmap() {
+export default function Basic() {
 	const { formatNumber } = useIntl()
 
 	return (

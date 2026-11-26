@@ -1,7 +1,7 @@
 import { ComboChart } from 'ui/chart'
 import { months } from '../data.ts'
 
-export default function BarAreaAndLine() {
+export default function WithArea() {
 	return (
 		<ComboChart
 			aria-label="Revenue, costs, and margin by month"
