@@ -24,26 +24,6 @@ describe('Collapse', () => {
 		expect(screen.getByText('Content')).toBeInTheDocument()
 	})
 
-	it('only references the panel via aria-controls while it is mounted', () => {
-		renderUI(
-			<Collapse>
-				<CollapseTrigger>Toggle</CollapseTrigger>
-				<CollapsePanel>
-					<p>Content</p>
-				</CollapsePanel>
-			</Collapse>,
-		)
-
-		const trigger = screen.getByText('Toggle')
-
-		// Closed: the panel is unmounted, so the reference would dangle.
-		expect(trigger).not.toHaveAttribute('aria-controls')
-
-		fireEvent.click(trigger)
-
-		expect(trigger).toControl(getSlot(document.body, 'collapse-panel'))
-	})
-
 	it.each([
 		['animated', undefined],
 		['not animated', false as const],

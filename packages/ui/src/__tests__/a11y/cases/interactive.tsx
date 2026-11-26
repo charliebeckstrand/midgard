@@ -10,7 +10,7 @@ import { PdfViewer, type PdfViewerPage } from '../../../components/pdf-viewer'
 import { Select, SelectLabel, SelectOption } from '../../../components/select'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
 import { PopoverPanel } from '../../../primitives/popover'
-import { noop, screen } from '../../helpers'
+import { bySlot, noop, screen } from '../../helpers'
 import type { InteractiveCase } from './types'
 
 const interactivePeople = ['Wade Cooper', 'Arlene McCoy', 'Devon Webb']
@@ -124,6 +124,10 @@ export const interactive: readonly InteractiveCase[] = [
 					</Combobox>
 				),
 				parts: ['combobox-input', 'control-frame', 'popover-panel'],
+				controls: {
+					trigger: 'combobox-input',
+					panel: (root) => root.querySelector('[role="listbox"]'),
+				},
 				disabledParts: ['combobox-input'],
 			},
 		],
@@ -160,6 +164,7 @@ export const interactive: readonly InteractiveCase[] = [
 					</Select>
 				),
 				parts: ['listbox-button', 'control-frame', 'popover-panel'],
+				controls: { trigger: 'listbox-button', panel: (root) => bySlot(root, 'popover-panel') },
 				disabledParts: ['listbox-button'],
 			},
 		],
@@ -202,6 +207,7 @@ export const interactive: readonly InteractiveCase[] = [
 					</Listbox>
 				),
 				parts: ['listbox-button', 'control-frame', 'popover-panel'],
+				controls: { trigger: 'listbox-button', panel: (root) => bySlot(root, 'popover-panel') },
 				disabledParts: ['listbox-button'],
 			},
 			{
@@ -242,6 +248,10 @@ export const interactive: readonly InteractiveCase[] = [
 					<DatePicker aria-label="Start date" defaultOpen={open} disabled={disabled} />
 				),
 				parts: ['datepicker-button', 'control-frame', 'floating-surface'],
+				controls: {
+					trigger: 'datepicker-button',
+					panel: (root) => bySlot(root, 'floating-surface'),
+				},
 				disabledParts: ['datepicker-button'],
 			},
 		],
@@ -298,6 +308,10 @@ export const interactive: readonly InteractiveCase[] = [
 					</>
 				),
 				parts: ['color-picker-button', 'control-frame', 'floating-surface'],
+				controls: {
+					trigger: 'color-picker-button',
+					panel: (root) => bySlot(root, 'floating-surface'),
+				},
 				disabledParts: ['color-picker-button'],
 			},
 		],

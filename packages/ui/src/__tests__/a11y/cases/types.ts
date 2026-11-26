@@ -120,6 +120,18 @@ export type DisclosureSubject = {
 	parts: readonly string[]
 	/** The `data-slot` of each part that stamps `data-disabled`. Omit it where nothing can be disabled. */
 	disabledParts?: readonly string[]
+	/**
+	 * The trigger whose `aria-controls` names the panel. The sweep asserts that
+	 * the trigger names the panel while the panel is mounted, and names nothing
+	 * while it is not, so the reference never dangles. Omit it where no part
+	 * names another with `aria-controls`.
+	 */
+	controls?: {
+		/** The `data-slot` of the trigger. */
+		trigger: string
+		/** Finds the panel in the document body, or `null` where it is not mounted. */
+		panel: (root: HTMLElement) => Element | null
+	}
 }
 
 /** A named, canonical render a gate drives. */

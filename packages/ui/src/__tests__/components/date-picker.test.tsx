@@ -281,20 +281,6 @@ describe('DatePicker', () => {
 		expect(await axe(container)).toHaveNoViolations()
 	})
 
-	it('names the open dialog from the trigger with aria-controls', async () => {
-		const user = setupUser()
-
-		renderUI(<DatePicker aria-label="Due date" />)
-
-		const trigger = screen.getByRole('combobox', { name: 'Due date' })
-
-		expect(trigger).not.toHaveAttribute('aria-controls')
-
-		await user.click(trigger)
-
-		expect(ariaTarget(trigger, 'aria-controls')).toHaveRole('dialog')
-	})
-
 	it('passes axe with read-only and required state', async () => {
 		const { container } = renderUI(
 			<Control required>

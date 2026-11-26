@@ -34,7 +34,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from '../../../components/popover'
 import { Sheet, SheetBody, SheetPanel, SheetTitle, SheetTrigger } from '../../../components/sheet'
 import { Toast, ToastProvider, useToast } from '../../../components/toast'
-import { noop } from '../../helpers'
+import { allBySlot, bySlot, noop } from '../../helpers'
 import type { Case } from './types'
 
 /**
@@ -95,6 +95,7 @@ export const overlays: readonly Case[] = [
 					</Dialog>
 				),
 				parts: ['panel-trigger', 'dialog'],
+				controls: { trigger: 'panel-trigger', panel: (root) => bySlot(root, 'dialog') },
 				disabledParts: ['panel-trigger'],
 			},
 		],
@@ -134,6 +135,7 @@ export const overlays: readonly Case[] = [
 					</Drawer>
 				),
 				parts: ['panel-trigger', 'drawer'],
+				controls: { trigger: 'panel-trigger', panel: (root) => bySlot(root, 'drawer') },
 				disabledParts: ['panel-trigger'],
 			},
 		],
@@ -161,6 +163,7 @@ export const overlays: readonly Case[] = [
 					</Sheet>
 				),
 				parts: ['panel-trigger', 'sheet'],
+				controls: { trigger: 'panel-trigger', panel: (root) => bySlot(root, 'sheet') },
 				disabledParts: ['panel-trigger'],
 			},
 		],
@@ -225,6 +228,7 @@ export const overlays: readonly Case[] = [
 					</Popover>
 				),
 				parts: ['popover-trigger', 'floating-surface', 'popover-content'],
+				controls: { trigger: 'popover-trigger', panel: (root) => bySlot(root, 'popover-content') },
 				disabledParts: ['popover-trigger'],
 			},
 		],
@@ -273,6 +277,7 @@ export const overlays: readonly Case[] = [
 					</Menu>
 				),
 				parts: ['menu-trigger', 'floating-surface', 'popover-panel'],
+				controls: { trigger: 'menu-trigger', panel: (root) => bySlot(root, 'popover-panel') },
 				disabledParts: ['menu-trigger'],
 			},
 			{
@@ -291,6 +296,17 @@ export const overlays: readonly Case[] = [
 					</>
 				),
 				parts: ['menu-sub-trigger', 'floating-surface'],
+				controls: {
+					trigger: 'menu-sub-trigger',
+					// The panel of the submenu: the innermost panel that holds its item, not
+					// the panel of the menu that holds its row.
+					panel: (root) =>
+						allBySlot(root, 'popover-panel').find(
+							(panel) =>
+								panel.textContent?.includes('Copy link') &&
+								!panel.querySelector('[data-slot="popover-panel"]'),
+						) ?? null,
+				},
 				disabledParts: ['menu-sub-trigger'],
 			},
 		],
@@ -330,6 +346,10 @@ export const overlays: readonly Case[] = [
 					</CommandPalette>
 				),
 				parts: ['dialog'],
+				controls: {
+					trigger: 'command-palette-input',
+					panel: (root) => bySlot(root, 'command-palette-list'),
+				},
 			},
 		],
 	},
