@@ -28,6 +28,12 @@ const sectionMessages: Readonly<Record<string, MessageDescriptor>> = defineMessa
 		defaultMessage: 'Components',
 		description: 'The name of the section of the sidebar that lists the components.',
 	},
+	layouts: {
+		id: 'docs.app.section.layouts',
+		defaultMessage: 'Layouts',
+		description:
+			'The name of the section of the sidebar that lists the layouts: the frames of a whole page, such as an app shell with a sidebar.',
+	},
 	modules: {
 		id: 'docs.app.section.modules',
 		defaultMessage: 'Modules',
