@@ -5,13 +5,17 @@ import { StatusDot } from 'ui/status'
 import { Text } from 'ui/text'
 import { Tree, TreeItem } from 'ui/tree'
 
-const pages = ['Overview', 'Install', 'Upgrade guide']
+const pages = [
+	{ id: 'overview', label: 'Overview' },
+	{ id: 'install', label: 'Install' },
+	{ id: 'upgrade', label: 'Upgrade guide', updated: true },
+]
 
 // `prefix` holds a status dot. It holds no control, because the row is one
-// control. `current` marks the page that
-// the reader has open, and `onAction` opens a page.
+// control. `current` marks the page that the reader has open, and `onAction`
+// opens a page.
 export default function RichContent() {
-	const [open, setOpen] = useState('Install')
+	const [open, setOpen] = useState('install')
 
 	return (
 		<Stack gap="md">
@@ -19,17 +23,17 @@ export default function RichContent() {
 				<TreeItem label="Getting started" icon={<Folder />} defaultOpen>
 					{pages.map((page) => (
 						<TreeItem
-							key={page}
-							label={page}
+							key={page.id}
+							label={page.label}
 							icon={<File />}
-							prefix={page === 'Upgrade guide' ? <StatusDot status="info" /> : undefined}
-							current={page === open}
-							onAction={() => setOpen(page)}
+							prefix={page.updated ? <StatusDot status="info" /> : undefined}
+							current={page.id === open}
+							onAction={() => setOpen(page.id)}
 						/>
 					))}
 				</TreeItem>
 			</Tree>
-			<Text>Open: {open}</Text>
+			<Text>Open: {pages.find((page) => page.id === open)?.label}</Text>
 		</Stack>
 	)
 }
