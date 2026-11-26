@@ -30,3 +30,11 @@ export const KIND_BOOST: Readonly<Record<SearchKind, number>> = {
 	tab: 2,
 	component: 2,
 }
+
+/**
+ * The shortest word that the search corrects, and the count of letters that
+ * a correction can add, remove, or change. A shorter word, such as `tab`, is
+ * near too many other words. The search corrects only a query with no match,
+ * so a correct word does not also find similar words.
+ */
+export const TYPO = { minLength: 4, edits: 1 } as const

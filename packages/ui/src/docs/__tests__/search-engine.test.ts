@@ -64,7 +64,30 @@ describe('createSearchIndex', () => {
 
 		expect(search('copyb')).toEqual(['/copy-button'])
 
-		expect(search('utton')).toEqual([])
+		expect(search('ton')).toEqual([])
+	})
+
+	it('corrects one letter of a word of 4 or more letters, only when nothing matches', () => {
+		expect(search('buton')[0]).toBe('/button')
+
+		expect(search('dialgo')).toEqual([])
+
+		expect(search('grd')).toEqual([])
+
+		expect(search('grid srot')).toEqual([])
+
+		expect(search('grid sortng')).toEqual(['/modules/grid/sorting'])
+	})
+
+	it('does not correct a word that matches, so a near word stays out', () => {
+		const entries: Matchable[] = [
+			{ kind: 'page', label: 'Table', href: '/table', context: 'Components' },
+			{ kind: 'page', label: 'Cable', href: '/cable', context: 'Components' },
+		]
+
+		expect(search('table', entries)).toEqual(['/table'])
+
+		expect(search('tablr', entries)).toEqual(['/table'])
 	})
 
 	it('matches each word in the label or the context', () => {
