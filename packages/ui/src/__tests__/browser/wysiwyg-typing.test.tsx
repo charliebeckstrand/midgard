@@ -4,7 +4,7 @@ import { userEvent } from 'vitest/browser'
 import type { MarkdownRange } from '../../components/markdown/markdown-ranges'
 import { Wysiwyg, type WysiwygHandle, WysiwygToolbar } from '../../modules/wysiwyg'
 import { getSlot, present, renderUI, screen, waitFor } from '../helpers'
-import { editable } from './helpers/wysiwyg'
+import { editable, holdFocusCheck } from './helpers/wysiwyg'
 
 /** A field that shows its Markdown value. */
 function Notes({ initial = '', onEnter }: { initial?: string; onEnter?: () => void }) {
@@ -35,6 +35,41 @@ const value = () => screen.getByTestId('value').textContent
  * jsdom has no selection and no layout, so these ride the browser.
  */
 describe('Wysiwyg (real browser)', () => {
+	// A Tab into the field puts the caret of the page at the start of the doc,
+	// and ProseMirror puts back its own selection. On a busy page, a key comes
+	// before the check of the editor after the focus. The key must go at the
+	// caret of the editor.
+	it('types at the caret of the editor on a key just after a Tab into the field', async () => {
+		holdFocusCheck()
+
+		renderUI(
+			<>
+				<Notes initial="day" />
+				<button type="button">After</button>
+			</>,
+		)
+
+		// A focus with no press, as ProseMirror reads a recent press as the reason
+		// of the caret.
+		screen.getByRole('textbox').focus()
+
+		await waitFor(() => expect(screen.getByRole('textbox')).toHaveClass('ProseMirror'))
+
+		await waitFor(() => expect(screen.getByRole('textbox')).toHaveFocus())
+
+		await userEvent.keyboard('{End}')
+
+		screen.getByRole('button', { name: 'After' }).focus()
+
+		window.getSelection()?.removeAllRanges()
+
+		await userEvent.keyboard('{Shift>}{Tab}{/Shift}x')
+
+		expect(screen.getByRole('textbox')).toHaveFocus()
+
+		await waitFor(() => expect(value()).toBe('dayx'))
+	})
+
 	it('turns the Markdown shortcuts into formatting as the reader types', async () => {
 		renderUI(<Notes />)
 

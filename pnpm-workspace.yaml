@@ -152,7 +152,9 @@ minimumReleaseAgeExclude:
 # focus and moved it back. CI saw this in `chat-prompt-wysiwyg-citations`.
 #
 # The patch makes each key other than a modifier end that time: the key clears the record of
-# the focus, and the check runs only while the record is the record of its focus. A held
+# the focus, and the check runs only while the record is the record of its focus. The key
+# clears the record after ProseMirror reads the changes before the key, so a reset of the
+# browser that came before the key still goes back. A held
 # modifier repeats its key, so a modifier does not end the time. `holdFocusCheck` of
 # `browser/helpers/wysiwyg.ts` runs the check after the key, and the cases that call it fail
 # without the patch. Remove the patch when upstream stops these reads at a key.

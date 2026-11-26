@@ -1,8 +1,8 @@
 diff --git a/dist/index.cjs b/dist/index.cjs
-index d01e986706fcf0f2440e484fa3ce32b08530a4d8..d18a41d5de57b2b96e2047281338b69c35d25440 100644
+index d01e986706fcf0f2440e484fa3ce32b08530a4d8..76ae901b3b034d11a625e4e5a3171cb63a87c32e 100644
 --- a/dist/index.cjs
 +++ b/dist/index.cjs
-@@ -3133,12 +3133,14 @@ function dispatchKey(view, event) {
+@@ -3133,6 +3133,7 @@ function dispatchKey(view, event) {
      return f(view, event);
    });
  }
@@ -10,13 +10,14 @@ index d01e986706fcf0f2440e484fa3ce32b08530a4d8..d18a41d5de57b2b96e2047281338b69c
  editHandlers.keydown = function (view, _event) {
    var event = _event;
    view.input.shiftKey = event.keyCode == 16 || event.shiftKey;
-   view.input.lastKeyCode = event.keyCode;
-   view.input.lastKeyCodeTime = Date.now();
-   view.input.lastKeyDispatched = false;
+@@ -3152,6 +3153,7 @@ editHandlers.keydown = function (view, _event) {
+     return;
+   }
+   if (event.keyCode != 229) view.domObserver.forceFlush(true);
 +  if (modifierKeys.indexOf(event.key) < 0) view.input.lastFocus = 0;
-   if (android && chrome && event.keyCode == 13) return;
-   if (ios && event.keyCode == 13 && !event.ctrlKey && !event.altKey && !event.metaKey) {
-     var now = Date.now();
+   if (dispatchKey(view, event) || captureKeyDown(view, event)) event.preventDefault();else setSelectionOrigin(view, "key");
+ };
+ editHandlers.keyup = function (view, event) {
 @@ -3875,10 +3877,11 @@ handlers.focus = function (view) {
      view.focused = true;
      view.domSel.read();
@@ -32,10 +33,10 @@ index d01e986706fcf0f2440e484fa3ce32b08530a4d8..d18a41d5de57b2b96e2047281338b69c
      }
    }
 diff --git a/dist/index.js b/dist/index.js
-index 2d9187e8940bdd6f91fecd0b81bfad9f7bacc390..04965ec6db1b2308bccd50c1b1381cc6ff386570 100644
+index 2d9187e8940bdd6f91fecd0b81bfad9f7bacc390..bc3db4bcc040443ca0ce01a58a863423a9de253a 100644
 --- a/dist/index.js
 +++ b/dist/index.js
-@@ -3284,12 +3284,17 @@ function dispatchKey(view, event) {
+@@ -3284,6 +3284,7 @@ function dispatchKey(view, event) {
          event = keyEvent(event == "Backspace" ? 8 : 13, event);
      return view.someProp("handleKeyDown", f => f(view, event));
  }
@@ -43,17 +44,19 @@ index 2d9187e8940bdd6f91fecd0b81bfad9f7bacc390..04965ec6db1b2308bccd50c1b1381cc6
  editHandlers.keydown = (view, _event) => {
      let event = _event;
      view.input.shiftKey = event.keyCode == 16 || event.shiftKey;
-     view.input.lastKeyCode = event.keyCode;
-     view.input.lastKeyCodeTime = Date.now();
-     view.input.lastKeyDispatched = false;
+@@ -3312,6 +3313,11 @@ editHandlers.keydown = (view, _event) => {
+     }
+     if (event.keyCode != 229)
+         view.domObserver.forceFlush(true);
 +    // A key other than a modifier is the user's. A selection change
-+    // after it is not a reset of the browser after the focus.
++    // after it is not a reset of the browser after the focus. The
++    // flush above still reads a reset that came before the key.
 +    if (!modifierKeys.includes(event.key))
 +        view.input.lastFocus = 0;
-     // Suppress enter key events on Chrome Android, because those tend
-     // to be part of a confused sequence of composition events fired,
-     // and handling them eagerly tends to corrupt the input.
-@@ -4101,10 +4106,10 @@ handlers.focus = view => {
+     if (dispatchKey(view, event) || captureKeyDown(view, event))
+         event.preventDefault();
+     else
+@@ -4101,10 +4107,10 @@ handlers.focus = view => {
          view.focused = true;
          view.domSel.read();
          if (!view.domSel.synced) {

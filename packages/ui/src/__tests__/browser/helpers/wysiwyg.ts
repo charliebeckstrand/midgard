@@ -32,10 +32,10 @@ const FOCUS_CHECK_MS = 20
 
 /**
  * Holds the check that ProseMirror runs 20 ms after its view takes the focus.
- * The check runs after the first key moves the caret, and before ProseMirror
- * reads the move: at the next change of the selection, or at the next key if
- * that key comes first. The browser can join the change of the selection of a
- * key with the change of the next key.
+ * The check runs after the first key after the focus, and before ProseMirror
+ * reads the change of that key: at the next change of the selection, or at
+ * the next key if that key comes first. The browser can join the change of
+ * the selection of a key with the change of the next key.
  *
  * @remarks The check compares the selection of the page with the selection at
  * the focus. When they are the same, it writes the selection of the editor to
@@ -70,6 +70,8 @@ export function holdFocusCheck(): void {
 	const onFocus = (event: FocusEvent) => {
 		if (event.target instanceof Element && event.target.classList.contains('ProseMirror')) {
 			window.setTimeout = hold
+
+			keys = 0
 		}
 	}
 
