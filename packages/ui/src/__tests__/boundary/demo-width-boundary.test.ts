@@ -25,10 +25,13 @@ import {
 //     overflow at each width of the frame.
 //   - The cap of the `With more` example of `Toolbar`, which makes the row
 //     overflow at each width of the frame, so More shows.
+//   - The card of the `Sign in` example of `AuthLayout`, which the example
+//     shows in place of the component. The layout fills the frame.
 
 const WIDTHS: Record<string, readonly string[]> = {
 	'docs/pages/components/tabs/overflow.tsx': ['max-w-sm'],
 	'docs/pages/components/toolbar/with-more.tsx': ['max-w-64'],
+	'docs/pages/layouts/auth-layout/sign-in.tsx': ['max-w-sm', 'w-full'],
 	'docs/pages/modules/dashboard/build-and-save.tsx': ['w-56', 'w-full'],
 	'docs/pages/modules/grid/state/error.tsx': ['w-full'],
 	'docs/pages/structure/flex/wrap.tsx': ['w-64'],

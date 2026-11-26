@@ -29,7 +29,7 @@ export default function SignIn() {
 					</Stack>
 				</CardBody>
 				<CardFooter>
-					<Button className="w-full">Sign in</Button>
+					<Button>Sign in</Button>
 				</CardFooter>
 			</Card>
 		</AuthLayout>
