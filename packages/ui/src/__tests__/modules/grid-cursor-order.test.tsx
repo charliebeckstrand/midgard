@@ -264,6 +264,55 @@ describe('Grid cursor over grouped rows', () => {
 		expect(activeCell(grid)).toBe(total)
 	})
 
+	it('names a stop by one id token when its group key has a space', () => {
+		const spaced = sales.map((sale) => ({ ...sale, region: `${sale.region} Coast` }))
+
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={spaced}
+				getKey={getKey}
+				groupBy={{ value: 'region' }}
+				groupTotalRow
+				navigable
+			/>,
+		)
+
+		const grid = screen.getByRole('treegrid')
+
+		const expectOneToken = () => {
+			const id = grid.getAttribute('aria-activedescendant') ?? ''
+
+			expect(id).not.toMatch(/\s/)
+
+			expect(document.getElementById(id)).toHaveAttribute('data-active')
+		}
+
+		act(() => grid.focus())
+
+		expectOneToken()
+
+		// The first group's two leaves, then its total.
+		press(grid, 'ArrowDown')
+
+		press(grid, 'ArrowDown')
+
+		press(grid, 'ArrowDown')
+
+		expect(activeCell(grid)?.closest('tr')).toHaveAttribute('data-total-row', 'group')
+
+		expectOneToken()
+
+		// A press on the second header finds its stop by the escaped id.
+		const header = grid.querySelectorAll('tr[data-group-row]')[1]?.querySelector('td')
+
+		fireEvent.mouseDown(header as HTMLElement)
+
+		expect(activeCell(grid)).toBe(header)
+
+		expectOneToken()
+	})
+
 	it('activates a leaf, and not a header, on Enter', () => {
 		const onRowClick = vi.fn()
 
