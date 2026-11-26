@@ -80,7 +80,7 @@ describe('Segment', () => {
 
 		const [first, second] = allBySlot(container, 'tab')
 
-		expect(first).not.toBeChecked()
+		expect(first).toBeUnchecked()
 
 		expect(first).not.toHaveAttribute('data-current')
 

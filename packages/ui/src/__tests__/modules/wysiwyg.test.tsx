@@ -58,7 +58,7 @@ describe('Wysiwyg', () => {
 
 		expect(bold).not.toHaveAttribute('aria-disabled')
 
-		expect(bold).not.toBePressed()
+		expect(bold).toBeUnpressed()
 
 		// The focus of the markup loads the editor at once.
 		act(() => field.focus())
@@ -301,7 +301,7 @@ describe('Wysiwyg', () => {
 		expect(bold).toHaveAttribute('aria-disabled', 'true')
 
 		// The caret starts in the bold text.
-		expect(bold).not.toBePressed()
+		expect(bold).toBeUnpressed()
 	})
 
 	it.for([
@@ -693,7 +693,7 @@ describe('WysiwygToolbar', () => {
 		// The caret starts in the bold text.
 		await waitFor(() => expect(bold).toBePressed())
 
-		expect(screen.getByRole('button', { name: 'Italic' })).not.toBePressed()
+		expect(screen.getByRole('button', { name: 'Italic' })).toBeUnpressed()
 	})
 
 	it('opens the link dialog from the link button', async () => {

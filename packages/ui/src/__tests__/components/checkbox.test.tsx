@@ -457,6 +457,6 @@ describe('Checkbox native form reset', () => {
 
 		expect(screen.getByRole('checkbox', { name: 'Terms' })).toBeChecked()
 
-		expect(screen.getByRole('checkbox', { name: 'News' })).not.toBeChecked()
+		expect(screen.getByRole('checkbox', { name: 'News' })).toBeUnchecked()
 	})
 })

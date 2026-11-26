@@ -82,7 +82,7 @@ describe('ChatCitationProvider', () => {
 
 		const anchor = screen.getByRole('button', { name: 'Twelve stops are late' })
 
-		expect(anchor).not.toBePressed()
+		expect(anchor).toBeUnpressed()
 
 		expect(anchor).toHaveAccessibleDescription('Selects in Late stops by day')
 	})
@@ -108,7 +108,7 @@ describe('ChatCitationProvider', () => {
 
 		expect(onCitedChange).toHaveBeenLastCalledWith(null)
 
-		expect(anchor).not.toBePressed()
+		expect(anchor).toBeUnpressed()
 	})
 
 	it('presses from the keyboard as a native button does', async () => {
@@ -135,7 +135,7 @@ describe('ChatCitationProvider', () => {
 
 		await user.keyboard(' ')
 
-		expect(anchor).not.toBePressed()
+		expect(anchor).toBeUnpressed()
 
 		expect(onCitedChange).toHaveBeenCalledTimes(2)
 	})
@@ -167,7 +167,7 @@ describe('ChatCitationProvider', () => {
 
 		expect(onCitedChange).toHaveBeenLastCalledWith(null)
 
-		expect(late).not.toBePressed()
+		expect(late).toBeUnpressed()
 
 		expect(tuesday).toHaveFocus()
 	})
@@ -392,7 +392,7 @@ describe('ChatCitationProvider trigger', () => {
 
 		expect(previews()).toEqual(['late'])
 
-		expect(anchor('Twelve stops are late')).not.toBePressed()
+		expect(anchor('Twelve stops are late')).toBeUnpressed()
 
 		await user.unhover(anchor('Twelve stops are late'))
 
@@ -424,7 +424,7 @@ describe('ChatCitationProvider trigger', () => {
 
 		expect(onCitedChange).toHaveBeenLastCalledWith(null)
 
-		expect(anchor('Twelve stops are late')).not.toBePressed()
+		expect(anchor('Twelve stops are late')).toBeUnpressed()
 	})
 
 	it('previews on a keyboard focus, and ends the preview on blur and on Escape', async () => {
@@ -480,7 +480,7 @@ describe('ChatCitationProvider trigger', () => {
 
 		await user.hover(anchor('Twelve stops are late'))
 
-		expect(anchor('Twelve stops are late')).not.toBePressed()
+		expect(anchor('Twelve stops are late')).toBeUnpressed()
 
 		await user.click(anchor('Twelve stops are late'))
 
@@ -644,7 +644,7 @@ describe('ChatCitationProvider trigger', () => {
 
 		expect(onCitedChange).toHaveBeenLastCalledWith(null)
 
-		expect(anchor('Twelve stops are late')).not.toBePressed()
+		expect(anchor('Twelve stops are late')).toBeUnpressed()
 
 		// The blur after Escape sends nothing, because no preview is open.
 		await user.tab()
@@ -761,7 +761,7 @@ describe('ChatCitationProvider isMarked', () => {
 		expect(anchor).toHaveAttribute('data-marked')
 
 		// A marked citation is not pressed: a press makes it the active citation.
-		expect(anchor).not.toBePressed()
+		expect(anchor).toBeUnpressed()
 
 		expect(bySlot(container, 'chat-citation-piece')).toHaveAttribute('data-marked')
 

@@ -770,7 +770,7 @@ describe('EventsSwitch', () => {
 
 		const toggle = screen.getByRole('switch', { name: 'Debug' })
 
-		expect(toggle).not.toBeChecked()
+		expect(toggle).toBeUnchecked()
 
 		fireEvent.click(toggle)
 

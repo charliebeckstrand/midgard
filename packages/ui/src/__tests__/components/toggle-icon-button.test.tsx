@@ -151,7 +151,7 @@ describe('ToggleIconButton', () => {
 
 		expect(onPressedChange).toHaveBeenCalledWith(false)
 
-		expect(button).not.toBePressed()
+		expect(button).toBeUnpressed()
 	})
 
 	// Button gives the inline box and the stepped radius. A plain utility in the className comes

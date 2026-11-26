@@ -137,7 +137,7 @@ describe('DatePicker (relative)', () => {
 
 		const today = screen.getByRole('button', { name: 'Today' })
 
-		expect(today).not.toBePressed()
+		expect(today).toBeUnpressed()
 
 		await user.click(today)
 
@@ -185,7 +185,7 @@ describe('DatePicker (relative)', () => {
 
 		expect(screen.getByRole('button', { name: 'Beta' })).toBePressed()
 
-		expect(screen.getByRole('button', { name: 'Alpha' })).not.toBePressed()
+		expect(screen.getByRole('button', { name: 'Alpha' })).toBeUnpressed()
 	})
 
 	it('renders only the supplied presets when overridden', async () => {

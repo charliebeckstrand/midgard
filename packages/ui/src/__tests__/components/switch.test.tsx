@@ -55,9 +55,9 @@ describe('Switch', () => {
 		// on the next frame.
 		await act(() => new Promise(requestAnimationFrame))
 
-		expect(input).not.toBeChecked()
+		expect(input).toBeUnchecked()
 
-		expect(input).not.toBeChecked()
+		expect(input).toBeUnchecked()
 	})
 
 	it('forwards checked and onChange', () => {
@@ -144,7 +144,7 @@ describe('Switch readOnly', () => {
 
 		expect(input.checked).toBe(false)
 
-		expect(input).not.toBeChecked()
+		expect(input).toBeUnchecked()
 
 		expect(onChange).not.toHaveBeenCalled()
 

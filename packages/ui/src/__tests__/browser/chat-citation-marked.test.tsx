@@ -101,7 +101,7 @@ describe('Chat: a pick in a chart marks the citation that it matches', () => {
 
 		expect(anchor()).toHaveAttribute('data-marked')
 
-		expect(anchor()).not.toBePressed()
+		expect(anchor()).toBeUnpressed()
 
 		// A pick of Mon does not match, so the mark goes.
 		await userEvent.keyboard('{ArrowLeft}{Enter}')

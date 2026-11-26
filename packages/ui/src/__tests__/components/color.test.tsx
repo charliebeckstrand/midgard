@@ -396,7 +396,7 @@ describe('ColorPanel', () => {
 		renderUI(<ColorPanel defaultValue="#123456" swatches={['#ffffff', '#000000']} />)
 
 		for (const radio of screen.getAllByRole('radio')) {
-			expect(radio).not.toBeChecked()
+			expect(radio).toBeUnchecked()
 		}
 	})
 

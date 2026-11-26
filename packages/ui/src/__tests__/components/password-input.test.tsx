@@ -23,7 +23,7 @@ describe('PasswordInput', () => {
 
 		// APG toggle pattern: aria-pressed conveys the state while the
 		// accessible name stays fixed.
-		expect(toggle).not.toBePressed()
+		expect(toggle).toBeUnpressed()
 
 		await user.click(toggle)
 
@@ -106,7 +106,7 @@ describe('PasswordInput', () => {
 
 		expect(input).toHaveAttribute('type', 'password')
 
-		expect(screen.getByRole('button', { name: 'Show password' })).not.toBePressed()
+		expect(screen.getByRole('button', { name: 'Show password' })).toBeUnpressed()
 
 		rerender(<PasswordInput />)
 

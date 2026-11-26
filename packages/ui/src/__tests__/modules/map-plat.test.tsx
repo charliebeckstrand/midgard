@@ -433,7 +433,7 @@ describe('MapPlat', () => {
 
 		fireEvent.click(east as HTMLButtonElement)
 
-		expect(east).not.toBePressed()
+		expect(east).toBeUnpressed()
 
 		const [alpha] = allRegions(container)
 

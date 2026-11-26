@@ -908,7 +908,7 @@ describe('TreeItem checked', () => {
 
 		fireEvent.click(getSlot(container, 'tree-item-check'))
 
-		expect(row(container)).not.toBeChecked()
+		expect(row(container)).toBeUnchecked()
 
 		fireEvent.click(screen.getByText('a.ts'))
 
@@ -916,7 +916,7 @@ describe('TreeItem checked', () => {
 
 		fireEvent.keyDown(row(container), { key: 'Enter' })
 
-		expect(row(container)).not.toBeChecked()
+		expect(row(container)).toBeUnchecked()
 
 		expect(onCheckedChange.mock.calls).toEqual([[true], [false], [true], [false]])
 	})
@@ -953,7 +953,7 @@ describe('TreeItem checked', () => {
 
 		expect(row(container)).toBeExpanded()
 
-		expect(row(container)).not.toBeChecked()
+		expect(row(container)).toBeUnchecked()
 
 		fireEvent.keyDown(row(container), { key: ' ' })
 

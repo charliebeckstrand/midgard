@@ -445,7 +445,7 @@ describe('Wysiwyg (real browser)', () => {
 
 		await userEvent.keyboard('{Control>}b{/Control}')
 
-		expect(screen.getByRole('button', { name: 'Bold' })).not.toBePressed()
+		expect(screen.getByRole('button', { name: 'Bold' })).toBeUnpressed()
 
 		expect(field.querySelector('strong')).not.toBeNull()
 

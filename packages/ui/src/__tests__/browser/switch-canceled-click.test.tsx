@@ -29,7 +29,7 @@ describe('Switch canceled click (real browser)', () => {
 
 		expect(input.checked).toBe(false)
 
-		expect(input).not.toBeChecked()
+		expect(input).toBeUnchecked()
 
 		expect(onChange).not.toHaveBeenCalled()
 
@@ -58,7 +58,7 @@ describe('Switch canceled click (real browser)', () => {
 
 		expect(input.checked).toBe(false)
 
-		expect(input).not.toBeChecked()
+		expect(input).toBeUnchecked()
 
 		expect(getFieldProbe('dark').textContent).toBe('false')
 	})

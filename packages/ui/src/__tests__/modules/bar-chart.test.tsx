@@ -848,7 +848,7 @@ describe('BarChart', () => {
 
 		fireEvent.click(item)
 
-		expect(item).not.toBePressed()
+		expect(item).toBeUnpressed()
 
 		expect(item.querySelector('.line-through')).not.toBeNull()
 
@@ -967,7 +967,7 @@ describe('BarChart', () => {
 
 		expect(barCount(container)).toBe(3)
 
-		expect(costs).not.toBePressed()
+		expect(costs).toBeUnpressed()
 
 		expect(costs.querySelector('.line-through')).not.toBeNull()
 

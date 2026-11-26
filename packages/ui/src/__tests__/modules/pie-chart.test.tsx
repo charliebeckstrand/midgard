@@ -585,7 +585,7 @@ describe('PieChart', () => {
 
 		fireEvent.click(item)
 
-		expect(item).not.toBePressed()
+		expect(item).toBeUnpressed()
 
 		expect(allBySlot(container, 'chart-slice')).toHaveLength(0)
 
