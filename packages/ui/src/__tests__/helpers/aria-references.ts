@@ -86,6 +86,26 @@ export type IdReference =
 	| 'aria-owns'
 
 /**
+ * Returns the ids in `attribute` of `element`. `aria-activedescendant` takes
+ * one id, not a list. An HTML id has no whitespace, and a browser does not trim
+ * the value. Thus a value with whitespace at any position is wrong, whatever
+ * the case expects.
+ *
+ * @throws When `aria-activedescendant` has whitespace, also under `not`.
+ */
+function idTokens(element: Element, attribute: IdReference): string[] {
+	const value = element.getAttribute(attribute) ?? ''
+
+	if (attribute === 'aria-activedescendant' && /\s/.test(value)) {
+		throw new Error(
+			`expected ${attribute} of ${describeNode(element)} to be one id; "${value}" has whitespace`,
+		)
+	}
+
+	return value.split(/\s+/).filter(Boolean)
+}
+
+/**
  * Returns the elements that `attribute` of `element` names, one for each id,
  * in order. Use it to read the named element. To prove which element the
  * attribute names, use a matcher such as `toControl`.
@@ -94,7 +114,7 @@ export type IdReference =
  * element or more than one element.
  */
 export function ariaTargets(element: Element, attribute: IdReference): HTMLElement[] {
-	const tokens = (element.getAttribute(attribute) ?? '').split(/\s+/).filter(Boolean)
+	const tokens = idTokens(element, attribute)
 
 	if (tokens.length === 0) {
 		throw new Error(`expected ${describeNode(element)} to have ${attribute}`)
@@ -131,7 +151,7 @@ export function ariaTarget(element: Element, attribute: IdReference): HTMLElemen
 }
 
 function references(
-	attribute: string,
+	attribute: IdReference,
 	received: unknown,
 	targets: readonly unknown[],
 ): MatcherResult {
@@ -141,17 +161,7 @@ function references(
 
 	const expected = targets.map((target, index) => toElement(target, `target ${index + 1}`))
 
-	const value = subject.getAttribute(attribute) ?? ''
-
-	const tokens = value.split(/\s+/).filter(Boolean)
-
-	// `aria-activedescendant` takes one id, and an HTML id has no whitespace, so
-	// the value is wrong whatever the case expects, also under `not`.
-	if (attribute === 'aria-activedescendant' && tokens.length > 1) {
-		throw new Error(
-			`expected ${attribute} of ${describeNode(subject)} to be one id; "${value}" has whitespace`,
-		)
-	}
+	const tokens = idTokens(subject, attribute)
 
 	const pass =
 		tokens.length === expected.length &&

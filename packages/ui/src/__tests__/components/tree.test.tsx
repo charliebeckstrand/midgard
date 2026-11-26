@@ -3,7 +3,7 @@ import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Tree, TreeItem, TreeSkeleton } from '../../components/tree'
 import { narabi } from '../../recipes/kiso'
-import { bySlot, getSlot, present, renderUI, screen } from '../helpers'
+import { ariaTarget, bySlot, getSlot, present, renderUI, screen } from '../helpers'
 import { axe } from '../helpers/axe'
 
 /** Each tree item in the container, in document order. */
@@ -749,7 +749,7 @@ describe('TreeItem group ownership', () => {
 
 		const row = screen.getByRole('treeitem', { name: 'src' })
 
-		const group = present(document.getElementById(row.getAttribute('aria-owns') ?? ''), 'group')
+		const group = ariaTarget(row, 'aria-owns')
 
 		expect(group).toHaveAttribute('role', 'group')
 
@@ -774,10 +774,7 @@ describe('TreeItem group ownership', () => {
 
 		fireEvent.click(row)
 
-		expect(document.getElementById(row.getAttribute('aria-owns') ?? '')).toHaveAttribute(
-			'role',
-			'group',
-		)
+		expect(ariaTarget(row, 'aria-owns')).toHaveAttribute('role', 'group')
 
 		expect(screen.getByRole('treeitem', { name: 'README' })).not.toHaveAttribute('aria-owns')
 	})

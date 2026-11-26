@@ -134,4 +134,16 @@ describe('toHaveActiveDescendant', () => {
 			'has whitespace',
 		)
 	})
+
+	it('throws on whitespace at the start or end, which a browser does not trim', () => {
+		for (const value of [' cell', 'cell ']) {
+			const el = mount(
+				`<div data-name="grid" aria-activedescendant="${value}"></div><div id="cell"></div>`,
+			)
+
+			expect(() => expect(el('grid')).toHaveActiveDescendant(el('cell'))).toThrow('has whitespace')
+
+			expect(() => ariaTarget(el('grid'), 'aria-activedescendant')).toThrow('has whitespace')
+		}
+	})
 })
