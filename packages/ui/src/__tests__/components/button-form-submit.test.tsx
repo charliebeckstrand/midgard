@@ -2,10 +2,10 @@ import { LetterB } from 'lucide-react'
 import { describe, expect, it, vi } from 'vitest'
 import { Alert } from '../../components/alert'
 import { Button } from '../../components/button'
+import { IconButton } from '../../components/icon-button'
 import { NumberInput } from '../../components/number-input'
 import { PasswordInput } from '../../components/password-input'
 import { SearchInput } from '../../components/search-input'
-import { ToggleIconButton } from '../../components/toggle-icon-button'
 import { fireEvent, renderUI, screen } from '../helpers'
 
 // Button mirrors native <button>: a typeless button defaults to type="submit"
@@ -48,8 +48,8 @@ describe('form submission semantics', () => {
 			['Clear search'],
 		],
 		[
-			'ToggleIconButton',
-			<ToggleIconButton key="t" pressed={false} icon={<LetterB />} aria-label="Bold" />,
+			'IconButton',
+			<IconButton key="t" pressed={false} icon={<LetterB />} aria-label="Bold" />,
 			['Bold'],
 		],
 		[

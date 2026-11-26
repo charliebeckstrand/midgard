@@ -1,11 +1,7 @@
 import { Plus } from 'lucide-react'
-import { Button } from 'ui/button'
-import { Icon } from 'ui/icon'
+import { IconButton } from 'ui/icon-button'
 
+// An icon-only button is an IconButton. It requires an accessible name.
 export default function IconOnly() {
-	return (
-		<Button aria-label="Add">
-			<Icon icon={<Plus />} />
-		</Button>
-	)
+	return <IconButton icon={<Plus />} aria-label="Add" variant="solid" />
 }

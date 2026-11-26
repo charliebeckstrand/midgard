@@ -32,6 +32,7 @@ import { Group } from '../../../components/group'
 import { Heading, HeadingSkeleton } from '../../../components/heading'
 import { HoldButton } from '../../../components/hold-button'
 import { Icon } from '../../../components/icon'
+import { IconButton, IconButtonSkeleton } from '../../../components/icon-button'
 import { Input } from '../../../components/input'
 import { Kbd } from '../../../components/kbd'
 import { Listbox, ListboxLabel, ListboxOption } from '../../../components/listbox'
@@ -78,7 +79,6 @@ import { Tab, TabList, TabListSkeleton, Tabs } from '../../../components/tabs'
 import { TagInput } from '../../../components/tag-input'
 import { Text, TextSkeleton } from '../../../components/text'
 import { Textarea, TextareaSkeleton } from '../../../components/textarea'
-import { ToggleIconButton, ToggleIconButtonSkeleton } from '../../../components/toggle-icon-button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
 import { Tree, TreeItem, TreeSkeleton } from '../../../components/tree'
 import type { DensityStep } from '../../../core/density'
@@ -392,10 +392,8 @@ const FIXTURES: { [N in SizedComponent]: (size: (typeof SIZE_AXES)[N][number]) =
 	TextSkeleton: (size) => <TextSkeleton size={size as never} />,
 	Textarea: (size) => <Textarea size={size as never} aria-label="Notes" defaultValue="Notes" />,
 	TextareaSkeleton: (size) => <TextareaSkeleton size={size as never} />,
-	ToggleIconButton: (size) => (
-		<ToggleIconButton size={size as never} aria-label="Pin" icon={icon} />
-	),
-	ToggleIconButtonSkeleton: (size) => <ToggleIconButtonSkeleton size={size as never} />,
+	IconButton: (size) => <IconButton size={size as never} aria-label="Pin" icon={icon} />,
+	IconButtonSkeleton: (size) => <IconButtonSkeleton size={size as never} />,
 	TooltipContent: (size) => (
 		<Tooltip open onOpenChange={() => {}}>
 			<TooltipTrigger>

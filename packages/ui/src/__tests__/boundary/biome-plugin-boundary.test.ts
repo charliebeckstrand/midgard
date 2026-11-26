@@ -389,23 +389,6 @@ export type D = 'horizontal' | 'diagonal'
 `,
 		},
 	],
-	'no-stateless-toggle-icon-button': [
-		{
-			file: 'toggle.tsx',
-			source: `export const a = <ToggleIconButton icon={<Icon icon={<X />} />} aria-label="Close" /> // flag
-export const b = <ToggleIconButton icon={<Trash />} aria-label="Remove" onClick={remove} /> // flag
-export const c = <ToggleIconButton icon={<Pin />} pressedIcon={<Check />} aria-label="Pin" /> // flag
-export const d = <ToggleIconButton // flag
-	icon={<Icon icon={<X />} />}
-	aria-label="Close"
-/>
-export const e = <ToggleIconButton pressed={on} onPressedChange={setOn} icon={<Pin />} aria-label="Pin" />
-export const f = <ToggleIconButton defaultPressed icon={<Pin />} aria-label="Pin" />
-export const g = <ToggleIconButton onPressedChange={setOn} icon={<Pin />} aria-label="Pin" />
-export const h = <Button variant="bare" aria-label="Close"><Icon icon={<X />} /></Button>
-`,
-		},
-	],
 	'no-twice-mixed-condition': [
 		{
 			file: 'conditions.ts',
@@ -593,7 +576,6 @@ const SCOPE: Record<string, { in: string; out: string }> = {
 	},
 	'no-renamed-spacing-utility': { in: 'packages/ui/src/layouts', out: 'packages/ui/src/hooks' },
 	'no-respelled-orientation': { in: 'packages/ui/src/utilities', out: 'packages/ui/src/recipes' },
-	'no-stateless-toggle-icon-button': { in: 'apps/places/src', out: 'packages/ui/src/components' },
 	'no-twice-mixed-condition': { in: 'packages/ui/src/hooks', out: 'patches' },
 	'no-ui-anchor-selector': { in: 'apps/places/src', out: 'apps/places/src/__tests__' },
 	'no-ui-anchor-selector-css': { in: 'packages/shared/src', out: 'packages/ui/src' },

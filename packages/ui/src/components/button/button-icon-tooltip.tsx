@@ -62,11 +62,8 @@ type ButtonIconTooltipProps = {
 	 * between on and off is an ARIA attribute no recipe targets. A pointer user can see
 	 * nothing.
 	 *
-	 * A flag here rather than `ToggleIconButton`, which is the package's designated two-state
-	 * control. That one cross-fades between two icons, motion that no other control of the bar has, on
-	 * controls whose glyph never changes. It also hardcodes `variant="bare"`, so it could not
-	 * take this swap. The two-state semantics belong to the caller's ARIA attribute, not to
-	 * that component.
+	 * `IconButton` gives the same wash to a toggle with no `pressedIcon`.
+	 *
 	 * @defaultValue false
 	 */
 	active?: boolean

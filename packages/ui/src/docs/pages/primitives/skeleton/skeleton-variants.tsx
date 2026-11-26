@@ -14,6 +14,7 @@ import { ControlSkeleton } from 'ui/control'
 import { DescriptionListSkeleton } from 'ui/description-list'
 import { FormFiltersSkeleton } from 'ui/form'
 import { HeadingSkeleton } from 'ui/heading'
+import { IconButtonSkeleton } from 'ui/icon-button'
 import { KanbanCardSkeleton } from 'ui/kanban'
 import { ListSkeleton } from 'ui/list'
 import { MapSkeleton } from 'ui/map'
@@ -40,7 +41,6 @@ import { TabListSkeleton } from 'ui/tabs'
 import { TextSkeleton } from 'ui/text'
 import { TextareaSkeleton } from 'ui/textarea'
 import { TimelineSkeleton } from 'ui/timeline'
-import { ToggleIconButtonSkeleton } from 'ui/toggle-icon-button'
 import { TreeSkeleton } from 'ui/tree'
 
 const variants = [
@@ -84,7 +84,7 @@ const variants = [
 	{ id: 'text', label: 'Text', skeleton: <TextSkeleton /> },
 	{ id: 'textarea', label: 'Textarea', skeleton: <TextareaSkeleton /> },
 	{ id: 'timeline', label: 'Timeline', skeleton: <TimelineSkeleton /> },
-	{ id: 'toggleIconButton', label: 'Toggle icon button', skeleton: <ToggleIconButtonSkeleton /> },
+	{ id: 'iconButton', label: 'Icon button', skeleton: <IconButtonSkeleton /> },
 	{ id: 'tree', label: 'Tree', skeleton: <TreeSkeleton /> },
 ]
 

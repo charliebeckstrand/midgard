@@ -17,6 +17,7 @@ import { DateInput } from '../../../components/date-input'
 import { DatePicker } from '../../../components/date-picker'
 import { Field, Label, Message } from '../../../components/fieldset'
 import { FileUploadButton, FileUploadDrop } from '../../../components/file-upload'
+import { IconButton, IconButtonSkeleton } from '../../../components/icon-button'
 import { Input } from '../../../components/input'
 import { MaskInput, phoneMask, zipcodeMask } from '../../../components/mask-input'
 import { NumberInput } from '../../../components/number-input'
@@ -36,7 +37,6 @@ import { RangeSlider, Slider, SliderSkeleton } from '../../../components/slider'
 import { Switch, SwitchField, SwitchSkeleton } from '../../../components/switch'
 import { TagInput } from '../../../components/tag-input'
 import { Textarea, TextareaSkeleton } from '../../../components/textarea'
-import { ToggleIconButton, ToggleIconButtonSkeleton } from '../../../components/toggle-icon-button'
 import type { Case } from './types'
 
 // A license-plate mask: uppercase, alphanumeric, grouped 3-4 (mirrors the demo).
@@ -216,7 +216,7 @@ export const inputCases: readonly Case[] = [
 		// accessible name the icon cannot.
 		name: 'toggle icon button',
 		element: (
-			<ToggleIconButton
+			<IconButton
 				key="tib"
 				pressed={false}
 				icon={<svg aria-hidden="true" />}
@@ -224,7 +224,7 @@ export const inputCases: readonly Case[] = [
 				aria-label="Toggle dark mode"
 			/>
 		),
-		skeleton: [{ element: <ToggleIconButtonSkeleton />, absentSlot: 'toggle-icon-button' }],
+		skeleton: [{ element: <IconButtonSkeleton />, absentSlot: 'icon-button' }],
 	},
 	{
 		// Tags edited inline; the composite is named by its Field Label through

@@ -20,7 +20,7 @@ export type ButtonBaseProps = ButtonVariants & {
 	 * inert. An inert button keeps its focus and its place in the tab order, and
 	 * cancels each activation. Pass `false` for a button that must work while
 	 * the scope is locked, such as the Cancel of a drawer. A library button that
-	 * writes no field, such as a `Tab`, a `CopyButton`, or a `ToggleIconButton`,
+	 * writes no field, such as a `Tab`, a `CopyButton`, or a toggle `IconButton`,
 	 * passes `false` too. A button with an `href` is a link, and the lock does
 	 * not reach it.
 	 * @defaultValue true

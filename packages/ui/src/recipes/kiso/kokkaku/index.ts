@@ -25,6 +25,7 @@ import { control } from './control'
 import { dateTime } from './date-time'
 import { descriptionList } from './description-list'
 import { heading } from './heading'
+import { iconButton } from './icon-button'
 import { kanban } from './kanban'
 import { list } from './list'
 import { map } from './map'
@@ -44,7 +45,6 @@ import { text } from './text'
 import { textarea } from './textarea'
 import { timeAgo } from './time-ago'
 import { timeline } from './timeline'
-import { toggleIconButton } from './toggle-icon-button'
 import { tree } from './tree'
 
 export const kokkaku = {
@@ -62,6 +62,7 @@ export const kokkaku = {
 	dateTime,
 	descriptionList,
 	heading,
+	iconButton,
 	kanban,
 	list,
 	map,
@@ -81,6 +82,5 @@ export const kokkaku = {
 	textarea,
 	timeAgo,
 	timeline,
-	toggleIconButton,
 	tree,
 } as const

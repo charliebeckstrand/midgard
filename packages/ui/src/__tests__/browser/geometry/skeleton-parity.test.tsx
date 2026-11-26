@@ -36,6 +36,7 @@ import {
 	DescriptionTerm,
 } from '../../../components/description-list'
 import { HeadingSkeleton } from '../../../components/heading'
+import { IconButton, IconButtonSkeleton } from '../../../components/icon-button'
 import { Input } from '../../../components/input'
 import { List, ListDescription, ListItem, ListLabel, ListSkeleton } from '../../../components/list'
 import { Nav, NavItem, NavList, NavSkeleton } from '../../../components/nav'
@@ -90,7 +91,6 @@ import {
 	TimelineTimestamp,
 	TimelineTitle,
 } from '../../../components/timeline'
-import { ToggleIconButton, ToggleIconButtonSkeleton } from '../../../components/toggle-icon-button'
 import { Tree, TreeItem, TreeSkeleton } from '../../../components/tree'
 import { type DensityStep, densitySteps } from '../../../core/density'
 import { BarChart, ChartSkeleton, PieChart } from '../../../modules/chart'
@@ -171,24 +171,24 @@ describe('skeleton parity (real browser)', () => {
 	)
 
 	it.each(['xs', 'sm', 'md', 'lg'] as const)(
-		'ToggleIconButtonSkeleton has the box of a %s toggle',
+		'IconButtonSkeleton has the box of a %s toggle',
 		(size) => {
 			const real = box(
 				renderUI(
-					<ToggleIconButton size={size} aria-label="Pin" icon={<svg data-slot="icon" />} />,
+					<IconButton size={size} aria-label="Pin" icon={<svg data-slot="icon" />} />,
 				).container.querySelector('button'),
 				'toggle',
 			)
 
-			expect(
-				placeholder(renderUI(<ToggleIconButtonSkeleton size={size} />).container),
-			).toStrictEqual(real)
+			expect(placeholder(renderUI(<IconButtonSkeleton size={size} />).container)).toStrictEqual(
+				real,
+			)
 		},
 	)
 
 	// The toggle is an icon-only Button, so it takes the inline box and the radius of a Button at
 	// each step, and its skeleton takes the same radius.
-	it.each(densitySteps)('ToggleIconButton has the radius and box kind of a %s Button', (size) => {
+	it.each(densitySteps)('IconButton has the radius and box kind of a %s Button', (size) => {
 		const radius = (el: Element | null | undefined, what: string) =>
 			getComputedStyle(present(el, what)).borderRadius
 
@@ -200,7 +200,7 @@ describe('skeleton parity (real browser)', () => {
 
 		const toggle = present(
 			renderUI(
-				<ToggleIconButton size={size} aria-label="Pin" icon={<svg data-slot="icon" />} />,
+				<IconButton size={size} aria-label="Pin" icon={<svg data-slot="icon" />} />,
 			).container.querySelector('button'),
 			'toggle',
 		)
@@ -211,7 +211,7 @@ describe('skeleton parity (real browser)', () => {
 
 		expect(
 			radius(
-				renderUI(<ToggleIconButtonSkeleton size={size} />).container.querySelector(
+				renderUI(<IconButtonSkeleton size={size} />).container.querySelector(
 					'[data-slot="placeholder"]',
 				),
 				'skeleton',

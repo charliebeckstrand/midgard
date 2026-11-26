@@ -8,7 +8,7 @@ import { Glyph } from '../../primitives/glyph'
 import { useIntl } from '../../primitives/intl/use-intl'
 import type { ButtonVariants } from '../../recipes/kata/button'
 import { Button } from '../button'
-import { ToggleIconButtonIcons } from '../toggle-icon-button/toggle-icon-button-icons'
+import { IconButtonSwap } from '../icon-button/icon-button-swap'
 import { copyButtonMessages } from './copy-button-messages'
 import { useCopyButtonState } from './use-copy-button-state'
 
@@ -65,7 +65,7 @@ export type CopyButtonProps = {
 
 /**
  * A button that copies text to the clipboard. It has the look of
- * ToggleIconButton. Writes `text`, flips to a check glyph, and reverts after
+ * IconButton. Writes `text`, flips to a check glyph, and reverts after
  * `timeout`.
  *
  * @remarks
@@ -82,7 +82,7 @@ export type CopyButtonProps = {
  * cancel the copy, because the copy is the activation of the button.
  *
  * @see {@link useCopyButtonState} for the clipboard write and revert timing.
- * @see {@link ToggleIconButton} for the two-state icon control that it looks like.
+ * @see {@link IconButton} for the icon control that it looks like.
  */
 export function CopyButton({
 	text,
@@ -133,7 +133,7 @@ export function CopyButton({
 			}
 			className={className}
 			prefix={
-				<ToggleIconButtonIcons
+				<IconButtonSwap
 					icon={icon ?? <Glyph icon={Clipboard} />}
 					pressedIcon={<Glyph icon={Check} />}
 					pressed={copied}

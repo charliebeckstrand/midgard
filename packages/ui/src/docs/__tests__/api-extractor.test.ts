@@ -20,7 +20,7 @@ const BARRELS = [
 	'components/sparkline',
 	'components/table',
 	'components/tabs',
-	'components/toggle-icon-button',
+	'components/icon-button',
 	'providers/density',
 	'structure/flex',
 ]
@@ -48,7 +48,7 @@ describe('API extractor', { timeout: 60_000 }, () => {
 	it('lists the props of each arm of a union', async ({ extractor }) => {
 		const api = await load(extractor)
 
-		for (const component of ['ToggleIconButton', 'TabList']) {
+		for (const component of ['IconButton', 'TabList']) {
 			expect(findProp(api, component, 'aria-label')).toMatchObject({
 				type: 'string',
 				required: true,
@@ -92,13 +92,13 @@ describe('API extractor', { timeout: 60_000 }, () => {
 	}) => {
 		const api = await load(extractor)
 
-		expect(findProp(api, 'ToggleIconButton', 'color')).toMatchObject({
+		expect(findProp(api, 'IconButton', 'color')).toMatchObject({
 			default: "'zinc'",
 			defaultValue: 'zinc',
 		})
 
 		// The default-value gate holds a name as the code of the default.
-		expect(findProp(api, 'ToggleIconButton', 'pressedIcon')?.default).toBe('icon')
+		expect(findProp(api, 'IconButton', 'pressedIcon')?.default).toBe('icon')
 
 		expect(findProp(api, 'ColorPanel', 'swatches')?.default).toBe('DEFAULT_SWATCHES')
 

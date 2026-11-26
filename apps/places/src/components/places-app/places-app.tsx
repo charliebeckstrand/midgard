@@ -9,11 +9,11 @@ import { Alert } from 'ui/alert'
 import { type ConfirmOptions, useConfirm } from 'ui/confirm'
 import { EventsButton, EventsSwitch } from 'ui/events'
 import { useIdleLoad } from 'ui/hooks'
+import { IconButton } from 'ui/icon-button'
 import { useIntl } from 'ui/primitives/intl'
 import { AppearanceSettings } from 'ui/providers/appearance'
 import { Flex } from 'ui/structure/flex'
 import { Text } from 'ui/text'
-import { ToggleIconButton } from 'ui/toggle-icon-button'
 import { Tooltip, TooltipContent, TooltipTrigger } from 'ui/tooltip'
 import { flags } from '../../flags'
 import {
@@ -398,7 +398,7 @@ function VisitedToggle({
 	return (
 		<Tooltip>
 			<TooltipTrigger>
-				<ToggleIconButton
+				<IconButton
 					pressed={marked}
 					onPressedChange={onMarkedChange}
 					icon={<MapPin />}
