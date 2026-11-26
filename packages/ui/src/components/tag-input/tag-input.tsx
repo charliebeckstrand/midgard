@@ -15,7 +15,6 @@ import { ariaAttr } from '../../core/aria-attr'
 import { cn } from '../../core/cn'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { useStableEvent } from '../../hooks/use-stable-event'
-import { Glyph } from '../../primitives/glyph'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import type { IntlShape } from '../../primitives/intl/types'
 import { useIntl } from '../../primitives/intl/use-intl'
@@ -454,7 +453,8 @@ export function TagInput({
 		<IconButton
 			ref={addRef}
 			aria-label={intl.formatMessage(messages.addTag)}
-			icon={<Glyph icon={CornerLeftDown} className="rtl:-scale-x-100" />}
+			icon={CornerLeftDown}
+			mirror
 			disabled={locked || atMax || inputValue.trim() === ''}
 			onMouseDown={(event) => event.preventDefault()}
 			onClick={handleSubmit}

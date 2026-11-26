@@ -325,6 +325,28 @@ describe('IconButton', () => {
 		expect(onPressedChange).not.toHaveBeenCalled()
 	})
 
+	it('passes mirror to each of its icons', () => {
+		const { container } = renderUI(
+			<>
+				<IconButton icon={icon} aria-label="Next" mirror />
+				<IconButton icon={[<svg key="a" />, <svg key="b" />]} aria-label="Panel" mirror />
+				<IconButton
+					icon={icon}
+					pressedIcon={icon}
+					aria-label="Swap"
+					defaultPressed={false}
+					mirror
+				/>
+			</>,
+		)
+
+		const icons = container.querySelectorAll('[data-slot="icon"]')
+
+		expect(icons).toHaveLength(5)
+
+		for (const each of icons) expect(each.getAttribute('class')).toContain('rtl:-scale-x-100')
+	})
+
 	it('takes a disabled button out of the tab order, as native disabled does', async () => {
 		const user = setupUser()
 

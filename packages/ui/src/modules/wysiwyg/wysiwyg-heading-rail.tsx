@@ -86,7 +86,8 @@ export function WysiwygHeadingRail({ open, onClose, ref }: WysiwygHeadingRailPro
 				lockable={false}
 				tooltip
 				aria-label={intl.formatMessage(wysiwygMessages.back)}
-				icon={<Glyph icon={ChevronLeft} className="rtl:-scale-x-100" />}
+				icon={ChevronLeft}
+				mirror
 				onClick={onClose}
 			/>
 			<ToolbarGroup aria-label={intl.formatMessage(wysiwygMessages.headingLevel)}>

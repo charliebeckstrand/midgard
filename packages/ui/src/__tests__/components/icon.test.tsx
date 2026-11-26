@@ -83,4 +83,19 @@ describe('Icon', () => {
 
 		expect(el?.getAttribute('class')).toContain('shrink-0')
 	})
+
+	it('mirrors in a right-to-left layout with mirror', () => {
+		const { container } = renderUI(
+			<>
+				<Icon icon={<Glyph data-testid="plain" />} />
+				<Icon icon={<Glyph data-testid="mirror" />} mirror />
+			</>,
+		)
+
+		const [plain, mirrored] = container.querySelectorAll('[data-slot="icon"]')
+
+		expect(plain?.getAttribute('class')).not.toContain('rtl:-scale-x-100')
+
+		expect(mirrored?.getAttribute('class')).toContain('rtl:-scale-x-100')
+	})
 })

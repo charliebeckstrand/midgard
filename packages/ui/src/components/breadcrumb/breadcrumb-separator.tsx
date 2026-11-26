@@ -13,9 +13,7 @@ export type BreadcrumbSeparatorProps = Omit<ComponentProps<'li'>, 'children'> & 
 	children?: ReactNode
 }
 
-const DEFAULT_SEPARATOR = (
-	<Icon icon={ChevronRight} aria-hidden="true" className="rtl:-scale-x-100" />
-)
+const DEFAULT_SEPARATOR = <Icon icon={ChevronRight} aria-hidden="true" mirror />
 
 /**
  * Visual divider between crumbs, hidden from assistive tech (`aria-hidden`), so

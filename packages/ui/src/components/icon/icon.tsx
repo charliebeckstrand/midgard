@@ -3,7 +3,7 @@ import { type CSSProperties, cloneElement, isValidElement, type ReactElement } f
 import { cn } from '../../core/cn'
 import type { ScaleStep } from '../../core/density/scale'
 import { Glyph } from '../../primitives/glyph'
-import { k, type scale } from '../../recipes/kata/icon'
+import { k, mirror as mirrorClass, type scale } from '../../recipes/kata/icon'
 
 /** Props for {@link Icon}: the `icon` to draw, plus `size` and an optional accessible `label`. */
 export type IconProps = {
@@ -33,6 +33,12 @@ export type IconProps = {
 	 * style wins over a host projection, so no host can override a pixel size.
 	 */
 	size?: ScaleStep<typeof scale> | number
+	/**
+	 * Mirrors the icon in a right-to-left layout. Set it on a glyph that points
+	 * along the line, such as a chevron or an arrow for next and previous.
+	 * @defaultValue false
+	 */
+	mirror?: boolean
 	className?: string
 	/**
 	 * Accessible name for a meaningful icon. When set, the icon is exposed to
@@ -52,7 +58,7 @@ export type IconProps = {
  * as `role="img"` with that accessible name; without one the icon is
  * decorative and stays `aria-hidden`.
  */
-export function Icon({ icon, size, className, label }: IconProps) {
+export function Icon({ icon, size, mirror = false, className, label }: IconProps) {
 	const numeric = typeof size === 'number'
 
 	const a11yProps = label
@@ -68,6 +74,7 @@ export function Icon({ icon, size, className, label }: IconProps) {
 		className: cn(
 			'shrink-0',
 			!numeric && k().base,
+			mirror && mirrorClass,
 			(element.props as { className?: string }).className,
 			className,
 		),
