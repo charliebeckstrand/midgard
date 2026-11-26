@@ -88,16 +88,21 @@ const KNOWN: readonly { finding: string; paths: readonly string[]; reason: strin
 	},
 	{
 		finding: 'crowded textarea-actions/button',
-		paths: [
-			'/modules/chat/conversation',
-			'/modules/chat/prompt',
-			'/modules/chat/scope',
-			'/textarea',
-		],
+		paths: ['/textarea'],
 		reason: 'An action of a Textarea is 38 px wide, against its text.',
 	},
 	{
+		finding: 'crowded textarea-actions/icon-button',
+		paths: ['/modules/chat/conversation', '/modules/chat/prompt', '/modules/chat/scope'],
+		reason: 'An icon button of a ChatPrompt is 38 px wide, against its text.',
+	},
+	{
 		finding: 'overlap control-frame/chat-prompt | textarea-actions/button',
+		paths: ['/modules/chat/prompt'],
+		reason: 'The hit area of a text action, such as a scope, grows into the text of the prompt.',
+	},
+	{
+		finding: 'overlap control-frame/chat-prompt | textarea-actions/icon-button',
 		paths: ['/modules/chat/conversation', '/modules/chat/prompt', '/modules/chat/scope'],
 		reason: 'The hit area of the send button grows into the text of the prompt.',
 	},
@@ -344,6 +349,11 @@ const KNOWN: readonly { finding: string; paths: readonly string[]; reason: strin
 			'/modules/grid/virtualization',
 		],
 		reason: 'The sort and filter buttons of a column header are 35 × 24 px, and they touch.',
+	},
+	{
+		finding: 'crowded table-header/icon-button',
+		paths: ['/modules/grid/export', '/modules/grid/filters'],
+		reason: 'The filter button of a column header is 34 px wide, against the sort button.',
 	},
 	{
 		finding: 'overlap table-cell/button | table-cell/button',
