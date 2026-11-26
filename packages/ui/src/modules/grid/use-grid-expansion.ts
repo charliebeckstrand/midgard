@@ -47,7 +47,12 @@ export function useGridExpansion<T>(
 	const rowExpandable = config?.rowExpandable ?? ALWAYS_EXPANDABLE
 
 	// A plain body holds each closed panel under `always` (see `GridDetailRow`).
-	const closedPanelsMounted = useMountsEveryPanel('always')
+	// The answer changes after hydration, which renders the grid again. Only a
+	// grid whose expansion is active reads it, so the others ask under `active`,
+	// whose answer does not change.
+	const closedPanelsMounted = useMountsEveryPanel(
+		active && render !== null && !groupingActive ? 'always' : 'active',
+	)
 
 	return useMemo(
 		() =>
