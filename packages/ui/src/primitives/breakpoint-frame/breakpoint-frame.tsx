@@ -1,7 +1,7 @@
 'use client'
 
 import { useComposedRefs } from 'motion/react'
-import { type ComponentProps, useMemo, useRef, useState } from 'react'
+import { type ComponentProps, useMemo, useState } from 'react'
 import { cn } from '../../core/cn'
 import { matchesMediaQuery } from '../../utilities/media-query'
 import { noop } from '../../utilities/noop'
@@ -17,39 +17,48 @@ function breakpointPixels(breakpoint: MinBreakpoint): number {
 }
 
 /**
- * The frame value of the box that `read` gives. Each call reads the box again,
- * so the value works before the box exists. Until then, the frame reads the
- * viewport. @internal
+ * A frame value, and the ref callback that gives it its box. The value reads
+ * the box at each call, so it works before the box exists. Until then, the
+ * frame reads the viewport. @internal
  */
-function createFrame(
-	read: () => HTMLElement | null,
-	viewport: boolean,
-): BreakpointFrameContextValue {
-	return {
+function createFrame(viewport: boolean, initial: HTMLElement | null = null) {
+	let box = initial
+
+	const listeners = new Set<() => void>()
+
+	const frame: BreakpointFrameContextValue = {
 		get element() {
-			return read()
+			return box
 		},
 		viewport,
-		subscribe: (callback) => {
-			const element = read()
+		subscribeElement: (callback) => {
+			listeners.add(callback)
 
+			return () => listeners.delete(callback)
+		},
+		subscribe: (callback) => {
 			// React subscribes after the commit, when the box exists.
-			if (element === null) return noop
+			if (box === null) return noop
 
 			const observer = new ResizeObserver(callback)
 
-			observer.observe(element)
+			observer.observe(box)
 
 			return () => observer.disconnect()
 		},
-		matches: (breakpoint) => {
-			const element = read()
-
-			return element === null
+		matches: (breakpoint) =>
+			box === null
 				? matchesMediaQuery(`(min-width: ${BREAKPOINT_WIDTHS[breakpoint]})`)
-				: element.getBoundingClientRect().width >= breakpointPixels(breakpoint)
-		},
+				: box.getBoundingClientRect().width >= breakpointPixels(breakpoint),
 	}
+
+	const attach = (node: HTMLElement | null) => {
+		box = node
+
+		for (const listener of listeners) listener()
+	}
+
+	return { frame, attach }
 }
 
 /** Props for {@link BreakpointFrame}. @internal */
@@ -98,21 +107,25 @@ export function BreakpointFrame({
 	ref,
 	...props
 }: BreakpointFrameProps) {
-	const box = useRef<HTMLDivElement | null>(null)
+	// Each frame that is not a viewport keeps one value. A change of the value
+	// re-renders all of the content, and React must hydrate each Suspense
+	// boundary in the content before it can continue.
+	const [stable] = useState(() => createFrame(false))
 
 	// A viewport frame keeps the box in state, so its value changes once the
-	// box exists, and its portals and overlays move into the box. Each other
-	// frame keeps one value. A change of the value re-renders all of the
-	// content, and React must hydrate each Suspense boundary in the content
-	// before it can continue.
+	// box exists, and its portals and overlays move into the box.
 	const [element, setElement] = useState<HTMLDivElement | null>(null)
 
-	const composedRef = useComposedRefs(box, viewport ? setElement : undefined, ref)
+	const attachBox: (node: HTMLDivElement | null) => void = viewport ? setElement : stable.attach
 
-	const frame = useMemo(
-		() => createFrame(viewport ? () => element : () => box.current, viewport),
-		[element, viewport],
+	const composedRef = useComposedRefs(attachBox, ref)
+
+	const viewportFrame = useMemo(
+		() => (viewport ? createFrame(true, element).frame : null),
+		[viewport, element],
 	)
+
+	const frame = viewportFrame ?? stable.frame
 
 	return (
 		<div

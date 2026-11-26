@@ -1,7 +1,8 @@
 'use client'
 
-import { useLayoutEffect, useReducer } from 'react'
+import { useSyncExternalStore } from 'react'
 import { createContext } from '../../core/create-context'
+import { noopSubscribe } from '../../utilities/noop'
 import type { MinBreakpoint } from '../../utilities/responsive'
 
 /**
@@ -16,6 +17,8 @@ export type BreakpointFrameContextValue = {
 	 * element stays in the frame.
 	 */
 	element: HTMLElement | null
+	/** Calls `callback` when the element of the frame changes, and gives the unsubscribe. */
+	subscribeElement: (callback: () => void) => () => void
 	/** Calls `callback` when the width of the frame changes, and gives the unsubscribe. */
 	subscribe: (callback: () => void) => () => void
 	/** Whether the frame is at least as wide as `breakpoint`. */
@@ -37,26 +40,26 @@ export const [BreakpointFrameContext, useBreakpointFrame] =
 	createContext<BreakpointFrameContextValue | null>('BreakpointFrame', { default: null })
 
 /**
- * The nearest breakpoint frame, for a component that reads its element. The
- * value of a frame does not change when its box mounts. A component that
- * mounts in the same commit as the box thus renders again once the box
- * exists, before the paint.
+ * The nearest breakpoint frame, for a component that reads its element:
+ * `null` until the box of the frame exists. The value of a frame does not
+ * change when its box mounts. React reads the snapshot again after the
+ * commit, so a component that mounts in the same commit as the box renders
+ * again once the box exists.
  *
- * @returns The frame, or `null` outside each frame.
+ * @returns The frame, or `null` outside each frame and before its box mounts.
  *
  * @internal
  */
 export function useMountedBreakpointFrame(): BreakpointFrameContextValue | null {
 	const frame = useBreakpointFrame()
 
-	const [, update] = useReducer((count: number) => count + 1, 0)
+	const element = useSyncExternalStore(
+		frame?.subscribeElement ?? noopSubscribe,
+		() => frame?.element ?? null,
+		() => null,
+	)
 
-	// React attaches the ref of the box after the layout effects of its content.
-	useLayoutEffect(() => {
-		if (frame?.element === null) update()
-	}, [frame])
-
-	return frame
+	return element === null ? null : frame
 }
 
 /**
