@@ -955,7 +955,7 @@ describe('reference line keyboard navigation', () => {
 		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Feb')
 	})
 
-	it('transposes the roving with orientation — the value axis reaches the rule', async () => {
+	it('transposes the roving with orientation, so the value axis reaches the rule', async () => {
 		const { container } = bar({ reference: [{ value: 60 }], orientation: 'horizontal' })
 
 		const plot = getSlot(container, 'chart-plot')
@@ -1577,7 +1577,7 @@ describe('reference value labels', () => {
 		expect(bySlot(hovered.container, 'chart-legend-reference')?.textContent).toBe('Goal60')
 	})
 
-	it('inks the label to match the rule — a slot through its ink class, a raw color inline', () => {
+	it('inks the label to match the rule: a slot through its ink class, a raw color inline', () => {
 		const { container } = lineLabels([
 			{ value: 50, label: 'Floor', color: 'green' },
 			{ value: 70, label: 'Ceiling', color: '#e11d48' },

@@ -693,7 +693,7 @@ describe('ChatMessage', () => {
 	})
 
 	it.each(['user', 'assistant', 'system'] as const)(
-		'injects no color override onto Markdown for the %s bubble — the prose inherits the bubble foreground',
+		'injects no color override onto Markdown for the %s bubble, so the prose inherits the bubble foreground',
 		(sender) => {
 			const { container } = renderUI(<ChatMessage sender={sender}>content</ChatMessage>)
 

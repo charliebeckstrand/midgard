@@ -38,7 +38,7 @@ const STATE = 'data-[pending]:opacity-50'
 
 const OVERRIDE = 'px-6 text-sm'
 
-compareBenches('recipe · call (memo hit — the render path)', (bench) => {
+compareBenches('recipe · call (memo hit, the render path)', (bench) => {
 	// What a mounted component actually runs per element. No props is the
 	// commonest call. A kata joins the value of each prop name, from the props or
 	// the defaults, on every call, so no call skips the join.

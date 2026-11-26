@@ -102,7 +102,7 @@ describe('resolveValueBins', () => {
 	})
 })
 
-describe('resolveValueBins — quantile binning', () => {
+describe('resolveValueBins: quantile binning', () => {
 	// Right-skewed: nine small values and one large one. Equal-interval would pile
 	// the nine into bin 0 and strand 100 at the top; quantile splits by rank.
 	const skewed = [1, 2, 3, 4, 5, 6, 7, 8, 9, 100].map((v, i) => ({ id: String(i), v }))

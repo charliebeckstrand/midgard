@@ -112,7 +112,7 @@ describe('props base boundary', () => {
 
 		expect(
 			violations,
-			`use \`ComponentProps<'tag'>\` — it carries \`ref\` (CONVENTIONS §4.3):\n  ${violations.join('\n  ')}`,
+			`use \`ComponentProps<'tag'>\`, which carries \`ref\` (CONVENTIONS §4.3):\n  ${violations.join('\n  ')}`,
 		).toEqual([])
 	})
 

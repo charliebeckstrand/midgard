@@ -76,7 +76,7 @@ describe('node environment boundary', () => {
 
 		expect(
 			violations,
-			'a `@vitest-environment node` file reads the DOM — drop the docblock, or move the DOM half to its own file',
+			'a `@vitest-environment node` file reads the DOM. Drop the docblock, or move the DOM half to its own file',
 		).toEqual([])
 	})
 
@@ -87,7 +87,7 @@ describe('node environment boundary', () => {
 
 		expect(
 			violations,
-			'a test file reads no DOM but declares no environment — open it with `// @vitest-environment node`, or with `// @vitest-environment jsdom` and the reason an import needs a window',
+			'a test file reads no DOM but declares no environment. Open it with `// @vitest-environment node`, or with `// @vitest-environment jsdom` and the reason an import needs a window',
 		).toEqual([])
 	})
 

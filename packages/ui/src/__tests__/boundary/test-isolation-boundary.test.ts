@@ -887,7 +887,7 @@ describe('test isolation boundary', () => {
 
 		expect(
 			violations,
-			`these projects share one module registry (isolate: false) — mock globally in setup/module-mocks.ts, or move the suite to boundary/ so it runs on forks:\n  ${violations.join('\n  ')}`,
+			`these projects share one module registry (isolate: false). Mock globally in setup/module-mocks.ts, or move the suite to boundary/ so it runs on forks:\n  ${violations.join('\n  ')}`,
 		).toEqual([])
 	})
 
@@ -913,7 +913,7 @@ describe('test isolation boundary', () => {
 
 		expect(
 			shared.sort(),
-			'a project changed its isolation, or vitest.config.ts or vitest.docs.config.ts no longer matches the text shape this gate parses — extend the scans above to cover its files, or drop it from them',
+			'a project changed its isolation, or vitest.config.ts or vitest.docs.config.ts no longer matches the text shape this gate parses. Extend the scans above to cover its files, or drop it from them',
 		).toEqual(['boundary', 'docs', 'geometry', 'pure', 'unit', 'workspace'])
 
 		// The browser config is the fourth scan above, and it is a separate file
@@ -923,7 +923,7 @@ describe('test isolation boundary', () => {
 
 		expect(
 			/^\s*isolate: false/m.test(browser),
-			'vitest.browser.config.ts no longer shares a page — drop the browser scan above, which exists for that setting',
+			'vitest.browser.config.ts no longer shares a page. Drop the browser scan above, which exists for that setting',
 		).toBe(true)
 	})
 
@@ -936,7 +936,7 @@ describe('test isolation boundary', () => {
 
 		expect(
 			loose,
-			`a browser file states its width once, as \`beforeAll(() => page.viewport(w, h))\` — a call inside an \`it\` reaches the file's later cases, and nothing restores it there:\n  ${loose.join('\n  ')}`,
+			`a browser file states its width once, as \`beforeAll(() => page.viewport(w, h))\`. A call inside an \`it\` reaches the file's later cases, and nothing restores it there:\n  ${loose.join('\n  ')}`,
 		).toEqual([])
 	})
 
@@ -966,7 +966,7 @@ describe('test isolation boundary', () => {
 
 		expect(
 			gaps,
-			`a block with no viewport hook runs at the width a block above it left, or a nested hook left — state it at file level, or at the head of each top-level block:\n  ${gaps.join('\n  ')}`,
+			`a block with no viewport hook runs at the width a block above it left, or a nested hook left. State it at file level, or at the head of each top-level block:\n  ${gaps.join('\n  ')}`,
 		).toEqual([])
 	})
 
@@ -979,7 +979,7 @@ describe('test isolation boundary', () => {
 
 		expect(
 			casts,
-			`a cast cannot make a query non-null — take \`getSlot(container, name)\` for a slot, or \`present(query, 'what')\` for anything else:\n  ${casts.join('\n  ')}`,
+			`a cast cannot make a query non-null. Take \`getSlot(container, name)\` for a slot, or \`present(query, 'what')\` for anything else:\n  ${casts.join('\n  ')}`,
 		).toEqual([])
 	})
 
@@ -995,7 +995,7 @@ describe('test isolation boundary', () => {
 
 		expect(
 			restores,
-			`the setups restore the spies, the stubs, the environment, and the clock after each test (\`restoreTestState\`) — remove the call, and take the \`clock\` fixture for fake time:\n  ${restores.join('\n  ')}`,
+			`the setups restore the spies, the stubs, the environment, and the clock after each test (\`restoreTestState\`). Remove the call, and take the \`clock\` fixture for fake time:\n  ${restores.join('\n  ')}`,
 		).toEqual([])
 	})
 
@@ -1034,7 +1034,7 @@ describe('test isolation boundary', () => {
 	it('stops a case at its signal before it writes shared state after an await', () => {
 		expect(
 			late,
-			`a case that runs longer than its time limit continues at its next \`await\` while a later case runs — take \`{ signal }\` from the test context, and call \`signal.throwIfAborted()\` after the last \`await\` and before the write (CONVENTIONS.md §10.9):\n  ${late.join('\n  ')}`,
+			`a case that runs longer than its time limit continues at its next \`await\` while a later case runs. Take \`{ signal }\` from the test context, and call \`signal.throwIfAborted()\` after the last \`await\` and before the write (CONVENTIONS.md §10.9):\n  ${late.join('\n  ')}`,
 		).toEqual([])
 	})
 

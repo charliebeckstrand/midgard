@@ -151,7 +151,7 @@ describe('LineChart', () => {
 		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('W1')
 	})
 
-	it('leaves the crosshair opt-in — none by default', () => {
+	it('leaves the crosshair opt-in, with none by default', () => {
 		const { container } = renderUI(chart())
 
 		fireEvent.pointerMove(bySlot(container, 'chart-hit') as Element, { clientX: 62, clientY: 77 })

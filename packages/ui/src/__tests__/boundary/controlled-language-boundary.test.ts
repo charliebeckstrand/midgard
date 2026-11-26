@@ -11,6 +11,7 @@ import {
 	scanPackage,
 	scanUnshipped,
 	scanWorkspace,
+	stringBreaks,
 } from '../helpers/controlled-language'
 import { startTypeScript } from '../helpers/ts-server'
 import { uiRoot, workspaceRoot } from '../helpers/walk-source'
@@ -35,12 +36,13 @@ import { uiRoot, workspaceRoot } from '../helpers/walk-source'
 //      and an `@example` block are not prose, so they keep their em-dashes.
 //   7. Cadence rule 5 in every Markdown file of the package is pinned at zero.
 //      The other rules are not gated outside the curated surface docs.
-//   8. Cadence rule 5 in the comments outside the shipped tree (the test and
-//      benchmark trees, the scripts, and the root configs) is pinned at zero.
-//      The other rules are not gated there.
-//   9. Cadence rule 5 outside ui (the comments and the Markdown of the apps,
-//      of auth, and of shared) is pinned at zero. The other rules are not gated
-//      there.
+//   8. Cadence rule 5 outside the shipped tree (the test and benchmark trees,
+//      the scripts, and the root configs) is pinned at zero. The scan reads the
+//      comments, the titles, and the failure messages there. The other rules
+//      are not gated there.
+//   9. Cadence rule 5 outside ui (the comments, the titles, the failure
+//      messages, and the Markdown of the apps, of auth, and of shared) is
+//      pinned at zero. The other rules are not gated there.
 //
 // Rule 4 is deliberately absent, and the reason is worth keeping. Its two
 // halves behave differently. The descriptive half is conditional (the rule
@@ -65,22 +67,22 @@ describe('controlled-language boundary', () => {
 	it('no comment uses a banned modal (STE.md rule 10)', () => {
 		const violations = breaks
 			.filter((item) => item.rule === 10)
-			.map((item) => `${item.file}:${item.line} — ${item.text}`)
+			.map((item) => `${item.file}:${item.line}: ${item.text}`)
 
 		expect(
 			violations,
-			`banned modal in a comment — "must" for a requirement, "can" for a possibility (STE.md rule 10):\n${violations.join('\n')}`,
+			`banned modal in a comment. Use "must" for a requirement and "can" for a possibility (STE.md rule 10):\n${violations.join('\n')}`,
 		).toEqual([])
 	})
 
 	it('no comment uses a British spelling (STE.md rule 3)', () => {
 		const violations = breaks
 			.filter((item) => item.rule === 3)
-			.map((item) => `${item.file}:${item.line} — ${item.text}`)
+			.map((item) => `${item.file}:${item.line}: ${item.text}`)
 
 		expect(
 			violations,
-			`British spelling in a comment — the prose uses the American form, as the identifiers do (STE.md rule 3):\n${violations.join('\n')}`,
+			`British spelling in a comment. The prose uses the American form, as the identifiers do (STE.md rule 3):\n${violations.join('\n')}`,
 		).toEqual([])
 	})
 
@@ -100,13 +102,13 @@ describe('controlled-language boundary', () => {
 
 		for (const file of LIVING_MARKDOWN) {
 			for (const item of markdownBreaks(file, readFileSync(join(uiRoot, file), 'utf8'))) {
-				violations.push(`${item.file}:${item.line} rule ${item.rule} — ${item.text}`)
+				violations.push(`${item.file}:${item.line} rule ${item.rule}: ${item.text}`)
 			}
 		}
 
 		expect(
 			violations,
-			`the curated surface docs are a quick-glance index, so they carry no debt — split the sentence, drop the modal, use the American spelling, or move the aside out of em-dashes (STE.md rules 3, 6, and 10, and cadence rule 5):\n${violations.join('\n')}`,
+			`the curated surface docs are a quick-glance index, so they carry no debt. Split the sentence, drop the modal, use the American spelling, or move the aside out of em-dashes (STE.md rules 3, 6, and 10, and cadence rule 5):\n${violations.join('\n')}`,
 		).toEqual([])
 	})
 
@@ -125,18 +127,18 @@ describe('controlled-language boundary', () => {
 		).toEqual([])
 	})
 
-	it('no comment outside the shipped tree sets an aside between em-dashes (STE.md cadence rule 5)', () => {
+	it('no comment, title, or failure message outside the shipped tree sets an aside between em-dashes (STE.md cadence rule 5)', () => {
 		const violations = scanUnshipped(server).map(
 			(item) => `${item.file}:${item.line}: ${item.text}`,
 		)
 
 		expect(
 			violations,
-			`em-dash aside in a comment. Put the aside in its own sentence or in parentheses, or use a colon or a comma (STE.md cadence rule 5):\n${violations.join('\n')}`,
+			`em-dash aside in a comment, a title, or a failure message. Put the aside in its own sentence or in parentheses, or use a colon or a comma (STE.md cadence rule 5):\n${violations.join('\n')}`,
 		).toEqual([])
 	})
 
-	it('no comment or Markdown file outside ui sets an aside between em-dashes (STE.md cadence rule 5)', () => {
+	it('no comment, title, failure message, or Markdown file outside ui sets an aside between em-dashes (STE.md cadence rule 5)', () => {
 		const violations = scanWorkspace(server).map(
 			(item) => `${item.file}:${item.line}: ${item.text}`,
 		)
@@ -152,13 +154,13 @@ describe('controlled-language boundary', () => {
 
 		for (const file of RULE_DOCUMENTS) {
 			for (const item of markdownBreaks(file, readFileSync(join(workspaceRoot, file), 'utf8'))) {
-				violations.push(`${item.file}:${item.line} rule ${item.rule} — ${item.text}`)
+				violations.push(`${item.file}:${item.line} rule ${item.rule}: ${item.text}`)
 			}
 		}
 
 		expect(
 			violations,
-			`the rule documents state the rules every package follows, so they carry no debt — split the sentence, drop the modal, use the American spelling, or move the aside out of em-dashes (STE.md rules 3, 6, and 10, and cadence rule 5):\n${violations.join('\n')}`,
+			`the rule documents state the rules every package follows, so they carry no debt. Split the sentence, drop the modal, use the American spelling, or move the aside out of em-dashes (STE.md rules 3, 6, and 10, and cadence rule 5):\n${violations.join('\n')}`,
 		).toEqual([])
 	})
 })
@@ -217,6 +219,40 @@ describe('aside reader', () => {
 				"/**\n * An empty cell shows `'—'`.\n *\n * @example\n * ```ts\n * label(null) // '—'\n * ```\n */\n",
 			),
 		).toEqual([])
+	})
+})
+
+// The aside gate outside the shipped tree also reads the strings that a run
+// prints: titles and failure messages. Each other string is data.
+describe('string reader', () => {
+	const flagged = (source: string) =>
+		stringBreaks('probe.ts', server.parseText('probe.ts', source)).map((item) => item.text)
+
+	it('reports an em-dash in a title, an expect message, and an Error message', () => {
+		const source = [
+			"describe('a block — aside', () => {})",
+			"it.each([1])('a case — aside %s', () => {})",
+			`expect(1, \`a message — aside: \${x}\`).toBe(1)`,
+			"throw new Error('an error ' + '— aside')",
+		].join('\n')
+
+		expect(flagged(source)).toEqual([
+			'a block — aside',
+			'a case — aside %s',
+			'a message — aside: VALUE',
+			'an error — aside',
+		])
+	})
+
+	it('reads no data string, and no code span', () => {
+		const source = [
+			"it.each([['Q1 — 2026']])('a case', () => {})",
+			"expect(cell.textContent).toBe('—')",
+			"expect(spy).toHaveBeenCalledWith(1, 'a — b')",
+			"it('shows `—` for an empty cell', () => {})",
+		].join('\n')
+
+		expect(flagged(source)).toEqual([])
 	})
 })
 

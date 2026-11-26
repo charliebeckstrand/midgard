@@ -362,7 +362,7 @@ describe('Grid column-group editor', () => {
 		fireEvent.click(screen.getByText('Move to “New group”'))
 	}
 
-	it('creates a group, moves a column into it, and renames it — updating the band', () => {
+	it('updates the band as it creates a group, moves a column into it, and renames it', () => {
 		const { container } = renderUI(<Harness />)
 
 		// No band yet: no group configured.

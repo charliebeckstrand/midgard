@@ -30,7 +30,7 @@ describe('geometry tolerance boundary', () => {
 
 		expect(
 			violations,
-			'a geometry test compares with a hidden tolerance — use toBeNear, toMatchBox, or toContainBox with a named tolerance',
+			'a geometry test compares with a hidden tolerance. Use toBeNear, toMatchBox, or toContainBox with a named tolerance',
 		).toEqual([])
 	})
 })

@@ -203,7 +203,7 @@ describe('spark tier is non-interactive (real browser)', () => {
 		(bySlot(container, 'chart-bar')?.getAttribute('class') ?? '').includes(CHART_RECEDE) &&
 		allBySlot(container, 'chart-bar-spot').length === 1
 
-	it('a spark bar takes no hover styling — the drawing is pointer-inert', async () => {
+	it('a spark bar takes no hover styling, because the drawing is pointer-inert', async () => {
 		const { container } = renderUI(hoverBar(140, 100))
 
 		const root = getSlot(container, 'chart')

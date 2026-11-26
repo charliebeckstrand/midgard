@@ -28,7 +28,7 @@ const TERMINAL = /[.!?:]$/
 function cadenceBreaks(file: string, source: string): string[] {
 	const breaks: string[] = []
 	const report = (line: number, rule: number, text: string) =>
-		breaks.push(`${file}:${line} rule ${rule} — ${text}`)
+		breaks.push(`${file}:${line} rule ${rule}: ${text}`)
 
 	if (!source.endsWith('\n') || source.endsWith('\n\n')) {
 		report(source.split('\n').length, 7, 'the file must end with exactly one newline')
@@ -116,15 +116,15 @@ describe('cadence reader', () => {
 
 	it('reports a gap in the clause numbers and in the section numbers', () => {
 		expect(probe('## 1. A\n\n1.1 One.\n\n1.3 Three.\n\n## 3. C\n')).toEqual([
-			'probe.md:5 rule 3 — clause 1.3 follows 1.1',
-			'probe.md:7 rule 3 — section 3 follows section 1',
+			'probe.md:5 rule 3: clause 1.3 follows 1.1',
+			'probe.md:7 rule 3: section 3 follows section 1',
 		])
 	})
 
 	it('reports a clause with no blank line before it, and a clause with no full stop', () => {
 		expect(probe('## 1. A\n\n1.1 One.\n1.2 Two\n')).toEqual([
-			'probe.md:4 rule 1 — no blank line before clause 1.2',
-			'probe.md:4 rule 4 — clause 1.2 ends without sentence punctuation',
+			'probe.md:4 rule 1: no blank line before clause 1.2',
+			'probe.md:4 rule 4: clause 1.2 ends without sentence punctuation',
 		])
 	})
 
@@ -138,9 +138,9 @@ describe('cadence reader', () => {
 
 	it('reports stacked blank lines, trailing whitespace, and the end of the file', () => {
 		expect(probe('# T \n\n\nText.')).toEqual([
-			'probe.md:4 rule 7 — the file must end with exactly one newline',
-			'probe.md:1 rule 7 — trailing whitespace',
-			'probe.md:3 rule 1 — two blank lines in a row',
+			'probe.md:4 rule 7: the file must end with exactly one newline',
+			'probe.md:1 rule 7: trailing whitespace',
+			'probe.md:3 rule 1: two blank lines in a row',
 		])
 	})
 })

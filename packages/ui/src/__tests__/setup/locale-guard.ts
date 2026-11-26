@@ -14,6 +14,6 @@ if (locale !== 'en-US') {
 	throw new Error(
 		`Tests expect the en-US runtime locale; this process resolved ${locale}. ` +
 			'Run through the package scripts (`pnpm test`), or set LANG=en-US before ' +
-			'starting Node — assigning process.env.LANG later cannot move it.',
+			'starting Node. Assigning process.env.LANG later cannot move it.',
 	)
 }

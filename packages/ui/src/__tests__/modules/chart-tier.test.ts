@@ -192,7 +192,7 @@ describe('chartPolicy legend rows', () => {
 })
 
 describe('chartPolicy fill frame', () => {
-	it('never sparks by height — the measured remainder is chrome-dependent there', () => {
+	it('never sparks by height, because the measured remainder is chrome-dependent there', () => {
 		// The dashboard-tile crash: a fill plot short enough to read spark drops the
 		// header and legend, the remainder jumps back above the floor, the tier
 		// flips, forever. Under fill the spark decision must ignore the height.

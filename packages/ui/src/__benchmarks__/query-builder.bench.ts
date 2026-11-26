@@ -42,7 +42,7 @@ compareBenches('query-builder · mapNode (update root-level rule)', (bench) => {
 	})
 })
 
-compareBenches('query-builder · mapNode (miss — walks entire tree)', (bench) => {
+compareBenches('query-builder · mapNode (miss, walks entire tree)', (bench) => {
 	bench('balanced · miss', () => {
 		mapNode(balanced, '__absent__', (node) => ({ ...node }))
 	})

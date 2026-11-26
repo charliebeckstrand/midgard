@@ -66,7 +66,7 @@ describe('chart keyboard cursor', () => {
 		expect(firstCursor({ points: [[]] })).toBeNull()
 	})
 
-	it('cycles every series value at a category — coincident points included', () => {
+	it('cycles every series value at a category, coincident points included', () => {
 		// Category 0's two points share a value; cycling must still visit both, so a
 		// chart whose series overlap steps through each rather than collapsing to one.
 		const first = moveCursor({ category: 0, value: 0 }, 'ArrowDown', TARGETS, 'vertical')

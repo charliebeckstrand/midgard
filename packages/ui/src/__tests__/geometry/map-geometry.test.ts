@@ -642,7 +642,7 @@ describe('ringsPath · one ring', () => {
 		expect(ring(SQUARE, gappy).split('L')).toHaveLength(3)
 	})
 
-	it('is empty when fewer than three points survive — the fewest an area holds', () => {
+	it('is empty when fewer than three points survive (the fewest an area holds)', () => {
 		expect(
 			ring([
 				[2, 2],

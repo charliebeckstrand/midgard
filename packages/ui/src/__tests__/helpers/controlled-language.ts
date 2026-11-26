@@ -3,8 +3,17 @@ import { join, relative, sep } from 'node:path'
 import {
 	type CommentKind,
 	createScanner,
+	type Expression,
 	getLeadingCommentRanges,
 	getTrailingCommentRanges,
+	isBinaryExpression,
+	isCallExpression,
+	isIdentifier,
+	isNewExpression,
+	isNoSubstitutionTemplateLiteral,
+	isPropertyAccessExpression,
+	isStringLiteral,
+	isTemplateExpression,
 	isToken,
 	type Node,
 	type SourceFile,
@@ -19,8 +28,10 @@ import { srcDir, srcRelative, uiRoot, walkSource, workspaceRoot } from './walk-s
  * in the comments of the shipped tree (STE.md).
  *
  * @remarks
- * The scan reads comments only. Code is never prose, and a rule that bans a
- * word must not read an identifier that contains it.
+ * The scan reads comments, and outside the shipped tree it also reads the
+ * prose strings of the tests: titles and failure messages. Code is never
+ * prose, and a rule that bans a word must not read an identifier that
+ * contains it.
  */
 
 /** A comment lifted out of a source file, with the line it opens on. */
@@ -322,6 +333,114 @@ export function fileBreaks(file: string, source: SourceFile): Break[] {
 	return breaks
 }
 
+/** The calls whose first argument is the title of a case or of a block. */
+const TITLED = new Set(['it', 'test', 'describe'])
+
+/**
+ * The identifier at the root of a callee: `it` for `it.each(rows)` and for
+ * `it.skip`. With `throughCalls` false, a call ends the walk, so that
+ * `expect(value).toBe` has no root.
+ */
+function calleeRoot(node: Expression, throughCalls: boolean): string | undefined {
+	if (isIdentifier(node)) return node.text
+
+	if (isPropertyAccessExpression(node) || (throughCalls && isCallExpression(node))) {
+		return calleeRoot(node.expression, throughCalls)
+	}
+
+	return undefined
+}
+
+/**
+ * The prose of a string literal, a template, or a `+` join of them, or
+ * `undefined` for another expression. A substitution in a template, and an
+ * operand of a join that is not a literal, stand for one word.
+ */
+function literalText(node: Expression | undefined): string | undefined {
+	if (!node) return undefined
+
+	if (isStringLiteral(node) || isNoSubstitutionTemplateLiteral(node)) return node.text
+
+	if (isTemplateExpression(node)) {
+		return [node.head.text, ...node.templateSpans.map((span) => span.literal.text)].join('VALUE')
+	}
+
+	if (isBinaryExpression(node) && node.operatorToken.kind === SyntaxKind.PlusToken) {
+		const left = literalText(node.left)
+
+		const right = literalText(node.right)
+
+		if (left === undefined && right === undefined) return undefined
+
+		return (left ?? 'VALUE') + (right ?? 'VALUE')
+	}
+
+	return undefined
+}
+
+/**
+ * The prose strings in a parsed source: the title of each case and block, the
+ * message of each `expect(value, message)`, and the message of each
+ * `new Error(message)`. The reporter prints each title, and a failure prints
+ * each message.
+ *
+ * @remarks
+ * Each other string is data. An input such as `'Q1 — 2026'` and an expected
+ * value such as `'—'` for an empty cell keep their em-dashes, so the reader
+ * takes the strings by their place in a call, not by their text.
+ */
+function proseStrings(parsed: SourceFile): Comment[] {
+	const found: Comment[] = []
+
+	const take = (node: Expression | undefined) => {
+		const text = literalText(node)
+
+		if (node && text !== undefined) {
+			found.push({
+				text,
+				line: parsed.getLineAndCharacterOfPosition(node.getStart()).line + 1,
+				block: false,
+			})
+		}
+	}
+
+	const visit = (node: Node) => {
+		if (isCallExpression(node)) {
+			const root = calleeRoot(node.expression, true)
+
+			if (root && TITLED.has(root)) take(node.arguments[0])
+
+			if (calleeRoot(node.expression, false) === 'expect') take(node.arguments[1])
+		}
+
+		if (
+			isNewExpression(node) &&
+			isIdentifier(node.expression) &&
+			node.expression.text === 'Error'
+		) {
+			take(node.arguments?.[0])
+		}
+
+		node.forEachChild(visit)
+	}
+
+	visit(parsed)
+
+	return found
+}
+
+/**
+ * Every cadence rule 5 break in the prose strings of one parsed source,
+ * reported against `file`. {@link proseStrings} says which strings are prose.
+ */
+export function stringBreaks(file: string, source: SourceFile): Break[] {
+	return proseStrings(source).flatMap((prose) =>
+		sentences(normalize(prose.text))
+			.filter((sentence) => sentence.includes(ASIDE))
+			.map((sentence) => ({ file, line: prose.line, rule: 'aside' as const, text: sentence })),
+	)
+}
+
 const SOURCE_FILE = /\.tsx?$/
 
 /**
@@ -397,9 +516,10 @@ export const PACKAGE_MARKDOWN = packageFiles(uiRoot, (file) => file.endsWith('.m
 const UNSHIPPED_TREE = /[\\/](?:__tests__|__benchmarks__)[\\/]/
 
 /**
- * Every cadence rule 5 break in the comments that {@link scanPackage} does not
- * read: the test and benchmark trees, the scripts, and the configs at the
- * package root. A reader of those comments is a reader too, so the aside rule
+ * Every cadence rule 5 break in the comments and the prose strings that
+ * {@link scanPackage} does not read: the test and benchmark trees, the scripts,
+ * and the configs at the package root. A reader of those comments is a reader
+ * too, and so is a reader of a title or a failure message, so the aside rule
  * holds there. The other rules are not gated there.
  *
  * @param server - The TypeScript server that parses the files, in one project.
@@ -411,11 +531,14 @@ export function scanUnshipped(server: TypeScriptServer): Break[] {
 			SOURCE_FILE.test(file) && (!file.startsWith(srcDir + sep) || UNSHIPPED_TREE.test(file)),
 	)
 
-	const breaks = [...server.parse(files)].flatMap(([file, source]) =>
-		fileBreaks(relative(uiRoot, file).split(sep).join('/'), source).filter(
-			(item) => item.rule === 'aside',
-		),
-	)
+	const breaks = [...server.parse(files)].flatMap(([file, source]) => {
+		const key = relative(uiRoot, file).split(sep).join('/')
+
+		return [
+			...fileBreaks(key, source).filter((item) => item.rule === 'aside'),
+			...stringBreaks(key, source),
+		]
+	})
 
 	return breaks.sort((a, b) => a.file.localeCompare(b.file) || a.line - b.line)
 }
@@ -427,9 +550,9 @@ export function scanUnshipped(server: TypeScriptServer): Break[] {
 const WORKSPACE_ROOTS = ['apps', 'packages/auth', 'packages/shared']
 
 /**
- * Every cadence rule 5 break outside ui: in the comments of each source file
- * and in each Markdown file of {@link WORKSPACE_ROOTS}, the test trees and the
- * configs included. The other rules are not gated there. Paths are relative to
+ * Every cadence rule 5 break outside ui: in the comments and the prose strings
+ * of each source file and in each Markdown file of {@link WORKSPACE_ROOTS}, the
+ * test trees and the configs included. The other rules are not gated there. Paths are relative to
  * the repository root.
  *
  * @param server - The TypeScript server that parses the files, in one project.
@@ -445,8 +568,8 @@ export function scanWorkspace(server: TypeScriptServer): Break[] {
 	const key = (file: string) => relative(workspaceRoot, file).split(sep).join('/')
 
 	const breaks = [
-		...[...server.parse(files.filter((file) => SOURCE_FILE.test(file)))].flatMap(([file, source]) =>
-			fileBreaks(key(file), source),
+		...[...server.parse(files.filter((file) => SOURCE_FILE.test(file)))].flatMap(
+			([file, source]) => [...fileBreaks(key(file), source), ...stringBreaks(key(file), source)],
 		),
 		...files
 			.filter((file) => file.endsWith('.md'))

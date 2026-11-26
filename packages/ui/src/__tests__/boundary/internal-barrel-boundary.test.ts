@@ -118,7 +118,7 @@ describe('internal-surface boundary', () => {
 
 		expect(
 			violations,
-			`@internal symbols on a barrel — drop the tag to make them package-public, or unbarrel them (CONVENTIONS.md §12.1):\n${violations.join('\n')}`,
+			`@internal symbols on a barrel. Drop the tag to make them package-public, or unbarrel them (CONVENTIONS.md §12.1):\n${violations.join('\n')}`,
 		).toEqual([])
 	})
 

@@ -17,7 +17,7 @@ function embed(id: string, name = 'stops-map', data: unknown = null): ChatEmbedP
 	return { kind: 'embed', id, name, data }
 }
 
-describe('applyChunk — a string chunk', () => {
+describe('applyChunk: a string chunk', () => {
 	it('replaces a reply that is still a string, and leaves it one', () => {
 		// The arm every transport written before parts existed takes. It must stay
 		// byte-identical, and it must not allocate a part list behind the caller.
@@ -55,7 +55,7 @@ describe('applyChunk — a string chunk', () => {
 	})
 })
 
-describe('applyChunk — a part chunk', () => {
+describe('applyChunk: a part chunk', () => {
 	it('starts a reply from an opened bubble without a blank block above it', () => {
 		// The bubble opens holding an empty string, which normalizes to one empty
 		// text part. Starting a merge from that part would draw a blank line above
@@ -152,7 +152,7 @@ describe('applyChunk — a part chunk', () => {
 	})
 })
 
-describe('applyChunk — citations', () => {
+describe('applyChunk: citations', () => {
 	const late = { id: 'c1', start: 0, end: 6, quote: 'Twelve', target: 'late', selector: null }
 
 	it('keeps the citations of the running text when a string chunk replaces its prose', () => {
