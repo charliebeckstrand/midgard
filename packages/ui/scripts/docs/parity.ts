@@ -35,7 +35,7 @@
  *   only in a build that has the prerendered page.
  *
  * The docs app must be built first: `pnpm turbo run docs:build --filter=ui`
- * writes `src/docs/dist/client`. Copy that directory before the build of the
+ * writes `dist/docs/client`. Copy that directory before the build of the
  * other side.
  */
 

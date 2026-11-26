@@ -10,10 +10,11 @@ import path from 'node:path'
 //   path is `/`. It is the `base` of Vite and the `basename` of React Router,
 //   so each page, each asset, and each link is under that path.
 // - `DOCS_BUILD_DIR` sets the folder of the build, relative to the folder
-//   of the docs app, else `dist`. The server build imports its packages by
-//   name, so the folder must be in this package, where Node finds them. The
-//   cache of turbo keeps only `dist`, so a cache hit does not restore a build
-//   in another folder. Run such a build with `pnpm docs:build`.
+//   of the docs app, else `dist/docs` in the package ({@link BUILD_DIR}). The
+//   server build imports its packages by name, so the folder must be in this
+//   package, where Node finds them. The cache of turbo keeps only `dist/docs`,
+//   so a cache hit does not restore a build in another folder. Run such a
+//   build with `pnpm docs:build`.
 //
 // The `docs:build` task of turbo declares each variable (`turbo.json`). Turbo
 // removes a variable that a task does not declare.
@@ -31,11 +32,19 @@ export type DocsTarget = {
 /** The folder of the docs app. */
 const APP_DIR = path.resolve(import.meta.dirname, '..')
 
+/**
+ * The default folder of the docs build: `dist/docs` in the package, out of
+ * `src`. The turbo tasks of ui read each file in `src`, so a build in `src`
+ * changes the hash of each task, and the next run of each task misses the
+ * cache.
+ */
+export const BUILD_DIR = path.resolve(APP_DIR, '..', '..', 'dist', 'docs')
+
 /** The target of the docs build in `env`. */
 export function docsTarget(env: NodeJS.ProcessEnv = process.env): DocsTarget {
 	const trimmed = (env.DOCS_BASE ?? '').replace(/^\/+|\/+$/g, '')
 
-	const buildDir = path.resolve(APP_DIR, env.DOCS_BUILD_DIR || 'dist')
+	const buildDir = env.DOCS_BUILD_DIR ? path.resolve(APP_DIR, env.DOCS_BUILD_DIR) : BUILD_DIR
 
 	return {
 		base: trimmed ? `/${trimmed}/` : '/',

@@ -6,6 +6,5 @@
 		"incremental": true,
 		"tsBuildInfoFile": "../../.tsbuildinfo/docs.tsbuildinfo"
 	},
-	"include": ["."],
-	"exclude": ["dist"]
+	"include": ["."]
 }

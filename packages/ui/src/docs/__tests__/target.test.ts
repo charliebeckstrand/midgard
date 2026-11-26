@@ -4,7 +4,7 @@ import { mkdir, mkdtemp, readdir, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { describe, expect, it, onTestFinished } from 'vitest'
-import { docsTarget, moveUnderBase } from '../plugin/target.ts'
+import { BUILD_DIR, docsTarget, moveUnderBase } from '../plugin/target.ts'
 
 // The docs build can be for a path of a site other than the root, such as
 // `/docs/`. With no variable, the target is the target of the deploy of this
@@ -14,12 +14,14 @@ import { docsTarget, moveUnderBase } from '../plugin/target.ts'
 const APP_DIR = path.resolve(import.meta.dirname, '..')
 
 describe('docsTarget', () => {
-	it('gives the root path and the `dist` folder with no variable', () => {
+	it('gives the root path and the `dist/docs` folder of the package with no variable', () => {
 		expect(docsTarget({})).toEqual({
 			base: '/',
-			buildDir: path.join(APP_DIR, 'dist'),
-			clientDir: path.join(APP_DIR, 'dist', 'client'),
+			buildDir: BUILD_DIR,
+			clientDir: path.join(BUILD_DIR, 'client'),
 		})
+
+		expect(BUILD_DIR).toBe(path.resolve(APP_DIR, '..', '..', 'dist', 'docs'))
 
 		expect(docsTarget({ DOCS_BASE: '/', DOCS_BUILD_DIR: '' }).base).toBe('/')
 	})
