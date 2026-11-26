@@ -34,9 +34,9 @@ export function DatePickerCalendarButton({
 	return (
 		<IconButton
 			aria-label={label}
-			icon={CalendarIcon}
 			aria-haspopup="dialog"
 			aria-expanded={open}
+			icon={CalendarIcon}
 			disabled={disabled}
 			data-open={dataAttr(open)}
 			// Keep focus on the input: a blur here would run the field's
