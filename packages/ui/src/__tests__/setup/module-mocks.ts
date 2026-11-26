@@ -30,3 +30,10 @@ vi.mock(
 	'../../components/code/code-shiki-port',
 	async () => (await import('../mocks/shiki')).default,
 )
+
+// The OSRM client of the map: no test reaches the network, so a fixed route
+// answers in its place (`helpers/fetch-guard.ts`).
+vi.mock(
+	'../../modules/map/engine/map-routing/osrm',
+	async () => (await import('../mocks/map-routing')).default,
+)

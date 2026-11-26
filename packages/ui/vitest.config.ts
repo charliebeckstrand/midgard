@@ -153,6 +153,7 @@ export const cachePlugins = [globCache, exportsCache]
 const setupFiles = [
 	'./src/__tests__/setup/index.ts',
 	'./src/__tests__/setup/console-guard.ts',
+	'./src/__tests__/setup/fetch-guard.ts',
 	'./src/__tests__/setup/module-mocks.ts',
 	'./src/__tests__/setup/restore-prototype-focus.ts',
 	'./src/__tests__/setup/catalogs.ts',
