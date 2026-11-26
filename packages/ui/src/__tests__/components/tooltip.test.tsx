@@ -77,11 +77,11 @@ describe('Tooltip', () => {
 	it('closes when an overlay opens', async () => {
 		const user = setupUser()
 
-		const { container } = renderUI(tip())
+		renderUI(tip())
 
-		const trigger = getSlot(container, 'tooltip-trigger')
-
-		await user.click(trigger)
+		// A keyboard focus opens the tooltip. The focus that a click gives a button
+		// does not match `:focus-visible`, so it opens none.
+		await user.tab()
 
 		expect(screen.getByText('Tooltip text')).toBeInTheDocument()
 
@@ -95,14 +95,12 @@ describe('Tooltip', () => {
 
 		const onOpenChange = vi.fn()
 
-		const { container } = renderUI(tip({ onOpenChange }))
-
-		const trigger = getSlot(container, 'tooltip-trigger')
+		renderUI(tip({ onOpenChange }))
 
 		expect(onOpenChange).not.toHaveBeenCalled()
 
-		// The floating-ui mock opens on focus, and a click focuses the trigger.
-		await user.click(trigger)
+		// A keyboard focus opens the tooltip.
+		await user.tab()
 
 		expect(onOpenChange).toHaveBeenCalledExactlyOnceWith(true)
 
@@ -239,6 +237,20 @@ describe('Tooltip', () => {
 		expect(screen.getByText('Tooltip text')).toBeInTheDocument()
 	})
 
+	// The focus that a click gives a button does not match `:focus-visible`, so
+	// it opens no tooltip. A hover opens it in a browser.
+	it('opens no tooltip on the focus that a click gives the trigger', async () => {
+		const user = setupUser()
+
+		const { container } = renderUI(tip())
+
+		await user.click(getSlot(container, 'tooltip-trigger'))
+
+		expect(bySlot(container, 'tooltip-trigger')).toHaveFocus()
+
+		expect(screen.queryByText('Tooltip text')).not.toBeInTheDocument()
+	})
+
 	it('describes the focusable trigger via the panel when open', async () => {
 		const user = setupUser()
 
@@ -246,7 +258,9 @@ describe('Tooltip', () => {
 
 		const trigger = getSlot(container, 'tooltip-trigger')
 
-		await user.click(trigger)
+		await user.tab()
+
+		expect(trigger).toHaveFocus()
 
 		expect(bySlot(container, 'tooltip-content')).toBeInTheDocument()
 

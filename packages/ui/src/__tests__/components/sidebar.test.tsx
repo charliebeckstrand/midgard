@@ -244,7 +244,10 @@ describe('Sidebar mini', () => {
 		// The trigger clones onto the item button itself, keeping its slot.
 		expect(inner.tagName).toBe('BUTTON')
 
-		await user.click(inner)
+		// A keyboard focus opens the tooltip.
+		await user.tab()
+
+		expect(inner).toHaveFocus()
 
 		expect(bySlot(document.body, 'tooltip-content')).toBeInTheDocument()
 
@@ -267,7 +270,10 @@ describe('Sidebar mini', () => {
 
 		const inner = getSlot(container, 'sidebar-item-inner')
 
-		await user.click(inner)
+		// A keyboard focus opens the tooltip.
+		await user.tab()
+
+		expect(inner).toHaveFocus()
 
 		expect(bySlot(document.body, 'tooltip-content')).toBeInTheDocument()
 

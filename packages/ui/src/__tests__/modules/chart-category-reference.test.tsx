@@ -9,7 +9,6 @@ import {
 	getSlot,
 	present,
 	renderUI,
-	waitFor,
 } from '../helpers'
 import { axisLabels } from '../helpers/axis-labels'
 import { CHART_RECEDE } from '../helpers/recede'
@@ -156,7 +155,9 @@ describe('a category reference', () => {
 		expect(Number(label.getAttribute('y')) - 6.5).toBeGreaterThanOrEqual(lineY + 8)
 	})
 
-	it('cuts a label too wide for the space between rules, and floats the whole label', async () => {
+	// The cut label floats its whole readout on hover. The jsdom double has no
+	// hover, so the browser suite proves it (`chart-reference-cut-label.test.tsx`).
+	it('cuts a label too wide for the space between rules', () => {
 		const label = 'Release of the new invoice classifier'
 
 		const { container } = line({
@@ -180,19 +181,6 @@ describe('a category reference', () => {
 		expect(Number(cut.getAttribute('x')) - half).toBeGreaterThanOrEqual((jan ?? 0) + 8)
 
 		expect(Number(cut.getAttribute('x')) + half).toBeLessThanOrEqual((mar ?? 0) - 8)
-
-		// The floating-ui mock has no hover, so focus opens the tooltip here.
-		fireEvent.focus(getSlot(container, 'chart-reference-label-target'))
-
-		await waitFor(() =>
-			expect(document.querySelector('[data-slot="chart-reference-swatch"]')).not.toBeNull(),
-		)
-
-		expect(
-			document
-				.querySelector('[data-slot="chart-reference-swatch"]')
-				?.closest('[data-slot="tooltip-content"]')?.textContent,
-		).toContain(label)
 	})
 
 	it('moves its label off a value rule that shows no label', () => {

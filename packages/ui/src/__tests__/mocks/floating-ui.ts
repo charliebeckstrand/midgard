@@ -1,6 +1,7 @@
-import { type ReactNode, type RefObject, useEffect, useRef, useState } from 'react'
+import { type FocusEvent, type ReactNode, type RefObject, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { vi } from 'vitest'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import { noop } from '../helpers/noop'
 
 // Passed through unmocked: ref merging is pure React wiring with no floating
@@ -53,18 +54,22 @@ function createMockEvents(): MockEvents {
 /**
  * The context that `useFloating` and `useFloatingRootContext` give: one emitter
  * for the mount, and an `onOpenChange` that emits `openchange` before it calls
- * the option, as the real context does.
+ * the option, as the real context does. The `onOpenChange` is a stable event:
+ * it keeps one identity for the mount and calls the newest option, as the
+ * effect event of the real context does (CONVENTIONS §10.7).
  */
 function useMockContext(options: MockContext): MockContext {
 	const [events] = useState(createMockEvents)
 
+	const onOpenChange = useStableEvent((open: boolean, ...rest: unknown[]) => {
+		events.emit('openchange', { open })
+
+		options?.onOpenChange?.(open, ...rest)
+	})
+
 	return {
 		open: options?.open,
-		onOpenChange: (open: boolean, ...rest: unknown[]) => {
-			events.emit('openchange', { open })
-
-			options?.onOpenChange?.(open, ...rest)
-		},
+		onOpenChange,
 		elements: { reference: null, floating: null },
 		dataRef: useRef({}),
 		events,
@@ -91,6 +96,19 @@ type MockPortalRoot = HTMLElement | RefObject<HTMLElement | null> | null
 // reference's `aria-describedby` while open; enough to assert the tooltip's
 // description relationship without a real floating engine.
 const FLOATING_ID = 'floating-ui-mock-id'
+
+/**
+ * The `visibleOnly` gate of `useFocus`, which is on by default: a focus opens
+ * the panel only when its target matches `:focus-visible`. A keyboard focus
+ * matches, and the focus that a click gives a button does not. The
+ * `:focus-visible` stub of `setup/jsdom-stubs.ts` reads the last input, as a
+ * browser does.
+ */
+function focusVisible(event: FocusEvent): boolean {
+	const target = event.target
+
+	return !(target instanceof Element) || target.matches(':focus-visible')
+}
 
 function MockFloatingFocusManager({ children, initialFocus }: MockFocusManagerProps) {
 	useEffect(() => {
@@ -142,11 +160,11 @@ function mergeProps(list: (MockProps | undefined)[]): MockProps {
  *     of `useClick`/`useFocus` can wire open-on-interaction.
  *   - `useFloatingRootContext` returns the same `context` shape, for a surface
  *     that composes the interactions without a position engine (`Overlay`).
- *   - `useClick` / `useFocus` return reference handlers that *open* the panel
- *     (open-only, not toggle): `userEvent.click` fires focus then click, and a
- *     toggling click would immediately re-close what focus opened. `useFocus`
- *     also closes the panel on a blur, as the real hook does. Other dismissals
- *     flow through other paths (overlay signal, outside-press).
+ *   - `useClick` toggles the panel, and `useFocus` opens it on a focus that
+ *     matches `:focus-visible` (the default `visibleOnly` of the real hook), so
+ *     a click opens no focus tooltip. `useFocus` also closes the panel on a
+ *     blur, as the real hook does. Other dismissals flow through other paths
+ *     (overlay signal, outside-press).
  *   - `useRole` is additive but gated on `enabled`: it emits the tooltip
  *     `aria-describedby` (reference, while open) + panel `id`/`role` (floating)
  *     only when `enabled !== false`. Every consumer that passes `role: null`
@@ -217,7 +235,11 @@ const floatingUIMock = {
 			? {}
 			: {
 					reference: {
-						onFocus: () => context?.onOpenChange?.(true),
+						onFocus: (event: FocusEvent) => {
+							if (!focusVisible(event)) return
+
+							context?.onOpenChange?.(true)
+						},
 						// The real `useFocus` closes on a blur, so a tooltip that a focus opened
 						// does not stay open after the focus moves on.
 						onBlur: () => context?.onOpenChange?.(false),

@@ -101,24 +101,24 @@ describe('TimeAgo', () => {
 		expect(bySlot(container, 'tooltip-content')).not.toBeInTheDocument()
 	})
 
-	it('reveals the absolute time when composed inside a Tooltip', () => {
+	it('reveals the absolute time when composed inside a Tooltip', async ({ clock }) => {
 		const date = new Date('2026-04-29T11:30:00Z')
 
 		const { container } = renderUI(
 			<Tooltip>
 				<TooltipTrigger>
-					<TimeAgo value={date} locale="en-US" />
+					<TimeAgo value={date} locale="en-US" tabIndex={0} />
 				</TooltipTrigger>
 				<TooltipContent>{date.toLocaleString('en-US')}</TooltipContent>
 			</Tooltip>,
 		)
 
 		// The <time> becomes the tooltip trigger and keeps its own anchor. The
-		// absolute time mounts only when the tooltip opens. The floating-ui mock
-		// opens it on focus.
-		act(() => {
-			fireEvent.focus(getSlot(container, 'time-ago'))
-		})
+		// absolute time mounts only when the tooltip opens. A keyboard focus opens
+		// it, and `tabIndex` lets the <time> take that focus.
+		await clock.user.tab()
+
+		expect(getSlot(container, 'time-ago')).toHaveFocus()
 
 		expect(bySlot(container, 'tooltip-content')?.textContent).toBe(date.toLocaleString('en-US'))
 	})

@@ -67,7 +67,8 @@ export const interactive: readonly InteractiveCase[] = [
 			</Tooltip>
 		),
 		open: async (user) => {
-			await user.click(screen.getByRole('button', { name: 'Hover me' }))
+			// A keyboard focus opens the tooltip. The focus of a click does not.
+			await user.tab()
 
 			await screen.findByText('This is a tooltip')
 		},

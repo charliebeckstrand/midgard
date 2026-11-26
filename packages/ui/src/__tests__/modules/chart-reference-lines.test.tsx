@@ -395,12 +395,11 @@ describe('reference lines', () => {
 	})
 
 	it('floats a tooltip with the value and label when a rule is hovered', async () => {
-		// The floating-ui mock has no hover, so focus opens the tooltip here. The
-		// design-system Tooltip drives hover in a browser. Either way this proves
-		// the rule's trigger is wired to its content.
+		// The chart reads the pointer and holds the tooltip of the pointed rule
+		// open, so this proves the rule's trigger is wired to its content.
 		const { container } = bar({ reference: [{ value: 55, label: 'Target' }] })
 
-		fireEvent.focus(bySlot(container, 'chart-reference-line') as Element)
+		pointRule(container, 0)
 
 		// The swatch renders only inside the floating tooltip, so its arrival proves
 		// the rule opened one.
@@ -422,7 +421,7 @@ describe('reference lines', () => {
 			reference: [{ value: 55, label: 'Target', description: 'Q3 target' }],
 		})
 
-		fireEvent.focus(bySlot(container, 'chart-reference-line') as Element)
+		pointRule(container, 0)
 
 		const swatch = await waitFor(() =>
 			present(document.querySelector('[data-slot="chart-reference-swatch"]'), 'swatch'),
@@ -436,7 +435,7 @@ describe('reference lines', () => {
 
 		const { container } = bar({ reference: [{ value: 55, label: 'Target', description }] })
 
-		fireEvent.focus(bySlot(container, 'chart-reference-line') as Element)
+		pointRule(container, 0)
 
 		const swatch = await waitFor(() =>
 			present(document.querySelector('[data-slot="chart-reference-swatch"]'), 'swatch'),
@@ -456,7 +455,7 @@ describe('reference lines', () => {
 	it('keys the readout with a dashed line Swatch, as the legend chip does', async () => {
 		const { container } = bar({ reference: [{ value: 55, label: 'Target' }] })
 
-		fireEvent.focus(bySlot(container, 'chart-reference-line') as Element)
+		pointRule(container, 0)
 
 		const swatch = await waitFor(() =>
 			present(document.querySelector('[data-slot="chart-reference-swatch"]'), 'swatch'),
