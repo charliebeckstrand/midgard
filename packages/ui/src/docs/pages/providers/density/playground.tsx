@@ -122,7 +122,7 @@ export default function DensityPlayground(props: DensityProviderProps) {
 		<DensityProvider {...props}>
 			<SidebarLayout sidebar={sidebar}>
 				<SidebarLayoutHeader>
-					<Heading level={1}>Orders</Heading>
+					<Heading level={2}>Orders</Heading>
 				</SidebarLayoutHeader>
 				<SidebarLayoutBody>
 					<Stack gap="md">
