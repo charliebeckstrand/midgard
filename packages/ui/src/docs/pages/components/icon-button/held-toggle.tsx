@@ -1,11 +1,11 @@
-import { Bold, Italic, Underline } from 'lucide-react'
+import { Italic, LetterB, Underline } from 'lucide-react'
 import { Flex } from 'ui/flex'
 import { IconButton } from 'ui/icon-button'
 
 export default function HeldToggle() {
 	return (
 		<Flex gap="xs">
-			<IconButton icon={<Bold />} aria-label="Bold" variant="plain" defaultPressed tooltip />
+			<IconButton icon={<LetterB />} aria-label="Bold" variant="plain" defaultPressed tooltip />
 			<IconButton
 				icon={<Italic />}
 				aria-label="Italic"

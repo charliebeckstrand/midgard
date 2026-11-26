@@ -167,7 +167,7 @@ type IconButtonRest = Omit<
 }
 
 /** The pressed state of a toggle, and the click that the button takes. @internal */
-function useIconButtonPress({
+function usePress({
 	pressed: pressedProp,
 	defaultPressed,
 	onPressedChange,
@@ -289,7 +289,7 @@ export function IconButton(props: IconButtonProps) {
 	} = props as IconButtonOwnProps &
 		Omit<IconButtonToggleProps, 'href'> & { tooltip?: ReactNode } & IconButtonRest
 
-	const { toggle, pressed, onClick } = useIconButtonPress({
+	const { toggle, pressed, onClick } = usePress({
 		pressed: pressedProp,
 		defaultPressed,
 		onPressedChange,
