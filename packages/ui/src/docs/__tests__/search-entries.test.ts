@@ -1,9 +1,9 @@
 // @vitest-environment node
 import path from 'node:path'
-import { parseAst } from 'vite'
 import { describe, expect, it } from 'vitest'
 import type { BarrelApi } from '../plugin/api.ts'
 import { collectEntries } from '../search/build/index.ts'
+import { KEYWORDS, keywordsByPath } from '../search/keywords.ts'
 import type { SearchEntry } from '../search/types.ts'
 
 // The entries of the search of the docs, as the plugin makes them from the
@@ -27,19 +27,18 @@ async function stubApi(barrel: string): Promise<BarrelApi> {
 let loaded: Promise<SearchEntry[]> | undefined
 
 function entries(): Promise<SearchEntry[]> {
-	loaded ??= collectEntries(DOCS, (code) => parseAst(code, { lang: 'tsx' }), stubApi)
+	loaded ??= collectEntries(DOCS, stubApi)
 
 	return loaded
 }
 
 describe('collectEntries', () => {
-	it('gives the page, its examples, and its API reference, each with the anchor of its route', async () => {
+	it('gives the page and its API reference, each with the anchor of its route', async () => {
 		const button = (await entries()).filter((entry) => entry.href.startsWith('/button'))
 
 		expect(button).toEqual(
 			expect.arrayContaining([
 				{ kind: 'page', label: 'Button', href: '/button', context: 'Components' },
-				{ kind: 'example', label: 'With icon', href: '/button#with-icon', context: 'Button' },
 				{
 					kind: 'component',
 					label: '<Stubbutton />',
@@ -62,7 +61,7 @@ describe('collectEntries', () => {
 		)
 	})
 
-	it('gives each tab, and the examples of a tab at the path of the tab', async () => {
+	it('gives each tab, and no entry for an example', async () => {
 		const all = await entries()
 
 		expect(all).toContainEqual({
@@ -72,13 +71,13 @@ describe('collectEntries', () => {
 			context: 'Grid',
 		})
 
-		const sorting = all.filter(
-			(entry) => entry.kind === 'example' && entry.href.startsWith('/modules/grid/sorting#'),
-		)
+		expect(all.some((entry) => (entry.kind as string) === 'example')).toBe(false)
+	})
 
-		expect(sorting.length).toBeGreaterThan(0)
+	it('gives a page the words of `keywords.ts` that find it', async () => {
+		const dialog = (await entries()).find((entry) => entry.href === '/dialog')
 
-		expect(sorting.every((entry) => entry.context === 'Grid › Sorting')).toBe(true)
+		expect(dialog?.keywords).toEqual(expect.arrayContaining(['modal', 'overlay']))
 	})
 
 	it('gives the API reference only at a route that renders its table', async () => {
@@ -92,10 +91,16 @@ describe('collectEntries', () => {
 
 		expect(api('/progress/gauge')).toEqual([])
 	})
+})
 
-	it('leaves out a module with no default export, such as shared data', async () => {
-		const all = await entries()
+describe('keywordsByPath', () => {
+	it('gives the words of each page', () => {
+		const byPath = keywordsByPath(new Set(Object.values(KEYWORDS).flat()))
 
-		expect(all.some((entry) => entry.href === '/command-palette#commands')).toBe(false)
+		expect(byPath.get('/combobox')).toEqual(['autocomplete', 'typeahead', 'creatable', 'dropdown'])
+	})
+
+	it('stops on a keyword that names no page', () => {
+		expect(() => keywordsByPath(new Set())).toThrow(/names no page/)
 	})
 })

@@ -1,25 +1,24 @@
 import path from 'node:path'
 import { humanize } from '../../kit/humanize.ts'
 import type { BarrelApi } from '../../plugin/api.ts'
-import type { Parser } from '../../plugin/examples.ts'
-import { findPages } from '../../plugin/pages.ts'
+import { findPages, type Page } from '../../plugin/pages.ts'
+import { keywordsByPath } from '../keywords.ts'
 import type { SearchEntry } from '../types.ts'
 import type { SearchRoute, SearchSource } from './source.ts'
 import { apiSource } from './sources/api.ts'
-import { exampleSource } from './sources/examples.ts'
 import { pageSource } from './sources/pages.ts'
 
 // The build of the search. The docs plugin runs it in Node and serves its
 // result as `virtual:docs/search`.
 
 /** The sources of the entries, in the order of their entries on each route. */
-const SOURCES: readonly SearchSource[] = [pageSource, exampleSource, apiSource]
+const SOURCES: readonly SearchSource[] = [pageSource, apiSource]
 
 /** The route of each page and of each of its tabs, in the order of the pages. */
-function findRoutes(docs: string): SearchRoute[] {
+function findRoutes(docs: string, found: readonly Page[]): SearchRoute[] {
 	const pages = path.join(docs, 'pages')
 
-	return findPages(docs).flatMap((page): SearchRoute[] => [
+	return found.flatMap((page): SearchRoute[] => [
 		{
 			page,
 			tab: undefined,
@@ -38,21 +37,21 @@ function findRoutes(docs: string): SearchRoute[] {
 }
 
 /**
- * The entries of the search of the docs at `docs`: each page, each tab, each
- * example, and each component, prop, and event of the API reference of a
- * page or a tab. Each source runs on each route, and the entries keep the
+ * The entries of the search of the docs at `docs`: each page, each tab, and
+ * each component, prop, and event of the API reference of a page or a tab. Each source runs on each route, and the entries keep the
  * order of the routes and of {@link SOURCES}. `readApi` gives the API data of
  * a barrel.
  */
 export async function collectEntries(
 	docs: string,
-	parse: Parser,
 	readApi: (barrel: string) => Promise<BarrelApi>,
 ): Promise<SearchEntry[]> {
-	const tools = { parse, readApi }
+	const pages = findPages(docs)
+
+	const tools = { readApi, keywords: keywordsByPath(new Set(pages.map((page) => page.path))) }
 
 	const found = await Promise.all(
-		findRoutes(docs).flatMap((route) => SOURCES.map((source) => source(route, tools))),
+		findRoutes(docs, pages).flatMap((route) => SOURCES.map((source) => source(route, tools))),
 	)
 
 	return found.flat()

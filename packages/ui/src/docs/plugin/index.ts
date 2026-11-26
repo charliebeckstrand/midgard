@@ -291,7 +291,7 @@ export function reactDocs({ clientDir }: { clientDir?: string } = {}): Plugin {
 				}
 
 				if (name === SEARCH) {
-					search ??= collectEntries(docs, this.parse.bind(this), readApi)
+					search ??= collectEntries(docs, readApi)
 
 					return data(await search)
 				}
