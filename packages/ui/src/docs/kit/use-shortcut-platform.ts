@@ -1,7 +1,6 @@
 import { useSyncExternalStore } from 'react'
+import { isApplePlatform } from '../../utilities/apple-platform.ts'
 import { noopSubscribe } from '../../utilities/noop.ts'
-
-const isApple = () => /Mac|iPod|iPhone|iPad/.test(navigator.platform)
 
 // The build cannot know the platform of the reader, so each page renders as on Apple.
 const serverIsApple = () => true
@@ -12,7 +11,7 @@ const serverIsApple = () => true
  * then gives the real platform.
  */
 export function useShortcutPlatform(): boolean {
-	return useSyncExternalStore(noopSubscribe, isApple, serverIsApple)
+	return useSyncExternalStore(noopSubscribe, isApplePlatform, serverIsApple)
 }
 
 /**
