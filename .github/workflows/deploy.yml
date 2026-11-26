@@ -34,9 +34,6 @@ jobs:
     # A stuck deploy holds the concurrency group, and the next deploy waits on
     # it.
     timeout-minutes: 45
-    # The `production` step below moves the branch that App Platform builds.
-    permissions:
-      contents: write
     steps:
       - uses: actions/checkout@v7
         with:
@@ -67,55 +64,12 @@ jobs:
           tar -xzf "$RUNNER_TEMP/$archive" -C "$RUNNER_TEMP/doctl"
           echo "$RUNNER_TEMP/doctl" >> "$GITHUB_PATH"
 
-      # Each component of .do/app.yaml builds the newest commit of the
-      # `production` branch. This step moves that branch to the commit that CI
-      # checked, so App Platform builds that commit and not the head of main.
-      # The head of main can be a later commit whose CI has not passed.
-      #
-      # The update is a fast-forward only (`force=false`), so GitHub refuses a
-      # move to a commit that is not a descendant. When `production` already
-      # holds a later commit, this run does not deploy, because a later run
-      # deployed a newer commit. When it holds this commit, the run deploys
-      # again, as a re-run of a failed deploy must.
-      - name: Move the production branch to this commit
-        id: production
-        env:
-          GH_TOKEN: ${{ github.token }}
-          REPO: ${{ github.repository }}
-          SHA: ${{ github.sha }}
-        run: |
-          if ! current=$(gh api "repos/$REPO/git/ref/heads/production" --jq .object.sha); then
-            # No branch yet: the first run creates it. The call fails when the
-            # branch exists, so another fault of the call above stops the job.
-            gh api "repos/$REPO/git/refs" -f ref=refs/heads/production -f sha="$SHA" > /dev/null
-            echo "deploy=true" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          status=$(gh api "repos/$REPO/compare/$current...$SHA" --jq .status)
-          case "$status" in
-            identical) ;;
-            ahead)
-              gh api --method PATCH "repos/$REPO/git/refs/heads/production" -f sha="$SHA" -F force=false > /dev/null
-              ;;
-            behind)
-              echo "::notice::production holds $current, a later commit than $SHA. This run does not deploy."
-              exit 0
-              ;;
-            *)
-              echo "::error::production holds $current, which is not an ancestor of $SHA (compare status: $status)."
-              exit 1
-              ;;
-          esac
-          echo "deploy=true" >> "$GITHUB_OUTPUT"
-
       # Creates the app from .do/app.yaml on the first run, in the Ivory Image
       # project, then updates it from the latest source and waits for the
       # deployment to go live. doctl reads `--project-id` only when it creates
       # the app. The step puts the secret into a copy of the spec, because
       # doctl does not expand variables in the spec.
       - name: Deploy to App Platform
-        if: steps.production.outputs.deploy
         env:
           DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
           CLIENT_IP_SECRET: ${{ secrets.CLIENT_IP_SECRET }}

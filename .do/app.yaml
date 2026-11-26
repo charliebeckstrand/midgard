@@ -4,11 +4,6 @@
 # the first run creates the app. The Next apps build from the Dockerfile at the
 # repository root, which gets each build-time variable below as a build
 # argument. The docs site builds from Dockerfile.docs.
-#
-# Each component builds the `production` branch, not `main`. App Platform
-# builds the newest commit of its branch, and main can move while CI runs. The
-# deploy workflow moves `production` to the commit that CI checked before it
-# applies this spec, so each build is of a commit that passed CI.
 name: midgard
 region: nyc
 
@@ -85,7 +80,7 @@ services:
   - name: admin
     github:
       repo: charliebeckstrand/midgard
-      branch: production
+      branch: main
       deploy_on_push: false
     dockerfile_path: Dockerfile
     http_port: 3000
@@ -130,7 +125,7 @@ services:
   - name: places
     github:
       repo: charliebeckstrand/midgard
-      branch: production
+      branch: main
       deploy_on_push: false
     dockerfile_path: Dockerfile
     http_port: 3000
@@ -173,7 +168,7 @@ services:
   - name: elections
     github:
       repo: charliebeckstrand/midgard
-      branch: production
+      branch: main
       deploy_on_push: false
     dockerfile_path: Dockerfile
     http_port: 3000
@@ -205,7 +200,7 @@ services:
   - name: numbers
     github:
       repo: charliebeckstrand/midgard
-      branch: production
+      branch: main
       deploy_on_push: false
     dockerfile_path: Dockerfile
     http_port: 3000
@@ -250,7 +245,7 @@ services:
   - name: ui
     github:
       repo: charliebeckstrand/midgard
-      branch: production
+      branch: main
       deploy_on_push: false
     dockerfile_path: Dockerfile.docs
     http_port: 8080
