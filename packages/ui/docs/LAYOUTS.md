@@ -35,7 +35,7 @@ Client layout building on `StackedLayout` with a responsive filter rail.
 
 | Export | Summary |
 |---|---|
-| `DashboardLayout` | Stacked content layout with a responsive filter rail. Its `layout` sets the place of the filters at each breakpoint. An `inline` layout puts them beside the main column. A `drawer` layout puts them in an offcanvas drawer that a button opens. The default is a drawer on a compact or a medium viewport, and inline when expanded (`data-slot="dashboard-layout"`). |
+| `DashboardLayout` | Stacked content layout with a responsive filter rail. Its `layout` sets the place of the filters at each breakpoint. An `inline` layout puts them beside the main column. A `drawer` layout puts them in an offcanvas drawer that a button opens. The default is a drawer on a compact or a medium viewport, and inline when expanded. In the drawer layout, the inline copy of the filters is in a hidden `<Activity>`, so only the copy on screen runs effects (`data-slot="dashboard-layout"`). |
 
 ## `SidebarLayout`: sidebar app shell
 

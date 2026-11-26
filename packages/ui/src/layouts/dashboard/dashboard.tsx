@@ -15,6 +15,7 @@ import { OFFCANVAS_LAYOUT, type OffcanvasLayout, useOffcanvas } from '../../hook
 import { intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { Landmark } from '../../primitives/landmark'
+import { MountHold, useMountHold } from '../../primitives/mount'
 import { k } from '../../recipes/kata/offcanvas'
 import { Box } from '../../structure/box'
 import { Flex } from '../../structure/flex'
@@ -74,6 +75,14 @@ export type DashboardLayoutProps = ComponentProps<'div'> & {
  * @remarks
  * Client component: drives the filter drawer via {@link useOffcanvas}.
  *
+ * The layout renders `filters` two times: in the inline rail, and in the
+ * drawer. In the drawer layout, the inline copy is in a hidden `<Activity>`. It
+ * keeps its DOM and its state, and its effects do not run. The drawer copy
+ * mounts only while the drawer is open. Thus only the copy on screen runs
+ * effects. The server and the hydration render read the inline layout, so the
+ * server markup holds the inline copy, and the CSS hides it in the drawer
+ * layout until the render after hydration hides it.
+ *
  * The rail and the main column sit in a row in the inline layout, where the
  * rail shows. In the drawer layout the rail is hidden and the column is the
  * only child, so the axis does not show.
@@ -88,7 +97,11 @@ export function DashboardLayout({
 	children,
 	...props
 }: DashboardLayoutProps) {
-	const { open, setOpen, layout } = useOffcanvas({ layout: layoutProp, onOpenChange })
+	const { open, setOpen, layout, inline } = useOffcanvas({ layout: layoutProp, onOpenChange })
+
+	// The inline copy of the filters is in a hidden Activity in the drawer
+	// layout, so its effects do not run beside the copy in the drawer.
+	const inlineHold = useMountHold(inline, 'always')
 
 	const slots = k({ layout })
 
@@ -109,7 +122,9 @@ export function DashboardLayout({
 						    and the trigger of the drawer in the drawer layout. The trigger is
 						    then in a landmark. */}
 						<aside aria-label={filtersLabel} data-slot="filters" className="shrink-0">
-							<Stack className={slots.inline.flex}>{filters}</Stack>
+							<MountHold hold={inlineHold} name="dashboard-layout-filters">
+								<Stack className={slots.inline.flex}>{filters}</Stack>
+							</MountHold>
 
 							<Box className={slots.drawer.block}>
 								<DrawerTrigger>
