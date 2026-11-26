@@ -1,5 +1,4 @@
 import {
-	CaseUpper,
 	Code,
 	Heading1,
 	Heading2,
@@ -13,6 +12,7 @@ import {
 	SquareCode,
 	Strikethrough,
 	TextQuote,
+	Type,
 } from 'lucide-react'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import type { MessageDescriptor } from '../../primitives/intl/types'
@@ -211,7 +211,7 @@ type WysiwygActionEntry = {
  * @internal
  */
 export const wysiwygActions: Record<WysiwygAction, WysiwygActionEntry> = {
-	heading: { group: 'heading', message: wysiwygMessages.heading, icon: CaseUpper },
+	heading: { group: 'heading', message: wysiwygMessages.heading, icon: Type },
 	bold: { group: 'text', message: wysiwygMessages.bold, icon: LetterB, shortcut: { key: 'B' } },
 	italic: { group: 'text', message: wysiwygMessages.italic, icon: Italic, shortcut: { key: 'I' } },
 	strike: {
@@ -272,7 +272,7 @@ export const wysiwygHeadingLevels: readonly {
 	{
 		level: 0,
 		message: wysiwygMessages.paragraph,
-		icon: CaseUpper,
+		icon: Type,
 		shortcut: { alt: true, key: '0' },
 	},
 	{

@@ -794,7 +794,7 @@ describe('WysiwygToolbar', () => {
 
 			const glyph = () => heading.querySelector('svg')?.getAttribute('class') ?? ''
 
-			expect(glyph()).toContain('lucide-case-upper')
+			expect(glyph()).toContain('lucide-type')
 
 			fireEvent.click(heading)
 
