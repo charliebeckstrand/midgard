@@ -250,19 +250,23 @@ const KNOWN: readonly { finding: string; paths: readonly string[]; reason: strin
 	// Toolbars.
 	{
 		finding: 'crowded toolbar/button',
-		paths: ['/modules/grid/toolbar', '/pdf-viewer', '/toolbar'],
+		paths: ['/modules/grid/toolbar', '/toolbar'],
 		reason: 'A toolbar button is 42 × 42 px, and the buttons touch.',
 	},
 	{
 		finding: 'crowded toolbar/icon-button',
-		paths: ['/icon-button'],
-		reason:
-			'A bare icon button of a toolbar is 34 × 34 px, and a plain one is 42 × 42 px. The buttons touch.',
+		paths: ['/icon-button', '/pdf-viewer'],
+		reason: 'A plain icon button of a toolbar is 42 × 42 px, and the buttons touch.',
 	},
 	{
 		finding: 'crowded toolbar-group/button',
-		paths: ['/pdf-viewer', '/toolbar'],
+		paths: ['/toolbar'],
 		reason: 'A button of a toolbar group is 41 × 42 px, and the buttons touch.',
+	},
+	{
+		finding: 'crowded toolbar-group/icon-button',
+		paths: ['/pdf-viewer'],
+		reason: 'An icon button of a toolbar group is 41 × 42 px, and the buttons touch.',
 	},
 	{
 		finding: 'crowded toolbar-group/pdf-viewer-magnifier-settings-trigger',
@@ -280,7 +284,7 @@ const KNOWN: readonly { finding: string; paths: readonly string[]; reason: strin
 		reason: 'A button of a Wysiwyg toolbar is 34 × 35 px, and the buttons touch.',
 	},
 	{
-		finding: 'crowded toolbar-more/button',
+		finding: 'crowded toolbar-more/icon-button',
 		paths: ['/modules/wysiwyg'],
 		reason: 'The More button of a Wysiwyg toolbar is 29 × 29 px, beside the last button.',
 	},
