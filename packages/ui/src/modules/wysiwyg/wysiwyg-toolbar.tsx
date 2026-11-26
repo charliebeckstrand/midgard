@@ -86,7 +86,7 @@ function actionGroups(actions: readonly WysiwygAction[]) {
  * from the last group back, so the order of `actions` is their priority. A
  * press on More shows them after a Back button, in the same row, so the field
  * does not move. A press on one of them runs it and keeps that page. Back and
- * Escape show the first page again.
+ * Escape show the page before.
  *
  * @remarks The toolbar has `role="toolbar"`, one Tab stop, and arrow keys
  * between its buttons, and `aria-controls` points at the field. Each run of
