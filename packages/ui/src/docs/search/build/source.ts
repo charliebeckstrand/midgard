@@ -1,5 +1,4 @@
 import type { BarrelApi } from '../../plugin/api.ts'
-import type { Parser } from '../../plugin/examples.ts'
 import type { Page } from '../../plugin/pages.ts'
 import type { SearchEntry } from '../types.ts'
 
@@ -22,10 +21,10 @@ export type SearchRoute = {
 
 /** What a source can read, in addition to the files of its route. */
 export type SourceTools = {
-	/** Parses the code of a module. */
-	parse: Parser
 	/** Gives the API data of a barrel, such as `components/button`. */
 	readApi: (barrel: string) => Promise<BarrelApi>
+	/** The words of `keywords.ts` for each page, by the path of the page. */
+	keywords: ReadonlyMap<string, readonly string[]>
 }
 
 /**
