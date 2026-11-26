@@ -4,10 +4,10 @@ import {
 	GapHorizontal,
 	LayoutDashboard,
 	type LucideIcon,
-	Network,
 	PanelTop,
 	Shapes,
 	SquareDashed,
+	Workflow,
 } from 'lucide-react'
 import {
 	CommandPaletteDescription,
@@ -68,7 +68,7 @@ const SECTION_ICON: Readonly<Record<string, LucideIcon>> = {
 	layouts: LayoutDashboard,
 	structure: SquareDashed,
 	primitives: GapHorizontal,
-	providers: Network,
+	providers: Workflow,
 }
 
 /**
