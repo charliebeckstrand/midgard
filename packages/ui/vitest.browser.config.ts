@@ -5,7 +5,7 @@ import { playwright } from '@vitest/browser-playwright'
 import type { Plugin } from 'vite'
 import { configDefaults, defineConfig } from 'vitest/config'
 import type { BrowserCommand } from 'vitest/node'
-import { assertions, budgets, CI, cleanup, coverage, sequence } from './vitest.base.ts'
+import { assertions, budgets, CI, cleanup, coverage, reporters, sequence } from './vitest.base.ts'
 
 /**
  * Whether the run measures coverage (`COVERAGE`). Turn coverage on with this
@@ -458,9 +458,13 @@ export default defineConfig({
 		// The shuffle `vitest.config.ts` runs, and for the same reason: an order
 		// dependency between files that share a page fails early rather than once
 		// a file moves. It could not land while clicks died at random after a
-		// drag. Since #1180 closed that, ten seeds pass. Replay a red run with
-		// `VITEST_SEED=<seed> pnpm test:browser`.
+		// drag. Since #1180 closed that, ten seeds pass.
 		sequence,
+		// A run that does not pass prints the command that replays it, with its
+		// seed, its shard, and `COVERAGE` (`replayReporter` in `vitest.base.ts`).
+		// A replay with the seed alone runs another order, because the sequencer
+		// shuffles the files of the shard only.
+		reporters,
 		setupFiles: [
 			'./src/__tests__/browser/setup/index.ts',
 			'./src/__tests__/setup/console-guard.ts',
