@@ -105,6 +105,35 @@ function formatSubtitle(intl: IntlShape, option: Matchable): string {
 		: intl.formatMessage(pageApiMessage, { page })
 }
 
+/** The tinted icon of the kind of an entry, or of the section of a page. */
+export function ResultIcon({ option }: { option: Matchable }) {
+	return (
+		<span
+			aria-hidden
+			className={`flex size-7 shrink-0 items-center justify-center rounded-md ${KIND_TINT[option.kind]}`}
+		>
+			<Icon icon={getIcon(option)} />
+		</span>
+	)
+}
+
+/**
+ * The line below the label of an entry. A screen reader reads the kind of the
+ * entry before it, because the icon has no text.
+ */
+export function ResultSubtitle({ option }: { option: Matchable }) {
+	const intl = useIntl()
+
+	return (
+		<>
+			{option.kind !== 'component' && (
+				<span className="sr-only">{`${intl.formatMessage(KIND_LABELS[option.kind])}, `}</span>
+			)}
+			<bdi>{formatSubtitle(intl, option)}</bdi>
+		</>
+	)
+}
+
 /** A result of the search, with the id of its option. */
 export type SearchOption = Matchable & { id: string }
 
@@ -118,16 +147,9 @@ export function SearchResult({
 	meta: VirtualOptionMeta
 	onPick: () => void
 }) {
-	const intl = useIntl()
-
 	return (
 		<CommandPaletteItem id={option.id} href={option.href} onAction={onPick} {...meta}>
-			<span
-				aria-hidden
-				className={`flex size-7 shrink-0 items-center justify-center rounded-md ${KIND_TINT[option.kind]}`}
-			>
-				<Icon icon={getIcon(option)} />
-			</span>
+			<ResultIcon option={option} />
 			{/*
 			 * A name from the code, such as <Grid />, keeps its order on a
 			 * right-to-left page in its own bdi.
@@ -137,10 +159,7 @@ export function SearchResult({
 					<bdi>{option.label}</bdi>
 				</CommandPaletteLabel>
 				<CommandPaletteDescription>
-					{option.kind !== 'component' && (
-						<span className="sr-only">{`${intl.formatMessage(KIND_LABELS[option.kind])}, `}</span>
-					)}
-					<bdi>{formatSubtitle(intl, option)}</bdi>
+					<ResultSubtitle option={option} />
 				</CommandPaletteDescription>
 			</CommandPaletteText>
 		</CommandPaletteItem>

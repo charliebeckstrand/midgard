@@ -6323,17 +6323,13 @@
 		"defaultMessage": "{width} × {height}",
 		"description": "The size of an example in pixels, which shows while the reader resizes the example, such as \"640 × 480\"."
 	},
-	"docs.notFound.path": {
-		"defaultMessage": "No page of the docs is at {path}.",
-		"description": "The text of the page that shows for a path that has no page of the docs. The path is the path of the address, such as /button/foo."
-	},
 	"docs.notFound.search": {
 		"defaultMessage": "Search the docs",
 		"description": "The label of the button on the not-found page that opens the search with the words of the path."
 	},
 	"docs.notFound.suggestions": {
-		"defaultMessage": "Did you mean:",
-		"description": "The text before a list of pages of the docs that a path with no page most likely names."
+		"defaultMessage": "Pages that the address can name",
+		"description": "The name of the list of pages of the docs that a path with no page most likely names. A screen reader reads it."
 	},
 	"docs.notFound.title": {
 		"defaultMessage": "Page not found",

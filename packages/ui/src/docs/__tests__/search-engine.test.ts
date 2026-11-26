@@ -4,7 +4,7 @@ import {
 	createSearchIndex,
 	findMember,
 	type Matchable,
-	toPathQuery,
+	toPathQueries,
 } from '../search/engine/index.ts'
 import { tokenizeText } from '../search/engine/tokenize.ts'
 
@@ -95,14 +95,6 @@ describe('createSearchIndex', () => {
 		expect(search('tablr', entries)).toEqual(['/table'])
 	})
 
-	it('finds an entry that one word matches, when the match is any', () => {
-		expect(createSearchIndex(ENTRIES).search('grid nope', { match: 'any' })[0]?.href).toBe(
-			'/modules/grid',
-		)
-
-		expect(search('grid nope')).toEqual([])
-	})
-
 	it('matches each word in the label or the context', () => {
 		expect(search('grid sort')).toEqual(['/modules/grid/sorting'])
 
@@ -162,14 +154,14 @@ describe('findMember', () => {
 	})
 })
 
-describe('toPathQuery', () => {
-	it('gives the words of the path, with no section folder', () => {
+describe('toPathQueries', () => {
+	it('gives the words of each part of the path, with no section folder', () => {
 		const sections = new Set(['components', 'modules'])
 
-		expect(toPathQuery('/components/button', sections)).toBe('button')
+		expect(toPathQueries('/components/button', sections)).toEqual(['button'])
 
-		expect(toPathQuery('/Date-Picker/foo', sections)).toBe('date picker foo')
+		expect(toPathQueries('/Date-Picker/foo', sections)).toEqual(['date picker', 'foo'])
 
-		expect(toPathQuery('/modules', sections)).toBe('')
+		expect(toPathQueries('/modules', sections)).toEqual([])
 	})
 })

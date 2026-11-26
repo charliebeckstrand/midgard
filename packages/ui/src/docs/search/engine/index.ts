@@ -5,7 +5,7 @@ import { rank } from './rank.ts'
 import { processTerm, tokenizeQuery, tokenizeText } from './tokenize.ts'
 
 export { findMember } from './member.ts'
-export { toPathQuery } from './path-query.ts'
+export { toPathQueries } from './path-query.ts'
 export { normalize } from './tokenize.ts'
 
 // The engine of the search: pure code, with no React and no DOM. MiniSearch
@@ -20,26 +20,15 @@ export { normalize } from './tokenize.ts'
  */
 export type Matchable = SearchEntry & { alias?: string; place?: string }
 
-/** How a search treats the words of a query. */
-export type SearchOptions = {
-	/**
-	 * `all` finds an entry that each word of the query matches. `any` finds an
-	 * entry that one word matches, such as for the words of a path that has no
-	 * page, where a wrong word must not hide the page.
-	 * @defaultValue 'all'
-	 */
-	match?: 'all' | 'any'
-}
-
 /** An index of the entries of the search. */
 export type SearchIndex<T extends Matchable> = {
 	/**
-	 * The entries that match `query`, best first. A word of the query matches
-	 * when it starts a word of the entry, or a part of a camelCase word. When no
-	 * entry matches, a word of the query can have one letter wrong (`TYPO` in
+	 * The entries that match `query`, best first. Each word of the query must
+	 * start a word of the entry, or a part of a camelCase word. When no entry
+	 * matches, a word of the query can have one letter wrong (`TYPO` in
 	 * `config.ts`), so `buton` finds Button. An empty query gives no entry.
 	 */
-	search: (query: string, options?: SearchOptions) => T[]
+	search: (query: string) => T[]
 }
 
 const FIELDS = Object.keys(FIELD_BOOST) as SearchField[]
@@ -71,13 +60,10 @@ export function createSearchIndex<T extends Matchable>(entries: readonly T[]): S
 	index.addAll(entries.map((entry, id) => ({ id, entry })))
 
 	return {
-		search: (query, { match = 'all' } = {}) => {
-			const combineWith = match === 'all' ? 'AND' : 'OR'
+		search: (query) => {
+			const found = index.search(query)
 
-			const found = index.search(query, { combineWith })
-
-			const results =
-				found.length > 0 ? found : index.search(query, { combineWith, fuzzy: correct })
+			const results = found.length > 0 ? found : index.search(query, { fuzzy: correct })
 
 			return rank(
 				results.flatMap((result) => {

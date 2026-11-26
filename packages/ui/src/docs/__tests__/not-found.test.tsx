@@ -4,8 +4,8 @@ import { describe, expect, it } from 'vitest'
 import NotFound from '../app/routes/not-found.tsx'
 import { DocsSearch } from '../search/ui/search-provider.tsx'
 
-// The not-found page states that no page is at the path, and suggests the
-// pages that the path most likely names.
+// The not-found page suggests the pages that the path most likely names, and
+// offers the search.
 
 function renderAt(path: string) {
 	render(
@@ -23,10 +23,8 @@ function suggestions(): (string | null)[] {
 }
 
 describe('the not-found page', () => {
-	it('states that no page is at the path, and offers the search', () => {
+	it('offers the search', () => {
 		renderAt('/button/foo')
-
-		expect(screen.queryByText('No page of the docs is at /button/foo.')).not.toBeNull()
 
 		expect(screen.queryByRole('button', { name: 'Search the docs' })).not.toBeNull()
 	})
@@ -45,6 +43,12 @@ describe('the not-found page', () => {
 
 	it('suggests a page from a path with one wrong letter', () => {
 		renderAt('/dialug')
+
+		expect(suggestions()).toContain('/dialog')
+	})
+
+	it('corrects a word of the path when another word of the path is correct', () => {
+		renderAt('/dialug/input')
 
 		expect(suggestions()).toContain('/dialog')
 	})
