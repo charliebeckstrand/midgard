@@ -7,6 +7,7 @@ import {
 	Sheet,
 	SheetBody,
 	SheetClose,
+	SheetContent,
 	SheetDescription,
 	SheetFooter,
 	SheetHeader,
@@ -37,30 +38,32 @@ export default function WithForm() {
 						if (outcome.ok) setOpen(false)
 					}}
 				>
-					<SheetBody>
-						<Stack gap="lg">
-							<Field autoComplete="name">
-								<Label>Full name</Label>
-								<Input name="name" />
-							</Field>
-							<Field autoComplete="email">
-								<Label>Email</Label>
-								<Input name="email" type="email" />
-							</Field>
-							<Field>
-								<Label>Bio</Label>
-								<Textarea name="bio" placeholder="Tell your team about yourself" rows={4} />
-							</Field>
-						</Stack>
-					</SheetBody>
-					<SheetFooter>
-						<SheetClose>
-							<Button type="button" variant="plain">
-								Cancel
-							</Button>
-						</SheetClose>
-						<FormSubmit>Save</FormSubmit>
-					</SheetFooter>
+					<SheetContent>
+						<SheetBody>
+							<Stack gap="lg">
+								<Field autoComplete="name">
+									<Label>Full name</Label>
+									<Input name="name" />
+								</Field>
+								<Field autoComplete="email">
+									<Label>Email</Label>
+									<Input name="email" type="email" />
+								</Field>
+								<Field>
+									<Label>Bio</Label>
+									<Textarea name="bio" placeholder="Tell your team about yourself" rows={4} />
+								</Field>
+							</Stack>
+						</SheetBody>
+						<SheetFooter>
+							<SheetClose>
+								<Button type="button" variant="plain">
+									Cancel
+								</Button>
+							</SheetClose>
+							<FormSubmit>Save</FormSubmit>
+						</SheetFooter>
+					</SheetContent>
 				</Form>
 			</SheetPanel>
 		</Sheet>

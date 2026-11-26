@@ -10,7 +10,7 @@ export default function Animated() {
 				{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' },
 				{ xKey: 'month', yKey: 'costs', yName: 'Costs', color: 'rose' },
 			]}
-			reference={[{ value: 55, label: 'Margin', color: 'amber' }]}
+			reference={[{ value: 55, label: 'Target', color: 'amber' }]}
 			animate
 		/>
 	)

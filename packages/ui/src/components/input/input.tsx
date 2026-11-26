@@ -25,6 +25,10 @@ import { useInputControl } from './use-input-control'
 
 /** Props for {@link Input}: `size`/`variant`, `prefix`/`suffix` affixes, the `clearable` flag and its `clearLabel`, and `invalid` override atop native `<input>` attributes. */
 export type InputProps = Omit<InputVariants, 'size' | 'variant'> & {
+	/**
+	 * The density step. Omit it to take the step of the nearest density scope.
+	 * A step makes the input a density scope.
+	 */
 	size?: ScaleStep<typeof scale>
 	/**
 	 * The surface of the control: `default` fills it, `outline` draws a border
@@ -32,10 +36,12 @@ export type InputProps = Omit<InputVariants, 'size' | 'variant'> & {
 	 * `bare` draws neither ({@link ControlVariant}). When the
 	 * prop is unset, the input takes the variant of the enclosing Control.
 	 * Without one, it takes the glass surface in a GlassProvider.
-	 * @defaultValue 'default'
+	 * @defaultValue `'default'`, or the variant of the enclosing Control.
 	 */
 	variant?: ControlVariant
+	/** Content before the field, inside the control frame, such as an icon. */
 	prefix?: ReactNode
+	/** Content after the field, inside the control frame, such as a unit. */
 	suffix?: ReactNode
 	/**
 	 * Shows a clear button in the suffix while the input holds a value. The

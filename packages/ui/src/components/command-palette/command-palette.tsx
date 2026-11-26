@@ -162,8 +162,8 @@ const DEFAULT_TRIGGER_SHORTCUT = '$mod+KeyK'
 
 /**
  * A dialog that searches a list of commands and runs the one that the reader
- * picks. Items read the query via {@link useCommandPaletteQuery} for
- * client-side filtering. Drives open state controlled (`open`/`onOpenChange`)
+ * picks. Items read the query via {@link useCommandPaletteDeferredQuery}
+ * for client-side filtering. Drives open state controlled (`open`/`onOpenChange`)
  * or uncontrolled (`defaultOpen`), as {@link Dialog} does. The query is
  * controlled (`query`/`onQueryChange`) or held by the palette. An uncontrolled
  * palette opens from `triggerShortcut` alone.

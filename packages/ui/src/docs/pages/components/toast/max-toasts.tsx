@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { Button } from 'ui/button'
-import { useToast } from 'ui/toast'
+import { Toast, ToastProvider, useToast } from 'ui/toast'
 
-export default function MaxToasts() {
+function ShowToast() {
 	const { toast } = useToast()
 
 	const [count, setCount] = useState(0)
@@ -16,4 +16,14 @@ export default function MaxToasts() {
 	}
 
 	return <Button onClick={show}>Show toast</Button>
+}
+
+// A fourth toast dismisses the oldest of the three.
+export default function MaxToasts() {
+	return (
+		<ToastProvider maxToasts={3}>
+			<ShowToast />
+			<Toast />
+		</ToastProvider>
+	)
 }

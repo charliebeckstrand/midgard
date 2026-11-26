@@ -885,6 +885,7 @@ export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'>
 	/** Derives a stable, unique key per row; backs selection, sort, and virtualization identity. */
 	getKey: (row: T, index: number) => string | number
 
+	/** The sort of the rows, controlled or uncontrolled ({@link GridSort}). */
 	sort?: GridSort
 
 	/**
@@ -934,6 +935,7 @@ export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'>
 	 */
 	grandTotalRow?: boolean
 
+	/** The row selection, controlled or uncontrolled, and the action bar while rows are selected ({@link GridSelection}). */
 	selection?: GridSelection<T>
 
 	/**
@@ -956,6 +958,7 @@ export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'>
 	 */
 	preferences?: GridPreferences
 
+	/** The order of the columns, controlled or uncontrolled ({@link GridColumnOrder}). */
 	columnOrder?: GridColumnOrder
 
 	/**

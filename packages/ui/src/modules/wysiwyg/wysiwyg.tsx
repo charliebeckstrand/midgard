@@ -146,7 +146,7 @@ export type WysiwygProps<R extends MarkdownRange = MarkdownRange> = {
 	 * The surface of the control, as on Textarea ({@link ControlVariant}). When
 	 * the prop is unset, the field takes the variant of the enclosing Control.
 	 * Without one, it takes the glass surface in a GlassProvider.
-	 * @defaultValue 'default'
+	 * @defaultValue `'default'`, or the variant of the enclosing Control.
 	 */
 	variant?: ControlVariant
 	/** The density step. Omit it to take the step of the nearest density scope. A step makes the frame a density scope. */
