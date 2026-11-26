@@ -1,8 +1,9 @@
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { describe, expect, it } from 'vitest'
 import NotFound from '../app/routes/not-found.tsx'
-import { DocsSearch } from '../search/ui/search-provider.tsx'
+import { DocsSearch, SearchPaletteHost } from '../search/ui/search-provider.tsx'
 
 // The not-found page suggests the pages that the path most likely names, and
 // offers the search.
@@ -65,5 +66,28 @@ describe('the not-found page', () => {
 		renderAt('/zzzz')
 
 		expect(suggestions()).toEqual([])
+	})
+
+	it('opens the search with the words of the path, and a later open starts empty', async () => {
+		const user = userEvent.setup()
+
+		render(
+			<MemoryRouter initialEntries={['/components/date-picker']}>
+				<DocsSearch>
+					<NotFound />
+					<SearchPaletteHost />
+				</DocsSearch>
+			</MemoryRouter>,
+		)
+
+		await user.click(screen.getByRole('button', { name: 'Search the docs' }))
+
+		expect(await screen.findByRole('combobox')).toHaveProperty('value', 'date picker')
+
+		await user.keyboard('{Escape}')
+
+		await user.keyboard('{Control>}k{/Control}')
+
+		expect(await screen.findByRole('combobox')).toHaveProperty('value', '')
 	})
 })
