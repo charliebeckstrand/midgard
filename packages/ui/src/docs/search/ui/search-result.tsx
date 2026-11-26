@@ -83,6 +83,20 @@ const SECTION_ICON: Readonly<Record<string, LucideIcon>> = {
 	providers: Layers,
 }
 
+/**
+ * The tint of the icon of a page in a section with its own color. A page in
+ * another section has the tint of its kind.
+ */
+const SECTION_TINT: Readonly<Record<string, string>> = {
+	modules: 'bg-emerald-500/12 text-emerald-600 dark:bg-emerald-400/15 dark:text-emerald-300',
+}
+
+function getTint(option: Matchable): string {
+	if (option.kind !== 'page') return KIND_TINT[option.kind]
+
+	return SECTION_TINT[sectionByPath.get(option.href) ?? ''] ?? KIND_TINT.page
+}
+
 function getIcon(option: Matchable): LucideIcon {
 	if (option.kind !== 'page') return KIND_ICON[option.kind]
 
@@ -110,7 +124,7 @@ export function ResultIcon({ option }: { option: Matchable }) {
 	return (
 		<span
 			aria-hidden
-			className={`flex size-7 shrink-0 items-center justify-center rounded-md ${KIND_TINT[option.kind]}`}
+			className={`flex size-7 shrink-0 items-center justify-center rounded-md ${getTint(option)}`}
 		>
 			<Icon icon={getIcon(option)} />
 		</span>
