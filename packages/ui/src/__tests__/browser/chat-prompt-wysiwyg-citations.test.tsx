@@ -4,7 +4,7 @@ import { userEvent } from 'vitest/browser'
 import { ChatPrompt } from '../../modules/chat'
 import type { ChatCitation } from '../../modules/chat/engine/chat-content/types'
 import { noop, renderUI, screen, waitFor } from '../helpers'
-import { editable } from './helpers/wysiwyg'
+import { editable, holdFocusCheck } from './helpers/wysiwyg'
 
 const SOURCE = 'Ask about @Sales'
 
@@ -52,6 +52,20 @@ describe('ChatPrompt wysiwyg citations (real browser)', () => {
 		const field = await editable()
 
 		expect(field.querySelector('[data-slot="wysiwyg-range"]')).toHaveTextContent('@Sales')
+
+		await userEvent.keyboard('{Home}Please ')
+
+		await waitFor(() => expect(citations()).toEqual([{ ...CITATION, start: 17, end: 23 }]))
+	})
+
+	// On a busy page, the key comes before the check of the editor after the
+	// focus. The check must not take the Home key for a reset of the browser.
+	it('moves a citation across an edit at a Home key before the focus check of the editor', async () => {
+		holdFocusCheck()
+
+		renderUI(<Composer />)
+
+		await editable()
 
 		await userEvent.keyboard('{Home}Please ')
 

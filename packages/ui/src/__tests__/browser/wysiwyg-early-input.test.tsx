@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { isApplePlatform } from '../../utilities/apple-platform'
 import { present, renderUI, screen, waitFor } from '../helpers'
+import { holdFocusCheck } from './helpers/wysiwyg'
 import { focusAtEnd, holdEditorLoad, load, Notes, value } from './helpers/wysiwyg-early-input'
 
 /**
@@ -59,6 +60,22 @@ describe('Wysiwyg input before the editor loads (real browser)', () => {
 	})
 
 	it('takes a Home key just after the editor takes the focus from the markup', async () => {
+		renderUI(<Notes initial="day" />)
+
+		focusAtEnd()
+
+		await load()
+
+		await userEvent.keyboard('{Home}Launch ')
+
+		expect(value()).toBe('Launch day')
+	})
+
+	// On a busy page, the key comes before the check of the editor after the
+	// focus. The check must not take the Home key for a reset of the browser.
+	it('takes a Home key that comes before the focus check of the editor', async () => {
+		holdFocusCheck()
+
 		renderUI(<Notes initial="day" />)
 
 		focusAtEnd()

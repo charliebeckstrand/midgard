@@ -140,6 +140,25 @@ minimumReleaseAgeExclude:
 # fixes lands. In WebKit bug 216681, the document follows the touch-action of the root
 # element. In React issue 31260, React stops listening for `dblclick` on a document.
 #
+# ProseMirror reads a caret that goes back to the start of the doc just after a focus as a
+# reset of the browser, and it writes its own selection to the page again. It does this at two
+# places. For 200 ms after the focus, a selection change to the start of the doc goes back,
+# unless a press of the view came in the last 300 ms. And 20 ms after the focus, a check writes
+# the selection again when the selection of the page is the same as at the focus.
+#
+# A Home key just after the focus puts the caret at the start of the doc, so ProseMirror took
+# it back. A browser runs an input before a timer that is due, so on a busy page a Home key
+# after a press ran before the 20 ms check. The check then found the caret at the point of the
+# focus and moved it back. CI saw this in `chat-prompt-wysiwyg-citations`.
+#
+# The patch makes each key other than a modifier end that time: the key clears the record of
+# the focus, and the check runs only while the record is the record of its focus. The key
+# clears the record after ProseMirror reads the changes before the key, so a reset of the
+# browser that came before the key still goes back. A held
+# modifier repeats its key, so a modifier does not end the time. `holdFocusCheck` of
+# `browser/helpers/wysiwyg.ts` runs the check after the key, and the cases that call it fail
+# without the patch. Remove the patch when upstream stops these reads at a key.
+#
 # Each key names one exact version, and pnpm stops an install when a patch matches no package.
 # Thus each package.json pins a patched package at that version, so that a lockfile refresh
 # cannot move it. A bump makes a new patch for the new version, and renovate.json holds each
@@ -147,6 +166,7 @@ minimumReleaseAgeExclude:
 patchedDependencies:
   '@floating-ui/react@0.27.20': patches/@floating-ui__react@0.27.20.patch
   next@16.4.6: patches/next@16.4.6.patch
+  prosemirror-view@1.43.0: patches/prosemirror-view@1.43.0.patch
   react-dom@19.3.1: patches/react-dom@19.3.1.patch
   react-router@8.5.2: patches/react-router@8.5.2.patch
   vitest@5.1.1: patches/vitest@5.1.1.patch
