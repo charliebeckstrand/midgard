@@ -55,6 +55,10 @@
 		"defaultMessage": "Components",
 		"description": "The name of the section of the sidebar that lists the components."
 	},
+	"docs.app.section.layouts": {
+		"defaultMessage": "Layouts",
+		"description": "The name of the section of the sidebar that lists the layouts: the frames of a whole page, such as an app shell with a sidebar."
+	},
 	"docs.app.section.modules": {
 		"defaultMessage": "Modules",
 		"description": "The name of the section of the sidebar that lists the modules, such as the grid and the chart."
@@ -1047,6 +1051,10 @@
 		"defaultMessage": "Search commands",
 		"description": "Text of a demo in the docs, in components/command-palette/keyboard-shortcut.tsx."
 	},
+	"docs.demo.011cc6c477e4": {
+		"defaultMessage": "A report prints on one page for each section.",
+		"description": "Text of a demo in the docs as text, in layouts/stacked-layout/scrolling-body.tsx."
+	},
 	"docs.demo.013b174b7690": {
 		"defaultMessage": "Monthly recurring revenue",
 		"description": "Text of a demo in the docs, in components/stat/with-delta-and-description.tsx."
@@ -1321,7 +1329,7 @@
 	},
 	"docs.demo.1254829bd999": {
 		"defaultMessage": "Release notes",
-		"description": "Text of a demo in the docs as label, title, in components/banner/sticky.tsx, components/textarea/validation.tsx, modules/wysiwyg/separated.tsx and 2 more."
+		"description": "Text of a demo in the docs as label, title, in components/banner/sticky.tsx, components/textarea/validation.tsx, layouts/stacked-layout/scrolling-body.tsx and 3 more."
 	},
 	"docs.demo.125926006a27": {
 		"defaultMessage": "Security code",
@@ -1457,7 +1465,7 @@
 	},
 	"docs.demo.1706a91b20da": {
 		"defaultMessage": "A comment can mention a team.",
-		"description": "Text of a demo in the docs as text, in components/banner/sticky.tsx."
+		"description": "Text of a demo in the docs as text, in components/banner/sticky.tsx, layouts/stacked-layout/scrolling-body.tsx."
 	},
 	"docs.demo.1709305c9fa9": {
 		"defaultMessage": "Level",
@@ -2607,6 +2615,10 @@
 		"defaultMessage": "Delivery",
 		"description": "Text of a demo in the docs as aria-label, in components/popover/glass.tsx, components/popover/playground.tsx."
 	},
+	"docs.demo.52f6df848af9": {
+		"defaultMessage": "An archived project keeps its history.",
+		"description": "Text of a demo in the docs as text, in layouts/stacked-layout/scrolling-body.tsx."
+	},
 	"docs.demo.52f878edb34f": {
 		"defaultMessage": "Esc",
 		"description": "Text of a demo in the docs, in components/kbd/icon-keys.tsx."
@@ -2745,7 +2757,7 @@
 	},
 	"docs.demo.5985039f106d": {
 		"defaultMessage": "Team",
-		"description": "Text of a demo in the docs as label, title, in components/listbox/with-descriptions.tsx, components/select/with-descriptions.tsx, components/sidebar/playground.tsx and 3 more."
+		"description": "Text of a demo in the docs as label, title, in components/listbox/with-descriptions.tsx, components/select/with-descriptions.tsx, components/sidebar/playground.tsx and 4 more."
 	},
 	"docs.demo.59bd67212147": {
 		"defaultMessage": "Hourly rate",
@@ -2758,6 +2770,10 @@
 	"docs.demo.5ac265f396a2": {
 		"defaultMessage": "Confirm password",
 		"description": "Text of a demo in the docs as placeholder, in components/password-confirm/in-a-form.tsx, components/password-confirm/playground.tsx, components/password-confirm/with-strength-meter.tsx and 1 more."
+	},
+	"docs.demo.5ad3dbd1242a": {
+		"defaultMessage": "Got it",
+		"description": "Text of a demo in the docs, in layouts/stacked-layout/scrolling-body.tsx."
 	},
 	"docs.demo.5b70db36c8ff": {
 		"defaultMessage": "{formatNumber} times normal speed",
@@ -2877,7 +2893,7 @@
 	},
 	"docs.demo.63718d617ed2": {
 		"defaultMessage": "Harbor Labs",
-		"description": "Text of a demo in the docs as aria-label, in components/sidebar/with-header-and-footer.tsx."
+		"description": "Text of a demo in the docs as aria-label, in components/sidebar/with-header-and-footer.tsx, layouts/sidebar-layout/drawer-at-each-width.tsx."
 	},
 	"docs.demo.63bf045213ce": {
 		"defaultMessage": "Update now",
@@ -3057,7 +3073,7 @@
 	},
 	"docs.demo.6be090825c99": {
 		"defaultMessage": "Order",
-		"description": "Text of a demo in the docs, in components/table/caption-and-totals.tsx, providers/density/playground.tsx."
+		"description": "Text of a demo in the docs, in components/table/caption-and-totals.tsx, layouts/dashboard-layout/filter-rail.tsx, layouts/sidebar-layout/app-shell.tsx and 1 more."
 	},
 	"docs.demo.6c44751e6268": {
 		"defaultMessage": "Connection lost",
@@ -3237,7 +3253,7 @@
 	},
 	"docs.demo.74a883a037bc": {
 		"defaultMessage": "Settings",
-		"description": "Text of a demo in the docs as aria-label, label, in components/command-palette/commands.tsx, components/menu/title-and-description.tsx, components/nav/with-content.tsx and 4 more."
+		"description": "Text of a demo in the docs as aria-label, label, in components/command-palette/commands.tsx, components/menu/title-and-description.tsx, components/nav/with-content.tsx and 6 more."
 	},
 	"docs.demo.74aa4e7860e6": {
 		"defaultMessage": "Fix sign-in redirect",
@@ -3282,6 +3298,10 @@
 	"docs.demo.77184595bde3": {
 		"defaultMessage": "Ascending",
 		"description": "Text of a demo in the docs as label, in components/context-menu/submenus.tsx."
+	},
+	"docs.demo.7721ed03fef6": {
+		"defaultMessage": "A task can send a reminder a day before it is due.",
+		"description": "Text of a demo in the docs as text, in layouts/stacked-layout/scrolling-body.tsx."
 	},
 	"docs.demo.776609d1ac25": {
 		"defaultMessage": "Locked left",
@@ -3813,7 +3833,7 @@
 	},
 	"docs.demo.8ee57323a6f2": {
 		"defaultMessage": "All statuses",
-		"description": "Text of a demo in the docs as placeholder, in modules/form/filters/playground.tsx, modules/form/filters/search-and-status.tsx, providers/density/playground.tsx."
+		"description": "Text of a demo in the docs as placeholder, in layouts/dashboard-layout/filter-rail.tsx, modules/form/filters/playground.tsx, modules/form/filters/search-and-status.tsx and 1 more."
 	},
 	"docs.demo.8f41c604be00": {
 		"defaultMessage": "Column manager",
@@ -3897,7 +3917,7 @@
 	},
 	"docs.demo.920e413c7d41": {
 		"defaultMessage": "Status",
-		"description": "Text of a demo in the docs as aria-label, label, title, in components/segment/filter.tsx, modules/form/filters/playground.tsx, modules/form/filters/search-and-status.tsx and 6 more."
+		"description": "Text of a demo in the docs as aria-label, label, title, in components/segment/filter.tsx, layouts/dashboard-layout/filter-rail.tsx, layouts/sidebar-layout/app-shell.tsx and 8 more."
 	},
 	"docs.demo.92340695899b": {
 		"defaultMessage": "Active",
@@ -3941,11 +3961,11 @@
 	},
 	"docs.demo.9468ddd3d8b6": {
 		"defaultMessage": "The calendar shows the holidays of your region.",
-		"description": "Text of a demo in the docs as text, in components/banner/sticky.tsx."
+		"description": "Text of a demo in the docs as text, in components/banner/sticky.tsx, layouts/stacked-layout/scrolling-body.tsx."
 	},
 	"docs.demo.94835ea2fcf7": {
 		"defaultMessage": "Inbox",
-		"description": "Text of a demo in the docs as label, in components/sidebar/playground.tsx, components/sidebar/sections-divider-and-spacer.tsx, components/sidebar/with-actions.tsx and 3 more."
+		"description": "Text of a demo in the docs as label, in components/sidebar/playground.tsx, components/sidebar/sections-divider-and-spacer.tsx, components/sidebar/with-actions.tsx and 4 more."
 	},
 	"docs.demo.94a72c074cfe": {
 		"defaultMessage": "Two",
@@ -3997,7 +4017,7 @@
 	},
 	"docs.demo.969ccbd3cf63": {
 		"defaultMessage": "Email",
-		"description": "Text of a demo in the docs as aria-label, placeholder, title, in components/control/playground.tsx, components/description-list/playground.tsx, components/fieldset/playground.tsx and 16 more."
+		"description": "Text of a demo in the docs as aria-label, placeholder, title, in components/control/playground.tsx, components/description-list/playground.tsx, components/fieldset/playground.tsx and 17 more."
 	},
 	"docs.demo.96c348cb309f": {
 		"defaultMessage": "Flag {label}",
@@ -4281,7 +4301,7 @@
 	},
 	"docs.demo.a238c3e91ed9": {
 		"defaultMessage": "An invoice can hold a note for the client.",
-		"description": "Text of a demo in the docs as text, in components/banner/sticky.tsx."
+		"description": "Text of a demo in the docs as text, in components/banner/sticky.tsx, layouts/stacked-layout/scrolling-body.tsx."
 	},
 	"docs.demo.a27b4181eb69": {
 		"defaultMessage": "Tidy",
@@ -4433,11 +4453,15 @@
 	},
 	"docs.demo.a93c266d7344": {
 		"defaultMessage": "The export now keeps the order of the columns.",
-		"description": "Text of a demo in the docs as text, in components/banner/sticky.tsx."
+		"description": "Text of a demo in the docs as text, in components/banner/sticky.tsx, layouts/stacked-layout/scrolling-body.tsx."
 	},
 	"docs.demo.a978244a029e": {
 		"defaultMessage": "Pinch or use the buttons to zoom. Drag with two fingers to pan.",
 		"description": "Text of a demo in the docs as touchText, in modules/map/point/zoomable.tsx."
+	},
+	"docs.demo.a9950e38a174": {
+		"defaultMessage": "A team can have a photo of its own.",
+		"description": "Text of a demo in the docs as text, in layouts/stacked-layout/scrolling-body.tsx."
 	},
 	"docs.demo.a9b1dd1bbc06": {
 		"defaultMessage": "Hold to confirm",
@@ -4457,7 +4481,7 @@
 	},
 	"docs.demo.aabe76f1f4ec": {
 		"defaultMessage": "Customers",
-		"description": "Text of a demo in the docs as colorName, label, in modules/chart/choropleth/heatmap.tsx, modules/map/quantile-bins.tsx, providers/density/playground.tsx."
+		"description": "Text of a demo in the docs as colorName, label, in layouts/sidebar-layout/app-shell.tsx, modules/chart/choropleth/heatmap.tsx, modules/map/quantile-bins.tsx and 1 more."
 	},
 	"docs.demo.ab3e1b9d1993": {
 		"defaultMessage": "Your profile is up to date.",
@@ -4521,7 +4545,11 @@
 	},
 	"docs.demo.ad0343fe39b8": {
 		"defaultMessage": "A shared view opens with the filters of its owner.",
-		"description": "Text of a demo in the docs as text, in components/banner/sticky.tsx."
+		"description": "Text of a demo in the docs as text, in components/banner/sticky.tsx, layouts/stacked-layout/scrolling-body.tsx."
+	},
+	"docs.demo.ad100a707ee9": {
+		"defaultMessage": "You have no new messages.",
+		"description": "Text of a demo in the docs, in layouts/sidebar-layout/drawer-at-each-width.tsx."
 	},
 	"docs.demo.ad1916bc2536": {
 		"defaultMessage": "Team plan, renews on July 1",
@@ -4637,7 +4665,7 @@
 	},
 	"docs.demo.b3bb4a79104b": {
 		"defaultMessage": "The search finds a project by its code.",
-		"description": "Text of a demo in the docs as text, in components/banner/sticky.tsx."
+		"description": "Text of a demo in the docs as text, in components/banner/sticky.tsx, layouts/stacked-layout/scrolling-body.tsx."
 	},
 	"docs.demo.b3c90e46a8b5": {
 		"defaultMessage": "Save drafts automatically",
@@ -4733,7 +4761,7 @@
 	},
 	"docs.demo.b7e8acdd522e": {
 		"defaultMessage": "Orders",
-		"description": "Text of a demo in the docs as colorName, title, in modules/chart/heatmap/activity.tsx, modules/chart/heatmap/animated.tsx, modules/dashboard/build-and-save.tsx and 3 more."
+		"description": "Text of a demo in the docs as aria-label, colorName, label, title, in layouts/dashboard-layout/filter-rail.tsx, layouts/sidebar-layout/app-shell.tsx, modules/chart/heatmap/activity.tsx and 5 more."
 	},
 	"docs.demo.b80355750958": {
 		"defaultMessage": "Invoices",
@@ -4827,6 +4855,10 @@
 		"defaultMessage": "Click a state to show its counties.",
 		"description": "Text of a demo in the docs as mouseText, in modules/map/county/drill-into-counties.tsx."
 	},
+	"docs.demo.bbdc9565da5e": {
+		"defaultMessage": "The audit log shows who changed each setting.",
+		"description": "Text of a demo in the docs as text, in layouts/stacked-layout/scrolling-body.tsx."
+	},
 	"docs.demo.bc7b631a689b": {
 		"defaultMessage": "Zoom out",
 		"description": "Text of a demo in the docs, in components/menu/keep-open.tsx."
@@ -4901,11 +4933,11 @@
 	},
 	"docs.demo.bf3763383aaf": {
 		"defaultMessage": "Customer",
-		"description": "Text of a demo in the docs as title, in components/table/caption-and-totals.tsx, modules/grid/groups/server-side-grouping.tsx, providers/density/playground.tsx."
+		"description": "Text of a demo in the docs as title, in components/table/caption-and-totals.tsx, layouts/dashboard-layout/filter-rail.tsx, layouts/sidebar-layout/app-shell.tsx and 2 more."
 	},
 	"docs.demo.bfd402b2f6f3": {
 		"defaultMessage": "Sign in",
-		"description": "Text of a demo in the docs, in components/tabs/stretch.tsx, modules/form/form-error.tsx."
+		"description": "Text of a demo in the docs, in components/tabs/stretch.tsx, layouts/auth-layout/sign-in.tsx, modules/form/form-error.tsx."
 	},
 	"docs.demo.c022b19a38a6": {
 		"defaultMessage": "Open command palette",
@@ -5215,6 +5247,10 @@
 		"defaultMessage": "Track the tasks of the project. Upgrade to the Pro plan to open reports.",
 		"description": "Text of a demo in the docs, in components/tabs/disabled-tab.tsx."
 	},
+	"docs.demo.d09030db8a7f": {
+		"defaultMessage": "The import reads a file of up to ten thousand rows.",
+		"description": "Text of a demo in the docs as text, in layouts/stacked-layout/scrolling-body.tsx."
+	},
 	"docs.demo.d0db8b5e364b": {
 		"defaultMessage": "Options",
 		"description": "Text of a demo in the docs, in components/menu/controlled.tsx, components/menu/glass.tsx, components/menu/icons-and-shortcuts.tsx and 2 more."
@@ -5318,6 +5354,10 @@
 	"docs.demo.d624dd1c0a44": {
 		"defaultMessage": "Seven days, north and south routes",
 		"description": "Text of a demo in the docs as summary, in modules/chat/conversation/reply.ts."
+	},
+	"docs.demo.d634ac9f84db": {
+		"defaultMessage": "New order",
+		"description": "Text of a demo in the docs, in layouts/sidebar-layout/app-shell.tsx."
 	},
 	"docs.demo.d65bb26d00b6": {
 		"defaultMessage": "Locked on both edges",
@@ -5741,7 +5781,7 @@
 	},
 	"docs.demo.e7cf3ef4f17c": {
 		"defaultMessage": "Password",
-		"description": "Text of a demo in the docs as aria-label, placeholder, in components/password-confirm/in-a-form.tsx, components/password-confirm/playground.tsx, components/password-confirm/with-strength-meter.tsx and 12 more."
+		"description": "Text of a demo in the docs as aria-label, placeholder, in components/password-confirm/in-a-form.tsx, components/password-confirm/playground.tsx, components/password-confirm/with-strength-meter.tsx and 13 more."
 	},
 	"docs.demo.e7d3e769f3f5": {
 		"defaultMessage": "Administrator",
@@ -5873,7 +5913,7 @@
 	},
 	"docs.demo.ee60673de787": {
 		"defaultMessage": "Acme Inc.",
-		"description": "Text of a demo in the docs as aria-label, in components/sidebar/playground.tsx, providers/density/playground.tsx."
+		"description": "Text of a demo in the docs as aria-label, in components/sidebar/playground.tsx, layouts/sidebar-layout/app-shell.tsx, providers/density/playground.tsx."
 	},
 	"docs.demo.ee973672b4ff": {
 		"defaultMessage": "Summarize a dataset",
@@ -6127,6 +6167,10 @@
 		"defaultMessage": "Plan",
 		"description": "Text of a demo in the docs as aria-label, label, in components/list/stages.ts, components/listbox/with-descriptions.tsx, components/radio/playground.tsx and 2 more."
 	},
+	"docs.demo.fa9487dc96d1": {
+		"defaultMessage": "The dark theme follows the setting of your system.",
+		"description": "Text of a demo in the docs as text, in layouts/stacked-layout/scrolling-body.tsx."
+	},
 	"docs.demo.fb3d7e2c77f4": {
 		"defaultMessage": "File actions",
 		"description": "Text of a demo in the docs as aria-label, in components/context-menu/with-actions.tsx."
@@ -6319,6 +6363,10 @@
 		"defaultMessage": "Aspect ratio",
 		"description": "The common name of the AspectRatio page of the docs, which the search finds. Use the noun that a reader of the language searches for."
 	},
+	"docs.page.auth-layout": {
+		"defaultMessage": "Auth layout",
+		"description": "The common name of the AuthLayout page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
 	"docs.page.avatar": {
 		"defaultMessage": "Avatar",
 		"description": "The common name of the Avatar page of the docs, which the search finds. Use the noun that a reader of the language searches for."
@@ -6418,6 +6466,10 @@
 	"docs.page.dashboard": {
 		"defaultMessage": "Dashboard",
 		"description": "The common name of the Dashboard page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.dashboard-layout": {
+		"defaultMessage": "Dashboard layout",
+		"description": "The common name of the DashboardLayout page of the docs, which the search finds. Use the noun that a reader of the language searches for."
 	},
 	"docs.page.date-input": {
 		"defaultMessage": "Date input",
@@ -6643,6 +6695,10 @@
 		"defaultMessage": "Sidebar",
 		"description": "The common name of the Sidebar page of the docs, which the search finds. Use the noun that a reader of the language searches for."
 	},
+	"docs.page.sidebar-layout": {
+		"defaultMessage": "Sidebar layout",
+		"description": "The common name of the SidebarLayout page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
 	"docs.page.signature-pad": {
 		"defaultMessage": "Signature pad",
 		"description": "The common name of the SignaturePad page of the docs, which the search finds. Use the noun that a reader of the language searches for."
@@ -6670,6 +6726,10 @@
 	"docs.page.stack": {
 		"defaultMessage": "Stack",
 		"description": "The common name of the Stack page of the docs, which the search finds. Use the noun that a reader of the language searches for."
+	},
+	"docs.page.stacked-layout": {
+		"defaultMessage": "Stacked layout",
+		"description": "The common name of the StackedLayout page of the docs, which the search finds. Use the noun that a reader of the language searches for."
 	},
 	"docs.page.stat": {
 		"defaultMessage": "Stat",
@@ -8483,6 +8543,10 @@
 		"defaultMessage": "Animation",
 		"description": "The title of an example on a page of the docs. It comes from the file name animation.tsx."
 	},
+	"docs.title.app-shell": {
+		"defaultMessage": "App shell",
+		"description": "The title of an example on a page of the docs. It comes from the file name app-shell.tsx."
+	},
 	"docs.title.arrays-of-primitives": {
 		"defaultMessage": "Arrays of primitives",
 		"description": "The title of an example on a page of the docs. It comes from the file name arrays-of-primitives.tsx."
@@ -8855,6 +8919,10 @@
 		"defaultMessage": "Double click",
 		"description": "The title of an example on a page of the docs. It comes from the file name double-click.tsx."
 	},
+	"docs.title.drawer-at-each-width": {
+		"defaultMessage": "Drawer at each width",
+		"description": "The title of an example on a page of the docs. It comes from the file name drawer-at-each-width.tsx."
+	},
 	"docs.title.drill-into-counties": {
 		"defaultMessage": "Drill into counties",
 		"description": "The title of an example on a page of the docs. It comes from the file name drill-into-counties.tsx."
@@ -8934,6 +9002,10 @@
 	"docs.title.filter": {
 		"defaultMessage": "Filter",
 		"description": "The title of an example on a page of the docs. It comes from the file name filter.tsx."
+	},
+	"docs.title.filter-rail": {
+		"defaultMessage": "Filter rail",
+		"description": "The title of an example on a page of the docs. It comes from the file name filter-rail.tsx."
 	},
 	"docs.title.filter-rows": {
 		"defaultMessage": "Filter rows",
@@ -9499,6 +9571,10 @@
 		"defaultMessage": "Save in the address",
 		"description": "The title of an example on a page of the docs. It comes from the file name save-in-the-address.tsx."
 	},
+	"docs.title.scrolling-body": {
+		"defaultMessage": "Scrolling body",
+		"description": "The title of an example on a page of the docs. It comes from the file name scrolling-body.tsx."
+	},
 	"docs.title.search": {
 		"defaultMessage": "Search",
 		"description": "The title of an example on a page of the docs. It comes from the file name search.tsx."
@@ -9606,6 +9682,10 @@
 	"docs.title.sidebar-layout": {
 		"defaultMessage": "Sidebar layout",
 		"description": "The title of an example on a page of the docs. It comes from the file name sidebar-layout.tsx."
+	},
+	"docs.title.sign-in": {
+		"defaultMessage": "Sign in",
+		"description": "The title of an example on a page of the docs. It comes from the file name sign-in.tsx."
 	},
 	"docs.title.single-photo": {
 		"defaultMessage": "Single photo",
