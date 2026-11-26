@@ -8289,7 +8289,7 @@
 	},
 	"docs.search.page-api": {
 		"defaultMessage": "{page} API reference",
-		"description": "The line below a search result that is the API reference of a component on a page with another name, such as \"Field API reference\" for Fieldset."
+		"description": "The line below a search result that is the API reference of a component on a page with another name, such as \"Fieldset API reference\" for <Field />."
 	},
 	"docs.search.placeholder": {
 		"defaultMessage": "Search",

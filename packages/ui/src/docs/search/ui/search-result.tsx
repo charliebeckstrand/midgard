@@ -71,7 +71,7 @@ const pageApiMessage = defineMessage<{ page: string }>({
 	id: 'docs.search.page-api',
 	defaultMessage: '{page} API reference',
 	description:
-		'The line below a search result that is the API reference of a component on a page with another name, such as "Field API reference" for Fieldset.',
+		'The line below a search result that is the API reference of a component on a page with another name, such as "Fieldset API reference" for <Field />.',
 })
 
 /** The tint of the icon of each kind, in the light theme and the dark theme. */
@@ -110,7 +110,7 @@ function getIcon(option: Matchable): LucideIcon {
 /**
  * The line below the label: the section of a page, the page of a tab, the
  * component of a prop or an event, and "API reference" for a component. A
- * component on a page with another name, such as `<Fieldset />` on the Field
+ * component on a page with another name, such as `<Field />` on the Fieldset
  * page, names the page.
  */
 function formatSubtitle(intl: IntlShape, option: Matchable): string {
