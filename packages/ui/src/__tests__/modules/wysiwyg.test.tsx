@@ -769,14 +769,11 @@ describe('WysiwygToolbar', () => {
 					.map((button) => button.getAttribute('aria-label')),
 			).toEqual(['Text', 'Heading 1', 'Heading 2', 'Heading 3'])
 
-			expect(within(levels).getByRole('button', { name: 'Text' })).toHaveAttribute(
-				'aria-pressed',
-				'true',
-			)
+			expect(within(levels).getByRole('button', { name: 'Text' })).toBePressed()
 
 			const h2 = within(levels).getByRole('button', { name: 'Heading 2' })
 
-			expect(h2).toHaveAttribute('aria-pressed', 'false')
+			expect(h2).toBeUnpressed()
 
 			expect(h2).toHaveAttribute('aria-keyshortcuts', 'Control+Alt+2')
 
