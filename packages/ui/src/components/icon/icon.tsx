@@ -35,7 +35,7 @@ export type IconProps = {
 	size?: ScaleStep<typeof scale> | number
 	/**
 	 * Mirrors the icon in a right-to-left layout. Set it on a glyph that points
-	 * along the line, such as a chevron or an arrow for next and previous.
+	 * along the line, such as a next or previous chevron.
 	 * @defaultValue false
 	 */
 	mirror?: boolean
