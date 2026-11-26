@@ -7,6 +7,9 @@ import { LOCALES } from '../app/language.ts'
 // takes it off, so the page has the direction of its language. The choice is
 // not stored, so a reload starts at "System".
 
+/** The text info of an `Intl.Locale`, as far as the cases read it. */
+type TextInfo = { direction: 'ltr' | 'rtl' }
+
 /** Takes `dir` off after the case, as the window is shared across the files of a worker. */
 function resetAfterCase(): void {
 	onTestFinished(() => {
@@ -72,12 +75,18 @@ describe('the direction setting of the docs', () => {
 	// the docs is left to right. A right-to-left language needs a direction
 	// from its locale.
 	it.each(LOCALES)('has a left-to-right language for each locale (%s)', (locale) => {
-		// On Node 26 (V8 14.6), `Intl.Locale` has `getTextInfo()` and no `textInfo`.
-		// The method is not in the ES2023 types of the `lib` of the tsconfig.
+		// The text info of a locale gives its direction. Node 22 has only the
+		// `textInfo` accessor. Node 24 has the accessor and the `getTextInfo()`
+		// method. Node 26 (V8 14.6) has only the method. The test reads the form
+		// that the runtime has, so the result does not change with the version of
+		// Node. Neither form is in the ES2023 types of the `lib` of the tsconfig.
 		const intlLocale = new Intl.Locale(locale) as Intl.Locale & {
-			getTextInfo: () => { direction: 'ltr' | 'rtl' }
+			getTextInfo?: () => TextInfo
+			textInfo?: TextInfo
 		}
 
-		expect(intlLocale.getTextInfo().direction).toBe('ltr')
+		const textInfo = intlLocale.getTextInfo?.() ?? intlLocale.textInfo
+
+		expect(textInfo?.direction).toBe('ltr')
 	})
 })
