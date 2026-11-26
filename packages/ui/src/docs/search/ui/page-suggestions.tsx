@@ -1,11 +1,12 @@
 import pages from 'virtual:docs/pages'
 import entries from 'virtual:docs/search'
 import { Search } from 'lucide-react'
-import { useMemo } from 'react'
+import { useId, useMemo } from 'react'
 import { Button } from 'ui/button'
 import { Icon } from 'ui/icon'
 import { List, ListDescription, ListItem, ListLabel } from 'ui/list'
 import { defineMessages, IntlMessage, useIntl } from 'ui/primitives/intl'
+import { Text } from 'ui/text'
 import {
 	createSearchIndex,
 	type Matchable,
@@ -23,9 +24,9 @@ import { ResultIcon, ResultSubtitle } from './search-result.tsx'
 const messages = defineMessages({
 	suggestions: {
 		id: 'docs.notFound.suggestions',
-		defaultMessage: 'Pages that the address can name',
+		defaultMessage: 'Did you mean?',
 		description:
-			'The name of the list of pages of the docs that a path with no page most likely names. A screen reader reads it.',
+			'The text above the list of pages of the docs that a path with no page most likely names, and the name of the list.',
 	},
 	search: {
 		id: 'docs.notFound.search',
@@ -85,6 +86,8 @@ export function PageSuggestions({ path }: { path: string }) {
 
 	const { request } = useSearch()
 
+	const headingId = useId()
+
 	const shown = useMemo(
 		() => new Map(PLACES.map((entry) => [entry.href, localizeEntry<Matchable>(intl, entry)])),
 		[intl],
@@ -100,24 +103,29 @@ export function PageSuggestions({ path }: { path: string }) {
 	return (
 		<>
 			{suggestions.length > 0 && (
-				<List
-					variant="plain"
-					className="w-full max-w-md"
-					items={suggestions}
-					getKey={(entry) => entry.href}
-					aria-label={intl.formatMessage(messages.suggestions)}
-				>
-					{(entry) => (
-						<ListItem href={entry.href} rounded prefix={<ResultIcon option={entry} />}>
-							<ListLabel>
-								<bdi>{entry.label}</bdi>
-							</ListLabel>
-							<ListDescription>
-								<ResultSubtitle option={entry} />
-							</ListDescription>
-						</ListItem>
-					)}
-				</List>
+				<>
+					<Text id={headingId}>
+						<IntlMessage message={messages.suggestions} />
+					</Text>
+					<List
+						variant="plain"
+						className="w-full max-w-md"
+						items={suggestions}
+						getKey={(entry) => entry.href}
+						aria-labelledby={headingId}
+					>
+						{(entry) => (
+							<ListItem href={entry.href} rounded prefix={<ResultIcon option={entry} />}>
+								<ListLabel>
+									<bdi>{entry.label}</bdi>
+								</ListLabel>
+								<ListDescription>
+									<ResultSubtitle option={entry} />
+								</ListDescription>
+							</ListItem>
+						)}
+					</List>
+				</>
 			)}
 			<div>
 				<Button

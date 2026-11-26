@@ -6328,8 +6328,8 @@
 		"description": "The label of the button on the not-found page that opens the search with the words of the path."
 	},
 	"docs.notFound.suggestions": {
-		"defaultMessage": "Pages that the address can name",
-		"description": "The name of the list of pages of the docs that a path with no page most likely names. A screen reader reads it."
+		"defaultMessage": "Did you mean?",
+		"description": "The text above the list of pages of the docs that a path with no page most likely names, and the name of the list."
 	},
 	"docs.notFound.title": {
 		"defaultMessage": "Page not found",
