@@ -101,7 +101,6 @@ type IconButtonToggleProps = {
 	/**
 	 * The icon of the pressed state. Without it, the button shows the pressed
 	 * state with the held-down wash of its variant.
-	 * @defaultValue the held-down wash on `icon`
 	 */
 	pressedIcon?: IconProps['icon']
 	/**

@@ -98,8 +98,6 @@ describe('API extractor', { timeout: 60_000 }, () => {
 		})
 
 		// The default-value gate holds a name as the code of the default.
-		expect(findProp(api, 'IconButton', 'pressedIcon')?.default).toBe('icon')
-
 		expect(findProp(api, 'ColorPanel', 'swatches')?.default).toBe('DEFAULT_SWATCHES')
 
 		// A constant gives a value only when it sets a value for each breakpoint.
