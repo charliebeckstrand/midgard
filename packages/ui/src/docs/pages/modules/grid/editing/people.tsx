@@ -1,10 +1,9 @@
 import { Info } from 'lucide-react'
 import type { ReactNode } from 'react'
-import { Button } from 'ui/button'
 import { Flex } from 'ui/flex'
 import type { GridCellChange, GridColumn, GridEditCellContext } from 'ui/grid'
 import { useHasHover } from 'ui/hooks'
-import { Icon } from 'ui/icon'
+import { IconButton } from 'ui/icon-button'
 import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
 import { Tooltip, TooltipContent, TooltipTrigger } from 'ui/tooltip'
 import { type Role, roles } from '../../../../data/people.ts'
@@ -57,9 +56,7 @@ export function EditHelp({ label, children }: { label: string; children: ReactNo
 		<Flex justify="end">
 			<Tooltip placement="left" trigger={trigger}>
 				<TooltipTrigger>
-					<Button variant="bare" aria-label={label}>
-						<Icon icon={<Info />} />
-					</Button>
+					<IconButton aria-label={label} icon={<Info />} />
 				</TooltipTrigger>
 				<TooltipContent>{children}</TooltipContent>
 			</Tooltip>

@@ -8,6 +8,7 @@ export type SegmentItemProps = Pick<
 	TabProps,
 	'className' | 'children' | 'disabled' | 'lockable' | 'aria-label' | 'aria-keyshortcuts'
 > & {
+	/** The key of the item. The item is selected when it matches the `value` of the SegmentControl. */
 	value: string
 }
 

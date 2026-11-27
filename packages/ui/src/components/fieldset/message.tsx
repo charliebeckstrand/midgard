@@ -25,6 +25,7 @@ export type MessageProps = {
 	 */
 	severity?: MessageSeverity
 	className?: string
+	/** The name of a field of the enclosing `Form`. The message then shows the errors of that field. */
 	name?: string
 	/**
 	 * Renders every error of a form-bound field as a list, when it has more than one. Defaults to the first error only.

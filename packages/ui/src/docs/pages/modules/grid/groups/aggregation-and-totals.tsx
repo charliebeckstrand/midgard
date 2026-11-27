@@ -4,7 +4,7 @@ import { sales, salesColumns } from './data.tsx'
 export default function AggregationAndTotals() {
 	return (
 		<Grid
-			tableProps={{ 'aria-label': 'Aggregation and totals' }}
+			tableProps={{ 'aria-label': 'Sales' }}
 			columns={salesColumns}
 			rows={sales}
 			getKey={(row) => row.id}

@@ -5,7 +5,9 @@ export default function CurrencyAndLocale() {
 	return (
 		<Field>
 			<Label>Invoice total</Label>
-			<CurrencyInput currency="EUR" locale="de-DE" defaultValue={2499} />
+			<div lang="de-DE">
+				<CurrencyInput currency="EUR" locale="de-DE" defaultValue={2499} />
+			</div>
 		</Field>
 	)
 }

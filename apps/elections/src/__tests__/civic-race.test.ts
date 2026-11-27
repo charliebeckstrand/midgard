@@ -18,6 +18,34 @@ import in02 from './fixtures/in-02.json'
 import mnSenate from './fixtures/mn-senate.json'
 import senate from './fixtures/senate.json'
 
+/**
+ * A capture with the candidates of the race and of each region in reverse
+ * order. Each capture lists its candidates by votes, and its parties by seats,
+ * already. Thus only this copy shows that the reader sorts them.
+ */
+function makeReversed(capture: {
+	candidates: readonly unknown[]
+	region_results: Record<string, { candidates: readonly unknown[] }>
+}) {
+	return {
+		...capture,
+		candidates: [...capture.candidates].reverse(),
+		region_results: Object.fromEntries(
+			Object.entries(capture.region_results).map(([key, region]) => [
+				key,
+				{ ...region, candidates: [...region.candidates].reverse() },
+			]),
+		),
+	}
+}
+
+/** The votes of each list of candidates, beside the same votes most first. A tie keeps any order. */
+function readVoteOrder(lists: readonly { candidates: readonly { votes: number }[] }[]) {
+	const votes = lists.map((list) => list.candidates.map((candidate) => candidate.votes))
+
+	return { votes, sorted: votes.map((list) => [...list].sort((a, b) => b - a)) }
+}
+
 describe('readRace', () => {
 	it('reads a race, its candidates most votes first, and its counties by FIPS', () => {
 		const race = readRace(87087, gaSenate, '13', atlasCountyNames)
@@ -41,6 +69,19 @@ describe('readRace', () => {
 		expect(race.counties.every((county) => /^13\d{3}$/.test(county.fips))).toBe(true)
 
 		expect(race.counties.find((county) => county.name === 'Fulton')?.fips).toBe('13121')
+	})
+
+	it('sorts the candidates of the race and of each county most votes first, in any order that civicAPI sends', () => {
+		const race = readRace(87087, makeReversed(gaSenate), '13', atlasCountyNames)
+
+		expect(race.candidates.map((candidate) => candidate.name)).toEqual([
+			'Jon Ossoff',
+			'Mike Collins',
+		])
+
+		const { votes, sorted } = readVoteOrder(race.counties)
+
+		expect(votes).toEqual(sorted)
 	})
 
 	it('writes the times of a race in the zone of its state, with the name of the zone', () => {
@@ -235,6 +276,16 @@ describe('readNationalRace', () => {
 		expect(race.regions).toHaveLength(35)
 
 		expect(race.regions.find((region) => region.key === 'ga')?.raceId).toBe(87087)
+	})
+
+	it('sorts the parties most seats first and the candidates of each state most votes first, in any order that civicAPI sends', () => {
+		const race = readNationalRace(87528, makeReversed(senate))
+
+		expect(race.parties.map((party) => party.party)).toEqual(['Democratic', 'Republican'])
+
+		const { votes, sorted } = readVoteOrder(race.regions)
+
+		expect(votes).toEqual(sorted)
 	})
 
 	it('reads the race of each district, keyed by state and district', () => {

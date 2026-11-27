@@ -32,6 +32,7 @@
  * meets one drops.
  */
 
+import { getOrCompute } from '../../../../utilities/get-or-compute'
 import { LABEL_GAP, LABEL_ROOM, MARKER_REACH, TICK_CHAR_WIDTH } from '../chart-constants'
 import { type ChartOrientation, type PlotRect, type Vec, valueRule } from '../chart-orientation'
 import type { ValueHeadroom } from '../chart-scale'
@@ -1026,19 +1027,10 @@ export function referenceLabels(
 	// One column for each label anchor and reach, built on its first use.
 	const columns = new Map<string, DataColumn>()
 
-	const column = (box: LabelBox, reach: number) => {
-		const key = `${box.x0} ${box.x1} ${reach}`
-
-		let found = columns.get(key)
-
-		if (!found) {
-			found = dataColumn(box.x0, box.x1, reach, markers, lines)
-
-			columns.set(key, found)
-		}
-
-		return found
-	}
+	const column = (box: LabelBox, reach: number) =>
+		getOrCompute(columns, `${box.x0} ${box.x1} ${reach}`, () =>
+			dataColumn(box.x0, box.x1, reach, markers, lines),
+		)
 
 	const drawnRules = rules.map((rule) =>
 		rule.at === null ? null : ruleBox(rule.at, rule.orientation ?? orientation, plot),

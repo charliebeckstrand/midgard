@@ -119,7 +119,7 @@ export type WysiwygProps<R extends MarkdownRange = MarkdownRange> = {
 	 */
 	separated?: boolean
 	/**
-	 * Enter calls it, and Shift+Enter then does what Enter does without it, so a
+	 * Fires when the reader presses Enter. Shift+Enter then does what Enter does without it, so a
 	 * Markdown shortcut such as `- ` works on the new line. Without it, Enter
 	 * starts a new block, continues a list, or adds a line to a code block, and
 	 * Shift+Enter breaks the line. Enter after a fence at the start of a block,
@@ -128,7 +128,7 @@ export type WysiwygProps<R extends MarkdownRange = MarkdownRange> = {
 	 * on the last line of the last code block adds a paragraph after it.
 	 */
 	onEnter?: () => void
-	/** Runs first on each key in the field. A handler that cancels the key stops the editor. */
+	/** Fires on each key in the field, before the editor. A handler that cancels the key stops the editor. */
 	onKeyDown?: (event: KeyboardEvent) => void
 	/**
 	 * Fires with the text block that holds the caret ({@link WysiwygBlock}) when

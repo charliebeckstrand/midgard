@@ -102,7 +102,7 @@ export type ScatterChartProps<T = never> = AccessibleName &
 		series: ScatterChartSeries<T>[]
 		/**
 		 * Fires when a click lands on a point, with the point's series index, the
-		 * index of its row in `data`, and the {@link ChartPress} that picked it. A
+		 * index of its row in `data`, and the {@link ChartPress} that selected it. A
 		 * click within a few pixels of a disc lands on it.
 		 *
 		 * The cross-filter hook the cartesian charts' `onCategoryClick` is, in the

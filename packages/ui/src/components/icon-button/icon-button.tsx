@@ -36,6 +36,7 @@ type OwnedAttributes =
  */
 type IconButtonName =
 	| {
+			/** The accessible name. Give it or `aria-labelledby`. */
 			'aria-label': string
 			/**
 			 * A tooltip on hover and focus. `true` shows the `aria-label`, so the
@@ -46,6 +47,7 @@ type IconButtonName =
 			tooltip?: ReactNode
 	  }
 	| {
+			/** The ids of the elements whose text names the button. Give it or `aria-label`. */
 			'aria-labelledby': string
 			/** Tooltip content. A name from `aria-labelledby` has no text to show, so `true` is not available. @defaultValue no tooltip */
 			tooltip?: Exclude<ReactNode, boolean>
@@ -84,6 +86,7 @@ type IconButtonOwnProps = {
 	 * @defaultValue 'top'
 	 */
 	tooltipPlacement?: FloatingPlacement
+	/** The `data-slot` anchor of the button. A wrapper sets it to anchor the button as its own part. */
 	'data-slot'?: string
 	className?: string
 }

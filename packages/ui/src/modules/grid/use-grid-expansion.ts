@@ -4,11 +4,9 @@ import { useCallback, useMemo } from 'react'
 import { useControllableBinding } from '../../hooks/use-controllable'
 import { useMountsEveryPanel } from '../../primitives/mount/use-mount'
 import { toggleItem } from '../../utilities/toggle-item'
+import { EMPTY_SET } from './engine/grid-constants'
 import { resolveDetailExpansion } from './engine/grid-group/resolve'
 import type { GridExpandable } from './grid-data-types'
-
-/** Stable empty expansion default; read-only, replaced wholesale on change. @internal */
-const EMPTY_EXPANSION: Set<string | number> = new Set()
 
 /** Stable default predicate for grids that don't restrict which rows expand. @internal */
 const ALWAYS_EXPANDABLE = () => true
@@ -33,7 +31,7 @@ export function useGridExpansion<T>(
 	idScope: string,
 	paginated: boolean,
 ) {
-	const [expanded, setExpanded] = useControllableBinding(config, EMPTY_EXPANSION)
+	const [expanded, setExpanded] = useControllableBinding(config, EMPTY_SET)
 
 	// The functional-updater form keeps the toggle referentially stable across
 	// expansion edits, so the memoized rows don't churn when a panel opens.

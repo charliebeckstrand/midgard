@@ -35,7 +35,6 @@ import {
 	screen,
 	setupUser,
 	stubMatchMedia,
-	userEvent,
 	waitFor,
 } from '../helpers'
 import { captureAppended } from '../helpers/capture-appended'
@@ -783,7 +782,7 @@ describe('PdfViewer', () => {
 
 		expect(rail.className).not.toContain('transition-[margin]')
 
-		await userEvent.click(screen.getByLabelText('Hide thumbnails'))
+		await setupUser().click(screen.getByLabelText('Hide thumbnails'))
 
 		expect(rail.className).toContain('transition-[margin]')
 	})

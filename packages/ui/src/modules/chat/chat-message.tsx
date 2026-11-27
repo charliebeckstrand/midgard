@@ -189,8 +189,8 @@ export type ChatMessageProps = ChatMessageVariants &
 		 */
 		revised?: boolean
 		/**
-		 * Answers an `action` block of the message: it fires with the id of the
-		 * block and the result that the reader submitted, as the `submitAction` of
+		 * Fires when the reader submits an `action` block of the message, with the
+		 * id of the block and the result, as the `submitAction` of
 		 * `useChatSend` takes them after the id of the message. Without it, each
 		 * action of the message draws read-only. {@link ChatTranscript} binds it
 		 * to the id of each message.
@@ -233,7 +233,7 @@ export type ChatMessageProps = ChatMessageVariants &
 		 */
 		branch?: ChatBranch
 		/**
-		 * Fires with the id of the branch that the reader picks in the switcher.
+		 * Fires with the id of the branch that the reader selects in the switcher.
 		 * Without it, the switcher shows its position and its buttons are off.
 		 */
 		onBranchChange?: (id: string) => void

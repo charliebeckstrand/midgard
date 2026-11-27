@@ -179,7 +179,7 @@ export type ChatPromptProps = {
 	/**
 	 * Shows the formatting of the draft in the field, in place of its Markdown
 	 * syntax, with a formatting toolbar above the field. `true` shows each
-	 * action but `heading`, and `{ actions }` picks them. The value stays a
+	 * action but `heading`, and `{ actions }` selects them. The value stays a
 	 * Markdown string.
 	 *
 	 * @remarks The field is a {@link Wysiwyg}. Enter sends, and Shift+Enter
@@ -223,7 +223,7 @@ export type ChatPromptProps = {
 	/** Accepted attachment types (e.g. `".pdf,.csv"`); forwarded to the file picker. */
 	accept?: string
 	/**
-	 * Picked attachments to surface as chips below the field. Each chip gains a
+	 * Selected attachments to surface as chips below the field. Each chip gains a
 	 * remove button when {@link ChatPromptProps.onRemoveAttachment} is provided.
 	 */
 	attachments?: readonly File[]

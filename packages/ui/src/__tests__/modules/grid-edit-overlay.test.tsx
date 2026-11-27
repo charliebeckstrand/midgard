@@ -9,6 +9,7 @@ import {
 	type GridColumn,
 	type GridEditableConfig,
 } from '../../modules/grid'
+import { NO_HOVER_QUERY, PHONE_QUERY } from '../../utilities/media-query'
 import {
 	bySlot,
 	deferred,
@@ -42,7 +43,7 @@ function renderPhoneGrid(
 	editable: Partial<GridEditableConfig> = {},
 	gridColumns: GridColumn<Row>[] = columns,
 ) {
-	stubMatchMedia((query) => query.startsWith('(hover: none)'))
+	stubMatchMedia((query) => query === NO_HOVER_QUERY || query === PHONE_QUERY)
 
 	const user = setupUser()
 
@@ -298,7 +299,7 @@ describe('Grid editing on a phone, with a save that the consumer declines', () =
 
 	/** A cell-scoped grid on a phone whose `cell` the harness controls. */
 	function renderCellGrid(accept: (next: GridCellRef | null) => boolean) {
-		stubMatchMedia((query) => query.startsWith('(hover: none)'))
+		stubMatchMedia((query) => query === NO_HOVER_QUERY || query === PHONE_QUERY)
 
 		const user = setupUser()
 

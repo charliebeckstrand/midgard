@@ -1,5 +1,6 @@
 import { act, fireEvent, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
+import { REDUCED_MOTION_QUERY } from '../../utilities/media-query'
 import { renderUI, stubMatchMedia } from '../helpers'
 import { keyboardSensorAttached } from '../helpers/dnd-kit'
 import { lift, SortableHarness } from '../helpers/sortable-harness'
@@ -11,7 +12,7 @@ import { lift, SortableHarness } from '../helpers/sortable-harness'
  */
 describe('useSortableItem under reduced motion', () => {
 	it('gives the displaced items no transition', async () => {
-		stubMatchMedia((query) => query === '(prefers-reduced-motion: reduce)')
+		stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
 
 		renderUI(<SortableHarness ids={['a', 'b', 'c']} />)
 

@@ -26,7 +26,7 @@ export const GRID_ROLE = '[role="grid"], [role="treegrid"]'
  */
 export const NO_ROWS: never[] = []
 
-/** Stable empty-set default for omitted `hidden`/`defaultHidden`. Read-only; toggles copy it. @internal */
+/** Stable empty key set, the default of a key-set prop that is not given. Read-only; toggles copy it. @internal */
 export const EMPTY_SET: Set<string | number> = new Set()
 
 /** Rows per page when {@link GridPagination} omits a `defaultValue`/`value` page size. @internal */

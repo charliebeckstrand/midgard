@@ -30,6 +30,7 @@ export type ButtonBaseProps = ButtonVariants & {
 	prefix?: ReactNode
 	/** Content after the label. */
 	suffix?: ReactNode
+	/** The `data-slot` anchor of the button. A wrapper sets it to anchor the button as its own part. */
 	'data-slot'?: string
 	className?: string
 }

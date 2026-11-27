@@ -26,7 +26,7 @@ export default function ContextMenuItems() {
 	return (
 		<Stack gap="md">
 			<Grid
-				tableProps={{ 'aria-label': 'Context menu items' }}
+				tableProps={{ 'aria-label': 'People' }}
 				columns={columns}
 				rows={people}
 				getKey={(row) => row.id}

@@ -87,14 +87,14 @@ const KNOWN: readonly { finding: string; paths: readonly string[]; reason: strin
 		reason: 'The copy button of ColorHexInput is 34 px wide, against its input.',
 	},
 	{
-		finding: 'crowded textarea-actions/button',
-		paths: ['/textarea'],
-		reason: 'An action of a Textarea is 38 px wide, against its text.',
-	},
-	{
 		finding: 'crowded textarea-actions/icon-button',
-		paths: ['/modules/chat/conversation', '/modules/chat/prompt', '/modules/chat/scope'],
-		reason: 'An icon button of a ChatPrompt is 38 px wide, against its text.',
+		paths: [
+			'/modules/chat/conversation',
+			'/modules/chat/prompt',
+			'/modules/chat/scope',
+			'/textarea',
+		],
+		reason: 'An icon button of a ChatPrompt or a Textarea is 38 px wide, against its text.',
 	},
 	{
 		finding: 'overlap control-frame/chat-prompt | textarea-actions/button',
@@ -107,7 +107,7 @@ const KNOWN: readonly { finding: string; paths: readonly string[]; reason: strin
 		reason: 'The hit area of the send button grows into the text of the prompt.',
 	},
 	{
-		finding: 'overlap control-frame/textarea | textarea-actions/button',
+		finding: 'overlap control-frame/textarea | textarea-actions/icon-button',
 		paths: ['/textarea'],
 		reason: 'The hit area of an action grows into the text of the Textarea.',
 	},
@@ -147,7 +147,7 @@ const KNOWN: readonly { finding: string; paths: readonly string[]; reason: strin
 		reason: 'The hit area of the reveal button grows into the input.',
 	},
 	{
-		finding: 'overlap control-frame/input | flex/button',
+		finding: 'overlap control-frame/input | flex/icon-button',
 		paths: ['/fieldset'],
 		reason: 'The hit area of the info button of the example grows into the input below it.',
 	},
@@ -255,23 +255,18 @@ const KNOWN: readonly { finding: string; paths: readonly string[]; reason: strin
 	// Toolbars.
 	{
 		finding: 'crowded toolbar/button',
-		paths: ['/modules/grid/toolbar', '/toolbar'],
+		paths: ['/modules/grid/toolbar'],
 		reason: 'A toolbar button is 42 × 42 px, and the buttons touch.',
 	},
 	{
 		finding: 'crowded toolbar/icon-button',
-		paths: ['/icon-button', '/pdf-viewer'],
+		paths: ['/icon-button', '/pdf-viewer', '/toolbar'],
 		reason:
 			'A bare icon button of a toolbar is 34 × 34 px, and a plain one is 42 × 42 px. The buttons touch.',
 	},
 	{
-		finding: 'crowded toolbar-group/button',
-		paths: ['/toolbar'],
-		reason: 'A button of a toolbar group is 41 × 42 px, and the buttons touch.',
-	},
-	{
 		finding: 'crowded toolbar-group/icon-button',
-		paths: ['/pdf-viewer'],
+		paths: ['/pdf-viewer', '/toolbar'],
 		reason: 'An icon button of a toolbar group is 41 × 42 px, and the buttons touch.',
 	},
 	{
@@ -296,8 +291,13 @@ const KNOWN: readonly { finding: string; paths: readonly string[]; reason: strin
 	},
 	{
 		finding: 'crowded menu/button',
-		paths: ['/modules/grid/toolbar', '/sidebar'],
-		reason: 'A menu button is 42 × 42 px, beside a toolbar button or a sidebar row.',
+		paths: ['/modules/grid/toolbar'],
+		reason: 'A menu button is 42 × 42 px, beside a toolbar button.',
+	},
+	{
+		finding: 'crowded menu/icon-button',
+		paths: ['/sidebar'],
+		reason: 'The menu button of a sidebar row is 26 × 28 px, beside the row.',
 	},
 	{
 		finding: 'crowded control-frame/listbox-button',
@@ -321,7 +321,7 @@ const KNOWN: readonly { finding: string; paths: readonly string[]; reason: strin
 		reason: 'A row of Sidebar is 42 px tall, and the rows touch.',
 	},
 	{
-		finding: 'crowded flex/button',
+		finding: 'crowded flex/icon-button',
 		paths: ['/sidebar'],
 		reason: 'The new project button of the Sidebar example is 34 px tall, against a row.',
 	},
@@ -366,7 +366,7 @@ const KNOWN: readonly { finding: string; paths: readonly string[]; reason: strin
 		reason: 'The hit area of the add button of the new row grows into the editor beside it.',
 	},
 	{
-		finding: 'overlap flex/button | flex/button',
+		finding: 'overlap flex/icon-button | flex/icon-button',
 		paths: ['/modules/grid/editing', '/providers/density'],
 		reason: 'The hit areas of the edit and delete buttons of a row overlap.',
 	},

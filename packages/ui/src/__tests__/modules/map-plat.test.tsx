@@ -3,6 +3,7 @@ import { SWEEP_SETTLE } from '../../modules/chart/engine/use-chart-sweep'
 import { MapPlat, MapPoints } from '../../modules/map'
 import { ALBERS_USA_ASPECT, REGION_STROKE_WIDTH } from '../../modules/map/engine/map-constants'
 import { REGION_FADE } from '../../modules/map/engine/map-motion'
+import { REDUCED_MOTION_QUERY } from '../../utilities/media-query'
 import {
 	act,
 	allBySlot,
@@ -712,7 +713,7 @@ describe('MapPlat', () => {
 		// `motion-reduce` drops the transition, so an animated plat has no wash to
 		// protect either. The preference is read live, so a session that turns it on
 		// mid-flight takes it on the next toggle.
-		stubMatchMedia((query) => query === '(prefers-reduced-motion: reduce)')
+		stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
 
 		const { container } = renderUI(categoricalPlat({ animate: true }))
 

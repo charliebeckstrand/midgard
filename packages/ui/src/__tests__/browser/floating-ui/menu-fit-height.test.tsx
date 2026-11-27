@@ -1,7 +1,8 @@
+import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../../components/button'
 import { Menu, MenuContent, MenuItem, MenuSub, MenuTrigger } from '../../../components/menu'
-import { frames, getSlot, renderUI, screen, userEvent, waitFor } from '../../helpers'
+import { frames, getSlot, renderUI, screen, waitFor } from '../../helpers'
 import { fadedEdges } from '../../helpers/scroll-fade'
 
 /** Labels for more rows than any test viewport holds. */

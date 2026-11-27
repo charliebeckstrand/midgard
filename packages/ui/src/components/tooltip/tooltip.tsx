@@ -56,8 +56,7 @@ export type TooltipProps = {
 	 */
 	interactive?: boolean
 	/**
-	 * Suppresses the tooltip and closes any open instance. The house polarity:
-	 * every other surface spells suppression `disabled`.
+	 * Suppresses the tooltip and closes any open instance.
 	 * @defaultValue false
 	 */
 	disabled?: boolean

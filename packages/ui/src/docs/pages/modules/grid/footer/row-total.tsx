@@ -4,7 +4,7 @@ import { columns, people } from '../data.tsx'
 export default function RowTotal() {
 	return (
 		<Grid
-			tableProps={{ 'aria-label': 'Row total' }}
+			tableProps={{ 'aria-label': 'People' }}
 			columns={columns}
 			rows={people}
 			getKey={(row) => row.id}

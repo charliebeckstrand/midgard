@@ -5,7 +5,7 @@ import {
 	DescriptionList,
 	DescriptionTerm,
 } from '../../../components/description-list'
-import { DensityProvider } from '../../../providers/density'
+import { type DensityLevel, DensityProvider, densityLevels } from '../../../providers/density'
 import type { Orientation } from '../../../types/orientation'
 import { getSlot, renderUI } from '../../helpers'
 
@@ -17,9 +17,9 @@ import { getSlot, renderUI } from '../../helpers'
  * to its details and a bottom padding under its last details.
  */
 
-type Density = 'compact' | 'snug' | 'loose'
+const levels = densityLevels.map(({ value }) => value)
 
-function layout(orientation: Orientation | undefined, density: Density) {
+function layout(orientation: Orientation | undefined, density: DensityLevel) {
 	const list = getSlot(
 		renderUI(
 			<DensityProvider density={density}>
@@ -52,12 +52,10 @@ function layout(orientation: Orientation | undefined, density: Density) {
 	return { height: box.height, cells }
 }
 
-const DENSITIES = ['compact', 'snug', 'loose'] as const
-
 describe('DescriptionList default orientation at a phone width', () => {
 	beforeAll(() => page.viewport(390, 844))
 
-	it.each(DENSITIES)('is the vertical layout at the %s step', (density) => {
+	it.each(levels)('is the vertical layout at the %s step', (density) => {
 		expect(layout(undefined, density)).toEqual(layout('vertical', density))
 	})
 })
@@ -65,11 +63,11 @@ describe('DescriptionList default orientation at a phone width', () => {
 describe('DescriptionList default orientation at `sm` and up', () => {
 	beforeAll(() => page.viewport(1024, 768))
 
-	it.each(DENSITIES)('is the horizontal layout at the %s step', (density) => {
+	it.each(levels)('is the horizontal layout at the %s step', (density) => {
 		expect(layout(undefined, density)).toEqual(layout('horizontal', density))
 	})
 
-	it.each(DENSITIES)('puts each details beside its term at the %s step', (density) => {
+	it.each(levels)('puts each details beside its term at the %s step', (density) => {
 		const { cells } = layout('horizontal', density)
 
 		const terms = cells.filter((_, index) => index % 2 === 0).map(({ top }) => top)

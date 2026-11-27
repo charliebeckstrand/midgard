@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react'
 import states from 'us-atlas/states-10m.json'
 import { describe, expect, it } from 'vitest'
-import { MapPlat, MapPoint, MapSkeleton, type MapTopology } from '../../../modules/map'
+import { MapPlat, MapPoint, MapSkeleton } from '../../../modules/map'
 import {
 	MAP_FIT_INSET,
 	MARK_SELECTED_HALO,
@@ -115,11 +115,7 @@ describe('map fit inset (real browser)', () => {
 		if (outline === null) throw new Error('expected the outline')
 
 		const plat = parseServerMarkup(
-			<MapPlat
-				aria-label="States"
-				geography={states as unknown as MapTopology}
-				projection="albers-usa"
-			/>,
+			<MapPlat aria-label="States" geography={states} projection="albers-usa" />,
 			width,
 		)
 

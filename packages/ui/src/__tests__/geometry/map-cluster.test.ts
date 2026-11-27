@@ -1,7 +1,6 @@
 // @vitest-environment node
 import states from 'us-atlas/states-10m.json'
 import { describe, expect, it } from 'vitest'
-import type { MapTopology } from '../../modules/map'
 import {
 	type MapDotMark,
 	markTargets,
@@ -237,7 +236,7 @@ describe('clusterAnchor', () => {
 		// width. Their spherical centroid lies in the Pacific off Mexico, which the
 		// composite does not draw. A group anchored there has no keyboard stop and
 		// leaves the dot pool.
-		const features = rewindFeatures(geographyFeatures(states as unknown as MapTopology))
+		const features = rewindFeatures(geographyFeatures(states))
 
 		const projection = fitProjection('albers-usa', features, 320, 188)
 

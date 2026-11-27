@@ -1,7 +1,7 @@
 import { screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import { useLocale } from 'ui/providers/locale'
 import { describe, expect, it } from 'vitest'
+import { setupUser } from '../../__tests__/helpers/setup-user.ts'
 import { renderShell } from './helpers/render-shell.tsx'
 
 // A press on Settings loads the settings dialog of ui
@@ -35,7 +35,7 @@ describe('docs app shell', () => {
 		renderProbe()
 
 		// The navbar and the header both hold the actions. The first button opens the dialog.
-		await userEvent.click(screen.getAllByRole('button', { name: 'Settings' })[0] as HTMLElement)
+		await setupUser().click(screen.getAllByRole('button', { name: 'Settings' })[0] as HTMLElement)
 
 		await screen.findByRole('dialog', { name: 'Settings' })
 
