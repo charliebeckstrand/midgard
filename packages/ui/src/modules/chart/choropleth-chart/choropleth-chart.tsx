@@ -7,6 +7,7 @@ import { cn } from '../../../core/cn'
 import { useLocale } from '../../../providers/locale/context'
 import { k } from '../../../recipes/kata/chart'
 import type { AccessibleName } from '../../../types/accessible-name'
+import type { Binning } from '../../../utilities/color-scale'
 import { readoutFormat } from '../../../utilities/format-number'
 import { once } from '../../../utilities/once'
 import { parseNumeric } from '../../../utilities/parse-numeric'
@@ -63,7 +64,7 @@ export type ChoroplethChartSeries<T> = {
 	 * stop count for a finer gradient.
 	 * @defaultValue 'linear'
 	 */
-	binning?: 'linear' | 'quantile'
+	binning?: Binning
 }
 
 /**

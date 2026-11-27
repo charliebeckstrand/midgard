@@ -43,7 +43,7 @@ export function toPinOverrides(state: GridPinningState | undefined): PinOverride
  *
  * @internal
  */
-export function normalizeFreeze(flag: boolean | 'left' | 'right' | undefined): PinSide | undefined {
+export function normalizeFreeze(flag: GridColumn<unknown>['pinned']): PinSide | undefined {
 	if (flag === 'right') return 'right'
 
 	return flag ? 'left' : undefined

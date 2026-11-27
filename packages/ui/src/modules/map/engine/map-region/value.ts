@@ -9,7 +9,7 @@
  * the heatmap share one scale.
  */
 
-import { resolveBinScale, valueExtent } from '../../../../utilities/color-scale'
+import { type Binning, resolveBinScale, valueExtent } from '../../../../utilities/color-scale'
 import { fractionFormat } from '../../../../utilities/format-number'
 import { parseNumeric } from '../../../../utilities/parse-numeric'
 import type { DataKey } from '../types'
@@ -49,7 +49,7 @@ export type ValueScaleOptions = {
 	 * for skewed data, where equal-interval would pile most rows into the lowest
 	 * bucket.
 	 */
-	binning?: 'linear' | 'quantile'
+	binning?: Binning
 }
 
 /**

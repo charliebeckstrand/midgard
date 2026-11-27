@@ -6,6 +6,7 @@
  * have one definition.
  */
 
+import type { Binning } from '../../../../utilities/color-scale'
 import { isRangeLegend, type MapLegendInput, type MapRangeLegendInput } from '../map-legend/plan'
 import type { DataKey, MapCategory } from '../types'
 
@@ -109,7 +110,7 @@ export type MapNumericData<T> = MapRegionRows<T> & {
 	 * breaks fall.
 	 * @defaultValue 'linear'
 	 */
-	binning?: 'linear' | 'quantile'
+	binning?: Binning
 	/**
 	 * Fixed `[min, max]` for the ramp; derived from the data extent when omitted.
 	 * It applies to `'linear'` binning. Under `'quantile'` the scale spans the
