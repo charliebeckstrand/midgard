@@ -154,12 +154,27 @@ function swatchVariant(swatch: 'rect' | 'line', dashed: boolean, hollow: boolean
 }
 
 /**
+ * The ink class of a swatch whose mark keeps its hue under forced colors
+ * (`k.legend.ink`), by its variant. An outline key draws a border, which forced
+ * colors already ink, so it takes none.
+ *
+ * @internal
+ */
+export function keptInk(variant: 'solid' | 'dashed' | 'outline' | undefined): string | undefined {
+	if (variant === 'outline') return undefined
+
+	return variant === 'dashed' ? k.legend.ink.dashed : k.legend.ink.solid
+}
+
+/**
  * A legend swatch that mirrors a textured mark: the shared color key, with the
  * slot's hatch laid over a square (bar / slice) swatch. The hatch applies always
  * when the `texture` prop is on, else only under forced colors and print. There
  * the legend's color key collapses to one system color. A `line` swatch is only
  * 2px tall (too thin to hatch) and its stroke mark carries no fill, so it
- * stays color-only.
+ * stays color-only. Forced colors do not change a stroke, so a `line` swatch
+ * keeps the hue of its mark there. An `inked` swatch, the key of a mark that
+ * takes no tile, such as a disc, keeps its hue too and takes no hatch.
  *
  * @internal
  */
@@ -170,6 +185,7 @@ export function ChartSwatch({
 	color,
 	dashed = false,
 	hollow = false,
+	inked = false,
 	active,
 }: {
 	swatch: 'rect' | 'line'
@@ -181,6 +197,8 @@ export function ChartSwatch({
 	dashed?: boolean
 	/** Frame the `rect` swatch in place of a fill, mirroring a ring mark; ignored for a `line`. */
 	hollow?: boolean
+	/** The mark takes no tile and keeps its hue under forced colors, as a disc does. A `line` is always inked. */
+	inked?: boolean
 	active: boolean
 }) {
 	const id = `chart-sw-${useId()}`
@@ -190,14 +208,16 @@ export function ChartSwatch({
 	// dashed line swatch mirrors the stroke here too: the line never routes
 	// through the textured path below, so this is its only paint. A hollow
 	// swatch frames a ring mark, which has no fill to hatch.
-	if (swatch !== 'rect' || !color || hollow) {
+	if (swatch !== 'rect' || !color || hollow || inked) {
+		const variant = swatchVariant(swatch, dashed, hollow)
+
 		return (
 			<Swatch
 				shape={swatch === 'rect' ? 'square' : 'line'}
-				variant={swatchVariant(swatch, dashed, hollow)}
+				variant={variant}
 				color={swatchClass}
 				style={swatchColor ? { color: swatchColor } : undefined}
-				className={k.legend.off.key}
+				className={cn((swatch === 'line' || inked) && keptInk(variant), k.legend.off.key)}
 			/>
 		)
 	}

@@ -34,6 +34,7 @@ import {
 	type Vec,
 	valueRule,
 } from './chart-orientation'
+import { keptInk } from './chart-pattern-defs'
 import { ChartReadoutRow } from './chart-readout-card'
 import {
 	type ChartReferenceLine,
@@ -689,13 +690,14 @@ function ReferenceReadout({
 		<ChartReadoutRow
 			aria-hidden="true"
 			swatch={
-				// The same key as the legend chip of the rule, which keeps a paint under
-				// forced colors.
+				// The same key as the legend chip of the rule, which keeps the hue of the
+				// rule under forced colors.
 				<Swatch
 					data-slot="chart-reference-swatch"
 					shape="line"
 					size="sm"
 					variant={line.dashed === false ? 'solid' : 'dashed'}
+					className={keptInk(line.dashed === false ? 'solid' : 'dashed')}
 					orientation={ruleOrientation(line, orientation)}
 					color={textClass(paint) || undefined}
 					style={color ? { color } : undefined}

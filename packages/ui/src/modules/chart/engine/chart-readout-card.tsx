@@ -4,6 +4,7 @@ import { cn } from '../../../core/cn'
 import { k } from '../../../recipes/kata/chart'
 import type { Orientation } from '../../../types/orientation'
 import { hasContent } from '../../../utilities/children'
+import { keptInk } from './chart-pattern-defs'
 
 /** The shape of a mark, as a readout names it. @internal */
 export type ReadoutSwatchShape = 'rect' | 'line' | 'dot'
@@ -52,14 +53,18 @@ export function ReadoutSwatch({
 	dashed = false,
 	orientation,
 }: ReadoutSwatchProps) {
+	const variant = dashed ? 'dashed' : 'solid'
+
 	return (
 		<Swatch
 			shape={readoutSwatchShapes[shape]}
-			variant={dashed ? 'dashed' : undefined}
+			variant={variant}
 			orientation={orientation}
 			size="sm"
 			color={className}
 			style={color ? { color } : undefined}
+			// A line and a dot keep their hue under forced colors, so their key does too.
+			className={shape === 'rect' ? undefined : keptInk(variant)}
 		/>
 	)
 }

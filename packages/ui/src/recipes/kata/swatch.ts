@@ -27,6 +27,15 @@ export type { SeriesSlot } from '../kiso'
 
 const { bg } = omote
 
+/**
+ * The ink of a dashed run: the hue, or `CanvasText` under forced colors. The run
+ * is a gradient, which forced colors remove, so the run opts out of them.
+ */
+const dashedInk = [
+	'[--swatch-ink:currentColor]',
+	'forced-color-adjust-none forced-colors:[--swatch-ink:CanvasText]',
+]
+
 export const k = defineKata({
 	base: ['inline-block', 'shrink-0'],
 	// Shape sets only the corner radius; the dimensions come from the shape
@@ -89,14 +98,15 @@ export const k = defineKata({
 		// across a swatch-length line). A box or dot has no length to run, so it
 		// frames with a dashed border over the surface, mirroring `outline`. Forced
 		// colors drop a gradient, so a run opts out of them and inks in CanvasText.
-		// Without it, a dashed line disappears.
+		// Without it, a dashed line disappears. The run paints in `--swatch-ink`, so
+		// a caller can set the ink under forced colors without the text color.
 		{
 			shape: 'line',
 			variant: 'dashed',
 			orientation: 'horizontal',
 			class: [
-				'bg-[repeating-linear-gradient(to_right,currentColor_0,currentColor_3px,transparent_3px,transparent_5px)]',
-				sen.forced.text,
+				'bg-[repeating-linear-gradient(to_right,var(--swatch-ink)_0,var(--swatch-ink)_3px,transparent_3px,transparent_5px)]',
+				dashedInk,
 			],
 		},
 		{
@@ -104,8 +114,8 @@ export const k = defineKata({
 			variant: 'dashed',
 			orientation: 'vertical',
 			class: [
-				'bg-[repeating-linear-gradient(to_bottom,currentColor_0,currentColor_3px,transparent_3px,transparent_5px)]',
-				sen.forced.text,
+				'bg-[repeating-linear-gradient(to_bottom,var(--swatch-ink)_0,var(--swatch-ink)_3px,transparent_3px,transparent_5px)]',
+				dashedInk,
 			],
 		},
 		{
