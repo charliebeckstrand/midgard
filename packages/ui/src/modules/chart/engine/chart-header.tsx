@@ -94,6 +94,13 @@ function useVeilDismissed(veil: RefObject<HTMLElement | null>): boolean {
 
 		if (!node) return
 
+		// The veil can mount under a pointer or a focus that is already on the chart, such as
+		// after a resize to the spark tier. No enter event comes then, so the state starts from
+		// what the reveal classes read.
+		setHovered(node.matches(':hover'))
+
+		setFocused(node.matches(':focus-within'))
+
 		const enter = () => setHovered(true)
 
 		const leave = () => setHovered(false)

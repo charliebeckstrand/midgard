@@ -131,4 +131,36 @@ describe('chart header (real browser)', () => {
 
 		await waitFor(() => expect(getComputedStyle(veil).opacity).toBe('1'))
 	})
+
+	/*
+	 * The veil mounts when the tier turns spark, and the pointer can already rest on the chart
+	 * then, such as after a resize. Escape must still put it away.
+	 */
+	it('hides a veil that mounts under the pointer on Escape', async () => {
+		const chart = (width: number) => (
+			<BarChart
+				aria-label="Rev"
+				data={data}
+				series={[{ xKey: 'q', yKey: 'rev' }]}
+				title="Revenue"
+				width={width}
+			/>
+		)
+
+		const { container, rerender } = renderUI(chart(600))
+
+		await userEvent.hover(getSlot(container, 'chart'), { position: { x: 20, y: 20 } })
+
+		rerender(chart(150))
+
+		const veil = await waitFor(() => getSlot(container, 'chart-header'))
+
+		await waitFor(() => expect(getComputedStyle(veil).position).toBe('absolute'))
+
+		await waitFor(() => expect(getComputedStyle(veil).opacity).toBe('1'))
+
+		await userEvent.keyboard('{Escape}')
+
+		await waitFor(() => expect(getComputedStyle(veil).opacity).toBe('0'))
+	})
 })
