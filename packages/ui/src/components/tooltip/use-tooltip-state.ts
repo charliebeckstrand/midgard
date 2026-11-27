@@ -21,7 +21,6 @@ import {
 	useSyncExternalStore,
 } from 'react'
 import { useFloatingDisclosure } from '../../hooks/use-floating-disclosure'
-import type { FloatingPlacement } from '../../hooks/use-floating-panel'
 import { useReportedChange } from '../../hooks/use-reported-change'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { subscribeOverlaySignal } from '../../primitives/overlay/overlay-signal'
@@ -38,14 +37,11 @@ import {
 } from './use-tooltip-intent'
 
 /** Options for {@link useTooltipState}. @internal */
-export type TooltipStateOptions = {
-	placement?: FloatingPlacement
-	trigger?: TooltipProps['trigger']
-	delay?: number
-	interactive?: boolean
+export type TooltipStateOptions = Pick<
+	TooltipProps,
+	'placement' | 'trigger' | 'delay' | 'interactive' | 'open' | 'onOpenChange'
+> & {
 	enabled?: boolean
-	open?: boolean
-	onOpenChange?: (open: boolean) => void
 	/**
 	 * Gives the intent that the trigger recorded before this state loaded, and
 	 * removes the listeners that recorded it. The state calls it one time, when

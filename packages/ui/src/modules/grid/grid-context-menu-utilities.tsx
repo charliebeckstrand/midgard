@@ -46,6 +46,7 @@ import {
 	isLocked,
 	normalizeFreeze,
 	type PinMenuChoice,
+	type PinSide,
 	physicalSide,
 	pinMenuChoices,
 } from './engine/grid-pin/overrides'
@@ -119,7 +120,7 @@ function sortMenuItems<T>(args: {
 	column: GridColumn<T>
 	/** The active sort, to tell a direction that changes it from one that repeats it. */
 	sort: GridSortState[]
-	sortDirection: 'asc' | 'desc' | undefined
+	sortDirection: GridSortState['direction'] | undefined
 	sortColumn: SortColumn
 	clearSort: () => void
 }): GridMenuItem[] {
@@ -211,10 +212,10 @@ function autoSizeMenuItems<T>(args: {
 }
 
 /** Sets the sort to a column in a fixed direction. @internal */
-export type SortColumn = (column: string | number, direction: 'asc' | 'desc') => void
+export type SortColumn = (column: string | number, direction: GridSortState['direction']) => void
 
 /** Pins a column to an edge, or unpins it with `false`. @internal */
-export type PinColumn = (column: string | number, side: 'left' | 'right' | false) => void
+export type PinColumn = (column: string | number, side: PinSide | false) => void
 
 /**
  * The group-by toggle a `groupable` column's header menu offers. It holds the
@@ -275,7 +276,7 @@ export type ColumnMenuArgs<T> = {
 	 */
 	sort: GridSortState[]
 	/** This column's active sort direction, or `undefined` when it is not the sorted column. */
-	sortDirection: 'asc' | 'desc' | undefined
+	sortDirection: GridSortState['direction'] | undefined
 	sortColumn: SortColumn
 	/** Clears the grid's active sort. */
 	clearSort: () => void

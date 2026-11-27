@@ -13,6 +13,7 @@ import { hasContent } from '../../utilities/children'
 import { useGridResizing } from './context'
 import { columnLabel } from './engine/grid-column/label'
 import { gridMessages } from './engine/grid-messages'
+import type { GridSortState } from './engine/grid-sort/state'
 import type { PinColumn } from './grid-context-menu-utilities'
 import type { GridColumn } from './types'
 import { useGridTruncation } from './use-grid-truncation'
@@ -20,7 +21,7 @@ import { useGridTruncation } from './use-grid-truncation'
 /** Up/down arrow for the active sort column, or `null` when unsorted. @internal */
 function sortDirectionIcon(
 	sorted: boolean,
-	direction: 'asc' | 'desc' | undefined,
+	direction: GridSortState['direction'] | undefined,
 ): ReactElement | null {
 	if (!sorted) return null
 
@@ -125,7 +126,7 @@ export function GridColumnHeaderLabel({
 	titleId: string
 	column: Pick<GridColumn<unknown>, 'id' | 'title' | 'sortable'>
 	sorted: boolean
-	direction: 'asc' | 'desc' | undefined
+	direction: GridSortState['direction'] | undefined
 	sortPriority: number | undefined
 	toggleSort: (column: string | number, additive: boolean) => void
 	interactive: boolean
