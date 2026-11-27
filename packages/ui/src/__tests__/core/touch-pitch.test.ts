@@ -57,6 +57,16 @@ describe('the touch pitch utility', () => {
 		)
 	})
 
+	it('gives a host that is its own hit area the floor on a coarse pointer only', async () => {
+		const css = squeeze(await buildCss(['touch-pitch-row']))
+
+		expect(css).toContain(
+			'@media (pointer: coarse) { .touch-pitch-row { min-block-size: 2.75rem; } }',
+		)
+
+		expect(css.match(/\.touch-pitch-row \{/g)).toHaveLength(1)
+	})
+
 	it('takes the coarse floor of TouchTarget', () => {
 		const source = readFileSync(`${uiRoot}/src/primitives/touch-target/touch-target.tsx`, 'utf8')
 
@@ -65,5 +75,7 @@ describe('the touch pitch utility', () => {
 
 	it('stays beside a touch action utility', () => {
 		expect(cn('touch-none', 'touch-pitch')).toBe('touch-none touch-pitch')
+
+		expect(cn('touch-none', 'touch-pitch-row')).toBe('touch-none touch-pitch-row')
 	})
 })
