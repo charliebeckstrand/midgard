@@ -474,8 +474,10 @@ describe('Grid cell validation message', () => {
 describe('JsonTree focused row', () => {
 	const TYPES: readonly JsonValueType[] = ['key', 'string', 'number', 'boolean', 'null']
 
+	// A focus wash in any focus variant: `has-focus-visible:`, or the
+	// `has-[>:focus-visible]:` of `sen.focus.within.row`.
 	const washes = classNames([jsonTree().row]).filter((className) =>
-		className.includes('has-focus-visible:bg-'),
+		/focus-visible\]?:bg-/.test(className),
 	)
 
 	const MATCH = byMode(iro.match)
