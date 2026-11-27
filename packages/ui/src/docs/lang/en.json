@@ -2293,7 +2293,7 @@
 	},
 	"docs.demo.44661a2467ed": {
 		"defaultMessage": "New editor",
-		"description": "Text of a demo in the docs as title, in components/alert/color.tsx."
+		"description": "Text of a demo in the docs as title, in components/alert/color.tsx, components/banner/color.tsx."
 	},
 	"docs.demo.44db14fc3f1c": {
 		"defaultMessage": "most of them on Tuesday",
@@ -2441,7 +2441,7 @@
 	},
 	"docs.demo.49e96d7cdf58": {
 		"defaultMessage": "Amount",
-		"description": "Text of a demo in the docs as aria-label, title, in components/currency-input/disabled.tsx, components/currency-input/playground.tsx, components/table/caption-and-totals.tsx and 2 more."
+		"description": "Text of a demo in the docs as aria-label, title, in components/currency-input/disabled.tsx, components/currency-input/playground.tsx, components/table/caption-and-totals.tsx and 3 more."
 	},
 	"docs.demo.49f8e64c7347": {
 		"defaultMessage": "Fill in the blank row, then press Enter to add the person. A paste past the last row adds a person for each extra line.",
@@ -3069,7 +3069,7 @@
 	},
 	"docs.demo.6be090825c99": {
 		"defaultMessage": "Order",
-		"description": "Text of a demo in the docs, in components/table/caption-and-totals.tsx, layouts/dashboard-layout/filter-rail.tsx, layouts/sidebar-layout/app-shell.tsx and 1 more."
+		"description": "Text of a demo in the docs, in components/table/caption-and-totals.tsx, layouts/dashboard-layout/filter-rail.tsx, layouts/sidebar-layout/app-shell.tsx and 2 more."
 	},
 	"docs.demo.6c44751e6268": {
 		"defaultMessage": "Connection lost",
@@ -3249,7 +3249,7 @@
 	},
 	"docs.demo.74a883a037bc": {
 		"defaultMessage": "Settings",
-		"description": "Text of a demo in the docs as aria-label, label, in components/command-palette/commands.tsx, components/menu/title-and-description.tsx, components/nav/with-content.tsx and 6 more."
+		"description": "Text of a demo in the docs as aria-label, label, in components/command-palette/commands.tsx, components/menu/title-and-description.tsx, components/nav/with-content.tsx and 7 more."
 	},
 	"docs.demo.74aa4e7860e6": {
 		"defaultMessage": "Fix sign-in redirect",
@@ -3909,7 +3909,7 @@
 	},
 	"docs.demo.920e413c7d41": {
 		"defaultMessage": "Status",
-		"description": "Text of a demo in the docs as aria-label, label, title, in components/segment/filter.tsx, layouts/dashboard-layout/filter-rail.tsx, layouts/sidebar-layout/app-shell.tsx and 8 more."
+		"description": "Text of a demo in the docs as aria-label, label, title, in components/segment/filter.tsx, layouts/dashboard-layout/filter-rail.tsx, layouts/sidebar-layout/app-shell.tsx and 9 more."
 	},
 	"docs.demo.92340695899b": {
 		"defaultMessage": "Active",
@@ -4477,7 +4477,7 @@
 	},
 	"docs.demo.aabe76f1f4ec": {
 		"defaultMessage": "Customers",
-		"description": "Text of a demo in the docs as colorName, label, in layouts/sidebar-layout/app-shell.tsx, modules/chart/choropleth/basic.tsx, modules/map/quantile-bins.tsx and 1 more."
+		"description": "Text of a demo in the docs as colorName, label, in layouts/sidebar-layout/app-shell.tsx, layouts/sidebar-layout/with-aside.tsx, modules/chart/choropleth/basic.tsx and 2 more."
 	},
 	"docs.demo.ab3e1b9d1993": {
 		"defaultMessage": "Your profile is up to date.",
@@ -4561,7 +4561,7 @@
 	},
 	"docs.demo.ad80ed794ac0": {
 		"defaultMessage": "Invoice total",
-		"description": "Text of a demo in the docs, in components/currency-input/currency-and-locale.tsx, providers/locale/locale-provider.tsx, providers/locale/playground.tsx."
+		"description": "Text of a demo in the docs, in components/currency-input/currency-and-locale.tsx, providers/locale/playground.tsx, providers/locale/switch-locales.tsx."
 	},
 	"docs.demo.adb5102dc678": {
 		"defaultMessage": "Mammals",
@@ -4743,6 +4743,10 @@
 		"defaultMessage": "Orders ship within two business days.",
 		"description": "Text of a demo in the docs, in structure/container/playground.tsx."
 	},
+	"docs.demo.b754ae7398b4": {
+		"defaultMessage": "Pages of results",
+		"description": "Text of a demo in the docs as aria-label, in components/pagination/links.tsx."
+	},
 	"docs.demo.b78005cf4f8f": {
 		"defaultMessage": "Upload of {name}",
 		"description": "Text of a demo in the docs as aria-label, in components/file-upload/upload-progress.tsx. The argument {name} is a value from the code."
@@ -4753,7 +4757,7 @@
 	},
 	"docs.demo.b7e8acdd522e": {
 		"defaultMessage": "Orders",
-		"description": "Text of a demo in the docs as aria-label, colorName, label, title, in layouts/dashboard-layout/filter-rail.tsx, layouts/sidebar-layout/app-shell.tsx, modules/chart/heatmap/activity.tsx and 5 more."
+		"description": "Text of a demo in the docs as aria-label, colorName, label, title, in layouts/dashboard-layout/filter-rail.tsx, layouts/sidebar-layout/app-shell.tsx, layouts/sidebar-layout/with-aside.tsx and 6 more."
 	},
 	"docs.demo.b80355750958": {
 		"defaultMessage": "Invoices",
@@ -4843,6 +4847,10 @@
 		"defaultMessage": "Add a number.",
 		"description": "Text of a demo in the docs as validate, in modules/form/validation.tsx."
 	},
+	"docs.demo.bbbd3fa719ac": {
+		"defaultMessage": "Acme Store",
+		"description": "Text of a demo in the docs as aria-label, in layouts/sidebar-layout/with-aside.tsx."
+	},
 	"docs.demo.bbcd2d0444c9": {
 		"defaultMessage": "Click a state to show its counties.",
 		"description": "Text of a demo in the docs as mouseText, in modules/map/county/drill-into-counties.tsx."
@@ -4925,7 +4933,7 @@
 	},
 	"docs.demo.bf3763383aaf": {
 		"defaultMessage": "Customer",
-		"description": "Text of a demo in the docs as title, in components/table/caption-and-totals.tsx, layouts/dashboard-layout/filter-rail.tsx, layouts/sidebar-layout/app-shell.tsx and 2 more."
+		"description": "Text of a demo in the docs as title, in components/table/caption-and-totals.tsx, layouts/dashboard-layout/filter-rail.tsx, layouts/sidebar-layout/app-shell.tsx and 3 more."
 	},
 	"docs.demo.bfd402b2f6f3": {
 		"defaultMessage": "Sign in",
@@ -5121,7 +5129,7 @@
 	},
 	"docs.demo.c9157d7401d7": {
 		"defaultMessage": "Try the new editor in the settings of your workspace.",
-		"description": "Text of a demo in the docs as description, in components/alert/color.tsx."
+		"description": "Text of a demo in the docs as description, in components/alert/color.tsx, components/banner/color.tsx."
 	},
 	"docs.demo.c9722a7a962a": {
 		"defaultMessage": "Hide details",
@@ -5150,6 +5158,10 @@
 	"docs.demo.ca1d22b0751f": {
 		"defaultMessage": "Press and hold here",
 		"description": "Text of a demo in the docs as touchText, in components/context-menu/glass.tsx, components/context-menu/playground.tsx, components/context-menu/submenus.tsx and 1 more."
+	},
+	"docs.demo.ca3dc612f47e": {
+		"defaultMessage": "Locale",
+		"description": "Text of a demo in the docs as aria-label, in providers/locale/switch-locales.tsx."
 	},
 	"docs.demo.ca4067071fcf": {
 		"defaultMessage": "Selection",
@@ -5419,6 +5431,10 @@
 		"defaultMessage": "LA → CHI",
 		"description": "Text of a demo in the docs as label, in modules/map/marker/basic.tsx."
 	},
+	"docs.demo.d81bc9c63f5a": {
+		"defaultMessage": "New: IconButton",
+		"description": "Text of a demo in the docs, in components/badge/as-link.tsx."
+	},
 	"docs.demo.d82d9101a439": {
 		"defaultMessage": "Yes. How many trucks do you have, and which depots do they leave from?",
 		"description": "Text of a demo in the docs as content, in modules/chat/transcript/transcript.tsx."
@@ -5618,6 +5634,10 @@
 	"docs.demo.e0d1b68224bf": {
 		"defaultMessage": "Current",
 		"description": "Text of a demo in the docs as title, in modules/grid/sparkline/in-a-cell.tsx."
+	},
+	"docs.demo.e0e596b0fb51": {
+		"defaultMessage": "Enter a number from 1 to 12.",
+		"description": "Text of a demo in the docs, in components/number-input/validation.tsx."
 	},
 	"docs.demo.e0e7d293043c": {
 		"defaultMessage": "Latency",
@@ -6130,6 +6150,10 @@
 	"docs.demo.f8742f374431": {
 		"defaultMessage": "Right-click here",
 		"description": "Text of a demo in the docs as mouseText, in components/context-menu/glass.tsx, components/context-menu/playground.tsx, components/context-menu/submenus.tsx and 1 more."
+	},
+	"docs.demo.f88a41ed96a3": {
+		"defaultMessage": "Enter a password.",
+		"description": "Text of a demo in the docs, in components/password-input/validation.tsx."
 	},
 	"docs.demo.f89bef2f30b1": {
 		"defaultMessage": "Stat description",
@@ -9287,10 +9311,6 @@
 		"defaultMessage": "Locale",
 		"description": "The title of an example on a page of the docs. It comes from the file name locale.tsx."
 	},
-	"docs.title.locale-provider": {
-		"defaultMessage": "Locale provider",
-		"description": "The title of an example on a page of the docs. It comes from the file name locale-provider.tsx."
-	},
 	"docs.title.locked-left": {
 		"defaultMessage": "Locked left",
 		"description": "The title of an example on a page of the docs. It comes from the file name locked-left.tsx."
@@ -9859,6 +9879,10 @@
 		"defaultMessage": "Suggestions on focus",
 		"description": "The title of an example on a page of the docs. It comes from the file name suggestions-on-focus.tsx."
 	},
+	"docs.title.switch-locales": {
+		"defaultMessage": "Switch locales",
+		"description": "The title of an example on a page of the docs. It comes from the file name switch-locales.tsx."
+	},
 	"docs.title.switch-views": {
 		"defaultMessage": "Switch views",
 		"description": "The title of an example on a page of the docs. It comes from the file name switch-views.tsx."
@@ -9978,6 +10002,10 @@
 	"docs.title.with-area": {
 		"defaultMessage": "With area",
 		"description": "The title of an example on a page of the docs. It comes from the file name with-area.tsx."
+	},
+	"docs.title.with-aside": {
+		"defaultMessage": "With aside",
+		"description": "The title of an example on a page of the docs. It comes from the file name with-aside.tsx."
 	},
 	"docs.title.with-attachments": {
 		"defaultMessage": "With attachments",
