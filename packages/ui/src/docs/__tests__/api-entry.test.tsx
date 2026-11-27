@@ -36,6 +36,24 @@ describe('ApiEntry', () => {
 		expect(fallback?.parentElement?.textContent).toBe("default 'md'")
 	})
 
+	it('shows each key of an object default on a line of its own', () => {
+		const { container } = render(
+			<ApiEntry
+				component={{
+					name: 'Grid',
+					props: [{ name: 'columnManager', default: '{ toolbar: false, contextMenu: true }' }],
+					events: [],
+				}}
+			/>,
+		)
+
+		const fallback = [...container.querySelectorAll('code')].at(-1)
+
+		expect(fallback?.textContent).toBe('{\n  toolbar: false,\n  contextMenu: true,\n}')
+
+		expect(fallback?.className).toContain('whitespace-pre')
+	})
+
 	// Code and the English TSDoc are left-to-right text. On a right-to-left
 	// page with no `dir`, `<div>` shows as `</ div>`, and the period of a
 	// sentence shows at its start. jsdom has no layout, so the test reads the `dir`.
