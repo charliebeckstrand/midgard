@@ -16,6 +16,12 @@
  * the page does not use. Each subset keeps the weights and the optical sizes
  * of its family, and only the layout features that ui uses.
  *
+ * Both families are under the SIL Open Font License 1.1. The license must go
+ * with each copy of the font files, and a subset keeps the copyright notice
+ * of its font but not the license. `src/fonts/OFL.txt` thus holds the
+ * copyright notices and the license, next to the font files. A new family
+ * adds its notice to that file.
+ *
  * The script also writes `src/fonts/google-sans-flex-latin.js`, which adds the
  * face of the `latin` subset from its bytes. `AppearanceProvider` loads it
  * before the first paint (see {@link fontScript}). The stylesheet has no face
