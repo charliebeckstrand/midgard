@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { accessibleName } from '../../core/accessible-name'
+import { accessibleName, spokenText } from '../../core/accessible-name'
 import { attach } from '../helpers'
 
 // aria-labelledby resolves through ownerDocument.getElementById, so labeled
@@ -70,9 +70,53 @@ describe('accessibleName', () => {
 			'Fallback',
 		],
 		['returns an empty string when nothing provides a name', '<button></button>', ''],
+		[
+			'puts a space between the blocks of its own text',
+			'<button><div>LD-1001</div><div>Acme Freight</div></button>',
+			'LD-1001 Acme Freight',
+		],
+		[
+			'puts a space between the blocks of an aria-labelledby target',
+			'<div id="card"><p>LD-1001</p><p>Acme Freight</p></div><button aria-labelledby="card">x</button>',
+			'LD-1001 Acme Freight',
+		],
 	])('%s', (_name, html, expected) => {
 		const host = mount(html)
 
 		expect(accessibleName(host.querySelector('button'))).toBe(expected)
+	})
+})
+
+describe('spokenText', () => {
+	it.each([
+		['joins inline elements with no space', '<b>Bo</b>ld', 'Bold'],
+		[
+			'puts a space at each edge of a block element',
+			'<div>Changes saved</div><div>Your profile is up to date.</div>',
+			'Changes saved Your profile is up to date.',
+		],
+		[
+			'puts a space at each edge of an inline-block element',
+			'<span>The message is in the trash.</span><button>Undo</button>',
+			'The message is in the trash. Undo',
+		],
+		[
+			'reads the computed display, not the tag',
+			'<span style="display: block">Write the notes</span><span style="display: block">List the fixes</span>',
+			'Write the notes List the fixes',
+		],
+		[
+			'joins the children of a display: contents element as inline text',
+			'<span style="display: contents">Bo</span>ld',
+			'Bold',
+		],
+		[
+			'leaves out a hidden, aria-hidden, or display: none part',
+			'A<p hidden>B</p><p aria-hidden="true">C</p><p style="display: none">D</p><p>E</p>',
+			'A E',
+		],
+		['collapses each run of white space to one space', '<p>  Two\n\twords  </p>', 'Two words'],
+	])('%s', (_name, html, expected) => {
+		expect(spokenText(mount(html))).toBe(expected)
 	})
 })

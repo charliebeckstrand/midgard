@@ -1,6 +1,7 @@
 'use client'
 
 import { type RefObject, useEffect, useEffectEvent, useRef } from 'react'
+import { spokenText } from '../../core/accessible-name'
 import { announce } from '../../core/announcer'
 
 /** Options for {@link useAnnounceOnAppear}. @internal */
@@ -24,9 +25,9 @@ export type AnnounceOnAppearOptions = {
  * together with its text (WCAG 4.1.3). The shared announcer is in the page
  * before the text, so the screen reader speaks the change.
  *
- * `source` is the text, or a ref to the element whose trimmed text content is
- * the message. The hook reads the ref after the commit, so the message is the
- * text that the page shows.
+ * `source` is the text, or a ref to the element whose `spokenText` is the
+ * message. The hook reads the ref after the commit, so the message is the text
+ * that the page shows, with a space between its blocks.
  *
  * @internal
  */
@@ -39,9 +40,11 @@ export function useAnnounceOnAppear(
 
 	// An effect event: the message is read when `shown` changes, not when
 	// `source` changes, so the effect does not key on it.
-	const readMessage = useEffectEvent(() =>
-		typeof source === 'string' ? source : source?.current?.textContent?.trim(),
-	)
+	const readMessage = useEffectEvent(() => {
+		if (typeof source === 'string') return source
+
+		return source?.current ? spokenText(source.current) : undefined
+	})
 
 	useEffect(() => {
 		const appeared = shown && !wasShown.current
