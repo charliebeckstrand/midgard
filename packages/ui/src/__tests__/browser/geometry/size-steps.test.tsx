@@ -128,11 +128,7 @@ const options = (Option: typeof ListboxOption, Label: typeof ListboxLabel) =>
 /** A render of each component with a `size` axis. */
 const FIXTURES: { [N in SizedComponent]: (size: (typeof SIZE_AXES)[N][number]) => ReactNode } = {
 	AddressInput: (size) => (
-		<AddressInput
-			size={size as never}
-			aria-label="Address"
-			provider={{ search: async () => [], resolve: async () => null } as never}
-		/>
+		<AddressInput size={size as never} aria-label="Address" provider={async () => []} />
 	),
 	Avatar: (size) => <Avatar size={size as never} initials="CB" />,
 	AvatarGroup: (size) => (
