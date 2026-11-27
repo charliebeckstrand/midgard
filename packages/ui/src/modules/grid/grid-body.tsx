@@ -1,14 +1,6 @@
 'use client'
 
-import {
-	Fragment,
-	memo,
-	type ReactElement,
-	type ReactNode,
-	type RefObject,
-	use,
-	useMemo,
-} from 'react'
+import { Fragment, memo, type ReactElement, type ReactNode, use, useMemo } from 'react'
 import { Alert } from '../../components/alert'
 import { TableBody, TableEmpty } from '../../components/table'
 import { useIntl } from '../../primitives/intl/use-intl'
@@ -34,7 +26,6 @@ import { gridMessages } from './engine/grid-messages'
 import { ariaRowIndex, type GridTreePlace, itemAriaRowIndex } from './engine/grid-row/shell'
 import type { GridSortState } from './engine/grid-sort/state'
 import { detailCursorRows, GridCursorOrder, groupedCursorRows } from './grid-cursor-order'
-import type { ResolvedInfiniteScroll } from './grid-data-resolvers'
 import type { GridGroupBy, GridGroupHeaderRow } from './grid-data-types'
 import { GridGroupLeafRow, leafRowProps } from './grid-group-leaf-row'
 import { GridGroupRow } from './grid-group-row'
@@ -43,10 +34,9 @@ import { type GridRowsProps, renderRow } from './grid-row'
 import type { GridRowGroupPresentation } from './grid-row-group-types'
 import { GridLoadingBody } from './grid-skeleton-cells'
 import { GridTotalRow } from './grid-total-row'
-import { GridVirtualizedBody } from './grid-virtualized-body'
+import { type GridRowWindow, GridVirtualizedBody } from './grid-virtualized-body'
 import { GridVirtualizedDetailBody } from './grid-virtualized-detail-body'
 import { GridVirtualizedGroupedBody } from './grid-virtualized-grouped-body'
-import type { GridScrollRowIntoView } from './use-grid-navigation'
 
 /** Props for {@link GridBody}. @internal */
 type GridBodyProps<T> = GridRowsProps<T> & {
@@ -98,26 +88,9 @@ type GridBodyProps<T> = GridRowsProps<T> & {
 	 * also holds the manual group order the grouped body applies.
 	 */
 	rowGroupPresentation: GridRowGroupPresentation | null
-	virtualize: {
-		scrollRef: RefObject<HTMLDivElement | null>
-		/**
-		 * The row height: the consumer's `estimateSize`, else the measured row (see
-		 * `useGridRowHeight`), else a first guess until a row measures.
-		 */
-		estimateSize: number
-		overscan: number
-		scrollIntoViewRef: RefObject<GridScrollRowIntoView | null>
-		/** Infinite-scroll gates, or `null` when the windowed grid isn't infinite-scrolling. */
-		infiniteScroll: ResolvedInfiniteScroll | null
-		/** Re-fits the columns once the window's rows render, when the autosizer had none to measure. */
-		fitRenderedRows: () => void
-		/** Whether the header sticks, so the window aligns a row below it. */
-		stickyHeader: boolean
-	} | null
+	/** The window wiring, or `null` when the grid isn't windowed. */
+	virtualize: GridRowWindow | null
 }
-
-/** The window wiring of {@link GridBodyProps.virtualize}. @internal */
-type GridRowWindow = NonNullable<GridBodyProps<unknown>['virtualize']>
 
 /**
  * Gives the cursor the order of an unwindowed client-grouped body. The order

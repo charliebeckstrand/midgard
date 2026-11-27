@@ -1,6 +1,6 @@
 'use client'
 
-import { type RefObject, useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { useVirtualWindow } from '../../hooks/use-virtual-window'
 import { FIRST_WINDOW_RECT } from './engine/grid-constants'
 import { ariaRowIndex } from './engine/grid-row/shell'
@@ -10,28 +10,24 @@ import { type GridRowsProps, renderRow } from './grid-row'
 import { GridWindowBody } from './grid-window-body'
 import { useGridFitRenderedRows } from './use-grid-fit-rendered-rows'
 import { useGridInfiniteScroll } from './use-grid-infinite-scroll'
-import type { GridScrollRowIntoView } from './use-grid-navigation'
+import type { GridItemWindowOptions } from './use-grid-item-window'
 import { useGridWindowKeep } from './use-grid-window-keep'
 import { useGridWindowOffsets } from './use-grid-window-offsets'
 
-/** Props for {@link GridVirtualizedBody}. @internal */
-type GridVirtualizedBodyProps<T> = GridRowsProps<T> & {
-	scrollRef: RefObject<HTMLDivElement | null>
-	estimateSize: number
-	overscan: number
-	/** Published with a scroll-into-view fn while mounted, so the cursor can reach off-window rows. */
-	scrollIntoViewRef: RefObject<GridScrollRowIntoView | null>
+/**
+ * The window wiring that the grid gives a windowed body: the item window
+ * options, which all take, and the infinite-scroll gates, which only the flat
+ * body reads.
+ *
+ * @internal
+ */
+export type GridRowWindow = Required<GridItemWindowOptions> & {
 	/** Infinite-scroll gates driving end-detection and the trailing loading/end/error row, or `null` when off. */
 	infiniteScroll: ResolvedInfiniteScroll | null
-	/**
-	 * Re-fits the columns once this window's rows render, for the fit that had no
-	 * rows to measure (see `useGridColumnSizing`). Called from a layout effect, so
-	 * the widths land before those rows paint; a no-op once a fit has read rows.
-	 */
-	fitRenderedRows: () => void
-	/** Whether the header sticks to the top edge, so an aligned row must land below it. */
-	stickyHeader: boolean
 }
+
+/** Props for {@link GridVirtualizedBody}. @internal */
+type GridVirtualizedBodyProps<T> = GridRowsProps<T> & GridRowWindow
 
 /**
  * Windowed body for {@link Grid}: renders only rows in view (plus overscan)
