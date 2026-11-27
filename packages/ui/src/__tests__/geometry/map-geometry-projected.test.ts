@@ -33,7 +33,7 @@ import { FIXTURE_GEOJSON } from '../helpers/map-geography'
  * Hawaii route to sub-projections of their own, and each inset clips.
  */
 
-const statesTopology = states as unknown as MapTopology
+const statesTopology: MapTopology = states
 
 const stateFeatures = rewindFeatures(geographyFeatures(statesTopology))
 

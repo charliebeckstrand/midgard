@@ -43,9 +43,7 @@ function conterminous(id: unknown): boolean {
  * Prepares one `us-atlas` topology: filters it to the conterminous US and
  * decodes its GeoJSON view. The ui module joins the rows on `feature.id`.
  */
-function prepareAtlas(raw: unknown, object: string): MapAtlas {
-	const topology = raw as MapTopology
-
+function prepareAtlas(topology: MapTopology, object: string): MapAtlas {
 	const collection = topology.objects[object] as { geometries: { id?: string | number }[] }
 
 	collection.geometries = collection.geometries.filter((geometry) => conterminous(geometry.id))

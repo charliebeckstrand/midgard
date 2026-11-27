@@ -25,7 +25,7 @@ import { rewindFeatures } from '../../modules/map/engine/map-geometry/winding'
 import { canonicalFit, measuredMapFit } from '../../modules/map/engine/map-projection/fit'
 import { invertingPiece } from '../../modules/map/engine/map-projection/resolve'
 import type { MapViewFrame } from '../../modules/map/engine/map-zoom/transform'
-import type { MapProjection, MapTopology } from '../../modules/map/engine/types'
+import type { MapProjection } from '../../modules/map/engine/types'
 import { subpathCount } from '../helpers/geometry/svg-path'
 import { HALF_PIXEL } from '../helpers/geometry/tolerance'
 import { fitProjection } from '../helpers/map-fit'
@@ -51,7 +51,7 @@ const FITTED_VIEW: MapViewFrame = { width: 400, height: 200 }
  * The countries of the world. A whole-world projection draws its outline and
  * its meridians as curves round them, which the fixture squares do not reach.
  */
-const WORLD = rewindFeatures(geographyFeatures(countries as unknown as MapTopology, 'countries'))
+const WORLD = rewindFeatures(geographyFeatures(countries, 'countries'))
 
 /** Boxes below and above the canonical frame, from the smallest to the largest. */
 const WORLD_BOXES = [
