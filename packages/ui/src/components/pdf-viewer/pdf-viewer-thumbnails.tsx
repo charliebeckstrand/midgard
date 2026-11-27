@@ -7,6 +7,7 @@ import { MountHold } from '../../primitives/mount'
 import { useMountHold } from '../../primitives/mount/use-mount'
 import { k } from '../../recipes/kata/pdf-viewer'
 import { scrollWithin } from '../../utilities/scroll-within'
+import { transitionLanded } from '../../utilities/transition-landed'
 import { SheetBody, SheetHeader, SheetPanel, SheetTitle } from '../sheet'
 import { usePdfViewerContext } from './context'
 import { pageLabel, pdfViewerMessages } from './pdf-viewer-messages'
@@ -72,10 +73,12 @@ export function PdfViewerThumbnails() {
 
 	// The native event names the property. React builds a `transitioncancel` as
 	// a plain synthetic event, which has no `propertyName`.
-	const landSlide = (event: TransitionEvent<HTMLElement>) => {
-		const property = event.nativeEvent.propertyName
+	const landSlide = ({ nativeEvent }: TransitionEvent<HTMLElement>) => {
+		const property = nativeEvent.propertyName
 
-		if (property === 'margin-left' || property === 'margin-right') sidebarHold.rest()
+		if (property !== 'margin-left' && property !== 'margin-right') return
+
+		if (transitionLanded(nativeEvent)) sidebarHold.rest()
 	}
 
 	const sidebarRef = useRef<HTMLElement>(null)
@@ -140,7 +143,9 @@ export function PdfViewerThumbnails() {
 					// margin, which is the right one in a right-to-left layout. A slide
 					// that an ancestor's `display: none` interrupts sends a
 					// `transitioncancel` instead, and no slide runs when the ancestor
-					// shows again, so the cancel lands the slide too.
+					// shows again, so the cancel lands the slide too. A close during the
+					// open also cancels the open, but the close slides at once and sends
+					// its own landing, so that cancel does not rest the rail.
 					onTransitionEnd={landSlide}
 					onTransitionCancel={landSlide}
 				>

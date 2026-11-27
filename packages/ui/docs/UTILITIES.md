@@ -206,6 +206,7 @@ Import these from `utilities/overlay-layers`. They tell whether an open overlay 
 | `anchorFollowsTransforms` | Whether the browser puts an anchored box at the transformed box of its anchor. A probe reads it one time for each document. Call it only in a browser that supports anchor positioning. |
 | `inTransformedSubtree` | Whether an element or one of its ancestors in the flattened tree has a transform. Import the two from `utilities/anchor-transforms`. |
 | `forceStyleFlush` | Makes the browser compute styles and layout now, so a CSS transition has a style to start from. It is a call, not a bare `offsetHeight` read, which the React Compiler removes. |
+| `transitionLanded` | Whether a `transitionend` or a `transitioncancel` lands the transition of its property. A cancel lands only when no transition of that property still runs on the target. An ancestor's `display: none` lands it. A toggle that reverses the transition does not. Import it from `utilities/transition-landed`. |
 
 ## Keyboard navigation
 

@@ -9,6 +9,7 @@ import {
 	REDUCED_MOTION_QUERY,
 	subscribeMediaQuery,
 } from '../../utilities/media-query'
+import { transitionLanded } from '../../utilities/transition-landed'
 
 /** The reveal's animated property; a `transitionend` for anything else is not the collapse landing. @internal */
 export const REVEAL_PROPERTY = 'grid-template-rows'
@@ -84,7 +85,10 @@ function useRowReducedMotion(): boolean {
  * idempotent. A collapse that an ancestor's `display: none` interrupts sends a
  * `transitioncancel` instead. When the ancestor shows again, the track is
  * already closed, so no transition runs. The cancel is therefore a landing too,
- * or the row would stay live until its next toggle. Under `prefers-reduced-motion` the recipe drops the transition
+ * or the row would stay live until its next toggle. A collapse during an open
+ * also cancels the open, but the collapse runs at once and sends its own
+ * landing, so that cancel does not rest the row ({@link transitionLanded}).
+ * Under `prefers-reduced-motion` the recipe drops the transition
  * (`motion-reduce:transition-none`), so no event is coming. The row rests on
  * the toggle itself, which is what an instant collapse wants anyway. That is
  * read live rather than through motion's `useReducedMotion`, which samples the
@@ -150,8 +154,8 @@ export function useGridRevealHold(expanded: boolean, enter = false): GridRevealH
 
 	// The native event names the property. React builds a `transitioncancel` as
 	// a plain synthetic event, which has no `propertyName`.
-	const land = (event: TransitionEvent<HTMLElement>) => {
-		if (event.nativeEvent.propertyName === REVEAL_PROPERTY) hold.rest()
+	const land = ({ nativeEvent }: TransitionEvent<HTMLElement>) => {
+		if (nativeEvent.propertyName === REVEAL_PROPERTY && transitionLanded(nativeEvent)) hold.rest()
 	}
 
 	return { hold, open, landing: { onTransitionEnd: land, onTransitionCancel: land } }

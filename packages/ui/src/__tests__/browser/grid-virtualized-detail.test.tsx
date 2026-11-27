@@ -143,6 +143,57 @@ describe('grid virtualized master-detail body (real browser)', () => {
 		expect(closeDrift).toBeLessThanOrEqual(1)
 	})
 
+	// A close during the open cancels the open and starts the close at once. That
+	// cancel is not a landing: the body keeps the closing panel until the close
+	// sends its `transitionend`.
+	it('keeps a closing panel in the window while its close reverses the open', async () => {
+		const { scroll, body } = await renderGrid()
+
+		const [target] = rowsInView(scroll, body) as [HTMLElement]
+
+		const key = readKey(target)
+
+		const ofPanel = (event: Event) =>
+			(event as TransitionEvent).propertyName === 'grid-template-rows' &&
+			(event.target as Element).closest('tr')?.getAttribute('data-detail-row') === String(key)
+
+		const landings: string[] = []
+
+		for (const type of ['transitioncancel', 'transitionend']) {
+			body.addEventListener(type, (event) => {
+				if (ofPanel(event)) landings.push(type)
+			})
+		}
+
+		const opening = new Promise<Animation>((resolve) => {
+			body.addEventListener('transitionrun', (event) => {
+				if (!ofPanel(event)) return
+
+				const [open] = (event.target as Element).getAnimations()
+
+				if (open) resolve(open)
+			})
+		})
+
+		control.set(new Set([key]))
+
+		// Seek the open to its middle, so the close reverses a tween in flight
+		// whatever the speed of the run.
+		const open = await opening
+
+		open.currentTime = Number(open.effect?.getComputedTiming().duration) / 2
+
+		control.set(new Set())
+
+		// The body releases the panel on the landing, so its removal shows which
+		// event released it.
+		await waitFor(() => expect(body.querySelector(`tr[data-detail-row="${key}"]`)).toBeNull())
+
+		expect(landings[0]).toBe('transitioncancel')
+
+		expect(landings).toContain('transitionend')
+	})
+
 	it('opens and closes a panel above the viewport at once, with no jump', async () => {
 		const { scroll, body } = await renderGrid()
 
