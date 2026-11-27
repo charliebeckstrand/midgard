@@ -189,6 +189,20 @@ describe('JsonTree', () => {
 		expect(onExpandedChange).toHaveBeenCalledExactlyOnceWith(new Set(['root']))
 	})
 
+	it('seeds a search match into an empty set after expanded turns undefined', () => {
+		const onExpandedChange = vi.fn()
+
+		const data = { outer: { needle: 'match' } }
+
+		const { rerender } = renderUI(
+			<JsonTree data={data} expanded={new Set(['$'])} onExpandedChange={onExpandedChange} />,
+		)
+
+		rerender(<JsonTree data={data} search="needle" onExpandedChange={onExpandedChange} />)
+
+		expect(onExpandedChange).toHaveBeenCalledExactlyOnceWith(new Set(['$', '$.outer']))
+	})
+
 	it('reflects the controlled expanded set on render', () => {
 		const expanded = new Set<string>(['$', '$.nested'])
 
