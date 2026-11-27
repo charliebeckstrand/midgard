@@ -39,8 +39,9 @@ const SETTLE_LIMIT = 10_000
 const IDLE_LIMIT = 20_000
 
 /**
- * The most keys of one walk. A page with more Tab stops than this fails, so
- * that a loop of the focus cannot hold the case until its timeout.
+ * The most keys of one walk. A page with more Tab stops than this fails. A
+ * press takes about 30 ms, so 1,000 presses take about 30 s. An incomplete walk
+ * stops the walk back, so the case ends before its timeout.
  */
 const MAX_STOPS = 1_000
 
@@ -390,14 +391,18 @@ function trackLoads(tab: Page): Loads {
  * the read, the read waits for the loads to end, and reads the focus again.
  */
 async function press(tab: Page, loads: Loads, key: Key): Promise<Stop> {
+	// The count comes before the key, because the event of a request that the
+	// key starts can come before the press returns.
+	let before = loads.started()
+
 	await tab.keyboard.press(key)
 
 	for (;;) {
-		const before = loads.started()
-
 		const stop = await tab.evaluate(readStop, [...INTERACTIVE])
 
 		if (loads.started() === before) return stop
+
+		before = loads.started()
 
 		await loads.idle()
 	}
@@ -421,14 +426,20 @@ function checkStop(stop: ElementStop, key: Key): Finding[] {
 	return findings
 }
 
+/** The findings of a walk, and whether the walk came back to the first stop. */
+type Walk = { findings: Finding[]; complete: boolean }
+
 /**
  * Presses `key` from the first Tab stop until the focus is on that stop
- * again, and gives the findings of the walk.
+ * again, and gives the findings of the walk. A walk that reaches a stop a
+ * second time before the first stop is a loop of the focus, and it stops.
  */
-async function walk(tab: Page, loads: Loads, key: Key, first: number): Promise<Finding[]> {
+async function walk(tab: Page, loads: Loads, key: Key, first: number): Promise<Walk> {
 	const findings: Finding[] = []
 
 	const stops: Stop[] = []
+
+	const seen = new Set<number>()
 
 	for (let count = 0; count < MAX_STOPS; count++) {
 		const stop = await press(tab, loads, key)
@@ -454,12 +465,25 @@ async function walk(tab: Page, loads: Loads, key: Key, first: number): Promise<F
 				findings.push({ finding: 'no end', detail: `${key} never leaves the end of the page` })
 			}
 
-			return findings
+			return { findings, complete: true }
 		}
 
 		stops.push(stop)
 
-		if (!stop.body) findings.push(...checkStop(stop, key))
+		if (stop.body) continue
+
+		if (seen.has(stop.id)) {
+			findings.push({
+				finding: `loop at ${stop.stop}`,
+				detail: `${key} brings the focus back to "${stop.label}" before the end of the page`,
+			})
+
+			return { findings, complete: false }
+		}
+
+		seen.add(stop.id)
+
+		findings.push(...checkStop(stop, key))
 	}
 
 	findings.push({
@@ -467,7 +491,7 @@ async function walk(tab: Page, loads: Loads, key: Key, first: number): Promise<F
 		detail: `${MAX_STOPS} presses of ${key} do not bring the focus back to the first stop`,
 	})
 
-	return findings
+	return { findings, complete: false }
 }
 
 /**
@@ -511,7 +535,14 @@ async function readPage(route: string, context: TestContext): Promise<Finding[]>
 	// gets its checks here.
 	const findings = checkStop(start, 'Tab')
 
-	for (const key of KEYS) findings.push(...(await walk(tab, loads, key, start.id)))
+	for (const key of KEYS) {
+		const result = await walk(tab, loads, key, start.id)
+
+		findings.push(...result.findings)
+
+		// The walk back starts from the first stop, which an incomplete walk did not reach.
+		if (!result.complete) break
+	}
 
 	return findings
 }
