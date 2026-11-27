@@ -6,6 +6,7 @@ import { ariaAttr } from '../../core/aria-attr'
 import { cn } from '../../core/cn'
 import { dataAttr } from '../../core/data-attr'
 import { useControllableFlag } from '../../hooks/use-controllable'
+import { useControlledLatch } from '../../hooks/use-controlled-latch'
 import { useFormResetSync } from '../../hooks/use-form-reset-sync'
 import { useFormToggle } from '../../primitives/form/use-form-toggle'
 import { TouchTarget } from '../../primitives/touch-target'
@@ -75,8 +76,10 @@ export function Switch({
 
 	// React-control the input only when a `checked` prop or form binding drives it.
 	// Without one, rendering `checked={on}` makes the input perpetually
-	// controlled and a native `<button type="reset">` cannot revert it.
-	const controlled = resolvedChecked !== undefined
+	// controlled and a native `<button type="reset">` cannot revert it. The latch
+	// is the latch of `useControllableFlag`, so the input stays controlled with
+	// the hook after a later `undefined` (§7.3).
+	const controlled = useControlledLatch(resolvedChecked)
 
 	// A native form reset reverts the uncontrolled input without firing onChange;
 	// mirror the reverted value into the owned aria state.

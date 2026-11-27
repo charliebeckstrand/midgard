@@ -73,6 +73,16 @@ describe('Switch', () => {
 
 		expect(onChange).toHaveBeenCalled()
 	})
+
+	it('stays controlled when checked turns undefined, and reads it as off (§7.3)', () => {
+		const { container, rerender } = renderUI(<Switch checked onChange={() => {}} />)
+
+		const input = getSlot<HTMLInputElement>(container, 'switch')
+
+		rerender(<Switch checked={undefined} onChange={() => {}} />)
+
+		expect(input).toBeUnchecked()
+	})
 })
 
 describe('Switch in a Form', () => {

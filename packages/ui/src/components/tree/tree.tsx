@@ -85,8 +85,8 @@ export function Tree({
 		// focus.
 		manageTabIndex: true,
 		// A printable key moves to the next visible row whose label starts with the
-		// typed text. The row takes its name from its label alone, so the affix text
-		// does not match.
+		// typed text. The name of the row starts with its label and leaves the prefix
+		// out, so the affix text does not match.
 		typeahead: true,
 	})
 
