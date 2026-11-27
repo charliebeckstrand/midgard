@@ -159,6 +159,9 @@ export type PdfViewerSearchOptions = {
 	navigate?: boolean
 }
 
+/** The size of a page in points (1/72 in), as `PdfViewer` takes it in `pageSize`. */
+export type PdfViewerPageSize = { width: number; height: number }
+
 /** One region's box: fractions of the page, inches, or whatever `highlightUnit` names. Origin top-left. */
 export type PdfViewerHighlightRect = { x: number; y: number; width: number; height: number }
 

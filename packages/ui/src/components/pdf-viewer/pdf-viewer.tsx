@@ -22,6 +22,7 @@ import type {
 	PdfViewerMagnifierOptions,
 	PdfViewerMagnifierState,
 	PdfViewerPage,
+	PdfViewerPageSize,
 	PdfViewerSearchOptions,
 	PdfViewerTextItem,
 	PdfViewerThumbnailLayout,
@@ -116,7 +117,7 @@ export type PdfViewerProps = Omit<ComponentProps<'section'>, 'children' | 'onLoa
 	 * sets the width of the viewer.
 	 * @defaultValue `{ width: 612, height: 792 }`
 	 */
-	pageSize?: { width: number; height: number }
+	pageSize?: PdfViewerPageSize
 	/**
 	 * Regions to draw over the pages: extracted-field boxes on a scan, search hits, any
 	 * "look here" mark the consumer owns. Only the active page's are rendered.
