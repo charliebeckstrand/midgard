@@ -64,6 +64,7 @@ describe('MenuTrigger focus on open (real floating engine)', () => {
 
 			await waitFor(() => {
 				expect(document.activeElement).not.toBe(document.body)
+
 				expect(document.activeElement?.getAttribute('role')).toBe(role)
 			})
 
@@ -89,6 +90,7 @@ describe('MenuTrigger focus on open (real floating engine)', () => {
 
 		await waitFor(() => {
 			expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+
 			// Focus goes on from the trigger, not back onto it and not to the body.
 			expect(screen.getByRole('button', { name: target })).toHaveFocus()
 		})
@@ -103,6 +105,7 @@ describe('MenuTrigger focus on open (real floating engine)', () => {
 
 		await waitFor(() => {
 			expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+
 			expect(trigger).toHaveFocus()
 		})
 	})
@@ -153,7 +156,9 @@ describe('MenuContent arrow-key roving (real floating engine)', () => {
 
 		await waitFor(() => {
 			expect(onEdit).toHaveBeenCalledTimes(1)
+
 			expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+
 			expect(trigger).toHaveFocus()
 		})
 	})
@@ -171,12 +176,14 @@ describe('MenuContent arrow-key roving (real floating engine)', () => {
 
 		await waitFor(() => {
 			expect(onEdit).toHaveBeenCalledTimes(1)
+
 			expect(screen.queryByRole('menu')).not.toBeInTheDocument()
 		})
 
 		// Settle a frame in case a stray keyup click would re-toggle it.
 		await frames()
 		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+
 		expect(onEdit).toHaveBeenCalledTimes(1)
 	})
 })

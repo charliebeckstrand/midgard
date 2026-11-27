@@ -18,6 +18,7 @@ describe('GameBoardFooter', () => {
 		})
 
 		expect(screen.getByText('CPU (Hard)')).toBeInTheDocument()
+
 		// No side has won, so no label has a check.
 		expect(document.querySelector('.lucide-circle-check')).toBeNull()
 	})
@@ -48,10 +49,14 @@ describe('GameBoardFooter', () => {
 		)
 
 		expect(screen.getByText('CPU (Easy)')).toBeInTheDocument()
+
 		expect(screen.getAllByRole('img', { name: 'Winner' })).toHaveLength(1)
+
 		// The score of the winner is green, and the score of the loser is amber.
 		expect(document.querySelectorAll('.text-green-700')).toHaveLength(1)
+
 		expect(document.querySelectorAll('.text-amber-700')).toHaveLength(1)
+
 		expect(document.querySelectorAll('.lucide-circle-check')).toHaveLength(2)
 	})
 
@@ -83,6 +88,7 @@ describe('GameBoardFooter', () => {
 		)
 
 		expect(container.querySelector('.text-amber-700')).toBeTruthy()
+
 		expect(document.querySelector('.lucide-circle-check')).toBeNull()
 
 		cleanup()
@@ -122,7 +128,9 @@ describe('GameBoardFooter', () => {
 		)
 
 		expect(screen.getByText('You')).toBeInTheDocument()
+
 		expect(screen.getByText('CPU (Hard)')).toBeInTheDocument()
+
 		expect(document.querySelector('.lucide-circle-check')).toBeNull()
 	})
 })

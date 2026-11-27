@@ -65,6 +65,7 @@ describe('NumbersHeader', () => {
 		expect(fireEvent.click(within(trail).getByRole('link', { name: 'Numbers' }))).toBe(false)
 
 		expect(push).toHaveBeenCalledTimes(1)
+
 		expect(push.mock.calls[0]?.[0]).toMatch(/^\/[a-z0-9]{6}$/)
 	})
 })

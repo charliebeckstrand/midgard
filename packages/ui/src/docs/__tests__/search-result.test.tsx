@@ -33,6 +33,7 @@ describe('a row of the results', () => {
 		)
 
 		expect(screen.getByTestId('label').textContent).toBe('Grid › Sorting')
+
 		expect(screen.getByTestId('subtitle').textContent).toBe('Tab, Modules')
 	})
 
@@ -49,6 +50,7 @@ describe('a row of the results', () => {
 		)
 
 		expect(screen.getByTestId('label').textContent).toBe('<Field />')
+
 		expect(screen.getByTestId('subtitle').textContent).toBe('API reference')
 	})
 })

@@ -353,7 +353,9 @@ describe('IconButton', () => {
 		const [shown, hidden] = [icons[3], icons[4]]
 
 		expect(shown?.getAttribute('class')).toContain('rtl:-scale-x-100')
+
 		expect(hidden?.getAttribute('class')).toContain('rtl:-scale-x-25')
+
 		expect(hidden?.getAttribute('class')).not.toContain('rtl:-scale-x-100')
 	})
 

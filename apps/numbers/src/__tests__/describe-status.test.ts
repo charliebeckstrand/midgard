@@ -20,11 +20,13 @@ const full = Object.fromEntries(Array.from({ length: SLOTS }, (_, index) => [ind
 describe('describeStatus', () => {
 	it('speaks the drawn number while it waits, and nothing before a draw', () => {
 		expect(speak(makeGame({}, 500))).toBe('500')
+
 		expect(speak(makeGame({}))).toBe('')
 	})
 
 	it('speaks a bust with its score, and a win', () => {
 		expect(speak(makeGame({ 0: 300, 1: 310 }, 305))).toBe('305 has no slot. Score 2 of 20')
+
 		expect(speak(makeGame(full))).toBe('All 20 placed')
 	})
 
@@ -32,9 +34,11 @@ describe('describeStatus', () => {
 		const bust = makeGame({ 0: 300, 1: 310 }, 305)
 
 		expect(speak(bust, makeGame({ 0: 1 }))).toBe('305 has no slot. Score 2 of 20. You win, 2 to 1')
+
 		expect(speak(bust, makeGame({ 0: 1, 1: 2, 2: 3 }))).toBe(
 			'305 has no slot. Score 2 of 20. The CPU wins, 2 to 3',
 		)
+
 		expect(speak(makeGame(full), makeGame(full))).toBe('All 20 placed. A tie, 20 to 20')
 	})
 

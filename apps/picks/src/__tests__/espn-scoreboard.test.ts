@@ -84,6 +84,7 @@ describe('readGames', () => {
 		const [game] = readGames({ events: [event('in', 'home')] })
 
 		expect(game?.state).toBe('live')
+
 		expect(game?.home.winner).toBe(false)
 	})
 
@@ -97,7 +98,9 @@ describe('readGames', () => {
 		const [game] = readGames(body)
 
 		expect(game?.state).toBe('scheduled')
+
 		expect(game?.home.score).toBeNull()
+
 		expect(game?.away.score).toBeNull()
 	})
 

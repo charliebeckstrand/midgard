@@ -311,8 +311,11 @@ describe('wysiwyg markdown', () => {
 			const read = parseMarkdown(serializeMarkdown(doc))
 
 			expect(read.firstChild?.childCount).toBe(3)
+
 			expect(read.firstChild?.child(0).marks).toEqual([code])
+
 			expect(read.firstChild?.child(1).type).toBe(schema.nodes.hard_break)
+
 			expect(read.firstChild?.child(2).marks).toEqual([code])
 		})
 

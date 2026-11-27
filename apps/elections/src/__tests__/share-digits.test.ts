@@ -52,6 +52,7 @@ describe('share digits', () => {
 		const view = render(h(RaceCard, { entry, onPick: () => {} }))
 
 		expect(view.container).toHaveTextContent('49.99%')
+
 		expect(view.container).toHaveTextContent('49.89%')
 	})
 
@@ -61,6 +62,7 @@ describe('share digits', () => {
 		)
 
 		expect(view.container).toHaveTextContent('49.99%')
+
 		expect(view.container).toHaveTextContent('49.89%')
 	})
 })

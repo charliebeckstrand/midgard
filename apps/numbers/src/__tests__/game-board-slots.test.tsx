@@ -53,6 +53,7 @@ describe('GameBoardSlots', () => {
 		renderColumn(true)
 
 		expect(scrollIntoView).toHaveBeenCalledTimes(1)
+
 		expect(scrollIntoView).toHaveBeenCalledWith({ block: 'nearest' })
 	})
 
@@ -70,9 +71,11 @@ describe('GameBoardSlots', () => {
 		const empty = screen.getByRole('button', { name: 'Slot 3' })
 
 		expect(filled).toHaveProperty('disabled', true)
+
 		expect(filled.className).toContain('disabled:opacity-100')
 
 		expect(empty).toHaveProperty('disabled', true)
+
 		expect(empty.className).not.toContain('disabled:opacity-100')
 	})
 
@@ -84,6 +87,7 @@ describe('GameBoardSlots', () => {
 		const second = screen.getByRole('button', { name: 'Slot 2, 385, placement 1' })
 
 		expect(first.parentElement?.previousElementSibling?.textContent).toBe('2')
+
 		expect(second.parentElement?.previousElementSibling?.textContent).toBe('1')
 
 		// An empty slot keeps an empty cell, so each slot has the same width.

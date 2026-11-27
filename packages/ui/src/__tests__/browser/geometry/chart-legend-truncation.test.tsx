@@ -60,6 +60,7 @@ describe('chart legend panel (real browser)', () => {
 		const rightGap = panelRect.right - blockRect.right
 
 		expect(leftGap).toBeGreaterThan(1)
+
 		expect(leftGap).toBeNear(rightGap, GAP_SLACK)
 
 		// The entries still share one left edge (the block's) so their swatches line
@@ -154,6 +155,7 @@ describe('chart legend wrap row (real browser)', () => {
 		// The entry, and the ghost that measures it, stay inside the chart.
 		for (const box of [entry, ...allBySlot(container, 'chart-legend-ghost')]) {
 			expect(box.getBoundingClientRect().left).toBeGreaterThanOrEqual(bounds.left - 0.5)
+
 			expect(box.getBoundingClientRect().right).toBeLessThanOrEqual(bounds.right + 0.5)
 		}
 

@@ -36,10 +36,13 @@ describe('one graphic shade for each hue', () => {
 		const slot = readShades(zu.palette.series[hue].bg, hue)
 
 		expect(slot.light).toHaveLength(1)
+
 		expect(slot.dark).toHaveLength(1)
 
 		expect(readShades(zu.marker[hue], hue)).toEqual(slot)
+
 		expect(readShades(zu.meter[hue].fill, hue)).toEqual(slot)
+
 		expect(readShades(slider.slots.base.color[hue], hue)).toEqual(slot)
 	})
 

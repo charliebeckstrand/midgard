@@ -472,17 +472,21 @@ describe('defineKata responsive axes', () => {
 		const slots = unit({ align: { initial: 'start', md: 'end' } })
 
 		expect(slots.base).toBe('flex items-start md:items-end')
+
 		expect(slots.box).toBe('p-4 md:p-2')
+
 		expect(slots.label).toBe('truncate')
 	})
 
 	it('holds the default below the first breakpoint of a map with no initial value', () => {
 		expect(unit({ align: { lg: 'end' } }).base).toBe('flex items-start lg:items-end')
+
 		expect(unit({ align: { xl: 'end' } }).base).toBe('flex items-start xl:items-end')
 	})
 
 	it('memoizes each map by its values', () => {
 		expect(unit({ align: { sm: 'end' } })).toBe(unit({ align: { sm: 'end' } }))
+
 		expect(unit({ align: { sm: 'end' } })).not.toBe(unit({ align: { md: 'end' } }))
 	})
 
@@ -506,6 +510,7 @@ describe('defineKata responsive axes', () => {
 		const member = defineKata({ extends: group, base: 'fixed' })
 
 		expect(member({ side: { initial: 'left', md: 'right' } }).base).toBe('fixed left-0 md:right-0')
+
 		expect(member.config.responsive).toEqual(['side'])
 	})
 

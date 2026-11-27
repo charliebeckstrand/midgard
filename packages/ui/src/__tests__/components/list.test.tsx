@@ -621,6 +621,7 @@ describe('List keyboard reordering', () => {
 		// two stops on every row: one that moved it, one that opened it, and nothing to tell them
 		// apart. The row keeps the drag node and the transform, and takes no focus.
 		expect(content).toHaveAttribute('tabindex')
+
 		expect(row).not.toHaveAttribute('tabindex')
 
 		expect(container.querySelectorAll('[tabindex]')).toHaveLength(items.length)
@@ -639,6 +640,7 @@ describe('List keyboard reordering', () => {
 
 		// The prop sets only the treatment. The link stays focusable, so the stop stays on it.
 		expect(bySlot(container, 'list-item-content')).toHaveAttribute('tabindex')
+
 		expect(bySlot(container, 'list-item')).not.toHaveAttribute('tabindex')
 
 		expect(container.querySelectorAll('[tabindex]')).toHaveLength(items.length)
@@ -654,6 +656,7 @@ describe('List keyboard reordering', () => {
 		// Nothing focusable inside a display-only row, so the `<li>` has to be the stop: there is
 		// still exactly one per row.
 		expect(bySlot(container, 'list-item')).toHaveAttribute('tabindex')
+
 		expect(bySlot(container, 'list-item-content')).not.toHaveAttribute('tabindex')
 	})
 
@@ -737,6 +740,7 @@ describe('List keyboard reordering', () => {
 		// have let one silently win, and a consumer's `onKeyDown` quietly disabling reorder on that
 		// row is a bug with nothing pointing at it.
 		expect(onReorder).toHaveBeenCalledWith([items[1], items[0], items[2]])
+
 		expect(onKeyDown).toHaveBeenCalledTimes(2)
 	})
 
@@ -760,6 +764,7 @@ describe('List keyboard reordering', () => {
 		// The arrow keys find the next stop through the content anchor, so the
 		// library writes it after the consumer spread (CONVENTIONS.md §3.9).
 		expect(links[1]).toHaveFocus()
+
 		expect(links[1]).toHaveAttribute('data-slot', 'list-item-content')
 	})
 
@@ -780,7 +785,9 @@ describe('List keyboard reordering', () => {
 
 		// The consumer id comes first, then the id of the reorder instructions.
 		expect(ids).toHaveLength(2)
+
 		expect(ids[0]).toBe('hint')
+
 		expect(document.getElementById(ids[1] ?? '')).toHaveTextContent(
 			intlEn.formatMessage(reorderMessages.liftInstructions),
 		)

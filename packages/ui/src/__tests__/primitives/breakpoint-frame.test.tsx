@@ -110,6 +110,7 @@ describe('BreakpointFrame', () => {
 		)
 
 		expect(screen.getByTestId('in')).toHaveTextContent('narrow')
+
 		expect(screen.getByTestId('portal')).toHaveTextContent('wide')
 	})
 
@@ -152,6 +153,7 @@ describe('BreakpointFrame', () => {
 
 		// The node of the nested portal is in the box, so the CSS reads the frame.
 		expect(box).toContainElement(nested)
+
 		expect(nested).toHaveTextContent('narrow')
 	})
 
@@ -193,6 +195,7 @@ describe('BreakpointFrame', () => {
 			const probe = screen.getByTestId('portal')
 
 			expect(frameElement()).toContainElement(probe)
+
 			expect(probe).toHaveTextContent('narrow')
 		})
 
@@ -208,7 +211,9 @@ describe('BreakpointFrame', () => {
 			const root = screen.getByText('panel').closest('[data-slot="overlay"]')
 
 			expect(frameElement()).toContainElement(root as HTMLElement)
+
 			expect(root).toHaveClass('absolute')
+
 			expect(root).not.toHaveClass('fixed')
 		})
 
@@ -224,6 +229,7 @@ describe('BreakpointFrame', () => {
 			const root = screen.getByText('panel').closest('[data-slot="overlay"]')
 
 			expect(root).toHaveClass('fixed')
+
 			expect(root).not.toHaveClass('absolute')
 		})
 	})

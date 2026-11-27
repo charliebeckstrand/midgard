@@ -61,10 +61,13 @@ describe('the card of the sidebar layout aside (real browser)', () => {
 		const contentStyle = getComputedStyle(content)
 
 		expect(cardStyle.backgroundColor).toBe(contentStyle.backgroundColor)
+
 		expect(cardStyle.getPropertyValue('--surface-fill')).toBe(
 			contentStyle.getPropertyValue('--surface-fill'),
 		)
+
 		expect(cardStyle.borderRadius).toBe(contentStyle.borderRadius)
+
 		expect(cardStyle.boxShadow).toBe(contentStyle.boxShadow)
 
 		const box = column.getBoundingClientRect()
@@ -72,8 +75,11 @@ describe('the card of the sidebar layout aside (real browser)', () => {
 
 		// The card fills the column inside the gutter, and its top meets the top of the content card.
 		expect(rect.top - box.top).toBeNear(GUTTER, HALF_PIXEL)
+
 		expect(box.bottom - rect.bottom).toBeNear(GUTTER, HALF_PIXEL)
+
 		expect(box.right - rect.right).toBeNear(GUTTER, HALF_PIXEL)
+
 		expect(rect.top).toBeNear(content.getBoundingClientRect().top, HALF_PIXEL)
 	})
 

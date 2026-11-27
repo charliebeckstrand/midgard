@@ -72,7 +72,9 @@ describe('chart stacked legend row cap (real browser)', () => {
 
 		// Every series is measured on the ghost; only a proper subset shows.
 		expect(ghostItems.length).toBe(10)
+
 		expect(visibleItems.length).toBeGreaterThan(0)
+
 		expect(visibleItems.length).toBeLessThan(10)
 
 		// The chip's count is exactly the switches it stands in for: none lost.
@@ -90,6 +92,7 @@ describe('chart stacked legend row cap (real browser)', () => {
 		const rowHeight = (visibleItems[0] as HTMLElement).offsetHeight
 
 		expect(legend.getBoundingClientRect().height).toBeLessThan(rowHeight * 1.6)
+
 		expect(wrapper.getBoundingClientRect().height).toBeLessThan(rowHeight * 1.6)
 	})
 

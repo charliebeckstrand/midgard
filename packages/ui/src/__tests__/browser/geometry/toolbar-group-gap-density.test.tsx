@@ -80,6 +80,7 @@ describe('Toolbar group gap at each density step (real browser)', () => {
 		const between = start(b1 as Element) - end(a2 as Element)
 
 		expect(between).toBeNear(TOOLBAR_GAP[step], LAYOUT_UNIT)
+
 		expect(inside).toBeLessThan(between)
 
 		const style = getComputedStyle(separator)

@@ -40,6 +40,7 @@ describe('party swatch', () => {
 		const view = render(h(RaceCard, { entry, onPick: () => {} }))
 
 		expect(view.getByRole('img', { name: winner.party })).toBeInTheDocument()
+
 		expect(view.getByRole('img', { name: runnerUp.party })).toBeInTheDocument()
 	})
 

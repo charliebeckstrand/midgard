@@ -27,6 +27,7 @@ describe('precompileMessages', () => {
 			const output = transform(MODULE, id)
 
 			expect(output).toContain(`defaultMessage: ${JSON.stringify(parse('Close {name}'))}`)
+
 			expect(output).not.toContain('description')
 		}
 	})
@@ -39,6 +40,7 @@ describe('precompileMessages', () => {
 
 	it('leaves a module with no message and a JSON file that is not a translation', () => {
 		expect(transform('export const a = 1', '/docs/kit/a.ts')).toBeUndefined()
+
 		expect(transform('{"a":"{b}"}', '/docs/data/cities.json')).toBeUndefined()
 	})
 
@@ -48,7 +50,9 @@ describe('precompileMessages', () => {
 		const [{ find, replacement }] = config.resolve.alias as [Alias]
 
 		expect(replacement).toMatch(/\/src\/primitives\/intl\/intl-no-parser\.ts$/)
+
 		expect('@formatjs/icu-messageformat-parser').toMatch(find)
+
 		expect('@formatjs/icu-messageformat-parser/no-parser.js').not.toMatch(find)
 	})
 })

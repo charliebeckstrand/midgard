@@ -57,6 +57,7 @@ describe('GameBoard Reset', () => {
 		fireEvent.click(screen.getByRole('button', { name: 'Reset' }))
 
 		expect(window.location.pathname).not.toBe('/charlie')
+
 		expect(screen.queryByRole('alertdialog')).toBeNull()
 	})
 
@@ -74,6 +75,7 @@ describe('GameBoard Reset', () => {
 		await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull())
 
 		expect(window.location.pathname).toBe('/charlie')
+
 		expect(screen.getByRole('button', { name: /^Slot 10, / })).toBeInTheDocument()
 	})
 
@@ -138,6 +140,7 @@ describe('GameBoard Reset', () => {
 
 		// The run that the question named is gone, so the answer does nothing.
 		expect(window.location.pathname).toBe('/other')
+
 		expect(recordResult).not.toHaveBeenCalled()
 	})
 
@@ -190,6 +193,7 @@ describe('GameBoard Reset', () => {
 
 		// The run that the question named is gone, so the answer does nothing.
 		expect(window.location.pathname).toBe('/charlie')
+
 		expect(recordResult).not.toHaveBeenCalled()
 	})
 
@@ -239,6 +243,7 @@ describe('GameBoard Reset', () => {
 		await act(async () => {})
 
 		expect(window.location.pathname).toBe('/vs/other')
+
 		expect(recordResult).not.toHaveBeenCalled()
 	})
 
@@ -284,6 +289,7 @@ describe('GameBoard Reset', () => {
 		}
 
 		expect(screen.queryByRole('button', { name: 'Draw' })).toBeNull()
+
 		expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Reset' }))
 	})
 })
@@ -350,6 +356,7 @@ describe('GameBoard on a held route', () => {
 
 		// Back starts the run again from its start, and the left run does not count.
 		expect(recordResult).not.toHaveBeenCalled()
+
 		expect(screen.queryByRole('button', { name: /^Slot 1, / })).toBeNull()
 	})
 
@@ -397,6 +404,7 @@ describe('GameBoard on a held route', () => {
 
 		// With Auto-draw on, the bar has no Draw, so the run needs its first draw.
 		expect(screen.queryByRole('button', { name: 'Draw' })).toBeNull()
+
 		expect(
 			screen
 				.getAllByRole('button', { name: /^Slot \d+$/ })
@@ -455,12 +463,14 @@ describe('GameBoard Auto-draw', () => {
 		act(() => setter.set(true))
 
 		expect(screen.queryByRole('button', { name: 'Draw' })).toBeNull()
+
 		expect(screen.getByRole('button', { name: 'Slot 1' }).hasAttribute('disabled')).toBe(false)
 
 		act(() => setter.set(false))
 
 		// The number still waits, so the bar shows Draw turned off.
 		expect(screen.getByRole('button', { name: 'Draw' }).hasAttribute('disabled')).toBe(true)
+
 		expect(readout()).toBe(String(deck[0]))
 	})
 

@@ -175,6 +175,7 @@ describe('controls show their state under forced colors (real browser)', () => {
 			expect(document.activeElement).toBe(tab)
 			const style = getComputedStyle(tab)
 			expect(style.outlineStyle).not.toBe('none')
+
 			expect(style.outlineWidth).not.toBe('0px')
 		})
 
@@ -195,9 +196,10 @@ describe('controls show their state under forced colors (real browser)', () => {
 			expect(getComputedStyle(indicator).outlineStyle).not.toBe('none')
 		})
 
-		// The range legend track paints only with a gradient, which forced colors
-		// remove, so the slider keeps an outline.
-		it('range legend: the track draws an edge', () => {
+		// The range legend track paints only with a gradient. The cells keep their
+		// hues under forced colors, so the track keeps its gradient, and the slider
+		// keeps an outline too.
+		it('range legend: the track keeps its scale and draws an edge', () => {
 			const { container } = renderUI(
 				<HeatmapChart
 					aria-label="Commits"
@@ -219,8 +221,10 @@ describe('controls show their state under forced colors (real browser)', () => {
 			)
 			const track = present(container.querySelector('[data-slot=heatmap-range-track]'), 'track')
 			const style = getComputedStyle(track)
-			expect(style.backgroundImage).toBe('none')
+			expect(style.backgroundImage).toMatch(/^linear-gradient/)
+
 			expect(style.outlineStyle).not.toBe('none')
+
 			expect(Number.parseFloat(style.outlineWidth)).toBeGreaterThan(0)
 		})
 
@@ -247,6 +251,7 @@ describe('controls show their state under forced colors (real browser)', () => {
 				expect(markers).toHaveLength(3)
 				const middle = present(markers[1], 'marker')
 				expect(showsOnCanvas(getComputedStyle(middle, '::before').backgroundColor)).toBe(true)
+
 				expect(showsOnCanvas(getComputedStyle(middle, '::after').backgroundColor)).toBe(true)
 				for (const marker of markers) {
 					const dot = getComputedStyle(present(marker.firstElementChild, 'dot'))
@@ -259,6 +264,7 @@ describe('controls show their state under forced colors (real browser)', () => {
 			it(`${name}: keyboard focus draws an outline`, async () => {
 				const outline = await focusOutline(name)
 				expect(outline.style).not.toBe('none')
+
 				expect(outline.width).not.toBe('0px')
 			})
 		}
@@ -267,6 +273,7 @@ describe('controls show their state under forced colors (real browser)', () => {
 			it(`${name}: keyboard focus draws an outline`, async () => {
 				const outline = await markOutline(name)
 				expect(outline.style).not.toBe('none')
+
 				expect(outline.width).not.toBe('0px')
 			})
 		}
@@ -294,6 +301,7 @@ describe('controls show their state under forced colors (real browser)', () => {
 			const host = bySlot(node, 'control-frame') ?? node
 			const style = getComputedStyle(host)
 			expect(style.outlineStyle).not.toBe('none')
+
 			expect(style.outlineWidth).not.toBe('0px')
 		})
 
@@ -364,6 +372,7 @@ describe('controls show their state under forced colors (real browser)', () => {
 			await expect.poll(() => node.hasAttribute('data-dragging')).toBe(true)
 			const style = getComputedStyle(node)
 			expect(style.outlineStyle).toBe('solid')
+
 			expect(style.outlineWidth).toBe('2px')
 			await userEvent.keyboard('{Escape}')
 		})
@@ -395,9 +404,11 @@ describe('controls show their state under forced colors (real browser)', () => {
 					present(container.querySelector<HTMLElement>('[data-slot=list-item]'), 'row')
 				await userEvent.tab()
 				expect(document.activeElement).toBe(row())
+
 				expect(outline(row())).toBe('solid 2px')
 				await userEvent.keyboard(' ')
 				await expect.poll(() => row().hasAttribute('data-lifted')).toBe(true)
+
 				expect(outline(row())).toBe('solid 4px')
 				await userEvent.keyboard('{Escape}')
 			})
@@ -414,9 +425,11 @@ describe('controls show their state under forced colors (real browser)', () => {
 					present(container.querySelector<HTMLElement>('[data-slot=list-item]'), 'row')
 				await userEvent.tab()
 				expect(row().contains(document.activeElement)).toBe(true)
+
 				expect(getComputedStyle(row()).outlineStyle).toBe('none')
 				await userEvent.keyboard(' ')
 				await expect.poll(() => row().hasAttribute('data-lifted')).toBe(true)
+
 				expect(outline(row())).toBe('solid 4px')
 				await userEvent.keyboard('{Escape}')
 			})
@@ -449,7 +462,9 @@ describe('controls show their state under forced colors (real browser)', () => {
 				present(bySlot(card, 'kanban-card-handle'), 'handle').focus()
 				await userEvent.keyboard(' ')
 				await expect.poll(() => card.hasAttribute('data-lifted')).toBe(true)
+
 				expect(before).not.toBe('solid 4px')
+
 				expect(outline(card)).toBe('solid 4px')
 				await userEvent.keyboard('{Escape}')
 			})
@@ -482,6 +497,7 @@ describe('controls show their state under forced colors (real browser)', () => {
 				grip.focus()
 				await userEvent.keyboard(' ')
 				await expect.poll(() => card.hasAttribute('data-dragging')).toBe(true)
+
 				expect(outline(card)).toBe('solid 4px')
 				await userEvent.keyboard('{Escape}')
 			})
@@ -613,7 +629,9 @@ describe('tree rows show their state under forced colors (real browser)', () => 
 			const on = await pixels(row({ checked: true }))
 			const mixed = await pixels(row({ checked: 'mixed' }))
 			expect(on).not.toBe(off)
+
 			expect(mixed).not.toBe(off)
+
 			expect(mixed).not.toBe(on)
 		})
 

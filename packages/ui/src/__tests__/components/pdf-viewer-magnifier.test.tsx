@@ -103,11 +103,13 @@ describe('lensOffset', () => {
 		const offset = lensOffset(point, zoom)
 
 		expect(offset.x + zoom * point.x).toBe(0)
+
 		expect(offset.y + zoom * point.y).toBe(0)
 	})
 
 	it('scales with the magnification, not with the page', () => {
 		expect(lensOffset({ x: 10, y: 10 }, 2)).toEqual({ x: -20, y: -20 })
+
 		expect(lensOffset({ x: 10, y: 10 }, 4)).toEqual({ x: -40, y: -40 })
 	})
 })
@@ -120,7 +122,9 @@ describe('PdfViewer without a magnifier', () => {
 		const { result } = renderHook(() => usePdfViewerMagnifier(null))
 
 		expect(result.current.open).toBe(false)
+
 		expect(result.current.point).toBeNull()
+
 		expect(result.current.referenceProps).toEqual({})
 	})
 
@@ -131,6 +135,7 @@ describe('PdfViewer without a magnifier', () => {
 		)
 
 		expect(result.current.open).toBe(false)
+
 		expect(result.current.point).toBeNull()
 	})
 })
@@ -270,6 +275,7 @@ describe('PdfViewer magnifier controls', () => {
 		const control = screen.getByRole('button', { name: 'Magnifier settings' })
 
 		expect(control).toHaveAttribute('aria-haspopup', 'dialog')
+
 		expect(control).toBeCollapsed()
 
 		expect(control).not.toHaveAttribute('aria-pressed')
@@ -290,10 +296,12 @@ describe('PdfViewer magnifier controls', () => {
 
 		// The consumer asked for the large lens, so that is the option standing selected.
 		expect(screen.getByRole('radio', { name: 'Large' })).toBeChecked()
+
 		expect(screen.getByRole('radio', { name: 'Medium' })).toBeUnchecked()
 
 		// The two the consumer left alone open on the middle step and the default dwell.
 		expect(screen.getByRole('radio', { name: '2.5×' })).toBeChecked()
+
 		expect(screen.getByRole('radio', { name: 'Default' })).toBeChecked()
 	})
 
@@ -371,6 +379,7 @@ describe('PdfViewer magnifier controls', () => {
 		renderUI(<PdfViewer pages={pages} />)
 
 		expect(screen.queryByRole('button', { name: 'Magnifier settings' })).not.toBeInTheDocument()
+
 		expect(screen.queryByRole('button', { name: 'Magnifier' })).not.toBeInTheDocument()
 	})
 })
@@ -468,6 +477,7 @@ describe('usePdfViewerMagnifier over a pan', () => {
 		await clock.advance(1)
 
 		expect(result.current.open).toBe(true)
+
 		expect(result.current.point).toEqual({ x: 120, y: 300 })
 	})
 
@@ -490,6 +500,7 @@ describe('usePdfViewerMagnifier over a pan', () => {
 		fireEvent.keyDown(document, { key: 'Escape' })
 
 		expect(result.current.open).toBe(false)
+
 		expect(result.current.point).toBeNull()
 	})
 
@@ -545,6 +556,7 @@ describe('usePdfViewerMagnifier over a pan', () => {
 		await clock.advance(300)
 
 		expect(result.current.open).toBe(false)
+
 		expect(result.current.point).toBeNull()
 	})
 
@@ -659,6 +671,7 @@ describe('usePdfViewerMagnifier under a held finger', () => {
 		await clock.advance(1)
 
 		expect(hook.result.current.open).toBe(true)
+
 		expect(hook.result.current.point).toEqual({ x: 120, y: 300 })
 	})
 
@@ -720,6 +733,7 @@ describe('usePdfViewerMagnifier under a held finger', () => {
 		props().onClickCapture(click)
 
 		expect(click.preventDefault).toHaveBeenCalled()
+
 		expect(click.stopPropagation).toHaveBeenCalled()
 
 		// One click only: the next tap presses as it always did.
@@ -781,7 +795,9 @@ describe('usePdfViewerMagnifier under a held finger', () => {
 		act(() => props().onContextMenu(menu))
 
 		expect(hook.result.current.open).toBe(false)
+
 		expect(menu.preventDefault).not.toHaveBeenCalled()
+
 		expect(menu.stopPropagation).not.toHaveBeenCalled()
 	})
 

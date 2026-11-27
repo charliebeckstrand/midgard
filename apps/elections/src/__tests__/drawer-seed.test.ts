@@ -60,7 +60,9 @@ describe('drawerSeed', () => {
 		const seed = await readSeed('region=ga&office=senate&view=counties')
 
 		expect(seed?.race.data.id).toBe(87087)
+
 		expect(seed?.map?.shapes.features.length).toBe(159)
+
 		expect(seed?.map?.CountyMap).toBe(CountyMap)
 
 		expect((await readSeed('region=ga&office=senate'))?.map).toBeNull()
@@ -98,6 +100,7 @@ describe('ElectionDrawer', () => {
 		const frame = plot?.querySelector<HTMLElement>('[data-slot="aspect-ratio"]')
 
 		expect(Number.parseFloat(frame?.style.aspectRatio ?? '')).toBeLessThan(1)
+
 		expect(plot?.querySelectorAll('path[data-region-index]').length).toBeGreaterThan(0)
 
 		expect(fetchCountyShapes).not.toHaveBeenCalled()
@@ -136,6 +139,7 @@ describe('ElectionDrawer', () => {
 		})
 
 		expect(plot?.isConnected).toBe(true)
+
 		expect(document.querySelector('[aria-label="Georgia Senate results by county"]')).toBe(plot)
 	})
 

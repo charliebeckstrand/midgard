@@ -61,12 +61,14 @@ describe('wysiwyg schema', () => {
 		const types = Object.values(schema.nodes).filter((type) => type.name !== 'doc' && !type.isText)
 
 		expect(types.map((type) => type.name).sort()).toEqual(Object.keys(nodeDOM).sort())
+
 		expect(
 			types
 				.filter((type) => type.isTextblock)
 				.map((type) => type.name)
 				.sort(),
 		).toEqual([...textblockTypes].sort())
+
 		expect(Object.keys(schema.marks)).toEqual(Object.keys(markDOM))
 	})
 })

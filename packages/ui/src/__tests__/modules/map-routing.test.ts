@@ -425,6 +425,7 @@ describe('requestSignal', () => {
 		caller.abort()
 
 		expect(signal?.aborted).toBe(true)
+
 		expect(any).not.toHaveBeenCalled()
 	})
 
@@ -456,6 +457,7 @@ describe('requestSignal', () => {
 		const { signal } = requestSignal(AbortSignal.abort(reason), 5000)
 
 		expect(signal?.aborted).toBe(true)
+
 		expect(signal?.reason).toBe(reason)
 	})
 

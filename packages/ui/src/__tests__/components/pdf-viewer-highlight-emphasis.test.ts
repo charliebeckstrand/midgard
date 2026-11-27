@@ -20,6 +20,7 @@ const dimmed = k({ color: 'amber', active: false, dimmed: true }).viewport.page.
 describe('a region at rest', () => {
 	it('carries its own color, softly', () => {
 		expect(resting).toContain('bg-amber-500/15')
+
 		expect(resting).toContain('ring-amber-500')
 	})
 
@@ -32,6 +33,7 @@ describe('a region at rest', () => {
 	 */
 	it('thickens its stroke under the pointer', () => {
 		expect(resting).toContain('hover:ring-2')
+
 		expect(resting).not.toContain('hover:bg-amber-500/30')
 	})
 
@@ -45,12 +47,14 @@ describe('the selected region', () => {
 	/** At 15% over printed ink a heavier ring alone was not enough to see. */
 	it('deepens its wash and thickens its stroke', () => {
 		expect(selected).toContain('bg-amber-500/30')
+
 		expect(selected).toContain('ring-2')
 	})
 
 	/** A region is often one line of text high. An inset stroke covered the ink that it marks. */
 	it('draws its stroke outside the box, so the ink stays visible', () => {
 		expect(selected).not.toContain('ring-inset')
+
 		expect(resting).toContain('ring-inset')
 	})
 
@@ -63,7 +67,9 @@ describe('the selected region', () => {
 describe('every other region while one is selected', () => {
 	it('loses its color in both halves of every pair', () => {
 		expect(dimmed).not.toContain('bg-amber-500/15')
+
 		expect(dimmed).not.toContain('ring-amber-500')
+
 		expect(dimmed).not.toContain('dark:ring-amber-600')
 	})
 
@@ -73,12 +79,15 @@ describe('every other region while one is selected', () => {
 	 */
 	it('keeps a fill and a ring, so it is still findable', () => {
 		expect(dimmed).toContain('bg-zinc-500/15')
+
 		expect(dimmed).toContain('ring-zinc-800')
+
 		expect(dimmed).toContain('dark:ring-zinc-600')
 	})
 
 	it('stays at resting weight, so only the selected one is emphasized', () => {
 		expect(dimmed).toContain('ring-1')
+
 		expect(dimmed).not.toContain('z-10')
 	})
 })

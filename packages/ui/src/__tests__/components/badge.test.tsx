@@ -9,6 +9,7 @@ describe('Badge', () => {
 		const skeleton = expectInlineSkeleton(<BadgeSkeleton size="sm" />)
 
 		expect(skeleton).toHaveClass('inline-block')
+
 		expect(skeleton).not.toHaveClass('block')
 	})
 

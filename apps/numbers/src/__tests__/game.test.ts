@@ -32,7 +32,9 @@ describe('createGame', () => {
 		const game = createGame('test')
 
 		expect(game.slots).toHaveLength(SLOTS)
+
 		expect(game.slots.every((placed) => placed === null)).toBe(true)
+
 		expect(getStatus(game)).toBe('ready')
 	})
 
@@ -50,7 +52,9 @@ describe('buildDeck', () => {
 		const deck = buildDeck(() => 0.999_999)
 
 		expect(deck).toHaveLength(SLOTS)
+
 		expect(new Set(deck).size).toBe(SLOTS)
+
 		expect(deck.every((value) => value >= 1 && value <= MAX)).toBe(true)
 
 		// The largest random value takes the last number of the pool, so MAX can come up.
@@ -102,6 +106,7 @@ describe('drawNumber', () => {
 		const game = drawNumber(createGame('test'))
 
 		expect(game.last).toBe(game.drawn)
+
 		expect(getStatus(game)).toBe('placing')
 	})
 
@@ -117,11 +122,13 @@ describe('canPlace', () => {
 
 	it('takes a slot between a smaller and a larger number', () => {
 		expect(canPlace(slots, 1, 233)).toBe(true)
+
 		expect(canPlace(slots, 2, 233)).toBe(true)
 	})
 
 	it('refuses a slot that breaks the order', () => {
 		expect(canPlace(slots, 4, 233)).toBe(false)
+
 		expect(canPlace(slots, 19, 233)).toBe(false)
 	})
 
@@ -135,7 +142,9 @@ describe('placeNumber', () => {
 		const game = placeNumber(makeGame({}, 500), 9)
 
 		expect(game.slots[9]).toBe(500)
+
 		expect(game.drawn).toBeNull()
+
 		expect(game.last).toBe(500)
 	})
 
@@ -163,8 +172,11 @@ describe('getStatus', () => {
 describe('isEnded', () => {
 	it('is true for a bust and a win, and false for the other steps', () => {
 		expect(isEnded('bust')).toBe(true)
+
 		expect(isEnded('won')).toBe(true)
+
 		expect(isEnded('ready')).toBe(false)
+
 		expect(isEnded('placing')).toBe(false)
 	})
 })
@@ -206,6 +218,7 @@ describe('findGap', () => {
 describe('countPlaced', () => {
 	it('counts the filled slots', () => {
 		expect(countPlaced(createGame('test').slots)).toBe(0)
+
 		expect(countPlaced(makeGame({ 0: 5, 7: 400, 19: 990 }).slots)).toBe(3)
 	})
 })
@@ -215,8 +228,11 @@ describe('chooseSlot', () => {
 		const { slots } = makeGame({})
 
 		expect(chooseSlot(slots, 1, 'normal')).toBe(0)
+
 		expect(chooseSlot(slots, 500, 'normal')).toBe(9)
+
 		expect(chooseSlot(slots, 501, 'normal')).toBe(10)
+
 		expect(chooseSlot(slots, MAX, 'normal')).toBe(SLOTS - 1)
 	})
 
@@ -225,13 +241,17 @@ describe('chooseSlot', () => {
 		const { slots } = makeGame({ 4: 100, 15: 200 })
 
 		expect(chooseSlot(slots, 150, 'normal')).toBe(10)
+
 		expect(chooseSlot(slots, 101, 'normal')).toBe(5)
+
 		expect(chooseSlot(slots, 199, 'normal')).toBe(14)
 	})
 
 	it('places a number in the middle of its run at easy', () => {
 		expect(chooseSlot(makeGame({}).slots, 1, 'easy')).toBe(10)
+
 		expect(chooseSlot(makeGame({ 4: 100, 15: 200 }).slots, 199, 'easy')).toBe(10)
+
 		expect(chooseSlot(makeGame({ 4: 100, 15: 200 }).slots, 50, 'easy')).toBe(2)
 	})
 
@@ -240,8 +260,10 @@ describe('chooseSlot', () => {
 
 		// 500 is in the middle of the range, so each side expects the same count of numbers.
 		expect(chooseSlot(slots, 500, 'hard')).toBe(9)
+
 		// A small number leaves no room below it, and a large number no room above it.
 		expect(chooseSlot(slots, 1, 'hard')).toBe(0)
+
 		expect(chooseSlot(slots, MAX, 'hard')).toBe(SLOTS - 1)
 		// With one slot open, the number goes there.
 		const full = makeGame(
@@ -273,9 +295,11 @@ describe('playCpu', () => {
 		const cpu = playCpu('k3x9q2', 3, 'normal')
 
 		expect(countPlaced(cpu.slots)).toBe(3)
+
 		expect(
 			cpu.slots.filter((placed) => placed !== null).toSorted((a, b) => (a ?? 0) - (b ?? 0)),
 		).toEqual(cpu.deck.slice(0, 3).toSorted((a, b) => a - b))
+
 		expect(getStatus(cpu)).toBe('ready')
 	})
 
@@ -297,6 +321,7 @@ describe('playCpu', () => {
 		const [easy = 0, normal = 0, hard = 0] = DIFFICULTIES.map(average)
 
 		expect(normal - easy).toBeGreaterThan(1)
+
 		expect(hard - normal).toBeGreaterThan(0.4)
 	})
 
@@ -314,6 +339,7 @@ describe('playCpu', () => {
 describe('getOutcome', () => {
 	it('gives the win to the higher count of filled slots', () => {
 		expect(getOutcome(makeGame({ 0: 10, 1: 20 }), makeGame({ 0: 10 }))).toBe('win')
+
 		expect(getOutcome(makeGame({ 0: 10 }), makeGame({ 0: 10, 1: 20 }))).toBe('loss')
 	})
 
