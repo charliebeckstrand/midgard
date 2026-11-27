@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { JsonTree } from '../../components/json-tree'
-import { DensityProvider } from '../../providers/density'
+import { DensityProvider, densityLevels } from '../../providers/density'
 import { present, renderUI, screen } from '../helpers'
+
+const levels = densityLevels.map(({ value }) => value)
 
 /**
  * The keys of a JsonTree line up at each density step. A branch row starts its key after the
@@ -18,7 +20,7 @@ describe('JsonTree row alignment (real browser)', () => {
 	const keyStart = (name: string) =>
 		present(screen.getByText(`"${name}"`), name).getBoundingClientRect().left
 
-	const cases = (['compact', 'snug', 'loose'] as const).flatMap((density) =>
+	const cases = levels.flatMap((density) =>
 		([false, true] as const).map((windowed) => [density, windowed] as const),
 	)
 

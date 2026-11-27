@@ -1,5 +1,6 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
+import { densitySteps } from '../../../core/density'
 import { BarChart } from '../../../modules/chart/bar-chart'
 import {
 	CHART_FIGURE_GAP,
@@ -28,8 +29,6 @@ const SERIES = [
 	{ xKey: 'month', yKey: 'costs', yName: 'Costs' },
 ] as const
 
-const DENSITIES = ['xs', 'sm', 'md', 'lg', 'xl'] as const
-
 const INHERITED = ['text-sm', 'text-base', 'text-lg'] as const
 
 const height = (el: Element) => el.getBoundingClientRect().height
@@ -38,7 +37,7 @@ describe('chart chrome reserve (real browser)', () => {
 	beforeAll(() => page.viewport(960, 700))
 
 	for (const inherited of INHERITED) {
-		for (const density of DENSITIES) {
+		for (const density of densitySteps) {
 			it(`matches the rendered chrome at ${density} density under ${inherited}`, async () => {
 				const { container } = renderUI(
 					<div data-density={density} className={inherited} style={{ width: 800 }}>

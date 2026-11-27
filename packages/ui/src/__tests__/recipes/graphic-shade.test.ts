@@ -1,13 +1,11 @@
 // @vitest-environment node
 import clsx, { type ClassValue } from 'clsx'
 import { describe, expect, it } from 'vitest'
-import type { Color } from '../../core/recipe'
+import { colors } from '../../core/recipe'
 import { k as timeline } from '../../recipes/kata/timeline'
 import { kasane, zu } from '../../recipes/kiso'
 import { validation as checkValidation } from '../../recipes/kumi/check'
 import { slider } from '../../recipes/kumi/slider'
-
-const COLORS = ['zinc', 'red', 'amber', 'green', 'blue'] as const satisfies readonly Color[]
 
 /** The palette shade, such as `amber-600`, of a class: a color utility or a color variable. */
 const parseShade = (name: string) =>
@@ -34,7 +32,7 @@ function readShades(classes: ClassValue, hue: string) {
  * must find whole, so they copy the shade. Thus each one is held to the slot here.
  */
 describe('one graphic shade for each hue', () => {
-	it.each(COLORS)('gives %s the shade of its series slot in each copy', (hue) => {
+	it.each(colors)('gives %s the shade of its series slot in each copy', (hue) => {
 		const slot = readShades(zu.palette.series[hue].bg, hue)
 
 		expect(slot.light).toHaveLength(1)
@@ -46,7 +44,7 @@ describe('one graphic shade for each hue', () => {
 	})
 
 	// The zinc rail is a structural line, not a mark of a state, so it takes the zinc border tone.
-	it.each(COLORS.filter((hue) => hue !== 'zinc'))(
+	it.each(colors.filter((hue) => hue !== 'zinc'))(
 		'gives the %s timeline rails the shade of the slot',
 		(hue) => {
 			const slot = readShades(zu.palette.series[hue].bg, hue)

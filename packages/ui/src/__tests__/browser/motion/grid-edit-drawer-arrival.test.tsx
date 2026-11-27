@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { describe, expect, it, onTestFinished } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Grid, type GridColumn } from '../../../modules/grid'
+import { NO_HOVER_QUERY, PHONE_QUERY } from '../../../utilities/media-query'
 import { renderUI, screen, stubMatchMedia, waitFor } from '../../helpers'
 
 type Row = { id: number; name: string }
@@ -48,7 +49,7 @@ function PhoneGrid() {
  */
 describe('grid edit drawer arrival (real Motion)', () => {
 	it('keeps the pencil while the drawer slides in, and shows the check when it lands', async () => {
-		stubMatchMedia((query) => query.startsWith('(hover: none)'))
+		stubMatchMedia((query) => query === NO_HOVER_QUERY || query === PHONE_QUERY)
 
 		renderUI(<PhoneGrid />)
 

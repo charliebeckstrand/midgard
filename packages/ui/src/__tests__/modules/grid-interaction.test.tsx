@@ -5,6 +5,7 @@ import { Button } from '../../components/button'
 import { Menu, MenuContent, MenuItem, MenuTrigger } from '../../components/menu'
 import { Grid, type GridCellClickContext, type GridColumn } from '../../modules/grid'
 import { GRID_STATUS_DEBOUNCE_MS } from '../../modules/grid/engine/grid-constants'
+import { NO_HOVER_QUERY, PHONE_QUERY } from '../../utilities/media-query'
 import { bySlot, getSlot, renderUI, screen, setupUser, stubMatchMedia, waitFor } from '../helpers'
 import { it } from '../helpers/fake-clock'
 
@@ -52,7 +53,7 @@ describe('Grid row click', () => {
 	// On a phone, the menu of a row opens as a bottom sheet in a portal. React
 	// carries a click on its backdrop up the component tree to the row.
 	it('ignores a press on the backdrop of a menu sheet in an actions cell', async () => {
-		stubMatchMedia((query) => query.startsWith('(hover: none)'))
+		stubMatchMedia((query) => query === NO_HOVER_QUERY || query === PHONE_QUERY)
 
 		const user = setupUser()
 

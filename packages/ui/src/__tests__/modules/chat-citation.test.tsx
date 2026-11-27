@@ -13,6 +13,7 @@ import {
 } from '../../modules/chat'
 import { toCitationMode } from '../../modules/chat/use-chat-citation-trigger'
 import { __resetLastInput } from '../../utilities/last-input'
+import { NO_HOVER_QUERY, PHONE_QUERY } from '../../utilities/media-query'
 import {
 	act,
 	allBySlot,
@@ -1004,7 +1005,7 @@ describe('ChatCitationProvider render', () => {
 	})
 
 	it('opens a Drawer on a phone', async () => {
-		stubMatchMedia((query) => query.startsWith('(hover: none)'))
+		stubMatchMedia((query) => query === NO_HOVER_QUERY || query === PHONE_QUERY)
 
 		const user = setupUser()
 

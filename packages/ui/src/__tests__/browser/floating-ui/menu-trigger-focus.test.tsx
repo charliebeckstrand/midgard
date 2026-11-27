@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Button } from '../../../components/button'
 import { Menu, MenuContent, MenuItem, MenuTrigger } from '../../../components/menu'
+import { NO_HOVER_QUERY, PHONE_QUERY } from '../../../utilities/media-query'
 import { frames, renderUI, screen, stubMatchMedia, waitFor } from '../../helpers'
 
 /**
@@ -364,7 +365,7 @@ describe('MenuTrigger key open (real floating engine)', () => {
 describe('MenuSheet key open (real browser)', () => {
 	// A phone: no hover and a narrow viewport.
 	beforeEach(() => {
-		stubMatchMedia((query) => query.startsWith('(hover: none)'))
+		stubMatchMedia((query) => query === NO_HOVER_QUERY || query === PHONE_QUERY)
 	})
 
 	function renderSheet(): HTMLElement {

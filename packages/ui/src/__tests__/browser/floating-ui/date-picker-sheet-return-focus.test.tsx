@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { DatePicker, type DatePickerProps } from '../../../components/date-picker'
+import { NO_HOVER_QUERY, PHONE_QUERY } from '../../../utilities/media-query'
 import { bySlot, renderUI, screen, stubMatchMedia, waitFor, within } from '../../helpers'
 
 /**
@@ -14,7 +15,7 @@ import { bySlot, renderUI, screen, stubMatchMedia, waitFor, within } from '../..
 describe('DatePicker sheet focus return (real browser)', () => {
 	// A phone: no hover and a narrow viewport.
 	beforeEach(() => {
-		stubMatchMedia((query) => query.startsWith('(hover: none)'))
+		stubMatchMedia((query) => query === NO_HOVER_QUERY || query === PHONE_QUERY)
 	})
 
 	function renderWithNotes(props: DatePickerProps) {
