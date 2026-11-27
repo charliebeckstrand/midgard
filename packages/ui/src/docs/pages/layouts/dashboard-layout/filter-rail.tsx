@@ -8,8 +8,10 @@ import { type OrderStatus, orderStatuses, orders } from '../../../data/commerce.
 const statuses = ['completed', 'processing', 'pending'] as const
 
 // `filters` sits beside the main column in a wide frame, and behind a
-// Filters button in a narrow one. Drag the end border of the frame to see
-// the change. The layout shows the filters in one of the two places.
+// Filters button in a narrow one. The `layout` map moves the change from the
+// default `lg` to `md`, so the frame of a laptop window shows the inline
+// filters. Drag the end border of the frame to see the change. The layout
+// shows the filters in one of the two places.
 export default function FilterRail() {
 	const [status, setStatus] = useState<OrderStatus | null>(null)
 
@@ -18,6 +20,7 @@ export default function FilterRail() {
 	return (
 		<DashboardLayout
 			className="p-4"
+			layout={{ initial: 'drawer', md: 'inline' }}
 			filters={
 				<Field>
 					<Label>Status</Label>

@@ -39,12 +39,15 @@ const sidebar = (
 	</Sidebar>
 )
 
-// The sidebar is inline in a wide frame and in a drawer in a narrow one. Drag
-// the end border of the frame to see the change. `actions` shows in the
-// header inline, and in the navbar of the drawer layout.
+// The sidebar is inline in a wide frame and in a drawer in a narrow one. The
+// `layout` map moves the change from the default `lg` to `md`, so the frame of
+// a laptop window shows the inline layout. Drag the end border of the frame to
+// see the change. `actions` shows in the header inline, and in the navbar of
+// the drawer layout.
 export default function AppShell() {
 	return (
 		<SidebarLayout
+			layout={{ initial: 'drawer', md: 'inline' }}
 			sidebar={sidebar}
 			actions={<Button prefix={<Icon icon={<Plus />} />}>New order</Button>}
 		>
