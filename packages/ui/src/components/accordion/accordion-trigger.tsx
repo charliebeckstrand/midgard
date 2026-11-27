@@ -71,7 +71,7 @@ export function AccordionTrigger({
 				})}
 				className={cn(k().trigger, className)}
 			>
-				<span className="flex-1">{children}</span>
+				<span className={cn(k().label)}>{children}</span>
 				<Icon icon={ChevronDown} className={cn(k().indicator)} />
 			</button>
 		</Heading>
