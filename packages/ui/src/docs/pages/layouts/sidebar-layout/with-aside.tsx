@@ -45,8 +45,10 @@ const sidebar = (
 )
 
 // In a wide frame, `aside` shows the selected order in a card on the end
-// edge, and `stickyHeader` keeps the header at the top as the orders scroll.
-// In a narrow frame, the aside does not show.
+// edge. In a narrow frame, the aside does not show. The `layout` map moves the
+// change from the default `lg` to `md`, so the frame of a laptop window shows
+// the aside. `stickyHeader` keeps the header at the top as the orders scroll:
+// drag the bottom border of the frame up until the orders scroll.
 export default function WithAside() {
 	const intl = useIntl()
 
@@ -54,6 +56,7 @@ export default function WithAside() {
 
 	return (
 		<SidebarLayout
+			layout={{ initial: 'drawer', md: 'inline' }}
 			sidebar={sidebar}
 			stickyHeader
 			aside={
