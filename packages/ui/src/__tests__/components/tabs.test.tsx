@@ -1,6 +1,7 @@
 import { Activity, createRef, type ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../components/tabs'
+import { useTabsContext } from '../../components/tabs/context'
 import { DensityProvider } from '../../providers/density'
 import {
 	act,
@@ -931,5 +932,37 @@ describe('Tabs selection value types', () => {
 		expect(tab.getAttribute('aria-controls')).toBe(panel.id)
 
 		expect(panel).toHaveAccessibleName('Sign in')
+	})
+})
+
+describe('Tabs panel registration', () => {
+	it('keeps the context value when a panel registers, so the panels do not render again', () => {
+		const seen: unknown[] = []
+
+		function Probe() {
+			seen.push(useTabsContext())
+
+			return null
+		}
+
+		renderUI(
+			<Tabs defaultValue="a" variant="segment">
+				<TabList aria-label="Sections">
+					<Tab value="a">A</Tab>
+					<Tab value="b">B</Tab>
+				</TabList>
+				<TabContents>
+					<TabContent value="a">
+						<Probe />
+					</TabContent>
+					<TabContent value="b">B</TabContent>
+				</TabContents>
+			</Tabs>,
+		)
+
+		// The registration ran: the segment items are tabs that point at their panels.
+		expect(screen.getByRole('tab', { name: 'A' })).toHaveAttribute('aria-controls')
+
+		expect(new Set(seen).size).toBe(1)
 	})
 })

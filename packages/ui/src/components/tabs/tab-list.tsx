@@ -11,6 +11,7 @@ import type { AccessibleName } from '../../types/accessible-name'
 import { useTabsContext } from './context'
 import { TAB_SELECTOR } from './tabs-constants'
 import { useTabListScroll } from './use-tab-list-scroll'
+import { useTabsPanels } from './use-tabs-panels'
 
 /**
  * Keeps at least one enabled tab in `list` tabbable, now and after each change
@@ -102,7 +103,7 @@ export function TabList({
 		orientation,
 	})
 
-	const choice = tabsContext?.choice === true
+	const { choice } = useTabsPanels()
 
 	// In a choice group, the item that an arrow key focuses is also selected, as
 	// a native radio is. The click goes through the handler of the item, so a

@@ -15,6 +15,7 @@ import { k } from '../../recipes/kata/tabs'
 import { Button } from '../button'
 import { useTabsContext } from './context'
 import { useTabSelectScroll } from './use-tab-select-scroll'
+import { useTabsPanels } from './use-tabs-panels'
 
 /** Props for {@link Tab}. Selects via `value` (uncontrolled, against the Tabs root) or `current` (controlled); forwards the remaining `<button>` surface. */
 export type TabProps = {
@@ -137,8 +138,9 @@ export function Tab({
 
 	const isSegment = tabsContext?.variant === 'segment'
 
-	// A segment group with no panels picks a value, so the item is a radio.
-	const choice = tabsContext?.choice === true
+	// The registered panels, from the store of the group. A segment group with
+	// no panels picks a value, so the item is a radio.
+	const { panelsMounted, panelsPresent, choice } = useTabsPanels()
 
 	const orientation = tabsContext?.orientation ?? 'horizontal'
 
@@ -158,12 +160,12 @@ export function Tab({
 
 	// Explicit-id panels stay mounted; `aria-controls` is always set. Auto panels
 	// unmount when inactive unless an all-mounted TabContents or a TabContent
-	// outside a TabContents keeps them mounted (registered via context); then
+	// outside a TabContents keeps them mounted (registered with the Tabs); then
 	// every tab references its panel. A segmented control often has no panels,
 	// so a segment tab also waits for a registered panel.
-	const panelMounted = current || tabsContext?.panelsMounted
+	const panelMounted = current || panelsMounted
 
-	const panelsExpected = !isSegment || tabsContext?.panelsPresent
+	const panelsExpected = !isSegment || panelsPresent
 
 	const panelInDom = id !== undefined || (panelMounted && panelsExpected)
 
