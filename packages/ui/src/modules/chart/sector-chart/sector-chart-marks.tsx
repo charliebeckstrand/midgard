@@ -7,6 +7,7 @@ import { useHoverAcrossScroll } from '../../../hooks/use-hover-across-scroll'
 import { usePrefersReducedMotion } from '../../../hooks/use-prefers-reduced-motion'
 import { useTouchTap } from '../../../hooks/use-touch-tap'
 import * as m from '../../../primitives/reduced-motion/reduced-motion-elements'
+import { k } from '../../../recipes/kata/chart'
 import type { SlotPaint } from '../engine/chart-color/paint'
 import { MARK_GAP, TICK_CHAR_WIDTH } from '../engine/chart-constants'
 import {
@@ -217,7 +218,11 @@ export function SectorSegmentLabels({
 					y: slice.centroid.y,
 					textAnchor: 'middle' as const,
 					dominantBaseline: 'central' as const,
-					className: cn('font-semibold text-sm tabular-nums', paints[slice.index]?.label),
+					className: cn(
+						'font-semibold text-sm tabular-nums',
+						paints[slice.index]?.label,
+						k.segment,
+					),
 				}
 
 				return (
