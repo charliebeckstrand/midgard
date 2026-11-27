@@ -5,6 +5,7 @@
  * every input arrives resolved, so the rules are testable without a frame.
  */
 
+import type { Size } from '../../../../utilities/size'
 import type { LegendBandBreakpoint } from '../../../chart/engine/chart-legend/band'
 import type { ChartRangeLegendConfig } from '../../../chart/engine/chart-legend/range'
 import { rangeLegendBeside, resolveRangeLegend } from '../../../chart/engine/chart-legend/range'
@@ -172,7 +173,7 @@ type MapLegendPlan = {
 export function planLegend(
 	legend: MapLegendInput | undefined,
 	numeric: boolean,
-	box: { width: number; height: number },
+	box: Size,
 	switchboard: { categoryCount: number; entryCount: number; hasOverlayChildren: boolean },
 	scale: MapRangeScale,
 ): MapLegendPlan {
