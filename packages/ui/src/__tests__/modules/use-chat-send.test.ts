@@ -92,7 +92,9 @@ describe('useChatSend', () => {
 		)
 
 		expect(result.current.messages[0]?.id).toBe('server-1')
+
 		expect(result.current.messages[1]?.id).toBeTypeOf('string')
+
 		expect(result.current.messages[1]?.id).not.toBe('server-1')
 	})
 
@@ -128,6 +130,7 @@ describe('useChatSend', () => {
 		rerender()
 
 		expect(warn).toHaveBeenCalledTimes(1)
+
 		expect(warn.mock.calls[0]?.[0]).toContain('"server-1"')
 
 		// The hook reports rather than repairs: a minted replacement would discard

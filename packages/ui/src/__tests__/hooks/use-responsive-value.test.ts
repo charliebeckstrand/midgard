@@ -17,6 +17,7 @@ describe('useResponsiveValue', () => {
 		const { result } = renderHook(() => useResponsiveValue('horizontal', 'vertical'))
 
 		expect(result.current).toBe('horizontal')
+
 		expect(matchMedia).not.toHaveBeenCalled()
 	})
 

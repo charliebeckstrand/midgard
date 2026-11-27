@@ -132,6 +132,7 @@ describe('the bundle of the docs app', () => {
 		)
 
 		expect(font).toBeGreaterThan(-1)
+
 		expect(font).toBeLessThan(html.indexOf('<link rel="modulepreload"'))
 	})
 })

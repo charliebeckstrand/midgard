@@ -771,6 +771,7 @@ describe('biome plugin boundary', () => {
 			.sort()
 
 		expect(other, 'a diagnostic that no plugin reported').toEqual([])
+
 		expect(flagged).toEqual(expected)
 	})
 })

@@ -185,21 +185,28 @@ const tap = (track: HTMLElement, y: number, pointerType?: string) => {
 describe('letterAt', () => {
 	it('gives each point of a full rail to exactly one band', () => {
 		expect(letterAt(100, 100, 120, 5, 5)).toBe(0)
+
 		expect(letterAt(123.9, 100, 120, 5, 5)).toBe(0)
+
 		expect(letterAt(124, 100, 120, 5, 5)).toBe(1)
+
 		expect(letterAt(219.9, 100, 120, 5, 5)).toBe(4)
 	})
 
 	it('gives a point past an end to the letter at that end', () => {
 		expect(letterAt(0, 100, 120, 5, 5)).toBe(0)
+
 		expect(letterAt(220, 100, 120, 5, 5)).toBe(4)
+
 		expect(letterAt(1000, 100, 120, 5, 9)).toBe(8)
 	})
 
 	// Five marks of 24 for nine letters: the letters 0, 4, and 8 have a mark.
 	it('gives the center of a letter mark to its letter on a collapsed rail', () => {
 		expect(letterAt(12, 0, 120, 5, 9)).toBe(0)
+
 		expect(letterAt(60, 0, 120, 5, 9)).toBe(4)
+
 		expect(letterAt(108, 0, 120, 5, 9)).toBe(8)
 	})
 
@@ -215,6 +222,7 @@ describe('getMarks', () => {
 
 	it('gives each letter when each letter fits', () => {
 		expect(getMarks(LETTERS, 9)).toEqual(LETTERS)
+
 		expect(getMarks(LETTERS, 20)).toEqual(LETTERS)
 	})
 
@@ -480,6 +488,7 @@ describe('LetterRail', () => {
 		press(track, inBand(1), 'mouse')
 
 		expect(track.setPointerCapture).toHaveBeenCalledWith(1)
+
 		expect(rule()).toContain('cursor:pointer')
 
 		release(track)
@@ -503,6 +512,7 @@ describe('LetterRail', () => {
 		})
 
 		expect(active()).toBe('A')
+
 		expect(body.scrollTop).toBe(0)
 	})
 

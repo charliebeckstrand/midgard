@@ -71,6 +71,7 @@ describe('resolveRangeLegend', () => {
 
 	it('sheds the bar at the spark floor, whichever axis crosses it', () => {
 		expect(resolveRangeLegend(true, SPARK_WIDTH - 1, TALL).show).toBe(false)
+
 		expect(resolveRangeLegend(true, WIDE, SPARK_HEIGHT - 1).show).toBe(false)
 	})
 

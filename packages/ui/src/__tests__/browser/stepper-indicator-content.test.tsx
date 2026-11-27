@@ -45,6 +45,7 @@ describe('StepperIndicator: content on the current step', () => {
 		const top = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2)
 
 		expect(top).not.toBe(fill)
+
 		expect(top && indicator?.contains(top)).toBe(true)
 
 		// The number reads in white on the blue fill.

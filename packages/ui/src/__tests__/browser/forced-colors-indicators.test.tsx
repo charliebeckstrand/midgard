@@ -32,6 +32,7 @@ describe('controls without forced colors (real browser)', () => {
 			await pixels(<Slider aria-label="Volume" value={90} />),
 		]
 		expect(bar[1]).not.toBe(bar[0])
+
 		expect(slider[1]).not.toBe(slider[0])
 	})
 

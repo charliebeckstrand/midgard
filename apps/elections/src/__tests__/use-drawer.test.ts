@@ -157,6 +157,7 @@ describe('useDrawerStep', () => {
 		act(() => result.current.go({ ...race, view: 'counties' }, 'replace'))
 
 		expect(window.history.length).toBe(before)
+
 		expect(result.current.step?.view).toBe('counties')
 
 		const back = vi.spyOn(window.history, 'go').mockImplementation(() => undefined)

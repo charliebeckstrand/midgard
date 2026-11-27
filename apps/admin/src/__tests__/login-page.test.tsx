@@ -69,6 +69,7 @@ describe('Login', () => {
 		render(page)
 
 		expect(screen.queryByText('Forgot password?')).toBeNull()
+
 		expect(screen.queryByText(/Don't have an account/)).toBeNull()
 	})
 
@@ -143,8 +144,11 @@ describe('LoginPage with the second step', () => {
 		expect(
 			await screen.findByText('The passkey check did not complete. Try again.'),
 		).toBeInTheDocument()
+
 		expect(startAuthentication).toHaveBeenCalledTimes(1)
+
 		expect(screen.getByRole('button', { name: 'Use a passkey' })).toBeInTheDocument()
+
 		expect(router.push).not.toHaveBeenCalled()
 	})
 

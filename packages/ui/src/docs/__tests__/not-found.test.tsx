@@ -42,6 +42,7 @@ describe('the not-found page', () => {
 		const list = screen.getByRole('list', { name: 'Did you mean?' })
 
 		expect(list.textContent).not.toContain('Components')
+
 		expect(screen.queryByText('Components')).toBeNull()
 	})
 
@@ -51,6 +52,7 @@ describe('the not-found page', () => {
 		const components = screen.getByRole('list', { name: 'Components' })
 
 		expect(screen.getByRole('list', { name: 'Modules' })).not.toBeNull()
+
 		expect(components.textContent).not.toContain('Components')
 	})
 

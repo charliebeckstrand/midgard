@@ -703,6 +703,7 @@ describe('ChatMessage', () => {
 			const markdown = bySlot(container, 'markdown')
 
 			expect(markdown?.className ?? '').not.toMatch(/text-(?:inherit|zinc|white|black)/)
+
 			expect(markdown?.className ?? '').not.toMatch(/\[&_/)
 		},
 	)

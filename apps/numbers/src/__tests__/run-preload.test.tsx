@@ -91,6 +91,7 @@ describe('RunPreloadProvider', () => {
 
 			// The switch gets the preloaded seed once, so a second switch does not play it again.
 			expect(take(!vsCpu)).toBe(seed)
+
 			expect(take(!vsCpu)).toBeNull()
 		},
 	)

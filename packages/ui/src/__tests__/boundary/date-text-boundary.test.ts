@@ -36,18 +36,31 @@ const HAND_FORMAT =
 describe('date-text boundary', () => {
 	it('finds each spelling of a hand-written date text', () => {
 		expect(HAND_FORMAT.test("new Intl.DateTimeFormat('en', options)")).toBe(true)
+
 		expect(HAND_FORMAT.test('Intl.DateTimeFormat(locale)')).toBe(true)
+
 		expect(HAND_FORMAT.test('date.toLocaleDateString()')).toBe(true)
+
 		expect(HAND_FORMAT.test("date.toLocaleTimeString('en')")).toBe(true)
+
 		expect(HAND_FORMAT.test("intl.formatDate(date, { dateStyle: 'long' })")).toBe(true)
+
 		expect(HAND_FORMAT.test('intl.formatTime(date)')).toBe(true)
+
 		expect(HAND_FORMAT.test('intl.formatDateTimeRange(from, to)')).toBe(true)
+
 		expect(HAND_FORMAT.test('intl.formatDateToParts(date)')).toBe(true)
+
 		expect(HAND_FORMAT.test('<FormattedDate value={date} />')).toBe(true)
+
 		expect(HAND_FORMAT.test('const { formatNumber, formatTime } = useIntl()')).toBe(true)
+
 		expect(HAND_FORMAT.test('const { formatNumber } = useIntl()')).toBe(false)
+
 		expect(HAND_FORMAT.test('intl.formatNumber(count)')).toBe(false)
+
 		expect(HAND_FORMAT.test('const options: Intl.DateTimeFormatOptions = {}')).toBe(false)
+
 		expect(HAND_FORMAT.test('count.toLocaleString()')).toBe(false)
 	})
 

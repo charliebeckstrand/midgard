@@ -229,6 +229,7 @@ describe('accordion header focus under forced colors', () => {
 		const item = classNames([accordion().item])
 
 		expect(item).toContain(`${gate}:ring-2`)
+
 		expect(item).toContain(`forced-colors:${gate}:outline-[Highlight]`)
 	})
 
@@ -236,6 +237,7 @@ describe('accordion header focus under forced colors', () => {
 		const trigger = classNames([accordion().trigger])
 
 		expect(trigger).toContain('focus-visible:outline-none')
+
 		expect(trigger).not.toContain('focus-visible:outline-hidden')
 	})
 })

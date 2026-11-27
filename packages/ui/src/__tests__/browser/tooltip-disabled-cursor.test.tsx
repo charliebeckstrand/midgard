@@ -51,6 +51,7 @@ describe('a disabled tooltip trigger (real browser)', () => {
 		const { control, child } = render(false)
 
 		expect(getComputedStyle(control).cursor).toBe('help')
+
 		expect(getComputedStyle(child).cursor).toBe('help')
 	})
 })

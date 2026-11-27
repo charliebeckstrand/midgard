@@ -504,7 +504,9 @@ describe('findOpenAction', () => {
 		const messages = [offer(), assistant('r2', 'prose')]
 
 		expect(findOpenAction(messages, 'r1', 't1')).toBeUndefined()
+
 		expect(findOpenAction(messages, 'r2', 'a1')).toBeUndefined()
+
 		expect(findOpenAction(messages, 'missing', 'a1')).toBeUndefined()
 	})
 })
@@ -564,6 +566,7 @@ describe('applyReplyChunk with a revision', () => {
 		})
 
 		expect(messages[0]?.revised).toBe(true)
+
 		expect(messages[1]).toEqual(assistant('r2', ''))
 	})
 })

@@ -392,6 +392,7 @@ describe('AppearanceSettings', () => {
 		const dialog = await openSettings()
 
 		expect(dialog).toHaveTextContent('Snug')
+
 		expect(dialog).not.toHaveTextContent('(md)')
 	})
 
@@ -401,6 +402,7 @@ describe('AppearanceSettings', () => {
 		expect(dialog).not.toHaveAttribute('data-glass')
 
 		expect(dialog).toHaveTextContent('Surfaces')
+
 		expect(dialog).toHaveTextContent('Solid')
 	})
 
@@ -418,6 +420,7 @@ describe('AppearanceSettings', () => {
 		const dialog = await openSettings()
 
 		expect(dialog).toHaveTextContent('Motion')
+
 		expect(dialog).toHaveTextContent('System')
 	})
 
@@ -440,13 +443,17 @@ describe('AppearanceSettings', () => {
 		)
 
 		expect(within(dialog).getByRole('tab', { name: 'UI' })).toHaveAttribute('aria-selected', 'true')
+
 		expect(dialog).toHaveTextContent('Appearance')
+
 		expect(dialog).toHaveTextContent('More fields')
+
 		expect(dialog).not.toHaveTextContent('Game fields')
 
 		await user.click(within(dialog).getByRole('tab', { name: 'Game' }))
 
 		expect(await within(dialog).findByText('Game fields')).toBeInTheDocument()
+
 		expect(within(dialog).getByRole('tab', { name: 'Game' })).toHaveAttribute(
 			'aria-selected',
 			'true',

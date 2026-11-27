@@ -46,11 +46,15 @@ describe('intl precompile boundary', () => {
 		const output = compileDescriptors(source, 'test.ts')
 
 		expect(output).not.toContain('description')
+
 		expect(output).toContain(
 			`defaultMessage: ${JSON.stringify(parse('{count, plural, one {# row} other {# rows}}'))},`,
 		)
+
 		expect(output).toContain(`defaultMessage: ${JSON.stringify(parse('Close…'))} } as const`)
+
 		expect(output).toContain(`defaultMessage: ${JSON.stringify(parse('Hi {name}'))} })`)
+
 		expect(output.startsWith('// é … ≥')).toBe(true)
 	})
 

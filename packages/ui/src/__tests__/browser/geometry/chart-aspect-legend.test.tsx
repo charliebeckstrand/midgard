@@ -75,6 +75,7 @@ describe('chart aspect ratio with a side legend (real browser)', () => {
 		expect(legendRect.left).toBeGreaterThanOrEqual(boxRect.right - 1)
 
 		expect(boxRect.width).toBeLessThan(600)
+
 		expect(boxRect.width).toBeGreaterThan(400)
 	})
 })

@@ -565,6 +565,7 @@ describe('MenuContent', () => {
 			// A discrete Space press: keydown arms, keyup is honored (the native click
 			// it triggers opens the menu).
 			expect(fireEvent.keyDown(trigger, { key: ' ' })).toBe(true)
+
 			expect(fireEvent.keyUp(trigger, { key: ' ' })).toBe(true)
 
 			// A discrete Enter press fires its click on keydown; not suppressed.
@@ -588,7 +589,9 @@ describe('MenuContent', () => {
 			// swallowing the repeats keeps one press to one activation (no rapid
 			// open/close), even though the fresh press itself is honored.
 			expect(fireEvent.keyDown(trigger, { key: 'Enter' })).toBe(true)
+
 			expect(fireEvent.keyDown(trigger, { key: 'Enter', repeat: true })).toBe(false)
+
 			expect(fireEvent.keyDown(trigger, { key: 'Enter', repeat: true })).toBe(false)
 		})
 	})
@@ -1534,6 +1537,7 @@ describe('Menu nested context surfaces', () => {
 		fireEvent.contextMenu(screen.getByTestId('inner-surface'), { clientX: 50, clientY: 80 })
 
 		expect(screen.getAllByRole('menu')).toHaveLength(1)
+
 		expect(screen.getByRole('menu', { name: 'Inner actions' })).toBeInTheDocument()
 	})
 
@@ -1545,6 +1549,7 @@ describe('Menu nested context surfaces', () => {
 		fireEvent.contextMenu(screen.getByTestId('inner-surface'), { ctrlKey: true, button: 2 })
 
 		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+
 		expect(onAncestorContextMenu).toHaveBeenCalledTimes(1)
 	})
 })

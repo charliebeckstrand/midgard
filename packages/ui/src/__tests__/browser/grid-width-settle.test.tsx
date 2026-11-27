@@ -57,6 +57,7 @@ describe('grid width settling (real browser)', () => {
 		const region = document.querySelector<HTMLElement>('[data-slot="grid-scroll"]')
 
 		expect(region?.style.height).toBe('')
+
 		expect(region?.getBoundingClientRect().height).toBeLessThan(320)
 	})
 

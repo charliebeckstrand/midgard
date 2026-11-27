@@ -67,12 +67,17 @@ function gateFiles(): Set<string> {
 describe('hydration-gate boundary', () => {
 	it('finds each spelling of the gate', () => {
 		expect(writesGate('useSyncExternalStore(noopSubscribe, read, server)')).toBe(true)
+
 		expect(writesGate('useSyncExternalStore(\n\t\tnoopSubscribe,\n\t\tread,\n\t)')).toBe(true)
+
 		expect(
 			writesGate('const subscribe = () => () => {}\nuseSyncExternalStore(subscribe, a, b)'),
 		).toBe(true)
+
 		expect(writesGate('useSyncExternalStore(store.subscribe, read, read)')).toBe(false)
+
 		expect(writesGate('useSyncExternalStore(store?.subscribe ?? noopSubscribe, a, b)')).toBe(false)
+
 		expect(writesGate('const cleanup = () => () => {}')).toBe(false)
 	})
 

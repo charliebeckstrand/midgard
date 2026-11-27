@@ -78,6 +78,7 @@ describe('chart legend focus persistence (real browser)', () => {
 
 		// At rest the chart reads normally: the pointer left, the emphasis cleared.
 		expect(revenue.matches(':focus-visible')).toBe(false)
+
 		expect(dimmed(otherSeriesBar(container))).toBe(false)
 
 		// Leaving and returning to the tab re-fires focus on the still-focused
@@ -87,6 +88,7 @@ describe('chart legend focus persistence (real browser)', () => {
 		await settle()
 
 		expect(revenue.matches(':focus-visible')).toBe(false)
+
 		// The regression: raw `focus` re-emphasized here, dimming Costs invisibly.
 		expect(dimmed(otherSeriesBar(container))).toBe(false)
 	})
@@ -105,6 +107,7 @@ describe('chart legend focus persistence (real browser)', () => {
 		await settle()
 
 		expect(revenue.matches(':focus-visible')).toBe(true)
+
 		// The regression: the pointer-leave cleared the still-held focus emphasis.
 		expect(dimmed(otherSeriesBar(container))).toBe(true)
 	})
@@ -135,6 +138,7 @@ describe('chart legend focus persistence (real browser)', () => {
 		await tabTo(before, chip)
 
 		expect(document.activeElement).toBe(chip)
+
 		expect(chip.matches(':focus-visible')).toBe(true)
 
 		await waitFor(() => expect(marksReceded(container)).toBe(true))
@@ -161,6 +165,7 @@ describe('chart legend focus persistence (real browser)', () => {
 		await settle()
 
 		expect(chip.matches(':focus-visible')).toBe(false)
+
 		expect(marksReceded(container)).toBe(false)
 	})
 
@@ -175,6 +180,7 @@ describe('chart legend focus persistence (real browser)', () => {
 		await settle()
 
 		expect(chip.matches(':focus-visible')).toBe(false)
+
 		expect(marksReceded(container)).toBe(false)
 	})
 })
