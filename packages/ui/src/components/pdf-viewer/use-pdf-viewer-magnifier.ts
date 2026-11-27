@@ -10,6 +10,7 @@ import {
 	useRef,
 	useState,
 } from 'react'
+import { useEscapeLayer } from '../../hooks/use-escape-layer'
 import { useFloatingPanel } from '../../hooks/use-floating-panel'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useTimeout } from '../../hooks/use-timeout'
@@ -517,6 +518,22 @@ export function usePdfViewerMagnifier(
 	 */
 	const yieldToMenu = useStableEvent(() => {
 		endHold()
+	})
+
+	/*
+	 * Escape closes the lens wherever the focus is (WCAG 1.4.13), as it closes a `TooltipPointer`.
+	 * Out of the dismiss stack, so the layer below, such as a Dialog, still gets the press. A hold
+	 * ends as a lift ends it, and the lift that follows presses nothing. A mouse lens closes
+	 * through floating-ui, so its next move starts a new dwell, and the lens comes back the way it
+	 * first arrived.
+	 */
+	useEscapeLayer({
+		open: enabled && open,
+		layered: false,
+		onDismiss: (event) => {
+			if (holdingRef.current) endHold(true)
+			else context.onOpenChange(false, event, 'escape-key')
+		},
 	})
 
 	/** Swallows the click that the lift at the end of a hold can fire. */
