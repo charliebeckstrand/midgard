@@ -1,4 +1,14 @@
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
+import {
+	afterAll,
+	afterEach,
+	beforeAll,
+	beforeEach,
+	describe,
+	expect,
+	it,
+	onTestFinished,
+	vi,
+} from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
 import { tooltipBody } from '../../../components/tooltip/tooltip-body-loader'
@@ -168,5 +178,49 @@ describe('a tooltip on an SVG trigger (real browser)', () => {
 		expect(next?.closest('svg')).toBeNull()
 
 		expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
+	})
+
+	it('still reads the first keyboard focus on a trigger in a shadow root', async () => {
+		// In a shadow tree, the document gets the shadow host as the target of a
+		// focus and as its active element. The listeners and the replay of the
+		// intent must read the shadow root.
+		const host = document.createElement('div')
+
+		document.body.append(host)
+
+		onTestFinished(() => host.remove())
+
+		const container = host.attachShadow({ mode: 'open' }).appendChild(document.createElement('div'))
+
+		const onOpenChange = vi.fn()
+
+		renderUI(
+			<>
+				<button type="button">Before</button>
+
+				<Tooltip delay={0} onOpenChange={onOpenChange}>
+					<TooltipTrigger>
+						<button type="button">Details</button>
+					</TooltipTrigger>
+
+					<TooltipContent>Tip</TooltipContent>
+				</Tooltip>
+			</>,
+			{ container },
+		)
+
+		const [before, trigger] = container.querySelectorAll('button')
+
+		before?.focus()
+
+		await userEvent.keyboard('{Tab}')
+
+		expect(container.ownerDocument.activeElement).toBe(host)
+
+		expect(host.shadowRoot?.activeElement).toBe(trigger)
+
+		await releaseLoad()
+
+		expect(onOpenChange).toHaveBeenCalledWith(true)
 	})
 })

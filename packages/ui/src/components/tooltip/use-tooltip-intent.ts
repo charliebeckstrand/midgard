@@ -145,7 +145,8 @@ function focusOpens(event: FocusEvent): boolean {
  * `onIntent`. The listeners also record the intent that the state replays.
  * They keep the gates of the interaction hooks of Floating UI, so they record
  * only an intent that would open the tooltip. The focus listeners are on the
- * document, so they do not make an SVG trigger a Tab stop.
+ * root node of the trigger (its document or its shadow root), so they do not
+ * make an SVG trigger a Tab stop.
  *
  * @returns A function that removes the listeners.
  */
@@ -156,6 +157,11 @@ function listenForIntent(
 	onIntent: () => void,
 ): () => void {
 	const doc = node.ownerDocument
+
+	// The document or the shadow root of the trigger. In a shadow tree, the
+	// document gets the shadow host as the target of a focus and as its active
+	// element, so the focus listeners and the reads of the focus use the root.
+	const root = node.getRootNode() as Node & DocumentOrShadowRoot
 
 	const start = () => {
 		void tooltipBody.load()
@@ -198,10 +204,10 @@ function listenForIntent(
 		blockFocus = false
 	}
 
-	// The focus listeners are on the document, in the capture phase, and read
-	// only a focus on the trigger or in it. Blink makes an SVG element with a
-	// focus listener of its own a Tab stop, also with no `tabindex`. When the
-	// state removes that listener, the focused element loses its focus to
+	// The focus listeners are on the root of the trigger, in the capture phase,
+	// and read only a focus on the trigger or in it. Blink makes an SVG element
+	// with a focus listener of its own a Tab stop, also with no `tabindex`. When
+	// the state removes that listener, the focused element loses its focus to
 	// `body`.
 	const onTrigger = (event: FocusEvent) =>
 		event.target instanceof Node && node.contains(event.target)
@@ -224,7 +230,7 @@ function listenForIntent(
 		// As `useFocus`, after the window blur: focus that leaves the page keeps
 		// the tooltip, and focus that leaves the trigger closes it.
 		win.setTimeout(() => {
-			if (node.contains(doc.activeElement)) return
+			if (node.contains(root.activeElement)) return
 
 			intent.focus = null
 
@@ -256,7 +262,7 @@ function listenForIntent(
 	}
 
 	const onWindowBlur = () => {
-		if (!pending() && node === doc.activeElement) blockFocus = true
+		if (!pending() && node === root.activeElement) blockFocus = true
 	}
 
 	const stopObserver = observeReferenceDisabled(node, () => {
@@ -283,8 +289,9 @@ function listenForIntent(
 	node.addEventListener('pointerenter', onPointerEnter, { signal })
 	node.addEventListener('pointerdown', onPointerDown, { signal })
 	node.addEventListener('pointerleave', onPointerLeave, { signal })
-	doc.addEventListener('focusin', onFocusIn, { capture: true, signal })
-	doc.addEventListener('focusout', onFocusOut, { capture: true, signal })
+	// The type of a root node maps no event name to its event type.
+	root.addEventListener('focusin', onFocusIn as EventListener, { capture: true, signal })
+	root.addEventListener('focusout', onFocusOut as EventListener, { capture: true, signal })
 	node.addEventListener('click', onClick, { signal })
 	node.addEventListener('keydown', onKeyDown, { signal })
 	win.addEventListener('blur', onWindowBlur, { signal })
