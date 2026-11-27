@@ -2,6 +2,7 @@
 
 import { useEffect, useSyncExternalStore } from 'react'
 import { useLazyModule } from '../../hooks/use-lazy-module'
+import { SidebarLayoutAside } from '../../layouts/sidebar'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { createLazyModule } from '../../utilities/lazy-module'
 import { noop } from '../../utilities/noop'
@@ -60,14 +61,15 @@ export function EventsAside() {
 
 	// The attribute marks the panel as a part of the tools (`TOOL_ATTRIBUTE`).
 	return (
-		<aside
+		<SidebarLayoutAside
 			data-events-tool=""
 			aria-label={intl.formatMessage(eventsMessages.events)}
 			// The aside of the layout shows only in the inline layout, so the panel
-			// needs no breakpoint of its own.
-			className="hidden h-full min-h-0 w-96 flex-col py-2 pe-2 [:root[data-events][data-events-pinned]_&]:flex"
+			// needs no breakpoint of its own. The card does not grow past the
+			// height of the aside, so the body of the panel scrolls.
+			className="hidden min-h-0 w-94 flex-col [:root[data-events][data-events-pinned]_&]:flex"
 		>
 			{pinned && Panel && <Panel />}
-		</aside>
+		</SidebarLayoutAside>
 	)
 }

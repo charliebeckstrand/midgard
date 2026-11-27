@@ -1,7 +1,12 @@
 import { Inbox, Settings, Users } from 'lucide-react'
 import { DescriptionDetails, DescriptionList, DescriptionTerm } from 'ui/description-list'
 import { Heading } from 'ui/heading'
-import { SidebarLayout, SidebarLayoutBody, SidebarLayoutHeader } from 'ui/layouts'
+import {
+	SidebarLayout,
+	SidebarLayoutAside,
+	SidebarLayoutBody,
+	SidebarLayoutHeader,
+} from 'ui/layouts'
 import { useIntl } from 'ui/primitives/intl'
 import {
 	Sidebar,
@@ -39,9 +44,9 @@ const sidebar = (
 	</Sidebar>
 )
 
-// In a wide frame, `aside` shows the selected order on the end edge, and
-// `stickyHeader` keeps the header at the top as the orders scroll. In a narrow
-// frame, the aside does not show.
+// In a wide frame, `aside` shows the selected order in a card on the end
+// edge, and `stickyHeader` keeps the header at the top as the orders scroll.
+// In a narrow frame, the aside does not show.
 export default function WithAside() {
 	const intl = useIntl()
 
@@ -53,7 +58,7 @@ export default function WithAside() {
 			stickyHeader
 			aside={
 				selected && (
-					<div className="p-4">
+					<SidebarLayoutAside aria-label="Selected order" className="p-4">
 						<Heading level={3}>{selected.id}</Heading>
 						<DescriptionList>
 							<DescriptionTerm>Customer</DescriptionTerm>
@@ -63,7 +68,7 @@ export default function WithAside() {
 							<DescriptionTerm>Amount</DescriptionTerm>
 							<DescriptionDetails>{intl.formatNumber(selected.amount, usd)}</DescriptionDetails>
 						</DescriptionList>
-					</div>
+					</SidebarLayoutAside>
 				)
 			}
 		>

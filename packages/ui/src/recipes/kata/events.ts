@@ -1,6 +1,6 @@
 /**
  * Events kata: the unit of the views of `ui/events`. The root slot `base` is
- * the card of the pinned panel, and `body` and `footer` are its other parts.
+ * the pinned panel, and `body` and `footer` are its other parts.
  * The sheet and the pinned panel share the title `row`. The other slots are:
  *
  * - `button`: the header button.
@@ -17,7 +17,7 @@
  * clear AA on the surface.
  */
 import { defineKata } from '../../core/recipe'
-import { dan, hannou, iro, narabi, omote, sen } from '../kiso'
+import { dan, hannou, iro, narabi, sen } from '../kiso'
 
 const { x, top, bottom } = dan.space.panel
 
@@ -28,9 +28,9 @@ const { forced } = sen
 
 export const k = defineKata(
 	{
-		// The panel shows only in the aside of a sidebar layout. The aside shows
-		// only while the layout is inline, so the panel is always a card.
-		base: [omote.content.card, flex.col, 'h-full min-h-0'],
+		// The panel shows only in the card of the aside of a sidebar layout
+		// (`SidebarLayoutAside`), which paints the surface.
+		base: [flex.col, 'h-full min-h-0'],
 		slots: {
 			body: [x, 'min-h-0 flex-1 overflow-auto py-2'],
 			footer: [x, bottom, 'pt-2'],

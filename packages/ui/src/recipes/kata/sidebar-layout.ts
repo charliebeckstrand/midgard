@@ -2,7 +2,7 @@
  * Sidebar layout kata: the unit of `layouts/sidebar`. It is not the kata of the
  * Sidebar component (`kata/sidebar.ts`). The root slot `base` is the layout.
  * The other slots are its parts: the `navbar` of the drawer layout, the inline
- * `panel` and `aside`, the `actions`, the parts of the floating sidebar
+ * `panel`, the `aside` and its `aside.card`, the `actions`, the parts of the floating sidebar
  * (`floating.peek`, `floating.sheet`, `floating.body`, `floating.buffer`), the
  * `content` and its `content.wrapper`, the `header` and its `header.actions`,
  * the `body`, the `footer`, and the `skip` link.
@@ -62,6 +62,14 @@ const column = [
 	'sticky top-0 h-[100cqh] overscroll-contain',
 	'overflow-x-hidden overflow-y-auto',
 ]
+
+// The card of the aside (`SidebarLayoutAside`) has the surface of the content
+// card in the inline layout, so text in the aside has the contrast that it has
+// in the content. The gutter around it matches the gutter of the content. It
+// grows to the height of the aside, and a taller card scrolls in the aside. A
+// card that does not show takes no room, so an aside with nothing in view
+// paints no surface and no gutter.
+const asideCard = [omote.content.card, 'grow', 'my-2 me-2']
 
 // The panel on the start edge holds the sidebar.
 const panel = [
@@ -163,8 +171,13 @@ export const k = defineKata({
 		navbar: { base: navbar, responsive: { layout: offcanvas.drawer.block } },
 		panel: { base: panel, responsive: { layout: offcanvas.inline.block } },
 		// The aside on the end edge. Its content takes its own width. While it
-		// scrolls, it is a tab stop, so it shows an inset ring.
-		aside: { base: [...column, ...focus.inset], responsive: { layout: offcanvas.inline.block } },
+		// scrolls, it is a tab stop, so it shows an inset ring. It is a flex
+		// column, so a card fills its height.
+		aside: {
+			base: [...column, 'flex-col', ...focus.inset],
+			responsive: { layout: offcanvas.inline.flex },
+			slots: { card: asideCard },
+		},
 		actions,
 		floating: {
 			slots: {
