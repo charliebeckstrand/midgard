@@ -1,9 +1,8 @@
 import { Check, Pencil, Trash, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import { Button } from 'ui/button'
 import { Flex } from 'ui/flex'
 import { Grid, type GridColumn } from 'ui/grid'
-import { Icon } from 'ui/icon'
+import { IconButton } from 'ui/icon-button'
 import { PointerHint } from '../../../../kit/pointer-hint.tsx'
 import { applyChanges, EditHelp, initialPeople, type Person, personColumns } from './people.tsx'
 
@@ -21,26 +20,23 @@ export default function Editable() {
 				actions: (row, { editing, edit, save, discard }) =>
 					editing ? (
 						<Flex gap="sm">
-							<Button variant="bare" color="green" aria-label="Save row" onClick={save}>
-								<Icon icon={<Check />} />
-							</Button>
-							<Button variant="bare" color="red" aria-label="Discard row edits" onClick={discard}>
-								<Icon icon={<X />} />
-							</Button>
+							<IconButton color="green" aria-label="Save row" onClick={save} icon={<Check />} />
+							<IconButton
+								color="red"
+								aria-label="Discard row edits"
+								onClick={discard}
+								icon={<X />}
+							/>
 						</Flex>
 					) : (
 						<Flex gap="sm">
-							<Button variant="bare" color="blue" aria-label="Edit row" onClick={edit}>
-								<Icon icon={<Pencil />} />
-							</Button>
-							<Button
-								variant="bare"
+							<IconButton color="blue" aria-label="Edit row" onClick={edit} icon={<Pencil />} />
+							<IconButton
 								color="red"
 								aria-label="Delete row"
 								onClick={() => setPeople((prev) => prev.filter((person) => person.id !== row.id))}
-							>
-								<Icon icon={<Trash />} />
-							</Button>
+								icon={<Trash />}
+							/>
 						</Flex>
 					),
 			},

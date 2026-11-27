@@ -1,7 +1,6 @@
 import { Pencil } from 'lucide-react'
-import { Button } from 'ui/button'
 import { Grid, type GridColumn } from 'ui/grid'
-import { Icon } from 'ui/icon'
+import { IconButton } from 'ui/icon-button'
 import { JsonTree } from 'ui/json-tree'
 import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
@@ -12,11 +11,7 @@ const actionColumns: GridColumn<Person>[] = [
 	...columns,
 	{
 		id: 'actions',
-		actions: (row) => (
-			<Button variant="bare" color="blue" aria-label={`Edit ${row.name}`}>
-				<Icon icon={<Pencil />} />
-			</Button>
-		),
+		actions: (row) => <IconButton color="blue" aria-label={`Edit ${row.name}`} icon={<Pencil />} />,
 	},
 ]
 

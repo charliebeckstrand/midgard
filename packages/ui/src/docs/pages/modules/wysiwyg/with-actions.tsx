@@ -1,8 +1,7 @@
 import { ArrowUp } from 'lucide-react'
 import { useRef, useState } from 'react'
-import { Button } from 'ui/button'
 import { Field, Label } from 'ui/fieldset'
-import { Icon } from 'ui/icon'
+import { IconButton } from 'ui/icon-button'
 import { Wysiwyg, type WysiwygHandle, WysiwygToolbar } from 'ui/wysiwyg'
 
 export default function WithActions() {
@@ -31,9 +30,14 @@ export default function WithActions() {
 				enterKeyHint="send"
 				placeholder="Ask anything"
 				actions={
-					<Button aria-label="Send" color="blue" disabled={message.trim() === ''} onClick={send}>
-						<Icon icon={<ArrowUp />} />
-					</Button>
+					<IconButton
+						aria-label="Send"
+						color="blue"
+						disabled={message.trim() === ''}
+						onClick={send}
+						variant="solid"
+						icon={<ArrowUp />}
+					/>
 				}
 			>
 				<WysiwygToolbar actions={['bold', 'italic', 'link', 'code']} />

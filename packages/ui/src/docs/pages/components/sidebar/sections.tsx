@@ -1,9 +1,8 @@
 import { Folder, House, Inbox, LogOut, MessageCircle, Plus, Settings } from 'lucide-react'
 import { useState } from 'react'
-import { Button } from 'ui/button'
 import { Flex } from 'ui/flex'
 import { Heading } from 'ui/heading'
-import { Icon } from 'ui/icon'
+import { IconButton } from 'ui/icon-button'
 import {
 	Sidebar,
 	SidebarBody,
@@ -61,9 +60,13 @@ export default function Sections() {
 						<Text tone="muted" size="xs" className="uppercase tracking-wide">
 							Projects
 						</Text>
-						<Button variant="plain" size="sm" aria-label="New project">
-							<Icon icon={<Plus />} />
-						</Button>
+						<IconButton
+							variant="plain"
+							size="sm"
+							aria-label="New project"
+							icon={<Plus />}
+							tooltip
+						/>
 					</Flex>
 					<SidebarList aria-label="Projects">
 						{projects.map((project) => (
@@ -84,9 +87,7 @@ export default function Sections() {
 						<Text tone="muted" size="xs" className="uppercase tracking-wide">
 							Chats
 						</Text>
-						<Button variant="plain" size="sm" aria-label="New chat">
-							<Icon icon={<Plus />} />
-						</Button>
+						<IconButton variant="plain" size="sm" aria-label="New chat" icon={<Plus />} tooltip />
 					</Flex>
 					<SidebarList aria-label="Chats">
 						{chats.map((chat) => (
