@@ -23,7 +23,7 @@ import { useA11yRoving } from '../../../../hooks/a11y/use-a11y-roving'
 import { useReportedChange } from '../../../../hooks/use-reported-change'
 import { useStableEvent } from '../../../../hooks/use-stable-event'
 import { useIntl } from '../../../../primitives/intl/use-intl'
-import type { ChartColorSlot } from '../../../../recipes/kata/chart'
+import { type ChartColorSlot, k } from '../../../../recipes/kata/chart'
 import type { Orientation } from '../../../../types/orientation'
 import { focusDropped } from '../../../../utilities/focus-dropped'
 import { observeResizeBeforePaint } from '../../../../utilities/observe-resize-before-paint'
@@ -177,8 +177,6 @@ const EMPTY_HIDDEN: ReadonlySet<number> = new Set()
 /** Props for {@link ChartLegendSwatch}. @internal */
 type ChartLegendSwatchProps = {
 	item: ChartLegendItem
-	/** The series is toggled off, so the swatch dims. */
-	off: boolean
 	/** The `texture` prop is on, so the square swatch hatches in every mode. */
 	texture: boolean
 }
@@ -189,7 +187,7 @@ type ChartLegendSwatchProps = {
  *
  * @internal
  */
-function ChartLegendSwatch({ item, off, texture }: ChartLegendSwatchProps) {
+function ChartLegendSwatch({ item, texture }: ChartLegendSwatchProps) {
 	return (
 		<ChartSwatch
 			swatch={item.swatch}
@@ -199,7 +197,6 @@ function ChartLegendSwatch({ item, off, texture }: ChartLegendSwatchProps) {
 			dashed={item.dashed}
 			hollow={item.hollow}
 			active={texture}
-			off={off}
 		/>
 	)
 }
@@ -257,14 +254,14 @@ const ChartLegendEntry = memo(function ChartLegendEntry({
 			label={item.label}
 			ghost={ghost}
 			className={cn(panel && 'w-full min-w-0 justify-start')}
-			keys={<ChartLegendSwatch item={item} off={off} texture={texture} />}
+			keys={<ChartLegendSwatch item={item} texture={texture} />}
 			detail={
 				item.detail && (
 					<Text
 						as="span"
 						tone="muted"
 						size="sm"
-						className={cn('text-start leading-tight tabular-nums', off && 'opacity-60')}
+						className={cn('text-start leading-tight tabular-nums', k.legend.off.detail)}
 					>
 						{item.detail}
 					</Text>
@@ -326,13 +323,13 @@ function ChartLegendOverflowSwitch({
 			onFocus={emphasis.sync}
 			onBlur={emphasis.sync}
 		>
-			<ChartLegendSwatch item={item} off={off} texture={texture} />
+			<ChartLegendSwatch item={item} texture={texture} />
 
 			<Text
 				as="span"
 				tone="muted"
 				size="sm"
-				className={cn('min-w-0 text-start leading-tight', off && 'line-through opacity-60')}
+				className={cn('min-w-0 text-start leading-tight', k.legend.off.label)}
 			>
 				{item.label}
 			</Text>
@@ -387,8 +384,8 @@ const ChartLegendReferenceSwitch = memo(function ChartLegendReferenceSwitch({
 			off={off}
 			label={reference.label}
 			ghost={ghost}
-			keys={<ChartLegendReferenceSwatch reference={reference} off={off} />}
-			detail={<ChartLegendReferenceValue value={reference.value} off={off} />}
+			keys={<ChartLegendReferenceSwatch reference={reference} />}
+			detail={<ChartLegendReferenceValue value={reference.value} />}
 			onToggle={() => onToggle(reference.index)}
 			onPoint={(pointed) => emphasis.point(pointed ? reference.index : null)}
 			onFocusChange={emphasis.sync}
@@ -403,7 +400,7 @@ const ChartLegendReferenceSwitch = memo(function ChartLegendReferenceSwitch({
  *
  * @internal
  */
-function ChartLegendReferenceValue({ value, off }: { value?: string; off: boolean }) {
+function ChartLegendReferenceValue({ value }: { value?: string }) {
 	if (value === undefined) return null
 
 	return (
@@ -412,7 +409,7 @@ function ChartLegendReferenceValue({ value, off }: { value?: string; off: boolea
 			tone="muted"
 			size="sm"
 			data-slot="chart-legend-reference-value"
-			className={cn('leading-tight font-normal tabular-nums', off && 'opacity-60')}
+			className={cn('leading-tight font-normal tabular-nums', k.legend.off.detail)}
 		>
 			{value}
 		</Text>
@@ -428,14 +425,7 @@ function ChartLegendReferenceValue({ value, off }: { value?: string; off: boolea
  *
  * @internal
  */
-function ChartLegendReferenceSwatch({
-	reference,
-	off,
-}: {
-	reference: ChartLegendReference
-	/** The rule is toggled off, so the swatch dims. */
-	off: boolean
-}) {
+function ChartLegendReferenceSwatch({ reference }: { reference: ChartLegendReference }) {
 	return (
 		<Swatch
 			shape="line"
@@ -443,7 +433,7 @@ function ChartLegendReferenceSwatch({
 			orientation={reference.orientation}
 			color={reference.swatchClass || undefined}
 			style={reference.color ? { color: reference.color } : undefined}
-			className={cn(off && 'opacity-40')}
+			className={k.legend.off.key}
 		/>
 	)
 }
@@ -808,19 +798,15 @@ const ChartLegendNote = memo(function ChartLegendNote({
 				onBlur={emphasis.sync}
 			>
 				<span className="flex h-5 items-center">
-					<ChartLegendReferenceSwatch reference={reference} off={off} />
+					<ChartLegendReferenceSwatch reference={reference} />
 				</span>
 
 				<span className="flex min-w-0 flex-wrap items-baseline gap-x-1.5">
-					<Text
-						as="span"
-						tone="muted"
-						className={cn('font-medium', off && 'line-through opacity-60')}
-					>
+					<Text as="span" tone="muted" className={cn('font-medium', k.legend.off.label)}>
 						{reference.label}
 					</Text>
 
-					<ChartLegendReferenceValue value={reference.value} off={off} />
+					<ChartLegendReferenceValue value={reference.value} />
 				</span>
 
 				{reference.description && (
@@ -828,7 +814,7 @@ const ChartLegendNote = memo(function ChartLegendNote({
 						as="span"
 						tone="muted"
 						size="xs"
-						className={cn('col-start-2 min-w-0', off && 'opacity-60')}
+						className={cn('col-start-2 min-w-0', k.legend.off.detail)}
 					>
 						{reference.description}
 					</Text>

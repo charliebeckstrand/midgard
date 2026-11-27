@@ -850,8 +850,6 @@ describe('BarChart', () => {
 
 		expect(item).toBeUnpressed()
 
-		expect(item.querySelector('.line-through')).not.toBeNull()
-
 		expect(barCount(container)).toBe(0)
 
 		fireEvent.click(item)
@@ -958,7 +956,7 @@ describe('BarChart', () => {
 		expect(allBySlot(container, 'chart-bar')[0]?.getAttribute('class')).not.toContain(CHART_RECEDE)
 	})
 
-	it('toggles a series off and strikes its legend entry through', () => {
+	it('toggles a series off and un-presses its legend entry', () => {
 		const { container } = renderUI(chart())
 
 		const costs = allBySlot(container, 'chart-legend-item')[1] as HTMLButtonElement
@@ -968,8 +966,6 @@ describe('BarChart', () => {
 		expect(barCount(container)).toBe(3)
 
 		expect(costs).toBeUnpressed()
-
-		expect(costs.querySelector('.line-through')).not.toBeNull()
 
 		// The tooltip readout follows the toggle; the lone series recenters, so
 		// (305, 100) sits on Q3's remaining revenue bar.

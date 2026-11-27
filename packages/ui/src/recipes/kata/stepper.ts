@@ -15,12 +15,11 @@
  * `interactive` is true when the steps are buttons.
  */
 import { defineKata, mode, type VariantProps } from '../../core/recipe'
-import { dan, hannou, iro, ji, kasane, kokkaku, narabi, sen } from '../kiso'
+import { dan, hannou, iro, ji, kokkaku, narabi, sen } from '../kiso'
 
 const { cursor, disabled } = hannou
 const { text } = iro
 const { size } = ji
-const { rounded } = kasane
 const { flex } = narabi
 const { border, focus } = sen
 
@@ -131,8 +130,7 @@ export const k = defineKata(
 					'relative',
 					flex.inline,
 					'justify-center',
-					'size-4.5 shrink-0',
-					rounded.full,
+					...kokkaku.stepper.indicator,
 					...mode('bg-zinc-400', 'dark:bg-zinc-600'),
 					// The hover and the focus of a step button. A display-only step is an
 					// `li`, which is never enabled or focused, so these do not match there.

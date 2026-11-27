@@ -55,7 +55,7 @@ export const k = defineKata(
 		base: 'not-has-[[role=option],[data-slot=virtual-options]:not([data-empty])]:hidden',
 		slots: {
 			// The search field takes the free width, and the X close stays at the end.
-			search: [flex.row, 'items-center', dan.gap.scale.sm],
+			search: [flex.row, dan.gap.scale.sm],
 			field: ['min-w-0', 'flex-1'],
 			// A group after any sibling takes the slot gap of the panel, which is the
 			// space between the search input and the first group. Each heading

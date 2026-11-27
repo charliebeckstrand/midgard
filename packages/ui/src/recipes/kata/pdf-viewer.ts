@@ -160,7 +160,7 @@ export const k = defineKata({
 		 */
 		search: {
 			slots: {
-				bar: [flex.row, 'items-center', dan.gap.scale.xs, 'w-80 max-w-full'],
+				bar: [flex.row, dan.gap.scale.xs, 'w-80 max-w-full'],
 				field: ['min-w-0 flex-1'],
 				count: [size.sm, text.muted, 'tabular-nums select-none whitespace-nowrap'],
 			},
@@ -291,7 +291,7 @@ export const k = defineKata({
 				 * the reader types does not move the tiles below it.
 				 */
 				caption: {
-					base: [flex.row, 'items-center', dan.gap.scale.sm],
+					base: [flex.row, dan.gap.scale.sm],
 					marked: { true: 'min-h-6.5', false: '' },
 				},
 				label: [
