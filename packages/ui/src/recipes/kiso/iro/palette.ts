@@ -15,16 +15,24 @@
  * light where 700 misses AA on the 15% soft fill (amber, green).
  * `contrast.test.ts` measures each entry through Button.
  *
+ * A mark (`<Code>`, `<Kbd>`) has the default text color, which clears 4.5:1 on
+ * the page (`shaku.mark`). A solid fill is not the page, and its own text color
+ * is the color that clears 4.5:1 on it. Thus a mark on a solid fill keeps the
+ * text color of the fill (`onFill`).
+ *
  * Layer: kiso · Concern: chromatic palette
  */
 
+/** A mark on a solid fill keeps the text color of the fill. */
+const onFill = '**:data-[slot=code]:text-current **:data-[slot=kbd]:text-current'
+
 export const palette = {
 	solid: {
-		zinc: 'bg-zinc-600 text-white',
-		red: 'bg-red-600 text-white',
-		amber: 'bg-amber-500 text-amber-950',
-		green: 'bg-green-700 text-white',
-		blue: 'bg-blue-600 text-white',
+		zinc: `bg-zinc-600 text-white ${onFill}`,
+		red: `bg-red-600 text-white ${onFill}`,
+		amber: `bg-amber-500 text-amber-950 ${onFill}`,
+		green: `bg-green-700 text-white ${onFill}`,
+		blue: `bg-blue-600 text-white ${onFill}`,
 	},
 	soft: {
 		zinc: 'bg-zinc-500/15 text-zinc-700 dark:text-zinc-400',
@@ -59,9 +67,9 @@ export const palette = {
 /** The extended hues (rose / violet / sky) of each variant, for a kata that opts into them. */
 export const extended = {
 	solid: {
-		rose: 'bg-rose-600 text-white',
-		violet: 'bg-violet-600 text-white',
-		sky: 'bg-sky-700 text-white',
+		rose: `bg-rose-600 text-white ${onFill}`,
+		violet: `bg-violet-600 text-white ${onFill}`,
+		sky: `bg-sky-700 text-white ${onFill}`,
 	},
 	soft: {
 		rose: 'bg-rose-500/15 text-rose-700 dark:text-rose-400',
