@@ -52,6 +52,24 @@ describe('nationalRace', () => {
 
 		expect(cacheLife).toHaveBeenCalledExactlyOnceWith('seconds')
 	})
+
+	it('throws when the body of an OK answer breaks off, and the cache keeps it for seconds', async () => {
+		stubCivic(async () => {
+			const body = new ReadableStream({
+				pull(controller) {
+					controller.error(new TypeError('terminated'))
+				},
+			})
+
+			return new Response(body, { status: 200 })
+		})
+
+		await expect(nationalRace(87528)).rejects.toThrow(
+			'civicAPI broke off the answer for race 87528.',
+		)
+
+		expect(cacheLife).toHaveBeenCalledExactlyOnceWith('seconds')
+	})
 })
 
 describe('race', () => {
@@ -77,6 +95,14 @@ describe('race', () => {
 		stubCivic(async () => Response.json({}))
 
 		await expect(race(87087)).rejects.toThrow()
+
+		expect(cacheLife).not.toHaveBeenCalled()
+	})
+
+	it('throws an OK answer that is not JSON', async () => {
+		stubCivic(async () => new Response('<html>', { status: 200 }))
+
+		await expect(race(87087)).rejects.toThrow(SyntaxError)
 
 		expect(cacheLife).not.toHaveBeenCalled()
 	})

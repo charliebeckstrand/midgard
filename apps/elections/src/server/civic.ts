@@ -4,7 +4,7 @@ const CIVIC_API = 'https://civicapi.org/api/v2'
 /** The client that the requests name, so the operator of civicAPI can tell who reads it. */
 const USER_AGENT = 'midgard-elections (+https://github.com/charliebeckstrand/midgard)'
 
-/** A read of civicAPI: the answer, or the message of a failure. A failure is no answer, or an answer that is not OK. */
+/** A read of civicAPI: the answer, or the message of a failure. A failure is no answer, an answer that is not OK, or a body that breaks off. */
 export type CivicRead = { ok: true; raw: unknown } | { ok: false; message: string }
 
 /**
@@ -22,5 +22,10 @@ export async function fetchRace(id: number): Promise<CivicRead> {
 	if (!response.ok)
 		return { ok: false, message: `civicAPI answered ${response.status} for race ${id}.` }
 
-	return { ok: true, raw: await response.json() }
+	// A body that breaks off is no answer. A whole body that is not JSON throws.
+	const body = await response.text().catch(() => null)
+
+	if (body === null) return { ok: false, message: `civicAPI broke off the answer for race ${id}.` }
+
+	return { ok: true, raw: JSON.parse(body) }
 }
