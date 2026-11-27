@@ -10,6 +10,7 @@ import { useStableEvent } from '../../hooks/use-stable-event'
 import { k } from '../../recipes/kata/lightbox'
 import { holdTextSelection } from '../../utilities/hold-text-selection'
 import { isPrimaryPress } from '../../utilities/primary-press'
+import type { Size } from '../../utilities/size'
 import {
 	dismisses,
 	dismissFrame,
@@ -133,7 +134,7 @@ type Press = {
 	stage: HTMLElement | null
 	/** The photo that a swipe to close moves, and its size at rest. */
 	photo: HTMLElement | null
-	size: { width: number; height: number }
+	size: Size
 	/** The frame that a swipe to close paints now. */
 	frame: { transform: string; opacity: number }
 	/** The recent points of the press, for the speed at the lift. */

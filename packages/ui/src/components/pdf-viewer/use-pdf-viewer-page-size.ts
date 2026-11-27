@@ -1,9 +1,8 @@
 'use client'
 
 import { type SyntheticEvent, useCallback, useMemo, useState } from 'react'
+import type { Size } from '../../utilities/size'
 import type { PdfViewerPage } from './types'
-
-type Size = { width: number; height: number }
 
 /** Active-page sizing returned by {@link usePdfViewerPageSize}. @internal */
 type PageSizeResult = {

@@ -16,6 +16,7 @@ import { useStableEvent } from '../../hooks/use-stable-event'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { isActivationKey } from '../../utilities/keyboard-navigation'
 import { hasBrowserModifier } from '../../utilities/modifier-keys'
+import type { Size } from '../../utilities/size'
 import { KEY_PRESS } from '../chart/engine/chart-press'
 import type { ChartPress } from '../chart/engine/types'
 import { useMapHoverActions } from './context'
@@ -102,7 +103,7 @@ export type MapKeyboardOptions = {
 	 */
 	moves: MapStopMoves
 	/** The active viewBox width and height, for the frame-to-client conversion. */
-	view: { width: number; height: number }
+	view: Size
 	/** The plot's SVG, whose box places a stop in the viewport. */
 	svgRef: RefObject<SVGSVGElement | null>
 	/**

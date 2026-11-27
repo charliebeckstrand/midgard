@@ -1,3 +1,5 @@
+import type { Size } from './size'
+
 /** An element's border box, on the two axes a resize is read along. */
 export type BorderBox = {
 	inline: number
@@ -27,10 +29,7 @@ export function measureBox(target: Element, borderBox?: ResizeObserverSize): Bor
 }
 
 /** An element's content box, in CSS px. @internal */
-export type ContentBox = {
-	width: number
-	height: number
-}
+export type ContentBox = Size
 
 /**
  * An element's content box: the box that its children lay out in. Use it to
