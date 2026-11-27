@@ -1,6 +1,6 @@
 'use client'
 
-import { type ComponentProps, useCallback, useId, useMemo, useState } from 'react'
+import { type ComponentProps, useId, useMemo, useState } from 'react'
 import { cn } from '../../core/cn'
 import type { ScaleStep } from '../../core/density/scale'
 import { CurrentContext, CurrentStoreContext } from '../../primitives/current/context'
@@ -15,6 +15,7 @@ import {
 	type TabsVariant,
 	useTabsActivation,
 } from './context'
+import { createTabsPanels } from './use-tabs-panels'
 
 /** Props for {@link Tabs}: selection state, the `variant`/`orientation` context broadcast to its list and panels, and the `size` scope, plus native `<div>` attributes (less `defaultValue`). */
 export type TabsProps = Omit<ComponentProps<'div'>, 'defaultValue'> & {
@@ -82,61 +83,13 @@ export function Tabs({
 
 	const baseId = useId()
 
-	// Ref-count all-mounted TabContents (`mount="always"`, every inactive panel
-	// held in the DOM) and each TabContent outside a TabContents, which is always
-	// mounted, so inactive tabs keep aria-controls; a plain boolean would be
-	// cleared by a second registrant unmounting while the first still holds
-	// panels in the DOM.
-	const [mountedPanelCount, setMountedPanelCount] = useState(0)
-
-	const registerMountedPanels = useCallback(() => {
-		setMountedPanelCount((count) => count + 1)
-
-		return () => setMountedPanelCount((count) => count - 1)
-	}, [])
-
-	const panelsMounted = mountedPanelCount > 0
-
-	// Ref-count every TabContents and each TabContent outside a TabContents, so
-	// a segment tab sets `aria-controls` only when a panel can exist. A
-	// segmented control with no panels then has no reference to a missing id.
-	const [panelsCount, setPanelsCount] = useState(0)
-
-	const registerPanels = useCallback(() => {
-		setPanelsCount((count) => count + 1)
-
-		return () => setPanelsCount((count) => count - 1)
-	}, [])
-
-	const panelsPresent = panelsCount > 0
-
-	// A segmented control with no panels picks a value, as a set of radios does.
-	// The role `tab` tells a reader that a panel shows, so the group takes the
-	// radio roles until a panel registers. A group with manual activation keeps
-	// the tab roles, because a radio selects on each arrow key.
-	const choice = variant === 'segment' && !panelsPresent && activation === 'automatic'
+	// The registered panels. A store, so a registration after the mount does not
+	// change the context value (`use-tabs-panels.ts`).
+	const [panels] = useState(createTabsPanels)
 
 	const tabsContext = useMemo(
-		() => ({
-			variant,
-			orientation: resolvedOrientation,
-			baseId,
-			panelsMounted,
-			registerMountedPanels,
-			panelsPresent,
-			registerPanels,
-			choice,
-		}),
-		[
-			variant,
-			resolvedOrientation,
-			baseId,
-			panelsMounted,
-			registerMountedPanels,
-			panelsPresent,
-			registerPanels,
-			choice,
-		],
+		() => ({ variant, orientation: resolvedOrientation, baseId, panels, activation }),
+		[variant, resolvedOrientation, baseId, panels, activation],
 	)
 
 	return (

@@ -59,11 +59,11 @@ export type TabContentProps = Omit<
 export function TabContents({ mount, className, ...props }: TabContentsProps) {
 	const tabsContext = useTabsContext()
 
-	const registerMountedPanels = tabsContext?.registerMountedPanels
+	const registerMountedPanels = tabsContext?.panels.registerMounted
 
 	// `aria-controls` on an inactive tab only resolves when its panel is in the
 	// DOM, which is guaranteed only when every inactive panel is held: mount
-	// `always`. Register that with the Tabs context; `lazy`/`active` leave an
+	// `always`. Register that with the Tabs; `lazy`/`active` leave an
 	// inactive tab without the reference until (or unless) its panel mounts.
 	const allMounted = mount === 'always'
 
@@ -73,7 +73,7 @@ export function TabContents({ mount, className, ...props }: TabContentsProps) {
 		return registerMountedPanels?.()
 	}, [allMounted, registerMountedPanels])
 
-	const registerPanels = tabsContext?.registerPanels
+	const registerPanels = tabsContext?.panels.register
 
 	// A segment tab references its panel only while the group has panels.
 	useEffect(() => registerPanels?.(), [registerPanels])
@@ -112,9 +112,9 @@ export function TabContent({ value, className, ref: consumerRef, ...props }: Tab
 
 	const registers = auto && bare
 
-	const registerMountedPanels = tabsContext?.registerMountedPanels
+	const registerMountedPanels = tabsContext?.panels.registerMounted
 
-	const registerPanels = tabsContext?.registerPanels
+	const registerPanels = tabsContext?.panels.register
 
 	useEffect(() => {
 		if (!registers) return
