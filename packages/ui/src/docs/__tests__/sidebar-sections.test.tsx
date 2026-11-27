@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { renderToString } from 'react-dom/server'
+import { MemoryRouter } from 'react-router'
 import { afterEach, describe, expect, it } from 'vitest'
 import { UIProvider } from '../../providers/ui'
 import { sectionRootClasses, sectionRules } from '../app/section-marks.ts'
@@ -28,11 +29,13 @@ const PAGES = [
 ]
 
 const sidebar = (pathname?: string) => (
-	<UIProvider pathname={pathname}>
-		<DocsSearch>
-			<DocsSidebar pages={PAGES} />
-		</DocsSearch>
-	</UIProvider>
+	<MemoryRouter>
+		<UIProvider pathname={pathname}>
+			<DocsSearch>
+				<DocsSidebar pages={PAGES} />
+			</DocsSearch>
+		</UIProvider>
+	</MemoryRouter>
 )
 
 /** The title of the section with the label `name`. */
@@ -144,12 +147,14 @@ describe('DocsSidebar sections', () => {
 
 	it('closes the section of the current page in each copy of the sidebar', () => {
 		const { container } = render(
-			<UIProvider pathname="/button">
-				<DocsSearch>
-					<DocsSidebar pages={PAGES} />
-					<DocsSidebar pages={PAGES} />
-				</DocsSearch>
-			</UIProvider>,
+			<MemoryRouter>
+				<UIProvider pathname="/button">
+					<DocsSearch>
+						<DocsSidebar pages={PAGES} />
+						<DocsSidebar pages={PAGES} />
+					</DocsSearch>
+				</UIProvider>
+			</MemoryRouter>,
 		)
 
 		const titles = () =>
@@ -170,12 +175,14 @@ describe('DocsSidebar sections', () => {
 
 	it('keeps a closed current section closed in a copy that mounts later, as in a drawer', () => {
 		const shell = (drawer: boolean) => (
-			<UIProvider pathname="/button">
-				<DocsSearch>
-					<DocsSidebar pages={PAGES} />
-					{drawer && <DocsSidebar pages={PAGES} />}
-				</DocsSearch>
-			</UIProvider>
+			<MemoryRouter>
+				<UIProvider pathname="/button">
+					<DocsSearch>
+						<DocsSidebar pages={PAGES} />
+						{drawer && <DocsSidebar pages={PAGES} />}
+					</DocsSearch>
+				</UIProvider>
+			</MemoryRouter>
 		)
 
 		const { rerender } = render(shell(true))

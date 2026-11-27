@@ -8,15 +8,9 @@ export type SearchState = {
 	/** The text in the search field of the palette. */
 	query: string
 	setQuery: (query: string) => void
-	/**
-	 * Opens the palette, after its module loads, with `query` in its search
-	 * field. `onPick` runs after a pick in this open, such as the close of the
-	 * mobile sidebar that holds the button.
-	 */
-	request: (options?: { query?: string; onPick?: () => void }) => void
+	/** Opens the palette, after its module loads, with `query` in its search field. */
+	request: (options?: { query?: string }) => void
 	preload: () => void
-	/** Runs the `onPick` of the last request. */
-	pick: () => void
 }
 
 // The provider is `DocsSearch` in `search-provider.tsx`.

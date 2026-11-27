@@ -1,4 +1,4 @@
-import { type ReactNode, useMemo, useRef, useState } from 'react'
+import { type ReactNode, useMemo, useState } from 'react'
 import { useIdleLoad, useIntentLoad } from 'ui/hooks'
 import { useFail } from '../../../hooks/use-fail.ts'
 import { useStableEvent } from '../../../hooks/use-stable-event.ts'
@@ -31,32 +31,24 @@ export function DocsSearch({ children }: { children: ReactNode }) {
 
 	const { request: load, preload } = useIntentLoad(loadPalette)
 
-	const onPickRef = useRef<(() => void) | undefined>(undefined)
-
 	const fail = useFail()
 
 	// A failure goes to the error boundary, which offers a reload, as for each
 	// load that the reader asks for.
-	const request = useStableEvent(
-		({ query: text = '', onPick }: { query?: string; onPick?: () => void } = {}) => {
-			onPickRef.current = onPick
+	const request = useStableEvent(({ query: text = '' }: { query?: string } = {}) => {
+		load(() => {
+			setQuery(text)
 
-			load(() => {
-				setQuery(text)
-
-				setOpenState(true)
-			}, fail)
-		},
-	)
-
-	const pick = useStableEvent(() => onPickRef.current?.())
+			setOpenState(true)
+		}, fail)
+	})
 
 	// The value does not hold the palette module, so the load in idle time does
 	// not change it. A new value reaches each Suspense boundary of the page that
 	// did not hydrate yet, and React then hydrates each one at once.
 	const state = useMemo(
-		() => ({ open, setOpen, query, setQuery, request, preload, pick }),
-		[open, setOpen, query, request, preload, pick],
+		() => ({ open, setOpen, query, setQuery, request, preload }),
+		[open, setOpen, query, request, preload],
 	)
 
 	return <SearchContext value={state}>{children}</SearchContext>
@@ -67,7 +59,7 @@ export function DocsSearch({ children }: { children: ReactNode }) {
  * mounted while the mobile sidebar is closed, so the key opens it.
  */
 export function SearchPaletteHost() {
-	const { open, setOpen, query, setQuery, pick } = useSearch()
+	const { open, setOpen, query, setQuery } = useSearch()
 
 	const palette = useIdleLoad(loadPalette)
 
@@ -79,7 +71,6 @@ export function SearchPaletteHost() {
 			onOpenChange={setOpen}
 			query={query}
 			onQueryChange={setQuery}
-			onPick={pick}
 		/>
 	)
 }

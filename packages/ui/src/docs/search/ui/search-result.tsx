@@ -139,17 +139,9 @@ export function ResultSubtitle({ option }: { option: Matchable }) {
 export type SearchOption = Matchable & { id: string }
 
 /** One row of the results: it goes to the entry on a pick. */
-export function SearchResult({
-	option,
-	meta,
-	onPick,
-}: {
-	option: SearchOption
-	meta: VirtualOptionMeta
-	onPick: () => void
-}) {
+export function SearchResult({ option, meta }: { option: SearchOption; meta: VirtualOptionMeta }) {
 	return (
-		<CommandPaletteItem id={option.id} href={option.href} onAction={onPick} {...meta}>
+		<CommandPaletteItem id={option.id} href={option.href} {...meta}>
 			<ResultIcon option={option} />
 			{/*
 			 * A name from the code, such as <Grid />, keeps its order on a
