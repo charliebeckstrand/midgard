@@ -9,7 +9,7 @@
  * `createElement` rather than JSX so this stays a non-component file.
  */
 
-import { type CSSProperties, createElement, type ReactNode } from 'react'
+import { type CSSProperties, createElement, type FocusEvent, type ReactNode } from 'react'
 import type { TableElementProps } from '../../components/table'
 import { cn } from '../../core/cn'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
@@ -24,6 +24,7 @@ import type { GridCellClick, GridRowClick } from './engine/grid-row/cell'
 import type { GridFitMode } from './engine/grid-sizing/fit-layout'
 import { FIT_TABLE_STYLE } from './engine/grid-sizing/fit-styles'
 import { fitKeptWidth } from './engine/grid-sizing/sizer'
+import { clearFocusTarget } from './engine/grid-sticky-insets'
 import type { GridColumnFilter, GridGlobalFilterView } from './engine/grid-table/filter-view'
 import type { GridPaginationView } from './engine/grid-table/pagination-view'
 import type { GridColumnResize } from './engine/grid-table/resize-view'
@@ -159,6 +160,11 @@ function tableRole(args: {
 	return args.gridSemantics ? 'table' : undefined
 }
 
+/** Moves the element that takes focus in the table clear of the grid's sticky chrome. */
+function keepFocusClear(event: FocusEvent<HTMLTableElement>): void {
+	clearFocusTarget(event.currentTarget, event.target)
+}
+
 /** The `<table>` handlers that the grid composes with the caller's. */
 type GridTableHandlers = Pick<
 	TableElementProps,
@@ -169,7 +175,8 @@ type GridTableHandlers = Pick<
  * The key, focus, and pointer-press handlers of the `<table>`: the caller's
  * handler composed with the grid's, the caller's first. A caller's handler
  * that prevents the default keeps the event. A handler that only one side
- * sets passes as it is.
+ * sets passes as it is. The focus handler always ends with the grid's own
+ * clear of the sticky chrome (see `clearFocusTarget`).
  *
  * @internal
  */
@@ -184,7 +191,10 @@ function gridHandlers(
 
 	if (grid?.onKeyDown) handlers.onKeyDown = composeEventHandlers(own?.onKeyDown, grid.onKeyDown)
 
-	if (grid?.onFocus) handlers.onFocus = composeEventHandlers(own?.onFocus, grid.onFocus)
+	const onFocus = grid?.onFocus ? composeEventHandlers(own?.onFocus, grid.onFocus) : own?.onFocus
+
+	// Each focus in the table ends clear of its sticky chrome (WCAG 2.4.11).
+	handlers.onFocus = composeEventHandlers(onFocus, keepFocusClear)
 
 	if (grid?.onBlur) handlers.onBlur = composeEventHandlers(own?.onBlur, grid.onBlur)
 
