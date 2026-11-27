@@ -207,12 +207,13 @@ export const k = defineKata(
 			 * reach and scroll it. The ring is `:focus-visible`-gated, so a panel that
 			 * holds its own focusable content (and is never tabbable) never shows it.
 			 *
-			 * The ring is the `overlay` ring, inside the box of the panel. An
+			 * The ring is the `inner` outline, inside the box of the panel. An
 			 * animating `TabContents` clips its panels for the switch, so it cuts off
 			 * an outset ring (WCAG 2.4.7). The content of a panel reaches its edge, so
-			 * the ring paints over the content.
+			 * the ring paints over the content. A ring on an `::after` box moves with
+			 * the content of a panel that scrolls, but an outline stays on the box.
 			 */
-			panel: ['relative', ...focus.overlay],
+			panel: focus.inner,
 		},
 		defaults: { orientation: 'horizontal', stretch: false },
 	},
