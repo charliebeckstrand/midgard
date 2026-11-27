@@ -48,13 +48,14 @@ const bubble = {
 	// the source for whole class names and never sees an assembled one. The gate
 	// is the one of `ugoki.css.pulse`. For the reduced-motion reader a standing
 	// dim stands in, never both. The reader can read the reply while it streams,
-	// for many seconds, so the dim keeps the text at 4.5:1 (WCAG 1.4.3): 60% gives
-	// 5.1:1 on the assistant fill, and 50% gives only 3.6:1. The pointer
-	// affordance alone would leave a keyboard reader nothing.
+	// for many seconds, so the text keeps 4.5:1 (WCAG 1.4.3) at each point: the
+	// pulse (`animate-text-pulse`) and the dim both stop at 60%. On the assistant
+	// fill, 60% gives 5.1:1, and 50% gives only 3.6:1. The pointer affordance
+	// alone would leave a keyboard reader nothing.
 	streaming: {
 		true: [
 			'cursor-progress',
-			'[&>[data-slot=markdown]]:motion-safe:animate-pulse',
+			'[&>[data-slot=markdown]]:motion-safe:animate-text-pulse',
 			'[&>[data-slot=markdown]]:motion-reduce:opacity-60',
 		],
 		false: '',

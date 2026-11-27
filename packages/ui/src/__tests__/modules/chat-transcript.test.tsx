@@ -63,7 +63,7 @@ describe('ChatTranscript', () => {
 		// The bubble carries the streaming look and projects the pulse onto its
 		// Markdown child, so the marked element is the bubble.
 		const pulsing = allBySlot(container, 'chat-message-bubble').filter((el) =>
-			el.classList.contains('[&>[data-slot=markdown]]:motion-safe:animate-pulse'),
+			el.classList.contains('[&>[data-slot=markdown]]:motion-safe:animate-text-pulse'),
 		)
 
 		expect(pulsing).toHaveLength(1)

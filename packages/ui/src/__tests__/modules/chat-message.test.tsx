@@ -22,7 +22,7 @@ function stubTouch() {
 	stubMatchMedia((query) => query === NO_HOVER_QUERY)
 }
 
-const PULSE = '[&>[data-slot=markdown]]:motion-safe:animate-pulse'
+const PULSE = '[&>[data-slot=markdown]]:motion-safe:animate-text-pulse'
 const PULSE_REDUCED = '[&>[data-slot=markdown]]:motion-reduce:opacity-60'
 
 describe('ChatMessage', () => {

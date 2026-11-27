@@ -288,8 +288,9 @@ export type ChatMessageProps = ChatMessageVariants &
  * about the edit, such as with a status that `aria-describedby` of the
  * composer points to.
  *
- * For a reader who reduces motion, a streaming reply dims to 60% of its
- * opacity in place of the pulse. On the assistant fill, the text keeps 4.5:1.
+ * The pulse of a streaming reply goes down to 60% of its opacity, and no
+ * lower. For a reader who reduces motion, the reply dims to 60% in place of
+ * the pulse. On the assistant fill, the text keeps 4.5:1 at each point.
  *
  * A `failed` reply ends with a line that says so, after what it landed. The
  * line inherits the foreground of the bubble, and a red dot marks it.

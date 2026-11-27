@@ -209,7 +209,7 @@ describe('ChatMessage over parts', () => {
 		)
 
 		expect(bySlot(container, 'chat-message-bubble')).toHaveClass(
-			'[&>[data-slot=markdown]]:motion-safe:animate-pulse',
+			'[&>[data-slot=markdown]]:motion-safe:animate-text-pulse',
 		)
 
 		// The pulse comes only with a variant prefix, so the check reads the class
