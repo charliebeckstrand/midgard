@@ -1,4 +1,5 @@
 import { useSearchParams } from 'react-router'
+import { useHydrated } from 'ui/hooks'
 import {
 	Pagination,
 	PaginationList,
@@ -14,7 +15,12 @@ const TOTAL_PAGES = 5
 export default function Links() {
 	const [params] = useSearchParams()
 
-	const requested = Number(params.get('page'))
+	const hydrated = useHydrated()
+
+	// The build renders the page with no query, so the HTML shows the first
+	// page. The hydration render must agree with it, so the page in the URL
+	// applies in the render after hydration.
+	const requested = hydrated ? Number(params.get('page')) : 1
 
 	// A page that is not in the range shows the first page.
 	const page =
