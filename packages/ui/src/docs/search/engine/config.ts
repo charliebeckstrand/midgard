@@ -43,3 +43,8 @@ export const TYPO: readonly { minLength: number; edits: number }[] = [
 	{ minLength: 6, edits: 2 },
 	{ minLength: 4, edits: 1 },
 ]
+
+/** The count of edits that a correction of `word` can make, or `false` for a short word. */
+export function maxEdits(word: string): number | false {
+	return TYPO.find(({ minLength }) => word.length >= minLength)?.edits ?? false
+}

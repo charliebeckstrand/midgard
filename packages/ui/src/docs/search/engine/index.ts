@@ -1,6 +1,6 @@
 import MiniSearch from 'minisearch'
 import type { SearchEntry } from '../types.ts'
-import { FIELD_BOOST, KIND_BOOST, type SearchField, TYPO } from './config.ts'
+import { FIELD_BOOST, KIND_BOOST, maxEdits, type SearchField } from './config.ts'
 import { rank } from './rank.ts'
 import { processTerm, tokenizeQuery, tokenizeText } from './tokenize.ts'
 
@@ -33,11 +33,6 @@ export type SearchIndex<T extends Matchable> = {
 
 const FIELDS = Object.keys(FIELD_BOOST) as SearchField[]
 
-/** The count of edits that a correction of `term` can make, or `false` for a short word. */
-function correct(term: string): number | false {
-	return TYPO.find(({ minLength }) => term.length >= minLength)?.edits ?? false
-}
-
 /** Makes the index of `entries`. */
 export function createSearchIndex<T extends Matchable>(entries: readonly T[]): SearchIndex<T> {
 	const index = new MiniSearch<{ id: number; entry: T }>({
@@ -65,7 +60,7 @@ export function createSearchIndex<T extends Matchable>(entries: readonly T[]): S
 
 			const corrected = found.length === 0
 
-			const results = corrected ? index.search(query, { fuzzy: correct }) : found
+			const results = corrected ? index.search(query, { fuzzy: maxEdits }) : found
 
 			return rank(
 				results.flatMap(({ id, match }) => {

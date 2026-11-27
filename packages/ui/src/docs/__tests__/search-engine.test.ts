@@ -121,6 +121,29 @@ describe('createSearchIndex', () => {
 		])
 	})
 
+	it('pairs each corrected word with its own terms, so a prop does not name the entry', () => {
+		const entries: Matchable[] = [
+			{
+				kind: 'component',
+				label: '<Grid />',
+				href: '/modules/grid#api-Grid',
+				context: 'Grid',
+				members: ['filter', 'filterable'],
+			},
+			{ kind: 'tab', label: 'Filters', href: '/modules/grid/filters', context: 'Grid' },
+		]
+
+		expect(search('grid filter', entries)).toEqual([
+			'/modules/grid/filters',
+			'/modules/grid#api-Grid',
+		])
+
+		expect(search('grid filtre', entries)).toEqual([
+			'/modules/grid/filters',
+			'/modules/grid#api-Grid',
+		])
+	})
+
 	it('does not correct a word that matches, so a near word stays out', () => {
 		const entries: Matchable[] = [
 			{ kind: 'page', label: 'Table', href: '/table', context: 'Components' },

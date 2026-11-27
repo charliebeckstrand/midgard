@@ -1,4 +1,4 @@
-import { KIND_BOOST } from './config.ts'
+import { KIND_BOOST, maxEdits } from './config.ts'
 import type { Matchable } from './index.ts'
 import { normalize } from './tokenize.ts'
 
@@ -18,13 +18,49 @@ function getNames(entry: Matchable): string[] {
 }
 
 /**
+ * The fewest edits that turn `word` into the start of `term`: 1 for `filtre`
+ * and `filters`, as `filter` is one edit from `filtre`. MiniSearch matches a
+ * term in this way in a search with a correction and a prefix.
+ */
+function distanceToStart(word: string, term: string): number {
+	let row = Array.from({ length: term.length + 1 }, (_, index) => index)
+
+	for (let i = 1; i <= word.length; i++) {
+		const next = [i]
+
+		for (let j = 1; j <= term.length; j++) {
+			const change = (row[j - 1] ?? 0) + (word[i - 1] === term[j - 1] ? 0 : 1)
+
+			next.push(Math.min((row[j] ?? 0) + 1, (next[j - 1] ?? 0) + 1, change))
+		}
+
+		row = next
+	}
+
+	return Math.min(...row)
+}
+
+/**
+ * Whether the term of an entry matched the word of the query: the term starts
+ * with the word, or, in a search with a correction, the word is near the start
+ * of the term (`TYPO` in `config.ts`).
+ */
+function matchesWord(term: string, word: string, corrected: boolean): boolean {
+	if (term.startsWith(word)) return true
+
+	const edits = corrected && maxEdits(word)
+
+	return edits !== false && distanceToStart(word, term) <= edits
+}
+
+/**
  * The tier of a result: 0 when a name of the entry is the query, 1 when each
  * word of the query matches the entry outside its props and events, 2 for any
  * other match.
  *
- * In a search with one letter corrected (`TYPO` in `config.ts`), the query is
- * the terms that the entry matched: `buton` matched `button`, so the Button
- * page is in tier 0, and IconButton is not.
+ * In a search with one or two letters corrected (`TYPO` in `config.ts`), each
+ * word of the query takes the term that it matched: `buton` matched `button`,
+ * so the Button page is in tier 0, and IconButton is not.
  */
 function getTier<T extends Matchable>(
 	{ entry, match }: RankInput<T>,
@@ -33,16 +69,16 @@ function getTier<T extends Matchable>(
 ): number {
 	const terms = Object.keys(match)
 
-	const query = corrected ? terms.join(' ') : words.join(' ')
+	const matched = (word: string) => terms.filter((term) => matchesWord(term, word, corrected))
+
+	const query = corrected
+		? words.map((word) => matched(word)[0] ?? word).join(' ')
+		: words.join(' ')
 
 	if (getNames(entry).includes(query)) return 0
 
-	// With no correction, a term matches a word when it starts with the word.
 	const named = words.every((word) =>
-		terms.some(
-			(term) =>
-				(corrected || term.startsWith(word)) && match[term]?.some((field) => field !== 'members'),
-		),
+		matched(word).some((term) => match[term]?.some((field) => field !== 'members')),
 	)
 
 	return named ? 1 : 2
