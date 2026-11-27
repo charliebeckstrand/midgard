@@ -375,6 +375,15 @@ export function QueryBuilderSortable({
 		if (target) carry(id, target.group, target.index)
 	})
 
+	// A move across groups from the move menu. It reads the lock when the item
+	// runs, so a menu that stays open while a lock arrives moves nothing, as the
+	// keys do. The node keeps no lift in the group that then holds it.
+	const carryFromMenu = useStableEvent((id: string, way: QueryCarryWay) => {
+		const target = enabled ? findCarry(shared.getRoot(), id, way) : null
+
+		if (target) carry(id, target.group, target.index, false)
+	})
+
 	// The items of the move menu of a node, read when the menu opens: the moves in
 	// its group, then the moves across the nesting of the tree. Under
 	// `requireRule`, the sole node of a group does not leave it.
@@ -396,12 +405,7 @@ export function QueryBuilderSortable({
 						key: way,
 						label: intl.formatMessage(message),
 						icon,
-						onAction: () => {
-							// A menu that stays open while a lock arrives moves nothing, as the keys do.
-							const target = enabled ? findCarry(shared.getRoot(), id, way) : null
-
-							if (target) carry(id, target.group, target.index, false)
-						},
+						onAction: () => carryFromMenu(id, way),
 					}),
 				)
 			: []

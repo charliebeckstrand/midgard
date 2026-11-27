@@ -216,4 +216,28 @@ describe('QueryBuilder move menu', () => {
 
 		expect(onValueChange).not.toHaveBeenCalled()
 	})
+
+	it('moves no node out of its group from a menu that stays open while a lock arrives', async () => {
+		const onValueChange = vi.fn()
+
+		const value = nested()
+
+		const { rerender } = renderUI(
+			<ControlLockContext value={false}>
+				<Harness value={value} onValueChange={onValueChange} />
+			</ControlLockContext>,
+		)
+
+		const user = await openMenu('Title contains y')
+
+		rerender(
+			<ControlLockContext value>
+				<Harness value={value} onValueChange={onValueChange} />
+			</ControlLockContext>,
+		)
+
+		await user.click(screen.getByRole('menuitem', { name: 'Move out of group' }))
+
+		expect(onValueChange).not.toHaveBeenCalled()
+	})
 })
