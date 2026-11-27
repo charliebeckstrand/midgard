@@ -8,6 +8,7 @@ import { dataAttr } from '../../core/data-attr'
 import { IntlMessage } from '../../primitives/intl'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { type ChatMessageVariants, k } from '../../recipes/kata/chat-message'
+import { hasContent } from '../../utilities/children'
 import { ChatAction, ChatActionScope } from './chat-action'
 import { ChatCitedText } from './chat-cited-text'
 import { MESSAGE_HEADING_OFFSET } from './chat-constants'
@@ -467,7 +468,7 @@ export const ChatMessage = memo(function ChatMessage({
 					</div>
 				)}
 			</div>
-			{timestamp !== undefined && (
+			{hasContent(timestamp) && (
 				<div data-slot="chat-message-timestamp" className={slots.timestamp}>
 					{timestamp}
 				</div>

@@ -5,6 +5,7 @@ import type { IntlShape } from '../../primitives/intl/types'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { useLocale } from '../../providers/locale/context'
 import { k } from '../../recipes/kata/grid'
+import { hasContent } from '../../utilities/children'
 import { describeRangeFigure } from './engine/grid-announcements'
 import { gridMessages } from './engine/grid-messages'
 import type { GridRangeFigure } from './engine/grid-range/figures'
@@ -134,7 +135,7 @@ export function GridFooterBar({ config, stats, scope, figures }: GridFooterProps
 		</p>
 	))
 
-	const trailing = figures.length > 0 || content != null
+	const trailing = figures.length > 0 || hasContent(content)
 
 	return (
 		<>

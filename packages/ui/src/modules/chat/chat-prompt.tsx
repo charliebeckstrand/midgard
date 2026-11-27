@@ -25,6 +25,7 @@ import { useStableEvent } from '../../hooks/use-stable-event'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/chat-prompt'
+import { hasContent } from '../../utilities/children'
 import { isComposing } from '../../utilities/is-composing'
 import { keyByOccurrence } from '../../utilities/key-by-occurrence'
 import { hasBrowserModifier } from '../../utilities/modifier-keys'
@@ -194,7 +195,8 @@ export type ChatPromptProps = {
 	/**
 	 * A row above the field, such as a status that says that the draft edits a
 	 * sent message, or that a reply streams, with its controls. Render it only
-	 * while its status holds: `undefined`, `null`, or `false` renders no row.
+	 * while its status holds: empty content, such as `null`, `false`, or `''`,
+	 * renders no row.
 	 * Content that unmounts while the focus is in it,
 	 * such as after a press of its Cancel button, gives the focus to the
 	 * textarea (WCAG 2.4.3). A form control in the row is not part of the
@@ -446,7 +448,7 @@ export function ChatPrompt({
 		// Control supplies the stable id the field resolves through useControlProps.
 		<Control className={className}>
 			{/* `editing && …` gives `false`, which renders nothing, so it is no toolbar. */}
-			{toolbar != null && typeof toolbar !== 'boolean' && (
+			{hasContent(toolbar) && (
 				<ChatPromptToolbar onUnmountWithFocus={focusField}>{toolbar}</ChatPromptToolbar>
 			)}
 			{formatted ? (

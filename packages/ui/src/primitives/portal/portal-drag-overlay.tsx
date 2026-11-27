@@ -2,6 +2,7 @@
 
 import { DragOverlay } from '@dnd-kit/core'
 import type { ReactNode } from 'react'
+import { hasContent } from '../../utilities/children'
 import { Portal } from './portal'
 
 /** Props for {@link PortalDragOverlay}. @internal */
@@ -30,7 +31,7 @@ type PortalDragOverlayProps = {
  */
 export function PortalDragOverlay({ children }: PortalDragOverlayProps) {
 	return (
-		<Portal open={children != null}>
+		<Portal open={hasContent(children)}>
 			<DragOverlay dropAnimation={null}>{children}</DragOverlay>
 		</Portal>
 	)

@@ -758,6 +758,19 @@ describe('TreeItem group ownership', () => {
 		expect(group).toContainElement(screen.getByRole('treeitem', { name: 'a.ts' }))
 	})
 
+	it.each([false, ''])('takes its name from the label alone for a suffix of %j', (suffix) => {
+		renderUI(
+			<Tree aria-label="Files">
+				<TreeItem label="src" suffix={suffix} />
+			</Tree>,
+		)
+
+		const row = screen.getByRole('treeitem', { name: 'src' })
+
+		// The reference names only the label, so it never points at a missing suffix.
+		expect(row.getAttribute('aria-labelledby')?.split(' ')).toHaveLength(1)
+	})
+
 	it('drops the ownership while the branch is closed, so the reference never dangles', () => {
 		renderUI(
 			<Tree aria-label="Files">

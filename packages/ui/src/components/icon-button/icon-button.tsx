@@ -13,6 +13,7 @@ import { useControllableFlag } from '../../hooks/use-controllable'
 import type { FloatingPlacement } from '../../hooks/use-floating-panel'
 import type { LinkProps } from '../../primitives/link/context'
 import type { ButtonVariants } from '../../recipes/kata/button'
+import { hasContent } from '../../utilities/children'
 import { Button } from '../button'
 import { Icon, type IconProps } from '../icon'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
@@ -313,7 +314,7 @@ function IconButtonTooltip({
 	placement: FloatingPlacement | undefined
 	children: ReactElement
 }) {
-	if (tooltip === undefined || tooltip === null || tooltip === false) return children
+	if (tooltip !== true && !hasContent(tooltip)) return children
 
 	return (
 		<Tooltip placement={placement}>

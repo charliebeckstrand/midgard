@@ -8,6 +8,7 @@ import { ControlActions, ControlFrame } from '../../primitives/control'
 import { useHeadlessSlots } from '../../primitives/headless/use-headless-slots'
 import type { scale } from '../../recipes/kata/textarea'
 import { k, type TextareaVariants } from '../../recipes/kata/textarea'
+import { hasContent } from '../../utilities/children'
 import type { ControlVariant } from '../control/context'
 import { useInputControl } from '../input/use-input-control'
 import { TextareaGrip } from './textarea-grip'
@@ -130,8 +131,8 @@ export function Textarea({
 
 	useTextareaAutoResize(fieldRef, autoResize)
 
-	// An absent slot (`undefined`, `null`, or `false`) renders no row.
-	const hasActions = actions != null && actions !== false
+	// An empty slot renders no row.
+	const hasActions = hasContent(actions)
 
 	const axis = hasActions ? 'none' : (resize ?? 'none')
 

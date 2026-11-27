@@ -7,6 +7,7 @@ import { useAnnounceOnAppear } from '../../hooks/a11y/use-announce-on-appear'
 import { useFormField } from '../../primitives/form/context'
 import { hasIssues } from '../../primitives/form/form-issues'
 import { k } from '../../recipes/kata/fieldset'
+import { hasContent } from '../../utilities/children'
 import { keyByOccurrence } from '../../utilities/key-by-occurrence'
 import { useControl } from '../control/context'
 import { useControlTarget } from '../control/use-control-target'
@@ -51,7 +52,7 @@ function shouldRenderError(
 
 	if (isFormBoundError) return hasIssues(issues)
 
-	return children != null && typeof children !== 'boolean' && children !== ''
+	return hasContent(children)
 }
 
 /**
