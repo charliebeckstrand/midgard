@@ -29,6 +29,7 @@ import {
 	bySlot,
 	fireEvent,
 	getSlot,
+	mouseClick,
 	noop,
 	present,
 	renderUI,
@@ -1400,7 +1401,7 @@ describe('PdfViewer highlights', () => {
 		// Nothing selected: no name to draw, and no panel floating over the page.
 		expect(highlightLabel()).not.toBeInTheDocument()
 
-		fireEvent.mouseDown(screen.getByLabelText('Total charges'))
+		mouseClick(screen.getByLabelText('Total charges'))
 
 		expect(highlightLabel()).toHaveTextContent('Total charges')
 	})
@@ -1412,11 +1413,11 @@ describe('PdfViewer highlights', () => {
 	it('moves the name to the region selected next', () => {
 		renderHighlights({ highlights: withInvoice })
 
-		fireEvent.mouseDown(screen.getByLabelText('Total charges'))
+		mouseClick(screen.getByLabelText('Total charges'))
 
 		expect(highlightLabel()).toHaveTextContent('Total charges')
 
-		fireEvent.mouseDown(screen.getByLabelText('Invoice number'))
+		mouseClick(screen.getByLabelText('Invoice number'))
 
 		expect(highlightLabel()).toHaveTextContent('Invoice number')
 
@@ -1468,7 +1469,7 @@ describe('PdfViewer highlights', () => {
 	it('keeps the selected region named while the pointer names another', () => {
 		const { container } = renderHighlights({ highlights: withInvoice })
 
-		fireEvent.mouseDown(screen.getByLabelText('Total charges'))
+		mouseClick(screen.getByLabelText('Total charges'))
 
 		fireEvent.pointerOver(screen.getByLabelText('Invoice number'))
 
@@ -1487,7 +1488,7 @@ describe('PdfViewer highlights', () => {
 	it('does not name the selected region twice when the pointer crosses it', () => {
 		renderHighlights()
 
-		fireEvent.mouseDown(screen.getByLabelText('Total charges'))
+		mouseClick(screen.getByLabelText('Total charges'))
 
 		fireEvent.pointerOver(screen.getByLabelText('Total charges'))
 
@@ -1513,7 +1514,7 @@ describe('PdfViewer highlights', () => {
 	it('leaves the boxes under both names open to the pointer', () => {
 		renderHighlights({ highlights: withInvoice })
 
-		fireEvent.mouseDown(screen.getByLabelText('Total charges'))
+		mouseClick(screen.getByLabelText('Total charges'))
 
 		fireEvent.pointerOver(screen.getByLabelText('Invoice number'))
 
@@ -1545,7 +1546,7 @@ describe('PdfViewer highlights', () => {
 	it('withdraws the name while the overlay is hidden, and brings it back', () => {
 		renderHighlights()
 
-		fireEvent.mouseDown(screen.getByLabelText('Total charges'))
+		mouseClick(screen.getByLabelText('Total charges'))
 
 		fireEvent.click(screen.getByLabelText('Highlights'))
 
@@ -1564,7 +1565,7 @@ describe('PdfViewer highlights', () => {
 	it('draws the name for the eye only, leaving the region to say it once', () => {
 		renderHighlights()
 
-		fireEvent.mouseDown(screen.getByLabelText('Total charges'))
+		mouseClick(screen.getByLabelText('Total charges'))
 
 		expect(highlightLabel()).toHaveAttribute('aria-hidden', 'true')
 
@@ -1650,16 +1651,25 @@ describe('PdfViewer highlights', () => {
 	 * decide they are done with the one they picked. Escape says the same thing from the
 	 * keyboard; this is the pointer's way to say it, and until now there was none.
 	 */
-	it('clears the selection on a press that lands on no region', () => {
+	it('clears the selection on the release of a press that lands on no region', () => {
 		const onActiveHighlightIdChange = vi.fn()
 
 		const { container } = renderHighlights({ onActiveHighlightIdChange })
 
-		fireEvent.mouseDown(screen.getByLabelText('Total charges'))
+		mouseClick(screen.getByLabelText('Total charges'))
 
 		expect(onActiveHighlightIdChange).toHaveBeenLastCalledWith('total')
 
-		fireEvent.mouseDown(getSlot(container, 'pdf-viewer-viewport'))
+		const viewport = getSlot(container, 'pdf-viewer-viewport')
+
+		// The press alone puts nothing down (WCAG 2.5.2). The release does.
+		fireEvent.mouseDown(viewport)
+
+		expect(onActiveHighlightIdChange).toHaveBeenLastCalledWith('total')
+
+		fireEvent.mouseUp(viewport)
+
+		fireEvent.click(viewport, { detail: 1 })
 
 		expect(onActiveHighlightIdChange).toHaveBeenLastCalledWith(null)
 
@@ -1672,11 +1682,68 @@ describe('PdfViewer highlights', () => {
 
 		renderHighlights({ onActiveHighlightIdChange })
 
-		fireEvent.mouseDown(screen.getByLabelText('Total charges'))
+		mouseClick(screen.getByLabelText('Total charges'))
 
-		fireEvent.mouseDown(screen.getByLabelText('Total charges'))
+		mouseClick(screen.getByLabelText('Total charges'))
 
 		expect(onActiveHighlightIdChange).not.toHaveBeenCalledWith(null)
+	})
+
+	/*
+	 * WCAG 2.5.2: a press acts on its release, as a native button does. A reader who presses
+	 * the wrong box can move off it before they release the button, and nothing happens.
+	 */
+	it('selects a region on the release of the press, not on the press', () => {
+		const onActiveHighlightIdChange = vi.fn()
+
+		const onHighlightClick = vi.fn()
+
+		renderHighlights({ onActiveHighlightIdChange, onHighlightClick })
+
+		const region = screen.getByLabelText('Total charges')
+
+		fireEvent.mouseDown(region)
+
+		expect(onActiveHighlightIdChange).not.toHaveBeenCalled()
+
+		expect(onHighlightClick).not.toHaveBeenCalled()
+
+		expect(region).not.toHaveAttribute('aria-current')
+
+		fireEvent.mouseUp(region)
+
+		fireEvent.click(region, { detail: 1 })
+
+		expect(onActiveHighlightIdChange).toHaveBeenCalledWith('total')
+
+		expect(onHighlightClick).toHaveBeenCalledWith('total')
+	})
+
+	/*
+	 * A press that starts on a region and ends on the page is a press that the reader took
+	 * back. The browser sends its click to the nearest element that holds both ends, which is
+	 * part of the page surface. That click must not put the selection down.
+	 */
+	it('keeps the selection through a press that leaves a region before its release', () => {
+		const onActiveHighlightIdChange = vi.fn()
+
+		const { container } = renderHighlights({ highlights: withInvoice, onActiveHighlightIdChange })
+
+		mouseClick(screen.getByLabelText('Total charges'))
+
+		onActiveHighlightIdChange.mockClear()
+
+		const viewport = getSlot(container, 'pdf-viewer-viewport')
+
+		fireEvent.mouseDown(screen.getByLabelText('Invoice number'))
+
+		fireEvent.mouseUp(viewport)
+
+		fireEvent.click(viewport, { detail: 1 })
+
+		expect(onActiveHighlightIdChange).not.toHaveBeenCalled()
+
+		expect(screen.getByLabelText('Total charges')).toHaveAttribute('aria-current', 'true')
 	})
 
 	/** A Ctrl+primary press is the macOS secondary click: it opens the context menu, as a right press does. */
@@ -1685,13 +1752,13 @@ describe('PdfViewer highlights', () => {
 
 		const { container } = renderHighlights({ onActiveHighlightIdChange })
 
-		fireEvent.mouseDown(screen.getByLabelText('Total charges'), { button: 0, ctrlKey: true })
+		mouseClick(screen.getByLabelText('Total charges'), { button: 0, ctrlKey: true })
 
 		expect(onActiveHighlightIdChange).not.toHaveBeenCalled()
 
-		fireEvent.mouseDown(screen.getByLabelText('Total charges'))
+		mouseClick(screen.getByLabelText('Total charges'))
 
-		fireEvent.mouseDown(getSlot(container, 'pdf-viewer-viewport'), { button: 0, ctrlKey: true })
+		mouseClick(getSlot(container, 'pdf-viewer-viewport'), { button: 0, ctrlKey: true })
 
 		expect(onActiveHighlightIdChange).not.toHaveBeenCalledWith(null)
 	})
@@ -1706,11 +1773,11 @@ describe('PdfViewer highlights', () => {
 
 		const { container } = renderHighlights({ onActiveHighlightIdChange })
 
-		fireEvent.mouseDown(screen.getByLabelText('Total charges'))
+		mouseClick(screen.getByLabelText('Total charges'))
 
 		fireEvent.click(screen.getByLabelText('Highlights'))
 
-		fireEvent.mouseDown(getSlot(container, 'pdf-viewer-viewport'))
+		mouseClick(getSlot(container, 'pdf-viewer-viewport'))
 
 		expect(onActiveHighlightIdChange).not.toHaveBeenCalledWith(null)
 	})
@@ -1728,7 +1795,7 @@ describe('PdfViewer highlights', () => {
 		// The name is what says a region is marked; a decorative layer has no `aria-current`.
 		expect(highlightLabels()).toEqual(['Total charges'])
 
-		fireEvent.mouseDown(getSlot(container, 'pdf-viewer-viewport'))
+		mouseClick(getSlot(container, 'pdf-viewer-viewport'))
 
 		expect(highlightLabels()).toEqual(['Total charges'])
 	})
