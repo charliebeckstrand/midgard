@@ -28,7 +28,7 @@ import type { Orientation } from '../../../../types/orientation'
 import { focusDropped } from '../../../../utilities/focus-dropped'
 import { observeResizeBeforePaint } from '../../../../utilities/observe-resize-before-paint'
 import { chartMessages } from '../chart-messages'
-import { ChartSwatch } from '../chart-pattern-defs'
+import { ChartSwatch, keptInk } from '../chart-pattern-defs'
 import { useChartActions } from '../context'
 import { OVERFLOW_CHIP_RESERVE, visibleLegendCount } from './fit'
 import { LEGEND_TOUCH_ROWS, LegendSwitch } from './legend-switch'
@@ -196,6 +196,7 @@ function ChartLegendSwatch({ item, texture }: ChartLegendSwatchProps) {
 			color={item.color}
 			dashed={item.dashed}
 			hollow={item.hollow}
+			inked={item.inked}
 			active={texture}
 		/>
 	)
@@ -426,14 +427,16 @@ function ChartLegendReferenceValue({ value }: { value?: string }) {
  * @internal
  */
 function ChartLegendReferenceSwatch({ reference }: { reference: ChartLegendReference }) {
+	const variant = reference.dashed === false ? 'solid' : 'dashed'
+
 	return (
 		<Swatch
 			shape="line"
-			variant={reference.dashed === false ? 'solid' : 'dashed'}
+			variant={variant}
 			orientation={reference.orientation}
 			color={reference.swatchClass || undefined}
 			style={reference.color ? { color: reference.color } : undefined}
-			className={k.legend.off.key}
+			className={cn(keptInk(variant), k.legend.off.key)}
 		/>
 	)
 }
@@ -471,6 +474,11 @@ export type ChartLegendItem = {
 	color?: ChartColorSlot
 	/** A trailing readout: the side panel carries each slice's live share. */
 	detail?: string
+	/**
+	 * Whether the mark takes no tile and keeps its hue under forced colors, as a
+	 * disc does. The `rect` swatch then keeps the hue too, and takes no hatch.
+	 */
+	inked?: boolean
 }
 
 /**

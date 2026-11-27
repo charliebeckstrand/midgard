@@ -60,6 +60,17 @@ export const k = {
 			detail: 'in-[[aria-pressed=false]]:opacity-60',
 			key: 'in-[[aria-pressed=false]]:opacity-40',
 		},
+		/**
+		 * The ink of a key whose mark keeps its hue under forced colors. Forced
+		 * colors do not change the stroke of a line or the fill of a disc, so the
+		 * key keeps the hue too, and the reader can match the two. A solid key
+		 * fills with the hue, and a dashed key runs in it. A key of a textured mark
+		 * does not take this: the mark and the key take the tile.
+		 */
+		ink: {
+			solid: 'forced-color-adjust-none forced-colors:bg-current',
+			dashed: 'forced-colors:[--swatch-ink:currentColor]',
+		},
 	},
 	/**
 	 * Tooltip value ink: the type of {@link k.label}, with tabular figures. Only

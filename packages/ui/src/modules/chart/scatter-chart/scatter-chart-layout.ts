@@ -155,7 +155,10 @@ export function scatterLegendItems(
 	metas: ScatterMeta[],
 	legend: ResolvedLegend['value'],
 ): ChartLegendItem[] | null {
-	return legendVisible(legend, metas.length) ? metas.map(toLegendItem) : null
+	// A disc takes no tile, so its key keeps the hue under forced colors.
+	return legendVisible(legend, metas.length)
+		? metas.map((meta) => ({ ...toLegendItem(meta), inked: true }))
+		: null
 }
 
 /** The number formats of the scatter: the readout's, and the tick labels' of each axis. @internal */
