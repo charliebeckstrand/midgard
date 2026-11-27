@@ -155,6 +155,12 @@ const KEPT: readonly Entry[] = [
 			'The tooltip example gives the `<time>` of TimeAgo `tabIndex={0}`, as its TSDoc tells, so that a focus opens the tooltip.',
 	},
 	{
+		finding: 'role group menu/group',
+		paths: ['/context-menu'],
+		reason:
+			'The content of each ContextMenu example holds no control, so the content is a named `group` Tab stop, as the ContextMenu TSDoc tells. A keyboard opens the menu from it.',
+	},
+	{
 		finding: 'role generic menu/chat-message-bubble',
 		paths: ['/modules/chat'],
 		reason:

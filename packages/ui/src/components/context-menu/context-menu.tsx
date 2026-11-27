@@ -31,7 +31,12 @@ export type ContextMenuProps = ContextMenuConfig & {
 	 * wrapper keeps the classes when the menu turns off.
 	 */
 	className?: string
-	/** The content a right-click within opens the menu over. */
+	/**
+	 * The content a right-click within opens the menu over. A keyboard opens the
+	 * menu from a focused element in the content, so the content must hold a
+	 * focusable element. Content with no control takes `tabIndex={0}`, a role,
+	 * and a name.
+	 */
 	children: ReactNode
 }
 
@@ -44,6 +49,14 @@ export type ContextMenuProps = ContextMenuConfig & {
  * still opens. The wrapper stays in both states, so the content keeps its state
  * when the menu turns on or off. Both lists take each {@link ContextMenuEntry}
  * kind: an item, a separator, or a submenu that opens a nested menu.
+ *
+ * A keyboard opens the menu with the ContextMenu key or Shift+F10. The browser
+ * then fires `contextmenu` at the focused element, so the menu opens only from a
+ * focused element in the content. Content with no control, such as an image,
+ * must take `tabIndex={0}`, a role such as `group`, and an `aria-label`.
+ * Otherwise an action that only the menu holds has no keyboard route (WCAG
+ * 2.1.1). ContextMenu does not make its content focusable, because that adds a
+ * Tab stop to each caller.
  *
  * @remarks Anchors at the cursor and tracks the right-clicked element on scroll,
  * the shared `Menu` right-click behavior. The menu is a floating overlay that

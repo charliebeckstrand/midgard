@@ -91,9 +91,11 @@ export type MenuProps = {
  * right-click context menu, or renders as a static inline menu when
  * `defaultOpen` is set. A context menu also opens on a touch long press,
  * because iOS Safari fires no `contextmenu` event for one. A long press on a
- * map does nothing. A context menu that a key opens (the ContextMenu key or
- * Shift+F10) returns focus to the element that held it when the menu closes. A
- * context menu that the pointer opens leaves focus where it falls.
+ * map does nothing. A key (the ContextMenu key or Shift+F10) opens a context
+ * menu from a focused element in the content, so the content must hold one, as
+ * the ContextMenu TSDoc tells. A context menu that a key opens returns focus to
+ * the element that held it when the menu closes. A context menu that the
+ * pointer opens leaves focus where it falls.
  *
  * @remarks
  * The mode comes from prop presence by design. The three modes take one prop
