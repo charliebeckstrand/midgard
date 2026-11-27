@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { Badge } from '../../../components/badge'
 import { Grid, type GridColumn } from '../../../modules/grid'
-import { frame, frames, present, renderUI } from '../../helpers'
+import { frame, frames, getSlot, present, renderUI } from '../../helpers'
 import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
 import { afterBox } from '../helpers/after-box'
 
@@ -111,7 +111,7 @@ describe('grid resize handle geometry (real browser)', () => {
 			HANDLE_HEIGHT_SLACK,
 		)
 
-		const scroll = present(container.querySelector('[data-slot="table"]'), '[data-slot="table"]')
+		const scroll = getSlot(container, 'table')
 
 		// No phantom vertical scroll.
 		expect(scroll.scrollHeight).toBeLessThanOrEqual(scroll.clientHeight)

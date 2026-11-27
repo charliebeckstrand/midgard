@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { useVirtualWindow } from '../../hooks'
-import { act, frames, present, renderUI, waitFor } from '../helpers'
+import { act, frames, getSlot, renderUI, waitFor } from '../helpers'
 import { settledValue } from './helpers/sample'
 import { once } from './helpers/signals'
 
@@ -91,10 +91,7 @@ describe('useVirtualWindow start anchor (real browser)', () => {
 
 		const { container } = renderUI(<List handle={handle} bounded={bounded} />)
 
-		const scroller = present(
-			container.querySelector<HTMLElement>('[data-slot="anchored-list"]'),
-			'the scroll container',
-		)
+		const scroller = getSlot(container, 'anchored-list')
 
 		await waitFor(() => expect(scroller.querySelector('[data-row]')).not.toBeNull())
 

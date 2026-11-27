@@ -589,9 +589,7 @@ describe('Wysiwyg (real browser)', () => {
 			ranges: [{ id: 'c1', start: 9, end: 15 }],
 		})
 
-		expect(
-			present(field.querySelector('[data-slot="wysiwyg-range"]'), 'the range'),
-		).toHaveTextContent('@Sales')
+		expect(getSlot(field, 'wysiwyg-range')).toHaveTextContent('@Sales')
 
 		// The undo takes back the replace, and not the text typed before it.
 		await userEvent.keyboard('{Control>}z{/Control}')

@@ -1,6 +1,6 @@
 import { describe, expect, it, onTestFinished } from 'vitest'
 import { commands, userEvent } from 'vitest/browser'
-import { present, renderUI, screen, waitFor } from '../../helpers'
+import { getSlot, renderUI, screen, waitFor } from '../../helpers'
 import { press } from '../helpers/drag'
 import { fieldPhotos, Gallery, liveCount, viewerTweens } from '../helpers/lightbox'
 import { waitForNoTween } from '../helpers/motion-frame'
@@ -114,10 +114,7 @@ describe('Lightbox focus (real engine, real Motion)', () => {
 
 		await waitForNoTween(viewerTweens)
 
-		const stage = present(
-			document.querySelector<HTMLElement>('[data-slot="lightbox-stage"]'),
-			'stage',
-		)
+		const stage = getSlot(document, 'lightbox-stage')
 
 		const box = stage.getBoundingClientRect()
 

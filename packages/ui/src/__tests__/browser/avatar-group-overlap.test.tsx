@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { Avatar, AvatarGroup } from '../../components/avatar'
 import { densitySteps } from '../../core/density'
-import { allBySlot, bySlot, present, renderUI } from '../helpers'
+import { allBySlot, bySlot, getSlot, present, renderUI } from '../helpers'
 
 /** The width of the ring that the group puts around each avatar, in CSS pixels. */
 const RING = 2
@@ -51,7 +51,7 @@ describe('avatar geometry (real browser)', () => {
 
 		const wrapper = present(bySlot(container, 'avatar-with-status'), 'status wrapper')
 
-		const circle = present(wrapper.querySelector('[data-slot="avatar"]'), 'avatar')
+		const circle = getSlot(wrapper, 'avatar')
 
 		expect(wrapper.getBoundingClientRect().width).toBe(circle.getBoundingClientRect().width)
 	})

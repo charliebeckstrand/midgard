@@ -292,7 +292,7 @@ From `packages/ui`, import per-component entries (`ui/button`, `ui/dialog`) plus
 
 In each test tree, a test goes in the folder of the kind of its unit, such as `hooks/` or `modules/`. Its file name starts with the name of the unit or of its file. A helper goes in `helpers/`, and a setup file goes in `setup/`.
 
-10.2 Component tests render through the library's test renderer and query by `data-slot`. New components expose stable `data-slot` anchors and a filename-matched export.
+10.2 Component tests render through the library's test renderer and query by `data-slot`. New components expose stable `data-slot` anchors and a filename-matched export. Read one slot that must be there with `getSlot` (`helpers/slot-queries.ts`), not with `present` around a `querySelector`. The [`no-hand-written-get-slot`](.biome/plugins/no-hand-written-get-slot.grit) Biome plugin holds this rule in the `ui` tests.
 
 10.3 **Don't drive third-party async lifecycles** (fetch, virtualization, floating-ui, pdfjs) in tests. They flake on CI. Test the synchronous seam (a reducer, a callback, a typed harness), or skip with a stated reason.
 

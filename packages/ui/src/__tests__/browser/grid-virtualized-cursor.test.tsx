@@ -1,6 +1,15 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { ariaTarget, fireEvent, frames, present, renderUI, screen, waitFor } from '../helpers'
+import {
+	ariaTarget,
+	fireEvent,
+	frames,
+	getSlot,
+	present,
+	renderUI,
+	screen,
+	waitFor,
+} from '../helpers'
 
 /**
  * The keyboard cursor over a virtualized grid (real browser; jsdom renders zero
@@ -142,10 +151,7 @@ describe('grid virtualized cursor (real browser)', () => {
 			</div>,
 		)
 
-		const scroll = present(
-			document.querySelector<HTMLElement>('[data-slot="grid-scroll"]'),
-			'[data-slot="grid-scroll"]',
-		)
+		const scroll = getSlot(document, 'grid-scroll')
 
 		const edit = await waitFor(() => screen.getByRole('button', { name: 'Edit Name 2' }))
 
@@ -420,10 +426,7 @@ describe('grid virtualized page step past a nested grid (real browser)', () => {
 
 		const grid = screen.getByRole('grid')
 
-		const scroll = present(
-			view.container.querySelector<HTMLElement>('[data-slot="grid-scroll"]'),
-			'the scroller',
-		)
+		const scroll = getSlot(view.container, 'grid-scroll')
 
 		await waitFor(() => expect(screen.queryByText('Task of Name 1')).not.toBeNull())
 

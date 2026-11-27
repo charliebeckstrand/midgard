@@ -6,7 +6,7 @@ import {
 	AccordionPanel,
 	AccordionTrigger,
 } from '../../../components/accordion'
-import { present, renderUI, screen } from '../../helpers'
+import { getSlot, renderUI, screen } from '../../helpers'
 import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
 
 /**
@@ -31,7 +31,7 @@ describe('accordion width (real browser)', () => {
 			</div>,
 		)
 
-		const root = present(document.querySelector<HTMLElement>('[data-slot="accordion"]'), 'root')
+		const root = getSlot(document, 'accordion')
 
 		const header = screen.getByRole('button', { name: 'Shipping' })
 

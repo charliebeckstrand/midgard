@@ -3,7 +3,7 @@ import { createRoot, type Root } from 'react-dom/client'
 import { describe, expect, it, onTestFinished } from 'vitest'
 
 import { Tab, TabList, Tabs, type TabsOrientation } from '../../components/tabs'
-import { act, attach, present } from '../helpers'
+import { act, attach, getSlot, present } from '../helpers'
 import { hydrate, serverMarkup } from '../helpers/hydrate'
 
 const TABS = Array.from({ length: 12 }, (_, index) => `Section ${index}`)
@@ -26,7 +26,7 @@ function FirstPaint({
 		const box = present(ref.current, 'box')
 
 		onPaint(
-			present(box.querySelector('[data-slot="tab-list-scroll"]'), 'tab list scroller'),
+			getSlot(box, 'tab-list-scroll'),
 			present(box.querySelector('[data-slot="tab"][data-current]'), 'current tab'),
 		)
 	}, [onPaint])
@@ -99,10 +99,7 @@ function mountOnClient(orientation: TabsOrientation) {
 
 /** The scroll of the tab list in `container` on the flow axis, and whether the current tab is in view. */
 function readScroll(container: Element, orientation: TabsOrientation) {
-	const scroller = present(
-		container.querySelector('[data-slot="tab-list-scroll"]'),
-		'tab list scroller',
-	)
+	const scroller = getSlot(container, 'tab-list-scroll')
 
 	const tab = present(container.querySelector('[data-slot="tab"][data-current]'), 'current tab')
 
@@ -153,10 +150,7 @@ function selectWithoutFocus(orientation: TabsOrientation) {
 
 	act(() => root?.render(<LongTabs orientation={orientation} value="Section 10" />))
 
-	const scroller = present(
-		container.querySelector('[data-slot="tab-list-scroll"]'),
-		'tab list scroller',
-	)
+	const scroller = getSlot(container, 'tab-list-scroll')
 
 	const tab = present(container.querySelector('[data-slot="tab"][data-current]'), 'current tab')
 

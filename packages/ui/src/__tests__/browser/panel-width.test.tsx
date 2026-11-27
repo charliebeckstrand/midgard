@@ -17,7 +17,7 @@ import {
 	Tabs,
 	type TabsOrientation,
 } from '../../components/tabs'
-import { present, renderUI, screen, waitFor } from '../helpers'
+import { getSlot, present, renderUI, screen, waitFor } from '../helpers'
 
 const SHORT = 'Short text.'
 
@@ -157,10 +157,7 @@ describe('panel width in a host that fits its content (real browser)', () => {
 
 		const group = present(contents.closest<HTMLElement>('[data-slot="tab-group"]'), 'tab group')
 
-		const list = present(
-			group.querySelector<HTMLElement>('[data-slot="tab-list-scroll"]'),
-			'tab list scroller',
-		)
+		const list = getSlot(group, 'tab-list-scroll')
 
 		const gap = Number.parseFloat(getComputedStyle(group).columnGap)
 

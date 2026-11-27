@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { commands, userEvent } from 'vitest/browser'
 import { Lightbox, type LightboxPhoto, LightboxTrigger } from '../../components/lightbox'
-import { frames, present, renderUI, screen } from '../helpers'
+import { frames, getSlot, present, renderUI, screen } from '../helpers'
 import { press } from './helpers/drag'
 import { waitForNoTween } from './helpers/motion-frame'
 import { pause } from './helpers/wall-clock'
@@ -34,7 +34,7 @@ const photos = [
 ]
 
 function stage() {
-	return present(document.querySelector<HTMLElement>('[data-slot="lightbox-stage"]'), 'stage')
+	return getSlot(document, 'lightbox-stage')
 }
 
 function track() {
@@ -55,7 +55,7 @@ function photosOffRest() {
 
 /** The opacity that a swipe to close paints on the layer of the controls. */
 function controlsOpacity() {
-	const layer = present(document.querySelector('[data-slot="lightbox-controls"]'), 'controls')
+	const layer = getSlot(document, 'lightbox-controls')
 
 	return Number(getComputedStyle(present(layer.parentElement, 'controls layer')).opacity)
 }
@@ -150,7 +150,7 @@ async function hoverFromNext(dx: number) {
 }
 
 function arrowRight() {
-	present(document.querySelector('[data-slot="lightbox"]'), 'viewer').dispatchEvent(
+	getSlot(document, 'lightbox').dispatchEvent(
 		new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true, cancelable: true }),
 	)
 }

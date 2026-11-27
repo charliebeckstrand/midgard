@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
-import { frame, present, renderUI, screen } from '../../helpers'
+import { frame, getSlot, present, renderUI, screen } from '../../helpers'
 import { fieldPhotos, Gallery, holdTweens, liveCount, viewerTweens } from '../helpers/lightbox'
 import { waitForNoTween } from '../helpers/motion-frame'
 
@@ -202,10 +202,7 @@ describe('Lightbox reopened during the return (real browser)', () => {
 
 		await open(0)
 
-		const stage = present(
-			document.querySelector<HTMLElement>('[data-slot="lightbox-stage"]'),
-			'the stage',
-		)
+		const stage = getSlot(document, 'lightbox-stage')
 
 		// The keys go to the viewer. The focus manager is not real in this project.
 		const focusViewer = () => screen.getByRole('button', { name: 'Next photo' }).focus()

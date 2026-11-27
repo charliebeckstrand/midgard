@@ -5,14 +5,14 @@ import { present } from './present'
  * Query a single element by its `data-slot` attribute within a container.
  * Returns `null` when not found, mirroring `querySelector` semantics.
  */
-export function bySlot(container: HTMLElement, name: string) {
+export function bySlot(container: ParentNode, name: string) {
 	return container.querySelector<HTMLElement>(`[data-slot="${name}"]`)
 }
 
 /**
  * Query all elements matching a `data-slot` attribute within a container.
  */
-export function allBySlot(container: HTMLElement, name: string) {
+export function allBySlot(container: ParentNode, name: string) {
 	return Array.from(container.querySelectorAll<HTMLElement>(`[data-slot="${name}"]`))
 }
 
@@ -29,17 +29,15 @@ export function allBySlot(container: HTMLElement, name: string) {
  *
  * The narrowing defaults to `HTMLElement`, as `present` does. A caller reading
  * an interface a slot publishes (an input's `value`, a details element's
- * `open`) names the type instead (`getSlot<HTMLInputElement>(…)`).
+ * `open`, an SVG path's length) names the type instead
+ * (`getSlot<HTMLInputElement>(…)`).
  *
  * @param container - The subtree to search.
  * @param name - The `data-slot` value.
  * @returns The first match, narrowed to `T`.
  * @throws If nothing matches.
  */
-export function getSlot<T extends HTMLElement = HTMLElement>(
-	container: HTMLElement,
-	name: string,
-): T {
+export function getSlot<T extends Element = HTMLElement>(container: ParentNode, name: string): T {
 	return present<T>(bySlot(container, name), `[data-slot="${name}"]`)
 }
 
@@ -58,8 +56,8 @@ export function getSlot<T extends HTMLElement = HTMLElement>(
  * @returns Every match in document order, narrowed to `T`.
  * @throws If nothing matches.
  */
-export function getAllSlots<T extends HTMLElement = HTMLElement>(
-	container: HTMLElement,
+export function getAllSlots<T extends Element = HTMLElement>(
+	container: ParentNode,
 	name: string,
 ): [T, ...T[]] {
 	const selector = `[data-slot="${name}"]`

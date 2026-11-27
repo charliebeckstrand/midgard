@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Collapse, CollapsePanel, CollapseTrigger } from '../../../components/collapse'
 import type { Mount } from '../../../primitives/mount'
-import { present, renderUI, screen, waitFor } from '../../helpers'
+import { getSlot, present, renderUI, screen, waitFor } from '../../helpers'
 import { sampleMotionFrames } from '../helpers/motion-frame'
 import { budget } from '../helpers/wall-clock'
 
@@ -132,7 +132,7 @@ describe('the clip of a Collapse panel (real Motion)', () => {
 
 			const samples = await opening
 
-			const body = present(document.querySelector('[data-slot="collapse-body"]'), 'body')
+			const body = getSlot(document, 'collapse-body')
 
 			// The control: the padding is on the body, and the open panel holds it.
 			expect(getComputedStyle(body).paddingTop).toBe('16px')

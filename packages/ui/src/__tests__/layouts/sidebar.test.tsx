@@ -559,10 +559,7 @@ describe('SidebarLayout offcanvas mode', () => {
 		expect(backdrop?.className).toContain('backdrop-blur')
 
 		// The wrapper stays non-interactive so the blurred page is still usable.
-		const overlay = present(
-			document.querySelector('[data-slot="overlay"]'),
-			'[data-slot="overlay"]',
-		)
+		const overlay = getSlot(document, 'overlay')
 
 		expect(overlay.className).toContain('pointer-events-none')
 	})
