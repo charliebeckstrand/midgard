@@ -403,6 +403,24 @@ async function press(tab: Page, loads: Loads, key: Key): Promise<Stop> {
 	}
 }
 
+/** Gives the findings of a Tab stop that `key` reached: its role, and the box above it. */
+function checkStop(stop: ElementStop, key: Key): Finding[] {
+	const findings: Finding[] = []
+
+	if (stop.role !== undefined) {
+		findings.push({ finding: `role ${stop.role} ${stop.stop}`, detail: `"${stop.label}"` })
+	}
+
+	if (stop.cover !== undefined) {
+		findings.push({
+			finding: `covered ${stop.stop}`,
+			detail: `${key} to "${stop.label}", under ${stop.cover}`,
+		})
+	}
+
+	return findings
+}
+
 /**
  * Presses `key` from the first Tab stop until the focus is on that stop
  * again, and gives the findings of the walk.
@@ -441,21 +459,7 @@ async function walk(tab: Page, loads: Loads, key: Key, first: number): Promise<F
 
 		stops.push(stop)
 
-		if (stop.body) continue
-
-		if (stop.role !== undefined) {
-			findings.push({
-				finding: `role ${stop.role} ${stop.stop}`,
-				detail: `"${stop.label}"`,
-			})
-		}
-
-		if (stop.cover !== undefined) {
-			findings.push({
-				finding: `covered ${stop.stop}`,
-				detail: `${key} to "${stop.label}", under ${stop.cover}`,
-			})
-		}
+		if (!stop.body) findings.push(...checkStop(stop, key))
 	}
 
 	findings.push({
@@ -503,7 +507,9 @@ async function readPage(route: string, context: TestContext): Promise<Finding[]>
 
 	if (start.body) return [{ finding: 'no stop', detail: 'Tab puts the focus on no element' }]
 
-	const findings: Finding[] = []
+	// Each walk ends when it reaches the first stop again, so the first stop
+	// gets its checks here.
+	const findings = checkStop(start, 'Tab')
 
 	for (const key of KEYS) findings.push(...(await walk(tab, loads, key, start.id)))
 
