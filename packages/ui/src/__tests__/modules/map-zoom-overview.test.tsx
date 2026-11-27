@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { bySlot, fireEvent } from '../helpers'
+import { bySlot, fireEvent, within } from '../helpers'
 import { renderNavigable } from '../helpers/map-navigable'
 import { categoricalPlat } from '../helpers/map-plat'
 
@@ -12,9 +12,9 @@ import { categoricalPlat } from '../helpers/map-plat'
 /** Where the inset sits, and its width. Its height takes the ratio of the frame. */
 const INSET_BOX = { left: 300, top: 150, width: 100 } as const
 
-/** Renders a zooming plat with the inset, and zooms it in with the key. */
+/** Renders a zooming plat, which shows the inset by default, and zooms it in with the key. */
 function renderOverview(extra?: Parameters<typeof categoricalPlat>[0]) {
-	const view = renderNavigable(categoricalPlat({ zoom: true, zoomOverview: true, ...extra }))
+	const view = renderNavigable(categoricalPlat({ zoom: true, ...extra }))
 
 	const inset = () => bySlot(view.container, 'map-zoom-overview')
 
@@ -63,7 +63,15 @@ describe('MapZoomOverview', () => {
 		expect(inset()).toBeNull()
 	})
 
-	it('shows none without `zoomOverview`, or on a map that does not zoom', () => {
+	it('shows by default after one press of the zoom-in button', () => {
+		const { inset, container } = renderOverview()
+
+		fireEvent.click(within(container).getByRole('button', { name: 'Zoom in' }))
+
+		expect(inset()).toHaveAttribute('aria-hidden', 'true')
+	})
+
+	it('shows none with `zoomOverview={false}`, or on a map that does not zoom', () => {
 		const off = renderOverview({ zoomOverview: false })
 
 		off.zoomIn()
