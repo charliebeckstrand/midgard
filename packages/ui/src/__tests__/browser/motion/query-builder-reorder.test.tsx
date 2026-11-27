@@ -525,6 +525,39 @@ describe('QueryBuilder pointer reorder (real browser)', () => {
 		expect(ids(onValueChange.mock.calls[0]?.[0].children)).toEqual(['g', 'b', 'a'])
 	})
 
+	// Motion makes each `Reorder.Item` a Tab stop, with Space and the arrows to
+	// move it, but the item has no role and its moves are not announced. The grip
+	// is the one keyboard handle of a node, so the item is not a stop.
+	it('puts each grip, and no node around it, in the Tab order', async () => {
+		renderUI(
+			<>
+				<button type="button">Before</button>
+				<Harness initial={nested} onValueChange={() => {}} />
+				<button type="button">After</button>
+			</>,
+		)
+
+		screen.getByRole('button', { name: 'Before' }).focus()
+
+		const stops: Element[] = []
+
+		for (let step = 0; step < 50; step += 1) {
+			await userEvent.tab()
+
+			const focused = present(document.activeElement, 'focused element')
+
+			if (focused === screen.getByRole('button', { name: 'After' })) break
+
+			stops.push(focused)
+		}
+
+		expect(stops[0]).toBe(grip('condition group'))
+
+		expect(stops).toContain(grip('Name contains x'))
+
+		expect(stops.filter((stop) => stop.matches('[data-slot="query-sortable"]'))).toEqual([])
+	})
+
 	// Motion writes an inline z-index on each `Reorder.Item`, 1 while x or y is
 	// not 0 and `unset` at rest. A keyboard move is a layout animation with x and
 	// y at 0, so the inline value took the raise off the held node, and the

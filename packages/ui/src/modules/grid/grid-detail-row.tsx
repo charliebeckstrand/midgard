@@ -157,7 +157,7 @@ function GridDetailRowImpl<T>({
 				inert={!expanded}
 				{...reveal.landing}
 			>
-				<td {...stopProps} colSpan={colSpan} style={NO_PADDING}>
+				<td {...stopProps} colSpan={colSpan} style={NO_PADDING} className={cn(k.nav.cell)}>
 					<div className={cn(k.detail.reveal.track)} data-open={dataAttr(reveal.open)}>
 						<div className={cn(k.detail.reveal.clip)}>
 							<section id={panelId} className={cn(k.detail.panel)}>

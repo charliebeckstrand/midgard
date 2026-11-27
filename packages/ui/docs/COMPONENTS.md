@@ -47,6 +47,8 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > The tags of a `tag-input` stay on one row and scroll on the inline axis. With `wrap`, they wrap onto more rows, and the add button stays at the end of the first row. The affixes of each other input stay on one row with the input.
 
+> A text field takes its `autoComplete` token from its own prop, else from an enclosing `Control`. With neither, `date-input` and `combobox` set `off`. A field with a fixed purpose keeps its own token over the token of a `Control`. These fields are the `credit-card-input` fields, the phone and zipcode presets of `mask-input`, and the `password-confirm` fields. The prop still wins over that token.
+
 > `checkbox`, `switch`, `RadioGroup`, and `ColorPicker` take `readOnly` from their own prop or from an enclosing `Control`. `Rating` and `SwitchChoice` set `aria-required` from their own `required` prop or from an enclosing `Control`. The `ColorPicker` and `DatePicker` triggers set it from an enclosing `Control`.
 
 > The `ColorPicker` trigger is a `combobox`, as the `DatePicker` trigger is. Its value is the hex code that it shows. ArrowDown and ArrowUp open its panel, as on `DatePicker` and `Listbox`. Each preset swatch has a coarse color name and its hex code as its name, such as "Red, #EF4444".

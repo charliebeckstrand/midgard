@@ -73,7 +73,9 @@ function pageStatus(
  * and a row-range status at the end. All three are driven by the
  * {@link GridPaginationView} that the grid resolves. The
  * footer width, not the viewport, sets the layout. Below `@2xl` the numbered
- * pages hide, and a footer with no picker moves Previous/Next to the start.
+ * pages hide, and a footer with no picker moves Previous/Next to the start. A
+ * footer too narrow for the three zones wraps the zone that does not fit to a
+ * second line.
  * Numbered pages render only when the total page count is known; an unbounded
  * server feed falls back to Previous/Next beside a "Page N" status.
  *

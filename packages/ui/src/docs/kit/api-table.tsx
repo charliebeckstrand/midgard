@@ -44,7 +44,8 @@ const entryModule = createLazyModule(() => import('./api-entry.tsx'))
  * location names a closed entry, or a prop in it, the entry opens and the page
  * scrolls to the element of the hash. After a link or a pick in the search,
  * the focus also goes to the element. The browser scrolls to an element that
- * is on the page already, so an open entry does nothing.
+ * is on the page already, so an open entry does nothing. A table that mounts
+ * after the load of its chunk starts with the entry of the hash open.
  */
 export function ApiTable({ api }: { api: BarrelApi }) {
 	const components = Object.values(api)
@@ -56,13 +57,27 @@ export function ApiTable({ api }: { api: BarrelApi }) {
 		[api],
 	)
 
+	const location = useLocation()
+
+	const navigationType = useNavigationType()
+
+	const named = componentOfHash(location.hash)
+
+	const target = named !== undefined && named in api ? named : undefined
+
+	// A table that mounts with its chunk loaded, as after a move to a new page,
+	// starts with the entry of the hash open. So the page has its full height in
+	// its first commit, and the scroll of the navigation (`useNavigationScroll`)
+	// goes to the element of the hash, or back to the scroll that the reader
+	// left. The chunk is not loaded at hydration, so the hydration render opens
+	// nothing, as the server does.
 	const {
 		module: entry,
 		open,
 		change,
 		warm,
 	} = useLoadThenOpen<string[], EntryModule>({
-		initial: [],
+		initial: target !== undefined && entryModule.read() ? [target] : [],
 		lazy: entryModule,
 		prime: primeEntry,
 	})
@@ -82,30 +97,32 @@ export function ApiTable({ api }: { api: BarrelApi }) {
 			]
 		})
 
-	const location = useLocation()
-
-	const navigationType = useNavigationType()
-
 	const intl = useIntl()
 
 	// A page in another language tells the reader that the TSDoc is English.
 	// The default locale is English for an English locale only (`catalogIntl`).
 	const translated = intl.locale !== intl.defaultLocale
 
-	const named = componentOfHash(location.hash)
-
-	const target = named !== undefined && named in api ? named : undefined
-
 	// The anchor to scroll to when its row mounts and when its entry has opened.
 	const pending = useRef<PendingAnchor | null>(null)
+
+	// The location at the mount of the table: the load, or the move to the page.
+	const mounted = useRef(location)
 
 	const reveal = useEffectEvent((component: string, id: string) => {
 		if (open.includes(component)) return
 
+		const pop = navigationType === NavigationType.Pop
+
+		// A move through the history on the same page keeps the entries as they
+		// are, and the box goes back to the scroll of the entry of the history
+		// (`useNavigationScroll`).
+		if (pop && location !== mounted.current) return
+
 		// A link or a pick in the search moves the focus to the anchor, as
 		// `useNavigationScroll` does for an anchor on the page. A load and a move
 		// through the history keep the focus.
-		pending.current = { id, component, opened: false, focus: navigationType !== NavigationType.Pop }
+		pending.current = { id, component, opened: false, focus: !pop }
 
 		change((prev) => (prev.includes(component) ? prev : [...prev, component]))
 	})

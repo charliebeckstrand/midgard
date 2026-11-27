@@ -89,6 +89,11 @@ export function QueryBuilderSortableItem({
 		<Reorder.Item
 			as="div"
 			value={id}
+			// Motion makes each item a Tab stop that moves on Space and the arrows.
+			// The item has no role and its moves are not announced, and the grip is
+			// the one keyboard handle, so the item takes no `tabIndex`. Motion moves
+			// an item only on a key that the item itself takes, so its keys go too.
+			tabIndex={undefined}
 			dragListener={false}
 			dragControls={controls}
 			transition={instant ? k.instant : k.glide}

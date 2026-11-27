@@ -3,6 +3,7 @@ import { act } from '@testing-library/react'
 import type { ChangeEvent, FocusEvent, ReactElement } from 'react'
 import { createPortal } from 'react-dom'
 import { describe, expect, it, vi } from 'vitest'
+import { Control } from '../../components/control'
 import { useControlProps } from '../../components/control/use-control-props'
 import { Field, Message } from '../../components/fieldset'
 import { composeEventHandlers } from '../../core'
@@ -51,6 +52,9 @@ const PASS_THROUGH_ID = 'pass-through-subject'
 const LINK_HREF = '/swept-link'
 
 const PLACEHOLDER = 'Swept placeholder'
+
+// A real token (WCAG 1.3.5) that no subject sets on its own.
+const AUTO_COMPLETE = 'bday'
 
 // Three distinct steps, so each density leg can tell its answer from the other two.
 const AMBIENT = 'lg'
@@ -372,6 +376,26 @@ const disablesInput = vi.defineHelper(({ render, slot }: TextInputSubject) => {
 	expect(getSlot(container, slot)).toBeDisabled()
 })
 
+/** The text-input sweep, autoComplete prop leg: the token of the prop reaches the editable element. */
+const passesAutoComplete = vi.defineHelper(({ render, slot }: TextInputSubject) => {
+	const { container } = renderUI(render({ autoComplete: AUTO_COMPLETE }))
+
+	expect(getSlot(container, slot)).toHaveAttribute('autocomplete', AUTO_COMPLETE)
+})
+
+/**
+ * The text-input sweep, autoComplete Control leg: the token of an enclosing
+ * Control reaches the editable element (WCAG 1.3.5). A field that sets its own
+ * token keeps that token.
+ */
+const takesControlAutoComplete = vi.defineHelper(
+	({ render, slot, autoComplete }: TextInputSubject) => {
+		const { container } = renderUI(<Control autoComplete={AUTO_COMPLETE}>{render({})}</Control>)
+
+		expect(getSlot(container, slot)).toHaveAttribute('autocomplete', autoComplete ?? AUTO_COMPLETE)
+	},
+)
+
 /**
  * The text-input sweep, Enter leg: Enter keeps the focus in the editable
  * element. A field that blurs on Enter drops the focus to `<body>`.
@@ -532,6 +556,11 @@ describe('component text inputs', () => {
 		it(`${subject.title} passes through placeholder`, () => passesPlaceholder(subject))
 
 		it(`${subject.title} disables the editable element when disabled`, () => disablesInput(subject))
+
+		it(`${subject.title} passes through autoComplete`, () => passesAutoComplete(subject))
+
+		it(`${subject.title} takes the autoComplete of its Control`, () =>
+			takesControlAutoComplete(subject))
 
 		it(`${subject.title} keeps focus on Enter`, () => keepsFocusOnEnter(subject))
 	}
@@ -774,6 +803,15 @@ describe('capability sweeps: teeth checks', () => {
 				),
 			).rejects.toThrow('the focused element is the Tab stop of the control')
 		}
+	})
+
+	it('fails a text input that drops the autoComplete of its Control', () => {
+		expect(() =>
+			takesControlAutoComplete({
+				render: () => <input data-slot="tokenless" autoComplete="off" />,
+				slot: 'tokenless',
+			}),
+		).toThrow()
 	})
 
 	it('fails a component that drops the props it is given', () => {

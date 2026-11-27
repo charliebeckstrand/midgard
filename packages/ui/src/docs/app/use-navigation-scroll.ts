@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef } from 'react'
-import { NavigationType, useLocation, useNavigationType } from 'react-router'
+import { type Location, NavigationType, useLocation, useNavigationType } from 'react-router'
 import { focusAnchor } from '../kit/pending-anchor.ts'
 
 /**
@@ -8,11 +8,12 @@ import { focusAnchor } from '../kit/pending-anchor.ts'
  * in the app to a new page starts at the top, and a tab of the same page keeps
  * the scroll. A hash scrolls to its element, also on a second link to the same
  * hash, because each navigation gives a new location. The ids of the docs are
- * ASCII, so the hash is the id. A move back or forward through the history to
- * a new page goes to the scroll that the box had at that entry of the history.
- * The browser keeps the scroll of the window only, not of the box. An entry
- * that the shell did not show since the load, as after a reload, starts at the
- * top.
+ * ASCII, so the hash is the id. A move back or forward through the history
+ * goes to the scroll that the box had at that entry of the history, also for
+ * an entry with a hash and for an entry of the same page. The browser keeps
+ * the scroll of the window only, not of the box. An entry that the shell did
+ * not show since the load, as after a reload, goes to the element of its hash
+ * or, for a new page, to the top.
  *
  * A link or a pick in the search to a hash also moves the focus to its element
  * ({@link focusAnchor}), so the next Tab starts there. The palette gives the
@@ -38,10 +39,13 @@ export function useNavigationScroll(page: string) {
 	const last = useRef({ location, page })
 
 	// The scroll of the box at each entry of the history, by the key of its
-	// location. Each scroll of the box writes the scroll of the location that
-	// the box shows. A scroll event comes after the commit and the layout
-	// effect of a navigation, so the scroll of the old page stays as it was
-	// before the navigation, and each scroll after it goes to the new location.
+	// location. The layout effect of a navigation writes the scroll that the
+	// entry starts at, so an entry that the reader does not scroll, such as a
+	// tab that keeps the scroll, also has its scroll. Each scroll of the box
+	// then writes the scroll of the location that the box shows. A scroll event
+	// comes after the commit and the layout effect of a navigation, so the
+	// scroll of the old entry stays as it was before the navigation, and each
+	// scroll after it goes to the new location.
 	const positions = useRef(new Map<string, number>())
 
 	useEffect(() => {
@@ -64,25 +68,52 @@ export function useNavigationScroll(page: string) {
 	}, [])
 
 	useLayoutEffect(() => {
-		if (last.current.location === location) return
+		const box = scroller.current
 
-		const newPage = last.current.page !== page
+		if (!box) return
 
-		last.current = { location, page }
+		if (last.current.location !== location) {
+			const newPage = last.current.page !== page
 
-		const target = location.hash && document.getElementById(location.hash.slice(1))
+			last.current = { location, page }
 
-		if (target) {
-			target.scrollIntoView()
-
-			if (navigationType !== NavigationType.Pop) focusAnchor(target)
-		} else if (newPage) {
-			const top =
-				navigationType === NavigationType.Pop ? (positions.current.get(location.key) ?? 0) : 0
-
-			scroller.current?.scrollTo(0, top)
+			scrollForNavigation(box, location, navigationType, newPage, positions.current)
 		}
+
+		positions.current.set(location.key, box.scrollTop)
 	}, [location, navigationType, page])
 
 	return scroller
+}
+
+/**
+ * Scrolls the box for a navigation to `location`. A move through the history
+ * goes to the scroll of its entry first. Else the box goes to the element of
+ * the hash, and a link or a pick in the search also moves the focus to it.
+ * Else a new page starts at the top.
+ */
+function scrollForNavigation(
+	box: HTMLElement,
+	location: Location,
+	navigationType: NavigationType,
+	newPage: boolean,
+	positions: ReadonlyMap<string, number>,
+) {
+	const pop = navigationType === NavigationType.Pop
+
+	const saved = pop ? positions.get(location.key) : undefined
+
+	if (saved !== undefined) {
+		box.scrollTo(0, saved)
+
+		return
+	}
+
+	const target = location.hash && document.getElementById(location.hash.slice(1))
+
+	if (target) {
+		target.scrollIntoView()
+
+		if (!pop) focusAnchor(target)
+	} else if (newPage) box.scrollTo(0, 0)
 }

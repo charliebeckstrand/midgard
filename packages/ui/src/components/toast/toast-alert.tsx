@@ -1,6 +1,7 @@
 'use client'
 
 import { type RefObject, useEffect, useEffectEvent, useLayoutEffect, useRef } from 'react'
+import { spokenText } from '../../core/accessible-name'
 import { announce } from '../../core/announcer'
 import { useAnnounceOnAppear } from '../../hooks/a11y/use-announce-on-appear'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
@@ -124,7 +125,7 @@ export function ToastAlert({
 	const spoken = useRef<{ revision?: number; text: string; assertive: boolean } | null>(null)
 
 	useEffect(() => {
-		const text = contentRef.current?.textContent?.trim() ?? ''
+		const text = contentRef.current ? spokenText(contentRef.current) : ''
 
 		const last = spoken.current
 

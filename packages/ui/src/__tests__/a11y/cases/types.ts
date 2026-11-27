@@ -54,17 +54,24 @@ type TextInputProbe = {
 	ref?: (element: HTMLElement | null) => void
 	placeholder?: string
 	disabled?: boolean
+	autoComplete?: string
 }
 
 /**
- * A text field whose ref, placeholder, and disabled state reach its editable
- * element. Enter keeps the focus in that element.
+ * A text field whose ref, placeholder, disabled state, and `autoComplete`
+ * token reach its editable element. Enter keeps the focus in that element.
  */
 export type TextInputSubject = {
 	/** Renders the subject with `props` on the component under test. */
 	render: (props: TextInputProbe) => ReactElement
 	/** The `data-slot` of the editable element. */
 	slot: string
+	/**
+	 * The `autocomplete` token that the field sets itself, such as `cc-number`.
+	 * This token wins over the token of an enclosing Control. Omit it when the
+	 * field takes the token of its Control.
+	 */
+	autoComplete?: string
 }
 
 /**
@@ -200,8 +207,9 @@ export type Case = Scenario & {
 	 */
 	density?: readonly DensitySubject[]
 	/**
-	 * Text fields whose ref, placeholder, and disabled state reach the editable
-	 * element, and whose editable element keeps the focus on Enter.
+	 * Text fields whose ref, placeholder, disabled state, and `autoComplete`
+	 * token reach the editable element, and whose editable element keeps the
+	 * focus on Enter.
 	 */
 	textInput?: readonly TextInputSubject[]
 	/** Form-bound controls whose blur marks the field touched, whatever the caller's `onBlur` does. */

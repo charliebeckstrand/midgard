@@ -708,10 +708,11 @@ export const k = {
 		// layout follows the width that the grid has (a dashboard tile, a
 		// dialog, a page), not the viewport.
 		base: ['@container', 'pt-2'],
-		// One row of three equal `flex-1` tracks at all widths: the page-size
-		// picker at the start, the navigation centered, and the row-range status
-		// at the end.
-		bar: [flex.row, dan.gap.scale.md],
+		// One row of three equal `flex-1` tracks: the page-size picker at the
+		// start, the navigation centered, and the row-range status at the end. A
+		// footer too narrow for the three tracks wraps a track to the next line,
+		// so the status stays in the grid (WCAG 1.4.10).
+		bar: [flex.row, 'flex-wrap', dan.gap.scale.md],
 		// Each `bare` form is a footer with no page-size picker, below `@2xl`: the
 		// empty start track goes, so Previous/Next sit at the start and the status
 		// at the end. From `@2xl` the numbered pages stay centered.

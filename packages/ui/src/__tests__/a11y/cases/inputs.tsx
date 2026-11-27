@@ -650,9 +650,21 @@ export const inputCases: readonly Case[] = [
 			</Field>
 		),
 		textInput: [
-			{ render: (props) => <CreditCardInput {...props} />, slot: 'credit-card-input' },
-			{ render: (props) => <CreditCardInputExpiry {...props} />, slot: 'credit-card-input-expiry' },
-			{ render: (props) => <CreditCardInputCvv {...props} />, slot: 'credit-card-input-cvv' },
+			{
+				render: (props) => <CreditCardInput {...props} />,
+				slot: 'credit-card-input',
+				autoComplete: 'cc-number',
+			},
+			{
+				render: (props) => <CreditCardInputExpiry {...props} />,
+				slot: 'credit-card-input-expiry',
+				autoComplete: 'cc-exp',
+			},
+			{
+				render: (props) => <CreditCardInputCvv {...props} />,
+				slot: 'credit-card-input-cvv',
+				autoComplete: 'cc-csc',
+			},
 		],
 		touchOnBlur: [
 			{
@@ -710,7 +722,11 @@ export const inputCases: readonly Case[] = [
 			</Field>
 		),
 		textInput: [
-			{ render: (props) => <MaskInput mask={phoneMask()} {...props} />, slot: 'mask-input' },
+			{
+				render: (props) => <MaskInput mask={phoneMask()} {...props} />,
+				slot: 'mask-input',
+				autoComplete: 'tel',
+			},
 		],
 		touchOnBlur: [
 			{
@@ -729,7 +745,11 @@ export const inputCases: readonly Case[] = [
 			</Field>
 		),
 		textInput: [
-			{ render: (props) => <MaskInput mask={zipcodeMask()} {...props} />, slot: 'mask-input' },
+			{
+				render: (props) => <MaskInput mask={zipcodeMask()} {...props} />,
+				slot: 'mask-input',
+				autoComplete: 'postal-code',
+			},
 		],
 		touchOnBlur: [
 			{
