@@ -180,19 +180,24 @@ describe('a prerendered page of the docs build', () => {
 	})
 
 	// The HTML shows the first page. A gate that never opens also hydrates
-	// with no error, so the page of the query must show after hydration.
+	// with no error, so the page of the query must show after hydration. The
+	// page of the query applies in the render after hydration, and `HYDRATED`
+	// is true before that render. So the case waits for the current page to
+	// change from the page of the HTML. A gate that never opens fails the wait.
 	it('shows the page of its query after hydration', async () => {
 		const tab = await openTab()
 
 		await openPage(tab, '/pagination?page=3')
 
-		await tab.waitForFunction(HYDRATED)
+		const current = await tab.waitForFunction(() => {
+			const text = document.querySelector(
+				'nav[aria-label="Pages of results"] [aria-current="page"]',
+			)?.textContent
 
-		await tab.waitForLoadState('networkidle')
+			return text !== '1' && text
+		})
 
-		const current = tab.locator('nav[aria-label="Pages of results"] [aria-current="page"]')
-
-		expect(await current.textContent()).toBe('3')
+		expect(await current.jsonValue()).toBe('3')
 	})
 })
 
