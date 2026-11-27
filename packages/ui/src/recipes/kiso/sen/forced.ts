@@ -83,6 +83,10 @@ export const forced = {
 			'forced-colors:has-[[data-invalid]]:after:-outline-offset-2',
 		],
 	},
-	/** Icon slot: keeps data-slot=icon children on CanvasText. */
-	icon: 'forced-colors:*:data-[slot=icon]:text-[CanvasText]',
+	/**
+	 * Icon slot: each data-slot=icon child takes the text color of its row. At
+	 * rest the row is `CanvasText`. A roved or focused row is `HighlightText` on
+	 * `Highlight` ({@link forced.focus}), and the icon follows it there.
+	 */
+	icon: 'forced-colors:*:data-[slot=icon]:text-inherit',
 } as const

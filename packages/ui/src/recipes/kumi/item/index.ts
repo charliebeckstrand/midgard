@@ -54,6 +54,9 @@ export const item = defineGroup({
 		 * row grounds a hovered or roved row on the tint wash, which `muted` is not
 		 * legal over. See `iro/ramp.ts`. A spacer pseudo-element (`before:w-2`)
 		 * shrinks before the text truncates, so the ellipsis lands inside the row.
+		 * Under forced colors, the row does not adjust its colors, so the
+		 * description takes the text color of the row: `CanvasText` at rest, and
+		 * `HighlightText` on a roved or focused row.
 		 */
 		description: [
 			'flex',
@@ -61,6 +64,7 @@ export const item = defineGroup({
 			'overflow-hidden',
 			'before:w-2 before:min-w-0 before:shrink',
 			on.wash.muted,
+			'forced-colors:text-inherit',
 		],
 		/** The keyboard shortcut of the row, at its end. */
 		shortcut: 'ms-auto',

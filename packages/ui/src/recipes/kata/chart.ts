@@ -77,6 +77,16 @@ export const k = {
 	 * the ink is stronger, so the value leads and the row reads as one line.
 	 */
 	value: ['text-sm text-start', 'leading-tight', 'tabular-nums', 'font-medium', ...text.default],
+	/**
+	 * The label inside a slice. It fills in the label ink of its slot, white on
+	 * the fill of the slice. Forced colors replace the fill of a slice with a
+	 * tile on `Canvas`, so under forced colors the label fills in `CanvasText`,
+	 * with a halo in `Canvas` that parts it from the lines of the tile.
+	 */
+	segment: [
+		'[paint-order:stroke] [stroke-linejoin:round]',
+		'forced-colors:fill-[CanvasText] forced-colors:stroke-[Canvas] forced-colors:stroke-3',
+	],
 	/** The paint beside a mark: the ink of its label (`label`) and the stroke of a point marker (`stroke`). */
 	mark: {
 		/**
