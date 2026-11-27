@@ -1,5 +1,6 @@
 import { act, fireEvent, render } from '@testing-library/react'
 import { renderToString } from 'react-dom/server'
+import { MemoryRouter } from 'react-router'
 import { describe, expect, vi } from 'vitest'
 import { it, onFakeClock } from '../../__tests__/helpers/fake-clock'
 import { stubResizeObserver } from '../../__tests__/helpers/stub-resize-observer'
@@ -113,11 +114,13 @@ function layOut(body: HTMLElement) {
 
 /** The sidebar, with `pathname` as the path of the current page. */
 const sidebar = (pages: readonly PageLink[], pathname?: string) => (
-	<UIProvider pathname={pathname}>
-		<DocsSearch>
-			<DocsSidebar pages={pages} />
-		</DocsSearch>
-	</UIProvider>
+	<MemoryRouter>
+		<UIProvider pathname={pathname}>
+			<DocsSearch>
+				<DocsSidebar pages={pages} />
+			</DocsSearch>
+		</UIProvider>
+	</MemoryRouter>
 )
 
 function renderSidebar(pages = PAGES, pathname?: string) {

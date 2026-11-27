@@ -1,11 +1,13 @@
 import { ChevronDown } from 'lucide-react'
-import { memo, useMemo, useRef } from 'react'
+import { memo, use, useEffect, useMemo, useRef } from 'react'
+import { useLocation } from 'react-router'
 import { Collapse, CollapsePanel, CollapseTrigger } from 'ui/collapse'
 import { dataAttr } from 'ui/core'
 import { Flex } from 'ui/flex'
 import { Heading } from 'ui/heading'
 import { Icon } from 'ui/icon'
 import { IntlMessage, useIntl } from 'ui/primitives/intl'
+import { OffcanvasContext } from 'ui/primitives/offcanvas'
 import { TouchTarget } from 'ui/primitives/touch-target'
 import {
 	Sidebar,
@@ -47,6 +49,36 @@ const PageItem = memo(function PageItem({ page, lettered }: { page: PageLink; le
 })
 
 /**
+ * Closes the mobile sidebar on each navigation while it shows. An item of the
+ * sidebar closes it on a press, but a pick in the search, from its button or
+ * from its key, and a move through the history also navigate, also to a tab or
+ * a hash of the same page. The copy of the sidebar in the page has no
+ * offcanvas, so the hook does nothing there. A hidden copy runs no effect, so
+ * a copy that shows again does not close for a navigation while it was hidden.
+ */
+function useCloseOnNavigation() {
+	const offcanvas = use(OffcanvasContext)
+
+	const { key } = useLocation()
+
+	// The key of the location at the last effect, or `undefined` while the copy is hidden.
+	const shown = useRef<string | undefined>(undefined)
+
+	useEffect(
+		() => () => {
+			shown.current = undefined
+		},
+		[],
+	)
+
+	useEffect(() => {
+		if (shown.current !== undefined && shown.current !== key) offcanvas?.close()
+
+		shown.current = key
+	}, [offcanvas, key])
+}
+
+/**
  * The sidebar of the docs: the button of the search, the pages of each
  * section, and the letter rail. The title of a section opens and closes the
  * section ({@link useSectionsOpen}). The shell renders again on each change of
@@ -57,6 +89,8 @@ export const DocsSidebar = memo(function DocsSidebar({ pages }: { pages: readonl
 	const bodyRef = useRef<HTMLDivElement>(null)
 
 	const intl = useIntl()
+
+	useCloseOnNavigation()
 
 	const sections = useMemo(() => groupSections(pages), [pages])
 

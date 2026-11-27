@@ -80,7 +80,7 @@ function toMemberLink(option: SearchOption, query: string): SearchOption {
 	return { ...option, href: `${path}#${toApiId(component, member)}` }
 }
 
-function Results({ onPick }: { onPick: () => void }) {
+function Results() {
 	const query = useCommandPaletteDeferredQuery()
 
 	const intl = useIntl()
@@ -109,9 +109,7 @@ function Results({ onPick }: { onPick: () => void }) {
 			 * only the search field.
 			 */}
 			<VirtualOptions items={matches} getOptionId={(option) => option.id}>
-				{(option, _index, meta) => (
-					<SearchResult key={option.id} option={option} meta={meta} onPick={onPick} />
-				)}
+				{(option, _index, meta) => <SearchResult key={option.id} option={option} meta={meta} />}
 			</VirtualOptions>
 		</>
 	)
@@ -128,15 +126,12 @@ export function SearchPalette({
 	onOpenChange,
 	query,
 	onQueryChange,
-	onPick,
 }: {
 	open: boolean
 	onOpenChange: (open: boolean) => void
 	/** The text in the search field. The palette clears it through `onOpenChange` on a close. */
 	query: string
 	onQueryChange: (query: string) => void
-	/** Runs after a pick, as the palette closes. */
-	onPick: () => void
 }) {
 	const intl = useIntl()
 
@@ -148,7 +143,7 @@ export function SearchPalette({
 			onQueryChange={onQueryChange}
 			placeholder={intl.formatMessage(placeholderMessage)}
 		>
-			<Results onPick={onPick} />
+			<Results />
 		</CommandPalette>
 	)
 }
