@@ -256,7 +256,8 @@ const KNOWN: readonly { finding: string; paths: readonly string[]; reason: strin
 	{
 		finding: 'crowded breadcrumb-item/breadcrumb-link',
 		paths: ['/breadcrumb'],
-		reason: 'A crumb that gave way shows only its `…` mark, which is 12 × 24 px.',
+		reason:
+			'A crumb that gave way shows only its `…` mark, which is 44 × 24 px. The marks are at one place, so the circle of each mark reaches the marks under it.',
 	},
 	{
 		finding: 'overlap breadcrumb-item/breadcrumb-link | breadcrumb-item/breadcrumb-link',

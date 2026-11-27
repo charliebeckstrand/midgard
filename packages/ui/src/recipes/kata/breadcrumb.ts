@@ -35,6 +35,8 @@ export const k = defineKata(
 				'in-data-collapse:has-[>[data-slot=breadcrumb-item]~[data-slot=breadcrumb-item]]:ps-[calc(var(--ui-breadcrumb-mark)+var(--ui-breadcrumb-gap))]',
 				'in-data-collapse:overflow-y-clip',
 				'in-data-collapse:[--ui-breadcrumb-mark:0.75em] in-data-collapse:[--ui-breadcrumb-ring:--spacing(1)]',
+				// On a coarse pointer, the mark is as wide as the floor of `TouchTarget`.
+				'pointer-coarse:in-data-collapse:[--ui-breadcrumb-mark:--spacing(11)]',
 				dan.gap.breadcrumb,
 				dan.size.separator.room,
 			],
