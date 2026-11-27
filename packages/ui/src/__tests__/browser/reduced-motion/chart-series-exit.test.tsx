@@ -14,7 +14,7 @@ const SERIES = [
 	{ xKey: 'quarter', yKey: 'north', yName: 'North' },
 	{ xKey: 'quarter', yKey: 'south', yName: 'South' },
 	{ xKey: 'quarter', yKey: 'west', yName: 'West' },
-]
+] as const
 
 /** The `d` of each drawn bar, in draw order: series by series. */
 function barPaths(container: HTMLElement): string[] {
@@ -34,7 +34,7 @@ describe('chart series exit under reduced motion (real Motion)', () => {
 			<BarChart
 				aria-label="Sales by quarter"
 				data={DATA}
-				series={SERIES}
+				series={[...SERIES]}
 				width={400}
 				stacked
 				animate
