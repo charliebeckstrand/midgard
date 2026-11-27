@@ -40,7 +40,6 @@ import {
 } from './engine/grid-edit/utilities'
 import { gridMessages } from './engine/grid-messages'
 import { spokenRowNumber } from './engine/grid-row/shell'
-import { clearStickyChrome, obscuringInsets } from './engine/grid-sticky-insets'
 import { GridEditInputs } from './grid-edit-inputs'
 import type { GridColumn } from './types'
 import { useGridEditGrow } from './use-grid-edit-grow'
@@ -409,17 +408,9 @@ export function GridCellEditor<T>({
 
 		// The focus scrolls the field into view only where it is out of view.
 		// Do not use `preventScroll`: on iOS it also stops the scroll that
-		// keeps the field above the on-screen keyboard.
+		// keeps the field above the on-screen keyboard. The focus handler of the
+		// table then clears the field of the sticky chrome (`clearFocusTarget`).
 		editor?.focus()
-
-		if (!newRow) return
-
-		// The browser scroll can leave a cell of the new-row slot under the
-		// sticky Add cell or a pinned column, so the grid clears it as the
-		// cursor does.
-		const cell = hostRef.current?.closest('td')
-
-		if (cell) clearStickyChrome(cell, obscuringInsets(cell))
 	})
 
 	const cancel = () => {
