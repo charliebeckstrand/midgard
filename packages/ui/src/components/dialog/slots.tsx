@@ -39,25 +39,25 @@ export type DialogContentProps = PanelContentProps
 /** Props for {@link DialogClose}: one clickable child, or none for the standard Close button. */
 export type DialogCloseProps = Partial<PanelCloseProps>
 
+/**
+ * The close control of the enclosing {@link Dialog}. With no child, it renders
+ * the standard Close button, which is also the default footer of the dialog.
+ * The standard button stays live in a locked scope, such as a submitting form.
+ * With one child, a click on the child closes the dialog, and the child's own
+ * `onClick` runs first.
+ */
 const Close = createPanelClose('dialog')
 
+/**
+ * `<div>` grouping the dialog's title and description. A `closable` header puts
+ * an X close at the end of the line of the title.
+ */
 const ClosableHeader = createPanelHeader('dialog', Header)
 
 export {
 	/** `<div>` scroll region for the dialog's main content; marked as a scroll region for overflow handling. */
 	Body as DialogBody,
-	/**
-	 * `<div>` grouping the dialog's title and description. A `closable` header puts
-	 * an X close at the end of the line of the title.
-	 */
 	ClosableHeader as DialogHeader,
-	/**
-	 * The close control of the enclosing {@link Dialog}. With no child, it renders
-	 * the standard Close button, which is also the default footer of the dialog.
-	 * The standard button stays live in a locked scope, such as a submitting form.
-	 * With one child, a click on the child closes the dialog, and the child's own
-	 * `onClick` runs first.
-	 */
 	Close as DialogClose,
 	/** `<div>` wrapper for arbitrary dialog content outside the header/body/footer rhythm. */
 	Content as DialogContent,

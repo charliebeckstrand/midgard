@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { Button } from '../../../components/button'
 import { Code } from '../../../components/code'
 import { Kbd } from '../../../components/kbd'
+import { densitySteps } from '../../../core/density'
 import { markInlineTrim, ROOT_NO_INLINE_TRIM_CLASS } from '../../../core/text-trim/root'
 import { bySlot, present, renderUI } from '../../helpers'
 import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
@@ -54,7 +55,7 @@ function spaces(mark: HTMLElement) {
  * Rides the real browser because the claim is a computed one: jsdom loads no stylesheet.
  */
 describe.skipIf(!TRIMS)('the space around the text of an inline mark (real browser)', () => {
-	it.for(['xs', 'sm', 'md', 'lg', 'xl'])('is the same above and below at %s', (step) => {
+	it.for(densitySteps)('is the same above and below at %s', (step) => {
 		const { container } = renderUI(
 			<div data-density={step}>
 				<p>

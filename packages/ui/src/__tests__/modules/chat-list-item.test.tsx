@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { ChatListItem } from '../../modules/chat'
-import { bySlot, renderUI, screen, userEvent } from '../helpers'
+import { bySlot, renderUI, screen, setupUser } from '../helpers'
 
 describe('ChatListItem', () => {
 	it('renders the title and preview', () => {
@@ -16,7 +16,7 @@ describe('ChatListItem', () => {
 
 		renderUI(<ChatListItem title="Bug investigation" onSelect={onSelect} />)
 
-		await userEvent.click(screen.getByRole('button', { name: 'Bug investigation' }))
+		await setupUser().click(screen.getByRole('button', { name: 'Bug investigation' }))
 
 		expect(onSelect).toHaveBeenCalledOnce()
 	})

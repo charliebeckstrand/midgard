@@ -4,7 +4,9 @@ import { Button } from 'ui/button'
 import { Flex } from 'ui/flex'
 import { Grid, type GridHandle, type GridHistoryState } from 'ui/grid'
 import { Icon } from 'ui/icon'
+import { Kbd } from 'ui/kbd'
 import { PointerHint } from '../../../../kit/pointer-hint.tsx'
+import { ShortcutHint } from '../../../../kit/shortcut-hint.tsx'
 import { applyChanges, EditHelp, initialPeople, personColumns } from './people.tsx'
 
 export default function UndoAndRedo() {
@@ -31,13 +33,21 @@ export default function UndoAndRedo() {
 				</Flex>
 				<EditHelp label="Undo help">
 					<PointerHint
-						mouseText="Edit a cell, then press Ctrl+Z or Cmd+Z to undo the save."
+						mouseText={
+							<>
+								Edit a cell, then press{' '}
+								<Kbd>
+									<ShortcutHint keyName="Z" />
+								</Kbd>{' '}
+								to undo the save.
+							</>
+						}
 						touchText="Edit a cell, then tap Undo."
 					/>
 				</EditHelp>
 			</Flex>
 			<Grid
-				tableProps={{ 'aria-label': 'Undo and redo' }}
+				tableProps={{ 'aria-label': 'People' }}
 				ref={gridRef}
 				columns={personColumns}
 				rows={people}

@@ -403,6 +403,14 @@
 			"plugins": ["./.biome/plugins/no-hand-written-aria-check.grit"]
 		},
 		{
+			"includes": [
+				"**/__tests__/**",
+				"!packages/ui/src/__tests__/browser/**",
+				"!packages/ui/src/__tests__/helpers/setup-user.ts"
+			],
+			"plugins": ["./.biome/plugins/no-user-event-outside-setup-user.grit"]
+		},
+		{
 			"includes": ["packages/ui/src/__tests__/mocks/**"],
 			"linter": {
 				"rules": {

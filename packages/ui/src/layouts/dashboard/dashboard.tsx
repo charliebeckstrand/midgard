@@ -59,7 +59,8 @@ export type DashboardLayoutProps = ComponentProps<'div'> & {
 	layout?: Responsive<OffcanvasLayout>
 	/**
 	 * Fires when the filter drawer opens or closes, whatever drove it: the
-	 * "Filters" button, a dismissal, or the viewport widening to the inline layout.
+	 * "Filters" button, Escape, a click on the backdrop, or the viewport widening
+	 * to the inline layout.
 	 *
 	 * Observation only. The layout owns the drawer and there is no `open` prop to pair
 	 * with. The inline rail does not open, so it reports nothing.

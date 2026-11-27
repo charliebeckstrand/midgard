@@ -1,6 +1,7 @@
+import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { FileUploadDrop } from '../../components/file-upload'
-import { getSlot, present, renderUI, userEvent, waitFor } from '../helpers'
+import { getSlot, present, renderUI, waitFor } from '../helpers'
 
 /**
  * The drop zone swaps its focused control when a selection lands or clears. A

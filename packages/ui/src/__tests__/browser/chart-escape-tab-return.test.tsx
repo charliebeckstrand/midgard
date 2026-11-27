@@ -1,6 +1,7 @@
+import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { LineChart } from '../../modules/chart/line-chart'
-import { getSlot, present, renderUI, userEvent, waitFor } from '../helpers'
+import { getSlot, present, renderUI, waitFor } from '../helpers'
 
 /**
  * Escape leaves a chart's keyboard navigation by dropping focus to the body, the

@@ -118,7 +118,7 @@ export default function EditorTypes() {
 
 	return (
 		<Grid
-			tableProps={{ 'aria-label': 'Editor types' }}
+			tableProps={{ 'aria-label': 'Tasks' }}
 			columns={columns}
 			rows={rows}
 			getKey={(row) => row.id}

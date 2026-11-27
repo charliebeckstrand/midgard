@@ -25,7 +25,7 @@ const groups: GridColumnGroup[] = [
 export default function CollapsibleGroups() {
 	return (
 		<Grid
-			tableProps={{ 'aria-label': 'Collapsible groups' }}
+			tableProps={{ 'aria-label': 'People' }}
 			columns={columns}
 			rows={people}
 			getKey={(row) => row.id}

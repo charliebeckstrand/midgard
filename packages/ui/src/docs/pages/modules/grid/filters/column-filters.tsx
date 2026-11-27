@@ -4,7 +4,7 @@ import { filterableColumns, people } from '../data.tsx'
 export default function ColumnFilters() {
 	return (
 		<Grid
-			tableProps={{ 'aria-label': 'Column filters' }}
+			tableProps={{ 'aria-label': 'People' }}
 			columns={filterableColumns}
 			rows={people}
 			getKey={(row) => row.id}

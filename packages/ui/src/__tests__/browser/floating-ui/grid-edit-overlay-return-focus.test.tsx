@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Grid, type GridColumn } from '../../../modules/grid'
+import { NO_HOVER_QUERY, PHONE_QUERY } from '../../../utilities/media-query'
 import { present, renderUI, screen, stubMatchMedia, waitFor, within } from '../../helpers'
 
 type Row = { id: number; name: string }
@@ -74,7 +75,7 @@ function cancel() {
  */
 describe('grid edit overlay return focus (real floating engine)', () => {
 	beforeEach(() => {
-		stubMatchMedia((query) => query.startsWith('(hover: none)'))
+		stubMatchMedia((query) => query === NO_HOVER_QUERY || query === PHONE_QUERY)
 	})
 
 	it('returns the focus to the cell of the pencil, not to a grid that had the focus before', async () => {

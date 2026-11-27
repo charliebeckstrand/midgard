@@ -19,7 +19,7 @@ const initialMessages: ChatMessageData[] = [
 				id: 'carrier',
 				prompt: 'Which carrier should take it?',
 				title: 'Carrier',
-				success: 'Carrier picked',
+				success: 'Carrier selected',
 				input: { kind: 'choice', name: 'carrier', options: carriers },
 			},
 		],
@@ -36,7 +36,7 @@ const revise = ({ result }: { result: ChatActionResult }) => {
 	}
 }
 
-export default function PickACarrier() {
+export default function SelectACarrier() {
 	// The shown path, for the agent to revise an earlier message.
 	const shown = useRef<readonly ChatMessageData[]>(initialMessages)
 	const [transport] = useState(() => agentTransport(revise, () => shown.current))

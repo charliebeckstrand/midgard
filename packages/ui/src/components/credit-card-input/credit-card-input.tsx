@@ -24,6 +24,7 @@ export type CreditCardInputProps = Omit<
 > & {
 	/** Controlled text. `undefined` leaves the field uncontrolled; `null` keeps it controlled and empty (CONVENTIONS §7.3). */
 	value?: string | null
+	/** Initial text when uncontrolled and not form-bound. */
 	defaultValue?: string
 	/**
 	 * The placeholder of the card number field.

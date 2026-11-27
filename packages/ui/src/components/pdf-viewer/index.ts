@@ -11,6 +11,7 @@ export type {
 	PdfViewerMagnifierState,
 	PdfViewerMagnifierZoom,
 	PdfViewerPage,
+	PdfViewerPageSize,
 	PdfViewerSearchHighlightOptions,
 	PdfViewerSearchOptions,
 	PdfViewerTextItem,

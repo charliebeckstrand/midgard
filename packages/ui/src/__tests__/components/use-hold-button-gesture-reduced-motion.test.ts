@@ -6,6 +6,7 @@ import {
 	type HoldGestureOptions,
 	useHoldButtonGesture,
 } from '../../components/hold-button/use-hold-button-gesture'
+import { REDUCED_MOTION_QUERY } from '../../utilities/media-query'
 import { stubMatchMedia } from '../helpers'
 
 function renderGesture(initial: HoldGestureOptions) {
@@ -33,7 +34,7 @@ describe('useHoldButtonGesture under prefers-reduced-motion', () => {
 	// Forces the reduced-motion branch via the shared mock's matchMedia read,
 	// not a per-file `vi.mock('motion/react')` (see setup/module-mocks.ts).
 	beforeEach(() => {
-		stubMatchMedia((query) => query === '(prefers-reduced-motion: reduce)')
+		stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
 
 		// The stub runs no animation, as in `use-hold-button-gesture.test.ts`. The
 		// default calls through to Motion, and its tween then runs on into the next

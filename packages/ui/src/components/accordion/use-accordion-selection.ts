@@ -22,7 +22,9 @@ type CollapsibleSingle = {
 	 * @defaultValue true
 	 */
 	collapsible?: true
+	/** Controlled open section: its `value`, or `null` for none. */
 	value?: string | null
+	/** Initial open section when uncontrolled, or `null` for none. */
 	defaultValue?: string | null
 	/**
 	 * Fires when the open sections change: a single accordion gives the open
@@ -67,7 +69,9 @@ export type SingleProps = {
  */
 export type MultipleProps = {
 	multiple: true
+	/** Controlled open sections, by `value`. */
 	value?: string[]
+	/** Initial open sections when uncontrolled. */
 	defaultValue?: string[]
 	/**
 	 * Fires when the open sections change: a single accordion gives the open

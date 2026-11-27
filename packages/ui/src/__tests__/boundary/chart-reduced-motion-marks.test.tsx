@@ -4,6 +4,7 @@ import { Sparkline } from '../../components/sparkline'
 import { LineChart } from '../../modules/chart/line-chart'
 import { PieChart } from '../../modules/chart/pie-chart'
 import { ScatterChart } from '../../modules/chart/scatter-chart'
+import { REDUCED_MOTION_QUERY } from '../../utilities/media-query'
 import { renderUI, stubMatchMedia } from '../helpers'
 
 /**
@@ -61,7 +62,7 @@ describe('animated line marks under reduced motion', () => {
 
 		drawn.clear()
 
-		stubMatchMedia((query) => query === '(prefers-reduced-motion: reduce)')
+		stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
 
 		renderUI(chart())
 
@@ -152,7 +153,7 @@ describe('other animated marks under reduced motion', () => {
 
 		drawn.clear()
 
-		stubMatchMedia((query) => query === '(prefers-reduced-motion: reduce)')
+		stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
 
 		renderUI(chart())
 

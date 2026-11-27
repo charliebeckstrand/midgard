@@ -47,6 +47,7 @@ const messages = defineMessages({
 })
 
 type ListboxBaseProps = {
+	/** The name of the form field that the listbox binds to, in a `Form`. */
 	name?: string
 	/** @defaultValue `'Select'`, in the language of the reader. */
 	placeholder?: string
@@ -57,8 +58,11 @@ type ListboxBaseProps = {
 	 * @defaultValue 'bottom-start'
 	 */
 	placement?: FloatingPlacement
+	/** Content before the value, inside the control frame, such as an icon. */
 	prefix?: ReactNode
+	/** Content after the value, inside the control frame, before the chevron. */
 	suffix?: ReactNode
+	/** The density step. Omit it to take the step of the nearest density scope. A step makes the listbox a density scope. */
 	size?: ScaleStep<typeof scale>
 	/**
 	 * Disables the field.
@@ -88,6 +92,7 @@ type ListboxBaseProps = {
 	'aria-label'?: string
 	/** Consumer-supplied `aria-describedby`, merged ahead of the field's registered description/error ids. */
 	'aria-describedby'?: string
+	/** Ids of the elements that name the listbox, merged with the label of the enclosing Field. */
 	'aria-labelledby'?: string
 	/**
 	 * Clears the selection on a click of the selected option.
