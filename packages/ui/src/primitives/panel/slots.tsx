@@ -6,6 +6,7 @@ import { cn } from '../../core/cn'
 import { useScrollRegion } from '../../hooks/use-scroll-region'
 import { k as heading } from '../../recipes/kata/heading'
 import { k } from '../../recipes/kata/panel'
+import { hasContent } from '../../utilities/children'
 import { usePanelA11y } from './context'
 import type {
 	PanelBodyProps,
@@ -133,10 +134,10 @@ export function createPanel(slotPrefix: string, slots?: PanelSlots) {
 
 	/**
 	 * The footer that the root shows when the panel has no Footer slot. Pass the
-	 * content of the footer row. `null` or `false` shows no footer.
+	 * content of the footer row. Empty content (see `hasContent`) shows no footer.
 	 */
 	function DefaultFooter({ children }: { children?: ReactNode }) {
-		if (children === undefined || children === null || children === false) return null
+		if (!hasContent(children)) return null
 
 		return (
 			<div

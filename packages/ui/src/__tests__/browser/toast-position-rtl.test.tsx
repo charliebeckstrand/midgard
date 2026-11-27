@@ -2,7 +2,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { Toast, ToastProvider } from '../../components/toast'
 import { LocaleProvider } from '../../providers/locale'
-import { present, renderUI, waitFor } from '../helpers'
+import { getSlot, renderUI, waitFor } from '../helpers'
 
 /**
  * A `start` or `end` position follows the reading direction. In a
@@ -27,10 +27,7 @@ describe('Toast logical positions (real browser)', () => {
 		)
 
 		await waitFor(() => {
-			const viewport = present(
-				document.querySelector<HTMLElement>('[data-slot="toast-viewport"]'),
-				'viewport',
-			)
+			const viewport = getSlot(document, 'toast-viewport')
 
 			const box = viewport.getBoundingClientRect()
 

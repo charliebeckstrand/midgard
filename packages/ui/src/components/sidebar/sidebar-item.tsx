@@ -9,7 +9,7 @@ import { PolymorphicStatic } from '../../primitives/polymorphic'
 import { TouchTarget } from '../../primitives/touch-target'
 import { HeadlessProvider } from '../../providers/headless'
 import { k, type scale } from '../../recipes/kata/sidebar'
-import { partitionByType } from '../../utilities/children'
+import { hasContent, partitionByType } from '../../utilities/children'
 import { Button } from '../button'
 import { Icon } from '../icon'
 import { type NavItemProps, useNavItem } from '../nav/use-nav-item'
@@ -91,7 +91,11 @@ export function SidebarItem({
 	// a slot can host its own interactive element. With an affix present the
 	// row goes flex and takes over the interaction chrome (`affix`),
 	// so the slots sit inside the hover tint and focus ring.
-	const hasAffix = prefix != null || suffix != null
+	const hasPrefix = hasContent(prefix)
+
+	const hasSuffix = hasContent(suffix)
+
+	const hasAffix = hasPrefix || hasSuffix
 
 	const slots = k.item({ affix: hasAffix })
 
@@ -142,7 +146,7 @@ export function SidebarItem({
 			className={slots.base}
 			{...tapHandlers}
 		>
-			{prefix != null && (
+			{hasPrefix && (
 				<div data-slot="sidebar-item-prefix" data-density="slot" className={slots.prefix}>
 					{prefix}
 				</div>
@@ -159,7 +163,7 @@ export function SidebarItem({
 					inner
 				)}
 			</HeadlessProvider>
-			{suffix != null && (
+			{hasSuffix && (
 				<div data-slot="sidebar-item-suffix" data-density="slot" className={slots.suffix}>
 					{suffix}
 				</div>

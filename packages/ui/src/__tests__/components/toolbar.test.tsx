@@ -1,6 +1,8 @@
 import { createRef, useState } from 'react'
 import { describe, expect, it } from 'vitest'
+import { Checkbox } from '../../components/checkbox'
 import { Segment, SegmentControl, SegmentItem } from '../../components/segment'
+import { Switch } from '../../components/switch'
 import { Toolbar, ToolbarGroup, ToolbarSeparator } from '../../components/toolbar'
 import { TOOLBAR_ITEM_SELECTOR } from '../../components/toolbar/toolbar-constants'
 import { bySlot, fireEvent, getSlot, renderUI, screen, setupUser, waitFor } from '../helpers'
@@ -235,6 +237,34 @@ describe('Toolbar', () => {
 		fireEvent.keyDown(toolbar, { key: 'ArrowRight' })
 
 		expect(document.activeElement).toBe(c)
+	})
+
+	it('takes a Checkbox and a Switch into the one Tab stop and the arrow order', () => {
+		renderUI(
+			<Toolbar aria-label="View">
+				<button type="button">Refresh</button>
+				<Checkbox aria-label="Wrap lines" />
+				<Switch aria-label="Live" />
+			</Toolbar>,
+		)
+
+		const refresh = screen.getByRole('button', { name: 'Refresh' })
+
+		const wrap = screen.getByRole('checkbox', { name: 'Wrap lines' })
+
+		const live = screen.getByRole('switch', { name: 'Live' })
+
+		expect([refresh, wrap, live].map((control) => control.tabIndex)).toEqual([0, -1, -1])
+
+		refresh.focus()
+
+		fireEvent.keyDown(refresh, { key: 'ArrowRight' })
+
+		expect(wrap).toHaveFocus()
+
+		fireEvent.keyDown(wrap, { key: 'ArrowRight' })
+
+		expect(live).toHaveFocus()
 	})
 
 	it('keeps a custom [tabindex] item in the roving query after demotion', () => {

@@ -2,7 +2,7 @@ import type { ReactElement } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Tree, TreeItem, TreeSkeleton } from '../../../components/tree'
 import { densitySteps } from '../../../core/density'
-import { present, renderUI } from '../../helpers'
+import { getSlot, present, renderUI } from '../../helpers'
 
 /**
  * The tree removes the outer block padding of its first and last visible
@@ -36,10 +36,7 @@ function spaces(rows: Element[]): number[] {
 
 /** The rows of a tree, in visible order, and the bottom space below the last row. */
 function measure(tree: ReactElement) {
-	const root = present(
-		renderUI(tree).container.querySelector('[data-slot="tree"]'),
-		'tree',
-	) as HTMLElement
+	const root = getSlot(renderUI(tree).container, 'tree') as HTMLElement
 
 	const rows = Array.from(root.querySelectorAll('[role="treeitem"]')).filter(
 		(row) => row.getClientRects().length > 0,

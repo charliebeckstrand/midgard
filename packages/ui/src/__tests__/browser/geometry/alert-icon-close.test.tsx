@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { Alert } from '../../../components/alert'
 import { Banner } from '../../../components/banner'
 import { DensityProvider, densityLevels } from '../../../providers/density'
-import { present, renderUI } from '../../helpers'
+import { getSlot, present, renderUI } from '../../helpers'
 import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
 
 const levels = densityLevels.map(({ value }) => value)
@@ -67,9 +67,7 @@ describe('Alert icon and close button', () => {
 				</DensityProvider>,
 			)
 
-			const style = getComputedStyle(
-				present(container.querySelector('[data-slot="alert"]'), 'alert'),
-			)
+			const style = getComputedStyle(getSlot(container, 'alert'))
 
 			expect(Number.parseFloat(style.paddingRight)).toBeNear(
 				Number.parseFloat(style.paddingLeft),

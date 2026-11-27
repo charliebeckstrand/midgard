@@ -5,7 +5,7 @@ import { Icon } from '../../components/icon'
 import { Menu, MenuContent, MenuItem } from '../../components/menu'
 import { Option } from '../../primitives/option/option'
 import { DensityProvider, densityLevels } from '../../providers/density'
-import { present, renderUI, screen } from '../helpers'
+import { getSlot, renderUI, screen } from '../helpers'
 import { holdRoot } from './helpers/root-state'
 
 /**
@@ -71,7 +71,7 @@ describe('item rows at a desktop width (real browser)', () => {
 
 		const row = await screen.findByRole('menuitem', { name: 'Copy' })
 
-		const icon = present(row.querySelector('[data-slot="icon"]'), 'menu row icon')
+		const icon = getSlot(row, 'icon')
 
 		expect(Number.parseFloat(getComputedStyle(icon).width)).toBe(ICON_PX[density])
 	})
@@ -94,7 +94,7 @@ describe('item rows at a desktop width (real browser)', () => {
 
 			const row = await screen.findByRole('menuitem', { name: 'Copy' })
 
-			const icon = present(row.querySelector('[data-slot="icon"]'), 'menu row icon')
+			const icon = getSlot(row, 'icon')
 
 			expect(Number.parseFloat(getComputedStyle(row).fontSize)).toBe(12)
 

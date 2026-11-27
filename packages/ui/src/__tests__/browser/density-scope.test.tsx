@@ -33,7 +33,7 @@ import { ChatListItem } from '../../modules/chat'
 import { Grid } from '../../modules/grid'
 import { Option } from '../../primitives/option/option'
 import { DensityProvider } from '../../providers/density'
-import { attach, present, renderUI, screen } from '../helpers'
+import { attach, getSlot, present, renderUI, screen } from '../helpers'
 import { holdRoot } from './helpers/root-state'
 
 /**
@@ -289,7 +289,7 @@ describe('controls at the first paint (real browser)', () => {
 		// The fill is the `::before` of the frame. Its radius is the frame radius less the ring.
 		const container = mountMarkup(element)
 
-		const frame = present(container.querySelector('[data-slot="control-frame"]'), 'frame')
+		const frame = getSlot(container, 'control-frame')
 
 		expect(getComputedStyle(frame, '::before').borderTopLeftRadius).toBe(radius)
 	})
@@ -319,7 +319,7 @@ describe('controls at the first paint (real browser)', () => {
 		// of the input is the height of its track.
 		const container = mountMarkup(<Slider aria-label="Volume" size="lg" defaultValue={50} />)
 
-		const slider = present(container.querySelector('[data-slot="slider"]'), 'slider')
+		const slider = getSlot(container, 'slider')
 
 		const { paddingTop, paddingBottom } = getComputedStyle(slider)
 
@@ -649,7 +649,7 @@ describe('density scopes on static leaves (real browser)', () => {
 	])('a loading dot %s', (_name, element, width) => {
 		const { container } = renderUI(element())
 
-		const dot = present(container.querySelector('[data-slot="loading-dot"]'), 'loading dot')
+		const dot = getSlot(container, 'loading-dot')
 
 		expect(Number.parseFloat(getComputedStyle(dot).width)).toBe(width)
 	})
@@ -753,10 +753,7 @@ describe('density scopes on static leaves (real browser)', () => {
 			</Card>,
 		)
 
-		const header = present(
-			container.querySelector<HTMLElement>('[data-slot="card-header"]'),
-			'card header',
-		)
+		const header = getSlot(container, 'card-header')
 
 		expect(Number.parseFloat(getComputedStyle(header).paddingBottom)).toBe(CARD_PADDING_PX.lg)
 	})
@@ -781,17 +778,14 @@ describe('density scopes on static leaves (real browser)', () => {
 		['badge', 'keeps an explicit size', BadgeSkeleton, 'lg', 32],
 		['level 1 heading', 'takes the step of the scope', HeadingSkeleton, undefined, 28],
 		['level 1 heading', 'keeps an explicit size', HeadingSkeleton, 'lg', 36],
-	])('a %s skeleton %s', ([component, , Skeleton, size, height]) => {
+	])('a %s skeleton %s', ([, , Skeleton, size, height]) => {
 		const { container } = renderUI(
 			<DensityProvider density="compact">
 				<Skeleton size={size} />
 			</DensityProvider>,
 		)
 
-		const skeleton = present(
-			container.querySelector<HTMLElement>('[data-slot="placeholder"]'),
-			`${component} skeleton`,
-		)
+		const skeleton = getSlot(container, 'placeholder')
 
 		expect(Number.parseFloat(getComputedStyle(skeleton).height)).toBe(height)
 	})
@@ -823,10 +817,7 @@ describe('density scopes on static leaves (real browser)', () => {
 			</DensityProvider>,
 		)
 
-		const skeleton = present(
-			container.querySelector<HTMLElement>('[data-slot="placeholder"]'),
-			'button skeleton',
-		)
+		const skeleton = getSlot(container, 'placeholder')
 
 		const style = getComputedStyle(skeleton)
 
@@ -881,7 +872,7 @@ describe('density scopes on static leaves (real browser)', () => {
 			</DensityProvider>,
 		)
 
-		const label = present(container.querySelector<HTMLElement>('[data-slot="label"]'), 'label')
+		const label = getSlot(container, 'label')
 
 		expect(Number.parseFloat(getComputedStyle(label).fontSize)).toBe(font)
 	})
@@ -913,7 +904,7 @@ describe('density scopes on families (real browser)', () => {
 			</DensityProvider>,
 		)
 
-		const row = present(container.querySelector<HTMLElement>('[data-slot="list-item"]'), 'row')
+		const row = getSlot(container, 'list-item')
 
 		expect(Number.parseFloat(getComputedStyle(row).paddingTop)).toBe(CARD_PADDING_PX.sm)
 	})
@@ -927,7 +918,7 @@ describe('density scopes on families (real browser)', () => {
 			</DensityProvider>,
 		)
 
-		const check = present(container.querySelector<SVGElement>('[data-slot="icon"]'), 'check')
+		const check = getSlot<SVGElement>(container, 'icon')
 
 		expect(Number.parseFloat(getComputedStyle(check).width)).toBe(22)
 	})

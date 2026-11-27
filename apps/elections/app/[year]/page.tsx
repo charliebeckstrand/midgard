@@ -11,6 +11,9 @@ export function generateStaticParams(): { year: string }[] {
 	return [...new Set(ELECTIONS.map((election) => String(election.year)))].map((year) => ({ year }))
 }
 
+/** The search of the header reads the results before the page renders, so the first frame has them. */
+export const instant = false
+
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
 	const { year } = await params
 

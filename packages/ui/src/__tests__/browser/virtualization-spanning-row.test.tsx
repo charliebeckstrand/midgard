@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { useVirtualWindow } from '../../hooks'
-import { act, frames, present, renderUI, waitFor } from '../helpers'
+import { act, frames, getSlot, present, renderUI, waitFor } from '../helpers'
 import { settledValue } from './helpers/sample'
 
 /**
@@ -64,7 +64,7 @@ describe('useVirtualWindow spanning row (real browser)', () => {
 
 		const { container } = renderUI(<List handle={handle} />)
 
-		const scroller = present(container.querySelector<HTMLElement>('[data-slot="list"]'), 'scroller')
+		const scroller = getSlot(container, 'list')
 
 		await waitFor(() => expect(scroller.querySelector('[data-row]')).not.toBeNull())
 

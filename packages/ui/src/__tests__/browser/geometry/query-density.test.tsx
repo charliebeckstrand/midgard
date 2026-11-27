@@ -9,7 +9,7 @@ import {
 	type QueryRule,
 } from '../../../modules/query'
 import { type DensityLevel, DensityProvider, densityLevels } from '../../../providers/density'
-import { present, renderUI } from '../../helpers'
+import { getSlot, present, renderUI } from '../../helpers'
 import { getCenter } from '../../helpers/geometry/box'
 import { LAYOUT_UNIT } from '../../helpers/geometry/tolerance'
 
@@ -131,7 +131,7 @@ function measureSegment(density: DensityLevel) {
 		</DensityProvider>,
 	)
 
-	const segment = present(container.querySelector('[data-slot="segment"]'), 'the segment')
+	const segment = getSlot(container, 'segment')
 
 	const item = present(segment.querySelector('[role="radio"]'), 'a segment item')
 
@@ -163,7 +163,7 @@ describe('Query density', () => {
 				</DensityProvider>,
 			)
 
-			const row = present(container.querySelector('[data-slot="query-chips"]'), 'the row')
+			const row = getSlot(container, 'query-chips')
 
 			const probe = document.createElement('div')
 
@@ -189,9 +189,9 @@ describe('Query density', () => {
 				</div>,
 			)
 
-			const node = present(container.querySelector('[data-slot="query-sortable"]'), 'a node')
+			const node = getSlot(container, 'query-sortable')
 
-			const grip = present(node.querySelector('[data-slot="query-reorder-handle"]'), 'the grip')
+			const grip = getSlot(node, 'query-reorder-handle')
 
 			const control = present(
 				node.querySelector('[data-slot="query-rule"] [data-slot="control-frame"]'),

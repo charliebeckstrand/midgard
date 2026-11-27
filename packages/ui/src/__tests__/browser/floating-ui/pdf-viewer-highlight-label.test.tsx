@@ -5,7 +5,7 @@ import {
 	type PdfViewerHighlight,
 	type PdfViewerPage,
 } from '../../../components/pdf-viewer'
-import { bySlot, fireEvent, noop, present, renderUI, screen, waitFor } from '../../helpers'
+import { bySlot, fireEvent, getSlot, noop, present, renderUI, screen, waitFor } from '../../helpers'
 import { getCenter, measureBox } from '../../helpers/geometry/box'
 import { PIXEL } from '../../helpers/geometry/tolerance'
 
@@ -111,7 +111,7 @@ describe('pdf viewer highlight label (real browser)', () => {
 
 		// Still on screen. The layer it is declared inside is transformed and clipped by a
 		// scrolling viewport; a label that inherited either would land outside the viewer.
-		const viewer = present(container.querySelector('[data-slot="pdf-viewer"]'), 'the viewer')
+		const viewer = getSlot(container, 'pdf-viewer')
 
 		// The inner box takes the bottom of the viewer, so the check reads the top and the side edges only.
 		expect(viewer).toContainBox(

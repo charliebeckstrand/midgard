@@ -5,6 +5,7 @@ import type {
 	ReactNode,
 } from 'react'
 import type { IntlShape } from '../../../../primitives/intl/types'
+import { hasContent } from '../../../../utilities/children'
 import { isDataColumn } from '../../../../utilities/is-data-column'
 import type { GridColumn } from '../../types'
 import { columnAccessor } from '../grid-column/accessor'
@@ -157,7 +158,7 @@ export function resolveCellTooltip<T>(col: GridColumn<T>, row: T): CellTooltip {
 
 	const node = col.cellTooltip(row)
 
-	return node == null ? NO_TOOLTIP : { kind: 'custom', node }
+	return hasContent(node) ? { kind: 'custom', node } : NO_TOOLTIP
 }
 
 /** Shared default-tooltip descriptor: one allocation, not one per rendered cell. @internal */

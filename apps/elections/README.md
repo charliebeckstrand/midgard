@@ -144,6 +144,14 @@ serves that shell, and renders the next shell in the background once the
 shell is a minute old. Thus a visit does not wait for civicAPI. A link to an
 election prefetches the shell and its code before the click.
 
+A build does not fail when civicAPI is down. A read that gets no answer, or
+an answer that is not OK, keeps the failure in the cache for one minute at
+most. A prerender leaves out an entry with this short life, so the static
+shell of each page that reads the race has no results, and the page reads
+them on a request. While civicAPI is down, that page shows the error page.
+Thus the static shell keeps no failure and no old race. An answer that the
+parser cannot read still fails the build.
+
 ## The design
 
 Each screen shows only what a reader needs. No label reads "All", and a title

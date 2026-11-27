@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Tree, TreeItem } from '../../../components/tree'
-import { present, renderUI, screen } from '../../helpers'
+import { getSlot, renderUI, screen } from '../../helpers'
 import { sampleMotionFrames } from '../helpers/motion-frame'
 import { budget } from '../helpers/wall-clock'
 
@@ -28,7 +28,7 @@ type Sample = {
 }
 
 function read(): Sample {
-	const tree = present(document.querySelector('[data-slot="tree"]'), 'tree')
+	const tree = getSlot(document, 'tree')
 
 	const row = screen.getByRole('treeitem', { name: 'src' }).getBoundingClientRect()
 

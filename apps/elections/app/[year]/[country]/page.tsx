@@ -30,6 +30,9 @@ async function readCountry(params: Params['params']) {
 	return { year, countryName: first.countryName, elections }
 }
 
+/** The search of the header reads the results before the page renders, so the first frame has them. */
+export const instant = false
+
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
 	const { year, countryName } = await readCountry(params)
 

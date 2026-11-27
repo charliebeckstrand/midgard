@@ -74,7 +74,7 @@ function options(root: HTMLElement) {
 function hitArea(option: HTMLElement) {
 	const box = option.getBoundingClientRect()
 
-	const span = present(option.querySelector('[data-slot="touch-target"]'), 'the hit area')
+	const span = getSlot(option, 'touch-target')
 
 	const area = span.getBoundingClientRect()
 

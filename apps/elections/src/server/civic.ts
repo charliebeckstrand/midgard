@@ -4,17 +4,28 @@ const CIVIC_API = 'https://civicapi.org/api/v2'
 /** The client that the requests name, so the operator of civicAPI can tell who reads it. */
 const USER_AGENT = 'midgard-elections (+https://github.com/charliebeckstrand/midgard)'
 
+/** A read of civicAPI: the answer, or the message of a failure. A failure is no answer, an answer that is not OK, or a body that breaks off. */
+export type CivicRead = { ok: true; raw: unknown } | { ok: false; message: string }
+
 /**
  * Reads one race of civicAPI, `race/{id}`. The server of the app is the only
- * reader of civicAPI. An answer that is not OK throws, and the error boundary
- * of the page shows it.
+ * reader of civicAPI. A failure is a value, so that the cache of the race can
+ * give it a short life (`src/server/races.ts`).
  */
-export async function fetchRace(id: number): Promise<unknown> {
+export async function fetchRace(id: number): Promise<CivicRead> {
 	const response = await fetch(`${CIVIC_API}/race/${id}`, {
 		headers: { 'User-Agent': USER_AGENT, Accept: 'application/json' },
-	})
+	}).catch(() => null)
 
-	if (!response.ok) throw new Error(`civicAPI answered ${response.status} for race ${id}.`)
+	if (response === null) return { ok: false, message: `civicAPI did not answer for race ${id}.` }
 
-	return response.json()
+	if (!response.ok)
+		return { ok: false, message: `civicAPI answered ${response.status} for race ${id}.` }
+
+	// A body that breaks off is no answer. A whole body that is not JSON throws.
+	const body = await response.text().catch(() => null)
+
+	if (body === null) return { ok: false, message: `civicAPI broke off the answer for race ${id}.` }
+
+	return { ok: true, raw: JSON.parse(body) }
 }

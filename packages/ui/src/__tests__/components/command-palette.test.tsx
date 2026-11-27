@@ -130,9 +130,9 @@ describe('CommandPalette', () => {
 		expect(footer).toContainElement(screen.getByRole('button', { name: 'Create' }))
 	})
 
-	it('removes the footer row when footer is null', () => {
+	it.each([null, false, '', true])('removes the footer row when footer is %j', (footer) => {
 		renderUI(
-			<CommandPalette open onOpenChange={() => {}} footer={null}>
+			<CommandPalette open onOpenChange={() => {}} footer={footer}>
 				<div>Items</div>
 			</CommandPalette>,
 		)

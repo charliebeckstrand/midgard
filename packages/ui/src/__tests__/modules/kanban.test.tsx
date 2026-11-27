@@ -1100,12 +1100,7 @@ describe('KanbanCardMenu', () => {
 	async function openMenu(container: HTMLElement, card: string) {
 		const user = setupUser()
 
-		await user.click(
-			present(
-				getCard(container, card).querySelector<HTMLElement>('[data-slot="kanban-card-menu"]'),
-				`menu of ${card}`,
-			),
-		)
+		await user.click(getSlot(getCard(container, card), 'kanban-card-menu'))
 
 		return user
 	}
@@ -1163,10 +1158,7 @@ describe('KanbanCardMenu', () => {
 	it('keeps an inert button with no menu on a disabled board', () => {
 		const { container } = renderUI(<MenuBoard onReorder={vi.fn()} disabled />)
 
-		const button = present(
-			getCard(container, 'a').querySelector('[data-slot="kanban-card-menu"]'),
-			'menu button of a',
-		)
+		const button = getSlot(getCard(container, 'a'), 'kanban-card-menu')
 
 		expect(button).toHaveAttribute('inert')
 

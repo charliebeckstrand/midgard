@@ -7,6 +7,7 @@ import { cn } from '../../core/cn'
 import { dataAttr } from '../../core/data-attr'
 import { Glyph } from '../../primitives/glyph'
 import { k } from '../../recipes/kata/tree'
+import { hasContent } from '../../utilities/children'
 import { isActivationKey } from '../../utilities/keyboard-navigation'
 import { Icon } from '../icon'
 import { useTreeContext, useTreePosition } from './context'
@@ -64,6 +65,8 @@ export function TreeItemContent({
 	const labelId = useId()
 
 	const suffixId = useId()
+
+	const hasSuffix = hasContent(suffix)
 
 	const { posinset, setsize } = useTreePosition()
 
@@ -130,7 +133,7 @@ export function TreeItemContent({
 			// shows after the label (WCAG 2.5.3). The prefix stays out, so the name
 			// starts with the label and the typeahead matches it. The owned group
 			// stays out.
-			aria-labelledby={suffix != null ? `${labelId} ${suffixId}` : labelId}
+			aria-labelledby={hasSuffix ? `${labelId} ${suffixId}` : labelId}
 			aria-current={ariaAttr(current)}
 			aria-checked={checked}
 			aria-level={depth + 1}
@@ -161,7 +164,7 @@ export function TreeItemContent({
 					)}
 				</span>
 			)}
-			{prefix != null && (
+			{hasContent(prefix) && (
 				<span data-slot="tree-item-prefix" className={slots.affix}>
 					{prefix}
 				</span>
@@ -170,7 +173,7 @@ export function TreeItemContent({
 			<span id={labelId} className={slots.label}>
 				{label}
 			</span>
-			{suffix != null && (
+			{hasSuffix && (
 				<span id={suffixId} data-slot="tree-item-suffix" className={slots.affix}>
 					{suffix}
 				</span>

@@ -188,7 +188,7 @@ describe('SeatChart', () => {
 			clientY: fit.cy + seat.y * fit.scale,
 		})
 
-		const row = present(document.querySelector('[data-slot="chart-tooltip-row"]'), 'the row')
+		const row = getSlot(document, 'chart-tooltip-row')
 
 		expect(row.textContent).toContain('47')
 

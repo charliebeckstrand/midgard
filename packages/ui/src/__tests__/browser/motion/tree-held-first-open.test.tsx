@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Tree, TreeItem } from '../../../components/tree'
-import { present, renderUI, screen } from '../../helpers'
+import { getSlot, renderUI, screen } from '../../helpers'
 import { sampleMotionFrames } from '../helpers/motion-frame'
 import { budget } from '../helpers/wall-clock'
 
@@ -27,8 +27,7 @@ describe('the first open of a held Tree group (real Motion)', () => {
 
 		await userEvent.keyboard('{ArrowRight}')
 
-		const group = () =>
-			present(document.querySelector<HTMLElement>('[data-slot="tree-group"]'), 'group')
+		const group = () => getSlot(document, 'tree-group')
 
 		await sampleMotionFrames(
 			() => getComputedStyle(group()).opacity,

@@ -9,6 +9,7 @@ import { ReducedMotion } from '../../primitives/reduced-motion'
 import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import { k, type ProgressGaugeVariants } from '../../recipes/kata/progress'
 import type { AccessibleName } from '../../types/accessible-name'
+import { hasContent } from '../../utilities/children'
 import { clamp } from '../../utilities/clamp'
 import { pct } from '../../utilities/pct'
 import { GAUGE_STROKE_WIDTH, GAUGE_VIEW_BOX } from './progress-gauge-constants'
@@ -158,7 +159,7 @@ export function ProgressGauge({
 				</ReducedMotion>
 			</svg>
 
-			{label != null && label !== false && <span className={k().gauge.label}>{label}</span>}
+			{hasContent(label) && <span className={k().gauge.label}>{label}</span>}
 		</div>
 	)
 }

@@ -9,7 +9,7 @@ import {
 	FormFiltersField,
 	FormFiltersRow,
 } from '../../../modules/form'
-import { present, renderUI } from '../../helpers'
+import { getSlot, renderUI } from '../../helpers'
 import { PIXEL } from '../../helpers/geometry/tolerance'
 
 /**
@@ -37,9 +37,9 @@ describe('FormFilters stack alignment (real browser)', () => {
 			</FormFilters>,
 		)
 
-		const input = present(container.querySelector('[data-slot="control-frame"]'), 'input frame')
+		const input = getSlot(container, 'control-frame')
 
-		const clear = present(container.querySelector('[data-slot="form-filters-clear"]'), 'clear')
+		const clear = getSlot(container, 'form-filters-clear')
 
 		expect(clear.getBoundingClientRect().bottom).toBeNear(
 			input.getBoundingClientRect().bottom,
@@ -62,9 +62,9 @@ describe('FormFilters stack alignment (real browser)', () => {
 			</FormFilters>,
 		)
 
-		const bar = present(container.querySelector('[data-slot="form-filters-bar"]'), 'bar')
+		const bar = getSlot(container, 'form-filters-bar')
 
-		const input = present(container.querySelector('[data-slot="control-frame"]'), 'input frame')
+		const input = getSlot(container, 'control-frame')
 
 		expect(input.getBoundingClientRect().width).toBeNear(bar.getBoundingClientRect().width, PIXEL)
 
@@ -103,9 +103,9 @@ describe('FormFilters rail alignment (real browser)', () => {
 			</FormFilters>,
 		)
 
-		const input = present(container.querySelector('[data-slot="control-frame"]'), 'input frame')
+		const input = getSlot(container, 'control-frame')
 
-		const clear = present(container.querySelector('[data-slot="form-filters-clear"]'), 'clear')
+		const clear = getSlot(container, 'form-filters-clear')
 
 		const middle = (rect: DOMRect) => (rect.top + rect.bottom) / 2
 

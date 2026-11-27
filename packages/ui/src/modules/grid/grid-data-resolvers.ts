@@ -15,6 +15,7 @@ import { cn } from '../../core/cn'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
 import type { IntlShape } from '../../primitives/intl/types'
 import { k } from '../../recipes/kata/grid'
+import { hasContent } from '../../utilities/children'
 import { isDataColumn } from '../../utilities/is-data-column'
 import { DEFAULT_OVERSCAN } from './engine/grid-constants'
 import { gridMessages } from './engine/grid-messages'
@@ -131,7 +132,7 @@ export function resolveInfiniteScroll(
 		loadingMore: infiniteScroll.loadingMore ?? false,
 		threshold: infiniteScroll.threshold ?? overscan,
 		totalRows,
-		showLoadingIndicator: indicator != null && indicator !== false,
+		showLoadingIndicator: indicator === true || hasContent(indicator),
 		loadingIndicator: typeof indicator === 'boolean' ? undefined : indicator,
 		endMessage: infiniteScroll.endMessage,
 		error: infiniteScroll.error,

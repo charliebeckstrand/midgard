@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { SeatChart } from '../../modules/chart/seat-chart'
-import { present, renderUI } from '../helpers'
+import { getSlot, present, renderUI } from '../helpers'
 
 /**
  * The hemicycle draws inside the plot at the real layout, at a fluid width and
@@ -27,15 +27,9 @@ describe('SeatChart layout (real browser)', () => {
 				</div>,
 			)
 
-			const plot = present(
-				container.querySelector<HTMLElement>('[data-slot="chart-plot"]'),
-				'the plot',
-			).getBoundingClientRect()
+			const plot = getSlot(container, 'chart-plot').getBoundingClientRect()
 
-			const seats = present(
-				container.querySelector<SVGGElement>('[data-slot="chart-seats"]'),
-				'the seats',
-			).getBoundingClientRect()
+			const seats = getSlot<SVGGElement>(container, 'chart-seats').getBoundingClientRect()
 
 			const hole = present(
 				container.querySelector<HTMLElement>('[data-testid="hole"]'),
@@ -81,25 +75,13 @@ describe('SeatChart layout (real browser)', () => {
 				</div>,
 			)
 
-			const plot = present(
-				container.querySelector<HTMLElement>('[data-slot="chart-plot"]'),
-				'the plot',
-			).getBoundingClientRect()
+			const plot = getSlot(container, 'chart-plot').getBoundingClientRect()
 
-			const seats = present(
-				container.querySelector<SVGGElement>('[data-slot="chart-seats"]'),
-				'the seats',
-			).getBoundingClientRect()
+			const seats = getSlot<SVGGElement>(container, 'chart-seats').getBoundingClientRect()
 
-			const line = present(
-				container.querySelector<SVGPathElement>('[data-slot="chart-majority"]'),
-				'the line',
-			).getBoundingClientRect()
+			const line = getSlot<SVGPathElement>(container, 'chart-majority').getBoundingClientRect()
 
-			const label = present(
-				container.querySelector<SVGTextElement>('[data-slot="chart-majority-label"]'),
-				'the label',
-			)
+			const label = getSlot<SVGTextElement>(container, 'chart-majority-label')
 
 			const box = label.getBoundingClientRect()
 
