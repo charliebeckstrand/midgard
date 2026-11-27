@@ -44,6 +44,7 @@ export type TreeSkeletonProps = {
  * line with the line height of the row text. A spacer of one chevron column
  * per depth level stands in for the indent of a nested group. The row height
  * and the indent follow the nearest density scope, as the tree does.
+ * On a coarse pointer, each row is at least 44 px tall, as a row of the tree is.
  * @see {@link Tree}
  */
 export function TreeSkeleton({ rows = 5, size, indent = true, className }: TreeSkeletonProps) {
