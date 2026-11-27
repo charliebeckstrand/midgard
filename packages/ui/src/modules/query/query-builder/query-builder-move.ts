@@ -1,3 +1,4 @@
+import { createEmitter } from '../../../utilities/emitter'
 import { findParent } from '../engine/query-tree'
 import type { QueryGroup } from '../engine/types'
 
@@ -53,7 +54,7 @@ export function createQueryMove(getRoot: () => QueryGroup): QueryMove {
 
 	let origin: (QueryDrop & { id: string }) | null = null
 
-	const listeners = new Set<() => void>()
+	const changes = createEmitter()
 
 	return {
 		getRoot,
@@ -63,15 +64,9 @@ export function createQueryMove(getRoot: () => QueryGroup): QueryMove {
 
 			drop = next
 
-			for (const listener of listeners) listener()
+			changes.emit()
 		},
-		subscribe: (listener) => {
-			listeners.add(listener)
-
-			return () => {
-				listeners.delete(listener)
-			}
-		},
+		subscribe: changes.subscribe,
 		carry: (id, groupId, lift = true) => {
 			carried = { id, groupId, lift }
 		},

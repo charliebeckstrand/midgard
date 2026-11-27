@@ -2,6 +2,7 @@ import { createElement, type ReactNode, useState } from 'react'
 import type { MarkdownRange } from '../../components/markdown/markdown-ranges'
 import { dataAttr } from '../../core/data-attr'
 import { useHydrated } from '../../hooks/use-hydrated'
+import { isRecord } from '../../utilities/is-record'
 import {
 	cancelLink,
 	markDOM,
@@ -57,13 +58,13 @@ function reactProps(attrs: Readonly<Record<string, unknown>>): Record<string, un
 function fromSpec(spec: WysiwygSpec, content: ReactNode, key: number): ReactNode {
 	const [tag, second, ...rest] = spec
 
-	const hasAttrs = typeof second === 'object' && second !== null && !Array.isArray(second)
+	const hasAttrs = isRecord(second)
 
 	const children = (hasAttrs ? rest : [second, ...rest]).filter((child) => child !== undefined)
 
 	return createElement(
 		tag,
-		{ key, ...reactProps(hasAttrs ? (second as Record<string, unknown>) : {}) },
+		{ key, ...reactProps(hasAttrs ? second : {}) },
 		...children.map((child, index) => {
 			if (child === 0) return content
 

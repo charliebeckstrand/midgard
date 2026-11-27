@@ -3,6 +3,7 @@
 import { useComposedRefs } from 'motion/react'
 import { type ComponentProps, useMemo, useState } from 'react'
 import { cn } from '../../core/cn'
+import { createEmitter } from '../../utilities/emitter'
 import { matchesMediaQuery } from '../../utilities/media-query'
 import { noop } from '../../utilities/noop'
 import { BREAKPOINT_WIDTHS, type MinBreakpoint } from '../../utilities/responsive'
@@ -24,18 +25,14 @@ function breakpointPixels(breakpoint: MinBreakpoint): number {
 function createFrame(viewport: boolean, initial: HTMLElement | null = null) {
 	let box = initial
 
-	const listeners = new Set<() => void>()
+	const changes = createEmitter()
 
 	const frame: BreakpointFrameContextValue = {
 		get element() {
 			return box
 		},
 		viewport,
-		subscribeElement: (callback) => {
-			listeners.add(callback)
-
-			return () => listeners.delete(callback)
-		},
+		subscribeElement: changes.subscribe,
 		subscribe: (callback) => {
 			// React subscribes after the commit, when the box exists.
 			if (box === null) return noop
@@ -55,7 +52,7 @@ function createFrame(viewport: boolean, initial: HTMLElement | null = null) {
 	const attach = (node: HTMLElement | null) => {
 		box = node
 
-		for (const listener of listeners) listener()
+		changes.emit()
 	}
 
 	return { frame, attach }

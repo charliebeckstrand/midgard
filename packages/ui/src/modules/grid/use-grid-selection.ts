@@ -6,10 +6,8 @@ import { useStableEvent } from '../../hooks/use-stable-event'
 import { useStableValue } from '../../hooks/use-stable-value'
 import { sameElements } from '../../utilities/same-elements'
 import { toggleItem } from '../../utilities/toggle-item'
+import { EMPTY_SET } from './engine/grid-constants'
 import type { GridSelection } from './grid-data-types'
-
-/** Stable empty selection default; read-only, replaced wholesale on change. @internal */
-const EMPTY_SELECTION: Set<string | number> = new Set()
 
 /** The controllable selection Set and its (updater-capable, stable) setter. @internal */
 type GridSelectionState = {
@@ -37,9 +35,6 @@ type GridSelectionActions = {
 
 /** The binding fields that the selection state reads. @internal */
 type GridSelectionValue = Pick<GridSelection, 'value' | 'defaultValue' | 'onValueChange'>
-
-/** No row rejected: the set of a grid with no `rowSelectable`. @internal */
-const NONE_REJECTED: ReadonlySet<string | number> = new Set()
 
 /** Whether two sets of keys hold the same keys in the same order. @internal */
 function sameKeys(a: ReadonlySet<string | number>, b: ReadonlySet<string | number>): boolean {
@@ -81,7 +76,7 @@ function setSpan(
  * @internal
  */
 export function useGridSelectionState(config: GridSelectionValue | undefined): GridSelectionState {
-	const [selection, setSelection] = useControllableBinding(config, EMPTY_SELECTION)
+	const [selection, setSelection] = useControllableBinding(config, EMPTY_SET)
 
 	return { selection, setSelection }
 }
@@ -115,7 +110,7 @@ export function useGridSelectionActions<T>({
 	rowSelectable: ((row: T) => boolean) | undefined
 }): GridSelectionActions {
 	const rejected = useMemo(() => {
-		if (!rowSelectable) return NONE_REJECTED
+		if (!rowSelectable) return EMPTY_SET
 
 		const keys = new Set<string | number>()
 
@@ -125,7 +120,7 @@ export function useGridSelectionActions<T>({
 			if (key !== undefined && !rowSelectable(row)) keys.add(key)
 		})
 
-		return keys.size === 0 ? NONE_REJECTED : keys
+		return keys.size === 0 ? EMPTY_SET : keys
 	}, [rows, rowKeys, rowSelectable])
 
 	// The same keys keep one identity, so an inline `rowSelectable` does not
