@@ -24,6 +24,7 @@ export { makeChangeEvent, makeFocusEvent, makeKeyEvent, makePointerEvent } from 
 export { makeFileList } from './make-file-list'
 export { allRegions, firstRegion, layerScale, shownLayer, tableRows } from './map-queries'
 export { mockDomGeometry } from './mock-dom-geometry'
+export { mouseClick } from './mouse-click'
 export { nonEmpty } from './non-empty'
 export { noop } from './noop'
 export { present } from './present'

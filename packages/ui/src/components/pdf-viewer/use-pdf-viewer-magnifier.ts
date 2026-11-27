@@ -577,10 +577,9 @@ export function usePdfViewerMagnifier(
 				if (holdingRef.current && event.cancelable) event.preventDefault()
 			}
 
-			// The lift at the end of a hold fires no compatibility mouse events. A `mousedown` from
-			// the lift reaches the highlight layer before any click, so it presses a region or clears
-			// the selection, and {@link swallowClick} cannot stop it. A canceled `touchend` fires no
-			// click either, so the click guard has no more work.
+			// The lift at the end of a hold fires no compatibility mouse events. Its click would
+			// otherwise press a region or put the selection down. A canceled `touchend` fires no
+			// click, so the click guard has no more work.
 			function handleTouchEnd(event: TouchEvent) {
 				if (!swallowClickRef.current || !event.cancelable) return
 

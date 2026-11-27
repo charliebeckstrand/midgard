@@ -5,7 +5,17 @@ import {
 	type PdfViewerHighlight,
 	type PdfViewerPage,
 } from '../../../components/pdf-viewer'
-import { bySlot, fireEvent, getSlot, noop, present, renderUI, screen, waitFor } from '../../helpers'
+import {
+	bySlot,
+	fireEvent,
+	getSlot,
+	mouseClick,
+	noop,
+	present,
+	renderUI,
+	screen,
+	waitFor,
+} from '../../helpers'
 import { getCenter, measureBox } from '../../helpers/geometry/box'
 import { PIXEL } from '../../helpers/geometry/tolerance'
 
@@ -91,7 +101,7 @@ describe('pdf viewer highlight label (real browser)', () => {
 		// image has decoded, neither of which has happened by the end of the first commit.
 		const region = await screen.findByLabelText('Total charges')
 
-		fireEvent.mouseDown(region)
+		mouseClick(region)
 
 		await waitFor(() => expect(label()).toBeInTheDocument())
 
@@ -130,7 +140,7 @@ describe('pdf viewer highlight label (real browser)', () => {
 
 		const region = await screen.findByLabelText('Total charges')
 
-		fireEvent.mouseDown(region)
+		mouseClick(region)
 
 		await waitFor(() => expect(label()).toBeInTheDocument())
 
@@ -146,7 +156,7 @@ describe('pdf viewer highlight label (real browser)', () => {
 
 		expect(beneath).not.toBe(panel)
 
-		fireEvent.mouseDown(beneath, { clientX: x, clientY: y })
+		mouseClick(beneath, { clientX: x, clientY: y })
 
 		expect(region).toHaveAttribute('aria-current', 'true')
 	})
@@ -164,7 +174,7 @@ describe('pdf viewer highlight label (real browser)', () => {
 
 		region.focus()
 
-		fireEvent.mouseDown(region)
+		mouseClick(region)
 
 		await waitFor(() => expect(label()).toBeInTheDocument())
 
@@ -215,7 +225,7 @@ describe('a name that stands over another region (real browser)', () => {
 
 		const above = await screen.findByLabelText('Above')
 
-		fireEvent.mouseDown(await screen.findByLabelText('Below'))
+		mouseClick(await screen.findByLabelText('Below'))
 
 		await waitFor(() => expect(label()).toBeInTheDocument())
 
@@ -318,7 +328,7 @@ describe('a name that stands over another region (real browser)', () => {
 	it('selects the box a press through it lands on', async () => {
 		const { above, covered } = await named()
 
-		fireEvent.mouseDown(above, { clientX: covered.x, clientY: covered.y })
+		mouseClick(above, { clientX: covered.x, clientY: covered.y })
 
 		await waitFor(() => expect(above).toHaveAttribute('aria-current', 'true'))
 

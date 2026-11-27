@@ -104,7 +104,7 @@ export function PdfViewerHighlights() {
  *
  * @remarks Only the active page's regions are in the DOM. A long packet keeps one page's
  * worth of nodes and one page's worth of keyboard reachability, whatever the document's
- * total. One delegated press handler serves every region, so the layer allocates one
+ * total. One delegated click handler serves every region, so the layer allocates one
  * closure rather than one per region.
  *
  * When `onActiveHighlightIdChange` is set, each region is a real `<button>`. Without it, the
@@ -297,44 +297,38 @@ function PdfViewerHighlightLayer() {
 	}
 
 	/**
-	 * A pointer press lands on mousedown, not on the click that would follow.
+	 * Keeps the focus where the consumer put it while a region is pressed.
 	 *
-	 * Because a press that only reports on release is a press whose effect is withheld for as
-	 * long as the button is held. The selection it would make is *undone* in the meantime.
-	 * The region is a real button, so the browser's own mousedown default focuses it. That
-	 * blurs whatever the consumer had focused for the previously selected region. A consumer
-	 * that clears its selection on blur then drops the highlight the moment the button goes
-	 * down. A field list beside the viewer does exactly that. It only gets the highlight back
-	 * when the button comes up. Held still, the page reads as having deselected itself.
+	 * @remarks The region is a real button, so the default of a `mousedown` focuses it. That
+	 * blurs the field that the consumer focused for the selected region. A consumer that clears
+	 * its selection on blur, as a field list beside the viewer does, then drops the highlight
+	 * while the button is down. The focus shift also moves the caret that the consumer places
+	 * from `onHighlightClick`. Scoped to a press in a region: the layer's background keeps every
+	 * default that it had.
 	 *
-	 * `preventDefault` is the other half. It keeps that focus shift from happening at all, so
-	 * the caret the consumer places from `onHighlightClick` stays where it was put. Scoped to
-	 * a press that actually landed in a region: the layer's background keeps every default
-	 * it had.
+	 * The press reports nothing. {@link handleClick} reports it on the release.
 	 */
 	function handleMouseDown(event: MouseEvent<HTMLDivElement>) {
 		// Primary button only: a right press opens the context menu, and a middle one is the
 		// browser's.
 		if (!isPrimaryPress(event)) return
 
-		const hit = regionAt(event)
-
-		if (!hit) return
-
-		event.preventDefault()
-
-		report(hit.id)
+		if (regionAt(event)) event.preventDefault()
 	}
 
 	/**
-	 * Keyboard activation only: `Enter` and `Space` on a focused region, which arrive as a
-	 * synthesized click with no pointer behind them (`detail === 0`).
+	 * Reports a click on a region: the release of a pointer press, or `Enter` and `Space` on a
+	 * focused region.
 	 *
-	 * A pointer's own click is ignored here rather than handled: {@link handleMouseDown} has
-	 * already reported it, and reporting again would double every press.
+	 * @remarks A press acts on its release, as a native button does (WCAG 2.5.2). A reader who
+	 * presses the wrong box can move off it before the release, and nothing happens. The browser
+	 * then sends the click to the nearest element that holds both ends, which is not a region.
 	 */
 	function handleClick(event: MouseEvent<HTMLDivElement>) {
-		if (event.detail !== 0) return
+		// A click comes only from the primary button. A Ctrl-click is the macOS secondary click,
+		// which opens the context menu. `isPrimaryPress` does not apply: Chromium sends a click
+		// with `isPrimary` false.
+		if (event.ctrlKey) return
 
 		const hit = regionAt(event)
 
@@ -365,7 +359,7 @@ function PdfViewerHighlightLayer() {
 	}
 
 	/*
-	 * A press that lands on no region puts the selection down.
+	 * A click that lands on no region puts the selection down.
 	 *
 	 * On the viewport rather than on the layer, because the reader's "somewhere else" is the
 	 * whole page surface. That includes the matte a fitted page sits in. The layer covers the
@@ -373,6 +367,13 @@ function PdfViewerHighlightLayer() {
 	 * is rendered a component away. Reading the overlay's context there would re-render the
 	 * page frame, the image and the lens on every activation. That is the cost the overlay's
 	 * own provider exists to avoid.
+	 *
+	 * A click, not a press, for the reason a region acts on its click (WCAG 2.5.2). The click
+	 * counts only when the press and the release land on the same element. A press that moved
+	 * to another element before its release gets its click on an element that holds both ends.
+	 * That is a press the reader took back, such as a press on a region that moved off it, and
+	 * it puts nothing down. The click target alone cannot show it: a press on the page that
+	 * moved onto a region gets its click on the page, where the press started.
 	 *
 	 * Registered only while there is a selection to put down, so a viewer at rest carries no
 	 * listener. Not while the overlay is hidden either. There the boxes are off screen, and
@@ -383,17 +384,30 @@ function PdfViewerHighlightLayer() {
 
 		if (!interactive || !anyActive || !highlightsVisible || !viewport) return
 
-		function handlePress(event: globalThis.MouseEvent) {
-			// Primary button only, as the region press is: a right press opens the context menu.
-			if (!isPrimaryPress(event)) return
+		let pressed: EventTarget | null = null
 
+		let released: EventTarget | null = null
+
+		function handleDown(event: globalThis.MouseEvent) {
+			pressed = event.target
+		}
+
+		function handleRelease(event: globalThis.MouseEvent) {
+			released = event.target
+		}
+
+		function handleViewportClick(event: globalThis.MouseEvent) {
 			const target = event.target as HTMLElement
+
+			// No Ctrl-click, for the reason that the region click refuses it, and no click of a
+			// press that moved between elements.
+			if (event.ctrlKey || target !== pressed || target !== released) return
 
 			if (target.closest(HIGHLIGHT_SELECTOR)) return
 
 			// The selected region's name is not somewhere else. It takes no pointer events, so a
-			// press on it arrives here as a press on the page under it, and putting the selection
-			// down would be the page answering a press on its own label.
+			// click on it arrives here as a click on the page under it, and putting the selection
+			// down would be the page answering a click on its own label.
 			if (nameRef.current?.covers(event.clientX, event.clientY)) return
 
 			// The scrollbar gutter is not the page either: a press there starts a pan.
@@ -402,9 +416,19 @@ function PdfViewerHighlightLayer() {
 			clear()
 		}
 
-		viewport.addEventListener('mousedown', handlePress)
+		viewport.addEventListener('mousedown', handleDown)
 
-		return () => viewport.removeEventListener('mousedown', handlePress)
+		viewport.addEventListener('mouseup', handleRelease)
+
+		viewport.addEventListener('click', handleViewportClick)
+
+		return () => {
+			viewport.removeEventListener('mousedown', handleDown)
+
+			viewport.removeEventListener('mouseup', handleRelease)
+
+			viewport.removeEventListener('click', handleViewportClick)
+		}
 	}, [interactive, anyActive, highlightsVisible, viewportRef, clear])
 
 	return (
