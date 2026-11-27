@@ -101,6 +101,24 @@ describe('pdf viewer highlight press (real browser)', () => {
 		expect(onHighlightClick).not.toHaveBeenCalled()
 	})
 
+	it('keeps the selection through a press that moves from the page onto a region', async () => {
+		const { onActiveHighlightIdChange } = setup()
+
+		const total = await screen.findByLabelText('Total charges')
+
+		await userEvent.click(total)
+
+		onActiveHighlightIdChange.mockClear()
+
+		await press(PAGE)
+
+		await commands.releasePointer('[aria-label="Invoice number"]')
+
+		expect(total).toHaveAttribute('aria-current', 'true')
+
+		expect(onActiveHighlightIdChange).not.toHaveBeenCalled()
+	})
+
 	it('clears the selection on a click on the page', async () => {
 		const { onActiveHighlightIdChange } = setup()
 

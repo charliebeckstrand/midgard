@@ -369,10 +369,11 @@ function PdfViewerHighlightLayer() {
 	 * own provider exists to avoid.
 	 *
 	 * A click, not a press, for the reason a region acts on its click (WCAG 2.5.2). The click
-	 * counts only on the element that the press started on. A press that moved to another
-	 * element before its release gets its click on an element that holds both ends. That is a
-	 * press the reader took back, such as a press on a region that moved off it, and it puts
-	 * nothing down.
+	 * counts only when the press and the release land on the same element. A press that moved
+	 * to another element before its release gets its click on an element that holds both ends.
+	 * That is a press the reader took back, such as a press on a region that moved off it, and
+	 * it puts nothing down. The click target alone cannot show it: a press on the page that
+	 * moved onto a region gets its click on the page, where the press started.
 	 *
 	 * Registered only while there is a selection to put down, so a viewer at rest carries no
 	 * listener. Not while the overlay is hidden either. There the boxes are off screen, and
@@ -385,16 +386,22 @@ function PdfViewerHighlightLayer() {
 
 		let pressed: EventTarget | null = null
 
+		let released: EventTarget | null = null
+
 		function handleDown(event: globalThis.MouseEvent) {
 			pressed = event.target
+		}
+
+		function handleRelease(event: globalThis.MouseEvent) {
+			released = event.target
 		}
 
 		function handleViewportClick(event: globalThis.MouseEvent) {
 			const target = event.target as HTMLElement
 
-			// No Ctrl-click, for the reason that the region click refuses it, and no click on an
-			// element that the press did not start on.
-			if (event.ctrlKey || target !== pressed) return
+			// No Ctrl-click, for the reason that the region click refuses it, and no click of a
+			// press that moved between elements.
+			if (event.ctrlKey || target !== pressed || target !== released) return
 
 			if (target.closest(HIGHLIGHT_SELECTOR)) return
 
@@ -411,10 +418,14 @@ function PdfViewerHighlightLayer() {
 
 		viewport.addEventListener('mousedown', handleDown)
 
+		viewport.addEventListener('mouseup', handleRelease)
+
 		viewport.addEventListener('click', handleViewportClick)
 
 		return () => {
 			viewport.removeEventListener('mousedown', handleDown)
+
+			viewport.removeEventListener('mouseup', handleRelease)
 
 			viewport.removeEventListener('click', handleViewportClick)
 		}

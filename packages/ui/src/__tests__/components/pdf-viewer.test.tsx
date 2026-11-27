@@ -1746,6 +1746,33 @@ describe('PdfViewer highlights', () => {
 		expect(screen.getByLabelText('Total charges')).toHaveAttribute('aria-current', 'true')
 	})
 
+	/*
+	 * The other way round: a press that starts on the page and ends on a region. The click goes
+	 * to the layer, which is where the press started, so the press target alone does not show
+	 * that the release was somewhere else.
+	 */
+	it('keeps the selection through a press that moves from the page onto a region', () => {
+		const onActiveHighlightIdChange = vi.fn()
+
+		const { container } = renderHighlights({ highlights: withInvoice, onActiveHighlightIdChange })
+
+		mouseClick(screen.getByLabelText('Total charges'))
+
+		onActiveHighlightIdChange.mockClear()
+
+		const layer = getSlot(container, 'pdf-viewer-highlights')
+
+		fireEvent.mouseDown(layer)
+
+		fireEvent.mouseUp(screen.getByLabelText('Invoice number'))
+
+		fireEvent.click(layer, { detail: 1 })
+
+		expect(onActiveHighlightIdChange).not.toHaveBeenCalled()
+
+		expect(screen.getByLabelText('Total charges')).toHaveAttribute('aria-current', 'true')
+	})
+
 	/** A Ctrl+primary press is the macOS secondary click: it opens the context menu, as a right press does. */
 	it('neither selects nor clears on a Ctrl+primary press', () => {
 		const onActiveHighlightIdChange = vi.fn()
