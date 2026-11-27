@@ -1,9 +1,12 @@
 'use client'
 
+import { Check } from 'lucide-react'
 import { useId, useMemo } from 'react'
 import { useDevWarning } from '../../hooks/use-dev-warning'
+import { Glyph } from '../../primitives/glyph'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/color-panel'
+import { readableInk, WCAG_NON_TEXT } from '../../utilities/contrast'
 import { keyByOccurrence } from '../../utilities/key-by-occurrence'
 import { colorMessages } from './color-messages'
 import { colorHueName, hexToHsva, hsvaToHex } from './color-utilities'
@@ -19,11 +22,13 @@ type ColorSwatchesProps = {
  *
  * @remarks
  * Each chip is a label around a native radio, so the browser gives the group
- * one Tab stop and the arrow keys. A custom color checks no chip. When the list
- * repeats a color, only the first chip of that color is checked. The radios have
- * no form owner, so an enclosing native form does not submit the checked chip.
- * A preset that is not hex paints its chip, but the chip sets no color and is
- * never checked. In development, the component warns of each such preset.
+ * one Tab stop and the arrow keys. The checked chip draws a check mark, so the
+ * current preset does not show by its hue only. A custom color checks no chip.
+ * When the list repeats a color, only the first chip of that color is checked.
+ * The radios have no form owner, so an enclosing native form does not submit
+ * the checked chip. A preset that is not hex paints its chip, but the chip sets
+ * no color and is never checked. In development, the component warns of each
+ * such preset.
  *
  * @internal
  */
@@ -42,8 +47,16 @@ export function ColorSwatches({ swatches }: ColorSwatchesProps) {
 			keyByOccurrence(swatches).map(({ key, value }) => {
 				const parsed = hexToHsva(value)
 
-				// The hex of the parse, for the match below (`sameHex`).
-				return { key, swatch: value, parsed, hex: parsed && hsvaToHex(parsed, true) }
+				// The hex of the parse, for the match below (`sameHex`). The ink of the
+				// check mark is white, or black where white does not clear 3:1 on the
+				// opaque color of the chip.
+				return {
+					key,
+					swatch: value,
+					parsed,
+					hex: parsed && hsvaToHex(parsed, true),
+					ink: parsed && readableInk(hsvaToHex(parsed), ['white', 'black'], WCAG_NON_TEXT),
+				}
 			}),
 		[swatches],
 	)
@@ -77,11 +90,11 @@ export function ColorSwatches({ swatches }: ColorSwatchesProps) {
 			aria-label={intl.formatMessage(colorMessages.swatches)}
 			className={k().swatches}
 		>
-			{parsedSwatches.map(({ key, swatch, parsed }) => (
+			{parsedSwatches.map(({ key, swatch, parsed, ink }) => (
 				<label
 					key={key}
 					data-slot="color-swatch"
-					className={k().swatch}
+					className={k().swatch.base}
 					style={{ backgroundColor: swatch }}
 				>
 					<input
@@ -109,6 +122,16 @@ export function ColorSwatches({ swatches }: ColorSwatchesProps) {
 						className="sr-only"
 						onChange={() => parsed && setHsva(parsed)}
 					/>
+					{key === checkedKey && (
+						<Glyph
+							icon={Check}
+							data-slot="color-swatch-check"
+							data-ink={ink || undefined}
+							aria-hidden="true"
+							className={k().swatch.check}
+							strokeWidth={3}
+						/>
+					)}
 				</label>
 			))}
 		</div>

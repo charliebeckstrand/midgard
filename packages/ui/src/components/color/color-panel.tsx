@@ -32,7 +32,9 @@ type ColorPanelBaseProps = {
 	 * @remarks
 	 * Each swatch is `#rgb`, `#rgba`, `#rrggbb`, or `#rrggbbaa`. A swatch in another
 	 * CSS color format paints its chip, but the chip sets no color and is never
-	 * checked. In development, the panel warns of each such swatch.
+	 * checked. In development, the panel warns of each such swatch. The chip of
+	 * the current color draws a check mark, so its state does not show by its hue
+	 * only.
 	 *
 	 * @defaultValue {@link DEFAULT_SWATCHES}
 	 */

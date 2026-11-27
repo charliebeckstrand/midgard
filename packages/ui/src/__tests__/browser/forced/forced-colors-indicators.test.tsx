@@ -55,6 +55,7 @@ import {
 	people,
 	personColumns,
 	pixels,
+	presetPixels,
 	select,
 } from '../helpers/forced-indicators'
 
@@ -691,6 +692,10 @@ describe('color parts under forced colors (real browser)', () => {
 			expect(red).toBe('rgb(255, 0, 0)')
 
 			expect(blue).toBe('rgb(0, 0, 255)')
+		})
+
+		it('a checked preset chip and an unchecked one paint differently', async () => {
+			expect(await presetPixels(true)).not.toBe(await presetPixels(false))
 		})
 
 		it('the hue track keeps its gradient, and the area keeps its hue', () => {

@@ -399,6 +399,36 @@ describe('ColorPanel', () => {
 		}
 	})
 
+	// The check mark is the sign of the checked chip that is not a hue (WCAG 1.4.1).
+	// Its ink is white, or black where white does not clear 3:1 on the chip.
+	it.each([
+		['#ffffff', 'black'],
+		['#eab308', 'black'],
+		['#000000', 'white'],
+		['#3b82f6', 'white'],
+	])('draws a check mark on the checked %s chip only, with %s ink', (value, ink) => {
+		const { container } = renderUI(
+			<ColorPanel defaultValue={value} swatches={[value, '#a1a1aa']} />,
+		)
+
+		const [checked, unchecked] = getAllSlots(container, 'color-swatch')
+
+		expect(getSlot(present(checked, 'checked chip'), 'color-swatch-check')).toHaveAttribute(
+			'data-ink',
+			ink,
+		)
+
+		expect(bySlot(present(unchecked, 'unchecked chip'), 'color-swatch-check')).toBeNull()
+	})
+
+	it('draws no check mark for a custom color', () => {
+		const { container } = renderUI(
+			<ColorPanel defaultValue="#123456" swatches={['#ffffff', '#000000']} />,
+		)
+
+		expect(bySlot(container, 'color-swatch-check')).toBeNull()
+	})
+
 	// ColorPanel takes no `name`, so a native form must not submit a checked chip.
 	it('keeps a checked swatch out of the data of a native form', () => {
 		const { container } = renderUI(

@@ -7,6 +7,7 @@ import {
 	insetStops,
 	markOutline,
 	pixels,
+	presetPixels,
 } from './helpers/forced-indicators'
 
 /**
@@ -34,6 +35,10 @@ describe('controls without forced colors (real browser)', () => {
 		expect(bar[1]).not.toBe(bar[0])
 
 		expect(slider[1]).not.toBe(slider[0])
+	})
+
+	it('color panel: a checked preset chip and an unchecked one paint differently', async () => {
+		expect(await presetPixels(true)).not.toBe(await presetPixels(false))
 	})
 
 	it('inset focus: keyboard focus draws no outline', async () => {
