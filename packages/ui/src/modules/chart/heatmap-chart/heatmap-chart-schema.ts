@@ -14,6 +14,7 @@
  */
 
 import type { AccessibleName } from '../../../types/accessible-name'
+import type { Binning } from '../../../utilities/color-scale'
 import { getOrCompute } from '../../../utilities/get-or-compute'
 import { parseNumeric } from '../../../utilities/parse-numeric'
 import { sameElements } from '../../../utilities/same-elements'
@@ -72,7 +73,7 @@ export type HeatmapChartSeries<T> = {
 	 *
 	 * @defaultValue 'linear'
 	 */
-	binning?: 'linear' | 'quantile'
+	binning?: Binning
 }
 
 /**

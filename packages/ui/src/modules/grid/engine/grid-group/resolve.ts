@@ -4,6 +4,7 @@ import type { GridGroupHeaderRow, GridVirtualize } from '../../grid-data-types'
 import type { GridColumnGroup, GridGroupSpan } from '../../grid-group-types'
 import type { GridColumn, GridPagination } from '../../types'
 import { isManualPagination } from '../grid-pagination-utilities'
+import type { PinSide } from '../grid-pin/overrides'
 import type { GridSortState } from '../grid-sort/state'
 import type { GridColumnPinning } from '../grid-table/pinning-view'
 
@@ -71,7 +72,7 @@ export type GridGroupResult = {
 	/** Resolves the band row for the current visible columns and their pin sides. */
 	resolveHeader: (
 		visibleColumnIds: (string | number)[],
-		pinnedSide: (id: string | number) => 'left' | 'right' | undefined,
+		pinnedSide: (id: string | number) => PinSide | undefined,
 		collapsedHidden: ReadonlySet<string | number>,
 	) => GridGroupHeader
 }
@@ -183,7 +184,7 @@ export function manualGroupSortDirection(args: {
 	active: boolean
 	sort: GridSortState[]
 	grouping: (string | number) | null
-}): 'asc' | 'desc' | null {
+}): GridSortState['direction'] | null {
 	if (!args.active) return null
 
 	return args.sort.find((entry) => entry.column === args.grouping)?.direction ?? null

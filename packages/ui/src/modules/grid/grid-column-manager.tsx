@@ -17,7 +17,7 @@ import { k } from '../../recipes/kata/grid-column-manager'
 import { toggleItem } from '../../utilities/toggle-item'
 import { columnLabel } from './engine/grid-column/label'
 import { gridMessages } from './engine/grid-messages'
-import { effectivePinSide, pinMenuChoices } from './engine/grid-pin/overrides'
+import { effectivePinSide, type PinSide, pinMenuChoices } from './engine/grid-pin/overrides'
 import { applyColumnReorder } from './engine/grid-reorder-compute'
 import type { GridItemMoves } from './engine/grid-reorder-move'
 import { type PinColumn, pinChoiceIcon } from './grid-context-menu-utilities'
@@ -131,7 +131,7 @@ export type GridColumnManagerProps = {
 type GridColumnPinControlProps = {
 	item: GridColumnManagerItem
 	/** The column's current frozen edge, or `undefined` when it scrolls. */
-	side: 'left' | 'right' | undefined
+	side: PinSide | undefined
 	onPinChange: PinColumn
 	className?: string
 	/** Dropdown placement: `bottom-start` for the leading (frozen) slot, `bottom-end` for the trailing (scrolling) one. */

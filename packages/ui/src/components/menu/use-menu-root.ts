@@ -12,27 +12,20 @@ import {
 	useRef,
 	useState,
 } from 'react'
-import type { ScaleStep } from '../../core/density/scale'
 import { useFloatingDisclosure } from '../../hooks/use-floating-disclosure'
-import type { FloatingPlacement } from '../../hooks/use-floating-panel'
 import { useMediaQuery } from '../../hooks/use-media-query'
-import type { scale } from '../../recipes/kata/menu'
 import { PHONE_QUERY } from '../../utilities/media-query'
 import { isNativeContextMenuRequest } from '../../utilities/native-context-menu'
+import type { MenuProps } from './menu'
 import { snapMenuHeight } from './menu-viewport-utilities'
 
 /** Navigable menu items: `role="menuitem"`, excluding disabled rows. @internal */
 export const MENUITEM_SELECTOR = '[role="menuitem"]:not([data-disabled])'
 
-type MenuStateOptions = {
-	open?: boolean
-	defaultOpen?: boolean
-	onOpenChange?: (open: boolean) => void
-	placement?: FloatingPlacement
-	size?: ScaleStep<typeof scale>
-	sheet?: boolean
-	disabled?: boolean
-}
+type MenuStateOptions = Pick<
+	MenuProps,
+	'open' | 'defaultOpen' | 'onOpenChange' | 'placement' | 'size' | 'sheet' | 'disabled'
+>
 
 /**
  * A position-only virtual reference for a right-click menu: a zero-size point at
