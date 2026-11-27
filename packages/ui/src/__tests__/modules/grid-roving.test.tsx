@@ -169,10 +169,14 @@ describe('Grid click handlers', () => {
 		expect(order).toEqual(['cell', 'row'])
 	})
 
-	it('keeps Enter on the click handler when the grid also has a double-click handler', () => {
+	it('fires the click pair on Space and the double-click pair on Enter in a grid with both', () => {
 		const onCellClick = vi.fn()
 
+		const onRowClick = vi.fn()
+
 		const onCellDoubleClick = vi.fn()
+
+		const onRowDoubleClick = vi.fn()
 
 		renderUI(
 			<Grid
@@ -180,17 +184,35 @@ describe('Grid click handlers', () => {
 				rows={rows}
 				getKey={getKey}
 				onCellClick={onCellClick}
+				onRowClick={onRowClick}
 				onCellDoubleClick={onCellDoubleClick}
+				onRowDoubleClick={onRowDoubleClick}
 			/>,
 		)
 
-		fireEvent.mouseDown(screen.getByRole('gridcell', { name: 'Alice' }))
+		const grid = screen.getByRole('grid')
 
-		fireEvent.keyDown(screen.getByRole('grid'), { key: 'Enter' })
+		fireEvent.mouseDown(screen.getByRole('gridcell', { name: 'Bob' }))
+
+		fireEvent.keyDown(grid, { key: ' ' })
+
+		expect(onCellClick.mock.calls[0]?.[0]).toMatchObject({ columnId: 'name', rowKey: 2 })
+
+		expect(onRowClick.mock.calls[0]?.[0]).toBe(rows[1])
+
+		expect(onCellDoubleClick).not.toHaveBeenCalled()
+
+		expect(onRowDoubleClick).not.toHaveBeenCalled()
+
+		fireEvent.keyDown(grid, { key: 'Enter' })
+
+		expect(onCellDoubleClick.mock.calls[0]?.[0]).toMatchObject({ columnId: 'name', rowKey: 2 })
+
+		expect(onRowDoubleClick.mock.calls[0]?.[0]).toBe(rows[1])
 
 		expect(onCellClick).toHaveBeenCalledOnce()
 
-		expect(onCellDoubleClick).not.toHaveBeenCalled()
+		expect(onRowClick).toHaveBeenCalledOnce()
 	})
 
 	it('marks a row data-clickable for any click or double-click handler', () => {
@@ -317,6 +339,30 @@ describe('Grid row roving under manual grouping', () => {
 		expect(onRowDoubleClick).toHaveBeenCalledOnce()
 
 		expect(onRowDoubleClick.mock.calls[0]?.[0]).toBe(rows[1])
+	})
+
+	it('fires the click on Space and the double-click on Enter on a roving row', () => {
+		const onRowClick = vi.fn()
+
+		const onRowDoubleClick = vi.fn()
+
+		renderRoving({ onRowClick, onRowDoubleClick })
+
+		const rowEls = bodyRows(screen.getByRole('treegrid'))
+
+		rowEls[1]?.focus()
+
+		fireEvent.keyDown(rowEls[1] as HTMLElement, { key: ' ' })
+
+		expect(onRowClick.mock.calls[0]?.[0]).toBe(rows[1])
+
+		expect(onRowDoubleClick).not.toHaveBeenCalled()
+
+		fireEvent.keyDown(rowEls[1] as HTMLElement, { key: 'Enter' })
+
+		expect(onRowDoubleClick.mock.calls[0]?.[0]).toBe(rows[1])
+
+		expect(onRowClick).toHaveBeenCalledOnce()
 	})
 
 	it('leaves a Ctrl, Meta, or Alt chord on a roving row to the browser', () => {
@@ -491,7 +537,7 @@ describe('Grid cell roving under manual grouping', () => {
 		expect(order).toEqual(['cell', 'row'])
 	})
 
-	it('keeps Enter on the click handler when the grid also has a double-click handler', () => {
+	it('fires the click on Space and the double-click on Enter in a roving cell', () => {
 		const onCellClick = vi.fn()
 
 		const onCellDoubleClick = vi.fn()
@@ -502,11 +548,17 @@ describe('Grid cell roving under manual grouping', () => {
 
 		cells[0]?.focus()
 
-		fireEvent.keyDown(cells[0] as HTMLElement, { key: 'Enter' })
+		fireEvent.keyDown(cells[0] as HTMLElement, { key: ' ' })
 
 		expect(onCellClick).toHaveBeenCalledOnce()
 
 		expect(onCellDoubleClick).not.toHaveBeenCalled()
+
+		fireEvent.keyDown(cells[0] as HTMLElement, { key: 'Enter' })
+
+		expect(onCellDoubleClick).toHaveBeenCalledOnce()
+
+		expect(onCellClick).toHaveBeenCalledOnce()
 	})
 
 	it('leaves a Ctrl, Meta, or Alt chord on a roving cell to the browser', () => {
