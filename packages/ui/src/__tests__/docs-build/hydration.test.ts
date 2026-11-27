@@ -178,6 +178,22 @@ describe('a prerendered page of the docs build', () => {
 
 		expect(errors).toEqual([])
 	})
+
+	// The HTML shows the first page. A gate that never opens also hydrates
+	// with no error, so the page of the query must show after hydration.
+	it('shows the page of its query after hydration', async () => {
+		const tab = await openTab()
+
+		await openPage(tab, '/pagination?page=3')
+
+		await tab.waitForFunction(HYDRATED)
+
+		await tab.waitForLoadState('networkidle')
+
+		const current = tab.locator('nav[aria-label="Pages of results"] [aria-current="page"]')
+
+		expect(await current.textContent()).toBe('3')
+	})
 })
 
 describe.each(LOCALES.slice(1))('a prerendered page of the docs build in %s', (locale) => {
