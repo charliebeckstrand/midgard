@@ -1,9 +1,14 @@
 'use client'
 
-import { type TransitionEvent, useLayoutEffect, useState } from 'react'
-import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
+import { type TransitionEvent, use, useLayoutEffect, useState, useSyncExternalStore } from 'react'
 import { type MountHoldState, useMountHold } from '../../primitives/mount/use-mount'
+import { ReducedMotionContext } from '../../primitives/reduced-motion/context'
 import { forceStyleFlush } from '../../utilities/force-style-flush'
+import {
+	matchesMediaQuery,
+	REDUCED_MOTION_QUERY,
+	subscribeMediaQuery,
+} from '../../utilities/media-query'
 
 /** The reveal's animated property; a `transitionend` for anything else is not the collapse landing. @internal */
 export const REVEAL_PROPERTY = 'grid-template-rows'
@@ -26,6 +31,39 @@ export type GridRevealHold = {
 		onTransitionEnd: (event: TransitionEvent<HTMLElement>) => void
 		onTransitionCancel: (event: TransitionEvent<HTMLElement>) => void
 	}
+}
+
+const subscribeReducedMotion = (handler: () => void) =>
+	subscribeMediaQuery(REDUCED_MOTION_QUERY, handler)
+
+const readReducedMotion = () => matchesMediaQuery(REDUCED_MOTION_QUERY)
+
+/** The answer of the server and of the hydration render: motion is on. */
+const motionOn = () => false
+
+/**
+ * Whether the reader asks for reduced motion, as `usePrefersReducedMotion`
+ * reads it, but with motion on in the server and the hydration render.
+ *
+ * @remarks
+ * `usePrefersReducedMotion` gives `true` there. For most readers the client
+ * answer is `false`, so each row rendered again after hydration. Each row holds
+ * its content in an `<Activity>`, which is a boundary of the hydration. The
+ * render after hydration reached each boundary before it hydrated, so React
+ * hydrated each one at the blocking lane, with one restart of the render for
+ * each row. With motion on as the first answer, only a reader with reduced
+ * motion gets that render.
+ *
+ * With motion on, a row that mounts collapsed starts rested, so the server
+ * renders no markup for it. The client renders it in the hidden Activity after
+ * hydration, as for each other rested row.
+ */
+function useRowReducedMotion(): boolean {
+	const setting = use(ReducedMotionContext)
+
+	const platform = useSyncExternalStore(subscribeReducedMotion, readReducedMotion, motionOn)
+
+	return setting || platform
 }
 
 /**
@@ -78,7 +116,7 @@ export type GridRevealHold = {
  * @internal
  */
 export function useGridRevealHold(expanded: boolean, enter = false): GridRevealHold {
-	const reducedMotion = usePrefersReducedMotion()
+	const reducedMotion = useRowReducedMotion()
 
 	const hold = useMountHold(expanded, 'always', { defer: !reducedMotion })
 
