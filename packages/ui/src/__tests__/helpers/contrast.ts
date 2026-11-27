@@ -40,7 +40,8 @@ const THEME: Map<string, string> = (() => {
  * it follows the arbitrary property that holds the token as a theme variable
  * (`[--ring:var(--color-zinc-950)]/40`).
  */
-const SHADE = /(zinc|red|amber|green|blue|rose|violet|sky)-(\d{2,3})(?:\)\])?(?:\/(\d{1,3}))?/
+const SHADE =
+	/(zinc|red|amber|green|emerald|blue|rose|violet|sky)-(\d{2,3})(?:\)\])?(?:\/(\d{1,3}))?/
 
 /** The two shadeless tokens, which carry their alpha the same way (`bg-white/10`, `[--bg:var(--color-white)]/10`). */
 const NEUTRAL = /\b(white|black)(?:\)\])?(?:\/(\d{1,3}))?\b/

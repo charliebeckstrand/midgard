@@ -35,11 +35,11 @@ const row = [
 	'py-0.5',
 	size.sm,
 	rounded.lg,
-	// The tint alone is below 3:1 against the page in each mode, so the ring of
-	// `sen.focus.within.tinted` marks the focused row (WCAG 2.4.7, 1.4.11). The
-	// leaf and the toggle remove their own outline.
-	...mode('has-focus-visible:bg-blue-100/60', 'dark:has-focus-visible:bg-blue-500/30'),
-	...focus.within.tinted,
+	// The ring of `sen.focus.within.row` marks the focused row (WCAG 2.4.7,
+	// 1.4.11). The leaf and the toggle remove their own outline. The row takes no
+	// wash: a keyboard reader reads the row that has the focus, and a wash under
+	// the syntax inks, or under the match wash, puts them below 4.5:1 (1.4.3).
+	...focus.within.row,
 ]
 
 export const k = defineKata(
@@ -82,10 +82,12 @@ export const k = defineKata(
 			],
 			content: {
 				base: [flex.inline, 'min-w-0', 'gap-1'],
+				// A match renders as `<mark>`. `text-inherit` removes the black ink of
+				// the browser `<mark>`, as in the Grid, so the syntax colors stay.
 				// Forced colors remove the wash, so a match paints the `Mark` pair of
 				// `sen.forced.highlight`, which keeps the contrast of the text on it.
 				highlighted: {
-					true: [...iro.match, rounded.lg, forced.highlight],
+					true: [...iro.match, rounded.lg, 'text-inherit', forced.highlight],
 					false: '',
 				},
 			},

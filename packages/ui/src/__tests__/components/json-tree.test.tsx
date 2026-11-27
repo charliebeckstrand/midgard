@@ -599,6 +599,15 @@ describe('JsonTreeNodeRow', () => {
 		expect(bySlot(container, 'json-node')).toHaveAttribute('tabindex', '-1')
 	})
 
+	it.each([
+		['leaf', leafNode({ keyName: 'needle', highlighted: true }), '"needle":1'],
+		['branch', branchNode({ keyName: 'needle', highlighted: true }), '"needle":{}'],
+	])('wraps the content of a matching %s row in <mark>', (_name, node, text) => {
+		renderUI(<JsonTreeNodeRow index={0} node={node} onToggle={() => {}} />)
+
+		expect(screen.getByRole('treeitem').querySelector('mark')).toHaveTextContent(text)
+	})
+
 	it('marks the root leaf as focusable', () => {
 		const { container } = renderUI(
 			<JsonTreeNodeRow index={0} node={leafNode()} onToggle={() => {}} />,
@@ -819,6 +828,24 @@ describe('JsonTree tree semantics', () => {
 		const { container } = renderUI(<JsonTree data={{ outer: 1 }} defaultExpandDepth={5} />)
 
 		expect(container.querySelector('[data-slot="json-group"]')).toHaveRole('group')
+	})
+
+	// WCAG 1.3.1: a search match is in the markup, not only in a wash. The Grid
+	// marks its matches the same way.
+	it('marks each search match with <mark> and leaves the other rows plain', () => {
+		renderUI(
+			<JsonTree
+				data={{ needle: { city: 'needle town' }, other: 'plain' }}
+				defaultExpandDepth={5}
+				search="needle"
+			/>,
+		)
+
+		const marks = screen
+			.getAllByRole('treeitem')
+			.map((item) => item.querySelector('mark')?.textContent ?? null)
+
+		expect(marks).toEqual([null, '"needle":{', '"city":"needle town"', null])
 	})
 
 	it('hides the closing-bracket row from assistive tech', () => {

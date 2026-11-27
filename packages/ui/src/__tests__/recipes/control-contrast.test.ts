@@ -232,30 +232,13 @@ describe('Focus ring contrast of a list row', () => {
 	})
 
 	it.for([
-		{
-			mode: 'light',
-			ring: /^has-focus-visible:ring-blue-\d+$/,
-			tint: /^has-focus-visible:bg-blue-\d+\/\d+$/,
-		},
-		{
-			mode: 'dark',
-			ring: /^dark:has-focus-visible:ring-blue-\d+$/,
-			tint: /^dark:has-focus-visible:bg-blue-\d+\/\d+$/,
-		},
-	] as const)(
-		'the JsonTree row ring clears 3:1 against the $mode page and the tint',
-		({ mode, ring, tint }) => {
-			const tree = classNames([jsonTree().row])
-
-			const color = only(tree, ring)
-
-			expect(getContrast(color, SURFACE[mode])).toBeGreaterThanOrEqual(WCAG_NON_TEXT)
-
-			expect(getContrast(color, tinted(only(tree, tint), SURFACE[mode]))).toBeGreaterThanOrEqual(
-				WCAG_NON_TEXT,
-			)
-		},
-	)
+		{ mode: 'light', ring: /^has-\[>:focus-visible\]:ring-blue-\d+$/ },
+		{ mode: 'dark', ring: /^dark:has-\[>:focus-visible\]:ring-blue-\d+$/ },
+	] as const)('the JsonTree row ring clears 3:1 against the $mode page', ({ mode, ring }) => {
+		expect(
+			getContrast(only(classNames([jsonTree().row]), ring), SURFACE[mode]),
+		).toBeGreaterThanOrEqual(WCAG_NON_TEXT)
+	})
 })
 
 describe('Resize grip contrast', () => {
