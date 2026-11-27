@@ -10,7 +10,8 @@ import { getSlot, present, renderUI } from '../../helpers'
  * the last row of the deepest open last branch, not the row of the last
  * top-level item. The row of an open last branch has no bottom padding, and
  * its group has that space at its top. Thus the space between the content of
- * two rows is the same in each pair.
+ * two rows is the same in each pair. On a coarse pointer, each row has the
+ * floor and the tree trims no row: `coarse/tree-edge-rows.test.tsx`.
  *
  * Rides the real browser because the claim is a computed one: jsdom loads no
  * stylesheet.

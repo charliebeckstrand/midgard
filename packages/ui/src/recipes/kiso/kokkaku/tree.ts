@@ -6,7 +6,8 @@
  * row has the height of a real row at its density step. `icon` has the icon
  * size of the step. The rows use the `labels` widths in turn. `first` and
  * `last` remove the outer padding of the edge rows, as the tree does for its
- * first and last visible rows.
+ * first and last visible rows. As in the tree, they apply only when the
+ * pointer is not coarse.
  *
  * Layer: kiso · Concern: skeleton form · Unit: tree
  */
@@ -17,6 +18,6 @@ export const tree = {
 	icon: ['shrink-0', dan.size.icon.base],
 	label: [dan.text.body, 'h-lh max-w-full'],
 	labels: ['w-32', 'w-24', 'w-28', 'w-20'],
-	first: 'pt-0',
-	last: 'pb-0',
+	first: 'not-pointer-coarse:pt-0',
+	last: 'not-pointer-coarse:pb-0',
 } as const

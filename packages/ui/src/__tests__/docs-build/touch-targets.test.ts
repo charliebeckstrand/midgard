@@ -323,6 +323,16 @@ const KNOWN: readonly { finding: string; paths: readonly string[]; reason: strin
 		reason: 'A row of JsonTree is 20 px tall, and the rows touch.',
 	},
 	{
+		finding: 'crowded json-group/json-node',
+		paths: ['/json-tree'],
+		reason: 'A leaf row of JsonTree is a treeitem 20 px tall, and the rows touch.',
+	},
+	{
+		finding: 'crowded json-node/treeitem',
+		paths: ['/json-tree'],
+		reason: 'A branch row of JsonTree is a treeitem 20 px tall, and the rows touch.',
+	},
+	{
 		finding: 'crowded nav-item/nav-item-inner',
 		paths: ['/nav'],
 		reason: 'A row of Nav is 42 px tall, and the rows touch.',
@@ -469,6 +479,7 @@ function readTargets({ floor, sharedBorder }: { floor: number; sharedBorder: num
 		'[role=switch]',
 		'[role=slider]',
 		'[role=gridcell][tabindex]',
+		'[role=treeitem]',
 	].join(', ')
 
 	const main = document.querySelector('main') ?? document.body

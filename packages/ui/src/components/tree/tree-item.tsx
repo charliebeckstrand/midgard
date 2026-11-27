@@ -108,7 +108,8 @@ export type TreeItemProps = Omit<ComponentProps<'div'>, 'prefix' | 'defaultCheck
  * `prefix`/`suffix` slots. Tracks expanded state controllably
  * (`open`/`onOpenChange`) or uncontrolled (`defaultOpen`), nests its
  * `children` as a collapsible group, and inherits depth and indent from tree
- * context. Its row takes the step of the nearest density scope.
+ * context. Its row takes the step of the nearest density scope. On a coarse
+ * pointer, the row is at least 44 px tall (`touch-pitch-row`).
  *
  * @remarks
  * Client component. Reflects expansion as `aria-expanded` and nesting as

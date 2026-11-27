@@ -19,8 +19,8 @@
  * 44 px fills its column, so no space between two hit areas is dead.
  *
  * The `touch-pitch-row` utility is the pitch of a stack whose hosts are their
- * own hit areas, such as the rows of a list. On a coarse pointer, each host is
- * at least 44 px tall.
+ * own hit areas, such as the rows of a list or of a tree. On a coarse pointer,
+ * each host is at least 44 px tall.
  */
 
 import type { PluginCreator } from 'tailwindcss/plugin'

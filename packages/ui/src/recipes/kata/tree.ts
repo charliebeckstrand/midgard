@@ -14,12 +14,16 @@ import { rest } from '../kumi/check'
 const { cursor, fg, turn } = hannou
 const { text } = iro
 const { rounded } = kasane
-const { flex, nest } = narabi
+const { flex, nest, touch } = narabi
 const { focus } = sen
 const { collapse } = ugoki
 
-/** The box of a row: its layout, padding, and gap. The skeleton rows take it too. */
-const row = [flex.row, 'w-full', dan.space.tree.y, dan.space.tree.x, nest.gap]
+/**
+ * The box of a row: its layout, padding, and gap. The skeleton rows take it
+ * too. A row is its own hit area, and the rows touch, so a row takes the
+ * coarse floor on a coarse pointer (`narabi.touch.pitchRow`).
+ */
+const row = [flex.row, 'w-full', dan.space.tree.y, dan.space.tree.x, nest.gap, touch.pitchRow]
 
 /**
  * The check box of a checkable row. It is a picture of the state, not a
@@ -72,8 +76,13 @@ export const k = defineKata(
 			// bottom padding, and the group of each item in the chain has that space
 			// at its top (`group`). The space then opens and closes with the height
 			// of the group, and no row moves while the group moves.
-			'[&>[data-slot=tree-item]:first-child>[role=treeitem]]:pt-0',
-			'[&_[data-slot=tree-item]:last-child:not([data-slot=tree-item]:not(:last-child)_*)>[role=treeitem]]:pb-0',
+			//
+			// On a coarse pointer, each row has the floor (`row`), so a trim does not
+			// make the tree flush. It only moves the content of the row off the
+			// middle of the row. So the trims apply only when the pointer is not
+			// coarse, and the pitch of the rows is the floor.
+			'not-pointer-coarse:[&>[data-slot=tree-item]:first-child>[role=treeitem]]:pt-0',
+			'not-pointer-coarse:[&_[data-slot=tree-item]:last-child:not([data-slot=tree-item]:not(:last-child)_*)>[role=treeitem]]:pb-0',
 		],
 		slots: {
 			item: {
