@@ -6,7 +6,7 @@ import {
 	ChatTranscript,
 } from '../../modules/chat'
 import type { ChatEmbedPart, ChatPart } from '../../modules/chat/engine/chat-content/types'
-import { allBySlot, bySlot, renderUI, screen } from '../helpers'
+import { allBySlot, bySlot, getSlot, renderUI, screen } from '../helpers'
 
 /** The gap slot every block after the first carries. */
 const BLOCK_GAP = 'mt-3'
@@ -201,20 +201,16 @@ describe('ChatMessage over parts', () => {
 		expect(bySlot(container, 'chat-embed')).toHaveClass(BLOCK_GAP)
 	})
 
-	it('pulses the prose of a streaming reply and leaves a landed embed steady', () => {
-		// The bubble projects the pulse onto its Markdown children, so an embed
-		// that already arrived does not shimmer while the text after it streams.
+	it('shows the dots of a streaming reply after its last block, and leaves a landed embed steady', () => {
 		const { container } = renderUI(
 			<ChatMessage streaming>{[embed('e1', 'stops-map'), text('a', 'Twelve…')]}</ChatMessage>,
 		)
 
-		expect(bySlot(container, 'chat-message-bubble')).toHaveClass(
-			'[&>[data-slot=markdown]]:motion-safe:animate-text-pulse',
-		)
+		const bubble = getSlot(container, 'chat-message-bubble')
 
-		// The pulse comes only with a variant prefix, so the check reads the class
-		// text and not the class tokens.
-		expect(bySlot(container, 'chat-embed')?.className).not.toMatch(/animate-pulse/)
+		expect(bubble.lastElementChild).toBe(bySlot(container, 'loading-dots'))
+
+		expect(bySlot(container, 'chat-embed')?.className).not.toMatch(/animate-/)
 	})
 
 	it('keys a block by the part’s id, so a merge by id holds the DOM node', () => {

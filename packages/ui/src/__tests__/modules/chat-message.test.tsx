@@ -14,16 +14,11 @@ import {
 } from '../helpers'
 import { it } from '../helpers/fake-clock'
 
-// The streaming look the bubble projects onto its Markdown child, and the
-// standing dim that replaces the pulse under `prefers-reduced-motion`.
 // A touch screen: the context menu over the bubble opens only on a device
 // with no hover. jsdom matches no query, so it is a device that hovers.
 function stubTouch() {
 	stubMatchMedia((query) => query === NO_HOVER_QUERY)
 }
-
-const PULSE = '[&>[data-slot=markdown]]:motion-safe:animate-text-pulse'
-const PULSE_REDUCED = '[&>[data-slot=markdown]]:motion-reduce:opacity-60'
 
 describe('ChatMessage', () => {
 	it('renders children inside the bubble slot', () => {
@@ -47,9 +42,7 @@ describe('ChatMessage', () => {
 
 		expect(bubble).not.toHaveClass('cursor-progress')
 
-		expect(bubble).not.toHaveClass(PULSE)
-
-		expect(bubble).not.toHaveClass(PULSE_REDUCED)
+		expect(bySlot(container, 'loading-dots')).not.toBeInTheDocument()
 	})
 
 	it('reflects the sender prop on data-sender', () => {
@@ -142,21 +135,24 @@ describe('ChatMessage', () => {
 		expect(timestamp).toHaveTextContent('11:12 AM')
 	})
 
-	it('carries the whole streaming look on the bubble, and renders the content as Markdown', () => {
+	it('shows the progress cursor and the dots after the content while streaming, and renders the content as Markdown', () => {
 		const { container } = renderUI(<ChatMessage streaming>Some **bold** text</ChatMessage>)
 
-		expect(bySlot(container, 'chat-message-bubble')).toHaveClass(
-			'cursor-progress',
-			PULSE,
-			PULSE_REDUCED,
-		)
+		const bubble = getSlot(container, 'chat-message-bubble')
+
+		expect(bubble).toHaveClass('cursor-progress')
+
+		// The content keeps its full contrast: no pulse and no dim.
+		expect(bubble.className).not.toMatch(/animate-|opacity-/)
+
+		expect(bubble.lastElementChild).toBe(bySlot(container, 'loading-dots'))
 
 		expect(bySlot(container, 'markdown')).toHaveTextContent('Some bold text')
 
 		expect(container.querySelector('strong')?.textContent).toBe('bold')
 	})
 
-	it('shows loading dots in place of an empty streaming reply, and the content once it lands', () => {
+	it('shows only loading dots in an empty streaming reply, and the content before them once it lands', () => {
 		const { container, rerender } = renderUI(<ChatMessage streaming>{''}</ChatMessage>)
 
 		// The transcript announces the wait, so the dots add no live region.
@@ -168,9 +164,15 @@ describe('ChatMessage', () => {
 
 		rerender(<ChatMessage streaming>Tuesday</ChatMessage>)
 
-		expect(bySlot(container, 'loading-dots')).not.toBeInTheDocument()
-
 		expect(bySlot(container, 'markdown')).toHaveTextContent('Tuesday')
+
+		expect(bySlot(container, 'markdown')?.nextElementSibling).toBe(
+			bySlot(container, 'loading-dots'),
+		)
+
+		rerender(<ChatMessage>Tuesday</ChatMessage>)
+
+		expect(bySlot(container, 'loading-dots')).not.toBeInTheDocument()
 	})
 
 	it('shows no loading dots in an empty reply that is settled or failed', () => {

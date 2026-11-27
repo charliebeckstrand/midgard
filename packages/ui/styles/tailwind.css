@@ -36,7 +36,7 @@
 }
 
 /*
- * The endless loops of ui. Each runs in CSS, so no script runs in each
+ * The two endless loops of ui. Each runs in CSS, so no script runs in each
  * frame. A component puts the class behind `motion-safe:`, so the loop stops
  * under reduced motion, as `animate-spin` of LoadingSpinner does.
  *
@@ -52,11 +52,6 @@
  * The shine starts past the right edge and stops past the left edge.
  * ShinyText sets the duration from its `speed` prop.
  *
- * `animate-text-pulse` is the `animate-pulse` of Tailwind for text that a
- * reader reads while it pulses, such as a streaming chat reply. Its lowest
- * opacity is 60%, not 50%, so the text keeps 4.5:1 (WCAG 1.4.3) on the
- * assistant fill of ChatMessage. The timing is the timing of `animate-pulse`.
- *
  * `animate-drop-in` brings a surface in from a little above its place, as it
  * fades in. The skip link of SidebarLayout takes it when it gets the focus.
  */
@@ -64,7 +59,6 @@
 	--animate-progress-sweep: progress-sweep 1.5s ease-in-out infinite;
 	--animate-progress-sweep-rtl: progress-sweep-rtl 1.5s ease-in-out infinite;
 	--animate-shiny-text: shiny-text 2s linear infinite;
-	--animate-text-pulse: text-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 	--animate-drop-in: drop-in 150ms ease-out;
 
 	@keyframes progress-sweep {
@@ -82,12 +76,6 @@
 		}
 		to {
 			transform: translateX(-300%);
-		}
-	}
-
-	@keyframes text-pulse {
-		50% {
-			opacity: 0.6;
 		}
 	}
 

@@ -57,18 +57,16 @@ describe('ChatTranscript', () => {
 		expect(transcript.className).toContain('focus-visible:ring-blue-600')
 	})
 
-	it('pulses only the last assistant bubble while streaming', () => {
+	it('shows the streaming dots only in the last assistant bubble', () => {
 		const { container } = renderUI(<ChatTranscript messages={messages} streaming />)
 
-		// The bubble carries the streaming look and projects the pulse onto its
-		// Markdown child, so the marked element is the bubble.
-		const pulsing = allBySlot(container, 'chat-message-bubble').filter((el) =>
-			el.classList.contains('[&>[data-slot=markdown]]:motion-safe:animate-text-pulse'),
+		const streaming = allBySlot(container, 'chat-message-bubble').filter((el) =>
+			bySlot(el, 'loading-dots'),
 		)
 
-		expect(pulsing).toHaveLength(1)
+		expect(streaming).toHaveLength(1)
 
-		expect(present(pulsing[0], 'streaming bubble')).toHaveTextContent('Hello!')
+		expect(present(streaming[0], 'streaming bubble')).toHaveTextContent('Hello!')
 	})
 
 	it('names the log "Conversation", and takes a name of the consumer in its place', () => {
