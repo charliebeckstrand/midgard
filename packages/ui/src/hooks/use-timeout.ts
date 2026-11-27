@@ -54,6 +54,7 @@ const createTimeout = () =>
  * @param cancel - Cancels the task that has the id.
  * @returns The task, and the effect that starts a task that waits. The cleanup
  * of that effect cancels the task and makes the next `set` wait.
+ * @internal
  */
 export function createScheduler<Id, Args extends unknown[]>(
 	request: (run: () => void, ...args: Args) => Id,
