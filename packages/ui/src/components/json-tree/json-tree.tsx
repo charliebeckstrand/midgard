@@ -5,6 +5,7 @@ import { type ComponentProps, type KeyboardEvent, useMemo, useRef } from 'react'
 import { cn } from '../../core/cn'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { useA11yRoving } from '../../hooks/a11y/use-a11y-roving'
+import { useControlledLatch } from '../../hooks/use-controlled-latch'
 import { useKeyedStore } from '../../hooks/use-keyed-store'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { defineMessage } from '../../primitives/intl/intl-messages'
@@ -24,7 +25,7 @@ import {
 } from './json-tree-utilities'
 import { JsonTreeVirtualized } from './json-tree-virtualized'
 import type { JsonValue } from './types'
-import { unionExpandedSet } from './use-json-tree-expansion'
+import { NO_PATHS, unionExpandedSet } from './use-json-tree-expansion'
 import { useSearchIndex, useSearchStore } from './use-json-tree-search'
 import { useJsonTreeSearchSeed } from './use-json-tree-search-seed'
 
@@ -68,8 +69,10 @@ export type JsonTreeProps = Omit<ComponentProps<'div'>, 'children'> & {
 	collapsible?: JsonTreeCollapsible
 	/**
 	 * Controlled set of expanded node paths. When provided, the tree becomes
-	 * controlled and `onExpandedChange` fires on toggle. A `search` term adds
-	 * the branches that hold a match to the set through `onExpandedChange`.
+	 * controlled and `onExpandedChange` fires on toggle. The tree stays
+	 * controlled for its mount, and a later `undefined` reads as an empty set.
+	 * A `search` term adds the branches that hold a match to the set through
+	 * `onExpandedChange`.
 	 */
 	expanded?: Set<string>
 	/** Fires when the expanded set changes (controlled mode). */
@@ -174,7 +177,9 @@ export function JsonTree({
 
 	const { value: searchValue, filter } = normalizeSearch(search)
 
-	const controlled = expanded !== undefined
+	// The first set takes control for the mount, and a later `undefined` reads
+	// as an empty set, as on `useControllable` (§7.3).
+	const controlled = useControlledLatch(expanded)
 
 	// The open state of each path in the controlled set. A node reads its own
 	// path, so a new set renders only the nodes whose open state changed.
@@ -183,7 +188,7 @@ export function JsonTree({
 	// Controlled without a handler is read-only, as a controlled input with no
 	// `onChange` is.
 	const toggleExpanded = useStableEvent((path: string) => {
-		if (expanded && onExpandedChange) onExpandedChange(toggleItem(expanded, path))
+		if (controlled && onExpandedChange) onExpandedChange(toggleItem(expanded ?? NO_PATHS, path))
 	})
 
 	// Keyed on `data` identity, so a structurally identical value with a new
@@ -210,9 +215,9 @@ export function JsonTree({
 	// Union the paths into the controlled set. Reports nothing when the set
 	// already holds each path, or when the tree has no handler.
 	const expandControlled = useStableEvent((paths: ReadonlySet<string>) => {
-		if (!expanded || !onExpandedChange) return
+		if (!controlled || !onExpandedChange) return
 
-		const next = unionExpandedSet(expanded, paths)
+		const next = unionExpandedSet(expanded ?? NO_PATHS, paths)
 
 		if (next) onExpandedChange(next)
 	})
