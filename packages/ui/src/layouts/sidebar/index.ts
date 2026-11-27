@@ -1,5 +1,7 @@
 export {
 	SidebarLayout,
+	SidebarLayoutAside,
+	type SidebarLayoutAsideProps,
 	SidebarLayoutBody,
 	type SidebarLayoutBodyProps,
 	SidebarLayoutFooter,

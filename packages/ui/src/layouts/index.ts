@@ -2,6 +2,8 @@ export { AuthLayout, type AuthLayoutProps } from './auth'
 export { DashboardLayout, type DashboardLayoutProps } from './dashboard'
 export {
 	SidebarLayout,
+	SidebarLayoutAside,
+	type SidebarLayoutAsideProps,
 	SidebarLayoutBody,
 	type SidebarLayoutBodyProps,
 	SidebarLayoutFooter,
