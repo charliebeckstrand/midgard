@@ -183,6 +183,8 @@ function GroupRevealCell({
 			className={cn(
 				// The leading cell carries the group rail, in the color of the group or neutral.
 				rail && k.row.group.rail[color ?? 'neutral'],
+				// The stop cell of a total row takes the ring of the cursor.
+				cellProps && k.nav.cell,
 				pinned.className,
 			)}
 			style={pinned.style ? { ...NO_PADDING, ...pinned.style } : NO_PADDING}
