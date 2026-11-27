@@ -37,18 +37,28 @@ export function sectionChoice(section: string): StoredChoice<SectionState> {
 }
 
 /**
+ * The folder of each section in `src/docs/pages`, in the order of the sidebar.
+ * The server reads a cookie only for these names, so a cookie of an unknown
+ * section adds no class, and one set of closed sections gives one class list.
+ */
+export const SECTION_FOLDERS = [
+	'components',
+	'layouts',
+	'modules',
+	'primitives',
+	'providers',
+	'structure',
+] as const
+
+/**
  * The classes of the root element for the closed sections in `cookies`, the
- * `Cookie` header of a request. The docs server writes them on `<html>`.
+ * `Cookie` header of a request, in the order of {@link SECTION_FOLDERS}. The
+ * docs server writes them on `<html>`.
  */
 export function sectionRootClasses(cookies = ''): string[] {
-	return cookies
-		.split(';')
-		.map((part) => part.trim().split('=', 1)[0] ?? '')
-		.filter((name) => name.startsWith(KEY_PREFIX))
-		.map((name) => name.slice(KEY_PREFIX.length))
-		.filter((section) => FOLDER.test(section))
-		.filter((section) => readCookie(`${KEY_PREFIX}${section}`, cookies) === 'closed')
-		.map((section) => `${CLASS_PREFIX}${section}`)
+	return SECTION_FOLDERS.filter(
+		(section) => readCookie(`${KEY_PREFIX}${section}`, cookies) === 'closed',
+	).map((section) => `${CLASS_PREFIX}${section}`)
 }
 
 /**
