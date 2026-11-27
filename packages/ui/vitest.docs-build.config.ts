@@ -13,10 +13,10 @@ import { assertions, cleanup } from './vitest.base.ts'
  *
  * The global setup serves the build with the paths of App Platform
  * (`scripts/docs/server.ts`), and gives its origin to the tests. CI runs the
- * suite in shards (`--shard`). The axe file and the touch target file hold
- * most of the time of the suite. So each shard runs them, and each file reads
- * only its part of the pages (`setup/shard.ts`). The shards divide the other
- * files.
+ * suite in shards (`--shard`). The axe file, the touch target file, and the
+ * keyboard walk hold most of the time of the suite. So each shard runs them,
+ * and each file reads only its part of the pages (`setup/shard.ts`). The
+ * shards divide the other files.
  */
 export default defineConfig({
 	test: {
@@ -30,7 +30,7 @@ export default defineConfig({
 		// sequencer gave both to one shard, which then ran them one after the other.
 		sequence: {
 			sequencer: splitSequencer(
-				['accessibility.test.ts', 'touch-targets.test.ts'],
+				['accessibility.test.ts', 'keyboard-walk.test.ts', 'touch-targets.test.ts'],
 				['base.test.ts', 'hydration.test.ts'],
 			),
 		},

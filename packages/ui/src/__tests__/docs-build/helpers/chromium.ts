@@ -1,11 +1,18 @@
-import { type Browser, type BrowserContextOptions, chromium, type Page } from 'playwright'
+import {
+	type Browser,
+	type BrowserContextOptions,
+	chromium,
+	type LaunchOptions,
+	type Page,
+} from 'playwright'
 import { afterAll, beforeAll, onTestFinished, type TestContext } from 'vitest'
 
 /** Opens a tab with `options`. The tab closes after the case. */
 type OpenTab = (options?: BrowserContextOptions, context?: TestContext) => Promise<Page>
 
 /**
- * Launches Chromium before the cases of the file, and closes it after them.
+ * Launches Chromium with `options` before the cases of the file, and closes it
+ * after them.
  *
  * @remarks
  * Call it one time, at the top level of a file. It registers the hooks, and
@@ -24,21 +31,21 @@ type OpenTab = (options?: BrowserContextOptions, context?: TestContext) => Promi
  * const tab = await openTab({ viewport: { width: 1280, height: 720 } })
  * ```
  */
-export function launchChromium(): OpenTab {
+export function launchChromium(options?: LaunchOptions): OpenTab {
 	let browser: Browser | undefined
 
 	beforeAll(async () => {
-		browser = await chromium.launch()
+		browser = await chromium.launch(options)
 	})
 
 	afterAll(async () => {
 		await browser?.close()
 	})
 
-	return async (options, context) => {
+	return async (tabOptions, context) => {
 		if (!browser) throw new Error('Chromium did not launch.')
 
-		const tab = await browser.newPage(options)
+		const tab = await browser.newPage(tabOptions)
 
 		const onFinished = context?.onTestFinished ?? onTestFinished
 
