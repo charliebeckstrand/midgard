@@ -105,7 +105,7 @@ export type TreeItemProps = Omit<ComponentProps<'div'>, 'prefix' | 'defaultCheck
 /**
  * A `role="treeitem"` row within a `<Tree>`. It renders a chevron when it has
  * children, an optional check box, the optional `icon` and `label`, and
- * decorative `prefix`/`suffix` slots. Tracks expanded state controllably
+ * `prefix`/`suffix` slots. Tracks expanded state controllably
  * (`open`/`onOpenChange`) or uncontrolled (`defaultOpen`), nests its
  * `children` as a collapsible group, and inherits depth and indent from tree
  * context. Its row takes the step of the nearest density scope.
@@ -114,8 +114,8 @@ export type TreeItemProps = Omit<ComponentProps<'div'>, 'prefix' | 'defaultCheck
  * Client component. Reflects expansion as `aria-expanded` and nesting as
  * `aria-level`/`aria-posinset`/`aria-setsize`. The child group is a sibling of
  * the row in the DOM, so the open row owns it through `aria-owns`. The row takes
- * its name from its `label` alone through `aria-labelledby`, so the text of an
- * affix or of the owned group does not join the name. With `checked` or
+ * its name from its `label` and its `suffix` through `aria-labelledby`. The
+ * text of the `prefix` and of the owned group does not join the name. With `checked` or
  * `defaultChecked`, the row is a checkable item and reflects the state as
  * `aria-checked`. The row and its group stamp `data-open` while the branch is
  * open. Keyboard: Enter toggles a branch (or the check of a checkable

@@ -558,10 +558,15 @@ function readTargets({ floor, sharedBorder }: { floor: number; sharedBorder: num
 	const targets = [...main.querySelectorAll(selector)].filter(isTarget).map((element) => {
 		let { left, top, right, bottom } = touchArea(element) ?? element.getBoundingClientRect()
 
-		// The hit area of the target, and not of a target in it.
-		const area = [...element.querySelectorAll('[data-slot=touch-target]')].find(
-			(span) => span.parentElement?.closest(selector) === element,
-		)
+		// The hit area of the target, and not of a target in it. A clipped target
+		// has the part that shows, so its hit area does not reach under the clip.
+		const clipped = isClipped(element.getBoundingClientRect(), element)
+
+		const area = clipped
+			? undefined
+			: [...element.querySelectorAll('[data-slot=touch-target]')].find(
+					(span) => span.parentElement?.closest(selector) === element,
+				)
 
 		if (area) {
 			const box = area.getBoundingClientRect()
