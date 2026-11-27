@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { createScheduler } from './use-timeout'
 
 /** The frame that {@link useAnimationFrame} gives. Each function keeps its identity. */
 export type AnimationFrame = {
@@ -30,73 +31,15 @@ export type AnimationFrame = {
  * @internal
  */
 export function useAnimationFrame(): AnimationFrame {
-	const [{ frame, mount }] = useState(createFrame)
+	const [{ scheduler, mount }] = useState(createFrame)
 
 	useEffect(mount, [mount])
 
-	return frame
+	return scheduler
 }
 
-/**
- * An {@link AnimationFrame} and the effect of its owner. The effect requests a
- * frame that waits, and its cleanup cancels the frame and makes the next `set`
- * wait.
- */
-function createFrame(): { frame: AnimationFrame; mount: () => () => void } {
-	let id: number | null = null
-
-	// The request of a frame that `set` called between the effect cleanup and the
-	// next run of the effect.
-	let waiting: (() => void) | null = null
-
-	// True from the creation to the cleanup, so a call during the first render
-	// or in a layout effect requests the frame at once.
-	let mounted = true
-
-	const clear = () => {
-		waiting = null
-
-		if (id === null) return
-
-		cancelAnimationFrame(id)
-
-		id = null
-	}
-
-	const frame: AnimationFrame = {
-		set: (callback) => {
-			clear()
-
-			const request = () => {
-				id = requestAnimationFrame(() => {
-					id = null
-
-					callback()
-				})
-			}
-
-			if (mounted) request()
-			else waiting = request
-		},
-		clear,
-		pending: () => id !== null || waiting !== null,
-	}
-
-	const mount = () => {
-		mounted = true
-
-		const request = waiting
-
-		waiting = null
-
-		request?.()
-
-		return () => {
-			mounted = false
-
-			clear()
-		}
-	}
-
-	return { frame, mount }
-}
+const createFrame = () =>
+	createScheduler(
+		(run) => requestAnimationFrame(run),
+		(id) => cancelAnimationFrame(id),
+	)
