@@ -1,8 +1,7 @@
 import { Maximize2 } from 'lucide-react'
 import { useState } from 'react'
-import { Button } from 'ui/button'
 import { Grid, type GridColumn } from 'ui/grid'
-import { Icon } from 'ui/icon'
+import { IconButton } from 'ui/icon-button'
 import { PointerHint } from '../../../../kit/pointer-hint.tsx'
 import { applyChanges, EditHelp, initialPeople, type Person, personColumns } from './people.tsx'
 
@@ -14,9 +13,7 @@ const columns: GridColumn<Person>[] = [
 	{
 		id: 'actions',
 		actions: (_, { expand }) => (
-			<Button variant="bare" color="blue" aria-label="Open row form" onClick={expand}>
-				<Icon icon={<Maximize2 />} />
-			</Button>
+			<IconButton color="blue" aria-label="Open row form" onClick={expand} icon={<Maximize2 />} />
 		),
 	},
 ]

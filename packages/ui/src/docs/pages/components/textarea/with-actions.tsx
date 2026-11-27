@@ -1,8 +1,7 @@
 import { ArrowUp, Paperclip } from 'lucide-react'
 import { useRef, useState } from 'react'
-import { Button } from 'ui/button'
 import { Field, Label } from 'ui/fieldset'
-import { Icon } from 'ui/icon'
+import { IconButton } from 'ui/icon-button'
 import { Textarea } from 'ui/textarea'
 
 export default function WithActions() {
@@ -30,12 +29,15 @@ export default function WithActions() {
 				placeholder="Ask anything"
 				actions={
 					<>
-						<Button aria-label="Attach file" variant="plain">
-							<Icon icon={<Paperclip />} />
-						</Button>
-						<Button aria-label="Send" color="blue" disabled={message.trim() === ''} onClick={send}>
-							<Icon icon={<ArrowUp />} />
-						</Button>
+						<IconButton aria-label="Attach file" variant="plain" icon={<Paperclip />} />
+						<IconButton
+							aria-label="Send"
+							color="blue"
+							disabled={message.trim() === ''}
+							onClick={send}
+							variant="solid"
+							icon={<ArrowUp />}
+						/>
 					</>
 				}
 			/>

@@ -1,6 +1,5 @@
 import { Activity, Inbox, Pencil, Settings, Trash, Users } from 'lucide-react'
 import { useState } from 'react'
-import { Button } from 'ui/button'
 import { Flex } from 'ui/flex'
 import {
 	FormFilters,
@@ -10,7 +9,7 @@ import {
 	FormFiltersRow,
 } from 'ui/form'
 import { Heading } from 'ui/heading'
-import { Icon } from 'ui/icon'
+import { IconButton } from 'ui/icon-button'
 import { SidebarLayout, SidebarLayoutBody, SidebarLayoutHeader } from 'ui/layouts'
 import { useIntl } from 'ui/primitives/intl'
 import { DensityProvider, type DensityProviderProps } from 'ui/providers/density'
@@ -149,16 +148,16 @@ export default function DensityPlayground(props: DensityProviderProps) {
 											</TableCell>
 											<TableCell>
 												<Flex justify="end">
-													<Button aria-label={`Edit order ${order.id}`} color="blue" variant="bare">
-														<Icon icon={<Pencil />} />
-													</Button>
-													<Button
+													<IconButton
+														aria-label={`Edit order ${order.id}`}
+														color="blue"
+														icon={<Pencil />}
+													/>
+													<IconButton
 														aria-label={`Delete order ${order.id}`}
 														color="red"
-														variant="bare"
-													>
-														<Icon icon={<Trash />} />
-													</Button>
+														icon={<Trash />}
+													/>
 												</Flex>
 											</TableCell>
 										</TableRow>
