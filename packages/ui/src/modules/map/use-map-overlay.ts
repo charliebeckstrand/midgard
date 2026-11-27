@@ -116,6 +116,9 @@ export type MapOverlayProps = {
 	 * {@link onClick} reports. It serves a context menu wrapping the map, which
 	 * needs to name what it opened over. Takes no pointer affordance and never
 	 * prevents default, so the menu still opens.
+	 *
+	 * The ContextMenu key or Shift+F10 on the plot region reports the mark that
+	 * the keyboard cursor sits on, through the same handler.
 	 */
 	onContextMenu?: (id: string) => void
 }
