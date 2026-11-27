@@ -17,6 +17,10 @@
  * from that width. A grid with no fixed width uses `minmax(2.75rem, 1fr)`, as
  * the month picker of a calendar does. A host in a column that is wider than
  * 44 px fills its column, so no space between two hit areas is dead.
+ *
+ * The `touch-pitch-row` utility is the pitch of a stack whose hosts are their
+ * own hit areas, such as the rows of a list. On a coarse pointer, each host is
+ * at least 44 px tall.
  */
 
 import type { PluginCreator } from 'tailwindcss/plugin'
@@ -37,6 +41,14 @@ export const handler: PluginCreator = ({ addUtilities }) => {
 				'--touch-target-gap-y': 'initial',
 				'grid-auto-rows': `minmax(${FLOOR}, auto)`,
 				'place-items': 'center',
+			},
+		},
+		// A host that is its own hit area, in a stack of hosts that touch, such
+		// as a row of a list that acts. Its hit area is its box, so it cannot
+		// grow past the next host. On a coarse pointer, the host takes the floor.
+		'.touch-pitch-row': {
+			[COARSE]: {
+				'min-block-size': FLOOR,
 			},
 		},
 	})
