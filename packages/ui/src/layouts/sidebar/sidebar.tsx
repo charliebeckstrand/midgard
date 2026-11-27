@@ -132,8 +132,8 @@ export type SidebarLayoutProps = ComponentProps<'div'> & {
 	layout?: Responsive<OffcanvasLayout>
 	/**
 	 * Fires when the navigation drawer opens or closes, whatever drove it. The
-	 * drivers are the navbar button, a close, a descendant calling `close`, or the
-	 * viewport widening to the inline layout.
+	 * drivers are the navbar button, Escape, a click on the backdrop, a
+	 * descendant calling `close`, or the viewport widening to the inline layout.
 	 *
 	 * Observation only, and the drawer alone. The inline sidebar does not open, and
 	 * the hover peek of the offcanvas sidebar is a pointer affordance rather than a
