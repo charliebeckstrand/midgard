@@ -5,7 +5,7 @@ export default function PinnedColumns() {
 	// Scroll the grid to the side: Name and Status stay in place.
 	return (
 		<Grid
-			tableProps={{ 'aria-label': 'Pinned columns' }}
+			tableProps={{ 'aria-label': 'Employees' }}
 			resizable
 			columns={employeeColumns}
 			rows={employees}

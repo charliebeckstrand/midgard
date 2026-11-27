@@ -17,7 +17,7 @@ export default function LifecycleCallbacks() {
 			>
 				Hold to send
 			</HoldButton>
-			<Text tone="muted">Last event: {event ? holdEvents[event] : 'None'}</Text>
+			<Text>Last event: {event ? holdEvents[event] : 'None'}</Text>
 		</Stack>
 	)
 }

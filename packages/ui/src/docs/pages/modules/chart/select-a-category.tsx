@@ -11,7 +11,7 @@ export default function SelectACategory() {
 		<BarChart
 			aria-label="Revenue by month"
 			title="Revenue"
-			subtitle={selected.length > 0 ? `Selected: ${selected.join(', ')}` : 'No month selected'}
+			subtitle={selected.length > 0 ? `Value: ${selected.join(', ')}` : 'Value: Empty'}
 			data={months}
 			series={[{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' }]}
 			selectedCategories={selected}

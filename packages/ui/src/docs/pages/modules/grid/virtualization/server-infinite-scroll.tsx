@@ -35,7 +35,7 @@ export default function ServerInfiniteScroll() {
 	// gives the count of the whole set.
 	return (
 		<Grid
-			tableProps={{ 'aria-label': 'Server infinite scroll' }}
+			tableProps={{ 'aria-label': 'People' }}
 			columns={serverColumns}
 			rows={rows}
 			getKey={(row) => row.id}

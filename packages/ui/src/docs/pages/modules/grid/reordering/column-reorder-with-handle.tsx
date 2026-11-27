@@ -4,7 +4,7 @@ import { columns, people } from '../data.tsx'
 export default function ColumnReorderWithHandle() {
 	return (
 		<Grid
-			tableProps={{ 'aria-label': 'Column reorder with handle' }}
+			tableProps={{ 'aria-label': 'People' }}
 			reorder
 			columns={columns}
 			rows={people}

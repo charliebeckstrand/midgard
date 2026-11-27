@@ -2,9 +2,11 @@ import { useState } from 'react'
 import { Button } from 'ui/button'
 import { Flex } from 'ui/flex'
 import { Grid, type GridCellRef, type GridRangeState } from 'ui/grid'
+import { Kbd } from 'ui/kbd'
 import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
 import { PointerHint } from '../../../../kit/pointer-hint.tsx'
+import { ShortcutHint } from '../../../../kit/shortcut-hint.tsx'
 import { columns, people } from '../data.tsx'
 
 // The names and the roles of the first three people.
@@ -25,7 +27,7 @@ function describeCell({ rowKey, columnId }: GridCellRef): string {
 
 // The value of the range, from its anchor to its focus.
 function RangeStatus({ range }: { range: GridRangeState | null }) {
-	if (!range) return 'Empty'
+	if (!range) return 'Value: Empty'
 
 	return `Value: ${describeCell(range.anchor)} to ${describeCell(range.focus)}`
 }
@@ -37,9 +39,17 @@ export default function CellRange() {
 
 	return (
 		<Stack gap="md">
-			<Text tone="muted">
+			<Text>
 				<PointerHint
-					mouseText="Shift-click or drag across the cells to select a range, or press Ctrl+A or Cmd+A to select all"
+					mouseText={
+						<>
+							Shift-click or drag across the cells to select a range, or press{' '}
+							<Kbd>
+								<ShortcutHint keyName="A" />
+							</Kbd>{' '}
+							to select all
+						</>
+					}
 					touchText="Use a keyboard or a mouse to select a range of cells"
 				/>
 			</Text>
@@ -52,7 +62,7 @@ export default function CellRange() {
 				</Button>
 			</Flex>
 			<Grid
-				tableProps={{ 'aria-label': 'Cell range' }}
+				tableProps={{ 'aria-label': 'People' }}
 				navigable
 				range={{ value: range, onValueChange: setRange }}
 				columns={columns}

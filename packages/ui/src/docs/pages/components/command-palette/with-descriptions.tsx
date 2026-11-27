@@ -8,19 +8,12 @@ import {
 	CommandPaletteText,
 	useCommandPaletteDeferredQuery,
 } from 'ui/command-palette'
-
-const people = [
-	{ name: 'Arlene McCoy', email: 'arlene@example.com' },
-	{ name: 'Devon Webb', email: 'devon@example.com' },
-	{ name: 'Hellen Schmidt', email: 'hellen@example.com' },
-	{ name: 'Tanya Fox', email: 'tanya@example.com' },
-	{ name: 'Tom Cook', email: 'tom@example.com' },
-]
+import { profiles } from '../../../data/people.ts'
 
 function MatchingPeople() {
 	const query = useCommandPaletteDeferredQuery().toLowerCase()
 
-	return people
+	return profiles
 		.filter((person) => `${person.name} ${person.email}`.toLowerCase().includes(query))
 		.map((person) => (
 			<CommandPaletteItem key={person.email}>
