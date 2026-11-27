@@ -1,8 +1,9 @@
 import { Search } from 'lucide-react'
 import { Button } from 'ui/button'
 import { Icon } from 'ui/icon'
+import { IconButton } from 'ui/icon-button'
 import { Kbd } from 'ui/kbd'
-import { defineMessages, IntlMessage } from 'ui/primitives/intl'
+import { defineMessages, IntlMessage, useIntl } from 'ui/primitives/intl'
 import { ShortcutHint } from '../../kit/shortcut-hint.tsx'
 import { useShortcutPlatformKeys } from '../../kit/use-shortcut-platform.ts'
 import { useSearch } from './context.ts'
@@ -12,7 +13,7 @@ const messages = defineMessages({
 		id: 'docs.search.button',
 		defaultMessage: 'Search',
 		description:
-			'The label of the button at the top of the sidebar that opens the search of the docs.',
+			'The label of each button that opens the search of the docs: the button at the top of the sidebar, and the icon button in the bar at the top of a narrow screen.',
 	},
 })
 
@@ -53,5 +54,31 @@ export function SearchButton() {
 				<ShortcutHint keyName="K" />
 			</Kbd>
 		</Button>
+	)
+}
+
+/**
+ * The button of the search in the bar at the top of a narrow screen, where the
+ * sidebar is in a drawer. Without it, a search takes two presses, and the
+ * palette opens over the drawer. On a wide screen the sidebar shows its own
+ * button ({@link SearchButton}), so this button hides.
+ */
+export function SearchIconButton() {
+	const { request, preload } = useSearch()
+
+	const intl = useIntl()
+
+	const keys = useShortcutPlatformKeys('K')
+
+	return (
+		<IconButton
+			icon={Search}
+			aria-label={intl.formatMessage(messages.button)}
+			aria-keyshortcuts={keys}
+			className="lg:hidden"
+			onPointerEnter={preload}
+			onFocus={preload}
+			onClick={() => request()}
+		/>
 	)
 }

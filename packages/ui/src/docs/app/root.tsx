@@ -25,6 +25,7 @@ import { noop } from '../../utilities/noop.ts'
 import { PageTitle } from '../kit/page-title.tsx'
 import { useIdle } from '../kit/use-idle.ts'
 import { useShortcutPlatformKeys } from '../kit/use-shortcut-platform.ts'
+import { SearchIconButton } from '../search/ui/search-button.tsx'
 import { DocsSearch, SearchPaletteHost } from '../search/ui/search-provider.tsx'
 import appCss from './app.css?url'
 import { catalogs } from './catalogs.ts'
@@ -92,6 +93,7 @@ function warmShiki() {
 // element at each render, and React does not render them again.
 const ACTIONS = (
 	<>
+		<SearchIconButton />
 		<EventsButton />
 		<AppearanceSettings>
 			<DirectionListbox />

@@ -3,7 +3,7 @@
 
 import { describe, expect, it } from 'vitest'
 import { hydrateOnPlatform } from '../../__tests__/helpers/hydrate.tsx'
-import { SearchButton } from '../search/ui/search-button.tsx'
+import { SearchButton, SearchIconButton } from '../search/ui/search-button.tsx'
 import { DocsSearch } from '../search/ui/search-provider.tsx'
 
 // The key of the search button is in the HTML of the build, so it is in the
@@ -53,6 +53,29 @@ describe('the shortcut of the docs search button for a screen reader', () => {
 		expect(hydrateOnPlatform(button, 'Win32', readKeys)).toEqual({
 			before: 'Meta+K true',
 			after: 'Control+K true',
+		})
+	})
+})
+
+// The icon button of the search in the bar of a narrow screen has the name of
+// the search and the same shortcut.
+const iconButton = (
+	<DocsSearch>
+		<SearchIconButton />
+	</DocsSearch>
+)
+
+const readIconButton = (container: Element) => {
+	const search = container.querySelector('button')
+
+	return `${search?.getAttribute('aria-label')} ${search?.getAttribute('aria-keyshortcuts')}`
+}
+
+describe('the docs search icon button', () => {
+	it('is named Search, with the shortcut of the platform', () => {
+		expect(hydrateOnPlatform(iconButton, 'Win32', readIconButton)).toEqual({
+			before: 'Search Meta+K',
+			after: 'Search Control+K',
 		})
 	})
 })
