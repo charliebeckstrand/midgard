@@ -1,5 +1,6 @@
 import { Activity, Inbox, Pencil, Settings, Trash, Users } from 'lucide-react'
 import { useState } from 'react'
+import { foldText } from 'ui/core'
 import { Flex } from 'ui/flex'
 import {
 	FormFilters,
@@ -113,7 +114,7 @@ export default function DensityPlayground(props: DensityProviderProps) {
 
 	const filteredOrders = orders.filter(
 		(order) =>
-			(!filters.id || order.id.toLowerCase().includes(filters.id.toLowerCase())) &&
+			(!filters.id || foldText(order.id).includes(foldText(filters.id))) &&
 			(!filters.status || order.status === filters.status),
 	)
 

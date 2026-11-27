@@ -11,6 +11,7 @@ import { CheckboxSkeleton } from 'ui/checkbox'
 import { ColorPanelSkeleton } from 'ui/color'
 import { Combobox, ComboboxLabel, ComboboxOption, useComboboxDeferredQuery } from 'ui/combobox'
 import { ControlSkeleton } from 'ui/control'
+import { foldText } from 'ui/core'
 import { DescriptionListSkeleton } from 'ui/description-list'
 import { FormFiltersSkeleton } from 'ui/form'
 import { HeadingSkeleton } from 'ui/heading'
@@ -89,10 +90,10 @@ const variants = [
 ]
 
 function MatchingVariants() {
-	const query = useComboboxDeferredQuery().toLowerCase()
+	const query = foldText(useComboboxDeferredQuery())
 
 	return variants
-		.filter((variant) => variant.label.toLowerCase().includes(query))
+		.filter((variant) => foldText(variant.label).includes(query))
 		.map((variant) => (
 			<ComboboxOption key={variant.id} value={variant.id}>
 				<ComboboxLabel>{variant.label}</ComboboxLabel>

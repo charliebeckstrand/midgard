@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Combobox, ComboboxLabel, ComboboxOption, useComboboxDeferredQuery } from 'ui/combobox'
+import { foldText } from 'ui/core'
 import { JsonTree } from 'ui/json-tree'
 import {
 	QueryBuilder,
@@ -23,9 +24,9 @@ function ownerName(id: string | number): string | undefined {
 function searchPeople(query: string, signal: AbortSignal): Promise<readonly Person[]> {
 	return new Promise((resolve, reject) => {
 		const timer = setTimeout(() => {
-			const text = query.trim().toLowerCase()
+			const text = foldText(query.trim())
 
-			resolve(profiles.filter((person) => person.name.toLowerCase().includes(text)).slice(0, 8))
+			resolve(profiles.filter((person) => foldText(person.name).includes(text)).slice(0, 8))
 		}, 300)
 
 		signal.addEventListener(

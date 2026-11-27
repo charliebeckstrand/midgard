@@ -10,14 +10,15 @@ import {
 	CommandPaletteShortcut,
 	useCommandPaletteDeferredQuery,
 } from 'ui/command-palette'
+import { foldText } from 'ui/core'
 import { Icon } from 'ui/icon'
 import { groups } from './commands.tsx'
 
 function MatchingCommands() {
-	const query = useCommandPaletteDeferredQuery().toLowerCase()
+	const query = foldText(useCommandPaletteDeferredQuery())
 
 	return groups.map(({ title, commands }) => {
-		const matches = commands.filter((command) => command.label.toLowerCase().includes(query))
+		const matches = commands.filter((command) => foldText(command.label).includes(query))
 
 		if (matches.length === 0) return null
 
