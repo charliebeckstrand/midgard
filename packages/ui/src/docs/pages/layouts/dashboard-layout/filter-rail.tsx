@@ -26,6 +26,7 @@ export default function FilterRail() {
 						value={status}
 						onValueChange={setStatus}
 						displayValue={(value: OrderStatus) => orderStatuses[value]}
+						clearable
 					>
 						{statuses.map((option) => (
 							<SelectOption key={option} value={option}>
