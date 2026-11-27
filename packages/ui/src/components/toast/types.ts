@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import type { AlertSeverity } from '../alert'
+import type { AlertSeverity } from '../alert/alert-severity'
 
 /**
  * Severity of a toast: an {@link AlertSeverity}, or `neutral` for a toast that
