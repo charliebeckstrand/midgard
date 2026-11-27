@@ -89,6 +89,13 @@ async function narrowestRun(element: HTMLElement): Promise<number> {
 	return narrowest
 }
 
+/** The band mark of a day: the outline of its `::after` box. */
+function bandMark(day: HTMLElement): string {
+	const style = getComputedStyle(day, '::after')
+
+	return `${style.outlineStyle} ${style.outlineWidth} ${style.outlineColor}`
+}
+
 function dayStyle(container: HTMLElement, selector: string) {
 	return getComputedStyle(
 		present(container.querySelector<HTMLElement>(`[role=option]${selector}`), selector),
@@ -146,19 +153,15 @@ describe('calendar selection under forced colors (real browser)', () => {
 			}
 
 			for (const inner of days.slice(1, 4)) {
-				const style = getComputedStyle(inner)
+				expect(getComputedStyle(inner).backgroundColor).not.toBe(systemColor('Highlight'))
 
-				expect(style.backgroundColor).not.toBe(systemColor('Highlight'))
-
-				expect(`${style.outlineStyle} ${style.outlineWidth} ${style.outlineColor}`).toBe(
-					`solid 2px ${systemColor('Highlight')}`,
-				)
+				expect(bandMark(inner)).toBe(`solid 2px ${systemColor('Highlight')}`)
 			}
 		})
 
 		// The active day of the grid takes the ring of a virtual focus. On a day between the
-		// endpoints, the ring must not be the outline that marks the band.
-		it('keeps the ring of the active day apart from the outline of the band', () => {
+		// endpoints, the day must show the ring and the mark of the band together.
+		it('shows the ring of the active day and the mark of the band together', () => {
 			const { range } = month()
 
 			const inner = new Date(
@@ -175,14 +178,17 @@ describe('calendar selection under forced colors (real browser)', () => {
 				/>,
 			)
 
-			const outline = (style: CSSStyleDeclaration) =>
-				`${style.outlineStyle} ${style.outlineWidth} ${style.outlineOffset} ${style.outlineColor}`
-
 			const days = [...container.querySelectorAll<HTMLElement>('[role=option][aria-selected=true]')]
 
-			expect(outline(getComputedStyle(present(days[2], 'the active day')))).not.toBe(
-				outline(getComputedStyle(present(days[1], 'a day of the band'))),
+			const active = present(days[2], 'the active day')
+
+			const ring = getComputedStyle(active)
+
+			expect(`${ring.outlineStyle} ${ring.outlineOffset} ${ring.outlineColor}`).toBe(
+				`solid 2px ${systemColor('CanvasText')}`,
 			)
+
+			expect(bandMark(active)).toBe(`solid 2px ${systemColor('Highlight')}`)
 		})
 	})
 })

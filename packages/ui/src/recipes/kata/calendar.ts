@@ -101,14 +101,18 @@ export const k = defineKata(
 					range: {
 						// A day between the endpoints is selected too, but under forced colors
 						// it takes a 2 px `Highlight` outline in place of the fill of an
-						// endpoint, so the endpoints stay apart from the band.
+						// endpoint, so the endpoints stay apart from the band. The outline is
+						// on the `::after` box, so the ring of the active day, which is the
+						// outline of the day, does not replace it.
 						inner: {
 							true: [
 								'rounded-none',
 								'forced-colors:aria-selected:forced-color-adjust-auto',
 								'forced-colors:aria-selected:bg-transparent! forced-colors:aria-selected:text-[CanvasText]!',
-								'forced-colors:outline-solid forced-colors:outline-2 forced-colors:-outline-offset-2',
-								'forced-colors:outline-[Highlight]',
+								"forced-colors:after:content-['']",
+								'forced-colors:after:pointer-events-none forced-colors:after:absolute forced-colors:after:inset-0',
+								'forced-colors:after:outline-solid forced-colors:after:outline-2',
+								'forced-colors:after:-outline-offset-2 forced-colors:after:outline-[Highlight]',
 							],
 							false: '',
 						},
