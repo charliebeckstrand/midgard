@@ -551,7 +551,9 @@ describe('component density', () => {
 
 describe('component text inputs', () => {
 	for (const subject of textInputs) {
-		it(`${subject.title} forwards its ref to the editable element`, () => forwardsRef(subject))
+		if (subject.ref !== false) {
+			it(`${subject.title} forwards its ref to the editable element`, () => forwardsRef(subject))
+		}
 
 		it(`${subject.title} passes through placeholder`, () => passesPlaceholder(subject))
 

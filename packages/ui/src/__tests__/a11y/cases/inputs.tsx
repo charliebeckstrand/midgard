@@ -487,6 +487,20 @@ export const inputCases: readonly Case[] = [
 				<DatePicker />
 			</Field>
 		),
+		textInput: [
+			{
+				render: ({ placeholder, disabled, autoComplete }) => (
+					<DatePicker
+						input
+						placeholder={placeholder}
+						disabled={disabled}
+						autoComplete={autoComplete}
+					/>
+				),
+				slot: 'datepicker-input',
+				ref: false,
+			},
+		],
 		formField: [
 			{
 				render: ({ name }) => (
