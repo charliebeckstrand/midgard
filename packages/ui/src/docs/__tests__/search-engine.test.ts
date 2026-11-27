@@ -75,13 +75,50 @@ describe('createSearchIndex', () => {
 	it('corrects one letter of a word of 4 or more letters, only when nothing matches', () => {
 		expect(search('buton')[0]).toBe('/button')
 
-		expect(search('dialgo')).toEqual([])
-
 		expect(search('grd')).toEqual([])
 
 		expect(search('grid srot')).toEqual([])
 
 		expect(search('grid sortng')).toEqual(['/modules/grid/sorting'])
+	})
+
+	it('corrects two letters of a word of 6 or more letters, such as two letters in the wrong order', () => {
+		expect(search('dialgo')[0]).toBe('/dialog')
+
+		expect(search('srot')).toEqual([])
+	})
+
+	it('puts an entry whose name is the corrected query first', () => {
+		const entries: Matchable[] = [
+			{
+				kind: 'page',
+				label: 'IconButton',
+				href: '/icon-button',
+				context: 'Components',
+				keywords: ['toggle button'],
+			},
+			{ kind: 'page', label: 'Button', href: '/button', context: 'Components' },
+		]
+
+		expect(search('buton', entries)).toEqual(['/button', '/icon-button'])
+	})
+
+	it('puts an entry that each word names before an entry that a prop matches', () => {
+		const entries: Matchable[] = [
+			{
+				kind: 'component',
+				label: '<Grid />',
+				href: '/modules/grid#api-Grid',
+				context: 'Grid',
+				members: ['sortable', 'onSortChange'],
+			},
+			{ kind: 'tab', label: 'Sorting', href: '/modules/grid/sorting', context: 'Grid' },
+		]
+
+		expect(search('grid sort', entries)).toEqual([
+			'/modules/grid/sorting',
+			'/modules/grid#api-Grid',
+		])
 	})
 
 	it('does not correct a word that matches, so a near word stays out', () => {
