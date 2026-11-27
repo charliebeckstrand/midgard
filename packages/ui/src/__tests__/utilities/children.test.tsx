@@ -114,7 +114,13 @@ describe('hasContent', () => {
 				{''}
 			</Fragment>,
 		],
-		['a nested Fragment of empty nodes', <>{[<Fragment key="f">{null}</Fragment>]}</>],
+		[
+			'a nested Fragment of empty nodes',
+			<Fragment key="outer">
+				<Fragment key="inner">{null}</Fragment>
+				{''}
+			</Fragment>,
+		],
 	])('reads %s as empty', (_, node) => {
 		expect(hasContent(node)).toBe(false)
 	})
