@@ -1,3 +1,4 @@
+import { fc, test } from '@fast-check/vitest'
 import { act, within as inside, renderHook } from '@testing-library/react'
 import { createRef, Profiler, useState } from 'react'
 import { renderToString } from 'react-dom/server'
@@ -19,6 +20,7 @@ import { useColorState } from '../../components/color/use-color-state'
 import { Control } from '../../components/control'
 import { Field, Label, Message } from '../../components/fieldset'
 import { Form, useFormActions } from '../../modules/form'
+import { contrastRatio, WCAG_NON_TEXT } from '../../utilities/contrast'
 import {
 	allBySlot,
 	attach,
@@ -45,6 +47,9 @@ function stubEyeDropper() {
 		},
 	)
 }
+
+/** One sRGB channel, from 0 to 1. */
+const unit = fc.double({ min: 0, max: 1, noNaN: true })
 
 describe('color conversions', () => {
 	it('round-trips fully-saturated and neutral hex exactly', () => {
@@ -400,26 +405,34 @@ describe('ColorPanel', () => {
 	})
 
 	// The check mark is the sign of the checked chip that is not a hue (WCAG 1.4.1).
-	// Its ink is white, or black where white does not clear 3:1 on the chip.
-	it.each([
-		['#ffffff', 'black'],
-		['#eab308', 'black'],
-		['#000000', 'white'],
-		['#3b82f6', 'white'],
-	])('draws a check mark on the checked %s chip only, with %s ink', (value, ink) => {
-		const { container } = renderUI(
-			<ColorPanel defaultValue={value} swatches={[value, '#a1a1aa']} />,
-		)
+	it.each(['#ffffff', '#3b82f6', '#0000001a'])(
+		'draws a check mark on the checked %s chip only',
+		(value) => {
+			const { container } = renderUI(
+				<ColorPanel alpha defaultValue={value} swatches={[value, '#a1a1aa']} />,
+			)
 
-		const [checked, unchecked] = getAllSlots(container, 'color-swatch')
+			const [checked, unchecked] = getAllSlots(container, 'color-swatch')
 
-		expect(getSlot(present(checked, 'checked chip'), 'color-swatch-check')).toHaveAttribute(
-			'data-ink',
-			ink,
-		)
+			for (const slot of ['color-swatch-check', 'color-swatch-halo']) {
+				expect(bySlot(present(checked, 'checked chip'), slot)).not.toBeNull()
 
-		expect(bySlot(present(unchecked, 'unchecked chip'), 'color-swatch-check')).toBeNull()
-	})
+				expect(bySlot(present(unchecked, 'unchecked chip'), slot)).toBeNull()
+			}
+		},
+	)
+
+	// The mark is white over a black outline. One of the two inks clears 3:1 on
+	// each color, so the mark shows on each chip. A translucent chip shows the
+	// surface under the panel, and the claim holds for each color of the blend.
+	test.prop([fc.tuple(unit, unit, unit)])(
+		'one ink of the check mark clears 3:1 on each chip color',
+		(color) => {
+			const best = Math.max(contrastRatio('white', color), contrastRatio('black', color))
+
+			expect(best).toBeGreaterThanOrEqual(WCAG_NON_TEXT)
+		},
+	)
 
 	it('draws no check mark for a custom color', () => {
 		const { container } = renderUI(

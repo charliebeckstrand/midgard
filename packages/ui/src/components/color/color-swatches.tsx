@@ -6,7 +6,6 @@ import { useDevWarning } from '../../hooks/use-dev-warning'
 import { Glyph } from '../../primitives/glyph'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/color-panel'
-import { readableInk, WCAG_NON_TEXT } from '../../utilities/contrast'
 import { keyByOccurrence } from '../../utilities/key-by-occurrence'
 import { colorMessages } from './color-messages'
 import { colorHueName, hexToHsva, hsvaToHex } from './color-utilities'
@@ -47,16 +46,8 @@ export function ColorSwatches({ swatches }: ColorSwatchesProps) {
 			keyByOccurrence(swatches).map(({ key, value }) => {
 				const parsed = hexToHsva(value)
 
-				// The hex of the parse, for the match below (`sameHex`). The ink of the
-				// check mark is white, or black where white does not clear 3:1 on the
-				// opaque color of the chip.
-				return {
-					key,
-					swatch: value,
-					parsed,
-					hex: parsed && hsvaToHex(parsed, true),
-					ink: parsed && readableInk(hsvaToHex(parsed), ['white', 'black'], WCAG_NON_TEXT),
-				}
+				// The hex of the parse, for the match below (`sameHex`).
+				return { key, swatch: value, parsed, hex: parsed && hsvaToHex(parsed, true) }
 			}),
 		[swatches],
 	)
@@ -90,7 +81,7 @@ export function ColorSwatches({ swatches }: ColorSwatchesProps) {
 			aria-label={intl.formatMessage(colorMessages.swatches)}
 			className={k().swatches}
 		>
-			{parsedSwatches.map(({ key, swatch, parsed, ink }) => (
+			{parsedSwatches.map(({ key, swatch, parsed }) => (
 				<label
 					key={key}
 					data-slot="color-swatch"
@@ -123,14 +114,22 @@ export function ColorSwatches({ swatches }: ColorSwatchesProps) {
 						onChange={() => parsed && setHsva(parsed)}
 					/>
 					{key === checkedKey && (
-						<Glyph
-							icon={Check}
-							data-slot="color-swatch-check"
-							data-ink={ink || undefined}
-							aria-hidden="true"
-							className={k().swatch.check}
-							strokeWidth={3}
-						/>
+						<>
+							<Glyph
+								icon={Check}
+								data-slot="color-swatch-halo"
+								aria-hidden="true"
+								className={k().swatch.halo}
+								strokeWidth={6}
+							/>
+							<Glyph
+								icon={Check}
+								data-slot="color-swatch-check"
+								aria-hidden="true"
+								className={k().swatch.check}
+								strokeWidth={3}
+							/>
+						</>
 					)}
 				</label>
 			))}

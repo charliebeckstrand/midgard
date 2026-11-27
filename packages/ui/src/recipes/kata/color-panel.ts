@@ -69,6 +69,9 @@ const preview = [
 	dan.size.colorPanel.preview,
 ]
 
+// The box of the check mark of the checked preset chip, centered on the chip.
+const checkMark = 'pointer-events-none absolute inset-0 m-auto size-3/5'
+
 export const k = defineKata(
 	{
 		base: [flex.col, 'select-none', dan.size.colorPanel.width, 'max-w-full', dan.gap.colorPanel],
@@ -144,14 +147,14 @@ export const k = defineKata(
 					/**
 					 * The check mark of the checked chip. Without it, the checked chip paints
 					 * the same pixels as an unchecked chip, so only its hue tells which preset
-					 * is current (WCAG 1.4.1). The mark is white, or black on a chip where
-					 * white does not clear 3:1 (`data-ink="black"`). The chip keeps its color
-					 * under forced colors, so the mark keeps its ink too.
+					 * is current (WCAG 1.4.1). The mark is white over a black outline
+					 * (`halo`), so one of the two clears 3:1 on each chip color, also on a
+					 * translucent chip that shows the surface under the panel. The chip keeps
+					 * its color under forced colors, so the mark keeps its ink too.
 					 */
-					check: [
-						'pointer-events-none absolute inset-0 m-auto size-3/5 text-white',
-						'data-[ink=black]:text-black',
-					],
+					check: [checkMark, 'text-white'],
+					/** The black outline under the check mark: a wider stroke of the same glyph. */
+					halo: [checkMark, 'text-black'],
 				},
 			},
 		},
