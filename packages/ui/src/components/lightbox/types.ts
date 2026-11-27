@@ -1,3 +1,5 @@
+import type { Size } from '../../utilities/size'
+
 /** One photo of a {@link Lightbox}. */
 export type LightboxPhoto = {
 	/**
@@ -35,10 +37,10 @@ export type LightboxPhoto = {
 }
 
 /** How the thumbnail of a photo loaded: its natural size, or `'failed'`. @internal */
-export type LightboxLoad = { width: number; height: number } | 'failed'
+export type LightboxLoad = Size | 'failed'
 
 /**
  * A photo that the viewer can show: one with a size, whose thumbnail did not
  * fail. `index` is its place in the `photos` of the root. @internal
  */
-export type LightboxViewPhoto = LightboxPhoto & { width: number; height: number; index: number }
+export type LightboxViewPhoto = LightboxPhoto & Size & { index: number }

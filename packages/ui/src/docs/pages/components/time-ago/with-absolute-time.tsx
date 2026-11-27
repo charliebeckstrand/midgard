@@ -1,4 +1,5 @@
 import { DateTime } from 'ui/date-time'
+import { useHasHover } from 'ui/hooks'
 import { TimeAgo } from 'ui/time-ago'
 import { Tooltip, TooltipContent, TooltipTrigger } from 'ui/tooltip'
 import { MINUTE, useNow } from './use-now.ts'
@@ -8,8 +9,10 @@ export default function WithAbsoluteTime() {
 
 	const date = new Date(now - 5 * MINUTE)
 
+	const trigger = useHasHover() ? 'hover' : 'click'
+
 	return (
-		<Tooltip>
+		<Tooltip trigger={trigger}>
 			<TooltipTrigger>
 				<TimeAgo value={date} tabIndex={0} />
 			</TooltipTrigger>

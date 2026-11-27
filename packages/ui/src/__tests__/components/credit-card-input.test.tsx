@@ -18,7 +18,6 @@ import {
 	renderUI,
 	screen,
 	setupUser,
-	userEvent,
 } from '../helpers'
 import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
 import { futureYY } from '../helpers/future-yy'
@@ -409,9 +408,7 @@ describe('CreditCardInputCvv', () => {
 			<CreditCardInputCvv brand="visa" onValidityChange={(v) => verdicts.push(v.isValid)} />,
 		)
 
-		await userEvent
-			.setup({ delay: null })
-			.type(getSlot<HTMLInputElement>(container, 'credit-card-input-cvv'), '123')
+		await setupUser().type(getSlot<HTMLInputElement>(container, 'credit-card-input-cvv'), '123')
 
 		// Length is a CVV's only rule, so the verdict flips exactly at the cap.
 		expect(verdicts).toEqual([false, false, true])

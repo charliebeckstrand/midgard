@@ -1,6 +1,7 @@
 import api from 'virtual:docs/api/components/banner'
 import { ApiTable, Example, Playground } from '../../../kit/index.ts'
 import Closable from './closable.tsx'
+import Color from './color.tsx'
 import BannerPlayground from './playground.tsx'
 import Sticky from './sticky.tsx'
 import WithActions from './with-actions.tsx'
@@ -16,6 +17,7 @@ export default function BannerPage() {
 			/>
 			<Example of={WithDescription} />
 			<Example of={Closable} />
+			<Example of={Color} />
 			<Example of={WithActions} />
 			<Example of={Sticky} />
 			<ApiTable api={api} />

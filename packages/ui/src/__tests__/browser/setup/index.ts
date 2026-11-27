@@ -49,14 +49,17 @@ declare module 'vitest/browser' {
 
 configure({ asyncUtilTimeout: inject('asyncUtilTimeout') })
 
-// `tailwind.css` gives the font of ui (`src/fonts/fonts.css`), and the script
-// of `pnpm fonts` adds its latin face. The browser loads a font face only when
-// text first needs it, and then it swaps the font in. A case that reads a text
-// box at that moment reads the fallback face, and a later case reads the font.
-// Each file thus loads the font before its first case, so each case measures
-// the same face.
+// `tailwind.css` gives the fonts of ui (`src/fonts/fonts.css`), and the script
+// of `pnpm fonts` adds the latin face of the sans family. The browser loads a
+// font face only when text first needs it, and then it swaps the font in. A
+// case that reads a text box at that moment reads the fallback face, and a
+// later case reads the font. Each file thus loads the sans and the mono font
+// before its first case, so each case measures the same face.
 beforeAll(async () => {
-	await document.fonts.load('1em "Google Sans Flex"')
+	await Promise.all([
+		document.fonts.load('1em "Google Sans Flex"'),
+		document.fonts.load('1em "Google Sans Code"'),
+	])
 })
 
 // `@testing-library/user-event` puts a clipboard stub on `navigator`, and its
