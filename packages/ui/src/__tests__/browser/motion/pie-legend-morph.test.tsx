@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { PieChart } from '../../../modules/chart/pie-chart'
-import { REDUCED_MOTION_QUERY } from '../../../utilities/media-query'
-import { renderUI, stubMatchMedia, waitFor } from '../../helpers'
+import { renderUI, waitFor } from '../../helpers'
 import { legendItem } from '../../helpers/chart-legend'
 import { nextPaint } from '../../helpers/frames'
 import { sampleMotionFrames } from '../helpers/motion-frame'
@@ -44,7 +43,8 @@ function slices(container: HTMLElement): string[] {
  * A legend toggle re-shares the slices. Before the fix the slices took their
  * new angles in one frame, also on an animated pie. Now they turn to them: a
  * hidden slice shrinks to nothing where it stands, and the rest grow to close
- * the gap.
+ * the gap. `reduced-motion/pie-legend-morph.test.tsx` holds the toggle for a
+ * reader who asks for reduced motion.
  */
 describe('pie legend toggle (real Motion)', () => {
 	it('turns the slices to their new angles', async () => {
@@ -142,19 +142,5 @@ describe('pie legend toggle (real Motion)', () => {
 
 			expect(labels().every((opacity) => opacity === 1)).toBe(true)
 		}, SETTLE)
-	})
-
-	it('snaps to the new angles under reduced motion', async () => {
-		stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
-
-		const { container } = renderUI(pie())
-
-		await waitFor(() => expect(slices(container)).toHaveLength(4))
-
-		legendItem(container, 'Direct').click()
-
-		await nextPaint()
-
-		expect(slices(container)).toHaveLength(3)
 	})
 })

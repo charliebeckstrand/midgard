@@ -14,6 +14,9 @@ import { renderUI, screen, waitFor } from '../helpers'
  * `transitionrun` is the probe rather than the computed track size, since it
  * fires when the browser creates the transition and does not depend on when the
  * assertion samples the tween.
+ *
+ * `reduced-motion/grid-reveal-transition.test.tsx` holds the rows for a reader
+ * who asks for reduced motion.
  */
 describe('grid reveal transition (real browser)', () => {
 	type Person = { id: number; name: string; role: string }

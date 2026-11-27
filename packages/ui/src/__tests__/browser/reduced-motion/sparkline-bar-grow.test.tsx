@@ -1,22 +1,19 @@
 import { describe, expect, it } from 'vitest'
 import { Sparkline } from '../../../components/sparkline'
-import { REDUCED_MOTION_QUERY } from '../../../utilities/media-query'
-import { present, renderUI, stubMatchMedia } from '../../helpers'
+import { present, renderUI } from '../../helpers'
 import { nextPaint } from '../../helpers/frames'
 
 /**
  * Real-Motion check of the animated Sparkline bars for a reader who asks for
- * reduced motion. The other suites mock `motion/react`, and the mock animates
- * nothing.
+ * reduced motion. `motion/sparkline-bar-grow.test.tsx` holds the grow for full
+ * motion.
  *
  * A bar grows by its `height`, and `height` is no transform. The
- * reduced-motion config of motion does not skip it, so the bar must skip its
+ * reduced-motion config of Motion does not skip it, so the bar must skip its
  * `initial` state itself.
  */
 describe('animated Sparkline bars under reduced motion (real Motion)', () => {
 	it('paints each bar at its full height on the first frame', async () => {
-		stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
-
 		const { container } = renderUI(
 			<Sparkline
 				data={[1, 4, 2, 8, 5]}
@@ -44,25 +41,5 @@ describe('animated Sparkline bars under reduced motion (real Motion)', () => {
 		expect(tallest.height).toBeCloseTo(28.5, 0)
 
 		expect(tallest.bottom - box.top).toBeCloseTo(30.25, 0)
-	})
-	it('keeps the grow for a reader who does not ask for reduced motion', async () => {
-		stubMatchMedia(() => false)
-
-		const { container } = renderUI(
-			<Sparkline
-				data={[1, 4, 2, 8, 5]}
-				shape="bar"
-				width={96}
-				height={32}
-				aria-label="Trend"
-				animate
-			/>,
-		)
-
-		await nextPaint()
-
-		const tallest = present(container.querySelectorAll('rect')[3], 'the tallest bar')
-
-		expect(tallest.getBoundingClientRect().height).toBeLessThan(28)
 	})
 })
