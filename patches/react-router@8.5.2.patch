@@ -1,5 +1,5 @@
 diff --git a/dist/development/lib/dom/ssr/links.js b/dist/development/lib/dom/ssr/links.js
-index 9723b094b364459ec9de4e1ad003f54603fb35fe..8d013618f45af50cbfca777227f93cc56826b0fa 100644
+index 4d465d308791594321d0ad8108a27bfc40d388e2..b379300594139b1edeaf44a6bde735da44d0b143 100644
 --- a/dist/development/lib/dom/ssr/links.js
 +++ b/dist/development/lib/dom/ssr/links.js
 @@ -81,8 +81,8 @@ async function getKeyedPrefetchLinks(matches, manifest, routeModules) {
@@ -14,7 +14,7 @@ index 9723b094b364459ec9de4e1ad003f54603fb35fe..8d013618f45af50cbfca777227f93cc5
  		return [];
  	}))).flat(1).filter(isHtmlLinkDescriptor).filter((link) => link.rel === "stylesheet" || link.rel === "preload").map((link) => link.rel === "stylesheet" ? {
 diff --git a/dist/development/lib/dom/ssr/routeModules.js b/dist/development/lib/dom/ssr/routeModules.js
-index 6bb91e0b419c7c2346769438940e665d0094b812..7bcb990532ed186ad9410b28047f97b78c4a18ce 100644
+index 9629c7859749bbdcfedbffac499e6bcb31087b37..a0a48fc5ac23bd8251aee44e2d5a6b692d320be2 100644
 --- a/dist/development/lib/dom/ssr/routeModules.js
 +++ b/dist/development/lib/dom/ssr/routeModules.js
 @@ -9,7 +9,7 @@
@@ -42,10 +42,20 @@ index 6bb91e0b419c7c2346769438940e665d0094b812..7bcb990532ed186ad9410b28047f97b7
  	}
  }
 diff --git a/dist/development/lib/dom/ssr/routes.js b/dist/development/lib/dom/ssr/routes.js
-index 5407c9bdb0d97660e9df6435f504f85b803aa209..7f4065ba2d19a538501ba8b9bf5149c02a3e1b8b 100644
+index 4165474160c50e69466bef2bc180a2bd1b9c11c2..798f21a19c41677fc55fc7bb746a6ee8ffb9580f 100644
 --- a/dist/development/lib/dom/ssr/routes.js
 +++ b/dist/development/lib/dom/ssr/routes.js
-@@ -275,7 +275,17 @@ function wrapShouldRevalidateForHdr(routeId, routeShouldRevalidate, needsRevalid
+@@ -116,7 +116,8 @@ function createClientRoutes(manifest, routeModulesCache, initialState, ssr, isSp
+ 		let dataRoute = {
+ 			id: route.id,
+ 			index: route.index,
+-			path: route.path
++			path: route.path,
++			caseSensitive: route.caseSensitive
+ 		};
+ 		if (routeModule) {
+ 			Object.assign(dataRoute, {
+@@ -275,7 +276,17 @@ function wrapShouldRevalidateForHdr(routeId, routeShouldRevalidate, needsRevalid
  		return routeShouldRevalidate ? routeShouldRevalidate(arg) : arg.defaultShouldRevalidate;
  	};
  }
@@ -64,7 +74,7 @@ index 5407c9bdb0d97660e9df6435f504f85b803aa209..7f4065ba2d19a538501ba8b9bf5149c0
  	let prefetchRouteCssPromise = prefetchRouteCss(route);
  	let routeModule = await routeModulePromise;
 diff --git a/dist/production/lib/dom/ssr/links.js b/dist/production/lib/dom/ssr/links.js
-index 9723b094b364459ec9de4e1ad003f54603fb35fe..8d013618f45af50cbfca777227f93cc56826b0fa 100644
+index 4d465d308791594321d0ad8108a27bfc40d388e2..b379300594139b1edeaf44a6bde735da44d0b143 100644
 --- a/dist/production/lib/dom/ssr/links.js
 +++ b/dist/production/lib/dom/ssr/links.js
 @@ -81,8 +81,8 @@ async function getKeyedPrefetchLinks(matches, manifest, routeModules) {
@@ -79,7 +89,7 @@ index 9723b094b364459ec9de4e1ad003f54603fb35fe..8d013618f45af50cbfca777227f93cc5
  		return [];
  	}))).flat(1).filter(isHtmlLinkDescriptor).filter((link) => link.rel === "stylesheet" || link.rel === "preload").map((link) => link.rel === "stylesheet" ? {
 diff --git a/dist/production/lib/dom/ssr/routeModules.js b/dist/production/lib/dom/ssr/routeModules.js
-index 6bb91e0b419c7c2346769438940e665d0094b812..7bcb990532ed186ad9410b28047f97b78c4a18ce 100644
+index 9629c7859749bbdcfedbffac499e6bcb31087b37..a0a48fc5ac23bd8251aee44e2d5a6b692d320be2 100644
 --- a/dist/production/lib/dom/ssr/routeModules.js
 +++ b/dist/production/lib/dom/ssr/routeModules.js
 @@ -9,7 +9,7 @@
@@ -107,10 +117,20 @@ index 6bb91e0b419c7c2346769438940e665d0094b812..7bcb990532ed186ad9410b28047f97b7
  	}
  }
 diff --git a/dist/production/lib/dom/ssr/routes.js b/dist/production/lib/dom/ssr/routes.js
-index 5407c9bdb0d97660e9df6435f504f85b803aa209..7f4065ba2d19a538501ba8b9bf5149c02a3e1b8b 100644
+index 4165474160c50e69466bef2bc180a2bd1b9c11c2..798f21a19c41677fc55fc7bb746a6ee8ffb9580f 100644
 --- a/dist/production/lib/dom/ssr/routes.js
 +++ b/dist/production/lib/dom/ssr/routes.js
-@@ -275,7 +275,17 @@ function wrapShouldRevalidateForHdr(routeId, routeShouldRevalidate, needsRevalid
+@@ -116,7 +116,8 @@ function createClientRoutes(manifest, routeModulesCache, initialState, ssr, isSp
+ 		let dataRoute = {
+ 			id: route.id,
+ 			index: route.index,
+-			path: route.path
++			path: route.path,
++			caseSensitive: route.caseSensitive
+ 		};
+ 		if (routeModule) {
+ 			Object.assign(dataRoute, {
+@@ -275,7 +276,17 @@ function wrapShouldRevalidateForHdr(routeId, routeShouldRevalidate, needsRevalid
  		return routeShouldRevalidate ? routeShouldRevalidate(arg) : arg.defaultShouldRevalidate;
  	};
  }
