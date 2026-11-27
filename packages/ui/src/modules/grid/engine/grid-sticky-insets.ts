@@ -159,17 +159,20 @@ function slotInsets(cell: HTMLElement): { top: number; bottom: number } {
  * @internal
  */
 function clearsSides(cell: HTMLElement): boolean {
+	// A row spans each column, so a side correction would only scroll it to its start.
+	if (!(cell instanceof HTMLTableCellElement)) return false
+
 	const style = getComputedStyle(cell)
 
 	return !(style.position === 'sticky' && (style.left !== 'auto' || style.right !== 'auto'))
 }
 
 /**
- * Scrolls the grid's own scroll container so the cell clears the sticky chrome
- * at each edge. That is the scroll region of a grid with a cap or a sticky
- * header, or else the horizontal scroll container of its table. It runs after
- * the browser scrolls the cell into view: the `scrollIntoView` of the cursor,
- * or the focus of a field in the new-row slot. Chromium's
+ * Scrolls the grid's own scroll container so the cell, or `target` in it,
+ * clears the sticky chrome at each edge. That is the scroll region of a grid
+ * with a cap or a sticky header, or else the horizontal scroll container of its
+ * table. It runs after the `scrollIntoView` of the cursor, and on each focus in
+ * the table (see {@link clearFocusTarget}). Chromium's
  * `nearest` alignment does not scroll a cell that is inside the container, on
  * either axis. It therefore ignores the `scroll-margin` of a cell under the
  * sticky header or under a pinned column. A cell of a nested grid with no
@@ -178,11 +181,16 @@ function clearsSides(cell: HTMLElement): boolean {
  * @remarks The side edges take a correction only where a pinned column can
  * cover the cell (see {@link clearsSides}).
  *
+ * @param cell - The cell or the row that holds the focus. It names the table and
+ * tells if a side correction applies.
+ * @param target - The element to clear, by default the cell. A control in a cell
+ * clears its own box, because a detail cell can be taller than the scroller.
  * @internal
  */
 export function clearStickyChrome(
 	cell: HTMLElement,
 	insets: { top: number; bottom: number; left: number; right: number },
+	target: Element = cell,
 ): void {
 	const table = cell.closest('table')
 
@@ -198,7 +206,7 @@ export function clearStickyChrome(
 
 	const edgeBottom = box.top + scroller.clientTop + scroller.clientHeight - insets.bottom
 
-	const rect = cell.getBoundingClientRect()
+	const rect = target.getBoundingClientRect()
 
 	// The top edge wins for a cell taller than the clear area.
 	if (rect.top < edgeTop) scroller.scrollTop -= edgeTop - rect.top
@@ -215,6 +223,40 @@ export function clearStickyChrome(
 	if (rect.left < edgeLeft) scroller.scrollLeft -= edgeLeft - rect.left
 	else if (rect.right > edgeRight)
 		scroller.scrollLeft += Math.min(rect.right - edgeRight, rect.left - edgeLeft)
+}
+
+/**
+ * Scrolls the grid so that the element that takes focus in `table` clears its
+ * sticky header, its pinned columns, and its new-row slot (WCAG 2.4.11, Focus
+ * Not Obscured). The browser scrolls a focus target into view only when it is
+ * outside the scroll container, so a control under the sticky chrome stays
+ * hidden. This is the same correction that the cursor applies to its active
+ * cell. It applies to each focus in the table: a control in a cell, a roving row
+ * or cell, and a control in the header.
+ *
+ * @remarks A focus on the table itself is the cursor's, and the active cell
+ * clears itself. A focus in a nested grid clears the chrome of each grid
+ * around it, because the event reaches each table in turn. A cell of the header
+ * takes no top or bottom correction (see {@link stickyEdgeInsets}), so a focus
+ * on a stuck header control does not scroll the grid.
+ * @internal
+ */
+export function clearFocusTarget(table: HTMLTableElement, target: Element): void {
+	if (target === table || !table.contains(target)) return
+
+	// The cell of this table that holds the target, past the cells of a nested
+	// grid. A roving row is in no cell, so the row stands in for it.
+	let cell = target.closest<HTMLElement>('td, th')
+
+	while (cell && cell.closest('table') !== table) {
+		cell = cell.parentElement?.closest<HTMLElement>('td, th') ?? null
+	}
+
+	const anchor = cell ?? target.closest<HTMLElement>('tr')
+
+	if (!anchor || anchor.closest('table') !== table) return
+
+	clearStickyChrome(anchor, obscuringInsets(anchor), target)
 }
 
 /**

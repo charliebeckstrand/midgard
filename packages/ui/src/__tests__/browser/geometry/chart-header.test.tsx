@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { BarChart } from '../../../modules/chart/bar-chart'
-import { getSlot, renderUI, waitFor } from '../../helpers'
+import { getSlot, renderUI, screen, waitFor } from '../../helpers'
 
 // The ratio of two rounded lengths drifts from the declared ratio by less than this.
 const ASPECT_SLACK = 0.05
@@ -87,5 +87,80 @@ describe('chart header (real browser)', () => {
 		await userEvent.hover(getSlot(container, 'chart'))
 
 		await waitFor(() => expect(getComputedStyle(veil).opacity).toBe('1'))
+	})
+
+	/*
+	 * WCAG 1.4.13: the veil covers the whole sparkline, so a reader who points at the marks to
+	 * see them, such as with a screen magnifier, must be able to put it away without moving the
+	 * pointer. It stays away until the chart is neither hovered nor focused.
+	 */
+	it('hides the veil on Escape with the pointer still, until the pointer leaves', async () => {
+		const { container } = renderUI(
+			<>
+				<BarChart
+					aria-label="Rev"
+					data={data}
+					series={[{ xKey: 'q', yKey: 'rev' }]}
+					title="Revenue"
+					width={150}
+				/>
+				<p data-testid="away">Away</p>
+			</>,
+		)
+
+		const veil = await waitFor(() => getSlot(container, 'chart-header'))
+
+		const chart = getSlot(container, 'chart')
+
+		await userEvent.hover(chart)
+
+		await waitFor(() => expect(getComputedStyle(veil).opacity).toBe('1'))
+
+		await userEvent.keyboard('{Escape}')
+
+		await waitFor(() => expect(getComputedStyle(veil).opacity).toBe('0'))
+
+		await userEvent.hover(getSlot(container, 'chart-plot'))
+
+		// A move inside the chart is not a new hover, so the veil stays away.
+		expect(getComputedStyle(veil).opacity).toBe('0')
+
+		await userEvent.hover(screen.getByTestId('away'))
+
+		await userEvent.hover(chart)
+
+		await waitFor(() => expect(getComputedStyle(veil).opacity).toBe('1'))
+	})
+
+	/*
+	 * The veil mounts when the tier turns spark, and the pointer can already rest on the chart
+	 * then, such as after a resize. Escape must still put it away.
+	 */
+	it('hides a veil that mounts under the pointer on Escape', async () => {
+		const chart = (width: number) => (
+			<BarChart
+				aria-label="Rev"
+				data={data}
+				series={[{ xKey: 'q', yKey: 'rev' }]}
+				title="Revenue"
+				width={width}
+			/>
+		)
+
+		const { container, rerender } = renderUI(chart(600))
+
+		await userEvent.hover(getSlot(container, 'chart'), { position: { x: 20, y: 20 } })
+
+		rerender(chart(150))
+
+		const veil = await waitFor(() => getSlot(container, 'chart-header'))
+
+		await waitFor(() => expect(getComputedStyle(veil).position).toBe('absolute'))
+
+		await waitFor(() => expect(getComputedStyle(veil).opacity).toBe('1'))
+
+		await userEvent.keyboard('{Escape}')
+
+		await waitFor(() => expect(getComputedStyle(veil).opacity).toBe('0'))
 	})
 })

@@ -206,13 +206,14 @@ Import these from `utilities/overlay-layers`. They tell whether an open overlay 
 | `anchorFollowsTransforms` | Whether the browser puts an anchored box at the transformed box of its anchor. A probe reads it one time for each document. Call it only in a browser that supports anchor positioning. |
 | `inTransformedSubtree` | Whether an element or one of its ancestors in the flattened tree has a transform. Import the two from `utilities/anchor-transforms`. |
 | `forceStyleFlush` | Makes the browser compute styles and layout now, so a CSS transition has a style to start from. It is a call, not a bare `offsetHeight` read, which the React Compiler removes. |
+| `transitionLanded` | Whether a `transitionend` or a `transitioncancel` lands the transition of its property. A cancel lands only when no transition of that property still runs on the target. An ancestor's `display: none` lands it. A toggle that reverses the transition does not. Import it from `utilities/transition-landed`. |
 
 ## Keyboard navigation
 
 | Export | Summary |
 |---|---|
 | `FOCUSABLE_SELECTOR` | Selector for the descendants in the tab order: links with an `href`, enabled form controls, and any element whose `tabindex` is not `-1`. |
-| `getTabbableElements` | The elements of a subtree in the tab order, in document order. It also drops a hidden input and a control that a `<fieldset disabled>` disables. Import it from `utilities/focusable-selector`. |
+| `getTabbableElements` | The elements of a subtree in the tab order, in document order. It also drops a hidden input, a control that a `<fieldset disabled>` disables, and each unchecked radio of a set that has a checked radio. Import it from `utilities/focusable-selector`. |
 | `nextIndexForKey` | Next roving index for a key press (1D or 2D grid), or `null` if unhandled; wraps at both ends. |
 | `isArrowKey` | Whether a key is one of the four arrow keys, whatever the direction of the layout. |
 | `isActivationKey` | Whether a key is Enter or Space, the keys that activate a button, an option, or the item under a cursor. |

@@ -14,8 +14,8 @@ import { useEventsView } from './use-events-view'
 const slots = k()
 
 /**
- * The pinned panel of the events: the view of `useEventsView` as a card that
- * fills the aside of the layout, with a body that scrolls. It renders for each
+ * The pinned panel of the events: the view of `useEventsView`. It fills the
+ * card of `EventsAside`, and its body scrolls. It renders for each
  * new event, one time for each frame at most. It does not pause the store, as
  * it stays on screen, so the sources skip the events in it (`data-events-tool`
  * on `EventsAside`). Unpin returns the view to the header button.

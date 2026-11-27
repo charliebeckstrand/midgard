@@ -137,20 +137,26 @@ export type PdfViewerProps = Omit<ComponentProps<'section'>, 'children' | 'onLoa
 	/** Initial active region id when uncontrolled. */
 	defaultActiveHighlightId?: string
 	/**
-	 * Fires when the active region changes from inside the viewer: a press or
-	 * `Enter`/`Space` on a region, or `Escape` clearing it. Not fired for a change the
-	 * consumer drove through `activeHighlightId`.
+	 * Fires when the active region changes from inside the viewer: a click or
+	 * `Enter`/`Space` on a region, or `Escape` or a click on the page clearing it. Not fired
+	 * for a change the consumer drove through `activeHighlightId`.
 	 *
-	 * @remarks Its presence is also what makes regions interactive. Without it they are
+	 * @remarks A pointer press acts on its release, as a native button does. A press that
+	 * moves off the region before the release changes nothing (WCAG 2.5.2).
+	 *
+	 * Its presence is also what makes regions interactive. Without it they are
 	 * decoration: painted, revealed when `activeHighlightId` points at them, and never
 	 * pressable. That is right when a list beside the viewer is already the navigable
 	 * surface.
 	 */
 	onActiveHighlightIdChange?: (id: string | null) => void
 	/**
-	 * Fires when the reader presses a region, the already-active one included.
+	 * Fires when the reader clicks a region, the already-active one included.
 	 *
-	 * @remarks Distinct from {@link onActiveHighlightIdChange}, which reports *selection*:
+	 * @remarks It fires on the release of the press, so a press that moves off the region
+	 * before the release does not fire it.
+	 *
+	 * Distinct from {@link onActiveHighlightIdChange}, which reports *selection*:
 	 * re-pressing the active region changes nothing to select, so that callback stays silent.
 	 * Use this one when a press must do something every time. It can reveal the region's
 	 * row in a list beside the viewer, or put the caret in the field it was read from.
@@ -175,7 +181,8 @@ export type PdfViewerProps = Omit<ComponentProps<'section'>, 'children' | 'onLoa
 	 * wrong lens for a plan sheet.
 	 *
 	 * The lens is never interactive. It cannot take a press meant for a highlighted region
-	 * underneath it. On touch, a finger that rests on the page for the dwell (300ms at the
+	 * underneath it. Escape closes it, and the pointer does not have to move. The next move of
+	 * the pointer starts the dwell again. On touch, a finger that rests on the page for the dwell (300ms at the
 	 * least) opens the lens above the finger. The finger then moves the lens, and a lift
 	 * closes it. The browser's long-press menu stays as it is: when it opens, the lens closes.
 	 *

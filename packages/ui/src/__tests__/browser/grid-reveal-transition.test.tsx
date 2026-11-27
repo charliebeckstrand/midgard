@@ -155,4 +155,62 @@ describe('grid reveal transition (real browser)', () => {
 
 		await waitFor(() => expect(getComputedStyle(panel).display).toBe('none'))
 	})
+
+	// A collapse that reverses the open in flight cancels the open and starts the
+	// collapse at once. That cancel is not a landing: the row stays on screen
+	// until the collapse sends its `transitionend`.
+	it('keeps a detail panel on screen while its collapse reverses an open', async () => {
+		const user = userEvent.setup()
+
+		const columns: GridColumn<Person>[] = [
+			{ id: 'expand', expander: true },
+			{ id: 'name', title: 'Name', cell: (row) => row.name },
+		]
+
+		const { container } = renderUI(
+			<Grid
+				columns={columns}
+				rows={people}
+				getKey={getKey}
+				expandable={{ render: (row) => <div style={{ height: 80 }}>Detail for {row.name}</div> }}
+			/>,
+		)
+
+		const landings: string[] = []
+
+		for (const type of ['transitioncancel', 'transitionend']) {
+			container.addEventListener(type, (event) => {
+				if ((event as TransitionEvent).propertyName === REVEAL) landings.push(type)
+			})
+		}
+
+		const opening = new Promise<Animation>((resolve) => {
+			container.addEventListener('transitionrun', (event) => {
+				if ((event as TransitionEvent).propertyName !== REVEAL) return
+
+				const [open] = (event.target as Element).getAnimations()
+
+				if (open) resolve(open)
+			})
+		})
+
+		await user.click(screen.getByRole('button', { name: 'Details for row 1', expanded: false }))
+
+		// Seek the open to its middle, so the collapse reverses a tween in flight
+		// whatever the speed of the run.
+		const open = await opening
+
+		open.currentTime = Number(open.effect?.getComputedTiming().duration) / 2
+
+		const panel = container.querySelector<HTMLElement>('tr[data-detail-row="1"]')
+
+		if (!panel) throw new Error('detail row did not render')
+
+		await user.click(screen.getByRole('button', { name: 'Details for row 1', expanded: true }))
+
+		// The hide comes from the rest, so it shows which event rested the row.
+		await waitFor(() => expect(getComputedStyle(panel).display).toBe('none'))
+
+		expect(landings).toEqual(['transitioncancel', 'transitionend'])
+	})
 })

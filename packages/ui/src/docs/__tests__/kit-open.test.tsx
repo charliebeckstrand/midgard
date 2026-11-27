@@ -1,12 +1,13 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { ComponentType, ReactNode } from 'react'
-import { createMemoryRouter, MemoryRouter, RouterProvider } from 'react-router'
+import { createMemoryRouter, MemoryRouter, RouterProvider, useLocation } from 'react-router'
 import { describe, expect, onTestFinished, vi } from 'vitest'
 import { deferred } from '../../__tests__/helpers/deferred.ts'
 import { FailBoundary } from '../../__tests__/helpers/fail-boundary.tsx'
 import { it } from '../../__tests__/helpers/fake-clock.ts'
 import { tick } from '../../__tests__/helpers/frames.ts'
 import { getSlot } from '../../__tests__/helpers/slot-queries.ts'
+import { useNavigationScroll } from '../app/use-navigation-scroll.ts'
 import { ApiTable } from '../kit/api-table.tsx'
 import { ExampleFrame } from '../kit/example.tsx'
 import type { BarrelApi } from '../plugin/api.ts'
@@ -200,17 +201,129 @@ describe('ApiTable', () => {
 		expect(screen.getByRole('region', { name: '<Second />' })).not.toBeNull()
 	})
 	// A link to a prop names an element in a closed entry, so the browser
-	// cannot scroll to it.
+	// cannot scroll to it. When the chunk is loaded at the mount, the entry
+	// opens in the first render and the shell scrolls to the prop; else the
+	// table scrolls to it when the entry opens. Either way, one scroll.
 	it('opens the entry that the hash names, and scrolls to the prop', async () => {
 		const scroll = vi.spyOn(Element.prototype, 'scrollIntoView')
 
-		renderTable(THING, '/thing#api-Thing-size')
+		// The shell reads the hash of the load from the window.
+		const { href } = window.location
+
+		window.history.replaceState(null, '', '/thing#api-Thing-size')
+
+		onTestFinished(() => window.history.replaceState(null, '', href))
+
+		function Shell() {
+			return (
+				<div ref={useNavigationScroll('/thing')}>
+					<ApiTable api={THING} />
+				</div>
+			)
+		}
+
+		render(
+			<MemoryRouter initialEntries={['/thing#api-Thing-size']}>
+				<Shell />
+			</MemoryRouter>,
+		)
 
 		await screen.findByRole('region', { name: '<Thing />' })
 
 		await waitFor(() =>
 			expect(scroll.mock.contexts).toEqual([document.getElementById('api-Thing-size')]),
 		)
+	})
+
+	// A move back to a new page restores the scroll in the commit of the move.
+	// When the entry of the hash opened after that commit, the table then
+	// scrolled to the hash and lost the scroll of the reader.
+	it('keeps the scroll of the reader on a move back to the hash of an entry', async ({
+		signal,
+	}) => {
+		function Shell() {
+			const { pathname } = useLocation()
+
+			return (
+				<div ref={useNavigationScroll(pathname)} data-testid="box">
+					{pathname === '/thing' && <ApiTable api={THING} />}
+				</div>
+			)
+		}
+
+		const router = createMemoryRouter([{ path: '*', Component: Shell }], {
+			initialEntries: ['/other'],
+		})
+
+		onTestFinished(() => router.dispose())
+
+		render(<RouterProvider router={router} />)
+
+		const box = screen.getByTestId('box')
+
+		box.scrollTo = ((_x: number, top: number) => {
+			box.scrollTop = top
+		}) as typeof box.scrollTo
+
+		await act(() => router.navigate('/thing#api-Thing-size'))
+
+		await screen.findByRole('link', { name: 'size' })
+
+		box.scrollTop = 900
+
+		box.dispatchEvent(new Event('scroll'))
+
+		await act(() => router.navigate('/other'))
+
+		signal.throwIfAborted()
+
+		const scroll = vi.spyOn(Element.prototype, 'scrollIntoView')
+
+		await act(() => router.navigate(-1))
+
+		await screen.findByRole('link', { name: 'size' })
+
+		// One task, so that an entry that opens after the commit is open.
+		await act(() => tick())
+
+		expect(box.scrollTop).toBe(900)
+
+		expect(scroll).not.toHaveBeenCalled()
+	})
+
+	// The table keeps no open state for each entry of the history, so a move
+	// back on the same page leaves the entries as they are.
+	it('keeps a closed entry closed on a move back on the same page', async ({ signal }) => {
+		const router = createMemoryRouter([{ path: '/thing', element: <ApiTable api={THING} /> }], {
+			initialEntries: ['/thing'],
+		})
+
+		onTestFinished(() => router.dispose())
+
+		render(<RouterProvider router={router} />)
+
+		await act(() => router.navigate('/thing#api-Thing-size'))
+
+		await screen.findByRole('link', { name: 'size' })
+
+		fireEvent.click(screen.getByRole('button', { name: '<Thing />' }))
+
+		await waitFor(() => expect(screen.queryByRole('region', { name: '<Thing />' })).toBeNull())
+
+		await act(() => router.navigate('/thing'))
+
+		signal.throwIfAborted()
+
+		const scroll = vi.spyOn(Element.prototype, 'scrollIntoView')
+
+		await act(() => router.navigate(-1))
+
+		// One task, so that an entry that the move opens is open.
+		await act(() => tick())
+
+		expect(screen.queryByRole('region', { name: '<Thing />' })).toBeNull()
+
+		expect(scroll).not.toHaveBeenCalled()
 	})
 
 	// A pick in the search, or a link in the page, can go to the hash that the

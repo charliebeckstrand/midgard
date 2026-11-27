@@ -1,4 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
+import { Description, Field, Label } from '../../components/fieldset'
+import { PasswordInput } from '../../components/password-input'
 import { defaultPasswordRules, PasswordStrength } from '../../components/password-strength'
 import { allBySlot, renderUI, screen } from '../helpers'
 
@@ -93,5 +95,51 @@ describe('PasswordStrength', () => {
 		const visible = region.querySelector('[aria-hidden="true"]')
 
 		expect(visible).toHaveTextContent(/^Good$/)
+	})
+
+	describe('in a Field', () => {
+		// The rules are the instructions of the password, so a reader in forms
+		// mode hears them on the field and does not have to leave it to find them
+		// (WCAG 3.3.2, 1.3.1).
+		it('describes the password field by the rules and their state', () => {
+			renderUI(
+				<Field>
+					<Label>Password</Label>
+					<PasswordInput defaultValue="" />
+					<PasswordStrength value="Abcdefg1" />
+				</Field>,
+			)
+
+			expect(screen.getByLabelText('Password')).toHaveAccessibleDescription(
+				'At least 8 characters, met One uppercase letter, met One number, met One symbol, not met',
+			)
+		})
+
+		it('keeps the Description of the field before the rules', () => {
+			renderUI(
+				<Field>
+					<Label>Password</Label>
+					<Description>Use a password manager.</Description>
+					<PasswordInput defaultValue="" />
+					<PasswordStrength value="" />
+				</Field>,
+			)
+
+			expect(screen.getByLabelText('Password')).toHaveAccessibleDescription(
+				/^Use a password manager\. At least 8 characters, not met/,
+			)
+		})
+
+		it('adds no description when the rules do not show', () => {
+			renderUI(
+				<Field>
+					<Label>Password</Label>
+					<PasswordInput defaultValue="" />
+					<PasswordStrength value="" showRules={false} />
+				</Field>,
+			)
+
+			expect(screen.getByLabelText('Password')).not.toHaveAttribute('aria-describedby')
+		})
 	})
 })

@@ -1253,8 +1253,8 @@ export type RovingOptions = NavigationConfig & {
 	 * Jump to the item whose label starts with recently typed characters
 	 * (WAI-ARIA type-ahead). Off by default; enable for menus and listboxes,
 	 * not for text inputs that own their own typing. Reads the label from each
-	 * item's `aria-label`, else the trimmed text of its `aria-labelledby`
-	 * targets, else its trimmed `textContent`.
+	 * item's `aria-label`, else the spoken text of its `aria-labelledby`
+	 * targets, else its own spoken text (`accessibleName`).
 	 * @defaultValue false
 	 */
 	typeahead?: boolean

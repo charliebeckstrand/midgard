@@ -113,3 +113,28 @@ describe('PdfViewer magnifier over a toggle of the loupe (real browser)', () => 
 		expect(screen.queryByTestId('lens')).toBeNull()
 	})
 })
+
+/*
+ * WCAG 1.4.13: the lens covers the page beside the pointer, so Escape must put it away without a
+ * move of the pointer. A move starts a new dwell, and the lens comes back as it first arrived.
+ */
+describe('PdfViewer magnifier on Escape (real browser)', () => {
+	it('closes the lens under a still pointer, and opens it again after a move', async () => {
+		renderUI(<Loupe />)
+
+		await dwell()
+
+		await userEvent.keyboard('{Escape}')
+
+		await waitFor(() => expect(screen.queryByTestId('lens')).toBeNull())
+
+		// The pointer has not moved, so nothing opens the lens again.
+		await pause(50)
+
+		expect(screen.queryByTestId('lens')).toBeNull()
+
+		await userEvent.hover(screen.getByTestId('page'), { position: { x: 200, y: 200 } })
+
+		await waitFor(() => screen.getByTestId('lens'))
+	})
+})

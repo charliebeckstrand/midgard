@@ -473,9 +473,10 @@ export const space = {
 		/**
 		 * The space at the top of the group of a last item, in a chain of last
 		 * items: the bottom padding that the row of the item does not have. Its
-		 * stops are the stops of `y`.
+		 * stops are the stops of `y`. On a coarse pointer, the row keeps its
+		 * padding, so the group has no such space.
 		 */
-		lead: '[[data-slot=tree-item]:last-child:not([data-slot=tree-item]:not(:last-child)_*)>&]:before:density-h-[0.5,0.75,1,1.25,1.5]',
+		lead: 'not-pointer-coarse:[[data-slot=tree-item]:last-child:not([data-slot=tree-item]:not(:last-child)_*)>&]:before:density-h-[0.5,0.75,1,1.25,1.5]',
 		/** The inline padding of a tree row: the `sm` stop of the padding scale. */
 		x: scale.px.sm,
 	},

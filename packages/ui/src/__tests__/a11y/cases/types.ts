@@ -54,17 +54,24 @@ type TextInputProbe = {
 	ref?: (element: HTMLElement | null) => void
 	placeholder?: string
 	disabled?: boolean
+	autoComplete?: string
 }
 
 /**
- * A text field whose ref, placeholder, and disabled state reach its editable
- * element. Enter keeps the focus in that element.
+ * A text field whose ref, placeholder, disabled state, and `autoComplete`
+ * token reach its editable element. Enter keeps the focus in that element.
  */
 export type TextInputSubject = {
 	/** Renders the subject with `props` on the component under test. */
 	render: (props: TextInputProbe) => ReactElement
 	/** The `data-slot` of the editable element. */
 	slot: string
+	/**
+	 * The `autocomplete` token that the field sets itself, such as `cc-number`.
+	 * This token wins over the token of an enclosing Control. Omit it when the
+	 * field takes the token of its Control.
+	 */
+	autoComplete?: string
 }
 
 /**
@@ -99,6 +106,33 @@ export type WriteOnChangeSubject = {
 	slot: string
 	/** How the sweep changes it: `text` types a value, `toggle` clicks it on. */
 	kind: 'text' | 'toggle'
+}
+
+/**
+ * A form-bound control in a `Field` with a form-bound `Message`. A refused
+ * submit marks the control invalid, describes it with the message, and moves
+ * the focus to its Tab stop. A link of a `FormErrorSummary` moves the focus to
+ * the same element (WCAG 3.3.1, 2.4.3).
+ */
+export type FormFieldSubject = {
+	/**
+	 * Renders the label and the control of the Field, with the control bound to
+	 * the field `name`. A group with no `name` prop binds through
+	 * `useFormField`.
+	 */
+	render: (props: { name: string }) => ReactElement
+	/**
+	 * The value the field starts from in `Form.defaultValues`. A group of radios
+	 * starts from a checked value that is not its first, so that its Tab stop is
+	 * not its first radio.
+	 */
+	defaultValue: unknown
+	/**
+	 * The control takes no `name`, so it takes its invalid state from the
+	 * `severity` of its Field. The sweep then sets that severity from the errors
+	 * of the field, as a consumer does.
+	 */
+	invalidFromField?: boolean
 }
 
 /**
@@ -173,14 +207,20 @@ export type Case = Scenario & {
 	 */
 	density?: readonly DensitySubject[]
 	/**
-	 * Text fields whose ref, placeholder, and disabled state reach the editable
-	 * element, and whose editable element keeps the focus on Enter.
+	 * Text fields whose ref, placeholder, disabled state, and `autoComplete`
+	 * token reach the editable element, and whose editable element keeps the
+	 * focus on Enter.
 	 */
 	textInput?: readonly TextInputSubject[]
 	/** Form-bound controls whose blur marks the field touched, whatever the caller's `onBlur` does. */
 	touchOnBlur?: readonly TouchOnBlurSubject[]
 	/** Form-bound controls whose change writes the field, whatever the caller's `onChange` does. */
 	writeOnChange?: readonly WriteOnChangeSubject[]
+	/**
+	 * Form-bound controls whose refused submit marks them invalid, describes
+	 * them with the error, and focuses their Tab stop.
+	 */
+	formField?: readonly FormFieldSubject[]
 	/** Disclosures whose parts stamp their open state and their disabled state. */
 	disclosure?: readonly DisclosureSubject[]
 }

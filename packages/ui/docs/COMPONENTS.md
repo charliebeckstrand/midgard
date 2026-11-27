@@ -27,7 +27,7 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > `Checkbox`, `Radio`, `Switch`, and each star of an interactive `Rating` floor their hit area with `TouchTarget` ([`PRIMITIVES.md`](PRIMITIVES.md)). A `Rating` puts each star in a column of at least the floor. At a half step, each half of a star is 24 px wide on each pointer. A container that puts bare controls closer than the floor sets `--touch-target-gap-x` or `--touch-target-gap-y` to its gap, or uses a `touch-gap-*` utility for the two. A toggle group sets them already. Controls that touch in a grid go in a container with the `touch-pitch` utility. On a coarse pointer, each control keeps its size in a cell of at least 44px. Its hit area fills the cell, as in the month picker of `Calendar`. A scroll box with no padding of its own, such as the content box of a dashboard tile, uses the `touch-scroll` utility. On a coarse pointer, a hit area at its bottom edge then stays in the box. On a coarse pointer, the days of `Calendar` fill square cells of 40, 44, or 48 px at `sm`, `md`, and `lg`. The `sm` cell is under the floor.
 
-> A `RadioGroup` or a `CheckboxGroup` in a `Field` takes the description and the error message of the `Field`. A bare `Radio` or `Checkbox` in the group does not take the id of the `Field`. Wrap each `Radio` in a `RadioField`, or each `Checkbox` in a `CheckboxField`, to give it an id and a `Label`. A checkbox in a `CheckboxGroup` does not take the `required` state of a `Control`, because that state is for the group.
+> A `RadioGroup` or a `CheckboxGroup` in a `Field` takes the id, the description, and the error message of the `Field`. Thus a refused submit of a `Form` and a link of a `FormErrorSummary` move the focus into the group. A bare `Radio` or `Checkbox` in the group does not take the id of the `Field`. Wrap each `Radio` in a `RadioField`, or each `Checkbox` in a `CheckboxField`, to give it an id and a `Label`. A checkbox in a `CheckboxGroup` does not take the `required` state of a `Control`, because that state is for the group.
 
 > A `readOnly` or `disabled` `rating` renders one image. Its name is the name of the consumer or the `Field` label.
 
@@ -46,6 +46,8 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 > A `file-upload` component shows the files that a pick or a drop refuses, and the reason of each, in its `invalidMessage`. The message shows below the component until the next pick, drop, or clear. Give `invalidMessage={null}` to show no message. The live region then announces the refusal, unless the caller sets `onReject` and shows its own message.
 
 > The tags of a `tag-input` stay on one row and scroll on the inline axis. With `wrap`, they wrap onto more rows, and the add button stays at the end of the first row. The affixes of each other input stay on one row with the input.
+
+> A text field takes its `autoComplete` token from its own prop, else from an enclosing `Control`. With neither, `date-input` and `combobox` set `off`. A field with a fixed purpose keeps its own token over the token of a `Control`. These fields are the `credit-card-input` fields, the phone and zipcode presets of `mask-input`, and the `password-confirm` fields. The prop still wins over that token.
 
 > `checkbox`, `switch`, `RadioGroup`, and `ColorPicker` take `readOnly` from their own prop or from an enclosing `Control`. `Rating` and `SwitchChoice` set `aria-required` from their own `required` prop or from an enclosing `Control`. The `ColorPicker` and `DatePicker` triggers set it from an enclosing `Control`.
 
@@ -154,6 +156,8 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 > `PdfViewer` shows its toolbar while a `src` opens and after the document opens with a page. A load that failed and a document with no page show the message of the pane and no toolbar. A visually hidden status says "Loading PDF" while a `src` opens. When the document is ready, it says "Page X of Y", and again on each page turn. A failed load speaks through its alert.
 
 > The thumbnail rail of `PdfViewer` opens 240px wide. A splitter named "Resize thumbnails" on its end edge resizes it from 160px to 320px, by a drag or by the arrow keys. A double-click sets 240px again, unless its second press dragged. The rail is one Tab stop on the current page, and the arrow keys move between the pages. A `src` document renders each thumbnail for the widest rail, so a thumbnail is sharp at each width.
+
+> Escape closes the `magnifier` lens of `PdfViewer` wherever the focus is (WCAG 1.4.13), and the pointer does not have to move. The next move of the pointer starts the dwell again.
 
 ## Loading skeletons
 

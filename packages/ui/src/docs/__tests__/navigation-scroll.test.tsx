@@ -107,47 +107,124 @@ describe('useNavigationScroll', () => {
 	})
 
 	it('restores the scroll of a page on a move back and forward through the history', async () => {
-		// The shell keeps one box for all pages, and the page is the path.
-		function Shell() {
-			const scroller = useNavigationScroll(useLocation().pathname)
+		const { box, router, scroll } = renderShell('/button')
 
-			return <div ref={scroller} data-testid="box" />
-		}
+		scroll(300)
 
+		await act(() => router.navigate('/dialog'))
+
+		expect(box.scrollTop).toBe(0)
+
+		scroll(120)
+
+		await act(() => router.navigate(-1))
+
+		expect(box.scrollTop).toBe(300)
+
+		await act(() => router.navigate(1))
+
+		expect(box.scrollTop).toBe(120)
+	})
+
+	it('restores the scroll of an entry with a hash, not the element of the hash', async () => {
+		const { box, intoView, router, scroll } = renderShell('/dialog')
+
+		await act(() => router.navigate('/button#api-Button'))
+
+		expect(intoView).toHaveBeenCalledOnce()
+
+		scroll(900)
+
+		await act(() => router.navigate('/select'))
+
+		await act(() => router.navigate(-1))
+
+		expect(box.scrollTop).toBe(900)
+
+		expect(intoView).toHaveBeenCalledOnce()
+	})
+
+	it('restores the scroll of an entry of the same page', async () => {
+		const { box, router, scroll } = renderShell('/button')
+
+		scroll(200)
+
+		await act(() => router.navigate('/button#api-Button'))
+
+		scroll(900)
+
+		await act(() => router.navigate(-1))
+
+		expect(box.scrollTop).toBe(200)
+	})
+
+	it('restores the scroll of an entry that the reader did not scroll', async () => {
+		const { box, router, scroll } = renderShell('/button')
+
+		scroll(500)
+
+		// A tab of the same page keeps the scroll, so the box gives no scroll event.
+		await act(() => router.navigate('/button/examples'))
+
+		await act(() => router.navigate('/dialog'))
+
+		await act(() => router.navigate(-1))
+
+		expect(box.scrollTop).toBe(500)
+	})
+
+	it('goes to the element of the hash on a move back to an entry before the load', async () => {
 		const router = createMemoryRouter([{ path: '*', Component: Shell }], {
-			initialEntries: ['/button'],
+			initialEntries: ['/button#api-Button', '/dialog'],
 		})
 
 		onTestFinished(() => router.dispose())
 
 		render(<RouterProvider router={router} />)
 
-		const box = screen.getByTestId('box')
-
-		const scrollTo = vi.fn()
-
-		box.scrollTo = scrollTo as typeof box.scrollTo
-
-		const scroll = (top: number) => {
-			box.scrollTop = top
-
-			box.dispatchEvent(new Event('scroll'))
-		}
-
-		scroll(300)
-
-		await act(() => router.navigate('/dialog'))
-
-		expect(scrollTo).toHaveBeenLastCalledWith(0, 0)
-
-		scroll(120)
+		const intoView = vi.spyOn(screen.getByText('<Button />'), 'scrollIntoView')
 
 		await act(() => router.navigate(-1))
 
-		expect(scrollTo).toHaveBeenLastCalledWith(0, 300)
-
-		await act(() => router.navigate(1))
-
-		expect(scrollTo).toHaveBeenLastCalledWith(0, 120)
+		expect(intoView).toHaveBeenCalledOnce()
 	})
 })
+
+// The shell keeps one box for all pages, and the page is the path without its
+// tab.
+function Shell() {
+	const scroller = useNavigationScroll(useLocation().pathname.split('/').slice(0, 2).join('/'))
+
+	return (
+		<div ref={scroller} data-testid="box">
+			<span id="api-Button">{'<Button />'}</span>
+		</div>
+	)
+}
+
+function renderShell(path: string) {
+	const router = createMemoryRouter([{ path: '*', Component: Shell }], {
+		initialEntries: [path],
+	})
+
+	onTestFinished(() => router.dispose())
+
+	render(<RouterProvider router={router} />)
+
+	const box = screen.getByTestId('box')
+
+	// jsdom does no layout, so a scroll of the box only sets its scroll.
+	box.scrollTo = ((_x: number, top: number) => {
+		box.scrollTop = top
+	}) as typeof box.scrollTo
+
+	const intoView = vi.spyOn(screen.getByText('<Button />'), 'scrollIntoView')
+
+	const scroll = (top: number) => {
+		box.scrollTop = top
+
+		box.dispatchEvent(new Event('scroll'))
+	}
+
+	return { box, intoView, router, scroll }
+}

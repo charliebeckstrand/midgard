@@ -78,7 +78,11 @@ function replayIntent(
 		return
 	}
 
-	if (intent.focus && reference.contains(reference.ownerDocument.activeElement)) {
+	// The root of the trigger gives its active element in a shadow tree too,
+	// where the document gives the shadow host.
+	const root = reference.getRootNode() as Node & DocumentOrShadowRoot
+
+	if (intent.focus && reference.contains(root.activeElement)) {
 		context.onOpenChange(true, intent.focus, 'focus')
 
 		return

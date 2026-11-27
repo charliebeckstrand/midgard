@@ -10,6 +10,7 @@ import {
 	useRef,
 	useState,
 } from 'react'
+import { useEscapeLayer } from '../../hooks/use-escape-layer'
 import { useFloatingPanel } from '../../hooks/use-floating-panel'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useTimeout } from '../../hooks/use-timeout'
@@ -519,6 +520,22 @@ export function usePdfViewerMagnifier(
 		endHold()
 	})
 
+	/*
+	 * Escape closes the lens wherever the focus is (WCAG 1.4.13), as it closes a `TooltipPointer`.
+	 * Out of the dismiss stack, so the layer below, such as a Dialog, still gets the press. A hold
+	 * ends as a lift ends it, and the lift that follows presses nothing. A mouse lens closes
+	 * through floating-ui, so its next move starts a new dwell, and the lens comes back the way it
+	 * first arrived.
+	 */
+	useEscapeLayer({
+		open: enabled && open,
+		layered: false,
+		onDismiss: (event) => {
+			if (holdingRef.current) endHold(true)
+			else context.onOpenChange(false, event, 'escape-key')
+		},
+	})
+
 	/** Swallows the click that the lift at the end of a hold can fire. */
 	const swallowClick = useStableEvent((event: ReactMouseEvent<HTMLElement>) => {
 		if (!swallowClickRef.current) return
@@ -560,10 +577,9 @@ export function usePdfViewerMagnifier(
 				if (holdingRef.current && event.cancelable) event.preventDefault()
 			}
 
-			// The lift at the end of a hold fires no compatibility mouse events. A `mousedown` from
-			// the lift reaches the highlight layer before any click, so it presses a region or clears
-			// the selection, and {@link swallowClick} cannot stop it. A canceled `touchend` fires no
-			// click either, so the click guard has no more work.
+			// The lift at the end of a hold fires no compatibility mouse events. Its click would
+			// otherwise press a region or put the selection down. A canceled `touchend` fires no
+			// click, so the click guard has no more work.
 			function handleTouchEnd(event: TouchEvent) {
 				if (!swallowClickRef.current || !event.cancelable) return
 

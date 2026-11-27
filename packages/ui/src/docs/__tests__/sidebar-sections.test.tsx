@@ -1,9 +1,11 @@
+import { readdirSync } from 'node:fs'
+import path from 'node:path'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { renderToString } from 'react-dom/server'
 import { MemoryRouter } from 'react-router'
 import { afterEach, describe, expect, it } from 'vitest'
 import { UIProvider } from '../../providers/ui'
-import { sectionRootClasses, sectionRules } from '../app/section-marks.ts'
+import { SECTION_FOLDERS, sectionRootClasses, sectionRules } from '../app/section-marks.ts'
 import { DocsSidebar } from '../app/sidebar.tsx'
 import type { PageLink } from '../plugin/pages.ts'
 import { DocsSearch } from '../search/ui/search-provider.tsx'
@@ -259,10 +261,44 @@ describe('sectionRootClasses', () => {
 	})
 
 	it('gives no class for a cookie name that is not a section folder', () => {
-		expect(sectionRootClasses('docs-section-Bad"x=closed; docs-section-=closed')).toEqual([])
+		expect(
+			sectionRootClasses(
+				'docs-section-Bad"x=closed; docs-section-=closed; docs-section-nope=closed',
+			),
+		).toEqual([])
+	})
+
+	it('gives one list for one set of closed sections, in any cookie order', () => {
+		const classes = ['docs-section-closed-modules', 'docs-section-closed-structure']
+
+		expect(
+			sectionRootClasses('docs-section-structure=closed; docs-section-modules=closed'),
+		).toEqual(classes)
+
+		expect(
+			sectionRootClasses(
+				'docs-section-modules=closed; docs-section-structure=closed; docs-section-modules=closed',
+			),
+		).toEqual(classes)
 	})
 
 	it('gives no class with no cookies', () => {
 		expect(sectionRootClasses()).toEqual([])
+	})
+})
+
+describe('SECTION_FOLDERS', () => {
+	it('names each section folder of the pages, in the order of the sidebar', () => {
+		const pages = path.resolve(import.meta.dirname, '..', 'pages')
+
+		const folders = readdirSync(pages, { withFileTypes: true })
+			.filter((entry) => entry.isDirectory())
+			.map((entry) => entry.name)
+
+		expect(SECTION_FOLDERS).toEqual(
+			folders.toSorted(
+				(a, b) => Number(a !== 'components') - Number(b !== 'components') || a.localeCompare(b),
+			),
+		)
 	})
 })

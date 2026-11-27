@@ -3,13 +3,17 @@ import { act } from '@testing-library/react'
 import type { ChangeEvent, FocusEvent, ReactElement } from 'react'
 import { createPortal } from 'react-dom'
 import { describe, expect, it, vi } from 'vitest'
+import { Control } from '../../components/control'
+import { useControlProps } from '../../components/control/use-control-props'
+import { Field, Message } from '../../components/fieldset'
 import { composeEventHandlers } from '../../core'
-import { Form, useFormActions, useFormField } from '../../modules/form'
+import { Form, FormErrorSummary, useFormActions, useFormField } from '../../modules/form'
 import { Density } from '../../primitives/density'
 import { corpus } from '../a11y/cases'
 import type {
 	DensitySubject,
 	DisclosureSubject,
+	FormFieldSubject,
 	LinkSubject,
 	PassthroughSubject,
 	SkeletonSubject,
@@ -25,6 +29,8 @@ import {
 	getSlot,
 	readDensityStep,
 	renderUI,
+	setupUser,
+	within,
 } from '../helpers'
 import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
 
@@ -46,6 +52,9 @@ const PASS_THROUGH_ID = 'pass-through-subject'
 const LINK_HREF = '/swept-link'
 
 const PLACEHOLDER = 'Swept placeholder'
+
+// A real token (WCAG 1.3.5) that no subject sets on its own.
+const AUTO_COMPLETE = 'bday'
 
 // Three distinct steps, so each density leg can tell its answer from the other two.
 const AMBIENT = 'lg'
@@ -84,6 +93,18 @@ const writes = corpus.flatMap((entry) =>
 )
 
 const disclosures = corpus.flatMap((entry) => entry.disclosure ?? [])
+
+// Two entries hold more than one control (`switch` holds Switch and
+// SwitchChoice), so these titles name the control by its index as well.
+const formFields = corpus.flatMap((entry) =>
+	(entry.formField ?? []).map((subject, index) => ({
+		...subject,
+		title: `${entry.name} (${index + 1})`,
+	})),
+)
+
+/** The error that the validator of the form-field sweep gives. */
+const FIELD_ERROR = 'Fix the swept field.'
 
 /** The field each touch-on-blur and write-on-change subject binds to. */
 const FIELD = 'swept'
@@ -355,6 +376,26 @@ const disablesInput = vi.defineHelper(({ render, slot }: TextInputSubject) => {
 	expect(getSlot(container, slot)).toBeDisabled()
 })
 
+/** The text-input sweep, autoComplete prop leg: the token of the prop reaches the editable element. */
+const passesAutoComplete = vi.defineHelper(({ render, slot }: TextInputSubject) => {
+	const { container } = renderUI(render({ autoComplete: AUTO_COMPLETE }))
+
+	expect(getSlot(container, slot)).toHaveAttribute('autocomplete', AUTO_COMPLETE)
+})
+
+/**
+ * The text-input sweep, autoComplete Control leg: the token of an enclosing
+ * Control reaches the editable element (WCAG 1.3.5). A field that sets its own
+ * token keeps that token.
+ */
+const takesControlAutoComplete = vi.defineHelper(
+	({ render, slot, autoComplete }: TextInputSubject) => {
+		const { container } = renderUI(<Control autoComplete={AUTO_COMPLETE}>{render({})}</Control>)
+
+		expect(getSlot(container, slot)).toHaveAttribute('autocomplete', autoComplete ?? AUTO_COMPLETE)
+	},
+)
+
 /**
  * The text-input sweep, Enter leg: Enter keeps the focus in the editable
  * element. A field that blurs on Enter drops the focus to `<body>`.
@@ -370,6 +411,96 @@ const keepsFocusOnEnter = vi.defineHelper(({ render, slot }: TextInputSubject) =
 
 	expect(element).toHaveFocus()
 })
+
+/**
+ * The Field of the form-field sweep, with a Message bound to `name`. With
+ * `severityFromErrors`, the Field takes the `error` severity while the field
+ * has errors.
+ */
+function SweptField({
+	name,
+	severityFromErrors,
+	children,
+}: {
+	name: string
+	severityFromErrors?: boolean
+	children: ReactElement
+}) {
+	const field = useFormField(name)
+
+	const failed = severityFromErrors && field?.errors !== undefined && field.errors.length > 0
+
+	return (
+		<Field severity={failed ? 'error' : undefined}>
+			{children}
+			<Message name={name} />
+		</Field>
+	)
+}
+
+/**
+ * The form-field sweep: a refused submit, or a link of the error summary,
+ * moves the focus to the Tab stop of the control. The control, or the group
+ * that holds it, is invalid and has the error in its description.
+ *
+ * Tab is the oracle of the Tab stop: Shift+Tab from the focused element leaves
+ * the control, and Tab comes back to it. A radio that is not the Tab stop of
+ * its set fails, because Tab comes back to the checked radio.
+ */
+const focusesOnRefusedSubmit = vi.defineHelper(
+	async ({ render, defaultValue, invalidFromField }: FormFieldSubject, summary: boolean) => {
+		const user = setupUser()
+
+		const { container } = renderUI(
+			<Form defaultValues={{ [FIELD]: defaultValue }} validate={{ [FIELD]: () => FIELD_ERROR }}>
+				{summary && <FormErrorSummary />}
+				<button type="button">Before</button>
+				<SweptField name={FIELD} severityFromErrors={invalidFromField}>
+					{render({ name: FIELD })}
+				</SweptField>
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		const submit = within(container).getByRole('button', { name: 'Submit' })
+
+		act(() => submit.focus())
+
+		await act(async () => {
+			fireEvent.submit(getSlot(container, 'form'))
+		})
+
+		if (summary) {
+			const summaryElement = getSlot(container, 'form-error-summary')
+
+			fireEvent.click(within(summaryElement).getByRole('link'))
+		}
+
+		const field = getSlot(container, 'field')
+
+		const focused = document.activeElement as HTMLElement
+
+		expect(field.contains(focused), 'the focus is in the field').toBe(true)
+
+		// A radio or a checkbox of a group takes the description of the Field
+		// through its group, and a Rating marks its row invalid.
+		const holder = focused.closest<HTMLElement>('[role="radiogroup"], [role="group"]') ?? focused
+
+		expect(holder).toHaveAccessibleDescription(expect.stringContaining(FIELD_ERROR))
+
+		const invalid = focused.closest('[aria-invalid="true"]')
+
+		expect(invalid !== null && field.contains(invalid), 'the control is invalid').toBe(true)
+
+		await user.tab({ shift: true })
+
+		expect(within(container).getByRole('button', { name: 'Before' })).toHaveFocus()
+
+		await user.tab()
+
+		expect(focused, 'the focused element is the Tab stop of the control').toHaveFocus()
+	},
+)
 
 describe('component pass-through', () => {
 	for (const subject of passThrough) {
@@ -426,6 +557,11 @@ describe('component text inputs', () => {
 
 		it(`${subject.title} disables the editable element when disabled`, () => disablesInput(subject))
 
+		it(`${subject.title} passes through autoComplete`, () => passesAutoComplete(subject))
+
+		it(`${subject.title} takes the autoComplete of its Control`, () =>
+			takesControlAutoComplete(subject))
+
 		it(`${subject.title} keeps focus on Enter`, () => keepsFocusOnEnter(subject))
 	}
 
@@ -461,6 +597,20 @@ describe('component lock during a submit', () => {
 		it(`${subject.title} stays enabled and does not write its field while the form submits`, () =>
 			holdsWhileLocked(subject))
 	}
+})
+
+describe('component form fields', () => {
+	for (const subject of formFields) {
+		it(`${subject.title} takes the focus on a refused submit`, () =>
+			focusesOnRefusedSubmit(subject, false))
+
+		it(`${subject.title} takes the focus from a link of the error summary`, () =>
+			focusesOnRefusedSubmit(subject, true))
+	}
+
+	it('has subjects to sweep', () => {
+		expect(formFields).not.toHaveLength(0)
+	})
 })
 
 describe('component disclosure state', () => {
@@ -581,6 +731,33 @@ function UnstampedDisclosure({ open, disabled }: { open: boolean; disabled?: boo
 	)
 }
 
+/** A control in a Field that renders no id, so the form has no element to focus. */
+function UnidentifiedControl() {
+	return <input aria-label="Unidentified" />
+}
+
+/**
+ * A control that puts the id of its Field on a wrapper that takes the focus,
+ * but is no Tab stop. It is invalid and described, so only the Tab stop leg
+ * can fail it.
+ */
+function UntabbableWrapper({ name }: { name: string }) {
+	const field = useFormField(name)
+
+	const { id, 'aria-describedby': describedBy } = useControlProps({})
+
+	return (
+		<div
+			id={id}
+			tabIndex={-1}
+			aria-describedby={describedBy}
+			aria-invalid={field?.errors ? true : undefined}
+		>
+			<input aria-label="Inner" />
+		</div>
+	)
+}
+
 /**
  * Teeth checks: each sweep's assertion must be able to fail, or a corpus that
  * quietly stopped declaring subjects would read as green.
@@ -602,6 +779,37 @@ describe('capability sweeps: teeth checks', () => {
 					/>
 				),
 				slot: 'blurring',
+			}),
+		).toThrow()
+	})
+
+	it('fails a control in a field that renders no id', async () => {
+		for (const summary of [false, true]) {
+			await expect(
+				focusesOnRefusedSubmit(
+					{ render: () => <UnidentifiedControl />, defaultValue: '' },
+					summary,
+				),
+			).rejects.toThrow('the focus is in the field')
+		}
+	})
+
+	it('fails a control whose focus target is no Tab stop', async () => {
+		for (const summary of [false, true]) {
+			await expect(
+				focusesOnRefusedSubmit(
+					{ render: (props) => <UntabbableWrapper {...props} />, defaultValue: '' },
+					summary,
+				),
+			).rejects.toThrow('the focused element is the Tab stop of the control')
+		}
+	})
+
+	it('fails a text input that drops the autoComplete of its Control', () => {
+		expect(() =>
+			takesControlAutoComplete({
+				render: () => <input data-slot="tokenless" autoComplete="off" />,
+				slot: 'tokenless',
 			}),
 		).toThrow()
 	})

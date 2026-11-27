@@ -30,10 +30,19 @@ import { launchChromium } from './helpers/chromium'
 const NOT_FOUND = '/no-such-page'
 
 /**
- * Component pages, a module page, a page with a tab in its path, and a path
- * with no page. The root path has no page: the server sends a redirect for it.
+ * Component pages, a module page, a page with a tab in its path, a page with a
+ * query, and a path with no page. The root path has no page: the server sends
+ * a redirect for it. The build renders each page with no query, so a page
+ * that reads the query must hydrate with the markup of no query.
  */
-const PAGES = ['/button', '/accordion', '/modules/grid', '/modules/grid/sorting', NOT_FOUND]
+const PAGES = [
+	'/button',
+	'/accordion',
+	'/modules/grid',
+	'/modules/grid/sorting',
+	'/pagination?page=3',
+	NOT_FOUND,
+]
 
 /**
  * The chunks that a stale page names. A missing `page` chunk stops the module
@@ -168,6 +177,22 @@ describe('a prerendered page of the docs build', () => {
 		await tab.waitForLoadState('networkidle')
 
 		expect(errors).toEqual([])
+	})
+
+	// The HTML shows the first page. A gate that never opens also hydrates
+	// with no error, so the page of the query must show after hydration.
+	it('shows the page of its query after hydration', async () => {
+		const tab = await openTab()
+
+		await openPage(tab, '/pagination?page=3')
+
+		await tab.waitForFunction(HYDRATED)
+
+		await tab.waitForLoadState('networkidle')
+
+		const current = tab.locator('nav[aria-label="Pages of results"] [aria-current="page"]')
+
+		expect(await current.textContent()).toBe('3')
 	})
 })
 

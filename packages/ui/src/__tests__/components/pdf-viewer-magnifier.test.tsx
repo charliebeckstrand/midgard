@@ -471,6 +471,28 @@ describe('usePdfViewerMagnifier over a pan', () => {
 		expect(result.current.point).toEqual({ x: 120, y: 300 })
 	})
 
+	/** WCAG 1.4.13: Escape puts the lens away without a move of the pointer. */
+	it('closes the lens on Escape', async ({ clock }) => {
+		const { result, move, scroll } = setup()
+
+		const frame = frameAt(() => 0)
+
+		act(() => {
+			move(pointerOn(frame, 120, 300))
+
+			scroll()
+		})
+
+		await clock.advance(300)
+
+		expect(result.current.open).toBe(true)
+
+		fireEvent.keyDown(document, { key: 'Escape' })
+
+		expect(result.current.open).toBe(false)
+		expect(result.current.point).toBeNull()
+	})
+
 	/**
 	 * The whole point of withdrawing rather than following: what the lens shows has to be measured
 	 * against where the page ended up, not where it was when the pointer last moved.
@@ -706,6 +728,27 @@ describe('usePdfViewerMagnifier under a held finger', () => {
 		props().onClickCapture(next)
 
 		expect(next.preventDefault).not.toHaveBeenCalled()
+	})
+
+	/** Escape ends the hold as a lift does: the lift that follows presses nothing. */
+	it('closes the held lens on Escape, and swallows the click of the lift', async ({ clock }) => {
+		const { frame, hook, props } = setup()
+
+		act(() => props().onPointerDown(finger(frame, 120, 300)))
+
+		await clock.advance(300)
+
+		fireEvent.keyDown(document, { key: 'Escape' })
+
+		expect(hook.result.current.open).toBe(false)
+
+		act(() => props().onPointerUp(finger(frame, 120, 300, { type: 'pointerup' })))
+
+		const click = { preventDefault: vi.fn(), stopPropagation: vi.fn() }
+
+		props().onClickCapture(click)
+
+		expect(click.preventDefault).toHaveBeenCalled()
 	})
 
 	it('leaves the click of a plain tap alone', () => {

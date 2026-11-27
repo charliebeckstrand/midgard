@@ -155,6 +155,26 @@ function unstatedViewports(text: string): string[] {
 		.map((block) => block.slice(0, block.indexOf('\n')))
 }
 
+// Forced colors are an option of the browser context of the `forced-light` and
+// the `forced-dark` instances (`FORCED_CONTEXT_OPTIONS` in
+// vitest.browser.config.ts). A CDP media emulation of forced colors on a shared
+// page is page state: each call replaces each emulated feature, and a file that
+// stops before its restore hands forced colors to each later file. So no
+// browser file emulates forced colors, and a forced file emulates no media
+// feature. Vitest's `cdp()` is a second CDP session, and with the context
+// option it gave a page that matched `(forced-colors: active)` with no forced
+// palette.
+const FORCED_EMULATION = [
+	{ label: 'forced colors emulated in a case', regex: /\bname:\s*['"]forced-colors['"]/g },
+	{ label: 'forced colors emulated in a case', regex: /\bforcedColors\s*:/g },
+] as const
+
+/** A media emulation in a file of the forced instances, which hold their palette in the context. */
+const FORCED_MEDIA = {
+	label: 'media emulated in a forced file',
+	regex: /\b(?:setEmulatedMedia|emulateMedia)\b/g,
+} as const
+
 // `bySlot` and `querySelector` both return null, and a cast that says otherwise
 // moves the miss to whatever reads the result next: a `getBoundingClientRect`
 // on null, or a `fireEvent` that reports only that it got no element. That is
@@ -968,6 +988,45 @@ describe('test isolation boundary', () => {
 			gaps,
 			`a block with no viewport hook runs at the width a block above it left, or a nested hook left. State it at file level, or at the head of each top-level block:\n  ${gaps.join('\n  ')}`,
 		).toEqual([])
+	})
+
+	it('emulates forced colors only through the forced instances', () => {
+		const emulated = [
+			...collectPatternViolations({
+				dir: join(testsDir, 'browser'),
+				patterns: FORCED_EMULATION,
+				stripComments: true,
+			}),
+			...collectPatternViolations({
+				dir: join(testsDir, 'browser', 'forced'),
+				patterns: [FORCED_MEDIA],
+				stripComments: true,
+			}),
+		]
+
+		expect(
+			emulated,
+			`put a forced-colors case in browser/forced/, which the \`forced-light\` and the \`forced-dark\` instances run with forced colors in the context:\n  ${emulated.join('\n  ')}`,
+		).toEqual([])
+	})
+
+	it('reads a forced-colors emulation in each spelling', () => {
+		const forcedIn = (text: string) =>
+			FORCED_EMULATION.flatMap(({ regex }) => [...text.matchAll(regex)]).length
+
+		expect(forcedIn(`{ name: 'forced-colors', value: 'active' }`)).toBe(1)
+
+		expect(forcedIn(`{ name: "forced-colors", value: '' }`)).toBe(1)
+
+		expect(forcedIn(`page.emulateMedia({ forcedColors: 'active' })`)).toBe(1)
+
+		expect(forcedIn(`{ name: 'prefers-contrast', value: 'more' }`)).toBe(0)
+
+		expect(forcedIn(`matchMedia('(forced-colors: active)')`)).toBe(0)
+
+		expect([
+			...`cdp().send('Emulation.setEmulatedMedia', {})`.matchAll(FORCED_MEDIA.regex),
+		]).toHaveLength(1)
 	})
 
 	it('casts no nullable query to a non-null element', () => {

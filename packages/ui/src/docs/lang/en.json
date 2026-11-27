@@ -1099,6 +1099,10 @@
 		"defaultMessage": "Underline",
 		"description": "Text of a demo in the docs as aria-label, label, in components/icon-button/held-toggle.tsx, components/toolbar/playground.tsx, components/toolbar/with-groups.tsx and 1 more."
 	},
+	"docs.demo.0426ea0407ce": {
+		"defaultMessage": "Selected order",
+		"description": "Text of a demo in the docs as aria-label, in layouts/sidebar-layout/with-aside.tsx."
+	},
 	"docs.demo.04c0940339ec": {
 		"defaultMessage": "You can preview images, PDF files, video, and most text files. Other files show their name and size.",
 		"description": "Text of a demo in the docs as text, in components/drawer/fit-content.tsx."

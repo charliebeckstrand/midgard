@@ -19,7 +19,7 @@ import { cn, createContext, createSlot, announce } from 'ui/core'
 | `dataAttr` | Coerces a boolean flag to `''` / `undefined` for a spread-safe `data-*` presence attribute. |
 | `ariaAttr` | Coerces a boolean flag to `true` / `undefined` for a spread-safe ARIA boolean attribute. |
 | `composeEventHandlers` | Composes a caller's forwarded handler with the library's; theirs first, then ours unless they prevented default. |
-| `accessibleName` | Best-effort accessible name of an element: `aria-label`, joined `aria-labelledby` target text, else own text. |
+| `accessibleName` | Best-effort accessible name of an element: `aria-label`, joined `aria-labelledby` target text, else own text, with a space between blocks. |
 | `announce` | Imperative screen-reader announcement via a shared visually-hidden `aria-live` region on `document.body`. The first message after the region is created waits for the next paint and then 100ms, so the region is in the accessibility tree first. A repeat of the current text gets a trailing no-break space, so it is a real change. |
 | `downloadBlob` | Downloads a `Blob` under a file name through a transient object-URL anchor. The revoke of the URL waits for the next macrotask. A revoke in the same tick can stop the download in Firefox and Safari. |
 | `rasterizeElement` | Draws an element to a PNG or JPEG `Blob` at twice its CSS size, as the page shows it now. Each scroll box shows at its offset. The live page does not change. The image embeds the latin face of the ui font. An image file, a canvas, and a typed field value do not show. |

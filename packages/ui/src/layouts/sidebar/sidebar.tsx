@@ -122,6 +122,10 @@ export type SidebarLayoutProps = ComponentProps<'div'> & {
 	 * sidebar does. The content column narrows to give it room. While it
 	 * scrolls, it is a Tab stop, so a keyboard can scroll content that has no
 	 * control in it. In the drawer layout it does not show.
+	 *
+	 * The aside sits on the ground of the layout. Put its content in a
+	 * {@link SidebarLayoutAside}, which has the surface of the content card.
+	 * Muted text directly on the ground does not have the contrast of WCAG 1.4.3.
 	 */
 	aside?: ReactNode
 	/** Keeps the header at the top of the content region in the inline layout. @defaultValue false */
@@ -478,7 +482,7 @@ export function SidebarLayout({
 
 				{/* Inline aside: on the end edge, after the content. */}
 				{hasContent(aside) && (
-					<div ref={asideScrollRef} data-slot="sidebar-aside" className={slots.aside}>
+					<div ref={asideScrollRef} data-slot="sidebar-aside" className={slots.aside.base}>
 						<MountHold hold={asideHold} name="sidebar-aside">
 							{aside}
 						</MountHold>
@@ -566,6 +570,18 @@ function focusSkipTarget(target: HTMLElement) {
 
 	target.focus()
 }
+
+/** Props for {@link SidebarLayoutAside} (`<aside>` attributes). */
+export type SidebarLayoutAsideProps = ComponentProps<'aside'>
+
+/**
+ * Card slot for the `aside` of {@link SidebarLayout} (`data-slot="aside"`).
+ * It has the surface of the content card in the inline layout, with the same
+ * gutter, and it sets `--surface-fill` in the same way. It fills the height of
+ * the aside, and a taller card scrolls in the aside. It has no padding, so the
+ * content sets its own. While it does not show, the aside takes no room.
+ */
+export const SidebarLayoutAside = createSlot('aside', 'aside', k().aside.card)
 
 /** Props for {@link SidebarLayoutFooter} (`<footer>` attributes). */
 export type SidebarLayoutFooterProps = ComponentProps<'footer'>
