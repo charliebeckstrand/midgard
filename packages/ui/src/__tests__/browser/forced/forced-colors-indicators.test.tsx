@@ -55,6 +55,7 @@ import {
 	people,
 	personColumns,
 	pixels,
+	presetPixels,
 	select,
 } from '../helpers/forced-indicators'
 
@@ -691,6 +692,24 @@ describe('color parts under forced colors (real browser)', () => {
 			expect(red).toBe('rgb(255, 0, 0)')
 
 			expect(blue).toBe('rgb(0, 0, 255)')
+		})
+
+		it('a checked preset chip and an unchecked one paint differently', async () => {
+			expect(await presetPixels(true)).not.toBe(await presetPixels(false))
+		})
+
+		// The unit test of the inks proves that one of white and black clears 3:1
+		// on each chip color. Here the mark keeps those inks under forced colors.
+		it('the check mark keeps its white ink and its black outline', () => {
+			const { container } = renderUI(
+				<ColorPanel defaultValue="#ff0000" swatches={['#ff0000', '#0000ff']} />,
+			)
+			const check = getSlot(container, 'color-swatch-check')
+			const halo = getSlot(container, 'color-swatch-halo')
+
+			expect(getComputedStyle(check).color).toBe('rgb(255, 255, 255)')
+
+			expect(getComputedStyle(halo).color).toBe('rgb(0, 0, 0)')
 		})
 
 		it('the hue track keeps its gradient, and the area keeps its hue', () => {

@@ -51,7 +51,7 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > `checkbox`, `switch`, `RadioGroup`, and `ColorPicker` take `readOnly` from their own prop or from an enclosing `Control`. `Rating` and `SwitchChoice` set `aria-required` from their own `required` prop or from an enclosing `Control`. The `ColorPicker` and `DatePicker` triggers set it from an enclosing `Control`.
 
-> The `ColorPicker` trigger is a `combobox`, as the `DatePicker` trigger is. Its value is the hex code that it shows. ArrowDown and ArrowUp open its panel, as on `DatePicker` and `Listbox`. Each preset swatch has a coarse color name and its hex code as its name, such as "Red, #EF4444".
+> The `ColorPicker` trigger is a `combobox`, as the `DatePicker` trigger is. Its value is the hex code that it shows. ArrowDown and ArrowUp open its panel, as on `DatePicker` and `Listbox`. Each preset swatch has a coarse color name and its hex code as its name, such as "Red, #EF4444". The checked swatch draws a check mark, so its state does not show by its hue only.
 
 > A read-only control shows the default cursor, not the pointer: on the control, on its `Field` label, and on the affix of a picker trigger. A control that is also disabled shows `not-allowed`. The shared `hannou.cursor` reads `aria-readonly="true"`, `data-readonly`, or the native `readonly` on the element or a descendant.
 
