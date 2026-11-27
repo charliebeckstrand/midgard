@@ -9,7 +9,7 @@ const statuses = ['completed', 'processing', 'pending'] as const
 
 // `filters` sits beside the main column in a wide frame, and behind a
 // Filters button in a narrow one. Drag the end border of the frame to see
-// the change. The layout renders the filters in one of the two places.
+// the change. The layout shows the filters in one of the two places.
 export default function FilterRail() {
 	const [status, setStatus] = useState<OrderStatus | null>(null)
 

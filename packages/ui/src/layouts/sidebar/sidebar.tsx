@@ -104,7 +104,9 @@ function toggleSidebar(event: KeyboardEvent) {
  * The root `<div>` takes the rest.
  */
 export type SidebarLayoutProps = ComponentProps<'div'> & {
+	/** Content of the navbar in the drawer layout, after the menu button, such as the name of the app. */
 	navbar?: ReactNode
+	/** Content of the sidebar, usually a `<Sidebar>`. The panel, the drawer, and the floating sheet each hold a copy. */
 	sidebar: ReactNode
 	/**
 	 * The actions in the navbar of the drawer layout and in the header of the
@@ -130,7 +132,7 @@ export type SidebarLayoutProps = ComponentProps<'div'> & {
 	layout?: Responsive<OffcanvasLayout>
 	/**
 	 * Fires when the navigation drawer opens or closes, whatever drove it. The
-	 * drivers are the navbar button, a dismissal, a descendant calling `close`, or the
+	 * drivers are the navbar button, a close, a descendant calling `close`, or the
 	 * viewport widening to the inline layout.
 	 *
 	 * Observation only, and the drawer alone. The inline sidebar does not open, and

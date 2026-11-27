@@ -132,7 +132,9 @@ export type CalendarProps = {
 	 * closes a popover does.
 	 */
 	onDayClick?: (date: Date) => void
+	/** The first day that a reader can select. Earlier days are disabled. */
 	min?: Date
+	/** The last day that a reader can select. Later days are disabled. */
 	max?: Date
 	/**
 	 * Disables single days between `min` and `max`. The calendar calls it for
@@ -195,6 +197,7 @@ export type CalendarProps = {
 	 * @defaultValue false
 	 */
 	multiselectable?: boolean
+	/** The imperative handle: the month steps, the picker, and the footer keys (`CalendarHandle`). */
 	ref?: Ref<CalendarHandle>
 	/**
 	 * BCP 47 locale tag driving the first day of the week and the weekday /

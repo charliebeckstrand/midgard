@@ -1379,10 +1379,6 @@
 		"defaultMessage": "Enter a project name.",
 		"description": "Text of a demo in the docs as validate, in components/dialog/with-form.tsx."
 	},
-	"docs.demo.14b6fc7de913": {
-		"defaultMessage": "1 reviewer",
-		"description": "Text of a demo in the docs as summarize, in components/combobox/custom-summary.tsx."
-	},
 	"docs.demo.14f34284b054": {
 		"defaultMessage": "Slider",
 		"description": "Text of a demo in the docs as label, in primitives/skeleton/skeleton-variants.tsx."
@@ -2287,6 +2283,10 @@
 		"defaultMessage": "Updated on March 3",
 		"description": "Text of a demo in the docs, in components/dialog/long-content.tsx."
 	},
+	"docs.demo.43fb3cc04136": {
+		"defaultMessage": "Turn on Debug in the settings, then open the Events sheet.",
+		"description": "Text of a demo in the docs, in modules/events/mask-a-secret.tsx, modules/events/record-an-event.tsx, modules/events/report-a-bug.tsx."
+	},
 	"docs.demo.444858c57119": {
 		"defaultMessage": "Type @ for a dataset, or / for a command",
 		"description": "Text of a demo in the docs as placeholder, in modules/chat/scope/mentions-and-commands.tsx."
@@ -3171,6 +3171,10 @@
 		"defaultMessage": "Button",
 		"description": "Text of a demo in the docs as label, in modules/grid/editing/new-row.tsx, primitives/skeleton/skeleton-variants.tsx."
 	},
+	"docs.demo.711e723c40ad": {
+		"defaultMessage": "See the Button page",
+		"description": "Text of a demo in the docs, in components/link/playground.tsx."
+	},
 	"docs.demo.712d87f78cf2": {
 		"defaultMessage": "{value} of 5, {levels}",
 		"description": "Text of a demo in the docs as getValueText, in components/rating/named-levels.tsx. The arguments {value} and {levels} are values from the code."
@@ -3834,10 +3838,6 @@
 	"docs.demo.8f4f8efcbee1": {
 		"defaultMessage": "Align right",
 		"description": "Text of a demo in the docs as label, in components/toolbar/playground.tsx, components/toolbar/with-groups.tsx, components/toolbar/with-more.tsx."
-	},
-	"docs.demo.8fc93dd8736b": {
-		"defaultMessage": "View all components",
-		"description": "Text of a demo in the docs, in components/link/playground.tsx."
 	},
 	"docs.demo.902de6ab8d9a": {
 		"defaultMessage": "Your content",
@@ -5098,6 +5098,10 @@
 	"docs.demo.c8d42d35253b": {
 		"defaultMessage": "Bulk edit help",
 		"description": "Text of a demo in the docs as label, in modules/grid/editing/bulk-edit.tsx."
+	},
+	"docs.demo.c8dae6371b33": {
+		"defaultMessage": "Replay",
+		"description": "Text of a demo in the docs, in modules/chart/animated.tsx, modules/chart/area/animated.tsx, modules/chart/bubble/animated.tsx and 6 more."
 	},
 	"docs.demo.c8ee05ab00e8": {
 		"defaultMessage": "the text in attachments",
