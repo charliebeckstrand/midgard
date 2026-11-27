@@ -1,4 +1,4 @@
-import { FOCUSABLE_SELECTOR } from '../../utilities/focusable-selector'
+import { getTabbableElements } from '../../utilities/focusable-selector'
 
 /**
  * Compares two elements by their position in the document. An element that
@@ -44,8 +44,9 @@ export function sortByDocumentOrder<T>(
  * the focus moved into it.
  *
  * @remarks Some controls put the id of their field on a wrapper, such as the
- * row of a `Rating`. When the element with the id does not take the focus, the
- * first element in it that is in the tab order takes it.
+ * row of a `Rating` or a `RadioGroup`. When the element with the id does not
+ * take the focus, the first element in it that is in the tab order takes it.
+ * In a set of radios, that is the checked radio, as for Tab.
  *
  * A control can pass the focus on to the element that shows it, such as the
  * hidden input of a file upload to its visible trigger. Thus focus that the
@@ -65,7 +66,7 @@ export function focusControl(doc: Document, id: string): boolean {
 
 	if (doc.activeElement !== previous && doc.activeElement !== doc.body) return true
 
-	target.querySelector<HTMLElement>(FOCUSABLE_SELECTOR)?.focus()
+	getTabbableElements(target)[0]?.focus()
 
 	return target.contains(doc.activeElement)
 }

@@ -213,7 +213,7 @@ Import these from `utilities/overlay-layers`. They tell whether an open overlay 
 | Export | Summary |
 |---|---|
 | `FOCUSABLE_SELECTOR` | Selector for the descendants in the tab order: links with an `href`, enabled form controls, and any element whose `tabindex` is not `-1`. |
-| `getTabbableElements` | The elements of a subtree in the tab order, in document order. It also drops a hidden input and a control that a `<fieldset disabled>` disables. Import it from `utilities/focusable-selector`. |
+| `getTabbableElements` | The elements of a subtree in the tab order, in document order. It also drops a hidden input, a control that a `<fieldset disabled>` disables, and each unchecked radio of a set that has a checked radio. Import it from `utilities/focusable-selector`. |
 | `nextIndexForKey` | Next roving index for a key press (1D or 2D grid), or `null` if unhandled; wraps at both ends. |
 | `isArrowKey` | Whether a key is one of the four arrow keys, whatever the direction of the layout. |
 | `isActivationKey` | Whether a key is Enter or Space, the keys that activate a button, an option, or the item under a cursor. |

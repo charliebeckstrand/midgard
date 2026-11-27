@@ -24,8 +24,10 @@ export type CheckboxGroupProps = AccessibleName &
  * @remarks Layout and ARIA role only; it adds no roving-focus or arrow-key
  * handling. Each checkbox stays its own Tab stop.
  *
- * In a `<Field>` or `<Control>`, the group takes the description and the error
- * message of that wrapper as its own `aria-describedby`, as `RadioGroup` does.
+ * In a `<Field>` or `<Control>`, the group takes the id of that wrapper, and
+ * the description and the error message of the wrapper as its own
+ * `aria-describedby`, as `RadioGroup` does. Thus a refused submit of a form,
+ * and a link of a `FormErrorSummary`, move the focus into the group.
  * A bare {@link Checkbox} of the group does not adopt the id or the description
  * of the wrapper, because the wrapper is for the group. The checkboxes still
  * take `disabled`, `readOnly`, and the validation state of the wrapper. They do
@@ -37,22 +39,24 @@ export type CheckboxGroupProps = AccessibleName &
  * @see {@link Checkbox}
  */
 export function CheckboxGroup({
+	id,
 	'aria-describedby': ariaDescribedBy,
 	...props
 }: CheckboxGroupProps) {
 	const fieldId = useControl()?.id
 
-	const { 'aria-describedby': resolvedDescribedBy } = useControlProps({
+	const { id: resolvedId, 'aria-describedby': resolvedDescribedBy } = useControlProps({
+		id,
 		'aria-describedby': ariaDescribedBy,
 	})
 
 	const group = useMemo(() => ({ fieldId }), [fieldId])
 
-	// Consumer props spread first; the group role and the description after them
-	// take precedence.
+	// Consumer props spread first; the id, the group role, and the description
+	// after them take precedence.
 	return (
 		<CheckboxGroupContext value={group}>
-			<ToggleGroup {...props} role="group" aria-describedby={resolvedDescribedBy} />
+			<ToggleGroup {...props} id={resolvedId} role="group" aria-describedby={resolvedDescribedBy} />
 		</CheckboxGroupContext>
 	)
 }

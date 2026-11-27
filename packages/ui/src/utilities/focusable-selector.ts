@@ -10,13 +10,44 @@ export const FOCUSABLE_SELECTOR =
 	'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])'
 
 /**
+ * Whether `element` is an unchecked radio of a set that has a checked, enabled
+ * radio. Tab skips such a radio, because the checked radio is the Tab stop of
+ * its set. A set is the radios of one tree with the same `name` and the same
+ * form owner.
+ */
+function isSkippedRadio(element: HTMLElement): boolean {
+	if (!(element instanceof HTMLInputElement)) return false
+
+	if (element.type !== 'radio' || element.checked || !element.name) return false
+
+	// The tree of the radio: its document, its shadow root, or the top of a
+	// detached subtree.
+	const tree = element.getRootNode() as ParentNode
+
+	for (const other of tree.querySelectorAll<HTMLInputElement>('input[type="radio"]')) {
+		if (
+			other.checked &&
+			other.name === element.name &&
+			other.form === element.form &&
+			!other.matches(':disabled')
+		) {
+			return true
+		}
+	}
+
+	return false
+}
+
+/**
  * The elements of `root` in the tab order, in document order.
  *
  * @remarks
  * {@link FOCUSABLE_SELECTOR} is the first filter. The filter then drops a
  * control with `tabindex="-1"`, a hidden input, and a control that `:disabled`
  * matches. The last case includes a control that an ancestor
- * `<fieldset disabled>` disables, which the browser also skips.
+ * `<fieldset disabled>` disables, which the browser also skips. The filter
+ * also drops each unchecked radio of a set that has a checked radio, because
+ * the checked radio is the Tab stop of the set.
  *
  * `querySelectorAll` gives the elements in document order, also for a selector
  * list, and a caller reads the first or the last element.
@@ -32,6 +63,7 @@ export function getTabbableElements(root: Element | null): HTMLElement[] {
 		(element) =>
 			!element.matches(':disabled') &&
 			element.tabIndex >= 0 &&
-			!(element instanceof HTMLInputElement && element.type === 'hidden'),
+			!(element instanceof HTMLInputElement && element.type === 'hidden') &&
+			!isSkippedRadio(element),
 	)
 }
