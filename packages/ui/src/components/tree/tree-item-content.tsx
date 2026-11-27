@@ -63,6 +63,8 @@ export function TreeItemContent({
 
 	const labelId = useId()
 
+	const suffixId = useId()
+
 	const { posinset, setsize } = useTreePosition()
 
 	const checkable = checked !== undefined
@@ -124,8 +126,11 @@ export function TreeItemContent({
 			// The group is a sibling of the row, so the row owns it. The group is in the
 			// DOM while the row is open, so the reference never dangles.
 			aria-owns={hasChildren && open ? groupId : undefined}
-			// The label alone names the row, so the affixes and the owned group stay out.
-			aria-labelledby={labelId}
+			// The label and the suffix name the row, so the name holds each word that
+			// shows after the label (WCAG 2.5.3). The prefix stays out, so the name
+			// starts with the label and the typeahead matches it. The owned group
+			// stays out.
+			aria-labelledby={suffix != null ? `${labelId} ${suffixId}` : labelId}
 			aria-current={ariaAttr(current)}
 			aria-checked={checked}
 			aria-level={depth + 1}
@@ -166,7 +171,7 @@ export function TreeItemContent({
 				{label}
 			</span>
 			{suffix != null && (
-				<span data-slot="tree-item-suffix" className={slots.affix}>
+				<span id={suffixId} data-slot="tree-item-suffix" className={slots.affix}>
 					{suffix}
 				</span>
 			)}

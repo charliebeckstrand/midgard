@@ -86,12 +86,14 @@ export type TreeItemProps = Omit<ComponentProps<'div'>, 'prefix' | 'defaultCheck
 	 * Slot before the icon, for content such as a status dot. It must hold no
 	 * interactive control: a treeitem is one control, so a nested control is a
 	 * second Tab stop that AT reads as part of the row. A click here activates
-	 * the row.
+	 * the row. Its text is not in the name of the row.
 	 */
 	prefix?: ReactNode
 	/**
 	 * Slot after the label, for content such as a count or a badge. It must hold
-	 * no interactive control, as `prefix`. A click here activates the row.
+	 * no interactive control, as `prefix`. A click here activates the row. Its
+	 * text follows the label in the name of the row, so give a status icon a
+	 * text alternative.
 	 */
 	suffix?: ReactNode
 	/** Nested tree items. */

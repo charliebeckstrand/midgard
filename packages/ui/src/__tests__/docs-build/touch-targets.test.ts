@@ -252,6 +252,17 @@ const KNOWN: readonly { finding: string; paths: readonly string[]; reason: strin
 		paths: ['/modules/dashboard', '/modules/grid/pagination', '/pagination'],
 		reason: 'The previous button is 35 px wide, against the next button.',
 	},
+	// Breadcrumb.
+	{
+		finding: 'crowded breadcrumb-item/breadcrumb-link',
+		paths: ['/breadcrumb'],
+		reason: 'A crumb that gave way shows only its `…` mark, which is 12 × 24 px.',
+	},
+	{
+		finding: 'overlap breadcrumb-item/breadcrumb-link | breadcrumb-item/breadcrumb-link',
+		paths: ['/breadcrumb'],
+		reason: 'The marks of the crumbs that gave way are at one place, and the last is on top.',
+	},
 	// Toolbars.
 	{
 		finding: 'crowded toolbar/button',
@@ -461,6 +472,65 @@ function readTargets({ floor, sharedBorder }: { floor: number; sharedBorder: num
 
 	const main = document.querySelector('main') ?? document.body
 
+	const clips = (overflow: string) => overflow === 'hidden' || overflow === 'clip'
+
+	const scrolls = (overflow: string) => overflow === 'auto' || overflow === 'scroll'
+
+	// A box that is fully outside the box of an ancestor that clips it does not
+	// show, and a finger cannot touch it. The search stops at a box that scrolls,
+	// because the reader can scroll the target into view, also out of a clip
+	// around the box.
+	const isClipped = (box: DOMRect, element: Element) => {
+		for (let ancestor = element.parentElement; ancestor; ancestor = ancestor.parentElement) {
+			const { overflowX, overflowY } = getComputedStyle(ancestor)
+
+			if (scrolls(overflowX) || scrolls(overflowY)) return false
+
+			const clipsX = clips(overflowX)
+
+			const clipsY = clips(overflowY)
+
+			if (!clipsX && !clipsY) continue
+
+			const clip = ancestor.getBoundingClientRect()
+
+			if (clipsX && (box.right <= clip.left || box.left >= clip.right)) return true
+
+			if (clipsY && (box.bottom <= clip.top || box.top >= clip.bottom)) return true
+		}
+
+		return false
+	}
+
+	// The part of a target that a finger can touch. A clipped target, such as a
+	// crumb that gave way in a collapsed Breadcrumb, can show a part of it
+	// outside the clip, such as the `…` mark of the crumb. The part is the
+	// bounds of the boxes in it that show. A target that shows no part has
+	// none.
+	const touchArea = (element: Element) => {
+		const box = element.getBoundingClientRect()
+
+		if (!isClipped(box, element)) return box
+
+		const shown = [...element.querySelectorAll('*')]
+			.map((part) => ({ part, rect: part.getBoundingClientRect() }))
+			.filter(({ part, rect }) => rect.width * rect.height > 1 && !isClipped(rect, part))
+			.map(({ rect }) => rect)
+
+		if (shown.length === 0) return undefined
+
+		const left = Math.min(...shown.map((rect) => rect.left))
+
+		const top = Math.min(...shown.map((rect) => rect.top))
+
+		return new DOMRect(
+			left,
+			top,
+			Math.max(...shown.map((rect) => rect.right)) - left,
+			Math.max(...shown.map((rect) => rect.bottom)) - top,
+		)
+	}
+
 	const isTarget = (element: Element) => {
 		if (element.closest('[inert], [aria-hidden=true]')) return false
 
@@ -476,15 +546,17 @@ function readTargets({ floor, sharedBorder }: { floor: number; sharedBorder: num
 		// atomic inline box even when its display reads `inline`, so it is not exempt.
 		if (style.display === 'inline' && !element.matches('button')) return false
 
-		const { width, height } = element.getBoundingClientRect()
+		const box = element.getBoundingClientRect()
 
 		// A visually hidden control, such as the input of a file field, has a
 		// box of 1 px. Its visible control is another target.
-		return width * height > 1
+		if (box.width * box.height <= 1) return false
+
+		return touchArea(element) !== undefined
 	}
 
 	const targets = [...main.querySelectorAll(selector)].filter(isTarget).map((element) => {
-		let { left, top, right, bottom } = element.getBoundingClientRect()
+		let { left, top, right, bottom } = touchArea(element) ?? element.getBoundingClientRect()
 
 		// The hit area of the target, and not of a target in it.
 		const area = [...element.querySelectorAll('[data-slot=touch-target]')].find(
