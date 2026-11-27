@@ -53,7 +53,11 @@ export async function fetchRace(id: number): Promise<CivicRead> {
 /**
  * Gives the cause of a failed read as text. A network failure of `fetch` is a
  * `TypeError` "fetch failed" that holds the real cause, such as `ECONNREFUSED`.
+ * When the host has more than one address and each one fails, the cause is an
+ * `AggregateError` with no message, so the text lists the error of each address.
  */
 function readCause(error: unknown): string {
-	return String(error instanceof Error && error.cause !== undefined ? error.cause : error)
+	const cause = error instanceof Error && error.cause !== undefined ? error.cause : error
+
+	return cause instanceof AggregateError ? cause.errors.map(String).join(', ') : String(cause)
 }

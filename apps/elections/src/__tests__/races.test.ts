@@ -75,6 +75,21 @@ describe('nationalRace', () => {
 		expect(warn).toHaveBeenCalledExactlyOnceWith(message)
 	})
 
+	// civicAPI has more than one address. When each one fails, the cause is an
+	// `AggregateError` with no message.
+	it('names the failure of each address when civicAPI does not answer on any', async () => {
+		const cause = new AggregateError([
+			new Error('connect ECONNREFUSED 1.2.3.4:443'),
+			new Error('connect ECONNREFUSED 1.2.3.5:443'),
+		])
+
+		stubCivic(() => Promise.reject(new TypeError('fetch failed', { cause })))
+
+		await expect(nationalRace(87528)).rejects.toThrow(
+			'civicAPI did not answer for race 87528 (Error: connect ECONNREFUSED 1.2.3.4:443, Error: connect ECONNREFUSED 1.2.3.5:443).',
+		)
+	})
+
 	// A late answer must fail before the 54 s that a prerender gives a cache
 	// fill. Fake timers do not reach the timer of `AbortSignal.timeout`, so the
 	// case aborts the signal itself.
