@@ -68,6 +68,19 @@ describe('the not-found page', () => {
 		expect(suggestions()[0]).toBe('/modules/grid')
 	})
 
+	it('suggests a tab of the page for a part after the path of the page', () => {
+		renderAt('/modules/grid/sortng')
+
+		expect(suggestions()).toEqual(['/modules/grid', '/modules/grid/sorting'])
+	})
+
+	it('suggests no tab of another page for a part after the path of a page', () => {
+		// `foo` starts the name of the Footer tab of Grid, which is not a tab of Button.
+		renderAt('/button/foo')
+
+		expect(suggestions()).toEqual(['/button'])
+	})
+
 	it('suggests a page from a path with one wrong letter', () => {
 		renderAt('/dialug')
 

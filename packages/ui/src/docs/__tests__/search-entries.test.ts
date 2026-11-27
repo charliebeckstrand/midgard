@@ -2,6 +2,7 @@
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 import type { BarrelApi } from '../plugin/api.ts'
+import { findPages } from '../plugin/pages.ts'
 import { collectEntries } from '../search/build/index.ts'
 import { KEYWORDS, keywordsByPath } from '../search/keywords.ts'
 import type { SearchEntry } from '../search/types.ts'
@@ -67,6 +68,24 @@ describe('collectEntries', () => {
 		const dialog = (await entries()).find((entry) => entry.href === '/dialog')
 
 		expect(dialog?.keywords).toEqual(expect.arrayContaining(['modal', 'overlay']))
+	})
+
+	it('gives a page with tabs the name of its first tab, which has no entry', async () => {
+		const all = await entries()
+
+		const words = (href: string) => all.find((entry) => entry.href === href)?.keywords
+
+		expect(words('/modules/chart')).toContain('bar')
+
+		expect(words('/modules/grid')).toContain('variants')
+
+		// The first tab of Form has the name of the page, so it adds no word.
+		expect(words('/modules/form')).toBeUndefined()
+
+		// Each page with tabs, so a change to the form of `TABS` cannot drop the word.
+		const tabbed = findPages(DOCS).filter((page) => page.tabs.length > 0 && page.name !== 'Form')
+
+		expect(tabbed.filter((page) => !words(page.path)?.length).map((page) => page.path)).toEqual([])
 	})
 
 	it('gives the API reference only at a route that renders its table', async () => {

@@ -32,9 +32,19 @@ export const KIND_BOOST: Readonly<Record<SearchKind, number>> = {
 }
 
 /**
- * The shortest word that the search corrects, and the count of letters that
- * a correction can add, remove, or change. A shorter word, such as `tab`, is
- * near too many other words. The search corrects only a query with no match,
- * so a correct word does not also find similar words.
+ * The count of letters that a correction can add, remove, or change, by the
+ * shortest word that takes it. A word of 4 letters or more takes one edit. A
+ * word of 6 letters or more takes two, so two letters in the wrong order, as
+ * in `dialgo`, find Dialog. A shorter word, such as `tab`, is near too many
+ * other words. The search corrects only a query with no match, so a correct
+ * word does not also find similar words.
  */
-export const TYPO = { minLength: 4, edits: 1 } as const
+export const TYPO: readonly { minLength: number; edits: number }[] = [
+	{ minLength: 6, edits: 2 },
+	{ minLength: 4, edits: 1 },
+]
+
+/** The count of edits that a correction of `word` can make, or `false` for a short word. */
+export function maxEdits(word: string): number | false {
+	return TYPO.find(({ minLength }) => word.length >= minLength)?.edits ?? false
+}

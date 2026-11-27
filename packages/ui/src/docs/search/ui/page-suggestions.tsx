@@ -53,7 +53,10 @@ const PLACES = entries.filter((entry) => entry.kind === 'page' || entry.kind ===
  * part of the path in turn, as Button for `/components/button`, and Dialog and
  * Input for `/dialug/input`, then the pages of a section for the path of the
  * section, as `/modules`. Each part searches alone, so a wrong part does not
- * hide the page that another part names.
+ * hide the page that another part names. A part after the path of a page
+ * names a tab of that page, so it searches only the tabs of the page:
+ * `/modules/grid/sortng` gives Grid › Sorting, and `/button/foo` gives no tab
+ * of another page.
  */
 function findSuggestions(index: SearchIndex<Matchable>, path: string): string[] {
 	const lower = path.toLowerCase()
@@ -65,8 +68,13 @@ function findSuggestions(index: SearchIndex<Matchable>, path: string): string[] 
 		.toSorted((a, b) => b.path.length - a.path.length)
 		.map((page) => page.path)
 
-	const matches = toPathQueries(lower, SECTIONS).map((query) =>
-		index.search(query).map((entry) => entry.href),
+	const [page] = prefix
+
+	const matches = toPathQueries(page ? lower.slice(page.length) : lower, SECTIONS).map((query) =>
+		index
+			.search(query)
+			.map((entry) => entry.href)
+			.filter((href) => !page || href.startsWith(`${page}/`)),
 	)
 
 	// The first match of each part, then the second of each part, and so on.
