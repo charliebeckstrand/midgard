@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { Segment, SegmentControl, SegmentItem } from '../../components/segment'
 import { Toolbar, ToolbarGroup, ToolbarSeparator } from '../../components/toolbar'
 import { TOOLBAR_ITEM_SELECTOR } from '../../components/toolbar/toolbar-constants'
-import { bySlot, fireEvent, getSlot, renderUI, screen, userEvent, waitFor } from '../helpers'
+import { bySlot, fireEvent, getSlot, renderUI, screen, setupUser, waitFor } from '../helpers'
 
 describe('Toolbar', () => {
 	it('renders children with role="toolbar"', () => {
@@ -148,7 +148,7 @@ describe('Toolbar', () => {
 		const b = screen.getByRole('button', { name: 'B' })
 
 		// Activate B (focus stays on it); its handler re-enables A.
-		await userEvent.click(b)
+		await setupUser().click(b)
 
 		const a = screen.getByRole('button', { name: 'A' })
 
@@ -195,7 +195,7 @@ describe('Toolbar', () => {
 
 		expect(zoomIn).toHaveAttribute('tabindex', '0')
 
-		await userEvent.click(zoomIn)
+		await setupUser().click(zoomIn)
 
 		expect(zoomIn).toBeDisabled()
 
