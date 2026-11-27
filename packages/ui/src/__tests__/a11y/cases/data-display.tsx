@@ -43,6 +43,7 @@ import {
 	TableHeader,
 	TableRow,
 } from '../../../components/table'
+import { Text } from '../../../components/text'
 import { TimeAgo } from '../../../components/time-ago'
 import {
 	Timeline,
@@ -690,6 +691,23 @@ export const dataDisplayCases: readonly Case[] = [
 		name: 'code',
 		element: <Code key="cd">pnpm install</Code>,
 		passthrough: [{ render: (props) => <Code {...props}>x</Code>, slot: 'code' }],
+	},
+	{
+		// A mark fills the space behind its text with its own ink at 15%. That fill
+		// lowers the contrast of the ink. Muted and intent text clear 4.5:1 on the
+		// page by a small margin only, so a mark in that text falls below 4.5:1
+		// (WCAG 1.4.3). A mark on a solid fill is in `browser/mark-ink.test.tsx`.
+		name: 'marks in text',
+		element: (
+			<div key="mk">
+				<Text tone="muted">
+					Press <Kbd>⌘K</Kbd> or run <Code>init</Code>.
+				</Text>
+				<Text tone="error">
+					Failed with <Code>EACCES</Code>.
+				</Text>
+			</div>
+		),
 	},
 	{
 		// Animated number; renders the current value as readable text.

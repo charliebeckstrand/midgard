@@ -22,6 +22,11 @@ export type KbdProps = ComponentProps<'kbd'> & {
  * A pure, server-renderable display leaf. Without `size`, the key takes the
  * step of the nearest density scope, so a key in a Button takes the step of
  * the button. An explicit `size` makes the key a density scope.
+ *
+ * The key has the default text color, and not the color of the text around
+ * it. Its fill lowers the contrast of its text, and muted or intent text on the
+ * fill is below 4.5:1 (WCAG 1.4.3). On a solid fill, such as that of a solid
+ * Button or Badge, the key keeps the text color of the fill.
  */
 export function Kbd({ size, className, children, ...props }: KbdProps) {
 	return (
