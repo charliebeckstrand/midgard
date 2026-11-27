@@ -24,7 +24,8 @@ export type HoldGestureOptions = {
  *
  * @returns `{ fillRef, start, cancel }`: `fillRef` attaches to the fill overlay
  * span the hook scales directly; `start` begins a hold; `cancel` aborts one in
- * progress. Both are idempotent against the current holding state.
+ * progress, and returns `true` when a hold was in progress. Both are idempotent
+ * against the current holding state.
  * @remarks
  * The fill animates unconditionally (WCAG 2.3.3 essential exception, gating an
  * irreversible action); only the decorative snap-back reset collapses to instant
@@ -118,7 +119,7 @@ export function useHoldButtonGesture({
 	}
 
 	const cancel = () => {
-		if (!holdingRef.current) return
+		if (!holdingRef.current) return false
 
 		holdingRef.current = false
 
@@ -129,6 +130,8 @@ export function useHoldButtonGesture({
 		setFill(0, reset)
 
 		onHoldCancel?.()
+
+		return true
 	}
 
 	// The cleanup clears the completion timer, so it ends the hold too. An

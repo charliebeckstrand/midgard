@@ -1513,7 +1513,7 @@
 	},
 	"ui.holdButton.confirm": {
 		"defaultMessage": "Activate again to confirm",
-		"description": "Spoken when assistive technology activates a hold button once. A second activation does the action."
+		"description": "Spoken when a hold button is activated once with no hold, such as by assistive technology or a quick key press. A second activation does the action."
 	},
 	"ui.holdButton.instruction": {
 		"defaultMessage": "Press and hold to confirm",
