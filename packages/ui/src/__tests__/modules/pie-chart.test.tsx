@@ -677,7 +677,7 @@ describe('PieChart', () => {
 			'38%',
 		])
 
-		expect(search.querySelector('.line-through')).not.toBeNull()
+		expect(search).toBeUnpressed()
 
 		fireEvent.click(search)
 

@@ -9,15 +9,12 @@ export const k = defineKata(
 	{
 		extends: check,
 		base: [
-			'[--check-border:transparent]',
 			// One selector list holds the checked and the indeterminate state. The
 			// indeterminate arm reads `data-indeterminate`, not `:indeterminate`.
 			// Only a client effect sets the DOM property, so the server HTML has only
 			// the attribute.
 			'has-[:checked,[data-indeterminate]]:bg-(--check-bg) has-[:checked,[data-indeterminate]]:border-(--check-border)',
 			'not-has-[:disabled,[aria-readonly=true]]:has-[:checked,[data-indeterminate]]:hover:opacity-90',
-			// The box takes the step of the nearest density scope.
-			dan.size.check.box,
 			dan.radius.check,
 		],
 		color: {

@@ -5,6 +5,7 @@ import { Text } from '../../components/text'
 import { cn } from '../../core/cn'
 import { useA11yRoving } from '../../hooks/a11y/use-a11y-roving'
 import { useIntl } from '../../primitives/intl/use-intl'
+import { k as chart } from '../../recipes/kata/chart'
 import { k } from '../../recipes/kata/map'
 import type { Orientation } from '../../types/orientation'
 import { LEGEND_TOUCH_ROWS, LegendSwitch } from '../chart/engine/chart-legend/legend-switch'
@@ -74,7 +75,7 @@ const MapLegendEntry = memo(function MapLegendEntry({
 							className={swatch.className}
 							color={swatch.color}
 							stripes={swatch.stripes}
-							swatchClassName={cn(off && 'opacity-40')}
+							swatchClassName={chart.legendOff.key}
 						/>
 					))}
 				</span>
@@ -94,7 +95,7 @@ const MapLegendEntry = memo(function MapLegendEntry({
 						tone="muted"
 						className={cn(
 							'shrink-0 text-end leading-tight whitespace-nowrap tabular-nums font-normal',
-							off && 'opacity-60',
+							chart.legendOff.detail,
 						)}
 					>
 						{item.detail}

@@ -125,7 +125,7 @@ export function LegendSwitch({
 						size="sm"
 						tone="muted"
 						data-slot={labelSlot}
-						className={cn('leading-tight', off && 'line-through opacity-60')}
+						className={cn('leading-tight', k.legendOff.label)}
 					>
 						{label}
 					</Text>

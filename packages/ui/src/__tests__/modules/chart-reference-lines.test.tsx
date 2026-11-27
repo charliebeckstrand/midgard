@@ -1170,14 +1170,10 @@ describe('reference lines in the legend', () => {
 
 		await user.click(chip())
 
-		// Clicking pulls the rule from the plot and un-presses the chip, striking
-		// its label the way a hidden series entry is struck.
+		// Clicking pulls the rule from the plot and un-presses the chip.
 		expect(allBySlot(container, 'chart-reference-line')).toHaveLength(0)
 
 		expect(chip().getAttribute('aria-pressed')).toBe('false')
-
-		// The struck label is the off treatment a hidden series entry takes.
-		expect(chip().querySelector('.line-through')?.textContent).toBe('Target')
 
 		await user.click(chip())
 
@@ -1824,8 +1820,6 @@ describe('reference lines that the legend names', () => {
 		expect(allBySlot(container, 'chart-reference-line')).toHaveLength(0)
 
 		expect(note().getAttribute('aria-pressed')).toBe('false')
-
-		expect(note().querySelector('.line-through')?.textContent).toBe('Target')
 
 		await user.click(note())
 

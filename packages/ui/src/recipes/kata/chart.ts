@@ -47,6 +47,18 @@ export const k = {
 	 */
 	legendText: ['flex min-w-0 items-baseline', dan.gap.button],
 	/**
+	 * The look of a legend entry that is toggled off. Each part is inside the
+	 * switch of its entry, and the switch has `aria-pressed="false"` while the
+	 * entry is off. Thus each part reads the state of its switch, and the look
+	 * cannot disagree with the state. The label strikes through and dims, a
+	 * readout or a description dims, and a key dims more.
+	 */
+	legendOff: {
+		label: ['in-[[aria-pressed=false]]:line-through', 'in-[[aria-pressed=false]]:opacity-60'],
+		detail: 'in-[[aria-pressed=false]]:opacity-60',
+		key: 'in-[[aria-pressed=false]]:opacity-40',
+	},
+	/**
 	 * Tooltip value ink: the type of {@link k.label}, with tabular figures. Only
 	 * the ink is stronger, so the value leads and the row reads as one line.
 	 */
