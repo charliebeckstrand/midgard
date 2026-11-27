@@ -2243,13 +2243,13 @@
 		"defaultMessage": "No change",
 		"description": "Text of a demo in the docs as placeholder, in modules/grid/editing/bulk-edit.tsx."
 	},
-	"docs.demo.434d50d3567a": {
-		"defaultMessage": "Select a range, then paste with",
-		"description": "Text of a demo in the docs, in modules/grid/editing/paste-and-fill.tsx."
-	},
 	"docs.demo.42ef6f7243e3": {
 		"defaultMessage": "Hero images",
 		"description": "Text of a demo in the docs, in components/breadcrumb/collapse.tsx."
+	},
+	"docs.demo.434d50d3567a": {
+		"defaultMessage": "Select a range, then paste with",
+		"description": "Text of a demo in the docs, in modules/grid/editing/paste-and-fill.tsx."
 	},
 	"docs.demo.43af08d5a594": {
 		"defaultMessage": "Updated on March 3",
