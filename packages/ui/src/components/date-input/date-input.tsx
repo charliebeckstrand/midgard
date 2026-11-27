@@ -47,7 +47,14 @@ export type DateInputProps = Omit<
 	| 'clearable'
 	| 'clearLabel'
 	| 'invalid'
+	| 'autoComplete'
 > & {
+	/**
+	 * The `autocomplete` token of the input, such as `bday`. The prop wins over
+	 * the `autoComplete` of an enclosing `<Control>`.
+	 * @defaultValue the `autoComplete` of the enclosing `<Control>`, else `'off'`.
+	 */
+	autoComplete?: InputProps['autoComplete']
 	/**
 	 * Forces the invalid state. When omitted, the typed entry, the bound form field, and the enclosing Control set it.
 	 * @defaultValue `false`, or `true` while the typed entry is not a valid date. A form error or an `error` severity of the enclosing Control also sets it.
@@ -155,6 +162,7 @@ export function DateInput({
 	suffix,
 	clearable = true,
 	clearLabel,
+	autoComplete,
 	disabled,
 	readOnly,
 	name,
@@ -264,9 +272,9 @@ export function DateInput({
 	// The rule of Input for its clear button. Any text counts, also a partial
 	// entry that has no complete `Date` yet. The lock of the Input comes from
 	// `useControlProps`, so a locked scope, such as a Form that submits, counts.
-	const lock = useControlProps({ disabled, readOnly })
+	const control = useControlProps({ autoComplete, disabled, readOnly })
 
-	const locked = lock.disabled || lock.readOnly
+	const locked = control.disabled || control.readOnly
 
 	const clearShown = clearable && text !== '' && !locked
 
@@ -311,7 +319,10 @@ export function DateInput({
 				inputMode="numeric"
 				aria-label={labelled.ariaLabel}
 				placeholder={placeholder ?? formatDatePattern(intl, format)}
-				autoComplete="off"
+				// The prop wins, then the Control, then 'off'. The default is not a
+				// parameter default, because that counts as the prop and hides the
+				// token of the Control.
+				autoComplete={control.autoComplete ?? 'off'}
 				disabled={disabled}
 				readOnly={readOnly}
 				clearable={clearable}
