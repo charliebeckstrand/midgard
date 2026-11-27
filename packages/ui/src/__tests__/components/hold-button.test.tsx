@@ -1,24 +1,14 @@
 import { screen } from '@testing-library/react'
 import { animate } from 'motion'
 import { Activity, type FormEvent } from 'react'
-import { afterEach, beforeEach, describe, expect, vi } from 'vitest'
+import { beforeEach, describe, expect, vi } from 'vitest'
 import { HoldButton, type HoldButtonProps } from '../../components/hold-button'
 import { ControlLockContext } from '../../primitives/control/context'
 import { bySlot, expectAnnouncement, fireEvent, getSlot, present, renderUI } from '../helpers'
 import { it, onFakeClock } from '../helpers/fake-clock'
+import { stubAnimate } from '../helpers/stub-animate'
 
-// `animate` is the shared module spy (setup/module-mocks.ts). The stub runs no
-// animation. A real Motion animation under fake timers waits on a fake frame,
-// and the frame loop of Motion then stays stuck for the next files of the
-// worker, because the suites run with `isolate: false`.
-beforeEach(() => {
-	vi.mocked(animate).mockReturnValue({} as ReturnType<typeof animate>)
-})
-
-afterEach(() => {
-	// Restore the call-through default of animate.
-	vi.mocked(animate).mockRestore()
-})
+beforeEach(stubAnimate)
 
 /** A plain primary press. jsdom gives a synthetic pointer event `isPrimary: false`. */
 const PRESS = { isPrimary: true, button: 0 }

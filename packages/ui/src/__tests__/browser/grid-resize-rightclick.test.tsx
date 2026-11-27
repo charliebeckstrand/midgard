@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { fireEvent, frames, renderUI, waitFor } from '../helpers'
 import { gridHeader } from '../helpers/grid-cells'
+import { dragResize, resizeHandle } from './helpers/resize-handle'
 
 /**
  * A right-click on the column resize handle must not begin a drag-resize. The
@@ -32,9 +33,7 @@ describe('grid resize handle: right-click (real browser)', () => {
 			</div>,
 		)
 
-		const separator = container.querySelector<HTMLElement>('hr[aria-label="Resize Name"]')
-
-		if (!separator) throw new Error('resize handle not found')
+		const separator = resizeHandle(container, 'Name')
 
 		const nameHeader = gridHeader(container, 'name')
 
@@ -89,17 +88,7 @@ describe('grid resize handle: right-click (real browser)', () => {
 
 		const startWidth = nameHeader.getBoundingClientRect().width
 
-		const rect = separator.getBoundingClientRect()
-
-		const startX = rect.left + rect.width / 2
-
-		const y = rect.top + rect.height / 2
-
-		fireEvent.mouseDown(separator, { button: 0, clientX: startX, clientY: y })
-
-		fireEvent.mouseMove(document, { clientX: startX + 80, clientY: y })
-
-		fireEvent.mouseUp(document, { clientX: startX + 80, clientY: y })
+		dragResize(separator, 80)
 
 		await waitFor(() =>
 			expect(nameHeader.getBoundingClientRect().width).toBeGreaterThan(startWidth + 40),

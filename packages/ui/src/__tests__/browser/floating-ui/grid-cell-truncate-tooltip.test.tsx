@@ -2,8 +2,8 @@ import { useState } from 'react'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { Grid, type GridColumn } from '../../../modules/grid'
-import { fireEvent, frames, present, renderUI, screen, waitFor } from '../../helpers'
-import { getCenter } from '../../helpers/geometry/box'
+import { frames, present, renderUI, screen, waitFor } from '../../helpers'
+import { pressResize, resizeHandle } from '../helpers/resize-handle'
 import { settledRect } from '../helpers/sample'
 import { textOverflow } from '../helpers/text-overflow'
 import { tooltipAfterHover } from '../helpers/tooltip'
@@ -338,23 +338,13 @@ describe('grid cell truncation tooltip (real browser)', () => {
 		await screen.findByRole('tooltip')
 
 		// Press the column's resize handle and drag, without releasing.
-		const separator = container.querySelector<HTMLElement>('hr[aria-label="Resize Name"]')
-
-		if (!separator) throw new Error('resize separator not found')
-
-		const x = getCenter(separator).x
-
-		const y = separator.getBoundingClientRect().top + 4
-
-		fireEvent.mouseDown(separator, { clientX: x, clientY: y })
+		const held = pressResize(resizeHandle(container, 'Name'))
 
 		// The release ends the drag even when the wait below fails. Its document
 		// listeners otherwise stay, and later cases move the mouse into the drag.
-		onTestFinished(() => {
-			fireEvent.mouseUp(document, { clientX: x - 30, clientY: y })
-		})
+		onTestFinished(held.release)
 
-		fireEvent.mouseMove(document, { clientX: x - 30, clientY: y })
+		held.move(-30)
 
 		// The in-flight resize holds the overflow tooltip closed, though the cell is
 		// still clipped and still hovered.

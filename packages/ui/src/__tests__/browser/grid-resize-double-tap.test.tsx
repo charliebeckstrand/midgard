@@ -1,8 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { MULTI_TAP_WINDOW } from '../../hooks/use-touch-tap'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { fireEvent, frames, present, renderUI } from '../helpers'
+import { fireEvent, frames, renderUI } from '../helpers'
 import { gridHeader } from '../helpers/grid-cells'
+import { resizeHandle } from './helpers/resize-handle'
 
 /**
  * A double tap on the column resize handle auto-sizes the column, as a
@@ -40,10 +41,7 @@ describe('grid resize handle: double tap (real browser)', () => {
 
 		await frames()
 
-		const separator = present(
-			container.querySelector<HTMLElement>('hr[aria-label="Resize Name"]'),
-			'the resize handle',
-		)
+		const separator = resizeHandle(container, 'Name')
 
 		const header = gridHeader(container, 'name')
 

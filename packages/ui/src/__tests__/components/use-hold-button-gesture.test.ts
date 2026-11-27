@@ -1,12 +1,15 @@
 import { act, renderHook } from '@testing-library/react'
 import { animate } from 'motion'
 import { useEffect } from 'react'
-import { afterEach, beforeEach, describe, expect, vi } from 'vitest'
+import { beforeEach, describe, expect, vi } from 'vitest'
 import {
 	type HoldGestureOptions,
 	useHoldButtonGesture,
 } from '../../components/hold-button/use-hold-button-gesture'
+import { REDUCED_MOTION_QUERY } from '../../utilities/media-query'
+import { stubMatchMedia } from '../helpers'
 import { it, onFakeClock } from '../helpers/fake-clock'
+import { stubAnimate } from '../helpers/stub-animate'
 
 function renderGesture(initial: HoldGestureOptions) {
 	return renderHook(
@@ -31,20 +34,9 @@ function renderGesture(initial: HoldGestureOptions) {
 }
 
 describe('useHoldButtonGesture', () => {
-	// `animate` is the shared module spy (setup/module-mocks.ts). The stub runs no
-	// animation. A real Motion animation under fake timers waits on a fake frame,
-	// and the frame loop of Motion then stays stuck for the next files of the
-	// worker, because the suites run with `isolate: false`.
 	onFakeClock()
 
-	beforeEach(() => {
-		vi.mocked(animate).mockReturnValue({} as ReturnType<typeof animate>)
-	})
-
-	afterEach(() => {
-		// Restore the call-through default of animate.
-		vi.mocked(animate).mockRestore()
-	})
+	beforeEach(stubAnimate)
 
 	it('fires onHoldComplete after the configured duration', async ({ clock }) => {
 		const onHoldComplete = vi.fn()
@@ -218,5 +210,37 @@ describe('useHoldButtonGesture', () => {
 		expect(onHoldStart).toHaveBeenCalledTimes(2)
 
 		expect(onHoldComplete).toHaveBeenCalledTimes(1)
+	})
+})
+
+describe('useHoldButtonGesture under prefers-reduced-motion', () => {
+	// Forces the reduced-motion branch via the shared mock's matchMedia read,
+	// not a per-file `vi.mock('motion/react')` (see setup/module-mocks.ts).
+	beforeEach(() => {
+		stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
+	})
+
+	beforeEach(stubAnimate)
+
+	it('still animates the progress fill over the full duration (essential feedback)', () => {
+		const { result } = renderGesture({ duration: 500, disabled: false })
+
+		act(() => result.current.start())
+
+		expect(animate).toHaveBeenLastCalledWith(
+			result.current.fill,
+			{ scaleX: 1 },
+			{ duration: 0.5, ease: 'linear' },
+		)
+	})
+
+	it('collapses the decorative reset to an instant', () => {
+		const { result } = renderGesture({ duration: 500, disabled: false })
+
+		act(() => result.current.start())
+
+		act(() => result.current.cancel())
+
+		expect(animate).toHaveBeenLastCalledWith(result.current.fill, { scaleX: 0 }, { duration: 0 })
 	})
 })

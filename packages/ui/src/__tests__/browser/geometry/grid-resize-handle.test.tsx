@@ -4,6 +4,7 @@ import { Grid, type GridColumn } from '../../../modules/grid'
 import { frame, frames, getSlot, present, renderUI } from '../../helpers'
 import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
 import { afterBox } from '../helpers/after-box'
+import { resizeHandle } from '../helpers/resize-handle'
 
 // The handle and the header cell can differ by a hairline cell border, up to this much.
 const HANDLE_HEIGHT_SLACK = 2
@@ -69,12 +70,7 @@ describe('grid resize handle geometry (real browser)', () => {
 		)
 
 		// The handle draws the grip as its `::after`.
-		const grip = afterBox(
-			present(
-				container.querySelector('hr[aria-label="Resize Role"]'),
-				'[aria-label="Resize Role"]',
-			),
-		)
+		const grip = afterBox(resizeHandle(container, 'Role'))
 
 		// The grip's trailing edge stops at the column boundary: it does not spill
 		// past it into the neighbor, whose opaque sticky header would clip it.
@@ -95,10 +91,7 @@ describe('grid resize handle geometry (real browser)', () => {
 
 		await frames()
 
-		const nameHandle = present(
-			container.querySelector('hr[aria-label="Resize Name"]'),
-			'hr[aria-label="Resize Name"]',
-		)
+		const nameHandle = resizeHandle(container, 'Name')
 
 		const nameHeader = present(
 			container.querySelector('th[data-grid-col="name"]'),
@@ -133,10 +126,7 @@ describe('grid resize handle geometry (real browser)', () => {
 		// edge, so the scrollable extent is the table width (not table + overhang).
 		expect(scroll.scrollWidth).toBeLessThanOrEqual(Math.ceil(table.getBoundingClientRect().width))
 
-		const statusHandle = present(
-			container.querySelector('hr[aria-label="Resize Status"]'),
-			'hr[aria-label="Resize Status"]',
-		)
+		const statusHandle = resizeHandle(container, 'Status')
 
 		expect(statusHandle.getBoundingClientRect().right).toBeLessThanOrEqual(
 			table.getBoundingClientRect().right + 0.5,
@@ -185,12 +175,7 @@ describe('grid resize grip alignment (real browser)', () => {
 		)
 
 		// The handle draws the grip as its `::after`.
-		const grip = afterBox(
-			present(
-				container.querySelector('hr[aria-label="Resize Name"]'),
-				'[aria-label="Resize Name"]',
-			),
-		)
+		const grip = afterBox(resizeHandle(container, 'Name'))
 
 		return header.getBoundingClientRect().right - grip.right
 	}

@@ -48,6 +48,8 @@ import {
 import {
 	ControlledDashboard,
 	pressSplitter,
+	SALES_LAYOUT,
+	SalesBoard,
 	StoreProbe,
 	settleKeyboardLifts,
 	stubCanvasWidth,
@@ -57,45 +59,9 @@ import { keyboardSensorAttached, pointerSensorDetached } from '../helpers/dnd-ki
 import { it, onFakeClock } from '../helpers/fake-clock'
 import { serverMarkup } from '../helpers/hydrate'
 
-const LAYOUT: DashboardLayoutItem[] = [
-	{ id: 'a', x: 0, y: 0, w: 12 },
-	{ id: 'b', x: 12, y: 0, w: 12 },
-	{ id: 'c', x: 0, y: 27, w: 8, h: 20 },
-]
-
 stubCanvasWidth()
 
 settleKeyboardLifts()
-
-function Board({
-	editing = false,
-	layout = { defaultValue: LAYOUT },
-	onDragEnd,
-	children,
-}: {
-	editing?: boolean
-	layout?: DashboardProps['layout']
-	onDragEnd?: DashboardProps['onDragEnd']
-	children?: ReactNode
-}) {
-	return (
-		<Dashboard aria-label="Sales" editing={editing} layout={layout} onDragEnd={onDragEnd}>
-			<DashboardTile id="a" title="Revenue" ratio={16 / 9}>
-				<button type="button">Inside a</button>
-			</DashboardTile>
-
-			<DashboardTile id="b" title="Traffic" ratio={16 / 9}>
-				<div data-testid="content-b" />
-			</DashboardTile>
-
-			<DashboardTile id="c">
-				<div data-testid="content-c" />
-			</DashboardTile>
-
-			{children}
-		</Dashboard>
-	)
-}
 
 /** Three free-form tiles of one span: two in the first row, and one under the first. */
 const GRID: DashboardLayoutItem[] = [
@@ -174,7 +140,7 @@ const PRIMARY = { isPrimary: true, button: 0 }
 
 describe('Dashboard', () => {
 	it('renders each tile with a layout entry on the server, at its saved cell', () => {
-		const html = renderToString(<Board />)
+		const html = renderToString(<SalesBoard />)
 
 		expect(html).toContain('grid-area:1 / 1 / span 27 / span 12')
 
@@ -184,7 +150,7 @@ describe('Dashboard', () => {
 	})
 
 	it('derives the row unit from the container, with no measurement', () => {
-		const { container } = renderUI(<Board />)
+		const { container } = renderUI(<SalesBoard />)
 
 		const canvas = bySlot(container, 'dashboard-canvas')
 
@@ -198,7 +164,7 @@ describe('Dashboard', () => {
 
 	it('clamps a negative gap to 0', () => {
 		const { container } = renderUI(
-			<Dashboard aria-label="Sales" gap={-8} layout={{ defaultValue: LAYOUT }}>
+			<Dashboard aria-label="Sales" gap={-8} layout={{ defaultValue: SALES_LAYOUT }}>
 				<DashboardTile id="a" title="Revenue">
 					<div />
 				</DashboardTile>
@@ -211,7 +177,7 @@ describe('Dashboard', () => {
 	})
 
 	it('renders each tile title as a level 3 heading, or at the titleLevel of the board', () => {
-		const { unmount } = renderUI(<Board />)
+		const { unmount } = renderUI(<SalesBoard />)
 
 		expect(screen.getByRole('heading', { level: 3, name: 'Revenue' })).toBeInTheDocument()
 
@@ -227,7 +193,7 @@ describe('Dashboard', () => {
 	})
 
 	it('names each titled tile, and draws no grip at rest', () => {
-		renderUI(<Board />)
+		renderUI(<SalesBoard />)
 
 		expect(screen.getByRole('group', { name: 'Revenue' })).toBeInTheDocument()
 
@@ -235,7 +201,7 @@ describe('Dashboard', () => {
 	})
 
 	it('fades the splitter bars only where the reader allows motion', () => {
-		const { container } = renderUI(<Board editing />)
+		const { container } = renderUI(<SalesBoard editing />)
 
 		const transitions = (element: Element) =>
 			[...element.classList].filter((name) => name.includes('transition'))
@@ -250,13 +216,13 @@ describe('Dashboard', () => {
 	})
 
 	it('makes the content inert in edit mode, and keeps it live at rest', () => {
-		const { container, rerender } = renderUI(<Board />)
+		const { container, rerender } = renderUI(<SalesBoard />)
 
 		const [content] = allBySlot(container, 'dashboard-tile-content')
 
 		expect(content).not.toHaveAttribute('inert')
 
-		rerender(<Board editing />)
+		rerender(<SalesBoard editing />)
 
 		expect(content).toHaveAttribute('inert')
 
@@ -279,7 +245,7 @@ describe('Dashboard', () => {
 		}
 
 		const board = (editing: boolean) => (
-			<Dashboard aria-label="Sales" editing={editing} layout={{ defaultValue: LAYOUT }}>
+			<Dashboard aria-label="Sales" editing={editing} layout={{ defaultValue: SALES_LAYOUT }}>
 				<DashboardTile id="a" title="Revenue" ratio={16 / 9}>
 					<Widget name="Revenue" />
 				</DashboardTile>
@@ -314,7 +280,7 @@ describe('Dashboard', () => {
 		}
 
 		renderUI(
-			<Dashboard aria-label="Sales" layout={{ defaultValue: LAYOUT }}>
+			<Dashboard aria-label="Sales" layout={{ defaultValue: SALES_LAYOUT }}>
 				<DashboardTile id="a" title="Revenue" expandable>
 					<Widget />
 				</DashboardTile>
@@ -337,7 +303,7 @@ describe('Dashboard', () => {
 		}
 
 		const { container } = renderUI(
-			<Dashboard aria-label="Sales" layout={{ defaultValue: LAYOUT }}>
+			<Dashboard aria-label="Sales" layout={{ defaultValue: SALES_LAYOUT }}>
 				<DashboardTile
 					id="a"
 					title="Revenue"
@@ -360,7 +326,7 @@ describe('Dashboard', () => {
 	})
 
 	it('keeps the hit area of each header button to its own width', () => {
-		const { container } = renderUI(<Board editing />)
+		const { container } = renderUI(<SalesBoard editing />)
 
 		// jsdom applies no Tailwind CSS, so the class carries the pin. The icon
 		// buttons of the row touch, so on a coarse pointer each hit area keeps to
@@ -370,7 +336,7 @@ describe('Dashboard', () => {
 	})
 
 	it('gives each edge a keyboard splitter, and no south edge to a ratio tile', () => {
-		renderUI(<Board editing />)
+		renderUI(<SalesBoard editing />)
 
 		expect(screen.getByRole('separator', { name: 'Resize Revenue' })).toHaveAttribute(
 			'aria-orientation',
@@ -382,11 +348,11 @@ describe('Dashboard', () => {
 
 	it('gives a south splitter to a tile whose ratio is not usable', () => {
 		renderUI(
-			<Board editing>
+			<SalesBoard editing>
 				<DashboardTile id="d" title="Photo" ratio={0 / 0}>
 					<div data-testid="content-d" />
 				</DashboardTile>
-			</Board>,
+			</SalesBoard>,
 		)
 
 		const splitters = screen.getAllByRole('separator', { name: 'Resize Photo' })
@@ -404,7 +370,7 @@ describe('Dashboard', () => {
 	})
 
 	it('shows each splitter bar at rest where the primary pointer is coarse', () => {
-		const { container } = renderUI(<Board editing />)
+		const { container } = renderUI(<SalesBoard editing />)
 
 		const splitters = allBySlot(container, 'dashboard-resize-handle')
 
@@ -421,7 +387,7 @@ describe('Dashboard', () => {
 		const onValueChange = vi.fn()
 
 		function Controlled() {
-			return <Board editing layout={useControlledLayout(LAYOUT, onValueChange)} />
+			return <SalesBoard editing layout={useControlledLayout(SALES_LAYOUT, onValueChange)} />
 		}
 
 		renderUI(<Controlled />)
@@ -446,7 +412,7 @@ describe('Dashboard', () => {
 		const onValueChange = vi.fn()
 
 		function Controlled() {
-			return <Board editing layout={useControlledLayout(LAYOUT, onValueChange)} />
+			return <SalesBoard editing layout={useControlledLayout(SALES_LAYOUT, onValueChange)} />
 		}
 
 		renderUI(<Controlled />)
@@ -461,7 +427,7 @@ describe('Dashboard', () => {
 	})
 
 	it('marks the grip and the card as held while a tile drags, so the grab hand closes', async () => {
-		const { container } = renderUI(<Board editing />)
+		const { container } = renderUI(<SalesBoard editing />)
 
 		const grip = screen.getByRole('button', { name: 'Move Revenue' })
 
@@ -487,7 +453,7 @@ describe('Dashboard', () => {
 	})
 
 	it('gives the grip the violet focus ring of a lift while the keyboard carries the tile', async () => {
-		renderUI(<Board editing />)
+		renderUI(<SalesBoard editing />)
 
 		const grip = screen.getByRole('button', { name: 'Move Revenue' })
 
@@ -519,7 +485,7 @@ describe('Dashboard', () => {
 		renderUI(
 			<Dialog open onOpenChange={onOpenChange}>
 				<DialogPanel aria-label="Edit the board">
-					<Board editing onDragEnd={onDragEnd} />
+					<SalesBoard editing onDragEnd={onDragEnd} />
 				</DialogPanel>
 			</Dialog>,
 		)
@@ -544,7 +510,7 @@ describe('Dashboard', () => {
 	})
 
 	it('shows the grabbing cursor on the whole page while a tile drags, until the drop or the cancel', async () => {
-		renderUI(<Board editing />)
+		renderUI(<SalesBoard editing />)
 
 		const cursor = () => document.head.querySelector('style[data-drag-cursor]')
 
@@ -725,7 +691,7 @@ describe('Dashboard', () => {
 			<Dashboard
 				aria-label="Sales"
 				editing
-				layout={{ defaultValue: LAYOUT }}
+				layout={{ defaultValue: SALES_LAYOUT }}
 				onProjectedChange={onProjectedChange}
 			>
 				<DashboardTile id="c" title="Orders" minWidth={minWidth} />
@@ -761,7 +727,7 @@ describe('Dashboard', () => {
 		renderUI(
 			<Dashboard
 				aria-label="Sales"
-				layout={{ defaultValue: LAYOUT }}
+				layout={{ defaultValue: SALES_LAYOUT }}
 				onProjectedChange={onProjectedChange}
 			>
 				<DashboardTile id="c" title="Orders" minWidth={600} />
@@ -775,7 +741,7 @@ describe('Dashboard', () => {
 		const { renders, Counted } = tileCounter()
 
 		renderUI(
-			<Dashboard aria-label="Sales" editing layout={{ defaultValue: LAYOUT }}>
+			<Dashboard aria-label="Sales" editing layout={{ defaultValue: SALES_LAYOUT }}>
 				<Counted id="a">
 					<DashboardTile id="a" title="Revenue" ratio={16 / 9} />
 				</Counted>
@@ -815,7 +781,7 @@ describe('Dashboard', () => {
 		)
 
 		const board = (label: string) => (
-			<Dashboard aria-label={label} layout={{ defaultValue: LAYOUT }}>
+			<Dashboard aria-label={label} layout={{ defaultValue: SALES_LAYOUT }}>
 				{tiles}
 			</Dashboard>
 		)
@@ -846,7 +812,7 @@ describe('Dashboard', () => {
 		const { renders, Counted } = tileCounter()
 
 		renderUI(
-			<Dashboard aria-label="Sales" layout={{ defaultValue: LAYOUT }}>
+			<Dashboard aria-label="Sales" layout={{ defaultValue: SALES_LAYOUT }}>
 				<Counted id="a">
 					<DashboardTile id="a" title="Revenue" ratio={16 / 9} />
 				</Counted>
@@ -959,7 +925,11 @@ describe('Dashboard', () => {
 		vi.spyOn(console, 'error').mockImplementation(() => {})
 
 		renderUI(
-			<Dashboard aria-label="Sales" layout={{ defaultValue: LAYOUT }} onTileError={onTileError}>
+			<Dashboard
+				aria-label="Sales"
+				layout={{ defaultValue: SALES_LAYOUT }}
+				onTileError={onTileError}
+			>
 				<DashboardTile id="a" title="Revenue">
 					<Flaky />
 				</DashboardTile>
@@ -1081,7 +1051,11 @@ describe('Dashboard', () => {
 	/** A board with one tile that holds `widget`, and that reports each error to `onTileError`. */
 	function errorBoard(widget: ReactNode, onTileError: DashboardProps['onTileError']) {
 		return (
-			<Dashboard aria-label="Sales" layout={{ defaultValue: LAYOUT }} onTileError={onTileError}>
+			<Dashboard
+				aria-label="Sales"
+				layout={{ defaultValue: SALES_LAYOUT }}
+				onTileError={onTileError}
+			>
 				<DashboardTile id="a" title="Revenue">
 					{widget}
 				</DashboardTile>
@@ -1124,7 +1098,7 @@ describe('Dashboard', () => {
 				return (
 					<Dashboard
 						aria-label="Sales"
-						layout={{ defaultValue: LAYOUT }}
+						layout={{ defaultValue: SALES_LAYOUT }}
 						onTileError={(_id, error) => {
 							onReport()
 
@@ -1164,7 +1138,7 @@ describe('Dashboard', () => {
 		return (
 			<Dashboard
 				aria-label="Sales"
-				layout={{ defaultValue: LAYOUT }}
+				layout={{ defaultValue: SALES_LAYOUT }}
 				onTileError={() => setReports((prev) => prev + 1)}
 			>
 				<DashboardTile id="a" title={`Revenue ${reports}`}>
@@ -1251,7 +1225,11 @@ describe('Dashboard', () => {
 		vi.spyOn(console, 'error').mockImplementation(() => {})
 
 		renderUI(
-			<Dashboard aria-label="Sales" layout={{ defaultValue: LAYOUT }} onTileError={onTileError}>
+			<Dashboard
+				aria-label="Sales"
+				layout={{ defaultValue: SALES_LAYOUT }}
+				onTileError={onTileError}
+			>
 				<DashboardTile id="a" title="Revenue" actions={<Widget fail />}>
 					<p>Chart</p>
 				</DashboardTile>
@@ -1282,7 +1260,11 @@ describe('Dashboard', () => {
 		vi.spyOn(console, 'error').mockImplementation(() => {})
 
 		renderUI(
-			<Dashboard aria-label="Sales" layout={{ defaultValue: LAYOUT }} onTileError={onTileError}>
+			<Dashboard
+				aria-label="Sales"
+				layout={{ defaultValue: SALES_LAYOUT }}
+				onTileError={onTileError}
+			>
 				<DashboardTile id="a" title="Revenue" description={<Widget fail />}>
 					<p>Chart</p>
 				</DashboardTile>
@@ -1311,7 +1293,7 @@ describe('Dashboard', () => {
 		vi.spyOn(console, 'error').mockImplementation(() => {})
 
 		const html = renderToString(
-			<Dashboard aria-label="Sales" layout={{ defaultValue: LAYOUT }}>
+			<Dashboard aria-label="Sales" layout={{ defaultValue: SALES_LAYOUT }}>
 				<DashboardTile id="a" title="Revenue" description={<Widget fail />}>
 					<p>Chart</p>
 				</DashboardTile>
@@ -1339,7 +1321,7 @@ describe('Dashboard', () => {
 		// A child that suspends needs an awaited act.
 		await act(async () => {
 			renderUI(
-				<Dashboard aria-label="Sales" layout={{ defaultValue: LAYOUT }}>
+				<Dashboard aria-label="Sales" layout={{ defaultValue: SALES_LAYOUT }}>
 					<DashboardTile id="a" title="Revenue" actions={<Waiting />}>
 						<p>Chart</p>
 					</DashboardTile>
@@ -1372,7 +1354,7 @@ describe('Dashboard', () => {
 		// A child that suspends needs an awaited act.
 		await act(async () => {
 			renderUI(
-				<Dashboard aria-label="Sales" layout={{ defaultValue: LAYOUT }}>
+				<Dashboard aria-label="Sales" layout={{ defaultValue: SALES_LAYOUT }}>
 					<DashboardTile id="a" title="Revenue">
 						<Slow />
 					</DashboardTile>
@@ -1447,10 +1429,10 @@ describe('Dashboard gesture owner', () => {
 	}) {
 		return (
 			<ControlLockContext value={locked}>
-				<Board
+				<SalesBoard
 					editing={editing}
 					onDragEnd={onDragEnd}
-					layout={useControlledLayout(LAYOUT, onLayout)}
+					layout={useControlledLayout(SALES_LAYOUT, onLayout)}
 				/>
 			</ControlLockContext>
 		)
@@ -1486,7 +1468,7 @@ describe('Dashboard gesture owner', () => {
 		const rejections = collectRejections()
 
 		const { rerender } = renderUI(
-			<Board editing layout={{ value: LAYOUT, onValueChange }} onDragEnd={onDragEnd} />,
+			<SalesBoard editing layout={{ value: SALES_LAYOUT, onValueChange }} onDragEnd={onDragEnd} />,
 		)
 
 		// Twelve columns to the right, Revenue covers the cell of Traffic.
@@ -1497,7 +1479,11 @@ describe('Dashboard gesture owner', () => {
 		expect(rejections).toEqual([failure])
 
 		// The app keeps its value, so the drop saved nothing.
-		expect(onDragEnd).toHaveBeenCalledExactlyOnceWith({ id: 'a', canceled: true, layout: LAYOUT })
+		expect(onDragEnd).toHaveBeenCalledExactlyOnceWith({
+			id: 'a',
+			canceled: true,
+			layout: SALES_LAYOUT,
+		})
 
 		// The app kept its layout, so each tile paints its saved cell.
 		expect(readArea(screen.getByRole('group', { name: 'Revenue' }))).toBe(
@@ -1508,9 +1494,9 @@ describe('Dashboard gesture owner', () => {
 			'1 / 13 / span 27 / span 12',
 		)
 
-		const moved = LAYOUT.map((item) => (item.id === 'c' ? { ...item, y: 40 } : item))
+		const moved = SALES_LAYOUT.map((item) => (item.id === 'c' ? { ...item, y: 40 } : item))
 
-		rerender(<Board editing layout={{ value: moved, onValueChange }} onDragEnd={onDragEnd} />)
+		rerender(<SalesBoard editing layout={{ value: moved, onValueChange }} onDragEnd={onDragEnd} />)
 
 		expect(readArea(screen.getByTestId('content-c'))).toBe('41 / 1 / span 20 / span 8')
 	})
@@ -1527,7 +1513,11 @@ describe('Dashboard gesture owner', () => {
 		const rejections = collectRejections()
 
 		renderUI(
-			<Board editing layout={{ defaultValue: LAYOUT, onValueChange }} onDragEnd={onDragEnd} />,
+			<SalesBoard
+				editing
+				layout={{ defaultValue: SALES_LAYOUT, onValueChange }}
+				onDragEnd={onDragEnd}
+			/>,
 		)
 
 		await drop(await lift('Move Revenue', 'ArrowRight', 12))
@@ -1655,11 +1645,13 @@ describe('Dashboard gesture owner', () => {
 
 		const onDragEnd = vi.fn()
 
-		const { rerender } = renderUI(<Held value={LAYOUT} onLayout={onLayout} onDragEnd={onDragEnd} />)
+		const { rerender } = renderUI(
+			<Held value={SALES_LAYOUT} onLayout={onLayout} onDragEnd={onDragEnd} />,
+		)
 
 		const grip = await lift('Move Revenue', 'ArrowRight', 12)
 
-		const moved = LAYOUT.map((item) => (item.id === 'c' ? { ...item, y: 40 } : item))
+		const moved = SALES_LAYOUT.map((item) => (item.id === 'c' ? { ...item, y: 40 } : item))
 
 		rerender(<Held value={moved} onLayout={onLayout} onDragEnd={onDragEnd} />)
 
@@ -1681,11 +1673,13 @@ describe('Dashboard gesture owner', () => {
 
 		const onDragEnd = vi.fn()
 
-		const { rerender } = renderUI(<Held value={LAYOUT} onLayout={onLayout} onDragEnd={onDragEnd} />)
+		const { rerender } = renderUI(
+			<Held value={SALES_LAYOUT} onLayout={onLayout} onDragEnd={onDragEnd} />,
+		)
 
 		const grip = await lift('Move Revenue', 'ArrowRight', 12)
 
-		const removed = LAYOUT.filter((item) => item.id !== 'c')
+		const removed = SALES_LAYOUT.filter((item) => item.id !== 'c')
 
 		rerender(<Held value={removed} withC={false} onLayout={onLayout} onDragEnd={onDragEnd} />)
 
@@ -1712,7 +1706,11 @@ describe('Dashboard gesture owner', () => {
 
 			rerender(<Controlled {...props} onLayout={onLayout} onDragEnd={onDragEnd} />)
 
-			expect(onDragEnd).toHaveBeenCalledExactlyOnceWith({ id: 'a', canceled: true, layout: LAYOUT })
+			expect(onDragEnd).toHaveBeenCalledExactlyOnceWith({
+				id: 'a',
+				canceled: true,
+				layout: SALES_LAYOUT,
+			})
 
 			expect(readArea(screen.getByRole('group', { name: 'Revenue' }))).toBe(
 				'1 / 1 / span 27 / span 12',
@@ -1741,7 +1739,11 @@ describe('Dashboard gesture owner', () => {
 
 		unmount()
 
-		expect(onDragEnd).toHaveBeenCalledExactlyOnceWith({ id: 'a', canceled: true, layout: LAYOUT })
+		expect(onDragEnd).toHaveBeenCalledExactlyOnceWith({
+			id: 'a',
+			canceled: true,
+			layout: SALES_LAYOUT,
+		})
 
 		fireEvent.keyDown(document, { code: 'Space', key: ' ' })
 
@@ -1763,7 +1765,7 @@ describe('Dashboard gesture owner', () => {
 		const inDialog = (editing: boolean) => (
 			<Dialog open onOpenChange={onOpenChange}>
 				<DialogPanel aria-label="Edit the board">
-					<Board editing={editing} onDragEnd={onDragEnd} />
+					<SalesBoard editing={editing} onDragEnd={onDragEnd} />
 				</DialogPanel>
 			</Dialog>
 		)
@@ -1797,7 +1799,7 @@ describe('Dashboard gesture owner', () => {
 		const inDialog = (withC: boolean) => (
 			<Dialog open onOpenChange={onOpenChange}>
 				<DialogPanel aria-label="Edit the board">
-					<Held value={LAYOUT} withC={withC} onLayout={onLayout} onDragEnd={onDragEnd} />
+					<Held value={SALES_LAYOUT} withC={withC} onLayout={onLayout} onDragEnd={onDragEnd} />
 				</DialogPanel>
 			</Dialog>
 		)
@@ -1830,7 +1832,7 @@ describe('Dashboard gesture owner', () => {
 			<Dashboard
 				aria-label="Sales"
 				editing
-				layout={{ value: LAYOUT, onValueChange: onLayout }}
+				layout={{ value: SALES_LAYOUT, onValueChange: onLayout }}
 				onDragStart={onDragStart}
 			>
 				<DashboardTile id="a" title="Revenue" ratio={16 / 9} />
@@ -1878,7 +1880,11 @@ describe('Dashboard gesture owner', () => {
 
 		rerender(<Controlled editing={false} onLayout={onLayout} onDragEnd={onDragEnd} />)
 
-		expect(onDragEnd).toHaveBeenCalledExactlyOnceWith({ id: 'a', canceled: true, layout: LAYOUT })
+		expect(onDragEnd).toHaveBeenCalledExactlyOnceWith({
+			id: 'a',
+			canceled: true,
+			layout: SALES_LAYOUT,
+		})
 
 		expect(container.querySelector('[data-dragging]')).toBeNull()
 
@@ -1926,7 +1932,11 @@ describe('Dashboard gesture owner', () => {
 
 			await pointerSensorDetached()
 
-			expect(onDragEnd).toHaveBeenCalledExactlyOnceWith({ id: 'a', canceled: true, layout: LAYOUT })
+			expect(onDragEnd).toHaveBeenCalledExactlyOnceWith({
+				id: 'a',
+				canceled: true,
+				layout: SALES_LAYOUT,
+			})
 
 			// No keyboard sensor holds the document, so a page key goes through.
 			const passed = fireEvent.keyDown(screen.getByRole('button', { name: 'Inside a' }), {
@@ -1959,7 +1969,11 @@ describe('Dashboard gesture owner', () => {
 
 			rerender(<Controlled editing={false} onLayout={onLayout} onDragEnd={onDragEnd} />)
 
-			expect(onDragEnd).toHaveBeenCalledExactlyOnceWith({ id: 'a', canceled: true, layout: LAYOUT })
+			expect(onDragEnd).toHaveBeenCalledExactlyOnceWith({
+				id: 'a',
+				canceled: true,
+				layout: SALES_LAYOUT,
+			})
 
 			await pointerSensorDetached()
 
@@ -2152,7 +2166,7 @@ describe('Dashboard tile ids', () => {
 
 		renderUI(
 			<StrictMode>
-				<Board />
+				<SalesBoard />
 			</StrictMode>,
 		)
 
@@ -2183,7 +2197,7 @@ describe('Dashboard registration', () => {
 		let register: MockInstance<DashboardStore['register']> | undefined
 
 		renderUI(
-			<Dashboard aria-label="Sales" layout={{ defaultValue: LAYOUT }}>
+			<Dashboard aria-label="Sales" layout={{ defaultValue: SALES_LAYOUT }}>
 				<StoreProbe
 					onStore={(store) => {
 						register = vi.spyOn(store, 'register')
@@ -2233,7 +2247,7 @@ describe('Dashboard registration', () => {
 		let board: DashboardStore | undefined
 
 		const { unmount } = renderUI(
-			<Dashboard aria-label="Sales" layout={{ defaultValue: LAYOUT }}>
+			<Dashboard aria-label="Sales" layout={{ defaultValue: SALES_LAYOUT }}>
 				<StoreProbe
 					onStore={(store) => {
 						board = store
