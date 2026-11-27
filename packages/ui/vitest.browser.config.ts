@@ -85,6 +85,17 @@ const FIREFOX_PREFS = { 'dom.multiple_import_maps.enabled': false }
 const CONTEXT_OPTIONS = { locale: 'en-US', timezoneId: 'UTC' }
 
 /**
+ * The options of the page of the `coarse` instance: the options of each page,
+ * and a touch screen. With `hasTouch`, Chromium matches `(pointer: coarse)`,
+ * `(any-pointer: coarse)`, and `(hover: none)`, in the tester iframe too. The
+ * option belongs to the browser context, so it holds for each file of the
+ * instance, and no other instance gets it. A CDP touch emulation on the shared
+ * page cannot do this: when it stops, `hover: hover` and `pointer: fine` do not
+ * come back, and each later file loses its `hover:` variants.
+ */
+const COARSE_CONTEXT_OPTIONS = { ...CONTEXT_OPTIONS, hasTouch: true }
+
+/**
  * The instances in WebKit for the files of Wysiwyg and of the formatted field of
  * ChatPrompt: the typing, the input before the load, the citations, the
  * picker, and the link dialog. A contenteditable field, its selection, and its
@@ -322,6 +333,14 @@ const releasePointer: BrowserCommand<[selector?: string]> = async (context, sele
  *   short. This instance drops the flag, so its scrollers have real scrollbars.
  *   Its mocks are the ones `browser` uses.
  *
+ * - `coarse` (browser/coarse/): the cases whose subject is a coarse pointer,
+ *   such as the 44px floor of a hit area, the touch pitch, and a part that
+ *   shows only to a finger. The page has a touch screen
+ *   (`COARSE_CONTEXT_OPTIONS`), so the real `(pointer: coarse)` rules of the
+ *   CSS apply, and `coarse/setup/coarse-guard.ts` fails a page that does not
+ *   match them. Its mocks are the ones `browser` uses. `pnpm test:coarse` runs
+ *   it, and `coarse/README.md` tells how to add a case.
+ *
  * - `floating-motion` (browser/floating-motion/): the cases that read the exit
  *   of a floating surface, such as the focus and the input of a menu panel
  *   while it animates out. This instance leaves `@floating-ui/react` and
@@ -522,6 +541,7 @@ export default defineConfig({
 					include: ['src/__tests__/browser/**/*.test.{ts,tsx}'],
 					exclude: [
 						...configDefaults.exclude,
+						'src/__tests__/browser/coarse/**',
 						'src/__tests__/browser/floating-motion/**',
 						'src/__tests__/browser/floating-ui/**',
 						'src/__tests__/browser/geometry/**',
@@ -544,6 +564,16 @@ export default defineConfig({
 					}),
 					setupFiles: [resolve(import.meta.dirname, 'src/__tests__/browser/setup/module-mocks.ts')],
 					include: ['src/__tests__/browser/scrollbars/**/*.test.{ts,tsx}'],
+				},
+				{
+					browser: 'chromium',
+					name: 'coarse',
+					provider: playwright({ contextOptions: COARSE_CONTEXT_OPTIONS }),
+					setupFiles: [
+						resolve(import.meta.dirname, 'src/__tests__/browser/setup/module-mocks.ts'),
+						resolve(import.meta.dirname, 'src/__tests__/browser/coarse/setup/coarse-guard.ts'),
+					],
+					include: ['src/__tests__/browser/coarse/**/*.test.{ts,tsx}'],
 				},
 				{
 					browser: 'chromium',

@@ -67,9 +67,10 @@ describe('dot hit target by pointer modality', () => {
 	it('narrows only on a device with no coarse pointer', () => {
 		// `pointer: fine` reads the primary pointer alone, so a laptop with a
 		// touchscreen matched it, and a finger tap hit-tested the narrowed
-		// circle. This suite cannot emulate a second pointer: CDP overrides no
-		// `any-pointer`, and touch emulation does not turn off again. The case reads
-		// the conditions that the browser parsed instead.
+		// circle. This page cannot emulate a second pointer: CDP overrides no
+		// `any-pointer`. The case reads the conditions that the browser parsed
+		// instead. `coarse/map-hit-target-modality.test.tsx` reads the target on a
+		// page with a touch screen.
 		const rules = mediaFor(k.hit.fine)
 
 		expect(rules).toHaveLength(1)

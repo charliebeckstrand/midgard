@@ -12,7 +12,11 @@ import { collectPatternViolations, srcDir } from '../helpers/walk-source'
 
 const testsDir = join(srcDir, '__tests__')
 
-const GEOMETRY_DIRS = [join(testsDir, 'geometry'), join(testsDir, 'browser', 'geometry')]
+const GEOMETRY_DIRS = [
+	join(testsDir, 'geometry'),
+	join(testsDir, 'browser', 'geometry'),
+	join(testsDir, 'browser', 'coarse'),
+]
 
 const PATTERNS = [
 	{ label: 'toBeCloseTo, not toBeNear with a named tolerance', regex: /\.toBeCloseTo\(/g },

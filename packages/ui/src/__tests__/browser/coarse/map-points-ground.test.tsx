@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { MapPlat, MapPoints } from '../../../modules/map'
 import { POINT_HIT_RADIUS, POINT_RADIUS } from '../../../modules/map/engine/map-constants'
-import { k } from '../../../recipes/kata/map'
 import { allBySlot, renderUI } from '../../helpers'
 import { getCenter, type Point } from '../../helpers/geometry/box'
 import { englishRadius } from '../../helpers/map-flat'
@@ -11,15 +10,9 @@ import { FIXTURE_GEOJSON } from '../../helpers/map-geography'
  * The finger targets of a set's dots, in a real browser, where hit testing resolves one target
  * through the clip of another.
  *
- * This browser drives a mouse, so the fine class narrows each target. A touchscreen keeps the whole
- * coarse reach on every dot. Each case takes the fine class off the targets, so the browser hit
- * tests the circles a finger meets.
+ * The page has a touch screen, so the fine class does not narrow a target, and each dot keeps the
+ * whole coarse reach. The browser hit tests the circles that a finger meets.
  */
-
-/** Takes the fine-pointer narrowing off every dot target, as a touchscreen resolves it. */
-function asTouch(targets: Element[]) {
-	for (const target of targets) target.classList.remove(...k.hit.fine.split(' '))
-}
 
 /** The point `distance` px from `from` toward `to`. */
 function toward(from: Point, to: Point, distance: number): Point {
@@ -69,8 +62,6 @@ describe('MapPoints finger targets between close dots', () => {
 
 		// Two summaries and the lone dot between them, or the case below asserts nothing.
 		expect(targets).toHaveLength(3)
-
-		asTouch(targets)
 
 		const leftHit = nth(targets, 0)
 
@@ -126,8 +117,6 @@ describe('MapPoints finger targets between close dots', () => {
 		)
 
 		const targets = allBySlot(container, 'map-points-hit')
-
-		asTouch(targets)
 
 		const aHit = nth(targets, 0)
 

@@ -1,5 +1,5 @@
 import { Folder, Plus } from 'lucide-react'
-import { describe, expect, it, onTestFinished } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { Button } from '../../../components/button'
 import { Icon } from '../../../components/icon'
 import {
@@ -22,24 +22,11 @@ import { getSlot, renderUI } from '../../helpers'
  * scroller of the body also scrolled that overflow. The nav and the body now
  * clip the horizontal axis, and a long label truncates.
  *
- * This suite cannot match `pointer: coarse`, so the case sets the 44px floor on
- * each hit area with a stylesheet (`hit-area-overlap.test.tsx`). Rides the real
- * browser because jsdom loads no stylesheet and lays nothing out.
+ * The page has a touch screen, so each hit area takes the 44px floor. Rides the
+ * real browser because jsdom loads no stylesheet and lays nothing out.
  */
 describe('sidebar horizontal scroll (real browser)', () => {
-	function coarseFloor() {
-		const sheet = document.createElement('style')
-
-		sheet.textContent = '[data-slot="touch-target"] { --touch-target-floor: 2.75rem !important; }'
-
-		document.head.append(sheet)
-
-		onTestFinished(() => sheet.remove())
-	}
-
 	it('keeps the nav and the body to their width at a phone width', () => {
-		coarseFloor()
-
 		const { container } = renderUI(
 			<div style={{ width: 300, height: 400 }}>
 				<Sidebar>

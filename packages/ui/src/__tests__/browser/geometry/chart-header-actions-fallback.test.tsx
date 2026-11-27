@@ -85,8 +85,9 @@ describe('chart buttons in the header row before the mount (real browser)', () =
 
 		expect(after[0]?.box).toMatchBox(server.box)
 
-		// The touch menu button shows only on a coarse pointer, which this browser
-		// cannot emulate. The two copies have the same box rules.
+		// The touch menu button shows only on a coarse pointer
+		// (`coarse/chart-header-actions-fallback.test.tsx`). The two copies have the
+		// same box rules.
 		const menuBox = (root: Element) =>
 			root.querySelector('[data-slot="chart-menu-button"]')?.getAttribute('class')
 

@@ -6,8 +6,9 @@ import { getSlot, renderUI, screen } from '../helpers'
 /**
  * The drop prompt names the gesture of the primary pointer. jsdom resolves no
  * media query, so this runs in the browser suite. The suite drives Chromium
- * with a mouse, so `pointer: fine` matches, and the "click" text shows. The
- * suite cannot match a coarse pointer (see `touch-target-geometry.test.tsx`).
+ * with a mouse, so `pointer: fine` matches, and the "click" text shows.
+ * `coarse/file-upload-prompt-pointer.test.tsx` holds the "tap" text of a coarse
+ * pointer.
  */
 describe('FileUploadDrop prompt by pointer (real browser)', () => {
 	it('shows only the "click" text to a fine pointer', () => {
