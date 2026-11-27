@@ -10,15 +10,7 @@ import {
 } from 'ui/chat'
 import { ResizableGroup, ResizableHandle, ResizablePanel } from 'ui/resizable'
 import { Stack } from 'ui/stack'
-import { dayNames as day } from '../../../../data/calendar.ts'
-
-const DAYS = [
-	{ day: day.mon, late: 1 },
-	{ day: day.tue, late: 7 },
-	{ day: day.wed, late: 2 },
-	{ day: day.thu, late: 1 },
-	{ day: day.fri, late: 1 },
-]
+import { lateByDay } from '../late-stops.ts'
 
 const dataset = { label: 'Late stops by day' }
 
@@ -98,7 +90,7 @@ export default function AskAboutAChart() {
 					<ResizablePanel defaultSize={50} minSize={30}>
 						<BarChart
 							aria-label={dataset.label}
-							data={DAYS}
+							data={lateByDay}
 							series={[{ xKey: 'day', yKey: 'late', yName: 'Late stops' }]}
 						/>
 					</ResizablePanel>

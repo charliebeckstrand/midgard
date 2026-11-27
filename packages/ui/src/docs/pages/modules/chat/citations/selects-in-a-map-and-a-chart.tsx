@@ -14,42 +14,8 @@ import { ResizableGroup, ResizableHandle, ResizablePanel } from 'ui/resizable'
 import { Stack } from 'ui/stack'
 import { dayNames as day } from '../../../../data/calendar.ts'
 import { states } from '../../map/data.ts'
-import { deliveryStops } from '../../map/point/data.ts'
+import { lateByDay, lateStops } from '../late-stops.ts'
 import { Pane } from './pane.tsx'
-
-// The day of each late stop: seven of the twelve are on Tuesday.
-const lateDays = [
-	day.mon,
-	day.tue,
-	day.tue,
-	day.wed,
-	day.tue,
-	day.thu,
-	day.tue,
-	day.fri,
-	day.tue,
-	day.fri,
-	day.tue,
-	day.tue,
-]
-
-const week = [day.mon, day.tue, day.wed, day.thu, day.fri]
-
-// The late stops of one week. A row has a key that does not change, so an
-// agent can name the row. The day is the field that the chart filters.
-const rows = deliveryStops
-	.filter((stop) => stop.parcels !== undefined)
-	.slice(0, 12)
-	.map((stop, n) => ({
-		...stop,
-		key: `stop-${n + 1}`,
-		day: lateDays[n] ?? day.tue,
-	}))
-
-const data = week.map((name) => ({
-	day: name,
-	late: rows.filter((row) => row.day === name).length,
-}))
 
 // Each phrase that a citation covers is a text of its own, so a translation
 // keeps the phrase whole, and the offsets come from the translated reply.
@@ -68,7 +34,7 @@ function cite(id: string, quote: string, target: string, selector: unknown): Cha
 }
 
 const citations = [
-	cite('late', phrase.label, 'late-stops', { stops: rows.map((row) => row.key) }),
+	cite('late', phrase.label, 'late-stops', { stops: lateStops.map((stop) => stop.key) }),
 	cite('tuesday', phrase.detail, 'late-by-day', { categories: [day.tue] }),
 ]
 
@@ -114,15 +80,15 @@ export default function SelectsInAMapAndAChart() {
 		setPicked((prev) => (prev === value ? null : value))
 	}, [])
 
-	// The rows that the pick lets through. The map draws these rows, so the
-	// index of a stop counts these rows.
+	// The stops that the pick lets through. The map draws these stops, so the
+	// index of a stop counts these stops.
 	const shown = useMemo(
-		() => (filter === null ? rows : rows.filter((row) => row.day === filter)),
+		() => (filter === null ? lateStops : lateStops.filter((stop) => stop.day === filter)),
 		[filter],
 	)
 
 	const getIndex = useMemo(() => {
-		const byKey = new Map(shown.map((row, index) => [row.key, index]))
+		const byKey = new Map(shown.map((stop, index) => [stop.key, index]))
 
 		return (key: string) => byKey.get(key)
 	}, [shown])
@@ -179,7 +145,7 @@ export default function SelectsInAMapAndAChart() {
 		>
 			<BarChart
 				aria-label="Late stops by day"
-				data={data}
+				data={lateByDay}
 				series={[{ xKey: 'day', yKey: 'late', yName: 'Late stops' }]}
 				// A previewed or cited citation marks its bar. Without one, the bar
 				// of the reader's own pick is marked.
