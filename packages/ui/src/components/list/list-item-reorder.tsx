@@ -1,7 +1,7 @@
 'use client'
 
 import { type DragControls, useDragControls } from 'motion/react'
-import { type ReactNode, useMemo, useState } from 'react'
+import { type ReactNode, useId, useMemo, useState } from 'react'
 import { noop } from '../../utilities/noop'
 import { ListItemContext } from './context'
 
@@ -36,11 +36,14 @@ export function ListItemReorder({
 
 	const [dragging, setDragging] = useState(false)
 
+	const rowId = useId()
+
 	const value = useMemo(
 		() => ({
 			id,
 			setNodeRef: noop,
 			describedBy,
+			rowId,
 			dragging,
 			reorder: {
 				controls,
@@ -55,7 +58,7 @@ export function ListItemReorder({
 				},
 			},
 		}),
-		[id, describedBy, dragging, controls, instant, onDragStart, onDragEnd],
+		[id, describedBy, rowId, dragging, controls, instant, onDragStart, onDragEnd],
 	)
 
 	return <ListItemContext value={value}>{children}</ListItemContext>

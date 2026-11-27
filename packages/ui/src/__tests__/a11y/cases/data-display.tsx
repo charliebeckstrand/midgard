@@ -69,7 +69,7 @@ import {
 } from '../../../modules/chart'
 import { Grid, type GridColumn } from '../../../modules/grid'
 import { MapPlat, MapPoint, MapRoute } from '../../../modules/map'
-import { bySlot } from '../../helpers'
+import { bySlot, noop } from '../../helpers'
 import { FIXTURE_GEOJSON, FIXTURE_ROWS } from '../../helpers/map-geography'
 import type { Case } from './types'
 
@@ -305,6 +305,26 @@ export const dataDisplayCases: readonly Case[] = [
 			</List>
 		),
 		skeleton: [{ element: <ListSkeleton items={2} />, absentSlot: 'list-item', placeholders: 2 }],
+	},
+	{
+		// A list that reorders: each row has its drag handle, and the menu that moves
+		// it with one pointer and no drag (WCAG 2.2 SC 2.5.7).
+		name: 'list (reorderable)',
+		element: (
+			<List
+				key="lsr"
+				items={listTasks}
+				getKey={(task) => task.id}
+				onReorder={noop}
+				aria-label="Sorted tasks"
+			>
+				{(task) => (
+					<ListItem>
+						<ListLabel>{task.label}</ListLabel>
+					</ListItem>
+				)}
+			</List>
+		),
 	},
 	{
 		// The `solid` variant, whose rows sit on `omote.bg.tint` rather than the page

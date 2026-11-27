@@ -64,7 +64,7 @@ type ListReorder<T> = {
 	/**
 	 * Fires when the reader reorders the list, with the next ordering. Omit it to
 	 * render a list that does not reorder. With `handle: false`, render a
-	 * `<ListHandle>` in each item.
+	 * `<ListHandle>` and a `<ListItemMenu>` in each item.
 	 */
 	onReorder?: (next: T[]) => void
 }
@@ -80,9 +80,10 @@ export type ListProps<T> = BaseListProps<T> &
 		| (Required<ListKey<T>> &
 				ListReorder<T> & {
 					/**
-					 * Inserts a `<ListHandle>` as the first child of each `<ListItem>` of a
-					 * list with `onReorder`. Set it to `false` to place a `<ListHandle>` in
-					 * each item yourself.
+					 * Inserts a `<ListHandle>` as the first child and a `<ListItemMenu>` as
+					 * the last child of each `<ListItem>` of a list with `onReorder`. Set it
+					 * to `false` to place a `<ListHandle>` and a `<ListItemMenu>` in each item
+					 * yourself.
 					 * @defaultValue true
 					 */
 					handle?: boolean
@@ -105,10 +106,11 @@ export type ListProps<T> = BaseListProps<T> &
  * A list of `items`, each drawn by a `children` render function. It renders a
  * `<ul>`. It takes one of five `variant`s and either orientation. With
  * `onReorder` it becomes reorderable over Motion's `Reorder`, by pointer drag
- * on the handle or keyboard lift (Space then arrows, and Escape puts the item
- * back where the lift started). It auto-inserts a
- * {@link ListHandle} per item unless `handle: false`. A read-only list (no
- * `onReorder`) shows no handle. A read-only list renders a plain `<ul>` with no
+ * on the handle, by keyboard lift (Space then arrows, and Escape puts the item
+ * back where the lift started), or from the move menu of the row, which is the
+ * path with one pointer and no drag (WCAG 2.2 SC 2.5.7). It auto-inserts a
+ * {@link ListHandle} and a {@link ListItemMenu} per item unless
+ * `handle: false`. A read-only list (no `onReorder`) shows neither. A read-only list renders a plain `<ul>` with no
  * drag wiring. Compose {@link ListItem} (with {@link ListLabel} /
  * {@link ListDescription}) in the render function.
  *
@@ -117,7 +119,8 @@ export type ListProps<T> = BaseListProps<T> &
  * fallback remounts items mid-drag and breaks keyboard-move refocus. Each
  * reorderable row adds one Tab stop of its own, on its content area when that
  * area activates and on the `<li>` otherwise. A focusable child, such as a
- * checkbox, keeps its own stop (see {@link ListItem}). Only the handle starts a
+ * checkbox or the button of the move menu, keeps its own stop (see
+ * {@link ListItem}). Only the handle starts a
  * pointer drag. The rows move as the pointer passes them, and the list calls
  * `onReorder` once, on the drop. The box of the list holds the dragged row, so
  * the row does not go over the content around the list. Escape and a
@@ -189,14 +192,16 @@ export function List<T>({
 		[items, effectiveGetKey],
 	)
 
-	const { liftedId, setLiftedId, onItemKeyDown, onItemBlur } = useListKeyboard({
-		items,
-		getKey: effectiveGetKey,
-		orientation,
-		onReorder,
-		enabled: moving,
-		containerRef,
-	})
+	const { liftedId, setLiftedId, onItemKeyDown, onItemBlur, menuMoves, menuMove } = useListKeyboard(
+		{
+			items,
+			getKey: effectiveGetKey,
+			orientation,
+			onReorder,
+			enabled: moving,
+			containerRef,
+		},
+	)
 
 	// Each item reads its own lift from the store, so a lift renders only the item
 	// that lifts and the item that drops.
@@ -244,6 +249,7 @@ export function List<T>({
 	const contextValue = useMemo(
 		() => ({
 			variant,
+			orientation,
 			interactive,
 			// A read-only list has no reorder to disable, so its handles stay hidden.
 			disabled: reorderDisabled,
@@ -252,10 +258,13 @@ export function List<T>({
 			handle: autoHandle,
 			onItemKeyDown,
 			onItemBlur,
+			menuMoves,
+			menuMove,
 			reorderParts,
 		}),
 		[
 			variant,
+			orientation,
 			interactive,
 			reorderDisabled,
 			liftedStore,
@@ -263,6 +272,8 @@ export function List<T>({
 			autoHandle,
 			onItemKeyDown,
 			onItemBlur,
+			menuMoves,
+			menuMove,
 			reorderParts,
 		],
 	)

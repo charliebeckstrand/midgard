@@ -80,10 +80,11 @@ export type QueryBuilderProps = Omit<ComponentProps<'fieldset'>, 'children' | 'd
 	 */
 	requireRule?: boolean
 	/**
-	 * Lets the user move the nodes of the query, by drag or by keyboard, among
-	 * their siblings and from one group into another. Each child shows a grip
-	 * when it can move: its group has more than one child, or the group is
-	 * nested and the child can leave it. In its own group a node moves between
+	 * Lets the user move the nodes of the query, by drag, by keyboard, or from a
+	 * move menu, among their siblings and from one group into another. Each child
+	 * shows a grip before it and a move button after it when it can move: its
+	 * group has more than one child, or the group is nested and the child can
+	 * leave it. In its own group a node moves between
 	 * the AND/OR separators, which stay in their positions. A node that moves
 	 * into another group takes the combinator of the place that it enters, and
 	 * each other node keeps its combinator. A pointer drag over another group
@@ -93,7 +94,12 @@ export type QueryBuilderProps = Omit<ComponentProps<'fieldset'>, 'children' | 'd
 	 * and the arrow toward the start of the line moves it out of its group. A
 	 * pointer drag calls `onValueChange` once, on the drop, and Escape cancels
 	 * it. With the keyboard, each arrow key moves the node and calls
-	 * `onValueChange`. Under `requireRule`, the sole node of a group does not
+	 * `onValueChange`. The move menu is the path with one pointer and no drag
+	 * (WCAG 2.2 SC 2.5.7). It offers "Move up", "Move down", "Move to top", and
+	 * "Move to bottom" among the siblings, and "Move into group above", "Move
+	 * into group below", and "Move out of group" where the arrow keys can make
+	 * that move. Each item calls `onValueChange` once and is announced as a
+	 * keyboard step. Under `requireRule`, the sole node of a group does not
 	 * leave it.
 	 * @defaultValue false
 	 */

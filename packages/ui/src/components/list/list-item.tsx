@@ -9,6 +9,7 @@ import { Polymorphic, type PolymorphicProps } from '../../primitives/polymorphic
 import { k } from '../../recipes/kata/list'
 import { type ListItemContextValue, useListContext, useListItemContext } from './context'
 import { ListHandle } from './list-handle'
+import { ListItemMenu } from './list-item-menu'
 import type { ListReorderParts } from './list-reorder'
 
 /**
@@ -21,7 +22,7 @@ import type { ListReorderParts } from './list-reorder'
 export type ListItemProps<Fallback extends ElementType = 'div'> = {
 	/** Content rendered before the main content; replaces the auto-inserted `<ListHandle>` when provided. */
 	prefix?: ReactNode
-	/** Content rendered after the main content. */
+	/** Content rendered after the main content, before the auto-inserted `<ListItemMenu>`. */
 	suffix?: ReactNode
 	/**
 	 * Makes the row act on activation, which decides the content column's
@@ -81,7 +82,8 @@ export type ListItemProps<Fallback extends ElementType = 'div'> = {
  * interactive and takes the muted text plus hover and pointer treatment. Its hit
  * area covers the whole painted row, the padding and the slot chrome included. In
  * a reorderable list it wires the drag/keyboard bindings and auto-inserts a
- * {@link ListHandle} as the prefix unless one is supplied. An interactive row also
+ * {@link ListHandle} as the prefix unless one is supplied, and a
+ * {@link ListItemMenu} after the suffix. An interactive row also
  * takes a hover wash, doubled inside a glass parent. On a coarse pointer, an
  * interactive row is at least 44 px tall (`touch-pitch-row`). Density-scaled.
  *
@@ -98,7 +100,8 @@ export type ListItemProps<Fallback extends ElementType = 'div'> = {
  * `href` or `onClick` is focusable, so the reorder keys ride it and the `<li>`
  * takes no focus. The `<li>` keeps only the drag node and the transform. In a row
  * with no such handler, the `<li>` is the stop. The `interactive` prop does not
- * move the stop. A focusable child, such as a checkbox, keeps its own stop.
+ * move the stop. A focusable child, such as a checkbox or the button of the
+ * auto-inserted {@link ListItemMenu}, keeps its own stop.
  *
  * @typeParam Fallback - Element the content area renders when no `href` is
  *   given; selected via `as`.
@@ -115,7 +118,7 @@ export function ListItem<Fallback extends ElementType = 'div'>({
 	as: asProp,
 	...props
 }: ListItemProps<Fallback>) {
-	const { id, setNodeRef, reorder, describedBy, dragging, position } = useListItemContext()
+	const { id, setNodeRef, reorder, describedBy, rowId, dragging, position } = useListItemContext()
 
 	// The list's own `interactive` is the reorder wiring; the row's is the
 	// content area's activation treatment. Alias the former to keep them apart.
@@ -216,6 +219,8 @@ export function ListItem<Fallback extends ElementType = 'div'>({
 
 	const row = {
 		ref: setNodeRef,
+		// The move menu names itself after the row.
+		id: rowId,
 		...(stopOnRow ? reorderProps : {}),
 		'data-slot': 'list-item',
 		'data-item-id': id,
@@ -245,11 +250,12 @@ export function ListItem<Fallback extends ElementType = 'div'>({
 				{children}
 			</Polymorphic>
 			{suffix}
+			{handle ? <ListItemMenu /> : null}
 		</>
 	)
 
 	return (
-		<ListItemRow id={id} reorder={reorder} parts={reorderParts} {...row}>
+		<ListItemRow value={id} reorder={reorder} parts={reorderParts} {...row}>
 			{content}
 		</ListItemRow>
 	)
@@ -261,13 +267,17 @@ export function ListItem<Fallback extends ElementType = 'div'>({
  * before.
  */
 function ListItemRow({
-	id,
+	value,
 	reorder,
 	parts,
 	...row
 }: Omit<ComponentProps<'li'>, 'onAnimationStart' | 'onDrag' | 'onDragStart' | 'onDragEnd'> &
-	Pick<ListItemContextValue, 'id' | 'reorder'> & { parts: ListReorderParts | undefined }) {
+	Pick<ListItemContextValue, 'reorder'> & {
+		/** The key of the row, which a reorderable list orders by. */
+		value: string
+		parts: ListReorderParts | undefined
+	}) {
 	if (reorder === undefined || parts === undefined) return <li {...row} />
 
-	return <parts.Row {...row} id={id} reorder={reorder} />
+	return <parts.Row {...row} value={value} reorder={reorder} />
 }

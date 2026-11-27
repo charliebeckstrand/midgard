@@ -1,10 +1,11 @@
-import type { ElementType } from 'react'
+import { type ElementType, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import {
 	List,
 	ListDescription,
 	ListHandle,
 	ListItem,
+	ListItemMenu,
 	type ListItemProps,
 	ListLabel,
 	type ListProps,
@@ -23,6 +24,7 @@ import {
 	present,
 	renderUI,
 	screen,
+	setupUser,
 } from '../helpers'
 import { stubResizeObserver } from '../helpers/stub-resize-observer'
 
@@ -970,5 +972,193 @@ describe('ListItem density', () => {
 		const item = firstItem(<DensityProvider density="compact">{list()}</DensityProvider>)
 
 		expect(item.closest('[data-density]')).toHaveAttribute('data-density', 'sm')
+	})
+})
+
+describe('ListItemMenu', () => {
+	function SortableList({
+		onReorder,
+		orientation,
+		disabled,
+		handle,
+	}: {
+		onReorder?: (next: Item[]) => void
+		orientation?: 'vertical' | 'horizontal'
+		disabled?: boolean
+		handle?: false
+	}) {
+		const [rows, setRows] = useState(items)
+
+		return (
+			<List
+				items={rows}
+				getKey={(item) => item.id}
+				orientation={orientation}
+				disabled={disabled}
+				handle={handle}
+				onReorder={
+					onReorder &&
+					((next: Item[]) => {
+						setRows(next)
+
+						onReorder(next)
+					})
+				}
+			>
+				{(item) => (
+					<ListItem suffix={handle === false ? <ListItemMenu /> : undefined}>
+						<ListLabel>{item.label}</ListLabel>
+					</ListItem>
+				)}
+			</List>
+		)
+	}
+
+	const row = (container: HTMLElement, id: string) =>
+		present(
+			container.querySelector<HTMLElement>(`[data-slot="list-item"][data-item-id="${id}"]`),
+			`row ${id}`,
+		)
+
+	async function openMenu(container: HTMLElement, id: string) {
+		const user = setupUser()
+
+		await user.click(getSlot(row(container, id), 'list-item-menu'))
+
+		return user
+	}
+
+	const order = (container: HTMLElement) =>
+		allBySlot(container, 'list-item').map((item) => item.getAttribute('data-item-id'))
+
+	it('inserts a move button at the end of each row with the handle', () => {
+		const { container } = renderUI(<SortableList onReorder={vi.fn()} />)
+
+		for (const item of allBySlot(container, 'list-item')) {
+			expect(item.lastElementChild).toContainElement(getSlot(item, 'list-item-menu'))
+		}
+	})
+
+	it('names the button "Move" and then the row', () => {
+		const { container } = renderUI(<SortableList onReorder={vi.fn()} />)
+
+		const button = getSlot(row(container, 'a'), 'list-item-menu')
+
+		const [word, item] = button.getAttribute('aria-labelledby')?.split(' ') ?? []
+
+		expect(document.getElementById(word ?? '')).toHaveTextContent('Move')
+
+		expect(document.getElementById(item ?? '')).toBe(row(container, 'a'))
+	})
+
+	it('inserts no button under `handle={false}`, and keeps the one that an item places', () => {
+		const { container } = renderUI(<SortableList onReorder={vi.fn()} handle={false} />)
+
+		expect(allBySlot(container, 'list-item-menu')).toHaveLength(3)
+
+		expect(allBySlot(container, 'list-handle')).toHaveLength(0)
+	})
+
+	it('offers only the moves that change the place of the row', async () => {
+		const { container } = renderUI(<SortableList onReorder={vi.fn()} />)
+
+		await openMenu(container, 'a')
+
+		expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual([
+			'Move down',
+			'Move to bottom',
+		])
+	})
+
+	it('offers each move to a row in the middle', async () => {
+		const { container } = renderUI(<SortableList onReorder={vi.fn()} />)
+
+		await openMenu(container, 'b')
+
+		expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual([
+			'Move up',
+			'Move down',
+			'Move to top',
+			'Move to bottom',
+		])
+	})
+
+	it('names the moves of a horizontal list by the side and the end', async () => {
+		const { container } = renderUI(<SortableList onReorder={vi.fn()} orientation="horizontal" />)
+
+		await openMenu(container, 'b')
+
+		expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual([
+			'Move left',
+			'Move right',
+			'Move to start',
+			'Move to end',
+		])
+	})
+
+	it('moves the row one place and announces it as a keyboard step does', async () => {
+		const onReorder = vi.fn()
+
+		const { container } = renderUI(<SortableList onReorder={onReorder} />)
+
+		const user = await openMenu(container, 'a')
+
+		await user.click(screen.getByRole('menuitem', { name: 'Move down' }))
+
+		expect(onReorder).toHaveBeenCalledTimes(1)
+
+		expect(order(container)).toEqual(['b', 'a', 'c'])
+
+		await expectAnnouncement('Alpha moved to position 2 of 3', 'assertive')
+	})
+
+	it('moves the row to the end of the list', async () => {
+		const onReorder = vi.fn()
+
+		const { container } = renderUI(<SortableList onReorder={onReorder} />)
+
+		const user = await openMenu(container, 'a')
+
+		await user.click(screen.getByRole('menuitem', { name: 'Move to bottom' }))
+
+		expect(order(container)).toEqual(['b', 'c', 'a'])
+	})
+
+	it('renders nothing in a list that cannot reorder', () => {
+		const { container } = renderUI(<SortableList />)
+
+		expect(allBySlot(container, 'list-item-menu')).toHaveLength(0)
+	})
+
+	it('keeps an inert button with no menu in a disabled list', () => {
+		const { container } = renderUI(<SortableList onReorder={vi.fn()} disabled />)
+
+		const button = getSlot(row(container, 'a'), 'list-item-menu')
+
+		expect(button).toHaveAttribute('inert')
+
+		expect(button).toHaveAttribute('aria-hidden', 'true')
+	})
+
+	it('moves no row from a menu that stays open while a lock arrives', async () => {
+		const onReorder = vi.fn()
+
+		const { container, rerender } = renderUI(
+			<ControlLockContext value={false}>
+				<SortableList onReorder={onReorder} />
+			</ControlLockContext>,
+		)
+
+		const user = await openMenu(container, 'a')
+
+		rerender(
+			<ControlLockContext value>
+				<SortableList onReorder={onReorder} />
+			</ControlLockContext>,
+		)
+
+		await user.click(screen.getByRole('menuitem', { name: 'Move down' }))
+
+		expect(onReorder).not.toHaveBeenCalled()
 	})
 })

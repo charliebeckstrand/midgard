@@ -3,7 +3,9 @@
 import type { DragControls } from 'motion/react'
 import type { KeyboardEvent } from 'react'
 import { createContext } from '../../core/create-context'
+import type { ReorderMove } from '../../hooks/use-keyboard-reorder'
 import type { ListVariant } from '../../recipes/kata/list'
+import type { Orientation } from '../../types/orientation'
 import type { KeyedStore } from '../../utilities/keyed-store'
 import type { ListReorderParts } from './list-reorder'
 
@@ -11,6 +13,8 @@ import type { ListReorderParts } from './list-reorder'
 export type ListContextValue = {
 	/** Visual variant; see `List.variant` for semantics. */
 	variant: ListVariant
+	/** Layout axis, which names the moves of the move menu. */
+	orientation: Orientation
 	/** Whether the list allows drag / keyboard reorder. */
 	interactive: boolean
 	/** Whether a reorderable list (one with `onReorder`) is disabled. A read-only list is never disabled. */
@@ -34,6 +38,13 @@ export type ListContextValue = {
 	onItemKeyDown: (id: string, event: KeyboardEvent) => void
 	/** Blur handler that drops any active keyboard lift. */
 	onItemBlur: () => void
+	/** The moves of the move menu of an item. Call it from an event, such as the open of the menu. It keeps its identity. */
+	menuMoves: (id: string) => ReorderMove[]
+	/**
+	 * Moves an item from its move menu, and announces the move with `name`, the
+	 * name that the menu read when it opened. It keeps its identity.
+	 */
+	menuMove: (id: string, move: ReorderMove, name: string) => void
 	/**
 	 * The `Reorder` parts of a reorderable list after their module arrives. Until
 	 * then, and in a read-only list, it is absent, and a row is a plain `<li>`.
@@ -70,6 +81,8 @@ export type ListItemContextValue = {
 	dragging: boolean
 	/** The id of the hidden reorder instructions that each row names. */
 	describedBy?: string
+	/** The DOM id of the `<li>` of a reorderable row, which names its move menu. */
+	rowId?: string
 	/**
 	 * The place of the row in a windowed list. The row writes it as `data-index`,
 	 * which the window measures by, and as `aria-posinset` and `aria-setsize`,

@@ -1,5 +1,6 @@
 'use client'
 
+import { CornerDownLeft, CornerRightDown, CornerRightUp } from 'lucide-react'
 import type { AnimationPlaybackControls } from 'motion'
 import { domMax, LazyMotion, Reorder } from 'motion/react'
 import {
@@ -13,6 +14,7 @@ import {
 	useMemo,
 	useRef,
 } from 'react'
+import { type MenuMoveItem, placeMoveItems } from '../../../components/menu/menu-move'
 import { announce } from '../../../core/announcer'
 import { dataAttr } from '../../../core/data-attr'
 import { querySlot } from '../../../core/query-slot'
@@ -24,6 +26,7 @@ import { useReorderDrag } from '../../../hooks/use-reorder-drag'
 import { useResizeObserver } from '../../../hooks/use-resize-observer'
 import { useStableEvent } from '../../../hooks/use-stable-event'
 import { useControlLock } from '../../../primitives/control/context'
+import { Glyph } from '../../../primitives/glyph'
 import { IntlMessage } from '../../../primitives/intl'
 import {
 	droppedText,
@@ -40,7 +43,7 @@ import { findNode } from '../engine/query-tree'
 import type { QueryGroup, QueryNode } from '../engine/types'
 import { useQueryBuilderActions, useQueryBuilderMove, useQueryBuilderState } from './context'
 import { queryBuilderMessages } from './query-builder-messages'
-import { findCarry, findDrop } from './query-builder-move'
+import { findCarry, findDrop, type QueryCarryWay } from './query-builder-move'
 import { QueryBuilderSortableItem } from './query-builder-sortable-item'
 
 /** The slots of the query builder. */
@@ -69,6 +72,21 @@ function stepFor(key: string): 1 | -1 | null {
 
 	return key === 'ArrowUp' ? -1 : null
 }
+
+/** The items of the move menu that move a node across the nesting of the tree, in menu order. */
+const CARRIES = [
+	{
+		way: 'above',
+		label: queryBuilderMessages.moveIntoGroupAbove,
+		icon: <Glyph icon={CornerRightUp} />,
+	},
+	{
+		way: 'below',
+		label: queryBuilderMessages.moveIntoGroupBelow,
+		icon: <Glyph icon={CornerRightDown} />,
+	},
+	{ way: 'out', label: queryBuilderMessages.moveOutOfGroup, icon: <Glyph icon={CornerDownLeft} /> },
+] as const satisfies readonly { way: QueryCarryWay; label: unknown; icon: unknown }[]
 
 /** The mark of the node that a drop line borders: the line is above it or below it. @internal */
 type DropMark = 'before' | 'after'
@@ -177,6 +195,11 @@ function useListTravel(ref: RefObject<HTMLElement | null>, state: boolean, insta
  * group that then holds the node lifts it and focuses its grip. Under
  * `requireRule`, the sole node of a group does not leave it.
  *
+ * The move menu of a node makes the same moves with one pointer and no drag
+ * (WCAG 2.2 SC 2.5.7): the steps and the ends of `useKeyboardReorder`, and the
+ * moves into the group above or below and out of the group. A move into
+ * another group focuses the grip of the node there and does not lift it.
+ *
  * @internal
  */
 export function QueryBuilderSortable({
@@ -237,22 +260,23 @@ export function QueryBuilderSortable({
 		[intl, shared],
 	)
 
-	const { liftedId, setLiftedId, onItemKeyDown, onItemBlur } = useKeyboardReorder({
-		items: children,
-		getKey,
-		onReorder: (_next, id, index) => move(id, index),
-		focusItem,
-		itemName: name,
-		stepFor,
-		enabled,
-	})
+	const { liftedId, setLiftedId, onItemKeyDown, onItemBlur, menuMoves, menuMove } =
+		useKeyboardReorder({
+			items: children,
+			getKey,
+			onReorder: (_next, id, index) => move(id, index),
+			focusItem,
+			itemName: name,
+			stepFor,
+			enabled,
+		})
 
-	// A move into another group. The group that then holds the node lifts it and
-	// focuses its grip.
-	const carry = (id: string, target: QueryGroup, index: number) => {
+	// A move into another group. The group that then holds the node focuses its
+	// grip, and a keyboard move also lifts the node there.
+	const carry = (id: string, target: QueryGroup, index: number, lift = true) => {
 		setLiftedId(null)
 
-		shared.carry(id, target.id)
+		shared.carry(id, target.id, lift)
 
 		moveInto(id, target.id, index)
 
@@ -349,6 +373,40 @@ export function QueryBuilderSortable({
 		const target = leavable ? findCarry(shared.getRoot(), id, way) : null
 
 		if (target) carry(id, target.group, target.index)
+	})
+
+	// The items of the move menu of a node, read when the menu opens: the moves in
+	// its group, then the moves across the nesting of the tree. Under
+	// `requireRule`, the sole node of a group does not leave it.
+	const readMoves = useStableEvent((id: string): MenuMoveItem[][] => {
+		const label = name(id)
+
+		const place = placeMoveItems(
+			intl,
+			menuMoves(id),
+			{ orientation: 'vertical', rtl: false },
+			(way) => menuMove(id, way, label),
+		)
+
+		const root = shared.getRoot()
+
+		const carries = leavable
+			? CARRIES.filter(({ way }) => findCarry(root, id, way) !== null).map(
+					({ way, label: message, icon }) => ({
+						key: way,
+						label: intl.formatMessage(message),
+						icon,
+						onAction: () => {
+							// A menu that stays open while a lock arrives moves nothing, as the keys do.
+							const target = enabled ? findCarry(shared.getRoot(), id, way) : null
+
+							if (target) carry(id, target.group, target.index, false)
+						},
+					}),
+				)
+			: []
+
+		return [place, carries]
 	})
 
 	// The group that a keyboard move carries a node into lifts it and focuses
@@ -492,6 +550,7 @@ export function QueryBuilderSortable({
 								disabled={disabled}
 								handle={children.length > 1 || (!root && leavable)}
 								lifted={liftedId === id}
+								readMoves={readMoves}
 								drop={dropMark(index, dropIndex)}
 								describedBy={describedBy}
 								instant={instant}
