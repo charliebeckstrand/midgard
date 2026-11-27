@@ -2,7 +2,7 @@ import { beforeAll, describe, expect, it, onTestFinished, vi } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { Lightbox, LightboxTrigger } from '../../../components/lightbox'
 import { parseMatrix } from '../../../components/lightbox/lightbox-utilities'
-import { present, renderUI, screen } from '../../helpers'
+import { getSlot, present, renderUI, screen } from '../../helpers'
 import { fieldPhoto, viewerTweens } from '../helpers/lightbox'
 import { sampleMotionFrames } from '../helpers/motion-frame'
 
@@ -139,10 +139,7 @@ describe('Lightbox corners in the flight (real browser)', () => {
 		// The photo at rest has square corners, and the slot keeps no radius.
 		expect(present(slot(), 'the slot').style.borderRadius).toBe('')
 
-		const stage = present(
-			document.querySelector('[data-slot="lightbox-photo"]'),
-			'the photo',
-		).getBoundingClientRect().width
+		const stage = getSlot(document, 'lightbox-photo').getBoundingClientRect().width
 
 		expect(raise.length).toBeGreaterThan(2)
 

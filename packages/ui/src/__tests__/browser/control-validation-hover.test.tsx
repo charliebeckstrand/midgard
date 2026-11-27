@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { Input } from '../../components/input'
 import { Textarea } from '../../components/textarea'
 import { Wysiwyg } from '../../modules/wysiwyg'
-import { present, renderUI } from '../helpers'
+import { getSlot, renderUI } from '../helpers'
 import { acrossHover } from './helpers/across-hover'
 import { holdRootClass } from './helpers/root-state'
 
@@ -23,7 +23,7 @@ describe('the ring of a framed control under the pointer (real browser)', () => 
 
 		const { container } = renderUI(<Input aria-label="Email" invalid />)
 
-		const frame = present(container.querySelector('[data-slot="control-frame"]'), 'control frame')
+		const frame = getSlot(container, 'control-frame')
 
 		return acrossHover(frame, 'boxShadow')
 	}
@@ -41,7 +41,7 @@ describe('the ring of a framed control under the pointer (real browser)', () => 
 	it('still darkens the ring of a control with no validation state', async () => {
 		const { container } = renderUI(<Input aria-label="Email" />)
 
-		const frame = present(container.querySelector('[data-slot="control-frame"]'), 'control frame')
+		const frame = getSlot(container, 'control-frame')
 
 		const { before, after } = await acrossHover(frame, 'boxShadow')
 
@@ -62,7 +62,7 @@ describe('the ring of a framed control under the pointer (real browser)', () => 
 	] as [string, ReactElement][])('keeps the ring of %s on hover', async ([, control]) => {
 		const { container } = renderUI(control)
 
-		const frame = present(container.querySelector('[data-slot="control-frame"]'), 'control frame')
+		const frame = getSlot(container, 'control-frame')
 
 		const { before, after } = await acrossHover(frame, 'boxShadow')
 

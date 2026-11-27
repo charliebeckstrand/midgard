@@ -2,13 +2,13 @@ import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Card } from '../../components/card'
 import { Overlay } from '../../primitives/overlay'
-import { attach, fireEvent, present, renderUI, screen, waitFor } from '../helpers'
+import { attach, fireEvent, getSlot, renderUI, screen, waitFor } from '../helpers'
 
 /** The backdrop of the open overlay. */
-const backdrop = () => present(document.querySelector('[data-slot="overlay-backdrop"]'), 'backdrop')
+const backdrop = () => getSlot(document, 'overlay-backdrop')
 
 /** The root of the open overlay. */
-const overlayRoot = () => present(document.querySelector('[data-slot="overlay"]'), 'overlay root')
+const overlayRoot = () => getSlot(document, 'overlay')
 
 describe('Overlay', () => {
 	it('renders children when open', () => {
@@ -369,7 +369,7 @@ describe('Overlay', () => {
 			</Overlay>,
 		)
 
-		const overlay = present(host.querySelector('[data-slot="overlay"]'), '[data-slot="overlay"]')
+		const overlay = getSlot(host, 'overlay')
 
 		expect(overlay.className).toContain('absolute')
 

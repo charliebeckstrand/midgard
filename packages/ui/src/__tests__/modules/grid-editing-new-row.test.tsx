@@ -209,10 +209,7 @@ describe('Grid new row', () => {
 			/>,
 		)
 
-		const slot = present(
-			view.container.querySelector<HTMLElement>('[data-slot="grid-new-row"]'),
-			'new row',
-		)
+		const slot = getSlot(view.container, 'grid-new-row')
 
 		const dataRows = view.container.querySelectorAll('tr[data-row-index]')
 
@@ -246,10 +243,7 @@ describe('Grid new row', () => {
 			/>,
 		)
 
-		const slot = present(
-			view.container.querySelector<HTMLElement>('[data-slot="grid-new-row"]'),
-			'new row',
-		)
+		const slot = getSlot(view.container, 'grid-new-row')
 
 		// The search leaves no data row, and the slot still shows.
 		expect(view.container.querySelectorAll('tr[data-row-index]')).toHaveLength(0)

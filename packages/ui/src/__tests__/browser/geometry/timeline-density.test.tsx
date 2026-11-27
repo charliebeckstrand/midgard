@@ -7,7 +7,7 @@ import {
 	TimelineTitle,
 } from '../../../components/timeline'
 import { DensityProvider } from '../../../providers/density'
-import { present, renderUI } from '../../helpers'
+import { getSlot, present, renderUI } from '../../helpers'
 
 /**
  * The item spacing and the text of a Timeline take the step of the nearest
@@ -38,7 +38,7 @@ function measure(density: Density, orientation: 'vertical' | 'horizontal' = 'ver
 		</DensityProvider>,
 	)
 
-	const item = present(container.querySelector('[data-slot="timeline-item"]'), 'the first item')
+	const item = getSlot(container, 'timeline-item')
 
 	const readFontSize = (selector: string) =>
 		Number.parseFloat(getComputedStyle(present(item.querySelector(selector), selector)).fontSize)

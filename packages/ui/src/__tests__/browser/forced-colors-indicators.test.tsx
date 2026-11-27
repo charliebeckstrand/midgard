@@ -47,7 +47,7 @@ import {
 } from '../../modules/kanban'
 import { MapPoints } from '../../modules/map'
 import { createGroup, QueryBuilder, type QueryRule } from '../../modules/query'
-import { bySlot, frames, present, renderUI, waitFor } from '../helpers'
+import { bySlot, frames, getSlot, present, renderUI, waitFor } from '../helpers'
 import { categoricalPlat, overlayPlat } from '../helpers/map-plat'
 import { emulateForcedColors, showsOnCanvas, systemColor } from './helpers/forced-colors'
 
@@ -810,9 +810,7 @@ describe('controls show their state under forced colors (real browser)', () => {
 			/>,
 		)
 
-		const handle = await waitFor(() =>
-			present(container.querySelector('[data-slot="grid-fill-handle"]'), 'fill handle'),
-		)
+		const handle = await waitFor(() => getSlot(container, 'grid-fill-handle'))
 
 		const style = getComputedStyle(handle)
 

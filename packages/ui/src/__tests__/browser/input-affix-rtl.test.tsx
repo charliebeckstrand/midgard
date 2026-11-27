@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Input } from '../../components/input'
-import { present, renderUI } from '../helpers'
+import { getSlot, renderUI } from '../helpers'
 
 /**
  * An affix slot pads the side that faces the frame edge. The frame is a flex
@@ -17,9 +17,9 @@ describe('input affix padding in right-to-left (real browser)', () => {
 				</div>,
 			)
 
-			const prefix = present(container.querySelector('[data-slot="prefix"]'), 'the prefix slot')
+			const prefix = getSlot(container, 'prefix')
 
-			const suffix = present(container.querySelector('[data-slot="suffix"]'), 'the suffix slot')
+			const suffix = getSlot(container, 'suffix')
 
 			const edge = (affix: HTMLElement, side: 'start' | 'end') => {
 				const { paddingLeft, paddingRight } = getComputedStyle(affix)

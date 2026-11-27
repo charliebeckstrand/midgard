@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { fireEvent, present, renderUI, screen, waitFor } from '../helpers'
+import { fireEvent, getSlot, present, renderUI, screen, waitFor } from '../helpers'
 
 /**
  * A draft whose editor virtualization unmounts (real browser; jsdom renders
@@ -47,10 +47,7 @@ describe('grid draft of a virtualized-out row (real browser)', () => {
 
 		const view = renderUI(<Harness />)
 
-		const scroll = present(
-			view.container.querySelector<HTMLElement>('[data-slot="grid-scroll"]'),
-			'[data-slot="grid-scroll"]',
-		)
+		const scroll = getSlot(view.container, 'grid-scroll')
 
 		const editor = () => screen.queryByRole('textbox', { name: 'Edit Name, row 2' })
 

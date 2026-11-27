@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { fireEvent, present, renderUI, screen, waitFor } from '../helpers'
+import { fireEvent, getSlot, renderUI, screen, waitFor } from '../helpers'
 
 /**
  * Editor validation messages stay in view (WCAG 1.4.10). The message renders below
@@ -95,12 +95,7 @@ describe('grid edit validation visibility (real browser)', () => {
 		// name it: a cast over the bare query gave `fireEvent` a null, which
 		// reports `Unable to fire a "change" event` and names neither the editor
 		// nor the wait it needed.
-		const input = await waitFor(() =>
-			present<HTMLInputElement>(
-				container.querySelector('[data-slot="grid-edit-input"]'),
-				'the edit input',
-			),
-		)
+		const input = await waitFor(() => getSlot<HTMLInputElement>(container, 'grid-edit-input'))
 
 		// Trigger the validation error.
 		fireEvent.change(input, { target: { value: 'bad' } })

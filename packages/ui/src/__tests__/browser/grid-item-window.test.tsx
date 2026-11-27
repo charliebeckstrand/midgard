@@ -2,7 +2,7 @@ import { useMemo, useRef } from 'react'
 import { describe, expect, it } from 'vitest'
 import { GridNavContext, type GridNavStore } from '../../modules/grid/context'
 import { NO_WINDOW_RECORD, useGridItemWindow } from '../../modules/grid/use-grid-item-window'
-import { frames, present, renderUI, waitFor } from '../helpers'
+import { frames, getSlot, present, renderUI, waitFor } from '../helpers'
 
 /**
  * The measured window that the grouped and master-detail bodies share, in a
@@ -98,10 +98,7 @@ describe('useGridItemWindow (real browser)', () => {
 			</GridNavContext>,
 		)
 
-		const scroll = present(
-			container.querySelector<HTMLElement>('[data-slot="grid-scroll"]'),
-			'scroller',
-		)
+		const scroll = getSlot(container, 'grid-scroll')
 
 		const head = present(scroll.querySelector('th'), 'the head cell')
 

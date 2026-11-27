@@ -1,7 +1,7 @@
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { commands, userEvent } from 'vitest/browser'
 import { Grid, type GridColumn, type GridProps } from '../../modules/grid'
-import { present, renderUI, screen, waitFor } from '../helpers'
+import { getSlot, present, renderUI, screen, waitFor } from '../helpers'
 
 /** The selector of the cell of a column in the row with a key. */
 const cellSelector = (key: number, column: string) =>
@@ -124,10 +124,7 @@ describe('grid range pointer and clipboard (real browser)', () => {
 	it('scrolls the region while the drag is past its bottom edge', async () => {
 		await renderGrid()
 
-		const region = present(
-			document.querySelector<HTMLElement>('[data-slot="grid-scroll"]'),
-			'[data-slot="grid-scroll"]',
-		)
+		const region = getSlot(document, 'grid-scroll')
 
 		onTestFinished(() => commands.releasePointer())
 
@@ -154,10 +151,7 @@ describe('grid range pointer and clipboard (real browser)', () => {
 			editable: { session: 'managed', newRow: 'bottom', onRowAdd: () => {}, onCommit: () => {} },
 		})
 
-		const region = present(
-			document.querySelector<HTMLElement>('[data-slot="grid-scroll"]'),
-			'[data-slot="grid-scroll"]',
-		)
+		const region = getSlot(document, 'grid-scroll')
 
 		onTestFinished(() => commands.releasePointer())
 
@@ -177,10 +171,7 @@ describe('grid range pointer and clipboard (real browser)', () => {
 	it('grows the range past a sticky header at the top edge', async () => {
 		await renderGrid({ header: { position: 'sticky' } })
 
-		const region = present(
-			document.querySelector<HTMLElement>('[data-slot="grid-scroll"]'),
-			'[data-slot="grid-scroll"]',
-		)
+		const region = getSlot(document, 'grid-scroll')
 
 		region.scrollTop = 600
 

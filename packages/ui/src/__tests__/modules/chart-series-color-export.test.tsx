@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { cn } from '../../core/cn'
 import { LineChart, seriesColor } from '../../modules/chart'
 import { k } from '../../recipes/kata/chart'
-import { allBySlot, present, renderUI } from '../helpers'
+import { allBySlot, getSlot, present, renderUI } from '../helpers'
 
 type Row = { month: string } & Record<`s${number}`, number>
 
@@ -30,7 +30,7 @@ describe('seriesColor', () => {
 		)
 
 		const lines = allBySlot(container, 'chart-line-series').map((group) =>
-			present(group.querySelector('[data-slot="chart-line"]'), 'series line'),
+			getSlot(group, 'chart-line'),
 		)
 
 		expect(lines).toHaveLength(SERIES_COUNT)

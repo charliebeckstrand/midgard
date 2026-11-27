@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { Split } from '../../../structure/split'
-import { present, renderUI } from '../../helpers'
+import { getSlot, renderUI } from '../../helpers'
 
 /**
  * A Split with a responsive `orientation` lays out on one axis at each breakpoint.
@@ -17,7 +17,7 @@ describe('a Split with a responsive orientation (real browser)', () => {
 	beforeAll(() => page.viewport(960, 640))
 
 	function panes(container: HTMLElement) {
-		const split = present(container.querySelector('[data-slot="split"]'), 'split')
+		const split = getSlot(container, 'split')
 
 		const [first, second] = Array.from(split.children, (child) => child.getBoundingClientRect())
 

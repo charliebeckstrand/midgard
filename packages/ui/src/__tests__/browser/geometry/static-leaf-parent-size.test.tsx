@@ -8,7 +8,7 @@ import { LoadingSpinner } from '../../../components/loading'
 import { Sidebar, SidebarItem, SidebarLabel } from '../../../components/sidebar'
 import { type DensityStep, densitySteps } from '../../../core/density'
 import { iconSize } from '../../../core/density/geometry'
-import { present, renderUI } from '../../helpers'
+import { getSlot, renderUI } from '../../helpers'
 
 /**
  * A static leaf in a sized parent keeps the height of the parent.
@@ -78,7 +78,7 @@ describe('a static leaf in a sized parent (real browser)', () => {
 				(avatar) => avatar.getBoundingClientRect().width,
 			)
 
-			const skeleton = present(container.querySelector('[data-slot="placeholder"]'), 'skeleton')
+			const skeleton = getSlot(container, 'placeholder')
 
 			expect(statusCircle).toBe(circle)
 
@@ -116,10 +116,7 @@ describe('a static leaf in a sized parent (real browser)', () => {
 	)('sizes a spinner in a %s %s to the icon row', ([size, , render]) => {
 		const { container } = renderUI(render(size))
 
-		const spinner = present(
-			container.querySelector('[data-slot="loading-spinner"]'),
-			'loading spinner',
-		)
+		const spinner = getSlot(container, 'loading-spinner')
 
 		expect(spinner.getBoundingClientRect().width).toBe(iconSize(size))
 	})

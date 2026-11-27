@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { Icon } from '../../../components/icon'
 import { Nav, NavItem, NavList } from '../../../components/nav'
 import { DensityProvider } from '../../../providers/density'
-import { present, renderUI } from '../../helpers'
+import { getSlot, renderUI } from '../../helpers'
 
 /**
  * The height, the text, and the icon of a NavItem take the step of the nearest
@@ -34,13 +34,13 @@ function measure(density: Density) {
 		</DensityProvider>,
 	)
 
-	const inner = present(container.querySelector('[data-slot="nav-item-inner"]'), 'the item')
+	const inner = getSlot(container, 'nav-item-inner')
 
-	const icon = present(inner.querySelector('[data-slot="icon"]'), 'the item icon')
+	const icon = getSlot(inner, 'icon')
 
-	const suffix = present(container.querySelector('[data-slot="nav-item-suffix"]'), 'the suffix')
+	const suffix = getSlot(container, 'nav-item-suffix')
 
-	const slotIcon = present(suffix.querySelector('[data-slot="icon"]'), 'the suffix icon')
+	const slotIcon = getSlot(suffix, 'icon')
 
 	return {
 		height: inner.getBoundingClientRect().height,

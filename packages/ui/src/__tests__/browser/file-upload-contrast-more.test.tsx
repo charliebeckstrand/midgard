@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { cdp, userEvent } from 'vitest/browser'
 import { FileUploadDrop } from '../../components/file-upload'
 import { contrastRatio, type Srgb, WCAG_NON_TEXT } from '../../utilities/contrast'
-import { frames, present, renderUI } from '../helpers'
+import { frames, getSlot, renderUI } from '../helpers'
 import { holdRootClass } from './helpers/root-state'
 
 /** The page surface of each mode, as the `sen` contrast guard measures it. */
@@ -61,10 +61,7 @@ describe('FileUpload dropzone under prefers-contrast: more (real browser)', () =
 
 			await frames()
 
-			const zone = present(
-				container.querySelector<HTMLElement>('[data-slot="file-upload"]'),
-				'dropzone',
-			)
+			const zone = getSlot(container, 'file-upload')
 
 			const page = over(surface[mode], 'white')
 
