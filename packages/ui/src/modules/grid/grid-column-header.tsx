@@ -19,6 +19,7 @@ import type { MessageDescriptor } from '../../primitives/intl/types'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { SortableGrip } from '../../primitives/sortable-grip/sortable-grip'
 import { k } from '../../recipes/kata/grid'
+import { hasContent } from '../../utilities/children'
 import { noop } from '../../utilities/noop'
 import type { QueryGroup } from '../query/engine/types'
 import { GridReorderKitContext } from './context'
@@ -96,7 +97,7 @@ function useSurfaceSafeActivators(
  * @internal
  */
 export function untitledHeaderName<T>(column: GridColumn<T>): MessageDescriptor | undefined {
-	if (column.title != null && column.title !== '') return undefined
+	if (hasContent(column.title)) return undefined
 
 	if (column.expander) return gridMessages.detailsColumn
 

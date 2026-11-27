@@ -17,10 +17,11 @@ import { intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import type { scale } from '../../recipes/kata/input'
 import { type InputVariants, k } from '../../recipes/kata/input'
+import { hasContent } from '../../utilities/children'
 import { clearNativeInput } from '../../utilities/clear-native-input'
 import type { ControlVariant } from '../control/context'
 import { InputClearButton } from './input-clear-button'
-import { InputFrame, isAffixPresent } from './input-frame'
+import { InputFrame } from './input-frame'
 import { useInputControl } from './use-input-control'
 
 /** Props for {@link Input}: `size`/`variant`, `prefix`/`suffix` affixes, the `clearable` flag and its `clearLabel`, and `invalid` override atop native `<input>` attributes. */
@@ -178,7 +179,7 @@ export function Input({
 		) : undefined
 
 	const frameSuffix =
-		clearButton && isAffixPresent(suffix) ? (
+		clearButton && hasContent(suffix) ? (
 			<>
 				{clearButton}
 				{suffix}
@@ -189,7 +190,7 @@ export function Input({
 
 	const slots = useHeadlessSlots(k, {
 		variant: field.variant,
-		affixed: isAffixPresent(prefix) || isAffixPresent(frameSuffix),
+		affixed: hasContent(prefix) || hasContent(frameSuffix),
 		width,
 	})
 

@@ -6,6 +6,7 @@ import { cn } from '../../core/cn'
 import { dataAttr } from '../../core/data-attr'
 import { ActiveIndicator } from '../../primitives/active-indicator'
 import { k } from '../../recipes/kata/chat-list-item'
+import { hasContent } from '../../utilities/children'
 import { useInChatList } from './context'
 
 /**
@@ -80,7 +81,7 @@ export function ChatListItem({
 	const body = (
 		<>
 			<span className={slots.title}>{title}</span>
-			{preview !== undefined && <span className={slots.preview}>{preview}</span>}
+			{hasContent(preview) && <span className={slots.preview}>{preview}</span>}
 		</>
 	)
 
@@ -112,7 +113,7 @@ export function ChatListItem({
 				</span>
 			)}
 
-			{actions !== undefined && (
+			{hasContent(actions) && (
 				<div data-slot="chat-list-item-actions" data-density="slot" className={slots.actions}>
 					{actions}
 				</div>

@@ -5,6 +5,7 @@ import type { ComponentProps } from 'react'
 import { cn } from '../../core/cn'
 import { ActiveIndicator } from '../../primitives/active-indicator'
 import { Glyph } from '../../primitives/glyph'
+import { hasContent } from '../../utilities/children'
 import { useStepper, useStepperStep } from './context'
 
 /** Props for {@link StepperIndicator}: `className` plus `<span>` attributes. */
@@ -37,7 +38,7 @@ export function StepperIndicator({ className, children, ...props }: StepperIndic
 			{state === 'current' && (
 				<ActiveIndicator className={slots.indicator.fill} style={{ borderRadius: '9999px' }} />
 			)}
-			{content !== false && <span className={slots.indicator.glyph}>{content}</span>}
+			{hasContent(content) && <span className={slots.indicator.glyph}>{content}</span>}
 		</span>
 	)
 }

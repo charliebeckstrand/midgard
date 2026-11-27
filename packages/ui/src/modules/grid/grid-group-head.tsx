@@ -13,6 +13,7 @@ import { useIntl } from '../../primitives/intl/use-intl'
 import { k as gridK } from '../../recipes/kata/grid'
 import { k } from '../../recipes/kata/grid-group'
 import { k as tableK } from '../../recipes/kata/table'
+import { hasContent } from '../../utilities/children'
 import { useGridHead } from './context'
 import { columnLabel } from './engine/grid-column/label'
 import type { GridGroupHeader } from './engine/grid-group/resolve'
@@ -176,7 +177,7 @@ function GridGroupHeadCell({
 
 				{/* `hidden` keeps the description out of the name of the band, and
 					    `aria-describedby` still reads it, so it reads one time. */}
-				{description && (
+				{hasContent(description) && (
 					<span id={descriptionId} hidden>
 						{description}
 					</span>

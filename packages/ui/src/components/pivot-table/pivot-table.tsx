@@ -4,6 +4,7 @@ import type { ReactNode } from 'react'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { useLocale } from '../../providers/locale/context'
+import { hasContent } from '../../utilities/children'
 import { fractionFormat } from '../../utilities/format-number'
 import {
 	Table,
@@ -126,7 +127,11 @@ export function PivotTable<T>({
 				<TableRow>
 					{/* An empty `<th>` is a header with no text (axe empty-table-header), so
 					    the corner without a `rowHeader` is a `<td>`. */}
-					{rowHeader == null ? <TableCell /> : <TableHeader scope="col">{rowHeader}</TableHeader>}
+					{hasContent(rowHeader) ? (
+						<TableHeader scope="col">{rowHeader}</TableHeader>
+					) : (
+						<TableCell />
+					)}
 					{columnKeys.map((column) => (
 						<TableHeader key={column} scope="col" className="text-end">
 							{column}

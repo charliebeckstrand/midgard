@@ -3,6 +3,7 @@ import { Swatch, type SwatchProps } from '../../../components/swatch'
 import { cn } from '../../../core/cn'
 import { k } from '../../../recipes/kata/chart'
 import type { Orientation } from '../../../types/orientation'
+import { hasContent } from '../../../utilities/children'
 
 /** The shape of a mark, as a readout names it. @internal */
 export type ReadoutSwatchShape = 'rect' | 'line' | 'dot'
@@ -83,7 +84,7 @@ type ChartReadoutCardProps = {
 export function ChartReadoutCard({ title, children }: ChartReadoutCardProps) {
 	return (
 		<div aria-hidden="true">
-			<div className={cn(k.label, children && 'mb-1')}>{title}</div>
+			<div className={cn(k.label, hasContent(children) && 'mb-1')}>{title}</div>
 
 			{children}
 		</div>
@@ -129,7 +130,7 @@ export function ChartReadoutRow({
 			<span className="flex min-w-0 flex-wrap gap-x-1.5">
 				<span className={cn(k.value)}>{value}</span>
 
-				{label !== undefined && <span className={cn(k.label)}>{label}</span>}
+				{hasContent(label) && <span className={cn(k.label)}>{label}</span>}
 			</span>
 		</div>
 	)

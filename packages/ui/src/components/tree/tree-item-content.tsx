@@ -7,6 +7,7 @@ import { cn } from '../../core/cn'
 import { dataAttr } from '../../core/data-attr'
 import { Glyph } from '../../primitives/glyph'
 import { k } from '../../recipes/kata/tree'
+import { hasContent } from '../../utilities/children'
 import { isActivationKey } from '../../utilities/keyboard-navigation'
 import { Icon } from '../icon'
 import { useTreeContext, useTreePosition } from './context'
@@ -156,7 +157,7 @@ export function TreeItemContent({
 					)}
 				</span>
 			)}
-			{prefix != null && (
+			{hasContent(prefix) && (
 				<span data-slot="tree-item-prefix" className={slots.affix}>
 					{prefix}
 				</span>
@@ -165,7 +166,7 @@ export function TreeItemContent({
 			<span id={labelId} className={slots.label}>
 				{label}
 			</span>
-			{suffix != null && (
+			{hasContent(suffix) && (
 				<span data-slot="tree-item-suffix" className={slots.affix}>
 					{suffix}
 				</span>

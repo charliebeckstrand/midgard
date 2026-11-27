@@ -4,6 +4,7 @@ import { type ReactNode, useMemo, useState } from 'react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { cn } from '../../core/cn'
 import { k } from '../../recipes/kata/grid'
+import { hasContent } from '../../utilities/children'
 import { GridCellEditingContext, useGridResizing, useGridSettle } from './context'
 import type { CellTooltip } from './engine/grid-row/cell'
 import { cellContentAt, type GridIndexedColumn, resolveCellTooltip } from './engine/grid-row/cell'
@@ -147,7 +148,7 @@ export function cellBody<T>(
 ): ReactNode {
 	const content = searchedContent(col, cellContentAt(col, row, rowIndex))
 
-	if (!truncate || content == null) return content
+	if (!truncate || !hasContent(content)) return content
 
 	return (
 		<GridCellContent

@@ -20,6 +20,7 @@ import { IntlMessage } from '../../primitives/intl'
 import { intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/dashboard'
+import { hasContent } from '../../utilities/children'
 import { focusGripOrBoard } from './dashboard-focus'
 import { dashboardMessages } from './dashboard-messages'
 import { DashboardTileGuard } from './dashboard-tile-boundary'
@@ -116,11 +117,11 @@ export function DashboardTileExpand({
 
 			{seen && (
 				<DialogPanel width="5xl" {...(title === undefined ? { 'aria-label': label } : {})}>
-					{(title !== undefined || description !== undefined) && (
+					{(title !== undefined || hasContent(description)) && (
 						<DialogHeader>
 							{title !== undefined && <DialogTitle>{title}</DialogTitle>}
 
-							{description !== undefined && (
+							{hasContent(description) && (
 								// The guard holds the whole slot. A failed description then leaves no empty
 								// element for the `aria-describedby` of the dialog.
 								<DashboardTileGuard label={label} onError={onError}>

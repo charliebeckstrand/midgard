@@ -16,6 +16,7 @@ import { useQueryValue } from '../../primitives/query/use-query-value'
 import { VirtualItemSourceContext } from '../../primitives/virtual-options/context'
 import { k } from '../../recipes/kata/command-palette'
 import type { DialogPanelVariants } from '../../recipes/kata/dialog'
+import { hasContent } from '../../utilities/children'
 import { isComposing } from '../../utilities/is-composing'
 import { adaptive } from '../../utilities/responsive'
 import { ButtonCloseX } from '../button/button-close'
@@ -325,7 +326,7 @@ export function CommandPalette({
 						>
 							{empty && searched ? intl.formatMessage(intlMessages.noResults) : null}
 						</output>
-						{footer === undefined || footer === null || footer === false ? null : (
+						{hasContent(footer) && (
 							<DialogFooter data-slot="command-palette-footer">{footer}</DialogFooter>
 						)}
 					</DeferredQueryContext>

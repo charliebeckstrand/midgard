@@ -5,6 +5,7 @@ import { CardDescription, CardTitle } from '../../components/card'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { useTruncation } from '../../hooks/use-truncation'
 import { k } from '../../recipes/kata/dashboard'
+import { hasContent } from '../../utilities/children'
 import { useDashboardTitleLevel } from './context'
 import { DashboardTileGuard } from './dashboard-tile-boundary'
 
@@ -107,7 +108,7 @@ export function DashboardTileHeader({
 			<div className={slots.heading}>
 				{title !== undefined && <DashboardTileTitle id={titleId} title={title} editing={editing} />}
 
-				{description !== undefined && (
+				{hasContent(description) && (
 					<DashboardTileGuard label={label} onError={onError}>
 						<CardDescription className="truncate">{description}</CardDescription>
 					</DashboardTileGuard>
@@ -117,7 +118,7 @@ export function DashboardTileHeader({
 			<div data-slot="dashboard-tile-actions" className={slots.actions}>
 				{clear}
 
-				{actions !== undefined && (
+				{hasContent(actions) && (
 					<DashboardTileGuard label={label} onError={onError}>
 						{actions}
 					</DashboardTileGuard>

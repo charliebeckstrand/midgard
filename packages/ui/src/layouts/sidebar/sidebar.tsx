@@ -40,6 +40,7 @@ import { Portal } from '../../primitives/portal'
 import { SIDEBAR } from '../../providers/appearance/appearance-storage'
 import { k } from '../../recipes/kata/sidebar-layout'
 import { Flex } from '../../structure/flex'
+import { hasContent } from '../../utilities/children'
 import type { Responsive } from '../../utilities/responsive'
 import { scrollWithin } from '../../utilities/scroll-within'
 import { readChoice, subscribeChoices, writeChoice } from '../../utilities/stored-choice'
@@ -446,8 +447,8 @@ export function SidebarLayout({
 							<DrawerTrigger>
 								<IconButton aria-label={intl.formatMessage(messages.openNavigation)} icon={Menu} />
 							</DrawerTrigger>
-							{navbar && <div className="min-w-0 flex-1">{navbar}</div>}
-							{actions && <div className={cn(slots.actions, 'ms-auto')}>{actions}</div>}
+							{hasContent(navbar) && <div className="min-w-0 flex-1">{navbar}</div>}
+							{hasContent(actions) && <div className={cn(slots.actions, 'ms-auto')}>{actions}</div>}
 						</Flex>
 					</Landmark>
 				</Drawer>
@@ -468,7 +469,7 @@ export function SidebarLayout({
 				</div>
 
 				{/* Inline aside: on the end edge, after the content. */}
-				{aside && (
+				{hasContent(aside) && (
 					<div data-slot="sidebar-aside" className={slots.aside}>
 						<MountHold hold={asideHold} name="sidebar-aside">
 							{aside}
@@ -517,7 +518,7 @@ export function SidebarLayoutHeader({
 			className={cn(slots.header.base, className)}
 		>
 			<div className="flex-1 min-w-0">{children}</div>
-			{actions && <div className={slots.header.actions}>{actions}</div>}
+			{hasContent(actions) && <div className={slots.header.actions}>{actions}</div>}
 		</header>
 	)
 }

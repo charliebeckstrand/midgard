@@ -2,7 +2,6 @@
 
 import { useComposedRefs } from 'motion/react'
 import {
-	Children,
 	type ComponentProps,
 	type CSSProperties,
 	type ReactNode,
@@ -24,6 +23,7 @@ import { ReducedMotion } from '../../primitives/reduced-motion'
 import { useLocale } from '../../providers/locale/context'
 import type { MapSeriesColor } from '../../recipes/kata/map'
 import type { AccessibleName } from '../../types/accessible-name'
+import { hasContent } from '../../utilities/children'
 import { getOrCompute } from '../../utilities/get-or-compute'
 import { sameElements } from '../../utilities/same-elements'
 import { legendAside } from '../chart/engine/chart-legend/schema'
@@ -1724,7 +1724,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		{
 			categoryCount: categoryMetas.length,
 			entryCount: entries.length,
-			hasOverlayChildren: Children.toArray(children).length > 0,
+			hasOverlayChildren: hasContent(children),
 		},
 		{
 			colorRange,

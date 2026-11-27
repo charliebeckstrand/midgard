@@ -16,6 +16,7 @@ import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import type { HeadingLevel } from '../../recipes/kata/heading'
 import { k as linkK } from '../../recipes/kata/link'
+import { hasContent } from '../../utilities/children'
 import { summarizeErrors } from './engine/form-error-summary'
 import { focusControl, sortByDocumentOrder } from './form-focus'
 
@@ -146,7 +147,7 @@ export function FormErrorSummary({
 	if (!visible) return null
 
 	// An empty title renders no heading, so the summary has no empty `h2`.
-	const hasTitle = title != null && typeof title !== 'boolean' && title !== ''
+	const hasTitle = hasContent(title)
 
 	const TitleHeading = `h${titleLevel}` as const
 

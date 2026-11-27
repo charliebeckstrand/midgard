@@ -256,6 +256,7 @@ Import these from `utilities/children`. Each one that reads a set of children re
 | `FlatChild` *(type)* | One child from `flattenFragments`: its `node` and its `key`. |
 | `isElementOfType` | Whether a child is an element of a given component. |
 | `hasChildOfType` | Whether a child of a given component is present. |
+| `hasContent` | Whether a slot holds content. `0` is content. `undefined`, `null`, a boolean, `''`, and an array or a Fragment that holds only these are empty. Call it for each "is this slot empty" check. |
 | `partitionByType` | Splits the children into the elements of a given component and the rest, each keyed from `flattenFragments`. |
 
 ## Export

@@ -3,6 +3,7 @@
 import { useComposedRefs } from 'motion/react'
 import { type ComponentProps, type ReactNode, use, useCallback } from 'react'
 import { cn } from '../../core/cn'
+import { hasContent } from '../../utilities/children'
 import { HeaderActionsContext } from './context'
 
 /** Props for {@link HeaderActionsSlot}. The `<span>` of the slot takes the rest. */
@@ -46,7 +47,7 @@ export function HeaderActionsSlot({ className, ref, children, ...props }: Header
 			ref={setSlot}
 			className={cn('contents', HIDE_FALLBACK, className)}
 		>
-			{children !== undefined && (
+			{hasContent(children) && (
 				<span data-slot="header-actions-fallback" className="contents">
 					{children}
 				</span>
