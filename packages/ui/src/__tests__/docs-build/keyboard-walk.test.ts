@@ -495,6 +495,28 @@ async function walk(tab: Page, loads: Loads, key: Key, first: number): Promise<W
 }
 
 /**
+ * Keeps the accessibility tree of the tab alive for the walk, through a
+ * DevTools session that reads the tree one time.
+ *
+ * @remarks
+ * Without a live tree, each read of `computedRole` or `computedName` builds a
+ * tree of the whole page, and throws it away. On the dashboard page, that took
+ * about 35 ms for each property, more than the two frames of a read. With the
+ * tree alive, Chromium updates it as the page changes, and each read takes
+ * about 1 ms. The roles and the names do not change.
+ */
+async function keepAccessibilityTree(tab: Page): Promise<void> {
+	const session = await tab.context().newCDPSession(tab)
+
+	const { root } = await session.send('DOM.getDocument', { depth: 0 })
+
+	await session.send('Accessibility.getPartialAXTree', {
+		nodeId: root.nodeId,
+		fetchRelatives: false,
+	})
+}
+
+/**
  * Walks the page at `route` forward and back, after its idle-time loads end
  * and its layout settles, and gives the findings of both walks.
  */
@@ -524,6 +546,8 @@ async function readPage(route: string, context: TestContext): Promise<Finding[]>
 			}),
 		IDLE_LIMIT,
 	)
+
+	await keepAccessibilityTree(tab)
 
 	const loads = trackLoads(tab)
 
