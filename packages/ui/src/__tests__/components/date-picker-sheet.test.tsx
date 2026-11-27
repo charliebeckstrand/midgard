@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 
 import { DatePicker, type DatePickerProps } from '../../components/date-picker'
+import { NO_HOVER_QUERY, PHONE_QUERY } from '../../utilities/media-query'
 import { bySlot, renderUI, screen, setupUser, stubMatchMedia, waitFor, within } from '../helpers'
 
 /**
@@ -9,7 +10,7 @@ import { bySlot, renderUI, screen, setupUser, stubMatchMedia, waitFor, within } 
  * other suites get the popover.
  */
 function renderPhonePicker(props: DatePickerProps) {
-	stubMatchMedia((query) => query.startsWith('(hover: none)'))
+	stubMatchMedia((query) => query === NO_HOVER_QUERY || query === PHONE_QUERY)
 
 	const user = setupUser()
 

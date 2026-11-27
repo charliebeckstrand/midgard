@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { Swatch } from '../../components/swatch'
 import { bySlot, present, renderUI } from '../helpers'
+import { SIZE_AXES } from '../helpers/size-axes'
 
 /**
  * An `outline` swatch frames its mark around a core in the surface color. A
@@ -8,7 +9,7 @@ import { bySlot, present, renderUI } from '../helpers'
  * grew to 4px and read as a thick solid bar. It must keep a hollow core.
  */
 describe('outline line Swatch (real browser)', () => {
-	it.each(['xs', 'sm', 'md', 'lg', 'xl'] as const)('keeps a hollow core at size %s', (size) => {
+	it.each(SIZE_AXES.Swatch)('keeps a hollow core at size %s', (size) => {
 		const { container } = renderUI(
 			<Swatch shape="line" variant="outline" size={size} color="blue" />,
 		)

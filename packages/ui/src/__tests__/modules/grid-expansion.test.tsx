@@ -2,6 +2,7 @@ import '../setup/grid-modules'
 import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
+import { REDUCED_MOTION_QUERY } from '../../utilities/media-query'
 import { ariaTarget, renderUI, screen, setupUser, stubMatchMedia, within } from '../helpers'
 
 type Person = { id: number; name: string; role: string }
@@ -175,7 +176,7 @@ describe('Grid master-detail', () => {
 	})
 
 	it('opens the panel on the toggle itself under reduced motion', async () => {
-		stubMatchMedia((query) => query === '(prefers-reduced-motion: reduce)')
+		stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
 
 		const user = setupUser()
 

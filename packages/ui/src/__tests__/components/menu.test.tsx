@@ -17,6 +17,7 @@ import {
 import { MenuCappedContext } from '../../components/menu/context'
 import { MenuPointerLevel } from '../../components/menu/menu-pointer-level'
 import { MenuViewport } from '../../components/menu/menu-viewport'
+import { NO_HOVER_QUERY, PHONE_QUERY } from '../../utilities/media-query'
 import {
 	act,
 	bySlot,
@@ -1139,7 +1140,7 @@ describe('MenuSub', () => {
 	})
 
 	it('does not toggle a submenu of a sheet on a repeat Enter or Space on its row', async () => {
-		stubMatchMedia((query) => query.startsWith('(hover: none)'))
+		stubMatchMedia((query) => query === NO_HOVER_QUERY || query === PHONE_QUERY)
 
 		renderUI(
 			<Menu placement="bottom-start" sheet>
@@ -1593,7 +1594,7 @@ describe('Menu on a phone', () => {
 		labelledby?: string
 		trigger?: ReactNode
 	} = {}) {
-		stubMatchMedia((query) => query.startsWith('(hover: none)'))
+		stubMatchMedia((query) => query === NO_HOVER_QUERY || query === PHONE_QUERY)
 
 		const onAction = vi.fn()
 
@@ -1751,7 +1752,7 @@ describe('Menu on a phone', () => {
 	})
 
 	function renderPhoneSubmenu() {
-		stubMatchMedia((query) => query.startsWith('(hover: none)'))
+		stubMatchMedia((query) => query === NO_HOVER_QUERY || query === PHONE_QUERY)
 
 		const onAction = vi.fn()
 

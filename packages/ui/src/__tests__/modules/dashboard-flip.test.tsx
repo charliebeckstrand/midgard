@@ -2,6 +2,7 @@ import { act } from '@testing-library/react'
 import { animate } from 'motion'
 import { afterEach, beforeEach, describe, expect, it, type Mock, vi } from 'vitest'
 import { type DashboardLayoutItem, DashboardTile } from '../../modules/dashboard'
+import { REDUCED_MOTION_QUERY } from '../../utilities/media-query'
 import { fireEvent, nonEmpty, present, renderUI, screen, stubMatchMedia, tick } from '../helpers'
 import {
 	ControlledDashboard,
@@ -146,7 +147,7 @@ describe('the glide of a dashboard tile', () => {
 	})
 
 	it('snaps each move under reduced motion', async () => {
-		stubMatchMedia((query) => query === '(prefers-reduced-motion: reduce)')
+		stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
 
 		renderUI(<Board />)
 
