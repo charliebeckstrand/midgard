@@ -39,24 +39,27 @@ export const k = {
 	tick: ['text-sm', 'tabular-nums', ...mutedFill],
 	/** Legend / tooltip label ink (HTML text; marks carry the color, text never does). */
 	label: ['text-sm text-start', 'leading-tight', ...text.muted],
-	/**
-	 * The text of a legend entry: its label and the value after it, on one
-	 * baseline, apart by the gap of the button that holds them. The button
-	 * centers its swatch against the row. Each box has its own line height, so
-	 * centered boxes would set the two texts on different baselines.
-	 */
-	legendText: ['flex min-w-0 items-baseline', dan.gap.button],
-	/**
-	 * The look of a legend entry that is toggled off. Each part is inside the
-	 * switch of its entry, and the switch has `aria-pressed="false"` while the
-	 * entry is off. Thus each part reads the state of its switch, and the look
-	 * cannot disagree with the state. The label strikes through and dims, a
-	 * readout or a description dims, and a key dims more.
-	 */
-	legendOff: {
-		label: ['in-[[aria-pressed=false]]:line-through', 'in-[[aria-pressed=false]]:opacity-60'],
-		detail: 'in-[[aria-pressed=false]]:opacity-60',
-		key: 'in-[[aria-pressed=false]]:opacity-40',
+	/** The parts of a legend entry: its text (`text`) and its look while it is toggled off (`off`). */
+	legend: {
+		/**
+		 * The text of a legend entry: its label and the value after it, on one
+		 * baseline, apart by the gap of the button that holds them. The button
+		 * centers its swatch against the row. Each box has its own line height, so
+		 * centered boxes would set the two texts on different baselines.
+		 */
+		text: ['flex min-w-0 items-baseline', dan.gap.button],
+		/**
+		 * The look of a legend entry that is toggled off. Each part is inside the
+		 * switch of its entry, and the switch has `aria-pressed="false"` while the
+		 * entry is off. Thus each part reads the state of its switch, and the look
+		 * cannot disagree with the state. The label strikes through and dims, a
+		 * readout or a description dims, and a key dims more.
+		 */
+		off: {
+			label: ['in-[[aria-pressed=false]]:line-through', 'in-[[aria-pressed=false]]:opacity-60'],
+			detail: 'in-[[aria-pressed=false]]:opacity-60',
+			key: 'in-[[aria-pressed=false]]:opacity-40',
+		},
 	},
 	/**
 	 * Tooltip value ink: the type of {@link k.label}, with tabular figures. Only

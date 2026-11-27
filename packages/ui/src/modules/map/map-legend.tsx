@@ -75,7 +75,7 @@ const MapLegendEntry = memo(function MapLegendEntry({
 							className={swatch.className}
 							color={swatch.color}
 							stripes={swatch.stripes}
-							swatchClassName={chart.legendOff.key}
+							swatchClassName={chart.legend.off.key}
 						/>
 					))}
 				</span>
@@ -95,7 +95,7 @@ const MapLegendEntry = memo(function MapLegendEntry({
 						tone="muted"
 						className={cn(
 							'shrink-0 text-end leading-tight whitespace-nowrap tabular-nums font-normal',
-							chart.legendOff.detail,
+							chart.legend.off.detail,
 						)}
 					>
 						{item.detail}

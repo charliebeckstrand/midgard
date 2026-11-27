@@ -261,7 +261,7 @@ const ChartLegendEntry = memo(function ChartLegendEntry({
 						as="span"
 						tone="muted"
 						size="sm"
-						className={cn('text-start leading-tight tabular-nums', k.legendOff.detail)}
+						className={cn('text-start leading-tight tabular-nums', k.legend.off.detail)}
 					>
 						{item.detail}
 					</Text>
@@ -329,7 +329,7 @@ function ChartLegendOverflowSwitch({
 				as="span"
 				tone="muted"
 				size="sm"
-				className={cn('min-w-0 text-start leading-tight', k.legendOff.label)}
+				className={cn('min-w-0 text-start leading-tight', k.legend.off.label)}
 			>
 				{item.label}
 			</Text>
@@ -409,7 +409,7 @@ function ChartLegendReferenceValue({ value }: { value?: string }) {
 			tone="muted"
 			size="sm"
 			data-slot="chart-legend-reference-value"
-			className={cn('leading-tight font-normal tabular-nums', k.legendOff.detail)}
+			className={cn('leading-tight font-normal tabular-nums', k.legend.off.detail)}
 		>
 			{value}
 		</Text>
@@ -433,7 +433,7 @@ function ChartLegendReferenceSwatch({ reference }: { reference: ChartLegendRefer
 			orientation={reference.orientation}
 			color={reference.swatchClass || undefined}
 			style={reference.color ? { color: reference.color } : undefined}
-			className={k.legendOff.key}
+			className={k.legend.off.key}
 		/>
 	)
 }
@@ -802,7 +802,7 @@ const ChartLegendNote = memo(function ChartLegendNote({
 				</span>
 
 				<span className="flex min-w-0 flex-wrap items-baseline gap-x-1.5">
-					<Text as="span" tone="muted" className={cn('font-medium', k.legendOff.label)}>
+					<Text as="span" tone="muted" className={cn('font-medium', k.legend.off.label)}>
 						{reference.label}
 					</Text>
 
@@ -814,7 +814,7 @@ const ChartLegendNote = memo(function ChartLegendNote({
 						as="span"
 						tone="muted"
 						size="xs"
-						className={cn('col-start-2 min-w-0', k.legendOff.detail)}
+						className={cn('col-start-2 min-w-0', k.legend.off.detail)}
 					>
 						{reference.description}
 					</Text>

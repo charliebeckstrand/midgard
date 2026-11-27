@@ -197,7 +197,7 @@ export function ChartSwatch({
 				variant={swatchVariant(swatch, dashed, hollow)}
 				color={swatchClass}
 				style={swatchColor ? { color: swatchColor } : undefined}
-				className={k.legendOff.key}
+				className={k.legend.off.key}
 			/>
 		)
 	}
@@ -209,7 +209,7 @@ export function ChartSwatch({
 		<Swatch
 			shape="square"
 			color={swatchClass}
-			className={cn('relative overflow-hidden', k.legendOff.key)}
+			className={cn('relative overflow-hidden', k.legend.off.key)}
 		>
 			<svg
 				aria-hidden="true"
