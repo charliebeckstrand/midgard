@@ -17,10 +17,11 @@ const messages = defineMessages({
 
 const catalogs: IntlCatalogs = { es }
 
+// `LocaleProvider` sets no `lang`, so the text in Spanish sets its own.
 export default function ServerModule() {
 	return (
 		<LocaleProvider locale="es" catalogs={catalogs}>
-			<Text>
+			<Text lang="es">
 				<IntlMessage message={messages.empty} />
 			</Text>
 		</LocaleProvider>
