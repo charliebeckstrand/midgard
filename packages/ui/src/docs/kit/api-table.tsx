@@ -133,6 +133,7 @@ export function ApiTable({ api }: { api: BarrelApi }) {
 			)}
 			<PendingAnchorContext value={pending}>
 				<Accordion
+					variant="outline"
 					multiple
 					value={open}
 					onValueChange={toggle}
