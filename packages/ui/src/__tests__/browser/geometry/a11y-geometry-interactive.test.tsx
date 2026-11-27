@@ -1,7 +1,8 @@
+import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { userEvent as browserUser } from 'vitest/browser'
 import { interactive, roved, rows } from '../../a11y/cases'
-import { present, renderUI, userEvent } from '../../helpers'
+import { present, renderUI } from '../../helpers'
 import { axeGeometry } from './helpers/axe-geometry'
 
 /**

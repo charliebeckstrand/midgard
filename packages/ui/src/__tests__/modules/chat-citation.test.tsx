@@ -20,8 +20,8 @@ import {
 	bySlot,
 	renderUI,
 	screen,
+	setupUser,
 	stubMatchMedia,
-	userEvent,
 } from '../helpers'
 
 // A citation that ends inside the bold draws as pieces: one for the text
@@ -90,7 +90,7 @@ describe('ChatCitationProvider', () => {
 	it('sends the citation on a press, and null on a second press', async () => {
 		const onCitedChange = vi.fn()
 
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		renderUI(
 			<Cited citations={[cite('c1', 'Twelve stops are late')]} onCitedChange={onCitedChange} />,
@@ -114,7 +114,7 @@ describe('ChatCitationProvider', () => {
 	it('presses from the keyboard as a native button does', async () => {
 		const onCitedChange = vi.fn()
 
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		renderUI(
 			<Cited citations={[cite('c1', 'Twelve stops are late')]} onCitedChange={onCitedChange} />,
@@ -143,7 +143,7 @@ describe('ChatCitationProvider', () => {
 	it('clears the active citation on Escape, and keeps the focus on the citation', async () => {
 		const onCitedChange = vi.fn()
 
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		renderUI(
 			<Cited
@@ -177,7 +177,7 @@ describe('ChatCitationProvider', () => {
 
 		const onKeyDown = vi.fn((event: KeyboardEvent) => event.defaultPrevented)
 
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		renderUI(
 			// biome-ignore lint/a11y/noStaticElementInteractions: the wrapper stands in for a dialog that reads Escape.
@@ -205,7 +205,7 @@ describe('ChatCitationProvider', () => {
 	})
 
 	it('draws one control for a citation that crosses bold, and marks each piece pressed', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const { container } = renderUI(<Cited citations={[cite('c1', 'most of them on **Tuesday')]} />)
 
@@ -237,7 +237,7 @@ describe('ChatCitationProvider', () => {
 
 		const citation = { ...cite('c1', 'Twelve'), start, end: start + quote.length, quote }
 
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const { container } = renderUI(
 			<ChatCitationProvider targets={targets} cited={null} onCitedChange={() => {}}>
@@ -261,7 +261,7 @@ describe('ChatCitationProvider', () => {
 	})
 
 	it('presses a citation that crosses bold on a click of its bold piece', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const onCitedChange = vi.fn()
 
@@ -366,7 +366,7 @@ describe('ChatCitationProvider trigger', () => {
 
 		const onPreviewChange = vi.fn()
 
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const view = renderUI(
 			<Cited
@@ -576,7 +576,7 @@ describe('ChatCitationProvider trigger', () => {
 	it('ends the preview when the reply that holds the citation unmounts', async () => {
 		const onPreviewChange = vi.fn()
 
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const tree = (shown: boolean) => (
 			<ChatCitationProvider
@@ -706,7 +706,7 @@ describe('ChatCitationProvider trigger', () => {
 	it('takes the trigger of the outer provider under an inner one that gives none', async () => {
 		const onPreviewChange = vi.fn()
 
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		renderUI(
 			<ChatCitationProvider
@@ -878,7 +878,7 @@ describe('ChatCitationProvider render', () => {
 	})
 
 	it('opens a panel titled by the label, with the view of the citation, on a click', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		renderUI(<Panels citations={[late]} />)
 
@@ -898,7 +898,7 @@ describe('ChatCitationProvider render', () => {
 	})
 
 	it('opens from Enter and Space, and gives the focus back to the citation on Escape', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		renderUI(<Panels citations={[late]} />)
 
@@ -926,7 +926,7 @@ describe('ChatCitationProvider render', () => {
 	})
 
 	it('opens on a click of a bold piece, and gives the focus to the citation', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		const { container } = renderUI(<Panels citations={[tuesday]} />)
 
@@ -955,7 +955,7 @@ describe('ChatCitationProvider render', () => {
 
 		const onKeyDown = vi.fn((event: KeyboardEvent) => event.defaultPrevented)
 
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		renderUI(
 			// biome-ignore lint/a11y/noStaticElementInteractions: the wrapper stands in for a dialog that reads Escape.
@@ -990,7 +990,7 @@ describe('ChatCitationProvider render', () => {
 	})
 
 	it('opens a Dialog that is wide enough for a chart or a map', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		renderUI(<Panels citations={[late]} />)
 
@@ -1006,7 +1006,7 @@ describe('ChatCitationProvider render', () => {
 	it('opens a Drawer on a phone', async () => {
 		stubMatchMedia((query) => query.startsWith('(hover: none)'))
 
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		renderUI(<Panels citations={[late]} />)
 
@@ -1022,7 +1022,7 @@ describe('ChatCitationProvider render', () => {
 	it('keeps the selection of the outer provider under a provider that only adds panels', async () => {
 		const onCitedChange = vi.fn()
 
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		renderUI(
 			<ChatCitationProvider targets={targets} cited={null} onCitedChange={onCitedChange}>

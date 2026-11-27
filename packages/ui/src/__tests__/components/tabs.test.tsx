@@ -12,7 +12,6 @@ import {
 	renderUI,
 	screen,
 	setupUser,
-	userEvent,
 	waitFor,
 } from '../helpers'
 
@@ -69,7 +68,7 @@ describe('TabList', () => {
 
 		tabs[0]?.focus()
 
-		await userEvent.keyboard('{ArrowRight}')
+		await setupUser().keyboard('{ArrowRight}')
 
 		// The consumer's handler runs, and roving still moves the focus.
 		expect(onKeyDown).toHaveBeenCalled()
@@ -97,7 +96,7 @@ describe('TabList', () => {
 
 		tabs[0]?.focus()
 
-		await userEvent.keyboard('{ArrowRight}')
+		await setupUser().keyboard('{ArrowRight}')
 
 		expect(document.activeElement).toBe(tabs[1])
 	})
