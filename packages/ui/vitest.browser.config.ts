@@ -115,6 +115,18 @@ const FORCED_CONTEXT_OPTIONS = {
 } as const
 
 /**
+ * The options of the page of the `reduced-motion` instance: the options of each
+ * page, and a reader who asks for reduced motion. With `reducedMotion`, the page
+ * matches `(prefers-reduced-motion: reduce)`, in the tester iframe too. Thus
+ * three readers of the setting agree: `usePrefersReducedMotion`, the
+ * `motion-reduce:` and `motion-safe:` rules of the CSS, and Motion under
+ * `reducedMotion: 'user'`. A `matchMedia` stub cannot do this. It reaches only
+ * the hook. The CSS reads the real media query, and Motion reads the query one
+ * time for each page and keeps the value.
+ */
+const REDUCED_MOTION_CONTEXT_OPTIONS = { ...CONTEXT_OPTIONS, reducedMotion: 'reduce' as const }
+
+/**
  * The instances in WebKit for the files of Wysiwyg and of the formatted field of
  * ChatPrompt: the typing, the input before the load, the citations, the
  * picker, and the link dialog. A contenteditable field, its selection, and its
@@ -369,6 +381,14 @@ const releasePointer: BrowserCommand<[selector?: string]> = async (context, sele
  *   mocks are the ones `browser` uses. `pnpm test:forced` runs them, and
  *   `forced/README.md` tells how to add a case.
  *
+ * - `reduced-motion` (browser/reduced-motion/): the cases whose subject is
+ *   the result for a reader who asks for reduced motion. The page asks for
+ *   reduced motion (`REDUCED_MOTION_CONTEXT_OPTIONS`), and Motion is real.
+ *   `reduced-motion/setup/reduced-motion-guard.ts` fails a page that does not
+ *   ask, or whose root has the Motion setting class. Its mocks are the ones
+ *   `motion` uses. `pnpm test:reduced-motion` runs it, and
+ *   `reduced-motion/README.md` tells how to add a case.
+ *
  * - `floating-motion` (browser/floating-motion/): the cases that read the exit
  *   of a floating surface, such as the focus and the input of a menu panel
  *   while it animates out. This instance leaves `@floating-ui/react` and
@@ -575,6 +595,7 @@ export default defineConfig({
 						'src/__tests__/browser/forced/**',
 						'src/__tests__/browser/geometry/**',
 						'src/__tests__/browser/motion/**',
+						'src/__tests__/browser/reduced-motion/**',
 						'src/__tests__/browser/scrollbars/**',
 					],
 				},
@@ -629,6 +650,19 @@ export default defineConfig({
 						resolve(import.meta.dirname, 'src/__tests__/browser/motion/setup/module-mocks.ts'),
 					],
 					include: ['src/__tests__/browser/motion/**/*.test.{ts,tsx}'],
+				},
+				{
+					browser: 'chromium',
+					name: 'reduced-motion',
+					provider: playwright({ contextOptions: REDUCED_MOTION_CONTEXT_OPTIONS }),
+					setupFiles: [
+						resolve(import.meta.dirname, 'src/__tests__/browser/motion/setup/module-mocks.ts'),
+						resolve(
+							import.meta.dirname,
+							'src/__tests__/browser/reduced-motion/setup/reduced-motion-guard.ts',
+						),
+					],
+					include: ['src/__tests__/browser/reduced-motion/**/*.test.{ts,tsx}'],
 				},
 				{
 					browser: 'chromium',

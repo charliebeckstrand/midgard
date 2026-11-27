@@ -27,7 +27,8 @@ describe('ShinyText sweep (real browser)', () => {
 	})
 
 	// The browser of the suite asks for no reduction, so the Motion setting of
-	// the root reduces motion here.
+	// the root reduces motion here. `reduced-motion/shiny-text-sweep.test.tsx`
+	// holds the case of the platform setting.
 	it('runs no sweep under reduced motion', async () => {
 		holdRootClass(ROOT_REDUCED_MOTION_CLASS)
 
