@@ -16,8 +16,8 @@ export default function WithStrengthMeter() {
 					placeholder="Enter password"
 					autoComplete="new-password"
 				/>
+				<PasswordStrength value={password} />
 			</Field>
-			<PasswordStrength value={password} />
 			<Field>
 				<Label>Confirm password</Label>
 				<PasswordConfirmRepeat placeholder="Confirm password" autoComplete="new-password" />

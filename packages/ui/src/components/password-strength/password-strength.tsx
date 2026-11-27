@@ -1,7 +1,7 @@
 'use client'
 
 import { Check, Dot } from 'lucide-react'
-import type { ComponentProps } from 'react'
+import { type ComponentProps, useEffect, useId } from 'react'
 import { cn } from '../../core/cn'
 import { dataAttr } from '../../core/data-attr'
 import { useA11yLiveRegion } from '../../hooks/a11y/use-a11y-live-region'
@@ -11,6 +11,7 @@ import { defineMessage, defineMessages } from '../../primitives/intl/intl-messag
 import type { MessageDescriptor } from '../../primitives/intl/types'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/password-strength'
+import { useControl } from '../control/context'
 import { Icon } from '../icon'
 import {
 	type PasswordRule,
@@ -143,7 +144,8 @@ export type PasswordStrengthProps = Omit<ComponentProps<'div'>, 'children'> & {
 	 */
 	rules?: readonly PasswordRule[]
 	/**
-	 * Renders the per-rule checklist below the meter.
+	 * Renders the per-rule checklist below the meter. In a `Field` or a
+	 * `Control`, the checklist is also a description of the field.
 	 * @defaultValue true
 	 */
 	showRules?: boolean
@@ -164,6 +166,12 @@ export type PasswordStrengthProps = Omit<ComponentProps<'div'>, 'children'> & {
  * value text, beside a decorative four-segment bar. A live region announces
  * each change as "Password strength: <level>", and the component reports the
  * level via `onStrengthChange`.
+ *
+ * @remarks
+ * Put the meter in the `Field` of the password input. The rule checklist then
+ * joins the `aria-describedby` of the input, as a `Description` does, so a
+ * screen reader reads the rules and the state of each rule on the field. Outside
+ * a `Field` or a `Control`, the checklist describes nothing.
  */
 export function PasswordStrength({
 	value,
@@ -182,6 +190,17 @@ export function PasswordStrength({
 	const activeCount = level === 'empty' ? 0 : strengthLevels.indexOf(level) + 1
 
 	const label = intl.formatMessage(levelMessages[level])
+
+	const rulesId = useId()
+
+	// The rules are the instructions of the field, so the checklist registers
+	// as a description while it renders (WCAG 3.3.2).
+	const registerDescription = useControl()?.registerDescription
+
+	useEffect(
+		() => (showRules ? registerDescription?.(rulesId) : undefined),
+		[showRules, registerDescription, rulesId],
+	)
 
 	return (
 		<div data-slot="password-strength" {...props} className={cn(k().base, className)}>
@@ -212,7 +231,7 @@ export function PasswordStrength({
 				<span aria-hidden="true">{label}</span>
 			</div>
 			{showRules && (
-				<ul className={k().rules}>
+				<ul id={rulesId} className={k().rules}>
 					{results.map(({ rule, passed }) => (
 						<li
 							key={rule.id}

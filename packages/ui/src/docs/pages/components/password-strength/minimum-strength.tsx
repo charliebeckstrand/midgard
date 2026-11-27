@@ -21,11 +21,11 @@ export default function MinimumStrength() {
 					placeholder="Enter password"
 					autoComplete="new-password"
 				/>
+				<PasswordStrength
+					value={password}
+					onStrengthChange={(strength) => setLevel(strength.level)}
+				/>
 			</Field>
-			<PasswordStrength
-				value={password}
-				onStrengthChange={(strength) => setLevel(strength.level)}
-			/>
 			<Flex>
 				<Button disabled={level !== 'good' && level !== 'strong'}>Create account</Button>
 			</Flex>
