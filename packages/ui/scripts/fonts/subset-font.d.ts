@@ -16,6 +16,9 @@ declare module 'subset-font' {
 		 * range limits it. An axis that is not here keeps its full range.
 		 */
 		variationAxes?: Record<string, number | { min: number; max: number; default?: number }>
+
+		/** The name IDs that the subset keeps besides 0 to 6, which HarfBuzz always keeps. */
+		preserveNameIds?: number[]
 	}
 
 	/** Returns a subset of `font` that has the glyphs of the characters in `text`. */
