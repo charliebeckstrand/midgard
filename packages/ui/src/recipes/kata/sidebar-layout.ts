@@ -8,10 +8,11 @@
  * the `body`, the `footer`, and the `skip` link.
  */
 import { defineKata, mode } from '../../core/recipe'
-import { dan, kasane, narabi, omote, sou } from '../kiso'
+import { dan, kasane, narabi, omote, sen, sou } from '../kiso'
 
 const { flex, offcanvas } = narabi
 const { gap, space } = dan
+const { focus } = sen
 
 // The layout is in the flow, and the page scrolls at each width. A mobile
 // browser moves the scroll offset of the page when its toolbar changes size,
@@ -161,8 +162,9 @@ export const k = defineKata({
 	slots: {
 		navbar: { base: navbar, responsive: { layout: offcanvas.drawer.block } },
 		panel: { base: panel, responsive: { layout: offcanvas.inline.block } },
-		// The aside on the end edge. Its content takes its own width.
-		aside: { base: column, responsive: { layout: offcanvas.inline.block } },
+		// The aside on the end edge. Its content takes its own width. While it
+		// scrolls, it is a tab stop, so it shows an inset ring.
+		aside: { base: [...column, ...focus.inset], responsive: { layout: offcanvas.inline.block } },
 		actions,
 		floating: {
 			slots: {
