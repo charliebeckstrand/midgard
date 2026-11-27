@@ -63,7 +63,7 @@ export default function AppShell() {
 					<TableBody>
 						{orders.map((order) => (
 							<TableRow key={order.id}>
-								<TableCell>{order.id}</TableCell>
+								<TableCell className="whitespace-nowrap">{order.id}</TableCell>
 								<TableCell>{order.customer}</TableCell>
 								<TableCell>{orderStatuses[order.status]}</TableCell>
 							</TableRow>

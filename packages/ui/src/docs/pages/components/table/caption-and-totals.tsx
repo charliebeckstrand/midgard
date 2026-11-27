@@ -33,7 +33,7 @@ export default function CaptionAndTotals() {
 			<TableBody>
 				{orders.map((order) => (
 					<TableRow key={order.id}>
-						<TableCell>{order.id}</TableCell>
+						<TableCell className="whitespace-nowrap">{order.id}</TableCell>
 						<TableCell>{order.customer}</TableCell>
 						<TableCell className="text-end">{intl.formatNumber(order.amount, usd)}</TableCell>
 					</TableRow>

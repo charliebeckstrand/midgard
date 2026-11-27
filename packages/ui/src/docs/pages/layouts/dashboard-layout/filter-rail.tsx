@@ -47,7 +47,7 @@ export default function FilterRail() {
 				<TableBody>
 					{shown.map((order) => (
 						<TableRow key={order.id}>
-							<TableCell>{order.id}</TableCell>
+							<TableCell className="whitespace-nowrap">{order.id}</TableCell>
 							<TableCell>{order.customer}</TableCell>
 							<TableCell>{orderStatuses[order.status]}</TableCell>
 						</TableRow>
