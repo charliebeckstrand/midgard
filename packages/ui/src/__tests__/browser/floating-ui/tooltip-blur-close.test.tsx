@@ -9,16 +9,17 @@ import { hits } from '../helpers/exit'
 /**
  * A tooltip that focus opened closes in the task of the blur. The next Tab stop
  * can sit under the panel, as a heading link above a toolbar does. When the
- * panel stayed open until a later task, it took the pointer over the new focus,
- * and it covered the focus for a frame or more (WCAG 2.4.11).
+ * panel stayed open until a later task, it took the pointer over the new focus.
+ * It covered the focus for a frame or more (WCAG 2.4.11).
  *
  * The case moves the focus with `focus()`, which sends the blur in the same
- * task. The check waits only for the microtasks of that task, in which React
- * commits the update of the blur, so it runs before any later task. A key
- * press is a round trip to the browser process, and the check after it comes
- * too late to see the defect. The real floating engine is necessary, because the close of
- * `useFocus` comes from it. A tooltip mounts in its first state before the idle
- * load, as on a page, or in its full state after the load.
+ * task. React commits the update of the blur in a microtask of that task. The
+ * check waits only for those microtasks, so it runs before any later task. A
+ * key press is a round trip to the browser process, and the check after it
+ * comes too late to see the defect. The real floating engine is necessary,
+ * because the close of `useFocus` comes from it. A tooltip mounts in its first
+ * state before the idle load, as on a page, or in its full state after the
+ * load.
  */
 
 // The last release leaves the module loaded for the files after this one.

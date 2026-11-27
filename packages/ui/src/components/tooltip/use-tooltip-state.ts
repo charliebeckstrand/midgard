@@ -413,8 +413,8 @@ export function useTooltipState({
 	// tooltip in the task of the blur. `useFocus` closes only in a later task, so
 	// that it can read the focus after a window blur. Until that task and its
 	// render, the open panel stays over the new focus and can cover it (WCAG
-	// 2.4.11), and a hover panel takes the pointer there. A blur with no next
-	// element, or to a focus guard of the panel, still waits for `useFocus`: the
+	// 2.4.11). A hover panel also takes the pointer there. A blur with no next
+	// element, or to a focus guard of the panel, still waits for `useFocus`. The
 	// focus can then stay on the page or go into the panel. The close of
 	// `useFocus` then finds the tooltip closed.
 	const closeOnBlur = useStableEvent((event: ReactFocusEvent<Element>) => {
