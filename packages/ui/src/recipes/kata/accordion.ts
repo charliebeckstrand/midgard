@@ -65,6 +65,11 @@ export const k = defineKata(
 				// keeps `not-allowed`.
 				'aria-disabled:enabled:cursor-default',
 			],
+			// The text of the header. The item clips its overflow for its rounded edge,
+			// so a token wider than the item, such as a long component name, breaks, as
+			// in the body of a card. The label can shrink below that token, which keeps
+			// the indicator in the item.
+			label: ['flex-1', 'min-w-0', 'wrap-break-word'],
 			indicator: [
 				'shrink-0',
 				css.transform,
