@@ -5,6 +5,7 @@ import { GridNavContext, type GridNavStore } from '../../modules/grid/context'
 import { GridTotalRow } from '../../modules/grid/grid-total-row'
 import { useGridRevealHold } from '../../modules/grid/use-grid-reveal-hold'
 import { present, renderUI } from '../helpers'
+import { hydrateServerRender } from '../helpers/hydrate'
 
 /**
  * A collapsed row wakes in two commits. The row comes back on screen at the
@@ -110,4 +111,32 @@ it('mounts an entering group total closed, and opens it after a flush', () => {
 	const track = present(container.querySelector('[data-total-row] td > div'), 'total track')
 
 	expect(track).toHaveAttribute('data-open')
+})
+
+// The server and the hydration render read motion on, as most readers have it.
+// A collapsed row thus starts rested on the server, and it does not render
+// again after the hydration. A render after the hydration reached the Activity
+// of each row before it hydrated, and React hydrated each one at the blocking
+// lane.
+it('hydrates a collapsed row rested, with no render after the hydration', () => {
+	let renders = 0
+
+	function Row() {
+		renders++
+
+		const { hold } = useGridRevealHold(false)
+
+		return <span data-hidden={String(hold.hidden)} />
+	}
+
+	const { html, container, onRecoverableError } = hydrateServerRender(<Row />)
+
+	expect(html).toContain('data-hidden="true"')
+
+	expect(onRecoverableError).not.toHaveBeenCalled()
+
+	// One render on the server and one in the hydration.
+	expect(renders).toBe(2)
+
+	expect(container.querySelector('span')).toHaveAttribute('data-hidden', 'true')
 })
