@@ -52,6 +52,9 @@ describe('buildDeck', () => {
 		expect(deck).toHaveLength(SLOTS)
 		expect(new Set(deck).size).toBe(SLOTS)
 		expect(deck.every((value) => value >= 1 && value <= MAX)).toBe(true)
+
+		// The largest random value takes the last number of the pool, so MAX can come up.
+		expect(deck[0]).toBe(MAX)
 	})
 
 	it('takes the numbers in order for the smallest random value', () => {
