@@ -218,8 +218,9 @@ export type FrameOptions = {
 	box?: FrameBox
 	/**
 	 * Makes the instance area a viewport of 32rem in height, for an instance that
-	 * opens an overlay, a popover, or a toast. The surfaces stay in the area. A
-	 * drag on the bottom border of the area sets the height of the viewport.
+	 * opens an overlay, a popover, or a toast. The instance is at the center of
+	 * the area, and the surfaces stay in the area. A drag on the bottom border of
+	 * the area sets the height of the viewport.
 	 */
 	viewport?: boolean
 	/**
@@ -266,21 +267,35 @@ const boxClasses: Record<FrameBox, string> = {
  * The box of the instance. A `page` is the page of the viewport, with no
  * padding. Each other instance is in a padded flex box, with the width that
  * `box` sets.
+ *
+ * In a `viewport`, the instance is at the center of the area, so the empty
+ * area reads as a stage for the surface that the instance opens. Auto margins
+ * center the box, so an instance that is taller than the area starts at the
+ * top and scrolls, and is not cut at the top. A surface opens against the
+ * area and not against the box, so the box has no minimum width there. A
+ * lone trigger is at the center, and a row of triggers that wraps centers each
+ * line.
  */
 function InstanceBox({
 	box,
 	page,
+	viewport = false,
 	children,
 }: {
 	box: FrameBox
 	page: boolean
+	viewport?: boolean
 	children: ReactNode
 }) {
 	if (page) return <div data-slot="example-instance">{children}</div>
 
 	return (
-		<div className="p-4">
-			<Stack data-slot="example-instance" gap="lg" className={boxClasses[box]}>
+		<div className={viewport ? 'flex min-h-full p-4' : 'p-4'}>
+			<Stack
+				data-slot="example-instance"
+				gap="lg"
+				className={cn(boxClasses[box], viewport && 'm-auto min-w-0 phrasing:justify-center')}
+			>
 				{children}
 			</Stack>
 		</div>
@@ -312,15 +327,16 @@ function InstanceBox({
  *
  * A dialog, a popover, or a toast of an instance goes to the body, and reads
  * the viewport. With `viewport`, the area is a viewport for these surfaces
- * too, as a window is for a page. The area is 32rem high, and the instance
- * scrolls in it. Each surface renders in the area, covers only the area, and
- * reads the breakpoints of the area. `useToast` in the instance uses a queue
- * of the area, so its toasts also show in the area. A drag on the bottom
- * border of the area sets its height, from 10rem to the height of the
- * window. The size readout shows during that drag too. With `page` also, the
- * instance is the page of the viewport: it has no padding, and `100cqh` in
- * it is the height of the area. A layout thus fills the area as it fills a
- * window, and its drawers and sheets stay in the area.
+ * too, as a window is for a page. The area is 32rem high, the instance is
+ * at the center of the area, and the instance scrolls in it. Each surface
+ * renders in the area, covers only the area, and reads the breakpoints of the
+ * area. `useToast` in the instance uses a queue of the area, so its toasts
+ * also show in the area. A drag on the bottom border of the area sets its
+ * height, from 10rem to the height of the window. The size readout shows
+ * during that drag too. With `page` also, the instance is the page of the
+ * viewport: it has no padding, and `100cqh` in it is the height of the area.
+ * A layout thus fills the area as it fills a window, and its drawers and
+ * sheets stay in the area.
  *
  * Where the primary pointer is coarse, only a grip at the middle of the border
  * resizes the frame. The grip takes the whole touch, so a drag in any direction
@@ -495,7 +511,7 @@ export function ExampleFrame(
 								// `useToast` in the instance uses a queue of the frame, so its
 								// toasts show in the frame and not at the edge of the window.
 								<ToastHost>
-									<InstanceBox box={box} page={page}>
+									<InstanceBox box={box} page={page} viewport>
 										{children}
 									</InstanceBox>
 								</ToastHost>
