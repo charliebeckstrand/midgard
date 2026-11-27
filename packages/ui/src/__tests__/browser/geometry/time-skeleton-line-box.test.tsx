@@ -7,9 +7,8 @@ import {
 	DescriptionTerm,
 } from '../../../components/description-list'
 import { TimeAgo } from '../../../components/time-ago'
-import { attach, bySlot, present, renderUI } from '../../helpers'
+import { attach, renderUI } from '../../helpers'
 import { serverMarkup } from '../../helpers/hydrate'
-import { emulateForcedColors } from '../helpers/forced-colors'
 
 /**
  * The server markup of a DateTime with no zone, and of a TimeAgo, holds a
@@ -19,7 +18,8 @@ import { emulateForcedColors } from '../helpers/forced-colors'
  * taller than the text that replaced it. Thus a panel that fits its content
  * changed its height after hydration. The skeleton of a DateTime holds text, so
  * it has a baseline. These tests hold the row at the height of the text, in the
- * server markup and after the mount.
+ * server markup and after the mount. The skeleton under forced colors is
+ * `../forced/time-skeleton-line-box.test.tsx`.
  */
 const VALUE = '2026-11-04T01:00:00Z'
 
@@ -112,23 +112,5 @@ describe('skeleton of a DateTime (real browser)', () => {
 		expect(settled.container.querySelector('[data-slot="placeholder"]')).toBeNull()
 
 		expect(box(server)).toEqual(box(settled.container))
-	})
-})
-
-/**
- * Forced colors replace the color of text with a system color, and a
- * transparent color too. The UTC text of the skeleton then shows as the time
- * of the reader, with no zone, until hydration. The skeleton keeps its own
- * colors, so its text stays transparent.
- */
-describe('skeleton of a DateTime under forced colors (real browser)', () => {
-	emulateForcedColors()
-
-	it('does not show its UTC text', () => {
-		const server = attach(serverMarkup(<DateTime value={VALUE} />))
-
-		const skeleton = present(bySlot(server, 'placeholder'), 'the skeleton')
-
-		expect(getComputedStyle(skeleton).color).toBe('rgba(0, 0, 0, 0)')
 	})
 })

@@ -1,11 +1,7 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
-import { Button } from '../../components/button'
-import { CommandPalette, CommandPaletteItem } from '../../components/command-palette'
-import { Menu, MenuContent, MenuItem, MenuTrigger } from '../../components/menu'
-import { GlassSurfacesContext } from '../../primitives/glass/context'
-import { getSlot, noop, renderUI, screen, waitFor } from '../helpers'
-import { emulateForcedColors, systemColor } from './helpers/forced-colors'
+import { getSlot, screen } from '../helpers'
+import { rovedMenuRow, rovedPaletteRow } from './helpers/roved-rows'
 
 /**
  * The wash of a roved row (real paint). A command palette roves by
@@ -14,7 +10,7 @@ import { emulateForcedColors, systemColor } from './helpers/forced-colors'
  * forced-colors form that the hover and focus washes have. A dropdown menu
  * roves by real focus, and the focus wash marks its row. jsdom compiles no
  * Tailwind and paints nothing, so only a real browser reads the fill back off
- * the row.
+ * the row. The forced half is `forced/active-row-wash.test.tsx`.
  */
 
 /** `hannou.active`: the wash of a roved row on a plain surface. */
@@ -40,58 +36,6 @@ function readWash(element: Element): number {
 
 	return Number(alpha[1])
 }
-
-/**
- * The two rows of an open command palette, the first one roved by the keyboard.
- * The palette is a Dialog, so `glass` stands for the Surfaces setting of the reader.
- */
-const rovedPaletteRow = vi.defineHelper(async (glass: boolean): Promise<HTMLElement> => {
-	renderUI(
-		<GlassSurfacesContext value={glass}>
-			<CommandPalette open onOpenChange={noop}>
-				<CommandPaletteItem>Alpha</CommandPaletteItem>
-				<CommandPaletteItem>Beta</CommandPaletteItem>
-			</CommandPalette>
-		</GlassSurfacesContext>,
-	)
-
-	const row = screen.getByRole('option', { name: 'Alpha' })
-
-	await userEvent.keyboard('{ArrowDown}')
-
-	await waitFor(() => expect(row).toHaveAttribute('data-active'))
-
-	return row
-})
-
-/**
- * The row of an open dropdown menu, roved by the pointer. The rows rove by real
- * focus, so the row takes the focus. The pointer stays on the row.
- * `sheet={false}` keeps the panel next to its trigger at the narrow viewport of
- * the suite.
- */
-const rovedMenuRow = vi.defineHelper(async (glass: boolean): Promise<HTMLElement> => {
-	renderUI(
-		<Menu defaultOpen placement="bottom-start" sheet={false}>
-			<MenuTrigger>
-				<Button variant="outline">Options</Button>
-			</MenuTrigger>
-			<MenuContent aria-label="Actions">
-				<MenuItem>Alpha</MenuItem>
-				<MenuItem>Beta</MenuItem>
-			</MenuContent>
-		</Menu>,
-		{ glass },
-	)
-
-	const row = screen.getByRole('menuitem', { name: 'Alpha' })
-
-	await userEvent.hover(row)
-
-	await waitFor(() => expect(row).toHaveFocus())
-
-	return row
-})
 
 describe('roved row wash in a glass parent (real browser)', () => {
 	it('deepens a roved command-palette row to the glass step', async () => {
@@ -134,50 +78,5 @@ describe('roved row wash in a glass parent (real browser)', () => {
 		const row = await rovedPaletteRow(false)
 
 		expect(readWash(row)).toBeCloseTo(ACTIVE, 3)
-	})
-})
-
-describe('roved row under forced colors (real browser)', () => {
-	emulateForcedColors()
-
-	it('emulates forced colors', () => {
-		expect(matchMedia('(forced-colors: active)').matches).toBe(true)
-	})
-
-	it('paints a roved command-palette row in the system highlight', async () => {
-		const row = await rovedPaletteRow(false)
-
-		const { backgroundColor: background, color } = getComputedStyle(row)
-
-		expect({ background, color }).toEqual({
-			background: systemColor('Highlight'),
-			color: systemColor('HighlightText'),
-		})
-	})
-
-	// The glass dialog gives the row its strongest wash, the glass step under
-	// the pointer, so the highlight must win over that rule too.
-	it('keeps the system highlight on a roved command-palette row under the pointer in a glass dialog', async () => {
-		const row = await rovedPaletteRow(true)
-
-		await userEvent.hover(row)
-
-		const { backgroundColor: background, color } = getComputedStyle(row)
-
-		expect({ background, color }).toEqual({
-			background: systemColor('Highlight'),
-			color: systemColor('HighlightText'),
-		})
-	})
-
-	it('paints a roved menu row in the system highlight under the pointer', async () => {
-		const row = await rovedMenuRow(false)
-
-		const { backgroundColor: background, color } = getComputedStyle(row)
-
-		expect({ background, color }).toEqual({
-			background: systemColor('Highlight'),
-			color: systemColor('HighlightText'),
-		})
 	})
 })

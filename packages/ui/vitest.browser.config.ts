@@ -96,6 +96,25 @@ const CONTEXT_OPTIONS = { locale: 'en-US', timezoneId: 'UTC' }
 const COARSE_CONTEXT_OPTIONS = { ...CONTEXT_OPTIONS, hasTouch: true }
 
 /**
+ * The options of the pages of the `forced-light` and the `forced-dark`
+ * instances: the options of each page, forced colors, and the color scheme that
+ * sets the forced palette. Chromium then matches `(forced-colors: active)`, in
+ * the tester iframe too, and gives each system color the value of that
+ * palette. The options belong to the browser context, so they hold for each
+ * file of the instance, and no other instance gets them.
+ *
+ * A CDP media emulation on the shared page cannot do this cleanly. Each call
+ * replaces each emulated feature, a file that stops before its restore hands
+ * forced colors to each later file, and one file cannot change the palette
+ * between its cases with no restore by hand. Each forced case runs in the two
+ * instances, so it reads the two palettes.
+ */
+const FORCED_CONTEXT_OPTIONS = {
+	light: { ...CONTEXT_OPTIONS, forcedColors: 'active', colorScheme: 'light' },
+	dark: { ...CONTEXT_OPTIONS, forcedColors: 'active', colorScheme: 'dark' },
+} as const
+
+/**
  * The options of the page of the `reduced-motion` instance: the options of each
  * page, and a reader who asks for reduced motion. With `reducedMotion`, the page
  * matches `(prefers-reduced-motion: reduce)`, in the tester iframe too. Thus
@@ -353,6 +372,15 @@ const releasePointer: BrowserCommand<[selector?: string]> = async (context, sele
  *   match them. Its mocks are the ones `browser` uses. `pnpm test:coarse` runs
  *   it, and `coarse/README.md` tells how to add a case.
  *
+ * - `forced-light` and `forced-dark` (browser/forced/): the cases whose
+ *   subject is forced colors, such as the outline that replaces a ring and the
+ *   system color of a state. The page has forced colors and the light or the
+ *   dark forced palette (`FORCED_CONTEXT_OPTIONS`), and
+ *   `forced/setup/forced-guard.ts` fails a page that does not have them. The
+ *   two instances run each file, so each case reads the two palettes. Their
+ *   mocks are the ones `browser` uses. `pnpm test:forced` runs them, and
+ *   `forced/README.md` tells how to add a case.
+ *
  * - `reduced-motion` (browser/reduced-motion/): the cases whose subject is
  *   the result for a reader who asks for reduced motion. The page asks for
  *   reduced motion (`REDUCED_MOTION_CONTEXT_OPTIONS`), and Motion is real.
@@ -564,6 +592,7 @@ export default defineConfig({
 						'src/__tests__/browser/coarse/**',
 						'src/__tests__/browser/floating-motion/**',
 						'src/__tests__/browser/floating-ui/**',
+						'src/__tests__/browser/forced/**',
 						'src/__tests__/browser/geometry/**',
 						'src/__tests__/browser/motion/**',
 						'src/__tests__/browser/reduced-motion/**',
@@ -596,6 +625,16 @@ export default defineConfig({
 					],
 					include: ['src/__tests__/browser/coarse/**/*.test.{ts,tsx}'],
 				},
+				...(['light', 'dark'] as const).map((scheme) => ({
+					browser: 'chromium' as const,
+					name: `forced-${scheme}`,
+					provider: playwright({ contextOptions: FORCED_CONTEXT_OPTIONS[scheme] }),
+					setupFiles: [
+						resolve(import.meta.dirname, 'src/__tests__/browser/setup/module-mocks.ts'),
+						resolve(import.meta.dirname, 'src/__tests__/browser/forced/setup/forced-guard.ts'),
+					],
+					include: ['src/__tests__/browser/forced/**/*.test.{ts,tsx}'],
+				})),
 				{
 					browser: 'chromium',
 					name: 'floating-ui',
