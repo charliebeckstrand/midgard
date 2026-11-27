@@ -8,7 +8,8 @@ import { frames, renderUI, screen } from '../helpers'
  * so the tile shows one way to go large. The chart's menu button shows only on
  * a coarse pointer. On a fine pointer, the tile therefore keeps its expand
  * control. jsdom applies no Tailwind CSS, so this suite rides the real browser,
- * whose primary pointer is fine.
+ * whose primary pointer is fine. `coarse/dashboard-tile-expand.test.tsx` holds
+ * the tile of a coarse pointer.
  */
 describe('dashboard tile expand control (real browser)', () => {
 	const data = [

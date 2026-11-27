@@ -1,0 +1,329 @@
+import { X } from 'lucide-react'
+import type { ReactElement } from 'react'
+import { Button } from '../../../../components/button'
+import { Checkbox, CheckboxField, CheckboxGroup } from '../../../../components/checkbox'
+import { ColorPanel } from '../../../../components/color'
+import { DatePicker } from '../../../../components/date-picker'
+import { Label } from '../../../../components/fieldset'
+import { Group } from '../../../../components/group'
+import { Icon } from '../../../../components/icon'
+import { Nav, NavItem, NavList } from '../../../../components/nav'
+import { NumberInput } from '../../../../components/number-input'
+import { Radio, RadioField, RadioGroup } from '../../../../components/radio'
+import { Sidebar, SidebarItem, SidebarLabel } from '../../../../components/sidebar'
+import { Switch, SwitchField } from '../../../../components/switch'
+import { TagInput } from '../../../../components/tag-input'
+import { Toolbar, ToolbarGroup } from '../../../../components/toolbar'
+import { densitySteps } from '../../../../core/density'
+import { ChatPrompt } from '../../../../modules/chat'
+import { Dashboard, DashboardTile } from '../../../../modules/dashboard'
+import { Grid, type GridColumn } from '../../../../modules/grid'
+import { ToggleGroup } from '../../../../primitives/toggle'
+import { Box } from '../../../../structure/box'
+
+/** The number of hit areas whose host shows. */
+export function visibleHitAreas(root: HTMLElement): number {
+	return [...root.querySelectorAll<HTMLElement>('[data-slot="touch-target"]')].filter((span) =>
+		span.parentElement?.checkVisibility({ visibilityProperty: true }),
+	).length
+}
+
+type Person = { id: number; name: string; role: string }
+
+const people: Person[] = Array.from({ length: 12 }, (_, index) => ({
+	id: index + 1,
+	name: `Person ${index + 1}`,
+	role: index % 2 ? 'Admin' : 'User',
+}))
+
+const columns: GridColumn<Person>[] = [
+	{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
+	{
+		id: 'role',
+		title: 'Role',
+		field: 'role',
+		cell: (row) => row.role,
+		value: (row) => row.role,
+		groupable: true,
+		filterable: true,
+	},
+]
+
+const noop = () => {}
+
+/** Short tags, so the chips wrap and two remove buttons sit close in a row. */
+const letters = [...'abcdefghijklmnop']
+
+const tile = [{ id: 'a', x: 0, y: 0, w: 24, h: 40 }]
+
+/** An icon-only bare button, the smallest host. */
+const iconButton = (name: string) => (
+	<Button key={name} variant="bare" aria-label={name}>
+		<Icon icon={<X />} />
+	</Button>
+)
+
+/** An icon-only plain button, the host of a toolbar. */
+const plainIconButton = (name: string) => (
+	<Button key={name} variant="plain" aria-label={name}>
+		<Icon icon={<X />} />
+	</Button>
+)
+
+/**
+ * Configurations that pack small controls, beyond the canonical render of the
+ * corpus: the small steps, and rows that wrap. `geometry/hit-area-overlap.test.tsx`
+ * checks them on a fine pointer, and `coarse/hit-area-overlap.test.tsx` on a
+ * coarse pointer.
+ */
+export const packed: readonly { name: string; element: ReactElement }[] = [
+	// A control has no `xs` step, so each case puts the control in a scope of the
+	// step. In an `xs` scope, the control takes `sm`.
+	...(['xs', 'sm', 'md'] as const).map((step) => ({
+		name: `number input, ${step}`,
+		element: (
+			<Box density={step}>
+				<NumberInput aria-label="Quantity" defaultValue={1} min={0} max={10} />
+			</Box>
+		),
+	})),
+	...(['xs', 'sm', 'md'] as const).map((step) => ({
+		name: `clearable date picker input, ${step}`,
+		element: (
+			<Box density={step}>
+				<DatePicker aria-label="Date" input clearable defaultValue={new Date(2026, 0, 5)} />
+			</Box>
+		),
+	})),
+	// The grid has no `xs` step, so the `xs` case puts the grid in an `xs` scope.
+	...(['xs', 'sm', 'md'] as const).map((step) => ({
+		name: `grid cell editor, ${step}`,
+		element: (
+			<Box density={step}>
+				<Grid
+					aria-label="People"
+					columns={columns}
+					rows={people.slice(0, 2)}
+					getKey={(row) => row.id}
+					editable={{
+						session: 'managed',
+						scope: 'cell',
+						defaultCell: { rowKey: 1, columnId: 'name' },
+						onCommit: noop,
+					}}
+				/>
+			</Box>
+		),
+	})),
+	...densitySteps.map((size) => ({
+		name: `checkbox group, ${size}`,
+		element: (
+			<Box density={size}>
+				<CheckboxGroup aria-label="Options">
+					{['One', 'Two', 'Three'].map((name) => (
+						<CheckboxField key={name}>
+							<Checkbox />
+							<Label>{name}</Label>
+						</CheckboxField>
+					))}
+				</CheckboxGroup>
+			</Box>
+		),
+	})),
+	...densitySteps.map((size) => ({
+		name: `radio group, ${size}`,
+		element: (
+			<Box density={size}>
+				<RadioGroup aria-label="Plan" defaultValue="one">
+					{['one', 'two', 'three'].map((value) => (
+						<RadioField key={value}>
+							<Radio value={value} />
+							<Label>{value}</Label>
+						</RadioField>
+					))}
+				</RadioGroup>
+			</Box>
+		),
+	})),
+	...densitySteps.map((size) => ({
+		name: `switch group, ${size}`,
+		element: (
+			<Box density={size}>
+				<ToggleGroup>
+					{['One', 'Two', 'Three'].map((name) => (
+						<SwitchField key={name}>
+							<Switch />
+							<Label>{name}</Label>
+						</SwitchField>
+					))}
+				</ToggleGroup>
+			</Box>
+		),
+	})),
+	// The grid has no `xs` step, so the `xs` case puts the grid in an `xs` scope.
+	...(['xs', 'sm', 'md'] as const).map((step) => ({
+		name: `grid with row selection, ${step}`,
+		element: (
+			<Box density={step}>
+				<Grid
+					aria-label="People"
+					columns={[{ id: 'select', selectable: true }, ...columns]}
+					rows={people.slice(0, 4)}
+					getKey={(row) => row.id}
+					rowLabel={(row) => row.name}
+					selection={{ defaultValue: new Set() }}
+				/>
+			</Box>
+		),
+	})),
+	{
+		name: 'grid header with group-by and filter, narrow',
+		element: (
+			<div style={{ width: 240 }}>
+				<Grid
+					aria-label="People"
+					columns={columns}
+					rows={people}
+					getKey={(row) => row.id}
+					groupBy={{ groupButton: true }}
+					columnFilters={{}}
+				/>
+			</div>
+		),
+	},
+	{
+		name: 'grid pagination, narrow',
+		element: (
+			<div style={{ width: 360 }}>
+				<Grid
+					aria-label="People"
+					columns={columns}
+					rows={people}
+					getKey={(row) => row.id}
+					pagination={{ defaultValue: { pageIndex: 1, pageSize: 5 } }}
+				/>
+			</div>
+		),
+	},
+	{
+		name: 'dashboard tile in edit mode',
+		element: (
+			<div style={{ width: 360 }}>
+				<Dashboard aria-label="Sales" layout={{ defaultValue: tile }} editing>
+					<DashboardTile id="a" title="Revenue" onRemove={noop} onDuplicate={noop}>
+						<div />
+					</DashboardTile>
+				</Dashboard>
+			</div>
+		),
+	},
+	{
+		// An app action and the expand control fill the row. On a coarse pointer, the
+		// menu button of a chart can show in the same row.
+		name: 'dashboard tile with an action and the expand control',
+		element: (
+			<div style={{ width: 360 }}>
+				<Dashboard aria-label="Sales" layout={{ defaultValue: tile }}>
+					<DashboardTile id="a" title="Revenue" actions={iconButton('Share')} expandable>
+						<div />
+					</DashboardTile>
+				</Dashboard>
+			</div>
+		),
+	},
+	...(['sm', 'md'] as const).map((size) => ({
+		name: `color panel, ${size}`,
+		element: <ColorPanel size={size} defaultValue="#3b82f6" />,
+	})),
+	...densitySteps.map((size) => ({
+		name: `tag input that wraps, ${size}`,
+		element: (
+			<div style={{ width: 300 }}>
+				<TagInput aria-label="Tags" size={size} defaultValue={letters} wrap />
+			</div>
+		),
+	})),
+	...densitySteps.map((size) => ({
+		name: `tag input on one row, ${size}`,
+		element: (
+			<div style={{ width: 300 }}>
+				<TagInput aria-label="Tags" size={size} defaultValue={letters} />
+			</div>
+		),
+	})),
+	{
+		name: 'chat prompt with an attach action and wrapped attachments',
+		element: (
+			<div style={{ width: 300 }}>
+				<ChatPrompt
+					value=""
+					onValueChange={noop}
+					onSubmit={noop}
+					onAttach={noop}
+					placeholder="Message"
+					attachments={letters.slice(0, 8).map((name) => new File(['x'], `${name}.pdf`))}
+					onRemoveAttachment={noop}
+				/>
+			</div>
+		),
+	},
+	...(['horizontal', 'vertical'] as const).map((orientation) => ({
+		name: `toolbar of icon buttons, ${orientation}`,
+		element: (
+			<Toolbar aria-label="Tools" orientation={orientation}>
+				{plainIconButton('One')}
+				<ToolbarGroup aria-label="Zoom">
+					{plainIconButton('Two')}
+					{plainIconButton('Three')}
+				</ToolbarGroup>
+				{plainIconButton('Four')}
+			</Toolbar>
+		),
+	})),
+	...(['horizontal', 'vertical'] as const).map((orientation) => ({
+		name: `group of icon buttons, ${orientation}`,
+		element: (
+			// At `sm` the members are under the floor on both axes.
+			<Group orientation={orientation} size="sm">
+				{['One', 'Two', 'Three'].map((name) => (
+					<Button key={name} variant="outline" aria-label={name}>
+						<Icon icon={<X />} />
+					</Button>
+				))}
+			</Group>
+		),
+	})),
+	...(['horizontal', 'vertical'] as const).map((orientation) => ({
+		name: `nav list, ${orientation}`,
+		element: (
+			<Nav aria-label="Primary">
+				<NavList orientation={orientation}>
+					<NavItem href="#a" icon={<X />} aria-label="A" />
+					<NavItem href="#b" icon={<X />} aria-label="B" />
+					<NavItem href="#c" icon={<X />} aria-label="C" />
+				</NavList>
+			</Nav>
+		),
+	})),
+	{
+		name: 'sidebar item with actions',
+		element: (
+			<Sidebar>
+				<SidebarItem
+					href="#inbox"
+					suffix={
+						<>
+							{iconButton('Archive')}
+							{iconButton('Delete')}
+						</>
+					}
+				>
+					<SidebarLabel>Inbox</SidebarLabel>
+				</SidebarItem>
+				<SidebarItem href="#sent">
+					<SidebarLabel>Sent</SidebarLabel>
+				</SidebarItem>
+			</Sidebar>
+		),
+	},
+]

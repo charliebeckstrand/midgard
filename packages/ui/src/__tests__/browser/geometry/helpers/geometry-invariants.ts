@@ -158,8 +158,8 @@ function boxesOverlap(a: HTMLElement, b: HTMLElement): boolean {
  * A hidden host and a host inside another host are skipped. A box that does not
  * show its overflow, such as a scroll container, clips each hit area inside it,
  * because a press outside the box does not reach its content. The check reads the
- * floor that the page has, so a test sets the 44px floor to check a coarse
- * pointer. Overlap up to 1px is tolerated. The members of a `Group` share a 1px
+ * floor that the page has, so a case of `browser/coarse/` checks the 44px floor
+ * of a coarse pointer. Overlap up to 1px is tolerated. The members of a `Group` share a 1px
  * border (`-ms-px`), so their boxes, and the hit areas that keep to them, overlap
  * by that much.
  */

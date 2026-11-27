@@ -14,12 +14,8 @@ import { getCenter } from '../../helpers/geometry/box'
  * Axe cannot stand in for this pin. Its target-size rule measures the host's
  * own border-box and never sees the span.
  *
- * The 44px coarse floor has no case here, because this suite cannot match a
- * coarse pointer. `Emulation.setTouchEmulationEnabled` makes `pointer: coarse`
- * match, but turning it off does not restore `hover: hover` or `pointer: fine`.
- * The suite runs with `isolate: false`, so every later file on the page loses
- * its `hover:` variants. The jsdom suite asserts the coarse class instead, and
- * `hit-area-overlap.test.tsx` sets the 44px floor on the span with a stylesheet.
+ * The page of this instance has a mouse. `coarse/touch-target.test.tsx` holds
+ * the 44px floor of a coarse pointer, on a page with a touch screen.
  */
 describe('TouchTarget activation region (real browser)', () => {
 	/** A host under the 24px floor, laid out the way `Button` lays out its host. */
