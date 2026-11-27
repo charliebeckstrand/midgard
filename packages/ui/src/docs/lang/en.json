@@ -8365,7 +8365,7 @@
 	},
 	"docs.search.button": {
 		"defaultMessage": "Search",
-		"description": "The label of the button at the top of the sidebar that opens the search of the docs."
+		"description": "The label of each button that opens the search of the docs: the button at the top of the sidebar, and the icon button in the bar at the top of a narrow screen."
 	},
 	"docs.search.kind.component": {
 		"defaultMessage": "API reference",
