@@ -1,6 +1,6 @@
 import type { RouteConfigEntry } from '@react-router/dev/routes'
 import { act, screen } from '@testing-library/react'
-import { Outlet, type RouteObject } from 'react-router'
+import { Outlet, type RouteObject, UNSAFE_createClientRoutes } from 'react-router'
 import { describe, expect, it } from 'vitest'
 import routes from '../app/routes.ts'
 import { renderShell } from './helpers/render-shell.tsx'
@@ -12,9 +12,45 @@ import { renderShell } from './helpers/render-shell.tsx'
 // puts the name of the tab in the title (`PageTabs`), so the shell writes no
 // title for it.
 
-/** The route config with a stub for each module. The not-found route shows a marker, and each other route shows its children. */
-function makeStubs(entries: readonly RouteConfigEntry[]): RouteObject[] {
-	return entries.map(({ id, path, index, caseSensitive, children }) => {
+type ManifestRoute = NonNullable<Parameters<typeof UNSAFE_createClientRoutes>[0][string]>
+
+/** The route manifest of the route config, as the build gives it to the browser. */
+function makeManifest(entries: readonly RouteConfigEntry[], parentId?: string): ManifestRoute[] {
+	return entries.flatMap(({ id, file, path, index, caseSensitive, children }) => {
+		const routeId = id ?? file
+
+		return [
+			{
+				id: routeId,
+				parentId,
+				path,
+				index,
+				caseSensitive,
+				module: file,
+				clientActionModule: undefined,
+				clientLoaderModule: undefined,
+				clientMiddlewareModule: undefined,
+				hydrateFallbackModule: undefined,
+				hasAction: false,
+				hasLoader: false,
+				hasClientAction: false,
+				hasClientLoader: false,
+				hasClientMiddleware: false,
+				hasErrorBoundary: false,
+			},
+			...makeManifest(children ?? [], routeId),
+		]
+	})
+}
+
+/**
+ * A stub of each route that the client of the app builds from the manifest
+ * (`createClientRoutes` of React Router), so the router matches with the
+ * options that reach the client. The not-found route shows a marker, and each
+ * other route shows its children.
+ */
+function makeStubs(clientRoutes: readonly RouteObject[]): RouteObject[] {
+	return clientRoutes.map(({ id, path, index, caseSensitive, children }) => {
 		const Component = () => (path === '*' ? <p>No page</p> : <Outlet />)
 
 		return index
@@ -23,8 +59,14 @@ function makeStubs(entries: readonly RouteConfigEntry[]): RouteObject[] {
 	})
 }
 
+function makeRoutes(entries: readonly RouteConfigEntry[]): RouteObject[] {
+	const manifest = Object.fromEntries(makeManifest(entries).map((route) => [route.id, route]))
+
+	return makeStubs(UNSAFE_createClientRoutes(manifest, {}, null, true, false))
+}
+
 function renderAt(path: string) {
-	return renderShell(path, { children: makeStubs(routes) })
+	return renderShell(path, { children: makeRoutes(routes) })
 }
 
 /** The name of the current item of the sidebar, or `undefined` when no item is current. */
