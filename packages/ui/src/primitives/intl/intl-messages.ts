@@ -62,7 +62,8 @@ export const intlMessages = defineMessages({
 	loading: {
 		id: 'ui.common.loading',
 		defaultMessage: 'Loading',
-		description: 'The name of a spinner that shows that content or an action is loading.',
+		description:
+			'The name of a spinner, or the text of a status line, that shows that content or an action is loading.',
 	},
 	filters: {
 		id: 'ui.common.filters',

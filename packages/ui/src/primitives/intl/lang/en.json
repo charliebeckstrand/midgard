@@ -223,10 +223,6 @@
 		"defaultMessage": "Could not load the choices",
 		"description": "The status of the picker of the chat composer when its choices failed to load."
 	},
-	"ui.chat.pickerLoading": {
-		"defaultMessage": "Loading",
-		"description": "The status of the picker of the chat composer while it loads its choices."
-	},
 	"ui.chat.placeholder": {
 		"defaultMessage": "Ask anything",
 		"description": "The hint text of the empty field where the reader writes a chat message."
@@ -401,7 +397,7 @@
 	},
 	"ui.common.loading": {
 		"defaultMessage": "Loading",
-		"description": "The name of a spinner that shows that content or an action is loading."
+		"description": "The name of a spinner, or the text of a status line, that shows that content or an action is loading."
 	},
 	"ui.common.monthLetter": {
 		"defaultMessage": "M",
@@ -667,10 +663,6 @@
 		"defaultMessage": "Capture",
 		"description": "The button that starts to record the events for a bug report."
 	},
-	"ui.events.copied": {
-		"defaultMessage": "Copied",
-		"description": "The label of the copy button of the debug tool after a copy succeeds."
-	},
 	"ui.events.copy": {
 		"defaultMessage": "Copy",
 		"description": "The button that copies the events, or one bug report as Markdown, of the debug tool."
@@ -738,10 +730,6 @@
 	"ui.events.stopCapture": {
 		"defaultMessage": "Stop capture",
 		"description": "The button that stops the record and makes a bug report from it."
-	},
-	"ui.events.trail": {
-		"defaultMessage": "Breadcrumb",
-		"description": "The name of the trail of links above an open bug report, which leads back to the list of bugs."
 	},
 	"ui.events.unpin": {
 		"defaultMessage": "Unpin",

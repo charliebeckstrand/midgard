@@ -29,14 +29,8 @@ import type { ChatPromptItem, ChatPromptSource } from './types'
 
 const messages = defineMessages<{
 	added: { label: string; source: string }
-	loading: Record<never, never>
 	failed: Record<never, never>
 }>({
-	loading: {
-		id: 'ui.chat.pickerLoading',
-		defaultMessage: 'Loading',
-		description: 'The status of the picker of the chat composer while it loads its choices.',
-	},
 	failed: {
 		id: 'ui.chat.pickerFailed',
 		defaultMessage: 'Could not load the choices',
@@ -399,7 +393,7 @@ function pickerStatusText(
 
 	if (items.length > 0) return ''
 
-	return intl.formatMessage(status === 'loading' ? messages.loading : intlMessages.noResults)
+	return intl.formatMessage(status === 'loading' ? intlMessages.loading : intlMessages.noResults)
 }
 
 /**

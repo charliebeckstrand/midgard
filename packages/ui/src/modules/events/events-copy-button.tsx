@@ -1,6 +1,7 @@
 'use client'
 
 import { Button } from '../../components/button'
+import { copyButtonMessages } from '../../components/copy-button/copy-button-messages'
 import { useCopyButtonState } from '../../components/copy-button/use-copy-button-state'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { eventsMessages } from './events-messages'
@@ -19,7 +20,7 @@ export function EventsCopyButton({ text }: { text: () => string }) {
 
 	return (
 		<Button size="sm" color={copied ? 'green' : undefined} onClick={() => void copy()}>
-			{intl.formatMessage(copied ? eventsMessages.copied : eventsMessages.copy)}
+			{intl.formatMessage(copied ? copyButtonMessages.copied : eventsMessages.copy)}
 		</Button>
 	)
 }
