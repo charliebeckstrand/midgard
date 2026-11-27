@@ -128,7 +128,7 @@ function matchTypeaheadIndexed(
  * characters). Owns one instance's buffer and its idle-reset timer, cleared on
  * unmount. It returns stable matchers over that shared buffer. `match` carries
  * `matchTypeahead` semantics, where labels come from each item's accessible
- * name (`aria-label`, an `aria-labelledby` target, else trimmed `textContent`).
+ * name (`aria-label`, an `aria-labelledby` target, else its spoken text).
  * `matchIndexed` carries {@link matchTypeaheadIndexed} semantics, for roving
  * over a virtual item source instead of DOM elements. A widget routes each keypress
  * to exactly one of the two, so sharing the buffer is safe.

@@ -188,8 +188,10 @@ describe('Toast: useToast behavior', () => {
 		// so insertion and text land in separate frames. `vi.waitFor`, not
 		// `expectAnnouncement`: this suite runs fake timers, which deadlock RTL's
 		// waitFor polling.
+		// The title and the description are two blocks, so the spoken text keeps a space
+		// between them, as the accessible name of the toast does.
 		await vi.waitFor(() => {
-			expect(liveRegion()?.textContent).toContain('Saved')
+			expect(liveRegion()).toHaveTextContent('Saved All changes stored')
 		})
 	})
 
@@ -330,7 +332,7 @@ describe('Toast: useToast behavior', () => {
 		const api = renderToasts()
 
 		act(() => {
-			api.toast({ id: 'copy', title: 'Link copied' })
+			api.toast({ id: 'copy', title: 'Link copied', description: 'Paste it anywhere' })
 		})
 
 		await clock.advance(500)
@@ -338,14 +340,14 @@ describe('Toast: useToast behavior', () => {
 		const first = liveRegion()?.textContent
 
 		act(() => {
-			api.toast({ id: 'copy', title: 'Link copied' })
+			api.toast({ id: 'copy', title: 'Link copied', description: 'Paste it anywhere' })
 		})
 
 		await vi.waitFor(() => {
 			expect(liveRegion()?.textContent).not.toBe(first)
 		})
 
-		expect(liveRegion()?.textContent).toContain('Link copied')
+		expect(liveRegion()).toHaveTextContent('Link copied Paste it anywhere')
 	})
 
 	it('keeps or counts down a replaced toast by the persist of the new call', async ({ clock }) => {
