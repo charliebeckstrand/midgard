@@ -40,16 +40,17 @@ function setup(disabled = false) {
 }
 
 describe('useColorDrag', () => {
+	// x and y differ, so an axis that reads the other axis fails.
 	it('captures the pointer, focuses the node, and reports the press position', () => {
 		const { api, node, onPosition } = setup()
 
-		api.onPointerDown(makeEvent(node, { clientX: 100, clientY: 50 }))
+		api.onPointerDown(makeEvent(node, { clientX: 50, clientY: 75 }))
 
 		expect(node.focus).toHaveBeenCalled()
 
 		expect(node.setPointerCapture).toHaveBeenCalledWith(1)
 
-		expect(onPosition).toHaveBeenCalledWith({ x: 0.5, y: 0.5 })
+		expect(onPosition).toHaveBeenCalledWith({ x: 0.25, y: 0.75 })
 	})
 
 	// A focus that scrolls the node into view moves its rect below the pointer.

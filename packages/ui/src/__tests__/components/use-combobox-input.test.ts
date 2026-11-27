@@ -591,19 +591,29 @@ describe('useComboboxInput onKeyDown', () => {
 		expect(rovingKeyDown).not.toHaveBeenCalled()
 	})
 	describe('a pasted list', () => {
-		function paste(defaultPrevented: boolean) {
-			return {
-				defaultPrevented,
-				preventDefault: vi.fn(),
-			} as unknown as Parameters<ReturnType<typeof useComboboxInput<string>>['onPaste']>[0]
+		type PasteEvent = Parameters<ReturnType<typeof useComboboxInput<string>>['onPaste']>[0]
+
+		// As in React, `defaultPrevented` turns true only when a handler calls `preventDefault()`.
+		function paste() {
+			const event = {
+				defaultPrevented: false,
+				preventDefault: () => {
+					event.defaultPrevented = true
+				},
+			}
+
+			return event as unknown as PasteEvent
 		}
 
+		// The handler takes the paste: it reads the clipboard itself and turns it into a selection.
+		const takePaste = (event: PasteEvent) => event.preventDefault()
+
 		it('drops the draft it replaced once the handler takes the paste', () => {
-			const onPaste = vi.fn()
+			const onPaste = vi.fn(takePaste)
 
 			const { result, setQuery, setEditing } = setup<string>({ onPaste })
 
-			result.current.onPaste(paste(true))
+			result.current.onPaste(paste())
 
 			expect(onPaste).toHaveBeenCalled()
 
@@ -621,7 +631,7 @@ describe('useComboboxInput onKeyDown', () => {
 
 			const { result, setQuery, setEditing } = setup<string>({ onPaste })
 
-			result.current.onPaste(paste(false))
+			result.current.onPaste(paste())
 
 			expect(onPaste).toHaveBeenCalled()
 
@@ -635,11 +645,11 @@ describe('useComboboxInput onKeyDown', () => {
 		// A read-only input still takes a paste event, and the handler would commit
 		// the pasted values.
 		it('skips the handler while the combobox is locked', () => {
-			const onPaste = vi.fn()
+			const onPaste = vi.fn(takePaste)
 
 			const { result, setQuery, setEditing } = setup<string>({ onPaste, locked: true })
 
-			result.current.onPaste(paste(true))
+			result.current.onPaste(paste())
 
 			expect(onPaste).not.toHaveBeenCalled()
 
@@ -651,7 +661,7 @@ describe('useComboboxInput onKeyDown', () => {
 		it('is inert with no handler, so an ordinary combobox pastes as it always did', () => {
 			const { result, setQuery, setEditing } = setup<string>()
 
-			result.current.onPaste(paste(false))
+			result.current.onPaste(paste())
 
 			expect(setQuery).not.toHaveBeenCalled()
 
