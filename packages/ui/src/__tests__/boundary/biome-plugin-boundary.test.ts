@@ -457,6 +457,22 @@ export type User = { name: string }
 `,
 		},
 	],
+	'no-user-event-outside-setup-user': [
+		{
+			file: 'user.test.ts',
+			source: `import userEvent from '@testing-library/user-event' // flag
+import { userEvent as user } from '@testing-library/user-event' // flag
+import type { UserEvent } from '@testing-library/user-event'
+import { setupUser } from './setup-user'
+declare const button: Element
+export const a = () => userEvent.click(button) // flag
+export const b = () => userEvent.setup({ delay: null }) // flag
+export const c = () => user.click(button)
+export const d = () => setupUser().click(button)
+export const e = (person: UserEvent) => person.keyboard('{Escape}')
+`,
+		},
+	],
 	'no-value-import-from-sibling-kata': [
 		{
 			file: 'kata.ts',
@@ -594,6 +610,10 @@ const SCOPE: Record<string, { in: string; out: string }> = {
 	'no-use-prefixed-type-name': {
 		in: 'packages/ui/src/providers',
 		out: 'packages/ui/src/utilities',
+	},
+	'no-user-event-outside-setup-user': {
+		in: 'packages/ui/src/__tests__/components',
+		out: 'packages/ui/src/__tests__/browser',
 	},
 	'no-value-import-from-sibling-kata': {
 		in: 'packages/ui/src/recipes/kata',

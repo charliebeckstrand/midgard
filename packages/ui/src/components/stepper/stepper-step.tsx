@@ -16,6 +16,7 @@ import { stepperMessages } from './stepper-messages'
  * The root `<li>` takes the rest. The step gives `value` a meaning of its own.
  */
 export type StepperStepProps = Omit<ComponentProps<'li'>, 'value'> & {
+	/** The index of the step, from 0. The step is current when it matches the `value` of the Stepper. */
 	value: number
 	/**
 	 * Disables the step, so that a press does not select it.

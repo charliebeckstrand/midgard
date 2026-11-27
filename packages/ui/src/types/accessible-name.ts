@@ -8,4 +8,12 @@
  * Pair with `Omit<…, 'aria-label' | 'aria-labelledby'>` on the spread props;
  * the optional native pair widens the requirement back to optional.
  */
-export type AccessibleName = { 'aria-label': string } | { 'aria-labelledby': string }
+export type AccessibleName =
+	| {
+			/** The accessible name. Give it or `aria-labelledby`. */
+			'aria-label': string
+	  }
+	| {
+			/** The ids of the elements whose text names the component. Give it or `aria-label`. */
+			'aria-labelledby': string
+	  }

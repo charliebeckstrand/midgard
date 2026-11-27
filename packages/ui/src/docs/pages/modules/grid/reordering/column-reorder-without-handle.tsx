@@ -6,7 +6,7 @@ export default function ColumnReorderWithoutHandle() {
 	// still sorts on a click.
 	return (
 		<Grid
-			tableProps={{ 'aria-label': 'Column reorder without handle' }}
+			tableProps={{ 'aria-label': 'People' }}
 			reorder={{ handle: false }}
 			columns={columns}
 			rows={people}

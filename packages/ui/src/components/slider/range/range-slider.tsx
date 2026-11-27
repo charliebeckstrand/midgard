@@ -44,11 +44,11 @@ export type RangeSliderProps = {
 	defaultValue?: [number, number]
 	/** Fires when the `[start, end]` range changes. */
 	onValueChange?: (value: [number, number]) => void
-	/** @defaultValue 0 */
+	/** The lowest value. @defaultValue 0 */
 	min?: number
-	/** @defaultValue 100 */
+	/** The highest value. @defaultValue 100 */
 	max?: number
-	/** @defaultValue 1 */
+	/** The size of each step of the value. @defaultValue 1 */
 	step?: number
 	/** The density step. Omit it to take the step of the nearest density scope. */
 	size?: RangeSliderVariants['size']

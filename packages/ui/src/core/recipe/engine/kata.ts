@@ -25,6 +25,7 @@
  */
 
 import clsx, { type ClassValue } from 'clsx'
+import { isRecord } from '../../../utilities/is-record'
 import {
 	atBreakpoint,
 	BREAKPOINTS,
@@ -203,16 +204,11 @@ export type Kata<C> = {
 	readonly bare: KataOutput<C>
 }
 
-/** True when a prop value is a map of values by breakpoint. @internal */
-function isMap(value: unknown): value is Partial<Record<string, unknown>> {
-	return typeof value === 'object' && value !== null && !Array.isArray(value)
-}
-
 /** The string that a prop value gives to a memo key. A nullish value is absent. @internal */
 function toKeyPart(value: unknown): string {
 	if (value === undefined || value === null) return '\u0001'
 
-	if (isMap(value)) return BREAKPOINTS.map((bp) => toKeyPart(value[bp])).join('\u0002')
+	if (isRecord(value)) return BREAKPOINTS.map((bp) => toKeyPart(value[bp])).join('\u0002')
 
 	return String(value)
 }
@@ -491,7 +487,7 @@ function prefixed(
 	const named = (axis: string, bp: Breakpoint) => {
 		const map = props[axis]
 
-		return isMap(map) && map[bp] !== undefined
+		return isRecord(map) && map[bp] !== undefined
 	}
 
 	const current = (axis: string, bp: Breakpoint) =>
@@ -522,7 +518,7 @@ function initialProps(
 ): Record<string, unknown> | undefined {
 	if (props === undefined) return props
 
-	const maps = [...responsive].filter((axis) => isMap(props[axis]))
+	const maps = [...responsive].filter((axis) => isRecord(props[axis]))
 
 	if (maps.length === 0) return props
 

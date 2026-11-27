@@ -1,10 +1,16 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
+import { Button } from 'ui/button'
 import { HeatmapChart } from 'ui/chart'
+import { Flex } from 'ui/flex'
 import { useIntl } from 'ui/primitives/intl'
 import { useDateFormat } from 'ui/providers/locale'
+import { Stack } from 'ui/stack'
 import { activity, greens } from '../data.ts'
 
 export default function Animated() {
+	// The reveal plays when the chart mounts. Replay mounts it again.
+	const [run, setRun] = useState(0)
+
 	const { formatNumber } = useIntl()
 
 	// The text of a time waits for hydration (`useDateFormat`). The chart draws
@@ -22,20 +28,28 @@ export default function Animated() {
 	)
 
 	return (
-		<HeatmapChart
-			aria-label="Orders by weekday and hour"
-			data={data}
-			series={[
-				{
-					xKey: 'hour',
-					yKey: 'day',
-					colorKey: 'orders',
-					colorRange: greens,
-					colorName: 'Orders',
-				},
-			]}
-			formatValue={(value) => formatNumber(value, { maximumFractionDigits: 0 })}
-			animate
-		/>
+		<Stack gap="sm">
+			<Flex justify="end">
+				<Button variant="outline" size="sm" onClick={() => setRun(run + 1)}>
+					Replay
+				</Button>
+			</Flex>
+			<HeatmapChart
+				key={run}
+				aria-label="Orders by weekday and hour"
+				data={data}
+				series={[
+					{
+						xKey: 'hour',
+						yKey: 'day',
+						colorKey: 'orders',
+						colorRange: greens,
+						colorName: 'Orders',
+					},
+				]}
+				formatValue={(value) => formatNumber(value, { maximumFractionDigits: 0 })}
+				animate
+			/>
+		</Stack>
 	)
 }

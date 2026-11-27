@@ -1,7 +1,7 @@
 import type { JsonValue } from 'ui/json-tree'
 
 export const sample: JsonValue = {
-	id: 42,
+	id: 8,
 	name: 'Mia Chen',
 	active: true,
 	meta: null,

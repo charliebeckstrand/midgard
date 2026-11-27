@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { Button } from '../../../components/button'
 import { Icon } from '../../../components/icon'
 import { Kbd } from '../../../components/kbd'
+import { densitySteps } from '../../../core/density'
 import { renderUI } from '../../helpers'
 import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
 
@@ -27,7 +28,7 @@ const keys = (
  * with text, and a key with a longer label grows.
  */
 describe('the width of a Kbd (real browser)', () => {
-	it.for(['xs', 'sm', 'md', 'lg', 'xl'])('is at least its height at %s', (step) => {
+	it.for(densitySteps)('is at least its height at %s', (step) => {
 		const { container } = renderUI(
 			<div data-density={step}>
 				<p>{keys}</p>

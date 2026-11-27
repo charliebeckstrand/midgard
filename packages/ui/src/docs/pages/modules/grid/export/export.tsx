@@ -6,7 +6,7 @@ export default function Export() {
 	// an Export menu. An export takes the rows that show, in their order.
 	return (
 		<Grid
-			tableProps={{ 'aria-label': 'Export' }}
+			tableProps={{ 'aria-label': 'People' }}
 			exportable={{ types: ['csv', 'excel'], toolbar: true }}
 			columns={filterableColumns}
 			rows={people}

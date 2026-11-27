@@ -68,7 +68,7 @@ describe('regionName', () => {
 
 describe('decodeRegions', () => {
 	it('decodes the named object out of the published topology', () => {
-		const decoded = decodeRegions(states as unknown as MapTopology, 'states')
+		const decoded = decodeRegions(states, 'states')
 
 		expect(decoded).not.toBeNull()
 
@@ -83,7 +83,7 @@ describe('decodeRegions', () => {
 	// The key names the object to draw, and the first stands in where an atlas
 	// names it something else, so a wrong key answers rather than nothing.
 	it('falls back to the first object where the key names none', () => {
-		const decoded = decodeRegions(states as unknown as MapTopology, 'provinces')
+		const decoded = decodeRegions(states, 'provinces')
 
 		expect(decoded?.features.length).toBeGreaterThan(0)
 	})
@@ -365,7 +365,7 @@ describe('groupByRegion', () => {
 
 describe('topologyNames', () => {
 	it('gives the names that the decoded regions carry, in the same order', () => {
-		const topology = states as MapTopology
+		const topology: MapTopology = states
 
 		expect(topologyNames(topology, 'states')).toEqual(
 			decodeRegions(topology, 'states')?.features.map(regionName),

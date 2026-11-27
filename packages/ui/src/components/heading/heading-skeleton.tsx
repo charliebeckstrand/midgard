@@ -6,7 +6,10 @@ import type { HeadingLevel } from './heading'
 
 /** Props for {@link HeadingSkeleton}: mirrors {@link HeadingProps} `level` and `size` to match the placeholder height. */
 export type HeadingSkeletonProps = {
-	/** @defaultValue 1 */
+	/**
+	 * The level of the heading that the silhouette stands for.
+	 * @defaultValue 1
+	 */
 	level?: HeadingLevel
 	/**
 	 * The density step. Omit it to take the step of the nearest density scope.

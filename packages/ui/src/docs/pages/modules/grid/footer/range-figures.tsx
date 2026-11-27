@@ -21,7 +21,7 @@ export default function RangeFigures() {
 				/>
 			</Text>
 			<Grid
-				tableProps={{ 'aria-label': 'Range figures' }}
+				tableProps={{ 'aria-label': 'Employees' }}
 				navigable
 				range
 				columns={salaryColumns}

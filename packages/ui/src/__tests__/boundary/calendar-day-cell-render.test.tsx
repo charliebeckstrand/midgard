@@ -4,7 +4,7 @@ import { Calendar, type CalendarHandle, CalendarRange } from '../../components/c
 import { CalendarDayCell } from '../../components/calendar/calendar-day-cell'
 import { sameDay } from '../../components/calendar/calendar-utilities'
 import { DatePicker } from '../../components/date-picker'
-import { act, fireEvent, getSlot, renderUI, screen, userEvent } from '../helpers'
+import { act, fireEvent, getSlot, renderUI, screen, setupUser } from '../helpers'
 
 /**
  * A select in the calendar renders only the day cells that change.
@@ -62,9 +62,7 @@ describe('calendar day cell renders', () => {
 			<DatePicker range defaultValue={[new Date(2025, 5, 1), new Date(2025, 5, 3)]} />,
 		)
 
-		await userEvent
-			.setup({ delay: null })
-			.click(getSlot<HTMLButtonElement>(container, 'datepicker-button'))
+		await setupUser().click(getSlot<HTMLButtonElement>(container, 'datepicker-button'))
 
 		const days = screen.getAllByRole('option')
 

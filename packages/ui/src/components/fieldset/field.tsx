@@ -14,12 +14,14 @@ import { useControlFieldContext } from '../control/use-control-field-context'
  * attributes.
  */
 export type FieldProps = {
+	/** The `autocomplete` token of the nested control, such as `email`. */
 	autoComplete?: string
 	/**
 	 * Disables the nested control.
 	 * @defaultValue `false`, or `true` inside a disabled Control or Field.
 	 */
 	disabled?: boolean
+	/** Pins the generated control id instead of auto-generating one. */
 	htmlFor?: string
 	/**
 	 * Validation / status severity broadcast to the nested control (driving its ring and, for `error`, `aria-invalid`) and used as the tone of a nested `<Message>` that sets no `severity` and has no form binding.

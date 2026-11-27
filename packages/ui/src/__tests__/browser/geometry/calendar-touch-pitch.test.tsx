@@ -1,8 +1,9 @@
+import userEvent from '@testing-library/user-event'
 import { describe, expect, it, onTestFinished } from 'vitest'
 import { Calendar, CalendarRange, CalendarSkeleton } from '../../../components/calendar'
 import { scale } from '../../../recipes/kata/calendar'
 import { Box } from '../../../structure/box'
-import { getSlot, present, renderUI, userEvent } from '../../helpers'
+import { getSlot, present, renderUI } from '../../helpers'
 import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
 import { overlappingHitAreas } from './helpers/geometry-invariants'
 

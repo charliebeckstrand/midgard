@@ -27,8 +27,8 @@ import {
 	present,
 	renderUI,
 	screen,
+	setupUser,
 	stubMatchMedia,
-	userEvent,
 	waitFor,
 	within,
 } from '../helpers'
@@ -105,17 +105,19 @@ describe('AppearanceProvider', () => {
 	})
 
 	it('applies and stores a new choice', async () => {
+		const user = setupUser()
+
 		renderUI(
 			<AppearanceProvider>
 				<Probe />
 			</AppearanceProvider>,
 		)
 
-		await userEvent.click(screen.getByRole('button', { name: 'Dark' }))
+		await user.click(screen.getByRole('button', { name: 'Dark' }))
 
-		await userEvent.click(screen.getByRole('button', { name: 'Compact' }))
+		await user.click(screen.getByRole('button', { name: 'Compact' }))
 
-		await userEvent.click(screen.getByRole('button', { name: 'Reduced' }))
+		await user.click(screen.getByRole('button', { name: 'Reduced' }))
 
 		expect(screen.getByTestId('state')).toHaveTextContent('dark compact reduced')
 
@@ -143,7 +145,7 @@ describe('AppearanceProvider', () => {
 			</AppearanceProvider>,
 		)
 
-		await userEvent.click(screen.getByRole('button', { name: 'Dark' }))
+		await setupUser().click(screen.getByRole('button', { name: 'Dark' }))
 
 		expect(screen.getByTestId('state')).toHaveTextContent('dark snug system')
 
@@ -262,6 +264,8 @@ describe('AppearanceProvider', () => {
 			)
 		}
 
+		const user = setupUser()
+
 		renderUI(
 			<AppearanceProvider>
 				<SidebarProbe />
@@ -272,7 +276,7 @@ describe('AppearanceProvider', () => {
 
 		expect(document.documentElement).not.toHaveClass('sidebar-offcanvas')
 
-		await userEvent.click(button)
+		await user.click(button)
 
 		expect(button).toHaveTextContent('offcanvas')
 
@@ -280,7 +284,7 @@ describe('AppearanceProvider', () => {
 
 		expect(localStorage.getItem('sidebar')).toBe('offcanvas')
 
-		await userEvent.click(button)
+		await user.click(button)
 
 		expect(document.documentElement).not.toHaveClass('sidebar-offcanvas')
 	})
@@ -302,6 +306,8 @@ describe('AppearanceProvider', () => {
 			)
 		}
 
+		const user = setupUser()
+
 		renderUI(
 			<AppearanceProvider>
 				<GlassProbe />
@@ -317,7 +323,7 @@ describe('AppearanceProvider', () => {
 
 		expect(document.documentElement).not.toHaveClass('surfaces-glass')
 
-		await userEvent.click(button)
+		await user.click(button)
 
 		expect(button).toHaveTextContent('glass glass glass true')
 
@@ -325,7 +331,7 @@ describe('AppearanceProvider', () => {
 
 		expect(localStorage.getItem('surfaces')).toBe('glass')
 
-		await userEvent.click(button)
+		await user.click(button)
 
 		expect(button).toHaveTextContent('solid flat glass true')
 
@@ -340,17 +346,21 @@ describe('AppearanceProvider', () => {
 })
 
 describe('AppearanceSettings', () => {
-	/** Renders `ui`, presses its settings button, and gives the dialog that opens. */
+	/**
+	 * Renders `ui`, presses its settings button with `user`, and gives the dialog
+	 * that opens. A case that acts again in the dialog gives its own `user`.
+	 */
 	async function openSettings(
 		ui: ReactElement = (
 			<AppearanceProvider>
 				<AppearanceSettings />
 			</AppearanceProvider>
 		),
+		user = setupUser(),
 	): Promise<HTMLElement> {
 		renderUI(ui)
 
-		await userEvent.click(screen.getByRole('button', { name: 'Settings' }))
+		await user.click(screen.getByRole('button', { name: 'Settings' }))
 
 		return screen.findByRole('dialog', { name: 'Settings' })
 	}
@@ -418,12 +428,15 @@ describe('AppearanceSettings', () => {
 	})
 
 	it('switches the "UI" tab of the pickers and each tab of the app', async () => {
+		const user = setupUser()
+
 		const dialog = await openSettings(
 			<AppearanceProvider>
 				<AppearanceSettings tabs={[{ label: 'Game', children: <p>Game fields</p> }]}>
 					<p>More fields</p>
 				</AppearanceSettings>
 			</AppearanceProvider>,
+			user,
 		)
 
 		expect(within(dialog).getByRole('tab', { name: 'UI' })).toHaveAttribute('aria-selected', 'true')
@@ -431,7 +444,7 @@ describe('AppearanceSettings', () => {
 		expect(dialog).toHaveTextContent('More fields')
 		expect(dialog).not.toHaveTextContent('Game fields')
 
-		await userEvent.click(within(dialog).getByRole('tab', { name: 'Game' }))
+		await user.click(within(dialog).getByRole('tab', { name: 'Game' }))
 
 		expect(await within(dialog).findByText('Game fields')).toBeInTheDocument()
 		expect(within(dialog).getByRole('tab', { name: 'Game' })).toHaveAttribute(
@@ -461,7 +474,7 @@ describe('AppearanceSettings', () => {
 			</AppearanceProvider>,
 		)
 
-		await userEvent.click(screen.getAllByRole('button', { name: 'Settings' })[0] as HTMLElement)
+		await setupUser().click(screen.getAllByRole('button', { name: 'Settings' })[0] as HTMLElement)
 
 		expect(await screen.findByRole('dialog', { name: 'Settings' })).not.toHaveTextContent('Sidebar')
 	})
@@ -481,6 +494,8 @@ describe('AppearanceSettings', () => {
 	})
 
 	it('picks the sidebar mode inside a sidebar layout, and shows its key', async () => {
+		const user = setupUser()
+
 		renderUI(
 			<AppearanceProvider>
 				<SidebarLayout
@@ -497,7 +512,7 @@ describe('AppearanceSettings', () => {
 		)
 
 		// The navbar and the header both hold the actions. The first button opens the dialog.
-		await userEvent.click(screen.getAllByRole('button', { name: 'Settings' })[0] as HTMLElement)
+		await user.click(screen.getAllByRole('button', { name: 'Settings' })[0] as HTMLElement)
 
 		const dialog = await screen.findByRole('dialog', { name: 'Settings' })
 
@@ -514,9 +529,9 @@ describe('AppearanceSettings', () => {
 
 		expect(fireEvent.mouseDown(suffix)).toBe(false)
 
-		await userEvent.click(screen.getByRole('combobox', { name: 'Sidebar' }))
+		await user.click(screen.getByRole('combobox', { name: 'Sidebar' }))
 
-		await userEvent.click(screen.getByRole('option', { name: 'Offcanvas' }))
+		await user.click(screen.getByRole('option', { name: 'Offcanvas' }))
 
 		expect(localStorage.getItem('sidebar')).toBe('offcanvas')
 
@@ -524,17 +539,20 @@ describe('AppearanceSettings', () => {
 	})
 
 	it('renders the fields of children only while the dialog is open', async () => {
+		const user = setupUser()
+
 		const dialog = await openSettings(
 			<AppearanceProvider>
 				<AppearanceSettings>
 					<p>Field</p>
 				</AppearanceSettings>
 			</AppearanceProvider>,
+			user,
 		)
 
 		expect(dialog).toHaveTextContent('Field')
 
-		await userEvent.keyboard('{Escape}')
+		await user.keyboard('{Escape}')
 
 		await waitFor(() => expect(screen.queryByText('Field')).toBeNull())
 	})
@@ -554,6 +572,8 @@ describe('AppearanceSettings', () => {
 	})
 
 	it('picks the language under a locale provider with locales', async () => {
+		const user = setupUser()
+
 		await openSettings(
 			<AppearanceProvider>
 				<LocaleProvider locale="en-US" locales={['en-US', 'en-GB']}>
@@ -563,18 +583,19 @@ describe('AppearanceSettings', () => {
 					</AppearanceSettings>
 				</LocaleProvider>
 			</AppearanceProvider>,
+			user,
 		)
 
 		const picker = screen.getByRole('combobox', { name: 'Language' })
 
 		expect(picker).toHaveTextContent('System')
 
-		await userEvent.click(picker)
+		await user.click(picker)
 
 		// Each locale has its name in its own language.
 		expect(screen.getByRole('option', { name: 'English (United States)' })).toBeInTheDocument()
 
-		await userEvent.click(screen.getByRole('option', { name: 'English (United Kingdom)' }))
+		await user.click(screen.getByRole('option', { name: 'English (United Kingdom)' }))
 
 		expect(localStorage.getItem('locale')).toBe('en-GB')
 

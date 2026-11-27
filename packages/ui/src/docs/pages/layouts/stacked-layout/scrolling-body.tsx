@@ -1,7 +1,6 @@
 import { Button } from 'ui/button'
 import { Flex } from 'ui/flex'
 import { Heading } from 'ui/heading'
-import { useScrollRegion } from 'ui/hooks'
 import {
 	StackedLayout,
 	StackedLayoutBody,
@@ -29,18 +28,15 @@ const updates = [
 
 // The layout has the height of the area, as a page shell has `h-dvh`. The
 // body then scrolls between the header and the footer, which stay in place.
-// The slots have no gap, so each slot has its own padding. `useScrollRegion`
-// gives the body a name and a Tab stop while it overflows, so a keyboard can
-// scroll it.
+// The slots have no gap, so each slot has its own padding. While the body
+// overflows, it is a Tab stop, so a keyboard can scroll it.
 export default function ScrollingBody() {
-	const scrollRegion = useScrollRegion({ label: 'Release notes' })
-
 	return (
 		<StackedLayout className="h-[100cqh]">
 			<StackedLayoutHeader className="border-b border-zinc-200 p-4 dark:border-zinc-800">
 				<Heading level={2}>Release notes</Heading>
 			</StackedLayoutHeader>
-			<StackedLayoutBody ref={scrollRegion} className="p-4">
+			<StackedLayoutBody className="p-4">
 				<Stack gap="md">
 					{updates.map((update) => (
 						<Text key={update.id}>{update.text}</Text>

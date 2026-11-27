@@ -25,6 +25,7 @@ type ColorHexValueProps = {
 	 * it controlled with no color, and the control paints black (CONVENTIONS §7.3).
 	 */
 	value?: string | null
+	/** Initial color when uncontrolled and not form-bound. */
 	defaultValue?: string
 	/** Fires when the color changes, with the new color in the `format`. */
 	onValueChange?: (value: string) => void
@@ -38,6 +39,7 @@ type ColorHsvaValueProps = {
 	 * it controlled with no color, and the control paints black (CONVENTIONS §7.3).
 	 */
 	value?: Hsva | null
+	/** Initial color when uncontrolled. */
 	defaultValue?: Hsva
 	/** Fires when the color changes, with the new color in the `format`. */
 	onValueChange?: (value: Hsva) => void

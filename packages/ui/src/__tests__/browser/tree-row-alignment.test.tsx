@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { Tree, TreeItem } from '../../components/tree'
-import { DensityProvider } from '../../providers/density'
+import { DensityProvider, densityLevels } from '../../providers/density'
 import { present, renderUI, screen } from '../helpers'
+
+const levels = densityLevels.map(({ value }) => value)
 
 /**
  * The labels of a Tree line up at each density step. Each row starts with the
@@ -15,32 +17,29 @@ describe('Tree row alignment (real browser)', () => {
 	const labelStart = (name: string) =>
 		present(screen.getByText(name), name).getBoundingClientRect().left
 
-	it.each(['compact', 'snug', 'loose'] as const)(
-		'puts a child label one level after its parent in a %s scope',
-		(density) => {
-			renderUI(
-				<DensityProvider density={density}>
-					<Tree aria-label="Files">
-						<TreeItem label="src" defaultOpen>
-							<TreeItem label="a.ts" />
-						</TreeItem>
-						<TreeItem label="README.md" />
-					</Tree>
-				</DensityProvider>,
-			)
+	it.each(levels)('puts a child label one level after its parent in a %s scope', (density) => {
+		renderUI(
+			<DensityProvider density={density}>
+				<Tree aria-label="Files">
+					<TreeItem label="src" defaultOpen>
+						<TreeItem label="a.ts" />
+					</TreeItem>
+					<TreeItem label="README.md" />
+				</Tree>
+			</DensityProvider>,
+		)
 
-			const parent = labelStart('src')
-			const child = labelStart('a.ts')
+		const parent = labelStart('src')
+		const child = labelStart('a.ts')
 
-			expect(labelStart('README.md')).toBe(parent)
+		expect(labelStart('README.md')).toBe(parent)
 
-			const row = present(screen.getByText('src').closest('[role="treeitem"]'), 'src row')
+		const row = present(screen.getByText('src').closest('[role="treeitem"]'), 'src row')
 
-			const padding = Number.parseFloat(getComputedStyle(row).paddingInlineStart)
+		const padding = Number.parseFloat(getComputedStyle(row).paddingInlineStart)
 
-			// One level equals the distance from the content edge of a top-level row
-			// to its label: the chevron column and the row gap.
-			expect(child - parent).toBe(parent - (row.getBoundingClientRect().left + padding))
-		},
-	)
+		// One level equals the distance from the content edge of a top-level row
+		// to its label: the chevron column and the row gap.
+		expect(child - parent).toBe(parent - (row.getBoundingClientRect().left + padding))
+	})
 })

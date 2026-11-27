@@ -466,7 +466,7 @@ export type CartesianFrameProps = {
 	reference?: ChartReferenceLine[]
 	/**
 	 * Fires when a click lands on a category's band, with the category's label,
-	 * its data index, and the {@link ChartPress} that picked it. The whole band is the target, the same generous hit the
+	 * its data index, and the {@link ChartPress} that selected it. The whole band is the target, the same generous hit the
 	 * tooltip reads. The cross-filter hook: a dashboard toggles a filter on the
 	 * clicked category and narrows its neighbors. Coexists with the tooltip on
 	 * either trigger (a `'click'`-triggered readout still pins). It carries a

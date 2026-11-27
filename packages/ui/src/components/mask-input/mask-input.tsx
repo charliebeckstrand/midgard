@@ -9,6 +9,7 @@ import { useMaskInput } from './use-mask-input'
 export type MaskInputProps = Omit<InputProps, 'value' | 'defaultValue' | 'onChange'> & {
 	/** Controlled text; `null` is controlled-and-empty (CONVENTIONS §7.3). */
 	value?: string | null
+	/** Initial text when uncontrolled and not form-bound. */
 	defaultValue?: string
 	/** Fires when an edit changes the value, with the formatted value. */
 	onValueChange?: (value: string) => void

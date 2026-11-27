@@ -10,7 +10,7 @@ export default function ExportWithSelection() {
 	// While rows are selected, an export takes only the selected rows.
 	return (
 		<Grid
-			tableProps={{ 'aria-label': 'Export with selection' }}
+			tableProps={{ 'aria-label': 'People' }}
 			exportable={{ types: ['csv', 'excel'], toolbar: true }}
 			columns={selectColumns}
 			rows={people}

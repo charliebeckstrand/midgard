@@ -6,13 +6,15 @@ export default function WithId() {
 
 	return (
 		<Button
-			onClick={() =>
-				toast({
-					id: 'link-copied',
-					title: 'Link copied',
-					severity: 'success',
-				})
-			}
+			onClick={() => {
+				navigator.clipboard.writeText(location.href).then(() =>
+					toast({
+						id: 'link-copied',
+						title: 'Link copied',
+						severity: 'success',
+					}),
+				)
+			}}
 		>
 			Copy link
 		</Button>

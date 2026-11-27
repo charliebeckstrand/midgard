@@ -1,6 +1,7 @@
 import { Field, Label } from 'ui/fieldset'
 import { Input } from 'ui/input'
 import { Stack } from 'ui/stack'
+import { Text } from 'ui/text'
 
 // Turn on Debug in the settings, type in each field, and open the Events
 // sheet. The trail writes `***` for a password field and for a field with a
@@ -9,6 +10,7 @@ import { Stack } from 'ui/stack'
 export default function MaskASecret() {
 	return (
 		<Stack gap="md">
+			<Text tone="muted">Turn on Debug in the settings, then open the Events sheet.</Text>
 			<Field>
 				<Label>Password</Label>
 				<Input type="password" autoComplete="current-password" />

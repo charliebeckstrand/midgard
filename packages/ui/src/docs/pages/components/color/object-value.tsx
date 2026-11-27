@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Code } from 'ui/code'
 import { ColorPicker, type Hsva } from 'ui/color'
 import { Field, Label } from 'ui/fieldset'
 import { Text } from 'ui/text'
@@ -12,7 +13,9 @@ export default function ObjectValue() {
 				<Label>Highlight color</Label>
 				<ColorPicker format="hsva" value={color} onValueChange={setColor} />
 			</Field>
-			<Text>Value: {JSON.stringify(color)}</Text>
+			<Text>
+				Value: <Code>{JSON.stringify(color)}</Code>
+			</Text>
 		</>
 	)
 }

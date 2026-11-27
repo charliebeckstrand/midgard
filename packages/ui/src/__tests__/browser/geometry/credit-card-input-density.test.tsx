@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { CreditCardInput } from '../../../components/credit-card-input'
-import { DensityProvider } from '../../../providers/density'
+import { DensityProvider, densityLevels } from '../../../providers/density'
 import { getSlot, present, renderUI } from '../../helpers'
 
 /**
@@ -11,7 +11,7 @@ import { getSlot, present, renderUI } from '../../helpers'
  * values from before the change.
  */
 
-type Density = 'compact' | 'snug' | 'loose'
+const levels = densityLevels.map(({ value }) => value)
 
 const EXPECTED = {
 	compact: { text: 14, brand: 14 },
@@ -35,9 +35,9 @@ const measure = vi.defineHelper((node: ReactElement) => {
 })
 
 describe('CreditCardInput density', () => {
-	it.each(['compact', 'snug', 'loose'] as const)(
+	it.each(levels)(
 		'sizes the brand text at the text step of the control at a %s provider',
-		(density: Density) => {
+		(density) => {
 			expect(
 				measure(
 					<DensityProvider density={density}>

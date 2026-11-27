@@ -1,7 +1,8 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef } from 'react'
+import { useCallback, useMemo } from 'react'
 import { useA11yControl } from '../../hooks/a11y/use-a11y-control'
+import { useMountedRef } from '../../hooks/use-mounted-ref'
 import { useControlDisabled, useControlLock } from '../../primitives/control/context'
 import {
 	type ControlContextValue,
@@ -60,17 +61,9 @@ export function useControlFieldContext(
 	// React runs the effects of a child before the effects of its parent. A slot
 	// that mounts in the first commit of the field thus reads `false`, and a slot
 	// that mounts in a later commit reads `true`.
-	const mountedRef = useRef(false)
+	const mountedRef = useMountedRef()
 
-	useEffect(() => {
-		mountedRef.current = true
-
-		return () => {
-			mountedRef.current = false
-		}
-	}, [])
-
-	const isMounted = useCallback(() => mountedRef.current, [])
+	const isMounted = useCallback(() => mountedRef.current, [mountedRef])
 
 	const { autoComplete, disabled, readOnly, required, severity, variant } = overrides
 

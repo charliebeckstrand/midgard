@@ -25,7 +25,12 @@ export type CreditCardInputCvvProps = Omit<
 > & {
 	/** Controlled text. `undefined` leaves the field uncontrolled; `null` keeps it controlled and empty (CONVENTIONS §7.3). */
 	value?: string | null
+	/** Initial text when uncontrolled and not form-bound. */
 	defaultValue?: string
+	/**
+	 * The text of the empty field.
+	 * @defaultValue `'1234'` for a 4-digit code, otherwise `'123'`.
+	 */
 	placeholder?: string
 	/** Fires when the value changes, with the new code. */
 	onValueChange?: (value: string) => void
