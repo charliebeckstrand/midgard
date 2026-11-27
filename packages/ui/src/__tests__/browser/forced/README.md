@@ -14,7 +14,7 @@ The other instances share a page that has no forced colors. A CDP media emulatio
 
 1. Put a `*.test.tsx` file in this folder. Use the name of the file of the fine half, when one exists.
 2. Render the component and read what it paints. Compare a color with `systemColor` from [`../helpers/forced-colors`](../helpers/forced-colors.ts), and do not write the value of a palette, because the two instances have different palettes.
-3. Write a case that holds on the two palettes. A case that needs one palette is a finding: a part that shows only on one palette does not show to each reader.
+3. Put the cases of each top-level block in `eachAuthorScheme`, from the same helper. It runs each case with the light author scheme and with the `dark` class on the root, so each case reads the two palettes and the two author schemes. Write a case that holds on each of the four. A case that needs one palette or one scheme is a finding: a part that shows only there does not show to each reader.
 4. Put the fine half of the behavior in the `browser` or `geometry` instance. Name each half in the doccomment of the other.
 5. Run `pnpm --filter ui test:forced`.
 

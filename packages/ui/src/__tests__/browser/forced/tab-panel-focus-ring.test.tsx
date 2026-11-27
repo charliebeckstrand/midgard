@@ -1,5 +1,6 @@
 import { describe, it } from 'vitest'
 import { renderUI } from '../../helpers'
+import { eachAuthorScheme } from '../helpers/forced-colors'
 import { expectRingShows, panels, scrollDown, scrollingPanels } from '../helpers/tab-panel-ring'
 
 /**
@@ -9,15 +10,17 @@ import { expectRingShows, panels, scrollDown, scrollingPanels } from '../helpers
  * is `../tab-panel-focus-ring.test.tsx`.
  */
 describe('tab panel focus ring under forced colors (real browser)', () => {
-	it('the ring of a panel in an animating container shows', async () => {
-		renderUI(<div className="p-4">{panels['tabs with a fade']}</div>)
+	eachAuthorScheme(() => {
+		it('the ring of a panel in an animating container shows', async () => {
+			renderUI(<div className="p-4">{panels['tabs with a fade']}</div>)
 
-		await expectRingShows()
-	})
+			await expectRingShows()
+		})
 
-	it('the ring of a panel that scrolls stays on the panel after a scroll', async () => {
-		renderUI(<div className="w-80 p-4">{scrollingPanels('fade')}</div>)
+		it('the ring of a panel that scrolls stays on the panel after a scroll', async () => {
+			renderUI(<div className="w-80 p-4">{scrollingPanels('fade')}</div>)
 
-		await expectRingShows(scrollDown)
+			await expectRingShows(scrollDown)
+		})
 	})
 })
