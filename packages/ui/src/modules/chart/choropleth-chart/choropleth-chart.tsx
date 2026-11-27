@@ -25,6 +25,7 @@ import { ChartContextMenu } from '../engine/chart-context-menu'
 import { ChartMenuButton } from '../engine/chart-menu-button'
 import { READOUT_GAP } from '../engine/chart-series'
 import type { ChartItemClick, ChartReadout, DataKey } from '../engine/types'
+import { useChartMenuShown } from '../engine/use-chart-menu-shown'
 
 /**
  * The one series a choropleth shades regions with: the id and value fields to
@@ -282,6 +283,10 @@ export function ChoroplethChart<T = never>(props: ChoroplethChartProps<T>) {
 	// the whole-widget items alone.
 	const [menuRegion, setMenuRegion] = useState<number | null>(null)
 
+	// A chart with no menu reports no region. The report gives the map a tab
+	// stop, and with no menu that stop would answer nothing.
+	const menus = useChartMenuShown(contextMenu)
+
 	const [primary] = series
 
 	// The menu target is the index of the region's row in `data`, so a consumer
@@ -378,7 +383,7 @@ export function ChoroplethChart<T = never>(props: ChoroplethChartProps<T>) {
 					// selects no text under a hold, as the chart frame does.
 					// The corner menu button anchors to the map root.
 					className={cn(k.touch.readout, 'relative', className)}
-					onRegionContextMenu={onRegionContextMenu}
+					onRegionContextMenu={menus ? onRegionContextMenu : undefined}
 				/>
 
 				{/* The touch menu button: in the header row of a box around the map, such

@@ -299,6 +299,13 @@ describe('ChoroplethChart context menu', () => {
 
 		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
 	})
+
+	it('takes no tab stop with contextMenu={false} where the map has nothing else to output', () => {
+		const { container } = renderUI(chart({ contextMenu: false, tooltip: false }))
+
+		// With no menu there is no region to name, so a keyboard cursor would answer nothing.
+		expect(getSlot(container, 'map-plot')).not.toHaveAttribute('tabindex')
+	})
 })
 
 describe('the default value format', () => {
