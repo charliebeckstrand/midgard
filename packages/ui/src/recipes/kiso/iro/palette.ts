@@ -13,7 +13,12 @@
  * `onSurface` shades of the ramp, and thus the `iro.text` intents, read it.
  * Soft, outline, and plain text is 700 in light and 400 in dark, and 800 in
  * light where 700 misses AA on the 15% soft fill (amber, green).
- * `contrast.test.ts` measures each entry through Button.
+ * The soft hover fill is 30%, and the text of four hues misses AA on it. Thus
+ * the hover of these hues also sets the next text shade in the mode that
+ * misses: 800 in light (red, rose, sky) and 300 in dark (red, rose, violet).
+ * A hover text class with no `dark:` prefix also wins in dark, so sky keeps
+ * its dark ink with a dark hover class.
+ * `contrast.test.ts` measures each entry through Button, at rest and on hover.
  *
  * Layer: kiso · Concern: chromatic palette
  */
@@ -98,13 +103,14 @@ export const hover = {
 	},
 	soft: {
 		zinc: 'not-disabled:not-data-disabled:hover:bg-zinc-500/30',
-		red: 'not-disabled:not-data-disabled:hover:bg-red-500/30',
+		red: 'not-disabled:not-data-disabled:hover:bg-red-500/30 not-disabled:not-data-disabled:hover:text-red-800 dark:not-disabled:not-data-disabled:hover:text-red-300',
 		amber: 'not-disabled:not-data-disabled:hover:bg-amber-500/30',
 		green: 'not-disabled:not-data-disabled:hover:bg-green-500/30',
 		blue: 'not-disabled:not-data-disabled:hover:bg-blue-500/30',
-		rose: 'not-disabled:not-data-disabled:hover:bg-rose-500/30',
-		violet: 'not-disabled:not-data-disabled:hover:bg-violet-500/30',
-		sky: 'not-disabled:not-data-disabled:hover:bg-sky-500/30',
+		rose: 'not-disabled:not-data-disabled:hover:bg-rose-500/30 not-disabled:not-data-disabled:hover:text-rose-800 dark:not-disabled:not-data-disabled:hover:text-rose-300',
+		violet:
+			'not-disabled:not-data-disabled:hover:bg-violet-500/30 dark:not-disabled:not-data-disabled:hover:text-violet-300',
+		sky: 'not-disabled:not-data-disabled:hover:bg-sky-500/30 not-disabled:not-data-disabled:hover:text-sky-800 dark:not-disabled:not-data-disabled:hover:text-sky-400',
 	},
 	outline: {
 		zinc: 'not-disabled:not-data-disabled:hover:bg-zinc-500/15',
