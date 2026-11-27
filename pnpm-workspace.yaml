@@ -103,9 +103,15 @@ minimumReleaseAgeExclude:
 # A render that the click queued first, such as the close of the mobile sidebar, then ran
 # before the request started.
 #
-# `route-module-load.test.tsx` fails without each of the three changes to React Router.
-# Remove the patch when upstream stops the reload for a prefetch and preloads the chunks of a
-# navigation.
+# `route-module-load.test.tsx` fails without each of these three changes to React Router.
+#
+# The patch also gives `caseSensitive` to each client route. `createClientRoutes` built a
+# route from the `id`, the `index`, and the `path` of the manifest only, so the client matched
+# a path in any case. `/Button` showed the Button page, and `/Modules/Grid` failed to render,
+# although the docs routes are case sensitive. `page-lookup.test.tsx` fails without this change.
+#
+# Remove the patch when upstream stops the reload for a prefetch, preloads the chunks of a
+# navigation, and copies `caseSensitive` to the client route.
 #
 # Under `isolate: false`, Vitest runs each setup file again for each test file. It finds the
 # module to run again by its URL, but the module keeps the URL of the first request for it. A
