@@ -21,7 +21,7 @@ const { cursor, disabled } = hannou
 const { text } = iro
 const { size } = ji
 const { flex } = narabi
-const { border, focus } = sen
+const { border, focus, forced } = sen
 
 export const k = defineKata(
 	{
@@ -124,6 +124,8 @@ export const k = defineKata(
 			 * The marker of a step. It reads the `data-state` of its step: a completed
 			 * step fills green, so it does not read as the current step or an upcoming
 			 * step, and the current step paints its content in white on the blue fill.
+			 * Forced colors remove each fill, so the marker keeps a 1 px outline there,
+			 * and an upcoming step does not disappear.
 			 */
 			indicator: {
 				base: [
@@ -132,6 +134,7 @@ export const k = defineKata(
 					'justify-center',
 					...kokkaku.stepper.indicator,
 					...mode('bg-zinc-400', 'dark:bg-zinc-600'),
+					forced.outline,
 					// The hover and the focus of a step button. A display-only step is an
 					// `li`, which is never enabled or focused, so these do not match there.
 					'group-enabled:group-hover:bg-zinc-500',
@@ -149,9 +152,11 @@ export const k = defineKata(
 				slots: {
 					/**
 					 * The blue fill of the current step. The dark class replaces the dark
-					 * fill of the ActiveIndicator, so the fill is blue in each mode.
+					 * fill of the ActiveIndicator, so the fill is blue in each mode. Under
+					 * forced colors it fills in `Highlight`, so the current step stays apart
+					 * from the outlined markers of the other steps.
 					 */
-					fill: ['z-10', ...mode('bg-blue-600', 'dark:bg-blue-600')],
+					fill: ['z-10', ...mode('bg-blue-600', 'dark:bg-blue-600'), forced.mark],
 					/**
 					 * The content of the indicator, a number or a glyph. It comes after the fill
 					 * in the DOM at the same `z-10`, so it paints above the fill.
