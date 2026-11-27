@@ -118,6 +118,53 @@ describe('chromatic palette contrast', () => {
 		},
 	)
 
+	/**
+	 * The ink of a hovered Button, as the cascade gives it. A hover text class
+	 * with no `dark:` prefix applies in both modes, and it wins over the dark
+	 * ink at rest, because the hover selector is more specific. Thus in dark the
+	 * dark hover class wins, then the light hover class, then the dark ink at rest.
+	 */
+	function hoveredInk(list: string[]): { light: string; dark: string } {
+		const rest = ink(list)
+
+		const light = list.find((name) => !name.startsWith('dark:') && name.includes('hover:text-'))
+
+		const dark = list.find((name) => name.startsWith('dark:') && name.includes('hover:text-'))
+
+		return { light: light ?? rest.light, dark: dark ?? light ?? rest.dark }
+	}
+
+	describe.each(['soft', 'outline', 'plain'] as const)(
+		'%s text clears text AA on its hover wash',
+		(variant) => {
+			it.each(hues)('%s', (color) => {
+				const list = resolve(variant, color)
+
+				const wash = list.find((name) => name.includes('hover:bg-'))
+
+				if (wash === undefined) throw new Error(`no hover wash in: ${list.join(' ')}`)
+
+				const { light, dark } = hoveredInk(list)
+
+				expect(getContrast(light, tinted(wash, SURFACE.light))).toBeGreaterThanOrEqual(TEXT_AA)
+
+				expect(getContrast(dark, tinted(wash, SURFACE.dark))).toBeGreaterThanOrEqual(TEXT_AA)
+			})
+		},
+	)
+
+	// One rule for each hue, not a shade for each hue that misses AA: the text
+	// of a hovered soft Button is 800 in light and 300 in dark.
+	describe('soft text steps to 800 in light and 300 in dark on hover', () => {
+		it.each(hues)('%s', (color) => {
+			const { light, dark } = hoveredInk(resolve('soft', color))
+
+			expect(light).toMatch(new RegExp(`hover:text-${color}-800$`))
+
+			expect(dark).toMatch(new RegExp(`^dark:.*hover:text-${color}-300$`))
+		})
+	})
+
 	describe('bare text clears text AA on the page', () => {
 		it.each(hues)('%s', (color) => {
 			const { light, dark } = ink(resolve('bare', color))
