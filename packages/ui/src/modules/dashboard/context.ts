@@ -9,6 +9,7 @@ import type { DashboardSelection } from './engine/dashboard-scope'
 import type { DashboardStore } from './engine/dashboard-store'
 import type { DashboardWidgetRegistry } from './types'
 import type { DashboardResizeHandlers } from './use-dashboard-resize'
+import type { DashboardStepHandlers } from './use-dashboard-steps'
 
 /**
  * The store of the nearest `Dashboard`. A tile reads it through a selector, so a
@@ -21,19 +22,20 @@ export const [DashboardStoreContext, useDashboardStoreContext] =
 
 /**
  * The commands that a tile sends to the nearest `Dashboard`: the resize
- * handlers, and the scope and error commands. The object keeps its identity for
+ * handlers, the steps of the tile menu, and the scope and error commands. The object keeps its identity for
  * the life of the dashboard.
  *
  * @internal
  */
-export type DashboardActions = DashboardResizeHandlers & {
-	/** Replaces the filter. */
-	setFilter: (filter: QueryGroup) => void
-	/** Replaces the selections through an update function. */
-	updateSelections: (update: (prev: DashboardSelection[]) => DashboardSelection[]) => void
-	/** Reports an error that a tile caught. */
-	reportError: (id: string, error: unknown) => void
-}
+export type DashboardActions = DashboardResizeHandlers &
+	DashboardStepHandlers & {
+		/** Replaces the filter. */
+		setFilter: (filter: QueryGroup) => void
+		/** Replaces the selections through an update function. */
+		updateSelections: (update: (prev: DashboardSelection[]) => DashboardSelection[]) => void
+		/** Reports an error that a tile caught. */
+		reportError: (id: string, error: unknown) => void
+	}
 
 /** @internal */
 export const [DashboardActionsContext, useDashboardActions] =

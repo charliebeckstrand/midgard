@@ -247,6 +247,12 @@ export type DashboardTileProps = {
  * shows one. The slot exists only at rest, and only on a tile with a header
  * row.
  *
+ * In edit mode, a tile that can move shows a menu button, named "Arrange" and
+ * the name of the tile, beside its edit controls. The menu moves the tile left,
+ * right, up, or down, and changes its width or its height by one grid unit,
+ * with no drag (WCAG 2.2 SC 2.5.7). It offers only the steps that change the
+ * board. A tile with no header row floats the button on its end corner.
+ *
  * While the tile drags, the whole page shows the grabbing cursor. The hand thus
  * stays closed when the carried tile stops at an edge and the pointer goes on.
  *

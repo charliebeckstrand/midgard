@@ -14,6 +14,8 @@ The board never moves a tile by itself. A drag moves a tile into free cells, or 
 
 When the container renders a tile under its `minWidth`, the board paints a re-pack of the same layout, and it never saves the re-pack. The board writes each step of the re-pack as a container query, so the first paint is the re-pack that the first measurement keeps. [`dashboard-first-paint.test.tsx`](../../__tests__/browser/dashboard-first-paint.test.tsx) holds this. The re-pack holds for 24 px past its threshold, so a classic scrollbar cannot switch it on each frame. [`dashboard-projection-hold.test.tsx`](../../__tests__/browser/scrollbars/dashboard-projection-hold.test.tsx) holds the hold.
 
+Each tile in edit mode has a menu that moves it and resizes it with no drag, for WCAG 2.2 criterion 2.5.7. It is also the equivalent control that 2.5.8 accepts for the thin splitters. A move goes to the nearest place on the row or the column of the tile, in the direction of the step, that a drag there gives (`stepPreview`). A size step adds or takes one grid unit (`stepSpan`). In the re-pack, the menu moves a tile one place in reading order. [`dashboard-tile-menu.test.tsx`](../../__tests__/modules/dashboard-tile-menu.test.tsx) holds the menu, and its browser twin moves and resizes a tile with clicks only.
+
 One gesture owns the board at a time. While a drag or a pointer resize is live, the board refuses a second gesture, a keyboard resize step, and `tidy`. Escape cancels only the live gesture, so a dialog, a sheet, or a drawer around the board stays open. An edit exit or an unmount ends a live gesture as canceled. [`dashboard.test.tsx`](../../__tests__/modules/dashboard.test.tsx) and [`dashboard-resize-pointer.test.tsx`](../../__tests__/modules/dashboard-resize-pointer.test.tsx) hold these rules.
 
 A store in the engine gives each tile a subscription to its own cell. A drag preview therefore renders only the tiles that it moves, and the root does not render. [`dashboard-card-render.test.tsx`](../../__tests__/boundary/dashboard-card-render.test.tsx) holds this. A move glides through a FLIP in grid units, and a change of size snaps. [`dashboard-glide.test.tsx`](../../__tests__/browser/motion/dashboard-glide.test.tsx) holds the glide.
@@ -49,10 +51,6 @@ The store is plain JavaScript, and the shell reads it through `useSyncExternalSt
 ## Accessibility and testing
 
 1. **The board is not in the shared corpus (*P2*).** The corpus in `__tests__/a11y/cases` holds `Kanban` but no `Dashboard` subject, so the shared sweeps do not read the board. CONVENTIONS.md §10.5 puts each shared guarantee there. Add a `dashboard` subject at rest and in edit mode to `data-complex.tsx`, with a pass-through subject for the `<section>`. The axe baseline, the focus sweep, and the pass-through sweep then hold the board.
-
-2. **A move and a resize with no drag (*Maybe*).** WCAG 2.2 criterion 2.5.7 requires a single-pointer path for each action that a drag does. A pointer user can move a tile only by a drag of the grip, and resize it only by a drag of a splitter. The keyboard steps do not count, because the criterion is about a pointer. One candidate is a menu on the grip in edit mode, with Move up, Move down, Move to start, Move to end, and a size step for each axis. Each menu entry runs the engine step that the arrow keys run, so the live region and the limits stay the same. Prove it in `dashboard.test.tsx` and in a browser test that moves and resizes a tile with clicks only.
-
-   *Maybe* marks work that waits for a decision and has no priority yet. Decide the place of the path before work starts. A menu on the grip adds no control, but a reader must find it. A button of its own on each tile is easy to find, but it adds a control to each tile in edit mode.
 
 ## Not planned
 

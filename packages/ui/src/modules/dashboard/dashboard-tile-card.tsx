@@ -17,6 +17,7 @@ import { DashboardTileContent } from './dashboard-tile-content'
 import { DashboardTileControls, type DashboardTileControlsProps } from './dashboard-tile-controls'
 import { DashboardTileExpand } from './dashboard-tile-expand'
 import { DashboardTileHeader } from './dashboard-tile-header'
+import { DashboardTileMenu } from './dashboard-tile-menu'
 import type { DashboardTileDrag } from './use-dashboard-tile-drag'
 
 /** Props for {@link DashboardTileCard}. @internal */
@@ -62,7 +63,8 @@ export type DashboardTileCardProps = {
 } & Pick<DashboardTileControlsProps, 'onRemove' | 'onDuplicate' | 'shell'>
 
 /**
- * The card of a tile: the grip, the header row, and the content box.
+ * The card of a tile: the grip, the header row, the menu in edit mode, and the
+ * content box.
  *
  * It renders again only when one of its props changes by identity. Each tile
  * reads the dnd-kit context, which changes when a drag lifts and when it drops.
@@ -114,14 +116,22 @@ export const DashboardTileCard = memo(function DashboardTileCard({
 		/>
 	)
 
-	// Edit mode swaps the edit controls in for the expand control.
+	// The menu is the path with no drag to each move and each resize of the tile.
+	// A tile with no header row floats it on the end corner, across from the grip.
+	const menu = movable && <DashboardTileMenu id={id} label={label} className={slots.menu} />
+
+	// Edit mode swaps the menu and the edit controls in for the expand control.
 	const controls = editable ? (
-		<DashboardTileControls
-			label={label}
-			onRemove={onRemove}
-			onDuplicate={onDuplicate}
-			shell={shell}
-		/>
+		<>
+			{menu}
+
+			<DashboardTileControls
+				label={label}
+				onRemove={onRemove}
+				onDuplicate={onDuplicate}
+				shell={shell}
+			/>
+		</>
 	) : (
 		expandable && (
 			<DashboardTileExpand
@@ -155,6 +165,8 @@ export const DashboardTileCard = memo(function DashboardTileCard({
 				className={slots.card}
 			>
 				{!hasHeader && handle}
+
+				{!hasHeader && menu}
 
 				{hasHeader && (
 					<DashboardTileHeader

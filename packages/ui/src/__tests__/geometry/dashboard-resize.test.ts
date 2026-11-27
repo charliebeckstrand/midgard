@@ -8,6 +8,7 @@ import {
 	resizeLimits,
 	resizePreview,
 	resizeRange,
+	stepSpan,
 } from '../../modules/dashboard/engine/dashboard-resize'
 import { cell } from '../helpers/dashboard-cells'
 
@@ -180,5 +181,44 @@ describe('resizeRange', () => {
 			maxW: 24,
 			minH: 1,
 		})
+	})
+})
+
+describe('stepSpan', () => {
+	const board = [cell('a', 0, 0, 8, 10), cell('b', 9, 0, 8, 10)]
+
+	it('adds or takes one column or one row', () => {
+		const limits = { columns: 24, minW: 1 }
+
+		expect(find(stepSpan(board, 'a', 1, 0, limits), 'a')).toMatchObject({ w: 9, h: 10 })
+
+		expect(find(stepSpan(board, 'a', -1, 0, limits), 'a')).toMatchObject({ w: 7, h: 10 })
+
+		expect(find(stepSpan(board, 'a', 0, 1, limits), 'a')).toMatchObject({ w: 8, h: 11 })
+
+		expect(find(stepSpan(board, 'a', 0, -1, limits), 'a')).toMatchObject({ w: 8, h: 9 })
+	})
+
+	it('gives no step at a neighbor or at a limit', () => {
+		const grown = [cell('a', 0, 0, 9, 10), cell('b', 9, 0, 8, 10)]
+
+		expect(stepSpan(grown, 'a', 1, 0, { columns: 24, minW: 1 })).toBeNull()
+
+		expect(stepSpan(board, 'a', -1, 0, { columns: 24, minW: 8 })).toBeNull()
+
+		expect(stepSpan(board, 'a', 0, 1, { columns: 24, minW: 1, maxH: 10 })).toBeNull()
+	})
+
+	it('gives no step that changes the span the other way', () => {
+		// The saved width is over the maximum, so a resize clamps it down.
+		expect(stepSpan(board, 'a', 1, 0, { columns: 24, minW: 1, maxW: 6 })).toBeNull()
+	})
+
+	it('gives a tile with a fixed ratio a width step, and no height step', () => {
+		const limits = { columns: 24, minW: 1, ratio: 16 / 9 }
+
+		expect(find(stepSpan(board, 'a', -1, 0, limits), 'a')).toMatchObject({ w: 7 })
+
+		expect(stepSpan(board, 'a', 0, -1, limits)).toBeNull()
 	})
 })

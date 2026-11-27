@@ -8,6 +8,16 @@ type DashboardValues = {
 	remove: { item: string }
 	clearSelection: { label: string }
 	resize: { label: string }
+	arrange: { label: string }
+	moveLeft: Record<never, never>
+	moveRight: Record<never, never>
+	moveUp: Record<never, never>
+	moveDown: Record<never, never>
+	increaseWidth: Record<never, never>
+	decreaseWidth: Record<never, never>
+	increaseHeight: Record<never, never>
+	decreaseHeight: Record<never, never>
+	noStep: Record<never, never>
 	columns: { count: number }
 	rows: { count: number }
 	failed: { label: string }
@@ -17,8 +27,8 @@ type DashboardValues = {
 
 /**
  * The messages of the chrome of a dashboard tile: the names of its controls,
- * the spans that its resize handles speak, its error state, and the line of a
- * tile that no widget claims.
+ * the items of its menu, the spans that its resize handles speak, its error
+ * state, and the line of a tile that no widget claims.
  *
  * @internal
  */
@@ -47,6 +57,58 @@ export const dashboardMessages: MessageSet<DashboardValues> = defineMessages<Das
 		id: 'ui.dashboard.resize',
 		defaultMessage: 'Resize {label}',
 		description: 'The name of the handle that changes the size of a dashboard tile.',
+	},
+	arrange: {
+		id: 'ui.dashboard.arrange',
+		defaultMessage: 'Arrange {label}',
+		description:
+			'The name of the button that opens the menu that moves and resizes a dashboard tile in edit mode.',
+	},
+	moveLeft: {
+		id: 'ui.dashboard.moveLeft',
+		defaultMessage: 'Move left',
+		description: 'The menu item that moves a dashboard tile to the left on the screen.',
+	},
+	moveRight: {
+		id: 'ui.dashboard.moveRight',
+		defaultMessage: 'Move right',
+		description: 'The menu item that moves a dashboard tile to the right on the screen.',
+	},
+	moveUp: {
+		id: 'ui.dashboard.moveUp',
+		defaultMessage: 'Move up',
+		description: 'The menu item that moves a dashboard tile up.',
+	},
+	moveDown: {
+		id: 'ui.dashboard.moveDown',
+		defaultMessage: 'Move down',
+		description: 'The menu item that moves a dashboard tile down.',
+	},
+	increaseWidth: {
+		id: 'ui.dashboard.increaseWidth',
+		defaultMessage: 'Increase width',
+		description: 'The menu item that makes a dashboard tile one column wider.',
+	},
+	decreaseWidth: {
+		id: 'ui.dashboard.decreaseWidth',
+		defaultMessage: 'Decrease width',
+		description: 'The menu item that makes a dashboard tile one column narrower.',
+	},
+	increaseHeight: {
+		id: 'ui.dashboard.increaseHeight',
+		defaultMessage: 'Increase height',
+		description: 'The menu item that makes a dashboard tile one row higher.',
+	},
+	decreaseHeight: {
+		id: 'ui.dashboard.decreaseHeight',
+		defaultMessage: 'Decrease height',
+		description: 'The menu item that makes a dashboard tile one row lower.',
+	},
+	noStep: {
+		id: 'ui.dashboard.noStep',
+		defaultMessage: 'No change',
+		description:
+			'The disabled item of the menu of a dashboard tile when the tile can neither move nor resize.',
 	},
 	columns: {
 		id: 'ui.dashboard.columns',

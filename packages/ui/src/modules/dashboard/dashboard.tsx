@@ -70,6 +70,7 @@ import type {
 import { useDashboardDrag } from './use-dashboard-drag'
 import { useDashboardHandle } from './use-dashboard-handle'
 import { useDashboardResize } from './use-dashboard-resize'
+import { useDashboardSteps } from './use-dashboard-steps'
 
 /** The default gutter between tiles, in px. */
 const DEFAULT_GAP = 12
@@ -225,7 +226,8 @@ export type DashboardProps = AccessibleName &
 	Omit<ComponentProps<'section'>, 'ref' | 'onDragStart' | 'onDragEnd'> & {
 		/**
 		 * The saved layout. It fires once for each committed change: a drop, a pointer
-		 * resize, a keyboard resize step, or a tidy that moves a tile. Omit it to let
+		 * resize, a keyboard resize step, a step from the menu of a tile, or a tidy that
+		 * moves a tile. A step from the menu fires no gesture event. Omit it to let
 		 * the dashboard hold the layout, and each tile with no entry takes a new row.
 		 * Apply each value in the same event, as {@link DashboardLayoutBinding} says.
 		 */
@@ -528,6 +530,8 @@ export function Dashboard({
 		onResizeEnd,
 	})
 
+	const { tileSteps, stepTile } = useDashboardSteps({ store, canvasRef, commit })
+
 	useDashboardHandle({ ref, store, commit })
 
 	// It reads the newest reporter, and its identity holds for the mount.
@@ -535,12 +539,12 @@ export function Dashboard({
 
 	// A lock, such as a `Form` while a submit runs, stops each layout gesture as
 	// an edit exit does. A resize does not start or step, and the effect below
-	// cancels a live gesture. The grip of a tile reads the lock itself.
+	// cancels a live gesture. The grip and the menu button of a tile read the lock themselves.
 	const locked = useControlLock()
 
 	const readLocked = useStableEvent(() => locked)
 
-	const lockedResize = useMemo(
+	const lockedSteps = useMemo(
 		() => ({
 			beginResize: (...args: Parameters<typeof beginResize>) => {
 				if (!readLocked()) beginResize(...args)
@@ -548,20 +552,25 @@ export function Dashboard({
 			resizeBy: (...args: Parameters<typeof resizeBy>) => {
 				if (!readLocked()) resizeBy(...args)
 			},
+			stepTile: (...args: Parameters<typeof stepTile>) => {
+				if (!readLocked()) stepTile(...args)
+			},
 		}),
-		[beginResize, resizeBy, readLocked],
+		[beginResize, resizeBy, stepTile, readLocked],
 	)
 
 	const actions = useMemo<DashboardActions>(
 		() => ({
-			beginResize: lockedResize.beginResize,
-			resizeBy: lockedResize.resizeBy,
+			beginResize: lockedSteps.beginResize,
+			resizeBy: lockedSteps.resizeBy,
 			cancelResize,
+			tileSteps,
+			stepTile: lockedSteps.stepTile,
 			setFilter: (next) => setFilterValue(next),
 			updateSelections: (update) => setSelectionValue((prev) => update(prev ?? [])),
 			reportError,
 		}),
-		[lockedResize, cancelResize, setFilterValue, setSelectionValue, reportError],
+		[lockedSteps, cancelResize, tileSteps, setFilterValue, setSelectionValue, reportError],
 	)
 
 	// The root reads flags only, so a preview never renders the root again.

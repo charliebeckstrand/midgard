@@ -5,6 +5,7 @@ import {
 	dragTravel,
 	nearestFit,
 	stackPreview,
+	stepPreview,
 	travelOffset,
 } from '../../modules/dashboard/engine/dashboard-drag'
 import {
@@ -299,3 +300,72 @@ function sortedFit(
 
 	return { x: hit.x, y: hit.y }
 }
+
+describe('stepPreview', () => {
+	const right = { axis: 'x', sign: 1 } as const
+
+	const left = { axis: 'x', sign: -1 } as const
+
+	const down = { axis: 'y', sign: 1 } as const
+
+	const up = { axis: 'y', sign: -1 } as const
+
+	it('moves a tile one column into a free cell, as an arrow key does', () => {
+		const board = [cell('a', 0, 0, 8, 10), cell('b', 16, 0, 8, 10)]
+
+		expect(origins(stepPreview(board, 'a', right, 24)?.cells)).toEqual({ a: [1, 0], b: [16, 0] })
+	})
+
+	it('shifts a tile past an equal neighbor on its row', () => {
+		const board = [cell('a', 0, 0, 8, 10), cell('b', 8, 0, 8, 10)]
+
+		const preview = stepPreview(board, 'a', right, 24)
+
+		expect(preview).toMatchObject({ kind: 'shift', partner: 'b' })
+
+		expect(origins(preview?.cells)).toEqual({ b: [0, 0], a: [8, 0] })
+	})
+
+	it('swaps a tile with an equal tile under it', () => {
+		const board = [cell('a', 0, 0, 8, 10), cell('b', 0, 10, 8, 10)]
+
+		const preview = stepPreview(board, 'a', down, 24)
+
+		expect(preview).toMatchObject({ kind: 'swap', partner: 'b' })
+
+		expect(origins(preview?.cells)).toEqual({ a: [0, 10], b: [0, 0] })
+	})
+
+	it('jumps past an unequal neighbor to the next free cell on the row', () => {
+		const board = [cell('a', 0, 0, 6, 10), cell('b', 6, 0, 10, 10)]
+
+		expect(origins(stepPreview(board, 'a', right, 24)?.cells)).toEqual({ a: [16, 0], b: [6, 0] })
+	})
+
+	it('keeps the row of the tile, so a blocked row gives no step', () => {
+		// A drag far to the right snaps under "b", on another row. The step does not take that.
+		const board = [cell('a', 0, 0, 8, 10), cell('b', 8, 0, 16, 10)]
+
+		expect(stepPreview(board, 'a', right, 24)).toBeNull()
+	})
+
+	it('gives no step past an edge', () => {
+		const board = [cell('a', 0, 0, 8, 10), cell('b', 16, 0, 8, 10)]
+
+		expect(stepPreview(board, 'a', left, 24)).toBeNull()
+
+		expect(stepPreview(board, 'a', up, 24)).toBeNull()
+	})
+
+	it('moves a tile down into the row band under the lowest tile', () => {
+		const board = [cell('a', 0, 0, 8, 10), cell('b', 8, 0, 8, 20)]
+
+		expect(origins(stepPreview(board, 'a', down, 24)?.cells)).toEqual({ a: [0, 1], b: [8, 0] })
+	})
+
+	it('moves no static tile', () => {
+		const board = [cell('a', 0, 0, 8, 10, true)]
+
+		expect(stepPreview(board, 'a', right, 24)).toBeNull()
+	})
+})
