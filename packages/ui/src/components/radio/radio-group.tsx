@@ -43,8 +43,11 @@ export type RadioGroupProps = AccessibleName & {
  * `aria-readonly`, and each radio in it blocks the check. A radio does not set
  * `aria-readonly`, because ARIA defines it on the group.
  *
- * In a `<Field>` or `<Control>`, the group takes the description of that
- * wrapper as its own `aria-describedby`. A bare {@link Radio} of the group does
+ * In a `<Field>` or `<Control>`, the group takes the id of that wrapper, and
+ * the description of the wrapper as its own `aria-describedby`. Thus a refused
+ * submit of a form, and a link of a `FormErrorSummary`, move the focus into the
+ * group: to the checked radio, as Tab does, or to the first radio when none is
+ * checked. A bare {@link Radio} of the group does
  * not adopt the id or the description of the wrapper, because the wrapper is
  * for the group. The radio still takes `disabled`, `required`, `readOnly`, and
  * the validation state of the wrapper. A {@link RadioField} in the group gives
@@ -52,13 +55,19 @@ export type RadioGroupProps = AccessibleName & {
  * @see {@link Radio}
  */
 export function RadioGroup({
+	id,
 	readOnly,
 	'aria-describedby': ariaDescribedBy,
 	...props
 }: RadioGroupProps) {
 	const fieldId = useControl()?.id
 
-	const { readOnly: resolvedReadOnly, 'aria-describedby': resolvedDescribedBy } = useControlProps({
+	const {
+		id: resolvedId,
+		readOnly: resolvedReadOnly,
+		'aria-describedby': resolvedDescribedBy,
+	} = useControlProps({
+		id,
 		readOnly,
 		'aria-describedby': ariaDescribedBy,
 	})
@@ -68,12 +77,13 @@ export function RadioGroup({
 		[resolvedReadOnly, fieldId],
 	)
 
-	// Consumer props spread first; the radiogroup role, the description, and the
-	// read-only state after them take precedence.
+	// Consumer props spread first; the id, the radiogroup role, the description,
+	// and the read-only state after them take precedence.
 	return (
 		<RadioGroupContext value={group}>
 			<ToggleGroup
 				{...props}
+				id={resolvedId}
 				role="radiogroup"
 				aria-describedby={resolvedDescribedBy}
 				aria-readonly={ariaAttr(resolvedReadOnly)}
