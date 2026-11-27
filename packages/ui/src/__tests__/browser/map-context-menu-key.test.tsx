@@ -13,7 +13,7 @@ import { FIXTURE_GEOJSON } from '../helpers/map-geography'
  * event at the element that a test names, so it cannot show this.
  */
 describe('map context menu from the keyboard', () => {
-	it.for([
+	it.for<[string, string]>([
 		['Shift+F10', '{Shift>}{F10}{/Shift}'],
 		['the ContextMenu key', '{ContextMenu}'],
 	])('names the region under the cursor on %s', async ([, keys]) => {
