@@ -4,6 +4,11 @@ import { PasswordInput } from 'ui/password-input'
 export default function Validation() {
 	return (
 		<>
+			<Field severity="error">
+				<Label>Password</Label>
+				<PasswordInput autoComplete="new-password" />
+				<Message>Enter a password.</Message>
+			</Field>
 			<Field severity="warning">
 				<Label>Password</Label>
 				<PasswordInput defaultValue="password123" autoComplete="new-password" />

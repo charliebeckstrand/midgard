@@ -1,6 +1,7 @@
+import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { renderUI, screen, userEvent, waitFor } from '../helpers'
+import { renderUI, screen, waitFor } from '../helpers'
 
 /**
  * Pagination keeps focus on a page change (WCAG 2.4.3 / 2.4.7). Activating the

@@ -4,6 +4,11 @@ import { NumberInput } from 'ui/number-input'
 export default function Validation() {
 	return (
 		<>
+			<Field severity="error">
+				<Label>Guests</Label>
+				<NumberInput min={1} max={12} defaultValue={14} />
+				<Message>Enter a number from 1 to 12.</Message>
+			</Field>
 			<Field severity="success">
 				<Label>Guests</Label>
 				<NumberInput min={1} max={12} defaultValue={4} />

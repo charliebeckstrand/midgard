@@ -27,7 +27,7 @@ function describeCell({ rowKey, columnId }: GridCellRef): string {
 
 // The value of the range, from its anchor to its focus.
 function RangeStatus({ range }: { range: GridRangeState | null }) {
-	if (!range) return 'Empty'
+	if (!range) return 'Value: Empty'
 
 	return `Value: ${describeCell(range.anchor)} to ${describeCell(range.focus)}`
 }

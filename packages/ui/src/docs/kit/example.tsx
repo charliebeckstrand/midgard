@@ -22,6 +22,7 @@ import { Splitter } from '../../primitives/splitter/splitter.tsx'
 import { sen } from '../../recipes/kiso/index.ts'
 import { getOrCompute } from '../../utilities/get-or-compute.ts'
 import { createLazyModule, type LazyModule } from '../../utilities/lazy-module.ts'
+import type { Size } from '../../utilities/size.ts'
 import type { ExampleCode, ExampleMeta } from '../plugin/examples.ts'
 import { HashAnchor } from './hash-anchor.tsx'
 import { exampleTitle } from './names.ts'
@@ -55,7 +56,7 @@ const messages = defineMessages({
 })
 
 // The size of the instance area in pixels, such as "640 × 480".
-const sizeMessage = defineMessage<{ width: number; height: number }>({
+const sizeMessage = defineMessage<Size>({
 	id: 'docs.example.size',
 	defaultMessage: '{width} × {height}',
 	description:
@@ -121,8 +122,6 @@ function Code({
 		/>
 	)
 }
-
-type Size = { width: number; height: number }
 
 /**
  * The width and the height of `target` in pixels, while `active`, and `null`

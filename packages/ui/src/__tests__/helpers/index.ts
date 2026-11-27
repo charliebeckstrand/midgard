@@ -5,7 +5,6 @@
 // The browser suites also import this barrel, so it stays free of node-only
 // modules; the boundary tests import `walk-source` (node:fs) directly.
 export { act, createEvent, fireEvent, screen, waitFor, within } from '@testing-library/react'
-export { default as userEvent } from '@testing-library/user-event'
 export { applyChanges } from './apply-changes'
 export { ariaTarget, ariaTargets } from './aria-references'
 export { attach } from './attach'

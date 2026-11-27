@@ -3,6 +3,7 @@
 import { useSyncExternalStore } from 'react'
 import { createContext } from '../../core/create-context'
 import type { MapSeriesColor } from '../../recipes/kata/map'
+import type { Size } from '../../utilities/size'
 import type { ChartPress } from '../chart/engine/types'
 import type { MapDotPool } from './engine/map-cluster/pool'
 import type { MapClusterStore } from './engine/map-cluster/sets'
@@ -267,7 +268,7 @@ export type MapPlatContextValue = {
 	 * (`MapPoints`). The plot is the container `map-plot`, so a mark can read the
 	 * size of the box in a container query and in `cq` units.
 	 */
-	unmeasured: { width: number; height: number } | null
+	unmeasured: Size | null
 }
 
 export const [MapPlatContext, useMapPlat] = createContext<MapPlatContextValue>('MapPlat')
