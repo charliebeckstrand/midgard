@@ -1,4 +1,11 @@
 import { describe, expect, it } from 'vitest'
+import {
+	Stepper,
+	StepperIndicator,
+	StepperSeparator,
+	StepperStep,
+	StepperTitle,
+} from '../../../components/stepper'
 import { baseline } from '../../a11y/cases'
 import { present, renderUI } from '../../helpers'
 import { eachAuthorScheme, systemColor } from '../helpers/forced-colors'
@@ -11,6 +18,23 @@ import { eachAuthorScheme, systemColor } from '../helpers/forced-colors'
  */
 
 const cases = baseline.filter((entry) => entry.name.startsWith('stepper'))
+
+/** A numbered stepper on its second step, display-only or with step buttons. */
+function numbered(interactive: boolean) {
+	const value = interactive ? { defaultValue: 1 } : { value: 1 }
+
+	return (
+		<Stepper {...value}>
+			{['Account', 'Profile', 'Confirm'].map((title, index) => [
+				index > 0 && <StepperSeparator key={`s${title}`} />,
+				<StepperStep key={title} value={index}>
+					<StepperIndicator>{index + 1}</StepperIndicator>
+					<StepperTitle>{title}</StepperTitle>
+				</StepperStep>,
+			])}
+		</Stepper>
+	)
+}
 
 describe('stepper markers under forced colors (real browser)', () => {
 	eachAuthorScheme(() => {
@@ -37,6 +61,33 @@ describe('stepper markers under forced colors (real browser)', () => {
 				)
 
 				expect(getComputedStyle(current).backgroundColor).toBe(systemColor('Highlight'))
+			},
+		)
+
+		/**
+		 * The number of the current step sits on the `Highlight` fill. `Highlight` does not keep the
+		 * contrast of `CanvasText` or `ButtonText`, so the number takes `HighlightText`. It does not
+		 * adjust, so the browser paints no `Canvas` plate behind it.
+		 */
+		it.each([false, true])(
+			'paints the number of the current step in HighlightText (interactive: %s)',
+			(interactive) => {
+				const { container } = renderUI(numbered(interactive))
+
+				const current = present(
+					container.querySelector<HTMLElement>(
+						'[data-state=current] [data-slot=stepper-indicator] > span:last-child',
+					),
+					'the number of the current step',
+				)
+
+				expect(current.textContent).toBe('2')
+
+				const style = getComputedStyle(current)
+
+				expect(style.color).toBe(systemColor('HighlightText'))
+
+				expect(style.forcedColorAdjust).toBe('none')
 			},
 		)
 	})

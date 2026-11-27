@@ -159,9 +159,16 @@ export const k = defineKata(
 					fill: ['z-10', ...mode('bg-blue-600', 'dark:bg-blue-600'), forced.mark],
 					/**
 					 * The content of the indicator, a number or a glyph. It comes after the fill
-					 * in the DOM at the same `z-10`, so it paints above the fill.
+					 * in the DOM at the same `z-10`, so it paints above the fill. Under forced
+					 * colors, the content of the current step sits on `Highlight`, so it takes
+					 * `HighlightText`. It does not adjust, so the browser paints no `Canvas`
+					 * plate behind it.
 					 */
-					glyph: 'relative z-10 inline-flex',
+					glyph: [
+						'relative z-10 inline-flex',
+						'forced-colors:group-data-[state=current]:forced-color-adjust-none',
+						'forced-colors:group-data-[state=current]:text-[HighlightText]',
+					],
 					/** The checkmark of a completed step. */
 					check: 'size-2.5 stroke-[3.5]',
 				},
