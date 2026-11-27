@@ -6,6 +6,7 @@ describe('createSeed', () => {
 		const seed = createSeed()
 
 		expect(seed).toMatch(/^[a-z0-9]{6}$/)
+
 		expect(isSeed(seed)).toBe(true)
 	})
 })
@@ -17,8 +18,11 @@ describe('isSeed', () => {
 
 	it('refuses upper case, other characters, and an empty or long value', () => {
 		expect(isSeed('Charlie')).toBe(false)
+
 		expect(isSeed('k3x-9q')).toBe(false)
+
 		expect(isSeed('')).toBe(false)
+
 		expect(isSeed('a'.repeat(33))).toBe(false)
 	})
 })
@@ -32,6 +36,7 @@ describe('createRandom', () => {
 		const values = Array.from({ length: 5 }, () => first())
 
 		expect(Array.from({ length: 5 }, () => second())).toEqual(values)
+
 		expect(values.every((value) => value >= 0 && value < 1)).toBe(true)
 	})
 

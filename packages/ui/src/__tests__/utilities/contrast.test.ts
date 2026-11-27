@@ -12,12 +12,15 @@ import {
 describe('parseColor', () => {
 	it('reads the white / black keywords', () => {
 		expect(parseColor('white')).toEqual([1, 1, 1])
+
 		expect(parseColor('black')).toEqual([0, 0, 0])
 	})
 
 	it('reads 3- and 6-digit hex, ignoring case and whitespace', () => {
 		expect(parseColor('#fff')).toEqual([1, 1, 1])
+
 		expect(parseColor('  #FFFFFF ')).toEqual([1, 1, 1])
+
 		expect(parseColor('#f00')).toEqual([1, 0, 0])
 	})
 
@@ -27,7 +30,9 @@ describe('parseColor', () => {
 
 	it('reads rgb() with 0–255 or percentage channels, comma- or space-separated', () => {
 		expect(parseColor('rgb(255, 0, 0)')).toEqual([1, 0, 0])
+
 		expect(parseColor('rgb(255 0 0)')).toEqual([1, 0, 0])
+
 		expect(parseColor('rgb(100% 0% 0%)')).toEqual([1, 0, 0])
 	})
 
@@ -40,11 +45,13 @@ describe('parseColor', () => {
 		const white: ColorInput = 'oklch(1 0 0)'
 
 		expect(relativeLuminance(black)).toBeCloseTo(0, 5)
+
 		expect(relativeLuminance(white)).toBeCloseTo(1, 5)
 	})
 
 	it('clamps an Srgb triple into range and passes it through', () => {
 		expect(parseColor([0.5, 0.25, 0.75])).toEqual([0.5, 0.25, 0.75])
+
 		expect(parseColor([2, -1, 0.5])).toEqual([1, 0, 0.5])
 	})
 
@@ -56,6 +63,7 @@ describe('parseColor', () => {
 describe('relativeLuminance', () => {
 	it('is 1 for white and 0 for black', () => {
 		expect(relativeLuminance('white')).toBeCloseTo(1, 5)
+
 		expect(relativeLuminance('black')).toBeCloseTo(0, 5)
 	})
 })

@@ -22,6 +22,7 @@ describe('proxy', () => {
 		const response = proxy(new NextRequest('http://localhost/'))
 
 		expect(response.status).toBe(307)
+
 		expect(response.headers.get('location')).toMatch(/^http:\/\/localhost\/[a-z0-9]{6}$/)
 	})
 
@@ -37,6 +38,7 @@ describe('proxy', () => {
 		const response = proxy(new NextRequest('http://localhost/auth/session'))
 
 		expect(response.headers.get('location')).toBeNull()
+
 		expect(response.headers.get('x-middleware-next')).toBe('1')
 	})
 })

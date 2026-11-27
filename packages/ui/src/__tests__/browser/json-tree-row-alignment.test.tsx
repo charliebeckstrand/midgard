@@ -45,6 +45,7 @@ describe('JsonTree row alignment (real browser)', () => {
 			const delta = keyStart('delta')
 
 			expect(beta).toBe(alpha)
+
 			expect(delta).toBe(alpha)
 
 			const row = present(

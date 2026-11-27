@@ -54,6 +54,7 @@ describe('Kanban skeleton list (real browser)', () => {
 		)
 
 		expect(page.getByRole('list').elements()).toHaveLength(1)
+
 		expect(page.getByRole('listitem').elements()).toHaveLength(1)
 	})
 })

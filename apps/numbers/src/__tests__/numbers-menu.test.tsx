@@ -131,6 +131,7 @@ describe('NumbersMenu', () => {
 				const current = name === label
 
 				expect(item?.getAttribute('aria-current')).toBe(current ? 'true' : null)
+
 				expect(item?.classList.contains('font-extrabold')).toBe(current)
 			}
 		},
@@ -198,6 +199,7 @@ describe('NumbersMenu', () => {
 			expect(fireEvent.click(item)).toBe(false)
 
 			expect(push).toHaveBeenCalledTimes(1)
+
 			expect(push.mock.calls[0]?.[0]).toMatch(address)
 		},
 	)

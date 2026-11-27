@@ -301,6 +301,7 @@ describe('Chart context menu', () => {
 		const figure = dialog.querySelector<HTMLElement>('[data-slot="chart-figure"]')
 
 		expect(figure).not.toBeNull()
+
 		// The default 16/9 rides `aspect-ratio`; a still-filling copy would carry none.
 		expect(figure?.style.aspectRatio).not.toBe('')
 	})

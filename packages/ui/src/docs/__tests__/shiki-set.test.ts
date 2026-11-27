@@ -88,6 +88,7 @@ describe('the Shiki set of the docs', () => {
 		const { bundledThemes } = await load(formatThemes())
 
 		expect(Object.keys(bundledThemes as object)).toEqual([...DOCS_THEMES])
+
 		expect(DOCS_THEMES).toContain(DEFAULT_THEME)
 	})
 })

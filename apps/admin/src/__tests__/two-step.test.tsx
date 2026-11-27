@@ -51,7 +51,9 @@ describe('TwoStep', () => {
 		fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
 
 		expect(await screen.findByRole('button', { name: 'Add' })).toBeInTheDocument()
+
 		expect(startTotpSetup).toHaveBeenCalledOnce()
+
 		expect(confirmTotp).not.toHaveBeenCalled()
 	})
 

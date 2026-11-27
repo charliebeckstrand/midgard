@@ -47,6 +47,7 @@ describe('CardTitle skeleton height parity', () => {
 			const loadingHeader = headerHeight(loading.container)
 
 			expect(settledHeader).toBeGreaterThan(0)
+
 			expect(loadingHeader).toBe(settledHeader)
 		},
 	)

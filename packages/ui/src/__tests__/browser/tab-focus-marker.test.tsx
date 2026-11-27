@@ -32,6 +32,7 @@ describe('underline tab focus marker (real browser)', () => {
 		const other = marker()
 
 		expect(current).not.toBe('rgba(0, 0, 0, 0)')
+
 		expect(current).toBe(other)
 	})
 })

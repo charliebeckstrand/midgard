@@ -43,8 +43,11 @@ describe('HashAnchor', () => {
 		const link = await renderAnchor()
 
 		expect(link.getAttribute('href')).toBe('#playground')
+
 		expect(screen.getByRole('heading').textContent).toBe('Playground')
+
 		expect(readMark(link).width).toBeGreaterThan(0)
+
 		expect(readMark(link).opacity).toBe(0.5)
 	})
 
@@ -73,6 +76,7 @@ describe('HashAnchor', () => {
 		await userEvent.hover(screen.getByRole('button'))
 
 		expect(document.activeElement).toBe(link)
+
 		expect(link.matches(':focus-visible')).toBe(false)
 
 		await expect.poll(() => readMark(link).opacity).toBe(0.5)
@@ -102,7 +106,9 @@ describe('HashAnchor with reveal (real Motion)', () => {
 		const link = await renderAnchor({ reveal: true })
 
 		expect(link.getAttribute('href')).toBe('#playground')
+
 		expect(screen.getByRole('heading').textContent).toBe('Playground')
+
 		expect(readMark(link)).toEqual({ width: 0, opacity: 0 })
 
 		screen.getByRole('button').focus()
@@ -129,6 +135,7 @@ describe('HashAnchor with reveal (real Motion)', () => {
 		await userEvent.hover(screen.getByRole('button'))
 
 		expect(document.activeElement).toBe(link)
+
 		expect(link.matches(':focus-visible')).toBe(false)
 
 		await expect.poll(() => readMark(link)).toEqual({ width: 0, opacity: 0 })
@@ -178,7 +185,9 @@ describe('HashAnchor with reveal (real Motion)', () => {
 
 		// A tween of the width gives a frame with a part of the width.
 		expect(width).toBeGreaterThan(0)
+
 		expect(widths.length).toBeGreaterThan(0)
+
 		expect(widths.every((value) => value === width)).toBe(true)
 	})
 })

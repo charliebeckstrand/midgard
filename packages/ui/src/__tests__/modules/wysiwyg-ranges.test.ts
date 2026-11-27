@@ -100,6 +100,7 @@ describe('wysiwyg ranges in the markdown bridge', () => {
 		const { markdown, ranges } = roundTrip(source, [range(source, '@Sales')])
 
 		expect(markdown).toBe('Ask **about** @Sales')
+
 		expect(ranges).toEqual([range(markdown, '@Sales')])
 	})
 
@@ -133,6 +134,7 @@ describe('wysiwyg ranges in the markdown bridge', () => {
 		const { markdown, ranges } = serializeMarkdownRanges(doc)
 
 		expect(markdown).toBe('`foo`\\\n`bar`')
+
 		expect(ranges.map((each) => each.quote)).toEqual(['`foo`\\\n`bar`'])
 	})
 
@@ -148,6 +150,7 @@ describe('wysiwyg ranges in the markdown bridge', () => {
 		const { markdown, ranges } = roundTrip(source, given)
 
 		expect(markdown).toBe('Ask about @Sales today')
+
 		expect(ranges).toEqual([range(markdown, 'about @Sales')])
 	})
 

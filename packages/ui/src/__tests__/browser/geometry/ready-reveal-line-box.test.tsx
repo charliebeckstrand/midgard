@@ -62,6 +62,7 @@ describe('ReadyReveal and its child’s line box', () => {
 		const { reveal, child } = heights('inline-flex')
 
 		expect(child).toBe(20)
+
 		expect(reveal).toBeGreaterThan(child)
 	})
 
@@ -69,6 +70,7 @@ describe('ReadyReveal and its child’s line box', () => {
 		const { reveal, child } = heights('flex w-fit')
 
 		expect(child).toBe(20)
+
 		expect(reveal).toBe(child)
 	})
 })

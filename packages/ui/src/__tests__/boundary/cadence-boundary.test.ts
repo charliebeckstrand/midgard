@@ -1,7 +1,26 @@
-import { readFileSync } from 'node:fs'
-import { join } from 'node:path'
-import { describe, expect, it } from 'vitest'
+import { readdirSync, readFileSync } from 'node:fs'
+import { join, relative, sep } from 'node:path'
+import {
+	isAwaitExpression,
+	isBlock,
+	isCallExpression,
+	isCaseClause,
+	isDefaultClause,
+	isElementAccessExpression,
+	isExpressionStatement,
+	isIdentifier,
+	isModuleBlock,
+	isNonNullExpression,
+	isParenthesizedExpression,
+	isPropertyAccessExpression,
+	isSourceFile,
+	type Node,
+	type SourceFile,
+	type Statement,
+} from 'typescript/unstable/ast'
+import { afterAll, describe, expect, it } from 'vitest'
 import { RULE_DOCUMENTS } from '../helpers/controlled-language'
+import { startTypeScript } from '../helpers/ts-server'
 import { workspaceRoot } from '../helpers/walk-source'
 
 // The cadence rules of STE.md set the spacing and the shape of authored text.
@@ -18,6 +37,11 @@ import { workspaceRoot } from '../helpers/walk-source'
 //   - Rule 7: no trailing whitespace, and one newline at the end of the file.
 //
 // Rules 2, 5, and 6 need judgment, so review keeps them.
+//
+// In code, rule 1 puts a blank line between logical blocks. An assertion is
+// one statement, so the test also reads each test file of the workspace, and
+// two `expect` statements in a row with no blank line between them fail the
+// run.
 
 const FENCE = /^\s*```/
 const SECTION = /^## (\d+)\. /
@@ -96,13 +120,106 @@ function cadenceBreaks(file: string, source: string): string[] {
 	return breaks
 }
 
+/** The statements of a node that holds a list of statements, or none. */
+function readStatements(node: Node): readonly Statement[] {
+	if (isSourceFile(node) || isBlock(node) || isModuleBlock(node)) return node.statements
+
+	if (isCaseClause(node) || isDefaultClause(node)) return node.statements
+
+	return []
+}
+
+/** True when `statement` is an assertion: a call chain on `expect` or `expectTypeOf`. */
+function isAssertion(statement: Statement): boolean {
+	if (!isExpressionStatement(statement)) return false
+
+	let node: Node = statement.expression
+
+	if (isAwaitExpression(node)) node = node.expression
+
+	while (
+		isCallExpression(node) ||
+		isPropertyAccessExpression(node) ||
+		isElementAccessExpression(node) ||
+		isNonNullExpression(node) ||
+		isParenthesizedExpression(node)
+	) {
+		node = node.expression
+	}
+
+	return isIdentifier(node) && (node.text === 'expect' || node.text === 'expectTypeOf')
+}
+
+/** Each assertion that follows an assertion on the next line, with no blank line between them. */
+function assertionBreaks(file: string, source: SourceFile): string[] {
+	const breaks: string[] = []
+
+	const visit = (node: Node): void => {
+		const statements = readStatements(node)
+
+		for (let index = 1; index < statements.length; index++) {
+			const [previous, next] = [statements[index - 1] as Statement, statements[index] as Statement]
+
+			if (!isAssertion(previous) || !isAssertion(next)) continue
+
+			const gap = source.text.slice(previous.end, next.getStart())
+
+			if (!gap.includes('\n') || /\n[ \t]*\n/.test(gap)) continue
+
+			const line = source.getLineAndCharacterOfPosition(next.getStart()).line + 1
+
+			breaks.push(`${file}:${line} rule 1: no blank line between two assertions`)
+		}
+
+		node.forEachChild(visit)
+	}
+
+	visit(source)
+
+	return breaks
+}
+
+/** The roots of the workspace that hold test files. */
+const TEST_ROOTS = ['apps', 'packages']
+
+const OUTSIDE = new Set(['node_modules', 'dist', 'coverage'])
+
+const TEST_FILE = /\.test(?:-d)?\.tsx?$/
+
+/** Every test file under `dir`, with no entry of {@link OUTSIDE}. */
+function testFiles(dir: string): string[] {
+	return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+		if (entry.name.startsWith('.') || OUTSIDE.has(entry.name)) return []
+
+		const path = join(dir, entry.name)
+
+		if (entry.isDirectory()) return testFiles(path)
+
+		return entry.isFile() && TEST_FILE.test(entry.name) ? [path] : []
+	})
+}
+
 describe('cadence boundary', () => {
+	const server = startTypeScript()
+
+	afterAll(() => server.close())
+
 	it('the rule documents keep the cadence (STE.md cadence rules 1, 3, 4, 7)', () => {
 		const violations = RULE_DOCUMENTS.flatMap((file) =>
 			cadenceBreaks(file, readFileSync(join(workspaceRoot, file), 'utf8')),
 		)
 
 		expect(violations, `cadence break in a rule document:\n${violations.join('\n')}`).toEqual([])
+	})
+
+	it('each test file puts a blank line between two assertions (STE.md cadence rule 1)', () => {
+		const files = TEST_ROOTS.flatMap((root) => testFiles(join(workspaceRoot, root)))
+
+		const violations = [...server.parse(files)].flatMap(([file, source]) =>
+			assertionBreaks(relative(workspaceRoot, file).split(sep).join('/'), source),
+		)
+
+		expect(violations, `cadence break in a test file:\n${violations.join('\n')}`).toEqual([])
 	})
 })
 
@@ -142,5 +259,41 @@ describe('cadence reader', () => {
 			'probe.md:1 rule 7: trailing whitespace',
 			'probe.md:3 rule 1: two blank lines in a row',
 		])
+	})
+
+	describe('between assertions', () => {
+		const server = startTypeScript()
+
+		afterAll(() => server.close())
+
+		const assertions = (text: string) =>
+			assertionBreaks('probe.test.ts', server.parseText('probe.test.ts', text))
+
+		it('passes assertions that a blank line separates', () => {
+			expect(assertions('expect(a).toBe(1)\n\nawait expect(b).resolves.toBe(2)\n')).toEqual([])
+		})
+
+		it('reports two assertions in a row, in each spelling', () => {
+			expect(
+				assertions(
+					"it('a', async () => {\n\texpect(a).toBe(1)\n\tawait expect.soft(b).resolves.toBe(2)\n\texpectTypeOf(c).toBeString()\n})\n",
+				),
+			).toEqual([
+				'probe.test.ts:3 rule 1: no blank line between two assertions',
+				'probe.test.ts:4 rule 1: no blank line between two assertions',
+			])
+		})
+
+		it('reads the end of an assertion that spans lines, and a comment before the next', () => {
+			expect(assertions('expect(\n\ta,\n).toBe(1)\n// Why.\nexpect(b).toBe(2)\n')).toEqual([
+				'probe.test.ts:5 rule 1: no blank line between two assertions',
+			])
+		})
+
+		it('passes two assertions on one line, and an assertion after another statement', () => {
+			expect(
+				assertions('expect(a).toBe(1); expect(b).toBe(2)\nrender()\nexpect(c).toBe(3)\n'),
+			).toEqual([])
+		})
 	})
 })

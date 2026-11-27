@@ -26,7 +26,9 @@ describe('kasane.softLayers', () => {
 	// the blur, so the stack has no base ring, no hover ring, and no inset fill.
 	it('draws no base ring, hover ring, or inset fill', () => {
 		expect(soft).not.toMatch(/(^| )ring-zinc-\d+/)
+
 		expect(soft).not.toContain('hover:ring-')
+
 		expect(soft).not.toContain('before:absolute')
 	})
 
@@ -59,6 +61,7 @@ describe('kasane.softLayers', () => {
 			'has-[>:disabled]:opacity-50',
 		]) {
 			expect(soft).toContain(state)
+
 			expect(layers.join(' ')).toContain(state)
 		}
 	})

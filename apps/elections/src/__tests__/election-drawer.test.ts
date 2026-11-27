@@ -138,6 +138,7 @@ describe('ElectionDrawer', () => {
 		act(() => back()?.click())
 
 		expect(window.location.search).toBe('')
+
 		expect(search?.open).toBe(true)
 
 		act(() => search?.setOpen(false))
@@ -229,6 +230,7 @@ describe('ElectionDrawer', () => {
 
 		// The switch writes over the entry, so Back walks the trail and not the switches.
 		expect(window.location.search).toBe('?region=ga&office=senate&view=counties')
+
 		expect(window.history.length).toBe(before)
 
 		first.unmount()
@@ -254,6 +256,7 @@ describe('ElectionDrawer', () => {
 
 		// Detailed shows the party of each candidate, as the overview of the race does.
 		expect(selected('Detailed')).toBe('true')
+
 		expect(screen.getByText('Republican')).toBeInTheDocument()
 
 		fireEvent.click(screen.getByRole('radio', { name: 'Condensed' }))
@@ -278,6 +281,7 @@ describe('ElectionDrawer', () => {
 
 		// A new tab or a copied link opens the step of the crumb, not the county.
 		expect(href('Georgia')).toBe('/2026/us/midterms?region=ga')
+
 		expect(href('Senate')).toBe('/2026/us/midterms?region=ga&office=senate')
 	})
 
@@ -330,8 +334,11 @@ describe('ElectionDrawer', () => {
 		render(drawer(new QueryClient()))
 
 		expect(shape()).toEqual(before)
+
 		expect(before.terms).toEqual(['Total votes', 'Polls closed', 'Called'])
+
 		expect(screen.getByText('Unknown')).toBeInTheDocument()
+
 		// A general election has no line of its kind.
 		expect(screen.queryByText('General election')).toBeNull()
 	})

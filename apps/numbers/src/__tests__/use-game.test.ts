@@ -19,6 +19,7 @@ describe('useGame', () => {
 		act(() => result.current.draw())
 
 		expect(result.current.game.drawn).toBe(deck[0])
+
 		expect(result.current.status).toBe('placing')
 	})
 
@@ -29,6 +30,7 @@ describe('useGame', () => {
 		act(() => result.current.place(findRank(deck[0] ?? 0)))
 
 		expect(result.current.game.drawn).toBeNull()
+
 		expect(result.current.status).toBe('ready')
 	})
 
@@ -52,6 +54,7 @@ describe('useGame', () => {
 		act(() => result.current.place(findRank(deck[0] ?? 0)))
 
 		expect(result.current.game.drawn).toBe(deck[1])
+
 		expect(result.current.game.slots.filter((slot) => slot !== null)).toEqual([deck[0]])
 	})
 
@@ -61,6 +64,7 @@ describe('useGame', () => {
 		act(() => result.current.reset('k3x9q2'))
 
 		expect(result.current.game.seed).toBe('k3x9q2')
+
 		expect(result.current.game.drawn).toBe(createGame('k3x9q2').deck[0])
 	})
 
@@ -80,6 +84,7 @@ describe('useGame', () => {
 		act(() => result.current.reset('k3x9q2'))
 
 		expect(result.current.game.drawn).toBeNull()
+
 		expect(result.current.status).toBe('ready')
 	})
 
@@ -89,8 +94,11 @@ describe('useGame', () => {
 		for (const value of deck) act(() => result.current.place(findRank(value)))
 
 		expect(result.current.status).toBe('won')
+
 		expect(result.current.game.drawn).toBeNull()
+
 		expect(result.current.game.slots.every((slot) => slot !== null)).toBe(true)
+
 		expect(deck).toHaveLength(SLOTS)
 	})
 
@@ -102,6 +110,7 @@ describe('useGame', () => {
 		for (const value of deck) act(() => result.current.place(findRank(value)))
 
 		expect(onEnd).toHaveBeenCalledTimes(1)
+
 		expect(onEnd.mock.calls[0]?.[0].slots.every((slot: number | null) => slot !== null)).toBe(true)
 	})
 
@@ -121,6 +130,7 @@ describe('useGame', () => {
 		act(() => result.current.place(0))
 
 		expect(result.current.status).toBe('bust')
+
 		expect(onEnd).toHaveBeenCalledTimes(1)
 	})
 

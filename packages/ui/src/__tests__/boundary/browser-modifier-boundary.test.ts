@@ -61,10 +61,15 @@ function chainFiles(): Set<string> {
 describe('browser-modifier boundary', () => {
 	it('finds each spelling of the chain', () => {
 		expect(writesChain('event.ctrlKey || event.metaKey || event.altKey')).toBe(true)
+
 		expect(writesChain('a || event.altKey ||\n\t\tevent.ctrlKey || event.metaKey || b')).toBe(true)
+
 		expect(writesChain('!press.metaKey && !press.altKey && !press.ctrlKey')).toBe(true)
+
 		expect(writesChain('event.ctrlKey || event.ctrlKey || event.altKey')).toBe(false)
+
 		expect(writesChain('event.ctrlKey || other.metaKey || event.altKey')).toBe(false)
+
 		expect(writesChain('(press.ctrlKey || press.altKey) && !press.metaKey')).toBe(false)
 	})
 

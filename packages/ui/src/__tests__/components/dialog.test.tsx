@@ -231,6 +231,7 @@ describe('Dialog', () => {
 		expect(panel?.classList).toContain('bg-transparent')
 
 		expect(panel?.classList).not.toContain('bg-white')
+
 		// A modal panel takes the deeper `lg` blur, not the `md` blur of a popover.
 		expect(panel?.classList).toContain('backdrop-blur-lg')
 	})

@@ -36,6 +36,7 @@ function renderSetting<Name extends keyof GameSettings>(
 describe('useGameSetting', () => {
 	it('gives the default with no cookie', () => {
 		expect(renderSetting('autoDraw').result.current[0]).toBe(true)
+
 		expect(renderSetting('showScore').result.current[0]).toBe(true)
 	})
 
@@ -59,12 +60,15 @@ describe('useGameSetting', () => {
 		act(() => first.result.current[1](false))
 
 		expect(document.cookie).toContain(`${SETTINGS.autoDraw.cookie}=off`)
+
 		expect(first.result.current[0]).toBe(false)
+
 		expect(second.result.current[0]).toBe(false)
 
 		act(() => second.result.current[1](true))
 
 		expect(document.cookie).toContain(`${SETTINGS.autoDraw.cookie}=on`)
+
 		expect(first.result.current[0]).toBe(true)
 	})
 
@@ -88,8 +92,11 @@ describe('useGameSetting', () => {
 		act(() => result.current[1](false))
 
 		expect(remove).toHaveBeenCalledWith(cookie)
+
 		expect(set).toHaveBeenCalledWith(cookie, 'off')
+
 		expect(remove.mock.invocationCallOrder[0]).toBeLessThan(set.mock.invocationCallOrder[0] ?? 0)
+
 		expect(window.localStorage.getItem(cookie)).toBe('off')
 	})
 
@@ -125,6 +132,7 @@ describe('useGameSetting', () => {
 		act(() => result.current[1]('hard'))
 
 		expect(document.cookie).toContain(`${SETTINGS.difficulty.cookie}=hard`)
+
 		expect(result.current[0]).toBe('hard')
 	})
 
@@ -135,6 +143,7 @@ describe('useGameSetting', () => {
 		act(() => showScore.result.current[1](false))
 
 		expect(showScore.result.current[0]).toBe(false)
+
 		expect(autoDraw.result.current[0]).toBe(true)
 	})
 })
