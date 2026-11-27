@@ -1481,7 +1481,10 @@ export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'>
 	 * {@link GridDataProps.navigable}). The grid is one Tab stop, and Space on a
 	 * cell of the row fires the handler. Enter fires it too, unless the grid has
 	 * a double-click handler, which Enter then fires (see
-	 * {@link GridDataProps.onRowDoubleClick}). Under manual grouping, which
+	 * {@link GridDataProps.onRowDoubleClick}). In a grid with a selection
+	 * column, Space toggles the selection of the row, and does not fire this
+	 * handler. Thus, with a double-click handler too, no key fires it there. Put
+	 * that action in an interactive cell. Under manual grouping, which
 	 * stands the cursor down, the rows rove instead: Up/Down move focus between
 	 * rows, and the same keys activate the focused row. A
 	 * {@link GridDataProps.onCellClick | cell handler} takes precedence there,
@@ -1503,7 +1506,9 @@ export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'>
 	 * {@link GridDataProps.navigable}). The grid is one Tab stop, and Space on
 	 * the active data cell fires the handler, which is the keyboard peer of the
 	 * pointer click. Enter fires it too, unless the grid has a double-click
-	 * handler, which Enter then fires. Under manual grouping, which stands the
+	 * handler, which Enter then fires. In a grid with a selection column, Space
+	 * toggles the selection of the row, as for
+	 * {@link GridDataProps.onRowClick}. Under manual grouping, which stands the
 	 * cursor down, the data cells rove instead: the arrow keys move focus between
 	 * cells, and the same keys activate the focused cell.
 	 */

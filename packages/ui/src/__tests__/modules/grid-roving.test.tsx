@@ -215,6 +215,41 @@ describe('Grid click handlers', () => {
 		expect(onRowClick).toHaveBeenCalledOnce()
 	})
 
+	it('selects on Space and fires the double-click pair on Enter in a selectable grid with both', () => {
+		const onValueChange = vi.fn()
+
+		const onRowClick = vi.fn()
+
+		const onRowDoubleClick = vi.fn()
+
+		renderUI(
+			<Grid
+				columns={[{ id: 'select', selectable: true }, ...columns]}
+				rows={rows}
+				getKey={getKey}
+				rowLabel={(row) => row.name}
+				selection={{ onValueChange }}
+				onRowClick={onRowClick}
+				onRowDoubleClick={onRowDoubleClick}
+			/>,
+		)
+
+		const grid = screen.getByRole('grid')
+
+		fireEvent.mouseDown(screen.getByRole('gridcell', { name: 'Bob' }))
+
+		fireEvent.keyDown(grid, { key: ' ' })
+
+		expect(onValueChange.mock.lastCall?.[0]).toEqual(new Set([2]))
+
+		fireEvent.keyDown(grid, { key: 'Enter' })
+
+		expect(onRowDoubleClick.mock.calls[0]?.[0]).toBe(rows[1])
+
+		// Space keeps the selection, so the click pair has no key here.
+		expect(onRowClick).not.toHaveBeenCalled()
+	})
+
 	it('marks a row data-clickable for any click or double-click handler', () => {
 		for (const handler of ['onRowClick', 'onCellClick', 'onRowDoubleClick', 'onCellDoubleClick']) {
 			const { unmount } = renderUI(
