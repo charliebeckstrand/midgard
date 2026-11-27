@@ -18,7 +18,7 @@ export default function Selection() {
 				/>
 			</Text>
 			<Grid
-				tableProps={{ 'aria-label': 'Selection' }}
+				tableProps={{ 'aria-label': 'People' }}
 				columns={selectColumns}
 				rows={people}
 				getKey={(row) => row.id}

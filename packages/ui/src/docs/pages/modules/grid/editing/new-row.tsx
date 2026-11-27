@@ -137,7 +137,7 @@ export default function NewRow() {
 				</EditHelp>
 			</Flex>
 			<Grid
-				tableProps={{ 'aria-label': 'New row' }}
+				tableProps={{ 'aria-label': 'People' }}
 				columns={columns}
 				rows={people}
 				getKey={(row) => row.id}

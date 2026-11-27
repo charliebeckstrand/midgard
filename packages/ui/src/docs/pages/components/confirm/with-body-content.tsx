@@ -27,7 +27,7 @@ export default function WithBodyContent() {
 				open={open}
 				onOpenChange={setOpen}
 				onConfirm={() => setOpen(false)}
-				title="Terms of service"
+				title="Accept the terms of service?"
 				confirm={{ label: 'Accept', color: 'blue', disabled: !accepted }}
 			>
 				<DialogBody>

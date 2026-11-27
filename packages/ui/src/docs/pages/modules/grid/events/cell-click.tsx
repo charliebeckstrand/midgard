@@ -15,7 +15,7 @@ export default function CellClick() {
 	return (
 		<Stack gap="md">
 			<Grid
-				tableProps={{ 'aria-label': 'Cell click' }}
+				tableProps={{ 'aria-label': 'People' }}
 				columns={columns}
 				rows={people}
 				getKey={(row) => row.id}

@@ -11,7 +11,7 @@ export default function InsideAButton() {
 			<Button variant="outline" color="green" suffix={<Kbd>⌘R</Kbd>}>
 				Run
 			</Button>
-			<Button variant="plain" color="red" suffix={<Kbd>⌘D</Kbd>}>
+			<Button variant="plain" color="red" suffix={<Kbd>⌘⌫</Kbd>}>
 				Delete
 			</Button>
 		</>

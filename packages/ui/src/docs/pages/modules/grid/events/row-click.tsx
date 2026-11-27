@@ -29,7 +29,7 @@ export default function RowClick() {
 	return (
 		<Stack gap="md">
 			<Grid
-				tableProps={{ 'aria-label': 'Row click' }}
+				tableProps={{ 'aria-label': 'People' }}
 				columns={actionColumns}
 				rows={people}
 				getKey={(row) => row.id}
