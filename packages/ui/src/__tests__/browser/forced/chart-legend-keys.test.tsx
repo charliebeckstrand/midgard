@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { LineChart, ScatterChart } from '../../../modules/chart'
-import { renderUI } from '../../helpers'
+import { baseline } from '../../a11y/cases'
+import { present, renderUI } from '../../helpers'
 import { eachAuthorScheme, systemColor } from '../helpers/forced-colors'
 
 /**
@@ -8,7 +9,8 @@ import { eachAuthorScheme, systemColor } from '../helpers/forced-colors'
  * change the stroke of a line or the fill of a disc, so each mark keeps the hue of its series.
  * The key of each mark must keep that hue too, or the reader cannot match a key to its mark: a
  * key in `CanvasText` matches no line. A solid key fills with the hue, a dashed key runs in it,
- * and the key of a disc takes no hatch.
+ * and the key of a disc takes no hatch. Forced colors do not change the fill of a heatmap cell or
+ * a choropleth region either, so the track of a range legend keeps its gradient.
  */
 
 type Quarter = { quarter: string; revenue: number; costs: number }
@@ -95,6 +97,27 @@ describe('chart legend keys under forced colors (real browser)', () => {
 
 				expect(key.querySelector('svg')).toBeNull()
 			}
+		})
+
+		it.each(
+			baseline
+				.filter((entry) => /^(heatmap|choropleth) chart$/.test(entry.name))
+				.map((entry) => [entry.name, entry.element] as const),
+		)('keeps the scale of the range legend of a %s', (_name, element) => {
+			const { container } = renderUI(element)
+
+			const track = present(
+				container.querySelector<HTMLElement>('[role=slider][data-slot$=-track]'),
+				'the track of the range legend',
+			)
+
+			const style = getComputedStyle(track)
+
+			expect(style.backgroundImage).toMatch(/^linear-gradient/)
+
+			expect(`${style.outlineStyle} ${style.outlineColor}`).toBe(
+				`solid ${systemColor('CanvasText')}`,
+			)
 		})
 	})
 })

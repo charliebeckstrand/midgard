@@ -139,11 +139,18 @@ export const k = {
 	majority: mode('stroke-zinc-950', 'dark:stroke-white'),
 	/**
 	 * The range legend's scale-bar slider track. It paints only with its gradient,
-	 * which forced colors remove, so it keeps an outline there.
+	 * which forced colors remove. Forced colors do not change the fill of a cell
+	 * or a region, so the cells keep the hues of the scale, and the track keeps
+	 * its gradient too, so that the reader can match a cell to the scale. It keeps
+	 * an outline in `CanvasText` there.
 	 */
-	track: sen.forced.outline,
-	/** The range legend's hover arrow: foreground ink (via `currentColor`), so the class glyph reads over the panel. */
-	arrow: text.default,
+	track: [sen.forced.outline, 'forced-color-adjust-none forced-colors:outline-[CanvasText]'],
+	/**
+	 * The range legend's hover arrow: foreground ink (via `currentColor`), so the
+	 * class glyph reads over the panel. The track does not adjust its colors, so
+	 * the arrow adjusts its own again.
+	 */
+	arrow: [text.default, 'forced-color-adjust-auto'],
 	/** The range legend's probe marker: a white tick with a 1 px edge, so it reads over any stop of the scale. */
 	marker: ['absolute bg-white shadow-sm ring-black/20', ...sen.ring.line[1].outset],
 	/**
