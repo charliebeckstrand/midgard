@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, type RefObject, useEffect, useState } from 'react'
+import { type ReactNode, type RefObject, useEffect, useRef, useState } from 'react'
 import { Text } from '../../../components/text'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
 import { cn } from '../../../core/cn'
@@ -66,10 +66,10 @@ function ChartHeaderLine({ text, subtitle = false, id }: ChartHeaderLineProps) {
  * a way to remove it without a move of the pointer. Escape removes it wherever the focus is, as it
  * closes a `Tooltip`. The veil comes back after the chart is neither hovered nor focused.
  *
- * @param host - The chart root, whose hover and focus show the veil.
+ * @param veil - The veil. The hover and the focus of its chart root show it.
  * @internal
  */
-function useVeilDismissed(host: RefObject<HTMLElement | null> | undefined): boolean {
+function useVeilDismissed(veil: RefObject<HTMLElement | null>): boolean {
 	const [hovered, setHovered] = useState(false)
 
 	const [focused, setFocused] = useState(false)
@@ -89,7 +89,8 @@ function useVeilDismissed(host: RefObject<HTMLElement | null> | undefined): bool
 	})
 
 	useEffect(() => {
-		const node = host?.current
+		// The chart root carries the `group/chart` that the reveal classes read.
+		const node = veil.current?.closest<HTMLElement>('[data-slot="chart"]')
 
 		if (!node) return
 
@@ -120,14 +121,13 @@ function useVeilDismissed(host: RefObject<HTMLElement | null> | undefined): bool
 
 			node.removeEventListener('focusout', focusOut)
 		}
-	}, [host])
+	}, [veil])
 
 	return dismissed
 }
 
 /** Props for {@link ChartHeaderVeil}. @internal */
 type ChartHeaderVeilProps = {
-	host: RefObject<HTMLElement | null> | undefined
 	children: ReactNode
 }
 
@@ -137,11 +137,14 @@ type ChartHeaderVeilProps = {
  *
  * @internal
  */
-function ChartHeaderVeil({ host, children }: ChartHeaderVeilProps) {
-	const dismissed = useVeilDismissed(host)
+function ChartHeaderVeil({ children }: ChartHeaderVeilProps) {
+	const ref = useRef<HTMLDivElement>(null)
+
+	const dismissed = useVeilDismissed(ref)
 
 	return (
 		<Box
+			ref={ref}
 			data-slot="chart-header"
 			bg="popover"
 			radius="sm"
@@ -170,8 +173,6 @@ type ChartHeaderProps = {
 	 * focused.
 	 */
 	veil?: boolean
-	/** The chart root, whose hover and focus show the {@link ChartHeaderProps.veil | veil}. */
-	host?: RefObject<HTMLElement | null>
 	/** A control at the end of the inline header row, such as the touch menu button. The veil shows none. */
 	action?: ReactNode
 }
@@ -186,14 +187,7 @@ type ChartHeaderProps = {
  *
  * @internal
  */
-export function ChartHeader({
-	title,
-	titleId,
-	subtitle,
-	veil = false,
-	host,
-	action,
-}: ChartHeaderProps) {
+export function ChartHeader({ title, titleId, subtitle, veil = false, action }: ChartHeaderProps) {
 	if (!title && !subtitle) return null
 
 	const lines = (
@@ -219,5 +213,5 @@ export function ChartHeader({
 		)
 	}
 
-	return <ChartHeaderVeil host={host}>{lines}</ChartHeaderVeil>
+	return <ChartHeaderVeil>{lines}</ChartHeaderVeil>
 }

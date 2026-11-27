@@ -94,7 +94,6 @@ function chartChrome(
 	subtitle: string | undefined,
 	legend: ReactNode,
 	footer: ReactNode,
-	root: RefObject<HTMLDivElement | null>,
 ): {
 	header: ReactNode
 	sparkVeil: ReactNode
@@ -113,7 +112,6 @@ function chartChrome(
 				titleId={titleId}
 				subtitle={subtitle}
 				veil={spark}
-				host={root}
 				action={<ChartMenuButton title={title} place="header" />}
 			/>
 		) : null
@@ -713,7 +711,7 @@ export function ChartFrame({
 		labelledBy,
 		corner,
 		rootClass,
-	} = chartChrome(tier, heading, title, titleId, subtitle, legend, footer, rootRef)
+	} = chartChrome(tier, heading, title, titleId, subtitle, legend, footer)
 
 	const plotRegion = (
 		<div
