@@ -31,11 +31,13 @@ function month() {
 }
 
 /**
- * The narrowest run of the label across the rows of `element`. Each row of the middle third
- * gives the longest run of pixels that are not the color of the fill. A plate behind the label
- * covers each row of the label from side to side, but each row of a glyph has gaps.
+ * The narrowest run of the label across the rows of `element`, and the contrast of the label.
+ * Each row of the middle third gives the longest run of pixels that are not the color of the
+ * fill. A plate behind the label covers each row of the label from side to side, but each row of
+ * a glyph has gaps. The contrast is the largest distance of a pixel from the fill, as the sum of
+ * the three channels, so a label near the color of the fill gives a low contrast.
  */
-async function narrowestRun(element: HTMLElement): Promise<number> {
+async function labelRuns(element: HTMLElement): Promise<{ narrowest: number; contrast: number }> {
 	const image = new Image()
 
 	image.src = `data:image/png;base64,${await page.screenshot({ element, save: false })}`
@@ -64,13 +66,15 @@ async function narrowestRun(element: HTMLElement): Promise<number> {
 	const fill = at(3, Math.floor(height / 2))
 
 	// The distance of each channel of the pixel at `i` from the fill, summed.
-	const isFill = (i: number) =>
+	const distance = (i: number) =>
 		[0, 1, 2].reduce(
 			(sum, channel) => sum + Math.abs((data[i + channel] ?? 0) - (data[fill + channel] ?? 0)),
 			0,
-		) < 60
+		)
 
 	let narrowest = width
+
+	let contrast = 0
 
 	for (let y = Math.floor(height / 3); y < Math.ceil((height * 2) / 3); y++) {
 		let longest = 0
@@ -78,7 +82,11 @@ async function narrowestRun(element: HTMLElement): Promise<number> {
 		let run = 0
 
 		for (let x = 0; x < width; x++) {
-			run = isFill(at(x, y)) ? 0 : run + 1
+			const far = distance(at(x, y))
+
+			contrast = Math.max(contrast, far)
+
+			run = far < 60 ? 0 : run + 1
 
 			longest = Math.max(longest, run)
 		}
@@ -86,7 +94,7 @@ async function narrowestRun(element: HTMLElement): Promise<number> {
 		narrowest = Math.min(narrowest, longest)
 	}
 
-	return narrowest
+	return { narrowest, contrast }
 }
 
 /** The band mark of a day: the outline of its `::after` box. */
@@ -128,9 +136,14 @@ describe('calendar selection under forced colors (real browser)', () => {
 				'the selected day',
 			)
 
+			const { narrowest, contrast } = await labelRuns(day)
+
+			// The label paints in a color far from the fill, of 765 at most.
+			expect(contrast).toBeGreaterThan(200)
+
 			// The stroke of a digit is at most 3 px wide, and a plate covers at least the width of a
 			// digit, which is 7 px or more.
-			expect(await narrowestRun(day)).toBeLessThan(6)
+			expect(narrowest).toBeLessThan(6)
 		})
 
 		it('paints the endpoints of a range in Highlight, and outlines each day between them', () => {
