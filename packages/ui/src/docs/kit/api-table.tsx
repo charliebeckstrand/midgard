@@ -106,13 +106,23 @@ export function ApiTable({ api }: { api: BarrelApi }) {
 	// The anchor to scroll to when its row mounts and when its entry has opened.
 	const pending = useRef<PendingAnchor | null>(null)
 
+	// The location at the mount of the table: the load, or the move to the page.
+	const mounted = useRef(location)
+
 	const reveal = useEffectEvent((component: string, id: string) => {
 		if (open.includes(component)) return
+
+		const pop = navigationType === NavigationType.Pop
+
+		// A move through the history on the same page keeps the entries as they
+		// are, and the box goes back to the scroll of the entry of the history
+		// (`useNavigationScroll`).
+		if (pop && location !== mounted.current) return
 
 		// A link or a pick in the search moves the focus to the anchor, as
 		// `useNavigationScroll` does for an anchor on the page. A load and a move
 		// through the history keep the focus.
-		pending.current = { id, component, opened: false, focus: navigationType !== NavigationType.Pop }
+		pending.current = { id, component, opened: false, focus: !pop }
 
 		change((prev) => (prev.includes(component) ? prev : [...prev, component]))
 	})

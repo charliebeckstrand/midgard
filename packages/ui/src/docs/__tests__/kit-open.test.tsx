@@ -291,6 +291,41 @@ describe('ApiTable', () => {
 		expect(scroll).not.toHaveBeenCalled()
 	})
 
+	// The table keeps no open state for each entry of the history, so a move
+	// back on the same page leaves the entries as they are.
+	it('keeps a closed entry closed on a move back on the same page', async ({ signal }) => {
+		const router = createMemoryRouter([{ path: '/thing', element: <ApiTable api={THING} /> }], {
+			initialEntries: ['/thing'],
+		})
+
+		onTestFinished(() => router.dispose())
+
+		render(<RouterProvider router={router} />)
+
+		await act(() => router.navigate('/thing#api-Thing-size'))
+
+		await screen.findByRole('link', { name: 'size' })
+
+		fireEvent.click(screen.getByRole('button', { name: '<Thing />' }))
+
+		await waitFor(() => expect(screen.queryByRole('region', { name: '<Thing />' })).toBeNull())
+
+		await act(() => router.navigate('/thing'))
+
+		signal.throwIfAborted()
+
+		const scroll = vi.spyOn(Element.prototype, 'scrollIntoView')
+
+		await act(() => router.navigate(-1))
+
+		// One task, so that an entry that the move opens is open.
+		await act(() => tick())
+
+		expect(screen.queryByRole('region', { name: '<Thing />' })).toBeNull()
+
+		expect(scroll).not.toHaveBeenCalled()
+	})
+
 	// A pick in the search, or a link in the page, can go to the hash that the
 	// location has already. The router replaces the entry with the same hash.
 	it('opens the entry again on a navigation to the same hash after the reader closed it', async () => {
