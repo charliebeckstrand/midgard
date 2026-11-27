@@ -132,7 +132,7 @@ export function ListItem<Fallback extends ElementType = 'div'>({
 }: ListItemProps<Fallback>) {
 	const item = useListItemContext()
 
-	const { id, setNodeRef, reorder, describedBy, dragging, position } = item
+	const { id, setNodeRef, reorder, describedBy, dragging, position, contentId: rowContentId } = item
 
 	// The list's own `interactive` is the reorder wiring; the row's is the
 	// content area's activation treatment. Alias the former to keep them apart.
@@ -196,7 +196,7 @@ export function ListItem<Fallback extends ElementType = 'div'>({
 	// whose id the consumer can set. The row gives the menu the id that the area
 	// renders.
 	const {
-		id: contentId = item.contentId,
+		id: contentId = rowContentId,
 		onKeyDown: consumerKeyDown,
 		onBlur: consumerBlur,
 		'aria-describedby': consumerDescribedBy,
