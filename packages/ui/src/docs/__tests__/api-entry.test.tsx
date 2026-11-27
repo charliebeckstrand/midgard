@@ -54,6 +54,37 @@ describe('ApiEntry', () => {
 		expect(fallback?.className).toContain('whitespace-pre')
 	})
 
+	// jsdom has no layout, so the test reads the classes of the row of the type
+	// and the default.
+	it('puts a default of more than one line below the type at each width', () => {
+		const row = (fallback: string) => {
+			const { container } = render(
+				<ApiEntry
+					component={{
+						name: 'Box',
+						props: [{ name: 'x', type: 'string', default: fallback }],
+						events: [],
+					}}
+				/>,
+			)
+
+			return [...container.querySelectorAll('code')].at(-1)?.parentElement?.parentElement?.classList
+		}
+
+		const object = row('{ toolbar: false }')
+
+		expect(object?.contains('flex-col')).toBe(true)
+
+		expect(object?.contains('sm:flex-row')).toBe(false)
+
+		// A default of one line is below the type on a phone only.
+		const literal = row("'md'")
+
+		expect(literal?.contains('flex-col')).toBe(true)
+
+		expect(literal?.contains('sm:flex-row')).toBe(true)
+	})
+
 	// Code and the English TSDoc are left-to-right text. On a right-to-left
 	// page with no `dir`, `<div>` shows as `</ div>`, and the period of a
 	// sentence shows at its start. jsdom has no layout, so the test reads the `dir`.
