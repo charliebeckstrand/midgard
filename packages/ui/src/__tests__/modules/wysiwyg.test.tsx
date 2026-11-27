@@ -5,7 +5,7 @@ import type { MarkdownRange } from '../../components/markdown/markdown-ranges'
 import { Wysiwyg, type WysiwygHandle, WysiwygSkeleton, WysiwygToolbar } from '../../modules/wysiwyg'
 import { useWysiwyg } from '../../modules/wysiwyg/context'
 import { HeadlessProvider } from '../../providers/headless'
-import { act, fireEvent, getSlot, renderUI, screen, waitFor, within } from '../helpers'
+import { act, bySlot, fireEvent, getSlot, renderUI, screen, waitFor, within } from '../helpers'
 
 /** Loads the editor through the first focus of the field, and gives its editable element. */
 async function loadEditor(): Promise<HTMLElement> {
@@ -344,6 +344,25 @@ describe('Wysiwyg', () => {
 		expect(getSlot(container, 'wysiwyg-root').firstElementChild).toBe(row)
 
 		expect(row).toContainElement(toolbar)
+	})
+
+	it.each(['', true])('lays out an empty slot of %j as no slot', (empty) => {
+		const { container, unmount } = renderUI(<Wysiwyg aria-label="Notes" />)
+
+		const bare = getSlot(container, 'control-frame').className
+
+		unmount()
+
+		const view = renderUI(
+			<Wysiwyg aria-label="Notes" actions={empty}>
+				{empty}
+			</Wysiwyg>,
+		)
+
+		expect(bySlot(view.container, 'wysiwyg-actions')).not.toBeInTheDocument()
+
+		// The frame opens no row for the toolbar or the actions.
+		expect(getSlot(view.container, 'control-frame').className).toBe(bare)
 	})
 
 	it('keeps the editor when `separated` changes', async () => {

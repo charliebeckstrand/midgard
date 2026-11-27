@@ -2,7 +2,7 @@ import type { ReactElement } from 'react'
 import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { DatePicker } from '../../../components/date-picker'
-import { present, renderUI, screen, waitFor } from '../../helpers'
+import { getSlot, present, renderUI, screen, waitFor } from '../../helpers'
 
 /**
  * Layout stability on open (real floating engine). A modal
@@ -49,7 +49,7 @@ describe('layout stability (real browser): date picker in space-y container', ()
 				'[data-testid="stack"]',
 			)
 
-			const control = present(stack.querySelector('[data-slot="control"]'), '[data-slot="control"]')
+			const control = getSlot(stack, 'control')
 
 			const closedHeight = Math.round(stack.getBoundingClientRect().height)
 

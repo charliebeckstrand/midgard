@@ -171,7 +171,6 @@ export function ChartSwatch({
 	dashed = false,
 	hollow = false,
 	active,
-	off,
 }: {
 	swatch: 'rect' | 'line'
 	swatchClass: string
@@ -183,7 +182,6 @@ export function ChartSwatch({
 	/** Frame the `rect` swatch in place of a fill, mirroring a ring mark; ignored for a `line`. */
 	hollow?: boolean
 	active: boolean
-	off: boolean
 }) {
 	const id = `chart-sw-${useId()}`
 
@@ -199,7 +197,7 @@ export function ChartSwatch({
 				variant={swatchVariant(swatch, dashed, hollow)}
 				color={swatchClass}
 				style={swatchColor ? { color: swatchColor } : undefined}
-				className={cn(off && 'opacity-40')}
+				className={k.legend.off.key}
 			/>
 		)
 	}
@@ -211,7 +209,7 @@ export function ChartSwatch({
 		<Swatch
 			shape="square"
 			color={swatchClass}
-			className={cn('relative overflow-hidden', off && 'opacity-40')}
+			className={cn('relative overflow-hidden', k.legend.off.key)}
 		>
 			<svg
 				aria-hidden="true"

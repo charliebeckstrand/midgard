@@ -22,7 +22,7 @@ import { Grid, type GridColumn } from '../../../modules/grid'
 import { ToggleGroup } from '../../../primitives/toggle'
 import { Box } from '../../../structure/box'
 import { baseline, rows } from '../../a11y/cases'
-import { present, renderUI } from '../../helpers'
+import { getSlot, renderUI } from '../../helpers'
 import { overlappingHitAreas } from './helpers/geometry-invariants'
 
 /**
@@ -359,10 +359,7 @@ describe('hit areas at the coarse floor', () => {
 
 		const { container } = renderUI(<div style={{ padding: 64 }}>{iconButton('Close')}</div>)
 
-		const span = present(
-			container.querySelector<HTMLElement>('[data-slot="touch-target"]'),
-			'the hit area',
-		)
+		const span = getSlot(container, 'touch-target')
 
 		// Without the sheet, the 24px bare box would keep the 24px fine floor.
 		expect(span.getBoundingClientRect().width).toBe(44)

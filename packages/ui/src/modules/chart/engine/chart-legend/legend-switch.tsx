@@ -118,14 +118,14 @@ export function LegendSwitch({
 		>
 			{keys}
 
-			<span className={cn(k.legendText)}>
+			<span className={cn(k.legend.text)}>
 				<span ref={labelRef} className={cn('block min-w-0 truncate text-start', labelClassName)}>
 					<Text
 						as="span"
 						size="sm"
 						tone="muted"
 						data-slot={labelSlot}
-						className={cn('leading-tight', off && 'line-through opacity-60')}
+						className={cn('leading-tight', k.legend.off.label)}
 					>
 						{label}
 					</Text>

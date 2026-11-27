@@ -6,6 +6,7 @@ import { cn } from '../../core/cn'
 import { dataAttr } from '../../core/data-attr'
 import { queryItems, useA11yRoving } from '../../hooks/a11y/use-a11y-roving'
 import { k } from '../../recipes/kata/menu'
+import { hasContent } from '../../utilities/children'
 import {
 	Drawer,
 	DrawerBody,
@@ -115,9 +116,10 @@ export function MenuSheet({
 
 	const heading = title ?? triggerTitle
 
+	const hasHeading = hasContent(heading)
+
 	// A name from the consumer replaces the name from the heading.
-	const labelledby =
-		ariaLabelledby ?? (ariaLabel === undefined && heading !== undefined ? titleId : undefined)
+	const labelledby = ariaLabelledby ?? (ariaLabel === undefined && hasHeading ? titleId : undefined)
 
 	const handleKeyDown = useA11yRoving(panelRef, {
 		itemSelector: MENUITEM_SELECTOR,
@@ -132,13 +134,11 @@ export function MenuSheet({
 				initialFocus={initialFocusRef}
 				aria-label={heading === undefined || typeof heading === 'string' ? heading : undefined}
 			>
-				{heading === undefined ? null : (
+				{hasHeading && (
 					<DrawerHeader>
 						<DrawerTitle id={titleId}>{heading}</DrawerTitle>
 
-						{description === undefined ? null : (
-							<DrawerDescription>{description}</DrawerDescription>
-						)}
+						{hasContent(description) && <DrawerDescription>{description}</DrawerDescription>}
 					</DrawerHeader>
 				)}
 

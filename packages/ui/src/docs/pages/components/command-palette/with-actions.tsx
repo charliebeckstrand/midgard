@@ -6,15 +6,16 @@ import {
 	CommandPaletteLabel,
 	useCommandPaletteDeferredQuery,
 } from 'ui/command-palette'
+import { foldText } from 'ui/core'
 import { Icon } from 'ui/icon'
 import { Text } from 'ui/text'
 import { commands } from './commands.tsx'
 
 function MatchingCommands({ onRun }: { onRun: (label: string) => void }) {
-	const query = useCommandPaletteDeferredQuery().toLowerCase()
+	const query = foldText(useCommandPaletteDeferredQuery())
 
 	return commands
-		.filter((command) => command.label.toLowerCase().includes(query))
+		.filter((command) => foldText(command.label).includes(query))
 		.map((command) => (
 			<CommandPaletteItem
 				key={command.id}

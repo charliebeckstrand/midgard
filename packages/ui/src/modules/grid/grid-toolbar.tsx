@@ -12,7 +12,6 @@ import { ariaAttr } from '../../core/aria-attr'
 import { cn } from '../../core/cn'
 import { dataAttr } from '../../core/data-attr'
 import { useStableEvent } from '../../hooks/use-stable-event'
-import { intlMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/grid'
 import { getTabbableElements } from '../../utilities/focusable-selector'
@@ -145,13 +144,7 @@ function GridExportMenu({ exportActions, exportButton, exporting }: GridExportMe
 					<Button
 						type="button"
 						variant="plain"
-						prefix={
-							exporting ? (
-								<LoadingSpinner label={intl.formatMessage(intlMessages.loading)} />
-							) : (
-								<Icon icon={Download} />
-							)
-						}
+						prefix={exporting ? <LoadingSpinner /> : <Icon icon={Download} />}
 						aria-disabled={ariaAttr(exporting)}
 						data-disabled={dataAttr(exporting)}
 					>

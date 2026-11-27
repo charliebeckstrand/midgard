@@ -13,7 +13,7 @@ const { cursor, disabled, grab, tint } = hannou
 const { on, text } = iro
 const { size } = ji
 const { rounded } = kasane
-const { flex } = narabi
+const { flex, touch } = narabi
 const { bg, rail } = omote
 const { border, divider, focus } = sen
 
@@ -97,6 +97,9 @@ export const k = defineKata(
 				interactive: {
 					true: [
 						'group/list-item',
+						// The row is its own hit area, and the rows of a list can touch, so a
+						// row that acts takes the coarse floor on a coarse pointer.
+						touch.pitchRow,
 						'cursor-pointer',
 						'has-[>[data-slot=list-item-content]:is(:disabled,[data-disabled])]:cursor-not-allowed',
 					],

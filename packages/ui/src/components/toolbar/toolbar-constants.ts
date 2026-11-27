@@ -4,6 +4,10 @@
 export const TOOLBAR_ITEM_SELECTOR = `:is(${[
 	'a[href]',
 	'button:not(:disabled)',
+	// A native check box, such as a Checkbox or a Switch. Its arrow keys do
+	// nothing, so the toolbar takes them. A native radio keeps its own arrow keys
+	// in its group, so it is not an item.
+	'input[type="checkbox"]:not(:disabled)',
 	// Both roving-tabindex states: a custom item starts at `0` and the roving
 	// model demotes it to `-1`. The query includes both; demoted items remain
 	// reachable. A control that becomes disabled leaves the query, so the Tab

@@ -82,7 +82,8 @@ export type ListItemProps<Fallback extends ElementType = 'div'> = {
  * area covers the whole painted row, the padding and the slot chrome included. In
  * a reorderable list it wires the drag/keyboard bindings and auto-inserts a
  * {@link ListHandle} as the prefix unless one is supplied. An interactive row also
- * takes a hover wash, doubled inside a glass parent. Density-scaled.
+ * takes a hover wash, doubled inside a glass parent. On a coarse pointer, an
+ * interactive row is at least 44 px tall (`touch-pitch-row`). Density-scaled.
  *
  * @remarks
  * A row whose own content area carries the handler stretches that hit area over

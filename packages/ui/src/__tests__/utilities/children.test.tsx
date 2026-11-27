@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest'
 import {
 	flattenFragments,
 	hasChildOfType,
+	hasContent,
 	isElementOfType,
 	partitionByType,
 } from '../../utilities/children'
@@ -94,6 +95,51 @@ describe('hasChildOfType', () => {
 		).toBe(true)
 
 		expect(hasChildOfType(<Other />, Slot)).toBe(false)
+	})
+})
+
+describe('hasContent', () => {
+	it.each<[string, ReactNode]>([
+		['undefined', undefined],
+		['null', null],
+		['true', true],
+		['false', false],
+		["''", ''],
+		['an empty array', []],
+		['an array of empty nodes', [null, false, '']],
+		[
+			'a Fragment of empty nodes',
+			<Fragment key="f">
+				{false}
+				{''}
+			</Fragment>,
+		],
+		[
+			'a nested Fragment of empty nodes',
+			<Fragment key="outer">
+				<Fragment key="inner">{null}</Fragment>
+				{''}
+			</Fragment>,
+		],
+	])('reads %s as empty', (_, node) => {
+		expect(hasContent(node)).toBe(false)
+	})
+
+	it.each<[string, ReactNode]>([
+		['0', 0],
+		['a string', 'Note'],
+		['an element', <Other key="o" />],
+		['an element with no children', <span key="s" />],
+		[
+			'a Fragment with an element',
+			<>
+				{false}
+				<Other />
+			</>,
+		],
+		['an array with one string', [null, 'Note']],
+	])('reads %s as content', (_, node) => {
+		expect(hasContent(node)).toBe(true)
 	})
 })
 

@@ -20,7 +20,8 @@ export const k = defineKata(
 			// takes no height, so each wrapped crumb sits at the same place below the clip.
 			// The start of the line keeps room for one `…` mark. The first crumb takes the
 			// room back while it is on the line, so a trail that fits paints as it would
-			// without the room. The clip keeps space for the focus ring above and below
+			// without the room. The first crumb is at least as wide as the room, so a first
+			// label that is narrower than the mark has more space after it. The clip keeps space for the focus ring above and below
 			// the line, and the list keeps the height of one line in the row.
 			list: [
 				flex.row,
@@ -35,6 +36,9 @@ export const k = defineKata(
 				'in-data-collapse:has-[>[data-slot=breadcrumb-item]~[data-slot=breadcrumb-item]]:ps-[calc(var(--ui-breadcrumb-mark)+var(--ui-breadcrumb-gap))]',
 				'in-data-collapse:overflow-y-clip',
 				'in-data-collapse:[--ui-breadcrumb-mark:0.75em] in-data-collapse:[--ui-breadcrumb-ring:--spacing(1)]',
+				// On a coarse pointer, the mark is as wide as the floor of `TouchTarget`. A
+				// first label under 44 px, such as `UI`, then has more space after it.
+				'pointer-coarse:in-data-collapse:[--ui-breadcrumb-mark:--spacing(11)]',
 				dan.gap.breadcrumb,
 				dan.size.separator.room,
 			],

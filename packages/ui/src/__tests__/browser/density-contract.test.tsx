@@ -290,7 +290,7 @@ describe('a pseudo-element (real browser)', () => {
 
 		container.innerHTML = renderToStaticMarkup(<Input aria-label="Name" size={size} />)
 
-		const frame = present(container.querySelector('[data-slot="control-frame"]'), 'frame')
+		const frame = getSlot(container, 'control-frame')
 
 		return {
 			step: readDensityStep(frame),

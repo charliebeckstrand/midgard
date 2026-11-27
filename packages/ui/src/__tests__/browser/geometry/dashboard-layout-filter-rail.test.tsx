@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { DashboardLayout } from '../../../layouts'
-import { present, renderUI } from '../../helpers'
+import { getSlot, present, renderUI } from '../../helpers'
 
 /**
  * The filter rail of a DashboardLayout starts at the top of the main column from `lg`.
@@ -22,9 +22,9 @@ describe('the DashboardLayout filter rail (real browser)', () => {
 			</DashboardLayout>,
 		)
 
-		const rail = present(container.querySelector('[data-slot="filters"]'), 'filters')
+		const rail = getSlot(container, 'filters')
 
-		const main = present(container.querySelector('[data-slot="main"]'), 'main')
+		const main = getSlot(container, 'main')
 
 		expect(rail.getBoundingClientRect().top).toBe(main.getBoundingClientRect().top)
 	})

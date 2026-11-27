@@ -6,7 +6,7 @@ import { afterAll, beforeAll, describe, expect, it, onTestFinished } from 'vites
 import { cdp } from 'vitest/browser'
 import { Badge } from '../../../components/badge'
 import { Grid, type GridColumn } from '../../../modules/grid'
-import { frame, frames, present, renderUI, waitFor } from '../../helpers'
+import { frame, frames, getSlot, present, renderUI, waitFor } from '../../helpers'
 import { HALF_PIXEL, PIXEL } from '../../helpers/geometry/tolerance'
 import { menuAction } from '../helpers/grid-header-menu'
 import { inFrame, resizeObserverLoopErrors } from '../helpers/resize-observer-loop'
@@ -40,7 +40,7 @@ describe('grid column auto-sizing (real browser)', () => {
 
 		const table = present(container.querySelector('table'), 'table')
 
-		const scroll = present(container.querySelector('[data-slot="table"]'), '[data-slot="table"]')
+		const scroll = getSlot(container, 'table')
 
 		const header = (id: string) =>
 			present(container.querySelector(`th[data-grid-col="${id}"]`), `th[data-grid-col="${id}"]`)
@@ -385,7 +385,7 @@ describe('grid column auto-sizing (real browser)', () => {
 			</div>,
 		)
 
-		const scroll = present(container.querySelector('[data-slot="table"]'), '[data-slot="table"]')
+		const scroll = getSlot(container, 'table')
 
 		await frames()
 
@@ -418,10 +418,7 @@ describe('grid column auto-sizing (real browser)', () => {
 			</div>,
 		)
 
-		const scroll = present(
-			container.querySelector<HTMLElement>('[data-slot="grid-scroll"]'),
-			'[data-slot="grid-scroll"]',
-		)
+		const scroll = getSlot(container, 'grid-scroll')
 
 		await frames()
 
@@ -587,10 +584,7 @@ describe('grid column auto-sizing of figures in a windowed body (real browser)',
 		// The wide row is far below the first window, so the fit did not read it.
 		expect(wide()).toBeUndefined()
 
-		const scroll = present(
-			container.querySelector<HTMLElement>('[data-slot="grid-scroll"]'),
-			'[data-slot="grid-scroll"]',
-		)
+		const scroll = getSlot(container, 'grid-scroll')
 
 		scroll.scrollTop = (scroll.scrollHeight * 150) / rows.length
 
@@ -682,7 +676,7 @@ describe('grid column fit when rows land in the frame of a resize tick (real bro
 
 		const table = present(container.querySelector('table'), 'table')
 
-		const scroll = present(container.querySelector('[data-slot="table"]'), '[data-slot="table"]')
+		const scroll = getSlot(container, 'table')
 
 		await waitFor(() =>
 			expect(table.getBoundingClientRect().width).toBeNear(scroll.clientWidth, PIXEL),

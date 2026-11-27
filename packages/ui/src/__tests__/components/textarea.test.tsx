@@ -52,7 +52,7 @@ describe('Textarea', () => {
 		expect(getSlot(container, 'control-frame').querySelector('div')).toBeNull()
 	})
 
-	it.each([null, false])('renders no actions row for actions={%s}', (actions) => {
+	it.each([null, false, '', true])('renders no actions row for actions={%j}', (actions) => {
 		const { container } = renderUI(<Textarea actions={actions} resize="vertical" />)
 
 		expect(bySlot(container, 'textarea-actions')).not.toBeInTheDocument()

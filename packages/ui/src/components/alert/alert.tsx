@@ -22,18 +22,9 @@ import { type ButtonDefaults, ButtonDefaultsProvider } from '../button/context'
 import { Icon } from '../icon'
 import { IconButton } from '../icon-button'
 import { AlertBody } from './alert-body'
-
-/** Semantic kind of an alert; selects its default color, icon, and ARIA live role. */
-export type AlertSeverity = 'info' | 'success' | 'warning' | 'error'
+import { type AlertSeverity, severityColors } from './alert-severity'
 
 type AlertColor = NonNullable<AlertVariants['color']>
-
-const severityColors = {
-	info: 'blue',
-	success: 'green',
-	warning: 'amber',
-	error: 'red',
-} satisfies Record<AlertSeverity, AlertColor>
 
 const severityIcons = {
 	info: <Glyph icon={Info} />,

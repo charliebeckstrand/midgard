@@ -3,7 +3,7 @@ import { Grid, type GridColumn } from '../../../modules/grid'
 import { COLUMN_RESIZE_STEP } from '../../../modules/grid/engine/grid-constants'
 import { fireEvent, present, renderUI, waitFor } from '../../helpers'
 import { PIXEL } from '../../helpers/geometry/tolerance'
-import { dragResize } from '../helpers/resize-handle'
+import { dragResize, resizeHandle } from '../helpers/resize-handle'
 
 /**
  * Column resizing in a right-to-left grid. The trailing edge of a header is
@@ -32,10 +32,7 @@ describe('grid column resizing in a right-to-left grid (real browser)', () => {
 			</div>,
 		)
 
-		const separator = present(
-			container.querySelector<HTMLElement>('hr[aria-label="Resize Name"]'),
-			'the Name resize handle',
-		)
+		const separator = resizeHandle(container, 'Name')
 
 		const header = present(
 			container.querySelector<HTMLElement>('th[data-grid-col="name"]'),

@@ -8,6 +8,7 @@ import * as m from '../../primitives/reduced-motion/reduced-motion-elements'
 import type { AlertVariants } from '../../recipes/kata/alert'
 import { k } from '../../recipes/kata/toast'
 import { Alert } from '../alert'
+import { severityColors } from '../alert/alert-severity'
 import type { ToastData, ToastSeverity } from './types'
 
 /** Fade-out for a user dismissal; the height collapse is left to the neighbors' layout spring. @internal */
@@ -38,19 +39,13 @@ const autoDismissBottom = {
 const layoutTransition = { layout: k.spring }
 
 /**
- * Maps each toast severity to an {@link Alert} variant/color pair. Typed from
- * the Alert recipe unions so a palette change there propagates here.
+ * The {@link Alert} color of each toast severity: the Alert palette, and
+ * `neutral` in the color that an Alert without a severity takes.
  * @internal
  */
-const alertBySeverity = {
-	info: { variant: 'solid', color: 'blue' },
-	neutral: { variant: 'solid', color: 'zinc' },
-	success: { variant: 'solid', color: 'green' },
-	warning: { variant: 'solid', color: 'amber' },
-	error: { variant: 'solid', color: 'red' },
-} satisfies Record<
-	NonNullable<ToastSeverity>,
-	{ variant: NonNullable<AlertVariants['variant']>; color: NonNullable<AlertVariants['color']> }
+const toastColors = { ...severityColors, neutral: 'zinc' } satisfies Record<
+	ToastSeverity,
+	NonNullable<AlertVariants['color']>
 >
 
 /** Props for {@link ToastAlert}, wired by {@link Toast} from the queue. @internal */
@@ -70,7 +65,7 @@ type ToastAlertProps = {
 }
 
 /**
- * Single animated toast: maps severity to an {@link Alert} variant and a live
+ * Single animated toast: maps severity to an {@link Alert} color and a live
  * `role`, and slides in from the viewport edge. It drives the pause/resume/reset
  * lifecycle on pointer and focus.
  *
@@ -106,8 +101,6 @@ export function ToastAlert({
 	const presets = usePrefersReducedMotion() ? k.still : k.motion
 
 	const motionConfig = positionTop ? presets.top : presets.bottom
-
-	const { variant, color } = alertBySeverity[toast.severity ?? 'info']
 
 	// Warning/error interrupt (assertive); everything else queues politely.
 	const assertive = toast.severity === 'warning' || toast.severity === 'error'
@@ -244,8 +237,8 @@ export function ToastAlert({
 			>
 				<Alert
 					open={true}
-					variant={variant}
-					color={color}
+					variant="solid"
+					color={toastColors[toast.severity ?? 'info']}
 					title={toast.title}
 					description={toast.description}
 					actions={toast.actions}

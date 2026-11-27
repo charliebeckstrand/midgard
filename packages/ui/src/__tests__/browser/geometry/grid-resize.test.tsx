@@ -1,6 +1,6 @@
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../../modules/grid'
-import { present, renderUI, waitFor } from '../../helpers'
+import { getSlot, present, renderUI, waitFor } from '../../helpers'
 import { getCenter } from '../../helpers/geometry/box'
 import { HALF_PIXEL, PIXEL } from '../../helpers/geometry/tolerance'
 import { afterBox } from '../helpers/after-box'
@@ -182,7 +182,7 @@ describe('grid column resizing (real browser)', () => {
 	it('accents the dragged column grip while a resize is in flight', async () => {
 		const { container, separator } = setup()
 
-		const wrapper = present(container.querySelector('[data-slot="grid"]'), '[data-slot="grid"]')
+		const wrapper = getSlot(container, 'grid')
 
 		const ageHandle = resizeHandle(container, 'Age')
 

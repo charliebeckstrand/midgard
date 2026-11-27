@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Code } from '../../components/code'
-import { present, renderUI } from '../helpers'
+import { getSlot, renderUI } from '../helpers'
 
 /**
  * Inline code is left-to-right text. In a right-to-left paragraph, the
@@ -30,7 +30,7 @@ describe('Code in a right-to-left paragraph (real browser)', () => {
 			</p>,
 		)
 
-		const code = present(container.querySelector<HTMLElement>('[data-slot="code"]'), 'code')
+		const code = getSlot(container, 'code')
 
 		expect(measureLeft(code, 0)).toBeLessThan(measureLeft(code, 3))
 	})

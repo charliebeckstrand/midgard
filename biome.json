@@ -400,7 +400,10 @@
 		},
 		{
 			"includes": ["packages/ui/src/**/__tests__/**"],
-			"plugins": ["./.biome/plugins/no-hand-written-aria-check.grit"]
+			"plugins": [
+				"./.biome/plugins/no-hand-written-aria-check.grit",
+				"./.biome/plugins/no-hand-written-get-slot.grit"
+			]
 		},
 		{
 			"includes": [

@@ -423,9 +423,7 @@ describe('reference lines', () => {
 
 		pointRule(container, 0)
 
-		const swatch = await waitFor(() =>
-			present(document.querySelector('[data-slot="chart-reference-swatch"]'), 'swatch'),
-		)
+		const swatch = await waitFor(() => getSlot(document, 'chart-reference-swatch'))
 
 		expect(swatch.closest('[data-slot="tooltip-content"]')?.textContent).toContain('Q3 target')
 	})
@@ -437,9 +435,7 @@ describe('reference lines', () => {
 
 		pointRule(container, 0)
 
-		const swatch = await waitFor(() =>
-			present(document.querySelector('[data-slot="chart-reference-swatch"]'), 'swatch'),
-		)
+		const swatch = await waitFor(() => getSlot(document, 'chart-reference-swatch'))
 
 		// The readout is the wrapping row of the category readout, so no box in
 		// the tooltip holds the text on one line.
@@ -457,9 +453,7 @@ describe('reference lines', () => {
 
 		pointRule(container, 0)
 
-		const swatch = await waitFor(() =>
-			present(document.querySelector('[data-slot="chart-reference-swatch"]'), 'swatch'),
-		)
+		const swatch = await waitFor(() => getSlot(document, 'chart-reference-swatch'))
 
 		expect(swatch).toHaveAttribute('data-shape', 'line')
 
@@ -1176,14 +1170,10 @@ describe('reference lines in the legend', () => {
 
 		await user.click(chip())
 
-		// Clicking pulls the rule from the plot and un-presses the chip, striking
-		// its label the way a hidden series entry is struck.
+		// Clicking pulls the rule from the plot and un-presses the chip.
 		expect(allBySlot(container, 'chart-reference-line')).toHaveLength(0)
 
 		expect(chip().getAttribute('aria-pressed')).toBe('false')
-
-		// The struck label is the off treatment a hidden series entry takes.
-		expect(chip().querySelector('.line-through')?.textContent).toBe('Target')
 
 		await user.click(chip())
 
@@ -1831,8 +1821,6 @@ describe('reference lines that the legend names', () => {
 
 		expect(note().getAttribute('aria-pressed')).toBe('false')
 
-		expect(note().querySelector('.line-through')?.textContent).toBe('Target')
-
 		await user.click(note())
 
 		expect(allBySlot(container, 'chart-reference-line')).toHaveLength(1)
@@ -1889,7 +1877,7 @@ describe('reference lines that the legend names', () => {
 
 		const series = allBySlot(legend, 'chart-legend-item') as HTMLButtonElement[]
 
-		const note = () => getSlot(legend, 'chart-legend-reference') as HTMLButtonElement
+		const note = () => getSlot<HTMLButtonElement>(legend, 'chart-legend-reference')
 
 		// The note sits in the References section of the panel, in the legend toolbar.
 		expect(note().closest('[data-slot="chart-legend-note"]')).not.toBeNull()

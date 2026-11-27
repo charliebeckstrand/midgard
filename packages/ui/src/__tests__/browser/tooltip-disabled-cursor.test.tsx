@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { Button } from '../../components/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
-import { present, renderUI } from '../helpers'
+import { getSlot, present, renderUI } from '../helpers'
 
 /**
  * What the pointer says over a tooltip trigger that cannot be pressed.
@@ -34,10 +34,7 @@ describe('a disabled tooltip trigger (real browser)', () => {
 
 		return {
 			control,
-			child: present(
-				control.querySelector('[data-slot="probe-child"]'),
-				'[data-slot="probe-child"]',
-			),
+			child: getSlot(control, 'probe-child'),
 		}
 	}
 

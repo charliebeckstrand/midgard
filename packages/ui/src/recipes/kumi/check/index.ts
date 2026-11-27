@@ -11,7 +11,7 @@
  */
 
 import { defineGroup, mode } from '../../../core/recipe'
-import { hannou, narabi, sen } from '../../kiso'
+import { dan, hannou, narabi, sen } from '../../kiso'
 
 const { cursor, disabled } = hannou
 const { flex } = narabi
@@ -106,8 +106,11 @@ const color = {
 } as const
 
 export const check = defineGroup({
-	/** The layout shell and the surface of the box or the circle. */
-	base: [...shell, ...surface],
+	/**
+	 * The layout shell and the surface of the box or the circle. The box takes
+	 * the step of the nearest density scope.
+	 */
+	base: [...shell, ...surface, dan.size.check.box],
 	color,
 	slots: {
 		/** Visually-hidden native `<input>` overlaying the custom check surface. */

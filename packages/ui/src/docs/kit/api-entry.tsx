@@ -147,8 +147,18 @@ function PropFacts({ prop }: { prop: PropApi }) {
 
 	const code = fallback && formatCode(fallback)
 
+	// A default of more than one line, such as an object, is always below the
+	// type. Another default is below the type on a phone only.
+	const multiline = code?.includes('\n') ?? false
+
 	return (
-		<Flex align="baseline" gap="lg" wrap className="text-sm">
+		<Flex
+			direction={multiline ? 'col' : { initial: 'col', sm: 'row' }}
+			align={multiline ? 'start' : { initial: 'start', sm: 'baseline' }}
+			gap={multiline ? 'sm' : { initial: 'sm', sm: 'lg' }}
+			wrap
+			className="text-sm"
+		>
 			<Flex as="span" align="baseline" gap="sm" wrap>
 				{options?.map((option) => (
 					<code key={String(option)} dir="ltr" className={OPTION}>
@@ -168,10 +178,7 @@ function PropFacts({ prop }: { prop: PropApi }) {
 						// A default of more than one line, such as an object, keeps its
 						// lines. Its first line follows the label, and each next line
 						// starts at the start of the label, as in a block of code.
-						<code
-							dir="ltr"
-							className={cn('font-mono', kind, code?.includes('\n') && 'whitespace-pre')}
-						>
+						<code dir="ltr" className={cn('font-mono', kind, multiline && 'whitespace-pre')}>
 							{code}
 						</code>,
 					)}

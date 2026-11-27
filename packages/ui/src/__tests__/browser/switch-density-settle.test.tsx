@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { Switch } from '../../components/switch'
 import { densitySteps } from '../../core/density'
-import { present, renderUI } from '../helpers'
+import { getSlot, present, renderUI } from '../helpers'
 
 /**
  * The thumb of a checked switch settles with its track when the density changes.
@@ -23,9 +23,9 @@ describe('the thumb of a checked switch under a change of density (real browser)
 
 		const scope = present(container.firstElementChild as HTMLElement | null, 'density scope')
 
-		const track = present(scope.querySelector<HTMLElement>('[data-slot="control"]'), 'switch track')
+		const track = getSlot(scope, 'control')
 
-		const thumb = present(scope.querySelector<HTMLElement>('[data-slot="switch-thumb"]'), 'thumb')
+		const thumb = getSlot(scope, 'switch-thumb')
 
 		return { scope, track, thumb }
 	}

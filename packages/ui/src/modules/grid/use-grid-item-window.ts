@@ -26,14 +26,22 @@ import { useGridWindowOffsets } from './use-grid-window-offsets'
  */
 export type GridItemWindowOptions = {
 	scrollRef: RefObject<HTMLDivElement | null>
-	/** The row height, which is the first guess for each row that is not closing. */
+	/**
+	 * The row height: the consumer's `estimateSize`, else the measured row (see
+	 * `useGridRowHeight`), else a first guess until a row measures. The window
+	 * uses it as the first guess for each row that is not closing.
+	 */
 	estimateSize: number
 	overscan: number
-	/** Re-fits the columns once the window's rows render, when the autosizer had none to measure. */
+	/**
+	 * Re-fits the columns once the window's rows render, for the fit that had no
+	 * rows to measure (see `useGridColumnSizing`). Called from a layout effect, so
+	 * the widths land before those rows paint; a no-op once a fit has read rows.
+	 */
 	fitRenderedRows: () => void
 	/** Whether the header sticks, so the window aligns a row below it. */
 	stickyHeader: boolean
-	/** The cursor's row scroller, which the body sets while it is mounted. */
+	/** The cursor's row scroller. The body sets it while it is mounted, so the cursor can reach a row outside the window. */
 	scrollIntoViewRef?: RefObject<GridScrollRowIntoView | null>
 }
 

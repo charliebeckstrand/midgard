@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { LineChart } from '../../../modules/chart/line-chart'
-import { present, renderUI, waitFor } from '../../helpers'
+import { getSlot, present, renderUI, waitFor } from '../../helpers'
 
 /**
  * At the spark tier a chart carries no value axis, so its scale fits the domain
@@ -33,10 +33,7 @@ describe('spark-tier value domain (real browser)', () => {
 
 		const svg = await waitFor(() => present<SVGSVGElement>(container.querySelector('svg'), 'svg'))
 
-		const line = present<SVGPathElement>(
-			container.querySelector('[data-slot="chart-line"]'),
-			'[data-slot="chart-line"]',
-		)
+		const line = getSlot<SVGPathElement>(container, 'chart-line')
 
 		const viewBoxHeight = svg.viewBox.baseVal.height
 

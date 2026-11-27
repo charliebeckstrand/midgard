@@ -21,6 +21,7 @@ import { k } from '../../recipes/kata/offcanvas'
 import { Box } from '../../structure/box'
 import { Flex } from '../../structure/flex'
 import { Stack } from '../../structure/stack'
+import { hasContent } from '../../utilities/children'
 import { mapResponsive, type Responsive } from '../../utilities/responsive'
 import { StackedLayout } from '../stacked'
 
@@ -118,7 +119,7 @@ export function DashboardLayout({
 				align={mapResponsive(layout, toAlign)}
 				gap="md"
 			>
-				{filters && (
+				{hasContent(filters) && (
 					<Drawer open={open} onOpenChange={setOpen}>
 						{/* One filter landmark at each width: the filters in the inline layout,
 						    and the trigger of the drawer in the drawer layout. The trigger is

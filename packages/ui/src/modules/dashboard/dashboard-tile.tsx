@@ -7,6 +7,7 @@ import { cn } from '../../core/cn'
 import type { ContentHeightHost } from '../../primitives/content-height/context'
 import type { Mount } from '../../primitives/mount'
 import { k } from '../../recipes/kata/dashboard'
+import { hasContent } from '../../utilities/children'
 import { useDashboardActions, useDashboardStoreContext } from './context'
 import { DashboardTileCard } from './dashboard-tile-card'
 import { DashboardTileEdges } from './dashboard-tile-edges'
@@ -49,7 +50,8 @@ function hasHeaderRow(props: DashboardTileProps): boolean {
 	const { title, description, actions, onRemove, onDuplicate, expandable } = props
 
 	return (
-		[title, description, actions, onRemove, onDuplicate].some((part) => part !== undefined) ||
+		[title, onRemove, onDuplicate].some((part) => part !== undefined) ||
+		[description, actions].some(hasContent) ||
 		expandable === true
 	)
 }

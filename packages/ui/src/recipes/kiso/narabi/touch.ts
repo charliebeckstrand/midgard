@@ -37,6 +37,11 @@ export const touch = {
 	/** The cells of a grid touch, and each cell has the coarse floor on a coarse pointer. */
 	pitch: 'touch-pitch',
 	/**
+	 * A host that is its own hit area, in a stack of hosts that touch, takes
+	 * the coarse floor on a coarse pointer (`core/touch/pitch.ts`).
+	 */
+	pitchRow: 'touch-pitch-row',
+	/**
 	 * A scroll box with no padding of its own keeps each hit area at its bottom
 	 * edge in the box on a coarse pointer (`core/touch/scroll.ts`).
 	 */

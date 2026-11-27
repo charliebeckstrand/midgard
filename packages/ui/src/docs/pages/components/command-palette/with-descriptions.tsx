@@ -8,13 +8,14 @@ import {
 	CommandPaletteText,
 	useCommandPaletteDeferredQuery,
 } from 'ui/command-palette'
+import { foldText } from 'ui/core'
 import { profiles } from '../../../data/people.ts'
 
 function MatchingPeople() {
-	const query = useCommandPaletteDeferredQuery().toLowerCase()
+	const query = foldText(useCommandPaletteDeferredQuery())
 
 	return profiles
-		.filter((person) => `${person.name} ${person.email}`.toLowerCase().includes(query))
+		.filter((person) => foldText(`${person.name} ${person.email}`).includes(query))
 		.map((person) => (
 			<CommandPaletteItem key={person.email}>
 				<CommandPaletteText>

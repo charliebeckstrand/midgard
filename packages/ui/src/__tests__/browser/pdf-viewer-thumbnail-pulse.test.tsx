@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { PdfViewerThumbnailList } from '../../components/pdf-viewer/pdf-viewer-thumbnail-list'
-import { getAllSlots, present, renderUI, waitFor } from '../helpers'
+import { getAllSlots, getSlot, present, renderUI, waitFor } from '../helpers'
 
 // Forty pages with no thumbnails yet (an empty source), so each tile shows its skeleton.
 const items = Array.from({ length: 40 }, (_, index) => ({
@@ -26,10 +26,7 @@ function rail() {
 	)
 
 	return {
-		scroller: present(
-			container.querySelector<HTMLElement>('[data-slot="pdf-viewer-thumbnails"]'),
-			'the rail',
-		),
+		scroller: getSlot(container, 'pdf-viewer-thumbnails'),
 		skeletons: getAllSlots(container, 'pdf-viewer-thumbnail-skeleton'),
 	}
 }

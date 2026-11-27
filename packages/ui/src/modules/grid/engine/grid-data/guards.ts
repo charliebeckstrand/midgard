@@ -1,13 +1,14 @@
 import type { ReactNode } from 'react'
+import { hasContent } from '../../../../utilities/children'
 import type { GridInfiniteScroll, GridVirtualize } from '../../grid-data-types'
 import type { GridPagination } from '../../types'
 
 /**
- * Whether an `error` slot shows. `true` shows the default alert, and `false`
- * or a nullish value shows nothing. @internal
+ * Whether an `error` slot shows. `true` shows the default alert, and other
+ * empty content (see `hasContent`) shows nothing. @internal
  */
 export function hasErrorSlot(error: ReactNode): boolean {
-	return error != null && error !== false
+	return error === true || hasContent(error)
 }
 
 /**

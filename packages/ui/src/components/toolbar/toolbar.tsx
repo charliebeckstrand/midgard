@@ -62,9 +62,11 @@ type ToolbarPage = { paged: number; back: readonly number[]; focus: 'page' | 'mo
  * the group is never an unnamed `toolbar`. A consumer `ref` reaches the toolbar
  * element.
  *
- * The toolbar is one Tab stop. A group in the toolbar that has its own arrow
- * keys, such as a `Segment`, keeps its own Tab stop and its own keys. An arrow
- * key from a control before the group moves the focus into it.
+ * The toolbar is one Tab stop. A `Checkbox` or a `Switch` in the toolbar is an
+ * item of that stop, and the arrow keys move to it. A group in the toolbar
+ * that has its own arrow keys, such as a `Segment`, keeps its own Tab stop and
+ * its own keys. An arrow key from a control before the group moves the focus
+ * into it.
  *
  * @remarks
  * A horizontal toolbar wraps onto more rows when it is narrow. A

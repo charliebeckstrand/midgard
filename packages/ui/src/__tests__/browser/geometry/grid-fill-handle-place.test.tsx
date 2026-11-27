@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Grid, type GridColumn } from '../../../modules/grid'
-import { present, renderUI, waitFor } from '../../helpers'
+import { getSlot, present, renderUI, waitFor } from '../../helpers'
 import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
 
 /**
@@ -39,11 +39,7 @@ describe('grid fill handle place (real browser)', () => {
 			cellSelector(key, column),
 		)
 
-	const handle = () =>
-		present(
-			document.querySelector<HTMLElement>('[data-slot="grid-fill-handle"]'),
-			'[data-slot="grid-fill-handle"]',
-		)
+	const handle = () => getSlot(document, 'grid-fill-handle')
 
 	/**
 	 * Expects the handle on the bottom end corner of the padding box of the cell,
@@ -142,10 +138,7 @@ describe('grid fill handle place (real browser)', () => {
 	it('scrolls with its cell, and stays on a pinned cell', async () => {
 		renderUI(view(200))
 
-		const scroller = present(
-			document.querySelector<HTMLElement>('[data-slot="grid-scroll"]'),
-			'[data-slot="grid-scroll"]',
-		)
+		const scroller = getSlot(document, 'grid-scroll')
 
 		await userEvent.click(cell(2, 'b'))
 

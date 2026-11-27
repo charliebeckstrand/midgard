@@ -115,7 +115,7 @@ import { MapSkeleton } from '../../../modules/map'
 import { ALBERS_USA_ASPECT } from '../../../modules/map/engine/map-constants'
 import { scale as calendarScale } from '../../../recipes/kata/calendar'
 import { Box } from '../../../structure/box'
-import { present, renderUI } from '../../helpers'
+import { getSlot, present, renderUI } from '../../helpers'
 import { PIXEL } from '../../helpers/geometry/tolerance'
 
 /**
@@ -302,10 +302,7 @@ describe('skeleton parity (real browser)', () => {
 			'slider',
 		)
 
-		const skeleton = present(
-			renderUI(<SliderSkeleton size={size} />).container.querySelector('[data-slot="placeholder"]'),
-			'skeleton',
-		)
+		const skeleton = getSlot(renderUI(<SliderSkeleton size={size} />).container, 'placeholder')
 
 		// The skeleton reserves the hit area of the slider with its vertical margins.
 		const { marginTop, marginBottom } = getComputedStyle(skeleton)

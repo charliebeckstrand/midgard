@@ -33,8 +33,12 @@
  *                 over the selection bar, so the current tab also shows
  *                 focus.
  *   - `parent`    the `ring` stroke on a part whose parent has the focus
- *   - `cursor`    inset outline on the row of a list: the focused row, or
- *                 the roved row (`data-active`) of a list that keeps the
+ *   - `inner`     2 px outline inside the box, for a box that scrolls or
+ *                 that a clipping ancestor holds, such as a tab panel. An
+ *                 outline paints over the content, and it stays on the box
+ *                 when the content scrolls
+ *   - `cursor`    the `inner` outline on the row of a list: the focused row,
+ *                 or the roved row (`data-active`) of a list that keeps the
  *                 focus on its input
  *   - `lifted`    z-shift + shadow for a picked-up element, plus the violet
  *                 accent that reads against the panel backdrop. Split into
@@ -61,6 +65,12 @@
 
 import { mode } from '../../../core/recipe'
 import { forced } from './forced'
+
+/** The `inner` outline: 2 px inside the box, behind the `focus-visible` gate. */
+const inner = [
+	'focus-visible:outline-solid focus-visible:outline-2 focus-visible:-outline-offset-2',
+	...mode('focus-visible:outline-blue-600', 'dark:focus-visible:outline-blue-500'),
+]
 
 /**
  * The forced-colors mark of a lift: a 4 px `Highlight` outline inside the box.
@@ -138,6 +148,13 @@ export const focus = {
 		...mode('[:focus-visible>&]:outline-blue-600', 'dark:[:focus-visible>&]:outline-blue-500'),
 	],
 	/**
+	 * A 2 px outline inside the box. An outline paints over the content, and it
+	 * does not move when the content of the box scrolls. It stays inside the box,
+	 * so an ancestor that clips its overflow does not cut it. Forced colors keep
+	 * an outline, so it needs no fallback.
+	 */
+	inner,
+	/**
 	 * The keyboard cursor of a list: the focused row, or the roved row
 	 * (`data-active`) of a list that roves with `aria-activedescendant`. The wash
 	 * of `hannou` is about 1.1:1 against the panel, so the wash alone is not a
@@ -145,12 +162,9 @@ export const focus = {
 	 * so a list that clips its rows does not cut it, and forced colors keep it.
 	 */
 	cursor: [
-		'focus-visible:outline-solid focus-visible:outline-2 focus-visible:-outline-offset-2',
+		...inner,
 		'data-active:outline-solid data-active:outline-2 data-active:-outline-offset-2',
-		...mode(
-			'focus-visible:outline-blue-600 data-active:outline-blue-600',
-			'dark:focus-visible:outline-blue-500 dark:data-active:outline-blue-500',
-		),
+		...mode('data-active:outline-blue-600', 'dark:data-active:outline-blue-500'),
 	],
 	/**
 	 * The inset ring of a box whose control has keyboard focus. The control

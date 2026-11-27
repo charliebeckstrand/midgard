@@ -7,6 +7,7 @@ import { FloatingSurface } from '../../primitives/floating-surface'
 import { useResolvedSurface } from '../../primitives/glass/context'
 import { PopoverPanel } from '../../primitives/popover'
 import { k } from '../../recipes/kata/menu'
+import { hasContent } from '../../utilities/children'
 import { useMenuActions, useMenuState } from './context'
 import { MenuSheet } from './menu-sheet'
 import { MenuViewport } from './menu-viewport'
@@ -146,9 +147,9 @@ export function MenuContent({
 		)
 	}
 
-	const titled = title !== undefined
+	const titled = hasContent(title)
 
-	const described = titled && description !== undefined
+	const described = titled && hasContent(description)
 
 	let labelledby = ariaLabelledby
 

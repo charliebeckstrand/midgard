@@ -427,7 +427,7 @@ describe('MapPlat', () => {
 		expect(entry).not.toHaveClass('w-full')
 	})
 
-	it('toggles a category off: neutral fill, struck legend text, pressed off', () => {
+	it('toggles a category off: neutral fill, pressed off', () => {
 		const { container } = renderUI(categoricalPlat())
 
 		const [east] = allBySlot(container, 'map-legend-item')
@@ -439,10 +439,6 @@ describe('MapPlat', () => {
 		const [alpha] = allRegions(container)
 
 		expect(alpha?.getAttribute('class')).toContain('fill-zinc-200')
-
-		expect(bySlot(east as HTMLElement, 'map-legend-label')?.getAttribute('class')).toContain(
-			'line-through',
-		)
 	})
 
 	it('keeps a toggled-off category tied to its value when the data reorders', () => {

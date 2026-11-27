@@ -9,6 +9,7 @@ import { cn } from '../../core/cn'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/grid'
+import { hasContent } from '../../utilities/children'
 import { useGridResizing } from './context'
 import { columnLabel } from './engine/grid-column/label'
 import { gridMessages } from './engine/grid-messages'
@@ -89,7 +90,7 @@ function GridHeaderTitle({
 	// cell refers to its `id` for its name.
 	const span = (
 		<span ref={ref} id={id} data-grid-content className={cn(k.head.title)}>
-			{title == null || title === '' ? <span className="sr-only">{fallback}</span> : title}
+			{hasContent(title) ? title : <span className="sr-only">{fallback}</span>}
 		</span>
 	)
 

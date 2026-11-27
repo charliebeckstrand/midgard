@@ -226,6 +226,28 @@ expect(rows.every((row) => row.hasAttribute('data-open'))).toBe(true)
 `,
 		},
 	],
+	'no-hand-written-get-slot': [
+		{
+			file: 'slot.test.ts',
+			source: `declare function present<T = HTMLElement>(el: unknown, what: string): T
+declare const container: HTMLElement
+declare const row: HTMLElement | undefined
+export const a = present(container.querySelector('[data-slot="menu"]'), 'the menu') // flag
+export const b = present<HTMLInputElement>(container.querySelector('[data-slot="input"]'), 'x') // flag
+export const c = present(document.querySelector<HTMLElement>('[data-slot="chart-line"]'), 'x') // flag
+export const d = present( // flag
+	container.querySelector('[data-slot="grid-edit-slot"]'),
+	'the editor slot',
+)
+export const e = present(row?.querySelector('[data-slot="swatch"]'), 'the swatch')
+export const f = present(container.querySelector('[data-slot="list"] [role="option"]'), 'x')
+export const g = present(container.querySelector('[data-slot]'), 'a slot')
+export const h = present(container.querySelector('[aria-level="3"]'), 'a row')
+export const i = container.querySelector('[data-slot="menu"]')
+export const j = present(container.closest('[data-slot="menu"]'), 'the menu')
+`,
+		},
+	],
 	'no-hand-written-bool-attr': [
 		{
 			file: 'attr.tsx',
@@ -578,6 +600,10 @@ const SCOPE: Record<string, { in: string; out: string }> = {
 	'no-hand-composed-handler': { in: 'packages/shared/src', out: 'apps/places/src' },
 	'no-hand-written-aria-check': {
 		in: 'packages/ui/src/__tests__/components',
+		out: 'packages/ui/src/components',
+	},
+	'no-hand-written-get-slot': {
+		in: 'packages/ui/src/__tests__/browser',
 		out: 'packages/ui/src/components',
 	},
 	'no-hand-written-bool-attr': { in: 'packages/ui/src/components', out: 'apps/places/src' },
