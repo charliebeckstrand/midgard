@@ -8,6 +8,7 @@ import { useStepper } from './context'
 
 /** Props for {@link StepperPanel}: the step `value` it belongs to, plus `<div>` attributes. */
 export type StepperPanelProps = {
+	/** The index of the step that the panel belongs to. The panel shows while that step is current. */
 	value: number
 } & ComponentProps<'div'>
 

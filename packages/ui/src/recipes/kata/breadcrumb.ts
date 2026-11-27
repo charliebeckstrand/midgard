@@ -110,8 +110,8 @@ export const k = defineKata(
 
 /** Recipe variant props for a {@link Breadcrumb} link: its styling axes (`current`, `interactive`), for consumers composing custom slots. */
 export type BreadcrumbLinkVariants = Omit<VariantProps<typeof k>, 'current' | 'interactive'> & {
-	/** Whether the link goes to the current page. @defaultValue false */
+	/** Marks the link as the current page. @defaultValue false */
 	current?: VariantProps<typeof k>['current']
-	/** Whether the crumb is a link, which darkens on hover. @defaultValue false */
+	/** Marks the crumb as a link, which darkens on hover. @defaultValue false */
 	interactive?: VariantProps<typeof k>['interactive']
 }

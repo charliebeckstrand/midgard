@@ -42,6 +42,7 @@ export default function ReportABug() {
 	// The view of a report shows Send, because the docs give a demo `sendReport`.
 	return (
 		<Stack gap="md">
+			<Text tone="muted">Turn on Debug in the settings, then open the Events sheet.</Text>
 			{/* The reset removes the component that throws. The new key then mounts a new boundary with no error. */}
 			<Boundary key={String(broken)} onReset={() => setBroken(false)}>
 				{broken ? <Thrower /> : <Text tone="muted">Last error: None</Text>}

@@ -21,6 +21,7 @@ export type LabelProps =
 			 */
 			as?: 'label'
 			className?: string
+			/** The id of the control that the label names. Without it, the label takes the id of the enclosing Field. */
 			htmlFor?: string
 	  } & Omit<ComponentProps<'label'>, 'className'>)
 	| ({

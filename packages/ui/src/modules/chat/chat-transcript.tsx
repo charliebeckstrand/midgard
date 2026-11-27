@@ -124,7 +124,7 @@ export type ChatTranscriptProps = Omit<ComponentProps<'div'>, 'children' | 'cont
 	 */
 	branches?: Readonly<Record<string, ChatBranch>>
 	/**
-	 * Fires with the id of the branch that the reader picks in the switcher of a
+	 * Fires with the id of the branch that the reader selects in the switcher of a
 	 * message, as the `showBranch` of `useChatSend` takes it. Each switcher is
 	 * off while `streaming`.
 	 */

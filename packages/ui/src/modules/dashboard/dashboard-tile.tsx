@@ -194,8 +194,8 @@ export type DashboardTileProps = {
 	 */
 	expandable?: boolean
 	/**
-	 * A selection that the app holds and the tile shows, such as an active chat
-	 * citation. While it is set, the header row shows the Clear control, as it
+	 * Fires when the reader clears a selection that the app holds and the tile
+	 * shows, such as an active chat citation. While it is set, the header row shows the Clear control, as it
 	 * does for a cross-filter selection of the tile. A press calls it, and also
 	 * clears the cross-filter selection of the tile. Give `undefined` when the
 	 * tile shows no such selection.

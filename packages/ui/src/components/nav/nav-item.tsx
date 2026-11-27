@@ -25,7 +25,10 @@ type OmitEach<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never
  */
 // The native `value` of the `<button>` is wider than the selection value, so
 // each arm drops it before the selection `value` joins.
-export type NavMenuItemProps = OmitEach<NavItemProps, 'value'> & { value?: string }
+export type NavMenuItemProps = OmitEach<NavItemProps, 'value'> & {
+	/** The key of the item. The item is current when it matches the `value` of the {@link Nav}. */
+	value?: string
+}
 
 /**
  * Navigation link/button within a {@link NavList}. Renders a polymorphic

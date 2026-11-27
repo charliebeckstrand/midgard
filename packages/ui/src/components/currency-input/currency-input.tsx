@@ -31,6 +31,7 @@ export type CurrencyInputProps = Omit<
 	 * field shows "100.00" after blur.
 	 */
 	value?: number | null
+	/** Initial amount when uncontrolled and not form-bound. */
 	defaultValue?: number
 	/** Fires when the amount changes, with the parsed number. */
 	onValueChange?: (value: number | null) => void
