@@ -636,7 +636,10 @@ describe('TabContent (idiomatic)', () => {
 
 		const panel = ariaTarget(tab, 'aria-controls')
 
-		expect(panel.className).toContain('focus-visible:outline-blue-600')
+		// The ring is an outline inside the panel, so an animating container does
+		// not clip it, and it stays on the panel when the panel scrolls
+		// (`browser/tab-panel-focus-ring.test.tsx`).
+		expect(panel).toHaveClass('focus-visible:-outline-offset-2', 'focus-visible:outline-blue-600')
 	})
 })
 
