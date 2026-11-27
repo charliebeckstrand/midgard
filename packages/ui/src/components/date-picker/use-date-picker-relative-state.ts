@@ -97,8 +97,8 @@ export function useDatePickerRelativeState({
 
 	const {
 		open,
-		openPicker,
 		onOpenChange,
+		onTriggerKeyDown,
 		refs,
 		setReference,
 		dialogId,
@@ -288,21 +288,6 @@ export function useDatePickerRelativeState({
 	const backToList = useCallback(() => setMode('list'), [])
 
 	// --- Keyboard ---
-
-	// Trigger (closed): ArrowUp/Down opens, mirroring the dialog/combobox
-	// convention; Enter/Space open through the native button click.
-	const onTriggerKeyDown = useCallback(
-		(event: KeyboardEvent<HTMLElement>) => {
-			if (field.disabled || open) return
-
-			if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-				event.preventDefault()
-
-				openPicker()
-			}
-		},
-		[open, openPicker, field.disabled],
-	)
 
 	// List mode: roving focus across the preset rows and the trailing custom row.
 	// The shell reclaims DOM focus to the dialog on arrow keys before this runs,

@@ -1,20 +1,17 @@
 'use client'
 
 import { Calendar as CalendarIcon } from 'lucide-react'
-import { type KeyboardEvent, type ReactNode, useRef } from 'react'
-import { ariaAttr } from '../../core/aria-attr'
+import { type ReactNode, useRef } from 'react'
 import { cn } from '../../core/cn'
-import { dataAttr } from '../../core/data-attr'
 import type { ScaleStep } from '../../core/density/scale'
-import type { ValidationAttrs } from '../../core/validation-attrs'
 import { useTruncation } from '../../hooks/use-truncation'
 import { useIntl } from '../../primitives/intl/use-intl'
-import { SelectTrigger } from '../../primitives/select-trigger'
-import { HeadlessProvider } from '../../providers/headless'
 import type { scale } from '../../recipes/kata/date-picker'
 import { k } from '../../recipes/kata/date-picker'
-import { Button } from '../button'
-import { useControlFallbackLabel } from '../control/use-control-fallback-label'
+import {
+	ControlPickerTrigger,
+	type ControlPickerTriggerState,
+} from '../control/control-picker-trigger'
 import { useControlSurface } from '../control/use-control-surface'
 import { dateInputMessages } from '../date-input/date-input-messages'
 import { DateTimePending } from '../date-time/date-time-pending'
@@ -28,25 +25,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
  *
  * @internal
  */
-export type DatePickerTriggerState = {
-	open: boolean
-	onOpenChange: (open: boolean) => void
-	triggerId?: string
-	/** The id of the dialog panel. The trigger names it in `aria-controls` while open. */
-	dialogId?: string
-	describedBy?: string
-	setReference: (node: HTMLElement | null) => void
-	getReferenceProps: () => Record<string, unknown>
-	disabled?: boolean
-	/**
-	 * Marks the trigger with `aria-readonly` and `data-readonly`, as on Listbox.
-	 * It also hides the clear button, because a read-only value cannot change.
-	 */
-	readOnly?: boolean
-	required?: boolean
-	/** The resolved validation attributes. The frame paints its ring from them. */
-	validation?: ValidationAttrs
-	onTriggerKeyDown: (event: KeyboardEvent<HTMLElement>) => void
+export type DatePickerTriggerState = ControlPickerTriggerState & {
 	/** Whether a value is set; gates the clear button alongside `clearable`. */
 	hasValue?: boolean
 	/** Clears the value; fired by the clear button. */
@@ -88,15 +67,11 @@ type DatePickerTriggerProps = {
 
 /**
  * Popover reference button showing the selected date label (or placeholder).
- * Carries the dialog ARIA wiring (`aria-haspopup`, `aria-expanded`,
- * `aria-controls`, `aria-describedby`) and shows a Tooltip with the full label
- * when truncated. Pass `children` to render custom value content (the relative
- * variant's chips) in place of the text label.
- *
- * The button has `role="combobox"`, as on Listbox. A select-only combobox
- * takes its value from its content, so a screen reader announces the date
- * after an `aria-label` or a Field label. With neither, it takes the name
- * "Date". The role also makes `aria-readonly` and `aria-required` valid.
+ * It is a {@link ControlPickerTrigger}, so it carries the combobox and dialog
+ * ARIA of each picker. It shows a Tooltip with the full label when truncated.
+ * Pass `children` to render custom value content (the relative variant's
+ * chips) in place of the text label. With no Field label and no `aria-label`,
+ * the trigger takes the name "Date".
  *
  * @internal
  */
@@ -112,38 +87,16 @@ export function DatePickerTrigger({
 	className,
 	children,
 }: DatePickerTriggerProps) {
-	const {
-		open,
-		onOpenChange,
-		triggerId,
-		dialogId,
-		describedBy,
-		setReference,
-		getReferenceProps,
-		disabled = false,
-		readOnly = false,
-		required = false,
-		validation,
-		onTriggerKeyDown,
-		hasValue = false,
-		onClear,
-	} = state
+	const { disabled = false, readOnly = false, hasValue = false, onClear } = state
 
 	const slots = k({ variant: useControlSurface() })
 
 	const [valueRef, truncated] = useTruncation<HTMLSpanElement>()
 
+	// The clear button gives the focus back to the trigger.
 	const buttonRef = useRef<HTMLButtonElement>(null)
 
-	// A combobox takes no name from its content, so a trigger with no Field label
-	// and no `aria-label` takes the name "Date", as `DateInput` does (WCAG 4.1.2).
-	// A label of the Field wins over the `aria-label`, as on `ColorPicker`.
 	const intl = useIntl()
-
-	const fallbackLabel = useControlFallbackLabel(
-		ariaLabel ?? intl.formatMessage(dateInputMessages.name),
-		buttonRef,
-	)
 
 	// Mirrors the Listbox/Combobox affordance: the clear button stands in for the
 	// calendar icon while a value is set, clearing on click and returning focus
@@ -161,14 +114,15 @@ export function DatePickerTrigger({
 	)
 
 	return (
-		// An explicit `size` makes the trigger a density scope. Without it, the
-		// stepped classes of the control bridge take the step of the nearest scope.
-		<SelectTrigger
-			open={open}
-			setReference={setReference}
-			getReferenceProps={getReferenceProps}
+		<ControlPickerTrigger
+			state={state}
 			slots={slots}
 			size={size}
+			// A combobox takes no name from its content, so a trigger with no label
+			// takes the name "Date", as `DateInput` does.
+			label={ariaLabel ?? intl.formatMessage(dateInputMessages.name)}
+			data-slot="datepicker-button"
+			buttonRef={buttonRef}
 			className={className}
 			suffix={
 				showClear ? (
@@ -182,45 +136,20 @@ export function DatePickerTrigger({
 				) : undefined
 			}
 		>
-			<HeadlessProvider>
-				<Button
-					ref={buttonRef}
-					type="button"
-					id={triggerId}
-					role="combobox"
-					aria-label={fallbackLabel}
-					aria-haspopup="dialog"
-					aria-expanded={open}
-					aria-controls={open ? dialogId : undefined}
-					aria-describedby={describedBy}
-					aria-readonly={ariaAttr(readOnly)}
-					aria-required={ariaAttr(required)}
-					data-slot="datepicker-button"
-					disabled={disabled}
-					data-readonly={dataAttr(readOnly)}
-					data-open={dataAttr(open)}
-					data-disabled={dataAttr(disabled)}
-					{...validation}
-					onClick={() => onOpenChange(!open)}
-					onKeyDown={onTriggerKeyDown}
-					className={cn(slots.field)}
-				>
-					{/* With no value, the span shows the placeholder, and the tooltip has
+			{/* With no value, the span shows the placeholder, and the tooltip has
 					    nothing to reveal. */}
-					{children ?? (
-						<Tooltip disabled={!truncate || !truncated || !displayValue}>
-							<TooltipTrigger>{valueNode}</TooltipTrigger>
-							<TooltipContent>{displayValue}</TooltipContent>
-						</Tooltip>
-					)}
-					{!showClear && (
-						// A slot scope, so the icon is one step below the trigger.
-						<span data-density="slot" className={cn(k.icon)}>
-							<Icon icon={CalendarIcon} />
-						</span>
-					)}
-				</Button>
-			</HeadlessProvider>
-		</SelectTrigger>
+			{children ?? (
+				<Tooltip disabled={!truncate || !truncated || !displayValue}>
+					<TooltipTrigger>{valueNode}</TooltipTrigger>
+					<TooltipContent>{displayValue}</TooltipContent>
+				</Tooltip>
+			)}
+			{!showClear && (
+				// A slot scope, so the icon is one step below the trigger.
+				<span data-density="slot" className={cn(k.icon)}>
+					<Icon icon={CalendarIcon} />
+				</span>
+			)}
+		</ControlPickerTrigger>
 	)
 }
