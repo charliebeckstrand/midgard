@@ -17,7 +17,7 @@ const { border } = sen
 // saved image keeps that ink. Under forced colors the ink took `CanvasText`,
 // which is white in a dark palette, so the saved image held white strokes. The
 // edge, the focus ring, and the invalid outline of the pad are on the page, so
-// they take system colors. The clear button is a control on the paper, so its
+// they take system colors, and the pad drops its colored validation ring. The clear button is a control on the paper, so its
 // actions adjust again.
 export const k = defineKata({
 	base: [
@@ -39,6 +39,10 @@ export const k = defineKata({
 		'forced-color-adjust-none',
 		'forced-colors:border-[CanvasText] forced-colors:outline-[CanvasText]',
 		'forced-colors:has-[canvas:focus-visible]:outline-[Highlight]',
+		// The pad does not adjust, so forced colors keep its ring shadow. Forced
+		// colors make red, amber, and green one color, so the pad drops the ring,
+		// and only the invalid state keeps its outline (`sen.forced.invalid`).
+		'forced-colors:has-[[data-invalid],[data-warning],[data-valid]]:ring-0',
 	],
 	slots: {
 		canvas: ['block w-full h-full', 'cursor-crosshair touch-none select-none'],

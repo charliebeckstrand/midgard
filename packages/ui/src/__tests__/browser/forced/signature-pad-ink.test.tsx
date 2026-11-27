@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { Control } from '../../../components/control'
 import { SignaturePad } from '../../../components/signature-pad'
 import { bySlot, present, renderUI, waitFor } from '../../helpers'
 import { eachAuthorScheme, systemColor } from '../helpers/forced-colors'
@@ -85,5 +86,28 @@ describe('signature pad ink under forced colors (real browser)', () => {
 
 			expect(getComputedStyle(clear).color).toBe(systemColor('ButtonText'))
 		})
+
+		/**
+		 * The pad does not adjust, so forced colors do not remove its `box-shadow` validation ring.
+		 * Forced colors make red, amber, and green one color, so the pad drops the ring there. Only
+		 * the invalid state keeps a mark: the outline of `sen.forced.invalid`.
+		 */
+		it.each(['error', 'warning', 'success'] as const)(
+			'paints no %s validation ring, and marks only the invalid state',
+			(severity) => {
+				const { container } = renderUI(
+					<Control severity={severity}>
+						<SignaturePad aria-label="Signature" />
+					</Control>,
+				)
+
+				const style = getComputedStyle(present(bySlot(container, 'signature-pad'), 'the pad'))
+
+				// Each layer of the ring shadow has a spread of 0.
+				expect(style.boxShadow).not.toMatch(/0px 0px 0px [1-9]/)
+
+				expect(style.outlineStyle).toBe(severity === 'error' ? 'solid' : 'none')
+			},
+		)
 	})
 })
