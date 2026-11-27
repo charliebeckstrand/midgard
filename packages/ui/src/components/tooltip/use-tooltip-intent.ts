@@ -144,7 +144,8 @@ function focusOpens(event: FocusEvent): boolean {
  * hover, a focus, or a click starts the load of the state module and calls
  * `onIntent`. The listeners also record the intent that the state replays.
  * They keep the gates of the interaction hooks of Floating UI, so they record
- * only an intent that would open the tooltip.
+ * only an intent that would open the tooltip. The focus listeners are on the
+ * document, so they do not make an SVG trigger a Tab stop.
  *
  * @returns A function that removes the listeners.
  */
@@ -197,7 +198,17 @@ function listenForIntent(
 		blockFocus = false
 	}
 
+	// The focus listeners are on the document, in the capture phase, and read
+	// only a focus on the trigger or in it. Blink makes an SVG element with a
+	// focus listener of its own a Tab stop, also with no `tabindex`. When the
+	// state removes that listener, the focused element loses its focus to
+	// `body`.
+	const onTrigger = (event: FocusEvent) =>
+		event.target instanceof Node && node.contains(event.target)
+
 	const onFocusIn = (event: FocusEvent) => {
+		if (!onTrigger(event)) return
+
 		start()
 
 		if (!readOptions().enabled || blockFocus || !focusOpens(event)) return
@@ -205,7 +216,9 @@ function listenForIntent(
 		intent.focus = event
 	}
 
-	const onFocusOut = () => {
+	const onFocusOut = (event: FocusEvent) => {
+		if (!onTrigger(event)) return
+
 		blockFocus = false
 
 		// As `useFocus`, after the window blur: focus that leaves the page keeps
@@ -270,8 +283,8 @@ function listenForIntent(
 	node.addEventListener('pointerenter', onPointerEnter, { signal })
 	node.addEventListener('pointerdown', onPointerDown, { signal })
 	node.addEventListener('pointerleave', onPointerLeave, { signal })
-	node.addEventListener('focusin', onFocusIn, { signal })
-	node.addEventListener('focusout', onFocusOut, { signal })
+	doc.addEventListener('focusin', onFocusIn, { capture: true, signal })
+	doc.addEventListener('focusout', onFocusOut, { capture: true, signal })
 	node.addEventListener('click', onClick, { signal })
 	node.addEventListener('keydown', onKeyDown, { signal })
 	win.addEventListener('blur', onWindowBlur, { signal })
