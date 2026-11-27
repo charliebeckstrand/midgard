@@ -81,8 +81,12 @@ export type ListItemContextValue = {
 	dragging: boolean
 	/** The id of the hidden reorder instructions that each row names. */
 	describedBy?: string
-	/** The DOM id of the `<li>` of a reorderable row, which names its move menu. */
-	rowId?: string
+	/**
+	 * The DOM id of the content area of a reorderable row. The move menu takes
+	 * its name from the content area, not from the row, because the row also
+	 * holds the names of its other controls.
+	 */
+	contentId?: string
 	/**
 	 * The place of the row in a windowed list. The row writes it as `data-index`,
 	 * which the window measures by, and as `aria-posinset` and `aria-setsize`,

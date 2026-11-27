@@ -19,7 +19,14 @@ const start: Item[] = [
 	{ id: 'c', label: 'Charlie' },
 ]
 
-function Tasks({ onReorder }: { onReorder: (next: Item[]) => void }) {
+function Tasks({
+	onReorder,
+	remove = false,
+}: {
+	onReorder: (next: Item[]) => void
+	/** Whether each row holds a Remove button of its own after its label. */
+	remove?: boolean
+}) {
 	const [items, setItems] = useState(start)
 
 	return (
@@ -34,7 +41,15 @@ function Tasks({ onReorder }: { onReorder: (next: Item[]) => void }) {
 			}}
 		>
 			{(item) => (
-				<ListItem>
+				<ListItem
+					suffix={
+						remove ? (
+							<button type="button" aria-label={`Remove ${item.label}`}>
+								×
+							</button>
+						) : undefined
+					}
+				>
 					<ListLabel>{item.label}</ListLabel>
 				</ListItem>
 			)}
@@ -49,6 +64,18 @@ describe('the move menu of a list row (real browser)', () => {
 		await expect
 			.element(page.getByRole('button', { name: 'Move Alpha', exact: true }))
 			.toBeVisible()
+	})
+
+	// The name comes from the content of the row, not from the whole row, which
+	// also holds the names of its other controls.
+	it('leaves the other controls of the row out of the name and the announcement', async () => {
+		renderUI(<Tasks onReorder={vi.fn()} remove />)
+
+		await userEvent.click(page.getByRole('button', { name: 'Move Alpha', exact: true }))
+
+		await userEvent.click(page.getByRole('menuitem', { name: 'Move down' }))
+
+		await expectAnnouncement('Alpha moved to position 2 of 3', 'assertive')
 	})
 
 	it('moves a row with clicks only, and keeps the focus on its button', async () => {

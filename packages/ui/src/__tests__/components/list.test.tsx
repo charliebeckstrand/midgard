@@ -1039,7 +1039,7 @@ describe('ListItemMenu', () => {
 		}
 	})
 
-	it('names the button "Move" and then the row', () => {
+	it('names the button "Move" and then the content of the row', () => {
 		const { container } = renderUI(<SortableList onReorder={vi.fn()} />)
 
 		const button = getSlot(row(container, 'a'), 'list-item-menu')
@@ -1048,7 +1048,9 @@ describe('ListItemMenu', () => {
 
 		expect(document.getElementById(word ?? '')).toHaveTextContent('Move')
 
-		expect(document.getElementById(item ?? '')).toBe(row(container, 'a'))
+		expect(document.getElementById(item ?? '')).toBe(
+			getSlot(row(container, 'a'), 'list-item-content'),
+		)
 	})
 
 	it('inserts no button under `handle={false}`, and keeps the one that an item places', () => {

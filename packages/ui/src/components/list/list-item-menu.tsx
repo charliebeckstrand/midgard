@@ -53,10 +53,12 @@ export function ListItemMenu({
 
 	const { interactive, disabled, itemCount, orientation, menuMoves, menuMove } = useListContext()
 
-	const { id, rowId } = useListItemContext()
+	const { id, contentId } = useListItemContext()
 
 	// The word "Move" sits in a hidden span that only the name of the button reads,
-	// so it adds nothing to the name of the row.
+	// so it adds nothing to the name of the row. The name of the row comes from its
+	// content area, not from the whole row, which also holds the names of its
+	// other controls, such as a Remove button.
 	const labelId = useId()
 
 	// A list that cannot reorder shows no menu. A disabled list keeps an inert one.
@@ -87,12 +89,12 @@ export function ListItemMenu({
 
 	// The menu reads the row when it opens, before its items sit in the row.
 	const read = () => {
-		const row = rowId === undefined ? null : document.getElementById(rowId)
+		const area = contentId === undefined ? null : document.getElementById(contentId)
 
-		const name = accessibleName(row)
+		const name = accessibleName(area)
 
 		return [
-			placeMoveItems(intl, menuMoves(id), { orientation, rtl: isRtl(row) }, (move) =>
+			placeMoveItems(intl, menuMoves(id), { orientation, rtl: isRtl(area) }, (move) =>
 				menuMove(id, move, name),
 			),
 		]
@@ -109,7 +111,7 @@ export function ListItemMenu({
 				// "Move" and then the name of the row. An explicit name replaces both.
 				aria-label={ariaLabel}
 				aria-labelledby={
-					props['aria-labelledby'] ?? (ariaLabel ? undefined : `${labelId} ${rowId}`)
+					props['aria-labelledby'] ?? (ariaLabel ? undefined : `${labelId} ${contentId}`)
 				}
 				className={look}
 			>

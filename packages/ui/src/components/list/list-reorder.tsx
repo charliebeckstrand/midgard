@@ -46,8 +46,7 @@ type ListReorderRowProps = Omit<
 	ComponentProps<'li'>,
 	'onAnimationStart' | 'onDrag' | 'onDragStart' | 'onDragEnd'
 > & {
-	/** The key of the row, which the group orders by. */
-	value: string
+	id: string
 	reorder: NonNullable<ListItemContextValue['reorder']>
 }
 
@@ -66,7 +65,7 @@ type ListReorderRowProps = Omit<
  * scroll waits until Motion renders that end, because until then a transform
  * keeps the row at its old place.
  */
-function ListReorderRow({ value, reorder, ref, ...row }: ListReorderRowProps) {
+function ListReorderRow({ id, reorder, ref, ...row }: ListReorderRowProps) {
 	const box = useGroupBox()
 
 	const rowRef = useRef<HTMLLIElement>(null)
@@ -78,7 +77,7 @@ function ListReorderRow({ value, reorder, ref, ...row }: ListReorderRowProps) {
 			{...row}
 			ref={setRef}
 			as="li"
-			value={value}
+			value={id}
 			dragListener={false}
 			dragControls={reorder.controls}
 			dragConstraints={box}

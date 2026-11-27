@@ -36,14 +36,14 @@ export function ListItemReorder({
 
 	const [dragging, setDragging] = useState(false)
 
-	const rowId = useId()
+	const contentId = useId()
 
 	const value = useMemo(
 		() => ({
 			id,
 			setNodeRef: noop,
 			describedBy,
-			rowId,
+			contentId,
 			dragging,
 			reorder: {
 				controls,
@@ -58,7 +58,7 @@ export function ListItemReorder({
 				},
 			},
 		}),
-		[id, describedBy, rowId, dragging, controls, instant, onDragStart, onDragEnd],
+		[id, describedBy, contentId, dragging, controls, instant, onDragStart, onDragEnd],
 	)
 
 	return <ListItemContext value={value}>{children}</ListItemContext>
