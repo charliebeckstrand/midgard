@@ -648,6 +648,7 @@ describe('ColorPicker', () => {
 		['a press', (user: ReturnType<typeof setupUser>, button: HTMLElement) => user.click(button)],
 		['Enter', (user: ReturnType<typeof setupUser>) => user.keyboard('{Enter}')],
 		['Space', (user: ReturnType<typeof setupUser>) => user.keyboard(' ')],
+		['ArrowDown', (user: ReturnType<typeof setupUser>) => user.keyboard('{ArrowDown}')],
 	])('does not open a read-only picker on %s', async (_, activate) => {
 		const user = setupUser()
 
@@ -667,6 +668,27 @@ describe('ColorPicker', () => {
 
 		expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 	})
+
+	// A select-only combobox opens on the vertical arrows, as DatePicker and
+	// Listbox do (APG).
+	it.each(['{ArrowDown}', '{ArrowUp}'])(
+		'opens the panel from the closed trigger with %s',
+		async (key) => {
+			const user = setupUser()
+
+			const { container } = renderUI(<ColorPicker defaultValue="#ef4444" />)
+
+			const button = getSlot<HTMLButtonElement>(container, 'color-picker-button')
+
+			button.focus()
+
+			await user.keyboard(key)
+
+			expect(button).toBeExpanded()
+
+			expect(screen.getByRole('dialog')).toBeInTheDocument()
+		},
+	)
 
 	it.each([
 		['its own prop', <ColorPicker key="prop" defaultValue="#ef4444" disabled />],

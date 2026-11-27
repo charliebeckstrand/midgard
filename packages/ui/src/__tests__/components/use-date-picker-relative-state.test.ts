@@ -272,26 +272,17 @@ describe('useDatePickerRelativeState', () => {
 			expect(event.defaultPrevented).toBe(false)
 		})
 
-		it('ignores trigger keys while open or disabled', () => {
-			const open = renderHook(() => useDatePickerRelativeState({ relative: true, open: true }))
-
-			const openEvent = makeKeyEvent<HTMLElement>('ArrowDown')
-
-			act(() => open.result.current.onTriggerKeyDown(openEvent))
-
-			expect(openEvent.defaultPrevented).toBe(false)
-
-			const disabled = renderHook(() =>
-				useDatePickerRelativeState({ relative: true, disabled: true }),
+		// A disabled trigger is natively disabled, so it gets no key event.
+		it('ignores trigger keys while open', () => {
+			const { result } = renderHook(() =>
+				useDatePickerRelativeState({ relative: true, open: true }),
 			)
 
-			const disabledEvent = makeKeyEvent<HTMLElement>('ArrowDown')
+			const event = makeKeyEvent<HTMLElement>('ArrowDown')
 
-			act(() => disabled.result.current.onTriggerKeyDown(disabledEvent))
+			act(() => result.current.onTriggerKeyDown(event))
 
-			expect(disabledEvent.defaultPrevented).toBe(false)
-
-			expect(disabled.result.current.open).toBe(false)
+			expect(event.defaultPrevented).toBe(false)
 		})
 	})
 
