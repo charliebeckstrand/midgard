@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { List, ListDescription, ListItem, ListLabel } from '../../components/list'
 import { expectAnnouncement, getSlot, renderUI } from '../helpers'
