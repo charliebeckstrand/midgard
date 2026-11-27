@@ -3,6 +3,7 @@ import type { ContextMenuEntry } from '../../components/context-menu/types'
 import type { Aggregation } from '../../utilities/aggregate'
 import type { QueryField, QueryFieldType, QueryGroup } from '../query/engine/types'
 import type { GridExportAction } from './engine/grid-export/types'
+import type { GridSortState } from './engine/grid-sort/state'
 import type { GridEditCell, GridRowActionsContext } from './grid-editing-types'
 
 /** The built-in per-column aggregation names. @see {@link GridColumn.aggFunc} */
@@ -631,7 +632,7 @@ export type GridToolSurfaces = {
 export type GridColumnMenuContext<T> = {
 	column: GridColumn<T>
 	/** This column's active sort direction, or `undefined` when it is not the sorted column. */
-	sortDirection: 'asc' | 'desc' | undefined
+	sortDirection: GridSortState['direction'] | undefined
 	/** Sorts this column ascending through the grid's `sort` binding. */
 	sortAscending: () => void
 	/** Sorts this column descending. */
@@ -649,9 +650,9 @@ export type GridColumnMenuContext<T> = {
 	 * move it) and its default menu offers no pin items.
 	 */
 	locked: 'left' | 'right' | undefined
-	/** Freezes this column against the left edge, which is the inline start. */
+	/** Freezes this column against the inline start, which is the left edge in a left-to-right grid. */
 	pinLeft: () => void
-	/** Freezes this column against the right edge, which is the inline end. */
+	/** Freezes this column against the inline end, which is the right edge in a left-to-right grid. */
 	pinRight: () => void
 	/** Releases this column back into the scrolling area. */
 	unpin: () => void

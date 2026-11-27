@@ -6,6 +6,7 @@ import { useReportedChange } from '../../hooks/use-reported-change'
 import { toggleItem } from '../../utilities/toggle-item'
 import { buildGroupSpans, groupByColumn } from './engine/grid-group/compute'
 import type { GridGroupHeader, GridGroupResult } from './engine/grid-group/resolve'
+import type { PinSide } from './engine/grid-pin/overrides'
 import type { GridColumnGroup, GridColumnGroups, GridGroupSpan } from './grid-group-types'
 
 /** No column groups. @internal */
@@ -63,7 +64,7 @@ export function useGridGroup(
 	const resolveHeader = useCallback(
 		(
 			visibleColumnIds: (string | number)[],
-			pinnedSide: (id: string | number) => 'left' | 'right' | undefined,
+			pinnedSide: (id: string | number) => PinSide | undefined,
 			collapsedHidden: ReadonlySet<string | number>,
 		): GridGroupHeader => ({
 			spans: buildGroupSpans(visibleColumnIds, colToGroup, pinnedSide),

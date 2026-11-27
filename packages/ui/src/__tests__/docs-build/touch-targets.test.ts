@@ -87,14 +87,14 @@ const KNOWN: readonly { finding: string; paths: readonly string[]; reason: strin
 		reason: 'The copy button of ColorHexInput is 34 px wide, against its input.',
 	},
 	{
-		finding: 'crowded textarea-actions/button',
-		paths: ['/textarea'],
-		reason: 'An action of a Textarea is 38 px wide, against its text.',
-	},
-	{
 		finding: 'crowded textarea-actions/icon-button',
-		paths: ['/modules/chat/conversation', '/modules/chat/prompt', '/modules/chat/scope'],
-		reason: 'An icon button of a ChatPrompt is 38 px wide, against its text.',
+		paths: [
+			'/modules/chat/conversation',
+			'/modules/chat/prompt',
+			'/modules/chat/scope',
+			'/textarea',
+		],
+		reason: 'An icon button of a ChatPrompt or a Textarea is 38 px wide, against its text.',
 	},
 	{
 		finding: 'overlap control-frame/chat-prompt | textarea-actions/button',
@@ -107,7 +107,7 @@ const KNOWN: readonly { finding: string; paths: readonly string[]; reason: strin
 		reason: 'The hit area of the send button grows into the text of the prompt.',
 	},
 	{
-		finding: 'overlap control-frame/textarea | textarea-actions/button',
+		finding: 'overlap control-frame/textarea | textarea-actions/icon-button',
 		paths: ['/textarea'],
 		reason: 'The hit area of an action grows into the text of the Textarea.',
 	},
@@ -147,7 +147,7 @@ const KNOWN: readonly { finding: string; paths: readonly string[]; reason: strin
 		reason: 'The hit area of the reveal button grows into the input.',
 	},
 	{
-		finding: 'overlap control-frame/input | flex/button',
+		finding: 'overlap control-frame/input | flex/icon-button',
 		paths: ['/fieldset'],
 		reason: 'The hit area of the info button of the example grows into the input below it.',
 	},
@@ -252,26 +252,32 @@ const KNOWN: readonly { finding: string; paths: readonly string[]; reason: strin
 		paths: ['/modules/dashboard', '/modules/grid/pagination', '/pagination'],
 		reason: 'The previous button is 35 px wide, against the next button.',
 	},
+	// Breadcrumb.
+	{
+		finding: 'crowded breadcrumb-item/breadcrumb-link',
+		paths: ['/breadcrumb'],
+		reason: 'A crumb that gave way shows only its `…` mark, which is 12 × 24 px.',
+	},
+	{
+		finding: 'overlap breadcrumb-item/breadcrumb-link | breadcrumb-item/breadcrumb-link',
+		paths: ['/breadcrumb'],
+		reason: 'The marks of the crumbs that gave way are at one place, and the last is on top.',
+	},
 	// Toolbars.
 	{
 		finding: 'crowded toolbar/button',
-		paths: ['/modules/grid/toolbar', '/toolbar'],
+		paths: ['/modules/grid/toolbar'],
 		reason: 'A toolbar button is 42 × 42 px, and the buttons touch.',
 	},
 	{
 		finding: 'crowded toolbar/icon-button',
-		paths: ['/icon-button', '/pdf-viewer'],
+		paths: ['/icon-button', '/pdf-viewer', '/toolbar'],
 		reason:
 			'A bare icon button of a toolbar is 34 × 34 px, and a plain one is 42 × 42 px. The buttons touch.',
 	},
 	{
-		finding: 'crowded toolbar-group/button',
-		paths: ['/toolbar'],
-		reason: 'A button of a toolbar group is 41 × 42 px, and the buttons touch.',
-	},
-	{
 		finding: 'crowded toolbar-group/icon-button',
-		paths: ['/pdf-viewer'],
+		paths: ['/pdf-viewer', '/toolbar'],
 		reason: 'An icon button of a toolbar group is 41 × 42 px, and the buttons touch.',
 	},
 	{
@@ -296,8 +302,13 @@ const KNOWN: readonly { finding: string; paths: readonly string[]; reason: strin
 	},
 	{
 		finding: 'crowded menu/button',
-		paths: ['/modules/grid/toolbar', '/sidebar'],
-		reason: 'A menu button is 42 × 42 px, beside a toolbar button or a sidebar row.',
+		paths: ['/modules/grid/toolbar'],
+		reason: 'A menu button is 42 × 42 px, beside a toolbar button.',
+	},
+	{
+		finding: 'crowded menu/icon-button',
+		paths: ['/sidebar'],
+		reason: 'The menu button of a sidebar row is 26 × 28 px, beside the row.',
 	},
 	{
 		finding: 'crowded control-frame/listbox-button',
@@ -321,7 +332,7 @@ const KNOWN: readonly { finding: string; paths: readonly string[]; reason: strin
 		reason: 'A row of Sidebar is 42 px tall, and the rows touch.',
 	},
 	{
-		finding: 'crowded flex/button',
+		finding: 'crowded flex/icon-button',
 		paths: ['/sidebar'],
 		reason: 'The new project button of the Sidebar example is 34 px tall, against a row.',
 	},
@@ -366,7 +377,7 @@ const KNOWN: readonly { finding: string; paths: readonly string[]; reason: strin
 		reason: 'The hit area of the add button of the new row grows into the editor beside it.',
 	},
 	{
-		finding: 'overlap flex/button | flex/button',
+		finding: 'overlap flex/icon-button | flex/icon-button',
 		paths: ['/modules/grid/editing', '/providers/density'],
 		reason: 'The hit areas of the edit and delete buttons of a row overlap.',
 	},
@@ -461,6 +472,65 @@ function readTargets({ floor, sharedBorder }: { floor: number; sharedBorder: num
 
 	const main = document.querySelector('main') ?? document.body
 
+	const clips = (overflow: string) => overflow === 'hidden' || overflow === 'clip'
+
+	const scrolls = (overflow: string) => overflow === 'auto' || overflow === 'scroll'
+
+	// A box that is fully outside the box of an ancestor that clips it does not
+	// show, and a finger cannot touch it. The search stops at a box that scrolls,
+	// because the reader can scroll the target into view, also out of a clip
+	// around the box.
+	const isClipped = (box: DOMRect, element: Element) => {
+		for (let ancestor = element.parentElement; ancestor; ancestor = ancestor.parentElement) {
+			const { overflowX, overflowY } = getComputedStyle(ancestor)
+
+			if (scrolls(overflowX) || scrolls(overflowY)) return false
+
+			const clipsX = clips(overflowX)
+
+			const clipsY = clips(overflowY)
+
+			if (!clipsX && !clipsY) continue
+
+			const clip = ancestor.getBoundingClientRect()
+
+			if (clipsX && (box.right <= clip.left || box.left >= clip.right)) return true
+
+			if (clipsY && (box.bottom <= clip.top || box.top >= clip.bottom)) return true
+		}
+
+		return false
+	}
+
+	// The part of a target that a finger can touch. A clipped target, such as a
+	// crumb that gave way in a collapsed Breadcrumb, can show a part of it
+	// outside the clip, such as the `…` mark of the crumb. The part is the
+	// bounds of the boxes in it that show. A target that shows no part has
+	// none.
+	const touchArea = (element: Element) => {
+		const box = element.getBoundingClientRect()
+
+		if (!isClipped(box, element)) return box
+
+		const shown = [...element.querySelectorAll('*')]
+			.map((part) => ({ part, rect: part.getBoundingClientRect() }))
+			.filter(({ part, rect }) => rect.width * rect.height > 1 && !isClipped(rect, part))
+			.map(({ rect }) => rect)
+
+		if (shown.length === 0) return undefined
+
+		const left = Math.min(...shown.map((rect) => rect.left))
+
+		const top = Math.min(...shown.map((rect) => rect.top))
+
+		return new DOMRect(
+			left,
+			top,
+			Math.max(...shown.map((rect) => rect.right)) - left,
+			Math.max(...shown.map((rect) => rect.bottom)) - top,
+		)
+	}
+
 	const isTarget = (element: Element) => {
 		if (element.closest('[inert], [aria-hidden=true]')) return false
 
@@ -476,20 +546,27 @@ function readTargets({ floor, sharedBorder }: { floor: number; sharedBorder: num
 		// atomic inline box even when its display reads `inline`, so it is not exempt.
 		if (style.display === 'inline' && !element.matches('button')) return false
 
-		const { width, height } = element.getBoundingClientRect()
+		const box = element.getBoundingClientRect()
 
 		// A visually hidden control, such as the input of a file field, has a
 		// box of 1 px. Its visible control is another target.
-		return width * height > 1
+		if (box.width * box.height <= 1) return false
+
+		return touchArea(element) !== undefined
 	}
 
 	const targets = [...main.querySelectorAll(selector)].filter(isTarget).map((element) => {
-		let { left, top, right, bottom } = element.getBoundingClientRect()
+		let { left, top, right, bottom } = touchArea(element) ?? element.getBoundingClientRect()
 
-		// The hit area of the target, and not of a target in it.
-		const area = [...element.querySelectorAll('[data-slot=touch-target]')].find(
-			(span) => span.parentElement?.closest(selector) === element,
-		)
+		// The hit area of the target, and not of a target in it. A clipped target
+		// has the part that shows, so its hit area does not reach under the clip.
+		const clipped = isClipped(element.getBoundingClientRect(), element)
+
+		const area = clipped
+			? undefined
+			: [...element.querySelectorAll('[data-slot=touch-target]')].find(
+					(span) => span.parentElement?.closest(selector) === element,
+				)
 
 		if (area) {
 			const box = area.getBoundingClientRect()

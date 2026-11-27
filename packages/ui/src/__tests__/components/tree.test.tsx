@@ -734,8 +734,8 @@ describe('TreeItem', () => {
 
 describe('TreeItem group ownership', () => {
 	// The child group is a sibling of the row in the DOM. The open row owns it,
-	// and the label alone names the row.
-	it('owns the group of an open branch, and takes its name from the label alone', () => {
+	// and the label and the suffix name the row.
+	it('owns the group of an open branch, and takes its name from the label and the suffix', () => {
 		const { container } = renderUI(
 			<Tree aria-label="Files">
 				<TreeItem label="src" defaultOpen suffix={<span>3 files</span>}>
@@ -744,7 +744,7 @@ describe('TreeItem group ownership', () => {
 			</Tree>,
 		)
 
-		const row = screen.getByRole('treeitem', { name: 'src' })
+		const row = screen.getByRole('treeitem', { name: 'src 3 files' })
 
 		const group = ariaTarget(row, 'aria-owns')
 

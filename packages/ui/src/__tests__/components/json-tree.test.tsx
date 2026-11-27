@@ -149,23 +149,58 @@ describe('JsonTree', () => {
 	it('stays read-only when controlled without onExpandedChange', () => {
 		const expanded = new Set<string>(['$'])
 
-		const { rerender } = renderUI(<JsonTree data={{ nested: { value: 1 } }} expanded={expanded} />)
+		renderUI(<JsonTree data={{ nested: { value: 1 } }} expanded={expanded} />)
 
 		const toggle = screen.getByText('"nested"').closest('button')
 
 		if (!toggle) throw new Error('toggle not found')
 
-		// Click is a no-op (controlled input with no onChange) and must not bank
-		// local state that would apply once the consumer drops `expanded`.
+		// Click is a no-op (controlled input with no onChange).
 		fireEvent.click(toggle)
 
 		expect(screen.queryByText('"value"')).not.toBeInTheDocument()
+	})
 
-		rerender(<JsonTree data={{ nested: { value: 1 } }} />)
+	it('stays controlled when expanded turns undefined, and reads it as an empty set (§7.3)', () => {
+		const onExpandedChange = vi.fn()
 
-		// Uncontrolled now: the depth default keeps `nested` closed. The dead
-		// click previously banked userOpen=true, springing the branch open here.
-		expect(screen.queryByText('"value"')).not.toBeInTheDocument()
+		const data = { nested: { value: 1 } }
+
+		const { rerender } = renderUI(
+			<JsonTree
+				data={data}
+				rootKey="root"
+				expanded={new Set(['root'])}
+				onExpandedChange={onExpandedChange}
+			/>,
+		)
+
+		rerender(<JsonTree data={data} rootKey="root" onExpandedChange={onExpandedChange} />)
+
+		// The depth default would open the root. The empty set keeps it closed.
+		expect(screen.queryByText('"nested"')).not.toBeInTheDocument()
+
+		const toggle = screen.getByText('"root"').closest('button')
+
+		if (!toggle) throw new Error('toggle not found')
+
+		fireEvent.click(toggle)
+
+		expect(onExpandedChange).toHaveBeenCalledExactlyOnceWith(new Set(['root']))
+	})
+
+	it('seeds a search match into an empty set after expanded turns undefined', () => {
+		const onExpandedChange = vi.fn()
+
+		const data = { outer: { needle: 'match' } }
+
+		const { rerender } = renderUI(
+			<JsonTree data={data} expanded={new Set(['$'])} onExpandedChange={onExpandedChange} />,
+		)
+
+		rerender(<JsonTree data={data} search="needle" onExpandedChange={onExpandedChange} />)
+
+		expect(onExpandedChange).toHaveBeenCalledExactlyOnceWith(new Set(['$', '$.outer']))
 	})
 
 	it('reflects the controlled expanded set on render', () => {

@@ -7,7 +7,7 @@ const speeds = [
 	{ value: 'overnight', label: 'Overnight', description: 'Arrives on the next business day.' },
 ]
 
-export default function WithDescription() {
+export default function WithDescriptions() {
 	return (
 		<RadioGroup aria-label="Shipping speed">
 			{speeds.map((speed) => (

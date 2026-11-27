@@ -10,6 +10,7 @@ export type SelectionValueProps<T> =
 	| {
 			/** Controlled value. `undefined` leaves the control uncontrolled; `null` keeps it controlled with no selection (CONVENTIONS §7.3). */
 			value?: T | null
+			/** Initial selection when uncontrolled and not form-bound. */
 			defaultValue?: T
 			/** Fires when the selection changes, with the new selection, or `null` when it is cleared. */
 			onValueChange?: (value: T | null) => void
@@ -21,7 +22,9 @@ export type SelectionValueProps<T> =
 	  }
 	| {
 			multiple: true
+			/** Controlled selections. `undefined` leaves the control uncontrolled. */
 			value?: T[]
+			/** Initial selections when uncontrolled and not form-bound. */
 			defaultValue?: T[]
 			onValueChange?: (value: T[]) => void
 	  }

@@ -76,7 +76,7 @@ const transport: ChatTransport = async function* (_content, signal, message) {
 
 	const scope = readScope(message.parts)
 
-	yield scope ? `I got ${scope}.` : 'I got no scope. Type @ to choose a dataset.'
+	yield scope ? `I got ${scope}.` : 'I got no scope. Type @ to select a dataset.'
 }
 
 export default function MentionsAndCommands() {

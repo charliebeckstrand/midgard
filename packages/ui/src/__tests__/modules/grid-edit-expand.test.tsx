@@ -9,6 +9,7 @@ import {
 	type GridColumn,
 	type GridEditableConfig,
 } from '../../modules/grid'
+import { NO_HOVER_QUERY, PHONE_QUERY } from '../../utilities/media-query'
 import {
 	bySlot,
 	deferred,
@@ -214,7 +215,7 @@ describe('Grid row form (expand)', () => {
 	)
 
 	it('shows the whole row in the drawer of a phone, under cell scope', async () => {
-		stubMatchMedia((query) => query.startsWith('(hover: none)'))
+		stubMatchMedia((query) => query === NO_HOVER_QUERY || query === PHONE_QUERY)
 
 		const { expand } = renderGrid({ scope: 'cell' })
 

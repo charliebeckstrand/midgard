@@ -1,4 +1,5 @@
 import type { GridColumnGroup, GridGroupSpan } from '../../grid-group-types'
+import type { PinSide } from '../grid-pin/overrides'
 import { applyColumnReorder } from '../grid-reorder-compute'
 
 /**
@@ -214,7 +215,7 @@ export function collapsedHiddenIds(
 export function buildGroupSpans(
 	visibleColumnIds: (string | number)[],
 	colToGroup: Map<string | number, GridColumnGroup>,
-	pinnedSide: (id: string | number) => 'left' | 'right' | undefined,
+	pinnedSide: (id: string | number) => PinSide | undefined,
 ): GridGroupSpan[] {
 	const spans: GridGroupSpan[] = []
 

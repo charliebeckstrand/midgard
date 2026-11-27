@@ -5,7 +5,9 @@ export default function NoFractionDigits() {
 	return (
 		<Field>
 			<Label>Price</Label>
-			<CurrencyInput currency="JPY" locale="ja-JP" defaultValue={9800} />
+			<div lang="ja-JP">
+				<CurrencyInput currency="JPY" locale="ja-JP" defaultValue={9800} />
+			</div>
 		</Field>
 	)
 }

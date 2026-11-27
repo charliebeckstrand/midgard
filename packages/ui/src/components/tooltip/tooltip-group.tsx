@@ -2,6 +2,7 @@
 
 import { type ReactNode, useEffect, useState } from 'react'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { createEmitter } from '../../utilities/emitter'
 import { TooltipGroupContext } from './context'
 
 /**
@@ -47,25 +48,19 @@ export function createTooltipGroup(readTimeout: () => number): TooltipGroupStore
 
 	let timer: ReturnType<typeof setTimeout> | undefined
 
-	const listeners = new Set<() => void>()
+	const changes = createEmitter()
 
 	const setWarm = (next: boolean) => {
 		if (warm === next) return
 
 		warm = next
 
-		for (const listener of listeners) listener()
+		changes.emit()
 	}
 
 	return {
 		warm: () => warm,
-		subscribe: (onChange) => {
-			listeners.add(onChange)
-
-			return () => {
-				listeners.delete(onChange)
-			}
-		},
+		subscribe: changes.subscribe,
 		open: (handover) => {
 			clearTimeout(timer)
 

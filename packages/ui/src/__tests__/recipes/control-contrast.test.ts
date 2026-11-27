@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from 'vitest'
 
+import { colors } from '../../core/recipe'
 import { k as colorPanel } from '../../recipes/kata/color-panel'
 import { k as jsonTree } from '../../recipes/kata/json-tree'
 import { k as radio } from '../../recipes/kata/radio'
@@ -35,9 +36,7 @@ const only = vi.defineHelper((surface: unknown, pattern: RegExp): string => {
 })
 
 describe('Text color contrast', () => {
-	const hues = ['zinc', 'red', 'amber', 'green', 'blue'] as const
-
-	it.each(hues)('%s clears text AA in each mode', (color) => {
+	it.each(colors)('%s clears text AA in each mode', (color) => {
 		const classes = classNames([text({ color }).base])
 
 		const light = only(classes, /^text-[a-z]+-\d+$/)

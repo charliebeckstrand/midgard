@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { MapDot, MapDotCount, MapDotRing } from '../../modules/map/map-dot'
 import { MapLine } from '../../modules/map/map-line'
 import { ReducedMotionContext } from '../../primitives/reduced-motion/context'
+import { REDUCED_MOTION_QUERY } from '../../utilities/media-query'
 import { renderUI, stubMatchMedia } from '../helpers'
 
 /**
@@ -65,7 +66,7 @@ describe('map mark reveals', () => {
 	})
 
 	it('mount whole and complete at once under reduced motion', () => {
-		stubMatchMedia((query) => query === '(prefers-reduced-motion: reduce)')
+		stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
 
 		expect(marks()).toEqual({
 			line: { drawn: 1, transition: { duration: 0 } },
@@ -105,7 +106,7 @@ describe('map mark reveals', () => {
 	})
 
 	it('show the count and the ring of a summary at once under reduced motion', () => {
-		stubMatchMedia((query) => query === '(prefers-reduced-motion: reduce)')
+		stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
 
 		paths.clear()
 

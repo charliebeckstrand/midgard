@@ -1,3 +1,4 @@
+import { MULTI_TAP_DISTANCE, MULTI_TAP_WINDOW } from '../../hooks/use-touch-tap'
 import { clamp } from '../../utilities/clamp'
 import type { Size } from '../../utilities/size'
 import type { LightboxLoad, LightboxPhoto, LightboxViewPhoto } from './types'
@@ -485,12 +486,6 @@ export const ZOOM_KEY_STEP = 1.5
 /** The part of the stage that a key press pans a zoomed photo by. @internal */
 export const PAN_KEY_STEP = 0.1
 
-/** Time, in ms, from the lift of one tap to the lift of the next, in which the two are a double tap. */
-const DOUBLE_TAP_WINDOW = 300
-
-/** Distance, in CSS px, between the two taps of a double tap. */
-const DOUBLE_TAP_DISTANCE = 40
-
 /** A point in px, from the top left corner of the stage. @internal */
 export type LightboxPoint = { x: number; y: number }
 
@@ -499,15 +494,16 @@ export type LightboxTap = LightboxPoint & { at: number }
 
 /**
  * Whether `tap` and the tap before it are a double tap: they lift in
- * {@link DOUBLE_TAP_WINDOW} and land in {@link DOUBLE_TAP_DISTANCE} of each other.
+ * {@link MULTI_TAP_WINDOW} and land in {@link MULTI_TAP_DISTANCE} of each other,
+ * as the taps of a map, a grid, and an overlay do.
  *
  * @internal
  */
 export function isDoubleTap(prev: LightboxTap | null, tap: LightboxTap): boolean {
 	return (
 		prev !== null &&
-		tap.at - prev.at <= DOUBLE_TAP_WINDOW &&
-		Math.hypot(tap.x - prev.x, tap.y - prev.y) <= DOUBLE_TAP_DISTANCE
+		tap.at - prev.at <= MULTI_TAP_WINDOW &&
+		Math.hypot(tap.x - prev.x, tap.y - prev.y) <= MULTI_TAP_DISTANCE
 	)
 }
 

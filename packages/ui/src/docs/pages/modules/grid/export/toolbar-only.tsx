@@ -6,7 +6,7 @@ export default function ToolbarOnly() {
 	// and for the column manager.
 	return (
 		<Grid
-			tableProps={{ 'aria-label': 'Toolbar only' }}
+			tableProps={{ 'aria-label': 'People' }}
 			exportable={{ types: ['csv', 'excel'], toolbar: true, contextMenu: false }}
 			columnManager={{ toolbar: true, contextMenu: false }}
 			columns={filterableColumns}

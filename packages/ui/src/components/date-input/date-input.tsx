@@ -55,6 +55,7 @@ export type DateInputProps = Omit<
 	invalid?: boolean
 	/** Controlled date. `null` keeps the field controlled with no current value. */
 	value?: Date | null
+	/** Initial date when uncontrolled and not form-bound. */
 	defaultValue?: Date
 	/** Fires when the text becomes a complete in-range date, with the parsed Date, and with `null` when it stops being one. */
 	onValueChange?: (value: Date | null) => void

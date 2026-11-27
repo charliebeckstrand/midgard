@@ -27,7 +27,8 @@ export type ColorPickerStateOptions = {
  * Control, and drives the floating dialog's open state.
  *
  * @returns The color state (`hsva`, `setHsva`), the open state (`open`,
- * `onOpenChange`), and the Control-derived field metadata (`triggerId`,
+ * `onOpenChange`), the key handler of the closed trigger (`onTriggerKeyDown`),
+ * and the Control-derived field metadata (`triggerId`,
  * `describedBy`, `disabled`, `readOnly`, `validation`). It also returns the
  * Floating UI plumbing (`dialogId`, `setReference`, `setFloating`,
  * `floatingStyles`, `getReferenceProps`, `getFloatingProps`, `context`).
@@ -100,6 +101,7 @@ export function useColorPickerState({
 		setHsva,
 		open: popover.open,
 		onOpenChange: popover.onOpenChange,
+		onTriggerKeyDown: popover.onTriggerKeyDown,
 		setReference: popover.setReference,
 		setFloating: popover.refs.setFloating,
 		floatingStyles: popover.floatingStyles,

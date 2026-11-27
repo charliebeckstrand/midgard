@@ -1,6 +1,7 @@
 'use client'
 
 import { Fragment, type ReactNode, type TransitionEvent, useMemo, useRef } from 'react'
+import { EMPTY_SET } from './engine/grid-constants'
 import { detailOpen, detailWindowItems, type GridDetailWindowItem } from './engine/grid-items/items'
 import { itemAriaRowIndex } from './engine/grid-row/shell'
 import { detailCursorRows } from './grid-cursor-order'
@@ -21,8 +22,6 @@ import {
 } from './use-grid-window-motion'
 
 type Keys = ReadonlySet<string | number>
-
-const NO_KEYS: Keys = new Set()
 
 /** The expandability of a row when the grid has no master-detail wiring. @internal */
 const NEVER_EXPANDABLE = () => false
@@ -122,7 +121,7 @@ export function GridVirtualizedDetailBody<T>(props: GridVirtualizedDetailBodyPro
 		motions,
 		release,
 	} = useGridWindowMotion(
-		expansion?.expanded ?? NO_KEYS,
+		expansion?.expanded ?? EMPTY_SET,
 		detailMotionSource,
 		record,
 		props.scrollRef,

@@ -61,7 +61,7 @@ type ColorPickerBaseProps = {
 	 * Blocks the open of the panel, so the color cannot change. An explicit value
 	 * wins over the `readOnly` of an enclosing Control. The trigger stays
 	 * focusable and keeps its tab stop, so a keyboard or a screen reader can read
-	 * the color. A press, Enter, or Space does not open the panel. The trigger
+	 * the color. A press, Enter, Space, or an arrow key does not open the panel. The trigger
 	 * sets `aria-readonly`. A panel that is open when `readOnly` turns on can
 	 * still close.
 	 * @defaultValue `false`, or the state of the enclosing Control.
@@ -98,7 +98,7 @@ export type ColorPickerProps = ColorPickerBaseProps & ColorValueProps
  *
  * The trigger has `role="combobox"`, as the trigger of `DatePicker` has. Its
  * value is the hex code that it shows, so a screen reader announces the color
- * after the name. It sets `aria-required` from the enclosing Control, and
+ * after the name. ArrowDown and ArrowUp open the panel, as on `DatePicker`. It sets `aria-required` from the enclosing Control, and
  * `aria-readonly` from its prop or from the enclosing Control.
  *
  * @see {@link ColorPanel} for the inline variant.
@@ -142,21 +142,11 @@ export function ColorPicker(props: ColorPickerProps) {
 	return (
 		<div data-slot="color-picker" className="contents">
 			<ColorPickerTrigger
-				open={state.open}
-				onOpenChange={state.onOpenChange}
-				triggerId={state.triggerId}
-				dialogId={state.dialogId}
-				describedBy={state.describedBy}
-				setReference={state.setReference}
-				getReferenceProps={state.getReferenceProps}
+				state={state}
 				hsva={state.hsva}
 				alpha={alpha}
 				size={size}
-				disabled={state.disabled}
-				readOnly={state.readOnly}
-				required={state.required}
 				aria-label={ariaLabel}
-				validation={state.validation}
 				className={className}
 			/>
 			<ColorPickerContent

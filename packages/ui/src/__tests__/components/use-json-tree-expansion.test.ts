@@ -173,6 +173,19 @@ describe('useJsonTreeExpansion', () => {
 			expect(onExpandedChange).toHaveBeenCalledWith(new Set())
 		})
 
+		it('stays controlled when expanded turns undefined, and reads it as an empty set (§7.3)', () => {
+			const seeded: Options = { ...uncontrolled, expanded: new Set(['$']) }
+
+			const { result, rerender } = renderHook((options: Options) => useJsonTreeExpansion(options), {
+				initialProps: seeded,
+			})
+
+			rerender(uncontrolled)
+
+			// The depth default would open the root.
+			expect(result.current.isOpen('$', 0)).toBe(false)
+		})
+
 		it('does nothing when no onExpandedChange is provided', () => {
 			const { result } = renderHook(() =>
 				useJsonTreeExpansion({

@@ -17,6 +17,7 @@ import {
 	ZOOM_MAX,
 	zoomView,
 } from '../../components/lightbox/lightbox-utilities'
+import { MULTI_TAP_DISTANCE, MULTI_TAP_WINDOW } from '../../hooks/use-touch-tap'
 import { FLOAT } from '../helpers/geometry/tolerance'
 
 const NUMBER = /-?\d+(?:\.\d+)?(?:e-?\d+)?/g
@@ -291,11 +292,19 @@ describe('isDoubleTap', () => {
 		expect(isDoubleTap({ x: 0, y: 0, at: 0 }, { x: 10, y: 10, at: 250 })).toBe(true)
 	})
 
+	it('takes the same time and distance as the double tap of a map or a grid', () => {
+		expect(
+			isDoubleTap({ x: 0, y: 0, at: 0 }, { x: MULTI_TAP_DISTANCE, y: 0, at: MULTI_TAP_WINDOW }),
+		).toBe(true)
+	})
+
 	it('refuses a first tap, a late tap, and a far tap', () => {
 		expect(isDoubleTap(null, { x: 0, y: 0, at: 0 })).toBe(false)
 
-		expect(isDoubleTap({ x: 0, y: 0, at: 0 }, { x: 0, y: 0, at: 400 })).toBe(false)
+		expect(isDoubleTap({ x: 0, y: 0, at: 0 }, { x: 0, y: 0, at: MULTI_TAP_WINDOW + 1 })).toBe(false)
 
-		expect(isDoubleTap({ x: 0, y: 0, at: 0 }, { x: 80, y: 0, at: 100 })).toBe(false)
+		expect(isDoubleTap({ x: 0, y: 0, at: 0 }, { x: MULTI_TAP_DISTANCE + 1, y: 0, at: 100 })).toBe(
+			false,
+		)
 	})
 })

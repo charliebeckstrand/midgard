@@ -10,7 +10,7 @@ export default function ExpandableRows() {
 	// An `expander` column holds the chevron, and `render` gives the detail of a row.
 	return (
 		<Grid
-			tableProps={{ 'aria-label': 'Expandable rows' }}
+			tableProps={{ 'aria-label': 'People' }}
 			columns={expandColumns}
 			rows={people}
 			getKey={(row) => row.id}

@@ -1,5 +1,6 @@
 import type { Mark, MarkType, Node } from 'prosemirror-model'
 import type { MarkdownRange } from '../../../../components/markdown/markdown-ranges'
+import { getOrCompute } from '../../../../utilities/get-or-compute'
 import { schema } from '../wysiwyg-schema'
 import { markdownDoc } from './doc'
 
@@ -134,15 +135,7 @@ const written = new WeakMap<Node, string>()
 function cachedBlock(node: Node, alternate: boolean, ranges: RangeMarks | undefined): string {
 	if (ranges || alternate) return block(node, alternate, ranges)
 
-	let text = written.get(node)
-
-	if (text === undefined) {
-		text = block(node, false, undefined)
-
-		written.set(node, text)
-	}
-
-	return text
+	return getOrCompute(written, node, (key) => block(key, false, undefined))
 }
 
 /**

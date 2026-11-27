@@ -13,7 +13,7 @@ import { renderUI } from '../helpers'
  * computes, which reads the owned group as a child of the row.
  */
 describe('tree group ownership (real browser)', () => {
-	it('names an open Tree row from its label alone', async () => {
+	it('names an open Tree row from its label and its suffix', async () => {
 		renderUI(
 			<Tree aria-label="Files">
 				<TreeItem label="src" defaultOpen suffix={<span>3 files</span>}>
@@ -22,7 +22,9 @@ describe('tree group ownership (real browser)', () => {
 			</Tree>,
 		)
 
-		await expect.element(page.getByRole('treeitem', { name: 'src', exact: true })).toBeExpanded()
+		await expect
+			.element(page.getByRole('treeitem', { name: 'src 3 files', exact: true }))
+			.toBeExpanded()
 
 		await expect.element(page.getByRole('treeitem', { name: 'a.ts', exact: true })).toBeVisible()
 	})

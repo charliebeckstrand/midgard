@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { Grid } from 'ui/grid'
+import { Kbd } from 'ui/kbd'
 import { PointerHint } from '../../../../kit/pointer-hint.tsx'
+import { ShortcutHint } from '../../../../kit/shortcut-hint.tsx'
 import { applyChanges, EditHelp, initialPeople, personColumns } from './people.tsx'
 
 export default function PasteAndFill() {
@@ -13,12 +15,28 @@ export default function PasteAndFill() {
 		<>
 			<EditHelp label="Paste and fill help">
 				<PointerHint
-					mouseText="Select a range, then paste with Ctrl+V or Cmd+V, clear with Delete, cut with Ctrl+X or Cmd+X, or fill down with Ctrl+D or Cmd+D."
+					mouseText={
+						<>
+							Select a range, then paste with{' '}
+							<Kbd>
+								<ShortcutHint keyName="V" />
+							</Kbd>
+							, clear with Delete, cut with{' '}
+							<Kbd>
+								<ShortcutHint keyName="X" />
+							</Kbd>
+							, or fill down with{' '}
+							<Kbd>
+								<ShortcutHint keyName="D" />
+							</Kbd>
+							.
+						</>
+					}
 					touchText="Use a keyboard or a mouse to select a range and paste into it."
 				/>
 			</EditHelp>
 			<Grid
-				tableProps={{ 'aria-label': 'Paste and fill' }}
+				tableProps={{ 'aria-label': 'People' }}
 				columns={personColumns}
 				rows={people}
 				getKey={(row) => row.id}

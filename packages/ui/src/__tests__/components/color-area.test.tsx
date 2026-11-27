@@ -119,6 +119,7 @@ describe('ColorArea', () => {
 		expect(onValueChange).toHaveBeenLastCalledWith({ h: 120, s: 100, v: 50, a: 1 })
 	})
 
+	// The press is 0.25 across and 0.6 down, so an axis that reads the other axis fails.
 	it('sets saturation from x and brightness from the inverted y of the press', () => {
 		const { area, brightness } = setup()
 
@@ -129,12 +130,12 @@ describe('ColorArea', () => {
 			button: 0,
 			pointerId: 1,
 			clientX: 50,
-			clientY: 25,
+			clientY: 60,
 		})
 
 		expect(area).toHaveAttribute('aria-valuenow', '25')
 
-		expect(brightness()).toBe(75)
+		expect(brightness()).toBe(40)
 	})
 
 	it('places the thumb at the saturation and the inverted brightness', () => {

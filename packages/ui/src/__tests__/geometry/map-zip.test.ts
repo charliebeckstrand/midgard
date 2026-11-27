@@ -1,7 +1,6 @@
 // @vitest-environment node
 import counties from 'us-atlas/counties-10m.json'
 import { describe, expect, it } from 'vitest'
-import type { MapTopology } from '../../modules/map'
 import { buildRegionIndex, regionAt } from '../../modules/map/engine/map-geometry/locate'
 import { geographyFeatures } from '../../modules/map/engine/map-geometry/topology'
 import { rewindFeatures } from '../../modules/map/engine/map-geometry/winding'
@@ -426,9 +425,7 @@ describe('regionAt', () => {
 	})
 
 	it('finds Kane County at a position on its northern edge', () => {
-		const regions = rewindFeatures(
-			geographyFeatures(counties as unknown as MapTopology, 'counties'),
-		)
+		const regions = rewindFeatures(geographyFeatures(counties, 'counties'))
 
 		const found = regionAt(buildRegionIndex(regions), regions, [-88.46581, 42.153993])
 

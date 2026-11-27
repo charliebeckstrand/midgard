@@ -64,7 +64,7 @@ const ticketColumns: GridColumn<Ticket>[] = [
 export default function FilterTypes() {
 	return (
 		<Grid
-			tableProps={{ 'aria-label': 'Filter types' }}
+			tableProps={{ 'aria-label': 'Tasks' }}
 			columns={ticketColumns}
 			rows={tickets}
 			getKey={(row) => row.id}

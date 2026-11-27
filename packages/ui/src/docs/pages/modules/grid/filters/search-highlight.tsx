@@ -5,7 +5,7 @@ export default function SearchHighlight() {
 	// In `highlight` mode, the search marks each match and keeps each row.
 	return (
 		<Grid
-			tableProps={{ 'aria-label': 'Search highlight' }}
+			tableProps={{ 'aria-label': 'People' }}
 			columns={searchableColumns}
 			rows={people}
 			getKey={(row) => row.id}

@@ -4,7 +4,7 @@ import { columns, people } from '../data.tsx'
 export default function ResizableColumns() {
 	return (
 		<Grid
-			tableProps={{ 'aria-label': 'Resizable columns' }}
+			tableProps={{ 'aria-label': 'People' }}
 			resizable
 			columns={columns}
 			rows={people}

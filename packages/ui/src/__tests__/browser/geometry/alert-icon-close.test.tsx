@@ -1,9 +1,11 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Alert } from '../../../components/alert'
 import { Banner } from '../../../components/banner'
-import { DensityProvider } from '../../../providers/density'
+import { DensityProvider, densityLevels } from '../../../providers/density'
 import { getSlot, present, renderUI } from '../../helpers'
 import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
+
+const levels = densityLevels.map(({ value }) => value)
 
 /**
  * The leading icon of an Alert lines up with the title. The title and the icon
@@ -56,7 +58,7 @@ describe('Alert icon and close button', () => {
 		expect(snug.title).toBeLessThan(loose.title)
 	})
 
-	it.each(['compact', 'snug', 'loose'] as const)(
+	it.each(levels)(
 		'pads a severity alert with no close button the same on each side at %s',
 		(density) => {
 			const { container } = renderUI(

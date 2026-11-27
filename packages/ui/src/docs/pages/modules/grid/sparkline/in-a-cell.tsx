@@ -93,7 +93,7 @@ export default function InACell() {
 
 	return (
 		<Grid
-			tableProps={{ 'aria-label': 'In a cell' }}
+			tableProps={{ 'aria-label': 'Metrics' }}
 			columns={columns}
 			rows={metrics}
 			getKey={(row) => row.id}

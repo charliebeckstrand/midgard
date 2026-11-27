@@ -5,7 +5,7 @@ import {
 	DescriptionList,
 	DescriptionTerm,
 } from '../../../components/description-list'
-import { DensityProvider } from '../../../providers/density'
+import { type DensityLevel, DensityProvider, densityLevels } from '../../../providers/density'
 import { getSlot, present, renderUI } from '../../helpers'
 
 /**
@@ -18,7 +18,7 @@ import { getSlot, present, renderUI } from '../../helpers'
 // The wide layout of a horizontal list starts at the `sm` breakpoint.
 beforeAll(() => page.viewport(1024, 768))
 
-type Density = 'compact' | 'snug' | 'loose'
+const levels = densityLevels.map(({ value }) => value)
 
 const EXPECTED = {
 	compact: { text: 12, pitch: 32, padding: 12, termGap: 12, detailsGap: 3 },
@@ -37,7 +37,7 @@ const list = (orientation: 'horizontal' | 'vertical') => (
 	</DescriptionList>
 )
 
-function measure(density: Density) {
+function measure(density: DensityLevel) {
 	const horizontal = getSlot(
 		renderUI(<DensityProvider density={density}>{list('horizontal')}</DensityProvider>).container,
 		'dl',
@@ -67,10 +67,7 @@ function measure(density: Density) {
 }
 
 describe('DescriptionList density', () => {
-	it.each(['compact', 'snug', 'loose'] as const)(
-		'sizes the text and the rows at the step of a %s provider',
-		(density) => {
-			expect(measure(density)).toEqual(EXPECTED[density])
-		},
-	)
+	it.each(levels)('sizes the text and the rows at the step of a %s provider', (density) => {
+		expect(measure(density)).toEqual(EXPECTED[density])
+	})
 })

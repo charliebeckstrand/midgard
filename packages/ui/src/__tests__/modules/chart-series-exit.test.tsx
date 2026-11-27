@@ -9,6 +9,7 @@ import {
 } from '../../modules/chart/engine/chart-motion'
 import { LineChart } from '../../modules/chart/line-chart'
 import { ScatterChart } from '../../modules/chart/scatter-chart'
+import { REDUCED_MOTION_QUERY } from '../../utilities/media-query'
 import { allBySlot, renderUI, stubMatchMedia } from '../helpers'
 import { it } from '../helpers/fake-clock'
 
@@ -183,7 +184,7 @@ describe('legend toggle layout hold', () => {
 	})
 
 	it('lays out at once under a reduced-motion preference', () => {
-		stubMatchMedia((query) => query === '(prefers-reduced-motion: reduce)')
+		stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
 
 		const { container } = renderUI(bars({}))
 

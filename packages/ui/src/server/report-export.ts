@@ -1,4 +1,5 @@
 import type { EventReport, EventReportExport, EventViewport } from '../modules/events/engine/types'
+import { isRecord } from '../utilities/is-record'
 
 // The server end of `postReport`: it reads the report that the browser posts,
 // and checks it. The body comes from the browser, so the server does not trust
@@ -69,9 +70,7 @@ function readLines(value: unknown, field: string): string[] {
 }
 
 function readRecord(value: unknown, field: string): Record<string, unknown> {
-	return typeof value === 'object' && value !== null && !Array.isArray(value)
-		? (value as Record<string, unknown>)
-		: reject(field)
+	return isRecord(value) ? value : reject(field)
 }
 
 function readViewport(value: unknown): EventViewport {

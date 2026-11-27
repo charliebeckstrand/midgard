@@ -26,7 +26,9 @@ export type DatePickerSingleProps = {
 	 * @defaultValue false
 	 */
 	relative?: false
+	/** Controlled date. `undefined` leaves the picker uncontrolled; `null` keeps it controlled with no date (CONVENTIONS §7.3). */
 	value?: Date | null
+	/** Initial date when uncontrolled and not form-bound. */
 	defaultValue?: Date
 	/** Fires when the value changes, with the new value. */
 	onValueChange?: (value: Date | null) => void
@@ -54,7 +56,9 @@ export type DatePickerSingleProps = {
 export type DatePickerRangeProps = {
 	range: true
 	relative?: false
+	/** Controlled range: the start and the end. `undefined` leaves the picker uncontrolled; `null` keeps it controlled with no range. */
 	value?: [Date, Date] | null
+	/** Initial range when uncontrolled and not form-bound. */
 	defaultValue?: [Date, Date]
 	/** Fires when the value changes, with the new value. */
 	onValueChange?: (value: [Date, Date] | null) => void
@@ -90,7 +94,9 @@ export type DatePickerRangeProps = {
 export type DatePickerRelativeProps = {
 	relative: true | DatePickerRelativeConfig
 	range?: false
+	/** Controlled relative dates. `undefined` leaves the picker uncontrolled; `null` keeps it controlled with none. */
 	value?: DatePickerRelativeValue[] | null
+	/** Initial relative dates when uncontrolled and not form-bound. */
 	defaultValue?: DatePickerRelativeValue[]
 	/** Fires when the value changes, with the new value. */
 	onValueChange?: (value: DatePickerRelativeValue[] | null) => void
@@ -139,8 +145,14 @@ export type DatePickerBaseProps = {
 	 * there.
 	 */
 	onMonthChange?: (month: Date) => void
+	/** The first day that a reader can select. Earlier days are disabled. */
 	min?: Date
+	/** The last day that a reader can select. Later days are disabled. */
 	max?: Date
+	/**
+	 * The text of the empty field.
+	 * @defaultValue "Select a date", "Select dates" for a range, or "Select range" for relative dates, in the language of the reader.
+	 */
 	placeholder?: string
 	/**
 	 * The side and the alignment of the panel. A `<side>-auto` value aligns the panel to the

@@ -39,8 +39,22 @@ const { Title, Description, Header, Body, Footer, Content, DefaultFooter } = cre
 /** Props for {@link DrawerClose}: one clickable child, or none for the standard Close button. */
 export type DrawerCloseProps = Partial<PanelCloseProps>
 
+/**
+ * The close control of the enclosing {@link Drawer}. With no child, it renders
+ * the standard Close button, which is also the default footer of the drawer.
+ * The standard button stays live in a locked scope, such as a submitting form.
+ * With one child, a click on the child closes the drawer, and the child's own
+ * `onClick` runs first.
+ */
 const Close = createPanelClose('drawer')
 
+/**
+ * `<div>` header of the drawer: the title and the description, or a row such as
+ * the title with a close button. It stands the panel inset from the top edge, as
+ * the heading of a dialog does, at each density. A title or a description in it
+ * takes no inset of its own. A `closable` header puts an X close at the end
+ * of the line of the title.
+ */
 const ClosableHeader = createPanelHeader('drawer', Header)
 
 export {
@@ -50,21 +64,7 @@ export {
 	 * panel. Give `mx-0`, not `px-0`, for a body as wide as the panel.
 	 */
 	Body as DrawerBody,
-	/**
-	 * `<div>` header of the drawer: the title and the description, or a row such as
-	 * the title with a close button. It stands the panel inset from the top edge, as
-	 * the heading of a dialog does, at each density. A title or a description in it
-	 * takes no inset of its own. A `closable` header puts an X close at the end
-	 * of the line of the title.
-	 */
 	ClosableHeader as DrawerHeader,
-	/**
-	 * The close control of the enclosing {@link Drawer}. With no child, it renders
-	 * the standard Close button, which is also the default footer of the drawer.
-	 * The standard button stays live in a locked scope, such as a submitting form.
-	 * With one child, a click on the child closes the drawer, and the child's own
-	 * `onClick` runs first.
-	 */
 	Close as DrawerClose,
 	/**
 	 * `<div>` wrapper that fills the remaining height of the drawer. It can hold the body

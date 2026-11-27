@@ -2,6 +2,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { Swatch } from '../../../components/swatch'
 import { allBySlot, renderUI } from '../../helpers'
+import { SIZE_AXES } from '../../helpers/size-axes'
 
 /**
  * A vertical line swatch takes the width of a horizontal one, so the labels
@@ -12,7 +13,7 @@ import { allBySlot, renderUI } from '../../helpers'
  * Rides the real browser because the claim is a computed one: jsdom loads no
  * stylesheet.
  */
-const SIZES = ['xs', 'sm', 'md', 'lg', 'xl'] as const
+const SIZES = SIZE_AXES.Swatch
 
 const VARIANTS = ['solid', 'soft', 'outline', 'dashed'] as const
 

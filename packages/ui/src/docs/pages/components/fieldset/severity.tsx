@@ -13,12 +13,12 @@ export default function Severity() {
 			<Field severity="warning">
 				<Label>Email</Label>
 				<Input type="email" defaultValue="wade@exmaple.com" />
-				<Message severity="warning">Check the domain. Did you mean example.com?</Message>
+				<Message>Check the domain. Did you mean example.com?</Message>
 			</Field>
 			<Field severity="success">
 				<Label>Promo code</Label>
 				<Input defaultValue="SPRING25" />
-				<Message severity="success">The code takes 25% off your order.</Message>
+				<Message>The code takes 25% off your order.</Message>
 			</Field>
 		</Stack>
 	)

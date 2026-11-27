@@ -112,7 +112,8 @@ export function useGridMenuActions<T>({
 	// The menu sets a single-column sort, replacing any multi-column sort; Clear
 	// sort empties it. (Multi-column sorting is the header Shift-click path.)
 	const sortColumn = useCallback(
-		(column: string | number, direction: 'asc' | 'desc') => setSort([{ column, direction }]),
+		(column: string | number, direction: GridSortState['direction']) =>
+			setSort([{ column, direction }]),
 		[setSort],
 	)
 
