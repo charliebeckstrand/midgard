@@ -77,16 +77,41 @@ export const k = defineKata(
 			weekday,
 			day: {
 				// On a coarse pointer, the day is a square of the width of its column.
-				base: ['w-full ring-inset', 'pointer-coarse:h-auto pointer-coarse:aspect-square'],
+				// Forced colors remove the fill that tells the selected day from today. The
+				// selected day then takes the `Highlight` pair, as a selected option does.
+				// The pair is not adjusted, so the browser paints no `Canvas` plate behind
+				// the label, and the pair wins with `!` over each fill and hover step.
+				base: [
+					'w-full ring-inset',
+					'pointer-coarse:h-auto pointer-coarse:aspect-square',
+					'forced-colors:aria-selected:forced-color-adjust-none',
+					'forced-colors:aria-selected:bg-[Highlight]! forced-colors:aria-selected:text-[HighlightText]!',
+				],
 				slots: {
 					// The ring of the active cell or control. Focus stays on the grid, so the
-					// ring is virtual.
-					active: [...focus.virtual],
+					// ring is virtual. Under forced colors, the ring stays outside the day in
+					// `CanvasText`, so it does not take the outline of a day in a range.
+					active: [
+						...focus.virtual,
+						'forced-colors:outline-offset-2 forced-colors:outline-[CanvasText]',
+					],
 					// Each endpoint squares the corners that face the band, and a day inside
 					// the band squares each corner. The sides are logical, so the corners
 					// mirror with the grid in a right-to-left region.
 					range: {
-						inner: { true: 'rounded-none', false: '' },
+						// A day between the endpoints is selected too, but under forced colors
+						// it takes a 2 px `Highlight` outline in place of the fill of an
+						// endpoint, so the endpoints stay apart from the band.
+						inner: {
+							true: [
+								'rounded-none',
+								'forced-colors:aria-selected:forced-color-adjust-auto',
+								'forced-colors:aria-selected:bg-transparent! forced-colors:aria-selected:text-[CanvasText]!',
+								'forced-colors:outline-solid forced-colors:outline-2 forced-colors:-outline-offset-2',
+								'forced-colors:outline-[Highlight]',
+							],
+							false: '',
+						},
 						start: { true: 'rounded-e-none', false: '' },
 						end: { true: 'rounded-s-none', false: '' },
 					},
