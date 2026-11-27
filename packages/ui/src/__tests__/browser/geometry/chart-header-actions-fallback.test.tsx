@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { ChartHeaderActionsFallback, ScatterChart, SeatChart } from '../../../modules/chart'
 import { HeaderActions, HeaderActionsSlot } from '../../../primitives/header-actions'
-import { attach, present } from '../../helpers'
+import { attach, getSlot } from '../../helpers'
 import { hydrate, serverMarkup } from '../../helpers/hydrate'
 
 /**
@@ -66,10 +66,7 @@ describe('chart buttons in the header row before the mount (real browser)', () =
 
 		expect(onRecoverableError).not.toHaveBeenCalled()
 
-		const fallback = present(
-			container.querySelector('[data-slot="header-actions-fallback"]'),
-			'the fallback',
-		)
+		const fallback = getSlot(container, 'header-actions-fallback')
 
 		// The chart has put its own buttons in the slot, and the fallback hides.
 		expect(container.querySelector('[data-slot="chart-header-actions"]')).not.toBeNull()
@@ -93,9 +90,7 @@ describe('chart buttons in the header row before the mount (real browser)', () =
 		const menuBox = (root: Element) =>
 			root.querySelector('[data-slot="chart-menu-button"]')?.getAttribute('class')
 
-		expect(menuBox(fallback)).toBe(
-			menuBox(present(container.querySelector('[data-slot="chart-header-actions"]'), 'the row')),
-		)
+		expect(menuBox(fallback)).toBe(menuBox(getSlot(container, 'chart-header-actions')))
 	})
 
 	// A scatter chart with rows but no row where the x and the y are numbers has

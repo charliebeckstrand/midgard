@@ -9,7 +9,7 @@ export default function ClientInfiniteScroll() {
 	// the scroll nears its end, and `hasMore` stops it at the last row.
 	return (
 		<Grid
-			tableProps={{ 'aria-label': 'Client infinite scroll' }}
+			tableProps={{ 'aria-label': 'People' }}
 			columns={columns}
 			rows={manyPeople.slice(0, count)}
 			getKey={(row) => row.id}

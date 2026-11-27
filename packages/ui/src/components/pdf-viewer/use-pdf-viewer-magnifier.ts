@@ -15,6 +15,7 @@ import { useStableEvent } from '../../hooks/use-stable-event'
 import { useTimeout } from '../../hooks/use-timeout'
 import { useTouchHold } from '../../hooks/use-touch-hold'
 import type { IntlShape } from '../../primitives/intl/types'
+import type { Size } from '../../utilities/size'
 import { pdfViewerMessages } from './pdf-viewer-messages'
 import type { PdfViewerMagnifierOptions } from './types'
 
@@ -189,7 +190,7 @@ export function lensOffset(point: MagnifierPoint, zoom: number): MagnifierPoint 
 type Tracking = {
 	local: MagnifierPoint
 	client: MagnifierPoint
-	frame: { width: number; height: number }
+	frame: Size
 }
 
 /** The tracking of `client` against the rect of the frame. @internal */
@@ -209,7 +210,7 @@ export type PdfViewerMagnifierResult = {
 	 * The size of the page frame, in CSS pixels, from the read that gave {@link point}. The copy
 	 * of the page in the lens takes it. `null` while nothing is tracked.
 	 */
-	frame: { width: number; height: number } | null
+	frame: Size | null
 	/** Spread onto the page frame: the surface the loupe reads and the hover reference. */
 	referenceProps: Record<string, unknown>
 	/** Spread onto the lens. */

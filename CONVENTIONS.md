@@ -292,7 +292,7 @@ From `packages/ui`, import per-component entries (`ui/button`, `ui/dialog`) plus
 
 In each test tree, a test goes in the folder of the kind of its unit, such as `hooks/` or `modules/`. Its file name starts with the name of the unit or of its file. A helper goes in `helpers/`, and a setup file goes in `setup/`.
 
-10.2 Component tests render through the library's test renderer and query by `data-slot`. New components expose stable `data-slot` anchors and a filename-matched export.
+10.2 Component tests render through the library's test renderer and query by `data-slot`. New components expose stable `data-slot` anchors and a filename-matched export. Read one slot that must be there with `getSlot` (`helpers/slot-queries.ts`), not with `present` around a `querySelector`. The [`no-hand-written-get-slot`](.biome/plugins/no-hand-written-get-slot.grit) Biome plugin holds this rule in the `ui` tests.
 
 10.3 **Don't drive third-party async lifecycles** (fetch, virtualization, floating-ui, pdfjs) in tests. They flake on CI. Test the synchronous seam (a reducer, a callback, a typed harness), or skip with a stated reason.
 
@@ -347,6 +347,8 @@ Do not load a module early when the case tests that load. An example is a gate t
 10.15 A check of an ARIA id reference names the element, not the id. Use `toControl`, `toHaveActiveDescendant`, `toBeLabelledBy`, and `toBeDescribedBy` (`helpers/aria-references.ts`). Each matcher refuses a target that is not an element, so a query that finds nothing does not make the check pass. Each id must name one element only. To read the element that a reference names, use `ariaTarget` or `ariaTargets`. A literal id that a case gives as a prop stays a `toHaveAttribute` check, because there the contract is the value that passes through. The [`no-hand-written-aria-check`](.biome/plugins/no-hand-written-aria-check.grit) Biome plugin holds this rule and the rule of §10.16 in the `ui` tests.
 
 10.16 A check of ARIA state uses the matcher of that state. For `aria-expanded`, use `toBeExpanded` or `toBeCollapsed` (`helpers/aria-state.ts`), and `not.toHaveAttribute('aria-expanded')` for an element that is no disclosure. For the on state of `aria-pressed` and `aria-checked`, use the jest-dom matchers `toBePressed` and `toBeChecked`. For the off state, use `toBeUnpressed` and `toBeUnchecked`, not `not.toBePressed` or `not.toBeChecked`, because jest-dom passes those when the attribute is absent. The matchers of `helpers/aria-state.ts` refuse `not`, so an absent attribute cannot pass as the off state. For `role`, use `toHaveRole`. Assert an attribute with `toHaveAttribute`, not with `hasAttribute(...)` and `toBe`, because then a failure shows the element.
+
+10.17 A jsdom test drives a user through `setupUser` (`helpers/setup-user.ts`), or through the `user` of the `clock` fixture. By default user-event waits for a macrotask after each key and each pointer action, and jsdom needs no such pause. The static API (`userEvent.click`) makes a new user for each call. Thus a held key or a pointer state does not carry to the next call. A case that acts more than once makes one user and keeps it. The [`no-user-event-outside-setup-user`](.biome/plugins/no-user-event-outside-setup-user.grit) Biome plugin holds this rule in each test tree except the browser tree.
 
 ## 11. Environment
 

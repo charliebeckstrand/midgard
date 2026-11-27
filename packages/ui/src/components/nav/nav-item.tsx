@@ -7,6 +7,7 @@ import { ActiveIndicator } from '../../primitives/active-indicator'
 import { TouchTarget } from '../../primitives/touch-target'
 import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/nav'
+import { hasContent } from '../../utilities/children'
 import { Button } from '../button'
 import { Icon } from '../icon'
 import { type NavItemProps, useNavItem } from './use-nav-item'
@@ -25,7 +26,10 @@ type OmitEach<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never
  */
 // The native `value` of the `<button>` is wider than the selection value, so
 // each arm drops it before the selection `value` joins.
-export type NavMenuItemProps = OmitEach<NavItemProps, 'value'> & { value?: string }
+export type NavMenuItemProps = OmitEach<NavItemProps, 'value'> & {
+	/** The key of the item. The item is current when it matches the `value` of the {@link Nav}. */
+	value?: string
+}
 
 /**
  * Navigation link/button within a {@link NavList}. Renders a polymorphic
@@ -75,7 +79,11 @@ export function NavItem({
 	// slot can host its own interactive element. With an affix present the row
 	// goes flex and takes over the interaction chrome (the `affix` axis of the
 	// unit), so the slots sit inside the hover tint and focus ring.
-	const hasAffix = prefix != null || suffix != null
+	const hasPrefix = hasContent(prefix)
+
+	const hasSuffix = hasContent(suffix)
+
+	const hasAffix = hasPrefix || hasSuffix
 
 	const slots = k.item({ affix: hasAffix })
 
@@ -86,7 +94,7 @@ export function NavItem({
 			className={slots.base}
 			{...tapHandlers}
 		>
-			{prefix != null && (
+			{hasPrefix && (
 				// Each slot is a density scope one step below the item. A slot is a
 				// `<div>`, so it can hold flow content.
 				<div data-slot="nav-item-prefix" data-density="slot" className={slots.prefix}>
@@ -115,7 +123,7 @@ export function NavItem({
 					</TouchTarget>
 				</Button>
 			</HeadlessProvider>
-			{suffix != null && (
+			{hasSuffix && (
 				<div data-slot="nav-item-suffix" data-density="slot" className={slots.suffix}>
 					{suffix}
 				</div>

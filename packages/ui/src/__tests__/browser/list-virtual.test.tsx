@@ -2,7 +2,7 @@ import { Profiler } from 'react'
 import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { List, ListItem } from '../../components/list'
-import { frames, present, renderUI, waitFor } from '../helpers'
+import { frames, getSlot, present, renderUI, waitFor } from '../helpers'
 
 /**
  * The window of a `virtualize` List, in a real browser.
@@ -202,7 +202,7 @@ describe('a virtual list', () => {
 
 		await frames()
 
-		const list = present(container.querySelector<HTMLElement>('[data-slot="list"]'), 'the list')
+		const list = getSlot(container, 'list')
 
 		const listTop =
 			list.getBoundingClientRect().top - region.getBoundingClientRect().top + region.scrollTop

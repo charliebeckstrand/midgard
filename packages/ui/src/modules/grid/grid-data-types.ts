@@ -878,8 +878,8 @@ export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'>
 	columns: GridColumn<T>[]
 	/**
 	 * The rows to show. The grid reads the array and never changes it. A sort,
-	 * a filter, or a page is a view that the grid builds over it. A readonly
-	 * array is accepted as it is, with no copy.
+	 * a filter, or a page is a view that the grid builds over it. The grid takes
+	 * a readonly array as it is, with no copy.
 	 */
 	rows: readonly T[]
 	/** Derives a stable, unique key per row; backs selection, sort, and virtualization identity. */
@@ -962,9 +962,9 @@ export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'>
 	columnOrder?: GridColumnOrder
 
 	/**
-	 * Runtime-pinning binding: the pin changes the header menu and column
-	 * manager apply, controlled/uncontrolled over a serializable
-	 * {@link GridPinningState}. Omit to keep the state internal.
+	 * The pins of the columns, controlled or uncontrolled ({@link GridPinning}).
+	 * The header menu and the column manager change them. Omit it to keep the
+	 * state internal.
 	 *
 	 * @see {@link GridPinning}
 	 */

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Switch } from '../../components/switch'
-import { present, renderUI } from '../helpers'
+import { getSlot, renderUI } from '../helpers'
 
 /**
  * The thumb of a checked Switch keeps its ring and its tinted shadow.
@@ -15,7 +15,7 @@ describe('checked switch thumb box-shadow (real browser)', () => {
 		const { container } = renderUI(
 			<Switch aria-label="Notifications" checked={checked} onChange={() => {}} />,
 		)
-		const thumb = present(container.querySelector('[data-slot="switch-thumb"]'), 'switch thumb')
+		const thumb = getSlot(container, 'switch-thumb')
 		return getComputedStyle(thumb).boxShadow
 	}
 

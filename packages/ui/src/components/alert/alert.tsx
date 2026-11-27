@@ -104,8 +104,8 @@ export type AlertProps = Omit<AlertVariants, 'color'> &
 		/** Fires when the open state changes. */
 		onOpenChange?: (open: boolean) => void
 		/**
-		 * Mirrors an `info` or `success` alert that mounts open through the
-		 * announcer, as it mirrors one that opens later.
+		 * Announces an `info` or `success` alert that mounts open, as the alert
+		 * announces one that opens later.
 		 *
 		 * @remarks
 		 * Set it on an alert that a user action renders, such as

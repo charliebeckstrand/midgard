@@ -4,6 +4,7 @@ import type { ReactNode } from 'react'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { useLocale } from '../../providers/locale/context'
+import { hasContent } from '../../utilities/children'
 import { fractionFormat } from '../../utilities/format-number'
 import {
 	Table,
@@ -44,7 +45,7 @@ export type PivotTableProps<T> = Pick<
 	keys: PivotTableKeys<T>
 	/** How to aggregate the value field within a (row × column) group. @defaultValue 'sum' */
 	aggregation?: PivotAggregation
-	/** Format cell values. @defaultValue up to two fraction digits in the `<LocaleProvider>` locale, so a whole number prints with no fraction. */
+	/** Formats the value of each cell. @defaultValue up to two fraction digits in the `<LocaleProvider>` locale, so a whole number prints with no fraction. */
 	formatValue?: (value: number) => ReactNode
 	/** Label for the row-dimension column. Without it, the corner cell is an empty `<td>`, not a header. */
 	rowHeader?: ReactNode
@@ -126,7 +127,11 @@ export function PivotTable<T>({
 				<TableRow>
 					{/* An empty `<th>` is a header with no text (axe empty-table-header), so
 					    the corner without a `rowHeader` is a `<td>`. */}
-					{rowHeader == null ? <TableCell /> : <TableHeader scope="col">{rowHeader}</TableHeader>}
+					{hasContent(rowHeader) ? (
+						<TableHeader scope="col">{rowHeader}</TableHeader>
+					) : (
+						<TableCell />
+					)}
 					{columnKeys.map((column) => (
 						<TableHeader key={column} scope="col" className="text-end">
 							{column}

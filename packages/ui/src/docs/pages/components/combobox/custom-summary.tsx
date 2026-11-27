@@ -23,9 +23,7 @@ export default function CustomSummary() {
 				placeholder="Search people"
 				defaultValue={['Devon Webb', 'Tanya Fox', 'Wade Cooper']}
 				displayValue={(person) => person}
-				summarize={(selected) =>
-					selected.length === 1 ? '1 reviewer' : `${selected.length} reviewers`
-				}
+				summarize={(selected) => `${selected.length} reviewers`}
 			>
 				<MatchingPeople />
 			</Combobox>

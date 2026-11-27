@@ -19,6 +19,7 @@ import type { MessageDescriptor } from '../../primitives/intl/types'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { SortableGrip } from '../../primitives/sortable-grip/sortable-grip'
 import { k } from '../../recipes/kata/grid'
+import { hasContent } from '../../utilities/children'
 import { noop } from '../../utilities/noop'
 import type { QueryGroup } from '../query/engine/types'
 import { GridReorderKitContext } from './context'
@@ -27,7 +28,7 @@ import { gridMessages } from './engine/grid-messages'
 import { pinnedHeaderProps } from './engine/grid-pin/styles'
 import { columnShiftStyle } from './engine/grid-reorder-compute'
 import { fitHeaderProps } from './engine/grid-sizing/fit-styles'
-import { ariaSortValue } from './engine/grid-sort/state'
+import { ariaSortValue, type GridSortState } from './engine/grid-sort/state'
 import type { GridColumnFilter } from './engine/grid-table/filter-view'
 import { showsFilterButton } from './engine/grid-table/filter-view'
 import type { GridColumnPinning } from './engine/grid-table/pinning-view'
@@ -96,7 +97,7 @@ function useSurfaceSafeActivators(
  * @internal
  */
 export function untitledHeaderName<T>(column: GridColumn<T>): MessageDescriptor | undefined {
-	if (column.title != null && column.title !== '') return undefined
+	if (hasContent(column.title)) return undefined
 
 	if (column.expander) return gridMessages.detailsColumn
 
@@ -121,7 +122,7 @@ export type GridColumnHeaderProps = {
 	/** The cursor parts of the cell, or `null` while the grid has no cursor (see {@link useGridHeaderCursor}). */
 	cursor: GridHeaderCursor | null
 	sorted: boolean
-	direction: 'asc' | 'desc' | undefined
+	direction: GridSortState['direction'] | undefined
 	/** 1-based sort priority shown as a badge under a multi-column sort; `undefined` otherwise. */
 	sortPriority: number | undefined
 	stickyHeader: boolean

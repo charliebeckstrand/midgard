@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { beforeAll, describe, expect, it } from 'vitest'
+import { setupUser } from '../../__tests__/helpers/setup-user.ts'
 import { SearchIconButton } from '../search/ui/search-button.tsx'
 import { DocsSearch, SearchPaletteHost } from '../search/ui/search-provider.tsx'
 
@@ -16,7 +16,7 @@ beforeAll(async () => {
 
 describe('the docs search icon button', () => {
 	it('opens the palette with an empty query on a press', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		render(
 			<MemoryRouter>

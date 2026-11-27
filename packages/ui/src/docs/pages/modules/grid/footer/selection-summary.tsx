@@ -11,7 +11,7 @@ export default function SelectionSummary() {
 	// the selected rows.
 	return (
 		<Grid
-			tableProps={{ 'aria-label': 'Selection summary' }}
+			tableProps={{ 'aria-label': 'People' }}
 			columns={selectColumns}
 			rows={people}
 			getKey={(row) => row.id}

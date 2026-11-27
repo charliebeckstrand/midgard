@@ -6,6 +6,7 @@ import { cn } from '../../core/cn'
 import { dataAttr } from '../../core/data-attr'
 import type { ScaleStep } from '../../core/density/scale'
 import type { scale } from '../../recipes/kata/control'
+import { hasContent } from '../../utilities/children'
 import { ControlFrame } from '../control'
 import { PolymorphicStatic } from '../polymorphic'
 
@@ -88,13 +89,13 @@ export function SelectTrigger({
 			className={cn(className)}
 		>
 			<ControlFrame data-open={dataAttr(open)} className={cn(slots.base)} {...frameProps}>
-				{prefix && (
+				{hasContent(prefix) && (
 					<span data-slot="prefix" data-density="slot" className={cn(slots.prefix)}>
 						{prefix}
 					</span>
 				)}
 				{children}
-				{suffix !== undefined && (
+				{hasContent(suffix) && (
 					<span
 						data-slot="suffix"
 						data-density="slot"

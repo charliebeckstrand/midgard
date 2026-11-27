@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { densitySteps } from '../../../core/density'
 import {
 	createGroup,
 	QueryBuilder,
@@ -7,8 +8,8 @@ import {
 	type QueryGroup,
 	type QueryRule,
 } from '../../../modules/query'
-import { DensityProvider } from '../../../providers/density'
-import { present, renderUI } from '../../helpers'
+import { type DensityLevel, DensityProvider, densityLevels } from '../../../providers/density'
+import { getSlot, present, renderUI } from '../../helpers'
 import { getCenter } from '../../helpers/geometry/box'
 import { LAYOUT_UNIT } from '../../helpers/geometry/tolerance'
 
@@ -19,7 +20,7 @@ import { LAYOUT_UNIT } from '../../helpers/geometry/tolerance'
  * `snug` (`md`) the values are the values from before the change.
  */
 
-type Density = 'compact' | 'snug' | 'loose'
+const levels = densityLevels.map(({ value }) => value)
 
 const fields: QueryField[] = [{ name: 'name', label: 'Name', type: 'text' }]
 
@@ -89,7 +90,7 @@ const EXPECTED = {
 	},
 } as const
 
-function measureChips(density: Density, readOnly = false) {
+function measureChips(density: DensityLevel, readOnly = false) {
 	const { container } = renderUI(
 		<DensityProvider density={density}>
 			<QueryChips fields={fields} defaultValue={query()} readOnly={readOnly} />
@@ -123,14 +124,14 @@ function measureChips(density: Density, readOnly = false) {
 	}
 }
 
-function measureSegment(density: Density) {
+function measureSegment(density: DensityLevel) {
 	const { container } = renderUI(
 		<DensityProvider density={density}>
 			<QueryBuilder fields={fields} defaultValue={query()} />
 		</DensityProvider>,
 	)
 
-	const segment = present(container.querySelector('[data-slot="segment"]'), 'the segment')
+	const segment = getSlot(container, 'segment')
 
 	const item = present(segment.querySelector('[role="radio"]'), 'a segment item')
 
@@ -141,14 +142,11 @@ function measureSegment(density: Density) {
 }
 
 describe('Query density', () => {
-	it.each(['compact', 'snug', 'loose'] as const)(
-		'sizes the chips and the combinators at the step of a %s provider',
-		(density) => {
-			expect(measureChips(density)).toEqual(EXPECTED.chips[density])
+	it.each(levels)('sizes the chips and the combinators at the step of a %s provider', (density) => {
+		expect(measureChips(density)).toEqual(EXPECTED.chips[density])
 
-			expect(measureChips(density, true)).toEqual(EXPECTED.readOnly[density])
-		},
-	)
+		expect(measureChips(density, true)).toEqual(EXPECTED.readOnly[density])
+	})
 
 	// The gap is an unregistered custom property, so it reads back as its
 	// `calc()` text. A probe in the row resolves it through its width.
@@ -165,7 +163,7 @@ describe('Query density', () => {
 				</DensityProvider>,
 			)
 
-			const row = present(container.querySelector('[data-slot="query-chips"]'), 'the row')
+			const row = getSlot(container, 'query-chips')
 
 			const probe = document.createElement('div')
 
@@ -177,15 +175,12 @@ describe('Query density', () => {
 		},
 	)
 
-	it.each(['compact', 'snug', 'loose'] as const)(
-		'sizes the AND/OR segment at the step of a %s provider',
-		(density) => {
-			expect(measureSegment(density)).toEqual(EXPECTED.segment[density])
-		},
-	)
+	it.each(levels)('sizes the AND/OR segment at the step of a %s provider', (density) => {
+		expect(measureSegment(density)).toEqual(EXPECTED.segment[density])
+	})
 	// The grip kept one top margin, so it centered on the first control line of
 	// a rule only at `md`. The control height steps with density.
-	it.each(['xs', 'sm', 'md', 'lg', 'xl'] as const)(
+	it.each(densitySteps)(
 		'centers the reorder grip on the first control line of a rule at %s',
 		(step) => {
 			const { container } = renderUI(
@@ -194,9 +189,9 @@ describe('Query density', () => {
 				</div>,
 			)
 
-			const node = present(container.querySelector('[data-slot="query-sortable"]'), 'a node')
+			const node = getSlot(container, 'query-sortable')
 
-			const grip = present(node.querySelector('[data-slot="query-reorder-handle"]'), 'the grip')
+			const grip = getSlot(node, 'query-reorder-handle')
 
 			const control = present(
 				node.querySelector('[data-slot="query-rule"] [data-slot="control-frame"]'),

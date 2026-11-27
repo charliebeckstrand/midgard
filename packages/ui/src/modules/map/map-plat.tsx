@@ -2,7 +2,6 @@
 
 import { useComposedRefs } from 'motion/react'
 import {
-	Children,
 	type ComponentProps,
 	type CSSProperties,
 	type ReactNode,
@@ -24,6 +23,7 @@ import { ReducedMotion } from '../../primitives/reduced-motion'
 import { useLocale } from '../../providers/locale/context'
 import type { MapSeriesColor } from '../../recipes/kata/map'
 import type { AccessibleName } from '../../types/accessible-name'
+import { hasContent } from '../../utilities/children'
 import { getOrCompute } from '../../utilities/get-or-compute'
 import { sameElements } from '../../utilities/same-elements'
 import { legendAside } from '../chart/engine/chart-legend/schema'
@@ -397,7 +397,7 @@ type MapPlatBaseProps = AccessibleName &
 		 */
 		onRegionClick?: ChartItemClick
 		/**
-		 * Whether a region takes no click, by the identity and feature index
+		 * Tells if a region takes no click, by the identity and feature index
 		 * {@link onRegionClick} reports. Use it for a region that opens nothing,
 		 * such as a state with no race. A disabled region takes no pointer cursor
 		 * and no click hover, and a click, a tap, or Enter on it reports
@@ -459,8 +459,8 @@ type MapPlatBaseProps = AccessibleName &
 		onRegionPreload?: (id: string, index: number) => void
 		/**
 		 * The selected regions, by the identity that {@link onRegionClick} reports.
-		 * That is the `regionId` value, so the pick that a click gives the caller
-		 * comes straight back as a pick to draw. It is the `selectedCategories` of a
+		 * That is the `regionId` value, so the selection that a click gives the
+		 * caller comes straight back as a selection to draw. It is the `selectedCategories` of a
 		 * chart, in the same shape.
 		 *
 		 * The map paints the set and holds no selection state of its own. Whatever
@@ -495,7 +495,7 @@ type MapPlatBaseProps = AccessibleName &
 		 */
 		selectedRegions?: readonly string[]
 		/**
-		 * Marks the region VALUES as still loading: the atlas is drawn and its numbers
+		 * Marks the region values as still loading: the atlas is drawn and its numbers
 		 * are not in yet.
 		 *
 		 * The shapes pulse while it holds, and a reader who asked for reduced motion
@@ -518,9 +518,9 @@ type MapPlatBaseProps = AccessibleName &
 		 * The selected overlay marks, each in the pair that its reporter gives (see
 		 * {@link MapOverlaySelection} for how the pair reads). It is
 		 * {@link selectedRegions} for the marks drawn over the geography, on the same
-		 * terms. The map paints the picks and holds no selection state of its own,
-		 * so whatever owns the value stays the single source of truth. To pick more
-		 * than one stop, add the reported pair to the list.
+		 * terms. The map paints the selection and holds no selection state of its
+		 * own, so whatever owns the value stays the single source of truth. To
+		 * select more than one stop, add the reported pair to the list.
 		 *
 		 * Each picked mark takes a foreground-ink halo behind it, outside the hover
 		 * recede. A pick made before the pointer arrived is therefore still marked
@@ -578,8 +578,8 @@ type MapPlatBaseProps = AccessibleName &
 		 */
 		onEmphasisChange?: (emphasis: string | null) => void
 		/**
-		 * Whether the map recedes the other marks around the pointed mark and the
-		 * legend emphasis. With `false`, the pointer and the legend dim nothing: a
+		 * Recedes the other marks around the pointed mark and the legend emphasis.
+		 * With `false`, the pointer and the legend dim nothing: a
 		 * region and the dots on it stay at full strength, and the pointer changes
 		 * only the readout, the tooltip, and the cursor. The lit copies of the
 		 * pointed and the emphasized regions do not render, so the legend emphasis
@@ -948,7 +948,7 @@ const PLOT_CONTAINER = 'absolute inset-0 [container:map-plot/size]'
 
 /**
  * An SVG geography map on the chart module's interaction grammar. Regions take
- * their color by category from typed rows. One merged legend dims everything
+ * their color by category, or along a ramp of a number, from typed rows. One merged legend dims everything
  * outside a pointed entry's group and outlines the regions in it, and a click
  * toggles that group off. A pointed region or overlay on the map isolates
  * behind the same recede. A pointer-anchored Tooltip carries the readout.
@@ -1724,7 +1724,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		{
 			categoryCount: categoryMetas.length,
 			entryCount: entries.length,
-			hasOverlayChildren: Children.toArray(children).length > 0,
+			hasOverlayChildren: hasContent(children),
 		},
 		{
 			colorRange,

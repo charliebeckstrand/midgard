@@ -23,10 +23,8 @@ import { drawnRegions, isDrawn, type PlaceAtlas } from './places-view'
  * are the cut that contains its own coastline.
  */
 const TOPOLOGIES: Record<PlaceAtlas, MapTopology> = {
-	// `resolveJsonModule` types each import as its literal shape, which is not
-	// assignable to the structural `MapTopology`. The two are the same at runtime.
-	states: states as MapTopology,
-	countries: countries as MapTopology,
+	states,
+	countries,
 }
 
 /** The decoded regions of each atlas that a caller asked for. */

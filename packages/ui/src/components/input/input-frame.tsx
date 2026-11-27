@@ -5,6 +5,7 @@ import { cn } from '../../core/cn'
 import type { DensityStep } from '../../core/density/steps'
 import { ControlFrame } from '../../primitives/control'
 import { HeadlessShell } from '../../primitives/headless/headless-shell'
+import { hasContent } from '../../utilities/children'
 
 type InputFrameProps = {
 	input: ReactNode
@@ -17,30 +18,19 @@ type InputFrameProps = {
 }
 
 /**
- * Whether an affix renders. A null, false, or `''` affix is absent, so the
- * frame gets no affix style and no empty slot. A `0` affix is present, and a
- * plain `&&` would leak it as a bare text node.
- *
- * @internal
- */
-export function isAffixPresent(affix: ReactNode) {
-	return affix != null && affix !== false && affix !== ''
-}
-
-/**
  * Density-scoped affix frame around the bare `<input>`. Each prefix and suffix
  * slot is a scope one step below the frame (`data-density="slot"`), so the slot
  * content renders one step smaller than the input. The caller resolves the
- * slots of its unit, with `affixed` from {@link isAffixPresent}, which also
+ * slots of its unit, with `affixed` from {@link hasContent}, which also
  * guards each affix here. Under `<HeadlessProvider>`, the frame and each affix
  * slot drop their element, and the affixes render bare beside the field.
  *
  * @internal
  */
 export function InputFrame({ input, prefix, suffix, slots, density }: InputFrameProps) {
-	const hasPrefix = isAffixPresent(prefix)
+	const hasPrefix = hasContent(prefix)
 
-	const hasSuffix = isAffixPresent(suffix)
+	const hasSuffix = hasContent(suffix)
 
 	return (
 		<ControlFrame density={density} className={cn(slots.base)}>

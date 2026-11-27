@@ -9,7 +9,7 @@ export default function HoldToConfirm() {
 	return (
 		<Stack gap="lg" align="start">
 			<HoldButton onHoldComplete={() => setCount((prev) => prev + 1)}>Hold to confirm</HoldButton>
-			<Text tone="muted">Confirmations: {count}</Text>
+			<Text>Confirmations: {count}</Text>
 		</Stack>
 	)
 }

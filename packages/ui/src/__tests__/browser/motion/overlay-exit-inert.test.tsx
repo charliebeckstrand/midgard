@@ -5,7 +5,7 @@ import { Button } from '../../../components/button'
 import { CommandPalette, CommandPaletteItem } from '../../../components/command-palette'
 import { Confirm } from '../../../components/confirm'
 import { Overlay } from '../../../primitives/overlay'
-import { present, renderUI, screen, waitFor } from '../../helpers'
+import { getSlot, renderUI, screen, waitFor } from '../../helpers'
 import { waitForOverlayRest } from '../helpers/motion-frame'
 
 /**
@@ -17,8 +17,7 @@ import { waitForOverlayRest } from '../helpers/motion-frame'
  * Real Motion is necessary: the instant mock removes the node in the commit
  * that closes it, so no exit occurs.
  */
-const root = () =>
-	present(document.querySelector<HTMLElement>('[data-slot="overlay"]'), '[data-slot="overlay"]')
+const root = () => getSlot(document, 'overlay')
 
 const gone = () => waitFor(() => expect(document.querySelector('[data-slot="overlay"]')).toBeNull())
 

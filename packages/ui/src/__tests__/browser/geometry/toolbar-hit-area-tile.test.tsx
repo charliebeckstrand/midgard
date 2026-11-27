@@ -3,7 +3,7 @@ import { Button } from '../../../components/button'
 import { Toolbar, ToolbarGroup, ToolbarSeparator } from '../../../components/toolbar'
 import { densitySteps } from '../../../core/density'
 import type { Orientation } from '../../../types/orientation'
-import { frames, present, renderUI } from '../../helpers'
+import { frames, getSlot, renderUI } from '../../helpers'
 import { LAYOUT_UNIT } from '../../helpers/geometry/tolerance'
 import { holdRoot } from '../helpers/root-state'
 
@@ -57,12 +57,7 @@ describe('Toolbar hit areas along its axis (real browser)', () => {
 		const hosts = buttons.map((button) => along(button.getBoundingClientRect()))
 
 		const areas = buttons.map((button) =>
-			along(
-				present(
-					button.querySelector('[data-slot="touch-target"]'),
-					'the hit area',
-				).getBoundingClientRect(),
-			),
+			along(getSlot(button, 'touch-target').getBoundingClientRect()),
 		)
 
 		let pairs = 0

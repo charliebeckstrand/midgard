@@ -615,12 +615,9 @@ describe('TreeItem', () => {
 			</Tree>,
 		)
 
-		const root = present(container.querySelector('[data-slot="tree"]'), '[data-slot="tree"]')
+		const root = getSlot(container, 'tree')
 
-		const row = present(
-			container.querySelector('[data-slot="tree-item-content"]'),
-			'[data-slot="tree-item-content"]',
-		)
+		const row = getSlot(container, 'tree-item-content')
 
 		// Initial tabIndex from the mount-time roving effect.
 		expect(row.tabIndex).toBe(0)
@@ -737,8 +734,8 @@ describe('TreeItem', () => {
 
 describe('TreeItem group ownership', () => {
 	// The child group is a sibling of the row in the DOM. The open row owns it,
-	// and the label alone names the row.
-	it('owns the group of an open branch, and takes its name from the label alone', () => {
+	// and the label and the suffix name the row.
+	it('owns the group of an open branch, and takes its name from the label and the suffix', () => {
 		const { container } = renderUI(
 			<Tree aria-label="Files">
 				<TreeItem label="src" defaultOpen suffix={<span>3 files</span>}>
@@ -747,7 +744,7 @@ describe('TreeItem group ownership', () => {
 			</Tree>,
 		)
 
-		const row = screen.getByRole('treeitem', { name: 'src' })
+		const row = screen.getByRole('treeitem', { name: 'src 3 files' })
 
 		const group = ariaTarget(row, 'aria-owns')
 
@@ -756,6 +753,19 @@ describe('TreeItem group ownership', () => {
 		expect(group).toBe(getSlot(container, 'tree-group'))
 
 		expect(group).toContainElement(screen.getByRole('treeitem', { name: 'a.ts' }))
+	})
+
+	it.each([false, ''])('takes its name from the label alone for a suffix of %j', (suffix) => {
+		renderUI(
+			<Tree aria-label="Files">
+				<TreeItem label="src" suffix={suffix} />
+			</Tree>,
+		)
+
+		const row = screen.getByRole('treeitem', { name: 'src' })
+
+		// The reference names only the label, so it never points at a missing suffix.
+		expect(row.getAttribute('aria-labelledby')?.split(' ')).toHaveLength(1)
 	})
 
 	it('drops the ownership while the branch is closed, so the reference never dangles', () => {

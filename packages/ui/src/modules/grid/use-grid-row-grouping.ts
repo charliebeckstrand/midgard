@@ -4,11 +4,9 @@ import { type Dispatch, type SetStateAction, useState } from 'react'
 import { useControllable, useControllableBinding } from '../../hooks/use-controllable'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { toggleItem } from '../../utilities/toggle-item'
+import { EMPTY_SET } from './engine/grid-constants'
 import { ALL_GROUPS_CLOSED, ALL_GROUPS_OPEN, type GroupExpansion } from './engine/grid-group/tree'
 import type { GridGroupBy, GridGroupHeaderRow } from './grid-data-types'
-
-/** Stable empty expanded-key set; read-only, replaced wholesale on change. @internal */
-const EMPTY_EXPANDED: ReadonlySet<string | number> = new Set()
 
 /** Resolved row-grouping state for {@link useGridTable} and the grouped body. @internal */
 type GridRowGroupingResult<T> = {
@@ -71,11 +69,11 @@ export function useGridRowGrouping<T>(
 	// Manual expansion is a key set, not a `GroupExpansion`: the groups live on
 	// the server, so a boolean default can't enumerate them (a `Set` default seeds
 	// the open groups, and anything else starts fully collapsed).
-	const [manualExpanded = EMPTY_EXPANDED, setManualExpanded] = useControllable<
+	const [manualExpanded = EMPTY_SET, setManualExpanded] = useControllable<
 		ReadonlySet<string | number>
 	>({
 		value: config?.expanded,
-		defaultValue: config?.defaultExpanded instanceof Set ? config.defaultExpanded : EMPTY_EXPANDED,
+		defaultValue: config?.defaultExpanded instanceof Set ? config.defaultExpanded : EMPTY_SET,
 		onValueChange: (next) => config?.onExpandedChange?.(new Set(next ?? [])),
 	})
 
@@ -87,7 +85,7 @@ export function useGridRowGrouping<T>(
 		let expanding = false
 
 		setManualExpanded((prev) => {
-			const open = prev ?? EMPTY_EXPANDED
+			const open = prev ?? EMPTY_SET
 
 			expanding = !open.has(key)
 

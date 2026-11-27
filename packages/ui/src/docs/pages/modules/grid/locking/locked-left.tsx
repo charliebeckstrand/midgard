@@ -12,7 +12,7 @@ const lockedColumns: GridColumn<Employee>[] = employeeColumns.map((column) => {
 export default function LockedLeft() {
 	return (
 		<Grid
-			tableProps={{ 'aria-label': 'Locked left' }}
+			tableProps={{ 'aria-label': 'Employees' }}
 			resizable
 			columns={lockedColumns}
 			rows={employees}

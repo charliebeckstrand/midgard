@@ -25,6 +25,7 @@ import { useStableEvent } from '../../hooks/use-stable-event'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/chat-prompt'
+import { hasContent } from '../../utilities/children'
 import { isComposing } from '../../utilities/is-composing'
 import { keyByOccurrence } from '../../utilities/key-by-occurrence'
 import { hasBrowserModifier } from '../../utilities/modifier-keys'
@@ -178,7 +179,7 @@ export type ChatPromptProps = {
 	/**
 	 * Shows the formatting of the draft in the field, in place of its Markdown
 	 * syntax, with a formatting toolbar above the field. `true` shows each
-	 * action but `heading`, and `{ actions }` picks them. The value stays a
+	 * action but `heading`, and `{ actions }` selects them. The value stays a
 	 * Markdown string.
 	 *
 	 * @remarks The field is a {@link Wysiwyg}. Enter sends, and Shift+Enter
@@ -194,7 +195,8 @@ export type ChatPromptProps = {
 	/**
 	 * A row above the field, such as a status that says that the draft edits a
 	 * sent message, or that a reply streams, with its controls. Render it only
-	 * while its status holds: `undefined`, `null`, or `false` renders no row.
+	 * while its status holds: empty content, such as `null`, `false`, or `''`,
+	 * renders no row.
 	 * Content that unmounts while the focus is in it,
 	 * such as after a press of its Cancel button, gives the focus to the
 	 * textarea (WCAG 2.4.3). A form control in the row is not part of the
@@ -221,7 +223,7 @@ export type ChatPromptProps = {
 	/** Accepted attachment types (e.g. `".pdf,.csv"`); forwarded to the file picker. */
 	accept?: string
 	/**
-	 * Picked attachments to surface as chips below the field. Each chip gains a
+	 * Selected attachments to surface as chips below the field. Each chip gains a
 	 * remove button when {@link ChatPromptProps.onRemoveAttachment} is provided.
 	 */
 	attachments?: readonly File[]
@@ -446,7 +448,7 @@ export function ChatPrompt({
 		// Control supplies the stable id the field resolves through useControlProps.
 		<Control className={className}>
 			{/* `editing && …` gives `false`, which renders nothing, so it is no toolbar. */}
-			{toolbar != null && typeof toolbar !== 'boolean' && (
+			{hasContent(toolbar) && (
 				<ChatPromptToolbar onUnmountWithFocus={focusField}>{toolbar}</ChatPromptToolbar>
 			)}
 			{formatted ? (

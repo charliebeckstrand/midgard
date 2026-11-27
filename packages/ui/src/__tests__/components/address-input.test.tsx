@@ -384,7 +384,9 @@ describe('AddressInput', () => {
 		expect(bySlot(container, 'suffix')?.querySelector('svg.lucide-map-pin')).toBeInTheDocument()
 	})
 
-	it('pulses the field while a fetch is in flight, then settles', async ({ clock }) => {
+	it('shows the busy state on the field while a fetch is in flight, then settles', async ({
+		clock,
+	}) => {
 		const suggestions = deferred<AddressSuggestion[]>()
 
 		const provider: AddressProvider = () => suggestions.promise
@@ -399,12 +401,13 @@ describe('AddressInput', () => {
 
 		await clock.advance(0)
 
-		expect(field).toHaveClass('motion-safe:animate-pulse')
+		// The pulse, and the standing dim that takes its place under reduced motion.
+		expect(field).toHaveClass('motion-safe:animate-pulse', 'motion-reduce:opacity-50')
 
 		suggestions.resolve([{ id: '1', label: '123 Main St' }])
 
 		await waitFor(() => {
-			expect(field).not.toHaveClass('motion-safe:animate-pulse')
+			expect(field).not.toHaveClass('motion-safe:animate-pulse', 'motion-reduce:opacity-50')
 		})
 	})
 })

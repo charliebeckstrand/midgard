@@ -1,0 +1,30 @@
+language js
+
+// A test reads one slot that must be there through `getSlot`
+// (`helpers/slot-queries.ts`). `present` around a `querySelector` of one
+// `[data-slot="x"]` is `getSlot` written by hand: it repeats the slot name in
+// its own message, and each site words that message in a new way. `getSlot`
+// states the name once and gives the selector in the failure.
+//
+// The pattern flags `present`, with or without a type argument, around a
+// `querySelector` whose whole argument is one `[data-slot="..."]`. A compound
+// selector, such as `[data-slot="x"] [role="option"]`, passes. So does an
+// optional call (`row?.querySelector(...)`), because there the container can be
+// absent, and `getSlot` takes a container that is there.
+//
+// Reach is the `includes` beside this plugin in `biome.json`: the tests of
+// `ui`, whose helpers give `getSlot`.
+or {
+	`present($element, $what)`,
+	`present<$type>($element, $what)`
+} as $call where {
+	$element <: or {
+		`$container.querySelector($selector)`,
+		`$container.querySelector<$narrow>($selector)`
+	},
+	$selector <: r"^['\"`]\[data-slot=\"[\w-]+\"\]['\"`]$",
+	register_diagnostic(
+		span = $call,
+		message = "read one slot with getSlot(container, name), which names the slot in its failure: present around a querySelector of one data-slot is getSlot by hand"
+	)
+}

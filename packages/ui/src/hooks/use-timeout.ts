@@ -31,26 +31,50 @@ export type Timeout = {
  * timer then starts.
  */
 export function useTimeout(): Timeout {
-	const [{ timeout, mount }] = useState(createTimeout)
+	const [{ scheduler, mount }] = useState(createTimeout)
 
 	useEffect(mount, [mount])
 
-	return timeout
+	return scheduler
 }
 
-/**
- * A {@link Timeout} and the effect of its owner. The effect starts a timer that
- * waits, and its cleanup clears the timer and makes the next `set` wait.
- */
-function createTimeout(): { timeout: Timeout; mount: () => () => void } {
-	let id: ReturnType<typeof setTimeout> | null = null
+const createTimeout = () =>
+	createScheduler(
+		(run, ms: number) => setTimeout(run, Math.min(ms, MAX_TIMEOUT)),
+		(id) => clearTimeout(id),
+	)
 
-	// The start of a timer that `set` called between the effect cleanup and the
+/**
+ * A restartable task on one platform scheduler, and the effect of its owner.
+ * {@link useTimeout} and `useAnimationFrame` share it.
+ *
+ * @param request - Schedules `run` and gives its id. It gets the arguments of
+ * `set` after the callback. It reads the platform function at each call, not at
+ * the import, so fake timers that a test installs later apply.
+ * @param cancel - Cancels the task that has the id.
+ * @returns The task, and the effect that starts a task that waits. The cleanup
+ * of that effect cancels the task and makes the next `set` wait.
+ * @internal
+ */
+export function createScheduler<Id, Args extends unknown[]>(
+	request: (run: () => void, ...args: Args) => Id,
+	cancel: (id: Id) => void,
+): {
+	scheduler: {
+		set: (callback: () => void, ...args: Args) => void
+		clear: () => void
+		pending: () => boolean
+	}
+	mount: () => () => void
+} {
+	let id: Id | null = null
+
+	// The start of a task that `set` called between the effect cleanup and the
 	// next run of the effect.
 	let waiting: (() => void) | null = null
 
 	// True from the creation to the cleanup, so a call during the first render
-	// or in a layout effect starts the timer at once.
+	// or in a layout effect starts the task at once.
 	let mounted = true
 
 	const clear = () => {
@@ -58,24 +82,23 @@ function createTimeout(): { timeout: Timeout; mount: () => () => void } {
 
 		if (id === null) return
 
-		clearTimeout(id)
+		cancel(id)
 
 		id = null
 	}
 
-	const timeout: Timeout = {
-		set: (callback, ms) => {
+	const scheduler = {
+		set: (callback: () => void, ...args: Args) => {
 			clear()
 
-			const start = () => {
-				id = setTimeout(
-					() => {
-						id = null
+			const run = () => {
+				id = null
 
-						callback()
-					},
-					Math.min(ms, MAX_TIMEOUT),
-				)
+				callback()
+			}
+
+			const start = () => {
+				id = request(run, ...args)
 			}
 
 			if (mounted) start()
@@ -101,5 +124,5 @@ function createTimeout(): { timeout: Timeout; mount: () => () => void } {
 		}
 	}
 
-	return { timeout, mount }
+	return { scheduler, mount }
 }

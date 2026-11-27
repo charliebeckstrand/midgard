@@ -3,7 +3,7 @@ import { Button } from '../../../components/button'
 import { LoadingDots, LoadingSpinner } from '../../../components/loading'
 import { densitySteps } from '../../../core/density'
 import { iconSize } from '../../../core/density/geometry'
-import { present, renderUI } from '../../helpers'
+import { getSlot, renderUI } from '../../helpers'
 
 /**
  * A loading indicator in a Button affix takes the size of the Button.
@@ -26,10 +26,7 @@ describe('a loading indicator in a Button affix (real browser)', () => {
 				</Button>,
 			)
 
-			const spinner = present(
-				container.querySelector('[data-slot="loading-spinner"]'),
-				'loading spinner',
-			)
+			const spinner = getSlot(container, 'loading-spinner')
 
 			expect(spinner.getBoundingClientRect().width).toBe(iconSize(size))
 		})
@@ -41,7 +38,7 @@ describe('a loading indicator in a Button affix (real browser)', () => {
 				</Button>,
 			)
 
-			const dot = present(container.querySelector('[data-slot="loading-dot"]'), 'loading dot')
+			const dot = getSlot(container, 'loading-dot')
 
 			expect(dot.getBoundingClientRect().width).toBe(DOT_PX[size])
 		})

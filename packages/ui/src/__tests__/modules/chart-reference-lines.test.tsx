@@ -423,9 +423,7 @@ describe('reference lines', () => {
 
 		pointRule(container, 0)
 
-		const swatch = await waitFor(() =>
-			present(document.querySelector('[data-slot="chart-reference-swatch"]'), 'swatch'),
-		)
+		const swatch = await waitFor(() => getSlot(document, 'chart-reference-swatch'))
 
 		expect(swatch.closest('[data-slot="tooltip-content"]')?.textContent).toContain('Q3 target')
 	})
@@ -437,9 +435,7 @@ describe('reference lines', () => {
 
 		pointRule(container, 0)
 
-		const swatch = await waitFor(() =>
-			present(document.querySelector('[data-slot="chart-reference-swatch"]'), 'swatch'),
-		)
+		const swatch = await waitFor(() => getSlot(document, 'chart-reference-swatch'))
 
 		// The readout is the wrapping row of the category readout, so no box in
 		// the tooltip holds the text on one line.
@@ -457,9 +453,7 @@ describe('reference lines', () => {
 
 		pointRule(container, 0)
 
-		const swatch = await waitFor(() =>
-			present(document.querySelector('[data-slot="chart-reference-swatch"]'), 'swatch'),
-		)
+		const swatch = await waitFor(() => getSlot(document, 'chart-reference-swatch'))
 
 		expect(swatch).toHaveAttribute('data-shape', 'line')
 
@@ -1889,7 +1883,7 @@ describe('reference lines that the legend names', () => {
 
 		const series = allBySlot(legend, 'chart-legend-item') as HTMLButtonElement[]
 
-		const note = () => getSlot(legend, 'chart-legend-reference') as HTMLButtonElement
+		const note = () => getSlot<HTMLButtonElement>(legend, 'chart-legend-reference')
 
 		// The note sits in the References section of the panel, in the legend toolbar.
 		expect(note().closest('[data-slot="chart-legend-note"]')).not.toBeNull()

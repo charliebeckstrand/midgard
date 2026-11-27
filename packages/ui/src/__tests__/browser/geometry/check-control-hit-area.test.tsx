@@ -4,7 +4,7 @@ import { userEvent } from 'vitest/browser'
 import { Checkbox } from '../../../components/checkbox'
 import { Radio, RadioGroup } from '../../../components/radio'
 import { Switch } from '../../../components/switch'
-import { present, renderUI, screen } from '../../helpers'
+import { getSlot, present, renderUI, screen } from '../../helpers'
 
 /**
  * The hit area of a bare check control, in a real browser. Checkbox, Radio,
@@ -35,10 +35,7 @@ describe('check control hit area (real browser)', () => {
 
 			const host = present(input.closest<HTMLElement>('[data-slot="control"]'), 'the host')
 
-			const span = present(
-				host.querySelector<HTMLElement>('[data-slot="touch-target"]'),
-				'the hit area',
-			)
+			const span = getSlot(host, 'touch-target')
 
 			const box = host.getBoundingClientRect()
 

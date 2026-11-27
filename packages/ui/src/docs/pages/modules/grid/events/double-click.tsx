@@ -17,7 +17,7 @@ export default function DoubleClick() {
 	return (
 		<Stack gap="md">
 			<Grid
-				tableProps={{ 'aria-label': 'Double click' }}
+				tableProps={{ 'aria-label': 'People' }}
 				columns={columns}
 				rows={people}
 				getKey={(row) => row.id}

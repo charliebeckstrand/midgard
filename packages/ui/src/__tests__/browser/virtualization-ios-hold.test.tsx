@@ -2,7 +2,7 @@ import { _resetIOSDetectionForTests, Virtualizer } from '@tanstack/virtual-core'
 import { useCallback, useRef, useState } from 'react'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { useVirtualWindow } from '../../hooks'
-import { act, frames, present, renderUI, waitFor } from '../helpers'
+import { act, frames, getSlot, renderUI, waitFor } from '../helpers'
 import { settledValue } from './helpers/sample'
 
 /**
@@ -76,7 +76,7 @@ describe('useVirtualWindow held correction on iOS (real browser)', () => {
 
 		const { container } = renderUI(<List handle={handle} />)
 
-		const scroller = present(container.querySelector<HTMLElement>('[data-slot="list"]'), 'scroller')
+		const scroller = getSlot(container, 'list')
 
 		await waitFor(() => expect(scroller.querySelector('[data-index]')).not.toBeNull())
 

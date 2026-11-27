@@ -1,4 +1,5 @@
 import type { GridGroupHeaderRow } from '../../grid-data-types'
+import type { GridSortState } from '../grid-sort/state'
 import { compareDirected, naturalCollator, toSortKey } from '../grid-sort/utilities'
 import type { GridLeaf } from './tree'
 
@@ -74,7 +75,7 @@ export function segmentManualGroupRows<T>(
  */
 export function orderManualGroupSegments<T>(
 	segments: GridManualGroupSegment<T>[],
-	direction: 'asc' | 'desc' | null,
+	direction: GridSortState['direction'] | null,
 	locale?: string,
 ): GridManualGroupSegment<T>[] {
 	if (!direction) return segments
@@ -104,7 +105,7 @@ export function orderManualGroupSegments<T>(
 export function shownManualSegments<T>(
 	rows: GridLeaf<T>[],
 	groupRow: (row: T) => GridGroupHeaderRow | null,
-	direction: 'asc' | 'desc' | null,
+	direction: GridSortState['direction'] | null,
 	locale?: string,
 ): GridManualGroupSegment<T>[] {
 	return orderManualGroupSegments(segmentManualGroupRows(rows, groupRow), direction, locale)

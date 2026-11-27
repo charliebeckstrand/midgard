@@ -82,7 +82,11 @@ export function sameSorts(a: GridSortState[], b: GridSortState[]): boolean {
 export function columnSort(
 	sort: GridSortState[],
 	columnId: string | number,
-): { sorted: boolean; direction: 'asc' | 'desc' | undefined; priority: number | undefined } {
+): {
+	sorted: boolean
+	direction: GridSortState['direction'] | undefined
+	priority: number | undefined
+} {
 	const index = sort.findIndex((entry) => entry.column === columnId)
 
 	if (index === -1) return { sorted: false, direction: undefined, priority: undefined }
@@ -103,7 +107,7 @@ export function columnSort(
 export function ariaSortValue(
 	sortable: boolean | undefined,
 	sorted: boolean,
-	direction: 'asc' | 'desc' | undefined,
+	direction: GridSortState['direction'] | undefined,
 ): 'ascending' | 'descending' | 'none' | undefined {
 	if (!sortable) return undefined
 

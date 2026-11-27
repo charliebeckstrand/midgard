@@ -22,7 +22,9 @@ export type CalendarRangeProps = {
 	 * endpoints, as DatePicker does.
 	 */
 	onDayClick?: (date: Date) => void
+	/** The first day that a reader can select. The prop passes through to `<Calendar>`. */
 	min?: Date
+	/** The last day that a reader can select. The prop passes through to `<Calendar>`. */
 	max?: Date
 	/** Controlled first range endpoint; the band is painted from here to the effective end. */
 	rangeStart?: Date | null
@@ -42,10 +44,13 @@ export type CalendarRangeProps = {
 	onHoverDateChange?: (date: Date | null) => void
 	/** Fires when the month of the grid changes, with the first of that month. The prop passes through to `<Calendar>`. */
 	onMonthChange?: (month: Date) => void
+	/** The cell that a parent steers, or `null` while no cell is active. The prop passes through to `<Calendar>`. */
 	active?: CalendarActive | null
+	/** Element that holds the footer controls. The prop passes through to `<Calendar>`. */
 	footerRef?: RefObject<HTMLElement | null>
 	/** Id for the day listbox, which also gives each day its id. The prop passes through to `<Calendar>`. */
 	listboxId?: string
+	/** The imperative handle of the calendar (`CalendarHandle`). */
 	ref?: Ref<CalendarHandle>
 	/** Forwarded to `<Calendar>`. See its docs for the resolution chain. */
 	locale?: string

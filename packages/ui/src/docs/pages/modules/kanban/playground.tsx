@@ -36,7 +36,7 @@ export default function KanbanPlayground(props: KanbanProps<Load, Column>) {
 							{column.items.length}
 						</Badge>
 					</KanbanColumnHeader>
-					<KanbanColumnBody>
+					<KanbanColumnBody empty="No loads">
 						{column.items.map((load) => (
 							<KanbanCard key={load.id} value={load.id}>
 								<KanbanCardHandle />

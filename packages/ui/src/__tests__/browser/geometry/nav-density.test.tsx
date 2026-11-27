@@ -2,8 +2,8 @@ import { House, Plus } from 'lucide-react'
 import { describe, expect, it } from 'vitest'
 import { Icon } from '../../../components/icon'
 import { Nav, NavItem, NavList } from '../../../components/nav'
-import { DensityProvider } from '../../../providers/density'
-import { present, renderUI } from '../../helpers'
+import { type DensityLevel, DensityProvider, densityLevels } from '../../../providers/density'
+import { getSlot, renderUI } from '../../helpers'
 
 /**
  * The height, the text, and the icon of a NavItem take the step of the nearest
@@ -13,7 +13,7 @@ import { present, renderUI } from '../../helpers'
  * change.
  */
 
-type Density = 'compact' | 'snug' | 'loose'
+const levels = densityLevels.map(({ value }) => value)
 
 const EXPECTED = {
 	compact: { height: 34, text: 14, icon: 18, slotIcon: 16, slotInset: 6 },
@@ -21,7 +21,7 @@ const EXPECTED = {
 	loose: { height: 46, text: 18, icon: 22, slotIcon: 20, slotInset: 10 },
 } as const
 
-function measure(density: Density) {
+function measure(density: DensityLevel) {
 	const { container } = renderUI(
 		<DensityProvider density={density}>
 			<Nav aria-label="Primary">
@@ -34,13 +34,13 @@ function measure(density: Density) {
 		</DensityProvider>,
 	)
 
-	const inner = present(container.querySelector('[data-slot="nav-item-inner"]'), 'the item')
+	const inner = getSlot(container, 'nav-item-inner')
 
-	const icon = present(inner.querySelector('[data-slot="icon"]'), 'the item icon')
+	const icon = getSlot(inner, 'icon')
 
-	const suffix = present(container.querySelector('[data-slot="nav-item-suffix"]'), 'the suffix')
+	const suffix = getSlot(container, 'nav-item-suffix')
 
-	const slotIcon = present(suffix.querySelector('[data-slot="icon"]'), 'the suffix icon')
+	const slotIcon = getSlot(suffix, 'icon')
 
 	return {
 		height: inner.getBoundingClientRect().height,
@@ -52,10 +52,7 @@ function measure(density: Density) {
 }
 
 describe('NavItem density', () => {
-	it.each(['compact', 'snug', 'loose'] as const)(
-		'sizes the item and its slot at the step of a %s provider',
-		(density) => {
-			expect(measure(density)).toEqual(EXPECTED[density])
-		},
-	)
+	it.each(levels)('sizes the item and its slot at the step of a %s provider', (density) => {
+		expect(measure(density)).toEqual(EXPECTED[density])
+	})
 })

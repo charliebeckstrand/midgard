@@ -4,6 +4,7 @@ import { createElement, type ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { useSortableSensors } from '../../hooks/use-sortable-sensors'
 import { ReducedMotionContext } from '../../primitives/reduced-motion/context'
+import { REDUCED_MOTION_QUERY } from '../../utilities/media-query'
 import { stubMatchMedia } from '../helpers'
 
 /**
@@ -77,7 +78,7 @@ describe('useSortableSensors', () => {
 
 		const first = result.current
 
-		stubMatchMedia((query) => query === '(prefers-reduced-motion: reduce)')
+		stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
 
 		expect(startKeyboardDrag(result.current)).toBe('auto')
 

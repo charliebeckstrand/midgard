@@ -1,4 +1,5 @@
 import { reduceNumbers } from '../../utilities/aggregate'
+import { getOrCompute } from '../../utilities/get-or-compute'
 import { parseNumeric } from '../../utilities/parse-numeric'
 import type { PivotAggregation } from './types'
 
@@ -36,15 +37,9 @@ export function groupValues<T>(
 
 		if (value === null) continue
 
-		const row = groups.get(rowName) ?? new Map<string, number[]>()
+		const row = getOrCompute(groups, rowName, () => new Map<string, number[]>())
 
-		groups.set(rowName, row)
-
-		const bucket = row.get(columnName) ?? []
-
-		row.set(columnName, bucket)
-
-		bucket.push(value)
+		getOrCompute(row, columnName, () => []).push(value)
 	}
 
 	return groups

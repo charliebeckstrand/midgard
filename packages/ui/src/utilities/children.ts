@@ -70,6 +70,13 @@ export function flattenFragments(children: ReactNode, prefix = ''): FlatChild[] 
  * @internal
  */
 export function hasContent(node: ReactNode): boolean {
+	// A single node needs no walk. A grid calls this once for each cell.
+	if (node == null || typeof node === 'boolean') return false
+
+	if (typeof node !== 'object') return node !== ''
+
+	if (isValidElement(node) && node.type !== Fragment) return true
+
 	// `Children.forEach` gives `null` for each boolean.
 	return flattenFragments(node).some((child) => child.node != null && child.node !== '')
 }

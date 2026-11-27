@@ -4,7 +4,7 @@ import { userEvent } from 'vitest/browser'
 import { Checkbox } from '../../components/checkbox'
 import { Radio } from '../../components/radio'
 import { Switch } from '../../components/switch'
-import { present, renderUI } from '../helpers'
+import { getSlot, renderUI } from '../helpers'
 
 /**
  * A read-only check control keeps its resting paint on hover. The pointer does not change the
@@ -42,7 +42,7 @@ describe('read-only check control hover (real browser)', () => {
 	async function paint(control: keyof typeof controls, state: State) {
 		const { container } = renderUI(controls[control](state))
 
-		const box = present(container.querySelector('[data-slot="control"]'), `${control} box`)
+		const box = getSlot(container, 'control')
 
 		const read = () => {
 			const style = getComputedStyle(box)

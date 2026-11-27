@@ -44,11 +44,11 @@ type SliderBaseProps = SliderVariants & {
 	defaultValue?: number
 	/** Fires when the value changes. */
 	onValueChange?: (value: number) => void
-	/** @defaultValue 0 */
+	/** The lowest value. @defaultValue 0 */
 	min?: number
-	/** @defaultValue 100 */
+	/** The highest value. @defaultValue 100 */
 	max?: number
-	/** @defaultValue 1 */
+	/** The size of each step of the value. @defaultValue 1 */
 	step?: number
 	/** Formats the value for assistive tech (`aria-valuetext`): currency, ratings, levels announce as meaningful text instead of a bare number. */
 	getValueText?: (value: number) => string

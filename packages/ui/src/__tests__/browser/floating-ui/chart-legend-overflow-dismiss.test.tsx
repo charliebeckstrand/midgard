@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { BarChart } from '../../../modules/chart/bar-chart'
-import { allBySlot, frames, present, renderUI, waitFor } from '../../helpers'
+import { allBySlot, frames, getSlot, renderUI, waitFor } from '../../helpers'
 import { CHART_RECEDE } from '../../helpers/recede'
 
 /**
@@ -55,9 +55,7 @@ describe('chart legend overflow dismiss (real browser)', () => {
 
 		await userEvent.click(overflowChip(container) as HTMLButtonElement)
 
-		const panel = await waitFor(() =>
-			present(document.querySelector('[data-slot="chart-legend-overflow"]'), 'the overflow panel'),
-		)
+		const panel = await waitFor(() => getSlot(document, 'chart-legend-overflow'))
 
 		const target = allBySlot(panel, 'chart-legend-item')[0] as HTMLElement
 
@@ -86,9 +84,7 @@ describe('chart legend overflow dismiss (real browser)', () => {
 
 		await userEvent.keyboard('{Enter}')
 
-		const panel = await waitFor(() =>
-			present(document.querySelector('[data-slot="chart-legend-overflow"]'), 'the overflow panel'),
-		)
+		const panel = await waitFor(() => getSlot(document, 'chart-legend-overflow'))
 
 		// The open seats the focus on the panel. Tab moves it to the first switch.
 		await userEvent.keyboard('{Tab}')

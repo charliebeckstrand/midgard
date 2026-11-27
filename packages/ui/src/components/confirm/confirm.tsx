@@ -7,6 +7,7 @@ import { useIntl } from '../../primitives/intl/use-intl'
 import { usePanelA11y } from '../../primitives/panel/context'
 import type { ButtonVariants } from '../../recipes/kata/button'
 import { k as panel } from '../../recipes/kata/panel'
+import { hasContent } from '../../utilities/children'
 import { Button } from '../button'
 import {
 	Dialog,
@@ -212,7 +213,7 @@ export function Confirm({
 
 	const heading = title || intl.formatMessage(messages.title)
 
-	const hasDescription = Boolean(description)
+	const hasDescription = hasContent(description)
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
@@ -231,9 +232,7 @@ export function Confirm({
 					<DialogTitle>{heading}</DialogTitle>
 					{hasDescription && <DialogDescription>{description}</DialogDescription>}
 				</DialogHeader>
-				{children !== undefined && (
-					<ConfirmBody describes={!hasDescription}>{children}</ConfirmBody>
-				)}
+				{hasContent(children) && <ConfirmBody describes={!hasDescription}>{children}</ConfirmBody>}
 				<DialogFooter>
 					<Button
 						// Cancel only closes, so a locked scope, such as a submitting form,

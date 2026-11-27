@@ -4,8 +4,9 @@ import { MapPin } from 'lucide-react'
 import { useState } from 'react'
 import { cn } from '../../core/cn'
 import { useFormField } from '../../primitives/form/context'
-import { defineMessages, intlMessages } from '../../primitives/intl/intl-messages'
+import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
+import { k } from '../../recipes/kata/combobox'
 import { keyByOccurrence } from '../../utilities/key-by-occurrence'
 import {
 	Combobox,
@@ -117,8 +118,8 @@ export type AddressInputProps = Omit<
  * {@link AddressSuggestion} as a labeled option with optional description. The
  * suffix tracks selection state. It shows a `<LoadingSpinner>` while fetching,
  * and a `<MapPin>` when empty or disabled. Otherwise it cedes the slot to the
- * Combobox clear button. The whole field pulses (`animate-pulse`) while a fetch
- * is in flight.
+ * Combobox clear button. The whole field shows the busy state while a fetch is
+ * in flight: it pulses, or it dims for a reader who asked for less motion.
  *
  * It searches by business or place name as readily as by address. The default
  * provider leads a named match with its name and carries the street line
@@ -199,7 +200,7 @@ export function AddressInput({
 
 	const pin = showPin ? <Icon icon={MapPin} /> : undefined
 
-	const suffix = loading ? <LoadingSpinner label={intl.formatMessage(intlMessages.loading)} /> : pin
+	const suffix = loading ? <LoadingSpinner /> : pin
 
 	return (
 		<Combobox<AddressSuggestion>
@@ -214,7 +215,7 @@ export function AddressInput({
 
 				onValueChange?.(next)
 			}}
-			className={cn(loading && 'motion-safe:animate-pulse', className)}
+			className={cn(loading && k.busy, className)}
 			placeholder={placeholder}
 			// Yields to a wrapping `<Field>`/`<Label>` from the first render: an own
 			// name shadows it, and a placeholder is not a programmatic name.

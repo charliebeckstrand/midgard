@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../../modules/grid'
-import { fireEvent, present, renderUI, screen, waitFor } from '../../helpers'
+import { fireEvent, getSlot, present, renderUI, screen, waitFor } from '../../helpers'
 import { getCenter } from '../../helpers/geometry/box'
 import { HALF_PIXEL } from '../../helpers/geometry/tolerance'
 
@@ -54,12 +54,7 @@ describe('grid edit validation overflow (real browser)', () => {
 
 		fireEvent.click(screen.getByRole('button', { name: 'edit-first' }))
 
-		const input = await waitFor(() =>
-			present<HTMLInputElement>(
-				container.querySelector('[data-slot="grid-edit-input"]'),
-				'the edit input',
-			),
-		)
+		const input = await waitFor(() => getSlot<HTMLInputElement>(container, 'grid-edit-input'))
 
 		const span = present(
 			input.closest<HTMLElement>('[data-grid-content]'),

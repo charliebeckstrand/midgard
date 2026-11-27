@@ -2,7 +2,7 @@ import { beforeAll, describe, expect, it, vi } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { Grid, type GridColumn, type GridProps } from '../../../modules/grid'
 import { LocaleProvider } from '../../../providers/locale'
-import { present, renderUI, waitFor } from '../../helpers'
+import { getSlot, present, renderUI, waitFor } from '../../helpers'
 import { PIXEL } from '../../helpers/geometry/tolerance'
 import { gridCell } from '../../helpers/grid-cells'
 
@@ -40,8 +40,7 @@ const columns = (extra: Partial<Record<keyof Row, Partial<GridColumn<Row>>>> = {
 		}),
 	)
 
-const getSlot = (cell: HTMLElement) =>
-	present<HTMLElement>(cell.querySelector('[data-slot="grid-edit-slot"]'), 'the editor slot')
+const editorSlot = (cell: HTMLElement) => getSlot(cell, 'grid-edit-slot')
 
 /**
  * Opens the editor of `cell` under a cell-scoped session, and adds `text` to the
@@ -63,7 +62,7 @@ const openAndFill = vi.defineHelper(async (cell: HTMLElement, text: string) => {
 
 	await userEvent.fill(input, `${input.value}${text}`)
 
-	const slot = getSlot(cell)
+	const slot = editorSlot(cell)
 
 	await waitFor(() => expect(slot).toHaveAttribute('data-grown'))
 
@@ -113,13 +112,13 @@ describe('grid editor grow (real floating engine)', () => {
 		)
 
 		// The value fits, so the editor stays in the cell.
-		expect(getSlot(cell)).not.toHaveAttribute('data-grown')
+		expect(editorSlot(cell)).not.toHaveAttribute('data-grown')
 
 		const textStart = input.getBoundingClientRect().left
 
 		await userEvent.keyboard(`{End}${LONG}`)
 
-		const slot = getSlot(cell)
+		const slot = editorSlot(cell)
 
 		await waitFor(() => expect(slot.getBoundingClientRect().width).toBeGreaterThan(300))
 
@@ -166,7 +165,7 @@ describe('grid editor grow (real floating engine)', () => {
 
 		await waitFor(() => expect(document.activeElement).toBe(input))
 
-		const slot = getSlot(cell)
+		const slot = editorSlot(cell)
 
 		const save = page.getByRole('button', { name: /^Save / }).element()
 
@@ -219,7 +218,7 @@ describe('grid editor grow (real floating engine)', () => {
 
 		await userEvent.keyboard(`{End}${LONG}`)
 
-		const slot = getSlot(email)
+		const slot = editorSlot(email)
 
 		await waitFor(() => expect(slot).toHaveAttribute('data-grown'))
 
@@ -245,7 +244,7 @@ describe('grid editor grow (real floating engine)', () => {
 
 		await userEvent.keyboard(`{End}${LONG}`)
 
-		const slot = getSlot(email)
+		const slot = editorSlot(email)
 
 		await waitFor(() => expect(slot).toHaveAttribute('data-grown'))
 

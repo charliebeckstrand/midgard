@@ -18,6 +18,7 @@ export default function IconButtonPlayground(props: IconButtonPlaygroundProps) {
 			icon={<Heart />}
 			pressedIcon={<Heart fill="currentColor" />}
 			aria-label="Favorite"
+			tooltip
 		/>
 	)
 }

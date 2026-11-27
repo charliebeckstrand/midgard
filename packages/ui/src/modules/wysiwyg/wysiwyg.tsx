@@ -19,6 +19,7 @@ import type { ScaleStep } from '../../core/density/scale'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { ControlActions, ControlFrame } from '../../primitives/control'
 import type { scale } from '../../recipes/kata/wysiwyg'
+import { hasContent } from '../../utilities/children'
 import { clamp } from '../../utilities/clamp'
 import { noopSubscribe } from '../../utilities/noop'
 import { isPrimaryPress } from '../../utilities/primary-press'
@@ -102,8 +103,8 @@ export type WysiwygProps<R extends MarkdownRange = MarkdownRange> = {
 	placeholder?: string
 	/**
 	 * Control slot rendered as a right-justified row below the field, as on
-	 * Textarea. `null` and `false` count as absent. A press in the row does not
-	 * move the focus.
+	 * Textarea. Empty content, such as `null`, `false`, or `''`, counts as
+	 * absent. A press in the row does not move the focus.
 	 */
 	actions?: ReactNode
 	/**
@@ -118,7 +119,7 @@ export type WysiwygProps<R extends MarkdownRange = MarkdownRange> = {
 	 */
 	separated?: boolean
 	/**
-	 * Enter calls it, and Shift+Enter then does what Enter does without it, so a
+	 * Fires when the reader presses Enter. Shift+Enter then does what Enter does without it, so a
 	 * Markdown shortcut such as `- ` works on the new line. Without it, Enter
 	 * starts a new block, continues a list, or adds a line to a code block, and
 	 * Shift+Enter breaks the line. Enter after a fence at the start of a block,
@@ -127,7 +128,7 @@ export type WysiwygProps<R extends MarkdownRange = MarkdownRange> = {
 	 * on the last line of the last code block adds a paragraph after it.
 	 */
 	onEnter?: () => void
-	/** Runs first on each key in the field. A handler that cancels the key stops the editor. */
+	/** Fires on each key in the field, before the editor. A handler that cancels the key stops the editor. */
 	onKeyDown?: (event: KeyboardEvent) => void
 	/**
 	 * Fires with the text block that holds the caret ({@link WysiwygBlock}) when
@@ -284,9 +285,9 @@ export function Wysiwyg<R extends MarkdownRange = MarkdownRange>({
 	onValueChange,
 	...options
 }: WysiwygProps<R>) {
-	const hasActions = actions != null && actions !== false
+	const hasActions = hasContent(actions)
 
-	const hasToolbar = children != null && children !== false
+	const hasToolbar = hasContent(children)
 
 	// The toolbar is the top row of the frame, or above the frame with `separated`.
 	const inside = hasToolbar && !separated

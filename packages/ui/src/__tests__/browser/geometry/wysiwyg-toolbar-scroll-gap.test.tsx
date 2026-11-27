@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { Button } from '../../../components/button'
 import { densitySteps } from '../../../core/density'
 import { Wysiwyg, WysiwygToolbar } from '../../../modules/wysiwyg'
-import { frames, present, renderUI } from '../../helpers'
+import { frames, getSlot, present, renderUI } from '../../helpers'
 import { LAYOUT_UNIT } from '../../helpers/geometry/tolerance'
 import { editable } from '../helpers/wysiwyg'
 
@@ -46,10 +46,7 @@ describe('Wysiwyg toolbar scroll gap (real browser)', () => {
 
 			// The toolbar row is one grid cell with the heading rail, and the cell
 			// centers the shorter row. So the cell, and not the row, is above the gap.
-			const toolbar = present(
-				container.querySelector('[data-slot="wysiwyg-toolbar"]'),
-				'the toolbar',
-			)
+			const toolbar = getSlot(container, 'wysiwyg-toolbar')
 
 			const [field, plain] = container.querySelectorAll<HTMLElement>('[role="textbox"]')
 

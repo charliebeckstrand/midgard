@@ -73,7 +73,9 @@ const messages = defineMessages({
 })
 
 type ComboboxBaseProps<T> = {
+	/** Id for the input. Resolves through the explicit prop, then an enclosing `<Control>` or `<Field>`. */
 	id?: string
+	/** The name of the form field that the combobox binds to, in a `Form`. */
 	name?: string
 	/** @defaultValue `'Search'`, in the language of the reader. */
 	placeholder?: string
@@ -122,8 +124,11 @@ type ComboboxBaseProps<T> = {
 	 * @defaultValue 'bottom-start'
 	 */
 	placement?: FloatingPlacement
+	/** Content before the field, inside the control frame, such as an icon. */
 	prefix?: ReactNode
+	/** Content after the field, inside the control frame, before the toggle. */
 	suffix?: ReactNode
+	/** The density step. Omit it to take the step of the nearest density scope. A step makes the combobox a density scope. */
 	size?: ScaleStep<typeof scale>
 	/**
 	 * Disables the combobox.

@@ -2,6 +2,7 @@
  * What a routing answer reduces to, and the OSRM payload it reads from.
  */
 
+import { isRecord } from '../../../../utilities/is-record'
 import type { LngLat } from '../types'
 import { httpFailure, type MapRouteFailure, noRouteFailure, routeFailure } from './failure'
 
@@ -54,13 +55,6 @@ type OsrmPayload = {
 	code?: string | null
 } | null
 
-/** A level of a parsed body that holds keys: what JSON gives for `{}`. @internal */
-type Fields = Record<string, unknown>
-
-function isFields(value: unknown): value is Fields {
-	return typeof value === 'object' && value !== null && !Array.isArray(value)
-}
-
 /** Whether a key holds no value, or a value that passes `test`. @internal */
 function absentOr(value: unknown, test: (value: unknown) => boolean): boolean {
 	return value == null || test(value)
@@ -88,14 +82,14 @@ function isPosition(value: unknown): boolean {
 
 function isGeometry(value: unknown): boolean {
 	return (
-		isFields(value) &&
+		isRecord(value) &&
 		absentOr(value.coordinates, (line) => Array.isArray(line) && line.every(isPosition))
 	)
 }
 
 function isLeg(value: unknown): boolean {
 	return (
-		isFields(value) &&
+		isRecord(value) &&
 		absentOr(value.geometry, isGeometry) &&
 		absentOr(value.distance, isNumber) &&
 		absentOr(value.duration, isNumber)
@@ -118,7 +112,7 @@ function isOsrmPayload(body: unknown): body is OsrmPayload {
 	return absentOr(
 		body,
 		(held) =>
-			isFields(held) &&
+			isRecord(held) &&
 			absentOr(held.code, (code) => typeof code === 'string') &&
 			absentOr(
 				held.routes,
@@ -150,7 +144,7 @@ const REFUSAL_CODES: ReadonlySet<string> = new Set(['NoRoute', 'NoSegment'])
  * @internal
  */
 export function refusedFailure(status: number, body: unknown): MapRouteFailure {
-	const code = isFields(body) ? body.code : undefined
+	const code = isRecord(body) ? body.code : undefined
 
 	return typeof code === 'string' && REFUSAL_CODES.has(code)
 		? noRouteFailure(code)

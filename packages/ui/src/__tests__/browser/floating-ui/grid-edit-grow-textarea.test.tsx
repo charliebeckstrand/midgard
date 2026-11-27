@@ -2,7 +2,7 @@ import { beforeAll, describe, expect, it, vi } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { Textarea } from '../../../components/textarea'
 import { Grid, type GridColumn, type GridProps } from '../../../modules/grid'
-import { frames, present, renderUI, waitFor } from '../../helpers'
+import { frames, getSlot, present, renderUI, waitFor } from '../../helpers'
 import { PIXEL } from '../../helpers/geometry/tolerance'
 import { gridCell } from '../../helpers/grid-cells'
 import { inFrame, resizeObserverLoopErrors } from '../helpers/resize-observer-loop'
@@ -47,8 +47,7 @@ const columns: GridColumn<Row>[] = [
 	},
 ]
 
-const getSlot = (cell: HTMLElement) =>
-	present<HTMLElement>(cell.querySelector('[data-slot="grid-edit-slot"]'), 'the editor slot')
+const editorSlot = (cell: HTMLElement) => getSlot(cell, 'grid-edit-slot')
 
 const getRow = (cell: HTMLElement) => present(cell.closest('tr'), 'the row')
 
@@ -104,7 +103,7 @@ describe('grid text area editor grow (real floating engine)', () => {
 			'the name input',
 		)
 
-		expect(getSlot(cell)).not.toHaveAttribute('data-grown')
+		expect(editorSlot(cell)).not.toHaveAttribute('data-grown')
 
 		expect(textarea.getBoundingClientRect().height).toBeNear(
 			input.getBoundingClientRect().height,
@@ -123,7 +122,7 @@ describe('grid text area editor grow (real floating engine)', () => {
 
 		const textarea = await openNotes(cell)
 
-		const slot = getSlot(cell)
+		const slot = editorSlot(cell)
 
 		await waitFor(() => expect(slot).toHaveAttribute('data-grown'))
 
@@ -163,7 +162,7 @@ describe('grid text area editor grow (real floating engine)', () => {
 
 		const textarea = await openNotes(cell)
 
-		const slot = getSlot(cell)
+		const slot = editorSlot(cell)
 
 		expect(slot).not.toHaveAttribute('data-grown')
 
@@ -191,7 +190,7 @@ describe('grid text area editor grow (real floating engine)', () => {
 
 		await userEvent.keyboard(`{End}${' and more words'.repeat(6)}`)
 
-		const slot = getSlot(cell)
+		const slot = editorSlot(cell)
 
 		const rem = Number.parseFloat(getComputedStyle(document.documentElement).fontSize)
 
@@ -216,7 +215,7 @@ describe('grid text area editor grow (real floating engine)', () => {
 
 		await userEvent.keyboard('{End}{Enter}2{Enter}3{Enter}4{Enter}5{Enter}6{Enter}7')
 
-		const slot = getSlot(cell)
+		const slot = editorSlot(cell)
 
 		await waitFor(() => expect(slot).toHaveAttribute('data-grown'))
 
@@ -285,12 +284,9 @@ describe('grid text area editor grow in the frame of a scroll (real floating eng
 
 		const textarea = await openNotes(cell)
 
-		const slot = getSlot(cell)
+		const slot = editorSlot(cell)
 
-		const scroller = present(
-			container.querySelector<HTMLElement>('[data-slot="grid-scroll"]'),
-			'the scroll area',
-		)
+		const scroller = getSlot(container, 'grid-scroll')
 
 		// The editor grows down until the greatest height stops it.
 		const text = 'Short\n2\n3\n4\n5'

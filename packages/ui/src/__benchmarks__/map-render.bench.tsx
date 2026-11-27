@@ -24,9 +24,9 @@ import type { MapGeography, MapTopology } from '../modules/map/engine/types'
 import { compareBenches } from './compare'
 import { mountBench, persistentTree } from './harness'
 
-const statesTopology = states as unknown as MapTopology
+const statesTopology: MapTopology = states
 
-const countiesTopology = counties as unknown as MapTopology
+const countiesTopology: MapTopology = counties
 
 const ZONES = ['Pacific', 'Mountain', 'Central', 'Eastern'] as const
 

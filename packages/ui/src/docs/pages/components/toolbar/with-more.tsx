@@ -9,36 +9,18 @@ import {
 	Underline,
 	Undo,
 } from 'lucide-react'
-import { type ReactElement, useState } from 'react'
-import { Button } from 'ui/button'
-import { dataAttr } from 'ui/core'
-import { Icon } from 'ui/icon'
+import type { ReactElement } from 'react'
+import { IconButton } from 'ui/icon-button'
 import { Toolbar, ToolbarGroup, ToolbarSeparator } from 'ui/toolbar'
 
 // Bare icon buttons have the height of More and Back, so each page of the row
 // has one height. A pressed toggle takes the wash of a held-down bare button.
 function Toggle({ label, icon }: { label: string; icon: ReactElement }) {
-	const [pressed, setPressed] = useState(false)
-
-	return (
-		<Button
-			variant="bare"
-			aria-label={label}
-			aria-pressed={pressed}
-			data-active={dataAttr(pressed)}
-			onClick={() => setPressed(!pressed)}
-		>
-			<Icon icon={icon} />
-		</Button>
-	)
+	return <IconButton icon={icon} aria-label={label} defaultPressed={false} tooltip />
 }
 
 function Action({ label, icon }: { label: string; icon: ReactElement }) {
-	return (
-		<Button variant="bare" aria-label={label}>
-			<Icon icon={icon} />
-		</Button>
-	)
+	return <IconButton icon={icon} aria-label={label} tooltip />
 }
 
 export default function WithMore() {

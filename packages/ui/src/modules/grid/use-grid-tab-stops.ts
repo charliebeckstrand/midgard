@@ -5,9 +5,9 @@ import {
 	closestFloatingPortal,
 	referenceOpenedWithin,
 } from '../../utilities/floating-portal-registry'
+import { focusDropped } from '../../utilities/focus-dropped'
 import {
 	entryScope,
-	focusIsLost,
 	GRID_CELL,
 	GRID_CELL_ATTR,
 	pinControls,
@@ -128,7 +128,7 @@ export function useGridTabStops(
 		const regain = (): boolean => {
 			if (unit !== GRID_CELL || focused === null) return false
 
-			if (focused.isConnected || !focusIsLost()) return false
+			if (focused.isConnected || !focusDropped()) return false
 
 			table.focus({ preventScroll: true })
 

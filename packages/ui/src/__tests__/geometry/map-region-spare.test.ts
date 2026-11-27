@@ -3,7 +3,7 @@ import type { GeoProjection } from 'd3-geo'
 import states from 'us-atlas/states-10m.json'
 import { describe, expect, it } from 'vitest'
 import countries from 'world-atlas/countries-110m.json'
-import type { MapGeography, MapProjection, MapTopology } from '../../modules/map'
+import type { MapGeography, MapProjection } from '../../modules/map'
 import {
 	AREA_SPARE_FRACTION,
 	POINT_HIT_RADIUS,
@@ -274,13 +274,7 @@ describe('regionSpare', () => {
 	describe('under the albers-usa composite', () => {
 		// An inset is a box of the frame like any other, so a dot near its edge
 		// reads the rings near it with no inverse to clamp.
-		const { spare, at } = measured(
-			states as unknown as MapTopology,
-			'states',
-			'albers-usa',
-			960,
-			600,
-		)
+		const { spare, at } = measured(states, 'states', 'albers-usa', 960, 600)
 
 		// Oahu stands clear of every inset edge.
 		const hawaii = spare(at([-157.9, 21.3]), 1)
@@ -305,13 +299,7 @@ describe('regionSpare', () => {
 		// edge of the frame. The grid reads the pieces. A walk of the vertices
 		// reads one ring as wide as the frame, and gives each dot of that band of
 		// latitudes to Russia or to Fiji.
-		const { spare, at } = measured(
-			countries as unknown as MapGeography,
-			'countries',
-			'mercator',
-			800,
-			450,
-		)
+		const { spare, at } = measured(countries, 'countries', 'mercator', 800, 450)
 
 		it('claims nothing of a dot on open water at the latitude of Russia', () => {
 			expect(spare(at([-35, 50]), 0.5)).toBe(Number.POSITIVE_INFINITY)

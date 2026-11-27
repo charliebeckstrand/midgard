@@ -1,6 +1,7 @@
 'use client'
 
 import { clamp } from '../../utilities/clamp'
+import { getOrCompute } from '../../utilities/get-or-compute'
 import type { PdfViewerPage, PdfViewerSlot } from './types'
 
 /**
@@ -1020,17 +1021,15 @@ export function readPageText(src: string | undefined, index: number): Promise<st
 
 	if (!held || !reader) return Promise.resolve(null)
 
-	let text = held.texts.get(index)
+	const text = getOrCompute(held.texts, index, () => {
+		const read = reader(index)
 
-	if (!text) {
-		text = reader(index)
-
-		held.texts.set(index, text)
-
-		text.catch(() => {
-			if (held.texts.get(index) === text) held.texts.delete(index)
+		read.catch(() => {
+			if (held.texts.get(index) === read) held.texts.delete(index)
 		})
-	}
+
+		return read
+	})
 
 	return text.catch(() => null)
 }

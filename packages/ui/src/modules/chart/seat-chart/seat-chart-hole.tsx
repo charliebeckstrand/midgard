@@ -3,6 +3,7 @@
 import { type ReactNode, useRef, useState } from 'react'
 import { cn } from '../../../core/cn'
 import { useResizeObserver } from '../../../hooks/use-resize-observer'
+import type { Size } from '../../../utilities/size'
 
 /** Props for {@link SeatChartHole}. @internal */
 type SeatChartHoleProps = {
@@ -32,7 +33,7 @@ type SeatChartHoleProps = {
 export function SeatChartHole({ left, top, radius, measured, children }: SeatChartHoleProps) {
 	const ref = useRef<HTMLDivElement>(null)
 
-	const [size, setSize] = useState<{ width: number; height: number } | null>(null)
+	const [size, setSize] = useState<Size | null>(null)
 
 	// The layout size, not the painted size, so the scale below does not feed back.
 	useResizeObserver(ref, () => {

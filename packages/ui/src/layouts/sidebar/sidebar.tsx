@@ -28,6 +28,7 @@ import { createSlot } from '../../core/create-slot'
 import { useIsRtl } from '../../hooks/use-is-rtl'
 import { useKeybindings } from '../../hooks/use-keybindings'
 import { OFFCANVAS_LAYOUT, type OffcanvasLayout, useOffcanvas } from '../../hooks/use-offcanvas'
+import { useScrollRegion } from '../../hooks/use-scroll-region'
 import { useStoredChoice } from '../../hooks/use-stored-choice'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
@@ -40,6 +41,7 @@ import { Portal } from '../../primitives/portal'
 import { SIDEBAR } from '../../providers/appearance/appearance-storage'
 import { k } from '../../recipes/kata/sidebar-layout'
 import { Flex } from '../../structure/flex'
+import { hasContent } from '../../utilities/children'
 import type { Responsive } from '../../utilities/responsive'
 import { scrollWithin } from '../../utilities/scroll-within'
 import { readChoice, subscribeChoices, writeChoice } from '../../utilities/stored-choice'
@@ -104,7 +106,9 @@ function toggleSidebar(event: KeyboardEvent) {
  * The root `<div>` takes the rest.
  */
 export type SidebarLayoutProps = ComponentProps<'div'> & {
+	/** Content of the navbar in the drawer layout, after the menu button, such as the name of the app. */
 	navbar?: ReactNode
+	/** Content of the sidebar, usually a `<Sidebar>`. The panel, the drawer, and the floating sheet each hold a copy. */
 	sidebar: ReactNode
 	/**
 	 * The actions in the navbar of the drawer layout and in the header of the
@@ -115,8 +119,9 @@ export type SidebarLayoutProps = ComponentProps<'div'> & {
 	 * A panel on the end edge in the inline layout, such as the pinned panel of
 	 * the events (`EventsAside`). It sticks to the top of the page, has the
 	 * height of the viewport, and its content scrolls on its own, as the inline
-	 * sidebar does. The content column narrows to give it room. In the drawer
-	 * layout it does not show.
+	 * sidebar does. The content column narrows to give it room. While it
+	 * scrolls, it is a Tab stop, so a keyboard can scroll content that has no
+	 * control in it. In the drawer layout it does not show.
 	 */
 	aside?: ReactNode
 	/** Keeps the header at the top of the content region in the inline layout. @defaultValue false */
@@ -130,8 +135,8 @@ export type SidebarLayoutProps = ComponentProps<'div'> & {
 	layout?: Responsive<OffcanvasLayout>
 	/**
 	 * Fires when the navigation drawer opens or closes, whatever drove it. The
-	 * drivers are the navbar button, a dismissal, a descendant calling `close`, or the
-	 * viewport widening to the inline layout.
+	 * drivers are the navbar button, Escape, a click on the backdrop, a
+	 * descendant calling `close`, or the viewport widening to the inline layout.
 	 *
 	 * Observation only, and the drawer alone. The inline sidebar does not open, and
 	 * the hover peek of the offcanvas sidebar is a pointer affordance rather than a
@@ -316,6 +321,10 @@ export function SidebarLayout({
 	// panel of the events does not run while no one sees it.
 	const asideHold = useMountHold(inline, 'always')
 
+	// The aside scrolls on its own. While it scrolls, it is a tab stop, so a
+	// keyboard can scroll content that has no control in it.
+	const asideScrollRef = useScrollRegion()
+
 	// A change to offcanvas hides the inline panel. If the panel holds the focus,
 	// as after ⌘B on a sidebar item, the browser drops the focus to `<body>` at the
 	// next render, and the next Tab starts at the top of the page (WCAG 2.4.3).
@@ -446,8 +455,8 @@ export function SidebarLayout({
 							<DrawerTrigger>
 								<IconButton aria-label={intl.formatMessage(messages.openNavigation)} icon={Menu} />
 							</DrawerTrigger>
-							{navbar && <div className="min-w-0 flex-1">{navbar}</div>}
-							{actions && <div className={cn(slots.actions, 'ms-auto')}>{actions}</div>}
+							{hasContent(navbar) && <div className="min-w-0 flex-1">{navbar}</div>}
+							{hasContent(actions) && <div className={cn(slots.actions, 'ms-auto')}>{actions}</div>}
 						</Flex>
 					</Landmark>
 				</Drawer>
@@ -468,8 +477,8 @@ export function SidebarLayout({
 				</div>
 
 				{/* Inline aside: on the end edge, after the content. */}
-				{aside && (
-					<div data-slot="sidebar-aside" className={slots.aside}>
+				{hasContent(aside) && (
+					<div ref={asideScrollRef} data-slot="sidebar-aside" className={slots.aside}>
 						<MountHold hold={asideHold} name="sidebar-aside">
 							{aside}
 						</MountHold>
@@ -517,7 +526,7 @@ export function SidebarLayoutHeader({
 			className={cn(slots.header.base, className)}
 		>
 			<div className="flex-1 min-w-0">{children}</div>
-			{actions && <div className={slots.header.actions}>{actions}</div>}
+			{hasContent(actions) && <div className={slots.header.actions}>{actions}</div>}
 		</header>
 	)
 }

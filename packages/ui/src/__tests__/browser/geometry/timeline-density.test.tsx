@@ -6,8 +6,8 @@ import {
 	TimelineTimestamp,
 	TimelineTitle,
 } from '../../../components/timeline'
-import { DensityProvider } from '../../../providers/density'
-import { present, renderUI } from '../../helpers'
+import { type DensityLevel, DensityProvider, densityLevels } from '../../../providers/density'
+import { getSlot, present, renderUI } from '../../helpers'
 
 /**
  * The item spacing and the text of a Timeline take the step of the nearest
@@ -15,7 +15,7 @@ import { present, renderUI } from '../../helpers'
  * (`md`) the values are the values from before the change.
  */
 
-type Density = 'compact' | 'snug' | 'loose'
+const levels = densityLevels.map(({ value }) => value)
 
 const EXPECTED = {
 	compact: { gap: 12, spacing: 24, title: 16, description: 14, timestamp: 12 },
@@ -23,7 +23,7 @@ const EXPECTED = {
 	loose: { gap: 20, spacing: 40, title: 20, description: 18, timestamp: 16 },
 } as const
 
-function measure(density: Density, orientation: 'vertical' | 'horizontal' = 'vertical') {
+function measure(density: DensityLevel, orientation: 'vertical' | 'horizontal' = 'vertical') {
 	const { container } = renderUI(
 		<DensityProvider density={density}>
 			<Timeline orientation={orientation}>
@@ -38,7 +38,7 @@ function measure(density: Density, orientation: 'vertical' | 'horizontal' = 'ver
 		</DensityProvider>,
 	)
 
-	const item = present(container.querySelector('[data-slot="timeline-item"]'), 'the first item')
+	const item = getSlot(container, 'timeline-item')
 
 	const readFontSize = (selector: string) =>
 		Number.parseFloat(getComputedStyle(present(item.querySelector(selector), selector)).fontSize)
@@ -55,12 +55,9 @@ function measure(density: Density, orientation: 'vertical' | 'horizontal' = 'ver
 }
 
 describe('Timeline density', () => {
-	it.each(['compact', 'snug', 'loose'] as const)(
-		'sizes the spacing and the text at the step of a %s provider',
-		(density) => {
-			expect(measure(density)).toEqual(EXPECTED[density])
-		},
-	)
+	it.each(levels)('sizes the spacing and the text at the step of a %s provider', (density) => {
+		expect(measure(density)).toEqual(EXPECTED[density])
+	})
 
 	it('keeps no spacing below the last item at a loose provider', () => {
 		const { container } = renderUI(
@@ -84,10 +81,7 @@ describe('Timeline density', () => {
 		expect(getComputedStyle(last).paddingBottom).toBe('0px')
 	})
 
-	it.each(['compact', 'snug', 'loose'] as const)(
-		'pads a horizontal item at the step of a %s provider',
-		(density) => {
-			expect(measure(density, 'horizontal').spacing).toBe(EXPECTED[density].spacing)
-		},
-	)
+	it.each(levels)('pads a horizontal item at the step of a %s provider', (density) => {
+		expect(measure(density, 'horizontal').spacing).toBe(EXPECTED[density].spacing)
+	})
 })

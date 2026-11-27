@@ -54,11 +54,6 @@ export const eventsMessages = defineMessages({
 		description:
 			'The button that copies the events, or one bug report as Markdown, of the debug tool.',
 	},
-	copied: {
-		id: 'ui.events.copied',
-		defaultMessage: 'Copied',
-		description: 'The label of the copy button of the debug tool after a copy succeeds.',
-	},
 	send: {
 		id: 'ui.events.send',
 		defaultMessage: 'Send',
@@ -131,12 +126,6 @@ export const eventsMessages = defineMessages({
 		id: 'ui.events.details',
 		defaultMessage: 'Details',
 		description: 'The name of the tree that shows the data of one event.',
-	},
-	trail: {
-		id: 'ui.events.trail',
-		defaultMessage: 'Breadcrumb',
-		description:
-			'The name of the trail of links above an open bug report, which leads back to the list of bugs.',
 	},
 })
 

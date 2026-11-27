@@ -9,10 +9,16 @@ import {
 	Underline,
 	Undo,
 } from 'lucide-react'
-import { type ReactElement, useState } from 'react'
-import { Button } from 'ui/button'
-import { Icon } from 'ui/icon'
+import { useState } from 'react'
+import { IconButton } from 'ui/icon-button'
 import { Toolbar, ToolbarGroup, ToolbarSeparator } from 'ui/toolbar'
+
+const marks = [
+	{ label: 'Bold', icon: <LetterB /> },
+	{ label: 'Italic', icon: <Italic /> },
+	{ label: 'Underline', icon: <Underline /> },
+	{ label: 'Strikethrough', icon: <Strikethrough /> },
+]
 
 const alignments = [
 	{ value: 'start', label: 'Align left', icon: <TextAlignStart /> },
@@ -20,65 +26,39 @@ const alignments = [
 	{ value: 'end', label: 'Align right', icon: <TextAlignEnd /> },
 ]
 
-// A pressed toggle takes the soft fill, so the state shows, and the button keeps its size.
-function Toggle({
-	label,
-	icon,
-	pressed,
-	onPress,
-}: {
-	label: string
-	icon: ReactElement
-	pressed: boolean
-	onPress: () => void
-}) {
-	return (
-		<Button
-			variant={pressed ? 'soft' : 'plain'}
-			aria-label={label}
-			aria-pressed={pressed}
-			onClick={onPress}
-		>
-			<Icon icon={icon} />
-		</Button>
-	)
-}
-
-function Mark({ label, icon }: { label: string; icon: ReactElement }) {
-	const [pressed, setPressed] = useState(false)
-
-	return <Toggle label={label} icon={icon} pressed={pressed} onPress={() => setPressed(!pressed)} />
-}
-
 export default function WithGroups() {
 	const [align, setAlign] = useState('start')
 
 	return (
 		<Toolbar aria-label="Text formatting">
 			<ToolbarGroup aria-label="History">
-				<Button variant="plain" aria-label="Undo">
-					<Icon icon={<Undo />} />
-				</Button>
-				<Button variant="plain" aria-label="Redo">
-					<Icon icon={<Redo />} />
-				</Button>
+				<IconButton icon={<Undo />} aria-label="Undo" variant="plain" tooltip />
+				<IconButton icon={<Redo />} aria-label="Redo" variant="plain" tooltip />
 			</ToolbarGroup>
 			<ToolbarSeparator />
 			<ToolbarGroup aria-label="Marks">
-				<Mark label="Bold" icon={<LetterB />} />
-				<Mark label="Italic" icon={<Italic />} />
-				<Mark label="Underline" icon={<Underline />} />
-				<Mark label="Strikethrough" icon={<Strikethrough />} />
+				{marks.map((mark) => (
+					<IconButton
+						key={mark.label}
+						icon={mark.icon}
+						aria-label={mark.label}
+						variant="plain"
+						defaultPressed={false}
+						tooltip
+					/>
+				))}
 			</ToolbarGroup>
 			<ToolbarSeparator />
 			<ToolbarGroup aria-label="Alignment">
 				{alignments.map((alignment) => (
-					<Toggle
+					<IconButton
 						key={alignment.value}
-						label={alignment.label}
 						icon={alignment.icon}
+						aria-label={alignment.label}
+						variant="plain"
 						pressed={align === alignment.value}
-						onPress={() => setAlign(alignment.value)}
+						onPressedChange={() => setAlign(alignment.value)}
+						tooltip
 					/>
 				))}
 			</ToolbarGroup>

@@ -13,7 +13,9 @@ import { useControlFieldContext } from './use-control-field-context'
 
 /** Props for {@link Control}; the shared form-field state broadcast to control-aware descendants. */
 export type ControlProps = {
+	/** Pins the id that the control adopts. Without it, the Control generates one. */
 	id?: string
+	/** The `autocomplete` token of the control, such as `email`. */
 	autoComplete?: string
 	/**
 	 * Disables the control-aware descendants.
@@ -40,7 +42,10 @@ export type ControlProps = {
 	 * A step makes the field a density scope.
 	 */
 	size?: ScaleStep<typeof scale>
-	/** @defaultValue `'default'`, or the `variant` of the enclosing Control, or the glass surface in a GlassProvider. */
+	/**
+	 * The surface of the control-aware descendants ({@link ControlVariant}).
+	 * @defaultValue `'default'`, or the `variant` of the enclosing Control, or the glass surface in a GlassProvider.
+	 */
 	variant?: ControlVariant
 	className?: string
 	children: ReactNode

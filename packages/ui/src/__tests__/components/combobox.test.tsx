@@ -38,11 +38,7 @@ import {
 import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
 
 /** The icon of the default chevron in the suffix. */
-const chevron = (container: HTMLElement) =>
-	present(
-		getSlot(container, 'suffix').querySelector<HTMLElement>('[data-slot="icon"]'),
-		'[data-slot="icon"]',
-	)
+const chevron = (container: HTMLElement) => getSlot(getSlot(container, 'suffix'), 'icon')
 
 describe('Combobox', () => {
 	it('renders input with combobox role', () => {

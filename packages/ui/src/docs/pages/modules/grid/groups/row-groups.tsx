@@ -4,7 +4,7 @@ import { columns, people } from '../data.tsx'
 export default function RowGroups() {
 	return (
 		<Grid
-			tableProps={{ 'aria-label': 'Row groups' }}
+			tableProps={{ 'aria-label': 'People' }}
 			columns={columns}
 			rows={people}
 			getKey={(row) => row.id}

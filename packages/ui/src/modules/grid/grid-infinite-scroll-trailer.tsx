@@ -3,6 +3,7 @@
 import type { ReactElement } from 'react'
 import { TableCell } from '../../components/table'
 import { Text } from '../../components/text'
+import { hasContent } from '../../utilities/children'
 import { hasErrorSlot } from './engine/grid-data/guards'
 import type { GridColumnPinning } from './engine/grid-table/pinning-view'
 import type { ResolvedInfiniteScroll } from './grid-data-resolvers'
@@ -24,7 +25,7 @@ function trailerState(infiniteScroll: ResolvedInfiniteScroll): GridTrailerState 
 
 	if (loadingMore && showLoadingIndicator) return 'loading'
 
-	if (!hasMore && endMessage != null && endMessage !== false) return 'end'
+	if (!hasMore && hasContent(endMessage)) return 'end'
 
 	return null
 }

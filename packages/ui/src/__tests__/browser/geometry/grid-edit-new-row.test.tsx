@@ -11,6 +11,7 @@ import {
 	deferred,
 	fireEvent,
 	frames,
+	getSlot,
 	present,
 	renderUI,
 	screen,
@@ -71,10 +72,7 @@ describe('grid new row (real browser)', () => {
 			</div>,
 		)
 
-		const scroll = present(
-			view.container.querySelector<HTMLElement>('[data-slot="grid-scroll"]'),
-			'[data-slot="grid-scroll"]',
-		)
+		const scroll = getSlot(view.container, 'grid-scroll')
 
 		const slot = () =>
 			present(

@@ -45,8 +45,22 @@ const { Title, Description, Header, Body, Footer, Content, DefaultFooter } = cre
 /** Props for {@link SheetClose}: one clickable child, or none for the standard Close button. */
 export type SheetCloseProps = Partial<PanelCloseProps>
 
+/**
+ * A control that closes the enclosing {@link Sheet}. With no child, it renders
+ * the standard Close button, which is also the default footer of the sheet.
+ * The standard button stays live in a locked scope, such as a submitting form.
+ * With one child, a click on the child closes the sheet, and the child's own
+ * `onClick` runs first.
+ */
 const Close = createPanelClose('sheet')
 
+/**
+ * The header of a sheet: a `<div>` that holds the title and the description, or a
+ * row such as the title with a close button. It stands the panel inset from the
+ * top edge, as the heading of a dialog does, at each density. A title or a
+ * description in it takes no inset of its own. A `closable` header puts an X
+ * close at the end of the line of the title.
+ */
 const ClosableHeader = createPanelHeader('sheet', Header)
 
 export {
@@ -57,21 +71,7 @@ export {
 	 * as wide as the panel.
 	 */
 	Body as SheetBody,
-	/**
-	 * The header of a sheet: a `<div>` that holds the title and the description, or a
-	 * row such as the title with a close button. It stands the panel inset from the
-	 * top edge, as the heading of a dialog does, at each density. A title or a
-	 * description in it takes no inset of its own. A `closable` header puts an X
-	 * close at the end of the line of the title.
-	 */
 	ClosableHeader as SheetHeader,
-	/**
-	 * A control that closes the enclosing {@link Sheet}. With no child, it renders
-	 * the standard Close button, which is also the default footer of the sheet.
-	 * The standard button stays live in a locked scope, such as a submitting form.
-	 * With one child, a click on the child closes the sheet, and the child's own
-	 * `onClick` runs first.
-	 */
 	Close as SheetClose,
 	/**
 	 * `<div>` wrapper that fills the remaining height of the sheet. It can hold the body

@@ -5,8 +5,6 @@ import { cn } from '../../core/cn'
 import { useControlLock } from '../../primitives/control/context'
 import { Density } from '../../primitives/density'
 import { useHeadless } from '../../primitives/headless/context'
-import { intlMessages } from '../../primitives/intl/intl-messages'
-import { useIntl } from '../../primitives/intl/use-intl'
 import type { PolymorphicProps } from '../../primitives/polymorphic'
 import { TouchTarget } from '../../primitives/touch-target'
 import { k } from '../../recipes/kata/button'
@@ -29,8 +27,8 @@ export type ButtonProps = ButtonBaseProps & PolymorphicProps<'button', 'prefix'>
  * when `href` is set. Without `size`, it takes the step of the nearest density
  * scope through stepped classes, and reads no density context. An explicit `size` makes
  * the button its own scope. It swaps in a `<LoadingSpinner>` while `loading`.
- * It collapses to a square hit area when icon-only, and degrades to headless
- * output under a HeadlessProvider. Compose `<ButtonSkeleton>` in loading trees. A
+ * It degrades to headless output under a HeadlessProvider. An icon-only
+ * control is an `IconButton`. Compose `<ButtonSkeleton>` in loading trees. A
  * button with no `variant` or `color` takes the one of the surface around it,
  * such as the soft color of an alert for its actions. The defaults of a surface
  * stop at a portal, such as a dialog that an action opens.
@@ -65,8 +63,6 @@ export function Button({
 }: ButtonProps) {
 	const headless = useHeadless()
 
-	const intl = useIntl()
-
 	const { variant, color } = useButtonDefaults({ variant: variantProp, color: colorProp })
 
 	// A locked scope, such as a form that submits, makes the button inert. A link
@@ -74,11 +70,7 @@ export function Button({
 	const locked = useControlLock() && lockable && href === undefined
 
 	// The spinner takes the place of the leading content while the button loads.
-	const leading = loading ? (
-		<LoadingSpinner label={intl.formatMessage(intlMessages.loading)} />
-	) : (
-		prefix
-	)
+	const leading = loading ? <LoadingSpinner /> : prefix
 
 	if (headless) {
 		return (

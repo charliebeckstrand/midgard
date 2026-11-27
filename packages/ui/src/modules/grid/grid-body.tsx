@@ -32,6 +32,7 @@ import {
 } from './engine/grid-items/items'
 import { gridMessages } from './engine/grid-messages'
 import { ariaRowIndex, type GridTreePlace, itemAriaRowIndex } from './engine/grid-row/shell'
+import type { GridSortState } from './engine/grid-sort/state'
 import { detailCursorRows, GridCursorOrder, groupedCursorRows } from './grid-cursor-order'
 import type { ResolvedInfiniteScroll } from './grid-data-resolvers'
 import type { GridGroupBy, GridGroupHeaderRow } from './grid-data-types'
@@ -86,7 +87,7 @@ type GridBodyProps<T> = GridRowsProps<T> & {
 	 * that moves whole blocks, so children never leave their header and the
 	 * backend's within-group order stands.
 	 */
-	manualGroupSort: 'asc' | 'desc' | null
+	manualGroupSort: GridSortState['direction'] | null
 	/** Group-header label override from the {@link GridGroupBy} binding, if any. */
 	groupRenderHeader: GridGroupBy['renderHeader']
 	/** Append a per-group total row under each group's leaves; effective only while columns aggregate. */

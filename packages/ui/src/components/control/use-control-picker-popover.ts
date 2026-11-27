@@ -1,6 +1,6 @@
 'use client'
 
-import { type RefObject, useCallback, useId, useRef } from 'react'
+import { type KeyboardEvent, type RefObject, useCallback, useId, useRef } from 'react'
 import { useControllableFlag } from '../../hooks/use-controllable'
 import type { FloatingPlacement } from '../../hooks/use-floating-panel'
 import { useFloatingReference } from '../../hooks/use-floating-reference'
@@ -40,9 +40,14 @@ type PickerPopoverOptions = {
  * off. When it is on, it puts the popup ARIA on the positioning wrapper as well
  * as on the trigger. Then a screen reader finds two controls for one dialog.
  *
+ * The trigger is a select-only combobox, so ArrowDown and ArrowUp open a
+ * closed panel, as on Listbox. `onTriggerKeyDown` holds this rule. A disabled
+ * trigger is natively disabled and gets no key event.
+ *
  * @returns The {@link useFloatingUI} result, plus `open`, `openPicker`,
- * `closePicker`, `onOpenChange`, `triggerRef`, `returnFocusRef` (the element
- * that gets focus when the dialog closes), `setReference`, and `dialogId`.
+ * `closePicker`, `onOpenChange`, `onTriggerKeyDown`, `triggerRef`,
+ * `returnFocusRef` (the element that gets focus when the dialog closes),
+ * `setReference`, and `dialogId`.
  * @internal
  */
 export function useControlPickerPopover({
@@ -86,6 +91,19 @@ export function useControlPickerPopover({
 		[closePicker, openPicker],
 	)
 
+	// While open, the modal dialog holds the focus, so the trigger takes keys
+	// only while closed.
+	const onTriggerKeyDown = useCallback(
+		(event: KeyboardEvent<HTMLElement>) => {
+			if (open || (event.key !== 'ArrowDown' && event.key !== 'ArrowUp')) return
+
+			event.preventDefault()
+
+			openPicker()
+		},
+		[open, openPicker],
+	)
+
 	const triggerRef = useRef<HTMLElement | null>(null)
 
 	const returnFocusRef = returnFocusTo ?? triggerRef
@@ -125,6 +143,7 @@ export function useControlPickerPopover({
 		openPicker,
 		closePicker,
 		onOpenChange,
+		onTriggerKeyDown,
 		triggerRef,
 		returnFocusRef,
 		setReference,

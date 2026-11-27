@@ -4,7 +4,7 @@ import { columns } from '../data.tsx'
 export default function Loading() {
 	return (
 		<Grid
-			tableProps={{ 'aria-label': 'Loading' }}
+			tableProps={{ 'aria-label': 'People' }}
 			loading
 			columns={columns}
 			rows={[]}

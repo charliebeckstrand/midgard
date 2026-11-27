@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { BarChart } from '../../modules/chart/bar-chart'
 import { PieChart } from '../../modules/chart/pie-chart'
+import { REDUCED_MOTION_QUERY } from '../../utilities/media-query'
 import { act, bySlot, renderUI, stubMatchMedia } from '../helpers'
 
 /**
@@ -100,7 +101,7 @@ describe('chart data-change transition', () => {
 	})
 
 	it('holds the generation for a reduced-motion preference, so a data change snaps', () => {
-		stubMatchMedia((query) => query === '(prefers-reduced-motion: reduce)')
+		stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
 
 		const { container, rerender } = renderUI(bars(DATA))
 
@@ -127,7 +128,7 @@ describe('chart data-change transition', () => {
 			media: query,
 			onchange: null,
 			get matches() {
-				return reduced && query === '(prefers-reduced-motion: reduce)'
+				return reduced && query === REDUCED_MOTION_QUERY
 			},
 			addEventListener: (_type: string, listener: () => void) => listeners.add(listener),
 			removeEventListener: (_type: string, listener: () => void) => listeners.delete(listener),

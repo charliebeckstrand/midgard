@@ -7,7 +7,7 @@ export default function IconOnly() {
 	// shows the label on hover and on keyboard focus.
 	return (
 		<Grid
-			tableProps={{ 'aria-label': 'Icon only' }}
+			tableProps={{ 'aria-label': 'People' }}
 			columns={columns}
 			rows={people}
 			getKey={(row) => row.id}

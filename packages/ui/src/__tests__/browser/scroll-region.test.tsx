@@ -15,7 +15,7 @@ import {
 } from '../../components/table'
 import { useScrollRegion } from '../../hooks/use-scroll-region'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { frames, present, renderUI, screen, waitFor } from '../helpers'
+import { frames, getSlot, present, renderUI, screen, waitFor } from '../helpers'
 
 /**
  * {@link useScrollRegion} makes a scroller a tab stop only while its content
@@ -153,10 +153,7 @@ describe('Table scroll container', () => {
 	}
 
 	function container(): HTMLElement {
-		return present(
-			document.querySelector<HTMLElement>('[data-slot="table"]'),
-			'the table scroll container',
-		)
+		return getSlot(document, 'table')
 	}
 
 	it('is a named tab stop while the table overflows', async () => {
@@ -212,10 +209,7 @@ describe('Table scroll container', () => {
 describe('CodeBlock scroll container', () => {
 	/** The scroll container of the block, once painted. */
 	function content(): HTMLElement {
-		const block = present(
-			document.querySelector<HTMLElement>('[data-slot="code-block"]'),
-			'the code block',
-		)
+		const block = getSlot(document, 'code-block')
 
 		return present(block.firstElementChild as HTMLElement | null, 'the code scroll container')
 	}
@@ -315,10 +309,7 @@ describe('PdfViewer viewport', () => {
 		)
 
 		const viewport = await waitFor(() => {
-			const node = present(
-				document.querySelector<HTMLElement>('[data-slot="pdf-viewer-viewport"]'),
-				'the viewport',
-			)
+			const node = getSlot(document, 'pdf-viewer-viewport')
 
 			expect(node.getAttribute('tabindex')).toBe('0')
 
@@ -334,10 +325,7 @@ describe('PdfViewer viewport', () => {
 describe('panel body', () => {
 	/** The body of the open dialog. */
 	function body(): HTMLElement {
-		return present(
-			document.querySelector<HTMLElement>('[data-slot="dialog-body"]'),
-			'the dialog body',
-		)
+		return getSlot(document, 'dialog-body')
 	}
 
 	it('is a tab stop while its content overflows', async () => {
@@ -451,10 +439,7 @@ describe('Grid scroll container', () => {
 
 		await waitFor(() => expect(screen.queryByText('Name 1')).not.toBeNull())
 
-		return present(
-			view.container.querySelector<HTMLElement>('[data-slot="grid-scroll"]'),
-			'the scroller',
-		)
+		return getSlot(view.container, 'grid-scroll')
 	}
 
 	it('is a tab stop with no cursor, so a keyboard user can scroll the window', async () => {

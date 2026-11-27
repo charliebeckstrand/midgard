@@ -131,6 +131,7 @@ export type SignaturePadProps = Omit<
 	 * @defaultValue `'Signature'`, in the language of the reader.
 	 */
 	'aria-label'?: string
+	/** The imperative handle: `clear`, `isEmpty`, and `toDataURL` (`SignaturePadHandle`). */
 	ref?: Ref<SignaturePadHandle>
 }
 

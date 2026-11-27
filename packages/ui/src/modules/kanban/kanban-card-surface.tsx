@@ -4,7 +4,7 @@ import type { ComponentProps } from 'react'
 import { Card } from '../../components/card'
 import { cn } from '../../core/cn'
 import { k } from '../../recipes/kata/kanban'
-import { partitionByType } from '../../utilities/children'
+import { hasContent, partitionByType } from '../../utilities/children'
 import { KanbanCardHandle } from './kanban-card-handle'
 import { KanbanCardMenu } from './kanban-card-menu'
 
@@ -37,8 +37,8 @@ export function KanbanCardSurface({
 
 	const { matched: menus, rest } = partitionByType(unhandled, KanbanCardMenu)
 
-	// A `false` or `null` slot renders nothing, so it opens no content column.
-	const content = rest.filter((node) => node != null)
+	// An empty slot renders nothing, so it opens no content column.
+	const content = rest.filter(hasContent)
 
 	return (
 		<Card

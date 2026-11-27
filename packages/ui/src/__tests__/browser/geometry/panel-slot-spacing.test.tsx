@@ -35,6 +35,7 @@ import {
 import { Form } from '../../../modules/form'
 import { DensityProvider } from '../../../providers/density'
 import { Flex } from '../../../structure/flex'
+import { NO_HOVER_QUERY, PHONE_QUERY } from '../../../utilities/media-query'
 import { getSlot, renderUI, screen, stubMatchMedia } from '../../helpers'
 import { settledRect } from '../helpers/sample'
 
@@ -463,7 +464,7 @@ describe('menu sheet heading', () => {
 
 	// A phone: no hover and a narrow viewport.
 	beforeEach(() => {
-		stubMatchMedia((query) => query.startsWith('(hover: none)'))
+		stubMatchMedia((query) => query === NO_HOVER_QUERY || query === PHONE_QUERY)
 	})
 
 	it.each(DENSITIES)(
