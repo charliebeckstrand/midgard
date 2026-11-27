@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from 'react'
 import { useControllable } from '../../hooks/use-controllable'
+import { useControlledLatch } from '../../hooks/use-controlled-latch'
 import { toggleItem } from '../../utilities/toggle-item'
 
 /**
@@ -27,7 +28,8 @@ export function unionExpandedSet(
 	return next
 }
 
-const NONE: ReadonlySet<string> = new Set()
+/** The empty set of paths: no branch is open. @internal */
+export const NO_PATHS: ReadonlySet<string> = new Set()
 
 type JsonTreeExpansion = {
 	/** The controlled set of open paths. `undefined` leaves the tree uncontrolled. */
@@ -56,14 +58,16 @@ export function useJsonTreeExpansion({
 	expanded,
 	onExpandedChange,
 	defaultExpandDepth,
-	autoOpen = NONE,
+	autoOpen = NO_PATHS,
 }: JsonTreeExpansion): {
 	isOpen: (path: string, depth: number) => boolean
 	toggle: (path: string, open: boolean) => void
 } {
-	const controlled = expanded !== undefined
+	// The latch of `useControllable`, so the open state follows the set after a
+	// later `undefined` (§7.3).
+	const controlled = useControlledLatch(expanded)
 
-	const [resolved = NONE, setExpanded] = useControllable<Set<string>>({
+	const [resolved = NO_PATHS, setExpanded] = useControllable<Set<string>>({
 		value: expanded,
 		onValueChange: (next) => onExpandedChange?.(next ?? new Set()),
 	})
