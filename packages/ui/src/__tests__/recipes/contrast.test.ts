@@ -7,6 +7,7 @@ import { k as button } from '../../recipes/kata/button'
 import { k as commandPalette } from '../../recipes/kata/command-palette'
 import { k as grid } from '../../recipes/kata/grid'
 import { k as input } from '../../recipes/kata/input'
+import { type JsonValueType, k as jsonTree } from '../../recipes/kata/json-tree'
 import { k as kanban } from '../../recipes/kata/kanban'
 import { k as list } from '../../recipes/kata/list'
 import { k as menu } from '../../recipes/kata/menu'
@@ -461,5 +462,45 @@ describe('Grid cell validation message', () => {
 
 			expect(getContrast('text-white', surface), fill).toBeGreaterThanOrEqual(TEXT_AA)
 		}
+	})
+})
+
+/**
+ * A keyboard reader reads the JsonTree row that has the focus, so each ink of
+ * the row must clear text AA on every wash that the focused row paints, and on
+ * the match wash of a focused search match over it. The washes and the inks
+ * come off the recipe, so a focus wash that a change adds is measured here.
+ */
+describe('JsonTree focused row', () => {
+	const TYPES: readonly JsonValueType[] = ['key', 'string', 'number', 'boolean', 'null']
+
+	const washes = classNames([jsonTree().row]).filter((className) =>
+		className.includes('has-focus-visible:bg-'),
+	)
+
+	const MATCH = byMode(iro.match)
+
+	const inks = inksByMode([
+		jsonTree().toggle,
+		jsonTree().index,
+		jsonTree().punctuation,
+		jsonTree().summary,
+		...TYPES.map((type) => jsonTree({ type }).value),
+	])
+
+	describe.each(MODES)('in %s', (mode) => {
+		const focused = washes
+			.filter((className) => className.startsWith('dark:') === (mode === 'dark'))
+			.reduce((ground, wash) => tinted(wash, ground), SURFACE[mode])
+
+		it.each([
+			['the focused row', focused],
+			['a focused match', tinted(MATCH[mode], focused)],
+		])('each ink clears text AA on %s', (_, surface) => {
+			expect(inks[mode]).not.toEqual([])
+
+			for (const ink of inks[mode])
+				expect(getContrast(ink, surface), ink).toBeGreaterThanOrEqual(TEXT_AA)
+		})
 	})
 })
