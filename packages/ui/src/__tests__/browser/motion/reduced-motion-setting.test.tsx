@@ -6,6 +6,8 @@ import { renderUI, screen } from '../../helpers'
  * The `motion-reduce` and `motion-safe` variants of `ui/tailwind.css` follow the
  * Motion setting: the `reduced-motion` class on the root element. The browser
  * of the suite asks for no reduction, so only the class can reduce.
+ * `reduced-motion/reduced-motion-setting.test.tsx` holds the half of the
+ * platform setting.
  */
 describe('Motion variants and the Motion setting', () => {
 	afterEach(() => {

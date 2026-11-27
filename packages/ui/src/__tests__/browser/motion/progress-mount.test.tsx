@@ -7,6 +7,8 @@ import { barFill, gaugeFill } from '../helpers/progress'
 /**
  * Real-Motion check of the progress fills on mount. The other suites mock
  * `motion/react`, and the mock animates nothing.
+ * `reduced-motion/progress-mount.test.tsx` holds the check for a reader who asks
+ * for reduced motion.
  *
  * Before the fix, both fills swept up from zero on each mount, so each tab
  * switch that brought a fill back played the sweep again.

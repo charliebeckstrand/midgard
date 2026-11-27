@@ -3,10 +3,8 @@ import { BarChart } from '../../../modules/chart/bar-chart'
 import { MARKER_RADIUS } from '../../../modules/chart/engine/chart-constants'
 import { LineChart } from '../../../modules/chart/line-chart'
 import { ScatterChart } from '../../../modules/chart/scatter-chart'
-import { REDUCED_MOTION_QUERY } from '../../../utilities/media-query'
-import { present, renderUI, stubMatchMedia, waitFor } from '../../helpers'
+import { present, renderUI, waitFor } from '../../helpers'
 import { legendItem } from '../../helpers/chart-legend'
-import { nextPaint } from '../../helpers/frames'
 import { sampleMotionFrames } from '../helpers/motion-frame'
 import { budget } from '../helpers/wall-clock'
 
@@ -79,6 +77,8 @@ const grown = vi.defineHelper(async (container: HTMLElement, count: number) => {
  * Before the fix, a legend toggle removed the marks of a series in one frame.
  * Now they run their reveal in reverse, and the rest of the chart keeps its
  * place until they leave. Then the layout closes the gap.
+ * `reduced-motion/chart-series-exit.test.tsx` holds the toggle for a reader who
+ * asks for reduced motion.
  */
 describe('chart series exit (real Motion)', () => {
 	it('shrinks the bars of a hidden series in place, then closes the stack', async () => {
@@ -294,23 +294,5 @@ describe('chart series exit (real Motion)', () => {
 		expect(leaving).toHaveLength(9)
 
 		await grown(container, 9)
-	})
-
-	it('lays out at once under reduced motion', async () => {
-		stubMatchMedia((query) => query === REDUCED_MOTION_QUERY)
-
-		const { container } = renderUI(bars())
-
-		await waitFor(() => expect(barNodes(container)).toHaveLength(9))
-
-		const before = barPaths(container)
-
-		legendItem(container, 'South').click()
-
-		await nextPaint()
-
-		expect(barNodes(container)).toHaveLength(6)
-
-		expect(barPaths(container).slice(3)).not.toEqual(before.slice(6))
 	})
 })
