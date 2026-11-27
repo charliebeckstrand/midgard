@@ -1,5 +1,5 @@
 import { act, render, screen } from '@testing-library/react'
-import { createMemoryRouter, RouterProvider } from 'react-router'
+import { createMemoryRouter, RouterProvider, useLocation } from 'react-router'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { useNavigationScroll } from '../app/use-navigation-scroll.ts'
 
@@ -104,5 +104,50 @@ describe('useNavigationScroll', () => {
 		render(<RouterProvider router={router} />)
 
 		expect(document.activeElement).toBe(before)
+	})
+
+	it('restores the scroll of a page on a move back and forward through the history', async () => {
+		// The shell keeps one box for all pages, and the page is the path.
+		function Shell() {
+			const scroller = useNavigationScroll(useLocation().pathname)
+
+			return <div ref={scroller} data-testid="box" />
+		}
+
+		const router = createMemoryRouter([{ path: '*', Component: Shell }], {
+			initialEntries: ['/button'],
+		})
+
+		onTestFinished(() => router.dispose())
+
+		render(<RouterProvider router={router} />)
+
+		const box = screen.getByTestId('box')
+
+		const scrollTo = vi.fn()
+
+		box.scrollTo = scrollTo as typeof box.scrollTo
+
+		const scroll = (top: number) => {
+			box.scrollTop = top
+
+			box.dispatchEvent(new Event('scroll'))
+		}
+
+		scroll(300)
+
+		await act(() => router.navigate('/dialog'))
+
+		expect(scrollTo).toHaveBeenLastCalledWith(0, 0)
+
+		scroll(120)
+
+		await act(() => router.navigate(-1))
+
+		expect(scrollTo).toHaveBeenLastCalledWith(0, 300)
+
+		await act(() => router.navigate(1))
+
+		expect(scrollTo).toHaveBeenLastCalledWith(0, 120)
 	})
 })
