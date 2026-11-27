@@ -6,7 +6,7 @@ import { type ChangeEvent, type KeyboardEvent, type ReactNode, useMemo } from 'r
 import { cn } from '../../core/cn'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { useFormValue } from '../../primitives/form/use-form-value'
-import { defineMessages, intlMessages } from '../../primitives/intl/intl-messages'
+import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { clearNativeInput } from '../../utilities/clear-native-input'
 import { isComposing } from '../../utilities/is-composing'
@@ -176,7 +176,7 @@ export function SearchInput({
 			suffix={
 				loading ? (
 					<>
-						<LoadingSpinner label={intl.formatMessage(intlMessages.loading)} />
+						<LoadingSpinner />
 						{extraSuffix}
 					</>
 				) : (

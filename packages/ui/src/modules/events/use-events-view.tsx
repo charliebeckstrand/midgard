@@ -167,10 +167,7 @@ export function useEventsView(live: boolean): EventsViewParts {
 			label: intl.formatMessage(eventsMessages.bugs),
 			// The crumbs name the report and lead back to the list.
 			title: (
-				<Breadcrumb
-					className="me-auto min-w-0"
-					aria-label={intl.formatMessage(eventsMessages.trail)}
-				>
+				<Breadcrumb className="me-auto min-w-0">
 					<BreadcrumbList className="text-xl/8">
 						<BreadcrumbItem>
 							<BreadcrumbLink
