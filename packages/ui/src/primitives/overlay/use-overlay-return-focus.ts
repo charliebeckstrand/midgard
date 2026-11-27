@@ -2,6 +2,7 @@
 
 import { type RefObject, useEffectEvent, useLayoutEffect } from 'react'
 import { FOCUSABLE_SELECTOR, getTabbableElements } from '../../utilities/focusable-selector'
+import { lastInput } from '../../utilities/last-input'
 
 /** A modal overlay, from its mount to its unmount. */
 type Entry = {
@@ -107,10 +108,17 @@ function giveBack(entry: Entry, target: Element | null): void {
 
 	if (active !== null && active !== doc.body) return
 
+	// After a press of a pointer, the target gets the focus without a focus
+	// ring, as it does after a click. WebKit shows the ring for a focus from a
+	// script, also after a tap. After a key press, the browser shows the ring.
+	const input = lastInput()
+
+	const focusVisible = input === null || input === 'keyboard' ? undefined : false
+
 	// A call to `focus()` does nothing on an element that cannot get the focus,
 	// such as a hidden one. The activeElement then tells if the call took.
 	for (const element of candidates(target, entry.path)) {
-		element.focus({ preventScroll: true })
+		element.focus({ preventScroll: true, focusVisible })
 
 		if (doc.activeElement === element) return
 	}
@@ -129,6 +137,9 @@ function giveBack(entry: Entry, target: Element | null): void {
  *
  * When the target is gone at the close, the focus goes into the nearest
  * ancestor of the old focus that is still in the page.
+ *
+ * After a press of a pointer, the focus comes back without a focus ring. After
+ * a key press, the ring shows.
  *
  * The focus comes back only from `<body>`. The overlay moves the focus there
  * at the close, and the browser moves it there when the focused element of an
