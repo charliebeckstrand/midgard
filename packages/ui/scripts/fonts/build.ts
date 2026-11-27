@@ -17,10 +17,11 @@
  * of its family, and only the layout features that ui uses.
  *
  * Both families are under the SIL Open Font License 1.1. The license must go
- * with each copy of the font files, and a subset keeps the copyright notice
- * of its font but not the license. `src/fonts/OFL.txt` thus holds the
- * copyright notices and the license, next to the font files. A new family
- * adds its notice to that file.
+ * with each copy of the font files. Each subset keeps the copyright notice,
+ * the license description, and the license URL of its font as metadata
+ * ({@link LICENSE_NAME_IDS}), so each copy that an app serves carries them.
+ * `src/fonts/OFL.txt` holds the copyright notices and the full license next
+ * to the font files. A new family adds its notice to that file.
  *
  * The script also writes `src/fonts/google-sans-flex-latin.js`, which adds the
  * face of the `latin` subset from its bytes. `AppearanceProvider` loads it
@@ -164,6 +165,14 @@ const SCRIPTS = {
  */
 const MARKS = 'U+0300-036F, U+25CC'
 
+/**
+ * The name IDs of the license description (13) and the license URL (14).
+ * HarfBuzz keeps only the IDs from 0 to 6, so a subset keeps these only on
+ * request. Each font file, and the bytes of the latin script, thus carry the
+ * license that the OFL requires on each copy.
+ */
+const LICENSE_NAME_IDS = [13, 14]
+
 /** One font file of ui: a subset of the source font of a family. */
 export type FontSubset = {
 	/** The family of the subset. */
@@ -261,6 +270,7 @@ export async function subsetBytes(subset: FontSubset): Promise<Buffer> {
 		targetFormat: 'woff2',
 		keepFeatures: FEATURES,
 		variationAxes: opticalSize ? { wght: weight, opsz: opticalSize } : { wght: weight },
+		preserveNameIds: LICENSE_NAME_IDS,
 	})
 }
 
