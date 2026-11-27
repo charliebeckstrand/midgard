@@ -30,10 +30,13 @@ type Read<T> = { ok: true; value: T } | { ok: false; message: string }
  * the race prerenders without it and reads it on a request. Thus the build
  * does not fail while civicAPI is down, and the static shell keeps no failure.
  * A failure that throws in the cache fails the build, also when a caller
- * catches it.
+ * catches it. The warning puts each race that a build leaves out in the build
+ * log. On a request, it shows at most once for each life of the failure.
  */
 function failed(message: string): Read<never> {
 	cacheLife('seconds')
+
+	console.warn(message)
 
 	return { ok: false, message }
 }

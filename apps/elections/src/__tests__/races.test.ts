@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { nationalRace, race } from '../server/races'
 import gaSenate from './fixtures/ga-senate.json'
 import senate from './fixtures/senate.json'
@@ -10,7 +10,7 @@ const cacheLife = vi.hoisted(() => vi.fn())
 vi.mock('next/cache', () => ({ cacheLife }))
 
 /** Stubs the answer of civicAPI. */
-function stubCivic(answer: () => Promise<Response>) {
+function stubCivic(answer: typeof fetch) {
 	const fetch = vi.fn(answer)
 
 	vi.stubGlobal('fetch', fetch)
@@ -18,8 +18,19 @@ function stubCivic(answer: () => Promise<Response>) {
 	return fetch
 }
 
+// Each failure warns once, so that the build log names each race that it leaves out.
+const warn = vi.fn()
+
+beforeEach(() => {
+	vi.spyOn(console, 'warn').mockImplementation(warn)
+})
+
 afterEach(() => {
 	vi.unstubAllGlobals()
+
+	vi.restoreAllMocks()
+
+	warn.mockReset()
 
 	cacheLife.mockReset()
 })
@@ -33,6 +44,8 @@ describe('nationalRace', () => {
 		expect(read.regions.length).toBeGreaterThan(0)
 
 		expect(cacheLife).toHaveBeenCalledExactlyOnceWith('minutes')
+
+		expect(warn).not.toHaveBeenCalled()
 	})
 
 	// A prerender leaves out an entry with a short life, so an outage of
@@ -45,10 +58,47 @@ describe('nationalRace', () => {
 		expect(cacheLife).toHaveBeenCalledExactlyOnceWith('seconds')
 	})
 
-	it('throws when civicAPI does not answer, and the cache keeps it for seconds', async () => {
-		stubCivic(() => Promise.reject(new TypeError('fetch failed')))
+	it('throws when civicAPI does not answer, with the cause, and warns once', async () => {
+		stubCivic(() =>
+			Promise.reject(
+				new TypeError('fetch failed', { cause: new Error('connect ECONNREFUSED 1.2.3.4:443') }),
+			),
+		)
 
-		await expect(nationalRace(87528)).rejects.toThrow('civicAPI did not answer for race 87528.')
+		const message =
+			'civicAPI did not answer for race 87528 (Error: connect ECONNREFUSED 1.2.3.4:443).'
+
+		await expect(nationalRace(87528)).rejects.toThrow(message)
+
+		expect(cacheLife).toHaveBeenCalledExactlyOnceWith('seconds')
+
+		expect(warn).toHaveBeenCalledExactlyOnceWith(message)
+	})
+
+	// A late answer must fail before the 54 s that a prerender gives a cache
+	// fill. Fake timers do not reach the timer of `AbortSignal.timeout`, so the
+	// case aborts the signal itself.
+	it('throws when civicAPI answers late, before the prerender times out', async () => {
+		const deadline = new AbortController()
+
+		const timeout = vi.spyOn(AbortSignal, 'timeout').mockReturnValue(deadline.signal)
+
+		stubCivic(
+			(_url, init) =>
+				new Promise((_resolve, reject) => {
+					init?.signal?.addEventListener('abort', () => reject(init.signal?.reason))
+				}),
+		)
+
+		const read = nationalRace(87528)
+
+		deadline.abort(new DOMException('The operation was aborted due to timeout', 'TimeoutError'))
+
+		await expect(read).rejects.toThrow(
+			'civicAPI did not answer for race 87528 (TimeoutError: The operation was aborted due to timeout).',
+		)
+
+		expect(timeout.mock.calls[0]?.[0]).toBeLessThan(54_000)
 
 		expect(cacheLife).toHaveBeenCalledExactlyOnceWith('seconds')
 	})
@@ -65,7 +115,7 @@ describe('nationalRace', () => {
 		})
 
 		await expect(nationalRace(87528)).rejects.toThrow(
-			'civicAPI broke off the answer for race 87528.',
+			'civicAPI broke off the answer for race 87528 (TypeError: terminated).',
 		)
 
 		expect(cacheLife).toHaveBeenCalledExactlyOnceWith('seconds')
