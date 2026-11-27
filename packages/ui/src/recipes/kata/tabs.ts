@@ -204,12 +204,15 @@ export const k = defineKata(
 			/**
 			 * The tab panel surface. A panel with no focusable content joins the tab
 			 * order (`tabIndex=0`, per the APG tabs pattern). Keyboard users can then
-			 * reach and scroll it. The design-system blue focus ring replaces the
-			 * browser default when it takes focus. The ring is `:focus-visible`-gated, so
-			 * a panel that holds its own focusable content (and is never tabbable) never
-			 * shows it.
+			 * reach and scroll it. The ring is `:focus-visible`-gated, so a panel that
+			 * holds its own focusable content (and is never tabbable) never shows it.
+			 *
+			 * The ring is the `overlay` ring, inside the box of the panel. An
+			 * animating `TabContents` clips its panels for the switch, so it cuts off
+			 * an outset ring (WCAG 2.4.7). The content of a panel reaches its edge, so
+			 * the ring paints over the content.
 			 */
-			panel: focus.ring,
+			panel: ['relative', ...focus.overlay],
 		},
 		defaults: { orientation: 'horizontal', stretch: false },
 	},
