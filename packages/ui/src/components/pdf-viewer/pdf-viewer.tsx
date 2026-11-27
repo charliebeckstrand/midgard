@@ -22,6 +22,7 @@ import type {
 	PdfViewerMagnifierOptions,
 	PdfViewerMagnifierState,
 	PdfViewerPage,
+	PdfViewerPageSize,
 	PdfViewerSearchOptions,
 	PdfViewerTextItem,
 	PdfViewerThumbnailLayout,
@@ -114,9 +115,9 @@ export type PdfViewerProps = Omit<ComponentProps<'section'>, 'children' | 'onLoa
 	 * viewer when it opens. Give the size of the first page where the consumer knows it, for
 	 * example `{ width: 595, height: 842 }` for A4. In a host that sizes to its content, it also
 	 * sets the width of the viewer.
-	 * @defaultValue `{ width: 612, height: 792 }` (US Letter)
+	 * @defaultValue `{ width: 612, height: 792 }`
 	 */
-	pageSize?: { width: number; height: number }
+	pageSize?: PdfViewerPageSize
 	/**
 	 * Regions to draw over the pages: extracted-field boxes on a scan, search hits, any
 	 * "look here" mark the consumer owns. Only the active page's are rendered.

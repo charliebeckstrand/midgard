@@ -27,7 +27,6 @@ import {
 	screen,
 	setupUser,
 	stubMatchMedia,
-	userEvent,
 	waitFor,
 } from '../helpers'
 
@@ -372,7 +371,7 @@ describe('MenuContent', () => {
 			</Menu>,
 		)
 
-		await userEvent.keyboard('{Escape}')
+		await setupUser().keyboard('{Escape}')
 
 		// A static menu is page furniture: it has no dismissed state, so it must
 		// not report a close, and must not claim the Escape press that an

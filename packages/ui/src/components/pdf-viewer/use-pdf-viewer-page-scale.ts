@@ -1,14 +1,13 @@
 'use client'
 
 import { type CSSProperties, useMemo } from 'react'
+import type { Size } from '../../utilities/size'
 import type { PdfViewerFit } from './types'
 import { isRotationTransposed } from './use-pdf-viewer-page-rotation'
 
-/** A measured or intrinsic box, in px. @internal */
-type Size = { width: number; height: number }
-
 /** Inputs to {@link usePdfViewerPageScale}. @internal */
 type PageScaleOptions = {
+	/** The intrinsic size of the page, from the page or from its image. `null` before the image loads. */
 	pageSize: Size | null
 	/** The page size in points (1/72 in), when the page carries it. Sets {@link PageScaleResult.naturalWidth}. */
 	pointSize?: Size | null

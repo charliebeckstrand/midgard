@@ -13,6 +13,7 @@ import { k } from '../../recipes/kata/json-tree.ts'
 import type { BarrelApi, ComponentApi, PropApi } from '../plugin/api.ts'
 import { toApiId } from './anchors.ts'
 import { usePendingAnchor } from './context.ts'
+import { formatCode } from './format-code.ts'
 import { HashAnchor } from './hash-anchor.tsx'
 import { runInSlices } from './idle.ts'
 import { formatLiteral } from './names.ts'
@@ -144,6 +145,8 @@ function PropFacts({ prop }: { prop: PropApi }) {
 
 	const kind = fallback && KINDS.find(([pattern]) => pattern.test(fallback))?.[1]
 
+	const code = fallback && formatCode(fallback)
+
 	return (
 		<Flex align="baseline" gap="lg" wrap className="text-sm">
 			<Flex as="span" align="baseline" gap="sm" wrap>
@@ -162,8 +165,14 @@ function PropFacts({ prop }: { prop: PropApi }) {
 				<span className="text-zinc-500 dark:text-zinc-400">
 					{withNode(
 						intl.formatMessage(defaultMessage, { value: SLOT }),
-						<code dir="ltr" className={cn('font-mono', kind)}>
-							{fallback}
+						// A default of more than one line, such as an object, keeps its
+						// lines. Its first line follows the label, and each next line
+						// starts at the start of the label, as in a block of code.
+						<code
+							dir="ltr"
+							className={cn('font-mono', kind, code?.includes('\n') && 'whitespace-pre')}
+						>
+							{code}
 						</code>,
 					)}
 				</span>

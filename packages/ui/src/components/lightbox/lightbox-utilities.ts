@@ -1,4 +1,5 @@
 import { clamp } from '../../utilities/clamp'
+import type { Size } from '../../utilities/size'
 import type { LightboxLoad, LightboxPhoto, LightboxViewPhoto } from './types'
 
 /** A box on the screen, in CSS px from the top left corner of the viewport. @internal */
@@ -352,7 +353,7 @@ const DISMISS_SHRINK = 0.25
  */
 export function dismissFrame(
 	travel: Vector,
-	photo: { width: number; height: number },
+	photo: Size,
 	height: number,
 ): { transform: string; opacity: number } {
 	const progress = Math.min(Math.hypot(travel.x, travel.y) / (height / 2), 1)
@@ -399,10 +400,7 @@ export function getThumbnail(photo: LightboxPhoto): string {
  * @param load - How the thumbnail loaded, or `undefined` while it loads.
  * @internal
  */
-export function getSize(
-	photo: LightboxPhoto,
-	load: LightboxLoad | undefined,
-): { width: number; height: number } | undefined {
+export function getSize(photo: LightboxPhoto, load: LightboxLoad | undefined): Size | undefined {
 	if (photo.width && photo.height) return { width: photo.width, height: photo.height }
 
 	if (load && load !== 'failed' && load.width > 0 && load.height > 0) return load
@@ -557,11 +555,7 @@ function axisTranslation(
  * @param stage - The size of the stage.
  * @internal
  */
-export function constrainView(
-	view: LightboxView,
-	photo: LightboxBox,
-	stage: { width: number; height: number },
-): LightboxView {
+export function constrainView(view: LightboxView, photo: LightboxBox, stage: Size): LightboxView {
 	const scale = clamp(view.scale, 1, ZOOM_MAX)
 
 	return {
@@ -585,7 +579,7 @@ export function zoomView(
 	to: LightboxPoint,
 	scale: number,
 	photo: LightboxBox,
-	stage: { width: number; height: number },
+	stage: Size,
 ): LightboxView {
 	const next = clamp(scale, 1, ZOOM_MAX)
 
@@ -614,7 +608,7 @@ export function panView(
 	dx: number,
 	dy: number,
 	photo: LightboxBox,
-	stage: { width: number; height: number },
+	stage: Size,
 ): LightboxView {
 	const moved = { ...view, x: view.x + dx, y: view.y + dy }
 

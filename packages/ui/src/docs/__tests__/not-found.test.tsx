@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { describe, expect, it } from 'vitest'
+import { setupUser } from '../../__tests__/helpers/setup-user.ts'
 import NotFound from '../app/routes/not-found.tsx'
 import { DocsSearch, SearchPaletteHost } from '../search/ui/search-provider.tsx'
 
@@ -108,7 +108,7 @@ describe('the not-found page', () => {
 	})
 
 	it('opens the search with the words of the path, and a later open starts empty', async () => {
-		const user = userEvent.setup()
+		const user = setupUser()
 
 		render(
 			<MemoryRouter initialEntries={['/components/date-picker']}>

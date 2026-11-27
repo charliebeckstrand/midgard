@@ -1,0 +1,31 @@
+language js
+
+// A jsdom test drives a user through `setupUser` (`helpers/setup-user.ts`), or
+// through the `user` of the `clock` fixture, which calls it. By default
+// user-event waits for a macrotask after each key and each pointer action, and
+// jsdom needs no such pause. The static API (`userEvent.click`) also makes a new
+// instance for each call, so a held key or a pointer state does not carry to
+// the next call. One form then serves each test.
+//
+// The pattern flags a value import of `@testing-library/user-event` and each
+// member of `userEvent`. A type import, such as `UserEvent`, passes.
+//
+// Reach is the `includes` beside this plugin in `biome.json`: the test trees,
+// minus `setup-user.ts` and the browser tree, where a real browser has its own
+// timing.
+or {
+	`import $clause from $source` as $import where {
+		$source <: r"['\"]@testing-library/user-event['\"]",
+		$import <: not r"^import type[\s\S]*",
+		register_diagnostic(
+			span = $import,
+			message = "drive a user with setupUser from helpers/setup-user, or the user of the clock fixture: user-event pauses after each event by default, and its static API starts a new user at each call"
+		)
+	},
+	`userEvent.$_` as $use where {
+		register_diagnostic(
+			span = $use,
+			message = "drive a user with setupUser from helpers/setup-user, or the user of the clock fixture: user-event pauses after each event by default, and its static API starts a new user at each call"
+		)
+	}
+}

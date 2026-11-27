@@ -35,7 +35,7 @@ const TEST_FILE = /\.test\.tsx?$/
 // Any token that needs a window. `render`/`renderHook`/`screen` cover RTL,
 // the bare identifiers cover hand-built nodes and hook tests, and the
 // package name covers matchers and user-event. The `helpers` barrel counts
-// too: it re-exports user-event, whose clipboard hooks reach `window` from
+// too: it loads user-event (`setupUser`), whose clipboard hooks reach `window` from
 // `afterEach`; a pure file imports a helper by its own module instead.
 const DOM_TOKEN =
 	/\b(?:document|window|navigator|HTMLElement|matchMedia)\b|@testing-library|\brender(?:UI|Hook)?\(|\bscreen\.|from '(?:\.\.\/)+helpers'/g

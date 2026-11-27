@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { CalendarPicker } from '../../components/calendar/calendar-picker'
 import { DatePicker } from '../../components/date-picker'
-import { act, fireEvent, getSlot, renderUI, screen, setupUser, userEvent } from '../helpers'
+import { act, fireEvent, getSlot, renderUI, screen, setupUser } from '../helpers'
 
 /**
  * A move inside the day grid renders no part of the calendar header.
@@ -45,9 +45,7 @@ describe('calendar header renders', () => {
 			<DatePicker range defaultValue={[new Date(2025, 5, 1), new Date(2025, 5, 3)]} />,
 		)
 
-		await userEvent
-			.setup({ delay: null })
-			.click(getSlot<HTMLButtonElement>(container, 'datepicker-button'))
+		await setupUser().click(getSlot<HTMLButtonElement>(container, 'datepicker-button'))
 
 		const days = screen.getAllByRole('option')
 

@@ -21,6 +21,7 @@ const BARRELS = [
 	'components/table',
 	'components/tabs',
 	'components/icon-button',
+	'components/pdf-viewer',
 	'providers/density',
 	'structure/flex',
 ]
@@ -110,6 +111,16 @@ describe('API extractor', { timeout: 60_000 }, () => {
 		expect(initialFocus?.description).toMatch(
 			/Default: the first tabbable element in the panel\. After a touch, the\s+panel, so the focus opens no on-screen keyboard\.$/,
 		)
+	})
+
+	it('gives the name of an exported type, not the name of an internal type', async ({
+		extractor,
+	}) => {
+		const api = await load(extractor)
+
+		// An alias of the internal `Size` gives the name `Size`, which the barrel
+		// does not export. `PdfViewerPageSize` writes its shape, so it keeps its name.
+		expect(findProp(api, 'PdfViewer', 'pageSize')?.type).toBe('PdfViewerPageSize')
 	})
 
 	it('leaves out an internal prop', async ({ extractor }) => {

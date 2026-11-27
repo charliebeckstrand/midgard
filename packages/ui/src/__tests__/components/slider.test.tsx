@@ -5,16 +5,7 @@ import { Description, Field, Label, Message } from '../../components/fieldset'
 import { RangeSlider, Slider } from '../../components/slider'
 import { snapValue } from '../../components/slider/range/range-utilities'
 import { Form } from '../../modules/form'
-import {
-	allBySlot,
-	bySlot,
-	fireEvent,
-	getSlot,
-	renderUI,
-	screen,
-	setupUser,
-	userEvent,
-} from '../helpers'
+import { allBySlot, bySlot, fireEvent, getSlot, renderUI, screen, setupUser } from '../helpers'
 import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
 
 describe('Slider', () => {
@@ -805,7 +796,7 @@ describe('RangeSlider + Form', () => {
 
 		const [lo] = allBySlot(container, 'slider-range-thumb')
 
-		await userEvent.click(screen.getByText('Price'))
+		await setupUser().click(screen.getByText('Price'))
 
 		expect(lo).toHaveFocus()
 	})
@@ -816,7 +807,7 @@ describe('RangeSlider + Form', () => {
 
 		const { container } = renderLabeled({ onValueChange, onDragStart })
 
-		await userEvent.click(screen.getByText('Price'))
+		await setupUser().click(screen.getByText('Price'))
 
 		const [lo, hi] = allBySlot(container, 'slider-range-thumb')
 
@@ -832,7 +823,7 @@ describe('RangeSlider + Form', () => {
 	it('keeps the thumb names after a click on the Field label', async () => {
 		const { container } = renderLabeled()
 
-		await userEvent.click(screen.getByText('Price'))
+		await setupUser().click(screen.getByText('Price'))
 
 		const [lo, hi] = allBySlot(container, 'slider-range-thumb')
 
@@ -844,7 +835,7 @@ describe('RangeSlider + Form', () => {
 	it('focuses no thumb on a click on the label of a disabled slider', async () => {
 		renderLabeled({ disabled: true })
 
-		await userEvent.click(screen.getByText('Price'))
+		await setupUser().click(screen.getByText('Price'))
 
 		expect(document.body).toHaveFocus()
 	})
@@ -859,7 +850,7 @@ describe('RangeSlider + Form', () => {
 
 		const [lo] = allBySlot(container, 'slider-range-thumb')
 
-		await userEvent.click(screen.getByText('Band'))
+		await setupUser().click(screen.getByText('Band'))
 
 		expect(lo).toHaveFocus()
 	})
@@ -873,7 +864,7 @@ describe('RangeSlider + Form', () => {
 			</>,
 		)
 
-		await userEvent.click(screen.getByText('Other'))
+		await setupUser().click(screen.getByText('Other'))
 
 		expect(screen.getByRole('textbox')).toHaveFocus()
 	})
