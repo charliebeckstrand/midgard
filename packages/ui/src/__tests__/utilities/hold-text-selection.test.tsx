@@ -1,5 +1,4 @@
-import { animate } from 'motion'
-import { afterEach, describe, expect, onTestFinished, vi } from 'vitest'
+import { afterEach, describe, expect, vi } from 'vitest'
 import { HoldButton } from '../../components/hold-button'
 import { Menu, MenuContent, MenuItem } from '../../components/menu'
 import {
@@ -8,6 +7,7 @@ import {
 } from '../../utilities/hold-text-selection'
 import { act, fireEvent, renderUI, screen } from '../helpers'
 import { type FakeClock, it, onFakeClock } from '../helpers/fake-clock'
+import { stubAnimate } from '../helpers/stub-animate'
 
 /**
  * A held touch selects no text on the page.
@@ -176,15 +176,8 @@ describe('holdTextSelection', () => {
 	})
 
 	it('holds for a touch on a hold button', () => {
-		// `animate` is the shared module spy (setup/module-mocks.ts). The press
-		// starts the fill, and a real Motion animation under fake timers waits on
-		// a fake frame. The frame loop then stays stuck for the next files of the
-		// worker, because the suites run with `isolate: false`.
-		vi.mocked(animate).mockReturnValue({} as ReturnType<typeof animate>)
-
-		onTestFinished(() => {
-			vi.mocked(animate).mockRestore()
-		})
+		// The press starts the fill animation.
+		stubAnimate()
 
 		renderUI(<HoldButton>Delete</HoldButton>)
 

@@ -1,14 +1,13 @@
 import { act } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
-import {
-	Dashboard,
-	type DashboardLayoutItem,
-	type DashboardProps,
-	DashboardTile,
-} from '../../modules/dashboard'
 import { k } from '../../recipes/kata/dashboard'
 import { fireEvent, renderUI, screen, tick } from '../helpers'
-import { settleKeyboardLifts, stubCanvasWidth } from '../helpers/dashboard-board'
+import {
+	SALES_LAYOUT,
+	SalesBoard,
+	settleKeyboardLifts,
+	stubCanvasWidth,
+} from '../helpers/dashboard-board'
 
 /**
  * A lift, a cancel, or a drop renders only the card of the tile that moves.
@@ -22,45 +21,15 @@ vi.mock('../../recipes/kata/dashboard', async (importActual) => {
 	return { ...actual, k: Object.assign(vi.fn(actual.k), actual.k) }
 })
 
-const LAYOUT: DashboardLayoutItem[] = [
-	{ id: 'a', x: 0, y: 0, w: 12 },
-	{ id: 'b', x: 12, y: 0, w: 12 },
-	{ id: 'c', x: 0, y: 27, w: 8, h: 20 },
-]
-
 stubCanvasWidth()
 
 settleKeyboardLifts()
-
-function Board({
-	editing = false,
-	layout = { defaultValue: LAYOUT },
-}: {
-	editing?: boolean
-	layout?: DashboardProps['layout']
-}) {
-	return (
-		<Dashboard aria-label="Sales" editing={editing} layout={layout}>
-			<DashboardTile id="a" title="Revenue" ratio={16 / 9}>
-				<button type="button">Inside a</button>
-			</DashboardTile>
-
-			<DashboardTile id="b" title="Traffic" ratio={16 / 9}>
-				<div data-testid="content-b" />
-			</DashboardTile>
-
-			<DashboardTile id="c">
-				<div data-testid="content-c" />
-			</DashboardTile>
-		</Dashboard>
-	)
-}
 
 describe('dashboard card renders', () => {
 	it('renders no card of a tile that a lift, a cancel, or a drop does not move', async () => {
 		const onValueChange = vi.fn()
 
-		renderUI(<Board editing layout={{ defaultValue: LAYOUT, onValueChange }} />)
+		renderUI(<SalesBoard editing layout={{ defaultValue: SALES_LAYOUT, onValueChange }} />)
 
 		const grip = screen.getByRole('button', { name: 'Move Revenue' })
 

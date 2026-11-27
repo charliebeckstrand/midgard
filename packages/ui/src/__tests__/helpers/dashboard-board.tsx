@@ -1,11 +1,12 @@
 import { fireEvent, screen } from '@testing-library/react'
-import { useLayoutEffect, useRef, useState } from 'react'
+import { type ReactNode, useLayoutEffect, useRef, useState } from 'react'
 import { afterEach, beforeEach, type Mock, vi } from 'vitest'
 import {
 	Dashboard,
 	type DashboardLayoutBinding,
 	type DashboardLayoutItem,
 	type DashboardProps,
+	DashboardTile,
 } from '../../modules/dashboard'
 import { useDashboardStoreContext } from '../../modules/dashboard/context'
 import type { DashboardStore } from '../../modules/dashboard/engine/dashboard-store'
@@ -18,6 +19,56 @@ import { present } from './present'
  * Not re-exported from `helpers/index.ts`. Only the dashboard suites use this
  * module, and most test files load that barrel.
  */
+
+/**
+ * The layout of {@link SalesBoard}: tiles `a` and `b` side by side in the first
+ * row, and tile `c` under them, narrower and with a fixed height.
+ */
+export const SALES_LAYOUT: DashboardLayoutItem[] = [
+	{ id: 'a', x: 0, y: 0, w: 12 },
+	{ id: 'b', x: 12, y: 0, w: 12 },
+	{ id: 'c', x: 0, y: 27, w: 8, h: 20 },
+]
+
+/** The props of {@link SalesBoard}. */
+export type SalesBoardProps = {
+	editing?: boolean
+	/** The layout binding. The default is an uncontrolled {@link SALES_LAYOUT}. */
+	layout?: DashboardProps['layout']
+	onDragEnd?: DashboardProps['onDragEnd']
+	/** More tiles after the three tiles of the board. */
+	children?: ReactNode
+}
+
+/**
+ * A board with the name "Sales" and three tiles: "Revenue" (`a`), which holds
+ * the button "Inside a", "Traffic" (`b`), and `c`, which has no title. Tiles `b`
+ * and `c` hold an empty element with the test id `content-b` or `content-c`.
+ */
+export function SalesBoard({
+	editing = false,
+	layout = { defaultValue: SALES_LAYOUT },
+	onDragEnd,
+	children,
+}: SalesBoardProps) {
+	return (
+		<Dashboard aria-label="Sales" editing={editing} layout={layout} onDragEnd={onDragEnd}>
+			<DashboardTile id="a" title="Revenue" ratio={16 / 9}>
+				<button type="button">Inside a</button>
+			</DashboardTile>
+
+			<DashboardTile id="b" title="Traffic" ratio={16 / 9}>
+				<div data-testid="content-b" />
+			</DashboardTile>
+
+			<DashboardTile id="c">
+				<div data-testid="content-c" />
+			</DashboardTile>
+
+			{children}
+		</Dashboard>
+	)
+}
 
 /**
  * Gives the canvas of each board a width, in each case of the calling suite.
