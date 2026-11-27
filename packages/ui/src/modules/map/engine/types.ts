@@ -1,6 +1,7 @@
 import type { GeoGeometryObjects, GeoProjection } from 'd3-geo'
 import type { MapSeriesColor } from '../../../recipes/kata/map'
 import type { ChartLegendPlacement } from '../../chart/engine/chart-legend/schema'
+import type { ReadoutSwatchShape } from '../../chart/engine/chart-readout-card'
 
 /** `[longitude, latitude]`: GeoJSON order, opposite of the idiomatic "lat / lng". */
 export type LngLat = [number, number]
@@ -59,7 +60,7 @@ export type DataKey<T> = keyof T & string
  *
  * @internal
  */
-export type MapSwatchShape = 'rect' | 'line' | 'dot'
+export type MapSwatchShape = ReadoutSwatchShape
 
 /**
  * The shape of a point mark. A `circle` is the default. A `square` is a box

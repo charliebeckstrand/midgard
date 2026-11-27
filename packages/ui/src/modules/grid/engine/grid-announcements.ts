@@ -13,20 +13,20 @@ import type { GridColumn } from '../types'
 import { formatAggregate } from './grid-aggregate'
 import { columnLabel } from './grid-column/label'
 import type { GridHistoryStep } from './grid-edit/history'
-import { physicalSide } from './grid-pin/overrides'
+import { type PinSide, physicalSide } from './grid-pin/overrides'
 import type { GridRangeFigure } from './grid-range/figures'
 import type { GridSortState } from './grid-sort/state'
 
 const messages = defineMessages<{
 	sortCleared: Record<never, never>
-	sortEntry: { column: string; direction: 'asc' | 'desc' }
+	sortEntry: { column: string; direction: GridSortState['direction'] }
 	sortThen: { first: string; next: string }
 	sortedBy: { columns: string }
 	allSelected: Record<never, never>
 	allSelectedOnPage: Record<never, never>
 	selectionCleared: Record<never, never>
 	rowsSelected: { count: number }
-	pinned: { column: string; side: 'left' | 'right' }
+	pinned: { column: string; side: PinSide }
 	unpinned: { column: string }
 	hid: { column: string }
 	showed: { column: string }
@@ -324,7 +324,7 @@ export function describeSelection(
 export function describePin(
 	intl: IntlShape,
 	label: string,
-	side: 'left' | 'right' | false,
+	side: PinSide | false,
 	rtl = false,
 ): string {
 	return side === false
