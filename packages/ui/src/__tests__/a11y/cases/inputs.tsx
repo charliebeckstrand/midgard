@@ -16,7 +16,7 @@ import { CurrencyInput } from '../../../components/currency-input'
 import { DateInput } from '../../../components/date-input'
 import { DatePicker } from '../../../components/date-picker'
 import { Field, Label, Message } from '../../../components/fieldset'
-import { FileUploadButton, FileUploadDrop } from '../../../components/file-upload'
+import { FileUploadButton, FileUploadDrop, FileUploadInput } from '../../../components/file-upload'
 import { IconButton, IconButtonSkeleton } from '../../../components/icon-button'
 import { Input } from '../../../components/input'
 import { MaskInput, phoneMask, zipcodeMask } from '../../../components/mask-input'
@@ -34,9 +34,10 @@ import { SearchInput } from '../../../components/search-input'
 import { Select, SelectLabel, SelectOption } from '../../../components/select'
 import { SignaturePad } from '../../../components/signature-pad'
 import { RangeSlider, Slider, SliderSkeleton } from '../../../components/slider'
-import { Switch, SwitchField, SwitchSkeleton } from '../../../components/switch'
+import { Switch, SwitchChoice, SwitchField, SwitchSkeleton } from '../../../components/switch'
 import { TagInput } from '../../../components/tag-input'
 import { Textarea, TextareaSkeleton } from '../../../components/textarea'
+import { useFormField } from '../../../modules/form'
 import type { Case } from './types'
 
 // A license-plate mask: uppercase, alphanumeric, grouped 3-4 (mirrors the demo).
@@ -51,6 +52,61 @@ function formatLicensePlate(raw: string) {
 
 // Static suggestion provider: the closed AddressInput never hits the network.
 const addressProvider: AddressProvider = async () => []
+
+const PLANS = ['starter', 'business', 'enterprise']
+
+const CHANNELS = ['email', 'sms']
+
+/**
+ * A RadioGroup of RadioFields in a Field, bound to the form field `name`. A
+ * RadioGroup takes no `name` prop, so the group binds as COMPONENTS.md shows.
+ */
+function BoundRadioGroup({ name }: { name: string }) {
+	const field = useFormField(name)
+
+	return (
+		<>
+			<Label as="span">Plan</Label>
+			<RadioGroup aria-label="Plan">
+				{PLANS.map((plan) => (
+					<RadioField key={plan}>
+						<Radio
+							name="plan"
+							value={plan}
+							checked={field?.value === plan}
+							onChange={() => field?.setValue(plan)}
+						/>
+						<Label>{plan}</Label>
+					</RadioField>
+				))}
+			</RadioGroup>
+		</>
+	)
+}
+
+/** A CheckboxGroup of CheckboxFields in a Field, bound to the form field `name`. */
+function BoundCheckboxGroup({ name }: { name: string }) {
+	const field = useFormField(name)
+
+	const value = Array.isArray(field?.value) ? (field.value as string[]) : []
+
+	return (
+		<>
+			<Label as="span">Channels</Label>
+			<CheckboxGroup aria-label="Channels">
+				{CHANNELS.map((channel) => (
+					<CheckboxField key={channel}>
+						<Checkbox
+							checked={value.includes(channel)}
+							onChange={() => field?.setValue([...value, channel])}
+						/>
+						<Label>{channel}</Label>
+					</CheckboxField>
+				))}
+			</CheckboxGroup>
+		</>
+	)
+}
 
 /** Inputs & form fields, each in its canonical labeled form. */
 export const inputCases: readonly Case[] = [
@@ -70,6 +126,17 @@ export const inputCases: readonly Case[] = [
 				defaultValue: '',
 				slot: 'input',
 				kind: 'text',
+			},
+		],
+		formField: [
+			{
+				render: ({ name }) => (
+					<>
+						<Label>Name</Label>
+						<Input name={name} />
+					</>
+				),
+				defaultValue: '',
 			},
 		],
 	},
@@ -114,6 +181,17 @@ export const inputCases: readonly Case[] = [
 				kind: 'text',
 			},
 		],
+		formField: [
+			{
+				render: ({ name }) => (
+					<>
+						<Label>Bio</Label>
+						<Textarea name={name} />
+					</>
+				),
+				defaultValue: '',
+			},
+		],
 	},
 	{
 		// No explicit id: the Field generates one and both Label and Slider read
@@ -132,6 +210,26 @@ export const inputCases: readonly Case[] = [
 			{ render: (size) => <RangeSlider size={size} />, slot: 'slider-range' },
 		],
 		touchOnBlur: [{ render: (props) => <Slider {...props} />, defaultValue: 30, slot: 'slider' }],
+		formField: [
+			{
+				render: ({ name }) => (
+					<>
+						<Label>Volume</Label>
+						<Slider name={name} />
+					</>
+				),
+				defaultValue: 0,
+			},
+			{
+				render: ({ name }) => (
+					<>
+						<Label>Range</Label>
+						<RangeSlider name={name} />
+					</>
+				),
+				defaultValue: [0, 100],
+			},
+		],
 	},
 	{
 		// The Field's Label names the radiogroup through Control context, so the
@@ -144,14 +242,62 @@ export const inputCases: readonly Case[] = [
 			</Field>
 		),
 		density: [{ render: (size) => <Rating size={size} aria-label="Score" />, slot: 'rating' }],
+		formField: [
+			{
+				render: ({ name }) => (
+					<>
+						<Label as="span">Score</Label>
+						<Rating name={name} />
+					</>
+				),
+				defaultValue: 3,
+			},
+		],
 	},
 	{
 		name: 'rating (read-only)',
 		element: <Rating key="r" readOnly value={4.5} />,
 		skeleton: [{ element: <RatingSkeleton />, absentSlot: 'rating', placeholders: 5 }],
 	},
-	{ name: 'file upload (drop)', element: <FileUploadDrop key="fu" /> },
-	{ name: 'file upload (button)', element: <FileUploadButton key="fub" /> },
+	{
+		name: 'file upload (drop)',
+		element: <FileUploadDrop key="fu" />,
+		formField: [
+			{
+				render: ({ name }) => (
+					<>
+						<Label>Attachment</Label>
+						<FileUploadDrop name={name} />
+					</>
+				),
+				defaultValue: undefined,
+			},
+		],
+	},
+	{
+		name: 'file upload (button)',
+		element: <FileUploadButton key="fub" />,
+		formField: [
+			{
+				render: ({ name }) => (
+					<>
+						<Label>Attachment</Label>
+						<FileUploadButton name={name} />
+					</>
+				),
+				defaultValue: undefined,
+			},
+			{
+				render: ({ name }) => (
+					<>
+						<Label>Attachment</Label>
+						<FileUploadInput name={name} />
+					</>
+				),
+				defaultValue: undefined,
+			},
+		],
+	},
 	{
 		name: 'checkbox',
 		element: (
@@ -170,6 +316,13 @@ export const inputCases: readonly Case[] = [
 				defaultValue: false,
 				slot: 'checkbox',
 				kind: 'toggle',
+			},
+		],
+		formField: [
+			{
+				render: ({ name }) => <BoundCheckboxGroup name={name} />,
+				defaultValue: [],
+				invalidFromField: true,
 			},
 		],
 	},
@@ -191,6 +344,32 @@ export const inputCases: readonly Case[] = [
 				kind: 'toggle',
 			},
 		],
+		formField: [
+			{
+				render: ({ name }) => (
+					<>
+						<Label>Notifications</Label>
+						<Switch name={name} />
+					</>
+				),
+				defaultValue: false,
+			},
+			{
+				render: ({ name }) => (
+					<>
+						<Label as="span">Theme</Label>
+						<SwitchChoice
+							name={name}
+							options={[
+								{ value: 'light', label: 'Light' },
+								{ value: 'dark', label: 'Dark' },
+							]}
+						/>
+					</>
+				),
+				defaultValue: 'dark',
+			},
+		],
 	},
 	{
 		// Radios share a name to form a single group; each input is named by its
@@ -210,6 +389,13 @@ export const inputCases: readonly Case[] = [
 		),
 		skeleton: [{ element: <RadioSkeleton />, absentSlot: 'radio' }],
 		density: [{ render: (size) => <Radio size={size} />, slot: 'control' }],
+		formField: [
+			{
+				render: ({ name }) => <BoundRadioGroup name={name} />,
+				defaultValue: 'business',
+				invalidFromField: true,
+			},
+		],
 	},
 	{
 		// Icon-only toggle: aria-pressed reflects state, aria-label supplies the
@@ -237,6 +423,17 @@ export const inputCases: readonly Case[] = [
 			</Field>
 		),
 		textInput: [{ render: (props) => <TagInput {...props} />, slot: 'input' }],
+		formField: [
+			{
+				render: ({ name }) => (
+					<>
+						<Label>Tags</Label>
+						<TagInput name={name} />
+					</>
+				),
+				defaultValue: [],
+			},
+		],
 	},
 	{
 		name: 'calendar',
@@ -260,6 +457,25 @@ export const inputCases: readonly Case[] = [
 				</Select>
 			</Field>
 		),
+		formField: [
+			{
+				render: ({ name }) => (
+					<>
+						<Label>Country</Label>
+						<Select
+							name={name}
+							placeholder="Select a country"
+							displayValue={(value: string) => value}
+						>
+							<SelectOption value="Canada">
+								<SelectLabel>Canada</SelectLabel>
+							</SelectOption>
+						</Select>
+					</>
+				),
+				defaultValue: undefined,
+			},
+		],
 	},
 	{
 		// Closed date picker: the trigger is named by its Field Label; the calendar
@@ -271,6 +487,44 @@ export const inputCases: readonly Case[] = [
 				<DatePicker />
 			</Field>
 		),
+		formField: [
+			{
+				render: ({ name }) => (
+					<>
+						<Label>Start date</Label>
+						<DatePicker name={name} />
+					</>
+				),
+				defaultValue: undefined,
+			},
+			{
+				render: ({ name }) => (
+					<>
+						<Label>Stay</Label>
+						<DatePicker range name={name} />
+					</>
+				),
+				defaultValue: undefined,
+			},
+			{
+				render: ({ name }) => (
+					<>
+						<Label>Start date</Label>
+						<DatePicker input name={name} />
+					</>
+				),
+				defaultValue: undefined,
+			},
+			{
+				render: ({ name }) => (
+					<>
+						<Label>Start date</Label>
+						<DatePicker relative name={name} />
+					</>
+				),
+				defaultValue: undefined,
+			},
+		],
 	},
 	{
 		// Bare masked date entry: self-labels with a default aria-label="Date" and
@@ -292,6 +546,17 @@ export const inputCases: readonly Case[] = [
 				<DateInput />
 			</Field>
 		),
+		formField: [
+			{
+				render: ({ name }) => (
+					<>
+						<Label>Due date</Label>
+						<DateInput name={name} />
+					</>
+				),
+				defaultValue: undefined,
+			},
+		],
 	},
 	{
 		// Closed combobox: role=combobox input named by its Field Label, aria-expanded
@@ -308,6 +573,21 @@ export const inputCases: readonly Case[] = [
 				</Combobox>
 			</Field>
 		),
+		formField: [
+			{
+				render: ({ name }) => (
+					<>
+						<Label>Assignee</Label>
+						<Combobox name={name} displayValue={(value: string) => value}>
+							<ComboboxOption value="Wade Cooper">
+								<ComboboxLabel>Wade Cooper</ComboboxLabel>
+							</ComboboxOption>
+						</Combobox>
+					</>
+				),
+				defaultValue: undefined,
+			},
+		],
 	},
 	{
 		name: 'number input',
@@ -320,6 +600,17 @@ export const inputCases: readonly Case[] = [
 		textInput: [{ render: (props) => <NumberInput {...props} />, slot: 'number-input' }],
 		touchOnBlur: [
 			{ render: (props) => <NumberInput {...props} />, defaultValue: 0, slot: 'number-input' },
+		],
+		formField: [
+			{
+				render: ({ name }) => (
+					<>
+						<Label>Quantity</Label>
+						<NumberInput name={name} />
+					</>
+				),
+				defaultValue: undefined,
+			},
 		],
 	},
 	{
@@ -336,6 +627,17 @@ export const inputCases: readonly Case[] = [
 				render: (props) => <CurrencyInput {...props} />,
 				defaultValue: undefined,
 				slot: 'currency-input',
+			},
+		],
+		formField: [
+			{
+				render: ({ name }) => (
+					<>
+						<Label>Amount</Label>
+						<CurrencyInput name={name} />
+					</>
+				),
+				defaultValue: undefined,
 			},
 		],
 	},
@@ -367,6 +669,35 @@ export const inputCases: readonly Case[] = [
 				render: (props) => <CreditCardInputCvv {...props} />,
 				defaultValue: '',
 				slot: 'credit-card-input-cvv',
+			},
+		],
+		formField: [
+			{
+				render: ({ name }) => (
+					<>
+						<Label>Card number</Label>
+						<CreditCardInput name={name} />
+					</>
+				),
+				defaultValue: '',
+			},
+			{
+				render: ({ name }) => (
+					<>
+						<Label>Expiry</Label>
+						<CreditCardInputExpiry name={name} />
+					</>
+				),
+				defaultValue: undefined,
+			},
+			{
+				render: ({ name }) => (
+					<>
+						<Label>Security code</Label>
+						<CreditCardInputCvv name={name} />
+					</>
+				),
+				defaultValue: '',
 			},
 		],
 	},
@@ -429,6 +760,17 @@ export const inputCases: readonly Case[] = [
 				slot: 'mask-input',
 			},
 		],
+		formField: [
+			{
+				render: ({ name }) => (
+					<>
+						<Label>License plate</Label>
+						<MaskInput name={name} mask={formatLicensePlate} />
+					</>
+				),
+				defaultValue: '',
+			},
+		],
 	},
 	{
 		name: 'search input',
@@ -450,6 +792,17 @@ export const inputCases: readonly Case[] = [
 				kind: 'text',
 			},
 		],
+		formField: [
+			{
+				render: ({ name }) => (
+					<>
+						<Label>Search</Label>
+						<SearchInput name={name} />
+					</>
+				),
+				defaultValue: '',
+			},
+		],
 	},
 	{
 		name: 'password input',
@@ -460,6 +813,17 @@ export const inputCases: readonly Case[] = [
 			</Field>
 		),
 		textInput: [{ render: (props) => <PasswordInput {...props} />, slot: 'password-input' }],
+		formField: [
+			{
+				render: ({ name }) => (
+					<>
+						<Label>Password</Label>
+						<PasswordInput name={name} />
+					</>
+				),
+				defaultValue: '',
+			},
+		],
 	},
 	{
 		// Two coupled fields under a wrapper that flags mismatch; each input is

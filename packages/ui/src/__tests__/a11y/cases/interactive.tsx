@@ -232,6 +232,21 @@ export const interactive: readonly InteractiveCase[] = [
 				parts: ['popover-panel'],
 			},
 		],
+		formField: [
+			{
+				render: ({ name }) => (
+					<>
+						<Label>Status</Label>
+						<Listbox<string> name={name} displayValue={(value: string) => value}>
+							<ListboxOption value="active">
+								<ListboxLabel>Active</ListboxLabel>
+							</ListboxOption>
+						</Listbox>
+					</>
+				),
+				defaultValue: undefined,
+			},
+		],
 	},
 	{
 		// Date picker: the trigger opens its calendar popover on click.
@@ -321,6 +336,17 @@ export const interactive: readonly InteractiveCase[] = [
 					panel: (root) => bySlot(root, 'floating-surface'),
 				},
 				disabledParts: ['color-picker-button'],
+			},
+		],
+		formField: [
+			{
+				render: ({ name }) => (
+					<>
+						<Label>Brand color</Label>
+						<ColorPicker name={name} />
+					</>
+				),
+				defaultValue: undefined,
 			},
 		],
 	},
