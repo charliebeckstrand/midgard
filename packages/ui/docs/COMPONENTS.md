@@ -155,6 +155,8 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > The thumbnail rail of `PdfViewer` opens 240px wide. A splitter named "Resize thumbnails" on its end edge resizes it from 160px to 320px, by a drag or by the arrow keys. A double-click sets 240px again, unless its second press dragged. The rail is one Tab stop on the current page, and the arrow keys move between the pages. A `src` document renders each thumbnail for the widest rail, so a thumbnail is sharp at each width.
 
+> Escape closes the `magnifier` lens of `PdfViewer` wherever the focus is (WCAG 1.4.13), and the pointer does not have to move. The next move of the pointer starts the dwell again.
+
 ## Loading skeletons
 
 A unit that can load late exports a `<Name>Skeleton` from its own entry point. The skeleton is a static leaf, so a Suspense fallback or a `loading.tsx` can render it on the server. It has the box of the real component and takes the same `size`, `level`, or `orientation`. `ColorPanelSkeleton` also takes the `alpha` and the `swatches` of its panel.
