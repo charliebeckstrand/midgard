@@ -195,9 +195,10 @@ describe('controls show their state under forced colors (real browser)', () => {
 			expect(getComputedStyle(indicator).outlineStyle).not.toBe('none')
 		})
 
-		// The range legend track paints only with a gradient, which forced colors
-		// remove, so the slider keeps an outline.
-		it('range legend: the track draws an edge', () => {
+		// The range legend track paints only with a gradient. The cells keep their
+		// hues under forced colors, so the track keeps its gradient, and the slider
+		// keeps an outline too.
+		it('range legend: the track keeps its scale and draws an edge', () => {
 			const { container } = renderUI(
 				<HeatmapChart
 					aria-label="Commits"
@@ -219,7 +220,7 @@ describe('controls show their state under forced colors (real browser)', () => {
 			)
 			const track = present(container.querySelector('[data-slot=heatmap-range-track]'), 'track')
 			const style = getComputedStyle(track)
-			expect(style.backgroundImage).toBe('none')
+			expect(style.backgroundImage).toMatch(/^linear-gradient/)
 			expect(style.outlineStyle).not.toBe('none')
 			expect(Number.parseFloat(style.outlineWidth)).toBeGreaterThan(0)
 		})
