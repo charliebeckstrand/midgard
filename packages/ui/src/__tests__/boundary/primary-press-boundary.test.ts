@@ -86,13 +86,21 @@ function holdFiles(): Map<string, boolean> {
 describe('primary-press boundary', () => {
 	it('finds each spelling of the comparison', () => {
 		expect(readsButtonZero('if (event.button !== 0) return')).toBe(true)
+
 		expect(readsButtonZero('const source = event.button === 0 ? read() : null')).toBe(true)
+
 		expect(readsButtonZero('if (0 === event.button) start()')).toBe(true)
+
 		expect(readsButtonZero('if (event?.button != 0) return')).toBe(true)
+
 		expect(readsButtonZero('const { button } = event; if (button !== 0) return')).toBe(true)
+
 		expect(readsButtonZero('if ((next.buttons & 1) === 0) stop()')).toBe(false)
+
 		expect(readsButtonZero('if (event.buttons === 0) stop()')).toBe(false)
+
 		expect(readsButtonZero('return event.ctrlKey && event.button === 2')).toBe(false)
+
 		expect(readsButtonZero('if (event.button === 0.5) return')).toBe(false)
 	})
 

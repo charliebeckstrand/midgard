@@ -4,22 +4,31 @@ import { formatSetting, parseSetting, readSettings, SETTINGS } from '../utilitie
 describe('parseSetting', () => {
 	it('reads on and off', () => {
 		expect(parseSetting('autoDraw', 'on')).toBe(true)
+
 		expect(parseSetting('autoDraw', 'off')).toBe(false)
+
 		expect(parseSetting('showScore', 'off')).toBe(false)
 	})
 
 	it('gives the default for a missing or an unknown value', () => {
 		expect(parseSetting('autoDraw', undefined)).toBe(true)
+
 		expect(parseSetting('showScore', undefined)).toBe(true)
+
 		expect(parseSetting('showScore', 'yes')).toBe(true)
+
 		expect(parseSetting('placementOrder', undefined)).toBe(true)
+
 		expect(parseSetting('difficulty', undefined)).toBe('normal')
+
 		expect(parseSetting('difficulty', 'expert')).toBe('normal')
+
 		expect(parseSetting('difficulty', 'toString')).toBe('normal')
 	})
 
 	it('reads each level of the CPU', () => {
 		expect(parseSetting('difficulty', 'easy')).toBe('easy')
+
 		expect(parseSetting('difficulty', 'hard')).toBe('hard')
 	})
 })
@@ -27,7 +36,9 @@ describe('parseSetting', () => {
 describe('formatSetting', () => {
 	it('gives the cookie value that parseSetting reads', () => {
 		expect(formatSetting('autoDraw', true)).toBe('on')
+
 		expect(formatSetting('showScore', false)).toBe('off')
+
 		expect(formatSetting('difficulty', 'hard')).toBe('hard')
 	})
 })

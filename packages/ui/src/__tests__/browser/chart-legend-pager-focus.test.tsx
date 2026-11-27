@@ -45,12 +45,14 @@ describe('chart legend pager focus (real browser)', () => {
 		await waitFor(() => expect(pager).toHaveTextContent('2 / 2'))
 
 		expect(document.activeElement).toBe(next)
+
 		expect(next).toHaveAttribute('aria-disabled', 'true')
 
 		// A press at the end does nothing.
 		await userEvent.keyboard('{Enter}')
 
 		expect(pager).toHaveTextContent('2 / 2')
+
 		expect(document.activeElement).toBe(next)
 
 		// Previous leads back to the first page, where it announces the end.
@@ -59,7 +61,9 @@ describe('chart legend pager focus (real browser)', () => {
 		await waitFor(() => expect(pager).toHaveTextContent('1 / 2'))
 
 		expect(document.activeElement).toBe(previous)
+
 		expect(previous).toHaveAttribute('aria-disabled', 'true')
+
 		expect(next).not.toHaveAttribute('aria-disabled')
 	})
 

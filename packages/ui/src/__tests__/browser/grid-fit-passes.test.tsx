@@ -109,6 +109,7 @@ describe('grid fit passes (real browser)', () => {
 		const first = present(document.querySelector('tbody td'), 'first body cell')
 
 		expect(first.textContent).toBe('Person 30')
+
 		expect(passes).toBe(0)
 	})
 

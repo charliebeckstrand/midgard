@@ -9,6 +9,7 @@ describe('Container', () => {
 		const el = bySlot(container, 'container')
 
 		expect(el).toHaveClass('px-6')
+
 		expect(el).not.toHaveClass('lg:px-6')
 	})
 

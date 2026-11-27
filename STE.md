@@ -62,7 +62,7 @@ The rule 3 gate reads spelling only, so review holds the rest of rule 3. Rule 6 
 
 Review holds STE rule 4, because no count of it is correct. Rule 5 stays out of scope until this repository holds Part 2. Do not rewrite an `-ing` form without the Dictionary.
 
-[`cadence-boundary.test.ts`](packages/ui/src/__tests__/boundary/cadence-boundary.test.ts) gates cadence rules 1, 3, 4, and 7 in the rule documents. Review holds the other cadence rules, except rule 5, which the controlled-language boundary gates.
+[`cadence-boundary.test.ts`](packages/ui/src/__tests__/boundary/cadence-boundary.test.ts) gates cadence rules 1, 3, 4, and 7 in the rule documents. It also gates cadence rule 1 in each test file of the workspace. Two `expect` statements in a row must have a blank line between them. Review holds the other cadence rules, except rule 5, which the controlled-language boundary gates.
 
 An audit and a plan stay in their authored voice, because each is a temporary record ([`CONVENTIONS.md` §12.4, §12.5](CONVENTIONS.md)). Chat is exempt ([`CLAUDE.md`](CLAUDE.md) §2.5).
 

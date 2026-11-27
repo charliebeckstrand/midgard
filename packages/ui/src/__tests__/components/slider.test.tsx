@@ -234,17 +234,23 @@ describe('RangeSlider', () => {
 		const [lo, hi] = allBySlot(container, 'slider-range-thumb')
 
 		expect(lo).toHaveAttribute('aria-valuenow', String(shown[0]))
+
 		expect(lo).toHaveAttribute('aria-valuemax', String(shown[1]))
+
 		expect(lo).toHaveAttribute('aria-valuetext', `${shown[0]} units`)
+
 		expect(lo?.style.insetInlineStart).toBe(`${shown[0]}%`)
 
 		expect(hi).toHaveAttribute('aria-valuenow', String(shown[1]))
+
 		expect(hi).toHaveAttribute('aria-valuemin', String(shown[0]))
+
 		expect(hi?.style.insetInlineStart).toBe(`${shown[1]}%`)
 
 		const fill = getSlot(container, 'slider-range-fill')
 
 		expect(fill.style.insetInlineStart).toBe(`${shown[0]}%`)
+
 		expect(fill.style.insetInlineEnd).toBe(`${100 - shown[1]}%`)
 	})
 

@@ -39,11 +39,13 @@ describe('Row description size', () => {
 
 	it('steps the row text of Option and the Menu item with the density scope', () => {
 		expect(toClasses(rows.Option.root)).toContain(dan.text.body)
+
 		expect(toClasses(rows['Menu item'].root)).toContain(dan.text.body)
 	})
 
 	it('fixes the row text of the CommandPalette item at md', () => {
 		expect(toClasses(rows['CommandPalette item'].root)).toContain(ji.size.md)
+
 		expect(toClasses(rows['CommandPalette item'].root)).not.toContain(dan.text.body)
 	})
 })

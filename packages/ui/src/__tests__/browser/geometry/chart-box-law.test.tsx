@@ -190,7 +190,9 @@ describe('chart box-law (real browser)', () => {
 		const figure = getSlot(container, 'chart-figure').getBoundingClientRect().height
 
 		expect(figure).toBeGreaterThan(398)
+
 		expect(figure).toBeLessThan(402)
+
 		expect(svgHeight(container)).toBeLessThan(figure - 16)
 	})
 })

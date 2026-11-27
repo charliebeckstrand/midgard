@@ -54,6 +54,7 @@ describe('nextSort', () => {
 			const desc: GridSortState[] = [{ column: 'a', direction: 'desc' }]
 
 			expect(nextSort(desc, 'a', false, 'tri-state')).toEqual([])
+
 			expect(nextSort(desc, 'a', false)).toEqual([])
 		})
 	})

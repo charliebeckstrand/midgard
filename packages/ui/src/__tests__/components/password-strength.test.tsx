@@ -17,7 +17,9 @@ describe('PasswordStrength', () => {
 		const meter = screen.getByRole('meter', { name: 'Password strength' })
 
 		expect(meter).toHaveAttribute('value', '3')
+
 		expect(meter).toHaveAttribute('aria-valuetext', 'Good')
+
 		expect(screen.queryByRole('progressbar')).toBeNull()
 	})
 

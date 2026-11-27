@@ -41,6 +41,7 @@ describe('sortPlaces', () => {
 			'Antler',
 			'Bistro',
 		])
+
 		expect(names(sortPlaces([rated('Bistro', 3), repeat], 'rating'))).toEqual(['Bistro', 'Antler'])
 	})
 

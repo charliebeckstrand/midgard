@@ -50,6 +50,7 @@ describe('resolveContextMenuEntries', () => {
 
 		// Default order: defaults first, then the separator, then the custom block.
 		expect(entries[0]).toBe(defaults[0])
+
 		expect(entries[3]).toBe(items[0])
 	})
 
@@ -59,7 +60,9 @@ describe('resolveContextMenuEntries', () => {
 		const entries = resolveContextMenuEntries({ items, insert: 'before' }, defaults)
 
 		expect(entries[0]).toBe(items[0])
+
 		expect(entries[1]).toMatchObject({ separator: true })
+
 		expect(entries[2]).toBe(defaults[0])
 	})
 
@@ -213,6 +216,7 @@ describe('mergeContextMenuItems', () => {
 		const merged = mergeContextMenuItems([[defaults[0]], [], [defaults[1]]])
 
 		expect(merged).toHaveLength(3)
+
 		expect(merged[1]).toMatchObject({ separator: true })
 	})
 
@@ -257,6 +261,7 @@ describe('ContextMenu', () => {
 		fireEvent.contextMenu(screen.getByTestId('surface'))
 
 		expect(screen.getByRole('menuitem', { name: 'Alpha' })).toBeInTheDocument()
+
 		expect(screen.getByRole('menuitem', { name: 'Bravo' })).toBeInTheDocument()
 	})
 

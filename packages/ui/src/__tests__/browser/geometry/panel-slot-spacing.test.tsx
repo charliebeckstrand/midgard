@@ -347,6 +347,7 @@ describe.each(VIEWPORTS)('panel slot spacing at the $name width', ({ width, heig
 
 				// The body is the scroller, so the header and the footer stay in place.
 				expect(body.scrollHeight).toBeGreaterThan(body.clientHeight)
+
 				expect(panel.scrollHeight).toBeLessThanOrEqual(panel.clientHeight)
 
 				const measure = () => {

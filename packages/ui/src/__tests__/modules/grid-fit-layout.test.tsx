@@ -126,6 +126,7 @@ describe('grid automatic layout', () => {
 		// The window assumes a scroller size until the scroller measures, so the first rows
 		// paint from the server, and only the first rows.
 		expect(rendered).toBeGreaterThan(0)
+
 		expect(rendered).toBeLessThan(many.length)
 
 		expect(doc.querySelector('tr[data-grid-placeholder]')).toBeNull()
@@ -133,6 +134,7 @@ describe('grid automatic layout', () => {
 		const region = doc.querySelector<HTMLElement>('[data-slot="grid-scroll"]')
 
 		expect(region?.style.maxHeight).toBe('320px')
+
 		expect(region?.style.height).toBe('')
 	})
 

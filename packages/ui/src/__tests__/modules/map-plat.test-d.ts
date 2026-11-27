@@ -14,10 +14,15 @@ describe('MapPlat', () => {
 		type Row = { state: string; zone: string; count: number }
 
 		expectTypeOf<MapPlatCategoricalProps<Row>>().toExtend<MapPlatProps<Row>>()
+
 		expectTypeOf<MapPlatNumericProps<Row>>().toExtend<MapPlatProps<Row>>()
+
 		expectTypeOf<MapPlatNoDataProps>().toExtend<MapPlatProps<Row>>()
+
 		expectTypeOf<MapPlatCategoricalProps<Row>['categoryKey']>().toEqualTypeOf<DataKey<Row>>()
+
 		expectTypeOf<MapPlatNumericProps<Row>['valueKey']>().toEqualTypeOf<DataKey<Row>>()
+
 		expectTypeOf<MapPlatNoDataProps['data']>().toEqualTypeOf<undefined>()
 	})
 

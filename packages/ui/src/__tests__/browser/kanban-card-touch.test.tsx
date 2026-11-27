@@ -40,6 +40,7 @@ describe('kanban card touch-action (real browser)', () => {
 		if (!card) throw new Error('expected a card')
 		const handle = getSlot(card, 'kanban-card-handle')
 		expect(getComputedStyle(handle).touchAction).toBe('none')
+
 		expect(getComputedStyle(card).touchAction).not.toBe('none')
 	})
 })

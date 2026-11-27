@@ -76,6 +76,7 @@ describe('FileUpload dropzone under prefers-contrast: more (real browser)', () =
 			const hover = edge()
 
 			expect(rest).toBeGreaterThanOrEqual(WCAG_NON_TEXT)
+
 			expect(hover).toBeGreaterThanOrEqual(rest)
 		},
 	)

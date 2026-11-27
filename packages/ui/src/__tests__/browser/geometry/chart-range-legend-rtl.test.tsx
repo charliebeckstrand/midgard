@@ -45,6 +45,7 @@ describe('range legend in a right-to-left page (real browser)', () => {
 		const bar = track.getBoundingClientRect()
 
 		expect(min.getBoundingClientRect().left).toBeNear(bar.left, PIXEL)
+
 		expect(max.getBoundingClientRect().right).toBeNear(bar.right, PIXEL)
 
 		// The caption reads in the direction of the page.

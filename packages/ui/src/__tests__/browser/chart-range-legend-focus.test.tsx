@@ -54,6 +54,7 @@ describe('range legend focus (real browser)', () => {
 		await userEvent.click(track)
 
 		expect(document.activeElement).toBe(track)
+
 		expect(track.matches(':focus-visible')).toBe(false)
 
 		await userEvent.unhover(track)
@@ -67,6 +68,7 @@ describe('range legend focus (real browser)', () => {
 		await frames()
 
 		expect(track.matches(':focus-visible')).toBe(false)
+
 		expect(dimmed(container)).toBe(0)
 	})
 
