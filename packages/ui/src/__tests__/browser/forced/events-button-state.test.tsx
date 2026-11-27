@@ -1,5 +1,6 @@
 import { describe } from 'vitest'
 import { examineEventsButton } from '../helpers/events-button'
+import { eachAuthorScheme } from '../helpers/forced-colors'
 
 /**
  * The header button of the events under forced colors. Forced colors remove a
@@ -7,5 +8,7 @@ import { examineEventsButton } from '../helpers/events-button'
  * `../events-button-state.test.tsx`.
  */
 describe('the header button of the events under forced colors (real browser)', () => {
-	examineEventsButton(true)
+	eachAuthorScheme(() => {
+		examineEventsButton(true)
+	})
 })
