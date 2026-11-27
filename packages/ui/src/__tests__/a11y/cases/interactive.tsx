@@ -9,8 +9,16 @@ import { Listbox, ListboxLabel, ListboxOption } from '../../../components/listbo
 import { PdfViewer, type PdfViewerPage } from '../../../components/pdf-viewer'
 import { Select, SelectLabel, SelectOption } from '../../../components/select'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
+import { SidebarLayout, SidebarLayoutHeader } from '../../../layouts'
 import { PopoverPanel } from '../../../primitives/popover'
-import { bySlot, noop, screen } from '../../helpers'
+import {
+	AppearanceLanguageField,
+	AppearanceProvider,
+	AppearanceSettings,
+	AppearanceSidebarField,
+} from '../../../providers/appearance'
+import { LocaleProvider } from '../../../providers/locale'
+import { bySlot, noop, screen, within } from '../../helpers'
 import type { InteractiveCase } from './types'
 
 const interactivePeople = ['Wade Cooper', 'Arlene McCoy', 'Devon Webb']
@@ -315,5 +323,44 @@ export const interactive: readonly InteractiveCase[] = [
 				disabledParts: ['color-picker-button'],
 			},
 		],
+	},
+	{
+		// Appearance settings: an icon button opens a dialog of pickers. The
+		// dialog module loads on demand, so the case presses the button as a
+		// reader does. The Language field renders only under a LocaleProvider with
+		// locales, and the Sidebar field only in an inline SidebarLayout. The
+		// layout is inline at each width, so the case is the same in each gate.
+		name: 'appearance settings',
+		element: (
+			<AppearanceProvider key="aps">
+				<LocaleProvider locale="en-US" locales={['en-US', 'en-GB']}>
+					<SidebarLayout
+						layout="inline"
+						sidebar={<div>Pages</div>}
+						actions={
+							<AppearanceSettings>
+								<AppearanceLanguageField />
+								<AppearanceSidebarField />
+							</AppearanceSettings>
+						}
+					>
+						<SidebarLayoutHeader>Orders</SidebarLayoutHeader>
+					</SidebarLayout>
+				</LocaleProvider>
+			</AppearanceProvider>
+		),
+		open: async (user) => {
+			// The header holds the actions. Where the media queries do not run, as in
+			// jsdom, the navbar of the drawer layout holds them too.
+			const [trigger] = screen.getAllByRole('button', { name: 'Settings' })
+
+			if (trigger) await user.click(trigger)
+
+			const dialog = await screen.findByRole('dialog', { name: 'Settings' })
+
+			await within(dialog).findByRole('combobox', { name: 'Language' })
+
+			await within(dialog).findByRole('combobox', { name: 'Sidebar' })
+		},
 	},
 ]
