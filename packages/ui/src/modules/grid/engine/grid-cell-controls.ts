@@ -108,14 +108,6 @@ export function focusOwnCell(cell: HTMLElement | null): boolean {
 	return true
 }
 
-/**
- * Whether no element holds focus: the page holds it, as after the removal of
- * the element that held it. @internal
- */
-export function focusIsLost(): boolean {
-	return document.activeElement === null || document.activeElement === document.body
-}
-
 /** Takes a control out of the tab order, and keeps its `tabindex` to give back. */
 function pin(element: HTMLElement): void {
 	if (element.tabIndex < 0) return

@@ -5,6 +5,7 @@ import type { Color } from '../../core/recipe/colors'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { foldText } from '../../utilities/fold-text'
+import { getOrCompute } from '../../utilities/get-or-compute'
 import { scrollWithin } from '../../utilities/scroll-within'
 import { toFractionRect } from './pdf-viewer-highlight-geometry'
 import type {
@@ -62,13 +63,13 @@ export function indexText(data: readonly PdfViewerTextItem[]): PdfViewerPageText
 
 		if (!text) return
 
-		let page = pages.get(item.page)
-
-		if (!page) {
-			page = { page: item.page, text: '', items: [], starts: [], ends: [] }
-
-			pages.set(item.page, page)
-		}
+		const page = getOrCompute(pages, item.page, (key) => ({
+			page: key,
+			text: '',
+			items: [],
+			starts: [],
+			ends: [],
+		}))
 
 		if (page.text) page.text += ' '
 
