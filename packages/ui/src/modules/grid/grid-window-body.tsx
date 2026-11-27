@@ -25,9 +25,10 @@ type GridWindowBodyProps<T> = {
 	/** Renders the keyed row of one item. */
 	renderItem: (virtualItem: VirtualItem) => ReactNode
 	/**
-	 * Called when the reveal of a row lands. That is a `transitionend` or a
-	 * `transitioncancel`, which a row sends when an ancestor's `display: none`
-	 * interrupts its collapse.
+	 * Called when the reveal of a row ends. That is a `transitionend` or a
+	 * `transitioncancel`. A cancel lands the reveal when an ancestor's
+	 * `display: none` interrupts its collapse, and not when a toggle reverses it
+	 * (`transitionLanded`).
 	 */
 	onRevealLand?: TransitionEventHandler<HTMLTableSectionElement>
 	onFocus?: FocusEventHandler<HTMLTableSectionElement>

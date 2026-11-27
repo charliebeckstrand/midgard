@@ -11,6 +11,7 @@ import {
 	useRef,
 } from 'react'
 import { useVirtualWindow } from '../../hooks/use-virtual-window'
+import { transitionLanded } from '../../utilities/transition-landed'
 import { FIRST_WINDOW_RECT } from './engine/grid-constants'
 import { windowItemEstimate } from './engine/grid-items/items'
 import { useGridFitRenderedRows } from './use-grid-fit-rendered-rows'
@@ -228,14 +229,17 @@ export function useGridItemWindow<I extends WindowItem>(
 	})
 
 	// A reveal that lands bubbles a `transitionend` to the body, or a
-	// `transitioncancel` when an ancestor's `display: none` interrupts it. The
-	// row that sent it is a direct child of the body, which a nested table in a
-	// detail panel is not. Only a closing row has work to do when its reveal lands: the
-	// body releases it.
+	// `transitioncancel` when an ancestor's `display: none` interrupts it. A
+	// cancel from a toggle in flight is not a landing, since the reversed reveal
+	// still runs (`transitionLanded`). The row that sent it is a direct child of
+	// the body, which a nested table in a detail panel is not. Only a closing row
+	// has work to do when its reveal lands: the body releases it.
 	const closingEndItem = useCallback(
 		(event: TransitionEvent<HTMLElement>): I | undefined => {
 			// React builds a `transitioncancel` with no `propertyName` of its own.
 			if (event.nativeEvent.propertyName !== REVEAL_PROPERTY) return undefined
+
+			if (!transitionLanded(event.nativeEvent)) return undefined
 
 			const row = (event.target as Element).closest('tr')
 
