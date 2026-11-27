@@ -19,6 +19,34 @@ function countLife(
 	cacheLife(counting ? 'minutes' : 'hours')
 }
 
+/** A read of the cache of a race: the parsed race, or the message of a failure of civicAPI. */
+type Read<T> = { ok: true; value: T } | { ok: false; message: string }
+
+/**
+ * Keeps a failure of civicAPI in the cache for one minute at most.
+ *
+ * @remarks
+ * A prerender leaves out an entry with this short life, so a page that reads
+ * the race prerenders without it and reads it on a request. Thus the build
+ * does not fail while civicAPI is down, and the static shell keeps no failure.
+ * A failure that throws in the cache fails the build, also when a caller
+ * catches it.
+ */
+function failed(message: string): Read<never> {
+	cacheLife('seconds')
+
+	return { ok: false, message }
+}
+
+/** Gives the race of a read, or throws its failure, which the error boundary of the page shows. */
+async function unwrap<T>(read: Promise<Read<T>>): Promise<T> {
+	const result = await read
+
+	if (!result.ok) throw new Error(result.message)
+
+	return result.value
+}
+
 /**
  * A national race, such as every Senate race and the seats of each party.
  *
@@ -27,21 +55,37 @@ function countLife(
  * House. Each refresh reads the cache, so a hundred readers cost one upstream
  * read a minute.
  */
-export async function nationalRace(id: number): Promise<NationalRace> {
-	'use cache'
-
-	const race = readNationalRace(id, await fetchRace(id))
-
-	countLife(race.regions)
-
-	return race
+export function nationalRace(id: number): Promise<NationalRace> {
+	return unwrap(cachedNationalRace(id))
 }
 
 /** One race of a state or a district, with its counties. */
-export async function race(id: number): Promise<Race> {
+export function race(id: number): Promise<Race> {
+	return unwrap(cachedRace(id))
+}
+
+async function cachedNationalRace(id: number): Promise<Read<NationalRace>> {
 	'use cache'
 
-	const raw = await fetchRace(id)
+	const read = await fetchRace(id)
+
+	if (!read.ok) return failed(read.message)
+
+	const race = readNationalRace(id, read.raw)
+
+	countLife(race.regions)
+
+	return { ok: true, value: race }
+}
+
+async function cachedRace(id: number): Promise<Read<Race>> {
+	'use cache'
+
+	const read = await fetchRace(id)
+
+	if (!read.ok) return failed(read.message)
+
+	const raw = read.raw
 
 	const province = (raw as { province?: unknown } | null)?.province
 
@@ -53,5 +97,5 @@ export async function race(id: number): Promise<Race> {
 
 	countLife([parsed])
 
-	return parsed
+	return { ok: true, value: parsed }
 }
