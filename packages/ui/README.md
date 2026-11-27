@@ -30,6 +30,7 @@ No root barrel; the `exports` map exposes each component path.
 | Tests (scoped) | `pnpm --filter ui test:related` / `pnpm --filter ui test:changed` |
 | Tests of geometry, in Node and in Chromium (with the coarse-pointer tests) | `pnpm --filter ui test:geometry` |
 | Tests of a coarse pointer, in Chromium with a touch screen | `pnpm --filter ui test:coarse` |
+| Tests of forced colors, in Chromium with the light and the dark forced palette | `pnpm --filter ui test:forced` |
 | Tests of density in Firefox and WebKit (Playwright must have both) | `ALL_ENGINES=1 pnpm --filter ui test:browser --project density-firefox --project density-webkit` |
 | Tests of Wysiwyg in WebKit | `ALL_ENGINES=1 pnpm --filter ui test:browser --project wysiwyg-webkit --project wysiwyg-floating-ui-webkit --project wysiwyg-floating-motion-webkit` |
 | Tests with the React Compiler on | `pnpm --filter ui test:compiler` |

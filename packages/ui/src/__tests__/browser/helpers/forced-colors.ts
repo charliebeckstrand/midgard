@@ -1,28 +1,6 @@
-import { afterAll, beforeAll } from 'vitest'
-import { cdp } from 'vitest/browser'
-
-/**
- * Emulates forced colors for each case of the enclosing `describe` block.
- *
- * @remarks
- * The instance shares one page across its files, and the emulation is page state. Thus the
- * `afterAll` gives each feature back to the browser.
- *
- * @param scheme - The color scheme of the forced palette. With no scheme, the browser keeps its
- * own.
- */
-export function emulateForcedColors(scheme?: 'light' | 'dark'): void {
-	const features = (forced: string, preferred: string) => [
-		{ name: 'forced-colors', value: forced },
-		...(scheme ? [{ name: 'prefers-color-scheme', value: preferred }] : []),
-	]
-
-	beforeAll(() =>
-		cdp().send('Emulation.setEmulatedMedia', { features: features('active', scheme ?? '') }),
-	)
-
-	afterAll(() => cdp().send('Emulation.setEmulatedMedia', { features: features('', '') }))
-}
+// The reads of the forced-colors cases. The `forced-light` and the `forced-dark`
+// instances of `vitest.browser.config.ts` give each page forced colors as an
+// option of the browser context, so no case turns them on or off.
 
 /**
  * The color that the system gives to a system color keyword now, such as `Canvas` or `Highlight`.

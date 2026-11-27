@@ -138,6 +138,7 @@
 		"test:workspace": "LANG=en-US vitest run --project workspace",
 		"test:browser": "LANG=en-US vitest run --config vitest.browser.config.ts",
 		"test:coarse": "LANG=en-US vitest run --config vitest.browser.config.ts --project coarse",
+		"test:forced": "LANG=en-US vitest run --config vitest.browser.config.ts --project forced-light --project forced-dark",
 		"test:docs-build": "vitest run --config vitest.docs-build.config.ts",
 		"test:geometry": "export LANG=en-US && vitest run --project geometry && vitest run --config vitest.browser.config.ts --project geometry --project coarse",
 		"test:compiler": "LANG=en-US vitest run --config vitest.compiler.config.ts --project unit --project docs --project pure --project integration --project skips",
