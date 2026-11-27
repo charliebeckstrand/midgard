@@ -1,7 +1,6 @@
 import type { Dispatch, SetStateAction } from 'react'
 import type { Color } from '../../core/recipe/colors'
 import type { PdfViewerVariants } from '../../recipes/kata/pdf-viewer'
-import type { Size } from '../../utilities/size'
 
 /**
  * A page of a `src` document, as the viewer holds it: a {@link PdfViewerPage}, and the bitmap
@@ -160,8 +159,12 @@ export type PdfViewerSearchOptions = {
 	navigate?: boolean
 }
 
-/** The size of a page in points (1/72 in), as `PdfViewer` takes it in `pageSize`. */
-export type PdfViewerPageSize = Size
+/**
+ * The size of a page in points (1/72 in), as `PdfViewer` takes it in `pageSize`.
+ * The type writes the shape of `Size` again. An alias of `Size` gives the name
+ * `Size` in the API reference, and `Size` is not an export.
+ */
+export type PdfViewerPageSize = { width: number; height: number }
 
 /** One region's box: fractions of the page, inches, or whatever `highlightUnit` names. Origin top-left. */
 export type PdfViewerHighlightRect = { x: number; y: number; width: number; height: number }
