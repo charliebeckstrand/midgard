@@ -175,7 +175,8 @@ export type PdfViewerProps = Omit<ComponentProps<'section'>, 'children' | 'onLoa
 	 * wrong lens for a plan sheet.
 	 *
 	 * The lens is never interactive. It cannot take a press meant for a highlighted region
-	 * underneath it. On touch, a finger that rests on the page for the dwell (300ms at the
+	 * underneath it. Escape closes it, and the pointer does not have to move. The next move of
+	 * the pointer starts the dwell again. On touch, a finger that rests on the page for the dwell (300ms at the
 	 * least) opens the lens above the finger. The finger then moves the lens, and a lift
 	 * closes it. The browser's long-press menu stays as it is: when it opens, the lens closes.
 	 *
