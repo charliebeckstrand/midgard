@@ -8,6 +8,7 @@ import {
 	useChatDraft,
 	useChatSend,
 } from 'ui/chat'
+import { foldText } from 'ui/core'
 import { Stack } from 'ui/stack'
 
 const DATASETS = [
@@ -35,7 +36,7 @@ function wait(ms: number, signal: AbortSignal): Promise<void> {
 	})
 }
 
-const matches = (label: string, query: string) => label.toLowerCase().includes(query.toLowerCase())
+const matches = (label: string, query: string) => foldText(label).includes(foldText(query))
 
 const sources: ChatPromptSource[] = [
 	{

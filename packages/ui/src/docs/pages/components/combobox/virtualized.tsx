@@ -1,4 +1,5 @@
 import { Combobox, ComboboxLabel, ComboboxOption, useComboboxDeferredQuery } from 'ui/combobox'
+import { foldText } from 'ui/core'
 import { Field, Label } from 'ui/fieldset'
 import { VirtualOptions } from 'ui/primitives/virtual-options'
 
@@ -8,9 +9,9 @@ const tasks = Array.from(
 )
 
 function MatchingTasks() {
-	const query = useComboboxDeferredQuery().toLowerCase()
+	const query = foldText(useComboboxDeferredQuery())
 
-	const matches = tasks.filter((task) => task.toLowerCase().includes(query))
+	const matches = tasks.filter((task) => foldText(task).includes(query))
 
 	return (
 		<VirtualOptions items={matches} getOptionId={(task) => `task-${task}`}>

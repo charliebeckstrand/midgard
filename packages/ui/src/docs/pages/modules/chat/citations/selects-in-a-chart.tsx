@@ -10,15 +10,8 @@ import {
 import { ResizableGroup, ResizableHandle, ResizablePanel } from 'ui/resizable'
 import { Stack } from 'ui/stack'
 import { dayNames as day } from '../../../../data/calendar.ts'
+import { lateByDay } from '../late-stops.ts'
 import { Pane } from './pane.tsx'
-
-const DAYS = [
-	{ day: day.mon, late: 1 },
-	{ day: day.tue, late: 7 },
-	{ day: day.wed, late: 2 },
-	{ day: day.thu, late: 1 },
-	{ day: day.fri, late: 1 },
-]
 
 const phrase = { label: 'most of them on Tuesday' }
 
@@ -81,7 +74,7 @@ export default function SelectsInAChart() {
 					<Pane title="Late stops by day" onClear={cited === null ? undefined : clear}>
 						<BarChart
 							aria-label="Late stops by day"
-							data={DAYS}
+							data={lateByDay}
 							series={[{ xKey: 'day', yKey: 'late', yName: 'Late stops' }]}
 							selectedCategories={
 								shown?.target === 'late-by-day' ? toCategorySelection(shown.selector) : undefined

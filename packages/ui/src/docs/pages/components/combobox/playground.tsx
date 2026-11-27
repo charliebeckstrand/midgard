@@ -5,6 +5,7 @@ import {
 	type ComboboxProps,
 	useComboboxDeferredQuery,
 } from 'ui/combobox'
+import { foldText } from 'ui/core'
 import { topics } from '../../../data/topics.ts'
 
 const options = [
@@ -16,10 +17,10 @@ const options = [
 ]
 
 function MatchingTopics() {
-	const query = useComboboxDeferredQuery().toLowerCase()
+	const query = foldText(useComboboxDeferredQuery())
 
 	return options
-		.filter((topic) => topic.toLowerCase().includes(query))
+		.filter((topic) => foldText(topic).includes(query))
 		.map((topic) => (
 			<ComboboxOption key={topic} value={topic}>
 				<ComboboxLabel>{topic}</ComboboxLabel>

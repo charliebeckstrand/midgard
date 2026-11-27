@@ -6,16 +6,17 @@ import {
 	ComboboxText,
 	useComboboxDeferredQuery,
 } from 'ui/combobox'
+import { foldText } from 'ui/core'
 import { Field, Label } from 'ui/fieldset'
 import { profiles, roles } from '../../../data/people.ts'
 
 const byName = profiles.toSorted((a, b) => a.name.localeCompare(b.name))
 
 function MatchingPeople() {
-	const query = useComboboxDeferredQuery().toLowerCase()
+	const query = foldText(useComboboxDeferredQuery())
 
 	return byName
-		.filter((person) => person.name.toLowerCase().includes(query))
+		.filter((person) => foldText(person.name).includes(query))
 		.map((person) => (
 			<ComboboxOption key={person.id} value={person.name}>
 				<ComboboxText>

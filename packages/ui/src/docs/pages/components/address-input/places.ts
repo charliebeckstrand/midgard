@@ -1,4 +1,5 @@
 import type { AddressProvider, AddressSuggestion } from 'ui/address-input'
+import { foldText } from 'ui/core'
 
 export const madrid: AddressSuggestion = {
 	id: 'calle-del-prado',
@@ -41,10 +42,10 @@ export const places: AddressSuggestion[] = [
 ]
 
 export const searchPlaces: AddressProvider = async (query) => {
-	const text = query.toLowerCase()
+	const text = foldText(query)
 
 	return places.filter(
 		(place) =>
-			place.label.toLowerCase().includes(text) || place.description?.toLowerCase().includes(text),
+			foldText(place.label).includes(text) || foldText(place.description ?? '').includes(text),
 	)
 }

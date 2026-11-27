@@ -1,14 +1,15 @@
 import { useState } from 'react'
 import { AddressInput, type AddressProvider, type AddressSuggestion } from 'ui/address-input'
+import { foldText } from 'ui/core'
 import { Field, Label } from 'ui/fieldset'
 import { places } from './places.ts'
 
 const searchPlaces: AddressProvider = async (query) => {
-	const text = query.toLowerCase()
+	const text = foldText(query)
 
 	return places.filter(
 		(place) =>
-			place.label.toLowerCase().includes(text) || place.description?.toLowerCase().includes(text),
+			foldText(place.label).includes(text) || foldText(place.description ?? '').includes(text),
 	)
 }
 

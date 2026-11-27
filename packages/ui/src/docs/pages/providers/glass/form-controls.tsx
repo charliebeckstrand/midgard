@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Combobox, ComboboxLabel, ComboboxOption, useComboboxDeferredQuery } from 'ui/combobox'
+import { foldText } from 'ui/core'
 import { DatePicker } from 'ui/date-picker'
 import { Field, Label } from 'ui/fieldset'
 import { NumberInput } from 'ui/number-input'
@@ -13,7 +14,7 @@ function FilteredPeople() {
 	const query = useComboboxDeferredQuery()
 
 	return people
-		.filter((name) => !query || name.toLowerCase().includes(query.toLowerCase()))
+		.filter((name) => !query || foldText(name).includes(foldText(query)))
 		.map((name) => (
 			<ComboboxOption key={name} value={name}>
 				<ComboboxLabel>{name}</ComboboxLabel>

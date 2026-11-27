@@ -6,6 +6,7 @@ import {
 	CommandPaletteLabel,
 	useCommandPaletteDeferredQuery,
 } from 'ui/command-palette'
+import { foldText } from 'ui/core'
 import { VirtualOptions } from 'ui/primitives/virtual-options'
 
 const commands = Array.from({ length: 5000 }, (_, index) => {
@@ -15,9 +16,9 @@ const commands = Array.from({ length: 5000 }, (_, index) => {
 })
 
 function MatchingCommands() {
-	const query = useCommandPaletteDeferredQuery().toLowerCase()
+	const query = foldText(useCommandPaletteDeferredQuery())
 
-	const matches = commands.filter((command) => command.label.toLowerCase().includes(query))
+	const matches = commands.filter((command) => foldText(command.label).includes(query))
 
 	return (
 		// The dialog body is the scroller. It grows with the rows up to the cap of the panel.
