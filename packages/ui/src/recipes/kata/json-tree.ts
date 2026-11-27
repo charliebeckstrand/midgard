@@ -82,10 +82,12 @@ export const k = defineKata(
 			],
 			content: {
 				base: [flex.inline, 'min-w-0', 'gap-1'],
+				// A match renders as `<mark>`. `text-inherit` removes the black ink of
+				// the browser `<mark>`, as in the Grid, so the syntax colors stay.
 				// Forced colors remove the wash, so a match paints the `Mark` pair of
 				// `sen.forced.highlight`, which keeps the contrast of the text on it.
 				highlighted: {
-					true: [...iro.match, rounded.lg, forced.highlight],
+					true: [...iro.match, rounded.lg, 'text-inherit', forced.highlight],
 					false: '',
 				},
 			},
