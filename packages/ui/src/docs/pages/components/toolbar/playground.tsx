@@ -11,6 +11,10 @@ const alignments = [
 export default function ToolbarPlayground(props: ToolbarProps) {
 	const [align, setAlign] = useState('start')
 
+	// A tooltip opens across the axis of the toolbar, so it does not cover the
+	// next button.
+	const placement = props.orientation === 'vertical' ? 'right' : 'top'
+
 	return (
 		<Toolbar {...props} aria-label="Formatting">
 			<IconButton
@@ -19,6 +23,7 @@ export default function ToolbarPlayground(props: ToolbarProps) {
 				variant="plain"
 				defaultPressed={false}
 				tooltip
+				tooltipPlacement={placement}
 			/>
 			<IconButton
 				icon={<Italic />}
@@ -26,6 +31,7 @@ export default function ToolbarPlayground(props: ToolbarProps) {
 				variant="plain"
 				defaultPressed={false}
 				tooltip
+				tooltipPlacement={placement}
 			/>
 			<IconButton
 				icon={<Underline />}
@@ -33,6 +39,7 @@ export default function ToolbarPlayground(props: ToolbarProps) {
 				variant="plain"
 				defaultPressed={false}
 				tooltip
+				tooltipPlacement={placement}
 			/>
 			<ToolbarSeparator />
 			{alignments.map((alignment) => (
@@ -44,6 +51,7 @@ export default function ToolbarPlayground(props: ToolbarProps) {
 					pressed={align === alignment.value}
 					onPressedChange={() => setAlign(alignment.value)}
 					tooltip
+					tooltipPlacement={placement}
 				/>
 			))}
 		</Toolbar>
