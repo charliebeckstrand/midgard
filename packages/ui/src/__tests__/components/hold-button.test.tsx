@@ -517,20 +517,52 @@ describe('HoldButton', () => {
 			expect(el).toHaveAccessibleDescription('Press and hold to confirm')
 		})
 
-		it('disarms when the confirm window ends', async ({ clock }) => {
+		// A switch that scans can take a long time to come back to the button, so
+		// no timer ends the confirm step (WCAG 2.2.1).
+		it('stays armed with no time limit', async ({ clock }) => {
 			const onHoldComplete = vi.fn()
 
 			const { el } = renderHold({ onHoldComplete })
 
 			fireEvent.click(el)
 
-			await clock.advance(5000)
+			await clock.advance(60_000)
+
+			expect(el).toHaveAccessibleDescription('Activate again to confirm')
+
+			fireEvent.click(el)
+
+			expect(onHoldComplete).toHaveBeenCalledOnce()
+		})
+
+		it.for([
+			['a blur', (el: HTMLElement) => fireEvent.blur(el)],
+			[
+				'a pointer press',
+				(el: HTMLElement) => {
+					fireEvent.pointerDown(el, PRESS)
+
+					fireEvent.pointerUp(el)
+
+					fireEvent.click(el)
+				},
+			],
+		] as const)('disarms on %s', ([_, end]) => {
+			const onHoldComplete = vi.fn()
+
+			const { el } = renderHold({ onHoldComplete })
+
+			fireEvent.click(el)
+
+			end(el)
 
 			expect(el).toHaveAccessibleDescription('Press and hold to confirm')
 
 			fireEvent.click(el)
 
 			expect(onHoldComplete).not.toHaveBeenCalled()
+
+			expect(el).toHaveAccessibleDescription('Activate again to confirm')
 		})
 
 		const pointerPress = (el: HTMLElement) => {
@@ -539,17 +571,10 @@ describe('HoldButton', () => {
 			fireEvent.pointerUp(el)
 		}
 
-		const enterPress = (el: HTMLElement) => {
-			fireEvent.keyDown(el, { key: 'Enter' })
-
-			fireEvent.keyUp(el, { key: 'Enter' })
-		}
-
 		const prevent = (event: { preventDefault: () => void }) => event.preventDefault()
 
 		it.for([
 			['a pointer press', {}, pointerPress],
-			['an Enter keydown', {}, enterPress],
 			// A caller `preventDefault()` stops the hold, but the click still follows.
 			['a caller-prevented pointer press', { onPointerDown: prevent }, pointerPress],
 		] as const)('neither arms nor completes on the click that follows %s', ([_, props, press]) => {
@@ -606,6 +631,182 @@ describe('HoldButton', () => {
 			fireEvent.click(el)
 
 			expect(onSubmit).toHaveBeenCalledOnce()
+		})
+	})
+
+	// A keyboard user who cannot hold a key gets the confirm step of assistive
+	// technology. WCAG 2.1.1 forbids a specific timing for a keystroke.
+	describe('activation by a quick key press', () => {
+		onFakeClock()
+
+		/** Presses and lets go of `key` before the hold completes, with the click of the key. */
+		const quickPress = (el: HTMLElement, key: 'Enter' | ' ') => {
+			fireEvent.keyDown(el, { key })
+
+			// Enter clicks on keydown, and Space clicks on keyup.
+			if (key === 'Enter') fireEvent.click(el)
+
+			fireEvent.keyUp(el, { key })
+
+			if (key === ' ') fireEvent.click(el)
+		}
+
+		it.for([
+			['Enter', 'Enter'],
+			['Space', ' '],
+		] as const)('arms on a quick %s press, and completes on a second', async ([_, key]) => {
+			const onHoldComplete = vi.fn()
+
+			const { el } = renderHold({ onHoldComplete })
+
+			quickPress(el, key)
+
+			expect(onHoldComplete).not.toHaveBeenCalled()
+
+			await expectAnnouncement('Activate again to confirm')
+
+			expect(el).toHaveAccessibleDescription('Activate again to confirm')
+
+			quickPress(el, key)
+
+			expect(onHoldComplete).toHaveBeenCalledOnce()
+
+			expect(el).toHaveAccessibleDescription('Press and hold to confirm')
+		})
+
+		it('completes a held key in one step, and its release arms nothing', async ({ clock }) => {
+			const onHoldComplete = vi.fn()
+
+			const { el } = renderHold({ duration: 500, onHoldComplete })
+
+			fireEvent.keyDown(el, { key: ' ' })
+
+			await clock.advance(500)
+
+			fireEvent.keyUp(el, { key: ' ' })
+
+			fireEvent.click(el)
+
+			expect(onHoldComplete).toHaveBeenCalledOnce()
+
+			expect(el).toHaveAccessibleDescription('Press and hold to confirm')
+		})
+
+		it('completes on the keydown of the second press, and starts no hold', () => {
+			const onHoldStart = vi.fn()
+
+			const onHoldComplete = vi.fn()
+
+			const { el } = renderHold({ onHoldStart, onHoldComplete })
+
+			quickPress(el, 'Enter')
+
+			fireEvent.keyDown(el, { key: 'Enter' })
+
+			fireEvent.click(el)
+
+			fireEvent.keyDown(el, { key: 'Enter', repeat: true })
+
+			fireEvent.click(el)
+
+			expect(onHoldComplete).toHaveBeenCalledOnce()
+
+			expect(onHoldStart).toHaveBeenCalledOnce()
+		})
+
+		it('stays armed with no time limit', async ({ clock }) => {
+			const onHoldComplete = vi.fn()
+
+			const { el } = renderHold({ onHoldComplete })
+
+			quickPress(el, 'Enter')
+
+			await clock.advance(60_000)
+
+			quickPress(el, 'Enter')
+
+			expect(onHoldComplete).toHaveBeenCalledOnce()
+		})
+
+		it('only arms again on a quick press after a blur', () => {
+			const onHoldComplete = vi.fn()
+
+			const { el } = renderHold({ onHoldComplete })
+
+			quickPress(el, 'Enter')
+
+			fireEvent.blur(el)
+
+			expect(el).toHaveAccessibleDescription('Press and hold to confirm')
+
+			quickPress(el, 'Enter')
+
+			expect(onHoldComplete).not.toHaveBeenCalled()
+
+			expect(el).toHaveAccessibleDescription('Activate again to confirm')
+		})
+
+		it('arms nothing on a quick press that a caller keydown prevents', () => {
+			const onHoldComplete = vi.fn()
+
+			const { el } = renderHold({
+				onHoldComplete,
+				onKeyDown: (event) => event.preventDefault(),
+			})
+
+			for (let i = 0; i < 2; i++) {
+				fireEvent.keyDown(el, { key: ' ' })
+
+				fireEvent.keyUp(el, { key: ' ' })
+			}
+
+			expect(onHoldComplete).not.toHaveBeenCalled()
+
+			expect(el).toHaveAccessibleDescription('Press and hold to confirm')
+		})
+
+		it('submits the form once on the second quick press of a submit button', () => {
+			const onSubmit = vi.fn((event: FormEvent<HTMLFormElement>) => {
+				event.preventDefault()
+			})
+
+			const { container } = renderUI(
+				<form onSubmit={onSubmit}>
+					<HoldButton type="submit">Delete</HoldButton>
+				</form>,
+			)
+
+			const el = getSlot(container, 'hold-button')
+
+			quickPress(el, 'Enter')
+
+			expect(onSubmit).not.toHaveBeenCalled()
+
+			quickPress(el, 'Enter')
+
+			expect(onSubmit).toHaveBeenCalledOnce()
+		})
+
+		it('completes nothing on the second press when the scope locks after the arm', () => {
+			const onHoldComplete = vi.fn()
+
+			const tree = (locked: boolean) => (
+				<ControlLockContext value={locked}>
+					<HoldButton onHoldComplete={onHoldComplete}>Hold</HoldButton>
+				</ControlLockContext>
+			)
+
+			const { container, rerender } = renderUI(tree(false))
+
+			const el = getSlot(container, 'hold-button')
+
+			quickPress(el, 'Enter')
+
+			rerender(tree(true))
+
+			quickPress(el, 'Enter')
+
+			expect(onHoldComplete).not.toHaveBeenCalled()
 		})
 	})
 
@@ -731,6 +932,12 @@ describe('HoldButton', () => {
 				fireEvent.keyDown(el, { key: ' ' })
 
 				release(el)
+
+				// A quick release arms the confirm step, and a pointer press ends the
+				// arm, so the Enter below starts a hold.
+				fireEvent.pointerDown(el, PRESS)
+
+				fireEvent.pointerUp(el)
 
 				// A stale Space would make the Enter release below cancel nothing.
 				fireEvent.keyDown(el, { key: 'Enter' })

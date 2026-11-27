@@ -15,7 +15,6 @@ import { cn } from '../../core/cn'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
 import { joinAriaIds } from '../../hooks/use-aria-ids'
 import { useStableEvent } from '../../hooks/use-stable-event'
-import { useTimeout } from '../../hooks/use-timeout'
 import { useControlLock } from '../../primitives/control/context'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
@@ -44,15 +43,9 @@ const messages = defineMessages({
 		id: 'ui.holdButton.confirm',
 		defaultMessage: 'Activate again to confirm',
 		description:
-			'Spoken when assistive technology activates a hold button once. A second activation does the action.',
+			'Spoken when a hold button is activated once with no hold, such as by assistive technology or a quick key press. A second activation does the action.',
 	},
 })
-
-/**
- * The time, in milliseconds, in which a second click from assistive technology
- * completes the action that the first click armed.
- */
-const CONFIRM_WINDOW_MS = 5000
 
 /**
  * Props for {@link HoldButton}: the non-anchor {@link ButtonProps} branch minus
@@ -73,9 +66,15 @@ export type HoldButtonProps = Omit<
 	 * @defaultValue 1000
 	 */
 	duration?: number
-	/** Fires when the reader holds the press for the full `duration`. */
+	/**
+	 * Fires when the reader holds the press for the full `duration`, or when a
+	 * second activation completes the confirm step.
+	 */
 	onHoldComplete?: () => void
-	/** Fires when a press begins (pointer down or Space/Enter keydown). */
+	/**
+	 * Fires when a hold begins: a pointer down, or a Space or Enter keydown that
+	 * does not complete the confirm step.
+	 */
 	onHoldStart?: () => void
 	/** Fires when a press is released or interrupted before `duration` elapses. */
 	onHoldCancel?: () => void
@@ -90,13 +89,19 @@ export type HoldButtonProps = Omit<
  * `aria-describedby`. A caller `aria-describedby` comes before it.
  *
  * @remarks
- * Assistive technology, such as a screen reader in browse mode or a switch
- * device, often sends a click with no pointer press and no key press. Such a
- * click cannot start a hold. Thus it arms a confirm step: the button announces
- * "Activate again to confirm", and a second click of the same kind in the next
- * five seconds completes the action. A click that follows a pointer press or an
- * activation keydown is the end of a press, and it never arms or completes.
- * Thus a pointer or a keyboard user must hold.
+ * A keyboard user can confirm with two presses and no hold (WCAG 2.1.1). A key
+ * that lets go before `duration` arms a confirm step: the button announces
+ * "Activate again to confirm", and the next activation key completes the action
+ * on its keydown, with no hold. Assistive technology, such as a screen reader in
+ * browse mode or a switch device, often sends a click with no pointer press and
+ * no key press. Such a click cannot start a hold, so it also arms the confirm
+ * step, and a second such click completes the action. A click that follows a
+ * pointer press or an activation keydown is the end of a press, and it never
+ * arms or completes. Thus a pointer user must hold.
+ *
+ * No timer ends the confirm step (WCAG 2.2.1). It ends when the action
+ * completes, when the button loses focus, or on a pointer press. In a locked
+ * scope, a key press completes nothing.
  *
  * Only the activation key that started the hold cancels it; the other key's
  * release mid-hold is ignored. Blur and pointer leave/cancel abort the hold, and
@@ -156,28 +161,30 @@ export function HoldButton({
 	// technology, which cannot hold.
 	const pressedRef = useRef(false)
 
-	// True after a click from assistive technology, until a second such click
-	// completes the action or the confirm window ends.
+	// True after an activation with no hold, a click from assistive technology
+	// or a key that lets go early. It stays true until the action completes, the
+	// button loses focus, or a pointer press comes.
 	const [armed, setArmed] = useState(false)
 
-	const armTimer = useTimeout()
+	const arm = () => {
+		setArmed(true)
 
-	// It writes a ref, so it is a stable event and not a closure that render
-	// passes to a function.
+		announce(intl.formatMessage(messages.confirm))
+	}
+
+	// A pointer user must hold, so a pointer press ends the confirm step. It
+	// writes a ref, so it is a stable event and not a closure that render passes
+	// to a function.
 	const markPress = useStableEvent(() => {
 		pressedRef.current = true
-	})
-
-	const disarm = () => {
-		armTimer.clear()
 
 		setArmed(false)
-	}
+	})
 
 	// A `submit` or `reset` button acts on its form here, after the hold, and
 	// not on the native click.
 	const handleHoldComplete = useStableEvent(() => {
-		disarm()
+		setArmed(false)
 
 		onHoldComplete?.()
 
@@ -214,11 +221,7 @@ export function HoldButton({
 			return
 		}
 
-		setArmed(true)
-
-		armTimer.set(() => setArmed(false), CONFIRM_WINDOW_MS)
-
-		announce(intl.formatMessage(messages.confirm))
+		arm()
 	})
 
 	const { fillRef, start, cancel } = useHoldButtonGesture({
@@ -243,6 +246,14 @@ export function HoldButton({
 
 		if (event.repeat) return
 
+		// The press that follows an early release completes the action and
+		// starts no hold. A locked scope cancels it, as it cancels a click.
+		if (armed) {
+			if (!locked) handleHoldComplete()
+
+			return
+		}
+
 		if (heldKeyRef.current === null) heldKeyRef.current = event.key
 
 		start()
@@ -253,15 +264,19 @@ export function HoldButton({
 
 		heldKeyRef.current = null
 
-		cancel()
+		// A key that lets go before the hold completes arms the confirm step.
+		if (cancel()) arm()
 	})
 
 	// Tab-away routes the keyup elsewhere; an unfocused button does not complete
-	// the hold. The gesture hook guards window/visibility loss.
+	// the hold, and the blur ends the confirm step. The gesture hook guards
+	// window/visibility loss.
 	const handleBlur = useStableEvent(() => {
 		heldKeyRef.current = null
 
 		pressedRef.current = false
+
+		setArmed(false)
 
 		cancel()
 	})

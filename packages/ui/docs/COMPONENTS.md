@@ -75,7 +75,7 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > A `Button` in a locked Control scope, such as a `Form` while a submit runs, is `aria-disabled` and cancels its click. It stays in the tab order. A `HoldButton` there starts no hold, and a lock that comes during a hold cancels it. Pass `lockable={false}` to keep either live. A library button that writes no field, such as a `Tab`, a `CopyButton`, or a toggle `IconButton`, stays live. So does the standard close button of an overlay, and the Cancel button of `Confirm`, also when the overlay opens from inside a locked `Form`. A field in the overlay locks with the form. A `Tab` or a `SegmentItem` that writes a value, such as the AND/OR segment of a query group, takes `lockable` and locks.
 
-> A `HoldButton` has the built-in description "Press and hold to confirm". Assistive technology can send a click with no pointer press and no key press, and such a click cannot start a hold. It arms a confirm step, and a second such click in the next five seconds completes the action.
+> A `HoldButton` has the built-in description "Press and hold to confirm". A key that lets go before the hold completes arms a confirm step, and the next Enter or Space completes the action with no hold. Thus a keyboard user does not have to hold a key (WCAG 2.1.1). Assistive technology can send a click with no pointer press and no key press, and such a click cannot start a hold. It also arms the confirm step, and a second such click completes the action. A pointer user must hold. No timer ends the confirm step (WCAG 2.2.1). It ends when the action completes, when the button loses focus, or on a pointer press.
 
 ## Navigation
 
