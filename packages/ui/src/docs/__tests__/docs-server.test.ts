@@ -4,14 +4,8 @@ import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { brotliDecompressSync, gunzipSync } from 'node:zlib'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import {
-	entityTag,
-	isFallback,
-	isFresh,
-	pickEncoding,
-	readBody,
-	serveDocs,
-} from '../../../scripts/docs/server.ts'
+import { isFallback, pickEncoding, readBody } from '../../../scripts/docs/build.ts'
+import { entityTag, isFresh, serveDocs } from '../../../scripts/docs/server.ts'
 import { rootMarks } from '../../server/root-marks.ts'
 import { rootRedirect } from '../app/root-redirect.ts'
 import { findPages } from '../plugin/pages.ts'

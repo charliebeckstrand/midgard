@@ -1,6 +1,7 @@
 import type { Page, Request } from 'playwright'
 import { describe, inject, it, type TestContext } from 'vitest'
-import { HYDRATED, prerenderedPages, STYLED } from '../../../scripts/docs/server'
+import { prerenderedPages } from '../../../scripts/docs/build'
+import { HYDRATED, STYLED } from '../../../scripts/docs/probes'
 import { launchChromium } from './helpers/chromium'
 import { waitForIdleLoads } from './helpers/idle-loads'
 import { settle } from './helpers/settle'
