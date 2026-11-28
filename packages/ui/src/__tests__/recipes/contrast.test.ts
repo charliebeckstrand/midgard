@@ -82,7 +82,10 @@ describe('chromatic palette contrast', () => {
 	const hues = [...colors, ...extendedColors]
 
 	/** The classes of a Button in a variant and a color. */
-	function resolve(variant: 'soft' | 'outline' | 'plain' | 'bare', color: string): string[] {
+	function resolve(
+		variant: 'solid' | 'soft' | 'outline' | 'plain' | 'bare',
+		color: string,
+	): string[] {
 		return button({ variant, color: color as PaletteColor }).base.split(' ')
 	}
 
@@ -163,6 +166,48 @@ describe('chromatic palette contrast', () => {
 			expect(light).toMatch(new RegExp(`hover:text-${color}-800$`))
 
 			expect(dark).toMatch(new RegExp(`^dark:.*hover:text-${color}-300$`))
+		})
+	})
+
+	// A mark (`<Code>`, `<Kbd>`) on a solid fill keeps the text of the fill, and
+	// paints its own wash over the fill. The measure is at rest and on hover,
+	// because the hover moves the fill. Solid fills are opaque and have no
+	// `dark:` class, so one measure covers both modes.
+	describe('a mark on a solid fill clears text AA on its wash', () => {
+		it.each(hues)('%s', (color) => {
+			const list = resolve('solid', color)
+
+			const fills = [
+				list.find((name) => name.startsWith('bg-')),
+				list.find((name) => name.includes('hover:bg-')),
+			]
+
+			const text = list.find((name) => name.startsWith('text-'))
+
+			const washes = ['code', 'kbd'].map((slot) =>
+				list.find((name) => name.startsWith(`**:data-[slot=${slot}]:bg-`)),
+			)
+
+			if (text === undefined || fills.includes(undefined) || washes.includes(undefined))
+				throw new Error(`no fill, text, and mark wash in: ${list.join(' ')}`)
+
+			for (const fill of fills as string[]) {
+				for (const wash of washes as string[]) {
+					const ground = tinted(wash, tinted(fill, SURFACE.light))
+
+					expect(getContrast(text, ground)).toBeGreaterThanOrEqual(TEXT_AA)
+				}
+			}
+		})
+
+		// One rule, not a shade for each hue: the wash is the other end of the
+		// ramp from the text, so it moves away from the text.
+		it.each(hues)('%s takes the wash of the other end of the ramp', (color) => {
+			const list = resolve('solid', color)
+
+			const wash = list.includes('text-white') ? 'bg-zinc-950/15' : 'bg-white/15'
+
+			for (const slot of ['code', 'kbd']) expect(list).toContain(`**:data-[slot=${slot}]:${wash}`)
 		})
 	})
 

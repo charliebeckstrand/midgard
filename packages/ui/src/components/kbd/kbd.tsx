@@ -26,7 +26,8 @@ export type KbdProps = ComponentProps<'kbd'> & {
  * The key has the default text color, and not the color of the text around
  * it. Its fill lowers the contrast of its text, and muted or intent text on the
  * fill is below 4.5:1 (WCAG 1.4.3). On a solid fill, such as that of a solid
- * Button or Badge, the key keeps the text color of the fill.
+ * Button or Badge, the key keeps the text color of the fill. Its own fill then
+ * moves away from that text color, so the text keeps 4.5:1.
  */
 export function Kbd({ size, className, children, ...props }: KbdProps) {
 	return (
