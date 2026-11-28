@@ -2087,6 +2087,18 @@
 		"defaultMessage": "Min",
 		"description": "The hint text of the empty lower bound of a \"between\" condition of a filter."
 	},
+	"ui.queryBuilder.moveIntoGroupAbove": {
+		"defaultMessage": "Move into group above",
+		"description": "The item of the move menu of a condition that moves the condition into the nested group just above it, as the last condition of that group."
+	},
+	"ui.queryBuilder.moveIntoGroupBelow": {
+		"defaultMessage": "Move into group below",
+		"description": "The item of the move menu of a condition that moves the condition into the nested group just below it, as the first condition of that group."
+	},
+	"ui.queryBuilder.moveOutOfGroup": {
+		"defaultMessage": "Move out of group",
+		"description": "The item of the move menu of a condition in a nested group that moves the condition out of the group, to the place just after the group."
+	},
 	"ui.queryBuilder.noRules": {
 		"defaultMessage": "No rules added",
 		"description": "The warning of a group of a filter that holds no conditions."
@@ -2163,9 +2175,45 @@
 		"defaultMessage": "To pick up an item, press Space. Use the arrow keys to move it, then press Space or Enter to drop it, or Escape to put it back.",
 		"description": "The description of a reorder handle whose keyboard lifts an item with Space, drops it with Space or Enter, and puts it back with Escape."
 	},
+	"ui.reorder.move": {
+		"defaultMessage": "Move",
+		"description": "The first word of the name of the button that opens the move menu of a list row. The name of the row follows it."
+	},
+	"ui.reorder.moveDown": {
+		"defaultMessage": "Move down",
+		"description": "The menu item that moves an item one place down in its list."
+	},
 	"ui.reorder.moveHandle": {
 		"defaultMessage": "Move {item}",
 		"description": "The name of a control that moves an item, such as the drag handle of a dashboard tile."
+	},
+	"ui.reorder.moveLeft": {
+		"defaultMessage": "Move left",
+		"description": "The menu item that moves an item of a horizontal list one place to the left."
+	},
+	"ui.reorder.moveRight": {
+		"defaultMessage": "Move right",
+		"description": "The menu item that moves an item of a horizontal list one place to the right."
+	},
+	"ui.reorder.moveToBottom": {
+		"defaultMessage": "Move to bottom",
+		"description": "The menu item that moves an item to the last place of its list."
+	},
+	"ui.reorder.moveToEnd": {
+		"defaultMessage": "Move to end",
+		"description": "The menu item that moves an item of a horizontal list to its last place."
+	},
+	"ui.reorder.moveToStart": {
+		"defaultMessage": "Move to start",
+		"description": "The menu item that moves an item of a horizontal list to its first place."
+	},
+	"ui.reorder.moveToTop": {
+		"defaultMessage": "Move to top",
+		"description": "The menu item that moves an item to the first place of its list."
+	},
+	"ui.reorder.moveUp": {
+		"defaultMessage": "Move up",
+		"description": "The menu item that moves an item one place up in its list."
 	},
 	"ui.reorder.moved": {
 		"defaultMessage": "{item} moved to position {position, number} of {total, number}.",

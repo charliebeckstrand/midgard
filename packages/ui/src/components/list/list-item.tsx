@@ -1,14 +1,27 @@
 'use client'
 
-import type { ComponentProps, ElementType, FocusEvent, KeyboardEvent, ReactNode } from 'react'
+import {
+	type ComponentProps,
+	type ElementType,
+	type FocusEvent,
+	type KeyboardEvent,
+	type ReactNode,
+	useMemo,
+} from 'react'
 import { cn } from '../../core/cn'
 import { dataAttr } from '../../core/data-attr'
 import { useAriaIds } from '../../hooks/use-aria-ids'
 import { useKeyedValue } from '../../hooks/use-keyed-value'
 import { Polymorphic, type PolymorphicProps } from '../../primitives/polymorphic'
 import { k } from '../../recipes/kata/list'
-import { type ListItemContextValue, useListContext, useListItemContext } from './context'
+import {
+	ListItemContext,
+	type ListItemContextValue,
+	useListContext,
+	useListItemContext,
+} from './context'
 import { ListHandle } from './list-handle'
+import { ListItemMenu } from './list-item-menu'
 import type { ListReorderParts } from './list-reorder'
 
 /**
@@ -21,7 +34,7 @@ import type { ListReorderParts } from './list-reorder'
 export type ListItemProps<Fallback extends ElementType = 'div'> = {
 	/** Content rendered before the main content; replaces the auto-inserted `<ListHandle>` when provided. */
 	prefix?: ReactNode
-	/** Content rendered after the main content. */
+	/** Content rendered after the main content, before the auto-inserted `<ListItemMenu>`. */
 	suffix?: ReactNode
 	/**
 	 * Makes the row act on activation, which decides the content column's
@@ -81,7 +94,8 @@ export type ListItemProps<Fallback extends ElementType = 'div'> = {
  * interactive and takes the muted text plus hover and pointer treatment. Its hit
  * area covers the whole painted row, the padding and the slot chrome included. In
  * a reorderable list it wires the drag/keyboard bindings and auto-inserts a
- * {@link ListHandle} as the prefix unless one is supplied. An interactive row also
+ * {@link ListHandle} as the prefix unless one is supplied, and a
+ * {@link ListItemMenu} after the suffix. An interactive row also
  * takes a hover wash, doubled inside a glass parent. On a coarse pointer, an
  * interactive row is at least 44 px tall (`touch-pitch-row`). Density-scaled.
  *
@@ -98,7 +112,8 @@ export type ListItemProps<Fallback extends ElementType = 'div'> = {
  * `href` or `onClick` is focusable, so the reorder keys ride it and the `<li>`
  * takes no focus. The `<li>` keeps only the drag node and the transform. In a row
  * with no such handler, the `<li>` is the stop. The `interactive` prop does not
- * move the stop. A focusable child, such as a checkbox, keeps its own stop.
+ * move the stop. A focusable child, such as a checkbox or the button of the
+ * auto-inserted {@link ListItemMenu}, keeps its own stop.
  *
  * @typeParam Fallback - Element the content area renders when no `href` is
  *   given; selected via `as`.
@@ -115,7 +130,9 @@ export function ListItem<Fallback extends ElementType = 'div'>({
 	as: asProp,
 	...props
 }: ListItemProps<Fallback>) {
-	const { id, setNodeRef, reorder, describedBy, dragging, position } = useListItemContext()
+	const item = useListItemContext()
+
+	const { id, setNodeRef, reorder, describedBy, dragging, position, contentId: rowContentId } = item
 
 	// The list's own `interactive` is the reorder wiring; the row's is the
 	// content area's activation treatment. Alias the former to keep them apart.
@@ -175,15 +192,22 @@ export function ListItem<Fallback extends ElementType = 'div'>({
 	// composed rather than left to fight the spread: whichever order they went in, one side would
 	// silently win, and a consumer passing `onKeyDown` quietly turning off reordering for that row
 	// is a bug nothing points at. Theirs runs first, then the gesture.
+	// The move menu of a reorderable row takes its name from the content area,
+	// whose id the consumer can set. The row gives the menu the id that the area
+	// renders.
 	const {
+		id: contentId = rowContentId,
 		onKeyDown: consumerKeyDown,
 		onBlur: consumerBlur,
 		'aria-describedby': consumerDescribedBy,
 	} = props as {
+		id?: string
 		onKeyDown?: (event: KeyboardEvent) => void
 		onBlur?: (event: FocusEvent) => void
 		'aria-describedby'?: string
 	}
+
+	const labelled = useMemo(() => ({ ...item, contentId }), [item, contentId])
 
 	// The reorder props come after the spread, so they must keep the consumer description. The
 	// consumer ids come first, then the id of the reorder instructions. When the `<li>` is the
@@ -235,6 +259,7 @@ export function ListItem<Fallback extends ElementType = 'div'>({
 			<Polymorphic
 				as={as}
 				href={href}
+				id={contentId}
 				className={slots.content}
 				{...props}
 				{...(stopOnContent ? reorderProps : {})}
@@ -245,13 +270,16 @@ export function ListItem<Fallback extends ElementType = 'div'>({
 				{children}
 			</Polymorphic>
 			{suffix}
+			{handle ? <ListItemMenu /> : null}
 		</>
 	)
 
 	return (
-		<ListItemRow id={id} reorder={reorder} parts={reorderParts} {...row}>
-			{content}
-		</ListItemRow>
+		<ListItemContext value={labelled}>
+			<ListItemRow id={id} reorder={reorder} parts={reorderParts} {...row}>
+				{content}
+			</ListItemRow>
+		</ListItemContext>
 	)
 }
 

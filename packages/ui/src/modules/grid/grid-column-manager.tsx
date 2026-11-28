@@ -4,7 +4,7 @@ import { ArrowUpDown, EllipsisVertical, Lock, Pin } from 'lucide-react'
 import { type ReactElement, type ReactNode, useCallback, useMemo, useState } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
-import { List, ListItem } from '../../components/list'
+import { List, ListHandle, ListItem } from '../../components/list'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from '../../components/menu'
 import { SearchInput } from '../../components/search-input'
 import { useDirectionScope } from '../../primitives/direction/context'
@@ -336,8 +336,11 @@ function GridColumnManagerOrderableList({
 
 	const moves = useGridItemMoves({ items, getKey, commit: onReorder, describe })
 
+	// The row places the grip itself, and its suffix holds the move menu of the
+	// manager in place of the `ListItemMenu` of the list.
 	const renderRow = (col: GridColumnManagerItem) => (
 		<ListItem
+			prefix={<ListHandle />}
 			suffix={
 				<>
 					{reorderable && items.length > 1 && <GridColumnMoveControl item={col} moves={moves} />}
@@ -363,12 +366,15 @@ function GridColumnManagerOrderableList({
 	)
 
 	// A read-only list has no `onReorder`, so no grip renders. The reorderable
-	// list keeps the auto-inserted handle and commits moves through `onReorder`.
+	// list inserts no handle and no move menu (`handle={false}`): each row places
+	// its grip and the move menu of the manager. It commits moves through
+	// `onReorder`.
 	return reorderable ? (
 		<List
 			items={items}
 			getKey={getKey}
 			onReorder={onReorder}
+			handle={false}
 			variant="plain"
 			aria-label={intl.formatMessage(gridMessages.reorderColumns)}
 		>
