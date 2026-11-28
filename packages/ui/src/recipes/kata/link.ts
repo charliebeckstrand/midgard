@@ -28,6 +28,6 @@ export const k = defineKata({
 export type LinkVariants = Omit<VariantProps<typeof k>, 'color' | 'underline'> & {
 	/** The text color of the link. `current` takes the color of the text around it. @defaultValue 'current' */
 	color?: VariantProps<typeof k>['color']
-	/** Shows an underline at rest. @defaultValue false */
+	/** Shows an underline at rest. A link in running text takes it, also with a `color`. @defaultValue false */
 	underline?: VariantProps<typeof k>['underline']
 }

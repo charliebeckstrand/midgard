@@ -5,7 +5,7 @@ export default function InlineWithText() {
 	return (
 		<Text>
 			To style a run of text, see the{' '}
-			<Link href="/text" color="blue">
+			<Link href="/text" color="blue" underline>
 				Text page
 			</Link>
 			.

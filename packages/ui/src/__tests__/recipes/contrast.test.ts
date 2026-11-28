@@ -224,6 +224,23 @@ describe('chromatic palette contrast', () => {
 			expect(getContrast(dark, SURFACE.dark)).toBeGreaterThanOrEqual(TEXT_AA)
 		})
 	})
+
+	// One rule for each chromatic hue, not the lightest shade that clears AA in
+	// each hue: bare text is 700 in light and 400 in dark, and 800 and 300 on
+	// hover. Zinc is the `muted` rung, which has its own shades.
+	describe('bare text is 700 and 400, and 800 and 300 on hover', () => {
+		it.each(hues.filter((color) => color !== 'zinc'))('%s', (color) => {
+			const list = resolve('bare', color)
+
+			expect(ink(list)).toEqual({ light: `text-${color}-700`, dark: `dark:text-${color}-400` })
+
+			const { light, dark } = hoveredInk(list)
+
+			expect(light).toMatch(new RegExp(`^[^:].*hover:text-${color}-800$`))
+
+			expect(dark).toMatch(new RegExp(`^dark:.*hover:text-${color}-300$`))
+		})
+	})
 })
 
 /**
