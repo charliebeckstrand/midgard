@@ -66,6 +66,7 @@ export type IconName =
 	| 'Lock'
 	| 'MapPin'
 	| 'MapPinned'
+	| 'Maximize'
 	| 'Maximize2'
 	| 'Menu'
 	| 'Minus'

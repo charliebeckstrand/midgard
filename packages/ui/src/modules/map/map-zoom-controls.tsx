@@ -1,6 +1,6 @@
 'use client'
 
-import { Maximize2, ZoomIn, ZoomOut } from 'lucide-react'
+import { Maximize, ZoomIn, ZoomOut } from 'lucide-react'
 import { IconButton } from '../../components/icon-button'
 import { announce } from '../../core/announcer'
 import { cn } from '../../core/cn'
@@ -89,7 +89,7 @@ export function MapZoomControls({
 				tooltip
 				aria-label={intl.formatMessage(mapMessages.zoomFit)}
 				tooltipPlacement={placement}
-				icon={<Glyph icon={Maximize2} />}
+				icon={<Glyph icon={Maximize} />}
 				disabled={sameTransform(transform, MAP_FIT_TRANSFORM)}
 				onClick={fit}
 			/>
