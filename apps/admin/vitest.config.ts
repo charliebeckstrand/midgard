@@ -12,6 +12,6 @@ export default defineConfig({
 	test: {
 		...sharedTest,
 		environment: 'jsdom',
-		setupFiles: ['src/__tests__/setup.ts'],
+		setupFiles: ['shared/testing/setup'],
 	},
 })

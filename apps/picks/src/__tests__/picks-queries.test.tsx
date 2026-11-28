@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { act, cleanup, renderHook } from '@testing-library/react'
+import { act, renderHook } from '@testing-library/react'
 import type { ReactNode } from 'react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { savePicks } from '../api/predictions-api'
 import { picksKeys, useDeletePicks, useSavePicks } from '../queries/picks-queries'
 import type { SeasonPicks, WeekPicks } from '../types'
@@ -11,9 +11,6 @@ vi.mock('../api/predictions-api', () => ({
 	savePicks: vi.fn(),
 	deletePicks: vi.fn(async () => undefined),
 }))
-
-// The config sets no `globals`, so Testing Library does not unmount on its own.
-afterEach(cleanup)
 
 function week(team: string): WeekPicks {
 	return { '401': { team, line: -3.5 } }
