@@ -10,12 +10,21 @@ import {
 	ChevronRight,
 	ChevronUp,
 } from 'lucide-react'
-import { Fragment, type ReactElement, useState } from 'react'
+import {
+	type ComponentProps,
+	Fragment,
+	type ReactElement,
+	type ReactNode,
+	useId,
+	useState,
+} from 'react'
 import type { ReorderMove } from '../../hooks/use-keyboard-reorder'
 import { Glyph } from '../../primitives/glyph'
 import { reorderMessages } from '../../primitives/intl/intl-reorder'
 import type { IntlShape } from '../../primitives/intl/types'
+import { useIntl } from '../../primitives/intl/use-intl'
 import type { Orientation } from '../../types/orientation'
+import { Button } from '../button'
 import { Icon } from '../icon'
 import { Menu } from './menu'
 import { MenuContent } from './menu-content'
@@ -94,6 +103,11 @@ type MenuMoveProps = {
 	 * divides two sections that both have items.
 	 */
 	read: () => MenuMoveItem[][]
+	/**
+	 * The label of one disabled item that the menu shows when no section has an
+	 * item, such as "No move". Without it, such a menu opens empty.
+	 */
+	empty?: string
 	/** The trigger button. It carries the name of the menu, such as "Move Alpha". */
 	children: ReactElement
 }
@@ -105,15 +119,21 @@ type MenuMoveProps = {
  *
  * @internal
  */
-export function MenuMove({ read, children }: MenuMoveProps) {
-	const [sections, setSections] = useState<MenuMoveItem[][]>([])
+export function MenuMove({ read, empty, children }: MenuMoveProps) {
+	// The sections when the menu opened, or `null` while it is closed.
+	const [sections, setSections] = useState<MenuMoveItem[][] | null>(null)
 
-	const filled = sections.filter((section) => section.length > 0)
+	const filled = sections?.filter((section) => section.length > 0) ?? []
 
 	return (
-		<Menu placement="bottom-end" onOpenChange={(open) => setSections(open ? read() : [])}>
+		<Menu placement="bottom-end" onOpenChange={(open) => setSections(open ? read() : null)}>
 			<MenuTrigger>{children}</MenuTrigger>
 			<MenuContent>
+				{sections !== null && filled.length === 0 && empty !== undefined && (
+					<MenuItem disabled>
+						<MenuLabel>{empty}</MenuLabel>
+					</MenuItem>
+				)}
 				{filled.map((section, index) => (
 					<Fragment key={section[0]?.key}>
 						{index > 0 && <MenuSeparator />}
@@ -127,5 +147,88 @@ export function MenuMove({ read, children }: MenuMoveProps) {
 				))}
 			</MenuContent>
 		</Menu>
+	)
+}
+
+/** Props for {@link MenuMoveButton}. The `<button>` takes the rest. @internal */
+type MenuMoveButtonProps = Omit<ComponentProps<'button'>, 'type' | 'color' | 'slot'> & {
+	/** The `data-slot` of the button, which the tests and the recipe select. */
+	slot: string
+	/** The id of the element whose name follows "Move" in the name of the button. */
+	nameId: string | undefined
+	/** Renders an inert button with no menu, which keeps the box of the item. */
+	still: boolean
+	/** Reads the items of the menu when it opens ({@link MenuMove}). */
+	read: () => MenuMoveItem[][]
+	/** The label of the disabled item of a menu with no item ({@link MenuMove}). */
+	empty?: string
+	/** Replaces the name of the button: "Move", and then the name of the item. */
+	'aria-label'?: string
+	/** Content of the button. */
+	children: ReactNode
+}
+
+/**
+ * The button of the move menu of an item. Its name is "Move", and then the
+ * name of the item. The word "Move" sits in a hidden span that only the name of
+ * the button reads, so it adds nothing to the name of the item. An explicit
+ * `aria-label` replaces both.
+ *
+ * A `still` button is inert and opens no menu, so a disabled list or a drag
+ * copy keeps the box of the item.
+ *
+ * @internal
+ */
+export function MenuMoveButton({
+	slot,
+	nameId,
+	still,
+	read,
+	empty,
+	'aria-label': ariaLabel,
+	children,
+	...props
+}: MenuMoveButtonProps) {
+	const intl = useIntl()
+
+	const labelId = useId()
+
+	if (still) {
+		return (
+			<Button
+				variant="bare"
+				{...props}
+				type="button"
+				data-slot={slot}
+				aria-hidden="true"
+				tabIndex={-1}
+				inert
+			>
+				{children}
+			</Button>
+		)
+	}
+
+	return (
+		<MenuMove read={read} empty={empty}>
+			<Button
+				variant="bare"
+				{...props}
+				type="button"
+				// The tests and the recipe select the button by this slot, so it comes after the spread.
+				data-slot={slot}
+				aria-label={ariaLabel}
+				aria-labelledby={
+					props['aria-labelledby'] ?? (ariaLabel ? undefined : `${labelId} ${nameId}`)
+				}
+			>
+				{ariaLabel ? null : (
+					<span id={labelId} hidden>
+						{intl.formatMessage(reorderMessages.move)}
+					</span>
+				)}
+				{children}
+			</Button>
+		</MenuMove>
 	)
 }
