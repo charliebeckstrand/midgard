@@ -1,6 +1,5 @@
 import { Lightbox, type LightboxPhoto, LightboxTrigger } from '../../../components/lightbox'
 import { ReducedMotionContext } from '../../../primitives/reduced-motion/context'
-import { sampleMotionFrames } from './motion-frame'
 
 /** The size of a photo, in px. */
 type PhotoSize = { width: number; height: number }
@@ -68,47 +67,3 @@ export const viewerTweens = (): Animation[] =>
  */
 export const liveCount = () =>
 	document.querySelector('[aria-live="polite"]')?.textContent?.split(', ').at(-1)
-
-/**
- * Holds the tweens that `read` gives at `progress` of their length, in the
- * frame that starts them, and gives them. A tween runs on wall-clock time, so
- * a long frame moves it on before a measure. A held tween stays at its frame.
- * `play()` on each tween lets it go on.
- *
- * `during` sends the event that starts the tweens. The sampler starts before
- * it, and the hold occurs in the frame that finds the tweens. Thus a slow
- * round trip of the event cannot let a tween run on, or land, before the hold.
- * The sampler gives the tweens only after the event resolves (see
- * {@link sampleMotionFrames}), so a hold after the sampler is too late.
- *
- * @param read - Gives the tweens to hold.
- * @param progress - The part of the length at which each tween holds, from 0 to 1.
- * @param options - `during` sends the event that starts the tweens. `exclude`
- * lists tweens from before the event, such as a held tween, that are not the
- * new tweens.
- * @returns The held tweens.
- */
-export function holdTweens(
-	read: () => readonly Animation[],
-	progress: number,
-	{
-		during,
-		exclude = [],
-	}: { during?: () => Promise<unknown>; exclude?: readonly Animation[] } = {},
-): Promise<Animation[]> {
-	return sampleMotionFrames(
-		() => read().filter((tween) => !exclude.includes(tween)),
-		(found) => {
-			if (found.length === 0) return false
-
-			for (const tween of found) {
-				tween.pause()
-
-				tween.currentTime = progress * Number(tween.effect?.getComputedTiming().duration)
-			}
-
-			return true
-		},
-		{ during },
-	)
-}

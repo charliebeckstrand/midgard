@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { frame, getSlot, present, renderUI, screen } from '../../helpers'
-import { fieldPhotos, Gallery, holdTweens, liveCount, viewerTweens } from '../helpers/lightbox'
-import { waitForNoTween } from '../helpers/motion-frame'
+import { fieldPhotos, Gallery, liveCount, viewerTweens } from '../helpers/lightbox'
+import { holdTweens, waitForNoTween } from '../helpers/motion-frame'
 
 /**
  * A `Lightbox` that opens again while its photo goes back to its thumbnail.

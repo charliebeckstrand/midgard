@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { present, renderUI } from '../../helpers'
-import { fieldPhotos, Gallery, holdTweens } from '../helpers/lightbox'
-import { waitForNoTween } from '../helpers/motion-frame'
+import { fieldPhotos, Gallery } from '../helpers/lightbox'
+import { holdTweens, waitForNoTween } from '../helpers/motion-frame'
 
 /**
  * A `Lightbox` with `thumbnails`, and a press on a thumbnail that is not next to
