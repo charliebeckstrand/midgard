@@ -21,7 +21,8 @@ export type ListHandleProps = ComponentProps<'span'>
  * interactive, and shows a disabled grip when the list is disabled. Renders nothing in a read-only
  * list (no `onReorder`) and in a single-item list, because those lists have
  * no order to change. Decorative (`aria-hidden`); keyboard reorder lives on
- * the item.
+ * the item, and the path with one pointer and no drag is the
+ * {@link ListItemMenu} of the item.
  *
  * @remarks Client component.
  */

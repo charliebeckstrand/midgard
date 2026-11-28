@@ -7,6 +7,7 @@ import { k as button } from '../../recipes/kata/button'
 import { k as commandPalette } from '../../recipes/kata/command-palette'
 import { k as grid } from '../../recipes/kata/grid'
 import { k as input } from '../../recipes/kata/input'
+import { type JsonValueType, k as jsonTree } from '../../recipes/kata/json-tree'
 import { k as kanban } from '../../recipes/kata/kanban'
 import { k as list } from '../../recipes/kata/list'
 import { k as menu } from '../../recipes/kata/menu'
@@ -117,6 +118,53 @@ describe('chromatic palette contrast', () => {
 			})
 		},
 	)
+
+	/**
+	 * The ink of a hovered Button, as the cascade gives it. A hover text class
+	 * with no `dark:` prefix applies in both modes, and it wins over the dark
+	 * ink at rest, because the hover selector is more specific. Thus in dark the
+	 * dark hover class wins, then the light hover class, then the dark ink at rest.
+	 */
+	function hoveredInk(list: string[]): { light: string; dark: string } {
+		const rest = ink(list)
+
+		const light = list.find((name) => !name.startsWith('dark:') && name.includes('hover:text-'))
+
+		const dark = list.find((name) => name.startsWith('dark:') && name.includes('hover:text-'))
+
+		return { light: light ?? rest.light, dark: dark ?? light ?? rest.dark }
+	}
+
+	describe.each(['soft', 'outline', 'plain'] as const)(
+		'%s text clears text AA on its hover wash',
+		(variant) => {
+			it.each(hues)('%s', (color) => {
+				const list = resolve(variant, color)
+
+				const wash = list.find((name) => name.includes('hover:bg-'))
+
+				if (wash === undefined) throw new Error(`no hover wash in: ${list.join(' ')}`)
+
+				const { light, dark } = hoveredInk(list)
+
+				expect(getContrast(light, tinted(wash, SURFACE.light))).toBeGreaterThanOrEqual(TEXT_AA)
+
+				expect(getContrast(dark, tinted(wash, SURFACE.dark))).toBeGreaterThanOrEqual(TEXT_AA)
+			})
+		},
+	)
+
+	// One rule for each hue, not a shade for each hue that misses AA: the text
+	// of a hovered soft Button is 800 in light and 300 in dark.
+	describe('soft text steps to 800 in light and 300 in dark on hover', () => {
+		it.each(hues)('%s', (color) => {
+			const { light, dark } = hoveredInk(resolve('soft', color))
+
+			expect(light).toMatch(new RegExp(`hover:text-${color}-800$`))
+
+			expect(dark).toMatch(new RegExp(`^dark:.*hover:text-${color}-300$`))
+		})
+	})
 
 	describe('bare text clears text AA on the page', () => {
 		it.each(hues)('%s', (color) => {
@@ -461,5 +509,47 @@ describe('Grid cell validation message', () => {
 
 			expect(getContrast('text-white', surface), fill).toBeGreaterThanOrEqual(TEXT_AA)
 		}
+	})
+})
+
+/**
+ * A keyboard reader reads the JsonTree row that has the focus, so each ink of
+ * the row must clear text AA on every wash that the focused row paints, and on
+ * the match wash of a focused search match over it. The washes and the inks
+ * come off the recipe, so a focus wash that a change adds is measured here.
+ */
+describe('JsonTree focused row', () => {
+	const TYPES: readonly JsonValueType[] = ['key', 'string', 'number', 'boolean', 'null']
+
+	// A focus wash in any focus variant: `has-focus-visible:`, or the
+	// `has-[>:focus-visible]:` of `sen.focus.within.row`.
+	const washes = classNames([jsonTree().row]).filter((className) =>
+		/focus-visible\]?:bg-/.test(className),
+	)
+
+	const MATCH = byMode(iro.match)
+
+	const inks = inksByMode([
+		jsonTree().toggle,
+		jsonTree().index,
+		jsonTree().punctuation,
+		jsonTree().summary,
+		...TYPES.map((type) => jsonTree({ type }).value),
+	])
+
+	describe.each(MODES)('in %s', (mode) => {
+		const focused = washes
+			.filter((className) => className.startsWith('dark:') === (mode === 'dark'))
+			.reduce((ground, wash) => tinted(wash, ground), SURFACE[mode])
+
+		it.each([
+			['the focused row', focused],
+			['a focused match', tinted(MATCH[mode], focused)],
+		])('each ink clears text AA on %s', (_, surface) => {
+			expect(inks[mode]).not.toEqual([])
+
+			for (const ink of inks[mode])
+				expect(getContrast(ink, surface), ink).toBeGreaterThanOrEqual(TEXT_AA)
+		})
 	})
 })

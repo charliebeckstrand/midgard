@@ -71,25 +71,14 @@
  * Layer: kumi · Group: control · Concern: affix
  */
 
-import { mode } from '../../../core/recipe'
 import { dan, iro, narabi } from '../../kiso'
 
 export const affix = {
 	/**
 	 * The layout that each affix slot shares: a centered row that can shrink, in
 	 * the muted text color. An icon in the slot takes no pointer.
-	 *
-	 * A `<Kbd>` in the slot takes the default text color, as a menu shortcut does.
-	 * The fill of a key darkens the color behind its text, so the muted color on
-	 * that fill is below 4.5:1 (4.01:1 in the light theme, WCAG 1.4.3).
 	 */
-	base: [
-		narabi.flex.row,
-		'min-w-0',
-		'*:data-[slot=icon]:pointer-events-none',
-		...iro.text.muted,
-		...mode('**:data-[slot=kbd]:text-zinc-950', 'dark:**:data-[slot=kbd]:text-white'),
-	],
+	base: [narabi.flex.row, 'min-w-0', '*:data-[slot=icon]:pointer-events-none', ...iro.text.muted],
 	prefix: [
 		dan.space.affix.prefix,
 		'has-[[data-slot=badge]]:ps-ring-2',

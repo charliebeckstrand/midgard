@@ -159,8 +159,9 @@ export type ChatMessageProps = ChatMessageVariants &
 		/** Wall-clock label shown below the bubble. */
 		timestamp?: ReactNode
 		/**
-		 * Pulses the bubble content and shows the progress cursor, while a response
-		 * streams in. A streaming bubble with no content yet shows loading dots.
+		 * Shows loading dots after the content and the progress cursor, while a
+		 * response streams in. A streaming bubble with no content yet shows only
+		 * the dots.
 		 * @defaultValue false
 		 */
 		streaming?: boolean
@@ -247,7 +248,7 @@ export type ChatMessageProps = ChatMessageVariants &
 /**
  * Conversational message bubble sided and colored by `sender`: `user`,
  * `assistant`, or `system`, defaulting to `assistant`. It takes an optional
- * `timestamp`, a `contextMenu` with Copy by default, and a `streaming` pulse
+ * `timestamp`, a `contextMenu` with Copy by default, and `streaming` dots
  * over its content.
  *
  * @remarks
@@ -263,14 +264,15 @@ export type ChatMessageProps = ChatMessageVariants &
  * {@link Markdown} sets no color of its own, so the prose inherits the
  * foreground of the bubble. It is white on the blue fill of the user bubble,
  * the default tone on the assistant bubble, and muted on the system bubble.
- * That holds in light and dark mode. While `streaming`, the bubble takes the
- * progress cursor and projects a pulse onto that prose. The bubble is steady
- * again when the stream ends. The kata holds the whole look.
+ * That holds in light and dark mode.
  *
- * A `streaming` reply that has no content yet shows {@link LoadingDots} in its
- * bubble, and not an empty bubble. The first text or part replaces the dots. A
- * `failed` reply shows its failure line and no dots. The dots are hidden from
- * assistive technology, because {@link ChatTranscript} announces the wait.
+ * A `streaming` reply shows {@link LoadingDots} after its content, and the
+ * bubble takes the progress cursor. A reply with no content yet shows only the
+ * dots, and not an empty bubble. The dots stay after the last block while the
+ * reply streams, and go when the stream ends. The content does not pulse or
+ * dim, so the text keeps its full contrast (WCAG 1.4.3). A `failed` reply shows
+ * its failure line and no dots. The dots are hidden from assistive technology,
+ * because {@link ChatTranscript} announces the wait.
  *
  * A part list draws one block per part, each keyed by the part's own id. A text
  * block is its own {@link Markdown}. An `embed` block is the renderer that
@@ -287,9 +289,6 @@ export type ChatMessageProps = ChatMessageVariants &
  * can find the message. The ring is visual only. The app tells a screen reader
  * about the edit, such as with a status that `aria-describedby` of the
  * composer points to.
- *
- * For a reader who reduces motion, a streaming reply dims to 60% of its
- * opacity in place of the pulse. On the assistant fill, the text keeps 4.5:1.
  *
  * A `failed` reply ends with a line that says so, after what it landed. The
  * line inherits the foreground of the bubble, and a red dot marks it.
@@ -308,9 +307,6 @@ export type ChatMessageProps = ChatMessageVariants &
  * button names the branch that it shows, and the text between them gives the
  * position. The message holds no branch itself: `onBranchChange` gives the id
  * that the reader picked, and the caller shows that branch.
- *
- * The pulse rides each drawn {@link Markdown}, so a streaming reply that has
- * already landed a chart pulses its prose and leaves the chart steady.
  *
  * The menu holds each action of the message, and the message shows no row of
  * icons below its bubble. On a device that hovers, a toolbar over the bubble
@@ -384,10 +380,13 @@ export const ChatMessage = memo(function ChatMessage({
 	// The id of the bubble. The Copy item moves the focus to the bubble.
 	const bubbleId = useId()
 
-	// A reply with nothing in it yet shows the dots, and not an empty bubble. The
-	// dots are an `<output>`, a live region. The transcript announces the wait
-	// on its one channel, so the dots stay out of the accessibility tree.
-	const pending = streaming === true && !failed && isEmptyContent(children)
+	// A streaming reply shows the dots after its content, and a reply with
+	// nothing in it yet shows only the dots. The dots are an `<output>`, a live
+	// region. The transcript announces the wait on its one channel, so the dots
+	// stay out of the accessibility tree.
+	const empty = isEmptyContent(children)
+
+	const pending = streaming === true && !failed
 
 	// The scope wraps the content on each render, so an answer that turns on or
 	// off keeps the state of each ask in the message.
@@ -415,12 +414,10 @@ export const ChatMessage = memo(function ChatMessage({
 			<span data-slot="chat-message-author" className="sr-only">
 				<IntlMessage message={AUTHOR[resolvedSender]} />:{' '}
 			</span>
-			{pending ? <LoadingDots aria-hidden="true" /> : content}
+			{pending && empty ? null : content}
+			{pending && <LoadingDots aria-hidden="true" className={empty ? undefined : slots.part} />}
 			{failed && (
-				<p
-					data-slot="chat-message-failure"
-					className={cn(slots.failure, !isEmptyContent(children) && slots.part)}
-				>
+				<p data-slot="chat-message-failure" className={cn(slots.failure, !empty && slots.part)}>
 					<StatusDot size="sm" status="error" />
 					<IntlMessage message={replyFailed} />
 				</p>

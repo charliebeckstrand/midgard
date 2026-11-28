@@ -217,7 +217,7 @@ const ChatTranscriptRow = memo(function ChatTranscriptRow({
  * @remarks
  * Each message's `sender` reaches {@link ChatMessage} unchanged, because the data
  * and the component spell the speaker axis the same way. When `streaming`, only
- * the last message pulses, and only when it is an assistant bubble.
+ * the last message streams, and only when it is an assistant bubble.
  *
  * The transcript renders only the rows near the viewport, through the measured
  * path of {@link useVirtualWindow}. Two spacers stand in for the rows above and
@@ -272,7 +272,7 @@ const ChatTranscriptRow = memo(function ChatTranscriptRow({
  * {@link ChatEmbedProvider} remembers it. The state the view held is gone. The
  * transcript cannot honor `always`: a view mounts only while its row renders.
  *
- * The pulse is visual only, so a reader who cannot see it is told the same
+ * The streaming dots are visual only, so a reader who cannot see them is told the same
  * things through the shared live region (WCAG 4.1.3). Those are that a reply
  * started, and the reply once it settles. The region never speaks a chunk. A
  * reply rewrites itself many times a second, and a region that read every

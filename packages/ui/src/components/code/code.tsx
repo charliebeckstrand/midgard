@@ -24,6 +24,11 @@ export type CodeProps = ComponentProps<'code'> & {
  * The mark is left-to-right text with `dir="ltr"`, which also isolates it from
  * the text around it. Thus `foo()` in a right-to-left paragraph does not show
  * as `()foo`. Pass `dir` to change it.
+ *
+ * The mark has the default text color, and not the color of the text around
+ * it. Its fill lowers the contrast of its text, and muted or intent text on the
+ * fill is below 4.5:1 (WCAG 1.4.3). On a solid fill, such as that of a solid
+ * Button or Badge, the mark keeps the text color of the fill.
  */
 export function Code({ className, size, children, ...props }: CodeProps) {
 	return (

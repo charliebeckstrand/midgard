@@ -37,26 +37,15 @@ const bubble = {
 		],
 		system: [...text.muted, 'bg-transparent px-0'],
 	},
-	// One state, one place. The pointer reports the wait the pulse reports to the
-	// eye: `progress` rather than `wait`, because the page stays live (the
-	// composer still takes a draft, and `stop` still aborts). The cursor sits on
-	// the bubble, so an actions-rail control keeps its own.
-	//
-	// The pulse rides the content, so the bubble projects it onto the Markdown
-	// child rather than the component applying it: the axis then carries the
-	// whole streaming look. The classes are written out, because Tailwind scans
-	// the source for whole class names and never sees an assembled one. The gate
-	// is the one of `ugoki.css.pulse`. For the reduced-motion reader a standing
-	// dim stands in, never both. The reader can read the reply while it streams,
-	// for many seconds, so the dim keeps the text at 4.5:1 (WCAG 1.4.3): 60% gives
-	// 5.1:1 on the assistant fill, and 50% gives only 3.6:1. The pointer
-	// affordance alone would leave a keyboard reader nothing.
+	// One state, one place. The pointer reports the wait the dots after the
+	// content report to the eye: `progress` rather than `wait`, because the page
+	// stays live (the composer still takes a draft, and `stop` still aborts).
+	// The cursor sits on the bubble, so an actions-rail control keeps its own.
+	// The content does not pulse or dim: the reader reads the reply while it
+	// streams, for many seconds, so the text keeps its full contrast (WCAG
+	// 1.4.3).
 	streaming: {
-		true: [
-			'cursor-progress',
-			'[&>[data-slot=markdown]]:motion-safe:animate-pulse',
-			'[&>[data-slot=markdown]]:motion-reduce:opacity-60',
-		],
+		true: 'cursor-progress',
 		false: '',
 	},
 	// The message that the composer edits. A send replaces it, so a ring marks

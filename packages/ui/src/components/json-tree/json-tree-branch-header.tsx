@@ -87,8 +87,12 @@ export function JsonTreeBranchHeader({
 		onToggle()
 	}
 
+	// A search match is a `<mark>`, as in the Grid, so the markup states the
+	// match that the wash shows (WCAG 1.3.1).
+	const Content = highlighted ? 'mark' : 'span'
+
 	const content = (
-		<span id={contentId} className={k({ highlighted }).content}>
+		<Content id={contentId} className={k({ highlighted }).content}>
 			<JsonTreeNodeKey keyName={keyName} />
 			<span className={k().punctuation}>{openBracket}</span>
 			{!open && (
@@ -97,7 +101,7 @@ export function JsonTreeBranchHeader({
 					<span className={k().punctuation}>{closeBracket}</span>
 				</>
 			)}
-		</span>
+		</Content>
 	)
 
 	// The group is a sibling of the row, so the row owns it. The group is in the

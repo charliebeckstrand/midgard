@@ -72,6 +72,12 @@ export type TextInputSubject = {
 	 * field takes the token of its Control.
 	 */
 	autoComplete?: string
+	/**
+	 * Set `false` for a field whose component takes no `ref`, because it renders
+	 * more than one element (CONVENTIONS.md §4.3). The sweep then skips the ref
+	 * leg, and `render` does not get `ref`.
+	 */
+	ref?: false
 }
 
 /**

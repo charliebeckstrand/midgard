@@ -850,7 +850,11 @@ export type MapPointsProps = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> 
 	 * the dot it stands on with Enter or Space.
 	 */
 	onClick?: MapPointsPick
-	/** Fires when a right-click lands on a dot, with the `id`, `index`, and `merged` that {@link onClick} reports. */
+	/**
+	 * Fires when a right-click lands on a dot, with the `id`, `index`, and `merged` that {@link onClick} reports.
+	 *
+	 * The ContextMenu key or Shift+F10 on the plot reports the dot that the keyboard cursor stands on.
+	 */
 	onContextMenu?: (id: string, index: number, merged: readonly number[]) => void
 }
 

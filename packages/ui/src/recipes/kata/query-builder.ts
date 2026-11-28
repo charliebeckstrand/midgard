@@ -145,6 +145,11 @@ export const k = defineKata(
 					},
 					node: 'min-w-0 flex-1',
 					/**
+					 * The button of the move menu, after the node. It centers on the first
+					 * control line of a rule, as the grip does.
+					 */
+					menu: [dan.space.query.grip, 'h-(--nest-mark) flex-none'],
+					/**
 					 * The AND/OR between two nodes aligns with the nodes: one `nest.indent`
 					 * past the grip and the gap. During a drag (`data-sorting`), it leaves the
 					 * flow and the view at once, and the nodes glide together to close its

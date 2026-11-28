@@ -7,9 +7,19 @@ import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { useKeyboardReorder } from '../../hooks/use-keyboard-reorder'
 import type { Orientation } from '../../types/orientation'
 
-/** Accessible name of a list item, for announcements. @internal */
+/**
+ * Accessible name of a list item, for announcements: the name of its content
+ * area. The row also holds its other controls, such as a Remove button, whose
+ * names are not the name of the item.
+ *
+ * @internal
+ */
 export const listItemName = (container: ParentNode | null, id: string) =>
-	accessibleName(querySlot(container, 'list-item', 'item-id', id))
+	accessibleName(
+		querySlot(container, 'list-item', 'item-id', id)?.querySelector(
+			':scope > [data-slot="list-item-content"]',
+		) ?? null,
+	)
 
 type Options<T> = {
 	items: readonly T[]

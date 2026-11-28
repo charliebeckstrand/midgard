@@ -21,6 +21,9 @@ type QueryBuilderValues = {
 	fieldMin: { field: string }
 	fieldMax: { field: string }
 	topLevel: Record<never, never>
+	moveIntoGroupAbove: Record<never, never>
+	moveIntoGroupBelow: Record<never, never>
+	moveOutOfGroup: Record<never, never>
 }
 
 /**
@@ -127,5 +130,23 @@ export const queryBuilderMessages: MessageSet<QueryBuilderValues> =
 			defaultMessage: 'the query',
 			description:
 				'The name of the top level of a filter, which holds each condition and each nested group, in a sentence such as "Name contains a moved to position 3 of 3 in the query".',
+		},
+		moveIntoGroupAbove: {
+			id: 'ui.queryBuilder.moveIntoGroupAbove',
+			defaultMessage: 'Move into group above',
+			description:
+				'The item of the move menu of a condition that moves the condition into the nested group just above it, as the last condition of that group.',
+		},
+		moveIntoGroupBelow: {
+			id: 'ui.queryBuilder.moveIntoGroupBelow',
+			defaultMessage: 'Move into group below',
+			description:
+				'The item of the move menu of a condition that moves the condition into the nested group just below it, as the first condition of that group.',
+		},
+		moveOutOfGroup: {
+			id: 'ui.queryBuilder.moveOutOfGroup',
+			defaultMessage: 'Move out of group',
+			description:
+				'The item of the move menu of a condition in a nested group that moves the condition out of the group, to the place just after the group.',
 		},
 	})

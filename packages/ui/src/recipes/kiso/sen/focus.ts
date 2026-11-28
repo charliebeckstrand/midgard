@@ -174,7 +174,7 @@ export const focus = {
 	 * the forced-colors outline of `forced.ring.inset`.
 	 */
 	within: {
-		/** A row whose child control has the focus: the affixed row of Nav, Sidebar, and ChatList. */
+		/** A row whose child control has the focus: the affixed row of Nav, Sidebar, and ChatList, and the row of JsonTree. */
 		row: [
 			'ring-inset has-[>:focus-visible]:ring-2',
 			...mode('has-[>:focus-visible]:ring-blue-600', 'dark:has-[>:focus-visible]:ring-blue-500'),
@@ -194,18 +194,6 @@ export const focus = {
 			),
 			'forced-colors:group-has-[>:focus-visible]:outline-solid forced-colors:group-has-[>:focus-visible]:outline-2',
 			'forced-colors:group-has-[>:focus-visible]:-outline-offset-2 forced-colors:group-has-[>:focus-visible]:outline-[Highlight]',
-		],
-		/**
-		 * A row on a blue tint whose control has the focus at any depth: the row of
-		 * JsonTree. The tint alone is too faint to mark the focus. The ring must
-		 * clear 3:1 against the page and against the tint. On dark, blue-600 is
-		 * 2.3:1 against a blue-500/30 tint, so the dark ring is blue-500.
-		 */
-		tinted: [
-			'ring-inset has-focus-visible:ring-2',
-			...mode('has-focus-visible:ring-blue-600', 'dark:has-focus-visible:ring-blue-500'),
-			'forced-colors:has-focus-visible:outline-solid forced-colors:has-focus-visible:outline-2',
-			'forced-colors:has-focus-visible:-outline-offset-2 forced-colors:has-focus-visible:outline-[Highlight]',
 		],
 		/** A section whose heading holds the control that has the focus: the item of Accordion. */
 		heading: [

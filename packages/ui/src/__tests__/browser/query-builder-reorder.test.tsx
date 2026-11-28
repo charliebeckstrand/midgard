@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { userEvent } from 'vitest/browser'
+import { page, userEvent } from 'vitest/browser'
 import {
 	createGroup,
 	QueryBuilder,
@@ -8,7 +8,7 @@ import {
 	type QueryGroup,
 	type QueryRule,
 } from '../../modules/query'
-import { fireEvent, renderUI, screen, waitFor } from '../helpers'
+import { expectAnnouncement, fireEvent, renderUI, screen, waitFor } from '../helpers'
 
 /**
  * The keyboard reorder of the query builder: each child of a group lifts from
@@ -427,6 +427,31 @@ describe('QueryBuilder keyboard move across groups (real browser)', () => {
 		expect(ids(onValueChange.mock.calls[1]?.[0].children)).toEqual(['g', 'a'])
 
 		await waitFor(() => expect(grip('Name contains a')).not.toHaveAttribute('data-dragging'))
+	})
+
+	// The move menu is the path of the drag with one pointer (WCAG 2.2 SC 2.5.7).
+	it('moves a rule into the group above it from the move menu, and focuses its grip', async () => {
+		const onValueChange = vi.fn()
+
+		renderUI(<Harness onValueChange={onValueChange} />)
+
+		await userEvent.click(page.getByRole('button', { name: 'Move Name contains a', exact: true }))
+
+		await userEvent.click(page.getByRole('menuitem', { name: 'Move into group above' }))
+
+		await expectAnnouncement(
+			'Name contains a moved to position 3 of 3 in condition group',
+			'assertive',
+		)
+
+		const inner = onValueChange.mock.lastCall?.[0].children[0] as QueryGroup
+
+		expect(ids(inner.children)).toEqual(['x', 'y', 'a'])
+
+		// The rule takes the focus to its grip in the group, and it is not lifted.
+		await waitFor(() => expect(document.activeElement).toBe(grip('Name contains a')))
+
+		expect(grip('Name contains a')).not.toHaveAttribute('data-dragging')
 	})
 
 	it('only drops on Escape when the lift moved nothing', async () => {

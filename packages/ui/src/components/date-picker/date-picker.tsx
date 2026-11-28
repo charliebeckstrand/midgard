@@ -4,6 +4,7 @@ import type { ReactElement } from 'react'
 import type { ScaleStep } from '../../core/density/scale'
 import type { FloatingPlacement } from '../../hooks/use-floating-panel'
 import type { scale } from '../../recipes/kata/date-picker'
+import type { DateInputProps } from '../date-input'
 import { DateInput } from '../date-input'
 import type { DateInputFormat } from '../date-input/date-input-utilities'
 import { DatePickerRange } from './date-picker-range'
@@ -50,6 +51,13 @@ export type DatePickerSingleProps = {
 	 * trigger label takes the date format of the locale, as the Calendar does.
 	 */
 	format?: DateInputFormat
+	/**
+	 * The `autocomplete` token of the typed field while `input` is set, such as
+	 * `bday`. The prop wins over the `autoComplete` of an enclosing `<Control>`.
+	 * Without `input`, the trigger is a button and takes no token.
+	 * @defaultValue the `autoComplete` of the enclosing `<Control>`, else `'off'`.
+	 */
+	autoComplete?: DateInputProps['autoComplete']
 }
 
 /** Range arm of {@link DatePickerProps} (`range: true`); value is a `[Date, Date]` pair. */

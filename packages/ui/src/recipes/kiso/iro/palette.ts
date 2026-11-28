@@ -13,18 +13,30 @@
  * `onSurface` shades of the ramp, and thus the `iro.text` intents, read it.
  * Soft, outline, and plain text is 700 in light and 400 in dark, and 800 in
  * light where 700 misses AA on the 15% soft fill (amber, green).
- * `contrast.test.ts` measures each entry through Button.
+ * The soft hover fill is 30%, and 700 or 400 text misses AA on it in some
+ * hues. Thus the soft hover of each hue also sets the text: 800 in light and
+ * 300 in dark. Each hue takes the two shades, because a hover text class with
+ * no `dark:` prefix also wins in dark.
+ * `contrast.test.ts` measures each entry through Button, at rest and on hover.
+ *
+ * A mark (`<Code>`, `<Kbd>`) has the default text color, which clears 4.5:1 on
+ * the page (`shaku.mark`). A solid fill is not the page, and its own text color
+ * is the color that clears 4.5:1 on it. Thus a mark on a solid fill keeps the
+ * text color of the fill (`onFill`).
  *
  * Layer: kiso · Concern: chromatic palette
  */
 
+/** A mark on a solid fill keeps the text color of the fill. */
+const onFill = '**:data-[slot=code]:text-current **:data-[slot=kbd]:text-current'
+
 export const palette = {
 	solid: {
-		zinc: 'bg-zinc-600 text-white',
-		red: 'bg-red-600 text-white',
-		amber: 'bg-amber-500 text-amber-950',
-		green: 'bg-green-700 text-white',
-		blue: 'bg-blue-600 text-white',
+		zinc: `bg-zinc-600 text-white ${onFill}`,
+		red: `bg-red-600 text-white ${onFill}`,
+		amber: `bg-amber-500 text-amber-950 ${onFill}`,
+		green: `bg-green-700 text-white ${onFill}`,
+		blue: `bg-blue-600 text-white ${onFill}`,
 	},
 	soft: {
 		zinc: 'bg-zinc-500/15 text-zinc-700 dark:text-zinc-400',
@@ -59,9 +71,9 @@ export const palette = {
 /** The extended hues (rose / violet / sky) of each variant, for a kata that opts into them. */
 export const extended = {
 	solid: {
-		rose: 'bg-rose-600 text-white',
-		violet: 'bg-violet-600 text-white',
-		sky: 'bg-sky-700 text-white',
+		rose: `bg-rose-600 text-white ${onFill}`,
+		violet: `bg-violet-600 text-white ${onFill}`,
+		sky: `bg-sky-700 text-white ${onFill}`,
 	},
 	soft: {
 		rose: 'bg-rose-500/15 text-rose-700 dark:text-rose-400',
@@ -97,14 +109,17 @@ export const hover = {
 		sky: 'not-disabled:not-data-disabled:hover:bg-sky-800',
 	},
 	soft: {
-		zinc: 'not-disabled:not-data-disabled:hover:bg-zinc-500/30',
-		red: 'not-disabled:not-data-disabled:hover:bg-red-500/30',
-		amber: 'not-disabled:not-data-disabled:hover:bg-amber-500/30',
-		green: 'not-disabled:not-data-disabled:hover:bg-green-500/30',
-		blue: 'not-disabled:not-data-disabled:hover:bg-blue-500/30',
-		rose: 'not-disabled:not-data-disabled:hover:bg-rose-500/30',
-		violet: 'not-disabled:not-data-disabled:hover:bg-violet-500/30',
-		sky: 'not-disabled:not-data-disabled:hover:bg-sky-500/30',
+		zinc: 'not-disabled:not-data-disabled:hover:bg-zinc-500/30 not-disabled:not-data-disabled:hover:text-zinc-800 dark:not-disabled:not-data-disabled:hover:text-zinc-300',
+		red: 'not-disabled:not-data-disabled:hover:bg-red-500/30 not-disabled:not-data-disabled:hover:text-red-800 dark:not-disabled:not-data-disabled:hover:text-red-300',
+		amber:
+			'not-disabled:not-data-disabled:hover:bg-amber-500/30 not-disabled:not-data-disabled:hover:text-amber-800 dark:not-disabled:not-data-disabled:hover:text-amber-300',
+		green:
+			'not-disabled:not-data-disabled:hover:bg-green-500/30 not-disabled:not-data-disabled:hover:text-green-800 dark:not-disabled:not-data-disabled:hover:text-green-300',
+		blue: 'not-disabled:not-data-disabled:hover:bg-blue-500/30 not-disabled:not-data-disabled:hover:text-blue-800 dark:not-disabled:not-data-disabled:hover:text-blue-300',
+		rose: 'not-disabled:not-data-disabled:hover:bg-rose-500/30 not-disabled:not-data-disabled:hover:text-rose-800 dark:not-disabled:not-data-disabled:hover:text-rose-300',
+		violet:
+			'not-disabled:not-data-disabled:hover:bg-violet-500/30 not-disabled:not-data-disabled:hover:text-violet-800 dark:not-disabled:not-data-disabled:hover:text-violet-300',
+		sky: 'not-disabled:not-data-disabled:hover:bg-sky-500/30 not-disabled:not-data-disabled:hover:text-sky-800 dark:not-disabled:not-data-disabled:hover:text-sky-300',
 	},
 	outline: {
 		zinc: 'not-disabled:not-data-disabled:hover:bg-zinc-500/15',

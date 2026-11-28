@@ -1478,10 +1478,15 @@ export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'>
 	 * on the row click alone for the clearest screen-reader semantics.
 	 *
 	 * @remarks A row handler turns the keyboard cursor on (see
-	 * {@link GridDataProps.navigable}). The grid is one Tab stop, and Enter or
-	 * Space on a cell of the row fires the handler. Under manual grouping, which
+	 * {@link GridDataProps.navigable}). The grid is one Tab stop, and Space on a
+	 * cell of the row fires the handler. Enter fires it too, unless the grid has
+	 * a double-click handler, which Enter then fires (see
+	 * {@link GridDataProps.onRowDoubleClick}). In a grid with a selection
+	 * column, Space toggles the selection of the row, and does not fire this
+	 * handler. Thus, with a double-click handler too, no key fires it there. Put
+	 * that action in an interactive cell. Under manual grouping, which
 	 * stands the cursor down, the rows rove instead: Up/Down move focus between
-	 * rows, and Enter or Space activates the focused row. A
+	 * rows, and the same keys activate the focused row. A
 	 * {@link GridDataProps.onCellClick | cell handler} takes precedence there,
 	 * and the cells rove.
 	 */
@@ -1498,11 +1503,14 @@ export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'>
 	 * non-data cell (selection, actions, drag handle, expander) is ignored.
 	 *
 	 * @remarks A cell handler turns the keyboard cursor on (see
-	 * {@link GridDataProps.navigable}). The grid is one Tab stop, and Enter or
-	 * Space on the active data cell fires the handler, which is the keyboard
-	 * peer of the pointer click. Under manual grouping, which stands the cursor
-	 * down, the data cells rove instead: the arrow keys move focus between cells,
-	 * and Enter or Space activates the focused cell.
+	 * {@link GridDataProps.navigable}). The grid is one Tab stop, and Space on
+	 * the active data cell fires the handler, which is the keyboard peer of the
+	 * pointer click. Enter fires it too, unless the grid has a double-click
+	 * handler, which Enter then fires. In a grid with a selection column, Space
+	 * toggles the selection of the row, as for
+	 * {@link GridDataProps.onRowClick}. Under manual grouping, which stands the
+	 * cursor down, the data cells rove instead: the arrow keys move focus between
+	 * cells, and the same keys activate the focused cell.
 	 */
 	onCellClick?: GridCellClick<T>
 
@@ -1514,9 +1522,11 @@ export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'>
 	 * compatible. The interactive-content guard of `onRowClick` applies.
 	 *
 	 * @remarks A double-click handler turns the keyboard cursor on too (see
-	 * {@link GridDataProps.navigable}). With no single-click handler, Enter or
-	 * Space on the active cell, or on the focused roving row or cell, fires this,
-	 * so the action has a keyboard route.
+	 * {@link GridDataProps.navigable}). Enter on the active cell, or on the
+	 * focused roving row or cell, fires this, so the action has a keyboard route.
+	 * Space fires the single-click handlers, as in a file manager, where a click
+	 * selects and a double-click opens. With no single-click handler, Space fires
+	 * this too.
 	 */
 	onRowDoubleClick?: GridRowClick<T>
 
@@ -1527,10 +1537,11 @@ export type GridDataProps<T> = Omit<TableVariants, 'size' | 'striped' | 'hover'>
 	 * the same double-click.
 	 *
 	 * @remarks A double-click handler turns the keyboard cursor on too (see
-	 * {@link GridDataProps.navigable}). With no single-click handler, Enter or
-	 * Space on the active data cell, or on the focused roving cell, fires this,
-	 * then {@link GridDataProps.onRowDoubleClick}, so the action has a keyboard
-	 * route.
+	 * {@link GridDataProps.navigable}). Enter on the active data cell, or on the
+	 * focused roving cell, fires this, then
+	 * {@link GridDataProps.onRowDoubleClick}, so the action has a keyboard route.
+	 * Space fires the single-click handlers. With no single-click handler, Space
+	 * fires this too.
 	 */
 	onCellDoubleClick?: GridCellClick<T>
 

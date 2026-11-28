@@ -3,6 +3,7 @@ import { Button } from '../../../components/button'
 import { ColorPanelSkeleton, ColorPicker } from '../../../components/color'
 import { Combobox, ComboboxLabel, ComboboxOption } from '../../../components/combobox'
 import { useComboboxQuery } from '../../../components/combobox/use-combobox-query'
+import { ContextMenu } from '../../../components/context-menu'
 import { DatePicker } from '../../../components/date-picker'
 import { Field, Label } from '../../../components/fieldset'
 import { Listbox, ListboxLabel, ListboxOption } from '../../../components/listbox'
@@ -18,7 +19,7 @@ import {
 	AppearanceSidebarField,
 } from '../../../providers/appearance'
 import { LocaleProvider } from '../../../providers/locale'
-import { bySlot, noop, screen, within } from '../../helpers'
+import { bySlot, fireEvent, noop, screen, within } from '../../helpers'
 import type { InteractiveCase } from './types'
 
 const interactivePeople = ['Wade Cooper', 'Arlene McCoy', 'Devon Webb']
@@ -387,6 +388,43 @@ export const interactive: readonly InteractiveCase[] = [
 			await within(dialog).findByRole('combobox', { name: 'Language' })
 
 			await within(dialog).findByRole('combobox', { name: 'Sidebar' })
+		},
+	},
+	{
+		// Context menu from the keyboard: the content holds no control, so it is
+		// the Tab stop, as the ContextMenu TSDoc tells. Shift+F10 opens the menu.
+		// The browser then fires `contextmenu` at the focused element, and jsdom
+		// does not, so the step fires it there. A surface that is not a Tab stop
+		// leaves the focus on the body, and no menu opens.
+		name: 'context menu (keyboard)',
+		element: (
+			<ContextMenu
+				key="icm"
+				aria-label="Image actions"
+				defaults={[
+					{ key: 'download', label: 'Download' },
+					{ key: 'copy', label: 'Copy' },
+				]}
+			>
+				{/* biome-ignore lint/a11y/useSemanticElements: a fieldset is a form part, and the box holds no field. */}
+				<div
+					role="group"
+					aria-label="Image"
+					// biome-ignore lint/a11y/noNoninteractiveTabindex: the box holds no control, so a keyboard opens the menu from the box.
+					tabIndex={0}
+				>
+					Chart of sales
+				</div>
+			</ContextMenu>
+		),
+		open: async (user) => {
+			await user.tab()
+
+			await user.keyboard('{Shift>}{F10}{/Shift}')
+
+			fireEvent.contextMenu(document.activeElement ?? document.body)
+
+			await screen.findByRole('menu', { name: 'Image actions' })
 		},
 	},
 ]

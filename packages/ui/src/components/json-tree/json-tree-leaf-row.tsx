@@ -30,6 +30,10 @@ export function JsonTreeLeafRow({
 	setSize,
 	posInSet,
 }: JsonTreeLeafRowProps) {
+	// A search match is a `<mark>`, as in the Grid, so the markup states the
+	// match that the wash shows (WCAG 1.3.1).
+	const Content = highlighted ? 'mark' : 'span'
+
 	return (
 		<div data-highlighted={dataAttr(highlighted)}>
 			<div className={k().row}>
@@ -43,10 +47,10 @@ export function JsonTreeLeafRow({
 					className={k().leaf}
 				>
 					<span className={k().chevron.spacer} aria-hidden="true" />
-					<span className={k({ highlighted }).content}>
+					<Content className={k({ highlighted }).content}>
 						<JsonTreeNodeKey keyName={keyName} />
 						<JsonTreePrimitiveValue value={value} />
-					</span>
+					</Content>
 				</div>
 			</div>
 		</div>

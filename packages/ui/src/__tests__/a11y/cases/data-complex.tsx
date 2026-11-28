@@ -87,7 +87,8 @@ export const dataComplexCases: readonly Case[] = [
 		element: <QueryBuilder key="qb" fields={queryFields} />,
 	},
 	{
-		// The editor with reorder on: a drag grip beside each of the two rules.
+		// The editor with reorder on: a drag grip and a move menu beside each of the
+		// two rules. The menu moves a rule with one pointer and no drag (WCAG 2.2 SC 2.5.7).
 		name: 'query builder reorder',
 		element: (
 			<QueryBuilder

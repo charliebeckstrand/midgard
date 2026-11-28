@@ -133,9 +133,10 @@ export type MapRegionsProps = Omit<MapRegionLayer, 'paints'> & {
 	 * reported outward instead.
 	 *
 	 * Unlike {@link onRegionClick} this takes no pointer affordance. A right-click
-	 * is not advertised by a cursor, and the wrapping menu (not the region layer)
-	 * carries the keyboard model. Never prevents default, so that menu still
-	 * opens; this only names WHICH region it opened over.
+	 * is not advertised by a cursor. The keyboard route is the plot region's: the
+	 * ContextMenu key fires at the focused plot, not at a path, and the cursor
+	 * reports its region through this same reporter. Never prevents default, so
+	 * that menu still opens; this only names WHICH region it opened over.
 	 */
 	onRegionContextMenu?: (index: number) => void
 	/**
