@@ -205,7 +205,7 @@ describe('chromatic palette contrast', () => {
 		it.each(hues)('%s takes the wash of the other end of the ramp', (color) => {
 			const list = resolve('solid', color)
 
-			const wash = list.includes('text-white') ? 'bg-zinc-950/15' : 'bg-white/15'
+			const wash = list.includes('text-white') ? 'bg-zinc-950/30' : 'bg-white/30'
 
 			for (const slot of ['code', 'kbd']) expect(list).toContain(`**:data-[slot=${slot}]:${wash}`)
 		})
