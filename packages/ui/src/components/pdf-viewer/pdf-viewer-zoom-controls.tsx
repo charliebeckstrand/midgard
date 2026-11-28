@@ -1,4 +1,4 @@
-import { Maximize2, ZoomIn, ZoomOut } from 'lucide-react'
+import { Maximize, ZoomIn, ZoomOut } from 'lucide-react'
 import { useMemo } from 'react'
 import { Glyph } from '../../primitives/glyph'
 import { useIntl } from '../../primitives/intl/use-intl'
@@ -65,7 +65,7 @@ export function PdfViewerZoomControls({ zoom, disabled }: PdfViewerZoomControlsP
 				lockable={false}
 				tooltip
 				aria-label={intl.formatMessage(pdfViewerMessages.resetZoom)}
-				icon={<Glyph icon={Maximize2} />}
+				icon={<Glyph icon={Maximize} />}
 				disabled={disabled || zoom.value === 1}
 				onClick={resetZoom}
 			/>
