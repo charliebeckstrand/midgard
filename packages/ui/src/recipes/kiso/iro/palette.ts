@@ -22,13 +22,37 @@
  * A mark (`<Code>`, `<Kbd>`) has the default text color, which clears 4.5:1 on
  * the page (`shaku.mark`). A solid fill is not the page, and its own text color
  * is the color that clears 4.5:1 on it. Thus a mark on a solid fill keeps the
- * text color of the fill (`onFill`).
+ * text color of the fill (`onFill`). The usual fill of a mark is 15% of its
+ * text color, so on a solid fill the fill of the mark moves toward its text,
+ * and the text falls below 4.5:1 (white on green 3.82, amber-950 on the amber
+ * hover 3.81). Thus a mark on a solid fill has no fill of its own. Its text
+ * then has the contrast of the text of the fill, at rest and on hover. An
+ * inset outline in the text color at 50% shows the edge of the mark. The
+ * outline is decoration, because the text gives the meaning. Forced colors
+ * remove the ring, so an inset outline takes its place there.
  *
  * Layer: kiso · Concern: chromatic palette
  */
 
-/** A mark on a solid fill keeps the text color of the fill. */
-const onFill = '**:data-[slot=code]:text-current **:data-[slot=kbd]:text-current'
+/** A mark on a solid fill keeps the text color of the fill, with an inset outline and no fill. */
+const onFill = [
+	'**:data-[slot=code]:text-current',
+	'**:data-[slot=code]:bg-transparent',
+	'**:data-[slot=code]:ring-1',
+	'**:data-[slot=code]:ring-inset',
+	'**:data-[slot=code]:ring-current/50',
+	'**:data-[slot=code]:forced-colors:outline-solid',
+	'**:data-[slot=code]:forced-colors:outline-1',
+	'**:data-[slot=code]:forced-colors:-outline-offset-1',
+	'**:data-[slot=kbd]:text-current',
+	'**:data-[slot=kbd]:bg-transparent',
+	'**:data-[slot=kbd]:ring-1',
+	'**:data-[slot=kbd]:ring-inset',
+	'**:data-[slot=kbd]:ring-current/50',
+	'**:data-[slot=kbd]:forced-colors:outline-solid',
+	'**:data-[slot=kbd]:forced-colors:outline-1',
+	'**:data-[slot=kbd]:forced-colors:-outline-offset-1',
+].join(' ')
 
 export const palette = {
 	solid: {
