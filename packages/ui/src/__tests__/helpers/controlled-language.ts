@@ -582,7 +582,7 @@ export function scanWorkspace(server: TypeScriptServer): Break[] {
 /**
  * The rule documents at the repository root. Every package follows them, so
  * they carry no debt in rules 6 and 10, and they keep the cadence (CLAUDE.md
- * §2.5). Paths are relative to the repository root.
+ * §2.4). Paths are relative to the repository root.
  */
 export const RULE_DOCUMENTS = ['CLAUDE.md', 'CONVENTIONS.md', 'STE.md']
 
