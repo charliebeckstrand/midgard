@@ -9,7 +9,7 @@ import { useEffect, useEffectEvent, useRef, useState } from 'react'
 import { Button } from 'ui/button'
 import { Dialog, DialogBody, DialogHeader, DialogPanel, DialogTitle } from 'ui/dialog'
 import { Field, Fieldset, Label, Message } from 'ui/fieldset'
-import { Form, type FormSubmitHandler } from 'ui/form'
+import { Form, FormSubmit, type FormSubmitHandler } from 'ui/form'
 import { Input } from 'ui/input'
 import { useIntl } from 'ui/primitives/intl'
 import { Stack } from 'ui/stack'
@@ -164,9 +164,9 @@ export function SecondStep({
 								<Message name="code" />
 							</Field>
 
-							<Button type="submit" className="w-full">
+							<FormSubmit className="w-full">
 								{intl.formatMessage(authMessages.continue)}
-							</Button>
+							</FormSubmit>
 						</Stack>
 					</Form>
 				)}

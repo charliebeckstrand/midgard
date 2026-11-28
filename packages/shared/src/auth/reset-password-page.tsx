@@ -1,9 +1,8 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { Button } from 'ui/button'
 import { Field, Label, Message } from 'ui/fieldset'
-import { Form, FormError, type FormSubmitHandler } from 'ui/form'
+import { Form, FormError, FormSubmit, type FormSubmitHandler } from 'ui/form'
 import { AuthLayout } from 'ui/layouts'
 import { Link } from 'ui/link'
 import { PasswordInput } from 'ui/password-input'
@@ -80,9 +79,7 @@ export function ResetPasswordPage() {
 						<Message name="confirmPassword" />
 					</Field>
 
-					<Button type="submit" className="w-full">
-						{intl.formatMessage(authMessages.setPassword)}
-					</Button>
+					<FormSubmit className="w-full">{intl.formatMessage(authMessages.setPassword)}</FormSubmit>
 
 					<div className="text-center">
 						<Text>
