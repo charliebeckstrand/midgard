@@ -13,8 +13,14 @@ export default {
 		target: 'node26',
 		rolldownOptions: {
 			output: { entryFileNames: 'docs-server.js' },
-			// The barrels of ui hold `'use client'` modules. The server uses none of them.
-			checks: { moduleLevelDirective: false },
+			// The server runs no client code. A `'use client'` module in its graph
+			// stops the build, so an import that reaches a client module, such as
+			// a barrel of ui, cannot enter the server.
+			onLog(level, log, handler) {
+				if (log.code === 'MODULE_LEVEL_DIRECTIVE') throw new Error(log.message)
+
+				handler(level, log)
+			},
 		},
 	},
 	ssr: { noExternal: true },

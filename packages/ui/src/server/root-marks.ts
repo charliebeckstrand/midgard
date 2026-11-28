@@ -1,4 +1,4 @@
-import { eventsRootAttributes } from '../modules/events/engine/events-setting'
+import { eventsRootAttributes } from '../modules/events/engine/events-root'
 import { appearanceRootClasses } from '../providers/appearance/appearance-root'
 
 /**
