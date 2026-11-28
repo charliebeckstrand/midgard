@@ -291,9 +291,11 @@ type MapPlatBaseProps = AccessibleName &
 		 * `aria-disabled` and keeps the focus. A map with no `zoom` shows none.
 		 *
 		 * The buttons are the single-pointer path to each scale, which WCAG 2.2
-		 * SC 2.5.1 and SC 2.5.7 require: without them, only a pinch zooms and only
-		 * a drag pans. Set `false` only where the page gives the reader another
-		 * single-pointer path to each scale.
+		 * SC 2.5.1 and SC 2.5.7 require: without them, only a pinch or the wheel
+		 * zooms. They step the view about its center, so they do not move it to
+		 * other ground: `zoomOverview` is the single-pointer path for the pan. Set
+		 * `false` only where the page gives the reader another single-pointer path
+		 * to each scale.
 		 *
 		 * @defaultValue true
 		 */
@@ -312,7 +314,11 @@ type MapPlatBaseProps = AccessibleName &
 		 * fades out, so it never covers the focused mark. At the fit, and on a map with no `zoom`, it
 		 * does not show.
 		 *
-		 * @defaultValue false
+		 * Without the inset, only a drag pans a zoomed view. Set `false` only
+		 * where the page gives the reader another single-pointer path to all of
+		 * the ground.
+		 *
+		 * @defaultValue true
 		 */
 		zoomOverview?: boolean
 		/**
@@ -1007,7 +1013,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		nameRegions = false,
 		zoom: zoomInput,
 		zoomControls = true,
-		zoomOverview = false,
+		zoomOverview = true,
 		onViewChange,
 		regionPointer,
 		animate: animation = false,

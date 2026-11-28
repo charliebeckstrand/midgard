@@ -18,7 +18,9 @@ import type { MapZoom } from './use-map-zoom'
  * The zoom-in, zoom-out, and reset buttons of a zooming map: the single-pointer
  * path to each scale that a pinch, the wheel, or the zoom keys reach (WCAG 2.2
  * SC 2.5.1 and SC 2.5.7). Each button steps the view through the same calls as
- * the keys, and speaks the same line.
+ * the keys, and speaks the same line. A step keeps the center of the view, so
+ * the single-pointer path for the pan is the overview inset
+ * (`MapZoomOverview`).
  *
  * @remarks The group sits beside the `role="img"` plot, not in it. The image
  * role makes each descendant presentational, so a button in the plot has no
