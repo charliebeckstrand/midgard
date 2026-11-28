@@ -17,7 +17,12 @@ import { useTimeout } from '../../hooks/use-timeout'
 import { TAP_THRESHOLD } from '../../hooks/use-touch-tap'
 import { isPrimaryPress } from '../../utilities/primary-press'
 import { useMapHoverActions } from './context'
-import { MAP_PAN_THRESHOLD, MAP_WHEEL_SETTLE_MS, MAP_ZOOM_FIT } from './engine/map-constants'
+import {
+	MAP_PAN_THRESHOLD,
+	MAP_PINCH_DETENT,
+	MAP_WHEEL_SETTLE_MS,
+	MAP_ZOOM_FIT,
+} from './engine/map-constants'
 import { clientToFrame, frameScale, type MapClientBox } from './engine/map-projection/frame'
 import {
 	pointerGap,
@@ -289,6 +294,13 @@ export function useMapZoom({
 	const midpoint = useRef<MapPoint2D | null>(null)
 
 	/**
+	 * The scale that the pinch asks for while the view rests at the fit. The view
+	 * leaves the fit only when this passes {@link MAP_PINCH_DETENT}. Off the fit,
+	 * the pinch scales the view itself, and this is not read.
+	 */
+	const pinchAsked = useRef(MAP_ZOOM_FIT)
+
+	/**
 	 * The frame that applies the pinch. Both fingers
 	 * move in one frame, so the pinch applies once per frame and not once per
 	 * finger. That halves the renders, and the marks regroup at each new scale.
@@ -459,7 +471,30 @@ export function useMapZoom({
 		// under the fingers stays under them however the pair moves and spreads.
 		const traveled = panTransform(from, focus.x - prevFocus.x, focus.y - prevFocus.y, frame)
 
-		commit(zoomTransform(traveled, focus, gap / prevGap, frame, limit))
+		commit(zoomTransform(traveled, focus, detentFactor(from.k, gap / prevGap), frame, limit))
+	}
+
+	/**
+	 * The factor that the pinch applies, with the detent at the fit. Off the fit,
+	 * the view follows the spread, and a pair that closes stops at the fit. At
+	 * the fit, the spread adds to the scale that the pinch asks for, and the view
+	 * stays until that scale passes {@link MAP_PINCH_DETENT}. Thus the jitter of
+	 * a pair that rests near the fit cannot take the view off the fit.
+	 */
+	function detentFactor(scale: number, factor: number): number {
+		if (scale > MAP_ZOOM_FIT) {
+			pinchAsked.current = MAP_ZOOM_FIT
+
+			return factor
+		}
+
+		const asked = pinchAsked.current * factor
+
+		if (asked >= MAP_PINCH_DETENT) return asked / scale
+
+		pinchAsked.current = Math.max(MAP_ZOOM_FIT, asked)
+
+		return 1
 	}
 
 	/** Where the midpoint of two pointers lands in the frame, or `null` with no box to read. */
@@ -703,6 +738,8 @@ export function useMapZoom({
 		spread.current = pointerGap(first, second)
 
 		midpoint.current = pairFocus(first, second)
+
+		pinchAsked.current = MAP_ZOOM_FIT
 	}
 
 	useMapTouchPinch(touchDriven, framed, svgRef, onTouch)
