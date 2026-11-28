@@ -10,9 +10,9 @@ import {
 	SOURCE_DIRS,
 	SOURCES_FILE,
 	sourcesText,
-} from '../../scripts/css-sources'
+} from '../../scripts/sources/css'
 
-// `scripts/css-sources.ts` writes the Tailwind sources of `shared` and
+// `scripts/sources/css.ts` writes the Tailwind sources of `shared` and
 // `ui` for each app: each file of the import graph of the app, from esbuild. A
 // file that the list does not have loses its classes in production only,
 // because `next dev` scans all of `ui/src`. This test walks the graph again
