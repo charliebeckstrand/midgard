@@ -13,9 +13,11 @@ export type LinkProps = Omit<PrimitiveLinkProps, 'color'> & LinkVariants
  * router's `Link` can drive navigation.
  *
  * @remarks
- * `underline` draws the underline at rest, not only on hover. With the default
- * `color: current`, the link has the color of the text around it, so give a link
- * in running text `underline` or a `color`. On keyboard focus, the link shows the
+ * `underline` draws the underline at rest, not only on hover. Give a link in
+ * running text `underline`, also with a `color`. With the default
+ * `color: current`, the link has the color of the text around it. A `color`
+ * alone does not mark the link (WCAG 1.4.1): no shade of a hue has 3:1 against
+ * both the page and the text around it. On keyboard focus, the link shows the
  * focus ring of the library, not the outline of the browser.
  */
 export function Link({ href, color, underline, className, target, rel, ...props }: LinkProps) {
