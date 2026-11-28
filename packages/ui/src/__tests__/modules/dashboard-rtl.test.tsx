@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Dashboard, type DashboardLayoutItem, DashboardTile } from '../../modules/dashboard'
 import { inlineSign } from '../../modules/dashboard/engine/dashboard-layout'
-import { fireEvent, renderUI, screen } from '../helpers'
+import { act, fireEvent, renderUI, screen } from '../helpers'
 import {
 	lastEntry,
 	pressSplitter,
@@ -85,7 +85,7 @@ describe('a right-to-left board', () => {
 
 		const grip = screen.getByRole('button', { name: 'Move A' })
 
-		grip.focus()
+		act(() => grip.focus())
 
 		fireEvent.keyDown(grip, { code: 'Space', key: ' ' })
 

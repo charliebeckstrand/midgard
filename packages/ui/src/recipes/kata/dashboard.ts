@@ -109,9 +109,11 @@ const header = [
 
 /**
  * The title block, which shrinks before it pushes the actions out. Each line in
- * it truncates on its own.
+ * it truncates on its own. It is the trigger of the truncation reveal, so
+ * `block` restates its display box over the `inline-flex` of the tooltip
+ * trigger, and the lines stay stacked.
  */
-const heading = 'min-w-0 flex-1'
+const heading = 'block min-w-0 flex-1'
 
 /**
  * The action row after the title block. Its gap is the gap of the header row,

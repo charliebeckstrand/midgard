@@ -108,7 +108,7 @@ const settle = () => act(tick)
 async function carryRevenue(key: 'ArrowLeft' | 'ArrowRight'): Promise<HTMLElement> {
 	const grip = screen.getByRole('button', { name: 'Move Revenue' })
 
-	grip.focus()
+	act(() => grip.focus())
 
 	fireEvent.keyDown(grip, { code: 'Space', key: ' ' })
 

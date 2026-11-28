@@ -178,6 +178,7 @@ export const DashboardTileCard = memo(function DashboardTileCard({
 						clear={<DashboardTileClear id={id} label={label} onClear={onClear} />}
 						widget={slotted ? <HeaderActionsSlot /> : null}
 						handle={handle}
+						shell={shell}
 						editing={editable}
 						onError={onError}
 						controls={controls}

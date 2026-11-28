@@ -4,6 +4,7 @@ import { Control } from '../../components/control'
 import { TagInput } from '../../components/tag-input'
 import { Form } from '../../modules/form'
 import {
+	act,
 	expectAnnouncement,
 	fireEvent,
 	getSlot,
@@ -211,7 +212,7 @@ describe('TagInput', () => {
 
 		const user = setupUser()
 
-		getRemoveButtons(container)[index]?.focus()
+		act(() => getRemoveButtons(container)[index]?.focus())
 
 		await user.keyboard(`{${key}}`)
 
@@ -225,7 +226,7 @@ describe('TagInput', () => {
 
 		const user = setupUser()
 
-		getRemoveButtons(container)[0]?.focus()
+		act(() => getRemoveButtons(container)[0]?.focus())
 
 		await user.keyboard('{ArrowLeft}')
 
@@ -239,7 +240,7 @@ describe('TagInput', () => {
 
 		const user = setupUser()
 
-		getRemoveButtons(container)[0]?.focus()
+		act(() => getRemoveButtons(container)[0]?.focus())
 
 		await user.keyboard('{Backspace}')
 

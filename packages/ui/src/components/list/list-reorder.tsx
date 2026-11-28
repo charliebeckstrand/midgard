@@ -1,7 +1,14 @@
 'use client'
 
-import { domMax, frame, LazyMotion, Reorder, useComposedRefs } from 'motion/react'
-import { type ComponentProps, type ReactNode, type RefObject, useRef } from 'react'
+import { domMax, frame, LazyMotion, Reorder } from 'motion/react'
+import {
+	type ComponentProps,
+	type ReactNode,
+	type Ref,
+	type RefObject,
+	useLayoutEffect,
+	useRef,
+} from 'react'
 import { createContext } from '../../core/create-context'
 import { k } from '../../recipes/kata/list'
 import type { ListItemContextValue } from './context'
@@ -42,6 +49,42 @@ function ListReorderGroup({ ref, ...props }: ListReorderGroupProps) {
 	)
 }
 
+/**
+ * Gives the node of a row to `ref`, and again to each new `ref`. Motion keeps
+ * the ref of the first render of a `Reorder.Item`, so a ref that changes later
+ * never gets the node. The tooltip of the row changes its ref when its state
+ * takes over the row, and its hover then opened no tooltip. The row therefore
+ * gives Motion a ref object that does not change, and this hook attaches the
+ * node to `ref` as React does: a callback ref that returns a cleanup gets the
+ * cleanup on detach, and any other callback ref gets `null`.
+ *
+ * @internal
+ */
+function useRowRef(rowRef: RefObject<HTMLLIElement | null>, ref: Ref<HTMLLIElement> | undefined) {
+	// A layout effect of the row runs after React attaches the ref of the `<li>`
+	// in the same commit, and before the layout effects of each ancestor.
+	useLayoutEffect(() => {
+		const node = rowRef.current
+
+		if (!node || !ref) return
+
+		if (typeof ref !== 'function') {
+			ref.current = node
+
+			return () => {
+				ref.current = null
+			}
+		}
+
+		const cleanup = ref(node)
+
+		return () => {
+			if (typeof cleanup === 'function') cleanup()
+			else ref(null)
+		}
+	}, [rowRef, ref])
+}
+
 type ListReorderRowProps = Omit<
 	ComponentProps<'li'>,
 	'onAnimationStart' | 'onDrag' | 'onDragStart' | 'onDragEnd'
@@ -70,12 +113,12 @@ function ListReorderRow({ id, reorder, ref, ...row }: ListReorderRowProps) {
 
 	const rowRef = useRef<HTMLLIElement>(null)
 
-	const setRef = useComposedRefs(rowRef, ref)
+	useRowRef(rowRef, ref)
 
 	return (
 		<Reorder.Item
 			{...row}
-			ref={setRef}
+			ref={rowRef}
 			as="li"
 			value={id}
 			dragListener={false}

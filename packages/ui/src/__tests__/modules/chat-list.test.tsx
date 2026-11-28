@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { ChatList, ChatListItem } from '../../modules/chat'
-import { allBySlot, bySlot, fireEvent, getSlot, present, renderUI, screen } from '../helpers'
+import { act, allBySlot, bySlot, fireEvent, getSlot, present, renderUI, screen } from '../helpers'
 
 function renderList() {
 	return renderUI(
@@ -69,7 +69,7 @@ describe('ChatList', () => {
 
 		const items = allBySlot(container, 'chat-list-item-select')
 
-		present(items[0], 'first item').focus()
+		act(() => present(items[0], 'first item').focus())
 
 		fireEvent.keyDown(list, { key: 'ArrowDown' })
 
@@ -87,7 +87,7 @@ describe('ChatList', () => {
 
 		const items = allBySlot(container, 'chat-list-item-select')
 
-		present(items[0], 'first item').focus()
+		act(() => present(items[0], 'first item').focus())
 
 		fireEvent.keyDown(list, { key: 'ArrowRight' })
 
@@ -103,7 +103,7 @@ describe('ChatList', () => {
 
 		const action = screen.getByRole('button', { name: 'Delete One' })
 
-		action.focus()
+		act(() => action.focus())
 
 		// Tab re-enters on the item, never the action.
 		expect(allBySlot(container, 'chat-list-item-select')[0]).toHaveProperty('tabIndex', 0)

@@ -113,6 +113,8 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > A `list` loads its drag code only when it has `onReorder`. When the code arrives, the rows mount again. The focus stays on the same control of its row. Each step of a keyboard lift calls `onReorder`, and Enter keeps the moves. Escape puts the item back: it calls `onReorder` with the order from the start of the lift. Each row also gets a `ListItemMenu`, a Move button after the `suffix`. Its menu moves the row one place or to an end of the list. It is the path with one pointer and no drag (WCAG 2.2 SC 2.5.7). Under `handle={false}`, each item places its own `ListHandle` and `ListItemMenu`. The `bare` variant has no row padding and no dividers, for rows of form controls. A horizontal `list` stays on one row, which scrolls when it is wider than its parent.
 
+> A line of text that truncates shows its full text in a tooltip (WCAG 1.4.10). A hover of its control and a keyboard focus of the control open the tooltip. The control is the row of a `list` (its `ListLabel` and its `ListDescription`), the row of a `tree`, or the chip of a `tag-input`. The text is already in the name or the content of the control, so the tooltip adds no description.
+
 > `CodeBlock` highlights with Shiki in a module worker. A Vite app must set `worker.format` to `'es'`.
 
 ## Layout & surfaces

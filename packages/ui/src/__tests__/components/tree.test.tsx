@@ -3,7 +3,7 @@ import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Tree, TreeItem, TreeSkeleton } from '../../components/tree'
 import { narabi } from '../../recipes/kiso'
-import { ariaTarget, bySlot, getSlot, present, renderUI, screen } from '../helpers'
+import { act, ariaTarget, bySlot, getSlot, present, renderUI, screen } from '../helpers'
 import { axe } from '../helpers/axe'
 
 /** Each tree item in the container, in document order. */
@@ -195,7 +195,7 @@ describe('Tree', () => {
 
 		const tabStops = () => treeItems(container).filter((row) => row.tabIndex === 0)
 
-		item('a.ts').focus()
+		act(() => item('a.ts').focus())
 
 		item('a.ts').blur()
 
@@ -373,7 +373,7 @@ describe('TreeItem', () => {
 
 		const first = screen.getByRole('treeitem', { name: 'a.ts' })
 
-		first.focus()
+		act(() => first.focus())
 
 		fireEvent.keyDown(first, { key: 'Delete' })
 
@@ -400,7 +400,7 @@ describe('TreeItem', () => {
 		const key = (name: string) =>
 			fireEvent.keyDown(present(document.activeElement, 'focused row'), { key: name })
 
-		row('src').focus()
+		act(() => row('src').focus())
 
 		// An open branch: ArrowRight moves to its first child.
 		key('ArrowRight')
@@ -465,7 +465,7 @@ describe('TreeItem', () => {
 
 		const row = (name: string) => screen.getByRole('treeitem', { name })
 
-		row(from).focus()
+		act(() => row(from).focus())
 
 		const proceeded = fireEvent.keyDown(row(from), { key, ...modifier })
 
@@ -496,7 +496,7 @@ describe('TreeItem', () => {
 				</Tree>,
 			)
 
-			row('alpha').focus()
+			act(() => row('alpha').focus())
 
 			type('b', 'r')
 
@@ -512,7 +512,7 @@ describe('TreeItem', () => {
 				</Tree>,
 			)
 
-			row('alpha').focus()
+			act(() => row('alpha').focus())
 
 			type('b')
 
@@ -535,7 +535,7 @@ describe('TreeItem', () => {
 				</Tree>,
 			)
 
-			row('omega').focus()
+			act(() => row('omega').focus())
 
 			type('z')
 
@@ -553,7 +553,7 @@ describe('TreeItem', () => {
 				</Tree>,
 			)
 
-			row('alpha').focus()
+			act(() => row('alpha').focus())
 
 			type('s', 'e')
 

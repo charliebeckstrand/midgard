@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { LineChart } from '../../../modules/chart/line-chart'
 import { Dashboard, type DashboardLayoutItem, DashboardTile } from '../../../modules/dashboard'
@@ -26,12 +26,22 @@ describe('dashboard tile title truncation tooltip (real browser)', () => {
 
 	const TITLES: Record<string, string> = { long: LONG, short: SHORT }
 
-	function Board({ editing = false }: { editing?: boolean }) {
+	const DESCRIPTION = 'Click a bar to filter the other tiles'
+
+	function Board({ editing = false, description }: { editing?: boolean; description?: string }) {
 		return (
 			<div style={{ width: 960 }}>
+				<button type="button">before</button>
+
 				<Dashboard aria-label="Board" editing={editing} layout={{ value: LAYOUT }}>
 					{LAYOUT.map(({ id }) => (
-						<DashboardTile key={id} id={id} title={TITLES[id]} minWidth={0}>
+						<DashboardTile
+							key={id}
+							id={id}
+							title={TITLES[id]}
+							description={id === 'long' ? description : undefined}
+							minWidth={0}
+						>
 							<LineChart
 								aria-label={`Chart ${id}`}
 								data={DATA}
@@ -83,6 +93,68 @@ describe('dashboard tile title truncation tooltip (real browser)', () => {
 		// An enabled tooltip opens at the 250 ms hover delay. Wait past it, with no
 		// pointer leave to cancel it, and then look.
 		expect(await tooltipAfterHover()).toBeNull()
+	})
+
+	it('shows a cut description in the tooltip on a hover of the heading', async () => {
+		renderUI(<Board description={DESCRIPTION} />)
+
+		await expect.poll(() => readTier(LONG)).toBe('spark')
+
+		await userEvent.hover(getSlot(parts(LONG).tile, 'card-description'))
+
+		const tip = await screen.findByRole('tooltip')
+
+		expect(tip).toHaveTextContent(LONG)
+
+		expect(tip).toHaveTextContent(DESCRIPTION)
+	})
+
+	/** Tabs from the button before the board into the first tile. */
+	const tabIntoTile = vi.defineHelper(async () => {
+		await expect.poll(() => readTier(LONG)).toBe('spark')
+
+		const before = screen.getByRole('button', { name: 'before' })
+
+		// The pointer rests on the button before the board, so a hover cannot open the tooltip.
+		await userEvent.hover(before)
+
+		// A real Tab, not `focus()`. The tooltip opens on a focus that matches
+		// `:focus-visible`, and an earlier test can leave a pointer input.
+		before.focus()
+
+		await userEvent.tab()
+
+		expect(parts(LONG).tile).toContainElement(document.activeElement as HTMLElement)
+	})
+
+	// The title is not focusable. The keyboard reaches the tile through its
+	// controls and its widget, so a focus in the tile shows the reveal.
+	it('shows the full title when the keyboard focus enters the tile', async () => {
+		renderUI(<Board description={DESCRIPTION} />)
+
+		await tabIntoTile()
+
+		const tip = await screen.findByRole('tooltip')
+
+		expect(tip).toHaveTextContent(LONG)
+
+		expect(tip).toHaveTextContent(DESCRIPTION)
+	})
+
+	it('closes the focus reveal on Escape while the focus stays in the tile', async () => {
+		renderUI(<Board />)
+
+		await tabIntoTile()
+
+		await screen.findByRole('tooltip')
+
+		const focused = document.activeElement
+
+		await userEvent.keyboard('{Escape}')
+
+		await expect.poll(() => screen.queryByRole('tooltip')).toBeNull()
+
+		expect(document.activeElement).toBe(focused)
 	})
 
 	it('opens no tooltip in edit mode, where the title is a part of the drag surface', async () => {

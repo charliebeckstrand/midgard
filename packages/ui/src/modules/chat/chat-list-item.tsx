@@ -1,9 +1,11 @@
 'use client'
 
-import type { HTMLAttributes, ReactNode } from 'react'
+import { type HTMLAttributes, type ReactNode, useRef } from 'react'
+import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { ariaAttr } from '../../core/aria-attr'
 import { cn } from '../../core/cn'
 import { dataAttr } from '../../core/data-attr'
+import { useTruncation } from '../../hooks/use-truncation'
 import { ActiveIndicator } from '../../primitives/active-indicator'
 import { k } from '../../recipes/kata/chat-list-item'
 import { hasContent } from '../../utilities/children'
@@ -15,7 +17,11 @@ import { useInChatList } from './context'
  * `onSelect` selects the conversation.
  */
 export type ChatListItemProps = Omit<HTMLAttributes<HTMLElement>, 'title' | 'onSelect'> & {
-	/** Conversation title; the primary line, truncated to one line. */
+	/**
+	 * Conversation title; the primary line, truncated to one line. While it
+	 * truncates, a hover of the row and a keyboard focus of the select region
+	 * show the full title in a tooltip.
+	 */
 	title: ReactNode
 	/** Secondary line under the title (e.g. the last message), truncated. */
 	preview?: ReactNode
@@ -49,6 +55,12 @@ export type ChatListItemProps = Omit<HTMLAttributes<HTMLElement>, 'title' | 'onS
  * above the overlay to stay clickable. A control such as a delete button
  * therefore never nests inside the select button (nested-interactive markup).
  *
+ * While the title truncates, a hover of the row and a keyboard focus of the
+ * select button show the full title in a tooltip (WCAG 1.4.10). The select
+ * region triggers it, because the overlay of the button takes the pointer off
+ * the title. The title is in the name of the button, so the tooltip adds no
+ * description. The preview has no tooltip: the conversation shows the message.
+ *
  * The open conversation (`current`) gets `aria-current` and an
  * {@link ActiveIndicator} that morphs between rows as the selection moves, as
  * `SidebarItem` does. The indicator resolves its `layoutId` from the nearest
@@ -78,9 +90,16 @@ export function ChatListItem({
 
 	const slots = k({ overlay: onSelect !== undefined })
 
+	// The select region triggers the reveal, so its contact, not the contact of the title, arms the measure.
+	const selectRef = useRef<HTMLElement>(null)
+
+	const [titleRef, truncated] = useTruncation<HTMLSpanElement>({ armRef: selectRef })
+
 	const body = (
 		<>
-			<span className={slots.title}>{title}</span>
+			<span ref={titleRef} className={slots.title}>
+				{title}
+			</span>
 			{hasContent(preview) && <span className={slots.preview}>{preview}</span>}
 		</>
 	)
@@ -93,25 +112,31 @@ export function ChatListItem({
 			data-current={dataAttr(current)}
 			className={cn(slots.base, className)}
 		>
-			{onSelect ? (
-				<button
-					type="button"
-					data-slot="chat-list-item-select"
-					aria-current={ariaAttr(current)}
-					onClick={onSelect}
-					className={slots.select}
-				>
-					{body}
-				</button>
-			) : (
-				<span
-					data-slot="chat-list-item-select"
-					aria-current={ariaAttr(current)}
-					className={slots.select}
-				>
-					{body}
-				</span>
-			)}
+			<Tooltip disabled={!truncated}>
+				<TooltipTrigger ref={selectRef} aria-describedby={undefined}>
+					{onSelect ? (
+						<button
+							type="button"
+							data-slot="chat-list-item-select"
+							aria-current={ariaAttr(current)}
+							onClick={onSelect}
+							className={slots.select}
+						>
+							{body}
+						</button>
+					) : (
+						<span
+							data-slot="chat-list-item-select"
+							aria-current={ariaAttr(current)}
+							className={slots.select}
+						>
+							{body}
+						</span>
+					)}
+				</TooltipTrigger>
+
+				<TooltipContent>{title}</TooltipContent>
+			</Tooltip>
 
 			{hasContent(actions) && (
 				<div data-slot="chat-list-item-actions" data-density="slot" className={slots.actions}>

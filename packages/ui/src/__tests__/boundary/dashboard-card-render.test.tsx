@@ -33,7 +33,7 @@ describe('dashboard card renders', () => {
 
 		const grip = screen.getByRole('button', { name: 'Move Revenue' })
 
-		grip.focus()
+		act(() => grip.focus())
 
 		// Each render of a card calls the unit once with the drag flag of its tile,
 		// and no other part passes that flag.

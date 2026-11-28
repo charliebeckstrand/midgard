@@ -494,7 +494,7 @@ describe('Dashboard pointer resize', () => {
 
 		fireEvent.pointerUp(east, { pointerId: 1 })
 
-		east.focus()
+		act(() => east.focus())
 
 		fireEvent.keyDown(east, { key: 'ArrowRight' })
 

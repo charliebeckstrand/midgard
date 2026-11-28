@@ -130,7 +130,7 @@ describe('DashboardTile actions', () => {
 	])('hands the focus to the board when edit mode ends on the %s', async (_, control) => {
 		const { rerender } = renderUI(<Board editing onRemove={vi.fn()} onDuplicate={vi.fn()} />)
 
-		control()?.focus()
+		act(() => control()?.focus())
 
 		rerender(<Board onRemove={vi.fn()} onDuplicate={vi.fn()} />)
 
@@ -147,7 +147,7 @@ describe('DashboardTile actions', () => {
 
 		const control = screen.getByRole('button', { name: 'Duplicate Tile a' })
 
-		control.focus()
+		act(() => control.focus())
 
 		fireEvent.click(control)
 
@@ -253,7 +253,7 @@ describe('DashboardTile actions', () => {
 
 		const outside = screen.getByRole('button', { name: 'Outside' })
 
-		outside.focus()
+		act(() => outside.focus())
 
 		rerender(<Page editing />)
 
@@ -302,7 +302,7 @@ describe('DashboardTile actions', () => {
 
 		const close = screen.getByRole('button', { name: 'Close' })
 
-		close.focus()
+		act(() => close.focus())
 
 		fireEvent.click(close)
 

@@ -1,4 +1,4 @@
-import { type CSSProperties, useEffect, useRef } from 'react'
+import { type CSSProperties, useEffect, useRef, useState } from 'react'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { useTruncation } from '../../hooks/use-truncation'
@@ -117,6 +117,35 @@ describe('useTruncation (real browser)', () => {
 		}
 
 		renderUI(<Focused />)
+
+		await waitFor(() => expect(verdict()).toBe('truncated'))
+	})
+
+	// The element can mount after the hook, such as when a Suspense boundary
+	// hydrates it later. The bindings follow the node of the ref when it arrives.
+	it('arms an element that mounts after the hook', async () => {
+		function Late() {
+			const [ref, truncated] = useTruncation<HTMLDivElement>()
+
+			const [shown, setShown] = useState(false)
+
+			useEffect(() => setShown(true), [])
+
+			return (
+				<div>
+					{shown && (
+						<div ref={ref} data-testid="label" style={{ ...single, width: 80 }}>
+							a considerably longer label than the box can hold
+						</div>
+					)}
+					<span data-testid="result">{truncated ? 'truncated' : 'fits'}</span>
+				</div>
+			)
+		}
+
+		renderUI(<Late />)
+
+		await userEvent.hover(await screen.findByTestId('label'))
 
 		await waitFor(() => expect(verdict()).toBe('truncated'))
 	})

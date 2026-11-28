@@ -8,13 +8,16 @@ import {
 	memo,
 	type ReactNode,
 	type Ref,
+	useRef,
 } from 'react'
 import { cn } from '../../core/cn'
+import { useTruncation } from '../../hooks/use-truncation'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { type BadgeVariants, k } from '../../recipes/kata/badge'
 import { isActivationKey } from '../../utilities/keyboard-navigation'
 import { IconButton } from '../icon-button'
+import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 import { Badge } from './badge'
 
 const messages = defineMessages<{ remove: { label: string } }>({
@@ -87,7 +90,10 @@ export type BadgeRemovableProps<V = undefined> = {
  * The `outline` variant has the page surface as its fill, so the muted glyph
  * of the `bare` button stays above the 3:1 contrast floor for non-text. A
  * `label` truncates to the width of the chip, and the chip is no wider than
- * its container.
+ * its container. While the label truncates, a hover of the chip and a keyboard
+ * focus of the remove button show the full label in a tooltip (WCAG 1.4.10).
+ * The name of the remove button holds the label, so the tooltip adds no
+ * description. Rich `children` show no tooltip.
  *
  * @internal
  */
@@ -125,7 +131,12 @@ function BadgeRemovableImpl<V = undefined>({
 		onRemove?.(value as V)
 	}
 
-	return (
+	// The chip triggers the reveal, so its contact, not the contact of the label, arms the measure.
+	const chipRef = useRef<HTMLSpanElement>(null)
+
+	const [labelRef, truncated] = useTruncation<HTMLSpanElement>({ armRef: chipRef })
+
+	const chip = (
 		<Badge
 			role={role}
 			variant="outline"
@@ -150,8 +161,24 @@ function BadgeRemovableImpl<V = undefined>({
 				)
 			}
 		>
-			{children ?? <span className="truncate">{label}</span>}
+			{children ?? (
+				<span ref={labelRef} className="truncate">
+					{label}
+				</span>
+			)}
 		</Badge>
+	)
+
+	if (children !== undefined) return chip
+
+	return (
+		<Tooltip disabled={!truncated}>
+			<TooltipTrigger ref={chipRef} aria-describedby={undefined}>
+				{chip}
+			</TooltipTrigger>
+
+			<TooltipContent>{label}</TooltipContent>
+		</Tooltip>
 	)
 }
 
