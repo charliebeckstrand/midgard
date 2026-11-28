@@ -336,6 +336,22 @@ describe('stepPreview', () => {
 		expect(origins(preview?.cells)).toEqual({ a: [0, 10], b: [0, 0] })
 	})
 
+	it('skips a swap with an equal tile on another row or column', () => {
+		// At column 7 the target covers half of "b", and a drag there swaps the two.
+		const offsetRow = [cell('a', 0, 0, 8, 10), cell('b', 8, 4, 8, 10)]
+
+		expect(origins(stepPreview(offsetRow, 'a', right, 24)?.cells)).toEqual({
+			a: [16, 0],
+			b: [8, 4],
+		})
+
+		const offsetColumn = [cell('a', 0, 0, 8, 10), cell('b', 4, 10, 8, 10)]
+
+		const down = stepPreview(offsetColumn, 'a', { axis: 'y', sign: 1 }, 24)
+
+		expect(down?.cells.find((item) => item.id === 'a')?.x).toBe(0)
+	})
+
 	it('jumps past an unequal neighbor to the next free cell on the row', () => {
 		const board = [cell('a', 0, 0, 6, 10), cell('b', 6, 0, 10, 10)]
 

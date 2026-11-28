@@ -401,12 +401,12 @@ export type DashboardStep = { axis: 'x' | 'y'; sign: 1 | -1 }
  *
  * The target walks one unit at a time from the cell of the tile, in the
  * direction of the step, to the edge of the travel range. The first target that
- * {@link dragPreview} answers with a change in that direction wins. A move must
- * keep the other axis of the tile, so the step never takes the tile to another
- * row or column on the way. A shift or a swap with an equal-span tile counts
- * when it takes the tile in the direction of the step. A free cell next to the
- * tile thus takes one step, as an arrow key does, and an equal tile changes
- * places with it.
+ * {@link dragPreview} answers with a change in that direction, and that keeps
+ * the other axis of the tile, wins. So the step never takes the tile to another
+ * row or column. A free cell next to the tile takes one step, as an arrow key
+ * does. An equal-span tile on the same row or column changes places with it.
+ * A swap with an equal-span tile that is offset on the other axis does not
+ * count, and the walk goes on past it.
  */
 export function stepPreview(
 	snapshot: readonly DashboardCell[],
@@ -436,7 +436,7 @@ export function stepPreview(
 
 		const ahead = sign * (cell[axis] - origin[axis]) > 0
 
-		if (ahead && (preview.kind !== 'move' || cell[cross] === origin[cross])) return preview
+		if (ahead && cell[cross] === origin[cross]) return preview
 	}
 
 	return null
