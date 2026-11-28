@@ -7,7 +7,7 @@
 
 import { active } from './active'
 import { busy } from './busy'
-import { cursor, grab } from './cursor'
+import { cursor, grab, press } from './cursor'
 import { disabled } from './disabled'
 import { fg } from './fg'
 import { tint } from './tint'
@@ -22,6 +22,8 @@ export const hannou = {
 	cursor,
 	/** A surface the reader drags: the grab cursors, and the touch and selection rules a drag needs (`default`), and the look of a drag grip (`grip`). */
 	grab,
+	/** A press target: a long press does not select the label or the text of a child. */
+	press,
 	/** Hover/focus tint and its forms. */
 	tint,
 	/** Roved-item wash: `data-active` background at the intensity of `tint.base`, for the roved row of the `item` group. */

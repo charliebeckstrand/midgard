@@ -19,7 +19,7 @@
 import { defineGroup } from '../../../core/recipe'
 import { dan, hannou, iro, narabi, sen, shaku } from '../../kiso'
 
-const { cursor, tint } = hannou
+const { cursor, press, tint } = hannou
 const { text } = iro
 const { flex } = narabi
 const { slot } = dan.space
@@ -60,11 +60,9 @@ export const nav = defineGroup({
 			base: [
 				'group relative z-10',
 				...box,
-				// A long press on iOS selects the label text. iOS Safari can select the text in
-				// a child of a `select-none` item, so the children also set it. The headless
-				// Button of an item drops the `select-none` of the button recipe.
 				...text.default,
-				'select-none *:select-none',
+				// The headless Button of an item drops the `press` of the button recipe.
+				...press,
 				...cursor,
 				'text-start',
 				// The icon takes the step of the nearest density scope. At `md` it is `size-5`.
