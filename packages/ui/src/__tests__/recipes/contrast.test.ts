@@ -170,44 +170,32 @@ describe('chromatic palette contrast', () => {
 	})
 
 	// A mark (`<Code>`, `<Kbd>`) on a solid fill keeps the text of the fill, and
-	// paints its own wash over the fill. The measure is at rest and on hover,
-	// because the hover moves the fill. Solid fills are opaque and have no
-	// `dark:` class, so one measure covers both modes.
-	describe('a mark on a solid fill clears text AA on its wash', () => {
+	// has no fill of its own: an own fill moves toward the text or away from
+	// it in each hue. Thus the text of the mark sits on the solid fill, and the
+	// measure is that of the fill, at rest and on hover. Solid fills are opaque
+	// and have no `dark:` class, so one measure covers both modes.
+	describe('a mark on a solid fill has no fill and clears text AA on the solid fill', () => {
 		it.each(hues)('%s', (color) => {
 			const list = resolve('solid', color)
+
+			for (const slot of ['code', 'kbd']) {
+				expect(list).toContain(`**:data-[slot=${slot}]:text-current`)
+
+				expect(list).toContain(`**:data-[slot=${slot}]:bg-transparent`)
+			}
+
+			const text = list.find((name) => name.startsWith('text-'))
 
 			const fills = [
 				list.find((name) => name.startsWith('bg-')),
 				list.find((name) => name.includes('hover:bg-')),
 			]
 
-			const text = list.find((name) => name.startsWith('text-'))
+			if (text === undefined || fills.includes(undefined))
+				throw new Error(`no fill and text in: ${list.join(' ')}`)
 
-			const washes = ['code', 'kbd'].map((slot) =>
-				list.find((name) => name.startsWith(`**:data-[slot=${slot}]:bg-`)),
-			)
-
-			if (text === undefined || fills.includes(undefined) || washes.includes(undefined))
-				throw new Error(`no fill, text, and mark wash in: ${list.join(' ')}`)
-
-			for (const fill of fills as string[]) {
-				for (const wash of washes as string[]) {
-					const ground = tinted(wash, tinted(fill, SURFACE.light))
-
-					expect(getContrast(text, ground)).toBeGreaterThanOrEqual(TEXT_AA)
-				}
-			}
-		})
-
-		// One rule, not a shade for each hue: the wash is the other end of the
-		// ramp from the text, so it moves away from the text.
-		it.each(hues)('%s takes the wash of the other end of the ramp', (color) => {
-			const list = resolve('solid', color)
-
-			const wash = list.includes('text-white') ? 'bg-zinc-950/30' : 'bg-white/30'
-
-			for (const slot of ['code', 'kbd']) expect(list).toContain(`**:data-[slot=${slot}]:${wash}`)
+			for (const fill of fills as string[])
+				expect(getContrast(text, tinted(fill, SURFACE.light))).toBeGreaterThanOrEqual(TEXT_AA)
 		})
 	})
 

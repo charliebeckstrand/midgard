@@ -22,40 +22,45 @@
  * A mark (`<Code>`, `<Kbd>`) has the default text color, which clears 4.5:1 on
  * the page (`shaku.mark`). A solid fill is not the page, and its own text color
  * is the color that clears 4.5:1 on it. Thus a mark on a solid fill keeps the
- * text color of the fill (`onDarkFill`, `onLightFill`). The usual fill of a
- * mark is 15% of its text color, so on a solid fill the fill of the mark moves
- * toward its text, and the text falls below 4.5:1 (white on green 3.82,
- * amber-950 on the amber hover 3.81). Thus a mark on a solid fill takes 30% of
- * the other end of the ramp, which moves away from the text: `zinc-950` under
- * white text, and `white` under the dark amber text. At 30%, the mark is clear
- * on the fill, and its text clears 6.5:1 at rest and on hover.
+ * text color of the fill (`onFill`). The usual fill of a mark is 15% of its
+ * text color, so on a solid fill the fill of the mark moves toward its text,
+ * and the text falls below 4.5:1 (white on green 3.82, amber-950 on the amber
+ * hover 3.81). Thus a mark on a solid fill has no fill of its own. Its text
+ * then has the contrast of the text of the fill, at rest and on hover. An
+ * inset outline in the text color at 50% shows the edge of the mark. The
+ * outline is decoration, because the text gives the meaning. Forced colors
+ * remove the ring, so an inset outline takes its place there.
  *
  * Layer: kiso · Concern: chromatic palette
  */
 
-/** A mark on a solid fill with white text keeps that text, on a dark fill of its own. */
-const onDarkFill = [
+/** A mark on a solid fill keeps the text color of the fill, with an inset outline and no fill. */
+const onFill = [
 	'**:data-[slot=code]:text-current',
-	'**:data-[slot=code]:bg-zinc-950/30',
+	'**:data-[slot=code]:bg-transparent',
+	'**:data-[slot=code]:ring-1',
+	'**:data-[slot=code]:ring-inset',
+	'**:data-[slot=code]:ring-current/50',
+	'**:data-[slot=code]:forced-colors:outline-solid',
+	'**:data-[slot=code]:forced-colors:outline-1',
+	'**:data-[slot=code]:forced-colors:-outline-offset-1',
 	'**:data-[slot=kbd]:text-current',
-	'**:data-[slot=kbd]:bg-zinc-950/30',
-].join(' ')
-
-/** A mark on a solid fill with dark text keeps that text, on a light fill of its own. */
-const onLightFill = [
-	'**:data-[slot=code]:text-current',
-	'**:data-[slot=code]:bg-white/30',
-	'**:data-[slot=kbd]:text-current',
-	'**:data-[slot=kbd]:bg-white/30',
+	'**:data-[slot=kbd]:bg-transparent',
+	'**:data-[slot=kbd]:ring-1',
+	'**:data-[slot=kbd]:ring-inset',
+	'**:data-[slot=kbd]:ring-current/50',
+	'**:data-[slot=kbd]:forced-colors:outline-solid',
+	'**:data-[slot=kbd]:forced-colors:outline-1',
+	'**:data-[slot=kbd]:forced-colors:-outline-offset-1',
 ].join(' ')
 
 export const palette = {
 	solid: {
-		zinc: `bg-zinc-600 text-white ${onDarkFill}`,
-		red: `bg-red-600 text-white ${onDarkFill}`,
-		amber: `bg-amber-500 text-amber-950 ${onLightFill}`,
-		green: `bg-green-700 text-white ${onDarkFill}`,
-		blue: `bg-blue-600 text-white ${onDarkFill}`,
+		zinc: `bg-zinc-600 text-white ${onFill}`,
+		red: `bg-red-600 text-white ${onFill}`,
+		amber: `bg-amber-500 text-amber-950 ${onFill}`,
+		green: `bg-green-700 text-white ${onFill}`,
+		blue: `bg-blue-600 text-white ${onFill}`,
 	},
 	soft: {
 		zinc: 'bg-zinc-500/15 text-zinc-700 dark:text-zinc-400',
@@ -90,9 +95,9 @@ export const palette = {
 /** The extended hues (rose / violet / sky) of each variant, for a kata that opts into them. */
 export const extended = {
 	solid: {
-		rose: `bg-rose-600 text-white ${onDarkFill}`,
-		violet: `bg-violet-600 text-white ${onDarkFill}`,
-		sky: `bg-sky-700 text-white ${onDarkFill}`,
+		rose: `bg-rose-600 text-white ${onFill}`,
+		violet: `bg-violet-600 text-white ${onFill}`,
+		sky: `bg-sky-700 text-white ${onFill}`,
 	},
 	soft: {
 		rose: 'bg-rose-500/15 text-rose-700 dark:text-rose-400',

@@ -6,8 +6,8 @@
  * that ink. Muted and intent text clear 4.5:1 on the page by a small margin
  * only, and on the fill they fall below 4.5:1 (WCAG 1.4.3). Thus the mark has
  * the default text color, and does not take the color of the text around it.
- * A solid fill has its own ink, and a mark on it keeps that ink, on a fill that
- * moves away from the ink (`iro.palette`).
+ * A solid fill has its own ink, and a mark on it keeps that ink, with an outline
+ * in place of the fill (`iro.palette`).
  *
  * `w-fit` holds a mark at the width of its text. A flex or grid parent
  * stretches its items across the cross axis. Without `w-fit`, a mark that is a
