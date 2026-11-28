@@ -32,6 +32,8 @@ describe('pickEncoding', () => {
 
 		expect(pickEncoding('/a/index.html', 'BR;Q=1')).toBe('br')
 
+		expect(pickEncoding('/a/index.html', 'br;Q=0, gzip')).toBe('gzip')
+
 		expect(pickEncoding('/a/index.html', '*')).toBe('br')
 
 		expect(pickEncoding('/a/index.html', 'br;q=0, *')).toBe('gzip')

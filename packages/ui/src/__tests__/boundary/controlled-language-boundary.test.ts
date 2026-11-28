@@ -16,7 +16,7 @@ import {
 import { startTypeScript } from '../helpers/ts-server'
 import { uiRoot, workspaceRoot } from '../helpers/walk-source'
 
-// STE.md is the project's controlled language, and CLAUDE.md §2.5 applies it to
+// STE.md is the project's controlled language, and CLAUDE.md §2.4 applies it to
 // every authored statement. This test reads the breaks of the rules that a
 // reader can count, in nine shapes:
 //
@@ -149,7 +149,7 @@ describe('controlled-language boundary', () => {
 		).toEqual([])
 	})
 
-	it('the rule documents keep rules 3, 6, and 10, and cadence rule 5 (CLAUDE.md §2.5)', () => {
+	it('the rule documents keep rules 3, 6, and 10, and cadence rule 5 (CLAUDE.md §2.4)', () => {
 		const violations: string[] = []
 
 		for (const file of RULE_DOCUMENTS) {

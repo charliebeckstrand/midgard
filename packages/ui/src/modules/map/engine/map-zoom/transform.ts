@@ -9,6 +9,7 @@
 
 import { clamp } from '../../../../utilities/clamp'
 import { MAP_ZOOM_FIT } from '../map-constants'
+import { clientToFrame, type MapClientBox } from '../map-projection/frame'
 import type { MapPoint2D } from '../types'
 
 /**
@@ -30,6 +31,30 @@ export type MapTransform = {
 export type MapViewFrame = {
 	width: number
 	height: number
+}
+
+/**
+ * The ground that an overlay covers at each edge of the frame, in frame units.
+ * Each side is the distance from that edge to the far side of the overlay, or
+ * `0` where no overlay touches the edge.
+ *
+ * @internal
+ */
+export type MapViewRoom = {
+	top: number
+	right: number
+	bottom: number
+	left: number
+}
+
+/**
+ * The frame that a pan or a zoom is held inside: the frame of the map, and the
+ * room that the overlays of a zoomed view cover, if any.
+ *
+ * @internal
+ */
+export type MapPanFrame = MapViewFrame & {
+	room?: MapViewRoom
 }
 
 /** The fitted view: no scale, no offset. @internal */
@@ -61,9 +86,14 @@ export function sameTransform(a: MapTransform, b: MapTransform): boolean {
  * The scale floor is the fit itself, so the geography never draws smaller than
  * the projection framed it. The translate is clamped so the frame stays inside
  * the scaled frame. The constraint is expressed against the fitted frame rather
- * than an arbitrary box, so the projection's own framing bounds the pan. At the
- * fit the interval collapses to a point, which is
- * how a zoomed-out map returns to center without a separate rule.
+ * than an arbitrary box, so the projection's own framing bounds the pan.
+ *
+ * The overview inset covers a corner of a zoomed view. The pan therefore goes
+ * past each edge by the room that the frame names there, so a drag can bring
+ * any ground under the inset into the open. The room counts only while the
+ * view is zoomed in, which is when the inset shows. At the fit the interval
+ * collapses to a point, which is how a zoomed-out map returns to center without
+ * a separate rule.
  *
  * @remarks A fixed `aspectRatio` letterboxes the fit on one axis, and a pan can
  * reach that band at the frame's edge. It is the band the map already shows at
@@ -76,16 +106,63 @@ export function sameTransform(a: MapTransform, b: MapTransform): boolean {
  */
 export function constrainTransform(
 	transform: MapTransform,
-	view: MapViewFrame,
+	view: MapPanFrame,
 	max: number,
 ): MapTransform {
 	const k = clampScale(transform.k, max)
 
+	const room = (k > MAP_ZOOM_FIT && view.room) || NO_ROOM
+
 	return {
 		k,
-		x: clamp(transform.x, view.width * (1 - k), 0),
-		y: clamp(transform.y, view.height * (1 - k), 0),
+		x: clamp(transform.x, view.width * (1 - k) - room.right, room.left),
+		y: clamp(transform.y, view.height * (1 - k) - room.bottom, room.top),
 	}
+}
+
+/** No overlay covers any edge. @internal */
+export const NO_ROOM: MapViewRoom = { top: 0, right: 0, bottom: 0, left: 0 }
+
+/**
+ * The room that an overlay covers, from its box and the box of the plot SVG,
+ * both as the page reports them. The overlay takes the room at each edge that
+ * its center is nearer to. The room at that edge reaches from the edge to the
+ * far side of the overlay, so a pan of that length brings all of the ground
+ * under it into the open. A frame with no area has no room.
+ *
+ * @internal
+ */
+export function overlayRoom(
+	overlay: MapClientBox,
+	box: MapClientBox,
+	view: MapViewFrame,
+): MapViewRoom {
+	const start = clientToFrame({ x: overlay.left, y: overlay.top }, box, view.width, view.height)
+
+	const end = clientToFrame(
+		{ x: overlay.left + overlay.width, y: overlay.top + overlay.height },
+		box,
+		view.width,
+		view.height,
+	)
+
+	if (start === null || end === null) return NO_ROOM
+
+	const right = start.x + end.x > view.width
+
+	const bottom = start.y + end.y > view.height
+
+	return {
+		top: bottom ? 0 : clamp(end.y, 0, view.height),
+		right: right ? clamp(view.width - start.x, 0, view.width) : 0,
+		bottom: bottom ? clamp(view.height - start.y, 0, view.height) : 0,
+		left: right ? 0 : clamp(end.x, 0, view.width),
+	}
+}
+
+/** Whether two rooms are the same, so a measure that finds no change can bail. @internal */
+export function sameRoom(a: MapViewRoom, b: MapViewRoom): boolean {
+	return a.top === b.top && a.right === b.right && a.bottom === b.bottom && a.left === b.left
 }
 
 /**
@@ -101,7 +178,7 @@ export function zoomTransform(
 	transform: MapTransform,
 	focus: MapPoint2D,
 	factor: number,
-	view: MapViewFrame,
+	view: MapPanFrame,
 	max: number,
 ): MapTransform {
 	const k = clampScale(transform.k * factor, max)
@@ -132,7 +209,7 @@ export function panTransform(
 	transform: MapTransform,
 	dx: number,
 	dy: number,
-	view: MapViewFrame,
+	view: MapPanFrame,
 ): MapTransform {
 	return constrainTransform(
 		{ ...transform, x: transform.x + dx, y: transform.y + dy },
@@ -152,7 +229,7 @@ export function panTransform(
 export function showTransform(
 	transform: MapTransform,
 	at: MapPoint2D,
-	view: MapViewFrame,
+	view: MapPanFrame,
 	inset: number,
 ): MapTransform {
 	const drawn = applyTransform(at, transform)
@@ -182,7 +259,7 @@ export function showTransform(
 export function centerTransform(
 	transform: MapTransform,
 	at: MapPoint2D,
-	view: MapViewFrame,
+	view: MapPanFrame,
 ): MapTransform {
 	const { k } = transform
 

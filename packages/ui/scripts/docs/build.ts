@@ -1,8 +1,9 @@
 /**
  * The files of the docs build, and how a server of the build serves them:
- * the file of a request-target, its content type, its content coding, and its
- * body. The docs server (`server.ts`), `docs:bench`, and `docs:parity` serve
- * the build with these rules, and `test:docs-build` reads the build with them.
+ * the file of a request-target, its content type, its cache headers, its
+ * content coding, and its body. The docs server (`server.ts`) and `docs:bench`
+ * serve the build with these rules, and `test:docs-build` reads the build with
+ * them. `docs:parity` serves each build with the docs server.
  */
 
 import { globSync } from 'node:fs'
@@ -53,29 +54,60 @@ export const contentType = (file: string): string =>
  */
 export const COMPRESSED = new Set(['.css', '.html', '.js', '.json', '.svg'])
 
+/** The hashed files of the build, whose names change with their content. */
+const ASSETS = `${path.sep}assets${path.sep}`
+
+/**
+ * The cache headers of `file`. A hashed file does not change, so a cache keeps
+ * it for a year. An HTML file changes with each deploy and with the locale of
+ * the request, so a cache asks the server each time. A file that the server
+ * compresses also changes with the codings that the request takes.
+ */
+export function cacheHeaders(file: string): Record<string, string> {
+	const html = file.endsWith('.html')
+
+	let control = 'public, max-age=3600'
+
+	if (html) control = 'no-cache'
+	else if (file.includes(ASSETS)) control = 'public, max-age=31536000, immutable'
+
+	const vary = [
+		...(html ? ['Cookie', 'Accept-Language'] : []),
+		...(COMPRESSED.has(path.extname(file)) ? ['Accept-Encoding'] : []),
+	]
+
+	return vary.length > 0
+		? { 'cache-control': control, vary: vary.join(', ') }
+		: { 'cache-control': control }
+}
+
 /** The content codings of the server, in the order that it prefers them. */
 const ENCODINGS = ['br', 'gzip'] as const
 
 /** A content coding of the server. */
-export type Encoding = (typeof ENCODINGS)[number]
+type Encoding = (typeof ENCODINGS)[number]
 
 /**
  * The content coding of `file` for a request whose `Accept-Encoding` header is
  * `header`: brotli when the client takes it, else gzip, else none. A file that
  * the server does not compress has none. A coding with the weight `q=0` is
  * not taken, and `*` gives its weight to each coding that the header does not
- * name.
+ * name. The names and the parameters of the header have no case, so `BR;Q=0`
+ * is the same as `br;q=0`.
  */
 export function pickEncoding(file: string, header: string | undefined): Encoding | undefined {
 	if (!header || !COMPRESSED.has(path.extname(file))) return undefined
 
 	const weights = new Map(
 		header.split(',').map((part) => {
-			const [coding = '', ...params] = part.split(';').map((piece) => piece.trim())
+			const [coding = '', ...params] = part
+				.toLowerCase()
+				.split(';')
+				.map((piece) => piece.trim())
 
 			const weight = params.find((param) => param.startsWith('q='))
 
-			return [coding.toLowerCase(), weight ? Number(weight.slice(2)) : 1]
+			return [coding, weight ? Number(weight.slice(2)) : 1]
 		}),
 	)
 

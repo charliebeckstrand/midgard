@@ -29,9 +29,9 @@ function renderOverview(extra?: Parameters<typeof categoricalPlat>[0]) {
 
 	const box = { ...INSET_BOX, height: (INSET_BOX.width * height) / width }
 
-	/** Gives the inset its box, which jsdom reports as zero. */
+	/** Gives the thumbnail its box, which jsdom reports as zero. */
 	const measure = () => {
-		const node = inset()
+		const node = inset()?.querySelector('svg') ?? null
 
 		if (node === null) throw new Error('no inset to measure')
 

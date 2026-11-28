@@ -3,7 +3,9 @@
 import {
 	type MouseEvent,
 	type PointerEvent,
+	type RefCallback,
 	type RefObject,
+	useCallback,
 	useEffect,
 	useEffectEvent,
 	useLayoutEffect,
@@ -17,7 +19,12 @@ import { useTimeout } from '../../hooks/use-timeout'
 import { TAP_THRESHOLD } from '../../hooks/use-touch-tap'
 import { isPrimaryPress } from '../../utilities/primary-press'
 import { useMapHoverActions } from './context'
-import { MAP_PAN_THRESHOLD, MAP_WHEEL_SETTLE_MS, MAP_ZOOM_FIT } from './engine/map-constants'
+import {
+	MAP_PAN_THRESHOLD,
+	MAP_PINCH_DETENT,
+	MAP_WHEEL_SETTLE_MS,
+	MAP_ZOOM_FIT,
+} from './engine/map-constants'
 import { clientToFrame, frameScale, type MapClientBox } from './engine/map-projection/frame'
 import {
 	pointerGap,
@@ -32,9 +39,14 @@ import {
 	centerTransform,
 	constrainTransform,
 	MAP_FIT_TRANSFORM,
+	type MapPanFrame,
 	type MapTransform,
 	type MapViewFrame,
+	type MapViewRoom,
+	NO_ROOM,
+	overlayRoom,
 	panTransform,
+	sameRoom,
 	sameTransform,
 	showTransform,
 	zoomTransform,
@@ -104,6 +116,12 @@ export type MapZoom = {
 	max: number
 	surface: MapZoomSurface
 	cursor: MapZoomCursor
+	/**
+	 * The ref of the overlay that covers a corner of a zoomed view: the overview
+	 * inset. The pan goes past the edges of the frame by the ground that it
+	 * covers, so a drag can bring that ground into the open.
+	 */
+	cover: RefCallback<HTMLElement>
 }
 
 /** What {@link useMapZoom} needs from the plat. @internal */
@@ -213,8 +231,14 @@ export function useMapZoom({
 		setHeld({ subject, transform: MAP_FIT_TRANSFORM })
 	}
 
+	// The ground that the overview inset covers, measured while it shows. The
+	// pan limits read it from the frame (`constrainTransform`).
+	const [room, cover] = useOverlayRoom(svgRef, view)
+
 	const transform =
-		settings === null ? MAP_FIT_TRANSFORM : constrainTransform(held.transform, view, max)
+		settings === null
+			? MAP_FIT_TRANSFORM
+			: constrainTransform(held.transform, { ...view, room }, max)
 
 	/*
 	 * One report for each committed transform.
@@ -232,14 +256,18 @@ export function useMapZoom({
 	// The gesture handlers read the view through this rather than through their
 	// own closure: a pointer sequence outlives the render it began on, and two
 	// events can land before React renders.
-	const live = useRef({ transform, view, max })
+	const live = useRef<{ transform: MapTransform; view: MapPanFrame; max: number }>({
+		transform,
+		view: { ...view, room },
+		max,
+	})
 
 	// Synced in a layout effect, ahead of the effects below and of any event. Only
 	// events read it, and the keyboard cursor drives the view from a keypress, so
 	// no reader runs between the render and this write.
 	useLayoutEffect(() => {
-		live.current = { transform, view, max }
-	}, [transform, view, max])
+		live.current = { transform, view: { ...view, room }, max }
+	}, [transform, view, room, max])
 
 	// A plain function, as each gesture handler below is. No dependency array
 	// names one of them: the native listeners read their handlers through an
@@ -287,6 +315,13 @@ export function useMapZoom({
 	 * traveled over the ground. See {@link pinch} for why it is not a viewport point.
 	 */
 	const midpoint = useRef<MapPoint2D | null>(null)
+
+	/**
+	 * The scale that the pinch asks for while the view rests at the fit. The view
+	 * leaves the fit only when this passes {@link MAP_PINCH_DETENT}. Off the fit,
+	 * the pinch scales the view itself, and this is not read.
+	 */
+	const pinchAsked = useRef(MAP_ZOOM_FIT)
 
 	/**
 	 * The frame that applies the pinch. Both fingers
@@ -459,7 +494,30 @@ export function useMapZoom({
 		// under the fingers stays under them however the pair moves and spreads.
 		const traveled = panTransform(from, focus.x - prevFocus.x, focus.y - prevFocus.y, frame)
 
-		commit(zoomTransform(traveled, focus, gap / prevGap, frame, limit))
+		commit(zoomTransform(traveled, focus, detentFactor(from.k, gap / prevGap), frame, limit))
+	}
+
+	/**
+	 * The factor that the pinch applies, with the detent at the fit. Off the fit,
+	 * the view follows the spread, and a pair that closes stops at the fit. At
+	 * the fit, the spread adds to the scale that the pinch asks for, and the view
+	 * stays until that scale passes {@link MAP_PINCH_DETENT}. Thus the jitter of
+	 * a pair that rests near the fit cannot take the view off the fit.
+	 */
+	function detentFactor(scale: number, factor: number): number {
+		if (scale > MAP_ZOOM_FIT) {
+			pinchAsked.current = MAP_ZOOM_FIT
+
+			return factor
+		}
+
+		const asked = pinchAsked.current * factor
+
+		if (asked >= MAP_PINCH_DETENT) return asked / scale
+
+		pinchAsked.current = Math.max(MAP_ZOOM_FIT, asked)
+
+		return 1
 	}
 
 	/** Where the midpoint of two pointers lands in the frame, or `null` with no box to read. */
@@ -703,6 +761,8 @@ export function useMapZoom({
 		spread.current = pointerGap(first, second)
 
 		midpoint.current = pairFocus(first, second)
+
+		pinchAsked.current = MAP_ZOOM_FIT
 	}
 
 	useMapTouchPinch(touchDriven, framed, svgRef, onTouch)
@@ -889,7 +949,65 @@ export function useMapZoom({
 			onClickCapture,
 		},
 		cursor: { transform, stepZoom, fit, show, center },
+		cover,
 	}
+}
+
+/**
+ * The room that an overlay covers on the plot, and the ref that measures it:
+ * the half of {@link useMapZoom} that reads the overview inset.
+ *
+ * The ref measures the overlay against the plot SVG while the overlay is in
+ * the tree, and again when either box changes size. The observer reports
+ * after layout, so the measure forces no layout of its own. The overlay leaves
+ * the tree at the fit, where the room counts for nothing, and the room clears
+ * with it.
+ *
+ * @internal
+ */
+function useOverlayRoom(
+	svgRef: RefObject<SVGSVGElement | null>,
+	view: MapViewFrame,
+): [MapViewRoom, RefCallback<HTMLElement>] {
+	const [room, setRoom] = useState(NO_ROOM)
+
+	// The observer outlives the render that bound it, so it reads the frame here.
+	const frame = useRef(view)
+
+	useLayoutEffect(() => {
+		frame.current = view
+	}, [view])
+
+	const cover = useCallback(
+		(node: HTMLElement | null) => {
+			const svg = svgRef.current
+
+			if (node === null || svg === null) return
+
+			const observer = new ResizeObserver(() => {
+				const next = overlayRoom(
+					node.getBoundingClientRect(),
+					svg.getBoundingClientRect(),
+					frame.current,
+				)
+
+				setRoom((prev) => (sameRoom(prev, next) ? prev : next))
+			})
+
+			observer.observe(node)
+
+			observer.observe(svg)
+
+			return () => {
+				observer.disconnect()
+
+				setRoom(NO_ROOM)
+			}
+		},
+		[svgRef],
+	)
+
+	return [room, cover]
 }
 
 /**
@@ -914,7 +1032,7 @@ function useWheelZoom(
 	svgRef: RefObject<SVGSVGElement | null>,
 	commit: (next: MapTransform) => void,
 	hold: (push: number, coasting: boolean) => void,
-	live: RefObject<{ transform: MapTransform; view: MapViewFrame; max: number }>,
+	live: RefObject<{ transform: MapTransform; view: MapPanFrame; max: number }>,
 	stream: RefObject<MapWheelStream | null>,
 ) {
 	const onWheel = useEffectEvent((event: WheelEvent, svg: SVGSVGElement) => {

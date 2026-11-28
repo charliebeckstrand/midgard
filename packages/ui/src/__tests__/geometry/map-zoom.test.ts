@@ -20,6 +20,8 @@ import {
 	constrainTransform,
 	MAP_FIT_TRANSFORM,
 	type MapTransform,
+	NO_ROOM,
+	overlayRoom,
 	panTransform,
 	sameTransform,
 	showTransform,
@@ -115,6 +117,61 @@ describe('constrainTransform', () => {
 
 	it('reads a ceiling under the fit as the fit, so a nonsense prop cannot invert the limits', () => {
 		expect(constrainTransform({ x: 0, y: 0, k: 4 }, VIEW, 0.5).k).toBe(1)
+	})
+
+	it('lets a zoomed view pan past an edge by the room that an overlay covers there', () => {
+		// The inset covers 100 x 60 of the bottom-right corner.
+		const view = { ...VIEW, room: { ...NO_ROOM, right: 100, bottom: 60 } }
+
+		const out = constrainTransform({ x: -900, y: -900, k: 2 }, view, MAX)
+
+		expect(out).toEqual({ x: -500, y: -260, k: 2 })
+
+		// The far corner of the geography then draws clear of the inset.
+		expect(applyTransform({ x: VIEW.width, y: VIEW.height }, out)).toEqual({ x: 300, y: 140 })
+
+		// The edges that no overlay covers hold where they did.
+		expect(constrainTransform({ x: 50, y: 10, k: 2 }, view, MAX)).toEqual({ x: 0, y: 0, k: 2 })
+	})
+
+	it('gives the room nothing at the fit, so a zoom out lands on the whole view', () => {
+		const view = { ...VIEW, room: { ...NO_ROOM, right: 100, bottom: 60 } }
+
+		expect(constrainTransform({ x: -80, y: -40, k: 1 }, view, MAX)).toEqual(MAP_FIT_TRANSFORM)
+
+		const at = constrainTransform({ x: -900, y: -900, k: 2 }, view, MAX)
+
+		expect(zoomTransform(at, { x: 400, y: 200 }, 0.5, view, MAX)).toEqual(MAP_FIT_TRANSFORM)
+	})
+})
+
+describe('overlayRoom', () => {
+	it('reaches from each edge that the overlay is nearer to, to its far side', () => {
+		const inset = { left: 292, top: 132, width: 100, height: 60 }
+
+		expect(overlayRoom(inset, BOX, VIEW)).toEqual({ top: 0, right: 108, bottom: 68, left: 0 })
+	})
+
+	it('takes the left edge for an overlay in the bottom-left corner', () => {
+		const inset = { left: 8, top: 132, width: 100, height: 60 }
+
+		expect(overlayRoom(inset, BOX, VIEW)).toEqual({ top: 0, right: 0, bottom: 68, left: 108 })
+	})
+
+	it('measures in frame units through the letterbox of the box', () => {
+		// The frame draws at half size in a box twice as tall as it needs, so it
+		// sits 100 px down from the top of the box.
+		const box = { left: 0, top: 0, width: 200, height: 300 }
+
+		const inset = { left: 146, top: 166, width: 50, height: 30 }
+
+		expect(overlayRoom(inset, box, VIEW)).toEqual({ top: 0, right: 108, bottom: 68, left: 0 })
+	})
+
+	it('reports no room for a frame with no area', () => {
+		const inset = { left: 0, top: 0, width: 10, height: 10 }
+
+		expect(overlayRoom(inset, { ...BOX, width: 0 }, VIEW)).toEqual(NO_ROOM)
 	})
 })
 
