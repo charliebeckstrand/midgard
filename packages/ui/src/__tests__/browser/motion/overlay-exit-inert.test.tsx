@@ -6,7 +6,7 @@ import { CommandPalette, CommandPaletteItem } from '../../../components/command-
 import { Confirm } from '../../../components/confirm'
 import { Overlay } from '../../../primitives/overlay'
 import { getSlot, renderUI, screen, waitFor } from '../../helpers'
-import { waitForOverlayRest } from '../helpers/motion-frame'
+import { holdTweens, waitForOverlayRest } from '../helpers/motion-frame'
 
 /**
  * A closed overlay stays on screen for its 150 ms exit, and `AnimatePresence`
@@ -20,6 +20,27 @@ import { waitForOverlayRest } from '../helpers/motion-frame'
 const root = () => getSlot(document, 'overlay')
 
 const gone = () => waitFor(() => expect(document.querySelector('[data-slot="overlay"]')).toBeNull())
+
+/**
+ * Sends `input`, a double press, and holds the exit from the frame that starts
+ * it until `input` ends. Then the exit goes on.
+ *
+ * Each press is a round trip to the browser. Under load, the time between the
+ * two presses can be longer than the exit. The overlay then leaves before the
+ * second press, and the focus goes back to the trigger. A second Enter then
+ * presses the trigger, and the dialog opens again. A second click lands on the
+ * page and tests no guard. The hold keeps the second press in the exit.
+ */
+async function pressInExit(input: () => Promise<unknown>) {
+	const overlay = root()
+
+	// The overlay is at rest before the input, so each tween in it is the exit.
+	const held = await holdTweens(() => overlay.getAnimations({ subtree: true }), 0, {
+		during: input,
+	})
+
+	for (const tween of held) tween.play()
+}
 
 /** An app Confirm: the handler runs the action and closes the dialog. */
 function DeleteApp({ onDelete }: { onDelete: () => void }) {
@@ -122,7 +143,9 @@ describe('Overlay exit guard (real Motion)', () => {
 
 		renderUI(<DeleteApp onDelete={onDelete} />)
 
-		await userEvent.dblClick(await openConfirm())
+		const confirm = await openConfirm()
+
+		await pressInExit(() => userEvent.dblClick(confirm))
 
 		await gone()
 
@@ -138,7 +161,7 @@ describe('Overlay exit guard (real Motion)', () => {
 
 		confirm.focus()
 
-		await userEvent.keyboard('{Enter}{Enter}')
+		await pressInExit(() => userEvent.keyboard('{Enter}{Enter}'))
 
 		await gone()
 
@@ -154,7 +177,7 @@ describe('Overlay exit guard (real Motion)', () => {
 
 		await waitForOverlayRest(run)
 
-		await userEvent.dblClick(run)
+		await pressInExit(() => userEvent.dblClick(run))
 
 		await gone()
 
