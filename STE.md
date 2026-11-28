@@ -1,6 +1,6 @@
 # Simplified Technical English
 
-> **The project's controlled language.** [ASD-STE100](https://www.asd-ste100.org) limits the vocabulary, the grammar, and the length of each sentence, so that the text stays unambiguous. Write the prose that the repository keeps in Simplified Technical English ([`CLAUDE.md`](CLAUDE.md) §2.5).
+> **The project's controlled language.** [ASD-STE100](https://www.asd-ste100.org) limits the vocabulary, the grammar, and the length of each sentence, so that the text stays unambiguous. Write the prose that the repository keeps in Simplified Technical English ([`CLAUDE.md`](CLAUDE.md) §2.4).
 
 ## What STE means
 
@@ -64,7 +64,7 @@ Review holds STE rule 4, because no count of it is correct. Rule 5 stays out of 
 
 [`cadence-boundary.test.ts`](packages/ui/src/__tests__/boundary/cadence-boundary.test.ts) gates cadence rules 1, 3, 4, and 7 in the rule documents. It also gates cadence rule 1 in each test file of the workspace. Two `expect` statements in a row must have a blank line between them. Review holds the other cadence rules, except rule 5, which the controlled-language boundary gates.
 
-An audit and a plan stay in their authored voice, because each is a temporary record ([`CONVENTIONS.md` §12.4, §12.5](CONVENTIONS.md)). Chat is exempt ([`CLAUDE.md`](CLAUDE.md) §2.5).
+An audit and a plan stay in their authored voice, because each is a temporary record ([`CONVENTIONS.md` §12.4, §12.5](CONVENTIONS.md)). Chat is exempt ([`CLAUDE.md`](CLAUDE.md) §2.4).
 
 ## Project terms
 

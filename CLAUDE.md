@@ -14,23 +14,21 @@
 
 ## 2. Voice
 
-2.1 Write short, technical prose; assume domain fluency. Cut filler and repetition, not the grammar words that STE keeps.
+2.1 Write short, technical prose; assume domain fluency. Cut filler and repetition, not the grammar words that STE keeps. Prefer paragraphs; reserve lists for enumerable items.
 
-2.2 Prefer paragraphs; reserve lists for enumerable items.
+2.2 Answer first. On correction, comply; do not apologize or relitigate the decision.
 
-2.3 Answer first; no preamble, filler, flattery, or restatement.
+2.3 Do not write an em dash in chat, in a commit message, or in a pull request.
 
-2.4 On correction, comply; don't apologize or relitigate decisions.
-
-2.5 Write the text that the repository keeps in ASD-STE100 Simplified Technical English: comments, TSDoc, Markdown, and commit bodies. [STE.md](STE.md) gives the rules and the exemptions. Chat is exempt, and §2.1 to §2.4 govern it.
+2.4 Write the text that the repository keeps in ASD-STE100 Simplified Technical English: comments, TSDoc, Markdown, and commit bodies. [STE.md](STE.md) gives the rules and the exemptions. Chat is exempt, and §2.1 to §2.3 govern it.
 
 ## 3. Workflow
 
 3.1 Before architectural work, work that crosses packages, or a breaking change to a public export, surface the approach for assent.
 
-3.2 For research across many files or subsystems, delegate to subagents, one task each. Read a small, known set of files directly.
+3.2 For research across many files or subsystems, delegate to subagents, one task each. Read a small, known set of files directly. A subagent loads this file, but not your context. Give it the paths, the question, and the form of the answer: findings with `path:line`, not file contents. A subagent does not commit, push, or run `pnpm check`, because two gates at once run out of memory. Get assent before a large fan-out.
 
-3.3 Prove it works; flag anything unverified. Before you report a change as done, run `pnpm check` from the root. It is the pre-push gate: Biome, `check-types`, `test:changed`, `test:workspace`, and Knip. While you edit, run scoped Vitest (`test:related`). Lefthook runs Biome on staged files before a commit, and `pnpm check` before a push. CI runs the full gate and gates merges.
+3.3 Prove it works; flag anything unverified. While you edit, run the related tests through the script of the package: `pnpm -F <package> test:related <path>`, with the path relative to the package. Before you report a change as done, run `pnpm check` from the root, or push: the pre-push hook runs the same gate. Do not also run Biome, `check-types`, or Knip alone, because the gate runs them. A hook runs Biome on each file that you edit. Leave the full suites, the builds, and the browser suite to CI, which runs them on each push.
 
 3.4 When you change a public `ui` export, update its TSDoc. Update the related surface index in `packages/ui/docs` in the same commit ([CONVENTIONS.md](CONVENTIONS.md) §12).
 
@@ -38,9 +36,11 @@
 
 3.6 [asgard `.claude/docs/midgard.md`](https://github.com/charliebeckstrand/asgard/blob/main/.claude/docs/midgard.md) is the one record of the contract between Midgard and asgard. Read it before you change a call to bifrost. When the contract changes, update that file in asgard.
 
-3.7 Use the Playwright tools to examine a UI change in a real browser before you report it as done. Before a refactor merges, run `pnpm -F ui test:browser` and compare the interactions of the docs app with main.
+3.7 Use the Playwright tools to examine a UI change in a real browser before you report it as done. For a refactor, also compare the interactions of the docs app with main.
 
 3.8 A deployment comes only from `deploy.yml`. Never create, change, or delete an App Platform app by hand.
+
+3.9 Start from the docs of the area, not from a search of the code. For `ui`, read [`packages/ui/REFERENCE.md`](packages/ui/REFERENCE.md): its §4 gives the commands, and its §5 gives the paths. For an app or another package, read its README. In [CONVENTIONS.md](CONVENTIONS.md), read the sections that the change touches, not the whole file.
 
 ## 4. Version Control
 
