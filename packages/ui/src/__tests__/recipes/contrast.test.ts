@@ -154,13 +154,29 @@ describe('chromatic palette contrast', () => {
 		},
 	)
 
-	// One rule for each hue, not a shade for each hue that misses AA: the text
-	// of a hovered soft Button is 800 in light and 300 in dark.
-	describe('soft text steps to 800 in light and 300 in dark on hover', () => {
+	// One rule for each hue, not a shade for each hue that misses AA: soft,
+	// outline, and plain text is 800 in light and 400 in dark.
+	describe.each(['soft', 'outline', 'plain'] as const)(
+		'%s text is 800 in light and 400 in dark',
+		(variant) => {
+			it.each(hues)('%s', (color) => {
+				const { light, dark } = ink(resolve(variant, color))
+
+				expect(light).toBe(`text-${color}-800`)
+
+				expect(dark).toBe(`dark:text-${color}-400`)
+			})
+		},
+	)
+
+	// The text of a hovered soft Button stays 800 in light and steps to 300 in
+	// dark. The soft hover has no light text class, because that class would
+	// also win in dark.
+	describe('soft text stays 800 in light and steps to 300 in dark on hover', () => {
 		it.each(hues)('%s', (color) => {
 			const { light, dark } = hoveredInk(resolve('soft', color))
 
-			expect(light).toMatch(new RegExp(`hover:text-${color}-800$`))
+			expect(light).toBe(`text-${color}-800`)
 
 			expect(dark).toMatch(new RegExp(`^dark:.*hover:text-${color}-300$`))
 		})

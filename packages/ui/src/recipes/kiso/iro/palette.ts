@@ -11,12 +11,12 @@
  *
  * The text of a bare entry clears AA (4.5:1) on the page surface, so the
  * `onSurface` shades of the ramp, and thus the `iro.text` intents, read it.
- * Soft, outline, and plain text is 700 in light and 400 in dark, and 800 in
- * light where 700 misses AA on the 15% soft fill (amber, green).
- * The soft hover fill is 30%, and 700 or 400 text misses AA on it in some
- * hues. Thus the soft hover of each hue also sets the text: 800 in light and
- * 300 in dark. Each hue takes the two shades, because a hover text class with
- * no `dark:` prefix also wins in dark.
+ * Soft, outline, and plain text is 800 in light and 400 in dark for each hue.
+ * In light, 700 misses AA on the 15% soft fill in some hues (amber, green), so
+ * each hue takes 800. The soft hover fill is 30%, and 400 text misses AA on it
+ * in dark in some hues. Thus the soft hover of each hue sets the dark text to
+ * 300. In light the 800 text clears the hover fill, so the hover sets no light
+ * text: a hover text class with no `dark:` prefix also wins in dark.
  * `contrast.test.ts` measures each entry through Button, at rest and on hover.
  *
  * A mark (`<Code>`, `<Kbd>`) has the default text color, which clears 4.5:1 on
@@ -39,25 +39,25 @@ export const palette = {
 		blue: `bg-blue-600 text-white ${onFill}`,
 	},
 	soft: {
-		zinc: 'bg-zinc-500/15 text-zinc-700 dark:text-zinc-400',
-		red: 'bg-red-500/15 text-red-700 dark:text-red-400',
+		zinc: 'bg-zinc-500/15 text-zinc-800 dark:text-zinc-400',
+		red: 'bg-red-500/15 text-red-800 dark:text-red-400',
 		amber: 'bg-amber-500/15 text-amber-800 dark:text-amber-400',
 		green: 'bg-green-500/15 text-green-800 dark:text-green-400',
-		blue: 'bg-blue-500/15 text-blue-700 dark:text-blue-400',
+		blue: 'bg-blue-500/15 text-blue-800 dark:text-blue-400',
 	},
 	outline: {
-		zinc: 'ring-zinc-800 dark:ring-zinc-600 text-zinc-700 dark:text-zinc-400',
-		red: 'ring-red-600 dark:ring-red-700 text-red-700 dark:text-red-400',
+		zinc: 'ring-zinc-800 dark:ring-zinc-600 text-zinc-800 dark:text-zinc-400',
+		red: 'ring-red-600 dark:ring-red-700 text-red-800 dark:text-red-400',
 		amber: 'ring-amber-500 dark:ring-amber-600 text-amber-800 dark:text-amber-400',
 		green: 'ring-green-600 dark:ring-green-700 text-green-800 dark:text-green-400',
-		blue: 'ring-blue-600 dark:ring-blue-700 text-blue-700 dark:text-blue-400',
+		blue: 'ring-blue-600 dark:ring-blue-700 text-blue-800 dark:text-blue-400',
 	},
 	plain: {
-		zinc: 'text-zinc-700 dark:text-zinc-400',
-		red: 'text-red-700 dark:text-red-400',
+		zinc: 'text-zinc-800 dark:text-zinc-400',
+		red: 'text-red-800 dark:text-red-400',
 		amber: 'text-amber-800 dark:text-amber-400',
 		green: 'text-green-800 dark:text-green-400',
-		blue: 'text-blue-700 dark:text-blue-400',
+		blue: 'text-blue-800 dark:text-blue-400',
 	},
 	bare: {
 		zinc: 'text-zinc-500 dark:text-zinc-400',
@@ -76,19 +76,19 @@ export const extended = {
 		sky: `bg-sky-700 text-white ${onFill}`,
 	},
 	soft: {
-		rose: 'bg-rose-500/15 text-rose-700 dark:text-rose-400',
-		violet: 'bg-violet-500/15 text-violet-700 dark:text-violet-400',
-		sky: 'bg-sky-500/15 text-sky-700 dark:text-sky-400',
+		rose: 'bg-rose-500/15 text-rose-800 dark:text-rose-400',
+		violet: 'bg-violet-500/15 text-violet-800 dark:text-violet-400',
+		sky: 'bg-sky-500/15 text-sky-800 dark:text-sky-400',
 	},
 	outline: {
-		rose: 'ring-rose-600 dark:ring-rose-700 text-rose-700 dark:text-rose-400',
-		violet: 'ring-violet-600 dark:ring-violet-700 text-violet-700 dark:text-violet-400',
-		sky: 'ring-sky-600 dark:ring-sky-700 text-sky-700 dark:text-sky-400',
+		rose: 'ring-rose-600 dark:ring-rose-700 text-rose-800 dark:text-rose-400',
+		violet: 'ring-violet-600 dark:ring-violet-700 text-violet-800 dark:text-violet-400',
+		sky: 'ring-sky-600 dark:ring-sky-700 text-sky-800 dark:text-sky-400',
 	},
 	plain: {
-		rose: 'text-rose-700 dark:text-rose-400',
-		violet: 'text-violet-700 dark:text-violet-400',
-		sky: 'text-sky-700 dark:text-sky-400',
+		rose: 'text-rose-800 dark:text-rose-400',
+		violet: 'text-violet-800 dark:text-violet-400',
+		sky: 'text-sky-800 dark:text-sky-400',
 	},
 	bare: {
 		rose: 'text-rose-600 dark:text-rose-500',
@@ -109,17 +109,17 @@ export const hover = {
 		sky: 'not-disabled:not-data-disabled:hover:bg-sky-800',
 	},
 	soft: {
-		zinc: 'not-disabled:not-data-disabled:hover:bg-zinc-500/30 not-disabled:not-data-disabled:hover:text-zinc-800 dark:not-disabled:not-data-disabled:hover:text-zinc-300',
-		red: 'not-disabled:not-data-disabled:hover:bg-red-500/30 not-disabled:not-data-disabled:hover:text-red-800 dark:not-disabled:not-data-disabled:hover:text-red-300',
+		zinc: 'not-disabled:not-data-disabled:hover:bg-zinc-500/30 dark:not-disabled:not-data-disabled:hover:text-zinc-300',
+		red: 'not-disabled:not-data-disabled:hover:bg-red-500/30 dark:not-disabled:not-data-disabled:hover:text-red-300',
 		amber:
-			'not-disabled:not-data-disabled:hover:bg-amber-500/30 not-disabled:not-data-disabled:hover:text-amber-800 dark:not-disabled:not-data-disabled:hover:text-amber-300',
+			'not-disabled:not-data-disabled:hover:bg-amber-500/30 dark:not-disabled:not-data-disabled:hover:text-amber-300',
 		green:
-			'not-disabled:not-data-disabled:hover:bg-green-500/30 not-disabled:not-data-disabled:hover:text-green-800 dark:not-disabled:not-data-disabled:hover:text-green-300',
-		blue: 'not-disabled:not-data-disabled:hover:bg-blue-500/30 not-disabled:not-data-disabled:hover:text-blue-800 dark:not-disabled:not-data-disabled:hover:text-blue-300',
-		rose: 'not-disabled:not-data-disabled:hover:bg-rose-500/30 not-disabled:not-data-disabled:hover:text-rose-800 dark:not-disabled:not-data-disabled:hover:text-rose-300',
+			'not-disabled:not-data-disabled:hover:bg-green-500/30 dark:not-disabled:not-data-disabled:hover:text-green-300',
+		blue: 'not-disabled:not-data-disabled:hover:bg-blue-500/30 dark:not-disabled:not-data-disabled:hover:text-blue-300',
+		rose: 'not-disabled:not-data-disabled:hover:bg-rose-500/30 dark:not-disabled:not-data-disabled:hover:text-rose-300',
 		violet:
-			'not-disabled:not-data-disabled:hover:bg-violet-500/30 not-disabled:not-data-disabled:hover:text-violet-800 dark:not-disabled:not-data-disabled:hover:text-violet-300',
-		sky: 'not-disabled:not-data-disabled:hover:bg-sky-500/30 not-disabled:not-data-disabled:hover:text-sky-800 dark:not-disabled:not-data-disabled:hover:text-sky-300',
+			'not-disabled:not-data-disabled:hover:bg-violet-500/30 dark:not-disabled:not-data-disabled:hover:text-violet-300',
+		sky: 'not-disabled:not-data-disabled:hover:bg-sky-500/30 dark:not-disabled:not-data-disabled:hover:text-sky-300',
 	},
 	outline: {
 		zinc: 'not-disabled:not-data-disabled:hover:bg-zinc-500/15',
