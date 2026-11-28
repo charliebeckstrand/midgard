@@ -2,6 +2,7 @@
 
 import { useComposedRefs } from 'motion/react'
 import { type KeyboardEvent, type PointerEvent, useLayoutEffect, useRef } from 'react'
+import { ariaAttr } from '../../core/aria-attr'
 import { dataAttr } from '../../core/data-attr'
 import { useControlLock } from '../../primitives/control/context'
 import { useIntl } from '../../primitives/intl/use-intl'
@@ -124,7 +125,7 @@ export function DashboardResizeHandle({
 		'data-slot': 'dashboard-resize-handle',
 		'data-edge': edge,
 		'data-resizing': dataAttr(resizing),
-		'aria-disabled': locked || undefined,
+		'aria-disabled': ariaAttr(locked),
 		className: k({ edge }).resize.handle,
 		onPointerDown: (event: PointerEvent<HTMLElement>) => beginResize(id, edge, event),
 	}

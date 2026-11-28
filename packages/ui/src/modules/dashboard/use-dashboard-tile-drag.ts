@@ -6,6 +6,7 @@ import {
 	useDraggable,
 } from '@dnd-kit/core'
 import { type RefObject, useCallback, useLayoutEffect, useMemo, useState } from 'react'
+import { ariaAttr } from '../../core/aria-attr'
 import { reorderMessages } from '../../primitives/intl/intl-reorder'
 import { useIntl } from '../../primitives/intl/use-intl'
 import {
@@ -156,7 +157,7 @@ export function useDashboardTileDrag(
 	// follows the gesture.
 	const grip = useMemo(
 		() => ({
-			attributes: { ...attributes, 'aria-pressed': dragging || undefined },
+			attributes: { ...attributes, 'aria-pressed': ariaAttr(dragging) },
 			listeners,
 			setActivatorNodeRef,
 		}),

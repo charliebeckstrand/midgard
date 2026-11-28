@@ -105,7 +105,7 @@ export function MenuItem(props: MenuItemProps) {
 					tabIndex={-1}
 					aria-disabled={true}
 					data-slot="menu-item"
-					data-disabled={true}
+					data-disabled=""
 					className={classes}
 				>
 					{children}

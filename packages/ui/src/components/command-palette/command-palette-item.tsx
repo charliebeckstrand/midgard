@@ -1,8 +1,10 @@
 'use client'
 
 import { type MouseEvent, type ReactNode, useId } from 'react'
+import { ariaAttr } from '../../core/aria-attr'
 import { cn } from '../../core/cn'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
+import { dataAttr } from '../../core/data-attr'
 import { useLink } from '../../primitives/link/context'
 import { inertLinkProps } from '../../primitives/link/link-inert'
 import { resolveLinkRel } from '../../primitives/link/link-rel'
@@ -103,8 +105,8 @@ export function CommandPaletteItem(props: CommandPaletteItemProps) {
 		role: 'option' as const,
 		tabIndex: -1,
 		'data-slot': 'command-palette-item',
-		'data-disabled': disabled || undefined,
-		'aria-disabled': disabled || undefined,
+		'data-disabled': dataAttr(disabled),
+		'aria-disabled': ariaAttr(disabled),
 		className: cn(k.item().base, className),
 		onClick: handleSelect,
 		onMouseDown: holdFocus,

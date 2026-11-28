@@ -9,11 +9,15 @@ language js
 // The plugin cannot read types, so it matches only the shapes that are
 // boolean by syntax. For an ARIA state that is boolean by the spec, it
 // matches `x || undefined`. For any ARIA or data attribute, it matches
-// `x ? true : undefined` and `x ? '' : undefined`, and the inverted forms
-// `x ? undefined : true` and `x ? undefined : ''`. It also matches the same
-// state in a spread, `{...(x ? { 'data-open': true } : {})}`, and its
-// inverted form. A string attribute such as `aria-label={alt || undefined}`
-// passes.
+// `!x || undefined` and `!!x || undefined`, `x ? true : undefined` and
+// `x ? '' : undefined`, and the inverted forms `x ? undefined : true` and
+// `x ? undefined : ''`. It matches these values on a JSX attribute and on a
+// member of an object literal, such as `{ 'aria-modal': modal || undefined }`.
+// It also matches the same state in a spread,
+// `{...(x ? { 'data-open': true } : {})}`, and its inverted form. A string
+// attribute such as `aria-label={alt || undefined}` passes. So does
+// `data-wrap={wrap || undefined}`, because a data attribute can hold a
+// string.
 //
 // Reach is the `includes` beside this plugin in `biome.json`: the `ui` and
 // `shared` source, minus tests and benchmarks.
@@ -31,6 +35,31 @@ or {
 			},
 			and {
 				$name <: r"(?:aria|data)-[\w-]+",
+				$value <: or { `!$_ || undefined`, `!!$_ || undefined` }
+			},
+			and {
+				$name <: r"(?:aria|data)-[\w-]+",
+				$value <: or { `$_ ? $flag : undefined`, `$_ ? undefined : $flag` },
+				$flag <: or { `true`, `''`, `""` }
+			}
+		},
+		register_diagnostic(
+			span = $attribute,
+			message = "write a boolean attribute through `ariaAttr` or `dataAttr`, which give the one spelling the selectors expect"
+		)
+	},
+	JsPropertyObjectMember(name = $name, value = $value) as $attribute where {
+		or {
+			and {
+				$name <: r"['\"]aria-(?:atomic|busy|disabled|expanded|hidden|invalid|modal|multiline|multiselectable|readonly|required|selected)['\"]",
+				$value <: `$_ || undefined`
+			},
+			and {
+				$name <: r"['\"](?:aria|data)-[\w-]+['\"]",
+				$value <: or { `!$_ || undefined`, `!!$_ || undefined` }
+			},
+			and {
+				$name <: r"['\"](?:aria|data)-[\w-]+['\"]",
 				$value <: or { `$_ ? $flag : undefined`, `$_ ? undefined : $flag` },
 				$flag <: or { `true`, `''`, `""` }
 			}

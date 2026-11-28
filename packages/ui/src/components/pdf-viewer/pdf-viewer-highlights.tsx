@@ -10,6 +10,7 @@ import {
 	useRef,
 	useState,
 } from 'react'
+import { ariaAttr } from '../../core/aria-attr'
 import { useA11yAnnouncements } from '../../hooks/a11y/use-a11y-announcements'
 import { useA11yRoving } from '../../hooks/a11y/use-a11y-roving'
 import { useIntl } from '../../primitives/intl/use-intl'
@@ -470,7 +471,7 @@ function PdfViewerHighlightLayer() {
 					{...(interactive && {
 						type: 'button' as const,
 						'aria-label': region.label,
-						'aria-current': region.active || undefined,
+						'aria-current': ariaAttr(region.active),
 					})}
 					ref={region.active ? activeRegionRef : undefined}
 					className={

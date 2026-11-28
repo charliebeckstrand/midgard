@@ -15,6 +15,7 @@ import {
 	useRef,
 	useState,
 } from 'react'
+import { ariaAttr } from '../../core/aria-attr'
 import type { ScaleStep } from '../../core/density/scale'
 import { useA11yAnnouncements } from '../../hooks/a11y/use-a11y-announcements'
 import {
@@ -901,7 +902,7 @@ export function Combobox<T>({
 							// hide from assistive tech: custom suffix content (e.g. a live
 							// LoadingSpinner) owns its own semantics. Interactive suffix
 							// content (the clear button) stops propagation to opt out.
-							'aria-hidden': suffix || showClear ? undefined : true,
+							'aria-hidden': ariaAttr(!(suffix || showClear)),
 							onMouseDown: onSuffixMouseDown,
 						}}
 					>

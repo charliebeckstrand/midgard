@@ -7,6 +7,7 @@ import {
 	type RefObject,
 	useMemo,
 } from 'react'
+import { ariaAttr } from '../../core/aria-attr'
 import { cn } from '../../core/cn'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities/is-data-column'
@@ -114,7 +115,7 @@ export function useGridCursorColumns<T>({
 
 			// Under editing, a cell that cannot enter edit mode says so, whether
 			// `readOnly` locks it or it has no field and no slot (WCAG 4.1.2).
-			const extra = EditingCell ? { 'aria-readonly': !editable || undefined } : undefined
+			const extra = EditingCell ? { 'aria-readonly': ariaAttr(!editable) } : undefined
 
 			// A cell that cannot edit holds no draft and no editor, so it renders as
 			// a navigable cell does, and the edit store does not reach it.
