@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { BadgeRemovable } from '../../components/badge/badge-removable'
-import { fireEvent, renderUI, screen } from '../helpers'
+import { act, fireEvent, renderUI, screen } from '../helpers'
 
 describe('BadgeRemovable', () => {
 	it.each(['Delete', 'Backspace'])('removes the chip on %s', (key) => {
@@ -21,7 +21,7 @@ describe('BadgeRemovable', () => {
 
 		const button = screen.getByRole('button', { name: 'Remove react' })
 
-		button.focus()
+		act(() => button.focus())
 
 		fireEvent.keyDown(button, { key })
 

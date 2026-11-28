@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { Switch } from '../../components/switch'
 import { type ChatCitation, ChatPrompt, useChatDraft } from '../../modules/chat'
 import {
+	act,
 	bySlot,
 	fireEvent,
 	getSlot,
@@ -657,7 +658,7 @@ describe('ChatPrompt', () => {
 
 		const user = setupUser()
 
-		screen.getByRole('button', { name: 'Remove second.pdf' }).focus()
+		act(() => screen.getByRole('button', { name: 'Remove second.pdf' }).focus())
 
 		await user.keyboard('{Enter}')
 

@@ -153,29 +153,32 @@ export function useTruncation<E extends HTMLElement>(options?: {
 	})
 
 	// The listener/observer bindings live in the effect below, keyed on the node
-	// they bind: a consumer that reparents the measured element while it stays
-	// mounted (a cell wrapping its span in a lazily-mounted tooltip) commits a
-	// replacement node the effect never sees on its own, stranding the bindings
-	// on the detached one. The callback ref puts only a replacement in state, so
-	// the plain mount pays no extra render and binds the node of the ref.
+	// they bind. The effect never sees a node that the ref gets after it runs:
+	// a consumer that reparents the measured element while it stays mounted (a
+	// cell wrapping its span in a lazily-mounted tooltip) commits a replacement
+	// node, and an element can mount after the hook, such as one that a Suspense
+	// boundary hydrates later. The bindings would then stay on the detached node,
+	// or bind no node. The callback ref therefore puts each node that arrives
+	// after the first run of the effect in state. The plain mount, where the node
+	// comes first, pays no extra render and binds the node of the ref.
 	const [replacement, setReplacement] = useState<E | null>(null)
 
-	const bound = useRef(false)
+	const effectRan = useRef(false)
 
 	const setNode = useCallback((node: E | null) => {
 		elRef.current = node
 
-		if (node && bound.current) setReplacement(node)
+		if (node && effectRan.current) setReplacement(node)
 	}, [])
 
 	useLayoutEffect(() => measure())
 
 	useEffect(() => {
+		effectRan.current = true
+
 		const el = replacement ?? elRef.current
 
 		if (!el) return
-
-		bound.current = true
 
 		// The width observation and the font-settle re-measure exist to keep an
 		// armed flag current. Before contact nothing reads it, so both defer to the

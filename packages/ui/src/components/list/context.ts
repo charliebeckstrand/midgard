@@ -1,7 +1,7 @@
 'use client'
 
 import type { DragControls } from 'motion/react'
-import type { KeyboardEvent } from 'react'
+import type { KeyboardEvent, ReactNode, RefObject } from 'react'
 import { createContext } from '../../core/create-context'
 import type { ReorderMove } from '../../hooks/use-keyboard-reorder'
 import type { ListVariant } from '../../recipes/kata/list'
@@ -102,3 +102,27 @@ export type ListItemContextValue = {
  * @throws When no `<ListItem>` is mounted above the caller.
  */
 export const [ListItemContext, useListItemContext] = createContext<ListItemContextValue>('ListItem')
+
+/** A line of a row that the truncation reveal of the row can show. @internal */
+export type ListRevealLine = 'label' | 'description'
+
+/**
+ * The truncation reveal of one row. A {@link ListLabel} or a
+ * {@link ListDescription} reports its content while it truncates, and the row
+ * shows each reported line in its tooltip. @internal
+ */
+export type ListItemRevealValue = {
+	/** The `<li>`, the trigger of the tooltip. Its pointer or focus contact arms the measure of each line. */
+	armRef: RefObject<HTMLElement | null>
+	/** Reports the content of a line that truncates, or `null` when the line fits. It keeps its identity. */
+	report: (line: ListRevealLine, content: ReactNode) => void
+}
+
+/**
+ * The truncation reveal of the nearest `<ListItem>`, or `null` outside one. A
+ * label or a description outside a row shows no reveal. @internal
+ */
+export const [ListItemRevealContext, useListItemReveal] = createContext<ListItemRevealValue | null>(
+	'ListItemReveal',
+	{ default: null },
+)

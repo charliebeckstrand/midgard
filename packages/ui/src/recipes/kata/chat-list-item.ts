@@ -38,7 +38,18 @@ export const k = defineKata({
 			// positioned ancestor for the overlay `::after` below. Giving the button
 			// `relative` here would make it that pseudo-element's containing block
 			// instead, shrinking the overlay down to the button's own `flex-1` box.
-			base: [flex.col, 'min-w-0 flex-1', 'text-start', 'outline-none', 'z-10', ...cursor],
+			// `items-stretch` restates the default over the `items-center` of the
+			// tooltip trigger (the truncation reveal), so each line keeps the width of
+			// the column and truncates.
+			base: [
+				flex.col,
+				'items-stretch',
+				'min-w-0 flex-1',
+				'text-start',
+				'outline-none',
+				'z-10',
+				...cursor,
+			],
 			// `overlay` stretches the hit area of the select button over the whole
 			// `relative` row through a pointer-capturing `::after`. It is the inverse
 			// of the overlay in `kasane.layers`, which adds `pointer-events-none` to

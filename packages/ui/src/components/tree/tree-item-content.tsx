@@ -1,15 +1,17 @@
 'use client'
 
 import { Check, ChevronRight, Minus } from 'lucide-react'
-import { type KeyboardEvent, type MouseEvent, useId } from 'react'
+import { type KeyboardEvent, type MouseEvent, useId, useRef } from 'react'
 import { ariaAttr } from '../../core/aria-attr'
 import { cn } from '../../core/cn'
 import { dataAttr } from '../../core/data-attr'
+import { useTruncation } from '../../hooks/use-truncation'
 import { Glyph } from '../../primitives/glyph'
 import { k } from '../../recipes/kata/tree'
 import { hasContent } from '../../utilities/children'
 import { isActivationKey } from '../../utilities/keyboard-navigation'
 import { Icon } from '../icon'
+import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 import { useTreeContext, useTreePosition } from './context'
 import { CHECK_SELECTOR } from './tree-constants'
 import type { TreeItemProps } from './tree-item'
@@ -41,7 +43,9 @@ type TreeItemContentProps = Pick<
  * Toggles expansion on a branch row and the check on a checkable leaf row. On a
  * checkable row, `Space` and a click on the box toggle the check. `ArrowRight`
  * opens a closed branch and `ArrowLeft` closes an open one. Reads depth and
- * ARIA position from tree context.
+ * ARIA position from tree context. While the label truncates, a hover of the
+ * row and a keyboard focus of the row show the full label in a tooltip (WCAG
+ * 1.4.10). The label names the row, so the tooltip adds no description.
  *
  * @internal
  */
@@ -122,7 +126,12 @@ export function TreeItemContent({
 
 	const slots = k({ current })
 
-	return (
+	// The row triggers the reveal, so its contact, not the contact of the label, arms the measure.
+	const rowRef = useRef<HTMLDivElement>(null)
+
+	const [labelRef, truncated] = useTruncation<HTMLSpanElement>({ armRef: rowRef })
+
+	const row = (
 		<div
 			role="treeitem"
 			aria-expanded={hasChildren ? open : undefined}
@@ -170,7 +179,7 @@ export function TreeItemContent({
 				</span>
 			)}
 			{icon && <Icon icon={icon} />}
-			<span id={labelId} className={slots.label}>
+			<span ref={labelRef} id={labelId} className={slots.label}>
 				{label}
 			</span>
 			{hasSuffix && (
@@ -179,5 +188,15 @@ export function TreeItemContent({
 				</span>
 			)}
 		</div>
+	)
+
+	return (
+		<Tooltip disabled={!truncated}>
+			<TooltipTrigger ref={rowRef} aria-describedby={undefined}>
+				{row}
+			</TooltipTrigger>
+
+			<TooltipContent>{label}</TooltipContent>
+		</Tooltip>
 	)
 }

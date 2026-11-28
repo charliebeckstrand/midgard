@@ -14,15 +14,19 @@ import { useAriaIds } from '../../hooks/use-aria-ids'
 import { useKeyedValue } from '../../hooks/use-keyed-value'
 import { Polymorphic, type PolymorphicProps } from '../../primitives/polymorphic'
 import { k } from '../../recipes/kata/list'
+import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 import {
 	ListItemContext,
 	type ListItemContextValue,
+	ListItemRevealContext,
 	useListContext,
 	useListItemContext,
 } from './context'
 import { ListHandle } from './list-handle'
 import { ListItemMenu } from './list-item-menu'
 import type { ListReorderParts } from './list-reorder'
+import { ListRevealText } from './list-reveal-text'
+import { hasCutLines, useListItemRevealState } from './use-list-item-reveal-state'
 
 /**
  * Props for {@link ListItem}: `prefix`/`suffix` slots plus the content area's
@@ -114,6 +118,11 @@ export type ListItemProps<Fallback extends ElementType = 'div'> = {
  * with no such handler, the `<li>` is the stop. The `interactive` prop does not
  * move the stop. A focusable child, such as a checkbox or the button of the
  * auto-inserted {@link ListItemMenu}, keeps its own stop.
+ *
+ * While a {@link ListLabel} or a {@link ListDescription} of the row truncates,
+ * a hover of the row and a keyboard focus in the row show the text of each line
+ * that truncates in a tooltip (WCAG 1.4.10). The row holds that text, so the
+ * tooltip adds no description.
  *
  * @typeParam Fallback - Element the content area renders when no `href` is
  *   given; selected via `as`.
@@ -209,6 +218,14 @@ export function ListItem<Fallback extends ElementType = 'div'>({
 
 	const labelled = useMemo(() => ({ ...item, contentId }), [item, contentId])
 
+	// The row triggers the truncation reveal: the overlay of a row that acts takes
+	// the pointer off its text, and the Tab stop is the row or its content area.
+	const [reveal, cutLines] = useListItemRevealState()
+
+	// The React Compiler reads a property that holds a ref as a ref read in the render, and skips
+	// the component. The trigger therefore takes the ref through its own name.
+	const { armRef } = reveal
+
 	// The reorder props come after the spread, so they must keep the consumer description. The
 	// consumer ids come first, then the id of the reorder instructions. When the `<li>` is the
 	// stop, the consumer description stays on the content area, and the `<li>` gets only the
@@ -276,9 +293,19 @@ export function ListItem<Fallback extends ElementType = 'div'>({
 
 	return (
 		<ListItemContext value={labelled}>
-			<ListItemRow id={id} reorder={reorder} parts={reorderParts} {...row}>
-				{content}
-			</ListItemRow>
+			<ListItemRevealContext value={reveal}>
+				<Tooltip disabled={!hasCutLines(cutLines)}>
+					<TooltipTrigger ref={armRef} aria-describedby={undefined}>
+						<ListItemRow id={id} reorder={reorder} parts={reorderParts} {...row}>
+							{content}
+						</ListItemRow>
+					</TooltipTrigger>
+
+					<TooltipContent>
+						<ListRevealText lines={cutLines} />
+					</TooltipContent>
+				</Tooltip>
+			</ListItemRevealContext>
 		</ListItemContext>
 	)
 }

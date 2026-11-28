@@ -435,7 +435,7 @@ describe('Dashboard', () => {
 
 		expect(grip).not.toHaveAttribute('data-dragging')
 
-		grip.focus()
+		act(() => grip.focus())
 
 		fireEvent.keyDown(grip, { code: 'Space', key: ' ' })
 
@@ -460,7 +460,7 @@ describe('Dashboard', () => {
 		// jsdom applies no Tailwind CSS, so the class carries the pin.
 		expect(grip).toHaveClass('focus-visible:outline-blue-600')
 
-		grip.focus()
+		act(() => grip.focus())
 
 		fireEvent.keyDown(grip, { code: 'Space', key: ' ' })
 
@@ -492,7 +492,7 @@ describe('Dashboard', () => {
 
 		const grip = screen.getByRole('button', { name: 'Move Revenue' })
 
-		grip.focus()
+		act(() => grip.focus())
 
 		fireEvent.keyDown(grip, { code: 'Space', key: ' ' })
 
@@ -516,7 +516,7 @@ describe('Dashboard', () => {
 
 		const grip = screen.getByRole('button', { name: 'Move Revenue' })
 
-		grip.focus()
+		act(() => grip.focus())
 
 		// The keyboard sensor attaches its keys on a timer after the lift.
 		const settle = () => act(tick)
@@ -848,7 +848,7 @@ describe('Dashboard', () => {
 
 		const grip = screen.getByRole('button', { name: 'Move Traffic' })
 
-		grip.focus()
+		act(() => grip.focus())
 
 		fireEvent.keyDown(grip, { code: 'Space', key: ' ' })
 
@@ -889,7 +889,7 @@ describe('Dashboard', () => {
 
 		const grip = screen.getByRole('button', { name: 'Move Revenue' })
 
-		grip.focus()
+		act(() => grip.focus())
 
 		fireEvent.keyDown(grip, { code: 'Space', key: ' ' })
 
@@ -1389,7 +1389,7 @@ describe('Dashboard gesture owner', () => {
 	async function lift(name: string, code = 'ArrowRight', steps = 0): Promise<HTMLElement> {
 		const grip = screen.getByRole('button', { name })
 
-		grip.focus()
+		act(() => grip.focus())
 
 		fireEvent.keyDown(grip, { code: 'Space', key: ' ' })
 
@@ -1926,7 +1926,7 @@ describe('Dashboard gesture owner', () => {
 
 			const grip = screen.getByRole('button', { name: 'Move Revenue' })
 
-			grip.focus()
+			act(() => grip.focus())
 
 			fireEvent.keyDown(grip, { code: 'Enter', key: 'Enter' })
 
@@ -2637,7 +2637,7 @@ describe('Dashboard scope', () => {
 
 		const clear = screen.getByRole('button', { name: 'Clear the selection in Days' })
 
-		clear.focus()
+		act(() => clear.focus())
 
 		fireEvent.click(clear)
 
