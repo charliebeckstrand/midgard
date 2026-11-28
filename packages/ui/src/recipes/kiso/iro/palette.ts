@@ -9,8 +9,13 @@
  * is apart because only a control takes a hover: Button reads it, a Badge reads
  * it only when it has an `href`, and Alert and Avatar do not read it.
  *
- * The text of a bare entry clears AA (4.5:1) on the page surface, so the
- * `onSurface` shades of the ramp, and thus the `iro.text` intents, read it.
+ * The text of a bare entry is on the page surface. In each chromatic hue it is
+ * 700 in light and 400 in dark, as the chart `ink` (`zu.palette`) is. Zinc is
+ * 500 in light and 400 in dark, because it is the `muted` rung, and 500 is the
+ * least emphatic rung on the page (`ramp.ts`). Each shade clears AA (4.5:1) on
+ * the page, so the `onSurface` shades of the ramp, and thus the `iro.text`
+ * intents, read it. The bare hover is one step past rest: 800 in light and 300
+ * in dark in each chromatic hue, and the strong neutral in zinc.
  * Soft, outline, and plain text is 800 in light and 400 in dark for each hue.
  * In light, 700 misses AA on the 15% soft fill in some hues (amber, green), so
  * each hue takes 800. The soft hover fill is 30%, and 400 text misses AA on it
@@ -61,10 +66,10 @@ export const palette = {
 	},
 	bare: {
 		zinc: 'text-zinc-500 dark:text-zinc-400',
-		red: 'text-red-600 dark:text-red-500',
-		amber: 'text-amber-700 dark:text-amber-500',
-		green: 'text-green-700 dark:text-green-500',
-		blue: 'text-blue-600 dark:text-blue-500',
+		red: 'text-red-700 dark:text-red-400',
+		amber: 'text-amber-700 dark:text-amber-400',
+		green: 'text-green-700 dark:text-green-400',
+		blue: 'text-blue-700 dark:text-blue-400',
 	},
 } as const
 
@@ -91,9 +96,9 @@ export const extended = {
 		sky: 'text-sky-800 dark:text-sky-400',
 	},
 	bare: {
-		rose: 'text-rose-600 dark:text-rose-500',
-		violet: 'text-violet-600 dark:text-violet-400',
-		sky: 'text-sky-700 dark:text-sky-500',
+		rose: 'text-rose-700 dark:text-rose-400',
+		violet: 'text-violet-700 dark:text-violet-400',
+		sky: 'text-sky-700 dark:text-sky-400',
 	},
 } as const
 
@@ -143,15 +148,15 @@ export const hover = {
 	},
 	bare: {
 		zinc: 'not-disabled:not-data-disabled:hover:text-zinc-950 dark:not-disabled:not-data-disabled:hover:text-white',
-		red: 'not-disabled:not-data-disabled:hover:text-red-700 dark:not-disabled:not-data-disabled:hover:text-red-400',
+		red: 'not-disabled:not-data-disabled:hover:text-red-800 dark:not-disabled:not-data-disabled:hover:text-red-300',
 		amber:
-			'not-disabled:not-data-disabled:hover:text-amber-800 dark:not-disabled:not-data-disabled:hover:text-amber-400',
+			'not-disabled:not-data-disabled:hover:text-amber-800 dark:not-disabled:not-data-disabled:hover:text-amber-300',
 		green:
-			'not-disabled:not-data-disabled:hover:text-green-800 dark:not-disabled:not-data-disabled:hover:text-green-400',
-		blue: 'not-disabled:not-data-disabled:hover:text-blue-700 dark:not-disabled:not-data-disabled:hover:text-blue-400',
-		rose: 'not-disabled:not-data-disabled:hover:text-rose-700 dark:not-disabled:not-data-disabled:hover:text-rose-400',
+			'not-disabled:not-data-disabled:hover:text-green-800 dark:not-disabled:not-data-disabled:hover:text-green-300',
+		blue: 'not-disabled:not-data-disabled:hover:text-blue-800 dark:not-disabled:not-data-disabled:hover:text-blue-300',
+		rose: 'not-disabled:not-data-disabled:hover:text-rose-800 dark:not-disabled:not-data-disabled:hover:text-rose-300',
 		violet:
-			'not-disabled:not-data-disabled:hover:text-violet-700 dark:not-disabled:not-data-disabled:hover:text-violet-300',
-		sky: 'not-disabled:not-data-disabled:hover:text-sky-800 dark:not-disabled:not-data-disabled:hover:text-sky-400',
+			'not-disabled:not-data-disabled:hover:text-violet-800 dark:not-disabled:not-data-disabled:hover:text-violet-300',
+		sky: 'not-disabled:not-data-disabled:hover:text-sky-800 dark:not-disabled:not-data-disabled:hover:text-sky-300',
 	},
 } as const
