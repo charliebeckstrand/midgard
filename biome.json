@@ -67,26 +67,12 @@
 		},
 		{
 			"includes": [
-				"packages/ui/**",
-				"!packages/ui/**/__tests__/**",
-				"!packages/ui/**/__benchmarks__/**",
-				"!packages/ui/**/*.test.ts",
-				"!packages/ui/**/*.test.tsx"
-			],
-			"linter": {
-				"rules": {
-					"complexity": {
-						"noExcessiveCognitiveComplexity": "error"
-					}
-				}
-			}
-		},
-		{
-			"includes": [
 				"apps/**",
 				"packages/auth/**",
 				"packages/shared/**",
+				"packages/ui/**",
 				"!**/__tests__/**",
+				"!**/__benchmarks__/**",
 				"!**/*.test.ts",
 				"!**/*.test.tsx"
 			],
@@ -322,32 +308,7 @@
 			}
 		},
 		{
-			"includes": ["packages/ui/src/modules/**"],
-			"linter": {
-				"rules": {
-					"style": {
-						"noRestrictedImports": {
-							"level": "error",
-							"options": {
-								"patterns": [
-									{
-										"group": [
-											"**/recipes/kumi",
-											"**/recipes/kumi/**",
-											"**/recipes/kiso",
-											"**/recipes/kiso/**"
-										],
-										"message": "Every consuming layer reaches the recipe layer through its owning kata. An import from recipes/kumi or recipes/kiso bypasses the kata curation. It pulls group or substrate fragments into the consuming layer."
-									}
-								]
-							}
-						}
-					}
-				}
-			}
-		},
-		{
-			"includes": ["packages/ui/src/structure/**/variants.ts"],
+			"includes": ["packages/ui/src/modules/**", "packages/ui/src/structure/**/variants.ts"],
 			"linter": {
 				"rules": {
 					"style": {
