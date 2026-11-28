@@ -18,8 +18,8 @@ export type WithAuthOptions = {
 
 /**
  * Wraps a Next config so `/auth/*` rewrites to the gateway ({@link BIFROST_URL}),
- * and `/api/*` too with `gatewayApi`, and every response carries
- * {@link securityHeaders}.
+ * and `/api/*` too with `gatewayApi`. The security headers come from
+ * {@link appConfig}, which each app passes.
  *
  * @remarks
  * These rewrites let client code hit same-origin paths while the gateway serves
@@ -32,12 +32,11 @@ export type WithAuthOptions = {
  * routes before Next matched them.
  *
  * An existing `rewrites` is preserved. The array form stays in `afterFiles`,
- * and the gateway rewrites follow the `fallback` of the object form. An
- * existing `headers` is kept after the security headers.
+ * and the gateway rewrites follow the `fallback` of the object form.
  *
  * @param config - The base Next config to extend.
  * @param options - See {@link WithAuthOptions}.
- * @returns The config with the gateway rewrites and security headers merged in.
+ * @returns The config with the gateway rewrites merged in.
  */
 export function withAuth(
 	config: NextConfig = {},
@@ -45,15 +44,8 @@ export function withAuth(
 ): NextConfig {
 	const userRewrites = config.rewrites
 
-	const userHeaders = config.headers
-
 	return {
 		...config,
-		async headers() {
-			const existing = (await userHeaders?.()) ?? []
-
-			return [{ source: '/:path*', headers: securityHeaders }, ...existing]
-		},
 		async rewrites() {
 			const apiRewrites = gatewayApi
 				? [{ source: '/api/:path*', destination: `${BIFROST_URL}/api/:path*` }]
