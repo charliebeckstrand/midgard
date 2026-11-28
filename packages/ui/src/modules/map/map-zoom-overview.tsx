@@ -89,7 +89,7 @@ function MapZoomOverviewInset({
 	// on the plot does.
 	const cursorHold = useDragCursorHold()
 
-	const { transform } = zoom
+	const { transform, cover } = zoom
 
 	// The part of the fitted frame that the view shows. A pan can take the view
 	// past an edge of the frame, by the room that the inset covers, and the
@@ -156,7 +156,7 @@ function MapZoomOverviewInset({
 
 	return (
 		<div
-			ref={zoom.cover}
+			ref={cover}
 			data-slot="map-zoom-overview"
 			aria-hidden="true"
 			className={cn(k.overview.base, controls === 'left' ? k.overview.left : k.overview.right)}

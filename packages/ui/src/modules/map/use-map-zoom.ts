@@ -9,7 +9,6 @@ import {
 	useEffect,
 	useEffectEvent,
 	useLayoutEffect,
-	useMemo,
 	useRef,
 	useState,
 } from 'react'
@@ -43,6 +42,7 @@ import {
 	type MapPanFrame,
 	type MapTransform,
 	type MapViewFrame,
+	type MapViewRoom,
 	NO_ROOM,
 	overlayRoom,
 	panTransform,
@@ -233,12 +233,12 @@ export function useMapZoom({
 
 	// The ground that the overview inset covers, measured while it shows. The
 	// pan limits read it from the frame (`constrainTransform`).
-	const [room, setRoom] = useState(NO_ROOM)
-
-	const bounds = useMemo((): MapPanFrame => ({ ...view, room }), [view, room])
+	const [room, cover] = useOverlayRoom(svgRef, view)
 
 	const transform =
-		settings === null ? MAP_FIT_TRANSFORM : constrainTransform(held.transform, bounds, max)
+		settings === null
+			? MAP_FIT_TRANSFORM
+			: constrainTransform(held.transform, { ...view, room }, max)
 
 	/*
 	 * One report for each committed transform.
@@ -256,14 +256,18 @@ export function useMapZoom({
 	// The gesture handlers read the view through this rather than through their
 	// own closure: a pointer sequence outlives the render it began on, and two
 	// events can land before React renders.
-	const live = useRef({ transform, view: bounds, max })
+	const live = useRef<{ transform: MapTransform; view: MapPanFrame; max: number }>({
+		transform,
+		view: { ...view, room },
+		max,
+	})
 
 	// Synced in a layout effect, ahead of the effects below and of any event. Only
 	// events read it, and the keyboard cursor drives the view from a keypress, so
 	// no reader runs between the render and this write.
 	useLayoutEffect(() => {
-		live.current = { transform, view: bounds, max }
-	}, [transform, bounds, max])
+		live.current = { transform, view: { ...view, room }, max }
+	}, [transform, view, room, max])
 
 	// A plain function, as each gesture handler below is. No dependency array
 	// names one of them: the native listeners read their handlers through an
@@ -923,41 +927,6 @@ export function useMapZoom({
 		commit(centerTransform(from, at, frame))
 	}
 
-	/*
-	 * Measures the overlay against the plot SVG while it is in the tree, and
-	 * again when either box changes size. The observer reports after layout, so
-	 * the measure forces no layout of its own. The overlay leaves the tree at the
-	 * fit, where the room counts for nothing, and the room clears with it.
-	 */
-	const cover = useCallback(
-		(node: HTMLElement | null) => {
-			const svg = svgRef.current
-
-			if (node === null || svg === null) return
-
-			const observer = new ResizeObserver(() => {
-				const next = overlayRoom(
-					node.getBoundingClientRect(),
-					svg.getBoundingClientRect(),
-					live.current.view,
-				)
-
-				setRoom((prev) => (sameRoom(prev, next) ? prev : next))
-			})
-
-			observer.observe(node)
-
-			observer.observe(svg)
-
-			return () => {
-				observer.disconnect()
-
-				setRoom(NO_ROOM)
-			}
-		},
-		[svgRef],
-	)
-
 	if (settings === null) return null
 
 	return {
@@ -982,6 +951,63 @@ export function useMapZoom({
 		cursor: { transform, stepZoom, fit, show, center },
 		cover,
 	}
+}
+
+/**
+ * The room that an overlay covers on the plot, and the ref that measures it:
+ * the half of {@link useMapZoom} that reads the overview inset.
+ *
+ * The ref measures the overlay against the plot SVG while the overlay is in
+ * the tree, and again when either box changes size. The observer reports
+ * after layout, so the measure forces no layout of its own. The overlay leaves
+ * the tree at the fit, where the room counts for nothing, and the room clears
+ * with it.
+ *
+ * @internal
+ */
+function useOverlayRoom(
+	svgRef: RefObject<SVGSVGElement | null>,
+	view: MapViewFrame,
+): [MapViewRoom, RefCallback<HTMLElement>] {
+	const [room, setRoom] = useState(NO_ROOM)
+
+	// The observer outlives the render that bound it, so it reads the frame here.
+	const frame = useRef(view)
+
+	useLayoutEffect(() => {
+		frame.current = view
+	}, [view])
+
+	const cover = useCallback(
+		(node: HTMLElement | null) => {
+			const svg = svgRef.current
+
+			if (node === null || svg === null) return
+
+			const observer = new ResizeObserver(() => {
+				const next = overlayRoom(
+					node.getBoundingClientRect(),
+					svg.getBoundingClientRect(),
+					frame.current,
+				)
+
+				setRoom((prev) => (sameRoom(prev, next) ? prev : next))
+			})
+
+			observer.observe(node)
+
+			observer.observe(svg)
+
+			return () => {
+				observer.disconnect()
+
+				setRoom(NO_ROOM)
+			}
+		},
+		[svgRef],
+	)
+
+	return [room, cover]
 }
 
 /**
