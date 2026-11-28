@@ -143,6 +143,23 @@ describe('MapPoints', () => {
 		expect(onClick).toHaveBeenLastCalledWith('fleet', 1, [1], KEY)
 	})
 
+	it('names the dot under the cursor to a keyboard context menu', () => {
+		const onContextMenu = vi.fn()
+
+		const { plot } = renderNavigable(
+			overlayPlat(
+				<MapPoints id="fleet" label="Stops" points={STOPS} onContextMenu={onContextMenu} />,
+			),
+		)
+
+		fireEvent.keyDown(plot, { key: 'End' })
+
+		// The keyboard event fires at the focused plot, so the cursor names the dot.
+		fireEvent.contextMenu(plot)
+
+		expect(onContextMenu).toHaveBeenCalledExactlyOnceWith('fleet', 2, [2])
+	})
+
 	it('holds the point the cursor stands on when a zoom regroups the dots', () => {
 		// At the fit the first pair stands 12px apart and merges into one summary,
 		// so the far dot is the second stop. A zoom step parts the pair, and the

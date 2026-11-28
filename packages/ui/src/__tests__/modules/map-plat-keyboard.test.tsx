@@ -236,6 +236,58 @@ describe('MapPlat keyboard navigation', () => {
 		expect(onRegionClick).not.toHaveBeenCalled()
 	})
 
+	it('names the region under the cursor to a keyboard context menu', () => {
+		const onRegionContextMenu = vi.fn()
+
+		const { plot } = renderNavigable(categoricalPlat({ onRegionContextMenu }))
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		// Shift+F10 and the ContextMenu key fire `contextmenu` at the focused
+		// plot, not at a region path, so the cursor names the region.
+		fireEvent.contextMenu(plot)
+
+		expect(onRegionContextMenu).toHaveBeenCalledExactlyOnceWith('B', 1)
+	})
+
+	it('names no region to a keyboard context menu before an arrow has placed the cursor', () => {
+		const onRegionContextMenu = vi.fn()
+
+		const { plot } = renderNavigable(categoricalPlat({ onRegionContextMenu }))
+
+		fireEvent.contextMenu(plot)
+
+		expect(onRegionContextMenu).not.toHaveBeenCalled()
+	})
+
+	it('names the right-clicked region once, not the region under the cursor', () => {
+		const onRegionContextMenu = vi.fn()
+
+		const { container, plot } = renderNavigable(categoricalPlat({ onRegionContextMenu }))
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		fireEvent.contextMenu(allRegions(container)[1] as Element)
+
+		expect(onRegionContextMenu).toHaveBeenCalledExactlyOnceWith('B', 1)
+	})
+
+	it('takes a tab stop on a map whose only output is a context menu', () => {
+		const onRegionContextMenu = vi.fn()
+
+		const { plot } = renderNavigable(categoricalPlat({ tooltip: false, onRegionContextMenu }))
+
+		expect(plot).toHaveAttribute('tabindex', '0')
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		fireEvent.contextMenu(plot)
+
+		expect(onRegionContextMenu).toHaveBeenCalledExactlyOnceWith('A', 0)
+	})
+
 	it('clears the readout on Escape and on leaving the region', () => {
 		const { container, plot } = renderNavigable(categoricalPlat())
 
