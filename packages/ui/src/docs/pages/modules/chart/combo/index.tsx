@@ -7,10 +7,10 @@ import WithArea from './with-area.tsx'
 export default function ComboTab() {
 	return (
 		<>
-			<Example of={BarAndLine} box="ratio" />
-			<Example of={WithArea} box="ratio" />
-			<Example of={DualAxis} box="ratio" />
-			<Example of={Animated} box="ratio" />
+			<Example of={BarAndLine} />
+			<Example of={WithArea} />
+			<Example of={DualAxis} />
+			<Example of={Animated} />
 		</>
 	)
 }

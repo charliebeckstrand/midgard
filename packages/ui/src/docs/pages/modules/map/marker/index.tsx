@@ -5,8 +5,8 @@ import RoutedMarkers from './routed-markers.tsx'
 export default function MarkerTab() {
 	return (
 		<>
-			<Example of={Basic} box="ratio" />
-			<Example of={RoutedMarkers} box="ratio" />
+			<Example of={Basic} />
+			<Example of={RoutedMarkers} />
 		</>
 	)
 }
