@@ -535,22 +535,6 @@
 		"defaultMessage": "This dashboard cannot show a “{widget}” tile.",
 		"description": "The text of a dashboard tile whose kind no widget renders. The widget is the name of the kind."
 	},
-	"ui.dashboard.moveDown": {
-		"defaultMessage": "Move down",
-		"description": "The menu item that moves a dashboard tile down."
-	},
-	"ui.dashboard.moveLeft": {
-		"defaultMessage": "Move left",
-		"description": "The menu item that moves a dashboard tile to the left on the screen."
-	},
-	"ui.dashboard.moveRight": {
-		"defaultMessage": "Move right",
-		"description": "The menu item that moves a dashboard tile to the right on the screen."
-	},
-	"ui.dashboard.moveUp": {
-		"defaultMessage": "Move up",
-		"description": "The menu item that moves a dashboard tile up."
-	},
 	"ui.dashboard.moved": {
 		"defaultMessage": "{item} moved to {cell}.",
 		"description": "Spoken when an item of the menu of a dashboard tile moves the tile to a new place."

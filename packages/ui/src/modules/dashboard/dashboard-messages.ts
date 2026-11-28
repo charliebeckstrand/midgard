@@ -9,10 +9,6 @@ type DashboardValues = {
 	clearSelection: { label: string }
 	resize: { label: string }
 	arrange: { label: string }
-	moveLeft: Record<never, never>
-	moveRight: Record<never, never>
-	moveUp: Record<never, never>
-	moveDown: Record<never, never>
 	increaseWidth: Record<never, never>
 	decreaseWidth: Record<never, never>
 	increaseHeight: Record<never, never>
@@ -63,26 +59,6 @@ export const dashboardMessages: MessageSet<DashboardValues> = defineMessages<Das
 		defaultMessage: 'Arrange {label}',
 		description:
 			'The name of the button that opens the menu that moves and resizes a dashboard tile in edit mode.',
-	},
-	moveLeft: {
-		id: 'ui.dashboard.moveLeft',
-		defaultMessage: 'Move left',
-		description: 'The menu item that moves a dashboard tile to the left on the screen.',
-	},
-	moveRight: {
-		id: 'ui.dashboard.moveRight',
-		defaultMessage: 'Move right',
-		description: 'The menu item that moves a dashboard tile to the right on the screen.',
-	},
-	moveUp: {
-		id: 'ui.dashboard.moveUp',
-		defaultMessage: 'Move up',
-		description: 'The menu item that moves a dashboard tile up.',
-	},
-	moveDown: {
-		id: 'ui.dashboard.moveDown',
-		defaultMessage: 'Move down',
-		description: 'The menu item that moves a dashboard tile down.',
 	},
 	increaseWidth: {
 		id: 'ui.dashboard.increaseWidth',

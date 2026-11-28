@@ -23,6 +23,7 @@ import {
 	MenuTrigger,
 } from '../../components/menu'
 import { Glyph } from '../../primitives/glyph'
+import { reorderMessages } from '../../primitives/intl/intl-reorder'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { useDashboardActions } from './context'
 import { keepFocusOnBoard } from './dashboard-focus'
@@ -31,10 +32,10 @@ import type { DashboardTileStep } from './use-dashboard-steps'
 
 /** The label and the glyph of each item of the menu. */
 const ITEMS = {
-	left: { label: dashboardMessages.moveLeft, icon: <Glyph icon={ChevronLeft} /> },
-	right: { label: dashboardMessages.moveRight, icon: <Glyph icon={ChevronRight} /> },
-	up: { label: dashboardMessages.moveUp, icon: <Glyph icon={ChevronUp} /> },
-	down: { label: dashboardMessages.moveDown, icon: <Glyph icon={ChevronDown} /> },
+	left: { label: reorderMessages.moveLeft, icon: <Glyph icon={ChevronLeft} /> },
+	right: { label: reorderMessages.moveRight, icon: <Glyph icon={ChevronRight} /> },
+	up: { label: reorderMessages.moveUp, icon: <Glyph icon={ChevronUp} /> },
+	down: { label: reorderMessages.moveDown, icon: <Glyph icon={ChevronDown} /> },
 	wider: {
 		label: dashboardMessages.increaseWidth,
 		icon: <Glyph icon={ArrowsFromAxisDashedVertical} />,
