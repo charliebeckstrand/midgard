@@ -42,6 +42,12 @@ type MapZoomOverviewProps = {
  * where it lands. It sits in the `role="img"` plot, in a bottom corner: the
  * legend and the zoom buttons are outside the plot, so it covers neither.
  *
+ * The inset covers the ground under its corner. It gives its box to the zoom
+ * (`MapZoom.cover`), and the pan goes past those edges of the frame by that
+ * much. Thus a drag brings any point under the inset into the open. The inset
+ * hides while the plot has keyboard focus and no pointer rests on the inset,
+ * so a step of the keyboard cursor needs no pan away from it.
+ *
  * @internal
  */
 export function MapZoomOverview(props: MapZoomOverviewProps) {
@@ -49,7 +55,12 @@ export function MapZoomOverview(props: MapZoomOverviewProps) {
 
 	if (zoom === null || zoom.transform.k <= MAP_ZOOM_FIT) return null
 
-	return <MapZoomOverviewInset {...props} zoom={zoom} />
+	// The side is the key, so an inset that changes corners mounts again, and its
+	// ref measures the room on the new side. A resize observer reports a change
+	// of size, and a change of corners keeps the size.
+	const side = props.controls === 'left' ? 'left' : 'right'
+
+	return <MapZoomOverviewInset key={side} {...props} zoom={zoom} />
 }
 
 /**
@@ -83,13 +94,20 @@ function MapZoomOverviewInset({
 	// on the plot does.
 	const cursorHold = useDragCursorHold()
 
-	const { transform } = zoom
+	const { transform, cover } = zoom
 
-	// The part of the fitted frame that the view shows.
+	// The part of the fitted frame that the view shows. A pan can take the view
+	// past an edge of the frame, by the room that the inset covers, and the
+	// thumbnail shows only the frame. The view is therefore cut at its edges.
+	const start = invertTransform({ x: 0, y: 0 }, transform)
+
+	const end = invertTransform({ x: view.width, y: view.height }, transform)
+
 	const shown = {
-		...invertTransform({ x: 0, y: 0 }, transform),
-		width: view.width / transform.k,
-		height: view.height / transform.k,
+		x: Math.max(start.x, 0),
+		y: Math.max(start.y, 0),
+		width: Math.min(end.x, view.width) - Math.max(start.x, 0),
+		height: Math.min(end.y, view.height) - Math.max(start.y, 0),
 	}
 
 	function aim(event: PointerEvent<HTMLElement>) {
@@ -143,6 +161,7 @@ function MapZoomOverviewInset({
 
 	return (
 		<div
+			ref={cover}
 			data-slot="map-zoom-overview"
 			aria-hidden="true"
 			className={cn(k.overview.base, controls === 'left' ? k.overview.left : k.overview.right)}
