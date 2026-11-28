@@ -1,7 +1,7 @@
 /**
  * The server of the docs build: the `ui` service of `.do/app.yaml`,
- * and the server of `docs:preview` and `test:docs-build`. `docs:bench` serves
- * the build with the same paths, over HTTP/2.
+ * and the server of `docs:preview`, `test:docs-build`, and `docs:parity`.
+ * `docs:bench` serves the build with the same paths and headers, over HTTP/2.
  *
  * The root path has no page. It gets a redirect to the first page of the
  * docs, with its query ({@link rootRedirect}). A path gets the file at that
@@ -39,7 +39,6 @@
 
 import { stat } from 'node:fs/promises'
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http'
-import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { requestLocale } from '../../src/docs/app/language.ts'
 import { rootRedirect } from '../../src/docs/app/root-redirect.ts'
@@ -47,7 +46,7 @@ import { sectionRootClasses } from '../../src/docs/app/section-marks.ts'
 import { type RootMarks, rootMarks } from '../../src/server/root-marks.ts'
 import {
 	CLIENT_DIR,
-	COMPRESSED,
+	cacheHeaders,
 	contentType,
 	isFallback,
 	listen,
@@ -66,33 +65,6 @@ function docsMarks(cookies?: string): RootMarks {
 	const { classes, attributes } = rootMarks(cookies)
 
 	return { classes: [...classes, ...sectionRootClasses(cookies)], attributes }
-}
-
-/** The hashed files of the build, whose names change with their content. */
-const ASSETS = `${path.sep}assets${path.sep}`
-
-/**
- * The cache headers of `file`. A hashed file does not change, so a cache keeps
- * it for a year. An HTML file changes with each deploy and with the locale of
- * the request, so a cache asks the server each time. A file that the server
- * compresses also changes with the codings that the request takes.
- */
-function cacheHeaders(file: string): Record<string, string> {
-	const html = file.endsWith('.html')
-
-	let control = 'public, max-age=3600'
-
-	if (html) control = 'no-cache'
-	else if (file.includes(ASSETS)) control = 'public, max-age=31536000, immutable'
-
-	const vary = [
-		...(html ? ['Cookie', 'Accept-Language'] : []),
-		...(COMPRESSED.has(path.extname(file)) ? ['Accept-Encoding'] : []),
-	]
-
-	return vary.length > 0
-		? { 'cache-control': control, vary: vary.join(', ') }
-		: { 'cache-control': control }
 }
 
 /**
@@ -123,8 +95,12 @@ export function isFresh(ifNoneMatch: string | undefined, etag: string): boolean 
 	return ifNoneMatch.split(',').some((tag) => tag.trim() === '*' || opaque(tag) === opaque(etag))
 }
 
-/** Answer a request with the file of its path. */
-async function respond(request: IncomingMessage, response: ServerResponse): Promise<void> {
+/** Answer a request with the file of its path in the client directory `root`. */
+async function respond(
+	root: string,
+	request: IncomingMessage,
+	response: ServerResponse,
+): Promise<void> {
 	if (request.method !== 'GET' && request.method !== 'HEAD') {
 		response.writeHead(405, { allow: 'GET, HEAD' }).end()
 
@@ -136,9 +112,7 @@ async function respond(request: IncomingMessage, response: ServerResponse): Prom
 		acceptLanguage: request.headers['accept-language'],
 	})
 
-	const file = await resolveFile(CLIENT_DIR, request.url ?? '/', locale)
-
-	const marks = file?.endsWith('.html') ? docsMarks(request.headers.cookie) : NO_MARKS
+	const file = await resolveFile(root, request.url ?? '/', locale)
 
 	if (file === undefined) {
 		response.writeHead(400).end()
@@ -146,7 +120,7 @@ async function respond(request: IncomingMessage, response: ServerResponse): Prom
 		return
 	}
 
-	const type = contentType(file)
+	const marks = file.endsWith('.html') ? docsMarks(request.headers.cookie) : NO_MARKS
 
 	const missing = isFallback(file)
 
@@ -181,7 +155,7 @@ async function respond(request: IncomingMessage, response: ServerResponse): Prom
 	}
 
 	response.writeHead(missing ? 404 : 200, {
-		'content-type': type,
+		'content-type': contentType(file),
 		'content-length': body.length,
 		...(etag && { etag }),
 		...(encoding && { 'content-encoding': encoding }),
@@ -192,12 +166,14 @@ async function respond(request: IncomingMessage, response: ServerResponse): Prom
 }
 
 /**
- * Start the server of the docs build on `host`, and give its origin, such as
- * `http://localhost:3456`.
+ * Start the server of the client directory `root` on `host`, and give its
+ * origin, such as `http://localhost:3456`. `docs:parity` serves two builds, each
+ * from its own directory.
  */
 export async function serveDocs(
 	port: number,
 	host = 'localhost',
+	root = CLIENT_DIR,
 ): Promise<{ origin: string; server: Server }> {
 	const server = createServer((request, response) => {
 		// The root path has no file. The redirect is temporary, so a browser does
@@ -211,7 +187,7 @@ export async function serveDocs(
 		}
 
 		// A response that fails gives 500, and the server keeps running.
-		respond(request, response).catch(() => {
+		respond(root, request, response).catch(() => {
 			if (!response.headersSent) response.writeHead(500)
 
 			response.end()

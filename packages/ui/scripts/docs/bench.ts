@@ -3,8 +3,9 @@
  * app first.
  *
  * The script serves the build over HTTP/2 with TLS and brotli, as a CDN does,
- * with the paths of `server.ts`. It also sends the responses in the
- * order of their priority, as a CDN does ({@link createDownlink}). Chromium
+ * with the paths, the status, and the cache headers of `server.ts`. It also
+ * sends the responses in the order of their priority, as a CDN does
+ * ({@link createDownlink}). Chromium
  * opens `/button` cold at 390 px, with the CPU four times slower and the
  * network of Lighthouse "Slow 4G". The table gives the median of each value:
  *
@@ -37,8 +38,17 @@ import { existsSync, writeFileSync } from 'node:fs'
 import { createSecureServer, type Http2ServerResponse, type SecureServerOptions } from 'node:http2'
 import { parseArgs } from 'node:util'
 import { type Browser, type CDPSession, chromium, type Locator, type Page } from 'playwright'
-import { CLIENT_DIR, contentType, listen, pickEncoding, readBody, resolveFile } from './build'
-import { HYDRATED } from './probes'
+import {
+	CLIENT_DIR,
+	cacheHeaders,
+	contentType,
+	isFallback,
+	listen,
+	pickEncoding,
+	readBody,
+	resolveFile,
+} from './build.ts'
+import { HYDRATED } from './probes.ts'
 
 const PAGE = '/button'
 
@@ -339,13 +349,10 @@ async function serve(tls: SecureServerOptions): Promise<{ origin: string; close:
 		// The browser closes the streams of a run that ends.
 		if (response.stream.closed) return
 
-		response.writeHead(200, {
+		response.writeHead(isFallback(file) ? 404 : 200, {
 			'content-type': contentType(file),
-			// The name of each file in `assets/` holds the hash of its content.
-			'cache-control': request.url.startsWith('/assets/')
-				? 'public, max-age=31536000, immutable'
-				: 'no-cache',
 			...(encoding && { 'content-encoding': encoding }),
+			...cacheHeaders(file),
 		})
 
 		downlink.send({
