@@ -7,6 +7,7 @@ import { isRtl } from '../../hooks/a11y/logical-arrow'
 import { useDragCursorHold } from '../../hooks/use-drag-cursor'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { isFollowOnTap } from '../../hooks/use-touch-tap'
 import { k } from '../../recipes/kata/lightbox'
 import { holdTextSelection } from '../../utilities/hold-text-selection'
 import { isPrimaryPress } from '../../utilities/primary-press'
@@ -14,7 +15,6 @@ import type { Size } from '../../utilities/size'
 import {
 	dismisses,
 	dismissFrame,
-	isDoubleTap,
 	type LightboxPoint,
 	type LightboxSample,
 	type LightboxTap,
@@ -700,7 +700,7 @@ export function useLightboxTrack(
 
 		const tap = { x: event.clientX, y: event.clientY, at: event.timeStamp }
 
-		if (onPhoto && isDoubleTap(prevTap.current, tap)) {
+		if (onPhoto && prevTap.current !== null && isFollowOnTap(prevTap.current, tap)) {
 			prevTap.current = null
 
 			zoom.toggle(tap)

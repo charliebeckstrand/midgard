@@ -5,11 +5,10 @@ import { type KeyboardEvent, type Ref, useSyncExternalStore } from 'react'
 import { IconButton } from '../../components/icon-button'
 import { Toolbar, ToolbarGroup } from '../../components/toolbar'
 import { dataAttr } from '../../core/data-attr'
-import { useHydrated } from '../../hooks/use-hydrated'
+import { useApplePlatform } from '../../hooks/use-apple-platform'
 import { keepFocusOnPress } from '../../primitives/control/control-keep-focus-on-press'
 import { Glyph } from '../../primitives/glyph'
 import { useIntl } from '../../primitives/intl/use-intl'
-import { isApplePlatform } from '../../utilities/apple-platform'
 import { useWysiwyg } from './context'
 import type { WysiwygHeadingLevel } from './types'
 import { shortcutAria, wysiwygHeadingLevels, wysiwygMessages } from './wysiwyg-actions'
@@ -124,9 +123,8 @@ function WysiwygHeadingLevelButton({
 
 	const intl = useIntl()
 
-	// The server does not know the platform of the reader, so the server render
-	// and the hydration render name the keys of an Apple platform.
-	const apple = useHydrated() ? isApplePlatform() : true
+	// The server render and the hydration render name the keys of an Apple platform.
+	const apple = useApplePlatform()
 
 	const enabled = useSyncExternalStore(subscribe, () => canSetHeading(entry.level), serverOpen)
 

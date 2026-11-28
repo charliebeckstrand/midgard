@@ -1,4 +1,3 @@
-import { MULTI_TAP_DISTANCE, MULTI_TAP_WINDOW } from '../../hooks/use-touch-tap'
 import { clamp } from '../../utilities/clamp'
 import type { Size } from '../../utilities/size'
 import type { LightboxLoad, LightboxPhoto, LightboxViewPhoto } from './types'
@@ -491,21 +490,6 @@ export type LightboxPoint = { x: number; y: number }
 
 /** A lift that can be one half of a double tap: where and when. @internal */
 export type LightboxTap = LightboxPoint & { at: number }
-
-/**
- * Whether `tap` and the tap before it are a double tap: they lift in
- * {@link MULTI_TAP_WINDOW} and land in {@link MULTI_TAP_DISTANCE} of each other,
- * as the taps of a map, a grid, and an overlay do.
- *
- * @internal
- */
-export function isDoubleTap(prev: LightboxTap | null, tap: LightboxTap): boolean {
-	return (
-		prev !== null &&
-		tap.at - prev.at <= MULTI_TAP_WINDOW &&
-		Math.hypot(tap.x - prev.x, tap.y - prev.y) <= MULTI_TAP_DISTANCE
-	)
-}
 
 /** The transform that paints `view`. Its parts are the parts of {@link RESTING_TRANSFORM}. @internal */
 export function viewTransform(view: LightboxView): string {

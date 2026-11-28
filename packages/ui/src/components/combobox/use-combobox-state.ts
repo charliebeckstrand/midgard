@@ -4,6 +4,7 @@ import { type RefObject, useCallback, useLayoutEffect, useRef, useState } from '
 import { useControllableFlag } from '../../hooks/use-controllable'
 import { useDeferredToggle } from '../../hooks/use-deferred-toggle'
 import { useFrozenOnClose } from '../../hooks/use-frozen-on-close'
+import { useReportedChangeEvent } from '../../hooks/use-reported-change'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useDeferredQueryValue } from '../../primitives/query/use-query-value'
 
@@ -80,15 +81,7 @@ export function useComboboxState<T>({
 	// The query is internal state, and only `setQuery` writes it. Thus the last
 	// report is the query that the consumer knows. A call with that query does
 	// not report: close() and a multi pick clear a query that is already empty.
-	const reportedQueryRef = useRef(query)
-
-	const reportQuery = useStableEvent((next: string) => {
-		if (next === reportedQueryRef.current) return
-
-		reportedQueryRef.current = next
-
-		onQueryChange?.(next)
-	})
+	const reportQuery = useReportedChangeEvent(query, onQueryChange)
 
 	const setQuery = useCallback(
 		(next: string) => {

@@ -43,23 +43,62 @@ export function observeResizeBeforePaint(
 	target: Element,
 	measure: () => (() => void) | undefined,
 ): () => void {
+	return observeResizePausing(target, () => {
+		const update = measure()
+
+		return update && (() => flushSync(update))
+	})
+}
+
+/**
+ * Observes `targets`, and stops the observation for the rest of a delivery
+ * after a write that can resize a target.
+ *
+ * @remarks A write in the callback of a `ResizeObserver` can resize a target
+ * again in the same delivery. The browser then holds that notification for the
+ * next frame, and fires "ResizeObserver loop completed with undelivered
+ * notifications" on `window`. Thus, after a write, the observer disconnects,
+ * runs the write, and observes again in the next frame, before the delivery of
+ * that frame. The new observation reports the size that it finds, so no resize
+ * is lost.
+ *
+ * The write can unmount the owner, and the cleanup then runs inside it. The
+ * cleanup cancels the next observation.
+ *
+ * @param targets - The boxes to observe.
+ * @param measure - Reads the entries of a delivery. Returns the write, or
+ * nothing when no target needs one.
+ * @returns A function that stops the observation.
+ *
+ * @internal
+ */
+export function observeResizePausing(
+	targets: Element | readonly Element[],
+	measure: (entries: ResizeObserverEntry[]) => (() => void) | undefined,
+): () => void {
+	const list = targets instanceof Element ? [targets] : targets
+
 	let frame = 0
 
 	let stopped = false
 
-	const observer = new ResizeObserver(() => {
-		const update = measure()
+	const observe = () => {
+		for (const target of list) observer.observe(target)
+	}
 
-		if (!update) return
+	const observer = new ResizeObserver((entries) => {
+		const write = measure(entries)
+
+		if (!write) return
 
 		observer.disconnect()
 
-		flushSync(update)
+		write()
 
-		if (!stopped) frame = requestAnimationFrame(() => observer.observe(target))
+		if (!stopped) frame = requestAnimationFrame(observe)
 	})
 
-	observer.observe(target)
+	observe()
 
 	return () => {
 		stopped = true

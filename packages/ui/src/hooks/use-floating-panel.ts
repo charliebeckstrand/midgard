@@ -31,6 +31,7 @@ import {
 	useSyncExternalStore,
 } from 'react'
 import { anchorFollowsTransforms, inTransformedSubtree } from '../utilities/anchor-transforms'
+import { observeResizePausing } from '../utilities/observe-resize-before-paint'
 import { isCoveredByOverlay, subscribeOverlayLayers } from '../utilities/overlay-layers'
 import { isUnderStickyBar } from '../utilities/sticky-cover'
 
@@ -358,8 +359,7 @@ function anchoredStyles(
  * with undelivered notifications" on `window`.
  *
  * Thus the observer of each panel stops after a delivery, and observes again in
- * the next frame, before the delivery of that frame, as
- * `observeResizeBeforePaint` does. A write in the rest of the delivery then
+ * the next frame, before the delivery of that frame (`observeResizePausing`). A write in the rest of the delivery then
  * reaches no observer that already got the delivery. The new observation
  * reports the size that it finds, so no resize is lost. A report of the size
  * that the last delivery gave places nothing, so the observation does not
@@ -405,13 +405,7 @@ function trackPanel(
 	// The size of each target at its last delivery.
 	const sizes = new Map<Element, string>()
 
-	let frame = 0
-
-	const observe = () => {
-		for (const target of targets) observer.observe(target)
-	}
-
-	const observer = new ResizeObserver((entries) => {
+	const unobserve = observeResizePausing(targets, (entries) => {
 		let resized = false
 
 		for (const { target, contentRect } of entries) {
@@ -422,23 +416,13 @@ function trackPanel(
 			sizes.set(target, size)
 		}
 
-		if (!resized) return
-
-		observer.disconnect()
-
-		place()
-
-		frame = requestAnimationFrame(observe)
+		return resized ? place : undefined
 	})
-
-	observe()
 
 	return () => {
 		stop()
 
-		cancelAnimationFrame(frame)
-
-		observer.disconnect()
+		unobserve()
 	}
 }
 
