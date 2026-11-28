@@ -1,33 +1,16 @@
-import { readCookie, writeCookie } from '../../../utilities/cookie'
+import { writeCookie } from '../../../utilities/cookie'
 import { createEmitter } from '../../../utilities/emitter'
 import { noop } from '../../../utilities/noop'
+import { type EventsSetting, ON, ON_ATTRIBUTE, PINNED, PINNED_ATTRIBUTE } from './events-root'
 import { getStorage, readStorage, writeStorage } from './events-storage'
 import type { EventReportExport, EventSource } from './types'
 
 // The settings of the events: whether they run, and whether the panel is
 // pinned. They are in `localStorage`, so they stay for the next visit, with a
 // copy in a cookie for a server. The server writes them as attributes of the
-// root element ({@link eventsRootAttributes}), so CSS shows the header button
+// root element (`eventsRootAttributes` in `events-root.ts`), so CSS shows the header button
 // and the pinned panel in the first paint. This module loads no part of the
 // recorder until the events run.
-
-/**
- * A setting: its `localStorage` key, and the cookie that holds a copy of it,
- * so a server that renders per request can read it ({@link eventsRootAttributes}).
- */
-type Setting = { key: string; cookie: string }
-
-/** The setting that runs the events. */
-const ON: Setting = { key: 'events:on', cookie: 'events-on' }
-
-/** The setting of the pinned panel. */
-const PINNED: Setting = { key: 'events:pinned', cookie: 'events-pinned' }
-
-/** The attribute of the root element while the events run. CSS shows the header button by it. */
-const ON_ATTRIBUTE = 'data-events'
-
-/** The attribute of the root element while the panel is pinned. CSS shows the pinned panel by it while the sidebar layout is inline. */
-const PINNED_ATTRIBUTE = 'data-events-pinned'
 
 /** The attribute of the root element while a capture runs. CSS makes the icon of the header button red by it. @internal */
 export const CAPTURE_ATTRIBUTE = 'data-events-capture'
@@ -205,35 +188,18 @@ function syncAttributes(): void {
 /** The `localStorage` of the page. The settings are off where the storage throws, such as with site data off. */
 const local = () => getStorage(() => localStorage)
 
-function readLocal({ key }: Setting): boolean {
+function readLocal({ key }: EventsSetting): boolean {
 	return readStorage(local(), key) === '1'
 }
 
 /** Writes the cookie of `setting` from `on`. */
-function writeMirror({ cookie }: Setting, on: boolean): void {
+function writeMirror({ cookie }: EventsSetting, on: boolean): void {
 	writeCookie(cookie, on ? '1' : '0')
 }
 
 /** Writes `setting` from `on`, and its cookie from the stored setting, so the two agree where the storage throws. */
-function writeLocal(setting: Setting, on: boolean): void {
+function writeLocal(setting: EventsSetting, on: boolean): void {
 	writeStorage(local(), setting.key, on ? '1' : null)
 
 	writeMirror(setting, readLocal(setting))
-}
-
-/**
- * The attributes of the root element for the settings in `cookies`, the
- * `Cookie` header of a request. A server that renders per request writes them
- * on `<html>`, so CSS shows the header button and the pinned panel in the
- * first paint with no script. A capture runs in one tab, so the server cannot
- * know it, and its attribute comes at hydration.
- *
- * @internal
- */
-export function eventsRootAttributes(cookies: string): string[] {
-	if (readCookie(ON.cookie, cookies) !== '1') return []
-
-	return readCookie(PINNED.cookie, cookies) === '1'
-		? [ON_ATTRIBUTE, PINNED_ATTRIBUTE]
-		: [ON_ATTRIBUTE]
 }
