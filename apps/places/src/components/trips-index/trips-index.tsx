@@ -1,16 +1,10 @@
 'use client'
 
-import { Info } from 'lucide-react'
 import { useMemo } from 'react'
-import { Button } from 'ui/button'
-import { Icon } from 'ui/icon'
 import type { GridColumn } from 'ui/modules/grid'
-import { Flex } from 'ui/structure/flex'
-import { Stack } from 'ui/structure/stack'
-import { Tooltip, TooltipContent, TooltipTrigger } from 'ui/tooltip'
 import type { Place, Trip } from '../../types'
-import { IndexSheet, locationColumns } from '../index-sheet'
-import { PlaceMenu, type TripActions, tripMenuItems } from '../place-menu'
+import { actionsColumn, CountCell, IndexSheet, locationColumns } from '../index-sheet'
+import { type TripActions, tripMenuItems } from '../place-menu'
 import { DaySpan } from '../summary-drawer'
 
 /** Props for {@link TripsIndex}. */
@@ -68,53 +62,24 @@ export function TripsIndex({
 			{
 				id: 'places',
 				title: 'Places',
-				// The number of places, and a button whose tooltip names each one,
-				// as the Visits column of My places lists its dates.
+				// The number of places, and the name of each one.
 				value: (trip) => placesByTrip.get(trip.id)?.length ?? 0,
 				cell: (trip) => {
 					const places = placesByTrip.get(trip.id) ?? NO_PLACES
 
 					return (
-						<Flex gap="xs" align="center">
-							<span>{places.length}</span>
-
-							{places.length === 0 ? null : (
-								// On a click, as the Visits column of My places, because a hover
-								// tooltip does not open on a tap.
-								<Tooltip trigger="click">
-									<TooltipTrigger>
-										<Button
-											type="button"
-											variant="bare"
-											size="sm"
-											aria-label={`Places of ${trip.name}`}
-										>
-											<Icon icon={<Info />} />
-										</Button>
-									</TooltipTrigger>
-
-									<TooltipContent>
-										<Stack gap="xs">
-											{places.map((place) => (
-												<span key={place.id}>{place.name}</span>
-											))}
-										</Stack>
-									</TooltipContent>
-								</Tooltip>
-							)}
-						</Flex>
+						<CountCell count={places.length} label={`Places of ${trip.name}`}>
+							{places.map((place) => (
+								<span key={place.id}>{place.name}</span>
+							))}
+						</CountCell>
 					)
 				},
 			},
-			{
-				id: 'actions',
-				title: <span className="sr-only">Actions</span>,
-				// The width of the actions column of My places, for the same button.
-				width: 54,
-				actions: (trip) => (
-					<PlaceMenu items={tripMenuItems(trip, actions)} aria-label={`Actions for ${trip.name}`} />
-				),
-			},
+			actionsColumn<Trip>(
+				(trip) => tripMenuItems(trip, actions),
+				(trip) => trip.name,
+			),
 		],
 		[regionByTrip, stateByTrip, placesByTrip, actions],
 	)
