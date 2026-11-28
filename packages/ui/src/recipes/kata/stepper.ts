@@ -146,7 +146,8 @@ export const k = defineKata(
 						'dark:group-data-[state=completed]:bg-green-600',
 					),
 					'group-data-[state=completed]:text-white',
-					'group-enabled:group-hover:group-data-[state=completed]:bg-green-500',
+					// Like a solid fill, the hover goes one step darker, so the check gains contrast.
+					'group-enabled:group-hover:group-data-[state=completed]:bg-green-700',
 					'group-data-[state=current]:text-white',
 				],
 				slots: {
