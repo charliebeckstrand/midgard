@@ -1,5 +1,5 @@
 import { vi } from 'vitest'
-import { noop } from './noop'
+import { noop } from '../../utilities/noop'
 
 type StubMatchMediaOverrides = Partial<
 	Pick<MediaQueryList, 'addEventListener' | 'removeEventListener'>

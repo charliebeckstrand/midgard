@@ -93,7 +93,7 @@ export const HYDRATED = `Object.keys(document.querySelector('h1') ?? {}).some((k
 export const STYLED = `document.querySelector('link[rel="stylesheet"][data-precedence]')?.sheet != null`
 
 /** The content type of each kind of file in a build. */
-export const TYPES: Record<string, string> = {
+const TYPES: Record<string, string> = {
 	'.css': 'text/css',
 	'.html': 'text/html; charset=utf-8',
 	'.js': 'text/javascript',
@@ -102,6 +102,10 @@ export const TYPES: Record<string, string> = {
 	'.svg': 'image/svg+xml',
 	'.woff2': 'font/woff2',
 }
+
+/** The content type of `file`, from its extension. An unknown kind is binary data. */
+export const contentType = (file: string): string =>
+	TYPES[path.extname(file)] ?? 'application/octet-stream'
 
 /**
  * The kinds of file that the server compresses. The other kinds in a build,
@@ -347,7 +351,7 @@ async function respond(request: IncomingMessage, response: ServerResponse): Prom
 		return
 	}
 
-	const type = TYPES[path.extname(file)] ?? 'application/octet-stream'
+	const type = contentType(file)
 
 	const missing = isFallback(file)
 

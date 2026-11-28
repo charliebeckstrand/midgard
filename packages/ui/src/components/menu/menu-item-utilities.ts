@@ -1,5 +1,6 @@
 import type { KeyboardEvent, MouseEvent } from 'react'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
+import { isActivationKey } from '../../utilities/keyboard-navigation'
 
 /**
  * Composed click activation for a menu item: runs the consumer's `onClick`
@@ -62,7 +63,7 @@ export function handleMenuItemKeyDown<E extends HTMLElement>(
  * @internal
  */
 export function isHeldActivation(event: KeyboardEvent): boolean {
-	return event.repeat && (event.key === 'Enter' || event.key === ' ')
+	return event.repeat && isActivationKey(event.key)
 }
 
 /**

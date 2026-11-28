@@ -2,7 +2,7 @@ import { type FocusEvent, type ReactNode, type RefObject, useEffect, useRef, use
 import { createPortal } from 'react-dom'
 import { vi } from 'vitest'
 import { useStableEvent } from '../../hooks/use-stable-event'
-import { noop } from '../helpers/noop'
+import { noop } from '../../utilities/noop'
 
 // Passed through unmocked: ref merging is pure React wiring with no floating
 // engine behind it, so the real hook keeps its genuine semantics (memoized on

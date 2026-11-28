@@ -48,7 +48,7 @@ import { type Browser, chromium, type Page } from 'playwright'
 import { rootDensityClasses } from '../../src/core/density/steps'
 import { DENSITY, THEME } from '../../src/providers/appearance/appearance-storage'
 import { type DensityLevel, levelToStep } from '../../src/providers/density/context'
-import { HYDRATED, listen, prerenderedPages, resolveFile, TYPES } from './server'
+import { contentType, HYDRATED, listen, prerenderedPages, resolveFile, STYLED } from './server'
 
 /** One run of the docs app: a theme, a stored density level, and a viewport width. */
 type Config = {
@@ -113,13 +113,6 @@ const SETTLE = 300
 
 /** The time limit for each wait of a page, in ms. */
 const PAGE_TIMEOUT = 30_000
-
-/**
- * A browser expression that is `true` when the full stylesheet of the page
- * loaded. The app links the sheet after the hydration commits. The
- * `accessibility.test.ts` of `test:docs-build` waits for the same signal.
- */
-const STYLED = `document.querySelector('link[rel="stylesheet"][data-precedence]')?.sheet != null`
 
 /** A browser expression that is `true` when no CSS transition runs. */
 const STILL = `document.getAnimations().every((animation) => !(animation instanceof CSSTransition))`
@@ -225,7 +218,7 @@ async function serve(root: string): Promise<{ origin: string; close: () => void 
 			return
 		}
 
-		const type = TYPES[path.extname(file)] ?? 'application/octet-stream'
+		const type = contentType(file)
 
 		response.writeHead(200, { 'content-type': type }).end(await readFile(file))
 	})

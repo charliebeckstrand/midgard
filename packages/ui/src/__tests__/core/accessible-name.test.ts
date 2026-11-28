@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { accessibleName, spokenText } from '../../core/accessible-name'
+import { accessibleName, ownAccessibleName, spokenText } from '../../core/accessible-name'
 import { attach } from '../helpers'
 
 // aria-labelledby resolves through ownerDocument.getElementById, so labeled
@@ -84,6 +84,30 @@ describe('accessibleName', () => {
 		const host = mount(html)
 
 		expect(accessibleName(host.querySelector('button'))).toBe(expected)
+	})
+})
+
+describe('ownAccessibleName', () => {
+	it.each([
+		['gives the aria-label', '<button aria-label="Close">x</button>', 'Close'],
+		[
+			'gives the aria-labelledby text',
+			'<span id="own">Own</span><button aria-labelledby="own">x</button>',
+			'Own',
+		],
+		[
+			'gives an empty string for a target with no text',
+			'<span id="blank"></span><button aria-labelledby="blank">x</button>',
+			'',
+		],
+		['gives null with no label', '<button>x</button>', null],
+		['gives null when no ID resolves', '<button aria-labelledby="missing">x</button>', null],
+	])('%s', (_, html, expected) => {
+		const button = mount(html).querySelector('button')
+
+		if (!button) throw new Error('no button')
+
+		expect(ownAccessibleName(button)).toBe(expected)
 	})
 })
 

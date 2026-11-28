@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef } from 'react'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { FOCUSABLE_SELECTOR, getTabbableElements } from '../../utilities/focusable-selector'
+import { findParent } from './engine/query-tree'
 import type { QueryGroup } from './engine/types'
 
 /** What {@link useQueryFocus} gives: the register of the focus targets and the calls that move focus after an edit. @internal */
@@ -28,13 +29,6 @@ type QueryFocus<E extends HTMLElement> = {
  * @internal
  */
 type PendingFocus = { id: string; added: boolean; keys: string[] }
-
-/** Whether `id` names a node below `group`. @internal */
-function holdsNode(group: QueryGroup, id: string): boolean {
-	return group.children.some(
-		(child) => child.id === id || (child.type === 'group' && holdsNode(child, id)),
-	)
-}
 
 /**
  * The element that takes the focus for a target: the target itself when it is
@@ -88,7 +82,7 @@ export function useQueryFocus<E extends HTMLElement>(
 	useEffect(() => {
 		const edit = pending.current
 
-		if (edit === null || holdsNode(tree, edit.id) !== edit.added) return
+		if (edit === null || (findParent(tree, edit.id) !== undefined) !== edit.added) return
 
 		pending.current = null
 
