@@ -6,13 +6,23 @@ import { CalendarDate, parseDate } from '@internationalized/date'
  *
  * @remarks It reads the local parts of `date`, so the key is the day that the
  * reader sees, not the UTC day. The year has four digits, also below 1000.
+ *
+ * An ISO date in this form holds the years 1 to 9999. A `CalendarDate` clamps a
+ * year outside them, so two days would share one key. Thus a year outside them
+ * throws.
  * @param date - The day to read.
  * @returns The ISO date of the day.
+ * @throws A `RangeError` when the year of `date` is not in 1 to 9999, or
+ * `date` is not a valid date.
  * @example
  *   toIsoDay(new Date(2026, 10, 3)) // '2026-11-03'
  */
 export function toIsoDay(date: Date): string {
-	return new CalendarDate(date.getFullYear(), date.getMonth() + 1, date.getDate()).toString()
+	const year = date.getFullYear()
+
+	if (!(year >= 1 && year <= 9999)) throw new RangeError(`No ISO day for the year ${year}`)
+
+	return new CalendarDate(year, date.getMonth() + 1, date.getDate()).toString()
 }
 
 /**

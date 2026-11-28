@@ -189,7 +189,7 @@ Import these from `utilities/overlay-layers`. They tell whether an open overlay 
 
 | Export | Summary |
 |---|---|
-| `toIsoDay` | The ISO date (`YYYY-MM-DD`) of the local day of a `Date`, with a four-digit year. The calendar keys each day cell with it. Import it from `utilities/iso-day`. An app imports it from `ui/core` ([`CORE.md`](CORE.md)). |
+| `toIsoDay` | The ISO date (`YYYY-MM-DD`) of the local day of a `Date`, with a four-digit year. A year outside 1 to 9999 throws, because the form holds no other year. The calendar keys each day cell with it. Import it from `utilities/iso-day`. An app imports it from `ui/core` ([`CORE.md`](CORE.md)). |
 | `fromIsoDay` | The local midnight of the day of an ISO date. The date picker reads the day of a focused cell with it. Import it from `utilities/iso-day`. An app imports it from `ui/core`. |
 
 ## Measurement

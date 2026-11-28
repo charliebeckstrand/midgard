@@ -16,6 +16,20 @@ describe('toIsoDay', () => {
 
 		expect(toIsoDay(day)).toBe('0042-01-01')
 	})
+
+	it('throws for a year outside 1 to 9999, so that no two days share a key', () => {
+		const day = new Date(0)
+
+		day.setFullYear(0, 5, 15)
+
+		expect(() => toIsoDay(day)).toThrow(RangeError)
+
+		day.setFullYear(10000, 0, 1)
+
+		expect(() => toIsoDay(day)).toThrow(RangeError)
+
+		expect(() => toIsoDay(new Date(Number.NaN))).toThrow(RangeError)
+	})
 })
 
 describe('fromIsoDay', () => {
