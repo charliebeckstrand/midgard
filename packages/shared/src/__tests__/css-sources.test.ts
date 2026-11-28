@@ -2,6 +2,7 @@ import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSy
 import { createRequire } from 'node:module'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve, sep } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import {
 	appEntries,
@@ -9,21 +10,18 @@ import {
 	SOURCE_DIRS,
 	SOURCES_FILE,
 	sourcesText,
-} from '../../../../shared/scripts/css-sources'
-import { workspaceRoot } from '../helpers/walk-source'
+} from '../../scripts/css-sources'
 
-// CSS sources boundary.
-//
-// `shared/scripts/css-sources.ts` writes the Tailwind sources of `shared` and
+// `scripts/css-sources.ts` writes the Tailwind sources of `shared` and
 // `ui` for each app: each file of the import graph of the app, from esbuild. A
 // file that the list does not have loses its classes in production only,
 // because `next dev` scans all of `ui/src`. This test walks the graph again
 // with no bundler: it reads each import of each module and resolves it as Node
 // does. The list in `app/sources.css` must hold the same files as that walk.
-// The test reads the apps, so it runs in the `workspace` project, whose inputs
-// hold them.
+// The test reads the apps and `ui/src`, so they are inputs of the test tasks of
+// this package (`turbo.json`).
 
-const APPS_DIR = join(workspaceRoot, 'apps')
+const APPS_DIR = fileURLToPath(new URL('../../../../apps', import.meta.url))
 
 const APPS = readdirSync(APPS_DIR).filter((name) =>
 	existsSync(join(APPS_DIR, name, 'package.json')),
