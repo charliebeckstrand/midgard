@@ -11,17 +11,8 @@ import {
 	ChevronUp,
 	EllipsisVertical,
 } from 'lucide-react'
-import { useState } from 'react'
-import { Icon } from '../../components/icon'
 import { IconButton } from '../../components/icon-button'
-import {
-	Menu,
-	MenuContent,
-	MenuItem,
-	MenuLabel,
-	MenuSeparator,
-	MenuTrigger,
-} from '../../components/menu'
+import { MenuMove, type MenuMoveItem } from '../../components/menu/menu-move'
 import { Glyph } from '../../primitives/glyph'
 import { reorderMessages } from '../../primitives/intl/intl-reorder'
 import { useIntl } from '../../primitives/intl/use-intl'
@@ -87,41 +78,29 @@ export function DashboardTileMenu({ id, label, className }: DashboardTileMenuPro
 
 	const { tileSteps, stepTile } = useDashboardActions()
 
-	// The steps of the tile when the menu opened. A closed menu renders no item.
-	const [steps, setSteps] = useState<DashboardTileStep[] | null>(null)
+	const items = (steps: DashboardTileStep[]): MenuMoveItem[] =>
+		steps.map((step) => ({
+			key: step,
+			label: intl.formatMessage(ITEMS[step].label),
+			icon: ITEMS[step].icon,
+			onAction: () => stepTile(id, step),
+		}))
 
-	const moves = steps?.filter(isMove) ?? []
+	const read = () => {
+		const steps = tileSteps(id)
 
-	const sizes = steps?.filter((step) => !isMove(step)) ?? []
-
-	const item = (step: DashboardTileStep) => (
-		<MenuItem key={step} onAction={() => stepTile(id, step)}>
-			<Icon icon={ITEMS[step].icon} />
-			<MenuLabel>{intl.formatMessage(ITEMS[step].label)}</MenuLabel>
-		</MenuItem>
-	)
+		return [items(steps.filter(isMove)), items(steps.filter((step) => !isMove(step)))]
+	}
 
 	return (
-		<Menu placement="bottom-end" onOpenChange={(open) => setSteps(open ? tileSteps(id) : null)}>
-			<MenuTrigger>
-				<IconButton
-					ref={keepFocusOnBoard}
-					data-slot="dashboard-tile-menu"
-					aria-label={intl.formatMessage(dashboardMessages.arrange, { label })}
-					icon={EllipsisVertical}
-					className={className}
-				/>
-			</MenuTrigger>
-			<MenuContent>
-				{steps?.length === 0 && (
-					<MenuItem disabled>
-						<MenuLabel>{intl.formatMessage(dashboardMessages.noStep)}</MenuLabel>
-					</MenuItem>
-				)}
-				{moves.map(item)}
-				{moves.length > 0 && sizes.length > 0 && <MenuSeparator />}
-				{sizes.map(item)}
-			</MenuContent>
-		</Menu>
+		<MenuMove read={read} empty={intl.formatMessage(dashboardMessages.noStep)}>
+			<IconButton
+				ref={keepFocusOnBoard}
+				data-slot="dashboard-tile-menu"
+				aria-label={intl.formatMessage(dashboardMessages.arrange, { label })}
+				icon={EllipsisVertical}
+				className={className}
+			/>
+		</MenuMove>
 	)
 }

@@ -1,16 +1,14 @@
 'use client'
 
 import { ArrowLeftRight, ArrowUpDown } from 'lucide-react'
-import { type ComponentProps, useId } from 'react'
+import type { ComponentProps } from 'react'
 import { accessibleName } from '../../core/accessible-name'
 import { cn } from '../../core/cn'
 import { isRtl } from '../../hooks/a11y/logical-arrow'
-import { reorderMessages } from '../../primitives/intl/intl-reorder'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/list'
-import { Button } from '../button'
 import { Icon } from '../icon'
-import { MenuMove, placeMoveItems } from '../menu/menu-move'
+import { MenuMoveButton, placeMoveItems } from '../menu/menu-move'
 import { useListContext, useListItemContext } from './context'
 
 /** Props for {@link ListItemMenu}. The `<button>` that opens the menu takes the rest. */
@@ -55,12 +53,6 @@ export function ListItemMenu({
 
 	const { id, contentId } = useListItemContext()
 
-	// The word "Move" sits in a hidden span that only the name of the button reads,
-	// so it adds nothing to the name of the row. The name of the row comes from its
-	// content area, not from the whole row, which also holds the names of its
-	// other controls, such as a Remove button.
-	const labelId = useId()
-
 	// A list that cannot reorder shows no menu. A disabled list keeps an inert one.
 	if (itemCount <= 1 || (!interactive && !disabled)) return null
 
@@ -69,23 +61,6 @@ export function ListItemMenu({
 	)
 
 	const look = cn(k().menu, className)
-
-	if (disabled) {
-		return (
-			<Button
-				variant="bare"
-				{...props}
-				type="button"
-				data-slot="list-item-menu"
-				aria-hidden="true"
-				tabIndex={-1}
-				inert
-				className={look}
-			>
-				{content}
-			</Button>
-		)
-	}
 
 	// The menu reads the row when it opens, before its items sit in the row.
 	const read = () => {
@@ -101,27 +76,19 @@ export function ListItemMenu({
 	}
 
 	return (
-		<MenuMove read={read}>
-			<Button
-				variant="bare"
-				{...props}
-				type="button"
-				// The tests and the recipe select the button by this slot, so it comes after the spread.
-				data-slot="list-item-menu"
-				// "Move" and then the name of the row. An explicit name replaces both.
-				aria-label={ariaLabel}
-				aria-labelledby={
-					props['aria-labelledby'] ?? (ariaLabel ? undefined : `${labelId} ${contentId}`)
-				}
-				className={look}
-			>
-				{ariaLabel ? null : (
-					<span id={labelId} hidden>
-						{intl.formatMessage(reorderMessages.move)}
-					</span>
-				)}
-				{content}
-			</Button>
-		</MenuMove>
+		<MenuMoveButton
+			{...props}
+			slot="list-item-menu"
+			// "Move" and then the name of the content area of the row, not of the whole
+			// row, which also holds the names of its other controls, such as a Remove
+			// button.
+			nameId={contentId}
+			still={disabled}
+			read={read}
+			aria-label={ariaLabel}
+			className={look}
+		>
+			{content}
+		</MenuMoveButton>
 	)
 }

@@ -1,10 +1,11 @@
 'use client'
 
-import { EllipsisVertical } from 'lucide-react'
-import { type ComponentProps, useId, useState } from 'react'
-import { Button } from '../../components/button'
+import { Columns2, EllipsisVertical } from 'lucide-react'
+import type { ComponentProps } from 'react'
 import { Icon } from '../../components/icon'
-import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from '../../components/menu'
+import { MenuMoveButton, placeMoveItems } from '../../components/menu/menu-move'
+import type { ReorderMove } from '../../hooks/use-keyboard-reorder'
+import { Glyph } from '../../primitives/glyph'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import type { MessageSet } from '../../primitives/intl/types'
 import { useIntl } from '../../primitives/intl/use-intl'
@@ -12,31 +13,12 @@ import { type KanbanCardMoves, useKanbanCardContext, useKanbanContext } from './
 
 /** The values that each message of the menu takes. */
 type KanbanMenuValues = {
-	move: Record<never, never>
-	moveUp: Record<never, never>
-	moveDown: Record<never, never>
 	moveTo: { column: string }
 	column: { position: number }
 	noMove: Record<never, never>
 }
 
 const messages: MessageSet<KanbanMenuValues> = defineMessages<KanbanMenuValues>({
-	move: {
-		id: 'ui.kanban.move',
-		defaultMessage: 'Move',
-		description:
-			'The first word of the name of the button that opens the move menu of a Kanban card. The name of the card follows it.',
-	},
-	moveUp: {
-		id: 'ui.kanban.moveUp',
-		defaultMessage: 'Move up',
-		description: 'The menu item that moves a Kanban card one place up in its column.',
-	},
-	moveDown: {
-		id: 'ui.kanban.moveDown',
-		defaultMessage: 'Move down',
-		description: 'The menu item that moves a Kanban card one place down in its column.',
-	},
 	moveTo: {
 		id: 'ui.kanban.moveTo',
 		defaultMessage: 'Move to “{column}”',
@@ -95,98 +77,61 @@ export function KanbanCardMenu({
 
 	const card = useKanbanCardContext()
 
-	// The word "Move" sits in a hidden span that only the name of the button reads,
-	// so it adds nothing to the names of the other controls of the card.
-	const labelId = useId()
-
-	// The moves of the card when the menu opened. The menu reads the board then,
-	// so a closed menu renders no item.
-	const [moves, setMoves] = useState<KanbanCardMoves | null>(null)
-
 	const content = children ?? <Icon icon={EllipsisVertical} size="sm" />
 
 	// The drag overlay has no card context. It copies the button with no menu, so
 	// the clone keeps the box of the card. A disabled board keeps the same inert
 	// button, as it keeps a muted grip, so the cards do not change size.
-	if (!card || disabled) {
-		return (
-			<Button
-				variant="bare"
-				{...props}
-				type="button"
-				data-slot="kanban-card-menu"
-				aria-hidden="true"
-				tabIndex={-1}
-				inert
-				className={className}
-			>
-				{content}
-			</Button>
-		)
-	}
+	const still = !card || disabled
 
-	if (!interactive) return null
-
-	const { cardId, itemId } = card
+	if (!still && !interactive) return null
 
 	const columnLabel = (column: KanbanCardMoves['columns'][number]) =>
 		column.name || intl.formatMessage(messages.column, { position: column.position })
 
-	const none = moves !== null && !moves.up && !moves.down && moves.columns.length === 0
+	// The menu reads the board when it opens, so a closed menu renders no item.
+	const read = () => {
+		if (!card) return []
 
-	const handleOpenChange = (open: boolean) => setMoves(open ? cardMoves(cardId) : null)
+		const { cardId } = card
+
+		const moves = cardMoves(cardId)
+
+		const places: ReorderMove[] = [
+			...(moves.up ? (['previous'] as const) : []),
+			...(moves.down ? (['next'] as const) : []),
+		]
+
+		const columns = moves.columns.map((column) => ({
+			key: column.id,
+			label: intl.formatMessage(messages.moveTo, { column: columnLabel(column) }),
+			icon: <Glyph icon={Columns2} />,
+			onAction: () => moveCard(cardId, { columnId: column.id }, moves.cardName),
+		}))
+
+		return [
+			[
+				...placeMoveItems(intl, places, { orientation: 'vertical', rtl: false }, (move) =>
+					moveCard(cardId, { direction: move === 'previous' ? -1 : 1 }, moves.cardName),
+				),
+				...columns,
+			],
+		]
+	}
 
 	return (
-		<Menu placement="bottom-end" onOpenChange={handleOpenChange}>
-			<MenuTrigger>
-				<Button
-					variant="bare"
-					{...props}
-					type="button"
-					// The tests and the card select the button by this slot, so it comes after the spread.
-					data-slot="kanban-card-menu"
-					// "Move" and then the name of the card item. An explicit name replaces both.
-					aria-label={ariaLabel}
-					aria-labelledby={
-						props['aria-labelledby'] ?? (ariaLabel ? undefined : `${labelId} ${itemId}`)
-					}
-					className={className}
-				>
-					{ariaLabel ? null : (
-						<span id={labelId} hidden>
-							{intl.formatMessage(messages.move)}
-						</span>
-					)}
-					{content}
-				</Button>
-			</MenuTrigger>
-			<MenuContent>
-				{none && (
-					<MenuItem disabled>
-						<MenuLabel>{intl.formatMessage(messages.noMove)}</MenuLabel>
-					</MenuItem>
-				)}
-				{moves?.up && (
-					<MenuItem onAction={() => moveCard(cardId, { direction: -1 }, moves.cardName)}>
-						<MenuLabel>{intl.formatMessage(messages.moveUp)}</MenuLabel>
-					</MenuItem>
-				)}
-				{moves?.down && (
-					<MenuItem onAction={() => moveCard(cardId, { direction: 1 }, moves.cardName)}>
-						<MenuLabel>{intl.formatMessage(messages.moveDown)}</MenuLabel>
-					</MenuItem>
-				)}
-				{moves?.columns.map((column) => (
-					<MenuItem
-						key={column.id}
-						onAction={() => moveCard(cardId, { columnId: column.id }, moves.cardName)}
-					>
-						<MenuLabel>
-							{intl.formatMessage(messages.moveTo, { column: columnLabel(column) })}
-						</MenuLabel>
-					</MenuItem>
-				))}
-			</MenuContent>
-		</Menu>
+		<MenuMoveButton
+			{...props}
+			slot="kanban-card-menu"
+			// "Move" and then the name of the card item.
+			nameId={card?.itemId}
+			still={still}
+			read={read}
+			empty={intl.formatMessage(messages.noMove)}
+			aria-label={ariaLabel}
+			className={className}
+		>
+			{content}
+		</MenuMoveButton>
 	)
 }
