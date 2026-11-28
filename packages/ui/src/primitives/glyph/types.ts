@@ -33,6 +33,7 @@ export type IconName =
 	| 'CircleX'
 	| 'Clipboard'
 	| 'Code'
+	| 'Columns2'
 	| 'Columns3'
 	| 'Copy'
 	| 'CopyPlus'

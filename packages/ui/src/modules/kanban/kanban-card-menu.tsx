@@ -1,6 +1,6 @@
 'use client'
 
-import { Columns3, EllipsisVertical } from 'lucide-react'
+import { Columns2, EllipsisVertical } from 'lucide-react'
 import type { ComponentProps } from 'react'
 import { Icon } from '../../components/icon'
 import { MenuMoveButton, placeMoveItems } from '../../components/menu/menu-move'
@@ -105,7 +105,7 @@ export function KanbanCardMenu({
 		const columns = moves.columns.map((column) => ({
 			key: column.id,
 			label: intl.formatMessage(messages.moveTo, { column: columnLabel(column) }),
-			icon: <Glyph icon={Columns3} />,
+			icon: <Glyph icon={Columns2} />,
 			onAction: () => moveCard(cardId, { columnId: column.id }, moves.cardName),
 		}))
 
