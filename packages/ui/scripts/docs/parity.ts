@@ -41,15 +41,15 @@
 
 import { existsSync } from 'node:fs'
 import { readFile, writeFile } from 'node:fs/promises'
-import { createServer } from 'node:http'
 import path from 'node:path'
 import { parseArgs } from 'node:util'
 import { type Browser, chromium, type Page } from 'playwright'
 import { rootDensityClasses } from '../../src/core/density/steps'
 import { DENSITY, THEME } from '../../src/providers/appearance/appearance-storage'
 import { type DensityLevel, levelToStep } from '../../src/providers/density/context'
-import { contentType, listen, prerenderedPages, resolveFile } from './build'
-import { HYDRATED, STYLED } from './probes'
+import { prerenderedPages } from './build.ts'
+import { HYDRATED, STYLED } from './probes.ts'
+import { serveDocs } from './server.ts'
 
 /** One run of the docs app: a theme, a stored density level, and a viewport width. */
 type Config = {
@@ -205,31 +205,6 @@ function pagesIn(root: string, config: Config, listed: readonly string[] | undef
 	return prerenderedPages(root).filter((page) => !excluded.has(page))
 }
 
-/**
- * Serves a client directory with the paths of `server.ts`, and gives its
- * origin.
- */
-async function serve(root: string): Promise<{ origin: string; close: () => void }> {
-	const server = createServer(async (request, response) => {
-		const file = await resolveFile(root, request.url ?? '/')
-
-		if (file === undefined) {
-			response.writeHead(400).end()
-
-			return
-		}
-
-		const type = contentType(file)
-
-		response.writeHead(200, { 'content-type': type }).end(await readFile(file))
-	})
-
-	return {
-		origin: `http://localhost:${await listen(server, 0, 'localhost')}`,
-		close: () => server.close(),
-	}
-}
-
 /** Stops the run when the root does not show the theme and the density step of `config`. */
 async function checkRoot(page: Page, config: Config): Promise<void> {
 	const step = levelToStep[config.density]
@@ -326,7 +301,7 @@ async function dumpBuild(root: string, options: DumpOptions): Promise<Dump> {
 		throw new Error(`docs:parity: no docs build is at ${directory}.`)
 	}
 
-	const { origin, close } = await serve(directory)
+	const { origin, server } = await serveDocs(0, 'localhost', directory)
 
 	const browser = await chromium.launch()
 
@@ -351,7 +326,7 @@ async function dumpBuild(root: string, options: DumpOptions): Promise<Dump> {
 	} finally {
 		await browser.close()
 
-		close()
+		server.close()
 	}
 }
 
