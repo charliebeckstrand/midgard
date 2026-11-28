@@ -1,0 +1,39 @@
+{
+	"$schema": "https://v2-11-7.turborepo.dev/schema.json",
+	"extends": ["//"],
+	"tasks": {
+		"test": {
+			"inputs": [
+				"src/**",
+				"app/**",
+				"scripts/**",
+				"*.ts",
+				"$TURBO_ROOT$/vitest.shared.mts",
+				"tsconfig.json",
+				"$TURBO_ROOT$/tsconfig.base.json",
+				"$TURBO_ROOT$/tsconfig.nextjs.json",
+				"package.json",
+				"$TURBO_ROOT$/apps/*/package.json",
+				"$TURBO_ROOT$/apps/**/*.{ts,tsx,mts,cts}",
+				"!$TURBO_ROOT$/apps/*/.next/**",
+				"!$TURBO_ROOT$/apps/*/node_modules/**",
+				"$TURBO_ROOT$/packages/ui/package.json",
+				"$TURBO_ROOT$/packages/ui/src/**"
+			]
+		},
+		"test:changed": {
+			"inputs": [
+				"$TURBO_DEFAULT$",
+				"$TURBO_ROOT$/package.json",
+				"$TURBO_ROOT$/{apps,packages}/**/{package.json,vite.config.*,vitest.config.*}",
+				"!$TURBO_ROOT$/**/node_modules/**",
+				"!$TURBO_ROOT$/apps/*/.next/**",
+				"$TURBO_ROOT$/tsconfig.base.json",
+				"$TURBO_ROOT$/tsconfig.nextjs.json",
+				"$TURBO_ROOT$/vitest.shared.mts",
+				"$TURBO_ROOT$/apps/**/*.{ts,tsx,mts,cts}",
+				"$TURBO_ROOT$/packages/ui/src/**"
+			]
+		}
+	}
+}

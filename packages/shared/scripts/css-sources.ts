@@ -15,7 +15,7 @@
  * a `new URL(…, import.meta.url)` names, such as a worker. Each other package is
  * external, because its classes are not in the CSS of the app. A dynamic import
  * that the graph cannot follow stops the run, because its classes would be lost
- * in production only. `css-sources-boundary.test.ts` of ui compares the list with the graph.
+ * in production only. `src/__tests__/css-sources.test.ts` compares the list with the graph.
  */
 
 import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
