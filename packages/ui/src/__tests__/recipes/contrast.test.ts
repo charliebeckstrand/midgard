@@ -82,7 +82,10 @@ describe('chromatic palette contrast', () => {
 	const hues = [...colors, ...extendedColors]
 
 	/** The classes of a Button in a variant and a color. */
-	function resolve(variant: 'soft' | 'outline' | 'plain' | 'bare', color: string): string[] {
+	function resolve(
+		variant: 'solid' | 'soft' | 'outline' | 'plain' | 'bare',
+		color: string,
+	): string[] {
 		return button({ variant, color: color as PaletteColor }).base.split(' ')
 	}
 
@@ -182,6 +185,36 @@ describe('chromatic palette contrast', () => {
 		})
 	})
 
+	// A mark (`<Code>`, `<Kbd>`) on a solid fill keeps the text of the fill, and
+	// has no fill of its own: an own fill moves toward the text or away from
+	// it in each hue. Thus the text of the mark sits on the solid fill, and the
+	// measure is that of the fill, at rest and on hover. Solid fills are opaque
+	// and have no `dark:` class, so one measure covers both modes.
+	describe('a mark on a solid fill has no fill and clears text AA on the solid fill', () => {
+		it.each(hues)('%s', (color) => {
+			const list = resolve('solid', color)
+
+			for (const slot of ['code', 'kbd']) {
+				expect(list).toContain(`**:data-[slot=${slot}]:text-current`)
+
+				expect(list).toContain(`**:data-[slot=${slot}]:bg-transparent`)
+			}
+
+			const text = list.find((name) => name.startsWith('text-'))
+
+			const fills = [
+				list.find((name) => name.startsWith('bg-')),
+				list.find((name) => name.includes('hover:bg-')),
+			]
+
+			if (text === undefined || fills.includes(undefined))
+				throw new Error(`no fill and text in: ${list.join(' ')}`)
+
+			for (const fill of fills as string[])
+				expect(getContrast(text, tinted(fill, SURFACE.light))).toBeGreaterThanOrEqual(TEXT_AA)
+		})
+	})
+
 	describe('bare text clears text AA on the page', () => {
 		it.each(hues)('%s', (color) => {
 			const { light, dark } = ink(resolve('bare', color))
@@ -189,6 +222,23 @@ describe('chromatic palette contrast', () => {
 			expect(getContrast(light, SURFACE.light)).toBeGreaterThanOrEqual(TEXT_AA)
 
 			expect(getContrast(dark, SURFACE.dark)).toBeGreaterThanOrEqual(TEXT_AA)
+		})
+	})
+
+	// One rule for each chromatic hue, not the lightest shade that clears AA in
+	// each hue: bare text is 700 in light and 400 in dark, and 800 and 300 on
+	// hover. Zinc is the `muted` rung, which has its own shades.
+	describe('bare text is 700 and 400, and 800 and 300 on hover', () => {
+		it.each(hues.filter((color) => color !== 'zinc'))('%s', (color) => {
+			const list = resolve('bare', color)
+
+			expect(ink(list)).toEqual({ light: `text-${color}-700`, dark: `dark:text-${color}-400` })
+
+			const { light, dark } = hoveredInk(list)
+
+			expect(light).toMatch(new RegExp(`^[^:].*hover:text-${color}-800$`))
+
+			expect(dark).toMatch(new RegExp(`^dark:.*hover:text-${color}-300$`))
 		})
 	})
 })

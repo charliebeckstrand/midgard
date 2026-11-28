@@ -8,7 +8,8 @@ import { sampleMotionFrames } from '../helpers/motion-frame'
  * The ink of a Segment item steps from the muted rung to the selected rung. The
  * step was immediate, so the label of the new item showed the selected ink
  * while the indicator was still at the old item. The ink must fade while the
- * indicator slides, and the disabled fade must stay.
+ * indicator slides. The disabled dim shows at once: an opacity fade moves the
+ * item by a part of a pixel in WebKit (`hannou/disabled.ts`).
  */
 describe('Segment item ink', () => {
 	it('fades to the selected ink while the indicator slides', async () => {
@@ -27,9 +28,7 @@ describe('Segment item ink', () => {
 
 		const transition = getComputedStyle(cards).transitionProperty
 
-		expect(transition).toContain('color')
-
-		expect(transition).toContain('opacity')
+		expect(transition).toBe('color')
 
 		const selected = getComputedStyle(list).color
 

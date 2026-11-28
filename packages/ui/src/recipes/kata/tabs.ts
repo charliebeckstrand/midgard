@@ -71,8 +71,8 @@ const segment = {
 		...disabled.base,
 		// The ink fades between the two rungs while the indicator slides, so the
 		// label does not step to the selected ink before the indicator arrives. The
-		// list keeps the opacity of `disabled`, which this transition replaces.
-		'motion-safe:transition-[color,opacity] motion-safe:duration-300 ease-out',
+		// dim of `disabled` stays out of it: it shows at once (`hannou/disabled.ts`).
+		'motion-safe:transition-[color] motion-safe:duration-300 ease-out',
 		...cursor,
 		dan.text.small,
 		dan.space.segment.item.x,

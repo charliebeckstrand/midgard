@@ -410,14 +410,18 @@ export const k = {
 	 * The overview inset of a zoomed map: a thumbnail of the whole geography in
 	 * a bottom corner of the plot, with the current view lit. It takes the
 	 * surface and the ring of the zoom buttons, so the two read as one set of
-	 * controls. It shows only while the view is zoomed in, and it fades in from
-	 * its first style (`starting:`), so it needs no Motion and stays still under
-	 * reduced motion.
+	 * controls. It shows only while the view is zoomed in.
+	 *
+	 * The inset shows and hides at once, as the view moves at once. It has no
+	 * opacity fade: WebKit draws an element on a layer of its own while its
+	 * opacity transitions, and it snaps that layer to a different device pixel
+	 * than the page. The plot often sits at a fractional offset, so a fade moves
+	 * the inset by a part of a pixel when it ends (`hannou/disabled.ts`).
 	 *
 	 * The width is a quarter of the plot, between 5rem and 10rem. The height
 	 * comes from the ratio of the frame, which the component sets.
 	 *
-	 * While the plot holds the keyboard focus, the inset fades out, unless the
+	 * While the plot holds the keyboard focus, the inset hides, unless the
 	 * pointer is on it. The arrow keys pan the view, and the cursor keeps its stop
 	 * only a small margin clear of the edge, so an inset in the corner could
 	 * cover the focused mark (WCAG 2.2 SC 2.4.11). The keyboard does not use the
@@ -430,10 +434,7 @@ export const k = {
 	overview: {
 		base: [
 			'absolute bottom-2 w-1/4 min-w-20 max-w-40 cursor-pointer touch-none overflow-hidden rounded-lg shadow-xs',
-			'starting:opacity-0',
 			'in-[[data-slot=map-plot]:focus-visible]:not-hover:opacity-0',
-			ugoki.css.opacity,
-			ugoki.css.duration,
 			omote.bg.surface,
 			sen.ring.default,
 		],
