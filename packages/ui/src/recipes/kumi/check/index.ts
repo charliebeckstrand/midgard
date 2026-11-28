@@ -91,18 +91,26 @@ const shell = [
 /**
  * Checked-state accent colors shared by the checkbox and radio kata: each
  * injects the foreground mark, fill, and border into `--check-mark` /
- * `--check-bg` / `--check-border` for one accent. The zinc accent diverges per
+ * `--check-bg` / `--check-border` for one accent. A checked control marks a
+ * state as a graphic, so each hue fills with the shade of its series slot
+ * (`zu.palette.series`) and draws a white mark. The zinc accent diverges per
  * component (checkbox uses a neutral fill, radio a high-contrast one). Each kata
  * adds its own zinc. Literal class strings; Tailwind's scanner extracts them
  * statically.
  */
 const color = {
-	red: '[--check-mark:var(--color-white)] [--check-bg:var(--color-red-600)] [--check-border:var(--color-red-800)]/90',
+	red: mode(
+		'[--check-mark:var(--color-white)] [--check-bg:var(--color-red-600)] [--check-border:var(--color-red-800)]/90',
+		'dark:[--check-bg:var(--color-red-500)]',
+	),
 	amber:
-		'[--check-mark:var(--color-amber-100)] [--check-bg:var(--color-amber-700)] [--check-border:var(--color-amber-600)]/80',
+		'[--check-mark:var(--color-white)] [--check-bg:var(--color-amber-600)] [--check-border:var(--color-amber-800)]/90',
 	green:
 		'[--check-mark:var(--color-white)] [--check-bg:var(--color-green-600)] [--check-border:var(--color-green-800)]/90',
-	blue: '[--check-mark:var(--color-white)] [--check-bg:var(--color-blue-600)] [--check-border:var(--color-blue-800)]/90',
+	blue: mode(
+		'[--check-mark:var(--color-white)] [--check-bg:var(--color-blue-600)] [--check-border:var(--color-blue-800)]/90',
+		'dark:[--check-bg:var(--color-blue-500)]',
+	),
 } as const
 
 export const check = defineGroup({

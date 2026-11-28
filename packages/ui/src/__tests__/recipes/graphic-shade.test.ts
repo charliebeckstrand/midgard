@@ -2,6 +2,9 @@
 import clsx, { type ClassValue } from 'clsx'
 import { describe, expect, it } from 'vitest'
 import { colors } from '../../core/recipe'
+import { k as checkbox } from '../../recipes/kata/checkbox'
+import { k as radio } from '../../recipes/kata/radio'
+import { k as switchKata } from '../../recipes/kata/switch'
 import { k as timeline } from '../../recipes/kata/timeline'
 import { kasane, zu } from '../../recipes/kiso'
 import { validation as checkValidation } from '../../recipes/kumi/check'
@@ -55,6 +58,30 @@ describe('one graphic shade for each hue', () => {
 			expect(readShades(timeline({ lineBefore: hue, lineAfter: hue }).marker.base, hue)).toEqual(
 				slot,
 			)
+		},
+	)
+
+	// A checked control marks its state as a graphic, so its fill takes the slot shade. The zinc
+	// fill is a neutral accent that each control sets on its own.
+	it.each(colors.filter((hue) => hue !== 'zinc'))(
+		'gives the checked %s fill of a check, a radio, and a switch the shade of the slot',
+		(hue) => {
+			const slot = readShades(zu.palette.series[hue].bg, hue)
+
+			for (const [fill, classes] of [
+				['--check-bg', checkbox({ color: hue }).base],
+				['--check-bg', radio({ color: hue }).base],
+				['--switch-bg', switchKata({ color: hue }).base],
+			] as const) {
+				const fills = clsx(classes)
+					.split(' ')
+					.filter((name) => name.includes(`[${fill}:`))
+
+				const { light, dark } = readShades(fills, hue)
+
+				// A fill with no dark class keeps its light shade in dark mode.
+				expect({ fill, light, dark: dark.length > 0 ? dark : light }).toEqual({ fill, ...slot })
+			}
 		},
 	)
 

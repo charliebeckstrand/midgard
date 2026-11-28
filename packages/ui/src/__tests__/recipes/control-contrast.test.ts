@@ -2,6 +2,7 @@
 import { describe, expect, it, vi } from 'vitest'
 
 import { colors } from '../../core/recipe'
+import { k as checkbox } from '../../recipes/kata/checkbox'
 import { k as colorPanel } from '../../recipes/kata/color-panel'
 import { k as jsonTree } from '../../recipes/kata/json-tree'
 import { k as radio } from '../../recipes/kata/radio'
@@ -74,6 +75,59 @@ describe('check surface edge contrast', () => {
 		expect(getContrast(light, SURFACE.light)).toBeGreaterThanOrEqual(WCAG_NON_TEXT)
 
 		expect(getContrast(dark, SURFACE.dark)).toBeGreaterThanOrEqual(WCAG_NON_TEXT)
+	})
+})
+
+/**
+ * The light and the dark value of a variable in `classes`. A variable with no dark class keeps its
+ * light value in dark mode.
+ */
+const variable = vi.defineHelper((classes: string[], name: string) => {
+	const light = only(classes, new RegExp(`^\\[--${name}:`))
+
+	const dark = classes.find((className) => className.startsWith(`dark:[--${name}:`)) ?? light
+
+	return { light, dark }
+})
+
+describe('checked mark contrast', () => {
+	// The mark is the one sign of a checked state, so it clears 3:1 on the fill (WCAG 1.4.11).
+	it.for(
+		colors.flatMap((color) => [
+			{
+				control: 'check',
+				color,
+				classes: checkbox({ color }).base,
+				mark: 'check-mark',
+				fill: 'check-bg',
+			},
+			{
+				control: 'radio',
+				color,
+				classes: radio({ color }).base,
+				mark: 'check-mark',
+				fill: 'check-bg',
+			},
+			{
+				control: 'switch',
+				color,
+				classes: switchKata({ color }).base,
+				mark: 'switch',
+				fill: 'switch-bg',
+			},
+		]),
+	)('the $color $control mark clears 3:1 on its fill in each mode', ({ classes, mark, fill }) => {
+		const names = classNames([classes])
+
+		const marks = variable(names, mark)
+
+		const fills = variable(names, fill)
+
+		for (const mode of ['light', 'dark'] as const) {
+			const ground = tinted(fills[mode], SURFACE[mode])
+
+			expect(getContrast(marks[mode], ground)).toBeGreaterThanOrEqual(WCAG_NON_TEXT)
+		}
 	})
 })
 

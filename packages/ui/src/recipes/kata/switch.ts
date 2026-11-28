@@ -10,7 +10,8 @@ const { flex } = narabi
 const { focus, ring } = sen
 
 // The checked zinc track in dark is a translucent white wash under 3:1, so it
-// keeps the off ring as its edge (WCAG 1.4.11). Each other hue has a solid fill.
+// keeps the off ring as its edge (WCAG 1.4.11). Each other hue has a solid fill
+// in the shade of its series slot (`zu.palette.series`) and a white thumb.
 const color = {
 	zinc: mode(
 		[
@@ -27,12 +28,12 @@ const color = {
 			'[--switch-bg-ring:var(--color-red-800)]/90 [--switch-bg:var(--color-red-600)]',
 			'[--switch:white] [--switch-ring:var(--color-red-800)]/90 [--switch-shadow:var(--color-red-200)]/20',
 		],
-		'dark:[--switch-bg-ring:transparent]',
+		['dark:[--switch-bg-ring:transparent]', 'dark:[--switch-bg:var(--color-red-500)]'],
 	),
 	amber: mode(
 		[
-			'[--switch-bg-ring:var(--color-amber-600)]/80 [--switch-bg:var(--color-amber-700)]',
-			'[--switch-ring:transparent] [--switch-shadow:transparent] [--switch:var(--color-amber-100)]',
+			'[--switch-bg-ring:var(--color-amber-800)]/90 [--switch-bg:var(--color-amber-600)]',
+			'[--switch:white] [--switch-ring:var(--color-amber-800)]/90 [--switch-shadow:var(--color-amber-200)]/20',
 		],
 		'dark:[--switch-bg-ring:transparent]',
 	),
@@ -48,7 +49,7 @@ const color = {
 			'[--switch-bg-ring:var(--color-blue-800)]/90 [--switch-bg:var(--color-blue-600)]',
 			'[--switch:white] [--switch-ring:var(--color-blue-800)]/90 [--switch-shadow:var(--color-blue-200)]/20',
 		],
-		'dark:[--switch-bg-ring:transparent]',
+		['dark:[--switch-bg-ring:transparent]', 'dark:[--switch-bg:var(--color-blue-500)]'],
 	),
 }
 
