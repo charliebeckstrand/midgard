@@ -338,9 +338,6 @@ importers:
       '@tailwindcss/postcss':
         specifier: 'catalog:'
         version: 4.3.5
-      '@testing-library/jest-dom':
-        specifier: 'catalog:'
-        version: 8.0.0(@testing-library/dom@10.4.2)(vitest@5.1.1)
       '@testing-library/react':
         specifier: 'catalog:'
         version: 16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0)(@types/react@19.3.0)(react-dom@19.3.1)(react@19.3.1)
@@ -408,9 +405,6 @@ importers:
       '@tailwindcss/postcss':
         specifier: 'catalog:'
         version: 4.3.5
-      '@testing-library/jest-dom':
-        specifier: 'catalog:'
-        version: 8.0.0(@testing-library/dom@10.4.2)(vitest@5.1.1)
       '@testing-library/react':
         specifier: 'catalog:'
         version: 16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0)(@types/react@19.3.0)(react-dom@19.3.1)(react@19.3.1)
@@ -472,9 +466,6 @@ importers:
       '@tailwindcss/postcss':
         specifier: 'catalog:'
         version: 4.3.5
-      '@testing-library/jest-dom':
-        specifier: 'catalog:'
-        version: 8.0.0(@testing-library/dom@10.4.2)(vitest@5.1.1)
       '@testing-library/react':
         specifier: 'catalog:'
         version: 16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0)(@types/react@19.3.0)(react-dom@19.3.1)(react@19.3.1)
@@ -533,9 +524,6 @@ importers:
       '@tailwindcss/postcss':
         specifier: 'catalog:'
         version: 4.3.5
-      '@testing-library/jest-dom':
-        specifier: 'catalog:'
-        version: 8.0.0(@testing-library/dom@10.4.2)(vitest@5.1.1)
       '@testing-library/react':
         specifier: 'catalog:'
         version: 16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0)(@types/react@19.3.0)(react-dom@19.3.1)(react@19.3.1)
@@ -606,9 +594,6 @@ importers:
       '@tailwindcss/postcss':
         specifier: 'catalog:'
         version: 4.3.5
-      '@testing-library/jest-dom':
-        specifier: 'catalog:'
-        version: 8.0.0(@testing-library/dom@10.4.2)(vitest@5.1.1)
       '@testing-library/react':
         specifier: 'catalog:'
         version: 16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0)(@types/react@19.3.0)(react-dom@19.3.1)(react@19.3.1)
@@ -701,6 +686,12 @@ importers:
       '@tanstack/react-query':
         specifier: 'catalog:'
         version: 5.108.2(@types/react@19.3.0)(react@19.3.1)
+      '@testing-library/jest-dom':
+        specifier: 'catalog:'
+        version: 8.0.0(@testing-library/dom@10.4.2)(vitest@5.1.1)
+      '@testing-library/react':
+        specifier: 'catalog:'
+        version: 16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0)(@types/react@19.3.0)(react-dom@19.3.1)(react@19.3.1)
       '@types/node':
         specifier: 'catalog:'
         version: 26.6.6

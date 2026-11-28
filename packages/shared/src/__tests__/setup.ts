@@ -2,14 +2,9 @@ import { createElement } from 'react'
 import { prerender } from 'react-dom/static'
 import { CATALOG_LOCALES, LocaleProvider, type LocaleProviderProps } from 'ui/providers/locale'
 import { catalogs } from '../locale/catalogs'
-
-// A browser resolves a same-origin path, and the `Request` of Node takes only an
-// absolute URL. A setup file runs before the test file imports its modules.
-globalThis.Request = class extends Request {
-	constructor(input: RequestInfo | URL, init?: RequestInit) {
-		super(typeof input === 'string' ? new URL(input, 'http://localhost') : input, init)
-	}
-}
+// The setup of the app suites: the `Request` patch, the matchers, the cleanup,
+// and the wait budget.
+import '../testing/setup'
 
 // Each translation loads when a `LocaleProvider` first shows its language, and
 // the provider suspends until then. A render of `renderToString` does not wait,
