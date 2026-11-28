@@ -239,7 +239,6 @@
 		"react-router": "8.5.2",
 		"subset-font": "^2.9.0",
 		"tailwindcss": "catalog:",
-		"tsx": "catalog:",
 		"typescript": "catalog:",
 		"us-atlas": "catalog:",
 		"vite": "^8.3.2",
