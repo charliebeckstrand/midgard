@@ -1,5 +1,5 @@
 import { defineKata } from '../../core/recipe'
-import { kasane, kokkaku, omote, sen } from '../kiso'
+import { kasane, kokkaku, narabi, omote, sen } from '../kiso'
 
 const { rounded } = kasane
 const { focus, forced } = sen
@@ -46,7 +46,7 @@ export const k = defineKata(
 		// collapse.
 		skeleton: {
 			...kokkaku.chat,
-			bubble: [...kokkaku.chat.bubble, 'flex flex-col', omote.bg.tint, forced.outline],
+			bubble: [...kokkaku.chat.bubble, narabi.flex.col, omote.bg.tint, forced.outline],
 		},
 	},
 )

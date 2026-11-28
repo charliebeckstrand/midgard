@@ -2,7 +2,7 @@ import { defineScale, type ScaleStep } from '../../core/density'
 import { defineKata, definePalette, type VariantProps } from '../../core/recipe'
 import { dan, hannou, iro, kokkaku, narabi, sen, shaku } from '../kiso'
 
-const { cursor, disabled } = hannou
+const { cursor, disabled, press } = hannou
 const { extended, hover, palette } = iro
 const { button } = kokkaku
 const { flex } = narabi
@@ -16,10 +16,7 @@ export const k = defineKata(
 		base: [
 			'relative isolate',
 			'touch-manipulation',
-			// A long press on iOS selects the label text. iOS Safari can select the
-			// text in a child span of a `select-none` button, so the children also
-			// set it. HoldButton, which the user presses and holds, shows this most.
-			'select-none *:select-none',
+			...press,
 			flex.inline,
 			'justify-center',
 			'w-fit shrink-0',

@@ -11,7 +11,7 @@
  * `--wysiwyg-placeholder` string of the field.
  */
 import { defineKata, mode } from '../../core/recipe'
-import { dan, hannou, kokkaku } from '../kiso'
+import { dan, hannou, kokkaku, narabi } from '../kiso'
 import { framed, multiline } from '../kumi/control'
 
 export { scale } from '../kumi/control'
@@ -171,7 +171,7 @@ export const k = defineKata(
 				 * root reads its own `data-disabled`.
 				 */
 				base: 'data-disabled:cursor-not-allowed data-disabled:**:cursor-not-allowed',
-				separated: { true: ['flex flex-col', dan.gap.scale.sm], false: 'contents' },
+				separated: { true: [narabi.flex.col, dan.gap.scale.sm], false: 'contents' },
 			},
 		},
 		defaults: { toolbar: false, separated: false, top: false },
