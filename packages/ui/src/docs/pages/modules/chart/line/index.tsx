@@ -17,20 +17,20 @@ import ValueLabels from './value-labels.tsx'
 export default function LineTab() {
 	return (
 		<>
-			<Example of={SingleSeries} box="ratio" />
-			<Example of={MultiSeries} box="ratio" />
-			<Example of={CustomColors} box="ratio" />
-			<Example of={DualAxis} box="ratio" />
-			<Example of={DashedLine} box="ratio" />
-			<Example of={TimeAxis} box="ratio" />
-			<Example of={DateLabels} box="ratio" />
-			<Example of={CategoryDividers} box="ratio" />
-			<Example of={ValueLabels} box="ratio" />
-			<Example of={ReferenceLabels} box="ratio" />
-			<Example of={ReferenceLegend} box="ratio" />
-			<Example of={ReferenceNotes} box="ratio" />
-			<Example of={ReferencePanel} box="ratio" />
-			<Example of={Animated} box="ratio" />
+			<Example of={SingleSeries} />
+			<Example of={MultiSeries} />
+			<Example of={CustomColors} />
+			<Example of={DualAxis} />
+			<Example of={DashedLine} />
+			<Example of={TimeAxis} />
+			<Example of={DateLabels} />
+			<Example of={CategoryDividers} />
+			<Example of={ValueLabels} />
+			<Example of={ReferenceLabels} />
+			<Example of={ReferenceLegend} />
+			<Example of={ReferenceNotes} />
+			<Example of={ReferencePanel} />
+			<Example of={Animated} />
 		</>
 	)
 }

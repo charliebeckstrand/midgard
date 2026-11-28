@@ -1,5 +1,5 @@
 import api from 'virtual:docs/api/modules/chart'
-import { ApiTable, Example, PageTabs, Playground } from '../../../kit/index.ts'
+import { ApiTable, Example, FrameDefaults, PageTabs, Playground } from '../../../kit/index.ts'
 import Animated from './animated.tsx'
 import ContextMenuItems from './context-menu-items.tsx'
 import LegendPlacement from './legend-placement.tsx'
@@ -27,17 +27,19 @@ const TABS = [
 export default function ChartPage() {
 	return (
 		<>
-			<PageTabs tabs={TABS}>
-				<Playground of={ChartPlayground} api={api} omit={['animate']} box="ratio" />
-				<Example of={NegativeValues} box="ratio" />
-				<Example of={ReferenceLines} box="ratio" />
-				<Example of={LegendPlacement} box="ratio" />
-				<Example of={Animated} box="ratio" />
-				<Example of={TooltipTrigger} box="ratio" />
-				<Example of={TitleAndSubtitle} box="ratio" />
-				<Example of={SelectACategory} box="ratio" />
-				<Example of={ContextMenuItems} box="ratio" />
-			</PageTabs>
+			<FrameDefaults box="ratio">
+				<PageTabs tabs={TABS}>
+					<Playground of={ChartPlayground} api={api} omit={['animate']} />
+					<Example of={NegativeValues} />
+					<Example of={ReferenceLines} />
+					<Example of={LegendPlacement} />
+					<Example of={Animated} />
+					<Example of={TooltipTrigger} />
+					<Example of={TitleAndSubtitle} />
+					<Example of={SelectACategory} />
+					<Example of={ContextMenuItems} />
+				</PageTabs>
+			</FrameDefaults>
 			<ApiTable api={api} />
 		</>
 	)
