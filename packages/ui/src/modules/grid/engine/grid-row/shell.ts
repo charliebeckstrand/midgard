@@ -5,6 +5,7 @@ import { isActivationKey } from '../../../../utilities/keyboard-navigation'
 import { hasBrowserModifier } from '../../../../utilities/modifier-keys'
 import type { GridColumn } from '../../types'
 import { isNewRowAddColumn } from '../grid-new-row-column'
+import { type GridClickHandlers, keyboardActivation } from './bridges'
 import {
 	cellContext,
 	fromInteractiveContent,
@@ -69,14 +70,6 @@ function rowPointerHandler<T>(args: {
 	}
 }
 
-/** The four row/cell click handlers a row can carry; any one makes it read as clickable. @internal */
-type GridRowShellHandlers<T> = {
-	onRowClick?: GridRowClick<T>
-	onCellClick?: GridCellClick<T>
-	onRowDoubleClick?: GridRowClick<T>
-	onCellDoubleClick?: GridCellClick<T>
-}
-
 /**
  * Whether a row is clickable: any row- or cell-level click or double-click
  * handler is attached. One definition of "this row is clickable", shared by the
@@ -84,7 +77,7 @@ type GridRowShellHandlers<T> = {
  *
  * @internal
  */
-function isRowClickable<T>(handlers: GridRowShellHandlers<T>): boolean {
+function isRowClickable<T>(handlers: GridClickHandlers<T>): boolean {
 	return Boolean(
 		handlers.onRowClick ||
 			handlers.onCellClick ||
@@ -100,13 +93,13 @@ function isRowClickable<T>(handlers: GridRowShellHandlers<T>): boolean {
  * @internal
  */
 export function rowClickableClass<T>(
-	handlers: GridRowShellHandlers<T>,
+	handlers: GridClickHandlers<T>,
 ): typeof k.row.clickable | false {
 	return isRowClickable(handlers) && k.row.clickable
 }
 
 /** Inputs for {@link rowShellProps}. @internal */
-type GridRowShellArgs<T> = GridRowShellHandlers<T> & {
+type GridRowShellArgs<T> = GridClickHandlers<T> & {
 	/** Visible columns, for resolving a pointer event to its data cell. */
 	columns: GridColumn<T>[]
 	row: T
@@ -128,9 +121,9 @@ type GridRowShellArgs<T> = GridRowShellHandlers<T> & {
  * - the identifying and state `data-*`/`aria-*` attributes;
  * - the pointer handlers, cell-level first and then row-level (see
  *   {@link rowPointerHandler});
- * - the Enter / Space keyboard activation, gated to the row itself. It fires
- *   the row click, else the row double-click, so a row with only a
- *   double-click handler still has a keyboard route.
+ * - the Enter / Space keyboard activation, gated to the row itself. Space
+ *   fires the row click and Enter the row double-click, and a key with no
+ *   handler of its own fires the other one (see {@link keyboardActivation}).
  *
  * Callers spread this and layer their own layout, focus, and animation props on
  * top.
@@ -149,8 +142,6 @@ export function rowShellProps<T>(args: GridRowShellArgs<T>): {
 } {
 	const { columns, row, rowKey, onRowClick, onCellClick, onRowDoubleClick, onCellDoubleClick } =
 		args
-
-	const rowActivate = onRowClick ?? onRowDoubleClick
 
 	return {
 		'data-grid-row': String(rowKey),
@@ -171,11 +162,14 @@ export function rowShellProps<T>(args: GridRowShellArgs<T>): {
 			onCell: onCellDoubleClick,
 		}),
 		// A clickable row activates on Enter / Space, gated to the row itself so
-		// inner controls keep their own key behavior. With no click handler, the
-		// keys fire the double-click handler, the only action of the row.
-		onKeyDown: rowActivate
-			? (event) => activateOnEnterSpace(event, () => rowActivate(row, event))
-			: undefined,
+		// inner controls keep their own key behavior. The key picks the handler.
+		onKeyDown:
+			onRowClick || onRowDoubleClick
+				? (event) =>
+						activateOnEnterSpace(event, () =>
+							keyboardActivation(args, event.key).onRow?.(row, event),
+						)
+				: undefined,
 	}
 }
 

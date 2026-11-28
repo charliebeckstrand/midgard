@@ -166,19 +166,23 @@ export function findDrop(item: HTMLElement, y: number): QueryDrop | null {
 	return { groupId, index: dropIndex(target, y) }
 }
 
+/** A move of a node across the nesting of the tree. See {@link findCarry}. @internal */
+export type QueryCarryWay = 'in' | 'above' | 'below' | 'out'
+
 /**
- * The group and the index that a keyboard move takes a node to across the
- * nesting of the tree. `in` moves the node into the group just before it, as
- * its last node, or else into the group just after it, as its first node.
- * `out` moves the node out of its group, to the place after that group in the
- * group around it. It is `null` when no such group is there.
+ * The group and the index that a move takes a node to across the nesting of
+ * the tree. `above` moves the node into the group just before it, as its last
+ * node, and `below` into the group just after it, as its first node. `in`, the
+ * move of the keyboard, is `above`, or else `below`. `out` moves the node out
+ * of its group, to the place after that group in the group around it. It is
+ * `null` when no such group is there.
  *
  * @internal
  */
 export function findCarry(
 	root: QueryGroup,
 	id: string,
-	way: 'in' | 'out',
+	way: QueryCarryWay,
 ): { group: QueryGroup; index: number } | null {
 	const parent = findParent(root, id)
 
@@ -196,9 +200,15 @@ export function findCarry(
 
 	const before = parent.children[index - 1]
 
-	if (before?.type === 'group') return { group: before, index: before.children.length }
+	const above = before?.type === 'group' ? { group: before, index: before.children.length } : null
 
 	const after = parent.children[index + 1]
 
-	return after?.type === 'group' ? { group: after, index: 0 } : null
+	const below = after?.type === 'group' ? { group: after, index: 0 } : null
+
+	if (way === 'above') return above
+
+	if (way === 'below') return below
+
+	return above ?? below
 }

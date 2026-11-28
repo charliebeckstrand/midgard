@@ -3,6 +3,7 @@
 import {
 	type FocusEvent,
 	type KeyboardEvent,
+	type MouseEvent,
 	type RefObject,
 	useEffect,
 	useMemo,
@@ -72,12 +73,14 @@ function stopResolver(resolveStops: () => MapStop[]): (version: number) => MapRe
 
 /**
  * The handlers a map spreads onto its plot region. They are the shared tab stop,
- * and a focus handler that keeps the stop while the region holds focus.
+ * a focus handler that keeps the stop while the region holds focus, and the
+ * keyboard context menu of the stop under the cursor.
  *
  * @internal
  */
 export type MapKeyboardProps = PlotTabStopProps & {
 	onFocus: (event: FocusEvent<HTMLElement>) => void
+	onContextMenu: (event: MouseEvent<HTMLElement>) => void
 }
 
 /** What {@link useMapKeyboard} needs from the plat to drive a cursor. @internal */
@@ -114,6 +117,11 @@ export type MapKeyboardOptions = {
 	subject: unknown
 	/** Picks the stop under the cursor: a region by index, an overlay through its own reporter. */
 	activate: (target: MapHoverTarget, press: ChartPress) => void
+	/**
+	 * Names the stop under the cursor to a context menu that the keyboard opens:
+	 * a region by index, an overlay through its own reporter.
+	 */
+	menu: (target: MapHoverTarget) => void
 	/**
 	 * The target of the stop that holds what `target` holds now. A zoom regroups
 	 * the dots of a `MapPoints`, so a target there holds the point it stands on
@@ -159,7 +167,9 @@ export type MapKeyboardOptions = {
  * jump to the ends of the list.
  *
  * Enter or Space picks the stop under the cursor, and Escape leaves through the
- * shared {@link usePlotTabStop} exit. That exit claims the press only when it
+ * shared {@link usePlotTabStop} exit. The ContextMenu key or Shift+F10 names the
+ * hovered stop to the menu that opens, as the chart frame names its hovered
+ * category. That exit claims the press only when it
  * clears a live readout, so an overlay around the map closes on the first
  * Escape. Each step onto a stop speaks its readout through the shared polite
  * live region.
@@ -201,6 +211,7 @@ export function useMapKeyboard({
 	svgRef,
 	subject,
 	activate,
+	menu,
 	relocate,
 	describe,
 	selected,
@@ -482,5 +493,18 @@ export function useMapKeyboard({
 		if (enabled && !hasBrowserModifier(event)) onPlainKeyDown(event)
 	}
 
-	return enabled || focused ? { tabIndex: 0, onKeyDown, onBlur, onFocus } : null
+	// The ContextMenu key and Shift+F10 fire `contextmenu` at the focused plot
+	// itself, never at a mark, so no mark reports it. The menu takes the stop of
+	// the hover target, which the cursor writes, as the chart frame does. A
+	// right-click lands on a mark or on the SVG, and the mark reports it there.
+	// Never prevents default, so a menu around the map still opens.
+	const onContextMenu = (event: MouseEvent<HTMLElement>) => {
+		if (!enabled || event.target !== event.currentTarget) return
+
+		const target = hovered()
+
+		if (target !== null) menu(target)
+	}
+
+	return enabled || focused ? { tabIndex: 0, onKeyDown, onBlur, onFocus, onContextMenu } : null
 }

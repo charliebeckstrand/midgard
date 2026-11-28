@@ -47,11 +47,11 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > The tags of a `tag-input` stay on one row and scroll on the inline axis. With `wrap`, they wrap onto more rows, and the add button stays at the end of the first row. The affixes of each other input stay on one row with the input.
 
-> A text field takes its `autoComplete` token from its own prop, else from an enclosing `Control`. With neither, `date-input` and `combobox` set `off`. A field with a fixed purpose keeps its own token over the token of a `Control`. These fields are the `credit-card-input` fields, the phone and zipcode presets of `mask-input`, and the `password-confirm` fields. The prop still wins over that token.
+> A text field takes its `autoComplete` token from its own prop, else from an enclosing `Control`. With neither, `date-input`, `combobox`, and the typed field of a `date-picker` with `input` set `off`. A field with a fixed purpose keeps its own token over the token of a `Control`. These fields are the `credit-card-input` fields, the phone and zipcode presets of `mask-input`, and the `password-confirm` fields. The prop still wins over that token.
 
 > `checkbox`, `switch`, `RadioGroup`, and `ColorPicker` take `readOnly` from their own prop or from an enclosing `Control`. `Rating` and `SwitchChoice` set `aria-required` from their own `required` prop or from an enclosing `Control`. The `ColorPicker` and `DatePicker` triggers set it from an enclosing `Control`.
 
-> The `ColorPicker` trigger is a `combobox`, as the `DatePicker` trigger is. Its value is the hex code that it shows. ArrowDown and ArrowUp open its panel, as on `DatePicker` and `Listbox`. Each preset swatch has a coarse color name and its hex code as its name, such as "Red, #EF4444".
+> The `ColorPicker` trigger is a `combobox`, as the `DatePicker` trigger is. Its value is the hex code that it shows. ArrowDown and ArrowUp open its panel, as on `DatePicker` and `Listbox`. Each preset swatch has a coarse color name and its hex code as its name, such as "Red, #EF4444". The checked swatch draws a check mark, so its state does not show by its hue only.
 
 > A read-only control shows the default cursor, not the pointer: on the control, on its `Field` label, and on the affix of a picker trigger. A control that is also disabled shows `not-allowed`. The shared `hannou.cursor` reads `aria-readonly="true"`, `data-readonly`, or the native `readonly` on the element or a descendant.
 
@@ -75,7 +75,7 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > A `Button` in a locked Control scope, such as a `Form` while a submit runs, is `aria-disabled` and cancels its click. It stays in the tab order. A `HoldButton` there starts no hold, and a lock that comes during a hold cancels it. Pass `lockable={false}` to keep either live. A library button that writes no field, such as a `Tab`, a `CopyButton`, or a toggle `IconButton`, stays live. So does the standard close button of an overlay, and the Cancel button of `Confirm`, also when the overlay opens from inside a locked `Form`. A field in the overlay locks with the form. A `Tab` or a `SegmentItem` that writes a value, such as the AND/OR segment of a query group, takes `lockable` and locks.
 
-> A `HoldButton` has the built-in description "Press and hold to confirm". Assistive technology can send a click with no pointer press and no key press, and such a click cannot start a hold. It arms a confirm step, and a second such click in the next five seconds completes the action.
+> A `HoldButton` has the built-in description "Press and hold to confirm". A key that lets go before the hold completes arms a confirm step, and the next Enter or Space completes the action with no hold. Thus a keyboard user does not have to hold a key (WCAG 2.1.1). Assistive technology can send a click with no pointer press and no key press, and such a click cannot start a hold. It also arms the confirm step, and a second such click completes the action. A pointer user must hold. No timer ends the confirm step (WCAG 2.2.1). It ends when the action completes, when the button loses focus, or on a pointer press.
 
 ## Navigation
 
@@ -111,7 +111,7 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 > `date-time` uses the `timeZone` of its `format`, else of the provider, else the zone of the reader. It shows a skeleton until hydration, also with a set zone. The date data of the server and of the browser give different text for some formats. The skeleton holds the date in UTC in the shape of English text, without `Intl`, so it has about the size of the date. A page that must paint a date in its first frame writes it on the server with `formatDateText` from `ui/server`. The `DateText` is then the `value` of `date-time`.
 
-> A `list` loads its drag code only when it has `onReorder`. When the code arrives, the rows mount again. The focus stays on the same control of its row. Each step of a keyboard lift calls `onReorder`, and Enter keeps the moves. Escape puts the item back: it calls `onReorder` with the order from the start of the lift. The `bare` variant has no row padding and no dividers, for rows of form controls. A horizontal `list` stays on one row, which scrolls when it is wider than its parent.
+> A `list` loads its drag code only when it has `onReorder`. When the code arrives, the rows mount again. The focus stays on the same control of its row. Each step of a keyboard lift calls `onReorder`, and Enter keeps the moves. Escape puts the item back: it calls `onReorder` with the order from the start of the lift. Each row also gets a `ListItemMenu`, a Move button after the `suffix`. Its menu moves the row one place or to an end of the list. It is the path with one pointer and no drag (WCAG 2.2 SC 2.5.7). Under `handle={false}`, each item places its own `ListHandle` and `ListItemMenu`. The `bare` variant has no row padding and no dividers, for rows of form controls. A horizontal `list` stays on one row, which scrolls when it is wider than its parent.
 
 > `CodeBlock` highlights with Shiki in a module worker. A Vite app must set `worker.format` to `'es'`.
 

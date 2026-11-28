@@ -23,6 +23,15 @@ type ReorderValues = {
 	sensorInstructions: Record<never, never>
 	reorderHandle: { item: string }
 	moveHandle: { item: string }
+	move: Record<never, never>
+	moveUp: Record<never, never>
+	moveDown: Record<never, never>
+	moveToTop: Record<never, never>
+	moveToBottom: Record<never, never>
+	moveLeft: Record<never, never>
+	moveRight: Record<never, never>
+	moveToStart: Record<never, never>
+	moveToEnd: Record<never, never>
 	unnamedItem: Record<never, never>
 	sortableRole: Record<never, never>
 	draggableRole: Record<never, never>
@@ -121,6 +130,52 @@ export const reorderMessages: MessageSet<ReorderValues> = defineMessages<Reorder
 		defaultMessage: 'Move {item}',
 		description:
 			'The name of a control that moves an item, such as the drag handle of a dashboard tile.',
+	},
+	move: {
+		id: 'ui.reorder.move',
+		defaultMessage: 'Move',
+		description:
+			'The first word of the name of the button that opens the move menu of a list row. The name of the row follows it.',
+	},
+	moveUp: {
+		id: 'ui.reorder.moveUp',
+		defaultMessage: 'Move up',
+		description: 'The menu item that moves an item one place up in its list.',
+	},
+	moveDown: {
+		id: 'ui.reorder.moveDown',
+		defaultMessage: 'Move down',
+		description: 'The menu item that moves an item one place down in its list.',
+	},
+	moveToTop: {
+		id: 'ui.reorder.moveToTop',
+		defaultMessage: 'Move to top',
+		description: 'The menu item that moves an item to the first place of its list.',
+	},
+	moveToBottom: {
+		id: 'ui.reorder.moveToBottom',
+		defaultMessage: 'Move to bottom',
+		description: 'The menu item that moves an item to the last place of its list.',
+	},
+	moveLeft: {
+		id: 'ui.reorder.moveLeft',
+		defaultMessage: 'Move left',
+		description: 'The menu item that moves an item of a horizontal list one place to the left.',
+	},
+	moveRight: {
+		id: 'ui.reorder.moveRight',
+		defaultMessage: 'Move right',
+		description: 'The menu item that moves an item of a horizontal list one place to the right.',
+	},
+	moveToStart: {
+		id: 'ui.reorder.moveToStart',
+		defaultMessage: 'Move to start',
+		description: 'The menu item that moves an item of a horizontal list to its first place.',
+	},
+	moveToEnd: {
+		id: 'ui.reorder.moveToEnd',
+		defaultMessage: 'Move to end',
+		description: 'The menu item that moves an item of a horizontal list to its last place.',
 	},
 	unnamedItem: {
 		id: 'ui.reorder.unnamedItem',

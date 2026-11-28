@@ -1,7 +1,9 @@
 'use client'
 
+import { Check } from 'lucide-react'
 import { useId, useMemo } from 'react'
 import { useDevWarning } from '../../hooks/use-dev-warning'
+import { Glyph } from '../../primitives/glyph'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k } from '../../recipes/kata/color-panel'
 import { keyByOccurrence } from '../../utilities/key-by-occurrence'
@@ -19,11 +21,13 @@ type ColorSwatchesProps = {
  *
  * @remarks
  * Each chip is a label around a native radio, so the browser gives the group
- * one Tab stop and the arrow keys. A custom color checks no chip. When the list
- * repeats a color, only the first chip of that color is checked. The radios have
- * no form owner, so an enclosing native form does not submit the checked chip.
- * A preset that is not hex paints its chip, but the chip sets no color and is
- * never checked. In development, the component warns of each such preset.
+ * one Tab stop and the arrow keys. The checked chip draws a check mark, so the
+ * current preset does not show by its hue only. A custom color checks no chip.
+ * When the list repeats a color, only the first chip of that color is checked.
+ * The radios have no form owner, so an enclosing native form does not submit
+ * the checked chip. A preset that is not hex paints its chip, but the chip sets
+ * no color and is never checked. In development, the component warns of each
+ * such preset.
  *
  * @internal
  */
@@ -81,7 +85,7 @@ export function ColorSwatches({ swatches }: ColorSwatchesProps) {
 				<label
 					key={key}
 					data-slot="color-swatch"
-					className={k().swatch}
+					className={k().swatch.base}
 					style={{ backgroundColor: swatch }}
 				>
 					<input
@@ -109,6 +113,24 @@ export function ColorSwatches({ swatches }: ColorSwatchesProps) {
 						className="sr-only"
 						onChange={() => parsed && setHsva(parsed)}
 					/>
+					{key === checkedKey && (
+						<>
+							<Glyph
+								icon={Check}
+								data-slot="color-swatch-halo"
+								aria-hidden="true"
+								className={k().swatch.halo}
+								strokeWidth={6}
+							/>
+							<Glyph
+								icon={Check}
+								data-slot="color-swatch-check"
+								aria-hidden="true"
+								className={k().swatch.check}
+								strokeWidth={3}
+							/>
+						</>
+					)}
 				</label>
 			))}
 		</div>

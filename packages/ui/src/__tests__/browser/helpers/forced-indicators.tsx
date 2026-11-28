@@ -2,7 +2,7 @@ import type { ReactElement } from 'react'
 import { expect, vi } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { Accordion, AccordionItem, AccordionTrigger } from '../../../components/accordion'
-import { ColorPicker } from '../../../components/color'
+import { ColorPanel, ColorPicker } from '../../../components/color'
 import { Combobox, ComboboxOption } from '../../../components/combobox'
 import { DatePicker } from '../../../components/date-picker'
 import { Input } from '../../../components/input'
@@ -65,6 +65,25 @@ export async function pixels(
 	let hash = 0
 	for (const byte of data) hash = (hash * 31 + byte) | 0
 	return `${image.width}x${image.height}:${hash}`
+}
+
+/**
+ * A hash of the pixels of the preset chips of a ColorPanel, with the first chip
+ * checked or with no chip checked. The other parts of the panel are hidden, so
+ * the two hashes differ only by the checked state of the first chip. The chip
+ * keeps its color under forced colors, so its checked state needs a mark of its
+ * own (WCAG 1.4.1).
+ */
+export function presetPixels(checked: boolean): Promise<string> {
+	return pixels(
+		<ColorPanel defaultValue={checked ? '#ef4444' : '#ef4445'} swatches={['#ef4444', '#3b82f6']} />,
+		(host) => {
+			const parts = host.querySelectorAll<HTMLElement>(
+				'[data-slot=color-panel] > :not([data-slot=color-swatches])',
+			)
+			for (const part of parts) part.style.visibility = 'hidden'
+		},
+	)
 }
 
 /**

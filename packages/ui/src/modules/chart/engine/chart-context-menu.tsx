@@ -30,8 +30,9 @@ import {
 	chartMenuEntries,
 } from './chart-menu-entries'
 import { chartMenuName, chartMessages } from './chart-messages'
-import { ChartFullscreenContext, ChartMenuContext, useChartFullscreen } from './context'
+import { ChartFullscreenContext, ChartMenuContext } from './context'
 import type { ChartReadoutSource } from './types'
+import { useChartMenuShown } from './use-chart-menu-shown'
 
 /**
  * The mark the pointer was over when the right-click landed. A menu item can act on that mark,
@@ -274,7 +275,7 @@ export function ChartContextMenu({
 	// neutral tab stop focused and Escape shuts it.
 	const closeRef = useRef<HTMLButtonElement>(null)
 
-	const isFullscreen = useChartFullscreen()
+	const shown = useChartMenuShown(contextMenu)
 
 	const intl = useIntl()
 
@@ -489,13 +490,7 @@ export function ChartContextMenu({
 
 	const chartMenu = useMemo(() => ({ entries, button, capped }), [entries, button, capped])
 
-	if (contextMenu === false) return <>{children}</>
-
-	// A chart rendered inside the fullscreen dialog is this menu's own re-mounted
-	// copy. It renders bare, so the enlarged chart never nests a second menu or
-	// recurses. The rule lives here because this component provides
-	// `ChartFullscreenContext`: a caller cannot forget to apply it.
-	if (isFullscreen) return <>{children}</>
+	if (!shown) return <>{children}</>
 
 	return (
 		<>

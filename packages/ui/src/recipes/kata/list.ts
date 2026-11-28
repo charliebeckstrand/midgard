@@ -2,8 +2,8 @@
  * List kata: the unit of `<List>`. The root slot is the list, with the
  * `variant` and `orientation` axes. The `item` row and its `content` column
  * share the `interactive`, `lifted`, and `stretched` axes. `rail` is the scroll
- * container of a horizontal list, and `handle`, `label`, and `description` are
- * the parts of a row. `skeleton` is the form of the `ListSkeleton` rows, and
+ * container of a horizontal list, and `handle`, `menu`, `label`, and
+ * `description` are the parts of a row. `skeleton` is the form of the `ListSkeleton` rows, and
  * `instant` is the move of a row under reduced motion.
  */
 import { defineKata, mode, type VariantProps } from '../../core/recipe'
@@ -180,6 +180,9 @@ export const k = defineKata(
 				...grab.grip,
 				...disabled.base,
 			],
+			// The button of the move menu at the end of a sortable row. It keeps its
+			// size beside a long label.
+			menu: 'flex-none',
 			/**
 			 * Content column. Pass three flags:
 			 *

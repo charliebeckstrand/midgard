@@ -6,7 +6,6 @@ import {
 	bridgeCellActivate,
 	bridgeRowActivate,
 	buildRovingCellActivate,
-	keyboardActivation,
 } from './engine/grid-row/bridges'
 import type { GridDataProps, GridEditSource } from './grid-data-types'
 import type { GridIndexRefs } from './use-grid-index'
@@ -97,33 +96,29 @@ export function useGridDataActivation<T>({
 
 	const handleCellDoubleClick = useStableHandler(onCellDoubleClick)
 
-	// The handlers that Enter or Space fires: the click pair, or with no click
-	// handler the double-click pair (see `keyboardActivation`).
-	const activation = useMemo(
-		() =>
-			keyboardActivation({
-				onCellClick: handleCellClick,
-				onRowClick: handleRowClick,
-				onCellDoubleClick: handleCellDoubleClick,
-				onRowDoubleClick: handleRowDoubleClick,
-			}),
+	// The four handlers in one object, which the key bridges read. Each key picks
+	// its pair at key time (see `keyboardActivation`).
+	const handlers = useMemo(
+		() => ({
+			onCellClick: handleCellClick,
+			onRowClick: handleRowClick,
+			onCellDoubleClick: handleCellDoubleClick,
+			onRowDoubleClick: handleRowDoubleClick,
+		}),
 		[handleCellClick, handleRowClick, handleCellDoubleClick, handleRowDoubleClick],
 	)
 
-	// Bridge the row handler into the cursor's Enter/Space activation (see `bridgeRowActivate`).
-	const onRowActivate = useMemo(() => bridgeRowActivate(activation.onRow), [activation])
+	// Bridge the row handlers into the cursor's Enter/Space activation (see `bridgeRowActivate`).
+	const onRowActivate = useMemo(() => bridgeRowActivate(handlers), [handlers])
 
 	// Cell-roving activation: a focused cell's Enter/Space fires the cell handler
 	// then the row handler, the order a pointer click fires them in. Stable so
 	// the memoized cells hold; only invoked while cell roving is active.
-	const cellActivate = useMemo(() => buildRovingCellActivate(activation), [activation])
+	const cellActivate = useMemo(() => buildRovingCellActivate(handlers), [handlers])
 
-	// Bridge the cell handler the same way: the cursor hands over its display
+	// Bridge the cell handlers the same way: the cursor hands over its display
 	// indices, resolved to the cell context through the live refs at activation.
-	const onCellActivate = useMemo(
-		() => bridgeCellActivate(activation.onCell, refs),
-		[activation, refs],
-	)
+	const onCellActivate = useMemo(() => bridgeCellActivate(handlers, refs), [handlers, refs])
 
 	return {
 		toggleActiveRow,

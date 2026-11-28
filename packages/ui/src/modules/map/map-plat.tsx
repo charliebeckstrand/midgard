@@ -418,6 +418,11 @@ type MapPlatBaseProps = AccessibleName &
 		 * Takes no pointer affordance and never prevents default: the menu still
 		 * opens, and the cursor stays as {@link onRegionClick} left it. See
 		 * {@link MapRegionsProps.onRegionContextMenu}.
+		 *
+		 * The keyboard reports through the same handler. The ContextMenu key or
+		 * Shift+F10 on the plot region reports the region that its arrow cursor sits
+		 * on. Set, it gives the plot region its tab stop, as {@link onRegionClick}
+		 * does.
 		 */
 		onRegionContextMenu?: (id: string, index: number) => void
 		/**
@@ -1526,7 +1531,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		[shape.features, shape.project, anchored, hidden, regions.answers, projection],
 	)
 
-	const { click: pickRegion } = regions
+	const { click: pickRegion, contextMenu: menuRegion } = regions
 
 	// Picks the mark the cursor sits on: a region through the caller's own
 	// reporter, an overlay through the activation it registered, so the plat
@@ -1537,6 +1542,16 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 			else report(target, 'activate', press)
 		},
 		[pickRegion, report],
+	)
+
+	// Names the mark the cursor sits on to a menu that the keyboard opens, through
+	// the same reporters a right-click on the mark reaches.
+	const menuTarget = useCallback(
+		(target: MapHoverTarget) => {
+			if (target.kind === 'region') menuRegion?.(target.index)
+			else report(target, 'menu')
+		},
+		[menuRegion, report],
 	)
 
 	// The target of the stop that holds what a target held. A zoom regroups the
@@ -1674,7 +1689,8 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		[describeStop, isStopSelected, intl],
 	)
 
-	// The cursor earns a tab stop from either of its two outputs. Gating on the
+	// The cursor earns a tab stop from each of its outputs: a readout, a pick, and
+	// a context menu (below). Gating on the
 	// readout alone would leave `tooltip={false}` with `onRegionClick` (a
 	// supported pairing) a picker no keyboard can reach. Without the readout the
 	// cursor still isolates the region it sits on, which the pointed-mark context
@@ -1684,6 +1700,11 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// pick is a clickable `MapPoint` is still a picker, and gating on the region
 	// half alone would leave it unreachable.
 	const pickable = regions.click !== undefined || entries.some((entry) => entry.activate)
+
+	// A context menu counts too: a `tooltip={false}` plat whose only output is a
+	// menu around it needs the cursor, which is how a keyboard names the mark
+	// that the menu acts on.
+	const menuable = regions.contextMenu !== undefined || entries.some((entry) => entry.menu)
 
 	// A zooming map earns the stop on its own: the wheel and the drag are pointer
 	// gestures, so without it the scale would be out of a keyboard reader's reach
@@ -1698,7 +1719,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// geography yet) from offering a stop that answers no key. It reads the frame
 	// rather than the stops themselves, so the gate stays O(1) and the centroids
 	// stay unresolved.
-	const navigable = (readable || pickable || zoomable) && shape.viewWidth > 0
+	const navigable = (readable || pickable || menuable || zoomable) && shape.viewWidth > 0
 
 	// The range bar's visibility follows the chart's tier, and its announced axis
 	// the frame's breakpoint, so it reads the container width, not the plot's,
@@ -1864,6 +1885,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 					keyboard={{
 						enabled: navigable,
 						activate: activateTarget,
+						menu: menuTarget,
 						relocate: relocateTarget,
 						describe: describeTarget,
 						selected: isStopSelected,

@@ -34,43 +34,62 @@ export type GridCellActivate = (
 ) => void
 
 /**
- * Adapts the row-click into the cursor's `onRowActivate`. The cursor fires from
- * the grid `<table>`, its single tab stop. The row-level event type is therefore
- * bridged to the table-level one here. `undefined` when the grid has no row click.
+ * The four click handlers of a grid: the cell and row click, and the cell and
+ * row double-click. Any one of them makes a row clickable.
  *
  * @internal
  */
-export function bridgeRowActivate<T>(
-	handleRowClick: GridRowClick<T> | undefined,
-): GridRowActivate | undefined {
-	if (!handleRowClick) return undefined
-
-	return (row, event) =>
-		handleRowClick(row as T, event as unknown as Parameters<GridRowClick<T>>[1])
+export type GridClickHandlers<T> = {
+	onCellClick?: GridCellClick<T> | undefined
+	onRowClick?: GridRowClick<T> | undefined
+	onCellDoubleClick?: GridCellClick<T> | undefined
+	onRowDoubleClick?: GridRowClick<T> | undefined
 }
 
 /**
- * Adapts the cell-click into the cursor's `onCellActivate`. The cursor speaks
+ * Adapts the row handlers into the cursor's `onRowActivate`. The cursor fires
+ * from the grid `<table>`, its single tab stop. The row-level event type is
+ * therefore bridged to the table-level one here. The key picks the handler
+ * (see {@link keyboardActivation}). `undefined` when the grid has no row click
+ * and no row double-click.
+ *
+ * @internal
+ */
+export function bridgeRowActivate<T>(handlers: GridClickHandlers<T>): GridRowActivate | undefined {
+	if (!handlers.onRowClick && !handlers.onRowDoubleClick) return undefined
+
+	return (row, event) =>
+		keyboardActivation(handlers, event.key).onRow?.(
+			row as T,
+			event as unknown as Parameters<GridRowClick<T>>[1],
+		)
+}
+
+/**
+ * Adapts the cell handlers into the cursor's `onCellActivate`. The cursor speaks
  * display indices, so the bridge resolves them to the cell context through the
  * live refs at activation time. That context is the row datum, key, data column,
- * and value. `undefined` when the grid has no cell click.
+ * and value. The key picks the handler (see {@link keyboardActivation}).
+ * `undefined` when the grid has no cell click and no cell double-click.
  *
  * @internal
  */
 export function bridgeCellActivate<T>(
-	handleCellClick: GridCellClick<T> | undefined,
+	handlers: GridClickHandlers<T>,
 	refs: {
 		rowsRef: RefObject<readonly T[]>
 		rowKeysRef: RefObject<(string | number)[]>
 		cursorColumnsRef: RefObject<GridColumn<T>[]>
 	},
 ): GridCellActivate | undefined {
-	if (!handleCellClick) return undefined
+	if (!handlers.onCellClick && !handlers.onCellDoubleClick) return undefined
 
 	return (rowIndex, colIndex, event) => {
-		const cell = resolveCellAt(refs, rowIndex, colIndex)
+		const onCell = keyboardActivation(handlers, event.key).onCell
 
-		if (cell) handleCellClick(cell, event)
+		const cell = onCell && resolveCellAt(refs, rowIndex, colIndex)
+
+		if (cell) onCell(cell, event)
 	}
 }
 
@@ -108,22 +127,28 @@ export function resolveCellAt<T>(
 }
 
 /**
- * The click handlers that the keyboard fires on Enter or Space: the cell
- * click and the row click. A grid with no click handler fires the double-click
- * pair instead, so an action that only a double-click starts has a keyboard
- * route (WCAG 2.1.1). It is one rule for the keyboard cursor and for roving.
+ * The pair of handlers that an activation key fires: the cell handler, then
+ * the row handler. Space fires the click pair, and Enter fires the
+ * double-click pair, as in a file manager, where a click selects and a
+ * double-click opens. When the grid has no handler in the pair of the key, the
+ * key fires the other pair. Thus an action that only a double-click starts has
+ * a keyboard route (WCAG 2.1.1), and so does an action that only a click
+ * starts. It is one rule for the keyboard cursor, for roving, and for the row
+ * shell.
  *
  * @internal
  */
-export function keyboardActivation<T>(handlers: {
-	onCellClick: GridCellClick<T> | undefined
-	onRowClick: GridRowClick<T> | undefined
-	onCellDoubleClick: GridCellClick<T> | undefined
-	onRowDoubleClick: GridRowClick<T> | undefined
-}): { onCell: GridCellClick<T> | undefined; onRow: GridRowClick<T> | undefined } {
-	return handlers.onCellClick || handlers.onRowClick
-		? { onCell: handlers.onCellClick, onRow: handlers.onRowClick }
-		: { onCell: handlers.onCellDoubleClick, onRow: handlers.onRowDoubleClick }
+export function keyboardActivation<T>(
+	handlers: GridClickHandlers<T>,
+	key: string,
+): { onCell: GridCellClick<T> | undefined; onRow: GridRowClick<T> | undefined } {
+	const click = { onCell: handlers.onCellClick, onRow: handlers.onRowClick }
+
+	const doubleClick = { onCell: handlers.onCellDoubleClick, onRow: handlers.onRowDoubleClick }
+
+	const [own, other] = key === 'Enter' ? [doubleClick, click] : [click, doubleClick]
+
+	return own.onCell || own.onRow ? own : other
 }
 
 /**
@@ -134,15 +159,16 @@ export function keyboardActivation<T>(handlers: {
  *
  * @internal
  */
-export function buildRovingCellActivate<T>(handlers: {
-	onCell: GridCellClick<T> | undefined
-	onRow: GridRowClick<T> | undefined
-}): GridCellRovingActivate<T> | undefined {
-	const { onCell, onRow } = handlers
+export function buildRovingCellActivate<T>(
+	handlers: GridClickHandlers<T>,
+): GridCellRovingActivate<T> | undefined {
+	const { onCellClick, onRowClick, onCellDoubleClick, onRowDoubleClick } = handlers
 
-	if (!onCell && !onRow) return undefined
+	if (!onCellClick && !onRowClick && !onCellDoubleClick && !onRowDoubleClick) return undefined
 
 	return (context, event) => {
+		const { onCell, onRow } = keyboardActivation(handlers, event.key)
+
 		onCell?.(context, event)
 
 		// The activation fires from the cell's `<td>`, so the event's element type

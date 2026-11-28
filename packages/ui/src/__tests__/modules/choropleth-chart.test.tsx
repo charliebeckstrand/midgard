@@ -18,6 +18,7 @@ import {
 	shownLayer,
 } from '../helpers'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
+import { renderNavigable } from '../helpers/map-navigable'
 import { CLICK } from '../helpers/press'
 
 type Row = { region: string; pop: number }
@@ -255,6 +256,20 @@ describe('ChoroplethChart context menu', () => {
 		expect(items).toHaveBeenLastCalledWith({ index: null, label: null })
 	})
 
+	it('targets the row of the region under the keyboard cursor', () => {
+		const items = vi.fn(() => [])
+
+		const { plot } = renderNavigable(chart({ contextMenu: { items } }))
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		fireEvent.contextMenu(plot)
+
+		expect(items).toHaveBeenLastCalledWith({ index: 1, label: 'B' })
+	})
+
 	it('opens a live fullscreen copy that does not nest a second menu', () => {
 		const { container } = renderUI(chart({ title: 'Population by region' }))
 
@@ -283,6 +298,13 @@ describe('ChoroplethChart context menu', () => {
 		openMenu(container)
 
 		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+	})
+
+	it('takes no tab stop with contextMenu={false} where the map has nothing else to output', () => {
+		const { container } = renderUI(chart({ contextMenu: false, tooltip: false }))
+
+		// With no menu there is no region to name, so a keyboard cursor would answer nothing.
+		expect(getSlot(container, 'map-plot')).not.toHaveAttribute('tabindex')
 	})
 })
 

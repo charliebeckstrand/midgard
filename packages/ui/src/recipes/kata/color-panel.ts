@@ -13,7 +13,8 @@
  * (`forced-color-adjust-none`): the area, the tracks, the preview, and the
  * preset chips. A system color in their place would make every chip alike and
  * remove the hue and the alpha. The rings and the focus outlines of these parts
- * keep their forced-colors outlines.
+ * keep their forced-colors outlines, and the check mark of the checked chip
+ * keeps its ink.
  */
 
 import { defineScale } from '../../core/density'
@@ -67,6 +68,9 @@ const preview = [
 	rounded.md,
 	dan.size.colorPanel.preview,
 ]
+
+// The box of the check mark of the checked preset chip, centered on the chip.
+const checkMark = 'pointer-events-none absolute inset-0 m-auto size-3/5'
 
 export const k = defineKata(
 	{
@@ -122,22 +126,37 @@ export const k = defineKata(
 			field: [flex.col, 'min-w-0', dan.gap.scale.xs],
 			label: [size['2xs'], 'font-medium uppercase tracking-wide', ...text.muted],
 			swatches: 'grid grid-cols-10 gap-1.5',
-			/**
-			 * One preset chip: a label around a visually hidden radio. The inset ring
-			 * gives a white or a black chip an edge on the panel. The outline shows
-			 * when the radio inside has keyboard focus. The chip dims through its
-			 * radio (`disabled.host`), and a disabled chip does not grow on hover.
-			 */
-			swatch: [
-				'relative cursor-pointer',
-				'forced-color-adjust-none',
-				kokkaku.colorPanel.swatch,
-				rounded.md,
-				...ring.inset,
-				'hover:not-has-disabled:scale-110',
-				disabled.host,
-				...focus.outline,
-			],
+			swatch: {
+				/**
+				 * One preset chip: a label around a visually hidden radio. The inset ring
+				 * gives a white or a black chip an edge on the panel. The outline shows
+				 * when the radio inside has keyboard focus. The chip dims through its
+				 * radio (`disabled.host`), and a disabled chip does not grow on hover.
+				 */
+				base: [
+					'relative cursor-pointer',
+					'forced-color-adjust-none',
+					kokkaku.colorPanel.swatch,
+					rounded.md,
+					...ring.inset,
+					'hover:not-has-disabled:scale-110',
+					disabled.host,
+					...focus.outline,
+				],
+				slots: {
+					/**
+					 * The check mark of the checked chip. Without it, the checked chip paints
+					 * the same pixels as an unchecked chip, so only its hue tells which preset
+					 * is current (WCAG 1.4.1). The mark is white over a black outline
+					 * (`halo`), so one of the two clears 3:1 on each chip color, also on a
+					 * translucent chip that shows the surface under the panel. The chip keeps
+					 * its color under forced colors, so the mark keeps its ink too.
+					 */
+					check: [checkMark, 'text-white'],
+					/** The black outline under the check mark: a wider stroke of the same glyph. */
+					halo: [checkMark, 'text-black'],
+				},
+			},
 		},
 	},
 	{ skeleton: kokkaku.colorPanel },

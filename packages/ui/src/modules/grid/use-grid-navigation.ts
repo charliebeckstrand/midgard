@@ -697,9 +697,9 @@ export function useGridNavigation({
 	rowsRef: RefObject<readonly unknown[]>
 	/** Live count of cursor-visitable data columns; backs horizontal bounds. */
 	colCountRef: RefObject<number>
-	/** Activates the row under the cursor on Enter, when the grid has a row click. */
+	/** Activates the row under the cursor on Enter or Space, when the grid has a row click or a row double-click. */
 	onRowActivate: GridRowActivate | undefined
-	/** Activates the cell under the cursor on Enter, ahead of the row, when the grid has a cell click. */
+	/** Activates the cell under the cursor on Enter or Space, ahead of the row, when the grid has a cell click or a cell double-click. */
 	onCellActivate: GridCellActivate | undefined
 	/** Whether the grid has a selection column; gates Space-to-select. */
 	selectableRef: RefObject<boolean>

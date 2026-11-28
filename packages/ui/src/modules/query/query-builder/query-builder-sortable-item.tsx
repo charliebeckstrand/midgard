@@ -1,7 +1,11 @@
 'use client'
 
+import { ArrowUpDown } from 'lucide-react'
 import { type DragControls, type InertiaOptions, Reorder, useDragControls } from 'motion/react'
 import { type KeyboardEvent, type PointerEvent, type ReactNode, useState } from 'react'
+import { Button } from '../../../components/button'
+import { Icon } from '../../../components/icon'
+import { MenuMove, type MenuMoveItem } from '../../../components/menu/menu-move'
 import { dataAttr } from '../../../core/data-attr'
 import { reorderMessages } from '../../../primitives/intl/intl-reorder'
 import { useIntl } from '../../../primitives/intl/use-intl'
@@ -24,6 +28,8 @@ type QueryBuilderSortableItemProps = {
 	handle: boolean
 	/** Whether the keyboard holds the node. */
 	lifted: boolean
+	/** Reads the items of the move menu of the node, when the menu opens. */
+	readMoves: (id: string) => MenuMoveItem[][]
 	/** The edge of the node that the line of a drop from another group borders, if any. */
 	drop?: 'before' | 'after'
 	/** The id of the hidden reorder instructions. */
@@ -44,10 +50,11 @@ type QueryBuilderSortableItemProps = {
 }
 
 /**
- * One node of a group that reorders: a Motion `Reorder.Item` with a grip beside
- * the rule or the nested group. The grip is the only drag activator, so the
- * controls of the rule do not start a drag and a touch on the rule scrolls.
- * The grip also takes the reorder keys.
+ * One node of a group that reorders: a Motion `Reorder.Item` with a grip before
+ * the rule or the nested group, and a move menu after it. The grip is the only
+ * drag activator, so the controls of the rule do not start a drag and a touch
+ * on the rule scrolls. The grip also takes the reorder keys. The move menu is
+ * the path of the drag with one pointer and no drag (WCAG 2.2 SC 2.5.7).
  *
  * @internal
  */
@@ -57,6 +64,7 @@ export function QueryBuilderSortableItem({
 	disabled,
 	handle,
 	lifted,
+	readMoves,
 	drop,
 	describedBy,
 	instant,
@@ -142,6 +150,20 @@ export function QueryBuilderSortableItem({
 				/>
 			)}
 			<div className={slots.sortable.node}>{children}</div>
+			{handle && (
+				<MenuMove read={() => readMoves(id)}>
+					<Button
+						variant="bare"
+						type="button"
+						data-slot="query-move-menu"
+						aria-label={intl.formatMessage(reorderMessages.moveHandle, { item: label })}
+						disabled={disabled}
+						className={slots.sortable.menu}
+					>
+						<Icon icon={ArrowUpDown} />
+					</Button>
+				</MenuMove>
+			)}
 		</Reorder.Item>
 	)
 }

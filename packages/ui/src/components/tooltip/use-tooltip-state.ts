@@ -9,6 +9,7 @@ import {
 	useHover,
 	useInteractions,
 } from '@floating-ui/react'
+import { contains } from '@floating-ui/react/utils'
 import {
 	type FocusEvent as ReactFocusEvent,
 	useCallback,
@@ -408,25 +409,57 @@ export function useTooltipState({
 
 	const focusInteraction = useFocus(context, { enabled })
 
+	// Focus that goes to an element outside the trigger and the panel closes the
+	// tooltip in the task of the blur. `useFocus` closes only in a later task, so
+	// that it can read the focus after a window blur. Until that task and its
+	// render, the open panel stays over the new focus and can cover it (WCAG
+	// 2.4.11). A hover panel also takes the pointer there. A blur with no next
+	// element, or to a focus guard of the panel, still waits for `useFocus`. The
+	// focus can then stay on the page or go into the panel. The close of
+	// `useFocus` then finds the tooltip closed.
+	const closeOnBlur = useStableEvent((event: ReactFocusEvent<Element>) => {
+		const next = event.relatedTarget
+
+		if (
+			!(next instanceof Element) ||
+			next.hasAttribute('data-floating-ui-focus-guard') ||
+			contains(context.elements.domReference, next) ||
+			contains(context.elements.floating, next)
+		) {
+			return
+		}
+
+		context.onOpenChange(false, event.nativeEvent, 'focus')
+	})
+
 	// A focus after a touch press does not open the tooltip, as in the intent
 	// gate. `:focus-visible` alone lets it through in WebKit on iOS, where a tap
 	// gives a button no focus: the focus that a closing dialog gives back to its
 	// trigger then matches.
 	const focus = useMemo<ElementProps>(() => {
-		const onFocus = focusInteraction.reference?.onFocus
+		const { reference } = focusInteraction
 
-		if (!onFocus) return focusInteraction
+		const onFocus = reference?.onFocus
+
+		const onBlur = reference?.onBlur
+
+		if (!onFocus || !onBlur) return focusInteraction
 
 		return {
 			...focusInteraction,
 			reference: {
-				...focusInteraction.reference,
+				...reference,
 				onFocus: (event: ReactFocusEvent<Element>) => {
 					if (!lastInputWasTouch()) onFocus(event)
 				},
+				onBlur: (event: ReactFocusEvent<Element>) => {
+					onBlur(event)
+
+					closeOnBlur(event)
+				},
 			},
 		}
-	}, [focusInteraction])
+	}, [focusInteraction, closeOnBlur])
 
 	// The trigger names the dialog. `<TooltipTrigger>` stamps this id on the
 	// trigger when the trigger has no id of its own, so the label reads the id

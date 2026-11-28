@@ -33,6 +33,7 @@ export function DatePickerSingle(props: DatePickerBaseProps & DatePickerSinglePr
 		truncate = true,
 		input = false,
 		format,
+		autoComplete,
 		clearable = false,
 		className,
 		'aria-label': ariaLabel,
@@ -150,6 +151,8 @@ export function DatePickerSingle(props: DatePickerBaseProps & DatePickerSinglePr
 						value={value ?? null}
 						onValueChange={setValue}
 						format={format}
+						// Undefined leaves DateInput to take the token of the Control, else 'off'.
+						autoComplete={autoComplete}
 						min={props.min}
 						max={props.max}
 						size={size}

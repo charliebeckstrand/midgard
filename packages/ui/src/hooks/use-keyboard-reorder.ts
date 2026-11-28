@@ -39,6 +39,27 @@ export type KeyboardReorderOptions<T> = {
 	enabled: boolean
 }
 
+/**
+ * A move that a menu offers for an item: one place back or on, or to the first
+ * or the last place. A menu is the single-pointer path of a drag (WCAG 2.2 SC
+ * 2.5.7).
+ *
+ * @internal
+ */
+export type ReorderMove = 'previous' | 'next' | 'first' | 'last'
+
+/** The moves of a menu, in menu order. */
+const REORDER_MOVES: readonly ReorderMove[] = ['previous', 'next', 'first', 'last']
+
+/** The index that `move` takes the item at `index` to, in a list whose last index is `last`. */
+function moveTarget(move: ReorderMove, index: number, last: number): number {
+	if (move === 'first') return 0
+
+	if (move === 'last') return last
+
+	return clamp(index + (move === 'next' ? 1 : -1), 0, last)
+}
+
 /** The item a key acts on: its key, its index in `items`, the last index, and its description. */
 type ReorderTarget = { id: string; index: number; last: number; describe: () => string }
 
@@ -82,7 +103,12 @@ function returnTarget<T>(
  * identity and reads the newest options. With `items` in its dependencies, the handler, and each
  * item that takes it, got a new identity for each move.
  *
- * @returns `{ liftedId, setLiftedId, onItemKeyDown, onItemBlur }`.
+ * The menu path takes the same model. `menuMoves` gives the moves that change the place of an
+ * item, and `menuMove` commits one through `onReorder` and announces it as a step does. The menu
+ * reads the name of the item when it opens, because an open menu can sit in the item and add its
+ * own text to the name. A surface that takes no lift, such as a locked list, makes no menu move.
+ *
+ * @returns `{ liftedId, setLiftedId, onItemKeyDown, onItemBlur, menuMoves, menuMove }`.
  * @internal
  */
 export function useKeyboardReorder<T>(options: KeyboardReorderOptions<T>) {
@@ -204,5 +230,33 @@ export function useKeyboardReorder<T>(options: KeyboardReorderOptions<T>) {
 		else if (index !== -1) navigate(step, at)
 	})
 
-	return { liftedId, setLiftedId, onItemKeyDown, onItemBlur }
+	const menuMoves = useStableEvent((id: string): ReorderMove[] => {
+		const { items, getKey } = options
+
+		const index = items.findIndex((item) => getKey(item) === id)
+
+		if (index === -1) return []
+
+		return REORDER_MOVES.filter((move) => moveTarget(move, index, items.length - 1) !== index)
+	})
+
+	const menuMove = useStableEvent((id: string, move: ReorderMove, name: string) => {
+		const { items, getKey, onReorder, enabled } = options
+
+		const index = items.findIndex((item) => getKey(item) === id)
+
+		if (!onReorder || !enabled || index === -1) return
+
+		const target = moveTarget(move, index, items.length - 1)
+
+		if (target === index) return
+
+		onReorder(moveItem(items, index, target), id, target)
+
+		announce(movedText(intl, name, { position: target + 1, total: items.length }), {
+			assertive: true,
+		})
+	})
+
+	return { liftedId, setLiftedId, onItemKeyDown, onItemBlur, menuMoves, menuMove }
 }
