@@ -8,6 +8,7 @@ import { k as radio } from '../../recipes/kata/radio'
 import { k as rating } from '../../recipes/kata/rating'
 import { k as slider } from '../../recipes/kata/slider'
 import { k as rangeSlider } from '../../recipes/kata/slider-range'
+import { k as stepper } from '../../recipes/kata/stepper'
 import { k as switchKata } from '../../recipes/kata/switch'
 import { k as text } from '../../recipes/kata/text'
 import { kasane, sen } from '../../recipes/kiso'
@@ -262,5 +263,26 @@ describe('Dark focus ring contrast', () => {
 		{ ground: 'soft fill', color: tinted('dark:bg-white/10', SURFACE.dark) },
 	])('clears 3:1 against the dark $ground', ({ color }) => {
 		expect(getContrast(ring, color)).toBeGreaterThanOrEqual(WCAG_NON_TEXT)
+	})
+})
+
+describe('Stepper completed check contrast', () => {
+	const classes = classNames([stepper({ interactive: true }).indicator.base])
+
+	const check = only(classes, /^group-data-\[state=completed\]:text-[a-z]+$/)
+
+	// The hover class has no `dark:` form, so it paints the fill in each mode.
+	it.for([
+		{ state: 'rest', mode: 'light', fill: /^group-data-\[state=completed\]:bg-/ },
+		{ state: 'rest', mode: 'dark', fill: /^dark:group-data-\[state=completed\]:bg-/ },
+		{
+			state: 'hover',
+			mode: 'each',
+			fill: /^group-enabled:group-hover:group-data-\[state=completed\]:bg-/,
+		},
+	] as const)('the check clears 3:1 on the $state fill in $mode mode', ({ fill }) => {
+		const ground = tinted(only(classes, fill), SURFACE.light)
+
+		expect(getContrast(check, ground)).toBeGreaterThanOrEqual(WCAG_NON_TEXT)
 	})
 })
