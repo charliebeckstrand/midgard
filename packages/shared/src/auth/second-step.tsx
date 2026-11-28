@@ -84,7 +84,7 @@ export function SecondStep({
 			if (response.ok) return leave(onVerified)
 
 			// The gateway ends the session after too many wrong tries. A full page load
-			// to the expired sign-in, so that no state of the second step stays.
+			// opens the expired sign-in, so that no state of the second step stays.
 			if (response.status === 410) return leave(expire)
 
 			setServerError(error?.message || intl.formatMessage(authMessages.codeRejected))
