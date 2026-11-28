@@ -134,22 +134,6 @@ export function electionDays(elections: readonly Election[]): ElectionDays {
 	)
 }
 
-/** The ISO date of a day of the calendar, which the calendar builds from local parts. */
-export function isoDay(day: Date): string {
-	const month = String(day.getMonth() + 1).padStart(2, '0')
-
-	const date = String(day.getDate()).padStart(2, '0')
-
-	return `${day.getFullYear()}-${month}-${date}`
-}
-
-/** The day of an ISO date as local midnight, as the calendar reads a day. */
-export function localDay(iso: string): Date {
-	const [year = 0, month = 1, date = 1] = iso.split('-').map(Number)
-
-	return new Date(year, month - 1, date)
-}
-
 /**
  * The day that the calendar view opens on: the day of the first election that
  * is counted now, else of the nearest election to come, else of the newest

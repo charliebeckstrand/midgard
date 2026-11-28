@@ -1012,11 +1012,11 @@
 		"description": "A word of the demo data in the docs: the word for \"guide\" in the domain \"wysiwyg-draft\", in modules/wysiwyg/drafts.ts."
 	},
 	"docs.data.wysiwyg-draft.notes": {
-		"defaultMessage": "**Launch** is on *Friday*.\n\n- Freeze the build on Wednesday\n- Ship the `v2` flag\n\n'>' Ask the design team before the copy changes.",
+		"defaultMessage": "**Launch** is on *Friday*.\n\n- Freeze the build on Wednesday\n- Ship the `v2` flag\n\n> Ask the design team before the copy changes.",
 		"description": "A word of the demo data in the docs: the word for \"notes\" in the domain \"wysiwyg-draft\", in modules/wysiwyg/drafts.ts."
 	},
 	"docs.data.wysiwyg-draft.plan": {
-		"defaultMessage": "**Launch** is on *Friday*.\n\nBefore the launch:\n\n- Freeze the build on Wednesday\n- Ship the `v2` flag to 10% of users\n- Watch the error rate each hour\n\nAfter the launch:\n\n- Send the release notes\n- Plan the review for Monday\n\n'>' Ask the design team before the copy changes.",
+		"defaultMessage": "**Launch** is on *Friday*.\n\nBefore the launch:\n\n- Freeze the build on Wednesday\n- Ship the `v2` flag to 10% of users\n- Watch the error rate each hour\n\nAfter the launch:\n\n- Send the release notes\n- Plan the review for Monday\n\n> Ask the design team before the copy changes.",
 		"description": "A word of the demo data in the docs: the word for \"plan\" in the domain \"wysiwyg-draft\", in modules/wysiwyg/drafts.ts."
 	},
 	"docs.data.wysiwyg-draft.release": {
@@ -1240,7 +1240,7 @@
 		"description": "Text of a demo in the docs as label, in primitives/skeleton/skeleton-variants.tsx."
 	},
 	"docs.demo.0d7e88302090": {
-		"defaultMessage": "Try 'aquarium' or 'lighthouse'",
+		"defaultMessage": "Try ''aquarium'' or ''lighthouse''",
 		"description": "Text of a demo in the docs as placeholder, in components/address-input/business-search.tsx."
 	},
 	"docs.demo.0dbadf11c356": {
@@ -1348,7 +1348,7 @@
 		"description": "Text of a demo in the docs as aria-label, in components/listbox/playground.tsx."
 	},
 	"docs.demo.135e912e8905": {
-		"defaultMessage": "What's new",
+		"defaultMessage": "What''s new",
 		"description": "Text of a demo in the docs, in components/dialog/playground.tsx."
 	},
 	"docs.demo.143ec6898223": {
@@ -2048,7 +2048,7 @@
 		"description": "Text of a demo in the docs, in components/tabs/disabled-tab.tsx."
 	},
 	"docs.demo.36a27ea6190e": {
-		"defaultMessage": "Couldn't load people",
+		"defaultMessage": "Couldn''t load people",
 		"description": "Text of a demo in the docs as title, in modules/grid/state/error.tsx."
 	},
 	"docs.demo.36c89534a967": {
@@ -2384,7 +2384,7 @@
 		"description": "Text of a demo in the docs as label, in components/context-menu/submenus.tsx."
 	},
 	"docs.demo.48d83fdfa99b": {
-		"defaultMessage": "Try 'baker' or 'london'",
+		"defaultMessage": "Try ''baker'' or ''london''",
 		"description": "Text of a demo in the docs as placeholder, in components/address-input/custom-provider.tsx."
 	},
 	"docs.demo.48f0d3d397d4": {
@@ -2624,7 +2624,7 @@
 		"description": "Text of a demo in the docs as aria-label, label, in modules/form/filters/playground.tsx, modules/form/filters/render-props.tsx, modules/form/filters/search-and-status.tsx and 2 more."
 	},
 	"docs.demo.548b0854ca2f": {
-		"defaultMessage": "What's new in version 2.4",
+		"defaultMessage": "What''s new in version 2.4",
 		"description": "Text of a demo in the docs, in components/dialog/playground.tsx."
 	},
 	"docs.demo.54a0e8c17ebb": {
@@ -4352,7 +4352,7 @@
 		"description": "Text of a demo in the docs, in components/file-upload/rejected-files.tsx."
 	},
 	"docs.demo.a8e7d7f20bb4": {
-		"defaultMessage": "\n# Release notes\n\nVersion 2.4 adds **search in attachments**. Run `app update` to get it, or\nread the _full list_ of [changes](https://example.com).\n\n## Changes\n\n- Search finds the text in attachments\n- Shared folders show who changed each file\n  - The list shows the last ten changes\n- The dark theme follows the setting of your system\n\n'>' Back up your files before you update.\n\n| Plan | Seats | Price |\n| --- | --- | --- |\n| Team | 10 | $12 |\n| Business | 50 | $20 |\n\n```ts\nexport function isLatest(version: string) '{'\n\treturn version === ''2.4''\n'}'\n```\n",
+		"defaultMessage": "\n# Release notes\n\nVersion 2.4 adds **search in attachments**. Run `app update` to get it, or\nread the _full list_ of [changes](https://example.com).\n\n## Changes\n\n- Search finds the text in attachments\n- Shared folders show who changed each file\n  - The list shows the last ten changes\n- The dark theme follows the setting of your system\n\n> Back up your files before you update.\n\n| Plan | Seats | Price |\n| --- | --- | --- |\n| Team | 10 | $12 |\n| Business | 50 | $20 |\n\n```ts\nexport function isLatest(version: string) '{\n\treturn version === ''2.4''\n}'\n```\n",
 		"description": "Text of a demo in the docs, in components/markdown/playground.tsx."
 	},
 	"docs.demo.a93c266d7344": {

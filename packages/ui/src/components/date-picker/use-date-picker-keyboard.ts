@@ -1,9 +1,10 @@
 import type { DateDuration } from '@internationalized/date'
 import { type KeyboardEvent, type RefObject, useCallback } from 'react'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
+import { fromIsoDay } from '../../utilities/iso-day'
 import { isActivationKey, isArrowKey, wrap } from '../../utilities/keyboard-navigation'
 import type { CalendarActive, CalendarHandle } from '../calendar'
-import { DAY_KEY_SELECTOR, dayOfKey, gridStep, sameDay } from '../calendar/calendar-utilities'
+import { DAY_KEY_SELECTOR, gridStep, sameDay } from '../calendar/calendar-utilities'
 
 /** A footer action button in the date picker. */
 export type FooterButton = 'clear' | 'today'
@@ -370,7 +371,7 @@ function dayOfTarget(target: Element, container: Element): CalendarActive | null
 
 	const key = day && container.contains(day) ? day.dataset.date : undefined
 
-	return key ? { zone: 'grid', date: dayOfKey(key) } : null
+	return key ? { zone: 'grid', date: fromIsoDay(key) } : null
 }
 
 /**

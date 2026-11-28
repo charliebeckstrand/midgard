@@ -84,7 +84,8 @@ export type FontFamily = {
 	fallbacks: FontMetrics[]
 }
 
-const FONTS_DIR = new URL('../../fonts/', import.meta.url)
+/** The folder of the source fonts. */
+const SOURCE_DIR = new URL('../../fonts/', import.meta.url)
 
 /**
  * The family of `font-sans`. The weights are those that ui and the apps use,
@@ -99,7 +100,7 @@ const FONTS_DIR = new URL('../../fonts/', import.meta.url)
  */
 export const SANS: FontFamily = {
 	name: 'google-sans-flex',
-	source: fileURLToPath(new URL('google-sans-flex.woff2', FONTS_DIR)),
+	source: fileURLToPath(new URL('google-sans-flex.woff2', SOURCE_DIR)),
 	variable: '--font-sans',
 	generic: 'sans-serif',
 	weight: { min: 300, max: 900 },
@@ -115,7 +116,7 @@ export const SANS: FontFamily = {
  */
 export const MONO: FontFamily = {
 	name: 'google-sans-code',
-	source: fileURLToPath(new URL('google-sans-code.ttf', FONTS_DIR)),
+	source: fileURLToPath(new URL('google-sans-code.ttf', SOURCE_DIR)),
 	variable: '--font-mono',
 	generic: 'monospace',
 	weight: { min: 400, max: 700 },
@@ -126,16 +127,17 @@ export const MONO: FontFamily = {
 /** The families of ui, in the order of the stylesheet. */
 export const FAMILIES = [SANS, MONO]
 
-const FONT_DIR = new URL('../../src/fonts/', import.meta.url)
+/** The folder of the files that the script writes. */
+const OUTPUT_DIR = new URL('../../src/fonts/', import.meta.url)
 
 /** The path of the stylesheet that {@link fontsCss} gives. */
-export const FONTS_CSS = fileURLToPath(new URL('fonts.css', FONT_DIR))
+export const FONTS_CSS = fileURLToPath(new URL('fonts.css', OUTPUT_DIR))
 
 /** The subset of the sans family that {@link fontScript} adds before the first paint. */
 const FIRST_SUBSET = 'latin'
 
 /** The path of the script that {@link fontScript} gives. */
-export const FONT_SCRIPT = fileURLToPath(new URL(`${SANS.name}-${FIRST_SUBSET}.js`, FONT_DIR))
+export const FONT_SCRIPT = fileURLToPath(new URL(`${SANS.name}-${FIRST_SUBSET}.js`, OUTPUT_DIR))
 
 /**
  * The layout features that the subsets keep. A browser applies the first
@@ -258,7 +260,7 @@ async function familySubsets(family: FontFamily): Promise<FontSubset[]> {
 		.map((subset) => {
 			const file = `${family.name}-${subset.name}.woff2`
 
-			return { ...subset, family, file, path: fileURLToPath(new URL(file, FONT_DIR)) }
+			return { ...subset, family, file, path: fileURLToPath(new URL(file, OUTPUT_DIR)) }
 		})
 }
 
@@ -272,6 +274,11 @@ export async function subsetBytes(subset: FontSubset): Promise<Buffer> {
 		variationAxes: opticalSize ? { wght: weight, opsz: opticalSize } : { wght: weight },
 		preserveNameIds: LICENSE_NAME_IDS,
 	})
+}
+
+/** Writes the `font-weight` range of the faces of `family`. */
+function fontWeight({ weight }: FontFamily) {
+	return `${weight.min} ${weight.max}`
 }
 
 /** Writes one CSS declaration block. */
@@ -288,16 +295,7 @@ function quote(families: string) {
 
 /** Returns the text of `src/fonts/fonts.css`. */
 export async function fontsCss(): Promise<string> {
-	const subsets = await fontSubsets()
-
-	const families = await Promise.all(
-		FAMILIES.map((family) =>
-			familyCss(
-				family,
-				subsets.filter((subset) => subset.family === family),
-			),
-		),
-	)
+	const families = await Promise.all(FAMILIES.map(familyCss))
 
 	return [
 		'/* Do not edit. `pnpm fonts` (`scripts/fonts/build.ts`) writes this file from the source fonts. */\n',
@@ -310,7 +308,9 @@ export async function fontsCss(): Promise<string> {
  * Returns the faces of the subsets of `family`, its fallback faces, and its
  * font stack.
  */
-async function familyCss(family: FontFamily, subsets: FontSubset[]) {
+async function familyCss(family: FontFamily) {
+	const subsets = await familySubsets(family)
+
 	const metrics = await fromFile(family.source)
 
 	const { fontFamily, fontFaces } = createFontStack([metrics, ...family.fallbacks], {
@@ -323,7 +323,7 @@ async function familyCss(family: FontFamily, subsets: FontSubset[]) {
 		.map((subset) =>
 			block('@font-face', {
 				'font-family': `'${metrics.familyName}'`,
-				'font-weight': `${family.weight.min} ${family.weight.max}`,
+				'font-weight': fontWeight(family),
 				'font-display': family.display,
 				src: `url('./${subset.file}') format('woff2-variations')`,
 				'unicode-range': unicodeRange(subset.codePoints),
@@ -375,8 +375,8 @@ export async function fontScript(): Promise<string> {
 	if (!subset) throw new Error(`The source font of ${SANS.name} has no ${FIRST_SUBSET} subset.`)
 
 	const descriptors = {
-		weight: `${SANS.weight.min} ${SANS.weight.max}`,
-		display: 'block',
+		weight: fontWeight(SANS),
+		display: SANS.display,
 		unicodeRange: unicodeRange(subset.codePoints),
 	}
 
