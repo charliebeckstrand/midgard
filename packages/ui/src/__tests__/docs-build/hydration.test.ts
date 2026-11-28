@@ -218,7 +218,7 @@ describe.each(LOCALES.slice(1))('a prerendered page of the docs build in %s', (l
 		const { lang, before, after } = await tab.evaluate(() => ({
 			lang: document.documentElement.lang,
 			before: document.documentElement.dataset.text ?? '',
-			after: document.body.textContent,
+			after: document.body.innerText,
 		}))
 
 		expect(lang).toBe(locale)
