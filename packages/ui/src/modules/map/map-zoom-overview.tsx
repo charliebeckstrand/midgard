@@ -72,8 +72,12 @@ function MapZoomOverviewInset({
 	// The box of the thumbnail while a press holds it. It is read once when the
 	// press lands: the press moves the view and not the inset, so the box holds
 	// for the whole drag, and a move does not force a layout after the transform
-	// it just wrote. The SVG fills the inset, so the inset's box is the SVG's.
+	// it just wrote. It is the box of the SVG and not of the inset, because the
+	// margin of the inset is not ground. A press on the margin aims at the
+	// nearest edge, as the view clamps there.
 	const box = useRef<MapClientBox | null>(null)
+
+	const svg = useRef<SVGSVGElement>(null)
 
 	// A press drags the view, so it holds the closed hand on the page, as a pan
 	// on the plot does.
@@ -112,7 +116,7 @@ function MapZoomOverviewInset({
 
 		event.currentTarget.setPointerCapture(event.pointerId)
 
-		box.current = event.currentTarget.getBoundingClientRect()
+		box.current = svg.current?.getBoundingClientRect() ?? null
 
 		cursorHold.start()
 
@@ -142,7 +146,6 @@ function MapZoomOverviewInset({
 			data-slot="map-zoom-overview"
 			aria-hidden="true"
 			className={cn(k.overview.base, controls === 'left' ? k.overview.left : k.overview.right)}
-			style={{ aspectRatio: `${view.width} / ${view.height}` }}
 			onPointerDown={onPointerDown}
 			onPointerMove={onPointerMove}
 			onPointerUp={onPointerEnd}
@@ -151,8 +154,10 @@ function MapZoomOverviewInset({
 			onClick={(event) => event.stopPropagation()}
 		>
 			<svg
+				ref={svg}
 				aria-hidden="true"
-				className="block size-full"
+				className="block w-full overflow-visible"
+				style={{ aspectRatio: `${view.width} / ${view.height}` }}
 				viewBox={`0 0 ${view.width} ${view.height}`}
 			>
 				<path

@@ -888,6 +888,69 @@ describe('MapPlat two-finger gestures', () => {
 
 		expect(readScale(container)).toBeCloseTo(3, 3)
 	})
+
+	it('holds the fit until the pinch spreads past the detent', async ({ clock }) => {
+		const { container, svg } = renderZoomable()
+
+		/** Moves the pair to a spread about x = 200, and lets the frame apply it. */
+		async function spreadTo(gap: number) {
+			touch(svg, 'touchMove', [
+				{ id: 1, x: 200 - gap / 2, y: 100 },
+				{ id: 2, x: 200 + gap / 2, y: 100 },
+			])
+
+			await clock.advance(20)
+		}
+
+		touch(svg, 'touchStart', [
+			{ id: 1, x: 190, y: 100 },
+			{ id: 2, x: 210, y: 100 },
+		])
+
+		// Three percent, then the jitter of a resting pair: inside the detent.
+		await spreadTo(20.6)
+
+		await spreadTo(20.4)
+
+		await spreadTo(20.8)
+
+		expect(readScale(container)).toBe(1)
+
+		// The spreads add up while the view holds, so six percent leaves the fit.
+		await spreadTo(21.2)
+
+		expect(readScale(container)).toBeCloseTo(1.06, 3)
+	})
+
+	it('stays at the fit when a pinch out ends in jitter', async ({ clock }) => {
+		const { container, svg } = renderZoomable()
+
+		/** Moves the pair to a spread about x = 200, and lets the frame apply it. */
+		async function spreadTo(gap: number) {
+			touch(svg, 'touchMove', [
+				{ id: 1, x: 200 - gap / 2, y: 100 },
+				{ id: 2, x: 200 + gap / 2, y: 100 },
+			])
+
+			await clock.advance(20)
+		}
+
+		touch(svg, 'touchStart', [
+			{ id: 1, x: 180, y: 100 },
+			{ id: 2, x: 220, y: 100 },
+		])
+
+		await spreadTo(80)
+
+		expect(readScale(container)).toBeCloseTo(2, 3)
+
+		// The pair closes past the fit, then rests and jitters there.
+		await spreadTo(38)
+
+		for (const gap of [38.4, 38, 38.6, 38.2]) await spreadTo(gap)
+
+		expect(readScale(container)).toBe(1)
+	})
 })
 
 /**

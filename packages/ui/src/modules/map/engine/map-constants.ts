@@ -294,6 +294,17 @@ export const MAP_WHEEL_ZOOM_RATE = 0.002
 export const MAP_ZOOM_STEP = 1.6
 
 /**
+ * How far a pinch must spread from the fit before the view leaves it. The
+ * fingers of a pinch are never still, so a pinch that rests near the fit asks
+ * for a scale on each side of it on each frame. Without a detent the view goes
+ * in and out of the zoomed state on each frame, and so does each part that
+ * reads that state: the overview inset, the zoom buttons, and the touch hold.
+ * Inside the detent the view stays at the fit. Five percent is more than the
+ * jitter of a resting pair, and less than a reader notices as a jump. @internal
+ */
+export const MAP_PINCH_DETENT = 1.05
+
+/**
  * How far a press must travel, in device pixels, before it reads as a pan. Under
  * it the press still picks the mark it landed on. Past it the map pans, and the
  * click that follows is swallowed. A drag across a clickable map therefore never

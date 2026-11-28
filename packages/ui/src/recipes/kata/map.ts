@@ -419,7 +419,12 @@ export const k = {
 	 * the inset by a part of a pixel when it ends (`hannou/disabled.ts`).
 	 *
 	 * The width is a quarter of the plot, between 5rem and 10rem. The height
-	 * comes from the ratio of the frame, which the component sets.
+	 * comes from the ratio of the frame, which the component sets on the SVG.
+	 *
+	 * A margin (`p-1`) holds the thumbnail clear of the rounded edge. The edge
+	 * of the view can lie on the edge of the thumbnail, and the SVG draws its
+	 * stroke into the margin. Without the margin, the inset cuts the outer half
+	 * of the stroke and the corners of the view.
 	 *
 	 * While the plot holds the keyboard focus, the inset hides, unless the
 	 * pointer is on it. The arrow keys pan the view, and the cursor keeps its stop
@@ -433,7 +438,7 @@ export const k = {
 	 */
 	overview: {
 		base: [
-			'absolute bottom-2 w-1/4 min-w-20 max-w-40 cursor-pointer touch-none overflow-hidden rounded-lg shadow-xs',
+			'absolute bottom-2 w-1/4 min-w-20 max-w-40 cursor-pointer touch-none overflow-hidden rounded-lg p-1 shadow-xs',
 			'in-[[data-slot=map-plot]:focus-visible]:not-hover:opacity-0',
 			omote.bg.surface,
 			sen.ring.default,
