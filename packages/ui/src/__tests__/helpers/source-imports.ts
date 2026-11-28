@@ -75,9 +75,15 @@ export function parseImports(content: string): ImportRef[] {
 /** A specifier of React or React DOM, or of a module under either, such as `react-dom/client`. */
 export const REACT_SPECIFIER = /^react(?:-dom)?(?:\/|$)/
 
-/** The source file that a relative specifier names, or `undefined`. */
+/**
+ * The source file that a relative specifier names, or `undefined`. A specifier
+ * with a `.ts` or a `.tsx` extension names its file directly. A specifier with
+ * no extension names a file or the index of a folder, as a bundler resolves it.
+ */
 export function resolveSource(from: string, specifier: string): string | undefined {
 	const base = resolve(dirname(from), specifier)
+
+	if (/\.tsx?$/.test(base)) return existsSync(base) ? base : undefined
 
 	return [`${base}.ts`, `${base}.tsx`, join(base, 'index.ts'), join(base, 'index.tsx')].find(
 		existsSync,

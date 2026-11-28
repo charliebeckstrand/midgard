@@ -19,8 +19,8 @@ import {
 	type SourceFile,
 	SyntaxKind,
 } from 'typescript/unstable/ast'
-import type { TypeScriptServer } from './ts-server'
-import { srcDir, srcRelative, uiRoot, walkSource, workspaceRoot } from './walk-source'
+import type { TypeScriptServer } from './ts-server.ts'
+import { srcDir, srcRelative, uiRoot, walkSource, workspaceRoot } from './walk-source.ts'
 
 /**
  * The controlled-language scan, once run by hand, as a reusable reader. It

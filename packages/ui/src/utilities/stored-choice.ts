@@ -1,5 +1,5 @@
-import { readCookie, writeCookie } from './cookie'
-import { createEmitter } from './emitter'
+import { readCookie, writeCookie } from './cookie.ts'
+import { createEmitter } from './emitter.ts'
 
 /**
  * One stored choice of the reader: its key, the values it can hold, and the

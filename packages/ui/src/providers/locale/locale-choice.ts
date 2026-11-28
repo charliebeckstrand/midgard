@@ -1,10 +1,10 @@
-import { getLanguage } from '../../primitives/intl/intl-language'
+import { getLanguage } from '../../primitives/intl/intl-language.ts'
 import {
 	parseChoice,
 	readChoice,
 	type StoredChoice,
 	subscribeChoices,
-} from '../../utilities/stored-choice'
+} from '../../utilities/stored-choice.ts'
 
 /**
  * The stored locale choice that follows the languages of the browser. A reader

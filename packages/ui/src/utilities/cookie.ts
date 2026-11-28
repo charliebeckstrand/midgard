@@ -1,4 +1,4 @@
-import { SECOND, YEAR } from './time-units'
+import { SECOND, YEAR } from './time-units.ts'
 
 /**
  * The value of the cookie `name` in `cookies`, or `undefined` with no such

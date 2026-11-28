@@ -1,4 +1,4 @@
-import { languages } from './lang'
+import { languages } from './lang/index.ts'
 
 // A module of its own, so the server path of the request locale loads no
 // catalog. It reads the languages of the catalogs, not their messages.
