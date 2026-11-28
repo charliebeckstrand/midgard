@@ -101,7 +101,7 @@ export const k = defineKata(
 					// sits at the edge of its text.
 					'[&_[data-slot=wysiwyg-range]]:rounded-sm [&_[data-slot=wysiwyg-range]]:box-decoration-clone',
 					'[&_[data-slot=wysiwyg-range]]:font-medium',
-					'[&_[data-slot=wysiwyg-range]]:bg-blue-500/15 [&_[data-slot=wysiwyg-range]]:text-blue-700',
+					'[&_[data-slot=wysiwyg-range]]:bg-blue-500/15 [&_[data-slot=wysiwyg-range]]:text-blue-800',
 					'dark:[&_[data-slot=wysiwyg-range]]:bg-blue-400/20 dark:[&_[data-slot=wysiwyg-range]]:text-blue-300',
 					'forced-colors:[&_[data-slot=wysiwyg-range]]:outline-solid forced-colors:[&_[data-slot=wysiwyg-range]]:outline-1',
 				],
