@@ -35,7 +35,7 @@ import {
 	TypeFlags,
 } from 'typescript/unstable/sync'
 import { afterAll, describe, expect, it } from 'vitest'
-import { TEXT_ATTRIBUTES, TEXT_PROP } from '../../../scripts/intl/catalog'
+import { isTextName, TEXT_ATTRIBUTES } from '../../../scripts/intl/catalog'
 import { startTypeScript } from '../helpers/ts-server'
 import { docsSites, isSourceFile, srcDir, srcRelative, walkSource } from '../helpers/walk-source'
 
@@ -292,7 +292,7 @@ function textFindings(project: Project, files: readonly string[]): Finding[] {
 			if (isBindingElement(node) && node.initializer) {
 				const name = nameText(node.propertyName ?? node.name) ?? ''
 
-				if (TEXT_ATTRIBUTES.has(name) || TEXT_PROP.test(name)) {
+				if (isTextName(name)) {
 					literal(node.initializer, 'text default')
 				}
 			}
