@@ -388,6 +388,16 @@ describe('Button', () => {
 				</Button>,
 				false,
 			],
+			[
+				'does not count a hidden span that names the button as a label',
+				<Button key="hidden-attribute" aria-labelledby="search-name">
+					<span id="search-name" hidden>
+						Search
+					</span>
+					<Icon icon={<Search />} />
+				</Button>,
+				false,
+			],
 		] as const)('%s', ([, button, labeled]) => {
 			const { container } = renderUI(button)
 

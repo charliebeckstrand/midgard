@@ -59,16 +59,19 @@ const SR_ONLY = /(?:^|\s)sr-only(?:\s|$)/
 
 /**
  * Whether a child is visually hidden, such as an `sr-only` span that names an
- * icon-only button. Such a child takes no room, so it does not count as a label
- * for the sizing of the button.
+ * icon-only button, or a `hidden` span that `aria-labelledby` reads. Such a
+ * child takes no room, so it does not count as a label for the sizing of the
+ * button.
  *
- * @returns `true` when `node` is an element with the `sr-only` class.
+ * @returns `true` when `node` is an element with the `sr-only` class or the `hidden` attribute.
  * @internal
  */
 export function isVisuallyHiddenElement(node: unknown): boolean {
 	if (!isValidElement(node)) return false
 
-	const { className } = node.props as { className?: unknown }
+	const { className, hidden } = node.props as { className?: unknown; hidden?: unknown }
+
+	if (hidden !== undefined && hidden !== false) return true
 
 	return typeof className === 'string' && SR_ONLY.test(className)
 }
