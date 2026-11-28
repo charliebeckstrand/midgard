@@ -269,6 +269,13 @@ export const l = <div aria-hidden={open ? undefined : true} /> // flag
 export const m = <div data-state={open ? undefined : 'closed'} />
 export const n = <div {...(open ? {} : { 'data-closed': true })} /> // flag
 export const o = <div {...(open ? {} : { title: alt })} />
+export const p = <div data-empty={!alt || undefined} /> // flag
+export const q = <div aria-current={!!alt || undefined} /> // flag
+export const r = { 'aria-modal': open || undefined } // flag
+export const s = { 'data-x': !!open || undefined } // flag
+export const t = { 'data-x': open ? '' : undefined } // flag
+export const u = { 'data-variant': alt || undefined }
+export const v = { 'aria-label': alt || undefined }
 `,
 		},
 	],

@@ -2,6 +2,7 @@
 
 import type { ComponentProps, Ref } from 'react'
 import { cn } from '../../core/cn'
+import { dataAttr } from '../../core/data-attr'
 import { useControlLock } from '../../primitives/control/context'
 import { Density } from '../../primitives/density'
 import { useHeadless } from '../../primitives/headless/context'
@@ -108,9 +109,9 @@ export function Button({
 		// survives a wrapper that rewrites `data-slot`.
 		'data-variant': variant ?? 'solid',
 		'data-density': size,
-		'data-has-prefix': !!prefix || undefined,
-		'data-has-suffix': !!suffix || undefined,
-		'data-has-label': hasLabel || undefined,
+		'data-has-prefix': dataAttr(!!prefix),
+		'data-has-suffix': dataAttr(!!suffix),
+		'data-has-label': dataAttr(hasLabel),
 	}
 
 	const content = (

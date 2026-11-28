@@ -14,6 +14,7 @@ import {
 import { ariaAttr } from '../../core/aria-attr'
 import { cn } from '../../core/cn'
 import { composeEventHandlers } from '../../core/compose-event-handlers'
+import { dataAttr } from '../../core/data-attr'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { defineMessages } from '../../primitives/intl/intl-messages'
 import type { IntlShape } from '../../primitives/intl/types'
@@ -421,7 +422,7 @@ export function TagInput({
 				as="span"
 				ref={listRef}
 				data-slot="tags"
-				data-wrap={wrap || undefined}
+				data-wrap={dataAttr(wrap)}
 				role="list"
 				aria-label={intl.formatMessage(messages.tags)}
 				gap="xs"

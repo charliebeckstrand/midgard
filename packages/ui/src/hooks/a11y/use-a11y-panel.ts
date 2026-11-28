@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
+import { ariaAttr } from '../../core/aria-attr'
 import type { AriaProps } from '../../types/aria-props'
 import { type A11yRelation, useA11yScope } from './use-a11y-scope'
 
@@ -53,7 +54,7 @@ export function useA11yPanel(role: A11yPanelRole = 'dialog', modal = true): A11y
 	const scope = useA11yScope({ slots: PANEL_SLOTS })
 
 	const ariaProps = useMemo<AriaProps>(
-		() => ({ role, 'aria-modal': modal || undefined, ...scope.ariaProps }),
+		() => ({ role, 'aria-modal': ariaAttr(modal), ...scope.ariaProps }),
 		[role, modal, scope.ariaProps],
 	)
 
