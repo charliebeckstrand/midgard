@@ -7,7 +7,7 @@ import { CATEGORY_BY_VALUE, categoryLabel } from '../../constants'
 import type { Place } from '../../types'
 import { ratedVisit } from '../../utilities/places-visits'
 import { DayText } from '../day-text'
-import { actionsColumn, CountTip, IndexSheet, locationColumns } from '../index-sheet'
+import { actionsColumn, CountCell, IndexSheet, locationColumns } from '../index-sheet'
 import { type PlaceActions, placeMenuItems } from '../place-menu'
 import { PlaceRating } from '../place-summary'
 
@@ -97,11 +97,11 @@ export function PlacesIndex({
 				// The number of visits, and the date of each one, newest first.
 				value: (place) => place.visits.length,
 				cell: (place) => (
-					<CountTip count={place.visits.length} label={`Visit dates for ${place.name}`}>
+					<CountCell count={place.visits.length} label={`Visit dates for ${place.name}`}>
 						{place.visits.map((visit) => (
 							<DayText key={visit.id} value={visit.visitedAt} />
 						))}
-					</CountTip>
+					</CountCell>
 				),
 			},
 			{

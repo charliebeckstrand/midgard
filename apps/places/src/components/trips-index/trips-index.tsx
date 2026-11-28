@@ -3,7 +3,7 @@
 import { useMemo } from 'react'
 import type { GridColumn } from 'ui/modules/grid'
 import type { Place, Trip } from '../../types'
-import { actionsColumn, CountTip, IndexSheet, locationColumns } from '../index-sheet'
+import { actionsColumn, CountCell, IndexSheet, locationColumns } from '../index-sheet'
 import { type TripActions, tripMenuItems } from '../place-menu'
 import { DaySpan } from '../summary-drawer'
 
@@ -68,11 +68,11 @@ export function TripsIndex({
 					const places = placesByTrip.get(trip.id) ?? NO_PLACES
 
 					return (
-						<CountTip count={places.length} label={`Places of ${trip.name}`}>
+						<CountCell count={places.length} label={`Places of ${trip.name}`}>
 							{places.map((place) => (
 								<span key={place.id}>{place.name}</span>
 							))}
-						</CountTip>
+						</CountCell>
 					)
 				},
 			},

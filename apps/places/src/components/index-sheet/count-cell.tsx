@@ -6,8 +6,8 @@ import { Flex } from 'ui/structure/flex'
 import { Stack } from 'ui/structure/stack'
 import { Tooltip, TooltipContent, TooltipTrigger } from 'ui/tooltip'
 
-/** Props for {@link CountTip}. */
-type CountTipProps = {
+/** Props for {@link CountCell}. */
+type CountCellProps = {
 	/** The number that the cell shows. */
 	count: number
 	/** The name of the button that opens the list. */
@@ -23,7 +23,7 @@ type CountTipProps = {
  * The grid leaves a click on the button to the button, so it does not open the
  * row. A count of 0 shows no button.
  */
-export function CountTip({ count, label, children }: CountTipProps) {
+export function CountCell({ count, label, children }: CountCellProps) {
 	return (
 		<Flex gap="xs" align="center">
 			<span>{count}</span>
