@@ -29,7 +29,7 @@ import {
 	extractCatalog,
 	TRANSLATIONS_MODULE,
 	translationsText,
-} from './catalog'
+} from './catalog.ts'
 
 const SRC_DIR = fileURLToPath(new URL('../../src', import.meta.url))
 
@@ -100,16 +100,14 @@ export async function extractDocsCatalog(extract?: Extract): Promise<Record<stri
 		demoEntries(DOCS_DIR, parseAst),
 	])
 
-	return Object.fromEntries(
-		Object.entries({
-			...messages,
-			...pageEntries(DOCS_DIR),
-			...titles,
-			...tabs,
-			...fields,
-			...demos,
-		}).toSorted(([a], [b]) => (a < b ? -1 : 1)),
-	)
+	return {
+		...messages,
+		...pageEntries(DOCS_DIR),
+		...titles,
+		...tabs,
+		...fields,
+		...demos,
+	}
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
