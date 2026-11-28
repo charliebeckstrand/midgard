@@ -31,19 +31,19 @@ import libReport from 'istanbul-lib-report'
 import reports from 'istanbul-reports'
 import { parseAst } from 'vite'
 
-const root = join(import.meta.dirname, '..', '..', 'coverage')
+const coverageDir = join(import.meta.dirname, '..', '..', 'coverage')
 
 const repositoryRoot = join(import.meta.dirname, '..', '..', '..', '..')
 
-const runs = existsSync(root)
-	? readdirSync(root, { withFileTypes: true })
+const runs = existsSync(coverageDir)
+	? readdirSync(coverageDir, { withFileTypes: true })
 			.filter((entry) => entry.isDirectory())
-			.map((entry) => join(root, entry.name, 'coverage-final.json'))
+			.map((entry) => join(coverageDir, entry.name, 'coverage-final.json'))
 			.filter((file) => existsSync(file))
 	: []
 
 if (runs.length === 0) {
-	throw new Error(`No coverage report in a folder under ${root}. Run \`test:coverage\`.`)
+	throw new Error(`No coverage report in a folder under ${coverageDir}. Run \`test:coverage\`.`)
 }
 
 /** The start of each line of a file, and the range of each of its import declarations. */
@@ -74,50 +74,33 @@ function readImports(path: string): Imports {
 }
 
 /** The coverage of `file` with no statement that starts in an import declaration. */
-function withoutImportsIn(file: FileCoverageData): FileCoverageData {
+function withoutImports(file: FileCoverageData): FileCoverageData {
 	const { lineStarts, ranges } = readImports(file.path)
 
 	if (ranges.length === 0) return file
 
-	const keys = Object.keys(file.statementMap).filter((key) => {
-		const start = file.statementMap[key]?.start
+	const statementMap = Object.fromEntries(
+		Object.entries(file.statementMap).filter(([, { start }]) => {
+			const at = (lineStarts[start.line - 1] ?? 0) + start.column
 
-		const at = start ? (lineStarts[start.line - 1] ?? 0) + start.column : -1
-
-		return !ranges.some(([from, to]) => from <= at && at < to)
-	})
-
-	return {
-		...file,
-		statementMap: Object.fromEntries(
-			keys.flatMap((key) => {
-				const range = file.statementMap[key]
-
-				return range ? [[key, range]] : []
-			}),
-		),
-		s: Object.fromEntries(keys.map((key) => [key, file.s[key] ?? 0])),
-	}
-}
-
-/**
- * The report `data` with no statement that starts in an import declaration.
- * The browser report counts an import binding as a statement, and the jsdom
- * report does not. Thus both reports count the same statements.
- */
-function withoutImports(data: CoverageMapData): CoverageMapData {
-	return Object.fromEntries(
-		Object.entries(data).map(([path, file]) => [path, withoutImportsIn(file)]),
+			return !ranges.some(([from, to]) => from <= at && at < to)
+		}),
 	)
+
+	const s = Object.fromEntries(Object.keys(statementMap).map((key) => [key, file.s[key] ?? 0]))
+
+	return { ...file, statementMap, s }
 }
 
 const coverageMap = libCoverage.createCoverageMap({})
 
 for (const run of runs) {
-	coverageMap.merge(withoutImports(JSON.parse(readFileSync(run, 'utf8'))))
+	const data: CoverageMapData = JSON.parse(readFileSync(run, 'utf8'))
+
+	for (const file of Object.values(data)) coverageMap.addFileCoverage(withoutImports(file))
 }
 
-const context = libReport.createContext({ dir: root, coverageMap })
+const context = libReport.createContext({ dir: coverageDir, coverageMap })
 
 reports.create('text').execute(context)
 
