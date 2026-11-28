@@ -184,6 +184,17 @@ const placeholder = [
 ]
 
 /**
+ * The chip of a control that floats on the top corner of a tile that has no
+ * header row: the grip at the start corner, and the menu button at the end
+ * corner.
+ */
+const floatingChip = [
+	'absolute top-3 z-10 shadow-sm',
+	...sen.border.default,
+	...mode('bg-white/90', 'dark:bg-zinc-900/90'),
+]
+
+/**
  * The drag grip. It has the box of a bare icon button, so the header row keeps
  * its height when edit mode swaps the controls of the tile for the grip. The
  * floating form sits on the corner of a tile that has no header row.
@@ -197,18 +208,21 @@ const handle = {
 		...grab.grip,
 		...sen.focus.ring,
 	],
-	floating: {
-		true: [
-			'absolute start-3 top-3 z-10 shadow-sm',
-			...sen.border.default,
-			...mode('bg-white/90', 'dark:bg-zinc-900/90'),
-		],
-		false: '',
-	},
+	floating: { true: ['start-3', ...floatingChip], false: '' },
 	// A lifted grip takes the violet focus ring of a lift. The tile shell keeps its
 	// own raise, because the z-10 of the kiso raise ties with the chrome of the
 	// later tiles.
 	dragging: { true: sen.focus.lifted.outline, false: '' },
+}
+
+/**
+ * The menu button of a tile in edit mode, which moves and resizes the tile with
+ * no drag. In the header row it is one of the controls of the tile. The
+ * floating form sits on the end corner of a tile that has no header row.
+ */
+const menu = {
+	base: '',
+	floating: { true: ['end-3', ...floatingChip], false: '' },
 }
 
 /**
@@ -278,6 +292,7 @@ export const k = defineKata(
 			missing,
 			placeholder,
 			handle,
+			menu,
 			resize: {
 				slots: {
 					handle: resize,

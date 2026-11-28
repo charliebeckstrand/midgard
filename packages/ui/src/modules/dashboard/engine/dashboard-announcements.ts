@@ -24,6 +24,9 @@ const messages = defineMessages<{
 	shifts: TileAtCell & { partner: string }
 	moves: TileAtCell
 	droppedAt: TileAtCell
+	moved: TileAtCell
+	widthStep: { item: string; count: number }
+	heightStep: { item: string; count: number }
 	droppedUnchanged: { item: string }
 	canceled: TileAtCell
 	removed: { item: string }
@@ -86,6 +89,24 @@ const messages = defineMessages<{
 		id: 'ui.dashboard.droppedAt',
 		defaultMessage: 'Dropped {item} at {cell}.',
 		description: 'Spoken when a dragged tile drops at a new place.',
+	},
+	moved: {
+		id: 'ui.dashboard.moved',
+		defaultMessage: '{item} moved to {cell}.',
+		description:
+			'Spoken when an item of the menu of a dashboard tile moves the tile to a new place.',
+	},
+	widthStep: {
+		id: 'ui.dashboard.widthStep',
+		defaultMessage: '{item} resized to {count, plural, one {# column} other {# columns}} wide.',
+		description:
+			'Spoken when an item of the menu of a dashboard tile changes the width of the tile. The count is the new width in columns.',
+	},
+	heightStep: {
+		id: 'ui.dashboard.heightStep',
+		defaultMessage: '{item} resized to {count, plural, one {# row} other {# rows}} high.',
+		description:
+			'Spoken when an item of the menu of a dashboard tile changes the height of the tile. The count is the new height in rows.',
 	},
 	droppedUnchanged: {
 		id: 'ui.dashboard.droppedUnchanged',
@@ -191,6 +212,34 @@ export function describeDragEnd(
 				cell: describeCell(intl, cell, columns),
 			})
 		: intl.formatMessage(messages.droppedUnchanged, { item: label })
+}
+
+/** The text when a step of the menu of a tile moves the tile to `cell`. */
+export function describeMoved(
+	intl: IntlShape,
+	label: string,
+	cell: DashboardCell,
+	columns: number,
+): string {
+	return intl.formatMessage(messages.moved, {
+		item: label,
+		cell: describeCell(intl, cell, columns),
+	})
+}
+
+/**
+ * The text when a step of the menu of a tile changes its span: the new width
+ * in columns, or the new height in rows.
+ */
+export function describeResized(
+	intl: IntlShape,
+	label: string,
+	axis: 'columns' | 'rows',
+	cell: DashboardCell,
+): string {
+	return axis === 'columns'
+		? intl.formatMessage(messages.widthStep, { item: label, count: cell.w })
+		: intl.formatMessage(messages.heightStep, { item: label, count: cell.h })
 }
 
 /** The text when a drag cancels. */

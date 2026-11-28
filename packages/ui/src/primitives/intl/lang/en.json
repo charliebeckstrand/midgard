@@ -451,6 +451,10 @@
 		"defaultMessage": "Security code",
 		"description": "The name of the field of the 3- or 4-digit security code of a payment card, when no label names it."
 	},
+	"ui.dashboard.arrange": {
+		"defaultMessage": "Arrange {label}",
+		"description": "The name of the button that opens the menu that moves and resizes a dashboard tile in edit mode."
+	},
 	"ui.dashboard.atStart": {
 		"defaultMessage": "{item} is over its start place, {cell}. A drop now changes nothing.",
 		"description": "Spoken while a dragged tile is over the place where the drag started. The cell is that place: a grid cell, such as \"column 3 of 24, row 2, 8 columns wide\", or a place in the stack of a narrow board, such as \"position 2 of 5\"."
@@ -474,6 +478,14 @@
 	"ui.dashboard.columns": {
 		"defaultMessage": "{count, plural, one {# column} other {# columns}}",
 		"description": "The width of a dashboard tile in columns, which its resize handle speaks."
+	},
+	"ui.dashboard.decreaseHeight": {
+		"defaultMessage": "Decrease height",
+		"description": "The menu item that makes a dashboard tile one row lower."
+	},
+	"ui.dashboard.decreaseWidth": {
+		"defaultMessage": "Decrease width",
+		"description": "The menu item that makes a dashboard tile one column narrower."
 	},
 	"ui.dashboard.dragHint": {
 		"defaultMessage": "Use the arrow keys to move it. Press Space to drop it, or Escape to cancel.",
@@ -507,13 +519,33 @@
 		"defaultMessage": "{label} failed to render.",
 		"description": "The error text of a dashboard tile whose widget threw an error."
 	},
+	"ui.dashboard.heightStep": {
+		"defaultMessage": "{item} resized to {count, plural, one {# row} other {# rows}} high.",
+		"description": "Spoken when an item of the menu of a dashboard tile changes the height of the tile. The count is the new height in rows."
+	},
+	"ui.dashboard.increaseHeight": {
+		"defaultMessage": "Increase height",
+		"description": "The menu item that makes a dashboard tile one row higher."
+	},
+	"ui.dashboard.increaseWidth": {
+		"defaultMessage": "Increase width",
+		"description": "The menu item that makes a dashboard tile one column wider."
+	},
 	"ui.dashboard.missing": {
 		"defaultMessage": "This dashboard cannot show a “{widget}” tile.",
 		"description": "The text of a dashboard tile whose kind no widget renders. The widget is the name of the kind."
 	},
+	"ui.dashboard.moved": {
+		"defaultMessage": "{item} moved to {cell}.",
+		"description": "Spoken when an item of the menu of a dashboard tile moves the tile to a new place."
+	},
 	"ui.dashboard.moves": {
 		"defaultMessage": "{item} moves to {cell}.",
 		"description": "Spoken while a dragged tile is over an empty place."
+	},
+	"ui.dashboard.noStep": {
+		"defaultMessage": "No change",
+		"description": "The disabled item of the menu of a dashboard tile when the tile can neither move nor resize."
 	},
 	"ui.dashboard.position": {
 		"defaultMessage": "position {position, number} of {total, number}",
@@ -550,6 +582,10 @@
 	"ui.dashboard.tidied": {
 		"defaultMessage": "{moved, plural, =0 {The board is already tidy.} one {Tidied the board. Moved # tile up.} other {Tidied the board. Moved # tiles up.}}",
 		"description": "Spoken when a tidy packs the board. The count is the number of tiles that moved."
+	},
+	"ui.dashboard.widthStep": {
+		"defaultMessage": "{item} resized to {count, plural, one {# column} other {# columns}} wide.",
+		"description": "Spoken when an item of the menu of a dashboard tile changes the width of the tile. The count is the new width in columns."
 	},
 	"ui.dateInput.between": {
 		"defaultMessage": "Enter a date between {min} and {max}.",

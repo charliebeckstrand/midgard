@@ -391,3 +391,53 @@ function fillShelves(
 
 	return patch
 }
+
+/** The axis and the sign of one step of a tile: `x` counts columns, and `y` counts rows. */
+export type DashboardStep = { axis: 'x' | 'y'; sign: 1 | -1 }
+
+/**
+ * The preview of one step of the tile `id` along `axis`, for the move menu of a
+ * tile, or `null` when no step in that direction changes the board.
+ *
+ * The target walks one unit at a time from the cell of the tile, in the
+ * direction of the step, to the edge of the travel range. The first target that
+ * {@link dragPreview} answers with a change in that direction, and that keeps
+ * the other axis of the tile, wins. So the step never takes the tile to another
+ * row or column. A free cell next to the tile takes one step, as an arrow key
+ * does. An equal-span tile on the same row or column changes places with it.
+ * A swap with an equal-span tile that is offset on the other axis does not
+ * count, and the walk goes on past it.
+ */
+export function stepPreview(
+	snapshot: readonly DashboardCell[],
+	id: string,
+	{ axis, sign }: DashboardStep,
+	columns: number,
+): DashboardDragPreview | null {
+	const origin = snapshot.find((cell) => cell.id === id)
+
+	if (origin === undefined || origin.static) return null
+
+	const { maxX, maxY } = dragTravel(snapshot, id, columns)
+
+	const max = axis === 'x' ? maxX : maxY
+
+	const cross = axis === 'x' ? 'y' : 'x'
+
+	for (let at = origin[axis] + sign; at >= 0 && at <= max; at += sign) {
+		const preview =
+			axis === 'x'
+				? dragPreview(snapshot, id, at, origin.y, columns)
+				: dragPreview(snapshot, id, origin.x, at, columns)
+
+		const cell = preview?.cells.find((item) => item.id === id)
+
+		if (preview === null || cell === undefined) continue
+
+		const ahead = sign * (cell[axis] - origin[axis]) > 0
+
+		if (ahead && cell[cross] === origin[cross]) return preview
+	}
+
+	return null
+}

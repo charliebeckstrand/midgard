@@ -178,3 +178,32 @@ export function samePreview(
 
 	return sameGeometry(a, b)
 }
+
+/**
+ * The cells after one step of the span of the tile `id`: `dw` columns and `dh`
+ * rows, each `-1`, `0`, or `1`. It returns `null` when the step does not change
+ * the span in its direction, so a saved span outside the limits does not jump
+ * the other way. A tile with a fixed ratio has no free height, so it takes no
+ * height step.
+ */
+export function stepSpan(
+	snapshot: readonly DashboardCell[],
+	id: string,
+	dw: number,
+	dh: number,
+	limits: DashboardResizeLimits,
+): DashboardCell[] | null {
+	const origin = snapshot.find((cell) => cell.id === id)
+
+	if (origin === undefined || (dh !== 0 && limits.ratio !== undefined)) return null
+
+	const preview = resizePreview(snapshot, id, origin.w + dw, origin.h + dh, limits)
+
+	const next = preview?.find((cell) => cell.id === id)
+
+	if (preview === null || next === undefined) return null
+
+	const grows = (delta: number, from: number, to: number) => delta === 0 || delta * (to - from) > 0
+
+	return grows(dw, origin.w, next.w) && grows(dh, origin.h, next.h) ? preview : null
+}

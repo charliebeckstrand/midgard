@@ -69,8 +69,12 @@ function edgeCursor(edge: DashboardResizeEdge, inline: 1 | -1): DragCursor {
 	return inline === 1 ? 'nwse-resize' : 'nesw-resize'
 }
 
-/** The pitch and the limits of one resize of the tile `id`, or `null` when the tile cannot resize. */
-function resizeContext(store: DashboardStore, canvas: HTMLElement | null, id: string) {
+/**
+ * The pitch and the limits of one resize of the tile `id`, or `null` when the tile cannot resize.
+ *
+ * @internal
+ */
+export function resizeContext(store: DashboardStore, canvas: HTMLElement | null, id: string) {
 	const measure = measureGesture(store, 'resize', canvas)
 
 	const origin = measure?.view.cells.get(id)
