@@ -1,20 +1,14 @@
 'use client'
 
-import { Info } from 'lucide-react'
 import { useMemo } from 'react'
 import { Badge } from 'ui/badge'
-import { Button } from 'ui/button'
-import { Icon } from 'ui/icon'
 import type { GridColumn } from 'ui/modules/grid'
-import { Flex } from 'ui/structure/flex'
-import { Stack } from 'ui/structure/stack'
-import { Tooltip, TooltipContent, TooltipTrigger } from 'ui/tooltip'
 import { CATEGORY_BY_VALUE, categoryLabel } from '../../constants'
 import type { Place } from '../../types'
 import { ratedVisit } from '../../utilities/places-visits'
 import { DayText } from '../day-text'
-import { IndexSheet, locationColumns } from '../index-sheet'
-import { type PlaceActions, PlaceMenu, placeMenuItems } from '../place-menu'
+import { actionsColumn, CountTip, IndexSheet, locationColumns } from '../index-sheet'
+import { type PlaceActions, placeMenuItems } from '../place-menu'
 import { PlaceRating } from '../place-summary'
 
 /** Props for {@link PlacesIndex}. */
@@ -100,36 +94,14 @@ export function PlacesIndex({
 			{
 				id: 'visits',
 				title: 'Visits',
-				// The number of visits, and a button whose tooltip lists the date of
-				// each one, newest first. The tooltip opens on a click or a tap, so a
-				// touch screen shows the dates too. The grid leaves a click on the
-				// button to the button, so it does not open the place.
+				// The number of visits, and the date of each one, newest first.
 				value: (place) => place.visits.length,
 				cell: (place) => (
-					<Flex gap="xs" align="center">
-						<span>{place.visits.length}</span>
-
-						<Tooltip trigger="click">
-							<TooltipTrigger>
-								<Button
-									type="button"
-									variant="bare"
-									size="sm"
-									aria-label={`Visit dates for ${place.name}`}
-								>
-									<Icon icon={<Info />} />
-								</Button>
-							</TooltipTrigger>
-
-							<TooltipContent>
-								<Stack gap="xs">
-									{place.visits.map((visit) => (
-										<DayText key={visit.id} value={visit.visitedAt} />
-									))}
-								</Stack>
-							</TooltipContent>
-						</Tooltip>
-					</Flex>
+					<CountTip count={place.visits.length} label={`Visit dates for ${place.name}`}>
+						{place.visits.map((visit) => (
+							<DayText key={visit.id} value={visit.visitedAt} />
+						))}
+					</CountTip>
 				),
 			},
 			{
@@ -140,23 +112,10 @@ export function PlacesIndex({
 				value: (place) => ratedVisit(place)?.rating ?? 0,
 				cell: (place) => <PlaceRating place={place} />,
 			},
-			{
-				id: 'actions',
-				// The ellipsis says what the column is, so the header names it for a
-				// screen reader alone.
-				title: <span className="sr-only">Actions</span>,
-				// The grid does not size an `actions` column to its content. Without a
-				// `width`, the column takes the default of 150px. This width holds the
-				// ellipsis button (38px at the `md` step) and the cell padding (8px on
-				// each side).
-				width: 54,
-				actions: (place) => (
-					<PlaceMenu
-						items={placeMenuItems(place, actions)}
-						aria-label={`Actions for ${place.name}`}
-					/>
-				),
-			},
+			actionsColumn<Place>(
+				(place) => placeMenuItems(place, actions),
+				(place) => place.name,
+			),
 		],
 		[regionByPlace, stateByPlace, actions],
 	)
