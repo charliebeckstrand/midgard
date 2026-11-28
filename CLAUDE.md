@@ -28,7 +28,7 @@
 
 3.2 For research across many files or subsystems, delegate to subagents, one task each. Read a small, known set of files directly. A subagent loads this file, but not your context. Give it the paths, the question, and the form of the answer: findings with `path:line`, not file contents. A subagent does not commit, push, or run `pnpm check`, because two gates at once run out of memory. Get assent before a large fan-out.
 
-3.3 Prove it works; flag anything unverified. While you edit, run the related tests through the script of the package: `pnpm -F <package> test:related <path>`, with the path relative to the package. Before you report a change as done, run `pnpm check` from the root, or push: the pre-push hook runs the same gate. Do not also run Biome, `check-types`, or Knip alone, because the gate runs them. A hook runs Biome on each file that you edit. Leave the full suites, the builds, and the browser suite to CI, which runs them on each push.
+3.3 Prove it works; flag anything unverified. While you edit, run the related tests through the script of the package: `pnpm -F <package> test:related <path>`, with the path relative to the package. Before you report a change as done, run `pnpm check` from the root, or push: the pre-push hook runs the same gate. Do not also run Biome, `check-types`, or Knip alone, because the gate runs them. A hook runs Biome on each file that you edit. Leave the full suites, the builds, and the browser suite to the CI of the pull request.
 
 3.4 When you change a public `ui` export, update its TSDoc. Update the related surface index in `packages/ui/docs` in the same commit ([CONVENTIONS.md](CONVENTIONS.md) §12).
 
