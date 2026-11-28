@@ -11,7 +11,7 @@ import {
 	type ZodLike,
 	zodResolver,
 } from '../../modules/form'
-import { bySlot, fireEvent, getSlot, renderUI, screen } from '../helpers'
+import { bySlot, deferred, fireEvent, getSlot, renderUI, screen } from '../helpers'
 
 type Values = { email: string; password: string }
 
@@ -198,17 +198,13 @@ describe('FormError', () => {
 		expect(second).toHaveTextContent('Pick a stronger password')
 	})
 	it('keeps the alert that a helper showed when the attempt settles later', async () => {
-		let finish: () => void = () => {}
-
-		const pending = new Promise<void>((resolve) => {
-			finish = resolve
-		})
+		const pending = deferred()
 
 		const { container } = renderLogin({
 			onSubmit: async (_, helpers) => {
 				helpers.setFormError('Account locked')
 
-				await pending
+				await pending.promise
 			},
 		})
 
@@ -217,9 +213,9 @@ describe('FormError', () => {
 		const shown = getSlot(container, 'form-error')
 
 		await act(async () => {
-			finish()
+			pending.resolve()
 
-			await pending
+			await pending.promise
 		})
 
 		// The failure of the attempt is not a new write, so no new alert speaks the

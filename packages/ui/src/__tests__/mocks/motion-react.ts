@@ -10,7 +10,7 @@ import {
 	useRef,
 } from 'react'
 import { vi } from 'vitest'
-import { noop } from '../helpers/noop'
+import { noop } from '../../utilities/noop'
 
 /**
  * `motion/react` mock applied globally via `setup/module-mocks.ts`.

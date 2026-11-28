@@ -1,5 +1,5 @@
 import type { RefObject } from 'react'
-import { accessibleName } from '../../core/accessible-name'
+import { accessibleName, ownAccessibleName } from '../../core/accessible-name'
 import { querySlot } from '../../core/query-slot'
 import type { KanbanNames } from './engine/kanban-announcements'
 
@@ -11,13 +11,6 @@ import type { KanbanNames } from './engine/kanban-announcements'
  */
 export const cardName = (container: ParentNode | null, cardId: string) =>
 	accessibleName(querySlot(container, 'kanban-card', 'card-id', cardId)?.closest('li') ?? null)
-
-/** Returns true when `el` has a non-empty `aria-label`, or an `aria-labelledby` ID that resolves. */
-const hasOwnName = (el: Element) =>
-	Boolean(el.getAttribute('aria-label')) ||
-	(el.getAttribute('aria-labelledby')?.split(/\s+/) ?? []).some(
-		(id) => id !== '' && el.ownerDocument.getElementById(id) !== null,
-	)
 
 /**
  * Gives the accessible name of a column for an announcement: the `aria-label`
@@ -35,7 +28,9 @@ export function columnName(container: ParentNode | null, columnId: string): stri
 
 	if (!column) return ''
 
-	if (hasOwnName(column)) return accessibleName(column)
+	const own = ownAccessibleName(column)
+
+	if (own !== null) return own
 
 	const header = Array.from(column.querySelectorAll('[data-slot="kanban-column-header"]')).find(
 		(el) => el.closest('[data-slot="kanban-column"]') === column,

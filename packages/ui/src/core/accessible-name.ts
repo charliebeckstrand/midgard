@@ -14,6 +14,18 @@
 export function accessibleName(el: Element | null): string {
 	if (!el) return ''
 
+	return ownAccessibleName(el) ?? spokenText(el)
+}
+
+/**
+ * The name that `el` gives itself: its `aria-label`, else the
+ * {@link spokenText} of its `aria-labelledby` targets that resolve, joined
+ * with one space. Gives `null` when `el` has no `aria-label` and no ID
+ * resolves. {@link accessibleName} then uses the text of `el`.
+ *
+ * @internal
+ */
+export function ownAccessibleName(el: Element): string | null {
 	const label = el.getAttribute('aria-label')
 
 	if (label) return label
@@ -22,7 +34,7 @@ export function accessibleName(el: Element | null): string {
 
 	const targets = ids.flatMap((id) => el.ownerDocument.getElementById(id) ?? [])
 
-	if (targets.length === 0) return spokenText(el)
+	if (targets.length === 0) return null
 
 	return targets.map(spokenText).filter(Boolean).join(' ')
 }

@@ -27,6 +27,7 @@ import {
 	act,
 	allBySlot,
 	bySlot,
+	deferred,
 	fireEvent,
 	getSlot,
 	mouseClick,
@@ -643,14 +644,10 @@ describe('PdfViewer', () => {
 				cancel: () => {},
 			}))
 
-			let open = noop
-
-			const opened = new Promise<void>((resolve) => {
-				open = resolve
-			})
+			const opened = deferred()
 
 			ensureDocumentLoad('/order.pdf', async (report) => {
-				await opened
+				await opened.promise
 
 				report.open(
 					[1, 2].map((id) => ({ id, src: '', label: `Page ${id}`, width: 918, height: 1188 })),
@@ -681,7 +678,7 @@ describe('PdfViewer', () => {
 				)
 			})
 
-			await act(async () => open())
+			await act(async () => opened.resolve())
 
 			await waitFor(() =>
 				expect(

@@ -1,3 +1,5 @@
+import { DAY } from '../../../../utilities/time-units'
+
 /**
  * The series of a fill other than numbers: dates that step by days or by
  * months, and text that ends in a whole number. Each reader returns the next
@@ -7,9 +9,6 @@
 
 /** A date as `YYYY-MM-DD`, with no time and no zone. */
 const ISO_DAY = /^(\d{4})-(\d{2})-(\d{2})$/
-
-/** The milliseconds of a day of the calendar. */
-const DAY_MS = 86_400_000
 
 /**
  * A date of the calendar, and the time of day of a `Date` as the clock reads
@@ -141,7 +140,7 @@ function monthSeries(days: readonly CalendarDay[], count: number): CalendarDay[]
  * days of the calendar, so a change of daylight saving time moves no date.
  */
 function daySeries(days: readonly CalendarDay[], count: number): CalendarDay[] | null {
-	const numbers = days.map(({ year, month, day }) => utcDay(year, month, day) / DAY_MS)
+	const numbers = days.map(({ year, month, day }) => utcDay(year, month, day) / DAY)
 
 	const step = constantGap(numbers)
 
@@ -152,7 +151,7 @@ function daySeries(days: readonly CalendarDay[], count: number): CalendarDay[] |
 	const { time } = days.at(-1) as CalendarDay
 
 	return Array.from({ length: count }, (_, index) => {
-		const date = new Date((last + step * (index + 1)) * DAY_MS)
+		const date = new Date((last + step * (index + 1)) * DAY)
 
 		return { year: date.getUTCFullYear(), month: date.getUTCMonth(), day: date.getUTCDate(), time }
 	})

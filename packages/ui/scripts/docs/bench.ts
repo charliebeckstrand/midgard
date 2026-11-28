@@ -35,10 +35,17 @@
 import { generateKeyPairSync, sign, X509Certificate } from 'node:crypto'
 import { existsSync, writeFileSync } from 'node:fs'
 import { createSecureServer, type Http2ServerResponse, type SecureServerOptions } from 'node:http2'
-import path from 'node:path'
 import { parseArgs } from 'node:util'
 import { type Browser, type CDPSession, chromium, type Locator, type Page } from 'playwright'
-import { CLIENT_DIR, HYDRATED, listen, pickEncoding, readBody, resolveFile, TYPES } from './server'
+import {
+	CLIENT_DIR,
+	contentType,
+	HYDRATED,
+	listen,
+	pickEncoding,
+	readBody,
+	resolveFile,
+} from './server'
 
 const PAGE = '/button'
 
@@ -331,8 +338,6 @@ async function serve(tls: SecureServerOptions): Promise<{ origin: string; close:
 			return
 		}
 
-		const extension = path.extname(file)
-
 		// The server of the docs compresses each file one time, as a CDN does.
 		const encoding = pickEncoding(file, request.headers['accept-encoding'])
 
@@ -342,7 +347,7 @@ async function serve(tls: SecureServerOptions): Promise<{ origin: string; close:
 		if (response.stream.closed) return
 
 		response.writeHead(200, {
-			'content-type': TYPES[extension] ?? 'application/octet-stream',
+			'content-type': contentType(file),
 			// The name of each file in `assets/` holds the hash of its content.
 			'cache-control': request.url.startsWith('/assets/')
 				? 'public, max-age=31536000, immutable'

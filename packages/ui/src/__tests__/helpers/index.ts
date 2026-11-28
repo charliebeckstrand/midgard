@@ -5,6 +5,7 @@
 // The browser suites also import this barrel, so it stays free of node-only
 // modules; the boundary tests import `walk-source` (node:fs) directly.
 export { act, createEvent, fireEvent, screen, waitFor, within } from '@testing-library/react'
+export { noop } from '../../utilities/noop'
 export { applyChanges } from './apply-changes'
 export { ariaTarget, ariaTargets } from './aria-references'
 export { attach } from './attach'
@@ -26,7 +27,6 @@ export { allRegions, firstRegion, layerScale, shownLayer, tableRows } from './ma
 export { mockDomGeometry } from './mock-dom-geometry'
 export { mouseClick } from './mouse-click'
 export { nonEmpty } from './non-empty'
-export { noop } from './noop'
 export { present } from './present'
 export { renderUI } from './render-ui'
 export { settled } from './settled'
