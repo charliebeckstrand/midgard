@@ -4,9 +4,7 @@ import {
 	activeFilters,
 	electionDays,
 	filterElections,
-	isoDay,
 	levelFilterOptions,
-	localDay,
 	NO_FILTER,
 	openingDay,
 	statusGroups,
@@ -93,12 +91,6 @@ describe('the level pages', () => {
 		expect(openingDay([general2024, general2020])).toBe('2024-11-05')
 
 		expect(openingDay([])).toBeNull()
-	})
-
-	it('reads a day of the calendar as its ISO date, and back', () => {
-		expect(isoDay(localDay('2026-11-03'))).toBe('2026-11-03')
-
-		expect(localDay('2026-01-09').getDate()).toBe(9)
 	})
 
 	it('writes the text of each election day on the server, by its ISO date', () => {

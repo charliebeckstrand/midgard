@@ -17,6 +17,7 @@ import { join, relative } from 'node:path'
 import { extract } from '@formatjs/cli-lib'
 import { parse, TYPE } from '@formatjs/icu-messageformat-parser'
 import { isStructurallySame } from '@formatjs/icu-messageformat-parser/manipulator.js'
+import { printAST } from '@formatjs/icu-messageformat-parser/printer.js'
 
 /** The attributes, props, and object properties that carry text for a person. */
 export const TEXT_ATTRIBUTES: ReadonlySet<string> = new Set([
@@ -200,11 +201,11 @@ export function argumentErrors(
 
 /**
  * `text` as an ICU message with no argument, such as the text of a demo of the
- * docs. A brace or an angle bracket goes in quotes, and each apostrophe then
- * doubles, so {@link parsePlainMessage} gives `text` back.
+ * docs. The printer of FormatJS writes it, so {@link parsePlainMessage} gives
+ * `text` back.
  */
 export function formatPlainMessage(text: string): string {
-	return /[{}<>]/.test(text) ? formatValueMessage([text]) : text
+	return formatValueMessage([text])
 }
 
 /** The text of an ICU message with no argument. It throws for an argument or a tag. */
@@ -227,18 +228,17 @@ export function parsePlainMessage(message: string): string {
 export type MessagePart = string | { name: string }
 
 /**
- * The ICU message of `parts`. Each apostrophe in a text doubles, and a brace
- * or an angle bracket goes in quotes, so {@link parseValueMessage} gives
- * `parts` back.
+ * The ICU message of `parts`. The printer of FormatJS writes it, so
+ * {@link parseValueMessage} gives `parts` back.
  */
 export function formatValueMessage(parts: readonly MessagePart[]): string {
-	return parts
-		.map((part) =>
+	return printAST(
+		parts.map((part) =>
 			typeof part === 'string'
-				? part.replaceAll("'", "''").replace(/[{}<>]+/g, (special) => `'${special}'`)
-				: `{${part.name}}`,
-		)
-		.join('')
+				? { type: TYPE.literal, value: part }
+				: { type: TYPE.argument, value: part.name },
+		),
+	)
 }
 
 /**

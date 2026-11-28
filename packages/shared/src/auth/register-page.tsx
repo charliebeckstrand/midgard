@@ -2,9 +2,8 @@
 
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { Button } from 'ui/button'
 import { Field, Label, Message } from 'ui/fieldset'
-import { Form, FormError, type FormSubmitHandler } from 'ui/form'
+import { Form, FormError, FormSubmit, type FormSubmitHandler } from 'ui/form'
 import { Input } from 'ui/input'
 import { AuthLayout } from 'ui/layouts'
 import { Link } from 'ui/link'
@@ -128,13 +127,9 @@ export function RegisterPage({ turnstileSiteKey }: RegisterPageProps) {
 						<Turnstile key={attempt} siteKey={turnstileSiteKey} onToken={setTurnstileToken} />
 					)}
 
-					<Button
-						type="submit"
-						className="w-full"
-						disabled={Boolean(turnstileSiteKey) && !turnstileToken}
-					>
+					<FormSubmit className="w-full" disabled={Boolean(turnstileSiteKey) && !turnstileToken}>
 						{intl.formatMessage(authMessages.createAccount)}
-					</Button>
+					</FormSubmit>
 
 					<div className="text-center">
 						<Text>

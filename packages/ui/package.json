@@ -126,7 +126,7 @@
 	},
 	"scripts": {
 		"dev": "react-router dev src/docs",
-		"fonts": "tsx scripts/fonts/build.ts",
+		"fonts": "node scripts/fonts/build.ts",
 		"intl": "node scripts/intl/extract.ts",
 		"docs:build": "react-router build src/docs",
 		"docs:build-server": "vite build --config src/docs/vite.docs-server.config.ts",

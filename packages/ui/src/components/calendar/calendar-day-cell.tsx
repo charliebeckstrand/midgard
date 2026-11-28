@@ -7,8 +7,9 @@ import { dataAttr } from '../../core/data-attr'
 import type { ButtonVariants } from '../../recipes/kata/button'
 import { k } from '../../recipes/kata/calendar'
 import { formatInteger } from '../../utilities/format-number'
+import { toIsoDay } from '../../utilities/iso-day'
 import { Button } from '../button'
-import { dayKey, formatDayName } from './calendar-utilities'
+import { formatDayName } from './calendar-utilities'
 
 type DayCellProps = {
 	date: Date
@@ -83,7 +84,7 @@ export const CalendarDayCell = memo(function CalendarDayCell({
 			aria-disabled={ariaAttr(disabled && focusable)}
 			data-disabled={dataAttr(disabled && focusable)}
 			// The date picker reads the day of a focused cell from this ISO date.
-			data-date={dayKey(date)}
+			data-date={toIsoDay(date)}
 			variant={variant ?? (selected ? 'solid' : restVariant)}
 			color={color ?? (selected || isToday ? 'blue' : undefined)}
 			disabled={disabled && !focusable}

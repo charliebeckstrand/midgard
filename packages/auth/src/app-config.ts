@@ -27,9 +27,16 @@ const definesMessages = {
 /**
  * The Next config that each app of the repository shares. Pass it to
  * {@link withAuth}, or spread it into a config that adds keys of its own.
+ *
+ * @remarks It sends {@link securityHeaders} on every path. A config that sets
+ * its own `headers` replaces this function, so it must return these headers
+ * too.
  */
 export const appConfig: NextConfig = {
 	devIndicators: false,
+	async headers() {
+		return [{ source: '/:path*', headers: securityHeaders }]
+	},
 	// `next build` writes a self-contained server into `.next/standalone`, with
 	// the dependencies that it traces. The Dockerfile at the repository root
 	// copies that server into the image that App Platform runs.

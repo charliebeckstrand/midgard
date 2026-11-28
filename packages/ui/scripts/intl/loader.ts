@@ -18,18 +18,10 @@
  */
 
 import { type MessageFormatElement, parse } from '@formatjs/icu-messageformat-parser'
-import { parseAst } from 'vite'
+import { type ESTree, parseAst, Visitor } from 'vite'
 
 /** The part of the loader context of Turbopack that the loader reads. */
 type LoaderContext = { readonly resourcePath: string }
-
-type Node = { readonly type: string; readonly start: number; readonly end: number }
-
-type Property = Node & {
-	readonly key: Node & { readonly name?: string; readonly value?: unknown }
-	readonly value: Node
-	readonly computed: boolean
-}
 
 type Edit = { readonly start: number; readonly end: number; readonly text: string }
 
@@ -37,18 +29,14 @@ type Edit = { readonly start: number; readonly end: number; readonly text: strin
 // same names (`intl-messages.ts`).
 const DEFINE_CALLS: ReadonlySet<string> = new Set(['defineMessage', 'defineMessages'])
 
-// The syntax tree of a message, as JSON. A message that does not parse stops
-// the build, with the name of its module.
-function compile(message: string, where: string): string {
-	let ast: MessageFormatElement[]
-
+// The syntax tree of a message. A message that does not parse stops the
+// build, with the name of its module.
+function compile(message: string, where: string): MessageFormatElement[] {
 	try {
-		ast = parse(message)
+		return parse(message)
 	} catch (error) {
 		throw new Error(`${where}: the message "${message}" does not parse`, { cause: error })
 	}
-
-	return JSON.stringify(ast)
 }
 
 /**
@@ -58,34 +46,15 @@ function compile(message: string, where: string): string {
 export function compileTranslation(source: string, file: string): string {
 	const messages = JSON.parse(source) as Record<string, string>
 
-	const compiled = Object.entries(messages).map(
-		([id, message]) => `${JSON.stringify(id)}:${compile(message, `${file} ${id}`)}`,
+	return JSON.stringify(
+		Object.fromEntries(
+			Object.entries(messages).map(([id, message]) => [id, compile(message, `${file} ${id}`)]),
+		),
 	)
-
-	return `{${compiled.join(',')}}`
-}
-
-function isNode(value: unknown): value is Node {
-	return typeof value === 'object' && value !== null && typeof (value as Node).type === 'string'
-}
-
-// The children of a node, in source order.
-function children(node: Node): Node[] {
-	const found: Node[] = []
-
-	for (const value of Object.values(node)) {
-		if (Array.isArray(value)) {
-			for (const item of value) if (isNode(item)) found.push(item)
-		} else if (isNode(value)) {
-			found.push(value)
-		}
-	}
-
-	return found
 }
 
 // The expression inside the type wrappers of TypeScript, such as `x as const`.
-function unwrap(node: Node): Node {
+function unwrap(node: ESTree.Node): ESTree.Node {
 	let current = node
 
 	while (
@@ -94,44 +63,34 @@ function unwrap(node: Node): Node {
 		current.type === 'TSNonNullExpression' ||
 		current.type === 'ParenthesizedExpression'
 	) {
-		current = (current as Node & { readonly expression: Node }).expression
+		current = current.expression
 	}
 
 	return current
 }
 
-function properties(object: Node): Property[] {
-	return (object as Node & { readonly properties: readonly Node[] }).properties.filter(
-		(property): property is Property => property.type === 'Property',
-	)
+// The properties of an object literal, without its spreads.
+function properties(object: ESTree.ObjectExpression): ESTree.ObjectProperty[] {
+	return object.properties.filter((property) => property.type === 'Property')
 }
 
-function keyName(property: Property): string | undefined {
+function keyName(property: ESTree.ObjectProperty): string | undefined {
 	if (property.computed) return undefined
 
 	const { key } = property
 
 	if (key.type === 'Identifier') return key.name
 
-	return typeof key.value === 'string' ? key.value : undefined
+	return key.type === 'Literal' && typeof key.value === 'string' ? key.value : undefined
 }
 
 // The text of a string literal, or of a template literal with no
 // substitution. Any other expression gives `undefined`.
-function literalText(node: Node): string | undefined {
-	if (node.type === 'Literal') {
-		const { value } = node as Node & { readonly value: unknown }
+function literalText(node: ESTree.Node): string | undefined {
+	if (node.type === 'Literal') return typeof node.value === 'string' ? node.value : undefined
 
-		return typeof value === 'string' ? value : undefined
-	}
-
-	if (node.type === 'TemplateLiteral') {
-		const { expressions, quasis } = node as Node & {
-			readonly expressions: readonly Node[]
-			readonly quasis: readonly { readonly value: { readonly cooked: string } }[]
-		}
-
-		return expressions.length === 0 ? quasis[0]?.value.cooked : undefined
+	if (node.type === 'TemplateLiteral' && node.expressions.length === 0) {
+		return node.quasis[0]?.value.cooked ?? undefined
 	}
 
 	return undefined
@@ -139,7 +98,7 @@ function literalText(node: Node): string | undefined {
 
 // The end of `property` with the comma after it, so that its removal leaves
 // a valid object.
-function endWithComma(source: string, property: Property): number {
+function endWithComma(source: string, property: ESTree.Node): number {
 	let index = property.end
 
 	while (/\s/.test(source[index] ?? '')) index++
@@ -148,14 +107,14 @@ function endWithComma(source: string, property: Property): number {
 }
 
 // The place of `node` in `file`, as `file:line`.
-function place(source: string, node: Node, file: string): string {
+function place(source: string, node: ESTree.Node, file: string): string {
 	return `${file}:${source.slice(0, node.start).split('\n').length}`
 }
 
 // The edits of one descriptor. A descriptor whose `defaultMessage` is not a
 // literal stops the build: the parser is not in the bundle, so the text of
 // such a message cannot show.
-function descriptorEdits(source: string, descriptor: Node, file: string): Edit[] {
+function descriptorEdits(source: string, descriptor: ESTree.Node, file: string): Edit[] {
 	const object = unwrap(descriptor)
 
 	if (object.type !== 'ObjectExpression') {
@@ -181,7 +140,7 @@ function descriptorEdits(source: string, descriptor: Node, file: string): Edit[]
 			edits.push({
 				start: property.value.start,
 				end: property.value.end,
-				text: compile(text, place(source, property, file)),
+				text: JSON.stringify(compile(text, place(source, property, file))),
 			})
 		}
 	}
@@ -190,17 +149,13 @@ function descriptorEdits(source: string, descriptor: Node, file: string): Edit[]
 }
 
 // The edits of a `defineMessage` or a `defineMessages` call.
-function callEdits(source: string, call: Node, file: string): Edit[] {
-	const { callee, arguments: args } = call as Node & {
-		readonly callee: Node & { readonly name?: string }
-		readonly arguments: readonly Node[]
-	}
+function callEdits(source: string, call: ESTree.CallExpression, file: string): Edit[] {
+	const {
+		callee,
+		arguments: [argument],
+	} = call
 
-	if (callee.type !== 'Identifier' || !DEFINE_CALLS.has(callee.name ?? '')) return []
-
-	const [argument] = args
-
-	if (!argument) return []
+	if (callee.type !== 'Identifier' || !DEFINE_CALLS.has(callee.name) || !argument) return []
 
 	if (callee.name === 'defineMessage') return descriptorEdits(source, argument, file)
 
@@ -223,25 +178,19 @@ function callEdits(source: string, call: Node, file: string): Edit[] {
 export function compileDescriptors(source: string, file: string): string {
 	if (!/\bdefineMessages?\b/.test(source)) return source
 
-	const program = parseAst(source, {
-		lang: file.endsWith('.tsx') ? 'tsx' : 'ts',
-	}) as unknown as Node
+	const program = parseAst(source, { lang: file.endsWith('.tsx') ? 'tsx' : 'ts' })
 
 	const edits: Edit[] = []
 
-	const pending: Node[] = [program]
-
-	for (let node = pending.pop(); node; node = pending.pop()) {
-		if (node.type === 'CallExpression') edits.push(...callEdits(source, node, file))
-
-		pending.push(...children(node))
-	}
-
-	edits.sort((a, b) => b.start - a.start)
+	new Visitor({
+		CallExpression: (call) => {
+			edits.push(...callEdits(source, call, file))
+		},
+	}).visit(program)
 
 	let output = source
 
-	for (const { start, end, text } of edits) {
+	for (const { start, end, text } of edits.toSorted((a, b) => b.start - a.start)) {
 		output = output.slice(0, start) + text + output.slice(end)
 	}
 
