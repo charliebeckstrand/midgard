@@ -55,7 +55,12 @@ export function MapZoomOverview(props: MapZoomOverviewProps) {
 
 	if (zoom === null || zoom.transform.k <= MAP_ZOOM_FIT) return null
 
-	return <MapZoomOverviewInset {...props} zoom={zoom} />
+	// The side is the key, so an inset that changes corners mounts again, and its
+	// ref measures the room on the new side. A resize observer reports a change
+	// of size, and a change of corners keeps the size.
+	const side = props.controls === 'left' ? 'left' : 'right'
+
+	return <MapZoomOverviewInset key={side} {...props} zoom={zoom} />
 }
 
 /**

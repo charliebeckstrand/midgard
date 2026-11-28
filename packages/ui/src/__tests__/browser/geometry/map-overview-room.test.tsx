@@ -51,4 +51,51 @@ describe('a point under the overview inset', () => {
 
 		expect(dot.bottom).toBeLessThanOrEqual(inset.top)
 	})
+
+	it('measures the room on the new side when the inset changes corners', async () => {
+		// The southwest corner of the fixture, which the inset covers once the
+		// zoom buttons move to the left.
+		const map = (controls: 'left' | 'right') => (
+			<MapPlat
+				aria-label="Test map"
+				geography={FIXTURE_GEOJSON}
+				width={400}
+				zoom
+				zoomControls={controls}
+			>
+				<MapPoint id="depot" label="Depot" at={[0, 0]} />
+			</MapPlat>
+		)
+
+		const { rerender } = renderUI(map('right'))
+
+		const zoomIn = page.getByRole('button', { name: 'Zoom in' })
+
+		await userEvent.click(zoomIn)
+
+		await userEvent.click(zoomIn)
+
+		rerender(map('left'))
+
+		const plot = getSlot(document.body, 'map-plot')
+
+		const box = plot.getBoundingClientRect()
+
+		// Each drag moves the view up and to the right, and starts clear of the
+		// inset.
+		for (let drag = 0; drag < 3; drag++) {
+			await userEvent.dragAndDrop(plot, plot, {
+				sourcePosition: { x: box.width * 0.4, y: box.height * 0.6 },
+				targetPosition: { x: box.width - 4, y: 4 },
+			})
+		}
+
+		const inset = getSlot(document.body, 'map-zoom-overview').getBoundingClientRect()
+
+		const dot = getSlot(document.body, 'map-point').getBoundingClientRect()
+
+		expect(dot.left).toBeGreaterThanOrEqual(inset.right)
+
+		expect(dot.bottom).toBeLessThanOrEqual(inset.top)
+	})
 })
