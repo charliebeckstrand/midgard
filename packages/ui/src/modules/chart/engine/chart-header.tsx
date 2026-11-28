@@ -79,7 +79,9 @@ function ChartHeaderLine({ text, subtitle = false, id }: ChartHeaderLineProps) {
 					text={text}
 					subtitle={subtitle}
 					id={id}
-					className={truncated ? 'cursor-help' : undefined}
+					// The trigger stamps `inline-flex` ahead of this class, and an ellipsis paints only
+					// on a block box, so the line restates `block`.
+					className={cn('block', truncated && 'cursor-help')}
 				/>
 			</TooltipTrigger>
 

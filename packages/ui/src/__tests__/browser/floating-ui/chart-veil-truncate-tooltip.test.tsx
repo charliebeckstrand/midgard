@@ -79,6 +79,9 @@ describe('spark veil truncation tooltip (real browser)', () => {
 
 		const line = await waitFor(() => getSlot(container, 'chart-title'))
 
+		// An ellipsis paints only on a block box, so the trigger keeps the line a block.
+		expect(getComputedStyle(line).display).toBe('block')
+
 		await userEvent.hover(line)
 
 		const tip = await screen.findByRole('tooltip')
