@@ -92,18 +92,22 @@ type Encoding = (typeof ENCODINGS)[number]
  * `header`: brotli when the client takes it, else gzip, else none. A file that
  * the server does not compress has none. A coding with the weight `q=0` is
  * not taken, and `*` gives its weight to each coding that the header does not
- * name.
+ * name. The names and the parameters of the header have no case, so `BR;Q=0`
+ * is the same as `br;q=0`.
  */
 export function pickEncoding(file: string, header: string | undefined): Encoding | undefined {
 	if (!header || !COMPRESSED.has(path.extname(file))) return undefined
 
 	const weights = new Map(
 		header.split(',').map((part) => {
-			const [coding = '', ...params] = part.split(';').map((piece) => piece.trim())
+			const [coding = '', ...params] = part
+				.toLowerCase()
+				.split(';')
+				.map((piece) => piece.trim())
 
 			const weight = params.find((param) => param.startsWith('q='))
 
-			return [coding.toLowerCase(), weight ? Number(weight.slice(2)) : 1]
+			return [coding, weight ? Number(weight.slice(2)) : 1]
 		}),
 	)
 
