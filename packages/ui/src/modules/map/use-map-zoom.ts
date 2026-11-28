@@ -3,10 +3,13 @@
 import {
 	type MouseEvent,
 	type PointerEvent,
+	type RefCallback,
 	type RefObject,
+	useCallback,
 	useEffect,
 	useEffectEvent,
 	useLayoutEffect,
+	useMemo,
 	useRef,
 	useState,
 } from 'react'
@@ -37,9 +40,13 @@ import {
 	centerTransform,
 	constrainTransform,
 	MAP_FIT_TRANSFORM,
+	type MapPanFrame,
 	type MapTransform,
 	type MapViewFrame,
+	NO_ROOM,
+	overlayRoom,
 	panTransform,
+	sameRoom,
 	sameTransform,
 	showTransform,
 	zoomTransform,
@@ -109,6 +116,12 @@ export type MapZoom = {
 	max: number
 	surface: MapZoomSurface
 	cursor: MapZoomCursor
+	/**
+	 * The ref of the overlay that covers a corner of a zoomed view: the overview
+	 * inset. The pan goes past the edges of the frame by the ground that it
+	 * covers, so a drag can bring that ground into the open.
+	 */
+	cover: RefCallback<HTMLElement>
 }
 
 /** What {@link useMapZoom} needs from the plat. @internal */
@@ -218,8 +231,14 @@ export function useMapZoom({
 		setHeld({ subject, transform: MAP_FIT_TRANSFORM })
 	}
 
+	// The ground that the overview inset covers, measured while it shows. The
+	// pan limits read it from the frame (`constrainTransform`).
+	const [room, setRoom] = useState(NO_ROOM)
+
+	const bounds = useMemo((): MapPanFrame => ({ ...view, room }), [view, room])
+
 	const transform =
-		settings === null ? MAP_FIT_TRANSFORM : constrainTransform(held.transform, view, max)
+		settings === null ? MAP_FIT_TRANSFORM : constrainTransform(held.transform, bounds, max)
 
 	/*
 	 * One report for each committed transform.
@@ -237,14 +256,14 @@ export function useMapZoom({
 	// The gesture handlers read the view through this rather than through their
 	// own closure: a pointer sequence outlives the render it began on, and two
 	// events can land before React renders.
-	const live = useRef({ transform, view, max })
+	const live = useRef({ transform, view: bounds, max })
 
 	// Synced in a layout effect, ahead of the effects below and of any event. Only
 	// events read it, and the keyboard cursor drives the view from a keypress, so
 	// no reader runs between the render and this write.
 	useLayoutEffect(() => {
-		live.current = { transform, view, max }
-	}, [transform, view, max])
+		live.current = { transform, view: bounds, max }
+	}, [transform, bounds, max])
 
 	// A plain function, as each gesture handler below is. No dependency array
 	// names one of them: the native listeners read their handlers through an
@@ -904,6 +923,41 @@ export function useMapZoom({
 		commit(centerTransform(from, at, frame))
 	}
 
+	/*
+	 * Measures the overlay against the plot SVG while it is in the tree, and
+	 * again when either box changes size. The observer reports after layout, so
+	 * the measure forces no layout of its own. The overlay leaves the tree at the
+	 * fit, where the room counts for nothing, and the room clears with it.
+	 */
+	const cover = useCallback(
+		(node: HTMLElement | null) => {
+			const svg = svgRef.current
+
+			if (node === null || svg === null) return
+
+			const observer = new ResizeObserver(() => {
+				const next = overlayRoom(
+					node.getBoundingClientRect(),
+					svg.getBoundingClientRect(),
+					live.current.view,
+				)
+
+				setRoom((prev) => (sameRoom(prev, next) ? prev : next))
+			})
+
+			observer.observe(node)
+
+			observer.observe(svg)
+
+			return () => {
+				observer.disconnect()
+
+				setRoom(NO_ROOM)
+			}
+		},
+		[svgRef],
+	)
+
 	if (settings === null) return null
 
 	return {
@@ -926,6 +980,7 @@ export function useMapZoom({
 			onClickCapture,
 		},
 		cursor: { transform, stepZoom, fit, show, center },
+		cover,
 	}
 }
 
@@ -951,7 +1006,7 @@ function useWheelZoom(
 	svgRef: RefObject<SVGSVGElement | null>,
 	commit: (next: MapTransform) => void,
 	hold: (push: number, coasting: boolean) => void,
-	live: RefObject<{ transform: MapTransform; view: MapViewFrame; max: number }>,
+	live: RefObject<{ transform: MapTransform; view: MapPanFrame; max: number }>,
 	stream: RefObject<MapWheelStream | null>,
 ) {
 	const onWheel = useEffectEvent((event: WheelEvent, svg: SVGSVGElement) => {
