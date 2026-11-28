@@ -1,4 +1,4 @@
-import { readCookie } from '../../../utilities/cookie'
+import { readCookie } from '../../../utilities/cookie.ts'
 
 // The settings of the events on the root element. A server reads them from
 // the cookies of a request, so this module holds no browser code

@@ -1,7 +1,7 @@
 import { join } from 'node:path'
 import type { SourceFile } from 'typescript/unstable/ast'
 import { API, type Project } from 'typescript/unstable/sync'
-import { uiRoot } from './walk-source'
+import { uiRoot } from './walk-source.ts'
 
 // The parse and the checker of TypeScript 7 run in the TypeScript server, not
 // in the test process. A test therefore gets its source files from a project

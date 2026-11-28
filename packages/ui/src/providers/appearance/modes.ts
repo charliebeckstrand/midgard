@@ -1,8 +1,8 @@
 // No 'use client': the server half of the appearance (the stored choices and
 // `appearanceRootClasses`) takes these lists as plain values.
 
-import { defineMessages, intlMessages } from '../../primitives/intl/intl-messages'
-import type { MessageDescriptor } from '../../primitives/intl/types'
+import { defineMessages, intlMessages } from '../../primitives/intl/intl-messages.ts'
+import type { MessageDescriptor } from '../../primitives/intl/types.ts'
 
 const modeMessages = defineMessages({
 	light: {

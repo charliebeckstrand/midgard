@@ -1,11 +1,11 @@
-import { rootDensityClasses } from '../../core/density/steps'
-import { ROOT_REDUCED_MOTION_CLASS } from '../../core/motion/root'
-import { ROOT_OFFCANVAS_SIDEBAR_CLASS } from '../../core/sidebar/root'
-import { ROOT_GLASS_SURFACES_CLASS } from '../../core/surfaces/root'
-import { readCookie } from '../../utilities/cookie'
-import { parseChoice, type StoredChoice } from '../../utilities/stored-choice'
-import { levelToStep } from '../density/context'
-import { DENSITY, MOTION, SIDEBAR, SURFACES, THEME } from './appearance-storage'
+import { rootDensityClasses } from '../../core/density/steps.ts'
+import { ROOT_REDUCED_MOTION_CLASS } from '../../core/motion/root.ts'
+import { ROOT_OFFCANVAS_SIDEBAR_CLASS } from '../../core/sidebar/root.ts'
+import { ROOT_GLASS_SURFACES_CLASS } from '../../core/surfaces/root.ts'
+import { readCookie } from '../../utilities/cookie.ts'
+import { parseChoice, type StoredChoice } from '../../utilities/stored-choice.ts'
+import { levelToStep } from '../density/context.ts'
+import { DENSITY, MOTION, SIDEBAR, SURFACES, THEME } from './appearance-storage.ts'
 
 /**
  * The classes of the root element for the stored choices in `cookies`, the

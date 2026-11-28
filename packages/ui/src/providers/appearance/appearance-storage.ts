@@ -1,5 +1,5 @@
-import type { StoredChoice } from '../../utilities/stored-choice'
-import { type DensityLevel, densityLevels } from '../density/context'
+import type { StoredChoice } from '../../utilities/stored-choice.ts'
+import { type DensityLevel, densityLevels } from '../density/context.ts'
 import {
 	type MotionMode,
 	motionModes,
@@ -9,7 +9,7 @@ import {
 	surfaceModes,
 	type ThemeMode,
 	themeModes,
-} from './modes'
+} from './modes.ts'
 
 /**
  * The theme choice. With no stored choice, it follows the OS.
