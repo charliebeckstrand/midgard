@@ -1,5 +1,5 @@
 /**
- * The types of the part of `subset-font` that `fonts.ts` uses. The package has
+ * The types of the part of `subset-font` that `build.ts` uses. The package has
  * no types of its own, and `@types/subset-font` does not have `keepFeatures`.
  */
 declare module 'subset-font' {
