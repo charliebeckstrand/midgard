@@ -222,6 +222,10 @@ export function ListItem<Fallback extends ElementType = 'div'>({
 	// the pointer off its text, and the Tab stop is the row or its content area.
 	const [reveal, cutLines] = useListItemRevealState()
 
+	// The React Compiler reads a property that holds a ref as a ref read in the render, and skips
+	// the component. The trigger therefore takes the ref through its own name.
+	const { armRef } = reveal
+
 	// The reorder props come after the spread, so they must keep the consumer description. The
 	// consumer ids come first, then the id of the reorder instructions. When the `<li>` is the
 	// stop, the consumer description stays on the content area, and the `<li>` gets only the
@@ -291,7 +295,7 @@ export function ListItem<Fallback extends ElementType = 'div'>({
 		<ListItemContext value={labelled}>
 			<ListItemRevealContext value={reveal}>
 				<Tooltip disabled={!hasCutLines(cutLines)}>
-					<TooltipTrigger ref={reveal.armRef} aria-describedby={undefined}>
+					<TooltipTrigger ref={armRef} aria-describedby={undefined}>
 						<ListItemRow id={id} reorder={reorder} parts={reorderParts} {...row}>
 							{content}
 						</ListItemRow>
