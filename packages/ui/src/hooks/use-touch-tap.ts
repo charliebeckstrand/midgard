@@ -26,6 +26,24 @@ export const MULTI_TAP_WINDOW = 400
 /** Distance, in CSS px, between two taps of one run. @internal */
 export const MULTI_TAP_DISTANCE = 40
 
+/** The lift of a tap: where and when. @internal */
+export type TapLift = { x: number; y: number; at: number }
+
+/**
+ * Whether `next` continues the run of the tap `prev`, as a double tap does: it
+ * lifts in {@link MULTI_TAP_WINDOW} of `prev`, and in
+ * {@link MULTI_TAP_DISTANCE} of its point. The taps of a map, a grid, and the
+ * Lightbox join with this rule.
+ *
+ * @internal
+ */
+export function isFollowOnTap(prev: TapLift, next: TapLift): boolean {
+	return (
+		next.at - prev.at <= MULTI_TAP_WINDOW &&
+		Math.hypot(next.x - prev.x, next.y - prev.y) <= MULTI_TAP_DISTANCE
+	)
+}
+
 /** The press handlers {@link useTouchTap} gives. Spread them next to the hover handlers. @internal */
 export type TouchTap = {
 	onPointerDown: (event: PointerEvent<Element>) => void
@@ -162,12 +180,7 @@ export function useTouchTap(
 
 			const prev = lastTap.current
 
-			const count =
-				prev !== null &&
-				at - prev.at <= MULTI_TAP_WINDOW &&
-				Math.hypot(x - prev.x, y - prev.y) <= MULTI_TAP_DISTANCE
-					? prev.count + 1
-					: 1
+			const count = prev !== null && isFollowOnTap(prev, { x, y, at }) ? prev.count + 1 : 1
 
 			lastTap.current = { x, y, at, count }
 

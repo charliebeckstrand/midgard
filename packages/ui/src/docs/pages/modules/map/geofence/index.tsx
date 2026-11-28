@@ -5,8 +5,8 @@ import Polygon from './polygon.tsx'
 export default function GeofenceTab() {
 	return (
 		<>
-			<Example of={Circle} box="ratio" />
-			<Example of={Polygon} box="ratio" />
+			<Example of={Circle} />
+			<Example of={Polygon} />
 		</>
 	)
 }

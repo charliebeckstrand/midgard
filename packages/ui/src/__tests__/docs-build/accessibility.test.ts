@@ -1,10 +1,9 @@
 import { createRequire } from 'node:module'
 import type { AxeResults } from 'axe-core'
 import type { Page } from 'playwright'
-import { describe, inject, it, type TestContext } from 'vitest'
-import { prerenderedPages } from '../../../scripts/docs/build'
-import { HYDRATED, STYLED } from '../../../scripts/docs/probes'
+import { describe, it, type TestContext } from 'vitest'
 import { launchChromium } from './helpers/chromium'
+import { loadBuildPage, openBuildTab, shardPaths } from './helpers/page-sweep'
 import { settle } from './helpers/settle'
 
 // The page smoke test runs a few structural rules of axe in jsdom, which has
@@ -84,37 +83,18 @@ const KNOWN: readonly { path: string; rule: string; reason: string; theme?: Them
 /** The script of axe, which each page loads. */
 const AXE = createRequire(import.meta.url).resolve('axe-core/axe.min.js')
 
-const shard = inject('shard')
-
-/**
- * The path of each prerendered page of the shard: the root path, and each
- * page and tab of the docs. The shards take the pages in turn, so the pages
- * of a section, such as the charts, go to each shard.
- */
-const PATHS = prerenderedPages().filter((_, index) => index % shard.count === shard.index - 1)
-
-const origin = inject('docsOrigin')
+const PATHS = shardPaths()
 
 const launch = launchChromium()
 
-/**
- * Opens a tab at the width of a desktop, in the light theme, that loads only
- * from the server of the build. The tab closes after the case. The cases run
- * side by side, so the hook comes from the context of the case.
- */
-async function openTab(context: TestContext): Promise<Page> {
+/** Opens a tab at the width of a desktop, in the light theme. */
+function openTab(context: TestContext): Promise<Page> {
 	// With reduced motion, no surface is in a transition when axe reads it.
-	const tab = await launch(
+	return openBuildTab(
+		launch,
 		{ viewport: { width: 1280, height: 900 }, reducedMotion: 'reduce', colorScheme: 'light' },
 		context,
 	)
-
-	await tab.route(
-		(url) => url.origin !== origin,
-		(route) => route.abort(),
-	)
-
-	return tab
 }
 
 /**
@@ -152,13 +132,7 @@ async function auditThemes(
 ): Promise<Record<Theme, AxeResults['violations']>> {
 	const tab = await openTab(context)
 
-	await tab.goto(`${origin}${route}`)
-
-	await tab.waitForFunction(HYDRATED)
-
-	await tab.waitForFunction(STYLED)
-
-	await tab.waitForLoadState('networkidle')
+	await loadBuildPage(tab, route)
 
 	await tab.addScriptTag({ path: AXE })
 

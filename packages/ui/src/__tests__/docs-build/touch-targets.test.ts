@@ -1,9 +1,8 @@
 import { devices, type Page } from 'playwright'
-import { describe, inject, it, type TestContext } from 'vitest'
-import { prerenderedPages } from '../../../scripts/docs/build'
-import { HYDRATED, STYLED } from '../../../scripts/docs/probes'
+import { describe, it, type TestContext } from 'vitest'
 import { launchChromium } from './helpers/chromium'
 import { waitForIdleLoads } from './helpers/idle-loads'
+import { loadBuildPage, openBuildTab, shardPaths } from './helpers/page-sweep'
 import { settle } from './helpers/settle'
 
 // The touch pitch rule (CONVENTIONS §3.10): on a coarse pointer, a finger
@@ -426,31 +425,13 @@ const KNOWN: readonly { finding: string; paths: readonly string[]; reason: strin
 /** The device of the read: a phone with a coarse pointer. */
 const { defaultBrowserType: _, ...PHONE } = devices['iPhone 13']
 
-const shard = inject('shard')
-
-/**
- * The path of each prerendered page of the shard. The shards take the pages
- * in turn, as in `accessibility.test.ts`.
- */
-const PATHS = prerenderedPages().filter((_, index) => index % shard.count === shard.index - 1)
-
-const origin = inject('docsOrigin')
+const PATHS = shardPaths()
 
 const launch = launchChromium()
 
-/**
- * Opens a tab as a phone, with reduced motion, that loads only from the
- * server of the build. The tab closes after the case.
- */
-async function openTab(context: TestContext): Promise<Page> {
-	const tab = await launch({ ...PHONE, reducedMotion: 'reduce' }, context)
-
-	await tab.route(
-		(url) => url.origin !== origin,
-		(route) => route.abort(),
-	)
-
-	return tab
+/** Opens a tab as a phone, with reduced motion. */
+function openTab(context: TestContext): Promise<Page> {
+	return openBuildTab(launch, { ...PHONE, reducedMotion: 'reduce' }, context)
 }
 
 /** A finding and the targets that show it. */
@@ -689,13 +670,7 @@ function readTargets({ floor, sharedBorder }: { floor: number; sharedBorder: num
 async function readPage(route: string, context: TestContext): Promise<Finding[]> {
 	const tab = await openTab(context)
 
-	await tab.goto(`${origin}${route}`)
-
-	await tab.waitForFunction(HYDRATED)
-
-	await tab.waitForFunction(STYLED)
-
-	await tab.waitForLoadState('networkidle')
+	await loadBuildPage(tab, route)
 
 	await waitForIdleLoads(tab, { limit: IDLE_LIMIT })
 

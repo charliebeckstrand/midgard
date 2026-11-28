@@ -10,7 +10,7 @@ import { defineScale } from '../../core/density'
 import { defineKata, mode } from '../../core/recipe'
 import { dan, hannou, iro, kasane, kokkaku, narabi, omote, sen } from '../kiso'
 
-const { cursor, disabled, fg } = hannou
+const { cursor, disabled, fg, press } = hannou
 const { on, text } = iro
 const { rounded } = kasane
 const { flex } = narabi
@@ -53,9 +53,7 @@ const segment = {
 		'text-center text-balance',
 		rounded.lg,
 		'font-medium',
-		// iOS Safari can select the text in a child of a `select-none` item on a long
-		// press, so the children also set it.
-		'select-none *:select-none',
+		...press,
 		// The selected item steps to full-strength ink and the rest stay muted, as
 		// the underline tab does. The indicator is then not the only mark of the
 		// selected item, and the distinction does not rest on a fill alone (WCAG
@@ -149,10 +147,8 @@ export const k = defineKata(
 					...disabled.base,
 					'outline-none',
 					'whitespace-nowrap',
-					// The tab is a headless Button, which drops the `select-none` of the button
-					// recipe. A long press on iOS selects the label text without this, and iOS
-					// Safari can select the text in a child of a `select-none` tab.
-					'select-none *:select-none',
+					// The tab is a headless Button, which drops the `press` of the button recipe.
+					...press,
 					...cursor,
 					'after:absolute after:rounded-full',
 					'after:bg-transparent',

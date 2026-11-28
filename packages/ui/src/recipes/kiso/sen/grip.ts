@@ -16,6 +16,7 @@
  */
 
 import { mode } from '../../../core/recipe'
+import { focus } from './focus'
 
 export const grip = [
 	'after:rounded-full',
@@ -24,9 +25,8 @@ export const grip = [
 		'dark:after:bg-zinc-500 dark:hover:after:bg-zinc-400',
 	),
 	// The dark hover color sorts after `focus-visible:` at the same specificity, so
-	// the dark focus color is a class of its own. It is blue-500, the dark focus
-	// color of `focus.ts`.
-	...mode('focus-visible:after:bg-blue-600', 'dark:focus-visible:after:bg-blue-500'),
+	// the dark focus color is a class of its own: the focus indicator.
+	...focus.indicator,
 	'forced-colors:after:bg-[CanvasText]',
 	// Each state color above outranks the shape, so the shape repeats in each state.
 	'forced-colors:hover:after:bg-[CanvasText] forced-colors:focus-visible:after:bg-[CanvasText]',

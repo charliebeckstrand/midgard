@@ -6,9 +6,9 @@ import CenterContent from './center-content.tsx'
 export default function DonutTab() {
 	return (
 		<>
-			<Example of={Basic} box="ratio" />
-			<Example of={CenterContent} box="ratio" />
-			<Example of={Animated} box="ratio" />
+			<Example of={Basic} />
+			<Example of={CenterContent} />
+			<Example of={Animated} />
 		</>
 	)
 }

@@ -1,4 +1,5 @@
-import { CATALOG_LOCALES, LOCALE_COOKIE, resolveRequestLocale } from 'ui/providers/locale'
+import { CATALOG_LOCALES } from '../../primitives/intl/intl-language.ts'
+import { LOCALE_COOKIE, resolveRequestLocale } from '../../providers/locale/locale-choice.ts'
 import { readCookie } from '../../utilities/cookie.ts'
 import { languages } from '../lang/index.ts'
 

@@ -1,9 +1,8 @@
 import type { Page, Request } from 'playwright'
-import { describe, inject, it, type TestContext } from 'vitest'
-import { prerenderedPages } from '../../../scripts/docs/build'
-import { HYDRATED, STYLED } from '../../../scripts/docs/probes'
+import { describe, it, type TestContext } from 'vitest'
 import { launchChromium } from './helpers/chromium'
 import { waitForIdleLoads } from './helpers/idle-loads'
+import { loadBuildPage, openBuildTab, shardPaths } from './helpers/page-sweep'
 import { settle } from './helpers/settle'
 
 // The keyboard walk: this file presses Tab through each prerendered page of
@@ -174,35 +173,18 @@ const KEYS = ['Tab', 'Shift+Tab'] as const
 
 type Key = (typeof KEYS)[number]
 
-const shard = inject('shard')
-
-/**
- * The path of each prerendered page of the shard. The shards take the pages
- * in turn, as in `accessibility.test.ts`.
- */
-const PATHS = prerenderedPages().filter((_, index) => index % shard.count === shard.index - 1)
-
-const origin = inject('docsOrigin')
+const PATHS = shardPaths()
 
 // `computedRole` gives the role that the accessibility tree of Chromium holds.
 const launch = launchChromium({ args: ['--enable-blink-features=ComputedAccessibilityInfo'] })
 
-/**
- * Opens a tab at the width of a desktop, with reduced motion, that loads only
- * from the server of the build. The tab closes after the case.
- */
-async function openTab(context: TestContext): Promise<Page> {
-	const tab = await launch(
+/** Opens a tab at the width of a desktop, with reduced motion. */
+function openTab(context: TestContext): Promise<Page> {
+	return openBuildTab(
+		launch,
 		{ viewport: { width: 1280, height: 900 }, reducedMotion: 'reduce' },
 		context,
 	)
-
-	await tab.route(
-		(url) => url.origin !== origin,
-		(route) => route.abort(),
-	)
-
-	return tab
 }
 
 /** The focus after a key: the body, or an element with its findings. */
@@ -530,13 +512,7 @@ async function keepAccessibilityTree(tab: Page): Promise<void> {
 async function readPage(route: string, context: TestContext): Promise<Finding[]> {
 	const tab = await openTab(context)
 
-	await tab.goto(`${origin}${route}`)
-
-	await tab.waitForFunction(HYDRATED)
-
-	await tab.waitForFunction(STYLED)
-
-	await tab.waitForLoadState('networkidle')
+	await loadBuildPage(tab, route)
 
 	await waitForIdleLoads(tab, { limit: IDLE_LIMIT })
 

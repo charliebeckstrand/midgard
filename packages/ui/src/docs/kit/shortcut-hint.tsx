@@ -1,5 +1,5 @@
 import { cn } from '../../core/cn.ts'
-import { useShortcutPlatform } from './use-shortcut-platform.ts'
+import { useApplePlatform } from '../../hooks/use-apple-platform.ts'
 
 /** Props for {@link ShortcutHint}. */
 export type ShortcutHintProps = {
@@ -17,7 +17,7 @@ export type ShortcutHintProps = {
  * (CONVENTIONS §3.13). Put it in a `Kbd`.
  */
 export function ShortcutHint({ keyName }: ShortcutHintProps) {
-	const apple = useShortcutPlatform()
+	const apple = useApplePlatform()
 
 	return (
 		<span className="inline-grid justify-items-center">

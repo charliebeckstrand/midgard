@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef } from 'react'
+import { useReportedChangeEvent } from '../../hooks/use-reported-change'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import {
 	EMPTY_HISTORY,
@@ -61,19 +62,13 @@ export function useGridEditHistory(
 
 	const ref = useRef<GridHistory>(EMPTY_HISTORY)
 
-	// The state last reported, so a change that flips nothing stays silent.
-	const reportedRef = useRef(EMPTY_STATE)
+	// A change that flips nothing stays silent.
+	const report = useReportedChangeEvent(EMPTY_STATE, onChange, sameState)
 
 	const set = useStableEvent((next: GridHistory) => {
 		ref.current = next
 
-		const state = { canUndo: next.undo.length > 0, canRedo: next.redo.length > 0 }
-
-		if (sameState(state, reportedRef.current)) return
-
-		reportedRef.current = state
-
-		onChange?.(state)
+		report({ canUndo: next.undo.length > 0, canRedo: next.redo.length > 0 })
 	})
 
 	const record = useStableEvent((entry: GridHistoryEntry) => {

@@ -8,7 +8,7 @@ import {
 import { afterAll, beforeAll, onTestFinished, type TestContext } from 'vitest'
 
 /** Opens a tab with `options`. The tab closes after the case. */
-type OpenTab = (options?: BrowserContextOptions, context?: TestContext) => Promise<Page>
+export type OpenTab = (options?: BrowserContextOptions, context?: TestContext) => Promise<Page>
 
 /**
  * Launches Chromium with `options` before the cases of the file, and closes it

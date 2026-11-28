@@ -28,6 +28,18 @@ export const cursor = [
 	'[&:where([aria-readonly=true],[data-readonly],[readonly],:has([aria-readonly=true],[data-readonly],[readonly]))]:cursor-default',
 ]
 
+/**
+ * The text rule of a press target: a long press does not select the label.
+ * iOS Safari can select the text in a child of a `select-none` element, so the
+ * children also set it. HoldButton, which the user presses and holds, shows
+ * this most. A headless Button drops the button recipe, so a tab or a nav item
+ * that renders one reads this token too.
+ *
+ * A drag surface reads `grab.default`, which sets the same rule on every
+ * descendant (`**:`), because a drag can start on any of them.
+ */
+export const press = ['select-none *:select-none']
+
 /** The drag rules: `grab.default`, which `grab.grip` also reads. */
 const drag = [
 	'cursor-grab data-dragging:cursor-grabbing',
