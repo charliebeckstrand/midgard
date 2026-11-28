@@ -21,6 +21,7 @@ import {
 } from '../../hooks/a11y/use-a11y-roving'
 import { useControlledLatch } from '../../hooks/use-controlled-latch'
 import { useEmptyResults } from '../../hooks/use-empty-results'
+import { useReportedChangeEvent } from '../../hooks/use-reported-change'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useDeferredQueryValue } from '../../primitives/query/use-query-value'
 import { isReservedTextboxKey } from '../combobox/use-combobox-input'
@@ -146,15 +147,7 @@ export function useCommandPaletteState({
 	 * because the index and the DOM part company under a windowed list. This is
 	 * the id the reader's assistive technology is given.
 	 */
-	const reportedActiveRef = useRef<string | null>(null)
-
-	const reportActive = useStableEvent((next: string | null) => {
-		if (reportedActiveRef.current === next) return
-
-		reportedActiveRef.current = next
-
-		onActiveChange?.(next)
-	})
+	const reportActive = useReportedChangeEvent<string | null>(null, onActiveChange)
 
 	const reportActiveFromDom = useStableEvent(() => {
 		if (onActiveChange === undefined) return

@@ -1,18 +1,4 @@
-import { useSyncExternalStore } from 'react'
-import { isApplePlatform } from '../../utilities/apple-platform.ts'
-import { noopSubscribe } from '../../utilities/noop.ts'
-
-// The build cannot know the platform of the reader, so each page renders as on Apple.
-const serverIsApple = () => true
-
-/**
- * Whether the reader is on an Apple platform, where `$mod` is ⌘ (Meta) and not
- * Control. The server render and the hydration give `true`, and the client
- * then gives the real platform.
- */
-export function useShortcutPlatform(): boolean {
-	return useSyncExternalStore(noopSubscribe, isApplePlatform, serverIsApple)
-}
+import { useApplePlatform } from '../../hooks/use-apple-platform.ts'
 
 /**
  * The `aria-keyshortcuts` value of a `$mod` shortcut: `Meta+K` on Apple
@@ -22,5 +8,5 @@ export function useShortcutPlatform(): boolean {
  * of the name of the control.
  */
 export function useShortcutPlatformKeys(keyName: string): string {
-	return `${useShortcutPlatform() ? 'Meta' : 'Control'}+${keyName}`
+	return `${useApplePlatform() ? 'Meta' : 'Control'}+${keyName}`
 }

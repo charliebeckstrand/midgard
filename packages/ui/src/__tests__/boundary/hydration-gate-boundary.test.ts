@@ -30,7 +30,7 @@ const SKIPS_RENDER = 'the client snapshot equals the server snapshot in most ren
 const KEPT: Record<string, string> = {
 	'primitives/mount/use-mount.ts': `${SKIPS_RENDER}: only the \`always\` policy differs`,
 	'components/tooltip/tooltip.tsx': `${SKIPS_RENDER}: the body module is not loaded yet`,
-	'docs/kit/use-shortcut-platform.ts': `${SKIPS_RENDER}: the build writes the Apple key`,
+	'hooks/use-apple-platform.ts': `${SKIPS_RENDER}: the server writes the Apple key`,
 }
 
 const SCAN_ROOTS = [

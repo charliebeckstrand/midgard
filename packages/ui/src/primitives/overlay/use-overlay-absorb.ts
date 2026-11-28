@@ -1,7 +1,7 @@
 'use client'
 
 import { type MouseEvent, type PointerEvent, useLayoutEffect, useRef } from 'react'
-import { MULTI_TAP_DISTANCE, MULTI_TAP_WINDOW } from '../../hooks/use-touch-tap'
+import { isFollowOnTap, MULTI_TAP_DISTANCE, MULTI_TAP_WINDOW } from '../../hooks/use-touch-tap'
 
 /** The capture handlers that {@link useOverlayAbsorb} gives to the root of an overlay. @internal */
 export type OverlayAbsorb = {
@@ -52,20 +52,16 @@ export function __resetFingerLift(): void {
 /**
  * Whether a touch press continues the run from `start`: it starts in
  * {@link MULTI_TAP_WINDOW} of that start, and in {@link MULTI_TAP_DISTANCE} of
- * its point. `useTouchTap` joins two taps into a double tap with the same rule.
+ * its point ({@link isFollowOnTap}, the rule of `useTouchTap`).
  * A start with no point lets a press anywhere continue the run.
  */
 function continuesRun(event: PointerEvent<Element>, start: Start | null): boolean {
 	if (event.pointerType !== 'touch' || start === null) return false
 
-	if (event.timeStamp - start.at > MULTI_TAP_WINDOW) return false
+	const here = { x: event.clientX, y: event.clientY, at: event.timeStamp }
 
-	const { point } = start
-
-	return (
-		point === null ||
-		Math.hypot(event.clientX - point.x, event.clientY - point.y) <= MULTI_TAP_DISTANCE
-	)
+	// A start with no point takes the point of the press, so only the time counts.
+	return isFollowOnTap({ ...(start.point ?? here), at: start.at }, here)
 }
 
 /**

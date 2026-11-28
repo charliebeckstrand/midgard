@@ -18,6 +18,8 @@ import { useA11yRoving } from '../../hooks/a11y/use-a11y-roving'
 import { useIntl } from '../../primitives/intl/use-intl'
 import { k, type ToolbarVariants } from '../../recipes/kata/toolbar'
 import type { AccessibleName } from '../../types/accessible-name'
+import { noop } from '../../utilities/noop'
+import { observeResizePausing } from '../../utilities/observe-resize-before-paint'
 import { IconButton } from '../icon-button'
 import { TooltipGroup } from '../tooltip'
 import { ToolbarContext, type ToolbarContextValue } from './context'
@@ -165,34 +167,17 @@ export function Toolbar({
 
 		if (!toolbar) return
 
-		let frame = 0
-
 		// A start mark can change the rows, and so the size of the toolbar in the
-		// callback of its own observer. The browser then holds that notification
-		// for the next frame, and fires "ResizeObserver loop completed with
-		// undelivered notifications" on `window`. Thus a change of the start marks
-		// stops the observation for the rest of the delivery, and observes again
-		// in the next frame. The new observation reports the size that it finds,
-		// so no resize is lost, and it marks the same rows, so it stops there.
-		const observer = new ResizeObserver(() => {
+		// callback of its own observer. Thus a change of the start marks pauses the
+		// observation until the next frame. The next delivery marks the same rows,
+		// so it stops there.
+		return observeResizePausing(toolbar, () => {
 			const changed = markRowEdges(toolbar, orientation)
 
 			if (more) markOverflow(toolbar)
 
-			if (!changed) return
-
-			observer.disconnect()
-
-			frame = requestAnimationFrame(() => observer.observe(toolbar))
+			return changed ? noop : undefined
 		})
-
-		observer.observe(toolbar)
-
-		return () => {
-			cancelAnimationFrame(frame)
-
-			observer.disconnect()
-		}
 	}, [orientation, more])
 
 	const context = useMemo<ToolbarContextValue>(() => ({ orientation }), [orientation])
