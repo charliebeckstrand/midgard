@@ -6,6 +6,10 @@ import {
 	argumentErrors,
 	catalogText,
 	extractCatalog,
+	formatPlainMessage,
+	formatValueMessage,
+	parsePlainMessage,
+	parseValueMessage,
 	readCatalog,
 	readTranslations,
 	TRANSLATIONS_MODULE,
@@ -86,5 +90,21 @@ describe('argumentErrors', () => {
 		expect(errors[0]).toMatch(/^test\.count: /)
 
 		expect(errors[1]).toMatch(/^test\.name: /)
+	})
+})
+
+describe('formatPlainMessage and formatValueMessage', () => {
+	// Each text holds an apostrophe beside a character that ICU quotes, or two
+	// apostrophes, which ICU reads as one.
+	const texts = ["It''s", "don't", "'{x}'", ">'{", "{'<", "<b>bold</b>'", "a '' {b} #"]
+
+	it.each(texts)('give the text %j back', (text) => {
+		expect(parsePlainMessage(formatPlainMessage(text))).toBe(text)
+
+		expect(parseValueMessage(formatValueMessage([text, { name: 'n' }, text]))).toEqual([
+			text,
+			{ name: 'n' },
+			text,
+		])
 	})
 })
