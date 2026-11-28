@@ -63,3 +63,27 @@ describe('SecondStep', () => {
 		expect(code).toMatch(/ data-events-mask=/)
 	})
 })
+
+// `FormSubmit` shows the loading state of its form, and the loading state
+// cancels a second activation, so a double click sends one request.
+describe('the submit button of each auth form', () => {
+	it.each([
+		['LoginPage', createElement(LoginPage, { providers: [] })],
+		['RegisterPage', createElement(RegisterPage, {})],
+		[
+			'SecondStep',
+			createElement(SecondStep, {
+				methods: ['totp' as const],
+				onVerified: vi.fn(),
+				onCancel: vi.fn(),
+				cancelLabel: 'Cancel',
+			}),
+		],
+	])('is the FormSubmit of the form in %s', (_, page) => {
+		const submits = renderInLocale('en', page).match(/<button[^>]* type="submit"[^>]*>/g) ?? []
+
+		expect(submits).toHaveLength(1)
+
+		expect(submits[0]).toContain('data-slot="form-submit"')
+	})
+})

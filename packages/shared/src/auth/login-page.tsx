@@ -10,7 +10,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { type ReactNode, Suspense } from 'react'
 import { Button } from 'ui/button'
 import { Field, Label, Message } from 'ui/fieldset'
-import { Form, FormError, type FormSubmitHandler, useFormActions } from 'ui/form'
+import { Form, FormError, FormSubmit, type FormSubmitHandler, useFormActions } from 'ui/form'
 import { Input } from 'ui/input'
 import { AuthLayout } from 'ui/layouts'
 import { Link } from 'ui/link'
@@ -309,9 +309,7 @@ export function LoginPage({
 						)}
 					</Field>
 
-					<Button type="submit" className="w-full">
-						{intl.formatMessage(authMessages.signIn)}
-					</Button>
+					<FormSubmit className="w-full">{intl.formatMessage(authMessages.signIn)}</FormSubmit>
 
 					<PasskeyButton signIn={signInWithPasskey}>
 						{intl.formatMessage(authMessages.signInWithPasskey)}

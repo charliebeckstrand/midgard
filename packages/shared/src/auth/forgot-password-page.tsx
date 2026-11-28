@@ -1,10 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { Button } from 'ui/button'
 import { announce } from 'ui/core'
 import { Field, Label, Message } from 'ui/fieldset'
-import { Form, FormError, type FormSubmitHandler } from 'ui/form'
+import { Form, FormError, FormSubmit, type FormSubmitHandler } from 'ui/form'
 import { Input } from 'ui/input'
 import { AuthLayout } from 'ui/layouts'
 import { Link } from 'ui/link'
@@ -82,9 +81,9 @@ export function ForgotPasswordPage() {
 						<Message name="email" />
 					</Field>
 
-					<Button type="submit" className="w-full">
+					<FormSubmit className="w-full">
 						{intl.formatMessage(sent ? authMessages.sendAnotherLink : authMessages.sendLink)}
-					</Button>
+					</FormSubmit>
 
 					<div className="text-center">
 						<Text>
