@@ -126,6 +126,18 @@ export const extended = {
 	},
 } as const
 
+/** The hover of an outline and of a plain entry: the 15% soft fill of its hue. */
+const wash = {
+	zinc: 'not-disabled:not-data-disabled:hover:bg-zinc-500/15',
+	red: 'not-disabled:not-data-disabled:hover:bg-red-500/15',
+	amber: 'not-disabled:not-data-disabled:hover:bg-amber-500/15',
+	green: 'not-disabled:not-data-disabled:hover:bg-green-500/15',
+	blue: 'not-disabled:not-data-disabled:hover:bg-blue-500/15',
+	rose: 'not-disabled:not-data-disabled:hover:bg-rose-500/15',
+	violet: 'not-disabled:not-data-disabled:hover:bg-violet-500/15',
+	sky: 'not-disabled:not-data-disabled:hover:bg-sky-500/15',
+} as const
+
 export const hover = {
 	solid: {
 		zinc: 'not-disabled:not-data-disabled:hover:bg-zinc-700',
@@ -150,26 +162,8 @@ export const hover = {
 			'not-disabled:not-data-disabled:hover:bg-violet-500/30 dark:not-disabled:not-data-disabled:hover:text-violet-300',
 		sky: 'not-disabled:not-data-disabled:hover:bg-sky-500/30 dark:not-disabled:not-data-disabled:hover:text-sky-300',
 	},
-	outline: {
-		zinc: 'not-disabled:not-data-disabled:hover:bg-zinc-500/15',
-		red: 'not-disabled:not-data-disabled:hover:bg-red-500/15',
-		amber: 'not-disabled:not-data-disabled:hover:bg-amber-500/15',
-		green: 'not-disabled:not-data-disabled:hover:bg-green-500/15',
-		blue: 'not-disabled:not-data-disabled:hover:bg-blue-500/15',
-		rose: 'not-disabled:not-data-disabled:hover:bg-rose-500/15',
-		violet: 'not-disabled:not-data-disabled:hover:bg-violet-500/15',
-		sky: 'not-disabled:not-data-disabled:hover:bg-sky-500/15',
-	},
-	plain: {
-		zinc: 'not-disabled:not-data-disabled:hover:bg-zinc-500/15',
-		red: 'not-disabled:not-data-disabled:hover:bg-red-500/15',
-		amber: 'not-disabled:not-data-disabled:hover:bg-amber-500/15',
-		green: 'not-disabled:not-data-disabled:hover:bg-green-500/15',
-		blue: 'not-disabled:not-data-disabled:hover:bg-blue-500/15',
-		rose: 'not-disabled:not-data-disabled:hover:bg-rose-500/15',
-		violet: 'not-disabled:not-data-disabled:hover:bg-violet-500/15',
-		sky: 'not-disabled:not-data-disabled:hover:bg-sky-500/15',
-	},
+	outline: wash,
+	plain: wash,
 	bare: {
 		zinc: 'not-disabled:not-data-disabled:hover:text-zinc-950 dark:not-disabled:not-data-disabled:hover:text-white',
 		red: 'not-disabled:not-data-disabled:hover:text-red-800 dark:not-disabled:not-data-disabled:hover:text-red-300',

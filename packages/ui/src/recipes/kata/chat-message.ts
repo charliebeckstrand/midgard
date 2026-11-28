@@ -225,7 +225,7 @@ export const k = defineKata({
 			'box-decoration-clone',
 			'in-data-[sender=user]:font-bold',
 			'in-data-[sender=assistant]:rounded-md in-data-[sender=assistant]:px-1 in-data-[sender=assistant]:font-medium',
-			'in-data-[sender=assistant]:bg-blue-500/15 in-data-[sender=assistant]:text-blue-700',
+			'in-data-[sender=assistant]:bg-blue-500/15 in-data-[sender=assistant]:text-blue-800',
 			'dark:in-data-[sender=assistant]:bg-blue-400/20 dark:in-data-[sender=assistant]:text-blue-300',
 			forced.outline,
 		],
