@@ -28,8 +28,6 @@ type SecondStepProps = {
 	methods: SecondFactorMethod[]
 	/** Runs after the gateway accepts the proof. */
 	onVerified: () => void
-	/** Runs when the gateway ends the session after too many wrong tries. */
-	onExpired: () => void
 	/** Runs when the user does not give the second step. */
 	onCancel: () => void
 	/** The label of the cancel button. */
@@ -39,6 +37,9 @@ type SecondStepProps = {
 }
 
 type CodeValues = { code: string }
+
+/** Opens the sign-in page with the notice that the session ended (`QueryNotice`). */
+const expire = () => window.location.assign('/login?expired=true')
 
 /**
  * Form of the second step: a code from an authenticator app, a recovery code,
@@ -57,7 +58,6 @@ type CodeValues = { code: string }
 export function SecondStep({
 	methods,
 	onVerified,
-	onExpired,
 	onCancel,
 	cancelLabel,
 	startPasskey = false,
@@ -83,7 +83,9 @@ export function SecondStep({
 			// The form stays disabled until the next page or the closed dialog replaces it.
 			if (response.ok) return leave(onVerified)
 
-			if (response.status === 410) return leave(onExpired)
+			// The gateway ends the session after too many wrong tries. A full page load
+			// opens the expired sign-in, so that no state of the second step stays.
+			if (response.status === 410) return leave(expire)
 
 			setServerError(error?.message || intl.formatMessage(authMessages.codeRejected))
 		} catch {
@@ -245,7 +247,6 @@ export function SecondStepPanel({ pending }: { pending: SecondStepPending | unde
 						<SecondStep
 							methods={pending.methods}
 							onVerified={() => pending.resolve(true)}
-							onExpired={() => window.location.assign('/login?expired=true')}
 							onCancel={() => pending.resolve(false)}
 							cancelLabel={intl.formatMessage(authMessages.cancel)}
 						/>

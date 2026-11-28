@@ -11,15 +11,14 @@ import { type ReactNode, Suspense } from 'react'
 import { Button } from 'ui/button'
 import { Field, Label, Message } from 'ui/fieldset'
 import { Form, FormError, type FormSubmitHandler, useFormActions } from 'ui/form'
-import { Heading } from 'ui/heading'
 import { Input } from 'ui/input'
 import { AuthLayout } from 'ui/layouts'
 import { Link } from 'ui/link'
 import { PasswordInput } from 'ui/password-input'
 import { type MessageDescriptor, useIntl } from 'ui/primitives/intl'
-import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
 import { oauthStartPath, signInProviderNames, signOut } from './account'
+import { AuthCard } from './auth-card'
 import { authMessages, continueWithMessage } from './auth-messages'
 import { bifrost } from './bifrost'
 import { ErrorAlert } from './error-alert'
@@ -260,21 +259,15 @@ export function LoginPage({
 	if (secondStep && methods && methods.length > 0) {
 		return (
 			<AuthLayout>
-				<Stack gap="xl" className="w-full sm:max-w-sm p-6">
-					<Heading className="text-center">
-						{intl.formatMessage(authMessages.confirmIdentity)}
-					</Heading>
-
+				<AuthCard title={intl.formatMessage(authMessages.confirmIdentity)}>
 					<SecondStep
 						methods={methods}
 						onVerified={home}
-						// A full page load, so that no state of the second step stays.
-						onExpired={() => window.location.assign('/login?expired=true')}
 						onCancel={signOut}
 						cancelLabel={intl.formatMessage(menuMessages.signOut)}
 						startPasskey
 					/>
-				</Stack>
+				</AuthCard>
 			</AuthLayout>
 		)
 	}
@@ -290,9 +283,7 @@ export function LoginPage({
 				onSubmit={handleSubmit}
 				disabled={leaving}
 			>
-				<Stack gap="xl" className="w-full sm:max-w-sm p-6">
-					<Heading className="text-center">{intl.formatMessage(authMessages.loginTitle)}</Heading>
-
+				<AuthCard title={intl.formatMessage(authMessages.loginTitle)}>
 					<FormError className="w-full" />
 
 					<Suspense>
@@ -357,7 +348,7 @@ export function LoginPage({
 							</Text>
 						</div>
 					)}
-				</Stack>
+				</AuthCard>
 			</Form>
 		</AuthLayout>
 	)
