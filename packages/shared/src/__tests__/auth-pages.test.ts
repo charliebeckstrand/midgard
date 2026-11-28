@@ -52,7 +52,6 @@ describe('SecondStep', () => {
 		const props = {
 			methods: ['recovery_code' as const],
 			onVerified: vi.fn(),
-			onExpired: vi.fn(),
 			onCancel: vi.fn(),
 			cancelLabel: 'Cancel',
 		}

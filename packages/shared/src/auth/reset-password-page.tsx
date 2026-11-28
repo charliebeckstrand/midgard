@@ -4,14 +4,13 @@ import { useRouter } from 'next/navigation'
 import { Button } from 'ui/button'
 import { Field, Label, Message } from 'ui/fieldset'
 import { Form, FormError, type FormSubmitHandler } from 'ui/form'
-import { Heading } from 'ui/heading'
 import { AuthLayout } from 'ui/layouts'
 import { Link } from 'ui/link'
 import { PasswordInput } from 'ui/password-input'
 import { useIntl } from 'ui/primitives/intl'
-import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
 import { getLinkSecret } from '../link-secrets'
+import { AuthCard } from './auth-card'
 import { authMessages } from './auth-messages'
 import { bifrost } from './bifrost'
 import { newPasswordRules } from './form-validators'
@@ -66,9 +65,7 @@ export function ResetPasswordPage() {
 				onSubmit={handleSubmit}
 				disabled={leaving}
 			>
-				<Stack gap="xl" className="w-full sm:max-w-sm p-6">
-					<Heading className="text-center">{intl.formatMessage(authMessages.resetTitle)}</Heading>
-
+				<AuthCard title={intl.formatMessage(authMessages.resetTitle)}>
 					<FormError className="w-full" />
 
 					<Field>
@@ -95,7 +92,7 @@ export function ResetPasswordPage() {
 							</Link>
 						</Text>
 					</div>
-				</Stack>
+				</AuthCard>
 			</Form>
 		</AuthLayout>
 	)

@@ -5,13 +5,12 @@ import { Button } from 'ui/button'
 import { announce } from 'ui/core'
 import { Field, Label, Message } from 'ui/fieldset'
 import { Form, FormError, type FormSubmitHandler } from 'ui/form'
-import { Heading } from 'ui/heading'
 import { Input } from 'ui/input'
 import { AuthLayout } from 'ui/layouts'
 import { Link } from 'ui/link'
 import { useIntl } from 'ui/primitives/intl'
-import { Stack } from 'ui/stack'
 import { Text } from 'ui/text'
+import { AuthCard } from './auth-card'
 import { authMessages } from './auth-messages'
 import { bifrost } from './bifrost'
 import { chain, email, required } from './form-validators'
@@ -68,9 +67,7 @@ export function ForgotPasswordPage() {
 				validate={{ email: chain(required(intl), email(intl)) }}
 				onSubmit={handleSubmit}
 			>
-				<Stack gap="xl" className="w-full sm:max-w-sm p-6">
-					<Heading className="text-center">{intl.formatMessage(authMessages.forgotTitle)}</Heading>
-
+				<AuthCard title={intl.formatMessage(authMessages.forgotTitle)}>
 					{notice ? (
 						<Text tone="success">{intl.formatMessage(authMessages.forgotSent)}</Text>
 					) : (
@@ -96,7 +93,7 @@ export function ForgotPasswordPage() {
 							</Link>
 						</Text>
 					</div>
-				</Stack>
+				</AuthCard>
 			</Form>
 		</AuthLayout>
 	)
