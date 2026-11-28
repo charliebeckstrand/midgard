@@ -119,6 +119,8 @@
 				"dist/docs/**",
 				"src/__tests__/docs-build/**",
 				"src/__tests__/setup/split-sequencer.ts",
+				"scripts/docs/build.ts",
+				"scripts/docs/probes.ts",
 				"scripts/docs/server.ts",
 				"vitest.docs-build.config.ts",
 				"vitest.base.ts",

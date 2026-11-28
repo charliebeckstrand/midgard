@@ -48,7 +48,8 @@ import { type Browser, chromium, type Page } from 'playwright'
 import { rootDensityClasses } from '../../src/core/density/steps'
 import { DENSITY, THEME } from '../../src/providers/appearance/appearance-storage'
 import { type DensityLevel, levelToStep } from '../../src/providers/density/context'
-import { contentType, HYDRATED, listen, prerenderedPages, resolveFile, STYLED } from './server'
+import { contentType, listen, prerenderedPages, resolveFile } from './build'
+import { HYDRATED, STYLED } from './probes'
 
 /** One run of the docs app: a theme, a stored density level, and a viewport width. */
 type Config = {

@@ -1,6 +1,6 @@
 import type { Page } from 'playwright'
 import { describe, expect, inject, it } from 'vitest'
-import { HYDRATED } from '../../../scripts/docs/server'
+import { HYDRATED } from '../../../scripts/docs/probes'
 import { LOCALES } from '../../docs/app/language'
 import { launchChromium } from './helpers/chromium'
 

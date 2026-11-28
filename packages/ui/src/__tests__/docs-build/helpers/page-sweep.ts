@@ -1,6 +1,7 @@
 import type { BrowserContextOptions, Page } from 'playwright'
 import { inject, type TestContext } from 'vitest'
-import { HYDRATED, prerenderedPages, STYLED } from '../../../../scripts/docs/server'
+import { prerenderedPages } from '../../../../scripts/docs/build'
+import { HYDRATED, STYLED } from '../../../../scripts/docs/probes'
 import type { OpenTab } from './chromium'
 
 /**

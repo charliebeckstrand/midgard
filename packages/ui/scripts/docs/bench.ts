@@ -37,15 +37,8 @@ import { existsSync, writeFileSync } from 'node:fs'
 import { createSecureServer, type Http2ServerResponse, type SecureServerOptions } from 'node:http2'
 import { parseArgs } from 'node:util'
 import { type Browser, type CDPSession, chromium, type Locator, type Page } from 'playwright'
-import {
-	CLIENT_DIR,
-	contentType,
-	HYDRATED,
-	listen,
-	pickEncoding,
-	readBody,
-	resolveFile,
-} from './server'
+import { CLIENT_DIR, contentType, listen, pickEncoding, readBody, resolveFile } from './build'
+import { HYDRATED } from './probes'
 
 const PAGE = '/button'
 
