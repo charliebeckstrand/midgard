@@ -193,9 +193,18 @@ export function centerTransform(
 	)
 }
 
-/** The scale held between the fit and the ceiling: the one place that rule is written. */
+/**
+ * The scale held between the fit and the ceiling: the one place that rule is
+ * written. The scale is held to the four decimals that the attribute draws,
+ * because a finer scale draws nothing different. A step factor such as 1.6 has
+ * no exact binary value, so a product of steps keeps rounding noise. Without
+ * this grid, two steps in and two steps out come back at 1.0000000000000002,
+ * and the map reads as zoomed in at the fit. On the grid, a step out lands on
+ * the scale that the step in started from, and the last step out lands on the
+ * fit.
+ */
 function clampScale(k: number, max: number): number {
-	return clamp(k, MAP_ZOOM_FIT, Math.max(MAP_ZOOM_FIT, max))
+	return clamp(round(k), MAP_ZOOM_FIT, Math.max(MAP_ZOOM_FIT, max))
 }
 
 /**

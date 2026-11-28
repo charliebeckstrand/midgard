@@ -158,6 +158,23 @@ describe('zoomTransform', () => {
 
 		expect(zoomTransform(at, { x: 400, y: 200 }, 0.01, VIEW, MAX)).toEqual(MAP_FIT_TRANSFORM)
 	})
+
+	it('lands each step out on the scale that its step in left, and the last on the fit', () => {
+		const center = { x: VIEW.width / 2, y: VIEW.height / 2 }
+
+		const step = (from: MapTransform, action: 'in' | 'out') =>
+			zoomTransform(from, center, zoomKeyFactor(action), VIEW, MAX)
+
+		const once = step(MAP_FIT_TRANSFORM, 'in')
+
+		const twice = step(once, 'in')
+
+		// A product of 1.6 steps carries rounding noise: 1.6 * 1.6 / 1.6 / 1.6 is
+		// 1.0000000000000002, which reads as zoomed in at the fit.
+		expect(step(twice, 'out').k).toBe(once.k)
+
+		expect(step(step(twice, 'out'), 'out')).toEqual(MAP_FIT_TRANSFORM)
+	})
 })
 
 describe('panTransform', () => {
