@@ -12,7 +12,7 @@ import {
 	translationsText,
 } from 'ui/scripts/intl/catalog'
 import { describe, expect, it } from 'vitest'
-import { CATALOG_SOURCE, LANG_DIR, SOURCE_CATALOG } from '../../scripts/intl'
+import { CATALOG_SOURCE, LANG_DIR, SOURCE_CATALOG } from '../../scripts/intl/extract'
 import { catalogs } from '../locale/catalogs'
 
 // The source catalog holds the English default of each message of shared, and
@@ -21,7 +21,7 @@ import { catalogs } from '../locale/catalogs'
 // of ui. This test holds the files in step, with the checks of ui:
 //
 //   1. The source catalog and the module that loads each translation equal
-//      the output of `pnpm intl` (`scripts/intl.ts`).
+//      the output of `pnpm intl` (`scripts/intl/extract.ts`).
 //   2. Each id starts with `shared.`, so no message of shared replaces a
 //      message of ui or of an app.
 //   3. A translation of shared is in each language that ui has a catalog for,

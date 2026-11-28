@@ -23,7 +23,7 @@ import {
 	translationsText,
 } from 'ui/scripts/intl/catalog'
 
-const SRC_DIR = fileURLToPath(new URL('../src', import.meta.url))
+const SRC_DIR = fileURLToPath(new URL('../../src', import.meta.url))
 
 /** The directory of the catalog and of the translations. */
 export const LANG_DIR = join(SRC_DIR, 'locale', 'lang')

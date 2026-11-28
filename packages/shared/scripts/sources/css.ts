@@ -15,7 +15,8 @@
  * a `new URL(…, import.meta.url)` names, such as a worker. Each other package is
  * external, because its classes are not in the CSS of the app. A dynamic import
  * that the graph cannot follow stops the run, because its classes would be lost
- * in production only. `src/__tests__/css-sources.test.ts` compares the list with the graph.
+ * in production only. `src/__tests__/css-sources.test.ts` compares the list with
+ * the graph.
  */
 
 import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
@@ -23,27 +24,48 @@ import { dirname, join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { build, type Plugin } from 'esbuild'
 
-const ROOT = resolve(fileURLToPath(new URL('../../..', import.meta.url)))
+const PACKAGES_DIR = fileURLToPath(new URL('../../..', import.meta.url))
 
-/** The source trees that the CSS of an app takes classes from, other than its own. */
-export const SOURCE_DIRS = ['packages/shared/src', 'packages/ui/src'].map((dir) => join(ROOT, dir))
+/**
+ * The packages that the CSS of an app takes classes from, other than the app:
+ * the folders of the source of each that never ship with an app.
+ */
+const PACKAGES: Record<string, readonly string[]> = {
+	shared: ['__tests__'],
+	ui: ['__tests__', '__benchmarks__', 'docs'],
+}
 
-/** The folders that never ship with an app: the tests, the benchmarks, and the ui docs. */
-const FULL_SKIPPED = ['packages/shared/src/__tests__', 'packages/ui/src/__tests__']
-	.concat(['packages/ui/src/__benchmarks__', 'packages/ui/src/docs'])
-	.map((dir) => join(ROOT, dir))
+const srcDir = (name: string): string => join(PACKAGES_DIR, name, 'src')
+
+/** The source tree of each package that the CSS of an app takes classes from. */
+export const SOURCE_DIRS = Object.keys(PACKAGES).map(srcDir)
+
+/** A specifier of a package that the graph follows. */
+const FOLLOWED = new RegExp(`^(?:${Object.keys(PACKAGES).join('|')})(?:/|$)`)
 
 /** The file that this script writes, from the folder of the app. */
 export const SOURCES_FILE = join('app', 'sources.css')
+
+/**
+ * What `app/sources.css` names: the paths that Tailwind scans, the paths that
+ * the scan skips, and a note for the header of the file.
+ */
+export type Sources = { note: string; scanned: string[]; skipped: string[] }
+
+/** All of each source tree, for `next dev`, so a new import needs no new run. */
+const FULL: Sources = {
+	note: 'all of `shared/src` and `ui/src`',
+	scanned: SOURCE_DIRS,
+	skipped: Object.entries(PACKAGES).flatMap(([name, dirs]) =>
+		dirs.map((dir) => join(srcDir(name), dir)),
+	),
+}
 
 const SOURCE_FILE = /\.(?:[cm]?[jt]sx?)$/
 
 const SKIPPED_FILE = /\.(?:test|spec|d)\.[cm]?tsx?$|\.config\.[cm]?ts$/
 
 const SKIPPED_DIR = new Set(['__tests__', 'node_modules', '.next'])
-
-/** A specifier of a package that the graph follows. */
-const FOLLOWED = /^(?:shared|ui)(?:\/|$)/
 
 /**
  * A dynamic import in the output whose path is not a literal, so esbuild did not
@@ -88,13 +110,13 @@ function urlReferences(file: string, text: string): string[] {
 }
 
 /**
- * Each file of `shared/src` and `ui/src` that the app at `appDir` reaches, as an
- * absolute path, in order.
+ * The sources of the app at `appDir` for `next build`: each file of
+ * `shared/src` and `ui/src` that the app reaches, as an absolute path, in order.
  *
  * @throws When esbuild cannot follow an import, such as a dynamic import with no
  * literal path.
  */
-export async function graphSources(appDir: string): Promise<string[]> {
+export async function graphSources(appDir: string): Promise<Sources> {
 	const entries = new Set(appEntries(appDir))
 
 	const reached = new Set<string>()
@@ -137,35 +159,29 @@ export async function graphSources(appDir: string): Promise<string[]> {
 		}
 	}
 
-	return [...reached].filter((file) => SOURCE_DIRS.some((dir) => file.startsWith(dir + sep))).sort()
+	const scanned = [...reached].filter((file) =>
+		SOURCE_DIRS.some((dir) => file.startsWith(dir + sep)),
+	)
+
+	return { note: 'the files that the app imports', scanned: scanned.sort(), skipped: [] }
 }
 
-function sourceLine(from: string, path: string, negated = false): string {
-	return `@source ${negated ? 'not ' : ''}'${relative(from, path).split(sep).join('/')}';`
-}
-
-/** The text of `app/sources.css`: the full scan, or each file of the graph. */
-export function sourcesText(appDir: string, files: string[] | 'full'): string {
+/** The text of `app/sources.css` of the app at `appDir`. */
+export function sourcesText(appDir: string, { note, scanned, skipped }: Sources): string {
 	const from = dirname(join(appDir, SOURCES_FILE))
 
-	const lines =
-		files === 'full'
-			? [
-					...SOURCE_DIRS.map((dir) => sourceLine(from, dir)),
-					...FULL_SKIPPED.map((dir) => sourceLine(from, dir, true)),
-				]
-			: files.map((file) => sourceLine(from, file))
+	const line = (path: string, not = ''): string =>
+		`@source ${not}'${relative(from, path).split(sep).join('/')}';`
 
-	const kind =
-		files === 'full' ? 'all of `shared/src` and `ui/src`' : 'the files that the app imports'
+	const lines = [...scanned.map((path) => line(path)), ...skipped.map((path) => line(path, 'not '))]
 
-	return `/* Written by \`shared/scripts/css-sources.ts\`: ${kind}. Not in git. */\n${lines.join('\n')}\n`
+	return `/* Written by \`shared/scripts/sources/css.ts\`: ${note}. Not in git. */\n${lines.join('\n')}\n`
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
 	const appDir = process.cwd()
 
-	const files = process.argv.includes('--full') ? 'full' : await graphSources(appDir)
+	const sources = process.argv.includes('--full') ? FULL : await graphSources(appDir)
 
-	writeFileSync(join(appDir, SOURCES_FILE), sourcesText(appDir, files))
+	writeFileSync(join(appDir, SOURCES_FILE), sourcesText(appDir, sources))
 }
