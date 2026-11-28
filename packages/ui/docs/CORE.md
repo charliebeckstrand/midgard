@@ -27,6 +27,8 @@ import { cn, createContext, createSlot, announce } from 'ui/core'
 | `RasterImageType` *(type)* | The bitmap formats of a raster: `'image/png' \| 'image/jpeg'`. |
 | `readCookie` | The value of a cookie by name, or `undefined`. In the browser it reads the cookies of the page. A server gives the `Cookie` header of the request. |
 | `foldText` | The text with no accents and in lower case, the form that a search compares: "cafe" finds "Café". Fold the query and the text with it. |
+| `toIsoDay` | The ISO date (`YYYY-MM-DD`) of the local day of a `Date`: the day key that the calendar gives a cell. A `Set` or a URL can hold it, and it sorts as text in the order of the days. |
+| `fromIsoDay` | The local midnight of the day of an ISO date, the inverse of `toIsoDay`. A calendar `value` takes it. Throws on a string that is not an ISO date. |
 | `writeCookie` | Writes a cookie for each path of the site, `secure` on HTTPS, for one year by default. Keep a copy of each layout setting of the reader in a cookie. The server then renders it in the first paint (CONVENTIONS §3.13). Browser only. |
 | `AnnounceOptions` *(type)* | Options for `announce` (politeness level). |
 | `ComposeEventHandlersOptions` *(type)* | Options for `composeEventHandlers` (`checkForDefaultPrevented`). |

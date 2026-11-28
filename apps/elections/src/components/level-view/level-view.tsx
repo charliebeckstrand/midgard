@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { Badge } from 'ui/badge'
 import { Button } from 'ui/button'
 import { Calendar } from 'ui/calendar'
+import { fromIsoDay, toIsoDay } from 'ui/core'
 import {
 	Dialog,
 	DialogBody,
@@ -27,11 +28,9 @@ import {
 	activeFilters,
 	type ElectionDays,
 	filterElections,
-	isoDay,
 	type LevelFilterOptions,
 	type LevelFilterValue,
 	levelFilterOptions,
-	localDay,
 	NO_FILTER,
 	openingDay,
 	statusGroups,
@@ -90,9 +89,9 @@ function CalendarView({
 	return (
 		<Stack gap="lg">
 			<Calendar
-				value={picked === null ? null : localDay(picked)}
-				onDayClick={(day) => setPicked(isoDay(day))}
-				isDayDisabled={(day) => !dates.has(isoDay(day))}
+				value={picked === null ? null : fromIsoDay(picked)}
+				onDayClick={(day) => setPicked(toIsoDay(day))}
+				isDayDisabled={(day) => !dates.has(toIsoDay(day))}
 				getDayProps={({ disabled, selected }) =>
 					disabled || selected ? {} : { variant: 'soft', color: 'blue' }
 				}

@@ -185,6 +185,13 @@ Import these from `utilities/overlay-layers`. They tell whether an open overlay 
 |---|---|
 | `foldText` | The text with no accents and in lower case, the form that a search compares. The lower case does not read the locale. JsonTree, PdfViewer, and the docs search fold through it, and a Biome plugin finds a fold outside it. Import it from `utilities/fold-text`. An app imports it from `ui/core` ([`CORE.md`](CORE.md)). |
 
+## Dates
+
+| Export | Summary |
+|---|---|
+| `toIsoDay` | The ISO date (`YYYY-MM-DD`) of the local day of a `Date`, with a four-digit year. The calendar keys each day cell with it. Import it from `utilities/iso-day`. An app imports it from `ui/core` ([`CORE.md`](CORE.md)). |
+| `fromIsoDay` | The local midnight of the day of an ISO date. The date picker reads the day of a focused cell with it. Import it from `utilities/iso-day`. An app imports it from `ui/core`. |
+
 ## Measurement
 
 | Export | Summary |
