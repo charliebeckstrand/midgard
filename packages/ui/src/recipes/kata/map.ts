@@ -414,6 +414,12 @@ export const k = {
 	 * its first style (`starting:`), so it needs no Motion and stays still under
 	 * reduced motion.
 	 *
+	 * The inset holds a layer of its own for as long as it shows
+	 * (`will-change-[opacity]`). WebKit draws an element on its own layer only
+	 * while its opacity transitions, and it snaps that layer to a different
+	 * device pixel than the page. Without the held layer, the inset moves by a
+	 * part of a pixel at the end of each fade.
+	 *
 	 * The width is a quarter of the plot, between 5rem and 10rem. The height
 	 * comes from the ratio of the frame, which the component sets.
 	 *
@@ -434,6 +440,7 @@ export const k = {
 			'in-[[data-slot=map-plot]:focus-visible]:not-hover:opacity-0',
 			ugoki.css.opacity,
 			ugoki.css.duration,
+			'will-change-[opacity]',
 			omote.bg.surface,
 			sen.ring.default,
 		],
